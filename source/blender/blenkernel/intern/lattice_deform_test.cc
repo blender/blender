@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation.
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
@@ -40,7 +40,7 @@ static void test_lattice_deform_init(LatticeDeformTestContext *ctx,
     ctx->coords[index][2] = (rng->get_float() - 0.5f) * 10;
   }
   IDType_ID_LT.init_data(&ctx->lattice.id);
-  strcpy(ctx->lattice.id.name, "LTLattice");
+  STRNCPY(ctx->lattice.id.name, "LTLattice");
   IDType_ID_OB.init_data(&ctx->ob_lattice.id);
   ctx->ob_lattice.type = OB_LATTICE;
   ctx->ob_lattice.data = &ctx->lattice;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -22,6 +22,9 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -35,6 +38,7 @@ AbcObjectReader::AbcObjectReader(const IObject &object, ImportSettings &settings
     : m_object(nullptr),
       m_iobject(object),
       m_settings(&settings),
+      m_is_reading_a_file_sequence(settings.is_sequence),
       m_min_time(std::numeric_limits<chrono_t>::max()),
       m_max_time(std::numeric_limits<chrono_t>::min()),
       m_refcount(0),
@@ -118,28 +122,31 @@ static Imath::M44d blend_matrices(const Imath::M44d &m0,
 
 Imath::M44d get_matrix(const IXformSchema &schema, const chrono_t time)
 {
-  Alembic::AbcGeom::index_t i0, i1;
-  Alembic::AbcGeom::XformSample s0, s1;
+  Alembic::AbcGeom::ISampleSelector selector(time);
 
-  const double weight = get_weight_and_index(
-      time, schema.getTimeSampling(), schema.getNumSamples(), i0, i1);
+  const std::optional<SampleInterpolationSettings> interpolation_settings =
+      get_sample_interpolation_settings(
+          selector, schema.getTimeSampling(), schema.getNumSamples());
 
-  schema.get(s0, Alembic::AbcGeom::ISampleSelector(i0));
-
-  if (i0 != i1) {
-    schema.get(s1, Alembic::AbcGeom::ISampleSelector(i1));
-    return blend_matrices(s0.getMatrix(), s1.getMatrix(), weight);
+  if (!interpolation_settings.has_value()) {
+    /* No interpolation, just read the current time. */
+    Alembic::AbcGeom::XformSample s0;
+    schema.get(s0, selector);
+    return s0.getMatrix();
   }
 
-  return s0.getMatrix();
+  Alembic::AbcGeom::XformSample s0, s1;
+  schema.get(s0, Alembic::AbcGeom::ISampleSelector(interpolation_settings->index));
+  schema.get(s1, Alembic::AbcGeom::ISampleSelector(interpolation_settings->ceil_index));
+  return blend_matrices(s0.getMatrix(), s1.getMatrix(), interpolation_settings->weight);
 }
 
-struct Mesh *AbcObjectReader::read_mesh(struct Mesh *existing_mesh,
-                                        const Alembic::Abc::ISampleSelector & /*sample_sel*/,
-                                        int /*read_flag*/,
-                                        const char * /*velocity_name*/,
-                                        const float /*velocity_scale*/,
-                                        const char ** /*err_str*/)
+Mesh *AbcObjectReader::read_mesh(Mesh *existing_mesh,
+                                 const Alembic::Abc::ISampleSelector & /*sample_sel*/,
+                                 int /*read_flag*/,
+                                 const char * /*velocity_name*/,
+                                 const float /*velocity_scale*/,
+                                 const char ** /*err_str*/)
 {
   return existing_mesh;
 }

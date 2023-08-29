@@ -74,13 +74,35 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     };
   public:
     SPQR() 
-      : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon()), m_useDefaultThreshold(true)
+      : m_analysisIsOk(false),
+        m_factorizationIsOk(false),
+        m_isRUpToDate(false),
+        m_ordering(SPQR_ORDERING_DEFAULT),
+        m_allow_tol(SPQR_DEFAULT_TOL),
+        m_tolerance (NumTraits<Scalar>::epsilon()),
+        m_cR(0),
+        m_E(0),
+        m_H(0),
+        m_HPinv(0),
+        m_HTau(0),
+        m_useDefaultThreshold(true)
     { 
       cholmod_l_start(&m_cc);
     }
     
     explicit SPQR(const _MatrixType& matrix)
-    : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon()), m_useDefaultThreshold(true)
+      : m_analysisIsOk(false),
+        m_factorizationIsOk(false),
+        m_isRUpToDate(false),
+        m_ordering(SPQR_ORDERING_DEFAULT),
+        m_allow_tol(SPQR_DEFAULT_TOL),
+        m_tolerance (NumTraits<Scalar>::epsilon()),
+        m_cR(0),
+        m_E(0),
+        m_H(0),
+        m_HPinv(0),
+        m_HTau(0),
+        m_useDefaultThreshold(true)
     {
       cholmod_l_start(&m_cc);
       compute(matrix);
@@ -220,7 +242,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the sparse QR can not be computed
       */
     ComputationInfo info() const

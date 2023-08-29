@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
 
 void main()
@@ -23,7 +27,7 @@ void main()
     /* The value of the ghost is attenuated by a scalar multiple of the inverse distance to the
      * center, such that it is maximum at the center and become zero further from the center,
      * making sure to take the scale into account. The scaler multiple of 1 / 4 is chosen using
-     * visual judgement. */
+     * visual judgment. */
     float distance_to_center = distance(coordinates, vec2(0.5)) * 2.0;
     float attenuator = max(0.0, 1.0 - distance_to_center * abs(scale)) / 4.0;
 

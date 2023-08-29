@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -263,7 +263,7 @@ class AbstractHierarchyIterator {
 
   void determine_export_paths(const HierarchyContext *parent_context);
   void determine_duplication_references(const HierarchyContext *parent_context,
-                                        std::string indent);
+                                        const std::string &indent);
 
   /* These three functions create writers and call their write() method. */
   void make_writers(const HierarchyContext *parent_context);

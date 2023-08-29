@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -249,7 +249,7 @@ struct MSLTextureResource {
   MSLTextureSamplerAccess access;
   /* Whether resource is a texture sampler or an image. */
   bool is_texture_sampler;
-  /* Index in shader bind table [[texture(N)]].*/
+  /* Index in shader bind table `[[texture(N)]]`. */
   uint slot;
   /* Explicit bind index provided by ShaderCreateInfo. */
   uint location;
@@ -420,7 +420,8 @@ class MSLGeneratorInterface {
   bool uses_gl_PrimitiveID;
   /* Sets the output render target array index when using multilayered rendering. */
   bool uses_gl_FragDepth;
-  bool uses_mtl_array_index_;
+  bool uses_gpu_layer;
+  bool uses_gpu_viewport_index;
   bool uses_transform_feedback;
   bool uses_barycentrics;
   /* Compute shader global variables. */

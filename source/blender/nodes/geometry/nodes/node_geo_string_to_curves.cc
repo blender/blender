@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,8 +17,8 @@
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 
@@ -49,7 +49,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>("Pivot Point").field_on_all();
 }
 
-static void node_layout(uiLayout *layout, struct bContext *C, PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -63,10 +63,10 @@ static void node_layout(uiLayout *layout, struct bContext *C, PointerRNA *ptr)
                UI_TEMPLATE_ID_FILTER_ALL,
                false,
                nullptr);
-  uiItemR(layout, ptr, "overflow", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "align_x", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "align_y", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "pivot_mode", 0, IFACE_("Pivot Point"), ICON_NONE);
+  uiItemR(layout, ptr, "overflow", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "align_x", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "align_y", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "pivot_mode", UI_ITEM_NONE, IFACE_("Pivot Point"), ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -209,10 +209,10 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.pos = len_chars;
   /* The reason for the additional character here is unknown, but reflects other code elsewhere. */
   cu.str = static_cast<char *>(MEM_mallocN(len_bytes + sizeof(char32_t), __func__));
+  memcpy(cu.str, layout.text.c_str(), len_bytes + 1);
   cu.strinfo = static_cast<CharInfo *>(MEM_callocN((len_chars + 1) * sizeof(CharInfo), __func__));
-  BLI_strncpy(cu.str, layout.text.c_str(), len_bytes + 1);
 
-  struct CharTrans *chartransdata = nullptr;
+  CharTrans *chartransdata = nullptr;
   int text_len;
   bool text_free;
   const char32_t *r_text = nullptr;
@@ -303,7 +303,7 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
       layout.pivot_points.add_new(layout.char_codes[i], pivot_point);
     }
 
-    GeometrySet geometry_set = GeometrySet::create_with_curves(curves_id);
+    GeometrySet geometry_set = GeometrySet::from_curves(curves_id);
     handles.add_new(layout.char_codes[i], instances.add_reference(std::move(geometry_set)));
   }
   return handles;
@@ -380,27 +380,26 @@ static void node_geo_exec(GeoNodeExecParams params)
   add_instances_from_handles(*instances, char_handles, *layout);
   create_attributes(params, *layout, *instances);
 
-  params.set_output("Curve Instances", GeometrySet::create_with_instances(instances.release()));
+  params.set_output("Curve Instances", GeometrySet::from_instances(instances.release()));
 }
 
-}  // namespace blender::nodes::node_geo_string_to_curves_cc
-
-void register_node_type_geo_string_to_curves()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_string_to_curves_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_STRING_TO_CURVES, "String to Curves", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
   blender::bke::node_type_size(&ntype, 190, 120, 700);
   node_type_storage(&ntype,
                     "NodeGeometryStringToCurves",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_string_to_curves_cc

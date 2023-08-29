@@ -38,7 +38,7 @@ namespace internal {
  * \brief Performs numeric block updates (sup-panel) in topological order.
  * 
  * Before entering this routine, the original nonzeros in the panel
- * were already copied i nto the spa[m,w]
+ * were already copied into the spa[m,w]
  * 
  * \param m number of rows in the matrix
  * \param w Panel size

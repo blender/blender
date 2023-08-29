@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,8 @@
  * \ingroup sptext
  */
 
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -26,22 +26,22 @@
 #include "BKE_text.h"
 #include "BKE_undo_system.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_curve.h"
-#include "ED_screen.h"
-#include "ED_text.h"
-#include "ED_undo.h"
+#include "ED_curve.hh"
+#include "ED_screen.hh"
+#include "ED_text.hh"
+#include "ED_undo.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "text_format.h"
-#include "text_intern.h"
+#include "text_format.hh"
+#include "text_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
@@ -52,12 +52,12 @@
 /**
  * Only stores the state of a text buffer.
  */
-typedef struct TextState {
+struct TextState {
   BArrayState *buf_array_state;
 
   int cursor_line, cursor_line_select;
   int cursor_column, cursor_column_select;
-} TextState;
+};
 
 static void text_state_encode(TextState *state, Text *text, BArrayStore *buffer_store)
 {
@@ -106,7 +106,7 @@ static void text_state_decode(TextState *state, Text *text)
 /** \name Implements ED Undo System
  * \{ */
 
-typedef struct TextUndoStep {
+struct TextUndoStep {
   UndoStep step;
   UndoRefID_Text text_ref;
   /**
@@ -114,7 +114,7 @@ typedef struct TextUndoStep {
    * the second is the state after the operation is done.
    */
   TextState states[2];
-} TextUndoStep;
+};
 
 static struct {
   BArrayStore *buffer_store;
@@ -143,7 +143,7 @@ static bool text_undosys_poll(bContext * /*C*/)
   return (ustack->step_init && (ustack->step_init->type == BKE_UNDOSYS_TYPE_TEXT));
 }
 
-static void text_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
+static void text_undosys_step_encode_init(bContext *C, UndoStep *us_p)
 {
   TextUndoStep *us = (TextUndoStep *)us_p;
   BLI_assert(BLI_array_is_zeroed(us->states, ARRAY_SIZE(us->states)));
@@ -169,7 +169,7 @@ static void text_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
   us->text_ref.ptr = text;
 }
 
-static bool text_undosys_step_encode(struct bContext *C, struct Main * /*bmain*/, UndoStep *us_p)
+static bool text_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *us_p)
 {
   TextUndoStep *us = (TextUndoStep *)us_p;
 
@@ -184,11 +184,8 @@ static bool text_undosys_step_encode(struct bContext *C, struct Main * /*bmain*/
   return true;
 }
 
-static void text_undosys_step_decode(struct bContext *C,
-                                     struct Main * /*bmain*/,
-                                     UndoStep *us_p,
-                                     const eUndoStepDir dir,
-                                     bool is_final)
+static void text_undosys_step_decode(
+    bContext *C, Main * /*bmain*/, UndoStep *us_p, const eUndoStepDir dir, bool is_final)
 {
   BLI_assert(dir != STEP_INVALID);
 

@@ -1,9 +1,12 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
-/** \a unormalized_uv is the uv coordinates for the whole tilemap [0..SHADOW_TILEMAP_RES]. */
+/** \a unormalized_uv is the uv coordinates for the whole tile-map [0..SHADOW_TILEMAP_RES]. */
 vec2 shadow_page_uv_transform(
-    vec2 atlas_size, uvec2 page, uint lod, vec2 unormalized_uv, ivec2 tile_lod0_coord)
+    vec2 atlas_size, uvec3 page, uint lod, vec2 unormalized_uv, ivec2 tile_lod0_coord)
 {
   /* Bias uv sample for LODs since custom raster aligns LOD pixels instead of centering them. */
   if (lod != 0) {
@@ -13,7 +16,7 @@ vec2 shadow_page_uv_transform(
   vec2 target_tile = vec2(tile_lod0_coord >> lod);
   vec2 page_uv = unormalized_uv * lod_scaling - target_tile;
   /* Assumes atlas is squared. */
-  vec2 atlas_uv = (vec2(page) + min(page_uv, 0.99999)) * float(SHADOW_PAGE_RES) / atlas_size;
+  vec2 atlas_uv = (vec2(page.xy) + min(page_uv, 0.99999)) * float(SHADOW_PAGE_RES) / atlas_size;
   return atlas_uv;
 }
 
@@ -77,15 +80,13 @@ mat4x4 shadow_load_normal_matrix(LightData light)
   }
 }
 
-/* Returns minimum bias (in world space unit) needed for a given geometry normal and a shadowmap
+/* Returns minimum bias (in world space unit) needed for a given geometry normal and a shadow-map
  * page to avoid self shadowing artifacts. Note that this can return a negative bias to better
  * match the surface. */
 float shadow_slope_bias_get(vec2 atlas_size, LightData light, vec3 lNg, vec3 lP, vec2 uv, uint lod)
 {
   /* Compute coordinate inside the pixel we are sampling. */
   vec2 uv_subpixel_coord = fract(uv * atlas_size);
-  /* Bias uv sample for LODs since custom raster aligns LOD pixels instead of centering them. */
-  uv_subpixel_coord += (lod > 0) ? -exp2(-1.0 - float(lod)) : 0.0;
   /* Compute delta to the texel center (where the sample is). */
   vec2 ndc_texel_center_delta = uv_subpixel_coord * 2.0 - 1.0;
   /* Create a normal plane equation and go through the normal projection matrix. */
@@ -98,16 +99,16 @@ float shadow_slope_bias_get(vec2 atlas_size, LightData light, vec3 lNg, vec3 lP,
   /* Compute slope to where the receiver should be by extending the plane to the texel center. */
   float bias = dot(ndc_slope, ndc_texel_center_delta);
   /* Bias for 1 pixel of the sampled LOD. */
-  bias /= ((SHADOW_TILEMAP_RES * SHADOW_PAGE_RES) >> lod);
+  bias /= float((SHADOW_TILEMAP_RES * SHADOW_PAGE_RES) >> lod);
   return bias;
 }
 
 struct ShadowSample {
   /* Signed delta in world units from the shading point to the occluder. Negative if occluded. */
   float occluder_delta;
-  /* Tile coordinate inside the tilemap [0..SHADOW_TILEMAP_RES). */
+  /* Tile coordinate inside the tile-map [0..SHADOW_TILEMAP_RES). */
   ivec2 tile_coord;
-  /* UV coordinate inside the tilemap [0..SHADOW_TILEMAP_RES). */
+  /* UV coordinate inside the tile-map [0..SHADOW_TILEMAP_RES). */
   vec2 uv;
   /* Minimum slope bias to apply during comparison. */
   float bias;
@@ -117,14 +118,16 @@ struct ShadowSample {
   ShadowTileData tile;
 };
 
-float shadow_tile_depth_get(usampler2D atlas_tx, ShadowTileData tile, vec2 atlas_uv)
+float shadow_tile_depth_get(usampler2DArray atlas_tx, ShadowTileData tile, vec2 atlas_uv)
 {
   if (!tile.is_allocated) {
     /* Far plane distance but with a bias to make sure there will be no shadowing.
      * But also not FLT_MAX since it can cause issue with projection. */
     return 1.1;
   }
-  return uintBitsToFloat(texture(atlas_tx, atlas_uv).r);
+  uint raw_bits = texture(atlas_tx, vec3(atlas_uv, float(tile.page.z))).r;
+  float depth = uintBitsToFloat(raw_bits);
+  return depth;
 }
 
 vec2 shadow_punctual_linear_depth(vec2 z, float near, float far)
@@ -137,11 +140,11 @@ vec2 shadow_punctual_linear_depth(vec2 z, float near, float far)
 
 float shadow_directional_linear_depth(float z, float near, float far)
 {
-  return z * (near - far) - near;
+  return z * (far - near) + near;
 }
 
 ShadowSample shadow_punctual_sample_get(
-    usampler2D atlas_tx, usampler2D tilemaps_tx, LightData light, vec3 lP, vec3 lNg)
+    usampler2DArray atlas_tx, usampler2D tilemaps_tx, LightData light, vec3 lP, vec3 lNg)
 {
   int face_id = shadow_punctual_face_index_get(lP);
   lNg = shadow_punctual_local_position_to_face_local(face_id, lNg);
@@ -176,7 +179,7 @@ ShadowSample shadow_punctual_sample_get(
 }
 
 ShadowSample shadow_directional_sample_get(
-    usampler2D atlas_tx, usampler2D tilemaps_tx, LightData light, vec3 P, vec3 lNg)
+    usampler2DArray atlas_tx, usampler2D tilemaps_tx, LightData light, vec3 P, vec3 lNg)
 {
   vec3 lP = shadow_world_to_local(light, P);
   ShadowCoordinates coord = shadow_directional_coordinates(light, lP);
@@ -198,13 +201,13 @@ ShadowSample shadow_directional_sample_get(
   /* Receiver distance needs to also be increasing.
    * Negate since Z distance follows blender camera convention of -Z as forward. */
   float receiver_dist = -lP.z;
-  samp.bias *= near - far;
+  samp.bias *= far - near;
   samp.occluder_delta = samp.occluder_dist - receiver_dist;
   return samp;
 }
 
 ShadowSample shadow_sample(const bool is_directional,
-                           usampler2D atlas_tx,
+                           usampler2DArray atlas_tx,
                            usampler2D tilemaps_tx,
                            LightData light,
                            vec3 lL,

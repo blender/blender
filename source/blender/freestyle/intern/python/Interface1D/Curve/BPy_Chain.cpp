@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -23,7 +25,7 @@ using namespace Freestyle;
 PyDoc_STRVAR(Chain_doc,
              "Class hierarchy: :class:`Interface1D` > :class:`Curve` > :class:`Chain`\n"
              "\n"
-             "Class to represent a 1D elements issued from the chaining process.  A\n"
+             "Class to represent a 1D elements issued from the chaining process. A\n"
              "Chain is the last step before the :class:`Stroke` and is used in the\n"
              "Splitting and Creation processes.\n"
              "\n"
@@ -137,7 +139,7 @@ static PyMethodDef BPy_Chain_methods[] = {
 /*-----------------------BPy_Chain type definition ------------------------------*/
 
 PyTypeObject Chain_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Chain",
     /*tp_basicsize*/ sizeof(BPy_Chain),
     /*tp_itemsize*/ 0,

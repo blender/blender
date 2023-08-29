@@ -1,10 +1,11 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd.h"
-#include "usd_common.h"
+#include "usd.hh"
 #include "usd_hierarchy_iterator.h"
+#include "usd_hook.h"
 
 #include <pxr/base/plug/registry.h>
 #include <pxr/pxr.h>
@@ -34,8 +35,8 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 namespace blender::io::usd {
 
@@ -119,10 +120,12 @@ static bool export_params_valid(const USDExportParams &params)
   return valid;
 }
 
-/* Create the root Xform primitive, if the Root Prim path has been set
+/**
+ * Create the root Xform primitive, if the Root Prim path has been set
  * in the export options. In the future, this function can be extended
  * to author transforms and additional schema data (e.g., model Kind)
- * on the root prim.  */
+ * on the root prim.
+ */
 static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &params)
 {
   if (params.root_prim_path[0] == '\0') {
@@ -197,67 +200,44 @@ static bool perform_usdz_conversion(const ExportJobData *data)
   return true;
 }
 
-static void export_startjob(void *customdata,
-                            /* Cannot be const, this function implements wm_jobs_start_callback.
-                             * NOLINTNEXTLINE: readability-non-const-parameter. */
-                            bool *stop,
-                            bool *do_update,
-                            float *progress)
+static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
+                                           Depsgraph *depsgraph,
+                                           const char *filepath,
+                                           bool *stop,
+                                           bool *do_update,
+                                           float *progress)
 {
-  ExportJobData *data = static_cast<ExportJobData *>(customdata);
-  data->export_ok = false;
-  data->start_time = timeit::Clock::now();
-
-  G.is_rendering = true;
-  if (data->wm) {
-    WM_set_locked_interface(data->wm, true);
-  }
-  G.is_break = false;
-
-  /* Construct the depsgraph for exporting. */
-  Scene *scene = DEG_get_input_scene(data->depsgraph);
-  if (data->params.visible_objects_only) {
-    DEG_graph_build_from_view_layer(data->depsgraph);
-  }
-  else {
-    DEG_graph_build_for_all_objects(data->depsgraph);
-  }
-  BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
-
-  *progress = 0.0f;
-  *do_update = true;
-
-  /* For restoring the current frame after exporting animation is done. */
-  const int orig_frame = scene->r.cfra;
-
-  pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(data->unarchived_filepath);
+  pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(filepath);
   if (!usd_stage) {
-    /* This happens when the USD JSON files cannot be found. When that happens,
-     * the USD library doesn't know it has the functionality to write USDA and
-     * USDC files, and creating a new UsdStage fails. */
-    WM_reportf(RPT_ERROR,
-               "USD Export: unable to find suitable USD plugin to write %s",
-               data->unarchived_filepath);
-    return;
+    return usd_stage;
   }
 
-  usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::VtValue(pxr::UsdGeomTokens->z));
+  Scene *scene = DEG_get_input_scene(depsgraph);
+  Main *bmain = DEG_get_bmain(depsgraph);
+
   usd_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit, double(scene->unit.scale_length));
   usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
                                               BKE_blender_version_string());
 
   /* Set up the stage for animated data. */
-  if (data->params.export_animation) {
+  if (params.export_animation) {
     usd_stage->SetTimeCodesPerSecond(FPS);
     usd_stage->SetStartTimeCode(scene->r.sfra);
     usd_stage->SetEndTimeCode(scene->r.efra);
   }
 
-  ensure_root_prim(usd_stage, data->params);
+  /* For restoring the current frame after exporting animation is done. */
+  const int orig_frame = scene->r.cfra;
 
-  USDHierarchyIterator iter(data->bmain, data->depsgraph, usd_stage, data->params);
+  /* Ensure Python types for invoking export hooks are registered. */
+  register_export_hook_converters();
 
-  if (data->params.export_animation) {
+  usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::VtValue(pxr::UsdGeomTokens->z));
+  ensure_root_prim(usd_stage, params);
+
+  USDHierarchyIterator iter(bmain, depsgraph, usd_stage, params);
+
+  if (params.export_animation) {
     /* Writing the animated frames is not 100% of the work, but it's our best guess. */
     float progress_per_frame = 1.0f / std::max(1, (scene->r.efra - scene->r.sfra + 1));
 
@@ -269,13 +249,17 @@ static void export_startjob(void *customdata,
       /* Update the scene for the next frame to render. */
       scene->r.cfra = int(frame);
       scene->r.subframe = frame - scene->r.cfra;
-      BKE_scene_graph_update_for_newframe(data->depsgraph);
+      BKE_scene_graph_update_for_newframe(depsgraph);
 
       iter.set_export_frame(frame);
       iter.iterate_and_write();
 
-      *progress += progress_per_frame;
-      *do_update = true;
+      if (progress) {
+        *progress += progress_per_frame;
+      }
+      if (do_update) {
+        *do_update = true;
+      }
     }
   }
   else {
@@ -295,13 +279,66 @@ static void export_startjob(void *customdata,
     }
   }
 
-  usd_stage->GetRootLayer()->Save();
+  call_export_hooks(usd_stage, depsgraph);
 
   /* Finish up by going back to the keyframe that was current before we started. */
   if (scene->r.cfra != orig_frame) {
     scene->r.cfra = orig_frame;
-    BKE_scene_graph_update_for_newframe(data->depsgraph);
+    BKE_scene_graph_update_for_newframe(depsgraph);
   }
+
+  return usd_stage;
+}
+
+pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
+                                    Depsgraph *depsgraph,
+                                    const char *filepath)
+{
+  return export_to_stage(params, depsgraph, filepath, nullptr, nullptr, nullptr);
+}
+
+static void export_startjob(void *customdata,
+                            /* Cannot be const, this function implements wm_jobs_start_callback.
+                             * NOLINTNEXTLINE: readability-non-const-parameter. */
+                            bool *stop,
+                            bool *do_update,
+                            float *progress)
+{
+  ExportJobData *data = static_cast<ExportJobData *>(customdata);
+  data->export_ok = false;
+  data->start_time = timeit::Clock::now();
+
+  G.is_rendering = true;
+  if (data->wm) {
+    WM_set_locked_interface(data->wm, true);
+  }
+  G.is_break = false;
+
+  /* Construct the depsgraph for exporting. */
+  if (data->params.visible_objects_only) {
+    DEG_graph_build_from_view_layer(data->depsgraph);
+  }
+  else {
+    DEG_graph_build_for_all_objects(data->depsgraph);
+  }
+  BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
+
+  *progress = 0.0f;
+  *do_update = true;
+
+  pxr::UsdStageRefPtr usd_stage = export_to_stage(
+      data->params, data->depsgraph, data->unarchived_filepath, stop, do_update, progress);
+  if (!usd_stage) {
+    /* This happens when the USD JSON files cannot be found. When that happens,
+     * the USD library doesn't know it has the functionality to write USDA and
+     * USDC files, and creating a new UsdStage fails. */
+    WM_reportf(RPT_ERROR,
+               "USD Export: unable to find suitable USD plugin to write %s",
+               data->unarchived_filepath);
+    return;
+  }
+
+  usd_stage->GetRootLayer()->Save();
 
   if (data->targets_usdz()) {
     bool usd_conversion_success = perform_usdz_conversion(data);
@@ -381,12 +418,12 @@ static void create_temp_path_for_usdz_export(const char *filepath,
 
 static void set_job_filepath(blender::io::usd::ExportJobData *job, const char *filepath)
 {
-  if (BLI_path_extension_check_n(filepath, ".usdz", NULL)) {
+  if (BLI_path_extension_check_n(filepath, ".usdz", nullptr)) {
     create_temp_path_for_usdz_export(filepath, job);
     return;
   }
 
-  BLI_strncpy(job->unarchived_filepath, filepath, sizeof(job->unarchived_filepath));
+  STRNCPY(job->unarchived_filepath, filepath);
   job->usdz_filepath[0] = '\0';
 }
 
@@ -430,7 +467,7 @@ bool USD_export(bContext *C,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    /* Fake a job context, so that we don't need NULL pointer checks while exporting. */
+    /* Fake a job context, so that we don't need null pointer checks while exporting. */
     bool stop = false, do_update = false;
     float progress = 0.0f;
 

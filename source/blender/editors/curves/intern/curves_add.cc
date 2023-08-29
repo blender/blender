@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,9 +15,9 @@
 
 #include "BLT_translation.h"
 
-#include "ED_curves.h"
-#include "ED_node.h"
-#include "ED_object.h"
+#include "ED_curves.hh"
+#include "ED_node.hh"
+#include "ED_object.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"

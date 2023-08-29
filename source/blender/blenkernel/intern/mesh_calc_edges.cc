@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,6 +11,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_map.hh"
+#include "BLI_ordered_edge.hh"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_timeit.hh"
@@ -21,43 +22,14 @@
 
 namespace blender::bke::calc_edges {
 
-/** This is used to uniquely identify edges in a hash map. */
-struct OrderedEdge {
-  int v_low, v_high;
-
-  OrderedEdge(const int v1, const int v2)
-  {
-    if (v1 < v2) {
-      v_low = v1;
-      v_high = v2;
-    }
-    else {
-      v_low = v2;
-      v_high = v1;
-    }
-  }
-
-  OrderedEdge(const uint v1, const uint v2) : OrderedEdge(int(v1), int(v2)) {}
-
-  uint64_t hash() const
-  {
-    return (this->v_low << 8) ^ this->v_high;
-  }
-
-  /** Return a hash value that is likely to be different in the low bits from the normal `hash()`
-   * function. This is necessary to avoid collisions in #BKE_mesh_calc_edges. */
-  uint64_t hash2() const
-  {
-    return this->v_low;
-  }
-
-  friend bool operator==(const OrderedEdge &e1, const OrderedEdge &e2)
-  {
-    BLI_assert(e1.v_low < e1.v_high);
-    BLI_assert(e2.v_low < e2.v_high);
-    return e1.v_low == e2.v_low && e1.v_high == e2.v_high;
-  }
-};
+/**
+ * Return a hash value that is likely to be different in the low bits from the normal `hash()`
+ * function. This is necessary to avoid collisions in #BKE_mesh_calc_edges.
+ */
+static uint64_t edge_hash_2(const OrderedEdge &edge)
+{
+  return edge.v_low;
+}
 
 /* The map first contains an edge pointer and later an index. */
 union OrigEdgeOrIndex {
@@ -70,7 +42,7 @@ static void reserve_hash_maps(const Mesh *mesh,
                               const bool keep_existing_edges,
                               MutableSpan<EdgeMap> edge_maps)
 {
-  const int totedge_guess = std::max(keep_existing_edges ? mesh->totedge : 0, mesh->totpoly * 2);
+  const int totedge_guess = std::max(keep_existing_edges ? mesh->totedge : 0, mesh->faces_num * 2);
   threading::parallel_for_each(
       edge_maps, [&](EdgeMap &edge_map) { edge_map.reserve(totedge_guess / edge_maps.size()); });
 }
@@ -86,30 +58,30 @@ static void add_existing_edges_to_hash_maps(Mesh *mesh,
     for (const int2 &edge : edges) {
       OrderedEdge ordered_edge{edge[0], edge[1]};
       /* Only add the edge when it belongs into this map. */
-      if (task_index == (parallel_mask & ordered_edge.hash2())) {
+      if (task_index == (parallel_mask & edge_hash_2(ordered_edge))) {
         edge_map.add_new(ordered_edge, {&edge});
       }
     }
   });
 }
 
-static void add_polygon_edges_to_hash_maps(Mesh *mesh,
-                                           MutableSpan<EdgeMap> edge_maps,
-                                           uint32_t parallel_mask)
+static void add_face_edges_to_hash_maps(Mesh *mesh,
+                                        MutableSpan<EdgeMap> edge_maps,
+                                        uint32_t parallel_mask)
 {
-  const OffsetIndices polys = mesh->polys();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - edge_maps.data();
-    for (const int i : polys.index_range()) {
-      const Span<int> poly_verts = corner_verts.slice(polys[i]);
-      int vert_prev = poly_verts.last();
-      for (const int vert : poly_verts) {
+    for (const int i : faces.index_range()) {
+      const Span<int> face_verts = corner_verts.slice(faces[i]);
+      int vert_prev = face_verts.last();
+      for (const int vert : face_verts) {
         /* Can only be the same when the mesh data is invalid. */
         if (vert_prev != vert) {
           OrderedEdge ordered_edge{vert_prev, vert};
           /* Only add the edge when it belongs into this map. */
-          if (task_index == (parallel_mask & ordered_edge.hash2())) {
+          if (task_index == (parallel_mask & edge_hash_2(ordered_edge))) {
             edge_map.lookup_or_add(ordered_edge, {nullptr});
           }
         }
@@ -153,17 +125,17 @@ static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edg
   });
 }
 
-static void update_edge_indices_in_poly_loops(const OffsetIndices<int> polys,
+static void update_edge_indices_in_face_loops(const OffsetIndices<int> faces,
                                               const Span<int> corner_verts,
                                               const Span<EdgeMap> edge_maps,
                                               const uint32_t parallel_mask,
                                               MutableSpan<int> corner_edges)
 {
-  threading::parallel_for(polys.index_range(), 100, [&](IndexRange range) {
-    for (const int poly_index : range) {
-      const IndexRange poly = polys[poly_index];
-      int prev_corner = poly.last();
-      for (const int next_corner : poly) {
+  threading::parallel_for(faces.index_range(), 100, [&](IndexRange range) {
+    for (const int face_index : range) {
+      const IndexRange face = faces[face_index];
+      int prev_corner = face.last();
+      for (const int next_corner : face) {
         const int vert = corner_verts[next_corner];
         const int vert_prev = corner_verts[prev_corner];
 
@@ -171,7 +143,7 @@ static void update_edge_indices_in_poly_loops(const OffsetIndices<int> polys,
         if (vert_prev != vert) {
           OrderedEdge ordered_edge{vert_prev, vert};
           /* Double lookup: First find the map that contains the edge, then lookup the edge. */
-          const EdgeMap &edge_map = edge_maps[parallel_mask & ordered_edge.hash2()];
+          const EdgeMap &edge_map = edge_maps[parallel_mask & edge_hash_2(ordered_edge)];
           edge_index = edge_map.lookup(ordered_edge).index;
         }
         else {
@@ -190,7 +162,7 @@ static void update_edge_indices_in_poly_loops(const OffsetIndices<int> polys,
 static int get_parallel_maps_count(const Mesh *mesh)
 {
   /* Don't use parallelization when the mesh is small. */
-  if (mesh->totpoly < 1000) {
+  if (mesh->faces_num < 1000) {
     return 1;
   }
   /* Use at most 8 separate hash tables. Using more threads has diminishing returns. These threads
@@ -224,7 +196,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   if (keep_existing_edges) {
     calc_edges::add_existing_edges_to_hash_maps(mesh, edge_maps, parallel_mask);
   }
-  calc_edges::add_polygon_edges_to_hash_maps(mesh, edge_maps, parallel_mask);
+  calc_edges::add_face_edges_to_hash_maps(mesh, edge_maps, parallel_mask);
 
   /* Compute total number of edges. */
   int new_totedge = 0;
@@ -233,25 +205,22 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   }
 
   /* Create new edges. */
-  if (!CustomData_has_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_edge")) {
-    CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh->totloop, ".corner_edge");
-  }
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  attributes.add<int>(".corner_edge", ATTR_DOMAIN_CORNER, AttributeInitConstruct());
   MutableSpan<int2> new_edges{
       static_cast<int2 *>(MEM_calloc_arrayN(new_totedge, sizeof(int2), __func__)), new_totedge};
   calc_edges::serialize_and_initialize_deduplicated_edges(edge_maps, new_edges);
-  calc_edges::update_edge_indices_in_poly_loops(mesh->polys(),
+  calc_edges::update_edge_indices_in_face_loops(mesh->faces(),
                                                 mesh->corner_verts(),
                                                 edge_maps,
                                                 parallel_mask,
                                                 mesh->corner_edges_for_write());
 
   /* Free old CustomData and assign new one. */
-  CustomData_free(&mesh->edata, mesh->totedge);
-  CustomData_reset(&mesh->edata);
-  CustomData_add_layer_named_with_data(
-      &mesh->edata, CD_PROP_INT32_2D, new_edges.data(), new_totedge, ".edge_verts", nullptr);
+  CustomData_free(&mesh->edge_data, mesh->totedge);
+  CustomData_reset(&mesh->edge_data);
   mesh->totedge = new_totedge;
+  attributes.add<int2>(".edge_verts", ATTR_DOMAIN_EDGE, AttributeInitMoveArray(new_edges.data()));
 
   if (select_new_edges) {
     MutableAttributeAccessor attributes = mesh->attributes_for_write();

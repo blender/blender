@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2022 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2022 Blender Foundation.
 
 # - Find Brotli library (compression for freetype/woff2).
 # This module defines
@@ -11,16 +12,20 @@
 #  BROTLI_FOUND, If false, do not try to use Brotli.
 #
 
-# If BROTLI_ROOT_DIR was defined in the environment, use it.
-IF(NOT BROTLI_ROOT_DIR AND NOT $ENV{BROTLI_ROOT_DIR} STREQUAL "")
-  SET(BROTLI_ROOT_DIR $ENV{BROTLI_ROOT_DIR})
-ENDIF()
+# If `BROTLI_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED BROTLI_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{BROTLI_ROOT_DIR})
+  set(BROTLI_ROOT_DIR $ENV{BROTLI_ROOT_DIR})
+else()
+  set(BROTLI_ROOT_DIR "")
+endif()
 
-SET(_BROTLI_SEARCH_DIRS
+set(_BROTLI_SEARCH_DIRS
   ${BROTLI_ROOT_DIR}
 )
 
-FIND_PATH(BROTLI_INCLUDE_DIR
+find_path(BROTLI_INCLUDE_DIR
   NAMES
     brotli/decode.h
   HINTS
@@ -30,7 +35,7 @@ FIND_PATH(BROTLI_INCLUDE_DIR
   DOC "Brotli header files"
 )
 
-FIND_LIBRARY(BROTLI_LIBRARY_COMMON
+find_library(BROTLI_LIBRARY_COMMON
   NAMES
     # Some builds use a special `-static` postfix in their static libraries names.
     brotlicommon-static
@@ -41,7 +46,7 @@ FIND_LIBRARY(BROTLI_LIBRARY_COMMON
     lib64 lib lib/static
   DOC "Brotli static common library"
 )
-FIND_LIBRARY(BROTLI_LIBRARY_DEC
+find_library(BROTLI_LIBRARY_DEC
   NAMES
     # Some builds use a special `-static` postfix in their static libraries names.
     brotlidec-static
@@ -54,26 +59,26 @@ FIND_LIBRARY(BROTLI_LIBRARY_DEC
 )
 
 
-IF(${BROTLI_LIBRARY_COMMON_NOTFOUND} or ${BROTLI_LIBRARY_DEC_NOTFOUND})
+if((NOT BROTLI_LIBRARY_COMMON) OR (NOT BROTLI_LIBRARY_DEC))
   set(BROTLI_FOUND FALSE)
-ELSE()
+else()
   # handle the QUIETLY and REQUIRED arguments and set BROTLI_FOUND to TRUE if
   # all listed variables are TRUE
-  INCLUDE(FindPackageHandleStandardArgs)
-  FIND_PACKAGE_HANDLE_STANDARD_ARGS(Brotli DEFAULT_MSG BROTLI_LIBRARY_COMMON BROTLI_LIBRARY_DEC BROTLI_INCLUDE_DIR)
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(Brotli DEFAULT_MSG BROTLI_LIBRARY_COMMON BROTLI_LIBRARY_DEC BROTLI_INCLUDE_DIR)
 
-  IF(BROTLI_FOUND)
+  if(BROTLI_FOUND)
     get_filename_component(BROTLI_LIBRARY_DIR ${BROTLI_LIBRARY_COMMON} DIRECTORY)
-    SET(BROTLI_INCLUDE_DIRS ${BROTLI_INCLUDE_DIR})
-    SET(BROTLI_LIBRARIES ${BROTLI_LIBRARY_DEC} ${BROTLI_LIBRARY_COMMON})
-  ENDIF()
-ENDIF()
+    set(BROTLI_INCLUDE_DIRS ${BROTLI_INCLUDE_DIR})
+    set(BROTLI_LIBRARIES ${BROTLI_LIBRARY_DEC} ${BROTLI_LIBRARY_COMMON})
+  endif()
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   BROTLI_INCLUDE_DIR
   BROTLI_LIBRARY_COMMON
   BROTLI_LIBRARY_DEC
   BROTLI_LIBRARY_DIR
 )
 
-UNSET(_BROTLI_SEARCH_DIRS)
+unset(_BROTLI_SEARCH_DIRS)

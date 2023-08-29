@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 from __future__ import annotations
 
 import bpy
@@ -9,6 +12,7 @@ from bpy.types import (
 from bpy.props import (
     BoolProperty,
     CollectionProperty,
+    EnumProperty,
     FloatVectorProperty,
     StringProperty,
 )
@@ -70,8 +74,8 @@ class NodeAddOperator:
 
         try:
             node = tree.nodes.new(type=node_type)
-        except RuntimeError as e:
-            self.report({'ERROR'}, str(e))
+        except RuntimeError as ex:
+            self.report({'ERROR'}, str(ex))
             return None
 
         for setting in self.settings:
@@ -87,11 +91,11 @@ class NodeAddOperator:
 
             try:
                 setattr(node_data, node_attr_name, value)
-            except AttributeError as e:
+            except AttributeError as ex:
                 self.report(
                     {'ERROR_INVALID_INPUT'},
-                    "Node has no attribute " + setting.name)
-                print(str(e))
+                    tip_("Node has no attribute %s") % setting.name)
+                print(str(ex))
                 # Continue despite invalid attribute
 
         node.select = True
@@ -150,14 +154,7 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
             return ""
 
 
-class NODE_OT_add_simulation_zone(NodeAddOperator, Operator):
-    """Add simulation zone input and output nodes to the active tree"""
-    bl_idname = "node.add_simulation_zone"
-    bl_label = "Add Simulation Zone"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    input_node_type = "GeometryNodeSimulationInput"
-    output_node_type = "GeometryNodeSimulationOutput"
+class NodeAddZoneOperator(NodeAddOperator):
     offset: FloatVectorProperty(
         name="Offset",
         description="Offset of nodes from the cursor when added",
@@ -190,6 +187,26 @@ class NODE_OT_add_simulation_zone(NodeAddOperator, Operator):
         tree.links.new(to_socket, from_socket)
 
         return {'FINISHED'}
+
+
+class NODE_OT_add_simulation_zone(NodeAddZoneOperator, Operator):
+    """Add simulation zone input and output nodes to the active tree"""
+    bl_idname = "node.add_simulation_zone"
+    bl_label = "Add Simulation Zone"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    input_node_type = "GeometryNodeSimulationInput"
+    output_node_type = "GeometryNodeSimulationOutput"
+
+
+class NODE_OT_add_repeat_zone(NodeAddZoneOperator, Operator):
+    """Add a repeat zone that allows executing nodes a dynamic number of times"""
+    bl_idname = "node.add_repeat_zone"
+    bl_label = "Add Repeat Zone"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    input_node_type = "GeometryNodeRepeatInput"
+    output_node_type = "GeometryNodeRepeatOutput"
 
 
 class NODE_OT_collapse_hide_unused_toggle(Operator):
@@ -248,6 +265,7 @@ classes = (
 
     NODE_OT_add_node,
     NODE_OT_add_simulation_zone,
+    NODE_OT_add_repeat_zone,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_tree_path_parent,
 )

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,6 +8,7 @@
 
 #include "BLI_color.hh"
 #include "BLI_generic_pointer.hh"
+#include "BLI_math_quaternion.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_context.h"
@@ -17,25 +18,25 @@
 #include "BKE_report.h"
 #include "BKE_type_conversions.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
+#include "ED_view3d.hh"
 
 #include "BLT_translation.h"
 
 #include "DNA_object_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "bmesh_tools.h"
 
@@ -106,6 +107,8 @@ static StringRefNull rna_property_name_for_type(const eCustomDataType type)
       return "value_int";
     case CD_PROP_INT32_2D:
       return "value_int_vector_2d";
+    case CD_PROP_QUATERNION:
+      return "value_quat";
     default:
       BLI_assert_unreachable();
       return "";
@@ -198,6 +201,12 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
     case CD_PROP_COLOR:
       RNA_float_get_array(op->ptr, prop_name.c_str(), static_cast<float *>(buffer));
       break;
+    case CD_PROP_QUATERNION: {
+      float4 value;
+      RNA_float_get_array(op->ptr, prop_name.c_str(), value);
+      *static_cast<math::Quaternion *>(buffer) = math::normalize(math::Quaternion(value));
+      break;
+    }
     case CD_PROP_BYTE_COLOR:
       ColorGeometry4f value;
       RNA_float_get_array(op->ptr, prop_name.c_str(), value);
@@ -330,6 +339,11 @@ static int mesh_set_attribute_invoke(bContext *C, wmOperator *op, const wmEvent 
       case CD_PROP_INT32_2D:
         RNA_property_int_set_array(op->ptr, prop, *active_value.get<int2>());
         break;
+      case CD_PROP_QUATERNION: {
+        const math::Quaternion value = math::normalize(*active_value.get<math::Quaternion>());
+        RNA_property_float_set_array(op->ptr, prop, float4(value));
+        break;
+      }
       default:
         BLI_assert_unreachable();
     }
@@ -349,7 +363,7 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
   const eCustomDataType active_type = eCustomDataType(active_attribute->type);
   const StringRefNull prop_name = rna_property_name_for_type(active_type);
   const char *name = active_attribute->name;
-  uiItemR(layout, op->ptr, prop_name.c_str(), 0, name, ICON_NONE);
+  uiItemR(layout, op->ptr, prop_name.c_str(), UI_ITEM_NONE, name, ICON_NONE);
 }
 
 }  // namespace set_attribute
@@ -408,6 +422,16 @@ void MESH_OT_attribute_set(wmOperatorType *ot)
   RNA_def_float_color(
       ot->srna, "value_color", 4, color_default, -FLT_MAX, FLT_MAX, "Value", "", 0.0f, 1.0f);
   RNA_def_boolean(ot->srna, "value_bool", false, "Value", "");
+  RNA_def_float_array(ot->srna,
+                      "value_quat",
+                      4,
+                      rna_default_quaternion,
+                      -FLT_MAX,
+                      FLT_MAX,
+                      "Value",
+                      "",
+                      FLT_MAX,
+                      FLT_MAX);
 }
 
 /** \} */

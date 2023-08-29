@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -56,9 +56,9 @@ struct MovieCache {
   MovieCacheGetItemPriorityFP getitempriorityfp;
   MovieCachePriorityDeleterFP prioritydeleterfp;
 
-  struct BLI_mempool *keys_pool;
-  struct BLI_mempool *items_pool;
-  struct BLI_mempool *userkeys_pool;
+  BLI_mempool *keys_pool;
+  BLI_mempool *items_pool;
+  BLI_mempool *userkeys_pool;
 
   int keysize;
 
@@ -247,7 +247,7 @@ static bool get_item_destroyable(void *item_v)
   return true;
 }
 
-void IMB_moviecache_init(void)
+void IMB_moviecache_init()
 {
   limitor = new_MEM_CacheLimiter(moviecache_destructor, get_item_size);
 
@@ -255,7 +255,7 @@ void IMB_moviecache_init(void)
   MEM_CacheLimiter_ItemDestroyable_Func_set(limitor, get_item_destroyable);
 }
 
-void IMB_moviecache_destruct(void)
+void IMB_moviecache_destruct()
 {
   if (limitor) {
     delete_MEM_CacheLimiter(limitor);
@@ -295,7 +295,7 @@ void IMB_moviecache_set_getdata_callback(MovieCache *cache, MovieCacheGetKeyData
   cache->getdatafp = getdatafp;
 }
 
-void IMB_moviecache_set_priority_callback(struct MovieCache *cache,
+void IMB_moviecache_set_priority_callback(MovieCache *cache,
                                           MovieCacheGetPriorityDataFP getprioritydatafp,
                                           MovieCacheGetItemPriorityFP getitempriorityfp,
                                           MovieCachePriorityDeleterFP prioritydeleterfp)
@@ -573,38 +573,38 @@ void IMB_moviecache_get_cache_segments(
   }
 }
 
-struct MovieCacheIter *IMB_moviecacheIter_new(MovieCache *cache)
+MovieCacheIter *IMB_moviecacheIter_new(MovieCache *cache)
 {
   GHashIterator *iter;
 
   check_unused_keys(cache);
   iter = BLI_ghashIterator_new(cache->hash);
 
-  return (struct MovieCacheIter *)iter;
+  return (MovieCacheIter *)iter;
 }
 
-void IMB_moviecacheIter_free(struct MovieCacheIter *iter)
+void IMB_moviecacheIter_free(MovieCacheIter *iter)
 {
   BLI_ghashIterator_free((GHashIterator *)iter);
 }
 
-bool IMB_moviecacheIter_done(struct MovieCacheIter *iter)
+bool IMB_moviecacheIter_done(MovieCacheIter *iter)
 {
   return BLI_ghashIterator_done((GHashIterator *)iter);
 }
 
-void IMB_moviecacheIter_step(struct MovieCacheIter *iter)
+void IMB_moviecacheIter_step(MovieCacheIter *iter)
 {
   BLI_ghashIterator_step((GHashIterator *)iter);
 }
 
-ImBuf *IMB_moviecacheIter_getImBuf(struct MovieCacheIter *iter)
+ImBuf *IMB_moviecacheIter_getImBuf(MovieCacheIter *iter)
 {
   MovieCacheItem *item = (MovieCacheItem *)BLI_ghashIterator_getValue((GHashIterator *)iter);
   return item->ibuf;
 }
 
-void *IMB_moviecacheIter_getUserKey(struct MovieCacheIter *iter)
+void *IMB_moviecacheIter_getUserKey(MovieCacheIter *iter)
 {
   MovieCacheKey *key = (MovieCacheKey *)BLI_ghashIterator_getKey((GHashIterator *)iter);
   return key->userkey;

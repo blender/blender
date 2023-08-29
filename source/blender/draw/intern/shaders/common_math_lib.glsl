@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* WORKAROUND: to guard against double include in EEVEE. */
 #ifndef COMMON_MATH_LIB_GLSL
@@ -54,6 +57,20 @@ mat2 rot2_from_angle(float a)
   return mat2(c, -s, s, c);
 }
 
+/* Computes the full argmax of the given vector, that is, the index of the greatest component will
+ * be in the returned x component, the index of the smallest component will be in the returned z
+ * component, and the index of the middle component will be in the returned y component.
+ *
+ * This is computed by utilizing the fact that booleans are converted to the integers 0 and 1 for
+ * false and true respectively. So if we compare every component to all other components using the
+ * greaterThan comparator, we get 0 for the greatest component, because no other component is
+ * greater, 1 for the middle component, and 2 for the smallest component. */
+ivec3 argmax(vec3 v)
+{
+  return ivec3(greaterThan(v, v.xxx)) + ivec3(greaterThan(v, v.yyy)) +
+         ivec3(greaterThan(v, v.zzz));
+}
+
 #define min3(a, b, c) min(a, min(b, c))
 #define min4(a, b, c, d) min(a, min3(b, c, d))
 #define min5(a, b, c, d, e) min(a, min4(b, c, d, e))
@@ -94,10 +111,15 @@ float avg(vec2 v) { return dot(vec2(1.0 / 2.0), v); }
 float avg(vec3 v) { return dot(vec3(1.0 / 3.0), v); }
 float avg(vec4 v) { return dot(vec4(1.0 / 4.0), v); }
 
+/* WORKAROUND: To be removed once we port all code to use gpu_shader_math_base_lib.glsl. */
+#ifndef GPU_SHADER_MATH_BASE_LIB_GLSL
 float safe_rcp(float a) { return (a != 0.0) ? (1.0 / a) : 0.0; }
+#endif
+#ifndef GPU_SHADER_MATH_VECTOR_LIB_GLSL
 vec2 safe_rcp(vec2 a) { return select(vec2(0.0), (1.0 / a), notEqual(a, vec2(0.0))); }
 vec3 safe_rcp(vec3 a) { return select(vec3(0.0), (1.0 / a), notEqual(a, vec3(0.0))); }
 vec4 safe_rcp(vec4 a) { return select(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0))); }
+#endif
 
 float safe_sqrt(float a) { return sqrt(max(a, 0.0)); }
 
@@ -206,7 +228,6 @@ float distance_squared(vec3 a, vec3 b)
   a -= b;
   return dot(a, a);
 }
-#endif
 
 vec3 safe_normalize(vec3 v)
 {
@@ -216,6 +237,7 @@ vec3 safe_normalize(vec3 v)
   }
   return v / len;
 }
+#endif
 
 vec2 safe_normalize_len(vec2 v, out float len)
 {
@@ -226,11 +248,14 @@ vec2 safe_normalize_len(vec2 v, out float len)
   return v / len;
 }
 
+/* WORKAROUND: To be removed once we port all code to use gpu_shader_math_base_lib.glsl. */
+#ifndef GPU_SHADER_MATH_VECTOR_LIB_GLSL
 vec2 safe_normalize(vec2 v)
 {
   float len;
   return safe_normalize_len(v, len);
 }
+#endif
 
 vec3 normalize_len(vec3 v, out float len)
 {

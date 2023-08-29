@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -29,6 +29,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
+#include "BKE_lib_query.h"
 
 #include "RNA_prototypes.h"
 
@@ -290,7 +291,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 {
   /* Armature-Data */
   bArmature *armature = (bArmature *)object->data;
-  // TODO: selection status?
+  /* TODO: selection status? */
   /* Attach links between pose operations. */
   ComponentKey local_transform(&object->id, NodeType::TRANSFORM);
   OperationKey pose_init_key(&object->id, NodeType::EVAL_POSE, OperationCode::POSE_INIT);
@@ -397,7 +398,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
       /* Build relations for indirectly linked objects. */
       BuilderWalkUserData data;
       data.builder = this;
-      BKE_constraints_id_loop(&pchan->constraints, constraint_walk, &data);
+      BKE_constraints_id_loop(&pchan->constraints, constraint_walk, IDWALK_NOP, &data);
       /* Constraints stack and constraint dependencies. */
       build_constraints(&object->id, NodeType::BONE, pchan->name, &pchan->constraints, &root_map);
       /* Pose -> constraints. */

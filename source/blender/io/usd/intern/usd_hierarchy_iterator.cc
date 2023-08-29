@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd.h"
@@ -64,20 +64,6 @@ void USDHierarchyIterator::set_export_frame(float frame_nr)
   export_time_ = pxr::UsdTimeCode(frame_nr);
 }
 
-std::string USDHierarchyIterator::get_export_file_path() const
-{
-  /* Returns the same path that was passed to `stage_` object during it's creation (via
-   * `pxr::UsdStage::CreateNew` function). */
-  const pxr::SdfLayerHandle root_layer = stage_->GetRootLayer();
-  const std::string usd_export_file_path = root_layer->GetRealPath();
-  return usd_export_file_path;
-}
-
-const pxr::UsdTimeCode &USDHierarchyIterator::get_export_time_code() const
-{
-  return export_time_;
-}
-
 USDExporterContext USDHierarchyIterator::create_usd_export_context(const HierarchyContext *context)
 {
   pxr::SdfPath path;
@@ -88,7 +74,14 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
     path = pxr::SdfPath(context->export_path);
   }
 
-  return USDExporterContext{bmain_, depsgraph_, stage_, path, this, params_};
+  /* Returns the same path that was passed to `stage_` object during it's creation (via
+   * `pxr::UsdStage::CreateNew` function). */
+  const pxr::SdfLayerHandle root_layer = stage_->GetRootLayer();
+  const std::string export_file_path = root_layer->GetRealPath();
+  auto get_time_code = [this]() { return this->export_time_; };
+
+  return USDExporterContext{
+      bmain_, depsgraph_, stage_, path, get_time_code, params_, export_file_path};
 }
 
 AbstractHierarchyWriter *USDHierarchyIterator::create_transform_writer(

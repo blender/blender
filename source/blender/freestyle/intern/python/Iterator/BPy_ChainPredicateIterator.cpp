@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -29,14 +31,14 @@ PyDoc_STRVAR(
     ":class:`freestyle.types.ChainingIterator` >\n"
     ":class:`ChainPredicateIterator`\n"
     "\n"
-    "A \"generic\" user-controlled ViewEdge iterator.  This iterator is in\n"
+    "A \"generic\" user-controlled ViewEdge iterator. This iterator is in\n"
     "particular built from a unary predicate and a binary predicate.\n"
     "First, the unary predicate is evaluated for all potential next\n"
     "ViewEdges in order to only keep the ones respecting a certain\n"
-    "constraint.  Then, the binary predicate is evaluated on the current\n"
-    "ViewEdge together with each ViewEdge of the previous selection.  The\n"
+    "constraint. Then, the binary predicate is evaluated on the current\n"
+    "ViewEdge together with each ViewEdge of the previous selection. The\n"
     "first ViewEdge respecting both the unary predicate and the binary\n"
-    "predicate is kept as the next one.  If none of the potential next\n"
+    "predicate is kept as the next one. If none of the potential next\n"
     "ViewEdge respects these two predicates, None is returned.\n"
     "\n"
     ".. method:: __init__(upred, bpred, restrict_to_selection=True, "
@@ -61,7 +63,7 @@ PyDoc_STRVAR(
     "   :arg begin: The ViewEdge from where to start the iteration.\n"
     "   :type begin: :class:`freestyle.types.ViewEdge` or None\n"
     "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
-    "      the ViewEdges that surround the ending ViewVertex of begin.  If\n"
+    "      the ViewEdges that surround the ending ViewVertex of begin. If\n"
     "      false, we'll search over the ViewEdges surrounding the ending\n"
     "      ViewVertex of begin.\n"
     "   :type orientation: bool\n"
@@ -153,7 +155,7 @@ static void ChainPredicateIterator_dealloc(BPy_ChainPredicateIterator *self)
 /*-----------------------BPy_ChainPredicateIterator type definition ----------------------------*/
 
 PyTypeObject ChainPredicateIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ChainPredicateIterator",
     /*tp_basicsize*/ sizeof(BPy_ChainPredicateIterator),
     /*tp_itemsize*/ 0,

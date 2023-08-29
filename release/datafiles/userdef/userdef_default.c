@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Preferences Data File 'U_default'. */
 
@@ -30,6 +32,8 @@ const UserDef U_default = {
     .pref_flag = USER_PREF_FLAG_SAVE,
     .savetime = 2,
     .tempdir = "",
+    /* Overwritten by #BKE_appdir_font_folder_default(..)
+     * unless the system font's cannot be found. */
     .fontdir = "//",
     .renderdir = "//",
     .render_cachedir = "",
@@ -38,6 +42,8 @@ const UserDef U_default = {
     .sounddir = "//",
     .i18ndir = "",
     .image_editor = "",
+    .text_editor = "",
+    .text_editor_args = "",
     .anim_player = "",
     .anim_player_preset = 0,
     .v2d_min_gridsize = 45,
@@ -46,9 +52,9 @@ const UserDef U_default = {
     .dbl_click_time = 350,
     .mini_axis_type = USER_MINI_AXIS_TYPE_GIZMO,
     .uiflag = (USER_FILTERFILEEXTS | USER_DRAWVIEWINFO | USER_PLAINMENUS |
-               USER_LOCK_CURSOR_ADJUST | USER_DEPTH_CURSOR | USER_AUTOPERSP | USER_GLOBALUNDO |
-               USER_HIDE_DOT | USER_SHOW_GIZMO_NAVIGATE | USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS |
-               USER_CONTINUOUS_MOUSE | USER_SAVE_PROMPT),
+               USER_LOCK_CURSOR_ADJUST | USER_DEPTH_CURSOR | USER_AUTOPERSP |
+               USER_NODE_AUTO_OFFSET | USER_GLOBALUNDO | USER_HIDE_DOT | USER_SHOW_GIZMO_NAVIGATE |
+               USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS | USER_CONTINUOUS_MOUSE | USER_SAVE_PROMPT),
     .uiflag2 = USER_REGION_OVERLAP,
     .gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE | USER_GPU_FLAG_SUBDIVISION_EVALUATION,
     .app_flag = 0,
@@ -73,6 +79,7 @@ const UserDef U_default = {
 
     .scrollback = 256,
     .node_margin = 80,
+    .node_preview_res = 120,
     .transopts = USER_TR_TOOLTIPS,
     .menuthreshold1 = 5,
     .menuthreshold2 = 2,
@@ -101,6 +108,7 @@ const UserDef U_default = {
     .gp_euclideandist = 2,
     .gp_eraser = 25,
     .gp_settings = 0,
+    .playback_fps_samples = 8,
 #ifdef __APPLE__
     .gpu_backend = GPU_BACKEND_METAL,
 #else

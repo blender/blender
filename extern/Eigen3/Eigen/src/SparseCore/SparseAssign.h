@@ -83,7 +83,7 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
     // eval without temporary
     dst.resize(src.rows(), src.cols());
     dst.setZero();
-    dst.reserve((std::max)(src.rows(),src.cols())*2);
+    dst.reserve((std::min)(src.rows()*src.cols(), (std::max)(src.rows(),src.cols())*2));
     for (Index j=0; j<outerEvaluationSize; ++j)
     {
       dst.startVec(j);
@@ -107,7 +107,7 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
     
     DstXprType temp(src.rows(), src.cols());
 
-    temp.reserve((std::max)(src.rows(),src.cols())*2);
+    temp.reserve((std::min)(src.rows()*src.cols(), (std::max)(src.rows(),src.cols())*2));
     for (Index j=0; j<outerEvaluationSize; ++j)
     {
       temp.startVec(j);
@@ -134,8 +134,8 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse>
 };
 
 // Generic Sparse to Dense assignment
-template< typename DstXprType, typename SrcXprType, typename Functor>
-struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense>
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Weak>
+struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Weak>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
@@ -152,6 +152,73 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense>
         func.assignCoeff(dstEval.coeffRef(i.row(),i.col()), i.value());
   }
 };
+
+// Specialization for dense ?= dense +/- sparse and dense ?= sparse +/- dense
+template<typename DstXprType, typename Func1, typename Func2>
+struct assignment_from_dense_op_sparse
+{
+  template<typename SrcXprType, typename InitialFunc>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  void run(DstXprType &dst, const SrcXprType &src, const InitialFunc& /*func*/)
+  {
+    #ifdef EIGEN_SPARSE_ASSIGNMENT_FROM_DENSE_OP_SPARSE_PLUGIN
+    EIGEN_SPARSE_ASSIGNMENT_FROM_DENSE_OP_SPARSE_PLUGIN
+    #endif
+
+    call_assignment_no_alias(dst, src.lhs(), Func1());
+    call_assignment_no_alias(dst, src.rhs(), Func2());
+  }
+
+  // Specialization for dense1 = sparse + dense2; -> dense1 = dense2; dense1 += sparse;
+  template<typename Lhs, typename Rhs, typename Scalar>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  typename internal::enable_if<internal::is_same<typename internal::evaluator_traits<Rhs>::Shape,DenseShape>::value>::type
+  run(DstXprType &dst, const CwiseBinaryOp<internal::scalar_sum_op<Scalar,Scalar>, const Lhs, const Rhs> &src,
+      const internal::assign_op<typename DstXprType::Scalar,Scalar>& /*func*/)
+  {
+    #ifdef EIGEN_SPARSE_ASSIGNMENT_FROM_SPARSE_ADD_DENSE_PLUGIN
+    EIGEN_SPARSE_ASSIGNMENT_FROM_SPARSE_ADD_DENSE_PLUGIN
+    #endif
+
+    // Apply the dense matrix first, then the sparse one.
+    call_assignment_no_alias(dst, src.rhs(), Func1());
+    call_assignment_no_alias(dst, src.lhs(), Func2());
+  }
+
+  // Specialization for dense1 = sparse - dense2; -> dense1 = -dense2; dense1 += sparse;
+  template<typename Lhs, typename Rhs, typename Scalar>
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  typename internal::enable_if<internal::is_same<typename internal::evaluator_traits<Rhs>::Shape,DenseShape>::value>::type
+  run(DstXprType &dst, const CwiseBinaryOp<internal::scalar_difference_op<Scalar,Scalar>, const Lhs, const Rhs> &src,
+      const internal::assign_op<typename DstXprType::Scalar,Scalar>& /*func*/)
+  {
+    #ifdef EIGEN_SPARSE_ASSIGNMENT_FROM_SPARSE_SUB_DENSE_PLUGIN
+    EIGEN_SPARSE_ASSIGNMENT_FROM_SPARSE_SUB_DENSE_PLUGIN
+    #endif
+
+    // Apply the dense matrix first, then the sparse one.
+    call_assignment_no_alias(dst, -src.rhs(), Func1());
+    call_assignment_no_alias(dst,  src.lhs(), add_assign_op<typename DstXprType::Scalar,typename Lhs::Scalar>());
+  }
+};
+
+#define EIGEN_CATCH_ASSIGN_DENSE_OP_SPARSE(ASSIGN_OP,BINOP,ASSIGN_OP2) \
+  template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar> \
+  struct Assignment<DstXprType, CwiseBinaryOp<internal::BINOP<Scalar,Scalar>, const Lhs, const Rhs>, internal::ASSIGN_OP<typename DstXprType::Scalar,Scalar>, \
+                    Sparse2Dense, \
+                    typename internal::enable_if<   internal::is_same<typename internal::evaluator_traits<Lhs>::Shape,DenseShape>::value \
+                                                 || internal::is_same<typename internal::evaluator_traits<Rhs>::Shape,DenseShape>::value>::type> \
+    : assignment_from_dense_op_sparse<DstXprType, internal::ASSIGN_OP<typename DstXprType::Scalar,typename Lhs::Scalar>, internal::ASSIGN_OP2<typename DstXprType::Scalar,typename Rhs::Scalar> > \
+  {}
+
+EIGEN_CATCH_ASSIGN_DENSE_OP_SPARSE(assign_op,    scalar_sum_op,add_assign_op);
+EIGEN_CATCH_ASSIGN_DENSE_OP_SPARSE(add_assign_op,scalar_sum_op,add_assign_op);
+EIGEN_CATCH_ASSIGN_DENSE_OP_SPARSE(sub_assign_op,scalar_sum_op,sub_assign_op);
+
+EIGEN_CATCH_ASSIGN_DENSE_OP_SPARSE(assign_op,    scalar_difference_op,sub_assign_op);
+EIGEN_CATCH_ASSIGN_DENSE_OP_SPARSE(add_assign_op,scalar_difference_op,sub_assign_op);
+EIGEN_CATCH_ASSIGN_DENSE_OP_SPARSE(sub_assign_op,scalar_difference_op,add_assign_op);
+
 
 // Specialization for "dst = dec.solve(rhs)"
 // NOTE we need to specialize it for Sparse2Sparse to avoid ambiguous specialization error
@@ -179,35 +246,22 @@ struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Sparse>
 {
   typedef typename DstXprType::StorageIndex StorageIndex;
   typedef typename DstXprType::Scalar Scalar;
-  typedef Array<StorageIndex,Dynamic,1> ArrayXI;
-  typedef Array<Scalar,Dynamic,1> ArrayXS;
-  template<int Options>
-  static void run(SparseMatrix<Scalar,Options,StorageIndex> &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
-  {
-    Index dstRows = src.rows();
-    Index dstCols = src.cols();
-    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
-      dst.resize(dstRows, dstCols);
 
-    Index size = src.diagonal().size();
-    dst.makeCompressed();
-    dst.resizeNonZeros(size);
-    Map<ArrayXI>(dst.innerIndexPtr(), size).setLinSpaced(0,StorageIndex(size)-1);
-    Map<ArrayXI>(dst.outerIndexPtr(), size+1).setLinSpaced(0,StorageIndex(size));
-    Map<ArrayXS>(dst.valuePtr(), size) = src.diagonal();
-  }
+  template<int Options, typename AssignFunc>
+  static void run(SparseMatrix<Scalar,Options,StorageIndex> &dst, const SrcXprType &src, const AssignFunc &func)
+  { dst.assignDiagonal(src.diagonal(), func); }
   
   template<typename DstDerived>
   static void run(SparseMatrixBase<DstDerived> &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
-  {
-    dst.diagonal() = src.diagonal();
-  }
+  { dst.derived().diagonal() = src.diagonal(); }
   
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
-  { dst.diagonal() += src.diagonal(); }
+  template<typename DstDerived>
+  static void run(SparseMatrixBase<DstDerived> &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
+  { dst.derived().diagonal() += src.diagonal(); }
   
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
-  { dst.diagonal() -= src.diagonal(); }
+  template<typename DstDerived>
+  static void run(SparseMatrixBase<DstDerived> &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
+  { dst.derived().diagonal() -= src.diagonal(); }
 };
 } // end namespace internal
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,18 +24,18 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
@@ -88,7 +88,7 @@ static float ui_pie_menu_title_width(const char *name, int icon)
   return (UI_fontstyle_string_width(fstyle, name) + (UI_UNIT_X * (1.50f + (icon ? 0.25f : 0.0f))));
 }
 
-uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, const wmEvent *event)
+uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent *event)
 {
   const uiStyle *style = UI_style_get_dpi();
   short event_type;
@@ -207,7 +207,7 @@ uiLayout *UI_pie_menu_layout(uiPieMenu *pie)
   return pie->layout;
 }
 
-int UI_pie_menu_invoke(struct bContext *C, const char *idname, const wmEvent *event)
+int UI_pie_menu_invoke(bContext *C, const char *idname, const wmEvent *event)
 {
   uiPieMenu *pie;
   uiLayout *layout;
@@ -233,11 +233,8 @@ int UI_pie_menu_invoke(struct bContext *C, const char *idname, const wmEvent *ev
   return OPERATOR_INTERFACE;
 }
 
-int UI_pie_menu_invoke_from_operator_enum(struct bContext *C,
-                                          const char *title,
-                                          const char *opname,
-                                          const char *propname,
-                                          const wmEvent *event)
+int UI_pie_menu_invoke_from_operator_enum(
+    bContext *C, const char *title, const char *opname, const char *propname, const wmEvent *event)
 {
   uiPieMenu *pie;
   uiLayout *layout;
@@ -253,7 +250,7 @@ int UI_pie_menu_invoke_from_operator_enum(struct bContext *C,
   return OPERATOR_INTERFACE;
 }
 
-int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
+int UI_pie_menu_invoke_from_rna_enum(bContext *C,
                                      const char *title,
                                      const char *path,
                                      const wmEvent *event)
@@ -281,7 +278,7 @@ int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
   layout = UI_pie_menu_layout(pie);
 
   layout = uiLayoutRadial(layout);
-  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, nullptr, 0);
+  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   UI_pie_menu_end(C, pie);
 
@@ -314,7 +311,8 @@ struct PieMenuLevelData {
   wmOperatorType *ot;
   const char *propname;
   IDProperty *properties;
-  wmOperatorCallContext context, flag;
+  wmOperatorCallContext context;
+  eUI_Item_Flag flag;
 };
 
 /**
@@ -362,8 +360,8 @@ void ui_pie_menu_level_create(uiBlock *block,
                               IDProperty *properties,
                               const EnumPropertyItem *items,
                               int totitem,
-                              wmOperatorCallContext context,
-                              wmOperatorCallContext flag)
+                              const wmOperatorCallContext context,
+                              const eUI_Item_Flag flag)
 {
   const int totitem_parent = PIE_MAX_ITEMS - 1;
   const int totitem_remain = totitem - totitem_parent;

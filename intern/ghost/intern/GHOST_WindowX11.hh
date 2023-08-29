@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -31,7 +32,6 @@ class GHOST_DropTargetX11;
  * Dimensions are given in screen coordinates that are
  * relative to the upper-left corner of the screen.
  */
-
 class GHOST_WindowX11 : public GHOST_Window {
  public:
   /**

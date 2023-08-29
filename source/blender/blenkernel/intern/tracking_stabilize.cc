@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,17 +8,18 @@
  * This file contains implementation of 2D image stabilization.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "DNA_anim_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_sort_utils.h"
 #include "BLI_task.h"
@@ -63,7 +64,7 @@ static float EPSILON_WEIGHT = 0.005f;
  * This struct with private working data is associated to the local call context
  * via `StabContext::private_track_data`
  */
-typedef struct TrackStabilizationBase {
+struct TrackStabilizationBase {
   float stabilization_offset_base[2];
 
   /* measured relative to translated pivot */
@@ -74,19 +75,19 @@ typedef struct TrackStabilizationBase {
 
   bool is_init_for_stabilization;
   FCurve *track_weight_curve;
-} TrackStabilizationBase;
+};
 
 /* Tracks are reordered for initialization, starting as close as possible to
  * anchor_frame
  */
-typedef struct TrackInitOrder {
+struct TrackInitOrder {
   int sort_value;
   int reference_frame;
   MovieTrackingTrack *data;
-} TrackInitOrder;
+};
 
 /* Per frame private working data, for accessing possibly animated values. */
-typedef struct StabContext {
+struct StabContext {
   MovieClip *clip;
   MovieTracking *tracking;
   MovieTrackingStabilization *stab;
@@ -98,7 +99,7 @@ typedef struct StabContext {
   FCurve *target_rot;
   FCurve *target_scale;
   bool use_animation;
-} StabContext;
+};
 
 static TrackStabilizationBase *access_stabilization_baseline_data(StabContext *ctx,
                                                                   MovieTrackingTrack *track)
@@ -1285,15 +1286,15 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
   discard_stabilization_working_context(ctx);
 }
 
-typedef void (*interpolation_func)(const struct ImBuf *, struct ImBuf *, float, float, int, int);
+using interpolation_func = void (*)(const ImBuf *, ImBuf *, float, float, int, int);
 
-typedef struct TrackingStabilizeFrameInterpolationData {
+struct TrackingStabilizeFrameInterpolationData {
   ImBuf *ibuf;
   ImBuf *tmpibuf;
   float (*mat)[4];
 
   interpolation_func interpolation;
-} TrackingStabilizeFrameInterpolationData;
+};
 
 static void tracking_stabilize_frame_interpolation_cb(void *__restrict userdata,
                                                       const int j,

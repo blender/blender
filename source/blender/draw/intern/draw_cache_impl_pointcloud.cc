@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation
+/* SPDX-FileCopyrightText: 2017 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,6 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_base.h"
+#include "BLI_math_color.hh"
 #include "BLI_math_vector.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
@@ -27,7 +28,7 @@
 #include "GPU_material.h"
 
 #include "draw_attributes.hh"
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "draw_cache_inline.h"
 #include "draw_pointcloud_private.hh" /* own include */
 
@@ -385,6 +386,12 @@ GPUBatch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
   PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
   return DRW_batch_request(&cache->eval_cache.dots);
+}
+
+GPUVertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob)
+{
+  PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
+  return pointcloud_position_and_radius_get(&pointcloud);
 }
 
 GPUVertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const char *name)

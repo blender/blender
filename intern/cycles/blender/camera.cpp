@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/camera.h"
 #include "scene/bake.h"
@@ -163,6 +164,26 @@ static float blender_camera_focal_distance(BL::RenderEngine &b_engine,
   return fabsf(dot(view_dir, dof_dir));
 }
 
+static PanoramaType blender_panorama_type_to_cycles(const BL::Camera::panorama_type_enum type)
+{
+  switch (type) {
+    case BL::Camera::panorama_type_EQUIRECTANGULAR:
+      return PANORAMA_EQUIRECTANGULAR;
+    case BL::Camera::panorama_type_EQUIANGULAR_CUBEMAP_FACE:
+      return PANORAMA_EQUIANGULAR_CUBEMAP_FACE;
+    case BL::Camera::panorama_type_MIRRORBALL:
+      return PANORAMA_MIRRORBALL;
+    case BL::Camera::panorama_type_FISHEYE_EQUIDISTANT:
+      return PANORAMA_FISHEYE_EQUIDISTANT;
+    case BL::Camera::panorama_type_FISHEYE_EQUISOLID:
+      return PANORAMA_FISHEYE_EQUISOLID;
+    case BL::Camera::panorama_type_FISHEYE_LENS_POLYNOMIAL:
+      return PANORAMA_FISHEYE_LENS_POLYNOMIAL;
+  }
+  /* Could happen if loading a newer file that has an unsupported type. */
+  return PANORAMA_FISHEYE_EQUISOLID;
+}
+
 static void blender_camera_from_object(BlenderCamera *bcam,
                                        BL::RenderEngine &b_engine,
                                        BL::Object &b_ob,
@@ -172,7 +193,6 @@ static void blender_camera_from_object(BlenderCamera *bcam,
 
   if (b_ob_data.is_a(&RNA_Camera)) {
     BL::Camera b_camera(b_ob_data);
-    PointerRNA ccamera = RNA_pointer_get(&b_camera.ptr, "cycles");
 
     bcam->nearclip = b_camera.clip_start();
     bcam->farclip = b_camera.clip_end();
@@ -193,21 +213,19 @@ static void blender_camera_from_object(BlenderCamera *bcam,
         break;
     }
 
-    bcam->panorama_type = (PanoramaType)get_enum(
-        ccamera, "panorama_type", PANORAMA_NUM_TYPES, PANORAMA_EQUIRECTANGULAR);
+    bcam->panorama_type = blender_panorama_type_to_cycles(b_camera.panorama_type());
+    bcam->fisheye_fov = b_camera.fisheye_fov();
+    bcam->fisheye_lens = b_camera.fisheye_lens();
+    bcam->latitude_min = b_camera.latitude_min();
+    bcam->latitude_max = b_camera.latitude_max();
+    bcam->longitude_min = b_camera.longitude_min();
+    bcam->longitude_max = b_camera.longitude_max();
 
-    bcam->fisheye_fov = RNA_float_get(&ccamera, "fisheye_fov");
-    bcam->fisheye_lens = RNA_float_get(&ccamera, "fisheye_lens");
-    bcam->latitude_min = RNA_float_get(&ccamera, "latitude_min");
-    bcam->latitude_max = RNA_float_get(&ccamera, "latitude_max");
-    bcam->longitude_min = RNA_float_get(&ccamera, "longitude_min");
-    bcam->longitude_max = RNA_float_get(&ccamera, "longitude_max");
-
-    bcam->fisheye_polynomial_k0 = RNA_float_get(&ccamera, "fisheye_polynomial_k0");
-    bcam->fisheye_polynomial_k1 = RNA_float_get(&ccamera, "fisheye_polynomial_k1");
-    bcam->fisheye_polynomial_k2 = RNA_float_get(&ccamera, "fisheye_polynomial_k2");
-    bcam->fisheye_polynomial_k3 = RNA_float_get(&ccamera, "fisheye_polynomial_k3");
-    bcam->fisheye_polynomial_k4 = RNA_float_get(&ccamera, "fisheye_polynomial_k4");
+    bcam->fisheye_polynomial_k0 = b_camera.fisheye_polynomial_k0();
+    bcam->fisheye_polynomial_k1 = b_camera.fisheye_polynomial_k1();
+    bcam->fisheye_polynomial_k2 = b_camera.fisheye_polynomial_k2();
+    bcam->fisheye_polynomial_k3 = b_camera.fisheye_polynomial_k3();
+    bcam->fisheye_polynomial_k4 = b_camera.fisheye_polynomial_k4();
 
     bcam->interocular_distance = b_camera.stereo().interocular_distance();
     if (b_camera.stereo().convergence_mode() == BL::CameraStereoData::convergence_mode_PARALLEL) {

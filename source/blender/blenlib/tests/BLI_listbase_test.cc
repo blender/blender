@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -109,7 +109,7 @@ TEST(listbase, FindLinkOrIndex)
 TEST(listbase, FindLinkFromStringOrPointer)
 {
   struct TestLink {
-    struct TestLink *next, *prev;
+    TestLink *next, *prev;
     char name[64];
     const void *ptr;
   };
@@ -119,14 +119,14 @@ TEST(listbase, FindLinkFromStringOrPointer)
   const void *const link1_ptr = nullptr;
   const void *const link2_ptr = link2_name;
 
-  const size_t name_offset = offsetof(struct TestLink, name);
-  const size_t ptr_offset = offsetof(struct TestLink, ptr);
+  const size_t name_offset = offsetof(TestLink, name);
+  const size_t ptr_offset = offsetof(TestLink, ptr);
 
   ListBase lb;
-  struct TestLink *link1 = (struct TestLink *)MEM_callocN(sizeof(TestLink), "link1");
+  TestLink *link1 = (TestLink *)MEM_callocN(sizeof(TestLink), "link1");
   STRNCPY(link1->name, link1_name);
   link1->ptr = link1_ptr;
-  struct TestLink *link2 = (struct TestLink *)MEM_callocN(sizeof(TestLink), "link2");
+  TestLink *link2 = (TestLink *)MEM_callocN(sizeof(TestLink), "link2");
   STRNCPY(link2->name, link2_name);
   link2->ptr = link2_ptr;
 
@@ -171,7 +171,7 @@ TEST(listbase, FromLink)
   Link *link2 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link2"));
   Link *link3 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link3"));
 
-  /* NULL safety. */
+  /* Null safety. */
   EXPECT_EQ(lb, BLI_listbase_from_link(nullptr));
 
   /* One link. */

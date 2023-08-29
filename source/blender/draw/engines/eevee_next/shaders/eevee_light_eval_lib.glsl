@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * The resources expected to be defined are:
@@ -7,7 +10,6 @@
  * - light_tile_buf
  * - shadow_atlas_tx
  * - shadow_tilemaps_tx
- * - sss_transmittance_tx
  * - utility_tx
  */
 
@@ -22,7 +24,7 @@ void light_eval_ex(ClosureDiffuse diffuse,
                    vec3 P,
                    vec3 Ng,
                    vec3 V,
-                   float vP_z,
+                   float vP_z, /* TODO(fclem): Remove, is unused. */
                    float thickness,
                    vec4 ltc_mat,
                    uint l_idx,
@@ -47,17 +49,11 @@ void light_eval_ex(ClosureDiffuse diffuse,
 #ifdef SSS_TRANSMITTANCE
     /* Transmittance evaluation first to use initial visibility without shadow. */
     if (diffuse.sss_id != 0u && light.diffuse_power > 0.0) {
-      float delta = max(thickness, samp.occluder_delta + samp.bias);
+      float delta = max(thickness, -(samp.occluder_delta + samp.bias));
 
       vec3 intensity = visibility * light.transmit_power *
-                       light_translucent(sss_transmittance_tx,
-                                         is_directional,
-                                         light,
-                                         diffuse.N,
-                                         L,
-                                         dist,
-                                         diffuse.sss_radius,
-                                         delta);
+                       light_translucent(
+                           is_directional, light, diffuse.N, L, dist, diffuse.sss_radius, delta);
       out_diffuse += light.color * intensity;
     }
 #endif
@@ -94,9 +90,8 @@ void light_eval(ClosureDiffuse diffuse,
                 inout vec3 out_specular,
                 inout float out_shadow)
 {
-  vec2 uv = vec2(reflection.roughness, safe_sqrt(1.0 - dot(reflection.N, V)));
-  uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
-  vec4 ltc_mat = utility_tx_sample(utility_tx, uv, UTIL_LTC_MAT_LAYER);
+  vec4 ltc_mat = utility_tx_sample_lut(
+      utility_tx, dot(reflection.N, V), reflection.roughness, UTIL_LTC_MAT_LAYER);
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     light_eval_ex(diffuse,
@@ -115,7 +110,11 @@ void light_eval(ClosureDiffuse diffuse,
   }
   LIGHT_FOREACH_END
 
+#ifdef GPU_FRAGMENT_SHADER
   vec2 px = gl_FragCoord.xy;
+#else
+  vec2 px = vec2(0.0);
+#endif
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, px, vP_z, l_idx) {
     light_eval_ex(diffuse,
                   reflection,

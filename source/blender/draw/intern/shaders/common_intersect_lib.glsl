@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Intersection library used for culling.
@@ -501,7 +504,7 @@ bool intersect(Cone cone, Sphere sphere)
                                         (cone.angle_cos * sphere_cos -
                                          cone_aperture_sin * sphere_sin);
   /* Comparing cosines instead of angles since we are interested
-   * only in the monotonic region [0 .. M_PI / 2]. This saves costly acos() calls. */
+   * only in the monotonic region [0 .. M_PI / 2]. This saves costly `acos()` calls. */
   bool intersects = (cone_sphere_center_cos >= cone_sphere_angle_sum_cos);
 
   return intersects;

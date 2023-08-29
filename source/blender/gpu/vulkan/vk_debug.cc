@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation.
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,11 +6,16 @@
  * \ingroup gpu
  */
 
+#include <sstream>
+
 #include "BKE_global.h"
+#include "CLG_log.h"
 
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_debug.hh"
+
+static CLG_LogRef LOG = {"gpu.debug.vulkan"};
 
 namespace blender::gpu {
 void VKContext::debug_group_begin(const char *name, int)
@@ -68,8 +73,10 @@ namespace blender::gpu::debug {
 
 void VKDebuggingTools::init(VkInstance vk_instance)
 {
+
   PFN_vkGetInstanceProcAddr instance_proc_addr = vkGetInstanceProcAddr;
   enabled = false;
+  vk_debug_utils_messenger = nullptr;
   vkCmdBeginDebugUtilsLabelEXT_r = (PFN_vkCmdBeginDebugUtilsLabelEXT)instance_proc_addr(
       vk_instance, "vkCmdBeginDebugUtilsLabelEXT");
   vkCmdEndDebugUtilsLabelEXT_r = (PFN_vkCmdEndDebugUtilsLabelEXT)instance_proc_addr(
@@ -94,11 +101,15 @@ void VKDebuggingTools::init(VkInstance vk_instance)
       vk_instance, "vkSubmitDebugUtilsMessageEXT");
   if (vkCmdBeginDebugUtilsLabelEXT_r) {
     enabled = true;
+    init_messenger(vk_instance);
   }
 }
 
-void VKDebuggingTools::deinit()
+void VKDebuggingTools::deinit(VkInstance vk_instance)
 {
+  if (enabled) {
+    destroy_messenger(vk_instance);
+  }
   vkCmdBeginDebugUtilsLabelEXT_r = nullptr;
   vkCmdEndDebugUtilsLabelEXT_r = nullptr;
   vkCmdInsertDebugUtilsLabelEXT_r = nullptr;
@@ -206,3 +217,174 @@ void pop_marker(const VKDevice &device)
 }
 
 }  // namespace blender::gpu::debug
+
+namespace blender::gpu::debug {
+VKDebuggingTools::~VKDebuggingTools()
+{
+  BLI_assert(vk_debug_utils_messenger == nullptr);
+};
+
+void VKDebuggingTools::print_labels(const VkDebugUtilsMessengerCallbackDataEXT *callback_data)
+{
+  std::stringstream ss;
+  for (uint32_t object = 0; object < callback_data->objectCount; ++object) {
+    ss << " - ObjectType[" << to_string(callback_data->pObjects[object].objectType) << "],";
+    ss << "Handle[0x" << std::hex
+       << static_cast<uintptr_t>(callback_data->pObjects[object].objectHandle) << "]";
+    if (callback_data->pObjects[object].pObjectName) {
+      ss << ",Name[" << callback_data->pObjects[object].pObjectName << "]";
+    }
+    ss << std::endl;
+  }
+  for (uint32_t label = 0; label < callback_data->cmdBufLabelCount; ++label) {
+    if (callback_data->pCmdBufLabels[label].pLabelName) {
+      ss << " - CommandBuffer : " << callback_data->pCmdBufLabels[label].pLabelName << std::endl;
+    }
+  }
+  for (uint32_t label = 0; label < callback_data->queueLabelCount; ++label) {
+    if (callback_data->pQueueLabels[label].pLabelName) {
+      ss << " - Queue : " << callback_data->pQueueLabels[label].pLabelName << std::endl;
+    }
+  }
+  ss << std::endl;
+  printf("%s", ss.str().c_str());
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL
+messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
+                   VkDebugUtilsMessageTypeFlagsEXT /* message_type*/,
+                   const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
+                   void *user_data);
+VKAPI_ATTR VkBool32 VKAPI_CALL
+messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
+                   VkDebugUtilsMessageTypeFlagsEXT /* message_type*/,
+                   const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
+                   void *user_data)
+{
+  VKDebuggingTools &debugging_tools = *reinterpret_cast<VKDebuggingTools *>(user_data);
+  if (debugging_tools.is_ignore(callback_data->messageIdNumber)) {
+    return VK_FALSE;
+  }
+
+  CLG_Severity severity = CLG_SEVERITY_INFO;
+  if (message_severity & (VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT))
+  {
+    severity = CLG_SEVERITY_INFO;
+  }
+  if (message_severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+    severity = CLG_SEVERITY_WARN;
+  }
+  if (message_severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+    severity = CLG_SEVERITY_ERROR;
+  }
+
+  if ((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level <= severity)) {
+    const char *format = "{0x%x}% s\n %s ";
+    CLG_logf(LOG.type,
+             severity,
+             "",
+             "",
+             format,
+             callback_data->messageIdNumber,
+             callback_data->pMessageIdName,
+             callback_data->pMessage);
+  }
+
+  const bool do_labels = (callback_data->objectCount + callback_data->cmdBufLabelCount +
+                          callback_data->queueLabelCount) > 0;
+  if (do_labels) {
+    debugging_tools.print_labels(callback_data);
+  }
+
+  return VK_FALSE;
+};
+
+VkResult VKDebuggingTools::init_messenger(VkInstance vk_instance)
+{
+  CLG_logref_init(&LOG);
+  vk_message_id_number_ignored.clear();
+  BLI_assert(enabled);
+
+  VkDebugUtilsMessengerCreateInfoEXT create_info;
+  create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+  create_info.pNext = nullptr;
+  create_info.flags = 0;
+  create_info.messageSeverity = message_severity;
+  create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                            VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                            VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+  create_info.pfnUserCallback = messenger_callback;
+  create_info.pUserData = this;
+  VkResult res = vkCreateDebugUtilsMessengerEXT_r(
+      vk_instance, &create_info, nullptr, &vk_debug_utils_messenger);
+  BLI_assert(res == VK_SUCCESS);
+  return res;
+}
+
+void VKDebuggingTools::destroy_messenger(VkInstance vk_instance)
+{
+  if (vk_debug_utils_messenger == nullptr) {
+    return;
+  }
+  BLI_assert(enabled);
+  vkDestroyDebugUtilsMessengerEXT_r(vk_instance, vk_debug_utils_messenger, nullptr);
+
+  vk_message_id_number_ignored.clear();
+  vk_debug_utils_messenger = nullptr;
+  return;
+}
+
+bool VKDebuggingTools::is_ignore(int32_t id_number)
+{
+  bool found = false;
+  {
+    std::scoped_lock lock(ignore_mutex);
+    found = vk_message_id_number_ignored.contains(id_number);
+  }
+  return found;
+}
+
+void VKDebuggingTools::add_group(int32_t id_number)
+{
+  std::scoped_lock lock(ignore_mutex);
+  vk_message_id_number_ignored.add(id_number);
+};
+
+void VKDebuggingTools::remove_group(int32_t id_number)
+{
+  std::scoped_lock lock(ignore_mutex);
+  vk_message_id_number_ignored.remove(id_number);
+};
+
+void raise_message(int32_t id_number,
+                   VkDebugUtilsMessageSeverityFlagBitsEXT vk_severity_flag_bits,
+                   const char *format,
+                   ...)
+{
+  const VKDevice &device = VKBackend::get().device_get();
+  const VKDebuggingTools &debugging_tools = device.debugging_tools_get();
+  if (debugging_tools.enabled) {
+    va_list arg;
+    va_start(arg, format);
+    char *info = BLI_vsprintfN(format, arg);
+    va_end(arg);
+
+    static VkDebugUtilsMessengerCallbackDataEXT vk_call_back_data;
+    vk_call_back_data.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT;
+    vk_call_back_data.pNext = VK_NULL_HANDLE;
+    vk_call_back_data.messageIdNumber = id_number;
+    vk_call_back_data.pMessageIdName = "VulkanMessenger";
+    vk_call_back_data.objectCount = 0;
+    vk_call_back_data.flags = 0;
+    vk_call_back_data.pObjects = VK_NULL_HANDLE;
+    vk_call_back_data.pMessage = info;
+    debugging_tools.vkSubmitDebugUtilsMessageEXT_r(device.instance_get(),
+                                                   vk_severity_flag_bits,
+                                                   VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT,
+                                                   &vk_call_back_data);
+    MEM_freeN((void *)info);
+  }
+}
+
+};  // namespace blender::gpu::debug

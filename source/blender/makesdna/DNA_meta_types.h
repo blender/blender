@@ -96,36 +96,44 @@ typedef struct MetaBall {
 
 /* **************** METABALL ********************* */
 
-/** #MetaBall.texspace_flag */
+/** #MetaBall::texspace_flag */
 enum {
   MB_TEXSPACE_FLAG_AUTO = 1 << 0,
 };
 
-/* mb->flag */
-#define MB_UPDATE_ALWAYS 0
-#define MB_UPDATE_HALFRES 1
-#define MB_UPDATE_FAST 2
-#define MB_UPDATE_NEVER 3
+/** #MetaBall::flag */
+enum {
+  MB_UPDATE_ALWAYS = 0,
+  MB_UPDATE_HALFRES = 1,
+  MB_UPDATE_FAST = 2,
+  MB_UPDATE_NEVER = 3,
+};
 
-/* mb->flag2 */
-#define MB_DS_EXPAND (1 << 0)
+/** #MetaBall::flag2 */
+enum {
+  MB_DS_EXPAND = 1 << 0,
+};
 
-/* ml->type */
-#define MB_BALL 0
-#define MB_TUBEX 1 /* deprecated. */
-#define MB_TUBEY 2 /* deprecated. */
-#define MB_TUBEZ 3 /* deprecated. */
-#define MB_TUBE 4
-#define MB_PLANE 5
-#define MB_ELIPSOID 6
-#define MB_CUBE 7
+/** #MetaElem::type */
+enum {
+  MB_BALL = 0,
+  MB_TUBEX = 1, /* Deprecated. */
+  MB_TUBEY = 2, /* Deprecated. */
+  MB_TUBEZ = 3, /* Deprecated. */
+  MB_TUBE = 4,
+  MB_PLANE = 5,
+  MB_ELIPSOID = 6,
+  MB_CUBE = 7,
+};
 
-#define MB_TYPE_SIZE_SQUARED(type) (type == MB_ELIPSOID)
+#define MB_TYPE_SIZE_SQUARED(type) ((type) == MB_ELIPSOID)
 
-/* ml->flag */
-#define MB_NEGATIVE 2
-#define MB_HIDE 8
-#define MB_SCALE_RAD 16
+/** #MetaElem::flag */
+enum {
+  MB_NEGATIVE = 1 << 1,
+  MB_HIDE = 1 << 3,
+  MB_SCALE_RAD = 1 << 4,
+};
 
 #ifdef __cplusplus
 }

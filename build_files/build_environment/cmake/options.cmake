@@ -1,7 +1,9 @@
+# SPDX-FileCopyrightText: 2017-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(WIN32)
-  option(ENABLE_MINGW64 "Enable building of ffmpeg/iconv/libsndfile/fftw3 by installing mingw64" ON)
+  option(ENABLE_MSYS2 "Enable building of ffmpeg/libsndfile/fftw3/gmp by installing msys2" ON)
 endif()
 option(FORCE_CHECK_HASH "Force a check of all hashses during CMake the configure phase" OFF)
 
@@ -39,7 +41,7 @@ message("PATCH_DIR = ${PATCH_DIR}")
 message("BUILD_DIR = ${BUILD_DIR}")
 
 if(WIN32)
-  set(PATCH_CMD ${DOWNLOAD_DIR}/mingw/mingw64/msys/1.0/bin/patch.exe)
+  set(PATCH_CMD ${DOWNLOAD_DIR}/msys2/msys64/usr/bin/patch.exe)
   set(LIBEXT ".lib")
   set(SHAREDLIBEXT ".lib")
   set(LIBPREFIX "")
@@ -99,10 +101,13 @@ if(WIN32)
   set(PLATFORM_CXX_FLAGS)
   set(PLATFORM_CMAKE_FLAGS)
 
-  set(MINGW_PATH ${DOWNLOAD_DIR}/mingw/mingw64)
+  set(MINGW_PATH ${DOWNLOAD_DIR}/msys2/msys64/)
   set(MINGW_SHELL ming64sh.cmd)
   set(PERL_SHELL ${DOWNLOAD_DIR}/perl/portableshell.bat)
   set(MINGW_HOST x86_64-w64-mingw32)
+
+  set(MINGW_CFLAGS)
+  set(MINGW_LDFLAGS)
 
   # some build systems like meson will respect the *nix like environment vars
   # like CFLAGS and LDFlags but will still build with the MSVC compiler, so for
@@ -121,16 +126,21 @@ if(WIN32)
     call ${PERL_SHELL} &&
     call ${MINGW_SHELL} &&
     set path &&
-    set CFLAGS=-g &&
-    set LDFLAGS=-Wl,--as-needed -static-libgcc
+    set CC=cl &&
+    set CXX=cl &&
+    set CFLAGS=${MINGW_CFLAGS} &&
+    set LDFLAGS=${MINGW_LDFLAGS}
   )
 
   set(CONFIGURE_ENV_NO_PERL
     cd ${MINGW_PATH} &&
     call ${MINGW_SHELL} &&
     set path &&
-    set CFLAGS=-g &&
-    set LDFLAGS=-Wl,--as-needed -static-libgcc
+    set CC=cl &&
+    set CXX=cl &&
+    set LD=link &&
+    set CFLAGS=${MINGW_CFLAGS} &&
+    set LDFLAGS=${MINGW_LDFLAGS}
   )
 
   set(CONFIGURE_COMMAND sh ./configure)

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,9 +8,16 @@
 
 #include "DNA_texture_types.h"
 
+#include "BKE_colorband.h"
+
 #include "BLI_color.hh"
 
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
 namespace blender::nodes::node_shader_color_ramp_cc {
 
@@ -33,7 +40,7 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
                                GPUNodeStack *in,
                                GPUNodeStack *out)
 {
-  struct ColorBand *coba = (ColorBand *)node->storage;
+  ColorBand *coba = (ColorBand *)node->storage;
   float *array, layer;
   int size;
 

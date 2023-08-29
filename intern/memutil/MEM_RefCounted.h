@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup intern_memutil
@@ -21,7 +22,6 @@
  * \author  Maarten Gribnau
  * \date    March 31, 2001
  */
-
 class MEM_RefCounted {
  public:
   /**

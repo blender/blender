@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,16 +13,17 @@
 #include "DNA_object_types.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
-#include "BKE_editmesh_cache.h"
+#include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_iterators.h"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_iterators.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph_query.h"
@@ -176,12 +177,12 @@ struct CageUserData {
   BLI_bitmap *visit_bitmap;
 };
 
-static void cage_mapped_verts_callback(void *userData,
+static void cage_mapped_verts_callback(void *user_data,
                                        int index,
                                        const float co[3],
                                        const float /*no*/[3])
 {
-  CageUserData *data = static_cast<CageUserData *>(userData);
+  CageUserData *data = static_cast<CageUserData *>(user_data);
 
   if ((index >= 0 && index < data->totvert) && !BLI_BITMAP_TEST(data->visit_bitmap, index)) {
     BLI_BITMAP_ENABLE(data->visit_bitmap, index);
@@ -226,13 +227,12 @@ const float (*BKE_editmesh_vert_coords_when_deformed(Depsgraph *depsgraph,
   const float(*coords)[3] = nullptr;
   *r_is_alloc = false;
 
-  Mesh *me = static_cast<Mesh *>(ob->data);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object_eval);
 
-  if ((me->runtime->edit_data != nullptr) && (me->runtime->edit_data->vertexCos != nullptr)) {
+  if (Mesh *mesh_cage = BKE_object_get_editmesh_eval_cage(ob)) {
     /* Deformed, and we have deformed coords already. */
-    coords = me->runtime->edit_data->vertexCos;
+    coords = BKE_mesh_wrapper_vert_coords(mesh_cage);
   }
   else if ((editmesh_eval_final != nullptr) &&
            (editmesh_eval_final->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH))

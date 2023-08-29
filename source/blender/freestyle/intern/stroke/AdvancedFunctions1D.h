@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -127,7 +127,7 @@ class GetCompleteViewMapDensityF1D : public UnaryFunction1D<double> {
    *    combining the resulting values into a single one, following the
    *    method specified by iType.
    */
-  GetCompleteViewMapDensityF1D(unsigned level, IntegrationType iType = MEAN, float sampling = 2.0f)
+  GetCompleteViewMapDensityF1D(uint level, IntegrationType iType = MEAN, float sampling = 2.0f)
       : UnaryFunction1D<double>(iType), _fun(level)
   {
     _sampling = sampling;
@@ -148,7 +148,7 @@ class GetCompleteViewMapDensityF1D : public UnaryFunction1D<double> {
 };
 
 // GetDirectionalViewMapDensity
-/** Returns the density evaluated for an Interface1D in of the steerable viewmaps image.
+/** Returns the density evaluated for an Interface1D in of the steerable view-maps image.
  *  The direction telling which Directional map to choose is explicitly specified by the user.
  *  The density is evaluated for a set of points along the Interface1D
  *  (using the ReadSteerableViewMapPixelF0D functor)
@@ -168,8 +168,8 @@ class GetDirectionalViewMapDensityF1D : public UnaryFunction1D<double> {
    *    each sample point and the result is obtained by combining the resulting values into a
    *    single one, following the method specified by iType.
    */
-  GetDirectionalViewMapDensityF1D(unsigned iOrientation,
-                                  unsigned level,
+  GetDirectionalViewMapDensityF1D(uint iOrientation,
+                                  uint level,
                                   IntegrationType iType = MEAN,
                                   float sampling = 2.0f)
       : UnaryFunction1D<double>(iType), _fun(iOrientation, level)

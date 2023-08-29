@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,13 +14,13 @@
 
 #include "AS_asset_identifier.hh"
 #include "AS_asset_library.hh"
-#include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
 namespace blender::asset_system {
 
 AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
                                          StringRef name,
+                                         const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
                                          const AssetLibrary &owner_asset_library)
     : identifier_(identifier),
@@ -29,6 +29,7 @@ AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
       external_asset_()
 {
   external_asset_.name = name;
+  external_asset_.id_type = id_type;
   external_asset_.metadata_ = std::move(metadata);
 }
 
@@ -69,7 +70,7 @@ const AssetIdentifier &AssetRepresentation::get_identifier() const
   return identifier_;
 }
 
-std::unique_ptr<AssetWeakReference> AssetRepresentation::make_weak_reference() const
+AssetWeakReference *AssetRepresentation::make_weak_reference() const
 {
   if (!owner_asset_library_) {
     return nullptr;
@@ -85,6 +86,15 @@ StringRefNull AssetRepresentation::get_name() const
   }
 
   return external_asset_.name;
+}
+
+ID_Type AssetRepresentation::get_id_type() const
+{
+  if (is_local_id_) {
+    return GS(local_asset_id_->name);
+  }
+
+  return ID_Type(external_asset_.id_type);
 }
 
 AssetMetaData &AssetRepresentation::get_metadata() const
@@ -132,85 +142,3 @@ const AssetLibrary &AssetRepresentation::owner_asset_library() const
 }
 
 }  // namespace blender::asset_system
-
-using namespace blender;
-
-std::string AS_asset_representation_full_path_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  const asset_system::AssetIdentifier &identifier = asset->get_identifier();
-  return identifier.full_path();
-}
-
-std::string AS_asset_representation_full_library_path_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->get_identifier().full_library_path();
-}
-
-std::optional<eAssetImportMethod> AS_asset_representation_import_method_get(
-    const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->get_import_method();
-}
-
-bool AS_asset_representation_may_override_import_method(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->may_override_import_method();
-}
-
-bool AS_asset_representation_use_relative_path_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->get_use_relative_path();
-}
-
-/* ---------------------------------------------------------------------- */
-/** \name C-API
- * \{ */
-
-const char *AS_asset_representation_name_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->get_name().c_str();
-}
-
-AssetMetaData *AS_asset_representation_metadata_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return &asset->get_metadata();
-}
-
-ID *AS_asset_representation_local_id_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->local_id();
-}
-
-bool AS_asset_representation_is_local_id(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->is_local_id();
-}
-
-AssetWeakReference *AS_asset_representation_weak_reference_create(
-    const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  std::unique_ptr<AssetWeakReference> weak_ref = asset->make_weak_reference();
-  return MEM_new<AssetWeakReference>(__func__, std::move(*weak_ref));
-}
-
-/** \} */

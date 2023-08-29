@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,7 +11,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -20,23 +20,23 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 #include "mesh_intern.h" /* own include */
 
@@ -44,7 +44,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ARegion *region = CTX_wm_region(C);
-  const struct Mesh *me_eval;
+  const Mesh *me_eval;
   bool me_eval_needs_free;
 
   if (ob->type == OB_MESH || ob->runtime.data_eval) {

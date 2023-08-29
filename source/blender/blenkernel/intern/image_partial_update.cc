@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 /**
@@ -14,7 +14,7 @@
  *
  * Usage:
  *
- * ```
+ * \code{.cc}
  * Image *image = ...;
  * ImBuf *image_buffer = ...;
  *
@@ -44,8 +44,7 @@
  *
  * // Free partial_update_user.
  * BKE_image_partial_update_free(partial_update_user);
- *
- * ```
+ * \endcode
  */
 
 #include <optional>
@@ -97,15 +96,15 @@ struct PartialUpdateUserImpl;
 /**
  * Wrap PartialUpdateUserImpl to its C-struct (PartialUpdateUser).
  */
-static struct PartialUpdateUser *wrap(PartialUpdateUserImpl *user)
+static PartialUpdateUser *wrap(PartialUpdateUserImpl *user)
 {
-  return static_cast<struct PartialUpdateUser *>(static_cast<void *>(user));
+  return static_cast<PartialUpdateUser *>(static_cast<void *>(user));
 }
 
 /**
  * Unwrap the PartialUpdateUser C-struct to its CPP counterpart (PartialUpdateUserImpl).
  */
-static PartialUpdateUserImpl *unwrap(struct PartialUpdateUser *user)
+static PartialUpdateUserImpl *unwrap(PartialUpdateUser *user)
 {
   return static_cast<PartialUpdateUserImpl *>(static_cast<void *>(user));
 }
@@ -113,15 +112,15 @@ static PartialUpdateUserImpl *unwrap(struct PartialUpdateUser *user)
 /**
  * Wrap PartialUpdateRegisterImpl to its C-struct (PartialUpdateRegister).
  */
-static struct PartialUpdateRegister *wrap(PartialUpdateRegisterImpl *partial_update_register)
+static PartialUpdateRegister *wrap(PartialUpdateRegisterImpl *partial_update_register)
 {
-  return static_cast<struct PartialUpdateRegister *>(static_cast<void *>(partial_update_register));
+  return static_cast<PartialUpdateRegister *>(static_cast<void *>(partial_update_register));
 }
 
 /**
  * Unwrap the PartialUpdateRegister C-struct to its CPP counterpart (PartialUpdateRegisterImpl).
  */
-static PartialUpdateRegisterImpl *unwrap(struct PartialUpdateRegister *partial_update_register)
+static PartialUpdateRegisterImpl *unwrap(PartialUpdateRegister *partial_update_register)
 {
   return static_cast<PartialUpdateRegisterImpl *>(static_cast<void *>(partial_update_register));
 }
@@ -420,7 +419,15 @@ struct PartialUpdateRegisterImpl {
    */
   bool can_construct(ChangesetID changeset_id)
   {
-    return changeset_id >= first_changeset_id;
+    if (changeset_id < first_changeset_id) {
+      return false;
+    }
+
+    if (changeset_id > last_changeset_id) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -534,8 +541,8 @@ extern "C" {
 
 using namespace blender::bke::image::partial_update;
 
-// TODO(jbakker): cleanup parameter.
-struct PartialUpdateUser *BKE_image_partial_update_create(const struct Image *image)
+/* TODO(@jbakker): cleanup parameter. */
+PartialUpdateUser *BKE_image_partial_update_create(const Image *image)
 {
   PartialUpdateUserImpl *user_impl = MEM_new<PartialUpdateUserImpl>(__func__);
 

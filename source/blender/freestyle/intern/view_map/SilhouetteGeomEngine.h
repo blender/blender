@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -59,7 +59,7 @@ class SilhouetteGeomEngine {
   /** retrieves an instance on the singleton */
   static SilhouetteGeomEngine *getInstance()
   {
-    if (_pInstance == NULL) {
+    if (_pInstance == nullptr) {
       _pInstance = new SilhouetteGeomEngine;
     }
     return _pInstance;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -22,8 +24,8 @@ PyDoc_STRVAR(orientedViewEdgeIterator_doc,
              "Class hierarchy: :class:`Iterator` > :class:`orientedViewEdgeIterator`\n"
              "\n"
              "Class representing an iterator over oriented ViewEdges around a\n"
-             ":class:`ViewVertex`.  This iterator allows a CCW iteration (in the image\n"
-             "plane).  An instance of an orientedViewEdgeIterator can only be\n"
+             ":class:`ViewVertex`. This iterator allows a CCW iteration (in the image\n"
+             "plane). An instance of an orientedViewEdgeIterator can only be\n"
              "obtained from a ViewVertex by calling edges_begin() or edges_end().\n"
              "\n"
              ".. method:: __init__()\n"
@@ -129,7 +131,7 @@ static PyGetSetDef BPy_orientedViewEdgeIterator_getseters[] = {
 /*-----------------------BPy_orientedViewEdgeIterator type definition ---------------------------*/
 
 PyTypeObject orientedViewEdgeIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "orientedViewEdgeIterator",
     /*tp_basicsize*/ sizeof(BPy_orientedViewEdgeIterator),
     /*tp_itemsize*/ 0,

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,10 +11,10 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_state.h"
@@ -33,7 +33,6 @@ static void cmp_node_viewer_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image").default_value({0.0f, 0.0f, 0.0f, 1.0f});
   b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("Z").default_value(1.0f).min(0.0f).max(1.0f);
 }
 
 static void node_composit_init_viewer(bNodeTree * /*ntree*/, bNode *node)
@@ -105,7 +104,7 @@ class ViewerOperation : public NodeOperation {
       color.w = alpha.get_float_value();
     }
 
-    GPU_texture_clear(context().get_output_texture(), GPU_DATA_FLOAT, color);
+    GPU_texture_clear(context().get_viewer_output_texture(), GPU_DATA_FLOAT, color);
   }
 
   /* Executes when the alpha channel of the image is ignored. */
@@ -123,7 +122,7 @@ class ViewerOperation : public NodeOperation {
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
 
-    GPUTexture *output_texture = context().get_output_texture();
+    GPUTexture *output_texture = context().get_viewer_output_texture();
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
@@ -151,7 +150,7 @@ class ViewerOperation : public NodeOperation {
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
 
-    GPUTexture *output_texture = context().get_output_texture();
+    GPUTexture *output_texture = context().get_viewer_output_texture();
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
@@ -181,7 +180,7 @@ class ViewerOperation : public NodeOperation {
     const Result &alpha = get_input("Alpha");
     alpha.bind_as_texture(shader, "alpha_tx");
 
-    GPUTexture *output_texture = context().get_output_texture();
+    GPUTexture *output_texture = context().get_viewer_output_texture();
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 

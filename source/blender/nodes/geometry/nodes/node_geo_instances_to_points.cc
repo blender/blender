@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -33,7 +33,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
                                         Field<bool> selection_field,
                                         const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const bke::Instances &instances = *geometry_set.get_instances_for_read();
+  const bke::Instances &instances = *geometry_set.get_instances();
 
   const bke::InstancesFieldContext context{instances};
   fn::FieldEvaluator evaluator{context, instances.instances_num()};
@@ -60,8 +60,8 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
 
   const bke::AttributeAccessor src_attributes = instances.attributes();
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_INSTANCES},
-                                                 GEO_COMPONENT_TYPE_POINT_CLOUD,
+  geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Instance},
+                                                 GeometryComponent::Type::PointCloud,
                                                  false,
                                                  propagation_info,
                                                  attributes_to_propagate);
@@ -99,7 +99,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                 params.extract_input<Field<float>>("Radius"),
                                 params.extract_input<Field<bool>>("Selection"),
                                 params.get_output_propagation_info("Points"));
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_EDIT});
+    geometry_set.keep_only({GeometryComponent::Type::PointCloud, GeometryComponent::Type::Edit});
     params.set_output("Points", std::move(geometry_set));
   }
   else {
@@ -107,17 +107,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_instances_to_points_cc
-
-void register_node_type_geo_instances_to_points()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_instances_to_points_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_INSTANCES_TO_POINTS, "Instances to Points", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_instances_to_points_cc

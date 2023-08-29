@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,8 @@
  */
 
 #include "ply_file_buffer.hh"
+
+#include <iostream>
 
 namespace blender::io::ply {
 
@@ -42,11 +44,11 @@ void FileBuffer::close_file()
 
 void FileBuffer::write_header_element(StringRef name, int count)
 {
-  write_fstring("element {} {}\n", (std::string_view)name, count);
+  write_fstring("element {} {}\n", std::string_view(name), count);
 }
 void FileBuffer::write_header_scalar_property(StringRef dataType, StringRef name)
 {
-  write_fstring("property {} {}\n", (std::string_view)dataType, (std::string_view)name);
+  write_fstring("property {} {}\n", std::string_view(dataType), std::string_view(name));
 }
 
 void FileBuffer::write_header_list_property(StringRef countType,
@@ -54,14 +56,14 @@ void FileBuffer::write_header_list_property(StringRef countType,
                                             StringRef name)
 {
   write_fstring("property list {} {} {}\n",
-                (std::string_view)countType,
-                (std::string_view)dataType,
-                (std::string_view)name);
+                std::string_view(countType),
+                std::string_view(dataType),
+                std::string_view(name));
 }
 
 void FileBuffer::write_string(StringRef s)
 {
-  write_fstring("{}\n", (std::string_view)s);
+  write_fstring("{}\n", std::string_view(s));
 }
 
 void FileBuffer::write_newline()

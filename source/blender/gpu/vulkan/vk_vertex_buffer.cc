@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,43 +24,34 @@ VKVertexBuffer::~VKVertexBuffer()
 
 void VKVertexBuffer::bind_as_ssbo(uint binding)
 {
-  if (!buffer_.is_allocated()) {
-    allocate();
-  }
-
   VKContext &context = *VKContext::get();
-  VKShader *shader = static_cast<VKShader *>(context.shader);
-  const VKShaderInterface &shader_interface = shader->interface_get();
-  const std::optional<VKDescriptorSet::Location> location =
-      shader_interface.descriptor_set_location(
-          shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER, binding);
-  BLI_assert_msg(location, "Locations to SSBOs should always exist.");
-  shader->pipeline_get().descriptor_set_get().bind_as_ssbo(*this, *location);
+  VKStateManager &state_manager = context.state_manager_get();
+  state_manager.storage_buffer_bind(*this, binding);
 }
 
 void VKVertexBuffer::bind_as_texture(uint binding)
 {
   VKContext &context = *VKContext::get();
   VKStateManager &state_manager = context.state_manager_get();
-  state_manager.texel_buffer_bind(this, binding);
-  should_unbind_ = true;
+  state_manager.texel_buffer_bind(*this, binding);
 }
 
-void VKVertexBuffer::bind(uint binding)
+void VKVertexBuffer::bind(int binding, shader::ShaderCreateInfo::Resource::BindType bind_type)
 {
   VKContext &context = *VKContext::get();
   VKShader *shader = static_cast<VKShader *>(context.shader);
   const VKShaderInterface &shader_interface = shader->interface_get();
   const std::optional<VKDescriptorSet::Location> location =
-      shader_interface.descriptor_set_location(
-          shader::ShaderCreateInfo::Resource::BindType::SAMPLER, binding);
+      shader_interface.descriptor_set_location(bind_type, binding);
   if (!location) {
     return;
   }
 
   upload_data();
 
-  if (vk_buffer_view_ == VK_NULL_HANDLE) {
+  if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER &&
+      vk_buffer_view_ == VK_NULL_HANDLE)
+  {
     VkBufferViewCreateInfo buffer_view_info = {};
     eGPUTextureFormat texture_format = to_texture_format(&format);
 
@@ -75,7 +66,14 @@ void VKVertexBuffer::bind(uint binding)
         device.device_get(), &buffer_view_info, vk_allocation_callbacks, &vk_buffer_view_);
   }
 
-  shader->pipeline_get().descriptor_set_get().bind(*this, *location);
+  /* TODO: Check if we can move this check inside the descriptor set. */
+  VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
+  if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
+    descriptor_set.bind(*this, *location);
+  }
+  else {
+    descriptor_set.bind_as_ssbo(*this, *location);
+  }
 }
 
 void VKVertexBuffer::wrap_handle(uint64_t /*handle*/)
@@ -119,14 +117,9 @@ void VKVertexBuffer::resize_data()
 
 void VKVertexBuffer::release_data()
 {
-  if (should_unbind_) {
-    VKContext &context = *VKContext::get();
-    context.state_manager_get().texel_buffer_unbind(this);
-  }
-
   if (vk_buffer_view_ != VK_NULL_HANDLE) {
-    VK_ALLOCATION_CALLBACKS;
     const VKDevice &device = VKBackend::get().device_get();
+    VK_ALLOCATION_CALLBACKS;
     vkDestroyBufferView(device.device_get(), vk_buffer_view_, vk_allocation_callbacks);
     vk_buffer_view_ = VK_NULL_HANDLE;
   }

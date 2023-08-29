@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,9 +7,9 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -33,24 +33,24 @@
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_transform_snap_object_context.h"
-#include "ED_view3d.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
+#include "ED_transform_snap_object_context.hh"
+#include "ED_view3d.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph_query.h"
 
@@ -128,7 +128,7 @@ enum {
 struct RulerItem;
 
 struct RulerInfo {
-  struct RulerItem *item_active;
+  RulerItem *item_active;
   int flag;
   int snap_flag;
   int state;
@@ -206,7 +206,8 @@ static void ruler_item_as_string(
         ruler_item->co[0], ruler_item->co[1], ruler_item->co[2]);
 
     if (unit->system == USER_UNIT_NONE) {
-      BLI_snprintf(numstr, numstr_size, "%.*f°", prec, RAD2DEGF(ruler_angle));
+      BLI_snprintf(
+          numstr, numstr_size, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, prec, RAD2DEGF(ruler_angle));
     }
     else {
       BKE_unit_value_as_string(
@@ -313,6 +314,8 @@ static void ruler_state_set(RulerInfo *ruler_info, int state)
 
   if (state == RULER_STATE_NORMAL) {
     WM_gizmo_set_flag(ruler_info->snap_data.gizmo, WM_GIZMO_DRAW_VALUE, false);
+    RNA_property_float_set_array(
+        ruler_info->snap_data.gizmo->ptr, ruler_info->snap_data.prop_prevpoint, nullptr);
   }
   else if (state == RULER_STATE_DRAG) {
     memset(&ruler_info->drag_state_prev, 0x0, sizeof(ruler_info->drag_state_prev));
@@ -340,7 +343,7 @@ static void view3d_ruler_item_project(RulerInfo *ruler_info, float3 &r_co, const
  * Use for mouse-move events.
  */
 static bool view3d_ruler_item_mousemove(const bContext *C,
-                                        struct Depsgraph *depsgraph,
+                                        Depsgraph *depsgraph,
                                         RulerInfo *ruler_info,
                                         RulerItem *ruler_item,
                                         const int mval[2],
@@ -374,7 +377,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
                                                               depsgraph,
                                                               ruler_info->region,
                                                               v3d,
-                                                              SCE_SNAP_MODE_FACE_RAYCAST,
+                                                              SCE_SNAP_TO_FACE,
                                                               &snap_object_params,
                                                               nullptr,
                                                               mval_fl,
@@ -589,8 +592,7 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
       bGPDframe *gpf;
       gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
       if (gpf) {
-        bGPDstroke *gps;
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           bGPDspoint *pt = gps->points;
           int j;
           RulerItem *ruler_item = nullptr;
@@ -951,11 +953,11 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     if ((len < (numstr_size[1] * 2.5f)) ||
         ((len < (numstr_size[0] + bg_margin + bg_margin)) && (fabs(rot_90_vec[0]) < 0.5f)))
     {
-      /* Super short, or quite short and also shallow angle. Position below line.*/
+      /* Super short, or quite short and also shallow angle. Position below line. */
       posit[1] = MIN2(co_ss[0][1], co_ss[2][1]) - numstr_size[1] - bg_margin - bg_margin;
     }
     else if (fabs(rot_90_vec[0]) < 0.2f) {
-      /* Very shallow angle. Shift down by text height.*/
+      /* Very shallow angle. Shift down by text height. */
       posit[1] -= numstr_size[1];
     }
 
@@ -1068,7 +1070,7 @@ static int gizmo_ruler_modal(bContext *C,
 
   if (do_cursor_update) {
     if (ruler_info->state == RULER_STATE_DRAG) {
-      struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       if (view3d_ruler_item_mousemove(
               C, depsgraph, ruler_info, ruler_item, event->mval, do_thickness, do_snap))
       {
@@ -1129,7 +1131,7 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
       }
 
       /* update the new location */
-      struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       view3d_ruler_item_mousemove(
           C, depsgraph, ruler_info, ruler_item_pick, event->mval, false, false);
     }
@@ -1325,7 +1327,7 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
   {
     RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
     RulerInteraction *inter = static_cast<RulerInteraction *>(ruler_item->gz.interaction_data);
-    struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     inter->co_index = 0;
 
 #ifndef USE_SNAP_DETECT_FROM_KEYMAP_HACK

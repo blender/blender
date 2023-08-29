@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include <stdlib.h>
 #include <string.h>
@@ -304,8 +305,11 @@ string Device::device_capabilities(uint mask)
 #ifdef WITH_CUDA
   if (mask & DEVICE_MASK_CUDA) {
     if (device_cuda_init()) {
-      capabilities += "\nCUDA device capabilities:\n";
-      capabilities += device_cuda_capabilities();
+      const string device_capabilities = device_cuda_capabilities();
+      if (!device_capabilities.empty()) {
+        capabilities += "\nCUDA device capabilities:\n";
+        capabilities += device_capabilities;
+      }
     }
   }
 #endif
@@ -313,8 +317,11 @@ string Device::device_capabilities(uint mask)
 #ifdef WITH_HIP
   if (mask & DEVICE_MASK_HIP) {
     if (device_hip_init()) {
-      capabilities += "\nHIP device capabilities:\n";
-      capabilities += device_hip_capabilities();
+      const string device_capabilities = device_hip_capabilities();
+      if (!device_capabilities.empty()) {
+        capabilities += "\nHIP device capabilities:\n";
+        capabilities += device_capabilities;
+      }
     }
   }
 #endif
@@ -322,8 +329,11 @@ string Device::device_capabilities(uint mask)
 #ifdef WITH_ONEAPI
   if (mask & DEVICE_MASK_ONEAPI) {
     if (device_oneapi_init()) {
-      capabilities += "\noneAPI device capabilities:\n";
-      capabilities += device_oneapi_capabilities();
+      const string device_capabilities = device_oneapi_capabilities();
+      if (!device_capabilities.empty()) {
+        capabilities += "\noneAPI device capabilities:\n";
+        capabilities += device_capabilities;
+      }
     }
   }
 #endif
@@ -331,8 +341,11 @@ string Device::device_capabilities(uint mask)
 #ifdef WITH_METAL
   if (mask & DEVICE_MASK_METAL) {
     if (device_metal_init()) {
-      capabilities += "\nMetal device capabilities:\n";
-      capabilities += device_metal_capabilities();
+      const string device_capabilities = device_metal_capabilities();
+      if (!device_capabilities.empty()) {
+        capabilities += "\nMetal device capabilities:\n";
+        capabilities += device_capabilities;
+      }
     }
   }
 #endif
@@ -359,6 +372,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
 
   info.has_nanovdb = true;
   info.has_light_tree = true;
+  info.has_mnee = true;
   info.has_osl = true;
   info.has_guiding = true;
   info.has_profiling = true;
@@ -408,6 +422,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     /* Accumulate device info. */
     info.has_nanovdb &= device.has_nanovdb;
     info.has_light_tree &= device.has_light_tree;
+    info.has_mnee &= device.has_mnee;
     info.has_osl &= device.has_osl;
     info.has_guiding &= device.has_guiding;
     info.has_profiling &= device.has_profiling;

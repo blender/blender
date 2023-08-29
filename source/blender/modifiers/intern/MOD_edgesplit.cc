@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,9 +11,8 @@
  * or edge angle (can be used to achieve auto-smoothing)
  */
 
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_math.h"
 
 #include "BLT_translation.h"
 
@@ -23,14 +22,14 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "bmesh.h"
@@ -74,7 +73,7 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
       if ((l1 = e->l) && (l2 = e->l->radial_next) != l1) {
         if (/* 3+ faces on this edge, always split */
             UNLIKELY(l1 != l2->radial_next) ||
-            /* O° angle setting, we want to split on all edges. */
+            /* O degree angle setting, we want to split on all edges. */
             do_split_all ||
             /* 2 face edge - check angle. */
             (dot_v3v3(l1->f->no, l2->f->no) < threshold))
@@ -107,7 +106,7 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
   return result;
 }
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   EdgeSplitModifierData *emd = (EdgeSplitModifierData *)md;
 
@@ -116,7 +115,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(emd, DNA_struct_default_get(EdgeSplitModifierData), modifier);
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
   Mesh *result;
   EdgeSplitModifierData *emd = (EdgeSplitModifierData *)md;
@@ -140,25 +139,26 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Edge Angle"));
-  uiItemR(row, ptr, "use_edge_angle", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "use_edge_angle", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_edge_angle"));
-  uiItemR(sub, ptr, "split_angle", 0, "", ICON_NONE);
+  uiItemR(sub, ptr, "split_angle", UI_ITEM_NONE, "", ICON_NONE);
 
-  uiItemR(layout, ptr, "use_edge_sharp", 0, IFACE_("Sharp Edges"), ICON_NONE);
+  uiItemR(layout, ptr, "use_edge_sharp", UI_ITEM_NONE, IFACE_("Sharp Edges"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_EdgeSplit, panel_draw);
 }
 
 ModifierTypeInfo modifierType_EdgeSplit = {
+    /*idname*/ "EdgeSplit",
     /*name*/ N_("EdgeSplit"),
-    /*structName*/ "EdgeSplitModifierData",
-    /*structSize*/ sizeof(EdgeSplitModifierData),
+    /*struct_name*/ "EdgeSplitModifierData",
+    /*struct_size*/ sizeof(EdgeSplitModifierData),
     /*srna*/ &RNA_EdgeSplitModifier,
     /*type*/ eModifierTypeType_Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
@@ -166,26 +166,26 @@ ModifierTypeInfo modifierType_EdgeSplit = {
         eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_EDGESPLIT,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ nullptr,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ nullptr,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

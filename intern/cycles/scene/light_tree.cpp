@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/light_tree.h"
 #include "scene/mesh.h"
@@ -149,8 +150,8 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
     const float size = lamp->get_size();
     float3 strength = lamp->get_strength();
 
-    centroid = scene->lights[object_id]->get_co();
-    measure.bcone.axis = normalize(lamp->get_dir());
+    centroid = lamp->get_co();
+    measure.bcone.axis = safe_normalize(lamp->get_dir());
 
     if (type == LIGHT_AREA) {
       measure.bcone.theta_o = 0;
@@ -166,7 +167,8 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
       measure.bbox.grow(centroid - half_extentu + half_extentv);
       measure.bbox.grow(centroid - half_extentu - half_extentv);
 
-      strength *= 0.25f; /* eval_fac scaling in `area.h` */
+      /* Convert irradiance to radiance. */
+      strength *= M_1_PI_F;
     }
     else if (type == LIGHT_POINT) {
       measure.bcone.theta_o = M_PI_F;
@@ -456,7 +458,7 @@ void LightTree::recursive_build(const Child child,
   if (should_split(emitters, start, middle, end, node->measure, node->light_link, split_dim)) {
 
     if (split_dim != -1) {
-      /* Partition the emitters between start and end based on the centroids.  */
+      /* Partition the emitters between start and end based on the centroids. */
       std::nth_element(emitters + start,
                        emitters + middle,
                        emitters + end,

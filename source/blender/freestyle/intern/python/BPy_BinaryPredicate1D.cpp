@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -73,10 +75,10 @@ int BinaryPredicate1D_Init(PyObject *module)
 
 static char BinaryPredicate1D___doc__[] =
     "Base class for binary predicates working on :class:`Interface1D`\n"
-    "objects.  A BinaryPredicate1D is typically an ordering relation\n"
-    "between two Interface1D objects.  The predicate evaluates a relation\n"
+    "objects. A BinaryPredicate1D is typically an ordering relation\n"
+    "between two Interface1D objects. The predicate evaluates a relation\n"
     "between the two Interface1D instances and returns a boolean value (true\n"
-    "or false).  It is used by invoking the __call__() method.\n"
+    "or false). It is used by invoking the __call__() method.\n"
     "\n"
     ".. method:: __init__()\n"
     "\n"
@@ -167,7 +169,8 @@ static PyGetSetDef BPy_BinaryPredicate1D_getseters[] = {
 /*-----------------------BPy_BinaryPredicate1D type definition ------------------------------*/
 
 PyTypeObject BinaryPredicate1D_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "BinaryPredicate1D",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "BinaryPredicate1D",
     /*tp_basicsize*/ sizeof(BPy_BinaryPredicate1D),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ (destructor)BinaryPredicate1D___dealloc__,
@@ -203,7 +206,7 @@ PyTypeObject BinaryPredicate1D_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)BinaryPredicate1D___init__,
     /*tp_alloc*/ nullptr,
-    PyType_GenericNew, /*tp_new*/
+    /*tp_new*/ PyType_GenericNew,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

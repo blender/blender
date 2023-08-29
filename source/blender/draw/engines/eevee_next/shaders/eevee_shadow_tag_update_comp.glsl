@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Update tagging
+ * Virtual shadow-mapping: Update tagging
  *
  * Any updated shadow caster needs to tag the shadow map tiles it was in and is now into.
  * This is done in 2 pass of this same shader. One for past object bounds and one for new object
@@ -67,7 +70,7 @@ void main()
   AABB aabb_tag;
   AABB aabb_map = shape_aabb(vec3(-0.99999), vec3(0.99999));
 
-  /* Directionnal winmat have no correct near/far in the Z dimension at this point.
+  /* Directional `winmat` have no correct near/far in the Z dimension at this point.
    * Do not clip in this dimension. */
   if (tilemap.projection_type != SHADOW_PROJECTION_CUBEFACE) {
     aabb_map.min.z = -FLT_MAX;

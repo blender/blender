@@ -14,7 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_rand.hh"
 #include "BLI_threads.h"
@@ -25,7 +25,7 @@
 #include "BLI_strict_flags.h"
 #include "BLI_sys_types.h"
 
-extern "C" uchar BLI_noise_hash_uchar_512[512]; /* noise.c */
+extern "C" uchar BLI_noise_hash_uchar_512[512]; /* `noise.cc` */
 #define hash BLI_noise_hash_uchar_512
 
 /**
@@ -142,7 +142,7 @@ void BLI_rng_shuffle_array(RNG *rng, void *data, uint elem_size_i, uint elem_num
   free(temp);
 }
 
-void BLI_rng_shuffle_bitmap(struct RNG *rng, BLI_bitmap *bitmap, uint bits_num)
+void BLI_rng_shuffle_bitmap(RNG *rng, BLI_bitmap *bitmap, uint bits_num)
 {
   if (bits_num <= 1) {
     return;
@@ -246,7 +246,7 @@ RNG_THREAD_ARRAY *BLI_rng_threaded_new()
   return rngarr;
 }
 
-void BLI_rng_threaded_free(struct RNG_THREAD_ARRAY *rngarr)
+void BLI_rng_threaded_free(RNG_THREAD_ARRAY *rngarr)
 {
   MEM_freeN(rngarr);
 }

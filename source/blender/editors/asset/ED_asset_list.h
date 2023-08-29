@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,6 +11,12 @@
 #include "DNA_asset_types.h"
 
 #ifdef __cplusplus
+namespace blender::asset_system {
+class AssetRepresentation;
+}
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -19,6 +25,7 @@ struct AssetLibraryReference;
 struct ID;
 struct bContext;
 struct wmNotifier;
+struct wmRegionListenerParams;
 
 /**
  * Invoke asset list reading, potentially in a parallel job. Won't wait until the job is done,
@@ -54,12 +61,15 @@ void ED_assetlist_storage_id_remap(struct ID *id_old, struct ID *id_new);
  */
 void ED_assetlist_storage_exit(void);
 
-AssetHandle *ED_assetlist_asset_get_by_index(const AssetLibraryReference *library_reference,
-                                             int asset_index);
+AssetHandle ED_assetlist_asset_handle_get_by_index(const AssetLibraryReference *library_reference,
+                                                   int asset_index);
+#ifdef __cplusplus
+blender::asset_system::AssetRepresentation *ED_assetlist_asset_get_by_index(
+    const AssetLibraryReference &library_reference, int asset_index);
+#endif
 
-struct PreviewImage *ED_assetlist_asset_preview_request(AssetHandle *asset_handle);
-int ED_assetlist_asset_preview_icon_id_request(AssetHandle *asset_handle);
-int ED_assetlist_asset_preview_or_type_icon_id_request(AssetHandle *asset_handle);
+bool ED_assetlist_asset_image_is_loading(const AssetLibraryReference *library_reference,
+                                         const AssetHandle *asset_handle);
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
 
 struct AssetLibrary *ED_assetlist_library_get(
@@ -68,8 +78,7 @@ struct AssetLibrary *ED_assetlist_library_get(
 /**
  * \return True if the region needs a UI redraw.
  */
-bool ED_assetlist_listen(const struct AssetLibraryReference *library_reference,
-                         const struct wmNotifier *notifier);
+bool ED_assetlist_listen(const struct wmNotifier *notifier);
 /**
  * \return The number of assets stored in the asset list for \a library_reference, or -1 if there
  *         is no list fetched for it.
@@ -78,4 +87,14 @@ int ED_assetlist_size(const struct AssetLibraryReference *library_reference);
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+
+namespace blender::ed::asset {
+
+void asset_reading_region_listen_fn(const wmRegionListenerParams *params);
+
+}  // namespace blender::ed::asset
+
 #endif

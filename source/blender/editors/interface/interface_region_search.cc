@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,8 +18,6 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_math.h"
-
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -28,18 +26,18 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_view2d.hh"
 
 #include "BLT_translation.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "GPU_state.h"
 #include "interface_intern.hh"
@@ -309,11 +307,8 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
   return false;
 }
 
-static struct ARegion *wm_searchbox_tooltip_init(struct bContext *C,
-                                                 struct ARegion *region,
-                                                 int * /*r_pass*/,
-                                                 double * /*pass_delay*/,
-                                                 bool *r_exit_on_event)
+static ARegion *wm_searchbox_tooltip_init(
+    bContext *C, ARegion *region, int * /*r_pass*/, double * /*pass_delay*/, bool *r_exit_on_event)
 {
   *r_exit_on_event = true;
 
@@ -538,7 +533,7 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *st
   BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
 
   if (str[0]) {
-    data->items.autocpl = UI_autocomplete_begin(str, ui_but_string_get_max_length(but));
+    data->items.autocpl = UI_autocomplete_begin(str, ui_but_string_get_maxncpy(but));
 
     ui_searchbox_update_fn(C, search_but, but->editstr, &data->items);
 
@@ -723,7 +718,7 @@ static uiMenuItemSeparatorType ui_searchbox_item_separator(uiSearchboxData *data
   return separator_type;
 }
 
-static void ui_searchbox_region_layout_fn(const struct bContext *C, struct ARegion *region)
+static void ui_searchbox_region_layout_fn(const bContext *C, ARegion *region)
 {
   uiSearchboxData *data = (uiSearchboxData *)region->regiondata;
 

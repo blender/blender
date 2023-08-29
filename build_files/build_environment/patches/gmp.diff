@@ -1,15 +1,66 @@
---- a/mpz/inp_raw.c	Tue Dec 22 23:49:51 2020 +0100
-+++ b/mpz/inp_raw.c	Thu Oct 21 19:06:49 2021 +0200
+diff -Naur gmp-6.2.1-clean/Makefile.am gmp-6.2.1-dirty/Makefile.am
+--- gmp-6.2.1-clean/Makefile.am	2020-11-14 18:45:09.000000000 +0000
++++ gmp-6.2.1-dirty/Makefile.am	2023-01-24 13:06:03.527956700 +0000
+@@ -112,7 +112,7 @@
+ LIBGMPXX_LT_AGE      = 6
+ 
+ 
+-SUBDIRS = tests mpn mpz mpq mpf printf scanf rand cxx demos tune doc
++SUBDIRS = tests mpn mpz mpq mpf printf scanf rand cxx demos tune
+ 
+ EXTRA_DIST = configfsf.guess configfsf.sub .gdbinit INSTALL.autoconf \
+ 	     COPYING.LESSERv3 COPYINGv2 COPYINGv3
+diff -Naur gmp-6.2.1-clean/Makefile.in gmp-6.2.1-dirty/Makefile.in
+--- gmp-6.2.1-clean/Makefile.in	2020-11-14 18:45:16.000000000 +0000
++++ gmp-6.2.1-dirty/Makefile.in	2023-01-24 13:06:47.691201700 +0000
+@@ -572,7 +572,7 @@
+ LIBGMPXX_LT_CURRENT = 10
+ LIBGMPXX_LT_REVISION = 1
+ LIBGMPXX_LT_AGE = 6
+-SUBDIRS = tests mpn mpz mpq mpf printf scanf rand cxx demos tune doc
++SUBDIRS = tests mpn mpz mpq mpf printf scanf rand cxx demos tune
+ 
+ # Put asl.h here for now.
+ 
+diff -Naur gmp-6.2.1-clean/configure gmp-6.2.1-dirty/configure
+--- gmp-6.2.1-clean/configure	2020-11-14 18:45:15.000000000 +0000
++++ gmp-6.2.1-dirty/configure	2023-01-24 14:06:26.822206200 +0000
+@@ -12142,8 +12142,8 @@
+     #
+     if test "$enable_shared" = yes; then
+       GMP_LDFLAGS="$GMP_LDFLAGS -no-undefined -Wl,--export-all-symbols"
+-      LIBGMP_LDFLAGS="$LIBGMP_LDFLAGS -Wl,--output-def,.libs/libgmp-3.dll.def"
+-      LIBGMPXX_LDFLAGS="$LIBGMP_LDFLAGS -Wl,--output-def,.libs/libgmpxx-3.dll.def"
++      #LIBGMP_LDFLAGS="$LIBGMP_LDFLAGS -Wl,--output-def,.libs/libgmp-3.dll.def"
++      #LIBGMPXX_LDFLAGS="$LIBGMP_LDFLAGS -Wl,--output-def,.libs/libgmpxx-3.dll.def"
+       LIBGMP_DLL=1
+     fi
+     ;;
+diff -Naur gmp-6.2.1-clean/gmp-h.in gmp-6.2.1-dirty/gmp-h.in
+--- gmp-6.2.1-clean/gmp-h.in	2020-11-14 18:45:09.000000000 +0000
++++ gmp-6.2.1-dirty/gmp-h.in	2023-01-24 14:07:02.962184400 +0000
+@@ -398,7 +398,7 @@
+ 
+ /* Microsoft's C compiler accepts __inline */
+ #ifdef _MSC_VER
+-#define __GMP_EXTERN_INLINE  __inline
++#define __GMP_EXTERN_INLINE  static __inline
+ #endif
+ 
+ /* Recent enough Sun C compilers want "inline" */
+diff -Naur gmp-6.2.1-clean/mpz/inp_raw.c gmp-6.2.1-dirty/mpz/inp_raw.c
+--- gmp-6.2.1-clean/mpz/inp_raw.c	2020-11-14 18:45:09.000000000 +0000
++++ gmp-6.2.1-dirty/mpz/inp_raw.c	2023-01-24 10:24:26.379294800 +0000
 @@ -88,8 +88,11 @@
-
+ 
    abs_csize = ABS (csize);
-
+ 
 +  if (UNLIKELY (abs_csize > ~(mp_bitcnt_t) 0 / 8))
 +    return 0; /* Bit size overflows */
 +
    /* round up to a multiple of limbs */
 -  abs_xsize = BITS_TO_LIMBS (abs_csize*8);
 +  abs_xsize = BITS_TO_LIMBS ((mp_bitcnt_t) abs_csize * 8);
-
+ 
    if (abs_xsize != 0)
      {

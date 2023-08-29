@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Gather pass: Convolve foreground and background parts in separate passes.

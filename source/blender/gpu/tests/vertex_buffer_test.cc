@@ -1,9 +1,10 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
+#include "GPU_context.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_shader.h"
@@ -55,7 +56,7 @@ static void vertex_buffer_fetch_mode(ColorType color)
     GPU_vertbuf_vert_set(vbo, i, &data[i]);
   }
 
-  GPUBatch *batch = GPU_batch_create(GPU_PRIM_TRI_FAN, vbo, NULL);
+  GPUBatch *batch = GPU_batch_create(GPU_PRIM_TRI_FAN, vbo, nullptr);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR);
   GPU_batch_draw(batch);
 
@@ -101,12 +102,18 @@ GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_U16__GPU_FETCH_INT_TO_FLOAT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_I32__GPU_FETCH_INT_TO_FLOAT()
 {
+  if (GPU_backend_type_selection_get() == GPU_BACKEND_VULKAN) {
+    GTEST_SKIP() << "interleaved format not supported yet";
+  }
   vertex_buffer_fetch_mode<GPU_COMP_I32, GPU_FETCH_INT_TO_FLOAT, int4>(int4(4, 5, 6, 1));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_I32__GPU_FETCH_INT_TO_FLOAT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_U32__GPU_FETCH_INT_TO_FLOAT()
 {
+  if (GPU_backend_type_selection_get() == GPU_BACKEND_VULKAN) {
+    GTEST_SKIP() << "interleaved format not supported yet";
+  }
   vertex_buffer_fetch_mode<GPU_COMP_U32, GPU_FETCH_INT_TO_FLOAT, uint4>(uint4(4, 5, 6, 1));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_U32__GPU_FETCH_INT_TO_FLOAT);

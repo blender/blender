@@ -1,4 +1,6 @@
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* This shader reduces the given texture into a smaller texture of a size equal to the number of
  * work groups. In particular, each work group reduces its contents into a single value and writes
@@ -44,6 +46,9 @@
  * for reduction, so we just load the data in a 1D array to simplify reduction. The developer is
  * expected to define the TYPE macro to be a float or a vec4, depending on the type of data being
  * reduced. */
+
+#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+
 #define reduction_size (gl_WorkGroupSize.x * gl_WorkGroupSize.y)
 shared TYPE reduction_data[reduction_size];
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -180,11 +180,12 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
   const ImageSpec &spec = in->spec();
   const int width = spec.width;
   const int height = spec.height;
-  const int channels = spec.nchannels;
   const bool has_alpha = spec.alpha_channel != -1;
   const bool is_float = spec.format.basesize() > 1;
 
-  if (channels < 1 || channels > 4) {
+  /* Only a maximum of 4 channels are supported by ImBuf. */
+  const int channels = spec.nchannels <= 4 ? spec.nchannels : 4;
+  if (channels < 1) {
     return nullptr;
   }
 
@@ -382,9 +383,7 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
    */
 
   if (ctx.ibuf->metadata) {
-    for (IDProperty *prop = static_cast<IDProperty *>(ctx.ibuf->metadata->data.group.first); prop;
-         prop = prop->next)
-    {
+    LISTBASE_FOREACH (IDProperty *, prop, &ctx.ibuf->metadata->data.group) {
       if (prop->type == IDP_STRING) {
         /* If this property has a prefixed name (oiio:, tiff:, etc.) and it belongs to
          * oiio or a different format, then skip. */

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_TASK_H__
 #define __UTIL_TASK_H__
@@ -62,11 +63,12 @@ class TaskPool {
   int num_tasks_pushed;
 };
 
-/* Task Scheduler
+/**
+ * Task Scheduler
  *
  * Central scheduler that holds running threads ready to execute tasks. A single
- * queue holds the task from all pools. */
-
+ * queue holds the task from all pools.
+ */
 class TaskScheduler {
  public:
   static void init(int num_threads = 0);

@@ -1,10 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_utildefines.h"
 
 #include "BCMath.h"
 #include "BlenderContext.h"
+
+#include "BLI_math_matrix.h"
 
 void BCQuat::rotate_to(Matrix &mat_to)
 {

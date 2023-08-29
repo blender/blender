@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* This file is intentionally left blank. It is necessary for CMake to have a source file for each
  * executable. However, the blender_tests test runner only comprises of statically linked library

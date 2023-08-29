@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -79,13 +79,13 @@ class MeshImporter : public MeshImporterBase {
   std::map<COLLADAFW::UniqueId, Object *> uid_object_map; /* geom UID-to-object */
   std::vector<Object *> imported_objects;                 /* list of imported objects */
 
-  /* this structure is used to assign material indices to polygons
+  /* this structure is used to assign material indices to faces
    * it holds a portion of Mesh faces and corresponds to a DAE primitive list
    * (`<triangles>`, `<polylist>`, etc.) */
   struct Primitive {
-    int poly_index;
+    int face_index;
     int *material_indices;
-    uint totpoly;
+    uint faces_num;
   };
   typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive>> MaterialIdPrimitiveArrayMap;
   /* crazy name! */
@@ -94,7 +94,7 @@ class MeshImporter : public MeshImporterBase {
    * A pair/of geom UID and mat UID, one geometry can have several materials. */
   std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom;
 
-  bool set_poly_indices(int *poly_verts, int loop_index, const uint *indices, int loop_count);
+  bool set_poly_indices(int *face_verts, int loop_index, const uint *indices, int loop_count);
 
   void set_face_uv(blender::float2 *mloopuv,
                    UVDataWrapper &uvs,
@@ -134,10 +134,10 @@ class MeshImporter : public MeshImporterBase {
   bool primitive_has_faces(COLLADAFW::MeshPrimitive *mp);
 
   /**
-   * This function is copied from source/blender/editors/mesh/mesh_data.c
+   * This function is copied from `source/blender/editors/mesh/mesh_data.cc`
    *
    * TODO: (As discussed with sergey-) :
-   * Maybe move this function to `blenderkernel/intern/mesh.c`.
+   * Maybe move this function to `blenderkernel/intern/mesh.cc`.
    * and add definition to BKE_mesh.c.
    */
   static void mesh_add_edges(Mesh *mesh, int len);

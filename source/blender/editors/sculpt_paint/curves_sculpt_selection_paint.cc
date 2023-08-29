@@ -1,10 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
 #include <numeric>
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_task.hh"
@@ -12,16 +13,16 @@
 #include "DNA_brush_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "curves_sculpt_intern.hh"
 

@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2011-2022 Blender Foundation
 
 set(INC
   ..
@@ -36,6 +37,7 @@ set(SRC_HEADERS
   denoiser_gpu.h
   denoiser_oidn.h
   denoiser_optix.h
+  guiding.h
   path_trace.h
   tile.h
   pass_accessor.h

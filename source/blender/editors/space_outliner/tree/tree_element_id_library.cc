@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,11 +21,6 @@ TreeElementIDLibrary::TreeElementIDLibrary(TreeElement &legacy_te, Library &libr
     : TreeElementID(legacy_te, library.id)
 {
   legacy_te.name = library.filepath;
-}
-
-bool TreeElementIDLibrary::isExpandValid() const
-{
-  return true;
 }
 
 StringRefNull TreeElementIDLibrary::getWarning() const

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -25,9 +25,9 @@
 #include "BKE_material.h"
 #include "BKE_scene.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

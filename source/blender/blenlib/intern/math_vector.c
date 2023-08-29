@@ -6,8 +6,10 @@
  * \ingroup bli
  */
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 
+#include "BLI_math_geom.h"
+#include "BLI_math_rotation.h"
 #include "BLI_strict_flags.h"
 
 /* -------------------------------------------------------------------- */
@@ -1000,7 +1002,7 @@ double len_squared_vn(const float *array, const int size)
   const float *array_pt = array + (size - 1);
   int i = size;
   while (i--) {
-    d += sqr_db((double)(*(array_pt--)));
+    d += sqr_db((double)*(array_pt--));
   }
   return d;
 }

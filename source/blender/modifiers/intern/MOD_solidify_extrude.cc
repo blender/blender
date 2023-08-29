@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,10 +6,11 @@
  * \ingroup modifiers
  */
 
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
 #include "BLI_utildefines_stack.h"
 
 #include "DNA_mesh_types.h"
@@ -48,11 +49,11 @@ BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
 
 /**
  * \param mesh: Mesh to calculate normals for.
- * \param poly_normals: Precalculated face normals.
+ * \param face_normals: Precalculated face normals.
  * \param r_vert_nors: Return vert normals.
  */
 static void mesh_calc_hq_normal(Mesh *mesh,
-                                const blender::Span<blender::float3> poly_normals,
+                                const blender::Span<blender::float3> face_normals,
                                 float (*r_vert_nors)[3],
 #ifdef USE_NONMANIFOLD_WORKAROUND
                                 BLI_bitmap *edge_tmp_tag
@@ -61,7 +62,7 @@ static void mesh_calc_hq_normal(Mesh *mesh,
 {
   const int verts_num = mesh->totvert;
   const blender::Span<blender::int2> edges = mesh->edges();
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
   {
@@ -70,8 +71,8 @@ static void mesh_calc_hq_normal(Mesh *mesh,
     float edge_normal[3];
 
     /* Add an edge reference if it's not there, pointing back to the face index. */
-    for (const int i : polys.index_range()) {
-      for (const int edge_i : corner_edges.slice(polys[i])) {
+    for (const int i : faces.index_range()) {
+      for (const int edge_i : corner_edges.slice(faces[i])) {
         /* --- add edge ref to face --- */
         edge_ref = &edge_ref_array[edge_i];
         if (!edgeref_is_init(edge_ref)) {
@@ -110,13 +111,13 @@ static void mesh_calc_hq_normal(Mesh *mesh,
               angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
 #else
           mid_v3_v3v3_angle_weighted(
-              edge_normal, poly_normals[edge_ref->p1], poly_normals[edge_ref->p2]);
+              edge_normal, face_normals[edge_ref->p1], face_normals[edge_ref->p2]);
 #endif
         }
         else {
           /* only one face attached to that edge */
           /* an edge without another attached- the weight on this is undefined */
-          copy_v3_v3(edge_normal, poly_normals[edge_ref->p1]);
+          copy_v3_v3(edge_normal, face_normals[edge_ref->p1]);
         }
         add_v3_v3(r_vert_nors[(*edge)[0]], edge_normal);
         add_v3_v3(r_vert_nors[(*edge)[1]], edge_normal);
@@ -148,7 +149,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
   const uint verts_num = uint(mesh->totvert);
   const uint edges_num = uint(mesh->totedge);
-  const uint polys_num = uint(mesh->totpoly);
+  const uint faces_num = uint(mesh->faces_num);
   const uint loops_num = uint(mesh->totloop);
   uint newLoops = 0, newPolys = 0, newEdges = 0, newVerts = 0, rimVerts = 0;
 
@@ -158,7 +159,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   const short mat_ofs_rim = mat_nr_max ? smd->mat_ofs_rim : 0;
 
   /* use for edges */
-  /* over-alloc new_vert_arr, old_vert_arr */
+  /* Over-allocate new_vert_arr, old_vert_arr. */
   uint *new_vert_arr = nullptr;
   STACK_DECLARE(new_vert_arr);
 
@@ -171,9 +172,9 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   int *edge_order = nullptr;
 
   float(*vert_nors)[3] = nullptr;
-  blender::Span<blender::float3> poly_normals;
+  blender::Span<blender::float3> face_normals;
 
-  const bool need_poly_normals = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) ||
+  const bool need_face_normals = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) ||
                                  (smd->flag & MOD_SOLIDIFY_EVEN) ||
                                  (smd->flag & MOD_SOLIDIFY_OFFSET_ANGLE_CLAMP) ||
                                  (smd->bevel_convex != 0);
@@ -204,15 +205,15 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
   MOD_get_vgroup(ctx->object, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
-  const float(*orig_vert_positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<blender::float3> orig_vert_positions = mesh->vert_positions();
   const blender::Span<blender::int2> orig_edges = mesh->edges();
-  const blender::OffsetIndices orig_polys = mesh->polys();
+  const blender::OffsetIndices orig_faces = mesh->faces();
   const blender::Span<int> orig_corner_verts = mesh->corner_verts();
   const blender::Span<int> orig_corner_edges = mesh->corner_edges();
 
-  if (need_poly_normals) {
+  if (need_face_normals) {
     /* calculate only face normals */
-    poly_normals = mesh->poly_normals();
+    face_normals = mesh->face_normals();
   }
 
   STACK_INIT(new_vert_arr, verts_num * 2);
@@ -243,14 +244,14 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       edge_users[eidx] = INVALID_UNUSED;
     }
 
-    for (const int64_t i : orig_polys.index_range()) {
-      const blender::IndexRange poly = orig_polys[i];
+    for (const int64_t i : orig_faces.index_range()) {
+      const blender::IndexRange face = orig_faces[i];
       int j;
 
-      int corner_i_prev = poly.last();
+      int corner_i_prev = face.last();
 
-      for (j = 0; j < poly.size(); j++) {
-        const int corner_i = poly[j];
+      for (j = 0; j < face.size(); j++) {
+        const int corner_i = face[j];
         const int vert_i = orig_corner_verts[corner_i];
         const int prev_vert_i = orig_corner_verts[corner_i_prev];
         /* add edge user */
@@ -259,7 +260,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
           const blender::int2 &edge = orig_edges[eidx];
           BLI_assert(ELEM(prev_vert_i, edge[0], edge[1]) && ELEM(vert_i, edge[0], edge[1]));
           edge_users[eidx] = (prev_vert_i > vert_i) == (edge[0] < edge[1]) ? uint(i) :
-                                                                             (uint(i) + polys_num);
+                                                                             (uint(i) + faces_num);
           edge_order[eidx] = j;
         }
         else {
@@ -312,7 +313,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
     vert_nors = static_cast<float(*)[3]>(MEM_calloc_arrayN(verts_num, sizeof(float[3]), __func__));
     mesh_calc_hq_normal(mesh,
-                        poly_normals,
+                        face_normals,
                         vert_nors
 #ifdef USE_NONMANIFOLD_WORKAROUND
                         ,
@@ -324,52 +325,52 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   result = BKE_mesh_new_nomain_from_template(mesh,
                                              int((verts_num * stride) + newVerts),
                                              int((edges_num * stride) + newEdges + rimVerts),
-                                             int((polys_num * stride) + newPolys),
+                                             int((faces_num * stride) + newPolys),
                                              int((loops_num * stride) + newLoops));
 
-  float(*vert_positions)[3] = BKE_mesh_vert_positions_for_write(result);
+  blender::MutableSpan<blender::float3> vert_positions = result->vert_positions_for_write();
   blender::MutableSpan<blender::int2> edges = result->edges_for_write();
-  blender::MutableSpan<int> poly_offsets = result->poly_offsets_for_write();
+  blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   if (do_shell) {
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, int(verts_num));
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, int(verts_num), int(verts_num));
+    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, int(verts_num));
+    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, int(verts_num), int(verts_num));
 
-    CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, int(edges_num));
-    CustomData_copy_data(&mesh->edata, &result->edata, 0, int(edges_num), int(edges_num));
+    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, 0, int(edges_num));
+    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, int(edges_num), int(edges_num));
 
-    CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, int(loops_num));
+    CustomData_copy_data(&mesh->loop_data, &result->loop_data, 0, 0, int(loops_num));
     /* DO NOT copy here the 'copied' part of loop data, we want to reverse loops
      * (so that winding of copied face get reversed, so that normals get reversed
      * and point in expected direction...).
      * If we also copy data here, then this data get overwritten
      * (and allocated memory becomes a memory leak). */
 
-    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, int(polys_num));
-    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, int(polys_num), int(polys_num));
-    poly_offsets.take_front(polys_num).copy_from(mesh->poly_offsets().drop_back(1));
-    for (const int i : orig_polys.index_range()) {
-      poly_offsets[polys_num + i] = orig_polys[i].start() + mesh->totloop;
+    CustomData_copy_data(&mesh->face_data, &result->face_data, 0, 0, int(faces_num));
+    CustomData_copy_data(&mesh->face_data, &result->face_data, 0, int(faces_num), int(faces_num));
+    face_offsets.take_front(faces_num).copy_from(mesh->face_offsets().drop_back(1));
+    for (const int i : orig_faces.index_range()) {
+      face_offsets[faces_num + i] = orig_faces[i].start() + mesh->totloop;
     }
   }
   else {
     int i, j;
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, int(verts_num));
+    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, int(verts_num));
     for (i = 0, j = int(verts_num); i < verts_num; i++) {
       if (old_vert_arr[i] != INVALID_UNUSED) {
-        CustomData_copy_data(&mesh->vdata, &result->vdata, i, j, 1);
+        CustomData_copy_data(&mesh->vert_data, &result->vert_data, i, j, 1);
         j++;
       }
     }
 
-    CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, int(edges_num));
+    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, 0, int(edges_num));
 
     for (i = 0, j = int(edges_num); i < edges_num; i++) {
       if (!ELEM(edge_users[i], INVALID_UNUSED, INVALID_PAIR)) {
         blender::int2 *ed_src, *ed_dst;
-        CustomData_copy_data(&mesh->edata, &result->edata, i, j, 1);
+        CustomData_copy_data(&mesh->edge_data, &result->edge_data, i, j, 1);
 
         ed_src = &edges[i];
         ed_dst = &edges[j];
@@ -380,15 +381,15 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     }
 
     /* will be created later */
-    CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, int(loops_num));
-    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, int(polys_num));
-    poly_offsets.take_front(polys_num).copy_from(mesh->poly_offsets().drop_back(1));
+    CustomData_copy_data(&mesh->loop_data, &result->loop_data, 0, 0, int(loops_num));
+    CustomData_copy_data(&mesh->face_data, &result->face_data, 0, 0, int(faces_num));
+    face_offsets.take_front(faces_num).copy_from(mesh->face_offsets().drop_back(1));
   }
 
   float *result_edge_bweight = nullptr;
   if (do_bevel_convex) {
     result_edge_bweight = static_cast<float *>(CustomData_add_layer_named(
-        &result->edata, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "bevel_weight_edge"));
+        &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "bevel_weight_edge"));
   }
 
   /* Initializes: (`i_end`, `do_shell_align`, `vert_index`). */
@@ -416,39 +417,39 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   /* flip normals */
 
   if (do_shell) {
-    for (const int64_t i : blender::IndexRange(mesh->totpoly)) {
-      const blender::IndexRange poly = orig_polys[i];
-      const int loop_end = poly.size() - 1;
+    for (const int64_t i : blender::IndexRange(mesh->faces_num)) {
+      const blender::IndexRange face = orig_faces[i];
+      const int loop_end = face.size() - 1;
       int e;
       int j;
 
       /* reverses the loop direction (corner verts as well as custom-data)
        * Corner edges also need to be corrected too, done in a separate loop below. */
-      const int corner_2 = poly.start() + mesh->totloop;
+      const int corner_2 = face.start() + mesh->totloop;
 #if 0
-      for (j = 0; j < poly.size(); j++) {
+      for (j = 0; j < face.size(); j++) {
         CustomData_copy_data(&mesh->ldata,
                              &result->ldata,
-                             poly.start() + j,
-                             poly.start() + (loop_end - j) + mesh->totloop,
+                             face.start() + j,
+                             face.start() + (loop_end - j) + mesh->totloop,
                              1);
       }
 #else
       /* slightly more involved, keep the first vertex the same for the copy,
        * ensures the diagonals in the new face match the original. */
       j = 0;
-      for (int j_prev = loop_end; j < poly.size(); j_prev = j++) {
-        CustomData_copy_data(&mesh->ldata,
-                             &result->ldata,
-                             poly.start() + j,
-                             poly.start() + (loop_end - j_prev) + mesh->totloop,
+      for (int j_prev = loop_end; j < face.size(); j_prev = j++) {
+        CustomData_copy_data(&mesh->loop_data,
+                             &result->loop_data,
+                             face.start() + j,
+                             face.start() + (loop_end - j_prev) + mesh->totloop,
                              1);
       }
 #endif
 
       if (mat_ofs) {
-        dst_material_index[polys_num + i] += mat_ofs;
-        CLAMP(dst_material_index[polys_num + i], 0, mat_nr_max);
+        dst_material_index[faces_num + i] += mat_ofs;
+        CLAMP(dst_material_index[faces_num + i], 0, mat_nr_max);
       }
 
       e = corner_edges[corner_2 + 0];
@@ -457,7 +458,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
       corner_edges[corner_2 + loop_end] = e;
 
-      for (j = 0; j < poly.size(); j++) {
+      for (j = 0; j < face.size(); j++) {
         corner_verts[corner_2 + j] += verts_num;
         corner_edges[corner_2 + j] += edges_num;
       }
@@ -512,10 +513,10 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         edge_user_pairs[eidx][0] = INVALID_UNUSED;
         edge_user_pairs[eidx][1] = INVALID_UNUSED;
       }
-      for (const int64_t i : orig_polys.index_range()) {
-        const blender::IndexRange poly = orig_polys[i];
-        int prev_corner_i = poly.last();
-        for (const int corner_i : poly) {
+      for (const int64_t i : orig_faces.index_range()) {
+        const blender::IndexRange face = orig_faces[i];
+        int prev_corner_i = face.last();
+        for (const int corner_i : face) {
           const int vert_i = orig_corner_verts[corner_i];
           const int prev_vert_i = orig_corner_verts[prev_corner_i];
           /* add edge user */
@@ -539,8 +540,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         if (!ELEM(edge_user_pairs[i][0], INVALID_UNUSED, INVALID_PAIR) &&
             !ELEM(edge_user_pairs[i][1], INVALID_UNUSED, INVALID_PAIR))
         {
-          const float *n0 = poly_normals[edge_user_pairs[i][0]];
-          const float *n1 = poly_normals[edge_user_pairs[i][1]];
+          const float *n0 = face_normals[edge_user_pairs[i][0]];
+          const float *n1 = face_normals[edge_user_pairs[i][1]];
           sub_v3_v3v3(e, orig_vert_positions[edge[0]], orig_vert_positions[edge[1]]);
           normalize_v3(e);
           const float angle = angle_signed_on_axis_v3v3_v3(n0, n1, e);
@@ -713,26 +714,26 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
     }
 
-    for (const int64_t i : blender::IndexRange(polys_num)) {
-      const blender::IndexRange poly = orig_polys[i];
-      /* #bke::mesh::poly_angles_calc logic is inlined here */
+    for (const int64_t i : blender::IndexRange(faces_num)) {
+      const blender::IndexRange face = orig_faces[i];
+      /* #bke::mesh::face_angles_calc logic is inlined here */
       float nor_prev[3];
       float nor_next[3];
 
-      int i_curr = poly.size() - 1;
+      int i_curr = face.size() - 1;
       int i_next = 0;
 
-      const int *poly_verts = &corner_verts[poly.start()];
-      const int *poly_edges = &corner_edges[poly.start()];
+      const int *face_verts = &corner_verts[face.start()];
+      const int *face_edges = &corner_edges[face.start()];
 
       sub_v3_v3v3(
-          nor_prev, vert_positions[poly_verts[i_curr - 1]], vert_positions[poly_verts[i_curr]]);
+          nor_prev, vert_positions[face_verts[i_curr - 1]], vert_positions[face_verts[i_curr]]);
       normalize_v3(nor_prev);
 
-      while (i_next < poly.size()) {
+      while (i_next < face.size()) {
         float angle;
         sub_v3_v3v3(
-            nor_next, vert_positions[poly_verts[i_curr]], vert_positions[poly_verts[i_next]]);
+            nor_next, vert_positions[face_verts[i_curr]], vert_positions[face_verts[i_next]]);
         normalize_v3(nor_next);
         angle = angle_normalized_v3v3(nor_prev, nor_next);
 
@@ -741,23 +742,23 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
           angle = FLT_EPSILON;
         }
 
-        vidx = poly_verts[i_curr];
+        vidx = face_verts[i_curr];
         vert_accum[vidx] += angle;
 
 #ifdef USE_NONMANIFOLD_WORKAROUND
         /* skip 3+ face user edges */
         if ((check_non_manifold == false) ||
-            LIKELY(!BLI_BITMAP_TEST(edge_tmp_tag, poly_edges[i_curr]) &&
-                   !BLI_BITMAP_TEST(edge_tmp_tag, poly_edges[i_next])))
+            LIKELY(!BLI_BITMAP_TEST(edge_tmp_tag, face_edges[i_curr]) &&
+                   !BLI_BITMAP_TEST(edge_tmp_tag, face_edges[i_next])))
         {
-          vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], poly_normals[i]) *
+          vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], face_normals[i]) *
                                angle;
         }
         else {
           vert_angles[vidx] += angle;
         }
 #else
-        vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], poly_normals[i]) *
+        vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], face_normals[i]) *
                              angle;
 #endif
         /* --- end non-angle-calc section --- */
@@ -816,11 +817,11 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         edge_user_pairs[eidx][0] = INVALID_UNUSED;
         edge_user_pairs[eidx][1] = INVALID_UNUSED;
       }
-      for (const int i : orig_polys.index_range()) {
-        const blender::IndexRange poly = orig_polys[i];
-        int prev_corner_i = poly.start() + poly.size() - 1;
-        for (int j = 0; j < poly.size(); j++) {
-          const int corner_i = poly.start() + j;
+      for (const int i : orig_faces.index_range()) {
+        const blender::IndexRange face = orig_faces[i];
+        int prev_corner_i = face.start() + face.size() - 1;
+        for (int j = 0; j < face.size(); j++) {
+          const int corner_i = face.start() + j;
           const int vert_i = orig_corner_verts[corner_i];
           const int prev_vert_i = orig_corner_verts[prev_corner_i];
 
@@ -845,8 +846,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         if (!ELEM(edge_user_pairs[i][0], INVALID_UNUSED, INVALID_PAIR) &&
             !ELEM(edge_user_pairs[i][1], INVALID_UNUSED, INVALID_PAIR))
         {
-          const float *n0 = poly_normals[edge_user_pairs[i][0]];
-          const float *n1 = poly_normals[edge_user_pairs[i][1]];
+          const float *n0 = face_normals[edge_user_pairs[i][0]];
+          const float *n1 = face_normals[edge_user_pairs[i][1]];
           if (do_angle_clamp) {
             const float angle = M_PI - angle_normalized_v3v3(n0, n1);
             vert_angs[edge[0]] = max_ff(vert_angs[edge[0]], angle);
@@ -1044,13 +1045,13 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
     float *result_edge_crease = nullptr;
     if (crease_rim || crease_outer || crease_inner) {
-      result_edge_crease = (float *)CustomData_add_layer(
-          &result->edata, CD_CREASE, CD_SET_DEFAULT, result->totedge);
+      result_edge_crease = (float *)CustomData_add_layer_named(
+          &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "crease_edge");
     }
 
     /* add faces & edges */
     origindex_edge = static_cast<int *>(
-        CustomData_get_layer_for_write(&result->edata, CD_ORIGINDEX, result->totedge));
+        CustomData_get_layer_for_write(&result->edge_data, CD_ORIGINDEX, result->totedge));
     orig_ed = (origindex_edge) ? &origindex_edge[(edges_num * stride) + newEdges] : nullptr;
     /* Start after copied edges. */
     int new_edge_index = int(edges_num * stride + newEdges);
@@ -1070,7 +1071,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     }
 
     /* faces */
-    int new_poly_index = int(polys_num * stride);
+    int new_face_index = int(faces_num * stride);
     blender::MutableSpan<int> new_corner_verts = corner_verts.drop_front(loops_num * stride);
     blender::MutableSpan<int> new_corner_edges = corner_edges.drop_front(loops_num * stride);
     j = 0;
@@ -1080,8 +1081,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       int k1, k2;
       bool flip;
 
-      if (pidx >= polys_num) {
-        pidx -= polys_num;
+      if (pidx >= faces_num) {
+        pidx -= faces_num;
         flip = true;
       }
       else {
@@ -1092,20 +1093,24 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
       /* copy most of the face settings */
       CustomData_copy_data(
-          &mesh->pdata, &result->pdata, int(pidx), int((polys_num * stride) + i), 1);
+          &mesh->face_data, &result->face_data, int(pidx), int((faces_num * stride) + i), 1);
 
-      const int old_poly_size = orig_polys[pidx].size();
-      poly_offsets[new_poly_index] = int(j + (loops_num * stride));
+      const int old_face_size = orig_faces[pidx].size();
+      face_offsets[new_face_index] = int(j + (loops_num * stride));
 
       /* prev loop */
-      k1 = poly_offsets[pidx] + (((edge_order[eidx] - 1) + old_poly_size) % old_poly_size);
+      k1 = face_offsets[pidx] + (((edge_order[eidx] - 1) + old_face_size) % old_face_size);
 
-      k2 = poly_offsets[pidx] + (edge_order[eidx]);
+      k2 = face_offsets[pidx] + (edge_order[eidx]);
 
-      CustomData_copy_data(&mesh->ldata, &result->ldata, k2, int((loops_num * stride) + j + 0), 1);
-      CustomData_copy_data(&mesh->ldata, &result->ldata, k1, int((loops_num * stride) + j + 1), 1);
-      CustomData_copy_data(&mesh->ldata, &result->ldata, k1, int((loops_num * stride) + j + 2), 1);
-      CustomData_copy_data(&mesh->ldata, &result->ldata, k2, int((loops_num * stride) + j + 3), 1);
+      CustomData_copy_data(
+          &mesh->loop_data, &result->loop_data, k2, int((loops_num * stride) + j + 0), 1);
+      CustomData_copy_data(
+          &mesh->loop_data, &result->loop_data, k1, int((loops_num * stride) + j + 1), 1);
+      CustomData_copy_data(
+          &mesh->loop_data, &result->loop_data, k1, int((loops_num * stride) + j + 2), 1);
+      CustomData_copy_data(
+          &mesh->loop_data, &result->loop_data, k2, int((loops_num * stride) + j + 3), 1);
 
       if (flip == false) {
         new_corner_verts[j] = edge[0];
@@ -1141,8 +1146,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
       /* use the next material index if option enabled */
       if (mat_ofs_rim) {
-        dst_material_index[new_poly_index] += mat_ofs_rim;
-        CLAMP(dst_material_index[new_poly_index], 0, mat_nr_max);
+        dst_material_index[new_face_index] += mat_ofs_rim;
+        CLAMP(dst_material_index[new_face_index], 0, mat_nr_max);
       }
       if (crease_outer) {
         /* crease += crease_outer; without wrapping */
@@ -1171,7 +1176,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
 #endif
 
-      new_poly_index++;
+      new_face_index++;
     }
 
 #ifdef SOLIDIFY_SIDE_NORMALS

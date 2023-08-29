@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,7 +9,8 @@
  */
 
 #include "BLI_map.hh"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_vector.hh"
 
 #include "DNA_mesh_types.h"
@@ -19,8 +20,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_fair.h"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_fair.hh"
+#include "BKE_mesh_mapping.hh"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -200,11 +201,11 @@ class MeshFairingContext : public FairingContext {
 
     MutableSpan<float3> positions = mesh->vert_positions_for_write();
     edges_ = mesh->edges();
-    polys = mesh->polys();
+    faces = mesh->faces();
     corner_verts_ = mesh->corner_verts();
     corner_edges_ = mesh->corner_edges();
     vlmap_ = blender::bke::mesh::build_vert_to_loop_map(
-        corner_verts_, positions.size(), vert_to_poly_offsets_, vert_to_poly_indices_);
+        corner_verts_, positions.size(), vert_to_face_offsets_, vert_to_face_indices_);
 
     /* Deformation coords. */
     co_.reserve(mesh->totvert);
@@ -219,7 +220,7 @@ class MeshFairingContext : public FairingContext {
       }
     }
 
-    loop_to_poly_map_ = blender::bke::mesh::build_loop_to_poly_map(polys);
+    loop_to_face_map_ = blender::bke::mesh::build_loop_to_face_map(faces);
   }
 
   void adjacents_coords_from_loop(const int loop,
@@ -228,8 +229,8 @@ class MeshFairingContext : public FairingContext {
   {
     using namespace blender;
     const int vert = corner_verts_[loop];
-    const blender::IndexRange poly = polys[loop_to_poly_map_[loop]];
-    const int2 adjecent_verts = bke::mesh::poly_find_adjecent_verts(poly, corner_verts_, vert);
+    const blender::IndexRange face = faces[loop_to_face_map_[loop]];
+    const int2 adjecent_verts = bke::mesh::face_find_adjecent_verts(face, corner_verts_, vert);
     copy_v3_v3(r_adj_next, co_[adjecent_verts[0]]);
     copy_v3_v3(r_adj_prev, co_[adjecent_verts[1]]);
   }
@@ -244,11 +245,11 @@ class MeshFairingContext : public FairingContext {
   Mesh *mesh_;
   Span<int> corner_verts_;
   Span<int> corner_edges_;
-  blender::OffsetIndices<int> polys;
+  blender::OffsetIndices<int> faces;
   Span<blender::int2> edges_;
-  Array<int> loop_to_poly_map_;
-  Array<int> vert_to_poly_offsets_;
-  Array<int> vert_to_poly_indices_;
+  Array<int> loop_to_face_map_;
+  Array<int> vert_to_face_offsets_;
+  Array<int> vert_to_face_indices_;
 };
 
 class BMeshFairingContext : public FairingContext {
@@ -452,7 +453,7 @@ static void prefair_and_fair_verts(FairingContext *fairing_context,
   delete voronoi_vertex_weights;
 }
 
-void BKE_mesh_prefair_and_fair_verts(struct Mesh *mesh,
+void BKE_mesh_prefair_and_fair_verts(Mesh *mesh,
                                      float (*deform_vert_positions)[3],
                                      bool *affect_verts,
                                      const eMeshFairingDepth depth)
@@ -466,9 +467,7 @@ void BKE_mesh_prefair_and_fair_verts(struct Mesh *mesh,
   delete fairing_context;
 }
 
-void BKE_bmesh_prefair_and_fair_verts(struct BMesh *bm,
-                                      bool *affect_verts,
-                                      const eMeshFairingDepth depth)
+void BKE_bmesh_prefair_and_fair_verts(BMesh *bm, bool *affect_verts, const eMeshFairingDepth depth)
 {
   BMeshFairingContext *fairing_context = new BMeshFairingContext(bm);
   prefair_and_fair_verts(fairing_context, affect_verts, depth);

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -7,13 +7,8 @@ if(HAVE_EXECINFO_H)
 endif()
 
 set(INC
-  .
-  ..
-  # ../blenkernel  # don't add this back!
-  ../makesdna
-  ../../../intern/atomic
+  PUBLIC .
   ../../../intern/eigen
-  ../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -23,7 +18,6 @@ set(INC_SYS
   ${EIGEN3_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${ZSTD_INCLUDE_DIRS}
-  ${GMP_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -54,6 +48,7 @@ set(SRC
   intern/array_utils.cc
   intern/astar.c
   intern/atomic_disjoint_set.cc
+  intern/bit_ref.cc
   intern/bit_span.cc
   intern/bitmap.c
   intern/bitmap_draw_2d.c
@@ -62,6 +57,7 @@ set(SRC
   intern/cache_mutex.cc
   intern/compute_context.cc
   intern/convexhull_2d.c
+  intern/cpp_type.cc
   intern/cpp_types.cc
   intern/delaunay_2d.cc
   intern/dot_export.cc
@@ -84,8 +80,10 @@ set(SRC
   intern/hash_md5.c
   intern/hash_mm2a.c
   intern/hash_mm3.c
+  intern/hash_tables.cc
   intern/implicit_sharing.cc
   intern/index_mask.cc
+  intern/index_range.cc
   intern/jitter_2d.c
   intern/kdtree_1d.c
   intern/kdtree_2d.c
@@ -98,6 +96,7 @@ set(SRC
   intern/math_base.c
   intern/math_base_inline.c
   intern/math_base_safe_inline.c
+  intern/math_basis_types.cc
   intern/math_bits_inline.c
   intern/math_boolean.cc
   intern/math_color.c
@@ -141,6 +140,7 @@ set(SRC
   intern/storage.c
   intern/string.c
   intern/string_cursor_utf8.c
+  intern/string_ref.cc
   intern/string_search.cc
   intern/string_utf8.c
   intern/string_utils.c
@@ -157,6 +157,8 @@ set(SRC
   intern/timeit.cc
   intern/uuid.cc
   intern/uvproject.c
+  intern/vector.cc
+  intern/virtual_array.cc
   intern/voronoi_2d.c
   intern/voxel.c
   intern/winstuff.c
@@ -271,7 +273,6 @@ set(SRC
   BLI_listbase_wrapper.hh
   BLI_map.hh
   BLI_map_slots.hh
-  BLI_math.h
   BLI_math_angle_types.hh
   BLI_math_axis_angle.hh
   BLI_math_axis_angle_types.hh
@@ -320,6 +321,7 @@ set(SRC
   BLI_noise.hh
   BLI_offset_indices.hh
   BLI_offset_span.hh
+  BLI_ordered_edge.hh
   BLI_parameter_pack_utils.hh
   BLI_path_util.h
   BLI_polyfill_2d.h
@@ -351,8 +353,9 @@ set(SRC
   BLI_string.h
   BLI_string_cursor_utf8.h
   BLI_string_ref.hh
-  BLI_string_search.h
+  BLI_string_search.hh
   BLI_string_utf8.h
+  BLI_string_utf8_symbols.h
   BLI_string_utils.h
   BLI_sub_frame.hh
   BLI_sys_types.h
@@ -389,10 +392,11 @@ set(SRC
 )
 
 set(LIB
+  PUBLIC bf::dna
   bf_intern_eigen
-  bf_intern_guardedalloc
+  PRIVATE bf::intern::guardedalloc
   extern_wcwidth
-
+  PRIVATE bf::intern::atomic
   ${ZLIB_LIBRARIES}
   ${ZSTD_LIBRARIES}
 )
@@ -475,6 +479,7 @@ set_source_files_properties(
 )
 
 blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::blenlib ALIAS bf_blenlib)
 
 if(WITH_GTESTS)
   set(TEST_SRC

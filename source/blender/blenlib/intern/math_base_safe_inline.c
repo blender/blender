@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,6 +20,11 @@ MINLINE float safe_divide(float a, float b)
 MINLINE float safe_modf(float a, float b)
 {
   return (b != 0.0f) ? fmodf(a, b) : 0.0f;
+}
+
+MINLINE float safe_floored_modf(float a, float b)
+{
+  return (b != 0.0f) ? a - floorf(a / b) * b : 0.0f;
 }
 
 MINLINE float safe_logf(float a, float base)

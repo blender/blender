@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,19 +21,14 @@ TreeElementIDCurve::TreeElementIDCurve(TreeElement &legacy_te, Curve &curve)
 {
 }
 
-bool TreeElementIDCurve::isExpandValid() const
-{
-  return true;
-}
-
 void TreeElementIDCurve::expand(SpaceOutliner &space_outliner) const
 {
   expand_animation_data(space_outliner, curve_.adt);
 
-  expandMaterials(space_outliner);
+  expand_materials(space_outliner);
 }
 
-void TreeElementIDCurve::expandMaterials(SpaceOutliner &space_outliner) const
+void TreeElementIDCurve::expand_materials(SpaceOutliner &space_outliner) const
 {
   for (int a = 0; a < curve_.totcol; a++) {
     outliner_add_element(

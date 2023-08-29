@@ -1,15 +1,18 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
 #include "BKE_context.h"
 
 #include "DEG_depsgraph_query.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "RNA_access.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_tangent_cc {
 
@@ -24,7 +27,7 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
 
   split = uiLayoutSplit(layout, 0.0f, false);
 
-  uiItemR(split, ptr, "direction_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", 0);
+  uiItemR(split, ptr, "direction_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   row = uiLayoutRow(split, false);
 
@@ -40,11 +43,11 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
       uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
     }
     else {
-      uiItemR(row, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", 0);
+      uiItemR(row, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
     }
   }
   else {
-    uiItemR(row, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, 0);
+    uiItemR(row, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   }
 }
 

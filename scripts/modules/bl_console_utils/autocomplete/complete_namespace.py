@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Copyright (c) 2009 www.stani.be
@@ -73,7 +75,7 @@ def complete_indices(word, namespace, *, obj=None, base=None):
     if obj is None:
         try:
             obj = eval(base, namespace)
-        except Exception:
+        except BaseException:
             return []
     if not hasattr(obj, '__getitem__'):
         # obj is not a list or dictionary
@@ -146,7 +148,7 @@ def complete(word, namespace, *, private=True):
         try:
             # do not run the obj expression in the console
             namespace[TEMP] = eval(obj, namespace)
-        except Exception:
+        except BaseException:
             return []
         matches = complete_names(TEMP + '.' + attr, namespace)
         matches = [obj + match[TEMP_N:] for match in matches]
@@ -165,7 +167,7 @@ def complete(word, namespace, *, private=True):
         # try to retrieve the object
         try:
             obj = eval(word, namespace)
-        except Exception:
+        except BaseException:
             return []
         # ignore basic types
         if type(obj) in {bool, float, int, str}:

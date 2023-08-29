@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2020 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011-2020 Blender Authors
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /** \file
  * \ingroup intern_sky_modal

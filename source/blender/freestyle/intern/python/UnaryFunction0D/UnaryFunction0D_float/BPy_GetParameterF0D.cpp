@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -51,7 +53,8 @@ static int GetParameterF0D___init__(BPy_GetParameterF0D *self, PyObject *args, P
 /*-----------------------BPy_GetParameterF0D type definition ------------------------------*/
 
 PyTypeObject GetParameterF0D_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "GetParameterF0D",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "GetParameterF0D",
     /*tp_basicsize*/ sizeof(BPy_GetParameterF0D),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -87,7 +90,7 @@ PyTypeObject GetParameterF0D_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)GetParameterF0D___init__,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

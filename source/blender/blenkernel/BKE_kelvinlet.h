@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Blender Foundation
+/* SPDX-FileCopyrightText: Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -6,8 +6,6 @@
 /** \file
  * \ingroup bke
  */
-
-#include "BLI_math.h"
 
 #ifdef __cplusplus
 extern "C" {

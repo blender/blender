@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -85,6 +85,7 @@ std::string ABCHierarchyIterator::make_valid_name(const std::string &name) const
   std::replace(abc_name.begin(), abc_name.end(), ' ', '_');
   std::replace(abc_name.begin(), abc_name.end(), '.', '_');
   std::replace(abc_name.begin(), abc_name.end(), ':', '_');
+  std::replace(abc_name.begin(), abc_name.end(), '/', '_');
   return abc_name;
 }
 

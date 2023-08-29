@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __SCENE_H__
 #define __SCENE_H__
@@ -13,7 +14,6 @@
 
 #include "util/param.h"
 #include "util/string.h"
-#include "util/system.h"
 #include "util/texture.h"
 #include "util/thread.h"
 

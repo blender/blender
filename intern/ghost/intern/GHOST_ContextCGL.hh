@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -43,11 +44,7 @@ class GHOST_ContextCGL : public GHOST_Context {
   /**
    * Constructor.
    */
-  GHOST_ContextCGL(bool stereoVisual,
-                   NSView *metalView,
-                   CAMetalLayer *metalLayer,
-                   NSOpenGLView *openglView,
-                   GHOST_TDrawingContextType type);
+  GHOST_ContextCGL(bool stereoVisual, NSView *metalView, CAMetalLayer *metalLayer, int debug);
 
   /**
    * Destructor.
@@ -133,22 +130,10 @@ class GHOST_ContextCGL : public GHOST_Context {
 
  private:
   /** Metal state */
-  /* Set this flag to `true` when rendering with Metal API for Viewport.
-   * TODO(Metal): This should be assigned to externally. */
-  bool m_useMetalForRendering = false;
   NSView *m_metalView;
   CAMetalLayer *m_metalLayer;
   MTLRenderPipelineState *m_metalRenderPipeline;
   bool m_ownsMetalDevice;
-
-  /** OpenGL state, for GPUs that don't support Metal */
-  NSOpenGLView *m_openGLView;
-
-  /** The OpenGL drawing context */
-  NSOpenGLContext *m_openGLContext;
-
-  /** The virtualized default frame-buffer. */
-  unsigned int m_defaultFramebuffer;
 
   /** The virtualized default frame-buffer's texture. */
   /**
@@ -190,5 +175,5 @@ class GHOST_ContextCGL : public GHOST_Context {
   void metalInitFramebuffer();
   void metalUpdateFramebuffer();
   void metalSwapBuffers();
-  void initClear();
+  void initClear(){};
 };

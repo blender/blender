@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -145,6 +145,16 @@ inline void gather(const VArray<T> &src,
   });
 }
 
+/**
+ * Count the number of occurrences of each index.
+ * \param indices: The indices to count.
+ * \param counts: The number of occurrences of each index. Typically initialized to zero.
+ * Must be large enough to contain the maximum index.
+ *
+ * \note The memory referenced by the two spans must not overlap.
+ */
+void count_indices(Span<int> indices, MutableSpan<int> counts);
+
 void invert_booleans(MutableSpan<bool> span);
 
 enum class BooleanMix {
@@ -157,6 +167,31 @@ BooleanMix booleans_mix_calc(const VArray<bool> &varray, IndexRange range_to_che
 inline BooleanMix booleans_mix_calc(const VArray<bool> &varray)
 {
   return booleans_mix_calc(varray, varray.index_range());
+}
+
+/**
+ * Finds all the index ranges for which consecutive values in \a span equal \a value.
+ */
+template<typename T> inline Vector<IndexRange> find_all_ranges(const Span<T> span, const T &value)
+{
+  if (span.is_empty()) {
+    return Vector<IndexRange>();
+  }
+  Vector<IndexRange> ranges;
+  int64_t length = (span.first() == value) ? 1 : 0;
+  for (const int64_t i : span.index_range().drop_front(1)) {
+    if (span[i - 1] == value && span[i] != value) {
+      ranges.append(IndexRange(i - length, length));
+      length = 0;
+    }
+    else if (span[i] == value) {
+      length++;
+    }
+  }
+  if (length > 0) {
+    ranges.append(IndexRange(span.size() - length, length));
+  }
+  return ranges;
 }
 
 }  // namespace blender::array_utils

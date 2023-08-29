@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2021-2023 Blender Authors
+#
 # SPDX-License-Identifier: Apache-2.0
 
 import base64
@@ -175,7 +177,7 @@ class TestEnvironment:
         if self.log_file:
             if not self.log_file.exists():
                 self.log_file.parent.mkdir(parents=True, exist_ok=True)
-            f = open(self.log_file, 'a')
+            f = open(self.log_file, 'a', encoding='utf-8', errors='ignore')
             f.write('\n' + ' '.join([str(arg) for arg in args]) + '\n\n')
 
         env = os.environ
@@ -235,13 +237,13 @@ class TestEnvironment:
         args = base64.b64encode(pickle.dumps(args))
         output_prefix = 'TEST_OUTPUT: '
 
-        expression = (f'import sys, pickle, base64\n'
-                      f'sys.path.append(r"{package_path}")\n'
-                      f'import {modulename}\n'
-                      f'args = pickle.loads(base64.b64decode({args}))\n'
-                      f'result = {modulename}.{functionname}(args)\n'
-                      f'result = base64.b64encode(pickle.dumps(result))\n'
-                      f'print("\\n{output_prefix}" + result.decode() + "\\n")\n')
+        expression = (f'import sys, pickle, base64;'
+                      f'sys.path.append(r"{package_path}");'
+                      f'import {modulename};'
+                      f'args = pickle.loads(base64.b64decode({args}));'
+                      f'result = {modulename}.{functionname}(args);'
+                      f'result = base64.b64encode(pickle.dumps(result));'
+                      f'print("\\n{output_prefix}" + result.decode() + "\\n")')
 
         expr_args = blender_args + ['--python-expr', expression]
         lines = self.call_blender(expr_args, foreground=foreground)

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,13 +19,13 @@
 
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_modifiertypes.hh"
@@ -34,7 +34,7 @@
 #include "bmesh.h"
 #include "tools/bmesh_wireframe.h"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   WireframeModifierData *wmd = (WireframeModifierData *)md;
 
@@ -43,7 +43,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WireframeModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   WireframeModifierData *wmd = (WireframeModifierData *)md;
 
@@ -53,7 +53,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnNormals(ModifierData * /*md*/)
+static bool depends_on_normals(ModifierData * /*md*/)
 {
   return true;
 }
@@ -100,7 +100,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
   return result;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   return WireframeModifier_do((WireframeModifierData *)md, ctx->object, mesh);
 }
@@ -115,24 +115,24 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "thickness", 0, IFACE_("Thickness"), ICON_NONE);
-  uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
+  uiItemR(layout, ptr, "offset", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_boundary", 0, IFACE_("Boundary"), ICON_NONE);
-  uiItemR(col, ptr, "use_replace", 0, IFACE_("Replace Original"), ICON_NONE);
+  uiItemR(col, ptr, "use_boundary", UI_ITEM_NONE, IFACE_("Boundary"), ICON_NONE);
+  uiItemR(col, ptr, "use_replace", UI_ITEM_NONE, IFACE_("Replace Original"), ICON_NONE);
 
   col = uiLayoutColumnWithHeading(layout, true, IFACE_("Thickness"));
-  uiItemR(col, ptr, "use_even_offset", 0, IFACE_("Even"), ICON_NONE);
-  uiItemR(col, ptr, "use_relative_offset", 0, IFACE_("Relative"), ICON_NONE);
+  uiItemR(col, ptr, "use_even_offset", UI_ITEM_NONE, IFACE_("Even"), ICON_NONE);
+  uiItemR(col, ptr, "use_relative_offset", UI_ITEM_NONE, IFACE_("Relative"), ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Crease Edges"));
-  uiItemR(row, ptr, "use_crease", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_crease"));
   uiItemR(sub, ptr, "crease_weight", UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-  uiItemR(layout, ptr, "material_offset", 0, IFACE_("Material Offset"), ICON_NONE);
+  uiItemR(layout, ptr, "material_offset", UI_ITEM_NONE, IFACE_("Material Offset"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -153,10 +153,10 @@ static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
 
   row = uiLayoutRow(layout, true);
   uiLayoutSetActive(row, has_vertex_group);
-  uiItemR(row, ptr, "thickness_vertex_group", 0, IFACE_("Factor"), ICON_NONE);
+  uiItemR(row, ptr, "thickness_vertex_group", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_Wireframe, panel_draw);
@@ -165,34 +165,35 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Wireframe = {
+    /*idname*/ "Wireframe",
     /*name*/ N_("Wireframe"),
-    /*structName*/ "WireframeModifierData",
-    /*structSize*/ sizeof(WireframeModifierData),
+    /*struct_name*/ "WireframeModifierData",
+    /*struct_size*/ sizeof(WireframeModifierData),
     /*srna*/ &RNA_WireframeModifier,
     /*type*/ eModifierTypeType_Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_WIREFRAME,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ dependsOnNormals,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ depends_on_normals,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

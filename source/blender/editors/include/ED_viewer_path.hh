@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -37,7 +37,8 @@ Object *parse_object_only(const ViewerPath &viewer_path);
 struct ViewerPathForGeometryNodesViewer {
   Object *object;
   blender::StringRefNull modifier_name;
-  blender::Vector<int32_t> group_node_ids;
+  /* Contains only group node and simulation zone elements. */
+  blender::Vector<const ViewerPathElem *> node_path;
   int32_t viewer_node_id;
 };
 
@@ -65,7 +66,6 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
  * Checks if the node referenced by the viewer and its entire context is still active, i.e. some
  * editor is showing it.
  */
-bool is_active_geometry_nodes_viewer(const bContext &C,
-                                     const ViewerPathForGeometryNodesViewer &parsed_viewer_path);
+bool is_active_geometry_nodes_viewer(const bContext &C, const ViewerPath &viewer_path);
 
 }  // namespace blender::ed::viewer_path

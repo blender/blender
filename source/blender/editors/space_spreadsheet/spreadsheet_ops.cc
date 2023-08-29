@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "BKE_screen.h"
 
 #include "DNA_space_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "BLI_listbase.h"
 
@@ -13,11 +13,11 @@
 
 #include "BKE_context.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_row_filter.hh"
@@ -82,13 +82,13 @@ static void SPREADSHEET_OT_remove_row_filter_rule(wmOperatorType *ot)
 
 static int select_component_domain_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  GeometryComponentType component_type = static_cast<GeometryComponentType>(
+  const auto component_type = blender::bke::GeometryComponent::Type(
       RNA_int_get(op->ptr, "component_type"));
   eAttrDomain attribute_domain = static_cast<eAttrDomain>(
       RNA_int_get(op->ptr, "attribute_domain_type"));
 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  sspreadsheet->geometry_component_type = component_type;
+  sspreadsheet->geometry_component_type = uint8_t(component_type);
   sspreadsheet->attribute_domain = attribute_domain;
 
   /* Refresh header and main region. */

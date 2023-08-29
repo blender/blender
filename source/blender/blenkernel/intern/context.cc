@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -42,7 +42,7 @@
 
 #include "RE_engine.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "CLG_log.h"
@@ -79,7 +79,7 @@ struct bContext {
     /**
      * Store values to dynamically to create the string (called when a tool-tip is shown).
      */
-    struct bContextPollMsgDyn_Params operator_poll_msg_dyn_params;
+    bContextPollMsgDyn_Params operator_poll_msg_dyn_params;
   } wm;
 
   /* data context */
@@ -101,7 +101,7 @@ struct bContext {
 
 /* context */
 
-bContext *CTX_create(void)
+bContext *CTX_create()
 {
   bContext *C = MEM_cnew<bContext>(__func__);
 
@@ -1196,7 +1196,9 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
       case OB_CURVES:
         return CTX_MODE_EDIT_CURVES;
       case OB_GREASE_PENCIL:
-        return CTX_MODE_EDIT_GPENCIL;
+        return CTX_MODE_EDIT_GREASE_PENCIL;
+      case OB_POINTCLOUD:
+        return CTX_MODE_EDIT_POINT_CLOUD;
     }
   }
   else {
@@ -1220,23 +1222,26 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
       if (object_mode & OB_MODE_PARTICLE_EDIT) {
         return CTX_MODE_PARTICLE;
       }
-      if (object_mode & OB_MODE_PAINT_GPENCIL) {
-        return CTX_MODE_PAINT_GPENCIL;
+      if (object_mode & OB_MODE_PAINT_GPENCIL_LEGACY) {
+        return CTX_MODE_PAINT_GPENCIL_LEGACY;
       }
-      if (object_mode & OB_MODE_EDIT_GPENCIL) {
-        return CTX_MODE_EDIT_GPENCIL;
+      if (object_mode & OB_MODE_EDIT_GPENCIL_LEGACY) {
+        return CTX_MODE_EDIT_GPENCIL_LEGACY;
       }
-      if (object_mode & OB_MODE_SCULPT_GPENCIL) {
-        return CTX_MODE_SCULPT_GPENCIL;
+      if (object_mode & OB_MODE_SCULPT_GPENCIL_LEGACY) {
+        return CTX_MODE_SCULPT_GPENCIL_LEGACY;
       }
-      if (object_mode & OB_MODE_WEIGHT_GPENCIL) {
-        return CTX_MODE_WEIGHT_GPENCIL;
+      if (object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) {
+        return CTX_MODE_WEIGHT_GPENCIL_LEGACY;
       }
-      if (object_mode & OB_MODE_VERTEX_GPENCIL) {
-        return CTX_MODE_VERTEX_GPENCIL;
+      if (object_mode & OB_MODE_VERTEX_GPENCIL_LEGACY) {
+        return CTX_MODE_VERTEX_GPENCIL_LEGACY;
       }
       if (object_mode & OB_MODE_SCULPT_CURVES) {
         return CTX_MODE_SCULPT_CURVES;
+      }
+      if (object_mode & OB_MODE_PAINT_GREASE_PENCIL) {
+        return CTX_MODE_PAINT_GREASE_PENCIL;
       }
     }
   }
@@ -1265,6 +1270,8 @@ static const char *data_mode_strings[] = {
     "mball_edit",
     "lattice_edit",
     "curves_edit",
+    "grease_pencil_edit",
+    "point_cloud_edit",
     "posemode",
     "sculpt_mode",
     "weightpaint",
@@ -1278,6 +1285,7 @@ static const char *data_mode_strings[] = {
     "greasepencil_weight",
     "greasepencil_vertex",
     "curves_sculpt",
+    "grease_pencil_paint",
     nullptr,
 };
 BLI_STATIC_ASSERT(ARRAY_SIZE(data_mode_strings) == CTX_MODE_NUM + 1,
@@ -1509,7 +1517,7 @@ AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
 
   /* If the asset handle was not found in context directly, try if there's an active file with
    * asset data there instead. Not nice to have this here, would be better to have this in
-   * `ED_asset.h`, but we can't include that in BKE. Even better would be not needing this at all
+   * `ED_asset.hh`, but we can't include that in BKE. Even better would be not needing this at all
    * and being able to have editors return this in the usual `context` callback. But that would
    * require returning a non-owning pointer, which we don't have in the Asset Browser (yet). */
   FileDirEntry *file =
@@ -1534,9 +1542,10 @@ AssetHandle *CTX_wm_asset_handle_ptr(const bContext *C)
       CTX_data_pointer_get_type(C, "asset_handle", &RNA_AssetHandle).data);
 }
 
-AssetRepresentation *CTX_wm_asset(const bContext *C)
+blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C)
 {
-  return static_cast<AssetRepresentation *>(ctx_data_pointer_get(C, "asset"));
+  return static_cast<blender::asset_system::AssetRepresentation *>(
+      ctx_data_pointer_get(C, "asset"));
 }
 
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)

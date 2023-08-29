@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,6 +8,8 @@
 
 #include "BKE_curves.hh"
 #include "BKE_type_conversions.hh"
+
+#include "BLT_translation.h"
 
 #include "NOD_geometry_exec.hh"
 
@@ -44,7 +46,7 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
 
   const bool only_realized_data = geo_decl->only_realized_data();
   const bool only_instances = geo_decl->only_instances();
-  const Span<GeometryComponentType> supported_types = geo_decl->supported_types();
+  const Span<GeometryComponent::Type> supported_types = geo_decl->supported_types();
 
   if (only_realized_data) {
     if (geometry_set.has_instances()) {
@@ -62,10 +64,10 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
     /* Assume all types are supported. */
     return;
   }
-  const Vector<GeometryComponentType> types_in_geometry = geometry_set.gather_component_types(
+  const Vector<GeometryComponent::Type> types_in_geometry = geometry_set.gather_component_types(
       true, true);
-  for (const GeometryComponentType type : types_in_geometry) {
-    if (type == GEO_COMPONENT_TYPE_INSTANCES) {
+  for (const GeometryComponent::Type type : types_in_geometry) {
+    if (type == GeometryComponent::Type::Instance) {
       continue;
     }
     if (supported_types.contains(type)) {
@@ -73,28 +75,32 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
     }
     std::string message = TIP_("Input geometry has unsupported type: ");
     switch (type) {
-      case GEO_COMPONENT_TYPE_MESH: {
+      case GeometryComponent::Type::Mesh: {
         message += TIP_("Mesh");
         break;
       }
-      case GEO_COMPONENT_TYPE_POINT_CLOUD: {
+      case GeometryComponent::Type::PointCloud: {
         message += TIP_("Point Cloud");
         break;
       }
-      case GEO_COMPONENT_TYPE_INSTANCES: {
+      case GeometryComponent::Type::Instance: {
         BLI_assert_unreachable();
         break;
       }
-      case GEO_COMPONENT_TYPE_VOLUME: {
+      case GeometryComponent::Type::Volume: {
         message += CTX_TIP_(BLT_I18NCONTEXT_ID_ID, "Volume");
         break;
       }
-      case GEO_COMPONENT_TYPE_CURVE: {
+      case GeometryComponent::Type::Curve: {
         message += TIP_("Curve");
         break;
       }
-      case GEO_COMPONENT_TYPE_EDIT: {
+      case GeometryComponent::Type::Edit: {
         continue;
+      }
+      case GeometryComponent::Type::GreasePencil: {
+        message += TIP_("Grease Pencil");
+        break;
       }
     }
     this->error_message_add(NodeWarningType::Info, std::move(message));
@@ -105,8 +111,7 @@ void GeoNodeExecParams::check_output_geometry_set(const GeometrySet &geometry_se
 {
   UNUSED_VARS_NDEBUG(geometry_set);
 #ifdef DEBUG
-  if (const bke::CurvesEditHints *curve_edit_hints = geometry_set.get_curve_edit_hints_for_read())
-  {
+  if (const bke::CurvesEditHints *curve_edit_hints = geometry_set.get_curve_edit_hints()) {
     /* If this is not valid, it's likely that the number of stored deformed points does not match
      * the number of points in the original data. */
     BLI_assert(curve_edit_hints->is_valid());

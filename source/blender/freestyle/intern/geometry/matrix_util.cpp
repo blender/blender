@@ -1,7 +1,10 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
+/* SPDX-FileCopyrightText: 2000 `Bruno Levy <levy@loria.fr>`
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
  * The Original Code is:
- *   GXML/Graphite: Geometry and Graphics Programming Library + Utilities
- *   Copyright 2000 Bruno Levy <levy@loria.fr> */
+ * - GXML/Graphite: Geometry and Graphics Programming Library + Utilities.
+ */
 
 /** \file
  * \ingroup freestyle
@@ -9,7 +12,8 @@
 
 #include "matrix_util.h"
 
-#include "BLI_math.h"
+#include "BLI_math_base.h"
+#include "BLI_utildefines.h"
 
 namespace Freestyle::OGF::MatrixUtil {
 

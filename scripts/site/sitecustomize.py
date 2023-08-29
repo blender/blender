@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2022-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 # Make shared libraries needed by modules available in standalone Python binary.
 
 import sys
@@ -35,7 +38,11 @@ materialx_libs_dir = os.path.abspath(os.path.join(shared_lib_dir, "materialx", "
 materialx_libs_env = os.getenv("MATERIALX_SEARCH_PATH")
 if materialx_libs_env is None:
     os.environ["MATERIALX_SEARCH_PATH"] = materialx_libs_dir
-elif sys.platform == "win32":
-    os.environ["MATERIALX_SEARCH_PATH"] = materialx_libs_dir + ";" + materialx_libs_env
 else:
-    os.environ["MATERIALX_SEARCH_PATH"] = materialx_libs_dir + ":" + materialx_libs_env
+    os.environ["MATERIALX_SEARCH_PATH"] = materialx_libs_env + os.pathsep + materialx_libs_dir
+
+materialx_libs_env = os.getenv("PXR_MTLX_STDLIB_SEARCH_PATHS")
+if materialx_libs_env is None:
+    os.environ["PXR_MTLX_STDLIB_SEARCH_PATHS"] = materialx_libs_dir
+else:
+    os.environ["PXR_MTLX_STDLIB_SEARCH_PATHS"] = materialx_libs_env + os.pathsep + materialx_libs_dir

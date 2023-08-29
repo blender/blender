@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation.
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -74,7 +74,7 @@ void TrackPositionNode::convert_to_operations(NodeConverter &converter,
   operationY->set_track_name(trackpos_data->track_name);
   operationY->set_framenumber(frame_number);
   operationY->set_axis(1);
-  operationX->set_position(static_cast<CMPNodeTrackPositionMode>(editor_node->custom1));
+  operationY->set_position(static_cast<CMPNodeTrackPositionMode>(editor_node->custom1));
   operationY->set_relative_frame(editor_node->custom2);
   converter.add_operation(operationY);
   converter.map_output_socket(outputY, operationY->get_output_socket());

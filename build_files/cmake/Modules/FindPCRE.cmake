@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2011 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2011 Blender Foundation.
 
 # - Find PCRE library
 # Find the native PCRE includes and library
@@ -14,23 +15,27 @@
 # also defined, but not for general use are
 #  PCRE_LIBRARY, where to find the PCRE library.
 
-# If PCRE_ROOT_DIR was defined in the environment, use it.
-IF(NOT PCRE_ROOT_DIR AND NOT $ENV{PCRE_ROOT_DIR} STREQUAL "")
-  SET(PCRE_ROOT_DIR $ENV{PCRE_ROOT_DIR})
-ENDIF()
+# If `PCRE_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED PCRE_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{PCRE_ROOT_DIR})
+  set(PCRE_ROOT_DIR $ENV{PCRE_ROOT_DIR})
+else()
+  set(PCRE_ROOT_DIR "")
+endif()
 
-SET(_pcre_SEARCH_DIRS
+set(_pcre_SEARCH_DIRS
   ${PCRE_ROOT_DIR}
 )
 
-FIND_PATH(PCRE_INCLUDE_DIR pcre.h
+find_path(PCRE_INCLUDE_DIR pcre.h
   HINTS
     ${_pcre_SEARCH_DIRS}
   PATH_SUFFIXES
     include
 )
 
-FIND_LIBRARY(PCRE_LIBRARY
+find_library(PCRE_LIBRARY
   NAMES
     pcre
   HINTS
@@ -41,21 +46,21 @@ FIND_LIBRARY(PCRE_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set PCRE_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(PCRE DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(PCRE DEFAULT_MSG
     PCRE_LIBRARY PCRE_INCLUDE_DIR)
 
 # With 'make deps' precompiled libs, opencollada ships with a copy of libpcre
 # but not the headers, ${PCRE_LIBRARY} will be valid in this case
 # but PCRE_FOUND will be FALSE. So we set this variable outside of
-# the IF(PCRE_FOUND) below to allow blender to successfully link.
-SET(PCRE_LIBRARIES ${PCRE_LIBRARY})
+# the `if(PCRE_FOUND)` below to allow blender to successfully link.
+set(PCRE_LIBRARIES ${PCRE_LIBRARY})
 
-IF(PCRE_FOUND)
-  SET(PCRE_INCLUDE_DIRS ${PCRE_INCLUDE_DIR})
-ENDIF()
+if(PCRE_FOUND)
+  set(PCRE_INCLUDE_DIRS ${PCRE_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   PCRE_INCLUDE_DIR
   PCRE_LIBRARY
 )

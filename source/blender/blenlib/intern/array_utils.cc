@@ -1,8 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
+#include "BLI_threads.h"
+
+#include "atomic_ops.h"
 
 namespace blender::array_utils {
 
@@ -43,6 +46,22 @@ void gather(const GVArray &src,
 void gather(const GSpan src, const IndexMask &indices, GMutableSpan dst, const int64_t grain_size)
 {
   gather(GVArray::ForSpan(src), indices, dst, grain_size);
+}
+
+void count_indices(const Span<int> indices, MutableSpan<int> counts)
+{
+  if (indices.size() < 8192 || BLI_system_thread_count() < 4) {
+    for (const int i : indices) {
+      counts[i]++;
+    }
+  }
+  else {
+    threading::parallel_for(indices.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : indices.slice(range)) {
+        atomic_add_and_fetch_int32(&counts[i], 1);
+      }
+    });
+  }
 }
 
 void invert_booleans(MutableSpan<bool> span)

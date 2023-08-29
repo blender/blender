@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -77,7 +78,7 @@ class GHOST_SystemCocoa : public GHOST_System {
    * \param width: The width the window.
    * \param height: The height the window.
    * \param state: The state of the window when opened.
-   * \param glSettings: Misc OpenGL settings.
+   * \param gpuSettings: Misc GPU settings.
    * \param exclusive: Use to show the window on top and ignore others (used full-screen).
    * \param parentWindow: Parent (embedder) window.
    * \return The new window (or 0 if creation failed).
@@ -88,17 +89,17 @@ class GHOST_SystemCocoa : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_GLSettings glSettings,
+                              GHOST_GPUSettings gpuSettings,
                               const bool exclusive = false,
                               const bool is_dialog = false,
-                              const GHOST_IWindow *parentWindow = NULL);
+                              const GHOST_IWindow *parentWindow = nullptr);
 
   /**
    * Create a new off-screen context.
    * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings);
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings);
 
   /**
    * Dispose of a context.
@@ -236,7 +237,7 @@ class GHOST_SystemCocoa : public GHOST_System {
   /**
    * \see GHOST_ISystem
    */
-  bool setConsoleWindowState(GHOST_TConsoleWindowState action)
+  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
   {
     return false;
   }
@@ -265,6 +266,22 @@ class GHOST_SystemCocoa : public GHOST_System {
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess handleKeyEvent(void *eventPtr);
+
+  /**
+   * Show a system message box
+   * \param title: The title of the message box.
+   * \param message: The message to display.
+   * \param help_label: Help button label.
+   * \param continue_label: Continue button label.
+   * \param link: An optional hyperlink.
+   * \param dialog_options: Options  how to display the message.
+   */
+  virtual GHOST_TSuccess showMessageBox(const char *title,
+                                        const char *message,
+                                        const char *help_label,
+                                        const char *continue_label,
+                                        const char *link,
+                                        GHOST_DialogOptions dialog_options) const;
 
  protected:
   /**

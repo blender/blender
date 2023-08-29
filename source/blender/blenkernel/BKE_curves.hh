@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -258,12 +258,9 @@ class CurvesGeometry : public ::CurvesGeometry {
   MutableSpan<float2> surface_uv_coords_for_write();
 
   /**
-   * Calculate the largest and smallest position values, only including control points
-   * (rather than evaluated points). The existing values of `min` and `max` are taken into account.
-   *
-   * \return Whether there are any points. If the curve is empty, the inputs will be unaffected.
+   * The largest and smallest position values of evaluated points.
    */
-  bool bounds_min_max(float3 &min, float3 &max) const;
+  std::optional<Bounds<float3>> bounds_min_max() const;
 
  private:
   /* --------------------------------------------------------------------

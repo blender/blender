@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -75,6 +75,9 @@ void MathNode::convert_to_operations(NodeConverter &converter,
       break;
     case NODE_MATH_MODULO:
       operation = new MathModuloOperation();
+      break;
+    case NODE_MATH_FLOORED_MODULO:
+      operation = new MathFlooredModuloOperation();
       break;
     case NODE_MATH_ABSOLUTE:
       operation = new MathAbsoluteOperation();

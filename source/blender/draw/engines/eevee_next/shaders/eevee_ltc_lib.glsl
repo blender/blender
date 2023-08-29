@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Adapted from :
@@ -179,8 +182,7 @@ float ltc_evaluate_quad(sampler2DArray utility_tx, vec3 corners[4], vec3 N)
 float ltc_evaluate_disk_simple(sampler2DArray utility_tx, float disk_radius, float NL)
 {
   float r_sqr = disk_radius * disk_radius;
-  float one_r_sqr = 1.0 + r_sqr;
-  float form_factor = r_sqr * inversesqrt(one_r_sqr * one_r_sqr);
+  float form_factor = r_sqr / (1.0 + r_sqr);
   return form_factor * ltc_diffuse_sphere_integral(utility_tx, NL, form_factor);
 }
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,7 +13,8 @@
 GPU_SHADER_INTERFACE_INFO(workbench_shadow_iface, "vData")
     .smooth(Type::VEC3, "pos")
     .smooth(Type::VEC4, "frontPosition")
-    .smooth(Type::VEC4, "backPosition")
+    .smooth(Type::VEC4, "backPosition");
+GPU_SHADER_INTERFACE_INFO(workbench_shadow_flat_iface, "vData_flat")
     .flat(Type::VEC3, "light_direction_os"); /*Workbench Next*/
 
 GPU_SHADER_CREATE_INFO(workbench_shadow_common)
@@ -27,6 +28,7 @@ GPU_SHADER_CREATE_INFO(workbench_shadow_common)
  * as only gl_Position is returned. */
 GPU_SHADER_CREATE_INFO(workbench_shadow_common_geom)
     .vertex_out(workbench_shadow_iface)
+    .vertex_out(workbench_shadow_flat_iface)
     .vertex_source("workbench_shadow_vert.glsl");
 
 GPU_SHADER_CREATE_INFO(workbench_next_shadow_common)

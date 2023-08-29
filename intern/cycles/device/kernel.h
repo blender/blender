@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -8,7 +9,7 @@
 
 #  include "util/string.h"
 
-#  include <ostream>  // NOLINT
+#  include <iosfwd>
 #endif
 
 CCL_NAMESPACE_BEGIN

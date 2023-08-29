@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,6 +12,9 @@
 #include "DNA_customdata_types.h"
 
 #ifdef __cplusplus
+#  include <optional>
+
+#  include "BLI_bounds_types.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_span.hh"
 #endif
@@ -63,7 +66,7 @@ typedef struct PointCloud {
   void tag_positions_changed();
   void tag_radii_changed();
 
-  bool bounds_min_max(blender::float3 &min, blender::float3 &max) const;
+  std::optional<blender::Bounds<blender::float3>> bounds_min_max() const;
 #endif
 
   PointCloudRuntimeHandle *runtime;

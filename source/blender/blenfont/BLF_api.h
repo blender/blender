@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -285,7 +285,7 @@ void BLF_draw_buffer_ex(int fontid, const char *str, size_t str_len, struct Resu
     ATTR_NONNULL(2);
 void BLF_draw_buffer(int fontid, const char *str, size_t str_len) ATTR_NONNULL(2);
 
-/* blf_thumbs.c */
+/* `blf_thumbs.cc` */
 
 /**
  * This function is used for generating thumbnail previews.
@@ -295,7 +295,7 @@ void BLF_draw_buffer(int fontid, const char *str, size_t str_len) ATTR_NONNULL(2
 bool BLF_thumb_preview(const char *filename, unsigned char *buf, int w, int h, int channels)
     ATTR_NONNULL();
 
-/* blf_default.c */
+/* `blf_default.cc` */
 
 void BLF_default_size(float size);
 void BLF_default_set(int fontid);
@@ -312,7 +312,7 @@ void BLF_draw_default(float x, float y, float z, const char *str, size_t str_len
  */
 int BLF_set_default(void);
 
-/* blf_font_default.c */
+/* `blf_font_default.cc` */
 
 int BLF_load_default(bool unique);
 int BLF_load_mono_default(bool unique);

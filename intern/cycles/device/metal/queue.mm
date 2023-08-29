@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2021-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef WITH_METAL
 
@@ -682,20 +683,21 @@ bool MetalDeviceQueue::synchronize()
         /* For per-kernel timing, add event handlers to measure & accumulate dispatch times. */
         __block double completion_time = 0;
         for (uint64_t i = command_buffer_start_timing_id_; i < timing_shared_event_id_; i++) {
-          [timing_shared_event_ notifyListener:shared_event_listener_
-                                       atValue:i
-                                         block:^(id<MTLSharedEvent> sharedEvent, uint64_t value) {
-                                           completion_time = timer.get_time() - completion_time;
-                                           last_completion_time_ = completion_time;
-                                           for (auto label : command_encoder_labels_) {
-                                             if (label.timing_id == value) {
-                                               TimingStats &stat = timing_stats_[label.kernel];
-                                               stat.num_dispatches++;
-                                               stat.total_time += completion_time;
-                                               stat.total_work_size += label.work_size;
-                                             }
-                                           }
-                                         }];
+          [timing_shared_event_
+              notifyListener:shared_event_listener_
+                     atValue:i
+                       block:^(id<MTLSharedEvent> /*sharedEvent*/, uint64_t value) {
+                         completion_time = timer.get_time() - completion_time;
+                         last_completion_time_ = completion_time;
+                         for (auto label : command_encoder_labels_) {
+                           if (label.timing_id == value) {
+                             TimingStats &stat = timing_stats_[label.kernel];
+                             stat.num_dispatches++;
+                             stat.total_time += completion_time;
+                             stat.total_work_size += label.work_size;
+                           }
+                         }
+                       }];
         }
       }
     }
@@ -706,7 +708,7 @@ bool MetalDeviceQueue::synchronize()
       __block dispatch_semaphore_t block_sema = wait_semaphore_;
       [shared_event_ notifyListener:shared_event_listener_
                             atValue:shared_event_id_
-                              block:^(id<MTLSharedEvent> sharedEvent, uint64_t value) {
+                              block:^(id<MTLSharedEvent> /*sharedEvent*/, uint64_t /*value*/) {
                                 dispatch_semaphore_signal(block_sema);
                               }];
 
@@ -852,7 +854,7 @@ void MetalDeviceQueue::copy_from_device(device_memory &mem)
   }
 }
 
-void MetalDeviceQueue::prepare_resources(DeviceKernel kernel)
+void MetalDeviceQueue::prepare_resources(DeviceKernel /*kernel*/)
 {
   std::lock_guard<std::recursive_mutex> lock(metal_device_->metal_mem_map_mutex);
 

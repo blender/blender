@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,10 +14,10 @@
 
 #include "DEG_depsgraph.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
@@ -26,10 +26,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /**
  * The code below uses a prefix naming convention to indicate the coordinate space:

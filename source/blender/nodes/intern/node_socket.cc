@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,6 +12,8 @@
 
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_euler.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
@@ -26,13 +28,13 @@
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"
 
-#include "RNA_access.h"
-#include "RNA_types.h"
+#include "RNA_access.hh"
+#include "RNA_types.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "NOD_node_declaration.hh"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 
 #include "FN_field.hh"
 
@@ -40,10 +42,10 @@ using namespace blender;
 using blender::fn::ValueOrField;
 using blender::nodes::SocketDeclarationPtr;
 
-struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
-                                                  struct bNode *node,
-                                                  struct bNodeSocketTemplate *stemp,
-                                                  eNodeSocketInOut in_out)
+bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
+                                           bNode *node,
+                                           bNodeSocketTemplate *stemp,
+                                           eNodeSocketInOut in_out)
 {
   bNodeSocket *sock = nodeAddStaticSocket(
       ntree, node, in_out, stemp->type, stemp->subtype, stemp->identifier, stemp->name);
@@ -341,6 +343,11 @@ void node_socket_init_default_value(bNodeSocket *sock)
       sock->default_value = dval;
       break;
     }
+    case SOCK_ROTATION: {
+      bNodeSocketValueRotation *dval = MEM_cnew<bNodeSocketValueRotation>(__func__);
+      sock->default_value = dval;
+      break;
+    }
     case SOCK_VECTOR: {
       static float default_value[] = {0.0f, 0.0f, 0.0f};
       bNodeSocketValueVector *dval = MEM_cnew<bNodeSocketValueVector>("node socket value vector");
@@ -458,6 +465,12 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
       *toval = *fromval;
       break;
     }
+    case SOCK_ROTATION: {
+      bNodeSocketValueRotation *toval = (bNodeSocketValueRotation *)to->default_value;
+      bNodeSocketValueRotation *fromval = (bNodeSocketValueRotation *)from->default_value;
+      *toval = *fromval;
+      break;
+    }
     case SOCK_STRING: {
       bNodeSocketValueString *toval = (bNodeSocketValueString *)to->default_value;
       bNodeSocketValueString *fromval = (bNodeSocketValueString *)from->default_value;
@@ -531,7 +544,7 @@ static void standard_node_socket_interface_from_socket(bNodeTree * /*ntree*/,
   node_socket_copy_default_value(stemp, sock);
 }
 
-extern "C" void ED_init_standard_node_socket_type(bNodeSocketType *);
+void ED_init_standard_node_socket_type(bNodeSocketType *);
 
 static bNodeSocketType *make_standard_socket_type(int type, int subtype)
 {
@@ -578,7 +591,7 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
   return stype;
 }
 
-extern "C" void ED_init_node_socket_type_virtual(bNodeSocketType *);
+void ED_init_node_socket_type_virtual(bNodeSocketType *);
 
 static bNodeSocketType *make_socket_type_virtual()
 {
@@ -621,6 +634,24 @@ static bNodeSocketType *make_socket_type_bool()
     bool value;
     socket.typeinfo->get_base_cpp_value(socket, &value);
     new (r_value) ValueOrField<bool>(value);
+  };
+  return socktype;
+}
+
+static bNodeSocketType *make_socket_type_rotation()
+{
+  bNodeSocketType *socktype = make_standard_socket_type(SOCK_ROTATION, PROP_NONE);
+  socktype->base_cpp_type = &blender::CPPType::get<math::Quaternion>();
+  socktype->get_base_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    const auto &value = *socket.default_value_typed<bNodeSocketValueRotation>();
+    const math::EulerXYZ euler(float3(value.value_euler));
+    *static_cast<math::Quaternion *>(r_value) = math::to_quaternion(euler);
+  };
+  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<ValueOrField<math::Quaternion>>();
+  socktype->get_geometry_nodes_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    math::Quaternion value;
+    socket.typeinfo->get_base_cpp_value(socket, &value);
+    new (r_value) ValueOrField<math::Quaternion>(value);
   };
   return socktype;
 }
@@ -722,9 +753,9 @@ static bNodeSocketType *make_socket_type_object()
 static bNodeSocketType *make_socket_type_geometry()
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_GEOMETRY, PROP_NONE);
-  socktype->base_cpp_type = &blender::CPPType::get<GeometrySet>();
+  socktype->base_cpp_type = &blender::CPPType::get<blender::bke::GeometrySet>();
   socktype->get_base_cpp_value = [](const bNodeSocket & /*socket*/, void *r_value) {
-    new (r_value) GeometrySet();
+    new (r_value) blender::bke::GeometrySet();
   };
   socktype->geometry_nodes_cpp_type = socktype->base_cpp_type;
   socktype->get_geometry_nodes_cpp_value = socktype->get_base_cpp_value;
@@ -781,7 +812,7 @@ static bNodeSocketType *make_socket_type_material()
 
 void register_standard_node_socket_types()
 {
-  /* Draw callbacks are set in `drawnode.c` to avoid bad-level calls. */
+  /* Draw callbacks are set in `drawnode.cc` to avoid bad-level calls. */
 
   nodeRegisterSocketType(make_socket_type_float(PROP_NONE));
   nodeRegisterSocketType(make_socket_type_float(PROP_UNSIGNED));
@@ -798,6 +829,7 @@ void register_standard_node_socket_types()
   nodeRegisterSocketType(make_socket_type_int(PROP_FACTOR));
 
   nodeRegisterSocketType(make_socket_type_bool());
+  nodeRegisterSocketType(make_socket_type_rotation());
 
   nodeRegisterSocketType(make_socket_type_vector(PROP_NONE));
   nodeRegisterSocketType(make_socket_type_vector(PROP_TRANSLATION));

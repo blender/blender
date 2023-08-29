@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,6 +10,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct Render;
 
 /* Keep ascii art. */
 /* clang-format off */
@@ -291,8 +293,11 @@ extern "C" {
 
 /**
  * \brief The main method that is used to execute the compositor tree.
- * It can be executed during editing (blenkernel/node.cc) or rendering
- * (renderer/pipeline.c)
+ * It can be executed during editing (`blenkernel/node.cc`) or rendering
+ * (`renderer/pipeline.cc`).
+ *
+ * \param render: [struct Render]
+ *   Render instance for GPU context.
  *
  * \param render_data: [struct RenderData]
  *   Render data for this composite, this won't always belong to a scene.
@@ -305,10 +310,10 @@ extern "C" {
  *    (true) or editing (false).
  *    based on this setting the system will work differently:
  *     - during rendering only Composite & the File output node will be calculated
- * \see NodeOperation.is_output_program(int rendering) of the specific operations
+ * \see NodeOperation.is_output_program(bool rendering) of the specific operations
  *
  *     - during editing all output nodes will be calculated
- * \see NodeOperation.is_output_program(int rendering) of the specific operations
+ * \see NodeOperation.is_output_program(bool rendering) of the specific operations
  *
  *     - another quality setting can be used bNodeTree.
  *       The quality is determined by the bNodeTree fields.
@@ -326,10 +331,11 @@ extern "C" {
  */
 /* clang-format off */
 
-void COM_execute(RenderData *render_data,
+void COM_execute(Render *render,
+                 RenderData *render_data,
                  Scene *scene,
                  bNodeTree *node_tree,
-                 int rendering,
+                 bool rendering,
                  const char *view_name);
 
 /**

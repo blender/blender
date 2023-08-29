@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -187,6 +187,10 @@ class IndexMask : private IndexMaskData {
                               IndexMaskMemory &memory);
   static IndexMask from_bools(const IndexMask &universe,
                               const VArray<bool> &bools,
+                              IndexMaskMemory &memory);
+  /** Construct a mask from the union of two other masks. */
+  static IndexMask from_union(const IndexMask &mask_a,
+                              const IndexMask &mask_b,
                               IndexMaskMemory &memory);
   /** Construct a mask from all the indices for which the predicate is true. */
   template<typename Fn>

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,15 +6,15 @@
  * \ingroup imbuf
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h" /* Needed due to import of BLO_readfile.h */
 #include "BLI_utildefines.h"
 
-#include "BLO_blend_defs.h"
+#include "BLO_blend_defs.hh"
 #include "BLO_readfile.h"
 
 #include "BKE_icons.h"
@@ -40,7 +40,7 @@ static ImBuf *imb_thumb_load_from_blend_id(const char *blen_path,
   BlendFileReadReport bf_reports = {};
   bf_reports.reports = nullptr;
 
-  struct BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, &bf_reports);
+  BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, &bf_reports);
   if (libfiledata == nullptr) {
     return nullptr;
   }

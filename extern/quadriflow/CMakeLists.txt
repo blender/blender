@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2019 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2019 Blender Foundation
 
 # avoid noisy warnings
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -12,10 +13,12 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 endif()
 
 if(WIN32)
-    add_definitions(-D_USE_MATH_DEFINES)
+  add_definitions(-D_USE_MATH_DEFINES)
 endif()
 
 set(LEMON_3RD_PATH 3rd/lemon-1.3.1)
+# Needed for the configure script.
+set(PROJECT_VERSION "1.3.1")
 
 set(LEMON_SOURCE_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${LEMON_3RD_PATH})
 
@@ -27,6 +30,8 @@ configure_file(
   ${LEMON_SRC}/config.h.in
   ${LEMON_GEN_DIR}/lemon/config.h
 )
+unset(PROJECT_VERSION)
+
 set(LEMON_SOURCES
   ${LEMON_SRC}/arg_parser.cc
   ${LEMON_SRC}/base.cc

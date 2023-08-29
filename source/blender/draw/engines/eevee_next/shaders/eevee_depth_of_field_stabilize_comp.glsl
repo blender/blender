@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Temporal Stabilization of the Depth of field input.
@@ -12,7 +15,7 @@
  * - Output of setup pass (halfres).
  * Outputs:
  * - Stabilized Color and CoC (halfres).
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
@@ -113,7 +116,7 @@ float dof_luma_weight(float luma)
 
 float dof_bilateral_weight(float reference_coc, float sample_coc)
 {
-  /* NOTE: The difference between the cocs should be inside a abs() function,
+  /* NOTE: The difference between the COCS should be inside a abs() function,
    * but we follow UE4 implementation to improve how dithered transparency looks (see slide 19).
    * Effectively bleed background into foreground.
    * Compared to dof_bilateral_coc_weights() this saturates as 2x the reference CoC. */
@@ -223,7 +226,7 @@ vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
 }
 
 /* Load color using a special filter to avoid losing detail.
- * \a texel is sample position with subpixel accuracy. */
+ * \a texel is sample position with sub-pixel accuracy. */
 DofSample dof_sample_history(vec2 input_texel)
 {
 #if 1 /* Bilinar. */

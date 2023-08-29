@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,7 +24,7 @@ static int node_shader_gpu_hair_info(GPUMaterial *mat,
 {
   /* Length: don't request length if not needed. */
   static const float zero = 0;
-  GPUNodeLink *length_link = out[2].hasoutput ? GPU_attribute(mat, CD_HAIRLENGTH, "") :
+  GPUNodeLink *length_link = out[2].hasoutput ? GPU_attribute_hair_length(mat) :
                                                 GPU_constant(&zero);
   return GPU_stack_link(mat, node, "node_hair_info", in, out, length_link);
 }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -51,7 +53,7 @@ static int IncrementChainingTimeStampF1D___init__(BPy_IncrementChainingTimeStamp
 /*-----------------------BPy_IncrementChainingTimeStampF1D type definition ----------------------*/
 
 PyTypeObject IncrementChainingTimeStampF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "IncrementChainingTimeStampF1D",
     /*tp_basicsize*/ sizeof(BPy_IncrementChainingTimeStampF1D),
     /*tp_itemsize*/ 0,

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -16,7 +17,6 @@
  * To be valid, a rectangle should have a left coordinate smaller than or equal to right.
  * To be valid, a rectangle should have a top coordinate smaller than or equal to bottom.
  */
-
 class GHOST_Rect {
  public:
   /**

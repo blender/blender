@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,15 +9,16 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 
 #include "BLT_translation.h"
 
 #include "DNA_mesh_types.h"
 
 #include "BKE_context.h"
-#include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_paint.hh"
+#include "BKE_pbvh_api.hh"
 #include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
@@ -27,16 +28,16 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_view3d.hh"
 #include "sculpt_intern.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include <cmath>
 #include <cstdlib>
@@ -84,7 +85,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   float size;
   float bb_min[3], bb_max[3], center[3], dim[3];
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -146,10 +147,10 @@ void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
 /** \name Sample Detail Size
  * \{ */
 
-typedef enum eSculptSampleDetailModeTypes {
+enum eSculptSampleDetailModeTypes {
   SAMPLE_DETAIL_DYNTOPO = 0,
   SAMPLE_DETAIL_VOXEL = 1,
-} eSculptSampleDetailModeTypes;
+};
 
 static EnumPropertyItem prop_sculpt_sample_detail_mode_types[] = {
     {SAMPLE_DETAIL_DYNTOPO, "DYNTOPO", 0, "Dyntopo", "Sample dyntopo detail"},
@@ -214,7 +215,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
   float depth = SCULPT_raycast_init(vc, mval_fl, ray_start, ray_end, ray_normal, false);
 
   SculptDetailRaycastData srd;
-  srd.hit = 0;
+  srd.hit = false;
   srd.ray_start = ray_start;
   srd.depth = depth;
   srd.edge_length = 0.0f;

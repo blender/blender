@@ -449,7 +449,7 @@ void uiButSetFunc(uiBut *but, void (*func)(void *arg1, void *arg2), void *arg1, 
 	When the button is pressed and released, it calls this function, with the 2 arguments.
 
 void uiButSetFlag(uiBut *but, int flag)
-	set a flag for further control of button behaviour:
+	set a flag for further control of button behavior:
 	flag:
 	UI_TEXT_LEFT
 	

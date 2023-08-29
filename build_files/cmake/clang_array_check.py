@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2012 Blender Authors
+#
 # SPDX-License-Identifier: Apache-2.0
 
 """

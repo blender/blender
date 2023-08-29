@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/attribute.h"
 #include "scene/hair.h"
@@ -618,6 +619,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   }
   else if (geometry->geometry_type == Geometry::HAIR) {
     switch (std) {
+      case ATTR_STD_VERTEX_NORMAL:
+        attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_CURVE_KEY);
+        break;
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CURVE);
         break;

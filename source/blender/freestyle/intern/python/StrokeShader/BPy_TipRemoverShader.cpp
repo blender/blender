@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -53,7 +55,7 @@ static int TipRemoverShader___init__(BPy_TipRemoverShader *self, PyObject *args,
 /*-----------------------BPy_TipRemoverShader type definition ------------------------------*/
 
 PyTypeObject TipRemoverShader_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "TipRemoverShader",
     /*tp_basicsize*/ sizeof(BPy_TipRemoverShader),
     /*tp_itemsize*/ 0,

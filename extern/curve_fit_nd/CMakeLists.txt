@@ -1,7 +1,9 @@
+# SPDX-FileCopyrightText: 2002-2022 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
 )
 
 set(INC_SYS
@@ -24,3 +26,4 @@ set(LIB
 )
 
 blender_add_lib(extern_curve_fit_nd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::extern::curve_fit_nd ALIAS extern_curve_fit_nd)

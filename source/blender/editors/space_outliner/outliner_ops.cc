@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,9 @@
  * \ingroup spoutliner
  */
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "outliner_intern.hh"
 

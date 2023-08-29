@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 vec3 tint_from_color(vec3 color)
 {
@@ -5,12 +8,14 @@ vec3 tint_from_color(vec3 color)
   return (lum > 0.0) ? color / lum : vec3(1.0); /* normalize lum. to isolate hue+sat */
 }
 
-float principled_sheen(float NV)
+float principled_sheen(float NV, float rough)
 {
-  float f = 1.0 - NV;
-  /* Empirical approximation (manual curve fitting). Can be refined. */
-  float sheen = f * f * f * 0.077 + f * 0.01 + 0.00026;
-  return sheen;
+  /* Empirical approximation (manual curve fitting) to the sheen albedo. Can be refined. */
+  float den = 35.6694f * rough * rough - 24.4269f * rough * NV - 0.1405f * NV * NV +
+              6.1211f * rough + 0.28105f * NV - 0.1405f;
+  float num = 58.5299f * rough * rough - 85.0941f * rough * NV + 9.8955f * NV * NV +
+              1.9250f * rough + 74.2268f * NV - 0.2246f;
+  return saturate(den / num);
 }
 
 void node_bsdf_principled(vec4 base_color,
@@ -26,12 +31,12 @@ void node_bsdf_principled(vec4 base_color,
                           float anisotropic,
                           float anisotropic_rotation,
                           float sheen,
-                          float sheen_tint,
+                          float sheen_roughness,
+                          vec4 sheen_tint,
                           float clearcoat,
                           float clearcoat_roughness,
                           float ior,
                           float transmission,
-                          float transmission_roughness,
                           vec4 emission,
                           float emission_strength,
                           float alpha,
@@ -52,7 +57,6 @@ void node_bsdf_principled(vec4 base_color,
   float diffuse_weight = (1.0 - transmission) * (1.0 - metallic);
   float specular_weight = (1.0 - transmission);
   float clearcoat_weight = max(clearcoat, 0.0) * 0.25;
-  transmission_roughness = 1.0 - (1.0 - roughness) * (1.0 - transmission_roughness);
   specular = max(0.0, specular);
 
   N = safe_normalize(N);
@@ -84,8 +88,7 @@ void node_bsdf_principled(vec4 base_color,
   diffuse_data.weight = diffuse_weight * weight;
   diffuse_data.color = mix(base_color.rgb, subsurface_color.rgb, subsurface);
   /* Sheen Coarse approximation: We reuse the diffuse radiance and just scale it. */
-  vec3 sheen_color = mix(vec3(1.0), base_color_tint, sheen_tint);
-  diffuse_data.color += sheen * sheen_color * principled_sheen(NV);
+  diffuse_data.color += sheen * sheen_tint.rgb * principled_sheen(NV, sheen_roughness);
   diffuse_data.N = N;
   diffuse_data.sss_radius = subsurface_radius * subsurface;
   diffuse_data.sss_id = uint(do_sss);
@@ -145,8 +148,7 @@ void node_bsdf_principled(vec4 base_color,
 
   refraction_data.color = base_color.rgb * btdf;
   refraction_data.N = N;
-  refraction_data.roughness = do_multiscatter != 0.0 ? roughness :
-                                                       max(roughness, transmission_roughness);
+  refraction_data.roughness = roughness;
   refraction_data.ior = ior;
 
   /* Ref. #98190: Defines are optimizations for old compilers.

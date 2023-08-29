@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_common_lib.glsl)
@@ -6,7 +9,7 @@
 
 void main()
 {
-  /* Normal and Incident vector are in viewspace. Lighting is evaluated in viewspace. */
+  /* Normal and Incident vector are in view-space. Lighting is evaluated in view-space. */
   vec3 I = get_view_vector_from_screen_uv(uvcoordsvar.st);
   vec3 N = workbench_normal_decode(texture(normalBuffer, uvcoordsvar.st));
   vec4 mat_data = texture(materialBuffer, uvcoordsvar.st);

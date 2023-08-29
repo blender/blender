@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -134,6 +134,8 @@ struct GlobalsUboStorage {
   float size_vertex, size_edge, size_edge_fix, size_face_dot;
   float size_checker;
   float size_vertex_gpencil;
+  float fresnel_mix_edit;
+  float _pad[3];
 };
 BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 
@@ -244,9 +246,10 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define sizeFaceDot globalsBlock.size_face_dot
 #  define sizeChecker globalsBlock.size_checker
 #  define sizeVertexGpencil globalsBlock.size_vertex_gpencil
+#  define fresnelMixEdit globalsBlock.fresnel_mix_edit
 #endif
 
-/* See: 'draw_cache_impl.h' for matching includes. */
+/* See: 'draw_cache_impl.hh' for matching includes. */
 #define VERT_GPENCIL_BEZT_HANDLE (1u << 30)
 /* data[0] (1st byte flags) */
 #define FACE_ACTIVE (1u << 0)

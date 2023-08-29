@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation
+/* SPDX-FileCopyrightText: 2017 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,7 +26,7 @@
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "draw_curves_private.hh"
 #include "draw_hair_private.h"
 #include "draw_manager.h"
@@ -50,7 +50,7 @@ BLI_INLINE eParticleRefineShaderType drw_curves_shader_type_get()
 }
 
 struct CurvesEvalCall {
-  struct CurvesEvalCall *next;
+  CurvesEvalCall *next;
   GPUVertBuf *vbo;
   DRWShadingGroup *shgrp;
   uint vert_len;
@@ -410,6 +410,18 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
 
 void DRW_curves_update()
 {
+
+  /* Ensure there's a valid active view.
+   * "Next" engines use this function, but this still uses the old Draw Manager. */
+  if (DRW_view_default_get() == nullptr) {
+    /* Create a dummy default view, it's not really used. */
+    DRW_view_default_set(DRW_view_create(
+        float4x4::identity().ptr(), float4x4::identity().ptr(), nullptr, nullptr, nullptr));
+  }
+  if (DRW_view_get_active() == nullptr) {
+    DRW_view_set_active(DRW_view_default_get());
+  }
+
   /* Update legacy hair too, to avoid verbosity in callers. */
   DRW_hair_update();
 
@@ -537,3 +549,124 @@ void DRW_curves_free()
 
   GPU_VERTBUF_DISCARD_SAFE(g_dummy_vbo);
 }
+
+/* New Draw Manager. */
+#include "draw_common.hh"
+
+namespace blender::draw {
+
+template<typename PassT>
+GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
+                                               const Scene *scene,
+                                               Object *ob,
+                                               GPUMaterial *gpu_material)
+{
+  CurvesUniformBufPool *pool = DST.vmempool->curves_ubos;
+  CurvesInfosBuf &curves_infos = pool->alloc();
+  BLI_assert(ob->type == OB_CURVES);
+  Curves &curves_id = *static_cast<Curves *>(ob->data);
+
+  const int subdiv = scene->r.hair_subdiv;
+  const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
+
+  CurvesEvalCache *curves_cache = drw_curves_cache_get(
+      curves_id, gpu_material, subdiv, thickness_res);
+
+  /* Fix issue with certain driver not drawing anything if there is nothing bound to
+   * "ac", "au", "u" or "c". */
+  sub_ps.bind_texture("u", g_dummy_vbo);
+  sub_ps.bind_texture("au", g_dummy_vbo);
+  sub_ps.bind_texture("c", g_dummy_vbo);
+  sub_ps.bind_texture("ac", g_dummy_vbo);
+
+  /* TODO: Generalize radius implementation for curves data type. */
+  float hair_rad_shape = 0.0f;
+  float hair_rad_root = 0.005f;
+  float hair_rad_tip = 0.0f;
+  bool hair_close_tip = true;
+
+  /* Use the radius of the root and tip of the first curve for now. This is a workaround that we
+   * use for now because we can't use a per-point radius yet. */
+  const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+  if (curves.curves_num() >= 1) {
+    blender::VArray<float> radii = *curves.attributes().lookup_or_default(
+        "radius", ATTR_DOMAIN_POINT, 0.005f);
+    const blender::IndexRange first_curve_points = curves.points_by_curve()[0];
+    const float first_radius = radii[first_curve_points.first()];
+    const float last_radius = radii[first_curve_points.last()];
+    const float middle_radius = radii[first_curve_points.size() / 2];
+    hair_rad_root = radii[first_curve_points.first()];
+    hair_rad_tip = radii[first_curve_points.last()];
+    hair_rad_shape = std::clamp(
+        safe_divide(middle_radius - first_radius, last_radius - first_radius) * 2.0f - 1.0f,
+        -1.0f,
+        1.0f);
+  }
+
+  sub_ps.bind_texture("hairPointBuffer", curves_cache->final[subdiv].proc_buf);
+  if (curves_cache->proc_length_buf) {
+    sub_ps.bind_texture("hairLen", curves_cache->proc_length_buf);
+  }
+
+  const DRW_Attributes &attrs = curves_cache->final[subdiv].attr_used;
+  for (int i = 0; i < attrs.num_requests; i++) {
+    const DRW_AttributeRequest &request = attrs.requests[i];
+
+    char sampler_name[32];
+    drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
+
+    if (request.domain == ATTR_DOMAIN_CURVE) {
+      if (!curves_cache->proc_attributes_buf[i]) {
+        continue;
+      }
+      sub_ps.bind_texture(sampler_name, curves_cache->proc_attributes_buf[i]);
+    }
+    else {
+      if (!curves_cache->final[subdiv].attributes_buf[i]) {
+        continue;
+      }
+      sub_ps.bind_texture(sampler_name, curves_cache->final[subdiv].attributes_buf[i]);
+    }
+
+    /* Some attributes may not be used in the shader anymore and were not garbage collected yet, so
+     * we need to find the right index for this attribute as uniforms defining the scope of the
+     * attributes are based on attribute loading order, which is itself based on the material's
+     * attributes. */
+    const int index = attribute_index_in_material(gpu_material, request.attribute_name);
+    if (index != -1) {
+      curves_infos.is_point_attribute[index][0] = request.domain == ATTR_DOMAIN_POINT;
+    }
+  }
+
+  curves_infos.push_update();
+
+  sub_ps.bind_ubo("drw_curves", curves_infos);
+
+  sub_ps.push_constant("hairStrandsRes", &curves_cache->final[subdiv].strands_res, 1);
+  sub_ps.push_constant("hairThicknessRes", thickness_res);
+  sub_ps.push_constant("hairRadShape", hair_rad_shape);
+  sub_ps.push_constant("hairDupliMatrix", float4x4(ob->object_to_world));
+  sub_ps.push_constant("hairRadRoot", hair_rad_root);
+  sub_ps.push_constant("hairRadTip", hair_rad_tip);
+  sub_ps.push_constant("hairCloseTip", hair_close_tip);
+
+  return curves_cache->final[subdiv].proc_hairs[thickness_res - 1];
+}
+
+GPUBatch *curves_sub_pass_setup(PassMain::Sub &ps,
+                                const Scene *scene,
+                                Object *ob,
+                                GPUMaterial *gpu_material)
+{
+  return curves_sub_pass_setup_implementation(ps, scene, ob, gpu_material);
+}
+
+GPUBatch *curves_sub_pass_setup(PassSimple::Sub &ps,
+                                const Scene *scene,
+                                Object *ob,
+                                GPUMaterial *gpu_material)
+{
+  return curves_sub_pass_setup_implementation(ps, scene, ob, gpu_material);
+}
+
+}  // namespace blender::draw

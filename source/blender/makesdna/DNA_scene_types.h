@@ -44,7 +44,6 @@ struct Image;
 struct MovieClip;
 struct Object;
 struct Scene;
-struct SceneCollection;
 struct World;
 struct bGPdata;
 struct bNodeTree;
@@ -221,29 +220,31 @@ typedef struct SceneRenderLayer {
   struct FreestyleConfig freestyleConfig DNA_DEPRECATED;
 } SceneRenderLayer;
 
-/** #SceneRenderLayer.layflag */
-#define SCE_LAY_SOLID (1 << 0)
-#define SCE_LAY_UNUSED_1 (1 << 1)
-#define SCE_LAY_UNUSED_2 (1 << 2)
-#define SCE_LAY_UNUSED_3 (1 << 3)
-#define SCE_LAY_SKY (1 << 4)
-#define SCE_LAY_STRAND (1 << 5)
-#define SCE_LAY_FRS (1 << 6)
-#define SCE_LAY_AO (1 << 7)
-#define SCE_LAY_VOLUMES (1 << 8)
-#define SCE_LAY_MOTION_BLUR (1 << 9)
+/** #SceneRenderLayer::layflag */
+enum {
+  SCE_LAY_SOLID = 1 << 0,
+  SCE_LAY_UNUSED_1 = 1 << 1,
+  SCE_LAY_UNUSED_2 = 1 << 2,
+  SCE_LAY_UNUSED_3 = 1 << 3,
+  SCE_LAY_SKY = 1 << 4,
+  SCE_LAY_STRAND = 1 << 5,
+  SCE_LAY_FRS = 1 << 6,
+  SCE_LAY_AO = 1 << 7,
+  SCE_LAY_VOLUMES = 1 << 8,
+  SCE_LAY_MOTION_BLUR = 1 << 9,
 
-/* Flags between (1 << 9) and (1 << 15) are set to 1 already, for future options. */
+  /* Flags between (1 << 9) and (1 << 15) are set to 1 already, for future options. */
 
-#define SCE_LAY_FLAG_DEFAULT ((1 << 15) - 1)
+  SCE_LAY_FLAG_DEFAULT = ((1 << 15) - 1),
 
-#define SCE_LAY_UNUSED_4 (1 << 15)
-#define SCE_LAY_UNUSED_5 (1 << 16)
-#define SCE_LAY_DISABLE (1 << 17)
-#define SCE_LAY_UNUSED_6 (1 << 18)
-#define SCE_LAY_UNUSED_7 (1 << 19)
+  SCE_LAY_UNUSED_4 = 1 << 15,
+  SCE_LAY_UNUSED_5 = 1 << 16,
+  SCE_LAY_DISABLE = 1 << 17,
+  SCE_LAY_UNUSED_6 = 1 << 18,
+  SCE_LAY_UNUSED_7 = 1 << 19,
+};
 
-/** #SceneRenderLayer.passflag */
+/** #SceneRenderLayer::passflag */
 typedef enum eScenePassType {
   SCE_PASS_COMBINED = (1 << 0),
   SCE_PASS_Z = (1 << 1),
@@ -339,16 +340,18 @@ typedef struct SceneRenderView {
 
 } SceneRenderView;
 
-/** #SceneRenderView.viewflag */
-#define SCE_VIEW_DISABLE (1 << 0)
+/** #SceneRenderView::viewflag */
+enum {
+  SCE_VIEW_DISABLE = 1 << 0,
+};
 
-/** #RenderData.views_format */
+/** #RenderData::views_format */
 enum {
   SCE_VIEWS_FORMAT_STEREO_3D = 0,
   SCE_VIEWS_FORMAT_MULTIVIEW = 1,
 };
 
-/** #ImageFormatData.views_format (also used for #Sequence.views_format). */
+/** #ImageFormatData::views_format (also used for #Sequence::views_format). */
 enum {
   R_IMF_VIEWS_INDIVIDUAL = 0,
   R_IMF_VIEWS_STEREO_3D = 1,
@@ -366,7 +369,7 @@ typedef struct Stereo3dFormat {
   char _pad[3];
 } Stereo3dFormat;
 
-/** #Stereo3dFormat.display_mode */
+/** #Stereo3dFormat::display_mode */
 typedef enum eStereoDisplayMode {
   S3D_DISPLAY_ANAGLYPH = 0,
   S3D_DISPLAY_INTERLACE = 1,
@@ -375,21 +378,21 @@ typedef enum eStereoDisplayMode {
   S3D_DISPLAY_TOPBOTTOM = 4,
 } eStereoDisplayMode;
 
-/** #Stereo3dFormat.flag */
+/** #Stereo3dFormat::flag */
 typedef enum eStereo3dFlag {
   S3D_INTERLACE_SWAP = (1 << 0),
   S3D_SIDEBYSIDE_CROSSEYED = (1 << 1),
   S3D_SQUEEZED_FRAME = (1 << 2),
 } eStereo3dFlag;
 
-/** #Stereo3dFormat.anaglyph_type */
+/** #Stereo3dFormat::anaglyph_type */
 typedef enum eStereo3dAnaglyphType {
   S3D_ANAGLYPH_REDCYAN = 0,
   S3D_ANAGLYPH_GREENMAGENTA = 1,
   S3D_ANAGLYPH_YELLOWBLUE = 2,
 } eStereo3dAnaglyphType;
 
-/** #Stereo3dFormat.interlace_type */
+/** #Stereo3dFormat::interlace_type */
 typedef enum eStereo3dInterlaceType {
   S3D_INTERLACE_ROW = 0,
   S3D_INTERLACE_COLUMN = 1,
@@ -463,48 +466,52 @@ typedef struct ImageFormatData {
   ColorManagedColorspaceSettings linear_colorspace_settings;
 } ImageFormatData;
 
-/** #ImageFormatData.imtype */
-#define R_IMF_IMTYPE_TARGA 0
-#define R_IMF_IMTYPE_IRIS 1
-/* #define R_HAMX                    2 */ /* DEPRECATED */
-/* #define R_FTYPE                   3 */ /* DEPRECATED */
-#define R_IMF_IMTYPE_JPEG90 4
-/* #define R_MOVIE                   5 */ /* DEPRECATED */
-#define R_IMF_IMTYPE_IRIZ 7
-#define R_IMF_IMTYPE_RAWTGA 14
-#define R_IMF_IMTYPE_AVIRAW 15
-#define R_IMF_IMTYPE_AVIJPEG 16
-#define R_IMF_IMTYPE_PNG 17
-/* #define R_IMF_IMTYPE_AVICODEC    18 */ /* DEPRECATED */
-/* #define R_IMF_IMTYPE_QUICKTIME   19 */ /* DEPRECATED */
-#define R_IMF_IMTYPE_BMP 20
-#define R_IMF_IMTYPE_RADHDR 21
-#define R_IMF_IMTYPE_TIFF 22
-#define R_IMF_IMTYPE_OPENEXR 23
-#define R_IMF_IMTYPE_FFMPEG 24
-/* #define R_IMF_IMTYPE_FRAMESERVER    25 */ /* DEPRECATED */
-#define R_IMF_IMTYPE_CINEON 26
-#define R_IMF_IMTYPE_DPX 27
-#define R_IMF_IMTYPE_MULTILAYER 28
-#define R_IMF_IMTYPE_DDS 29
-#define R_IMF_IMTYPE_JP2 30
-#define R_IMF_IMTYPE_H264 31
-#define R_IMF_IMTYPE_XVID 32
-#define R_IMF_IMTYPE_THEORA 33
-#define R_IMF_IMTYPE_PSD 34
-#define R_IMF_IMTYPE_WEBP 35
-#define R_IMF_IMTYPE_AV1 36
+/** #ImageFormatData::imtype */
+enum {
+  R_IMF_IMTYPE_TARGA = 0,
+  R_IMF_IMTYPE_IRIS = 1,
+  // R_HAMX = 2,  /* DEPRECATED */
+  // R_FTYPE = 3, /* DEPRECATED */
+  R_IMF_IMTYPE_JPEG90 = 4,
+  // R_MOVIE = 5, /* DEPRECATED */
+  R_IMF_IMTYPE_IRIZ = 7,
+  R_IMF_IMTYPE_RAWTGA = 14,
+  R_IMF_IMTYPE_AVIRAW = 15,
+  R_IMF_IMTYPE_AVIJPEG = 16,
+  R_IMF_IMTYPE_PNG = 17,
+  // R_IMF_IMTYPE_AVICODEC = 18,  /* DEPRECATED */
+  // R_IMF_IMTYPE_QUICKTIME = 19, /* DEPRECATED */
+  R_IMF_IMTYPE_BMP = 20,
+  R_IMF_IMTYPE_RADHDR = 21,
+  R_IMF_IMTYPE_TIFF = 22,
+  R_IMF_IMTYPE_OPENEXR = 23,
+  R_IMF_IMTYPE_FFMPEG = 24,
+  // R_IMF_IMTYPE_FRAMESERVER = 25, /* DEPRECATED */
+  R_IMF_IMTYPE_CINEON = 26,
+  R_IMF_IMTYPE_DPX = 27,
+  R_IMF_IMTYPE_MULTILAYER = 28,
+  R_IMF_IMTYPE_DDS = 29,
+  R_IMF_IMTYPE_JP2 = 30,
+  R_IMF_IMTYPE_H264 = 31,
+  R_IMF_IMTYPE_XVID = 32,
+  R_IMF_IMTYPE_THEORA = 33,
+  R_IMF_IMTYPE_PSD = 34,
+  R_IMF_IMTYPE_WEBP = 35,
+  R_IMF_IMTYPE_AV1 = 36,
 
-#define R_IMF_IMTYPE_INVALID 255
+  R_IMF_IMTYPE_INVALID = 255,
+};
 
-/** #ImageFormatData.flag */
-#define R_IMF_FLAG_ZBUF (1 << 0)
-#define R_IMF_FLAG_PREVIEW_JPG (1 << 1)
+/** #ImageFormatData::flag */
+enum {
+  // R_IMF_FLAG_ZBUF = 1 << 0, /* DEPRECATED, and cleared. */
+  R_IMF_FLAG_PREVIEW_JPG = 1 << 1,
+};
 
 /*  */
 
 /**
- * #ImageFormatData.depth
+ * #ImageFormatData::depth
  *
  * Return values from #BKE_imtype_valid_depths, note this is depths per channel.
  */
@@ -525,37 +532,48 @@ typedef enum eImageFormatDepth {
   R_IMF_CHAN_DEPTH_32 = (1 << 6),
 } eImageFormatDepth;
 
-/** #ImageFormatData.planes */
-#define R_IMF_PLANES_RGB 24
-#define R_IMF_PLANES_RGBA 32
-#define R_IMF_PLANES_BW 8
+/** #ImageFormatData::planes */
+enum {
+  R_IMF_PLANES_RGB = 24,
+  R_IMF_PLANES_RGBA = 32,
+  R_IMF_PLANES_BW = 8,
+};
 
-/** #ImageFormatData.exr_codec */
-#define R_IMF_EXR_CODEC_NONE 0
-#define R_IMF_EXR_CODEC_PXR24 1
-#define R_IMF_EXR_CODEC_ZIP 2
-#define R_IMF_EXR_CODEC_PIZ 3
-#define R_IMF_EXR_CODEC_RLE 4
-#define R_IMF_EXR_CODEC_ZIPS 5
-#define R_IMF_EXR_CODEC_B44 6
-#define R_IMF_EXR_CODEC_B44A 7
-#define R_IMF_EXR_CODEC_DWAA 8
-#define R_IMF_EXR_CODEC_DWAB 9
-#define R_IMF_EXR_CODEC_MAX 10
+/** #ImageFormatData::exr_codec */
+enum {
+  R_IMF_EXR_CODEC_NONE = 0,
+  R_IMF_EXR_CODEC_PXR24 = 1,
+  R_IMF_EXR_CODEC_ZIP = 2,
+  R_IMF_EXR_CODEC_PIZ = 3,
+  R_IMF_EXR_CODEC_RLE = 4,
+  R_IMF_EXR_CODEC_ZIPS = 5,
+  R_IMF_EXR_CODEC_B44 = 6,
+  R_IMF_EXR_CODEC_B44A = 7,
+  R_IMF_EXR_CODEC_DWAA = 8,
+  R_IMF_EXR_CODEC_DWAB = 9,
+  R_IMF_EXR_CODEC_MAX = 10,
+};
 
-/** #ImageFormatData.jp2_flag */
-#define R_IMF_JP2_FLAG_YCC (1 << 0) /* When disabled use RGB. */ /* Was `R_JPEG2K_YCC`. */
-#define R_IMF_JP2_FLAG_CINE_PRESET (1 << 1)                      /* Was `R_JPEG2K_CINE_PRESET`. */
-#define R_IMF_JP2_FLAG_CINE_48 (1 << 2)                          /* Was `R_JPEG2K_CINE_48FPS`. */
+/** #ImageFormatData::jp2_flag */
+enum {
+  /** When disabled use RGB. */
+  R_IMF_JP2_FLAG_YCC = 1 << 0,         /* Was `R_JPEG2K_YCC`. */
+  R_IMF_JP2_FLAG_CINE_PRESET = 1 << 1, /* Was `R_JPEG2K_CINE_PRESET`. */
+  R_IMF_JP2_FLAG_CINE_48 = 1 << 2,     /* Was `R_JPEG2K_CINE_48FPS`. */
+};
 
-/** #ImageFormatData.jp2_codec */
-#define R_IMF_JP2_CODEC_JP2 0
-#define R_IMF_JP2_CODEC_J2K 1
+/** #ImageFormatData::jp2_codec */
+enum {
+  R_IMF_JP2_CODEC_JP2 = 0,
+  R_IMF_JP2_CODEC_J2K = 1,
+};
 
-/** #ImageFormatData.cineon_flag */
-#define R_IMF_CINEON_FLAG_LOG (1 << 0) /* Was `R_CINEON_LOG`. */
+/** #ImageFormatData::cineon_flag */
+enum {
+  R_IMF_CINEON_FLAG_LOG = 1 << 0, /* Was `R_CINEON_LOG`. */
+};
 
-/** #ImageFormatData.tiff_codec */
+/** #ImageFormatData::tiff_codec */
 enum {
   R_IMF_TIFF_CODEC_DEFLATE = 0,
   R_IMF_TIFF_CODEC_LZW = 1,
@@ -569,9 +587,11 @@ enum {
 /** \name Render Bake
  * \{ */
 
-/** #ImageFormatData.color_management */
-#define R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE 0
-#define R_IMF_COLOR_MANAGEMENT_OVERRIDE 1
+/** #ImageFormatData::color_management */
+enum {
+  R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE = 0,
+  R_IMF_COLOR_MANAGEMENT_OVERRIDE = 1,
+};
 
 typedef struct BakeData {
   struct ImageFormatData im_format;
@@ -598,13 +618,13 @@ typedef struct BakeData {
   struct Object *cage_object;
 } BakeData;
 
-/** #BakeData.margin_type (char). */
+/** #BakeData::margin_type (char). */
 typedef enum eBakeMarginType {
   R_BAKE_ADJACENT_FACES = 0,
   R_BAKE_EXTEND = 1,
 } eBakeMarginType;
 
-/** #BakeData.normal_swizzle (char). */
+/** #BakeData::normal_swizzle (char). */
 typedef enum eBakeNormalSwizzle {
   R_BAKE_POSX = 0,
   R_BAKE_POSY = 1,
@@ -614,25 +634,25 @@ typedef enum eBakeNormalSwizzle {
   R_BAKE_NEGZ = 5,
 } eBakeNormalSwizzle;
 
-/** #BakeData.target (char). */
+/** #BakeData::target (char). */
 typedef enum eBakeTarget {
   R_BAKE_TARGET_IMAGE_TEXTURES = 0,
   R_BAKE_TARGET_VERTEX_COLORS = 1,
 } eBakeTarget;
 
-/** #BakeData.save_mode (char). */
+/** #BakeData::save_mode (char). */
 typedef enum eBakeSaveMode {
   R_BAKE_SAVE_INTERNAL = 0,
   R_BAKE_SAVE_EXTERNAL = 1,
 } eBakeSaveMode;
 
-/** #BakeData.view_from (char). */
+/** #BakeData::view_from (char). */
 typedef enum eBakeViewFrom {
   R_BAKE_VIEW_FROM_ABOVE_SURFACE = 0,
   R_BAKE_VIEW_FROM_ACTIVE_CAMERA = 1,
 } eBakeViewFrom;
 
-/** #BakeData.pass_filter */
+/** #BakeData::pass_filter */
 typedef enum eBakePassFilter {
   R_BAKE_PASS_FILTER_NONE = 0,
   R_BAKE_PASS_FILTER_UNUSED = (1 << 0),
@@ -833,12 +853,12 @@ typedef struct RenderData {
   struct CurveMapping mblur_shutter_curve;
 } RenderData;
 
-/** #RenderData.quality_flag */
+/** #RenderData::quality_flag */
 typedef enum eQualityOption {
   SCE_PERF_HQ_NORMALS = (1 << 0),
 } eQualityOption;
 
-/** #RenderData.hair_type */
+/** #RenderData::hair_type */
 typedef enum eHairType {
   SCE_HAIR_SHAPE_STRAND = 0,
   SCE_HAIR_SHAPE_STRIP = 1,
@@ -866,14 +886,18 @@ typedef struct RenderProfile {
 } RenderProfile;
 
 /* UV Paint. */
-/** #ToolSettings.uv_sculpt_settings */
-#define UV_SCULPT_LOCK_BORDERS 1
-#define UV_SCULPT_ALL_ISLANDS 2
+/** #ToolSettings::uv_sculpt_settings */
+enum {
+  UV_SCULPT_LOCK_BORDERS = 1,
+  UV_SCULPT_ALL_ISLANDS = 2,
+};
 
-/** #ToolSettings.uv_relax_method */
-#define UV_SCULPT_TOOL_RELAX_LAPLACIAN 1
-#define UV_SCULPT_TOOL_RELAX_HC 2
-#define UV_SCULPT_TOOL_RELAX_COTAN 3
+/** #ToolSettings::uv_relax_method */
+enum {
+  UV_SCULPT_TOOL_RELAX_LAPLACIAN = 1,
+  UV_SCULPT_TOOL_RELAX_HC = 2,
+  UV_SCULPT_TOOL_RELAX_COTAN = 3,
+};
 
 /* Stereo Flags. */
 #define STEREO_RIGHT_NAME "right"
@@ -881,7 +905,7 @@ typedef struct RenderProfile {
 #define STEREO_RIGHT_SUFFIX "_R"
 #define STEREO_LEFT_SUFFIX "_L"
 
-/** #View3D.stereo3d_camera / #View3D.multiview_eye / #ImageUser.multiview_eye */
+/** #View3D::stereo3d_camera / #View3D::multiview_eye / #ImageUser::multiview_eye */
 typedef enum eStereoViews {
   STEREO_LEFT_ID = 0,
   STEREO_RIGHT_ID = 1,
@@ -1116,7 +1140,7 @@ typedef struct GpPaint {
   int mode;
 } GpPaint;
 
-/** #GpPaint.flag */
+/** #GpPaint::flag */
 enum {
   GPPAINT_FLAG_USE_MATERIAL = 0,
   GPPAINT_FLAG_USE_VERTEXCOLOR = 1,
@@ -1158,7 +1182,7 @@ typedef struct VPaint {
   int radial_symm[3];
 } VPaint;
 
-/** #VPaint.flag */
+/** #VPaint::flag */
 enum {
   /** Weight paint only. */
   VP_FLAG_VGROUP_RESTRICT = (1 << 7),
@@ -1170,7 +1194,7 @@ enum {
 /** \name Grease-Pencil Stroke Sculpting
  * \{ */
 
-/** #GP_Sculpt_Settings.lock_axis */
+/** #GP_Sculpt_Settings::lock_axis */
 typedef enum eGP_Lockaxis_Types {
   GP_LOCKAXIS_VIEW = 0,
   GP_LOCKAXIS_X = 1,
@@ -1212,7 +1236,7 @@ typedef struct GP_Sculpt_Settings {
   struct GP_Sculpt_Guide guide;
 } GP_Sculpt_Settings;
 
-/** #GP_Sculpt_Settings.flag */
+/** #GP_Sculpt_Settings::flag */
 typedef enum eGP_Sculpt_SettingsFlag {
   /** Enable falloff for multi-frame editing. */
   GP_SCULPT_SETT_FLAG_FRAME_FALLOFF = (1 << 0),
@@ -1232,7 +1256,7 @@ typedef enum eGP_Sculpt_SettingsFlag {
   GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_ACTIVE = (1 << 8),
 } eGP_Sculpt_SettingsFlag;
 
-/** #GP_Sculpt_Settings.gpencil_selectmode_sculpt */
+/** #GP_Sculpt_Settings::gpencil_selectmode_sculpt */
 typedef enum eGP_Sculpt_SelectMaskFlag {
   /** Only affect selected points. */
   GP_SCULPT_MASK_SELECTMODE_POINT = (1 << 0),
@@ -1242,7 +1266,7 @@ typedef enum eGP_Sculpt_SelectMaskFlag {
   GP_SCULPT_MASK_SELECTMODE_SEGMENT = (1 << 2),
 } eGP_Sculpt_SelectMaskFlag;
 
-/** #GP_Sculpt_Settings.gpencil_selectmode_vertex */
+/** #GP_Sculpt_Settings::gpencil_selectmode_vertex */
 typedef enum eGP_vertex_SelectMaskFlag {
   /** Only affect selected points. */
   GP_VERTEX_MASK_SELECTMODE_POINT = (1 << 0),
@@ -1258,7 +1282,7 @@ typedef struct GP_Interpolate_Settings {
   struct CurveMapping *custom_ipo;
 } GP_Interpolate_Settings;
 
-/** #GP_Interpolate_Settings.flag */
+/** #GP_Interpolate_Settings::flag */
 typedef enum eGP_Interpolate_SettingsFlag {
   /** Apply interpolation to all layers. */
   GP_TOOLFLAG_INTERPOLATE_ALL_LAYERS = (1 << 0),
@@ -1268,7 +1292,7 @@ typedef enum eGP_Interpolate_SettingsFlag {
   GP_TOOLFLAG_INTERPOLATE_EXCLUDE_BREAKDOWNS = (1 << 2),
 } eGP_Interpolate_SettingsFlag;
 
-/** #GP_Interpolate_Settings.type */
+/** #GP_Interpolate_Settings::type */
 typedef enum eGP_Interpolate_Type {
   /** Traditional Linear Interpolation. */
   GP_IPO_LINEAR = 0,
@@ -1382,7 +1406,7 @@ typedef struct UnifiedPaintSettings {
   struct ColorSpace *colorspace;
 } UnifiedPaintSettings;
 
-/** #UnifiedPaintSettings.flag */
+/** #UnifiedPaintSettings::flag */
 typedef enum {
   UNIFIED_PAINT_SIZE = (1 << 0),
   UNIFIED_PAINT_ALPHA = (1 << 1),
@@ -1410,7 +1434,7 @@ typedef struct CurvePaintSettings {
   float corner_angle;
 } CurvePaintSettings;
 
-/** #CurvePaintSettings.flag */
+/** #CurvePaintSettings::flag */
 enum {
   CURVE_PAINT_FLAG_CORNERS_DETECT = (1 << 0),
   CURVE_PAINT_FLAG_PRESSURE_RADIUS = (1 << 1),
@@ -1418,19 +1442,19 @@ enum {
   CURVE_PAINT_FLAG_DEPTH_STROKE_OFFSET_ABS = (1 << 3),
 };
 
-/** #CurvePaintSettings.fit_method */
+/** #CurvePaintSettings::fit_method */
 enum {
   CURVE_PAINT_FIT_METHOD_REFIT = 0,
   CURVE_PAINT_FIT_METHOD_SPLIT = 1,
 };
 
-/** #CurvePaintSettings.depth_mode */
+/** #CurvePaintSettings::depth_mode */
 enum {
   CURVE_PAINT_PROJECT_CURSOR = 0,
   CURVE_PAINT_PROJECT_SURFACE = 1,
 };
 
-/** #CurvePaintSettings.surface_plane */
+/** #CurvePaintSettings::surface_plane */
 enum {
   CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW = 0,
   CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE = 1,
@@ -1504,7 +1528,7 @@ typedef enum eSeqImageFitMethod {
 /** \name Tool Settings
  * \{ */
 
-/** #CurvePaintSettings.surface_plane */
+/** #CurvePaintSettings::surface_plane */
 enum {
   AUTO_MERGE = 1 << 0,
   AUTO_MERGE_AND_SPLIT = 1 << 1,
@@ -1697,7 +1721,7 @@ typedef struct ToolSettings {
 
   struct SequencerToolSettings *sequencer_tool_settings;
 
-  short snap_mode_tools; /* If SCE_SNAP_MODE_NONE, use #ToolSettings::snap_mode. #eSnapMode. */
+  short snap_mode_tools; /* If SCE_SNAP_TO_NONE, use #ToolSettings::snap_mode. #eSnapMode. */
   char plane_axis;       /* X, Y or Z. */
   char plane_depth;      /* #eV3DPlaceDepth. */
   char plane_orient;     /* #eV3DPlaceOrient. */
@@ -1784,6 +1808,24 @@ typedef struct SceneDisplay {
   View3DShading shading;
 } SceneDisplay;
 
+/**
+ * Ray-tracing parameters.
+ */
+typedef struct RaytraceEEVEE {
+  /** Higher values will take lower strides and have less blurry intersections. */
+  float screen_trace_quality;
+  /** Thickness in world space each surface will have during screen space tracing. */
+  float screen_trace_thickness;
+  /** Resolution downscale factor. */
+  int resolution_scale;
+  /** Maximum intensity a ray can have. */
+  float sample_clamp;
+  /** #RaytraceEEVEE_Flag. */
+  int flag;
+  /** #RaytraceEEVEE_DenoiseStages. */
+  int denoise_stages;
+} RaytraceEEVEE;
+
 typedef struct SceneEEVEE {
   int flag;
   int gi_diffuse_bounces;
@@ -1792,6 +1834,7 @@ typedef struct SceneEEVEE {
   float gi_irradiance_smoothing;
   float gi_glossy_clamp;
   float gi_filter_quality;
+  int gi_irradiance_pool_size;
 
   float gi_cubemap_draw_size;
   float gi_irradiance_draw_size;
@@ -1843,11 +1886,17 @@ typedef struct SceneEEVEE {
   int shadow_cube_size;
   int shadow_cascade_size;
   int shadow_pool_size;
-  char _pad[4];
+
+  int ray_split_settings;
+  int ray_tracing_method;
+
+  struct RaytraceEEVEE reflection_options;
+  struct RaytraceEEVEE refraction_options;
 
   struct LightCache *light_cache DNA_DEPRECATED;
   struct LightCache *light_cache_data;
-  char light_cache_info[64];
+  /* Need a 128 byte string for some translations of some messages. */
+  char light_cache_info[128];
 
   float overscan;
   float light_threshold;
@@ -1857,6 +1906,11 @@ typedef struct SceneGpencil {
   float smaa_threshold;
   char _pad[4];
 } SceneGpencil;
+
+typedef struct SceneHydra {
+  int export_method;
+  int _pad0;
+} SceneHydra;
 
 /** \} */
 
@@ -1871,7 +1925,7 @@ typedef struct TransformOrientationSlot {
   char _pad0[7];
 } TransformOrientationSlot;
 
-/** Indices when used in #Scene.orientation_slots. */
+/** Indices when used in #Scene::orientation_slots. */
 enum {
   SCE_ORIENT_DEFAULT = 0,
   SCE_ORIENT_TRANSLATE = 1,
@@ -1995,15 +2049,14 @@ typedef struct Scene {
   ListBase view_layers;
   /** Not an actual data-block, but memory owned by scene. */
   struct Collection *master_collection;
-  struct SceneCollection *collection DNA_DEPRECATED;
 
   /** Settings to be override by work-spaces. */
   IDProperty *layer_properties;
-  void *_pad9;
 
   struct SceneDisplay display;
   struct SceneEEVEE eevee;
   struct SceneGpencil grease_pencil_settings;
+  struct SceneHydra hydra;
 } Scene;
 
 /** \} */
@@ -2012,47 +2065,51 @@ typedef struct Scene {
 /** \name Render Data Enum/Flags
  * \{ */
 
-/** #RenderData.flag. */
-/* Use preview range. */
-#define SCER_PRV_RANGE (1 << 0)
-#define SCER_LOCK_FRAME_SELECTION (1 << 1)
-/** Show/use sub-frames (for checking motion blur). */
-#define SCER_SHOW_SUBFRAME (1 << 3)
+/** #RenderData::flag. */
+enum {
+  /** Use preview range. */
+  SCER_PRV_RANGE = 1 << 0,
+  SCER_LOCK_FRAME_SELECTION = 1 << 1,
+  /** Show/use sub-frames (for checking motion blur). */
+  SCER_SHOW_SUBFRAME = 1 << 3,
+};
 
-/** #RenderData.mode. */
-#define R_MODE_UNUSED_0 (1 << 0) /* dirty */
-#define R_MODE_UNUSED_1 (1 << 1) /* cleared */
-#define R_MODE_UNUSED_2 (1 << 2) /* cleared */
-#define R_MODE_UNUSED_3 (1 << 3) /* cleared */
-#define R_MODE_UNUSED_4 (1 << 4) /* cleared */
-#define R_MODE_UNUSED_5 (1 << 5) /* cleared */
-#define R_MODE_UNUSED_6 (1 << 6) /* cleared */
-#define R_MODE_UNUSED_7 (1 << 7) /* cleared */
-#define R_MODE_UNUSED_8 (1 << 8) /* cleared */
-#define R_BORDER (1 << 9)
-#define R_MODE_UNUSED_10 (1 << 10) /* cleared */
-#define R_CROP (1 << 11)
-/* Disable camera switching: runtime (DURIAN_CAMERA_SWITCH) */
-#define R_NO_CAMERA_SWITCH (1 << 12)
-#define R_MODE_UNUSED_13 (1 << 13) /* cleared */
-#define R_MBLUR (1 << 14)
-/* unified was here */
-#define R_MODE_UNUSED_16 (1 << 16) /* cleared */
-#define R_MODE_UNUSED_17 (1 << 17) /* cleared */
-#define R_MODE_UNUSED_18 (1 << 18) /* cleared */
-#define R_MODE_UNUSED_19 (1 << 19) /* cleared */
-#define R_FIXED_THREADS (1 << 19)
+/** #RenderData::mode. */
+enum {
+  R_MODE_UNUSED_0 = 1 << 0, /* dirty */
+  R_MODE_UNUSED_1 = 1 << 1, /* cleared */
+  R_MODE_UNUSED_2 = 1 << 2, /* cleared */
+  R_MODE_UNUSED_3 = 1 << 3, /* cleared */
+  R_MODE_UNUSED_4 = 1 << 4, /* cleared */
+  R_MODE_UNUSED_5 = 1 << 5, /* cleared */
+  R_MODE_UNUSED_6 = 1 << 6, /* cleared */
+  R_MODE_UNUSED_7 = 1 << 7, /* cleared */
+  R_MODE_UNUSED_8 = 1 << 8, /* cleared */
+  R_BORDER = 1 << 9,
+  R_MODE_UNUSED_10 = 1 << 10, /* cleared */
+  R_CROP = 1 << 11,
+  /** Disable camera switching: runtime (DURIAN_CAMERA_SWITCH) */
+  R_NO_CAMERA_SWITCH = 1 << 12,
+  R_MODE_UNUSED_13 = 1 << 13, /* cleared */
+  R_MBLUR = 1 << 14,
+  /* unified was here */
+  R_MODE_UNUSED_16 = 1 << 16, /* cleared */
+  R_MODE_UNUSED_17 = 1 << 17, /* cleared */
+  R_MODE_UNUSED_18 = 1 << 18, /* cleared */
+  R_MODE_UNUSED_19 = 1 << 19, /* cleared */
+  R_FIXED_THREADS = 1 << 19,
 
-#define R_MODE_UNUSED_20 (1 << 20) /* cleared */
-#define R_MODE_UNUSED_21 (1 << 21) /* cleared */
-#define R_NO_OVERWRITE (1 << 22)   /* Skip existing files. */
-#define R_TOUCH (1 << 23)          /* Touch files before rendering. */
-#define R_SIMPLIFY (1 << 24)
-#define R_EDGE_FRS (1 << 25)        /* R_EDGE reserved for Freestyle */
-#define R_PERSISTENT_DATA (1 << 26) /* Keep data around for re-render. */
-#define R_MODE_UNUSED_27 (1 << 27)  /* cleared */
+  R_MODE_UNUSED_20 = 1 << 20, /* cleared */
+  R_MODE_UNUSED_21 = 1 << 21, /* cleared */
+  R_NO_OVERWRITE = 1 << 22,   /* Skip existing files. */
+  R_TOUCH = 1 << 23,          /* Touch files before rendering. */
+  R_SIMPLIFY = 1 << 24,
+  R_EDGE_FRS = 1 << 25,        /* R_EDGE reserved for Freestyle */
+  R_PERSISTENT_DATA = 1 << 26, /* Keep data around for re-render. */
+  R_MODE_UNUSED_27 = 1 << 27,  /* cleared */
+};
 
-/** #RenderData.seq_flag */
+/** #RenderData::seq_flag */
 enum {
   R_SEQ_UNUSED_0 = (1 << 0), /* cleared */
   R_SEQ_UNUSED_1 = (1 << 1), /* cleared */
@@ -2062,73 +2119,80 @@ enum {
   R_SEQ_OVERRIDE_SCENE_SETTINGS = (1 << 5),
 };
 
-/** #RenderData.filtertype (used for nodes) */
-#define R_FILTER_BOX 0
-#define R_FILTER_TENT 1
-#define R_FILTER_QUAD 2
-#define R_FILTER_CUBIC 3
-#define R_FILTER_CATROM 4
-#define R_FILTER_GAUSS 5
-#define R_FILTER_MITCH 6
-#define R_FILTER_FAST_GAUSS 7
+/** #RenderData::filtertype (used for nodes) */
+enum {
+  R_FILTER_BOX = 0,
+  R_FILTER_TENT = 1,
+  R_FILTER_QUAD = 2,
+  R_FILTER_CUBIC = 3,
+  R_FILTER_CATROM = 4,
+  R_FILTER_GAUSS = 5,
+  R_FILTER_MITCH = 6,
+  R_FILTER_FAST_GAUSS = 7,
+};
 
-/** #RenderData.scemode */
-#define R_DOSEQ (1 << 0)
-#define R_BG_RENDER (1 << 1)
-/* Passepartout is camera option now, keep this for backward compatibility. */
-#define R_PASSEPARTOUT (1 << 2)
-#define R_BUTS_PREVIEW (1 << 3)
-#define R_EXTENSION (1 << 4)
-#define R_MATNODE_PREVIEW (1 << 5)
-#define R_DOCOMP (1 << 6)
-#define R_COMP_CROP (1 << 7)
-#define R_SCEMODE_UNUSED_8 (1 << 8) /* cleared */
-#define R_SINGLE_LAYER (1 << 9)
-#define R_SCEMODE_UNUSED_10 (1 << 10) /* cleared */
-#define R_SCEMODE_UNUSED_11 (1 << 11) /* cleared */
-#define R_NO_IMAGE_LOAD (1 << 12)
-#define R_SCEMODE_UNUSED_13 (1 << 13) /* cleared */
-#define R_NO_FRAME_UPDATE (1 << 14)
-#define R_SCEMODE_UNUSED_15 (1 << 15) /* cleared */
-#define R_SCEMODE_UNUSED_16 (1 << 16) /* cleared */
-#define R_SCEMODE_UNUSED_17 (1 << 17) /* cleared */
-#define R_TEXNODE_PREVIEW (1 << 18)
-#define R_SCEMODE_UNUSED_19 (1 << 19) /* cleared */
-#define R_EXR_CACHE_FILE (1 << 20)
-#define R_MULTIVIEW (1 << 21)
+/** #RenderData::scemode */
+enum {
+  R_DOSEQ = 1 << 0,
+  R_BG_RENDER = 1 << 1,
+  /* Passepartout is camera option now, keep this for backward compatibility. */
+  R_PASSEPARTOUT = 1 << 2,
+  R_BUTS_PREVIEW = 1 << 3,
+  R_EXTENSION = 1 << 4,
+  R_MATNODE_PREVIEW = 1 << 5,
+  R_DOCOMP = 1 << 6,
+  R_COMP_CROP = 1 << 7,
+  R_SCEMODE_UNUSED_8 = 1 << 8, /* cleared */
+  R_SINGLE_LAYER = 1 << 9,
+  R_SCEMODE_UNUSED_10 = 1 << 10, /* cleared */
+  R_SCEMODE_UNUSED_11 = 1 << 11, /* cleared */
+  R_NO_IMAGE_LOAD = 1 << 12,
+  R_SCEMODE_UNUSED_13 = 1 << 13, /* cleared */
+  R_NO_FRAME_UPDATE = 1 << 14,
+  R_SCEMODE_UNUSED_15 = 1 << 15, /* cleared */
+  R_SCEMODE_UNUSED_16 = 1 << 16, /* cleared */
+  R_SCEMODE_UNUSED_17 = 1 << 17, /* cleared */
+  R_TEXNODE_PREVIEW = 1 << 18,
+  R_SCEMODE_UNUSED_19 = 1 << 19, /* cleared */
+  R_EXR_CACHE_FILE = 1 << 20,
+  R_MULTIVIEW = 1 << 21,
+};
 
-/** #RenderData.stamp */
-#define R_STAMP_TIME (1 << 0)
-#define R_STAMP_FRAME (1 << 1)
-#define R_STAMP_DATE (1 << 2)
-#define R_STAMP_CAMERA (1 << 3)
-#define R_STAMP_SCENE (1 << 4)
-#define R_STAMP_NOTE (1 << 5)
-/** Draw in the image space. */
-#define R_STAMP_DRAW (1 << 6)
-#define R_STAMP_MARKER (1 << 7)
-#define R_STAMP_FILENAME (1 << 8)
-#define R_STAMP_SEQSTRIP (1 << 9)
-#define R_STAMP_RENDERTIME (1 << 10)
-#define R_STAMP_CAMERALENS (1 << 11)
-#define R_STAMP_STRIPMETA (1 << 12)
-#define R_STAMP_MEMORY (1 << 13)
-#define R_STAMP_HIDE_LABELS (1 << 14)
-#define R_STAMP_FRAME_RANGE (1 << 15)
-#define R_STAMP_HOSTNAME (1 << 16)
+/** #RenderData::stamp */
+enum {
+  R_STAMP_TIME = 1 << 0,
+  R_STAMP_FRAME = 1 << 1,
+  R_STAMP_DATE = 1 << 2,
+  R_STAMP_CAMERA = 1 << 3,
+  R_STAMP_SCENE = 1 << 4,
+  R_STAMP_NOTE = 1 << 5,
+  /** Draw in the image space. */
+  R_STAMP_DRAW = 1 << 6,
+  R_STAMP_MARKER = 1 << 7,
+  R_STAMP_FILENAME = 1 << 8,
+  R_STAMP_SEQSTRIP = 1 << 9,
+  R_STAMP_RENDERTIME = 1 << 10,
+  R_STAMP_CAMERALENS = 1 << 11,
+  R_STAMP_STRIPMETA = 1 << 12,
+  R_STAMP_MEMORY = 1 << 13,
+  R_STAMP_HIDE_LABELS = 1 << 14,
+  R_STAMP_FRAME_RANGE = 1 << 15,
+  R_STAMP_HOSTNAME = 1 << 16,
+};
+
 #define R_STAMP_ALL \
   (R_STAMP_TIME | R_STAMP_FRAME | R_STAMP_DATE | R_STAMP_CAMERA | R_STAMP_SCENE | R_STAMP_NOTE | \
    R_STAMP_MARKER | R_STAMP_FILENAME | R_STAMP_SEQSTRIP | R_STAMP_RENDERTIME | \
    R_STAMP_CAMERALENS | R_STAMP_MEMORY | R_STAMP_HIDE_LABELS | R_STAMP_FRAME_RANGE | \
    R_STAMP_HOSTNAME)
 
-/** #RenderData.alphamode */
+/** #RenderData::alphamode */
 enum {
   R_ADDSKY = 0,
   R_ALPHAPREMUL = 1,
 };
 
-/** #RenderData.color_mgt_flag */
+/** #RenderData::color_mgt_flag */
 enum {
   /** Deprecated, should only be used in versioning code only. */
   R_COLOR_MANAGEMENT = (1 << 0),
@@ -2136,32 +2200,38 @@ enum {
 };
 
 /* bake_mode: same as RE_BAKE_xxx defines. */
-/** #RenderData.bake_flag */
-#define R_BAKE_CLEAR (1 << 0)
-/* #define R_BAKE_OSA       (1 << 1) */ /* deprecated */
-#define R_BAKE_TO_ACTIVE (1 << 2)
-/* #define R_BAKE_NORMALIZE (1 << 3) */ /* deprecated */
-#define R_BAKE_MULTIRES (1 << 4)
-#define R_BAKE_LORES_MESH (1 << 5)
-/* #define R_BAKE_VCOL      (1 << 6) */ /* deprecated */
-#define R_BAKE_USERSCALE (1 << 7)
-#define R_BAKE_CAGE (1 << 8)
-#define R_BAKE_SPLIT_MAT (1 << 9)
-#define R_BAKE_AUTO_NAME (1 << 10)
+/** #RenderData::bake_flag */
+enum {
+  R_BAKE_CLEAR = 1 << 0,
+  // R_BAKE_OSA = 1 << 1, /* Deprecated. */
+  R_BAKE_TO_ACTIVE = 1 << 2,
+  // R_BAKE_NORMALIZE = 1 << 3, /* Deprecated. */
+  R_BAKE_MULTIRES = 1 << 4,
+  R_BAKE_LORES_MESH = 1 << 5,
+  // R_BAKE_VCOL = 1 << 6, /* Deprecated. */
+  R_BAKE_USERSCALE = 1 << 7,
+  R_BAKE_CAGE = 1 << 8,
+  R_BAKE_SPLIT_MAT = 1 << 9,
+  R_BAKE_AUTO_NAME = 1 << 10,
+};
 
-/** #RenderData.bake_normal_space */
-#define R_BAKE_SPACE_CAMERA 0
-#define R_BAKE_SPACE_WORLD 1
-#define R_BAKE_SPACE_OBJECT 2
-#define R_BAKE_SPACE_TANGENT 3
+/** #RenderData::bake_normal_space */
+enum {
+  R_BAKE_SPACE_CAMERA = 0,
+  R_BAKE_SPACE_WORLD = 1,
+  R_BAKE_SPACE_OBJECT = 2,
+  R_BAKE_SPACE_TANGENT = 3,
+};
 
-/** #RenderData.line_thickness_mode */
-#define R_LINE_THICKNESS_ABSOLUTE 1
-#define R_LINE_THICKNESS_RELATIVE 2
+/** #RenderData::line_thickness_mode */
+enum {
+  R_LINE_THICKNESS_ABSOLUTE = 1,
+  R_LINE_THICKNESS_RELATIVE = 2,
+};
 
 /* Sequencer seq_prev_type seq_rend_type. */
 
-/** #RenderData.engine (scene.cc) */
+/** #RenderData::engine (scene.cc) */
 extern const char *RE_engine_id_BLENDER_EEVEE;
 extern const char *RE_engine_id_BLENDER_WORKBENCH;
 extern const char *RE_engine_id_BLENDER_WORKBENCH_NEXT;
@@ -2231,31 +2301,30 @@ extern const char *RE_engine_id_CYCLES;
 
 /* Base.flag is in `DNA_object_types.h`. */
 
-/** #ToolSettings.transform_flag */
+/** #ToolSettings::transform_flag */
 enum {
   SCE_XFORM_AXIS_ALIGN = (1 << 0),
   SCE_XFORM_DATA_ORIGIN = (1 << 1),
   SCE_XFORM_SKIP_CHILDREN = (1 << 2),
 };
 
-/** #ToolSettings.object_flag */
+/** #ToolSettings::object_flag */
 enum {
   SCE_OBJECT_MODE_LOCK = (1 << 0),
 };
 
-/** #ToolSettings.workspace_tool_flag */
+/** #ToolSettings::workspace_tool_flag */
 enum {
   SCE_WORKSPACE_TOOL_FALLBACK = 0,
   SCE_WORKSPACE_TOOL_DEFAULT = 1,
 };
 
-/** #ToolSettings.snap_flag */
+/** #ToolSettings::snap_flag */
 typedef enum eSnapFlag {
   SCE_SNAP = (1 << 0),
   SCE_SNAP_ROTATE = (1 << 1),
   SCE_SNAP_PEEL_OBJECT = (1 << 2),
-  /** Project individual elements instead of whole object. */
-  SCE_SNAP_PROJECT = (1 << 3),
+  // SCE_SNAP_PROJECT = (1 << 3), /* DEPRECATED, see #SCE_SNAP_INDIVIDUAL_PROJECT. */
   /** Was `SCE_SNAP_NO_SELF`, but self should be active. */
   SCE_SNAP_NOT_TO_ACTIVE = (1 << 4),
   SCE_SNAP_ABS_GRID = (1 << 5),
@@ -2266,13 +2335,10 @@ typedef enum eSnapFlag {
   SCE_SNAP_TO_INCLUDE_NONEDITED = (1 << 9),
   SCE_SNAP_TO_ONLY_SELECTABLE = (1 << 10),
 } eSnapFlag;
-/* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
-/* TODO: move this macro to a more general place. */
-#ifdef ENUM_OPERATORS
-ENUM_OPERATORS(eSnapFlag, SCE_SNAP_BACKFACE_CULLING)
-#endif
 
-/** See #ToolSettings.snap_target (to be renamed `snap_source`) and #TransSnap.source_operation */
+ENUM_OPERATORS(eSnapFlag, SCE_SNAP_TO_ONLY_SELECTABLE)
+
+/** See #ToolSettings::snap_target (to be renamed `snap_source`) and #TransSnap.source_operation */
 typedef enum eSnapSourceOP {
   SCE_SNAP_SOURCE_CLOSEST = 0,
   SCE_SNAP_SOURCE_CENTER = 1,
@@ -2283,7 +2349,7 @@ typedef enum eSnapSourceOP {
 ENUM_OPERATORS(eSnapSourceOP, SCE_SNAP_SOURCE_ACTIVE)
 
 /**
- * #TransSnap.target_operation and #ToolSettings.snap_flag
+ * #TransSnap::target_operation and #ToolSettings::snap_flag
  * (#SCE_SNAP_NOT_TO_ACTIVE, #SCE_SNAP_TO_INCLUDE_EDITED, #SCE_SNAP_TO_INCLUDE_NONEDITED,
  * #SCE_SNAP_TO_ONLY_SELECTABLE).
  */
@@ -2297,88 +2363,108 @@ typedef enum eSnapTargetOP {
 } eSnapTargetOP;
 ENUM_OPERATORS(eSnapTargetOP, SCE_SNAP_TARGET_NOT_NONEDITED)
 
-/** #ToolSettings.snap_mode */
+/** #ToolSettings::snap_mode */
 typedef enum eSnapMode {
-  SCE_SNAP_MODE_NONE = 0,
-  SCE_SNAP_MODE_VERTEX = (1 << 0),
-  SCE_SNAP_MODE_EDGE = (1 << 1),
-  SCE_SNAP_MODE_FACE_RAYCAST = (1 << 2),
-  SCE_SNAP_MODE_VOLUME = (1 << 3),
-  SCE_SNAP_MODE_EDGE_MIDPOINT = (1 << 4),
-  SCE_SNAP_MODE_EDGE_PERPENDICULAR = (1 << 5),
-  SCE_SNAP_MODE_FACE_NEAREST = (1 << 8),
+  SCE_SNAP_TO_NONE = 0,
 
-  /** #ToolSettings.snap_node_mode */
-  SCE_SNAP_MODE_NODE_X = (1 << 0),
-  SCE_SNAP_MODE_NODE_Y = (1 << 1),
+  /** #ToolSettings::snap_node_mode */
+  SCE_SNAP_TO_NODE_X = (1 << 0),
+  SCE_SNAP_TO_NODE_Y = (1 << 1),
 
-  /** #ToolSettings.snap_mode and #ToolSettings.snap_node_mode and #ToolSettings.snap_uv_mode */
-  SCE_SNAP_MODE_INCREMENT = (1 << 6),
-  SCE_SNAP_MODE_GRID = (1 << 7),
+  /** #ToolSettings::snap_mode and #ToolSettings::snap_node_mode and #ToolSettings.snap_uv_mode */
+  SCE_SNAP_TO_POINT = (1 << 0),
+  /* Even with the same value, there is a distinction between point and endpoint in the snap code.
+   * Therefore, use different enums for better code readability. */
+  SCE_SNAP_TO_EDGE_ENDPOINT = (1 << 0),
+  SCE_SNAP_TO_EDGE = (1 << 1),
+  SCE_SNAP_TO_FACE = (1 << 2),
+  SCE_SNAP_TO_VOLUME = (1 << 3),
+  SCE_SNAP_TO_EDGE_MIDPOINT = (1 << 4),
+  SCE_SNAP_TO_EDGE_PERPENDICULAR = (1 << 5),
+  SCE_SNAP_TO_INCREMENT = (1 << 6),
+  SCE_SNAP_TO_GRID = (1 << 7),
+
+  /** For snap individual elements. */
+  SCE_SNAP_INDIVIDUAL_NEAREST = (1 << 8),
+  SCE_SNAP_INDIVIDUAL_PROJECT = (1 << 9),
 } eSnapMode;
 /* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
 /* TODO: move this macro to a more general place. */
 #ifdef ENUM_OPERATORS
-ENUM_OPERATORS(eSnapMode, SCE_SNAP_MODE_FACE_NEAREST)
+ENUM_OPERATORS(eSnapMode, SCE_SNAP_INDIVIDUAL_PROJECT)
 #endif
 
-#define SCE_SNAP_MODE_GEOM \
-  (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST | \
-   SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_FACE_NEAREST)
+#define SCE_SNAP_TO_VERTEX (SCE_SNAP_TO_POINT | SCE_SNAP_TO_EDGE_ENDPOINT)
 
-/** #SequencerToolSettings.snap_mode */
-#define SEQ_SNAP_TO_STRIPS (1 << 0)
-#define SEQ_SNAP_TO_CURRENT_FRAME (1 << 1)
-#define SEQ_SNAP_TO_STRIP_HOLD (1 << 2)
+#define SCE_SNAP_TO_GEOM \
+  (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE | SCE_SNAP_TO_FACE | SCE_SNAP_TO_EDGE_PERPENDICULAR | \
+   SCE_SNAP_TO_EDGE_MIDPOINT)
 
-/** #SequencerToolSettings.snap_flag */
-#define SEQ_SNAP_IGNORE_MUTED (1 << 0)
-#define SEQ_SNAP_IGNORE_SOUND (1 << 1)
-#define SEQ_SNAP_CURRENT_FRAME_TO_STRIPS (1 << 2)
+/** #SequencerToolSettings::snap_mode */
+enum {
+  SEQ_SNAP_TO_STRIPS = 1 << 0,
+  SEQ_SNAP_TO_CURRENT_FRAME = 1 << 1,
+  SEQ_SNAP_TO_STRIP_HOLD = 1 << 2,
+};
 
-/** #ToolSettings.snap_transform_mode_flag */
+/** #SequencerToolSettings::snap_flag */
+enum {
+  SEQ_SNAP_IGNORE_MUTED = 1 << 0,
+  SEQ_SNAP_IGNORE_SOUND = 1 << 1,
+  SEQ_SNAP_CURRENT_FRAME_TO_STRIPS = 1 << 2,
+};
+
+/** #ToolSettings::snap_transform_mode_flag */
 typedef enum eSnapTransformMode {
   SCE_SNAP_TRANSFORM_MODE_TRANSLATE = (1 << 0),
   SCE_SNAP_TRANSFORM_MODE_ROTATE = (1 << 1),
   SCE_SNAP_TRANSFORM_MODE_SCALE = (1 << 2),
 } eSnapTransformMode;
 
-/** #ToolSettings.selectmode */
-#define SCE_SELECT_VERTEX (1 << 0) /* for mesh */
-#define SCE_SELECT_EDGE (1 << 1)
-#define SCE_SELECT_FACE (1 << 2)
+/** #ToolSettings::selectmode */
+enum {
+  SCE_SELECT_VERTEX = 1 << 0, /* for mesh */
+  SCE_SELECT_EDGE = 1 << 1,
+  SCE_SELECT_FACE = 1 << 2,
+};
 
-/** #MeshStatVis.type */
-#define SCE_STATVIS_OVERHANG 0
-#define SCE_STATVIS_THICKNESS 1
-#define SCE_STATVIS_INTERSECT 2
-#define SCE_STATVIS_DISTORT 3
-#define SCE_STATVIS_SHARP 4
+/** #MeshStatVis::type */
+enum {
+  SCE_STATVIS_OVERHANG = 0,
+  SCE_STATVIS_THICKNESS = 1,
+  SCE_STATVIS_INTERSECT = 2,
+  SCE_STATVIS_DISTORT = 3,
+  SCE_STATVIS_SHARP = 4,
+};
 
-/** #ParticleEditSettings.selectmode for particles */
-#define SCE_SELECT_PATH (1 << 0)
-#define SCE_SELECT_POINT (1 << 1)
-#define SCE_SELECT_END (1 << 2)
+/** #ParticleEditSettings::selectmode for particles */
+enum {
+  SCE_SELECT_PATH = 1 << 0,
+  SCE_SELECT_POINT = 1 << 1,
+  SCE_SELECT_END = 1 << 2,
+};
 
-/** #ToolSettings.prop_mode (proportional falloff) */
-#define PROP_SMOOTH 0
-#define PROP_SPHERE 1
-#define PROP_ROOT 2
-#define PROP_SHARP 3
-#define PROP_LIN 4
-#define PROP_CONST 5
-#define PROP_RANDOM 6
-#define PROP_INVSQUARE 7
-#define PROP_MODE_MAX 8
+/** #ToolSettings::prop_mode (proportional falloff) */
+enum {
+  PROP_SMOOTH = 0,
+  PROP_SPHERE = 1,
+  PROP_ROOT = 2,
+  PROP_SHARP = 3,
+  PROP_LIN = 4,
+  PROP_CONST = 5,
+  PROP_RANDOM = 6,
+  PROP_INVSQUARE = 7,
+  PROP_MODE_MAX = 8,
+};
 
-/** #ToolSettings.proportional_edit & similarly named members. */
+/** #ToolSettings::proportional_edit & similarly named members. */
 enum {
   PROP_EDIT_USE = (1 << 0),
   PROP_EDIT_CONNECTED = (1 << 1),
   PROP_EDIT_PROJECTED = (1 << 2),
 };
 
-/** #ToolSettings.weightuser */
+/** #ToolSettings::weightuser */
 enum {
   OB_DRAW_GROUPUSER_NONE = 0,
   OB_DRAW_GROUPUSER_ACTIVE = 1,
@@ -2391,27 +2477,33 @@ enum {
   ((1 << WT_VGROUP_ACTIVE) | (1 << WT_VGROUP_BONE_SELECT) | (1 << WT_VGROUP_BONE_DEFORM) | \
    (1 << WT_VGROUP_BONE_DEFORM_OFF) | (1 << WT_VGROUP_ALL))
 
-/** #Scene.flag */
-#define SCE_DS_SELECTED (1 << 0)
-#define SCE_DS_COLLAPSED (1 << 1)
-#define SCE_NLA_EDIT_ON (1 << 2)
-#define SCE_FRAME_DROP (1 << 3)
-#define SCE_KEYS_NO_SELONLY (1 << 4)
-#define SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK (1 << 5)
+/** #Scene::flag */
+enum {
+  SCE_DS_SELECTED = 1 << 0,
+  SCE_DS_COLLAPSED = 1 << 1,
+  SCE_NLA_EDIT_ON = 1 << 2,
+  SCE_FRAME_DROP = 1 << 3,
+  SCE_KEYS_NO_SELONLY = 1 << 4,
+  SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK = 1 << 5,
+};
 
 /* Return flag BKE_scene_base_iter_next functions. */
-/* #define F_ERROR          -1 */ /* UNUSED */
-#define F_START 0
-#define F_SCENE 1
-#define F_DUPLI 3
+enum {
+  // F_ERROR = -1, /* UNUSED. */
+  F_START = 0,
+  F_SCENE = 1,
+  F_DUPLI = 3,
+};
 
-/** #AudioData.flag */
-#define AUDIO_MUTE (1 << 0)
-#define AUDIO_SYNC (1 << 1)
-#define AUDIO_SCRUB (1 << 2)
-#define AUDIO_VOLUME_ANIMATED (1 << 3)
+/** #AudioData::flag */
+enum {
+  AUDIO_MUTE = 1 << 0,
+  AUDIO_SYNC = 1 << 1,
+  AUDIO_SCRUB = 1 << 2,
+  AUDIO_VOLUME_ANIMATED = 1 << 3,
+};
 
-/** #FFMpegCodecData.flags */
+/** #FFMpegCodecData::flags */
 enum {
 #ifdef DNA_DEPRECATED_ALLOW
   /* DEPRECATED: you can choose none as audio-codec now. */
@@ -2422,7 +2514,7 @@ enum {
   FFMPEG_USE_MAX_B_FRAMES = (1 << 3),
 };
 
-/** #Paint.flags */
+/** #Paint::flags */
 typedef enum ePaintFlags {
   PAINT_SHOW_BRUSH = (1 << 0),
   PAINT_FAST_NAVIGATE = (1 << 1),
@@ -2432,7 +2524,7 @@ typedef enum ePaintFlags {
 } ePaintFlags;
 
 /**
- * #Paint.symmetry_flags
+ * #Paint::symmetry_flags
  * (for now just a duplicate of sculpt symmetry flags).
  */
 typedef enum ePaintSymmetryFlags {
@@ -2446,6 +2538,8 @@ typedef enum ePaintSymmetryFlags {
   PAINT_TILE_Z = (1 << 6),
 } ePaintSymmetryFlags;
 ENUM_OPERATORS(ePaintSymmetryFlags, PAINT_TILE_Z);
+#define PAINT_SYMM_AXIS_ALL (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)
+
 #ifdef __cplusplus
 inline ePaintSymmetryFlags operator++(ePaintSymmetryFlags &flags, int)
 {
@@ -2454,10 +2548,8 @@ inline ePaintSymmetryFlags operator++(ePaintSymmetryFlags &flags, int)
 }
 #endif
 
-#define PAINT_SYMM_AXIS_ALL (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)
-
 /**
- * #Sculpt.flags
+ * #Sculpt::flags
  * These can eventually be moved to paint flags?
  */
 typedef enum eSculptFlags {
@@ -2476,7 +2568,7 @@ typedef enum eSculptFlags {
   // SCULPT_SHOW_DIFFUSE = (1 << 9), /* deprecated */
 
   /** If set, the mesh will be drawn with smooth-shading in dynamic-topology mode. */
-  SCULPT_DYNTOPO_SMOOTH_SHADING = (1 << 10),
+  SCULPT_FLAG_UNUSED_8 = (1 << 10), /* deprecated */
 
   /** If set, dynamic-topology brushes will subdivide short edges. */
   SCULPT_DYNTOPO_SUBDIVIDE = (1 << 12),
@@ -2490,13 +2582,13 @@ typedef enum eSculptFlags {
   SCULPT_DYNTOPO_DETAIL_MANUAL = (1 << 16),
 } eSculptFlags;
 
-/** #Sculpt.transform_mode */
+/** #Sculpt::transform_mode */
 typedef enum eSculptTransformMode {
   SCULPT_TRANSFORM_MODE_ALL_VERTICES = 0,
   SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC = 1,
 } eSculptTrasnformMode;
 
-/** #PaintModeSettings.mode */
+/** #PaintModeSettings::mode */
 typedef enum ePaintCanvasSource {
   /** Paint on the active node of the active material slot. */
   PAINT_CANVAS_SOURCE_MATERIAL = 0,
@@ -2506,69 +2598,81 @@ typedef enum ePaintCanvasSource {
   PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE = 2,
 } ePaintCanvasSource;
 
-/** #ImagePaintSettings.mode */
+/** #ImagePaintSettings::mode */
 /* Defines to let old texture painting use the new enum. */
 /* TODO(jbakker): rename usages. */
 #define IMAGEPAINT_MODE_MATERIAL PAINT_CANVAS_SOURCE_MATERIAL
 #define IMAGEPAINT_MODE_IMAGE PAINT_CANVAS_SOURCE_IMAGE
 
-/** #ImagePaintSettings.interp */
+/** #ImagePaintSettings::interp */
 enum {
   IMAGEPAINT_INTERP_LINEAR = 0,
   IMAGEPAINT_INTERP_CLOSEST = 1,
 };
 
-/** #ImagePaintSettings.flag */
-#define IMAGEPAINT_DRAWING (1 << 0)
-// #define IMAGEPAINT_DRAW_TOOL         (1 << 1) /* deprecated */
-// #define IMAGEPAINT_DRAW_TOOL_DRAWING (1 << 2) /* deprecated */
+/** #ImagePaintSettings::flag */
+enum {
+  IMAGEPAINT_DRAWING = 1 << 0,
+  // IMAGEPAINT_DRAW_TOOL = 1 << 1,         /* Deprecated. */
+  // IMAGEPAINT_DRAW_TOOL_DRAWING = 1 << 2, /* Deprecated. */
+};
 
 /* Projection painting only. */
-/** #ImagePaintSettings.flag */
-#define IMAGEPAINT_PROJECT_XRAY (1 << 4)
-#define IMAGEPAINT_PROJECT_BACKFACE (1 << 5)
-#define IMAGEPAINT_PROJECT_FLAT (1 << 6)
-#define IMAGEPAINT_PROJECT_LAYER_CLONE (1 << 7)
-#define IMAGEPAINT_PROJECT_LAYER_STENCIL (1 << 8)
-#define IMAGEPAINT_PROJECT_LAYER_STENCIL_INV (1 << 9)
+/** #ImagePaintSettings::flag */
+enum {
+  IMAGEPAINT_PROJECT_XRAY = 1 << 4,
+  IMAGEPAINT_PROJECT_BACKFACE = 1 << 5,
+  IMAGEPAINT_PROJECT_FLAT = 1 << 6,
+  IMAGEPAINT_PROJECT_LAYER_CLONE = 1 << 7,
+  IMAGEPAINT_PROJECT_LAYER_STENCIL = 1 << 8,
+  IMAGEPAINT_PROJECT_LAYER_STENCIL_INV = 1 << 9,
+};
 
-/** #ImagePaintSettings.missing_data */
-#define IMAGEPAINT_MISSING_UVS (1 << 0)
-#define IMAGEPAINT_MISSING_MATERIAL (1 << 1)
-#define IMAGEPAINT_MISSING_TEX (1 << 2)
-#define IMAGEPAINT_MISSING_STENCIL (1 << 3)
+/** #ImagePaintSettings::missing_data */
+enum {
+  IMAGEPAINT_MISSING_UVS = 1 << 0,
+  IMAGEPAINT_MISSING_MATERIAL = 1 << 1,
+  IMAGEPAINT_MISSING_TEX = 1 << 2,
+  IMAGEPAINT_MISSING_STENCIL = 1 << 3,
+};
 
-/** #ToolSettings.uvcalc_flag */
-#define UVCALC_FILLHOLES (1 << 0)
-/** Would call this UVCALC_ASPECT_CORRECT, except it should be default with old file. */
-#define UVCALC_NO_ASPECT_CORRECT (1 << 1)
-/** Adjust UVs while transforming with Vert or Edge Slide. */
-#define UVCALC_TRANSFORM_CORRECT_SLIDE (1 << 2)
-/** Use mesh data after subsurf to compute UVs. */
-#define UVCALC_USESUBSURF (1 << 3)
-/** Adjust UVs while transforming to avoid distortion */
-#define UVCALC_TRANSFORM_CORRECT (1 << 4)
-/** Keep equal values merged while correcting custom-data. */
-#define UVCALC_TRANSFORM_CORRECT_KEEP_CONNECTED (1 << 5)
+/** #ToolSettings::uvcalc_flag */
+enum {
+  UVCALC_FILLHOLES = 1 << 0,
+  /** Would call this UVCALC_ASPECT_CORRECT, except it should be default with old file. */
+  UVCALC_NO_ASPECT_CORRECT = 1 << 1,
+  /** Adjust UVs while transforming with Vert or Edge Slide. */
+  UVCALC_TRANSFORM_CORRECT_SLIDE = 1 << 2,
+  /** Use mesh data after subsurf to compute UVs. */
+  UVCALC_USESUBSURF = 1 << 3,
+  /** Adjust UVs while transforming to avoid distortion */
+  UVCALC_TRANSFORM_CORRECT = 1 << 4,
+  /** Keep equal values merged while correcting custom-data. */
+  UVCALC_TRANSFORM_CORRECT_KEEP_CONNECTED = 1 << 5,
+};
 
-/** #ToolSettings.uv_flag */
-#define UV_SYNC_SELECTION 1
-#define UV_SHOW_SAME_IMAGE 2
+/** #ToolSettings::uv_flag */
+enum {
+  UV_SYNC_SELECTION = 1,
+  UV_SHOW_SAME_IMAGE = 2,
+};
 
-/** #ToolSettings.uv_selectmode */
-#define UV_SELECT_VERTEX 1
-#define UV_SELECT_EDGE 2
-#define UV_SELECT_FACE 4
-#define UV_SELECT_ISLAND 8
+/** #ToolSettings::uv_selectmode */
+enum {
+  UV_SELECT_VERTEX = 1 << 0,
+  UV_SELECT_EDGE = 1 << 1,
+  UV_SELECT_FACE = 1 << 2,
+  UV_SELECT_ISLAND = 1 << 3,
+};
 
-/** #ToolSettings.uv_sticky */
+/** #ToolSettings::uv_sticky */
 enum {
   SI_STICKY_LOC = 0,
   SI_STICKY_DISABLE = 1,
   SI_STICKY_VERTEX = 2,
 };
 
-/** #ToolSettings.gpencil_flags */
+/** #ToolSettings::gpencil_flags */
 typedef enum eGPencil_Flags {
   /** When creating new frames, the last frame gets used as the basis for the new one. */
   GP_TOOL_FLAG_RETAIN_LAST = (1 << 1),
@@ -2582,7 +2686,7 @@ typedef enum eGPencil_Flags {
   GP_TOOL_FLAG_AUTOMERGE_STROKE = (1 << 5),
 } eGPencil_Flags;
 
-/** #Scene.r.simplify_gpencil */
+/** #Scene::r.simplify_gpencil */
 typedef enum eGPencil_SimplifyFlags {
   /** Simplify. */
   SIMPLIFY_GPENCIL_ENABLE = (1 << 0),
@@ -2618,14 +2722,14 @@ typedef enum eGPencil_Placement_Flags {
   GP_PROJECT_DEPTH_STROKE_FIRST = (1 << 6),
 } eGPencil_Placement_Flags;
 
-/** #ToolSettings.gpencil_selectmode */
+/** #ToolSettings::gpencil_selectmode */
 typedef enum eGPencil_Selectmode_types {
   GP_SELECTMODE_POINT = 0,
   GP_SELECTMODE_STROKE = 1,
   GP_SELECTMODE_SEGMENT = 2,
 } eGPencil_Selectmode_types;
 
-/** #ToolSettings.gpencil_guide_types */
+/** #ToolSettings::gpencil_guide_types */
 typedef enum eGPencil_GuideTypes {
   GP_GUIDE_CIRCULAR = 0,
   GP_GUIDE_RADIAL = 1,
@@ -2634,56 +2738,70 @@ typedef enum eGPencil_GuideTypes {
   GP_GUIDE_ISO = 4,
 } eGPencil_GuideTypes;
 
-/** #ToolSettings.gpencil_guide_references */
+/** #ToolSettings::gpencil_guide_references */
 typedef enum eGPencil_Guide_Reference {
   GP_GUIDE_REF_CURSOR = 0,
   GP_GUIDE_REF_CUSTOM = 1,
   GP_GUIDE_REF_OBJECT = 2,
 } eGPencil_Guide_Reference;
 
-/** #ToolSettings.particle flag */
-#define PE_KEEP_LENGTHS (1 << 0)
-#define PE_LOCK_FIRST (1 << 1)
-#define PE_DEFLECT_EMITTER (1 << 2)
-#define PE_INTERPOLATE_ADDED (1 << 3)
-#define PE_DRAW_PART (1 << 4)
-#define PE_UNUSED_6 (1 << 6) /* cleared */
-#define PE_FADE_TIME (1 << 7)
-#define PE_AUTO_VELOCITY (1 << 8)
+/** #ToolSettings::particle flag */
+enum {
+  PE_KEEP_LENGTHS = 1 << 0,
+  PE_LOCK_FIRST = 1 << 1,
+  PE_DEFLECT_EMITTER = 1 << 2,
+  PE_INTERPOLATE_ADDED = 1 << 3,
+  PE_DRAW_PART = 1 << 4,
+  PE_UNUSED_6 = 1 << 6, /* cleared */
+  PE_FADE_TIME = 1 << 7,
+  PE_AUTO_VELOCITY = 1 << 8,
+};
 
-/** #ParticleEditSettings.brushtype */
-#define PE_BRUSH_NONE -1
-#define PE_BRUSH_COMB 0
-#define PE_BRUSH_CUT 1
-#define PE_BRUSH_LENGTH 2
-#define PE_BRUSH_PUFF 3
-#define PE_BRUSH_ADD 4
-#define PE_BRUSH_SMOOTH 5
-#define PE_BRUSH_WEIGHT 6
+/** #ParticleEditSettings::brushtype */
+enum {
+  PE_BRUSH_NONE = -1,
+  PE_BRUSH_COMB = 0,
+  PE_BRUSH_CUT = 1,
+  PE_BRUSH_LENGTH = 2,
+  PE_BRUSH_PUFF = 3,
+  PE_BRUSH_ADD = 4,
+  PE_BRUSH_SMOOTH = 5,
+  PE_BRUSH_WEIGHT = 6,
+};
 
-/** #ParticleBrushData.flag */
-#define PE_BRUSH_DATA_PUFF_VOLUME 1
+/** #ParticleBrushData::flag */
+enum {
+  PE_BRUSH_DATA_PUFF_VOLUME = 1 << 0,
+};
 
-/** #ParticleBrushData.edittype */
-#define PE_TYPE_PARTICLES 0
-#define PE_TYPE_SOFTBODY 1
-#define PE_TYPE_CLOTH 2
+/** #ParticleBrushData::edittype */
+enum {
+  PE_TYPE_PARTICLES = 0,
+  PE_TYPE_SOFTBODY = 1,
+  PE_TYPE_CLOTH = 2,
+};
 
-/** #PhysicsSettings.flag */
-#define PHYS_GLOBAL_GRAVITY 1
+/** #PhysicsSettings::flag */
+enum {
+  PHYS_GLOBAL_GRAVITY = 1,
+};
 
 /* UnitSettings */
 
 #define USER_UNIT_ADAPTIVE 0xFF
-/** #UnitSettings.system */
-#define USER_UNIT_NONE 0
-#define USER_UNIT_METRIC 1
-#define USER_UNIT_IMPERIAL 2
-/** #UnitSettings.flag */
-#define USER_UNIT_OPT_SPLIT 1
-#define USER_UNIT_ROT_RADIANS 2
+/** #UnitSettings::system */
+enum {
+  USER_UNIT_NONE = 0,
+  USER_UNIT_METRIC = 1,
+  USER_UNIT_IMPERIAL = 2,
+};
+/** #UnitSettings::flag */
+enum {
+  USER_UNIT_OPT_SPLIT = 1,
+  USER_UNIT_ROT_RADIANS = 2,
+};
 
-/** #SceneEEVEE.flag */
+/** #SceneEEVEE::flag */
 enum {
   // SCE_EEVEE_VOLUMETRIC_ENABLED = (1 << 0), /* Unused */
   SCE_EEVEE_VOLUMETRIC_LIGHTS = (1 << 1),
@@ -2710,16 +2828,34 @@ enum {
   SCE_EEVEE_DOF_HQ_SLIGHT_FOCUS = (1 << 22),
   SCE_EEVEE_DOF_JITTER = (1 << 23),
   SCE_EEVEE_SHADOW_ENABLED = (1 << 24),
+  SCE_EEVEE_RAYTRACE_OPTIONS_SPLIT = (1 << 25),
 };
 
-/** #SceneEEVEE.shadow_method */
+typedef enum RaytraceEEVEE_Flag {
+  RAYTRACE_EEVEE_USE_DENOISE = (1 << 0),
+} RaytraceEEVEE_Flag;
+
+typedef enum RaytraceEEVEE_DenoiseStages {
+  RAYTRACE_EEVEE_DENOISE_SPATIAL = (1 << 0),
+  RAYTRACE_EEVEE_DENOISE_TEMPORAL = (1 << 1),
+  RAYTRACE_EEVEE_DENOISE_BILATERAL = (1 << 2),
+} RaytraceEEVEE_DenoiseStages;
+
+typedef enum RaytraceEEVEE_Method {
+  RAYTRACE_EEVEE_METHOD_NONE = 0,
+  RAYTRACE_EEVEE_METHOD_SCREEN = 1,
+  /* TODO(fclem): Hardware ray-tracing. */
+  // RAYTRACE_EEVEE_METHOD_HARDWARE = 2,
+} RaytraceEEVEE_Method;
+
+/** #SceneEEVEE::shadow_method */
 enum {
   SHADOW_ESM = 1,
   /* SHADOW_VSM = 2, */        /* UNUSED */
   /* SHADOW_METHOD_MAX = 3, */ /* UNUSED */
 };
 
-/** #SceneEEVEE.motion_blur_position */
+/** #SceneEEVEE::motion_blur_position */
 enum {
   SCE_EEVEE_MB_CENTER = 0,
   SCE_EEVEE_MB_START = 1,
@@ -2735,6 +2871,13 @@ enum {
   SCE_DISPLAY_AA_SAMPLES_11 = 11,
   SCE_DISPLAY_AA_SAMPLES_16 = 16,
   SCE_DISPLAY_AA_SAMPLES_32 = 32,
+};
+
+/** #SceneHydra->export_method */
+
+enum {
+  SCE_HYDRA_EXPORT_HYDRA = 0,
+  SCE_HYDRA_EXPORT_USD = 1,
 };
 
 /** \} */

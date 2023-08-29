@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation. All rights reserved.
+/* SPDX-FileCopyrightText: 2017 Blender Authors. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,7 +7,7 @@
  *
  * Glue to make the new Select-Next engine work with the old GPU select API.
  */
-#include <float.h>
+#include <cfloat>
 
 #include "BLI_rect.h"
 #include "BLI_span.hh"

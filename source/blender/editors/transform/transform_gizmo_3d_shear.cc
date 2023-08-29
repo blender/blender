@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,23 +10,24 @@
  * Used for 3D View
  */
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_scene.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
-#include "ED_screen.h"
-#include "WM_api.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
+#include "ED_screen.hh"
+#include "WM_api.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 /* local module include */
-#include "transform.h"
-#include "transform_gizmo.h"
+#include "transform.hh"
+#include "transform_gizmo.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Transform Shear Gizmo
@@ -76,7 +77,7 @@ static void WIDGETGROUP_xform_shear_setup(const bContext * /*C*/, wmGizmoGroup *
       interp_v3_v3v3(gz->color, axis_color[i_ortho_a], axis_color[i_ortho_b], 0.75f);
       gz->color[3] = 0.5f;
       PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_shear, nullptr);
-      RNA_boolean_set(ptr, "release_confirm", 1);
+      RNA_boolean_set(ptr, "release_confirm", true);
       xgzgroup->gizmo[i][j] = gz;
     }
   }
@@ -89,7 +90,7 @@ static void WIDGETGROUP_xform_shear_setup(const bContext * /*C*/, wmGizmoGroup *
     gz->color[3] = 0.5f;
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_OFFSET_SCALE, true);
     PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_shear, nullptr);
-    RNA_boolean_set(ptr, "release_confirm", 1);
+    RNA_boolean_set(ptr, "release_confirm", true);
     xgzgroup->gizmo_view[i] = gz;
 
     /* Unlike the other gizmos, this never changes so can be set on setup. */

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -280,6 +280,7 @@ void DRW_cache_gpencil_sbuffer_clear(struct Object *ob);
 /* Grease Pencil */
 
 struct GPUBatch *DRW_cache_grease_pencil_get(struct Object *ob, int cfra);
+struct GPUBatch *DRW_cache_grease_pencil_edit_points_get(struct Object *ob, int cfra);
 struct GPUVertBuf *DRW_cache_grease_pencil_position_buffer_get(struct Object *ob, int cfra);
 struct GPUVertBuf *DRW_cache_grease_pencil_color_buffer_get(struct Object *ob, int cfra);
 

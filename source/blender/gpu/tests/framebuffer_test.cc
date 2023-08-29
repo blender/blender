@@ -1,13 +1,17 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
+#include "GPU_context.h"
 #include "GPU_framebuffer.h"
+#include "GPU_shader.h"
 #include "gpu_testing.hh"
 
 #include "BLI_math_vector.hh"
+
+#include "gpu_shader_create_info.hh"
 
 namespace blender::gpu::tests {
 
@@ -198,5 +202,126 @@ static void test_framebuffer_scissor_test()
   GPU_texture_free(texture);
 }
 GPU_TEST(framebuffer_scissor_test);
+
+/* Color each side of a cube-map with a different color. */
+static void test_framebuffer_cube()
+{
+  const int SIZE = 32;
+  GPU_render_begin();
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  GPUTexture *tex = GPU_texture_create_cube("tex", SIZE, 1, GPU_RGBA32F, usage, nullptr);
+
+  const float4 clear_colors[6] = {
+      {0.5f, 0.0f, 0.0f, 1.0f},
+      {1.0f, 0.0f, 0.0f, 1.0f},
+      {0.0f, 0.5f, 0.0f, 1.0f},
+      {0.0f, 1.0f, 0.0f, 1.0f},
+      {0.0f, 0.0f, 0.5f, 1.0f},
+      {0.0f, 0.0f, 1.0f, 1.0f},
+  };
+  GPUFrameBuffer *framebuffers[6] = {nullptr};
+
+  for (int i : IndexRange(6)) {
+    GPU_framebuffer_ensure_config(&framebuffers[i],
+                                  {
+                                      GPU_ATTACHMENT_NONE,
+                                      GPU_ATTACHMENT_TEXTURE_CUBEFACE(tex, i),
+                                  });
+    GPU_framebuffer_bind(framebuffers[i]);
+    GPU_framebuffer_clear_color(framebuffers[i], clear_colors[i]);
+  };
+
+  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  for (int side : IndexRange(6)) {
+    for (int pixel_index : IndexRange(SIZE * SIZE)) {
+      int index = pixel_index + (SIZE * SIZE) * side;
+      EXPECT_EQ(clear_colors[side], data[index]);
+    }
+  }
+  MEM_freeN(data);
+
+  GPU_texture_free(tex);
+
+  for (int i : IndexRange(6)) {
+    GPU_FRAMEBUFFER_FREE_SAFE(framebuffers[i]);
+  }
+
+  GPU_render_end();
+}
+GPU_TEST(framebuffer_cube)
+
+/* Effectively tests the same way EEVEE-Next shadows are rendered. */
+static void test_framebuffer_multi_viewport()
+{
+  using namespace gpu::shader;
+
+  GPU_render_begin();
+
+  const int2 size(4, 4);
+  const int layers = 256;
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  GPUTexture *texture = GPU_texture_create_2d_array(
+      __func__, UNPACK2(size), layers, 1, GPU_RG32I, usage, nullptr);
+
+  GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  GPU_framebuffer_ensure_config(&framebuffer,
+                                {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture)});
+  GPU_framebuffer_bind(framebuffer);
+
+  int viewport_rects[16][4];
+  for (int i = 0; i < 16; i++) {
+    viewport_rects[i][0] = i % 4;
+    viewport_rects[i][1] = i / 4;
+    viewport_rects[i][2] = 1;
+    viewport_rects[i][3] = 1;
+  }
+  GPU_framebuffer_multi_viewports_set(framebuffer, viewport_rects);
+
+  const float4 clear_color(0.0f);
+  GPU_framebuffer_clear_color(framebuffer, clear_color);
+
+  ShaderCreateInfo create_info("");
+  create_info.vertex_source("gpu_framebuffer_layer_viewport_test.glsl");
+  create_info.fragment_source("gpu_framebuffer_layer_viewport_test.glsl");
+  create_info.builtins(BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER);
+  create_info.fragment_out(0, Type::IVEC2, "out_value");
+
+  GPUShader *shader = GPU_shader_create_from_info(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info));
+
+  /* TODO(fclem): remove this boilerplate. */
+  GPUVertFormat format{};
+  GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  GPUVertBuf *verts = GPU_vertbuf_create_with_format(&format);
+  GPU_vertbuf_data_alloc(verts, 3);
+  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+
+  GPU_batch_set_shader(batch, shader);
+
+  int tri_count = size.x * size.y * layers;
+  GPU_batch_draw_advanced(batch, 0, tri_count * 3, 0, 1);
+
+  GPU_batch_discard(batch);
+
+  GPU_finish();
+
+  int2 *read_data = static_cast<int2 *>(GPU_texture_read(texture, GPU_DATA_INT, 0));
+  for (auto layer : IndexRange(layers)) {
+    for (auto viewport : IndexRange(16)) {
+      int2 expected_color(layer, viewport);
+      int2 pixel_color = read_data[viewport + layer * 16];
+      EXPECT_EQ(pixel_color, expected_color);
+    }
+  }
+  MEM_freeN(read_data);
+
+  GPU_framebuffer_free(framebuffer);
+  GPU_texture_free(texture);
+  GPU_shader_free(shader);
+
+  GPU_render_end();
+}
+GPU_TEST(framebuffer_multi_viewport)
 
 }  // namespace blender::gpu::tests

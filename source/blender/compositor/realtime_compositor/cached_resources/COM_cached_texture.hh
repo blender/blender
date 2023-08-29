@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,7 +13,6 @@
 
 #include "GPU_texture.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
 #include "COM_cached_resource.hh"
@@ -49,7 +48,7 @@ class CachedTexture : public CachedResource {
   GPUTexture *value_texture_ = nullptr;
 
  public:
-  CachedTexture(Tex *texture, const Scene *scene, int2 size, float2 offset, float2 scale);
+  CachedTexture(Tex *texture, bool use_color_management, int2 size, float2 offset, float2 scale);
 
   ~CachedTexture();
 
@@ -74,8 +73,12 @@ class CachedTextureContainer : CachedResourceContainer {
    * CachedTexture cached resource with the given parameters in the container, if one exists,
    * return it, otherwise, return a newly created one and add it to the container. In both cases,
    * tag the cached resource as needed to keep it cached for the next evaluation. */
-  CachedTexture &get(
-      Context &context, Tex *texture, const Scene *scene, int2 size, float2 offset, float2 scale);
+  CachedTexture &get(Context &context,
+                     Tex *texture,
+                     bool use_color_management,
+                     int2 size,
+                     float2 offset,
+                     float2 scale);
 };
 
 }  // namespace blender::realtime_compositor

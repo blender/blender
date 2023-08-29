@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -77,13 +79,13 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 USE_ONLY_BUILTIN_RNA_TYPES = True
 
 # Write a page for each static enum defined in:
-# `source/blender/makesrna/RNA_enum_items.h` so the enums can be linked to instead of being expanded everywhere.
+# `source/blender/makesrna/RNA_enum_items.hh` so the enums can be linked to instead of being expanded everywhere.
 USE_SHARED_RNA_ENUM_ITEMS_STATIC = True
 
 if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
     from _bpy import rna_enum_items_static
     rna_enum_dict = rna_enum_items_static()
-    for key in ("DummyRNA_DEFAULT_items", "DummyRNA_NULL_items"):
+    for key in ("rna_enum_dummy_NULL_items", "rna_enum_dummy_DEFAULT_items"):
         del rna_enum_dict[key]
     del key, rna_enum_items_static
 
@@ -1183,6 +1185,7 @@ context_type_map = {
     "fluid": ("FluidSimulationModifier", False),
     "gpencil": ("GreasePencil", False),
     "gpencil_data": ("GreasePencil", False),
+    "grease_pencil": ("GreasePencilv3", False),
     "gpencil_data_owner": ("ID", False),
     "curves": ("Hair Curves", False),
     "id": ("ID", False),
@@ -1893,7 +1896,7 @@ def write_sphinx_conf_py(basepath):
     fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
     fw("project = 'Blender %s Python API'\n" % BLENDER_VERSION_STRING)
     fw("root_doc = 'index'\n")
-    fw("copyright = 'Blender Foundation'\n")
+    fw("copyright = 'Blender Authors'\n")
     fw("version = '%s'\n" % BLENDER_VERSION_DOTS)
     fw("release = '%s'\n" % BLENDER_VERSION_DOTS)
 

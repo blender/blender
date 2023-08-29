@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,7 +11,7 @@ namespace blender::compositor {
 class GaussianBlurBaseOperation : public BlurBaseOperation {
  protected:
   float *gausstab_;
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
   __m128 *gausstab_sse_;
 #endif
   int filtersize_;

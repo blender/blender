@@ -1,16 +1,21 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
 #include <numeric>
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
 
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "BLI_array_utils.hh"
 #include "BLI_math_base_safe.h"
 
 #include "NOD_socket_search_link.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
@@ -44,8 +49,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -189,7 +194,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bNode &node = params.node();
   const eCustomDataType data_type = eCustomDataType(node.custom1);
   const eAttrDomain domain = eAttrDomain(node.custom2);
-  Vector<const GeometryComponent *> components = geometry_set.get_components_for_read();
+  Vector<const GeometryComponent *> components = geometry_set.get_components();
 
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
 
@@ -215,9 +220,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           data.resize(next_data_index + selection.size());
           MutableSpan<float> selected_data = data.as_mutable_span().slice(next_data_index,
                                                                           selection.size());
-          for (const int i : selection.index_range()) {
-            selected_data[i] = component_data[selection[i]];
-          }
+          array_utils::gather(component_data, selection, selected_data);
         }
       }
 
@@ -295,9 +298,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           data.resize(data.size() + selection.size());
           MutableSpan<float3> selected_data = data.as_mutable_span().slice(next_data_index,
                                                                            selection.size());
-          for (const int i : selection.index_range()) {
-            selected_data[i] = component_data[selection[i]];
-          }
+          array_utils::gather(component_data, selection, selected_data);
         }
       }
 
@@ -383,22 +384,49 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_attribute_statistic_cc
-
-void register_node_type_geo_attribute_statistic()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_attribute_statistic_cc;
+  RNA_def_node_enum(
+      srna,
+      "data_type",
+      "Data Type",
+      "The data type the attribute is converted to before calculating the results",
+      rna_enum_attribute_type_items,
+      NOD_inline_enum_accessors(custom1),
+      CD_PROP_FLOAT,
+      [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
+        *r_free = true;
+        return enum_items_filter(rna_enum_attribute_type_items, [](const EnumPropertyItem &item) {
+          return ELEM(item.value, CD_PROP_FLOAT, CD_PROP_FLOAT3);
+        });
+      });
 
+  RNA_def_node_enum(srna,
+                    "domain",
+                    "Domain",
+                    "Which domain to read the data from",
+                    rna_enum_attribute_domain_items,
+                    NOD_inline_enum_accessors(custom2),
+                    ATTR_DOMAIN_POINT);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_STATISTIC, "Attribute Statistic", NODE_CLASS_ATTRIBUTE);
 
-  ntype.declare = file_ns::node_declare;
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_attribute_statistic_cc

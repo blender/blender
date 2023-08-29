@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -148,7 +150,7 @@ static PyGetSetDef BPy_UnaryFunction1DFloat_getseters[] = {
 /*-----------------------BPy_UnaryFunction1DFloat type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1DFloat_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction1DFloat",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction1DFloat),
     /*tp_itemsize*/ 0,

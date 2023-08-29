@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * G-buffer: Packing and upacking of G-buffer data.
+ * G-buffer: Packing and unpacking of G-buffer data.
  *
  * See #GBuffer for a breakdown of the G-buffer layout.
  */
@@ -10,7 +13,10 @@
 vec2 gbuffer_normal_pack(vec3 N)
 {
   N /= length_manhattan(N);
-  N.xy = (N.z >= 0.0) ? N.xy : ((1.0 - abs(N.yx)) * sign(N.xy));
+  vec2 _sign = sign(N.xy);
+  _sign.x = _sign.x == 0.0 ? 1.0 : _sign.x;
+  _sign.y = _sign.y == 0.0 ? 1.0 : _sign.y;
+  N.xy = (N.z >= 0.0) ? N.xy : ((1.0 - abs(N.yx)) * _sign);
   N.xy = N.xy * 0.5 + 0.5;
   return N.xy;
 }
@@ -32,7 +38,7 @@ float gbuffer_ior_pack(float ior)
 
 float gbuffer_ior_unpack(float ior_packed)
 {
-  return (ior_packed > 0.5) ? (-1.0 / (ior_packed * 2.0 + 2.0)) : (2.0 * ior_packed);
+  return (ior_packed > 0.5) ? (0.5 / (1.0 - ior_packed)) : (2.0 * ior_packed);
 }
 
 float gbuffer_thickness_pack(float thickness)
@@ -66,7 +72,7 @@ vec4 gbuffer_color_pack(vec3 color)
 {
   float max_comp = max(color.x, max(color.y, color.z));
   /* Store 2bit exponent inside Alpha. Allows values up to 8 with some color degradation.
-   * Above 8, the result will be clampped when writing the data to the output buffer. */
+   * Above 8, the result will be clamped when writing the data to the output buffer. */
   float exponent = (max_comp > 1) ? ((max_comp > 2) ? ((max_comp > 4) ? 3.0 : 2.0) : 1.0) : 0.0;
   /* TODO(fclem): Could try dithering to avoid banding artifacts on higher exponents. */
   return vec4(color / exp2(exponent), exponent / 3.0);

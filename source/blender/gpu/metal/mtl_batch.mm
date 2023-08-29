@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -157,7 +159,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
          * has in the shader interface. */
         MTL_LOG_WARNING(
             "MTLBatch: Could not find attribute with name '%s' (defined in active vertex format) "
-            "in the shader interface for shader '%s'\n",
+            "in the shader interface for shader '%s'",
             name,
             interface->get_name());
         continue;
@@ -175,7 +177,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
       /* Check if attribute is already present in the given slot. */
       if ((~attr_mask) & (1 << mtl_attr.location)) {
         MTL_LOG_INFO(
-            "  -- [Batch] Skipping attribute with input location %d (As one is already bound)\n",
+            "  -- [Batch] Skipping attribute with input location %d (As one is already bound)",
             mtl_attr.location);
       }
       else {
@@ -194,7 +196,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
           desc.vertex_descriptor.num_vert_buffers++;
           buffer_added = true;
 
-          MTL_LOG_INFO("  -- [Batch] Adding source %s buffer (Index: %d, Stride: %d)\n",
+          MTL_LOG_INFO("  -- [Batch] Adding source %s buffer (Index: %d, Stride: %d)",
                        (instanced) ? "instance" : "vertex",
                        buffer_index,
                        buffer_stride);
@@ -261,7 +263,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
                 desc.vertex_descriptor.total_attributes++;
                 desc.vertex_descriptor.max_attribute_value = max_ii(
                     mtl_attr.location + i, desc.vertex_descriptor.max_attribute_value);
-                MTL_LOG_INFO("-- Sub-Attrib Location: %d, offset: %d, buffer index: %d\n",
+                MTL_LOG_INFO("-- Sub-Attrib Location: %d, offset: %d, buffer index: %d",
                              mtl_attr.location + i,
                              attribute_offset + i * 16,
                              buffer_index);
@@ -270,7 +272,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
                 attr_mask &= ~(1 << (mtl_attr.location + i));
               }
               MTL_LOG_INFO(
-                  "Float4x4 attribute type added for '%s' at attribute locations: %d to %d\n",
+                  "Float4x4 attribute type added for '%s' at attribute locations: %d to %d",
                   name,
                   mtl_attr.location,
                   mtl_attr.location + 3);
@@ -377,7 +379,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
            * the source GPUVertFormat. */
           MTL_LOG_INFO(
               " -- Batch Attribute(%d): ORIG Shader Format: %d, ORIG Vert format: %d, Vert "
-              "components: %d, Fetch Mode %d --> FINAL FORMAT: %d\n",
+              "components: %d, Fetch Mode %d --> FINAL FORMAT: %d",
               mtl_attr.location,
               (int)mtl_attr.format,
               (int)a->comp_type,
@@ -387,7 +389,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
 
           MTL_LOG_INFO(
               "  -- [Batch] matching %s attribute '%s' (Attribute Index: %d, Buffer index: %d, "
-              "offset: %d)\n",
+              "offset: %d)",
               (instanced) ? "instance" : "vertex",
               name,
               mtl_attr.location,
@@ -416,8 +418,8 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
     return nil;
   }
 
-  /* Verify Shader. */
-  active_shader_ = (shader) ? static_cast<MTLShader *>(unwrap(shader)) : nullptr;
+  /* Fetch bound shader from context. */
+  active_shader_ = static_cast<MTLShader *>(ctx->shader);
 
   if (active_shader_ == nullptr || !active_shader_->is_valid()) {
     /* Skip drawing if there is no valid Metal shader.
@@ -555,7 +557,7 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
    * This should happen after all other final rendering setup is complete. */
   MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(this->prim_type);
   if (!ctx->ensure_render_pipeline_state(mtl_prim_type)) {
-    MTL_LOG_ERROR("Failed to prepare and apply render pipeline state.\n");
+    MTL_LOG_ERROR("Failed to prepare and apply render pipeline state.");
     BLI_assert(false);
     return nil;
   }
@@ -671,7 +673,7 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
     /* Extract Instance attributes (These take highest priority). */
     for (int v = 0; v < GPU_BATCH_INST_VBO_MAX_LEN; v++) {
       if (mtl_inst[v]) {
-        MTL_LOG_INFO(" -- [Batch] Checking bindings for bound instance buffer %p\n", mtl_inst[v]);
+        MTL_LOG_INFO(" -- [Batch] Checking bindings for bound instance buffer %p", mtl_inst[v]);
         int buffer_ind = this->prepare_vertex_binding(
             mtl_inst[v], desc, interface, attr_mask, true);
         if (buffer_ind >= 0) {
@@ -689,7 +691,7 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
     /* Extract Vertex attributes (First-bound vertex buffer takes priority). */
     for (int v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
       if (mtl_verts[v] != NULL) {
-        MTL_LOG_INFO(" -- [Batch] Checking bindings for bound vertex buffer %p\n", mtl_verts[v]);
+        MTL_LOG_INFO(" -- [Batch] Checking bindings for bound vertex buffer %p", mtl_verts[v]);
         int buffer_ind = this->prepare_vertex_binding(
             mtl_verts[v], desc, interface, attr_mask, false);
         if (buffer_ind >= 0) {
@@ -725,7 +727,7 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
       if (attr_mask & (1 << attr.location)) {
         MTL_LOG_WARNING(
             "Warning: Missing expected attribute '%s' with location: %u in shader %s (attr "
-            "number: %u)\n",
+            "number: %u)",
             active_shader_->get_interface()->get_name_at_offset(attr.name_offset),
             attr.location,
             active_shader_->name_get(),
@@ -911,6 +913,10 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
     return;
   }
 
+  /* Unsupported primitive type check. */
+  BLI_assert_msg(this->prim_type != GPU_PRIM_TRI_FAN,
+                 "TriangleFan is not supported in Metal for Indirect draws.");
+
   /* Fetch IndexBuffer and resolve primitive type. */
   MTLIndexBuf *mtl_elem = static_cast<MTLIndexBuf *>(reinterpret_cast<IndexBuf *>(this->elem));
   MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(this->prim_type);
@@ -928,7 +934,7 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
   id<MTLBuffer> mtl_indirect_buf = mtlssbo->get_metal_buffer();
   BLI_assert(mtl_indirect_buf != nil);
   if (mtl_indirect_buf == nil) {
-    MTL_LOG_WARNING("Metal Indirect Draw Storage Buffer is nil.\n");
+    MTL_LOG_WARNING("Metal Indirect Draw Storage Buffer is nil.");
 
     /* End of draw. */
     this->unbind(rec);
@@ -950,6 +956,9 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
     MTLIndexType index_type = MTLIndexBuf::gpu_index_type_to_metal(mtl_elem->index_type_);
     GPUPrimType final_prim_type = this->prim_type;
     uint index_count = 0;
+
+    /* Disable index optimization for indirect draws. */
+    mtl_elem->flag_can_optimize(false);
 
     id<MTLBuffer> index_buffer = mtl_elem->get_index_buffer(final_prim_type, index_count);
     mtl_prim_type = gpu_prim_type_to_metal(final_prim_type);
@@ -1070,8 +1079,8 @@ id<MTLBuffer> MTLBatch::get_emulated_toplogy_buffer(GPUPrimType &in_out_prim_typ
       case GPU_PRIM_LINE_LOOP: {
         int line = 0;
         for (line = 0; line < output_prim_count - 1; line++) {
-          data[line * 3 + 0] = line + 0;
-          data[line * 3 + 1] = line + 1;
+          data[line * 2 + 0] = line + 0;
+          data[line * 2 + 1] = line + 1;
         }
         /* Closing line. */
         data[line * 2 + 0] = line + 0;

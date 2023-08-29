@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* To be compiled with common_subdiv_lib.glsl */
 
@@ -32,7 +35,7 @@ void write_vec4(uint index, vec4 edge_facs)
     output_edge_fac[index + i] = edge_facs[i];
   }
 #else
-  /* Use same scaling as in extract_edge_fac_iter_poly_mesh. */
+  /* Use same scaling as in extract_edge_fac_iter_face_mesh. */
   uint a = uint(edge_facs.x * 255);
   uint b = uint(edge_facs.y * 255);
   uint c = uint(edge_facs.z * 255);

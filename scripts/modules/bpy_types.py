@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from _bpy import types as bpy_types
@@ -9,7 +11,7 @@ StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
 # Private dummy object use for comparison only.
 _sentinel = object()
 
-# Note that methods extended in C are defined in: 'bpy_rna_types_capi.c'
+# Note that methods extended in C are defined in: `bpy_rna_types_capi.cc`.
 
 
 class Context(StructRNA):
@@ -104,7 +106,7 @@ class Library(bpy_types.ID):
         """ID data blocks which use this library"""
         import bpy
 
-        # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE,
+        # See: `readblenentry.cc`, IDTYPE_FLAGS_ISLINKABLE,
         # we could make this an attribute in rna.
         attr_links = (
             "actions", "armatures", "brushes", "cameras",
@@ -176,7 +178,10 @@ class Object(bpy_types.ID):
 
     @property
     def children(self):
-        """All the children of this object.
+        """
+        All the children of this object.
+
+        :type: tuple of :class:`Object`
 
         .. note:: Takes ``O(len(bpy.data.objects))`` time."""
         import bpy
@@ -185,7 +190,10 @@ class Object(bpy_types.ID):
 
     @property
     def children_recursive(self):
-        """A list of all children from this object.
+        """
+        A list of all children from this object.
+
+        :type: tuple of :class:`Object`
 
         .. note:: Takes ``O(len(bpy.data.objects))`` time."""
         import bpy
@@ -209,6 +217,8 @@ class Object(bpy_types.ID):
         """
         The collections this object is in.
 
+        :type: tuple of :class:`Collection`
+
         .. note:: Takes ``O(len(bpy.data.collections) + len(bpy.data.scenes))`` time."""
         import bpy
         return (
@@ -223,7 +233,10 @@ class Object(bpy_types.ID):
 
     @property
     def users_scene(self):
-        """The scenes this object is in.
+        """
+        The scenes this object is in.
+
+        :type: tuple of :class:`Scene`
 
         .. note:: Takes ``O(len(bpy.data.scenes) * len(bpy.data.objects))`` time."""
         import bpy
@@ -523,10 +536,40 @@ def ord_ind(i1, i2):
     return i2, i1
 
 
+def _name_convention_attribute_get(attributes, name, domain, data_type):
+    try:
+        attribute = attributes[name]
+    except KeyError:
+        return None
+    if attribute.domain != domain:
+        return None
+    if attribute.data_type != data_type:
+        return None
+    return attribute
+
+
+def _name_convention_attribute_ensure(attributes, name, domain, data_type):
+    try:
+        attribute = attributes[name]
+    except KeyError:
+        return attributes.new(name, data_type, domain)
+    if attribute.domain == domain and attribute.data_type == data_type:
+        return attribute
+    attributes.remove(attribute)
+    return attributes.new(name, data_type, domain)
+
+
+def _name_convention_attribute_remove(attributes, name):
+    try:
+        attributes.remove(attributes[name])
+    except KeyError:
+        pass
+
+
 class Mesh(bpy_types.ID):
     __slots__ = ()
 
-    def from_pydata(self, vertices, edges, faces):
+    def from_pydata(self, vertices, edges, faces, shade_flat=True):
         """
         Make a mesh from a list of vertices/edges/faces
         Until we have a nicer way to make geometry, use this.
@@ -583,6 +626,9 @@ class Mesh(bpy_types.ID):
         self.polygons.foreach_set("loop_start", loop_starts)
         self.polygons.foreach_set("vertices", vertex_indices)
 
+        if shade_flat:
+            self.shade_flat()
+
         if edges_len or faces_len:
             self.update(
                 # Needed to either:
@@ -596,6 +642,48 @@ class Mesh(bpy_types.ID):
     @property
     def edge_keys(self):
         return [ed.key for ed in self.edges]
+
+    @property
+    def vertex_creases(self):
+        """
+        Vertex crease values for subdivision surface, corresponding to the "crease_vert" attribute.
+        """
+        return _name_convention_attribute_get(self.attributes, "crease_vert", 'POINT', 'FLOAT')
+
+    def vertex_creases_ensure(self):
+        return _name_convention_attribute_ensure(self.attributes, "crease_vert", 'POINT', 'FLOAT')
+
+    def vertex_creases_remove(self):
+        _name_convention_attribute_remove(self.attributes, "crease_vert")
+
+    @property
+    def edge_creases(self):
+        """
+        Edge crease values for subdivision surface, corresponding to the "crease_edge" attribute.
+        """
+        return _name_convention_attribute_get(self.attributes, "crease_edge", 'EDGE', 'FLOAT')
+
+    def edge_creases_ensure(self):
+        return _name_convention_attribute_ensure(self.attributes, "crease_edge", 'EDGE', 'FLOAT')
+
+    def edge_creases_remove(self):
+        _name_convention_attribute_remove(self.attributes, "crease_edge")
+
+    def shade_flat(self):
+        """
+        Render and display faces uniform, using face normals,
+        setting the "sharp_face" attribute true for every face
+        """
+        sharp_faces = _name_convention_attribute_ensure(self.attributes, "sharp_face", 'FACE', 'BOOLEAN')
+        for value in sharp_faces.data:
+            value.value = True
+
+    def shade_smooth(self):
+        """
+        Render and display faces smooth, using interpolated vertex normals,
+        removing the "sharp_face" attribute
+        """
+        _name_convention_attribute_remove(self.attributes, "sharp_face")
 
 
 class MeshEdge(StructRNA):
@@ -724,15 +812,14 @@ class Gizmo(StructRNA):
     # Convenience wrappers around private `_gpu` module.
     def draw_custom_shape(self, shape, *, matrix=None, select_id=None):
         """
-        Draw a shape created form :class:`bpy.types.Gizmo.draw_custom_shape`.
+        Draw a shape created form :class:`Gizmo.draw_custom_shape`.
 
         :arg shape: The cached shape to draw.
         :type shape: Undefined.
-        :arg matrix: 4x4 matrix, when not given
-           :class:`bpy.types.Gizmo.matrix_world` is used.
+        :arg matrix: 4x4 matrix, when not given :class:`Gizmo.matrix_world` is used.
         :type matrix: :class:`mathutils.Matrix`
         :arg select_id: The selection id.
-           Only use when drawing within :class:`bpy.types.Gizmo.draw_select`.
+           Only use when drawing within :class:`Gizmo.draw_select`.
         :type select_it: int
         """
         import gpu
@@ -766,7 +853,7 @@ class Gizmo(StructRNA):
     @staticmethod
     def new_custom_shape(type, verts):
         """
-        Create a new shape that can be passed to :class:`bpy.types.Gizmo.draw_custom_shape`.
+        Create a new shape that can be passed to :class:`Gizmo.draw_custom_shape`.
 
         :arg type: The type of shape to create in (POINTS, LINES, TRIS, LINE_STRIP).
         :type type: string
@@ -851,11 +938,11 @@ class PropertyGroup(StructRNA, metaclass=RNAMetaPropGroup):
     __slots__ = ()
 
 
-class RenderEngine(StructRNA, metaclass=RNAMeta):
+class KeyingSetInfo(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
 
 
-class KeyingSetInfo(StructRNA, metaclass=RNAMeta):
+class USDHook(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
 
 
@@ -1096,6 +1183,10 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             layout.menu(cls.__name__, icon='COLLAPSEMENU')
 
 
+class AssetShelf(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
+
+
 class NodeTree(bpy_types.ID, metaclass=RNAMetaPropGroup):
     __slots__ = ()
 
@@ -1165,3 +1256,71 @@ class GeometryNode(NodeInternal):
     @classmethod
     def poll(cls, ntree):
         return ntree.bl_idname == 'GeometryNodeTree'
+
+
+class RenderEngine(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
+
+
+class HydraRenderEngine(RenderEngine):
+    __slots__ = ()
+
+    bl_use_shading_nodes_custom = False
+    bl_delegate_id = 'HdStormRendererPlugin'
+
+    def __init__(self):
+        self.engine_ptr = None
+
+    def __del__(self):
+        if hasattr(self, 'engine_ptr'):
+            if self.engine_ptr:
+                import _bpy_hydra
+                _bpy_hydra.engine_free(self.engine_ptr)
+
+    def get_render_settings(self, engine_type: str):
+        """
+        Provide render settings for `HdRenderDelegate`.
+        """
+        return {}
+
+    # Final render.
+    def update(self, data, depsgraph):
+        import _bpy_hydra
+
+        engine_type = 'PREVIEW' if self.is_preview else 'FINAL'
+        if not self.engine_ptr:
+            self.engine_ptr = _bpy_hydra.engine_create(self, engine_type, self.bl_delegate_id)
+        if not self.engine_ptr:
+            return
+
+        _bpy_hydra.engine_update(self.engine_ptr, depsgraph, None)
+
+        for key, val in self.get_render_settings('PREVIEW' if self.is_preview else 'FINAL').items():
+            _bpy_hydra.engine_set_render_setting(self.engine_ptr, key, val)
+
+    def render(self, depsgraph):
+        if not self.engine_ptr:
+            return
+
+        import _bpy_hydra
+        _bpy_hydra.engine_render(self.engine_ptr)
+
+    # Viewport render.
+    def view_update(self, context, depsgraph):
+        import _bpy_hydra
+        if not self.engine_ptr:
+            self.engine_ptr = _bpy_hydra.engine_create(self, 'VIEWPORT', self.bl_delegate_id)
+        if not self.engine_ptr:
+            return
+
+        _bpy_hydra.engine_update(self.engine_ptr, depsgraph, context)
+
+        for key, val in self.get_render_settings('VIEWPORT').items():
+            _bpy_hydra.engine_set_render_setting(self.engine_ptr, key, val)
+
+    def view_draw(self, context, depsgraph):
+        if not self.engine_ptr:
+            return
+
+        import _bpy_hydra
+        _bpy_hydra.engine_view_draw(self.engine_ptr, context)

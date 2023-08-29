@@ -1,10 +1,10 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation.
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -13,7 +13,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_image_wrappers.hh"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_pbvh_pixels.hh"
 
 #include "pbvh_intern.hh"
@@ -175,7 +175,7 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
   {
     reserve(count_nodes(pbvh, image_tile));
 
-    for (PBVHNode &node : MutableSpan(pbvh.nodes, pbvh.totnode)) {
+    for (PBVHNode &node : pbvh.nodes) {
       if (should_add_node(node, image_tile)) {
         NodeData &node_data = *static_cast<NodeData *>(node.pixels.node_data);
         UDIMTilePixels &tile_pixels = *node_data.find_tile_data(image_tile);
@@ -203,7 +203,7 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
   static int64_t count_nodes(PBVH &pbvh, const image::ImageTileWrapper &image_tile)
   {
     int64_t result = 0;
-    for (PBVHNode &node : MutableSpan(pbvh.nodes, pbvh.totnode)) {
+    for (PBVHNode &node : pbvh.nodes) {
       if (should_add_node(node, image_tile)) {
         result++;
       }

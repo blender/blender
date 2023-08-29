@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -364,7 +364,7 @@ int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const
 #  define USE_IMMUTABLE_ASSERT
 #endif
 
-void bmiter__elem_of_mesh_begin(struct BMIter__elem_of_mesh *iter)
+void bmiter__elem_of_mesh_begin(BMIter__elem_of_mesh *iter)
 {
 #ifdef USE_IMMUTABLE_ASSERT
   ((BMIter *)iter)->count = BLI_mempool_len(iter->pooliter.pool);
@@ -372,7 +372,7 @@ void bmiter__elem_of_mesh_begin(struct BMIter__elem_of_mesh *iter)
   BLI_mempool_iternew(iter->pooliter.pool, &iter->pooliter);
 }
 
-void *bmiter__elem_of_mesh_step(struct BMIter__elem_of_mesh *iter)
+void *bmiter__elem_of_mesh_step(BMIter__elem_of_mesh *iter)
 {
 #ifdef USE_IMMUTABLE_ASSERT
   BLI_assert(((BMIter *)iter)->count <= BLI_mempool_len(iter->pooliter.pool));
@@ -388,7 +388,7 @@ void *bmiter__elem_of_mesh_step(struct BMIter__elem_of_mesh *iter)
  * EDGE OF VERT CALLBACKS
  */
 
-void bmiter__edge_of_vert_begin(struct BMIter__edge_of_vert *iter)
+void bmiter__edge_of_vert_begin(BMIter__edge_of_vert *iter)
 {
   if (iter->vdata->e) {
     iter->e_first = iter->vdata->e;
@@ -400,7 +400,7 @@ void bmiter__edge_of_vert_begin(struct BMIter__edge_of_vert *iter)
   }
 }
 
-void *bmiter__edge_of_vert_step(struct BMIter__edge_of_vert *iter)
+void *bmiter__edge_of_vert_step(BMIter__edge_of_vert *iter)
 {
   BMEdge *e_curr = iter->e_next;
 
@@ -418,7 +418,7 @@ void *bmiter__edge_of_vert_step(struct BMIter__edge_of_vert *iter)
  * FACE OF VERT CALLBACKS
  */
 
-void bmiter__face_of_vert_begin(struct BMIter__face_of_vert *iter)
+void bmiter__face_of_vert_begin(BMIter__face_of_vert *iter)
 {
   ((BMIter *)iter)->count = bmesh_disk_facevert_count(iter->vdata);
   if (((BMIter *)iter)->count) {
@@ -432,7 +432,7 @@ void bmiter__face_of_vert_begin(struct BMIter__face_of_vert *iter)
     iter->e_first = iter->e_next = nullptr;
   }
 }
-void *bmiter__face_of_vert_step(struct BMIter__face_of_vert *iter)
+void *bmiter__face_of_vert_step(BMIter__face_of_vert *iter)
 {
   BMLoop *l_curr = iter->l_next;
 
@@ -457,7 +457,7 @@ void *bmiter__face_of_vert_step(struct BMIter__face_of_vert *iter)
  * LOOP OF VERT CALLBACKS
  */
 
-void bmiter__loop_of_vert_begin(struct BMIter__loop_of_vert *iter)
+void bmiter__loop_of_vert_begin(BMIter__loop_of_vert *iter)
 {
   ((BMIter *)iter)->count = bmesh_disk_facevert_count(iter->vdata);
   if (((BMIter *)iter)->count) {
@@ -471,7 +471,7 @@ void bmiter__loop_of_vert_begin(struct BMIter__loop_of_vert *iter)
     iter->e_first = iter->e_next = nullptr;
   }
 }
-void *bmiter__loop_of_vert_step(struct BMIter__loop_of_vert *iter)
+void *bmiter__loop_of_vert_step(BMIter__loop_of_vert *iter)
 {
   BMLoop *l_curr = iter->l_next;
 
@@ -497,12 +497,12 @@ void *bmiter__loop_of_vert_step(struct BMIter__loop_of_vert *iter)
  * LOOP OF EDGE CALLBACKS
  */
 
-void bmiter__loop_of_edge_begin(struct BMIter__loop_of_edge *iter)
+void bmiter__loop_of_edge_begin(BMIter__loop_of_edge *iter)
 {
   iter->l_first = iter->l_next = iter->edata->l;
 }
 
-void *bmiter__loop_of_edge_step(struct BMIter__loop_of_edge *iter)
+void *bmiter__loop_of_edge_step(BMIter__loop_of_edge *iter)
 {
   BMLoop *l_curr = iter->l_next;
 
@@ -521,7 +521,7 @@ void *bmiter__loop_of_edge_step(struct BMIter__loop_of_edge *iter)
  * LOOP OF LOOP CALLBACKS
  */
 
-void bmiter__loop_of_loop_begin(struct BMIter__loop_of_loop *iter)
+void bmiter__loop_of_loop_begin(BMIter__loop_of_loop *iter)
 {
   iter->l_first = iter->ldata;
   iter->l_next = iter->l_first->radial_next;
@@ -531,7 +531,7 @@ void bmiter__loop_of_loop_begin(struct BMIter__loop_of_loop *iter)
   }
 }
 
-void *bmiter__loop_of_loop_step(struct BMIter__loop_of_loop *iter)
+void *bmiter__loop_of_loop_step(BMIter__loop_of_loop *iter)
 {
   BMLoop *l_curr = iter->l_next;
 
@@ -550,12 +550,12 @@ void *bmiter__loop_of_loop_step(struct BMIter__loop_of_loop *iter)
  * FACE OF EDGE CALLBACKS
  */
 
-void bmiter__face_of_edge_begin(struct BMIter__face_of_edge *iter)
+void bmiter__face_of_edge_begin(BMIter__face_of_edge *iter)
 {
   iter->l_first = iter->l_next = iter->edata->l;
 }
 
-void *bmiter__face_of_edge_step(struct BMIter__face_of_edge *iter)
+void *bmiter__face_of_edge_step(BMIter__face_of_edge *iter)
 {
   BMLoop *current = iter->l_next;
 
@@ -573,12 +573,12 @@ void *bmiter__face_of_edge_step(struct BMIter__face_of_edge *iter)
  * VERTS OF EDGE CALLBACKS
  */
 
-void bmiter__vert_of_edge_begin(struct BMIter__vert_of_edge *iter)
+void bmiter__vert_of_edge_begin(BMIter__vert_of_edge *iter)
 {
   ((BMIter *)iter)->count = 0;
 }
 
-void *bmiter__vert_of_edge_step(struct BMIter__vert_of_edge *iter)
+void *bmiter__vert_of_edge_step(BMIter__vert_of_edge *iter)
 {
   switch (((BMIter *)iter)->count++) {
     case 0:
@@ -594,12 +594,12 @@ void *bmiter__vert_of_edge_step(struct BMIter__vert_of_edge *iter)
  * VERT OF FACE CALLBACKS
  */
 
-void bmiter__vert_of_face_begin(struct BMIter__vert_of_face *iter)
+void bmiter__vert_of_face_begin(BMIter__vert_of_face *iter)
 {
   iter->l_first = iter->l_next = BM_FACE_FIRST_LOOP(iter->pdata);
 }
 
-void *bmiter__vert_of_face_step(struct BMIter__vert_of_face *iter)
+void *bmiter__vert_of_face_step(BMIter__vert_of_face *iter)
 {
   BMLoop *l_curr = iter->l_next;
 
@@ -617,12 +617,12 @@ void *bmiter__vert_of_face_step(struct BMIter__vert_of_face *iter)
  * EDGE OF FACE CALLBACKS
  */
 
-void bmiter__edge_of_face_begin(struct BMIter__edge_of_face *iter)
+void bmiter__edge_of_face_begin(BMIter__edge_of_face *iter)
 {
   iter->l_first = iter->l_next = BM_FACE_FIRST_LOOP(iter->pdata);
 }
 
-void *bmiter__edge_of_face_step(struct BMIter__edge_of_face *iter)
+void *bmiter__edge_of_face_step(BMIter__edge_of_face *iter)
 {
   BMLoop *l_curr = iter->l_next;
 
@@ -640,12 +640,12 @@ void *bmiter__edge_of_face_step(struct BMIter__edge_of_face *iter)
  * LOOP OF FACE CALLBACKS
  */
 
-void bmiter__loop_of_face_begin(struct BMIter__loop_of_face *iter)
+void bmiter__loop_of_face_begin(BMIter__loop_of_face *iter)
 {
   iter->l_first = iter->l_next = BM_FACE_FIRST_LOOP(iter->pdata);
 }
 
-void *bmiter__loop_of_face_step(struct BMIter__loop_of_face *iter)
+void *bmiter__loop_of_face_step(BMIter__loop_of_face *iter)
 {
   BMLoop *l_curr = iter->l_next;
 

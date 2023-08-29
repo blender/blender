@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,7 +11,7 @@
 
 #include "DNA_space_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "../outliner_intern.hh"
 #include "tree_display.hh"

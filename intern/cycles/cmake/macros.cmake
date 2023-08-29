@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2011-2022 Blender Foundation
 
 function(cycles_set_solution_folder target)
   if(IDE_GROUP_PROJECTS_IN_FOLDERS)
@@ -108,7 +109,10 @@ macro(cycles_external_libraries_append libraries)
     endif()
   endif()
   if(WITH_OPENVDB)
-    list(APPEND ${libraries} ${OPENVDB_LIBRARIES} ${BLOSC_LIBRARIES})
+    list(APPEND ${libraries} ${OPENVDB_LIBRARIES})
+    if(DEFINED BLOSC_LIBRARIES)
+      list(APPEND ${libraries} ${BLOSC_LIBRARIES})
+    endif()
   endif()
   if(WITH_OPENIMAGEDENOISE)
     list(APPEND ${libraries} ${OPENIMAGEDENOISE_LIBRARIES})
@@ -124,16 +128,17 @@ macro(cycles_external_libraries_append libraries)
   if(WITH_PATH_GUIDING)
     list(APPEND ${libraries} ${OPENPGL_LIBRARIES})
   endif()
+  if (WITH_WEBP)
+    list(APPEND ${libraries} ${WEBP_LIBRARIES})
+  endif()
   if(UNIX AND NOT APPLE)
     list(APPEND ${libraries} "-lm -lc -lutil")
   endif()
-
   list(APPEND ${libraries}
     ${OPENIMAGEIO_LIBRARIES}
     ${PNG_LIBRARIES}
     ${JPEG_LIBRARIES}
     ${TIFF_LIBRARY}
-    ${WEBP_LIBRARIES}
     ${OPENJPEG_LIBRARIES}
     ${OPENEXR_LIBRARIES}
     ${OPENEXR_LIBRARIES} # For circular dependencies between libs.

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -6,7 +6,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "ED_keyframes_keylist.h"
+#include "ED_keyframes_keylist.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"

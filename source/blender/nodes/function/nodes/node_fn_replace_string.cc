@@ -1,8 +1,9 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_string_utf8.h"
+#include "BLI_string_utils.h"
 
 #include "node_function_util.hh"
 
@@ -23,7 +24,7 @@ static std::string replace_all(const StringRefNull str,
   if (from.is_empty()) {
     return str;
   }
-  char *new_str_ptr = BLI_str_replaceN(str.c_str(), from.c_str(), to.c_str());
+  char *new_str_ptr = BLI_string_replaceN(str.c_str(), from.c_str(), to.c_str());
   std::string new_str{new_str_ptr};
   MEM_freeN(new_str_ptr);
   return new_str;
@@ -38,16 +39,15 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(&substring_fn);
 }
 
-}  // namespace blender::nodes::node_fn_replace_string_cc
-
-void register_node_type_fn_replace_string()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_fn_replace_string_cc;
-
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_REPLACE_STRING, "Replace String", NODE_CLASS_CONVERTER);
-  ntype.declare = file_ns::node_declare;
-  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.declare = node_declare;
+  ntype.build_multi_function = node_build_multi_function;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_fn_replace_string_cc

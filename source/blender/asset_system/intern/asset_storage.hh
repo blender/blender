@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -37,6 +37,7 @@ class AssetStorage {
   /** See #AssetLibrary::add_external_asset(). */
   AssetRepresentation &add_external_asset(AssetIdentifier &&identifier,
                                           StringRef name,
+                                          int id_type,
                                           std::unique_ptr<AssetMetaData> metadata,
                                           const AssetLibrary &owner_asset_library);
   /** See #AssetLibrary::add_external_asset(). */

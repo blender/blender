@@ -1,14 +1,52 @@
-/* SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-FileCopyrightText: 2009-2010 Sony Pictures Imageworks Inc., et al. All Rights Reserved.
+ * SPDX-FileCopyrightText: 2011-2022 Blender Foundation
  *
- * Adapted from Open Shading Language
- * Copyright (c) 2009-2010 Sony Pictures Imageworks Inc., et al.
- * All Rights Reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
  *
- * Modifications Copyright 2011-2022 Blender Foundation. */
+ * Adapted code from Open Shading Language. */
 
 #pragma once
 
 CCL_NAMESPACE_BEGIN
+
+/* Compute fresnel reflectance. Also return the dot product of the refracted ray and the normal as
+ * `cos_theta_t`, as it is used when computing the direction of the refracted ray. */
+ccl_device float fresnel_dielectric(float cos_theta_i, float eta, ccl_private float *r_cos_theta_t)
+{
+  kernel_assert(!isnan_safe(cos_theta_i));
+
+  /* Using Snell's law, calculate the squared cosine of the angle between the surface normal and
+   * the transmitted ray. */
+  const float cos_theta_t_sq = 1.0f - (1.0f - sqr(cos_theta_i)) / sqr(eta);
+  if (cos_theta_t_sq <= 0) {
+    /* Total internal reflection. */
+    return 1.0f;
+  }
+
+  cos_theta_i = fabsf(cos_theta_i);
+  /* Relative to the surface normal. */
+  const float cos_theta_t = -safe_sqrtf(cos_theta_t_sq);
+
+  if (r_cos_theta_t) {
+    *r_cos_theta_t = cos_theta_t;
+  }
+
+  /* Amplitudes of reflected waves. */
+  const float r_s = (cos_theta_i + eta * cos_theta_t) / (cos_theta_i - eta * cos_theta_t);
+  const float r_p = (cos_theta_t + eta * cos_theta_i) / (cos_theta_t - eta * cos_theta_i);
+
+  return 0.5f * (sqr(r_s) + sqr(r_p));
+}
+
+/* Refract the incident ray, given the cosine of the refraction angle and the relative refractive
+ * index of the incoming medium w.r.t. the outgoing medium. */
+ccl_device_inline float3 refract_angle(const float3 incident,
+                                       const float3 normal,
+                                       const float cos_theta_t,
+                                       const float inv_eta)
+{
+  return (inv_eta * dot(normal, incident) + cos_theta_t) * normal - inv_eta * incident;
+}
 
 ccl_device float fresnel_dielectric(
     float eta, const float3 N, const float3 I, ccl_private float3 *T, ccl_private bool *is_inside)
@@ -75,10 +113,15 @@ ccl_device Spectrum fresnel_conductor(float cosi, const Spectrum eta, const Spec
   return (Rparl2 + Rperp2) * 0.5f;
 }
 
-ccl_device float ior_from_F0(Spectrum f0)
+ccl_device float ior_from_F0(float f0)
 {
-  const float sqrt_f0 = sqrtf(clamp(average(f0), 0.0f, 0.99f));
+  const float sqrt_f0 = sqrtf(clamp(f0, 0.0f, 0.99f));
   return (1.0f + sqrt_f0) / (1.0f - sqrt_f0);
+}
+
+ccl_device float F0_from_ior(float ior)
+{
+  return sqr((ior - 1.0f) / (ior + 1.0f));
 }
 
 ccl_device float schlick_fresnel(float u)
@@ -191,6 +234,32 @@ ccl_device float3 maybe_ensure_valid_specular_reflection(ccl_private ShaderData 
     return N;
   }
   return ensure_valid_specular_reflection(sd->Ng, sd->wi, N);
+}
+
+/* Principled Hair albedo and absorption coefficients. */
+ccl_device_inline float bsdf_principled_hair_albedo_roughness_scale(
+    const float azimuthal_roughness)
+{
+  const float x = azimuthal_roughness;
+  return (((((0.245f * x) + 5.574f) * x - 10.73f) * x + 2.532f) * x - 0.215f) * x + 5.969f;
+}
+
+ccl_device_inline Spectrum
+bsdf_principled_hair_sigma_from_reflectance(const Spectrum color, const float azimuthal_roughness)
+{
+  const Spectrum sigma = log(color) /
+                         bsdf_principled_hair_albedo_roughness_scale(azimuthal_roughness);
+  return sigma * sigma;
+}
+
+ccl_device_inline Spectrum bsdf_principled_hair_sigma_from_concentration(const float eumelanin,
+                                                                         const float pheomelanin)
+{
+  const float3 eumelanin_color = make_float3(0.506f, 0.841f, 1.653f);
+  const float3 pheomelanin_color = make_float3(0.343f, 0.733f, 1.924f);
+
+  return eumelanin * rgb_to_spectrum(eumelanin_color) +
+         pheomelanin * rgb_to_spectrum(pheomelanin_color);
 }
 
 CCL_NAMESPACE_END

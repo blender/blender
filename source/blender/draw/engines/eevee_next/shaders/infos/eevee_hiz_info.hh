@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,8 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(eevee_hiz_data)
-    .sampler(15, ImageType::FLOAT_2D, "hiz_tx")
-    .uniform_buf(5, "HiZData", "hiz_buf");
+    .sampler(HIZ_TEX_SLOT, ImageType::FLOAT_2D, "hiz_tx")
+    .uniform_buf(HIZ_BUF_SLOT, "HiZData", "hiz_buf");
 
 GPU_SHADER_CREATE_INFO(eevee_hiz_update)
     .do_static_compilation(true)

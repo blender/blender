@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BKE_node_runtime.hh"
 
@@ -13,93 +13,120 @@ namespace blender::nodes::node_shader_bsdf_principled_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  /**
+   * Define static socket numbers to avoid string based lookups for GPU material creation as these
+   * could run on animated materials.
+   */
   b.add_input<decl::Color>("Base Color").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+#define SOCK_BASE_COLOR_ID 0
   b.add_input<decl::Float>("Subsurface")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+#define SOCK_SUBSURFACE_ID 1
   b.add_input<decl::Vector>("Subsurface Radius")
       .default_value({1.0f, 0.2f, 0.1f})
       .min(0.0f)
       .max(100.0f)
       .compact();
+#define SOCK_SUBSURFACE_RADIUS_ID 2
   b.add_input<decl::Color>("Subsurface Color").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+#define SOCK_SUBSURFACE_COLOR_ID 3
   b.add_input<decl::Float>("Subsurface IOR")
       .default_value(1.4f)
       .min(1.01f)
       .max(3.8f)
       .subtype(PROP_FACTOR);
+#define SOCK_SUBSURFACE_IOR_ID 4
   b.add_input<decl::Float>("Subsurface Anisotropy")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+#define SOCK_SUBSURFACE_ANISOTROPY_ID 5
   b.add_input<decl::Float>("Metallic")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+#define SOCK_METALLIC_ID 6
   b.add_input<decl::Float>("Specular")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+#define SOCK_SPECULAR_ID 7
   b.add_input<decl::Float>("Specular Tint")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+#define SOCK_SPECULAR_TINT_ID 8
   b.add_input<decl::Float>("Roughness")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+#define SOCK_ROUGHNESS_ID 9
   b.add_input<decl::Float>("Anisotropic")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+#define SOCK_ANISOTROPIC_ID 10
   b.add_input<decl::Float>("Anisotropic Rotation")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+#define SOCK_ANISOTROPIC_ROTATION_ID 11
   b.add_input<decl::Float>("Sheen").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Sheen Tint")
+#define SOCK_SHEEN_ID 12
+  b.add_input<decl::Float>("Sheen Roughness")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+#define SOCK_SHEEN_ROUGHNESS_ID 13
+  b.add_input<decl::Color>("Sheen Tint").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+#define SOCK_SHEEN_TINT_ID 14
   b.add_input<decl::Float>("Clearcoat")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+#define SOCK_CLEARCOAT_ID 15
   b.add_input<decl::Float>("Clearcoat Roughness")
       .default_value(0.03f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("IOR").default_value(1.45f).min(0.0f).max(1000.0f);
+#define SOCK_CLEARCOAT_ROUGHNESS_ID 16
+  b.add_input<decl::Float>("IOR").default_value(1.45f).min(1.0f).max(1000.0f);
+#define SOCK_IOR_ID 17
   b.add_input<decl::Float>("Transmission")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Transmission Roughness")
-      .default_value(0.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR);
+#define SOCK_TRANSMISSION_ID 18
   b.add_input<decl::Color>("Emission").default_value({0.0f, 0.0f, 0.0f, 1.0f});
+#define SOCK_EMISSION_ID 19
   b.add_input<decl::Float>("Emission Strength").default_value(1.0).min(0.0f).max(1000000.0f);
+#define SOCK_EMISSION_STRENGTH_ID 20
   b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+#define SOCK_ALPHA_ID 21
   b.add_input<decl::Vector>("Normal").hide_value();
+#define SOCK_NORMAL_ID 22
   b.add_input<decl::Vector>("Clearcoat Normal").hide_value();
+#define SOCK_CLEARCOAT_NORMAL_ID 23
   b.add_input<decl::Vector>("Tangent").hide_value();
+#define SOCK_TANGENT_ID 24
   b.add_input<decl::Float>("Weight").unavailable();
+#define SOCK_WEIGHT_ID 25
   b.add_output<decl::Shader>("BSDF");
+#define SOCK_BSDF_ID 26
 }
 
 static void node_shader_buts_principled(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -110,7 +137,7 @@ static void node_shader_buts_principled(uiLayout *layout, bContext * /*C*/, Poin
 
 static void node_shader_init_principled(bNodeTree * /*ntree*/, bNode *node)
 {
-  node->custom1 = SHD_GLOSSY_GGX;
+  node->custom1 = SHD_GLOSSY_MULTI_GGX;
   node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
 }
 
@@ -125,29 +152,29 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
                                            GPUNodeStack *out)
 {
   /* Normals */
-  if (!in[22].link) {
-    GPU_link(mat, "world_normals_get", &in[22].link);
+  if (!in[SOCK_NORMAL_ID].link) {
+    GPU_link(mat, "world_normals_get", &in[SOCK_NORMAL_ID].link);
   }
 
   /* Clearcoat Normals */
-  if (!in[23].link) {
-    GPU_link(mat, "world_normals_get", &in[23].link);
+  if (!in[SOCK_CLEARCOAT_NORMAL_ID].link) {
+    GPU_link(mat, "world_normals_get", &in[SOCK_CLEARCOAT_NORMAL_ID].link);
   }
 
 #if 0 /* Not used at the moment. */
   /* Tangents */
-  if (!in[24].link) {
+  if (!in[SOCK_TANGENT_ID].link) {
     GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
-    GPU_link(mat, "tangent_orco_z", orco, &in[24].link);
-    GPU_link(mat, "node_tangent", in[24].link, &in[24].link);
+    GPU_link(mat, "tangent_orco_z", orco, &in[SOCK_TANGENT_ID].link);
+    GPU_link(mat, "node_tangent", in[SOCK_TANGENT_ID].link, &in[SOCK_TANGENT_ID].link);
   }
 #endif
 
-  bool use_diffuse = socket_not_one(6) && socket_not_one(17);
-  bool use_subsurf = socket_not_zero(1) && use_diffuse;
-  bool use_refract = socket_not_one(6) && socket_not_zero(17);
-  bool use_transparency = socket_not_one(21);
-  bool use_clear = socket_not_zero(14);
+  bool use_diffuse = socket_not_one(SOCK_METALLIC_ID) && socket_not_one(SOCK_TRANSMISSION_ID);
+  bool use_subsurf = socket_not_zero(SOCK_SUBSURFACE_ID) && use_diffuse;
+  bool use_refract = socket_not_one(SOCK_METALLIC_ID) && socket_not_zero(SOCK_TRANSMISSION_ID);
+  bool use_transparency = socket_not_one(SOCK_ALPHA_ID);
+  bool use_clear = socket_not_zero(SOCK_CLEARCOAT_ID);
 
   eGPUMaterialFlag flag = GPU_MATFLAG_GLOSSY;
   if (use_diffuse) {
@@ -185,7 +212,8 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   }
 
   if (use_subsurf) {
-    bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->runtime->original->inputs, 2);
+    bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->runtime->original->inputs,
+                                                      SOCK_SUBSURFACE_RADIUS_ID);
     bNodeSocketValueRGBA *socket_data = (bNodeSocketValueRGBA *)socket->default_value;
     /* For some reason it seems that the socket value is in ARGB format. */
     use_subsurf = GPU_material_sss_profile_create(mat, &socket_data->value[1]);
@@ -213,14 +241,9 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
 
 static void node_shader_update_principled(bNodeTree *ntree, bNode *node)
 {
-  const int distribution = node->custom1;
   const int sss_method = node->custom2;
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->name, "Transmission Roughness")) {
-      bke::nodeSetSocketAvailability(ntree, sock, distribution == SHD_GLOSSY_GGX);
-    }
-
     if (STR_ELEM(sock->name, "Subsurface IOR", "Subsurface Anisotropy")) {
       bke::nodeSetSocketAvailability(ntree, sock, sss_method != SHD_SUBSURFACE_BURLEY);
     }

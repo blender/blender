@@ -1,11 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
  * \brief Class to define a pseudo Perlin noise
  */
 
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
 #include "PseudoNoise.h"

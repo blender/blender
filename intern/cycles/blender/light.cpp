@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/light.h"
 
@@ -51,8 +52,6 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     case BL::Light::type_SPOT: {
       BL::SpotLight b_spot_light(b_light);
       light->set_size(b_spot_light.shadow_soft_size());
-      light->set_axisu(transform_get_column(&tfm, 0));
-      light->set_axisv(transform_get_column(&tfm, 1));
       light->set_light_type(LIGHT_SPOT);
       light->set_spot_angle(b_spot_light.spot_size());
       light->set_spot_smooth(b_spot_light.spot_blend());
@@ -73,8 +72,6 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     case BL::Light::type_AREA: {
       BL::AreaLight b_area_light(b_light);
       light->set_size(1.0f);
-      light->set_axisu(transform_get_column(&tfm, 0));
-      light->set_axisv(transform_get_column(&tfm, 1));
       light->set_sizeu(b_area_light.size());
       light->set_spread(b_area_light.spread());
       switch (b_area_light.shape()) {
@@ -105,8 +102,6 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   light->set_strength(strength);
 
   /* location and (inverted!) direction */
-  light->set_co(transform_get_column(&tfm, 3));
-  light->set_dir(-transform_get_column(&tfm, 2));
   light->set_tfm(tfm);
 
   /* shader */
@@ -149,7 +144,11 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   light->set_is_shadow_catcher(b_ob_info.real_object.is_shadow_catcher());
 
   /* Light group and linking. */
-  light->set_lightgroup(ustring(b_ob_info.real_object.lightgroup()));
+  string lightgroup = b_ob_info.real_object.lightgroup();
+  if (lightgroup.empty()) {
+    lightgroup = b_parent.lightgroup();
+  }
+  light->set_lightgroup(ustring(lightgroup));
   light->set_light_set_membership(
       BlenderLightLink::get_light_set_membership(PointerRNA_NULL, b_ob_info.real_object));
   light->set_shadow_set_membership(

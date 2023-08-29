@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2013-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 import bpy
 import nodeitems_utils
 from nodeitems_utils import (
@@ -191,7 +194,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeBsdfRefraction", poll=object_eevee_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeBsdfGlass", poll=object_eevee_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeBsdfTranslucent", poll=object_eevee_cycles_shader_nodes_poll),
-        NodeItem("ShaderNodeBsdfVelvet", poll=object_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeBsdfSheen", poll=object_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeBsdfToon", poll=object_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeSubsurfaceScattering", poll=object_eevee_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeEmission", poll=eevee_cycles_shader_nodes_poll),
@@ -335,6 +338,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeSunBeams"),
         NodeItem("CompositorNodeDenoise"),
         NodeItem("CompositorNodeAntiAliasing"),
+        NodeItem("CompositorNodeKuwahara"),
     ]),
     CompositorNodeCategory("CMP_OP_VECTOR", "Vector", items=[
         NodeItem("CompositorNodeNormal"),

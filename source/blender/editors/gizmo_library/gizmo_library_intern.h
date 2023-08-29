@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,10 +8,16 @@
 
 #pragma once
 
+#include "gizmo_geometry.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define DIAL_RESOLUTION 48
 
 /**
- * Data for common interactions. Used in gizmo_library_utils.c functions.
+ * Data for common interactions. Used in `gizmo_library_utils.cc` functions.
  */
 typedef struct GizmoCommonData {
   float range_fac; /* factor for arrow min/max distance */
@@ -86,8 +92,6 @@ struct wmGizmo *gizmo_find_from_properties(const struct IDProperty *properties,
 /* -------------------------------------------------------------------- */
 /* Gizmo drawing */
 
-#include "gizmo_geometry.h"
-
 /**
  * Main draw call for #GizmoGeomInfo data
  */
@@ -96,3 +100,7 @@ void wm_gizmo_geometryinfo_draw(const struct GizmoGeomInfo *info,
                                 const float color[4]);
 void wm_gizmo_vec_draw(
     const float color[4], const float (*verts)[3], uint vert_count, uint pos, uint primitive_type);
+
+#ifdef __cplusplus
+}
+#endif

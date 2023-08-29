@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,12 +10,12 @@
 #ifndef __PY_CAPI_UTILS_H__
 #define __PY_CAPI_UTILS_H__
 
+#include "BLI_sys_types.h"
+#include "BLI_utildefines_variadic.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_sys_types.h"
-#include "BLI_utildefines_variadic.h"
 
 /** Useful to print Python objects while debugging. */
 void PyC_ObSpit(const char *name, PyObject *var);
@@ -84,17 +84,6 @@ PyObject *PyC_Tuple_PackArray_I32(const int *array, uint len);
 PyObject *PyC_Tuple_PackArray_I32FromBool(const int *array, uint len);
 PyObject *PyC_Tuple_PackArray_Bool(const bool *array, uint len);
 
-#define PyC_Tuple_Pack_F32(...) \
-  PyC_Tuple_PackArray_F32(((const float[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#define PyC_Tuple_Pack_F64(...) \
-  PyC_Tuple_PackArray_F64(((const double[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#define PyC_Tuple_Pack_I32(...) \
-  PyC_Tuple_PackArray_I32(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#define PyC_Tuple_Pack_I32FromBool(...) \
-  PyC_Tuple_PackArray_I32FromBool(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#define PyC_Tuple_Pack_Bool(...) \
-  PyC_Tuple_PackArray_Bool(((const bool[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-
 PyObject *PyC_Tuple_PackArray_Multi_F32(const float *array, const int dims[], int dims_len);
 PyObject *PyC_Tuple_PackArray_Multi_F64(const double *array, const int dims[], int dims_len);
 PyObject *PyC_Tuple_PackArray_Multi_I32(const int *array, const int dims[], int dims_len);
@@ -107,15 +96,51 @@ PyObject *PyC_Tuple_PackArray_Multi_Bool(const bool *array, const int dims[], in
 void PyC_Tuple_Fill(PyObject *tuple, PyObject *value);
 void PyC_List_Fill(PyObject *list, PyObject *value);
 
-/* follow http://www.python.org/dev/peps/pep-0383/ */
+/**
+ * Create a `str` from bytes in a way which is compatible with non UTF8 encoded file-system paths,
+ * see: #111033.
+ * Follow http://www.python.org/dev/peps/pep-0383/
+ */
 PyObject *PyC_UnicodeFromBytes(const char *str);
+/**
+ * \param size: The length of the string: `strlen(str)`.
+ */
 PyObject *PyC_UnicodeFromBytesAndSize(const char *str, Py_ssize_t size);
-const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
+const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **r_coerce); /* coerce must be NULL */
 /**
  * String conversion, escape non-unicode chars
- * \param coerce: must be set to NULL.
+ * \param r_size: The string length (not including the null terminator).
+ * \note By convention Blender API's use len/length however Python API's use the term size,
+ * as this is an alternative to Python's #PyUnicode_AsUTF8AndSize, follow it's naming.
+ * \param r_coerce: must reference a pointer set to NULL.
  */
-const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
+const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *r_size, PyObject **r_coerce);
+
+/**
+ * Notes on using this structure:
+ * - Always initialize to `{nullptr}`.
+ * - Always `Py_XDECREF(value_coerce)` before returning,
+ *   after this `value` must not be accessed.
+ */
+typedef struct PyC_UnicodeAsBytesAndSize_Data {
+  PyObject *value_coerce;
+  const char *value;
+  Py_ssize_t value_len;
+} PyC_UnicodeAsBytesAndSize_Data;
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * Expose #PyC_UnicodeAsBytes in a way which is useful to the argument parser.
+ * \param o: An argument parsed to #PyC_UnicodeAsBytes.
+ * \param p: Pointer to #PyC_UnicodeAsBytes_Data.
+ *
+ * \note The Python API docs reference `PyUnicode_FSConverter` however this does not support
+ * paths which non utf-8 encoding, see: #111033.
+ */
+int PyC_ParseUnicodeAsBytesAndSize(PyObject *o, void *p);
+/** A version of #PyC_ParseUnicodeAsBytesAndSize that accepts None. */
+int PyC_ParseUnicodeAsBytesAndSize_OrNone(PyObject *o, void *p);
 
 /**
  * Description: This function creates a new Python dictionary object.
@@ -185,6 +210,9 @@ bool PyC_RunString_AsIntPtr(const char **imports,
                             const char *expr,
                             const char *filename,
                             intptr_t *r_value);
+/**
+ * \param r_value_size: The length of the string assigned: `strlen(*r_value)`.
+ */
 bool PyC_RunString_AsStringAndSize(const char **imports,
                                    const char *expr,
                                    const char *filename,
@@ -286,6 +314,45 @@ bool PyC_StructFmt_type_is_bool(char format);
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+#  include "BLI_span.hh"
+
+inline PyObject *PyC_Tuple_Pack_F32(const blender::Span<float> values)
+{
+  return PyC_Tuple_PackArray_F32(values.data(), values.size());
+}
+inline PyObject *PyC_Tuple_Pack_F64(const blender::Span<double> values)
+{
+  return PyC_Tuple_PackArray_F64(values.data(), values.size());
+}
+inline PyObject *PyC_Tuple_Pack_I32(const blender::Span<int> values)
+{
+  return PyC_Tuple_PackArray_I32(values.data(), values.size());
+}
+inline PyObject *PyC_Tuple_Pack_I32FromBool(const blender::Span<int> values)
+{
+  return PyC_Tuple_PackArray_I32FromBool(values.data(), values.size());
+}
+inline PyObject *PyC_Tuple_Pack_Bool(const blender::Span<bool> values)
+{
+  return PyC_Tuple_PackArray_Bool(values.data(), values.size());
+}
+
+#else
+
+#  define PyC_Tuple_Pack_F32(...) \
+    PyC_Tuple_PackArray_F32(((const float[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+#  define PyC_Tuple_Pack_F64(...) \
+    PyC_Tuple_PackArray_F64(((const double[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+#  define PyC_Tuple_Pack_I32(...) \
+    PyC_Tuple_PackArray_I32(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+#  define PyC_Tuple_Pack_I32FromBool(...) \
+    PyC_Tuple_PackArray_I32FromBool(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+#  define PyC_Tuple_Pack_Bool(...) \
+    PyC_Tuple_PackArray_Bool(((const bool[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+
 #endif
 
 #endif /* __PY_CAPI_UTILS_H__ */

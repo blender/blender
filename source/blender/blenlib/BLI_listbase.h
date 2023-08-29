@@ -64,6 +64,12 @@ void *BLI_findstring_ptr(const struct ListBase *listbase,
                          const char *id,
                          int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
+ * Finds the first element in the listbase after the given \a link element which contains a pointer
+ * to the null-terminated string \a id at the specified offset, returning NULL if not found.
+ */
+void *BLI_listbase_findafter_string_ptr(struct Link *link, const char *id, const int offset);
+
+/**
  * Finds the first element of listbase which contains the specified pointer value
  * at the specified offset, returning NULL if not found.
  */

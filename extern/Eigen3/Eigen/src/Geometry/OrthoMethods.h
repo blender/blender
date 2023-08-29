@@ -27,9 +27,10 @@ namespace Eigen {
 template<typename Derived>
 template<typename OtherDerived>
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-EIGEN_DEVICE_FUNC inline typename MatrixBase<Derived>::template cross_product_return_type<OtherDerived>::type
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+typename MatrixBase<Derived>::template cross_product_return_type<OtherDerived>::type
 #else
-inline typename MatrixBase<Derived>::PlainObject
+typename MatrixBase<Derived>::PlainObject
 #endif
 MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {

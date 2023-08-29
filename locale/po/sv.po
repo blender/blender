@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -115,6 +115,14 @@ msgstr "Egenskaper"
 
 msgid "Width"
 msgstr "Bredd"
+
+
+msgid "Options"
+msgstr "Alternativ"
+
+
+msgid "Quaternion"
+msgstr "Kvaternion"
 
 
 msgid "Edge"
@@ -317,10 +325,6 @@ msgid "Outline"
 msgstr "Kontur"
 
 
-msgid "Path"
-msgstr "Bana"
-
-
 msgid "Opacity"
 msgstr "Genomskinlighet"
 
@@ -489,10 +493,6 @@ msgid "Front"
 msgstr "Fram"
 
 
-msgid "Quaternion"
-msgstr "Kvaternion"
-
-
 msgid "Location"
 msgstr "Position"
 
@@ -565,10 +565,6 @@ msgid "Factor"
 msgstr "Faktor"
 
 
-msgid "Force"
-msgstr "Kraft"
-
-
 msgid "Velocity"
 msgstr "Hastighet"
 
@@ -595,6 +591,10 @@ msgstr "Vertex"
 
 msgid "Anti-Aliasing"
 msgstr "Antialias"
+
+
+msgid "Force"
+msgstr "Kraft"
 
 
 msgid "Turbulence"
@@ -631,10 +631,6 @@ msgstr "5.1 Surround"
 
 msgid "7.1 Surround"
 msgstr "7.1 Surround"
-
-
-msgid "Samplerate"
-msgstr "Samplingsfrekvens"
 
 
 msgid "Audio volume"
@@ -675,10 +671,6 @@ msgstr "Form"
 
 msgid "Axis"
 msgstr "Axel"
-
-
-msgid "Kink"
-msgstr "Nyck"
 
 
 msgid "Seed"
@@ -813,10 +805,6 @@ msgid "Grid"
 msgstr "Rutnät"
 
 
-msgid "Options"
-msgstr "Alternativ"
-
-
 msgid "Window"
 msgstr "Fönster"
 
@@ -905,14 +893,6 @@ msgid "Rate"
 msgstr "Frekvens"
 
 
-msgid "Rotate"
-msgstr "Rotera"
-
-
-msgid "Cloth"
-msgstr "Tyg"
-
-
 msgid "List of background images"
 msgstr "Lista på bakgrundsbilder"
 
@@ -923,6 +903,10 @@ msgstr "Beskärningsstart"
 
 msgid "Display Background Images"
 msgstr "Visa bakgrundsbilder"
+
+
+msgid "Path"
+msgstr "Bana"
 
 
 msgid "Font"
@@ -1017,10 +1001,6 @@ msgid "Compositing"
 msgstr "Komponering"
 
 
-msgid "Samples"
-msgstr "Samplar"
-
-
 msgid "Size Y"
 msgstr "Storlek Y"
 
@@ -1045,6 +1025,10 @@ msgid "Cube"
 msgstr "Kub"
 
 
+msgid "Cloth"
+msgstr "Tyg"
+
+
 msgid "Specular Color"
 msgstr "Glansighetsfärg"
 
@@ -1059,6 +1043,18 @@ msgstr "Vertexfärger"
 
 msgid "Nodes"
 msgstr "Noder"
+
+
+msgid "Sculpt"
+msgstr "Skulptera"
+
+
+msgid "Tool"
+msgstr "Verktyg"
+
+
+msgid "Mesh"
+msgstr "Mesh"
 
 
 msgid "Cylinder"
@@ -1257,10 +1253,6 @@ msgid "Instances"
 msgstr "Instanser"
 
 
-msgid "Mesh"
-msgstr "Mesh"
-
-
 msgid "Node"
 msgstr "Nod"
 
@@ -1317,12 +1309,12 @@ msgid "Rigid Body"
 msgstr "Rigid kropp"
 
 
-msgid "Sculpt"
-msgstr "Skulptera"
-
-
 msgid "Root"
 msgstr "Rot"
+
+
+msgid "Samples"
+msgstr "Samplar"
 
 
 msgid "Active Clone"
@@ -1425,6 +1417,18 @@ msgid "Shadow"
 msgstr "Skugga"
 
 
+msgid "Eccentricity"
+msgstr "Eccentricitet"
+
+
+msgid "Anisotropic"
+msgstr "Anisotropisk"
+
+
+msgid "Rotate"
+msgstr "Rotera"
+
+
 msgid "Convex Hull"
 msgstr "Konvext hölje"
 
@@ -1524,10 +1528,6 @@ msgstr "Dela upp"
 msgctxt "Operator"
 msgid "Preset"
 msgstr "Förinställning"
-
-
-msgid "Tool"
-msgstr "Verktyg"
 
 
 msgid "Name of the preset, used to make the path name"
@@ -2108,6 +2108,10 @@ msgid "Histogram"
 msgstr "Histogram"
 
 
+msgid "Kink"
+msgstr "Nyck"
+
+
 msgid "Physics"
 msgstr "Fysik"
 
@@ -2290,10 +2294,6 @@ msgstr "Filmformat"
 
 msgid "When true the format is a movie"
 msgstr "Om 'sant' så är formatet en film"
-
-
-msgid "Resolution %"
-msgstr "Upplösning %"
 
 
 msgid "Percentage scale for render resolution"
@@ -2593,10 +2593,6 @@ msgid "Auto-Step"
 msgstr "Automatiska steg"
 
 
-msgid "Eccentricity"
-msgstr "Eccentricitet"
-
-
 msgid "Options:"
 msgstr "Alternativ:"
 
@@ -2719,10 +2715,6 @@ msgstr "Gammal"
 
 msgid "IOR"
 msgstr "Brytningsindex"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropisk"
 
 
 msgid "Transparency"

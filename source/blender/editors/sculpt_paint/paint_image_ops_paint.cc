@@ -12,26 +12,28 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_brush.h"
+#include "BLI_math_color.h"
+
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_layer.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_undo_system.h"
 
-#include "ED_paint.h"
-#include "ED_view3d.h"
+#include "ED_paint.hh"
+#include "ED_view3d.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 
 #include "paint_intern.hh"
 
@@ -60,14 +62,14 @@ class AbstractPaintMode {
   virtual void paint_gradient_fill(const bContext *C,
                                    const Scene *scene,
                                    Brush *brush,
-                                   struct PaintStroke *stroke,
+                                   PaintStroke *stroke,
                                    void *stroke_handle,
                                    float mouse_start[2],
                                    float mouse_end[2]) = 0;
   virtual void paint_bucket_fill(const bContext *C,
                                  const Scene *scene,
                                  Brush *brush,
-                                 struct PaintStroke *stroke,
+                                 PaintStroke *stroke,
                                  void *stroke_handle,
                                  float mouse_start[2],
                                  float mouse_end[2]) = 0;
@@ -106,7 +108,7 @@ class ImagePaintMode : public AbstractPaintMode {
   void paint_gradient_fill(const bContext *C,
                            const Scene * /*scene*/,
                            Brush *brush,
-                           struct PaintStroke * /*stroke*/,
+                           PaintStroke * /*stroke*/,
                            void *stroke_handle,
                            float mouse_start[2],
                            float mouse_end[2]) override
@@ -117,7 +119,7 @@ class ImagePaintMode : public AbstractPaintMode {
   void paint_bucket_fill(const bContext *C,
                          const Scene *scene,
                          Brush *brush,
-                         struct PaintStroke *stroke,
+                         PaintStroke *stroke,
                          void *stroke_handle,
                          float mouse_start[2],
                          float mouse_end[2]) override
@@ -166,7 +168,7 @@ class ProjectionPaintMode : public AbstractPaintMode {
   void paint_gradient_fill(const bContext *C,
                            const Scene *scene,
                            Brush *brush,
-                           struct PaintStroke *stroke,
+                           PaintStroke *stroke,
                            void *stroke_handle,
                            float mouse_start[2],
                            float mouse_end[2]) override
@@ -177,7 +179,7 @@ class ProjectionPaintMode : public AbstractPaintMode {
   void paint_bucket_fill(const bContext *C,
                          const Scene *scene,
                          Brush *brush,
-                         struct PaintStroke *stroke,
+                         PaintStroke *stroke,
                          void *stroke_handle,
                          float mouse_start[2],
                          float mouse_end[2]) override
@@ -189,7 +191,7 @@ class ProjectionPaintMode : public AbstractPaintMode {
   void paint_fill(const bContext *C,
                   const Scene *scene,
                   Brush *brush,
-                  struct PaintStroke *stroke,
+                  PaintStroke *stroke,
                   void *stroke_handle,
                   float mouse_start[2],
                   float mouse_end[2])
@@ -324,7 +326,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 
 static void paint_stroke_update_step(bContext *C,
                                      wmOperator * /*op*/,
-                                     struct PaintStroke *stroke,
+                                     PaintStroke *stroke,
                                      PointerRNA *itemptr)
 {
   PaintOperation *pop = static_cast<PaintOperation *>(paint_stroke_mode_data(stroke));
@@ -376,13 +378,13 @@ static void paint_stroke_update_step(bContext *C,
   BKE_brush_alpha_set(scene, brush, startalpha);
 }
 
-static void paint_stroke_redraw(const bContext *C, struct PaintStroke *stroke, bool final)
+static void paint_stroke_redraw(const bContext *C, PaintStroke *stroke, bool final)
 {
   PaintOperation *pop = static_cast<PaintOperation *>(paint_stroke_mode_data(stroke));
   pop->mode->paint_stroke_redraw(C, pop->stroke_handle, final);
 }
 
-static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
+static void paint_stroke_done(const bContext *C, PaintStroke *stroke)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *toolsettings = scene->toolsettings;

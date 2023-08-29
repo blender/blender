@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -22,16 +22,14 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Compute the min and max of all realized geometry for the two
    * vector outputs, which are only meant to consider real geometry. */
-  float3 min = float3(FLT_MAX);
-  float3 max = float3(-FLT_MAX);
-  geometry_set.compute_boundbox_without_instances(&min, &max);
-  if (min == float3(FLT_MAX)) {
+  const std::optional<Bounds<float3>> bounds = geometry_set.compute_boundbox_without_instances();
+  if (!bounds) {
     params.set_output("Min", float3(0));
     params.set_output("Max", float3(0));
   }
   else {
-    params.set_output("Min", min);
-    params.set_output("Max", max);
+    params.set_output("Min", bounds->min);
+    params.set_output("Max", bounds->max);
   }
 
   /* Generate the bounding box meshes inside each unique geometry set (including individually for
@@ -39,28 +37,26 @@ static void node_geo_exec(GeoNodeExecParams params)
    * repurpose the original geometry sets for the output. */
   if (params.output_is_required("Bounding Box")) {
     geometry_set.modify_geometry_sets([&](GeometrySet &sub_geometry) {
-      float3 sub_min = float3(FLT_MAX);
-      float3 sub_max = float3(-FLT_MAX);
+      std::optional<Bounds<float3>> sub_bounds;
 
       /* Reuse the min and max calculation if this is the main "real" geometry set. */
       if (&sub_geometry == &geometry_set) {
-        sub_min = min;
-        sub_max = max;
+        sub_bounds = bounds;
       }
       else {
-        sub_geometry.compute_boundbox_without_instances(&sub_min, &sub_max);
+        sub_bounds = sub_geometry.compute_boundbox_without_instances();
       }
 
-      if (sub_min == float3(FLT_MAX)) {
+      if (!sub_bounds) {
         sub_geometry.remove_geometry_during_modify();
       }
       else {
-        const float3 scale = sub_max - sub_min;
-        const float3 center = sub_min + scale / 2.0f;
+        const float3 scale = sub_bounds->max - sub_bounds->min;
+        const float3 center = sub_bounds->min + scale / 2.0f;
         Mesh *mesh = geometry::create_cuboid_mesh(scale, 2, 2, 2, "uv_map");
         transform_mesh(*mesh, center, float3(0), float3(1));
         sub_geometry.replace_mesh(mesh);
-        sub_geometry.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
+        sub_geometry.keep_only_during_modify({GeometryComponent::Type::Mesh});
       }
     });
 
@@ -68,16 +64,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_bounding_box_cc
-
-void register_node_type_geo_bounding_box()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_bounding_box_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_BOUNDING_BOX, "Bounding Box", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_bounding_box_cc

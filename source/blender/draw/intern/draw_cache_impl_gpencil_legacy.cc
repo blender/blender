@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation.
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,7 +18,7 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 #include "GPU_batch.h"
 
 #include "DEG_depsgraph_query.h"
@@ -28,7 +28,7 @@
 #include "BLI_polyfill_2d.h"
 
 #include "draw_cache.h"
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 
 #include "../engines/gpencil/gpencil_defines.h"
 #include "../engines/gpencil/gpencil_shader_shared.h"
@@ -283,7 +283,7 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
     packed |= 1 << 8;
   }
   /* Rotation uses 9 bits */
-  /* Rotation are in [-90°..90°] range, so we can encode the sign of the angle + the cosine
+  /* Rotation are in [-90..90 degree] range, so we can encode the sign of the angle + the cosine
    * because the cosine will always be positive. */
   packed |= int32_t(unit_float_to_uchar_clamp(cosf(rot))) << 9;
   /* Store sine sign in 9th bit. */

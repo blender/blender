@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2020-2023 Blender Authors
+#
 # SPDX-License-Identifier: Apache-2.0
 
 # ./blender.bin --background -noaudio --python tests/python/bl_blendfile_io.py
@@ -45,6 +47,52 @@ class TestBlendFileSaveLoadBasic(TestHelper):
         read_data = self.blender_data_to_tuple(bpy.data, "read_data 2")
 
         assert orig_data == read_data
+
+
+class TestBlendFileSavePartial(TestHelper):
+    OBJECT_MESH_NAME = "ObjectMesh"
+    OBJECT_MATERIAL_NAME = "ObjectMaterial"
+    OBJECT_NAME = "Object"
+    UNUSED_MESH_NAME = "UnusedMesh"
+
+    def __init__(self, args):
+        self.args = args
+
+    def test_save_load(self):
+        bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
+
+        ob_mesh = bpy.data.meshes.new(self.OBJECT_MESH_NAME)
+        ob_material = bpy.data.materials.new(self.OBJECT_MATERIAL_NAME)
+        ob_mesh.materials.append(ob_material)
+        ob = bpy.data.objects.new(self.OBJECT_NAME, object_data=ob_mesh)
+        bpy.context.collection.objects.link(ob)
+
+        unused_mesh = bpy.data.meshes.new(self.UNUSED_MESH_NAME)
+        unused_mesh.materials.append(ob_material)
+
+        assert ob_mesh.users == 1
+        assert ob_material.users == 2
+        assert ob.users == 1
+        assert unused_mesh.users == 0
+
+        output_dir = self.args.output_dir
+        self.ensure_path(output_dir)
+
+        # Take care to keep the name unique so multiple test jobs can run at once.
+        output_path = os.path.join(output_dir, "blendfile_io_partial.blend")
+
+        bpy.data.libraries.write(filepath=output_path, datablocks={ob, unused_mesh}, fake_user=False)
+        bpy.ops.wm.open_mainfile(filepath=output_path, load_ui=False)
+
+        assert self.OBJECT_MESH_NAME in bpy.data.meshes
+        assert self.OBJECT_MATERIAL_NAME in bpy.data.materials
+        assert self.OBJECT_NAME in bpy.data.objects
+        assert self.UNUSED_MESH_NAME in bpy.data.meshes
+
+        assert bpy.data.meshes[self.OBJECT_MESH_NAME].users == 1
+        assert bpy.data.materials[self.OBJECT_MATERIAL_NAME].users == 2
+        assert bpy.data.objects[self.OBJECT_NAME].users == 0
+        assert bpy.data.meshes[self.UNUSED_MESH_NAME].users == 0
 
 
 # NOTE: Technically this should rather be in `bl_id_management.py` test, but that file uses `unittest` module,
@@ -113,10 +161,11 @@ class TestIdRuntimeTag(TestHelper):
         assert linked_material.is_library_indirect is False
 
         link_dir = os.path.join(output_lib_path, "Mesh")
-        bpy.ops.wm.link(directory=link_dir, filename="LibMesh")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_object_data=False)
 
         linked_mesh = bpy.data.meshes['LibMesh']
         assert linked_mesh.is_library_indirect is False
+        assert linked_mesh.use_fake_user is False
 
         obj.data = linked_mesh
         obj.material_slots[0].link = 'OBJECT'
@@ -129,21 +178,20 @@ class TestIdRuntimeTag(TestHelper):
         # so writing .blend file will have properly reset its tag to indirectly linked data.
         assert linked_material.is_library_indirect
 
-        # Only usage of this linked mesh is a runtime ID (object), but it is flagged as 'fake user' in its library,
-        # so writing .blend file will have kept its tag to directly linked data.
-        assert not linked_mesh.is_library_indirect
+        # Only usage of this linked mesh is a runtime ID (object),
+        # so writing .blend file will have properly reset its tag to indirectly linked data.
+        assert linked_mesh.is_library_indirect
 
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
 
         assert 'Cube' not in bpy.data.objects
-        assert 'LibMaterial' in bpy.data.materials  # Pulled-in by the linked mesh.
-        linked_mesh = bpy.data.meshes['LibMesh']
-        assert linked_mesh.use_fake_user is True
-        assert linked_mesh.is_library_indirect is False
+        assert 'LibMaterial' not in bpy.data.materials
+        assert 'libMesh' not in bpy.data.meshes
 
 
 TESTS = (
     TestBlendFileSaveLoadBasic,
+    TestBlendFileSavePartial,
 
     TestIdRuntimeTag,
 )

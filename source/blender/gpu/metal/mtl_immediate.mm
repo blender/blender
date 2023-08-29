@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -72,7 +74,7 @@ void MTLImmediate::end()
       const char *ptr = (active_mtl_shader) ? active_mtl_shader->name_get() : nullptr;
       MTL_LOG_WARNING(
           "MTLImmediate::end -- cannot perform draw as active shader is NULL or invalid (likely "
-          "unimplemented) (shader %p '%s')\n",
+          "unimplemented) (shader %p '%s')",
           active_mtl_shader,
           ptr);
       return;
@@ -162,7 +164,7 @@ void MTLImmediate::end()
       if (attr == nullptr) {
         MTL_LOG_ERROR(
             "MTLImmediate::end Could not find matching attribute '%s' from Shader Interface in "
-            "Vertex Format! - TODO: Bind Dummy attribute\n",
+            "Vertex Format! - TODO: Bind Dummy attribute",
             interface->get_name_at_offset(mtl_shader_attribute.name_offset));
         return;
       }
@@ -423,4 +425,4 @@ void MTLImmediate::end()
   }
 }
 
-}  // blender::gpu
+}  // namespace blender::gpu

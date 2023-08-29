@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,8 +12,9 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
+#include "BLI_virtual_array.hh"
 
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 
 struct Depsgraph;
 struct GridPaintMask;
@@ -34,9 +35,9 @@ struct MultiresReshapeContext {
   /* Base mesh from original object.
    * NOTE: Does NOT include any leading modifiers in it. */
   Mesh *base_mesh;
-  const float (*base_positions)[3];
+  blender::Span<blender::float3> base_positions;
   blender::Span<blender::int2> base_edges;
-  blender::OffsetIndices<int> base_polys;
+  blender::OffsetIndices<int> base_faces;
   blender::Span<int> base_corner_verts;
   blender::Span<int> base_corner_edges;
 
@@ -82,8 +83,8 @@ struct MultiresReshapeContext {
   /* Indexed by face index, gives first grid index of the face. */
   int *face_start_grid_index;
 
-  /* Indexed by grid index, contains face (poly) index in the base mesh from which the grid has
-   * been created (in other words, index of a poly which contains loop corresponding to the grid
+  /* Indexed by grid index, contains face index in the base mesh from which the grid has
+   * been created (in other words, index of a face which contains loop corresponding to the grid
    * index). */
   int *grid_to_face_index;
 
@@ -100,10 +101,10 @@ struct MultiresReshapeContext {
    * to that base face. */
   int *face_ptex_offset;
 
-  /* Vertex crease custom data layer, null if none is present. */
-  const float *cd_vertex_crease;
-  /* Edge crease custom data layer, null if none is present. */
-  const float *cd_edge_crease;
+  /* Vertex crease custom data layer, empty if none is present. */
+  blender::VArraySpan<float> cd_vertex_crease;
+  /* Edge crease custom data layer, empty if none is present. */
+  blender::VArraySpan<float> cd_edge_crease;
 };
 
 /**

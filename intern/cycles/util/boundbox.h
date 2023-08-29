@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_BOUNDBOX_H__
 #define __UTIL_BOUNDBOX_H__
@@ -8,7 +9,6 @@
 #include <math.h>
 
 #include "util/math.h"
-#include "util/string.h"
 #include "util/transform.h"
 #include "util/types.h"
 

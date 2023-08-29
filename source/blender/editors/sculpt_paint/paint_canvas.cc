@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,11 +9,11 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "WM_toolsystem.h"
 
-#include "ED_paint.h"
+#include "ED_paint.hh"
 
 namespace blender::ed::sculpt_paint::canvas {
 static TexPaintSlot *get_active_slot(Object *ob)
@@ -35,8 +35,6 @@ static TexPaintSlot *get_active_slot(Object *ob)
 
 }  // namespace blender::ed::sculpt_paint::canvas
 
-extern "C" {
-
 using namespace blender::ed::sculpt_paint::canvas;
 
 /* Does the paint tool with the given idname uses a canvas. */
@@ -51,7 +49,7 @@ static bool paint_tool_shading_color_follows_last_used(blender::StringRef idname
   return ELEM(idname, "builtin_brush.Mask");
 }
 
-void ED_paint_tool_update_sticky_shading_color(struct bContext *C, struct Object *ob)
+void ED_paint_tool_update_sticky_shading_color(bContext *C, Object *ob)
 {
   if (ob == nullptr || ob->sculpt == nullptr) {
     return;
@@ -69,7 +67,7 @@ void ED_paint_tool_update_sticky_shading_color(struct bContext *C, struct Object
   ob->sculpt->sticky_shading_color = paint_tool_uses_canvas(tref->idname);
 }
 
-static bool paint_tool_shading_color_follows_last_used_tool(struct bContext *C, struct Object *ob)
+static bool paint_tool_shading_color_follows_last_used_tool(bContext *C, Object *ob)
 {
   if (ob == nullptr || ob->sculpt == nullptr) {
     return false;
@@ -83,7 +81,7 @@ static bool paint_tool_shading_color_follows_last_used_tool(struct bContext *C, 
   return paint_tool_shading_color_follows_last_used(tref->idname);
 }
 
-bool ED_paint_tool_use_canvas(struct bContext *C, bToolRef *tref)
+bool ED_paint_tool_use_canvas(bContext *C, bToolRef *tref)
 {
   if (tref == nullptr) {
     tref = WM_toolsystem_ref_from_context(C);
@@ -140,5 +138,4 @@ eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
   }
 
   return color_type;
-}
 }

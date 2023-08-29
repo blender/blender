@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,43 +6,39 @@ set(INC
   ../include
   ../../blenfont
   ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../blentranslation
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
 )
 
 set(INC_SYS
 )
 
 set(SRC
-  space_text.c
-  text_autocomplete.c
-  text_draw.c
-  text_format.c
-  text_format_lua.c
-  text_format_osl.c
-  text_format_pov.c
-  text_format_pov_ini.c
-  text_format_py.c
-  text_header.c
-  text_ops.c
+  space_text.cc
+  text_autocomplete.cc
+  text_draw.cc
+  text_format.cc
+  text_format_osl.cc
+  text_format_pov.cc
+  text_format_pov_ini.cc
+  text_format_py.cc
+  text_header.cc
+  text_ops.cc
   text_undo.cc
 
-  text_format.h
-  text_intern.h
+  text_format.hh
+  text_intern.hh
 )
 
 set(LIB
   bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 
@@ -55,6 +51,3 @@ endif()
 
 
 blender_add_lib(bf_editor_space_text "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-
-# dna_type_offsets.h
-add_dependencies(bf_editor_space_text bf_dna)

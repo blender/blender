@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,6 +18,8 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+
+#include "BLT_translation.h"
 
 #include "BKE_curve.h"
 #include "BKE_object.h"
@@ -65,14 +67,14 @@ bool AbcNurbsReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::INuPatch::matches(alembic_header)) {
-    *err_str =
+    *err_str = TIP_(
         "Object type mismatch, Alembic object path pointed to NURBS when importing, but not any "
-        "more.";
+        "more");
     return false;
   }
 
   if (ob->type != OB_CURVES_LEGACY) {
-    *err_str = "Object type mismatch, Alembic object path points to NURBS.";
+    *err_str = TIP_("Object type mismatch, Alembic object path points to NURBS");
     return false;
   }
 

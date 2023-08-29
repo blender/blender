@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,6 +19,7 @@
 
 #include "BLI_string_ref.hh"
 
+#include "DNA_ID_enums.h"
 #include "DNA_asset_types.h"
 
 #include "AS_asset_identifier.hh"
@@ -42,6 +43,7 @@ class AssetRepresentation {
 
   struct ExternalAsset {
     std::string name;
+    int id_type = 0;
     std::unique_ptr<AssetMetaData> metadata_ = nullptr;
   };
   union {
@@ -55,6 +57,7 @@ class AssetRepresentation {
   /** Constructs an asset representation for an external ID. The asset will not be editable. */
   AssetRepresentation(AssetIdentifier &&identifier,
                       StringRef name,
+                      int id_type,
                       std::unique_ptr<AssetMetaData> metadata,
                       const AssetLibrary &owner_asset_library);
   /**
@@ -81,10 +84,13 @@ class AssetRepresentation {
    * Create a weak reference for this asset that can be written to files, but can break under a
    * number of conditions.
    * A weak reference can only be created if an asset representation is owned by an asset library.
+   *
+   * Must be freed using #BKE_asset_weak_reference_free().
    */
-  std::unique_ptr<AssetWeakReference> make_weak_reference() const;
+  AssetWeakReference *make_weak_reference() const;
 
   StringRefNull get_name() const;
+  ID_Type get_id_type() const;
   AssetMetaData &get_metadata() const;
   /**
    * Get the import method to use for this asset. A different one may be used if
@@ -110,18 +116,3 @@ class AssetRepresentation {
 };
 
 }  // namespace blender::asset_system
-
-/* C-Handle */
-struct AssetRepresentation;
-
-std::string AS_asset_representation_full_path_get(const ::AssetRepresentation *asset);
-/**
- * Get the absolute path to the .blend file containing the given asset. String will be empty if
- * the asset could not be mapped to a valid .blend file path. Valid in this case also means that
- * the file needs to exist on disk.
- */
-std::string AS_asset_representation_full_library_path_get(const ::AssetRepresentation *asset);
-std::optional<eAssetImportMethod> AS_asset_representation_import_method_get(
-    const ::AssetRepresentation *asset_handle);
-bool AS_asset_representation_may_override_import_method(const ::AssetRepresentation *asset_handle);
-bool AS_asset_representation_use_relative_path_get(const ::AssetRepresentation *asset_handle);

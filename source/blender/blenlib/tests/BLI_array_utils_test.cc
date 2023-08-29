@@ -1,10 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
 #include "BLI_array_utils.h"
+#include "BLI_array_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
 
@@ -241,3 +242,52 @@ TEST(array_utils, DeduplicateOrdered3)
 }
 
 #undef DEDUPLICATE_ORDERED_TEST
+
+static void find_all_ranges_test(const blender::Span<bool> data,
+                                 const blender::Span<blender::IndexRange> data_cmp)
+{
+  using namespace blender;
+  Vector<IndexRange> ranges = array_utils::find_all_ranges(data, true);
+  EXPECT_EQ(ranges.size(), data_cmp.size());
+  EXPECT_EQ_ARRAY(data_cmp.data(), ranges.as_span().data(), data_cmp.size());
+}
+
+TEST(array_utils, FindAllRanges1)
+{
+  using namespace blender;
+  const std::array data = {false};
+  Vector<IndexRange> ranges = array_utils::find_all_ranges(Span(data.data(), data.size()), true);
+  EXPECT_EQ(ranges.size(), 0);
+}
+
+TEST(array_utils, FindAllRanges2)
+{
+  using namespace blender;
+  const std::array data = {true, true, true};
+  const std::array data_cmp = {IndexRange(0, 3)};
+  find_all_ranges_test(data, data_cmp);
+}
+
+TEST(array_utils, FindAllRanges3)
+{
+  using namespace blender;
+  const std::array data = {true, false};
+  const std::array data_cmp = {IndexRange(0, 1)};
+  find_all_ranges_test(data, data_cmp);
+}
+
+TEST(array_utils, FindAllRanges4)
+{
+  using namespace blender;
+  const std::array data = {false, true};
+  const std::array data_cmp = {IndexRange(1, 1)};
+  find_all_ranges_test(data, data_cmp);
+}
+
+TEST(array_utils, FindAllRanges5)
+{
+  using namespace blender;
+  const std::array data = {true, false, false, true, true, false, true};
+  const std::array data_cmp = {IndexRange(0, 1), IndexRange(3, 2), IndexRange(6, 1)};
+  find_all_ranges_test(data, data_cmp);
+}

@@ -30,11 +30,11 @@
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 
-#include "BLO_blend_defs.h"
+#include "BLO_blend_defs.hh"
 #include "BLO_readfile.h"
-#include "BLO_undofile.h"
+#include "BLO_undofile.hh"
 
-#include "readfile.h"
+#include "readfile.hh"
 
 #include "BLI_sys_types.h" /* Needed for `intptr_t`. */
 
@@ -45,7 +45,7 @@
 /* local prototypes --------------------- */
 void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp);
 
-/* Access routines used by filesel. */
+/* Access routines used by file-selector. */
 
 void BLO_datablock_info_free(BLODataBlockInfo *datablock_info)
 {
@@ -175,7 +175,7 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
       if (skip_datablock) {
         continue;
       }
-      struct BLODataBlockInfo *info = static_cast<BLODataBlockInfo *>(
+      BLODataBlockInfo *info = static_cast<BLODataBlockInfo *>(
           MEM_mallocN(sizeof(*info), __func__));
 
       /* Lastly, read asset data from the following blocks. */
@@ -441,7 +441,7 @@ BlendFileData *BLO_read_from_memory(const void *mem,
 BlendFileData *BLO_read_from_memfile(Main *oldmain,
                                      const char *filepath,
                                      MemFile *memfile,
-                                     const struct BlendFileReadParams *params,
+                                     const BlendFileReadParams *params,
                                      ReportList *reports)
 {
   BlendFileData *bfd = nullptr;
@@ -455,21 +455,20 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
     fd->skip_flags = eBLOReadSkip(params->skip_flags);
     STRNCPY(fd->relabase, filepath);
 
-    /* separate libraries from old main */
+    /* Build old ID map for all old IDs. */
+    blo_make_old_idmap_from_main(fd, oldmain);
+
+    /* Separate linked data from old main. */
     blo_split_main(&old_mainlist, oldmain);
-    /* add the library pointers in oldmap lookup */
-    blo_add_library_pointer_map(&old_mainlist, fd);
+    fd->old_mainlist = &old_mainlist;
 
-    if ((params->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0) {
-      /* Build idmap of old main (we only care about local data here, so we can do that after
-       * split_main() call. */
-      blo_make_old_idmap_from_main(fd, static_cast<Main *>(old_mainlist.first));
-    }
-
-    /* removed packed data from this trick - it's internal data that needs saves */
+    /* Removed packed data from this trick - it's internal data that needs saves. */
 
     /* Store all existing ID caches pointers into a mapping, to allow restoring them into newly
-     * read IDs whenever possible. */
+     * read IDs whenever possible.
+     *
+     * Note that this is only required for local data, since linked data are always re-used
+     * 'as-is'. */
     blo_cache_storage_init(fd, oldmain);
 
     bfd = blo_read_file_internal(fd, filepath);
@@ -502,4 +501,9 @@ void BLO_blendfiledata_free(BlendFileData *bfd)
   }
 
   MEM_freeN(bfd);
+}
+
+void BLO_read_do_version_after_setup(Main *new_bmain, BlendFileReadReport *reports)
+{
+  do_versions_after_setup(new_bmain, reports);
 }

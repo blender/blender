@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -59,7 +59,7 @@ void sample_corner_normals(Span<MLoopTri> looptris,
                            const IndexMask &mask,
                            MutableSpan<float3> dst);
 
-void sample_face_attribute(Span<int> looptri_polys,
+void sample_face_attribute(Span<int> looptri_faces,
                            Span<int> looptri_indices,
                            const GVArray &src,
                            const IndexMask &mask,

@@ -8,7 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 #include "BLI_rect.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -24,25 +24,25 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_image.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "NOD_texture.h"
 
-#include "WM_api.h"
-#include "wm_cursors.h"
+#include "WM_api.hh"
+#include "wm_cursors.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_image.h"
-#include "ED_view3d.h"
+#include "ED_image.hh"
+#include "ED_view3d.hh"
 
 #include "DEG_depsgraph.h"
 
@@ -52,7 +52,7 @@
 #include "GPU_state.h"
 #include "GPU_texture.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "paint_intern.hh"
 /* still needed for sculpt_stroke_get_location, should be
@@ -88,7 +88,7 @@ static TexSnapshot primary_snap = {nullptr};
 static TexSnapshot secondary_snap = {nullptr};
 static CursorSnapshot cursor_snap = {nullptr};
 
-void paint_cursor_delete_textures(void)
+void paint_cursor_delete_textures()
 {
   if (primary_snap.overlay_texture) {
     GPU_texture_free(primary_snap.overlay_texture);
@@ -167,7 +167,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
     /* For consistency, sampling always returns color in linear space. */
     if (tex_ibuf && tex_ibuf->float_buffer.data == nullptr) {
       convert_to_linear = true;
-      colorspace = tex_ibuf->rect_colorspace;
+      colorspace = tex_ibuf->byte_buffer.colorspace;
     }
     BKE_image_pool_release_ibuf(mtex->tex->ima, tex_ibuf, pool);
   }
@@ -1870,7 +1870,7 @@ static void paint_cursor_update_rake_rotation(PaintCursorContext *pcontext)
    * For line strokes, such interference is visible. */
   if (!pcontext->ups->stroke_active) {
     paint_calculate_rake_rotation(
-        pcontext->ups, pcontext->brush, pcontext->translation, pcontext->mode);
+        pcontext->ups, pcontext->brush, pcontext->translation, pcontext->mode, true);
   }
 }
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,7 +15,6 @@ class ViewerOperation : public MultiThreadedOperation {
  private:
   /* TODO(manzanilla): To be removed together with tiled implementation. */
   float *output_buffer_;
-  float *depth_buffer_;
 
   Image *image_;
   ImageUser *image_user_;
@@ -23,7 +22,6 @@ class ViewerOperation : public MultiThreadedOperation {
   float center_x_;
   float center_y_;
   ChunkOrdering chunk_order_;
-  bool do_depth_buffer_;
   ImBuf *ibuf_;
   bool use_alpha_input_;
   const RenderData *rd_;
@@ -34,7 +32,6 @@ class ViewerOperation : public MultiThreadedOperation {
 
   SocketReader *image_input_;
   SocketReader *alpha_input_;
-  SocketReader *depth_input_;
 
  public:
   ViewerOperation();

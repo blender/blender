@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -316,32 +316,32 @@ typedef struct GPUSamplerState {
 
     /* The sampler state is of type PARAMETERS, so serialize the parameters. */
     BLI_assert(this->type == GPU_SAMPLER_STATE_TYPE_PARAMETERS);
-    std::string serialized_paramaters;
+    std::string serialized_parameters;
 
     if (this->filtering & GPU_SAMPLER_FILTERING_LINEAR) {
-      serialized_paramaters += "linear-filter_";
+      serialized_parameters += "linear-filter_";
     }
 
     if (this->filtering & GPU_SAMPLER_FILTERING_MIPMAP) {
-      serialized_paramaters += "mipmap_";
+      serialized_parameters += "mipmap_";
     }
 
     if (this->filtering & GPU_SAMPLER_FILTERING_ANISOTROPIC) {
-      serialized_paramaters += "anisotropic_";
+      serialized_parameters += "anisotropic_";
     }
 
     switch (this->extend_x) {
       case GPU_SAMPLER_EXTEND_MODE_EXTEND:
-        serialized_paramaters += "extend-x_";
+        serialized_parameters += "extend-x_";
         break;
       case GPU_SAMPLER_EXTEND_MODE_REPEAT:
-        serialized_paramaters += "repeat-x_";
+        serialized_parameters += "repeat-x_";
         break;
       case GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT:
-        serialized_paramaters += "mirrored-repeat-x_";
+        serialized_parameters += "mirrored-repeat-x_";
         break;
       case GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER:
-        serialized_paramaters += "clamp-to-border-x_";
+        serialized_parameters += "clamp-to-border-x_";
         break;
       default:
         BLI_assert_unreachable();
@@ -349,16 +349,16 @@ typedef struct GPUSamplerState {
 
     switch (this->extend_yz) {
       case GPU_SAMPLER_EXTEND_MODE_EXTEND:
-        serialized_paramaters += "extend-y_";
+        serialized_parameters += "extend-y_";
         break;
       case GPU_SAMPLER_EXTEND_MODE_REPEAT:
-        serialized_paramaters += "repeat-y_";
+        serialized_parameters += "repeat-y_";
         break;
       case GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT:
-        serialized_paramaters += "mirrored-repeat-y_";
+        serialized_parameters += "mirrored-repeat-y_";
         break;
       case GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER:
-        serialized_paramaters += "clamp-to-border-y_";
+        serialized_parameters += "clamp-to-border-y_";
         break;
       default:
         BLI_assert_unreachable();
@@ -366,22 +366,22 @@ typedef struct GPUSamplerState {
 
     switch (this->extend_yz) {
       case GPU_SAMPLER_EXTEND_MODE_EXTEND:
-        serialized_paramaters += "extend-z";
+        serialized_parameters += "extend-z";
         break;
       case GPU_SAMPLER_EXTEND_MODE_REPEAT:
-        serialized_paramaters += "repeat-z";
+        serialized_parameters += "repeat-z";
         break;
       case GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT:
-        serialized_paramaters += "mirrored-repeat-z";
+        serialized_parameters += "mirrored-repeat-z";
         break;
       case GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER:
-        serialized_paramaters += "clamp-to-border-z";
+        serialized_parameters += "clamp-to-border-z";
         break;
       default:
         BLI_assert_unreachable();
     }
 
-    return serialized_paramaters;
+    return serialized_parameters;
   }
 
   bool operator==(GPUSamplerState const &rhs) const
@@ -544,13 +544,8 @@ typedef enum eGPUTextureUsage {
    * OR, uses swizzle access masks. Mip-map base layer adjustment and texture channel swizzling
    * requires a texture view under-the-hood. */
   GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW = (1 << 3),
-  /* Whether a texture can be allocated without any backing memory. It is used as an
-   * attachment to store data, but is not needed by any future passes.
-   * This usage mode should be used in scenarios where an attachment has no previous
-   * contents and is not stored after a render pass. */
-  GPU_TEXTURE_USAGE_MEMORYLESS = (1 << 4),
   /* Whether the texture needs to be read from by the CPU. */
-  GPU_TEXTURE_USAGE_HOST_READ = (1 << 5),
+  GPU_TEXTURE_USAGE_HOST_READ = (1 << 4),
   /* Create a texture whose usage cannot be defined prematurely.
    * This is unoptimized and should not be used. */
   GPU_TEXTURE_USAGE_GENERAL = 0xFF,

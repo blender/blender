@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -35,8 +35,6 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
                        const USDExportParams &params);
 
   void set_export_frame(float frame_nr);
-  std::string get_export_file_path() const;
-  const pxr::UsdTimeCode &get_export_time_code() const;
 
   virtual std::string make_valid_name(const std::string &name) const override;
 

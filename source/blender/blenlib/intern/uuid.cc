@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -30,7 +30,7 @@ bUUID BLI_uuid_generate_random()
     static_assert(std::mt19937_64::min() == 0LL);
     static_assert(std::mt19937_64::max() == 0xffffffffffffffffLL);
 
-    struct timespec ts;
+    timespec ts;
 #ifdef __APPLE__
     /* `timespec_get()` is only available on macOS 10.15+, so until that's the minimum version
      * supported by Blender, use another function to get the timespec.
@@ -88,19 +88,25 @@ bool BLI_uuid_equal(const bUUID uuid1, const bUUID uuid2)
 
 void BLI_uuid_format(char *buffer, const bUUID uuid)
 {
-  BLI_sprintf(buffer,
-              "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-              uuid.time_low,
-              uuid.time_mid,
-              uuid.time_hi_and_version,
-              uuid.clock_seq_hi_and_reserved,
-              uuid.clock_seq_low,
-              uuid.node[0],
-              uuid.node[1],
-              uuid.node[2],
-              uuid.node[3],
-              uuid.node[4],
-              uuid.node[5]);
+  const size_t buffer_len_unclamped = BLI_snprintf(
+      buffer,
+      UUID_STRING_SIZE,
+      "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+      uuid.time_low,
+      uuid.time_mid,
+      uuid.time_hi_and_version,
+      uuid.clock_seq_hi_and_reserved,
+      uuid.clock_seq_low,
+      uuid.node[0],
+      uuid.node[1],
+      uuid.node[2],
+      uuid.node[3],
+      uuid.node[4],
+      uuid.node[5]);
+
+  /* Assert the string length is not clamped. */
+  BLI_assert(buffer_len_unclamped == UUID_STRING_SIZE - 1);
+  UNUSED_VARS_NDEBUG(buffer_len_unclamped);
 }
 
 bool BLI_uuid_parse_string(bUUID *uuid, const char *buffer)

@@ -1,12 +1,16 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_vector.h"
 
 #include "pbvh_uv_islands.hh"
 
+#include <iostream>
 #include <optional>
+#include <sstream>
 
 namespace blender::bke::pbvh::uv_islands {
 

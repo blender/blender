@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,6 +10,10 @@
 
 #include "GPU_batch.h"
 #include "MEM_guardedalloc.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Common */
 // #define DRW_DEBUG_MESH_CACHE_REQUEST
@@ -61,7 +65,7 @@ BLI_INLINE void DRW_ibo_request(GPUBatch *batch, GPUIndexBuf **ibo)
 BLI_INLINE bool DRW_ibo_requested(GPUIndexBuf *ibo)
 {
   /* TODO: do not rely on data uploaded. This prevents multi-threading.
-   * (need access to a OpenGL context). */
+   * (need access to a GPU context). */
   return (ibo != NULL && !GPU_indexbuf_is_init(ibo));
 }
 
@@ -80,3 +84,7 @@ BLI_INLINE bool DRW_vbo_requested(GPUVertBuf *vbo)
 {
   return (vbo != NULL && (GPU_vertbuf_get_status(vbo) & GPU_VERTBUF_INIT) == 0);
 }
+
+#ifdef __cplusplus
+}
+#endif

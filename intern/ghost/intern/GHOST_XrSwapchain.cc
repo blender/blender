@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -92,7 +94,7 @@ GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_XrSwapchain &&other)
 
 GHOST_XrSwapchain::~GHOST_XrSwapchain()
 {
-  /* m_oxr may be NULL after move. */
+  /* m_oxr may be nullptr after move. */
   if (m_oxr && m_oxr->swapchain != XR_NULL_HANDLE) {
     CHECK_XR_ASSERT(xrDestroySwapchain(m_oxr->swapchain));
   }

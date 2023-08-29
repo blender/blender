@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
  * This file contains blender-side implementation of camera solver.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "MEM_guardedalloc.h"
 
@@ -16,7 +16,8 @@
 #include "DNA_movieclip_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -26,19 +27,19 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "libmv-capi.h"
 #include "tracking_private.h"
 
-typedef struct MovieReconstructContext {
-  struct libmv_Tracks *tracks;
+struct MovieReconstructContext {
+  libmv_Tracks *tracks;
   bool select_keyframes;
   int keyframe1, keyframe2;
   int refine_flags;
 
-  struct libmv_Reconstruction *reconstruction;
+  libmv_Reconstruction *reconstruction;
 
   char object_name[MAX_NAME];
   short motion_flag;
@@ -53,25 +54,22 @@ typedef struct MovieReconstructContext {
 
   /* Details about reconstruction error, reported by Libmv. */
   char error_message[1024];
-} MovieReconstructContext;
+};
 
-typedef struct ReconstructProgressData {
+struct ReconstructProgressData {
   bool *stop;
   bool *do_update;
   float *progress;
   char *stats_message;
   int message_size;
-} ReconstructProgressData;
+};
 
 /* Create new libmv Tracks structure from blender's tracks list. */
-static struct libmv_Tracks *libmv_tracks_new(MovieClip *clip,
-                                             ListBase *tracksbase,
-                                             int width,
-                                             int height)
+static libmv_Tracks *libmv_tracks_new(MovieClip *clip, ListBase *tracksbase, int width, int height)
 {
   int tracknr = 0;
   MovieTrackingTrack *track;
-  struct libmv_Tracks *tracks = libmv_tracksNew();
+  libmv_Tracks *tracks = libmv_tracksNew();
 
   track = static_cast<MovieTrackingTrack *>(tracksbase->first);
   while (track) {
@@ -109,8 +107,8 @@ static struct libmv_Tracks *libmv_tracks_new(MovieClip *clip,
 static void reconstruct_retrieve_libmv_intrinsics(MovieReconstructContext *context,
                                                   MovieTracking *tracking)
 {
-  struct libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
-  struct libmv_CameraIntrinsics *libmv_intrinsics = libmv_reconstructionExtractIntrinsics(
+  libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
+  libmv_CameraIntrinsics *libmv_intrinsics = libmv_reconstructionExtractIntrinsics(
       libmv_reconstruction);
 
   libmv_CameraIntrinsicsOptions camera_intrinsics_options;
@@ -126,7 +124,7 @@ static void reconstruct_retrieve_libmv_intrinsics(MovieReconstructContext *conte
 static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
                                               MovieTracking *tracking)
 {
-  struct libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
+  libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
   bool ok = true;
   bool origin_set = false;
   int sfra = context->sfra, efra = context->efra;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -383,6 +383,21 @@ struct MTLContextTextureUtils {
   }
 };
 
+class MTLContextComputeUtils {
+ private:
+  id<MTLComputePipelineState> buffer_clear_pso_ = nil;
+
+ public:
+  id<MTLComputePipelineState> get_buffer_clear_pso();
+  void cleanup()
+  {
+    if (buffer_clear_pso_) {
+      [buffer_clear_pso_ release];
+      buffer_clear_pso_ = nil;
+    }
+  }
+};
+
 /* Combined sampler state configuration for Argument Buffer caching. */
 struct MTLSamplerArray {
   uint num_samplers;
@@ -410,7 +425,7 @@ struct MTLSamplerArray {
   }
 };
 
-typedef enum MTLPipelineStateDirtyFlag {
+enum MTLPipelineStateDirtyFlag {
   MTL_PIPELINE_STATE_NULL_FLAG = 0,
   /* Whether we need to call setViewport. */
   MTL_PIPELINE_STATE_VIEWPORT_FLAG = (1 << 0),
@@ -429,7 +444,7 @@ typedef enum MTLPipelineStateDirtyFlag {
       (MTL_PIPELINE_STATE_VIEWPORT_FLAG | MTL_PIPELINE_STATE_SCISSOR_FLAG |
        MTL_PIPELINE_STATE_DEPTHSTENCIL_FLAG | MTL_PIPELINE_STATE_PSO_FLAG |
        MTL_PIPELINE_STATE_FRONT_FACING_FLAG | MTL_PIPELINE_STATE_CULLMODE_FLAG)
-} MTLPipelineStateDirtyFlag;
+};
 
 /* Ignore full flag bit-mask `MTL_PIPELINE_STATE_ALL_FLAG`. */
 ENUM_OPERATORS(MTLPipelineStateDirtyFlag, MTL_PIPELINE_STATE_CULLMODE_FLAG);
@@ -500,10 +515,11 @@ struct MTLContextGlobalShaderPipelineState {
   MTLContextDepthStencilState depth_stencil_state;
 
   /* Viewport/Scissor Region. */
-  int viewport_offset_x;
-  int viewport_offset_y;
-  int viewport_width;
-  int viewport_height;
+  int num_active_viewports = 1;
+  int viewport_offset_x[GPU_MAX_VIEWPORTS];
+  int viewport_offset_y[GPU_MAX_VIEWPORTS];
+  int viewport_width[GPU_MAX_VIEWPORTS];
+  int viewport_height[GPU_MAX_VIEWPORTS];
   bool scissor_enabled;
   int scissor_x;
   int scissor_y;
@@ -653,10 +669,12 @@ class MTLCommandBufferManager {
   void unfold_pending_debug_groups();
 };
 
-/** MTLContext -- Core render loop and state management. **/
-/* NOTE(Metal): Partial #MTLContext stub to provide wrapper functionality
- * for work-in-progress `MTL*` classes. */
-
+/**
+ * MTLContext -- Core render loop and state management.
+ *
+ * NOTE(Metal): Partial #MTLContext stub to provide wrapper functionality
+ * for work-in-progress `MTL*` classes.
+ */
 class MTLContext : public Context {
   friend class MTLBackend;
   friend class MTLRenderPassState;
@@ -703,6 +721,7 @@ class MTLContext : public Context {
 
   /* Compute and specialization caches. */
   MTLContextTextureUtils texture_utils_;
+  MTLContextComputeUtils compute_utils_;
 
   /* Texture Samplers. */
   /* Cache of generated #MTLSamplerState objects based on permutations of the members of
@@ -844,6 +863,7 @@ class MTLContext : public Context {
 
   /* State assignment. */
   void set_viewport(int origin_x, int origin_y, int width, int height);
+  void set_viewports(int count, const int (&viewports)[GPU_MAX_VIEWPORTS][4]);
   void set_scissor(int scissor_x, int scissor_y, int scissor_width, int scissor_height);
   void set_scissor_enabled(bool scissor_enabled);
 
@@ -863,6 +883,12 @@ class MTLContext : public Context {
   MTLContextTextureUtils &get_texture_utils()
   {
     return texture_utils_;
+  }
+
+  /* Compute utilities. */
+  MTLContextComputeUtils &get_compute_utils()
+  {
+    return compute_utils_;
   }
 
   bool get_active()

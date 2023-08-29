@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,7 @@
 
 #include "intern/builder/deg_builder_key.h"
 
-#include "RNA_path.h"
+#include "RNA_path.hh"
 
 namespace blender::deg {
 

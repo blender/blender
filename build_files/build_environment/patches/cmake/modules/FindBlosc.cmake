@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2016 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016 Blender Foundation.
 
 # - Find BLOSC library
 # Find the native BLOSC includes and library

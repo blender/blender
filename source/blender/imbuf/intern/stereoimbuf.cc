@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2015 Blender Foundation
+/* SPDX-FileCopyrightText: 2015 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -20,21 +20,18 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_math.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
 /* prototypes */
 struct Stereo3DData;
-static void imb_stereo3d_write_doit(struct Stereo3DData *s3d_data,
-                                    const struct Stereo3dFormat *s3d);
-static void imb_stereo3d_read_doit(struct Stereo3DData *s3d_data,
-                                   const struct Stereo3dFormat *s3d);
+static void imb_stereo3d_write_doit(Stereo3DData *s3d_data, const Stereo3dFormat *s3d);
+static void imb_stereo3d_read_doit(Stereo3DData *s3d_data, const Stereo3dFormat *s3d);
 
-typedef struct Stereo3DData {
+struct Stereo3DData {
   struct {
     float *left, *right, *stereo;
   } rectf;
@@ -43,7 +40,7 @@ typedef struct Stereo3DData {
   } rect;
   size_t x, y, channels;
   bool is_float;
-} Stereo3DData;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Local Functions
@@ -776,11 +773,11 @@ ImBuf *IMB_stereo3d_ImBuf(const ImageFormatData *im_format, ImBuf *ibuf_left, Im
 
   if (is_float) {
     imb_addrectfloatImBuf(ibuf_stereo, ibuf_left->channels);
-    ibuf_stereo->float_colorspace = ibuf_left->float_colorspace;
+    ibuf_stereo->float_buffer.colorspace = ibuf_left->float_buffer.colorspace;
   }
   else {
     imb_addrectImBuf(ibuf_stereo);
-    ibuf_stereo->rect_colorspace = ibuf_left->rect_colorspace;
+    ibuf_stereo->byte_buffer.colorspace = ibuf_left->byte_buffer.colorspace;
   }
 
   ibuf_stereo->flags = ibuf_left->flags;
@@ -1340,31 +1337,6 @@ void IMB_ImBufFromStereo3d(const Stereo3dFormat *s3d,
                          ibuf_stereo3d->float_buffer.data);
 
   imb_stereo3d_read_doit(&s3d_data, s3d);
-
-  if (ibuf_stereo3d->flags & (IB_zbuf | IB_zbuffloat)) {
-    if (is_float) {
-      addzbuffloatImBuf(ibuf_left);
-      addzbuffloatImBuf(ibuf_right);
-    }
-    else {
-      addzbufImBuf(ibuf_left);
-      addzbufImBuf(ibuf_right);
-    }
-
-    imb_stereo3d_data_init(&s3d_data,
-                           is_float,
-                           ibuf_left->x,
-                           ibuf_left->y,
-                           1,
-                           ibuf_left->z_buffer.data,
-                           ibuf_right->z_buffer.data,
-                           ibuf_stereo3d->z_buffer.data,
-                           ibuf_left->float_z_buffer.data,
-                           ibuf_right->float_z_buffer.data,
-                           ibuf_stereo3d->float_z_buffer.data);
-
-    imb_stereo3d_read_doit(&s3d_data, s3d);
-  }
 
   IMB_freeImBuf(ibuf_stereo3d);
 

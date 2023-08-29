@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -91,6 +91,11 @@ template<typename T> inline T floor(const T &a)
   return std::floor(a);
 }
 
+template<typename T> inline T round(const T &a)
+{
+  return std::round(a);
+}
+
 /**
  * Repeats the saw-tooth pattern even on negative numbers.
  * ex: `mod_periodic(-3, 4) = 1`, `mod(-3, 4)= -3`
@@ -127,6 +132,20 @@ template<typename T> inline T sqrt(const T &a)
   return std::sqrt(a);
 }
 
+/* Inverse value.
+ * If the input is zero the output is NaN. */
+template<typename T> inline T rcp(const T &a)
+{
+  return T(1) / a;
+}
+
+/* Inverse value.
+ * If the input is zero the output is zero. */
+template<typename T> inline T safe_rcp(const T &a)
+{
+  return a ? T(1) / a : T(0);
+}
+
 template<typename T> inline T cos(const T &a)
 {
   return std::cos(a);
@@ -150,6 +169,16 @@ template<typename T> inline T acos(const T &a)
 template<typename T> inline T pow(const T &x, const T &power)
 {
   return std::pow(x, power);
+}
+
+template<typename T> inline T square(const T &a)
+{
+  return a * a;
+}
+
+template<typename T> inline T exp(const T &x)
+{
+  return std::exp(x);
 }
 
 template<typename T> inline T safe_acos(const T &a)

@@ -57,6 +57,7 @@ void BKE_object_material_from_eval_data(struct Main *bmain,
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_gpencil_material_add(struct Main *bmain, const char *name);
 void BKE_gpencil_material_attr_init(struct Material *ma);
+void BKE_material_make_node_previews_dirty(struct Material *ma);
 
 /* UNUSED */
 // void automatname(struct Material *);
@@ -151,7 +152,7 @@ void BKE_id_material_clear(struct Main *bmain, struct ID *id);
  * material indices might be overwritten by the object.
  */
 struct Material *BKE_object_material_get_eval(struct Object *ob, short act);
-int BKE_object_material_count_eval(struct Object *ob);
+int BKE_object_material_count_eval(const struct Object *ob);
 void BKE_id_material_eval_assign(struct ID *id, int slot, struct Material *material);
 /**
  * Add an empty material slot if the id has no material slots. This material slot allows the
@@ -171,20 +172,6 @@ void BKE_id_material_eval_ensure_default_slot(struct ID *id);
  * \param fac: Zero for is no change.
  */
 void ramp_blend(int type, float r_col[3], float fac, const float col[3]);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Copy/Paste
- * \{ */
-
-void BKE_material_copybuf_clear(void);
-void BKE_material_copybuf_free(void);
-void BKE_material_copybuf_copy(struct Main *bmain, struct Material *ma);
-/**
- * \return true when the material was modified.
- */
-bool BKE_material_copybuf_paste(struct Main *bmain, struct Material *ma);
 
 /** \} */
 

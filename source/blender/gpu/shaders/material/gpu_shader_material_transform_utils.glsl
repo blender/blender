@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void normal_transform_object_to_world(vec3 vin, out vec3 vout)
 {
   vout = normal_object_to_world(vin);

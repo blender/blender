@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -76,7 +78,7 @@ static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 PyDoc_STRVAR(SVertex_add_normal_doc,
              ".. method:: add_normal(normal)\n"
              "\n"
-             "   Adds a normal to the SVertex's set of normals.  If the same normal\n"
+             "   Adds a normal to the SVertex's set of normals. If the same normal\n"
              "   is already in the set, nothing changes.\n"
              "\n"
              "   :arg normal: A three-dimensional vector.\n"
@@ -329,8 +331,8 @@ static int SVertex_id_set(BPy_SVertex *self, PyObject *value, void * /*closure*/
 }
 
 PyDoc_STRVAR(SVertex_normals_doc,
-             "The normals for this Vertex as a list.  In a sharp surface, an SVertex\n"
-             "has exactly one normal.  In a smooth surface, an SVertex can have any\n"
+             "The normals for this Vertex as a list. In a sharp surface, an SVertex\n"
+             "has exactly one normal. In a smooth surface, an SVertex can have any\n"
              "number of normals.\n"
              "\n"
              ":type: list of :class:`mathutils.Vector` objects");
@@ -443,7 +445,8 @@ static PyGetSetDef BPy_SVertex_getseters[] = {
 /*-----------------------BPy_SVertex type definition ------------------------------*/
 
 PyTypeObject SVertex_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "SVertex",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "SVertex",
     /*tp_basicsize*/ sizeof(BPy_SVertex),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -479,7 +482,7 @@ PyTypeObject SVertex_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)SVertex_init,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

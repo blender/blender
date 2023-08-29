@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,8 +10,8 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 
@@ -150,17 +150,17 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<int2> edges,
   }
 }
 
-BLI_NOINLINE static void calculate_sphere_faces(MutableSpan<int> poly_offsets, const int segments)
+BLI_NOINLINE static void calculate_sphere_faces(MutableSpan<int> face_offsets, const int segments)
 {
-  MutableSpan<int> poly_sizes = poly_offsets.drop_back(1);
+  MutableSpan<int> face_sizes = face_offsets.drop_back(1);
   /* Add the triangles connected to the top vertex. */
-  poly_sizes.take_front(segments).fill(3);
+  face_sizes.take_front(segments).fill(3);
   /* Add the middle quads. */
-  poly_sizes.drop_front(segments).drop_back(segments).fill(4);
+  face_sizes.drop_front(segments).drop_back(segments).fill(4);
   /* Add the triangles connected to the bottom vertex. */
-  poly_sizes.take_back(segments).fill(3);
+  face_sizes.take_back(segments).fill(3);
 
-  offset_indices::accumulate_counts_to_offsets(poly_offsets);
+  offset_indices::accumulate_counts_to_offsets(face_offsets);
 }
 
 BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<int> corner_verts,
@@ -310,7 +310,7 @@ static Mesh *create_uv_sphere_mesh(const float radius,
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   BKE_mesh_smooth_flag_set(mesh, false);
@@ -318,13 +318,12 @@ static Mesh *create_uv_sphere_mesh(const float radius,
   threading::parallel_invoke(
       1024 < segments * rings,
       [&]() {
-        MutableSpan vert_normals{reinterpret_cast<float3 *>(BKE_mesh_vert_normals_for_write(mesh)),
-                                 mesh->totvert};
+        Vector<float3> vert_normals(mesh->totvert);
         calculate_sphere_vertex_data(positions, vert_normals, radius, segments, rings);
-        BKE_mesh_vert_normals_clear_dirty(mesh);
+        bke::mesh_vert_normals_assign(*mesh, std::move(vert_normals));
       },
       [&]() { calculate_sphere_edge_indices(edges, segments, rings); },
-      [&]() { calculate_sphere_faces(poly_offsets, segments); },
+      [&]() { calculate_sphere_faces(face_offsets, segments); },
       [&]() { calculate_sphere_corners(corner_verts, corner_edges, segments, rings); },
       [&]() {
         if (uv_map_id) {
@@ -361,19 +360,18 @@ static void node_geo_exec(GeoNodeExecParams params)
   AnonymousAttributeIDPtr uv_map_id = params.get_output_anonymous_attribute_id_if_needed("UV Map");
 
   Mesh *mesh = create_uv_sphere_mesh(radius, segments_num, rings_num, uv_map_id.get());
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 
-}  // namespace blender::nodes::node_geo_mesh_primitive_uv_sphere_cc
-
-void register_node_type_geo_mesh_primitive_uv_sphere()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_primitive_uv_sphere_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, "UV Sphere", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_mesh_primitive_uv_sphere_cc

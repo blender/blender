@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 from bpy.types import Menu
 
 
@@ -632,6 +635,9 @@ def brush_settings(layout, context, brush, popover=False):
             row = layout.row()
             row.prop(brush, "tip_roundness")
 
+            row = layout.row()
+            row.prop(brush, "tip_scale_x")
+
         elif sculpt_tool == 'ELASTIC_DEFORM':
             layout.separator()
             layout.prop(brush, "elastic_deform_type")
@@ -937,7 +943,6 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
         col = layout.column(heading="Auto-Masking", align=True)
 
-        col = layout.column(align=True)
         col.prop(brush, "use_automasking_topology", text="Topology")
         col.prop(brush, "use_automasking_face_sets", text="Face Sets")
 

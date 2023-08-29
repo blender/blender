@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -94,7 +96,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
     default_fbo_mtltexture_ = ghost_cgl_ctx->metalOverlayTexture();
 
     MTL_LOG_INFO(
-        "Binding GHOST context CGL %p to GPU context %p. (Device: %p, queue: %p, texture: %p)\n",
+        "Binding GHOST context CGL %p to GPU context %p. (Device: %p, queue: %p, texture: %p)",
         ghost_cgl_ctx,
         this,
         this->device,
@@ -136,7 +138,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
 
       MTL_LOG_INFO(
           "-- Bound context %p for GPU context: %p is offscreen and does not have a default "
-          "framebuffer\n",
+          "framebuffer",
           ghost_cgl_ctx,
           this);
 #ifndef NDEBUG
@@ -146,8 +148,8 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   }
   else {
     MTL_LOG_INFO(
-        "[ERROR] Failed to bind GHOST context to MTLContext -- GHOST_ContextCGL is null "
-        "(GhostContext: %p, GhostContext_CGL: %p)\n",
+        " Failed to bind GHOST context to MTLContext -- GHOST_ContextCGL is null "
+        "(GhostContext: %p, GhostContext_CGL: %p)",
         ghost_ctx,
         ghost_cgl_ctx);
     BLI_assert(false);
@@ -287,6 +289,7 @@ MTLContext::~MTLContext()
 
   /* Release update/blit shaders. */
   this->get_texture_utils().cleanup();
+  this->get_compute_utils().cleanup();
 
   /* Detach resource references. */
   GPU_texture_unbind_all();
@@ -382,7 +385,7 @@ void MTLContext::end_frame()
   is_inside_frame_ = false;
 }
 
-void MTLContext::check_error(const char *info)
+void MTLContext::check_error(const char * /*info*/)
 {
   /* TODO(Metal): Implement. */
 }
@@ -499,11 +502,11 @@ id<MTLRenderCommandEncoder> MTLContext::ensure_begin_render_pass()
 
     /* Validate bound framebuffer before beginning render pass. */
     if (!static_cast<MTLFrameBuffer *>(this->active_fb)->validate_render_pass()) {
-      MTL_LOG_WARNING("Framebuffer validation failed, falling back to default framebuffer\n");
+      MTL_LOG_WARNING("Framebuffer validation failed, falling back to default framebuffer");
       this->framebuffer_restore();
 
       if (!static_cast<MTLFrameBuffer *>(this->active_fb)->validate_render_pass()) {
-        MTL_LOG_ERROR("CRITICAL: DEFAULT FRAMEBUFFER FAIL VALIDATION!!\n");
+        MTL_LOG_ERROR("CRITICAL: DEFAULT FRAMEBUFFER FAIL VALIDATION!!");
       }
     }
 
@@ -748,10 +751,12 @@ void MTLContext::pipeline_state_init()
   this->pipeline_state.src_rgb_blend_factor = MTLBlendFactorOne;
 
   /* Viewport and scissor. */
-  this->pipeline_state.viewport_offset_x = 0;
-  this->pipeline_state.viewport_offset_y = 0;
-  this->pipeline_state.viewport_width = 0;
-  this->pipeline_state.viewport_height = 0;
+  for (int v = 0; v < GPU_MAX_VIEWPORTS; v++) {
+    this->pipeline_state.viewport_offset_x[v] = 0;
+    this->pipeline_state.viewport_offset_y[v] = 0;
+    this->pipeline_state.viewport_width[v] = 0;
+    this->pipeline_state.viewport_height[v] = 0;
+  }
   this->pipeline_state.scissor_x = 0;
   this->pipeline_state.scissor_y = 0;
   this->pipeline_state.scissor_width = 0;
@@ -801,14 +806,46 @@ void MTLContext::set_viewport(int origin_x, int origin_y, int width, int height)
   BLI_assert(height > 0);
   BLI_assert(origin_x >= 0);
   BLI_assert(origin_y >= 0);
-  bool changed = (this->pipeline_state.viewport_offset_x != origin_x) ||
-                 (this->pipeline_state.viewport_offset_y != origin_y) ||
-                 (this->pipeline_state.viewport_width != width) ||
-                 (this->pipeline_state.viewport_height != height);
-  this->pipeline_state.viewport_offset_x = origin_x;
-  this->pipeline_state.viewport_offset_y = origin_y;
-  this->pipeline_state.viewport_width = width;
-  this->pipeline_state.viewport_height = height;
+  bool changed = (this->pipeline_state.viewport_offset_x[0] != origin_x) ||
+                 (this->pipeline_state.viewport_offset_y[0] != origin_y) ||
+                 (this->pipeline_state.viewport_width[0] != width) ||
+                 (this->pipeline_state.viewport_height[0] != height) ||
+                 (this->pipeline_state.num_active_viewports != 1);
+  this->pipeline_state.viewport_offset_x[0] = origin_x;
+  this->pipeline_state.viewport_offset_y[0] = origin_y;
+  this->pipeline_state.viewport_width[0] = width;
+  this->pipeline_state.viewport_height[0] = height;
+  this->pipeline_state.num_active_viewports = 1;
+
+  if (changed) {
+    this->pipeline_state.dirty_flags = (this->pipeline_state.dirty_flags |
+                                        MTL_PIPELINE_STATE_VIEWPORT_FLAG);
+  }
+}
+
+void MTLContext::set_viewports(int count, const int (&viewports)[GPU_MAX_VIEWPORTS][4])
+{
+  BLI_assert(this);
+  bool changed = (this->pipeline_state.num_active_viewports != count);
+  for (int v = 0; v < count; v++) {
+    const int(&viewport_info)[4] = viewports[v];
+
+    BLI_assert(viewport_info[0] >= 0);
+    BLI_assert(viewport_info[1] >= 0);
+    BLI_assert(viewport_info[2] > 0);
+    BLI_assert(viewport_info[3] > 0);
+
+    changed = changed || (this->pipeline_state.viewport_offset_x[v] != viewport_info[0]) ||
+              (this->pipeline_state.viewport_offset_y[v] != viewport_info[1]) ||
+              (this->pipeline_state.viewport_width[v] != viewport_info[2]) ||
+              (this->pipeline_state.viewport_height[v] != viewport_info[3]);
+    this->pipeline_state.viewport_offset_x[v] = viewport_info[0];
+    this->pipeline_state.viewport_offset_y[v] = viewport_info[1];
+    this->pipeline_state.viewport_width[v] = viewport_info[2];
+    this->pipeline_state.viewport_height[v] = viewport_info[3];
+  }
+  this->pipeline_state.num_active_viewports = count;
+
   if (changed) {
     this->pipeline_state.dirty_flags = (this->pipeline_state.dirty_flags |
                                         MTL_PIPELINE_STATE_VIEWPORT_FLAG);
@@ -868,14 +905,14 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 
   /* Check if an active shader is bound. */
   if (!this->pipeline_state.active_shader) {
-    MTL_LOG_WARNING("No Metal shader for bound GL shader\n");
+    MTL_LOG_WARNING("No Metal shader for bound GL shader");
     return false;
   }
 
   /* Also ensure active shader is valid. */
   if (!this->pipeline_state.active_shader->is_valid()) {
     MTL_LOG_WARNING(
-        "Bound active shader is not valid (Missing/invalid implementation for Metal).\n", );
+        "Bound active shader is not valid (Missing/invalid implementation for Metal).", );
     return false;
   }
 
@@ -892,7 +929,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
   /* Fetch shader interface. */
   MTLShaderInterface *shader_interface = this->pipeline_state.active_shader->get_interface();
   if (shader_interface == nullptr) {
-    MTL_LOG_WARNING("Bound active shader does not have a valid shader interface!\n", );
+    MTL_LOG_WARNING("Bound active shader does not have a valid shader interface!", );
     return false;
   }
 
@@ -903,7 +940,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
       this->pipeline_state.active_shader->bake_current_pipeline_state(
           this, mtl_prim_type_to_topology_class(mtl_prim_type));
   if (!pipeline_state_instance) {
-    MTL_LOG_ERROR("Failed to bake Metal pipeline state for shader: %s\n",
+    MTL_LOG_ERROR("Failed to bake Metal pipeline state for shader: %s",
                   shader_interface->get_name());
     return false;
   }
@@ -917,7 +954,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
         this->main_command_buffer.get_active_render_command_encoder();
     BLI_assert(rec);
     if (rec == nil) {
-      MTL_LOG_ERROR("ensure_render_pipeline_state called while render pass is not active.\n");
+      MTL_LOG_ERROR("ensure_render_pipeline_state called while render pass is not active.");
       return false;
     }
 
@@ -957,7 +994,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
         [rec setVertexBuffer:tf_buffer_mtl
                       offset:0
                      atIndex:pipeline_state_instance->transform_feedback_buffer_index];
-        MTL_LOG_INFO("Successfully bound VBO: %p for transform feedback (MTL Buffer: %p)\n",
+        MTL_LOG_INFO("Successfully bound VBO: %p for transform feedback (MTL Buffer: %p)",
                      tf_vbo_mtl,
                      tf_buffer_mtl);
       }
@@ -976,7 +1013,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
     /* Bind Null attribute buffer, if needed. */
     if (pipeline_state_instance->null_attribute_buffer_index >= 0) {
       if (G.debug & G_DEBUG_GPU) {
-        MTL_LOG_INFO("Binding null attribute buffer at index: %d\n",
+        MTL_LOG_INFO("Binding null attribute buffer at index: %d",
                      pipeline_state_instance->null_attribute_buffer_index);
       }
       rps.bind_vertex_buffer(this->get_null_attribute_buffer(),
@@ -986,18 +1023,30 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 
     /** Dynamic Per-draw Render State on RenderCommandEncoder. */
     /* State: Viewport. */
-    if (this->pipeline_state.dirty_flags & MTL_PIPELINE_STATE_VIEWPORT_FLAG) {
+    if (this->pipeline_state.num_active_viewports > 1) {
+      /* Multiple Viewports. */
+      MTLViewport viewports[GPU_MAX_VIEWPORTS];
+      for (int v = 0; v < this->pipeline_state.num_active_viewports; v++) {
+        MTLViewport &viewport = viewports[v];
+        viewport.originX = (double)this->pipeline_state.viewport_offset_x[v];
+        viewport.originY = (double)this->pipeline_state.viewport_offset_y[v];
+        viewport.width = (double)this->pipeline_state.viewport_width[v];
+        viewport.height = (double)this->pipeline_state.viewport_height[v];
+        viewport.znear = this->pipeline_state.depth_stencil_state.depth_range_near;
+        viewport.zfar = this->pipeline_state.depth_stencil_state.depth_range_far;
+      }
+      [rec setViewports:viewports count:this->pipeline_state.num_active_viewports];
+    }
+    else {
+      /* Single Viewport. */
       MTLViewport viewport;
-      viewport.originX = (double)this->pipeline_state.viewport_offset_x;
-      viewport.originY = (double)this->pipeline_state.viewport_offset_y;
-      viewport.width = (double)this->pipeline_state.viewport_width;
-      viewport.height = (double)this->pipeline_state.viewport_height;
+      viewport.originX = (double)this->pipeline_state.viewport_offset_x[0];
+      viewport.originY = (double)this->pipeline_state.viewport_offset_y[0];
+      viewport.width = (double)this->pipeline_state.viewport_width[0];
+      viewport.height = (double)this->pipeline_state.viewport_height[0];
       viewport.znear = this->pipeline_state.depth_stencil_state.depth_range_near;
       viewport.zfar = this->pipeline_state.depth_stencil_state.depth_range_far;
       [rec setViewport:viewport];
-
-      this->pipeline_state.dirty_flags = (this->pipeline_state.dirty_flags &
-                                          ~MTL_PIPELINE_STATE_VIEWPORT_FLAG);
     }
 
     /* State: Scissor. */
@@ -1090,7 +1139,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 /* Bind UBOs and SSBOs to an active render command encoder using the rendering state of the
  * current context -> Active shader, Bound UBOs). */
 bool MTLContext::ensure_buffer_bindings(
-    id<MTLRenderCommandEncoder> rec,
+    id<MTLRenderCommandEncoder> /*rec*/,
     const MTLShaderInterface *shader_interface,
     const MTLRenderPipelineStateInstance *pipeline_state_instance)
 {
@@ -1195,11 +1244,11 @@ bool MTLContext::ensure_buffer_bindings(
              * dummy buffer, which will be big enough, to avoid an OOB error. */
             if (ubo_size < expected_size) {
               MTL_LOG_UBO_ERROR(
-                  "[Error][UBO] UBO (UBO Name: %s) bound at location: %d (buffer[[%d]]) with size "
+                  "[UBO] UBO (UBO Name: %s) bound at location: %d (buffer[[%d]]) with size "
                   "%lu (Expected size "
                   "%d)  (Shader Name: %s) is too small -- binding NULL buffer. This is likely an "
                   "over-binding, which is not used,  but we need this to avoid validation "
-                  "issues\n",
+                  "issues",
                   shader_interface->get_name_at_offset(ubo.name_offset),
                   ubo_location,
                   pipeline_state_instance->base_uniform_buffer_index + buffer_index,
@@ -1213,9 +1262,9 @@ bool MTLContext::ensure_buffer_bindings(
       }
       else {
         MTL_LOG_UBO_ERROR(
-            "[Warning][UBO] Shader '%s' expected UBO '%s' to be bound at buffer slot: %d "
+            "[UBO] Shader '%s' expected UBO '%s' to be bound at buffer slot: %d "
             "(buffer[[%d]])-- but "
-            "nothing was bound -- binding dummy buffer\n",
+            "nothing was bound -- binding dummy buffer",
             shader_interface->get_name(),
             shader_interface->get_name_at_offset(ubo.name_offset),
             ubo_location,
@@ -1249,7 +1298,7 @@ bool MTLContext::ensure_buffer_bindings(
       else {
         MTL_LOG_UBO_ERROR(
             "[UBO] Shader '%s' has UBO '%s' bound at buffer index: %d -- but MTLBuffer "
-            "is NULL!\n",
+            "is NULL!",
             shader_interface->get_name(),
             shader_interface->get_name_at_offset(ubo.name_offset),
             buffer_index);
@@ -1265,7 +1314,7 @@ bool MTLContext::ensure_buffer_bindings(
     const MTLShaderBufferBlock &ssbo = shader_interface->get_storage_block(ssbo_index);
 
     if (ssbo.buffer_index >= 0 && ssbo.location >= 0) {
-      /* Explicit lookup location for SSBO in bind table.*/
+      /* Explicit lookup location for SSBO in bind table. */
       const uint32_t ssbo_location = ssbo.location;
       /* buffer(N) index of where to bind the SSBO. */
       const uint32_t buffer_index = ssbo.buffer_index;
@@ -1285,10 +1334,10 @@ bool MTLContext::ensure_buffer_bindings(
       }
       else {
         MTL_LOG_SSBO_ERROR(
-            "[Error][SSBO] Shader '%s' expected SSBO '%s' to be bound at buffer location: %d "
+            "[SSBO] Shader '%s' expected SSBO '%s' to be bound at buffer location: %d "
             "(buffer[[%d]]) -- "
             "but "
-            "nothing was bound.\n",
+            "nothing was bound.",
             shader_interface->get_name(),
             shader_interface->get_name_at_offset(ssbo.name_offset),
             ssbo_location,
@@ -1318,9 +1367,9 @@ bool MTLContext::ensure_buffer_bindings(
       }
       else {
         MTL_LOG_SSBO_ERROR(
-            "[Error][SSBO] Shader '%s' had SSBO '%s' bound at SSBO location: %d "
+            "[SSBO] Shader '%s' had SSBO '%s' bound at SSBO location: %d "
             "(buffer[["
-            "%d]]) -- but bound MTLStorageBuf was nil.\n",
+            "%d]]) -- but bound MTLStorageBuf was nil.",
             shader_interface->get_name(),
             shader_interface->get_name_at_offset(ssbo.name_offset),
             ssbo_location,
@@ -1335,7 +1384,7 @@ bool MTLContext::ensure_buffer_bindings(
 /* Variant for compute. Bind UBOs and SSBOs to an active compute command encoder using the
  * rendering state of the current context -> Active shader, Bound UBOs). */
 bool MTLContext::ensure_buffer_bindings(
-    id<MTLComputeCommandEncoder> rec,
+    id<MTLComputeCommandEncoder> /*rec*/,
     const MTLShaderInterface *shader_interface,
     const MTLComputePipelineStateInstance &pipeline_state_instance)
 {
@@ -1400,9 +1449,9 @@ bool MTLContext::ensure_buffer_bindings(
       }
       else {
         MTL_LOG_UBO_ERROR(
-            "[Warning][UBO] Shader '%s' expected UBO '%s' to be bound at buffer location: %d "
+            "[UBO] Shader '%s' expected UBO '%s' to be bound at buffer location: %d "
             "(buffer[[%d]]) -- but "
-            "nothing was bound -- binding dummy buffer\n",
+            "nothing was bound -- binding dummy buffer",
             shader_interface->get_name(),
             shader_interface->get_name_at_offset(ubo.name_offset),
             ubo_location,
@@ -1429,7 +1478,7 @@ bool MTLContext::ensure_buffer_bindings(
       else {
         MTL_LOG_UBO_ERROR(
             "[UBO] Compute Shader '%s' has UBO '%s' bound at buffer index: %d -- but MTLBuffer "
-            "is NULL!\n",
+            "is NULL!",
             shader_interface->get_name(),
             shader_interface->get_name_at_offset(ubo.name_offset),
             buffer_index);
@@ -1444,7 +1493,7 @@ bool MTLContext::ensure_buffer_bindings(
     const MTLShaderBufferBlock &ssbo = shader_interface->get_storage_block(ssbo_index);
 
     if (ssbo.buffer_index >= 0 && ssbo.location >= 0) {
-      /* Explicit lookup location for UBO in bind table.*/
+      /* Explicit lookup location for UBO in bind table. */
       const uint32_t ssbo_location = ssbo.location;
       /* buffer(N) index of where to bind the UBO. */
       const uint32_t buffer_index = ssbo.buffer_index;
@@ -1464,10 +1513,10 @@ bool MTLContext::ensure_buffer_bindings(
       }
       else {
         MTL_LOG_SSBO_ERROR(
-            "[Error][SSBO] Shader '%s' expected SSBO '%s' to be bound at SSBO location: %d "
+            "[SSBO] Shader '%s' expected SSBO '%s' to be bound at SSBO location: %d "
             "(buffer[["
             "%d]]) -- but "
-            "nothing was bound.\n",
+            "nothing was bound.",
             shader_interface->get_name(),
             shader_interface->get_name_at_offset(ssbo.name_offset),
             ssbo_location,
@@ -1483,17 +1532,17 @@ bool MTLContext::ensure_buffer_bindings(
         uint32_t buffer_bind_index = pipeline_state_instance.base_storage_buffer_index +
                                      buffer_index;
 
-        /* Bind Vertex UBO. */
+        /* Bind Compute SSBO. */
         if (bool(ssbo.stage_mask & ShaderStage::COMPUTE)) {
           BLI_assert(buffer_bind_index >= 0 && buffer_bind_index < MTL_MAX_BUFFER_BINDINGS);
-          cs.bind_compute_buffer(ssbo_buffer, 0, buffer_bind_index);
+          cs.bind_compute_buffer(ssbo_buffer, 0, buffer_bind_index, true);
         }
       }
       else {
         MTL_LOG_SSBO_ERROR(
-            "[Error][SSBO] Shader '%s' had SSBO '%s' bound at SSBO location: %d "
+            "[SSBO] Shader '%s' had SSBO '%s' bound at SSBO location: %d "
             "(buffer[["
-            "%d]]) -- but bound MTLStorageBuf was nil.\n",
+            "%d]]) -- but bound MTLStorageBuf was nil.",
             shader_interface->get_name(),
             shader_interface->get_name_at_offset(ssbo.name_offset),
             ssbo_location,
@@ -1513,6 +1562,7 @@ void MTLContext::ensure_texture_bindings(
 {
   BLI_assert(shader_interface != nil);
   BLI_assert(rec != nil);
+  UNUSED_VARS_NDEBUG(rec);
 
   /* Fetch Render Pass state. */
   MTLRenderPassState &rps = this->main_command_buffer.get_render_pass_state();
@@ -1590,7 +1640,7 @@ void MTLContext::ensure_texture_bindings(
             MTL_LOG_WARNING(
                 "(Shader '%s') Texture (%s) %p bound to slot %d is incompatible -- Wrong "
                 "texture target type. (Expecting type %d, actual type %d) (binding "
-                "name:'%s')(texture name:'%s')\n",
+                "name:'%s')(texture name:'%s')",
                 shader_interface->get_name(),
                 is_resource_sampler ? "TextureSampler" : "TextureImage",
                 bound_texture,
@@ -1605,7 +1655,7 @@ void MTLContext::ensure_texture_bindings(
           MTL_LOG_WARNING(
               "Shader '%s' expected texture (%s) to be bound to location %d (texture[[%d]]) -- No "
               "texture was "
-              "bound. (name:'%s')\n",
+              "bound. (name:'%s')",
               shader_interface->get_name(),
               is_resource_sampler ? "TextureSampler" : "TextureImage",
               location,
@@ -1640,7 +1690,7 @@ void MTLContext::ensure_texture_bindings(
       else {
         MTL_LOG_WARNING(
             "Shader %p expected texture (%s) to be bound to slot %d -- Slot exceeds the "
-            "hardware/API limit of '%d'. (name:'%s')\n",
+            "hardware/API limit of '%d'. (name:'%s')",
             this->pipeline_state.active_shader,
             is_resource_sampler ? "TextureSampler" : "TextureImage",
             slot,
@@ -1749,6 +1799,7 @@ void MTLContext::ensure_texture_bindings(
 {
   BLI_assert(shader_interface != nil);
   BLI_assert(rec != nil);
+  UNUSED_VARS_NDEBUG(rec);
 
   /* Fetch Render Pass state. */
   MTLComputeState &cs = this->main_command_buffer.get_compute_state();
@@ -1819,7 +1870,7 @@ void MTLContext::ensure_texture_bindings(
             MTL_LOG_WARNING(
                 "(Shader '%s') Texture (%s) %p bound to slot %d is incompatible -- Wrong "
                 "texture target type. (Expecting type %d, actual type %d) (binding "
-                "name:'%s')(texture name:'%s')\n",
+                "name:'%s')(texture name:'%s')",
                 shader_interface->get_name(),
                 is_resource_sampler ? "TextureSampler" : "TextureImage",
                 bound_texture,
@@ -1834,7 +1885,7 @@ void MTLContext::ensure_texture_bindings(
           MTL_LOG_WARNING(
               "Shader '%s' expected texture (%s) to be bound to location %d (texture[[%d]]) -- No "
               "texture was "
-              "bound. (name:'%s')\n",
+              "bound. (name:'%s')",
               shader_interface->get_name(),
               is_resource_sampler ? "TextureSampler" : "TextureImage",
               location,
@@ -1861,7 +1912,7 @@ void MTLContext::ensure_texture_bindings(
       else {
         MTL_LOG_WARNING(
             "Shader %p expected texture (%s) to be bound to slot %d -- Slot exceeds the "
-            "hardware/API limit of '%d'. (name:'%s')\n",
+            "hardware/API limit of '%d'. (name:'%s')",
             this->pipeline_state.active_shader,
             is_resource_sampler ? "TextureSampler" : "TextureImage",
             slot,
@@ -2096,13 +2147,13 @@ bool MTLContext::ensure_compute_pipeline_state()
   /* Verify if bound shader is valid and fetch MTLComputePipelineStateInstance. */
   /* Check if an active shader is bound. */
   if (!this->pipeline_state.active_shader) {
-    MTL_LOG_WARNING("No Metal shader bound!\n");
+    MTL_LOG_WARNING("No Metal shader bound!");
     return false;
   }
   /* Also ensure active shader is valid. */
   if (!this->pipeline_state.active_shader->is_valid()) {
     MTL_LOG_WARNING(
-        "Bound active shader is not valid (Missing/invalid implementation for Metal).\n", );
+        "Bound active shader is not valid (Missing/invalid implementation for Metal).", );
     return false;
   }
   /* Verify this is a compute shader. */
@@ -2110,7 +2161,7 @@ bool MTLContext::ensure_compute_pipeline_state()
   /* Fetch shader interface. */
   MTLShaderInterface *shader_interface = this->pipeline_state.active_shader->get_interface();
   if (shader_interface == nullptr) {
-    MTL_LOG_WARNING("Bound active shader does not have a valid shader interface!\n", );
+    MTL_LOG_WARNING("Bound active shader does not have a valid shader interface!", );
     return false;
   }
 
@@ -2118,7 +2169,7 @@ bool MTLContext::ensure_compute_pipeline_state()
   const MTLComputePipelineStateInstance &compute_pso_inst =
       this->pipeline_state.active_shader->get_compute_pipeline_state();
   if (!success || compute_pso_inst.pso == nil) {
-    MTL_LOG_WARNING("No valid compute PSO for compute dispatch!\n", );
+    MTL_LOG_WARNING("No valid compute PSO for compute dispatch!", );
     return false;
   }
   return true;
@@ -2198,7 +2249,7 @@ void MTLContext::compute_dispatch_indirect(StorageBuf *indirect_buf)
     id<MTLBuffer> mtl_indirect_buf = mtlssbo->get_metal_buffer();
     BLI_assert(mtl_indirect_buf != nil);
     if (mtl_indirect_buf == nil) {
-      MTL_LOG_WARNING("Metal Indirect Compute dispatch storage buffer does not exist.\n");
+      MTL_LOG_WARNING("Metal Indirect Compute dispatch storage buffer does not exist.");
       return;
     }
 
@@ -2265,7 +2316,7 @@ void MTLContext::texture_bind(gpu::MTLTexture *mtl_texture, uint texture_unit, b
   if (texture_unit < 0 || texture_unit >= GPU_max_textures() ||
       texture_unit >= MTL_MAX_TEXTURE_SLOTS)
   {
-    MTL_LOG_WARNING("Attempting to bind texture '%s' to invalid texture unit %d\n",
+    MTL_LOG_WARNING("Attempting to bind texture '%s' to invalid texture unit %d",
                     mtl_texture->get_name(),
                     texture_unit);
     BLI_assert(false);
@@ -2289,7 +2340,7 @@ void MTLContext::sampler_bind(MTLSamplerState sampler_state, uint sampler_unit)
   if (sampler_unit < 0 || sampler_unit >= GPU_max_textures() ||
       sampler_unit >= MTL_MAX_SAMPLER_SLOTS)
   {
-    MTL_LOG_WARNING("Attempting to bind sampler to invalid sampler unit %d\n", sampler_unit);
+    MTL_LOG_WARNING("Attempting to bind sampler to invalid sampler unit %d", sampler_unit);
     BLI_assert(false);
     return;
   }
@@ -2456,6 +2507,77 @@ id<MTLSamplerState> MTLContext::get_default_sampler_state()
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Compute Utils Implementation
+ * \{ */
+
+id<MTLComputePipelineState> MTLContextComputeUtils::get_buffer_clear_pso()
+{
+  if (buffer_clear_pso_ != nil) {
+    return buffer_clear_pso_;
+  }
+
+  /* Fetch active context. */
+  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  BLI_assert(ctx);
+
+  @autoreleasepool {
+    /* Source as NSString. */
+    const char *src =
+        "\
+    struct BufferClearParams {\
+      uint clear_value;\
+    };\
+    kernel void compute_buffer_clear(constant BufferClearParams &params [[buffer(0)]],\
+                                     device uint32_t* output_data [[buffer(1)]],\
+                                     uint position [[thread_position_in_grid]])\
+    {\
+      output_data[position] = params.clear_value;\
+    }";
+    NSString *compute_buffer_clear_src = [NSString stringWithUTF8String:src];
+
+    /* Prepare shader library for buffer clearing. */
+    MTLCompileOptions *options = [[[MTLCompileOptions alloc] init] autorelease];
+    options.languageVersion = MTLLanguageVersion2_2;
+
+    NSError *error = nullptr;
+    id<MTLLibrary> temp_lib = [[ctx->device newLibraryWithSource:compute_buffer_clear_src
+                                                         options:options
+                                                           error:&error] autorelease];
+    if (error) {
+      /* Only exit out if genuine error and not warning. */
+      if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
+          NSNotFound) {
+        NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
+        BLI_assert(false);
+        return nil;
+      }
+    }
+
+    /* Fetch compute function. */
+    BLI_assert(temp_lib != nil);
+    id<MTLFunction> temp_compute_function = [[temp_lib newFunctionWithName:@"compute_buffer_clear"]
+        autorelease];
+    BLI_assert(temp_compute_function);
+
+    /* Compile compute PSO */
+    buffer_clear_pso_ = [ctx->device newComputePipelineStateWithFunction:temp_compute_function
+                                                                   error:&error];
+    if (error || buffer_clear_pso_ == nil) {
+      NSLog(@"Failed to prepare compute_buffer_clear MTLComputePipelineState %@", error);
+      BLI_assert(false);
+      return nil;
+    }
+
+    [buffer_clear_pso_ retain];
+  }
+
+  BLI_assert(buffer_clear_pso_ != nil);
+  return buffer_clear_pso_;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Swap-chain management and Metal presentation.
  * \{ */
 
@@ -2523,15 +2645,14 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
 
   /* Increment free pool reference and decrement upon command buffer completion. */
   cmd_free_buffer_list->increment_reference();
-  [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> cb) {
+  [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> /*cb*/) {
     /* Flag freed buffers associated with this CMD buffer as ready to be freed. */
     cmd_free_buffer_list->decrement_reference();
     [cmd_buffer_ref release];
 
     /* Decrement count */
     MTLCommandBufferManager::num_active_cmd_bufs--;
-    MTL_LOG_INFO("[Metal] Active command buffers: %d\n",
-                 MTLCommandBufferManager::num_active_cmd_bufs);
+    MTL_LOG_INFO("Active command buffers: %d", MTLCommandBufferManager::num_active_cmd_bufs);
 
     /* Drawable count and latency management. */
     MTLContext::max_drawables_in_flight--;
@@ -2541,7 +2662,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
                                          .count();
     MTLContext::latency_resolve_average(microseconds_per_frame);
 
-    MTL_LOG_INFO("Frame Latency: %f ms  (Rolling avg: %f ms  Drawables: %d)\n",
+    MTL_LOG_INFO("Frame Latency: %f ms  (Rolling avg: %f ms  Drawables: %d)",
                  ((float)microseconds_per_frame) / 1000.0f,
                  ((float)MTLContext::avg_drawable_latency_us) / 1000.0f,
                  perf_max_drawables);
@@ -2556,26 +2677,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
     if (error != nil) {
       NSLog(@"%@", error);
       BLI_assert(false);
-
-      @autoreleasepool {
-        const char *stringAsChar = [[NSString stringWithFormat:@"%@", error] UTF8String];
-
-        std::ofstream outfile;
-        outfile.open("command_buffer_error.txt", std::fstream::out | std::fstream::app);
-        outfile << stringAsChar;
-        outfile.close();
-      }
-    }
-    else {
-      @autoreleasepool {
-        NSString *str = @"Command buffer completed successfully!\n";
-        const char *stringAsChar = [str UTF8String];
-
-        std::ofstream outfile;
-        outfile.open("command_buffer_error.txt", std::fstream::out | std::fstream::app);
-        outfile << stringAsChar;
-        outfile.close();
-      }
     }
   }
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -34,7 +34,7 @@ int GPU_max_texture_size()
   return GCaps.max_texture_size;
 }
 
-int GPU_max_texture_3d_size(void)
+int GPU_max_texture_3d_size()
 {
   return GCaps.max_texture_3d_size;
 }
@@ -182,6 +182,16 @@ bool GPU_shader_draw_parameters_support()
   return GCaps.shader_draw_parameters_support;
 }
 
+bool GPU_hdr_support()
+{
+  return GCaps.hdr_viewport_support;
+}
+
+bool GPU_texture_view_support()
+{
+  return GCaps.texture_view_support;
+}
+
 int GPU_max_shader_storage_buffer_bindings()
 {
   return GCaps.max_shader_storage_buffer_bindings;
@@ -192,12 +202,12 @@ int GPU_max_compute_shader_storage_blocks()
   return GCaps.max_compute_shader_storage_blocks;
 }
 
-int GPU_minimum_per_vertex_stride(void)
+int GPU_minimum_per_vertex_stride()
 {
   return GCaps.minimum_per_vertex_stride;
 }
 
-bool GPU_transform_feedback_support(void)
+bool GPU_transform_feedback_support()
 {
   return GCaps.transform_feedback_support;
 }

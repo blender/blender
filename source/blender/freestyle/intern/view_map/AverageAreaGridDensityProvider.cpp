@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -59,7 +61,7 @@ void AverageAreaGridDensityProvider::initialize(const real proscenium[4], real s
     ++numFaces;
   }
   if (G.debug & G_DEBUG_FREESTYLE) {
-    cout << "Total area: " << cellArea << ".  Number of faces: " << numFaces << "." << endl;
+    cout << "Total area: " << cellArea << ". Number of faces: " << numFaces << "." << endl;
   }
   cellArea /= numFaces;
   cellArea *= sizeFactor;

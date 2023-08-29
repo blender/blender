@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,12 +27,12 @@ using namespace blender::bke;
 
 /* simple struct for storing backup info for one pose channel */
 struct PoseChannelBackup {
-  struct PoseChannelBackup *next, *prev;
+  PoseChannelBackup *next, *prev;
 
-  struct bPoseChannel *pchan; /* Pose channel this backup is for. */
+  bPoseChannel *pchan; /* Pose channel this backup is for. */
 
-  struct bPoseChannel olddata; /* Backup of pose channel. */
-  struct IDProperty *oldprops; /* Backup copy (needs freeing) of pose channel's ID properties. */
+  bPoseChannel olddata; /* Backup of pose channel. */
+  IDProperty *oldprops; /* Backup copy (needs freeing) of pose channel's ID properties. */
 };
 
 struct PoseBackup {
@@ -76,7 +76,7 @@ static PoseBackup *pose_backup_create(const Object *ob,
     PoseChannelBackup *chan_bak = static_cast<PoseChannelBackup *>(
         MEM_callocN(sizeof(*chan_bak), "PoseChannelBackup"));
     chan_bak->pchan = pchan;
-    memcpy(&chan_bak->olddata, chan_bak->pchan, sizeof(chan_bak->olddata));
+    chan_bak->olddata = blender::dna::shallow_copy(*chan_bak->pchan);
 
     if (pchan->prop) {
       chan_bak->oldprops = IDP_CopyProperty(pchan->prop);
@@ -108,7 +108,7 @@ PoseBackup *BKE_pose_backup_create_selected_bones(const Object *ob, const bActio
   return pose_backup_create(ob, action, selected_bone_names);
 }
 
-bool BKE_pose_backup_is_selection_relevant(const struct PoseBackup *pose_backup)
+bool BKE_pose_backup_is_selection_relevant(const PoseBackup *pose_backup)
 {
   return pose_backup->is_bone_selection_relevant;
 }
@@ -116,7 +116,7 @@ bool BKE_pose_backup_is_selection_relevant(const struct PoseBackup *pose_backup)
 void BKE_pose_backup_restore(const PoseBackup *pbd)
 {
   LISTBASE_FOREACH (PoseChannelBackup *, chan_bak, &pbd->backups) {
-    memcpy(chan_bak->pchan, &chan_bak->olddata, sizeof(chan_bak->olddata));
+    *chan_bak->pchan = blender::dna::shallow_copy(chan_bak->olddata);
 
     if (chan_bak->oldprops) {
       IDP_SyncGroupValues(chan_bak->pchan->prop, chan_bak->oldprops);
@@ -145,7 +145,7 @@ void BKE_pose_backup_create_on_object(Object *ob, const bAction *action)
   ob->runtime.pose_backup = pose_backup;
 }
 
-bool BKE_pose_backup_restore_on_object(struct Object *ob)
+bool BKE_pose_backup_restore_on_object(Object *ob)
 {
   if (ob->runtime.pose_backup == nullptr) {
     return false;

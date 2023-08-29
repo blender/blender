@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2018-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Dynamically create a keymap which is used by the popup toolbar

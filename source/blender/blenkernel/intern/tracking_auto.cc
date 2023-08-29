@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,7 +7,7 @@
  */
 
 #include "atomic_ops.h"
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -15,7 +15,7 @@
 #include "DNA_object_types.h" /* SELECT */
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -31,16 +31,16 @@
 #include "libmv-capi.h"
 #include "tracking_private.h"
 
-typedef struct AutoTrackClip {
+struct AutoTrackClip {
   MovieClip *clip;
 
   /* Dimensions of movie frame, in pixels.
    *
    * NOTE: All frames within a clip are expected to have match3ed dimensions. */
   int width, height;
-} AutoTrackClip;
+};
 
-typedef struct AutoTrackTrack {
+struct AutoTrackTrack {
   /* Index of a clip from `AutoTrackContext::autotrack_clips` this track belongs to. */
   int clip_index;
 
@@ -53,11 +53,11 @@ typedef struct AutoTrackTrack {
    * Is usually initialized based on track's selection. Non-trackable tracks are still added to the
    * context to provide AutoTrack all knowledge about what is going on in the scene. */
   bool is_trackable;
-} AutoTrackTrack;
+};
 
-typedef struct AutoTrackMarker {
+struct AutoTrackMarker {
   libmv_Marker libmv_marker;
-} AutoTrackMarker;
+};
 
 /* Result of tracking step for a single marker.
  *
@@ -65,15 +65,15 @@ typedef struct AutoTrackMarker {
  *
  * On failure marker's frame number is initialized to frame number where it was attempted to be
  * tracked to. The position and other fields of tracked marker are the same as the input. */
-typedef struct AutoTrackTrackingResult {
-  struct AutoTrackTrackingResult *next, *prev;
+struct AutoTrackTrackingResult {
+  AutoTrackTrackingResult *next, *prev;
 
   bool success;
   libmv_Marker libmv_marker;
   libmv_TrackRegionResult libmv_result;
-} AutoTrackTrackingResult;
+};
 
-typedef struct AutoTrackContext {
+struct AutoTrackContext {
   /* --------------------------------------------------------------------
    * Invariant part.
    * Stays unchanged during the tracking process.
@@ -117,7 +117,7 @@ typedef struct AutoTrackContext {
   /* Auto-track context.
    *
    * NOTE: Is accessed from multiple threads at once. */
-  struct libmv_AutoTrack *autotrack;
+  libmv_AutoTrack *autotrack;
 
   /* Markers from the current frame which will be tracked to the next frame upon the tracking
    * context step.
@@ -133,7 +133,7 @@ typedef struct AutoTrackContext {
   int synchronized_scene_frame;
 
   SpinLock spin_lock;
-} AutoTrackContext;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Marker coordinate system conversion.
@@ -179,94 +179,98 @@ static void libmv_frame_to_normalized_relative(const float frame_coord[2],
 /** \name Conversion of markers between Blender's DNA and Libmv.
  * \{ */
 
-static void dna_marker_to_libmv_marker(/*const*/ MovieTrackingTrack *track,
-                                       const MovieTrackingMarker *marker,
-                                       int clip,
-                                       int track_index,
-                                       int frame_width,
-                                       int frame_height,
-                                       bool backwards,
-                                       libmv_Marker *libmv_marker)
+static libmv_Marker dna_marker_to_libmv_marker(/*const*/ MovieTrackingTrack &track,
+                                               const MovieTrackingMarker &marker,
+                                               const int clip,
+                                               const int track_index,
+                                               const int frame_width,
+                                               const int frame_height,
+                                               const bool backwards)
 {
-  const int frame_dimensions[2] = {frame_width, frame_height};
-  libmv_marker->clip = clip;
-  libmv_marker->frame = marker->framenr;
-  libmv_marker->track = track_index;
+  libmv_Marker libmv_marker{};
 
-  normalized_to_libmv_frame(marker->pos, frame_dimensions, libmv_marker->center);
+  const int frame_dimensions[2] = {frame_width, frame_height};
+  libmv_marker.clip = clip;
+  libmv_marker.frame = marker.framenr;
+  libmv_marker.track = track_index;
+
+  normalized_to_libmv_frame(marker.pos, frame_dimensions, libmv_marker.center);
   for (int i = 0; i < 4; i++) {
     normalized_relative_to_libmv_frame(
-        marker->pattern_corners[i], marker->pos, frame_dimensions, libmv_marker->patch[i]);
+        marker.pattern_corners[i], marker.pos, frame_dimensions, libmv_marker.patch[i]);
   }
 
   normalized_relative_to_libmv_frame(
-      marker->search_min, marker->pos, frame_dimensions, libmv_marker->search_region_min);
+      marker.search_min, marker.pos, frame_dimensions, libmv_marker.search_region_min);
 
   normalized_relative_to_libmv_frame(
-      marker->search_max, marker->pos, frame_dimensions, libmv_marker->search_region_max);
+      marker.search_max, marker.pos, frame_dimensions, libmv_marker.search_region_max);
 
   /* NOTE: All the markers does have 1.0 weight.
    * Might support in the future, but will require more elaborated process which will involve
    * F-Curve evaluation. */
-  libmv_marker->weight = 1.0f;
+  libmv_marker.weight = 1.0f;
 
-  if (marker->flag & MARKER_TRACKED) {
-    libmv_marker->source = LIBMV_MARKER_SOURCE_TRACKED;
+  if (marker.flag & MARKER_TRACKED) {
+    libmv_marker.source = LIBMV_MARKER_SOURCE_TRACKED;
   }
   else {
-    libmv_marker->source = LIBMV_MARKER_SOURCE_MANUAL;
+    libmv_marker.source = LIBMV_MARKER_SOURCE_MANUAL;
   }
-  libmv_marker->status = LIBMV_MARKER_STATUS_UNKNOWN;
-  libmv_marker->model_type = LIBMV_MARKER_MODEL_TYPE_POINT;
-  libmv_marker->model_id = 0;
+  libmv_marker.status = LIBMV_MARKER_STATUS_UNKNOWN;
+  libmv_marker.model_type = LIBMV_MARKER_MODEL_TYPE_POINT;
+  libmv_marker.model_id = 0;
 
   /* NOTE: We currently don't support reference marker from different clip. */
-  libmv_marker->reference_clip = clip;
+  libmv_marker.reference_clip = clip;
 
-  if (track->pattern_match == TRACK_MATCH_KEYFRAME) {
+  if (track.pattern_match == TRACK_MATCH_KEYFRAME) {
     const MovieTrackingMarker *keyframe_marker = tracking_get_keyframed_marker(
-        track, marker->framenr, backwards);
-    libmv_marker->reference_frame = keyframe_marker->framenr;
+        &track, marker.framenr, backwards);
+    libmv_marker.reference_frame = keyframe_marker->framenr;
   }
   else {
-    libmv_marker->reference_frame = backwards ? marker->framenr - 1 : marker->framenr;
+    libmv_marker.reference_frame = backwards ? marker.framenr - 1 : marker.framenr;
   }
 
-  libmv_marker->disabled_channels =
-      ((track->flag & TRACK_DISABLE_RED) ? LIBMV_MARKER_CHANNEL_R : 0) |
-      ((track->flag & TRACK_DISABLE_GREEN) ? LIBMV_MARKER_CHANNEL_G : 0) |
-      ((track->flag & TRACK_DISABLE_BLUE) ? LIBMV_MARKER_CHANNEL_B : 0);
+  libmv_marker.disabled_channels =
+      ((track.flag & TRACK_DISABLE_RED) ? LIBMV_MARKER_CHANNEL_R : 0) |
+      ((track.flag & TRACK_DISABLE_GREEN) ? LIBMV_MARKER_CHANNEL_G : 0) |
+      ((track.flag & TRACK_DISABLE_BLUE) ? LIBMV_MARKER_CHANNEL_B : 0);
+
+  return libmv_marker;
 }
 
-static void libmv_marker_to_dna_marker(libmv_Marker *libmv_marker,
-                                       int frame_width,
-                                       int frame_height,
-                                       MovieTrackingMarker *marker)
+static MovieTrackingMarker libmv_marker_to_dna_marker(const libmv_Marker &libmv_marker,
+                                                      const int frame_width,
+                                                      const int frame_height)
 {
-  const int frame_dimensions[2] = {frame_width, frame_height};
-  marker->framenr = libmv_marker->frame;
+  MovieTrackingMarker marker{};
 
-  libmv_frame_to_normalized(libmv_marker->center, frame_dimensions, marker->pos);
+  const int frame_dimensions[2] = {frame_width, frame_height};
+  marker.framenr = libmv_marker.frame;
+
+  libmv_frame_to_normalized(libmv_marker.center, frame_dimensions, marker.pos);
   for (int i = 0; i < 4; i++) {
-    libmv_frame_to_normalized_relative(libmv_marker->patch[i],
-                                       libmv_marker->center,
-                                       frame_dimensions,
-                                       marker->pattern_corners[i]);
+    libmv_frame_to_normalized_relative(
+        libmv_marker.patch[i], libmv_marker.center, frame_dimensions, marker.pattern_corners[i]);
   }
 
   libmv_frame_to_normalized_relative(
-      libmv_marker->search_region_min, libmv_marker->center, frame_dimensions, marker->search_min);
+      libmv_marker.search_region_min, libmv_marker.center, frame_dimensions, marker.search_min);
 
   libmv_frame_to_normalized_relative(
-      libmv_marker->search_region_max, libmv_marker->center, frame_dimensions, marker->search_max);
+      libmv_marker.search_region_max, libmv_marker.center, frame_dimensions, marker.search_max);
 
-  marker->flag = 0;
-  if (libmv_marker->source == LIBMV_MARKER_SOURCE_TRACKED) {
-    marker->flag |= MARKER_TRACKED;
+  marker.flag = 0;
+  if (libmv_marker.source == LIBMV_MARKER_SOURCE_TRACKED) {
+    marker.flag |= MARKER_TRACKED;
   }
   else {
-    marker->flag &= ~MARKER_TRACKED;
+    marker.flag &= ~MARKER_TRACKED;
   }
+
+  return marker;
 }
 
 /** \} */
@@ -274,34 +278,32 @@ static void libmv_marker_to_dna_marker(libmv_Marker *libmv_marker,
 /* -------------------------------------------------------------------- */
 /** \name General helpers.
  *
- * TODO(sergey): Should be moved to tracking_util.c
- *
+ * TODO(sergey): Should be moved to `tracking_util.cc`.
  * \{ */
 
 /* Returns false if marker crossed margin area from frame bounds. */
-static bool tracking_check_marker_margin(const libmv_Marker *libmv_marker,
-                                         int margin,
-                                         int frame_width,
-                                         int frame_height)
+static bool tracking_check_marker_margin(const libmv_Marker &libmv_marker,
+                                         const int margin,
+                                         const int frame_width,
+                                         const int frame_height)
 {
   float patch_min[2], patch_max[2];
   float margin_left, margin_top, margin_right, margin_bottom;
 
   INIT_MINMAX2(patch_min, patch_max);
-  minmax_v2v2_v2(patch_min, patch_max, libmv_marker->patch[0]);
-  minmax_v2v2_v2(patch_min, patch_max, libmv_marker->patch[1]);
-  minmax_v2v2_v2(patch_min, patch_max, libmv_marker->patch[2]);
-  minmax_v2v2_v2(patch_min, patch_max, libmv_marker->patch[3]);
+  minmax_v2v2_v2(patch_min, patch_max, libmv_marker.patch[0]);
+  minmax_v2v2_v2(patch_min, patch_max, libmv_marker.patch[1]);
+  minmax_v2v2_v2(patch_min, patch_max, libmv_marker.patch[2]);
+  minmax_v2v2_v2(patch_min, patch_max, libmv_marker.patch[3]);
 
-  margin_left = max_ff(libmv_marker->center[0] - patch_min[0], margin);
-  margin_top = max_ff(patch_max[1] - libmv_marker->center[1], margin);
-  margin_right = max_ff(patch_max[0] - libmv_marker->center[0], margin);
-  margin_bottom = max_ff(libmv_marker->center[1] - patch_min[1], margin);
+  margin_left = max_ff(libmv_marker.center[0] - patch_min[0], margin);
+  margin_top = max_ff(patch_max[1] - libmv_marker.center[1], margin);
+  margin_right = max_ff(patch_max[0] - libmv_marker.center[0], margin);
+  margin_bottom = max_ff(libmv_marker.center[1] - patch_min[1], margin);
 
-  if (libmv_marker->center[0] < margin_left ||
-      libmv_marker->center[0] > frame_width - margin_right ||
-      libmv_marker->center[1] < margin_bottom ||
-      libmv_marker->center[1] > frame_height - margin_top)
+  if (libmv_marker.center[0] < margin_left ||
+      libmv_marker.center[0] > frame_width - margin_right ||
+      libmv_marker.center[1] < margin_bottom || libmv_marker.center[1] > frame_height - margin_top)
   {
     return false;
   }
@@ -315,9 +317,9 @@ static bool tracking_check_marker_margin(const libmv_Marker *libmv_marker,
 /** \name Auto-Track Context Initialization
  * \{ */
 
-static bool autotrack_is_marker_usable(const MovieTrackingMarker *marker)
+static bool autotrack_is_marker_usable(const MovieTrackingMarker &marker)
 {
-  if (marker->flag & MARKER_DISABLED) {
+  if (marker.flag & MARKER_DISABLED) {
     return false;
   }
   return true;
@@ -334,7 +336,7 @@ static bool autotrack_is_track_trackable(const AutoTrackContext *context,
         clip, context->start_scene_frame);
 
     const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame_number);
-    return autotrack_is_marker_usable(marker);
+    return autotrack_is_marker_usable(*marker);
   }
   return false;
 }
@@ -430,7 +432,7 @@ static size_t autotrack_count_all_usable_markers(AutoTrackContext *context)
   for (int track_index = 0; track_index < context->num_all_tracks; ++track_index) {
     const MovieTrackingTrack *track = context->all_autotrack_tracks[track_index].track;
     for (int marker_index = 0; marker_index < track->markersnr; ++marker_index) {
-      const MovieTrackingMarker *marker = &track->markers[marker_index];
+      const MovieTrackingMarker &marker = track->markers[marker_index];
       if (!autotrack_is_marker_usable(marker)) {
         continue;
       }
@@ -475,21 +477,21 @@ static void autotrack_context_init_autotrack(AutoTrackContext *context)
   int num_filled_libmv_markers = 0;
   for (int track_index = 0; track_index < context->num_all_tracks; ++track_index) {
     const AutoTrackTrack *autotrack_track = &context->all_autotrack_tracks[track_index];
-    /*const*/ MovieTrackingTrack *track = autotrack_track->track;
-    for (int marker_index = 0; marker_index < track->markersnr; ++marker_index) {
-      /*const*/ MovieTrackingMarker *marker = &track->markers[marker_index];
+    /*const*/ MovieTrackingTrack &track = *autotrack_track->track;
+    for (int marker_index = 0; marker_index < track.markersnr; ++marker_index) {
+      /*const*/ MovieTrackingMarker &marker = track.markers[marker_index];
       if (!autotrack_is_marker_usable(marker)) {
         continue;
       }
       const AutoTrackClip *autotrack_clip = &context->autotrack_clips[autotrack_track->clip_index];
-      dna_marker_to_libmv_marker(track,
-                                 marker,
-                                 autotrack_track->clip_index,
-                                 track_index,
-                                 autotrack_clip->width,
-                                 autotrack_clip->height,
-                                 context->is_backwards,
-                                 &libmv_markers[num_filled_libmv_markers++]);
+      libmv_markers[num_filled_libmv_markers++] = dna_marker_to_libmv_marker(
+          track,
+          marker,
+          autotrack_track->clip_index,
+          track_index,
+          autotrack_clip->width,
+          autotrack_clip->height,
+          context->is_backwards);
     }
   }
 
@@ -525,18 +527,17 @@ static void autotrack_context_init_markers(AutoTrackContext *context)
     const int clip_frame_number = BKE_movieclip_remap_scene_to_clip_frame(
         clip, context->start_scene_frame);
 
-    /*const*/ MovieTrackingTrack *track = context->all_autotrack_tracks[track_index].track;
-    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame_number);
+    /*const*/ MovieTrackingTrack &track = *context->all_autotrack_tracks[track_index].track;
+    const MovieTrackingMarker &marker = *BKE_tracking_marker_get(&track, clip_frame_number);
 
     AutoTrackMarker *autotrack_marker = &context->autotrack_markers[autotrack_marker_index++];
-    dna_marker_to_libmv_marker(track,
-                               marker,
-                               autotrack_track->clip_index,
-                               track_index,
-                               autotrack_clip->width,
-                               autotrack_clip->height,
-                               context->is_backwards,
-                               &autotrack_marker->libmv_marker);
+    autotrack_marker->libmv_marker = dna_marker_to_libmv_marker(track,
+                                                                marker,
+                                                                autotrack_track->clip_index,
+                                                                track_index,
+                                                                autotrack_clip->width,
+                                                                autotrack_clip->height,
+                                                                context->is_backwards);
   }
 }
 
@@ -622,9 +623,9 @@ void BKE_autotrack_context_start(AutoTrackContext *context)
 
 /* NOTE: This is a TLS in a sense that this struct is never accessed from multiple threads, and
  * that threads are re-using the struct as much as possible. */
-typedef struct AutoTrackTLS {
+struct AutoTrackTLS {
   ListBase results; /* Elements of `AutoTrackTrackingResult`. */
-} AutoTrackTLS;
+};
 
 static void autotrack_context_step_cb(void *__restrict userdata,
                                       const int marker_index,
@@ -633,35 +634,35 @@ static void autotrack_context_step_cb(void *__restrict userdata,
   AutoTrackContext *context = static_cast<AutoTrackContext *>(userdata);
   AutoTrackTLS *autotrack_tls = (AutoTrackTLS *)tls->userdata_chunk;
 
-  const AutoTrackMarker *autotrack_marker = &context->autotrack_markers[marker_index];
-  const libmv_Marker *libmv_current_marker = &autotrack_marker->libmv_marker;
+  const AutoTrackMarker &autotrack_marker = context->autotrack_markers[marker_index];
+  const libmv_Marker &libmv_current_marker = autotrack_marker.libmv_marker;
 
   const int frame_delta = context->is_backwards ? -1 : 1;
-  const int clip_index = libmv_current_marker->clip;
-  const int track_index = libmv_current_marker->track;
+  const int clip_index = libmv_current_marker.clip;
+  const int track_index = libmv_current_marker.track;
 
-  const AutoTrackClip *autotrack_clip = &context->autotrack_clips[clip_index];
-  const AutoTrackTrack *autotrack_track = &context->all_autotrack_tracks[track_index];
-  const MovieTrackingTrack *track = autotrack_track->track;
+  const AutoTrackClip &autotrack_clip = context->autotrack_clips[clip_index];
+  const AutoTrackTrack &autotrack_track = context->all_autotrack_tracks[track_index];
+  const MovieTrackingTrack &track = *autotrack_track.track;
 
   /* Check whether marker is going outside of allowed frame margin. */
   if (!tracking_check_marker_margin(
-          libmv_current_marker, track->margin, autotrack_clip->width, autotrack_clip->height))
+          libmv_current_marker, track.margin, autotrack_clip.width, autotrack_clip.height))
   {
     return;
   }
 
-  const int new_marker_frame = libmv_current_marker->frame + frame_delta;
+  const int new_marker_frame = libmv_current_marker.frame + frame_delta;
 
   AutoTrackTrackingResult *autotrack_result = MEM_cnew<AutoTrackTrackingResult>(
       "autotrack result");
-  autotrack_result->libmv_marker = *libmv_current_marker;
+  autotrack_result->libmv_marker = libmv_current_marker;
   autotrack_result->libmv_marker.frame = new_marker_frame;
 
   /* Update reference frame. */
   libmv_Marker libmv_reference_marker;
-  if (track->pattern_match == TRACK_MATCH_KEYFRAME) {
-    autotrack_result->libmv_marker.reference_frame = libmv_current_marker->reference_frame;
+  if (track.pattern_match == TRACK_MATCH_KEYFRAME) {
+    autotrack_result->libmv_marker.reference_frame = libmv_current_marker.reference_frame;
     libmv_autoTrackGetMarker(context->autotrack,
                              clip_index,
                              autotrack_result->libmv_marker.reference_frame,
@@ -669,14 +670,14 @@ static void autotrack_context_step_cb(void *__restrict userdata,
                              &libmv_reference_marker);
   }
   else {
-    BLI_assert(track->pattern_match == TRACK_MATCH_PREVIOS_FRAME);
-    autotrack_result->libmv_marker.reference_frame = libmv_current_marker->frame;
-    libmv_reference_marker = *libmv_current_marker;
+    BLI_assert(track.pattern_match == TRACK_MATCH_PREVIOUS_FRAME);
+    autotrack_result->libmv_marker.reference_frame = libmv_current_marker.frame;
+    libmv_reference_marker = libmv_current_marker;
   }
 
   /* Perform actual tracking. */
   autotrack_result->success = libmv_autoTrackMarker(context->autotrack,
-                                                    &autotrack_track->track_region_options,
+                                                    &autotrack_track.track_region_options,
                                                     &autotrack_result->libmv_marker,
                                                     &autotrack_result->libmv_result);
 
@@ -684,7 +685,7 @@ static void autotrack_context_step_cb(void *__restrict userdata,
    * This is how Blender side is currently expecting failed track to be handled. Without this the
    * marker is left in an arbitrary position which did not provide good correlation. */
   if (!autotrack_result->success) {
-    autotrack_result->libmv_marker = *libmv_current_marker;
+    autotrack_result->libmv_marker = libmv_current_marker;
     autotrack_result->libmv_marker.frame = new_marker_frame;
   }
 
@@ -768,22 +769,21 @@ void BKE_autotrack_context_sync(AutoTrackContext *context)
   BLI_spin_unlock(&context->spin_lock);
 
   LISTBASE_FOREACH_MUTABLE (AutoTrackTrackingResult *, autotrack_result, &results_to_sync) {
-    const libmv_Marker *libmv_marker = &autotrack_result->libmv_marker;
-    const int clip_index = libmv_marker->clip;
-    const int track_index = libmv_marker->track;
-    const AutoTrackClip *autotrack_clip = &context->autotrack_clips[clip_index];
-    const MovieClip *clip = autotrack_clip->clip;
-    const AutoTrackTrack *autotrack_track = &context->all_autotrack_tracks[track_index];
-    MovieTrackingTrack *track = autotrack_track->track;
+    const libmv_Marker &libmv_marker = autotrack_result->libmv_marker;
+    const int clip_index = libmv_marker.clip;
+    const int track_index = libmv_marker.track;
+    const AutoTrackClip &autotrack_clip = context->autotrack_clips[clip_index];
+    const MovieClip *clip = autotrack_clip.clip;
+    const AutoTrackTrack &autotrack_track = context->all_autotrack_tracks[track_index];
+    MovieTrackingTrack *track = autotrack_track.track;
 
     const int start_clip_frame = BKE_movieclip_remap_scene_to_clip_frame(
         clip, context->start_scene_frame);
     const int first_result_frame = start_clip_frame + frame_delta;
 
     /* Insert marker which corresponds to the tracking result. */
-    MovieTrackingMarker marker;
-    libmv_marker_to_dna_marker(
-        &autotrack_result->libmv_marker, autotrack_clip->width, autotrack_clip->height, &marker);
+    MovieTrackingMarker marker = libmv_marker_to_dna_marker(
+        autotrack_result->libmv_marker, autotrack_clip.width, autotrack_clip.height);
     if (!autotrack_result->success) {
       marker.flag |= MARKER_DISABLED;
     }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -15,8 +17,8 @@
 #include "GHOST_ContextD3D.hh"
 #include "GHOST_ContextWGL.hh" /* For shared drawing */
 
-HMODULE GHOST_ContextD3D::s_d3d_lib = NULL;
-PFN_D3D11_CREATE_DEVICE GHOST_ContextD3D::s_D3D11CreateDeviceFn = NULL;
+HMODULE GHOST_ContextD3D::s_d3d_lib = nullptr;
+PFN_D3D11_CREATE_DEVICE GHOST_ContextD3D::s_D3D11CreateDeviceFn = nullptr;
 
 GHOST_ContextD3D::GHOST_ContextD3D(bool stereoVisual, HWND hWnd)
     : GHOST_Context(stereoVisual), m_hWnd(hWnd)
@@ -47,24 +49,24 @@ GHOST_TSuccess GHOST_ContextD3D::releaseDrawingContext()
 
 GHOST_TSuccess GHOST_ContextD3D::setupD3DLib()
 {
-  if (s_d3d_lib == NULL) {
+  if (s_d3d_lib == nullptr) {
     s_d3d_lib = LoadLibraryA("d3d11.dll");
 
-    WIN32_CHK(s_d3d_lib != NULL);
+    WIN32_CHK(s_d3d_lib != nullptr);
 
-    if (s_d3d_lib == NULL) {
+    if (s_d3d_lib == nullptr) {
       fprintf(stderr, "LoadLibrary(\"d3d11.dll\") failed!\n");
       return GHOST_kFailure;
     }
   }
 
-  if (s_D3D11CreateDeviceFn == NULL) {
+  if (s_D3D11CreateDeviceFn == nullptr) {
     s_D3D11CreateDeviceFn = (PFN_D3D11_CREATE_DEVICE)GetProcAddress(s_d3d_lib,
                                                                     "D3D11CreateDevice");
 
-    WIN32_CHK(s_D3D11CreateDeviceFn != NULL);
+    WIN32_CHK(s_D3D11CreateDeviceFn != nullptr);
 
-    if (s_D3D11CreateDeviceFn == NULL) {
+    if (s_D3D11CreateDeviceFn == nullptr) {
       fprintf(stderr, "GetProcAddress(s_d3d_lib, \"D3D11CreateDevice\") failed!\n");
       return GHOST_kFailure;
     }
@@ -80,19 +82,19 @@ GHOST_TSuccess GHOST_ContextD3D::initializeDrawingContext()
   }
 
   HRESULT hres = s_D3D11CreateDeviceFn(
-      NULL,
+      nullptr,
       D3D_DRIVER_TYPE_HARDWARE,
-      NULL,
+      nullptr,
       /* For debugging you may want to pass D3D11_CREATE_DEVICE_DEBUG here, but that requires
        * additional setup, see
        * https://docs.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-devices-layers#debug-layer.
        */
       0,
-      NULL,
+      nullptr,
       0,
       D3D11_SDK_VERSION,
       &m_device,
-      NULL,
+      nullptr,
       &m_device_ctx);
 
   WIN32_CHK(hres == S_OK);
@@ -136,10 +138,10 @@ class GHOST_SharedOpenGLResource {
       texDesc.MipLevels = 1;
       texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
-      device->CreateTexture2D(&texDesc, NULL, &tex);
+      device->CreateTexture2D(&texDesc, nullptr, &tex);
       if (!tex) {
         /* If texture creation fails, we just return and leave the render target unset. So it needs
-         * to be NULL-checked before use. */
+         * to be nullptr-checked before use. */
         fprintf(stderr, "Error creating texture for shared DirectX-OpenGL resource\n");
         return;
       }
@@ -249,7 +251,7 @@ class GHOST_SharedOpenGLResource {
   GHOST_TSuccess initialize()
   {
     m_shared.device = wglDXOpenDeviceNV(m_device);
-    if (m_shared.device == NULL) {
+    if (m_shared.device == nullptr) {
       fprintf(stderr, "Error opening shared device using wglDXOpenDeviceNV()\n");
       return GHOST_kFailure;
     }

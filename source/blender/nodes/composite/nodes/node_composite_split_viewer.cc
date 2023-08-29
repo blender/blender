@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,8 +9,8 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -77,7 +77,7 @@ class ViewerOperation : public NodeOperation {
     const Result &second_image = get_input("Image_001");
     second_image.bind_as_texture(shader, "second_image_tx");
 
-    GPUTexture *output_texture = context().get_output_texture();
+    GPUTexture *output_texture = context().get_viewer_output_texture();
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 

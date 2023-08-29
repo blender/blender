@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/device.h"
 
@@ -321,15 +322,6 @@ void Integrator::tag_update(Scene *scene, uint32_t flag)
     /* tag only the ao_bounces socket as modified so we avoid updating sample_pattern_lut
      * unnecessarily */
     tag_ao_bounces_modified();
-  }
-
-  if (filter_glossy_is_modified()) {
-    foreach (Shader *shader, scene->shaders) {
-      if (shader->has_integrator_dependency) {
-        scene->shader_manager->tag_update(scene, ShaderManager::INTEGRATOR_MODIFIED);
-        break;
-      }
-    }
   }
 
   if (motion_blur_is_modified()) {

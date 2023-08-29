@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -19,7 +20,7 @@ ccl_device float2 camera_sample_aperture(ccl_constant KernelCamera *cam, const f
 
   if (blades == 0.0f) {
     /* sample disk */
-    bokeh = concentric_sample_disk(rand);
+    bokeh = sample_uniform_disk(rand);
   }
   else {
     /* sample polygon */

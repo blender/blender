@@ -1,178 +1,188 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Tilemap to texture conversion.
+ * Virtual shadow-mapping: Tile-map to texture conversion.
  *
- * For all visible light tilemaps, copy page coordinate to a texture.
+ * For all visible light tile-maps, copy page coordinate to a texture.
  * This avoids one level of indirection when evaluating shadows and allows
  * to use a sampler instead of a SSBO bind.
  */
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
-shared uint tile_updates_count;
+shared int rect_min_x;
+shared int rect_min_y;
+shared int rect_max_x;
+shared int rect_max_y;
 shared int view_index;
 
-void page_clear_buf_append(uint page_packed)
+/**
+ * Select the smallest viewport that can contain the given rect of tiles to render.
+ * Returns the viewport index.
+ */
+int viewport_select(ivec2 rect_size)
 {
-  uint clear_page_index = atomicAdd(clear_dispatch_buf.num_groups_z, 1u);
-  clear_page_buf[clear_page_index] = page_packed;
+  /* TODO(fclem): Experiment with non squared viewports. */
+  int max_dim = max(rect_size.x, rect_size.y);
+  /* Assumes max_dim is non-null. */
+  int power_of_two = int(findMSB(uint(max_dim)));
+  if ((1 << power_of_two) != max_dim) {
+    power_of_two += 1;
+  }
+  return power_of_two;
 }
 
-void page_tag_as_rendered(ivec2 tile_co, int tiles_index, int lod)
+/**
+ * Select the smallest viewport that can contain the given rect of tiles to render.
+ * Returns the viewport size in tile.
+ */
+ivec2 viewport_size_get(int viewport_index)
 {
-  int tile_index = shadow_tile_offset(tile_co, tiles_index, lod);
-  tiles_buf[tile_index] |= SHADOW_IS_RENDERED;
-  atomicAdd(statistics_buf.page_rendered_count, 1);
+  /* TODO(fclem): Experiment with non squared viewports. */
+  return ivec2(1 << viewport_index);
 }
 
 void main()
 {
-  if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
-    tile_updates_count = uint(0);
-  }
-  barrier();
-
   int tilemap_index = int(gl_GlobalInvocationID.z);
   ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
 
   ivec2 atlas_texel = shadow_tile_coord_in_atlas(tile_co, tilemap_index);
 
   ShadowTileMapData tilemap_data = tilemaps_buf[tilemap_index];
-  int lod_max = (tilemap_data.projection_type == SHADOW_PROJECTION_CUBEFACE) ? SHADOW_TILEMAP_LOD :
-                                                                               0;
-
-  int lod_valid = 0;
-  /* One bit per lod. */
-  int do_lod_update = 0;
-  /* Packed page (packUvec2x16) to render per LOD. */
-  uint updated_lod_page[SHADOW_TILEMAP_LOD + 1];
-  uvec2 page_valid;
+  bool is_cubemap = (tilemap_data.projection_type == SHADOW_PROJECTION_CUBEFACE);
+  int lod_max = is_cubemap ? SHADOW_TILEMAP_LOD : 0;
+  int valid_tile_index = -1;
   /* With all threads (LOD0 size dispatch) load each lod tile from the highest lod
    * to the lowest, keeping track of the lowest one allocated which will be use for shadowing.
-   * Also save which page are to be updated. */
-  for (int lod = SHADOW_TILEMAP_LOD; lod >= 0; lod--) {
-    if (lod > lod_max) {
-      updated_lod_page[lod] = 0xFFFFFFFFu;
-      continue;
-    }
-
-    int tile_index = shadow_tile_offset(tile_co >> lod, tilemap_data.tiles_index, lod);
+   * This guarantee a O(1) lookup time.
+   * Add one render view per LOD that has tiles to be rendered. */
+  for (int lod = lod_max; lod >= 0; lod--) {
+    ivec2 tile_co_lod = tile_co >> lod;
+    int tile_index = shadow_tile_offset(tile_co_lod, tilemap_data.tiles_index, lod);
 
     ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
 
-    if (tile.is_used && tile.do_update) {
-      do_lod_update = 1 << lod;
-      updated_lod_page[lod] = packUvec2x16(tile.page);
-    }
-    else {
-      updated_lod_page[lod] = 0xFFFFFFFFu;
-    }
-
-    /* Save highest lod for this thread. */
-    if (tile.is_used && lod > 0) {
-      /* Reload the page in case there was an allocation in the valid thread. */
-      page_valid = tile.page;
-      lod_valid = lod;
-    }
-    else if (lod == 0 && lod_valid != 0 && !tile.is_allocated) {
-      /* If the tile is not used, store the valid LOD level in LOD0. */
-      tile.page = page_valid;
-      tile.lod = lod_valid;
-      /* This is not a real ownership. It is just a tag so that the shadowing is deemed correct. */
-      tile.is_allocated = true;
+    /* Compute update area. */
+    if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
+      rect_min_x = SHADOW_TILEMAP_RES;
+      rect_min_y = SHADOW_TILEMAP_RES;
+      rect_max_x = 0;
+      rect_max_y = 0;
+      view_index = -1;
     }
 
-    if (lod == 0) {
-      imageStore(tilemaps_img, atlas_texel, uvec4(shadow_tile_pack(tile)));
+    barrier();
+
+    bool lod_valid_thread = all(equal(tile_co, tile_co_lod << lod));
+    bool do_page_render = tile.is_used && tile.do_update && lod_valid_thread;
+    if (do_page_render) {
+      atomicMin(rect_min_x, tile_co_lod.x);
+      atomicMin(rect_min_y, tile_co_lod.y);
+      atomicMax(rect_max_x, tile_co_lod.x + 1);
+      atomicMax(rect_max_y, tile_co_lod.y + 1);
     }
-  }
 
-  if (do_lod_update > 0) {
-    atomicAdd(tile_updates_count, 1u);
-  }
+    barrier();
 
-  barrier();
+    ivec2 rect_min = ivec2(rect_min_x, rect_min_y);
+    ivec2 rect_max = ivec2(rect_max_x, rect_max_y);
 
-  if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
-    /* No update by default. */
-    view_index = 64;
+    int viewport_index = viewport_select(rect_max - rect_min);
+    ivec2 viewport_size = viewport_size_get(viewport_index);
 
-    if (tile_updates_count > 0) {
-      view_index = atomicAdd(pages_infos_buf.view_count, 1);
-      if (view_index < 64) {
-        view_infos_buf[view_index].viewmat = tilemap_data.viewmat;
-        view_infos_buf[view_index].viewinv = inverse(tilemap_data.viewmat);
+    /* Issue one view if there is an update in the LOD. */
+    if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
+      bool lod_has_update = rect_min.x < rect_max.x;
+      if (lod_has_update) {
+        view_index = atomicAdd(statistics_buf.view_needed_count, 1);
+        if (view_index < SHADOW_VIEW_MAX) {
+          /* Setup the view. */
+          viewport_index_buf[view_index] = viewport_index;
 
-        if (tilemap_data.projection_type != SHADOW_PROJECTION_CUBEFACE) {
+          view_infos_buf[view_index].viewmat = tilemap_data.viewmat;
+          view_infos_buf[view_index].viewinv = inverse(tilemap_data.viewmat);
+
+          float lod_res = float(SHADOW_TILEMAP_RES >> lod);
+
+          /* TODO(fclem): These should be the culling planes. */
+          // vec2 cull_region_start = (vec2(rect_min) / lod_res) * 2.0 - 1.0;
+          // vec2 cull_region_end = (vec2(rect_max) / lod_res) * 2.0 - 1.0;
+          vec2 view_start = (vec2(rect_min) / lod_res) * 2.0 - 1.0;
+          vec2 view_end = (vec2(rect_min + viewport_size) / lod_res) * 2.0 - 1.0;
+
           int clip_index = tilemap_data.clip_data_index;
-          /* For directionnal, we need to modify winmat to encompass all casters. */
-          float clip_far = -tilemaps_clip_buf[clip_index].clip_far_stored;
-          float clip_near = -tilemaps_clip_buf[clip_index].clip_near_stored;
-          tilemap_data.winmat[2][2] = -2.0 / (clip_far - clip_near);
-          tilemap_data.winmat[3][2] = -(clip_far + clip_near) / (clip_far - clip_near);
+          float clip_far = tilemaps_clip_buf[clip_index].clip_far_stored;
+          float clip_near = tilemaps_clip_buf[clip_index].clip_near_stored;
+
+          mat4x4 winmat;
+          if (tilemap_data.projection_type != SHADOW_PROJECTION_CUBEFACE) {
+            view_start *= tilemap_data.half_size;
+            view_end *= tilemap_data.half_size;
+            view_start += tilemap_data.center_offset;
+            view_end += tilemap_data.center_offset;
+
+            winmat = projection_orthographic(
+                view_start.x, view_end.x, view_start.y, view_end.y, clip_near, clip_far);
+          }
+          else {
+            view_start *= clip_near;
+            view_end *= clip_near;
+
+            winmat = projection_perspective(
+                view_start.x, view_end.x, view_start.y, view_end.y, clip_near, clip_far);
+          }
+
+          view_infos_buf[view_index].winmat = winmat;
+          view_infos_buf[view_index].wininv = inverse(winmat);
         }
-        view_infos_buf[view_index].winmat = tilemap_data.winmat;
-        view_infos_buf[view_index].wininv = inverse(tilemap_data.winmat);
       }
+    }
+
+    barrier();
+
+    bool lod_is_rendered = (view_index >= 0) && (view_index < SHADOW_VIEW_MAX);
+    if (lod_is_rendered && lod_valid_thread) {
+      /* Tile coordinate relative to chosen viewport origin. */
+      ivec2 viewport_tile_co = tile_co_lod - rect_min;
+      /* We need to add page indirection to the render map for the whole viewport even if this one
+       * might extend outside of the shadow-map range. To this end, we need to wrap the threads to
+       * always cover the whole mip. This is because the viewport cannot be bigger than the mip
+       * level itself. */
+      int lod_res = SHADOW_TILEMAP_RES >> lod;
+      ivec2 relative_tile_co = (viewport_tile_co + lod_res) % lod_res;
+      if (all(lessThan(relative_tile_co, viewport_size))) {
+        uint page_packed = shadow_page_pack(tile.page);
+        /* Add page to render map. */
+        int render_page_index = shadow_render_page_index_get(view_index, relative_tile_co);
+        render_map_buf[render_page_index] = do_page_render ? page_packed : 0xFFFFFFFFu;
+
+        if (do_page_render) {
+          /* Tag tile as rendered. There is a barrier after the read. So it is safe. */
+          tiles_buf[tile_index] |= SHADOW_IS_RENDERED;
+          /* Add page to clear list. */
+          uint clear_page_index = atomicAdd(clear_dispatch_buf.num_groups_z, 1u);
+          clear_list_buf[clear_page_index] = page_packed;
+          /* Statistics. */
+          atomicAdd(statistics_buf.page_rendered_count, 1);
+        }
+      }
+    }
+
+    if (tile.is_used && tile.is_allocated && (!tile.do_update || lod_is_rendered)) {
+      /* Save highest lod for this thread. */
+      valid_tile_index = tile_index;
     }
   }
 
-  barrier();
-
-  if (view_index < 64) {
-    ivec3 render_map_texel = ivec3(tile_co, view_index);
-
-    /* Store page indirection for rendering. Update every texel in the view array level. */
-    if (true) {
-      imageStore(render_map_lod0_img, render_map_texel, uvec4(updated_lod_page[0]));
-      if (updated_lod_page[0] != 0xFFFFFFFFu) {
-        page_clear_buf_append(updated_lod_page[0]);
-        page_tag_as_rendered(render_map_texel.xy, tilemap_data.tiles_index, 0);
-      }
-    }
-    render_map_texel.xy >>= 1;
-    if (all(equal(tile_co, render_map_texel.xy << 1u))) {
-      imageStore(render_map_lod1_img, render_map_texel, uvec4(updated_lod_page[1]));
-      if (updated_lod_page[1] != 0xFFFFFFFFu) {
-        page_clear_buf_append(updated_lod_page[1]);
-        page_tag_as_rendered(render_map_texel.xy, tilemap_data.tiles_index, 1);
-      }
-    }
-    render_map_texel.xy >>= 1;
-    if (all(equal(tile_co, render_map_texel.xy << 2u))) {
-      imageStore(render_map_lod2_img, render_map_texel, uvec4(updated_lod_page[2]));
-      if (updated_lod_page[2] != 0xFFFFFFFFu) {
-        page_clear_buf_append(updated_lod_page[2]);
-        page_tag_as_rendered(render_map_texel.xy, tilemap_data.tiles_index, 2);
-      }
-    }
-    render_map_texel.xy >>= 1;
-    if (all(equal(tile_co, render_map_texel.xy << 3u))) {
-      imageStore(render_map_lod3_img, render_map_texel, uvec4(updated_lod_page[3]));
-      if (updated_lod_page[3] != 0xFFFFFFFFu) {
-        page_clear_buf_append(updated_lod_page[3]);
-        page_tag_as_rendered(render_map_texel.xy, tilemap_data.tiles_index, 3);
-      }
-    }
-    render_map_texel.xy >>= 1;
-    if (all(equal(tile_co, render_map_texel.xy << 4u))) {
-      imageStore(render_map_lod4_img, render_map_texel, uvec4(updated_lod_page[4]));
-      if (updated_lod_page[4] != 0xFFFFFFFFu) {
-        page_clear_buf_append(updated_lod_page[4]);
-        page_tag_as_rendered(render_map_texel.xy, tilemap_data.tiles_index, 4);
-      }
-    }
-    render_map_texel.xy >>= 1;
-    if (all(equal(tile_co, render_map_texel.xy << 5u))) {
-      imageStore(render_map_lod5_img, render_map_texel, uvec4(updated_lod_page[5]));
-      if (updated_lod_page[5] != 0xFFFFFFFFu) {
-        page_clear_buf_append(updated_lod_page[5]);
-        page_tag_as_rendered(render_map_texel.xy, tilemap_data.tiles_index, 5);
-      }
-    }
-  }
+  /* Store the highest LOD valid page for rendering. */
+  uint tile_packed = (valid_tile_index != -1) ? tiles_buf[valid_tile_index] : SHADOW_NO_DATA;
+  imageStore(tilemaps_img, atlas_texel, uvec4(tile_packed));
 
   if (all(equal(gl_GlobalInvocationID, uvec3(0)))) {
     /* Clamp it as it can underflow if there is too much tile present on screen. */

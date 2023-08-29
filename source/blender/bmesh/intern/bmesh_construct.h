@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -139,7 +139,7 @@ void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, voi
 void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v);
 
 /**
- * Initialize the `bm_dst` layers in preparation for populating it's contents with multiple meshes.
+ * Initialize the `bm_dst` layers in preparation for populating its contents with multiple meshes.
  * Typically done using multiple calls to #BM_mesh_bm_from_me with the same `bm` argument).
  *
  * \note While the custom-data layers of all meshes are created, the active layers are set

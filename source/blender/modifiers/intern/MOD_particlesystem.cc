@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -22,25 +22,25 @@
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_legacy_convert.h"
+#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph_query.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
@@ -48,7 +48,7 @@ static void initData(ModifierData *md)
 
   MEMCPY_STRUCT_AFTER(psmd, DNA_struct_default_get(ParticleSystemModifierData), modifier);
 }
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
@@ -69,7 +69,7 @@ static void freeData(ModifierData *md)
   }
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
   const ParticleSystemModifierData *psmd = (const ParticleSystemModifierData *)md;
@@ -88,7 +88,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
@@ -96,13 +96,12 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 }
 
 /* saves the current emitter state for a particle system and calculates particles */
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData *md,
+                         const ModifierEvalContext *ctx,
+                         Mesh *mesh,
+                         float (*vertexCos)[3],
+                         int /*verts_num*/)
 {
-  Mesh *mesh_src = mesh;
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
   ParticleSystem *psys = nullptr;
 
@@ -115,13 +114,6 @@ static void deformVerts(ModifierData *md,
 
   if (!psys_check_enabled(ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0)) {
     return;
-  }
-
-  if (mesh_src == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, vertexCos, verts_num, true);
-    if (mesh_src == nullptr) {
-      return;
-    }
   }
 
   /* Clear old evaluated mesh. */
@@ -155,7 +147,7 @@ static void deformVerts(ModifierData *md,
   }
 
   /* make new mesh */
-  psmd->mesh_final = BKE_mesh_copy_for_eval(mesh_src);
+  psmd->mesh_final = BKE_mesh_copy_for_eval(mesh);
   BKE_mesh_vert_coords_apply(psmd->mesh_final, vertexCos);
 
   BKE_mesh_tessface_ensure(psmd->mesh_final);
@@ -179,7 +171,7 @@ static void deformVerts(ModifierData *md,
       }
     }
     else {
-      mesh_original = mesh_src;
+      mesh_original = mesh;
     }
 
     if (mesh_original) {
@@ -192,26 +184,22 @@ static void deformVerts(ModifierData *md,
     BKE_mesh_tessface_ensure(psmd->mesh_original);
   }
 
-  if (!ELEM(mesh_src, nullptr, mesh, psmd->mesh_final)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
-
   /* Report change in mesh structure.
    * This is an unreliable check for the topology check, but allows some
    * handy configuration like emitting particles from inside particle
    * instance. */
   if (had_mesh_final && (psmd->mesh_final->totvert != psmd->totdmvert ||
                          psmd->mesh_final->totedge != psmd->totdmedge ||
-                         psmd->mesh_final->totface != psmd->totdmface))
+                         psmd->mesh_final->totface_legacy != psmd->totdmface))
   {
     psys->recalc |= ID_RECALC_PSYS_RESET;
   }
   psmd->totdmvert = psmd->mesh_final->totvert;
   psmd->totdmedge = psmd->mesh_final->totedge;
-  psmd->totdmface = psmd->mesh_final->totface;
+  psmd->totdmface = psmd->mesh_final->totface_legacy;
 
   {
-    struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+    Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
     psmd->flag &= ~eParticleSystemFlag_psys_updated;
     particle_system_update(
         ctx->depsgraph, scene, ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0);
@@ -226,30 +214,6 @@ static void deformVerts(ModifierData *md,
     psmd_orig->flag = psmd->flag;
   }
 }
-
-/* disabled particles in editmode for now, until support for proper evaluated mesh
- * updates is coded */
-#if 0
-static void deformVertsEM(ModifierData *md,
-                          Object *ob,
-                          BMEditMesh *editData,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
-{
-  const bool do_temp_mesh = (mesh == nullptr);
-  if (do_temp_mesh) {
-    mesh = BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name);
-    BM_mesh_bm_to_me(nullptr, editData->bm, mesh, &((BMeshToMeshParams){0}));
-  }
-
-  deformVerts(md, ob, mesh, vertexCos, verts_num);
-
-  if (derivedData) {
-    BKE_id_free(nullptr, mesh);
-  }
-}
-#endif
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
@@ -282,12 +246,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_ParticleSystem, panel_draw);
 }
 
-static void blendRead(BlendDataReader *reader, ModifierData *md)
+static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
@@ -300,39 +264,36 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_ParticleSystem = {
+    /*idname*/ "ParticleSystem",
     /*name*/ N_("ParticleSystem"),
-    /*structName*/ "ParticleSystemModifierData",
-    /*structSize*/ sizeof(ParticleSystemModifierData),
+    /*struct_name*/ "ParticleSystemModifierData",
+    /*struct_size*/ sizeof(ParticleSystemModifierData),
     /*srna*/ &RNA_ParticleSystemModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
-        eModifierTypeFlag_UsesPointCache
-#if 0
-        | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode
-#endif
-    ,
+        eModifierTypeFlag_UsesPointCache,
     /*icon*/ ICON_MOD_PARTICLES,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ freeData,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ blendRead,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ blend_read,
 };

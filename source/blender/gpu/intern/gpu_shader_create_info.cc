@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,6 +32,64 @@ using InterfaceDictionnary = Map<StringRef, StageInterfaceInfo *>;
 
 static CreateInfoDictionnary *g_create_infos = nullptr;
 static InterfaceDictionnary *g_interfaces = nullptr;
+
+/* -------------------------------------------------------------------- */
+/** \name Check Backend Support
+ *
+ * \{ */
+
+static bool is_vulkan_compatible_interface(const StageInterfaceInfo &iface)
+{
+  if (iface.instance_name.is_empty()) {
+    return true;
+  }
+
+  bool use_flat = false;
+  bool use_smooth = false;
+  bool use_noperspective = false;
+  for (const StageInterfaceInfo::InOut &attr : iface.inouts) {
+    switch (attr.interp) {
+      case Interpolation::FLAT:
+        use_flat = true;
+        break;
+      case Interpolation::SMOOTH:
+        use_smooth = true;
+        break;
+      case Interpolation::NO_PERSPECTIVE:
+        use_noperspective = true;
+        break;
+    }
+  }
+  int num_used_interpolation_types = (use_flat ? 1 : 0) + (use_smooth ? 1 : 0) +
+                                     (use_noperspective ? 1 : 0);
+
+#if 0
+  if (num_used_interpolation_types > 1) {
+    std::cout << "'" << iface.name << "' uses multiple interpolation types\n";
+  }
+#endif
+
+  return num_used_interpolation_types <= 1;
+}
+
+bool ShaderCreateInfo::is_vulkan_compatible() const
+{
+  /* Vulkan doesn't support setting an interpolation mode per attribute in a struct. */
+  for (const StageInterfaceInfo *iface : vertex_out_interfaces_) {
+    if (!is_vulkan_compatible_interface(*iface)) {
+      return false;
+    }
+  }
+  for (const StageInterfaceInfo *iface : geometry_out_interfaces_) {
+    if (!is_vulkan_compatible_interface(*iface)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/** \} */
 
 void ShaderCreateInfo::finalize()
 {
@@ -174,6 +232,14 @@ std::string ShaderCreateInfo::check_error() const
     }
   }
 
+#ifdef DEBUG
+  if (!this->is_vulkan_compatible()) {
+    error += this->name_ +
+             " contains a stage interface using an instance name and mixed interpolation modes. "
+             "This is not compatible with Vulkan and need to be adjusted.\n";
+  }
+#endif
+
   return error;
 }
 
@@ -198,38 +264,49 @@ void ShaderCreateInfo::validate_merge(const ShaderCreateInfo &other_info)
       }
     };
 
-    auto print_error_msg = [&](const Resource &res) {
-      std::cout << name_ << ": Validation failed : Overlapping ";
+    auto print_error_msg = [&](const Resource &res, Vector<Resource> &resources) {
+      auto print_resource_name = [&](const Resource &res) {
+        switch (res.bind_type) {
+          case Resource::BindType::UNIFORM_BUFFER:
+            std::cout << "Uniform Buffer " << res.uniformbuf.name;
+            break;
+          case Resource::BindType::STORAGE_BUFFER:
+            std::cout << "Storage Buffer " << res.storagebuf.name;
+            break;
+          case Resource::BindType::SAMPLER:
+            std::cout << "Sampler " << res.sampler.name;
+            break;
+          case Resource::BindType::IMAGE:
+            std::cout << "Image " << res.image.name;
+            break;
+          default:
+            std::cout << "Unknown Type";
+            break;
+        }
+      };
 
-      switch (res.bind_type) {
-        case Resource::BindType::UNIFORM_BUFFER:
-          std::cout << "Uniform Buffer " << res.uniformbuf.name;
-          break;
-        case Resource::BindType::STORAGE_BUFFER:
-          std::cout << "Storage Buffer " << res.storagebuf.name;
-          break;
-        case Resource::BindType::SAMPLER:
-          std::cout << "Sampler " << res.sampler.name;
-          break;
-        case Resource::BindType::IMAGE:
-          std::cout << "Image " << res.image.name;
-          break;
-        default:
-          std::cout << "Unknown Type";
-          break;
+      for (const Resource &_res : resources) {
+        if (&res != &_res && res.bind_type == _res.bind_type && res.slot == _res.slot) {
+          std::cout << name_ << ": Validation failed : Overlapping ";
+          print_resource_name(res);
+          std::cout << " and ";
+          print_resource_name(_res);
+          std::cout << " at (" << res.slot << ") while merging " << other_info.name_ << std::endl;
+        }
       }
-      std::cout << " (" << res.slot << ") while merging " << other_info.name_ << std::endl;
     };
 
     for (auto &res : batch_resources_) {
       if (register_resource(res) == false) {
-        print_error_msg(res);
+        print_error_msg(res, batch_resources_);
+        print_error_msg(res, pass_resources_);
       }
     }
 
     for (auto &res : pass_resources_) {
       if (register_resource(res) == false) {
-        print_error_msg(res);
+        print_error_msg(res, batch_resources_);
+        print_error_msg(res, pass_resources_);
       }
     }
   }
@@ -444,7 +521,7 @@ bool gpu_shader_create_info_compile_all()
       GPUShader *shader = GPU_shader_create_from_info(
           reinterpret_cast<const GPUShaderCreateInfo *>(info));
       if (shader == nullptr) {
-        printf("Compilation %s Failed\n", info->name_.c_str());
+        std::cerr << "Compilation " << info->name_.c_str() << " Failed\n";
       }
       else {
         success++;
@@ -482,12 +559,12 @@ bool gpu_shader_create_info_compile_all()
           }
 
           if (input == nullptr) {
-            std::cout << "Error: " << info->name_;
-            std::cout << ": Resource « " << name << " » not found in the shader interface\n";
+            std::cerr << "Error: " << info->name_;
+            std::cerr << ": Resource « " << name << " » not found in the shader interface\n";
           }
           else if (input->location == -1) {
-            std::cout << "Warning: " << info->name_;
-            std::cout << ": Resource « " << name << " » is optimized out\n";
+            std::cerr << "Warning: " << info->name_;
+            std::cerr << ": Resource « " << name << " » is optimized out\n";
           }
         }
 #endif

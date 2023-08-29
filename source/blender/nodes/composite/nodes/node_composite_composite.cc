@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,8 +8,8 @@
 
 #include "BLI_math_vector_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_state.h"
@@ -28,7 +28,6 @@ static void cmp_node_composite_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image").default_value({0.0f, 0.0f, 0.0f, 1.0f});
   b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("Z").default_value(1.0f).min(0.0f).max(1.0f);
 }
 
 static void node_composit_buts_composite(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

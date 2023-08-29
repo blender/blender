@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -46,6 +46,8 @@ class DTreeContext {
   const bNode *parent_node_;
   /* The current node tree. */
   const bNodeTree *btree_;
+  /* The instance key of the parent node. NODE_INSTANCE_KEY_BASE for root contexts. */
+  bNodeInstanceKey instance_key_;
   /* All the children contexts of this context. */
   Map<const bNode *, DTreeContext *> children_;
   DerivedNodeTree *derived_tree_;
@@ -56,6 +58,7 @@ class DTreeContext {
   const bNodeTree &btree() const;
   const DTreeContext *parent_context() const;
   const bNode *parent_node() const;
+  const bNodeInstanceKey instance_key() const;
   const DTreeContext *child_context(const bNode &node) const;
   const DerivedNodeTree &derived_tree() const;
   bool is_root() const;
@@ -76,6 +79,7 @@ class DNode {
 
   const DTreeContext *context() const;
   const bNode *bnode() const;
+  const bNodeInstanceKey instance_key() const;
   const bNode *operator->() const;
   const bNode &operator*() const;
 
@@ -191,6 +195,14 @@ class DerivedNodeTree {
   const DTreeContext &root_context() const;
   Span<const bNodeTree *> used_btrees() const;
 
+  /** Returns the active context for the node tree. The active context represents the node tree
+   * currently being edited. In most cases, that would be the top level node tree itself, but in
+   * the case where the user is editing the node tree of a node group, the active context would be
+   * a representation of the node tree of that node group. Note that the context also stores the
+   * group node that the user selected to edit the node tree, so the context fully represents a
+   * particular instance of the node group. */
+  const DTreeContext &active_context() const;
+
   /**
    * \return True when there is a link cycle. Unavailable sockets are ignored.
    */
@@ -205,7 +217,8 @@ class DerivedNodeTree {
  private:
   DTreeContext &construct_context_recursively(DTreeContext *parent_context,
                                               const bNode *parent_node,
-                                              const bNodeTree &btree);
+                                              const bNodeTree &btree,
+                                              const bNodeInstanceKey instance_key);
   void destruct_context_recursively(DTreeContext *context);
 
   void foreach_node_in_context_recursive(const DTreeContext &context,
@@ -238,6 +251,11 @@ inline const DTreeContext *DTreeContext::parent_context() const
 inline const bNode *DTreeContext::parent_node() const
 {
   return parent_node_;
+}
+
+inline const bNodeInstanceKey DTreeContext::instance_key() const
+{
+  return instance_key_;
 }
 
 inline const DTreeContext *DTreeContext::child_context(const bNode &node) const

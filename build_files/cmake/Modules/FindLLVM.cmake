@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2015 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015 Blender Foundation.
 
 # - Find LLVM library
 # Find the native LLVM includes and library
@@ -22,7 +23,7 @@ if(LLVM_ROOT_DIR)
   endif()
 else()
   if(DEFINED LLVM_VERSION)
-        message(running llvm-config-${LLVM_VERSION})
+    message(running llvm-config-${LLVM_VERSION})
     find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION})
   endif()
   if(NOT LLVM_CONFIG)
@@ -82,10 +83,10 @@ endif()
 
 # handle the QUIETLY and REQUIRED arguments and set LLVM_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(LLVM DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(LLVM DEFAULT_MSG
     LLVM_LIBRARY)
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   LLVM_LIBRARY
 )

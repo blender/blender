@@ -1,7 +1,6 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *  */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -119,14 +118,23 @@ void ShadingView::render()
   GPU_framebuffer_bind(combined_fb_);
   GPU_framebuffer_clear_color_depth(combined_fb_, clear_color, 1.0f);
 
-  inst_.pipelines.world.render(render_view_new_);
+  inst_.pipelines.background.render(render_view_new_);
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_new_, extent_);
 
-  inst_.pipelines.deferred.render(render_view_new_, prepass_fb_, combined_fb_, extent_);
+  inst_.volume.draw_compute(render_view_new_);
 
-  // inst_.lightprobes.draw_cache_display();
+  /* TODO: cleanup. */
+  View main_view_new("MainView", main_view_);
+  /* TODO(Miguel Pozo): Deferred and forward prepass should happen before the GBuffer pass. */
+  inst_.pipelines.deferred.render(main_view_new,
+                                  render_view_new_,
+                                  prepass_fb_,
+                                  combined_fb_,
+                                  extent_,
+                                  rt_buffer_opaque_,
+                                  rt_buffer_refract_);
 
   // inst_.lookdev.render_overlay(view_fb_);
 
@@ -135,11 +143,11 @@ void ShadingView::render()
   inst_.lights.debug_draw(render_view_new_, combined_fb_);
   inst_.hiz_buffer.debug_draw(render_view_new_, combined_fb_);
   inst_.shadows.debug_draw(render_view_new_, combined_fb_);
+  inst_.irradiance_cache.viewport_draw(render_view_new_, combined_fb_);
 
-  inst_.irradiance_cache.debug_draw(render_view_new_, combined_fb_);
+  inst_.ambient_occlusion.render_pass(render_view_new_);
 
   GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
-
   inst_.film.accumulate(sub_view_, combined_final_tx);
 
   rbufs.release();
@@ -189,6 +197,102 @@ void ShadingView::update_view()
   DRW_view_update_sub(render_view_, viewmat.ptr(), winmat.ptr());
 
   render_view_new_.sync(viewmat, winmat);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Capture View
+ * \{ */
+
+void CaptureView::render_world()
+{
+  const std::optional<ReflectionProbeUpdateInfo> update_info =
+      inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::World);
+  if (!update_info.has_value()) {
+    return;
+  }
+
+  View view = {"Capture.View"};
+  GPU_debug_group_begin("World.Capture");
+
+  if (update_info->do_render) {
+    for (int face : IndexRange(6)) {
+      float4x4 view_m4 = cubeface_mat(face);
+      float4x4 win_m4 = math::projection::perspective(-update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.x,
+                                                      -update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.y);
+      view.sync(view_m4, win_m4);
+
+      capture_fb_.ensure(
+          GPU_ATTACHMENT_NONE,
+          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face));
+      GPU_framebuffer_bind(capture_fb_);
+      inst_.pipelines.world.render(view);
+    }
+
+    inst_.reflection_probes.remap_to_octahedral_projection(update_info->object_key);
+    inst_.reflection_probes.update_probes_texture_mipmaps();
+  }
+
+  if (update_info->do_world_irradiance_update) {
+    inst_.reflection_probes.update_world_irradiance();
+  }
+
+  GPU_debug_group_end();
+}
+
+void CaptureView::render_probes()
+{
+  Framebuffer prepass_fb;
+  View view = {"Capture.View"};
+  bool do_update_mipmap_chain = false;
+  while (const std::optional<ReflectionProbeUpdateInfo> update_info =
+             inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::Probe))
+  {
+    GPU_debug_group_begin("Probe.Capture");
+    do_update_mipmap_chain = true;
+
+    int2 extent = int2(update_info->resolution);
+    inst_.render_buffers.acquire(extent);
+
+    inst_.render_buffers.vector_tx.clear(float4(0.0f));
+    prepass_fb.ensure(GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
+                      GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.vector_tx));
+
+    for (int face : IndexRange(6)) {
+      float4x4 view_m4 = cubeface_mat(face);
+      view_m4 = math::translate(view_m4, -update_info->probe_pos);
+      float4x4 win_m4 = math::projection::perspective(-update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.x,
+                                                      -update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.y);
+      view.sync(view_m4, win_m4);
+
+      capture_fb_.ensure(
+          GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
+          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face));
+
+      GPU_framebuffer_bind(capture_fb_);
+      GPU_framebuffer_clear_color_depth(capture_fb_, float4(0.0f, 0.0f, 0.0f, 1.0f), 1.0f);
+      inst_.pipelines.probe.render(view, prepass_fb, capture_fb_, extent);
+    }
+
+    inst_.render_buffers.release();
+    GPU_debug_group_end();
+    inst_.reflection_probes.remap_to_octahedral_projection(update_info->object_key);
+  }
+
+  if (do_update_mipmap_chain) {
+    /* TODO: only update the regions that have been updated. */
+    /* TODO: Composite world into the probes. */
+    inst_.reflection_probes.update_probes_texture_mipmaps();
+  }
 }
 
 /** \} */

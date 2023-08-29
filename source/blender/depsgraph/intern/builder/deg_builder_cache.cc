@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2018 Blender Foundation
+/* SPDX-FileCopyrightText: 2018 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,7 +16,7 @@
 
 #include "BKE_animsys.h"
 
-#include "RNA_path.h"
+#include "RNA_path.hh"
 
 namespace blender::deg {
 

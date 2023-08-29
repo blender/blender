@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -78,6 +79,13 @@ ccl_device_inline bool light_link_object_match(KernelGlobals kg,
     return true;
   }
 
+  /* Emitter is OBJECT_NONE when the emitter is a world volume.
+   * It is not explicitly linkable to any object, so assume it is coming from the default light
+   * set which affects all objects in the scene. */
+  if (object_emitter == OBJECT_NONE) {
+    return true;
+  }
+
   const uint64_t set_membership = kernel_data_fetch(objects, object_emitter).light_set_membership;
   const uint receiver_set = (object_receiver != OBJECT_NONE) ?
                                 kernel_data_fetch(objects, object_receiver).receiver_light_set :
@@ -95,6 +103,8 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
                                     const int lamp,
                                     const float2 rand,
                                     const float3 P,
+                                    const float3 N,
+                                    const int shader_flags,
                                     const uint32_t path_flag,
                                     ccl_private LightSample *ls)
 {
@@ -144,12 +154,12 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->eval_fac = 1.0f;
   }
   else if (type == LIGHT_SPOT) {
-    if (!spot_light_sample<in_volume_segment>(klight, rand, P, ls)) {
+    if (!spot_light_sample<in_volume_segment>(klight, rand, P, N, shader_flags, ls)) {
       return false;
     }
   }
   else if (type == LIGHT_POINT) {
-    if (!point_light_sample<in_volume_segment>(klight, rand, P, ls)) {
+    if (!point_light_sample(klight, rand, P, N, shader_flags, ls)) {
       return false;
     }
   }
@@ -170,7 +180,9 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
                                       const float2 rand,
                                       const float time,
                                       const float3 P,
+                                      const float3 N,
                                       const int object_receiver,
+                                      const int shader_flags,
                                       const int bounce,
                                       const uint32_t path_flag,
                                       const int emitter_index,
@@ -232,7 +244,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
       return false;
     }
 
-    if (!light_sample<in_volume_segment>(kg, light, rand, P, path_flag, ls)) {
+    if (!light_sample<in_volume_segment>(kg, light, rand, P, N, shader_flags, path_flag, ls)) {
       return false;
     }
   }
@@ -445,6 +457,8 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
                                                ccl_private const Intersection *ccl_restrict isect,
                                                const float3 ray_P,
                                                const float3 ray_D,
+                                               const float3 N,
+                                               const uint32_t path_flag,
                                                ccl_private LightSample *ccl_restrict ls)
 {
   const int lamp = isect->prim;
@@ -455,19 +469,18 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
   ls->object = isect->object;
   ls->prim = isect->prim;
   ls->lamp = lamp;
-  /* todo: missing texture coordinates */
   ls->t = isect->t;
   ls->P = ray_P + ray_D * ls->t;
   ls->D = ray_D;
   ls->group = lamp_lightgroup(kg, lamp);
 
   if (type == LIGHT_SPOT) {
-    if (!spot_light_sample_from_intersection(klight, isect, ray_P, ray_D, ls)) {
+    if (!spot_light_sample_from_intersection(klight, isect, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }
   else if (type == LIGHT_POINT) {
-    if (!point_light_sample_from_intersection(klight, isect, ray_P, ray_D, ls)) {
+    if (!point_light_sample_from_intersection(klight, isect, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }

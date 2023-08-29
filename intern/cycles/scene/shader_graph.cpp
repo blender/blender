@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/shader_graph.h"
 #include "scene/attribute.h"
@@ -358,7 +359,7 @@ void ShaderGraph::simplify(Scene *scene)
   }
 }
 
-void ShaderGraph::finalize(Scene *scene, bool do_bump, bool do_simplify, bool bump_in_object_space)
+void ShaderGraph::finalize(Scene *scene, bool do_bump, bool bump_in_object_space)
 {
   /* before compiling, the shader graph may undergo a number of modifications.
    * currently we set default geometry shader inputs, and create automatic bump
@@ -382,9 +383,6 @@ void ShaderGraph::finalize(Scene *scene, bool do_bump, bool do_simplify, bool bu
       transform_multi_closure(volume_in->link->parent, NULL, true);
 
     finalized = true;
-  }
-  else if (do_simplify) {
-    simplify_settings(scene);
   }
 }
 
@@ -1138,8 +1136,9 @@ int ShaderGraph::get_num_closures()
        * for the volume steps. */
       num_closures += MAX_VOLUME_STACK_SIZE;
     }
-    else if (closure_type == CLOSURE_BSDF_HAIR_PRINCIPLED_ID) {
-      num_closures += 4;
+    else if (closure_type == CLOSURE_BSDF_HAIR_CHIANG_ID ||
+             closure_type == CLOSURE_BSDF_HAIR_HUANG_ID) {
+      num_closures += 2;
     }
     else {
       ++num_closures;

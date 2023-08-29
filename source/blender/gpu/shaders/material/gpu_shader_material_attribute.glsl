@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void node_attribute_color(vec4 attr, out vec4 out_attr)
 {
@@ -6,9 +9,10 @@ void node_attribute_color(vec4 attr, out vec4 out_attr)
 
 void node_attribute_temperature(vec4 attr, out vec4 out_attr)
 {
-  out_attr.x = attr_load_temperature_post(attr.x);
-  out_attr.y = 0.0;
-  out_attr.z = 0.0;
+  float temperature = attr_load_temperature_post(attr.x);
+  out_attr.x = temperature;
+  out_attr.y = temperature;
+  out_attr.z = temperature;
   out_attr.w = 1.0;
 }
 
@@ -24,7 +28,7 @@ void node_attribute_flame(vec4 attr, out float out_attr)
 
 void node_attribute_uniform(vec4 attr, const float attr_hash, out vec4 out_attr)
 {
-  /* Temporary solution to support both old UBO attribs and new SSBO loading.
+  /* Temporary solution to support both old UBO attributes and new SSBO loading.
    * Old UBO load is already done through `attr` and will just be passed through. */
   out_attr = attr_load_uniform(attr, floatBitsToUint(attr_hash));
 }

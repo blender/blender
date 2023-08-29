@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,22 +9,33 @@
 #pragma once
 
 #include "gpu_texture_private.hh"
+
+#include "vk_bindable_resource.hh"
 #include "vk_context.hh"
+#include "vk_image_view.hh"
 
 namespace blender::gpu {
 
 class VKSampler;
 
-class VKTexture : public Texture {
+class VKTexture : public Texture, public VKBindableResource {
   VkImage vk_image_ = VK_NULL_HANDLE;
-  VkImageView vk_image_view_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
+
+  /* Image view when used in a shader. */
+  std::optional<VKImageView> image_view_;
 
   /* Last image layout of the texture. Frame-buffer and barriers can alter/require the actual
    * layout to be changed. During this it requires to set the current layout in order to know which
    * conversion should happen. #current_layout_ keep track of the layout so the correct conversion
    * can be done. */
   VkImageLayout current_layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
+
+  enum eDirtyFlags {
+    IMAGE_VIEW_DIRTY = (1 << 0),
+  };
+
+  int flags_ = IMAGE_VIEW_DIRTY;
 
  public:
   VKTexture(const char *name) : Texture(name) {}
@@ -50,18 +61,12 @@ class VKTexture : public Texture {
   /* TODO(fclem): Legacy. Should be removed at some point. */
   uint gl_bindcode_get() const override;
 
-  void bind(int unit, VKSampler &sampler);
-  void image_bind(int location);
+  void bind(int location, shader::ShaderCreateInfo::Resource::BindType bind_type) override;
 
   VkImage vk_image_handle() const
   {
     BLI_assert(vk_image_ != VK_NULL_HANDLE);
     return vk_image_;
-  }
-  VkImageView vk_image_view_handle() const
-  {
-    BLI_assert(is_allocated());
-    return vk_image_view_;
   }
 
   void ensure_allocated();
@@ -80,6 +85,8 @@ class VKTexture : public Texture {
    * on the device.
    */
   bool allocate();
+
+  int layer_count();
 
   VkImageViewType vk_image_view_type() const;
 
@@ -111,12 +118,45 @@ class VKTexture : public Texture {
    */
   void layout_ensure(VKContext &context, VkImageLayout requested_layout);
 
+ private:
+  /**
+   * Internal function to ensure the layout of a single mipmap level. Note that the caller is
+   * responsible to update the current_layout of the image at the end of the operation and make
+   * sure that all mipmap levels are in that given layout.
+   */
+  void layout_ensure(VKContext &context,
+                     IndexRange mipmap_range,
+                     VkImageLayout current_layout,
+                     VkImageLayout requested_layout);
+
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
+  /** \name Image Views
+   * \{ */
+ public:
+  VKImageView &image_view_get()
+  {
+    image_view_ensure();
+    return *image_view_;
+  }
+
+ private:
+  IndexRange mip_map_range() const;
+  void image_view_ensure();
+  void image_view_update();
+
   /** \} */
 };
 
-static inline VKTexture *unwrap(Texture *tex)
+BLI_INLINE VKTexture *unwrap(Texture *tex)
 {
   return static_cast<VKTexture *>(tex);
+}
+
+BLI_INLINE Texture *wrap(VKTexture *texture)
+{
+  return static_cast<Texture *>(texture);
 }
 
 }  // namespace blender::gpu

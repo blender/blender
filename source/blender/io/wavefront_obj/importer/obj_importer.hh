@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,6 +20,6 @@ void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
                    const OBJImportParams &import_params,
-                   size_t read_buffer_size = 64 * 1024);
+                   size_t read_buffer_size = 256 * 1024);
 
 }  // namespace blender::io::obj

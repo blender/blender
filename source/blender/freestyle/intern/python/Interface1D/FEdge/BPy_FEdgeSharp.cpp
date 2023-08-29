@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -24,10 +26,10 @@ using namespace Freestyle;
 PyDoc_STRVAR(FEdgeSharp_doc,
              "Class hierarchy: :class:`Interface1D` > :class:`FEdge` > :class:`FEdgeSharp`\n"
              "\n"
-             "Class defining a sharp FEdge.  A Sharp FEdge corresponds to an initial\n"
-             "edge of the input mesh.  It can be a silhouette, a crease or a border.\n"
+             "Class defining a sharp FEdge. A Sharp FEdge corresponds to an initial\n"
+             "edge of the input mesh. It can be a silhouette, a crease or a border.\n"
              "If it is a crease edge, then it is bordered by two faces of the mesh.\n"
-             "Face a lies on its right whereas Face b lies on its left.  If it is a\n"
+             "Face a lies on its right whereas Face b lies on its left. If it is a\n"
              "border edge, then it doesn't have any face on its right, and thus Face\n"
              "a is None.\n"
              "\n"
@@ -185,7 +187,7 @@ void FEdgeSharp_mathutils_register_callback()
 /*----------------------FEdgeSharp get/setters ----------------------------*/
 
 PyDoc_STRVAR(FEdgeSharp_normal_right_doc,
-             "The normal to the face lying on the right of the FEdge.  If this FEdge\n"
+             "The normal to the face lying on the right of the FEdge. If this FEdge\n"
              "is a border, it has no Face on its right and therefore no normal.\n"
              "\n"
              ":type: :class:`mathutils.Vector`");
@@ -276,7 +278,7 @@ static int FEdgeSharp_material_index_left_set(BPy_FEdgeSharp *self,
 }
 
 PyDoc_STRVAR(FEdgeSharp_material_right_doc,
-             "The material of the face lying on the right of the FEdge.  If this FEdge\n"
+             "The material of the face lying on the right of the FEdge. If this FEdge\n"
              "is a border, it has no Face on its right and therefore no material.\n"
              "\n"
              ":type: :class:`Material`");
@@ -297,7 +299,7 @@ static PyObject *FEdgeSharp_material_left_get(BPy_FEdgeSharp *self, void * /*clo
 }
 
 PyDoc_STRVAR(FEdgeSharp_face_mark_right_doc,
-             "The face mark of the face lying on the right of the FEdge.  If this FEdge\n"
+             "The face mark of the face lying on the right of the FEdge. If this FEdge\n"
              "is a border, it has no face on the right and thus this property is set to\n"
              "false.\n"
              "\n"
@@ -385,7 +387,7 @@ static PyGetSetDef BPy_FEdgeSharp_getseters[] = {
 /*-----------------------BPy_FEdgeSharp type definition ------------------------------*/
 
 PyTypeObject FEdgeSharp_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "FEdgeSharp",
     /*tp_basicsize*/ sizeof(BPy_FEdgeSharp),
     /*tp_itemsize*/ 0,

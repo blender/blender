@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,21 +17,20 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "IMB_colormanagement.h"
 
@@ -214,9 +213,8 @@ static void ui_update_color_picker_buts_rgb(uiBut *from_but,
       }
 
       rgb_float_to_uchar(rgb_hex_uchar, rgb_hex);
-      SNPRINTF(col, "%02X%02X%02X", UNPACK3_EX((uint), rgb_hex_uchar, ));
-
-      strcpy(bt->poin, col);
+      const int col_len = SNPRINTF_RLEN(col, "%02X%02X%02X", UNPACK3_EX((uint), rgb_hex_uchar, ));
+      memcpy(bt->poin, col, col_len + 1);
     }
     else if (bt->str[1] == ' ') {
       if (bt->str[0] == 'R') {
@@ -345,12 +343,11 @@ static void ui_colorpicker_create_mode_cb(bContext * /*C*/, void *bt1, void * /*
   ui_colorpicker_hide_reveal(bt->block, (ePickerType)colormode);
 }
 
-#define PICKER_H (7.5f * U.widget_unit)
-#define PICKER_W (7.5f * U.widget_unit)
-#define PICKER_SPACE (0.3f * U.widget_unit)
-#define PICKER_BAR (0.7f * U.widget_unit)
-
-#define PICKER_TOTAL_W (PICKER_W + PICKER_SPACE + PICKER_BAR)
+#define PICKER_TOTAL_W (200.0f * UI_SCALE_FAC)
+#define PICKER_BAR ((10.0f * UI_SCALE_FAC) + (6 * U.pixelsize))
+#define PICKER_SPACE (8.0f * UI_SCALE_FAC)
+#define PICKER_W (PICKER_TOTAL_W - PICKER_BAR - PICKER_SPACE)
+#define PICKER_H PICKER_W
 
 static void ui_colorpicker_circle(uiBlock *block,
                                   PointerRNA *ptr,
@@ -893,7 +890,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
   return block;
 }
 
-ColorPicker *ui_block_colorpicker_create(struct uiBlock *block)
+ColorPicker *ui_block_colorpicker_create(uiBlock *block)
 {
   ColorPicker *cpicker = MEM_cnew<ColorPicker>(__func__);
   BLI_addhead(&block->color_pickers.list, cpicker);

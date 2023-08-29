@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,7 +15,7 @@ namespace Cast {
 template<class T, class U> U *cast(T *in)
 {
   if (!in) {
-    return NULL;
+    return nullptr;
   }
   return dynamic_cast<U *>(in);
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
 
 #include "DRW_render.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -16,7 +16,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_object.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "draw_manager_text.h"
 
 #include "overlay_private.hh"
@@ -233,7 +233,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
 
 static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob, bool in_front)
 {
-  struct GPUBatch *geom_tris, *geom_verts, *geom_edges, *geom_fcenter, *skin_roots, *circle;
+  GPUBatch *geom_tris, *geom_verts, *geom_edges, *geom_fcenter, *skin_roots, *circle;
   DRWShadingGroup *vert_shgrp, *edge_shgrp, *fdot_shgrp, *face_shgrp, *skin_roots_shgrp;
 
   bool has_edit_mesh_cage = false;
@@ -281,7 +281,7 @@ static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob
 void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  struct GPUBatch *geom = nullptr;
+  GPUBatch *geom = nullptr;
 
   bool draw_as_solid = (ob->dt > OB_WIRE);
   bool do_in_front = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
@@ -309,7 +309,7 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   if (vnormals_do || lnormals_do || fnormals_do) {
-    struct GPUBatch *normal_geom = DRW_cache_normal_arrow_get();
+    GPUBatch *normal_geom = DRW_cache_normal_arrow_get();
     Mesh *me = static_cast<Mesh *>(ob->data);
     if (vnormals_do) {
       geom = DRW_mesh_batch_cache_get_edit_vert_normals(me);

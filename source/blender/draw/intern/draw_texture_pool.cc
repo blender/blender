@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,6 +8,7 @@
 
 #include "BKE_global.h"
 
+#include "BLI_string.h"
 #include "BLI_vector.hh"
 
 #include "draw_texture_pool.h"

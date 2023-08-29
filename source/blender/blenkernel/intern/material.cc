@@ -39,14 +39,15 @@
 
 #include "BLI_array_utils.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_attribute.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
@@ -73,11 +74,9 @@
 
 #include "NOD_shader.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static CLG_LogRef LOG = {"bke.material"};
-
-static void material_clear_data(ID *id);
 
 static void material_init_data(ID *id)
 {
@@ -136,26 +135,6 @@ static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const 
   /* TODO: Duplicate Engine Settings and set runtime to nullptr. */
 }
 
-/**
- * Ensure pointers to allocated memory is cleared
- * (the kind of data that would have to be copied).
- *
- * \note Keep in sync with #material_free_data.
- * \note Doesn't handle animation data (`ma->adt`).
- */
-static void material_clear_data(ID *id)
-{
-  Material *material = (Material *)id;
-
-  BLI_listbase_clear(&material->gpumaterial);
-  material->texpaintslot = nullptr;
-  material->gp_style = nullptr;
-  material->nodetree = nullptr;
-  material->preview = nullptr;
-
-  id->icon_id = 0;
-}
-
 static void material_free_data(ID *id)
 {
   Material *material = (Material *)id;
@@ -181,8 +160,10 @@ static void material_free_data(ID *id)
 
 static void material_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Material *material = (Material *)id;
-  /* Nodetrees **are owned by IDs**, treat them as mere sub-data and not real ID! */
+  Material *material = reinterpret_cast<Material *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
+  /* Node-trees **are owned by IDs**, treat them as mere sub-data and not real ID! */
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
       data, BKE_library_foreach_ID_embedded(data, (ID **)&material->nodetree));
   if (material->texpaintslot != nullptr) {
@@ -191,6 +172,10 @@ static void material_foreach_id(ID *id, LibraryForeachIDData *data)
   if (material->gp_style != nullptr) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->sima, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, material->gp_style->ima, IDWALK_CB_USER);
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, material->ipo, IDWALK_CB_USER);
   }
 }
 
@@ -205,10 +190,6 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
   /* write LibData */
   BLO_write_id_struct(writer, Material, id_address, &ma->id);
   BKE_id_blend_write(writer, &ma->id);
-
-  if (ma->adt) {
-    BKE_animdata_blend_write(writer, ma->adt);
-  }
 
   /* nodetree is integral part of material, no libdata */
   if (ma->nodetree) {
@@ -234,8 +215,6 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
 static void material_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Material *ma = (Material *)id;
-  BLO_read_data_address(reader, &ma->adt);
-  BKE_animdata_blend_read_data(reader, ma->adt);
 
   ma->texpaintslot = nullptr;
 
@@ -245,35 +224,6 @@ static void material_blend_read_data(BlendDataReader *reader, ID *id)
   BLI_listbase_clear(&ma->gpumaterial);
 
   BLO_read_data_address(reader, &ma->gp_style);
-}
-
-static void material_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  Material *ma = (Material *)id;
-  BLO_read_id_address(reader, id, &ma->ipo); /* XXX deprecated - old animation system */
-
-  /* relink grease pencil settings */
-  if (ma->gp_style != nullptr) {
-    MaterialGPencilStyle *gp_style = ma->gp_style;
-    if (gp_style->sima != nullptr) {
-      BLO_read_id_address(reader, id, &gp_style->sima);
-    }
-    if (gp_style->ima != nullptr) {
-      BLO_read_id_address(reader, id, &gp_style->ima);
-    }
-  }
-}
-
-static void material_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Material *ma = (Material *)id;
-  BLO_expand(expander, ma->ipo); /* XXX deprecated - old animation system */
-
-  if (ma->gp_style) {
-    MaterialGPencilStyle *gp_style = ma->gp_style;
-    BLO_expand(expander, gp_style->sima);
-    BLO_expand(expander, gp_style->ima);
-  }
 }
 
 IDTypeInfo IDType_ID_MA = {
@@ -298,8 +248,7 @@ IDTypeInfo IDType_ID_MA = {
 
     /*blend_write*/ material_blend_write,
     /*blend_read_data*/ material_blend_read_data,
-    /*blend_read_lib*/ material_blend_read_lib,
-    /*blend_read_expand*/ material_blend_read_expand,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -323,6 +272,27 @@ void BKE_gpencil_material_attr_init(Material *ma)
     gp_style->mix_factor = 0.5f;
 
     gp_style->flag |= GP_MATERIAL_STROKE_SHOW;
+  }
+}
+
+static void nodetree_mark_previews_dirty_reccursive(bNodeTree *tree)
+{
+  if (tree == nullptr) {
+    return;
+  }
+  tree->runtime->previews_refresh_state++;
+  for (bNode *node : tree->all_nodes()) {
+    if (node->type == NODE_GROUP) {
+      bNodeTree *nested_tree = reinterpret_cast<bNodeTree *>(node->id);
+      nodetree_mark_previews_dirty_reccursive(nested_tree);
+    }
+  }
+}
+
+void BKE_material_make_node_previews_dirty(Material *ma)
+{
+  if (ma && ma->nodetree) {
+    nodetree_mark_previews_dirty_reccursive(ma->nodetree);
   }
 }
 
@@ -417,7 +387,7 @@ short *BKE_object_material_len_p(Object *ob)
   }
   if (ob->type == OB_GREASE_PENCIL) {
     GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
-    return &(grease_pencil->material_array_size);
+    return &(grease_pencil->material_array_num);
   }
   return nullptr;
 }
@@ -471,7 +441,7 @@ short *BKE_id_material_len_p(ID *id)
     case ID_VO:
       return &(((Volume *)id)->totcol);
     case ID_GP:
-      return &(((GreasePencil *)id)->material_array_size);
+      return &(((GreasePencil *)id)->material_array_num);
     default:
       break;
   }
@@ -795,15 +765,15 @@ Material *BKE_object_material_get_eval(Object *ob, short act)
   return nullptr;
 }
 
-int BKE_object_material_count_eval(Object *ob)
+int BKE_object_material_count_eval(const Object *ob)
 {
   BLI_assert(DEG_is_evaluated_object(ob));
   if (ob->type == OB_EMPTY) {
     return 0;
   }
   BLI_assert(ob->data != nullptr);
-  ID *id = get_evaluated_object_data_with_materials(ob);
-  const short *len_p = BKE_id_material_len_p(id);
+  const ID *id = get_evaluated_object_data_with_materials(const_cast<Object *>(ob));
+  const short *len_p = BKE_id_material_len_p(const_cast<ID *>(id));
   return len_p ? *len_p : 0;
 }
 
@@ -1111,10 +1081,7 @@ void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act
   object_material_assign(bmain, ob, ma, act, assign_type, true);
 }
 
-void BKE_object_material_assign_single_obdata(struct Main *bmain,
-                                              struct Object *ob,
-                                              struct Material *ma,
-                                              short act)
+void BKE_object_material_assign_single_obdata(Main *bmain, Object *ob, Material *ma, short act)
 {
   object_material_assign(bmain, ob, ma, act, BKE_MAT_ASSIGN_OBDATA, false);
 }
@@ -1232,11 +1199,8 @@ void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *
   BKE_object_materials_test(bmain, ob_orig, data_orig);
 }
 
-void BKE_object_material_array_assign(Main *bmain,
-                                      struct Object *ob,
-                                      struct Material ***matar,
-                                      int totcol,
-                                      const bool to_object_only)
+void BKE_object_material_array_assign(
+    Main *bmain, Object *ob, Material ***matar, int totcol, const bool to_object_only)
 {
   int actcol_orig = ob->actcol;
 
@@ -1405,12 +1369,9 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 
 static bNode *nodetree_uv_node_recursive(bNode *node)
 {
-  bNode *inode;
-  bNodeSocket *sock;
-
-  for (sock = static_cast<bNodeSocket *>(node->inputs.first); sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (sock->link) {
-      inode = sock->link->fromnode;
+      bNode *inode = sock->link->fromnode;
       if (inode->typeinfo->nclass == NODE_CLASS_INPUT && inode->typeinfo->type == SH_NODE_UVMAP) {
         return inode;
       }
@@ -1485,7 +1446,7 @@ struct FillTexPaintSlotsData {
 
 static bool fill_texpaint_slots_cb(bNode *node, void *userdata)
 {
-  struct FillTexPaintSlotsData *fill_data = static_cast<FillTexPaintSlotsData *>(userdata);
+  FillTexPaintSlotsData *fill_data = static_cast<FillTexPaintSlotsData *>(userdata);
 
   Material *ma = fill_data->ma;
   int index = fill_data->index;
@@ -1548,12 +1509,12 @@ static void fill_texpaint_slots_recursive(bNodeTree *nodetree,
                                           int slot_len,
                                           ePaintSlotFilter slot_filter)
 {
-  struct FillTexPaintSlotsData fill_data = {active_node, ob, ma, 0, slot_len};
+  FillTexPaintSlotsData fill_data = {active_node, ob, ma, 0, slot_len};
   ntree_foreach_texnode_recursive(nodetree, fill_texpaint_slots_cb, &fill_data, slot_filter);
 }
 
 /** Check which type of paint slots should be filled for the given object. */
-static ePaintSlotFilter material_paint_slot_filter(const struct Object *ob)
+static ePaintSlotFilter material_paint_slot_filter(const Object *ob)
 {
   ePaintSlotFilter slot_filter = PAINT_SLOT_IMAGE;
   if (ob->mode == OB_MODE_SCULPT && U.experimental.use_sculpt_texture_paint) {
@@ -1562,7 +1523,7 @@ static ePaintSlotFilter material_paint_slot_filter(const struct Object *ob)
   return slot_filter;
 }
 
-void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Object *ob)
+void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const Object *ob)
 {
   if (!ma) {
     return;
@@ -1627,7 +1588,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Ob
   MEM_SAFE_FREE(prev_texpaintslot);
 }
 
-void BKE_texpaint_slots_refresh_object(Scene *scene, struct Object *ob)
+void BKE_texpaint_slots_refresh_object(Scene *scene, Object *ob)
 {
   for (int i = 1; i < ob->totcol + 1; i++) {
     Material *ma = BKE_object_material_get(ob, i);
@@ -1642,7 +1603,7 @@ struct FindTexPaintNodeData {
 
 static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 {
-  struct FindTexPaintNodeData *find_data = static_cast<FindTexPaintNodeData *>(userdata);
+  FindTexPaintNodeData *find_data = static_cast<FindTexPaintNodeData *>(userdata);
   if (find_data->slot->ima && node->type == SH_NODE_TEX_IMAGE) {
     Image *node_ima = (Image *)node->id;
     if (find_data->slot->ima == node_ima) {
@@ -1665,7 +1626,7 @@ static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 bNode *BKE_texpaint_slot_material_find_node(Material *ma, short texpaint_slot)
 {
   TexPaintSlot *slot = &ma->texpaintslot[texpaint_slot];
-  struct FindTexPaintNodeData find_data = {slot, nullptr};
+  FindTexPaintNodeData find_data = {slot, nullptr};
   ntree_foreach_texnode_recursive(ma->nodetree,
                                   texpaint_slot_node_find_cb,
                                   &find_data,
@@ -1934,171 +1895,7 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
   }
 }
 
-/* -------------------------------------------------------------------- */
-/** \name Material Copy/Paste
- *
- * As materials may reference other data, the clipboard only stores a subset of all possible data.
- * The material and it's node-tree are stored and nothing else.
- * Notably the following variables are *not* part of the clipboard.
- *
- * - The #ID (name, fake-user, custom-properties .. etc).
- * - Animation data (#Material::adt, #bNodeTree::adt).
- * - Texture paint slots (#Material::texpaintslot)
- *   as this is cache and references other ID's.
- * - Grease pencil style (#Material::gp_style)
- *   could be supported but ID's and pointers would need to be handled carefully.
- *
- * When pasting, some data in the destination material is left as-is:
- * - The #ID.
- * - Animation data, with the exception that pasting a material without a node-tree
- *   will clear the existing materials node-tree & its animation.
- *   Note that applying existing animation to the pasted material might not make sense
- *   and may reference data-paths that don't resolve (depending on the kind of material).
- *   The user might need to clear the animation in this case.
- *
- * \{ */
-
-static Material matcopybuf;
-static short matcopied = 0;
-
-void BKE_material_copybuf_clear(void)
-{
-  if (matcopied) {
-    BKE_material_copybuf_free();
-  }
-  matcopybuf = blender::dna::shallow_zero_initialize();
-  matcopied = 0;
-}
-
-/**
- * Some members should *never* be set, ensure this is always the case.
- * Call at the beginning & end of functions that manipulate the clipboard.
- */
-static void material_copybuf_assert_is_valid()
-{
-  BLI_assert(!matcopybuf.id.icon_id);
-  BLI_assert(!matcopybuf.id.py_instance);
-  BLI_assert(!matcopybuf.adt);
-  BLI_assert(!matcopybuf.preview);
-  if (matcopybuf.nodetree) {
-    BLI_assert(!matcopybuf.nodetree->id.py_instance);
-    BLI_assert(!matcopybuf.nodetree->adt);
-    BLI_assert(!matcopybuf.nodetree->owner_id);
-  }
-}
-
-void BKE_material_copybuf_free(void)
-{
-  material_copybuf_assert_is_valid();
-
-  material_free_data(&matcopybuf.id);
-  matcopied = 0;
-}
-
-void BKE_material_copybuf_copy(Main *bmain, Material *ma)
-{
-  material_copybuf_assert_is_valid();
-
-  if (matcopied) {
-    BKE_material_copybuf_free();
-  }
-
-  matcopybuf = blender::dna::shallow_copy(*ma);
-
-  /* Not essential, but we never want to use any ID values from the source,
-   * this ensures that never happens. */
-  memset(&matcopybuf.id, 0, sizeof(ID));
-
-  /* Ensure dangling pointers are never copied back into a material. */
-  material_clear_data(&matcopybuf.id);
-
-  /* Unhandled by materials generic data functions. */
-  matcopybuf.adt = nullptr;
-
-  if (ma->nodetree != nullptr) {
-    /* Never copy animation data. */
-    struct {
-      AnimData *adt;
-    } backup;
-    backup.adt = ma->nodetree->adt;
-    ma->nodetree->adt = nullptr;
-
-    matcopybuf.nodetree = blender::bke::ntreeCopyTree_ex(ma->nodetree, bmain, false);
-    matcopybuf.nodetree->owner_id = nullptr;
-
-    ma->nodetree->adt = backup.adt;
-  }
-
-  /* TODO: Duplicate Engine Settings and set runtime to nullptr. */
-  matcopied = 1;
-
-  material_copybuf_assert_is_valid();
-}
-
-bool BKE_material_copybuf_paste(Main *bmain, Material *ma)
-{
-  material_copybuf_assert_is_valid();
-
-  if (matcopied == 0) {
-    return false;
-  }
-
-  /* `matcopybuf` never has animation data, no need to check. */
-  const bool has_animdata = (ma->adt != nullptr || (ma->nodetree && ma->nodetree->adt));
-  const bool has_node_tree = (ma->nodetree || matcopybuf.nodetree);
-
-  AnimData *backup_nodetree_adt = nullptr;
-  if (ma->nodetree && matcopybuf.nodetree) {
-    /* Keep data to apply back to the new node-tree. */
-    std::swap(backup_nodetree_adt, ma->nodetree->adt);
-  }
-
-  /* Handles freeing nodes and and other run-time data (previews) for e.g. */
-  material_free_data(&ma->id);
-
-  /* Copy from `matcopybuf` preserving some members.
-   * NOTE: animation data isn't stored in the clipboard, any existing animation will be left as-is.
-   * Any undesired animation will have to be manually cleared by the user. */
-  {
-    struct {
-      ID id;
-      AnimData *adt;
-    } backup;
-    backup.id = ma->id;
-    backup.adt = ma->adt;
-
-    *ma = blender::dna::shallow_copy(matcopybuf);
-
-    ma->id = backup.id;
-    ma->adt = backup.adt;
-  }
-
-  if (matcopybuf.nodetree != nullptr) {
-    BLI_assert(matcopybuf.nodetree->adt == nullptr);
-    ma->nodetree = blender::bke::ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
-    ma->nodetree->owner_id = &ma->id;
-
-    /* Restore animation pointer (if set). */
-    BLI_assert(ma->nodetree->adt == nullptr);
-    ma->nodetree->adt = backup_nodetree_adt;
-  }
-
-  if (has_node_tree || has_animdata) {
-    /* Important to run this when the embedded tree if freed,
-     * otherwise the depsgraph holds a reference to the (now freed) `ma->nodetree`.
-     * Also run this when a new node-tree is set to ensure it's accounted for.
-     * This also applies to animation data which is likely to be stored in the depsgraph. */
-    DEG_relations_tag_update(bmain);
-  }
-
-  material_copybuf_assert_is_valid();
-
-  return true;
-}
-
-/** \} */
-
-void BKE_material_eval(struct Depsgraph *depsgraph, Material *material)
+void BKE_material_eval(Depsgraph *depsgraph, Material *material)
 {
   DEG_debug_print_eval(depsgraph, __func__, material->id.name, material);
   GPU_material_free(&material->gpumaterial);
@@ -2207,32 +2004,32 @@ static void material_default_holdout_init(Material *ma)
   nodeSetActive(ntree, output);
 }
 
-Material *BKE_material_default_empty(void)
+Material *BKE_material_default_empty()
 {
   return &default_material_empty;
 }
 
-Material *BKE_material_default_holdout(void)
+Material *BKE_material_default_holdout()
 {
   return &default_material_holdout;
 }
 
-Material *BKE_material_default_surface(void)
+Material *BKE_material_default_surface()
 {
   return &default_material_surface;
 }
 
-Material *BKE_material_default_volume(void)
+Material *BKE_material_default_volume()
 {
   return &default_material_volume;
 }
 
-Material *BKE_material_default_gpencil(void)
+Material *BKE_material_default_gpencil()
 {
   return &default_material_gpencil;
 }
 
-void BKE_material_defaults_free_gpu(void)
+void BKE_material_defaults_free_gpu()
 {
   for (int i = 0; default_materials[i]; i++) {
     Material *ma = default_materials[i];
@@ -2244,7 +2041,7 @@ void BKE_material_defaults_free_gpu(void)
 
 /* Module functions called on startup and exit. */
 
-void BKE_materials_init(void)
+void BKE_materials_init()
 {
   for (int i = 0; default_materials[i]; i++) {
     material_init_data(&default_materials[i]->id);
@@ -2256,7 +2053,7 @@ void BKE_materials_init(void)
   material_default_gpencil_init(&default_material_gpencil);
 }
 
-void BKE_materials_exit(void)
+void BKE_materials_exit()
 {
   for (int i = 0; default_materials[i]; i++) {
     material_free_data(&default_materials[i]->id);

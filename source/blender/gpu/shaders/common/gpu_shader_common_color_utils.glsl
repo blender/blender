@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void rgb_to_hsv(vec4 rgb, out vec4 outcol)
 {
   float cmax, cmin, h, s, v, cdelta;

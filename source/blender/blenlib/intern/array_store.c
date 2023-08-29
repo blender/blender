@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -292,7 +292,7 @@ struct BArrayStore {
  */
 struct BArrayState {
   /** linked list in #BArrayStore.states. */
-  struct BArrayState *next, *prev;
+  BArrayState *next, *prev;
   /** Shared chunk list, this reference must hold a #BChunkList::users. */
   struct BChunkList *chunk_list;
 };
@@ -470,7 +470,7 @@ static void bchunk_list_ensure_min_size_last(const BArrayInfo *info,
 {
   BChunkRef *cref = chunk_list->chunk_refs.last;
   if (cref && cref->prev) {
-    /* Both are decref'd after use (end of this block) */
+    /* Both are decrefed after use (end of this block). */
     BChunk *chunk_curr = cref->link;
     BChunk *chunk_prev = cref->prev->link;
 
@@ -1783,7 +1783,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
       GHASH_PTR_ADD_USER(chunk_list_map, state->chunk_list);
     }
     GHASH_ITER (gh_iter, chunk_list_map) {
-      const struct BChunkList *chunk_list = BLI_ghashIterator_getKey(&gh_iter);
+      const BChunkList *chunk_list = BLI_ghashIterator_getKey(&gh_iter);
       const int users = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
       if (!(chunk_list->users == users)) {
         ok = false;
@@ -1797,7 +1797,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
 
     /* Count chunk's. */
     GHASH_ITER (gh_iter, chunk_list_map) {
-      const struct BChunkList *chunk_list = BLI_ghashIterator_getKey(&gh_iter);
+      const BChunkList *chunk_list = BLI_ghashIterator_getKey(&gh_iter);
       LISTBASE_FOREACH (const BChunkRef *, cref, &chunk_list->chunk_refs) {
         GHASH_PTR_ADD_USER(chunk_map, cref->link);
         totrefs += 1;
@@ -1813,7 +1813,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
     }
 
     GHASH_ITER (gh_iter, chunk_map) {
-      const struct BChunk *chunk = BLI_ghashIterator_getKey(&gh_iter);
+      const BChunk *chunk = BLI_ghashIterator_getKey(&gh_iter);
       const int users = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
       if (!(chunk->users == users)) {
         ok = false;

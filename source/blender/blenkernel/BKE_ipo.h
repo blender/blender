@@ -14,7 +14,7 @@ extern "C" {
 struct Main;
 
 /**
- * Called from #do_versions() in `readfile.c` to convert the old 'IPO/adrcode' system
+ * Called from #do_versions() in `readfile.cc` to convert the old 'IPO/adrcode' system
  * to the new 'Animato/RNA' system.
  *
  * The basic method used here, is to loop over data-blocks which have IPO-data,

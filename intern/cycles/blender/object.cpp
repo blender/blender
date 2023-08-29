@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "blender/light_linking.h"
 #include "blender/object_cull.h"
@@ -350,7 +351,11 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     }
 
     /* Light group and linking. */
-    object->set_lightgroup(ustring(b_ob.lightgroup()));
+    string lightgroup = b_ob.lightgroup();
+    if (lightgroup.empty()) {
+      lightgroup = b_parent.lightgroup();
+    }
+    object->set_lightgroup(ustring(lightgroup));
 
     object->set_light_set_membership(BlenderLightLink::get_light_set_membership(b_parent, b_ob));
     object->set_receiver_light_set(BlenderLightLink::get_receiver_light_set(b_parent, b_ob));

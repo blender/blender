@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -22,7 +22,6 @@ void CompositorNode::convert_to_operations(NodeConverter &converter,
 
   NodeInput *image_socket = this->get_input_socket(0);
   NodeInput *alpha_socket = this->get_input_socket(1);
-  NodeInput *depth_socket = this->get_input_socket(2);
 
   CompositorOperation *compositor_operation = new CompositorOperation();
   compositor_operation->set_scene(context.get_scene());
@@ -43,7 +42,6 @@ void CompositorNode::convert_to_operations(NodeConverter &converter,
   else {
     converter.map_input_socket(alpha_socket, compositor_operation->get_input_socket(1));
   }
-  converter.map_input_socket(depth_socket, compositor_operation->get_input_socket(2));
 
   converter.add_node_input_preview(image_socket);
 }

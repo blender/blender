@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -62,7 +62,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
   int framenumber = context.get_framenumber();
   bool output_straight_alpha = (editor_node->custom1 & CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT) != 0;
   BKE_image_user_frame_calc(image, imageuser, context.get_framenumber());
-  /* force a load, we assume iuser index will be set OK anyway */
+  /* Force a load, we assume #ImageUser index will be set OK anyway. */
   if (image && image->type == IMA_TYPE_MULTILAYER) {
     bool is_multilayer_ok = false;
     ImBuf *ibuf = BKE_image_acquire_ibuf(image, imageuser, nullptr);
@@ -225,21 +225,9 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
 
       converter.map_output_socket(alpha_image, alpha_operation->get_output_socket());
     }
-    if (number_of_outputs > 2) {
-      NodeOutput *depth_image = this->get_output_socket(2);
-      ImageDepthOperation *depth_operation = new ImageDepthOperation();
-      depth_operation->set_image(image);
-      depth_operation->set_image_user(imageuser);
-      depth_operation->set_framenumber(framenumber);
-      depth_operation->set_render_data(context.get_render_data());
-      depth_operation->set_view_name(context.get_view_name());
-      converter.add_operation(depth_operation);
-
-      converter.map_output_socket(depth_image, depth_operation->get_output_socket());
-    }
-    if (number_of_outputs > 3) {
+    else {
       /* happens when unlinking image datablock from multilayer node */
-      for (int i = 3; i < number_of_outputs; i++) {
+      for (int i = 2; i < number_of_outputs; i++) {
         NodeOutput *output = this->get_output_socket(i);
         NodeOperation *operation = nullptr;
         switch (output->get_data_type()) {

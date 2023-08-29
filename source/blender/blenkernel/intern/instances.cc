@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -67,21 +67,21 @@ void Instances::add_instance(const int instance_handle, const float4x4 &transfor
   attributes_.reallocate(this->instances_num());
 }
 
-blender::Span<int> Instances::reference_handles() const
+Span<int> Instances::reference_handles() const
 {
   return reference_handles_;
 }
 
-blender::MutableSpan<int> Instances::reference_handles()
+MutableSpan<int> Instances::reference_handles()
 {
   return reference_handles_;
 }
 
-blender::MutableSpan<blender::float4x4> Instances::transforms()
+MutableSpan<float4x4> Instances::transforms()
 {
   return transforms_;
 }
-blender::Span<blender::float4x4> Instances::transforms() const
+Span<float4x4> Instances::transforms() const
 {
   return transforms_;
 }
@@ -102,7 +102,7 @@ int Instances::add_reference(const InstanceReference &reference)
   return references_.index_of_or_add_as(reference);
 }
 
-blender::Span<InstanceReference> Instances::references() const
+Span<InstanceReference> Instances::references() const
 {
   return references_;
 }

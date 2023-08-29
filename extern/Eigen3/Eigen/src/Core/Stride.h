@@ -10,7 +10,7 @@
 #ifndef EIGEN_STRIDE_H
 #define EIGEN_STRIDE_H
 
-namespace Eigen { 
+namespace Eigen {
 
 /** \class Stride
   * \ingroup Core_Module
@@ -38,6 +38,10 @@ namespace Eigen {
   * \include Map_general_stride.cpp
   * Output: \verbinclude Map_general_stride.out
   *
+  * Both strides can be negative, however, a negative stride of -1 cannot be specified at compiletime
+  * because of the ambiguity with Dynamic which is defined to -1 (historically, negative strides were
+  * not allowed).
+  *
   * \sa class InnerStride, class OuterStride, \ref TopicStorageOrders
   */
 template<int _OuterStrideAtCompileTime, int _InnerStrideAtCompileTime>
@@ -55,6 +59,8 @@ class Stride
     Stride()
       : m_outer(OuterStrideAtCompileTime), m_inner(InnerStrideAtCompileTime)
     {
+      // FIXME: for Eigen 4 we should use DynamicIndex instead of Dynamic.
+      // FIXME: for Eigen 4 we should also unify this API with fix<>
       eigen_assert(InnerStrideAtCompileTime != Dynamic && OuterStrideAtCompileTime != Dynamic);
     }
 
@@ -63,7 +69,6 @@ class Stride
     Stride(Index outerStride, Index innerStride)
       : m_outer(outerStride), m_inner(innerStride)
     {
-      eigen_assert(innerStride>=0 && outerStride>=0);
     }
 
     /** Copy constructor */
@@ -73,10 +78,10 @@ class Stride
     {}
 
     /** \returns the outer stride */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
     inline Index outer() const { return m_outer.value(); }
     /** \returns the inner stride */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
     inline Index inner() const { return m_inner.value(); }
 
   protected:

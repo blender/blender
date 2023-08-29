@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,6 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
+#include "BKE_collection.h"
 
 #include "RNA_prototypes.h"
 
@@ -147,6 +148,27 @@ bool DepsgraphBuilder::check_pchan_has_bbone_segments(const Object *object, cons
   return check_pchan_has_bbone_segments(object, pchan);
 }
 
+const char *DepsgraphBuilder::get_rna_path_relative_to_scene_camera(const Scene *scene,
+                                                                    const PointerRNA &target_prop,
+                                                                    const char *rna_path)
+{
+  if (rna_path == nullptr || target_prop.data != scene || target_prop.type != &RNA_Scene ||
+      !BLI_str_startswith(rna_path, "camera"))
+  {
+    return nullptr;
+  }
+
+  /* Return the part of the path relative to the camera. */
+  switch (rna_path[6]) {
+    case '.':
+      return rna_path + 7;
+    case '[':
+      return rna_path + 6;
+    default:
+      return nullptr;
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -181,6 +203,14 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
       }
       if (GS(id_orig->name) == ID_NT) {
         flag |= ID_RECALC_NTREE_OUTPUT;
+      }
+    }
+    else {
+      /* Collection content might have changed (children collection might have been added or
+       * removed from the graph based on their inclusion and visibility flags). */
+      const ID_Type id_type = GS(id_node->id_cow->name);
+      if (id_type == ID_GR) {
+        BKE_collection_object_cache_free(reinterpret_cast<Collection *>(id_node->id_cow));
       }
     }
     /* Restore recalc flags from original ID, which could possibly contain recalc flags set by

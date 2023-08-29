@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Some misc utilities...
@@ -235,8 +237,8 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
                         continue
                     print("    Enabling module ", module_name)
                     bpy.ops.preferences.addon_enable(module=module_name)
-            except Exception as e:  # XXX TEMP WORKAROUND
-                print(e)
+            except BaseException as ex:  # XXX TEMP WORKAROUND
+                print(ex)
 
         # XXX There are currently some problems with bpy/rna...
         #     *Very* tricky to solve!

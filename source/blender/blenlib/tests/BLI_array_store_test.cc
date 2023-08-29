@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -35,7 +35,7 @@ static void print_mem_saved(const char *id, const BArrayStore *bs)
 /* Test Chunks (building data from list of chunks) */
 
 struct TestChunk {
-  struct TestChunk *next, *prev;
+  TestChunk *next, *prev;
   const void *data;
   size_t data_len;
 };
@@ -114,7 +114,7 @@ static char *testchunk_as_data_array(TestChunk **tc_array, int tc_array_len, siz
 
 /* API to handle local allocation of data so we can compare it with the data in the array_store */
 struct TestBuffer {
-  struct TestBuffer *next, *prev;
+  TestBuffer *next, *prev;
   const void *data;
   size_t data_len;
 
@@ -217,7 +217,7 @@ static bool testbuffer_item_validate(TestBuffer *tb)
 
 static bool testbuffer_list_validate(const ListBase *lb)
 {
-  for (TestBuffer *tb = (TestBuffer *)lb->first; tb; tb = tb->next) {
+  LISTBASE_FOREACH (TestBuffer *, tb, lb) {
     if (!testbuffer_item_validate(tb)) {
       return false;
     }
@@ -228,7 +228,7 @@ static bool testbuffer_list_validate(const ListBase *lb)
 
 static void testbuffer_list_data_randomize(ListBase *lb, uint random_seed)
 {
-  for (TestBuffer *tb = (TestBuffer *)lb->first; tb; tb = tb->next) {
+  LISTBASE_FOREACH (TestBuffer *, tb, lb) {
     BLI_array_randomize((void *)tb->data, 1, tb->data_len, random_seed++);
   }
 }
@@ -244,7 +244,7 @@ static void testbuffer_list_store_populate(BArrayStore *bs, ListBase *lb)
 
 static void testbuffer_list_store_clear(BArrayStore *bs, ListBase *lb)
 {
-  for (TestBuffer *tb = (TestBuffer *)lb->first; tb; tb = tb->next) {
+  LISTBASE_FOREACH (TestBuffer *, tb, lb) {
     BLI_array_store_state_remove(bs, tb->state);
     tb->state = nullptr;
   }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -44,7 +46,7 @@ PyDoc_STRVAR(FrsNoise_doc,
              "\n"
              ".. method:: __init__(seed = -1)\n"
              "\n"
-             "   Builds a Noise object.  Seed is an optional argument.  The seed value is used\n"
+             "   Builds a Noise object. Seed is an optional argument. The seed value is used\n"
              "   as a seed for random number generation if it is equal to or greater than zero;\n"
              "   otherwise, time is used as a seed.\n"
              "\n"
@@ -316,7 +318,7 @@ static PyMethodDef BPy_FrsNoise_methods[] = {
 /*-----------------------BPy_FrsNoise type definition ------------------------------*/
 
 PyTypeObject FrsNoise_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Noise",
     /*tp_basicsize*/ sizeof(BPy_FrsNoise),
     /*tp_itemsize*/ 0,

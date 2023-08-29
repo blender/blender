@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef LIBMV_C_API_AUTOTRACK_H_
 #define LIBMV_C_API_AUTOTRACK_H_

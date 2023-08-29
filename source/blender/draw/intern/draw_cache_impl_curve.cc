@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation
+/* SPDX-FileCopyrightText: 2017 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,6 +13,7 @@
 #include "BLI_array.hh"
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
@@ -31,13 +32,13 @@
 #include "GPU_material.h"
 #include "GPU_texture.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "DRW_render.h"
 
 #include "draw_cache_inline.h"
 
-#include "draw_cache_impl.h" /* own include */
+#include "draw_cache_impl.hh" /* own include */
 
 using blender::Array;
 using blender::ColorGeometry4f;
@@ -195,8 +196,8 @@ enum {
   CU_DATATYPE_TEXT_SELECT = 1 << 4,
 };
 
-/*
- * ob_curve_cache can be NULL
+/**
+ * \param ob_curve_cache: can be null.
  */
 static CurveRenderData *curve_render_data_create(Curve *cu,
                                                  CurveCache *ob_curve_cache,
@@ -836,7 +837,7 @@ int DRW_curve_material_count_get(Curve *cu)
 /** \name Grouped batch generation
  * \{ */
 
-void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scene)
+void DRW_curve_batch_cache_create_requested(Object *ob, const Scene *scene)
 {
   BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT));
 

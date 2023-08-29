@@ -11,7 +11,7 @@
  * - When renaming the member of a struct which has itself been renamed
  *   refer to the newer name, not the original.
  *
- * - Changes here only change generated code for `makesdna.c` and `makesrna.c`
+ * - Changes here only change generated code for `makesdna.cc` and `makesrna.cc`
  *   without impacting Blender's run-time, besides allowing us to use the new names.
  *
  * - Renaming something that has already been renamed can be done
@@ -29,7 +29,7 @@
  *   Compare the results before & after to ensure all changes are reversed by renaming
  *   and the DNA remains unchanged.
  *
- * \see versioning_dna.c for actual version patching.
+ * \see `versioning_dna.cc` for actual version patching.
  */
 
 /* No include guard (intentional). */
@@ -80,8 +80,13 @@ DNA_STRUCT_RENAME_ELEM(FluidDomainSettings, guiding_parent, guide_parent)
 DNA_STRUCT_RENAME_ELEM(FluidDomainSettings, guiding_source, guide_source)
 DNA_STRUCT_RENAME_ELEM(FluidDomainSettings, guiding_vel_factor, guide_vel_factor)
 DNA_STRUCT_RENAME_ELEM(FluidEffectorSettings, guiding_mode, guide_mode)
+DNA_STRUCT_RENAME_ELEM(GreasePencil, drawing_array_size, drawing_array_num)
+DNA_STRUCT_RENAME_ELEM(GreasePencil, material_array_size, material_array_num)
+DNA_STRUCT_RENAME_ELEM(GreasePencilLayerFramesMapStorage, size, num)
 DNA_STRUCT_RENAME_ELEM(HookModifierData, totindex, indexar_num)
 DNA_STRUCT_RENAME_ELEM(Image, name, filepath)
+DNA_STRUCT_RENAME_ELEM(Light, energy_new, energy)
+DNA_STRUCT_RENAME_ELEM(Light, energy, energy_deprecated)
 DNA_STRUCT_RENAME_ELEM(LaplacianDeformModifierData, total_verts, verts_num)
 DNA_STRUCT_RENAME_ELEM(Library, name, filepath)
 DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, line_types, edge_types)
@@ -99,8 +104,16 @@ DNA_STRUCT_RENAME_ELEM(MVert, flag, flag_legacy)
 DNA_STRUCT_RENAME_ELEM(MaskLayer, restrictflag, visibility_flag)
 DNA_STRUCT_RENAME_ELEM(MaterialLineArt, transparency_mask, material_mask_bits)
 DNA_STRUCT_RENAME_ELEM(Mesh, loc, texspace_location)
+DNA_STRUCT_RENAME_ELEM(Mesh, edata, edge_data)
+DNA_STRUCT_RENAME_ELEM(Mesh, fdata, fdata_legacy)
+DNA_STRUCT_RENAME_ELEM(Mesh, ldata, loop_data)
+DNA_STRUCT_RENAME_ELEM(Mesh, pdata, face_data)
+DNA_STRUCT_RENAME_ELEM(Mesh, poly_offset_indices, face_offset_indices)
 DNA_STRUCT_RENAME_ELEM(Mesh, size, texspace_size)
 DNA_STRUCT_RENAME_ELEM(Mesh, texflag, texspace_flag)
+DNA_STRUCT_RENAME_ELEM(Mesh, totface, totface_legacy)
+DNA_STRUCT_RENAME_ELEM(Mesh, totpoly, faces_num)
+DNA_STRUCT_RENAME_ELEM(Mesh, vdata, vert_data)
 DNA_STRUCT_RENAME_ELEM(MeshDeformModifierData, totcagevert, cage_verts_num)
 DNA_STRUCT_RENAME_ELEM(MeshDeformModifierData, totinfluence, influences_num)
 DNA_STRUCT_RENAME_ELEM(MeshDeformModifierData, totvert, verts_num)
@@ -189,6 +202,7 @@ DNA_STRUCT_RENAME_ELEM(bTheme, tstatusbar, space_statusbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, ttopbar, space_topbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, tuserpref, space_preferences)
 DNA_STRUCT_RENAME_ELEM(bTheme, tv3d, space_view3d)
+DNA_STRUCT_RENAME_ELEM(bUserAssetLibrary, path, dirpath)
 /* Write with a different name, old Blender versions crash loading files with non-NULL
  * global_areas. See D9442. */
 DNA_STRUCT_RENAME_ELEM(wmWindow, global_area_map, global_areas)

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -19,7 +20,7 @@ class GHOST_EventString : public GHOST_Event {
    * Constructor.
    * \param msec: The time this event was generated.
    * \param type: The type of this event.
-   * \param window: The generating window (or NULL if system event).
+   * \param window: The generating window (or nullptr if system event).
    * \param data_ptr: Pointer to the (un-formatted) data associated with the event.
    */
   GHOST_EventString(uint64_t msec,

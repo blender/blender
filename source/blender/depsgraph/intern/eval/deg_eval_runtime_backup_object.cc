@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -34,7 +34,7 @@ void ObjectRuntimeBackup::init_from_object(Object *object)
     light_linking_runtime = object->light_linking->runtime;
   }
   BKE_object_runtime_reset(object);
-  /* Keep bbox (for now at least). */
+  /* Keep bounding-box (for now at least). */
   object->runtime.bb = runtime.bb;
   /* Object update will override actual object->data to an evaluated version.
    * Need to make sure we don't have data set to evaluated one before free
@@ -159,7 +159,7 @@ void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
   for (ModifierDataBackup &backup : modifier_runtime_data.values()) {
     const ModifierTypeInfo *modifier_type_info = BKE_modifier_get_info(backup.type);
     BLI_assert(modifier_type_info != nullptr);
-    modifier_type_info->freeRuntimeData(backup.runtime);
+    modifier_type_info->free_runtime_data(backup.runtime);
   }
 }
 

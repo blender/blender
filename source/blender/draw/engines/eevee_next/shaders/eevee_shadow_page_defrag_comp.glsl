@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Defrag.
+ * Virtual shadow-mapping: Defrag.
  *
  * Defragment the cached page buffer making one continuous array.
  *
@@ -8,11 +11,11 @@
  * Here is an example of the behavior of this buffer during one update cycle:
  *
  *   Initial state: 5 cached pages. Buffer starts at index 2 and ends at 6.
- *     [--xxxxx---------]
+ *     `[--xxxxx---------]`
  *   After page free step: 2 cached pages were removed (r), 3 pages were inserted in the cache (i).
- *     [--xrxrxiii------]
+ *     `[--xrxrxiii------]`
  *   After page defrag step: The buffer is compressed into only 6 pages.
- *     [----xxxxxx------]
+ *     `[----xxxxxx------]`
  */
 
 #pragma BLENDER_REQUIRE(eevee_shadow_page_ops_lib.glsl)
@@ -106,13 +109,13 @@ void main()
   pages_infos_buf.page_cached_start = src;
   pages_infos_buf.page_cached_end = end;
   pages_infos_buf.page_alloc_count = 0;
-  pages_infos_buf.view_count = 0;
 
   /* Stats. */
   statistics_buf.page_used_count = 0;
   statistics_buf.page_update_count = 0;
   statistics_buf.page_allocated_count = 0;
   statistics_buf.page_rendered_count = 0;
+  statistics_buf.view_needed_count = 0;
 
   /* Wrap the cursor to avoid unsigned overflow. We do not do modulo arithmetic because it would
    * produce a 0 length buffer if the buffer is full. */
@@ -123,7 +126,7 @@ void main()
   }
 
   /* Reset clear command indirect buffer. */
-  clear_dispatch_buf.num_groups_x = pages_infos_buf.page_size / SHADOW_PAGE_CLEAR_GROUP_SIZE;
-  clear_dispatch_buf.num_groups_y = pages_infos_buf.page_size / SHADOW_PAGE_CLEAR_GROUP_SIZE;
+  clear_dispatch_buf.num_groups_x = SHADOW_PAGE_RES / SHADOW_PAGE_CLEAR_GROUP_SIZE;
+  clear_dispatch_buf.num_groups_y = SHADOW_PAGE_RES / SHADOW_PAGE_CLEAR_GROUP_SIZE;
   clear_dispatch_buf.num_groups_z = 0;
 }

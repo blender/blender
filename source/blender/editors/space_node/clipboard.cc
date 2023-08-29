@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,15 +13,14 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 
-#include "ED_node.h"
 #include "ED_node.hh"
-#include "ED_render.h"
-#include "ED_screen.h"
+#include "ED_render.hh"
+#include "ED_screen.hh"
 
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "DEG_depsgraph_build.h"
 
@@ -186,33 +185,6 @@ void NODE_OT_clipboard_copy(wmOperatorType *ot)
 /** \name Paste
  * \{ */
 
-static void remap_pairing(bNodeTree &dst_tree, const Map<const bNode *, bNode *> &node_map)
-{
-  /* We don't have the old tree for looking up output nodes by ID,
-   * so we have to build a map first to find copied output nodes in the new tree. */
-  Map<int32_t, bNode *> dst_output_node_map;
-  for (const auto &item : node_map.items()) {
-    if (item.key->type == GEO_NODE_SIMULATION_OUTPUT) {
-      dst_output_node_map.add_new(item.key->identifier, item.value);
-    }
-  }
-
-  for (bNode *dst_node : node_map.values()) {
-    if (dst_node->type == GEO_NODE_SIMULATION_INPUT) {
-      NodeGeometrySimulationInput &data = *static_cast<NodeGeometrySimulationInput *>(
-          dst_node->storage);
-      if (const bNode *output_node = dst_output_node_map.lookup_default(data.output_node_id,
-                                                                        nullptr)) {
-        data.output_node_id = output_node->identifier;
-      }
-      else {
-        data.output_node_id = 0;
-        blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
-      }
-    }
-  }
-}
-
 static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -247,6 +219,13 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     {
       bNode *new_node = bke::node_copy_with_mapping(
           &tree, node, LIB_ID_COPY_DEFAULT, true, socket_map);
+      /* Reset socket shape in case a node is copied to a different tree type. */
+      LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->inputs) {
+        socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+      }
+      LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->outputs) {
+        socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+      }
       node_map.add_new(&node, new_node);
     }
     else {
@@ -270,6 +249,8 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   for (bNode *new_node : node_map.values()) {
     nodeSetSelected(new_node, true);
+
+    new_node->flag &= ~NODE_ACTIVE;
 
     /* The parent pointer must be redirected to new node. */
     if (new_node->parent) {
@@ -320,7 +301,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     bke::nodeDeclarationEnsure(&tree, new_node);
   }
 
-  remap_pairing(tree, node_map);
+  remap_node_pairing(tree, node_map);
 
   tree.ensure_topology_cache();
   for (bNode *new_node : node_map.values()) {

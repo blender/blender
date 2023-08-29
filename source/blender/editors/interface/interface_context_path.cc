@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,17 +10,16 @@
 
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 namespace blender::ui {
 
@@ -40,16 +39,15 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
   RNA_struct_name_get_alloc(&rna_ptr, name, sizeof(name), nullptr);
 
   /* Use a blank icon by default to check whether to retrieve it automatically from the type. */
-  const BIFIconID icon = icon_override == ICON_NONE ?
-                             static_cast<BIFIconID>(RNA_struct_ui_icon(rna_ptr.type)) :
-                             icon_override;
+  const BIFIconID icon = icon_override == ICON_NONE ? RNA_struct_ui_icon(rna_ptr.type) :
+                                                      icon_override;
 
   if (&rna_type == &RNA_NodeTree) {
     ID *id = (ID *)ptr;
-    path.append({name, int(icon), ID_REAL_USERS(id)});
+    path.append({name, icon, ID_REAL_USERS(id)});
   }
   else {
-    path.append({name, int(icon), 1});
+    path.append({name, icon, 1});
   }
 }
 

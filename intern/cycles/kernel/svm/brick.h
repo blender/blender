@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -46,8 +47,17 @@ ccl_device_noinline_cpu float2 svm_brick(float3 p,
   float tint = saturatef((brick_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias));
   float min_dist = min(min(x, y), min(brick_width - x, row_height - y));
 
-  min_dist = 1.0f - min_dist / mortar_size;
-  float mortar = smoothstepf(min_dist / mortar_smooth);
+  float mortar;
+  if (min_dist >= mortar_size) {
+    mortar = 0.0f;
+  }
+  else if (mortar_smooth == 0.0f) {
+    mortar = 1.0f;
+  }
+  else {
+    min_dist = 1.0f - min_dist / mortar_size;
+    mortar = smoothstepf(min_dist / mortar_smooth);
+  }
 
   return make_float2(tint, mortar);
 }

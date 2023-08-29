@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
@@ -109,17 +112,6 @@ class MESH_UL_vgroups(UIList):
             layout.label(text="", icon_value=icon)
 
 
-class MESH_UL_fmaps(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
-        # assert(isinstance(item, bpy.types.FaceMap))
-        fmap = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(fmap, "name", text="", emboss=False, icon='FACE_MAPS')
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
-
-
 class MESH_UL_shape_keys(UIList):
     def draw_item(self, _context, layout, _data, item, icon, active_data, _active_propname, index):
         # assert(isinstance(item, bpy.types.ShapeKey))
@@ -132,7 +124,7 @@ class MESH_UL_shape_keys(UIList):
             row = split.row(align=True)
             row.emboss = 'NONE_OR_STATUS'
             if key_block.mute or (obj.mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH')):
-                row.active = False
+                split.active = False
             if not item.id_data.use_relative:
                 row.prop(key_block, "frame", text="")
             elif index > 0:
@@ -283,50 +275,6 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
             sub.operator("object.vertex_group_deselect", text="Deselect")
 
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight")
-
-
-class DATA_PT_face_maps(MeshButtonsPanel, Panel):
-    bl_label = "Face Maps"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        return (obj and obj.type == 'MESH')
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.object
-        facemap = ob.face_maps.active
-
-        rows = 2
-        if facemap:
-            rows = 4
-
-        row = layout.row()
-        row.template_list("MESH_UL_fmaps", "", ob, "face_maps", ob.face_maps, "active_index", rows=rows)
-
-        col = row.column(align=True)
-        col.operator("object.face_map_add", icon='ADD', text="")
-        col.operator("object.face_map_remove", icon='REMOVE', text="")
-
-        if facemap:
-            col.separator()
-            col.operator("object.face_map_move", icon='TRIA_UP', text="").direction = 'UP'
-            col.operator("object.face_map_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
-
-        if ob.face_maps and (ob.mode == 'EDIT' and ob.type == 'MESH'):
-            row = layout.row()
-
-            sub = row.row(align=True)
-            sub.operator("object.face_map_assign", text="Assign")
-            sub.operator("object.face_map_remove_from", text="Remove")
-
-            sub = row.row(align=True)
-            sub.operator("object.face_map_select", text="Select")
-            sub.operator("object.face_map_deselect", text="Deselect")
 
 
 class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
@@ -496,16 +444,6 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         else:
             col.operator("mesh.customdata_custom_splitnormals_add", icon='ADD')
 
-        if me.has_crease_edge:
-            col.operator("mesh.customdata_crease_edge_clear", icon='X')
-        else:
-            col.operator("mesh.customdata_crease_edge_add", icon='ADD')
-
-        if me.has_crease_vertex:
-            col.operator("mesh.customdata_crease_vertex_clear", icon='X')
-        else:
-            col.operator("mesh.customdata_crease_vertex_add", icon='ADD')
-
 
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
@@ -610,7 +548,8 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         if not colliding_names:
             return
 
-        layout.label(text=tip_("Name collisions: ") + ", ".join(set(colliding_names)), icon='ERROR')
+        layout.label(text=tip_("Name collisions: ") + ", ".join(set(colliding_names)),
+                     icon='ERROR', translate=False)
 
 
 class ColorAttributesListBase():
@@ -717,7 +656,6 @@ classes = (
     MESH_MT_color_attribute_context_menu,
     MESH_MT_attribute_context_menu,
     MESH_UL_vgroups,
-    MESH_UL_fmaps,
     MESH_UL_shape_keys,
     MESH_UL_uvmaps,
     MESH_UL_attributes,
@@ -726,7 +664,6 @@ classes = (
     DATA_PT_shape_keys,
     DATA_PT_uv_texture,
     DATA_PT_vertex_colors,
-    DATA_PT_face_maps,
     DATA_PT_mesh_attributes,
     DATA_PT_normals,
     DATA_PT_texture_space,

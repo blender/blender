@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -29,9 +29,7 @@
 #include "GHOST_C-api.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
 #include "BLI_timer.h"
 #include "BLI_utildefines.h"
 
@@ -51,37 +49,39 @@
 
 #include "BLT_translation.h"
 
-#include "ED_asset.h"
-#include "ED_fileselect.h"
-#include "ED_info.h"
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_undo.h"
-#include "ED_util.h"
-#include "ED_view3d.h"
+#include "ED_asset.hh"
+#include "ED_fileselect.hh"
+#include "ED_info.hh"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_undo.hh"
+#include "ED_util.hh"
+#include "ED_view3d.hh"
 
 #include "GPU_context.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "PIL_time.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "wm.h"
+#include "wm.hh"
 #include "wm_event_system.h"
-#include "wm_event_types.h"
-#include "wm_surface.h"
-#include "wm_window.h"
+#include "wm_event_types.hh"
+#include "wm_surface.hh"
+#include "wm_window.hh"
 #include "wm_window_private.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+
+#include "RE_pipeline.h"
 
 /**
  * When a gizmo is highlighted and uses click/drag events,
@@ -262,8 +262,7 @@ static void wm_event_free_last(wmWindow *win)
 
 void wm_event_free_all(wmWindow *win)
 {
-  wmEvent *event;
-  while ((event = static_cast<wmEvent *>(BLI_pophead(&win->event_queue)))) {
+  while (wmEvent *event = static_cast<wmEvent *>(BLI_pophead(&win->event_queue))) {
     wm_event_free(event);
   }
 }
@@ -496,7 +495,7 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
   CTX_wm_window_set(C, nullptr);
 }
 
-static void wm_event_execute_timers(bContext *C)
+static void wm_event_timers_execute(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   if (UNLIKELY(wm == nullptr)) {
@@ -517,7 +516,7 @@ void wm_event_do_notifiers(bContext *C)
   GPU_render_begin();
 
   /* Run the timer before assigning `wm` in the unlikely case a timer loads a file, see #80028. */
-  wm_event_execute_timers(C);
+  wm_event_timers_execute(C);
 
   wmWindowManager *wm = CTX_wm_manager(C);
   if (wm == nullptr) {
@@ -627,8 +626,8 @@ void wm_event_do_notifiers(bContext *C)
   }
 
   /* The notifiers are sent without context, to keep it clean. */
-  const wmNotifier *note;
-  while ((note = static_cast<const wmNotifier *>(BLI_pophead(&wm->notifier_queue)))) {
+  while (
+      const wmNotifier *note = static_cast<const wmNotifier *>(BLI_pophead(&wm->notifier_queue))) {
     if (wm_notifier_is_clear(note)) {
       MEM_freeN((void *)note);
       continue;
@@ -715,6 +714,8 @@ void wm_event_do_notifiers(bContext *C)
   }
 
   wm_event_do_refresh_wm_and_depsgraph(C);
+
+  RE_FreeUnusedGPUResources();
 
   /* Status bar. */
   if (wm->winactive) {
@@ -879,16 +880,22 @@ static void wm_event_handler_ui_cancel(bContext *C)
  * Access to #wmWindowManager.reports
  * \{ */
 
-void WM_report_banner_show(void)
+void WM_report_banner_show(wmWindowManager *wm, wmWindow *win)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  if (win == nullptr) {
+    win = wm->winactive;
+    if (win == nullptr) {
+      win = static_cast<wmWindow *>(wm->windows.first);
+    }
+  }
+
   ReportList *wm_reports = &wm->reports;
 
   /* After adding reports to the global list, reset the report timer. */
-  WM_event_remove_timer(wm, nullptr, wm_reports->reporttimer);
+  WM_event_timer_remove(wm, nullptr, wm_reports->reporttimer);
 
   /* Records time since last report was added. */
-  wm_reports->reporttimer = WM_event_add_timer(wm, wm->winactive, TIMERREPORT, 0.05);
+  wm_reports->reporttimer = WM_event_timer_add(wm, win, TIMERREPORT, 0.05);
 
   ReportTimerInfo *rti = MEM_cnew<ReportTimerInfo>(__func__);
   wm_reports->reporttimer->customdata = rti;
@@ -898,7 +905,7 @@ void WM_report_banners_cancel(Main *bmain)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   BKE_reports_clear(&wm->reports);
-  WM_event_remove_timer(wm, nullptr, wm->reports.reporttimer);
+  WM_event_timer_remove(wm, nullptr, wm->reports.reporttimer);
 }
 
 #ifdef WITH_INPUT_NDOF
@@ -917,7 +924,7 @@ static void wm_add_reports(ReportList *reports)
     /* Add reports to the global list, otherwise they are not seen. */
     BLI_movelisttolist(&wm->reports.list, &reports->list);
 
-    WM_report_banner_show();
+    WM_report_banner_show(wm, nullptr);
   }
 }
 
@@ -938,17 +945,10 @@ void WM_reportf(eReportType type, const char *format, ...)
   va_list args;
 
   format = TIP_(format);
-
-  DynStr *ds = BLI_dynstr_new();
   va_start(args, format);
-  BLI_dynstr_vappendf(ds, format, args);
-  va_end(args);
-
-  char *str = BLI_dynstr_get_cstring(ds);
+  char *str = BLI_vsprintfN(format, args);
   WM_report(type, str);
   MEM_freeN(str);
-
-  BLI_dynstr_free(ds);
 }
 
 /** \} */
@@ -2126,8 +2126,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   /* C is zero on freeing database, modal handlers then already were freed. */
-  wmEventHandler *handler_base;
-  while ((handler_base = static_cast<wmEventHandler *>(BLI_pophead(handlers)))) {
+  while (wmEventHandler *handler_base = static_cast<wmEventHandler *>(BLI_pophead(handlers))) {
     BLI_assert(handler_base->type != 0);
     if (handler_base->type == WM_HANDLER_TYPE_OP) {
       wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
@@ -2645,17 +2644,24 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
   switch (val) {
     case EVT_FILESELECT_FULL_OPEN: {
       wmWindow *win = CTX_wm_window(C);
-      ScrArea *area;
+      const int window_center[2] = {
+          WM_window_pixels_x(win) / 2,
+          WM_window_pixels_y(win) / 2,
+      };
 
-      if ((area = ED_screen_temp_space_open(C,
-                                            IFACE_("Blender File View"),
-                                            WM_window_pixels_x(win) / 2,
-                                            WM_window_pixels_y(win) / 2,
-                                            U.file_space_data.temp_win_sizex * UI_SCALE_FAC,
-                                            U.file_space_data.temp_win_sizey * UI_SCALE_FAC,
-                                            SPACE_FILE,
-                                            U.filebrowser_display_type,
-                                            true)))
+      const rcti window_rect = {
+          /*xmin*/ window_center[0],
+          /*xmax*/ window_center[0] + int(U.file_space_data.temp_win_sizex * UI_SCALE_FAC),
+          /*ymin*/ window_center[1],
+          /*ymax*/ window_center[1] + int(U.file_space_data.temp_win_sizey * UI_SCALE_FAC),
+      };
+
+      if (ScrArea *area = ED_screen_temp_space_open(C,
+                                                    IFACE_("Blender File View"),
+                                                    &window_rect,
+                                                    SPACE_FILE,
+                                                    U.filebrowser_display_type,
+                                                    true))
       {
         ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
@@ -2815,7 +2821,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
           BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
 
           /* More hacks, since we meddle with reports, banner display doesn't happen automatic. */
-          WM_report_banner_show();
+          WM_report_banner_show(CTX_wm_manager(C), CTX_wm_window(C));
 
           CTX_wm_window_set(C, win_prev);
           CTX_wm_area_set(C, area_prev);
@@ -4080,7 +4086,7 @@ void wm_event_do_handlers(bContext *C)
          * after modal handlers have been done. */
         if (event->type == MOUSEMOVE) {
           /* State variables in screen, cursors.
-           * Also used in `wm_draw.c`, fails for modal handlers though. */
+           * Also used in `wm_draw.cc`, fails for modal handlers though. */
           ED_screen_set_active_region(C, win, event->xy);
           /* For regions having custom cursors. */
           wm_paintcursor_test(C, event);
@@ -4351,7 +4357,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 /** \name Consecutive Event Access
  * \{ */
 
-using wmEvent_ConsecutiveData = struct wmEvent_ConsecutiveData {
+struct wmEvent_ConsecutiveData {
   /** Owned custom-data. */
   void *custom_data;
   /** Unique identifier per struct type. */
@@ -4627,7 +4633,7 @@ void WM_event_get_keymap_from_toolsystem(wmWindowManager *wm,
 }
 
 wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
-    ListBase *handlers, wmEventHandler_KeymapDynamicFn *keymap_fn, void *user_data)
+    ListBase *handlers, wmEventHandler_KeymapDynamicFn keymap_fn, void *user_data)
 {
   if (!keymap_fn) {
     CLOG_WARN(WM_LOG_HANDLERS, "called with nullptr keymap_fn");
@@ -6155,6 +6161,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
            RGN_TYPE_HEADER,
            RGN_TYPE_TOOL_HEADER,
            RGN_TYPE_FOOTER,
+           RGN_TYPE_ASSET_SHELF_HEADER,
            RGN_TYPE_TEMPORARY,
            RGN_TYPE_HUD))
   {
@@ -6241,7 +6248,8 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
     }
     if (kmi) {
       wmOperatorType *ot = WM_operatortype_find(kmi->idname, false);
-      const char *name = (ot) ? WM_operatortype_name(ot, kmi->ptr) : kmi->idname;
+      const std::string operator_name = WM_operatortype_name(ot, kmi->ptr);
+      const char *name = (ot) ? operator_name.c_str() : kmi->idname;
       STRNCPY(cd->text[button_index][type_index], name);
     }
   }
@@ -6322,7 +6330,7 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *la
       p -= 1;
       if (p > buf) {
         BLI_snprintf(p, available_len, ": %s", items[i].name);
-        uiItemL(row, buf, 0);
+        uiItemL(row, buf, ICON_NONE);
       }
     }
   }

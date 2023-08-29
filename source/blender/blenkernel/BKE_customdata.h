@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -172,7 +172,7 @@ void CustomData_copy_layout(const struct CustomData *source,
                             eCDAllocType alloctype,
                             int totelem);
 
-/* BMESH_TODO, not really a public function but readfile.c needs it */
+/* BMESH_TODO, not really a public function but `readfile.cc` needs it. */
 void CustomData_update_typemap(struct CustomData *data);
 
 /**
@@ -430,11 +430,6 @@ void CustomData_bmesh_interp(struct CustomData *data,
 void CustomData_swap_corners(struct CustomData *data, int index, const int *corner_indices);
 
 /**
- * Swap two items of given custom data, in all available layers.
- */
-void CustomData_swap(struct CustomData *data, int index_a, int index_b);
-
-/**
  * Retrieve a pointer to an element of the active layer of the given \a type, chosen by the
  * \a index, if it exists.
  */
@@ -612,8 +607,8 @@ int CustomData_layertype_layers_max(eCustomDataType type);
 
 #ifdef __cplusplus
 
-/** \return The maximum length for a layer name with the given prefix. */
-int CustomData_name_max_length_calc(blender::StringRef name);
+/** \return The maximum size in bytes needed for a layer name with the given prefix. */
+int CustomData_name_maxncpy_calc(blender::StringRef name);
 
 #endif
 
@@ -698,14 +693,15 @@ enum {
   /* Multiple types of mesh elements... */
   CD_FAKE_UV =
       CD_FAKE |
-      CD_PROP_FLOAT2, /* UV flag, because we handle both loop's UVs and poly's textures. */
+      CD_PROP_FLOAT2, /* UV flag, because we handle both loop's UVs and face's textures. */
 
   CD_FAKE_LNOR = CD_FAKE |
                  CD_CUSTOMLOOPNORMAL, /* Because we play with clnor and temp lnor layers here. */
 
   CD_FAKE_SHARP = CD_FAKE | 200, /* Sharp flag for edges, smooth flag for faces. */
 
-  CD_FAKE_BWEIGHT = CD_FAKE | 300, /* UV seam flag for edges. */
+  CD_FAKE_BWEIGHT = CD_FAKE | 300,
+  CD_FAKE_CREASE = CD_FAKE | 400,
 };
 
 enum {
@@ -733,7 +729,7 @@ enum {
 typedef struct CustomDataTransferLayerMap {
   struct CustomDataTransferLayerMap *next, *prev;
 
-  eCustomDataType data_type;
+  int data_type;
   int mix_mode;
   float mix_factor;
   /** If non-NULL, array of weights, one for each dest item, replaces mix_factor. */

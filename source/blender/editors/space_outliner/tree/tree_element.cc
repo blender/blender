@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,6 +6,7 @@
  * \ingroup spoutliner
  */
 
+#include <iostream>
 #include <string>
 #include <string_view>
 
@@ -13,21 +14,34 @@
 #include "DNA_listBase.h"
 #include "DNA_space_types.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "BLT_translation.h"
 
 #include "tree_element_anim_data.hh"
+#include "tree_element_bone.hh"
 #include "tree_element_collection.hh"
+#include "tree_element_constraint.hh"
+#include "tree_element_defgroup.hh"
 #include "tree_element_driver.hh"
+#include "tree_element_edit_bone.hh"
+#include "tree_element_gpencil_effect.hh"
 #include "tree_element_gpencil_layer.hh"
+#include "tree_element_grease_pencil_node.hh"
 #include "tree_element_id.hh"
 #include "tree_element_label.hh"
+#include "tree_element_layer_collection.hh"
+#include "tree_element_linked_object.hh"
+#include "tree_element_modifier.hh"
 #include "tree_element_nla.hh"
 #include "tree_element_overrides.hh"
+#include "tree_element_particle_system.hh"
+#include "tree_element_pose.hh"
+#include "tree_element_pose_group.hh"
 #include "tree_element_rna.hh"
 #include "tree_element_scene_objects.hh"
 #include "tree_element_seq.hh"
+#include "tree_element_view_collection.hh"
 #include "tree_element_view_layer.hh"
 
 #include "../outliner_intern.hh"
@@ -73,8 +87,16 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
       return std::make_unique<TreeElementNLAAction>(legacy_te, *static_cast<bAction *>(idv));
     case TSE_GP_LAYER:
       return std::make_unique<TreeElementGPencilLayer>(legacy_te, *static_cast<bGPDlayer *>(idv));
+    case TSE_GREASE_PENCIL_NODE:
+      return std::make_unique<TreeElementGreasePencilNode>(
+          legacy_te, *static_cast<bke::greasepencil::TreeNode *>(idv));
     case TSE_R_LAYER_BASE:
       return std::make_unique<TreeElementViewLayerBase>(legacy_te, *static_cast<Scene *>(idv));
+    case TSE_R_LAYER: {
+      ViewLayerElementCreateData *view_layer_data = static_cast<ViewLayerElementCreateData *>(idv);
+      return std::make_unique<TreeElementViewLayer>(
+          legacy_te, *view_layer_data->scene, *view_layer_data->view_layer);
+    }
     case TSE_SCENE_COLLECTION_BASE:
       return std::make_unique<TreeElementCollectionBase>(legacy_te, *static_cast<Scene *>(idv));
     case TSE_SCENE_OBJECTS_BASE:
@@ -102,6 +124,73 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
     case TSE_SEQUENCE_DUP:
       return std::make_unique<TreeElementSequenceStripDuplicate>(legacy_te,
                                                                  *static_cast<Sequence *>(idv));
+    case TSE_BONE: {
+      BoneElementCreateData *bone_data = static_cast<BoneElementCreateData *>(idv);
+      return std::make_unique<TreeElementBone>(
+          legacy_te, *bone_data->armature_id, *bone_data->bone);
+    }
+    case TSE_EBONE: {
+      EditBoneElementCreateData *ebone_data = static_cast<EditBoneElementCreateData *>(idv);
+      return std::make_unique<TreeElementEditBone>(
+          legacy_te, *ebone_data->armature_id, *ebone_data->ebone);
+    }
+    case TSE_GPENCIL_EFFECT: {
+      GPencilEffectElementCreateData *gp_effect_data =
+          static_cast<GPencilEffectElementCreateData *>(idv);
+      return std::make_unique<TreeElementGPencilEffect>(
+          legacy_te, *gp_effect_data->object, *gp_effect_data->fx);
+    }
+    case TSE_GPENCIL_EFFECT_BASE:
+      return std::make_unique<TreeElementGPencilEffectBase>(legacy_te,
+                                                            *static_cast<Object *>(idv));
+    case TSE_DEFGROUP_BASE:
+      return std::make_unique<TreeElementDeformGroupBase>(legacy_te, *static_cast<Object *>(idv));
+    case TSE_DEFGROUP: {
+      DeformGroupElementCreateData *defgroup_data = static_cast<DeformGroupElementCreateData *>(
+          idv);
+      return std::make_unique<TreeElementDeformGroup>(
+          legacy_te, *defgroup_data->object, *defgroup_data->defgroup);
+    }
+    case TSE_LINKED_PSYS: {
+      ParticleSystemElementCreateData *psys_data = static_cast<ParticleSystemElementCreateData *>(
+          idv);
+      return std::make_unique<TreeElementParticleSystem>(
+          legacy_te, *psys_data->object, *psys_data->psys);
+    }
+    case TSE_CONSTRAINT_BASE:
+      return std::make_unique<TreeElementConstraintBase>(legacy_te, *static_cast<Object *>(idv));
+    case TSE_CONSTRAINT: {
+      ConstraintElementCreateData *con_data = static_cast<ConstraintElementCreateData *>(idv);
+      return std::make_unique<TreeElementConstraint>(legacy_te, *con_data->object, *con_data->con);
+    }
+    case TSE_POSE_BASE:
+      return std::make_unique<TreeElementPoseBase>(legacy_te, *static_cast<Object *>(idv));
+    case TSE_POSE_CHANNEL: {
+      PoseChannelElementCreateData *pchan_data = static_cast<PoseChannelElementCreateData *>(idv);
+      return std::make_unique<TreeElementPoseChannel>(
+          legacy_te, *pchan_data->object, *pchan_data->pchan);
+    }
+    case TSE_POSEGRP_BASE:
+      return std::make_unique<TreeElementPoseGroupBase>(legacy_te, *static_cast<Object *>(idv));
+    case TSE_POSEGRP: {
+      PoseGroupElementCreateData *posegrp_data = static_cast<PoseGroupElementCreateData *>(idv);
+      return std::make_unique<TreeElementPoseGroup>(
+          legacy_te, *posegrp_data->object, *posegrp_data->agrp);
+    }
+    case TSE_MODIFIER_BASE:
+      return std::make_unique<TreeElementModifierBase>(legacy_te, *static_cast<Object *>(idv));
+    case TSE_MODIFIER: {
+      ModifierCreateElementData *md_data = static_cast<ModifierCreateElementData *>(idv);
+      return std::make_unique<TreeElementModifier>(legacy_te, *md_data->object, *md_data->md);
+    }
+    case TSE_LINKED_OB:
+      return std::make_unique<TreeElementLinkedObject>(legacy_te, *static_cast<ID *>(idv));
+    case TSE_VIEW_COLLECTION_BASE:
+      return std::make_unique<TreeElementViewCollectionBase>(legacy_te,
+                                                             *static_cast<Scene *>(idv));
+    case TSE_LAYER_COLLECTION:
+      return std::make_unique<TreeElementLayerCollection>(legacy_te,
+                                                          *static_cast<LayerCollection *>(idv));
     default:
       break;
   }

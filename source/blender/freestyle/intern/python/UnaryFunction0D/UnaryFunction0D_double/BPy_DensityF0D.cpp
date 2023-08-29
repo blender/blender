@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -27,7 +29,7 @@ static char DensityF0D___doc__[] =
     "   Builds a DensityF0D object.\n"
     "\n"
     "   :arg sigma: The gaussian sigma value indicating the X value for\n"
-    "      which the gaussian function is 0.5.  It leads to the window size\n"
+    "      which the gaussian function is 0.5. It leads to the window size\n"
     "      value (the larger, the smoother).\n"
     "   :type sigma: float\n"
     "\n"
@@ -61,7 +63,7 @@ static int DensityF0D___init__(BPy_DensityF0D *self, PyObject *args, PyObject *k
 /*-----------------------BPy_DensityF0D type definition ------------------------------*/
 
 PyTypeObject DensityF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "DensityF0D",
     /*tp_basicsize*/ sizeof(BPy_DensityF0D),
     /*tp_itemsize*/ 0,

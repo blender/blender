@@ -22,11 +22,10 @@ PERFORMANCE OF THIS SOFTWARE.
 ** Audaspace; version 1.3.0 -- https://audaspace.github.io/
 ** Cuda Wrangler; version cbf465b -- https://github.com/CudaWrangler/cuew
 ** Draco; version 1.3.6 -- https://google.github.io/draco/
-** Embree; version 3.13.4 -- https://github.com/embree/embree
-** Intel(R) oneAPI DPC++ compiler; version 20221019 --
+** Embree; version 4.1.0 -- https://github.com/embree/embree
+** Intel(R) oneAPI DPC++ compiler; version 2022-12 --
 https://github.com/intel/llvm#oneapi-dpc-compiler
-** Intel® Open Path Guiding Library; version v0.4.1-beta --
-http://www.openpgl.org/
+** Intel® Open Path Guiding Library; version 0.5.0 -- http://www.openpgl.org/
 ** Mantaflow; version 0.13 -- http://mantaflow.com/
 ** materialX; version 1.38.6 --
 https://github.com/AcademySoftwareFoundation/MaterialX
@@ -35,11 +34,14 @@ https://github.com/AcademySoftwareFoundation/MaterialX
 https://software.intel.com/en-us/oneapi/onetbb
 ** OpenCL Wrangler; version 27a6867 -- https://github.com/OpenCLWrangler/clew
 ** OpenImageDenoise; version 1.4.3 -- https://www.openimagedenoise.org/
+** OpenSSL; version 3.0.9 -- https://www.openssl.org/
 ** OpenXR SDK; version 1.0.17 -- https://khronos.org/openxr
 ** RangeTree; version 40ebed8aa209 -- https://github.com/ideasman42/rangetree-c
 ** SDL Extension Wrangler; version 15edf8e --
 https://github.com/SDLWrangler/sdlew
 ** ShaderC; version 2022.3 -- https://github.com/google/shaderc
+** SYCL Unified Runtime ; version fd711c920acc4434cb52ff18b078c082d9d7f44d --
+https://github.com/oneapi-src/unified-runtime
 ** Vulkan Loader; version 1.2.198 --
 https://github.com/KhronosGroup/Vulkan-Loader
 
@@ -268,6 +270,11 @@ limitations under the License.
     Written by George van Venrooij
 * For OpenImageDenoise see also this required NOTICE:
     Copyright 2009-2020 Intel Corporation
+* For OpenSSL see also this required NOTICE:
+    Copyright (c) 1998-2023 The OpenSSL Project Authors
+    Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
+
+    All rights reserved.
 * For OpenXR SDK see also this required NOTICE:
     Copyright (c) 2017-2020 The Khronos Group Inc.
     Copyright (c) 2017-2019 Valve Corporation
@@ -279,6 +286,8 @@ limitations under the License.
     Copyright 2014 Blender Foundation
 * For ShaderC see also this required NOTICE:
     Copyright 2015 The Shaderc Authors. All rights reserved.
+* For SYCL Unified Runtime  see also this required NOTICE:
+    Copyright (C) 2022-2023 Intel Corporation
 * For Vulkan Loader see also this required NOTICE:
     Copyright (c) 2019 The Khronos Group Inc.
     Copyright (c) 2019 Valve Corporation
@@ -378,7 +387,7 @@ All rights reserved.
 ** Google Logging; version 4.4.0 -- https://github.com/google/glog
 Copyright (c) 2006, Google Inc.
 All rights reserved.
-** Imath; version 3.1.5 -- https://github.com/AcademySoftwareFoundation/Imath
+** Imath; version 3.1.7 -- https://github.com/AcademySoftwareFoundation/Imath
 Copyright Contributors to the OpenEXR Project. All rights reserved.
 ** ISPC; version 1.17.0 -- https://github.com/ispc/ispc
 Copyright Intel Corporation
@@ -395,10 +404,10 @@ Copyright Contributors to the Open Shading Language project.
 ** OpenColorIO; version 2.2.0 --
 https://github.com/AcademySoftwareFoundation/OpenColorIO
 Copyright Contributors to the OpenColorIO Project.
-** OpenEXR; version 3.1.5 --
+** OpenEXR; version 3.1.7 --
 https://github.com/AcademySoftwareFoundation/openexr
 Copyright Contributors to the OpenEXR Project. All rights reserved.
-** OpenImageIO; version 2.4.9.0 -- http://www.openimageio.org
+** OpenImageIO; version 2.4.11.0 -- http://www.openimageio.org
 Copyright (c) 2008-present by Contributors to the OpenImageIO project. All
 Rights Reserved.
 ** Pystring; version 1.1.3 -- https://github.com/imageworks/pystring
@@ -571,7 +580,7 @@ effect of CC0 on those rights.
 
 ------
 
-** FLAC; version 1.3.4 -- https://xiph.org/flac/
+** FLAC; version 1.4.2 -- https://xiph.org/flac/
 Copyright (C) 2001-2009  Josh Coalson
 Copyright (C) 2011-2016  Xiph.Org Foundation
 ** Potrace; version 1.16 -- http://potrace.sourceforge.net/
@@ -1242,7 +1251,7 @@ Copyright (C) 2003-2021 x264 project
 ** miniLZO; version 2.08 -- http://www.oberhumer.com/opensource/lzo/
 LZO and miniLZO are Copyright (C) 1996-2014 Markus Franz Xaver Oberhumer
 All Rights Reserved.
-** The FreeType Project; version 2.12.1 --
+** The FreeType Project; version 2.13.0 --
 https://sourceforge.net/projects/freetype
 Copyright (C) 1996-2020 by David Turner, Robert Wilhelm, and Werner Lemberg.
 ** X Drag and Drop; version 2000-08-08 --
@@ -2796,7 +2805,7 @@ That's all there is to it!
 
 ------
 
-** FFmpeg; version 5.1.2 -- http://ffmpeg.org/
+** FFmpeg; version 6.0 -- http://ffmpeg.org/
 Copyright: The FFmpeg contributors
 https://github.com/FFmpeg/FFmpeg/blob/master/CREDITS
 ** Libsndfile; version 1.1.0 -- http://libsndfile.github.io/libsndfile/
@@ -3425,7 +3434,35 @@ December 9, 2010
 
 ------
 
-** {fmt}; version 8.0.0 -- https://github.com/fmtlib/fmt
+** vcintrinsics; version 782fbf7301dc73acaa049a4324c976ad94f587f7 --
+https://github.com/intel/vc-intrinsics
+Copyright (c) 2019 Intel Corporation
+
+MIT License
+
+Copyright (c) 2019 Intel Corporation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+------
+
+** {fmt}; version 9.1.0 -- https://github.com/fmtlib/fmt
 Copyright (c) 2012 - present, Victor Zverovich
 ** Brotli; version 1.0.9 -- https://github.com/google/brotli
 Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
@@ -3454,11 +3491,11 @@ Copyright (c) 2006, 2008 Junio C Hamano
 Copyright © 2017-2018 Red Hat Inc.
 Copyright © 2012 Collabora, Ltd.
 Copyright © 2008 Kristian Høgsberg
-** Libxml2; version 2.10.3 -- http://xmlsoft.org/
+** Libxml2; version 2.10.4 -- http://xmlsoft.org/
 Copyright (C) 1998-2012 Daniel Veillard.  All Rights Reserved.
 ** Mesa 3D; version 21.1.5 -- https://www.mesa3d.org/
 Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.
-** oneAPI Level Zero; version v1.8.5 --
+** oneAPI Level Zero; version v1.8.8 --
 https://github.com/oneapi-src/level-zero
 Copyright (C) 2019-2021 Intel Corporation
 ** OPENCollada; version 1.6.68 -- https://github.com/KhronosGroup/OpenCOLLADA
@@ -3470,12 +3507,11 @@ Copyright (c) 2018 Jingwei Huang, Yichao Zhou, Matthias Niessner,
 Jonathan Shewchuk and Leonidas Guibas. All rights reserved.
 ** robin-map; version 0.6.2 -- https://github.com/Tessil/robin-map
 Copyright (c) 2017 Thibaut Goetghebuer-Planchon <tessil@gmx.com>
-** sse2neon; version fe5ff00bb8d19b327714a3c290f3e2ce81ba3525 --
-https://github.com/DLTcollab/sse2neon
+** sse2neon; version 1.6.0 -- https://github.com/DLTcollab/sse2neon
 Copyright sse2neon contributors
 ** TinyGLTF; version 2.5.0 -- https://github.com/syoyo/tinygltf
 Copyright (c) 2017 Syoyo Fujita, Aurélien Chatelain and many contributors
-** Wayland protocols; version 1.21 --
+** Wayland protocols; version 1.31 --
 https://gitlab.freedesktop.org/wayland/wayland-protocols
 Copyright © 2008-2013 Kristian Høgsberg
 Copyright © 2010-2013 Intel Corporation
@@ -3973,7 +4009,7 @@ the following restrictions:
 
 ------
 
-** LibTIFF; version 4.4.0 -- http://www.libtiff.org/
+** LibTIFF; version 4.5.1 -- http://www.libtiff.org/
 Copyright (c) 1988-1997 Sam Leffler
 Copyright (c) 1991-1997 Silicon Graphics, Inc.
 
@@ -4029,7 +4065,7 @@ Software.
 
 ** OpenSubdiv; version 3.5.0 -- http://graphics.pixar.com/opensubdiv
 Copyright 2013 Pixar
-** Universal Scene Description; version 22.11 -- http://www.openusd.org/
+** Universal Scene Description; version 23.05 -- http://www.openusd.org/
 Copyright 2016 Pixar
 
 Licensed under the Apache License, Version 2.0 (the "Apache License") with the
@@ -4215,7 +4251,7 @@ disclaims all warranties with regard to this software.
 
 ------
 
-** Wayland; version 1.21.0 -- https://gitlab.freedesktop.org/wayland/wayland
+** Wayland; version 1.22.0 -- https://gitlab.freedesktop.org/wayland/wayland
 Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved.
 Copyright © 2011 Kristian Høgsberg
 Copyright © 2011 Benjamin Franzke
@@ -4240,130 +4276,7 @@ MIT Expat
 
 ------
 
-** OpenSSL; version 1.1.1q -- https://www.openssl.org/
-Copyright (c) 1998-2021 The OpenSSL Project
-Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
-
-OpenSSL License
-  ---------------
-
-/* ====================================================================
- * Copyright (c) 1998-2019 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com).
- *
- */
-
- Original SSLeay License
- -----------------------
-
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- * the apps directory (application code) you must include an acknowledgement:
- * "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.]
- */
-
-------
-
-** Python; version 3.10.9 -- https://www.python.org
+** Python; version 3.10.12 -- https://www.python.org
 Copyright (c) 2001-2021 Python Software Foundation. All rights reserved.
 
 A. HISTORY OF THE SOFTWARE

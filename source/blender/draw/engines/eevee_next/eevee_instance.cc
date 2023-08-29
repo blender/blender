@@ -1,7 +1,6 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *  */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -18,9 +17,13 @@
 #include "DNA_ID.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
+#include "IMB_imbuf_types.h"
 #include "RE_pipeline.h"
 
+#include "eevee_engine.h"
 #include "eevee_instance.hh"
+
+#include "DNA_particle_types.h"
 
 namespace blender::eevee {
 
@@ -38,14 +41,12 @@ void Instance::init(const int2 &output_res,
                     const rcti *output_rect,
                     RenderEngine *render_,
                     Depsgraph *depsgraph_,
-                    const LightProbe *light_probe_,
                     Object *camera_object_,
                     const RenderLayer *render_layer_,
                     const DRWView *drw_view_,
                     const View3D *v3d_,
                     const RegionView3D *rv3d_)
 {
-  UNUSED_VARS(light_probe_);
   render = render_;
   depsgraph = depsgraph_;
   camera_orig_object = camera_object_;
@@ -66,11 +67,47 @@ void Instance::init(const int2 &output_res,
   sampling.init(scene);
   camera.init();
   film.init(output_res, output_rect);
+  ambient_occlusion.init();
   velocity.init();
+  raytracing.init();
   depth_of_field.init();
   shadows.init();
   motion_blur.init();
   main_view.init();
+  /* Irradiance Cache needs reflection probes to be initialized. */
+  reflection_probes.init();
+  irradiance_cache.init();
+  volume.init();
+}
+
+void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
+{
+  this->depsgraph = depsgraph;
+  this->manager = manager;
+  camera_orig_object = nullptr;
+  render = nullptr;
+  render_layer = nullptr;
+  drw_view = nullptr;
+  v3d = nullptr;
+  rv3d = nullptr;
+
+  is_light_bake = true;
+  debug_mode = (eDebugMode)G.debug_value;
+  info = "";
+
+  update_eval_members();
+
+  sampling.init(scene);
+  camera.init();
+  /* Film isn't used but init to avoid side effects in other module. */
+  rcti empty_rect{0, 0, 0, 0};
+  film.init(int2(1), &empty_rect);
+  velocity.init();
+  depth_of_field.init();
+  shadows.init();
+  main_view.init();
+  /* Irradiance Cache needs reflection probes to be initialized. */
+  reflection_probes.init();
   irradiance_cache.init();
 }
 
@@ -106,20 +143,25 @@ void Instance::begin_sync()
   velocity.begin_sync(); /* NOTE: Also syncs camera. */
   lights.begin_sync();
   shadows.begin_sync();
+  volume.begin_sync();
   pipelines.begin_sync();
   cryptomatte.begin_sync();
+  reflection_probes.begin_sync();
+  light_probes.begin_sync();
 
   gpencil_engine_enabled = false;
 
   scene_sync();
 
   depth_of_field.sync();
+  raytracing.sync();
   motion_blur.sync();
   hiz_buffer.sync();
   main_view.sync();
   world.sync();
   film.sync();
   render_buffers.sync();
+  ambient_occlusion.sync();
   irradiance_cache.sync();
 }
 
@@ -140,7 +182,14 @@ void Instance::scene_sync()
 
 void Instance::object_sync(Object *ob)
 {
-  const bool is_renderable_type = ELEM(ob->type, OB_CURVES, OB_GPENCIL_LEGACY, OB_MESH, OB_LAMP);
+  const bool is_renderable_type = ELEM(ob->type,
+                                       OB_CURVES,
+                                       OB_GPENCIL_LEGACY,
+                                       OB_MESH,
+                                       OB_POINTCLOUD,
+                                       OB_VOLUME,
+                                       OB_LAMP,
+                                       OB_LIGHTPROBE);
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
   const bool partsys_is_visible = (ob_visibility & OB_VISIBLE_PARTICLES) != 0 &&
                                   (ob->type == OB_MESH);
@@ -158,11 +207,12 @@ void Instance::object_sync(Object *ob)
   ObjectHandle &ob_handle = sync.sync_object(ob);
 
   if (partsys_is_visible && ob != DRW_context_state_get()->object_edit) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_ParticleSystem) {
-        sync.sync_curves(ob, ob_handle, res_handle, md);
-      }
-    }
+    auto sync_hair =
+        [&](ObjectHandle hair_handle, ModifierData &md, ParticleSystem &particle_sys) {
+          ResourceHandle _res_handle = manager->resource_handle(float4x4(ob->object_to_world));
+          sync.sync_curves(ob, hair_handle, _res_handle, &md, &particle_sys);
+        };
+    foreach_hair_particle_handle(ob, ob_handle, sync_hair);
   }
 
   if (object_is_visible) {
@@ -171,15 +221,24 @@ void Instance::object_sync(Object *ob)
         lights.sync_light(ob, ob_handle);
         break;
       case OB_MESH:
-        sync.sync_mesh(ob, ob_handle, res_handle, ob_ref);
+        if (!sync.sync_sculpt(ob, ob_handle, res_handle, ob_ref)) {
+          sync.sync_mesh(ob, ob_handle, res_handle, ob_ref);
+        }
+        break;
+      case OB_POINTCLOUD:
+        sync.sync_point_cloud(ob, ob_handle, res_handle, ob_ref);
         break;
       case OB_VOLUME:
+        volume.sync_object(ob, ob_handle, res_handle);
         break;
       case OB_CURVES:
         sync.sync_curves(ob, ob_handle, res_handle);
         break;
       case OB_GPENCIL_LEGACY:
         sync.sync_gpencil(ob, ob_handle, res_handle);
+        break;
+      case OB_LIGHTPROBE:
+        sync.sync_light_probe(ob, ob_handle);
         break;
       default:
         break;
@@ -197,6 +256,13 @@ void Instance::object_sync_render(void *instance_,
 {
   UNUSED_VARS(engine, depsgraph);
   Instance &inst = *reinterpret_cast<Instance *>(instance_);
+
+  if (inst.visibility_collection != nullptr) {
+    bool object_part_of_group = BKE_collection_has_object(inst.visibility_collection, ob);
+    if (object_part_of_group == inst.visibility_collection_invert) {
+      return;
+    }
+  }
   inst.object_sync(ob);
 }
 
@@ -206,9 +272,13 @@ void Instance::end_sync()
   shadows.end_sync(); /** \note: Needs to be before lights. */
   lights.end_sync();
   sampling.end_sync();
+  subsurface.end_sync();
   film.end_sync();
   cryptomatte.end_sync();
   pipelines.end_sync();
+  light_probes.end_sync();
+  reflection_probes.end_sync();
+  volume.end_sync();
 }
 
 void Instance::render_sync()
@@ -220,6 +290,7 @@ void Instance::render_sync()
 
   begin_sync();
   DRW_render_object_iter(this, render, depsgraph, object_sync_render);
+  velocity.geometry_steps_fill();
   end_sync();
 
   manager->end_sync();
@@ -227,9 +298,18 @@ void Instance::render_sync()
   /* TODO: Remove old draw manager calls. */
   DRW_render_instance_buffer_finish();
 
-  /* Also we weed to have a correct FBO bound for #DRW_hair_update */
-  // GPU_framebuffer_bind();
-  // DRW_hair_update();
+  DRW_curves_update();
+}
+
+bool Instance::do_probe_sync() const
+{
+  if (materials.queued_shaders_count > 0) {
+    return false;
+  }
+  if (!reflection_probes.update_probes_this_sample_) {
+    return false;
+  }
+  return true;
 }
 
 /** \} */
@@ -256,6 +336,9 @@ void Instance::render_sample()
 
   sampling.step();
 
+  capture_view.render_world();
+  capture_view.render_probes();
+
   main_view.render();
 
   motion_blur.step();
@@ -281,10 +364,10 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
 
       if (result) {
         BLI_mutex_lock(&render->update_render_passes_mutex);
-        /* WORKAROUND: We use texture read to avoid using a framebuffer to get the render result.
+        /* WORKAROUND: We use texture read to avoid using a frame-buffer to get the render result.
          * However, on some implementation, we need a buffer with a few extra bytes for the read to
-         * happen correctly (see GLTexture::read()). So we need a custom memory allocation. */
-        /* Avoid memcpy(), replace the pointer directly. */
+         * happen correctly (see #GLTexture::read()). So we need a custom memory allocation. */
+        /* Avoid `memcpy()`, replace the pointer directly. */
         RE_pass_set_buffer_data(rp, result);
         BLI_mutex_unlock(&render->update_render_passes_mutex);
       }
@@ -304,7 +387,7 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
 
     if (result) {
       BLI_mutex_lock(&render->update_render_passes_mutex);
-      /* WORKAROUND: We use texture read to avoid using a framebuffer to get the render result.
+      /* WORKAROUND: We use texture read to avoid using a frame-buffer to get the render result.
        * However, on some implementation, we need a buffer with a few extra bytes for the read to
        * happen correctly (see GLTexture::read()). So we need a custom memory allocation. */
       /* Avoid memcpy(), replace the pointer directly. */
@@ -321,7 +404,9 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
       RenderPass *vector_rp = RE_pass_find_by_name(
           render_layer, vector_pass_name.c_str(), view_name);
       if (vector_rp) {
-        memset(vector_rp->buffer.data, 0, sizeof(float) * 4 * vector_rp->rectx * vector_rp->recty);
+        memset(vector_rp->ibuf->float_buffer.data,
+               0,
+               sizeof(float) * 4 * vector_rp->rectx * vector_rp->recty);
       }
     }
   }
@@ -335,6 +420,12 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
 
 void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
 {
+  /* TODO(jbakker): should we check on the subtype as well? Now it also populates even when there
+   * are other light probes in the scene. */
+  if (DEG_id_type_any_exists(this->depsgraph, ID_LP)) {
+    reflection_probes.update_probes_next_sample_ = true;
+  }
+
   while (!sampling.finished()) {
     this->render_sample();
 
@@ -365,7 +456,7 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
   render_sample();
   velocity.step_swap();
 
-  /* Do not request redraw during viewport animation to lock the framerate to the animation
+  /* Do not request redraw during viewport animation to lock the frame-rate to the animation
    * playback rate. This is in order to preserve motion blur aspect and also to avoid TAA reset
    * that can show flickering. */
   if (!sampling.finished_viewport() && !DRW_state_is_playback()) {
@@ -411,9 +502,8 @@ void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view
   CHECK_PASS_EEVEE(VOLUME_LIGHT, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(EMIT, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(ENVIRONMENT, SOCK_RGBA, 3, "RGB");
-  /* TODO: CHECK_PASS_LEGACY(SHADOW, SOCK_RGBA, 3, "RGB");
-   * CHECK_PASS_LEGACY(AO, SOCK_RGBA, 3, "RGB");
-   * When available they should be converted from Value textures to RGB. */
+  CHECK_PASS_LEGACY(SHADOW, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(AO, SOCK_RGBA, 3, "RGB");
 
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
     if ((aov->flag & AOV_CONFLICT) != 0) {
@@ -447,6 +537,90 @@ void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view
   register_cryptomatte_passes(VIEW_LAYER_CRYPTOMATTE_ASSET, EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET);
   register_cryptomatte_passes(VIEW_LAYER_CRYPTOMATTE_MATERIAL,
                               EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL);
+}
+
+void Instance::light_bake_irradiance(
+    Object &probe,
+    FunctionRef<void()> context_enable,
+    FunctionRef<void()> context_disable,
+    FunctionRef<bool()> stop,
+    FunctionRef<void(LightProbeGridCacheFrame *, float progress)> result_update)
+{
+  BLI_assert(is_baking());
+
+  auto custom_pipeline_wrapper = [&](FunctionRef<void()> callback) {
+    context_enable();
+    DRW_custom_pipeline_begin(&draw_engine_eevee_next_type, depsgraph);
+    callback();
+    DRW_custom_pipeline_end();
+    context_disable();
+  };
+
+  auto context_wrapper = [&](FunctionRef<void()> callback) {
+    context_enable();
+    callback();
+    context_disable();
+  };
+
+  irradiance_cache.bake.init(probe);
+
+  custom_pipeline_wrapper([&]() {
+    const ::LightProbe *light_probe = static_cast<const ::LightProbe *>(probe.data);
+
+    visibility_collection = light_probe->visibility_grp;
+    visibility_collection_invert = (light_probe->flag & LIGHTPROBE_FLAG_INVERT_GROUP) != 0;
+
+    manager->begin_sync();
+    render_sync();
+    manager->end_sync();
+
+    capture_view.render_world();
+
+    irradiance_cache.bake.surfels_create(probe);
+    irradiance_cache.bake.surfels_lights_eval();
+
+    irradiance_cache.bake.clusters_build();
+    irradiance_cache.bake.irradiance_offset();
+  });
+
+  sampling.init(probe);
+  while (!sampling.finished()) {
+    context_wrapper([&]() {
+      GPU_debug_capture_begin();
+      /* Batch ray cast by pack of 16. Avoids too much overhead of the update function & context
+       * switch. */
+      /* TODO(fclem): Could make the number of iteration depend on the computation time. */
+      for (int i = 0; i < 16 && !sampling.finished(); i++) {
+        sampling.step();
+
+        irradiance_cache.bake.raylists_build();
+        irradiance_cache.bake.propagate_light();
+        irradiance_cache.bake.irradiance_capture();
+      }
+
+      if (sampling.finished()) {
+        /* TODO(fclem): Dilation, filter etc... */
+        // irradiance_cache.bake.irradiance_finalize();
+      }
+
+      LightProbeGridCacheFrame *cache_frame;
+      if (sampling.finished()) {
+        cache_frame = irradiance_cache.bake.read_result_packed();
+      }
+      else {
+        /* TODO(fclem): Only do this read-back if needed. But it might be tricky to know when. */
+        cache_frame = irradiance_cache.bake.read_result_unpacked();
+      }
+
+      float progress = sampling.sample_index() / float(sampling.sample_count());
+      result_update(cache_frame, progress);
+      GPU_debug_capture_end();
+    });
+
+    if (stop()) {
+      return;
+    }
+  }
 }
 
 /** \} */

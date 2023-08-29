@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Global settings used by all scripts in this dir.
@@ -156,7 +158,7 @@ PO_HEADER_MSGSTR = (
 )
 PO_HEADER_COMMENT_COPYRIGHT = (
     "# Blender's translation file (po format).\n"
-    "# Copyright (C) {year} The Blender Foundation.\n"
+    "# Copyright (C) {year} The Blender Authors.\n"
     "# This file is distributed under the same license as the Blender package.\n"
     "#\n"
 )
@@ -280,8 +282,8 @@ PYGETTEXT_KEYWORDS = (() +
     # NOTE: regex is a bit more complex than it would need too. Since the actual
     # identifier (`B_UNIT_DEF_`) is at the end, if it's simpler/too general it
     # becomes extremely slow to process some (unrelated) source files.
-    ((r"\{(?:(?:\s*\"[^\",]+\"\s*,)|(?:\s*\"\\\"\",)|(?:\s*NULL\s*,)){4}\s*" +
-      _msg_re + r"\s*,(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,))(?:[^,]+,){2}"
+    ((r"\{(?:(?:\s*\"[^\",]+\"\s*,)|(?:\s*\"\\\"\",)|(?:\s*nullptr\s*,)){4}\s*" +
+      _msg_re + r"\s*,(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*nullptr\s*,))(?:[^,]+,){2}"
       + "(?:\|?\s*B_UNIT_DEF_[_A-Z]+\s*)+\}"),) +
 
     tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" +
@@ -371,6 +373,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "sRGB",
     "sRGB display space",
     "sRGB display space with Filmic view transform",
+    "sRGB IEC 61966-2-1 compound (piece-wise) encoding",
     "tan(A)",
     "tanh(A)",
     "utf-8",
@@ -416,6 +419,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "in %i hours",
     "in %i minutes",
     "in memory to enable editing!",
+    "in the asset shelf.",
     "insufficient content",
     "into",
     "jumps over",
@@ -428,6 +432,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "normal",
     "on {:%Y-%m-%d}",
     "or AMD with macOS %s or newer",
+    "parent",
     "performance impact!",
     "positions", "no positions",
     "read",
@@ -444,7 +449,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "unable to load text",
     "unable to open the file",
     "unknown error reading file",
-    "unknown error stating file",
+    "unknown error statting file",
     "unknown error writing file",
     "unselected",
     "unsupported font format",
@@ -476,6 +481,8 @@ WARN_MSGID_END_POINT_ALLOWED = {
     "Your graphics card or driver has limited support. It may work, but with issues.",
     "Your graphics card or driver is not supported.",
     "Invalid surface UVs on %d curves.",
+    "The pose library moved.",
+    "in the asset shelf.",
 }
 
 PARSER_CACHE_HASH = 'sha1'

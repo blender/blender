@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -49,7 +49,7 @@ class MeshFromGeometry : NonMovable, NonCopyable {
   /**
    * Create polygons for the Mesh, set smooth shading flags, Materials.
    */
-  void create_polys_loops(Mesh *mesh, bool use_vertex_groups);
+  void create_faces_loops(Mesh *mesh, bool use_vertex_groups);
   /**
    * Add explicitly imported OBJ edges to the mesh.
    */

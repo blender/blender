@@ -1,9 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "testing/testing.h"
 #include "tests/blendfile_loading_base_test.h"
+
+#include "BLI_string.h"
 
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"

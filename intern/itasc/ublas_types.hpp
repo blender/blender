@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: LGPL-2.1-or-later
- * Copyright 2009 Ruben Smits. */
+/* SPDX-FileCopyrightText: 2009 Ruben Smits
+ *
+ * SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /** \file
  * \ingroup intern_itasc

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2015 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2015 Blender Foundation - Bastien Montagne.
-
 
 """
 This is a tool for generating a JSon version of a blender file (only its structure, or all its data included).

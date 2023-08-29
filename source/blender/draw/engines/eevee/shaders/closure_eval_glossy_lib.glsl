@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(lights_lib.glsl)
@@ -120,7 +123,7 @@ void closure_Glossy_cubemap_eval(ClosureInputGlossy cl_in,
                                  ClosureCubemapData cube,
                                  inout ClosureOutputGlossy cl_out)
 {
-/* Ensure cubemap probes contribution only gets applied once when running split pass */
+/* Ensure cube-map probes contribution only gets applied once when running split pass */
 #ifndef RESOLVE_SSR
   vec3 probe_radiance = probe_evaluate_cube(
       cube.id, cl_common.P, cl_eval.probe_sampling_dir, cl_in.roughness);
@@ -135,7 +138,7 @@ void closure_Glossy_indirect_end(ClosureInputGlossy cl_in,
 {
 /* Ensure specular contribution only gets applied once when running split pass */
 #ifndef RESOLVE_SSR
-  /* If not enough light has been accumulated from probes, use the world specular cubemap
+  /* If not enough light has been accumulated from probes, use the world specular cube-map
    * to fill the remaining energy needed. */
   if (specToggle && cl_common.specular_accum > 0.0) {
     vec3 probe_radiance = probe_evaluate_world_spec(cl_eval.probe_sampling_dir, cl_in.roughness);

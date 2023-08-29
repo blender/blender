@@ -25,6 +25,15 @@
 #include "DNA_listBase.h"
 
 #ifdef __cplusplus
+namespace blender::bke {
+struct GeometrySet;
+}
+using GeometrySetHandle = blender::bke::GeometrySet;
+#else
+typedef struct GeometrySetHandle GeometrySetHandle;
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -33,7 +42,6 @@ struct BoundBox;
 struct Collection;
 struct Curve;
 struct FluidsimSettings;
-struct GeometrySet;
 struct Ipo;
 struct LightgroupMembership;
 struct LightProbeGridCacheFrame;
@@ -56,19 +64,12 @@ typedef struct bDeformGroup {
   char flag, _pad0[7];
 } bDeformGroup;
 
-/** Face Maps. */
-typedef struct bFaceMap {
-  struct bFaceMap *next, *prev;
-  /** MAX_VGROUP_NAME. */
-  char name[64];
-  char flag;
-  char _pad0[7];
-} bFaceMap;
-
 #define MAX_VGROUP_NAME 64
 
-/* bDeformGroup->flag */
-#define DG_LOCK_WEIGHT 1
+/** #bDeformGroup::flag */
+enum {
+  DG_LOCK_WEIGHT = 1,
+};
 
 /**
  * The following illustrates the orientation of the
@@ -158,7 +159,7 @@ typedef struct Object_Runtime {
    * #geometry_set_eval might reference the ID pointed to by #data_eval as well, but does not own
    * the data.
    */
-  struct GeometrySet *geometry_set_eval;
+  GeometrySetHandle *geometry_set_eval;
 
   /**
    * Mesh structure created during object evaluation.
@@ -353,8 +354,6 @@ typedef struct Object {
   ListBase modifiers;
   /** List of GpencilModifierData structures. */
   ListBase greasepencil_modifiers;
-  /** List of facemaps. */
-  ListBase fmaps;
   /** List of viewport effects. Actually only used by grease pencil. */
   ListBase shader_fx;
 
@@ -445,8 +444,7 @@ typedef struct Object {
   /** Current deformation group, NOTE: index starts at 1. */
   unsigned short actdef DNA_DEPRECATED;
   /** Current face map, NOTE: index starts at 1. */
-  unsigned short actfmap;
-  char _pad2[2];
+  char _pad2[4];
   /** Object color (in most cases the material color is used for drawing). */
   float color[4];
 
@@ -616,6 +614,7 @@ typedef enum ObjectType {
         OB_LATTICE, \
         OB_ARMATURE, \
         OB_CURVES, \
+        OB_POINTCLOUD, \
         OB_GREASE_PENCIL))
 #define OB_TYPE_SUPPORT_PARVERT(_type) \
   (ELEM(_type, OB_MESH, OB_SURF, OB_CURVES_LEGACY, OB_LATTICE))
@@ -759,34 +758,36 @@ enum {
 
 /* **************** BASE ********************* */
 
-/** #Base.flag_legacy */
+/** #Base::flag_legacy (also used for #Object::flag). */
 enum {
   BA_WAS_SEL = (1 << 1),
-  /* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in readfile.c. */
-  // BA_HAS_RECALC_OB = (1 << 2),  /* DEPRECATED */
-  // BA_HAS_RECALC_DATA =  (1 << 3),  /* DEPRECATED */
+  /* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in `readfile.cc`. */
+  // BA_HAS_RECALC_OB = 1 << 2, /* DEPRECATED */
+  // BA_HAS_RECALC_DATA = 1 << 3, /* DEPRECATED */
   /** DEPRECATED, was runtime only, but was reusing an older flag. */
   BA_SNAP_FIX_DEPS_FIASCO = (1 << 2),
-};
 
-/* NOTE: this was used as a proper setting in past, so nullify before using */
-#define BA_TEMP_TAG (1 << 5)
+  /** NOTE: this was used as a proper setting in past, so nullify before using */
+  BA_TEMP_TAG = 1 << 5,
+  /**
+   * Even if this is tagged for transform, this flag means it's being locked in place.
+   * Use for #SCE_XFORM_SKIP_CHILDREN.
+   */
+  BA_TRANSFORM_LOCKED_IN_PLACE = 1 << 7,
 
-/**
- * Even if this is tagged for transform, this flag means it's being locked in place.
- * Use for #SCE_XFORM_SKIP_CHILDREN.
- */
-#define BA_TRANSFORM_LOCKED_IN_PLACE (1 << 7)
+  /** Child of a transformed object. */
+  BA_TRANSFORM_CHILD = 1 << 8,
+  /** Parent of a transformed object. */
+  BA_TRANSFORM_PARENT = 1 << 13,
 
-#define BA_TRANSFORM_CHILD (1 << 8)   /* child of a transformed object */
-#define BA_TRANSFORM_PARENT (1 << 13) /* parent of a transformed object */
-
-#define OB_FROMDUPLI (1 << 9)
-#define OB_DONE (1 << 10) /* unknown state, clear before use */
-#define OB_FLAG_USE_SIMULATION_CACHE (1 << 11)
+  OB_FROMDUPLI = 1 << 9,
+  /** Unknown state, clear before use. */
+  OB_DONE = 1 << 10,
+  OB_FLAG_USE_SIMULATION_CACHE = 1 << 11,
 #ifdef DNA_DEPRECATED_ALLOW
-#  define OB_FLAG_UNUSED_12 (1 << 12) /* cleared */
+  OB_FLAG_UNUSED_12 = 1 << 12, /* cleared */
 #endif
+};
 
 /** #Object.visibility_flag */
 enum {
@@ -853,9 +854,11 @@ enum {
 };
 
 /** #Object.empty_image_depth */
-#define OB_EMPTY_IMAGE_DEPTH_DEFAULT 0
-#define OB_EMPTY_IMAGE_DEPTH_FRONT 1
-#define OB_EMPTY_IMAGE_DEPTH_BACK 2
+enum {
+  OB_EMPTY_IMAGE_DEPTH_DEFAULT = 0,
+  OB_EMPTY_IMAGE_DEPTH_FRONT = 1,
+  OB_EMPTY_IMAGE_DEPTH_BACK = 2,
+};
 
 /** #Object.empty_image_visibility_flag */
 enum {

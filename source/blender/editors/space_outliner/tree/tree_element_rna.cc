@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,7 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "../outliner_intern.hh"
 
@@ -42,11 +42,6 @@ TreeElementRNACommon::TreeElementRNACommon(TreeElement &legacy_te, PointerRNA &r
     legacy_te_.name = IFACE_("(empty)");
     return;
   }
-}
-
-bool TreeElementRNACommon::isExpandValid() const
-{
-  return true;
 }
 
 bool TreeElementRNACommon::isRNAValid() const

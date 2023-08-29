@@ -1,10 +1,24 @@
+# Python - START
 leak:_PyObject_Malloc
+leak:_PyObject_Calloc
 leak:_PyObject_Realloc
+leak:_PyObject_GC
+leak:_PyArgv_*
+leak:_PyBytes_*
+leak:_Py_*
+leak:_PyUnicodeWriter_*
+leak:list_append
+leak:list_resize
 leak:PyThread_allocate_lock
 leak:libpython*
+leak:python
+# Numpy
+leak:PyUFunc_*
+# Python - END
 leak:imb_exitopenexr
 leak:imb_filetypes_exit
 leak:libIlm*
+leak:pxrInternal_*
 leak:<unknown module>
 leak:libX11*
 leak:libglib*
@@ -13,4 +27,3 @@ leak:i965_dri
 leak:libdrm*
 leak:radeon*
 leak:libGLX*
-leak:libasan*

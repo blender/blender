@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,10 +10,13 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-
+#include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
@@ -23,26 +26,28 @@ using namespace blender::bke::mesh_surface_sample;
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
 
   b.add_input<decl::Float>("Value", "Value_Float").hide_value().field_on_all();
   b.add_input<decl::Int>("Value", "Value_Int").hide_value().field_on_all();
   b.add_input<decl::Vector>("Value", "Value_Vector").hide_value().field_on_all();
   b.add_input<decl::Color>("Value", "Value_Color").hide_value().field_on_all();
   b.add_input<decl::Bool>("Value", "Value_Bool").hide_value().field_on_all();
+  b.add_input<decl::Rotation>("Value", "Value_Rotation").hide_value().field_on_all();
 
   b.add_input<decl::Vector>("Sample Position").implicit_field(implicit_field_inputs::position);
 
-  b.add_output<decl::Float>("Value", "Value_Float").dependent_field({6});
-  b.add_output<decl::Int>("Value", "Value_Int").dependent_field({6});
-  b.add_output<decl::Vector>("Value", "Value_Vector").dependent_field({6});
-  b.add_output<decl::Color>("Value", "Value_Color").dependent_field({6});
-  b.add_output<decl::Bool>("Value", "Value_Bool").dependent_field({6});
+  b.add_output<decl::Float>("Value", "Value_Float").dependent_field({7});
+  b.add_output<decl::Int>("Value", "Value_Int").dependent_field({7});
+  b.add_output<decl::Vector>("Value", "Value_Vector").dependent_field({7});
+  b.add_output<decl::Color>("Value", "Value_Color").dependent_field({7});
+  b.add_output<decl::Bool>("Value", "Value_Bool").dependent_field({7});
+  b.add_output<decl::Rotation>("Value", "Value_Rotation").dependent_field({7});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -60,24 +65,28 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *in_socket_vector = in_socket_int32->next;
   bNodeSocket *in_socket_color4f = in_socket_vector->next;
   bNodeSocket *in_socket_bool = in_socket_color4f->next;
+  bNodeSocket *in_socket_quat = in_socket_bool->next;
 
   bke::nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
   bke::nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
   bke::nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
   bke::nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, in_socket_quat, data_type == CD_PROP_QUATERNION);
 
   bNodeSocket *out_socket_float = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *out_socket_int32 = out_socket_float->next;
   bNodeSocket *out_socket_vector = out_socket_int32->next;
   bNodeSocket *out_socket_color4f = out_socket_vector->next;
   bNodeSocket *out_socket_bool = out_socket_color4f->next;
+  bNodeSocket *out_socket_quat = out_socket_bool->next;
 
   bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
   bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
   bke::nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
   bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, out_socket_quat, data_type == CD_PROP_QUATERNION);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -87,7 +96,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-      (eNodeSocketDatatype)params.other_socket().type);
+      eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
     /* The input and output sockets have the same name. */
     params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
@@ -105,7 +114,7 @@ static void get_closest_mesh_looptris(const Mesh &mesh,
                                       const MutableSpan<float> r_distances_sq,
                                       const MutableSpan<float3> r_positions)
 {
-  BLI_assert(mesh.totpoly > 0);
+  BLI_assert(mesh.faces_num > 0);
   BVHTreeFromMesh tree_data;
   BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRI, 2);
   get_closest_in_bvhtree(
@@ -137,8 +146,15 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
     MutableSpan<int> triangle_index = params.uninitialized_single_output<int>(1, "Triangle Index");
     MutableSpan<float3> sample_position = params.uninitialized_single_output<float3>(
         2, "Sample Position");
-    const Mesh &mesh = *source_.get_mesh_for_read();
+    const Mesh &mesh = *source_.get_mesh();
     get_closest_mesh_looptris(mesh, positions, mask, triangle_index, {}, sample_position);
+  }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    ExecutionHints hints;
+    hints.min_grain_size = 512;
+    return hints;
   }
 };
 
@@ -155,6 +171,8 @@ static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustom
       return params.extract_input<Field<bool>>("Value_Bool");
     case CD_PROP_INT32:
       return params.extract_input<Field<int>>("Value_Int");
+    case CD_PROP_QUATERNION:
+      return params.extract_input<Field<math::Quaternion>>("Value_Rotation");
     default:
       BLI_assert_unreachable();
   }
@@ -184,6 +202,10 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
       params.set_output("Value_Int", Field<int>(field));
       break;
     }
+    case CD_PROP_QUATERNION: {
+      params.set_output("Value_Rotation", Field<math::Quaternion>(field));
+      break;
+    }
     default:
       break;
   }
@@ -193,7 +215,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry = params.extract_input<GeometrySet>("Mesh");
   const eCustomDataType data_type = eCustomDataType(params.node().custom1);
-  const Mesh *mesh = geometry.get_mesh_for_read();
+  const Mesh *mesh = geometry.get_mesh();
   if (mesh == nullptr) {
     params.set_default_remaining_outputs();
     return;
@@ -202,7 +224,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  if (mesh->totpoly == 0) {
+  if (mesh->faces_num == 0) {
     params.error_message_add(NodeWarningType::Error, TIP_("The source mesh must have faces"));
     params.set_default_remaining_outputs();
     return;
@@ -226,22 +248,34 @@ static void node_geo_exec(GeoNodeExecParams params)
   output_attribute_field(params, GField(sample_op));
 }
 
-}  // namespace blender::nodes::node_geo_sample_nearest_surface_cc
-
-void register_node_type_geo_sample_nearest_surface()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_sample_nearest_surface_cc;
+  RNA_def_node_enum(srna,
+                    "data_type",
+                    "Data Type", "",
+                    rna_enum_attribute_type_items,
+                    NOD_inline_enum_accessors(custom1),
+                    CD_PROP_FLOAT,
+                    enums::attribute_type_type_with_socket_fn);
+}
 
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_SAMPLE_NEAREST_SURFACE, "Sample Nearest Surface", NODE_CLASS_GEOMETRY);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.declare = file_ns::node_declare;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.declare = node_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_sample_nearest_surface_cc

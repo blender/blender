@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -23,6 +23,11 @@ enum class ResultType : uint8_t {
   Float,
   Vector,
   Color,
+};
+
+enum class ResultPrecision : uint8_t {
+  Full,
+  Half,
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -59,8 +64,11 @@ enum class ResultType : uint8_t {
  * pass_through method, see that method for more details. */
 class Result {
  private:
-  /* The base type of the texture or the type of the single value. */
+  /* The base type of the result's texture or single value. */
   ResultType type_;
+  /* The precision of the result's texture, host-side single values are always stored using full
+   * precision. */
+  ResultPrecision precision_ = ResultPrecision::Half;
   /* If true, the result is a single value, otherwise, the result is a texture. */
   bool is_single_value_;
   /* A GPU texture storing the result data. This will be a 1x1 texture if the result is a single
@@ -103,14 +111,18 @@ class Result {
   Result *master_ = nullptr;
 
  public:
-  /* Construct a result of the given type with the given texture pool that will be used to allocate
-   * and release the result's texture. */
-  Result(ResultType type, TexturePool &texture_pool);
+  /* Construct a result of the given type and precision with the given texture pool that will be
+   * used to allocate and release the result's texture. */
+  Result(ResultType type,
+         TexturePool &texture_pool,
+         ResultPrecision precision = ResultPrecision::Half);
 
   /* Identical to the standard constructor but initializes the reference count to 1. This is useful
    * to construct temporary results that are created and released by the developer manually, which
    * are typically used in operations that need temporary intermediate results. */
-  static Result Temporary(ResultType type, TexturePool &texture_pool);
+  static Result Temporary(ResultType type,
+                          TexturePool &texture_pool,
+                          ResultPrecision precision = ResultPrecision::Half);
 
   /* Declare the result to be a texture result, allocate a texture of an appropriate type with
    * the size of the given domain from the result's texture pool, and set the domain of the result
@@ -163,6 +175,20 @@ class Result {
    * reference count of the result is incremented by the reference count of the target result. See
    * the discussion above for more information. */
   void pass_through(Result &target);
+
+  /* Steal the allocated data from the given source result and assign it to this result, then
+   * remove any references to the data from the source result. It is assumed that:
+   *
+   *   - Both results are of the same type.
+   *   - This result is not allocated but the source result is allocated.
+   *   - Neither of the results is a proxy one, that is, has a master result.
+   *
+   * This is different from proxy results and the pass_through mechanism in that it can be used on
+   * temporary results. This is most useful in multi-step compositor operations where some steps
+   * can be optional, in that case, intermediate results can be temporary results that can
+   * eventually be stolen by the actual output of the operation. See the uses of the method for
+   * a practical example of use. */
+  void steal_data(Result &source);
 
   /* Transform the result by the given transformation. This effectively pre-multiply the given
    * transformation by the current transformation of the domain of the result. */
@@ -253,6 +279,10 @@ class Result {
 
   /* Returns a reference to the domain of the result. See the Domain class. */
   const Domain &domain() const;
+
+ private:
+  /* Returns the appropriate texture format based on the result's type and precision. */
+  eGPUTextureFormat get_texture_format() const;
 };
 
 }  // namespace blender::realtime_compositor

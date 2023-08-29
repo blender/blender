@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,20 +18,16 @@ ViewerOperation::ViewerOperation()
   this->set_image(nullptr);
   this->set_image_user(nullptr);
   output_buffer_ = nullptr;
-  depth_buffer_ = nullptr;
   active_ = false;
-  do_depth_buffer_ = false;
   view_settings_ = nullptr;
   display_settings_ = nullptr;
   use_alpha_input_ = false;
 
   this->add_input_socket(DataType::Color);
   this->add_input_socket(DataType::Value);
-  this->add_input_socket(DataType::Value);
 
   image_input_ = nullptr;
   alpha_input_ = nullptr;
-  depth_input_ = nullptr;
   rd_ = nullptr;
   view_name_ = nullptr;
   flags_.use_viewer_border = true;
@@ -43,8 +39,6 @@ void ViewerOperation::init_execution()
   /* When initializing the tree during initial load the width and height can be zero. */
   image_input_ = get_input_socket_reader(0);
   alpha_input_ = get_input_socket_reader(1);
-  depth_input_ = get_input_socket_reader(2);
-  do_depth_buffer_ = (depth_input_ != nullptr);
 
   if (is_active_viewer_output() && !exec_system_->is_breaked()) {
     init_image();
@@ -55,14 +49,12 @@ void ViewerOperation::deinit_execution()
 {
   image_input_ = nullptr;
   alpha_input_ = nullptr;
-  depth_input_ = nullptr;
   output_buffer_ = nullptr;
 }
 
 void ViewerOperation::execute_region(rcti *rect, uint /*tile_number*/)
 {
   float *buffer = output_buffer_;
-  float *depthbuffer = depth_buffer_;
   if (!buffer) {
     return;
   }
@@ -74,7 +66,7 @@ void ViewerOperation::execute_region(rcti *rect, uint /*tile_number*/)
   const int offsetadd4 = offsetadd * 4;
   int offset = (y1 * this->get_width() + x1);
   int offset4 = offset * 4;
-  float alpha[4], depth[4];
+  float alpha[4];
   int x;
   int y;
   bool breaked = false;
@@ -86,8 +78,6 @@ void ViewerOperation::execute_region(rcti *rect, uint /*tile_number*/)
         alpha_input_->read_sampled(alpha, x, y, PixelSampler::Nearest);
         buffer[offset4 + 3] = alpha[0];
       }
-      depth_input_->read_sampled(depth, x, y, PixelSampler::Nearest);
-      depthbuffer[offset] = depth[0];
 
       offset++;
       offset4 += 4;
@@ -140,7 +130,6 @@ void ViewerOperation::init_image()
 
     imb_freerectImBuf(ibuf);
     imb_freerectfloatImBuf(ibuf);
-    IMB_freezbuffloatImBuf(ibuf);
     ibuf->x = get_width();
     ibuf->y = get_height();
     /* zero size can happen if no image buffers exist to define a sensible resolution */
@@ -151,19 +140,11 @@ void ViewerOperation::init_image()
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   }
 
-  if (do_depth_buffer_) {
-    addzbuffloatImBuf(ibuf);
-  }
-
   /* now we combine the input with ibuf */
   output_buffer_ = ibuf->float_buffer.data;
 
   /* needed for display buffer update */
   ibuf_ = ibuf;
-
-  if (do_depth_buffer_) {
-    depth_buffer_ = ibuf->float_z_buffer.data;
-  }
 
   BKE_image_release_ibuf(image_, ibuf_, lock);
 
@@ -222,13 +203,6 @@ void ViewerOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
   if (use_alpha_input_) {
     const MemoryBuffer *input_alpha = inputs[1];
     output_buffer.copy_from(input_alpha, area, 0, COM_DATA_TYPE_VALUE_CHANNELS, 3);
-  }
-
-  if (depth_buffer_) {
-    MemoryBuffer depth_buffer(
-        depth_buffer_, COM_DATA_TYPE_VALUE_CHANNELS, get_width(), get_height());
-    const MemoryBuffer *input_depth = inputs[2];
-    depth_buffer.copy_from(input_depth, area);
   }
 
   update_image(&area);

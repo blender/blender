@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -43,28 +43,28 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
                                  const IndexMask & /*mask*/) const final
   {
     const Span<float3> positions = mesh.vert_positions();
-    const OffsetIndices polys = mesh.polys();
+    const OffsetIndices faces = mesh.faces();
     const Span<int> corner_verts = mesh.corner_verts();
-    const Span<float3> poly_normals = mesh.poly_normals();
+    const Span<float3> face_normals = mesh.face_normals();
 
     const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_FACE};
-    fn::FieldEvaluator evaluator{context, polys.size()};
+    fn::FieldEvaluator evaluator{context, faces.size()};
     evaluator.add(threshold_);
     evaluator.evaluate();
     const VArray<float> thresholds = evaluator.get_evaluated<float>(0);
 
     auto planar_fn =
-        [positions, polys, corner_verts, thresholds, poly_normals](const int i) -> bool {
-      const IndexRange poly = polys[i];
-      if (poly.size() <= 3) {
+        [positions, faces, corner_verts, thresholds, face_normals](const int i) -> bool {
+      const IndexRange face = faces[i];
+      if (face.size() <= 3) {
         return true;
       }
-      const float3 &reference_normal = poly_normals[i];
+      const float3 &reference_normal = face_normals[i];
 
       float min = FLT_MAX;
       float max = -FLT_MAX;
 
-      for (const int vert : corner_verts.slice(poly)) {
+      for (const int vert : corner_verts.slice(face)) {
         float dot = math::dot(reference_normal, positions[vert]);
         if (dot > max) {
           max = dot;
@@ -77,7 +77,7 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
     };
 
     return mesh.attributes().adapt_domain<bool>(
-        VArray<bool>::ForFunc(polys.size(), planar_fn), ATTR_DOMAIN_FACE, domain);
+        VArray<bool>::ForFunc(faces.size(), planar_fn), ATTR_DOMAIN_FACE, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -109,17 +109,16 @@ static void geo_node_exec(GeoNodeExecParams params)
   params.set_output("Planar", std::move(planar_field));
 }
 
-}  // namespace blender::nodes::node_geo_input_mesh_face_is_planar_cc
-
-void register_node_type_geo_input_mesh_face_is_planar()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_input_mesh_face_is_planar_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_INPUT_MESH_FACE_IS_PLANAR, "Is Face Planar", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::geo_node_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = geo_node_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_input_mesh_face_is_planar_cc

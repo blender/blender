@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,20 +6,23 @@
 
 /* EEVEE_shaders_probe_filter_glossy_sh_get */
 GPU_SHADER_INTERFACE_INFO(eevee_legacy_lightprobe_vert_geom_iface, "vert_iface")
-    .smooth(Type::VEC4, "vPos")
+    .smooth(Type::VEC4, "vPos");
+GPU_SHADER_INTERFACE_INFO(eevee_legacy_lightprobe_vert_geom_flat_iface, "vert_iface_flat")
     .flat(Type::INT, "face");
 
 GPU_SHADER_INTERFACE_INFO(eevee_legacy_lightprobe_geom_frag_iface, "geom_iface")
     .smooth(Type::VEC3, "worldPosition")
     .smooth(Type::VEC3, "viewPosition")
     .smooth(Type::VEC3, "worldNormal")
-    .smooth(Type::VEC3, "viewNormal")
+    .smooth(Type::VEC3, "viewNormal");
+GPU_SHADER_INTERFACE_INFO(eevee_legacy_lightprobe_geom_frag_flat_iface, "geom_iface_flat")
     .flat(Type::INT, "fFace");
 
 GPU_SHADER_CREATE_INFO(eevee_legacy_lightprobe_vert)
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_source("lightprobe_vert.glsl")
     .vertex_out(eevee_legacy_lightprobe_vert_geom_iface)
+    .vertex_out(eevee_legacy_lightprobe_vert_geom_flat_iface)
     .builtins(BuiltinBits::INSTANCE_ID);
 
 #ifdef WITH_METAL_BACKEND
@@ -28,12 +31,14 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_lightprobe_vert_no_geom)
     .push_constant(Type::INT, "Layer")
     .vertex_source("lightprobe_vert_no_geom.glsl")
     .vertex_out(eevee_legacy_lightprobe_geom_frag_iface)
+    .vertex_out(eevee_legacy_lightprobe_geom_frag_flat_iface)
     .builtins(BuiltinBits::INSTANCE_ID);
 #endif
 
 GPU_SHADER_CREATE_INFO(eevee_legacy_lightprobe_geom)
     .geometry_source("lightprobe_geom.glsl")
     .geometry_out(eevee_legacy_lightprobe_geom_frag_iface)
+    .geometry_out(eevee_legacy_lightprobe_geom_frag_flat_iface)
     .push_constant(Type::INT, "Layer")
     .geometry_layout(PrimitiveIn::TRIANGLES, PrimitiveOut::TRIANGLE_STRIP, 3);
 
@@ -208,8 +213,10 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_studiolight_background)
 
 GPU_SHADER_INTERFACE_INFO(eevee_legacy_probe_planar_downsample_vert_geom_iface,
                           "lightprobe_vert_iface")
-    .flat(Type::INT, "instance")
     .smooth(Type::VEC2, "vPos");
+GPU_SHADER_INTERFACE_INFO(eevee_legacy_probe_planar_downsample_vert_geom_flat_iface,
+                          "lightprobe_vert_iface_flat")
+    .flat(Type::INT, "instance");
 
 GPU_SHADER_INTERFACE_INFO(eevee_legacy_probe_planar_downsample_geom_frag_iface,
                           "lightprobe_geom_iface")
@@ -219,6 +226,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_lightprobe_planar_downsample_common)
     .vertex_source("lightprobe_planar_downsample_vert.glsl")
     .fragment_source("lightprobe_planar_downsample_frag.glsl")
     .vertex_out(eevee_legacy_probe_planar_downsample_vert_geom_iface)
+    .vertex_out(eevee_legacy_probe_planar_downsample_vert_geom_flat_iface)
     .sampler(0, ImageType::FLOAT_2D_ARRAY, "source")
     .push_constant(Type::FLOAT, "fireflyFactor")
     .fragment_out(0, Type::VEC4, "FragColor")

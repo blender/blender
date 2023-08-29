@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,15 +15,15 @@
 
 #include "BLI_span.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
 
 #include "SEQ_iterator.h"
 #include "SEQ_retiming.h"
@@ -33,11 +33,12 @@
 /* Own include. */
 #include "sequencer_intern.h"
 
-typedef struct GizmoGroup_retime {
+struct GizmoGroup_retime {
   wmGizmo *add_handle_gizmo;
   wmGizmo *move_handle_gizmo;
   wmGizmo *remove_handle_gizmo;
-} GizmoGroup_retime;
+  wmGizmo *speed_set_gizmo;
+};
 
 static bool gizmogroup_retime_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
@@ -81,6 +82,8 @@ static void gizmogroup_retime_setup(const bContext * /* C */, wmGizmoGroup *gzgr
   ggd->remove_handle_gizmo = WM_gizmo_new_ptr(gzt_remove_handle, gzgroup, nullptr);
   const wmGizmoType *gzt_move_handle = WM_gizmotype_find("GIZMO_GT_retime_handle_move", true);
   ggd->move_handle_gizmo = WM_gizmo_new_ptr(gzt_move_handle, gzgroup, nullptr);
+  const wmGizmoType *gzt_speed_set = WM_gizmotype_find("GIZMO_GT_retime_speed_set", true);
+  ggd->speed_set_gizmo = WM_gizmo_new_ptr(gzt_speed_set, gzgroup, nullptr);
   gzgroup->customdata = ggd;
 
   /* Assign operators. */
@@ -90,6 +93,8 @@ static void gizmogroup_retime_setup(const bContext * /* C */, wmGizmoGroup *gzgr
   WM_gizmo_operator_set(ggd->add_handle_gizmo, 0, ot, nullptr);
   ot = WM_operatortype_find("SEQUENCER_OT_retiming_handle_remove", true);
   WM_gizmo_operator_set(ggd->remove_handle_gizmo, 0, ot, nullptr);
+  ot = WM_operatortype_find("SEQUENCER_OT_retiming_segment_speed_set", true);
+  WM_gizmo_operator_set(ggd->speed_set_gizmo, 0, ot, nullptr);
 }
 
 void SEQUENCER_GGT_gizmo_retime(wmGizmoGroupType *gzgt)

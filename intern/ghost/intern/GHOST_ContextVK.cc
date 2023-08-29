@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -159,7 +161,7 @@ class GHOST_DeviceVK {
   ~GHOST_DeviceVK()
   {
     if (device != VK_NULL_HANDLE) {
-      vkDestroyDevice(device, NULL);
+      vkDestroyDevice(device, nullptr);
     }
   }
 
@@ -173,10 +175,11 @@ class GHOST_DeviceVK {
   bool extensions_support(const vector<const char *> &required_extensions)
   {
     uint32_t ext_count;
-    vkEnumerateDeviceExtensionProperties(physical_device, NULL, &ext_count, NULL);
+    vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &ext_count, nullptr);
 
     vector<VkExtensionProperties> available_exts(ext_count);
-    vkEnumerateDeviceExtensionProperties(physical_device, NULL, &ext_count, available_exts.data());
+    vkEnumerateDeviceExtensionProperties(
+        physical_device, nullptr, &ext_count, available_exts.data());
 
     for (const auto &extension_needed : required_extensions) {
       bool found = false;
@@ -215,6 +218,8 @@ class GHOST_DeviceVK {
     device_features.geometryShader = VK_TRUE;
     device_features.dualSrcBlend = VK_TRUE;
     device_features.logicOp = VK_TRUE;
+    device_features.imageCubeArray = VK_TRUE;
+    device_features.multiViewport = VK_TRUE;
 #endif
 
     VkDeviceCreateInfo device_create_info = {};
@@ -229,13 +234,13 @@ class GHOST_DeviceVK {
     device_create_info.ppEnabledExtensionNames = extensions_device.data();
     device_create_info.pEnabledFeatures = &device_features;
 
-    vkCreateDevice(physical_device, &device_create_info, NULL, &device);
+    vkCreateDevice(physical_device, &device_create_info, nullptr, &device);
   }
 
   void init_generic_queue_family()
   {
     uint32_t queue_family_count = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, NULL);
+    vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, nullptr);
 
     vector<VkQueueFamilyProperties> queue_families(queue_family_count);
     vkGetPhysicalDeviceQueueFamilyProperties(
@@ -243,8 +248,8 @@ class GHOST_DeviceVK {
 
     generic_queue_family = 0;
     for (const auto &queue_family : queue_families) {
-      /* Every vulkan implementation by spec must have one queue family that support both graphics
-       * and compute pipelines. We select this one; compute only queue family hints at async
+      /* Every VULKAN implementation by spec must have one queue family that support both graphics
+       * and compute pipelines. We select this one; compute only queue family hints at asynchronous
        * compute implementations. */
       if ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
           (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT))
@@ -279,7 +284,7 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
   VkPhysicalDevice best_physical_device = VK_NULL_HANDLE;
 
   uint32_t device_count = 0;
-  vkEnumeratePhysicalDevices(vk_instance, &device_count, NULL);
+  vkEnumeratePhysicalDevices(vk_instance, &device_count, nullptr);
 
   vector<VkPhysicalDevice> physical_devices(device_count);
   vkEnumeratePhysicalDevices(vk_instance, &device_count, physical_devices.data());
@@ -295,11 +300,11 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
     if (vk_surface != VK_NULL_HANDLE) {
       uint32_t format_count;
       vkGetPhysicalDeviceSurfaceFormatsKHR(
-          device_vk.physical_device, vk_surface, &format_count, NULL);
+          device_vk.physical_device, vk_surface, &format_count, nullptr);
 
       uint32_t present_count;
       vkGetPhysicalDeviceSurfacePresentModesKHR(
-          device_vk.physical_device, vk_surface, &present_count, NULL);
+          device_vk.physical_device, vk_surface, &present_count, nullptr);
 
       /* For now anything will do. */
       if (format_count == 0 || present_count == 0) {
@@ -309,7 +314,7 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
 
 #if STRICT_REQUIREMENTS
     if (!device_vk.features.geometryShader || !device_vk.features.dualSrcBlend ||
-        !device_vk.features.logicOp)
+        !device_vk.features.logicOp || !device_vk.features.imageCubeArray)
     {
       continue;
     }
@@ -400,10 +405,10 @@ GHOST_ContextVK::~GHOST_ContextVK()
     destroySwapchain();
 
     if (m_command_pool != VK_NULL_HANDLE) {
-      vkDestroyCommandPool(device_vk.device, m_command_pool, NULL);
+      vkDestroyCommandPool(device_vk.device, m_command_pool, nullptr);
     }
     if (m_surface != VK_NULL_HANDLE) {
-      vkDestroySurfaceKHR(device_vk.instance, m_surface, NULL);
+      vkDestroySurfaceKHR(device_vk.instance, m_surface, nullptr);
     }
 
     device_vk.users--;
@@ -419,28 +424,28 @@ GHOST_TSuccess GHOST_ContextVK::destroySwapchain()
   VkDevice device = vulkan_device->device;
 
   for (auto semaphore : m_image_available_semaphores) {
-    vkDestroySemaphore(device, semaphore, NULL);
+    vkDestroySemaphore(device, semaphore, nullptr);
   }
   for (auto semaphore : m_render_finished_semaphores) {
-    vkDestroySemaphore(device, semaphore, NULL);
+    vkDestroySemaphore(device, semaphore, nullptr);
   }
   for (auto fence : m_in_flight_fences) {
-    vkDestroyFence(device, fence, NULL);
+    vkDestroyFence(device, fence, nullptr);
   }
   for (auto framebuffer : m_swapchain_framebuffers) {
-    vkDestroyFramebuffer(device, framebuffer, NULL);
+    vkDestroyFramebuffer(device, framebuffer, nullptr);
   }
   if (m_render_pass != VK_NULL_HANDLE) {
-    vkDestroyRenderPass(device, m_render_pass, NULL);
+    vkDestroyRenderPass(device, m_render_pass, nullptr);
   }
   for (auto command_buffer : m_command_buffers) {
     vkFreeCommandBuffers(device, m_command_pool, 1, &command_buffer);
   }
   for (auto imageView : m_swapchain_image_views) {
-    vkDestroyImageView(device, imageView, NULL);
+    vkDestroyImageView(device, imageView, nullptr);
   }
   if (m_swapchain != VK_NULL_HANDLE) {
-    vkDestroySwapchainKHR(device, m_swapchain, NULL);
+    vkDestroySwapchainKHR(device, m_swapchain, nullptr);
   }
   return GHOST_kSuccess;
 }
@@ -506,7 +511,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   present_info.swapchainCount = 1;
   present_info.pSwapchains = &m_swapchain;
   present_info.pImageIndices = &m_currentImage;
-  present_info.pResults = NULL;
+  present_info.pResults = nullptr;
 
   result = vkQueuePresentKHR(m_present_queue, &present_info);
 
@@ -609,10 +614,10 @@ GHOST_TSuccess GHOST_ContextVK::releaseDrawingContext()
 static vector<VkExtensionProperties> getExtensionsAvailable()
 {
   uint32_t extension_count = 0;
-  vkEnumerateInstanceExtensionProperties(NULL, &extension_count, NULL);
+  vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
 
   vector<VkExtensionProperties> extensions(extension_count);
-  vkEnumerateInstanceExtensionProperties(NULL, &extension_count, extensions.data());
+  vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
 
   return extensions;
 }
@@ -643,7 +648,7 @@ static void requireExtension(vector<VkExtensionProperties> &extensions_available
 static vector<VkLayerProperties> getLayersAvailable()
 {
   uint32_t layer_count = 0;
-  vkEnumerateInstanceLayerProperties(&layer_count, NULL);
+  vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
 
   vector<VkLayerProperties> layers(layer_count);
   vkEnumerateInstanceLayerProperties(&layer_count, layers.data());
@@ -709,8 +714,8 @@ static GHOST_TSuccess create_render_pass(VkDevice device,
   colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
   colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
   colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-  colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+  colorAttachment.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
+  colorAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
 
   VkAttachmentReference colorAttachmentRef = {};
   colorAttachmentRef.attachment = 0;
@@ -728,7 +733,7 @@ static GHOST_TSuccess create_render_pass(VkDevice device,
   renderPassInfo.subpassCount = 1;
   renderPassInfo.pSubpasses = &subpass;
 
-  VK_CHECK(vkCreateRenderPass(device, &renderPassInfo, NULL, r_renderPass));
+  VK_CHECK(vkCreateRenderPass(device, &renderPassInfo, nullptr, r_renderPass));
 
   return GHOST_kSuccess;
 }
@@ -739,7 +744,7 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
 {
   // TODO cleanup: we are not going to use MAILBOX as it isn't supported by renderdoc.
   uint32_t present_count;
-  vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, NULL);
+  vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, nullptr);
   vector<VkPresentModeKHR> presents(present_count);
   vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, presents.data());
   /* MAILBOX is the lowest latency V-Sync enabled mode so use it if available */
@@ -770,7 +775,7 @@ GHOST_TSuccess GHOST_ContextVK::createCommandPools()
   poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   poolInfo.queueFamilyIndex = vulkan_device->generic_queue_family;
 
-  VK_CHECK(vkCreateCommandPool(vulkan_device->device, &poolInfo, NULL, &m_command_pool));
+  VK_CHECK(vkCreateCommandPool(vulkan_device->device, &poolInfo, nullptr, &m_command_pool));
   return GHOST_kSuccess;
 }
 
@@ -831,7 +836,7 @@ static bool selectSurfaceFormat(const VkPhysicalDevice physical_device,
                                 VkSurfaceFormatKHR &r_surfaceFormat)
 {
   uint32_t format_count;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, NULL);
+  vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, nullptr);
   vector<VkSurfaceFormatKHR> formats(format_count);
   vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, formats.data());
 
@@ -910,15 +915,15 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
   create_info.oldSwapchain = VK_NULL_HANDLE; /* TODO Window resize */
   create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   create_info.queueFamilyIndexCount = 0;
-  create_info.pQueueFamilyIndices = NULL;
+  create_info.pQueueFamilyIndices = nullptr;
 
   VkDevice device = vulkan_device->device;
-  VK_CHECK(vkCreateSwapchainKHR(device, &create_info, NULL, &m_swapchain));
+  VK_CHECK(vkCreateSwapchainKHR(device, &create_info, nullptr, &m_swapchain));
 
   create_render_pass(device, format.format, &m_render_pass);
 
   /* image_count may not be what we requested! Getter for final value. */
-  vkGetSwapchainImagesKHR(device, m_swapchain, &image_count, NULL);
+  vkGetSwapchainImagesKHR(device, m_swapchain, &image_count, nullptr);
   m_swapchain_images.resize(image_count);
   vkGetSwapchainImagesKHR(device, m_swapchain, &image_count, m_swapchain_images.data());
 
@@ -942,7 +947,7 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
     view_create_info.subresourceRange.baseArrayLayer = 0;
     view_create_info.subresourceRange.layerCount = 1;
 
-    VK_CHECK(vkCreateImageView(device, &view_create_info, NULL, &m_swapchain_image_views[i]));
+    VK_CHECK(vkCreateImageView(device, &view_create_info, nullptr, &m_swapchain_image_views[i]));
 
     VkImageView attachments[] = {m_swapchain_image_views[i]};
 
@@ -955,7 +960,7 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
     fb_create_info.height = m_render_extent.height;
     fb_create_info.layers = 1;
 
-    VK_CHECK(vkCreateFramebuffer(device, &fb_create_info, NULL, &m_swapchain_framebuffers[i]));
+    VK_CHECK(vkCreateFramebuffer(device, &fb_create_info, nullptr, &m_swapchain_framebuffers[i]));
   }
 
   m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -970,10 +975,12 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
 
   for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 
-    VK_CHECK(vkCreateSemaphore(device, &semaphore_info, NULL, &m_image_available_semaphores[i]));
-    VK_CHECK(vkCreateSemaphore(device, &semaphore_info, NULL, &m_render_finished_semaphores[i]));
+    VK_CHECK(
+        vkCreateSemaphore(device, &semaphore_info, nullptr, &m_image_available_semaphores[i]));
+    VK_CHECK(
+        vkCreateSemaphore(device, &semaphore_info, nullptr, &m_render_finished_semaphores[i]));
 
-    VK_CHECK(vkCreateFence(device, &fence_info, NULL, &m_in_flight_fences[i]));
+    VK_CHECK(vkCreateFence(device, &fence_info, nullptr, &m_in_flight_fences[i]));
   }
 
   createGraphicsCommandBuffers();
@@ -999,24 +1006,24 @@ const char *GHOST_ContextVK::getPlatformSpecificSurfaceExtension() const
 #  endif
   }
 #endif
-  return NULL;
+  return nullptr;
 }
 
 GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 {
 #ifdef _WIN32
-  const bool use_window_surface = (m_hwnd != NULL);
+  const bool use_window_surface = (m_hwnd != nullptr);
 #elif defined(__APPLE__)
-  const bool use_window_surface = (m_metal_layer != NULL);
+  const bool use_window_surface = (m_metal_layer != nullptr);
 #else /* UNIX/Linux */
   bool use_window_surface = false;
   switch (m_platform) {
     case GHOST_kVulkanPlatformX11:
-      use_window_surface = (m_display != NULL) && (m_window != (Window)NULL);
+      use_window_surface = (m_display != nullptr) && (m_window != (Window) nullptr);
       break;
 #  ifdef WITH_GHOST_WAYLAND
     case GHOST_kVulkanPlatformWayland:
-      use_window_surface = (m_wayland_display != NULL) && (m_wayland_surface != NULL);
+      use_window_surface = (m_wayland_display != nullptr) && (m_wayland_surface != nullptr);
       break;
 #  endif
   }
@@ -1067,7 +1074,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     create_info.ppEnabledLayerNames = layers_enabled.data();
     create_info.enabledExtensionCount = static_cast<uint32_t>(extensions_enabled.size());
     create_info.ppEnabledExtensionNames = extensions_enabled.data();
-    VK_CHECK(vkCreateInstance(&create_info, NULL, &instance));
+    VK_CHECK(vkCreateInstance(&create_info, nullptr, &instance));
   }
   else {
     instance = vulkan_device->instance;
@@ -1077,13 +1084,13 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #ifdef _WIN32
     VkWin32SurfaceCreateInfoKHR surface_create_info = {};
     surface_create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    surface_create_info.hinstance = GetModuleHandle(NULL);
+    surface_create_info.hinstance = GetModuleHandle(nullptr);
     surface_create_info.hwnd = m_hwnd;
-    VK_CHECK(vkCreateWin32SurfaceKHR(instance, &surface_create_info, NULL, &m_surface));
+    VK_CHECK(vkCreateWin32SurfaceKHR(instance, &surface_create_info, nullptr, &m_surface));
 #elif defined(__APPLE__)
     VkMetalSurfaceCreateInfoEXT info = {};
     info.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
-    info.pNext = NULL;
+    info.pNext = nullptr;
     info.flags = 0;
     info.pLayer = m_metal_layer;
     VK_CHECK(vkCreateMetalSurfaceEXT(instance, &info, nullptr, &m_surface));
@@ -1094,7 +1101,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
         surface_create_info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
         surface_create_info.dpy = m_display;
         surface_create_info.window = m_window;
-        VK_CHECK(vkCreateXlibSurfaceKHR(instance, &surface_create_info, NULL, &m_surface));
+        VK_CHECK(vkCreateXlibSurfaceKHR(instance, &surface_create_info, nullptr, &m_surface));
         break;
       }
 #  ifdef WITH_GHOST_WAYLAND
@@ -1103,7 +1110,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
         surface_create_info.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
         surface_create_info.display = m_wayland_display;
         surface_create_info.surface = m_wayland_surface;
-        VK_CHECK(vkCreateWaylandSurfaceKHR(instance, &surface_create_info, NULL, &m_surface));
+        VK_CHECK(vkCreateWaylandSurfaceKHR(instance, &surface_create_info, nullptr, &m_surface));
         break;
       }
 #  endif

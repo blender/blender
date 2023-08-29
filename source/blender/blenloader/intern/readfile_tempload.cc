@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,11 +16,11 @@
 
 #include "DNA_ID.h"
 
-TempLibraryContext *BLO_library_temp_load_id(struct Main *real_main,
+TempLibraryContext *BLO_library_temp_load_id(Main *real_main,
                                              const char *blend_file_path,
                                              const short idcode,
                                              const char *idname,
-                                             struct ReportList *reports)
+                                             ReportList *reports)
 {
   TempLibraryContext *temp_lib_ctx = static_cast<TempLibraryContext *>(
       MEM_callocN(sizeof(*temp_lib_ctx), __func__));

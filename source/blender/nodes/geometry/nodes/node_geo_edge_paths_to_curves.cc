@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,7 +14,7 @@ namespace blender::nodes::node_geo_edge_paths_to_curves_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
   b.add_input<decl::Bool>("Start Vertices").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Int>("Next Vertex Index").default_value(-1).hide_value().field_on_all();
   b.add_output<decl::Geometry>("Curves").propagate_all();
@@ -72,9 +72,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    const Mesh *mesh = geometry_set.get_mesh_for_read();
+    const Mesh *mesh = geometry_set.get_mesh();
     if (mesh == nullptr) {
-      geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+      geometry_set.keep_only({GeometryComponent::Type::Instance});
       return;
     }
 
@@ -87,29 +87,28 @@ static void node_geo_exec(GeoNodeExecParams params)
     IndexMask start_verts = evaluator.get_evaluated_as_mask(1);
 
     if (start_verts.is_empty()) {
-      geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+      geometry_set.keep_only({GeometryComponent::Type::Instance});
       return;
     }
 
     geometry_set.replace_curves(edge_paths_to_curves_convert(
         *mesh, start_verts, next_vert, params.get_output_propagation_info("Curves")));
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_CURVE, GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.keep_only({GeometryComponent::Type::Curve, GeometryComponent::Type::Instance});
   });
 
   params.set_output("Curves", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_edge_paths_to_curves_cc
-
-void register_node_type_geo_edge_paths_to_curves()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_edge_paths_to_curves_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_EDGE_PATHS_TO_CURVES, "Edge Paths to Curves", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_edge_paths_to_curves_cc

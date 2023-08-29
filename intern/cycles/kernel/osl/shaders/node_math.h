@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 float safe_divide(float a, float b)
 {
@@ -16,6 +17,11 @@ vector safe_divide(vector a, vector b)
 float safe_modulo(float a, float b)
 {
   return (b != 0.0) ? fmod(a, b) : 0.0;
+}
+
+float safe_floored_modulo(float a, float b)
+{
+  return (b != 0.0) ? a - floor(a / b) * b : 0.0;
 }
 
 float fract(float a)

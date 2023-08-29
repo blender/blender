@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -57,17 +57,14 @@ void MeshPass::init_subpasses(ePipelineType pipeline,
   }
 }
 
-void MeshPass::draw(ObjectRef &ref,
-                    GPUBatch *batch,
-                    ResourceHandle handle,
-                    uint material_index,
-                    ::Image *image /* = nullptr */,
-                    GPUSamplerState sampler_state /* = GPUSamplerState::default_sampler() */,
-                    ImageUser *iuser /* = nullptr */)
+PassMain::Sub &MeshPass::get_subpass(
+    eGeometryType geometry_type,
+    ::Image *image /* = nullptr */,
+    GPUSamplerState sampler_state /* = GPUSamplerState::default_sampler() */,
+    ImageUser *iuser /* = nullptr */)
 {
   is_empty_ = false;
 
-  eGeometryType geometry_type = geometry_type_from_object(ref.object);
   if (image) {
     GPUTexture *texture = nullptr;
     GPUTexture *tilemap = nullptr;
@@ -98,12 +95,12 @@ void MeshPass::draw(ObjectRef &ref,
         return sub_pass;
       };
 
-      texture_subpass_map_.lookup_or_add_cb(TextureSubPassKey(texture, geometry_type), add_cb)
-          ->draw(batch, handle, material_index);
-      return;
+      return *texture_subpass_map_.lookup_or_add_cb(TextureSubPassKey(texture, geometry_type),
+                                                    add_cb);
     }
   }
-  passes_[int(geometry_type)][int(eShaderType::MATERIAL)]->draw(batch, handle, material_index);
+
+  return *passes_[int(geometry_type)][int(eShaderType::MATERIAL)];
 }
 
 /** \} */
@@ -152,8 +149,7 @@ void OpaquePass::draw(Manager &manager,
                       View &view,
                       SceneResources &resources,
                       int2 resolution,
-                      ShadowPass *shadow_pass,
-                      bool accumulation_ps_is_empty)
+                      ShadowPass *shadow_pass)
 {
   if (is_empty()) {
     return;
@@ -176,10 +172,10 @@ void OpaquePass::draw(Manager &manager,
     opaque_fb.bind();
 
     manager.submit(gbuffer_in_front_ps_, view);
-    if (resources.depth_in_front_tx.is_valid()) {
-      /* Only needed when transparent infront is needed */
-      GPU_texture_copy(resources.depth_in_front_tx, resources.depth_tx);
-    }
+  }
+
+  if (resources.depth_in_front_tx.is_valid()) {
+    GPU_texture_copy(resources.depth_in_front_tx, resources.depth_tx);
   }
 
   if (!gbuffer_ps_.is_empty()) {
@@ -192,8 +188,9 @@ void OpaquePass::draw(Manager &manager,
     manager.submit(gbuffer_ps_, view);
   }
 
-  bool needs_stencil_copy = shadow_pass && !gbuffer_in_front_ps_.is_empty() &&
-                            !accumulation_ps_is_empty;
+  bool needs_stencil_copy = shadow_pass && !gbuffer_in_front_ps_.is_empty();
+
+  Texture *depth_stencil_tx = nullptr;
 
   if (needs_stencil_copy) {
     shadow_depth_stencil_tx.ensure_2d(GPU_DEPTH24_STENCIL8,
@@ -203,24 +200,23 @@ void OpaquePass::draw(Manager &manager,
                                           GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
     GPU_texture_copy(shadow_depth_stencil_tx, resources.depth_tx);
 
-    deferred_ps_stencil_tx = shadow_depth_stencil_tx.stencil_view();
+    depth_stencil_tx = shadow_depth_stencil_tx.ptr();
+
+    opaque_fb.ensure(GPU_ATTACHMENT_TEXTURE(*depth_stencil_tx));
+    opaque_fb.bind();
+    GPU_framebuffer_clear_stencil(opaque_fb, 0);
   }
   else {
     shadow_depth_stencil_tx.free();
-
-    deferred_ps_stencil_tx = resources.depth_tx.stencil_view();
-  }
-
-  if (shadow_pass && !gbuffer_in_front_ps_.is_empty()) {
-    opaque_fb.ensure(GPU_ATTACHMENT_TEXTURE(deferred_ps_stencil_tx));
-    opaque_fb.bind();
-    GPU_framebuffer_clear_stencil(opaque_fb, 0);
+    depth_stencil_tx = resources.depth_tx.ptr();
   }
 
   if (shadow_pass) {
     shadow_pass->draw(
-        manager, view, resources, *deferred_ps_stencil_tx, !gbuffer_in_front_ps_.is_empty());
+        manager, view, resources, **depth_stencil_tx, !gbuffer_in_front_ps_.is_empty());
   }
+
+  deferred_ps_stencil_tx = resources.stencil_view.extract(manager, *depth_stencil_tx);
 
   opaque_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
   opaque_fb.bind();

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,6 +10,7 @@
 
 #include "BLI_cpp_type.hh"
 #include "BLI_utildefines.h"
+#include <sstream>
 
 namespace blender::cpp_type_util {
 

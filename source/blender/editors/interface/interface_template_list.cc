@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,19 +21,18 @@
 
 #include "BLT_translation.h"
 
-#include "ED_asset.h"
-#include "ED_screen.h"
+#include "ED_asset.hh"
+#include "ED_screen.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "interface_intern.hh"
 
@@ -89,13 +88,13 @@ struct TemplateListVisualInfo {
   int end_idx;      /* Index of last item to display + 1. */
 };
 
-static void uilist_draw_item_default(struct uiList *ui_list,
-                                     const struct bContext * /*C*/,
-                                     struct uiLayout *layout,
-                                     struct PointerRNA * /*dataptr*/,
-                                     struct PointerRNA *itemptr,
+static void uilist_draw_item_default(uiList *ui_list,
+                                     const bContext * /*C*/,
+                                     uiLayout *layout,
+                                     PointerRNA * /*dataptr*/,
+                                     PointerRNA *itemptr,
                                      int icon,
-                                     struct PointerRNA * /*active_dataptr*/,
+                                     PointerRNA * /*active_dataptr*/,
                                      const char * /*active_propname*/,
                                      int /*index*/,
                                      int /*flt_flag*/)
@@ -120,9 +119,7 @@ static void uilist_draw_item_default(struct uiList *ui_list,
   }
 }
 
-static void uilist_draw_filter_default(struct uiList *ui_list,
-                                       const struct bContext * /*C*/,
-                                       struct uiLayout *layout)
+static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, uiLayout *layout)
 {
   PointerRNA listptr;
   RNA_pointer_create(nullptr, &RNA_UIList, ui_list, &listptr);
@@ -130,7 +127,7 @@ static void uilist_draw_filter_default(struct uiList *ui_list,
   uiLayout *row = uiLayoutRow(layout, false);
 
   uiLayout *subrow = uiLayoutRow(row, true);
-  uiItemR(subrow, &listptr, "filter_name", 0, "", ICON_NONE);
+  uiItemR(subrow, &listptr, "filter_name", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(subrow,
           &listptr,
           "use_filter_invert",
@@ -310,9 +307,9 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
 /**
  * Default UI List filtering: Filter by name.
  */
-static void uilist_filter_items_default(struct uiList *ui_list,
-                                        const struct bContext *C,
-                                        struct PointerRNA *dataptr,
+static void uilist_filter_items_default(uiList *ui_list,
+                                        const bContext *C,
+                                        PointerRNA *dataptr,
                                         const char *propname)
 {
   if (ui_list->filter_byname[0]) {
@@ -457,21 +454,21 @@ static void ui_template_list_collect_items(PointerRNA *list_ptr,
         activei_mapping_pending = false;
       }
 #if 0 /* For now, do not alter active element, even if it will be hidden... */
-          else if (activei < i) {
-            /* We do not want an active but invisible item!
-             * Only exception is when all items are filtered out...
-             */
-            if (prev_order_idx >= 0) {
-              activei = prev_order_idx;
-              RNA_property_int_set(active_dataptr, activeprop, prev_i);
-            }
-            else {
-              activei = new_order_idx;
-              RNA_property_int_set(active_dataptr, activeprop, i);
-            }
-          }
-          prev_i = i;
-          prev_ii = new_order_idx;
+      else if (activei < i) {
+        /* We do not want an active but invisible item!
+         * Only exception is when all items are filtered out...
+         */
+        if (prev_order_idx >= 0) {
+          activei = prev_order_idx;
+          RNA_property_int_set(active_dataptr, activeprop, prev_i);
+        }
+        else {
+          activei = new_order_idx;
+          RNA_property_int_set(active_dataptr, activeprop, i);
+        }
+      }
+      prev_i = i;
+      prev_ii = new_order_idx;
 #endif
     }
     i++;
@@ -612,9 +609,8 @@ static void uilist_prepare(uiList *ui_list,
                                   items->tot_items);
 }
 
-static void uilist_resize_update_cb(bContext *C, void *arg1, void * /*arg2*/)
+static void uilist_resize_update(bContext *C, uiList *ui_list)
 {
-  uiList *ui_list = static_cast<uiList *>(arg1);
   uiListDyn *dyn_data = ui_list->dyn_data;
 
   /* This way we get diff in number of additional items to show (positive) or hide (negative). */
@@ -879,7 +875,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       but = uiDefIconTextButR_prop(block,
                                    UI_BTYPE_NUM,
                                    0,
-                                   0,
+                                   ICON_NONE,
                                    numstr,
                                    0,
                                    0,
@@ -1150,7 +1146,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                             0,
                             0,
                             "");
-        UI_but_func_set(but, uilist_resize_update_cb, ui_list, nullptr);
+        UI_but_func_set(but, [ui_list](bContext &C) { uilist_resize_update(&C, ui_list); });
       }
 
       UI_block_emboss_set(subblock, UI_EMBOSS);
@@ -1207,7 +1203,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                             0,
                             0,
                             "");
-        UI_but_func_set(but, uilist_resize_update_cb, ui_list, nullptr);
+        UI_but_func_set(but, [ui_list](bContext &C) { uilist_resize_update(&C, ui_list); });
       }
 
       UI_block_emboss_set(subblock, UI_EMBOSS);

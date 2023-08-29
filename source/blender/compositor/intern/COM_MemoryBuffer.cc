@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -361,7 +361,7 @@ void MemoryBuffer::copy_from(const ImBuf *src,
               to_y,
               to_channel_offset);
     if (ensure_linear_space) {
-      colorspace_to_scene_linear(this, area, src->rect_colorspace);
+      colorspace_to_scene_linear(this, area, src->byte_buffer.colorspace);
     }
   }
   else {

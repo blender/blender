@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Clips point to near clip plane before perspective divide. */
 vec4 clip_line_point_homogeneous_space(vec4 p, vec4 q)
@@ -32,12 +35,12 @@ void do_vertex(const int i, vec4 pos, vec2 ofs)
   interp_out.clip = interp_in[i].clip;
 #endif
 
-  interp_out.smoothline = (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
+  interp_noperspective_out.smoothline = (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy += ofs * pos.w;
   EmitVertex();
 
-  interp_out.smoothline = -(lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
+  interp_noperspective_out.smoothline = -(lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy -= ofs * pos.w;
   EmitVertex();

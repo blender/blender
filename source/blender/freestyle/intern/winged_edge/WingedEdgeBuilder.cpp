@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -69,7 +71,7 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
 {
   uint vsize = ifs.vsize();
   uint nsize = ifs.nsize();
-  // soc unused - unsigned tsize = ifs.tsize();
+  // soc unused - uint tsize = ifs.tsize();
 
   const float *vertices = ifs.vertices();
   const float *normals = ifs.normals();

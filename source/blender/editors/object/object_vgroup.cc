@@ -27,7 +27,6 @@
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
 #include "BLI_vector.hh"
@@ -40,8 +39,8 @@
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
@@ -54,18 +53,18 @@
 #include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "object_intern.h"
 
@@ -723,7 +722,7 @@ static const EnumPropertyItem WT_vertex_group_select_item[] = {
 
 const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *C,
                                                                 PointerRNA * /*ptr*/,
-                                                                PropertyRNA *prop,
+                                                                PropertyRNA * /*prop*/,
                                                                 bool *r_free,
                                                                 const uint selection_mask)
 {
@@ -761,12 +760,6 @@ const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *
     RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ALL);
   }
 
-  /* Set `Deform Bone` as default selection if armature is present. */
-  if (ob) {
-    RNA_def_property_enum_default(
-        prop, BKE_modifiers_is_deformed_by_armature(ob) ? WT_VGROUP_BONE_DEFORM : WT_VGROUP_ALL);
-  }
-
   RNA_enum_item_end(&item, &totitem);
   *r_free = true;
 
@@ -796,7 +789,7 @@ static void vgroup_operator_subset_select_props(wmOperatorType *ot, bool use_act
 
   prop = RNA_def_enum(ot->srna,
                       "group_select_mode",
-                      DummyRNA_NULL_items,
+                      rna_enum_dummy_NULL_items,
                       use_active ? WT_VGROUP_ACTIVE : WT_VGROUP_ALL,
                       "Subset",
                       "Define which subset of groups shall be used");
@@ -1607,7 +1600,7 @@ static void vgroup_smooth_subset(Object *ob,
 #define IS_BM_VERT_WRITE(v) (use_select ? (BM_elem_flag_test(v, BM_ELEM_SELECT) != 0) : true)
 
   const bool *hide_vert = me ? (const bool *)CustomData_get_layer_named(
-                                   &me->vdata, CD_PROP_BOOL, ".hide_vert") :
+                                   &me->vert_data, CD_PROP_BOOL, ".hide_vert") :
                                nullptr;
 
 #define IS_ME_VERT_READ(v) (use_hide ? !(hide_vert && hide_vert[v]) : true)
@@ -2898,6 +2891,12 @@ void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
 static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
+
+  /* If armature is present, default to `Deform Bones` otherwise `All Groups`. */
+  RNA_enum_set(op->ptr,
+               "group_select_mode",
+               BKE_modifiers_is_deformed_by_armature(ob) ? WT_VGROUP_BONE_DEFORM : WT_VGROUP_ALL);
+
   bool lock_active = RNA_boolean_get(op->ptr, "lock_active");
   eVGroupSelect subset_type = static_cast<eVGroupSelect>(
       RNA_enum_get(op->ptr, "group_select_mode"));
@@ -2966,9 +2965,9 @@ static int vertex_group_lock_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static char *vertex_group_lock_description(bContext * /*C*/,
-                                           wmOperatorType * /*op*/,
-                                           PointerRNA *params)
+static std::string vertex_group_lock_description(bContext * /*C*/,
+                                                 wmOperatorType * /*op*/,
+                                                 PointerRNA *params)
 {
   int action = RNA_enum_get(params, "action");
   int mask = RNA_enum_get(params, "mask");
@@ -2979,51 +2978,49 @@ static char *vertex_group_lock_description(bContext * /*C*/,
     case VGROUP_LOCK:
       switch (mask) {
         case VGROUP_MASK_ALL:
-          return BLI_strdup(TIP_("Lock all vertex groups of the active object"));
+          return TIP_("Lock all vertex groups of the active object");
         case VGROUP_MASK_SELECTED:
-          return BLI_strdup(TIP_("Lock selected vertex groups of the active object"));
+          return TIP_("Lock selected vertex groups of the active object");
         case VGROUP_MASK_UNSELECTED:
-          return BLI_strdup(TIP_("Lock unselected vertex groups of the active object"));
+          return TIP_("Lock unselected vertex groups of the active object");
         case VGROUP_MASK_INVERT_UNSELECTED:
-          return BLI_strdup(
-              TIP_("Lock selected and unlock unselected vertex groups of the active object"));
+          return TIP_("Lock selected and unlock unselected vertex groups of the active object");
       }
       break;
     case VGROUP_UNLOCK:
       switch (mask) {
         case VGROUP_MASK_ALL:
-          return BLI_strdup(TIP_("Unlock all vertex groups of the active object"));
+          return TIP_("Unlock all vertex groups of the active object");
         case VGROUP_MASK_SELECTED:
-          return BLI_strdup(TIP_("Unlock selected vertex groups of the active object"));
+          return TIP_("Unlock selected vertex groups of the active object");
         case VGROUP_MASK_UNSELECTED:
-          return BLI_strdup(TIP_("Unlock unselected vertex groups of the active object"));
+          return TIP_("Unlock unselected vertex groups of the active object");
         case VGROUP_MASK_INVERT_UNSELECTED:
-          return BLI_strdup(
-              TIP_("Unlock selected and lock unselected vertex groups of the active object"));
+          return TIP_("Unlock selected and lock unselected vertex groups of the active object");
       }
       break;
     case VGROUP_TOGGLE:
       switch (mask) {
         case VGROUP_MASK_ALL:
-          return BLI_strdup(TIP_("Toggle locks of all vertex groups of the active object"));
+          return TIP_("Toggle locks of all vertex groups of the active object");
         case VGROUP_MASK_SELECTED:
-          return BLI_strdup(TIP_("Toggle locks of selected vertex groups of the active object"));
+          return TIP_("Toggle locks of selected vertex groups of the active object");
         case VGROUP_MASK_UNSELECTED:
-          return BLI_strdup(TIP_("Toggle locks of unselected vertex groups of the active object"));
+          return TIP_("Toggle locks of unselected vertex groups of the active object");
         case VGROUP_MASK_INVERT_UNSELECTED:
-          return BLI_strdup(TIP_(
-              "Toggle locks of all and invert unselected vertex groups of the active object"));
+          return TIP_(
+              "Toggle locks of all and invert unselected vertex groups of the active object");
       }
       break;
     case VGROUP_INVERT:
       switch (mask) {
         case VGROUP_MASK_ALL:
-          return BLI_strdup(TIP_("Invert locks of all vertex groups of the active object"));
+          return TIP_("Invert locks of all vertex groups of the active object");
         case VGROUP_MASK_SELECTED:
         case VGROUP_MASK_INVERT_UNSELECTED:
-          return BLI_strdup(TIP_("Invert locks of selected vertex groups of the active object"));
+          return TIP_("Invert locks of selected vertex groups of the active object");
         case VGROUP_MASK_UNSELECTED:
-          return BLI_strdup(TIP_("Invert locks of unselected vertex groups of the active object"));
+          return TIP_("Invert locks of unselected vertex groups of the active object");
       }
       break;
     default:
@@ -3503,7 +3500,7 @@ static const EnumPropertyItem *vgroup_itemf(bContext *C,
                                             bool *r_free)
 {
   if (C == nullptr) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   Object *ob = ED_object_context(C);
@@ -3513,7 +3510,7 @@ static const EnumPropertyItem *vgroup_itemf(bContext *C,
   int a, totitem = 0;
 
   if (!ob) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   const ListBase *defbase = BKE_object_defgroup_list(ob);
@@ -3550,7 +3547,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_enum(
-      ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "Vertex group to set as active");
+      ot->srna, "group", rna_enum_dummy_NULL_items, 0, "Group", "Vertex group to set as active");
   RNA_def_enum_funcs(prop, vgroup_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
@@ -3573,9 +3570,7 @@ static char *vgroup_init_remap(Object *ob)
   char *name;
 
   name = name_array;
-  for (const bDeformGroup *def = static_cast<const bDeformGroup *>(defbase->first); def;
-       def = def->next)
-  {
+  LISTBASE_FOREACH (const bDeformGroup *, def, defbase) {
     BLI_strncpy(name, def->name, MAX_VGROUP_NAME);
     name += MAX_VGROUP_NAME;
   }
@@ -3708,8 +3703,7 @@ static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
   ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
 
   if (bonebase != nullptr) {
-    Bone *bone;
-    for (bone = static_cast<Bone *>(bonebase->last); bone; bone = bone->prev) {
+    LISTBASE_FOREACH_BACKWARD (Bone *, bone, bonebase) {
       bDeformGroup *dg = BKE_object_defgroup_find_name(ob, bone->name);
       vgroup_sort_bone_hierarchy(ob, &bone->childbase);
 

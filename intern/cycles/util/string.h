@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
-#include <sstream>
 #include <string.h>
 #include <string>
 
@@ -16,10 +16,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-using std::istringstream;
-using std::ostringstream;
 using std::string;
-using std::stringstream;
 using std::to_string;
 
 using OIIO::string_view;

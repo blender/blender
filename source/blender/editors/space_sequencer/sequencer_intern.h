@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,7 +9,7 @@
 #pragma once
 
 #include "DNA_sequence_types.h"
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,7 +58,7 @@ typedef struct SeqChannelDrawContext {
   float scale;
 } SeqChannelDrawContext;
 
-/* sequencer_draw.c */
+/* `sequencer_draw.cc` */
 
 void draw_timeline_seq(const struct bContext *C, struct ARegion *region);
 void draw_timeline_seq_display(const struct bContext *C, struct ARegion *region);
@@ -100,7 +100,7 @@ struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
                                  int frame_ofs,
                                  const char *viewname);
 
-/* sequencer_thumbnails.c */
+/* `sequencer_thumbnails.cc` */
 
 void last_displayed_thumbnails_list_free(void *val);
 void draw_seq_strip_thumbnail(struct View2D *v2d,
@@ -119,7 +119,7 @@ void channel_draw_context_init(const struct bContext *C,
                                struct ARegion *region,
                                struct SeqChannelDrawContext *r_context);
 
-/* sequencer_edit.c */
+/* `sequencer_edit.cc` */
 
 struct View2D;
 void seq_rectf(const struct Scene *scene, struct Sequence *seq, struct rctf *rectf);
@@ -226,7 +226,7 @@ void SEQUENCER_OT_strip_color_tag_set(struct wmOperatorType *ot);
 void SEQUENCER_OT_cursor_set(struct wmOperatorType *ot);
 void SEQUENCER_OT_scene_frame_range_update(struct wmOperatorType *ot);
 
-/* sequencer_select.c */
+/* `sequencer_select.cc` */
 
 void SEQUENCER_OT_select_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_select(struct wmOperatorType *ot);
@@ -241,7 +241,7 @@ void SEQUENCER_OT_select_box(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(struct wmOperatorType *ot);
 
-/* sequencer_add.c */
+/* `sequencer_add.cc` */
 
 void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_scene_strip_add_new(struct wmOperatorType *ot);
@@ -252,11 +252,11 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot);
 
-/* sequencer_drag_drop.c */
+/* `sequencer_drag_drop.cc` */
 
 void sequencer_dropboxes(void);
 
-/* sequencer_ops.c */
+/* `sequencer_ops.cc` */
 
 void sequencer_operatortypes(void);
 void sequencer_keymap(struct wmKeyConfig *keyconf);
@@ -269,7 +269,7 @@ struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf *ibuf);
 struct ImBuf *make_zebra_view_from_ibuf(struct ImBuf *ibuf, float perc);
 struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf *ibuf);
 
-/* sequencer_buttons.c */
+/* `sequencer_buttons.cc` */
 
 void sequencer_buttons_register(struct ARegionType *art);
 
@@ -280,7 +280,7 @@ void SEQUENCER_OT_strip_modifier_remove(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_move(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_copy(struct wmOperatorType *ot);
 
-/* sequencer_view.c */
+/* `sequencer_view.cc` */
 
 void SEQUENCER_OT_sample(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
@@ -290,15 +290,15 @@ void SEQUENCER_OT_view_zoom_ratio(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_ghost_border(struct wmOperatorType *ot);
 
-/* sequencer_channels_edit.c */
+/* `sequencer_channels_edit.cc` */
 
 void SEQUENCER_OT_rename_channel(struct wmOperatorType *ot);
 
-/* sequencer_preview.c */
+/* `sequencer_preview.cc` */
 
 void sequencer_preview_add_sound(const struct bContext *C, struct Sequence *seq);
 
-/* sequencer_add.c */
+/* `sequencer_add.cc` */
 
 int sequencer_image_seq_get_minmax_frame(struct wmOperator *op,
                                          int sfra,
@@ -307,19 +307,21 @@ int sequencer_image_seq_get_minmax_frame(struct wmOperator *op,
 void sequencer_image_seq_reserve_frames(
     struct wmOperator *op, struct StripElem *se, int len, int minframe, int numdigits);
 
-/* sequencer_retiming.c */
+/* `sequencer_retiming.cc` */
 void SEQUENCER_OT_retiming_reset(struct wmOperatorType *ot);
 void SEQUENCER_OT_retiming_handle_move(struct wmOperatorType *ot);
 void SEQUENCER_OT_retiming_handle_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_retiming_handle_remove(struct wmOperatorType *ot);
+void SEQUENCER_OT_retiming_segment_speed_set(struct wmOperatorType *ot);
 
-/* sequencer_gizmo_retime.c */
+/* `sequencer_gizmo_retime.cc` */
 void SEQUENCER_GGT_gizmo_retime(struct wmGizmoGroupType *gzgt);
 
-/* sequencer_gizmo_retime_type.c */
+/* `sequencer_gizmo_retime_type.cc` */
 void GIZMO_GT_retime_handle_add(struct wmGizmoType *gzt);
 void GIZMO_GT_retime_handle(struct wmGizmoType *gzt);
 void GIZMO_GT_retime_remove(struct wmGizmoType *gzt);
+void GIZMO_GT_speed_set_remove(struct wmGizmoType *gzt);
 
 #ifdef __cplusplus
 }

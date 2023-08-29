@@ -1,20 +1,17 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   ../include
   ../../blenkernel
-  ../../blenlib
   ../../blentranslation
   ../../depsgraph
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../sequencer
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -23,31 +20,34 @@ set(INC_SYS
 )
 
 set(SRC
-  anim_channels_defines.c
-  anim_channels_edit.c
-  anim_deps.c
-  anim_draw.c
-  anim_filter.c
-  anim_ipo_utils.c
-  anim_markers.c
-  anim_motion_paths.c
-  anim_ops.c
-  drivers.c
-  fmodifier_ui.c
-  keyframes_draw.c
-  keyframes_edit.c
-  keyframes_general.c
+  anim_channels_defines.cc
+  anim_channels_edit.cc
+  anim_deps.cc
+  anim_draw.cc
+  anim_filter.cc
+  anim_ipo_utils.cc
+  anim_markers.cc
+  anim_motion_paths.cc
+  anim_ops.cc
+  drivers.cc
+  fmodifier_ui.cc
+  keyframes_draw.cc
+  keyframes_edit.cc
+  keyframes_general.cc
   keyframes_keylist.cc
-  keyframing.c
-  keyingsets.c
-  time_scrub_ui.c
+  keyframing.cc
+  keyingsets.cc
+  time_scrub_ui.cc
 
   anim_intern.h
 )
 
 set(LIB
   bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::animrig
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_PYTHON)

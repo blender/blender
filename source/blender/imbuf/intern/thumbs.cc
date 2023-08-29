@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,8 @@
  * \ingroup imbuf
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -18,6 +18,7 @@
 #include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -30,11 +31,11 @@
 #include "IMB_metadata.h"
 #include "IMB_thumbs.h"
 
-#include <ctype.h>
-#include <string.h>
+#include <cctype>
+#include <cstring>
+#include <ctime>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <time.h>
 
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */
@@ -84,7 +85,7 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
   const char *home = BLI_getenv("HOME");
 #  endif
   if (!home) {
-    return 0;
+    return false;
   }
   s += BLI_strncpy_rlen(s, home, FILE_MAX);
 
@@ -105,13 +106,13 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
       subdir = SEP_STR THUMBNAILS SEP_STR "fail" SEP_STR "blender" SEP_STR;
       break;
     default:
-      return 0; /* unknown size */
+      return false; /* unknown size */
   }
 
   s += BLI_strncpy_rlen(s, subdir, FILE_MAX - (s - dir));
   (void)s;
 
-  return 1;
+  return true;
 }
 
 #undef THUMBNAILS
@@ -127,13 +128,13 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
  *
  * \{ */
 
-typedef enum {
+enum eUnsafeCharacterSet {
   UNSAFE_ALL = 0x1,        /* Escape all unsafe characters. */
   UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+' */
   UNSAFE_PATH = 0x8,       /* Allows '/', '&', '=', ':', '@', '+', '$' and ',' */
   UNSAFE_HOST = 0x10,      /* Allows '/' and ':' and '@' */
   UNSAFE_SLASHES = 0x20,   /* Allows all characters except for '/' and '%' */
-} UnsafeCharacterSet;
+};
 
 /* Don't lose comment alignment. */
 /* clang-format off */
@@ -160,38 +161,35 @@ static const char hex[17] = "0123456789abcdef";
  * escape something else, please read RFC-2396 */
 static void escape_uri_string(const char *string,
                               char *escaped_string,
-                              int escaped_string_size,
-                              UnsafeCharacterSet mask)
+                              const int escaped_string_size,
+                              const eUnsafeCharacterSet mask)
 {
-#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a)-32] & use_mask))
+#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a)-32] & mask))
+
+  BLI_assert(escaped_string_size > 0);
+  /* Remove space for \0. */
+  int escaped_string_len = escaped_string_size - 1;
 
   const char *p;
   char *q;
   int c;
-  UnsafeCharacterSet use_mask;
-  use_mask = mask;
 
-  BLI_assert(escaped_string_size > 0);
-
-  /* space for \0 */
-  escaped_string_size -= 1;
-
-  for (q = escaped_string, p = string; (*p != '\0') && escaped_string_size; p++) {
+  for (q = escaped_string, p = string; (*p != '\0') && escaped_string_len; p++) {
     c = uchar(*p);
 
     if (!ACCEPTABLE(c)) {
-      if (escaped_string_size < 3) {
+      if (escaped_string_len < 3) {
         break;
       }
 
       *q++ = '%'; /* means hex coming */
       *q++ = hex[c >> 4];
       *q++ = hex[c & 15];
-      escaped_string_size -= 3;
+      escaped_string_len -= 3;
     }
     else {
       *q++ = *p;
-      escaped_string_size -= 1;
+      escaped_string_len -= 1;
     }
   }
 
@@ -218,21 +216,37 @@ static bool uri_from_filename(const char *path, char *uri)
   char orig_uri[URI_MAX];
 
 #ifdef WIN32
-  if (strlen(path) < 2 && path[1] != ':') {
-    /* Not a correct absolute path. */
-    return 0;
+  bool path_is_unc = BLI_path_is_unc(path);
+  char path_unc_normalized[FILE_MAX];
+  if (path_is_unc) {
+    STRNCPY(path_unc_normalized, path);
+    BLI_path_normalize_unc(path_unc_normalized, sizeof(path_unc_normalized));
+    path = path_unc_normalized;
+    /* Assign again because a normalized UNC path may resolve to a drive letter. */
+    path_is_unc = BLI_path_is_unc(path);
   }
-  SNPRINTF(orig_uri, "file:///%s", path);
-  /* Always use an uppercase drive/volume letter in the URI. */
-  orig_uri[8] = char(toupper(orig_uri[8]));
-  BLI_str_replace_char(orig_uri, '\\', '/');
+
+  if (path_is_unc) {
+    /* Skip over the `\\` prefix, it's not needed for a URI. */
+    SNPRINTF(orig_uri, "file://%s", BLI_path_slash_skip(path));
+  }
+  else if (BLI_path_is_win32_drive(path)) {
+    SNPRINTF(orig_uri, "file:///%s", path);
+    /* Always use an uppercase drive/volume letter in the URI. */
+    orig_uri[8] = char(toupper(orig_uri[8]));
+  }
+  else {
+    /* Not a correct absolute path with a drive letter or UNC prefix. */
+    return false;
+  }
+  BLI_string_replace_char(orig_uri, '\\', '/');
 #else
   SNPRINTF(orig_uri, "file://%s", path);
 #endif
 
   escape_uri_string(orig_uri, uri, URI_MAX, UNSAFE_PATH);
 
-  return 1;
+  return true;
 }
 
 static bool thumbpathname_from_uri(const char *uri,
@@ -280,7 +294,7 @@ static bool thumbpath_from_uri(const char *uri, char *path, const int path_maxnc
   return thumbpathname_from_uri(uri, path, path_maxncpy, nullptr, 0, size);
 }
 
-void IMB_thumb_makedirs(void)
+void IMB_thumb_makedirs()
 {
   char tpath[FILE_MAX];
 #if 0 /* UNUSED */
@@ -344,7 +358,8 @@ static ImBuf *thumb_create_ex(const char *file_path,
       }
     }
     else {
-      if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT)) {
+      if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT, THB_SOURCE_OBJECT_IO))
+      {
         /* only load if we didn't give an image */
         if (img == nullptr) {
           switch (source) {
@@ -357,6 +372,12 @@ static ImBuf *thumb_create_ex(const char *file_path,
             case THB_SOURCE_FONT:
               img = IMB_thumb_load_font(file_path, tsize, tsize);
               break;
+            case THB_SOURCE_OBJECT_IO: {
+              if (BLI_path_extension_check(file_path, ".svg")) {
+                img = IMB_thumb_load_image(file_path, tsize, nullptr);
+              }
+              break;
+            }
             default:
               BLI_assert_unreachable(); /* This should never happen */
           }
@@ -369,7 +390,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
         }
       }
       else if (THB_SOURCE_MOVIE == source) {
-        struct anim *anim = nullptr;
+        anim *anim = nullptr;
         anim = IMB_open_anim(file_path, IB_rect | IB_metadata, 0, nullptr);
         if (anim != nullptr) {
           img = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -631,9 +652,9 @@ static struct IMBThumbLocks {
   GSet *locked_paths;
   int lock_counter;
   ThreadCondition cond;
-} thumb_locks = {0};
+} thumb_locks = {nullptr};
 
-void IMB_thumb_locks_acquire(void)
+void IMB_thumb_locks_acquire()
 {
   BLI_thread_lock(LOCK_IMAGE);
 
@@ -649,7 +670,7 @@ void IMB_thumb_locks_acquire(void)
   BLI_thread_unlock(LOCK_IMAGE);
 }
 
-void IMB_thumb_locks_release(void)
+void IMB_thumb_locks_release()
 {
   BLI_thread_lock(LOCK_IMAGE);
   BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));

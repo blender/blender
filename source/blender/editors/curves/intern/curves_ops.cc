@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,18 +11,21 @@
 #include "BLI_array_utils.hh"
 #include "BLI_devirtualize_parameters.hh"
 #include "BLI_kdtree.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
-#include "ED_curves.h"
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
+#include "BLT_translation.h"
 
-#include "WM_api.h"
+#include "ED_curves.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
+#include "ED_view3d.hh"
+
+#include "WM_api.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
@@ -32,11 +35,11 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_legacy_convert.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_legacy_convert.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_report.h"
 
@@ -50,13 +53,13 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GEO_reverse_uv_sampler.hh"
 
@@ -269,9 +272,9 @@ static void try_convert_single_object(Object &curves_ob,
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
   const Span<float3> positions_cu = curves.positions();
-  const Span<int> looptri_polys = surface_me.looptri_polys();
+  const Span<int> looptri_faces = surface_me.looptri_faces();
 
-  if (looptri_polys.is_empty()) {
+  if (looptri_faces.is_empty()) {
     *r_could_not_convert_some_curves = true;
   }
 
@@ -310,18 +313,18 @@ static void try_convert_single_object(Object &curves_ob,
 
   /* Prepare utility data structure to map hair roots to #MFace's. */
   const Span<int> mface_to_poly_map{
-      static_cast<const int *>(CustomData_get_layer(&surface_me.fdata, CD_ORIGINDEX)),
-      surface_me.totface};
-  Array<Vector<int>> poly_to_mface_map(surface_me.totpoly);
+      static_cast<const int *>(CustomData_get_layer(&surface_me.fdata_legacy, CD_ORIGINDEX)),
+      surface_me.totface_legacy};
+  Array<Vector<int>> poly_to_mface_map(surface_me.faces_num);
   for (const int mface_i : mface_to_poly_map.index_range()) {
-    const int poly_i = mface_to_poly_map[mface_i];
-    poly_to_mface_map[poly_i].append(mface_i);
+    const int face_i = mface_to_poly_map[mface_i];
+    poly_to_mface_map[face_i].append(mface_i);
   }
 
   /* Prepare transformation matrices. */
   const bke::CurvesSurfaceTransforms transforms{curves_ob, &surface_ob};
 
-  const MFace *mfaces = (const MFace *)CustomData_get_layer(&surface_me.fdata, CD_MFACE);
+  const MFace *mfaces = (const MFace *)CustomData_get_layer(&surface_me.fdata_legacy, CD_MFACE);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const Span<float3> positions = surface_me.vert_positions();
 
@@ -339,10 +342,10 @@ static void try_convert_single_object(Object &curves_ob,
     BLI_assert(nearest.index >= 0);
 
     const int looptri_i = nearest.index;
-    const int poly_i = looptri_polys[looptri_i];
+    const int face_i = looptri_faces[looptri_i];
 
     const int mface_i = find_mface_for_root_position(
-        positions, mfaces, poly_to_mface_map[poly_i], root_pos_su);
+        positions, mfaces, poly_to_mface_map[face_i], root_pos_su);
     const MFace &mface = mfaces[mface_i];
 
     const float4 mface_weights = compute_mface_weights_for_position(positions, mface, root_pos_su);
@@ -373,7 +376,9 @@ static void try_convert_single_object(Object &curves_ob,
 
       HairKey &key = hair_keys[key_i];
       copy_v3_v3(key.co, key_pos_ha);
-      key.time = 100.0f * key_i / float(hair_keys.size() - 1);
+      const float key_fac = key_i / float(hair_keys.size() - 1);
+      key.time = 100.0f * key_fac;
+      key.weight = 1.0f - key_fac;
     }
   }
 
@@ -886,7 +891,22 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = curves_id->geometry.wrap();
-    select_random(curves, eAttrDomain(curves_id->selection_domain), uint32_t(seed), probability);
+    const eAttrDomain selection_domain = eAttrDomain(curves_id->selection_domain);
+
+    IndexMaskMemory memory;
+    const IndexMask inv_random_elements = random_mask(
+                                              curves, selection_domain, seed, probability, memory)
+                                              .complement(curves.points_range(), memory);
+
+    const bool was_anything_selected = has_anything_selected(curves);
+    bke::GSpanAttributeWriter selection = ensure_selection_attribute(
+        curves, selection_domain, CD_PROP_BOOL);
+    if (!was_anything_selected) {
+      curves::fill_selection_true(selection.span);
+    }
+
+    curves::fill_selection_false(selection.span, inv_random_elements);
+    selection.finish();
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */
@@ -900,7 +920,7 @@ static void select_random_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiItemR(layout, op->ptr, "seed", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(layout, op->ptr, "probability", UI_ITEM_R_SLIDER, "Probability", ICON_NONE);
 }
 
@@ -936,15 +956,33 @@ static void CURVES_OT_select_random(wmOperatorType *ot)
                 1.0f);
 }
 
-static int select_end_exec(bContext *C, wmOperator *op)
+static int select_ends_exec(bContext *C, wmOperator *op)
 {
   VectorSet<Curves *> unique_curves = curves::get_unique_editable_curves(*C);
-  const bool end_points = RNA_boolean_get(op->ptr, "end_points");
-  const int amount = RNA_int_get(op->ptr, "amount");
+  const int amount_start = RNA_int_get(op->ptr, "amount_start");
+  const int amount_end = RNA_int_get(op->ptr, "amount_end");
 
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = curves_id->geometry.wrap();
-    select_ends(curves, amount, end_points);
+
+    IndexMaskMemory memory;
+    const IndexMask inverted_end_points_mask = end_points(
+        curves, amount_start, amount_end, true, memory);
+
+    const bool was_anything_selected = has_anything_selected(curves);
+    bke::GSpanAttributeWriter selection = ensure_selection_attribute(
+        curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+    if (!was_anything_selected) {
+      fill_selection_true(selection.span);
+    }
+
+    if (selection.span.type().is<bool>()) {
+      index_mask::masked_fill(selection.span.typed<bool>(), false, inverted_end_points_mask);
+    }
+    if (selection.span.type().is<float>()) {
+      index_mask::masked_fill(selection.span.typed<float>(), 0.0f, inverted_end_points_mask);
+    }
+    selection.finish();
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */
@@ -955,24 +993,48 @@ static int select_end_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void CURVES_OT_select_end(wmOperatorType *ot)
+static void select_ends_ui(bContext * /*C*/, wmOperator *op)
 {
-  ot->name = "Select End";
+  uiLayout *layout = op->layout;
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiLayout *col = uiLayoutColumn(layout, true);
+  uiLayoutSetPropDecorate(col, false);
+  uiItemR(col, op->ptr, "amount_start", UI_ITEM_NONE, IFACE_("Amount Start"), ICON_NONE);
+  uiItemR(col, op->ptr, "amount_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+}
+
+static void CURVES_OT_select_ends(wmOperatorType *ot)
+{
+  ot->name = "Select Ends";
   ot->idname = __func__;
   ot->description = "Select end points of curves";
 
-  ot->exec = select_end_exec;
+  ot->exec = select_ends_exec;
+  ot->ui = select_ends_ui;
   ot->poll = editable_curves_point_domain_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna,
-                  "end_points",
-                  true,
-                  "End Points",
-                  "Select points at the end of the curve as opposed to the beginning");
-  RNA_def_int(
-      ot->srna, "amount", 1, 0, INT32_MAX, "Amount", "Number of points to select", 0, INT32_MAX);
+  RNA_def_int(ot->srna,
+              "amount_start",
+              0,
+              0,
+              INT32_MAX,
+              "Amount Front",
+              "Number of points to select from the front",
+              0,
+              INT32_MAX);
+  RNA_def_int(ot->srna,
+              "amount_end",
+              1,
+              0,
+              INT32_MAX,
+              "Amount Back",
+              "Number of points to select from the back",
+              0,
+              INT32_MAX);
 }
 
 static int select_linked_exec(bContext *C, wmOperator * /*op*/)
@@ -1078,7 +1140,7 @@ static int surface_set_exec(bContext *C, wmOperator *op)
   Object &new_surface_ob = *CTX_data_active_object(C);
 
   Mesh &new_surface_mesh = *static_cast<Mesh *>(new_surface_ob.data);
-  const char *new_uv_map_name = CustomData_get_active_layer_name(&new_surface_mesh.ldata,
+  const char *new_uv_map_name = CustomData_get_active_layer_name(&new_surface_mesh.loop_data,
                                                                  CD_PROP_FLOAT2);
 
   CTX_DATA_BEGIN (C, Object *, selected_ob, selected_objects) {
@@ -1179,7 +1241,7 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_set_selection_domain);
   WM_operatortype_append(CURVES_OT_select_all);
   WM_operatortype_append(CURVES_OT_select_random);
-  WM_operatortype_append(CURVES_OT_select_end);
+  WM_operatortype_append(CURVES_OT_select_ends);
   WM_operatortype_append(CURVES_OT_select_linked);
   WM_operatortype_append(CURVES_OT_select_more);
   WM_operatortype_append(CURVES_OT_select_less);

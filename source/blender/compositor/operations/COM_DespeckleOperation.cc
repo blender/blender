@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -61,7 +61,7 @@ void DespeckleOperation::execute_pixel(float output[4], int x, int y, void * /*d
   input_operation_->read(color_org, x2, y2, nullptr);
 
 #define TOT_DIV_ONE 1.0f
-#define TOT_DIV_CNR (float)M_SQRT1_2
+#define TOT_DIV_CNR float(M_SQRT1_2)
 
 #define WTOT (TOT_DIV_ONE * 4 + TOT_DIV_CNR * 4)
 
@@ -177,7 +177,7 @@ void DespeckleOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const float *in1 = nullptr;
 
 #define TOT_DIV_ONE 1.0f
-#define TOT_DIV_CNR (float)M_SQRT1_2
+#define TOT_DIV_CNR float(M_SQRT1_2)
 
 #define WTOT (TOT_DIV_ONE * 4 + TOT_DIV_CNR * 4)
 
@@ -203,8 +203,8 @@ void DespeckleOperation::update_memory_buffer_partial(MemoryBuffer *output,
     COLOR_ADD(TOT_DIV_ONE)
 
 #if 0
-  const float* in2 = image->get_elem(x2, y2);
-  madd_v4_v4fl(color_mid, in2, filter_[4]);
+    const float *in2 = image->get_elem(x2, y2);
+    madd_v4_v4fl(color_mid, in2, filter_[4]);
 #endif
 
     in1 = image->get_elem(x3, y2);

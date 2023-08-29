@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,15 +30,15 @@ struct wmGizmoType;
 struct wmKeyConfig;
 struct wmOperatorType;
 
-/* view3d_header.c */
+/* `view3d_header.cc` */
 
 void VIEW3D_OT_toggle_matcap_flip(struct wmOperatorType *ot);
 
-/* view3d_ops.c */
+/* `view3d_ops.cc` */
 
 void view3d_operatortypes(void);
 
-/* view3d_edit.c */
+/* `view3d_edit.cc` */
 
 void VIEW3D_OT_zoom_camera_1_to_1(struct wmOperatorType *ot);
 void VIEW3D_OT_view_lock_clear(struct wmOperatorType *ot);
@@ -57,7 +57,7 @@ void VIEW3D_OT_clear_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_shading(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_xray(struct wmOperatorType *ot);
 
-/* view3d_draw.c */
+/* `view3d_draw.cc` */
 
 void view3d_main_region_draw(const struct bContext *C, struct ARegion *region);
 /**
@@ -96,7 +96,7 @@ void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
 void VIEW3D_OT_select_menu(struct wmOperatorType *ot);
 void VIEW3D_OT_bone_select_menu(struct wmOperatorType *ot);
 
-/* view3d_utils.c */
+/* `view3d_utils.cc` */
 
 /**
  * For home, center etc.
@@ -112,7 +112,7 @@ bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d,
                                 float obmat[4][4]);
 bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const struct BoundBox *bb);
 
-/* view3d_view.c */
+/* `view3d_view.cc` */
 
 void VIEW3D_OT_camera_to_view(struct wmOperatorType *ot);
 void VIEW3D_OT_camera_to_view_selected(struct wmOperatorType *ot);
@@ -145,18 +145,18 @@ void view3d_viewmatrix_set(struct Depsgraph *depsgraph,
                            RegionView3D *rv3d,
                            const float rect_scale[2]);
 
-/* Called in transform_ops.c, on each regeneration of key-maps. */
+/* Called in `transform_ops.cc`, on each regeneration of key-maps. */
 
-/* view3d_placement.c */
+/* `view3d_placement.cc` */
 
 void viewplace_modal_keymap(struct wmKeyConfig *keyconf);
 
-/* view3d_buttons.c */
+/* `view3d_buttons.cc` */
 
 void VIEW3D_OT_object_mode_pie_or_toggle(struct wmOperatorType *ot);
 void view3d_buttons_register(struct ARegionType *art);
 
-/* view3d_camera_control.c */
+/* `view3d_camera_control.cc` */
 
 /**
  * Creates a #View3DCameraControl handle and sets up
@@ -186,7 +186,7 @@ void ED_view3d_cameracontrol_release(struct View3DCameraControl *vctrl, bool res
  */
 struct Object *ED_view3d_cameracontrol_object_get(struct View3DCameraControl *vctrl);
 
-/* view3d_snap.c */
+/* `view3d_snap.cc` */
 
 /**
  * Calculates the bounding box corners (min and max) for \a obedit.
@@ -202,7 +202,7 @@ void VIEW3D_OT_snap_cursor_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_active(struct wmOperatorType *ot);
 
-/* view3d_placement.c */
+/* `view3d_placement.cc` */
 
 void VIEW3D_OT_interactive_add(struct wmOperatorType *ot);
 

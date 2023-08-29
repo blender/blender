@@ -6,7 +6,6 @@
  * \ingroup imbuf
  */
 
-#include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
@@ -24,9 +23,9 @@
 /** \name Floyd-Steinberg dithering
  * \{ */
 
-typedef struct DitherContext {
+struct DitherContext {
   float dither;
-} DitherContext;
+};
 
 static DitherContext *create_dither_context(float dither)
 {
@@ -504,7 +503,7 @@ void IMB_buffer_float_from_float(float *rect_to,
   }
 }
 
-typedef struct FloatToFloatThreadData {
+struct FloatToFloatThreadData {
   float *rect_to;
   const float *rect_from;
   int channels_from;
@@ -514,7 +513,7 @@ typedef struct FloatToFloatThreadData {
   int width;
   int stride_to;
   int stride_from;
-} FloatToFloatThreadData;
+};
 
 static void imb_buffer_float_from_float_thread_do(void *data_v, int scanline)
 {
@@ -708,14 +707,14 @@ void IMB_rect_from_float(ImBuf *ibuf)
     }
   }
 
-  const char *from_colorspace = (ibuf->float_colorspace == nullptr) ?
+  const char *from_colorspace = (ibuf->float_buffer.colorspace == nullptr) ?
                                     IMB_colormanagement_role_colorspace_name_get(
                                         COLOR_ROLE_SCENE_LINEAR) :
-                                    ibuf->float_colorspace->name;
-  const char *to_colorspace = (ibuf->rect_colorspace == nullptr) ?
+                                    ibuf->float_buffer.colorspace->name;
+  const char *to_colorspace = (ibuf->byte_buffer.colorspace == nullptr) ?
                                   IMB_colormanagement_role_colorspace_name_get(
                                       COLOR_ROLE_DEFAULT_BYTE) :
-                                  ibuf->rect_colorspace->name;
+                                  ibuf->byte_buffer.colorspace->name;
 
   float *buffer = static_cast<float *>(MEM_dupallocN(ibuf->float_buffer.data));
 
@@ -748,9 +747,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
   ibuf->userflags &= ~IB_RECT_INVALID;
 }
 
-void IMB_float_from_rect_ex(struct ImBuf *dst,
-                            const struct ImBuf *src,
-                            const rcti *region_to_update)
+void IMB_float_from_rect_ex(ImBuf *dst, const ImBuf *src, const rcti *region_to_update)
 {
   BLI_assert_msg(dst->float_buffer.data != nullptr,
                  "Destination buffer should have a float buffer assigned.");
@@ -790,7 +787,7 @@ void IMB_float_from_rect_ex(struct ImBuf *dst,
   float *float_ptr = rect_float;
   for (int i = 0; i < region_height; i++) {
     IMB_colormanagement_colorspace_to_scene_linear(
-        float_ptr, region_width, 1, dst->channels, src->rect_colorspace, false);
+        float_ptr, region_width, 1, dst->channels, src->byte_buffer.colorspace, false);
     float_ptr += 4 * dst->x;
   }
 

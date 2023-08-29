@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_camera.h"
@@ -24,7 +24,7 @@ bool USDCameraWriter::is_supported(const HierarchyContext *context) const
 }
 
 static void camera_sensor_size_for_render(const Camera *camera,
-                                          const struct RenderData *rd,
+                                          const RenderData *rd,
                                           float *r_sensor_x,
                                           float *r_sensor_y)
 {

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2015-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Populate a template file (POT format currently) from Blender RNA/py/C data.
@@ -151,8 +153,8 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                 scene = None
             else:
                 rna_backup_restore(scene, render_context.backup_scene)
-        except Exception as e:
-            print("ERROR:", e)
+        except BaseException as ex:
+            print("ERROR:", ex)
             success = False
 
         if render_context.world is not None:
@@ -165,8 +167,8 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                     bpy.data.worlds.remove(world)
                 else:
                     rna_backup_restore(world, render_context.backup_world)
-            except Exception as e:
-                print("ERROR:", e)
+            except BaseException as ex:
+                print("ERROR:", ex)
                 success = False
 
         if render_context.camera:
@@ -183,8 +185,8 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                     rna_backup_restore(camera, render_context.backup_camera)
                     rna_backup_restore(bpy.data.cameras[render_context.camera_data, None],
                                        render_context.backup_camera_data)
-            except Exception as e:
-                print("ERROR:", e)
+            except BaseException as ex:
+                print("ERROR:", ex)
                 success = False
 
         if render_context.light:
@@ -200,16 +202,16 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                     rna_backup_restore(light, render_context.backup_light)
                     rna_backup_restore(bpy.data.lights[render_context.light_data,
                                                        None], render_context.backup_light_data)
-            except Exception as e:
-                print("ERROR:", e)
+            except BaseException as ex:
+                print("ERROR:", ex)
                 success = False
 
         try:
             image = bpy.data.images[render_context.image, None]
             image.user_clear()
             bpy.data.images.remove(image)
-        except Exception as e:
-            print("ERROR:", e)
+        except BaseException as ex:
+            print("ERROR:", ex)
             success = False
 
         return success
@@ -423,10 +425,10 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
         print("Saving %s..." % bpy.data.filepath)
         try:
             bpy.ops.wm.save_mainfile()
-        except Exception as e:
+        except BaseException as ex:
             # Might fail in some odd cases, like e.g. in regression files we have glsl/ram_glsl.blend which
             # references an inexistent texture... Better not break in this case, just spit error to console.
-            print("ERROR:", e)
+            print("ERROR:", ex)
     else:
         print("*NOT* Saving %s, because some error(s) happened while deleting temp render data..." % bpy.data.filepath)
 

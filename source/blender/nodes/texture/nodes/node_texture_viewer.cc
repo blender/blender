@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
 
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
-#include <math.h>
+#include <cmath>
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f},
@@ -33,7 +33,7 @@ static void exec(void *data,
   }
 }
 
-void register_node_type_tex_viewer(void)
+void register_node_type_tex_viewer()
 {
   static bNodeType ntype;
 

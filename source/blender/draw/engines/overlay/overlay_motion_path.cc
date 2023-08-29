@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,7 +17,7 @@
 
 #include "GPU_batch.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "draw_manager_text.h"
 
@@ -115,7 +115,7 @@ static void motion_path_cache(OVERLAY_Data *vedata,
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  struct DRWTextStore *dt = DRW_text_cache_ensure();
+  DRWTextStore *dt = DRW_text_cache_ensure();
   int txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
   int cfra = int(DEG_get_ctime(draw_ctx->depsgraph));
   bool selected = (pchan) ? (pchan->bone->flag & BONE_SELECTED) : (ob->base_flag & BASE_SELECTED);

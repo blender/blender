@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -88,9 +88,10 @@ class VKBackend : public GPUBackend {
   }
 
   static void platform_init(const VKDevice &device);
-  static void capabilities_init(const VKDevice &device);
+  static void capabilities_init(VKDevice &device);
 
  private:
+  static void detect_workarounds(VKDevice &device);
   static void platform_init();
   static void platform_exit();
 

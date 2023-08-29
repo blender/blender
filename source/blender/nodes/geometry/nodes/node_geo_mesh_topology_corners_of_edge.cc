@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 
-#include "BLI_task.hh"
+#include "BLI_array_utils.hh"
 
 #include "node_geometry_util.hh"
 
@@ -13,25 +13,21 @@ namespace blender::nodes::node_geo_mesh_topology_corners_of_edge_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Edge Index"))
+  b.add_input<decl::Int>("Edge Index")
       .implicit_field(implicit_field_inputs::index)
-      .description(N_("The edge to retrieve data from. Defaults to the edge from the context"));
-  b.add_input<decl::Float>(N_("Weights"))
-      .supports_field()
-      .hide_value()
-      .description(N_("Values that sort the corners attached to the edge"));
-  b.add_input<decl::Int>(N_("Sort Index"))
+      .description("The edge to retrieve data from. Defaults to the edge from the context");
+  b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
+      "Values that sort the corners attached to the edge");
+  b.add_input<decl::Int>("Sort Index")
       .min(0)
       .supports_field()
-      .description(N_("Which of the sorted corners to output"));
-  b.add_output<decl::Int>(N_("Corner Index"))
+      .description("Which of the sorted corners to output");
+  b.add_output<decl::Int>("Corner Index")
       .field_source_reference_all()
       .description(
-          N_("A corner of the input edge in its face's winding order, chosen by the sort index"));
-  b.add_output<decl::Int>(N_("Total"))
-      .field_source()
-      .reference_pass({0})
-      .description(N_("The number of faces or corners connected to each edge"));
+          "A corner of the input edge in its face's winding order, chosen by the sort index");
+  b.add_output<decl::Int>("Total").field_source().reference_pass({0}).description(
+      "The number of faces or corners connected to each edge");
 }
 
 class CornersOfEdgeInput final : public bke::MeshFieldInput {
@@ -151,12 +147,19 @@ class CornersOfEdgeCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_EDGE) {
       return {};
     }
-    const Span<int> corner_edges = mesh.corner_edges();
     Array<int> counts(mesh.totedge, 0);
-    for (const int i : corner_edges.index_range()) {
-      counts[corner_edges[i]]++;
-    }
+    array_utils::count_indices(mesh.corner_edges(), counts);
     return VArray<int>::ForContainer(std::move(counts));
+  }
+
+  uint64_t hash() const final
+  {
+    return 2345897985577;
+  }
+
+  bool is_equal_to(const fn::FieldNode &other) const final
+  {
+    return dynamic_cast<const CornersOfEdgeCountInput *>(&other) != nullptr;
   }
 
   std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
@@ -183,16 +186,16 @@ static void node_geo_exec(GeoNodeExecParams params)
                           params.extract_input<Field<float>>("Weights"))));
   }
 }
-}  // namespace blender::nodes::node_geo_mesh_topology_corners_of_edge_cc
 
-void register_node_type_geo_mesh_topology_corners_of_edge()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_topology_corners_of_edge_cc;
-
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_EDGE, "Corners of Edge", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_mesh_topology_corners_of_edge_cc

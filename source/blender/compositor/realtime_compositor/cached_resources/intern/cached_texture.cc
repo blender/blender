@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -51,7 +51,7 @@ bool operator==(const CachedTextureKey &a, const CachedTextureKey &b)
  */
 
 CachedTexture::CachedTexture(
-    Tex *texture, const Scene *scene, int2 size, float2 offset, float2 scale)
+    Tex *texture, bool use_color_management, int2 size, float2 offset, float2 scale)
 {
   ImagePool *image_pool = BKE_image_pool_new();
   BKE_texture_fetch_images_for_pool(texture, image_pool);
@@ -67,7 +67,8 @@ CachedTexture::CachedTexture(
         /* Note that it is expected that the offset is scaled by the scale. */
         coordinates = (coordinates + offset) * scale;
         TexResult texture_result;
-        BKE_texture_get_value_ex(scene, texture, coordinates, &texture_result, image_pool, true);
+        BKE_texture_get_value_ex(
+            texture, coordinates, &texture_result, image_pool, use_color_management);
         color_pixels[y * size.x + x] = float4(texture_result.trgba);
         value_pixels[y * size.x + x] = texture_result.talpha ? texture_result.trgba[3] :
                                                                texture_result.tin;
@@ -131,8 +132,12 @@ void CachedTextureContainer::reset()
   }
 }
 
-CachedTexture &CachedTextureContainer::get(
-    Context &context, Tex *texture, const Scene *scene, int2 size, float2 offset, float2 scale)
+CachedTexture &CachedTextureContainer::get(Context &context,
+                                           Tex *texture,
+                                           bool use_color_management,
+                                           int2 size,
+                                           float2 offset,
+                                           float2 scale)
 {
   const CachedTextureKey key(size, offset, scale);
 
@@ -143,8 +148,9 @@ CachedTexture &CachedTextureContainer::get(
     cached_textures_for_id.clear();
   }
 
-  auto &cached_texture = *cached_textures_for_id.lookup_or_add_cb(
-      key, [&]() { return std::make_unique<CachedTexture>(texture, scene, size, offset, scale); });
+  auto &cached_texture = *cached_textures_for_id.lookup_or_add_cb(key, [&]() {
+    return std::make_unique<CachedTexture>(texture, use_color_management, size, offset, scale);
+  });
 
   cached_texture.needed = true;
   return cached_texture;

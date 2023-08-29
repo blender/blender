@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
@@ -716,6 +718,8 @@ class DOPESHEET_MT_channel_context_menu(Menu):
 
         # This menu is used from the graph editor too.
         is_graph_editor = context.area.type == 'GRAPH_EDITOR'
+
+        layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
         layout.separator()
         layout.operator("anim.channels_view_selected")

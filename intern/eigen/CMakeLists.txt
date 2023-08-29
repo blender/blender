@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2015 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2015 Blender Foundation
 
 set(INC
   .
@@ -26,7 +27,7 @@ set(SRC
 set(LIB
 )
 
-if(WITH_OPENMP_STATIC)
+if(WITH_OPENMP AND WITH_OPENMP_STATIC)
   list(APPEND LIB
     ${OpenMP_LIBRARIES}
   )

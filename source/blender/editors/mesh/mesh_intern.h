@@ -26,7 +26,7 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 
-/* *** editmesh_utils.c *** */
+/* *** editmesh_utils.cc *** */
 
 /*
  * ok: the EDBM module is for editmode bmesh stuff.  in contrast, the
@@ -106,7 +106,7 @@ bool edbm_extrude_edges_indiv(struct BMEditMesh *em,
                               char hflag,
                               bool use_normal_flip);
 
-/* *** editmesh_add.c *** */
+/* *** `editmesh_add.cc` *** */
 
 void MESH_OT_primitive_plane_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_cube_add(struct wmOperatorType *ot);
@@ -118,7 +118,7 @@ void MESH_OT_primitive_monkey_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_uv_sphere_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_ico_sphere_add(struct wmOperatorType *ot);
 
-/* *** editmesh_add_gizmo.c *** */
+/* *** `editmesh_add_gizmo.cc` *** */
 
 void MESH_OT_primitive_cube_add_gizmo(struct wmOperatorType *ot);
 
@@ -126,16 +126,16 @@ void MESH_OT_primitive_cube_add_gizmo(struct wmOperatorType *ot);
 
 void MESH_OT_attribute_set(struct wmOperatorType *ot);
 
-/* *** editmesh_bevel.c *** */
+/* *** `editmesh_bevel.cc` *** */
 
 void MESH_OT_bevel(struct wmOperatorType *ot);
 struct wmKeyMap *bevel_modal_keymap(struct wmKeyConfig *keyconf);
 
-/* *** editmesh_bisect.c *** */
+/* *** `editmesh_bisect.cc` *** */
 
 void MESH_OT_bisect(struct wmOperatorType *ot);
 
-/* *** editmesh_extrude.c *** */
+/* *** `editmesh_extrude.cc` *** */
 
 void MESH_OT_extrude_repeat(struct wmOperatorType *ot);
 void MESH_OT_extrude_region(struct wmOperatorType *ot);
@@ -145,20 +145,20 @@ void MESH_OT_extrude_edges_indiv(struct wmOperatorType *ot);
 void MESH_OT_extrude_faces_indiv(struct wmOperatorType *ot);
 void MESH_OT_dupli_extrude_cursor(struct wmOperatorType *ot);
 
-/* *** editmesh_extrude_screw.c *** */
+/* *** `editmesh_extrude_screw.cc` *** */
 
 void MESH_OT_screw(struct wmOperatorType *ot);
 
-/* *** editmesh_extrude_spin.c *** */
+/* *** `editmesh_extrude_spin.cc` *** */
 
 void MESH_OT_spin(struct wmOperatorType *ot);
 
-/* *** editmesh_extrude_spin_gizmo.c *** */
+/* *** `editmesh_extrude_spin_gizmo.cc` *** */
 
 void MESH_GGT_spin(struct wmGizmoGroupType *gzgt);
 void MESH_GGT_spin_redo(struct wmGizmoGroupType *gzgt);
 
-/* *** editmesh_polybuild.c *** */
+/* *** `editmesh_polybuild.cc` *** */
 
 void MESH_OT_polybuild_face_at_cursor(struct wmOperatorType *ot);
 void MESH_OT_polybuild_split_at_cursor(struct wmOperatorType *ot);
@@ -166,17 +166,17 @@ void MESH_OT_polybuild_dissolve_at_cursor(struct wmOperatorType *ot);
 void MESH_OT_polybuild_transform_at_cursor(struct wmOperatorType *ot);
 void MESH_OT_polybuild_delete_at_cursor(struct wmOperatorType *ot);
 
-/* *** editmesh_inset.c *** */
+/* *** `editmesh_inset.cc` *** */
 
 void MESH_OT_inset(struct wmOperatorType *ot);
 
-/* *** editmesh_intersect.c *** */
+/* *** `editmesh_intersect.cc` *** */
 
 void MESH_OT_intersect(struct wmOperatorType *ot);
 void MESH_OT_intersect_boolean(struct wmOperatorType *ot);
 void MESH_OT_face_split_by_edges(struct wmOperatorType *ot);
 
-/* *** editmesh_knife.c *** */
+/* *** `editmesh_knife.cc` *** */
 
 void MESH_OT_knife_tool(struct wmOperatorType *ot);
 void MESH_OT_knife_project(struct wmOperatorType *ot);
@@ -192,11 +192,11 @@ void EDBM_mesh_knife(struct ViewContext *vc,
 
 struct wmKeyMap *knifetool_modal_keymap(struct wmKeyConfig *keyconf);
 
-/* *** editmesh_loopcut.c *** */
+/* *** `editmesh_loopcut.cc` *** */
 
 void MESH_OT_loopcut(struct wmOperatorType *ot);
 
-/* *** editmesh_rip.c *** */
+/* *** `editmesh_rip.cc` *** */
 
 void MESH_OT_rip(struct wmOperatorType *ot);
 void MESH_OT_rip_edge(struct wmOperatorType *ot);
@@ -308,7 +308,7 @@ void MESH_OT_paint_mask_extract(struct wmOperatorType *ot);
 void MESH_OT_face_set_extract(struct wmOperatorType *ot);
 void MESH_OT_paint_mask_slice(struct wmOperatorType *ot);
 
-/** Called in transform_ops.c, on each regeneration of key-maps. */
+/** Called in `transform_ops.cc`, on each regeneration of key-maps. */
 struct wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf);
 
 #if defined(WITH_FREESTYLE)
@@ -325,10 +325,6 @@ void MESH_OT_customdata_skin_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_skin_clear(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_clear(struct wmOperatorType *ot);
-void MESH_OT_customdata_crease_vertex_add(struct wmOperatorType *ot);
-void MESH_OT_customdata_crease_vertex_clear(struct wmOperatorType *ot);
-void MESH_OT_customdata_crease_edge_add(struct wmOperatorType *ot);
-void MESH_OT_customdata_crease_edge_clear(struct wmOperatorType *ot);
 
 #ifdef __cplusplus
 }

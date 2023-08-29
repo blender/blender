@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -51,7 +53,7 @@ static int GetOccludersF1D___init__(BPy_GetOccludersF1D *self, PyObject *args, P
 /*-----------------------BPy_GetOccludersF1D type definition ------------------------------*/
 
 PyTypeObject GetOccludersF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GetOccludersF1D",
     /*tp_basicsize*/ sizeof(BPy_GetOccludersF1D),
     /*tp_itemsize*/ 0,

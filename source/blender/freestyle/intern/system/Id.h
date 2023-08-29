@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,11 +16,11 @@
 namespace Freestyle {
 
 /** Class used to tag any object by an id.
- *  It is made of two unsigned integers.
+ *  It is made of two unsigned-integers.
  */
 class Id {
  public:
-  typedef unsigned id_type;
+  typedef uint id_type;
 
   /** Default constructor */
   Id()

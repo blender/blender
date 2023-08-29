@@ -1,8 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Mode switching
- * Copyright 1997-2001 Id Software, Inc.
- * Copyright 1993-2011 Tim Riker
- * Copyright 2012 Alex Fraser */
+/* SPDX-FileCopyrightText: 1997-2001 Id Software, Inc.
+ * SPDX-FileCopyrightText: 1993-2011 Tim Riker
+ * SPDX-FileCopyrightText: 2012 Alex Fraser
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST

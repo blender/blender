@@ -84,7 +84,7 @@ void BLI_memarena_use_malloc(MemArena *ma)
   ma->use_calloc = 0;
 }
 
-void BLI_memarena_use_align(struct MemArena *ma, const size_t align)
+void BLI_memarena_use_align(MemArena *ma, const size_t align)
 {
   /* Align must be a power of two. */
   BLI_assert((align & (align - 1)) == 0);

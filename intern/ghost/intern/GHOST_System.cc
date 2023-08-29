@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -29,8 +30,9 @@ GHOST_System::GHOST_System()
       m_windowManager(nullptr),
       m_eventManager(nullptr),
 #ifdef WITH_INPUT_NDOF
-      m_ndofManager(0),
+      m_ndofManager(nullptr),
 #endif
+      m_preFullScreenSetting{0},
       m_multitouchGestures(true),
       m_tabletAPI(GHOST_kTabletAutomatic),
       m_is_debug_enabled(false)
@@ -339,6 +341,11 @@ GHOST_TTabletAPI GHOST_System::getTabletAPI()
   return m_tabletAPI;
 }
 
+GHOST_TSuccess GHOST_System::getPixelAtCursor(float[3] /* r_color */) const
+{
+  return GHOST_kFailure;
+}
+
 #ifdef WITH_INPUT_NDOF
 void GHOST_System::setNDOFDeadZone(float deadzone)
 {
@@ -397,12 +404,20 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
                                                     const GHOST_DisplaySetting &settings,
                                                     const bool stereoVisual)
 {
-  GHOST_GLSettings glSettings = {0};
+  GHOST_GPUSettings gpuSettings = {0};
 
   if (stereoVisual) {
-    glSettings.flags |= GHOST_glStereoVisual;
+    gpuSettings.flags |= GHOST_gpuStereoVisual;
   }
-  glSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
+#if defined(WITH_OPENGL_BACKEND)
+  gpuSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
+#elif defined(WITH_METAL_BACKEND)
+  gpuSettings.context_type = GHOST_kDrawingContextTypeMetal;
+#elif defined(WITH_VULKAN_BACKEND)
+  gpuSettings.context_type = GHOST_kDrawingContextTypeVulkan;
+#else
+#  error
+#endif
   /* NOTE: don't use #getCurrentDisplaySetting() because on X11 we may
    * be zoomed in and the desktop may be bigger than the viewport. */
   GHOST_ASSERT(m_displayManager,
@@ -414,7 +429,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
                                          settings.xPixels,
                                          settings.yPixels,
                                          GHOST_kWindowStateNormal,
-                                         glSettings,
+                                         gpuSettings,
                                          true /* exclusive */);
   return (*window == nullptr) ? GHOST_kFailure : GHOST_kSuccess;
 }

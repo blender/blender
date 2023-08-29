@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -77,6 +77,15 @@ void VKDescriptorSetTracker::bind_as_ssbo(VKIndexBuffer &buffer,
   binding.buffer_size = buffer.size_get();
 }
 
+void VKDescriptorSetTracker::bind_as_ssbo(VKUniformBuffer &buffer,
+                                          const VKDescriptorSet::Location location)
+{
+  Binding &binding = ensure_location(location);
+  binding.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  binding.vk_buffer = buffer.vk_handle();
+  binding.buffer_size = buffer.size_in_bytes();
+}
+
 void VKDescriptorSetTracker::image_bind(VKTexture &texture,
                                         const VKDescriptorSet::Location location)
 {
@@ -87,7 +96,7 @@ void VKDescriptorSetTracker::image_bind(VKTexture &texture,
 
 void VKDescriptorSetTracker::bind(VKTexture &texture,
                                   const VKDescriptorSet::Location location,
-                                  VKSampler &sampler)
+                                  const VKSampler &sampler)
 {
   Binding &binding = ensure_location(location);
   binding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -170,11 +179,12 @@ void VKDescriptorSetTracker::update(VKContext &context)
     if (!binding.is_image()) {
       continue;
     }
-    /* When updating the descriptor sets the layout of the texture should already be updated. */
-    binding.texture->layout_ensure(context, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    /* TODO: Based on the actual usage we should use
+     * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL/VK_IMAGE_LAYOUT_GENERAL. */
+    binding.texture->layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
     VkDescriptorImageInfo image_info = {};
     image_info.sampler = binding.vk_sampler;
-    image_info.imageView = binding.texture->vk_image_view_handle();
+    image_info.imageView = binding.texture->image_view_get().vk_handle();
     image_info.imageLayout = binding.texture->current_layout_get();
     image_infos.append(image_info);
 

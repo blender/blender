@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation
+/* SPDX-FileCopyrightText: 2017 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -50,7 +50,6 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_sound_types.h"
 
 #include "DRW_engine.h"
@@ -107,7 +106,6 @@ union NestedIDHackTempStorage {
   Scene scene;
   Tex tex;
   World world;
-  Simulation simulation;
 };
 
 /* Set nested owned ID pointers to nullptr. */
@@ -125,7 +123,6 @@ void nested_id_hack_discard_pointers(ID *id_cow)
     SPECIAL_CASE(ID_MA, Material, nodetree)
     SPECIAL_CASE(ID_TE, Tex, nodetree)
     SPECIAL_CASE(ID_WO, World, nodetree)
-    SPECIAL_CASE(ID_SIM, Simulation, nodetree)
 
     SPECIAL_CASE(ID_CU_LEGACY, Curve, key)
     SPECIAL_CASE(ID_LT, Lattice, key)
@@ -174,7 +171,6 @@ const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage
     SPECIAL_CASE(ID_MA, Material, nodetree, material)
     SPECIAL_CASE(ID_TE, Tex, nodetree, tex)
     SPECIAL_CASE(ID_WO, World, nodetree, world)
-    SPECIAL_CASE(ID_SIM, Simulation, nodetree, simulation)
 
     SPECIAL_CASE(ID_CU_LEGACY, Curve, key, curve)
     SPECIAL_CASE(ID_LT, Lattice, key, lattice)
@@ -214,7 +210,6 @@ void nested_id_hack_restore_pointers(const ID *old_id, ID *new_id)
     SPECIAL_CASE(ID_SCE, Scene, nodetree)
     SPECIAL_CASE(ID_TE, Tex, nodetree)
     SPECIAL_CASE(ID_WO, World, nodetree)
-    SPECIAL_CASE(ID_SIM, Simulation, nodetree)
 
     SPECIAL_CASE(ID_CU_LEGACY, Curve, key)
     SPECIAL_CASE(ID_LT, Lattice, key)
@@ -252,7 +247,6 @@ void ntree_hack_remap_pointers(const Depsgraph *depsgraph, ID *id_cow)
     SPECIAL_CASE(ID_SCE, Scene, nodetree, bNodeTree)
     SPECIAL_CASE(ID_TE, Tex, nodetree, bNodeTree)
     SPECIAL_CASE(ID_WO, World, nodetree, bNodeTree)
-    SPECIAL_CASE(ID_SIM, Simulation, nodetree, bNodeTree)
 
     SPECIAL_CASE(ID_CU_LEGACY, Curve, key, Key)
     SPECIAL_CASE(ID_LT, Lattice, key, Key)
@@ -1025,7 +1019,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
   id_cow->name[0] = '\0';
 }
 
-void deg_evaluate_copy_on_write(struct ::Depsgraph *graph, const IDNode *id_node)
+void deg_evaluate_copy_on_write(::Depsgraph *graph, const IDNode *id_node)
 {
   const Depsgraph *depsgraph = reinterpret_cast<const Depsgraph *>(graph);
   DEG_debug_print_eval(graph, __func__, id_node->id_orig->name, id_node->id_cow);

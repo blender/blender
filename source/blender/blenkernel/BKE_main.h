@@ -138,6 +138,13 @@ typedef struct Main {
   char filepath[1024];               /* 1024 = FILE_MAX */
   short versionfile, subversionfile; /* see BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION */
   short minversionfile, minsubversionfile;
+  /** The currently opened .blend file was written from a newer version of Blender, and has forward
+   * compatibility issues (data loss).
+   *
+   * \note: In practice currently this is only based on the version numbers, in the future it
+   * could try to use more refined detection on load. */
+  bool has_forward_compatibility_issues;
+
   /** Commit timestamp from `buildinfo`. */
   uint64_t build_commit_timestamp;
   /** Commit Hash from `buildinfo`. */
@@ -225,7 +232,6 @@ typedef struct Main {
   ListBase hair_curves;
   ListBase pointclouds;
   ListBase volumes;
-  ListBase simulations;
 
   /**
    * Must be generated, used and freed by same code - never assume this is valid data unless you
@@ -239,6 +245,10 @@ typedef struct Main {
 
   /** Used for efficient calculations of unique names. */
   struct UniqueName_Map *name_map;
+
+  /* Used for efficient calculations of unique names. Covers all names in current Main, including
+   * linked data ones. */
+  struct UniqueName_Map *name_map_global;
 
   struct MainLock *lock;
 } Main;
@@ -447,13 +457,17 @@ struct ListBase *which_libbase(struct Main *bmain, short type);
  */
 int set_listbasepointers(struct Main *main, struct ListBase *lb[]);
 
-#define MAIN_VERSION_ATLEAST(main, ver, subver) \
+#define MAIN_VERSION_FILE_ATLEAST(main, ver, subver) \
   ((main)->versionfile > (ver) || \
    ((main)->versionfile == (ver) && (main)->subversionfile >= (subver)))
 
-#define MAIN_VERSION_OLDER(main, ver, subver) \
+#define MAIN_VERSION_FILE_OLDER(main, ver, subver) \
   ((main)->versionfile < (ver) || \
    ((main)->versionfile == (ver) && (main)->subversionfile < (subver)))
+
+#define MAIN_VERSION_FILE_OLDER_OR_EQUAL(main, ver, subver) \
+  ((main)->versionfile < (ver) || \
+   ((main)->versionfile == (ver) && (main)->subversionfile <= (subver)))
 
 /**
  * The size of thumbnails (optionally) stored in the `.blend` files header.

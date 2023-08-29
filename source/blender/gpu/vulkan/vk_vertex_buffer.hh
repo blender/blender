@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,13 +10,13 @@
 
 #include "gpu_vertex_buffer_private.hh"
 
+#include "vk_bindable_resource.hh"
 #include "vk_buffer.hh"
 
 namespace blender::gpu {
 
-class VKVertexBuffer : public VertBuf {
+class VKVertexBuffer : public VertBuf, public VKBindableResource {
   VKBuffer buffer_;
-  bool should_unbind_ = false;
   /** When a vertex buffer is used as a UNIFORM_TEXEL_BUFFER the buffer requires a buffer view. */
   VkBufferView vk_buffer_view_ = VK_NULL_HANDLE;
 
@@ -25,7 +25,7 @@ class VKVertexBuffer : public VertBuf {
 
   void bind_as_ssbo(uint binding) override;
   void bind_as_texture(uint binding) override;
-  void bind(uint binding);
+  void bind(int binding, shader::ShaderCreateInfo::Resource::BindType bind_type) override;
   void wrap_handle(uint64_t handle) override;
 
   void update_sub(uint start, uint len, const void *data) override;
@@ -54,11 +54,11 @@ class VKVertexBuffer : public VertBuf {
   void allocate();
   void *convert() const;
 
-  /* VKTexture requires access to `buffer_` to convert a vertex buffer to a texture.*/
+  /* VKTexture requires access to `buffer_` to convert a vertex buffer to a texture. */
   friend class VKTexture;
 };
 
-static inline VKVertexBuffer *unwrap(VertBuf *vertex_buffer)
+BLI_INLINE VKVertexBuffer *unwrap(VertBuf *vertex_buffer)
 {
   return static_cast<VKVertexBuffer *>(vertex_buffer);
 }

@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void main()
 {
   /* Each invocation corresponds to one output pixel, where the output has twice the size of the

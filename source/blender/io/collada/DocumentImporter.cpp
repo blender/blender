@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2009-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -33,7 +35,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -53,10 +55,10 @@
 #include "DNA_camera_types.h"
 #include "DNA_light_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -385,8 +387,8 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
                                                bool is_library_node)
 {
   // fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ?
-  // instance_node->getOriginalId().c_str() : NULL, source_node ?
-  // source_node->getOriginalId().c_str() : NULL);
+  // instance_node->getOriginalId().c_str() : nullptr, source_node ?
+  // source_node->getOriginalId().c_str() : nullptr);
 
   Main *bmain = CTX_data_main(mContext);
   Object *obn = (Object *)BKE_id_copy(bmain, &source_ob->id);
@@ -998,7 +1000,6 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
     et->setData("type", &(lamp->type));
     et->setData("flag", &(lamp->flag));
     et->setData("mode", &(lamp->mode));
-    et->setData("gamma", &(lamp->k));
     et->setData("red", &(lamp->r));
     et->setData("green", &(lamp->g));
     et->setData("blue", &(lamp->b));
@@ -1006,18 +1007,12 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
     et->setData("shadow_g", &(lamp->shdwg));
     et->setData("shadow_b", &(lamp->shdwb));
     et->setData("energy", &(lamp->energy));
-    et->setData("dist", &(lamp->dist));
     et->setData("spotsize", &(lamp->spotsize));
     lamp->spotsize = DEG2RADF(lamp->spotsize);
     et->setData("spotblend", &(lamp->spotblend));
-    et->setData("att1", &(lamp->att1));
-    et->setData("att2", &(lamp->att2));
-    et->setData("falloff_type", &(lamp->falloff_type));
     et->setData("clipsta", &(lamp->clipsta));
     et->setData("clipend", &(lamp->clipend));
     et->setData("bias", &(lamp->bias));
-    et->setData("bufsize", &(lamp->bufsize));
-    et->setData("buffers", &(lamp->buffers));
     et->setData("radius", &(lamp->radius));
     et->setData("area_shape", &(lamp->area_shape));
     et->setData("area_size", &(lamp->area_size));
@@ -1025,12 +1020,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
     et->setData("area_sizez", &(lamp->area_sizez));
   }
   else {
-    float constatt = light->getConstantAttenuation().getValue();
-    float linatt = light->getLinearAttenuation().getValue();
-    float quadatt = light->getQuadraticAttenuation().getValue();
     float d = 25.0f;
-    float att1 = 0.0f;
-    float att2 = 0.0f;
     float e = 1.0f;
 
     if (light->getColor().isValid()) {
@@ -1040,27 +1030,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
       lamp->b = col.getBlue();
     }
 
-    if (IS_EQ(linatt, 0.0f) && quadatt > 0.0f) {
-      att2 = quadatt;
-      d = sqrt(1.0f / quadatt);
-    }
-    /* linear light */
-    else if (IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
-      att1 = linatt;
-      d = (1.0f / linatt);
-    }
-    else if (IS_EQ(constatt, 1.0f)) {
-      att1 = 1.0f;
-    }
-    else {
-      /* assuming point light (const att = 1.0); */
-      att1 = 1.0f;
-    }
-
-    d *= (1.0f / unit_converter.getLinearMeter());
-
     lamp->energy = e;
-    lamp->dist = d;
 
     switch (light->getLightType()) {
       case COLLADAFW::Light::AMBIENT_LIGHT: {
@@ -1068,14 +1038,6 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
       } break;
       case COLLADAFW::Light::SPOT_LIGHT: {
         lamp->type = LA_SPOT;
-        lamp->att1 = att1;
-        lamp->att2 = att2;
-        if (IS_EQ(att1, 0.0f) && att2 > 0) {
-          lamp->falloff_type = LA_FALLOFF_INVSQUARE;
-        }
-        if (IS_EQ(att2, 0.0f) && att1 > 0) {
-          lamp->falloff_type = LA_FALLOFF_INVLINEAR;
-        }
         lamp->spotsize = DEG2RADF(light->getFallOffAngle().getValue());
         lamp->spotblend = light->getFallOffExponent().getValue();
       } break;
@@ -1085,14 +1047,6 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
       } break;
       case COLLADAFW::Light::POINT_LIGHT: {
         lamp->type = LA_LOCAL;
-        lamp->att1 = att1;
-        lamp->att2 = att2;
-        if (IS_EQ(att1, 0.0f) && att2 > 0) {
-          lamp->falloff_type = LA_FALLOFF_INVSQUARE;
-        }
-        if (IS_EQ(att2, 0.0f) && att1 > 0) {
-          lamp->falloff_type = LA_FALLOFF_INVLINEAR;
-        }
       } break;
       case COLLADAFW::Light::UNDEFINED: {
         fprintf(stderr, "Current light type is not supported.\n");

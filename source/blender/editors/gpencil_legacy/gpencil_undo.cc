@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,8 @@
  * \ingroup edgpencil
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -23,26 +23,26 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_undo_system.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph.h"
 
 #include "gpencil_intern.h"
 
-typedef struct bGPundonode {
-  struct bGPundonode *next, *prev;
+struct bGPundonode {
+  bGPundonode *next, *prev;
 
   char name[BKE_UNDO_STR_MAX];
-  struct bGPdata *gpd;
-} bGPundonode;
+  bGPdata *gpd;
+};
 
 static ListBase undo_nodes = {nullptr, nullptr};
 static bGPundonode *cur_node = nullptr;
 
-int ED_gpencil_session_active(void)
+int ED_gpencil_session_active()
 {
   return (BLI_listbase_is_empty(&undo_nodes) == false);
 }
@@ -162,7 +162,7 @@ void gpencil_undo_push(bGPdata *gpd)
   BLI_addtail(&undo_nodes, undo_node);
 }
 
-void gpencil_undo_finish(void)
+void gpencil_undo_finish()
 {
   bGPundonode *undo_node = static_cast<bGPundonode *>(undo_nodes.first);
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,23 +9,23 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_geometry_set.h"
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 #include "DNA_node_types.h"
 
 #include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_geo_offset_sdf_volume_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Volume")
-      .supported_type(GEO_COMPONENT_TYPE_VOLUME)
+      .supported_type(GeometryComponent::Type::Volume)
       .translation_context(BLT_I18NCONTEXT_ID_ID);
   b.add_input<decl::Float>("Distance").default_value(0.1f).subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
@@ -87,18 +87,17 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-}  // namespace blender::nodes::node_geo_offset_sdf_volume_cc
-
-void register_node_type_geo_offset_sdf_volume()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_offset_sdf_volume_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_OFFSET_SDF_VOLUME, "Offset SDF Volume", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.gather_add_node_search_ops = file_ns::search_node_add_ops;
-  ntype.gather_link_search_ops = file_ns::search_link_ops;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.gather_add_node_search_ops = search_node_add_ops;
+  ntype.gather_link_search_ops = search_link_ops;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_offset_sdf_volume_cc

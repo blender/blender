@@ -9,9 +9,10 @@
 #include <array>
 #include <type_traits>
 
-#include "BLI_math.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_interp.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -317,7 +318,7 @@ class WrapRepeatUV : public BaseUVWrapping {
   }
 };
 
-// TODO: should we use math_vectors for this.
+/* TODO: should we use math_vectors for this. */
 template<typename StorageType, int NumChannels>
 class Pixel : public std::array<StorageType, NumChannels> {
  public:
@@ -726,13 +727,13 @@ extern "C" {
 
 using namespace blender::imbuf::transform;
 
-void IMB_transform(const struct ImBuf *src,
-                   struct ImBuf *dst,
+void IMB_transform(const ImBuf *src,
+                   ImBuf *dst,
                    const eIMBTransformMode mode,
                    const eIMBInterpolationFilterMode filter,
                    const int num_subsamples,
                    const float transform_matrix[4][4],
-                   const struct rctf *src_crop)
+                   const rctf *src_crop)
 {
   BLI_assert_msg(mode != IMB_TRANSFORM_MODE_CROP_SRC || src_crop != nullptr,
                  "No source crop rect given, but crop source is requested. Or source crop rect "

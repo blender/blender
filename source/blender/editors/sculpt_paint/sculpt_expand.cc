@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,7 +12,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_linklist_stack.h"
-#include "BLI_math.h"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
@@ -21,29 +20,29 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
-#include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_paint.hh"
+#include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_ccg.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "ED_screen.h"
-#include "ED_sculpt.h"
+#include "ED_screen.hh"
+#include "ED_sculpt.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
@@ -153,11 +152,11 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      vertex.i = ss->corner_verts[ss->polys[f].start()];
+      vertex.i = ss->corner_verts[ss->faces[f].start()];
       break;
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-      vertex.i = ss->polys[f].start() * key->grid_area;
+      vertex.i = ss->faces[f].start() * key->grid_area;
 
       break;
     }
@@ -693,7 +692,7 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
   const int totvert = SCULPT_vertex_count_get(ss);
   float *dists = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
 
-  /* This algorithm uses mesh data (polys and loops), so this falloff type can't be initialized for
+  /* This algorithm uses mesh data (faces and loops), so this falloff type can't be initialized for
    * Multires. It also does not make sense to implement it for dyntopo as the result will be the
    * same as Topology falloff. */
   if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
@@ -728,8 +727,8 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
 
     int v_next_i = BKE_pbvh_vertex_to_index(ss->pbvh, v_next);
 
-    for (const int poly : ss->pmap[v_next_i]) {
-      for (const int vert : ss->corner_verts.slice(ss->polys[poly])) {
+    for (const int face : ss->pmap[v_next_i]) {
+      for (const int vert : ss->corner_verts.slice(ss->faces[face])) {
         const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(vert);
         if (BLI_BITMAP_TEST(visited_verts, neighbor_v.i)) {
           continue;
@@ -807,32 +806,32 @@ static void sculpt_expand_grids_to_faces_falloff(SculptSession *ss,
                                                  Mesh *mesh,
                                                  ExpandCache *expand_cache)
 {
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
 
-  for (const int i : polys.index_range()) {
+  for (const int i : faces.index_range()) {
     float accum = 0.0f;
-    for (const int corner : polys[i]) {
+    for (const int corner : faces[i]) {
       const int grid_loop_index = corner * key->grid_area;
       for (int g = 0; g < key->grid_area; g++) {
         accum += expand_cache->vert_falloff[grid_loop_index + g];
       }
     }
-    expand_cache->face_falloff[i] = accum / (polys[i].size() * key->grid_area);
+    expand_cache->face_falloff[i] = accum / (faces[i].size() * key->grid_area);
   }
 }
 
 static void sculpt_expand_vertex_to_faces_falloff(Mesh *mesh, ExpandCache *expand_cache)
 {
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
-  for (const int i : polys.index_range()) {
+  for (const int i : faces.index_range()) {
     float accum = 0.0f;
-    for (const int vert : corner_verts.slice(polys[i])) {
+    for (const int vert : corner_verts.slice(faces[i])) {
       accum += expand_cache->vert_falloff[vert];
     }
-    expand_cache->face_falloff[i] = accum / polys[i].size();
+    expand_cache->face_falloff[i] = accum / faces[i].size();
   }
 }
 
@@ -847,7 +846,7 @@ static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(SculptSession *s
 
   if (!expand_cache->face_falloff) {
     expand_cache->face_falloff = static_cast<float *>(
-        MEM_malloc_arrayN(mesh->totpoly, sizeof(float), __func__));
+        MEM_malloc_arrayN(mesh->faces_num, sizeof(float), __func__));
   }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
@@ -1129,9 +1128,9 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
     BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
   }
 
-  for (const int i : ss->polys.index_range()) {
+  for (const int i : ss->faces.index_range()) {
     bool any_disabled = false;
-    for (const int vert : ss->corner_verts.slice(ss->polys[i])) {
+    for (const int vert : ss->corner_verts.slice(ss->faces[i])) {
       if (!BLI_BITMAP_TEST(enabled_verts, vert)) {
         any_disabled = true;
         break;
@@ -1178,7 +1177,7 @@ static void sculpt_expand_cache_free(SculptSession *ss)
  */
 static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *expand_cache)
 {
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_mark_redraw(node);
   }
@@ -1190,7 +1189,7 @@ static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *
 
 static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *expand_cache)
 {
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   for (PBVHNode *node : nodes) {
     PBVHVertexIter vd;
@@ -1204,7 +1203,7 @@ static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *exp
 
 static void sculpt_expand_restore_mask_data(SculptSession *ss, ExpandCache *expand_cache)
 {
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
   for (PBVHNode *node : nodes) {
     PBVHVertexIter vd;
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -1263,13 +1262,8 @@ static void sculpt_expand_cancel(bContext *C, wmOperator * /*op*/)
 /**
  * Callback to update mask data per PBVH node.
  */
-static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
-                                              const int i,
-                                              const TaskParallelTLS *__restrict /*tls*/)
+static void sculpt_expand_mask_update_task(SculptSession *ss, PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  PBVHNode *node = data->nodes[i];
   ExpandCache *expand_cache = ss->expand_cache;
 
   bool any_changed = false;
@@ -1343,13 +1337,8 @@ static void sculpt_expand_face_sets_update(SculptSession *ss, ExpandCache *expan
 /**
  * Callback to update vertex colors per PBVH node.
  */
-static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
-                                                const int i,
-                                                const TaskParallelTLS *__restrict /*tls*/)
+static void sculpt_expand_colors_update_task(SculptSession *ss, PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  PBVHNode *node = data->nodes[i];
   ExpandCache *expand_cache = ss->expand_cache;
 
   bool any_changed = false;
@@ -1477,8 +1466,8 @@ static void sculpt_expand_face_sets_restore(SculptSession *ss, ExpandCache *expa
 
 static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const PBVHVertRef vertex)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   ExpandCache *expand_cache = ss->expand_cache;
 
   int vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
@@ -1502,26 +1491,23 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const PBVHV
     sculpt_expand_face_sets_restore(ss, expand_cache);
   }
 
-  /* Update the mesh sculpt data. */
-  SculptThreadedTaskData data{};
-  data.sd = sd;
-  data.ob = ob;
-  data.nodes = expand_cache->nodes;
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, expand_cache->nodes.size());
-
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
-      BLI_task_parallel_range(
-          0, expand_cache->nodes.size(), &data, sculpt_expand_mask_update_task_cb, &settings);
+      threading::parallel_for(expand_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          sculpt_expand_mask_update_task(ss, expand_cache->nodes[i]);
+        }
+      });
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
       sculpt_expand_face_sets_update(ss, expand_cache);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
-      BLI_task_parallel_range(
-          0, expand_cache->nodes.size(), &data, sculpt_expand_colors_update_task_cb, &settings);
+      threading::parallel_for(expand_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          sculpt_expand_colors_update_task(ss, expand_cache->nodes[i]);
+        }
+      });
       break;
   }
 
@@ -1614,7 +1600,7 @@ static void sculpt_expand_finish(bContext *C)
   SCULPT_undo_push_end(ob);
 
   /* Tag all nodes to redraw to avoid artifacts after the fast partial updates. */
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_mark_update_mask(node);
   }
@@ -1987,7 +1973,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
 {
   const int totface = ss->totfaces;
   const blender::GroupedSpan<int> pmap = ss->pmap;
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
@@ -2023,7 +2009,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
     while (BLI_LINKSTACK_SIZE(queue)) {
       const int f_index = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int other_id = delete_id;
-      for (const int vert : corner_verts.slice(polys[f_index])) {
+      for (const int vert : corner_verts.slice(faces[f_index])) {
         for (const int neighbor_face_index : pmap[vert]) {
           if (expand_cache->original_face_sets[neighbor_face_index] <= 0) {
             /* Skip picking IDs from hidden Face Sets. */
@@ -2045,8 +2031,8 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
     }
     if (!any_updated) {
       /* No Face Sets where updated in this iteration, which means that no more content to keep
-       * filling the polys of the deleted Face Set was found. Break to avoid entering an infinite
-       * loop trying to search for those polys again. */
+       * filling the faces of the deleted Face Set was found. Break to avoid entering an infinite
+       * loop trying to search for those faces again. */
       break;
     }
 
@@ -2055,17 +2041,6 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
 
   BLI_LINKSTACK_FREE(queue);
   BLI_LINKSTACK_FREE(queue_next);
-
-  /* Ensure that the visibility state of the modified Face Sets is the same as the original ones.
-   */
-  for (int i = 0; i < totface; i++) {
-    if (expand_cache->original_face_sets[i] >= 0) {
-      r_face_sets[i] = abs(r_face_sets[i]);
-    }
-    else {
-      r_face_sets[i] = -abs(r_face_sets[i]);
-    }
-  }
 }
 
 static void sculpt_expand_cache_initial_config_set(bContext *C,
@@ -2108,7 +2083,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
 static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
 {
   SculptSession *ss = ob->sculpt;
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
@@ -2171,7 +2146,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
       if (ok) {
         /* TODO: implement SCULPT_vertex_mask_set and use it here. */
-        Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+        Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
         for (PBVHNode *node : nodes) {
           PBVHVertexIter vd;
 
@@ -2197,7 +2172,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-    ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+    ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   }
 
   /* Face Set operations are not supported in dyntopo. */
@@ -2219,7 +2194,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   sculpt_expand_set_initial_components_for_mouse(C, ob, ss->expand_cache, mouse);
 
   /* Cache PBVH nodes. */
-  ss->expand_cache->nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  ss->expand_cache->nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   /* Store initial state. */
   sculpt_expand_original_state_store(ob, ss->expand_cache);

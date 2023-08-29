@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,13 +14,15 @@ GPU_SHADER_INTERFACE_INFO(gpencil_geometry_iface, "gp_interp")
     .smooth(Type::VEC4, "color_mul")
     .smooth(Type::VEC4, "color_add")
     .smooth(Type::VEC3, "pos")
-    .smooth(Type::VEC2, "uv")
-    .no_perspective(Type::VEC2, "thickness")
-    .no_perspective(Type::FLOAT, "hardness")
+    .smooth(Type::VEC2, "uv");
+GPU_SHADER_INTERFACE_INFO(gpencil_geometry_flat_iface, "gp_interp_flat")
     .flat(Type::VEC2, "aspect")
     .flat(Type::VEC4, "sspos")
     .flat(Type::UINT, "mat_flag")
     .flat(Type::FLOAT, "depth");
+GPU_SHADER_INTERFACE_INFO(gpencil_geometry_noperspective_iface, "gp_interp_noperspective")
+    .no_perspective(Type::VEC2, "thickness")
+    .no_perspective(Type::FLOAT, "hardness");
 
 GPU_SHADER_CREATE_INFO(gpencil_geometry)
     .do_static_compilation(true)
@@ -45,6 +47,8 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry)
     .fragment_out(0, Type::VEC4, "fragColor")
     .fragment_out(1, Type::VEC4, "revealColor")
     .vertex_out(gpencil_geometry_iface)
+    .vertex_out(gpencil_geometry_flat_iface)
+    .vertex_out(gpencil_geometry_noperspective_iface)
     .vertex_source("gpencil_vert.glsl")
     .fragment_source("gpencil_frag.glsl")
     .depth_write(DepthWrite::ANY)
@@ -78,7 +82,9 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry_next)
     .fragment_out(0, Type::VEC4, "fragColor")
     .fragment_out(1, Type::VEC4, "revealColor")
     .vertex_out(gpencil_geometry_iface)
-    .vertex_source("gpencil_vert.glsl")
+    .vertex_out(gpencil_geometry_flat_iface)
+    .vertex_out(gpencil_geometry_noperspective_iface)
+    .vertex_source("grease_pencil_vert.glsl")
     .fragment_source("gpencil_frag.glsl")
     .additional_info("draw_gpencil_new")
     .depth_write(DepthWrite::ANY);

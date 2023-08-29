@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_base.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "GPU_batch.h"
@@ -165,8 +166,8 @@ uint FrameBuffer::get_bits_per_pixel()
 }
 
 void FrameBuffer::recursive_downsample(int max_lvl,
-                                       void (*callback)(void *userData, int level),
-                                       void *userData)
+                                       void (*callback)(void *user_data, int level),
+                                       void *user_data)
 {
   /* Bind to make sure the frame-buffer is up to date. */
   this->bind(true);
@@ -204,7 +205,7 @@ void FrameBuffer::recursive_downsample(int max_lvl,
       ++type;
     }
 
-    callback(userData, mip_lvl);
+    callback(user_data, mip_lvl);
   }
 
   for (GPUAttachment &attachment : attachments_) {
@@ -391,6 +392,12 @@ void GPU_framebuffer_viewport_set(GPUFrameBuffer *gpu_fb, int x, int y, int widt
   unwrap(gpu_fb)->viewport_set(viewport_rect);
 }
 
+void GPU_framebuffer_multi_viewports_set(GPUFrameBuffer *gpu_fb,
+                                         const int viewport_rects[GPU_MAX_VIEWPORTS][4])
+{
+  unwrap(gpu_fb)->viewport_multi_set(viewport_rects);
+}
+
 void GPU_framebuffer_viewport_get(GPUFrameBuffer *gpu_fb, int r_viewport[4])
 {
   unwrap(gpu_fb)->viewport_get(r_viewport);
@@ -536,10 +543,10 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
 
 void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *gpu_fb,
                                           int max_lvl,
-                                          void (*callback)(void *userData, int level),
-                                          void *userData)
+                                          void (*callback)(void *user_data, int level),
+                                          void *user_data)
 {
-  unwrap(gpu_fb)->recursive_downsample(max_lvl, callback, userData);
+  unwrap(gpu_fb)->recursive_downsample(max_lvl, callback, user_data);
 }
 
 #ifndef GPU_NO_USE_PY_REFERENCES
@@ -783,6 +790,11 @@ int GPU_offscreen_height(const GPUOffScreen *ofs)
 GPUTexture *GPU_offscreen_color_texture(const GPUOffScreen *ofs)
 {
   return ofs->color;
+}
+
+eGPUTextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen)
+{
+  return GPU_texture_format(offscreen->color);
 }
 
 void GPU_offscreen_viewport_data_get(GPUOffScreen *ofs,

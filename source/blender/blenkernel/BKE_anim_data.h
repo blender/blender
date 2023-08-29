@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+/* SPDX-FileCopyrightText: 2009 Blender Authors, Joshua Leung. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,7 +16,6 @@ extern "C" {
 
 struct AnimData;
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct ID;
@@ -57,6 +56,11 @@ struct AnimData *BKE_animdata_ensure_id(struct ID *id);
  * \return true when the action was successfully updated, false otherwise.
  */
 bool BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct bAction *act);
+
+/**
+ * Same as BKE_animdata_set_action(), except sets `tmpact` instead of `action`.
+ */
+bool BKE_animdata_set_tmpact(struct ReportList *reports, struct ID *id, struct bAction *act);
 
 bool BKE_animdata_action_editable(const struct AnimData *adt);
 
@@ -125,12 +129,8 @@ void BKE_animdata_merge_copy(struct Main *bmain,
                              eAnimData_MergeCopy_Modes action_mode,
                              bool fix_drivers);
 
-void BKE_animdata_blend_write(struct BlendWriter *writer, struct AnimData *adt);
-void BKE_animdata_blend_read_data(struct BlendDataReader *reader, struct AnimData *adt);
-void BKE_animdata_blend_read_lib(struct BlendLibReader *reader,
-                                 struct ID *id,
-                                 struct AnimData *adt);
-void BKE_animdata_blend_read_expand(struct BlendExpander *expander, struct AnimData *adt);
+void BKE_animdata_blend_write(struct BlendWriter *writer, struct ID *id);
+void BKE_animdata_blend_read_data(struct BlendDataReader *reader, struct ID *id);
 
 #ifdef __cplusplus
 }

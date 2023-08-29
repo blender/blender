@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -71,7 +71,7 @@ class ObjectModule {
 
     if (is_viewport) {
       /* TODO(fclem): Avoid access to global DRW. */
-      const struct bContext *evil_C = DRW_context_state_get()->evil_C;
+      const bContext *evil_C = DRW_context_state_get()->evil_C;
       const bool playing = (evil_C != nullptr) ?
                                ED_screen_animation_playing(CTX_wm_manager(evil_C)) != nullptr :
                                false;
@@ -117,7 +117,7 @@ class ObjectModule {
     const bool is_stroke_order_3d = false; /* TODO */
     bool do_material_holdout = false;
     bool do_layer_blending = false;
-    bool object_has_vfx = false;  // TODO: vfx.object_has_vfx(gpd);
+    bool object_has_vfx = false; /* TODO: `vfx.object_has_vfx(gpd);`. */
 
     uint material_offset = materials_.object_offset_get();
     for (auto i : IndexRange(BKE_object_material_count_eval(object))) {
@@ -171,6 +171,8 @@ class ObjectModule {
       //    }
 
       /* TODO(fclem): Only draw subrange of geometry for this layer. */
+      object_subpass.bind_texture("gp_pos_tx", position_tx);
+      object_subpass.bind_texture("gp_col_tx", color_tx);
       object_subpass.draw(geom, handle);
 
       /* TODO: Do layer blending. */

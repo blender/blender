@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2022 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(PYBIND11_EXTRA_ARGS

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,18 +17,18 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_screen.h"
+#include "ED_gizmo_library.hh"
+#include "ED_screen.hh"
 
 #include "IMB_imbuf_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "node_intern.hh"
 
@@ -202,7 +202,7 @@ struct NodeCropWidgetGroup {
   } update_data;
 };
 
-static void gizmo_node_crop_update(struct NodeCropWidgetGroup *crop_group)
+static void gizmo_node_crop_update(NodeCropWidgetGroup *crop_group)
 {
   RNA_property_update(
       crop_group->update_data.context, &crop_group->update_data.ptr, crop_group->update_data.prop);

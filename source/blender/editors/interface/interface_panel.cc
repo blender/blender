@@ -19,7 +19,6 @@
 #include "PIL_time.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -30,19 +29,19 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "BLF_api.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "GPU_batch_presets.h"
 #include "GPU_immediate.h"
@@ -283,7 +282,7 @@ void UI_list_panel_unique_str(Panel *panel, char *r_name)
 {
   /* The panel sort-order will be unique for a specific panel type because the instanced
    * panel list is regenerated for every change in the data order / length. */
-  BLI_snprintf(r_name, INSTANCED_PANEL_UNIQUE_STR_LEN, "%d", panel->sortorder);
+  BLI_snprintf(r_name, INSTANCED_PANEL_UNIQUE_STR_SIZE, "%d", panel->sortorder);
 }
 
 /**
@@ -2515,7 +2514,7 @@ static void panel_handle_data_ensure(const bContext *C,
 
   uiHandlePanelData *data = static_cast<uiHandlePanelData *>(panel->activedata);
 
-  data->animtimer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
+  data->animtimer = WM_event_timer_add(CTX_wm_manager(C), win, TIMER, ANIMATION_INTERVAL);
 
   data->state = state;
   data->startx = win->eventstate->xy[0];
@@ -2565,7 +2564,7 @@ static void panel_activate_state(const bContext *C, Panel *panel, const uiHandle
     BLI_assert(data != nullptr);
 
     if (data->animtimer) {
-      WM_event_remove_timer(CTX_wm_manager(C), win, data->animtimer);
+      WM_event_timer_remove(CTX_wm_manager(C), win, data->animtimer);
       data->animtimer = nullptr;
     }
 

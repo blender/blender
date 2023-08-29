@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2017-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(BUILD_MODE STREQUAL Release)
@@ -106,7 +108,9 @@ ExternalProject_Add(external_openimageio
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/openimageio
   PATCH_COMMAND ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/ < ${PATCH_DIR}/openimageio.diff &&
-                ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/ < ${PATCH_DIR}/oiio_3832.diff
+                ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/ < ${PATCH_DIR}/oiio_3832.diff &&
+                ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/ < ${PATCH_DIR}/oiio_deadlock.diff &&
+                ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/ < ${PATCH_DIR}/oiio_psd_8da473e254.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimageio ${DEFAULT_CMAKE_FLAGS} ${OPENIMAGEIO_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/openimageio
 )

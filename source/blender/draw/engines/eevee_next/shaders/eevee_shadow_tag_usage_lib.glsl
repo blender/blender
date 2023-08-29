@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Usage tagging
+ * Virtual shadow-mapping: Usage tagging
  *
  * Shadow pages are only allocated if they are visible.
  * This contains the common logic used for tagging shadows for opaque and transparent receivers.
@@ -24,6 +27,22 @@ void shadow_tag_usage_tile(LightData light, ivec2 tile_co, int lod, int tilemap_
   atomicOr(tiles_buf[tile_index], uint(SHADOW_IS_USED));
 }
 
+void shadow_tag_usage_tilemap_directional_at_level(uint l_idx, vec3 P, int level)
+{
+  LightData light = light_buf[l_idx];
+
+  if (light.tilemap_index == LIGHT_NO_SHADOW) {
+    return;
+  }
+
+  vec3 lP = shadow_world_to_local(light, P);
+
+  level = clamp(level, light.clipmap_lod_min, light.clipmap_lod_max);
+
+  ShadowCoordinates coord = shadow_directional_coordinates_at_level(light, lP, level);
+  shadow_tag_usage_tile(light, coord.tile_coord, 0, coord.tilemap_index);
+}
+
 void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radius)
 {
   LightData light = light_buf[l_idx];
@@ -34,7 +53,7 @@ void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radi
 
   vec3 lP = shadow_world_to_local(light, P);
 
-  if (radius == 0) {
+  if (radius == 0.0) {
     ShadowCoordinates coord = shadow_directional_coordinates(light, lP);
     shadow_tag_usage_tile(light, coord.tile_coord, 0, coord.tilemap_index);
   }
@@ -46,9 +65,9 @@ void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radi
 
     for (int level = min_level; level <= max_level; level++) {
       ShadowCoordinates coord_min = shadow_directional_coordinates_at_level(
-          light, lP - vec3(radius, radius, 0), level);
+          light, lP - vec3(radius, radius, 0.0), level);
       ShadowCoordinates coord_max = shadow_directional_coordinates_at_level(
-          light, lP + vec3(radius, radius, 0), level);
+          light, lP + vec3(radius, radius, 0.0), level);
 
       for (int x = coord_min.tile_coord.x; x <= coord_max.tile_coord.x; x++) {
         for (int y = coord_min.tile_coord.y; y <= coord_max.tile_coord.y; y++) {
@@ -59,7 +78,7 @@ void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radi
   }
 }
 
-void shadow_tag_usage_tilemap_punctual(uint l_idx, vec3 P, vec3 V, float dist_to_cam, float radius)
+void shadow_tag_usage_tilemap_punctual(uint l_idx, vec3 P, float dist_to_cam, float radius)
 {
   LightData light = light_buf[l_idx];
 
@@ -148,7 +167,7 @@ void shadow_tag_usage_tilemap_punctual(uint l_idx, vec3 P, vec3 V, float dist_to
 
 /**
  * \a radius Radius of the tagging area in world space.
- * Used for downsampled/ray-marched tagging, so all the shadowmap texels covered get correctly
+ * Used for downsampled/ray-marched tagging, so all the shadow-map texels covered get correctly
  * tagged.
  */
 void shadow_tag_usage(vec3 vP, vec3 P, vec3 V, float radius, float dist_to_cam, vec2 pixel)
@@ -159,7 +178,7 @@ void shadow_tag_usage(vec3 vP, vec3 P, vec3 V, float radius, float dist_to_cam, 
   LIGHT_FOREACH_END
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vP.z, l_idx) {
-    shadow_tag_usage_tilemap_punctual(l_idx, P, V, dist_to_cam, radius);
+    shadow_tag_usage_tilemap_punctual(l_idx, P, dist_to_cam, radius);
   }
   LIGHT_FOREACH_END
 }
@@ -169,4 +188,22 @@ void shadow_tag_usage(vec3 vP, vec3 P, vec2 pixel)
   float dist_to_cam = length(vP);
 
   shadow_tag_usage(vP, P, vec3(0), 0, dist_to_cam, pixel);
+}
+
+void shadow_tag_usage_surfel(Surfel surfel, int directional_lvl)
+{
+  vec3 P = surfel.position;
+
+  LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
+    shadow_tag_usage_tilemap_directional_at_level(l_idx, P, directional_lvl);
+  }
+  LIGHT_FOREACH_END
+
+  LIGHT_FOREACH_BEGIN_LOCAL_NO_CULL(light_cull_buf, l_idx)
+  {
+    /* Set distance to camera to 1 to avoid changing footprint_ratio. */
+    float dist_to_cam = 1.0;
+    shadow_tag_usage_tilemap_punctual(l_idx, P, dist_to_cam, 0);
+  }
+  LIGHT_FOREACH_END
 }

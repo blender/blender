@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "blender/device.h"
 #include "blender/session.h"
@@ -30,7 +31,7 @@ int blender_device_threads(BL::Scene &b_scene)
     return 0;
 }
 
-void adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpreferences)
+void static adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpreferences)
 {
   if (!get_boolean(cpreferences, "peer_memory")) {
     info.has_peer_memory = false;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -42,7 +44,7 @@ static char GetSteerableViewMapDensityF1D___doc__[] =
     "\n"
     ".. method:: __call__(inter)\n"
     "\n"
-    "   Returns the density of the ViewMap for a given Interface1D.  The\n"
+    "   Returns the density of the ViewMap for a given Interface1D. The\n"
     "   density of each :class:`freestyle.types.FEdge` is evaluated in the\n"
     "   proper steerable :class:`freestyle.types.ViewMap` depending on its\n"
     "   orientation.\n"
@@ -74,7 +76,7 @@ static int GetSteerableViewMapDensityF1D___init__(BPy_GetSteerableViewMapDensity
 /*-----------------------BPy_GetSteerableViewMapDensityF1D type definition ----------------------*/
 
 PyTypeObject GetSteerableViewMapDensityF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GetSteerableViewMapDensityF1D",
     /*tp_basicsize*/ sizeof(BPy_GetSteerableViewMapDensityF1D),
     /*tp_itemsize*/ 0,

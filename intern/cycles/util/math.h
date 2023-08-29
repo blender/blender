@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_MATH_H__
 #define __UTIL_MATH_H__
@@ -100,7 +101,6 @@ using std::isfinite;
 using std::isnan;
 using std::sqrt;
 #  else
-using sycl::sqrt;
 #    define isfinite(x) sycl::isfinite((x))
 #    define isnan(x) sycl::isnan((x))
 #  endif
@@ -206,7 +206,7 @@ ccl_device_inline float max4(float a, float b, float c, float d)
   return max(max(a, b), max(c, d));
 }
 
-#if !defined(__KERNEL_METAL__)
+#if !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__)
 /* Int/Float conversion */
 
 ccl_device_inline int as_int(uint i)
@@ -732,6 +732,11 @@ ccl_device float safe_modulo(float a, float b)
   return (b != 0.0f) ? fmodf(a, b) : 0.0f;
 }
 
+ccl_device float safe_floored_modulo(float a, float b)
+{
+  return (b != 0.0f) ? a - floorf(a / b) * b : 0.0f;
+}
+
 ccl_device_inline float sqr(float a)
 {
   return a * a;
@@ -745,6 +750,18 @@ ccl_device_inline float sin_from_cos(const float c)
 ccl_device_inline float cos_from_sin(const float s)
 {
   return safe_sqrtf(1.0f - sqr(s));
+}
+
+ccl_device_inline float sin_sqr_to_one_minus_cos(const float s_sq)
+{
+  /* Using second-order Taylor expansion at small angles for better accuracy. */
+  return s_sq > 0.0004f ? 1.0f - safe_sqrtf(1.0f - s_sq) : 0.5f * s_sq;
+}
+
+ccl_device_inline float one_minus_cos(const float angle)
+{
+  /* Using second-order Taylor expansion at small angles for better accuracy. */
+  return angle > 0.02f ? 1.0f - cosf(angle) : 0.5f * sqr(angle);
 }
 
 ccl_device_inline float pow20(float a)
@@ -788,7 +805,10 @@ ccl_device float bits_to_01(uint bits)
 
 #if !defined(__KERNEL_GPU__)
 #  if defined(__GNUC__)
-#    define popcount(x) __builtin_popcount(x)
+ccl_device_inline uint popcount(uint x)
+{
+  return __builtin_popcount(x);
+}
 #  else
 ccl_device_inline uint popcount(uint x)
 {
@@ -926,6 +946,12 @@ ccl_device_inline bool compare_floats(float a, float b, float abs_diff, int ulp_
 ccl_device_inline float precise_angle(float3 a, float3 b)
 {
   return 2.0f * atan2f(len(a - b), len(a + b));
+}
+
+/* Tangent of the angle between vectors a and b. */
+ccl_device_inline float tan_angle(float3 a, float3 b)
+{
+  return len(cross(a, b)) / dot(a, b);
 }
 
 /* Return value which is greater than the given one and is a power of two. */

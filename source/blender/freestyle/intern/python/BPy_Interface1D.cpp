@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -186,7 +188,7 @@ PyDoc_STRVAR(Interface1D_points_end_doc,
              "\n"
              "   Returns an iterator over the Interface1D points, pointing after the\n"
              "   last point. The difference with vertices_end() is that here we can\n"
-             "   iterate over points of the 1D element at a given sampling.  Indeed,\n"
+             "   iterate over points of the 1D element at a given sampling. Indeed,\n"
              "   for each iteration, a virtual point is created.\n"
              "\n"
              "   :arg t: A sampling with which we want to iterate over points of\n"
@@ -323,7 +325,7 @@ static PyGetSetDef BPy_Interface1D_getseters[] = {
 /*-----------------------BPy_Interface1D type definition ------------------------------*/
 
 PyTypeObject Interface1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Interface1D",
     /*tp_basicsize*/ sizeof(BPy_Interface1D),
     /*tp_itemsize*/ 0,

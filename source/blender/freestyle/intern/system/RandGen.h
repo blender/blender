@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,7 +9,7 @@
  * \brief Pseudo-random number generator
  */
 
-// TODO: Check whether we could replace this with BLI rand stuff...
+/* TODO: Check whether we could replace this with BLI rand stuff. */
 
 #include "../system/Precision.h"
 

@@ -1,4 +1,6 @@
-#pragma BLENDER_REQUIRE(gpu_shader_cfg_world_clip_lib.glsl)
+/* SPDX-FileCopyrightText: 2017-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /*
  * Vertex Shader for dashed lines with 3D coordinates,
@@ -6,6 +8,8 @@
  *
  * Dashed is performed in screen space.
  */
+
+#pragma BLENDER_REQUIRE(gpu_shader_cfg_world_clip_lib.glsl)
 
 void main()
 {

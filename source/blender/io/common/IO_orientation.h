@@ -1,13 +1,17 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 struct Main;
 struct Scene;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum {
   IO_AXIS_X = 0,
@@ -22,3 +26,7 @@ extern const EnumPropertyItem io_transform_axis[];
 
 void io_ui_forward_axis_update(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);
 void io_ui_up_axis_update(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);
+
+#ifdef __cplusplus
+}
+#endif

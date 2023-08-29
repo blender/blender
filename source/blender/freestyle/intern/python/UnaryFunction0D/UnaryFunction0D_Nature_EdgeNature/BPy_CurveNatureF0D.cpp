@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -52,7 +54,7 @@ static int CurveNatureF0D___init__(BPy_CurveNatureF0D *self, PyObject *args, PyO
 /*-----------------------BPy_CurveNatureF0D type definition ------------------------------*/
 
 PyTypeObject CurveNatureF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "CurveNatureF0D",
     /*tp_basicsize*/ sizeof(BPy_CurveNatureF0D),
     /*tp_itemsize*/ 0,

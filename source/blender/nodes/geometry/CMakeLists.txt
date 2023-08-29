@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,7 +8,6 @@ set(INC
   ../intern
   ../../editors/include
   ../../blenkernel
-  ../../blenlib
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
@@ -16,15 +15,16 @@ set(INC
   ../../geometry
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
-  ../../../../intern/guardedalloc
+  ../../../../extern/fmtlib/include
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
 
 set(SRC
   nodes/node_geo_accumulate_field.cc
@@ -151,6 +151,8 @@ set(SRC
   nodes/node_geo_raycast.cc
   nodes/node_geo_realize_instances.cc
   nodes/node_geo_remove_attribute.cc
+  nodes/node_geo_repeat_input.cc
+  nodes/node_geo_repeat_output.cc
   nodes/node_geo_rotate_instances.cc
   nodes/node_geo_sample_index.cc
   nodes/node_geo_sample_nearest.cc
@@ -182,6 +184,11 @@ set(SRC
   nodes/node_geo_string_to_curves.cc
   nodes/node_geo_subdivision_surface.cc
   nodes/node_geo_switch.cc
+  nodes/node_geo_tool_3d_cursor.cc
+  nodes/node_geo_tool_face_set.cc
+  nodes/node_geo_tool_selection.cc
+  nodes/node_geo_tool_set_face_set.cc
+  nodes/node_geo_tool_set_selection.cc
   nodes/node_geo_transform_geometry.cc
   nodes/node_geo_translate_instances.cc
   nodes/node_geo_triangulate.cc
@@ -191,19 +198,21 @@ set(SRC
   nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
 
-  node_geometry_register.cc
   node_geometry_tree.cc
   node_geometry_util.cc
 
-  node_geometry_register.hh
   node_geometry_util.hh
 )
 
 set(LIB
+  PRIVATE bf::blenlib
   bf_bmesh
+  PRIVATE bf::dna
   bf_functions
   bf_geometry
+  PRIVATE bf::intern::guardedalloc
   bf_nodes
+  extern_fmtlib
 )
 
 if(WITH_BULLET)
@@ -256,7 +265,19 @@ if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 endif()
 
+add_node_discovery(
+  bf_nodes_geometry_generated
+  "${SRC}"
+  ${CMAKE_CURRENT_BINARY_DIR}/register_geometry_nodes.cc
+  register_geometry_nodes
+)
+
+list(APPEND LIB
+  bf_nodes_geometry_generated
+)
+
 blender_add_lib(bf_nodes_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+target_link_libraries(bf_nodes_geometry_generated bf_nodes_geometry)
 
 if(WITH_UNITY_BUILD)
   set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD ON)

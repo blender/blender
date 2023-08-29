@@ -1,5 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. 2009 Damien Plisson. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2009 Damien Plisson
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <Cocoa/Cocoa.h>
 
@@ -20,7 +22,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplays(uint8_t &numDisplays) c
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplaySettings(uint8_t display,
+GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplaySettings(uint8_t /*display*/,
                                                                 int32_t &numSettings) const
 {
   numSettings = (int32_t)3;  // Width, Height, BitsPerPixel
@@ -29,7 +31,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplaySettings(uint8_t display,
 }
 
 GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(uint8_t display,
-                                                            int32_t index,
+                                                            int32_t /*index*/,
                                                             GHOST_DisplaySetting &setting) const
 {
   NSScreen *askedDisplay;
@@ -108,7 +110,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(
 }
 
 GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
-    uint8_t display, const GHOST_DisplaySetting &setting)
+    uint8_t display, const GHOST_DisplaySetting & /*setting*/)
 {
   GHOST_ASSERT(
       (display == kMainDisplay),
@@ -131,7 +133,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
       (size_t)setting.xPixels,
       (size_t)setting.yPixels,
       (CGRefreshRate)setting.frequency,
-      NULL);
+      nullptr);
 #endif
 
 #ifdef GHOST_DEBUG

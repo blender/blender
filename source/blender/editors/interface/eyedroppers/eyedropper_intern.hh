@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,9 +10,9 @@
 
 #pragma once
 
-/* interface_eyedropper.c */
+/* `interface_eyedropper.cc` */
 
-void eyedropper_draw_cursor_text_window(const struct wmWindow *window, const char *name);
+void eyedropper_draw_cursor_text_window(const wmWindow *window, const char *name);
 void eyedropper_draw_cursor_text_region(const int xy[2], const char *name);
 /**
  * Utility to retrieve a button representing a RNA property that is currently under the cursor.
@@ -24,11 +24,11 @@ void eyedropper_draw_cursor_text_region(const int xy[2], const char *name);
  * \return A button under the mouse which relates to some RNA Property, or NULL
  */
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event);
-void datadropper_win_area_find(const struct bContext *C,
-                               const int mval[2],
-                               int r_mval[2],
-                               struct wmWindow **r_win,
-                               struct ScrArea **r_area);
+void datadropper_win_area_find(const bContext *C,
+                               const int event_xy[2],
+                               int r_event_xy[2],
+                               wmWindow **r_win,
+                               ScrArea **r_area);
 
 /* interface_eyedropper_color.c (expose for color-band picker) */
 

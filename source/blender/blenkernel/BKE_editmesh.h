@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -59,7 +59,7 @@ typedef struct BMEditMesh {
   int mirror_cdlayer;
 
   /**
-   * Enable for evaluated copies, causes the edit-mesh to free the memory, not it's contents.
+   * Enable for evaluated copies, causes the edit-mesh to free the memory, not its contents.
    */
   char is_shallow_copy;
 

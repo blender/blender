@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h" /* Needed here for inline functions. */
+#include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
 #include <math.h>

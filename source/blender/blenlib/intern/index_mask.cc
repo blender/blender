@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,6 +8,7 @@
 #include "BLI_bit_vector.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_math_base.hh"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
 #include "BLI_strict_flags.h"
@@ -341,7 +342,7 @@ static int64_t get_size_before_gap(const Span<int16_t> indices)
   BLI_assert(indices.size() >= 2);
   if (indices[1] > indices[0] + 1) {
     /* For sparse indices, often the next gap is just after the next index.
-     * In this case we can skip the logarithmic check below.*/
+     * In this case we can skip the logarithmic check below. */
     return 1;
   }
   return unique_sorted_indices::find_size_of_next_range(indices);
@@ -568,6 +569,20 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
   }
   return IndexMask::from_predicate(
       universe, GrainSize(512), memory, [&](const int64_t index) { return bools[index]; });
+}
+
+IndexMask IndexMask::from_union(const IndexMask &mask_a,
+                                const IndexMask &mask_b,
+                                IndexMaskMemory &memory)
+
+{
+  const int64_t new_size = math::max(mask_a.min_array_size(), mask_b.min_array_size());
+  Array<bool> tmp(new_size, false);
+  mask_a.foreach_index_optimized<int64_t>(GrainSize(2048),
+                                          [&](const int64_t i) { tmp[i] = true; });
+  mask_b.foreach_index_optimized<int64_t>(GrainSize(2048),
+                                          [&](const int64_t i) { tmp[i] = true; });
+  return IndexMask::from_bools(tmp, memory);
 }
 
 template<typename T> void IndexMask::to_indices(MutableSpan<T> r_indices) const

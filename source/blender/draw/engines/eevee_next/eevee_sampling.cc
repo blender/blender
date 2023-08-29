@@ -1,7 +1,6 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *  */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -10,6 +9,9 @@
  */
 
 #include "BLI_rand.h"
+
+#include "BLI_math_base.hh"
+#include "BLI_math_base_safe.h"
 
 #include "eevee_instance.hh"
 #include "eevee_sampling.hh"
@@ -54,6 +56,15 @@ void Sampling::init(const Scene *scene)
   sample_count_ *= motion_blur_steps_;
 }
 
+void Sampling::init(const Object &probe_object)
+{
+  BLI_assert(inst_.is_baking());
+  const ::LightProbe *lightprobe = static_cast<::LightProbe *>(probe_object.data);
+
+  sample_count_ = max_ii(1, lightprobe->grid_bake_samples);
+  sample_ = 0;
+}
+
 void Sampling::end_sync()
 {
   if (reset_) {
@@ -70,7 +81,7 @@ void Sampling::end_sync()
       sample_ = viewport_sample_;
     }
     else if (interactive_mode_) {
-      int interactive_sample_count = min_ii(interactive_sample_max_, sample_count_);
+      int interactive_sample_count = interactive_sample_max_;
 
       if (viewport_sample_ < interactive_sample_count) {
         /* Loop over the same starting samples. */
@@ -87,12 +98,16 @@ void Sampling::end_sync()
 void Sampling::step()
 {
   {
+    uint64_t sample_filter = sample_;
+    if (interactive_mode()) {
+      sample_filter = sample_filter % interactive_sample_aa_;
+    }
     /* TODO(fclem) we could use some persistent states to speedup the computation. */
     double2 r, offset = {0, 0};
     /* Using 2,3 primes as per UE4 Temporal AA presentation.
      * http://advances.realtimerendering.com/s2014/epic/TemporalAA.pptx (slide 14) */
     uint2 primes = {2, 3};
-    BLI_halton_2d(primes, offset, sample_ + 1, r);
+    BLI_halton_2d(primes, offset, sample_filter + 1, r);
     /* WORKAROUND: We offset the distribution to make the first sample (0,0). This way, we are
      * assured that at least one of the samples inside the TAA rotation will match the one from the
      * draw manager. This makes sure overlays are correctly composited in static scene. */
@@ -112,13 +127,22 @@ void Sampling::step()
     /* TODO de-correlate. */
     data_.dimensions[SAMPLING_LIGHTPROBE] = r[0];
     data_.dimensions[SAMPLING_TRANSPARENCY] = r[1];
+    /* TODO de-correlate. */
+    data_.dimensions[SAMPLING_AO_U] = r[0];
+    data_.dimensions[SAMPLING_AO_V] = r[1];
+    /* TODO de-correlate. */
+    data_.dimensions[SAMPLING_CURVES_U] = r[0];
   }
   {
+    uint64_t sample_raytrace = sample_;
+    if (interactive_mode()) {
+      sample_raytrace = sample_raytrace % interactive_sample_raytrace_;
+    }
     /* Using leaped Halton sequence so we can reused the same primes as lens. */
     double3 r, offset = {0, 0, 0};
     uint64_t leap = 11;
     uint3 primes = {5, 4, 7};
-    BLI_halton_3d(primes, offset, sample_ * leap, r);
+    BLI_halton_3d(primes, offset, sample_raytrace * leap, r);
     data_.dimensions[SAMPLING_SHADOW_U] = r[0];
     data_.dimensions[SAMPLING_SHADOW_V] = r[1];
     data_.dimensions[SAMPLING_SHADOW_W] = r[2];
@@ -126,6 +150,10 @@ void Sampling::step()
     data_.dimensions[SAMPLING_RAYTRACE_U] = r[0];
     data_.dimensions[SAMPLING_RAYTRACE_V] = r[1];
     data_.dimensions[SAMPLING_RAYTRACE_W] = r[2];
+    /* TODO de-correlate. */
+    data_.dimensions[SAMPLING_VOLUME_U] = r[0];
+    data_.dimensions[SAMPLING_VOLUME_V] = r[1];
+    data_.dimensions[SAMPLING_VOLUME_W] = r[2];
   }
   {
     /* Using leaped Halton sequence so we can reused the same primes. */
@@ -173,6 +201,22 @@ float2 Sampling::sample_disk(const float2 &rand)
 {
   float omega = rand.y * 2.0f * M_PI;
   return sqrtf(rand.x) * float2(cosf(omega), sinf(omega));
+}
+
+float3 Sampling::sample_hemisphere(const float2 &rand)
+{
+  const float omega = rand.y * 2.0f * M_PI;
+  const float cos_theta = rand.x;
+  const float sin_theta = safe_sqrtf(1.0f - square_f(cos_theta));
+  return float3(sin_theta * float2(cosf(omega), sinf(omega)), cos_theta);
+}
+
+float3 Sampling::sample_sphere(const float2 &rand)
+{
+  const float omega = rand.y * 2.0f * M_PI;
+  const float cos_theta = rand.x * 2.0f - 1.0f;
+  const float sin_theta = safe_sqrtf(1.0f - square_f(cos_theta));
+  return float3(sin_theta * float2(cosf(omega), sinf(omega)), cos_theta);
 }
 
 float2 Sampling::sample_spiral(const float2 &rand)

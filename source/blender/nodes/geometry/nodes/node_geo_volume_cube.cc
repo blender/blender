@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,6 +19,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 namespace blender::nodes::node_geo_volume_cube_cc {
 
@@ -182,17 +183,16 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-}  // namespace blender::nodes::node_geo_volume_cube_cc
-
-void register_node_type_geo_volume_cube()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_volume_cube_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_VOLUME_CUBE, "Volume Cube", NODE_CLASS_GEOMETRY);
 
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_volume_cube_cc

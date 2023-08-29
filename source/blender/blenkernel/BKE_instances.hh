@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,11 +27,12 @@
 
 #include "BKE_attribute.hh"
 
-struct GeometrySet;
 struct Object;
 struct Collection;
 
 namespace blender::bke {
+
+struct GeometrySet;
 
 /**
  * Holds a reference to conceptually unique geometry or a pointer to object/collection data

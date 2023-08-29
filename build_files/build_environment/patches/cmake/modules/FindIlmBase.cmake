@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2017-2023 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
 
 # Module to find IlmBase

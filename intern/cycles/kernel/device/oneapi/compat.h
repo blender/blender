@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2021-2022 Intel Corporation */
+/* SPDX-FileCopyrightText: 2021-2022 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -187,6 +188,23 @@ using uchar = unsigned char;
 using sycl::half;
 
 /* math functions */
+ccl_device_forceinline float __uint_as_float(unsigned int x)
+{
+  return sycl::bit_cast<float>(x);
+}
+ccl_device_forceinline unsigned int __float_as_uint(float x)
+{
+  return sycl::bit_cast<unsigned int>(x);
+}
+ccl_device_forceinline float __int_as_float(int x)
+{
+  return sycl::bit_cast<float>(x);
+}
+ccl_device_forceinline int __float_as_int(float x)
+{
+  return sycl::bit_cast<int>(x);
+}
+
 #define fabsf(x) sycl::fabs((x))
 #define copysignf(x, y) sycl::copysign((x), (y))
 #define asinf(x) sycl::asin((x))

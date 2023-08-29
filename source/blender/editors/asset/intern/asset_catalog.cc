@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,14 +9,19 @@
 #include "AS_asset_library.hh"
 
 #include "AS_asset_catalog.hh"
+#include "AS_asset_catalog_tree.hh"
+
 #include "BKE_main.h"
 
 #include "BLI_string_utils.h"
 
+#include "RNA_access.hh"
+#include "RNA_prototypes.h"
+
 #include "ED_asset_catalog.h"
 #include "ED_asset_catalog.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 using namespace blender;
 using namespace blender::asset_system;
@@ -201,3 +206,23 @@ bool ED_asset_catalogs_get_save_catalogs_when_file_is_saved()
 {
   return asset_system::AssetLibrary::save_catalogs_when_file_is_saved;
 }
+
+namespace blender::ed::asset {
+
+PointerRNA persistent_catalog_path_rna_pointer(const bScreen &owner_screen,
+                                               const asset_system::AssetLibrary &library,
+                                               const asset_system::AssetCatalogTreeItem &item)
+{
+  const asset_system::AssetCatalog *catalog = library.catalog_service->find_catalog_by_path(
+      item.catalog_path());
+  if (!catalog) {
+    return PointerRNA_NULL;
+  }
+
+  const asset_system::AssetCatalogPath &path = catalog->path;
+  return {&const_cast<ID &>(owner_screen.id),
+          &RNA_AssetCatalogPath,
+          const_cast<asset_system::AssetCatalogPath *>(&path)};
+}
+
+}  // namespace blender::ed::asset

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,7 +16,7 @@
 /* for FOREACH_NODETREE_BEGIN */
 #include "DNA_node_types.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 #  include "BLI_map.hh"
@@ -31,7 +31,6 @@ extern "C" {
 #define MAX_SOCKET 512
 
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct FreestyleLineStyle;
@@ -238,6 +237,8 @@ typedef struct bNodeType {
   char ui_name[64]; /* MAX_NAME */
   char ui_description[256];
   int ui_icon;
+  /** Should usually use the idname instead, but this enum type is still exposed in Python. */
+  const char *enum_name_legacy;
 
   float width, minwidth, maxwidth;
   float height, minheight, maxheight;
@@ -740,7 +741,6 @@ bool BKE_node_instance_hash_tag_key(bNodeInstanceHash *hash, bNodeInstanceKey ke
 void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
                                             bNodeInstanceValueFP valfreefp);
 
-void BKE_node_preview_clear_tree(struct bNodeTree *ntree);
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -754,6 +754,7 @@ bool nodeGroupPoll(const struct bNodeTree *nodetree,
 void node_type_base_custom(struct bNodeType *ntype,
                            const char *idname,
                            const char *name,
+                           const char *enum_name,
                            short nclass);
 
 /**
@@ -769,7 +770,9 @@ void node_type_storage(struct bNodeType *ntype,
 
 /** \} */
 
-/* ************** COMMON NODES *************** */
+/* -------------------------------------------------------------------- */
+/** \name Common Node Types
+ * \{ */
 
 #define NODE_UNDEFINED -2 /* node type is not registered */
 #define NODE_CUSTOM -1    /* for dynamically registered custom types */
@@ -796,7 +799,7 @@ void node_type_storage(struct bNodeType *ntype,
  *
  * - nodetree:
  *   The actual bNodeTree data block.
- *   Check nodetree->idname or nodetree->typeinfo to use only specific types.
+ *   Check `nodetree->idname` or `nodetree->typeinfo` to use only specific types.
  *
  * - id:
  *   The owner of the bNodeTree data block.
@@ -829,7 +832,6 @@ struct NodeTreeIterStore {
   struct Light *light;
   struct World *world;
   struct FreestyleLineStyle *linestyle;
-  struct Simulation *simulation;
 };
 
 void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *bmain);
@@ -867,16 +869,16 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 
 /* NOTE: types are needed to restore callbacks, don't change values. */
 
-//#define SH_NODE_MATERIAL  100
+// #define SH_NODE_MATERIAL  100
 #define SH_NODE_RGB 101
 #define SH_NODE_VALUE 102
 #define SH_NODE_MIX_RGB_LEGACY 103
 #define SH_NODE_VALTORGB 104
 #define SH_NODE_RGBTOBW 105
 #define SH_NODE_SHADERTORGB 106
-//#define SH_NODE_TEXTURE       106
+// #define SH_NODE_TEXTURE       106
 #define SH_NODE_NORMAL 107
-//#define SH_NODE_GEOMETRY  108
+// #define SH_NODE_GEOMETRY  108
 #define SH_NODE_MAPPING 109
 #define SH_NODE_CURVE_VEC 110
 #define SH_NODE_CURVE_RGB 111
@@ -884,7 +886,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_MATH 115
 #define SH_NODE_VECTOR_MATH 116
 #define SH_NODE_SQUEEZE 117
-//#define SH_NODE_MATERIAL_EXT  118
+// #define SH_NODE_MATERIAL_EXT  118
 #define SH_NODE_INVERT 119
 #define SH_NODE_SEPRGB_LEGACY 120
 #define SH_NODE_COMBRGB_LEGACY 121
@@ -903,7 +905,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_BSDF_GLASS 134
 #define SH_NODE_BSDF_TRANSLUCENT 137
 #define SH_NODE_BSDF_TRANSPARENT 138
-#define SH_NODE_BSDF_VELVET 139
+#define SH_NODE_BSDF_SHEEN 139
 #define SH_NODE_EMISSION 140
 #define SH_NODE_NEW_GEOMETRY 141
 #define SH_NODE_LIGHT_PATH 142
@@ -1061,6 +1063,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_INPAINT 272
 #define CMP_NODE_DESPECKLE 273
 #define CMP_NODE_ANTIALIASING 274
+#define CMP_NODE_KUWAHARA 275
 
 #define CMP_NODE_GLARE 301
 #define CMP_NODE_TONEMAP 302
@@ -1310,6 +1313,15 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_INPUT_SIGNED_DISTANCE 2102
 #define GEO_NODE_SAMPLE_VOLUME 2103
 #define GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_EDGE 2104
+/* Leaving out two indices to avoid crashes with files that were created during the development of
+ * the repeat zone. */
+#define GEO_NODE_REPEAT_INPUT 2107
+#define GEO_NODE_REPEAT_OUTPUT 2108
+#define GEO_NODE_TOOL_SELECTION 2109
+#define GEO_NODE_TOOL_SET_SELECTION 2110
+#define GEO_NODE_TOOL_3D_CURSOR 2111
+#define GEO_NODE_TOOL_FACE_SET 2112
+#define GEO_NODE_TOOL_SET_FACE_SET 2113
 
 /** \} */
 
@@ -1336,6 +1348,15 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define FN_NODE_INPUT_INT 1220
 #define FN_NODE_SEPARATE_COLOR 1221
 #define FN_NODE_COMBINE_COLOR 1222
+#define FN_NODE_AXIS_ANGLE_TO_ROTATION 1223
+#define FN_NODE_EULER_TO_ROTATION 1224
+#define FN_NODE_QUATERNION_TO_ROTATION 1225
+#define FN_NODE_ROTATION_TO_AXIS_ANGLE 1226
+#define FN_NODE_ROTATION_TO_EULER 1227
+#define FN_NODE_ROTATION_TO_QUATERNION 1228
+#define FN_NODE_ROTATE_VECTOR 1229
+#define FN_NODE_ROTATE_ROTATION 1230
+#define FN_NODE_INVERT_ROTATION 1231
 
 /** \} */
 

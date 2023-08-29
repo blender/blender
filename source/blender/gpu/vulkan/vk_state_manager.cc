@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,26 +8,16 @@
 
 #include "vk_state_manager.hh"
 #include "vk_context.hh"
+#include "vk_index_buffer.hh"
 #include "vk_pipeline.hh"
 #include "vk_shader.hh"
+#include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
 #include "GPU_capabilities.h"
 
 namespace blender::gpu {
-
-VKStateManager::VKStateManager()
-{
-  sampler_.create();
-  constexpr int max_bindings = 16;
-  image_bindings_ = Array<ImageBinding>(max_bindings);
-  image_bindings_.fill(ImageBinding());
-  texture_bindings_ = Array<TextureBinding>(max_bindings);
-  texture_bindings_.fill(TextureBinding());
-  uniform_buffer_bindings_ = Array<UniformBufferBinding>(max_bindings);
-  uniform_buffer_bindings_.fill(UniformBufferBinding());
-}
 
 void VKStateManager::apply_state()
 {
@@ -43,27 +33,10 @@ void VKStateManager::apply_bindings()
 {
   VKContext &context = *VKContext::get();
   if (context.shader) {
-    for (int binding : IndexRange(image_bindings_.size())) {
-      if (image_bindings_[binding].texture) {
-        image_bindings_[binding].texture->image_bind(binding);
-      }
-    }
-
-    for (int binding : IndexRange(texture_bindings_.size())) {
-      if (texture_bindings_[binding].texture) {
-        texture_bindings_[binding].texture->bind(binding, sampler_);
-      }
-      else if (texture_bindings_[binding].vertex_buffer) {
-        texture_bindings_[binding].vertex_buffer->bind(binding);
-      }
-    }
-
-    for (int binding : IndexRange(uniform_buffer_bindings_.size())) {
-      if (uniform_buffer_bindings_[binding].buffer) {
-        uniform_buffer_bindings_[binding].buffer->bind(
-            binding, shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER);
-      }
-    }
+    textures_.apply_bindings();
+    images_.apply_bindings();
+    uniform_buffers_.apply_bindings();
+    storage_buffers_.apply_bindings();
   }
 }
 
@@ -88,78 +61,73 @@ void VKStateManager::issue_barrier(eGPUBarrier /*barrier_bits*/)
 void VKStateManager::texture_bind(Texture *tex, GPUSamplerState /*sampler*/, int unit)
 {
   VKTexture *texture = unwrap(tex);
-  texture_bindings_[unit].texture = texture;
-  texture_bindings_[unit].vertex_buffer = nullptr;
+  textures_.bind(unit, *texture);
 }
 
 void VKStateManager::texture_unbind(Texture *tex)
 {
   VKTexture *texture = unwrap(tex);
-  for (TextureBinding &binding : texture_bindings_) {
-    if (binding.texture == texture) {
-      binding.texture = nullptr;
-    }
-  }
+  textures_.unbind(*texture);
 }
 
 void VKStateManager::texture_unbind_all()
 {
-  for (TextureBinding &binding : texture_bindings_) {
-    binding.texture = nullptr;
-  }
+  textures_.unbind_all();
 }
 
 void VKStateManager::image_bind(Texture *tex, int binding)
 {
   VKTexture *texture = unwrap(tex);
-  image_bindings_[binding].texture = texture;
+  images_.bind(binding, *texture);
 }
 
 void VKStateManager::image_unbind(Texture *tex)
 {
   VKTexture *texture = unwrap(tex);
-  for (ImageBinding &binding : image_bindings_) {
-    if (binding.texture == texture) {
-      binding.texture = nullptr;
-    }
-  }
+  images_.unbind(*texture);
 }
 
 void VKStateManager::image_unbind_all()
 {
-  for (TextureBinding &binding : texture_bindings_) {
-    binding.texture = nullptr;
-  }
+  images_.unbind_all();
 }
 
 void VKStateManager::uniform_buffer_bind(VKUniformBuffer *uniform_buffer, int slot)
 {
-  uniform_buffer_bindings_[slot].buffer = uniform_buffer;
+  uniform_buffers_.bind(slot, *uniform_buffer);
 }
 
 void VKStateManager::uniform_buffer_unbind(VKUniformBuffer *uniform_buffer)
 {
-  for (UniformBufferBinding &binding : uniform_buffer_bindings_) {
-    if (binding.buffer == uniform_buffer) {
-      binding.buffer = nullptr;
-    }
-  }
+  uniform_buffers_.unbind(*uniform_buffer);
 }
 
-void VKStateManager::texel_buffer_bind(VKVertexBuffer *vertex_buffer, int slot)
+void VKStateManager::unbind_from_all_namespaces(VKBindableResource &resource)
 {
-  texture_bindings_[slot].vertex_buffer = vertex_buffer;
-  texture_bindings_[slot].texture = nullptr;
+  uniform_buffers_.unbind(resource);
+  storage_buffers_.unbind(resource);
+  images_.unbind(resource);
+  textures_.unbind(resource);
 }
 
-void VKStateManager::texel_buffer_unbind(VKVertexBuffer *vertex_buffer)
+void VKStateManager::texel_buffer_bind(VKVertexBuffer &vertex_buffer, int slot)
 {
-  for (TextureBinding &binding : texture_bindings_) {
-    if (binding.vertex_buffer == vertex_buffer) {
-      binding.vertex_buffer = nullptr;
-      binding.texture = nullptr;
-    }
-  }
+  textures_.bind(slot, vertex_buffer);
+}
+
+void VKStateManager::texel_buffer_unbind(VKVertexBuffer &vertex_buffer)
+{
+  textures_.unbind(vertex_buffer);
+}
+
+void VKStateManager::storage_buffer_bind(VKBindableResource &resource, int slot)
+{
+  storage_buffers_.bind(slot, resource);
+}
+
+void VKStateManager::storage_buffer_unbind(VKBindableResource &resource)
+{
+  storage_buffers_.unbind(resource);
 }
 
 void VKStateManager::texture_unpack_row_length_set(uint len)

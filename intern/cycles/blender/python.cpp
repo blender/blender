@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include <Python.h>
 
@@ -981,15 +982,15 @@ static PyMethodDef methods[] = {
 };
 
 static struct PyModuleDef module = {
-    PyModuleDef_HEAD_INIT,
-    "_cycles",
-    "Blender cycles render integration",
-    -1,
-    methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
+    /*m_name*/ "_cycles",
+    /*m_doc*/ "Blender cycles render integration",
+    /*m_size*/ -1,
+    /*m_methods*/ methods,
+    /*m_slots*/ nullptr,
+    /*m_traverse*/ nullptr,
+    /*m_clear*/ nullptr,
+    /*m_free*/ nullptr,
 };
 
 CCL_NAMESPACE_END

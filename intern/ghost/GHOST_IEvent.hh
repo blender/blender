@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -44,7 +45,7 @@ class GHOST_IEvent {
 
   /**
    * Returns the window this event was generated on,
-   * or NULL if it is a 'system' event.
+   * or nullptr if it is a 'system' event.
    * \return The generating window.
    */
   virtual GHOST_IWindow *getWindow() = 0;

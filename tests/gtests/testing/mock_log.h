@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: BSD-3-Clause
- * Copyright 2007 Google Inc. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 Google Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause */
 
 /** \file
  * Defines the #ScopedMockLog class (using Google C++ Mocking Framework),

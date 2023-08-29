@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,15 +14,16 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
-#include "BKE_multires.h"
-#include "BKE_subdiv.h"
-#include "BKE_subdiv_eval.h"
+#include "BKE_multires.hh"
+#include "BKE_subdiv.hh"
+#include "BKE_subdiv_eval.hh"
 #include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
 
@@ -31,7 +32,7 @@
 #include "opensubdiv_topology_refiner_capi.h"
 
 #include "atomic_ops.h"
-#include "subdiv_converter.h"
+#include "subdiv_converter.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Local Structs
@@ -491,8 +492,10 @@ static float get_effective_crease(const MultiresReshapeSmoothContext *reshape_sm
   if (!is_crease_supported(reshape_smooth_context)) {
     return 1.0f;
   }
-  const float *creases = reshape_smooth_context->reshape_context->cd_edge_crease;
-  return creases ? creases[base_edge_index] : 0.0f;
+  if (reshape_smooth_context->reshape_context->cd_edge_crease.is_empty()) {
+    return 0.0f;
+  }
+  return reshape_smooth_context->reshape_context->cd_edge_crease[base_edge_index];
 }
 
 static float get_effective_crease_float(const MultiresReshapeSmoothContext *reshape_smooth_context,
@@ -566,8 +569,8 @@ static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
                                   const int num_vertices,
                                   const int num_edges,
                                   const int num_loops,
-                                  const int num_polygons,
-                                  const int * /*subdiv_polygon_offset*/)
+                                  const int num_faces,
+                                  const int * /*subdiv_face_offset*/)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context =
       static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
@@ -588,9 +591,9 @@ static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
   reshape_smooth_context->geometry.corners = static_cast<Corner *>(
       MEM_malloc_arrayN(num_loops, sizeof(Corner), "smooth corners"));
 
-  reshape_smooth_context->geometry.num_faces = num_polygons;
+  reshape_smooth_context->geometry.num_faces = num_faces;
   reshape_smooth_context->geometry.faces = static_cast<Face *>(
-      MEM_malloc_arrayN(num_polygons, sizeof(Face), "smooth faces"));
+      MEM_malloc_arrayN(num_faces, sizeof(Face), "smooth faces"));
 
   return true;
 }
@@ -617,12 +620,11 @@ static void foreach_single_vertex(const SubdivForeachContext *foreach_context,
   }
 
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  const float *cd_vertex_crease = reshape_context->cd_vertex_crease;
-  if (cd_vertex_crease == nullptr) {
+  if (reshape_context->cd_vertex_crease.is_empty()) {
     return;
   }
 
-  float crease = cd_vertex_crease[coarse_vertex_index];
+  float crease = reshape_context->cd_vertex_crease[coarse_vertex_index];
   if (crease == 0.0f) {
     return;
   }
@@ -645,7 +647,7 @@ static void foreach_vertex(const SubdivForeachContext *foreach_context,
   const int face_index = multires_reshape_grid_to_face_index(reshape_context,
                                                              grid_coord.grid_index);
 
-  const int num_corners = reshape_context->base_polys[face_index].size();
+  const int num_corners = reshape_context->base_faces[face_index].size();
   const int start_grid_index = reshape_context->face_start_grid_index[face_index];
   const int corner = grid_coord.grid_index - start_grid_index;
 
@@ -687,7 +689,7 @@ static void foreach_vertex_inner(const SubdivForeachContext *foreach_context,
                                  const int ptex_face_index,
                                  const float ptex_face_u,
                                  const float ptex_face_v,
-                                 const int /*coarse_poly_index*/,
+                                 const int /*coarse_face_index*/,
                                  const int /*coarse_corner*/,
                                  const int subdiv_vertex_index)
 {
@@ -738,7 +740,7 @@ static void foreach_loop(const SubdivForeachContext *foreach_context,
                          const float /*ptex_face_u*/,
                          const float /*ptex_face_v*/,
                          const int /*coarse_loop_index*/,
-                         const int coarse_poly_index,
+                         const int coarse_face_index,
                          const int coarse_corner,
                          const int subdiv_loop_index,
                          const int subdiv_vertex_index,
@@ -753,23 +755,23 @@ static void foreach_loop(const SubdivForeachContext *foreach_context,
   Corner *corner = &reshape_smooth_context->geometry.corners[subdiv_loop_index];
   corner->vertex = &reshape_smooth_context->geometry.vertices[subdiv_vertex_index];
 
-  const int first_grid_index = reshape_context->face_start_grid_index[coarse_poly_index];
+  const int first_grid_index = reshape_context->face_start_grid_index[coarse_face_index];
   corner->grid_index = first_grid_index + coarse_corner;
 }
 
 static void foreach_poly(const SubdivForeachContext *foreach_context,
                          void * /*tls*/,
-                         const int /*coarse_poly_index*/,
-                         const int subdiv_poly_index,
+                         const int /*coarse_face_index*/,
+                         const int subdiv_face_index,
                          const int start_loop_index,
                          const int num_loops)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context =
       static_cast<const MultiresReshapeSmoothContext *>(foreach_context->user_data);
 
-  BLI_assert(subdiv_poly_index < reshape_smooth_context->geometry.num_faces);
+  BLI_assert(subdiv_face_index < reshape_smooth_context->geometry.num_faces);
 
-  Face *face = &reshape_smooth_context->geometry.faces[subdiv_poly_index];
+  Face *face = &reshape_smooth_context->geometry.faces[subdiv_face_index];
   face->start_corner_index = start_loop_index;
   face->num_corners = num_loops;
 }
@@ -1086,10 +1088,10 @@ static void reshape_subdiv_create(MultiresReshapeSmoothContext *reshape_smooth_c
 }
 
 /* Callback to provide coarse position for subdivision surface topology at a reshape level. */
-typedef void(ReshapeSubdivCoarsePositionCb)(
-    const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const Vertex *vertex,
-    float r_P[3]);
+using ReshapeSubdivCoarsePositionCb =
+    void(const MultiresReshapeSmoothContext *reshape_smooth_context,
+         const Vertex *vertex,
+         float r_P[3]);
 
 /* Refine subdivision surface topology at a reshape level for new coarse vertices positions. */
 static void reshape_subdiv_refine(const MultiresReshapeSmoothContext *reshape_smooth_context,

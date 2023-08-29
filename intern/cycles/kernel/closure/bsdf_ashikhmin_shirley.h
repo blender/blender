@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /*
  * ASHIKHMIN SHIRLEY BSDF
@@ -71,8 +72,8 @@ ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(ccl_private const Sh
   /* pump from original paper
    * (first derivative disc., but cancels the HdotI in the pdf nicely) */
   float pump = 1.0f / fmaxf(1e-6f, (HdotI * fmaxf(NdotI, NdotO)));
-  /* pump from d-brdf paper */
-  /*float pump = 1.0f / fmaxf(1e-4f, ((NdotI + NdotO) * (NdotI * NdotO))); */
+  /* `pump` from D-BRDF paper. */
+  // float pump = 1.0f / fmaxf(1e-4f, ((NdotI + NdotO) * (NdotI * NdotO)));
 
   float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_x);
   float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_y);

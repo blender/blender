@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -21,8 +23,8 @@ static char ExternalContourUP1D___doc__[] =
     "\n"
     ".. method:: __call__(inter)\n"
     "\n"
-    "   Returns true if the Interface1D is an external contour.  An\n"
-    "   Interface1D is an external contour if it is bordered by no shape on\n"
+    "   Returns true if the Interface1D is an external contour.\n"
+    "   An Interface1D is an external contour if it is bordered by no shape on\n"
     "   one of its sides.\n"
     "\n"
     "   :arg inter: An Interface1D object.\n"
@@ -47,7 +49,7 @@ static int ExternalContourUP1D___init__(BPy_ExternalContourUP1D *self,
 /*-----------------------BPy_ExternalContourUP1D type definition ------------------------------*/
 
 PyTypeObject ExternalContourUP1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ExternalContourUP1D",
     /*tp_basicsize*/ sizeof(BPy_ExternalContourUP1D),
     /*tp_itemsize*/ 0,

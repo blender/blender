@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+/* SPDX-FileCopyrightText: 2009 Blender Authors, Joshua Leung. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 extern "C" {

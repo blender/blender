@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -72,18 +73,13 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
     /* sd contains the point on the light source
      * calculate Px, the point that we're shading */
     const float3 Px = sd->P + sd->wi * t;
-    const float3 v0_p = V[0] - Px;
-    const float3 v1_p = V[1] - Px;
-    const float3 v2_p = V[2] - Px;
 
-    const float3 u01 = safe_normalize(cross(v0_p, v1_p));
-    const float3 u02 = safe_normalize(cross(v0_p, v2_p));
-    const float3 u12 = safe_normalize(cross(v1_p, v2_p));
+    const float3 A = safe_normalize(V[0] - Px);
+    const float3 B = safe_normalize(V[1] - Px);
+    const float3 C = safe_normalize(V[2] - Px);
 
-    const float alpha = fast_acosf(dot(u02, u01));
-    const float beta = fast_acosf(-dot(u01, u12));
-    const float gamma = fast_acosf(dot(u02, u12));
-    const float solid_angle = alpha + beta + gamma - M_PI_F;
+    const float solid_angle = 2.0f * fast_atanf(fabsf(dot(A, cross(B, C))) /
+                                                (1.0f + dot(B, C) + dot(A, C) + dot(A, B)));
 
     /* distribution_pdf_triangles is calculated over triangle area, but we're not sampling over
      * its area */
@@ -160,59 +156,42 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
   float distance_to_plane = fabsf(dot(N0, V[0] - P) / dot(N0, N0));
 
   if (!in_volume_segment && (longest_edge_squared > distance_to_plane * distance_to_plane)) {
-    /* see James Arvo, "Stratified Sampling of Spherical Triangles"
+    /* A modified version of James Arvo, "Stratified Sampling of Spherical Triangles"
      * http://www.graphics.cornell.edu/pubs/1995/Arv95c.pdf */
 
-    /* project the triangle to the unit sphere
-     * and calculate its edges and angles */
-    const float3 v0_p = V[0] - P;
-    const float3 v1_p = V[1] - P;
-    const float3 v2_p = V[2] - P;
+    /* Project the triangle to the unit sphere and calculate the three unit vector that spans the
+     * spherical triangle. */
+    const float3 A = safe_normalize(V[0] - P);
+    const float3 B = safe_normalize(V[1] - P);
+    const float3 C = safe_normalize(V[2] - P);
 
-    const float3 u01 = safe_normalize(cross(v0_p, v1_p));
-    const float3 u02 = safe_normalize(cross(v0_p, v2_p));
-    const float3 u12 = safe_normalize(cross(v1_p, v2_p));
-
-    const float3 A = safe_normalize(v0_p);
-    const float3 B = safe_normalize(v1_p);
-    const float3 C = safe_normalize(v2_p);
-
-    const float cos_alpha = dot(u02, u01);
-    const float cos_beta = -dot(u01, u12);
-    const float cos_gamma = dot(u02, u12);
-
-    /* calculate dihedral angles */
-    const float alpha = fast_acosf(cos_alpha);
-    const float beta = fast_acosf(cos_beta);
-    const float gamma = fast_acosf(cos_gamma);
-    /* the area of the unit spherical triangle = solid angle */
-    const float solid_angle = alpha + beta + gamma - M_PI_F;
-
-    /* precompute a few things
-     * these could be re-used to take several samples
-     * as they are independent of `rand` */
+    const float cos_a = dot(B, C);
+    const float cos_b = dot(A, C);
     const float cos_c = dot(A, B);
-    const float sin_alpha = fast_sinf(alpha);
-    const float product = sin_alpha * cos_c;
+    const float sin_b_sin_c_2 = (1.0f - sqr(cos_b)) * (1.0f - sqr(cos_c));
 
-    /* Select a random sub-area of the spherical triangle
-     * and calculate the third vertex C_ of that new triangle */
-    const float phi = rand.x * solid_angle - alpha;
-    float s, t;
-    fast_sincosf(phi, &s, &t);
-    const float u = t - cos_alpha;
-    const float v = s + product;
+    const float mixed_product = fabsf(dot(A, cross(B, C)));
 
-    const float3 U = safe_normalize(C - dot(C, A) * A);
+    /* The area of the spherical triangle is equal to the subtended solid angle. */
+    const float solid_angle = 2.0f * fast_atanf(mixed_product / (1.0f + cos_a + cos_b + cos_c));
 
-    float q = 1.0f;
-    const float det = ((v * s + u * t) * sin_alpha);
-    if (det != 0.0f) {
-      q = ((v * t - u * s) * cos_alpha - v) / det;
-    }
-    const float temp = max(1.0f - q * q, 0.0f);
+    /* Select a random sub-area of the spherical triangle and calculate the third vertex C_ of that
+     * new triangle. */
+    const float A_hat = rand.x * solid_angle;
+    float sin_A_hat, cos_A_hat;
+    fast_sincosf(A_hat, &sin_A_hat, &cos_A_hat);
 
-    const float3 C_ = safe_normalize(q * A + sqrtf(temp) * U);
+    /* These values lack a `sin_b * sin_c` factor, will divide when computing `temp`. */
+    const float cos_alpha = cos_a - cos_b * cos_c;
+    const float sin_alpha = mixed_product;
+    const float t = cos_A_hat * cos_alpha + sin_A_hat * sin_alpha;
+
+    const float temp = (cos_c - 1.0f) * t * cos_alpha / sin_b_sin_c_2;
+
+    const float q = (cos_A_hat - cos_c + temp) / (1.0f - cos_A_hat * cos_c + temp);
+
+    const float3 U = safe_normalize(C - cos_b * A);
+    const float3 C_ = safe_normalize(q * A + sin_from_cos(q) * U);
 
     /* Finally, select a random point along the edge of the new triangle
      * That point on the spherical triangle is the sampled ray direction */

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -107,11 +107,13 @@ static int attribute_data_type_complexity(const eCustomDataType data_type)
       return 6;
     case CD_PROP_BYTE_COLOR:
       return 7;
-    case CD_PROP_COLOR:
+    case CD_PROP_QUATERNION:
       return 8;
+    case CD_PROP_COLOR:
+      return 9;
 #if 0 /* These attribute types are not supported yet. */
     case CD_PROP_STRING:
-      return 9;
+      return 10;
 #endif
     default:
       /* Only accept "generic" custom data types used by the attribute system. */
@@ -1022,6 +1024,9 @@ void gather_attributes(const AttributeAccessor src_attributes,
     }
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, domain, meta_data.data_type);
+    if (!dst) {
+      return true;
+    }
     array_utils::gather(src.varray, selection, dst.span);
     dst.finish();
     return true;
@@ -1074,6 +1079,9 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
     const GVArraySpan src = *src_attributes.lookup(id, domain);
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, domain, meta_data.data_type);
+    if (!dst) {
+      return true;
+    }
     gather_group_to_group(src_offsets, dst_offsets, selection, src, dst.span);
     dst.finish();
     return true;

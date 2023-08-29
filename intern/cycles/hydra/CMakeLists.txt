@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2022 Blender Foundation
 
 #####################################################################
 # Cycles Hydra render delegate
@@ -116,11 +117,12 @@ target_link_libraries(cycles_hydra
 )
 
 if(WITH_CYCLES_HYDRA_RENDER_DELEGATE)
-  set(HdCyclesPluginName hdCycles)
-  add_library(${HdCyclesPluginName} SHARED
+  set(SRC_HD_CYCLES_PLUGIN
     plugin.h
     plugin.cpp
   )
+  set(HdCyclesPluginName hdCycles)
+  add_library(${HdCyclesPluginName} SHARED ${SRC_HD_CYCLES_PLUGIN})
 
   set_target_properties(${HdCyclesPluginName}
     PROPERTIES PREFIX ""

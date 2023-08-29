@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2021-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 ## Update and uncomment this in the release branch
@@ -106,7 +108,6 @@ download_source(FLAC)
 download_source(VPX)
 download_source(OPUS)
 download_source(X264)
-download_source(XVIDCORE)
 download_source(OPENJPEG)
 download_source(FFMPEG)
 download_source(FFTW)

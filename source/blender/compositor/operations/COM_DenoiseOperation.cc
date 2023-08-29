@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,16 +32,16 @@ class DenoiseFilter {
 #ifdef WITH_OPENIMAGEDENOISE
   oidn::DeviceRef device_;
   oidn::FilterRef filter_;
-#endif
   bool initialized_ = false;
+#endif
 
  public:
+#ifdef WITH_OPENIMAGEDENOISE
   ~DenoiseFilter()
   {
     BLI_assert(!initialized_);
   }
 
-#ifdef WITH_OPENIMAGEDENOISE
   void init_and_lock_denoiser(MemoryBuffer *output)
   {
     /* Since it's memory intensive, it's better to run only one instance of OIDN at a time.

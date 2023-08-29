@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation.
+/* SPDX-FileCopyrightText: 2017 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,8 @@
  * \ingroup modifiers
  */
 
-#include "BLI_math.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 #include "BLI_task.h"
 
 #include "BLT_translation.h"
@@ -26,17 +26,17 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
@@ -54,7 +54,7 @@ struct SDefAdjacency {
 
 struct SDefAdjacencyArray {
   SDefAdjacency *first;
-  uint num; /* Careful, this is twice the number of polygons (avoids an extra loop) */
+  uint num; /* Careful, this is twice the number of faces (avoids an extra loop) */
 };
 
 /**
@@ -74,7 +74,7 @@ struct SDefBindCalcData {
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
   blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_polys;
+  blender::Span<int> looptri_faces;
 
   /** Coordinates to bind to, transformed into local space (compatible with `vertexCos`). */
   float (*targetCos)[3];
@@ -145,13 +145,13 @@ struct SDefBindPoly {
    * versus the one based on the centroid and the dominant edge.
    */
   float dominant_angle_weight;
-  /** Index of the input polygon. */
+  /** Index of the input face. */
   uint index;
   /** Number of vertices in this face. */
   uint verts_num;
   /**
    * This polygons loop-start.
-   * \note that we could look this up from the polygon.
+   * \note that we could look this up from the face.
    */
   uint loopstart;
   uint edge_inds[2];
@@ -165,7 +165,7 @@ struct SDefBindPoly {
 
 struct SDefBindWeightData {
   SDefBindPoly *bind_polys;
-  uint polys_num;
+  uint faces_num;
   uint binds_num;
 };
 
@@ -196,7 +196,7 @@ enum {
   MOD_SDEF_INFINITE_WEIGHT_DIST = (1 << 2),
 };
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
@@ -205,7 +205,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SurfaceDeformModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
@@ -215,7 +215,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
@@ -234,7 +234,7 @@ static void freeData(ModifierData *md)
   }
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
   const SurfaceDeformModifierData *smd = (const SurfaceDeformModifierData *)md;
   SurfaceDeformModifierData *tsmd = (SurfaceDeformModifierData *)target;
@@ -264,14 +264,14 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   }
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
-  walk(userData, ob, (ID **)&smd->target, IDWALK_NOP);
+  walk(user_data, ob, (ID **)&smd->target, IDWALK_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
   if (smd->target != nullptr) {
@@ -392,10 +392,10 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
   BLI_bvhtree_find_nearest(
       data->treeData->tree, t_point, &nearest, data->treeData->nearest_callback, data->treeData);
 
-  const blender::IndexRange poly = data->polys[data->looptri_polys[nearest.index]];
+  const blender::IndexRange face = data->polys[data->looptri_faces[nearest.index]];
 
-  for (int i = 0; i < poly.size(); i++) {
-    const int edge_i = data->corner_edges[poly.start() + i];
+  for (int i = 0; i < face.size(); i++) {
+    const int edge_i = data->corner_edges[face.start() + i];
     const blender::int2 &edge = data->edges[edge_i];
     dist = dist_squared_to_line_segment_v3(
         point_co, data->targetCos[edge[0]], data->targetCos[edge[1]]);
@@ -462,7 +462,7 @@ static void freeBindData(SDefBindWeightData *const bwdata)
   SDefBindPoly *bpoly = bwdata->bind_polys;
 
   if (bwdata->bind_polys) {
-    for (int i = 0; i < bwdata->polys_num; bpoly++, i++) {
+    for (int i = 0; i < bwdata->faces_num; bpoly++, i++) {
       MEM_SAFE_FREE(bpoly->coords);
       MEM_SAFE_FREE(bpoly->coords_v2);
     }
@@ -501,10 +501,10 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
     return nullptr;
   }
 
-  bwdata->polys_num = data->vert_edges[nearest].num / 2;
+  bwdata->faces_num = data->vert_edges[nearest].num / 2;
 
   bpoly = static_cast<SDefBindPoly *>(
-      MEM_calloc_arrayN(bwdata->polys_num, sizeof(*bpoly), "SDefBindPoly"));
+      MEM_calloc_arrayN(bwdata->faces_num, sizeof(*bpoly), "SDefBindPoly"));
   if (bpoly == nullptr) {
     freeBindData(bwdata);
     data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
@@ -514,7 +514,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
   bwdata->bind_polys = bpoly;
 
   /* Loop over all adjacent edges,
-   * and build the #SDefBindPoly data for each poly adjacent to those. */
+   * and build the #SDefBindPoly data for each face adjacent to those. */
   for (vedge = vert_edges; vedge; vedge = vedge->next) {
     uint edge_ind = vedge->index;
 
@@ -522,7 +522,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
       {
         bpoly = bwdata->bind_polys;
 
-        for (int j = 0; j < bwdata->polys_num; bpoly++, j++) {
+        for (int j = 0; j < bwdata->faces_num; bpoly++, j++) {
           /* If coords isn't allocated, we have reached the first uninitialized `bpoly`. */
           if ((bpoly->index == edge_polys[edge_ind].polys[i]) || (!bpoly->coords)) {
             break;
@@ -530,7 +530,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         }
       }
 
-      /* Check if poly was already created by another edge or still has to be initialized */
+      /* Check if face was already created by another edge or still has to be initialized */
       if (!bpoly->coords) {
         float angle;
         float axis[3];
@@ -541,14 +541,14 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         bpoly->coords = nullptr;
         bpoly->coords_v2 = nullptr;
 
-        /* Copy poly data */
-        const blender::IndexRange poly = data->polys[bpoly->index];
+        /* Copy face data */
+        const blender::IndexRange face = data->polys[bpoly->index];
 
-        bpoly->verts_num = poly.size();
-        bpoly->loopstart = poly.start();
+        bpoly->verts_num = face.size();
+        bpoly->loopstart = face.start();
 
         bpoly->coords = static_cast<float(*)[3]>(
-            MEM_malloc_arrayN(poly.size(), sizeof(*bpoly->coords), "SDefBindPolyCoords"));
+            MEM_malloc_arrayN(face.size(), sizeof(*bpoly->coords), "SDefBindPolyCoords"));
         if (bpoly->coords == nullptr) {
           freeBindData(bwdata);
           data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
@@ -556,34 +556,34 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         }
 
         bpoly->coords_v2 = static_cast<float(*)[2]>(
-            MEM_malloc_arrayN(poly.size(), sizeof(*bpoly->coords_v2), "SDefBindPolyCoords_v2"));
+            MEM_malloc_arrayN(face.size(), sizeof(*bpoly->coords_v2), "SDefBindPolyCoords_v2"));
         if (bpoly->coords_v2 == nullptr) {
           freeBindData(bwdata);
           data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
           return nullptr;
         }
 
-        for (int j = 0; j < poly.size(); j++) {
-          const int vert_i = data->corner_verts[poly.start() + j];
-          const int edge_i = data->corner_edges[poly.start() + j];
+        for (int j = 0; j < face.size(); j++) {
+          const int vert_i = data->corner_verts[face.start() + j];
+          const int edge_i = data->corner_edges[face.start() + j];
           copy_v3_v3(bpoly->coords[j], data->targetCos[vert_i]);
 
-          /* Find corner and edge indices within poly loop array */
+          /* Find corner and edge indices within face loop array */
           if (vert_i == nearest) {
             bpoly->corner_ind = j;
-            bpoly->edge_vert_inds[0] = (j == 0) ? (poly.size() - 1) : (j - 1);
-            bpoly->edge_vert_inds[1] = (j == poly.size() - 1) ? (0) : (j + 1);
+            bpoly->edge_vert_inds[0] = (j == 0) ? (face.size() - 1) : (j - 1);
+            bpoly->edge_vert_inds[1] = (j == face.size() - 1) ? (0) : (j + 1);
 
-            bpoly->edge_inds[0] = data->corner_edges[poly.start() + bpoly->edge_vert_inds[0]];
+            bpoly->edge_inds[0] = data->corner_edges[face.start() + bpoly->edge_vert_inds[0]];
             bpoly->edge_inds[1] = edge_i;
           }
         }
 
         /* Compute polygons parametric data. */
-        mid_v3_v3_array(bpoly->centroid, bpoly->coords, poly.size());
-        normal_poly_v3(bpoly->normal, bpoly->coords, poly.size());
+        mid_v3_v3_array(bpoly->centroid, bpoly->coords, face.size());
+        normal_poly_v3(bpoly->normal, bpoly->coords, face.size());
 
-        /* Compute poly skew angle and axis */
+        /* Compute face skew angle and axis */
         angle = angle_normalized_v3v3(bpoly->normal, world);
 
         cross_v3_v3v3(axis, bpoly->normal, world);
@@ -593,12 +593,12 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         map_to_plane_axis_angle_v2_v3v3fl(bpoly->point_v2, point_co, axis, angle);
 
         zero_v2(bpoly->centroid_v2);
-        for (int j = 0; j < poly.size(); j++) {
+        for (int j = 0; j < face.size(); j++) {
           map_to_plane_axis_angle_v2_v3v3fl(bpoly->coords_v2[j], bpoly->coords[j], axis, angle);
-          madd_v2_v2fl(bpoly->centroid_v2, bpoly->coords_v2[j], 1.0f / poly.size());
+          madd_v2_v2fl(bpoly->centroid_v2, bpoly->coords_v2[j], 1.0f / face.size());
         }
 
-        is_poly_valid = isPolyValid(bpoly->coords_v2, poly.size());
+        is_poly_valid = isPolyValid(bpoly->coords_v2, face.size());
 
         if (is_poly_valid != MOD_SDEF_BIND_RESULT_SUCCESS) {
           freeBindData(bwdata);
@@ -606,7 +606,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
           return nullptr;
         }
 
-        bpoly->inside = isect_point_poly_v2(bpoly->point_v2, bpoly->coords_v2, poly.size(), false);
+        bpoly->inside = isect_point_poly_v2(bpoly->point_v2, bpoly->coords_v2, face.size(), false);
 
         /* Initialize weight components */
         bpoly->weight_angular = 1.0f;
@@ -630,7 +630,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         normalize_v2(bpoly->cent_edgemid_vecs_v2[0]);
         normalize_v2(bpoly->cent_edgemid_vecs_v2[1]);
 
-        /* Compute poly scales with respect to the two edges. */
+        /* Compute face scales with respect to the two edges. */
         bpoly->scales[0] = dist_to_line_v2(bpoly->centroid_v2, vert0_v2, corner_v2);
         bpoly->scales[1] = dist_to_line_v2(bpoly->centroid_v2, vert1_v2, corner_v2);
 
@@ -651,7 +651,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         bpoly->corner_edgemid_angles[0] = fabsf(corner_angles[0]);
         bpoly->corner_edgemid_angles[1] = fabsf(corner_angles[1]);
 
-        /* Verify that the computed values are valid (the polygon isn't somehow
+        /* Verify that the computed values are valid (the face isn't somehow
          * degenerate despite having passed isPolyValid). */
         if (bpoly->scales[0] < FLT_EPSILON || bpoly->scales[1] < FLT_EPSILON ||
             bpoly->edgemid_angle < FLT_EPSILON || bpoly->corner_edgemid_angles[0] < FLT_EPSILON ||
@@ -697,7 +697,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
           bpoly->point_edgemid_angles[1] = max_ff(0, point_angles[1]);
 
           /* Compute the distance scale for the corner. The base value is the orthogonal
-           * distance from the corner to the chord, scaled by sqrt(2) to preserve the old
+           * distance from the corner to the chord, scaled by `sqrt(2)` to preserve the old
            * values in case of a square grid. This doesn't use the centroid because the
            * LOOPTRI method only uses these three vertices. */
           bpoly->scale_mid = area_tri_v2(vert0_v2, corner_v2, vert1_v2) /
@@ -725,7 +725,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
     }
   }
 
-  avg_point_dist /= bwdata->polys_num;
+  avg_point_dist /= bwdata->faces_num;
 
   /* If weights 1 and 2 are not infinite, loop over all adjacent edges again,
    * and build adjacency dependent angle data (depends on all polygons having been computed) */
@@ -742,7 +742,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
       /* Find bind polys corresponding to the edge's adjacent polys */
       bpoly = bwdata->bind_polys;
 
-      for (int i = 0, j = 0; (i < bwdata->polys_num) && (j < epolys->num); bpoly++, i++) {
+      for (int i = 0, j = 0; (i < bwdata->faces_num) && (j < epolys->num); bpoly++, i++) {
         if (ELEM(bpoly->index, epolys->polys[0], epolys->polys[1])) {
           bpolys[j] = bpoly;
 
@@ -782,7 +782,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
   if (!inf_weight_flags) {
     bpoly = bwdata->bind_polys;
 
-    for (int i = 0; i < bwdata->polys_num; bpoly++, i++) {
+    for (int i = 0; i < bwdata->faces_num; bpoly++, i++) {
       float corner_angle_weights[2];
       float scale_weight, sqr, inv_sqr;
 
@@ -862,7 +862,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
   else if (!(inf_weight_flags & MOD_SDEF_INFINITE_WEIGHT_DIST)) {
     bpoly = bwdata->bind_polys;
 
-    for (int i = 0; i < bwdata->polys_num; bpoly++, i++) {
+    for (int i = 0; i < bwdata->faces_num; bpoly++, i++) {
       /* Scale the point distance weight by average point distance, and introduce falloff */
       bpoly->weight_dist /= avg_point_dist;
       bpoly->weight_dist = powf(bpoly->weight_dist, data->falloff);
@@ -877,7 +877,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
   /* Final loop, to compute actual weights */
   bpoly = bwdata->bind_polys;
 
-  for (int i = 0; i < bwdata->polys_num; bpoly++, i++) {
+  for (int i = 0; i < bwdata->faces_num; bpoly++, i++) {
     /* Weight computation from components */
     if (inf_weight_flags & MOD_SDEF_INFINITE_WEIGHT_DIST) {
       bpoly->weight = bpoly->weight_dist < FLT_EPSILON ? 1.0f : 0.0f;
@@ -904,10 +904,10 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
 
   bpoly = bwdata->bind_polys;
 
-  for (int i = 0; i < bwdata->polys_num; bpoly++, i++) {
+  for (int i = 0; i < bwdata->faces_num; bpoly++, i++) {
     bpoly->weight /= tot_weight;
 
-    /* Evaluate if this poly is relevant to bind */
+    /* Evaluate if this face is relevant to bind */
     /* Even though the weights should add up to 1.0,
      * the losses of weights smaller than epsilon here
      * should be negligible... */
@@ -1034,8 +1034,8 @@ static void bindVert(void *__restrict userdata,
         interp_weights_poly_v2(
             sdbind->vert_weights, bpoly->coords_v2, bpoly->verts_num, bpoly->point_v2);
 
-        /* Re-project vert based on weights and original poly verts,
-         * to reintroduce poly non-planarity */
+        /* Re-project vert based on weights and original face verts,
+         * to reintroduce face non-planarity */
         zero_v3(point_co_proj);
         for (int j = 0; j < bpoly->verts_num; j++) {
           const int vert_i = data->corner_verts[bpoly->loopstart + j];
@@ -1174,15 +1174,15 @@ static bool surfacedeformBind(Object *ob,
                               SurfaceDeformModifierData *smd_eval,
                               float (*vertexCos)[3],
                               uint verts_num,
-                              uint target_polys_num,
+                              uint target_faces_num,
                               uint target_verts_num,
                               Mesh *target,
                               Mesh *mesh)
 {
   BVHTreeFromMesh treeData = {nullptr};
-  const float(*positions)[3] = BKE_mesh_vert_positions(target);
+  const blender::Span<blender::float3> positions = target->vert_positions();
   const blender::Span<blender::int2> edges = target->edges();
-  const blender::OffsetIndices polys = target->polys();
+  const blender::OffsetIndices polys = target->faces();
   const blender::Span<int> corner_verts = target->corner_verts();
   const blender::Span<int> corner_edges = target->corner_edges();
   uint tedges_num = target->totedge;
@@ -1243,7 +1243,7 @@ static bool surfacedeformBind(Object *ob,
 
   smd_orig->mesh_verts_num = verts_num;
   smd_orig->target_verts_num = target_verts_num;
-  smd_orig->target_polys_num = target_polys_num;
+  smd_orig->target_polys_num = target_faces_num;
 
   int defgrp_index;
   const MDeformVert *dvert;
@@ -1260,7 +1260,7 @@ static bool surfacedeformBind(Object *ob,
   data.corner_verts = corner_verts;
   data.corner_edges = corner_edges;
   data.looptris = target->looptris();
-  data.looptri_polys = target->looptri_polys();
+  data.looptri_faces = target->looptri_faces();
   data.targetCos = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(target_verts_num, sizeof(float[3]), "SDefTargetBindVertArray"));
   data.bind_verts = smd_orig->verts;
@@ -1274,7 +1274,7 @@ static bool surfacedeformBind(Object *ob,
 
   if (data.targetCos == nullptr) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
-    freeData((ModifierData *)smd_orig);
+    free_data((ModifierData *)smd_orig);
     return false;
   }
 
@@ -1300,20 +1300,20 @@ static bool surfacedeformBind(Object *ob,
 
   if (data.success == MOD_SDEF_BIND_RESULT_MEM_ERR) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
-    freeData((ModifierData *)smd_orig);
+    free_data((ModifierData *)smd_orig);
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_NONMANY_ERR) {
     BKE_modifier_set_error(
         ob, (ModifierData *)smd_eval, "Target has edges with more than two polygons");
-    freeData((ModifierData *)smd_orig);
+    free_data((ModifierData *)smd_orig);
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_CONCAVE_ERR) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Target contains concave polygons");
-    freeData((ModifierData *)smd_orig);
+    free_data((ModifierData *)smd_orig);
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_OVERLAP_ERR) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Target contains overlapping vertices");
-    freeData((ModifierData *)smd_orig);
+    free_data((ModifierData *)smd_orig);
   }
   else if (data.success == MOD_SDEF_BIND_RESULT_GENERIC_ERR) {
     /* I know this message is vague, but I could not think of a way
@@ -1321,12 +1321,12 @@ static bool surfacedeformBind(Object *ob,
      * Though it shouldn't really matter all that much,
      * because this is very unlikely to occur */
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Target contains invalid polygons");
-    freeData((ModifierData *)smd_orig);
+    free_data((ModifierData *)smd_orig);
   }
   else if (smd_orig->bind_verts_num == 0 || !smd_orig->verts) {
     data.success = MOD_SDEF_BIND_RESULT_GENERIC_ERR;
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "No vertices were bound");
-    freeData((ModifierData *)smd_orig);
+    free_data((ModifierData *)smd_orig);
   }
 
   freeAdjacencyMap(vert_edges, adj_array, edge_polys);
@@ -1433,7 +1433,7 @@ static void surfacedeformModifier_do(ModifierData *md,
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
   Mesh *target;
-  uint target_verts_num, target_polys_num;
+  uint target_verts_num, target_faces_num;
 
   /* Exit function if bind flag is not set (free bind data if any). */
   if (!(smd->flags & MOD_SDEF_BIND)) {
@@ -1443,7 +1443,7 @@ static void surfacedeformModifier_do(ModifierData *md,
         return;
       }
       ModifierData *md_orig = BKE_modifier_get_original(ob, md);
-      freeData(md_orig);
+      free_data(md_orig);
     }
     return;
   }
@@ -1456,7 +1456,7 @@ static void surfacedeformModifier_do(ModifierData *md,
   }
 
   target_verts_num = BKE_mesh_wrapper_vert_len(target);
-  target_polys_num = BKE_mesh_wrapper_poly_len(target);
+  target_faces_num = BKE_mesh_wrapper_face_len(target);
 
   /* If not bound, execute bind. */
   if (smd->verts == nullptr) {
@@ -1480,7 +1480,7 @@ static void surfacedeformModifier_do(ModifierData *md,
                            smd,
                            vertexCos,
                            verts_num,
-                           target_polys_num,
+                           target_faces_num,
                            target_verts_num,
                            target,
                            mesh))
@@ -1499,12 +1499,12 @@ static void surfacedeformModifier_do(ModifierData *md,
   }
 
   /* Geometry count on the target mesh. */
-  if (smd->target_polys_num != target_polys_num && smd->target_verts_num == 0) {
+  if (smd->target_polys_num != target_faces_num && smd->target_verts_num == 0) {
     /* Change in the number of polygons does not really imply change in the vertex count, but
      * this is how the modifier worked before the vertex count was known. Follow the legacy
      * logic without requirement to re-bind the mesh. */
     BKE_modifier_set_error(
-        ob, md, "Target polygons changed from %u to %u", smd->target_polys_num, target_polys_num);
+        ob, md, "Target polygons changed from %u to %u", smd->target_polys_num, target_faces_num);
     return;
   }
   if (!ELEM(smd->target_verts_num, 0, target_verts_num)) {
@@ -1568,55 +1568,16 @@ static void surfacedeformModifier_do(ModifierData *md,
   }
 }
 
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData *md,
+                         const ModifierEvalContext *ctx,
+                         Mesh *mesh,
+                         float (*vertexCos)[3],
+                         int verts_num)
 {
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
-  Mesh *mesh_src = nullptr;
-
-  if (smd->defgrp_name[0] != '\0') {
-    /* Only need to use mesh_src when a vgroup is used. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
-  }
-
-  surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh_src);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
+  surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh);
 }
 
-static void deformVertsEM(ModifierData *md,
-                          const ModifierEvalContext *ctx,
-                          BMEditMesh *em,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
-{
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
-  Mesh *mesh_src = nullptr;
-
-  if (smd->defgrp_name[0] != '\0') {
-    /* Only need to use mesh_src when a vgroup is used. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, nullptr, verts_num, false);
-  }
-
-  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
-  if (mesh_src != nullptr) {
-    BKE_mesh_wrapper_ensure_mdata(mesh_src);
-  }
-
-  surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh_src);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
-}
-
-static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
@@ -1645,17 +1606,17 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, !is_bound);
-  uiItemR(col, ptr, "target", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "falloff", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "target", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "falloff", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "strength", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "strength", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetEnabled(col, !is_bound);
   uiLayoutSetActive(col, !is_bound && RNA_string_length(ptr, "vertex_group") != 0);
-  uiItemR(col, ptr, "use_sparse_bind", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_sparse_bind", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiItemS(layout);
 
@@ -1670,12 +1631,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_SurfaceDeform, panel_draw);
 }
 
-static void blendWrite(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
+static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
   SurfaceDeformModifierData smd = *(const SurfaceDeformModifierData *)md;
   const bool is_undo = BLO_write_is_undo(writer);
@@ -1718,7 +1679,7 @@ static void blendWrite(BlendWriter *writer, const ID *id_owner, const ModifierDa
   }
 }
 
-static void blendRead(BlendDataReader *reader, ModifierData *md)
+static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
@@ -1747,34 +1708,35 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_SurfaceDeform = {
+    /*idname*/ "SurfaceDeform",
     /*name*/ N_("SurfaceDeform"),
-    /*structName*/ "SurfaceDeformModifierData",
-    /*structSize*/ sizeof(SurfaceDeformModifierData),
+    /*struct_name*/ "SurfaceDeformModifierData",
+    /*struct_size*/ sizeof(SurfaceDeformModifierData),
     /*srna*/ &RNA_SurfaceDeformModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_MESHDEFORM,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ freeData,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ blendWrite,
-    /*blendRead*/ blendRead,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };

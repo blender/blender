@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,8 @@
 
 #include "GEO_subdivide_curves.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 
@@ -15,7 +15,7 @@ namespace blender::nodes::node_geo_curve_subdivide_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>("Curve").supported_type(GeometryComponent::Type::Curve);
   b.add_input<decl::Int>("Cuts").default_value(1).min(0).max(1000).field_on_all().description(
       "The number of control points to create on the segment following each point");
   b.add_output<decl::Geometry>("Curve").propagate_all();
@@ -33,7 +33,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    const Curves &src_curves_id = *geometry_set.get_curves_for_read();
+    const Curves &src_curves_id = *geometry_set.get_curves();
     const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
     const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};
@@ -55,16 +55,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", geometry_set);
 }
 
-}  // namespace blender::nodes::node_geo_curve_subdivide_cc
-
-void register_node_type_geo_curve_subdivide()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_subdivide_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE_CURVE, "Subdivide Curve", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_subdivide_cc

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -30,10 +32,10 @@ static char QuantitativeInvisibilityF0D___doc__[] =
     "\n"
     "   Returns the quantitative invisibility of the\n"
     "   :class:`freestyle.types.Interface0D` pointed by the\n"
-    "   Interface0DIterator.  This evaluation can be ambiguous (in the case of\n"
-    "   a :class:`freestyle.types.TVertex` for example).  This functor tries\n"
+    "   Interface0DIterator. This evaluation can be ambiguous (in the case of\n"
+    "   a :class:`freestyle.types.TVertex` for example). This functor tries\n"
     "   to remove this ambiguity using the context offered by the 1D element\n"
-    "   to which the Interface0D belongs to.  However, there still can be\n"
+    "   to which the Interface0D belongs to. However, there still can be\n"
     "   problematic cases, and the user willing to deal with this cases in a\n"
     "   specific way should implement its own getQIF0D functor.\n"
     "\n"
@@ -59,7 +61,7 @@ static int QuantitativeInvisibilityF0D___init__(BPy_QuantitativeInvisibilityF0D 
 /*-----------------------BPy_QuantitativeInvisibilityF0D type definition ------------------------*/
 
 PyTypeObject QuantitativeInvisibilityF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "QuantitativeInvisibilityF0D",
     /*tp_basicsize*/ sizeof(BPy_QuantitativeInvisibilityF0D),
     /*tp_itemsize*/ 0,

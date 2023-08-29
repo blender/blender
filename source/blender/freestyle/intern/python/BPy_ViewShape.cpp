@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -339,7 +341,7 @@ static PyGetSetDef BPy_ViewShape_getseters[] = {
 /*-----------------------BPy_ViewShape type definition ------------------------------*/
 
 PyTypeObject ViewShape_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ViewShape",
     /*tp_basicsize*/ sizeof(BPy_ViewShape),
     /*tp_itemsize*/ 0,

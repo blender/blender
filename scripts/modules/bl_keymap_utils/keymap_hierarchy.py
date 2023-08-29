@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2011-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 __all__ = (
@@ -68,7 +70,7 @@ _km_hierarchy = [
         ('Font', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('VIEW_3D', 'EDIT_TEXT'),
         ]),
-
+        ('Grease Pencil', 'EMPTY', 'WINDOW', []),
         ('Pose', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('VIEW_3D', 'POSE'),
         ]),

@@ -1,7 +1,11 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #define BIT_RANGE(x) uint((1 << x) - 1)
 
 /* 2 bits for corner */
-/* Attention! Not the same order as in UI_interface.h!
+/* Attention! Not the same order as in UI_interface.hh!
  * Ordered by drawing order. */
 #define BOTTOM_LEFT 0u
 #define BOTTOM_RIGHT 1u
@@ -15,7 +19,7 @@
 
 #define INNER_FLAG uint(1 << 10) /* is inner vert */
 
-/* radi and rad per corner */
+/* Radii and rad per corner. */
 #define recti parameters[0]
 #define rect parameters[1]
 #define radsi parameters[2].x

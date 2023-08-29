@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __OSL_SERVICES_H__
 #define __OSL_SERVICES_H__
@@ -17,6 +18,8 @@
 #include <OSL/rendererservices.h>
 
 #include "scene/image.h"
+
+#include "kernel/osl/compat.h"
 
 #ifdef WITH_PTEX
 class PtexCache;
@@ -73,8 +76,7 @@ struct OSLTextureHandle : public OIIO::RefCnt {
 };
 
 typedef OIIO::intrusive_ptr<OSLTextureHandle> OSLTextureHandleRef;
-typedef OIIO::unordered_map_concurrent<ustring, OSLTextureHandleRef, ustringHash>
-    OSLTextureHandleMap;
+typedef OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandleRef> OSLTextureHandleMap;
 
 /* OSL Render Services
  *
@@ -100,11 +102,11 @@ class OSLRenderServices : public OSL::RendererServices {
 
   bool get_matrix(OSL::ShaderGlobals *sg,
                   OSL::Matrix44 &result,
-                  ustring from,
+                  OSLUStringHash from,
                   float time) override;
   bool get_inverse_matrix(OSL::ShaderGlobals *sg,
                           OSL::Matrix44 &result,
-                          ustring to,
+                          OSLUStringHash to,
                           float time) override;
 
   bool get_matrix(OSL::ShaderGlobals *sg,
@@ -114,34 +116,39 @@ class OSLRenderServices : public OSL::RendererServices {
                           OSL::Matrix44 &result,
                           OSL::TransformationPtr xform) override;
 
-  bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring from) override;
-  bool get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring from) override;
+  bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSLUStringHash from) override;
+  bool get_inverse_matrix(OSL::ShaderGlobals *sg,
+                          OSL::Matrix44 &result,
+                          OSLUStringHash from) override;
 
   bool get_array_attribute(OSL::ShaderGlobals *sg,
                            bool derivatives,
-                           ustring object,
+                           OSLUStringHash object,
                            TypeDesc type,
-                           ustring name,
+                           OSLUStringHash name,
                            int index,
                            void *val) override;
   bool get_attribute(OSL::ShaderGlobals *sg,
                      bool derivatives,
-                     ustring object,
+                     OSLUStringHash object,
                      TypeDesc type,
-                     ustring name,
+                     OSLUStringHash name,
                      void *val) override;
   bool get_attribute(ShaderData *sd,
                      bool derivatives,
-                     ustring object_name,
+                     OSLUStringHash object_name,
                      TypeDesc type,
-                     ustring name,
+                     OSLUStringHash name,
                      void *val);
 
-  bool get_userdata(
-      bool derivatives, ustring name, TypeDesc type, OSL::ShaderGlobals *sg, void *val) override;
+  bool get_userdata(bool derivatives,
+                    OSLUStringHash name,
+                    TypeDesc type,
+                    OSL::ShaderGlobals *sg,
+                    void *val) override;
 
   int pointcloud_search(OSL::ShaderGlobals *sg,
-                        ustring filename,
+                        OSLUStringHash filename,
                         const OSL::Vec3 &center,
                         float radius,
                         int max_points,
@@ -151,18 +158,18 @@ class OSLRenderServices : public OSL::RendererServices {
                         int derivs_offset) override;
 
   int pointcloud_get(OSL::ShaderGlobals *sg,
-                     ustring filename,
+                     OSLUStringHash filename,
                      size_t *indices,
                      int count,
-                     ustring attr_name,
+                     OSLUStringHash attr_name,
                      TypeDesc attr_type,
                      void *out_data) override;
 
   bool pointcloud_write(OSL::ShaderGlobals *sg,
-                        ustring filename,
+                        OSLUStringHash filename,
                         const OSL::Vec3 &pos,
                         int nattribs,
-                        const ustring *names,
+                        const OSLUStringRep *names,
                         const TypeDesc *types,
                         const void **data) override;
 
@@ -176,22 +183,22 @@ class OSLRenderServices : public OSL::RendererServices {
              const OSL::Vec3 &dRdy) override;
 
   bool getmessage(OSL::ShaderGlobals *sg,
-                  ustring source,
-                  ustring name,
+                  OSLUStringHash source,
+                  OSLUStringHash name,
                   TypeDesc type,
                   void *val,
                   bool derivatives) override;
 
 #if OSL_LIBRARY_VERSION_CODE >= 11100
-  TextureSystem::TextureHandle *get_texture_handle(ustring filename,
+  TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
                                                    OSL::ShadingContext *context) override;
 #else
-  TextureSystem::TextureHandle *get_texture_handle(ustring filename) override;
+  TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename) override;
 #endif
 
   bool good(TextureSystem::TextureHandle *texture_handle) override;
 
-  bool texture(ustring filename,
+  bool texture(OSLUStringHash filename,
                TextureSystem::TextureHandle *texture_handle,
                TexturePerthread *texture_thread_info,
                TextureOpt &options,
@@ -206,9 +213,9 @@ class OSLRenderServices : public OSL::RendererServices {
                float *result,
                float *dresultds,
                float *dresultdt,
-               ustring *errormessage) override;
+               OSLUStringHash *errormessage) override;
 
-  bool texture3d(ustring filename,
+  bool texture3d(OSLUStringHash filename,
                  TextureHandle *texture_handle,
                  TexturePerthread *texture_thread_info,
                  TextureOpt &options,
@@ -222,9 +229,9 @@ class OSLRenderServices : public OSL::RendererServices {
                  float *dresultds,
                  float *dresultdt,
                  float *dresultdr,
-                 ustring *errormessage) override;
+                 OSLUStringHash *errormessage) override;
 
-  bool environment(ustring filename,
+  bool environment(OSLUStringHash filename,
                    TextureHandle *texture_handle,
                    TexturePerthread *texture_thread_info,
                    TextureOpt &options,
@@ -236,37 +243,37 @@ class OSLRenderServices : public OSL::RendererServices {
                    float *result,
                    float *dresultds,
                    float *dresultdt,
-                   ustring *errormessage) override;
+                   OSLUStringHash *errormessage) override;
 
 #if OSL_LIBRARY_VERSION_CODE >= 11100
-  bool get_texture_info(ustring filename,
+  bool get_texture_info(OSLUStringHash filename,
                         TextureHandle *texture_handle,
                         TexturePerthread *texture_thread_info,
                         OSL::ShadingContext *shading_context,
                         int subimage,
-                        ustring dataname,
+                        OSLUStringHash dataname,
                         TypeDesc datatype,
                         void *data,
-                        ustring *errormessage) override;
+                        OSLUStringHash *errormessage) override;
 #else
   bool get_texture_info(OSL::ShaderGlobals *sg,
-                        ustring filename,
+                        OSLUStringHash filename,
                         TextureHandle *texture_handle,
                         int subimage,
-                        ustring dataname,
+                        OSLUStringHash dataname,
                         TypeDesc datatype,
                         void *data) override;
 #endif
 
   static bool get_background_attribute(const KernelGlobalsCPU *kg,
                                        ShaderData *sd,
-                                       ustring name,
+                                       OSLUStringHash name,
                                        TypeDesc type,
                                        bool derivatives,
                                        void *val);
   static bool get_object_standard_attribute(const KernelGlobalsCPU *kg,
                                             ShaderData *sd,
-                                            ustring name,
+                                            OSLUStringHash name,
                                             TypeDesc type,
                                             bool derivatives,
                                             void *val);

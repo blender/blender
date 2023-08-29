@@ -1,7 +1,6 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *  */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -41,15 +40,15 @@ struct ObjectKey {
   Object *parent;
   /** Dupli objects recursive unique identifier */
   int id[MAX_DUPLI_RECUR];
-  /** If object uses particle system hair. */
-  bool use_particle_hair;
+  /** Used for particle system hair. */
+  int sub_key_;
 #ifdef DEBUG
   char name[64];
 #endif
   ObjectKey() : ob(nullptr), parent(nullptr){};
 
-  ObjectKey(Object *ob_, Object *parent_, int id_[MAX_DUPLI_RECUR], bool use_particle_hair_)
-      : ob(ob_), parent(parent_), use_particle_hair(use_particle_hair_)
+  ObjectKey(Object *ob_, Object *parent_, int id_[MAX_DUPLI_RECUR], int sub_key_ = 0)
+      : ob(ob_), parent(parent_), sub_key_(sub_key_)
   {
     if (id_) {
       memcpy(id, id_, sizeof(id));
@@ -68,16 +67,19 @@ struct ObjectKey {
         break;
       }
     }
+    if (sub_key_ != 0) {
+      hash_value = BLI_ghashutil_combine_hash(hash_value, sub_key_);
+    }
 #ifdef DEBUG
     STRNCPY(name, ob->id.name);
 #endif
   }
 
-  ObjectKey(Object *ob, DupliObject *dupli, Object *parent)
-      : ObjectKey(ob, parent, dupli ? dupli->persistent_id : nullptr, false){};
+  ObjectKey(Object *ob, DupliObject *dupli, Object *parent, int sub_key_ = 0)
+      : ObjectKey(ob, parent, dupli ? dupli->persistent_id : nullptr, sub_key_){};
 
-  ObjectKey(Object *ob)
-      : ObjectKey(ob, DRW_object_get_dupli(ob), DRW_object_get_dupli_parent(ob)){};
+  ObjectKey(Object *ob, int sub_key_ = 0)
+      : ObjectKey(ob, DRW_object_get_dupli(ob), DRW_object_get_dupli_parent(ob), sub_key_){};
 
   uint64_t hash() const
   {
@@ -92,8 +94,8 @@ struct ObjectKey {
     if (parent != k.parent) {
       return (parent < k.parent);
     }
-    if (use_particle_hair != k.use_particle_hair) {
-      return (use_particle_hair < k.use_particle_hair);
+    if (sub_key_ != k.sub_key_) {
+      return (sub_key_ < k.sub_key_);
     }
     return memcmp(id, k.id, sizeof(id)) < 0;
   }
@@ -106,7 +108,7 @@ struct ObjectKey {
     if (parent != k.parent) {
       return false;
     }
-    if (use_particle_hair != k.use_particle_hair) {
+    if (sub_key_ != k.sub_key_) {
       return false;
     }
     return memcmp(id, k.id, sizeof(id)) == 0;
@@ -165,12 +167,25 @@ class SyncModule {
                  ObjectHandle &ob_handle,
                  ResourceHandle res_handle,
                  const ObjectRef &ob_ref);
+  bool sync_sculpt(Object *ob,
+                   ObjectHandle &ob_handle,
+                   ResourceHandle res_handle,
+                   const ObjectRef &ob_ref);
+  void sync_point_cloud(Object *ob,
+                        ObjectHandle &ob_handle,
+                        ResourceHandle res_handle,
+                        const ObjectRef &ob_ref);
   void sync_gpencil(Object *ob, ObjectHandle &ob_handle, ResourceHandle res_handle);
   void sync_curves(Object *ob,
                    ObjectHandle &ob_handle,
                    ResourceHandle res_handle,
-                   ModifierData *modifier_data = nullptr);
+                   ModifierData *modifier_data = nullptr,
+                   ParticleSystem *particle_sys = nullptr);
+  void sync_light_probe(Object *ob, ObjectHandle &ob_handle);
 };
+
+using HairHandleCallback = FunctionRef<void(ObjectHandle, ModifierData &, ParticleSystem &)>;
+void foreach_hair_particle_handle(Object *ob, ObjectHandle ob_handle, HairHandleCallback callback);
 
 /** \} */
 

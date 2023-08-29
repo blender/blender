@@ -27,13 +27,13 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_armature.h"
-#include "ED_object.h"
-#include "ED_undo.h"
-#include "ED_util.h"
+#include "ED_armature.hh"
+#include "ED_object.hh"
+#include "ED_undo.hh"
+#include "ED_util.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo.armature"};
@@ -42,11 +42,11 @@ static CLG_LogRef LOG = {"ed.undo.armature"};
 /** \name Undo Conversion
  * \{ */
 
-typedef struct UndoArmature {
+struct UndoArmature {
   EditBone *act_edbone;
   ListBase lb;
   size_t undo_size;
-} UndoArmature;
+};
 
 static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
 {
@@ -119,24 +119,24 @@ static Object *editarm_object_from_context(bContext *C)
  * \note This is similar for all edit-mode types.
  * \{ */
 
-typedef struct ArmatureUndoStep_Elem {
-  struct ArmatureUndoStep_Elem *next, *prev;
+struct ArmatureUndoStep_Elem {
+  ArmatureUndoStep_Elem *next, *prev;
   UndoRefID_Object obedit_ref;
   UndoArmature data;
-} ArmatureUndoStep_Elem;
+};
 
-typedef struct ArmatureUndoStep {
+struct ArmatureUndoStep {
   UndoStep step;
   ArmatureUndoStep_Elem *elems;
   uint elems_len;
-} ArmatureUndoStep;
+};
 
 static bool armature_undosys_poll(bContext *C)
 {
   return editarm_object_from_context(C) != nullptr;
 }
 
-static bool armature_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
+static bool armature_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
   ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
 
@@ -168,11 +168,8 @@ static bool armature_undosys_step_encode(struct bContext *C, struct Main *bmain,
   return true;
 }
 
-static void armature_undosys_step_decode(struct bContext *C,
-                                         struct Main *bmain,
-                                         UndoStep *us_p,
-                                         const eUndoStepDir /*dir*/,
-                                         bool /*is_final*/)
+static void armature_undosys_step_decode(
+    bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
   ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
 

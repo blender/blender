@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,10 +8,14 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
+
+#include "RNA_enum_types.hh"
 
 #include <cmath>
 
@@ -369,15 +373,15 @@ static void calculate_cone_edges(const ConeConfig &config, MutableSpan<int2> edg
 static void calculate_cone_faces(const ConeConfig &config,
                                  MutableSpan<int> corner_verts,
                                  MutableSpan<int> corner_edges,
-                                 MutableSpan<int> poly_sizes)
+                                 MutableSpan<int> face_sizes)
 {
-  int rings_poly_start = 0;
+  int rings_face_start = 0;
   int rings_loop_start = 0;
   if (config.top_has_center_vert) {
-    rings_poly_start = config.circle_segments;
+    rings_face_start = config.circle_segments;
     rings_loop_start = config.circle_segments * 3;
 
-    poly_sizes.take_front(config.circle_segments).fill(3);
+    face_sizes.take_front(config.circle_segments).fill(3);
 
     /* Top cone tip or center triangle fan in the fill. */
     const int top_center_vert = 0;
@@ -398,11 +402,11 @@ static void calculate_cone_faces(const ConeConfig &config,
     }
   }
   else if (config.fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
-    rings_poly_start = 1;
+    rings_face_start = 1;
     rings_loop_start = config.circle_segments;
 
     /* Center n-gon in the fill. */
-    poly_sizes.first() = config.circle_segments;
+    face_sizes.first() = config.circle_segments;
     for (const int i : IndexRange(config.circle_segments)) {
       corner_verts[i] = i;
       corner_edges[i] = i;
@@ -410,8 +414,8 @@ static void calculate_cone_faces(const ConeConfig &config,
   }
 
   /* Quads connect one edge ring to the next one. */
-  const int ring_polys_num = config.tot_quad_rings * config.circle_segments;
-  poly_sizes.slice(rings_poly_start, ring_polys_num).fill(4);
+  const int ring_faces_num = config.tot_quad_rings * config.circle_segments;
+  face_sizes.slice(rings_face_start, ring_faces_num).fill(4);
   for (const int i : IndexRange(config.tot_quad_rings)) {
     const int this_ring_loop_start = rings_loop_start + i * config.circle_segments * 4;
     const int this_ring_vert_start = config.first_ring_verts_start + (i * config.circle_segments);
@@ -439,11 +443,11 @@ static void calculate_cone_faces(const ConeConfig &config,
     }
   }
 
-  const int bottom_poly_start = rings_poly_start + ring_polys_num;
-  const int bottom_loop_start = rings_loop_start + ring_polys_num * 4;
+  const int bottom_face_start = rings_face_start + ring_faces_num;
+  const int bottom_loop_start = rings_loop_start + ring_faces_num * 4;
 
   if (config.bottom_has_center_vert) {
-    poly_sizes.slice(bottom_poly_start, config.circle_segments).fill(3);
+    face_sizes.slice(bottom_face_start, config.circle_segments).fill(3);
 
     /* Bottom cone tip or center triangle fan in the fill. */
     for (const int i : IndexRange(config.circle_segments)) {
@@ -463,7 +467,7 @@ static void calculate_cone_faces(const ConeConfig &config,
   }
   else if (config.fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
     /* Center n-gon in the fill. */
-    poly_sizes[bottom_poly_start] = config.circle_segments;
+    face_sizes[bottom_face_start] = config.circle_segments;
     for (const int i : IndexRange(config.circle_segments)) {
       /* Go backwards to reverse surface normal. */
       corner_verts[bottom_loop_start + i] = config.last_vert - i;
@@ -711,15 +715,15 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
 
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   BKE_mesh_smooth_flag_set(mesh, false);
 
   calculate_cone_verts(config, positions);
   calculate_cone_edges(config, edges);
-  calculate_cone_faces(config, corner_verts, corner_edges, poly_offsets.drop_back(1));
-  offset_indices::accumulate_counts_to_offsets(poly_offsets);
+  calculate_cone_faces(config, corner_verts, corner_edges, face_offsets.drop_back(1));
+  offset_indices::accumulate_counts_to_offsets(face_offsets);
   if (attribute_outputs.uv_map_id) {
     calculate_cone_uvs(config, mesh, attribute_outputs.uv_map_id.get());
   }
@@ -801,7 +805,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "fill_type", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "fill_type", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -853,24 +857,36 @@ static void node_geo_exec(GeoNodeExecParams params)
   /* Transform the mesh so that the base of the cone is at the origin. */
   BKE_mesh_translate(mesh, float3(0.0f, 0.0f, depth * 0.5f), false);
 
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 
-}  // namespace blender::nodes::node_geo_mesh_primitive_cone_cc
-
-void register_node_type_geo_mesh_primitive_cone()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_primitive_cone_cc;
+  RNA_def_node_enum(srna,
+                    "fill_type",
+                    "Fill Type",
+                    "",
+                    rna_enum_node_geometry_mesh_circle_fill_type_items,
+                    NOD_storage_enum_accessors(fill_type),
+                    GEO_NODE_MESH_CIRCLE_FILL_NGON);
+}
 
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CONE, "Cone", NODE_CLASS_GEOMETRY);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
   node_type_storage(
       &ntype, "NodeGeometryMeshCone", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_mesh_primitive_cone_cc

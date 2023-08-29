@@ -1,6 +1,9 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
+
+#include <memory>
+#include <unordered_map>
 
 #include "BLI_exception_safety_test_utils.hh"
 #include "BLI_map.hh"
@@ -9,8 +12,8 @@
 #include "BLI_strict_flags.h"
 #include "BLI_timeit.hh"
 #include "BLI_vector.hh"
+
 #include "testing/testing.h"
-#include <memory>
 
 namespace blender::tests {
 
@@ -730,11 +733,79 @@ BLI_NOINLINE void benchmark_random_ints(StringRef name, int amount, int factor)
   std::cout << "Count: " << count << "\n";
 }
 
+/**
+ * A wrapper for std::unordered_map with the API of blender::Map. This can be used for
+ * benchmarking.
+ */
+template<typename Key, typename Value> class StdUnorderedMapWrapper {
+ private:
+  using MapType = std::unordered_map<Key, Value, blender::DefaultHash<Key>>;
+  MapType map_;
+
+ public:
+  int64_t size() const
+  {
+    return int64_t(map_.size());
+  }
+
+  bool is_empty() const
+  {
+    return map_.empty();
+  }
+
+  void reserve(int64_t n)
+  {
+    map_.reserve(n);
+  }
+
+  template<typename ForwardKey, typename... ForwardValue>
+  void add_new(ForwardKey &&key, ForwardValue &&...value)
+  {
+    map_.insert({std::forward<ForwardKey>(key), Value(std::forward<ForwardValue>(value)...)});
+  }
+
+  template<typename ForwardKey, typename... ForwardValue>
+  bool add(ForwardKey &&key, ForwardValue &&...value)
+  {
+    return map_
+        .insert({std::forward<ForwardKey>(key), Value(std::forward<ForwardValue>(value)...)})
+        .second;
+  }
+
+  bool contains(const Key &key) const
+  {
+    return map_.find(key) != map_.end();
+  }
+
+  bool remove(const Key &key)
+  {
+    return bool(map_.erase(key));
+  }
+
+  Value &lookup(const Key &key)
+  {
+    return map_.find(key)->second;
+  }
+
+  const Value &lookup(const Key &key) const
+  {
+    return map_.find(key)->second;
+  }
+
+  void clear()
+  {
+    map_.clear();
+  }
+
+  void print_stats(StringRef /*name*/ = "") const {}
+};
+
 TEST(map, Benchmark)
 {
   for (int i = 0; i < 3; i++) {
     benchmark_random_ints<blender::Map<int, int>>("blender::Map          ", 1000000, 1);
-    benchmark_random_ints<blender::StdUnorderedMapWrapper<int, int>>("std::unordered_map", 1000000, 1);
+    benchmark_random_ints<blender::StdUnorderedMapWrapper<int, int>>(
+        "std::unordered_map", 1000000, 1);
   }
   std::cout << "\n";
   for (int i = 0; i < 3; i++) {

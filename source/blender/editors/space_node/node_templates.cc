@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -28,20 +28,20 @@
 #include "BKE_main.h"
 #include "BKE_node_tree_update.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "NOD_node_declaration.hh"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 
 #include "../interface/interface_intern.hh" /* XXX bad level */
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "ED_node.h" /* own include */
+#include "ED_node.hh" /* own include */
 #include "node_intern.hh"
 
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 using blender::nodes::NodeDeclaration;
 
@@ -89,15 +89,13 @@ static void node_link_item_apply(bNodeTree *ntree, bNode *node, NodeLinkItem *it
 
 static void node_tag_recursive(bNode *node)
 {
-  bNodeSocket *input;
-
   if (!node || (node->flag & NODE_TEST)) {
     return; /* in case of cycles */
   }
 
   node->flag |= NODE_TEST;
 
-  for (input = (bNodeSocket *)node->inputs.first; input; input = input->next) {
+  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
     if (input->link) {
       node_tag_recursive(input->link->fromnode);
     }
@@ -106,15 +104,13 @@ static void node_tag_recursive(bNode *node)
 
 static void node_clear_recursive(bNode *node)
 {
-  bNodeSocket *input;
-
   if (!node || !(node->flag & NODE_TEST)) {
     return; /* in case of cycles */
   }
 
   node->flag &= ~NODE_TEST;
 
-  for (input = (bNodeSocket *)node->inputs.first; input; input = input->next) {
+  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
     if (input->link) {
       node_clear_recursive(input->link->fromnode);
     }
@@ -124,23 +120,22 @@ static void node_clear_recursive(bNode *node)
 static void node_remove_linked(Main *bmain, bNodeTree *ntree, bNode *rem_node)
 {
   bNode *node, *next;
-  bNodeSocket *sock;
 
   if (!rem_node) {
     return;
   }
 
   /* tag linked nodes to be removed */
-  for (node = (bNode *)ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->flag &= ~NODE_TEST;
   }
 
   node_tag_recursive(rem_node);
 
   /* clear tags on nodes that are still used by other nodes */
-  for (node = (bNode *)ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (!(node->flag & NODE_TEST)) {
-      for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         if (sock->link && sock->link->fromnode != rem_node) {
           node_clear_recursive(sock->link->fromnode);
         }
@@ -254,17 +249,14 @@ static void node_socket_add_replace(const bContext *C,
 
   /* copy input sockets from previous node */
   if (node_prev && node_from != node_prev) {
-    bNodeSocket *sock_prev, *sock_from;
-
-    for (sock_prev = (bNodeSocket *)node_prev->inputs.first; sock_prev;
-         sock_prev = sock_prev->next) {
-      for (sock_from = (bNodeSocket *)node_from->inputs.first; sock_from;
-           sock_from = sock_from->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock_prev, &node_prev->inputs) {
+      LISTBASE_FOREACH (bNodeSocket *, sock_from, &node_from->inputs) {
         if (nodeCountSocketLinks(ntree, sock_from) >= nodeSocketLinkLimit(sock_from)) {
           continue;
         }
 
-        if (STREQ(sock_prev->name, sock_from->name) && sock_prev->type == sock_from->type) {
+        if (STREQ(sock_prev->identifier, sock_from->identifier) &&
+            sock_prev->type == sock_from->type) {
           bNodeLink *link = sock_prev->link;
 
           if (link && link->fromnode) {
@@ -390,6 +382,9 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
       }
       else if (dynamic_cast<const decl::Color *>(&socket_decl)) {
         item.socket_type = SOCK_RGBA;
+      }
+      else if (dynamic_cast<const decl::Rotation *>(&socket_decl)) {
+        item.socket_type = SOCK_ROTATION;
       }
       else if (dynamic_cast<const decl::String *>(&socket_decl)) {
         item.socket_type = SOCK_STRING;
@@ -873,9 +868,10 @@ static void ui_node_draw_input(
           ATTR_FALLTHROUGH;
         case SOCK_FLOAT:
         case SOCK_INT:
+        case SOCK_ROTATION:
         case SOCK_BOOLEAN:
         case SOCK_RGBA:
-          uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
+          uiItemR(sub, &inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
           uiItemDecoratorR(
               split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
           break;
@@ -888,12 +884,15 @@ static void ui_node_draw_input(
             node_geometry_add_attribute_search_button(C, node, inputptr, *sub);
           }
           else {
-            uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
+            uiItemR(sub, &inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
           }
           uiItemDecoratorR(
               split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
           break;
         }
+        case SOCK_CUSTOM:
+          input.typeinfo->draw(&C, sub, &inputptr, &nodeptr, input.name);
+          break;
         default:
           add_dummy_decorator = true;
       }
@@ -917,14 +916,12 @@ void uiTemplateNodeView(
 {
   using namespace blender::ed::space_node;
 
-  bNode *tnode;
-
   if (!ntree) {
     return;
   }
 
   /* clear for cycle check */
-  for (tnode = (bNode *)ntree->nodes.first; tnode; tnode = tnode->next) {
+  LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
     tnode->flag &= ~NODE_TEST;
   }
 

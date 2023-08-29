@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from bpy.types import Header, Menu, Panel
@@ -179,8 +181,8 @@ class NLA_MT_edit(Menu):
 
         layout.separator()
         layout.operator("nla.bake", text="Bake Action")
-        layout.operator("nla.duplicate", text="Duplicate").linked = False
-        layout.operator("nla.duplicate", text="Linked Duplicate").linked = True
+        layout.operator("nla.duplicate_move")
+        layout.operator("nla.duplicate_linked_move")
         layout.operator("nla.split")
         layout.operator("nla.delete")
         layout.operator("nla.tracks_delete")
@@ -300,8 +302,8 @@ class NLA_MT_context_menu(Menu):
         props = layout.operator("wm.call_panel", text="Rename...")
         props.name = "TOPBAR_PT_name"
         props.keep_open = False
-        layout.operator("nla.duplicate", text="Duplicate").linked = False
-        layout.operator("nla.duplicate", text="Linked Duplicate").linked = True
+        layout.operator("nla.duplicate_move")
+        layout.operator("nla.duplicate_linked_move")
 
         layout.separator()
 

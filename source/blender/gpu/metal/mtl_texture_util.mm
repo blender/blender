@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -101,11 +103,10 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
       return MTLPixelFormatRGB10A2Uint;
     case GPU_R11F_G11F_B10F:
       return MTLPixelFormatRG11B10Float;
+    case GPU_DEPTH24_STENCIL8:
+      /* NOTE(fclem): DEPTH24_STENCIL8 not supported by Apple Silicon. Fallback to Depth32F8S. */
     case GPU_DEPTH32F_STENCIL8:
       return MTLPixelFormatDepth32Float_Stencil8;
-    case GPU_DEPTH24_STENCIL8:
-      BLI_assert_msg(false, "GPU_DEPTH24_STENCIL8 not supported by Apple Silicon.");
-      return MTLPixelFormatDepth24Unorm_Stencil8;
     case GPU_SRGB8_A8:
       return MTLPixelFormatRGBA8Unorm_sRGB;
     /* Texture only formats. */
@@ -191,6 +192,9 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA8Uint:
     case MTLPixelFormatRGBA8Sint:
     case MTLPixelFormatRGBA8Unorm:
+    case MTLPixelFormatRGBA8Snorm:
+    case MTLPixelFormatRGB10A2Uint:
+    case MTLPixelFormatRGB10A2Unorm:
       return 4;
     case MTLPixelFormatRGBA32Uint:
     case MTLPixelFormatRGBA32Sint:
@@ -200,10 +204,13 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA16Sint:
     case MTLPixelFormatRGBA16Float:
     case MTLPixelFormatRGBA16Unorm:
+    case MTLPixelFormatRGBA16Snorm:
       return 8;
     case MTLPixelFormatRG8Uint:
     case MTLPixelFormatRG8Sint:
     case MTLPixelFormatRG8Unorm:
+    case MTLPixelFormatRG8Snorm:
+    case MTLPixelFormatRG8Unorm_sRGB:
       return 2;
     case MTLPixelFormatRG32Uint:
     case MTLPixelFormatRG32Sint:
@@ -212,6 +219,8 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatRG16Uint:
     case MTLPixelFormatRG16Sint:
     case MTLPixelFormatRG16Float:
+    case MTLPixelFormatRG16Unorm:
+    case MTLPixelFormatRG16Snorm:
       return 4;
     case MTLPixelFormatR8Uint:
     case MTLPixelFormatR8Sint:
@@ -225,6 +234,7 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatR16Sint:
     case MTLPixelFormatR16Float:
     case MTLPixelFormatR16Snorm:
+    case MTLPixelFormatR16Unorm:
       return 2;
     case MTLPixelFormatRG11B10Float:
       return 4;
@@ -249,6 +259,7 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA8Uint:
     case MTLPixelFormatRGBA8Sint:
     case MTLPixelFormatRGBA8Unorm:
+    case MTLPixelFormatRGBA8Snorm:
     case MTLPixelFormatRGBA32Uint:
     case MTLPixelFormatRGBA32Sint:
     case MTLPixelFormatRGBA32Float:
@@ -256,7 +267,10 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA16Sint:
     case MTLPixelFormatRGBA16Float:
     case MTLPixelFormatRGBA16Unorm:
+    case MTLPixelFormatRGBA16Snorm:
     case MTLPixelFormatRGBA8Unorm_sRGB:
+    case MTLPixelFormatRGB10A2Uint:
+    case MTLPixelFormatRGB10A2Unorm:
       return 4;
 
     case MTLPixelFormatRG11B10Float:
@@ -272,17 +286,21 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatRG16Sint:
     case MTLPixelFormatRG16Float:
     case MTLPixelFormatDepth32Float_Stencil8:
+    case MTLPixelFormatRG16Snorm:
+    case MTLPixelFormatRG16Unorm:
       return 2;
 
     case MTLPixelFormatR8Uint:
     case MTLPixelFormatR8Sint:
     case MTLPixelFormatR8Unorm:
+    case MTLPixelFormatR8Snorm:
     case MTLPixelFormatR32Uint:
     case MTLPixelFormatR32Sint:
     case MTLPixelFormatR32Float:
     case MTLPixelFormatR16Uint:
     case MTLPixelFormatR16Sint:
     case MTLPixelFormatR16Float:
+    case MTLPixelFormatR16Unorm:
     case MTLPixelFormatR16Snorm:
     case MTLPixelFormatDepth32Float:
     case MTLPixelFormatDepth16Unorm:

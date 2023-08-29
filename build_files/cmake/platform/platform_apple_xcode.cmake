@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2016 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2016 Blender Foundation
 
 # Xcode and system configuration for Apple.
 
@@ -171,6 +172,7 @@ endif()
 if(WITH_COMPILER_CCACHE)
   if(CMAKE_GENERATOR STREQUAL "Xcode")
     find_program(CCACHE_PROGRAM ccache)
+    mark_as_advanced(CCACHE_PROGRAM)
     if(CCACHE_PROGRAM)
       get_filename_component(ccompiler "${CMAKE_C_COMPILER}" NAME)
       get_filename_component(cxxcompiler "${CMAKE_CXX_COMPILER}" NAME)

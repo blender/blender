@@ -1,13 +1,15 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved.
- *           1997-2001 Id Software, Inc. Video mode switching.
- *                     Ported from Quake 2 by Alex Fraser <alex@phatcore.com>. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 1997-2001 Id Software, Inc.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ * Video mode switching ported from Quake 2 by `Alex Fraser <alex@phatcore.com>`. */
 
 /** \file
  * \ingroup GHOST
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #ifdef WITH_X11_XF86VMODE
 #  include <X11/Xlib.h>
@@ -65,7 +67,7 @@ GHOST_TSuccess GHOST_DisplayManagerX11::getNumDisplaySettings(uint8_t display,
 
 /* from SDL2 */
 #ifdef WITH_X11_XF86VMODE
-static int calculate_rate(XF86VidModeModeInfo *info)
+static int calculate_rate(const XF86VidModeModeInfo *info)
 {
   return (info->htotal && info->vtotal) ? (1000 * info->dotclock / (info->htotal * info->vtotal)) :
                                           0;

@@ -216,6 +216,11 @@ typedef struct ThemeUI {
 
 } ThemeUI;
 
+typedef struct ThemeAssetShelf {
+  unsigned char header_back[4];
+  unsigned char back[4];
+} ThemeAssetShelf;
+
 /* try to put them all in one, if needed a special struct can be created as well
  * for example later on, when we introduce wire colors for ob types or so...
  */
@@ -270,6 +275,8 @@ typedef struct ThemeSpace {
 
   /* NOTE: cannot use name 'panel' because of DNA mapping old files. */
   uiPanelColors panelcolors;
+
+  ThemeAssetShelf asset_shelf;
 
   unsigned char shade1[4];
   unsigned char shade2[4];
@@ -346,6 +353,8 @@ typedef struct ThemeSpace {
   unsigned char nodeclass_geometry[4], nodeclass_attribute[4];
 
   unsigned char node_zone_simulation[4];
+  unsigned char node_zone_repeat[4];
+  unsigned char _pad9[4];
   unsigned char simulated_frames[4];
 
   /** For sequence editor. */
@@ -533,7 +542,10 @@ typedef struct bTheme {
 
 typedef struct bAddon {
   struct bAddon *next, *prev;
-  char module[64];
+  /**
+   * 64 characters for a package prefix, 63 characters for the add-on name.
+   */
+  char module[128];
   /** User-Defined Properties on this add-on (for storing preferences). */
   IDProperty *prop;
 } bAddon;
@@ -595,13 +607,35 @@ enum {
 typedef struct bUserAssetLibrary {
   struct bUserAssetLibrary *next, *prev;
 
-  char name[64];   /* MAX_NAME */
-  char path[1024]; /* FILE_MAX */
+  char name[64];      /* MAX_NAME */
+  char dirpath[1024]; /* FILE_MAX */
 
   short import_method; /* eAssetImportMethod */
   short flag;          /* eAssetLibrary_Flag */
   char _pad0[4];
 } bUserAssetLibrary;
+
+typedef struct bUserExtensionRepo {
+  struct bUserExtensionRepo *next, *prev;
+  /**
+   * Unique identifier, only for display in the UI list.
+   * The `module` is used for internal identifiers.
+   */
+  char name[64]; /* MAX_NAME */
+  /**
+   * The unique module name (sub-module) in fact.
+   *
+   * Use a shorter name than #NAME_MAX to leave room for a base module prefix.
+   * e.g. `bl_ext.{submodule}.{add_on}` to allow this string to fit into #bAddon::module.
+   */
+  char module[48];
+
+  char dirpath[1024];     /* FILE_MAX */
+  char remote_path[1024]; /* FILE_MAX */
+
+  int flag;
+  char _pad0[4];
+} bUserExtensionRepo;
 
 typedef struct SolidLight {
   int flag;
@@ -662,6 +696,7 @@ typedef struct UserDef_Experimental {
   char use_undo_legacy;
   char no_override_auto_resync;
   char use_cycles_debug;
+  char use_eevee_debug;
   char show_asset_debug_info;
   char no_asset_indexing;
   char use_viewport_debug;
@@ -679,9 +714,12 @@ typedef struct UserDef_Experimental {
   char use_sculpt_texture_paint;
   char use_grease_pencil_version3;
   char enable_overlay_next;
-  char enable_workbench_next;
   char use_new_volume_nodes;
-  char _pad[4];
+  char use_node_group_operators;
+  char use_shader_node_previews;
+  char use_extension_repos;
+
+  char _pad[1];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -729,6 +767,9 @@ typedef struct UserDef {
   char i18ndir[768];
   /** 1024 = FILE_MAX. */
   char image_editor[1024];
+  /** 1024 = FILE_MAX. */
+  char text_editor[1024];
+  char text_editor_args[256];
   /** 1024 = FILE_MAX. */
   char anim_player[1024];
   int anim_player_preset;
@@ -780,7 +821,7 @@ typedef struct UserDef {
   int scrollback;
   /** Node insert offset (aka auto-offset) margin, but might be useful for later stuff as well. */
   char node_margin;
-  char _pad2[1];
+  char node_preview_res;
   /** #eUserpref_Translation_Flags. */
   short transopts;
   short menuthreshold1, menuthreshold2;
@@ -816,11 +857,18 @@ typedef struct UserDef {
   struct ListBase user_menus;
   /** #bUserAssetLibrary */
   struct ListBase asset_libraries;
+  /** #bUserExtensionRepo */
+  struct ListBase extension_repos;
 
   char keyconfigstr[64];
 
   /** Index of the asset library being edited in the Preferences UI. */
   short active_asset_library;
+
+  /** Index of the extension repo in the Preferences UI. */
+  short active_extension_repo;
+
+  char _pad14[6];
 
   short undosteps;
   int undomemory;
@@ -876,7 +924,10 @@ typedef struct UserDef {
   /** #eGPUBackendType */
   short gpu_backend;
 
-  char _pad7[4];
+  /** Number of samples for FPS display calculations. */
+  short playback_fps_samples;
+
+  char _pad7[2];
 
   /** Private, defaults to 20 for 72 DPI setting. */
   short widget_unit;
@@ -996,7 +1047,7 @@ typedef struct UserDef {
   UserDef_Runtime runtime;
 } UserDef;
 
-/** From blenkernel `blender.c`. */
+/** From blenkernel `blender.cc`. */
 extern UserDef U;
 
 /* ***************** USERDEF ****************** */
@@ -1136,7 +1187,7 @@ typedef enum eUserpref_UI_Flag {
   USER_MENUOPENAUTO = (1 << 9),
   USER_DEPTH_CURSOR = (1 << 10),
   USER_AUTOPERSP = (1 << 11),
-  USER_UIFLAG_UNUSED_12 = (1 << 12), /* cleared */
+  USER_NODE_AUTO_OFFSET = (1 << 12),
   USER_GLOBALUNDO = (1 << 13),
   USER_ORBIT_SELECTION = (1 << 14),
   USER_DEPTH_NAVIGATE = (1 << 15),
@@ -1180,6 +1231,7 @@ typedef enum eUserpref_GPU_Flag {
   USER_GPU_FLAG_NO_EDIT_MODE_SMOOTH_WIRE = (1 << 1),
   USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE = (1 << 2),
   USER_GPU_FLAG_SUBDIVISION_EVALUATION = (1 << 3),
+  USER_GPU_FLAG_FRESNEL_EDIT = (1 << 4),
 } eUserpref_GPU_Flag;
 
 /** #UserDef.tablet_api */

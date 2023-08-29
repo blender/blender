@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -129,6 +129,10 @@ class Operation {
   /* This method should allocate the operation results, execute the operation, and compute the
    * output results. */
   virtual void execute() = 0;
+
+  /* Compute and set a preview of the operation if needed. This method defaults to an empty
+   * implementation and should be implemented by operations which can have previews. */
+  virtual void compute_preview();
 
   /* Get a reference to the result connected to the input identified by the given identifier. */
   Result &get_input(StringRef identifier) const;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -62,7 +62,7 @@ typedef struct bToolRef {
   /** Use to avoid initializing the same tool multiple times. */
   short tag;
 
-  /** #bToolKey (space-type, mode), used in 'WM_api.h' */
+  /** #bToolKey (space-type, mode), used in 'WM_api.hh' */
   short space_type;
   /**
    * Value depends on the 'space_type', object mode for 3D view, image editor has own mode too.

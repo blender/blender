@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2013 Intel Corporation
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2013 Intel Corporation
+ * SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_MATH_FLOAT3_H__
 #define __UTIL_MATH_FLOAT3_H__
@@ -157,7 +158,7 @@ ccl_device_inline float3 operator/=(float3 &a, float f)
   return a = a * invf;
 }
 
-#  if !(defined(__KERNEL_METAL__) || defined(__KERNEL_CUDA__))
+#  if !(defined(__KERNEL_METAL__) || defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__))
 ccl_device_inline packed_float3 operator*=(packed_float3 &a, const float3 b)
 {
   a = float3(a) * b;
@@ -469,7 +470,8 @@ ccl_device_inline bool isequal(const float3 a, const float3 b)
 #endif
 }
 
-ccl_device_inline float3 pow(float3 v, float e)
+/* Consistent name for this would be pow, but HIP compiler crashes in name mangling. */
+ccl_device_inline float3 power(float3 v, float e)
 {
   return make_float3(powf(v.x, e), powf(v.y, e), powf(v.z, e));
 }

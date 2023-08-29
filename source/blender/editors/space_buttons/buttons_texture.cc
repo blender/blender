@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -36,20 +36,20 @@
 #include "BKE_modifier.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "ED_node.h"
-#include "ED_screen.h"
+#include "ED_node.hh"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "../interface/interface_intern.hh"
 
@@ -134,10 +134,8 @@ static void buttons_texture_users_find_nodetree(ListBase *users,
                                                 bNodeTree *ntree,
                                                 const char *category)
 {
-  bNode *node;
-
   if (ntree) {
-    for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
         PointerRNA ptr;
         // PropertyRNA *prop; /* UNUSED */
@@ -201,12 +199,12 @@ static void buttons_texture_modifier_geonodes_users_add(
   }
 }
 
-static void buttons_texture_modifier_foreach(void *userData,
+static void buttons_texture_modifier_foreach(void *user_data,
                                              Object *ob,
                                              ModifierData *md,
                                              const char *propname)
 {
-  ListBase *users = static_cast<ListBase *>(userData);
+  ListBase *users = static_cast<ListBase *>(user_data);
 
   if (md->type == eModifierType_Nodes) {
     NodesModifierData *nmd = (NodesModifierData *)md;
@@ -227,14 +225,14 @@ static void buttons_texture_modifier_foreach(void *userData,
   }
 }
 
-static void buttons_texture_modifier_gpencil_foreach(void *userData,
+static void buttons_texture_modifier_gpencil_foreach(void *user_data,
                                                      Object *ob,
                                                      GpencilModifierData *md,
                                                      const char *propname)
 {
   PointerRNA ptr;
   PropertyRNA *prop;
-  ListBase *users = static_cast<ListBase *>(userData);
+  ListBase *users = static_cast<ListBase *>(user_data);
 
   RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, &ptr);
   prop = RNA_struct_find_property(&ptr, propname);
@@ -402,8 +400,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
         /* Detect change of active texture node in same node tree, in that
          * case we also automatically switch to the other node. */
         if ((ct->user->node->flag & NODE_ACTIVE_TEXTURE) == 0) {
-          ButsTextureUser *user;
-          for (user = static_cast<ButsTextureUser *>(ct->users.first); user; user = user->next) {
+          LISTBASE_FOREACH (ButsTextureUser *, user, &ct->users) {
             if (user->ntree == ct->user->ntree && user->node != ct->user->node) {
               if (user->node->flag & NODE_ACTIVE_TEXTURE) {
                 ct->user = user;
@@ -487,11 +484,10 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*a
   /* callback when opening texture user selection menu, to create buttons. */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   ButsContextTexture *ct = static_cast<ButsContextTexture *>(sbuts->texuser);
-  ButsTextureUser *user;
   uiBlock *block = uiLayoutGetBlock(layout);
   const char *last_category = nullptr;
 
-  for (user = static_cast<ButsTextureUser *>(ct->users.first); user; user = user->next) {
+  LISTBASE_FOREACH (ButsTextureUser *, user, &ct->users) {
     uiBut *but;
     char name[UI_MAX_NAME_STR];
 

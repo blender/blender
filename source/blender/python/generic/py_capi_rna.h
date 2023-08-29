@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,6 +10,10 @@
 #pragma once
 
 #include "BLI_sys_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct EnumPropertyItem;
 
@@ -76,3 +80,7 @@ int pyrna_enum_value_parse_string(PyObject *o, void *p);
  * Use with #PyArg_ParseTuple's `O&` formatting.
  */
 int pyrna_enum_bitfield_parse_set(PyObject *o, void *p);
+
+#ifdef __cplusplus
+}
+#endif

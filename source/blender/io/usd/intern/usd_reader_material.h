@@ -34,7 +34,7 @@ struct NodePlacementContext {
   /* Map a USD shader prim path to the Blender node converted
    * from that shader.  This map is updated during shader
    * conversion and is used to avoid creating duplicate nodes
-   * for a given shader.  */
+   * for a given shader. */
   ShaderToNodeMap node_cache;
 
   NodePlacementContext(float in_origx,

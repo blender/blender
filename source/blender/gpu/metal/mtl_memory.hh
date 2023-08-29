@@ -1,10 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #include <atomic>
+#include <ctime>
 #include <functional>
 #include <map>
 #include <mutex>
@@ -108,6 +109,11 @@ class MTLUniformBuf;
 /* MTLBuffer allocation wrapper. */
 class MTLBuffer {
 
+ public:
+  /* NOTE: ListBase API is not used due to custom destructor operation required to release
+   * Metal objective C buffer resource. */
+  gpu::MTLBuffer *next, *prev;
+
  private:
   /* Metal resource. */
   id<MTLBuffer> metal_buffer_;
@@ -178,6 +184,8 @@ class MTLBuffer {
 
   /* Safety check to ensure buffers are not used after free. */
   void debug_ensure_used();
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("MTLBuffer");
 };
 
 /* View into part of an MTLBuffer. */
@@ -233,17 +241,20 @@ class MTLCircularBuffer {
 struct MTLBufferHandle {
   gpu::MTLBuffer *buffer;
   uint64_t buffer_size;
+  time_t insert_time;
 
   inline MTLBufferHandle(gpu::MTLBuffer *buf)
   {
     this->buffer = buf;
     this->buffer_size = this->buffer->get_size();
+    this->insert_time = std::time(nullptr);
   }
 
   inline MTLBufferHandle(uint64_t compare_size)
   {
     this->buffer = nullptr;
     this->buffer_size = compare_size;
+    this->insert_time = 0;
   }
 };
 
@@ -331,6 +342,8 @@ class MTLSafeFreeList {
       }
     }
   }
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("MTLSafeFreeList");
 };
 
 /* MTLBuffer pools. */
@@ -356,12 +369,11 @@ class MTLBufferPool {
 
   /* Debug statistics. */
   std::atomic<int> per_frame_allocation_count_;
-  std::atomic<int64_t> allocations_in_pool_;
   std::atomic<int64_t> buffers_in_pool_;
 #endif
 
   /* Metal resources. */
-  bool ensure_initialised_ = false;
+  bool initialized_ = false;
   id<MTLDevice> device_ = nil;
 
   /* The buffer selection aims to pick a buffer which meets the minimum size requirements.
@@ -388,7 +400,10 @@ class MTLBufferPool {
 
   std::mutex buffer_pool_lock_;
   blender::Map<MTLBufferResourceOptions, MTLBufferPoolOrderedList *> buffer_pools_;
-  blender::Vector<gpu::MTLBuffer *> allocations_;
+
+  /* Linked list to track all existing allocations. Prioritizing fast insert/deletion. */
+  gpu::MTLBuffer *allocations_list_base_;
+  uint allocations_list_size_;
 
   /* Maintain a queue of all MTLSafeFreeList's that have been released
    * by the GPU and are ready to have their buffers re-inserted into the
@@ -401,6 +416,7 @@ class MTLBufferPool {
   /* MTLBuffer::free() can be called from separate threads, due to usage within animation
    * system/worker threads. */
   std::atomic<MTLSafeFreeList *> current_free_list_;
+  std::atomic<int64_t> allocations_in_pool_;
 
  public:
   void init(id<MTLDevice> device);
@@ -430,6 +446,11 @@ class MTLBufferPool {
   void ensure_buffer_pool(MTLResourceOptions options);
   void insert_buffer_into_pool(MTLResourceOptions options, gpu::MTLBuffer *buffer);
   void free();
+
+  /* Allocations list. */
+  void allocations_list_insert(gpu::MTLBuffer *buffer);
+  void allocations_list_delete(gpu::MTLBuffer *buffer);
+  void allocations_list_delete_all();
 };
 
 /* Scratch buffers are circular-buffers used for temporary data within the current frame.
@@ -490,6 +511,8 @@ class MTLScratchBufferManager {
    * This call will perform a partial flush of the buffer starting from
    * the last offset the data was flushed from, to the current offset. */
   void flush_active_scratch_buffer();
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("MTLBufferPool");
 };
 
 /** \} */

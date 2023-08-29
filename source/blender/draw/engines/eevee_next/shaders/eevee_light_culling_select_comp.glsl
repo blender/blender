@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Select the visible items inside the active view and put them inside the sorting buffer.
@@ -31,7 +34,7 @@ void main()
   Sphere sphere;
   switch (light.type) {
     case LIGHT_SPOT:
-      /* Only for < ~170° Cone due to plane extraction precision. */
+      /* Only for < ~170 degree Cone due to plane extraction precision. */
       if (light.spot_tan < 10.0) {
         Pyramid pyramid = shape_pyramid_non_oblique(
             light._position,
@@ -47,6 +50,8 @@ void main()
     case LIGHT_POINT:
       sphere.center = light._position;
       sphere.radius = light.influence_radius_max;
+      break;
+    default:
       break;
   }
 

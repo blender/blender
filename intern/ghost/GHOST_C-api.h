@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 /** \file
  * \ingroup GHOST
  * \brief GHOST C-API function and type declarations.
@@ -153,7 +154,7 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * The new window is added to the list of windows managed.
  * Never explicitly delete the window, use disposeWindow() instead.
  * \param systemhandle: The handle to the system.
- * \param parent_windowhandle: Handle of parent (or owner) window, or NULL
+ * \param parent_windowhandle: Handle of parent (or owner) window, or nullptr
  * \param title: The name of the window.
  * (displayed in the title bar of the window if the OS supports it).
  * \param left: The coordinate of the left edge of the window.
@@ -162,8 +163,8 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * \param height: The height the window.
  * \param state: The state of the window when opened.
  * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
- * \param glSettings: Misc OpenGL options.
- * \return A handle to the new window ( == NULL if creation failed).
+ * \param gpuSettings: Misc GPU options.
+ * \return A handle to the new window ( == nullptr if creation failed).
  */
 extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              GHOST_WindowHandle parent_windowhandle,
@@ -174,17 +175,17 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              uint32_t height,
                                              GHOST_TWindowState state,
                                              bool is_dialog,
-                                             GHOST_GLSettings glSettings);
+                                             GHOST_GPUSettings gpuSettings);
 
 /**
  * Create a new off-screen context.
  * Never explicitly delete the context, use #disposeContext() instead.
  * \param systemhandle: The handle to the system.
- * \param glSettings: Misc OpenGL options.
- * \return A handle to the new context ( == NULL if creation failed).
+ * \param gpuSettings: Misc GPU options.
+ * \return A handle to the new context ( == nullptr if creation failed).
  */
-extern GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemhandle,
-                                                     GHOST_GLSettings glSettings);
+extern GHOST_ContextHandle GHOST_CreateGPUContext(GHOST_SystemHandle systemhandle,
+                                                  GHOST_GPUSettings gpuSettings);
 
 /**
  * Dispose of a context.
@@ -192,8 +193,8 @@ extern GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemha
  * \param contexthandle: Handle to the context to be disposed.
  * \return Indication of success.
  */
-extern GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
-                                                 GHOST_ContextHandle contexthandle);
+extern GHOST_TSuccess GHOST_DisposeGPUContext(GHOST_SystemHandle systemhandle,
+                                              GHOST_ContextHandle contexthandle);
 
 /**
  * Returns the window user data.
@@ -237,7 +238,7 @@ extern bool GHOST_ValidWindow(GHOST_SystemHandle systemhandle, GHOST_WindowHandl
  *         This window is invalid after full screen has been ended.
  */
 extern GHOST_WindowHandle GHOST_BeginFullScreen(GHOST_SystemHandle systemhandle,
-                                                GHOST_DisplaySetting *setting,
+                                                const GHOST_DisplaySetting *setting,
                                                 const bool stereoVisual);
 
 /**
@@ -255,7 +256,10 @@ extern GHOST_TSuccess GHOST_EndFullScreen(GHOST_SystemHandle systemhandle);
 extern bool GHOST_GetFullScreen(GHOST_SystemHandle systemhandle);
 
 /**
- * Get the Window under the cursor.
+ * Get the Window under the cursor. Although coordinates of the mouse are supplied, platform-
+ * specific implementations are free to ignore these and query the mouse location themselves, due
+ * to them possibly being incorrect under certain conditions, for example when using multiple
+ * monitors that vary in scale and/or DPI.
  * \param x: The x-coordinate of the cursor.
  * \param y: The y-coordinate of the cursor.
  * \return The window under the cursor or nullptr in none.
@@ -428,7 +432,7 @@ void GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
 extern GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
                                           GHOST_TGrabCursorMode mode,
                                           GHOST_TAxisFlag wrap_axis,
-                                          int bounds[4],
+                                          const int bounds[4],
                                           const int mouse_ungrab_xy[2]);
 
 /***************************************************************************************
@@ -494,7 +498,7 @@ extern uint64_t GHOST_GetEventTime(GHOST_EventHandle eventhandle);
 
 /**
  * Returns the window this event was generated on,
- * or NULL if it is a 'system' event.
+ * or nullptr if it is a 'system' event.
  * \param eventhandle: The handle to the event.
  * \return The generating window.
  */
@@ -730,24 +734,24 @@ extern GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle);
  * \param contexthandle: The handle to the context.
  * \return A success indicator.
  */
-extern GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthandle);
+extern GHOST_TSuccess GHOST_ActivateGPUContext(GHOST_ContextHandle contexthandle);
 
 /**
  * Release the drawing context bound to this thread.
  * \param contexthandle: The handle to the context.
  * \return A success indicator.
  */
-extern GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle);
+extern GHOST_TSuccess GHOST_ReleaseGPUContext(GHOST_ContextHandle contexthandle);
 
 /**
- * Get the OpenGL frame-buffer handle that serves as a default frame-buffer.
+ * Get the GPU frame-buffer handle that serves as a default frame-buffer.
  */
-extern unsigned int GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle contexthandle);
+extern unsigned int GHOST_GetContextDefaultGPUFramebuffer(GHOST_ContextHandle contexthandle);
 
 /**
- * Get the OpenGL frame-buffer handle that serves as a default frame-buffer.
+ * Get the GPU frame-buffer handle that serves as a default frame-buffer.
  */
-extern unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle);
+extern unsigned int GHOST_GetDefaultGPUFramebuffer(GHOST_WindowHandle windowhandle);
 
 /**
  * Use multi-touch gestures if supported.
@@ -762,6 +766,13 @@ extern void GHOST_SetMultitouchGestures(GHOST_SystemHandle systemhandle, const b
  * \param api: Enum indicating which API to use.
  */
 extern void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI api);
+
+/**
+ * Get the color of the pixel at the current mouse cursor location
+ * \param r_color: returned sRGB float colors
+ * \return Success value (true == successful and supported by platform)
+ */
+extern GHOST_TSuccess GHOST_GetPixelAtCursor(float r_color[3]);
 
 /**
  * Access to rectangle width.
@@ -950,7 +961,7 @@ extern bool GHOST_UseNativePixels(void);
 extern GHOST_TCapabilityFlag GHOST_GetCapabilities(void);
 
 /**
- * Assign the callback which generates a back-trace (may be NULL).
+ * Assign the callback which generates a back-trace (may be nullptr).
  */
 extern void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn);
 
@@ -1072,7 +1083,7 @@ int GHOST_XrSessionIsRunning(const GHOST_XrContextHandle xr_context);
 
 /**
  * Check if \a xr_context has a session that requires an upside-down frame-buffer (compared to
- * OpenGL). If true, the render result should be flipped vertically for correct output.
+ * GPU). If true, the render result should be flipped vertically for correct output.
  * \note Only to be called after session start, may otherwise result in a false negative.
  */
 int GHOST_XrSessionNeedsUpsideDownDrawing(const GHOST_XrContextHandle xr_context);
@@ -1080,7 +1091,7 @@ int GHOST_XrSessionNeedsUpsideDownDrawing(const GHOST_XrContextHandle xr_context
 /* events */
 /**
  * Invoke handling of all OpenXR events for \a xr_context. Should be called on every main-loop
- * iteration and will early-exit if \a xr_context is NULL (so caller doesn't have to check).
+ * iteration and will early-exit if \a xr_context is nullptr (so caller doesn't have to check).
  *
  * \returns GHOST_kSuccess if any event was handled, otherwise GHOST_kFailure.
  */
@@ -1138,7 +1149,7 @@ int GHOST_XrAttachActionSets(GHOST_XrContextHandle xr_context);
 /**
  * Update button/tracking states for OpenXR actions.
  *
- * \param action_set_name: The name of the action set to sync. If NULL, all action sets
+ * \param action_set_name: The name of the action set to sync. If nullptr, all action sets
  * attached to the session will be synced.
  */
 int GHOST_XrSyncActions(GHOST_XrContextHandle xr_context, const char *action_set_name);

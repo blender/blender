@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2012 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2012 Blender Foundation.
 
 # - Find OpenColorIO library
 # Find the native OpenColorIO includes and library
@@ -14,12 +15,16 @@
 # also defined, but not for general use are
 #  OPENCOLORIO_LIBRARY, where to find the OpenColorIO library.
 
-# If OPENCOLORIO_ROOT_DIR was defined in the environment, use it.
-IF(NOT OPENCOLORIO_ROOT_DIR AND NOT $ENV{OPENCOLORIO_ROOT_DIR} STREQUAL "")
-  SET(OPENCOLORIO_ROOT_DIR $ENV{OPENCOLORIO_ROOT_DIR})
-ENDIF()
+# If `OPENCOLORIO_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED OPENCOLORIO_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{OPENCOLORIO_ROOT_DIR})
+  set(OPENCOLORIO_ROOT_DIR $ENV{OPENCOLORIO_ROOT_DIR})
+else()
+  set(OPENCOLORIO_ROOT_DIR "")
+endif()
 
-SET(_opencolorio_FIND_COMPONENTS
+set(_opencolorio_FIND_COMPONENTS
   OpenColorIO
   yaml-cpp
   expat
@@ -27,12 +32,12 @@ SET(_opencolorio_FIND_COMPONENTS
   minizip
 )
 
-SET(_opencolorio_SEARCH_DIRS
+set(_opencolorio_SEARCH_DIRS
   ${OPENCOLORIO_ROOT_DIR}
   /opt/lib/ocio
 )
 
-FIND_PATH(OPENCOLORIO_INCLUDE_DIR
+find_path(OPENCOLORIO_INCLUDE_DIR
   NAMES
     OpenColorIO/OpenColorIO.h
   HINTS
@@ -41,11 +46,11 @@ FIND_PATH(OPENCOLORIO_INCLUDE_DIR
     include
 )
 
-SET(_opencolorio_LIBRARIES)
-FOREACH(COMPONENT ${_opencolorio_FIND_COMPONENTS})
-  STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+set(_opencolorio_LIBRARIES)
+foreach(COMPONENT ${_opencolorio_FIND_COMPONENTS})
+  string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 
-  FIND_LIBRARY(OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY
+  find_library(OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY
     NAMES
       ${COMPONENT}
     HINTS
@@ -53,47 +58,47 @@ FOREACH(COMPONENT ${_opencolorio_FIND_COMPONENTS})
     PATH_SUFFIXES
       lib64 lib lib64/static lib/static
     )
-  IF(OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY)
-    LIST(APPEND _opencolorio_LIBRARIES "${OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY}")
-  ENDIF()
-ENDFOREACH()
+  if(OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY)
+    list(APPEND _opencolorio_LIBRARIES "${OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY}")
+  endif()
+endforeach()
 
-IF(EXISTS "${OPENCOLORIO_INCLUDE_DIR}/OpenColorIO/OpenColorABI.h")
+if(EXISTS "${OPENCOLORIO_INCLUDE_DIR}/OpenColorIO/OpenColorABI.h")
   # Search twice, because this symbol changed between OCIO 1.x and 2.x
-  FILE(STRINGS "${OPENCOLORIO_INCLUDE_DIR}/OpenColorIO/OpenColorABI.h" _opencolorio_version
+  file(STRINGS "${OPENCOLORIO_INCLUDE_DIR}/OpenColorIO/OpenColorABI.h" _opencolorio_version
     REGEX "^#define OCIO_VERSION_STR[ \t].*$")
-  IF(NOT _opencolorio_version)
+  if(NOT _opencolorio_version)
     file(STRINGS "${OPENCOLORIO_INCLUDE_DIR}/OpenColorIO/OpenColorABI.h" _opencolorio_version
       REGEX "^#define OCIO_VERSION[ \t].*$")
-  ENDIF()
-  STRING(REGEX MATCHALL "[0-9]+[.0-9]+" OPENCOLORIO_VERSION ${_opencolorio_version})
-ENDIF()
+  endif()
+  string(REGEX MATCHALL "[0-9]+[.0-9]+" OPENCOLORIO_VERSION ${_opencolorio_version})
+endif()
 
 # handle the QUIETLY and REQUIRED arguments and set OPENCOLORIO_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenColorIO
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(OpenColorIO
     REQUIRED_VARS _opencolorio_LIBRARIES OPENCOLORIO_INCLUDE_DIR
     VERSION_VAR OPENCOLORIO_VERSION)
 
-IF(OPENCOLORIO_FOUND)
-  SET(OPENCOLORIO_LIBRARIES ${_opencolorio_LIBRARIES})
-  SET(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO_INCLUDE_DIR})
-ENDIF()
+if(OPENCOLORIO_FOUND)
+  set(OPENCOLORIO_LIBRARIES ${_opencolorio_LIBRARIES})
+  set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   OPENCOLORIO_INCLUDE_DIR
   OPENCOLORIO_LIBRARY
   OPENCOLORIO_VERSION
 )
 
-FOREACH(COMPONENT ${_opencolorio_FIND_COMPONENTS})
-  STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
-  MARK_AS_ADVANCED(OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY)
-ENDFOREACH()
+foreach(COMPONENT ${_opencolorio_FIND_COMPONENTS})
+  string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+  mark_as_advanced(OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY)
+endforeach()
 
-UNSET(COMPONENT)
-UNSET(UPPERCOMPONENT)
-UNSET(_opencolorio_FIND_COMPONENTS)
-UNSET(_opencolorio_LIBRARIES)
-UNSET(_opencolorio_SEARCH_DIRS)
+unset(COMPONENT)
+unset(UPPERCOMPONENT)
+unset(_opencolorio_FIND_COMPONENTS)
+unset(_opencolorio_LIBRARIES)
+unset(_opencolorio_SEARCH_DIRS)

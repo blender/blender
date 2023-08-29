@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,7 +15,10 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BLI_hash.hh"
-#include "BLI_math.h"
+#include "BLI_math_color.hh"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_vector.hh"
 #include "DEG_depsgraph_query.h"
 #include "DNA_layer_types.h"
@@ -88,7 +91,7 @@ static void generate_vertex_map(const Mesh *mesh,
   bool export_uv = false;
   VArraySpan<float2> uv_map;
   if (export_params.export_uv) {
-    const StringRef uv_name = CustomData_get_active_layer_name(&mesh->ldata, CD_PROP_FLOAT2);
+    const StringRef uv_name = CustomData_get_active_layer_name(&mesh->loop_data, CD_PROP_FLOAT2);
     if (!uv_name.is_empty()) {
       const bke::AttributeAccessor attributes = mesh->attributes();
       uv_map = *attributes.lookup<float2>(uv_name, ATTR_DOMAIN_CORNER);
@@ -170,9 +173,9 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
 
     bool force_triangulation = false;
-    const OffsetIndices polys = mesh->polys();
-    for (const int i : polys.index_range()) {
-      if (polys[i].size() > 255) {
+    const OffsetIndices faces = mesh->faces();
+    for (const int i : faces.index_range()) {
+      if (faces[i].size() > 255) {
         force_triangulation = true;
         break;
       }
@@ -205,10 +208,10 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       plyData.face_vertices.append_unchecked(ply_index + vertex_offset);
     }
 
-    plyData.face_sizes.reserve(plyData.face_sizes.size() + mesh->totpoly);
-    for (const int i : polys.index_range()) {
-      const IndexRange poly = polys[i];
-      plyData.face_sizes.append_unchecked(poly.size());
+    plyData.face_sizes.reserve(plyData.face_sizes.size() + mesh->faces_num);
+    for (const int i : faces.index_range()) {
+      const IndexRange face = faces[i];
+      plyData.face_sizes.append_unchecked(face.size());
     }
 
     /* Vertices */

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2010-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -18,9 +20,10 @@
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 
-#include "ED_armature.h"
+#include "ED_armature.hh"
 
 #include "BLI_listbase.h"
+#include "BLI_math_matrix.h"
 
 #include "ArmatureExporter.h"
 #include "GeometryExporter.h"
@@ -41,7 +44,7 @@ void ArmatureExporter::add_armature_bones(Object *ob_arm,
     ED_armature_to_edit(armature);
   }
 
-  for (Bone *bone = (Bone *)armature->bonebase.first; bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, &armature->bonebase) {
     add_bone_node(bone, ob_arm, se, child_objects);
   }
 
@@ -59,7 +62,7 @@ void ArmatureExporter::write_bone_URLs(COLLADASW::InstanceController &ins,
     ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, joint_id));
   }
   else {
-    for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+    LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
       write_bone_URLs(ins, ob_arm, child);
     }
   }
@@ -81,8 +84,7 @@ bool ArmatureExporter::add_instance_controller(Object *ob)
   }
 
   /* write root bone URLs */
-  Bone *bone;
-  for (bone = (Bone *)arm->bonebase.first; bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
     write_bone_URLs(ins, ob_arm, bone);
   }
 
@@ -221,13 +223,13 @@ void ArmatureExporter::add_bone_node(Bone *bone,
       }
     }
 
-    for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+    LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
       add_bone_node(child, ob_arm, se, child_objects);
     }
     node.end();
   }
   else {
-    for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+    LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
       add_bone_node(child, ob_arm, se, child_objects);
     }
   }
@@ -257,7 +259,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 
   if (!has_restmat) {
 
-    /* Have no restpose matrix stored, try old style <= Blender 2.78 */
+    /* Have no rest-pose matrix stored, try old style <= Blender 2.78. */
 
     bc_create_restpose_mat(this->export_settings, bone, bone_rest_mat, bone->arm_mat, true);
 

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
@@ -78,6 +80,7 @@ def rna_idprop_ui_create(
         description=None,
         overridable=False,
         subtype=None,
+        id_type='OBJECT',
 ):
     """Create and initialize a custom property with limits, defaults and other settings."""
 
@@ -88,11 +91,16 @@ def rna_idprop_ui_create(
     ui_data = item.id_properties_ui(prop)
     proptype, _ = rna_idprop_value_item_type(default)
 
-    if proptype is bool:
-        ui_data = item.id_properties_ui(prop)
+    if (proptype is bool) or (proptype is str):
         ui_data.update(
             description=description,
             default=default,
+        )
+    elif proptype is type(None) or issubclass(proptype, bpy.types.ID):
+        ui_data.update(
+            description=description,
+            default=default,
+            id_type=id_type,
         )
     else:
         if soft_min is None:
@@ -154,6 +162,7 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
 
         to_dict = getattr(value, "to_dict", None)
         to_list = getattr(value, "to_list", None)
+        is_datablock = value is None or isinstance(value, bpy.types.ID)
 
         if to_dict:
             value = to_dict()
@@ -176,8 +185,10 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
             props = value_column.operator("wm.properties_edit_value", text="Edit Value")
             props.data_path = context_member
             props.property_name = key
+        elif is_datablock:
+            value_column.template_ID(rna_item, rna_idprop_quote_path(key), text="")
         else:
-            value_column.prop(rna_item, '["%s"]' % escape_identifier(key), text="")
+            value_column.prop(rna_item, rna_idprop_quote_path(key), text="")
 
         operator_row = value_row.row()
         operator_row.alignment = 'RIGHT'

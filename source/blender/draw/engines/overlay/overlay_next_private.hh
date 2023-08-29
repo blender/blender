@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,7 @@
 
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.h"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 #include "draw_manager.hh"
 #include "draw_pass.hh"
 #include "gpu_shader_create_info.hh"

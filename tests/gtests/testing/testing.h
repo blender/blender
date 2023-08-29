@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #ifndef __BLENDER_TESTING_H__
 #define __BLENDER_TESTING_H__
 
@@ -57,9 +58,9 @@ const std::string &flags_test_release_dir(); /* bin/{blender version} in the bui
 
 #define EXPECT_M4_NEAR(a, b, eps) \
   do { \
-    EXPECT_V3_NEAR(a[0], b[0], eps); \
-    EXPECT_V3_NEAR(a[1], b[1], eps); \
-    EXPECT_V3_NEAR(a[2], b[2], eps); \
+    EXPECT_V4_NEAR(a[0], b[0], eps); \
+    EXPECT_V4_NEAR(a[1], b[1], eps); \
+    EXPECT_V4_NEAR(a[2], b[2], eps); \
     EXPECT_V4_NEAR(a[3], b[3], eps); \
   } while (false);
 

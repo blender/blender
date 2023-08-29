@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Blender Foundation
+/* SPDX-FileCopyrightText: Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,7 +21,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
 #include "PIL_time.h"
@@ -44,7 +45,7 @@
 #include "BKE_animsys.h"
 #include "BKE_appdir.h"
 #include "BKE_armature.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -64,6 +65,8 @@
 #include "BKE_texture.h"
 #include "BKE_world.h"
 
+#include "BLI_math_vector.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
@@ -72,7 +75,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "GPU_shader.h"
 
@@ -80,16 +83,16 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_datafiles.h"
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
-#include "ED_view3d_offscreen.h"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
+#include "ED_view3d_offscreen.hh"
 
-#include "UI_interface_icons.h"
+#include "UI_interface_icons.hh"
 
 #ifndef NDEBUG
 /* Used for database init assert(). */
@@ -112,7 +115,7 @@ struct ShaderPreview {
   ID *parent;
   MTex *slot;
 
-  /* datablocks with nodes need full copy during preview render, glsl uses it too */
+  /* Data-blocks with nodes need full copy during preview render, GLSL uses it too. */
   Material *matcopy;
   Tex *texcopy;
   Light *lampcopy;
@@ -131,7 +134,7 @@ struct ShaderPreview {
 };
 
 struct IconPreviewSize {
-  struct IconPreviewSize *next, *prev;
+  IconPreviewSize *next, *prev;
   int sizex, sizey;
   uint *rect;
 };
@@ -148,7 +151,7 @@ struct IconPreview {
 
   /* May be nullptr, is used for rendering IDs that require some other object for it to be applied
    * on before the ID can be represented as an image, for example when rendering an Action. */
-  struct Object *active_object;
+  Object *active_object;
 };
 
 /** \} */
@@ -157,7 +160,6 @@ struct IconPreview {
 /** \name Preview for Buttons
  * \{ */
 
-static Main *G_pr_main = nullptr;
 static Main *G_pr_main_grease_pencil = nullptr;
 
 #ifndef WITH_HEADLESS
@@ -180,21 +182,27 @@ static Main *load_main_from_memory(const void *blend, int blend_size)
 }
 #endif
 
-void ED_preview_ensure_dbase()
+void ED_preview_ensure_dbase(const bool with_gpencil)
 {
 #ifndef WITH_HEADLESS
   static bool base_initialized = false;
+  static bool base_initialized_gpencil = false;
   BLI_assert(BLI_thread_is_main());
   if (!base_initialized) {
-    G_pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
-    G_pr_main_grease_pencil = load_main_from_memory(datatoc_preview_grease_pencil_blend,
-                                                    datatoc_preview_grease_pencil_blend_size);
+    G.pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
     base_initialized = true;
   }
+  if (!base_initialized_gpencil && with_gpencil) {
+    G_pr_main_grease_pencil = load_main_from_memory(datatoc_preview_grease_pencil_blend,
+                                                    datatoc_preview_grease_pencil_blend_size);
+    base_initialized_gpencil = true;
+  }
+#else
+  UNUSED_VARS(with_gpencil);
 #endif
 }
 
-static bool check_engine_supports_preview(Scene *scene)
+bool ED_check_engine_supports_preview(const Scene *scene)
 {
   RenderEngineType *type = RE_engines_find(scene->r.engine);
   return (type->flag & RE_USE_PREVIEW) != 0;
@@ -207,8 +215,8 @@ static bool preview_method_is_render(const ePreviewRenderMethod pr_method)
 
 void ED_preview_free_dbase()
 {
-  if (G_pr_main) {
-    BKE_main_free(G_pr_main);
+  if (G.pr_main) {
+    BKE_main_free(G.pr_main);
   }
 
   if (G_pr_main_grease_pencil) {
@@ -225,7 +233,7 @@ static Scene *preview_get_scene(Main *pr_main)
   return static_cast<Scene *>(pr_main->scenes.first);
 }
 
-static const char *preview_collection_name(const ePreviewType pr_type)
+const char *ED_preview_collection_name(const ePreviewType pr_type)
 {
   switch (pr_type) {
     case MA_FLAT:
@@ -265,7 +273,7 @@ static void switch_preview_collection_visibility(ViewLayer *view_layer, const eP
 {
   /* Set appropriate layer as visible. */
   LayerCollection *lc = static_cast<LayerCollection *>(view_layer->layer_collections.first);
-  const char *collection_name = preview_collection_name(pr_type);
+  const char *collection_name = ED_preview_collection_name(pr_type);
 
   for (lc = static_cast<LayerCollection *>(lc->layer_collections.first); lc; lc = lc->next) {
     if (STREQ(lc->collection->id.name + 2, collection_name)) {
@@ -326,11 +334,11 @@ static void switch_preview_floor_visibility(Main *pr_main,
   }
 }
 
-static void set_preview_visibility(Main *pr_main,
-                                   Scene *scene,
-                                   ViewLayer *view_layer,
-                                   const ePreviewType pr_type,
-                                   const ePreviewRenderMethod pr_method)
+void ED_preview_set_visibility(Main *pr_main,
+                               Scene *scene,
+                               ViewLayer *view_layer,
+                               const ePreviewType pr_type,
+                               const ePreviewRenderMethod pr_method)
 {
   switch_preview_collection_visibility(view_layer, pr_type);
   switch_preview_floor_visibility(pr_main, scene, view_layer, pr_method);
@@ -443,13 +451,13 @@ static void preview_sync_exposure(World *dst, const World *src)
   dst->range = src->range;
 }
 
-static World *preview_prepare_world(Main *pr_main,
-                                    const Scene *sce,
-                                    const World *world,
-                                    const ID_Type id_type,
-                                    const ePreviewRenderMethod pr_method)
+World *ED_preview_prepare_world(Main *pr_main,
+                                const Scene *scene,
+                                const World *world,
+                                const ID_Type id_type,
+                                const ePreviewRenderMethod pr_method)
 {
-  World *result = preview_get_world(pr_main, sce, id_type, pr_method);
+  World *result = preview_get_world(pr_main, scene, id_type, pr_method);
   if (world) {
     preview_sync_exposure(result, world);
   }
@@ -494,7 +502,7 @@ static Scene *preview_prepare_scene(
     sce->r.cfra = scene->r.cfra;
 
     /* Setup the world. */
-    sce->world = preview_prepare_world(
+    sce->world = ED_preview_prepare_world(
         pr_main, sce, scene->world, static_cast<ID_Type>(id_type), sp->pr_method);
 
     if (id_type == ID_TE) {
@@ -531,7 +539,7 @@ static Scene *preview_prepare_scene(
             (sp->pr_method == PR_ICON_RENDER && sp->pr_main == G_pr_main_grease_pencil) ?
                 MA_SPHERE_A :
                 (ePreviewType)mat->pr_type);
-        set_preview_visibility(pr_main, sce, view_layer, preview_type, sp->pr_method);
+        ED_preview_set_visibility(pr_main, sce, view_layer, preview_type, sp->pr_method);
       }
       else {
         sce->display.render_aa = SCE_DISPLAY_AA_OFF;
@@ -579,7 +587,7 @@ static Scene *preview_prepare_scene(
         BLI_addtail(&pr_main->lights, la);
       }
 
-      set_preview_visibility(pr_main, sce, view_layer, MA_LAMP, sp->pr_method);
+      ED_preview_set_visibility(pr_main, sce, view_layer, MA_LAMP, sp->pr_method);
 
       if (sce->world) {
         /* Only use lighting from the light. */
@@ -608,7 +616,7 @@ static Scene *preview_prepare_scene(
         BLI_addtail(&pr_main->worlds, wrld);
       }
 
-      set_preview_visibility(pr_main, sce, view_layer, MA_SKY, sp->pr_method);
+      ED_preview_set_visibility(pr_main, sce, view_layer, MA_SKY, sp->pr_method);
       sce->world = wrld;
     }
 
@@ -620,7 +628,8 @@ static Scene *preview_prepare_scene(
 
 /* new UI convention: draw is in pixel space already. */
 /* uses UI_BTYPE_ROUNDBOX button in block to get the rect */
-static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect, rcti *newrect)
+static bool ed_preview_draw_rect(
+    Scene *scene, ScrArea *area, int split, int first, rcti *rect, rcti *newrect)
 {
   Render *re;
   RenderView *rv;
@@ -667,36 +676,17 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
     rv = nullptr;
   }
 
-  if (rv && rv->combined_buffer.data) {
-
+  if (rv && rv->ibuf) {
     if (abs(rres.rectx - newx) < 2 && abs(rres.recty - newy) < 2) {
-
       newrect->xmax = max_ii(newrect->xmax, rect->xmin + rres.rectx + offx);
       newrect->ymax = max_ii(newrect->ymax, rect->ymin + rres.recty);
 
       if (rres.rectx && rres.recty) {
-        uchar *rect_byte = static_cast<uchar *>(
-            MEM_mallocN(rres.rectx * rres.recty * sizeof(int), "ed_preview_draw_rect"));
         float fx = rect->xmin + offx;
         float fy = rect->ymin;
 
-        /* material preview only needs monoscopy (view 0) */
-        RE_AcquiredResultGet32(re, &rres, (uint *)rect_byte, 0);
-
-        IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-        immDrawPixelsTexTiled(&state,
-                              fx,
-                              fy,
-                              rres.rectx,
-                              rres.recty,
-                              GPU_RGBA8,
-                              false,
-                              rect_byte,
-                              1.0f,
-                              1.0f,
-                              nullptr);
-
-        MEM_freeN(rect_byte);
+        ED_draw_imbuf(
+            rv->ibuf, fx, fy, false, &scene->view_settings, &scene->display_settings, 1.0f, 1.0f);
 
         ok = true;
       }
@@ -711,6 +701,7 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
 void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, rcti *rect)
 {
   if (idp) {
+    Scene *scene = CTX_data_scene(C);
     wmWindowManager *wm = CTX_wm_manager(C);
     ScrArea *area = CTX_wm_area(C);
     ID *id = (ID *)idp;
@@ -730,11 +721,11 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
     newrect.ymax = rect->ymin;
 
     if (parent) {
-      ok = ed_preview_draw_rect(area, 1, 1, rect, &newrect);
-      ok &= ed_preview_draw_rect(area, 1, 0, rect, &newrect);
+      ok = ed_preview_draw_rect(scene, area, 1, 1, rect, &newrect);
+      ok &= ed_preview_draw_rect(scene, area, 1, 0, rect, &newrect);
     }
     else {
-      ok = ed_preview_draw_rect(area, 0, 0, rect, &newrect);
+      ok = ed_preview_draw_rect(scene, area, 0, 0, rect, &newrect);
     }
 
     if (ok) {
@@ -805,7 +796,7 @@ static Object *object_preview_camera_create(Main *preview_main,
   return camera;
 }
 
-static Scene *object_preview_scene_create(const struct ObjectPreviewData *preview_data,
+static Scene *object_preview_scene_create(const ObjectPreviewData *preview_data,
                                           Depsgraph **r_depsgraph)
 {
   Scene *scene = BKE_scene_add(preview_data->pr_main, "Object preview scene");
@@ -854,7 +845,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
 
   BLI_assert(preview->id_copy && (preview->id_copy != preview->id));
 
-  struct ObjectPreviewData preview_data = {};
+  ObjectPreviewData preview_data = {};
   preview_data.pr_main = preview_main;
   /* Act on a copy. */
   preview_data.object = (Object *)preview->id_copy;
@@ -942,7 +933,7 @@ static bool collection_preview_contains_geometry_recursive(const Collection *col
 /** \name Action Preview
  * \{ */
 
-static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
+static PoseBackup *action_preview_render_prepare(IconPreview *preview)
 {
   Object *object = preview->active_object;
   if (object == nullptr) {
@@ -957,8 +948,8 @@ static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
   }
 
   /* Create a backup of the current pose. */
-  struct bAction *action = (struct bAction *)preview->id;
-  struct PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(object, action);
+  bAction *action = (bAction *)preview->id;
+  PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(object, action);
 
   /* Apply the Action as pose, so that it can be rendered. This assumes the Action represents a
    * single pose, and that thus the evaluation time doesn't matter. */
@@ -972,7 +963,7 @@ static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
   return pose_backup;
 }
 
-static void action_preview_render_cleanup(IconPreview *preview, struct PoseBackup *pose_backup)
+static void action_preview_render_cleanup(IconPreview *preview, PoseBackup *pose_backup)
 {
   if (pose_backup == nullptr) {
     return;
@@ -998,7 +989,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
   BLI_assert(preview->scene == DEG_get_input_scene(depsgraph));
 
   /* Apply the pose before getting the evaluated scene, so that the new pose is evaluated. */
-  struct PoseBackup *pose_backup = action_preview_render_prepare(preview);
+  PoseBackup *pose_backup = action_preview_render_prepare(preview);
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *camera_eval = scene_eval->camera;
@@ -1042,7 +1033,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
  * \{ */
 
 /* inside thread, called by renderer, sets job update value */
-static void shader_preview_update(void *spv, RenderResult * /*rr*/, struct rcti * /*rect*/)
+static void shader_preview_update(void *spv, RenderResult * /*rr*/, rcti * /*rect*/)
 {
   ShaderPreview *sp = static_cast<ShaderPreview *>(spv);
 
@@ -1074,19 +1065,20 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   /* Create buffer in empty RenderView created in the init step. */
   RenderResult *rr = RE_AcquireResultWrite(re);
   RenderView *rv = (RenderView *)rr->views.first;
-  RE_RenderBuffer_assign_data(&rv->combined_buffer,
-                              static_cast<float *>(MEM_callocN(sizeof(float[4]) * width * height,
-                                                               "texture render result")));
+  ImBuf *rv_ibuf = RE_RenderViewEnsureImBuf(rr, rv);
+  IMB_assign_float_buffer(rv_ibuf,
+                          static_cast<float *>(MEM_callocN(sizeof(float[4]) * width * height,
+                                                           "texture render result")),
+                          IB_TAKE_OWNERSHIP);
   RE_ReleaseResult(re);
 
   /* Get texture image pool (if any) */
-  struct ImagePool *img_pool = BKE_image_pool_new();
+  ImagePool *img_pool = BKE_image_pool_new();
   BKE_texture_fetch_images_for_pool(tex, img_pool);
 
   /* Fill in image buffer. */
-  float *rect_float = rv->combined_buffer.data;
+  float *rect_float = rv_ibuf->float_buffer.data;
   float tex_coord[3] = {0.0f, 0.0f, 0.0f};
-  bool color_manage = true;
 
   for (int y = 0; y < height; y++) {
     /* Tex coords between -1.0f and 1.0f. */
@@ -1097,7 +1089,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
 
       /* Evaluate texture at tex_coord. */
       TexResult texres = {0};
-      BKE_texture_get_value_ex(sce, tex, tex_coord, &texres, img_pool, color_manage);
+      BKE_texture_get_value_ex(tex, tex_coord, &texres, img_pool, true);
       copy_v4_fl4(rect_float,
                   texres.trgba[0],
                   texres.trgba[1],
@@ -1245,7 +1237,7 @@ static void shader_preview_startjob(void *customdata, bool *stop, bool *do_updat
 
 static void preview_id_copy_free(ID *id)
 {
-  struct IDProperty *properties;
+  IDProperty *properties;
   /* get rid of copied ID */
   properties = IDP_GetProperties(id, false);
   if (properties) {
@@ -1348,7 +1340,7 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
 
 static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
 {
-  struct ImBuf *ima;
+  ImBuf *ima;
   uint *drect, *srect;
   float scaledx, scaledy;
   short ex, ey, dx, dy;
@@ -1470,12 +1462,6 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
 
     *do_update = true;
   }
-  else if (idtype == ID_SCR) {
-    bScreen *screen = (bScreen *)id;
-
-    ED_screen_preview_render(screen, sp->sizex, sp->sizey, sp->pr_rect);
-    *do_update = true;
-  }
   else {
     /* re-use shader job */
     shader_preview_startjob(customdata, stop, do_update);
@@ -1544,7 +1530,7 @@ static void other_id_types_preview_render(IconPreview *ip,
     }
 
     if ((ma == nullptr) || (ma->gp_style == nullptr)) {
-      sp->pr_main = G_pr_main;
+      sp->pr_main = G.pr_main;
     }
     else {
       sp->pr_main = G_pr_main_grease_pencil;
@@ -1579,11 +1565,8 @@ static void icon_preview_startjob_all_sizes(void *customdata,
                                             float *progress)
 {
   IconPreview *ip = (IconPreview *)customdata;
-  IconPreviewSize *cur_size;
 
-  for (cur_size = static_cast<IconPreviewSize *>(ip->sizes.first); cur_size;
-       cur_size = cur_size->next)
-  {
+  LISTBASE_FOREACH (IconPreviewSize *, cur_size, &ip->sizes) {
     PreviewImage *prv = static_cast<PreviewImage *>(ip->owner);
     /* Is this a render job or a deferred loading job? */
     const ePreviewRenderMethod pr_method = (prv->tag & PRV_TAG_DEFFERED) ? PR_ICON_DEFERRED :
@@ -1606,7 +1589,7 @@ static void icon_preview_startjob_all_sizes(void *customdata,
      * necessary to know here what happens inside lower-level functions. */
     const bool use_solid_render_mode = (ip->id != nullptr) && ELEM(GS(ip->id->name), ID_OB, ID_AC);
     if (!use_solid_render_mode && preview_method_is_render(pr_method) &&
-        !check_engine_supports_preview(ip->scene))
+        !ED_check_engine_supports_preview(ip->scene))
     {
       continue;
     }
@@ -1737,7 +1720,7 @@ class PreviewLoadJob {
   ThreadQueue *todo_queue_; /* RequestedPreview * */
   /** All unfinished preview requests, #update_fn() calls #finish_preview_request() on loaded
    * previews and removes them from this list. Only access from the main thread! */
-  std::list<struct RequestedPreview> requested_previews_;
+  std::list<RequestedPreview> requested_previews_;
 
  public:
   PreviewLoadJob();
@@ -1957,7 +1940,7 @@ void ED_preview_icon_render(
   bool stop = false, update = false;
   float progress = 0.0f;
 
-  ED_preview_ensure_dbase();
+  ED_preview_ensure_dbase(true);
 
   ip.bmain = CTX_data_main(C);
   ip.scene = scene;
@@ -2001,7 +1984,7 @@ void ED_preview_icon_job(
 
   IconPreview *ip, *old_ip;
 
-  ED_preview_ensure_dbase();
+  ED_preview_ensure_dbase(true);
 
   /* suspended start means it starts after 1 timer step, see WM_jobs_timer below */
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
@@ -2066,11 +2049,11 @@ void ED_preview_shader_job(const bContext *C,
   /* Use workspace render only for buttons Window,
    * since the other previews are related to the datablock. */
 
-  if (preview_method_is_render(method) && !check_engine_supports_preview(scene)) {
+  if (preview_method_is_render(method) && !ED_check_engine_supports_preview(scene)) {
     return;
   }
 
-  ED_preview_ensure_dbase();
+  ED_preview_ensure_dbase(true);
 
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
@@ -2103,7 +2086,7 @@ void ED_preview_shader_job(const bContext *C,
   }
 
   if ((ma == nullptr) || (ma->gp_style == nullptr)) {
-    sp->pr_main = G_pr_main;
+    sp->pr_main = G.pr_main;
   }
   else {
     sp->pr_main = G_pr_main_grease_pencil;
@@ -2135,7 +2118,7 @@ void ED_preview_kill_jobs(wmWindowManager *wm, Main * /*bmain*/)
 }
 
 struct PreviewRestartQueueEntry {
-  struct PreviewRestartQueueEntry *next, *prev;
+  PreviewRestartQueueEntry *next, *prev;
 
   enum eIconSizes size;
   ID *id;

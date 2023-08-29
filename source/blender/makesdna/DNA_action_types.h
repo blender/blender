@@ -213,6 +213,8 @@ typedef struct bPoseChannel_Runtime {
  * with respect to the rest-position of #bArmature bones.
  */
 typedef struct bPoseChannel {
+  DNA_DEFINE_CXX_METHODS(bPoseChannel)
+
   struct bPoseChannel *next, *prev;
 
   /** User-Defined Properties on this PoseChannel. */
@@ -442,7 +444,7 @@ typedef enum ePchan_BBoneFlag {
 typedef enum eRotationModes {
   /* quaternion rotations (default, and for older Blender versions) */
   ROT_MODE_QUAT = 0,
-  /* euler rotations - keep in sync with enum in BLI_math.h */
+  /* euler rotations - keep in sync with enum in BLI_math_rotation.h */
   /** Blender 'default' (classic) - must be as 1 to sync with BLI_math_rotation.h defines */
   ROT_MODE_EUL = 1,
   ROT_MODE_XYZ = 1,

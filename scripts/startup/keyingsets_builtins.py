@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2010-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -21,7 +23,7 @@ from bpy.types import KeyingSetInfo
 
 
 # "Defines"
-# Keep these in sync with those in ED_keyframing.h!
+# Keep these in sync with those in ED_keyframing.hh!
 ANIM_KS_LOCATION_ID = "Location"
 ANIM_KS_ROTATION_ID = "Rotation"
 ANIM_KS_SCALING_ID = "Scaling"

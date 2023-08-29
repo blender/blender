@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -55,7 +57,7 @@ static int WithinImageBoundaryUP1D___init__(BPy_WithinImageBoundaryUP1D *self,
 /*-----------------------BPy_TrueUP1D type definition ------------------------------*/
 
 PyTypeObject WithinImageBoundaryUP1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "WithinImageBoundaryUP1D",
     /*tp_basicsize*/ sizeof(BPy_WithinImageBoundaryUP1D),
     /*tp_itemsize*/ 0,

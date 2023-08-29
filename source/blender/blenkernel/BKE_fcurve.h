@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+/* SPDX-FileCopyrightText: 2009 Blender Authors, Joshua Leung. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -23,7 +23,6 @@ struct AnimData;
 struct AnimationEvalContext;
 struct BezTriple;
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct LibraryForeachIDData;
@@ -33,14 +32,6 @@ struct PropertyRNA;
 struct StructRNA;
 struct bAction;
 struct bContext;
-
-/* ************** Keyframe Tools ***************** */
-
-typedef struct CfraElem {
-  struct CfraElem *next, *prev;
-  float cfra;
-  int sel;
-} CfraElem;
 
 /* ************** F-Curve Modifiers *************** */
 
@@ -68,7 +59,7 @@ typedef struct FModifierTypeInfo {
   /** name of modifier in interface. */
   char name[64];
   /** name of struct for SDNA. */
-  char structName[64];
+  char struct_name[64];
   /** Size of buffer that can be reused between time and value evaluation. */
   uint storage_size;
 
@@ -249,6 +240,12 @@ void BKE_fmodifier_name_set(struct FModifier *fcm, const char *name);
  * Callback used by lib_query to walk over all ID usages
  * (mimics `foreach_id` callback of #IDTypeInfo structure).
  */
+void BKE_fmodifiers_foreach_id(struct ListBase *fmodifiers, struct LibraryForeachIDData *data);
+
+/**
+ * Callback used by lib_query to walk over all ID usages
+ * (mimics `foreach_id` callback of #IDTypeInfo structure).
+ */
 void BKE_fcurve_foreach_id(struct FCurve *fcu, struct LibraryForeachIDData *data);
 
 /**
@@ -349,7 +346,7 @@ int BKE_fcurve_bezt_binarysearch_index(const struct BezTriple array[],
                                        int arraylen,
                                        bool *r_replace);
 
-/* fcurve_cache.c */
+/* `fcurve_cache.cc` */
 
 /**
  * Cached f-curve look-ups, use when this needs to be done many times.
@@ -638,17 +635,9 @@ void BKE_fmodifiers_blend_write(struct BlendWriter *writer, struct ListBase *fmo
 void BKE_fmodifiers_blend_read_data(struct BlendDataReader *reader,
                                     ListBase *fmodifiers,
                                     struct FCurve *curve);
-void BKE_fmodifiers_blend_read_lib(struct BlendLibReader *reader,
-                                   struct ID *id,
-                                   struct ListBase *fmodifiers);
-void BKE_fmodifiers_blend_read_expand(struct BlendExpander *expander, struct ListBase *fmodifiers);
 
 void BKE_fcurve_blend_write(struct BlendWriter *writer, struct ListBase *fcurves);
 void BKE_fcurve_blend_read_data(struct BlendDataReader *reader, struct ListBase *fcurves);
-void BKE_fcurve_blend_read_lib(struct BlendLibReader *reader,
-                               struct ID *id,
-                               struct ListBase *fcurves);
-void BKE_fcurve_blend_read_expand(struct BlendExpander *expander, struct ListBase *fcurves);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -57,6 +57,7 @@ typedef enum eReportType {
   RPT_ERROR_INVALID_CONTEXT = (1 << 7),
   RPT_ERROR_OUT_OF_MEMORY = (1 << 8),
 } eReportType;
+ENUM_OPERATORS(eReportType, RPT_ERROR_OUT_OF_MEMORY)
 
 #define RPT_DEBUG_ALL (RPT_DEBUG)
 #define RPT_INFO_ALL (RPT_INFO)
@@ -75,7 +76,7 @@ enum ReportListFlags {
   RPT_PRINT_HANDLED_BY_OWNER = (1 << 4),
 };
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct Report {
@@ -103,8 +104,8 @@ typedef struct ReportList {
   struct wmTimer *reporttimer;
 } ReportList;
 
-/* timer customdata to control reports display */
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* Timer custom-data to control reports display. */
+/* These two lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct ReportTimerInfo {
@@ -267,9 +268,20 @@ typedef struct wmWindow {
 
   /** Window-ID also in screens, is for retrieving this window after read. */
   int winid;
-  /** Window coords. */
-  short posx, posy, sizex, sizey;
-  /** Borderless, full. */
+  /** Window coords (in pixels). */
+  short posx, posy;
+  /**
+   * Window size (in pixels).
+   *
+   * \note Loading a window typically uses the size & position saved in the blend-file,
+   * there is an exception for startup files which works as follows:
+   * Setting the window size to zero before `ghostwin` has been set has a special meaning,
+   * it causes the window size to be initialized to `wm_init_state.size_x` (& `size_y`).
+   * These default to the main screen size but can be overridden by the `--window-geometry`
+   * command line argument.
+   */
+  short sizex, sizey;
+  /** Normal, maximized, full-screen, #GHOST_TWindowState. */
   char windowstate;
   /** Set to 1 if an active window, for quick rejects. */
   char active;
@@ -340,8 +352,10 @@ typedef struct wmWindow {
    */
   struct wmEvent *event_last_handled;
 
-  /* Input Method Editor data - complex character input (especially for Asian character input)
-   * Currently WIN32 and APPLE, runtime-only data. */
+  /**
+   * Input Method Editor data - complex character input (especially for Asian character input)
+   * Currently WIN32 and APPLE, runtime-only data.
+   */
   struct wmIMEData *ime_data;
 
   /** All events #wmEvent (ghost level events were handled). */
@@ -357,10 +371,10 @@ typedef struct wmWindow {
   /** Properties for stereoscopic displays. */
   struct Stereo3dFormat *stereo3d_format;
 
-  /* custom drawing callbacks */
+  /** Custom drawing callbacks. */
   ListBase drawcalls;
 
-  /* Private runtime info to show text in the status bar. */
+  /** Private runtime info to show text in the status bar. */
   void *cursor_keymap_status;
 } wmWindow;
 
@@ -368,7 +382,7 @@ typedef struct wmWindow {
 #  undef ime_data
 #endif
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two lines with # tell `makesdna` this struct can be excluded. */
 /* should be something like DNA_EXCLUDE
  * but the preprocessor first removes all comments, spaces etc */
 #

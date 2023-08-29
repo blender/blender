@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * The Original Code is Copyright 2010 The Chromium Authors. All rights reserved. */
+/* SPDX-FileCopyrightText: 2010 The Chromium Authors. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -43,7 +44,7 @@ void GHOST_ImeWin32::UpdateInputLanguage()
   GetLocaleInfoEx(locale, LOCALE_SISO639LANGNAME, language_u16, W32_ISO639_LEN);
   /* Store this as a UTF-8 string. */
   WideCharToMultiByte(
-      CP_UTF8, 0, language_u16, W32_ISO639_LEN, language_, W32_ISO639_LEN, NULL, NULL);
+      CP_UTF8, 0, language_u16, W32_ISO639_LEN, language_, W32_ISO639_LEN, nullptr, nullptr);
 }
 
 BOOL GHOST_ImeWin32::IsLanguage(const char name[W32_ISO639_LEN])
@@ -114,7 +115,7 @@ void GHOST_ImeWin32::CreateImeWindow(HWND window_handle)
    * their window position, we also create a caret for Japanese IMEs.
    */
   if (!system_caret_ && (IsLanguage(IMELANG_CHINESE) || IsLanguage(IMELANG_JAPANESE))) {
-    system_caret_ = ::CreateCaret(window_handle, NULL, 1, 1);
+    system_caret_ = ::CreateCaret(window_handle, nullptr, 1, 1);
   }
   /* Restore the positions of the IME windows. */
   UpdateImeWindow(window_handle);
@@ -266,7 +267,7 @@ void GHOST_ImeWin32::GetCaret(HIMC imm_context, LPARAM lparam, ImeComposition *c
     }
   }
   else if (IsLanguage(IMELANG_CHINESE)) {
-    int clause_size = ImmGetCompositionStringW(imm_context, GCS_COMPCLAUSE, NULL, 0);
+    int clause_size = ImmGetCompositionStringW(imm_context, GCS_COMPCLAUSE, nullptr, 0);
     if (clause_size) {
       static std::vector<ulong> clauses;
       clause_size = clause_size / sizeof(clauses[0]);
@@ -302,7 +303,7 @@ void GHOST_ImeWin32::GetCaret(HIMC imm_context, LPARAM lparam, ImeComposition *c
      * a clause being converted.
      */
     if (lparam & GCS_COMPATTR) {
-      int attribute_size = ::ImmGetCompositionStringW(imm_context, GCS_COMPATTR, NULL, 0);
+      int attribute_size = ::ImmGetCompositionStringW(imm_context, GCS_COMPATTR, nullptr, 0);
       if (attribute_size > 0) {
         char *attribute_data = new char[attribute_size];
         if (attribute_data) {
@@ -345,7 +346,7 @@ bool GHOST_ImeWin32::GetString(HIMC imm_context,
 {
   bool result = false;
   if (lparam & type) {
-    int string_size = ::ImmGetCompositionStringW(imm_context, type, NULL, 0);
+    int string_size = ::ImmGetCompositionStringW(imm_context, type, nullptr, 0);
     if (string_size > 0) {
       int string_length = string_size / sizeof(wchar_t);
       wchar_t *string_data = new wchar_t[string_length + 1];
@@ -391,7 +392,7 @@ bool GHOST_ImeWin32::GetComposition(HWND window_handle, LPARAM lparam, ImeCompos
     result = GetString(imm_context, lparam, GCS_COMPSTR, composition);
 
     /* Retrieve the cursor position in the IME composition. */
-    int cursor_position = ::ImmGetCompositionStringW(imm_context, GCS_CURSORPOS, NULL, 0);
+    int cursor_position = ::ImmGetCompositionStringW(imm_context, GCS_CURSORPOS, nullptr, 0);
     composition->cursor_position = cursor_position;
     composition->target_start = -1;
     composition->target_end = -1;
@@ -420,7 +421,7 @@ void GHOST_ImeWin32::EndIME(HWND window_handle)
     return;
   is_enable = false;
   CleanupComposition(window_handle);
-  ::ImmAssociateContextEx(window_handle, NULL, 0);
+  ::ImmAssociateContextEx(window_handle, nullptr, 0);
   eventImeData.composite_len = 0;
 }
 
@@ -435,7 +436,7 @@ void GHOST_ImeWin32::BeginIME(HWND window_handle, const GHOST_Rect &caret_rect, 
    *   IMM ignores this call if the IME context is loaded. Therefore, we do
    *   not have to check whether or not the IME context is loaded.
    */
-  ::ImmAssociateContextEx(window_handle, NULL, IACE_DEFAULT);
+  ::ImmAssociateContextEx(window_handle, nullptr, IACE_DEFAULT);
   /* Complete the ongoing composition and move the IME windows. */
   HIMC imm_context = ::ImmGetContext(window_handle);
   if (imm_context) {

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -64,9 +64,6 @@ int SEQ_sequence_supports_modifiers(struct Sequence *seq);
 
 void SEQ_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
 void SEQ_modifier_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);
-void SEQ_modifier_blend_read_lib(struct BlendLibReader *reader,
-                                 struct Scene *scene,
-                                 struct ListBase *lb);
 
 #ifdef __cplusplus
 }

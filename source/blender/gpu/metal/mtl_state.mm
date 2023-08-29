@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -141,7 +143,7 @@ void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
     pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_PSO_FLAG;
   }
 
-  if (changed.depth_range[0] != 0 || changed.depth_range[1] != 0) {
+  if (float_as_uint(changed.depth_range[0]) != 0 || float_as_uint(changed.depth_range[1]) != 0) {
     /* TODO remove, should modify the projection matrix instead. */
     mtl_depth_range(state.depth_range[0], state.depth_range[1]);
   }
@@ -365,7 +367,7 @@ void MTLStateManager::set_clip_distances(const int new_dist_len, const int old_d
   }
 }
 
-void MTLStateManager::set_logic_op(const bool enable)
+void MTLStateManager::set_logic_op(const bool /*enable*/)
 {
   /* NOTE(Metal): Logic Operations not directly supported. */
 }
@@ -400,7 +402,7 @@ void MTLStateManager::set_backface_culling(const eGPUFaceCullTest test)
   pipeline_state.dirty = true;
 }
 
-void MTLStateManager::set_provoking_vert(const eGPUProvokingVertex vert)
+void MTLStateManager::set_provoking_vert(const eGPUProvokingVertex /*vert*/)
 {
   /* NOTE(Metal): Provoking vertex is not a feature in the Metal API.
    * Shaders are handled on a case-by-case basis using a modified vertex shader.

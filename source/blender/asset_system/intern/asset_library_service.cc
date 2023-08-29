@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -95,7 +95,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      std::string root_path = custom_library->path;
+      std::string root_path = custom_library->dirpath;
       if (root_path.empty()) {
         return nullptr;
       }
@@ -234,8 +234,7 @@ bUserAssetLibrary *AssetLibraryService::find_custom_preferences_asset_library_fr
     return nullptr;
   }
 
-  return BKE_preferences_asset_library_find_from_name(&U,
-                                                      asset_reference.asset_library_identifier);
+  return BKE_preferences_asset_library_find_by_name(&U, asset_reference.asset_library_identifier);
 }
 
 AssetLibrary *AssetLibraryService::find_loaded_on_disk_asset_library_from_name(
@@ -252,14 +251,14 @@ AssetLibrary *AssetLibraryService::find_loaded_on_disk_asset_library_from_name(
 std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
     const AssetWeakReference &asset_reference)
 {
-  StringRefNull library_path;
+  StringRefNull library_dirpath;
 
   switch (eAssetLibraryType(asset_reference.asset_library_type)) {
     case ASSET_LIBRARY_CUSTOM: {
       bUserAssetLibrary *custom_lib = find_custom_preferences_asset_library_from_asset_weak_ref(
           asset_reference);
       if (custom_lib) {
-        library_path = custom_lib->path;
+        library_dirpath = custom_lib->dirpath;
         break;
       }
 
@@ -271,19 +270,19 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
         return "";
       }
 
-      library_path = *loaded_custom_lib->root_path_;
+      library_dirpath = *loaded_custom_lib->root_path_;
       break;
     }
     case ASSET_LIBRARY_ESSENTIALS:
-      library_path = essentials_directory_path();
+      library_dirpath = essentials_directory_path();
       break;
     case ASSET_LIBRARY_LOCAL:
     case ASSET_LIBRARY_ALL:
       return "";
   }
 
-  std::string normalized_library_path = utils::normalize_path(library_path);
-  return normalized_library_path;
+  std::string normalized_library_dirpath = utils::normalize_path(library_dirpath);
+  return normalized_library_dirpath;
 }
 
 int64_t AssetLibraryService::rfind_blendfile_extension(StringRef path)
@@ -353,12 +352,12 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_full_path(
     return "";
   }
 
-  std::string library_path = resolve_asset_weak_reference_to_library_path(asset_reference);
-  if (library_path.empty()) {
+  std::string library_dirpath = resolve_asset_weak_reference_to_library_path(asset_reference);
+  if (library_dirpath.empty()) {
     return "";
   }
 
-  std::string normalized_full_path = utils::normalize_path(library_path + SEP_STR) +
+  std::string normalized_full_path = utils::normalize_path(library_dirpath + SEP_STR) +
                                      normalize_asset_weak_reference_relative_asset_identifier(
                                          asset_reference);
 
@@ -428,7 +427,7 @@ bUserAssetLibrary *AssetLibraryService::find_custom_asset_library_from_library_r
   BLI_assert(library_reference.type == ASSET_LIBRARY_CUSTOM);
   BLI_assert(library_reference.custom_library_index >= 0);
 
-  return BKE_preferences_asset_library_find_from_index(&U, library_reference.custom_library_index);
+  return BKE_preferences_asset_library_find_index(&U, library_reference.custom_library_index);
 }
 
 std::string AssetLibraryService::root_path_from_library_ref(
@@ -443,11 +442,11 @@ std::string AssetLibraryService::root_path_from_library_ref(
 
   bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(
       library_reference);
-  if (!custom_library || !custom_library->path[0]) {
+  if (!custom_library || !custom_library->dirpath[0]) {
     return "";
   }
 
-  return custom_library->path;
+  return custom_library->dirpath;
 }
 
 void AssetLibraryService::allocate_service_instance()
@@ -463,8 +462,8 @@ void AssetLibraryService::allocate_service_instance()
   }
 }
 
-static void on_blendfile_load(struct Main * /*bMain*/,
-                              struct PointerRNA ** /*pointers*/,
+static void on_blendfile_load(Main * /*bMain*/,
+                              PointerRNA ** /*pointers*/,
                               const int /*num_pointers*/,
                               void * /*arg*/)
 {

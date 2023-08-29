@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -73,7 +74,7 @@ class GHOST_EventDragnDrop : public GHOST_Event {
   ~GHOST_EventDragnDrop()
   {
     /* Free the dropped object data. */
-    if (m_dragnDropEventData.data == NULL)
+    if (m_dragnDropEventData.data == nullptr)
       return;
 
     switch (m_dragnDropEventData.dataType) {

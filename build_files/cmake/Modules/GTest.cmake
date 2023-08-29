@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2020-2022 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
 
 #[=======================================================================[.rst:
@@ -277,18 +279,18 @@ function(gtest_add_tests)
   endif()
 
   set(options
-      SKIP_DEPENDENCY
+    SKIP_DEPENDENCY
   )
   set(oneValueArgs
-      TARGET
-      WORKING_DIRECTORY
-      TEST_PREFIX
-      TEST_SUFFIX
-      TEST_LIST
+    TARGET
+    WORKING_DIRECTORY
+    TEST_PREFIX
+    TEST_SUFFIX
+    TEST_LIST
   )
   set(multiValueArgs
-      SOURCES
-      EXTRA_ARGS
+    SOURCES
+    EXTRA_ARGS
   )
   set(allKeywords ${options} ${oneValueArgs} ${multiValueArgs})
 

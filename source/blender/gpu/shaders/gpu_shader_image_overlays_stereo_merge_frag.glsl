@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #define S3D_DISPLAY_ANAGLYPH 0
 #define S3D_DISPLAY_INTERLACE 1
 

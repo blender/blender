@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from bpy.types import Header, Menu, Panel
@@ -297,6 +299,9 @@ class GRAPH_MT_key_blending(Menu):
         layout.operator("graph.blend_to_neighbor", text="Blend to Neighbor")
         layout.operator("graph.blend_to_default", text="Blend to Default Value")
         layout.operator("graph.ease", text="Ease")
+        layout.operator("graph.blend_offset", text="Blend Offset")
+        layout.operator("graph.blend_to_ease", text="Blend to Ease")
+        layout.operator("graph.match_slope", text="Match Slope")
 
 
 class GRAPH_MT_key_smoothing(Menu):
@@ -307,6 +312,7 @@ class GRAPH_MT_key_smoothing(Menu):
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("graph.gaussian_smooth", text="Smooth (Gaussian)")
         layout.operator("graph.smooth", text="Smooth (Legacy)")
+        layout.operator("graph.butterworth_smooth")
 
 
 class GRAPH_MT_key(Menu):

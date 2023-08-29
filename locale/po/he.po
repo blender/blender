@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2012-10-07 13:56+0300\n"
 "Last-Translator: Barak Itkin <lightningismyname@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -73,10 +73,6 @@ msgstr "קלח"
 
 msgid "Saturation"
 msgstr "היוור"
-
-
-msgid "Path"
-msgstr "ביתנ"
 
 
 msgid "Rotation"
@@ -207,12 +203,12 @@ msgid "Blue"
 msgstr "לוחכ"
 
 
-msgid "Mask"
-msgstr "הכסמ"
-
-
 msgid "Up"
 msgstr "הלעמ"
+
+
+msgid "Path"
+msgstr "ביתנ"
 
 
 msgid "Mean"
@@ -229,10 +225,6 @@ msgstr "תוסג"
 
 msgid "Specular"
 msgstr "רלקפסא"
-
-
-msgid "Both"
-msgstr "םהינש"
 
 
 msgid "Sculpt Mode"
@@ -257,6 +249,10 @@ msgstr "לפרע"
 
 msgid "Color Management"
 msgstr "עבצ לוהינ"
+
+
+msgid "Mask"
+msgstr "הכסמ"
 
 
 msgid "Apply"
@@ -305,6 +301,10 @@ msgstr "הטמ"
 
 msgid "Lamp"
 msgstr "הרונמ"
+
+
+msgid "Both"
+msgstr "םהינש"
 
 
 msgid "Reset"
@@ -428,10 +428,6 @@ msgstr "הנשמ ףסוה"
 
 msgid "Select Layer"
 msgstr "הבכש רחב"
-
-
-msgid " + Z"
-msgstr " + Z"
 
 
 msgid "Label Size"

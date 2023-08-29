@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,8 +17,12 @@
 
 #include "ED_viewer_path.hh"
 
+#include "MOD_nodes.hh"
+
 namespace blender::nodes::geo_eval_log {
 
+using bke::bNodeTreeZone;
+using bke::bNodeTreeZones;
 using fn::FieldInput;
 using fn::FieldInputs;
 
@@ -53,13 +57,13 @@ FieldInfoLog::FieldInfoLog(const GField &field) : type(field.cpp_type())
   }
 }
 
-GeometryInfoLog::GeometryInfoLog(const GeometrySet &geometry_set)
+GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
 {
-  static std::array all_component_types = {GEO_COMPONENT_TYPE_CURVE,
-                                           GEO_COMPONENT_TYPE_INSTANCES,
-                                           GEO_COMPONENT_TYPE_MESH,
-                                           GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                           GEO_COMPONENT_TYPE_VOLUME};
+  static std::array all_component_types = {bke::GeometryComponent::Type::Curve,
+                                           bke::GeometryComponent::Type::Instance,
+                                           bke::GeometryComponent::Type::Mesh,
+                                           bke::GeometryComponent::Type::PointCloud,
+                                           bke::GeometryComponent::Type::Volume};
 
   /* Keep track handled attribute names to make sure that we do not return the same name twice.
    * Currently #GeometrySet::attribute_foreach does not do that. Note that this will merge
@@ -71,45 +75,46 @@ GeometryInfoLog::GeometryInfoLog(const GeometrySet &geometry_set)
       true,
       [&](const bke::AttributeIDRef &attribute_id,
           const bke::AttributeMetaData &meta_data,
-          const GeometryComponent & /*component*/) {
+          const bke::GeometryComponent & /*component*/) {
         if (!attribute_id.is_anonymous() && names.add(attribute_id.name())) {
           this->attributes.append({attribute_id.name(), meta_data.domain, meta_data.data_type});
         }
       });
 
-  for (const GeometryComponent *component : geometry_set.get_components_for_read()) {
+  for (const bke::GeometryComponent *component : geometry_set.get_components()) {
     this->component_types.append(component->type());
     switch (component->type()) {
-      case GEO_COMPONENT_TYPE_MESH: {
-        const MeshComponent &mesh_component = *(const MeshComponent *)component;
+      case bke::GeometryComponent::Type::Mesh: {
+        const auto &mesh_component = *static_cast<const bke::MeshComponent *>(component);
         MeshInfo &info = this->mesh_info.emplace();
         info.verts_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
         info.edges_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
         info.faces_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_FACE);
         break;
       }
-      case GEO_COMPONENT_TYPE_CURVE: {
-        const CurveComponent &curve_component = *(const CurveComponent *)component;
+      case bke::GeometryComponent::Type::Curve: {
+        const auto &curve_component = *static_cast<const bke::CurveComponent *>(component);
         CurveInfo &info = this->curve_info.emplace();
         info.points_num = curve_component.attribute_domain_size(ATTR_DOMAIN_POINT);
         info.splines_num = curve_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
         break;
       }
-      case GEO_COMPONENT_TYPE_POINT_CLOUD: {
-        const PointCloudComponent &pointcloud_component = *(const PointCloudComponent *)component;
+      case bke::GeometryComponent::Type::PointCloud: {
+        const auto &pointcloud_component = *static_cast<const bke::PointCloudComponent *>(
+            component);
         PointCloudInfo &info = this->pointcloud_info.emplace();
         info.points_num = pointcloud_component.attribute_domain_size(ATTR_DOMAIN_POINT);
         break;
       }
-      case GEO_COMPONENT_TYPE_INSTANCES: {
-        const InstancesComponent &instances_component = *(const InstancesComponent *)component;
+      case bke::GeometryComponent::Type::Instance: {
+        const auto &instances_component = *static_cast<const bke::InstancesComponent *>(component);
         InstancesInfo &info = this->instances_info.emplace();
         info.instances_num = instances_component.attribute_domain_size(ATTR_DOMAIN_INSTANCE);
         break;
       }
-      case GEO_COMPONENT_TYPE_EDIT: {
-        const GeometryComponentEditData &edit_component = *(
-            const GeometryComponentEditData *)component;
+      case bke::GeometryComponent::Type::Edit: {
+        const auto &edit_component = *static_cast<const bke::GeometryComponentEditData *>(
+            component);
         if (const bke::CurvesEditHints *curve_edit_hints = edit_component.curves_edit_hints_.get())
         {
           EditDataInfo &info = this->edit_data_info.emplace();
@@ -118,7 +123,11 @@ GeometryInfoLog::GeometryInfoLog(const GeometrySet &geometry_set)
         }
         break;
       }
-      case GEO_COMPONENT_TYPE_VOLUME: {
+      case bke::GeometryComponent::Type::Volume: {
+        break;
+      }
+      case bke::GeometryComponent::Type::GreasePencil: {
+        /* TODO. Do nothing for now. */
         break;
       }
     }
@@ -163,8 +172,8 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     store_logged_value(this->allocator->construct<GenericValueLog>(GMutablePointer{type, buffer}));
   };
 
-  if (type.is<GeometrySet>()) {
-    const GeometrySet &geometry = *value.get<GeometrySet>();
+  if (type.is<bke::GeometrySet>()) {
+    const bke::GeometrySet &geometry = *value.get<bke::GeometrySet>();
     store_logged_value(this->allocator->construct<GeometryInfoLog>(geometry));
   }
   else if (const auto *value_or_field_type = fn::ValueOrFieldCPPType::get_from_self(type)) {
@@ -191,7 +200,7 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
   }
 }
 
-void GeoTreeLogger::log_viewer_node(const bNode &viewer_node, GeometrySet geometry)
+void GeoTreeLogger::log_viewer_node(const bNode &viewer_node, bke::GeometrySet geometry)
 {
   destruct_ptr<ViewerNodeLog> log = this->allocator->construct<ViewerNodeLog>();
   log->geometry = std::move(geometry);
@@ -517,46 +526,104 @@ static std::optional<ObjectAndModifier> get_modifier_for_node_editor(const Space
   return ObjectAndModifier{object, used_modifier};
 }
 
-std::optional<ComputeContextHash> GeoModifierLog::get_compute_context_hash_for_node_editor(
-    const SpaceNode &snode, const StringRefNull modifier_name)
+static void find_tree_zone_hash_recursive(
+    const bNodeTreeZone &zone,
+    ComputeContextBuilder &compute_context_builder,
+    Map<const bNodeTreeZone *, ComputeContextHash> &r_hash_by_zone)
 {
-  Vector<const bNodeTreePath *> tree_path = snode.treepath;
-  if (tree_path.is_empty()) {
-    return std::nullopt;
-  }
-  ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(modifier_name);
-  for (const int i : tree_path.index_range().drop_back(1)) {
-    /* The tree path contains the name of the node but not its ID. */
-    const bNode *node = nodeFindNodebyName(tree_path[i]->nodetree, tree_path[i + 1]->node_name);
-    if (node == nullptr) {
-      /* The current tree path is invalid, probably because some parent group node has been
-       * deleted. */
-      return std::nullopt;
+  switch (zone.output_node->type) {
+    case GEO_NODE_SIMULATION_OUTPUT: {
+      compute_context_builder.push<bke::SimulationZoneComputeContext>(*zone.output_node);
+      break;
     }
-    compute_context_builder.push<bke::NodeGroupComputeContext>(*node);
+    case GEO_NODE_REPEAT_OUTPUT: {
+      /* Only show data from the first iteration for now. */
+      const int iteration = 0;
+      compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone.output_node, iteration);
+      break;
+    }
   }
-  return compute_context_builder.hash();
+  r_hash_by_zone.add_new(&zone, compute_context_builder.hash());
+  for (const bNodeTreeZone *child_zone : zone.child_zones) {
+    find_tree_zone_hash_recursive(*child_zone, compute_context_builder, r_hash_by_zone);
+  }
+  compute_context_builder.pop();
 }
 
-GeoTreeLog *GeoModifierLog::get_tree_log_for_node_editor(const SpaceNode &snode)
+Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
+    get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, StringRefNull modifier_name)
+{
+  const Vector<const bNodeTreePath *> tree_path = snode.treepath;
+  if (tree_path.is_empty()) {
+    return {};
+  }
+
+  ComputeContextBuilder compute_context_builder;
+  compute_context_builder.push<bke::ModifierComputeContext>(modifier_name);
+
+  for (const int i : tree_path.index_range().drop_back(1)) {
+    bNodeTree *tree = tree_path[i]->nodetree;
+    const char *group_node_name = tree_path[i + 1]->node_name;
+    const bNode *group_node = nodeFindNodebyName(tree, group_node_name);
+    if (group_node == nullptr) {
+      return {};
+    }
+    const bNodeTreeZones *tree_zones = tree->zones();
+    if (tree_zones == nullptr) {
+      return {};
+    }
+    const Vector<const bNodeTreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(
+        group_node->identifier);
+    for (const bNodeTreeZone *zone : zone_stack) {
+      switch (zone->output_node->type) {
+        case GEO_NODE_SIMULATION_OUTPUT: {
+          compute_context_builder.push<bke::SimulationZoneComputeContext>(*zone->output_node);
+          break;
+        }
+        case GEO_NODE_REPEAT_OUTPUT: {
+          /* Only show data from the first iteration for now. */
+          const int repeat_iteration = 0;
+          compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone->output_node,
+                                                                      repeat_iteration);
+          break;
+        }
+      }
+    }
+    compute_context_builder.push<bke::NodeGroupComputeContext>(*group_node);
+  }
+
+  const bNodeTreeZones *tree_zones = snode.edittree->zones();
+  if (tree_zones == nullptr) {
+    return {};
+  }
+  Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone;
+  hash_by_zone.add_new(nullptr, compute_context_builder.hash());
+  for (const bNodeTreeZone *zone : tree_zones->root_zones) {
+    find_tree_zone_hash_recursive(*zone, compute_context_builder, hash_by_zone);
+  }
+  return hash_by_zone;
+}
+
+Map<const bNodeTreeZone *, GeoTreeLog *> GeoModifierLog::get_tree_log_by_zone_for_node_editor(
+    const SpaceNode &snode)
 {
   std::optional<ObjectAndModifier> object_and_modifier = get_modifier_for_node_editor(snode);
   if (!object_and_modifier) {
-    return nullptr;
+    return {};
   }
-  GeoModifierLog *modifier_log = static_cast<GeoModifierLog *>(
-      object_and_modifier->nmd->runtime_eval_log);
+  GeoModifierLog *modifier_log = object_and_modifier->nmd->runtime->eval_log.get();
   if (modifier_log == nullptr) {
-    return nullptr;
+    return {};
   }
-  if (const std::optional<ComputeContextHash> hash =
-          GeoModifierLog::get_compute_context_hash_for_node_editor(
-              snode, object_and_modifier->nmd->modifier.name))
-  {
-    return &modifier_log->get_tree_log(*hash);
+  const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
+      GeoModifierLog::get_context_hash_by_zone_for_node_editor(
+          snode, object_and_modifier->nmd->modifier.name);
+  Map<const bNodeTreeZone *, GeoTreeLog *> log_by_zone;
+  for (const auto item : hash_by_zone.items()) {
+    GeoTreeLog &tree_log = modifier_log->get_tree_log(item.value);
+    log_by_zone.add(item.key, &tree_log);
   }
-  return nullptr;
+  return log_by_zone;
 }
 
 const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerPath &viewer_path)
@@ -578,16 +645,37 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerP
   if (nmd == nullptr) {
     return nullptr;
   }
-  if (nmd->runtime_eval_log == nullptr) {
+  if (!nmd->runtime->eval_log) {
     return nullptr;
   }
-  nodes::geo_eval_log::GeoModifierLog *modifier_log =
-      static_cast<nodes::geo_eval_log::GeoModifierLog *>(nmd->runtime_eval_log);
+  nodes::geo_eval_log::GeoModifierLog *modifier_log = nmd->runtime->eval_log.get();
 
   ComputeContextBuilder compute_context_builder;
   compute_context_builder.push<bke::ModifierComputeContext>(parsed_path->modifier_name);
-  for (const int32_t group_node_id : parsed_path->group_node_ids) {
-    compute_context_builder.push<bke::NodeGroupComputeContext>(group_node_id);
+  for (const ViewerPathElem *elem : parsed_path->node_path) {
+    switch (elem->type) {
+      case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
+        const auto &typed_elem = *reinterpret_cast<const GroupNodeViewerPathElem *>(elem);
+        compute_context_builder.push<bke::NodeGroupComputeContext>(typed_elem.node_id);
+        break;
+      }
+      case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
+        const auto &typed_elem = *reinterpret_cast<const SimulationZoneViewerPathElem *>(elem);
+        compute_context_builder.push<bke::SimulationZoneComputeContext>(
+            typed_elem.sim_output_node_id);
+        break;
+      }
+      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
+        const auto &typed_elem = *reinterpret_cast<const RepeatZoneViewerPathElem *>(elem);
+        compute_context_builder.push<bke::RepeatZoneComputeContext>(
+            typed_elem.repeat_output_node_id, typed_elem.iteration);
+        break;
+      }
+      default: {
+        BLI_assert_unreachable();
+        break;
+      }
+    }
   }
   const ComputeContextHash context_hash = compute_context_builder.hash();
   nodes::geo_eval_log::GeoTreeLog &tree_log = modifier_log->get_tree_log(context_hash);

@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2011-2022 Blender Foundation
 
 set(INC
   ../..
@@ -18,6 +19,7 @@ set(SRC
 set(HEADER_SRC
   closures_setup.h
   closures_template.h
+  compat.h
   globals.h
   osl.h
   services.h

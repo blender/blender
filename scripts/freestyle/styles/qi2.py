@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2008-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 #  Filename : qi2.py

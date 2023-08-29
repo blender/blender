@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -48,7 +48,7 @@ void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
   const int visibility_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_HIDE_VIEWPORT :
                                                                     COLLECTION_HIDE_RENDER;
 
-  for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
+  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
     if (lc->collection->flag & visibility_flag) {
       continue;
     }
@@ -114,9 +114,7 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
     }
   }
   build_layer_collections(&view_layer->layer_collections);
-  if (scene->camera != nullptr) {
-    build_object(-1, scene->camera, DEG_ID_LINKED_INDIRECTLY, true);
-  }
+  build_scene_camera(scene);
   /* Rigidbody. */
   if (scene->rigidbody_world != nullptr) {
     build_rigidbody(scene);

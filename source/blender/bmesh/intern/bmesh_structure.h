@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,6 +14,10 @@
  * if absolutely necessary, see function definitions in code for
  * descriptive comments.  but seriously, don't use this stuff.
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* LOOP CYCLE MANAGEMENT */
 /*****loop cycle functions, e.g. loops surrounding a face**** */
@@ -134,5 +138,9 @@ void bmesh_disk_vert_replace(BMEdge *e, BMVert *v_dst, BMVert *v_src) ATTR_NONNU
 BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+#ifdef __cplusplus
+}
+#endif
 
 #include "intern/bmesh_structure_inline.h"

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -128,7 +128,7 @@ void BPY_id_release(struct ID *id);
  */
 bool BPY_string_is_keyword(const char *str);
 
-/* bpy_rna_callback.c */
+/* `bpy_rna_callback.cc` */
 
 void BPY_callback_screen_free(struct ARegionType *art);
 void BPY_callback_wm_free(struct wmWindowManager *wm);

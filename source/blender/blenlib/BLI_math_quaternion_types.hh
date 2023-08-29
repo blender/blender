@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
  * \ingroup bli
  */
 
-#include <iostream>
+#include <ostream>
 
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_base.hh"
@@ -160,6 +160,11 @@ template<typename T> struct QuaternionBase {
   friend bool operator==(const QuaternionBase &a, const QuaternionBase &b)
   {
     return (a.w == b.w) && (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
+  }
+
+  uint64_t hash() const
+  {
+    return VecBase<T, 4>(*this).hash();
   }
 
   friend std::ostream &operator<<(std::ostream &stream, const QuaternionBase &rot)

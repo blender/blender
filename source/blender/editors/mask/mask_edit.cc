@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,15 +11,15 @@
 
 #include "DNA_scene_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_clip.h"
-#include "ED_image.h"
-#include "ED_mask.h" /* own include */
-#include "ED_sequencer.h"
+#include "ED_clip.hh"
+#include "ED_image.hh"
+#include "ED_mask.hh" /* own include */
+#include "ED_sequencer.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "mask_intern.h" /* own include */
 
@@ -97,7 +97,7 @@ bool ED_maskedit_mask_visible_splines_poll(bContext *C)
 /** \name Registration
  * \{ */
 
-void ED_operatortypes_mask(void)
+void ED_operatortypes_mask()
 {
   WM_operatortype_append(MASK_OT_new);
 
@@ -167,7 +167,7 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
   keymap->poll = ED_maskedit_poll;
 }
 
-void ED_operatormacros_mask(void)
+void ED_operatormacros_mask()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;
@@ -229,7 +229,7 @@ void ED_mask_view_lock_state_restore_no_jump(const bContext *C, const MaskViewLo
      * calculation of new offset for the view for an updated state of mask to cancel the offset out
      * by modifying locked offset. In order to do such calculation mask needs to be evaluated after
      * modification by an operator. */
-    struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     (void)depsgraph;
 
     ED_clip_view_lock_state_restore_no_jump(C, &state->space_clip_state);

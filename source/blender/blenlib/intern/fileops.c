@@ -343,7 +343,7 @@ bool BLI_dir_create_recursive(const char *dirname)
   if (mode != 0) {
     /* The file exists, either it's a directory (ok), or not,
      * in which case this function can't do anything useful
-     * (the caller could remove it and re-run this function).  */
+     * (the caller could remove it and re-run this function). */
     return S_ISDIR(mode) ? true : false;
   }
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,13 +10,13 @@
 
 #include "BKE_context.h"
 
-#include "ED_node.h" /* own include */
-#include "ED_screen.h"
+#include "ED_node.hh" /* own include */
+#include "ED_screen.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "node_intern.hh" /* own include */
 
@@ -150,7 +150,6 @@ void ED_operatormacros_node()
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
   WM_operatortype_macro_define(ot, "NODE_OT_attach");
-  WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
 
   /* NODE_OT_translate_attach with remove_on_cancel set to true. */
   ot = WM_operatortype_append_macro("NODE_OT_translate_attach_remove_on_cancel",
@@ -161,7 +160,6 @@ void ED_operatormacros_node()
   RNA_boolean_set(mot->ptr, "remove_on_cancel", true);
   RNA_boolean_set(mot->ptr, "view2d_edge_pan", true);
   WM_operatortype_macro_define(ot, "NODE_OT_attach");
-  WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
 
   /* NOTE: Currently not in a default keymap or menu due to messy keymaps
    * and tricky invoke functionality.
@@ -207,7 +205,6 @@ void ED_operatormacros_node()
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
   WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
 
   ot = WM_operatortype_append_macro("NODE_OT_move_detach_links_release",
                                     "Detach",

@@ -1,11 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
  * %Main interface file for C++ Api with declaration of GHOST_ISystem interface
  * class.
- * Contains the doxygen documentation main page.
+ * Contains the DOXYGEN documentation main page.
  */
 
 #pragma once
@@ -60,7 +61,7 @@ class GHOST_IEventConsumer;
  * - Windows.
  * - X11.
  * - SDL2 (experimental).
- * - NULL (headless mode).
+ * - null (headless mode).
  *
  * \section Building GHOST
  *
@@ -188,7 +189,7 @@ class GHOST_ISystem {
   virtual GHOST_ITimerTask *installTimer(uint64_t delay,
                                          uint64_t interval,
                                          GHOST_TimerProcPtr timerProc,
-                                         GHOST_TUserDataPtr userData = NULL) = 0;
+                                         GHOST_TUserDataPtr userData = nullptr) = 0;
 
   /**
    * Removes a timer.
@@ -230,7 +231,7 @@ class GHOST_ISystem {
    * \param width: The width the window.
    * \param height: The height the window.
    * \param state: The state of the window when opened.
-   * \param glSettings: Misc OpenGL settings.
+   * \param gpuSettings: Misc GPU settings.
    * \param exclusive: Use to show the window on top and ignore others (used full-screen).
    * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
    * \param parentWindow: Parent (embedder) window
@@ -242,10 +243,10 @@ class GHOST_ISystem {
                                       uint32_t width,
                                       uint32_t height,
                                       GHOST_TWindowState state,
-                                      GHOST_GLSettings glSettings,
+                                      GHOST_GPUSettings gpuSettings,
                                       const bool exclusive = false,
                                       const bool is_dialog = false,
-                                      const GHOST_IWindow *parentWindow = NULL) = 0;
+                                      const GHOST_IWindow *parentWindow = nullptr) = 0;
 
   /**
    * Dispose a window.
@@ -259,7 +260,7 @@ class GHOST_ISystem {
    * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  virtual GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings) = 0;
+  virtual GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) = 0;
 
   /**
    * Dispose of a context.
@@ -331,7 +332,10 @@ class GHOST_ISystem {
   virtual void setAutoFocus(const bool auto_focus) = 0;
 
   /**
-   * Get the Window under the cursor.
+   * Get the Window under the cursor. Although coordinates of the mouse are supplied, platform-
+   * specific implementations are free to ignore these and query the mouse location themselves, due
+   * to them possibly being incorrect under certain conditions, for example when using multiple
+   * monitors that vary in scale and/or DPI.
    * \param x: The x-coordinate of the cursor.
    * \param y: The y-coordinate of the cursor.
    * \return The window under the cursor or nullptr if none.
@@ -439,6 +443,13 @@ class GHOST_ISystem {
    * \param api: Enum indicating which API to use.
    */
   virtual void setTabletAPI(GHOST_TTabletAPI api) = 0;
+
+  /**
+   * Get the color of the pixel at the current mouse cursor location
+   * \param r_color: returned sRGB float colors
+   * \return Success value (true == successful and supported by platform)
+   */
+  virtual GHOST_TSuccess getPixelAtCursor(float r_color[3]) const = 0;
 
 #ifdef WITH_INPUT_NDOF
   /**

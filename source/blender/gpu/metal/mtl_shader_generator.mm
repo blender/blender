@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -448,7 +450,8 @@ static bool balanced_braces(char *current_str_begin, char *current_str_end)
  *
  * Constants declared within function-scope do not exhibit this problem.
  */
-static void extract_global_scope_constants(std::string &str, std::stringstream &global_scope_out)
+static void extract_global_scope_constants(std::string &str,
+                                           std::stringstream & /*global_scope_out*/)
 {
   char *current_str_begin = &*str.begin();
   char *current_str_end = &*str.end();
@@ -474,7 +477,7 @@ static void extract_global_scope_constants(std::string &str, std::stringstream &
       if (c_expr_end != nullptr && balanced_braces(c, c_expr_end)) {
         MTL_LOG_INFO(
             "[PERFORMANCE WARNING] Global scope constant expression found - These get allocated "
-            "per-thread in METAL - Best to use Macro's or uniforms to avoid overhead: '%.*s'\n",
+            "per-thread in METAL - Best to use Macro's or uniforms to avoid overhead: '%.*s'",
             (int)(c_expr_end + 1 - c),
             c);
 
@@ -488,7 +491,7 @@ static void extract_global_scope_constants(std::string &str, std::stringstream &
 #endif
 
 static bool extract_ssbo_pragma_info(const MTLShader *shader,
-                                     const MSLGeneratorInterface &msl_iface,
+                                     const MSLGeneratorInterface & /*msl_iface*/,
                                      const std::string &in_vertex_src,
                                      MTLPrimitiveType &out_prim_tye,
                                      uint32_t &out_num_output_verts)
@@ -801,19 +804,19 @@ std::string MTLShader::fragment_interface_declare(const shader::ShaderCreateInfo
 }
 
 std::string MTLShader::MTLShader::geometry_interface_declare(
-    const shader::ShaderCreateInfo &info) const
+    const shader::ShaderCreateInfo & /*info*/) const
 {
   BLI_assert_msg(false, "Geometry shading unsupported by Metal");
   return "";
 }
 
-std::string MTLShader::geometry_layout_declare(const shader::ShaderCreateInfo &info) const
+std::string MTLShader::geometry_layout_declare(const shader::ShaderCreateInfo & /*info*/) const
 {
   BLI_assert_msg(false, "Geometry shading unsupported by Metal");
   return "";
 }
 
-std::string MTLShader::compute_layout_declare(const ShaderCreateInfo &info) const
+std::string MTLShader::compute_layout_declare(const ShaderCreateInfo & /*info*/) const
 {
   /* Metal supports compute shaders. THis function is a pass-through.
    * Compute shader interface population happens during mtl_shader_generator, as part of GLSL
@@ -851,7 +854,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
    * manual reflection. */
   bool uses_create_info = info != nullptr;
   if (!uses_create_info) {
-    MTL_LOG_WARNING("Unable to compile shader %p '%s' as no create-info was provided!\n",
+    MTL_LOG_WARNING("Unable to compile shader %p '%s' as no create-info was provided!",
                     this,
                     this->name_get());
     valid_ = false;
@@ -970,9 +973,12 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
                                std::string::npos;
   msl_iface.uses_gl_PointSize = shd_builder_->glsl_vertex_source_.find("gl_PointSize") !=
                                 std::string::npos;
-  msl_iface.uses_mtl_array_index_ = shd_builder_->glsl_vertex_source_.find(
-                                        "MTLRenderTargetArrayIndex") != std::string::npos;
-
+  msl_iface.uses_gpu_layer = bool(info->builtins_ & BuiltinBits::LAYER) ||
+                             shd_builder_->glsl_vertex_source_.find("gpu_Layer") !=
+                                 std::string::npos;
+  msl_iface.uses_gpu_viewport_index = bool(info->builtins_ & BuiltinBits::VIEWPORT_INDEX) ||
+                                      shd_builder_->glsl_vertex_source_.find(
+                                          "gpu_ViewportIndex") != std::string::npos;
   /** Identify usage of fragment-shader builtins. */
   if (!msl_iface.uses_transform_feedback) {
     std::smatch gl_special_cases;
@@ -1170,8 +1176,11 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   }
 
   /* Render target array index if using multilayered rendering. */
-  if (msl_iface.uses_mtl_array_index_) {
-    ss_vertex << "int MTLRenderTargetArrayIndex = 0;" << std::endl;
+  if (msl_iface.uses_gpu_layer) {
+    ss_vertex << "int gpu_Layer = 0;" << std::endl;
+  }
+  if (msl_iface.uses_gpu_viewport_index) {
+    ss_vertex << "int gpu_ViewportIndex = 0;" << std::endl;
   }
 
   /* Global vertex data pointers when using SSBO vertex fetch mode.
@@ -1301,6 +1310,14 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
       ss_fragment << "vec3 gpu_BaryCoord;\n";
     }
 
+    /* Render target array index and viewport array index passed from vertex shader. */
+    if (msl_iface.uses_gpu_layer) {
+      ss_fragment << "int gpu_Layer = 0;" << std::endl;
+    }
+    if (msl_iface.uses_gpu_viewport_index) {
+      ss_fragment << "int gpu_ViewportIndex = 0;" << std::endl;
+    }
+
     /* Add Texture members. */
     for (const MSLTextureResource &tex : msl_iface.texture_samplers) {
       if (bool(tex.stage & ShaderStage::FRAGMENT)) {
@@ -1376,7 +1393,8 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   this->set_interface(msl_iface.bake_shader_interface(this->name));
 
   /* Update other shader properties. */
-  uses_mtl_array_index_ = msl_iface.uses_mtl_array_index_;
+  uses_gpu_layer = msl_iface.uses_gpu_layer;
+  uses_gpu_viewport_index = msl_iface.uses_gpu_viewport_index;
   use_ssbo_vertex_fetch_mode_ = msl_iface.uses_ssbo_vertex_fetch_mode;
   if (msl_iface.uses_ssbo_vertex_fetch_mode) {
     ssbo_vertex_fetch_output_prim_type_ = vertex_fetch_ssbo_output_prim_type;
@@ -1461,6 +1479,9 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
 
   /** Generate Compute shader stage. **/
   std::stringstream ss_compute;
+
+  ss_compute << "#define GPU_ARB_texture_cube_map_array 1\n"
+                "#define GPU_ARB_shader_draw_parameters 1\n";
 
 #ifndef NDEBUG
   extract_global_scope_constants(shd_builder_->glsl_compute_source_, ss_compute);
@@ -1961,7 +1982,7 @@ bool MSLGeneratorInterface::use_argument_buffer_for_samplers() const
     MTL_LOG_WARNING(
         "Compiled Shader '%s' is falling back to bindless via argument buffers due to having a "
         "texture sampler of Index: %u Which exceeds the limit of 15+1. However shader only uses "
-        "%d textures. Consider optimising bind points with .auto_resource_location(true).\n",
+        "%d textures. Consider optimising bind points with .auto_resource_location(true).",
         parent_shader_.name_get(),
         max_tex_bind_index,
         (int)texture_samplers.size());
@@ -1971,14 +1992,14 @@ bool MSLGeneratorInterface::use_argument_buffer_for_samplers() const
   return use_argument_buffer;
 }
 
-uint32_t MSLGeneratorInterface::num_samplers_for_stage(ShaderStage stage) const
+uint32_t MSLGeneratorInterface::num_samplers_for_stage(ShaderStage /*stage*/) const
 {
   /* NOTE: Sampler bindings and argument buffer shared across stages,
    * in case stages share texture/sampler bindings. */
   return texture_samplers.size();
 }
 
-uint32_t MSLGeneratorInterface::max_sampler_index_for_stage(ShaderStage stage) const
+uint32_t MSLGeneratorInterface::max_sampler_index_for_stage(ShaderStage /*stage*/) const
 {
   /* NOTE: Sampler bindings and argument buffer shared across stages,
    * in case stages share texture/sampler bindings. */
@@ -2503,6 +2524,7 @@ std::string MSLGeneratorInterface::generate_msl_uniform_structs(ShaderStage shad
     return "";
   }
   BLI_assert(shader_stage == ShaderStage::VERTEX || shader_stage == ShaderStage::FRAGMENT);
+  UNUSED_VARS_NDEBUG(shader_stage);
   std::stringstream out;
 
   /* Common Uniforms. */
@@ -2533,7 +2555,7 @@ std::string MSLGeneratorInterface::generate_msl_uniform_structs(ShaderStage shad
 }
 
 /* NOTE: Uniform macro definition vars can conflict with other parameters. */
-std::string MSLGeneratorInterface::generate_msl_uniform_undefs(ShaderStage shader_stage)
+std::string MSLGeneratorInterface::generate_msl_uniform_undefs(ShaderStage /*shader_stage*/)
 {
   std::stringstream out;
 
@@ -2606,14 +2628,28 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
    * is explicitly specified as a tf output. */
   bool first_attr_is_position = false;
   if (this->uses_gl_Position) {
-    out << "\tfloat4 _default_position_ [[position]];" << std::endl;
+
+    /* If invariance is available, utilize this to consistently mitigate depth fighting artifacts
+     * by ensuring that vertex position is consistently calculated between subsequent passes
+     * with maximum precision. */
+    out << "\tfloat4 _default_position_ [[position]]";
+    if (@available(macos 11.0, *)) {
+      out << " [[invariant]]";
+    }
+    out << ";" << std::endl;
   }
   else {
     if (!this->uses_transform_feedback) {
       /* Use first output element for position. */
       BLI_assert(this->vertex_output_varyings.size() > 0);
       BLI_assert(this->vertex_output_varyings[0].type == "vec4");
-      out << "\tfloat4 " << this->vertex_output_varyings[0].name << " [[position]];" << std::endl;
+
+      /* Use invariance if available. See above for detail. */
+      out << "\tfloat4 " << this->vertex_output_varyings[0].name << " [[position]];";
+      if (@available(macos 11.0, *)) {
+        out << " [[invariant]]";
+      }
+      out << ";" << std::endl;
       first_attr_is_position = true;
     }
   }
@@ -2695,8 +2731,13 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
   }
 
   /* Add MTL render target array index for multilayered rendering support. */
-  if (uses_mtl_array_index_) {
-    out << "\tuint MTLRenderTargetArrayIndex [[render_target_array_index]];" << std::endl;
+  if (uses_gpu_layer) {
+    out << "\tuint gpu_Layer [[render_target_array_index]];" << std::endl;
+  }
+
+  /* Add Viewport Index output */
+  if (uses_gpu_viewport_index) {
+    out << "\tuint gpu_ViewportIndex [[viewport_array_index]];" << std::endl;
   }
 
   out << "} VertexOut;" << std::endl << std::endl;
@@ -2708,6 +2749,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_transform_feedback_out_st
     ShaderStage shader_stage)
 {
   BLI_assert(shader_stage == ShaderStage::VERTEX || shader_stage == ShaderStage::FRAGMENT);
+  UNUSED_VARS_NDEBUG(shader_stage);
   std::stringstream out;
   vertex_output_varyings_tf.clear();
 
@@ -2985,10 +3027,14 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
   }
 
   /* Output render target array Index. */
-  if (uses_mtl_array_index_) {
-    out << "\toutput.MTLRenderTargetArrayIndex = "
-           ""
-        << shader_stage_inst_name << ".MTLRenderTargetArrayIndex;" << std::endl;
+  if (uses_gpu_layer) {
+    out << "\toutput.gpu_Layer = " << shader_stage_inst_name << ".gpu_Layer;" << std::endl;
+  }
+
+  /* Output Viewport Index. */
+  if (uses_gpu_viewport_index) {
+    out << "\toutput.gpu_ViewportIndex = " << shader_stage_inst_name << ".gpu_ViewportIndex;"
+        << std::endl;
   }
 
   /* Output clip-distances.
@@ -3111,6 +3157,25 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
     /* When gl_Position is not set, first VertexIn element is used for position. */
     out << "\t" << shader_stage_inst_name << ".gl_FragCoord = v_in."
         << this->vertex_output_varyings[0].name << ";" << std::endl;
+  }
+
+  /* Assign default gl_FragDepth.
+   * If gl_FragDepth is used, it should default to the original depth value. Resolves #107159 where
+   * overlay_wireframe_frag may not write to gl_FragDepth. */
+  if (this->uses_gl_FragDepth) {
+    out << "\t" << shader_stage_inst_name << ".gl_FragDepth = " << shader_stage_inst_name
+        << ".gl_FragCoord.z;" << std::endl;
+  }
+
+  /* Input render target array index received from vertex shader. */
+  if (uses_gpu_layer) {
+    out << "\t" << shader_stage_inst_name << ".gpu_Layer = v_in.gpu_Layer;" << std::endl;
+  }
+
+  /* Input viewport array index received from vertex shader. */
+  if (uses_gpu_viewport_index) {
+    out << "\t" << shader_stage_inst_name << ".gpu_ViewportIndex = v_in.gpu_ViewportIndex;"
+        << std::endl;
   }
 
   /* NOTE: We will only assign to the intersection of the vertex output and fragment input.
@@ -3294,7 +3359,7 @@ void MSLGeneratorInterface::resolve_input_attribute_locations()
       }
 
       /* Error if could not assign attribute. */
-      MTL_LOG_ERROR("Could not assign attribute location to attribute %s for shader %s\n",
+      MTL_LOG_ERROR("Could not assign attribute location to attribute %s for shader %s",
                     attr.name.c_str(),
                     this->parent_shader_.name_get());
     }

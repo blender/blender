@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2021-2022 Intel Corporation */
+/* SPDX-FileCopyrightText: 2021-2022 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -44,11 +45,11 @@ extern "C" {
 
 CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_run_test_kernel(SyclQueue *queue_);
 CYCLES_KERNEL_ONEAPI_EXPORT void oneapi_set_error_cb(OneAPIErrorCallback cb, void *user_ptr);
-CYCLES_KERNEL_ONEAPI_EXPORT size_t oneapi_kernel_preferred_local_size(
-    SyclQueue *queue, const DeviceKernel kernel, const size_t kernel_global_size);
+CYCLES_KERNEL_ONEAPI_EXPORT size_t oneapi_suggested_gpu_kernel_size(const DeviceKernel kernel);
 CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_enqueue_kernel(KernelContext *context,
                                                        int kernel,
                                                        size_t global_size,
+                                                       size_t local_size,
                                                        const unsigned int kernel_features,
                                                        bool use_hardware_raytracing,
                                                        void **args);

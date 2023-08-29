@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
@@ -56,6 +59,56 @@ vec4 attr_load_color(vec4 attr)
 vec3 attr_load_uv(vec3 attr)
 {
   return attr;
+}
+
+/** \} */
+
+#elif defined(MAT_GEOM_POINT_CLOUD)
+
+/* -------------------------------------------------------------------- */
+/** \name Point Cloud
+ *
+ * Point Cloud objects loads attributes from buffers through sampler buffers.
+ * \{ */
+
+#  pragma BLENDER_REQUIRE(common_pointcloud_lib.glsl)
+
+#  ifdef OBINFO_LIB
+vec3 attr_load_orco(vec4 orco)
+{
+  vec3 P = pointcloud_get_pos();
+  vec3 lP = transform_point(ModelMatrixInverse, P);
+  return OrcoTexCoFactors[0].xyz + lP * OrcoTexCoFactors[1].xyz;
+}
+#  endif
+
+vec4 attr_load_tangent(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec4(cd_buf);
+}
+vec3 attr_load_uv(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec3(cd_buf);
+}
+vec4 attr_load_color(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec4(cd_buf);
+}
+vec4 attr_load_vec4(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec4(cd_buf);
+}
+vec3 attr_load_vec3(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec3(cd_buf);
+}
+vec2 attr_load_vec2(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec2(cd_buf);
+}
+float attr_load_float(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_float(cd_buf);
 }
 
 /** \} */
@@ -134,7 +187,7 @@ int g_curves_attr_id = 0;
  * based on the attribute scope (point or spline). */
 int curves_attribute_element_id()
 {
-  int id = interp.curves_strand_id;
+  int id = interp_flat.curves_strand_id;
   if (drw_curves.is_point_attribute[g_curves_attr_id][0] != 0u) {
 #  ifdef COMMON_HAIR_LIB
     id = hair_get_base_id();
@@ -152,11 +205,11 @@ vec4 attr_load_tangent(samplerBuffer cd_buf)
 }
 vec3 attr_load_uv(samplerBuffer cd_buf)
 {
-  return texelFetch(cd_buf, interp.curves_strand_id).rgb;
+  return texelFetch(cd_buf, interp_flat.curves_strand_id).rgb;
 }
 vec4 attr_load_color(samplerBuffer cd_buf)
 {
-  return texelFetch(cd_buf, interp.curves_strand_id).rgba;
+  return texelFetch(cd_buf, interp_flat.curves_strand_id).rgba;
 }
 vec4 attr_load_vec4(samplerBuffer cd_buf)
 {
@@ -177,7 +230,7 @@ float attr_load_float(samplerBuffer cd_buf)
 
 /** \} */
 
-#elif defined(MAT_GEOM_VOLUME)
+#elif defined(MAT_GEOM_VOLUME_OBJECT) || defined(MAT_GEOM_VOLUME_WORLD)
 
 /* -------------------------------------------------------------------- */
 /** \name Volume
@@ -186,20 +239,19 @@ float attr_load_float(samplerBuffer cd_buf)
  * Per grid transform order is following loading order.
  * \{ */
 
-#  ifndef OBINFO_LIB
-#    error draw_object_infos is mandatory for volume objects
-#  endif
-
-vec3 g_orco;
+vec3 g_lP = vec3(0.0);
+vec3 g_orco = vec3(0.0);
 int g_attr_id = 0;
 
 vec3 grid_coordinates()
 {
   vec3 co = g_orco;
+#  ifdef MAT_GEOM_VOLUME_OBJECT
   /* Optional per-grid transform. */
   if (drw_volume.grids_xform[g_attr_id][3][3] != 0.0) {
-    co = (drw_volume.grids_xform[g_attr_id] * vec4(objectPosition, 1.0)).xyz;
+    co = (drw_volume.grids_xform[g_attr_id] * vec4(g_lP, 1.0)).xyz;
   }
+#  endif
   g_attr_id += 1;
   return co;
 }
@@ -211,7 +263,7 @@ vec3 attr_load_orco(sampler3D tex)
 }
 vec4 attr_load_tangent(sampler3D tex)
 {
-  attr_id += 1;
+  g_attr_id += 1;
   return vec4(0);
 }
 vec4 attr_load_vec4(sampler3D tex)
@@ -236,7 +288,7 @@ vec4 attr_load_color(sampler3D tex)
 }
 vec3 attr_load_uv(sampler3D attr)
 {
-  attr_id += 1;
+  g_attr_id += 1;
   return vec3(0);
 }
 

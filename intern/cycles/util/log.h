@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_LOGGING_H__
 #define __UTIL_LOGGING_H__
@@ -9,7 +10,7 @@
 #  include <glog/logging.h>
 #endif
 
-#include <iostream>
+#include <iosfwd>
 
 CCL_NAMESPACE_BEGIN
 

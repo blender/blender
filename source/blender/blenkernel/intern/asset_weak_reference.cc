@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,7 +13,7 @@
 
 #include "BKE_asset.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "DNA_asset_types.h"
 
@@ -64,11 +64,11 @@ AssetWeakReference *BKE_asset_weak_reference_copy(AssetWeakReference *weak_ref)
   return weak_ref_copy;
 }
 
-std::unique_ptr<AssetWeakReference> AssetWeakReference::make_reference(
+AssetWeakReference *AssetWeakReference::make_reference(
     const asset_system::AssetLibrary &library,
     const asset_system::AssetIdentifier &asset_identifier)
 {
-  std::unique_ptr weak_ref = std::make_unique<AssetWeakReference>();
+  AssetWeakReference *weak_ref = MEM_new<AssetWeakReference>(__func__);
 
   weak_ref->asset_library_type = library.library_type();
   StringRefNull name = library.name();

@@ -1,11 +1,13 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 
@@ -111,25 +113,51 @@ static void node_geo_exec(GeoNodeExecParams params)
                                          params.extract_input<float>("Length"));
   }
 
-  params.set_output("Curve", GeometrySet::create_with_curves(curves));
+  params.set_output("Curve", GeometrySet::from_curves(curves));
 }
 
-}  // namespace blender::nodes::node_geo_curve_primitive_line_cc
-
-void register_node_type_geo_curve_primitive_line()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_curve_primitive_line_cc;
+  static const EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS,
+       "POINTS",
+       ICON_NONE,
+       "Points",
+       "Define the start and end points of the line"},
+      {GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION,
+       "DIRECTION",
+       ICON_NONE,
+       "Direction",
+       "Define a line with a start point, direction and length"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "Method used to determine radius and placement",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_LINE, "Curve Line", NODE_CLASS_GEOMETRY);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveLine",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_primitive_line_cc

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,7 +14,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
@@ -33,12 +33,12 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mirror.h"
-#include "BKE_mesh_remesh_voxel.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_mirror.hh"
+#include "BKE_mesh_remesh_voxel.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_shrinkwrap.h"
@@ -47,29 +47,29 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
-#include "ED_space_api.h"
-#include "ED_undo.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_sculpt.hh"
+#include "ED_space_api.hh"
+#include "ED_undo.hh"
+#include "ED_view3d.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLF_api.h"
 
@@ -130,7 +130,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (mesh->totpoly == 0) {
+  if (mesh->faces_num == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -653,11 +653,11 @@ enum eSymmetryAxes {
 
 struct QuadriFlowJob {
   /* from wmJob */
-  struct Object *owner;
+  Object *owner;
   bool *stop, *do_update;
   float *progress;
 
-  const struct wmOperator *op;
+  const wmOperator *op;
   Scene *scene;
   int target_faces;
   int seed;
@@ -1042,7 +1042,7 @@ static bool quadriflow_check(bContext *C, wmOperator *op)
     int num_faces;
     float ratio = RNA_float_get(op->ptr, "target_ratio");
 
-    num_faces = mesh->totpoly * ratio;
+    num_faces = mesh->faces_num * ratio;
 
     RNA_int_set(op->ptr, "target_faces", num_faces);
   }

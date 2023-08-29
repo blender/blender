@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2011-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -42,7 +44,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
                                              uint32_t width,
                                              uint32_t height,
                                              GHOST_TWindowState state,
-                                             GHOST_GLSettings glSettings,
+                                             GHOST_GPUSettings gpuSettings,
                                              const bool exclusive,
                                              const bool /* is_dialog */,
                                              const GHOST_IWindow *parentWindow)
@@ -56,8 +58,8 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
                                width,
                                height,
                                state,
-                               glSettings.context_type,
-                               ((glSettings.flags & GHOST_glStereoVisual) != 0),
+                               gpuSettings.context_type,
+                               ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
                                exclusive,
                                parentWindow);
 
@@ -125,22 +127,34 @@ uint8_t GHOST_SystemSDL::getNumDisplays() const
   return SDL_GetNumVideoDisplays();
 }
 
-GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GLSettings /*glSettings*/)
+GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
-  GHOST_Context *context = new GHOST_ContextSDL(false,
-                                                nullptr,
-                                                0, /* Profile bit. */
-                                                3,
-                                                3,
-                                                GHOST_OPENGL_SDL_CONTEXT_FLAGS,
-                                                GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
+  switch (gpuSettings.context_type) {
+#ifdef WITH_OPENGL_BACKEND
+    case GHOST_kDrawingContextTypeOpenGL: {
+      for (int minor = 6; minor >= 3; --minor) {
+        GHOST_Context *context = new GHOST_ContextSDL(
+            false,
+            nullptr,
+            0, /* Profile bit. */
+            4,
+            minor,
+            GHOST_OPENGL_SDL_CONTEXT_FLAGS,
+            GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
 
-  if (context->initializeDrawingContext()) {
-    return context;
+        if (context->initializeDrawingContext()) {
+          return context;
+        }
+        delete context;
+      }
+      return nullptr;
+    }
+#endif
+
+    default:
+      /* Unsupported backend. */
+      return nullptr;
   }
-  delete context;
-
-  return nullptr;
 }
 
 GHOST_TSuccess GHOST_SystemSDL::disposeContext(GHOST_IContext *context)
@@ -758,6 +772,8 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
       ~(
           /* This SDL back-end has not yet implemented primary clipboard. */
           GHOST_kCapabilityPrimaryClipboard |
+          /* This SDL back-end has not yet implemented color sampling the desktop. */
+          GHOST_kCapabilityDesktopSample |
           /* This SDL back-end has not yet implemented image copy/paste. */
           GHOST_kCapabilityClipboardImages));
 }

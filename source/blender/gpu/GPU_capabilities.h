@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -52,6 +52,8 @@ bool GPU_compute_shader_support(void);
 bool GPU_shader_storage_buffer_objects_support(void);
 bool GPU_shader_image_load_store_support(void);
 bool GPU_shader_draw_parameters_support(void);
+bool GPU_hdr_support(void);
+bool GPU_texture_view_support();
 
 bool GPU_mem_stats_supported(void);
 void GPU_mem_stats_get(int *totalmem, int *freemem);

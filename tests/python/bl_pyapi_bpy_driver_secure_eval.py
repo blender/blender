@@ -1,10 +1,11 @@
+# SPDX-FileCopyrightText: 2022-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # ./blender.bin --background -noaudio --python tests/python/bl_pyapi_bpy_driver_secure_eval.py -- --verbose
 import bpy
 import unittest
 import builtins
-from types import ModuleType
 
 
 # -----------------------------------------------------------------------------

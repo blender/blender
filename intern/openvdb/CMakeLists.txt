@@ -1,9 +1,9 @@
+# SPDX-FileCopyrightText: 2015 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2015 Blender Foundation
 
 set(INC
   .
-  ../guardedalloc
 )
 
 set(INC_SYS
@@ -14,6 +14,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_OPENVDB)

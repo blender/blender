@@ -1,9 +1,11 @@
+# SPDX-FileCopyrightText: 2020-2022 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import math
 import os
 import sys
-from random import shuffle, seed
+from random import seed
 
 import bpy
 

@@ -31,8 +31,8 @@ typedef struct TreeStore {
   /** Number of elements in data array. */
   int usedelem;
   /**
-   * Elements to be packed from mempool in `writefile.c`
-   * or extracted to mempool in `readfile.c`.
+   * Elements to be packed from mempool in `writefile.cc`
+   * or extracted to mempool in `readfile.cc`.
    */
   TreeStoreElem *data;
 } TreeStore;
@@ -114,9 +114,10 @@ typedef enum eTreeStoreElemType {
   TSE_GPENCIL_EFFECT_BASE = 42,
   TSE_GPENCIL_EFFECT = 43,
   TSE_LIBRARY_OVERRIDE_BASE = 44,
-  TSE_LIBRARY_OVERRIDE = 45,           /* No ID */
-  TSE_LIBRARY_OVERRIDE_OPERATION = 46, /* No ID */
-  TSE_GENERIC_LABEL = 47,              /* No ID */
+  TSE_LIBRARY_OVERRIDE = 45,
+  TSE_LIBRARY_OVERRIDE_OPERATION = 46,
+  TSE_GENERIC_LABEL = 47, /* No ID */
+  TSE_GREASE_PENCIL_NODE = 48,
 } eTreeStoreElemType;
 
 /** Check whether given #TreeStoreElem should have a real ID in #TreeStoreElem.id member. */

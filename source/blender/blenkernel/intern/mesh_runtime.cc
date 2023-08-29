@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,12 +19,12 @@
 #include "BLI_timeit.hh"
 
 #include "BKE_bvhutils.h"
-#include "BKE_editmesh_cache.h"
+#include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_shrinkwrap.h"
-#include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_ccg.hh"
 
 using blender::float3;
 using blender::MutableSpan;
@@ -35,23 +35,6 @@ using blender::Span;
  * \{ */
 
 namespace blender::bke {
-
-static void edit_data_reset(EditMeshData &edit_data)
-{
-  MEM_SAFE_FREE(edit_data.polyCos);
-  MEM_SAFE_FREE(edit_data.polyNos);
-  MEM_SAFE_FREE(edit_data.vertexCos);
-  MEM_SAFE_FREE(edit_data.vertexNos);
-}
-
-static void free_edit_data(MeshRuntime &mesh_runtime)
-{
-  if (mesh_runtime.edit_data) {
-    edit_data_reset(*mesh_runtime.edit_data);
-    MEM_freeN(mesh_runtime.edit_data);
-    mesh_runtime.edit_data = nullptr;
-  }
-}
 
 static void free_mesh_eval(MeshRuntime &mesh_runtime)
 {
@@ -79,14 +62,6 @@ static void free_bvh_cache(MeshRuntime &mesh_runtime)
   }
 }
 
-static void reset_normals(MeshRuntime &mesh_runtime)
-{
-  mesh_runtime.vert_normals.clear_and_shrink();
-  mesh_runtime.poly_normals.clear_and_shrink();
-  mesh_runtime.vert_normals_dirty = true;
-  mesh_runtime.poly_normals_dirty = true;
-}
-
 static void free_batch_cache(MeshRuntime &mesh_runtime)
 {
   if (mesh_runtime.batch_cache) {
@@ -100,7 +75,6 @@ MeshRuntime::~MeshRuntime()
   free_mesh_eval(*this);
   free_subdiv_ccg(*this);
   free_bvh_cache(*this);
-  free_edit_data(*this);
   free_batch_cache(*this);
   if (this->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(this->shrinkwrap_data);
@@ -205,48 +179,43 @@ blender::Span<MLoopTri> Mesh::looptris() const
 {
   this->runtime->looptris_cache.ensure([&](blender::Array<MLoopTri> &r_data) {
     const Span<float3> positions = this->vert_positions();
-    const blender::OffsetIndices polys = this->polys();
+    const blender::OffsetIndices faces = this->faces();
     const Span<int> corner_verts = this->corner_verts();
 
-    r_data.reinitialize(poly_to_tri_count(polys.size(), corner_verts.size()));
+    r_data.reinitialize(poly_to_tri_count(faces.size(), corner_verts.size()));
 
-    if (BKE_mesh_poly_normals_are_dirty(this)) {
-      blender::bke::mesh::looptris_calc(positions, polys, corner_verts, r_data);
+    if (BKE_mesh_face_normals_are_dirty(this)) {
+      blender::bke::mesh::looptris_calc(positions, faces, corner_verts, r_data);
     }
     else {
       blender::bke::mesh::looptris_calc_with_normals(
-          positions, polys, corner_verts, this->poly_normals(), r_data);
+          positions, faces, corner_verts, this->face_normals(), r_data);
     }
   });
 
   return this->runtime->looptris_cache.data();
 }
 
-blender::Span<int> Mesh::looptri_polys() const
+blender::Span<int> Mesh::looptri_faces() const
 {
   using namespace blender;
-  this->runtime->looptri_polys_cache.ensure([&](blender::Array<int> &r_data) {
-    const OffsetIndices polys = this->polys();
-    r_data.reinitialize(poly_to_tri_count(polys.size(), this->totloop));
-    bke::mesh::looptris_calc_poly_indices(polys, r_data);
+  this->runtime->looptri_faces_cache.ensure([&](blender::Array<int> &r_data) {
+    const OffsetIndices faces = this->faces();
+    r_data.reinitialize(poly_to_tri_count(faces.size(), this->totloop));
+    bke::mesh::looptris_calc_face_indices(faces, r_data);
   });
-  return this->runtime->looptri_polys_cache.data();
+  return this->runtime->looptri_faces_cache.data();
 }
 
 int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
 {
   /* Allow returning the size without calculating the cache. */
-  return poly_to_tri_count(mesh->totpoly, mesh->totloop);
+  return poly_to_tri_count(mesh->faces_num, mesh->totloop);
 }
 
-const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
+const int *BKE_mesh_runtime_looptri_faces_ensure(const Mesh *mesh)
 {
-  return mesh->looptris().data();
-}
-
-const int *BKE_mesh_runtime_looptri_polys_ensure(const Mesh *mesh)
-{
-  return mesh->looptri_polys().data();
+  return mesh->looptri_faces().data();
 }
 
 void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
@@ -261,21 +230,13 @@ void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
   }
 }
 
-bool BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh)
+bool BKE_mesh_runtime_ensure_edit_data(Mesh *mesh)
 {
   if (mesh->runtime->edit_data != nullptr) {
     return false;
   }
-  mesh->runtime->edit_data = MEM_cnew<EditMeshData>(__func__);
+  mesh->runtime->edit_data = MEM_new<blender::bke::EditMeshData>(__func__);
   return true;
-}
-
-void BKE_mesh_runtime_reset_edit_data(Mesh *mesh)
-{
-  using namespace blender::bke;
-  if (EditMeshData *edit_data = mesh->runtime->edit_data) {
-    edit_data_reset(*edit_data);
-  }
 }
 
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)
@@ -283,7 +244,8 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
   using namespace blender::bke;
   free_mesh_eval(*mesh->runtime);
   free_batch_cache(*mesh->runtime);
-  free_edit_data(*mesh->runtime);
+  MEM_delete(mesh->runtime->edit_data);
+  mesh->runtime->edit_data = nullptr;
   BKE_mesh_runtime_clear_geometry(mesh);
 }
 
@@ -291,14 +253,15 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 {
   /* Tagging shared caches dirty will free the allocated data if there is only one user. */
   free_bvh_cache(*mesh->runtime);
-  reset_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
   mesh->runtime->bounds_cache.tag_dirty();
+  mesh->runtime->vert_normals_cache.tag_dirty();
+  mesh->runtime->face_normals_cache.tag_dirty();
   mesh->runtime->loose_edges_cache.tag_dirty();
   mesh->runtime->loose_verts_cache.tag_dirty();
   mesh->runtime->verts_no_face_cache.tag_dirty();
   mesh->runtime->looptris_cache.tag_dirty();
-  mesh->runtime->looptri_polys_cache.tag_dirty();
+  mesh->runtime->looptri_faces_cache.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
@@ -307,13 +270,11 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   }
 }
 
-void BKE_mesh_tag_edges_split(struct Mesh *mesh)
+void BKE_mesh_tag_edges_split(Mesh *mesh)
 {
-  /* Triangulation didn't change because vertex positions and loop vertex indices didn't change.
-   * Face normals didn't change either, but tag those anyway, since there is no API function to
-   * only tag vertex normals dirty. */
+  /* Triangulation didn't change because vertex positions and loop vertex indices didn't change. */
   free_bvh_cache(*mesh->runtime);
-  reset_normals(*mesh->runtime);
+  mesh->runtime->vert_normals_cache.tag_dirty();
   free_subdiv_ccg(*mesh->runtime);
   if (mesh->runtime->loose_edges_cache.is_cached() &&
       mesh->runtime->loose_edges_cache.data().count != 0)
@@ -340,14 +301,14 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
 
 void BKE_mesh_tag_face_winding_changed(Mesh *mesh)
 {
-  mesh->runtime->vert_normals_dirty = true;
-  mesh->runtime->poly_normals_dirty = true;
+  mesh->runtime->vert_normals_cache.tag_dirty();
+  mesh->runtime->face_normals_cache.tag_dirty();
 }
 
 void BKE_mesh_tag_positions_changed(Mesh *mesh)
 {
-  mesh->runtime->vert_normals_dirty = true;
-  mesh->runtime->poly_normals_dirty = true;
+  mesh->runtime->vert_normals_cache.tag_dirty();
+  mesh->runtime->face_normals_cache.tag_dirty();
   free_bvh_cache(*mesh->runtime);
   mesh->runtime->looptris_cache.tag_dirty();
   mesh->runtime->bounds_cache.tag_dirty();
@@ -360,7 +321,7 @@ void BKE_mesh_tag_positions_changed_uniformly(Mesh *mesh)
   mesh->runtime->bounds_cache.tag_dirty();
 }
 
-void BKE_mesh_tag_topology_changed(struct Mesh *mesh)
+void BKE_mesh_tag_topology_changed(Mesh *mesh)
 {
   BKE_mesh_runtime_clear_geometry(mesh);
 }
@@ -370,7 +331,7 @@ bool BKE_mesh_is_deformed_only(const Mesh *mesh)
   return mesh->runtime->deformed_only;
 }
 
-eMeshWrapperType BKE_mesh_wrapper_type(const struct Mesh *mesh)
+eMeshWrapperType BKE_mesh_wrapper_type(const Mesh *mesh)
 {
   return mesh->runtime->wrapper_type;
 }
@@ -419,41 +380,42 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
 
   MutableSpan<float3> positions = me_eval->vert_positions_for_write();
   MutableSpan<blender::int2> edges = me_eval->edges_for_write();
-  MutableSpan<int> poly_offsets = me_eval->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = me_eval->face_offsets_for_write();
   MutableSpan<int> corner_verts = me_eval->corner_verts_for_write();
   MutableSpan<int> corner_edges = me_eval->corner_edges_for_write();
 
   is_valid &= BKE_mesh_validate_all_customdata(
-      &me_eval->vdata,
+      &me_eval->vert_data,
       me_eval->totvert,
-      &me_eval->edata,
+      &me_eval->edge_data,
       me_eval->totedge,
-      &me_eval->ldata,
+      &me_eval->loop_data,
       me_eval->totloop,
-      &me_eval->pdata,
-      me_eval->totpoly,
+      &me_eval->face_data,
+      me_eval->faces_num,
       false, /* setting mask here isn't useful, gives false positives */
       do_verbose,
       do_fixes,
       &changed);
 
-  is_valid &= BKE_mesh_validate_arrays(me_eval,
-                                       reinterpret_cast<float(*)[3]>(positions.data()),
-                                       positions.size(),
-                                       edges.data(),
-                                       edges.size(),
-                                       static_cast<MFace *>(CustomData_get_layer_for_write(
-                                           &me_eval->fdata, CD_MFACE, me_eval->totface)),
-                                       me_eval->totface,
-                                       corner_verts.data(),
-                                       corner_edges.data(),
-                                       corner_verts.size(),
-                                       poly_offsets.data(),
-                                       me_eval->totpoly,
-                                       me_eval->deform_verts_for_write().data(),
-                                       do_verbose,
-                                       do_fixes,
-                                       &changed);
+  is_valid &= BKE_mesh_validate_arrays(
+      me_eval,
+      reinterpret_cast<float(*)[3]>(positions.data()),
+      positions.size(),
+      edges.data(),
+      edges.size(),
+      static_cast<MFace *>(CustomData_get_layer_for_write(
+          &me_eval->fdata_legacy, CD_MFACE, me_eval->totface_legacy)),
+      me_eval->totface_legacy,
+      corner_verts.data(),
+      corner_edges.data(),
+      corner_verts.size(),
+      face_offsets.data(),
+      me_eval->faces_num,
+      me_eval->deform_verts_for_write().data(),
+      do_verbose,
+      do_fixes,
+      &changed);
 
   BLI_assert(changed == false);
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -55,20 +56,16 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
     }
 
     /* All closures contribute to the normal feature, but only diffuse-like ones to the albedo. */
-    normal += sc->N * sc->sample_weight;
+    /* If far-field hair, use fiber tangent as feature instead of normal. */
+    normal += (sc->type == CLOSURE_BSDF_HAIR_HUANG_ID ? safe_normalize(sd->dPdu) : sc->N) *
+              sc->sample_weight;
     sum_weight += sc->sample_weight;
 
-    if (sc->type == CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID) {
-      /* BSSRDF already accounts for weight, retro-reflection would double up. */
-      ccl_private const PrincipledDiffuseBsdf *bsdf = (ccl_private const PrincipledDiffuseBsdf *)
-          sc;
-      if (bsdf->components == PRINCIPLED_DIFFUSE_RETRO_REFLECTION) {
-        continue;
-      }
-    }
-
-    Spectrum closure_albedo = bsdf_albedo(sd, sc);
-    if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f)) {
+    Spectrum closure_albedo = bsdf_albedo(kg, sd, sc, true, true);
+    if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f) ||
+        sc->type == CLOSURE_BSDF_HAIR_HUANG_ID)
+    {
+      /* Far-field hair models "count" as diffuse. */
       diffuse_albedo += closure_albedo;
       sum_nonspecular_weight += sc->sample_weight;
     }

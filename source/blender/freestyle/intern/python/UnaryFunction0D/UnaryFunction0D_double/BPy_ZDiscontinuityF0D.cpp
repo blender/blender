@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -30,9 +32,9 @@ static char ZDiscontinuityF0D___doc__[] =
     "\n"
     "   Returns a real value giving the distance between the\n"
     "   :class:`freestyle.types.Interface0D` pointed by the\n"
-    "   Interface0DIterator and the shape that lies behind (occludee).  This\n"
+    "   Interface0DIterator and the shape that lies behind (occludee). This\n"
     "   distance is evaluated in the camera space and normalized between 0 and\n"
-    "   1.  Therefore, if no object is occluded by the shape to which the\n"
+    "   1. Therefore, if no object is occluded by the shape to which the\n"
     "   Interface0D belongs to, 1 is returned.\n"
     "\n"
     "   :arg it: An Interface0DIterator object.\n"
@@ -56,7 +58,7 @@ static int ZDiscontinuityF0D___init__(BPy_ZDiscontinuityF0D *self, PyObject *arg
 /*-----------------------BPy_ZDiscontinuityF0D type definition ------------------------------*/
 
 PyTypeObject ZDiscontinuityF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ZDiscontinuityF0D",
     /*tp_basicsize*/ sizeof(BPy_ZDiscontinuityF0D),
     /*tp_itemsize*/ 0,

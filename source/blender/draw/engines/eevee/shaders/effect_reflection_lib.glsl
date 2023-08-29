@@ -1,5 +1,6 @@
-
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Based on:
  * "Stochastic Screen Space Reflections"
@@ -10,6 +11,8 @@
  * by Tomasz Stachowiak.
  * https://media.contentapi.ea.com/content/dam/ea/seed/presentations/dd18-seed-raytracing-in-hybrid-real-time-rendering.pdf
  */
+
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 struct HitData {
   /** Hit direction scaled by intersection time. */

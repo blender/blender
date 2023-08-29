@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __NODES_H__
 #define __NODES_H__
@@ -227,10 +228,12 @@ class NoiseTextureNode : public TextureNode {
   SHADER_NODE_CLASS(NoiseTextureNode)
 
   NODE_SOCKET_API(int, dimensions)
+  NODE_SOCKET_API(bool, use_normalize)
   NODE_SOCKET_API(float, w)
   NODE_SOCKET_API(float, scale)
   NODE_SOCKET_API(float, detail)
   NODE_SOCKET_API(float, roughness)
+  NODE_SOCKET_API(float, lacunarity)
   NODE_SOCKET_API(float, distortion)
   NODE_SOCKET_API(float3, vector)
 };
@@ -254,8 +257,12 @@ class VoronoiTextureNode : public TextureNode {
   NODE_SOCKET_API(int, dimensions)
   NODE_SOCKET_API(NodeVoronoiDistanceMetric, metric)
   NODE_SOCKET_API(NodeVoronoiFeature, feature)
+  NODE_SOCKET_API(bool, use_normalize)
   NODE_SOCKET_API(float, w)
   NODE_SOCKET_API(float, scale)
+  NODE_SOCKET_API(float, detail)
+  NODE_SOCKET_API(float, roughness)
+  NODE_SOCKET_API(float, lacunarity)
   NODE_SOCKET_API(float, exponent)
   NODE_SOCKET_API(float, smoothness)
   NODE_SOCKET_API(float, randomness)
@@ -521,13 +528,13 @@ class PrincipledBsdfNode : public BsdfBaseNode {
                ShaderInput *specular_tint,
                ShaderInput *anisotropic,
                ShaderInput *sheen,
+               ShaderInput *sheen_roughness,
                ShaderInput *sheen_tint,
                ShaderInput *clearcoat,
                ShaderInput *clearcoat_roughness,
                ShaderInput *ior,
                ShaderInput *transmission,
-               ShaderInput *anisotropic_rotation,
-               ShaderInput *transmission_roughness);
+               ShaderInput *anisotropic_rotation);
 
   NODE_SOCKET_API(float3, base_color)
   NODE_SOCKET_API(float3, subsurface_color)
@@ -541,13 +548,13 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, specular_tint)
   NODE_SOCKET_API(float, anisotropic)
   NODE_SOCKET_API(float, sheen)
-  NODE_SOCKET_API(float, sheen_tint)
+  NODE_SOCKET_API(float, sheen_roughness)
+  NODE_SOCKET_API(float3, sheen_tint)
   NODE_SOCKET_API(float, clearcoat)
   NODE_SOCKET_API(float, clearcoat_roughness)
   NODE_SOCKET_API(float, ior)
   NODE_SOCKET_API(float, transmission)
   NODE_SOCKET_API(float, anisotropic_rotation)
-  NODE_SOCKET_API(float, transmission_roughness)
   NODE_SOCKET_API(float3, normal)
   NODE_SOCKET_API(float3, clearcoat_normal)
   NODE_SOCKET_API(float3, tangent)
@@ -558,11 +565,7 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, emission_strength)
   NODE_SOCKET_API(float, alpha)
 
- private:
-  ClosureType distribution_orig;
-
  public:
-  bool has_integrator_dependency();
   void attributes(Shader *shader, AttributeRequestSet *attributes);
   bool has_attribute_dependency()
   {
@@ -585,11 +588,17 @@ class TransparentBsdfNode : public BsdfNode {
   }
 };
 
-class VelvetBsdfNode : public BsdfNode {
+class SheenBsdfNode : public BsdfNode {
  public:
-  SHADER_NODE_CLASS(VelvetBsdfNode)
+  SHADER_NODE_CLASS(SheenBsdfNode)
 
-  NODE_SOCKET_API(float, sigma)
+  NODE_SOCKET_API(float, roughness)
+  NODE_SOCKET_API(ClosureType, distribution)
+
+  ClosureType get_closure_type()
+  {
+    return distribution;
+  }
 };
 
 class GlossyBsdfNode : public BsdfNode {
@@ -597,7 +606,6 @@ class GlossyBsdfNode : public BsdfNode {
   SHADER_NODE_CLASS(GlossyBsdfNode)
 
   void simplify_settings(Scene *scene);
-  bool has_integrator_dependency();
   ClosureType get_closure_type()
   {
     return distribution;
@@ -615,10 +623,6 @@ class GlossyBsdfNode : public BsdfNode {
     return true;
   }
 
- private:
-  float roughness_orig;
-  ClosureType distribution_orig;
-
   bool is_isotropic();
 };
 
@@ -626,8 +630,6 @@ class GlassBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(GlassBsdfNode)
 
-  void simplify_settings(Scene *scene);
-  bool has_integrator_dependency();
   ClosureType get_closure_type()
   {
     return distribution;
@@ -636,18 +638,12 @@ class GlassBsdfNode : public BsdfNode {
   NODE_SOCKET_API(float, roughness)
   NODE_SOCKET_API(float, IOR)
   NODE_SOCKET_API(ClosureType, distribution)
-
- private:
-  float roughness_orig;
-  ClosureType distribution_orig;
 };
 
 class RefractionBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(RefractionBsdfNode)
 
-  void simplify_settings(Scene *scene);
-  bool has_integrator_dependency();
   ClosureType get_closure_type()
   {
     return distribution;
@@ -656,10 +652,6 @@ class RefractionBsdfNode : public BsdfNode {
   NODE_SOCKET_API(float, roughness)
   NODE_SOCKET_API(float, IOR)
   NODE_SOCKET_API(ClosureType, distribution)
-
- private:
-  float roughness_orig;
-  ClosureType distribution_orig;
 };
 
 class ToonBsdfNode : public BsdfNode {
@@ -865,12 +857,22 @@ class PrincipledHairBsdfNode : public BsdfBaseNode {
   /* Absorption coefficient (unfiltered). */
   NODE_SOCKET_API(float3, absorption_coefficient)
 
-  NODE_SOCKET_API(float3, normal)
+  /* Aspect Ratio. */
+  NODE_SOCKET_API(float, aspect_ratio)
+
+  /* Optional modulation factors for the lobes. */
+  NODE_SOCKET_API(float, R)
+  NODE_SOCKET_API(float, TT)
+  NODE_SOCKET_API(float, TRT)
+
+  /* Weight for mix shader. */
   NODE_SOCKET_API(float, surface_mix_weight)
   /* If linked, here will be the given random number. */
   NODE_SOCKET_API(float, random)
   /* Selected coloring parametrization. */
   NODE_SOCKET_API(NodePrincipledHairParametrization, parametrization)
+  /* Selected scattering model (near-/far-field). */
+  NODE_SOCKET_API(NodePrincipledHairModel, model)
 };
 
 class HairBsdfNode : public BsdfNode {

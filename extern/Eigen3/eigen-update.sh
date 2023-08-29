@@ -12,17 +12,19 @@ else
 fi
 
 # get the latest revision from repository.
-hg clone http://bitbucket.org/eigen/eigen
-if [ -d eigen ]
+git clone https://gitlab.com/libeigen/eigen.git eigen.git
+if [ -d eigen.git ]
 then
-    cd eigen
+    rm -rf Eigen
+    cd eigen.git
     # put here the version you want to use
-    hg up 3.3.7
+    git checkout 3.4.0
     rm -f `find Eigen/ -type f -name "CMakeLists.txt"`
     cp -r Eigen ..
     cd ..
-    rm -rf eigen
+    rm -rf eigen.git
+    find Eigen -type f -exec chmod 644 {} \;
 else
-    echo "Did you install Mercurial?"
+    echo "Did you install Git?"
 fi
 

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #define GP_XRAY_FRONT 0
 #define GP_XRAY_3DSPACE 1
@@ -11,7 +14,7 @@ vec2 toScreenSpace(vec4 vertex)
   return vec2(vertex.xy / vertex.w) * gpencil_stroke_data.viewport;
 }
 
-/* get zdepth value */
+/* Get Z-depth value. */
 float getZdepth(vec4 point)
 {
   if (gpencil_stroke_data.xraymode == GP_XRAY_FRONT) {

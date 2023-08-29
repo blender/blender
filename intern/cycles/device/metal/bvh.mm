@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2021-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef WITH_METAL
 
@@ -200,7 +201,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
                                            sizeDataType:MTLDataTypeULong];
     }
     [accelEnc endEncoding];
-    [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
+    [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
       /* free temp resources */
       [scratchBuf release];
       [indexBuf release];
@@ -219,7 +220,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
           [accelEnc copyAndCompactAccelerationStructure:accel_uncompressed
                                 toAccelerationStructure:accel];
           [accelEnc endEncoding];
-          [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
+          [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
             uint64_t allocated_size = [accel allocatedSize];
             stats.mem_alloc(allocated_size);
             accel_struct = accel;
@@ -419,7 +420,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
                                            sizeDataType:MTLDataTypeULong];
     }
     [accelEnc endEncoding];
-    [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
+    [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
       /* free temp resources */
       [scratchBuf release];
       [aabbBuf release];
@@ -437,7 +438,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
           [accelEnc copyAndCompactAccelerationStructure:accel_uncompressed
                                 toAccelerationStructure:accel];
           [accelEnc endEncoding];
-          [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
+          [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
             uint64_t allocated_size = [accel allocatedSize];
             stats.mem_alloc(allocated_size);
             accel_struct = accel;
@@ -515,20 +516,31 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
     /* Get AABBs for each motion step */
     size_t center_step = (num_motion_steps - 1) / 2;
     for (size_t step = 0; step < num_motion_steps; ++step) {
-      /* The center step for motion vertices is not stored in the attribute */
-      if (step != center_step) {
-        size_t attr_offset = (step > center_step) ? step - 1 : step;
-        points = motion_keys->data_float3() + attr_offset * num_points;
+      if (step == center_step) {
+        /* The center step for motion vertices is not stored in the attribute */
+        for (size_t j = 0; j < num_points; ++j) {
+          const PointCloud::Point point = pointcloud->get_point(j);
+          BoundBox bounds = BoundBox::empty;
+          point.bounds_grow(points, radius, bounds);
+
+          const size_t index = step * num_points + j;
+          aabb_data[index].min = (MTLPackedFloat3 &)bounds.min;
+          aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
+        }
       }
+      else {
+        size_t attr_offset = (step > center_step) ? step - 1 : step;
+        float4 *motion_points = motion_keys->data_float4() + attr_offset * num_points;
 
-      for (size_t j = 0; j < num_points; ++j) {
-        const PointCloud::Point point = pointcloud->get_point(j);
-        BoundBox bounds = BoundBox::empty;
-        point.bounds_grow(points, radius, bounds);
+        for (size_t j = 0; j < num_points; ++j) {
+          const PointCloud::Point point = pointcloud->get_point(j);
+          BoundBox bounds = BoundBox::empty;
+          point.bounds_grow(motion_points[j], bounds);
 
-        const size_t index = step * num_points + j;
-        aabb_data[index].min = (MTLPackedFloat3 &)bounds.min;
-        aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
+          const size_t index = step * num_points + j;
+          aabb_data[index].min = (MTLPackedFloat3 &)bounds.min;
+          aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
+        }
       }
     }
 
@@ -633,7 +645,7 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
                                            sizeDataType:MTLDataTypeULong];
     }
     [accelEnc endEncoding];
-    [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
+    [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
       /* free temp resources */
       [scratchBuf release];
       [aabbBuf release];
@@ -651,7 +663,7 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
           [accelEnc copyAndCompactAccelerationStructure:accel_uncompressed
                                 toAccelerationStructure:accel];
           [accelEnc endEncoding];
-          [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
+          [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
             uint64_t allocated_size = [accel allocatedSize];
             stats.mem_alloc(allocated_size);
             accel_struct = accel;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -34,9 +36,9 @@ using namespace Freestyle;
 PyDoc_STRVAR(Stroke_doc,
              "Class hierarchy: :class:`Interface1D` > :class:`Stroke`\n"
              "\n"
-             "Class to define a stroke.  A stroke is made of a set of 2D vertices\n"
-             "(:class:`StrokeVertex`), regularly spaced out.  This set of vertices\n"
-             "defines the stroke's backbone geometry.  Each of these stroke vertices\n"
+             "Class to define a stroke. A stroke is made of a set of 2D vertices\n"
+             "(:class:`StrokeVertex`), regularly spaced out. This set of vertices\n"
+             "defines the stroke's backbone geometry. Each of these stroke vertices\n"
              "defines the stroke's shape and appearance at this vertex position.\n"
              "\n"
              ".. method:: Stroke()\n"
@@ -89,7 +91,7 @@ static PyObject *Stroke_sq_item(BPy_Stroke *self, Py_ssize_t keynum)
 PyDoc_STRVAR(Stroke_compute_sampling_doc,
              ".. method:: compute_sampling(n)\n"
              "\n"
-             "   Compute the sampling needed to get N vertices.  If the\n"
+             "   Compute the sampling needed to get N vertices. If the\n"
              "   specified number of vertices is less than the actual number of\n"
              "   vertices, the actual sampling value is returned. (To remove Vertices,\n"
              "   use the RemoveVertex() method of this class.)\n"
@@ -121,7 +123,7 @@ PyDoc_STRVAR(Stroke_resample_doc,
              "\n"
              "   :arg n: Resamples the stroke so that it eventually has N points. That means\n"
              "      it is going to add N-vertices_size, where vertices_size is the\n"
-             "      number of points we already have.  If vertices_size >= N, no\n"
+             "      number of points we already have. If vertices_size >= N, no\n"
              "      resampling is done.\n"
              "   :type n: int\n"
              "   :arg sampling: Resamples the stroke with a given sampling value. If the\n"
@@ -159,7 +161,7 @@ PyDoc_STRVAR(Stroke_insert_vertex_doc,
              ".. method:: insert_vertex(vertex, next)\n"
              "\n"
              "   Inserts the StrokeVertex given as argument into the Stroke before the\n"
-             "   point specified by next.  The length and curvilinear abscissa are\n"
+             "   point specified by next. The length and curvilinear abscissa are\n"
              "   updated consequently.\n"
              "\n"
              "   :arg vertex: The StrokeVertex to insert in the Stroke.\n"
@@ -252,7 +254,7 @@ PyDoc_STRVAR(Stroke_stroke_vertices_begin_doc,
              "   on the fly if needed.\n"
              "\n"
              "   :arg t: The resampling value with which we want our Stroke to be\n"
-             "      resampled.  If 0 is specified, no resampling is done.\n"
+             "      resampled. If 0 is specified, no resampling is done.\n"
              "   :type t: float\n"
              "   :return: A StrokeVertexIterator pointing on the first StrokeVertex.\n"
              "   :rtype: :class:`StrokeVertexIterator`");
@@ -488,7 +490,7 @@ static PySequenceMethods BPy_Stroke_as_sequence = {
 };
 
 PyTypeObject Stroke_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Stroke",
     /*tp_basicsize*/ sizeof(BPy_Stroke),
     /*tp_itemsize*/ 0,

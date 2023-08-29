@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,8 +18,10 @@
 
 namespace blender::draw::overlay {
 
-/* Selection engine reuse most of the Overlay engine by creating selection IDs for each
- * selectable component and using a special shaders for drawing.*/
+/**
+ * Selection engine reuse most of the Overlay engine by creating selection IDs for each
+ * selectable component and using a special shaders for drawing.
+ */
 class Instance {
   const SelectionType selection_type_;
 

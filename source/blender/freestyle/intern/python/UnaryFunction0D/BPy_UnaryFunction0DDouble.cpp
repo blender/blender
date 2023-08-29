@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -172,7 +174,7 @@ static PyObject *UnaryFunction0DDouble___call__(BPy_UnaryFunction0DDouble *self,
 /*-----------------------BPy_UnaryFunction0DDouble type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0DDouble_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction0DDouble",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction0DDouble),
     /*tp_itemsize*/ 0,

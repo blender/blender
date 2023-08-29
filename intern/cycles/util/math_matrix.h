@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_MATH_MATRIX_H__
 #define __UTIL_MATH_MATRIX_H__
@@ -296,7 +297,7 @@ ccl_device void math_matrix_jacobi_eigendecomposition(ccl_private float *A,
         /* Determine rotation: The rotation is characterized by its angle phi - or,
          * in the actual implementation, sin(phi) and cos(phi).
          * To find those, we first compute their ratio - that might be unstable if the angle
-         * approaches 90°, so there's a fallback for that case.
+         * approaches 90 degrees, so there's a fallback for that case.
          * Then, we compute sin(phi) and cos(phi) themselves. */
         float singular_diff = MAT(A, n, row, row) - MAT(A, n, col, col);
         float ratio;

@@ -45,17 +45,21 @@ typedef enum eBoidRuleType {
 } eBoidRuleType;
 
 /* boidrule->flag */
-#define BOIDRULE_CURRENT (1 << 0)
-#define BOIDRULE_IN_AIR (1 << 2)
-#define BOIDRULE_ON_LAND (1 << 3)
+enum {
+  BOIDRULE_CURRENT = 1 << 0,
+  BOIDRULE_IN_AIR = 1 << 2,
+  BOIDRULE_ON_LAND = 1 << 3,
+};
 typedef struct BoidRule {
   struct BoidRule *next, *prev;
   int type, flag;
   char name[32];
 } BoidRule;
-#define BRULE_GOAL_AVOID_PREDICT (1 << 0)
-#define BRULE_GOAL_AVOID_ARRIVE (1 << 1)
-#define BRULE_GOAL_AVOID_SIGNAL (1 << 2)
+enum {
+  BRULE_GOAL_AVOID_PREDICT = 1 << 0,
+  BRULE_GOAL_AVOID_ARRIVE = 1 << 1,
+  BRULE_GOAL_AVOID_SIGNAL = 1 << 2,
+};
 typedef struct BoidRuleGoalAvoid {
   BoidRule rule;
   struct Object *ob;
@@ -65,8 +69,10 @@ typedef struct BoidRuleGoalAvoid {
   /* signals */
   int signal_id, channels;
 } BoidRuleGoalAvoid;
-#define BRULE_ACOLL_WITH_BOIDS (1 << 0)
-#define BRULE_ACOLL_WITH_DEFLECTORS (1 << 1)
+enum {
+  BRULE_ACOLL_WITH_BOIDS = 1 << 0,
+  BRULE_ACOLL_WITH_DEFLECTORS = 1 << 1,
+};
 typedef struct BoidRuleAvoidCollision {
   BoidRule rule;
   int options;
@@ -103,7 +109,7 @@ typedef struct BoidData {
   short state_id, mode;
 } BoidData;
 
-// planned for near future
+/* Planned for near future. */
 // typedef enum BoidConditionMode {
 //  eBoidConditionType_Then = 0,
 //  eBoidConditionType_And = 1,
@@ -155,7 +161,7 @@ typedef struct BoidState {
   float volume, falloff;
 } BoidState;
 
-// planned for near future
+/* Planned for near future. */
 // typedef struct BoidSignal {
 //  struct BoidSignal *next, *prev;
 //  float loc[3];
@@ -200,10 +206,12 @@ typedef struct BoidSettings {
   struct ListBase states;
 } BoidSettings;
 
-/* boidsettings->options */
-#define BOID_ALLOW_FLIGHT (1 << 0)
-#define BOID_ALLOW_LAND (1 << 1)
-#define BOID_ALLOW_CLIMB (1 << 2)
+/** #BoidSettings::options */
+enum {
+  BOID_ALLOW_FLIGHT = 1 << 0,
+  BOID_ALLOW_LAND = 1 << 1,
+  BOID_ALLOW_CLIMB = 1 << 2,
+};
 
 /* boidrule->options */
 //#define BOID_RULE_FOLLOW_LINE     (1 << 0)        /* follow leader */

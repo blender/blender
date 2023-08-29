@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "IO_abstract_hierarchy_iterator.h"
@@ -528,7 +528,7 @@ void AbstractHierarchyIterator::determine_export_paths(const HierarchyContext *p
 }
 
 void AbstractHierarchyIterator::determine_duplication_references(
-    const HierarchyContext *parent_context, std::string indent)
+    const HierarchyContext *parent_context, const std::string &indent)
 {
   ExportChildren children = graph_children(parent_context);
 

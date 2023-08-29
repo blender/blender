@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 
@@ -28,7 +31,7 @@ void main(void)
     }
   }
 
-  n0 = (geom_in[0].inverted == 1) ? -n0 : n0;
+  n0 = (geom_flat_in[0].inverted == 1) ? -n0 : n0;
   /* Don't outline if concave edge. */
   if (dot(n0, v13) > 0.0001) {
     return;

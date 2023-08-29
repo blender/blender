@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
@@ -29,7 +32,7 @@ void main()
 
 #ifdef GPU_METAL
   volumetric_geom_iface.slice = int(volumetric_vert_iface.vPos.z);
-  MTLRenderTargetArrayIndex = int(volumetric_vert_iface.vPos.z);
+  gpu_Layer = int(volumetric_vert_iface.vPos.z);
   gl_Position = volumetric_vert_iface.vPos.xyww;
 #endif
 }

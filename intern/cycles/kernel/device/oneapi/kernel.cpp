@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2021-2022 Intel Corporation */
+/* SPDX-FileCopyrightText: 2021-2022 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef WITH_ONEAPI
 
@@ -8,6 +9,8 @@
 #  include <map>
 #  include <set>
 
+/* <algorithm> is needed until included upstream in sycl/detail/property_list_base.hpp */
+#  include <algorithm>
 #  include <sycl/sycl.hpp>
 
 #  include "kernel/device/oneapi/compat.h"
@@ -36,6 +39,37 @@ void oneapi_set_error_cb(OneAPIErrorCallback cb, void *user_ptr)
 {
   s_error_cb = cb;
   s_error_user_ptr = user_ptr;
+}
+
+size_t oneapi_suggested_gpu_kernel_size(const DeviceKernel kernel)
+{
+  /* This defines are available only to the device code, so making this function
+   * seems to be the most reasonable way to provide access to them for the host code. */
+  switch (kernel) {
+    case DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_QUEUED_SHADOW_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY:
+      return GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE;
+
+    case DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_COMPACT_STATES:
+    case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES:
+      return GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE;
+
+    case DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS:
+    case DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS:
+      return GPU_PARALLEL_SORT_BLOCK_SIZE;
+
+    case DEVICE_KERNEL_PREFIX_SUM:
+      return GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE;
+
+    default:
+      return (size_t)0;
+  }
 }
 
 /* NOTE(@nsirgien): Execution of this simple kernel will check basic functionality like
@@ -98,83 +132,6 @@ bool oneapi_run_test_kernel(SyclQueue *queue_)
   }
 
   return is_computation_correct;
-}
-
-/* TODO: Move device information to OneapiDevice initialized on creation and use it. */
-/* TODO: Move below function to oneapi/queue.cpp. */
-size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
-                                          const DeviceKernel kernel,
-                                          const size_t kernel_global_size)
-{
-  assert(queue);
-  (void)kernel_global_size;
-  const static size_t preferred_work_group_size_intersect_shading = 32;
-  /* Shader evaluation kernels seems to use some amount of shared memory, so better
-   * to avoid usage of maximum work group sizes for them. */
-  const static size_t preferred_work_group_size_shader_evaluation = 256;
-  const static size_t preferred_work_group_size_default = 1024;
-
-  size_t preferred_work_group_size = 0;
-  switch (kernel) {
-    case DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA:
-    case DEVICE_KERNEL_INTEGRATOR_INIT_FROM_BAKE:
-    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST:
-    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW:
-    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
-    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK:
-    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT:
-      preferred_work_group_size = preferred_work_group_size_intersect_shading;
-      break;
-
-    case DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_QUEUED_SHADOW_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY:
-      preferred_work_group_size = GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE;
-      break;
-
-    case DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_COMPACT_STATES:
-    case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES:
-      preferred_work_group_size = GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE;
-      break;
-
-    case DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS:
-    case DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS:
-      preferred_work_group_size = GPU_PARALLEL_SORT_BLOCK_SIZE;
-      break;
-
-    case DEVICE_KERNEL_PREFIX_SUM:
-      preferred_work_group_size = GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE;
-      break;
-
-    case DEVICE_KERNEL_SHADER_EVAL_DISPLACE:
-    case DEVICE_KERNEL_SHADER_EVAL_BACKGROUND:
-    case DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY:
-      preferred_work_group_size = preferred_work_group_size_shader_evaluation;
-      break;
-
-    default:
-      preferred_work_group_size = preferred_work_group_size_default;
-      break;
-  }
-
-  const size_t limit_work_group_size = reinterpret_cast<sycl::queue *>(queue)
-                                           ->get_device()
-                                           .get_info<sycl::info::device::max_work_group_size>();
-
-  return std::min(limit_work_group_size, preferred_work_group_size);
 }
 
 bool oneapi_kernel_is_required_for_features(const std::string &kernel_name,
@@ -321,6 +278,7 @@ bool oneapi_load_kernels(SyclQueue *queue_,
 bool oneapi_enqueue_kernel(KernelContext *kernel_context,
                            int kernel,
                            size_t global_size,
+                           size_t local_size,
                            const uint kernel_features,
                            bool use_hardware_raytracing,
                            void **args)
@@ -332,33 +290,6 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
   assert(queue);
   if (!queue) {
     return false;
-  }
-
-  size_t local_size = oneapi_kernel_preferred_local_size(
-      kernel_context->queue, device_kernel, global_size);
-  assert(global_size % local_size == 0);
-
-  /* Kernels listed below need a specific number of work groups. */
-  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY ||
-      device_kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY ||
-      device_kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_SHADOW_PATHS_ARRAY ||
-      device_kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY ||
-      device_kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY ||
-      device_kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY ||
-      device_kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY)
-  {
-    int num_states = *((int *)(args[0]));
-    /* Round up to the next work-group. */
-    size_t groups_count = (num_states + local_size - 1) / local_size;
-    /* NOTE(@nsirgien): As for now non-uniform work-groups don't work on most oneAPI devices,
-     * we extend work size to fit uniformity requirements. */
-    global_size = groups_count * local_size;
-
-#  ifdef WITH_ONEAPI_SYCL_HOST_TASK
-    /* Path array implementation is serial in case of SYCL Host Task execution. */
-    global_size = 1;
-    local_size = 1;
-#  endif
   }
 
   /* Let the compiler throw an error if there are any kernels missing in this implementation. */

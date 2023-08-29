@@ -1,5 +1,6 @@
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+/* SPDX-FileCopyrightText: 2020-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Adaptation of Conservative Rasterization
  * from GPU Gems 2
@@ -8,6 +9,9 @@
  * Actual final implementation does not do conservative rasterization and only
  * avoids triangles producing no fragments.
  */
+
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {

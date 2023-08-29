@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2015 Blender Foundation.
+/* SPDX-FileCopyrightText: 2015 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -22,9 +22,9 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "BKE_action.h"
@@ -36,22 +36,22 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
-#include "ED_anim_api.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_keyframes_edit.h"
-#include "ED_keyframing.h"
-#include "ED_markers.h"
-#include "ED_mask.h"
-#include "ED_screen.h"
+#include "ED_anim_api.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_keyframing.hh"
+#include "ED_markers.hh"
+#include "ED_mask.hh"
+#include "ED_screen.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "action_intern.hh"
 
@@ -341,7 +341,7 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
   if (adt) {
     /* Perform the push-down operation
      * - This will deal with all the AnimData-side user-counts. */
-    if (action_has_motion(adt->action) == 0) {
+    if (BKE_action_has_motion(adt->action) == 0) {
       /* action may not be suitable... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
@@ -398,7 +398,7 @@ static int action_stash_exec(bContext *C, wmOperator *op)
   /* Perform stashing operation */
   if (adt) {
     /* don't do anything if this action is empty... */
-    if (action_has_motion(adt->action) == 0) {
+    if (BKE_action_has_motion(adt->action) == 0) {
       /* action may not be suitable... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
@@ -506,7 +506,7 @@ static int action_stash_create_exec(bContext *C, wmOperator *op)
   }
   else if (adt) {
     /* Perform stashing operation */
-    if (action_has_motion(adt->action) == 0) {
+    if (BKE_action_has_motion(adt->action) == 0) {
       /* don't do anything if this action is empty... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
@@ -691,7 +691,7 @@ static int action_unlink_exec(bContext *C, wmOperator *op)
 static int action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* NOTE: this is hardcoded to match the behavior for the unlink button
-   * (in interface_templates.c). */
+   * (in `interface_templates.cc`). */
   RNA_boolean_set(op->ptr, "force_delete", event->modifier & KM_SHIFT);
   return action_unlink_exec(C, op);
 }
@@ -732,9 +732,7 @@ void ACTION_OT_unlink(wmOperatorType *ot)
 /* Try to find NLA Strip to use for action layer up/down tool */
 static NlaStrip *action_layer_get_nlastrip(ListBase *strips, float ctime)
 {
-  NlaStrip *strip;
-
-  for (strip = static_cast<NlaStrip *>(strips->first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* Can we use this? */
     if (IN_RANGE_INCL(ctime, strip->start, strip->end)) {
       /* in range - use this one */

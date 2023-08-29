@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -142,6 +142,13 @@ class View {
   {
     BLI_assert(view_id < view_len_);
     return data_[view_id].wininv;
+  }
+
+  /* Compute and return the perspective matrix. */
+  const float4x4 persmat(int view_id = 0) const
+  {
+    BLI_assert(view_id < view_len_);
+    return data_[view_id].winmat * data_[view_id].viewmat;
   }
 
   int visibility_word_per_draw() const

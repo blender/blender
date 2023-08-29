@@ -1,17 +1,14 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   ../include
   ../../blenkernel
-  ../../blenlib
   ../../depsgraph
-  ../../makesdna
   ../../makesrna
   ../../sequencer
   ../../windowmanager
-  ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -21,14 +18,16 @@ set(INC_SYS
 )
 
 set(SRC
-  sound_ops.c
+  sound_ops.cc
 
   sound_intern.h
 )
 
 set(LIB
   bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_AUDASPACE)

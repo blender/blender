@@ -203,7 +203,7 @@ class PastixBase : public SparseSolverBase<Derived>
     
      /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the PaStiX reports a problem
       *          \c InvalidInput if the input matrix is invalid
       *

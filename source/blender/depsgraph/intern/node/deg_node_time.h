@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,7 +16,7 @@ namespace blender::deg {
 struct TimeSourceNode : public Node {
   bool tagged_for_update = false;
 
-  // TODO: evaluate() operation needed
+  /* TODO: evaluate() operation needed */
 
   virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
 

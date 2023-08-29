@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_hash.h"
-#include "BLI_math.h"
 #include "BLI_task.h"
 
 #include "PIL_time.h"
@@ -21,17 +20,17 @@
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_multires.h"
-#include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_multires.hh"
+#include "BKE_paint.hh"
+#include "BKE_pbvh_api.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "sculpt_intern.hh"
 
@@ -74,17 +73,11 @@ static EnumPropertyItem prop_sculpt_mask_init_mode_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void mask_init_task_cb(void *__restrict userdata,
-                              const int i,
-                              const TaskParallelTLS *__restrict /*tls*/)
+static void mask_init_task(Object *ob, const int mode, const int seed, PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  PBVHNode *node = data->nodes[i];
+  SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
-  const int mode = data->mask_init_mode;
-  const int seed = data->mask_init_seed;
-  SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+  SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     switch (mode) {
       case SCULPT_MASK_INIT_RANDOM_PER_VERTEX:
@@ -101,11 +94,12 @@ static void mask_init_task_cb(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
-  BKE_pbvh_node_mark_update_mask(data->nodes[i]);
+  BKE_pbvh_node_mark_update_mask(node);
 }
 
 static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -118,7 +112,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   PBVH *pbvh = ob->sculpt->pbvh;
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -130,15 +124,13 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     SCULPT_topology_islands_ensure(ob);
   }
 
-  SculptThreadedTaskData data{};
-  data.ob = ob;
-  data.nodes = nodes;
-  data.mask_init_mode = mode;
-  data.mask_init_seed = PIL_check_seconds_timer();
+  const int mask_init_seed = PIL_check_seconds_timer();
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(0, nodes.size(), &data, mask_init_task_cb, &settings);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      mask_init_task(ob, mode, mask_init_seed, nodes[i]);
+    }
+  });
 
   multires_stitch_grids(ob);
 

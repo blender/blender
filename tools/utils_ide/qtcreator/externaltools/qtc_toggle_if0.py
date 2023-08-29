@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 import sys
 
 txt = sys.stdin.read()

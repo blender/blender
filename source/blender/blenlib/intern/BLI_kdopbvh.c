@@ -28,7 +28,7 @@
 #include "BLI_alloca.h"
 #include "BLI_heap_simple.h"
 #include "BLI_kdopbvh.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
 #include "BLI_stack.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -105,7 +105,7 @@ typedef struct BVHOverlapData_Shared {
 
 typedef struct BVHOverlapData_Thread {
   BVHOverlapData_Shared *shared;
-  struct BLI_Stack *overlap; /* store BVHTreeOverlap */
+  BLI_Stack *overlap; /* store BVHTreeOverlap */
   uint max_interactions;
   /* use for callbacks */
   int thread;
@@ -145,7 +145,7 @@ typedef struct BVHNearestProjectedData {
   const BVHTree *tree;
   struct DistProjectedAABBPrecalc precalc;
   bool closest_axis[3];
-  float clip_plane[6][4];
+  float clip_plane[7][4];
   int clip_plane_len;
   BVHTree_NearestProjectedCallback callback;
   void *userdata;
@@ -156,7 +156,7 @@ typedef struct BVHNearestProjectedData {
 typedef struct BVHIntersectPlaneData {
   const BVHTree *tree;
   float plane[4];
-  struct BLI_Stack *intersect; /* Store indexes. */
+  BLI_Stack *intersect; /* Store indexes. */
 } BVHIntersectPlaneData;
 
 /** \} */

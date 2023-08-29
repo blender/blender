@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "stdcycles.h"
 
@@ -47,7 +48,9 @@ shader node_texture_coordinate(
       if (!getattribute("geom:generated", Generated)) {
         Generated = transform("object", P);
       }
-      getattribute("geom:uv", UV);
+      if (!getattribute("geom:uv", UV)) {
+        UV = point(1.0 - u - v, u, 0.0);
+      }
     }
 
     if (use_transform) {

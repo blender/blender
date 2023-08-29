@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2010 Blender Foundation */
+/* SPDX-FileCopyrightText: 2010 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -28,7 +29,6 @@ void GHOST_URL_decode(char *buf_dst, int buf_dst_size, const char *buf_src)
   const uint buf_src_len = strlen(buf_src);
   DecodeState_e state = STATE_SEARCH;
   uint ascii_character;
-  char temp_num_buf[3] = {0};
 
   memset(buf_dst, 0, buf_dst_size);
 
@@ -46,28 +46,29 @@ void GHOST_URL_decode(char *buf_dst, int buf_dst_size, const char *buf_src)
         break;
       }
       case STATE_CONVERTING: {
-        bool both_digits = true;
-
         /* Create a buffer to hold the hex. For example, if `%20`,
          * this buffer would hold 20 (in ASCII). */
-        memset(temp_num_buf, 0, sizeof(temp_num_buf));
+        char temp_num_buf[3];
 
         /* Conversion complete (i.e. don't convert again next iteration). */
         state = STATE_SEARCH;
 
-        strncpy(temp_num_buf, &buf_src[i], 2);
-
         /* Ensure both characters are hexadecimal. */
+        bool both_digits = true;
         for (int j = 0; j < 2; j++) {
-          if (!isxdigit(temp_num_buf[j])) {
+          /* `isxdigit` serves to early null terminate the string too. */
+          const char hex_char = buf_src[i + j];
+          if (!isxdigit(hex_char)) {
             both_digits = false;
+            break;
           }
+          temp_num_buf[j] = hex_char;
         }
-
         if (!both_digits) {
           break;
         }
         /* Convert two hexadecimal characters into one character. */
+        temp_num_buf[2] = '\0';
         sscanf(temp_num_buf, "%x", &ascii_character);
 
         /* Ensure we aren't going to overflow. */

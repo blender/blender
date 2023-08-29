@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -790,23 +790,20 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, uint flags)
   deg::id_tag_update(bmain, id, flags, deg::DEG_UPDATE_SOURCE_USER_EDIT);
 }
 
-void DEG_graph_id_tag_update(struct Main *bmain,
-                             struct Depsgraph *depsgraph,
-                             struct ID *id,
-                             uint flags)
+void DEG_graph_id_tag_update(Main *bmain, Depsgraph *depsgraph, ID *id, uint flags)
 {
   deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
   deg::graph_id_tag_update(bmain, graph, id, flags, deg::DEG_UPDATE_SOURCE_USER_EDIT);
 }
 
-void DEG_time_tag_update(struct Main *bmain)
+void DEG_time_tag_update(Main *bmain)
 {
   for (deg::Depsgraph *depsgraph : deg::get_all_registered_graphs(bmain)) {
     DEG_graph_time_tag_update(reinterpret_cast<::Depsgraph *>(depsgraph));
   }
 }
 
-void DEG_graph_time_tag_update(struct Depsgraph *depsgraph)
+void DEG_graph_time_tag_update(Depsgraph *depsgraph)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   deg_graph->tag_time_source();
@@ -822,7 +819,6 @@ void DEG_graph_id_type_tag(Depsgraph *depsgraph, short id_type)
     DEG_graph_id_type_tag(depsgraph, ID_LA);
     DEG_graph_id_type_tag(depsgraph, ID_WO);
     DEG_graph_id_type_tag(depsgraph, ID_SCE);
-    DEG_graph_id_type_tag(depsgraph, ID_SIM);
   }
   const int id_type_index = BKE_idtype_idcode_to_index(id_type);
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);

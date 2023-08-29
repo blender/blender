@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -24,8 +26,8 @@ using namespace Freestyle;
 PyDoc_STRVAR(FrsCurve_doc,
              "Class hierarchy: :class:`Interface1D` > :class:`Curve`\n"
              "\n"
-             "Base class for curves made of CurvePoints.  :class:`SVertex` is the\n"
-             "type of the initial curve vertices.  A :class:`Chain` is a\n"
+             "Base class for curves made of CurvePoints. :class:`SVertex` is the\n"
+             "type of the initial curve vertices. A :class:`Chain` is a\n"
              "specialization of a Curve.\n"
              "\n"
              ".. method:: __init__()\n"
@@ -175,7 +177,7 @@ static PyGetSetDef BPy_FrsCurve_getseters[] = {
 /*-----------------------BPy_FrsCurve type definition ------------------------------*/
 
 PyTypeObject FrsCurve_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Curve",
     /*tp_basicsize*/ sizeof(BPy_FrsCurve),
     /*tp_itemsize*/ 0,

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+/* SPDX-FileCopyrightText: 2009 Blender Authors, Joshua Leung. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,8 @@
  */
 
 #pragma once
+
+#include "BLI_utildefines.h"
 
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
@@ -906,6 +908,10 @@ typedef enum eNlaTrack_Flag {
    * usually as result of tweaking being enabled (internal flag) */
   NLATRACK_DISABLED = (1 << 10),
 
+  /** Marks tracks automatically added for space while dragging strips vertically.
+   * Internal flag that's only set during transform operator. */
+  NLATRACK_TEMPORARILY_ADDED = (1 << 11),
+
   /** This NLA track is added to an override ID, which means it is fully editable.
    * Irrelevant in case the owner ID is not an override. */
   NLATRACK_OVERRIDELIBRARY_LOCAL = 1 << 16,
@@ -1018,6 +1024,7 @@ typedef enum eKS_Settings {
   /** Keyingset does not depend on context info (i.e. paths are absolute). */
   KEYINGSET_ABSOLUTE = (1 << 1),
 } eKS_Settings;
+ENUM_OPERATORS(eKS_Settings, KEYINGSET_ABSOLUTE)
 
 /* Flags for use by keyframe creation/deletion calls */
 typedef enum eInsertKeyFlags {
@@ -1048,7 +1055,10 @@ typedef enum eInsertKeyFlags {
   INSERTKEY_CYCLE_AWARE = (1 << 9),
   /** don't create new F-Curves (implied by INSERTKEY_REPLACE) */
   INSERTKEY_AVAILABLE = (1 << 10),
+  /* Keep last. */
+  INSERTKEY_MAX,
 } eInsertKeyFlags;
+ENUM_OPERATORS(eInsertKeyFlags, INSERTKEY_MAX);
 
 /* ************************************************ */
 /* Animation Data */
@@ -1091,7 +1101,7 @@ typedef struct AnimOverride {
  *
  * This data-block should be placed immediately after the ID block where it is used, so that
  * the code which retrieves this data can do so in an easier manner.
- * See blenkernel/intern/anim_sys.c for details.
+ * See `blenkernel/intern/anim_sys.cc` for details.
  */
 typedef struct AnimData {
   /**

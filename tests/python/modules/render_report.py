@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2018-2023 Blender Authors
+#
 # SPDX-License-Identifier: Apache-2.0
 
 """
@@ -10,7 +12,6 @@ import os
 import pathlib
 import shutil
 import subprocess
-import sys
 import time
 
 from . import global_report

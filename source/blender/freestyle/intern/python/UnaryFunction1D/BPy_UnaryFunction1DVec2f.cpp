@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -163,7 +165,7 @@ static PyGetSetDef BPy_UnaryFunction1DVec2f_getseters[] = {
 /*-----------------------BPy_UnaryFunction1DVec2f type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1DVec2f_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction1DVec2f",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction1DVec2f),
     /*tp_itemsize*/ 0,

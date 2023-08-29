@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -56,7 +57,6 @@ class GHOST_WindowX11;
  * X11 Implementation of GHOST_System class.
  * \see GHOST_System.
  */
-
 class GHOST_SystemX11 : public GHOST_System {
  public:
   /**
@@ -124,7 +124,7 @@ class GHOST_SystemX11 : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_GLSettings glSettings,
+                              GHOST_GPUSettings gpuSettings,
                               const bool exclusive = false,
                               const bool is_dialog = false,
                               const GHOST_IWindow *parentWindow = nullptr) override;
@@ -134,7 +134,7 @@ class GHOST_SystemX11 : public GHOST_System {
    * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings) override;
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) override;
 
   /**
    * Dispose of a context.
@@ -153,6 +153,13 @@ class GHOST_SystemX11 : public GHOST_System {
   GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const override;
 
   GHOST_TSuccess setCursorPosition(int32_t x, int32_t y) override;
+
+  /**
+   * Get the color of the pixel at the current mouse cursor location
+   * \param r_color: returned sRGB float colors
+   * \return Success value (true == successful and supported by platform)
+   */
+  GHOST_TSuccess getPixelAtCursor(float r_color[3]) const override;
 
   /**
    * Returns the state of all modifier keys.

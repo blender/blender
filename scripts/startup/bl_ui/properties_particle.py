@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
@@ -1720,7 +1723,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
         col = layout.column()
 
         sub = col.column(align=True)
-        sub.prop(part, "child_nbr", text="Display Amount")
+        sub.prop(part, "child_percent", text="Display Amount")
         sub.prop(part, "rendered_child_count", text="Render Amount")
 
         col.separator()

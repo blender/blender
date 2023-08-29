@@ -1,7 +1,6 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *  */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -159,23 +158,26 @@ void MaterialModule::begin_sync()
 MaterialPass MaterialModule::material_pass_get(Object *ob,
                                                ::Material *blender_mat,
                                                eMaterialPipeline pipeline_type,
-                                               eMaterialGeometry geometry_type)
+                                               eMaterialGeometry geometry_type,
+                                               bool probe_capture)
 {
   bNodeTree *ntree = (blender_mat->use_nodes && blender_mat->nodetree != nullptr) ?
                          blender_mat->nodetree :
                          default_surface_ntree_.nodetree_get(blender_mat);
 
+  bool use_deferred_compilation = inst_.is_viewport();
+
   MaterialPass matpass = MaterialPass();
   matpass.gpumat = inst_.shaders.material_shader_get(
-      blender_mat, ntree, pipeline_type, geometry_type, true);
+      blender_mat, ntree, pipeline_type, geometry_type, use_deferred_compilation);
 
   switch (GPU_material_status(matpass.gpumat)) {
     case GPU_MAT_SUCCESS:
       break;
     case GPU_MAT_QUEUED:
       queued_shaders_count++;
-      blender_mat = (geometry_type == MAT_GEOM_VOLUME) ? BKE_material_default_volume() :
-                                                         BKE_material_default_surface();
+      blender_mat = (geometry_type == MAT_GEOM_VOLUME_OBJECT) ? BKE_material_default_volume() :
+                                                                BKE_material_default_surface();
       matpass.gpumat = inst_.shaders.material_shader_get(
           blender_mat, blender_mat->nodetree, pipeline_type, geometry_type, false);
       break;
@@ -204,11 +206,13 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
     matpass.sub_pass = nullptr;
   }
   else {
-    ShaderKey shader_key(matpass.gpumat, geometry_type, pipeline_type, blender_mat->blend_flag);
+    ShaderKey shader_key(
+        matpass.gpumat, geometry_type, pipeline_type, blender_mat->blend_flag, probe_capture);
 
     PassMain::Sub *shader_sub = shader_map_.lookup_or_add_cb(shader_key, [&]() {
       /* First time encountering this shader. Create a sub that will contain materials using it. */
-      return inst_.pipelines.material_add(ob, blender_mat, matpass.gpumat, pipeline_type);
+      return inst_.pipelines.material_add(
+          ob, blender_mat, matpass.gpumat, pipeline_type, probe_capture);
     });
 
     if (shader_sub != nullptr) {
@@ -229,6 +233,15 @@ Material &MaterialModule::material_sync(Object *ob,
                                         eMaterialGeometry geometry_type,
                                         bool has_motion)
 {
+  if (geometry_type == MAT_GEOM_VOLUME_OBJECT) {
+    MaterialKey material_key(blender_mat, geometry_type, MAT_PIPE_VOLUME);
+    return material_map_.lookup_or_add_cb(material_key, [&]() {
+      Material mat = {};
+      mat.volume = material_pass_get(ob, blender_mat, MAT_PIPE_VOLUME, MAT_GEOM_VOLUME_OBJECT);
+      return mat;
+    });
+  }
+
   eMaterialPipeline surface_pipe = (blender_mat->blend_method == MA_BM_BLEND) ? MAT_PIPE_FORWARD :
                                                                                 MAT_PIPE_DEFERRED;
   eMaterialPipeline prepass_pipe = (blender_mat->blend_method == MA_BM_BLEND) ?
@@ -241,18 +254,55 @@ Material &MaterialModule::material_sync(Object *ob,
 
   Material &mat = material_map_.lookup_or_add_cb(material_key, [&]() {
     Material mat;
-    /* Order is important for transparent. */
-    mat.prepass = material_pass_get(ob, blender_mat, prepass_pipe, geometry_type);
-    mat.shading = material_pass_get(ob, blender_mat, surface_pipe, geometry_type);
+    if (inst_.is_baking()) {
+      mat.prepass = MaterialPass();
+      /* TODO(fclem): Still need the shading pass for correct attribute extraction. Would be better
+       * to avoid this shader compilation in another context. */
+      mat.shading = material_pass_get(ob, blender_mat, surface_pipe, geometry_type);
+      mat.capture = material_pass_get(ob, blender_mat, MAT_PIPE_CAPTURE, geometry_type);
+      mat.probe_prepass = MaterialPass();
+      mat.probe_shading = MaterialPass();
+      mat.volume = MaterialPass();
+    }
+    else {
+      /* Order is important for transparent. */
+      mat.prepass = material_pass_get(ob, blender_mat, prepass_pipe, geometry_type);
+      mat.shading = material_pass_get(ob, blender_mat, surface_pipe, geometry_type);
+      mat.capture = MaterialPass();
+      mat.probe_prepass = MaterialPass();
+      mat.probe_shading = MaterialPass();
+
+      if (inst_.do_probe_sync()) {
+        mat.probe_prepass = material_pass_get(
+            ob, blender_mat, MAT_PIPE_DEFERRED_PREPASS, geometry_type, true);
+        mat.probe_shading = material_pass_get(
+            ob, blender_mat, MAT_PIPE_DEFERRED, geometry_type, true);
+      }
+
+      if (GPU_material_has_volume_output(mat.shading.gpumat)) {
+        mat.volume = material_pass_get(ob, blender_mat, MAT_PIPE_VOLUME, MAT_GEOM_VOLUME_OBJECT);
+      }
+      else {
+        mat.volume = MaterialPass();
+      }
+    }
+
     if (blender_mat->blend_shadow == MA_BS_NONE) {
       mat.shadow = MaterialPass();
     }
     else {
       mat.shadow = material_pass_get(ob, blender_mat, MAT_PIPE_SHADOW, geometry_type);
     }
+
     mat.is_alpha_blend_transparent = (blender_mat->blend_method == MA_BM_BLEND) &&
                                      GPU_material_flag_get(mat.shading.gpumat,
                                                            GPU_MATFLAG_TRANSPARENT);
+    if (inst_.is_baking()) {
+      /* WORKAROUND(fclem): This is to request the shadow for the surfels. This will well
+       * over-request the number of shadow tiles. A better way would be to request from the surfels
+       * directly. */
+      mat.is_alpha_blend_transparent = true;
+    }
     return mat;
   });
 

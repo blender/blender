@@ -1,7 +1,6 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *  */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_global.h"
 #include "BLI_rect.h"
@@ -9,7 +8,7 @@
 #include "GPU_capabilities.h"
 #include "GPU_framebuffer.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "DRW_render.h"
 
@@ -65,8 +64,11 @@ static void eevee_engine_init(void *vedata)
       camera = v3d->camera;
     }
 
-    if (v3d->flag2 & V3D_RENDER_BORDER) {
-      if (camera) {
+    if (camera) {
+      rctf default_border;
+      BLI_rctf_init(&default_border, 0.0f, 1.0f, 0.0f, 1.0f);
+      bool is_default_border = BLI_rctf_compare(&scene->r.border, &default_border, 0.0f);
+      if (!is_default_border) {
         rctf viewborder;
         /* TODO(fclem) Might be better to get it from DRW. */
         ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, &viewborder, false);
@@ -77,17 +79,16 @@ static void eevee_engine_init(void *vedata)
         rect.xmax = floorf(viewborder.xmin + (scene->r.border.xmax * viewborder_sizex));
         rect.ymax = floorf(viewborder.ymin + (scene->r.border.ymax * viewborder_sizey));
       }
-      else {
-        rect.xmin = v3d->render_border.xmin * size[0];
-        rect.ymin = v3d->render_border.ymin * size[1];
-        rect.xmax = v3d->render_border.xmax * size[0];
-        rect.ymax = v3d->render_border.ymax * size[1];
-      }
+    }
+    else if (v3d->flag2 & V3D_RENDER_BORDER) {
+      rect.xmin = v3d->render_border.xmin * size[0];
+      rect.ymin = v3d->render_border.ymin * size[1];
+      rect.xmax = v3d->render_border.xmax * size[0];
+      rect.ymax = v3d->render_border.ymax * size[1];
     }
   }
 
-  ved->instance->init(
-      size, &rect, nullptr, depsgraph, nullptr, camera, nullptr, default_view, v3d, rv3d);
+  ved->instance->init(size, &rect, nullptr, depsgraph, camera, nullptr, default_view, v3d, rv3d);
 }
 
 static void eevee_draw_scene(void *vedata)
@@ -142,9 +143,9 @@ static void eevee_instance_free(void *instance)
 }
 
 static void eevee_render_to_image(void *vedata,
-                                  struct RenderEngine *engine,
-                                  struct RenderLayer *layer,
-                                  const struct rcti * /*rect*/)
+                                  RenderEngine *engine,
+                                  RenderLayer *layer,
+                                  const rcti * /*rect*/)
 {
   if (!GPU_shader_storage_buffer_objects_support()) {
     return;
@@ -162,7 +163,7 @@ static void eevee_render_to_image(void *vedata,
   rcti rect;
   RE_GetViewPlane(render, &view_rect, &rect);
 
-  instance->init(size, &rect, engine, depsgraph, nullptr, camera_original_ob, layer);
+  instance->init(size, &rect, engine, depsgraph, camera_original_ob, layer);
   instance->render_frame(layer, viewname);
 
   EEVEE_Data *ved = static_cast<EEVEE_Data *>(vedata);
@@ -170,7 +171,7 @@ static void eevee_render_to_image(void *vedata,
   ved->instance = instance;
 }
 
-static void eevee_store_metadata(void *vedata, struct RenderResult *render_result)
+static void eevee_store_metadata(void *vedata, RenderResult *render_result)
 {
   if (!GPU_shader_storage_buffer_objects_support()) {
     return;
@@ -195,39 +196,44 @@ static const DrawEngineDataSize eevee_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_D
 extern "C" {
 
 DrawEngineType draw_engine_eevee_next_type = {
-    nullptr,
-    nullptr,
-    N_("Eevee"),
-    &eevee_data_size,
-    &eevee_engine_init,
-    &eevee_engine_free,
-    &eevee_instance_free,
-    &eevee_cache_init,
-    &eevee_cache_populate,
-    &eevee_cache_finish,
-    &eevee_draw_scene,
-    nullptr,
-    nullptr,
-    &eevee_render_to_image,
-    &eevee_store_metadata,
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*idname*/ N_("Eevee"),
+    /*vedata_size*/ &eevee_data_size,
+    /*engine_init*/ &eevee_engine_init,
+    /*engine_free*/ &eevee_engine_free,
+    /*instance_free*/ &eevee_instance_free,
+    /*cache_init*/ &eevee_cache_init,
+    /*cache_populate*/ &eevee_cache_populate,
+    /*cache_finish*/ &eevee_cache_finish,
+    /*draw_scene*/ &eevee_draw_scene,
+    /*view_update*/ nullptr,
+    /*id_update*/ nullptr,
+    /*render_to_image*/ &eevee_render_to_image,
+    /*store_metadata*/ &eevee_store_metadata,
 };
 
 RenderEngineType DRW_engine_viewport_eevee_next_type = {
-    nullptr,
-    nullptr,
-    "BLENDER_EEVEE_NEXT",
-    N_("Eevee Next"),
-    RE_INTERNAL | RE_USE_PREVIEW | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
-    nullptr,
-    &DRW_render_to_image,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    &eevee_render_update_passes,
-    &draw_engine_eevee_next_type,
-    {nullptr, nullptr, nullptr},
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*idname*/ "BLENDER_EEVEE_NEXT",
+    /*name*/ N_("Eevee Next"),
+    /*flag*/ RE_INTERNAL | RE_USE_PREVIEW | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
+    /*update*/ nullptr,
+    /*render*/ &DRW_render_to_image,
+    /*render_frame_finish*/ nullptr,
+    /*draw*/ nullptr,
+    /*bake*/ nullptr,
+    /*view_update*/ nullptr,
+    /*view_draw*/ nullptr,
+    /*update_script_node*/ nullptr,
+    /*update_render_passes*/ &eevee_render_update_passes,
+    /*draw_engine*/ &draw_engine_eevee_next_type,
+    /*rna_ext*/
+    {
+        /*data*/ nullptr,
+        /*srna*/ nullptr,
+        /*call*/ nullptr,
+    },
 };
 }

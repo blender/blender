@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -19,7 +20,7 @@ class GHOST_Event : public GHOST_IEvent {
    * Constructor.
    * \param msec: The time this event was generated.
    * \param type: The type of this event.
-   * \param window: The generating window (or NULL if system event).
+   * \param window: The generating window (or nullptr if system event).
    */
   GHOST_Event(uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window)
       : m_type(type), m_time(msec), m_window(window), m_data(nullptr)
@@ -46,7 +47,7 @@ class GHOST_Event : public GHOST_IEvent {
 
   /**
    * Returns the window this event was generated on,
-   * or NULL if it is a 'system' event.
+   * or nullptr if it is a 'system' event.
    * \return The generating window.
    */
   GHOST_IWindow *getWindow()

@@ -1,9 +1,7 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
-
-#include "usd_tests_common.h"
 
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/capsule.h>
@@ -20,13 +18,6 @@ TEST_F(USDImagingTest, CapsuleAdapterTest)
    * ensure the code compiles, links and returns reasonable results.
    * We create a capsule shape on an in-memory stage and attempt
    * to access the shape's points and topology. */
-
-  /* We must register USD plugin paths before creating the stage
-   * to avoid a crash in the USD asset resolver initialization code. */
-  if (register_usd_plugins_for_tests().empty()) {
-    FAIL();
-    return;
-  }
 
   pxr::UsdStageRefPtr stage = pxr::UsdStage::CreateInMemory();
 

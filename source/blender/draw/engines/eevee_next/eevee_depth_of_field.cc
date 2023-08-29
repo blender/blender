@@ -1,7 +1,6 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *  */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -169,7 +168,7 @@ void DepthOfField::sync()
    * the reduced buffers. Color needs to be signed format here. See note in shader for
    * explanation. Do not use texture pool because of needs mipmaps. */
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
-                           GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+                           GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW | GPU_TEXTURE_USAGE_SHADER_WRITE;
   reduced_color_tx_.ensure_2d(GPU_RGBA16F, reduce_size, usage, nullptr, DOF_MIP_COUNT);
   reduced_coc_tx_.ensure_2d(GPU_R16F, reduce_size, usage, nullptr, DOF_MIP_COUNT);
   reduced_color_tx_.ensure_mip_views();
@@ -583,6 +582,8 @@ void DepthOfField::render(View &view,
 
   Manager &drw = *inst_.manager;
 
+  eGPUTextureUsage usage_readwrite = GPU_TEXTURE_USAGE_SHADER_READ |
+                                     GPU_TEXTURE_USAGE_SHADER_WRITE;
   {
     DRW_stats_group_start("Setup");
     {
@@ -595,7 +596,7 @@ void DepthOfField::render(View &view,
       }
     }
     {
-      setup_color_tx_.acquire(half_res, GPU_RGBA16F);
+      setup_color_tx_.acquire(half_res, GPU_RGBA16F, usage_readwrite);
       setup_coc_tx_.acquire(half_res, GPU_R16F);
 
       drw.submit(setup_ps_, view);
@@ -626,10 +627,10 @@ void DepthOfField::render(View &view,
       DRW_stats_group_start("Tile Prepare");
 
       /* WARNING: If format changes, make sure dof_tile_* GLSL constants are properly encoded. */
-      tiles_fg_tx_.previous().acquire(tile_res, GPU_R11F_G11F_B10F);
-      tiles_bg_tx_.previous().acquire(tile_res, GPU_R11F_G11F_B10F);
-      tiles_fg_tx_.current().acquire(tile_res, GPU_R11F_G11F_B10F);
-      tiles_bg_tx_.current().acquire(tile_res, GPU_R11F_G11F_B10F);
+      tiles_fg_tx_.previous().acquire(tile_res, GPU_R11F_G11F_B10F, usage_readwrite);
+      tiles_bg_tx_.previous().acquire(tile_res, GPU_R11F_G11F_B10F, usage_readwrite);
+      tiles_fg_tx_.current().acquire(tile_res, GPU_R11F_G11F_B10F, usage_readwrite);
+      tiles_bg_tx_.current().acquire(tile_res, GPU_R11F_G11F_B10F, usage_readwrite);
 
       drw.submit(tiles_flatten_ps_, view);
 
@@ -670,7 +671,7 @@ void DepthOfField::render(View &view,
       DRW_stats_group_end();
     }
 
-    downsample_tx_.acquire(quarter_res, GPU_RGBA16F);
+    downsample_tx_.acquire(quarter_res, GPU_RGBA16F, usage_readwrite);
 
     drw.submit(downsample_ps_, view);
 
@@ -695,8 +696,8 @@ void DepthOfField::render(View &view,
     PassSimple &filter_ps = is_background ? filter_bg_ps_ : filter_fg_ps_;
     PassSimple &scatter_ps = is_background ? scatter_bg_ps_ : scatter_fg_ps_;
 
-    color_tx.current().acquire(half_res, GPU_RGBA16F);
-    weight_tx.current().acquire(half_res, GPU_R16F);
+    color_tx.current().acquire(half_res, GPU_RGBA16F, usage_readwrite);
+    weight_tx.current().acquire(half_res, GPU_R16F, usage_readwrite);
     occlusion_tx_.acquire(half_res, GPU_RG16F);
 
     drw.submit(gather_ps, view);
@@ -706,8 +707,8 @@ void DepthOfField::render(View &view,
       color_tx.swap();
       weight_tx.swap();
 
-      color_tx.current().acquire(half_res, GPU_RGBA16F);
-      weight_tx.current().acquire(half_res, GPU_R16F);
+      color_tx.current().acquire(half_res, GPU_RGBA16F, usage_readwrite);
+      weight_tx.current().acquire(half_res, GPU_R16F, usage_readwrite);
 
       drw.submit(filter_ps, view);
 
@@ -733,8 +734,8 @@ void DepthOfField::render(View &view,
     bokeh_gather_lut_tx_.release();
     bokeh_scatter_lut_tx_.release();
 
-    hole_fill_color_tx_.acquire(half_res, GPU_RGBA16F);
-    hole_fill_weight_tx_.acquire(half_res, GPU_R16F);
+    hole_fill_color_tx_.acquire(half_res, GPU_RGBA16F, usage_readwrite);
+    hole_fill_weight_tx_.acquire(half_res, GPU_R16F, usage_readwrite);
 
     drw.submit(hole_fill_ps_, view);
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /* This code implements a modified version of the paper [Importance Sampling of Many Lights with
  * Adaptive Tree Splitting](http://www.aconty.com/pdf/many-lights-hpg2018.pdf) by Alejandro Conty
@@ -173,9 +174,19 @@ ccl_device void light_tree_importance(const float3 N_or_D,
     cos_max_incidence_angle = fmaxf(cos_theta_i * cos_theta_u - sin_theta_i * sin_theta_u, 0.0f);
   }
 
+  float cos_theta, sin_theta;
+  if (isequal(bcone.axis, -point_to_centroid)) {
+    /* When `bcone.axis == -point_to_centroid`, dot(bcone.axis, -point_to_centroid) doesn't always
+     * return 1 due to floating point precision issues. We account for that case here. */
+    cos_theta = 1.0f;
+    sin_theta = 0.0f;
+  }
+  else {
+    cos_theta = dot(bcone.axis, -point_to_centroid);
+    sin_theta = sin_from_cos(cos_theta);
+  }
+
   /* cos(theta - theta_u) */
-  const float cos_theta = dot(bcone.axis, -point_to_centroid);
-  const float sin_theta = sin_from_cos(cos_theta);
   const float cos_theta_minus_theta_u = cos_theta * cos_theta_u + sin_theta * sin_theta_u;
 
   float cos_theta_o, sin_theta_o;
@@ -316,7 +327,7 @@ ccl_device void light_tree_node_importance(KernelGlobals kg,
       return;
     }
     point_to_centroid = -bcone.axis;
-    cos_theta_u = fast_cosf(bcone.theta_o);
+    cos_theta_u = fast_cosf(bcone.theta_o + bcone.theta_e);
     distance = 1.0f;
   }
   else {
@@ -498,6 +509,8 @@ ccl_device void light_tree_child_importance(KernelGlobals kg,
   }
 }
 
+/* Select an element from the reservoir with probability proportional to its weight.
+ * Expect `selected_index` to be initialized to -1, and stays -1 if all the weights are invalid. */
 ccl_device void sample_reservoir(const int current_index,
                                  const float current_weight,
                                  ccl_private int &selected_index,
@@ -505,14 +518,14 @@ ccl_device void sample_reservoir(const int current_index,
                                  ccl_private float &total_weight,
                                  ccl_private float &rand)
 {
-  if (current_weight == 0.0f) {
+  if (!(current_weight > 0.0f)) {
     return;
   }
   total_weight += current_weight;
 
   /* When `-ffast-math` is used it is possible that the threshold is almost 1 but not quite.
-   * For this case we check the first assignment explicitly (instead of relying on the threshold to
-   * be 1, giving it certain probability). */
+   * For this case we check the first valid element explicitly (instead of relying on the threshold
+   * to be 1, giving it certain probability). */
   if (selected_index == -1) {
     selected_index = current_index;
     selected_weight = current_weight;
@@ -555,8 +568,8 @@ ccl_device int light_tree_cluster_select_emitter(KernelGlobals kg,
   const ccl_global KernelLightTreeNode *knode = &kernel_data_fetch(light_tree_nodes, *node_index);
   *node_index = -1;
 
-  /* Mark emitters with zero importance. Used for reservoir when total minimum importance = 0. */
   kernel_assert(knode->num_emitters <= sizeof(uint) * 8);
+  /* Mark emitters with valid importance. Used for reservoir when total minimum importance = 0. */
   uint has_importance = 0;
 
   const bool sample_max = (rand > 0.5f); /* Sampling using the maximum importance. */
@@ -585,7 +598,7 @@ ccl_device int light_tree_cluster_select_emitter(KernelGlobals kg,
     has_importance |= ((importance[0] > 0) << i);
   }
 
-  if (total_importance[0] == 0.0f) {
+  if (!has_importance) {
     return -1;
   }
 
@@ -721,14 +734,17 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
       selected_emitter = light_tree_cluster_select_emitter<in_volume_segment>(
           kg, rand_selection, local_P, N_or_D, t, has_transmission, &node_index, &pdf_selection);
 
+      if (selected_emitter < 0) {
+        return false;
+      }
+
       if (node_index < 0) {
         break;
       }
-      else {
-        /* Continue with the picked mesh light. */
-        object_emitter = kernel_data_fetch(light_tree_emitters, selected_emitter).mesh.object_id;
-        continue;
-      }
+
+      /* Continue with the picked mesh light. */
+      object_emitter = kernel_data_fetch(light_tree_emitters, selected_emitter).mesh.object_id;
+      continue;
     }
 
     /* Inner node. */
@@ -750,17 +766,15 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
     pdf_leaf *= (node_index == left_index) ? left_prob : (1.0f - left_prob);
   }
 
-  if (selected_emitter < 0) {
-    return false;
-  }
-
   pdf_selection *= pdf_leaf;
 
   return light_sample<in_volume_segment>(kg,
                                          float3_to_float2(rand),
                                          time,
                                          P,
+                                         N_or_D,
                                          object_receiver,
+                                         shader_flags,
                                          bounce,
                                          path_flag,
                                          selected_emitter,

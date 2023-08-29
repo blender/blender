@@ -1,10 +1,13 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_film_lib.glsl)
 
 void main()
 {
-  ivec2 texel_film = ivec2(gl_FragCoord.xy) - film_buf.offset;
+  ivec2 texel_film = ivec2(gl_FragCoord.xy);
   float out_depth;
 
   if (film_buf.display_only) {

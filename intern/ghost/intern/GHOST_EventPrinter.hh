@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -29,5 +30,5 @@ class GHOST_EventPrinter : public GHOST_IEventConsumer {
    * \param key: The GHOST key code to convert.
    * \param str: The GHOST key code converted to a readable string.
    */
-  void getKeyString(GHOST_TKey key, char str[32]) const;
+  const char *getKeyString(GHOST_TKey key) const;
 };

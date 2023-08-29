@@ -18,6 +18,9 @@ namespace internal {
 template<typename _MatrixType> struct traits<FullPivHouseholderQR<_MatrixType> >
  : traits<_MatrixType>
 {
+  typedef MatrixXpr XprKind;
+  typedef SolverStorage StorageKind;
+  typedef int StorageIndex;
   enum { Flags = 0 };
 };
 
@@ -55,20 +58,19 @@ struct traits<FullPivHouseholderQRMatrixQReturnType<MatrixType> >
   * \sa MatrixBase::fullPivHouseholderQr()
   */
 template<typename _MatrixType> class FullPivHouseholderQR
+        : public SolverBase<FullPivHouseholderQR<_MatrixType> >
 {
   public:
 
     typedef _MatrixType MatrixType;
+    typedef SolverBase<FullPivHouseholderQR> Base;
+    friend class SolverBase<FullPivHouseholderQR>;
+
+    EIGEN_GENERIC_PUBLIC_INTERFACE(FullPivHouseholderQR)
     enum {
-      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::RealScalar RealScalar;
-    // FIXME should be int
-    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef internal::FullPivHouseholderQRMatrixQReturnType<MatrixType> MatrixQReturnType;
     typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;
     typedef Matrix<StorageIndex, 1,
@@ -156,6 +158,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
       computeInPlace();
     }
 
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
       * \c *this is the QR decomposition.
       *
@@ -173,11 +176,8 @@ template<typename _MatrixType> class FullPivHouseholderQR
       */
     template<typename Rhs>
     inline const Solve<FullPivHouseholderQR, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-      return Solve<FullPivHouseholderQR, Rhs>(*this, b.derived());
-    }
+    solve(const MatrixBase<Rhs>& b) const;
+    #endif
 
     /** \returns Expression object representing the matrix Q
       */
@@ -392,22 +392,24 @@ template<typename _MatrixType> class FullPivHouseholderQR
       *          diagonal coefficient of U.
       */
     RealScalar maxPivot() const { return m_maxpivot; }
-    
+
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
-    EIGEN_DEVICE_FUNC
     void _solve_impl(const RhsType &rhs, DstType &dst) const;
+
+    template<bool Conjugate, typename RhsType, typename DstType>
+    void _solve_impl_transposed(const RhsType &rhs, DstType &dst) const;
     #endif
 
   protected:
-    
+
     static void check_template_parameters()
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
-    
+
     void computeInPlace();
-    
+
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
     IntDiagSizeVectorType m_rows_transpositions;
@@ -499,15 +501,15 @@ void FullPivHouseholderQR<MatrixType>::computeInPlace()
       m_nonzero_pivots = k;
       for(Index i = k; i < size; i++)
       {
-        m_rows_transpositions.coeffRef(i) = i;
-        m_cols_transpositions.coeffRef(i) = i;
+        m_rows_transpositions.coeffRef(i) = internal::convert_index<StorageIndex>(i);
+        m_cols_transpositions.coeffRef(i) = internal::convert_index<StorageIndex>(i);
         m_hCoeffs.coeffRef(i) = Scalar(0);
       }
       break;
     }
 
-    m_rows_transpositions.coeffRef(k) = row_of_biggest_in_corner;
-    m_cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
+    m_rows_transpositions.coeffRef(k) = internal::convert_index<StorageIndex>(row_of_biggest_in_corner);
+    m_cols_transpositions.coeffRef(k) = internal::convert_index<StorageIndex>(col_of_biggest_in_corner);
     if(k != row_of_biggest_in_corner) {
       m_qr.row(k).tail(cols-k).swap(m_qr.row(row_of_biggest_in_corner).tail(cols-k));
       ++number_of_transpositions;
@@ -541,7 +543,6 @@ template<typename _MatrixType>
 template<typename RhsType, typename DstType>
 void FullPivHouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const
 {
-  eigen_assert(rhs.rows() == rows());
   const Index l_rank = rank();
 
   // FIXME introduce nonzeroPivots() and use it here. and more generally,
@@ -554,7 +555,7 @@ void FullPivHouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType 
 
   typename RhsType::PlainObject c(rhs);
 
-  Matrix<Scalar,1,RhsType::ColsAtCompileTime> temp(rhs.cols());
+  Matrix<typename RhsType::Scalar,1,RhsType::ColsAtCompileTime> temp(rhs.cols());
   for (Index k = 0; k < l_rank; ++k)
   {
     Index remainingSize = rows()-k;
@@ -570,6 +571,42 @@ void FullPivHouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType 
 
   for(Index i = 0; i < l_rank; ++i) dst.row(m_cols_permutation.indices().coeff(i)) = c.row(i);
   for(Index i = l_rank; i < cols(); ++i) dst.row(m_cols_permutation.indices().coeff(i)).setZero();
+}
+
+template<typename _MatrixType>
+template<bool Conjugate, typename RhsType, typename DstType>
+void FullPivHouseholderQR<_MatrixType>::_solve_impl_transposed(const RhsType &rhs, DstType &dst) const
+{
+  const Index l_rank = rank();
+
+  if(l_rank == 0)
+  {
+    dst.setZero();
+    return;
+  }
+
+  typename RhsType::PlainObject c(m_cols_permutation.transpose()*rhs);
+
+  m_qr.topLeftCorner(l_rank, l_rank)
+         .template triangularView<Upper>()
+         .transpose().template conjugateIf<Conjugate>()
+         .solveInPlace(c.topRows(l_rank));
+
+  dst.topRows(l_rank) = c.topRows(l_rank);
+  dst.bottomRows(rows()-l_rank).setZero();
+
+  Matrix<Scalar, 1, DstType::ColsAtCompileTime> temp(dst.cols());
+  const Index size = (std::min)(rows(), cols());
+  for (Index k = size-1; k >= 0; --k)
+  {
+    Index remainingSize = rows()-k;
+
+    dst.bottomRightCorner(remainingSize, dst.cols())
+       .applyHouseholderOnTheLeft(m_qr.col(k).tail(remainingSize-1).template conjugateIf<!Conjugate>(),
+                                  m_hCoeffs.template conjugateIf<Conjugate>().coeff(k), &temp.coeffRef(0));
+
+    dst.row(k).swap(dst.row(m_rows_transpositions.coeff(k)));
+  }
 }
 #endif
 

@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Debug drawing for virtual shadowmaps.
+ * Debug drawing for virtual shadow-maps.
  * See eShadowDebug for more information.
  */
 
@@ -13,7 +16,7 @@
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
-/** Control the scaling of the tilemap splat. */
+/** Control the scaling of the tile-map splat. */
 const float pixel_scale = 4.0;
 
 vec3 debug_random_color(ivec2 v)
@@ -99,11 +102,11 @@ bool debug_tilemaps(vec3 P, LightData light)
   int tilemap = px.x / SHADOW_TILEMAP_RES;
   int tilemap_index = light.tilemap_index + tilemap;
   if ((px.y < SHADOW_TILEMAP_RES) && (tilemap_index <= light_tilemap_max_get(light))) {
-    /* Debug actual values in the tilemap buffer. */
+    /* Debug actual values in the tile-map buffer. */
     ShadowTileMapData tilemap = tilemaps_buf[tilemap_index];
     int tile_index = shadow_tile_offset(px % SHADOW_TILEMAP_RES, tilemap.tiles_index, 0);
     ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
-    /* Leave 1 px border between tilemaps. */
+    /* Leave 1 px border between tile-maps. */
     if (!any(equal(ivec2(gl_FragCoord.xy) % (SHADOW_TILEMAP_RES * debug_tile_size_px), ivec2(0))))
     {
       gl_FragDepth = 0.0;

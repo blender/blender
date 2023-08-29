@@ -1,10 +1,12 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
  */
+
+#include "BLI_utildefines.h"
 
 #include "vk_common.hh"
 
@@ -56,9 +58,12 @@ VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat forma
     case GPU_DEPTH_COMPONENT32F:
     case GPU_DEPTH_COMPONENT24:
     case GPU_DEPTH_COMPONENT16:
+      return VK_IMAGE_ASPECT_DEPTH_BIT;
+
     case GPU_DEPTH32F_STENCIL8:
     case GPU_DEPTH24_STENCIL8:
-      return VK_IMAGE_ASPECT_DEPTH_BIT;
+      return static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT |
+                                                VK_IMAGE_ASPECT_STENCIL_BIT);
 
     /* Texture only formats. */
     case GPU_RGB32UI:
@@ -581,19 +586,72 @@ VkFormat to_vk_format(const GPUVertCompType type, const uint32_t size, GPUVertFe
   return VK_FORMAT_R32_SFLOAT;
 }
 
+VkFormat to_vk_format(const shader::Type type)
+{
+  switch (type) {
+    case shader::Type::FLOAT:
+      return VK_FORMAT_R32_SFLOAT;
+    case shader::Type::VEC2:
+      return VK_FORMAT_R32G32_SFLOAT;
+    case shader::Type::VEC3:
+      return VK_FORMAT_R32G32B32_SFLOAT;
+    case shader::Type::VEC4:
+      return VK_FORMAT_R32G32B32A32_SFLOAT;
+    case shader::Type::UINT:
+      return VK_FORMAT_R32_UINT;
+    case shader::Type::UVEC2:
+      return VK_FORMAT_R32G32_UINT;
+    case shader::Type::UVEC3:
+      return VK_FORMAT_R32G32B32_UINT;
+    case shader::Type::UVEC4:
+      return VK_FORMAT_R32G32B32A32_UINT;
+    case shader::Type::INT:
+      return VK_FORMAT_R32_SINT;
+    case shader::Type::IVEC2:
+      return VK_FORMAT_R32G32_SINT;
+    case shader::Type::IVEC3:
+      return VK_FORMAT_R32G32B32_SINT;
+    case shader::Type::IVEC4:
+      return VK_FORMAT_R32G32B32A32_SINT;
+    case shader::Type::MAT4:
+      return VK_FORMAT_R32G32B32A32_SFLOAT;
+
+    case shader::Type::MAT3:
+    case shader::Type::BOOL:
+    case shader::Type::VEC3_101010I2:
+    case shader::Type::UCHAR:
+    case shader::Type::UCHAR2:
+    case shader::Type::UCHAR3:
+    case shader::Type::UCHAR4:
+    case shader::Type::CHAR:
+    case shader::Type::CHAR2:
+    case shader::Type::CHAR3:
+    case shader::Type::CHAR4:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return VK_FORMAT_R32G32B32A32_SFLOAT;
+}
+
 VkImageType to_vk_image_type(const eGPUTextureType type)
 {
+  /* See
+   * https://vulkan.lunarg.com/doc/view/1.3.243.0/linux/1.3-extensions/vkspec.html#resources-image-views-compatibility
+   * for reference */
   switch (type) {
     case GPU_TEXTURE_1D:
     case GPU_TEXTURE_BUFFER:
     case GPU_TEXTURE_1D_ARRAY:
       return VK_IMAGE_TYPE_1D;
+
     case GPU_TEXTURE_2D:
     case GPU_TEXTURE_2D_ARRAY:
-      return VK_IMAGE_TYPE_2D;
-    case GPU_TEXTURE_3D:
     case GPU_TEXTURE_CUBE:
     case GPU_TEXTURE_CUBE_ARRAY:
+      return VK_IMAGE_TYPE_2D;
+
+    case GPU_TEXTURE_3D:
       return VK_IMAGE_TYPE_3D;
 
     case GPU_TEXTURE_ARRAY:
@@ -605,7 +663,7 @@ VkImageType to_vk_image_type(const eGPUTextureType type)
   return VK_IMAGE_TYPE_1D;
 }
 
-VkImageViewType to_vk_image_view_type(const eGPUTextureType type)
+VkImageViewType to_vk_image_view_type(const eGPUTextureType type, const eImageViewUsage view_type)
 {
   switch (type) {
     case GPU_TEXTURE_1D:
@@ -616,13 +674,15 @@ VkImageViewType to_vk_image_view_type(const eGPUTextureType type)
     case GPU_TEXTURE_3D:
       return VK_IMAGE_VIEW_TYPE_3D;
     case GPU_TEXTURE_CUBE:
-      return VK_IMAGE_VIEW_TYPE_CUBE;
+      return view_type == eImageViewUsage::Attachment ? VK_IMAGE_VIEW_TYPE_2D_ARRAY :
+                                                        VK_IMAGE_VIEW_TYPE_CUBE;
     case GPU_TEXTURE_1D_ARRAY:
       return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
     case GPU_TEXTURE_2D_ARRAY:
       return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
     case GPU_TEXTURE_CUBE_ARRAY:
-      return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+      return view_type == eImageViewUsage::Attachment ? VK_IMAGE_VIEW_TYPE_2D_ARRAY :
+                                                        VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
 
     case GPU_TEXTURE_ARRAY:
       /* GPU_TEXTURE_ARRAY should always be used together with 1D, 2D, or CUBE*/
@@ -747,4 +807,109 @@ VkCullModeFlags to_vk_cull_mode_flags(const eGPUFaceCullTest cull_test)
   return VK_CULL_MODE_NONE;
 }
 
+const char *to_string(VkObjectType type)
+{
+
+  switch (type) {
+    case VK_OBJECT_TYPE_UNKNOWN:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_UNKNOWN);
+    case VK_OBJECT_TYPE_INSTANCE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_INSTANCE);
+    case VK_OBJECT_TYPE_PHYSICAL_DEVICE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_PHYSICAL_DEVICE);
+    case VK_OBJECT_TYPE_DEVICE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DEVICE);
+    case VK_OBJECT_TYPE_QUEUE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_QUEUE);
+    case VK_OBJECT_TYPE_SEMAPHORE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_SEMAPHORE);
+    case VK_OBJECT_TYPE_COMMAND_BUFFER:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_COMMAND_BUFFER);
+    case VK_OBJECT_TYPE_FENCE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_FENCE);
+    case VK_OBJECT_TYPE_DEVICE_MEMORY:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DEVICE_MEMORY);
+    case VK_OBJECT_TYPE_BUFFER:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_BUFFER);
+    case VK_OBJECT_TYPE_IMAGE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_IMAGE);
+    case VK_OBJECT_TYPE_EVENT:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_EVENT);
+    case VK_OBJECT_TYPE_QUERY_POOL:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_QUERY_POOL);
+    case VK_OBJECT_TYPE_BUFFER_VIEW:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_BUFFER_VIEW);
+    case VK_OBJECT_TYPE_IMAGE_VIEW:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_IMAGE_VIEW);
+    case VK_OBJECT_TYPE_SHADER_MODULE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_SHADER_MODULE);
+    case VK_OBJECT_TYPE_PIPELINE_CACHE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_PIPELINE_CACHE);
+    case VK_OBJECT_TYPE_PIPELINE_LAYOUT:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_PIPELINE_LAYOUT);
+    case VK_OBJECT_TYPE_RENDER_PASS:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_RENDER_PASS);
+    case VK_OBJECT_TYPE_PIPELINE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_PIPELINE);
+    case VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT);
+    case VK_OBJECT_TYPE_SAMPLER:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_SAMPLER);
+    case VK_OBJECT_TYPE_DESCRIPTOR_POOL:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DESCRIPTOR_POOL);
+    case VK_OBJECT_TYPE_DESCRIPTOR_SET:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DESCRIPTOR_SET);
+    case VK_OBJECT_TYPE_FRAMEBUFFER:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_FRAMEBUFFER);
+    case VK_OBJECT_TYPE_COMMAND_POOL:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_COMMAND_POOL);
+    case VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION);
+    case VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE);
+    case VK_OBJECT_TYPE_SURFACE_KHR:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_SURFACE_KHR);
+    case VK_OBJECT_TYPE_SWAPCHAIN_KHR:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_SWAPCHAIN_KHR);
+    case VK_OBJECT_TYPE_DISPLAY_KHR:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DISPLAY_KHR);
+    case VK_OBJECT_TYPE_DISPLAY_MODE_KHR:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DISPLAY_MODE_KHR);
+    case VK_OBJECT_TYPE_DEBUG_REPORT_CALLBACK_EXT:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DEBUG_REPORT_CALLBACK_EXT);
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+    case VK_OBJECT_TYPE_VIDEO_SESSION_KHR:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_VIDEO_SESSION_KHR);
+#endif
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+    case VK_OBJECT_TYPE_VIDEO_SESSION_PARAMETERS_KHR:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_VIDEO_SESSION_PARAMETERS_KHR);
+#endif
+    case VK_OBJECT_TYPE_CU_MODULE_NVX:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_CU_MODULE_NVX);
+    case VK_OBJECT_TYPE_CU_FUNCTION_NVX:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_CU_FUNCTION_NVX);
+    case VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT);
+    case VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR);
+    case VK_OBJECT_TYPE_VALIDATION_CACHE_EXT:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_VALIDATION_CACHE_EXT);
+    case VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_NV:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_NV);
+    case VK_OBJECT_TYPE_PERFORMANCE_CONFIGURATION_INTEL:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_PERFORMANCE_CONFIGURATION_INTEL);
+    case VK_OBJECT_TYPE_DEFERRED_OPERATION_KHR:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_DEFERRED_OPERATION_KHR);
+    case VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NV:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NV);
+    case VK_OBJECT_TYPE_PRIVATE_DATA_SLOT_EXT:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_PRIVATE_DATA_SLOT_EXT);
+    case VK_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA:
+      return STRINGIFY_ARG(VK_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA);
+    default:
+      BLI_assert_unreachable();
+  }
+  return "NotFound";
+};
 }  // namespace blender::gpu

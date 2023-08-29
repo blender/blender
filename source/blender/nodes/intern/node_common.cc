@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,6 +13,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_euler.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
@@ -26,7 +27,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -34,7 +35,7 @@
 #include "NOD_common.h"
 #include "NOD_node_declaration.hh"
 #include "NOD_register.hh"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 #include "node_common.h"
@@ -204,6 +205,13 @@ static SocketDeclarationPtr declaration_for_interface_socket(const bNodeTree &nt
       const auto &value = *io_socket.default_value_typed<bNodeSocketValueBoolean>();
       std::unique_ptr<decl::Bool> decl = std::make_unique<decl::Bool>();
       decl->default_value = value.value;
+      dst = std::move(decl);
+      break;
+    }
+    case SOCK_ROTATION: {
+      const auto &value = *io_socket.default_value_typed<bNodeSocketValueRotation>();
+      std::unique_ptr<decl::Rotation> decl = std::make_unique<decl::Rotation>();
+      decl->default_value = math::EulerXYZ(float3(value.value_euler));
       dst = std::move(decl);
       break;
     }
@@ -480,8 +488,7 @@ bool blender::bke::node_is_connected_to_output(const bNodeTree *ntree, const bNo
 
 bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
 {
-  bNodeSocket *sock;
-  for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
     if (STREQ(sock->identifier, identifier)) {
       return sock;
     }
@@ -574,8 +581,7 @@ void register_node_type_group_input()
 
 bNodeSocket *node_group_output_find_socket(bNode *node, const char *identifier)
 {
-  bNodeSocket *sock;
-  for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STREQ(sock->identifier, identifier)) {
       return sock;
     }

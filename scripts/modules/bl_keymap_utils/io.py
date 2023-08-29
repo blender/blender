@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2018-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # -----------------------------------------------------------------------------
@@ -240,7 +242,7 @@ def _init_properties_from_data(base_props, base_value):
                 setattr(base_props, attr, value)
             except AttributeError:
                 print(f"Warning: property '{attr}' not found in item '{base_props.__class__.__name__}'")
-            except Exception as ex:
+            except BaseException as ex:
                 print(f"Warning: {ex!r}")
 
 

@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2011-2022 Blender Foundation
 
 # Standalone or with Blender
 if(NOT WITH_BLENDER)
@@ -36,7 +37,10 @@ if(WITH_CYCLES_NATIVE_ONLY)
   )
 
   if(NOT MSVC)
-    add_check_cxx_compiler_flag(CMAKE_CXX_FLAGS _has_march_native "-march=native")
+    add_check_cxx_compiler_flags(
+      CMAKE_CXX_FLAGS
+      _has_march_native "-march=native"
+    )
     if(_has_march_native)
       set(CYCLES_KERNEL_FLAGS "-march=native")
     else()
@@ -81,6 +85,13 @@ elseif(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # Unlike GCC/clang we still use fast math, because there is no fine
   # grained control and the speedup we get here is too big to ignore.
   set(CYCLES_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
+
+  # "jumptablerdata" improves performance when there is contention in large switch statements such as in svm.h
+  # This flag is supported starting with MSVC 17.7 preview 3:
+  # https://learn.microsoft.com/en-us/cpp/build/reference/jump-table-rdata
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.37.32820)
+    string(APPEND CYCLES_KERNEL_FLAGS " /jumptablerdata")
+  endif()
 
   # there is no /arch:SSE3, but intrinsics are available anyway
   if(CMAKE_CL_64)
@@ -191,7 +202,6 @@ endif()
 
 add_definitions(
   ${BOOST_DEFINITIONS}
-  ${OPENIMAGEIO_DEFINITIONS}
 )
 
 add_definitions(
@@ -400,7 +410,10 @@ endif()
 
 # Warnings
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  add_check_cxx_compiler_flag(CMAKE_CXX_FLAGS _has_no_error_unused_macros "-Wno-error=unused-macros")
+  add_check_cxx_compiler_flags(
+    CMAKE_CXX_FLAGS
+    _has_no_error_unused_macros "-Wno-error=unused-macros"
+  )
   unset(_has_no_error_unused_macros)
 endif()
 

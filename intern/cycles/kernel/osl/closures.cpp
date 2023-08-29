@@ -1,10 +1,9 @@
-/* SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-FileCopyrightText: 2009-2010 Sony Pictures Imageworks Inc., et al. All Rights Reserved.
+ * SPDX-FileCopyrightText: 2011-2022 Blender Foundation
  *
- * Adapted from Open Shading Language
- * Copyright (c) 2009-2010 Sony Pictures Imageworks Inc., et al.
- * All Rights Reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
  *
- * Modifications Copyright 2011-2022 Blender Foundation. */
+ * Adapted code from Open Shading Language. */
 
 #include <OSL/genclosure.h>
 #include <OSL/oslclosure.h>
@@ -56,6 +55,14 @@ static_assert(sizeof(ShaderGlobals) == sizeof(OSL::ShaderGlobals) &&
 
 #include "closures_template.h"
 
+static OSL::ClosureParam *osl_closure_layer_params()
+{
+  static OSL::ClosureParam params[] = {CLOSURE_CLOSURE_PARAM(LayerClosure, top),
+                                       CLOSURE_CLOSURE_PARAM(LayerClosure, base),
+                                       CLOSURE_FINISH_PARAM(LayerClosure)};
+  return params;
+}
+
 void OSLRenderServices::register_closures(OSL::ShadingSystem *ss)
 {
 #define OSL_CLOSURE_STRUCT_BEGIN(Upper, lower) \
@@ -63,6 +70,8 @@ void OSLRenderServices::register_closures(OSL::ShadingSystem *ss)
       #lower, OSL_CLOSURE_##Upper##_ID, osl_closure_##lower##_params(), nullptr, nullptr);
 
 #include "closures_template.h"
+  ss->register_closure(
+      "layer", OSL_CLOSURE_LAYER_ID, osl_closure_layer_params(), nullptr, nullptr);
 }
 
 /* Surface & Background */

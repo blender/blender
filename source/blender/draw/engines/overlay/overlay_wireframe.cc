@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,7 +18,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 
 #include "BLI_hash.h"
@@ -27,7 +27,7 @@
 #include "DRW_render.h"
 #include "GPU_shader.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "overlay_private.hh"
 
@@ -60,10 +60,9 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
 
   pd->shdata.wire_opacity = pd->overlay.wireframe_opacity;
 
-  bool is_wire_shmode = (shading->type == OB_WIRE);
   bool is_material_shmode = (shading->type > OB_SOLID);
-  bool is_object_color = is_wire_shmode && (shading->wire_color_type == V3D_SHADING_OBJECT_COLOR);
-  bool is_random_color = is_wire_shmode && (shading->wire_color_type == V3D_SHADING_RANDOM_COLOR);
+
+  int color_type = shading->wire_color_type;
 
   const bool use_select = (DRW_state_is_select() || DRW_state_is_depth());
   GPUShader *wires_sh = use_select ? OVERLAY_shader_wireframe_select() :
@@ -95,8 +94,7 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_float_copy(grp, "wireOpacity", pd->shdata.wire_opacity);
       DRW_shgroup_uniform_bool_copy(grp, "useColoring", use_coloring);
       DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
-      DRW_shgroup_uniform_bool_copy(grp, "isObjectColor", is_object_color);
-      DRW_shgroup_uniform_bool_copy(grp, "isRandomColor", is_random_color);
+      DRW_shgroup_uniform_int_copy(grp, "colorType", color_type);
       DRW_shgroup_uniform_bool_copy(grp, "isHair", false);
 
       pd->wires_all_grp[xray][use_coloring] = grp = DRW_shgroup_create(wires_sh, pass);
@@ -154,7 +152,7 @@ static void wireframe_hair_cache_populate(OVERLAY_Data *vedata, Object *ob, Part
     unit_m4(dupli_mat);
   }
 
-  struct GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
+  GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
 
   const bool use_coloring = true;
   DRWShadingGroup *shgrp = DRW_shgroup_create_sub(pd->wires_hair_grp[is_xray][use_coloring]);
@@ -214,7 +212,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     float *color;
     DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-    struct GPUBatch *geom = nullptr;
+    GPUBatch *geom = nullptr;
     switch (ob->type) {
       case OB_CURVES_LEGACY:
         geom = DRW_cache_curve_edge_wire_get(ob);
@@ -273,7 +271,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
       OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
       DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-      struct GPUBatch *geom = DRW_cache_object_face_wireframe_get(ob);
+      GPUBatch *geom = DRW_cache_object_face_wireframe_get(ob);
       if (geom) {
         OVERLAY_extra_loose_points(cb, geom, ob->object_to_world, color);
       }
@@ -282,7 +280,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   }
 
   DRWShadingGroup *shgrp = nullptr;
-  struct GPUBatch *geom = nullptr;
+  GPUBatch *geom = nullptr;
 
   /* Don't do that in edit Mesh mode, unless there is a modifier preview. */
   if (use_wire && (!is_mesh || (!is_edit_mode || has_edit_mesh_cage))) {

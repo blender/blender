@@ -121,7 +121,7 @@ class GeneralizedSelfAdjointEigenSolver : public SelfAdjointEigenSolver<_MatrixT
       *
       * \returns    Reference to \c *this
       *
-      * Accoring to \p options, this function computes eigenvalues and (if requested)
+      * According to \p options, this function computes eigenvalues and (if requested)
       * the eigenvectors of one of the following three generalized eigenproblems:
       * - \c Ax_lBx: \f$ Ax = \lambda B x \f$
       * - \c ABx_lx: \f$ ABx = \lambda x \f$

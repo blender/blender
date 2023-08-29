@@ -1,16 +1,13 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   .
   ../../blenkernel
-  ../../blenlib
   ../../bmesh
   ../../depsgraph
   ../../imbuf
-  ../../makesdna
-  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -18,17 +15,17 @@ set(INC_SYS
 )
 
 set(SRC
-  mathutils.c
-  mathutils_Color.c
-  mathutils_Euler.c
-  mathutils_Matrix.c
-  mathutils_Quaternion.c
-  mathutils_Vector.c
+  mathutils.cc
+  mathutils_Color.cc
+  mathutils_Euler.cc
+  mathutils_Matrix.cc
+  mathutils_Quaternion.cc
+  mathutils_Vector.cc
   mathutils_bvhtree.cc
-  mathutils_geometry.c
-  mathutils_interpolate.c
-  mathutils_kdtree.c
-  mathutils_noise.c
+  mathutils_geometry.cc
+  mathutils_interpolate.cc
+  mathutils_kdtree.cc
+  mathutils_noise.cc
 
   mathutils.h
   mathutils_Color.h
@@ -44,8 +41,10 @@ set(SRC
 )
 
 set(LIB
-  bf_blenlib
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
   bf_imbuf
+  PRIVATE bf::intern::guardedalloc
   bf_python_ext
 
   ${PYTHON_LINKFLAGS}

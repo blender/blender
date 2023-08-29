@@ -1,14 +1,15 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2019-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __BLENDER_VIEWPORT_H__
 #define __BLENDER_VIEWPORT_H__
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_blender_cpp.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "scene/film.h"
 

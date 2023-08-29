@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(random_lib.glsl)
 #pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
@@ -132,7 +135,7 @@ void main()
 
   make_orthonormal_basis(N, T, B); /* Generate tangent space */
 
-  /* Integrating Envmap */
+  /* Integrating environment-map. */
   float weight = 0.0;
   vec3 out_radiance = vec3(0.0);
   for (float i = 0; i < sampleCount; i++) {
@@ -144,7 +147,7 @@ void main()
 
     if (NL > 0.0) {
       /* Coarse Approximation of the mapping distortion
-       * Unit Sphere -> Cubemap Face */
+       * Unit Sphere -> Cube-map Face. */
       const float dist = 4.0 * M_PI / 6.0;
       /* http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html : Equation 13 */
       float lod = clamp(lodFactor - 0.5 * log2(pdf * dist), 0.0, lodMax);

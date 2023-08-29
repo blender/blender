@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Dilate motion vector tiles until we covered maximum velocity.
@@ -19,7 +22,7 @@ MotionRect compute_motion_rect(ivec2 tile, vec2 motion)
 #if DEBUG_BYPASS_DILATION
   return MotionRect(tile, ivec2(1));
 #endif
-  /* Ceil to number of tile touched. */
+  /* `ceil()` to number of tile touched. */
   ivec2 point1 = tile + ivec2(sign(motion) * ceil(abs(motion) / float(MOTION_BLUR_TILE_SIZE)));
   ivec2 point2 = tile;
 
@@ -48,7 +51,7 @@ MotionLine compute_motion_line(ivec2 tile, vec2 motion)
 
   MotionLine line;
   line.origin = vec2(tile);
-  /* Rotate 90° Counter-Clockwise. */
+  /* Rotate 90 degrees counter-clockwise. */
   line.normal = vec2(-dir.y, dir.x);
   return line;
 }

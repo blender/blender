@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -43,7 +45,7 @@ static char GetCompleteViewMapDensityF1D___doc__[] =
     ".. method:: __call__(inter)\n"
     "\n"
     "   Returns the density evaluated for an Interface1D in the complete\n"
-    "   viewmap image.  The density is evaluated for a set of points along the\n"
+    "   viewmap image. The density is evaluated for a set of points along the\n"
     "   Interface1D (using the\n"
     "   :class:`freestyle.functions.ReadCompleteViewMapPixelF0D` functor) and\n"
     "   then integrated into a single value using a user-defined integration\n"
@@ -77,7 +79,7 @@ static int GetCompleteViewMapDensityF1D___init__(BPy_GetCompleteViewMapDensityF1
 /*-----------------------BPy_GetCompleteViewMapDensityF1D type definition -----------------------*/
 
 PyTypeObject GetCompleteViewMapDensityF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GetCompleteViewMapDensityF1D",
     /*tp_basicsize*/ sizeof(BPy_GetCompleteViewMapDensityF1D),
     /*tp_itemsize*/ 0,

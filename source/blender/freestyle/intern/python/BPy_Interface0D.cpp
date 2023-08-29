@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -297,7 +299,7 @@ static PyGetSetDef BPy_Interface0D_getseters[] = {
 /*-----------------------BPy_Interface0D type definition ------------------------------*/
 
 PyTypeObject Interface0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Interface0D",
     /*tp_basicsize*/ sizeof(BPy_Interface0D),
     /*tp_itemsize*/ 0,

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,6 +9,10 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern PyTypeObject BPyGPUOffScreen_Type;
 
@@ -23,3 +27,7 @@ typedef struct BPyGPUOffScreen {
 } BPyGPUOffScreen;
 
 PyObject *BPyGPUOffScreen_CreatePyObject(struct GPUOffScreen *ofs) ATTR_NONNULL(1);
+
+#ifdef __cplusplus
+}
+#endif

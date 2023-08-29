@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -25,7 +27,7 @@ PyDoc_STRVAR(
     "Class hierarchy: :class:`Iterator` > :class:`SVertexIterator`\n"
     "\n"
     "Class representing an iterator over :class:`SVertex` of a\n"
-    ":class:`ViewEdge`.  An instance of an SVertexIterator can be obtained\n"
+    ":class:`ViewEdge`. An instance of an SVertexIterator can be obtained\n"
     "from a ViewEdge by calling verticesBegin() or verticesEnd().\n"
     "\n"
     ".. method:: __init__()\n"
@@ -148,7 +150,7 @@ static PyGetSetDef BPy_SVertexIterator_getseters[] = {
 /*-----------------------BPy_SVertexIterator type definition ------------------------------*/
 
 PyTypeObject SVertexIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "SVertexIterator",
     /*tp_basicsize*/ sizeof(BPy_SVertexIterator),
     /*tp_itemsize*/ 0,

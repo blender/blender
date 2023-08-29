@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -592,7 +594,7 @@ OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge &iEdge)
   }
 
   if (((WXVertex *)v)->isFeature()) {
-    return nullptr; /* XXX eeek? NULL? OWXEdge(NULL, true/false)? */
+    return nullptr; /* XXX eeek? nullptr? OWXEdge(nullptr, true/false)? */
   }
 
   int faceMarks = retrieveFaceMarks(iEdge.e);

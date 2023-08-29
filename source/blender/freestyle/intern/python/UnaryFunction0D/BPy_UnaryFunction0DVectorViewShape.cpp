@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -122,7 +124,7 @@ static PyObject *UnaryFunction0DVectorViewShape___call__(BPy_UnaryFunction0DVect
 /*-----------------------BPy_UnaryFunction0DVectorViewShape type definition ---------------------*/
 
 PyTypeObject UnaryFunction0DVectorViewShape_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction0DVectorViewShape",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction0DVectorViewShape),
     /*tp_itemsize*/ 0,

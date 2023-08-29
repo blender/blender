@@ -1,10 +1,9 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "IO_types.h"
 #include "usd.h"
-#include "usd_common.h"
 #include "usd_hierarchy_iterator.h"
 #include "usd_reader_geom.h"
 #include "usd_reader_prim.h"
@@ -33,6 +32,8 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
+#include "BLT_translation.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
@@ -45,8 +46,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/metrics.h>
@@ -81,7 +82,7 @@ static bool gather_objects_paths(const pxr::UsdPrim &object, ListBase *object_pa
   void *usd_path_void = MEM_callocN(sizeof(CacheObjectPath), "CacheObjectPath");
   CacheObjectPath *usd_path = static_cast<CacheObjectPath *>(usd_path_void);
 
-  BLI_strncpy(usd_path->path, object.GetPrimPath().GetString().c_str(), sizeof(usd_path->path));
+  STRNCPY(usd_path->path, object.GetPrimPath().GetString().c_str());
   BLI_addtail(object_paths, usd_path);
 
   return true;
@@ -302,6 +303,10 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
     }
   }
 
+  if (data->params.import_skeletons) {
+    archive->process_armature_modifiers();
+  }
+
   data->import_ok = !data->was_canceled;
 
   *progress = 1.0f;
@@ -409,12 +414,7 @@ static void import_freejob(void *user_data)
 
 using namespace blender::io::usd;
 
-void USD_ensure_plugin_path_registered()
-{
-  blender::io::usd::ensure_usd_plugin_path_registered();
-}
-
-bool USD_import(struct bContext *C,
+bool USD_import(bContext *C,
                 const char *filepath,
                 const USDImportParams *params,
                 bool as_background_job)
@@ -426,7 +426,7 @@ bool USD_import(struct bContext *C,
   job->view_layer = CTX_data_view_layer(C);
   job->wm = CTX_wm_manager(C);
   job->import_ok = false;
-  BLI_strncpy(job->filepath, filepath, 1024);
+  STRNCPY(job->filepath, filepath);
 
   job->settings.scale = params->scale;
   job->settings.sequence_offset = params->offset;
@@ -459,7 +459,7 @@ bool USD_import(struct bContext *C,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    /* Fake a job context, so that we don't need NULL pointer checks while importing. */
+    /* Fake a job context, so that we don't need null pointer checks while importing. */
     bool stop = false, do_update = false;
     float progress = 0.0f;
 
@@ -485,7 +485,7 @@ static USDPrimReader *get_usd_reader(CacheReader *reader,
   pxr::UsdPrim iobject = usd_reader->prim();
 
   if (!iobject.IsValid()) {
-    *err_str = "Invalid object: verify object path";
+    *err_str = TIP_("Invalid object: verify object path");
     return nullptr;
   }
 
@@ -500,11 +500,11 @@ USDMeshReadParams create_mesh_read_params(const double motion_sample_time, const
   return params;
 }
 
-struct Mesh *USD_read_mesh(struct CacheReader *reader,
-                           struct Object *ob,
-                           struct Mesh *existing_mesh,
-                           const USDMeshReadParams params,
-                           const char **err_str)
+Mesh *USD_read_mesh(CacheReader *reader,
+                    Object *ob,
+                    Mesh *existing_mesh,
+                    const USDMeshReadParams params,
+                    const char **err_str)
 {
   USDGeomReader *usd_reader = dynamic_cast<USDGeomReader *>(get_usd_reader(reader, ob, err_str));
 
@@ -580,7 +580,7 @@ void USD_CacheReader_free(CacheReader *reader)
   }
 }
 
-CacheArchiveHandle *USD_create_handle(struct Main * /*bmain*/,
+CacheArchiveHandle *USD_create_handle(Main * /*bmain*/,
                                       const char *filepath,
                                       ListBase *object_paths)
 {
@@ -610,10 +610,7 @@ void USD_free_handle(CacheArchiveHandle *handle)
   delete stage_reader;
 }
 
-void USD_get_transform(struct CacheReader *reader,
-                       float r_mat_world[4][4],
-                       float time,
-                       float scale)
+void USD_get_transform(CacheReader *reader, float r_mat_world[4][4], float time, float scale)
 {
   if (!reader) {
     return;

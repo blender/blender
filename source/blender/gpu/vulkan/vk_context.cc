@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -23,14 +23,7 @@ namespace blender::gpu {
 VKContext::VKContext(void *ghost_window, void *ghost_context)
 {
   ghost_window_ = ghost_window;
-  if (ghost_window) {
-    ghost_context = GHOST_GetDrawingContext((GHOST_WindowHandle)ghost_window);
-  }
   ghost_context_ = ghost_context;
-  VKDevice &device = VKBackend::get().device_;
-  if (!device.is_initialized()) {
-    device.init(ghost_context);
-  }
 
   state_manager = new VKStateManager();
   imm = new VKImmediate();
@@ -43,6 +36,8 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
 
 VKContext::~VKContext()
 {
+  VKBackend::get().device_.context_unregister(*this);
+
   delete imm;
   imm = nullptr;
 }
@@ -83,6 +78,7 @@ void VKContext::sync_backbuffer()
     command_buffer_.init(device.device_get(), device.queue_get(), command_buffer);
     command_buffer_.begin_recording();
     device.descriptor_pools_get().reset();
+    device.init_dummy_buffer(*this);
   }
 }
 
@@ -130,12 +126,7 @@ void VKContext::memory_statistics_get(int * /*total_mem*/, int * /*free_mem*/) {
 /** \name State manager
  * \{ */
 
-const VKStateManager &VKContext::state_manager_get() const
-{
-  return *static_cast<const VKStateManager *>(state_manager);
-}
-
-VKStateManager &VKContext::state_manager_get()
+VKStateManager &VKContext::state_manager_get() const
 {
   return *static_cast<VKStateManager *>(state_manager);
 }

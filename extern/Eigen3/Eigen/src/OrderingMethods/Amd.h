@@ -2,31 +2,21 @@
 // for linear algebra.
 //
 // Copyright (C) 2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+//
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /*
-
 NOTE: this routine has been adapted from the CSparse library:
 
 Copyright (c) 2006, Timothy A. Davis.
 http://www.suitesparse.com
 
-CSparse is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-CSparse is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this Module; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
+The author of CSparse, Timothy A. Davis., has executed a license with Google LLC
+to permit distribution of this code and derivative works as part of Eigen under
+the Mozilla Public License v. 2.0, as stated at the top of this file.
 */
-
-#include "../Core/util/NonMPL2.h"
 
 #ifndef EIGEN_SPARSE_AMD_H
 #define EIGEN_SPARSE_AMD_H

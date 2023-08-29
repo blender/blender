@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -28,10 +28,12 @@
 
 #include "BLI_compute_context.hh"
 
+#include "BKE_node_tree_zones.hh"
 #include "BKE_simulation_state.hh"
 
 struct Object;
 struct Depsgraph;
+struct Scene;
 
 namespace blender::nodes {
 
@@ -59,6 +61,12 @@ struct GeoNodesModifierData {
   float simulation_time_delta = 0.0f;
 
   /**
+   * The same as #prev_simulation_state, but the cached values can be moved from,
+   * to keep data managed by implicit sharing mutable.
+   */
+  bke::sim::ModifierSimulationState *prev_simulation_state_mutable = nullptr;
+
+  /**
    * Some nodes should be executed even when their output is not used (e.g. active viewer nodes and
    * the node groups they are contained in).
    */
@@ -73,6 +81,14 @@ struct GeoNodesModifierData {
   const Set<ComputeContextHash> *socket_log_contexts = nullptr;
 };
 
+struct GeoNodesOperatorData {
+  /** The object currently effected by the operator. */
+  const Object *self_object = nullptr;
+  /** Current evaluated depsgraph. */
+  Depsgraph *depsgraph = nullptr;
+  Scene *scene = nullptr;
+};
+
 /**
  * Custom user data that is passed to every geometry nodes related lazy-function evaluation.
  */
@@ -82,6 +98,10 @@ struct GeoNodesLFUserData : public lf::UserData {
    */
   GeoNodesModifierData *modifier_data = nullptr;
   /**
+   * Data from execution as operator in 3D viewport.
+   */
+  GeoNodesOperatorData *operator_data = nullptr;
+  /**
    * Current compute context. This is different depending in the (nested) node group that is being
    * evaluated.
    */
@@ -90,6 +110,10 @@ struct GeoNodesLFUserData : public lf::UserData {
    * Log socket values in the current compute context. Child contexts might use logging again.
    */
   bool log_socket_values = true;
+  /**
+   * Top-level node tree of the current evaluation.
+   */
+  const bNodeTree *root_ntree = nullptr;
 
   destruct_ptr<lf::LocalUserData> get_local(LinearAllocator<> &allocator) override;
 };
@@ -175,7 +199,7 @@ struct GeometryNodeLazyFunctionGraphMapping {
    */
   Map<const bNode *, const lf::FunctionNode *> group_node_map;
   Map<const bNode *, const lf::FunctionNode *> viewer_node_map;
-  Map<const bNode *, const lf::FunctionNode *> sim_output_node_map;
+  Map<const bke::bNodeTreeZone *, const lf::FunctionNode *> zone_node_map;
 
   /* Indexed by #bNodeSocket::index_in_all_outputs. */
   Array<int> lf_input_index_for_output_bsocket_usage;
@@ -190,29 +214,9 @@ struct GeometryNodeLazyFunctionGraphMapping {
  */
 struct GeometryNodesLazyFunctionGraphInfo {
   /**
-   * Allocator used for many things contained in this struct.
+   * Contains resources that need to be freed when the graph is not needed anymore.
    */
-  LinearAllocator<> allocator;
-  /**
-   * Many nodes are implemented as multi-functions. So this contains a mapping from nodes to their
-   * corresponding multi-functions.
-   */
-  std::unique_ptr<NodeMultiFunctions> node_multi_functions;
-  /**
-   * Many lazy-functions are build for the lazy-function graph. Since the graph does not own them,
-   * we have to keep track of them separately.
-   */
-  Vector<std::unique_ptr<LazyFunction>> functions;
-  /**
-   * Debug info that has to be destructed when the graph is not used anymore.
-   */
-  Vector<std::unique_ptr<lf::DummyDebugInfo>> dummy_debug_infos_;
-  /**
-   * Many sockets have default values. Since those are not owned by the lazy-function graph, we
-   * have to keep track of them separately. This only owns the values, the memory is owned by the
-   * allocator above.
-   */
-  Vector<GMutablePointer> values_to_destruct;
+  ResourceScope scope;
   /**
    * The actual lazy-function graph.
    */
@@ -226,9 +230,6 @@ struct GeometryNodesLazyFunctionGraphInfo {
    * This can be used as a simple heuristic for the complexity of the node group.
    */
   int num_inline_nodes_approximate = 0;
-
-  GeometryNodesLazyFunctionGraphInfo();
-  ~GeometryNodesLazyFunctionGraphInfo();
 };
 
 /**
@@ -263,8 +264,8 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
     GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node);
 
-bke::sim::SimulationZoneID get_simulation_zone_id(const ComputeContext &context,
-                                                  const int output_node_id);
+std::optional<bke::sim::SimulationZoneID> get_simulation_zone_id(
+    const GeoNodesLFUserData &user_data, const int output_node_id);
 
 /**
  * An anonymous attribute created by a node.

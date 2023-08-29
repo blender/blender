@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -71,52 +71,53 @@ void VKFrameBuffer::bind(bool /*enabled_srgb*/)
   context.activate_framebuffer(*this);
 }
 
-VkViewport VKFrameBuffer::vk_viewport_get() const
+Array<VkViewport, 16> VKFrameBuffer::vk_viewports_get() const
 {
-  VkViewport viewport;
-  int viewport_rect[4];
-  viewport_get(viewport_rect);
+  Array<VkViewport, 16> viewports(this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1);
 
-  viewport.x = viewport_rect[0];
-  viewport.y = viewport_rect[1];
-  viewport.width = viewport_rect[2];
-  viewport.height = viewport_rect[3];
-  viewport.minDepth = 0.0f;
-  viewport.maxDepth = 1.0f;
-
-  /*
-   * Vulkan has origin to the top left, Blender bottom left. We counteract this by using a negative
-   * viewport when flip_viewport_ is set. This flips the viewport making any draw/blit use the
-   * correct orientation.
-   */
-  if (flip_viewport_) {
-    viewport.y = height_ - viewport_rect[1];
-    viewport.height = -viewport_rect[3];
+  int index = 0;
+  for (VkViewport &viewport : viewports) {
+    viewport.x = viewport_[index][0];
+    viewport.y = viewport_[index][1];
+    viewport.width = viewport_[index][2];
+    viewport.height = viewport_[index][3];
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    /*
+     * Vulkan has origin to the top left, Blender bottom left. We counteract this by using a
+     * negative viewport when flip_viewport_ is set. This flips the viewport making any draw/blit
+     * use the correct orientation.
+     */
+    if (flip_viewport_) {
+      viewport.y = height_ - viewport_[index][1];
+      viewport.height = -viewport_[index][3];
+    }
+    index++;
   }
-
-  return viewport;
+  return viewports;
 }
 
-VkRect2D VKFrameBuffer::vk_render_area_get() const
+Array<VkRect2D, 16> VKFrameBuffer::vk_render_areas_get() const
 {
-  VkRect2D render_area = {};
+  Array<VkRect2D, 16> render_areas(this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1);
 
-  if (scissor_test_get()) {
-    int scissor_rect[4];
-    scissor_get(scissor_rect);
-    render_area.offset.x = scissor_rect[0];
-    render_area.offset.y = scissor_rect[1];
-    render_area.extent.width = scissor_rect[2];
-    render_area.extent.height = scissor_rect[3];
+  for (VkRect2D &render_area : render_areas) {
+    if (scissor_test_get()) {
+      int scissor_rect[4];
+      scissor_get(scissor_rect);
+      render_area.offset.x = scissor_rect[0];
+      render_area.offset.y = scissor_rect[1];
+      render_area.extent.width = scissor_rect[2];
+      render_area.extent.height = scissor_rect[3];
+    }
+    else {
+      render_area.offset.x = 0;
+      render_area.offset.y = 0;
+      render_area.extent.width = width_;
+      render_area.extent.height = height_;
+    }
   }
-  else {
-    render_area.offset.x = 0;
-    render_area.offset.y = 0;
-    render_area.extent.width = width_;
-    render_area.extent.height = height_;
-  }
-
-  return render_area;
+  return render_areas;
 }
 
 bool VKFrameBuffer::check(char /*err_out*/[256])
@@ -170,7 +171,7 @@ void VKFrameBuffer::clear(const Vector<VkClearAttachment> &attachments) const
     return;
   }
   VkClearRect clear_rect = {};
-  clear_rect.rect = vk_render_area_get();
+  clear_rect.rect = vk_render_areas_get()[0];
   clear_rect.baseArrayLayer = 0;
   clear_rect.layerCount = 1;
 
@@ -372,6 +373,8 @@ void VKFrameBuffer::render_pass_create()
   std::array<VkAttachmentDescription, GPU_FB_MAX_ATTACHMENT> attachment_descriptions;
   std::array<VkImageView, GPU_FB_MAX_ATTACHMENT> image_views;
   std::array<VkAttachmentReference, GPU_FB_MAX_ATTACHMENT> attachment_references;
+  image_views_.clear();
+
   bool has_depth_attachment = false;
   bool found_attachment = false;
   int depth_location = -1;
@@ -402,7 +405,12 @@ void VKFrameBuffer::render_pass_create()
       /* Ensure texture is allocated to ensure the image view. */
       VKTexture &texture = *static_cast<VKTexture *>(unwrap(attachment.tex));
       texture.ensure_allocated();
-      image_views[attachment_location] = texture.vk_image_view_handle();
+      image_views_.append(VKImageView(texture,
+                                      eImageViewUsage::Attachment,
+                                      IndexRange(max_ii(attachment.layer, 0), 1),
+                                      IndexRange(attachment.mip, 1),
+                                      name_));
+      image_views[attachment_location] = image_views_.last().vk_handle();
 
       VkAttachmentDescription &attachment_description =
           attachment_descriptions[attachment_location];
@@ -411,10 +419,10 @@ void VKFrameBuffer::render_pass_create()
       attachment_description.samples = VK_SAMPLE_COUNT_1_BIT;
       attachment_description.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
       attachment_description.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-      attachment_description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-      attachment_description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-      attachment_description.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
-      attachment_description.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+      attachment_description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+      attachment_description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+      attachment_description.initialLayout = texture.current_layout_get();
+      attachment_description.finalLayout = texture.current_layout_get();
 
       /* Create the attachment reference. */
       const bool is_depth_attachment = ELEM(
@@ -441,7 +449,7 @@ void VKFrameBuffer::render_pass_create()
     size_set(size[0], size[1]);
   }
   else {
-    /* A framebuffer should at least be 1 by 1.*/
+    /* A frame-buffer should at least be 1 by 1. */
     this->size_set(1, 1);
   }
   viewport_reset();
@@ -497,6 +505,7 @@ void VKFrameBuffer::render_pass_free()
     vkDestroyRenderPass(device.device_get(), vk_render_pass_, vk_allocation_callbacks);
     vkDestroyFramebuffer(device.device_get(), vk_framebuffer_, vk_allocation_callbacks);
   }
+  image_views_.clear();
   vk_render_pass_ = VK_NULL_HANDLE;
   vk_framebuffer_ = VK_NULL_HANDLE;
 }

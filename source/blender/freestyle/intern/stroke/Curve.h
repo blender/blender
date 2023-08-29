@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -304,7 +304,7 @@ class CurvePoint : public Interface0D {
   const SShape *shape() const;
   // float shape_importance() const;
 
-  // const unsigned qi() const;
+  // const uint qi() const;
   occluder_container::const_iterator occluders_begin() const;
   occluder_container::const_iterator occluders_end() const;
   bool occluders_empty() const;
@@ -381,7 +381,7 @@ class Curve : public Interface1D {
   vertex_container _Vertices;
   double _Length;
   Id _Id;
-  unsigned _nSegments;  // number of segments
+  uint _nSegments;  // number of segments
 
  public:
   /** Default Constructor. */
@@ -490,7 +490,7 @@ class Curve : public Interface1D {
   }
 
   /** Returns the number of segments in the polyline constituting the Curve. */
-  inline unsigned int nSegments() const
+  inline uint nSegments() const
   {
     return _nSegments;
   }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2021-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef WITH_METAL
 
@@ -24,7 +25,8 @@ std::map<int, MetalDevice *> MetalDevice::active_device_ids;
 
 /* Thread-safe device access for async work. Calling code must pass an appropriately scoped lock
  * to existing_devices_mutex to safeguard against destruction of the returned instance. */
-MetalDevice *MetalDevice::get_device_by_ID(int ID, thread_scoped_lock &existing_devices_mutex_lock)
+MetalDevice *MetalDevice::get_device_by_ID(int ID,
+                                           thread_scoped_lock & /*existing_devices_mutex_lock*/)
 {
   auto it = active_device_ids.find(ID);
   if (it != active_device_ids.end()) {
@@ -118,7 +120,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   }
 
   if (device_vendor == METAL_GPU_APPLE) {
-    /* Set kernel_specialization_level based on user prefs. */
+    /* Set kernel_specialization_level based on user preferences. */
     switch (info.kernel_optimization_level) {
       case KERNEL_OPTIMIZATION_LEVEL_OFF:
         kernel_specialization_level = PSO_GENERIC;
@@ -287,12 +289,12 @@ MetalDevice::~MetalDevice()
   texture_info.free();
 }
 
-bool MetalDevice::support_device(const uint kernel_features /*requested_features*/)
+bool MetalDevice::support_device(const uint /*kernel_features*/)
 {
   return true;
 }
 
-bool MetalDevice::check_peer_access(Device *peer_device)
+bool MetalDevice::check_peer_access(Device * /*peer_device*/)
 {
   assert(0);
   /* does peer access make sense? */
@@ -912,7 +914,9 @@ void MetalDevice::mem_free(device_memory &mem)
   }
 }
 
-device_ptr MetalDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/)
+device_ptr MetalDevice::mem_alloc_sub_ptr(device_memory & /*mem*/,
+                                          size_t /*offset*/,
+                                          size_t /*size*/)
 {
   /* METAL_WIP - revive if necessary */
   assert(0);

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -128,16 +128,16 @@ typedef struct DRWSubdivCache {
    * counters above will all be set to zero if we do not have subdivision loops. */
   bool may_have_loose_geom;
 
-  /* Number of polygons in the coarse mesh, notably used to compute a coarse polygon index given a
+  /* Number of faces in the coarse mesh, notably used to compute a coarse face index given a
    * subdivision loop index. */
-  int num_coarse_poly;
+  int num_coarse_faces;
 
   /* Maps subdivision loop to subdivided vertex index. */
   int *subdiv_loop_subdiv_vert_index;
   /* Maps subdivision loop to subdivided edge index. */
   int *subdiv_loop_subdiv_edge_index;
-  /* Maps subdivision loop to original coarse poly index. */
-  int *subdiv_loop_poly_index;
+  /* Maps subdivision loop to original coarse face index. */
+  int *subdiv_loop_face_index;
 
   /* Indices of faces adjacent to the vertices, ordered by vertex index, with no particular
    * winding. */
@@ -153,16 +153,16 @@ typedef struct DRWSubdivCache {
   /* Indicates if edge should be drawn in optimal display mode. */
   struct GPUVertBuf *edges_draw_flag;
 
-  /* Owned by #Subdiv. Indexed by coarse polygon index, difference between value (i + 1) and (i)
-   * gives the number of ptex faces for coarse polygon (i). */
+  /* Owned by #Subdiv. Indexed by coarse face index, difference between value (i + 1) and (i)
+   * gives the number of ptex faces for coarse face (i). */
   int *face_ptex_offset;
   /* Vertex buffer for face_ptex_offset. */
   struct GPUVertBuf *face_ptex_offset_buffer;
 
-  int *subdiv_polygon_offset;
-  struct GPUVertBuf *subdiv_polygon_offset_buffer;
+  int *subdiv_face_offset;
+  struct GPUVertBuf *subdiv_face_offset_buffer;
 
-  /* Contains the start loop index and the smooth flag for each coarse polygon. */
+  /* Contains the start loop index and the smooth flag for each coarse face. */
   struct GPUVertBuf *extra_coarse_face_data;
 
   /* Computed for `ibo.points`, one value per subdivided vertex,
@@ -172,7 +172,7 @@ typedef struct DRWSubdivCache {
   /* Material offsets. */
   int *mat_start;
   int *mat_end;
-  struct GPUVertBuf *polygon_mat_offset;
+  struct GPUVertBuf *face_mat_offset;
 
   DRWPatchMap gpu_patch_map;
 
@@ -188,13 +188,13 @@ typedef struct DRWSubdivCache {
 
 /* Only frees the data of the cache, caller is responsible to free the cache itself if necessary.
  */
-void draw_subdiv_cache_free(DRWSubdivCache *cache);
+void draw_subdiv_cache_free(DRWSubdivCache &cache);
 
 /** \} */
 
 void DRW_create_subdivision(struct Object *ob,
                             struct Mesh *mesh,
-                            struct MeshBatchCache *batch_cache,
+                            struct MeshBatchCache &batch_cache,
                             struct MeshBufferCache *mbc,
                             const bool is_editmode,
                             const bool is_paint_mode,
@@ -219,76 +219,76 @@ struct GPUVertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint 
 
 /* Compute shader functions. */
 
-void draw_subdiv_build_sculpt_data_buffer(const DRWSubdivCache *cache,
+void draw_subdiv_build_sculpt_data_buffer(const DRWSubdivCache &cache,
                                           struct GPUVertBuf *mask_vbo,
                                           struct GPUVertBuf *face_set_vbo,
                                           struct GPUVertBuf *sculpt_data);
 
-void draw_subdiv_accumulate_normals(const DRWSubdivCache *cache,
+void draw_subdiv_accumulate_normals(const DRWSubdivCache &cache,
                                     struct GPUVertBuf *pos_nor,
                                     struct GPUVertBuf *face_adjacency_offsets,
                                     struct GPUVertBuf *face_adjacency_lists,
                                     struct GPUVertBuf *vertex_loop_map,
                                     struct GPUVertBuf *vert_normals);
 
-void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
+void draw_subdiv_finalize_normals(const DRWSubdivCache &cache,
                                   struct GPUVertBuf *vert_normals,
                                   struct GPUVertBuf *subdiv_loop_subdiv_vert_index,
                                   struct GPUVertBuf *pos_nor);
 
-void draw_subdiv_finalize_custom_normals(const DRWSubdivCache *cache,
+void draw_subdiv_finalize_custom_normals(const DRWSubdivCache &cache,
                                          GPUVertBuf *src_custom_normals,
                                          GPUVertBuf *pos_nor);
 
-void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
+void draw_subdiv_extract_pos_nor(const DRWSubdivCache &cache,
                                  GPUVertBuf *flags_buffer,
                                  struct GPUVertBuf *pos_nor,
                                  struct GPUVertBuf *orco);
 
-void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
+void draw_subdiv_interp_custom_data(const DRWSubdivCache &cache,
                                     struct GPUVertBuf *src_data,
                                     struct GPUVertBuf *dst_data,
                                     int comp_type, /*GPUVertCompType*/
                                     int dimensions,
                                     int dst_offset);
 
-void draw_subdiv_extract_uvs(const DRWSubdivCache *cache,
+void draw_subdiv_extract_uvs(const DRWSubdivCache &cache,
                              struct GPUVertBuf *uvs,
                              int face_varying_channel,
                              int dst_offset);
 
-void draw_subdiv_build_edge_fac_buffer(const DRWSubdivCache *cache,
+void draw_subdiv_build_edge_fac_buffer(const DRWSubdivCache &cache,
                                        struct GPUVertBuf *pos_nor,
                                        struct GPUVertBuf *edge_draw_flag,
                                        struct GPUVertBuf *poly_other_map,
                                        struct GPUVertBuf *edge_fac);
 
-void draw_subdiv_build_tris_buffer(const DRWSubdivCache *cache,
+void draw_subdiv_build_tris_buffer(const DRWSubdivCache &cache,
                                    struct GPUIndexBuf *subdiv_tris,
                                    int material_count);
 
-void draw_subdiv_build_lines_buffer(const DRWSubdivCache *cache,
+void draw_subdiv_build_lines_buffer(const DRWSubdivCache &cache,
                                     struct GPUIndexBuf *lines_indices);
 
-void draw_subdiv_build_lines_loose_buffer(const DRWSubdivCache *cache,
+void draw_subdiv_build_lines_loose_buffer(const DRWSubdivCache &cache,
                                           struct GPUIndexBuf *lines_indices,
                                           GPUVertBuf *lines_flags,
                                           uint num_loose_edges);
 
-void draw_subdiv_build_fdots_buffers(const DRWSubdivCache *cache,
+void draw_subdiv_build_fdots_buffers(const DRWSubdivCache &cache,
                                      struct GPUVertBuf *fdots_pos,
                                      struct GPUVertBuf *fdots_nor,
                                      struct GPUIndexBuf *fdots_indices);
 
-void draw_subdiv_build_lnor_buffer(const DRWSubdivCache *cache,
+void draw_subdiv_build_lnor_buffer(const DRWSubdivCache &cache,
                                    struct GPUVertBuf *pos_nor,
                                    struct GPUVertBuf *lnor);
 
-void draw_subdiv_build_edituv_stretch_area_buffer(const DRWSubdivCache *cache,
+void draw_subdiv_build_edituv_stretch_area_buffer(const DRWSubdivCache &cache,
                                                   struct GPUVertBuf *coarse_data,
                                                   struct GPUVertBuf *subdiv_data);
 
-void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache *cache,
+void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache &cache,
                                                    struct GPUVertBuf *pos_nor,
                                                    struct GPUVertBuf *uvs,
                                                    int uvs_offset,
@@ -305,10 +305,10 @@ struct GPUVertFormat *draw_subdiv_get_pos_nor_format(void);
 #  include "BLI_span.hh"
 
 /* Helper to access the loose edges. */
-blender::Span<DRWSubdivLooseEdge> draw_subdiv_cache_get_loose_edges(const DRWSubdivCache *cache);
+blender::Span<DRWSubdivLooseEdge> draw_subdiv_cache_get_loose_edges(const DRWSubdivCache &cache);
 
 /* Helper to access only the loose vertices, i.e. not the ones attached to loose edges. To access
  * loose vertices of loose edges #draw_subdiv_cache_get_loose_edges should be used. */
-blender::Span<DRWSubdivLooseVertex> draw_subdiv_cache_get_loose_verts(const DRWSubdivCache *cache);
+blender::Span<DRWSubdivLooseVertex> draw_subdiv_cache_get_loose_verts(const DRWSubdivCache &cache);
 
 #endif

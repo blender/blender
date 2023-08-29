@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2017-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(PYTHON_POSTFIX)
@@ -35,7 +37,7 @@ if(WIN32)
     # regardless of the version actually in there.
     PATCH_COMMAND mkdir ${PYTHON_EXTERNALS_FOLDER_DOS} &&
       mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\zlib-1.2.13 ${ZLIB_SOURCE_FOLDER_DOS} &&
-      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\openssl-1.1.1t ${SSL_SOURCE_FOLDER_DOS} &&
+      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\openssl-1.1.1u ${SSL_SOURCE_FOLDER_DOS} &&
       ${CMAKE_COMMAND} -E copy ${ZLIB_SOURCE_FOLDER}/../external_zlib-build/zconf.h ${PYTHON_EXTERNALS_FOLDER}/zlib-1.2.13/zconf.h &&
       ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_windows.diff
     CONFIGURE_COMMAND echo "."
@@ -79,14 +81,14 @@ else()
   set(PYTHON_BINARY ${LIBDIR}/python/bin/python${PYTHON_SHORT_VERSION})
   # Link against zlib statically (Unix). Avoid rpath issues (macOS).
   set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_unix.diff)
-  set(PYTHON_CONFIGURE_EXTRA_ARGS "--with-openssl=${LIBDIR}/ssl")
+  set(PYTHON_CONFIGURE_EXTRA_ARGS "")
   set(PYTHON_CFLAGS "-I${LIBDIR}/sqlite/include -I${LIBDIR}/bzip2/include -I${LIBDIR}/lzma/include -I${LIBDIR}/zlib/include ${PLATFORM_CFLAGS}")
   set(PYTHON_LDFLAGS "-L${LIBDIR}/ffi/lib -L${LIBDIR}/sqlite/lib -L${LIBDIR}/bzip2/lib -L${LIBDIR}/lzma/lib -L${LIBDIR}/zlib/lib ${PLATFORM_LDFLAGS}")
   set(PYTHON_CONFIGURE_EXTRA_ENV
     export CFLAGS=${PYTHON_CFLAGS} &&
     export CPPFLAGS=${PYTHON_CFLAGS} &&
     export LDFLAGS=${PYTHON_LDFLAGS} &&
-    export PKG_CONFIG_PATH=${LIBDIR}/ffi/lib/pkgconfig)
+    export PKG_CONFIG_PATH=${LIBDIR}/ffi/lib/pkgconfig:${LIBDIR}/ssl/lib64/pkgconfig)
 
   # NOTE: untested on APPLE so far.
   if(NOT APPLE)

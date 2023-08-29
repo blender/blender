@@ -1,7 +1,8 @@
+# SPDX-FileCopyrightText: 2021-2022 Blender Authors
+#
 # SPDX-License-Identifier: Apache-2.0
 
 import api
-import os
 
 
 def _run(args):

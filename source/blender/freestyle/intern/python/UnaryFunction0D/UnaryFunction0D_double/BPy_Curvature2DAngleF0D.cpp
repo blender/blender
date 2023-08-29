@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -30,7 +32,7 @@ static char Curvature2DAngleF0D___doc__[] =
     "\n"
     "   Returns a real value giving the 2D curvature (as an angle) of the 1D\n"
     "   element to which the :class:`freestyle.types.Interface0D` pointed by\n"
-    "   the Interface0DIterator belongs.  The 2D curvature is evaluated at the\n"
+    "   the Interface0DIterator belongs. The 2D curvature is evaluated at the\n"
     "   Interface0D.\n"
     "\n"
     "   :arg it: An Interface0DIterator object.\n"
@@ -56,7 +58,7 @@ static int Curvature2DAngleF0D___init__(BPy_Curvature2DAngleF0D *self,
 /*-----------------------BPy_Curvature2DAngleF0D type definition ------------------------------*/
 
 PyTypeObject Curvature2DAngleF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Curvature2DAngleF0D",
     /*tp_basicsize*/ sizeof(BPy_Curvature2DAngleF0D),
     /*tp_itemsize*/ 0,

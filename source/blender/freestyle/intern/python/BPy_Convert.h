@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -99,7 +99,7 @@ PyObject *BPy_Interface0D_from_Interface0D(Freestyle::Interface0D &if0D);
 PyObject *BPy_Interface1D_from_Interface1D(Freestyle::Interface1D &if1D);
 PyObject *BPy_IntegrationType_from_IntegrationType(Freestyle::IntegrationType i);
 PyObject *BPy_FrsMaterial_from_FrsMaterial(const Freestyle::FrsMaterial &m);
-PyObject *BPy_Nature_from_Nature(unsigned short n);
+PyObject *BPy_Nature_from_Nature(ushort n);
 PyObject *BPy_MediumType_from_MediumType(Freestyle::Stroke::MediumType n);
 PyObject *BPy_SShape_from_SShape(Freestyle::SShape &ss);
 PyObject *BPy_Stroke_from_Stroke(Freestyle::Stroke &s);

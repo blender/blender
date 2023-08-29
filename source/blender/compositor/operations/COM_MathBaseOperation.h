@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -217,6 +217,14 @@ class MathGreaterThanOperation : public MathFunctor2Operation<std::greater> {
 };
 
 class MathModuloOperation : public MathBaseOperation {
+ public:
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
+};
+
+class MathFlooredModuloOperation : public MathBaseOperation {
  public:
   void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 

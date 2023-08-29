@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 float calc_gradient(vec3 p, int gradient_type)
 {
   float x, y, z;

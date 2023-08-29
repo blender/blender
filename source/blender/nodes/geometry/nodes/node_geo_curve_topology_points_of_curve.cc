@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -160,10 +160,7 @@ class CurvePointCountInput final : public bke::CurvesFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const final
   {
-    if (dynamic_cast<const CurvePointCountInput *>(&other)) {
-      return true;
-    }
-    return false;
+    return dynamic_cast<const CurvePointCountInput *>(&other) != nullptr;
   }
 
   std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
@@ -211,10 +208,7 @@ class CurveStartPointInput final : public bke::CurvesFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const final
   {
-    if (dynamic_cast<const CurveStartPointInput *>(&other)) {
-      return true;
-    }
-    return false;
+    return dynamic_cast<const CurveStartPointInput *>(&other) != nullptr;
   }
 
   std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
@@ -247,16 +241,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_curve_topology_points_of_curve_cc
-
-void register_node_type_geo_curve_topology_points_of_curve()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_topology_points_of_curve_cc;
-
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_TOPOLOGY_POINTS_OF_CURVE, "Points of Curve", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_topology_points_of_curve_cc

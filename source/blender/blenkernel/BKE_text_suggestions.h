@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -58,11 +58,6 @@ SuggItem *texttool_suggest_last(void);
 void texttool_suggest_select(SuggItem *sel);
 SuggItem *texttool_suggest_selected(void);
 int *texttool_suggest_top(void);
-
-/* Documentation */
-void texttool_docs_show(const char *docs);
-char *texttool_docs_get(void);
-void texttool_docs_clear(void);
 
 #ifdef __cplusplus
 }

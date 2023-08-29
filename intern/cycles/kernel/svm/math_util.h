@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -144,6 +145,8 @@ ccl_device float svm_math(NodeMathType type, float a, float b, float c)
       return a - floorf(a);
     case NODE_MATH_MODULO:
       return safe_modulo(a, b);
+    case NODE_MATH_FLOORED_MODULO:
+      return safe_floored_modulo(a, b);
     case NODE_MATH_TRUNC:
       return a >= 0.0f ? floorf(a) : ceilf(a);
     case NODE_MATH_SNAP:

@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* Directive for resetting the line numbering so the failing tests lines can be printed.
  * This conflict with the shader compiler error logging scheme.
  * Comment out for correct compilation error line. */
@@ -166,11 +170,11 @@ void main()
     EXPECT_NEAR(as_vec4(to_quaternion(m)), as_vec4(expect_qt), 0.0002);
     EXPECT_NEAR(to_scale(m), expect_scale, 0.00001);
 
-    vec4 expect_sz = vec4(3, 2, 2, M_SQRT2);
+    vec4 expect_size = vec4(3, 2, 2, M_SQRT2);
     vec4 size;
     mat4x4 m1 = normalize_and_get_size(m, size);
     EXPECT_TRUE(is_unit_scale(m1));
-    EXPECT_NEAR(size, expect_sz, 0.0002);
+    EXPECT_NEAR(size, expect_size, 0.0002);
 
     mat4x4 m2 = normalize(m);
     EXPECT_TRUE(is_unit_scale(m2));

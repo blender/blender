@@ -24,7 +24,7 @@
 
 namespace blender::gpu {
 
-typedef struct ShaderInput {
+struct ShaderInput {
   uint32_t name_offset;
   uint32_t name_hash;
   /**
@@ -38,7 +38,7 @@ typedef struct ShaderInput {
   int32_t location;
   /** Defined at interface creation or in shader. Only for Samplers, UBOs and Vertex Attributes. */
   int32_t binding;
-} ShaderInput;
+};
 
 /**
  * Implementation of Shader interface.

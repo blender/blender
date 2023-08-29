@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -57,7 +57,10 @@ GPU_SHADER_CREATE_INFO(draw_view_culling)
     .typedef_source("draw_shader_shared.h");
 
 GPU_SHADER_CREATE_INFO(draw_modelmat)
-    .uniform_buf(8, "ObjectMatrices", "drw_matrices[DRW_RESOURCE_CHUNK_LEN]", Frequency::BATCH)
+    .uniform_buf(DRW_OBJ_MAT_UBO_SLOT,
+                 "ObjectMatrices",
+                 "drw_matrices[DRW_RESOURCE_CHUNK_LEN]",
+                 Frequency::BATCH)
     .define("ModelMatrix", "(drw_matrices[resource_id].model)")
     .define("ModelMatrixInverse", "(drw_matrices[resource_id].model_inverse)")
     .additional_info("draw_view");
@@ -117,14 +120,30 @@ GPU_SHADER_CREATE_INFO(draw_hair)
     .push_constant(Type::MAT4, "hairDupliMatrix")
     .additional_info("draw_modelmat", "draw_resource_id");
 
+GPU_SHADER_CREATE_INFO(draw_hair_new)
+    .define("HAIR_SHADER")
+    .define("DRW_HAIR_INFO")
+    .sampler(0, ImageType::FLOAT_BUFFER, "hairPointBuffer")
+    /* TODO(@fclem): Pack these into one UBO. */
+    .push_constant(Type::INT, "hairStrandsRes")
+    .push_constant(Type::INT, "hairThicknessRes")
+    .push_constant(Type::FLOAT, "hairRadRoot")
+    .push_constant(Type::FLOAT, "hairRadTip")
+    .push_constant(Type::FLOAT, "hairRadShape")
+    .push_constant(Type::BOOL, "hairCloseTip")
+    .push_constant(Type::INT, "hairStrandOffset")
+    .push_constant(Type::MAT4, "hairDupliMatrix");
+
 GPU_SHADER_CREATE_INFO(draw_pointcloud)
     .sampler(0, ImageType::FLOAT_BUFFER, "ptcloud_pos_rad_tx", Frequency::BATCH)
     .define("POINTCLOUD_SHADER")
     .define("DRW_POINTCLOUD_INFO")
-    .vertex_in(0, Type::VEC4, "pos")
-    .vertex_in(1, Type::VEC3, "pos_inst")
-    .vertex_in(2, Type::VEC3, "nor")
     .additional_info("draw_modelmat_instanced_attr", "draw_resource_id_uniform");
+
+GPU_SHADER_CREATE_INFO(draw_pointcloud_new)
+    .sampler(0, ImageType::FLOAT_BUFFER, "ptcloud_pos_rad_tx", Frequency::BATCH)
+    .define("POINTCLOUD_SHADER")
+    .define("DRW_POINTCLOUD_INFO");
 
 GPU_SHADER_CREATE_INFO(draw_volume).additional_info("draw_modelmat", "draw_resource_id_uniform");
 

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -70,9 +72,9 @@ Controller::Controller()
   _RootNode->addRef();
 
 #if 0
-  _SilhouetteNode = NULL;
-  _ProjectedSilhouette = NULL;
-  _VisibleProjectedSilhouette = NULL;
+  _SilhouetteNode = nullptr;
+  _ProjectedSilhouette = nullptr;
+  _VisibleProjectedSilhouette = nullptr;
 
   _DebugNode = new NodeGroup;
   _DebugNode->addRef();
@@ -127,14 +129,14 @@ Controller::~Controller()
   }
 
 #if 0
-  if (NULL != _SilhouetteNode) {
+  if (nullptr != _SilhouetteNode) {
     int ref = _SilhouetteNode->destroy();
     if (0 == ref) {
       delete _SilhouetteNode;
     }
   }
 
-  if (NULL != _DebugNode) {
+  if (nullptr != _DebugNode) {
     int ref = _DebugNode->destroy();
     if (0 == ref) {
       delete _DebugNode;
@@ -407,31 +409,31 @@ void Controller::DeleteViewMap(bool freeCache)
 {
 #if 0
   _pView->DetachSilhouette();
-  if (NULL != _SilhouetteNode) {
+  if (nullptr != _SilhouetteNode) {
     int ref = _SilhouetteNode->destroy();
     if (0 == ref) {
       delete _SilhouetteNode;
-      _SilhouetteNode = NULL;
+      _SilhouetteNode = nullptr;
     }
   }
 
-  if (NULL != _ProjectedSilhouette) {
+  if (nullptr != _ProjectedSilhouette) {
     int ref = _ProjectedSilhouette->destroy();
     if (0 == ref) {
       delete _ProjectedSilhouette;
-      _ProjectedSilhouette = NULL;
+      _ProjectedSilhouette = nullptr;
     }
   }
-  if (NULL != _VisibleProjectedSilhouette) {
+  if (nullptr != _VisibleProjectedSilhouette) {
     int ref = _VisibleProjectedSilhouette->destroy();
     if (0 == ref) {
       delete _VisibleProjectedSilhouette;
-      _VisibleProjectedSilhouette = NULL;
+      _VisibleProjectedSilhouette = nullptr;
     }
   }
 
   _pView->DetachDebug();
-  if (NULL != _DebugNode) {
+  if (nullptr != _DebugNode) {
     int ref = _DebugNode->destroy();
     if (0 == ref) {
       _DebugNode->addRef();
@@ -629,7 +631,7 @@ void Controller::ComputeSteerableViewMap()
 
   // Build 4 nodes containing the edges in the 4 directions
   NodeGroup *ng[Canvas::NB_STEERABLE_VIEWMAP];
-  unsigned i;
+  uint i;
   real c =
       32.0f /
       255.0f;  // see SteerableViewMap::readSteerableViewMapPixel() for information about this 32.
@@ -645,8 +647,8 @@ void Controller::ComputeSteerableViewMap()
   ViewMap::fedges_container &fedges = _ViewMap->FEdges();
   LineRep *fRep;
   NodeShape *ns;
-  for (ViewMap::fedges_container::iterator f = fedges.begin(), fend = fedges.end(); f != fend;
-       ++f) {
+  for (ViewMap::fedges_container::iterator f = fedges.begin(), fend = fedges.end(); f != fend; ++f)
+  {
     if ((*f)->viewedge()->qi() != 0) {
       continue;
     }
@@ -674,7 +676,7 @@ void Controller::ComputeSteerableViewMap()
     offscreenBuffer.AddNode(ng[i]);
 #  if 0
     img[i] = new GrayImage(_pView->width(), _pView->height());
-    offscreenBuffer.readPixels(0,0,_pView->width(), _pView->height(), img[i]->getArray());
+    offscreenBuffer.readPixels(0, 0, _pView->width(), _pView->height(), img[i]->getArray());
 #  endif
     pm = offscreenBuffer.renderPixmap(_pView->width(), _pView->height());
 
@@ -683,17 +685,17 @@ void Controller::ComputeSteerableViewMap()
         cout << "BuildViewMap Warning: couldn't render the steerable ViewMap" << endl;
       }
     }
-    //pm.save(QString("steerable") + QString::number(i) + QString(".bmp"), "BMP");
+    // pm.save(QString("steerable") + QString::number(i) + QString(".bmp"), "BMP");
     // FIXME!! Lost of time !
     qimg = pm.toImage();
     // FIXME !! again!
     img[i] = new GrayImage(_pView->width(), _pView->height());
-    for (unsigned int y = 0; y < img[i]->height(); ++y) {
-      for (unsigned int x = 0; x < img[i]->width(); ++x) {
-        //img[i]->setPixel(x, y, (float)qGray(qimg.pixel(x, y)) / 255.0f);
-        img[i]->setPixel(x, y, (float)qGray(qimg.pixel(x, y)));
+    for (uint y = 0; y < img[i]->height(); ++y) {
+      for (uint x = 0; x < img[i]->width(); ++x) {
+        // img[i]->setPixel(x, y, float(qGray(qimg.pixel(x, y))) / 255.0f);
+        img[i]->setPixel(x, y, float(qGray(qimg.pixel(x, y))));
         // float c = qGray(qimg.pixel(x, y));
-        //img[i]->setPixel(x, y, qGray(qimg.pixel(x, y)));
+        // img[i]->setPixel(x, y, qGray(qimg.pixel(x, y)));
       }
     }
     offscreenBuffer.DetachNode(ng[i]);
@@ -702,8 +704,8 @@ void Controller::ComputeSteerableViewMap()
     // check
 #  if 0
     qimg = QImage(_pView->width(), _pView->height(), 32);
-    for (unsigned int y = 0; y < img[i]->height(); ++y) {
-      for (unsigned int x = 0; x < img[i]->width(); ++x) {
+    for (uint y = 0; y < img[i]->height(); ++y) {
+      for (uint x = 0; x < img[i]->width(); ++x) {
         float v = img[i]->pixel(x, y);
         qimg.setPixel(x, y, qRgb(v, v, v));
       }
@@ -936,7 +938,7 @@ void Controller::InsertStyleModule(uint index, const char *iName, const char *iB
   _Canvas->InsertStyleModule(index, sm);
 }
 
-void Controller::InsertStyleModule(uint index, const char *iName, struct Text *iText)
+void Controller::InsertStyleModule(uint index, const char *iName, Text *iText)
 {
   StyleModule *sm = new BlenderStyleModule(iText, iName, _inter);
   _Canvas->InsertStyleModule(index, sm);

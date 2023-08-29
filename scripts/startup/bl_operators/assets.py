@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2020-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 from __future__ import annotations
 
 import bpy
@@ -82,11 +85,7 @@ class ASSET_OT_open_containing_blend_file(Operator):
     @classmethod
     def poll(cls, context):
         asset_file_handle = getattr(context, "asset_file_handle", None)
-        asset_library_ref = getattr(context, "asset_library_ref", None)
 
-        if not asset_library_ref:
-            cls.poll_message_set("No asset library selected")
-            return False
         if not asset_file_handle:
             cls.poll_message_set("No asset selected")
             return False

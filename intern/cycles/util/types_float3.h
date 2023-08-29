@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -62,11 +63,10 @@ ccl_device_inline void print_float3(ccl_private const char *label, const float3 
  * CPU SIMD instructions can be used. */
 #if defined(__KERNEL_METAL__)
 /* Metal has native packed_float3. */
-#elif defined(__KERNEL_CUDA__)
-/* CUDA float3 is already packed. */
+#elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
+/* CUDA and HIP float3 are already packed. */
 typedef float3 packed_float3;
 #else
-/* HIP float3 is not packed (https://github.com/ROCm-Developer-Tools/HIP/issues/706). */
 struct packed_float3 {
   ccl_device_inline_method packed_float3(){};
 

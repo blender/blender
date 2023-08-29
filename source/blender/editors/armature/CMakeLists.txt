@@ -1,22 +1,20 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   ../include
+  ../../asset_system
   ../../blenfont
   ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../blentranslation
   ../../depsgraph
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
   ../../../../intern/eigen
-  ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -25,31 +23,34 @@ set(INC_SYS
 )
 
 set(SRC
-  armature_add.c
-  armature_edit.c
-  armature_naming.c
-  armature_ops.c
-  armature_relations.c
-  armature_select.c
-  armature_skinning.c
-  armature_utils.c
+  armature_add.cc
+  armature_edit.cc
+  armature_naming.cc
+  armature_ops.cc
+  armature_relations.cc
+  armature_select.cc
+  armature_skinning.cc
+  armature_utils.cc
   editarmature_undo.cc
   meshlaplacian.cc
-  pose_edit.c
-  pose_group.c
-  pose_lib_2.c
-  pose_select.c
-  pose_slide.c
-  pose_transform.c
-  pose_utils.c
+  pose_edit.cc
+  pose_group.cc
+  pose_lib_2.cc
+  pose_select.cc
+  pose_slide.cc
+  pose_transform.cc
+  pose_utils.cc
 
   armature_intern.h
   meshlaplacian.h
 )
 
 set(LIB
+  PRIVATE bf::animrig
   bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 

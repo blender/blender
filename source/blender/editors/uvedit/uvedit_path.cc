@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
  *
- * \note The logic in this file closely follows editmesh_path.c
+ * \note The logic in this file closely follows `editmesh_path.cc`.
  */
 
 #include <cmath>
@@ -18,7 +18,6 @@
 
 #include "BLI_ghash.h"
 #include "BLI_linklist_stack.h"
-#include "BLI_math.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
@@ -34,24 +33,24 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_uvedit.h"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
+#include "ED_uvedit.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "intern/bmesh_marking.h"
 #include "uvedit_intern.h"

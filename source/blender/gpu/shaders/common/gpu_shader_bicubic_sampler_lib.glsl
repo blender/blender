@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** \param f: Offset from texel center in pixel space. */
 void cubic_bspline_coefficients(vec2 f, out vec2 w0, out vec2 w1, out vec2 w2, out vec2 w3)
 {

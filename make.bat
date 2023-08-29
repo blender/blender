@@ -128,3 +128,4 @@ if "%BUILD_WITH_NINJA%" == "" (
 )
 
 :EOF
+if errorlevel 1 exit /b %errorlevel%

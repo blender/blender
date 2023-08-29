@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -10,6 +10,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "MEM_guardedalloc.h"
 
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -125,7 +127,7 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name String Concatinate
+/** \name String Concatenate
  * \{ */
 
 TEST(string, StrCat)
@@ -160,7 +162,7 @@ TEST(string, StrReplaceRange)
 #define STR_REPLACE_RANGE(src, size, beg, end, dst, result_expect) \
   { \
     char string[size] = src; \
-    BLI_str_replace_range(string, sizeof(string), beg, end, dst); \
+    BLI_string_replace_range(string, sizeof(string), beg, end, dst); \
     EXPECT_STREQ(string, result_expect); \
   }
 
@@ -237,7 +239,7 @@ TEST(string, StrPartition)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_partition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -247,7 +249,7 @@ TEST(string, StrPartition)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_partition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -296,7 +298,7 @@ TEST(string, StrRPartition)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -306,7 +308,7 @@ TEST(string, StrRPartition)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -337,7 +339,7 @@ TEST(string, StrPartitionEx)
   {
     const char *str = "mate.rial";
 
-    /* "mate.rial" over "mate" -> "mate.rial", NULL, NULL, 4 */
+    /* "mate.rial" over "mate" -> "mate.rial", nullptr, nullptr, 4 */
     pre_len = BLI_str_partition_ex(str, str + 4, delim, &sep, &suf, true);
     EXPECT_EQ(pre_len, 4);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -386,7 +388,7 @@ TEST(string, StrPartitionUtf8)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -396,7 +398,7 @@ TEST(string, StrPartitionUtf8)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -445,7 +447,7 @@ TEST(string, StrRPartitionUtf8)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -455,7 +457,7 @@ TEST(string, StrRPartitionUtf8)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -487,7 +489,7 @@ TEST(string, StrPartitionExUtf8)
   {
     const char *str = "mate\xe2\x98\xafrial";
 
-    /* "mate\xe2\x98\xafrial" over "mate" -> "mate\xe2\x98\xafrial", NULL, NULL, 4 */
+    /* "mate\xe2\x98\xafrial" over "mate" -> "mate\xe2\x98\xafrial", nullptr, nullptr, 4 */
     pre_len = BLI_str_partition_ex_utf8(str, str + 4, delim, &sep, &suf, true);
     EXPECT_EQ(pre_len, 4);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -848,7 +850,7 @@ TEST(string, StringNLen)
   EXPECT_EQ(1, BLI_strnlen("x", 1));
   EXPECT_EQ(1, BLI_strnlen("x", 100));
 
-  // ü is \xc3\xbc
+  /* `ü` is `\xc3\xbc`. */
   EXPECT_EQ(2, BLI_strnlen("ü", 100));
 
   EXPECT_EQ(0, BLI_strnlen("this is a longer string", 0));
@@ -856,6 +858,104 @@ TEST(string, StringNLen)
   EXPECT_EQ(5, BLI_strnlen("this is a longer string", 5));
   EXPECT_EQ(47, BLI_strnlen("This string writes about an agent without name.", 100));
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Join
+ * \{ */
+
+#define BUFFER_SIZE 128
+
+static void string_join_array_test_truncate(const char *strings[],
+                                            int strings_num,
+                                            char buffer[BUFFER_SIZE])
+{
+  const int buffer_len = BLI_string_join_array(buffer, BUFFER_SIZE, strings, strings_num);
+
+  { /* Ensure the allocated version is the same. */
+    char *buffer_alloc = BLI_string_join_arrayN(strings, strings_num);
+    EXPECT_STREQ(buffer_alloc, buffer);
+    MEM_freeN(buffer_alloc);
+  }
+
+  for (int dst_size = buffer_len + 1; dst_size > 0; dst_size--) {
+    char dst_tmp[BUFFER_SIZE];
+    int dst_tmp_len = BLI_string_join_array(dst_tmp, dst_size, strings, strings_num);
+    EXPECT_EQ(dst_tmp_len + 1, dst_size);
+    EXPECT_EQ(strncmp(dst_tmp, buffer, dst_tmp_len), 0);
+  }
+}
+
+static void string_join_array_with_sep_char_test_truncate(const char *strings[],
+                                                          int strings_num,
+                                                          char buffer[BUFFER_SIZE])
+{
+  const int buffer_len = BLI_string_join_array_by_sep_char(
+      buffer, BUFFER_SIZE, '|', strings, strings_num);
+
+  { /* Ensure the allocated version is the same. */
+    char *buffer_alloc = BLI_string_join_array_by_sep_charN('|', strings, strings_num);
+    EXPECT_STREQ(buffer_alloc, buffer);
+    MEM_freeN(buffer_alloc);
+  }
+
+  for (int dst_size = buffer_len + 1; dst_size > 0; dst_size--) {
+    char dst_tmp[BUFFER_SIZE];
+    int dst_tmp_len = BLI_string_join_array_by_sep_char(
+        dst_tmp, dst_size, '|', strings, strings_num);
+    EXPECT_EQ(dst_tmp_len + 1, dst_size);
+    EXPECT_EQ(strncmp(dst_tmp, buffer, dst_tmp_len), 0);
+  }
+}
+
+TEST(string, StrJoin_Truncate)
+{
+  char buffer[BUFFER_SIZE];
+  { /* Multiple single char words. */
+    const char *strings[] = {"a", "b", "c", "d", "e", "f"};
+    string_join_array_test_truncate(strings, ARRAY_SIZE(strings), buffer);
+    EXPECT_STREQ(buffer, "abcdef");
+    string_join_array_with_sep_char_test_truncate(strings, ARRAY_SIZE(strings), buffer);
+    EXPECT_STREQ(buffer, "a|b|c|d|e|f");
+  }
+  { /* Multiple char pair words. */
+    const char *strings[] = {"aa", "bb", "cc", "dd", "ee", "ff"};
+    string_join_array_test_truncate(strings, ARRAY_SIZE(strings), buffer);
+    EXPECT_STREQ(buffer, "aabbccddeeff");
+    string_join_array_with_sep_char_test_truncate(strings, ARRAY_SIZE(strings), buffer);
+    EXPECT_STREQ(buffer, "aa|bb|cc|dd|ee|ff");
+  }
+  { /* Multiple empty words. */
+    const char *strings[] = {"", "", "", "", "", ""};
+    string_join_array_test_truncate(strings, ARRAY_SIZE(strings), buffer);
+    EXPECT_STREQ(buffer, "");
+    string_join_array_with_sep_char_test_truncate(strings, ARRAY_SIZE(strings), buffer);
+    EXPECT_STREQ(buffer, "|||||");
+  }
+  { /* Single word. */
+    const char *strings[] = {"test"};
+    string_join_array_test_truncate(strings, ARRAY_SIZE(strings), buffer);
+    EXPECT_STREQ(buffer, "test");
+    string_join_array_with_sep_char_test_truncate(strings, ARRAY_SIZE(strings), buffer);
+    EXPECT_STREQ(buffer, "test");
+  }
+  { /* Empty item. */
+    const char *strings[] = {""};
+    string_join_array_test_truncate(strings, ARRAY_SIZE(strings), buffer);
+    EXPECT_STREQ(buffer, "");
+    string_join_array_with_sep_char_test_truncate(strings, ARRAY_SIZE(strings), buffer);
+    EXPECT_STREQ(buffer, "");
+  }
+  { /* Empty array. */
+    string_join_array_test_truncate(nullptr, 0, buffer);
+    EXPECT_STREQ(buffer, "");
+    string_join_array_with_sep_char_test_truncate(nullptr, 0, buffer);
+    EXPECT_STREQ(buffer, "");
+  }
+}
+
+#undef BUFFER_SIZE
 
 /** \} */
 

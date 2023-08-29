@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,7 +14,6 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
 #include "BLI_task.hh"
@@ -49,13 +48,13 @@
 
 #include "DRW_engine.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
-#include "ED_view3d_offscreen.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
+#include "ED_view3d_offscreen.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -65,8 +64,8 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "SEQ_render.h"
 
@@ -194,9 +193,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
       RenderView *rv_del = rv->next;
       BLI_remlink(&rr->views, rv_del);
 
-      RE_RenderBuffer_data_free(&rv_del->combined_buffer);
-      RE_RenderBuffer_data_free(&rv_del->z_buffer);
-      RE_RenderByteBuffer_data_free(&rv_del->byte_buffer);
+      IMB_freeImBuf(rv_del->ibuf);
 
       MEM_freeN(rv_del);
     }
@@ -220,16 +217,14 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
         BLI_remlink(&rr->views, rv_del);
 
-        RE_RenderBuffer_data_free(&rv_del->combined_buffer);
-        RE_RenderBuffer_data_free(&rv_del->z_buffer);
-        RE_RenderByteBuffer_data_free(&rv_del->byte_buffer);
+        IMB_freeImBuf(rv_del->ibuf);
 
         MEM_freeN(rv_del);
       }
     }
 
     /* create all the views that are needed */
-    for (srv = static_cast<SceneRenderView *>(rd->views.first); srv; srv = srv->next) {
+    LISTBASE_FOREACH (SceneRenderView *, srv, &rd->views) {
       if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
         continue;
       }
@@ -271,7 +266,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
   if (oglrender->is_sequencer) {
     SpaceSeq *sseq = oglrender->sseq;
-    struct bGPdata *gpd = (sseq && (sseq->flag & SEQ_PREVIEW_SHOW_GPENCIL)) ? sseq->gpd : nullptr;
+    bGPdata *gpd = (sseq && (sseq->flag & SEQ_PREVIEW_SHOW_GPENCIL)) ? sseq->gpd : nullptr;
 
     /* use pre-calculated ImBuf (avoids deadlock), see: */
     ImBuf *ibuf = oglrender->seq_data.ibufs_arr[oglrender->view_id];
@@ -302,7 +297,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
       uchar *gp_rect;
       uchar *render_rect = ibuf_result->byte_buffer.data;
 
-      DRW_opengl_context_enable();
+      DRW_gpu_context_enable();
       GPU_offscreen_bind(oglrender->ofs, true);
 
       GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
@@ -324,7 +319,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
         blend_color_mix_byte(&render_rect[i], &render_rect[i], &gp_rect[i]);
       }
       GPU_offscreen_unbind(oglrender->ofs, true);
-      DRW_opengl_context_disable();
+      DRW_gpu_context_disable();
 
       MEM_freeN(gp_rect);
     }
@@ -606,7 +601,6 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
     case ID_CV:        /* Curves */
     case ID_PT:        /* PointCloud */
     case ID_VO:        /* Volume */
-    case ID_SIM:       /* Simulation */
       break;
 
       /* Blacklist: */
@@ -744,14 +738,14 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   BKE_render_resolution(&scene->r, false, &sizex, &sizey);
 
   /* corrects render size with actual size, not every card supports non-power-of-two dimensions */
-  DRW_opengl_context_enable(); /* Off-screen creation needs to be done in DRW context. */
+  DRW_gpu_context_enable(); /* Off-screen creation needs to be done in DRW context. */
   ofs = GPU_offscreen_create(sizex,
                              sizey,
                              true,
                              GPU_RGBA16F,
                              GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
                              err_out);
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 
   if (!ofs) {
     BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL off-screen buffer, %s", err_out);
@@ -918,16 +912,16 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
     scene->r.cfra = oglrender->cfrao;
     BKE_scene_graph_update_for_newframe(depsgraph);
 
-    WM_event_remove_timer(oglrender->wm, oglrender->win, oglrender->timer);
+    WM_event_timer_remove(oglrender->wm, oglrender->win, oglrender->timer);
   }
 
   WM_cursor_modal_restore(oglrender->win);
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, oglrender->scene);
 
-  DRW_opengl_context_enable();
+  DRW_gpu_context_enable();
   GPU_offscreen_free(oglrender->ofs);
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 
   if (oglrender->is_sequencer) {
     MEM_freeN(oglrender->seq_data.ibufs_arr);
@@ -1269,7 +1263,7 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEven
   oglrender->win = CTX_wm_window(C);
 
   WM_event_add_modal_handler(C, op);
-  oglrender->timer = WM_event_add_timer(oglrender->wm, oglrender->win, TIMER, 0.01f);
+  oglrender->timer = WM_event_timer_add(oglrender->wm, oglrender->win, TIMER, 0.01f);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -1308,21 +1302,21 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static char *screen_opengl_render_description(struct bContext * /*C*/,
-                                              struct wmOperatorType * /*ot*/,
-                                              struct PointerRNA *ptr)
+static std::string screen_opengl_render_description(bContext * /*C*/,
+                                                    wmOperatorType * /*ot*/,
+                                                    PointerRNA *ptr)
 {
   if (!RNA_boolean_get(ptr, "animation")) {
-    return nullptr;
+    return "";
   }
 
   if (RNA_boolean_get(ptr, "render_keyed_only")) {
-    return BLI_strdup(TIP_(
+    return TIP_(
         "Render the viewport for the animation range of this scene, but only render keyframes of "
-        "selected objects"));
+        "selected objects");
   }
 
-  return BLI_strdup(TIP_("Render the viewport for the animation range of this scene"));
+  return TIP_("Render the viewport for the animation range of this scene");
 }
 
 void RENDER_OT_opengl(wmOperatorType *ot)

@@ -15,7 +15,7 @@ namespace Eigen {
 
 /** \class EigenBase
   * \ingroup Core_Module
-  * 
+  *
   * Common base class for all classes T such that MatrixBase has an operator=(T) and a constructor MatrixBase(T).
   *
   * In other words, an EigenBase object is an object that can be copied into a MatrixBase.
@@ -29,11 +29,12 @@ namespace Eigen {
 template<typename Derived> struct EigenBase
 {
 //   typedef typename internal::plain_matrix_type<Derived>::type PlainObject;
-  
+
   /** \brief The interface type of indices
     * \details To change this, \c \#define the preprocessor symbol \c EIGEN_DEFAULT_DENSE_INDEX_TYPE.
-    * \deprecated Since Eigen 3.3, its usage is deprecated. Use Eigen::Index instead.
     * \sa StorageIndex, \ref TopicPreprocessorDirectives.
+    * DEPRECATED: Since Eigen 3.3, its usage is deprecated. Use Eigen::Index instead.
+    * Deprecation is not marked with a doxygen comment because there are too many existing usages to add the deprecation attribute.
     */
   typedef Eigen::Index Index;
 
@@ -55,15 +56,15 @@ template<typename Derived> struct EigenBase
   { return *static_cast<const Derived*>(this); }
 
   /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
-  EIGEN_DEVICE_FUNC
-  inline Index rows() const { return derived().rows(); }
+  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+  inline Index rows() const EIGEN_NOEXCEPT { return derived().rows(); }
   /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
-  EIGEN_DEVICE_FUNC
-  inline Index cols() const { return derived().cols(); }
+  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+  inline Index cols() const EIGEN_NOEXCEPT { return derived().cols(); }
   /** \returns the number of coefficients, which is rows()*cols().
     * \sa rows(), cols(), SizeAtCompileTime. */
-  EIGEN_DEVICE_FUNC
-  inline Index size() const { return rows() * cols(); }
+  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+  inline Index size() const EIGEN_NOEXCEPT { return rows() * cols(); }
 
   /** \internal Don't use it, but do the equivalent: \code dst = *this; \endcode */
   template<typename Dest>

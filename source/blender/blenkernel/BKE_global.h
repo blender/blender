@@ -30,6 +30,12 @@ typedef struct Global {
    */
   struct Main *main;
 
+  /**
+   * Preview main is stored to avoid loading the preview file in multiple scenarios.
+   * It is actually shared between shader node previews and asset previews.
+   */
+  struct Main *pr_main;
+
   /** Last saved location for images. */
   char ima[1024]; /* 1024 = FILE_MAX */
   /** Last used location for library link/append. */
@@ -160,7 +166,7 @@ enum {
   G_FLAG_USERPREF_NO_SAVE_ON_EXIT = (1 << 4),
 
   G_FLAG_SCRIPT_AUTOEXEC = (1 << 13),
-  /** When this flag is set ignore the prefs #USER_SCRIPT_AUTOEXEC_DISABLE. */
+  /** When this flag is set ignore the preferences #USER_SCRIPT_AUTOEXEC_DISABLE. */
   G_FLAG_SCRIPT_OVERRIDE_PREF = (1 << 14),
   G_FLAG_SCRIPT_AUTOEXEC_FAIL = (1 << 15),
   G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET = (1 << 16),
@@ -267,7 +273,7 @@ enum {
   G_TRANSFORM_CURSOR = (1 << 5),
 };
 
-/** Defined in blender.c */
+/** Defined in `blender.cc` */
 extern Global G;
 
 /**

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -337,7 +338,7 @@ ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
 #endif
   {
     return light_distribution_sample<true>(
-        kg, rand, time, P, object_receiver, bounce, path_flag, ls);
+        kg, rand, time, P, D, object_receiver, SD_BSDF_HAS_TRANSMISSION, bounce, path_flag, ls);
   }
 }
 
@@ -362,7 +363,7 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
 #endif
   {
     return light_distribution_sample<false>(
-        kg, rand, time, P, object_receiver, bounce, path_flag, ls);
+        kg, rand, time, P, N, object_receiver, shader_flags, bounce, path_flag, ls);
   }
 }
 
@@ -370,15 +371,17 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
  * except for directional light. */
 ccl_device_forceinline void light_sample_update(KernelGlobals kg,
                                                 ccl_private LightSample *ls,
-                                                const float3 P)
+                                                const float3 P,
+                                                const float3 N,
+                                                const uint32_t path_flag)
 {
   const ccl_global KernelLight *klight = &kernel_data_fetch(lights, ls->lamp);
 
   if (ls->type == LIGHT_POINT) {
-    point_light_mnee_sample_update(klight, ls, P);
+    point_light_mnee_sample_update(klight, ls, P, N, path_flag);
   }
   else if (ls->type == LIGHT_SPOT) {
-    spot_light_mnee_sample_update(klight, ls, P);
+    spot_light_mnee_sample_update(klight, ls, P, N, path_flag);
   }
   else if (ls->type == LIGHT_AREA) {
     area_light_mnee_sample_update(klight, ls, P);

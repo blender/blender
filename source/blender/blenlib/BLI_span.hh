@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -58,7 +58,6 @@
 
 #include <algorithm>
 #include <array>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -449,29 +448,6 @@ template<typename T> class Span {
   {
     return !(a == b);
   }
-
-  /**
-   * A debug utility to print the content of the Span. Every element will be printed on a
-   * separate line using the given callback.
-   */
-  template<typename PrintLineF> void print_as_lines(std::string name, PrintLineF print_line) const
-  {
-    std::cout << "Span: " << name << " \tSize:" << size_ << '\n';
-    for (const T &value : *this) {
-      std::cout << "  ";
-      print_line(value);
-      std::cout << '\n';
-    }
-  }
-
-  /**
-   * A debug utility to print the content of the span. Every element be printed on a separate
-   * line.
-   */
-  void print_as_lines(std::string name) const
-  {
-    this->print_as_lines(name, [](const T &value) { std::cout << value; });
-  }
 };
 
 /**
@@ -599,7 +575,8 @@ template<typename T> class MutableSpan {
 
   constexpr T &operator[](const int64_t index) const
   {
-    BLI_assert(index < this->size());
+    BLI_assert(index >= 0);
+    BLI_assert(index < size_);
     return data_[index];
   }
 
@@ -743,6 +720,15 @@ template<typename T> class MutableSpan {
       }
     }
     return counter;
+  }
+
+  /**
+   * Does a constant time check to see if the pointer points to a value in the referenced array.
+   * Return true if it is, otherwise false.
+   */
+  constexpr bool contains_ptr(const T *ptr) const
+  {
+    return (this->begin() <= ptr) && (ptr < this->end());
   }
 
   /**

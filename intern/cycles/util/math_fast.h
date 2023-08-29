@@ -1,4 +1,8 @@
-/* SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-FileCopyrightText: 2004 NVIDIA Corporation
+ * SPDX-FileCopyrightText: 2008-2014 Larry Gritz
+ * SPDX-FileCopyrightText: 2009-2014 Sony Pictures Imageworks Inc., et al.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *
  * Adapted from OpenImageIO
  * Copyright 2008-2014 Larry Gritz and the other authors and contributors.
@@ -6,11 +10,11 @@
  *
  * A few bits here are based upon code from NVIDIA that was also released
  * under the same modified BSD license, and marked as:
- *    Copyright 2004 NVIDIA Corporation. All Rights Reserved.
+ *    `Copyright 2004 NVIDIA Corporation. All Rights Reserved.`
  *
  * Some parts of this file were first open-sourced in Open Shading Language,
  * then later moved here. The original copyright notice was:
- *    Copyright (c) 2009-2014 Sony Pictures Imageworks Inc., et al.
+ *    `Copyright (c) 2009-2014 Sony Pictures Imageworks Inc., et al.`
  *
  * Many of the math functions were copied from or inspired by other
  * public domain sources or open source packages with compatible licenses.
@@ -330,6 +334,12 @@ ccl_device float fast_atan2f(float y, float x)
     r = M_PI_F - r;
   }
   return copysignf(r, y);
+}
+
+/* Same as precise_angle, but using fast_atan2f. Still much better that acos(dot(a, b)). */
+ccl_device_inline float vector_angle(float3 a, float3 b)
+{
+  return 2.0f * fast_atan2f(len(a - b), len(a + b));
 }
 
 /* Based on:

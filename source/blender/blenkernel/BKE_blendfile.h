@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -14,6 +14,7 @@ extern "C" {
 struct BlendFileData;
 struct BlendFileReadParams;
 struct BlendFileReadReport;
+struct BlendFileReadWMSetupData;
 struct ID;
 struct Main;
 struct MemFile;
@@ -48,35 +49,47 @@ bool BKE_blendfile_library_path_explode(const char *path,
                                         char **r_name);
 
 /**
+ * Check whether a given path is actually a Blender-readable, valid .blend file.
+ *
+ * \note Currently does attempt to open and read (part of) the given file.
+ */
+bool BKE_blendfile_is_readable(const char *path, struct ReportList *reports);
+
+/**
  * Shared setup function that makes the data from `bfd` into the current blend file,
  * replacing the contents of #G.main.
- * This uses the bfd #BKE_blendfile_read and similarly named functions.
+ * This uses the bfd returned by #BKE_blendfile_read and similarly named functions.
  *
  * This is done in a separate step so the caller may perform actions after it is known the file
  * loaded correctly but before the file replaces the existing blend file contents.
  */
-void BKE_blendfile_read_setup_ex(struct bContext *C,
-                                 struct BlendFileData *bfd,
-                                 const struct BlendFileReadParams *params,
-                                 struct BlendFileReadReport *reports,
-                                 /* Extra args. */
-                                 bool startup_update_defaults,
-                                 const char *startup_app_template);
-
-void BKE_blendfile_read_setup(struct bContext *C,
-                              struct BlendFileData *bfd,
-                              const struct BlendFileReadParams *params,
-                              struct BlendFileReadReport *reports);
+void BKE_blendfile_read_setup_readfile(struct bContext *C,
+                                       struct BlendFileData *bfd,
+                                       const struct BlendFileReadParams *params,
+                                       struct BlendFileReadWMSetupData *wm_setup_data,
+                                       struct BlendFileReadReport *reports,
+                                       bool startup_update_defaults,
+                                       const char *startup_app_template);
 
 /**
- * \return Blend file data, this must be passed to #BKE_blendfile_read_setup when non-NULL.
+ * Simpler version of #BKE_blendfile_read_setup_readfile used when reading undo steps from
+ * memfile. */
+void BKE_blendfile_read_setup_undo(struct bContext *C,
+                                   struct BlendFileData *bfd,
+                                   const struct BlendFileReadParams *params,
+                                   struct BlendFileReadReport *reports);
+
+/**
+ * \return Blend file data, this must be passed to
+ * #BKE_blendfile_read_setup_readfile/#BKE_blendfile_read_setup_undo when non-NULL.
  */
 struct BlendFileData *BKE_blendfile_read(const char *filepath,
                                          const struct BlendFileReadParams *params,
                                          struct BlendFileReadReport *reports);
 
 /**
- * \return Blend file data, this must be passed to #BKE_blendfile_read_setup when non-NULL.
+ * \return Blend file data, this must be passed to
+ * #BKE_blendfile_read_setup_readfile/#BKE_blendfile_read_setup_undo when non-NULL.
  */
 struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
                                                      int filelength,
@@ -84,7 +97,9 @@ struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
                                                      struct ReportList *reports);
 
 /**
- * \return Blend file data, this must be passed to #BKE_blendfile_read_setup when non-NULL.
+ * \return Blend file data, this must be passed to
+ * #BKE_blendfile_read_setup_readfile/#BKE_blendfile_read_setup_undo when non-NULL.
+ *
  * \note `memfile` is the undo buffer.
  */
 struct BlendFileData *BKE_blendfile_read_from_memfile(struct Main *bmain,

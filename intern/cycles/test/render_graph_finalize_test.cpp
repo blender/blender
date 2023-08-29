@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/mock_log.h"
 #include "testing/testing.h"
@@ -582,7 +583,7 @@ TEST_F(RenderGraph, constant_fold_part_mix_blend)
 
 /*
  * Tests:
- *  - NOT folding of MixRGB Sub with the same inputs and fac NOT 1.
+ *  - NOT folding of MixRGB Subtract with the same inputs and fac NOT 1.
  */
 TEST_F(RenderGraph, constant_fold_part_mix_sub_same_fac_bad)
 {
@@ -603,7 +604,7 @@ TEST_F(RenderGraph, constant_fold_part_mix_sub_same_fac_bad)
 
 /*
  * Tests:
- *  - Folding of MixRGB Sub with the same inputs and fac 1.
+ *  - Folding of MixRGB Subtract with the same inputs and fac 1.
  */
 TEST_F(RenderGraph, constant_fold_part_mix_sub_same_fac_1)
 {
@@ -699,7 +700,7 @@ TEST_F(RenderGraph, constant_fold_part_mix_add_0)
 }
 
 /*
- * Tests: partial folding for RGB Sub with known 0.
+ * Tests: partial folding for RGB Subtract with known 0.
  */
 TEST_F(RenderGraph, constant_fold_part_mix_sub_0)
 {
@@ -716,7 +717,7 @@ TEST_F(RenderGraph, constant_fold_part_mix_sub_0)
 }
 
 /*
- * Tests: partial folding for RGB Mul with known 1.
+ * Tests: partial folding for RGB Multiply with known 1.
  */
 TEST_F(RenderGraph, constant_fold_part_mix_mul_1)
 {
@@ -734,7 +735,7 @@ TEST_F(RenderGraph, constant_fold_part_mix_mul_1)
 }
 
 /*
- * Tests: partial folding for RGB Div with known 1.
+ * Tests: partial folding for RGB Divide with known 1.
  */
 TEST_F(RenderGraph, constant_fold_part_mix_div_1)
 {
@@ -751,7 +752,7 @@ TEST_F(RenderGraph, constant_fold_part_mix_div_1)
 }
 
 /*
- * Tests: partial folding for RGB Mul with known 0.
+ * Tests: partial folding for RGB Multiply with known 0.
  */
 TEST_F(RenderGraph, constant_fold_part_mix_mul_0)
 {
@@ -771,7 +772,7 @@ TEST_F(RenderGraph, constant_fold_part_mix_mul_0)
 }
 
 /*
- * Tests: partial folding for RGB Div with known 0.
+ * Tests: partial folding for RGB Divide with known 0.
  */
 TEST_F(RenderGraph, constant_fold_part_mix_div_0)
 {
@@ -1060,7 +1061,7 @@ TEST_F(RenderGraph, constant_fold_part_math_add_0)
 }
 
 /*
- * Tests: partial folding for Math Sub with known 0.
+ * Tests: partial folding for Math Subtract with known 0.
  */
 TEST_F(RenderGraph, constant_fold_part_math_sub_0)
 {
@@ -1075,7 +1076,7 @@ TEST_F(RenderGraph, constant_fold_part_math_sub_0)
 }
 
 /*
- * Tests: partial folding for Math Mul with known 1.
+ * Tests: partial folding for Math Multiply with known 1.
  */
 TEST_F(RenderGraph, constant_fold_part_math_mul_1)
 {
@@ -1090,7 +1091,7 @@ TEST_F(RenderGraph, constant_fold_part_math_mul_1)
 }
 
 /*
- * Tests: partial folding for Math Div with known 1.
+ * Tests: partial folding for Math Divide with known 1.
  */
 TEST_F(RenderGraph, constant_fold_part_math_div_1)
 {
@@ -1105,7 +1106,7 @@ TEST_F(RenderGraph, constant_fold_part_math_div_1)
 }
 
 /*
- * Tests: partial folding for Math Mul with known 0.
+ * Tests: partial folding for Math Multiply with known 0.
  */
 TEST_F(RenderGraph, constant_fold_part_math_mul_0)
 {
@@ -1121,7 +1122,7 @@ TEST_F(RenderGraph, constant_fold_part_math_mul_0)
 }
 
 /*
- * Tests: partial folding for Math Div with known 0.
+ * Tests: partial folding for Math Divide with known 0.
  */
 TEST_F(RenderGraph, constant_fold_part_math_div_0)
 {
@@ -1227,7 +1228,7 @@ TEST_F(RenderGraph, constant_fold_part_vecmath_add_0)
 }
 
 /*
- * Tests: partial folding for Vector Math Sub with known 0.
+ * Tests: partial folding for Vector Math Subtract with known 0.
  */
 TEST_F(RenderGraph, constant_fold_part_vecmath_sub_0)
 {

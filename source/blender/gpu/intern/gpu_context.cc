@@ -13,11 +13,6 @@
  * - free can be called from any thread
  */
 
-/* TODO: Create cmake option. */
-#if WITH_OPENGL
-#  define WITH_OPENGL_BACKEND 1
-#endif
-
 #include "BLI_assert.h"
 #include "BLI_utildefines.h"
 
@@ -40,6 +35,7 @@
 #ifdef WITH_METAL_BACKEND
 #  include "mtl_backend.hh"
 #endif
+#include "dummy_backend.hh"
 
 #include <mutex>
 #include <vector>
@@ -224,9 +220,6 @@ void GPU_render_step()
 /** \name Backend selection
  * \{ */
 
-/* NOTE: To enable Metal API, we need to temporarily change this to `GPU_BACKEND_METAL`.
- * Until a global switch is added, Metal also needs to be enabled in GHOST_ContextCGL:
- * `m_useMetalForRendering = true`. */
 static eGPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
 static std::optional<eGPUBackendType> g_backend_type_override = std::nullopt;
 static std::optional<bool> g_backend_type_supported = std::nullopt;
@@ -248,25 +241,23 @@ void GPU_backend_type_selection_set_override(const eGPUBackendType backend_type)
   g_backend_type_override = backend_type;
 }
 
-bool GPU_backend_type_selection_is_overridden(void)
+bool GPU_backend_type_selection_is_overridden()
 {
   return g_backend_type_override.has_value();
 }
 
-bool GPU_backend_type_selection_detect(void)
+bool GPU_backend_type_selection_detect()
 {
   blender::Vector<eGPUBackendType> backends_to_check;
   if (GPU_backend_type_selection_is_overridden()) {
     backends_to_check.append(*g_backend_type_override);
   }
   else {
+#if defined(WITH_OPENGL_BACKEND)
     backends_to_check.append(GPU_BACKEND_OPENGL);
-  }
-
-  /* Add fallback to OpenGL when Metal backend is requested on a platform that doesn't support
-   * metal. */
-  if (backends_to_check[0] == GPU_BACKEND_METAL) {
-    backends_to_check.append(GPU_BACKEND_OPENGL);
+#elif defined(WITH_METAL_BACKEND)
+    backends_to_check.append(GPU_BACKEND_METAL);
+#endif
   }
 
   for (const eGPUBackendType backend_type : backends_to_check) {
@@ -301,6 +292,8 @@ static bool gpu_backend_supported()
 #else
       return false;
 #endif
+    case GPU_BACKEND_NONE:
+      return true;
     default:
       BLI_assert(false && "No backend specified");
       return false;
@@ -336,6 +329,9 @@ static void gpu_backend_create()
       g_backend = new MTLBackend;
       break;
 #endif
+    case GPU_BACKEND_NONE:
+      g_backend = new DummyBackend;
+      break;
     default:
       BLI_assert(0);
       break;

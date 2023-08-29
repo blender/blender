@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Blender Foundation
+/* SPDX-FileCopyrightText: Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,12 +19,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_cloth.h"
+#include "BKE_cloth.hh"
 #include "BKE_collection.h"
 #include "BKE_effect.h"
 #include "BKE_layer.h"

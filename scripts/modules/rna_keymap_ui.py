@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2010-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 __all__ = (
@@ -434,7 +436,7 @@ def draw_keymaps(context, layout):
                 # Defined by user preset, may contain mistakes out of our control.
                 try:
                     kc_prefs.draw(box)
-                except Exception:
+                except BaseException:
                     import traceback
                     traceback.print_exc()
             del box

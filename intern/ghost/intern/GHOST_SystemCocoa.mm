@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "GHOST_SystemCocoa.hh"
 
@@ -22,7 +23,9 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "GHOST_ContextCGL.hh"
+#ifdef WITH_METAL_BACKEND
+#  include "GHOST_ContextCGL.hh"
+#endif
 
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_ContextVK.hh"
@@ -76,11 +79,11 @@ static GHOST_TButton convertButton(int button)
  * \param recvChar: the character ignoring modifiers (except for shift)
  * \return Ghost key code
  */
-static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
+static GHOST_TKey convertKey(int rawCode, unichar recvChar)
 {
   // printf("\nrecvchar %c 0x%x",recvChar,recvChar);
   switch (rawCode) {
-    /* Physical key-codes: (not used due to map changes in int'l keyboards). */
+    /* Physical key-codes: (not used due to map changes in international keyboards). */
 #if 0
     case kVK_ANSI_A:    return GHOST_kKeyA;
     case kVK_ANSI_B:    return GHOST_kKeyB;
@@ -109,7 +112,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
     case kVK_ANSI_Y:    return GHOST_kKeyY;
     case kVK_ANSI_Z:    return GHOST_kKeyZ;
 #endif
-    /* Numbers keys: mapped to handle some int'l keyboard (e.g. French). */
+    /* Numbers keys: mapped to handle some international keyboard (e.g. French). */
     case kVK_ANSI_1:
       return GHOST_kKey1;
     case kVK_ANSI_2:
@@ -237,7 +240,10 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
       return GHOST_kKeyUpPage;
     case kVK_PageDown:
       return GHOST_kKeyDownPage;
-#if 0 /* TODO: why are these commented? */
+#if 0
+    /* These constants with "ANSI" in the name are labeled according to the key position on an
+     * ANSI-standard US keyboard. Therefore they may not match the physical key label on other
+     * keyboard layouts. */
     case kVK_ANSI_Minus:        return GHOST_kKeyMinus;
     case kVK_ANSI_Equal:        return GHOST_kKeyEqual;
     case kVK_ANSI_Comma:        return GHOST_kKeyComma;
@@ -257,7 +263,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
       return GHOST_kKeyUnknown;
 
     default: {
-      /* Alphanumerical or punctuation key that is remappable in int'l keyboards. */
+      /* Alphanumerical or punctuation key that is remappable in international keyboards. */
       if ((recvChar >= 'A') && (recvChar <= 'Z')) {
         return (GHOST_TKey)(recvChar - 'A' + GHOST_kKeyA);
       }
@@ -274,7 +280,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
                                                           kTISPropertyUnicodeKeyLayoutData);
         CFRelease(kbdTISHandle);
 
-        /* Get actual character value of the "remappable" keys in int'l keyboards,
+        /* Get actual character value of the "remappable" keys in international keyboards,
          * if keyboard layout is not correctly reported (e.g. some non Apple keyboards in Tiger),
          * then fallback on using the received #charactersIgnoringModifiers. */
         if (uchrHandle) {
@@ -283,10 +289,10 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 
           UCKeyTranslate((UCKeyboardLayout *)CFDataGetBytePtr(uchrHandle),
                          rawCode,
-                         keyAction,
+                         kUCKeyActionDown,
                          0,
                          LMGetKbdType(),
-                         kUCKeyTranslateNoDeadKeysBit,
+                         kUCKeyTranslateNoDeadKeysMask,
                          &deadKeyState,
                          1,
                          &actualStrLength,
@@ -496,7 +502,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
   int mib[2];
   struct timeval boottime;
   size_t len;
-  char *rstring = NULL;
+  char *rstring = nullptr;
 
   m_modifierMask = 0;
   m_outsideLoopEventProcessed = false;
@@ -510,18 +516,18 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
   mib[1] = KERN_BOOTTIME;
   len = sizeof(struct timeval);
 
-  sysctl(mib, 2, &boottime, &len, NULL, 0);
+  sysctl(mib, 2, &boottime, &len, nullptr, 0);
   m_start_time = ((boottime.tv_sec * 1000) + (boottime.tv_usec / 1000));
 
   /* Detect multi-touch track-pad. */
   mib[0] = CTL_HW;
   mib[1] = HW_MODEL;
-  sysctl(mib, 2, NULL, &len, NULL, 0);
+  sysctl(mib, 2, nullptr, &len, nullptr, 0);
   rstring = (char *)malloc(len);
-  sysctl(mib, 2, rstring, &len, NULL, 0);
+  sysctl(mib, 2, rstring, &len, nullptr, 0);
 
   free(rstring);
-  rstring = NULL;
+  rstring = nullptr;
 
   m_ignoreWindowSizedMessages = false;
   m_ignoreMomentumScroll = false;
@@ -651,7 +657,7 @@ uint64_t GHOST_SystemCocoa::getMilliSeconds() const
   // Cocoa equivalent exists in 10.6 ([[NSProcessInfo processInfo] systemUptime])
   struct timeval currentTime;
 
-  gettimeofday(&currentTime, NULL);
+  gettimeofday(&currentTime, nullptr);
 
   // Return timestamp of system uptime
 
@@ -696,12 +702,12 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
                                                uint32_t width,
                                                uint32_t height,
                                                GHOST_TWindowState state,
-                                               GHOST_GLSettings glSettings,
-                                               const bool exclusive,
+                                               GHOST_GPUSettings gpuSettings,
+                                               const bool /*exclusive*/,
                                                const bool is_dialog,
                                                const GHOST_IWindow *parentWindow)
 {
-  GHOST_IWindow *window = NULL;
+  GHOST_IWindow *window = nullptr;
   @autoreleasepool {
 
     // Get the available rect for including window contents
@@ -725,9 +731,9 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
                                    width,
                                    height,
                                    state,
-                                   glSettings.context_type,
-                                   glSettings.flags & GHOST_glStereoVisual,
-                                   glSettings.flags & GHOST_glDebugContext,
+                                   gpuSettings.context_type,
+                                   gpuSettings.flags & GHOST_gpuStereoVisual,
+                                   gpuSettings.flags & GHOST_gpuDebugContext,
                                    is_dialog,
                                    (GHOST_WindowCocoa *)parentWindow);
 
@@ -744,7 +750,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
     else {
       GHOST_PRINT("GHOST_SystemCocoa::createWindow(): window invalid\n");
       delete window;
-      window = NULL;
+      window = nullptr;
     }
   }
   return window;
@@ -755,27 +761,38 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
  * Never explicitly delete the context, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
-GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSettings)
+GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
+  const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
+
+  switch (gpuSettings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
-  if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
-    const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
-    GHOST_Context *context = new GHOST_ContextVK(false, NULL, 1, 2, debug_context);
-    if (!context->initializeDrawingContext()) {
+    case GHOST_kDrawingContextTypeVulkan: {
+      GHOST_Context *context = new GHOST_ContextVK(false, nullptr, 1, 2, debug_context);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
       delete context;
-      return NULL;
+      return nullptr;
     }
-    return context;
-  }
 #endif
 
-  GHOST_Context *context = new GHOST_ContextCGL(false, NULL, NULL, NULL, glSettings.context_type);
-  if (context->initializeDrawingContext())
-    return context;
-  else
-    delete context;
+#ifdef WITH_METAL_BACKEND
+    case GHOST_kDrawingContextTypeMetal: {
+      /* TODO(fclem): Remove OpenGL support and rename context to ContextMTL */
+      GHOST_Context *context = new GHOST_ContextCGL(false, nullptr, nullptr, debug_context);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
+      delete context;
+      return nullptr;
+    }
+#endif
 
-  return NULL;
+    default:
+      /* Unsupported backend. */
+      return nullptr;
+  }
 }
 
 /**
@@ -904,6 +921,8 @@ GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
       ~(
           /* Cocoa has no support for a primary selection clipboard. */
           GHOST_kCapabilityPrimaryClipboard |
+          /* Cocoa has no support for sampling colors from the desktop. */
+          GHOST_kCapabilityDesktopSample |
           /* This Cocoa back-end has not yet implemented image copy/paste. */
           GHOST_kCapabilityClipboardImages));
 }
@@ -913,7 +932,7 @@ GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
 /**
  * The event queue polling function
  */
-bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
+bool GHOST_SystemCocoa::processEvents(bool /*waitForEvent*/)
 {
   bool anyProcessed = false;
   NSEvent *event;
@@ -936,7 +955,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
           timeOut = 0.0;
       }
 
-      ::ReceiveNextEvent(0, NULL, timeOut, false, &event);
+      ::ReceiveNextEvent(0, nullptr, timeOut, false, &event);
     }
 
     if (timerMgr->fireTimers(getMilliSeconds())) {
@@ -1155,7 +1174,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
     case GHOST_kEventDraggingExited:
       window->clientToScreenIntern(mouseX, mouseY, mouseX, mouseY);
       pushEvent(new GHOST_EventDragnDrop(
-          getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, NULL));
+          getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, nullptr));
       break;
 
     case GHOST_kEventDraggingDropDone: {
@@ -1214,7 +1233,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 
           temp_buff = (uint8_t *)malloc(pastedTextSize + 1);
 
-          if (temp_buff == NULL) {
+          if (temp_buff == nullptr) {
             return GHOST_kFailure;
           }
 
@@ -1230,10 +1249,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
         case GHOST_kDragnDropTypeBitmap: {
           NSImage *droppedImg = (NSImage *)data;
           NSSize imgSize = [droppedImg size];
-          ImBuf *ibuf = NULL;
-          uint8_t *rasterRGB = NULL;
-          uint8_t *rasterRGBA = NULL;
-          uint8_t *toIBuf = NULL;
+          ImBuf *ibuf = nullptr;
+          uint8_t *rasterRGB = nullptr;
+          uint8_t *rasterRGBA = nullptr;
+          uint8_t *toIBuf = nullptr;
           int x, y, to_i, from_i;
           NSBitmapImageRep *blBitmapFormatImageRGB, *blBitmapFormatImageRGBA, *bitmapImage = nil;
           NSEnumerator *enumerator;
@@ -1279,7 +1298,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             /* First get RGB values w/o Alpha to avoid pre-multiplication,
              * 32bit but last byte is unused */
             blBitmapFormatImageRGB = [[NSBitmapImageRep alloc]
-                initWithBitmapDataPlanes:NULL
+                initWithBitmapDataPlanes:nullptr
                               pixelsWide:imgSize.width
                               pixelsHigh:imgSize.height
                            bitsPerSample:8
@@ -1299,7 +1318,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             [NSGraphicsContext restoreGraphicsState];
 
             rasterRGB = (uint8_t *)[blBitmapFormatImageRGB bitmapData];
-            if (rasterRGB == NULL) {
+            if (rasterRGB == nullptr) {
               [bitmapImage release];
               [blBitmapFormatImageRGB release];
               [droppedImg release];
@@ -1308,7 +1327,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 
             /* Then get Alpha values by getting the RGBA image (that is pre-multiplied BTW) */
             blBitmapFormatImageRGBA = [[NSBitmapImageRep alloc]
-                initWithBitmapDataPlanes:NULL
+                initWithBitmapDataPlanes:nullptr
                               pixelsWide:imgSize.width
                               pixelsHigh:imgSize.height
                            bitsPerSample:8
@@ -1328,7 +1347,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             [NSGraphicsContext restoreGraphicsState];
 
             rasterRGBA = (uint8_t *)[blBitmapFormatImageRGBA bitmapData];
-            if (rasterRGBA == NULL) {
+            if (rasterRGBA == nullptr) {
               [bitmapImage release];
               [blBitmapFormatImageRGB release];
               [blBitmapFormatImageRGBA release];
@@ -1405,7 +1424,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
   }
 
   GHOST_Window *window = m_windowManager->getWindows().empty() ?
-                             NULL :
+                             nullptr :
                              (GHOST_Window *)m_windowManager->getWindows().front();
 
   if (!window) {
@@ -1421,7 +1440,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
   filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
   temp_buff = (char *)malloc(filenameTextSize + 1);
 
-  if (temp_buff == NULL) {
+  if (temp_buff == nullptr) {
     return GHOST_kFailure;
   }
 
@@ -1829,18 +1848,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 
     case NSEventTypeKeyDown:
     case NSEventTypeKeyUp:
+      /* Returns an empty string for dead keys. */
       charsIgnoringModifiers = [event charactersIgnoringModifiers];
       if ([charsIgnoringModifiers length] > 0) {
-        keyCode = convertKey([event keyCode],
-                             [charsIgnoringModifiers characterAtIndex:0],
-                             [event type] == NSEventTypeKeyDown ? kUCKeyActionDown :
-                                                                  kUCKeyActionUp);
+        keyCode = convertKey([event keyCode], [charsIgnoringModifiers characterAtIndex:0]);
       }
       else {
-        keyCode = convertKey([event keyCode],
-                             0,
-                             [event type] == NSEventTypeKeyDown ? kUCKeyActionDown :
-                                                                  kUCKeyActionUp);
+        keyCode = convertKey([event keyCode], 0);
       }
 
       characters = [event characters];
@@ -1886,7 +1900,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
       }
       else {
         pushEvent(new GHOST_EventKey(
-            [event timestamp] * 1000, GHOST_kEventKeyUp, window, keyCode, false, NULL));
+            [event timestamp] * 1000, GHOST_kEventKeyUp, window, keyCode, false, nullptr));
 #if 0
         printf("Key up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u utf8=%s\n",
                [event keyCode],
@@ -1952,7 +1966,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 
 #pragma mark Clipboard get/set
 
-char *GHOST_SystemCocoa::getClipboard(bool selection) const
+char *GHOST_SystemCocoa::getClipboard(bool /*selection*/) const
 {
   char *temp_buff;
   size_t pastedTextSize;
@@ -1964,15 +1978,15 @@ char *GHOST_SystemCocoa::getClipboard(bool selection) const
     NSString *textPasted = [pasteBoard stringForType:NSPasteboardTypeString];
 
     if (textPasted == nil) {
-      return NULL;
+      return nullptr;
     }
 
     pastedTextSize = [textPasted lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 
     temp_buff = (char *)malloc(pastedTextSize + 1);
 
-    if (temp_buff == NULL) {
-      return NULL;
+    if (temp_buff == nullptr) {
+      return nullptr;
     }
 
     strncpy(temp_buff, [textPasted cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
@@ -1983,7 +1997,7 @@ char *GHOST_SystemCocoa::getClipboard(bool selection) const
       return temp_buff;
     }
     else {
-      return NULL;
+      return nullptr;
     }
   }
 }
@@ -2000,4 +2014,47 @@ void GHOST_SystemCocoa::putClipboard(const char *buffer, bool selection) const
     NSString *textToCopy = [NSString stringWithCString:buffer encoding:NSUTF8StringEncoding];
     [pasteBoard setString:textToCopy forType:NSPasteboardTypeString];
   }
+}
+
+GHOST_TSuccess GHOST_SystemCocoa::showMessageBox(const char *title,
+                                                 const char *message,
+                                                 const char *help_label,
+                                                 const char *continue_label,
+                                                 const char *link,
+                                                 GHOST_DialogOptions dialog_options) const
+{
+  @autoreleasepool {
+    NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+    [alert setAccessoryView:[[[NSView alloc] initWithFrame:NSMakeRect(0, 0, 500, 0)] autorelease]];
+
+    NSString *titleString = [NSString stringWithCString:title];
+    NSString *messageString = [NSString stringWithCString:message];
+    NSString *continueString = [NSString stringWithCString:continue_label];
+    NSString *helpString = [NSString stringWithCString:help_label];
+
+    if (dialog_options & GHOST_DialogError) {
+      [alert setAlertStyle:NSAlertStyleCritical];
+    }
+    else if (dialog_options & GHOST_DialogWarning) {
+      [alert setAlertStyle:NSAlertStyleWarning];
+    }
+    else {
+      [alert setAlertStyle:NSAlertStyleInformational];
+    }
+
+    [alert setMessageText:titleString];
+    [alert setInformativeText:messageString];
+
+    [alert addButtonWithTitle:continueString];
+    if (link && strlen(link)) {
+      [alert addButtonWithTitle:helpString];
+    }
+
+    NSModalResponse response = [alert runModal];
+    if (response == NSAlertSecondButtonReturn) {
+      NSString *linkString = [NSString stringWithCString:link];
+      [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:linkString]];
+    }
+  }
+  return GHOST_kSuccess;
 }

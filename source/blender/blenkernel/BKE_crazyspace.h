@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,7 +19,7 @@ struct Object;
 struct ReportList;
 struct Scene;
 
-/* crazyspace.c */
+/* `crazyspace.cc` */
 
 /**
  * Disable subdivision-surface temporal, get mapped coordinates, and enable it.
@@ -68,13 +68,13 @@ void BKE_crazyspace_api_eval(struct Depsgraph *depsgraph,
 void BKE_crazyspace_api_displacement_to_deformed(struct Object *object,
                                                  struct ReportList *reports,
                                                  int vertex_index,
-                                                 float displacement[3],
+                                                 const float displacement[3],
                                                  float r_displacement_deformed[3]);
 
 void BKE_crazyspace_api_displacement_to_original(struct Object *object,
                                                  struct ReportList *reports,
                                                  int vertex_index,
-                                                 float displacement_deformed[3],
+                                                 const float displacement_deformed[3],
                                                  float r_displacement[3]);
 
 void BKE_crazyspace_api_eval_clear(struct Object *object);

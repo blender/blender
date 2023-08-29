@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,4 +17,10 @@ GPU_SHADER_CREATE_INFO(workbench_next_merge_depth)
     .fragment_source("workbench_next_merge_depth_frag.glsl")
     .additional_info("draw_fullscreen")
     .depth_write(DepthWrite::ANY)
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(workbench_extract_stencil)
+    .fragment_out(0, Type::UINT, "out_stencil_value")
+    .fragment_source("workbench_extract_stencil.glsl")
+    .additional_info("draw_fullscreen")
     .do_static_compilation(true);

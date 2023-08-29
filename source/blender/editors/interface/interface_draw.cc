@@ -15,7 +15,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_screen_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -33,7 +33,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "BLF_api.h"
 
@@ -46,7 +46,7 @@
 #include "GPU_shader_shared.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 /* own include */
 #include "interface_intern.hh"
@@ -61,7 +61,7 @@ void UI_draw_roundbox_corner_set(int type)
 }
 
 #if 0 /* unused */
-int UI_draw_roundbox_corner_get(void)
+int UI_draw_roundbox_corner_get()
 {
   return roundboxtype;
 }
@@ -2074,7 +2074,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
     GPU_scissor(rect.xmin, rect.ymin, scissor[2], scissor[3]);
 
     if (width > 0 && height > 0) {
-      ImBuf *drawibuf = scopes->track_preview;
+      const ImBuf *drawibuf = scopes->track_preview;
       float col_sel[4], col_outline[4];
 
       if (scopes->use_track_mask) {

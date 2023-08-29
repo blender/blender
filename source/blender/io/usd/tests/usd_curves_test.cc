@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,10 +26,9 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_node.h"
 #include "BLI_fileops.h"
-#include "BLI_math.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
 #include "BLO_readfile.h"
@@ -38,10 +37,9 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "usd.h"
-#include "usd_tests_common.h"
 
 namespace blender::io::usd {
 
@@ -86,10 +84,6 @@ class UsdCurvesTest : public BlendfileLoadingBaseTest {
   virtual void SetUp() override
   {
     BlendfileLoadingBaseTest::SetUp();
-    std::string usd_plugin_path = register_usd_plugins_for_tests();
-    if (usd_plugin_path.empty()) {
-      FAIL();
-    }
   }
 
   virtual void TearDown() override
@@ -114,7 +108,7 @@ TEST_F(UsdCurvesTest, usd_export_curves)
   /* File sanity check. */
   EXPECT_EQ(BLI_listbase_count(&bfile->main->objects), 6);
 
-  USDExportParams params{};
+  USDExportParams params;
 
   const bool result = USD_export(context, output_filename.c_str(), &params, false);
   EXPECT_TRUE(result) << "USD export should succed.";

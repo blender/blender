@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,7 +12,8 @@
 #include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -50,7 +51,7 @@ MutableSpan<SeqRetimingHandle> SEQ_retiming_handles_get(const Sequence *seq)
   return handles;
 }
 
-struct SeqRetimingHandle *SEQ_retiming_last_handle_get(const struct Sequence *seq)
+SeqRetimingHandle *SEQ_retiming_last_handle_get(const Sequence *seq)
 {
   return seq->retiming_handles + seq->retiming_handle_num - 1;
 }
@@ -88,7 +89,7 @@ int SEQ_retiming_handles_count(const Sequence *seq)
   return seq->retiming_handle_num;
 }
 
-void SEQ_retiming_data_ensure(Sequence *seq)
+void SEQ_retiming_data_ensure(const Scene *scene, Sequence *seq)
 {
   if (!SEQ_retiming_is_allowed(seq)) {
     return;
@@ -104,6 +105,8 @@ void SEQ_retiming_data_ensure(Sequence *seq)
   handle->strip_frame_index = seq->len;
   handle->retiming_factor = 1.0f;
   seq->retiming_handle_num = 2;
+
+  SEQ_retiming_add_handle(scene, seq, SEQ_time_right_handle_frame_get(scene, seq));
 }
 
 void SEQ_retiming_data_clear(Sequence *seq)
@@ -191,6 +194,11 @@ bool SEQ_retiming_handle_is_transition_type(const SeqRetimingHandle *handle)
   return (handle->flag & SPEED_TRANSITION) != 0;
 }
 
+bool SEQ_retiming_handle_is_freeze_frame(const SeqRetimingHandle *handle)
+{
+  return (handle->flag & FREEZE_FRAME) != 0;
+}
+
 /* Check colinearity of 2 segments allowing for some imprecision.
  * `isect_seg_seg_v2_lambda_mu_db()` return value does not work well in this case. */
 
@@ -248,11 +256,15 @@ SeqRetimingHandle *SEQ_retiming_add_handle(const Scene *scene,
   float value = seq_retiming_evaluate(seq, frame_index);
 
   const SeqRetimingHandle *start_handle = SEQ_retiming_find_segment_start_handle(seq, frame_index);
-  if (start_handle->strip_frame_index == frame_index) {
+  const SeqRetimingHandle *last_handle = SEQ_retiming_last_handle_get(seq);
+
+  if (ELEM(frame_index, start_handle->strip_frame_index, last_handle->strip_frame_index)) {
     return nullptr; /* Retiming handle already exists. */
   }
 
-  if (SEQ_retiming_handle_is_transition_type(start_handle)) {
+  if (SEQ_retiming_handle_is_transition_type(start_handle) ||
+      SEQ_retiming_handle_is_freeze_frame(start_handle))
+  {
     return nullptr;
   }
 
@@ -298,7 +310,9 @@ static void seq_retiming_offset_linear_handle(const Scene *scene,
    * length.
    * Alternative solution is to find where in arc segment the `y` value is closest to `handle`
    * retiming factor, then trim transition to that point. This would change transition length. */
-  if (SEQ_retiming_handle_is_transition_type(handle - 2)) {
+  if (SEQ_retiming_handle_index_get(seq, handle) > 1 &&
+      SEQ_retiming_handle_is_transition_type(handle - 2))
+  {
     SeqRetimingHandle *transition_handle = handle - 2;
 
     const int transition_offset = transition_handle->strip_frame_index -
@@ -442,12 +456,39 @@ void SEQ_retiming_remove_handle(const Scene *scene, Sequence *seq, SeqRetimingHa
     seq_retiming_remove_transition(scene, seq, handle);
     return;
   }
+
   SeqRetimingHandle *previous_handle = handle - 1;
   if (SEQ_retiming_handle_is_transition_type(previous_handle)) {
     seq_retiming_remove_transition(scene, seq, previous_handle);
     return;
   }
+  else if (SEQ_retiming_handle_is_freeze_frame(previous_handle)) {
+    previous_handle->flag &= ~FREEZE_FRAME;
+  }
+
   seq_retiming_remove_handle_ex(seq, handle);
+}
+
+SeqRetimingHandle *SEQ_retiming_add_freeze_frame(const Scene *scene,
+                                                 Sequence *seq,
+                                                 SeqRetimingHandle *handle,
+                                                 const int offset)
+{
+  if (SEQ_retiming_handle_is_transition_type(handle) ||
+      SEQ_retiming_handle_is_transition_type(handle - 1))
+  {
+    return nullptr;
+  }
+
+  const int orig_timeline_frame = SEQ_retiming_handle_timeline_frame_get(scene, seq, handle);
+  const float orig_retiming_factor = handle->retiming_factor;
+  SeqRetimingHandle *new_handle = SEQ_retiming_add_handle(
+      scene, seq, orig_timeline_frame + offset);
+  /* Tag previous handle as freeze frame handle. This is only a convenient way to prevent creating
+   * speed transitions. When freeze frame is deleted, this flag should be cleared. */
+  new_handle->retiming_factor = orig_retiming_factor;
+  (new_handle - 1)->flag |= FREEZE_FRAME;
+  return new_handle;
 }
 
 SeqRetimingHandle *SEQ_retiming_add_transition(const Scene *scene,
@@ -458,6 +499,11 @@ SeqRetimingHandle *SEQ_retiming_add_transition(const Scene *scene,
   if (SEQ_retiming_handle_is_transition_type(handle) ||
       SEQ_retiming_handle_is_transition_type(handle - 1))
   {
+    return nullptr;
+  }
+
+  if (SEQ_retiming_handle_is_freeze_frame(handle) ||
+      SEQ_retiming_handle_is_freeze_frame(handle - 1)) {
     return nullptr;
   }
 
@@ -494,6 +540,29 @@ float SEQ_retiming_handle_speed_get(const Sequence *seq, const SeqRetimingHandle
 
   const float speed = float(fragment_length_retimed) / float(fragment_length_original);
   return speed;
+}
+
+void SEQ_retiming_handle_speed_set(const Scene *scene,
+                                   Sequence *seq,
+                                   SeqRetimingHandle *handle,
+                                   const float speed)
+{
+  if (handle->strip_frame_index == 0) {
+    return;
+  }
+
+  const SeqRetimingHandle *handle_prev = handle - 1;
+  const float speed_fac = 100.0f / speed;
+
+  const int frame_index_max = seq->len;
+  const int frame_retimed_prev = round_fl_to_int(handle_prev->retiming_factor * frame_index_max);
+  const int frame_retimed = round_fl_to_int(handle->retiming_factor * frame_index_max);
+
+  const int segment_duration = frame_retimed - frame_retimed_prev;
+  const int new_duration = segment_duration * speed_fac;
+
+  const int offset = (handle_prev->strip_frame_index + new_duration) - handle->strip_frame_index;
+  SEQ_retiming_offset_handle(scene, seq, handle, offset);
 }
 
 enum eRangeType {

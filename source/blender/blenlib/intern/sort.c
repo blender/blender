@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,17 +8,13 @@
 
 #include <stdlib.h>
 
-#if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 8))
-/* do nothing! */
-#else
+#include "BLI_utildefines.h"
 
-#  include "BLI_utildefines.h"
+#include "BLI_sort.h"
 
-#  include "BLI_sort.h"
-
-#  ifdef min /* For MSVC. */
-#    undef min
-#  endif
+#ifdef min /* For MSVC. */
+#  undef min
+#endif
 
 /* Maintained by FreeBSD. */
 /* clang-format off */
@@ -166,5 +162,3 @@ loop:
 }
 
 /* clang-format on */
-
-#endif /* __GLIBC__ */

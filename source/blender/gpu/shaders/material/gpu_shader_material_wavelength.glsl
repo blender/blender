@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2021-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void node_wavelength(float wavelength, sampler1DArray spectrummap, float layer, out vec4 color)
 {
   float t = (wavelength - 380.0) / (780.0 - 380.0);

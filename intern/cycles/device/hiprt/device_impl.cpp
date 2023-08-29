@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef WITH_HIPRT
 
@@ -95,6 +96,8 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     set_error(string_printf("Failed to create HIPRT Function Table"));
     return;
   }
+
+  hiprtSetLogLevel(hiprtLogLevelNone);
 }
 
 HIPRTDevice::~HIPRTDevice()
@@ -260,8 +263,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   linker_options.append(" --offload-arch=").append(arch);
   linker_options.append(" -fgpu-rdc --hip-link --cuda-device-only ");
   string hiprt_ver(HIPRT_VERSION_STR);
-  string hiprt_bc;
-  hiprt_bc = hiprt_path + "\\hiprt" + hiprt_ver + "_amd_lib_win.bc";
+  string hiprt_bc = hiprt_path + "\\dist\\bin\\Release\\hiprt" + hiprt_ver + "_amd_lib_win.bc";
 
   string linker_command = string_printf("clang++ %s \"%s\" %s -o \"%s\"",
                                         linker_options.c_str(),
@@ -616,7 +618,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   const float3 *points_data = pointcloud->get_points().data();
   const float *radius_data = pointcloud->get_radius().data();
   const size_t num_points = pointcloud->num_points();
-  const float3 *motion_data = (point_attr_mP) ? point_attr_mP->data_float3() : NULL;
+  const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data_float4() : NULL;
   const size_t num_steps = pointcloud->get_motion_steps();
 
   int num_bounds = 0;
@@ -644,7 +646,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
       BoundBox bounds = BoundBox::empty;
       point.bounds_grow(points_data, radius_data, bounds);
       for (size_t step = 0; step < num_steps - 1; step++) {
-        point.bounds_grow(motion_data + step * num_points, radius_data, bounds);
+        point.bounds_grow(motion_data[step * num_points + j], bounds);
       }
       if (bounds.valid()) {
         bvh->custom_primitive_bound[num_bounds] = bounds;
@@ -664,7 +666,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
     for (uint j = 0; j < num_points; j++) {
       const PointCloud::Point point = pointcloud->get_point(j);
       const size_t num_steps = pointcloud->get_motion_steps();
-      const float3 *point_steps = point_attr_mP->data_float3();
+      const float4 *point_steps = point_attr_mP->data_float4();
 
       float4 prev_key = point.motion_key(
           points_data, radius_data, point_steps, num_points, num_steps, 0.0f, j);

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -25,13 +27,13 @@ using namespace Freestyle;
 PyDoc_STRVAR(FEdge_doc,
              "Class hierarchy: :class:`Interface1D` > :class:`FEdge`\n"
              "\n"
-             "Base Class for feature edges.  This FEdge can represent a silhouette,\n"
-             "a crease, a ridge/valley, a border or a suggestive contour.  For\n"
+             "Base Class for feature edges. This FEdge can represent a silhouette,\n"
+             "a crease, a ridge/valley, a border or a suggestive contour. For\n"
              "silhouettes, the FEdge is oriented so that the visible face lies on\n"
-             "the left of the edge.  For borders, the FEdge is oriented so that the\n"
-             "face lies on the left of the edge.  An FEdge can represent an initial\n"
+             "the left of the edge. For borders, the FEdge is oriented so that the\n"
+             "face lies on the left of the edge. An FEdge can represent an initial\n"
              "edge of the mesh or runs across a face of the initial mesh depending\n"
-             "on the smoothness or sharpness of the mesh.  This class is specialized\n"
+             "on the smoothness or sharpness of the mesh. This class is specialized\n"
              "into a smooth and a sharp version since their properties slightly vary\n"
              "from one to the other.\n"
              "\n"
@@ -164,7 +166,7 @@ static int FEdge_second_svertex_set(BPy_FEdge *self, PyObject *value, void * /*c
 }
 
 PyDoc_STRVAR(FEdge_next_fedge_doc,
-             "The FEdge following this one in the ViewEdge.  The value is None if\n"
+             "The FEdge following this one in the ViewEdge. The value is None if\n"
              "this FEdge is the last of the ViewEdge.\n"
              "\n"
              ":type: :class:`FEdge`");
@@ -189,7 +191,7 @@ static int FEdge_next_fedge_set(BPy_FEdge *self, PyObject *value, void * /*closu
 }
 
 PyDoc_STRVAR(FEdge_previous_fedge_doc,
-             "The FEdge preceding this one in the ViewEdge.  The value is None if\n"
+             "The FEdge preceding this one in the ViewEdge. The value is None if\n"
              "this FEdge is the first one of the ViewEdge.\n"
              "\n"
              ":type: :class:`FEdge`");
@@ -337,7 +339,7 @@ static PyGetSetDef BPy_FEdge_getseters[] = {
 /*-----------------------BPy_FEdge type definition ------------------------------*/
 
 PyTypeObject FEdge_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "FEdge",
     /*tp_basicsize*/ sizeof(BPy_FEdge),
     /*tp_itemsize*/ 0,

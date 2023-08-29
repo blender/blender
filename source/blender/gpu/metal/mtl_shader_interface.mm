@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -113,7 +115,7 @@ uint32_t MTLShaderInterface::add_uniform_block(uint32_t name_offset,
                                                uint32_t buffer_index,
                                                uint32_t location,
                                                uint32_t size,
-                                               ShaderStage stage_mask)
+                                               ShaderStage /*stage_mask*/)
 {
   /* Ensure Size is 16 byte aligned to guarantees alignment rules are satisfied. */
   if ((size % 16) != 0) {
@@ -137,7 +139,7 @@ uint32_t MTLShaderInterface::add_storage_block(uint32_t name_offset,
                                                uint32_t buffer_index,
                                                uint32_t location,
                                                uint32_t size,
-                                               ShaderStage stage_mask)
+                                               ShaderStage /*stage_mask*/)
 {
   /* Ensure Size is 16 byte aligned to guarantees alignment rules are satisfied. */
   if ((size % 16) != 0) {
@@ -175,8 +177,8 @@ void MTLShaderInterface::add_uniform(uint32_t name_offset, eMTLDataType type, in
   BLI_assert(total_uniforms_ < MTL_MAX_UNIFORMS_PER_BLOCK);
   if (total_uniforms_ >= MTL_MAX_UNIFORMS_PER_BLOCK) {
     MTL_LOG_WARNING(
-        "[Warning] Cannot add uniform '%s' to shader interface '%s' as the uniform limit of %d "
-        "has been reached.\n",
+        "Cannot add uniform '%s' to shader interface '%s' as the uniform limit of %d has been "
+        "reached.",
         name,
         name,
         MTL_MAX_UNIFORMS_PER_BLOCK);
@@ -246,7 +248,7 @@ void MTLShaderInterface::add_texture(uint32_t name_offset,
     BLI_assert_msg(false, "Exceeding maximum supported texture count.");
     MTL_LOG_WARNING(
         "Could not add additional texture with index %d to shader interface. Maximum "
-        "supported texture count is %d\n",
+        "supported texture count is %d",
         texture_slot,
         GPU_max_textures());
   }
@@ -269,7 +271,7 @@ void MTLShaderInterface::map_builtins()
       BLI_assert(uni->location >= 0);
       if (uni->location >= 0) {
         builtins_[u] = uni->location;
-        MTL_LOG_INFO("Mapped builtin uniform '%s' NB: '%s' to location: %d\n",
+        MTL_LOG_INFO("Mapped builtin uniform '%s' NB: '%s' to location: %d",
                      builtin_uniform_name((GPUUniformBuiltin)u),
                      get_name_at_offset(uni->name_offset),
                      uni->location);
@@ -285,7 +287,7 @@ void MTLShaderInterface::map_builtins()
       BLI_assert(uni->location >= 0);
       if (uni->location >= 0) {
         builtin_blocks_[u] = uni->binding;
-        MTL_LOG_INFO("Mapped builtin uniform block '%s' to location %d\n",
+        MTL_LOG_INFO("Mapped builtin uniform block '%s' to location %d",
                      builtin_uniform_block_name((GPUUniformBlockBuiltin)u),
                      uni->location);
       }

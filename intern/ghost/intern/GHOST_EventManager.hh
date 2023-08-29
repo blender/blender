@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -98,7 +99,7 @@ class GHOST_EventManager {
    * \param type: The type of events to be removed.
    * \param window: The window to remove the events for.
    */
-  void removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *window = NULL);
+  void removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *window = nullptr);
 
  protected:
   /**

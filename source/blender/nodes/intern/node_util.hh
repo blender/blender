@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,11 +9,12 @@
 #pragma once
 
 struct bNode;
+struct bNodeInstanceHash;
 struct bNodeTree;
 
 /* data for initializing node execution */
 struct bNodeExecContext {
-  struct bNodeInstanceHash *previews;
+  bNodeInstanceHash *previews;
 };
 
 struct bNodeExecData {

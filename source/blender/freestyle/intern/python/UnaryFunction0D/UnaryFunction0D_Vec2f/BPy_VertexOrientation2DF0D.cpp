@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -30,7 +32,7 @@ static char VertexOrientation2DF0D___doc__[] =
     "\n"
     "   Returns a two-dimensional vector giving the 2D oriented tangent to the\n"
     "   1D element to which the :class:`freestyle.types.Interface0D` pointed\n"
-    "   by the Interface0DIterator belongs.  The 2D oriented tangent is\n"
+    "   by the Interface0DIterator belongs. The 2D oriented tangent is\n"
     "   evaluated at the pointed Interface0D.\n"
     "\n"
     "   :arg it: An Interface0DIterator object.\n"
@@ -56,7 +58,7 @@ static int VertexOrientation2DF0D___init__(BPy_VertexOrientation2DF0D *self,
 /*-----------------------BPy_VertexOrientation2DF0D type definition -----------------------------*/
 
 PyTypeObject VertexOrientation2DF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "VertexOrientation2DF0D",
     /*tp_basicsize*/ sizeof(BPy_VertexOrientation2DF0D),
     /*tp_itemsize*/ 0,

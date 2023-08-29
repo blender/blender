@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -33,8 +33,8 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
                                     const Depsgraph *depsgraph);
 
 namespace blender::ed::spreadsheet {
-GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspreadsheet,
-                                                 Object *object_eval);
+bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspreadsheet,
+                                                      Object *object_eval);
 
 void spreadsheet_data_set_region_panels_register(ARegionType &region_type);
 

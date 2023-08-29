@@ -18,7 +18,8 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_ghash.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -29,30 +30,30 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_uvedit.h"
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_uvedit.hh"
 
 #include "GPU_batch.h"
 #include "GPU_state.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "uvedit_intern.h"
 
@@ -62,7 +63,7 @@
 struct StitchPreviewer {
   /* here we'll store the preview triangle indices of the mesh */
   float *preview_polys;
-  /* uvs per polygon. */
+  /* uvs per face. */
   uint *uvs_per_polygon;
   /* Number of preview polygons. */
   uint num_polys;
@@ -119,7 +120,7 @@ struct UvEdge {
   uchar flag;
   /**
    * Element that guarantees `element.l` has the edge on
-   * `element.loop_of_poly_index` and `element->loop_of_poly_index + 1` is the second UV.
+   * `element.loop_of_face_index` and `element->loop_of_face_index + 1` is the second UV.
    */
   UvElement *element;
   /** next uv edge with the same exact vertices as this one.
@@ -478,10 +479,10 @@ static void stitch_calculate_island_snapping(const int cd_loop_uv_offset,
             stitch_uv_rotate(rotation_mat,
                              island_stitch_data[i].medianPoint,
                              preview->preview_polys + face_preview_pos +
-                                 2 * element->loop_of_poly_index,
+                                 2 * element->loop_of_face_index,
                              state->aspect);
 
-            add_v2_v2(preview->preview_polys + face_preview_pos + 2 * element->loop_of_poly_index,
+            add_v2_v2(preview->preview_polys + face_preview_pos + 2 * element->loop_of_face_index,
                       island_stitch_data[i].translation);
           }
         }
@@ -924,7 +925,7 @@ static void stitch_propagate_uv_final_position(Scene *scene,
             preview_position[BM_elem_index_get(element_iter->l->f)].data_position;
         if (face_preview_pos != STITCH_NO_PREVIEW) {
           copy_v2_v2(preview->preview_polys + face_preview_pos +
-                         2 * element_iter->loop_of_poly_index,
+                         2 * element_iter->loop_of_face_index,
                      final_position[index].uv);
         }
       }
@@ -1166,7 +1167,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
     /* copy data from UVs to the preview display buffers */
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       /* just to test if face was added for processing.
-       * uvs of unselected vertices will return NULL */
+       * uvs of unselected vertices will return null */
       UvElement *element = BM_uv_element_get(state->element_map, BM_FACE_FIRST_LOOP(efa));
 
       if (element) {
@@ -1987,7 +1988,7 @@ static StitchState *stitch_init(bContext *C,
   /* we use boundary edges to calculate 2D normals.
    * to disambiguate the direction of the normal, we also need
    * a point "inside" the island, that can be provided by
-   * the winding of the polygon (assuming counter-clockwise flow). */
+   * the winding of the face (assuming counter-clockwise flow). */
 
   for (i = 0; i < total_edges; i++) {
     UvEdge *edge = edges + i;
@@ -2414,7 +2415,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
         RNA_collection_add(op->ptr, "selection", &itemptr);
 
         RNA_int_set(&itemptr, "face_index", BM_elem_index_get(element->l->f));
-        RNA_int_set(&itemptr, "element_index", element->loop_of_poly_index);
+        RNA_int_set(&itemptr, "element_index", element->loop_of_face_index);
       }
       uvedit_live_unwrap_update(sima, scene, obedit);
 

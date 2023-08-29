@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -108,17 +108,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Right", std::move(right_field));
 }
 
-}  // namespace blender::nodes::node_geo_input_curve_handles_cc
-
-void register_node_type_geo_input_curve_handles()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_input_curve_handles_cc;
-
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_INPUT_CURVE_HANDLES, "Curve Handle Positions", NODE_CLASS_INPUT);
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_input_curve_handles_cc

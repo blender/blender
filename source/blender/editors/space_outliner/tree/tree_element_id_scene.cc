@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,40 +21,35 @@ TreeElementIDScene::TreeElementIDScene(TreeElement &legacy_te, Scene &scene)
 {
 }
 
-bool TreeElementIDScene::isExpandValid() const
-{
-  return true;
-}
-
 void TreeElementIDScene::expand(SpaceOutliner &space_outliner) const
 {
-  expandViewLayers(space_outliner);
-  expandWorld(space_outliner);
-  expandCollections(space_outliner);
-  expandObjects(space_outliner);
+  expand_view_layers(space_outliner);
+  expand_world(space_outliner);
+  expand_collections(space_outliner);
+  expand_objects(space_outliner);
 
   expand_animation_data(space_outliner, scene_.adt);
 }
 
-void TreeElementIDScene::expandViewLayers(SpaceOutliner &space_outliner) const
+void TreeElementIDScene::expand_view_layers(SpaceOutliner &space_outliner) const
 {
   outliner_add_element(
       &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_R_LAYER_BASE, 0);
 }
 
-void TreeElementIDScene::expandWorld(SpaceOutliner &space_outliner) const
+void TreeElementIDScene::expand_world(SpaceOutliner &space_outliner) const
 {
   outliner_add_element(
       &space_outliner, &legacy_te_.subtree, scene_.world, &legacy_te_, TSE_SOME_ID, 0);
 }
 
-void TreeElementIDScene::expandCollections(SpaceOutliner &space_outliner) const
+void TreeElementIDScene::expand_collections(SpaceOutliner &space_outliner) const
 {
   outliner_add_element(
       &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_SCENE_COLLECTION_BASE, 0);
 }
 
-void TreeElementIDScene::expandObjects(SpaceOutliner &space_outliner) const
+void TreeElementIDScene::expand_objects(SpaceOutliner &space_outliner) const
 {
   outliner_add_element(
       &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_SCENE_OBJECTS_BASE, 0);

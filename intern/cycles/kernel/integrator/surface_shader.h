@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /* Functions to evaluate shaders. */
 
@@ -140,31 +141,33 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
 {
   /* Filter out closures. */
   if (kernel_data.integrator.filter_closures) {
-    if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_EMISSION) {
+    const int filter_closures = kernel_data.integrator.filter_closures;
+    if (filter_closures & FILTER_CLOSURE_EMISSION) {
       sd->closure_emission_background = zero_spectrum();
     }
 
-    if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_DIRECT_LIGHT) {
-      sd->flag &= ~SD_BSDF_HAS_EVAL;
-    }
-
     if (path_flag & PATH_RAY_CAMERA) {
+      if (filter_closures & FILTER_CLOSURE_DIRECT_LIGHT) {
+        sd->flag &= ~SD_BSDF_HAS_EVAL;
+      }
+
       for (int i = 0; i < sd->num_closure; i++) {
         ccl_private ShaderClosure *sc = &sd->closure[i];
 
-        if ((CLOSURE_IS_BSDF_DIFFUSE(sc->type) &&
-             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_DIFFUSE)) ||
-            (CLOSURE_IS_BSDF_GLOSSY(sc->type) &&
-             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_GLOSSY)) ||
-            (CLOSURE_IS_BSDF_TRANSMISSION(sc->type) &&
-             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSMISSION)))
+        const bool filter_diffuse = (filter_closures & FILTER_CLOSURE_DIFFUSE);
+        const bool filter_glossy = (filter_closures & FILTER_CLOSURE_GLOSSY);
+        const bool filter_transmission = (filter_closures & FILTER_CLOSURE_TRANSMISSION);
+        const bool filter_glass = filter_glossy && filter_transmission;
+        if ((CLOSURE_IS_BSDF_DIFFUSE(sc->type) && filter_diffuse) ||
+            (CLOSURE_IS_BSDF_GLOSSY(sc->type) && filter_glossy) ||
+            (CLOSURE_IS_BSDF_TRANSMISSION(sc->type) && filter_transmission) ||
+            (CLOSURE_IS_GLASS(sc->type) && filter_glass))
         {
           sc->type = CLOSURE_NONE_ID;
           sc->sample_weight = 0.0f;
         }
         else if ((CLOSURE_IS_BSDF_TRANSPARENT(sc->type) &&
-                  (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSPARENT)))
-        {
+                  (filter_closures & FILTER_CLOSURE_TRANSPARENT))) {
           sc->type = CLOSURE_HOLDOUT_ID;
           sc->sample_weight = 0.0f;
           sd->flag |= SD_HOLDOUT;
@@ -221,6 +224,12 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
           bsdf_blur(kg, sc, blur_roughness);
         }
       }
+
+      /* NOTE: this is a sufficient condition. If `blur_roughness < THRESH < original_roughness`
+       * then the flag was already set. */
+      if (sqr(blur_roughness) > BSDF_ROUGHNESS_SQ_THRESH) {
+        sd->flag |= SD_BSDF_HAS_EVAL;
+      }
     }
   }
 }
@@ -268,6 +277,13 @@ ccl_device_forceinline bool _surface_shader_exclude(ClosureType type, uint light
       return true;
     }
   }
+  /* Glass closures are both glossy and transmissive, so only exclude them if both are filtered. */
+  const uint exclude_glass = SHADER_EXCLUDE_TRANSMIT | SHADER_EXCLUDE_GLOSSY;
+  if ((light_shader_flags & exclude_glass) == exclude_glass) {
+    if (CLOSURE_IS_GLASS(type)) {
+      return true;
+    }
+  }
   return false;
 }
 
@@ -295,7 +311,7 @@ ccl_device_inline float _surface_shader_bsdf_eval_mis(KernelGlobals kg,
         Spectrum eval = bsdf_eval(kg, sd, sc, wo, &bsdf_pdf);
 
         if (bsdf_pdf != 0.0f) {
-          bsdf_eval_accum(result_eval, sc->type, eval * sc->weight);
+          bsdf_eval_accum(result_eval, sc, wo, eval * sc->weight);
           sum_pdf += bsdf_pdf * sc->sample_weight;
         }
       }
@@ -318,7 +334,7 @@ ccl_device_inline float surface_shader_bsdf_eval_pdfs(const KernelGlobals kg,
    * factors drop out when using balance heuristic weighting. */
   float sum_pdf = 0.0f;
   float sum_sample_weight = 0.0f;
-  bsdf_eval_init(result_eval, CLOSURE_NONE_ID, zero_spectrum());
+  bsdf_eval_init(result_eval, zero_spectrum());
   for (int i = 0; i < sd->num_closure; i++) {
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
@@ -328,7 +344,7 @@ ccl_device_inline float surface_shader_bsdf_eval_pdfs(const KernelGlobals kg,
         Spectrum eval = bsdf_eval(kg, sd, sc, wo, &bsdf_pdf);
         kernel_assert(bsdf_pdf >= 0.0f);
         if (bsdf_pdf != 0.0f) {
-          bsdf_eval_accum(result_eval, sc->type, eval * sc->weight);
+          bsdf_eval_accum(result_eval, sc, wo, eval * sc->weight);
           sum_pdf += bsdf_pdf * sc->sample_weight;
           kernel_assert(bsdf_pdf * sc->sample_weight >= 0.0f);
           pdfs[i] = bsdf_pdf * sc->sample_weight;
@@ -369,7 +385,7 @@ ccl_device_inline
                              ccl_private BsdfEval *bsdf_eval,
                              const uint light_shader_flags)
 {
-  bsdf_eval_init(bsdf_eval, CLOSURE_NONE_ID, zero_spectrum());
+  bsdf_eval_init(bsdf_eval, zero_spectrum());
 
   float pdf = _surface_shader_bsdf_eval_mis(
       kg, sd, wo, NULL, bsdf_eval, 0.0f, 0.0f, light_shader_flags);
@@ -499,7 +515,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_mis(KernelGlobals kg,
   /* Initialize to zero. */
   int label = LABEL_NONE;
   Spectrum eval = zero_spectrum();
-  bsdf_eval_init(bsdf_eval, CLOSURE_NONE_ID, eval);
+  bsdf_eval_init(bsdf_eval, eval);
 
   *unguided_bsdf_pdf = 0.0f;
   float guide_pdf = 0.0f;
@@ -570,7 +586,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_mis(KernelGlobals kg,
 #  endif
 
     if (*unguided_bsdf_pdf != 0.0f) {
-      bsdf_eval_init(bsdf_eval, sc->type, eval * sc->weight);
+      bsdf_eval_init(bsdf_eval, sc, *wo, eval * sc->weight);
 
       kernel_assert(reduce_min(bsdf_eval_sum(bsdf_eval)) >= 0.0f);
 
@@ -622,7 +638,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_ris(KernelGlobals kg,
   /* Initialize to zero. */
   int label = LABEL_NONE;
   Spectrum eval = zero_spectrum();
-  bsdf_eval_init(bsdf_eval, CLOSURE_NONE_ID, eval);
+  bsdf_eval_init(bsdf_eval, eval);
 
   *unguided_bsdf_pdf = 0.0f;
   float guide_pdf = 0.0f;
@@ -652,7 +668,8 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_ris(KernelGlobals kg,
                                        &ris_samples[0].sampled_roughness,
                                        &ris_samples[0].eta);
 
-    bsdf_eval_init(&ris_samples[0].bsdf_eval, sc->type, ris_samples[0].eval * sc->weight);
+    bsdf_eval_init(
+        &ris_samples[0].bsdf_eval, sc, ris_samples[0].wo, ris_samples[0].eval * sc->weight);
     if (ris_samples[0].bsdf_pdf > 0.0f) {
       if (sd->num_closure > 1) {
         float sweight = sc->sample_weight;
@@ -679,7 +696,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_ris(KernelGlobals kg,
     // generate the second RIS candidate using a sample from the guiding distribution
     // ------------------------------------------------------------------------------
     float unguided_bsdf_pdfs[MAX_CLOSURE];
-    bsdf_eval_init(&ris_samples[1].bsdf_eval, CLOSURE_NONE_ID, eval);
+    bsdf_eval_init(&ris_samples[1].bsdf_eval, eval);
     ris_samples[1].guide_pdf = guiding_bsdf_sample(
         kg, state, float3_to_float2(ris_samples[1].rand), &ris_samples[1].wo);
     ris_samples[1].guide_pdf *= (1.0f - bssrdf_sampling_prob);
@@ -812,7 +829,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_ris(KernelGlobals kg,
 #  endif
 
     if (*unguided_bsdf_pdf != 0.0f) {
-      bsdf_eval_init(bsdf_eval, sc->type, eval * sc->weight);
+      bsdf_eval_init(bsdf_eval, sc, *wo, eval * sc->weight);
 
       kernel_assert(reduce_min(bsdf_eval_sum(bsdf_eval)) >= 0.0f);
 
@@ -914,7 +931,7 @@ ccl_device int surface_shader_bsdf_sample_closure(KernelGlobals kg,
   label = bsdf_sample(kg, sd, sc, path_flag, rand_bsdf, &eval, wo, pdf, sampled_roughness, eta);
 
   if (*pdf != 0.0f) {
-    bsdf_eval_init(bsdf_eval, sc->type, eval * sc->weight);
+    bsdf_eval_init(bsdf_eval, sc, *wo, eval * sc->weight);
 
     if (sd->num_closure > 1) {
       float sweight = sc->sample_weight;
@@ -922,7 +939,7 @@ ccl_device int surface_shader_bsdf_sample_closure(KernelGlobals kg,
     }
   }
   else {
-    bsdf_eval_init(bsdf_eval, sc->type, zero_spectrum());
+    bsdf_eval_init(bsdf_eval, zero_spectrum());
   }
 
   return label;
@@ -994,7 +1011,7 @@ ccl_device Spectrum surface_shader_diffuse(KernelGlobals kg, ccl_private const S
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
     if (CLOSURE_IS_BSDF_DIFFUSE(sc->type) || CLOSURE_IS_BSSRDF(sc->type))
-      eval += bsdf_albedo(sd, sc);
+      eval += bsdf_albedo(kg, sd, sc, true, true);
   }
 
   return eval;
@@ -1007,8 +1024,8 @@ ccl_device Spectrum surface_shader_glossy(KernelGlobals kg, ccl_private const Sh
   for (int i = 0; i < sd->num_closure; i++) {
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
-    if (CLOSURE_IS_BSDF_GLOSSY(sc->type))
-      eval += bsdf_albedo(sd, sc);
+    if (CLOSURE_IS_BSDF_GLOSSY(sc->type) || CLOSURE_IS_GLASS(sc->type))
+      eval += bsdf_albedo(kg, sd, sc, true, false);
   }
 
   return eval;
@@ -1021,8 +1038,8 @@ ccl_device Spectrum surface_shader_transmission(KernelGlobals kg, ccl_private co
   for (int i = 0; i < sd->num_closure; i++) {
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
-    if (CLOSURE_IS_BSDF_TRANSMISSION(sc->type))
-      eval += bsdf_albedo(sd, sc);
+    if (CLOSURE_IS_BSDF_TRANSMISSION(sc->type) || CLOSURE_IS_GLASS(sc->type))
+      eval += bsdf_albedo(kg, sd, sc, false, true);
   }
 
   return eval;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,8 +11,12 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "RNA_access.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -47,9 +51,9 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
   if (RNA_enum_get(ptr, "mode") == GEO_NODE_MESH_LINE_MODE_END_POINTS) {
-    uiItemR(layout, ptr, "count_mode", 0, "", ICON_NONE);
+    uiItemR(layout, ptr, "count_mode", UI_ITEM_NONE, "", ICON_NONE);
   }
 }
 
@@ -165,8 +169,74 @@ static void node_geo_exec(GeoNodeExecParams params)
     mesh = create_line_mesh(start, delta, count);
   }
 
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
+
+static void node_rna(StructRNA *srna)
+{
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_MESH_LINE_MODE_OFFSET,
+       "OFFSET",
+       0,
+       "Offset",
+       "Specify the offset from one vertex to the next"},
+      {GEO_NODE_MESH_LINE_MODE_END_POINTS,
+       "END_POINTS",
+       0,
+       "End Points",
+       "Specify the line's start and end points"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static EnumPropertyItem count_mode_items[] = {
+      {GEO_NODE_MESH_LINE_COUNT_TOTAL,
+       "TOTAL",
+       0,
+       "Count",
+       "Specify the total number of vertices"},
+      {GEO_NODE_MESH_LINE_COUNT_RESOLUTION,
+       "RESOLUTION",
+       0,
+       "Resolution",
+       "Specify the distance between vertices"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    GEO_NODE_MESH_LINE_MODE_OFFSET);
+
+  RNA_def_node_enum(srna,
+                    "count_mode",
+                    "Count Mode",
+                    "",
+                    count_mode_items,
+                    NOD_storage_enum_accessors(count_mode),
+                    GEO_NODE_MESH_LINE_COUNT_TOTAL);
+}
+
+static void node_register()
+{
+  static bNodeType ntype;
+
+  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_LINE, "Mesh Line", NODE_CLASS_GEOMETRY);
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  node_type_storage(
+      &ntype, "NodeGeometryMeshLine", node_free_standard_storage, node_copy_standard_storage);
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
+  nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
+}
+NOD_REGISTER_NODE(node_register)
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_line_cc
 
@@ -205,21 +275,3 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
 }
 
 }  // namespace blender::nodes
-
-void register_node_type_geo_mesh_primitive_line()
-{
-  namespace file_ns = blender::nodes::node_geo_mesh_primitive_line_cc;
-
-  static bNodeType ntype;
-
-  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_LINE, "Mesh Line", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  node_type_storage(
-      &ntype, "NodeGeometryMeshLine", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
-  nodeRegisterType(&ntype);
-}

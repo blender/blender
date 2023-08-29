@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Setup pass: CoC and luma aware downsample to half resolution of the input scene color buffer.
@@ -9,7 +12,7 @@
  *  Full-resolution color & depth buffer
  * Output:
  *  Half-resolution Color, signed CoC (out_coc.x), and max slight focus abs CoC (out_coc.y).
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)

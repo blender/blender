@@ -10,10 +10,10 @@
  */
 
 /* Placed up here because of crappy WINSOCK stuff. */
-#include <errno.h>
-#include <fcntl.h> /* for open flags (O_BINARY, O_RDONLY). */
-#include <stddef.h>
-#include <string.h>
+#include <cerrno>
+#include <cstddef>
+#include <cstring>
+#include <fcntl.h> /* For open flags (#O_BINARY, #O_RDONLY). */
 
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */
@@ -28,6 +28,8 @@
 #  include <shlobj.h>
 #endif
 
+#include <fmt/format.h>
+
 #include "MEM_CacheLimiterC-Api.h"
 #include "MEM_guardedalloc.h"
 
@@ -35,7 +37,7 @@
 #include "BLI_fileops_types.h"
 #include "BLI_filereader.h"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
+#include "BLI_math_time.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
 #include "BLI_timer.h"
@@ -63,13 +65,14 @@
 #include "BKE_appdir.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
+#include "BKE_blender_version.h"
 #include "BKE_blendfile.h"
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
@@ -81,36 +84,36 @@
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
-#include "BLO_undofile.h" /* to save from an undo memfile */
-#include "BLO_writefile.h"
+#include "BLO_undofile.hh" /* to save from an undo memfile */
+#include "BLO_writefile.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "ED_asset.h"
+#include "ED_asset.hh"
 #include "ED_datafiles.h"
-#include "ED_fileselect.h"
-#include "ED_image.h"
-#include "ED_outliner.h"
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_undo.h"
-#include "ED_util.h"
-#include "ED_view3d.h"
-#include "ED_view3d_offscreen.h"
+#include "ED_fileselect.hh"
+#include "ED_image.hh"
+#include "ED_outliner.hh"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_undo.hh"
+#include "ED_util.hh"
+#include "ED_view3d.hh"
+#include "ED_view3d_offscreen.hh"
 
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.hh"
 
 #include "GPU_context.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 /* only to report a missing engine */
 #include "RE_engine.h"
@@ -122,23 +125,23 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "wm.h"
+#include "wm.hh"
 #include "wm_event_system.h"
-#include "wm_files.h"
-#include "wm_window.h"
+#include "wm_files.hh"
+#include "wm_window.hh"
 
 #include "CLG_log.h"
 
 static RecentFile *wm_file_history_find(const char *filepath);
 static void wm_history_file_free(RecentFile *recent);
-static void wm_history_files_free(void);
-static void wm_history_file_update(void);
-static void wm_history_file_write(void);
+static void wm_history_files_free();
+static void wm_history_file_update();
+static void wm_history_file_write();
 
 static void wm_test_autorun_revert_action_exec(bContext *C);
 
@@ -148,7 +151,7 @@ static CLG_LogRef LOG = {"wm.files"};
 /** \name Misc Utility Functions
  * \{ */
 
-void WM_file_tag_modified(void)
+void WM_file_tag_modified()
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   if (wm->file_saved) {
@@ -177,44 +180,50 @@ bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWind
  * - restoring the screens from non-active windows
  * Best case is all screens match, in that case they get assigned to proper window.
  */
-static void wm_window_match_init(bContext *C, ListBase *wmlist)
+
+/**
+ * Clear several WM/UI runtime data that would make later complex WM handling impossible.
+ *
+ * Return data should be cleared by #wm_file_read_setup_wm_finalize. */
+static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
+                                                            Main *bmain,
+                                                            const bool is_read_homefile)
 {
-  *wmlist = G_MAIN->wm;
+  BLI_assert(BLI_listbase_count_at_most(&bmain->wm, 2) <= 1);
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  BlendFileReadWMSetupData *wm_setup_data = MEM_cnew<BlendFileReadWMSetupData>(__func__);
+  wm_setup_data->is_read_homefile = is_read_homefile;
+  /* This info is not always known yet when this function is called. */
+  wm_setup_data->is_factory_startup = false;
+
+  if (wm == nullptr) {
+    return wm_setup_data;
+  }
+
+  /* First wrap up running stuff.
+   *
+   * Code copied from wm_init_exit.cc */
+  WM_jobs_kill_all(wm);
 
   wmWindow *active_win = CTX_wm_window(C);
-
-  /* first wrap up running stuff */
-  /* code copied from wm_init_exit.cc */
-  LISTBASE_FOREACH (wmWindowManager *, wm, wmlist) {
-    WM_jobs_kill_all(wm);
-
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      CTX_wm_window_set(C, win); /* needed by operator close callbacks */
-      WM_event_remove_handlers(C, &win->handlers);
-      WM_event_remove_handlers(C, &win->modalhandlers);
-      ED_screen_exit(C, win, WM_window_get_active_screen(win));
-    }
-
-    /* NOTE(@ideasman42): Clear the message bus so it's always cleared on file load.
-     * Otherwise it's cleared when "Load UI" is set (see #USER_FILENOUI & #wm_close_and_free).
-     * However it's _not_ cleared when the UI is kept. This complicates use from add-ons
-     * which can re-register subscribers on file-load. To support this use case,
-     * it's best to have predictable behavior - always clear. */
-    if (wm->message_bus != nullptr) {
-      WM_msgbus_destroy(wm->message_bus);
-      wm->message_bus = nullptr;
-    }
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    CTX_wm_window_set(C, win); /* Needed by operator close callbacks. */
+    WM_event_remove_handlers(C, &win->handlers);
+    WM_event_remove_handlers(C, &win->modalhandlers);
+    ED_screen_exit(C, win, WM_window_get_active_screen(win));
   }
-
-  BLI_listbase_clear(&G_MAIN->wm);
-  if (G_MAIN->name_map != nullptr) {
-    /* NOTE: UI IDs are assumed to be only local data-blocks, so no need to call
-     * #BKE_main_namemap_clear here. */
-    BKE_main_namemap_destroy(&G_MAIN->name_map);
-  }
-
-  /* reset active window */
+  /* Reset active window. */
   CTX_wm_window_set(C, active_win);
+
+  /* NOTE(@ideasman42): Clear the message bus so it's always cleared on file load.
+   * Otherwise it's cleared when "Load UI" is set (see #USER_FILENOUI and #wm_close_and_free).
+   * However it's _not_ cleared when the UI is kept. This complicates use from add-ons
+   * which can re-register subscribers on file-load. To support this use case,
+   * it's best to have predictable behavior - always clear. */
+  if (wm->message_bus != nullptr) {
+    WM_msgbus_destroy(wm->message_bus);
+    wm->message_bus = nullptr;
+  }
 
   /* XXX Hack! We have to clear context menu here, because removing all modalhandlers
    * above frees the active menu (at least, in the 'startup splash' case),
@@ -225,18 +234,23 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
    * so for now just handling this specific case here. */
   CTX_wm_menu_set(C, nullptr);
 
-  ED_editors_exit(G_MAIN, true);
+  ED_editors_exit(bmain, true);
 
   /* Asset loading is done by the UI/editors and they keep pointers into it. So make sure to clear
    * it after UI/editors. */
   ED_assetlist_storage_exit();
   AS_asset_libraries_exit();
+
+  /* NOTE: `wm_setup_data->old_wm` cannot be set here, as this pointer may be swapped with the
+   * newly read one in `setup_app_data` process (See #swap_wm_data_for_blendfile). */
+
+  return wm_setup_data;
 }
 
-static void wm_window_substitute_old(wmWindowManager *oldwm,
-                                     wmWindowManager *wm,
-                                     wmWindow *oldwin,
-                                     wmWindow *win)
+static void wm_file_read_setup_wm_substitute_old_window(wmWindowManager *oldwm,
+                                                        wmWindowManager *wm,
+                                                        wmWindow *oldwin,
+                                                        wmWindow *win)
 {
   win->ghostwin = oldwin->ghostwin;
   win->gpuctx = oldwin->gpuctx;
@@ -279,20 +293,28 @@ static void wm_window_substitute_old(wmWindowManager *oldwm,
  * An alternative solution could also be to close all windows except the first however this is
  * enough of a corner case that it's the current behavior is acceptable.
  */
-static void wm_window_match_keep_current_wm(const bContext *C,
-                                            ListBase *current_wm_list,
-                                            const bool load_ui,
-                                            ListBase *r_new_wm_list)
+static void wm_file_read_setup_wm_keep_old(const bContext *C,
+                                           Main *bmain,
+                                           BlendFileReadWMSetupData *wm_setup_data,
+                                           wmWindowManager *wm,
+                                           const bool load_ui)
 {
-  Main *bmain = CTX_data_main(C);
-  wmWindowManager *wm = static_cast<wmWindowManager *>(current_wm_list->first);
-  bScreen *screen = nullptr;
+  /* This data is not needed here, besides detecting that old WM has been kept (in caller code).
+   * Since `old_wm` is kept, do not free it, just clear the pointer as clean-up. */
+  wm_setup_data->old_wm = nullptr;
 
-  /* match oldwm to new dbase, only old files */
-  wm->init_flag &= ~WM_INIT_FLAG_WINDOW;
+  if (!load_ui) {
+    /* When loading without UI (i.e. keeping existing UI), no matching needed.
+     *
+     * The other UI data (workspaces, layouts, screens) has also been re-used from old Main, and
+     * newly read one from file has already been discarded in #setup_app_data. */
+    return;
+  }
 
-  /* when loading without UI, no matching needed */
-  if (load_ui && (screen = CTX_wm_screen(C))) {
+  /* Old WM is being reused, but other UI data (workspaces, layouts, screens) comes from the new
+   * file, so the WM needs to be updated to use these. */
+  bScreen *screen = CTX_wm_screen(C);
+  if (screen != nullptr) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WorkSpace *workspace;
 
@@ -320,140 +342,112 @@ static void wm_window_match_keep_current_wm(const bContext *C,
       win_screen->winid = win->winid;
     }
   }
-
-  /* we'll be using the current wm list directly; make sure
-   * the names are validated and in the name map. */
-  LISTBASE_FOREACH (wmWindowManager *, wm_item, current_wm_list) {
-    BKE_main_namemap_get_name(bmain, &wm_item->id, wm_item->id.name + 2);
-  }
-
-  *r_new_wm_list = *current_wm_list;
 }
 
-static void wm_window_match_replace_by_file_wm(bContext *C,
-                                               ListBase *current_wm_list,
-                                               ListBase *readfile_wm_list,
-                                               ListBase *r_new_wm_list)
+static void wm_file_read_setup_wm_use_new(bContext *C,
+                                          Main * /* bmain */,
+                                          BlendFileReadWMSetupData *wm_setup_data,
+                                          wmWindowManager *wm)
 {
-  wmWindowManager *oldwm = static_cast<wmWindowManager *>(current_wm_list->first);
-  /* will become our new WM */
-  wmWindowManager *wm = static_cast<wmWindowManager *>(readfile_wm_list->first);
+  wmWindowManager *old_wm = wm_setup_data->old_wm;
 
-  /* Support window-manager ID references being held between file load operations by keeping
-   * #Main.wm.first memory address in-place, while swapping all of it's contents.
-   *
-   * This is needed so items such as key-maps can be held by an add-on,
-   * without it pointing to invalid memory, see: #86431 */
-  {
-    /* Referencing the window-manager pointer from elsewhere in the file is highly unlikely
-     * however it's possible with ID-properties & animation-drivers.
-     * At some point we could check on disallowing this since it doesn't seem practical. */
-    Main *bmain = G_MAIN;
-    BLI_assert(bmain->relations == nullptr);
-    BKE_libblock_remap(bmain, wm, oldwm, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_USER_CLEAR);
+  wm->op_undo_depth = old_wm->op_undo_depth;
 
-    /* Maintain the undo-depth between file loads. Useful so Python can perform
-     * nested operator calls that exit with the proper undo-depth. */
-    wm->op_undo_depth = oldwm->op_undo_depth;
+  /* Move existing key configurations into the new WM. */
+  wm->keyconfigs = old_wm->keyconfigs;
+  wm->addonconf = old_wm->addonconf;
+  wm->defaultconf = old_wm->defaultconf;
+  wm->userconf = old_wm->userconf;
 
-    /* Simple pointer swapping step. */
-    BLI_remlink(current_wm_list, oldwm);
-    BLI_remlink(readfile_wm_list, wm);
-    SWAP(wmWindowManager, *oldwm, *wm);
-    SWAP(wmWindowManager *, oldwm, wm);
-    BLI_addhead(current_wm_list, oldwm);
-    BLI_addhead(readfile_wm_list, wm);
+  BLI_listbase_clear(&old_wm->keyconfigs);
+  old_wm->addonconf = nullptr;
+  old_wm->defaultconf = nullptr;
+  old_wm->userconf = nullptr;
 
-    /* Don't leave the old pointer in the context. */
-    CTX_wm_manager_set(C, wm);
-  }
-
-  bool has_match = false;
-
-  /* this code could move to setup_appdata */
-
-  /* preserve key configurations in new wm, to preserve their keymaps */
-  wm->keyconfigs = oldwm->keyconfigs;
-  wm->addonconf = oldwm->addonconf;
-  wm->defaultconf = oldwm->defaultconf;
-  wm->userconf = oldwm->userconf;
-
-  BLI_listbase_clear(&oldwm->keyconfigs);
-  oldwm->addonconf = nullptr;
-  oldwm->defaultconf = nullptr;
-  oldwm->userconf = nullptr;
-
-  /* ensure making new keymaps and set space types */
+  /* Ensure new keymaps are made, and space types are set. */
   wm->init_flag = 0;
   wm->winactive = nullptr;
 
-  /* Clearing drawable of before deleting any context
-   * to avoid clearing the wrong wm. */
-  wm_window_clear_drawable(oldwm);
+  /* Clearing drawable of old WM before deleting any context to avoid clearing the wrong wm. */
+  wm_window_clear_drawable(old_wm);
 
-  /* Only first `wm` in list has GHOST-windows. */
+  bool has_match = false;
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (wmWindow *, oldwin, &oldwm->windows) {
-      if (oldwin->winid == win->winid) {
+    LISTBASE_FOREACH (wmWindow *, old_win, &old_wm->windows) {
+      if (old_win->winid == win->winid) {
         has_match = true;
 
-        wm_window_substitute_old(oldwm, wm, oldwin, win);
+        wm_file_read_setup_wm_substitute_old_window(old_wm, wm, old_win, win);
       }
     }
   }
-  /* make sure at least one window is kept open so we don't lose the context, check #42303 */
+  /* Ensure that at least one window is kept open so we don't lose the context, see #42303. */
   if (!has_match) {
-    wm_window_substitute_old(oldwm,
-                             wm,
-                             static_cast<wmWindow *>(oldwm->windows.first),
-                             static_cast<wmWindow *>(wm->windows.first));
+    wm_file_read_setup_wm_substitute_old_window(old_wm,
+                                                wm,
+                                                static_cast<wmWindow *>(old_wm->windows.first),
+                                                static_cast<wmWindow *>(wm->windows.first));
   }
 
-  wm_close_and_free_all(C, current_wm_list);
-
-  *r_new_wm_list = *readfile_wm_list;
+  wm_setup_data->old_wm = nullptr;
+  wm_close_and_free(C, old_wm);
+  /* Don't handle user counts as this is only ever called once #G_MAIN has already been freed via
+   * #BKE_main_free so any access to ID's referenced by the window-manager (from ID properties)
+   * will crash. See: #100703. */
+  BKE_libblock_free_data(&old_wm->id, false);
+  BKE_libblock_free_data_py(&old_wm->id);
+  MEM_freeN(old_wm);
 }
 
 /**
- * Match old WM with new, 4 cases:
- * 1) No current WM, no WM in file: Make new default.
- * 2) No current WM, but WM in file: Keep current WM, do nothing else.
- * 3) Current WM, but not in file: Keep current WM, update windows with screens from file.
- * 4) Current WM, and WM in file: Try to keep current GHOST windows, use WM from file.
+ * Finalize setting up the WM for the newly read file, transferring GHOST windows from the old WM
+ * if needed, updating other UI data, etc. And free the old WM if any.
  *
- * \param r_new_wm_list: Return argument for the wm list to be used from now on.
+ * Counterpart of #wm_file_read_setup_wm_init.
  */
-static void wm_window_match_do(bContext *C,
-                               ListBase *current_wm_list,
-                               ListBase *readfile_wm_list,
-                               ListBase *r_new_wm_list)
+static void wm_file_read_setup_wm_finalize(bContext *C,
+                                           Main *bmain,
+                                           BlendFileReadWMSetupData *wm_setup_data)
 {
-  if (BLI_listbase_is_empty(current_wm_list)) {
-    /* case 1 */
-    if (BLI_listbase_is_empty(readfile_wm_list)) {
-      Main *bmain = CTX_data_main(C);
-      /* Neither current, no newly read file have a WM -> add the default one. */
-      wm_add_default(bmain, C);
-      *r_new_wm_list = bmain->wm;
+  BLI_assert(BLI_listbase_count_at_most(&bmain->wm, 2) <= 1);
+  BLI_assert(wm_setup_data != nullptr);
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+
+  /* If reading factory startup file, and there was no previous WM, clear the size of the windows
+   * in newly read WM so that they get resized to occupy the whole available space on current
+   * monitor.
+   */
+  if (wm_setup_data->is_read_homefile && wm_setup_data->is_factory_startup &&
+      wm_setup_data->old_wm == nullptr)
+  {
+    wm_clear_default_size(C);
+  }
+
+  if (wm == nullptr) {
+    /* Add a default WM in case none exists in newly read main (should only happen when opening
+     * an old pre-2.5 .blend file at startup). */
+    wm_add_default(bmain, C);
+  }
+  else if (wm_setup_data->old_wm != nullptr) {
+    if (wm_setup_data->old_wm == wm) {
+      /* Old WM was kept, update it with new workspaces/layouts/screens read from file.
+       *
+       * Happens when not loading UI, or when the newly read file has no WM (pre-2.5 files). */
+      wm_file_read_setup_wm_keep_old(
+          C, bmain, wm_setup_data, wm, (G.fileflags & G_FILE_NO_UI) == 0);
     }
-    /* case 2 */
     else {
-      *r_new_wm_list = *readfile_wm_list;
+      /* Using new WM from read file, try to keep current GHOST windows, transfer keymaps, etc.,
+       * from old WM.
+       *
+       * Also takes care of clearing old WM data (temporarily stored in `wm_setup_data->old_wm`).
+       */
+      wm_file_read_setup_wm_use_new(C, bmain, wm_setup_data, wm);
     }
   }
-  else {
-    /* case 3 */
-    if (BLI_listbase_is_empty(readfile_wm_list)) {
-      /* We've read file without wm, keep current one entirely alive.
-       * Happens when reading pre 2.5 files (no WM back then) */
-      wm_window_match_keep_current_wm(
-          C, current_wm_list, (G.fileflags & G_FILE_NO_UI) == 0, r_new_wm_list);
-    }
-    /* case 4 */
-    else {
-      wm_window_match_replace_by_file_wm(C, current_wm_list, readfile_wm_list, r_new_wm_list);
-    }
-  }
+  /* Else just using the new WM read from file, nothing to do. */
+  BLI_assert(wm_setup_data->old_wm == nullptr);
+  MEM_delete(wm_setup_data);
 }
 
 /** \} */
@@ -462,7 +456,7 @@ static void wm_window_match_do(bContext *C,
 /** \name Preferences Initialization & Versioning
  * \{ */
 
-static void wm_gpu_backend_override_from_userdef(void)
+static void wm_gpu_backend_override_from_userdef()
 {
   /* Check if GPU backend is already set from the command line arguments. The command line
    * arguments have higher priority than user preferences. */
@@ -523,7 +517,7 @@ static void wm_init_userdef(Main *bmain)
 /* -------------------------------------------------------------------- */
 /** \name Read Exotic File Formats
  *
- * Currently only supports '.blend' files,
+ * Currently only supports `.blend` files,
  * we could support registering other file formats and their loaders.
  * \{ */
 
@@ -611,29 +605,28 @@ void WM_file_autoexec_init(const char *filepath)
   }
 }
 
-void wm_file_read_report(bContext *C, Main *bmain)
+void wm_file_read_report(Main *bmain, wmWindow *win)
 {
-  ReportList *reports = nullptr;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  ReportList *reports = &wm->reports;
+  bool found = false;
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->r.engine[0] &&
         BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) == nullptr)
     {
-      if (reports == nullptr) {
-        reports = CTX_wm_reports(C);
-      }
-
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Engine '%s' not available for scene '%s' (an add-on may need to be installed "
                   "or enabled)",
                   scene->r.engine,
                   scene->id.name + 2);
+      found = true;
     }
   }
 
-  if (reports) {
+  if (found) {
     if (!G.background) {
-      WM_report_banner_show();
+      WM_report_banner_show(wm, win);
     }
   }
 }
@@ -681,7 +674,9 @@ struct wmFileReadPost_Params {
  * Logic shared between #WM_file_read & #wm_homefile_read,
  * updates to make after reading a file.
  */
-static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *params)
+static void wm_file_read_post(bContext *C,
+                              const char *filepath,
+                              const wmFileReadPost_Params *params)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -764,8 +759,15 @@ static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *p
   }
 
   if (use_data) {
-    /* important to do before nullptr'ing the context */
+    /* Important to do before nulling the context. */
     BKE_callback_exec_null(bmain, BKE_CB_EVT_VERSION_UPDATE);
+
+    /* Load-post must run before evaluating drivers & depsgraph, see: #109720.
+     * On failure, the caller handles #BKE_CB_EVT_LOAD_POST_FAIL. */
+    if (params->success) {
+      BKE_callback_exec_string(bmain, BKE_CB_EVT_LOAD_POST, filepath);
+    }
+
     if (is_factory_startup) {
       BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST);
     }
@@ -790,7 +792,7 @@ static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *p
   /* report any errors.
    * currently disabled if addons aren't yet loaded */
   if (addons_loaded) {
-    wm_file_read_report(C, bmain);
+    wm_file_read_report(bmain, static_cast<wmWindow *>(wm->windows.first));
   }
 
   if (use_data) {
@@ -840,8 +842,11 @@ static void wm_read_callback_post_wrapper(bContext *C, const char *filepath, con
     wmWindow *win = static_cast<wmWindow *>(wm->windows.first);
     CTX_wm_window_set(C, win);
   }
-  BKE_callback_exec_string(
-      bmain, success ? BKE_CB_EVT_LOAD_POST : BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+
+  /* On success: #BKE_CB_EVT_LOAD_POST runs from #wm_file_read_post. */
+  if (success == false) {
+    BKE_callback_exec_string(bmain, BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+  }
 
   /* This function should leave the window null when the function entered. */
   if (!has_window) {
@@ -996,6 +1001,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   /* NOTE: a matching #wm_read_callback_post_wrapper must be called. */
   wm_read_callback_pre_wrapper(C, filepath);
 
+  Main *bmain = CTX_data_main(C);
+
   /* so we can get the error message */
   errno = 0;
 
@@ -1018,20 +1025,26 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     BlendFileReadReport bf_reports{};
     bf_reports.reports = reports;
     bf_reports.duration.whole = PIL_check_seconds_timer();
-    struct BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
+    BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
     if (bfd != nullptr) {
       wm_file_read_pre(use_data, use_userdef);
 
-      /* Put aside screens to match with persistent windows later,
-       * also exit screens and editors. */
-      ListBase wmbase;
-      wm_window_match_init(C, &wmbase);
+      /* Put WM into a stable state for post-readfile processes (kill jobs, removes event handlers,
+       * message bus, and so on). */
+      BlendFileReadWMSetupData *wm_setup_data = wm_file_read_setup_wm_init(C, bmain, false);
 
       /* This flag is initialized by the operator but overwritten on read.
        * need to re-enable it here else drivers and registered scripts won't work. */
       const int G_f_orig = G.f;
 
-      BKE_blendfile_read_setup(C, bfd, &params, &bf_reports);
+      /* Frees the current main and replaces it with the new one read from file. */
+      BKE_blendfile_read_setup_readfile(
+          C, bfd, &params, wm_setup_data, &bf_reports, false, nullptr);
+      bmain = CTX_data_main(C);
+
+      /* Finalize handling of WM, using the read WM and/or the current WM depending on things like
+       * whether the UI is loaded from the .blend file or not, etc. */
+      wm_file_read_setup_wm_finalize(C, bmain, wm_setup_data);
 
       if (G.f != G_f_orig) {
         const int flags_keep = G_FLAG_ALL_RUNTIME;
@@ -1039,11 +1052,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
         G.f = (G.f & ~flags_keep) | (G_f_orig & flags_keep);
       }
 
-      /* #BKE_blendfile_read_result_setup sets new Main into context. */
-      Main *bmain = CTX_data_main(C);
-
-      /* match the read WM with current WM */
-      wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
       WM_check(C); /* opens window(s), checks keymaps */
 
       if (do_history_file_update) {
@@ -1058,7 +1066,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       read_file_post_params.reset_app_template = false;
       read_file_post_params.success = true;
       read_file_post_params.is_alloc = false;
-      wm_file_read_post(C, &read_file_post_params);
+      wm_file_read_post(C, filepath, &read_file_post_params);
 
       bf_reports.duration.whole = PIL_check_seconds_timer() - bf_reports.duration.whole;
       file_read_reports_finalize(&bf_reports);
@@ -1126,7 +1134,7 @@ void WM_init_state_app_template_set(const char *app_template)
   }
 }
 
-const char *WM_init_state_app_template_get(void)
+const char *WM_init_state_app_template_get()
 {
   return wm_init_state_app_template.override ? wm_init_state_app_template.app_template : nullptr;
 }
@@ -1138,15 +1146,15 @@ const char *WM_init_state_app_template_get(void)
  * \{ */
 
 void wm_homefile_read_ex(bContext *C,
-                         const struct wmHomeFileRead_Params *params_homefile,
+                         const wmHomeFileRead_Params *params_homefile,
                          ReportList *reports,
-                         struct wmFileReadPost_Params **r_params_file_read_post)
+                         wmFileReadPost_Params **r_params_file_read_post)
 {
-#if 0 /* UNUSED, keep as this may be needed later & the comment below isn't self evident. */
+/* UNUSED, keep as this may be needed later & the comment below isn't self evident. */
+#if 0
   /* Context does not always have valid main pointer here. */
   Main *bmain = G_MAIN;
 #endif
-  ListBase wmbase;
   bool success = false;
 
   /* May be enabled, when the user configuration doesn't exist. */
@@ -1189,6 +1197,9 @@ void wm_homefile_read_ex(bContext *C,
 
   const char *app_template = nullptr;
   bool update_defaults = false;
+
+  /* Current Main is not always available in context here. */
+  Main *bmain = G_MAIN;
 
   if (filepath_startup_override != nullptr) {
     /* pass */
@@ -1245,9 +1256,11 @@ void wm_homefile_read_ex(bContext *C,
    * so we know this will work if all else fails. */
   wm_file_read_pre(use_data, use_userdef);
 
+  BlendFileReadWMSetupData *wm_setup_data = nullptr;
   if (use_data) {
-    /* put aside screens to match with persistent windows later */
-    wm_window_match_init(C, &wmbase);
+    /* Put WM into a stable state for post-readfile processes (kill jobs, removes event handlers,
+     * message bus, and so on). */
+    wm_setup_data = wm_file_read_setup_wm_init(C, bmain, true);
   }
 
   filepath_startup[0] = '\0';
@@ -1334,12 +1347,19 @@ void wm_homefile_read_ex(bContext *C,
       params.skip_flags = skip_flags | BLO_READ_SKIP_USERDEF;
       BlendFileReadReport bf_reports{};
       bf_reports.reports = reports;
-      struct BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, &bf_reports);
+      BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, &bf_reports);
 
       if (bfd != nullptr) {
-        BKE_blendfile_read_setup_ex(
-            C, bfd, &params, &bf_reports, update_defaults && use_data, app_template);
+        /* Frees the current main and replaces it with the new one read from file. */
+        BKE_blendfile_read_setup_readfile(C,
+                                          bfd,
+                                          &params,
+                                          wm_setup_data,
+                                          &bf_reports,
+                                          update_defaults && use_data,
+                                          app_template);
         success = true;
+        bmain = CTX_data_main(C);
       }
     }
     if (success) {
@@ -1360,20 +1380,21 @@ void wm_homefile_read_ex(bContext *C,
     BKE_reportf(reports, RPT_ERROR, "Could not read \"%s\"", filepath_startup_override);
   }
 
+  bool loaded_factory_settings = false;
   if (success == false) {
     BlendFileReadParams read_file_params{};
     read_file_params.is_startup = true;
     read_file_params.skip_flags = skip_flags;
-    struct BlendFileData *bfd = BKE_blendfile_read_from_memory(
+    BlendFileData *bfd = BKE_blendfile_read_from_memory(
         datatoc_startup_blend, datatoc_startup_blend_size, &read_file_params, nullptr);
     if (bfd != nullptr) {
       BlendFileReadReport read_report{};
-      BKE_blendfile_read_setup_ex(C, bfd, &read_file_params, &read_report, true, nullptr);
+      /* Frees the current main and replaces it with the new one read from file. */
+      BKE_blendfile_read_setup_readfile(
+          C, bfd, &read_file_params, wm_setup_data, &read_report, true, nullptr);
       success = true;
-    }
-
-    if (use_data && BLI_listbase_is_empty(&wmbase)) {
-      wm_clear_default_size(C);
+      loaded_factory_settings = true;
+      bmain = CTX_data_main(C);
     }
   }
 
@@ -1419,16 +1440,16 @@ void wm_homefile_read_ex(bContext *C,
     STRNCPY(U.app_template, app_template_override);
   }
 
-  Main *bmain = CTX_data_main(C);
-
   if (use_userdef) {
     /* check userdef before open window, keymaps etc */
     wm_init_userdef(bmain);
   }
 
   if (use_data) {
-    /* match the read WM with current WM */
-    wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
+    /* Finalize handling of WM, using the read WM and/or the current WM depending on things like
+     * whether the UI is loaded from the .blend file or not, etc. */
+    wm_setup_data->is_factory_startup = loaded_factory_settings;
+    wm_file_read_setup_wm_finalize(C, bmain, wm_setup_data);
   }
 
   if (use_userdef) {
@@ -1474,19 +1495,19 @@ void wm_homefile_read_ex(bContext *C,
 }
 
 void wm_homefile_read(bContext *C,
-                      const struct wmHomeFileRead_Params *params_homefile,
+                      const wmHomeFileRead_Params *params_homefile,
                       ReportList *reports)
 {
   wm_homefile_read_ex(C, params_homefile, reports, nullptr);
 }
 
-void wm_homefile_read_post(struct bContext *C,
-                           const struct wmFileReadPost_Params *params_file_read_post)
+void wm_homefile_read_post(bContext *C, const wmFileReadPost_Params *params_file_read_post)
 {
-  wm_file_read_post(C, params_file_read_post);
+  const char *filepath = "";
+  wm_file_read_post(C, filepath, params_file_read_post);
 
   if (params_file_read_post->use_data) {
-    wm_read_callback_post_wrapper(C, "", params_file_read_post->success);
+    wm_read_callback_post_wrapper(C, filepath, params_file_read_post->success);
   }
 
   if (params_file_read_post->is_alloc) {
@@ -1500,7 +1521,7 @@ void wm_homefile_read_post(struct bContext *C,
 /** \name Blend-File History API
  * \{ */
 
-void wm_history_file_read(void)
+void wm_history_file_read()
 {
   const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
   if (!cfgdir) {
@@ -1522,7 +1543,7 @@ void wm_history_file_read(void)
     const char *line = static_cast<const char *>(l->link);
     /* don't check if files exist, causes slow startup for remote/external drives */
     if (line[0]) {
-      struct RecentFile *recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
+      RecentFile *recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
       BLI_addtail(&(G.recent_files), recent);
       recent->filepath = BLI_strdup(line);
       num++;
@@ -1546,7 +1567,7 @@ static void wm_history_file_free(RecentFile *recent)
   BLI_freelinkN(&G.recent_files, recent);
 }
 
-static void wm_history_files_free(void)
+static void wm_history_files_free()
 {
   LISTBASE_FOREACH_MUTABLE (RecentFile *, recent, &G.recent_files) {
     wm_history_file_free(recent);
@@ -1563,7 +1584,7 @@ static RecentFile *wm_file_history_find(const char *filepath)
  * Write #BLENDER_HISTORY_FILE as-is, without checking the environment
  * (that's handled by #wm_history_file_update).
  */
-static void wm_history_file_write(void)
+static void wm_history_file_write()
 {
   const char *user_config_dir;
   char filepath[FILE_MAX];
@@ -1589,7 +1610,7 @@ static void wm_history_file_write(void)
 /**
  * Run after saving a file to refresh the #BLENDER_HISTORY_FILE list.
  */
-static void wm_history_file_update(void)
+static void wm_history_file_update()
 {
   RecentFile *recent;
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
@@ -1823,7 +1844,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
 /** \name Write Main Blend-File (internal)
  * \{ */
 
-bool write_crash_blend(void)
+bool write_crash_blend()
 {
   char filepath[FILE_MAX];
 
@@ -1885,7 +1906,7 @@ static bool wm_file_write(bContext *C,
   BlendThumbnail *thumb = nullptr, *main_thumb = nullptr;
   ImBuf *ibuf_thumb = nullptr;
 
-  /* NOTE: used to replace the file extension (to ensure '.blend'),
+  /* NOTE: used to replace the file extension (to ensure `.blend`),
    * no need to now because the operator ensures,
    * its handy for scripts to save to a predefined name without blender editing it */
 
@@ -1918,7 +1939,7 @@ static bool wm_file_write(bContext *C,
      *
      * - Save before exiting edit-mode, otherwise evaluated-mesh for shared data gets corrupted.
      *   See #27765.
-     * - Main can store a '.blend' thumbnail,
+     * - Main can store a `.blend` thumbnail,
      *   useful for background-mode or thumbnail customization.
      */
     main_thumb = thumb = bmain->blen_thumb;
@@ -2088,7 +2109,7 @@ static void wm_autosave_timer_begin_ex(wmWindowManager *wm, double timestep)
   wm_autosave_timer_end(wm);
 
   if (U.flag & USER_AUTOSAVE) {
-    wm->autosavetimer = WM_event_add_timer(wm, nullptr, TIMERAUTOSAVE, timestep);
+    wm->autosavetimer = WM_event_timer_add(wm, nullptr, TIMERAUTOSAVE, timestep);
   }
 }
 
@@ -2100,7 +2121,7 @@ void wm_autosave_timer_begin(wmWindowManager *wm)
 void wm_autosave_timer_end(wmWindowManager *wm)
 {
   if (wm->autosavetimer) {
-    WM_event_remove_timer(wm, nullptr, wm->autosavetimer);
+    WM_event_timer_remove(wm, nullptr, wm->autosavetimer);
     wm->autosavetimer = nullptr;
   }
 }
@@ -2134,7 +2155,7 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer * /*wt*/)
   wm_autosave_timer_begin(wm);
 }
 
-void wm_autosave_delete(void)
+void wm_autosave_delete()
 {
   char filepath[FILE_MAX];
 
@@ -2393,11 +2414,14 @@ static void wm_userpref_update_when_changed(bContext *C,
 
 static int wm_userpref_read_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   const bool use_data = false;
   const bool use_userdef = true;
   const bool use_factory_settings = STREQ(op->type->idname, "WM_OT_read_factory_userpref");
   const bool use_factory_settings_app_template_only =
       (use_factory_settings && RNA_boolean_get(op->ptr, "use_factory_startup_app_template_only"));
+
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
 
   UserDef U_backup = blender::dna::shallow_copy(U);
 
@@ -2415,13 +2439,13 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
   wm_userpref_read_exceptions(&U, &U_backup);
   SET_FLAG_FROM_TEST(G.f, use_factory_settings, G_FLAG_USERPREF_NO_SAVE_ON_EXIT);
 
-  Main *bmain = CTX_data_main(C);
-
   wm_userpref_update_when_changed(C, bmain, &U_backup, &U);
 
   if (use_factory_settings) {
     U.runtime.is_dirty = true;
   }
+
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
 
   /* Needed to recalculate UI scaling values (eg, #UserDef.inv_dpi_fac). */
   wm_window_clear_drawable(static_cast<wmWindowManager *>(bmain->wm.first));
@@ -2555,6 +2579,10 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     app_template = WM_init_state_app_template_get();
   }
 
+  if (use_userdef) {
+    BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+  }
+
   wmHomeFileRead_Params read_homefile_params{};
   read_homefile_params.use_data = true;
   read_homefile_params.use_userdef = use_userdef;
@@ -2577,6 +2605,10 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     if (use_factory_settings) {
       U.runtime.is_dirty = true;
     }
+  }
+
+  if (use_userdef) {
+    BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
   }
 
   if (G.fileflags & G_FILE_NO_UI) {
@@ -2616,7 +2648,7 @@ void WM_OT_read_homefile(wmOperatorType *ot)
   PropertyRNA *prop;
   ot->name = "Reload Start-Up File";
   ot->idname = "WM_OT_read_homefile";
-  ot->description = "Open the default file (doesn't save the current file)";
+  ot->description = "Open the default file";
 
   ot->invoke = wm_homefile_read_invoke;
   ot->exec = wm_homefile_read_exec;
@@ -2712,10 +2744,10 @@ static void set_next_operator_state(wmOperator *op, int state)
   RNA_int_set(op->ptr, "state", state);
 }
 
-typedef struct OperatorDispatchTarget {
+struct OperatorDispatchTarget {
   int state;
   int (*run)(bContext *C, wmOperator *op);
-} OperatorDispatchTarget;
+};
 
 static int operator_state_dispatch(bContext *C, wmOperator *op, OperatorDispatchTarget *targets)
 {
@@ -2847,12 +2879,12 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
   return wm_open_mainfile__open(C, op);
 }
 
-static char *wm_open_mainfile_description(struct bContext * /*C*/,
-                                          struct wmOperatorType * /*op*/,
-                                          struct PointerRNA *params)
+static std::string wm_open_mainfile_description(bContext * /*C*/,
+                                                wmOperatorType * /*op*/,
+                                                PointerRNA *params)
 {
   if (!RNA_struct_property_is_set(params, "filepath")) {
-    return nullptr;
+    return "";
   }
 
   char filepath[FILE_MAX];
@@ -2860,7 +2892,7 @@ static char *wm_open_mainfile_description(struct bContext * /*C*/,
 
   BLI_stat_t stats;
   if (BLI_stat(filepath, &stats) == -1) {
-    return BLI_sprintfN("%s\n\n%s", filepath, TIP_("File Not Found"));
+    return fmt::format("{}\n\n{}", filepath, TIP_("File Not Found"));
   }
 
   /* Date. */
@@ -2877,25 +2909,24 @@ static char *wm_open_mainfile_description(struct bContext * /*C*/,
   char size_str[FILELIST_DIRENTRY_SIZE_LEN];
   BLI_filelist_entry_size_to_string(nullptr, uint64_t(stats.st_size), false, size_str);
 
-  return BLI_sprintfN("%s\n\n%s: %s %s\n%s: %s",
-                      filepath,
-                      TIP_("Modified"),
-                      date_st,
-                      time_st,
-                      TIP_("Size"),
-                      size_str);
+  return fmt::format("{}\n\n{}: {} {}\n{}: {}",
+                     filepath,
+                     TIP_("Modified"),
+                     date_st,
+                     time_st,
+                     TIP_("Size"),
+                     size_str);
 }
 
 /* currently fits in a pointer */
 struct FileRuntime {
   bool is_untrusted;
 };
-BLI_STATIC_ASSERT(sizeof(struct FileRuntime) <= sizeof(void *),
-                  "Struct must not exceed pointer size");
+BLI_STATIC_ASSERT(sizeof(FileRuntime) <= sizeof(void *), "Struct must not exceed pointer size");
 
 static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
 {
-  struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
+  FileRuntime *file_info = (FileRuntime *)&op->customdata;
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_scripts");
   bool is_untrusted = false;
   char filepath[FILE_MAX];
@@ -2925,11 +2956,11 @@ static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
 
 static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
 {
-  struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
+  FileRuntime *file_info = (FileRuntime *)&op->customdata;
   uiLayout *layout = op->layout;
   const char *autoexec_text;
 
-  uiItemR(layout, op->ptr, "load_ui", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "load_ui", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, false);
   if (file_info->is_untrusted) {
@@ -2941,7 +2972,7 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
     autoexec_text = IFACE_("Trusted Source");
   }
 
-  uiItemR(col, op->ptr, "use_scripts", 0, autoexec_text, ICON_NONE);
+  uiItemR(col, op->ptr, "use_scripts", UI_ITEM_NONE, autoexec_text, ICON_NONE);
 }
 
 static void wm_open_mainfile_def_property_use_scripts(wmOperatorType *ot)
@@ -3262,7 +3293,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (RNA_boolean_get(op->ptr, "incremental")) {
+  if ((is_save_as == false) && RNA_boolean_get(op->ptr, "incremental")) {
     char head[FILE_MAXFILE], tail[FILE_MAXFILE];
     ushort digits;
     int num = BLI_path_sequence_decode(filepath, head, sizeof(head), tail, sizeof(tail), &digits);
@@ -3307,6 +3338,12 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!is_save_as) {
+    /* If saved as current file, there are technically no more compatibility issues, the file on
+     * disk now matches the currently opened data version-wise. */
+    bmain->has_forward_compatibility_issues = false;
+  }
+
   WM_event_add_notifier(C, NC_WM | ND_FILESAVE, nullptr);
 
   if (!is_save_as && RNA_boolean_get(op->ptr, "exit")) {
@@ -3331,23 +3368,23 @@ static bool wm_save_mainfile_check(bContext * /*C*/, wmOperator *op)
   return false;
 }
 
-static const char *wm_save_as_mainfile_get_name(wmOperatorType *ot, PointerRNA *ptr)
+static std::string wm_save_as_mainfile_get_name(wmOperatorType *ot, PointerRNA *ptr)
 {
   if (RNA_boolean_get(ptr, "copy")) {
     return CTX_IFACE_(ot->translation_context, "Save Copy");
   }
-  return nullptr;
+  return "";
 }
 
-static char *wm_save_as_mainfile_get_description(bContext * /*C*/,
-                                                 wmOperatorType * /*ot*/,
-                                                 PointerRNA *ptr)
+static std::string wm_save_as_mainfile_get_description(bContext * /*C*/,
+                                                       wmOperatorType * /*ot*/,
+                                                       PointerRNA *ptr)
 {
   if (RNA_boolean_get(ptr, "copy")) {
     return BLI_strdup(TIP_(
         "Save the current file in the desired location but do not make the saved file active"));
   }
-  return nullptr;
+  return "";
 }
 
 void WM_OT_save_as_mainfile(wmOperatorType *ot)
@@ -3411,7 +3448,13 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * 
   }
 
   if (blendfile_path[0] != '\0') {
-    ret = wm_save_as_mainfile_exec(C, op);
+    if (CTX_data_main(C)->has_forward_compatibility_issues) {
+      wm_save_file_forwardcompat_dialog(C, op);
+      ret = OPERATOR_INTERFACE;
+    }
+    else {
+      ret = wm_save_as_mainfile_exec(C, op);
+    }
   }
   else {
     WM_event_add_fileselect(C, op);
@@ -3421,16 +3464,16 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * 
   return ret;
 }
 
-static char *wm_save_mainfile_get_description(bContext * /*C*/,
-                                              wmOperatorType * /*ot*/,
-                                              PointerRNA *ptr)
+static std::string wm_save_mainfile_get_description(bContext * /*C*/,
+                                                    wmOperatorType * /*ot*/,
+                                                    PointerRNA *ptr)
 {
   if (RNA_boolean_get(ptr, "incremental")) {
-    return BLI_strdup(
-        TIP_("Save the current Blender file with a numerically incremented name that does not "
-             "overwrite any existing files"));
+    return TIP_(
+        "Save the current Blender file with a numerically incremented name that does not "
+        "overwrite any existing files");
   }
-  return nullptr;
+  return "";
 }
 
 void WM_OT_save_mainfile(wmOperatorType *ot)
@@ -3442,6 +3485,7 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
   ot->invoke = wm_save_mainfile_invoke;
   ot->exec = wm_save_as_mainfile_exec;
   ot->check = wm_save_mainfile_check;
+  ot->get_description = wm_save_mainfile_get_description;
   /* Omit window poll so this can work in background mode. */
 
   PropertyRNA *prop;
@@ -3486,13 +3530,11 @@ static void wm_block_autorun_warning_ignore(bContext *C, void *arg_block, void *
   wm_test_autorun_revert_action_set(nullptr, nullptr);
 }
 
-static void wm_block_autorun_warning_reload_with_scripts(bContext *C,
-                                                         void *arg_block,
-                                                         void * /*arg*/)
+static void wm_block_autorun_warning_reload_with_scripts(bContext *C, uiBlock *block)
 {
   wmWindow *win = CTX_wm_window(C);
 
-  UI_popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+  UI_popup_block_close(C, win, block);
 
   /* Save user preferences for permanent execution. */
   if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
@@ -3504,12 +3546,12 @@ static void wm_block_autorun_warning_reload_with_scripts(bContext *C,
   wm_test_autorun_revert_action_exec(C);
 }
 
-static void wm_block_autorun_warning_enable_scripts(bContext *C, void *arg_block, void * /*arg*/)
+static void wm_block_autorun_warning_enable_scripts(bContext *C, uiBlock *block)
 {
   wmWindow *win = CTX_wm_window(C);
   Main *bmain = CTX_data_main(C);
 
-  UI_popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+  UI_popup_block_close(C, win, block);
 
   /* Save user preferences for permanent execution. */
   if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
@@ -3523,9 +3565,7 @@ static void wm_block_autorun_warning_enable_scripts(bContext *C, void *arg_block
 }
 
 /* Build the autorun warning dialog UI */
-static uiBlock *block_create_autorun_warning(struct bContext *C,
-                                             struct ARegion *region,
-                                             void * /*arg1*/)
+static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void * /*arg1*/)
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -3556,7 +3596,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
   uiItemR(layout,
           &pref_ptr,
           "use_scripts_auto_execute",
-          0,
+          UI_ITEM_NONE,
           TIP_("Permanently allow execution of scripts"),
           ICON_NONE);
 
@@ -3591,7 +3631,8 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
                            0,
                            0,
                            TIP_("Reload file with execution of Python scripts enabled"));
-    UI_but_func_set(but, wm_block_autorun_warning_reload_with_scripts, block, nullptr);
+    UI_but_func_set(
+        but, [block](bContext &C) { wm_block_autorun_warning_reload_with_scripts(&C, block); });
   }
   else {
     but = uiDefIconTextBut(block,
@@ -3609,7 +3650,8 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
                            0,
                            0,
                            TIP_("Enable scripts"));
-    UI_but_func_set(but, wm_block_autorun_warning_enable_scripts, block, nullptr);
+    UI_but_func_set(but,
+                    [block](bContext &C) { wm_block_autorun_warning_enable_scripts(&C, block); });
   }
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 
@@ -3711,6 +3753,236 @@ void wm_test_autorun_warning(bContext *C)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Save File Forward Compatibility Dialog
+ * \{ */
+
+static void free_post_file_close_action(void *arg)
+{
+  wmGenericCallback *action = (wmGenericCallback *)arg;
+  WM_generic_callback_free(action);
+}
+
+static void wm_free_operator_properties_callback(void *user_data)
+{
+  IDProperty *properties = (IDProperty *)user_data;
+  IDP_FreeProperty(properties);
+}
+
+static const char *save_file_forwardcompat_dialog_name = "save_file_forwardcompat_popup";
+
+static void file_forwardcompat_detailed_info_show(uiLayout *parent_layout, Main *bmain)
+{
+  uiLayout *layout = uiLayoutColumn(parent_layout, true);
+  /* Trick to make both lines of text below close enough to look like they are part of a same
+   * block. */
+  uiLayoutSetScaleY(layout, 0.70f);
+
+  char writer_ver_str[16];
+  char current_ver_str[16];
+  if (bmain->versionfile == BLENDER_VERSION) {
+    BKE_blender_version_blendfile_string_from_values(
+        writer_ver_str, sizeof(writer_ver_str), bmain->versionfile, bmain->subversionfile);
+    BKE_blender_version_blendfile_string_from_values(
+        current_ver_str, sizeof(current_ver_str), BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
+  }
+  else {
+    BKE_blender_version_blendfile_string_from_values(
+        writer_ver_str, sizeof(writer_ver_str), bmain->versionfile, -1);
+    BKE_blender_version_blendfile_string_from_values(
+        current_ver_str, sizeof(current_ver_str), BLENDER_VERSION, -1);
+  }
+
+  char message_line1[256];
+  char message_line2[256];
+  SNPRINTF(message_line1,
+           TIP_("This file was saved by a newer version of Blender (%s)"),
+           writer_ver_str);
+  SNPRINTF(message_line2,
+           TIP_("Saving it with this Blender (%s) may cause loss of data"),
+           current_ver_str);
+  uiItemL(layout, message_line1, ICON_NONE);
+  uiItemL(layout, message_line2, ICON_NONE);
+}
+
+static void save_file_forwardcompat_cancel(bContext *C, void *arg_block, void * /*arg_data*/)
+{
+  wmWindow *win = CTX_wm_window(C);
+  UI_popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+}
+
+static void save_file_forwardcompat_cancel_button(uiBlock *block, wmGenericCallback *post_action)
+{
+  uiBut *but = uiDefIconTextBut(block,
+                                UI_BTYPE_BUT,
+                                0,
+                                ICON_NONE,
+                                IFACE_("Cancel"),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                0,
+                                0,
+                                0,
+                                0,
+                                "");
+  UI_but_func_set(but, save_file_forwardcompat_cancel, block, post_action);
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+}
+
+static void save_file_forwardcompat_overwrite(bContext *C, void *arg_block, void *arg_data)
+{
+  wmWindow *win = CTX_wm_window(C);
+
+  /* Re-use operator properties as defined for the initial 'save' operator, which triggered this
+   * 'forward compat' popup. */
+  wmGenericCallback *callback = WM_generic_callback_steal(
+      static_cast<wmGenericCallback *>(arg_data));
+
+  /* Needs to be done after stealing the callback data above, otherwise it would cause a
+   * use-after-free. */
+  UI_popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+
+  PointerRNA operator_propptr = {};
+  PointerRNA *operator_propptr_p = &operator_propptr;
+  IDProperty *operator_idproperties = static_cast<IDProperty *>(callback->user_data);
+  WM_operator_properties_alloc(&operator_propptr_p, &operator_idproperties, "WM_OT_save_mainfile");
+
+  WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, operator_propptr_p, nullptr);
+
+  WM_generic_callback_free(callback);
+}
+
+static void save_file_forwardcompat_overwrite_button(uiBlock *block,
+                                                     wmGenericCallback *post_action)
+{
+  uiBut *but = uiDefIconTextBut(block,
+                                UI_BTYPE_BUT,
+                                0,
+                                ICON_NONE,
+                                IFACE_("Overwrite"),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                0,
+                                0,
+                                0,
+                                0,
+                                "");
+  UI_but_func_set(but, save_file_forwardcompat_overwrite, block, post_action);
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+  UI_but_flag_enable(but, UI_BUT_REDALERT);
+}
+
+static void save_file_forwardcompat_saveas(bContext *C, void *arg_block, void * /*arg_data*/)
+{
+  wmWindow *win = CTX_wm_window(C);
+  UI_popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+
+  WM_operator_name_call(C, "WM_OT_save_as_mainfile", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
+}
+
+static void save_file_forwardcompat_saveas_button(uiBlock *block, wmGenericCallback *post_action)
+{
+  uiBut *but = uiDefIconTextBut(block,
+                                UI_BTYPE_BUT,
+                                0,
+                                ICON_NONE,
+                                IFACE_("Save As..."),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                0,
+                                0,
+                                0,
+                                0,
+                                "");
+  UI_but_func_set(but, save_file_forwardcompat_saveas, block, post_action);
+  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+  UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
+}
+
+static uiBlock *block_create_save_file_forwardcompat_dialog(bContext *C,
+                                                            ARegion *region,
+                                                            void *arg1)
+{
+  wmGenericCallback *post_action = static_cast<wmGenericCallback *>(arg1);
+  Main *bmain = CTX_data_main(C);
+
+  uiBlock *block = UI_block_begin(C, region, save_file_forwardcompat_dialog_name, UI_EMBOSS);
+  UI_block_flag_enable(
+      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+
+  uiLayout *layout = uiItemsAlertBox(block, 34, ALERT_ICON_WARNING);
+
+  /* Title. */
+  uiItemL_ex(
+      layout, TIP_("Overwrite file with an older Blender version?"), ICON_NONE, true, false);
+
+  /* Filename. */
+  const char *blendfile_path = BKE_main_blendfile_path(CTX_data_main(C));
+  char filename[FILE_MAX];
+  if (blendfile_path[0] != '\0') {
+    BLI_path_split_file_part(blendfile_path, filename, sizeof(filename));
+  }
+  else {
+    SNPRINTF(filename, "%s.blend", DATA_("untitled"));
+    /* Since this dialog should only be shown when re-saving an existing file, current filepath
+     * should never be empty. */
+    BLI_assert_unreachable();
+  }
+  uiItemL(layout, filename, ICON_NONE);
+
+  /* Detailed message info. */
+  file_forwardcompat_detailed_info_show(layout, bmain);
+
+  uiItemS_ex(layout, 4.0f);
+
+  /* Buttons. */
+
+  uiLayout *split = uiLayoutSplit(layout, 0.3f, true);
+  uiLayoutSetScaleY(split, 1.2f);
+
+  uiLayoutColumn(split, false);
+  save_file_forwardcompat_overwrite_button(block, post_action);
+
+  uiLayout *split_right = uiLayoutSplit(split, 0.1f, true);
+
+  uiLayoutColumn(split_right, false);
+  /* Empty space. */
+
+  uiLayoutColumn(split_right, false);
+  save_file_forwardcompat_cancel_button(block, post_action);
+
+  uiLayoutColumn(split_right, false);
+  save_file_forwardcompat_saveas_button(block, post_action);
+
+  UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
+  return block;
+}
+
+void wm_save_file_forwardcompat_dialog(bContext *C, wmOperator *op)
+{
+  if (!UI_popup_block_name_exists(CTX_wm_screen(C), save_file_forwardcompat_dialog_name)) {
+    wmGenericCallback *callback = MEM_cnew<wmGenericCallback>(__func__);
+    callback->exec = nullptr;
+    callback->user_data = IDP_CopyProperty(op->properties);
+    callback->free_user_data = wm_free_operator_properties_callback;
+
+    UI_popup_block_invoke(
+        C, block_create_save_file_forwardcompat_dialog, callback, free_post_file_close_action);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Close File Dialog
  * \{ */
 
@@ -3739,6 +4011,7 @@ static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_
 static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_data)
 {
   const Main *bmain = CTX_data_main(C);
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   wmGenericCallback *callback = WM_generic_callback_steal((wmGenericCallback *)arg_data);
   bool execute_callback = true;
 
@@ -3750,7 +4023,7 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
     if (ED_image_should_save_modified(bmain)) {
       ReportList *reports = CTX_wm_reports(C);
       ED_image_save_all_modified(C, reports);
-      WM_report_banner_show();
+      WM_report_banner_show(wm, win);
     }
     else {
       execute_callback = false;
@@ -3760,10 +4033,22 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   bool file_has_been_saved_before = BKE_main_blendfile_path(bmain)[0] != '\0';
 
   if (file_has_been_saved_before) {
-    if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, nullptr, nullptr) &
-        OPERATOR_CANCELLED)
-    {
+    if (bmain->has_forward_compatibility_issues) {
+      /* Need to invoke to get the file-browser and choose where to save the new file.
+       * This also makes it impossible to keep on going with current operation, which is why
+       * callback cannot be executed anymore.
+       *
+       * This is the same situation as what happens when the file has never been saved before
+       * (outer `else` statement, below). */
+      WM_operator_name_call(C, "WM_OT_save_as_mainfile", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
       execute_callback = false;
+    }
+    else {
+      if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, nullptr, nullptr) &
+          OPERATOR_CANCELLED)
+      {
+        execute_callback = false;
+      }
     }
   }
   else {
@@ -3779,24 +4064,67 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 
 static void wm_block_file_close_cancel_button(uiBlock *block, wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
+  uiBut *but = uiDefIconTextBut(block,
+                                UI_BTYPE_BUT,
+                                0,
+                                ICON_NONE,
+                                IFACE_("Cancel"),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                0,
+                                0,
+                                0,
+                                0,
+                                "");
   UI_but_func_set(but, wm_block_file_close_cancel, block, post_action);
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 }
 
 static void wm_block_file_close_discard_button(uiBlock *block, wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, IFACE_("Don't Save"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
+  uiBut *but = uiDefIconTextBut(block,
+                                UI_BTYPE_BUT,
+                                0,
+                                ICON_NONE,
+                                IFACE_("Don't Save"),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                0,
+                                0,
+                                0,
+                                0,
+                                "");
   UI_but_func_set(but, wm_block_file_close_discard, block, post_action);
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 }
 
-static void wm_block_file_close_save_button(uiBlock *block, wmGenericCallback *post_action)
+static void wm_block_file_close_save_button(uiBlock *block,
+                                            wmGenericCallback *post_action,
+                                            const bool has_forwardcompat_issues)
 {
   uiBut *but = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, IFACE_("Save"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
+      block,
+      UI_BTYPE_BUT,
+      0,
+      ICON_NONE,
+      /* Forward compatibility issues force using 'save as' operator instead of 'save' one. */
+      has_forwardcompat_issues ? IFACE_("Save As...") : IFACE_("Save"),
+      0,
+      0,
+      0,
+      UI_UNIT_Y,
+      nullptr,
+      0,
+      0,
+      0,
+      0,
+      "");
   UI_but_func_set(but, wm_block_file_close_save, block, post_action);
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
   UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
@@ -3810,9 +4138,7 @@ static void save_catalogs_when_file_is_closed_set_fn(bContext * /*C*/, void *arg
   ED_asset_catalogs_set_save_catalogs_when_file_is_saved(*save_catalogs_when_file_is_closed != 0);
 }
 
-static uiBlock *block_create__close_file_dialog(struct bContext *C,
-                                                struct ARegion *region,
-                                                void *arg1)
+static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, void *arg1)
 {
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
@@ -3823,6 +4149,8 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
   uiLayout *layout = uiItemsAlertBox(block, 34, ALERT_ICON_QUESTION);
+
+  const bool has_forwardcompat_issues = bmain->has_forward_compatibility_issues;
 
   /* Title. */
   uiItemL_ex(layout, TIP_("Save changes before closing?"), ICON_NONE, true, false);
@@ -3837,6 +4165,11 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     SNPRINTF(filename, "%s.blend", DATA_("untitled"));
   }
   uiItemL(layout, filename, ICON_NONE);
+
+  /* Potential forward compatibility issues message. */
+  if (has_forwardcompat_issues) {
+    file_forwardcompat_detailed_info_show(layout, bmain);
+  }
 
   /* Image Saving Warnings. */
   ReportList reports;
@@ -3944,7 +4277,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     uiLayoutSetScaleY(split, 1.2f);
 
     uiLayoutColumn(split, false);
-    wm_block_file_close_save_button(block, post_action);
+    wm_block_file_close_save_button(block, post_action, has_forwardcompat_issues);
 
     uiLayoutColumn(split, false);
     wm_block_file_close_discard_button(block, post_action);
@@ -3970,17 +4303,11 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     wm_block_file_close_cancel_button(block, post_action);
 
     uiLayoutColumn(split_right, false);
-    wm_block_file_close_save_button(block, post_action);
+    wm_block_file_close_save_button(block, post_action, has_forwardcompat_issues);
   }
 
   UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
   return block;
-}
-
-static void free_post_file_close_action(void *arg)
-{
-  wmGenericCallback *action = (wmGenericCallback *)arg;
-  WM_generic_callback_free(action);
 }
 
 void wm_close_file_dialog(bContext *C, wmGenericCallback *post_action)
@@ -3992,12 +4319,6 @@ void wm_close_file_dialog(bContext *C, wmGenericCallback *post_action)
   else {
     WM_generic_callback_free(post_action);
   }
-}
-
-static void wm_free_operator_properties_callback(void *user_data)
-{
-  IDProperty *properties = (IDProperty *)user_data;
-  IDP_FreeProperty(properties);
 }
 
 bool wm_operator_close_file_dialog_if_needed(bContext *C,

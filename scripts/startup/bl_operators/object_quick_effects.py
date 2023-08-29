@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2011-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from mathutils import Vector
@@ -183,7 +185,7 @@ class QuickFur(ObjectModeOperator, Operator):
                 with context.temp_override(object=curves_object):
                     try:
                         bpy.ops.object.modifier_apply(modifier=generate_modifier.name)
-                    except:
+                    except BaseException:
                         modifier_apply_error = True
 
             curves_object.modifiers.move(0, len(curves_object.modifiers) - 1)

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_rotation_lib.glsl)
@@ -650,11 +653,11 @@ mat4x4 normalize_and_get_size(mat4x4 mat, out vec4 r_size)
 
 mat2x2 adjoint(mat2x2 mat)
 {
-  mat2x2 adj;
+  mat2x2 adj = mat2x2(0.0);
   for (int c = 0; c < 2; c++) {
     for (int r = 0; r < 2; r++) {
       /* Copy other cells except the "cross" to compute the determinant. */
-      float tmp;
+      float tmp = 0.0;
       for (int m_c = 0; m_c < 2; m_c++) {
         for (int m_r = 0; m_r < 2; m_r++) {
           if (m_c != c && m_r != r) {
@@ -671,11 +674,11 @@ mat2x2 adjoint(mat2x2 mat)
 }
 mat3x3 adjoint(mat3x3 mat)
 {
-  mat3x3 adj;
+  mat3x3 adj = mat3x3(0.0);
   for (int c = 0; c < 3; c++) {
     for (int r = 0; r < 3; r++) {
       /* Copy other cells except the "cross" to compute the determinant. */
-      mat2x2 tmp;
+      mat2x2 tmp = mat2x2(0.0);
       for (int m_c = 0; m_c < 3; m_c++) {
         for (int m_r = 0; m_r < 3; m_r++) {
           if (m_c != c && m_r != r) {
@@ -694,11 +697,11 @@ mat3x3 adjoint(mat3x3 mat)
 }
 mat4x4 adjoint(mat4x4 mat)
 {
-  mat4x4 adj;
+  mat4x4 adj = mat4x4(0.0);
   for (int c = 0; c < 4; c++) {
     for (int r = 0; r < 4; r++) {
       /* Copy other cells except the "cross" to compute the determinant. */
-      mat3x3 tmp;
+      mat3x3 tmp = mat3x3(0.0);
       for (int m_c = 0; m_c < 4; m_c++) {
         for (int m_r = 0; m_r < 4; m_r++) {
           if (m_c != c && m_r != r) {

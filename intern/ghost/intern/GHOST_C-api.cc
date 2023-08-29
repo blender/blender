@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -22,7 +23,7 @@
 #include "intern/GHOST_CallbackEventConsumer.hh"
 #include "intern/GHOST_XrException.hh"
 
-GHOST_SystemHandle GHOST_CreateSystem(void)
+GHOST_SystemHandle GHOST_CreateSystem()
 {
   GHOST_ISystem::createSystem(true, false);
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
@@ -30,7 +31,7 @@ GHOST_SystemHandle GHOST_CreateSystem(void)
   return (GHOST_SystemHandle)system;
 }
 
-GHOST_SystemHandle GHOST_CreateSystemBackground(void)
+GHOST_SystemHandle GHOST_CreateSystemBackground()
 {
   GHOST_ISystem::createSystemBackground();
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
@@ -135,16 +136,16 @@ void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
   system->getAllDisplayDimensions(*width, *height);
 }
 
-GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemhandle,
-                                              GHOST_GLSettings glSettings)
+GHOST_ContextHandle GHOST_CreateGPUContext(GHOST_SystemHandle systemhandle,
+                                           GHOST_GPUSettings gpuSettings)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
-  return (GHOST_ContextHandle)system->createOffscreenContext(glSettings);
+  return (GHOST_ContextHandle)system->createOffscreenContext(gpuSettings);
 }
 
-GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
-                                          GHOST_ContextHandle contexthandle)
+GHOST_TSuccess GHOST_DisposeGPUContext(GHOST_SystemHandle systemhandle,
+                                       GHOST_ContextHandle contexthandle)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
@@ -161,7 +162,7 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                       uint32_t height,
                                       GHOST_TWindowState state,
                                       bool is_dialog,
-                                      GHOST_GLSettings glSettings)
+                                      GHOST_GPUSettings gpuSettings)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
@@ -171,7 +172,7 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                                   width,
                                                   height,
                                                   state,
-                                                  glSettings,
+                                                  gpuSettings,
                                                   false,
                                                   is_dialog,
                                                   (GHOST_IWindow *)parent_windowhandle);
@@ -215,7 +216,7 @@ bool GHOST_ValidWindow(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windo
 }
 
 GHOST_WindowHandle GHOST_BeginFullScreen(GHOST_SystemHandle systemhandle,
-                                         GHOST_DisplaySetting *setting,
+                                         const GHOST_DisplaySetting *setting,
                                          const bool stereoVisual)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
@@ -408,7 +409,7 @@ GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
                                    GHOST_TGrabCursorMode mode,
                                    GHOST_TAxisFlag wrap_axis,
-                                   int bounds[4],
+                                   const int bounds[4],
                                    const int mouse_ungrab_xy[2])
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
@@ -583,13 +584,14 @@ char *GHOST_GetTitle(GHOST_WindowHandle windowhandle)
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
   std::string title = window->getTitle();
 
-  char *ctitle = (char *)malloc(title.size() + 1);
+  const size_t ctitle_size = title.size() + 1;
+  char *ctitle = (char *)malloc(ctitle_size);
 
   if (ctitle == nullptr) {
     return nullptr;
   }
 
-  strcpy(ctitle, title.c_str());
+  memcpy(ctitle, title.c_str(), ctitle_size);
 
   return ctitle;
 }
@@ -716,7 +718,7 @@ GHOST_TSuccess GHOST_ActivateWindowDrawingContext(GHOST_WindowHandle windowhandl
   return window->activateDrawingContext();
 }
 
-GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthandle)
+GHOST_TSuccess GHOST_ActivateGPUContext(GHOST_ContextHandle contexthandle)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
   if (context) {
@@ -726,21 +728,21 @@ GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthandle)
   return GHOST_kFailure;
 }
 
-GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle)
+GHOST_TSuccess GHOST_ReleaseGPUContext(GHOST_ContextHandle contexthandle)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
 
   return context->releaseDrawingContext();
 }
 
-uint GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle contexthandle)
+uint GHOST_GetContextDefaultGPUFramebuffer(GHOST_ContextHandle contexthandle)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
 
   return context->getDefaultFramebuffer();
 }
 
-uint GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle)
+uint GHOST_GetDefaultGPUFramebuffer(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
@@ -766,6 +768,12 @@ void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI api)
   system->setTabletAPI(api);
 }
 
+GHOST_TSuccess GHOST_GetPixelAtCursor(float r_color[3])
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->getPixelAtCursor(r_color);
+}
+
 int32_t GHOST_GetWidthRectangle(GHOST_RectangleHandle rectanglehandle)
 {
   return ((GHOST_Rect *)rectanglehandle)->getWidth();
@@ -779,7 +787,7 @@ int32_t GHOST_GetHeightRectangle(GHOST_RectangleHandle rectanglehandle)
 void GHOST_GetRectangle(
     GHOST_RectangleHandle rectanglehandle, int32_t *l, int32_t *t, int32_t *r, int32_t *b)
 {
-  GHOST_Rect *rect = (GHOST_Rect *)rectanglehandle;
+  const GHOST_Rect *rect = (GHOST_Rect *)rectanglehandle;
 
   *l = rect->m_l;
   *t = rect->m_t;
@@ -883,7 +891,7 @@ void GHOST_putClipboard(const char *buffer, bool selection)
   system->putClipboard(buffer, selection);
 }
 
-GHOST_TSuccess GHOST_hasClipboardImage(void)
+GHOST_TSuccess GHOST_hasClipboardImage()
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->hasClipboardImage();
@@ -907,13 +915,13 @@ bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action)
   return system->setConsoleWindowState(action);
 }
 
-bool GHOST_UseNativePixels(void)
+bool GHOST_UseNativePixels()
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->useNativePixel();
 }
 
-GHOST_TCapabilityFlag GHOST_GetCapabilities(void)
+GHOST_TCapabilityFlag GHOST_GetCapabilities()
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->getCapabilities();
@@ -1146,7 +1154,7 @@ void *GHOST_XrGetActionSetCustomdata(GHOST_XrContextHandle xr_contexthandle,
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
   GHOST_XrSession *xr_session = xr_context->getSession();
   GHOST_XR_CAPI_CALL_RET(xr_session->getActionSetCustomdata(action_set_name), xr_context);
-  return 0;
+  return nullptr;
 }
 
 void *GHOST_XrGetActionCustomdata(GHOST_XrContextHandle xr_contexthandle,
@@ -1157,7 +1165,7 @@ void *GHOST_XrGetActionCustomdata(GHOST_XrContextHandle xr_contexthandle,
   GHOST_XrSession *xr_session = xr_context->getSession();
   GHOST_XR_CAPI_CALL_RET(xr_session->getActionCustomdata(action_set_name, action_name),
                          xr_context);
-  return 0;
+  return nullptr;
 }
 
 uint GHOST_XrGetActionCount(GHOST_XrContextHandle xr_contexthandle, const char *action_set_name)

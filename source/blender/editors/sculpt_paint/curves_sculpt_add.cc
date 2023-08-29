@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,7 @@
 #include "curves_sculpt_intern.hh"
 
 #include "BLI_kdtree.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
 #include "BLI_vector.hh"
@@ -16,18 +17,18 @@
 #include "DEG_depsgraph.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 
 #include "DNA_brush_enums.h"
@@ -39,12 +40,12 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 #include "GEO_add_curves_on_mesh.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "DEG_depsgraph_query.h"
 
@@ -128,7 +129,7 @@ struct AddOperationExecutor {
 
     Object &surface_ob_orig = *curves_id_orig_->surface;
     Mesh &surface_orig = *static_cast<Mesh *>(surface_ob_orig.data);
-    if (surface_orig.totpoly == 0) {
+    if (surface_orig.faces_num == 0) {
       report_empty_original_surface(stroke_extension.reports);
       return;
     }
@@ -138,7 +139,7 @@ struct AddOperationExecutor {
       return;
     }
     surface_eval_ = BKE_object_get_evaluated_mesh(surface_ob_eval_);
-    if (surface_eval_->totpoly == 0) {
+    if (surface_eval_->faces_num == 0) {
       report_empty_evaluated_surface(stroke_extension.reports);
       return;
     }
@@ -208,11 +209,11 @@ struct AddOperationExecutor {
     const Span<MLoopTri> surface_looptris_orig = surface_orig.looptris();
 
     /* Find normals. */
-    if (!CustomData_has_layer(&surface_orig.ldata, CD_NORMAL)) {
+    if (!CustomData_has_layer(&surface_orig.loop_data, CD_NORMAL)) {
       BKE_mesh_calc_normals_split(&surface_orig);
     }
     const Span<float3> corner_normals_su = {
-        reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_orig.ldata, CD_NORMAL)),
+        reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_orig.loop_data, CD_NORMAL)),
         surface_orig.totloop};
 
     const geometry::ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris_orig};

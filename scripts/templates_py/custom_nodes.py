@@ -75,7 +75,7 @@ class MyCustomNode(MyCustomTreeNode, Node):
     # === Custom Properties ===
     # These work just like custom properties in ID data blocks
     # Extensive information can be found under
-    # http://wiki.blender.org/index.php/Doc:2.6/Manual/Extensions/Python/Properties
+    # https://docs.blender.org/api/current/bpy.props.html
     my_string_prop: bpy.props.StringProperty()
     my_float_prop: bpy.props.FloatProperty(default=3.1415926)
 

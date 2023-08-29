@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/memory.h"
 #include "device/device.h"
@@ -127,7 +128,7 @@ bool device_memory::is_resident(Device *sub_device) const
   return device->is_resident(device_pointer, sub_device);
 }
 
-/* Device Sub Ptr */
+/* Device Sub `ptr`. */
 
 device_sub_ptr::device_sub_ptr(device_memory &mem, size_t offset, size_t size) : device(mem.device)
 {

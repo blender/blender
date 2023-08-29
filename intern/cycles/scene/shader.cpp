@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/device.h"
 
@@ -28,6 +29,8 @@
 #  include <OpenColorIO/OpenColorIO.h>
 namespace OCIO = OCIO_NAMESPACE;
 #endif
+
+#include "scene/shader.tables"
 
 CCL_NAMESPACE_BEGIN
 
@@ -100,7 +103,6 @@ Shader::Shader() : Node(get_node_type())
   has_surface_spatial_varying = false;
   has_volume_spatial_varying = false;
   has_volume_attribute_dependency = false;
-  has_integrator_dependency = false;
   has_volume_connected = false;
   prev_volume_step_rate = 0.0f;
 
@@ -337,6 +339,18 @@ void Shader::tag_update(Scene *scene)
   has_volume = has_volume || output->input("Volume")->link;
   has_displacement = has_displacement || output->input("Displacement")->link;
 
+  if (!has_surface) {
+    foreach (ShaderNode *node, graph->nodes) {
+      if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
+        foreach (const ShaderInput *in, node->inputs) {
+          if (in->link) {
+            has_surface = true;
+          }
+        }
+      }
+    }
+  }
+
   /* get requested attributes. this could be optimized by pruning unused
    * nodes here already, but that's the job of the shader manager currently,
    * and may not be so great for interactive rendering where you temporarily
@@ -345,8 +359,9 @@ void Shader::tag_update(Scene *scene)
   AttributeRequestSet prev_attributes = attributes;
 
   attributes.clear();
-  foreach (ShaderNode *node, graph->nodes)
+  foreach (ShaderNode *node, graph->nodes) {
     node->attributes(this, &attributes);
+  }
 
   if (has_displacement) {
     if (displacement_method == DISPLACE_BOTH) {
@@ -564,6 +579,18 @@ void ShaderManager::device_update_common(Device * /*device*/,
 
   dscene->shaders.copy_to_device();
 
+  /* lookup tables */
+  KernelTables *ktables = &dscene->data.tables;
+  ktables->ggx_E = ensure_bsdf_table(dscene, scene, table_ggx_E);
+  ktables->ggx_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_Eavg);
+  ktables->ggx_glass_E = ensure_bsdf_table(dscene, scene, table_ggx_glass_E);
+  ktables->ggx_glass_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_glass_Eavg);
+  ktables->ggx_glass_inv_E = ensure_bsdf_table(dscene, scene, table_ggx_glass_inv_E);
+  ktables->ggx_glass_inv_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_glass_inv_Eavg);
+  ktables->sheen_ltc = ensure_bsdf_table(dscene, scene, table_sheen_ltc);
+  ktables->ggx_gen_schlick_ior_s = ensure_bsdf_table(dscene, scene, table_ggx_gen_schlick_ior_s);
+  ktables->ggx_gen_schlick_s = ensure_bsdf_table(dscene, scene, table_ggx_gen_schlick_s);
+
   /* integrator */
   KernelIntegrator *kintegrator = &dscene->data.integrator;
   kintegrator->use_volumes = has_volumes;
@@ -583,8 +610,13 @@ void ShaderManager::device_update_common(Device * /*device*/,
   kfilm->is_rec709 = is_rec709;
 }
 
-void ShaderManager::device_free_common(Device * /*device*/, DeviceScene *dscene, Scene * /*scene*/)
+void ShaderManager::device_free_common(Device * /*device*/, DeviceScene *dscene, Scene *scene)
 {
+  for (auto &entry : bsdf_tables) {
+    scene->lookup_tables->remove_table(&entry.second);
+  }
+  bsdf_tables.clear();
+
   dscene->shaders.free();
 }
 
@@ -887,6 +919,19 @@ void ShaderManager::init_xyz_transforms()
   rec709_to_b = float4_to_float3(rec709_to_rgb.z);
   is_rec709 = transform_equal_threshold(xyz_to_rgb, xyz_to_rec709, 0.0001f);
 #endif
+}
+
+size_t ShaderManager::ensure_bsdf_table_impl(DeviceScene *dscene,
+                                             Scene *scene,
+                                             const float *table,
+                                             size_t n)
+{
+  /* Since the BSDF tables are static arrays, we can use their address to identify them. */
+  if (!(bsdf_tables.count(table))) {
+    vector<float> entries(table, table + n);
+    bsdf_tables[table] = scene->lookup_tables->add_table(dscene, entries);
+  }
+  return bsdf_tables[table];
 }
 
 CCL_NAMESPACE_END

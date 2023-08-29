@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -672,8 +672,8 @@ DRWPass *DRW_pass_create_instance(const char *name, DRWPass *original, DRWState 
  */
 void DRW_pass_link(DRWPass *first, DRWPass *second);
 void DRW_pass_foreach_shgroup(DRWPass *pass,
-                              void (*callback)(void *userData, DRWShadingGroup *shgroup),
-                              void *userData);
+                              void (*callback)(void *user_data, DRWShadingGroup *shgroup),
+                              void *user_data);
 /**
  * Sort Shading groups by decreasing Z of their first draw call.
  * This is useful for order dependent effect such as alpha-blending.
@@ -839,6 +839,11 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
                          struct Depsgraph *depsgraph,
                          void (*callback)(void *vedata, void *user_data),
                          void *user_data);
+/**
+ * Same as `DRW_custom_pipeline` but allow better code-flow than a callback.
+ */
+void DRW_custom_pipeline_begin(DrawEngineType *draw_engine_type, struct Depsgraph *depsgraph);
+void DRW_custom_pipeline_end(void);
 
 /**
  * Used when the render engine want to redo another cache populate inside the same render frame.
@@ -944,7 +949,7 @@ bool DRW_state_is_scene_render(void);
 /**
  * Whether we are rendering simple opengl render
  */
-bool DRW_state_is_opengl_render(void);
+bool DRW_state_is_viewport_image_render(void);
 bool DRW_state_is_playback(void);
 /**
  * Is the user navigating the region.

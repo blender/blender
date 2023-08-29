@@ -1,7 +1,6 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *  */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -77,21 +76,35 @@ World::~World()
   return default_world_;
 }
 
+void World::world_and_ntree_get(::World *&world, bNodeTree *&ntree)
+{
+  world = inst_.scene->world;
+  if (world == nullptr) {
+    world = default_world_get();
+  }
+
+  ntree = (world->nodetree && world->use_nodes && !inst_.use_studio_light()) ?
+              world->nodetree :
+              default_tree.nodetree_get(world);
+}
+
 void World::sync()
 {
-  // if (inst_.lookdev.sync_world()) {
-  //   return;
-  // }
+  ::World *bl_world;
+  bNodeTree *ntree;
+  world_and_ntree_get(bl_world, ntree);
 
-  ::World *bl_world = inst_.scene->world;
-  if (bl_world == nullptr) {
-    bl_world = default_world_get();
+  GPUMaterial *volume_gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_VOLUME);
+  inst_.pipelines.world_volume.sync(volume_gpumat);
+
+  if (inst_.lookdev.sync_world()) {
+    return;
   }
 
   WorldHandle &wo_handle = inst_.sync.sync_world(bl_world);
-
+  inst_.reflection_probes.sync_world(bl_world, wo_handle);
   if (wo_handle.recalc != 0) {
-    // inst_.lightprobes.set_world_dirty();
+    inst_.reflection_probes.do_world_update_set(true);
   }
   wo_handle.reset_recalc_flag();
 
@@ -101,15 +114,22 @@ void World::sync()
     inst_.sampling.reset();
   }
 
-  bNodeTree *ntree = (bl_world->nodetree && bl_world->use_nodes) ?
-                         bl_world->nodetree :
-                         default_tree.nodetree_get(bl_world);
-
-  GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree);
+  GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_DEFERRED);
 
   inst_.manager->register_layer_attributes(gpumat);
 
+  inst_.pipelines.background.sync(gpumat, inst_.film.background_opacity_get());
   inst_.pipelines.world.sync(gpumat);
+}
+
+bool World::has_volume()
+{
+  ::World *bl_world;
+  bNodeTree *ntree;
+  world_and_ntree_get(bl_world, ntree);
+
+  GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_VOLUME);
+  return GPU_material_has_volume_output(gpumat);
 }
 
 /** \} */

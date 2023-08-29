@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -51,7 +53,7 @@ static int GetShapeF1D___init__(BPy_GetShapeF1D *self, PyObject *args, PyObject 
 /*-----------------------BPy_GetShapeF1D type definition ------------------------------*/
 
 PyTypeObject GetShapeF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GetShapeF1D",
     /*tp_basicsize*/ sizeof(BPy_GetShapeF1D),
     /*tp_itemsize*/ 0,

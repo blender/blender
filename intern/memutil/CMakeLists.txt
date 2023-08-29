@@ -1,10 +1,10 @@
+# SPDX-FileCopyrightText: 2006 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation
 
 set(INC
   .
   ..
-  ../../source/blender/blenlib
 )
 
 set(INC_SYS
@@ -23,6 +23,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
 )
 
 blender_add_lib(bf_intern_memutil "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

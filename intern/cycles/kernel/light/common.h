@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -30,7 +31,7 @@ typedef struct LightSample {
 
 ccl_device_inline float3 ellipse_sample(float3 ru, float3 rv, float2 rand)
 {
-  const float2 uv = concentric_sample_disk(rand);
+  const float2 uv = sample_uniform_disk(rand);
   return ru * uv.x + rv * uv.y;
 }
 

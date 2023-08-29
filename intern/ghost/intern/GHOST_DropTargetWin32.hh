@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -115,7 +116,7 @@ class GHOST_DropTargetWin32 : public IDropTarget {
    * The ANSI codepage is the system default codepage,
    * and can change from system to system.
    * \param in: LPCWSTR.
-   * \param out: char *. Is set to NULL on failure.
+   * \param out: char *. Is set to nullptr on failure.
    * \return 0 on failure. Else the size of the string including '\0'.
    */
   int WideCharToANSI(LPCWSTR in, char *&out);

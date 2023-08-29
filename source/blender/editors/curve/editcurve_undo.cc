@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -29,11 +29,11 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_curve.h"
-#include "ED_undo.h"
+#include "ED_curve.hh"
+#include "ED_undo.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "curve_intern.h"
 
@@ -44,7 +44,7 @@ static CLG_LogRef LOG = {"ed.undo.curve"};
 /** \name Undo Conversion
  * \{ */
 
-typedef struct {
+struct UndoCurve {
   ListBase nubase;
   int actvert;
   GHash *undoIndex;
@@ -58,13 +58,12 @@ typedef struct {
   } obedit;
 
   size_t undo_size;
-} UndoCurve;
+};
 
 static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short *r_shapenr)
 {
   ListBase *undobase = &ucu->nubase;
   ListBase *editbase = BKE_curve_editNurbs_get(cu);
-  Nurb *nu, *newnu;
   EditNurb *editnurb = cu->editnurb;
   AnimData *ad = BKE_animdata_from_id(&cu->id);
 
@@ -86,8 +85,8 @@ static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short
   }
 
   /* Copy. */
-  for (nu = static_cast<Nurb *>(undobase->first); nu; nu = nu->next) {
-    newnu = BKE_nurb_duplicate(nu);
+  LISTBASE_FOREACH (Nurb *, nu, undobase) {
+    Nurb *newnu = BKE_nurb_duplicate(nu);
 
     if (editnurb->keyindex) {
       ED_curve_keyindex_update_nurb(editnurb, nu, newnu);
@@ -108,7 +107,6 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shap
   BLI_assert(BLI_array_is_zeroed(ucu, 1));
   ListBase *nubase = BKE_curve_editNurbs_get(cu);
   EditNurb *editnurb = cu->editnurb, tmpEditnurb;
-  Nurb *nu, *newnu;
   AnimData *ad = BKE_animdata_from_id(&cu->id);
 
   /* TODO: include size of fcurve & undoIndex */
@@ -128,8 +126,8 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shap
   }
 
   /* Copy. */
-  for (nu = static_cast<Nurb *>(nubase->first); nu; nu = nu->next) {
-    newnu = BKE_nurb_duplicate(nu);
+  LISTBASE_FOREACH (Nurb *, nu, nubase) {
+    Nurb *newnu = BKE_nurb_duplicate(nu);
 
     if (ucu->undoIndex) {
       ED_curve_keyindex_update_nurb(&tmpEditnurb, nu, newnu);
@@ -183,16 +181,16 @@ static Object *editcurve_object_from_context(bContext *C)
  * \note This is similar for all edit-mode types.
  * \{ */
 
-typedef struct CurveUndoStep_Elem {
+struct CurveUndoStep_Elem {
   UndoRefID_Object obedit_ref;
   UndoCurve data;
-} CurveUndoStep_Elem;
+};
 
-typedef struct CurveUndoStep {
+struct CurveUndoStep {
   UndoStep step;
   CurveUndoStep_Elem *elems;
   uint elems_len;
-} CurveUndoStep;
+};
 
 static bool curve_undosys_poll(bContext *C)
 {
@@ -200,7 +198,7 @@ static bool curve_undosys_poll(bContext *C)
   return (obedit != nullptr);
 }
 
-static bool curve_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
+static bool curve_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
   CurveUndoStep *us = (CurveUndoStep *)us_p;
 
@@ -232,11 +230,8 @@ static bool curve_undosys_step_encode(struct bContext *C, struct Main *bmain, Un
   return true;
 }
 
-static void curve_undosys_step_decode(struct bContext *C,
-                                      struct Main *bmain,
-                                      UndoStep *us_p,
-                                      const eUndoStepDir /*dir*/,
-                                      bool /*is_final*/)
+static void curve_undosys_step_decode(
+    bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
   CurveUndoStep *us = (CurveUndoStep *)us_p;
 

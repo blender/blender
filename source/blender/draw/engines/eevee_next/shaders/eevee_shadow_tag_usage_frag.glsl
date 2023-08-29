@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Usage tagging
+ * Virtual shadow-mapping: Usage tagging
  *
  * Shadow pages are only allocated if they are visible.
  * This ray-marches the current fragment along the bounds depth and tags all the intersected shadow
@@ -93,10 +96,10 @@ void main()
   vec3 ls_view_direction = normalize(point_world_to_object(interp.P) - ls_near_plane);
 
   /* TODO (Miguel Pozo): We could try to ray-cast against the non-inflated bounds first,
-   * and fallback to the inflated ones if theres no hit.
-   * The inflated bounds can cause unnecesary extra steps. */
+   * and fallback to the inflated ones if there is no hit.
+   * The inflated bounds can cause unnecessary extra steps. */
   float ls_near_box_t = ray_aabb(
-      ls_near_plane, ls_view_direction, interp.ls_aabb_min, interp.ls_aabb_max);
+      ls_near_plane, ls_view_direction, interp_flat.ls_aabb_min, interp_flat.ls_aabb_max);
   vec3 ls_near_box = ls_near_plane + ls_view_direction * ls_near_box_t;
   vec3 ws_near_box = point_object_to_world(ls_near_box);
 

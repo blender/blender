@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -23,9 +23,9 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 
@@ -33,14 +33,14 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_undo.h"
+#include "ED_undo.hh"
 #include "sculpt_intern.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -77,16 +77,13 @@ void SCULPT_pbvh_clear(Object *ob)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
-void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
+void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = static_cast<Mesh *>(ob->data);
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
 
   SCULPT_pbvh_clear(ob);
-
-  ss->bm_smooth_shading = (scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING) !=
-                          0;
 
   /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
   BKE_mesh_mselect_clear(me);
@@ -107,7 +104,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
 
   /* Make sure the data for existing faces are initialized. */
-  if (me->totpoly != ss->bm->totface) {
+  if (me->faces_num != ss->bm->totface) {
     BM_mesh_normals_update(ss->bm);
   }
 
@@ -151,28 +148,28 @@ static void SCULPT_dynamic_topology_disable_ex(
     SculptUndoNodeGeometry *geometry = &unode->geometry_bmesh_enter;
     me->totvert = geometry->totvert;
     me->totloop = geometry->totloop;
-    me->totpoly = geometry->totpoly;
+    me->faces_num = geometry->faces_num;
     me->totedge = geometry->totedge;
-    me->totface = 0;
-    CustomData_copy(&geometry->vdata, &me->vdata, CD_MASK_MESH.vmask, geometry->totvert);
-    CustomData_copy(&geometry->edata, &me->edata, CD_MASK_MESH.emask, geometry->totedge);
-    CustomData_copy(&geometry->ldata, &me->ldata, CD_MASK_MESH.lmask, geometry->totloop);
-    CustomData_copy(&geometry->pdata, &me->pdata, CD_MASK_MESH.pmask, geometry->totpoly);
-    blender::implicit_sharing::copy_shared_pointer(geometry->poly_offset_indices,
-                                                   geometry->poly_offsets_sharing_info,
-                                                   &me->poly_offset_indices,
-                                                   &me->runtime->poly_offsets_sharing_info);
+    me->totface_legacy = 0;
+    CustomData_copy(&geometry->vert_data, &me->vert_data, CD_MASK_MESH.vmask, geometry->totvert);
+    CustomData_copy(&geometry->edge_data, &me->edge_data, CD_MASK_MESH.emask, geometry->totedge);
+    CustomData_copy(&geometry->loop_data, &me->loop_data, CD_MASK_MESH.lmask, geometry->totloop);
+    CustomData_copy(&geometry->face_data, &me->face_data, CD_MASK_MESH.pmask, geometry->faces_num);
+    blender::implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
+                                                   geometry->face_offsets_sharing_info,
+                                                   &me->face_offset_indices,
+                                                   &me->runtime->face_offsets_sharing_info);
   }
   else {
     BKE_sculptsession_bm_to_me(ob, true);
 
     /* Reset Face Sets as they are no longer valid. */
-    CustomData_free_layer_named(&me->pdata, ".sculpt_face_set", me->totpoly);
+    CustomData_free_layer_named(&me->face_data, ".sculpt_face_set", me->faces_num);
     me->face_sets_color_default = 1;
 
     /* Sync the visibility to vertices manually as the `pmap` is still not initialized. */
     bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
-        &me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert);
+        &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert);
     if (hide_vert != nullptr) {
       memset(hide_vert, 0, sizeof(bool) * me->totvert);
     }
@@ -229,10 +226,7 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
   }
 }
 
-static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
-                                                     Depsgraph *depsgraph,
-                                                     Scene *scene,
-                                                     Object *ob)
+static void sculpt_dynamic_topology_enable_with_undo(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   if (ss->bm == nullptr) {
@@ -241,7 +235,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
     if (use_undo) {
       SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
     }
-    SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
+    SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, ob);
     if (use_undo) {
       SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_BEGIN);
       SCULPT_undo_push_end(ob);
@@ -263,7 +257,7 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator * /*op*/)
     sculpt_dynamic_topology_disable_with_undo(bmain, depsgraph, scene, ob);
   }
   else {
-    sculpt_dynamic_topology_enable_with_undo(bmain, depsgraph, scene, ob);
+    sculpt_dynamic_topology_enable_with_undo(bmain, depsgraph, ob);
   }
 
   WM_cursor_wait(false);
@@ -295,7 +289,8 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoW
     uiItemS(layout);
   }
 
-  uiItemFullO_ptr(layout, ot, IFACE_("OK"), ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, nullptr);
+  uiItemFullO_ptr(
+      layout, ot, IFACE_("OK"), ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, nullptr);
 
   UI_popup_menu_end(C, pup);
 
@@ -340,22 +335,30 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
   BLI_assert(ss->bm == nullptr);
   UNUSED_VARS_NDEBUG(ss);
 
-  if (!dyntopo_supports_customdata_layers({me->vdata.layers, me->vdata.totlayer}, me->totvert)) {
+  if (!dyntopo_supports_customdata_layers({me->vert_data.layers, me->vert_data.totlayer},
+                                          me->totvert))
+  {
     flag |= DYNTOPO_WARN_VDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->edata.layers, me->edata.totlayer}, me->totedge)) {
+  if (!dyntopo_supports_customdata_layers({me->edge_data.layers, me->edge_data.totlayer},
+                                          me->totedge))
+  {
     flag |= DYNTOPO_WARN_EDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->pdata.layers, me->pdata.totlayer}, me->totpoly)) {
+  if (!dyntopo_supports_customdata_layers({me->face_data.layers, me->face_data.totlayer},
+                                          me->faces_num))
+  {
     flag |= DYNTOPO_WARN_LDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->ldata.layers, me->ldata.totlayer}, me->totloop)) {
+  if (!dyntopo_supports_customdata_layers({me->loop_data.layers, me->loop_data.totlayer},
+                                          me->totloop))
+  {
     flag |= DYNTOPO_WARN_LDATA;
   }
 
   {
-    VirtualModifierData virtualModifierData;
-    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+    VirtualModifierData virtual_modifier_data;
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
 
     /* Exception for shape keys because we can edit those. */
     for (; md; md = md->next) {

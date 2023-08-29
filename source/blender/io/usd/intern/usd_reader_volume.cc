@@ -4,6 +4,8 @@
 
 #include "usd_reader_volume.h"
 
+#include "BLI_string.h"
+
 #include "BKE_object.h"
 #include "BKE_volume.h"
 
@@ -77,7 +79,7 @@ void USDVolumeReader::read_object_data(Main *bmain, const double motionSampleTim
 
       std::string filepath = fp.GetResolvedPath();
 
-      strcpy(volume->filepath, filepath.c_str());
+      STRNCPY(volume->filepath, filepath.c_str());
     }
   }
 

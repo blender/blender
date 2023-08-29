@@ -97,7 +97,7 @@ typedef struct bConstraintTarget {
   short flag;
   /** Type of target (eConstraintObType). */
   short type;
-  /** Rotation order for target (as defined in BLI_math.h). */
+  /** Rotation order for target (as defined in BLI_math_rotation.h). */
   short rotOrder;
   /** Weight for armature deform. */
   float weight;
@@ -1111,24 +1111,27 @@ typedef enum eChildOf_Flags {
   CHILDOF_SET_INVERSE = (1 << 9),
 } eChildOf_Flags;
 
-/* Pivot Constraint */
-/* Restrictions for Pivot Constraint axis to consider for enabling constraint */
+/**
+ * Pivot Constraint
+ *
+ * Restrictions for Pivot Constraint axis to consider for enabling constraint.
+ */
 typedef enum ePivotConstraint_Axis {
-  /* do not consider this activity-clamping */
+  /** Do not consider this activity-clamping. */
   PIVOTCON_AXIS_NONE = -1,
 
-  /* consider -ve x-axis rotations */
+  /** Consider -VE X-axis rotations. */
   PIVOTCON_AXIS_X_NEG = 0,
-  /* consider -ve y-axis rotations */
+  /** Consider -VE Y-axis rotations. */
   PIVOTCON_AXIS_Y_NEG = 1,
-  /* consider -ve z-axis rotations */
+  /** Consider -VE Z-axis rotations. */
   PIVOTCON_AXIS_Z_NEG = 2,
 
-  /* consider +ve x-axis rotations */
+  /** Consider +VE X-axis rotations. */
   PIVOTCON_AXIS_X = 3,
-  /* consider +ve y-axis rotations */
+  /** Consider +VE Y-axis rotations. */
   PIVOTCON_AXIS_Y = 4,
-  /* consider +ve z-axis rotations */
+  /** Consider +VE Z-axis rotations. */
   PIVOTCON_AXIS_Z = 5,
 } ePivotConstraint_Axis;
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -64,11 +64,11 @@ struct TextureUpdateRoutineSpecialisation {
  * 1 = 24 bit integer (0 - 2^24)
  * 2 = 32 bit integer (0 - 2^32) */
 
-typedef enum {
+enum DepthTextureUpdateMode {
   MTL_DEPTH_UPDATE_MODE_FLOAT = 0,
   MTL_DEPTH_UPDATE_MODE_INT24 = 1,
   MTL_DEPTH_UPDATE_MODE_INT32 = 2
-} DepthTextureUpdateMode;
+};
 
 struct DepthTextureUpdateRoutineSpecialisation {
   DepthTextureUpdateMode data_mode;
@@ -484,6 +484,7 @@ inline std::string tex_data_format_to_msl_type_str(eGPUDataFormat type)
     case GPU_DATA_UINT_24_8:
       return "uint"; /* Problematic type - but will match alignment. */
     case GPU_DATA_10_11_11_REV:
+    case GPU_DATA_2_10_10_10_REV:
       return "float"; /* Problematic type - each component will be read as a float. */
     default:
       BLI_assert(false);
@@ -509,6 +510,7 @@ inline std::string tex_data_format_to_msl_texture_template_type(eGPUDataFormat t
     case GPU_DATA_UINT_24_8:
       return "uint"; /* Problematic type. */
     case GPU_DATA_10_11_11_REV:
+    case GPU_DATA_2_10_10_10_REV:
       return "float"; /* Problematic type. */
     default:
       BLI_assert(false);
@@ -586,7 +588,7 @@ inline MTLPixelFormat mtl_format_get_writeable_view_format(MTLPixelFormat format
        * manual data upload */
       return MTLPixelFormatInvalid;
     case MTLPixelFormatDepth24Unorm_Stencil8:
-      /* No direct format, but we'll just mirror the bytes -- Uint
+      /* No direct format, but we'll just mirror the bytes -- `Uint`
        * should ensure bytes are not re-normalized or manipulated */
       /* return MTLPixelFormatR32Uint; */
       return MTLPixelFormatInvalid;
@@ -602,7 +604,9 @@ inline MTLTextureUsage mtl_usage_from_gpu(eGPUTextureUsage usage)
   if (usage == GPU_TEXTURE_USAGE_GENERAL) {
     return MTLTextureUsageUnknown;
   }
-  if (usage & GPU_TEXTURE_USAGE_SHADER_READ) {
+  /* Host read implies general read support, as the compute-based host read routine requires
+   * reading of texture data. */
+  if (usage & GPU_TEXTURE_USAGE_SHADER_READ || usage & GPU_TEXTURE_USAGE_HOST_READ) {
     mtl_usage = mtl_usage | MTLTextureUsageShaderRead;
   }
   if (usage & GPU_TEXTURE_USAGE_SHADER_WRITE) {

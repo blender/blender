@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -18,7 +20,7 @@ using namespace std;
 namespace Freestyle {
 
 #if 0
-ImagePyramid::ImagePyramid(const GrayImage &level0, unsigned nbLevels)
+ImagePyramid::ImagePyramid(const GrayImage &level0, uint nbLevels)
 {
   BuildPyramid(level0, nbLevels);
 }

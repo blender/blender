@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -28,17 +28,17 @@ class ImagePyramid {
  public:
   ImagePyramid() {}
   ImagePyramid(const ImagePyramid &iBrother);
-  // ImagePyramid(const GrayImage& level0, unsigned nbLevels);
+  // ImagePyramid(const GrayImage& level0, uint nbLevels);
   virtual ~ImagePyramid();
 
   /** Builds the pyramid.
    * must be overloaded by inherited classes.
    * if nbLevels==0, the complete pyramid is built
    */
-  virtual void BuildPyramid(const GrayImage &level0, unsigned nbLevels) = 0;
+  virtual void BuildPyramid(const GrayImage &level0, uint nbLevels) = 0;
 
   /** Builds a pyramid without copying the base level */
-  virtual void BuildPyramid(GrayImage *level0, unsigned nbLevels) = 0;
+  virtual void BuildPyramid(GrayImage *level0, uint nbLevels) = 0;
 
   virtual GrayImage *getLevel(int l);
   /** Returns the pixel x,y using bilinear interpolation.
@@ -78,13 +78,13 @@ class GaussianPyramid : public ImagePyramid {
     _sigma = iSigma;
   }
 
-  GaussianPyramid(const GrayImage &level0, unsigned nbLevels, float iSigma = 1.0f);
-  GaussianPyramid(GrayImage *level0, unsigned nbLevels, float iSigma = 1.0f);
+  GaussianPyramid(const GrayImage &level0, uint nbLevels, float iSigma = 1.0f);
+  GaussianPyramid(GrayImage *level0, uint nbLevels, float iSigma = 1.0f);
   GaussianPyramid(const GaussianPyramid &iBrother);
   virtual ~GaussianPyramid() {}
 
-  virtual void BuildPyramid(const GrayImage &level0, unsigned nbLevels);
-  virtual void BuildPyramid(GrayImage *level0, unsigned nbLevels);
+  virtual void BuildPyramid(const GrayImage &level0, uint nbLevels);
+  virtual void BuildPyramid(GrayImage *level0, uint nbLevels);
 
   /* accessors */
   inline float getSigma() const

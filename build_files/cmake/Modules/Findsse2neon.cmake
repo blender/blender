@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2020 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020 Blender Foundation.
 
 # - Find sse2neon library
 # Find the native sse2neon includes and library
@@ -10,16 +11,20 @@
 #                     This can also be an environment variable.
 #  SSE2NEON_FOUND, If false, do not try to use sse2neon.
 
-# If SSE2NEON_ROOT_DIR was defined in the environment, use it.
-IF(NOT SSE2NEON_ROOT_DIR AND NOT $ENV{SSE2NEON_ROOT_DIR} STREQUAL "")
-  SET(SSE2NEON_ROOT_DIR $ENV{SSE2NEON_ROOT_DIR})
-ENDIF()
+# If `SSE2NEON_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED SSE2NEON_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{SSE2NEON_ROOT_DIR})
+  set(SSE2NEON_ROOT_DIR $ENV{SSE2NEON_ROOT_DIR})
+else()
+  set(SSE2NEON_ROOT_DIR "")
+endif()
 
-SET(_sse2neon_SEARCH_DIRS
+set(_sse2neon_SEARCH_DIRS
   ${SSE2NEON_ROOT_DIR}
 )
 
-FIND_PATH(SSE2NEON_INCLUDE_DIR
+find_path(SSE2NEON_INCLUDE_DIR
   NAMES
     sse2neon.h
   HINTS
@@ -30,16 +35,16 @@ FIND_PATH(SSE2NEON_INCLUDE_DIR
 
 # handle the QUIETLY and REQUIRED arguments and set SSE2NEON_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(sse2neon DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(sse2neon DEFAULT_MSG
     SSE2NEON_INCLUDE_DIR)
 
-IF(SSE2NEON_FOUND)
-  SET(SSE2NEON_INCLUDE_DIRS ${SSE2NEON_INCLUDE_DIR})
-ENDIF()
+if(SSE2NEON_FOUND)
+  set(SSE2NEON_INCLUDE_DIRS ${SSE2NEON_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   SSE2NEON_INCLUDE_DIR
 )
 
-UNSET(_sse2neon_SEARCH_DIRS)
+unset(_sse2neon_SEARCH_DIRS)

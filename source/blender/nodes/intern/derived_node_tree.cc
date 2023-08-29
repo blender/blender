@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,12 +15,14 @@ DerivedNodeTree::DerivedNodeTree(const bNodeTree &btree)
   /* Construct all possible contexts immediately. This is significantly cheaper than inlining all
    * node groups. If it still becomes a performance issue in the future, contexts could be
    * constructed lazily when they are needed. */
-  root_context_ = &this->construct_context_recursively(nullptr, nullptr, btree);
+  root_context_ = &this->construct_context_recursively(
+      nullptr, nullptr, btree, NODE_INSTANCE_KEY_BASE);
 }
 
 DTreeContext &DerivedNodeTree::construct_context_recursively(DTreeContext *parent_context,
                                                              const bNode *parent_node,
-                                                             const bNodeTree &btree)
+                                                             const bNodeTree &btree,
+                                                             const bNodeInstanceKey instance_key)
 {
   btree.ensure_topology_cache();
   DTreeContext &context = *allocator_.construct<DTreeContext>().release();
@@ -28,13 +30,16 @@ DTreeContext &DerivedNodeTree::construct_context_recursively(DTreeContext *paren
   context.parent_node_ = parent_node;
   context.derived_tree_ = this;
   context.btree_ = &btree;
+  context.instance_key_ = instance_key;
   used_btrees_.add(context.btree_);
 
   for (const bNode *bnode : context.btree_->all_nodes()) {
     if (bnode->is_group()) {
       bNodeTree *child_btree = reinterpret_cast<bNodeTree *>(bnode->id);
       if (child_btree != nullptr) {
-        DTreeContext &child = this->construct_context_recursively(&context, bnode, *child_btree);
+        const bNodeInstanceKey child_key = BKE_node_instance_key(instance_key, &btree, bnode);
+        DTreeContext &child = this->construct_context_recursively(
+            &context, bnode, *child_btree, child_key);
         context.children_.add_new(bnode, &child);
       }
     }
@@ -91,6 +96,11 @@ void DerivedNodeTree::foreach_node_in_context_recursive(const DTreeContext &cont
   for (const DTreeContext *child_context : context.children_.values()) {
     this->foreach_node_in_context_recursive(*child_context, callback);
   }
+}
+
+const bNodeInstanceKey DNode::instance_key() const
+{
+  return BKE_node_instance_key(context()->instance_key(), &context()->btree(), bnode());
 }
 
 DOutputSocket DInputSocket::get_corresponding_group_node_output() const
@@ -297,6 +307,51 @@ void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn,
       path_info.sockets.pop_last();
     }
   }
+}
+
+/* Find the active context from the given context and its descendants contexts. The active context
+ * is the one whose node instance key matches the active_viewer_key stored in the root node tree.
+ * The instance key of each context is computed by calling BKE_node_instance_key given the key of
+ * the parent as well as the group node making the context. */
+static const DTreeContext *find_active_context_recursive(const DTreeContext *context)
+{
+  const bNodeInstanceKey key = context->instance_key();
+
+  /* The instance key of the given context matches the active viewer instance key, so this is the
+   * active context, return it. */
+  if (key.value == context->derived_tree().root_context().btree().active_viewer_key.value) {
+    return context;
+  }
+
+  /* For each of the group nodes, compute their instance key and contexts and call this function
+   * recursively. */
+  for (const bNode *group_node : context->btree().group_nodes()) {
+    const DTreeContext *child_context = context->child_context(*group_node);
+    const DTreeContext *found_context = find_active_context_recursive(child_context);
+
+    /* If the found context is null, that means neither the child context nor one of its descendant
+     * contexts is active. */
+    if (!found_context) {
+      continue;
+    }
+
+    /* Otherwise, we have found our active context, return it. */
+    return found_context;
+  }
+
+  /* Neither the given context nor one of its descendant contexts is active, so return null. */
+  return nullptr;
+}
+
+const DTreeContext &DerivedNodeTree::active_context() const
+{
+  /* If the active viewer key is NODE_INSTANCE_KEY_NONE, that means it is not yet initialized and
+   * we return the root context in that case. See the find_active_context_recursive function. */
+  if (root_context().btree().active_viewer_key.value == NODE_INSTANCE_KEY_NONE.value) {
+    return root_context();
+  }
+
+  return *find_active_context_recursive(&root_context());
 }
 
 /* Each nested node group gets its own cluster. Just as node groups, clusters can be nested. */

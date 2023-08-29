@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2015 Blender Authors
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015 Blender Foundation.
 
 # - Find SDL library
 # Find the native SDL includes and library
@@ -13,16 +14,20 @@
 # also defined, but not for general use are
 #  SDL2_LIBRARY, where to find the SDL library.
 
-# If SDL2_ROOT_DIR was defined in the environment, use it.
-IF(NOT SDL2_ROOT_DIR AND NOT $ENV{SDL2_ROOT_DIR} STREQUAL "")
-  SET(SDL2_ROOT_DIR $ENV{SDL2_ROOT_DIR})
-ENDIF()
+# If `SDL2_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED SDL2_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{SDL2_ROOT_DIR})
+  set(SDL2_ROOT_DIR $ENV{SDL2_ROOT_DIR})
+else()
+  set(SDL2_ROOT_DIR "")
+endif()
 
-SET(_sdl2_SEARCH_DIRS
+set(_sdl2_SEARCH_DIRS
   ${SDL2_ROOT_DIR}
 )
 
-FIND_PATH(SDL2_INCLUDE_DIR
+find_path(SDL2_INCLUDE_DIR
   NAMES
   SDL.h
   HINTS
@@ -31,7 +36,7 @@ FIND_PATH(SDL2_INCLUDE_DIR
     include/SDL2 include SDL2
 )
 
-FIND_LIBRARY(SDL2_LIBRARY
+find_library(SDL2_LIBRARY
   NAMES
   SDL2
   HINTS
@@ -42,16 +47,16 @@ FIND_LIBRARY(SDL2_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set SDL2_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(SDL2 DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(SDL2 DEFAULT_MSG
     SDL2_LIBRARY SDL2_INCLUDE_DIR)
 
-IF(SDL2_FOUND)
-  SET(SDL2_LIBRARIES ${SDL2_LIBRARY})
-  SET(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
-ENDIF()
+if(SDL2_FOUND)
+  set(SDL2_LIBRARIES ${SDL2_LIBRARY})
+  set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   SDL2_INCLUDE_DIR
   SDL2_LIBRARY
 )

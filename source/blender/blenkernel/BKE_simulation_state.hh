@@ -1,81 +1,20 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
+#include "BKE_bake_items_serialize.hh"
 #include "BKE_geometry_set.hh"
 
 #include "BLI_map.hh"
 #include "BLI_sub_frame.hh"
 
+struct bNodeTree;
+
 namespace blender::bke::sim {
 
-class BDataSharing;
 class ModifierSimulationCache;
-
-class SimulationStateItem {
- public:
-  virtual ~SimulationStateItem() = default;
-};
-
-class GeometrySimulationStateItem : public SimulationStateItem {
- public:
-  GeometrySimulationStateItem(GeometrySet geometry);
-  GeometrySet geometry;
-};
-
-/**
- * References a field input/output that becomes an attribute as part of the simulation state.
- * The attribute is actually stored in a #GeometrySimulationStateItem, so this just references
- * the attribute's name.
- */
-class AttributeSimulationStateItem : public SimulationStateItem {
- private:
-  std::string name_;
-
- public:
-  AttributeSimulationStateItem(std::string name) : name_(std::move(name)) {}
-
-  StringRefNull name() const
-  {
-    return name_;
-  }
-};
-
-/** Storage for a single value of a trivial type like `float`, `int`, etc. */
-class PrimitiveSimulationStateItem : public SimulationStateItem {
- private:
-  const CPPType &type_;
-  void *value_;
-
- public:
-  PrimitiveSimulationStateItem(const CPPType &type, const void *value);
-  ~PrimitiveSimulationStateItem();
-
-  const void *value() const
-  {
-    return value_;
-  }
-
-  const CPPType &type() const
-  {
-    return type_;
-  }
-};
-
-class StringSimulationStateItem : public SimulationStateItem {
- private:
-  std::string value_;
-
- public:
-  StringSimulationStateItem(std::string value);
-
-  StringRefNull value() const
-  {
-    return value_;
-  }
-};
 
 /**
  * Storage of values for a single simulation input and output node pair.
@@ -84,22 +23,22 @@ class StringSimulationStateItem : public SimulationStateItem {
  */
 class SimulationZoneState {
  public:
-  Map<int, std::unique_ptr<SimulationStateItem>> item_by_identifier;
+  Map<int, std::unique_ptr<BakeItem>> item_by_identifier;
 };
 
 /** Identifies a simulation zone (input and output node pair) used by a modifier. */
 struct SimulationZoneID {
-  /** Every node identifier in the hierarchy of compute contexts. */
-  Vector<int> node_ids;
+  /** ID of the #bNestedNodeRef that references the output node of the zone. */
+  int32_t nested_node_id;
 
   uint64_t hash() const
   {
-    return get_default_hash(this->node_ids);
+    return this->nested_node_id;
   }
 
   friend bool operator==(const SimulationZoneID &a, const SimulationZoneID &b)
   {
-    return a.node_ids == b.node_ids;
+    return a.nested_node_id == b.nested_node_id;
   }
 };
 
@@ -120,9 +59,10 @@ class ModifierSimulationState {
   /** File path to folder containing baked data. */
   std::optional<std::string> bdata_dir_;
 
+  SimulationZoneState *get_zone_state(const SimulationZoneID &zone_id);
   const SimulationZoneState *get_zone_state(const SimulationZoneID &zone_id) const;
   SimulationZoneState &get_zone_state_for_write(const SimulationZoneID &zone_id);
-  void ensure_bake_loaded() const;
+  void ensure_bake_loaded(const bNodeTree &ntree) const;
 };
 
 struct ModifierSimulationStateAtFrame {
@@ -148,9 +88,19 @@ struct StatesAroundFrame {
   const ModifierSimulationStateAtFrame *next = nullptr;
 };
 
+struct ModifierSimulationCacheRealtime {
+  std::unique_ptr<ModifierSimulationState> prev_state;
+  std::unique_ptr<ModifierSimulationState> current_state;
+  SubFrame prev_frame;
+  SubFrame current_frame;
+};
+
 class ModifierSimulationCache {
  private:
   mutable std::mutex states_at_frames_mutex_;
+  /**
+   * All simulation states, sorted by frame.
+   */
   Vector<std::unique_ptr<ModifierSimulationStateAtFrame>> states_at_frames_;
   /**
    * Used for baking to deduplicate arrays when writing and writing from storage. Sharing info
@@ -160,11 +110,13 @@ class ModifierSimulationCache {
 
   friend ModifierSimulationState;
 
- public:
-  CacheState cache_state_ = CacheState::Valid;
   bool failed_finding_bake_ = false;
 
-  float last_fps_ = 0.0f;
+ public:
+  CacheState cache_state = CacheState::Valid;
+
+  /** A non-persistent cache used only to pass simulation state data from one frame to the next. */
+  ModifierSimulationCacheRealtime realtime_cache;
 
   void try_discover_bake(StringRefNull absolute_bake_dir);
 
@@ -176,16 +128,16 @@ class ModifierSimulationCache {
 
   void invalidate()
   {
-    cache_state_ = CacheState::Invalid;
-  }
-
-  CacheState cache_state() const
-  {
-    return cache_state_;
+    this->cache_state = CacheState::Invalid;
   }
 
   void reset();
-  void clear_prev_states();
 };
+
+/**
+ * Reset all simulation caches in the scene, for use when some fundamental change made them
+ * impossible to reuse.
+ */
+void scene_simulation_states_reset(Scene &scene);
 
 }  // namespace blender::bke::sim

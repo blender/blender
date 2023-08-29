@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2021-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "GPU_context.h"
 #include "GPU_immediate.h"
@@ -859,7 +860,7 @@ bool BlenderDisplayDriver::gpu_resources_create()
   gpu_render_sync_ = GPU_fence_create();
 
   if (!DCHECK_NOTNULL(gpu_upload_sync_) || !DCHECK_NOTNULL(gpu_render_sync_)) {
-    LOG(ERROR) << "Error creating GPU synchronization primtiives.";
+    LOG(ERROR) << "Error creating GPU synchronization primitives.";
     assert(0);
     return false;
   }

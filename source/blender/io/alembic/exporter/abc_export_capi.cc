@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,8 +27,8 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.alembic"};
@@ -230,7 +230,7 @@ bool ABC_export(Scene *scene,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    /* Fake a job context, so that we don't need NULL pointer checks while exporting. */
+    /* Fake a job context, so that we don't need null pointer checks while exporting. */
     bool stop = false, do_update = false;
     float progress = 0.0f;
 

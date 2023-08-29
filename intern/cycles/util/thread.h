@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_THREAD_H__
 #define __UTIL_THREAD_H__
@@ -28,9 +29,10 @@ typedef std::mutex thread_mutex;
 typedef std::unique_lock<std::mutex> thread_scoped_lock;
 typedef std::condition_variable thread_condition_variable;
 
-/* Own thread implementation similar to std::thread, so we can set a
- * custom stack size on macOS. */
-
+/**
+ * Own thread implementation similar to std::thread, so we can set a
+ * custom stack size on macOS.
+ */
 class thread {
  public:
   thread(function<void()> run_cb);

@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2022 NVIDIA Corporation
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 NVIDIA Corporation
+ * SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "hydra/session.h"
 #include "scene/shader.h"
@@ -115,6 +116,15 @@ void HdCyclesSession::UpdateScene()
     if (!background_light) {
       scene->background->set_shader(scene->default_background);
       scene->background->set_transparent(true);
+
+      /* Set background color depending to non-zero value if there are no
+       * lights in the scene, to match behavior of other renderers. */
+      for (ShaderNode *node : scene->default_background->graph->nodes) {
+        if (node->is_a(BackgroundNode::get_node_type())) {
+          BackgroundNode *bgNode = static_cast<BackgroundNode *>(node);
+          bgNode->set_color((scene->lights.size() == 0) ? make_float3(0.5f) : zero_float3());
+        }
+      }
     }
     else {
       scene->background->set_shader(background_light->get_shader());

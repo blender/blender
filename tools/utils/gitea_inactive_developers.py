@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Script to get all the inactive gitea developers
@@ -79,16 +81,18 @@ def get_date_object(date_string: str) -> datetime.datetime:
 results_per_page = 25
 
 
-def get_next_page(headers: CaseInsensitiveDict[str], page: Optional[Page]) -> Optional[Page]:
+def get_next_page(headers: CaseInsensitiveDict[str], page: Page) -> Optional[Page]:
     """
     Parse the header looking for reference to next.
     """
     total_count = int(assert_cast(str, headers.get('X-Total-Count')))
-    next_page = Page(page + 1 if page else 1)
 
-    if next_page * results_per_page > total_count:
+    # If current page already accounts to all the results we need
+    # there is no need for extra pages.
+    if page * results_per_page >= total_count:
         return None
 
+    next_page = Page(page + 1)
     return next_page
 
 
@@ -98,7 +102,7 @@ def fetch_single(
     api_token: str,
     method: str,
     data: Dict[str, str],
-    page: Optional[Page] = None,
+    page: Page,
 ) -> Tuple[List[object], Optional[Page]]:
     """Generic function to query a single item from the API.
 
@@ -112,11 +116,9 @@ def fetch_single(
 
     params: Dict[str, Union[str, int]] = {
         'limit': results_per_page,
+        'page': page,
         **data,
     }
-
-    if page is not None:
-        params['page'] = page
 
     logger.info(f"Calling {method} ({params=}).")
     response = requests.get(str(api_url / method), params=params, headers=headers)
@@ -138,12 +140,10 @@ def fetch_all(
     Yields:
         response_data - the result of fetch_single()
     """
-    response_data, page = fetch_single(api_url, api_token, method, data)
-    yield from response_data if response_data is not None else ()
+    page = Page(1)
     while page is not None:
-        response_data, page = fetch_single(
-            api_url, api_token, method, data, page=page)
-        yield from response_data
+        response_data, page = fetch_single(api_url, api_token, method, data, page)
+        yield from response_data if response_data is not None else ()
 
 
 def fetch_team_members(

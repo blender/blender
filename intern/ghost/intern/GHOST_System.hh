@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -101,7 +102,7 @@ class GHOST_System : public GHOST_ISystem {
    * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  virtual GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings) = 0;
+  virtual GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) = 0;
 
   /**
    * Returns whether a window is valid.
@@ -254,6 +255,13 @@ class GHOST_System : public GHOST_ISystem {
    */
   virtual void setTabletAPI(GHOST_TTabletAPI api);
   GHOST_TTabletAPI getTabletAPI(void);
+
+  /**
+   * Get the color of the pixel at the current mouse cursor location
+   * \param r_color: returned sRGB float colors
+   * \return Success value (true == successful and supported by platform)
+   */
+  GHOST_TSuccess getPixelAtCursor(float r_color[3]) const;
 
 #ifdef WITH_INPUT_NDOF
   /***************************************************************************************

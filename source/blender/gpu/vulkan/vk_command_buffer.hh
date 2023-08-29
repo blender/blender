@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,6 +21,7 @@ class VKFrameBuffer;
 class VKIndexBuffer;
 class VKPipeline;
 class VKPushConstants;
+class VKStorageBuffer;
 class VKTexture;
 class VKVertexBuffer;
 
@@ -160,11 +161,17 @@ class VKCommandBuffer : NonCopyable, NonMovable {
                       const VkPipelineLayout vk_pipeline_layout,
                       const VkShaderStageFlags vk_shader_stages);
   void dispatch(int groups_x_len, int groups_y_len, int groups_z_len);
+  void dispatch(VKStorageBuffer &command_buffer);
   /** Copy the contents of a texture MIP level to the dst buffer. */
   void copy(VKBuffer &dst_buffer, VKTexture &src_texture, Span<VkBufferImageCopy> regions);
   void copy(VKTexture &dst_texture, VKBuffer &src_buffer, Span<VkBufferImageCopy> regions);
   void copy(VKTexture &dst_texture, VKTexture &src_texture, Span<VkImageCopy> regions);
   void blit(VKTexture &dst_texture, VKTexture &src_texture, Span<VkImageBlit> regions);
+  void blit(VKTexture &dst_texture,
+            VkImageLayout dst_layout,
+            VKTexture &src_texture,
+            VkImageLayout src_layout,
+            Span<VkImageBlit> regions);
   void pipeline_barrier(VkPipelineStageFlags source_stages,
                         VkPipelineStageFlags destination_stages);
   void pipeline_barrier(Span<VkImageMemoryBarrier> image_memory_barriers);
@@ -183,8 +190,17 @@ class VKCommandBuffer : NonCopyable, NonMovable {
   void fill(VKBuffer &buffer, uint32_t data);
 
   void draw(int v_first, int v_count, int i_first, int i_count);
-  void draw(
+  void draw_indexed(
       int index_count, int instance_count, int first_index, int vertex_offset, int first_instance);
+
+  void draw_indirect(const VKStorageBuffer &buffer,
+                     VkDeviceSize offset,
+                     uint32_t draw_count,
+                     uint32_t stride);
+  void draw_indexed_indirect(const VKStorageBuffer &buffer,
+                             VkDeviceSize offset,
+                             uint32_t draw_count,
+                             uint32_t stride);
 
   /**
    * Stop recording commands, encode + send the recordings to Vulkan, wait for the until the

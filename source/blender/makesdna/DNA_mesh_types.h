@@ -17,6 +17,8 @@
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 
+#  include <optional>
+
 #  include "BLI_bounds_types.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_offset_indices.hh"
@@ -68,28 +70,31 @@ typedef struct Mesh {
    */
   struct Material **mat;
 
-  /** The number of vertices in the mesh, and the size of #vdata. */
+  /** The number of vertices in the mesh, and the size of #vert_data. */
   int totvert;
-  /** The number of edges in the mesh, and the size of #edata. */
+  /** The number of edges in the mesh, and the size of #edge_data. */
   int totedge;
-  /** The number of polygons/faces in the mesh, and the size of #pdata. */
-  int totpoly;
-  /** The number of face corners in the mesh, and the size of #ldata. */
+  /** The number of polygons/faces in the mesh, and the size of #face_data. */
+  int faces_num;
+  /** The number of face corners in the mesh, and the size of #loop_data. */
   int totloop;
 
   /**
-   * Array owned by mesh. See #Mesh::polys() and #OffsetIndices.
+   * Array owned by mesh. See #Mesh::faces() and #OffsetIndices.
    *
    * This array is shared based on the bke::MeshRuntime::poly_offsets_sharing_info.
    * Avoid accessing directly when possible.
    */
-  int *poly_offset_indices;
+  int *face_offset_indices;
 
-  CustomData vdata, edata, pdata, ldata;
+  CustomData vert_data;
+  CustomData edge_data;
+  CustomData face_data;
+  CustomData loop_data;
 
   /**
    * List of vertex group (#bDeformGroup) names and flags only. Actual weights are stored in dvert.
-   * \note This pointer is for convenient access to the #CD_MDEFORMVERT layer in #vdata.
+   * \note This pointer is for convenient access to the #CD_MDEFORMVERT layer in #vert_data.
    */
   ListBase vertex_group_names;
   /** The active index in the #vertex_group_names list. */
@@ -215,9 +220,9 @@ typedef struct Mesh {
    * \note This would be marked deprecated, however the particles still use this at run-time
    * for placing particles on the mesh (something which should be eventually upgraded).
    */
-  CustomData fdata;
+  CustomData fdata_legacy;
   /* Deprecated size of #fdata. */
-  int totface;
+  int totface_legacy;
 
   char _pad1[4];
 
@@ -237,7 +242,7 @@ typedef struct Mesh {
   blender::MutableSpan<blender::float3> vert_positions_for_write();
   /**
    * Array of edges, containing vertex indices, stored in the ".edge_verts" attributes. For simple
-   * triangle or quad meshes, edges could be calculated from the polygon and "corner edge" arrays,
+   * triangle or quad meshes, edges could be calculated from the face and "corner edge" arrays,
    * however, edges need to be stored explicitly to edge domain attributes and to support loose
    * edges that aren't connected to faces.
    */
@@ -246,26 +251,26 @@ typedef struct Mesh {
   blender::MutableSpan<blender::int2> edges_for_write();
   /**
    * Face topology storage of the offset of each face's section of the face corners. The size of
-   * each polygon is encoded using the next offset value. Can be used to slice the #corner_verts or
+   * each face is encoded using the next offset value. Can be used to slice the #corner_verts or
    * #corner_edges arrays to find the vertices or edges that make up each face.
    */
-  blender::OffsetIndices<int> polys() const;
+  blender::OffsetIndices<int> faces() const;
   /**
-   * Index of the first corner of each polygon, and the size of the polygon encoded as the next
+   * Index of the first corner of each face, and the size of the face encoded as the next
    * offset. The total number of corners is the final value, and the first value is always zero.
    * May be empty if there are no polygons.
    */
-  blender::Span<int> poly_offsets() const;
+  blender::Span<int> face_offsets() const;
   /** Write access to #poly_offsets data. */
-  blender::MutableSpan<int> poly_offsets_for_write();
+  blender::MutableSpan<int> face_offsets_for_write();
 
   /**
    * Array of vertices for every face corner,  stored in the ".corner_vert" integer attribute.
    * For example, the vertices in a face can be retrieved with the #slice method:
    * \code{.cc}
-   * const Span<int> poly_verts = corner_verts.slice(poly.loopstart, poly.totloop);
+   * const Span<int> poly_verts = corner_verts.slice(face);
    * \endcode
-   * Such a span can often be passed as an argument in lieu of a polygon and the entire corner
+   * Such a span can often be passed as an argument in lieu of a polygon or the entire corner
    * verts array.
    */
   blender::Span<int> corner_verts() const;
@@ -300,7 +305,13 @@ typedef struct Mesh {
   /**
    * A map containing the face index that each cached triangle from #Mesh::looptris() came from.
    */
-  blender::Span<int> looptri_polys() const;
+  blender::Span<int> looptri_faces() const;
+
+  /**
+   * Calculate the largest and smallest position values of vertices.
+   * \note Does not take non-mesh data (edit mesh) into account, see #BKE_mesh_wrapper_minmax,
+   */
+  std::optional<blender::Bounds<blender::float3>> bounds_min_max() const;
 
   /** Set cached mesh bounds to a known-correct value to avoid their lazy calculation later on. */
   void bounds_set_eager(const blender::Bounds<blender::float3> &bounds);
@@ -338,7 +349,7 @@ typedef struct Mesh {
   /**
    * Normal direction of polygons, defined by positions and the winding direction of face corners.
    */
-  blender::Span<blender::float3> poly_normals() const;
+  blender::Span<blender::float3> face_normals() const;
   /**
    * Normal direction of vertices, defined as the weighted average of face normals
    * surrounding each vertex and the normalized position for loose vertices.

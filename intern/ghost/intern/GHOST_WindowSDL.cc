@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2011-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -63,22 +65,32 @@ GHOST_WindowSDL::~GHOST_WindowSDL()
 
 GHOST_Context *GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type)
 {
-  if (type == GHOST_kDrawingContextTypeOpenGL) {
-    GHOST_Context *context = new GHOST_ContextSDL(m_wantStereoVisual,
-                                                  m_sdl_win,
-                                                  0,  // profile bit
-                                                  3,
-                                                  3,
-                                                  GHOST_OPENGL_SDL_CONTEXT_FLAGS,
-                                                  GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
+  switch (type) {
+#ifdef WITH_OPENGL_BACKEND
+    case GHOST_kDrawingContextTypeOpenGL: {
+      for (int minor = 6; minor >= 3; --minor) {
+        GHOST_Context *context = new GHOST_ContextSDL(
+            m_wantStereoVisual,
+            m_sdl_win,
+            0, /* Profile bit. */
+            4,
+            minor,
+            GHOST_OPENGL_SDL_CONTEXT_FLAGS,
+            GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
 
-    if (context->initializeDrawingContext()) {
-      return context;
+        if (context->initializeDrawingContext()) {
+          return context;
+        }
+        delete context;
+      }
+      return nullptr;
     }
-    delete context;
-  }
+#endif
 
-  return nullptr;
+    default:
+      /* Unsupported backend. */
+      return nullptr;
+  }
 }
 
 GHOST_TSuccess GHOST_WindowSDL::invalidate()

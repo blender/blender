@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Converts 32x32 XPM images written be the gimp to GL stipples

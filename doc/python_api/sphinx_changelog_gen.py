@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2011-2022 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -316,8 +318,7 @@ def api_changelog(args):
                         props_moved.append((prop_id_old, prop_id_new))
 
                         # remove
-                        if prop_id_old in set_props_old:
-                            set_props_old.remove(prop_id_old)
+                        set_props_old.discard(prop_id_old)
                         set_props_new.remove(prop_id_new)
 
             # func args

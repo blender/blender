@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2014 Blender Foundation
+/* SPDX-FileCopyrightText: 2014 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,18 +6,25 @@
  * \ingroup cmpnodes
  */
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "GPU_shader.h"
 
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
 namespace blender::nodes::node_composite_sunbeams_cc {
 
+NODE_STORAGE_FUNCS(NodeSunBeams)
+
 static void cmp_node_sunbeams_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_domain_priority(0);
   b.add_output<decl::Color>("Image");
 }
 
@@ -49,8 +56,27 @@ class SunBeamsOperation : public NodeOperation {
 
   void execute() override
   {
-    get_input("Image").pass_through(get_result("Image"));
-    context().set_info_message("Viewport compositor setup not fully supported");
+    GPUShader *shader = shader_manager().get("compositor_sun_beams");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_2fv(shader, "source", node_storage(bnode()).source);
+    GPU_shader_uniform_1f(shader, "max_ray_length", node_storage(bnode()).ray_length);
+
+    const Result &input_image = get_input("Image");
+    GPU_texture_filter_mode(input_image.texture(), true);
+    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    input_image.bind_as_texture(shader, "input_tx");
+
+    const Domain domain = compute_domain();
+    Result &output_image = get_result("Image");
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    output_image.unbind_as_image();
+    input_image.unbind_as_texture();
   }
 };
 
@@ -74,8 +100,6 @@ void register_node_type_cmp_sunbeams()
   node_type_storage(
       &ntype, "NodeSunBeams", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.realtime_compositor_unsupported_message = N_(
-      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

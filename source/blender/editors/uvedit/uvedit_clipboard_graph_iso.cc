@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: (c) 2019 Stefano Quer.
+/* SPDX-FileCopyrightText: 2019 Stefano Quer
+ * SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Additional code, copyright 2022 Blender Foundation
- *  *
+ *
  * Originally 6846114 from https://github.com/stefanoquer/graphISO/blob/master/v3
  * graphISO: Tools to compute the Maximum Common Subgraph between two graphs.
- *  */
+ */
 
 #include "uvedit_clipboard_graph_iso.hh"
 
@@ -14,7 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include <algorithm>
-#include <limits.h>
+#include <climits>
 
 #define L 0
 #define R 1

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,6 +16,7 @@ VKPipelineStateManager::VKPipelineStateManager()
   rasterization_state = {};
   rasterization_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
   rasterization_state.lineWidth = 1.0f;
+  rasterization_state.frontFace = VK_FRONT_FACE_CLOCKWISE;
 
   pipeline_color_blend_state = {};
   pipeline_color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -78,9 +79,8 @@ void VKPipelineStateManager::finalize_color_blend_state(const VKFrameBuffer &fra
 {
   color_blend_attachments.clear();
   if (framebuffer.is_immutable()) {
-    /* Immutable framebuffers are owned by GHOST and don't have any attachments assigned. In this
-     * case we assume that there is a single color texture assigned.
-     */
+    /* Immutable frame-buffers are owned by GHOST and don't have any attachments assigned. In this
+     * case we assume that there is a single color texture assigned. */
     color_blend_attachments.append(color_blend_attachment_template);
   }
   else {
@@ -95,7 +95,7 @@ void VKPipelineStateManager::finalize_color_blend_state(const VKFrameBuffer &fra
       else {
         /* Test to detect if all color textures are sequential attached from the first slot. We
          * assume at this moment that this is the case. Otherwise we need to rewire how attachments
-         * and bindings work.*/
+         * and bindings work. */
         is_sequential = false;
       }
     }

@@ -1,5 +1,9 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 from bpy.types import Menu, Panel, UIList, WindowManager
+from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilSculptAdvancedPanel,
     GreasePencilDisplayPanel,
@@ -896,8 +900,6 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
 
-        col.prop(sculpt, "use_smooth_shading")
-
 
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
@@ -1579,7 +1581,8 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
 
             elif brush.gpencil_tool == 'FILL':
                 row = col.row(align=True)
-                row.prop(gp_settings, "fill_draw_mode", text="Boundary")
+                row.prop(gp_settings, "fill_draw_mode", text="Boundary",
+                         text_ctxt=i18n_contexts.id_gpencil)
                 row.prop(
                     gp_settings,
                     "show_fill_boundary",

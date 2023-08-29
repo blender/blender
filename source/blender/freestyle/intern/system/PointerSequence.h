@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -34,7 +34,7 @@
  *    PointerSequence<vector<Widget*>, Widget*> v;
  *    v.push_back(new Widget);
  *    cout << v[0] << endl; // operator[] is provided by std::vector, not by PointerSequence
- *    v.destroy(); // Deletes all pointers in sequence and sets them to NULL.
+ *    v.destroy(); // Deletes all pointers in sequence and sets them to nullptr.
  *
  *  The idiom for removing a pointer from a sequence is:
  *    Widget* w = v[3];

@@ -1,7 +1,10 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Film accumulation utils functions.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
@@ -331,7 +334,7 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
    * Compute Variance of neighborhood as described in:
    * "An Excursion in Temporal Supersampling" by Marco Salvi at GDC 2016.
    * and:
-   * "A Survey of Temporal Antialiasing Techniques" by Yang et al.
+   * "A Survey of Temporal Anti-aliasing Techniques" by Yang et al.
    */
 
   /* First 2 moments. */
@@ -349,7 +352,7 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
   const float gamma = 1.25;
   /* Standard deviation. */
   vec4 sigma = sqrt(abs(mu2 - sqr(mu1)));
-  /* eq. 6 in "A Survey of Temporal Antialiasing Techniques". */
+  /* eq. 6 in "A Survey of Temporal Anti-aliasing Techniques". */
   min_c = mu1 - gamma * sigma;
   max_c = mu1 + gamma * sigma;
 #else
@@ -448,7 +451,7 @@ void film_store_combined(
   vec4 color_src, color_dst;
   float weight_src, weight_dst;
 
-  /* Undo the weighting to get final spatialy-filtered color. */
+  /* Undo the weighting to get final spatially-filtered color. */
   color_src = color / color_weight;
 
   if (film_buf.use_reprojection) {
@@ -655,6 +658,9 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     }
     else {
       out_depth = imageLoad(depth_img, texel_film).r;
+      if (film_buf.display_id != -1 && film_buf.display_id == film_buf.normal_id) {
+        out_color = imageLoad(color_accum_img, ivec3(texel_film, film_buf.display_id));
+      }
     }
   }
 
@@ -717,8 +723,8 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     film_store_color(dst, film_buf.diffuse_color_id, diffuse_color_accum, out_color);
     film_store_color(dst, film_buf.specular_color_id, specular_color_accum, out_color);
     film_store_color(dst, film_buf.environment_id, environment_accum, out_color);
-    film_store_value(dst, film_buf.shadow_id, shadow_accum, out_color);
-    film_store_value(dst, film_buf.ambient_occlusion_id, ao_accum, out_color);
+    film_store_color(dst, film_buf.shadow_id, vec4(vec3(shadow_accum), 1.0), out_color);
+    film_store_color(dst, film_buf.ambient_occlusion_id, vec4(vec3(ao_accum), 1.0), out_color);
     film_store_value(dst, film_buf.mist_id, mist_accum, out_color);
   }
 

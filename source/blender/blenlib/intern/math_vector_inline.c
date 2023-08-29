@@ -9,7 +9,7 @@
 #ifndef __MATH_VECTOR_INLINE_C__
 #define __MATH_VECTOR_INLINE_C__
 
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 
 /********************************** Init *************************************/
 

@@ -22,7 +22,8 @@
 #include "DNA_space_types.h"
 
 #include "BLI_kdtree.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -33,28 +34,28 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_node.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_image.h"
-#include "ED_mesh.h"
-#include "ED_node.h"
-#include "ED_screen.h"
-#include "ED_uvedit.h"
+#include "ED_image.hh"
+#include "ED_mesh.hh"
+#include "ED_node.hh"
+#include "ED_screen.hh"
+#include "ED_uvedit.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "uvedit_intern.h"
 
@@ -88,7 +89,7 @@ static int UNUSED_FUNCTION(ED_operator_uvmap_mesh)(bContext *C)
   if (ob && ob->type == OB_MESH) {
     Mesh *me = static_cast<Mesh *>(ob->data);
 
-    if (CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2) != nullptr) {
+    if (CustomData_get_layer(&me->loop_data, CD_PROP_FLOAT2) != nullptr) {
       return 1;
     }
   }
@@ -1343,6 +1344,7 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
   BMIter iter, liter;
   const ToolSettings *ts = scene->toolsettings;
   const bool clear = RNA_boolean_get(op->ptr, "clear");
+  const bool invert = RNA_boolean_get(op->ptr, "invert");
   const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
   uint objects_len = 0;
@@ -1371,7 +1373,12 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
 
         if (uvedit_uv_select_test(scene, l, offsets)) {
           changed = true;
-          BM_ELEM_CD_SET_BOOL(l, offsets.pin, !clear);
+          if (invert) {
+            BM_ELEM_CD_SET_BOOL(l, offsets.pin, !BM_ELEM_CD_GET_BOOL(l, offsets.pin));
+          }
+          else {
+            BM_ELEM_CD_SET_BOOL(l, offsets.pin, !clear);
+          }
         }
       }
     }
@@ -1388,6 +1395,8 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
 
 static void UV_OT_pin(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Pin";
   ot->description =
@@ -1400,8 +1409,15 @@ static void UV_OT_pin(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit;
 
   /* properties */
-  RNA_def_boolean(
+  prop = RNA_def_boolean(
       ot->srna, "clear", false, "Clear", "Clear pinning for the selection instead of setting it");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "invert",
+                         false,
+                         "Invert",
+                         "Invert pinning for the selection instead of setting it");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2034,9 +2050,9 @@ static void UV_OT_mark_seam(wmOperatorType *ot)
 /** \name Operator Registration & Keymap
  * \{ */
 
-void ED_operatortypes_uvedit(void)
+void ED_operatortypes_uvedit()
 {
-  /* uvedit_select.c */
+  /* `uvedit_select.cc` */
   WM_operatortype_append(UV_OT_select_all);
   WM_operatortype_append(UV_OT_select);
   WM_operatortype_append(UV_OT_select_loop);
@@ -2089,7 +2105,7 @@ void ED_operatortypes_uvedit(void)
   WM_operatortype_append(UV_OT_cursor_set);
 }
 
-void ED_operatormacros_uvedit(void)
+void ED_operatormacros_uvedit()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

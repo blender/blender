@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -19,8 +21,8 @@ GHOST_DirectManipulationHelper::GHOST_DirectManipulationHelper(
     DWORD directManipulationViewportHandlerCookie,
     bool isScrollDirectionInverted)
     : m_hWnd(hWnd),
-      m_scrollDirectionRegKey(NULL),
-      m_scrollDirectionChangeEvent(NULL),
+      m_scrollDirectionRegKey(nullptr),
+      m_scrollDirectionChangeEvent(nullptr),
       m_directManipulationManager(directManipulationManager),
       m_directManipulationUpdateManager(directManipulationUpdateManager),
       m_directManipulationViewport(directManipulationViewport),
@@ -121,7 +123,7 @@ bool GHOST_DirectManipulationHelper::getScrollDirectionFromReg()
                    L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\PrecisionTouchPad\\",
                    L"ScrollDirection",
                    RRF_RT_REG_DWORD,
-                   NULL,
+                   nullptr,
                    &scrollDirectionRegValue,
                    &pcbData));
   if (!SUCCEEDED(hr)) {
@@ -149,7 +151,7 @@ void GHOST_DirectManipulationHelper::registerScrollDirectionChangeListener()
   }
 
   if (!m_scrollDirectionChangeEvent) {
-    m_scrollDirectionChangeEvent = CreateEventW(NULL, true, false, NULL);
+    m_scrollDirectionChangeEvent = CreateEventW(nullptr, true, false, nullptr);
   }
   else {
     ResetEvent(m_scrollDirectionChangeEvent);
@@ -217,11 +219,11 @@ GHOST_DirectManipulationHelper::~GHOST_DirectManipulationHelper()
 
   if (m_scrollDirectionChangeEvent) {
     CloseHandle(m_scrollDirectionChangeEvent);
-    m_scrollDirectionChangeEvent = NULL;
+    m_scrollDirectionChangeEvent = nullptr;
   }
   if (m_scrollDirectionRegKey) {
     RegCloseKey(m_scrollDirectionRegKey);
-    m_scrollDirectionRegKey = NULL;
+    m_scrollDirectionRegKey = nullptr;
   }
 }
 

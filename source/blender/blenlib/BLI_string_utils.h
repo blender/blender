@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation
+/* SPDX-FileCopyrightText: 2017 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,6 +20,64 @@ extern "C" {
 struct ListBase;
 
 typedef bool (*UniquenameCheckCallback)(void *arg, const char *name);
+
+/* ------------------------------------------------------------------------- */
+/** \name String Replace
+ * \{ */
+
+/**
+ * string with all instances of substr_old replaced with substr_new,
+ * Returns a copy of the c-string \a str into a newly #MEM_mallocN'd
+ * and returns it.
+ *
+ * \note A rather wasteful string-replacement utility, though this shall do for now.
+ * Feel free to replace this with an even safe + nicer alternative
+ *
+ * \param str: The string to replace occurrences of substr_old in
+ * \param substr_old: The text in the string to find and replace
+ * \param substr_new: The text in the string to find and replace
+ * \retval Returns the duplicated string
+ */
+char *BLI_string_replaceN(const char *__restrict str,
+                          const char *__restrict substr_old,
+                          const char *__restrict substr_new) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 2, 3) ATTR_MALLOC;
+
+/**
+ * In-place replace every \a src to \a dst in \a str.
+ *
+ * \param str: The string to operate on.
+ * \param src: The character to replace.
+ * \param dst: The character to replace with.
+ */
+void BLI_string_replace_char(char *str, char src, char dst) ATTR_NONNULL(1);
+
+/**
+ * Simple exact-match string replacement.
+ *
+ * \param replace_table: Array of source, destination pairs.
+ *
+ * \note Larger tables should use a hash table.
+ */
+bool BLI_string_replace_table_exact(char *string,
+                                    size_t string_len,
+                                    const char *replace_table[][2],
+                                    int replace_table_len);
+
+/**
+ * Write `dst` into the range between `src_beg` & `src_end`,
+ * resize within `string_maxncpy` limits, ensure null terminated.
+ *
+ * \return the length of `string`.
+ */
+size_t BLI_string_replace_range(
+    char *string, size_t string_maxncpy, int src_beg, int src_end, const char *dst);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name String Split
+ * \{ */
 
 /**
  * Looks for a numeric suffix preceded by `delim` character on the end of
@@ -50,6 +108,8 @@ void BLI_string_split_suffix(const char *string, size_t string_maxlen, char *r_b
  */
 void BLI_string_split_prefix(const char *string, size_t string_maxlen, char *r_pre, char *r_body)
     ATTR_NONNULL(1, 3, 4);
+
+/** \} */
 
 /**
  * A version of #BLI_string_join_array_by_sep_charN that takes a table array.
@@ -89,7 +149,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
  * \param defname: To initialize name if latter is empty
  * \param delim: Delimits numeric suffix in name
  * \param name: Name to be ensured unique
- * \param name_len: Maximum length of name area
+ * \param name_maxncpy: Maximum length of name area
  * \return true if there if the name was changed
  */
 bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
@@ -97,7 +157,7 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
                        const char *defname,
                        char delim,
                        char *name,
-                       size_t name_len) ATTR_NONNULL(1, 3, 5);
+                       size_t name_maxncpy) ATTR_NONNULL(1, 3, 5);
 /**
  * Ensures that the specified block has a unique name within the containing list,
  * incrementing its numeric suffix as necessary. Returns true if name had to be adjusted.
@@ -107,16 +167,19 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
  * \param defname: To initialize block name if latter is empty
  * \param delim: Delimits numeric suffix in name
  * \param name_offset: Offset of name within block structure
- * \param name_len: Maximum length of name area
+ * \param name_maxncpy: Maximum length of name area
  */
 bool BLI_uniquename(struct ListBase *list,
                     void *vlink,
                     const char *defname,
                     char delim,
                     int name_offset,
-                    size_t name_len) ATTR_NONNULL(1, 3);
+                    size_t name_maxncpy) ATTR_NONNULL(1, 3);
 
 /* Expand array functions. */
+
+size_t BLI_string_len_array(const char *strings[], uint strings_num) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 
 /* Intentionally no comma after `_BLI_STRING_ARGS_0` to allow it to be empty. */
 #define _BLI_STRING_ARGS_1 _BLI_STRING_ARGS_0 const char *a

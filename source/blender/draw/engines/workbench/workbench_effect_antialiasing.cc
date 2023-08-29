@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -115,6 +115,7 @@ AntiAliasingPass::AntiAliasingPass()
   smaa_edge_detect_sh_ = GPU_shader_create_from_info_name("workbench_smaa_stage_0");
   smaa_aa_weight_sh_ = GPU_shader_create_from_info_name("workbench_smaa_stage_1");
   smaa_resolve_sh_ = GPU_shader_create_from_info_name("workbench_smaa_stage_2");
+  overlay_depth_sh_ = GPU_shader_create_from_info_name("workbench_overlay_depth");
 
   smaa_search_tx_.ensure_2d(
       GPU_R8, {SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT}, GPU_TEXTURE_USAGE_SHADER_READ);
@@ -132,6 +133,7 @@ AntiAliasingPass::~AntiAliasingPass()
   DRW_SHADER_FREE_SAFE(smaa_edge_detect_sh_);
   DRW_SHADER_FREE_SAFE(smaa_aa_weight_sh_);
   DRW_SHADER_FREE_SAFE(smaa_resolve_sh_);
+  DRW_SHADER_FREE_SAFE(overlay_depth_sh_);
 }
 
 void AntiAliasingPass::init(const SceneState &scene_state)
@@ -143,6 +145,13 @@ void AntiAliasingPass::init(const SceneState &scene_state)
 
 void AntiAliasingPass::sync(SceneResources &resources, int2 resolution)
 {
+  overlay_depth_ps_.init();
+  overlay_depth_ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+  overlay_depth_ps_.shader_set(overlay_depth_sh_);
+  overlay_depth_ps_.bind_texture("depth_tx", &resources.depth_tx);
+  overlay_depth_ps_.bind_texture("stencil_tx", &stencil_tx_);
+  overlay_depth_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
   if (!enabled_) {
     taa_accumulation_tx_.free();
     sample0_depth_tx_.free();
@@ -154,6 +163,8 @@ void AntiAliasingPass::sync(SceneResources &resources, int2 resolution)
   sample0_depth_tx_.ensure_2d(GPU_DEPTH24_STENCIL8,
                               resolution,
                               GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+  sample0_depth_in_front_tx_.ensure_2d(
+      GPU_DEPTH24_STENCIL8, resolution, GPU_TEXTURE_USAGE_ATTACHMENT);
 
   taa_accumulation_ps_.init();
   taa_accumulation_ps_.state_set(sample_ == 0 ? DRW_STATE_WRITE_COLOR :
@@ -242,14 +253,19 @@ void AntiAliasingPass::draw(Manager &manager,
                             SceneResources &resources,
                             int2 resolution,
                             GPUTexture *depth_tx,
+                            GPUTexture *depth_in_front_tx,
                             GPUTexture *color_tx)
 {
+  auto draw_overlay_depth = [&](GPUTexture *target) {
+    stencil_tx_ = resources.stencil_view.extract(manager, resources.depth_tx);
+    overlay_depth_fb_.ensure(GPU_ATTACHMENT_TEXTURE(target));
+    overlay_depth_fb_.bind();
+    manager.submit(overlay_depth_ps_);
+  };
+
   if (!enabled_) {
-    /* TODO(@pragma37): Should render to the input color_tx and depth_tx in the first place.
-     * This requires the use of TextureRefs with stencil_view() support,
-     * but whether TextureRef will stay is still TBD. */
     GPU_texture_copy(color_tx, resources.color_tx);
-    GPU_texture_copy(depth_tx, resources.depth_tx);
+    draw_overlay_depth(depth_tx);
     return;
   }
 
@@ -273,20 +289,12 @@ void AntiAliasingPass::draw(Manager &manager,
   }
 
   if (sample_ == 0) {
-    if (sample0_depth_tx_.is_valid()) {
-      GPU_texture_copy(sample0_depth_tx_, resources.depth_tx);
-    }
-    /* TODO(@pragma37): Should render to the input depth_tx in the first place
-     * This requires the use of TextureRef with stencil_view() support,
-     * but whether TextureRef will stay is still TBD. */
-
-    /* Copy back the saved depth buffer for correct overlays. */
-    GPU_texture_copy(depth_tx, resources.depth_tx);
+    draw_overlay_depth(sample0_depth_tx_);
+    GPU_texture_copy(sample0_depth_in_front_tx_, resources.depth_in_front_tx);
   }
-  else {
-    /* Copy back the saved depth buffer for correct overlays. */
-    GPU_texture_copy(depth_tx, sample0_depth_tx_);
-  }
+  /* Copy back the saved depth buffer for correct overlays. */
+  GPU_texture_copy(depth_tx, sample0_depth_tx_);
+  GPU_texture_copy(depth_in_front_tx, sample0_depth_in_front_tx_);
 
   if (!DRW_state_is_image_render() || last_sample) {
     smaa_weight_tx_.acquire(

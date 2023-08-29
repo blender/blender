@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,7 +18,7 @@ static void set_id_in_component(GeometryComponent &component,
                                 const Field<bool> &selection_field,
                                 const Field<int> &id_field)
 {
-  const eAttrDomain domain = (component.type() == GEO_COMPONENT_TYPE_INSTANCES) ?
+  const eAttrDomain domain = (component.type() == GeometryComponent::Type::Instance) ?
                                  ATTR_DOMAIN_INSTANCE :
                                  ATTR_DOMAIN_POINT;
   const int domain_size = component.attribute_domain_size(domain);
@@ -58,10 +58,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   Field<int> id_field = params.extract_input<Field<int>>("ID");
 
-  for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_INSTANCES,
-                                           GEO_COMPONENT_TYPE_MESH,
-                                           GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                           GEO_COMPONENT_TYPE_CURVE})
+  for (const GeometryComponent::Type type : {GeometryComponent::Type::Instance,
+                                             GeometryComponent::Type::Mesh,
+                                             GeometryComponent::Type::PointCloud,
+                                             GeometryComponent::Type::Curve})
   {
     if (geometry_set.has(type)) {
       set_id_in_component(geometry_set.get_component_for_write(type), selection_field, id_field);
@@ -71,16 +71,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_set_id_cc
-
-void register_node_type_geo_set_id()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_set_id_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SET_ID, "Set ID", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_set_id_cc

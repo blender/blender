@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -21,7 +21,7 @@
 /* Breaking strings is confusing here, prefer over-long lines. */
 /* clang-format off */
 
-/* Each test is made of a 79 bytes (80 with NULL char) string to test, expected string result after
+/* Each test is made of a 79 bytes (80 with null char) string to test, expected string result after
  * stripping invalid utf8 bytes, and a single-byte string encoded with expected number of errors.
  *
  * Based on utf-8 decoder stress-test (https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt)

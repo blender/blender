@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2018 Blender Foundation
+/* SPDX-FileCopyrightText: 2018 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,9 @@
  * \ingroup bke
  */
 
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "PIL_time.h"
 

@@ -1,7 +1,10 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
+/* SPDX-FileCopyrightText: 2000 `Bruno Levy <levy@loria.fr>`
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
  * The Original Code is:
- *   OGF/Graphite: Geometry and Graphics Programming Library + Utilities
- *   Copyright 2000 Bruno Levy <levy@loria.fr> */
+ * - OGF/Graphite: Geometry and Graphics Programming Library + Utilities.
+ */
 
 /** \file
  * \ingroup freestyle

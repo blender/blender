@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -6,6 +8,9 @@
 
 #include "BlenderFileLoader.h"
 
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
@@ -133,7 +138,9 @@ int BlenderFileLoader::countClippedFaces(float v1[3], float v2[3], float v3[3], 
     if (G.debug & G_DEBUG_FREESTYLE) {
       printf("%d %s\n",
              i,
-             (clip[i] == NOT_CLIPPED) ? "not" : (clip[i] == CLIPPED_BY_NEAR) ? "near" : "far");
+             (clip[i] == NOT_CLIPPED)     ? "not" :
+             (clip[i] == CLIPPED_BY_NEAR) ? "near" :
+                                            "far");
     }
 #endif
     sum += clip[i];
@@ -260,7 +267,7 @@ void BlenderFileLoader::clipTriangle(int numTris,
   (void)numTris; /* Ignored in release builds. */
 }
 
-void BlenderFileLoader::addTriangle(struct LoaderState *ls,
+void BlenderFileLoader::addTriangle(LoaderState *ls,
                                     float v1[3],
                                     float v2[3],
                                     float v3[3],
@@ -407,27 +414,27 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   char *name = ob->id.name + 2;
 
   const Span<float3> vert_positions = me->vert_positions();
-  const OffsetIndices mesh_polys = me->polys();
+  const OffsetIndices mesh_polys = me->faces();
   const Span<int> corner_verts = me->corner_verts();
 
   // Compute loop triangles
-  int tottri = poly_to_tri_count(me->totpoly, me->totloop);
+  int tottri = poly_to_tri_count(me->faces_num, me->totloop);
   MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
   blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, corner_verts, {mlooptri, tottri});
-  const blender::Span<int> looptri_polys = me->looptri_polys();
+  const blender::Span<int> looptri_faces = me->looptri_faces();
 
   // Compute loop normals
   BKE_mesh_calc_normals_split(me);
   const float(*lnors)[3] = nullptr;
 
-  if (CustomData_has_layer(&me->ldata, CD_NORMAL)) {
-    lnors = (const float(*)[3])CustomData_get_layer(&me->ldata, CD_NORMAL);
+  if (CustomData_has_layer(&me->loop_data, CD_NORMAL)) {
+    lnors = (const float(*)[3])CustomData_get_layer(&me->loop_data, CD_NORMAL);
   }
 
   // Get other mesh data
-  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&me->edata,
+  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&me->edge_data,
                                                                          CD_FREESTYLE_EDGE);
-  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&me->pdata,
+  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&me->face_data,
                                                                          CD_FREESTYLE_FACE);
 
   // Compute view matrix
@@ -502,7 +509,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   uint *NIndices = new uint[niSize];
   uint *MIndices = new uint[viSize];  // Material Indices
 
-  struct LoaderState ls;
+  LoaderState ls;
   ls.pv = vertices;
   ls.pn = normals;
   ls.pm = faceEdgeMarks;
@@ -524,7 +531,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   // by the near and far view planes.
   for (int a = 0; a < tottri; a++) {
     const MLoopTri *lt = &mlooptri[a];
-    const int poly_i = looptri_polys[a];
+    const int poly_i = looptri_faces[a];
     Material *mat = BKE_object_material_get(ob, material_indices[poly_i] + 1);
 
     copy_v3_v3(v1, vert_positions[corner_verts[lt->tri[0]]]);

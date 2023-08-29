@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,11 +6,9 @@
 
 #include <optional>
 
-#include "BLI_color.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_generic_span.hh"
 #include "BLI_generic_virtual_array.hh"
-#include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
 
@@ -930,7 +928,7 @@ void gather_attributes(AttributeAccessor src_attributes,
                        MutableAttributeAccessor dst_attributes);
 
 /**
- * Copy attribute values from groups groups defined by \a src_offsets to groups defined by \a
+ * Copy attribute values from groups defined by \a src_offsets to groups defined by \a
  * dst_offsets. The group indices are gathered to the result by \a selection. The size of each
  * source and result group must be the same.
  */

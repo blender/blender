@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -45,7 +45,6 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
@@ -88,17 +87,16 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_shader_fx.h"
-#include "BKE_simulation.h"
 #include "BKE_simulation_state.hh"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
 #include "BKE_volume.h"
 #include "BKE_world.h"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -638,9 +636,6 @@ void DepsgraphNodeBuilder::build_id(ID *id)
     case ID_SCE:
       build_scene_parameters((Scene *)id);
       break;
-    case ID_SIM:
-      build_simulation((Simulation *)id);
-      break;
     case ID_PA:
       build_particle_settings((ParticleSettings *)id);
       break;
@@ -812,7 +807,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   if (object->constraints.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
-    BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
+    BKE_constraints_id_loop(&object->constraints, constraint_walk, IDWALK_NOP, &data);
   }
   /* Object data. */
   build_object_data(object);
@@ -1305,8 +1300,31 @@ void DepsgraphNodeBuilder::build_driver_variables(ID *id, FCurve *fcurve)
 
       build_id(target_id);
       build_driver_id_property(target_prop, dtar->rna_path);
+
+      /* For rna_path based variables: */
+      if ((dtar->flag & DTAR_FLAG_STRUCT_REF) == 0) {
+        /* Handle all other cameras used by the scene timeline if applicable. */
+        if (const char *camera_path = get_rna_path_relative_to_scene_camera(
+                scene_, target_prop, dtar->rna_path))
+        {
+          build_driver_scene_camera_variable(scene_, camera_path);
+        }
+      }
     }
     DRIVER_TARGETS_LOOPER_END;
+  }
+}
+
+void DepsgraphNodeBuilder::build_driver_scene_camera_variable(Scene *scene,
+                                                              const char *camera_path)
+{
+  /* This skips scene->camera, which was already handled by the caller. */
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    if (!ELEM(marker->camera, nullptr, scene->camera)) {
+      PointerRNA camera_ptr;
+      RNA_id_pointer_create(&marker->camera->id, &camera_ptr);
+      build_driver_id_property(camera_ptr, camera_path);
+    }
   }
 }
 
@@ -2148,28 +2166,6 @@ void DepsgraphNodeBuilder::build_sound(bSound *sound)
   build_parameters(&sound->id);
 }
 
-void DepsgraphNodeBuilder::build_simulation(Simulation *simulation)
-{
-  if (built_map_.checkIsBuiltAndTag(simulation)) {
-    return;
-  }
-  add_id_node(&simulation->id);
-  build_idproperties(simulation->id.properties);
-  build_animdata(&simulation->id);
-  build_parameters(&simulation->id);
-  build_nodetree(simulation->nodetree);
-
-  Simulation *simulation_cow = get_cow_datablock(simulation);
-  Scene *scene_cow = get_cow_datablock(scene_);
-
-  add_operation_node(&simulation->id,
-                     NodeType::SIMULATION,
-                     OperationCode::SIMULATION_EVAL,
-                     [scene_cow, simulation_cow](::Depsgraph *depsgraph) {
-                       BKE_simulation_data_update(depsgraph, scene_cow, simulation_cow);
-                     });
-}
-
 void DepsgraphNodeBuilder::build_vfont(VFont *vfont)
 {
   if (built_map_.checkIsBuiltAndTag(vfont)) {
@@ -2259,8 +2255,8 @@ void DepsgraphNodeBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_la
 /* **** ID traversal callbacks functions **** */
 
 void DepsgraphNodeBuilder::modifier_walk(void *user_data,
-                                         struct Object * /*object*/,
-                                         struct ID **idpoin,
+                                         Object * /*object*/,
+                                         ID **idpoin,
                                          int /*cb_flag*/)
 {
   BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;

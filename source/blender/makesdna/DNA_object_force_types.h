@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -173,8 +173,10 @@ typedef struct EffectorWeights {
   char _pad[2];
 } EffectorWeights;
 
-/* EffectorWeights->flag */
-#define EFF_WEIGHT_DO_HAIR 1
+/** #EffectorWeights::flag */
+enum {
+  EFF_WEIGHT_DO_HAIR = 1,
+};
 
 typedef struct SBVertex {
   float vec[4];
@@ -303,92 +305,108 @@ typedef struct SoftBody {
   int last_frame;
 } SoftBody;
 
-/* pd->flag: various settings */
-#define PFIELD_USEMAX (1 << 0)
-// #define PDEFLE_DEFORM         (1 << 1) /* UNUSED */
-/** TODO: do_versions for below */
-#define PFIELD_GUIDE_PATH_ADD (1 << 2)
-/** used for do_versions */
-#define PFIELD_PLANAR (1 << 3)
-#define PDEFLE_KILL_PART (1 << 4)
-/** used for do_versions */
-#define PFIELD_POSZ (1 << 5)
-#define PFIELD_TEX_OBJECT (1 << 6)
-/** used for turbulence */
-#define PFIELD_GLOBAL_CO (1 << 6)
-#define PFIELD_TEX_2D (1 << 7)
-/** used for harmonic force */
-#define PFIELD_MULTIPLE_SPRINGS (1 << 7)
-#define PFIELD_USEMIN (1 << 8)
-#define PFIELD_USEMAXR (1 << 9)
-#define PFIELD_USEMINR (1 << 10)
-#define PFIELD_TEX_ROOTCO (1 << 11)
-/** used for do_versions */
-#define PFIELD_SURFACE (1 << 12)
-#define PFIELD_VISIBILITY (1 << 13)
-#define PFIELD_DO_LOCATION (1 << 14)
-#define PFIELD_DO_ROTATION (1 << 15)
-/** apply curve weights */
-#define PFIELD_GUIDE_PATH_WEIGHT (1 << 16)
-/** multiply smoke force by density */
-#define PFIELD_SMOKE_DENSITY (1 << 17)
-/** used for (simple) force */
-#define PFIELD_GRAVITATION (1 << 18)
-/** Enable cloth collision side detection based on normal. */
-#define PFIELD_CLOTH_USE_CULLING (1 << 19)
-/** Replace collision direction with collider normal. */
-#define PFIELD_CLOTH_USE_NORMAL (1 << 20)
+/** #PartDeflect::flag: various settings. */
+enum {
+  PFIELD_USEMAX = 1 << 0,
+  // PDEFLE_DEFORM = 1 << 1, /* UNUSED */
+  /** TODO: do_versions for below */
+  PFIELD_GUIDE_PATH_ADD = 1 << 2,
+  /** used for do_versions */
+  PFIELD_PLANAR = 1 << 3,
+  PDEFLE_KILL_PART = 1 << 4,
+  /** used for do_versions */
+  PFIELD_POSZ = 1 << 5,
+  PFIELD_TEX_OBJECT = 1 << 6,
+  /** used for turbulence */
+  PFIELD_GLOBAL_CO = 1 << 6,
+  PFIELD_TEX_2D = 1 << 7,
+  /** used for harmonic force */
+  PFIELD_MULTIPLE_SPRINGS = 1 << 7,
+  PFIELD_USEMIN = 1 << 8,
+  PFIELD_USEMAXR = 1 << 9,
+  PFIELD_USEMINR = 1 << 10,
+  PFIELD_TEX_ROOTCO = 1 << 11,
+  /** used for do_versions */
+  PFIELD_SURFACE = 1 << 12,
+  PFIELD_VISIBILITY = 1 << 13,
+  PFIELD_DO_LOCATION = 1 << 14,
+  PFIELD_DO_ROTATION = 1 << 15,
+  /** apply curve weights */
+  PFIELD_GUIDE_PATH_WEIGHT = 1 << 16,
+  /** multiply smoke force by density */
+  PFIELD_SMOKE_DENSITY = 1 << 17,
+  /** used for (simple) force */
+  PFIELD_GRAVITATION = 1 << 18,
+  /** Enable cloth collision side detection based on normal. */
+  PFIELD_CLOTH_USE_CULLING = 1 << 19,
+  /** Replace collision direction with collider normal. */
+  PFIELD_CLOTH_USE_NORMAL = 1 << 20,
+};
 
-/* pd->falloff */
-#define PFIELD_FALL_SPHERE 0
-#define PFIELD_FALL_TUBE 1
-#define PFIELD_FALL_CONE 2
+/** #PartDeflect::falloff */
+enum {
+  PFIELD_FALL_SPHERE = 0,
+  PFIELD_FALL_TUBE = 1,
+  PFIELD_FALL_CONE = 2,
+};
 
-/* pd->shape */
-#define PFIELD_SHAPE_POINT 0
-#define PFIELD_SHAPE_PLANE 1
-#define PFIELD_SHAPE_SURFACE 2
-#define PFIELD_SHAPE_POINTS 3
-#define PFIELD_SHAPE_LINE 4
+/** #PartDeflect::shape */
+enum {
+  PFIELD_SHAPE_POINT = 0,
+  PFIELD_SHAPE_PLANE = 1,
+  PFIELD_SHAPE_SURFACE = 2,
+  PFIELD_SHAPE_POINTS = 3,
+  PFIELD_SHAPE_LINE = 4,
+};
 
-/* pd->tex_mode */
-#define PFIELD_TEX_RGB 0
-#define PFIELD_TEX_GRAD 1
-#define PFIELD_TEX_CURL 2
+/** #PartDeflect::tex_mode */
+enum {
+  PFIELD_TEX_RGB = 0,
+  PFIELD_TEX_GRAD = 1,
+  PFIELD_TEX_CURL = 2,
+};
 
-/* pd->zdir */
-#define PFIELD_Z_BOTH 0
-#define PFIELD_Z_POS 1
-#define PFIELD_Z_NEG 2
+/** #PartDeflect::zdir */
+enum {
+  PFIELD_Z_BOTH = 0,
+  PFIELD_Z_POS = 1,
+  PFIELD_Z_NEG = 2,
+};
 
-/* ob->softflag */
-#define OB_SB_ENABLE 1 /* deprecated, use modifier */
-#define OB_SB_GOAL 2
-#define OB_SB_EDGES 4
-#define OB_SB_QUADS 8
-#define OB_SB_POSTDEF 16
-// #define OB_SB_REDO       32
-// #define OB_SB_BAKESET    64
-// #define OB_SB_BAKEDO 128
-// #define OB_SB_RESET      256
-#define OB_SB_SELF 512
-#define OB_SB_FACECOLL 1024
-#define OB_SB_EDGECOLL 2048
-/* #define OB_SB_COLLFINAL 4096 */ /* deprecated */
-/* #define OB_SB_BIG_UI 8192 */    /* deprecated */
-#define OB_SB_AERO_ANGLE 16384
+/** #Object::softflag */
+enum {
+  OB_SB_ENABLE = 1 << 0, /* Deprecated (use modifier). */
+  OB_SB_GOAL = 1 << 1,
+  OB_SB_EDGES = 1 << 2,
+  OB_SB_QUADS = 1 << 3,
+  OB_SB_POSTDEF = 1 << 4,
+  // OB_SB_REDO = 1 << 5,
+  // OB_SB_BAKESET = 1 << 6,
+  // OB_SB_BAKEDO = 1 << 7,
+  // OB_SB_RESET = 1 << 8,
+  OB_SB_SELF = 1 << 9,
+  OB_SB_FACECOLL = 1 << 10,
+  OB_SB_EDGECOLL = 1 << 11,
+  // OB_SB_COLLFINAL = 1 << 12,  /* Deprecated. */
+  // OB_SB_BIG_UI = 1 << 13,     /* Deprecated. */
+  OB_SB_AERO_ANGLE = 1 << 14,
+};
 
-/* sb->solverflags */
-#define SBSO_MONITOR 1
-#define SBSO_OLDERR 2
-#define SBSO_ESTIMATEIPO 4
+/** #SoftBody::solverflags */
+enum {
+  SBSO_MONITOR = 1 << 0,
+  SBSO_OLDERR = 1 << 1,
+  SBSO_ESTIMATEIPO = 1 << 2,
+};
 
-/* sb->sbc_mode */
-#define SBC_MODE_MANUAL 0
-#define SBC_MODE_AVG 1
-#define SBC_MODE_MIN 2
-#define SBC_MODE_MAX 3
-#define SBC_MODE_AVGMINMAX 4
+/** #SoftBody::sbc_mode */
+enum {
+  SBC_MODE_MANUAL = 0,
+  SBC_MODE_AVG = 1,
+  SBC_MODE_MIN = 2,
+  SBC_MODE_MAX = 3,
+  SBC_MODE_AVGMINMAX = 4,
+};
 
 #ifdef __cplusplus
 }

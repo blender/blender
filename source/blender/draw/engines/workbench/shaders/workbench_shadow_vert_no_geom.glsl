@@ -1,7 +1,11 @@
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Two variants, split pass, generates either 2 triangles or 6 triangles depending on input
  * geometry manifold type */
+
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 #ifdef DOUBLE_MANIFOLD
 #  define vert_len 12 /* Triangle Strip with 6 verts = 4 triangles = 12 verts. */

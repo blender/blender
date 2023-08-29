@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -6,7 +6,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "PIL_time.h"
 
@@ -1063,7 +1062,7 @@ template<typename T> void twoface2_test()
   EXPECT_EQ(out.edge.size(), 18);
   EXPECT_EQ(out.face.size(), 9);
   if (out.vert.size() == 10 && out.edge.size() == 18 && out.face.size() == 9) {
-    /* Input verts have no dups, so expect output ones match input ones. */
+    /* Input verts have no duplicates, so expect output ones match input ones. */
     for (int i = 0; i < 6; i++) {
       EXPECT_EQ(get_orig_index(out.vert_orig, i), i);
     }

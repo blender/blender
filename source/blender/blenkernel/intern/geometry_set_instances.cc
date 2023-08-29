@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,7 +6,7 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 
 #include "DNA_collection_types.h"
@@ -57,7 +57,7 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
     std::unique_ptr<Instances> instances = std::make_unique<Instances>();
     const int handle = instances->add_reference(collection);
     instances->add_instance(handle, float4x4::identity());
-    return GeometrySet::create_with_instances(instances.release());
+    return GeometrySet::from_instances(instances.release());
   }
 
   /* Return by value since there is not always an existing geometry set owned elsewhere to use. */
@@ -65,9 +65,8 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
 }
 
 void Instances::foreach_referenced_geometry(
-    blender::FunctionRef<void(const GeometrySet &geometry_set)> callback) const
+    FunctionRef<void(const GeometrySet &geometry_set)> callback) const
 {
-  using namespace blender::bke;
   for (const InstanceReference &reference : references_) {
     switch (reference.type()) {
       case InstanceReference::Type::Object: {
@@ -99,8 +98,6 @@ void Instances::foreach_referenced_geometry(
 
 void Instances::ensure_geometry_instances()
 {
-  using namespace blender;
-  using namespace blender::bke;
   VectorSet<InstanceReference> new_references;
   new_references.reserve(references_.size());
   for (const InstanceReference &reference : references_) {
@@ -135,7 +132,7 @@ void Instances::ensure_geometry_instances()
         }
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
         instances->ensure_geometry_instances();
-        new_references.add_new(GeometrySet::create_with_instances(instances.release()));
+        new_references.add_new(GeometrySet::from_instances(instances.release()));
         break;
       }
     }

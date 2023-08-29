@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2002-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef __MARCHING_CUBES_TABLE_H__
 #define __MARCHING_CUBES_TABLE_H__

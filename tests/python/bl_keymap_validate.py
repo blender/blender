@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2021-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # ./blender.bin --background -noaudio --factory-startup --python tests/python/bl_keymap_validate.py
@@ -38,7 +40,6 @@ from typing import (
 
 KeyConfigData = List[Tuple[str, Tuple[Any], Dict[str, Any]]]
 
-import os
 import contextlib
 
 import bpy  # type: ignore
@@ -77,7 +78,7 @@ def temp_fn_argument_extractor(
         mod_attr: str,
 ) -> Generator[List[Tuple[Tuple[Tuple[Any], ...], Dict[str, Dict[str, Any]]]], None, None]:
     """
-    Temporarily intercept a function, so it's arguments can be extracted.
+    Temporarily intercept a function, so its arguments can be extracted.
     The context manager gives us a list where each item is a tuple of
     arguments & keywords, stored each time the function was called.
     """

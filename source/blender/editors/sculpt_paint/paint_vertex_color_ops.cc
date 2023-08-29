@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,13 +27,13 @@
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 
 #include "paint_intern.hh" /* own include */
 #include "sculpt_intern.hh"
@@ -56,7 +56,7 @@ static bool vertex_weight_paint_mode_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
   Mesh *me = BKE_mesh_from_object(ob);
   return (ob && ELEM(ob->mode, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT)) &&
-         (me && me->totpoly && !me->deform_verts().is_empty());
+         (me && me->faces_num && !me->deform_verts().is_empty());
 }
 
 static void tag_object_after_update(Object *object)
@@ -309,8 +309,7 @@ static void transform_active_color(bContext *C,
 
   SCULPT_undo_push_begin(obact, op);
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
-      obact->sculpt->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(obact->sculpt->pbvh, {});
   for (PBVHNode *node : nodes) {
     SCULPT_undo_push_node(obact, node, SCULPT_UNDO_COLOR);
   }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __SHADER_H__
 #define __SHADER_H__
@@ -112,7 +113,6 @@ class Shader : public Node {
   bool has_surface_spatial_varying;
   bool has_volume_spatial_varying;
   bool has_volume_attribute_dependency;
-  bool has_integrator_dependency;
 
   float3 emission_estimate;
   EmissionSampling emission_sampling;
@@ -167,7 +167,6 @@ class ShaderManager {
   enum : uint32_t {
     SHADER_ADDED = (1 << 0),
     SHADER_MODIFIED = (1 << 2),
-    INTEGRATOR_MODIFIED = (1 << 3),
 
     /* tag everything in the manager for an update */
     UPDATE_ALL = ~0u,
@@ -232,6 +231,15 @@ class ShaderManager {
   AttributeIDMap unique_attribute_id;
 
   static thread_mutex lookup_table_mutex;
+
+  unordered_map<const float *, size_t> bsdf_tables;
+
+  template<std::size_t n>
+  size_t ensure_bsdf_table(DeviceScene *dscene, Scene *scene, const float (&table)[n])
+  {
+    return ensure_bsdf_table_impl(dscene, scene, table, n);
+  }
+  size_t ensure_bsdf_table_impl(DeviceScene *dscene, Scene *scene, const float *table, size_t n);
 
   uint get_graph_kernel_features(ShaderGraph *graph);
 

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2011-2023 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # semi-useful script, runs all operators in a number of different

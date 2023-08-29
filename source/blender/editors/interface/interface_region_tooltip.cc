@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,22 +27,23 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"
@@ -51,7 +52,7 @@
 #  include "BPY_extern_run.h"
 #endif
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
@@ -647,7 +648,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
       if (has_valid_context == false) {
         /* pass */
       }
-      else if (BPY_run_string_as_string_and_size(
+      else if (BPY_run_string_as_string_and_len(
                    C, expr_imports, expr, nullptr, &expr_result, &expr_result_len))
       {
         /* pass. */
@@ -751,6 +752,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
                                                                 const bool is_label)
 {
   uiStringInfo but_label = {BUT_GET_LABEL, nullptr};
+  uiStringInfo but_tip_label = {BUT_GET_TIP_LABEL, nullptr};
   uiStringInfo but_tip = {BUT_GET_TIP, nullptr};
   uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, nullptr};
   uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, nullptr};
@@ -770,20 +772,22 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
 
   if (extra_icon) {
     if (is_label) {
-      UI_but_extra_icon_string_info_get(C, extra_icon, &but_label, &enum_label, nullptr);
+      UI_but_extra_icon_string_info_get(C, extra_icon, &but_tip_label, &enum_label, nullptr);
     }
     else {
-      UI_but_extra_icon_string_info_get(C, extra_icon, &but_label, &but_tip, &op_keymap, nullptr);
+      UI_but_extra_icon_string_info_get(
+          C, extra_icon, &but_label, &but_tip_label, &but_tip, &op_keymap, nullptr);
     }
   }
   else {
     if (is_label) {
-      UI_but_string_info_get(C, but, &but_label, &enum_label, nullptr);
+      UI_but_string_info_get(C, but, &but_tip_label, &enum_label, nullptr);
     }
     else {
       UI_but_string_info_get(C,
                              but,
                              &but_label,
+                             &but_tip_label,
                              &but_tip,
                              &enum_label,
                              &enum_tip,
@@ -795,15 +799,15 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
     }
   }
 
-  /* Tip Label (only for buttons not already showing the label).
-   * Check prefix instead of comparing because the button may include the shortcut.
-   * Buttons with dynamic tool-tips also don't get their default label here since they
-   * can already provide more accurate and specific tool-tip content. */
-  if (but_label.strinfo && !STRPREFIX(but->drawstr, but_label.strinfo) && !but->tip_func) {
+  if (but_tip_label.strinfo &&
+      /* Buttons with dynamic tool-tips also don't get their default label here since they
+       * can already provide more accurate and specific tool-tip content. */
+      !but->tip_func)
+  {
     uiTooltipField *field = text_field_add(
         data, uiTooltipFormat::Style::Header, uiTooltipFormat::ColorID::Normal);
 
-    field->text = BLI_strdup(but_label.strinfo);
+    field->text = BLI_strdup(but_tip_label.strinfo);
   }
 
   /* Tip */
@@ -986,6 +990,9 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
   if (but_label.strinfo) {
     MEM_freeN(but_label.strinfo);
   }
+  if (but_tip_label.strinfo) {
+    MEM_freeN(but_tip_label.strinfo);
+  }
   if (but_tip.strinfo) {
     MEM_freeN(but_tip.strinfo);
   }
@@ -1045,20 +1052,16 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
                                 nullptr;
       if (gzop != nullptr) {
         /* Description */
-        char *info = WM_operatortype_description_or_name(C, gzop->type, &gzop->ptr);
+        std::string info = WM_operatortype_description_or_name(C, gzop->type, &gzop->ptr);
 
-        if (info != nullptr) {
-          char *text = info;
-
+        if (!info.empty()) {
+          uiTooltipField *field = text_field_add(
+              data, uiTooltipFormat::Style::Header, uiTooltipFormat::ColorID::Value, true);
           if (gzop_actions[i].prefix != nullptr) {
-            text = BLI_sprintfN("%s: %s", gzop_actions[i].prefix, info);
-            MEM_freeN(info);
+            field->text = BLI_sprintfN("%s: %s", gzop_actions[i].prefix, info.c_str());
           }
-
-          if (text != nullptr) {
-            uiTooltipField *field = text_field_add(
-                data, uiTooltipFormat::Style::Header, uiTooltipFormat::ColorID::Value, true);
-            field->text = text;
+          else {
+            field->text = BLI_strdup(info.c_str());
           }
         }
 
@@ -1151,7 +1154,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     uiTooltipField *field = &data->fields[i];
     uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] : nullptr;
 
-    struct ResultBLF info;
+    ResultBLF info;
     int w, x_pos = 0;
     int font_id;
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -53,6 +53,50 @@ class NodeGroupComputeContext : public ComputeContext {
   int32_t node_id() const
   {
     return node_id_;
+  }
+
+ private:
+  void print_current_in_line(std::ostream &stream) const override;
+};
+
+class SimulationZoneComputeContext : public ComputeContext {
+ private:
+  static constexpr const char *s_static_type = "SIMULATION_ZONE";
+
+  int32_t output_node_id_;
+
+ public:
+  SimulationZoneComputeContext(const ComputeContext *parent, int output_node_id);
+  SimulationZoneComputeContext(const ComputeContext *parent, const bNode &node);
+
+  int32_t output_node_id() const
+  {
+    return output_node_id_;
+  }
+
+ private:
+  void print_current_in_line(std::ostream &stream) const override;
+};
+
+class RepeatZoneComputeContext : public ComputeContext {
+ private:
+  static constexpr const char *s_static_type = "REPEAT_ZONE";
+
+  int32_t output_node_id_;
+  int iteration_;
+
+ public:
+  RepeatZoneComputeContext(const ComputeContext *parent, int32_t output_node_id, int iteration);
+  RepeatZoneComputeContext(const ComputeContext *parent, const bNode &node, int iteration);
+
+  int32_t output_node_id() const
+  {
+    return output_node_id_;
+  }
+
+  int iteration() const
+  {
+    return iteration_;
   }
 
  private:

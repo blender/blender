@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -257,6 +257,7 @@ template<typename MatT, typename VectorT>
  * Extract euler rotation from transform matrix.
  * \return the rotation with the smallest values from the potential candidates.
  */
+template<typename T> [[nodiscard]] inline AngleRadianBase<T> to_angle(const MatBase<T, 2, 2> &mat);
 template<typename T> [[nodiscard]] inline EulerXYZBase<T> to_euler(const MatBase<T, 3, 3> &mat);
 template<typename T> [[nodiscard]] inline EulerXYZBase<T> to_euler(const MatBase<T, 4, 4> &mat);
 template<typename T>
@@ -316,6 +317,15 @@ template<bool AllowNegativeScale = false, typename T>
  * Rotation and scale values will be flipped if it is negative.
  * This is a costly operation so it is disabled by default.
  */
+template<bool AllowNegativeScale = false, typename T>
+inline void to_rot_scale(const MatBase<T, 2, 2> &mat,
+                         AngleRadianBase<T> &r_rotation,
+                         VecBase<T, 2> &r_scale);
+template<bool AllowNegativeScale = false, typename T>
+inline void to_loc_rot_scale(const MatBase<T, 3, 3> &mat,
+                             VecBase<T, 2> &r_location,
+                             AngleRadianBase<T> &r_rotation,
+                             VecBase<T, 2> &r_scale);
 template<bool AllowNegativeScale = false, typename T, typename RotationT>
 inline void to_rot_scale(const MatBase<T, 3, 3> &mat,
                          RotationT &r_rotation,
@@ -705,6 +715,12 @@ template<typename T, int NumCol, int NumRow, typename VectorT>
 
 namespace detail {
 
+template<typename T> AngleRadianBase<T> normalized_to_angle(const MatBase<T, 2, 2> &mat)
+{
+  BLI_assert(math::is_unit_scale(mat));
+  return AngleRadianBase(mat[0][0], mat[0][1]);
+}
+
 template<typename T>
 void normalized_to_eul2(const MatBase<T, 3, 3> &mat, EulerXYZBase<T> &eul1, EulerXYZBase<T> &eul2)
 {
@@ -1070,6 +1086,11 @@ extern template MatBase<float, 4, 4> from_rotation(const AxisAngleCartesian &rot
 
 }  // namespace detail
 
+template<typename T> [[nodiscard]] inline AngleRadianBase<T> to_angle(const MatBase<T, 2, 2> &mat)
+{
+  return detail::normalized_to_angle(mat);
+}
+
 template<typename T>
 [[nodiscard]] inline Euler3Base<T> to_euler(const MatBase<T, 3, 3> &mat, EulerOrder order)
 {
@@ -1189,6 +1210,12 @@ template<bool AllowNegativeScale, typename T>
 namespace detail {
 
 template<typename T>
+inline void to_rotation(const MatBase<T, 2, 2> &mat, AngleRadianBase<T> &r_rotation)
+{
+  r_rotation = to_angle<T>(mat);
+}
+
+template<typename T>
 inline void to_rotation(const MatBase<T, 3, 3> &mat, QuaternionBase<T> &r_rotation)
 {
   r_rotation = to_quaternion<T>(mat);
@@ -1207,6 +1234,31 @@ inline void to_rotation(const MatBase<T, 3, 3> &mat, Euler3Base<T> &r_rotation)
 }
 
 }  // namespace detail
+
+template<bool AllowNegativeScale, typename T>
+inline void to_rot_scale(const MatBase<T, 2, 2> &mat,
+                         AngleRadianBase<T> &r_rotation,
+                         VecBase<T, 2> &r_scale)
+{
+  MatBase<T, 2, 2> normalized_mat = normalize_and_get_size(mat, r_scale);
+  if constexpr (AllowNegativeScale) {
+    if (UNLIKELY(is_negative(normalized_mat))) {
+      normalized_mat = -normalized_mat;
+      r_scale = -r_scale;
+    }
+  }
+  detail::to_rotation<T>(normalized_mat, r_rotation);
+}
+
+template<bool AllowNegativeScale, typename T>
+inline void to_loc_rot_scale(const MatBase<T, 3, 3> &mat,
+                             VecBase<T, 2> &r_location,
+                             AngleRadianBase<T> &r_rotation,
+                             VecBase<T, 2> &r_scale)
+{
+  r_location = mat.location();
+  to_rot_scale<AllowNegativeScale>(MatBase<T, 2, 2>(mat), r_rotation, r_scale);
+}
 
 template<bool AllowNegativeScale, typename T, typename RotationT>
 inline void to_rot_scale(const MatBase<T, 3, 3> &mat,

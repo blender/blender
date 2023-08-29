@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2009-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -90,7 +92,7 @@ static char ContextFunctions_load_map___doc__[] =
     "   :arg map_name: The name that will be used to access this image.\n"
     "   :type map_name: str\n"
     "   :arg num_levels: The number of levels in the map pyramid\n"
-    "      (default = 4).  If num_levels == 0, the complete pyramid is\n"
+    "      (default = 4). If num_levels == 0, the complete pyramid is\n"
     "      built.\n"
     "   :type num_levels: int\n"
     "   :arg sigma: The sigma value of the gaussian function.\n"
@@ -122,10 +124,10 @@ static char ContextFunctions_read_map_pixel___doc__[] =
     "   :arg level: The level of the pyramid in which we wish to read the\n"
     "      pixel.\n"
     "   :type level: int\n"
-    "   :arg x: The x coordinate of the pixel we wish to read.  The origin\n"
+    "   :arg x: The x coordinate of the pixel we wish to read. The origin\n"
     "      is in the lower-left corner.\n"
     "   :type x: int\n"
-    "   :arg y: The y coordinate of the pixel we wish to read.  The origin\n"
+    "   :arg y: The y coordinate of the pixel we wish to read. The origin\n"
     "      is in the lower-left corner.\n"
     "   :type y: int\n"
     "   :return: The floating-point value stored for that pixel.\n"
@@ -155,10 +157,10 @@ static char ContextFunctions_read_complete_view_map_pixel___doc__[] =
     "   :arg level: The level of the pyramid in which we wish to read the\n"
     "      pixel.\n"
     "   :type level: int\n"
-    "   :arg x: The x coordinate of the pixel we wish to read.  The origin\n"
+    "   :arg x: The x coordinate of the pixel we wish to read. The origin\n"
     "      is in the lower-left corner.\n"
     "   :type x: int\n"
-    "   :arg y: The y coordinate of the pixel we wish to read.  The origin\n"
+    "   :arg y: The y coordinate of the pixel we wish to read. The origin\n"
     "      is in the lower-left corner.\n"
     "   :type y: int\n"
     "   :return: The floating-point value stored for that pixel.\n"
@@ -189,10 +191,10 @@ static char ContextFunctions_read_directional_view_map_pixel___doc__[] =
     "   :arg level: The level of the pyramid in which we wish to read the\n"
     "      pixel.\n"
     "   :type level: int\n"
-    "   :arg x: The x coordinate of the pixel we wish to read.  The origin\n"
+    "   :arg x: The x coordinate of the pixel we wish to read. The origin\n"
     "      is in the lower-left corner.\n"
     "   :type x: int\n"
-    "   :arg y: The y coordinate of the pixel we wish to read.  The origin\n"
+    "   :arg y: The y coordinate of the pixel we wish to read. The origin\n"
     "      is in the lower-left corner.\n"
     "   :type y: int\n"
     "   :return: The floating-point value stored for that pixel.\n"
@@ -281,7 +283,7 @@ static PyMethodDef module_functions[] = {
 /*-----------------------ContextFunctions module definition--------------------------------*/
 
 static PyModuleDef module_definition = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "Freestyle.ContextFunctions",
     /*m_doc*/ module_docstring,
     /*m_size*/ -1,

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -38,7 +38,6 @@ struct MovieClip;
 struct Object;
 struct ParticleSettings;
 struct Scene;
-struct Simulation;
 struct Speaker;
 struct Tex;
 struct VFont;
@@ -165,6 +164,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_idproperties(IDProperty *id_property);
 
   virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);
+  virtual void build_scene_camera(Scene *scene);
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);
 
@@ -224,6 +224,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_driver(ID *id, FCurve *fcurve, int driver_index);
 
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
+  virtual void build_driver_scene_camera_variable(Scene *scene, const char *camera_path);
 
   /* Build operations of a property value from which is read by a driver target.
    *
@@ -263,7 +264,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_lightprobe(LightProbe *probe);
   virtual void build_speaker(Speaker *speaker);
   virtual void build_sound(bSound *sound);
-  virtual void build_simulation(Simulation *simulation);
   virtual void build_scene_sequencer(Scene *scene);
   virtual void build_scene_audio(Scene *scene);
   virtual void build_scene_speakers(Scene *scene, ViewLayer *view_layer);

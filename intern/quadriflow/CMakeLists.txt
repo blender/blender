@@ -1,9 +1,9 @@
+# SPDX-FileCopyrightText: 2019 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2019 Blender Foundation
 
 set(INC
   .
-  ../guardedalloc
 )
 
 set(INC_SYS
@@ -18,6 +18,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::intern::guardedalloc
   extern_quadriflow
   ${BOOST_LIBRARIES}
 )

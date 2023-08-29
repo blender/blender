@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -85,7 +85,7 @@ class DebugDraw {
    * Drawing functions that will draw wire-frames with the given color.
    */
   void draw_line(float3 v1, float3 v2, float4 color = {1, 0, 0, 1});
-  void draw_polygon(Span<float3> poly_verts, float4 color = {1, 0, 0, 1});
+  void draw_polygon(Span<float3> face_verts, float4 color = {1, 0, 0, 1});
   void draw_bbox(const BoundBox &bbox, const float4 color = {1, 0, 0, 1});
   void draw_sphere(const float3 center, float radius, const float4 color = {1, 0, 0, 1});
   void draw_point(const float3 center, float radius = 0.01f, const float4 color = {1, 0, 0, 1});

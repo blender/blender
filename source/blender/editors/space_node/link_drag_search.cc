@@ -1,9 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "AS_asset_representation.hh"
+
 #include "BLI_listbase.h"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 
 #include "DNA_space_types.h"
 
@@ -15,19 +17,19 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_screen.h"
 
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "DEG_depsgraph_build.h"
 
-#include "ED_asset.h"
-#include "ED_node.h"
+#include "ED_asset.hh"
+#include "ED_node.hh"
 
 #include "node_intern.hh"
 
@@ -88,7 +90,6 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   bNodeSocket *interface_socket = bke::ntreeAddSocketInterfaceFromSocket(
       &params.node_tree, &params.node, &params.socket);
   const int group_input_index = BLI_findindex(&params.node_tree.inputs, interface_socket);
-
   bNode &group_input = params.add_node("NodeGroupInput");
 
   /* This is necessary to create the new sockets in the other input nodes. */
@@ -148,10 +149,10 @@ static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
  */
 static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
                                                const bNodeSocket &socket,
-                                               const AssetHandle asset_handle,
+                                               const asset_system::AssetRepresentation &asset,
                                                Vector<SocketLinkOperation> &search_link_ops)
 {
-  const AssetMetaData &asset_data = *ED_asset_handle_get_metadata(&asset_handle);
+  const AssetMetaData &asset_data = asset.get_metadata();
   const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&asset_data, "type");
   if (tree_type == nullptr || IDP_Int(tree_type) != node_tree.type) {
     return;
@@ -187,19 +188,18 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
       continue;
     }
 
-    AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_handle);
-    const StringRef asset_name = ED_asset_handle_get_name(&asset_handle);
+    const StringRef asset_name = asset.get_name();
     const StringRef socket_name = socket_property->name;
 
     search_link_ops.append(
         {asset_name + " " + UI_MENU_ARROW_SEP + socket_name,
-         [asset, socket_property, in_out](nodes::LinkSearchOpParams &params) {
+         [&asset, socket_property, in_out](nodes::LinkSearchOpParams &params) {
            Main &bmain = *CTX_data_main(&params.C);
 
            bNode &node = params.add_node(params.node_tree.typeinfo->group_idname);
            node.flag &= ~NODE_OPTIONS;
 
-           node.id = ED_asset_get_local_id_from_asset_or_append_and_reuse(&bmain, asset, ID_NT);
+           node.id = asset::asset_local_id_ensure_imported(bmain, asset);
            id_us_plus(node.id);
            BKE_ntree_update_tag_node_property(&params.node_tree, &node);
            DEG_relations_tag_update(&bmain);
@@ -231,11 +231,11 @@ static void gather_search_link_ops_for_asset_library(const bContext &C,
   filter_settings.id_types = FILTER_ID_NT;
 
   ED_assetlist_storage_fetch(&library_ref, &C);
-  ED_assetlist_iterate(library_ref, [&](AssetHandle asset) {
-    if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+  ED_assetlist_iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
+    if (!ED_asset_filter_matches_asset(&filter_settings, asset)) {
       return true;
     }
-    if (skip_local && ED_asset_handle_get_local_id(&asset) != nullptr) {
+    if (skip_local && asset.is_local_id()) {
       return true;
     }
     search_link_ops_for_asset_metadata(node_tree, socket, asset, search_link_ops);
@@ -284,6 +284,7 @@ static void gather_socket_link_operations(const bContext &C,
                                           const bNodeSocket &socket,
                                           Vector<SocketLinkOperation> &search_link_ops)
 {
+  const SpaceNode &snode = *CTX_wm_space_node(&C);
   NODE_TYPES_BEGIN (node_type) {
     const char *disabled_hint;
     if (node_type->poll && !node_type->poll(node_type, &node_tree, &disabled_hint)) {
@@ -296,7 +297,8 @@ static void gather_socket_link_operations(const bContext &C,
       continue;
     }
     if (node_type->gather_link_search_ops) {
-      nodes::GatherLinkSearchOpParams params{*node_type, node_tree, socket, search_link_ops};
+      nodes::GatherLinkSearchOpParams params{
+          *node_type, snode, node_tree, socket, search_link_ops};
       node_type->gather_link_search_ops(params);
     }
   }
@@ -340,27 +342,22 @@ static void link_drag_search_update_fn(
     storage.update_items_tag = false;
   }
 
-  StringSearch *search = BLI_string_search_new();
+  string_search::StringSearch<SocketLinkOperation> search;
 
   for (SocketLinkOperation &op : storage.search_link_ops) {
-    BLI_string_search_add(search, op.name.c_str(), &op, op.weight);
+    search.add(op.name, &op, op.weight);
   }
 
   /* Don't filter when the menu is first opened, but still run the search
    * so the items are in the same order they will appear in while searching. */
   const char *string = is_first ? "" : str;
-  SocketLinkOperation **filtered_items;
-  const int filtered_amount = BLI_string_search_query(search, string, (void ***)&filtered_items);
+  const Vector<SocketLinkOperation *> filtered_items = search.query(string);
 
-  for (const int i : IndexRange(filtered_amount)) {
-    SocketLinkOperation &item = *filtered_items[i];
-    if (!UI_search_item_add(items, item.name.c_str(), &item, ICON_NONE, 0, 0)) {
+  for (SocketLinkOperation *item : filtered_items) {
+    if (!UI_search_item_add(items, item->name.c_str(), item, ICON_NONE, 0, 0)) {
       break;
     }
   }
-
-  MEM_freeN(filtered_items);
-  BLI_string_search_free(search);
 }
 
 static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)

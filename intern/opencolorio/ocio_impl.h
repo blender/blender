@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef __OCIO_IMPL_H__
 #define __OCIO_IMPL_H__
@@ -62,6 +63,7 @@ class IOCIOImpl {
   virtual void processorRelease(OCIO_ConstProcessorRcPtr *processor) = 0;
 
   virtual OCIO_ConstCPUProcessorRcPtr *processorGetCPUProcessor(OCIO_ConstProcessorRcPtr *p) = 0;
+  virtual bool cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor) = 0;
   virtual void cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
                                  OCIO_PackedImageDesc *img) = 0;
   virtual void cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
@@ -112,7 +114,8 @@ class IOCIOImpl {
                                     const float /*exponent*/,
                                     const float /*dither*/,
                                     const bool /*use_predivide*/,
-                                    const bool /*use_overlay*/)
+                                    const bool /*use_overlay*/,
+                                    const bool /*use_hdr*/)
   {
     return false;
   }
@@ -175,6 +178,7 @@ class FallbackImpl : public IOCIOImpl {
   void processorRelease(OCIO_ConstProcessorRcPtr *processor);
 
   OCIO_ConstCPUProcessorRcPtr *processorGetCPUProcessor(OCIO_ConstProcessorRcPtr *processor);
+  bool cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor);
   void cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor, OCIO_PackedImageDesc *img);
   void cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
                                    OCIO_PackedImageDesc *img);
@@ -265,6 +269,7 @@ class OCIOImpl : public IOCIOImpl {
   void processorRelease(OCIO_ConstProcessorRcPtr *processor);
 
   OCIO_ConstCPUProcessorRcPtr *processorGetCPUProcessor(OCIO_ConstProcessorRcPtr *processor);
+  bool cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor);
   void cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor, OCIO_PackedImageDesc *img);
   void cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
                                    OCIO_PackedImageDesc *img);
@@ -309,7 +314,8 @@ class OCIOImpl : public IOCIOImpl {
                             const float exponent,
                             const float dither,
                             const bool use_predivide,
-                            const bool use_overlay);
+                            const bool use_overlay,
+                            const bool use_hdr);
   void gpuDisplayShaderUnbind(void);
   void gpuCacheFree(void);
 

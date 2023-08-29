@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -162,11 +162,12 @@ class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
 
   void bind_as_ssbo(VKVertexBuffer &buffer, VKDescriptorSet::Location location);
   void bind_as_ssbo(VKIndexBuffer &buffer, VKDescriptorSet::Location location);
+  void bind_as_ssbo(VKUniformBuffer &buffer, VKDescriptorSet::Location location);
   void bind(VKStorageBuffer &buffer, VKDescriptorSet::Location location);
   void bind(VKUniformBuffer &buffer, VKDescriptorSet::Location location);
   /* TODO: bind as image */
   void image_bind(VKTexture &texture, VKDescriptorSet::Location location);
-  void bind(VKTexture &texture, VKDescriptorSet::Location location, VKSampler &sampler);
+  void bind(VKTexture &texture, VKDescriptorSet::Location location, const VKSampler &sampler);
   /* Bind as uniform texel buffer. */
   void bind(VKVertexBuffer &vertex_buffer, VKDescriptorSet::Location location);
   /**

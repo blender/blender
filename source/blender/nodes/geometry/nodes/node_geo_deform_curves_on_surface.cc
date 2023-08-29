@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,16 +7,16 @@
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 #include "BKE_type_conversions.hh"
 
 #include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -29,6 +29,8 @@
 
 #include "node_geometry_util.hh"
 
+#include <fmt/format.h>
+
 namespace blender::nodes::node_geo_deform_curves_on_surface_cc {
 
 using bke::CurvesGeometry;
@@ -39,7 +41,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curves").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>("Curves").supported_type(GeometryComponent::Type::Curve);
   b.add_output<decl::Geometry>("Curves").propagate_all();
 }
 
@@ -274,18 +276,16 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   if (!mesh_attributes_eval.contains(uv_map_name)) {
     pass_through_input();
-    char *message = BLI_sprintfN(TIP_("Evaluated surface missing UV map: \"%s\""),
-                                 uv_map_name.c_str());
+    const std::string message = fmt::format(TIP_("Evaluated surface missing UV map: \"{}\""),
+                                            std::string_view(uv_map_name));
     params.error_message_add(NodeWarningType::Error, message);
-    MEM_freeN(message);
     return;
   }
   if (!mesh_attributes_orig.contains(uv_map_name)) {
     pass_through_input();
-    char *message = BLI_sprintfN(TIP_("Original surface missing UV map: \"%s\""),
-                                 uv_map_name.c_str());
+    const std::string message = fmt::format(TIP_("Original surface missing UV map: \"{}\""),
+                                            std::string_view(uv_map_name));
     params.error_message_add(NodeWarningType::Error, message);
-    MEM_freeN(message);
     return;
   }
   if (!mesh_attributes_eval.contains(rest_position_name)) {
@@ -398,26 +398,24 @@ static void node_geo_exec(GeoNodeExecParams params)
   curves.tag_positions_changed();
 
   if (invalid_uv_count) {
-    char *message = BLI_sprintfN(TIP_("Invalid surface UVs on %d curves"),
-                                 invalid_uv_count.load());
+    const std::string message = fmt::format(TIP_("Invalid surface UVs on {} curves"),
+                                            invalid_uv_count.load());
     params.error_message_add(NodeWarningType::Warning, message);
-    MEM_freeN(message);
   }
 
   params.set_output("Curves", curves_geometry);
 }
 
-}  // namespace blender::nodes::node_geo_deform_curves_on_surface_cc
-
-void register_node_type_geo_deform_curves_on_surface()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_deform_curves_on_surface_cc;
-
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_DEFORM_CURVES_ON_SURFACE, "Deform Curves on Surface", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   blender::bke::node_type_size(&ntype, 170, 120, 700);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_deform_curves_on_surface_cc

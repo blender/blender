@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,10 +19,9 @@ class TreeElementIDCurve final : public TreeElementID {
   TreeElementIDCurve(TreeElement &legacy_te, Curve &curve);
 
   void expand(SpaceOutliner &) const override;
-  bool isExpandValid() const override;
 
  private:
-  void expandMaterials(SpaceOutliner &) const;
+  void expand_materials(SpaceOutliner &) const;
 };
 
 }  // namespace blender::ed::outliner

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -27,14 +28,14 @@ class PointCloud : public Geometry {
 
     float4 motion_key(const float3 *points,
                       const float *radius,
-                      const float3 *point_steps,
+                      const float4 *point_steps,
                       size_t num_points,
                       size_t num_steps,
                       float time,
                       size_t p) const;
     float4 point_for_step(const float3 *points,
                           const float *radius,
-                          const float3 *point_steps,
+                          const float4 *point_steps,
                           size_t num_points,
                           size_t num_steps,
                           size_t step,

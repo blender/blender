@@ -1,18 +1,19 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Tangent Animation. All rights reserved.
+ * SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
- * Adapted from the Blender Alembic importer implementation.
- * Modifications Copyright 2021 Tangent Animation. All rights reserved. */
+ *
+ * Adapted from the Blender Alembic importer implementation. */
 
 #include "usd_reader_camera.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_math_base.h"
+
 #include "BKE_camera.h"
 #include "BKE_object.h"
-
-#include "BLI_math.h"
 
 #include <pxr/pxr.h>
 #include <pxr/usd/usdGeom/camera.h>

@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #ifdef GPU_ARB_gpu_shader5
 #  define USE_INVOC_EXT
 #endif
@@ -43,7 +47,8 @@ void main()
 #endif
 
 #ifdef WORKBENCH_NEXT
-  vec2 facing = vec2(dot(n1, vData[0].light_direction_os), dot(n2, vData[0].light_direction_os));
+  vec2 facing = vec2(dot(n1, vData_flat[0].light_direction_os),
+                     dot(n2, vData_flat[0].light_direction_os));
 #else
   vec2 facing = vec2(dot(n1, lightDirection), dot(n2, lightDirection));
 #endif

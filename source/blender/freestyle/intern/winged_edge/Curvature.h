@@ -1,12 +1,13 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 1999 Stephane Popinet
+ * SPDX-FileCopyrightText: 2000-2003 `Bruno Levy <levy@loria.fr>`
+ * SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
+ *
  * The Original Code is:
- *     GTS - Library for the manipulation of triangulated surfaces
- *     Copyright 1999 Stephane Popinet
- * and:
- *     OGF/Graphite: Geometry and Graphics Programming Library + Utilities
- *     Copyright 2000-2003 Bruno Levy <levy@loria.fr> */
+ * - GTS - Library for the manipulation of triangulated surfaces.
+ * - OGF/Graphite: Geometry and Graphics Programming Library + Utilities.
+ */
 
 #pragma once
 

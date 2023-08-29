@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -49,6 +49,7 @@
 #  ifndef GPU_METAL
 #    define float2 vec2
 #    define float3 vec3
+#    define float3x4 mat3x4
 #    define float4 vec4
 #    define float4x4 mat4
 #    define int2 ivec2
@@ -74,6 +75,7 @@
 #    include "BLI_math_vector_types.hh"
 using blender::float2;
 using blender::float3;
+using blender::float3x4;
 using blender::float4;
 using blender::float4x4;
 using blender::int2;
@@ -94,6 +96,7 @@ typedef float float2[2];
 typedef float float3[3];
 typedef float float4[4];
 typedef float float4x4[4][4];
+typedef float float3x4[3][4];
 typedef int int2[2];
 typedef int int3[2];
 typedef int int4[4];

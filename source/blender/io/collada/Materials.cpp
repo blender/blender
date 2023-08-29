@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "Materials.h"
 
@@ -105,7 +107,7 @@ bNode *MaterialNode::add_node(int node_type, int locx, int locy, std::string lab
   bNode *node = nodeAddStaticNode(mContext, ntree, node_type);
   if (node) {
     if (label.length() > 0) {
-      strcpy(node->label, label.c_str());
+      STRNCPY(node->label, label.c_str());
     }
     node->locx = locx;
     node->locy = locy;

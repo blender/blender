@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2016 Blender Authors
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2016 Blender Foundation
 
 # Libraries configuration for Apple.
 
@@ -64,8 +65,14 @@ endif()
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Optionally use system Python if PYTHON_ROOT_DIR is specified.
-if(WITH_PYTHON AND (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
-  find_package(PythonLibsUnix REQUIRED)
+if(WITH_PYTHON)
+  if(WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR)
+    find_package(PythonLibsUnix REQUIRED)
+  endif()
+else()
+  # Python executable is needed as part of the build-process,
+  # note that building without Python is quite unusual.
+  find_program(PYTHON_EXECUTABLE "python3")
 endif()
 
 # Prefer lib directory paths
@@ -126,8 +133,10 @@ if(WITH_CODEC_SNDFILE)
   unset(_sndfile_VORBISENC_LIBRARY)
 endif()
 
-if(WITH_PYTHON AND NOT (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
-  find_package(PythonLibsUnix REQUIRED)
+if(WITH_PYTHON)
+  if(NOT (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
+    find_package(PythonLibsUnix REQUIRED)
+  endif()
 endif()
 
 if(WITH_FFTW3)
@@ -136,9 +145,10 @@ endif()
 
 # FreeType compiled with Brotli compression for woff2.
 find_package(Freetype REQUIRED)
-list(APPEND FREETYPE_LIBRARIES
+set(BROTLI_LIBRARIES
   ${LIBDIR}/brotli/lib/libbrotlicommon-static.a
-  ${LIBDIR}/brotli/lib/libbrotlidec-static.a)
+  ${LIBDIR}/brotli/lib/libbrotlidec-static.a
+)
 
 if(WITH_IMAGE_OPENEXR)
   find_package(OpenEXR)
@@ -152,9 +162,12 @@ if(WITH_CODEC_FFMPEG)
     avcodec avdevice avformat avutil
     mp3lame ogg opus swresample swscale
     theora theoradec theoraenc vorbis vorbisenc
-    vorbisfile vpx x264 xvidcore)
+    vorbisfile vpx x264)
   if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
     list(APPEND FFMPEG_FIND_COMPONENTS aom)
+  endif()
+  if(EXISTS ${LIBDIR}/ffmpeg/lib/libxvidcore.a)
+    list(APPEND FFMPEG_FIND_COMPONENTS xvidcore)
   endif()
   find_package(FFmpeg)
 endif()
@@ -231,7 +244,7 @@ endif()
 
 if(WITH_BOOST)
   set(Boost_NO_BOOST_CMAKE ON)
-  set(BOOST_ROOT ${LIBDIR}/boost)
+  set(Boost_ROOT ${LIBDIR}/boost)
   set(Boost_NO_SYSTEM_PATHS ON)
   set(_boost_FIND_COMPONENTS date_time filesystem regex system thread wave)
   if(WITH_INTERNATIONAL)
@@ -440,10 +453,15 @@ endif()
 if(WITH_COMPILER_CCACHE)
   if(NOT CMAKE_GENERATOR STREQUAL "Xcode")
     find_program(CCACHE_PROGRAM ccache)
+    mark_as_advanced(CCACHE_PROGRAM)
     if(CCACHE_PROGRAM)
       # Makefiles and ninja
       set(CMAKE_C_COMPILER_LAUNCHER   "${CCACHE_PROGRAM}" CACHE STRING "" FORCE)
       set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "" FORCE)
+      mark_as_advanced(
+        CMAKE_C_COMPILER_LAUNCHER
+        CMAKE_CXX_COMPILER_LAUNCHER
+      )
     else()
       message(WARNING "Ccache NOT found, disabling WITH_COMPILER_CCACHE")
       set(WITH_COMPILER_CCACHE OFF)
@@ -499,7 +517,11 @@ if(PLATFORM_BUNDLED_LIBRARIES)
 
   # Environment variables to run precompiled executables that needed libraries.
   list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
-  set(PLATFORM_ENV_BUILD "DYLD_LIBRARY_PATH=\"${_library_paths};${DYLD_LIBRARY_PATH}\"")
+  if(DEFINED DYLD_LIBRARY_PATH)
+    set(PLATFORM_ENV_BUILD "DYLD_LIBRARY_PATH=\"${_library_paths};${DYLD_LIBRARY_PATH}\"")
+  else()
+    set(PLATFORM_ENV_BUILD "DYLD_LIBRARY_PATH=\"${_library_paths}\"")
+  endif()
   set(PLATFORM_ENV_INSTALL "DYLD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/Blender.app/Contents/Resources/lib/;$DYLD_LIBRARY_PATH")
   unset(_library_paths)
 endif()
