@@ -244,19 +244,6 @@ SpaceType *BKE_spacetype_from_id(int spaceid)
   return nullptr;
 }
 
-ARegionType *BKE_regiontype_from_id_or_first(const SpaceType *st, int regionid)
-{
-  LISTBASE_FOREACH (ARegionType *, art, &st->regiontypes) {
-    if (art->regionid == regionid) {
-      return art;
-    }
-  }
-
-  printf(
-      "Error, region type %d missing in - name:\"%s\", id:%d\n", regionid, st->name, st->spaceid);
-  return static_cast<ARegionType *>(st->regiontypes.first);
-}
-
 ARegionType *BKE_regiontype_from_id(const SpaceType *st, int regionid)
 {
   LISTBASE_FOREACH (ARegionType *, art, &st->regiontypes) {
@@ -1276,13 +1263,49 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
   return true;
 }
 
+/**
+ * Removes all regions whose type cannot be reconstructed. For example files from new versions may
+ * be stored with a newly introduced region type that this version cannot handle.
+ */
+static void regions_remove_invalid(SpaceType *space_type, ListBase *regionbase)
+{
+  LISTBASE_FOREACH_MUTABLE (ARegion *, region, regionbase) {
+    if (BKE_regiontype_from_id(space_type, region->regiontype) != NULL) {
+      continue;
+    }
+
+    printf("Warning: region type %d missing in space type \"%s\" (id: %d) - removing region\n",
+           region->regiontype,
+           space_type->name,
+           space_type->spaceid);
+
+    BKE_area_region_free(space_type, region);
+    BLI_freelinkN(regionbase, region);
+  }
+}
+
 void BKE_screen_area_blend_read_after_liblink(BlendLibReader *reader, ID *parent_id, ScrArea *area)
 {
   LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
     SpaceType *space_type = BKE_spacetype_from_id(sl->spacetype);
+    ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
 
-    if (space_type && space_type->blend_read_after_liblink) {
+    /* We cannot restore the region type without a valid space type. So delete all regions to make
+     * sure no data is kept around that can't be restored safely (like the type dependent
+     * #ARegion.regiondata). */
+    if (!space_type) {
+      LISTBASE_FOREACH_MUTABLE (ARegion *, region, regionbase) {
+        BKE_area_region_free(nullptr, region);
+        BLI_freelinkN(regionbase, region);
+      }
+
+      continue;
+    }
+
+    if (space_type->blend_read_after_liblink) {
       space_type->blend_read_after_liblink(reader, parent_id, sl);
     }
+
+    regions_remove_invalid(space_type, regionbase);
   }
 }

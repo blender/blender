@@ -2035,7 +2035,10 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   }
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region->type = BKE_regiontype_from_id_or_first(area->type, region->regiontype);
+    region->type = BKE_regiontype_from_id(area->type, region->regiontype);
+    /* Invalid region types may be stored in files (e.g. for new files), but they should be handled
+     * on file read already, see #BKE_screen_area_blend_read_lib(). */
+    BLI_assert_msg(region->type != nullptr, "Region type not valid for this space type");
   }
 
   /* area sizes */
@@ -2101,7 +2104,7 @@ static void area_offscreen_init(ScrArea *area)
   BLI_assert(area->type != nullptr);
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region->type = BKE_regiontype_from_id_or_first(area->type, region->regiontype);
+    region->type = BKE_regiontype_from_id(area->type, region->regiontype);
   }
 }
 
