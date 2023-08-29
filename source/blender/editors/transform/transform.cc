@@ -1537,7 +1537,7 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
 
   offset *= U.scale_factor;
 
-  xco = (rect->xmax - U.widget_unit) - (int)printable_size[0] - offset;
+  xco = (rect->xmax - U.widget_unit) - int(printable_size[0]) - offset;
   yco = (rect->ymax - U.widget_unit);
 
   /* warning text (to clarify meaning of overlays)
