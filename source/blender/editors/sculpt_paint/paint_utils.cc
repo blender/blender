@@ -270,7 +270,6 @@ static void imapaint_pick_uv(const Mesh *me_eval,
                              const int xy[2],
                              float uv[2])
 {
-  int i, findex;
   float p[2], w[3], absw, minabsw;
   float matrix[4][4], proj[4][4];
   int view[4];
@@ -302,7 +301,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   /* face means poly here, not triangle, indeed */
   for (const int i : tris.index_range()) {
     const int face_i = looptri_faces[i];
-    findex = index_mp_to_orig ? index_mp_to_orig[face_i] : face_i;
+    const int findex = index_mp_to_orig ? index_mp_to_orig[face_i] : face_i;
 
     if (findex == faceindex) {
       const float(*mloopuv)[2];
