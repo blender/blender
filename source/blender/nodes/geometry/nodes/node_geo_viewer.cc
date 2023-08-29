@@ -4,13 +4,16 @@
 
 #include "BKE_context.h"
 
+#include "NOD_rna_define.hh"
+#include "NOD_socket_search_link.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "ED_node.hh"
 #include "ED_viewer_path.hh"
 
-#include "NOD_socket_search_link.hh"
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
@@ -135,6 +138,24 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
+static void node_rna(StructRNA *srna)
+{
+  RNA_def_node_enum(srna,
+                    "data_type",
+                    "Data Type", "",
+                    rna_enum_attribute_type_items,
+                    NOD_storage_enum_accessors(data_type),
+                    CD_PROP_FLOAT,
+                    enums::attribute_type_type_with_socket_fn);
+
+  RNA_def_node_enum(srna,
+                    "domain",
+                    "Domain", "Domain to evaluate the field on",
+                    rna_enum_attribute_domain_with_auto_items,
+                    NOD_storage_enum_accessors(domain),
+                    ATTR_DOMAIN_POINT);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -150,6 +171,8 @@ static void node_register()
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.no_muting = true;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

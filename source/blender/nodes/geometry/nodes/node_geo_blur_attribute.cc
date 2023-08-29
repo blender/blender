@@ -20,8 +20,12 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -517,6 +521,24 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
 }
 
+static void node_rna(StructRNA *srna)
+{
+  RNA_def_node_enum(
+      srna,
+      "data_type",
+      "Data Type",
+      "",
+      rna_enum_attribute_type_items,
+      NOD_inline_enum_accessors(custom1),
+      CD_PROP_FLOAT,
+      [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
+        *r_free = true;
+        return enum_items_filter(rna_enum_attribute_type_items, [](const EnumPropertyItem &item) {
+          return ELEM(item.value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_COLOR, CD_PROP_INT32);
+        });
+      });
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -528,6 +550,8 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

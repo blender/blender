@@ -15,7 +15,10 @@
 #include "BKE_pointcloud.h"
 
 #include "NOD_add_node_search.hh"
+#include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
+
+#include "RNA_enum_types.hh"
 
 namespace blender::nodes {
 
@@ -69,6 +72,36 @@ void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params)
     search_link_ops_for_basic_node(params);
   }
 }
+
+namespace enums {
+
+const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,
+                                                           PointerRNA * /*ptr*/,
+                                                           PropertyRNA * /*prop*/,
+                                                           bool *r_free)
+{
+  *r_free = true;
+  return enum_items_filter(rna_enum_attribute_type_items,
+                           [](const EnumPropertyItem &item) -> bool {
+                             return generic_attribute_type_supported(item) &&
+                                    !ELEM(item.value, CD_PROP_BYTE_COLOR, CD_PROP_FLOAT2);
+                           });
+}
+
+bool generic_attribute_type_supported(const EnumPropertyItem &item)
+{
+  return ELEM(item.value,
+              CD_PROP_FLOAT,
+              CD_PROP_FLOAT2,
+              CD_PROP_FLOAT3,
+              CD_PROP_COLOR,
+              CD_PROP_BOOL,
+              CD_PROP_INT32,
+              CD_PROP_BYTE_COLOR,
+              CD_PROP_QUATERNION);
+}
+
+}  // namespace enums
 
 }  // namespace blender::nodes
 
