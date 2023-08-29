@@ -309,6 +309,11 @@ void BKE_mesh_tag_positions_changed(Mesh *mesh)
 {
   mesh->runtime->vert_normals_cache.tag_dirty();
   mesh->runtime->face_normals_cache.tag_dirty();
+  BKE_mesh_tag_positions_changed_no_normals(mesh);
+}
+
+void BKE_mesh_tag_positions_changed_no_normals(Mesh *mesh)
+{
   free_bvh_cache(*mesh->runtime);
   mesh->runtime->looptris_cache.tag_dirty();
   mesh->runtime->bounds_cache.tag_dirty();

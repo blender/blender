@@ -5430,9 +5430,14 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
 
   if (update_flags & SCULPT_UPDATE_COORDS && !ss->shapekey_active) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-      /* When sculpting and changing the positions of a mesh, tag them as changed and update. */
-      BKE_mesh_tag_positions_changed(mesh);
-      /* Update the mesh's bounds eagerly since the PBVH already has that information. */
+      /* Updating mesh positions without marking caches dirty is generally not good, but since
+       * sculpt mode has special requirements and is expected to have sole ownership of the mesh it
+       * modifies, it's generally okay.
+       *
+       * Vertex and face normals are updated later in #BKE_pbvh_update_normals. However, we update
+       * the mesh's bounds eagerly here since they are trivial to access from the PBVH. */
+      BKE_mesh_tag_positions_changed_no_normals(mesh);
+
       Bounds<float3> bounds;
       BKE_pbvh_bounding_box(ob->sculpt->pbvh, bounds.min, bounds.max);
       mesh->bounds_set_eager(bounds);

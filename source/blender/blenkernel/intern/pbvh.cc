@@ -1316,7 +1316,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes, Mesh &
   VectorSet<int> verts_to_update;
   threading::parallel_invoke(
       [&]() {
-        mesh.runtime->face_normals_cache.ensure([&](Vector<float3> &r_data) {
+        mesh.runtime->face_normals_cache.update([&](Vector<float3> &r_data) {
           threading::parallel_for(faces_to_update.index_range(), 512, [&](const IndexRange range) {
             for (const int i : faces_to_update.as_span().slice(range)) {
               r_data[i] = mesh::face_normal_calc(positions, corner_verts.slice(faces[i]));
@@ -1340,7 +1340,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes, Mesh &
       });
 
   const Span<float3> face_normals = mesh.face_normals();
-  mesh.runtime->vert_normals_cache.ensure([&](Vector<float3> &r_data) {
+  mesh.runtime->vert_normals_cache.update([&](Vector<float3> &r_data) {
     threading::parallel_for(verts_to_update.index_range(), 1024, [&](const IndexRange range) {
       for (const int vert : verts_to_update.as_span().slice(range)) {
         float3 normal(0.0f);
