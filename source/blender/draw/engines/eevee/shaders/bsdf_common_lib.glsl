@@ -77,25 +77,28 @@ vec3 F_color_blend(float eta, float fresnel, vec3 f0_color)
 /* Fresnel split-sum approximation. */
 vec3 F_brdf_single_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
-  /* Unreal specular matching : if specular color is below 2% intensity,
-   * treat as shadowing. */
-  return lut.y * f90 + lut.x * f0;
+  return f0 * lut.x + f90 * lut.y;
 }
 
-/* Multi-scattering brdf approximation from :
+/* Multi-scattering brdf approximation from
  * "A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting"
- * by Carmelo J. Fdez-Agüera. */
+ * https://jcgt.org/published/0008/01/03/paper.pdf by Carmelo J. Fdez-Agüera. */
 vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
-  vec3 FssEss = lut.y * f90 + lut.x * f0;
+  vec3 FssEss = F_brdf_single_scatter(f0, f90, lut);
 
   float Ess = lut.x + lut.y;
   float Ems = 1.0 - Ess;
   vec3 Favg = f0 + (1.0 - f0) / 21.0;
-  vec3 Fms = FssEss * Favg / (1.0 - (1.0 - Ess) * Favg);
-  /* We don't do anything special for diffuse surfaces because the principle bsdf
-   * does not care about energy conservation of the specular layer for dielectrics. */
-  return FssEss + Fms * Ems;
+
+  /* The original paper uses `FssEss * radiance + Fms*Ems * irradiance`, but
+   * "A Journey Through Implementing Multiscattering BRDFs and Area Lights" by Steve McAuley
+   * suggests to use `FssEss * radiance + Fms*Ems * radiance` which results in comparible quality.
+   * We handle `radiance` outside of this function, so the result simplifies to:
+   * `FssEss + Fms*Ems = FssEss * (1 + Ems*Favg / (1 - Ems*Favg)) = FssEss / (1 - Ems*Favg)`.
+   * This is a simple albedo scaling very similar to the approach used by Cycles:
+   * "Practical multiple scattering compensation for microfacet model". */
+  return FssEss / (1.0 - Ems * Favg);
 }
 
 /* GGX */
