@@ -20,26 +20,6 @@
 
 namespace blender::geometry {
 
-static bool indices_are_full_ordered_copy(const Span<int> indices)
-{
-  return threading::parallel_reduce(
-      indices.index_range(),
-      4096,
-      true,
-      [&](const IndexRange range, const bool init) {
-        if (!init) {
-          return false;
-        }
-        for (const int i : range) {
-          if (indices[i] != i) {
-            return false;
-          }
-        }
-        return true;
-      },
-      [](const bool a, const bool b) { return a && b; });
-}
-
 BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     const bke::AttributeAccessor &mesh_attributes,
     const Span<int> vert_indices,
@@ -58,24 +38,23 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     curves.cyclic_for_write().slice(cyclic_curves).fill(true);
   }
 
-  const int src_total_points = mesh_attributes.domain_size(ATTR_DOMAIN_POINT);
-  const bool share_vert_data = vert_indices.size() == src_total_points &&
-                               indices_are_full_ordered_copy(vert_indices);
-  if (share_vert_data) {
-    bke::copy_attributes(
-        mesh_attributes, ATTR_DOMAIN_POINT, propagation_info, {}, curves_attributes);
+  /* Don't copy attributes that are built-in on meshes but not on curves. */
+  Set<std::string> skip;
+  for (const bke::AttributeIDRef &id : mesh_attributes.all_ids()) {
+    if (mesh_attributes.is_builtin(id) && !curves_attributes.is_builtin(id)) {
+      skip.add(id.name());
+    }
   }
+
+  bke::gather_attributes(
+      mesh_attributes, ATTR_DOMAIN_POINT, propagation_info, skip, vert_indices, curves_attributes);
 
   mesh_attributes.for_all(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-        if (share_vert_data) {
-          if (meta_data.domain == ATTR_DOMAIN_POINT) {
-            return true;
-          }
+        if (meta_data.domain == ATTR_DOMAIN_POINT) {
+          return true;
         }
-
-        if (mesh_attributes.is_builtin(id) && !curves_attributes.is_builtin(id)) {
-          /* Don't copy attributes that are built-in on meshes but not on curves. */
+        if (skip.contains(id.name())) {
           return true;
         }
         if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
@@ -90,12 +69,7 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
         }
         bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
             id, ATTR_DOMAIN_POINT, meta_data.data_type);
-        if (share_vert_data) {
-          array_utils::copy(*src, dst.span);
-        }
-        else {
-          bke::attribute_math::gather(*src, vert_indices, dst.span);
-        }
+        bke::attribute_math::gather(*src, vert_indices, dst.span);
         dst.finish();
         return true;
       });
