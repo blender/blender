@@ -6471,7 +6471,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                       0,
                       UI_UNIT_X,
                       UI_UNIT_Y,
-                      TIP_("Click to see the remaining reports in text block: 'Recent Reports'"));
+                      TIP_("Click to open the info editor"));
   UI_GetThemeColorType4ubv(UI_text_colorid_from_report_type(report->type), SPACE_INFO, but->col);
   but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
 
