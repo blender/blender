@@ -13,6 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "BLI_array_utils.hh"
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
@@ -84,6 +86,8 @@ using blender::MutableSpan;
 using blender::Set;
 using blender::Span;
 using blender::Vector;
+
+static CLG_LogRef LOG = {"ed.sculpt_paint"};
 
 static float sculpt_calc_radius(ViewContext *vc,
                                 const Brush *brush,
@@ -4299,40 +4303,43 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
 {
   Scene *scene = CTX_data_scene(C);
-  Brush *brush = paint->brush;
+  Brush *cur_brush = paint->brush;
 
-  if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
-    cache->saved_mask_brush_tool = brush->mask_tool;
-    brush->mask_tool = BRUSH_MASK_SMOOTH;
+  if (cur_brush->sculpt_tool == SCULPT_TOOL_MASK) {
+    cache->saved_mask_brush_tool = cur_brush->mask_tool;
+    cur_brush->mask_tool = BRUSH_MASK_SMOOTH;
   }
-  else if (ELEM(brush->sculpt_tool,
+  else if (ELEM(cur_brush->sculpt_tool,
                 SCULPT_TOOL_SLIDE_RELAX,
                 SCULPT_TOOL_DRAW_FACE_SETS,
                 SCULPT_TOOL_PAINT,
                 SCULPT_TOOL_SMEAR))
   {
     /* Do nothing, this tool has its own smooth mode. */
+    return;
   }
-  else {
-    int cur_brush_size = BKE_brush_size_get(scene, brush);
 
-    STRNCPY(cache->saved_active_brush_name, brush->id.name + 2);
-
-    /* Switch to the smooth brush. */
-    brush = BKE_paint_toolslots_brush_get(paint, SCULPT_TOOL_SMOOTH);
-    if (brush) {
-      BKE_paint_brush_set(paint, brush);
-      cache->saved_smooth_size = BKE_brush_size_get(scene, brush);
-      BKE_brush_size_set(scene, brush, cur_brush_size);
-      BKE_curvemapping_init(brush->curve);
-    }
+  /* Switch to the smooth brush if possible. */
+  Brush *smooth_brush = BKE_paint_toolslots_brush_get(paint, SCULPT_TOOL_SMOOTH);
+  if (!smooth_brush) {
+    CLOG_WARN(&LOG, "Switching to the smooth brush not possible, corresponding brush not");
+    cache->saved_active_brush_name[0] = '\0';
+    return;
   }
+
+  int cur_brush_size = BKE_brush_size_get(scene, cur_brush);
+
+  STRNCPY(cache->saved_active_brush_name, cur_brush->id.name + 2);
+
+  BKE_paint_brush_set(paint, smooth_brush);
+  cache->saved_smooth_size = BKE_brush_size_get(scene, smooth_brush);
+  BKE_brush_size_set(scene, smooth_brush, cur_brush_size);
+  BKE_curvemapping_init(smooth_brush->curve);
 }
 
 static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache)
 {
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
   Brush *brush = BKE_paint_brush(paint);
 
   if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
@@ -4346,13 +4353,15 @@ static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache
   {
     /* Do nothing. */
   }
-  else {
-    /* Try to switch back to the saved/previous brush. */
+
+  /* If saved_active_brush_name is not set, brush was not switched/affected in
+   * smooth_brush_toggle_on(). */
+  Brush *saved_active_brush = (Brush *)BKE_libblock_find_name(
+      bmain, ID_BR, cache->saved_active_brush_name);
+  if (saved_active_brush) {
+    Scene *scene = CTX_data_scene(C);
     BKE_brush_size_set(scene, brush, cache->saved_smooth_size);
-    brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, cache->saved_active_brush_name);
-    if (brush) {
-      BKE_paint_brush_set(paint, brush);
-    }
+    BKE_paint_brush_set(paint, saved_active_brush);
   }
 }
 
