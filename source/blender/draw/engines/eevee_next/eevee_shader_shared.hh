@@ -1266,9 +1266,18 @@ float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
 float4 utility_tx_sample_lut(sampler2DArray util_tx, float2 uv, float layer)
 {
   /* Scale and bias coordinates, for correct filtered lookup. */
-  uv = uv * ((UTIL_TEX_SIZE - 1.0) / UTIL_TEX_SIZE) + (0.5 / UTIL_TEX_SIZE);
+  uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
   return textureLod(util_tx, float3(uv, layer), 0.0);
 }
+
+/* Sample LTC or BSDF LUTs with `cos_theta` and `roughness` as inputs. */
+float4 utility_tx_sample_lut(sampler2DArray util_tx, float cos_theta, float roughness, float layer)
+{
+  /* LUTs are parametrized by `sqrt(1.0 - cos_theta)` for more precision near grazing incidence. */
+  vec2 coords = vec2(roughness, sqrt(saturate(1.0 - cos_theta)));
+  return utility_tx_sample_lut(util_tx, coords, layer);
+}
+
 #endif
 
 /** \} */
