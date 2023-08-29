@@ -84,6 +84,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_add_collection);
   WM_operatortype_append(NODE_OT_add_file);
   WM_operatortype_append(NODE_OT_add_mask);
+  WM_operatortype_append(NODE_OT_add_material);
 
   WM_operatortype_append(NODE_OT_new_node_tree);
 
