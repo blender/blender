@@ -710,7 +710,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     BKE_pbvh_node_mark_update_visibility(node);
   }
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(ss->pbvh);
 
   SCULPT_tag_update_overlays(C);
 
@@ -893,7 +893,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
     BKE_pbvh_node_mark_update_visibility(node);
   }
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(ss->pbvh);
 
   SCULPT_tag_update_overlays(C);
 
@@ -1305,7 +1305,7 @@ static void face_set_edit_do_post_visibility_updates(Object *ob, Span<PBVHNode *
     BKE_pbvh_node_mark_update_visibility(node);
   }
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(ss->pbvh);
 }
 
 static void sculpt_face_set_edit_modify_face_sets(Object *ob,
@@ -1498,7 +1498,7 @@ static int sculpt_face_sets_invert_visibility_exec(bContext *C, wmOperator *op)
     BKE_pbvh_node_mark_update_visibility(node);
   }
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(ss->pbvh);
 
   SCULPT_tag_update_overlays(C);
 

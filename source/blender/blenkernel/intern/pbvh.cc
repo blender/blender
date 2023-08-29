@@ -1383,26 +1383,6 @@ static void node_update_mask_redraw(PBVH &pbvh, PBVHNode &node)
   BKE_pbvh_node_fully_unmasked_set(&node, has_masked);
 }
 
-static void node_update_visibility_redraw(PBVH &pbvh, PBVHNode &node)
-{
-  if (!(node.flag & PBVH_UpdateVisibility)) {
-    return;
-  }
-  node.flag &= ~PBVH_UpdateVisibility;
-
-  BKE_pbvh_node_fully_hidden_set(&node, true);
-  if (node.flag & PBVH_Leaf) {
-    PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin (&pbvh, &node, vd, PBVH_ITER_ALL) {
-      if (vd.visible) {
-        BKE_pbvh_node_fully_hidden_set(&node, false);
-        return;
-      }
-    }
-    BKE_pbvh_vertex_iter_end;
-  }
-}
-
 static void node_update_bounds(PBVH &pbvh, PBVHNode &node, const PBVHNodeFlags flag)
 {
   if ((flag & PBVH_UpdateBB) && (node.flag & PBVH_UpdateBB)) {
@@ -1584,14 +1564,6 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
     for (PBVHNode *node : nodes) {
       node->flag |= PBVH_UpdateRedraw | PBVH_UpdateDrawBuffers | PBVH_UpdateColor;
     }
-  }
-
-  if (flag & (PBVH_UpdateVisibility)) {
-    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      for (PBVHNode *node : nodes.as_span().slice(range)) {
-        node_update_visibility_redraw(*pbvh, *node);
-      }
-    });
   }
 }
 
