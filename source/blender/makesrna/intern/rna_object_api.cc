@@ -555,7 +555,7 @@ static void rna_Mesh_assign_verts_to_group(
 /* don't call inside a loop */
 static int mesh_looptri_to_face_index(Mesh *me_eval, const int tri_index)
 {
-  const int *looptri_faces = BKE_mesh_runtime_looptri_faces_ensure(me_eval);
+  const blender::Span<int> looptri_faces = me_eval->looptri_faces();
   const int face_i = looptri_faces[tri_index];
   const int *index_mp_to_orig = static_cast<const int *>(
       CustomData_get_layer(&me_eval->face_data, CD_ORIGINDEX));

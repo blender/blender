@@ -213,11 +213,6 @@ int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
   return poly_to_tri_count(mesh->faces_num, mesh->totloop);
 }
 
-const int *BKE_mesh_runtime_looptri_faces_ensure(const Mesh *mesh)
-{
-  return mesh->looptri_faces().data();
-}
-
 void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
                                            const int *corner_verts,
                                            const MLoopTri *looptri,
@@ -329,16 +324,6 @@ void BKE_mesh_tag_positions_changed_uniformly(Mesh *mesh)
 void BKE_mesh_tag_topology_changed(Mesh *mesh)
 {
   BKE_mesh_runtime_clear_geometry(mesh);
-}
-
-bool BKE_mesh_is_deformed_only(const Mesh *mesh)
-{
-  return mesh->runtime->deformed_only;
-}
-
-eMeshWrapperType BKE_mesh_wrapper_type(const Mesh *mesh)
-{
-  return mesh->runtime->wrapper_type;
 }
 
 /** \} */

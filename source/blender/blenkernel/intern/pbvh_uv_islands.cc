@@ -3,11 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_map.hh"
-#include "BLI_math_matrix.hh"
-#include "BLI_ordered_edge.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
+#include "BLI_ordered_edge.hh"
 
 #include "pbvh_uv_islands.hh"
 

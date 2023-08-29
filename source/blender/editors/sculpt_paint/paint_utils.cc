@@ -277,8 +277,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   const ePaintCanvasSource mode = ePaintCanvasSource(scene->toolsettings->imapaint.mode);
 
   const blender::Span<MLoopTri> tris = me_eval->looptris();
-  const int tottri = BKE_mesh_runtime_looptri_len(me_eval);
-  const int *looptri_faces = BKE_mesh_runtime_looptri_faces_ensure(me_eval);
+  const blender::Span<int> looptri_faces = me_eval->looptri_faces();
 
   const blender::Span<blender::float3> positions = me_eval->vert_positions();
   const blender::Span<int> corner_verts = me_eval->corner_verts();
@@ -301,7 +300,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
 
   /* test all faces in the derivedmesh with the original index of the picked face */
   /* face means poly here, not triangle, indeed */
-  for (i = 0; i < tottri; i++) {
+  for (const int i : tris.index_range()) {
     const int face_i = looptri_faces[i];
     findex = index_mp_to_orig ? index_mp_to_orig[face_i] : face_i;
 
