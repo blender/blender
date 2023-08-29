@@ -130,7 +130,7 @@ struct TreeDrawContext {
 
 float ED_node_grid_size()
 {
-  return U.widget_unit;
+  return NODE_GRID_STEP_SIZE;
 }
 
 void ED_node_tree_update(const bContext *C)
