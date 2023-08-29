@@ -722,7 +722,7 @@ class SpellChecker:
         "avx",
         "bsdf", "bsdfs",
         "bssrdf",
-        "bt",  #BT.1886 2.4 Exponent EOTF
+        "bt",  # BT.1886 2.4 Exponent EOTF
         "bw",
         "ccd",
         "cie",  # CIE XYZ color space
@@ -739,7 +739,7 @@ class SpellChecker:
         "dvar",
         "dx",
         "eo",
-        "eotf",  #BT.1886 2.4 Exponent EOTF
+        "eotf",  # BT.1886 2.4 Exponent EOTF
         "ewa",
         "fh",
         "fk",

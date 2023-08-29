@@ -755,13 +755,13 @@ class VIEW3D_HT_header(Header):
                 row.operator(
                     "grease_pencil.set_selection_mode",
                     text="",
-                    icon="GP_SELECT_POINTS",
+                    icon='GP_SELECT_POINTS',
                     depress=(tool_settings.gpencil_selectmode_edit == 'POINT'),
                 ).mode = 'POINT'
                 row.operator(
                     "grease_pencil.set_selection_mode",
                     text="",
-                    icon="GP_SELECT_STROKES",
+                    icon='GP_SELECT_STROKES',
                     depress=(tool_settings.gpencil_selectmode_edit == 'STROKE'),
                 ).mode = 'STROKE'
 
@@ -6114,22 +6114,22 @@ class VIEW3D_PT_object_type_visibility(Panel):
         col = layout.column(align=True)
 
         attr_object_types = (
-            ("mesh", "Mesh", "OUTLINER_OB_MESH"),
-            ("curve", "Curve", "OUTLINER_OB_CURVE"),
-            ("surf", "Surface", "OUTLINER_OB_SURFACE"),
-            ("meta", "Meta", "OUTLINER_OB_META"),
-            ("font", "Text", "OUTLINER_OB_FONT"),
-            ("curves", "Hair Curves", "OUTLINER_OB_CURVES"),
-            ("pointcloud", "Point Cloud", "OUTLINER_OB_POINTCLOUD"),
-            ("volume", "Volume", "OUTLINER_OB_VOLUME"),
-            ("grease_pencil", "Grease Pencil", "OUTLINER_OB_GREASEPENCIL"),
-            ("armature", "Armature", "OUTLINER_OB_ARMATURE"),
-            ("lattice", "Lattice", "OUTLINER_OB_LATTICE"),
-            ("empty", "Empty", "OUTLINER_OB_EMPTY"),
-            ("light", "Light", "OUTLINER_OB_LIGHT"),
-            ("light_probe", "Light Probe", "OUTLINER_OB_LIGHTPROBE"),
-            ("camera", "Camera", "OUTLINER_OB_CAMERA"),
-            ("speaker", "Speaker", "OUTLINER_OB_SPEAKER"),
+            ("mesh", "Mesh", 'OUTLINER_OB_MESH'),
+            ("curve", "Curve", 'OUTLINER_OB_CURVE'),
+            ("surf", "Surface", 'OUTLINER_OB_SURFACE'),
+            ("meta", "Meta", 'OUTLINER_OB_META'),
+            ("font", "Text", 'OUTLINER_OB_FONT'),
+            ("curves", "Hair Curves", 'OUTLINER_OB_CURVES'),
+            ("pointcloud", "Point Cloud", 'OUTLINER_OB_POINTCLOUD'),
+            ("volume", "Volume", 'OUTLINER_OB_VOLUME'),
+            ("grease_pencil", "Grease Pencil", 'OUTLINER_OB_GREASEPENCIL'),
+            ("armature", "Armature", 'OUTLINER_OB_ARMATURE'),
+            ("lattice", "Lattice", 'OUTLINER_OB_LATTICE'),
+            ("empty", "Empty", 'OUTLINER_OB_EMPTY'),
+            ("light", "Light", 'OUTLINER_OB_LIGHT'),
+            ("light_probe", "Light Probe", 'OUTLINER_OB_LIGHTPROBE'),
+            ("camera", "Camera", 'OUTLINER_OB_CAMERA'),
+            ("speaker", "Speaker", 'OUTLINER_OB_SPEAKER'),
         )
 
         for attr, attr_name, attr_icon in attr_object_types:
