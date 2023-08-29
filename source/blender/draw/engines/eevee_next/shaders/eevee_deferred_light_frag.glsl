@@ -102,15 +102,7 @@ void main()
     imageStore(rp_value_img, ivec3(texel, rp_buf.shadow_id), vec4(shadow));
   }
 
-  if (is_last_eval_pass) {
-    diffuse_light *= diffuse_data.color;
-    reflection_light *= reflection_data.color;
-    refraction_light *= refraction_data.color;
-    /* Add radiance to combined pass. */
-    out_radiance = vec4(diffuse_light + reflection_light + refraction_light, 0.0);
-    out_transmittance = vec4(1.0);
-  }
-  else {
+  if (!is_last_eval_pass) {
     /* Store lighting for next deferred pass. */
     vec4 diffuse_radiance;
     diffuse_radiance.xyz = diffuse_light;
@@ -119,4 +111,11 @@ void main()
     imageStore(out_diffuse_light_img, texel, diffuse_radiance);
     imageStore(out_specular_light_img, texel, vec4(reflection_light + reflection_light, 0.0));
   }
+
+  diffuse_light *= diffuse_data.color;
+  reflection_light *= reflection_data.color;
+  refraction_light *= refraction_data.color;
+  /* Add radiance to combined pass. */
+  out_radiance = vec4(diffuse_light + reflection_light + refraction_light, 0.0);
+  out_transmittance = vec4(1.0);
 }
