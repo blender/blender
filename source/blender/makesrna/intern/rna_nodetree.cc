@@ -1931,24 +1931,6 @@ static const EnumPropertyItem *itemf_function_check(
   return item_array;
 }
 
-static bool switch_type_supported(const EnumPropertyItem *item)
-{
-  return ELEM(item->value,
-              SOCK_FLOAT,
-              SOCK_INT,
-              SOCK_BOOLEAN,
-              SOCK_ROTATION,
-              SOCK_VECTOR,
-              SOCK_STRING,
-              SOCK_RGBA,
-              SOCK_GEOMETRY,
-              SOCK_OBJECT,
-              SOCK_COLLECTION,
-              SOCK_TEXTURE,
-              SOCK_MATERIAL,
-              SOCK_IMAGE);
-}
-
 static bool geometry_node_asset_trait_flag_get(PointerRNA *ptr,
                                                const GeometryNodeAssetTraitFlag flag)
 {
