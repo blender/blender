@@ -27,7 +27,6 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.h"
 
-#include "BLI_edgehash.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 

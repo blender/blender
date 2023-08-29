@@ -14,7 +14,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_edgehash.h"
 #include "BLI_linklist.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -482,21 +481,12 @@ void cloth_free_modifier(ClothModifierData *clmd)
       MEM_freeN(cloth->tri);
     }
 
-    if (cloth->edgeset) {
-      BLI_edgeset_free(cloth->edgeset);
-    }
-
-    if (cloth->sew_edge_graph) {
-      BLI_edgeset_free(cloth->sew_edge_graph);
-      cloth->sew_edge_graph = nullptr;
-    }
-
 #if 0
     if (clmd->clothObject->facemarks) {
       MEM_freeN(clmd->clothObject->facemarks);
     }
 #endif
-    MEM_freeN(cloth);
+    MEM_delete(cloth);
     clmd->clothObject = nullptr;
   }
 }
@@ -559,21 +549,12 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
       MEM_freeN(cloth->tri);
     }
 
-    if (cloth->edgeset) {
-      BLI_edgeset_free(cloth->edgeset);
-    }
-
-    if (cloth->sew_edge_graph) {
-      BLI_edgeset_free(cloth->sew_edge_graph);
-      cloth->sew_edge_graph = nullptr;
-    }
-
 #if 0
     if (clmd->clothObject->facemarks) {
       MEM_freeN(clmd->clothObject->facemarks);
     }
 #endif
-    MEM_freeN(cloth);
+    MEM_delete(cloth);
     clmd->clothObject = nullptr;
   }
 }
@@ -742,10 +723,9 @@ static bool cloth_from_object(
   }
 
   /* Allocate a new cloth object. */
-  clmd->clothObject = MEM_cnew<Cloth>(__func__);
+  clmd->clothObject = MEM_new<Cloth>(__func__);
   if (clmd->clothObject) {
     clmd->clothObject->old_solver_type = 255;
-    clmd->clothObject->edgeset = nullptr;
   }
   else {
     BKE_modifier_set_error(ob, &(clmd->modifier), "Out of memory on allocating clmd->clothObject");
@@ -762,8 +742,6 @@ static bool cloth_from_object(
   /* create springs */
   clmd->clothObject->springs = nullptr;
   clmd->clothObject->numsprings = -1;
-
-  clmd->clothObject->sew_edge_graph = nullptr;
 
   if (clmd->sim_parms->shapekey_rest &&
       !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH))
@@ -944,10 +922,7 @@ static void cloth_free_errorsprings(Cloth *cloth,
 
   MEM_SAFE_FREE(spring_ref);
 
-  if (cloth->edgeset) {
-    BLI_edgeset_free(cloth->edgeset);
-    cloth->edgeset = nullptr;
-  }
+  cloth->edgeset.clear_and_shrink();
 }
 
 BLI_INLINE void cloth_bend_poly_dir(
@@ -1407,7 +1382,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
                                                float max_length,
                                                float max_diversion,
                                                bool check_normal,
-                                               uint *r_tar_v_idx)
+                                               int *r_tar_v_idx)
 {
   float co[3], no[3], new_co[3];
   float radius;
@@ -1444,7 +1419,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
   BLI_bvhtree_ray_cast(
       treedata->tree, new_co, no, radius, &rayhit, treedata->raycast_callback, treedata);
 
-  uint vert_idx = -1;
+  int vert_idx = -1;
   const int *corner_verts = treedata->corner_verts;
   const MLoopTri *lt = nullptr;
 
@@ -1458,7 +1433,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
     lt = &treedata->looptri[rayhit.index];
 
     for (int i = 0; i < 3; i++) {
-      uint tmp_vert_idx = corner_verts[lt->tri[i]];
+      int tmp_vert_idx = corner_verts[lt->tri[i]];
       if (tmp_vert_idx == v_idx) {
         /* We managed to hit ourselves. */
         return false;
@@ -1495,7 +1470,6 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   const Span<int> corner_edges = mesh->corner_edges();
   int index2 = 0; /* our second vertex index */
   LinkNodePair *edgelist = nullptr;
-  EdgeSet *edgeset = nullptr;
   LinkNode *search = nullptr, *search2 = nullptr;
   BendSpringRef *spring_ref = nullptr;
 
@@ -1507,10 +1481,9 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   /* NOTE: handling ownership of springs and edgeset is quite sloppy
    * currently they are never initialized but assert just to be sure */
   BLI_assert(cloth->springs == nullptr);
-  BLI_assert(cloth->edgeset == nullptr);
+  BLI_assert(cloth->edgeset.is_empty());
 
   cloth->springs = nullptr;
-  cloth->edgeset = nullptr;
 
   if (clmd->sim_parms->bending_model == CLOTH_BENDING_ANGULAR) {
     spring_ref = static_cast<BendSpringRef *>(
@@ -1532,7 +1505,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 
   if (use_internal_springs && numface > 0) {
     BVHTreeFromMesh treedata = {nullptr};
-    uint tar_v_idx;
+    int tar_v_idx;
     Mesh *tmp_mesh = nullptr;
     RNG *rng;
 
@@ -1543,7 +1516,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
       tmp_mesh = cloth_make_rest_mesh(clmd, mesh);
     }
 
-    EdgeSet *existing_vert_pairs = BLI_edgeset_new("cloth_sewing_edges_graph");
+    Set<OrderedEdge> existing_vert_pairs;
     BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_LOOPTRI, 2);
     rng = BLI_rng_new_srandom(0);
 
@@ -1561,12 +1534,12 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
               (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS_NORMAL),
               &tar_v_idx))
       {
-        if (BLI_edgeset_haskey(existing_vert_pairs, i, tar_v_idx)) {
+        if (existing_vert_pairs.contains({i, tar_v_idx})) {
           /* We have already created a spring between these verts! */
           continue;
         }
 
-        BLI_edgeset_insert(existing_vert_pairs, i, tar_v_idx);
+        existing_vert_pairs.add({i, tar_v_idx});
 
         spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
 
@@ -1592,7 +1565,6 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
         }
         else {
           cloth_free_errorsprings(cloth, edgelist, spring_ref);
-          BLI_edgeset_free(existing_vert_pairs);
           free_bvhtree_from_mesh(&treedata);
           if (tmp_mesh) {
             BKE_id_free(nullptr, &tmp_mesh->id);
@@ -1601,7 +1573,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
         }
       }
     }
-    BLI_edgeset_free(existing_vert_pairs);
+    existing_vert_pairs.clear_and_shrink();
     free_bvhtree_from_mesh(&treedata);
     if (tmp_mesh) {
       BKE_id_free(nullptr, &tmp_mesh->id);
@@ -1616,8 +1588,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 
   if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW) {
     /* cloth->sew_edge_graph should not exist before this */
-    BLI_assert(cloth->sew_edge_graph == nullptr);
-    cloth->sew_edge_graph = BLI_edgeset_new("cloth_sewing_edges_graph");
+    BLI_assert(cloth->sew_edge_graph.is_empty());
   }
 
   /* Structural springs. */
@@ -1635,7 +1606,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
         spring->lin_stiffness = 1.0f;
         spring->type = CLOTH_SPRING_TYPE_SEWING;
 
-        BLI_edgeset_insert(cloth->sew_edge_graph, edges[i][0], edges[i][1]);
+        cloth->sew_edge_graph.add({edges[i][0], edges[i][1]});
       }
       else {
         shrink_factor = cloth_shrink_factor(clmd, cloth->verts, spring->ij, spring->kl);
@@ -1681,8 +1652,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     }
   }
 
-  edgeset = BLI_edgeset_new_ex(__func__, numedges);
-  cloth->edgeset = edgeset;
+  cloth->edgeset.reserve(numedges);
 
   if (numface) {
     for (int i = 0; i < numface; i++) {
@@ -1799,7 +1769,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 
           /* Check for existing spring. */
           /* Check also if start-point is equal to endpoint. */
-          if ((index2 != tspring2->ij) && !BLI_edgeset_haskey(edgeset, tspring2->ij, index2)) {
+          if ((index2 != tspring2->ij) && !cloth->edgeset.contains({tspring2->ij, index2})) {
             spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
 
             if (!spring) {
@@ -1816,7 +1786,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
             spring->lin_stiffness = (cloth->verts[spring->kl].bend_stiff +
                                      cloth->verts[spring->ij].bend_stiff) /
                                     2.0f;
-            BLI_edgeset_insert(edgeset, spring->ij, spring->kl);
+            cloth->edgeset.add({spring->ij, spring->kl});
             bend_springs++;
 
             BLI_linklist_prepend(&cloth->springs, spring);
@@ -1911,15 +1881,13 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   /* Insert other near springs in `edgeset` AFTER bending springs are calculated
    * (for self-collision). */
   for (int i = 0; i < numedges; i++) { /* struct springs */
-    BLI_edgeset_add(edgeset, edges[i][0], edges[i][1]);
+    cloth->edgeset.add({edges[i][0], edges[i][1]});
   }
 
   for (int i = 0; i < numface; i++) { /* edge springs */
     if (faces[i].size() == 4) {
-      BLI_edgeset_add(
-          edgeset, corner_verts[faces[i].start() + 0], corner_verts[faces[i].start() + 2]);
-      BLI_edgeset_add(
-          edgeset, corner_verts[faces[i].start() + 1], corner_verts[faces[i].start() + 3]);
+      cloth->edgeset.add({corner_verts[faces[i].start() + 0], corner_verts[faces[i].start() + 2]});
+      cloth->edgeset.add({corner_verts[faces[i].start() + 1], corner_verts[faces[i].start() + 3]});
     }
   }
 

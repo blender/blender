@@ -16,7 +16,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_edgehash.h"
+#include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
@@ -97,7 +97,6 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   const MPoly *mpoly;
   const MFace *mface;
   MEdge *edges, *edge;
-  EdgeHash *hash;
   EdgeSort *edsort, *ed;
   int a, totedge = 0;
   uint totedge_final = 0;
@@ -177,9 +176,10 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   MEM_freeN(edsort);
 
   /* set edge members of mloops */
-  hash = BLI_edgehash_new_ex(__func__, totedge_final);
+  blender::Map<blender::OrderedEdge, int> hash;
+  hash.reserve(totedge_final);
   for (edge_index = 0, edge = edges; edge_index < totedge_final; edge_index++, edge++) {
-    BLI_edgehash_insert(hash, edge->v1, edge->v2, POINTER_FROM_UINT(edge_index));
+    hash.add({edge->v1, edge->v2}, edge_index);
   }
 
   mpoly = allpoly;
@@ -191,13 +191,11 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
     ml = &ml_next[i - 1];                 /* last loop */
 
     while (i-- != 0) {
-      ml->e = POINTER_AS_UINT(BLI_edgehash_lookup(hash, ml->v, ml_next->v));
+      ml->e = hash.lookup({ml->v, ml_next->v});
       ml = ml_next;
       ml_next++;
     }
   }
-
-  BLI_edgehash_free(hash, nullptr);
 
   *r_medge = edges;
   *r_totedge = totedge_final;
@@ -464,7 +462,6 @@ static void convert_mfaces_to_mpolys(ID *id,
   MFace *mf;
   MLoop *ml, *mloop;
   MPoly *poly, *mpoly;
-  EdgeHash *eh;
   int numTex, numCol;
   int i, j, totloop, faces_num, *polyindex;
 
@@ -506,11 +503,12 @@ static void convert_mfaces_to_mpolys(ID *id,
     CustomData_external_read(fdata_legacy, id, CD_MASK_MDISPS, totface_i);
   }
 
-  eh = BLI_edgehash_new_ex(__func__, uint(totedge_i));
+  blender::Map<blender::OrderedEdge, int> eh;
+  eh.reserve(totedge_i);
 
   /* build edge hash */
   for (i = 0; i < totedge_i; i++) {
-    BLI_edgehash_insert(eh, edges[i][0], edges[i][1], POINTER_FROM_UINT(i));
+    eh.add(edges[i], i);
   }
 
   polyindex = (int *)CustomData_get_layer(fdata_legacy, CD_ORIGINDEX);
@@ -530,7 +528,7 @@ static void convert_mfaces_to_mpolys(ID *id,
 #define ML(v1, v2) \
   { \
     ml->v = mf->v1; \
-    ml->e = POINTER_AS_UINT(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); \
+    ml->e = eh.lookup({mf->v1, mf->v2}); \
     ml++; \
     j++; \
   } \
@@ -559,8 +557,6 @@ static void convert_mfaces_to_mpolys(ID *id,
 
   /* NOTE: we don't convert NGons at all, these are not even real ngons,
    * they have their own UVs, colors etc - it's more an editing feature. */
-
-  BLI_edgehash_free(eh, nullptr);
 
   *r_faces_num = faces_num;
   *r_totloop = totloop;

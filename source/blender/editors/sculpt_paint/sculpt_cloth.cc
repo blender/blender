@@ -8,7 +8,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_edgehash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -154,7 +153,7 @@ static bool cloth_brush_sim_has_length_constraint(SculptClothSimulation *cloth_s
                                                   const int v1,
                                                   const int v2)
 {
-  return BLI_edgeset_haskey(cloth_sim->created_length_constraints, v1, v2);
+  return cloth_sim->created_length_constraints.contains({v1, v2});
 }
 
 static void cloth_brush_reallocate_constraints(SculptClothSimulation *cloth_sim)
@@ -207,7 +206,7 @@ static void cloth_brush_add_length_constraint(SculptSession *ss,
   cloth_brush_reallocate_constraints(cloth_sim);
 
   /* Add the constraint to the #GSet to avoid creating it again. */
-  BLI_edgeset_add(cloth_sim->created_length_constraints, v1, v2);
+  cloth_sim->created_length_constraints.add({v1, v2});
 }
 
 static void cloth_brush_add_softbody_constraint(SculptClothSimulation *cloth_sim,
@@ -1011,7 +1010,7 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(Object *ob,
   const int totverts = SCULPT_vertex_count_get(ss);
   SculptClothSimulation *cloth_sim;
 
-  cloth_sim = MEM_cnew<SculptClothSimulation>(__func__);
+  cloth_sim = MEM_new<SculptClothSimulation>(__func__);
 
   cloth_sim->length_constraints = MEM_cnew_array<SculptClothLengthConstraint>(
       CLOTH_LENGTH_CONSTRAINTS_BLOCK, __func__);
@@ -1065,14 +1064,14 @@ void SCULPT_cloth_brush_ensure_nodes_constraints(
   /* Currently all constrains are added to the same global array which can't be accessed from
    * different threads. */
 
-  cloth_sim->created_length_constraints = BLI_edgeset_new("created length constraints");
+  cloth_sim->created_length_constraints.clear();
 
   for (const int i : nodes.index_range()) {
     do_cloth_brush_build_constraints_task(
         ob, brush, cloth_sim, initial_location, radius, nodes[i]);
   }
 
-  BLI_edgeset_free(cloth_sim->created_length_constraints);
+  cloth_sim->created_length_constraints.clear_and_shrink();
 }
 
 void SCULPT_cloth_brush_simulation_init(SculptSession *ss, SculptClothSimulation *cloth_sim)

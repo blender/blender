@@ -25,7 +25,6 @@
 #include "ArmatureImporter.h"
 #include "collada_utils.h"
 
-#include "BLI_edgehash.h"
 #include "BLI_math_vector_types.hh"
 
 #include "DNA_material_types.h"

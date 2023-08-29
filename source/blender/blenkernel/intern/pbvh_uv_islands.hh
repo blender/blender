@@ -25,7 +25,6 @@
 #include <optional>
 
 #include "BLI_array.hh"
-#include "BLI_edgehash.h"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
