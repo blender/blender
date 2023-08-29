@@ -479,7 +479,7 @@ class RepeatZoneItemMoveOperator(RepeatZoneOperator, Operator):
 classes = (
     NewGeometryNodesModifier,
     NewGeometryNodeTreeAssign,
-    NewGeometryNodeGroupToolNewGeometryNodeGroupTool,
+    NewGeometryNodeGroupTool,
     MoveModifierToNodes,
     SimulationZoneItemAddOperator,
     SimulationZoneItemRemoveOperator,
