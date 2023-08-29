@@ -1907,7 +1907,9 @@ static bool rna_Node_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   bNodeType *nt = RNA_struct_blender_type_get(type);
 
-  if (!nt) {
+  /* `nt->rna_ext.data` is the python object. If it's nullptr then it's an
+   * internally registered node, thus can't unregister. */
+  if (!nt || !nt->rna_ext.data) {
     return false;
   }
 
