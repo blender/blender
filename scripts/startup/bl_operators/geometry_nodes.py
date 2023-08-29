@@ -266,6 +266,9 @@ class NewGeometryNodeGroupTool(Operator):
 
     @classmethod
     def poll(cls, context):
+        if not context.space_data:
+            # Does not exist if the search menu is called while the cursor is outside the Blender window.
+            return False
         return context.space_data.type == 'NODE_EDITOR' and context.space_data.geometry_nodes_type == 'TOOL'
 
     def execute(self, context):
@@ -476,7 +479,7 @@ class RepeatZoneItemMoveOperator(RepeatZoneOperator, Operator):
 classes = (
     NewGeometryNodesModifier,
     NewGeometryNodeTreeAssign,
-    NewGeometryNodeGroupTool,
+    NewGeometryNodeGroupToolNewGeometryNodeGroupTool,
     MoveModifierToNodes,
     SimulationZoneItemAddOperator,
     SimulationZoneItemRemoveOperator,
