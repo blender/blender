@@ -10,6 +10,14 @@
 
 #include <stdint.h>
 
+#ifdef WITH_VULKAN_BACKEND
+#  ifdef __APPLE__
+#    include <MoltenVK/vk_mvk_moltenvk.h>
+#  else
+#    include <vulkan/vulkan.h>
+#  endif
+#endif
+
 /* This is used by `GHOST_C-api.h` too, cannot use C++ conventions. */
 // NOLINTBEGIN: modernize-use-using
 
@@ -690,6 +698,17 @@ typedef struct {
   int flags;
   GHOST_TDrawingContextType context_type;
 } GHOST_GPUSettings;
+
+#ifdef WITH_VULKAN_BACKEND
+typedef struct {
+  /** Image handle to the image that will be presented to the user. */
+  VkImage image;
+  /** Format of the image. */
+  VkFormat format;
+  /** Resolution of the image. */
+  VkExtent2D extent;
+} GHOST_VulkanSwapChainData;
+#endif
 
 typedef enum {
   /** Axis that cursor grab will wrap. */

@@ -19,6 +19,7 @@
 #include "vk_image_view.hh"
 
 namespace blender::gpu {
+class VKContext;
 
 class VKFrameBuffer : public FrameBuffer {
  private:
@@ -28,20 +29,8 @@ class VKFrameBuffer : public FrameBuffer {
   VkDevice vk_device_ = VK_NULL_HANDLE;
   /* Base render pass used for framebuffer creation. */
   VkRenderPass vk_render_pass_ = VK_NULL_HANDLE;
-  VkImage vk_image_ = VK_NULL_HANDLE;
   /* Number of layers if the attachments are layered textures. */
   int depth_ = 1;
-  /** Internal frame-buffers are immutable. */
-  bool immutable_;
-
-  /**
-   * Should we flip the viewport to match Blenders coordinate system. We flip the viewport for
-   * off-screen frame-buffers.
-   *
-   * When two frame-buffers are blitted we also check if the coordinate system should be flipped
-   * during blitting.
-   */
-  bool flip_viewport_ = false;
 
   Vector<VKImageView, GPU_FB_MAX_ATTACHMENT> image_views_;
 
@@ -50,16 +39,6 @@ class VKFrameBuffer : public FrameBuffer {
    * Create a conventional framebuffer to attach texture to.
    **/
   VKFrameBuffer(const char *name);
-
-  /**
-   * Special frame-buffer encapsulating internal window frame-buffer.
-   * This just act as a wrapper, the actual allocations are done by GHOST_ContextVK.
-   **/
-  VKFrameBuffer(const char *name,
-                VkImage vk_image,
-                VkFramebuffer vk_framebuffer,
-                VkRenderPass vk_render_pass,
-                VkExtent2D vk_extent);
 
   ~VKFrameBuffer();
 
@@ -103,30 +82,31 @@ class VKFrameBuffer : public FrameBuffer {
     return vk_framebuffer_;
   }
 
+  void vk_render_pass_ensure();
   VkRenderPass vk_render_pass_get() const
   {
     BLI_assert(vk_render_pass_ != VK_NULL_HANDLE);
+    BLI_assert(!dirty_attachments_);
     return vk_render_pass_;
   }
+
   Array<VkViewport, 16> vk_viewports_get() const;
   Array<VkRect2D, 16> vk_render_areas_get() const;
-  VkImage vk_image_get() const
-  {
-    BLI_assert(vk_image_ != VK_NULL_HANDLE);
-    return vk_image_;
-  }
 
+  void depth_attachment_layout_ensure(VKContext &context, VkImageLayout requested_layout);
+  void color_attachment_layout_ensure(VKContext &context,
+                                      int color_attachment,
+                                      VkImageLayout requested_layout);
   /**
-   * Is this frame-buffer immutable?
+   * Ensure that the size of the framebuffer matches the first attachment resolution.
    *
-   * Frame-buffers that are owned by GHOST are immutable and
-   * don't have any attachments assigned. It should be assumed that there is a single color texture
-   * in slot 0.
+   * Frame buffers attachments are updated when actually used as the image layout has to be
+   * correct. After binding framebuffers the layout of images can still be modified.
+   *
+   * But for correct behavior of blit/clear operation the size of the framebuffer should be
+   * set, when activating the frame buffer.
    */
-  bool is_immutable() const
-  {
-    return immutable_;
-  }
+  void update_size();
 
  private:
   void update_attachments();
