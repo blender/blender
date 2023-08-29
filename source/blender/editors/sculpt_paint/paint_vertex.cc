@@ -12,6 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "BLI_array_utils.h"
 #include "BLI_color.hh"
 #include "BLI_color_mix.hh"
@@ -71,6 +73,8 @@
 using blender::IndexRange;
 using namespace blender;
 using namespace blender::color;
+
+static CLG_LogRef LOG = {"ed.sculpt_paint"};
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -1559,34 +1563,43 @@ struct WPaintData {
 static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
 {
   Scene *scene = CTX_data_scene(C);
-  Brush *brush = paint->brush;
-  int cur_brush_size = BKE_brush_size_get(scene, brush);
 
-  STRNCPY(cache->saved_active_brush_name, brush->id.name + 2);
-
-  /* Switch to the blur (smooth) brush. */
-  brush = BKE_paint_toolslots_brush_get(paint, WPAINT_TOOL_BLUR);
-  if (brush) {
-    BKE_paint_brush_set(paint, brush);
-    cache->saved_smooth_size = BKE_brush_size_get(scene, brush);
-    BKE_brush_size_set(scene, brush, cur_brush_size);
-    BKE_curvemapping_init(brush->curve);
+  /* Switch to the blur (smooth) brush if possible. */
+  /* Note: used for both vertexpaint and weightpaint, VPAINT_TOOL_BLUR & WPAINT_TOOL_BLUR are the
+   * same, see comments for eBrushVertexPaintTool & eBrushWeightPaintTool. */
+  Brush *smooth_brush = BKE_paint_toolslots_brush_get(paint, WPAINT_TOOL_BLUR);
+  if (!smooth_brush) {
+    CLOG_WARN(&LOG, "Switching to the blur (smooth) brush not possible, corresponding brush not");
+    cache->saved_active_brush_name[0] = '\0';
+    return;
   }
+
+  Brush *cur_brush = paint->brush;
+  int cur_brush_size = BKE_brush_size_get(scene, cur_brush);
+
+  STRNCPY(cache->saved_active_brush_name, cur_brush->id.name + 2);
+
+  BKE_paint_brush_set(paint, smooth_brush);
+  cache->saved_smooth_size = BKE_brush_size_get(scene, smooth_brush);
+  BKE_brush_size_set(scene, smooth_brush, cur_brush_size);
+  BKE_curvemapping_init(smooth_brush->curve);
 }
 
 static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache)
 {
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
   Brush *brush = BKE_paint_brush(paint);
   /* The current brush should match with what we have stored in the cache. */
   BLI_assert(brush == cache->brush);
 
-  /* Try to switch back to the saved/previous brush. */
-  BKE_brush_size_set(scene, brush, cache->saved_smooth_size);
-  brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, cache->saved_active_brush_name);
-  if (brush) {
-    BKE_paint_brush_set(paint, brush);
+  /* If saved_active_brush_name is not set, brush was not switched/affected in
+   * smooth_brush_toggle_on(). */
+  Brush *saved_active_brush = (Brush *)BKE_libblock_find_name(
+      bmain, ID_BR, cache->saved_active_brush_name);
+  if (saved_active_brush) {
+    Scene *scene = CTX_data_scene(C);
+    BKE_brush_size_set(scene, brush, cache->saved_smooth_size);
+    BKE_paint_brush_set(paint, saved_active_brush);
   }
 }
 
