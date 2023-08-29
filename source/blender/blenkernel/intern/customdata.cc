@@ -2230,7 +2230,9 @@ static bool customdata_merge_internal(const CustomData *source,
     const int src_layer_flag = src_layer.flag;
 
     if (type != last_type) {
-      current_type_layer_count = 0;
+      /* Dont exceed layer count on destination. */
+      const int layernum_dst = CustomData_number_of_layers(dest, type);
+      current_type_layer_count = layernum_dst;
       max_current_type_layer_count = CustomData_layertype_layers_max(type);
       last_active = src_layer.active;
       last_render = src_layer.active_rnd;
