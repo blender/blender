@@ -496,15 +496,10 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   }
 }
 
-static void get_vertices(const Mesh *mesh, USDMeshData &usd_mesh_data)
+static void get_positions(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
-  usd_mesh_data.points.reserve(mesh->totvert);
-
-  const Span<float3> positions = mesh->vert_positions();
-  for (const int i : positions.index_range()) {
-    const float3 &position = positions[i];
-    usd_mesh_data.points.push_back(pxr::GfVec3f(position.x, position.y, position.z));
-  }
+  const Span<pxr::GfVec3f> positions = mesh->vert_positions().cast<pxr::GfVec3f>();
+  usd_mesh_data.points = pxr::VtArray<pxr::GfVec3f>(positions.begin(), positions.end());
 }
 
 static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
@@ -521,19 +516,15 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
     }
   }
 
-  usd_mesh_data.face_vertex_counts.reserve(mesh->faces_num);
-  usd_mesh_data.face_indices.reserve(mesh->totloop);
-
+  usd_mesh_data.face_vertex_counts.resize(mesh->faces_num);
   const OffsetIndices faces = mesh->faces();
-  const Span<int> corner_verts = mesh->corner_verts();
+  offset_indices::copy_group_sizes(
+      faces,
+      faces.index_range(),
+      MutableSpan(usd_mesh_data.face_vertex_counts.data(), mesh->faces_num));
 
-  for (const int i : faces.index_range()) {
-    const IndexRange face = faces[i];
-    usd_mesh_data.face_vertex_counts.push_back(face.size());
-    for (const int vert : corner_verts.slice(face)) {
-      usd_mesh_data.face_indices.push_back(vert);
-    }
-  }
+  const Span<int> corner_verts = mesh->corner_verts();
+  usd_mesh_data.face_indices = pxr::VtIntArray(corner_verts.begin(), corner_verts.end());
 }
 
 static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
@@ -581,7 +572,7 @@ static void get_vert_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 
 void USDGenericMeshWriter::get_geometry_data(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
-  get_vertices(mesh, usd_mesh_data);
+  get_positions(mesh, usd_mesh_data);
   get_loops_polys(mesh, usd_mesh_data);
   get_edge_creases(mesh, usd_mesh_data);
   get_vert_creases(mesh, usd_mesh_data);
