@@ -653,18 +653,20 @@ static const EnumPropertyItem *bone_collection_enum_items(bContext *C,
                                                           PropertyRNA * /*prop*/,
                                                           bool *r_free)
 {
-  Object *obpose = ED_pose_object_from_context(C);
-  bArmature *arm = static_cast<bArmature *>(obpose->data);
-
   EnumPropertyItem *item = nullptr, item_tmp = {0};
   int totitem = 0;
   int bcoll_index = 0;
 
-  LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections, bcoll_index) {
-    item_tmp.identifier = bcoll->name;
-    item_tmp.name = bcoll->name;
-    item_tmp.value = bcoll_index;
-    RNA_enum_item_add(&item, &totitem, &item_tmp);
+  if (C) {
+    Object *obpose = ED_pose_object_from_context(C);
+    bArmature *arm = static_cast<bArmature *>(obpose->data);
+
+    LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections, bcoll_index) {
+      item_tmp.identifier = bcoll->name;
+      item_tmp.name = bcoll->name;
+      item_tmp.value = bcoll_index;
+      RNA_enum_item_add(&item, &totitem, &item_tmp);
+    }
   }
 
   RNA_enum_item_add_separator(&item, &totitem);
