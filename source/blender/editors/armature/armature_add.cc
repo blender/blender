@@ -70,7 +70,6 @@ EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
   bone->rad_head = 0.10f;
   bone->rad_tail = 0.05f;
   bone->segments = 1;
-  ANIM_armature_bonecoll_assign_active(arm, bone);
 
   /* Bendy-Bone parameters */
   bone->roll1 = 0.0f;
@@ -1544,6 +1543,9 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
             }
             ED_armature_ebone_unique_name(arm->edbo, newbone->name, nullptr);
 
+            /* Copy bone collection membership. */
+            BLI_duplicatelist(&newbone->bone_collections, &ebone->bone_collections);
+
             /* Add the new bone to the list */
             BLI_addtail(arm->edbo, newbone);
             if (!first) {
@@ -1645,6 +1647,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 
   /* Create a bone. */
   bone = ED_armature_ebone_add(static_cast<bArmature *>(obedit->data), name);
+  ANIM_armature_bonecoll_assign_active(static_cast<bArmature *>(obedit->data), bone);
 
   copy_v3_v3(bone->head, curs);
 
@@ -1742,6 +1745,9 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
         }
       }
       newbone->parent = ebone;
+
+      /* Copy bone collection membership. */
+      BLI_duplicatelist(&newbone->bone_collections, &ebone->bone_collections);
     }
   }
   CTX_DATA_END;
