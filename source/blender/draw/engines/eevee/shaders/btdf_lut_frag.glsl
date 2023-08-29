@@ -60,8 +60,8 @@ void main()
         /* Balancing the adjustments made in G1_Smith. */
         float G1_l = NL * 2.0 / G1_Smith_GGX_opti(NL, a2);
 
-        /* btdf = abs(VH*LH) * (ior*ior) * D * G(V) * G(L) / (Ht2 * NV)
-         * pdf = (VH * abs(LH)) * (ior*ior) * D * G(V) / (Ht2 * NV) */
+        // btdf = abs(VH*LH) * (ior*ior) * D * G(V) * G(L) / (Ht2 * NV)
+        // pdf = (VH * abs(LH)) * (ior*ior) * D * G(V) / (Ht2 * NV)
         float btdf = G1_l * abs(VH * LH) / (VH * abs(LH));
 
         btdf_accum += btdf;

@@ -226,7 +226,7 @@ vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
 }
 
 /* Load color using a special filter to avoid losing detail.
- * \a texel is sample position with subpixel accuracy. */
+ * \a texel is sample position with sub-pixel accuracy. */
 DofSample dof_sample_history(vec2 input_texel)
 {
 #if 1 /* Bilinar. */

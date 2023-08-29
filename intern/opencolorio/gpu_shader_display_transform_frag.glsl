@@ -101,7 +101,7 @@ vec4 curvemapping_evaluate_premulRGBF(vec4 col)
 
 /* Using a triangle distribution which gives a more final uniform noise.
  * See Banding in Games:A Noisy Rant(revision 5) Mikkel Gjøl, Playdead (slide 27) */
-/* GPUs are rounding before writing to framebuffer so we center the distribution around 0.0. */
+/* GPUs are rounding before writing to frame-buffer so we center the distribution around 0.0. */
 /* Return triangle noise in [-1..1[ range */
 float dither_random_value(vec2 co)
 {
@@ -165,11 +165,11 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
   /* Convert to display space. */
   col = OCIO_to_display(col);
 
-  /* Blend with overlay in UI colorspace.
+  /* Blend with overlay in UI color-space.
    *
-   * UI colorspace here refers to the display linear color space,
+   * UI color-space here refers to the display linear color space,
    * i.e: The linear color space w.r.t. display chromaticity and radiometry.
-   * We separate the colormanagement process into two steps to be able to
+   * We separate the color-management process into two steps to be able to
    * merge UI using alpha blending in the correct color space. */
   if (parameters.use_overlay) {
     col.rgb = pow(col.rgb, vec3(parameters.exponent * 2.2));
@@ -179,7 +179,7 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
       col = clamp(col, 0.0, 1.0);
     }
     else {
-      /* When using extended colorspace, interpolate towards clamped color to improve display of
+      /* When using extended color-space, interpolate towards clamped color to improve display of
        * alpha-blended overlays. */
       col = mix(max(col, 0.0), clamp(col, 0.0, 1.0), col_overlay.a);
     }

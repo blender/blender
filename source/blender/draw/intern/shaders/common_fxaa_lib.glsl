@@ -274,7 +274,7 @@ NOTE: the other tuning knobs are now in the shader function inputs!
 /* (#B1#) */
 float FxaaLuma(vec4 rgba)
 {
-  /* NOTE: sqrt because the sampled colors are in a linear colorspace!
+  /* NOTE: sqrt because the sampled colors are in a linear color-space!
    * this approximates a perceptual conversion, which is good enough for the
    * algorithm */
   return sqrt(dot(rgba.rgb, vec3(0.2126, 0.7152, 0.0722)));

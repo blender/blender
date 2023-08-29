@@ -53,7 +53,7 @@ vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float
   for (int i = 0; i < 4; i++) {
     /**
      * Visit the 4 half-res texels around (and containing) the fullres texel.
-     * Here a diagram of a fullscreen texel (f) in the bottom left corner of a half res texel.
+     * Here a diagram of a full-screen texel (f) in the bottom left corner of a half res texel.
      * We sample the stable half-resolution texture at the 4 location denoted by (h).
      * ┌───────┬───────┐
      * │     h │     h │

@@ -125,7 +125,7 @@ void tex_box_blend(
    * in between we blend between two textures, and in the middle we a blend
    * between three textures.
    *
-   * the Nxyz values are the barycentric coordinates in an equilateral
+   * the `Nxyz` values are the barycentric coordinates in an equilateral
    * triangle, which in case of blending, in the middle has a smaller
    * equilateral triangle where 3 textures blend. this divides things into
    * 7 zones, with an if () test for each zone

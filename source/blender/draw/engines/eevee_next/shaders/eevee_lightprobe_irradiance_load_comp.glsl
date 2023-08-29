@@ -124,7 +124,7 @@ void main()
   if (gl_LocalInvocationID.z % 4 == 0u) {
     /* Encode 4 cells into one volume sample. */
     ivec4 cell_validity_bits = ivec4(0);
-    /* Encode validty of each samples in the grid cell. */
+    /* Encode validity of each samples in the grid cell. */
     for (int cell = 0; cell < 4; cell++) {
       for (int i = 0; i < 8; i++) {
         ivec3 offset = lightprobe_irradiance_grid_cell_corner(i);

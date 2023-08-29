@@ -18,7 +18,7 @@ vec3 rotate(vec3 vec, vec4 quat)
 
 void main()
 {
-  /* Drawsize packed in alpha. */
+  /* Draw-size packed in alpha. */
   float draw_size = ucolor.a;
 
   vec3 world_pos = part_pos;

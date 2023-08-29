@@ -79,7 +79,7 @@ void closure_Diffuse_indirect_end(ClosureInputDiffuse cl_in,
                                   ClosureEvalCommon cl_common,
                                   inout ClosureOutputDiffuse cl_out)
 {
-  /* If not enough light has been accumulated from probes, use the world specular cubemap
+  /* If not enough light has been accumulated from probes, use the world specular cube-map
    * to fill the remaining energy needed. */
   if (cl_common.diffuse_accum > 0.0) {
     vec3 probe_radiance = probe_evaluate_world_diff(cl_eval.probe_sampling_dir);

@@ -133,7 +133,7 @@ float dof_load_gather_coc(sampler2D gather_input_coc_buffer, vec2 uv, float lod)
   return coc * 0.5;
 }
 
-/* Distribute weights between near/slightfocus/far fields (slide 117). */
+/* Distribute weights between near/slight-focus/far fields (slide 117). */
 #define layer_threshold 4.0
 /* Make sure it overlaps. */
 #define layer_offset_fg (0.5 + 1.0)
@@ -502,7 +502,8 @@ void dof_gather_accumulate_sample_ring(DofGatherData ring_data,
   }
 }
 
-/* FIXME(@fclem): Seems to be wrong since it needs `ringcount + 1` as input for slightfocus gather.
+/* FIXME(@fclem): Seems to be wrong since it needs `ringcount + 1` as input for slight-focus
+ * gather.
  */
 int dof_gather_total_sample_count(const int ring_count, const int ring_density)
 {

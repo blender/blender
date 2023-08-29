@@ -189,7 +189,7 @@ void main()
   half_size += (geometry_flat_out.finalColorOuter.a > 0.0) ? max(sizeEdge, 1.0) : 0.0;
 
   if (do_smooth_wire) {
-    /* Add 1 px for AA */
+    /* Add 1px for AA */
     half_size += 0.5;
   }
 

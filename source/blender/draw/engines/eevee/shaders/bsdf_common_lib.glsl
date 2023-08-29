@@ -107,7 +107,7 @@ float bxdf_ggx_D(float NH, float a2)
 float D_ggx_opti(float NH, float a2)
 {
   float tmp = (NH * a2 - NH) * NH + 1.0;
-  return M_PI * tmp * tmp; /* Doing RCP and mul a2 at the end */
+  return M_PI * tmp * tmp; /* Doing RCP and multiply a2 at the end. */
 }
 
 float bxdf_ggx_smith_G1(float NX, float a2)
@@ -119,10 +119,10 @@ float G1_Smith_GGX_opti(float NX, float a2)
 {
   /* Using Brian Karis approach and refactoring by NX/NX
    * this way the (2*NL)*(2*NV) in G = G1(V) * G1(L) gets canceled by the brdf denominator 4*NL*NV
-   * Rcp is done on the whole G later
+   * RCP is done on the whole G later
    * Note that this is not convenient for the transmission formula */
   return NX + sqrt(NX * (NX - NX * a2) + a2);
-  /* return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function */
+  // return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function. */
 }
 
 /* Compute the GGX BRDF without the Fresnel term, multiplied by the cosine foreshortening term. */

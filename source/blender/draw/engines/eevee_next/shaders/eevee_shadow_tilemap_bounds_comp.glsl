@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Bounds computation for directional shadows.
+ * Virtual shadow-mapping: Bounds computation for directional shadows.
  *
  * Iterate through all shadow casters and extract min/max per directional shadow.
- * This needs to happen first in the pipeline to allow tagging all relevant tilemap as dirty if
+ * This needs to happen first in the pipeline to allow tagging all relevant tile-map as dirty if
  * their range changes.
  */
 
@@ -65,7 +65,7 @@ void main()
       atomicMin(light_buf[l_idx].clip_near, global_min);
       atomicMax(light_buf[l_idx].clip_far, global_max);
       /* TODO(fclem): This feel unnecessary but we currently have no indexing from
-       * tilemap to lights. This is because the lights are selected by culling phase. */
+       * tile-map to lights. This is because the lights are selected by culling phase. */
       for (int i = light.tilemap_index; i <= light_tilemap_max_get(light); i++) {
         int index = tilemaps_buf[i].clip_data_index;
         atomicMin(tilemaps_clip_buf[index].clip_near, global_min);

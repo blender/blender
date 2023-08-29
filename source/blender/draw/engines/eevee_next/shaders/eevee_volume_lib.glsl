@@ -112,7 +112,7 @@ vec3 volume_light(LightData ld, vec3 L, float l_dist)
 
 vec3 volume_participating_media_extinction(vec3 wpos, sampler3D volume_extinction)
 {
-  /* Waiting for proper volume shadowmaps and out of frustum shadow map. */
+  /* Waiting for proper volume shadow-maps and out of frustum shadow map. */
   vec3 ndc = project_point(ProjectionMatrix, transform_point(ViewMatrix, wpos));
   vec3 volume_co = ndc_to_volume(ndc * 0.5 + 0.5);
 

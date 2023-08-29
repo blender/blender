@@ -114,7 +114,7 @@ void closure_Refraction_indirect_end(ClosureInputRefraction cl_in,
                                      ClosureEvalCommon cl_common,
                                      inout ClosureOutputRefraction cl_out)
 {
-  /* If not enough light has been accumulated from probes, use the world specular cubemap
+  /* If not enough light has been accumulated from probes, use the world specular cube-map
    * to fill the remaining energy needed. */
   if (specToggle && cl_common.specular_accum > 0.0) {
     vec3 probe_radiance = probe_evaluate_world_spec(cl_eval.probe_sampling_dir,

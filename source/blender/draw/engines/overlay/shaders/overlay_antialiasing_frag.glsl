@@ -10,7 +10,7 @@
  * we approximate it by using the smooth-step function and a 1.05 factor to the disc radius.
  */
 
-#define M_1_SQRTPI 0.5641895835477563 /* 1/sqrt(pi) */
+#define M_1_SQRTPI 0.5641895835477563 /* `1/sqrt(pi)`. */
 
 #define DISC_RADIUS (M_1_SQRTPI * 1.05)
 #define LINE_SMOOTH_START (0.5 - DISC_RADIUS)

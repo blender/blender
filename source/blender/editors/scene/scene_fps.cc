@@ -5,7 +5,7 @@
 /** \file
  * \ingroup edscene
  *
- * Define `ED_scene_api_*` functions.
+ * Define `ED_scene_fps_*` functions.
  */
 
 #include <cmath>

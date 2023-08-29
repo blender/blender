@@ -340,7 +340,7 @@ void main()
 
 void main()
 {
-  /* Fullscreen pass */
+  /* Full-screen pass. */
   vec2 pixel_size = 0.5 / vec2(textureSize(halfResColorTex, 0).xy);
   vec2 uv = gl_FragCoord.xy * pixel_size;
 

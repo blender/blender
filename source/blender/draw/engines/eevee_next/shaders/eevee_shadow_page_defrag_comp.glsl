@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Defrag.
+ * Virtual shadow-mapping: Defrag.
  *
  * Defragment the cached page buffer making one continuous array.
  *
@@ -11,11 +11,11 @@
  * Here is an example of the behavior of this buffer during one update cycle:
  *
  *   Initial state: 5 cached pages. Buffer starts at index 2 and ends at 6.
- *     [--xxxxx---------]
+ *     `[--xxxxx---------]`
  *   After page free step: 2 cached pages were removed (r), 3 pages were inserted in the cache (i).
- *     [--xrxrxiii------]
+ *     `[--xrxrxiii------]`
  *   After page defrag step: The buffer is compressed into only 6 pages.
- *     [----xxxxxx------]
+ *     `[----xxxxxx------]`
  */
 
 #pragma BLENDER_REQUIRE(eevee_shadow_page_ops_lib.glsl)

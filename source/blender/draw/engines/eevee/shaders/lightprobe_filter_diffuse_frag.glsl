@@ -147,7 +147,7 @@ void main()
 
     if (NL > 0.0) {
       /* Coarse Approximation of the mapping distortion
-       * Unit Sphere -> Cubemap Face */
+       * Unit Sphere -> Cube-map Face. */
       const float dist = 4.0 * M_PI / 6.0;
       /* http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html : Equation 13 */
       float lod = clamp(lodFactor - 0.5 * log2(pdf * dist), 0.0, lodMax);

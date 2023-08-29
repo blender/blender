@@ -112,7 +112,7 @@ void main()
     EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES - 1));
     EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES), 1e-3);
 
-    /* Test clipmap level selection. */
+    /* Test clip-map level selection. */
 
     camera_lP = vec3(2.0, 2.0, 0.0);
     /* Follows ShadowDirectional::end_sync(). */
@@ -143,7 +143,7 @@ void main()
     EXPECT_EQ(coords.tile_coord, ivec2(0));
     EXPECT_NEAR(coords.uv, vec2(0), 1e-3);
 
-    /* Test clipmap offset. */
+    /* Test clip-map offset. */
 
     light.clipmap_base_offset = ivec2(31, 1);
     lP = vec3(2.0001, 0.0001, 0.0);
@@ -160,7 +160,7 @@ void main()
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2) + ivec2(1, 0));
 
-    /* Test clipmap negative offsets. */
+    /* Test clip-map negative offsets. */
 
     light.clipmap_base_offset = ivec2(-31, -1);
     lP = vec3(-2.0001, -0.0001, 0.0);
@@ -185,7 +185,7 @@ void main()
     LightData light;
     light.type = LIGHT_SUN_ORTHO;
     light.clipmap_lod_min = 0; /* Range [-0.5..0.5]. */
-    light.clipmap_lod_max = 2; /* 3 tilemaps. */
+    light.clipmap_lod_max = 2; /* 3 tile-maps. */
     light.tilemap_index = 1;
     light._position = vec3(0.0);
     light._clipmap_lod_bias = light.clipmap_lod_min - 1;
@@ -236,7 +236,7 @@ void main()
     // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES - 1));
     // EXPECT_NEAR(coords.uv, vec2(SHADOW_TILEMAP_RES), 1e-3);
 
-    /* Test clipmap level selection. */
+    /* Test clip-map level selection. */
 
     // camera_lP = vec3(2.0, 2.0, 0.0);
     /* Follows ShadowDirectional::end_sync(). */
@@ -267,7 +267,7 @@ void main()
     // EXPECT_EQ(coords.tile_coord, ivec2(0));
     // EXPECT_NEAR(coords.uv, vec2(0), 1e-3);
 
-    /* Test clipmap offset. */
+    /* Test clip-map offset. */
 
     // light.clipmap_base_offset = ivec2(31, 1);
     // lP = vec3(2.0001, 0.0001, 0.0);
@@ -284,7 +284,7 @@ void main()
     // coords = shadow_directional_coordinates(light, lP);
     // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2) + ivec2(1, 0));
 
-    /* Test clipmap negative offsets. */
+    /* Test clip-map negative offsets. */
 
     // light.clipmap_base_offset = ivec2(-31, -1);
     // lP = vec3(-2.0001, -0.0001, 0.0);

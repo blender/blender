@@ -98,7 +98,7 @@ void main()
   half_size += (lineStyle == OVERLAY_UV_LINE_STYLE_OUTLINE) ?
                    max(sizeEdge * (doSmoothWire ? 1.0 : 3.0), 1.0) :
                    0.0;
-  /* Add 1 px for AA */
+  /* Add 1px for AA */
   if (doSmoothWire) {
     half_size += 0.5;
   }

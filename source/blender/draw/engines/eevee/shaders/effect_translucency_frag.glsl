@@ -53,7 +53,7 @@ float light_translucent_power_with_falloff(LightData ld, vec3 N, vec4 l_vector)
 float shadow_cube_radial_depth(vec3 cubevec, float tex_id, int shadow_id)
 {
   float depth = sample_cube(sssShadowCubes, cubevec, tex_id).r;
-  /* To reverting the constant bias from shadow rendering. (Tweaked for 16bit shadowmaps) */
+  /* To reverting the constant bias from shadow rendering. (Tweaked for 16bit shadow-maps) */
   const float depth_bias = 3.1e-5;
   depth = saturate(depth - depth_bias);
 
@@ -107,13 +107,13 @@ vec3 light_translucent(LightData ld, vec3 P, vec3 N, vec4 l_vector, vec2 rand, f
     depths.z = sample_cascade(sssShadowCascades, shpos.xy - ofs.xy, tex_id).r;
     depths.w = sample_cascade(sssShadowCascades, shpos.xy - ofs.yx, tex_id).r;
 
-    /* To reverting the constant bias from shadow rendering. (Tweaked for 16bit shadowmaps) */
+    /* To reverting the constant bias from shadow rendering. (Tweaked for 16bit shadow-maps) */
     float depth_bias = 3.1e-5;
     depths = saturate(depths - depth_bias);
     d = saturate(d - depth_bias);
 
     /* Size of a texel in world space.
-     * FIXME This is only correct if l_right is the same right vector used for shadowmap creation.
+     * FIXME This is only correct if l_right is the same right vector used for shadow-map creation.
      * This won't work if the shadow matrix is rotated (soft shadows).
      * TODO: precompute. */
     float unit_world_in_uv_space = length(mat3(scascade(data_id).shadowmat[int(id)]) * ld.l_right);
@@ -133,10 +133,10 @@ vec3 light_translucent(LightData ld, vec3 P, vec3 N, vec4 l_vector, vec2 rand, f
     vec3 cubevec = transform_point(scube(data_id).shadowmat, P);
     dist = length(cubevec);
     cubevec /= dist;
-    /* tex_id == data_id for cube shadowmap */
+    /* `tex_id == data_id` for cube shadow-map. */
     float tex_id = float(data_id);
     d = shadow_cube_radial_depth(cubevec, tex_id, shadow_id);
-    /* NOTE: The offset is irregular in respect to cubeface uvs. But it has
+    /* NOTE: The offset is irregular in respect to cube-face uvs. But it has
      * a much more uniform behavior than biasing based on face derivatives. */
     depths.x = shadow_cube_radial_depth(cubevec + T * ofs, tex_id, shadow_id);
     depths.y = shadow_cube_radial_depth(cubevec + B * ofs, tex_id, shadow_id);
@@ -149,7 +149,7 @@ vec3 light_translucent(LightData ld, vec3 P, vec3 N, vec4 l_vector, vec2 rand, f
 
   float s = min(d, min_v4(depths));
 
-  /* To avoid light leak from depth discontinuity and shadowmap aliasing. */
+  /* To avoid light leak from depth discontinuity and shadow-map aliasing. */
   float slope_bias = (abs(dx) + abs(dy)) * 0.5;
   s -= slope_bias;
 

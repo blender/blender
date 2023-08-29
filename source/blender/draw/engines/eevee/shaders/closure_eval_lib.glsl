@@ -75,7 +75,7 @@
     { \
       CLOSURE_EVAL_DECLARE(t0, t1, t2, t3); \
 \
-      /* Starts at 1 because 0 is world cubemap. */ \
+      /* Starts at 1 because 0 is world cube-map. */ \
       for (int i = 1; cl_common.specular_accum > 0.0 && i < prbNumRenderCube && i < MAX_PROBE; \
            i++) { \
         ClosureCubemapData cube = closure_cubemap_eval_init(i, cl_common); \
@@ -216,17 +216,17 @@ struct ClosureEvalCommon {
   vec3 P;
   /** Normal vector, always facing camera. */
   vec3 N;
-  /** Normal vector, always facing camera. (viewspace) */
+  /** Normal vector, always facing camera. (view-space) */
   vec3 vN;
-  /** Surface position. (viewspace) */
+  /** Surface position. (view-space) */
   vec3 vP;
   /** Geometric normal, always facing camera. */
   vec3 Ng;
-  /** Geometric normal, always facing camera. (viewspace) */
+  /** Geometric normal, always facing camera. (view-space) */
   vec3 vNg;
-  /** Random numbers. 3 random sequences. zw is a random point on a circle. */
+  /** Random numbers. 3 random sequences. `zw` is a random point on a circle. */
   vec4 rand;
-  /** Specular probe accumulator. Shared between planar and cubemap probe. */
+  /** Specular probe accumulator. Shared between planar and cube-map probe. */
   float specular_accum;
   /** Diffuse probe accumulator. */
   float diffuse_accum;
@@ -237,7 +237,7 @@ struct ClosureOutput {
   vec3 radiance;
 };
 
-/* Workaround for screenspace shadows in SSR pass. */
+/* Workaround for screen-space shadows in SSR pass. */
 float FragDepth;
 
 ClosureEvalCommon closure_Common_eval_init(ClosureInputCommon cl_in)

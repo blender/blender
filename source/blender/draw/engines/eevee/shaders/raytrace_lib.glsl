@@ -21,7 +21,7 @@ struct Ray {
   vec3 direction;
 };
 
-/* Inputs expected to be in viewspace. */
+/* Inputs expected to be in view-space. */
 void raytrace_clip_ray_to_near_plane(inout Ray ray)
 {
   float near_dist = get_view_z_from_depth(0.0);
@@ -30,7 +30,7 @@ void raytrace_clip_ray_to_near_plane(inout Ray ray)
   }
 }
 
-/* Screenspace ray ([0..1] "uv" range) where direction is normalize to be as small as one
+/* Screen-space ray ([0..1] "uv" range) where direction is normalize to be as small as one
  * full-resolution pixel. The ray is also clipped to all frustum sides.
  */
 struct ScreenSpaceRay {
@@ -180,7 +180,7 @@ bool raytrace(Ray ray,
   /* Reject hit if background. */
   hit = hit && (depth_sample != 1.0);
 #endif
-  /* Refine hit using intersection between the sampled heightfield and the ray.
+  /* Refine hit using intersection between the sampled height-field and the ray.
    * This simplifies nicely to this single line. */
   time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
 
@@ -236,7 +236,7 @@ bool raytrace_planar(Ray ray, RayTraceParameters params, int planar_ref_id, out 
   }
   /* Reject hit if background. */
   hit = hit && (depth_sample != 1.0);
-  /* Refine hit using intersection between the sampled heightfield and the ray.
+  /* Refine hit using intersection between the sampled height-field and the ray.
    * This simplifies nicely to this single line. */
   time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
 

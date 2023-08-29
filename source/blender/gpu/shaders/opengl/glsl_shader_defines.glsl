@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Cubemap support and fallback implementation declarations. */
+/* Cube-map support and fallback implementation declarations. */
 #ifdef GPU_ARB_texture_cube_map_array
 #  define textureLod_cubemapArray(tex, co, lod) textureLod(tex, co, lod)
 #else

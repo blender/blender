@@ -1357,7 +1357,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
     int count_x;
     float start_x;
 
-    /* Count points that fit in viewport minus space for the scrollbars. */
+    /* Count points that fit in viewport minus space for the scroll-bars. */
     grid_axis_start_and_count(
         step, v2d->cur.xmin, v2d->cur.xmax - V2D_SCROLL_WIDTH, &start_x, &count_x);
     int count_y;

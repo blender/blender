@@ -208,7 +208,7 @@ uniform mat4 ModelMatrixInverse;
 #endif
 
 /** Transform shortcuts. */
-/* Rule of thumb: Try to reuse world positions and normals because converting through viewspace
+/* Rule of thumb: Try to reuse world positions and normals because converting through view-space
  * will always be decomposed in at least 2 matrix operation. */
 
 /**
@@ -260,13 +260,13 @@ vec3 point_world_to_view(vec3 p)
   return (ViewMatrix * vec4(p, 1.0)).xyz;
 }
 
-/* Viewspace Z is used to adjust for perspective projection.
+/* View-space Z is used to adjust for perspective projection.
  * Homogenous W is used to convert from NDC to homogenous space.
- * Offset is in viewspace, so positive values are closer to the camera. */
+ * Offset is in view-space, so positive values are closer to the camera. */
 float get_homogenous_z_offset(float vs_z, float hs_w, float vs_offset)
 {
   if (vs_offset == 0.0) {
-    /* Don't calculate homogenous offset if viewspace offset is zero. */
+    /* Don't calculate homogenous offset if view-space offset is zero. */
     return 0.0;
   }
   else if (ProjectionMatrix[3][3] == 0.0) {

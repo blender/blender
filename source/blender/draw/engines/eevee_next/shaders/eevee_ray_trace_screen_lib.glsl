@@ -14,7 +14,7 @@
 
 #pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
 
-/* Inputs expected to be in viewspace. */
+/* Inputs expected to be in view-space. */
 void raytrace_clip_ray_to_near_plane(inout Ray ray)
 {
   float near_dist = get_view_z_from_depth(0.0);
@@ -24,7 +24,7 @@ void raytrace_clip_ray_to_near_plane(inout Ray ray)
 }
 
 /**
- * Raytrace against the given hizbuffer heightfield.
+ * Raytrace against the given HIZ-buffer height-field.
  *
  * \param stride_rand: Random number in [0..1] range. Offset along the ray to avoid banding
  *                     artifact when steps are too large.
@@ -33,7 +33,7 @@ void raytrace_clip_ray_to_near_plane(inout Ray ray)
  * \param discard_backface: If true, raytrace will return false  if we hit a surface from behind.
  * \param allow_self_intersection: If false, raytrace will return false if the ray is not covering
  *                                 at least one pixel.
- * \param ray: Viewspace ray. Direction premultiplied by maximum length.
+ * \param ray: View-space ray. Direction premultiplied by maximum length.
  *
  * \return True if there is a valid intersection.
  */
@@ -117,7 +117,7 @@ bool raytrace_screen(RayTraceData rt_data,
   /* Reject hit if background. */
   hit = hit && (depth_sample != 1.0);
 #endif
-  /* Refine hit using intersection between the sampled heightfield and the ray.
+  /* Refine hit using intersection between the sampled height-field and the ray.
    * This simplifies nicely to this single line. */
   time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
 

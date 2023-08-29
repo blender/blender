@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Convert from a cubemap vector to an octahedron UV coordinate.
+ * Convert from a cube-map vector to an octahedron UV coordinate.
  */
 vec2 octahedral_uv_from_direction(vec3 co)
 {

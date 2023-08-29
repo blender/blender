@@ -315,7 +315,7 @@ struct SStruct {
 /* Texture-write functions. */
 #define imageStore(_tex, _coord, _value) _texture_write_internal(_tex, _coord, _value)
 
-/* Cubemap support always available when using Metal. */
+/* Cube-map support always available when using Metal. */
 #define textureLod_cubemapArray(tex, co, lod) textureLod(tex, co, lod)
 
 /* Singular return values from texture functions of type DEPTH are often indexed with either .r or
@@ -1032,6 +1032,7 @@ inline float2x2 operator-(float2x2 a)
  * normalized to a float.
  * The implementation should query the attribute type using vertex_fetch_get_attr_type(attr_name):
  *
+ * \code{.cc}
  * float fweight = 0.0;
  * if(vertex_fetch_get_attr_type(in_weight) == GPU_SHADER_ATTR_TYPE_INT) {
  *   int iweight = vertex_fetch_attribute(gl_VertexID, in_weight, int);
@@ -1039,6 +1040,7 @@ inline float2x2 operator-(float2x2 a)
  * } else {
  *   fweight = = vertex_fetch_attribute(gl_VertexID, in_weight, float);
  * }
+ * \endcode
  *
  * Note: These uniforms are generated as part of the same data block used for regular uniforms
  * and attribute data is written prior to each draw call, depending on the configuration of

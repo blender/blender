@@ -52,7 +52,7 @@ float calculate_transparent_weight(void)
 
 void main()
 {
-  /* Normal and Incident vector are in viewspace. Lighting is evaluated in viewspace. */
+  /* Normal and Incident vector are in view-space. Lighting is evaluated in view-space. */
   vec2 uv_viewport = gl_FragCoord.xy * world_data.viewport_size_inv;
   vec3 I = get_view_vector_from_screen_uv(uv_viewport);
   vec3 N = normalize(normal_interp);
@@ -90,7 +90,7 @@ void main()
 
 void main()
 {
-  /* Normal and Incident vector are in viewspace. Lighting is evaluated in viewspace. */
+  /* Normal and Incident vector are in view-space. Lighting is evaluated in view-space. */
   vec2 uv_viewport = gl_FragCoord.xy * world_data.viewport_size_inv;
   vec3 I = get_view_vector_from_screen_uv(uv_viewport);
   vec3 N = normalize(normal_interp);

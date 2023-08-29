@@ -47,7 +47,7 @@ void main()
                                      thickness);
   vec3 world_pos;
   if (hairThicknessRes > 1) {
-    /* Calculate the thickness, thicktime, worldpos taken into account the outline. */
+    /* Calculate the thickness, thick-time, worldpos taken into account the outline. */
     float outline_width = point_world_to_ndc(center_wpos).w * 1.25 * sizeViewportInv.y *
                           drw_view.wininv[1][1];
     thickness += outline_width;

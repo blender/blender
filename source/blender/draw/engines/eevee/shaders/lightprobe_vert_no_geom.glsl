@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Non-geometry shader equivalent for eevee_legacy_lightprobe_vert + eevee_legacy_lightprobe_geom.
- * generates geometry instance per cubeface for multi-layered rendering. */
+ * generates geometry instance per cube-face for multi-layered rendering. */
 void main()
 {
 
