@@ -793,7 +793,7 @@ static void weld_poly_split_recursive(int poly_loop_len,
         *r_poly_kill += 1;
         *r_loop_kill += loop_kill;
         /* Since all the loops are collapsed, avoid looping through them.
-        * This may result in wrong poly_kill counts. */
+         * This may result in wrong poly_kill counts. */
         return;
       }
       else {
