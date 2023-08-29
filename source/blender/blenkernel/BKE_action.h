@@ -267,29 +267,29 @@ void BKE_pose_channel_session_uuid_generate(struct bPoseChannel *pchan);
  */
 struct bPoseChannel *BKE_pose_channel_find_name(const struct bPose *pose, const char *name);
 /**
- * Checks if the bone is on a visible armature layer
+ * Checks if the bone is on a visible bone collection
  *
  * \return true if on a visible layer, false otherwise.
  */
-bool BKE_pose_is_layer_visible(const struct bArmature *arm,
-                               const struct bPoseChannel *pchan) ATTR_WARN_UNUSED_RESULT;
+bool BKE_pose_is_bonecoll_visible(const struct bArmature *arm,
+                                  const struct bPoseChannel *pchan) ATTR_WARN_UNUSED_RESULT;
 /**
  * Find the active pose-channel for an object
  *
- * \param check_arm_layer: checks if the bone is on a visible armature layer (this might be skipped
+ * \param check_bonecoll: checks if the bone is on a visible bone collection (this might be skipped
  * (e.g. for "Show Active" from the Outliner).
  * \return #bPoseChannel if found or NULL.
- * \note #Object, not #bPose is used here, as we need info (layer/active bone) from Armature.
+ * \note #Object, not #bPose is used here, as we need info (collection/active bone) from Armature.
  */
-struct bPoseChannel *BKE_pose_channel_active(struct Object *ob, bool check_arm_layer);
+struct bPoseChannel *BKE_pose_channel_active(struct Object *ob, bool check_bonecoll);
 /**
- * Find the active pose-channel for an object if it is on a visible armature layer
- * (calls #BKE_pose_channel_active with check_arm_layer set to true)
+ * Find the active pose-channel for an object if it is on a visible bone collection
+ * (calls #BKE_pose_channel_active with check_bonecoll set to true)
  *
  * \return #bPoseChannel if found or NULL.
- * \note #Object, not #bPose is used here, as we need info (layer/active bone) from Armature.
+ * \note #Object, not #bPose is used here, as we need info (collection/active bone) from Armature.
  */
-struct bPoseChannel *BKE_pose_channel_active_if_layer_visible(struct Object *ob)
+struct bPoseChannel *BKE_pose_channel_active_if_bonecoll_visible(struct Object *ob)
     ATTR_WARN_UNUSED_RESULT;
 /**
  * Use this when detecting the "other selected bone",

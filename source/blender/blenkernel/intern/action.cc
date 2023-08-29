@@ -680,12 +680,12 @@ bool BKE_pose_channels_is_valid(const bPose *pose)
 
 #endif
 
-bool BKE_pose_is_layer_visible(const bArmature *arm, const bPoseChannel *pchan)
+bool BKE_pose_is_bonecoll_visible(const bArmature *arm, const bPoseChannel *pchan)
 {
-  return (pchan->bone->layer & arm->layer);
+  return pchan->bone && ANIM_bonecoll_is_visible(arm, pchan->bone);
 }
 
-bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_arm_layer)
+bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_bonecoll)
 {
   bArmature *arm = static_cast<bArmature *>((ob) ? ob->data : nullptr);
   if (ELEM(nullptr, ob, ob->pose, arm)) {
@@ -695,7 +695,7 @@ bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_arm_layer)
   /* find active */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if ((pchan->bone) && (pchan->bone == arm->act_bone)) {
-      if (!check_arm_layer || BKE_pose_is_layer_visible(arm, pchan)) {
+      if (!check_bonecoll || ANIM_bonecoll_is_visible(arm, pchan->bone)) {
         return pchan;
       }
     }
@@ -704,7 +704,7 @@ bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_arm_layer)
   return nullptr;
 }
 
-bPoseChannel *BKE_pose_channel_active_if_layer_visible(Object *ob)
+bPoseChannel *BKE_pose_channel_active_if_bonecoll_visible(Object *ob)
 {
   return BKE_pose_channel_active(ob, true);
 }
@@ -717,7 +717,7 @@ bPoseChannel *BKE_pose_channel_active_or_first_selected(Object *ob)
     return nullptr;
   }
 
-  bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
+  bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
   if (pchan && (pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone)) {
     return pchan;
   }

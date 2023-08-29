@@ -105,7 +105,7 @@ bool ED_object_calc_active_center_for_posemode(Object *ob,
                                                const bool select_only,
                                                float r_center[3])
 {
-  bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
+  bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
   if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
     copy_v3_v3(r_center, pchan->pose_head);
     return true;
