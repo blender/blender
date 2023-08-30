@@ -291,7 +291,7 @@ void BKE_previewimg_freefunc(void *link)
   if (!prv) {
     return;
   }
-  BKE_previewimg_freefunc(&prv);
+  BKE_previewimg_free(&prv);
 }
 
 void BKE_previewimg_free(PreviewImage **prv)
