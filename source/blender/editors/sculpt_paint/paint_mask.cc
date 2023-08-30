@@ -52,7 +52,7 @@
 #include "ED_sculpt.hh"
 #include "ED_view3d.hh"
 
-#include "../../bmesh/intern/bmesh_idmap.h"
+#include "bmesh_idmap.h"
 #include "bmesh.h"
 #include "tools/bmesh_boolean.h"
 

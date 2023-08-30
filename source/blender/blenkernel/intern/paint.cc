@@ -79,7 +79,7 @@
 
 #include "BLO_read_write.h"
 
-#include "../../bmesh/intern/bmesh_idmap.h"
+#include "bmesh_idmap.h"
 #include "bmesh.h"
 #include "bmesh_log.h"
 

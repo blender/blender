@@ -13,7 +13,7 @@
 #include "BKE_paint.hh" /* for SCULPT_BOUNDARY_NEEDS_UPDATE */
 #include "BKE_pbvh_api.hh"
 
-#include "../../bmesh/intern/bmesh_idmap.h"
+#include "bmesh_idmap.h"
 #include "bmesh.h"
 
 #define PBVH_STACK_FIXED_DEPTH 100

@@ -57,7 +57,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "../../bmesh/intern/bmesh_idmap.h"
+#include "bmesh_idmap.h"
 #include "bmesh.h"
 #include "bmesh_log.h"
 #include "bmesh_tools.h"

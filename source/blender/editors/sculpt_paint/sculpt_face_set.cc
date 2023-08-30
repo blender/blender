@@ -57,7 +57,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "../../bmesh/intern/bmesh_idmap.h"
+#include "bmesh_idmap.h"
 #include "bmesh.h"
 
 using blender::Array;

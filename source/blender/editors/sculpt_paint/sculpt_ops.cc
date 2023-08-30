@@ -85,7 +85,7 @@
 #include "bmesh_log.h"
 #include "bmesh_tools.h"
 
-#include "../../bmesh/intern/bmesh_idmap.h"
+#include "bmesh_idmap.h"
 
 #include <cmath>
 #include <cstdlib>

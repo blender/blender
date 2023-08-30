@@ -164,6 +164,7 @@ set(SRC
   tools/bmesh_wireframe.h
 
   bmesh_class.h
+  bmesh_idmap.h
   bmesh_log.h
 
   # public includes
