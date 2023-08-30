@@ -7399,7 +7399,7 @@ static void rna_def_raytrace_eevee(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "resolution_scale", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, pixel_rate_items);
-  RNA_def_property_ui_text(prop, "Resolution", "Number of ray per pixel");
+  RNA_def_property_ui_text(prop, "Resolution", "Number of rays per pixel");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 

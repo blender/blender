@@ -247,7 +247,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
       prop,
       "Capture World",
       "Bake incoming light from the world, instead of just the visibility, "
-      "for more accurate lighting, but loose correct blending to surrounding irradiance volumes");
+      "for more accurate lighting, but lose correct blending to surrounding irradiance volumes");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, nullptr);
 
   prop = RNA_def_property(srna, "grid_capture_indirect", PROP_BOOLEAN, PROP_NONE);

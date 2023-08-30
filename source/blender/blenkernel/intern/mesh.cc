@@ -19,7 +19,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_bounds.hh"
-#include "BLI_edgehash.h"
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
@@ -30,7 +29,9 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
+#include "BLI_ordered_edge.hh"
 #include "BLI_resource_scope.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_task.hh"
@@ -468,6 +469,7 @@ static bool is_uv_bool_sublayer(const CustomDataLayer &layer)
 static int customdata_compare(
     CustomData *c1, CustomData *c2, const int total_length, Mesh *m1, const float thresh)
 {
+  using namespace blender;
   CustomDataLayer *l1, *l2;
   int layer_count1 = 0, layer_count2 = 0, j;
   const uint64_t cd_mask_non_generic = CD_MASK_MDEFORMVERT;
@@ -535,18 +537,17 @@ static int customdata_compare(
 
           if (StringRef(l1->name) == ".edge_verts") {
             int etot = m1->totedge;
-            EdgeHash *eh = BLI_edgehash_new_ex(__func__, etot);
-
-            for (j = 0; j < etot; j++, e1++) {
-              BLI_edgehash_insert(eh, (*e1)[0], (*e1)[1], e1);
+            Set<OrderedEdge> ordered_edges;
+            ordered_edges.reserve(etot);
+            for (const int2 value : Span(e1, etot)) {
+              ordered_edges.add(value);
             }
 
-            for (j = 0; j < etot; j++, e2++) {
-              if (!BLI_edgehash_lookup(eh, (*e2)[0], (*e2)[1])) {
+            for (j = 0; j < etot; j++) {
+              if (!ordered_edges.contains(e2[j])) {
                 return MESHCMP_EDGEUNKNOWN;
               }
             }
-            BLI_edgehash_free(eh, nullptr);
           }
           else {
             for (j = 0; j < total_length; j++) {

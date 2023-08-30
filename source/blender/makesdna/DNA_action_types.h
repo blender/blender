@@ -13,6 +13,7 @@
 #pragma once
 
 #include "DNA_ID.h"
+#include "DNA_armature_types.h"
 #include "DNA_listBase.h"
 #include "DNA_session_uuid_types.h"
 #include "DNA_userdef_types.h" /* ThemeWireColor */
@@ -351,6 +352,8 @@ typedef struct bPoseChannel {
 
   /** Points to an original pose channel. */
   struct bPoseChannel *orig_pchan;
+
+  BoneColor color; /* MUST be named the same as in Bone and EditBone structs. */
 
   /** Runtime data (keep last). */
   struct bPoseChannel_Runtime runtime;

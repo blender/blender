@@ -1273,7 +1273,8 @@ float4 utility_tx_sample_lut(sampler2DArray util_tx, float2 uv, float layer)
 /* Sample LTC or BSDF LUTs with `cos_theta` and `roughness` as inputs. */
 float4 utility_tx_sample_lut(sampler2DArray util_tx, float cos_theta, float roughness, float layer)
 {
-  /* LUTs are parametrized by `sqrt(1.0 - cos_theta)` for more precision near grazing incidence. */
+  /* LUTs are parameterized by `sqrt(1.0 - cos_theta)` for more precision near grazing incidence.
+   */
   vec2 coords = vec2(roughness, sqrt(saturate(1.0 - cos_theta)));
   return utility_tx_sample_lut(util_tx, coords, layer);
 }

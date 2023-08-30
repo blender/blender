@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
+#include "BLI_ordered_edge.hh"
 
 #include "pbvh_uv_islands.hh"
 
@@ -107,7 +109,8 @@ static rctf primitive_uv_bounds(const MLoopTri &looptri, const Span<float2> uv_m
 static void mesh_data_init_edges(MeshData &mesh_data)
 {
   mesh_data.edges.reserve(mesh_data.looptris.size() * 2);
-  EdgeHash *eh = BLI_edgehash_new_ex(__func__, mesh_data.looptris.size() * 3);
+  Map<OrderedEdge, int> eh;
+  eh.reserve(mesh_data.looptris.size() * 3);
   for (int64_t i = 0; i < mesh_data.looptris.size(); i++) {
     const MLoopTri &tri = mesh_data.looptris[i];
     Vector<int, 3> edges;
@@ -115,21 +118,19 @@ static void mesh_data_init_edges(MeshData &mesh_data)
       int v1 = mesh_data.corner_verts[tri.tri[j]];
       int v2 = mesh_data.corner_verts[tri.tri[(j + 1) % 3]];
 
-      void **edge_index_ptr;
       int64_t edge_index;
-      if (BLI_edgehash_ensure_p(eh, v1, v2, &edge_index_ptr)) {
-        edge_index = POINTER_AS_INT(*edge_index_ptr) - 1;
-        *edge_index_ptr = POINTER_FROM_INT(edge_index);
-      }
-      else {
-        edge_index = mesh_data.edges.size();
-        *edge_index_ptr = POINTER_FROM_INT(edge_index + 1);
-        MeshEdge edge;
-        edge.vert1 = v1;
-        edge.vert2 = v2;
-        mesh_data.edges.append(edge);
-        mesh_data.vert_to_edge_map.add(edge_index, v1, v2);
-      }
+      eh.add_or_modify(
+          {v1, v2},
+          [&](int *value) {
+            edge_index = mesh_data.edges.size();
+            *value = edge_index + 1;
+            mesh_data.edges.append({v1, v2});
+            mesh_data.vert_to_edge_map.add(edge_index, v1, v2);
+          },
+          [&](int *value) {
+            edge_index = *value - 1;
+            *value = edge_index;
+          });
 
       edges.append(edge_index);
     }
@@ -142,8 +143,6 @@ static void mesh_data_init_edges(MeshData &mesh_data)
       mesh_data.edge_to_primitive_map.add(prim_i, edge_i);
     }
   }
-
-  BLI_edgehash_free(eh, nullptr);
 }
 static constexpr int INVALID_UV_ISLAND_ID = -1;
 /**

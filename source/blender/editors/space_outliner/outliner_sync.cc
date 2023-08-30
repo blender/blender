@@ -35,6 +35,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ANIM_bone_collections.h"
+
 #include "tree/tree_element_seq.hh"
 
 #include "outliner_intern.hh"

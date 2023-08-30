@@ -27,6 +27,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.hh"
@@ -1131,6 +1132,44 @@ bool UI_context_copy_to_selected_list(bContext *C,
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Bone)) {
     ui_context_selected_bones_via_pose(C, r_lb);
+  }
+  else if (RNA_struct_is_a(ptr->type, &RNA_BoneColor)) {
+    /* Get the things that own the bone color (bones, pose bones, or edit bones). */
+    ListBase list_of_things = {}; /* First this will be bones, then gets remapped to colors. */
+    switch (GS(ptr->owner_id->name)) {
+      case ID_OB:
+        list_of_things = CTX_data_collection_get(C, "selected_pose_bones");
+        break;
+      case ID_AR: {
+        /* Armature-owned bones can be accessed from both edit mode and pose mode.
+         * - Edit mode: visit selected edit bones.
+         * - Pose mode: visit the armature bones of selected pose bones.
+         */
+        const bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
+        if (arm->edbo) {
+          list_of_things = CTX_data_collection_get(C, "selected_editable_bones");
+        }
+        else {
+          list_of_things = CTX_data_collection_get(C, "selected_pose_bones");
+          CTX_data_collection_remap_property(list_of_things, "bone");
+        }
+        break;
+      }
+      default:
+        printf("BoneColor is unexpectedly owned by %s '%s'\n",
+               BKE_idtype_idcode_to_name(GS(ptr->owner_id->name)),
+               ptr->owner_id->name + 2);
+        BLI_assert(!"expected BoneColor to be owned by the Armature (bone & edit bone) or the Object (pose bone)");
+        return false;
+    }
+
+    /* Remap from some bone to its color, to ensure the items of r_lb are of
+     * type ptr->type. Since all three structs `bPoseChan`, `Bone`, and
+     * `EditBone` have the same name for their embedded `BoneColor` struct, this
+     * code is suitable for all of them. */
+    CTX_data_collection_remap_property(list_of_things, "color");
+
+    *r_lb = list_of_things;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
     /* Special case when we do this for 'Sequence.lock'.

@@ -221,17 +221,8 @@ FCurve *ED_action_fcurve_ensure(Main *bmain,
 
         /* sync bone group colors if applicable */
         if (ptr && (ptr->type == &RNA_PoseBone)) {
-          Object *ob = (Object *)ptr->owner_id;
           bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
-          bPose *pose = ob->pose;
-          bActionGroup *grp;
-
-          /* find bone group (if present), and use the color from that */
-          grp = (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
-          if (grp) {
-            agrp->customCol = grp->customCol;
-            action_group_colors_sync(agrp, grp);
-          }
+          action_group_colors_set_from_posebone(agrp, pchan);
         }
       }
 

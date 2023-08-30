@@ -8,6 +8,7 @@
 #pragma once
 
 #include "BKE_global.h"
+#include "BLI_compiler_attrs.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
 
@@ -78,6 +79,7 @@ void pop_marker(VkCommandBuffer vk_command_buffer);
 void push_marker(const VKDevice &device, const char *name);
 void set_marker(const VKDevice &device, const char *name);
 void pop_marker(const VKDevice &device);
+
 /**
  * How to use:
  * \code{.cc}
@@ -88,6 +90,6 @@ void pop_marker(const VKDevice &device);
 void raise_message(int32_t id_number,
                    VkDebugUtilsMessageSeverityFlagBitsEXT vk_severity_flag_bits,
                    const char *fmt,
-                   ...);
+                   ...) ATTR_PRINTF_FORMAT(3, 4);
 }  // namespace debug
 }  // namespace blender::gpu

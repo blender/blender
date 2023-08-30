@@ -4296,6 +4296,7 @@ def km_3d_view_tool_edit_gpencil_select(params):
         {"items": _template_items_tool_select(params, "gpencil.select", extend="toggle")},
     )
 
+
 def km_sequencer_editor_tool_generic_select(params):
     return (
         "Sequencer Tool: Tweak",
@@ -4304,6 +4305,8 @@ def km_sequencer_editor_tool_generic_select(params):
     )
 
 # NOTE: duplicated from `blender_default.py`.
+
+
 def _template_node_select(*, type, value, select_passthrough):
     items = [
         ("node.select", {"type": type, "value": value},

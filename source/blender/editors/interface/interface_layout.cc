@@ -549,23 +549,6 @@ static void ui_item_array(uiLayout *layout,
     const int butw = UI_UNIT_X * 0.75;
     const int buth = UI_UNIT_X * 0.75;
 
-    if (ptr->type == &RNA_Armature) {
-      bArmature *arm = static_cast<bArmature *>(ptr->data);
-
-      layer_used = arm->layer_used;
-
-      if (arm->edbo) {
-        if (arm->act_edbone) {
-          layer_active |= arm->act_edbone->layer;
-        }
-      }
-      else {
-        if (arm->act_bone) {
-          layer_active |= arm->act_bone->layer;
-        }
-      }
-    }
-
     for (int b = 0; b < cols; b++) {
       UI_block_align_begin(block);
 

@@ -270,6 +270,7 @@ class ExtendBuilder : public SocketDeclarationBuilder<Extend> {
 class Custom : public SocketDeclaration {
  public:
   const char *idname_;
+  std::function<void(bNode &node, bNodeSocket &socket, const char *data_path)> init_socket_fn;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;

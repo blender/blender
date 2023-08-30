@@ -20,7 +20,6 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_edgehash.h"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_span.hh"

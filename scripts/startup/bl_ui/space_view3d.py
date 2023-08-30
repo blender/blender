@@ -3815,7 +3815,7 @@ class VIEW3D_MT_pose(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_pose_motion")
-        layout.menu("VIEW3D_MT_pose_group")
+        layout.menu("VIEW3D_MT_bone_collections")
 
         layout.separator()
 
@@ -3900,26 +3900,35 @@ class VIEW3D_MT_pose_motion(Menu):
         layout.operator("pose.paths_clear", text="Clear")
 
 
-class VIEW3D_MT_pose_group(Menu):
-    bl_label = "Bone Groups"
+class VIEW3D_MT_bone_collections(Menu):
+    bl_label = "Bone Collections"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object and context.active_object.type == 'ARMATURE'
 
     def draw(self, context):
         layout = self.layout
 
-        pose = context.active_object.pose
+        props = layout.operator("armature.collection_assign",
+                                text="Assign to New Collection")
+        props.name = "New Collection"
 
-        layout.operator_context = 'EXEC_AREA'
-        layout.operator("pose.group_assign", text="Assign to New Group").type = 0
+        arm = context.active_object.data
+        if not arm.collections.active:
+            return
 
-        if pose.bone_groups:
-            active_group = pose.bone_groups.active_index + 1
-            layout.operator("pose.group_assign", text="Assign to Group").type = active_group
+        layout.separator()
 
-            layout.separator()
+        layout.operator("armature.collection_assign",
+                        text="Assign to '%s'" % arm.collections.active.name)
+        layout.operator("armature.collection_unassign",
+                        text="Unassign from '%s'" % arm.collections.active.name)
 
-            # layout.operator_context = 'INVOKE_AREA'
-            layout.operator("pose.group_unassign")
-            layout.operator("pose.group_remove")
+        layout.separator()
+
+        layout.operator("armature.collection_remove",
+                        text="Remove Collection '%s'" % arm.collections.active.name)
 
 
 class VIEW3D_MT_pose_ik(Menu):
@@ -8438,7 +8447,7 @@ classes = (
     VIEW3D_MT_pose_slide,
     VIEW3D_MT_pose_propagate,
     VIEW3D_MT_pose_motion,
-    VIEW3D_MT_pose_group,
+    VIEW3D_MT_bone_collections,
     VIEW3D_MT_pose_ik,
     VIEW3D_MT_pose_constraints,
     VIEW3D_MT_pose_names,

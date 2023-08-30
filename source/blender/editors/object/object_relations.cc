@@ -70,6 +70,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
+#include "BKE_node_tree_interface.hh"
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
@@ -571,8 +573,8 @@ bool ED_object_parent_set(ReportList *reports,
     }
     case PAR_BONE:
     case PAR_BONE_RELATIVE:
-      pchan = BKE_pose_channel_active_if_layer_visible(par);
-      pchan_eval = BKE_pose_channel_active_if_layer_visible(parent_eval);
+      pchan = BKE_pose_channel_active_if_bonecoll_visible(par);
+      pchan_eval = BKE_pose_channel_active_if_bonecoll_visible(parent_eval);
 
       if (pchan == nullptr || pchan_eval == nullptr) {
         /* If pchan_eval is nullptr, pchan should also be nullptr. */
@@ -2964,23 +2966,32 @@ char *ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
 
 static bool check_geometry_node_group_sockets(wmOperator *op, const bNodeTree *tree)
 {
-  const bNodeSocket *first_input = (const bNodeSocket *)tree->inputs.first;
-  if (!first_input) {
-    BKE_report(op->reports, RPT_ERROR, "The node group must have a geometry input socket");
-    return false;
+  tree->ensure_topology_cache();
+  if (!tree->interface_inputs().is_empty()) {
+    const bNodeTreeInterfaceSocket *first_input = tree->interface_inputs()[0];
+    if (!first_input) {
+      BKE_report(op->reports, RPT_ERROR, "The node group must have a geometry input socket");
+      return false;
+    }
+    const bNodeSocketType *typeinfo = first_input->socket_typeinfo();
+    const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+    if (type != SOCK_GEOMETRY) {
+      BKE_report(op->reports, RPT_ERROR, "The first input must be a geometry socket");
+      return false;
+    }
   }
-  if (first_input->type != SOCK_GEOMETRY) {
-    BKE_report(op->reports, RPT_ERROR, "The first input must be a geometry socket");
-    return false;
-  }
-  const bNodeSocket *first_output = (const bNodeSocket *)tree->outputs.first;
-  if (!first_output) {
-    BKE_report(op->reports, RPT_ERROR, "The node group must have a geometry output socket");
-    return false;
-  }
-  if (first_output->type != SOCK_GEOMETRY) {
-    BKE_report(op->reports, RPT_ERROR, "The first output must be a geometry socket");
-    return false;
+  if (!tree->interface_outputs().is_empty()) {
+    const bNodeTreeInterfaceSocket *first_output = tree->interface_outputs()[0];
+    if (!first_output) {
+      BKE_report(op->reports, RPT_ERROR, "The node group must have a geometry output socket");
+      return false;
+    }
+    const bNodeSocketType *typeinfo = first_output->socket_typeinfo();
+    const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+    if (type != SOCK_GEOMETRY) {
+      BKE_report(op->reports, RPT_ERROR, "The first output must be a geometry socket");
+      return false;
+    }
   }
   return true;
 }

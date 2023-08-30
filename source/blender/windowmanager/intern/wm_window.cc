@@ -8,10 +8,12 @@
  * Window management, wrap GHOST.
  */
 
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <thread>
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
@@ -160,7 +162,7 @@ enum ModSide {
  * \{ */
 
 static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate);
-static bool wm_window_timers_process(const bContext *C, int *sleep_ms);
+static bool wm_window_timers_process(const bContext *C, int *sleep_us);
 static uint8_t wm_ghost_modifier_query(const enum ModSide side);
 
 void wm_get_screensize(int *r_width, int *r_height)
@@ -1588,17 +1590,17 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
  * - Timer handlers should check for delta to decide if they just update, or follow real time.
  * - Timer handlers can also set duration to match frames passed.
  *
- * \param sleep_ms_p: The number of milliseconds to sleep which may be reduced by this function
+ * \param sleep_us_p: The number of microseconds to sleep which may be reduced by this function
  * to account for timers that would run during the anticipated sleep period.
  */
-static bool wm_window_timers_process(const bContext *C, int *sleep_ms_p)
+static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   const double time = PIL_check_seconds_timer();
   bool has_event = false;
 
-  const int sleep_ms = *sleep_ms_p;
+  const int sleep_us = *sleep_us_p;
   /* The nearest time an active timer is scheduled to run.  */
   double ntime_min = DBL_MAX;
 
@@ -1607,66 +1609,66 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_ms_p)
     if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
-    wmWindow *win = wt->win;
-
-    if (wt->sleep != 0) {
+    if (wt->sleep == true) {
       continue;
     }
 
-    if (time > wt->ntime) {
-      wt->delta = time - wt->ltime;
-      wt->duration += wt->delta;
-      wt->ltime = time;
-
-      wt->ntime = wt->stime;
-      if (wt->timestep != 0.0f) {
-        wt->ntime += wt->timestep * ceil(wt->duration / wt->timestep);
-      }
-
-      if (wt->event_type == TIMERJOBS) {
-        wm_jobs_timer(wm, wt);
-      }
-      else if (wt->event_type == TIMERAUTOSAVE) {
-        wm_autosave_timer(bmain, wm, wt);
-      }
-      else if (wt->event_type == TIMERNOTIFIER) {
-        WM_main_add_notifier(POINTER_AS_UINT(wt->customdata), nullptr);
-      }
-      else if (win) {
-        wmEvent event;
-        wm_event_init_from_window(win, &event);
-
-        event.type = wt->event_type;
-        event.val = KM_NOTHING;
-        event.keymodifier = 0;
-        event.flag = eWM_EventFlag(0);
-        event.custom = EVT_DATA_TIMER;
-        event.customdata = wt;
-        wm_event_add(win, &event);
-
-        has_event = true;
-      }
-    }
-    else {
-      if ((has_event == false) && (sleep_ms != 0)) {
+    /* Future timer, update nearest time & skip. */
+    if (wt->ntime >= time) {
+      if ((has_event == false) && (sleep_us != 0)) {
         /* The timer is not ready to run but may run shortly. */
         if (wt->ntime < ntime_min) {
           ntime_min = wt->ntime;
         }
       }
+      continue;
+    }
+
+    wt->delta = time - wt->ltime;
+    wt->duration += wt->delta;
+    wt->ltime = time;
+
+    wt->ntime = wt->stime;
+    if (wt->timestep != 0.0f) {
+      wt->ntime += wt->timestep * ceil(wt->duration / wt->timestep);
+    }
+
+    if (wt->event_type == TIMERJOBS) {
+      wm_jobs_timer(wm, wt);
+    }
+    else if (wt->event_type == TIMERAUTOSAVE) {
+      wm_autosave_timer(bmain, wm, wt);
+    }
+    else if (wt->event_type == TIMERNOTIFIER) {
+      WM_main_add_notifier(POINTER_AS_UINT(wt->customdata), nullptr);
+    }
+    else if (wmWindow *win = wt->win) {
+      wmEvent event;
+      wm_event_init_from_window(win, &event);
+
+      event.type = wt->event_type;
+      event.val = KM_NOTHING;
+      event.keymodifier = 0;
+      event.flag = eWM_EventFlag(0);
+      event.custom = EVT_DATA_TIMER;
+      event.customdata = wt;
+      wm_event_add(win, &event);
+
+      has_event = true;
     }
   }
 
-  if ((has_event == false) && (sleep_ms != 0) && (ntime_min != DBL_MAX)) {
+  if ((has_event == false) && (sleep_us != 0) && (ntime_min != DBL_MAX)) {
     /* Clamp the sleep time so next execution runs earlier (if necessary).
      * Use `ceil` so the timer is guarantee to be ready to run (not always the case with rounding).
      * Even though using `floor` or `round` is more responsive,
      * it causes CPU intensive loops that may run until the timer is reached, see: #111579. */
-    const double sleep_sec = (double(sleep_ms) / 1000.0);
+    const double microseconds = 1000000.0;
+    const double sleep_sec = (double(sleep_us) / microseconds);
     const double sleep_sec_next = ntime_min - time;
 
     if (sleep_sec_next < sleep_sec) {
-      *sleep_ms_p = int(std::ceil(sleep_sec_next * 1000.0f));
+      *sleep_us_p = int(std::ceil(sleep_sec_next * microseconds));
     }
   }
 
@@ -1688,8 +1690,9 @@ void wm_window_events_process(const bContext *C)
   }
 
   /* When there is no event, sleep 5 milliseconds not to use too much CPU when idle. */
-  int sleep_ms = has_event ? 0 : 5;
-  has_event |= wm_window_timers_process(C, &sleep_ms);
+  const int sleep_us_default = 5000;
+  int sleep_us = has_event ? 0 : sleep_us_default;
+  has_event |= wm_window_timers_process(C, &sleep_us);
 #ifdef WITH_XR_OPENXR
   /* XR events don't use the regular window queues. So here we don't only trigger
    * processing/dispatching but also handling. */
@@ -1699,8 +1702,22 @@ void wm_window_events_process(const bContext *C)
 
   /* Skip sleeping when simulating events so tests don't idle unnecessarily as simulated
    * events are typically generated from a timer that runs in the main loop. */
-  if ((has_event == false) && (sleep_ms != 0) && !(G.f & G_FLAG_EVENT_SIMULATE)) {
-    PIL_sleep_ms(sleep_ms);
+  if ((has_event == false) && (sleep_us != 0) && !(G.f & G_FLAG_EVENT_SIMULATE)) {
+    if (sleep_us == sleep_us_default) {
+      /* NOTE(@ideasman42): prefer #PIL_sleep_ms over `sleep_for(..)` in the common case
+       * because this function uses lower resolution (millisecond) resolution sleep timers
+       * which are tried & true for the idle loop. We could move to C++ `sleep_for(..)`
+       * if this works well on all platforms but this needs further testing. */
+      PIL_sleep_ms(sleep_us_default / 1000);
+    }
+    else {
+      /* The time was shortened to resume for the upcoming timer, use a high resolution sleep.
+       * Mainly happens during animation playback but could happen immediately before any timer.
+       *
+       * NOTE(@ideasman42): At time of writing Windows-10-22H2 doesn't give higher precision sleep.
+       * Keep the functionality as it doesn't have noticeable down sides either. */
+      std::this_thread::sleep_for(std::chrono::microseconds(sleep_us));
+    }
   }
 }
 
@@ -1932,15 +1949,16 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
 
 void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *timer, bool do_sleep)
 {
-  LISTBASE_FOREACH (wmTimer *, wt, &wm->timers) {
-    if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
-      continue;
-    }
-    if (wt == timer) {
-      wt->sleep = do_sleep;
-      break;
-    }
+  /* Extra security check. */
+  if (BLI_findindex(&wm->timers, timer) == -1) {
+    return;
   }
+  /* It's disputable if this is needed, when tagged for removal,
+   * the sleep value won't be used anyway. */
+  if (timer->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
+    return;
+  }
+  timer->sleep = do_sleep;
 }
 
 wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double timestep)

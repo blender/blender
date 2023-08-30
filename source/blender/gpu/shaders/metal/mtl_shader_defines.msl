@@ -1014,7 +1014,8 @@ inline float2x2 operator-(float2x2 a)
 
 /* SSBO Vertex Fetch Mode. */
 #ifdef MTL_SSBO_VERTEX_FETCH
-/* Enabled when geometry is passed via raw buffer bindings, rather than using
+/**
+ * Enabled when geometry is passed via raw buffer bindings, rather than using
  * vertex assembly in the vertex-descriptor.
  *
  *  To describe the layout of input attribute data, we will generate uniforms (defaulting to 0)
@@ -1101,13 +1102,13 @@ inline float degrees(float rad)
 
 #define select(A, B, C) mix(A, B, C)
 
-/* Type conversions and type truncations. */
+/* Type conversions and type truncation. */
 inline float4 to_float4(float3 val)
 {
   return float4(val, 1.0);
 }
 
-/* Type conversions and type truncations (Utility Functions). */
+/* Type conversions and type truncation (Utility Functions). */
 inline float3x3 mat4_to_mat3(float4x4 matrix)
 {
   return float3x3(matrix[0].xyz, matrix[1].xyz, matrix[2].xyz);

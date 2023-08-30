@@ -15,6 +15,7 @@
 #include "bpy_app_timers.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_compat.h"
 #include "../generic/python_utildefines.h"
 
 static double handle_returned_value(PyObject *function, PyObject *ret)
@@ -96,6 +97,7 @@ static PyObject *bpy_app_timers_register(PyObject * /*self*/, PyObject *args, Py
 
   static const char *_keywords[] = {"function", "first_interval", "persistent", nullptr};
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "O"  /* `function` */
       "|$" /* Optional keyword only arguments. */
       "d"  /* `first_interval` */

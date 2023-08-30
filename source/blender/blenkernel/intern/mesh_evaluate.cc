@@ -19,7 +19,6 @@
 #include "BLI_alloca.h"
 #include "BLI_array_utils.hh"
 #include "BLI_bitmap.h"
-#include "BLI_edgehash.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_geom.h"
 #include "BLI_span.hh"

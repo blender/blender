@@ -109,16 +109,15 @@ void FrameBuffer::attachment_set(GPUAttachmentType type, const GPUAttachment &ne
     reinterpret_cast<Texture *>(attachment.tex)->detach_from(this);
   }
 
-  attachment = new_attachment;
-
   /* Might be null if this is for unbinding. */
-  if (attachment.tex) {
-    reinterpret_cast<Texture *>(attachment.tex)->attach_to(this, type);
+  if (new_attachment.tex) {
+    reinterpret_cast<Texture *>(new_attachment.tex)->attach_to(this, type);
   }
   else {
     /* GPU_ATTACHMENT_NONE */
   }
 
+  attachment = new_attachment;
   dirty_attachments_ = true;
 }
 

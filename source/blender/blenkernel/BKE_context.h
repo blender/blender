@@ -262,6 +262,21 @@ PointerRNA CTX_data_pointer_get_type_silent(const bContext *C,
                                             const char *member,
                                             StructRNA *type);
 ListBase CTX_data_collection_get(const bContext *C, const char *member);
+
+/**
+ * For each pointer in collection_pointers, remap it to point to `ptr->propname`.
+ *
+ * Example:
+ *
+ *   lb = CTX_data_collection_get(C, "selected_pose_bones"); // lb contains pose bones.
+ *   CTX_data_collection_remap_property(lb, "color");        // lb now contains bone colors.
+ *
+ * NOTE: this alters the items contained in the given listbase.
+ * It does not change the listbase itself.
+ */
+void CTX_data_collection_remap_property(ListBase /*CollectionPointerLink*/ collection_pointers,
+                                        const char *propname);
+
 /**
  * \param C: Context.
  * \param use_store: Use 'C->wm.store'.

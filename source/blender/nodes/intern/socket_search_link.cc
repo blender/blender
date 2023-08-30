@@ -94,7 +94,7 @@ void LinkSearchOpParams::update_and_connect_available_socket(bNode &new_node,
 }
 
 void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
-                                      Span<SocketDeclarationPtr> declarations)
+                                      Span<SocketDeclaration *> declarations)
 {
   const bNodeType &node_type = params.node_type();
 

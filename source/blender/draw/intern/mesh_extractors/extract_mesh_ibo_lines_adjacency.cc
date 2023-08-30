@@ -6,7 +6,8 @@
  * \ingroup draw
  */
 
-#include "BLI_edgehash.h"
+#include "BLI_map.hh"
+#include "BLI_ordered_edge.hh"
 #include "BLI_vector.hh"
 
 #include "MEM_guardedalloc.h"
@@ -24,7 +25,7 @@ namespace blender::draw {
 
 struct MeshExtract_LineAdjacency_Data {
   GPUIndexBufBuilder elb;
-  EdgeHash *eh;
+  Map<OrderedEdge, int> *eh;
   bool is_manifold;
   /* Array to convert vert index to any loop index of this vert. */
   uint *vert_to_loop;
@@ -38,7 +39,8 @@ static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data *data,
   data->vert_to_loop = static_cast<uint *>(MEM_callocN(sizeof(uint) * vert_len, __func__));
 
   GPU_indexbuf_init(&data->elb, GPU_PRIM_LINES_ADJ, tess_edge_len, loop_len);
-  data->eh = BLI_edgehash_new_ex(__func__, tess_edge_len);
+  data->eh = new Map<OrderedEdge, int>();
+  data->eh->reserve(tess_edge_len);
   data->is_manifold = true;
 }
 
@@ -66,34 +68,41 @@ BLI_INLINE void lines_adjacency_triangle(
     SHIFT3(uint, l3, l2, l1);
 
     bool inv_indices = (v2 > v3);
-    void **pval;
-    bool value_is_init = BLI_edgehash_ensure_p(data->eh, v2, v3, &pval);
-    int v_data = POINTER_AS_INT(*pval);
-    if (!value_is_init || v_data == NO_EDGE) {
-      /* Save the winding order inside the sign bit. Because the
-       * Edge-hash sort the keys and we need to compare winding later. */
-      int value = int(l1) + 1; /* 0 cannot be signed so add one. */
-      *pval = POINTER_FROM_INT((inv_indices) ? -value : value);
-      /* Store loop indices for remaining non-manifold edges. */
-      data->vert_to_loop[v2] = l2;
-      data->vert_to_loop[v3] = l3;
-    }
-    else {
-      /* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
-      *pval = POINTER_FROM_INT(NO_EDGE);
-      bool inv_opposite = (v_data < 0);
-      uint l_opposite = uint(abs(v_data)) - 1;
-      /* TODO: Make this part thread-safe. */
-      if (inv_opposite == inv_indices) {
-        /* Don't share edge if triangles have non matching winding. */
-        GPU_indexbuf_add_line_adj_verts(elb, l1, l2, l3, l1);
-        GPU_indexbuf_add_line_adj_verts(elb, l_opposite, l2, l3, l_opposite);
-        data->is_manifold = false;
-      }
-      else {
-        GPU_indexbuf_add_line_adj_verts(elb, l1, l2, l3, l_opposite);
-      }
-    }
+    data->eh->add_or_modify(
+        {v2, v3},
+        [&](int *value) {
+          int new_value = int(l1) + 1; /* 0 cannot be signed so add one. */
+          *value = inv_indices ? -new_value : new_value;
+          /* Store loop indices for remaining non-manifold edges. */
+          data->vert_to_loop[v2] = l2;
+          data->vert_to_loop[v3] = l3;
+        },
+        [&](int *value) {
+          int v_data = *value;
+          if (v_data == NO_EDGE) {
+            int new_value = int(l1) + 1; /* 0 cannot be signed so add one. */
+            *value = inv_indices ? -new_value : new_value;
+            /* Store loop indices for remaining non-manifold edges. */
+            data->vert_to_loop[v2] = l2;
+            data->vert_to_loop[v3] = l3;
+          }
+          else {
+            /* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
+            *value = NO_EDGE;
+            bool inv_opposite = (v_data < 0);
+            uint l_opposite = uint(abs(v_data)) - 1;
+            /* TODO: Make this part thread-safe. */
+            if (inv_opposite == inv_indices) {
+              /* Don't share edge if triangles have non matching winding. */
+              GPU_indexbuf_add_line_adj_verts(elb, l1, l2, l3, l1);
+              GPU_indexbuf_add_line_adj_verts(elb, l_opposite, l2, l3, l_opposite);
+              data->is_manifold = false;
+            }
+            else {
+              GPU_indexbuf_add_line_adj_verts(elb, l1, l2, l3, l_opposite);
+            }
+          }
+        });
   }
 }
 
@@ -142,24 +151,25 @@ static void extract_lines_adjacency_finish(const MeshRenderData & /*mr*/,
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
   /* Create edges for remaining non manifold edges. */
-  EdgeHashIterator *ehi = BLI_edgehashIterator_new(data->eh);
-  for (; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-    int v2, v3, l1, l2, l3;
-    int v_data = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
-    if (v_data != NO_EDGE) {
-      BLI_edgehashIterator_getKey(ehi, &v2, &v3);
-      l1 = uint(abs(v_data)) - 1;
-      if (v_data < 0) { /* `inv_opposite`. */
-        std::swap(v2, v3);
-      }
-      l2 = data->vert_to_loop[v2];
-      l3 = data->vert_to_loop[v3];
-      GPU_indexbuf_add_line_adj_verts(&data->elb, l1, l2, l3, l1);
-      data->is_manifold = false;
+  for (const auto item : data->eh->items()) {
+    int v_data = item.value;
+    if (v_data == NO_EDGE) {
+      continue;
     }
+
+    int v2 = item.key.v_low;
+    int v3 = item.key.v_high;
+
+    int l1 = uint(abs(v_data)) - 1;
+    if (v_data < 0) { /* `inv_opposite`. */
+      std::swap(v2, v3);
+    }
+    int l2 = data->vert_to_loop[v2];
+    int l3 = data->vert_to_loop[v3];
+    GPU_indexbuf_add_line_adj_verts(&data->elb, l1, l2, l3, l1);
+    data->is_manifold = false;
   }
-  BLI_edgehashIterator_free(ehi);
-  BLI_edgehash_free(data->eh, nullptr);
+  delete data->eh;
 
   cache.is_manifold = data->is_manifold;
 

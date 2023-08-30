@@ -43,6 +43,8 @@
 
 #include "GPU_select.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "armature_intern.h"
 
 /* utility macros for storing a temp int in the bone (selection flag) */

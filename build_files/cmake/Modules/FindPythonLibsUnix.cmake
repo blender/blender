@@ -184,24 +184,43 @@ unset(_IS_LIB_PATH_DEF)
 # handle the QUIETLY and REQUIRED arguments and SET PYTHONLIBSUNIX_FOUND to TRUE IF
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(PythonLibsUnix
-  # NOTE(@ideasman42): Instead of `DEFAULT_MSG` use a custom message because users
-  # may have newer versions Python and not be using pre-compiled libraries
-  # (on other UNIX systems or using an esoteric architecture).
-  # Some Python developers might want to use the newer features of Python too.
-  # While we could automatically detect and use newer versions but this would result in
-  # developers using a configuration which isn't officially supported without realizing it.
-  # So warn that the officially supported Python version is not found and let the developer
-  # explicitly set the newer version if they wish.
-  # From a maintenance perspective it's typically not a problem to support newer versions,
-  # doing so can help ease the process of upgrading too, nevertheless these versions don't
-  # have the same level of testing & support.
-  "\
+
+# NOTE(@ideasman42): Instead of `DEFAULT_MSG` use a custom message because users
+# may have newer versions Python and not be using pre-compiled libraries
+# (on other UNIX systems or using an esoteric architecture).
+# Some Python developers might want to use the newer features of Python too.
+# While we could automatically detect and use newer versions but this would result in
+# developers using a configuration which isn't officially supported without realizing it.
+# So warn that the officially supported Python version is not found and let the developer
+# explicitly set the newer version if they wish.
+# From a maintenance perspective it's typically not a problem to support newer versions,
+# doing so can help ease the process of upgrading too, nevertheless these versions don't
+# have the same level of testing & support.
+if(${_PYTHON_VERSION_SUPPORTED} STREQUAL ${PYTHON_VERSION})
+  # Default version.
+  set(_python_MISSING_MSG
+    "\
 'PYTHON_VERSION=${_PYTHON_VERSION_SUPPORTED}' not found! \
 This is the only officially supported version. \
 If you wish to use a newer Python version you may set 'PYTHON_VERSION' \
 however we do not guarantee full compatibility in this case."
+  )
+else()
+  # Default version overridden, use a different message.
+  set(_python_MISSING_MSG
+    "\
+'PYTHON_VERSION=${PYTHON_VERSION}' not found! \
+This is *not* the officially supported version. \
+Either configure 'PYTHON_ROOT_DIR' to point to the Python installation \
+or use the officially supported version ('${_PYTHON_VERSION_SUPPORTED}') \
+which may have pre-compiled binaries for your platform."
+  )
+endif()
+
+find_package_handle_standard_args(PythonLibsUnix
+  "${_python_MISSING_MSG}"
   PYTHON_LIBRARY PYTHON_LIBPATH PYTHON_INCLUDE_DIR PYTHON_INCLUDE_CONFIG_DIR)
+unset(_python_MISSING_MSG)
 
 if(PYTHONLIBSUNIX_FOUND)
   # Assign cache items

@@ -20,6 +20,8 @@
 
 #include "BKE_text.h"
 
+#include "../generic/python_compat.h"
+
 #include "bpy_capi_utils.h"
 #include "bpy_rna.h"
 #include "bpy_rna_text.h"
@@ -66,6 +68,7 @@ static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObje
 
   static const char *_keywords[] = {"range", nullptr};
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "|$"         /* Optional keyword only arguments. */
       "((ii)(ii))" /* `range` */
       ":region_as_string",
@@ -133,6 +136,7 @@ static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyOb
 
   static const char *_keywords[] = {"", "range", nullptr};
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "s#"         /* `buf` (positional). */
       "|$"         /* Optional keyword only arguments. */
       "((ii)(ii))" /* `range` */

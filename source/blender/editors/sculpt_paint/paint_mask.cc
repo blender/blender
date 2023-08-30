@@ -775,7 +775,7 @@ static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
 
 static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *sgcontext)
 {
-  BKE_pbvh_update_vertex_data(sgcontext->ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(sgcontext->ss->pbvh);
 }
 
 static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcontext,

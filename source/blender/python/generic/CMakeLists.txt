@@ -37,6 +37,7 @@ set(SRC
 
   # header-only
   python_utildefines.h
+  python_compat.h
 )
 
 set(LIB

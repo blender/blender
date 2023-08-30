@@ -171,7 +171,8 @@ static Array<float> calculate_point_parameters(const bke::CurvesGeometry &curves
 
 class CurveParameterFieldInput final : public bke::CurvesFieldInput {
  public:
-  CurveParameterFieldInput() : bke::CurvesFieldInput(CPPType::get<float>(), "Curve Parameter node")
+  CurveParameterFieldInput()
+      : bke::CurvesFieldInput(CPPType::get<float>(), "Spline Parameter node")
   {
     category_ = Category::Generated;
   }

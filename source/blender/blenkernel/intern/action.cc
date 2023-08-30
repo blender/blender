@@ -62,6 +62,9 @@
 
 #include "BLO_read_write.hh"
 
+#include "ANIM_bone_collections.h"
+#include "ANIM_bonecolor.hh"
+
 #include "CLG_log.h"
 
 static CLG_LogRef LOG = {"bke.action"};
@@ -367,6 +370,32 @@ void action_group_colors_sync(bActionGroup *grp, const bActionGroup *ref_grp)
   }
 }
 
+void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel *pchan)
+{
+  if (pchan->color.palette_index == 0) {
+    action_group_colors_set(grp, &pchan->bone->color);
+  }
+  else {
+    action_group_colors_set(grp, &pchan->color);
+  }
+}
+
+void action_group_colors_set(bActionGroup *grp, const BoneColor *color)
+{
+  const blender::animrig::BoneColor &bone_color = color->wrap();
+
+  grp->customCol = bone_color.palette_index;
+
+  const ThemeWireColor *effective_color = bone_color.effective_color();
+  if (effective_color) {
+    /* The drawing code assumes that grp->cs always contains the effective
+     * color. This is why the effective color is always written to it, and why
+     * the above action_group_colors_sync() function exists: it needs to update
+     * grp->cs in case the theme changes. */
+    memcpy(&grp->cs, effective_color, sizeof(grp->cs));
+  }
+}
+
 bActionGroup *action_groups_add_new(bAction *act, const char name[])
 {
   bActionGroup *agrp;
@@ -651,12 +680,12 @@ bool BKE_pose_channels_is_valid(const bPose *pose)
 
 #endif
 
-bool BKE_pose_is_layer_visible(const bArmature *arm, const bPoseChannel *pchan)
+bool BKE_pose_is_bonecoll_visible(const bArmature *arm, const bPoseChannel *pchan)
 {
-  return (pchan->bone->layer & arm->layer);
+  return pchan->bone && ANIM_bonecoll_is_visible(arm, pchan->bone);
 }
 
-bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_arm_layer)
+bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_bonecoll)
 {
   bArmature *arm = static_cast<bArmature *>((ob) ? ob->data : nullptr);
   if (ELEM(nullptr, ob, ob->pose, arm)) {
@@ -666,7 +695,7 @@ bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_arm_layer)
   /* find active */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if ((pchan->bone) && (pchan->bone == arm->act_bone)) {
-      if (!check_arm_layer || BKE_pose_is_layer_visible(arm, pchan)) {
+      if (!check_bonecoll || ANIM_bonecoll_is_visible(arm, pchan->bone)) {
         return pchan;
       }
     }
@@ -675,7 +704,7 @@ bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_arm_layer)
   return nullptr;
 }
 
-bPoseChannel *BKE_pose_channel_active_if_layer_visible(Object *ob)
+bPoseChannel *BKE_pose_channel_active_if_bonecoll_visible(Object *ob)
 {
   return BKE_pose_channel_active(ob, true);
 }
@@ -688,7 +717,7 @@ bPoseChannel *BKE_pose_channel_active_or_first_selected(Object *ob)
     return nullptr;
   }
 
-  bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
+  bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
   if (pchan && (pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone)) {
     return pchan;
   }

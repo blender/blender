@@ -18,6 +18,7 @@
 #include "DNA_node_types.h"
 
 #include "BKE_node.hh"
+#include "BKE_node_tree_interface.hh"
 
 struct bNode;
 struct bNodeSocket;
@@ -170,8 +171,7 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   bool has_undefined_nodes_or_sockets = false;
   bNode *group_output_node = nullptr;
   Vector<bNode *> root_frames;
-  Vector<bNodeSocket *> interface_inputs;
-  Vector<bNodeSocket *> interface_outputs;
+  bNodeTreeInterfaceCache interface_cache;
 };
 
 /**
@@ -214,6 +214,18 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
   int index_in_node = -1;
   int index_in_all_sockets = -1;
   int index_in_inout_sockets = -1;
+};
+
+class bNodePanelRuntime : NonCopyable, NonMovable {
+ public:
+  /* The vertical location of the panel in the tree, calculated while drawing the nodes and invalid
+   * if the node tree hasn't been drawn yet. In the node tree's "world space" (the same as
+   * #bNode::runtime::totr). */
+  float location_y;
+  /* Vertical start location of the panel content. */
+  float min_content_y;
+  /* Vertical end location of the panel content. */
+  float max_content_y;
 };
 
 /**
@@ -299,6 +311,9 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** Can be used to toposort a subset of nodes. */
   int toposort_left_to_right_index = -1;
   int toposort_right_to_left_index = -1;
+
+  /* Panel runtime state */
+  Array<bNodePanelRuntime> panels;
 };
 
 namespace node_tree_runtime {
@@ -469,18 +484,6 @@ inline blender::Span<const bNode *> bNodeTree::group_input_nodes() const
   return this->nodes_by_type("NodeGroupInput");
 }
 
-inline blender::Span<const bNodeSocket *> bNodeTree::interface_inputs() const
-{
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->interface_inputs;
-}
-
-inline blender::Span<const bNodeSocket *> bNodeTree::interface_outputs() const
-{
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->interface_outputs;
-}
-
 inline blender::Span<const bNodeSocket *> bNodeTree::all_input_sockets() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
@@ -543,6 +546,24 @@ inline blender::MutableSpan<bNestedNodeRef> bNodeTree::nested_node_refs_span()
 inline blender::Span<bNestedNodeRef> bNodeTree::nested_node_refs_span() const
 {
   return {this->nested_node_refs, this->nested_node_refs_num};
+}
+
+inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_inputs() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->interface_cache.inputs;
+}
+
+inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_outputs() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->interface_cache.outputs;
+}
+
+inline blender::Span<bNodeTreeInterfaceItem *> bNodeTree::interface_items() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->interface_cache.items;
 }
 
 /** \} */
@@ -693,6 +714,16 @@ inline const blender::nodes::NodeDeclaration *bNode::declaration() const
   return this->runtime->declaration;
 }
 
+inline blender::Span<bNodePanelState> bNode::panel_states() const
+{
+  return {panel_states_array, num_panel_states};
+}
+
+inline blender::MutableSpan<bNodePanelState> bNode::panel_states()
+{
+  return {panel_states_array, num_panel_states};
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -754,6 +785,11 @@ inline bool bNodeSocket::is_hidden() const
 inline bool bNodeSocket::is_available() const
 {
   return (this->flag & SOCK_UNAVAIL) == 0;
+}
+
+inline bool bNodeSocket::is_panel_collapsed() const
+{
+  return (this->flag & SOCK_PANEL_COLLAPSED) != 0;
 }
 
 inline bool bNodeSocket::is_visible() const
@@ -849,6 +885,22 @@ inline const bNode &bNodeSocket::owner_node() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
   return *this->runtime->owner_node;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #bNode Inline Methods
+ * \{ */
+
+inline bool bNodePanelState::is_collapsed() const
+{
+  return flag & NODE_PANEL_COLLAPSED;
+}
+
+inline bool bNodePanelState::is_parent_collapsed() const
+{
+  return flag & NODE_PANEL_PARENT_COLLAPSED;
 }
 
 /** \} */

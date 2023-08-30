@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "GHOST_Types.h"
 
 /**
@@ -38,7 +40,9 @@ class GHOST_IContext {
   virtual GHOST_TSuccess releaseDrawingContext() = 0;
 
   virtual unsigned int getDefaultFramebuffer() = 0;
+  virtual GHOST_TSuccess swapBuffers() = 0;
 
+#ifdef WITH_VULKAN_BACKEND
   /**
    * Get Vulkan handles for the given context.
    *
@@ -47,6 +51,8 @@ class GHOST_IContext {
    * Other contexts will not return any handles and leave the
    * handles where the parameters are referring to unmodified.
    *
+   * \param context: GHOST context handle of a vulkan context to
+   *     get the Vulkan handles from.
    * \param r_instance: After calling this function the VkInstance
    *     referenced by this parameter will contain the VKInstance handle
    *     of the context associated with the `context` parameter.
@@ -62,9 +68,6 @@ class GHOST_IContext {
    * \param r_queue: After calling this function the VkQueue
    *     referenced by this parameter will contain the VKQueue handle
    *     of the context associated with the `context` parameter.
-   * \returns GHOST_kFailure when context isn't a Vulkan context.
-   *     GHOST_kSuccess when the context is a Vulkan context and the
-   *     handles have been set.
    */
   virtual GHOST_TSuccess getVulkanHandles(void *r_instance,
                                           void *r_physical_device,
@@ -73,52 +76,35 @@ class GHOST_IContext {
                                           void *r_queue) = 0;
 
   /**
-   * Return Vulkan command buffer.
+   * Acquire the current swap chain format.
    *
-   * Command buffers are different for each image in the swap chain.
-   * At the start of each frame the correct command buffer should be
-   * retrieved with this function.
-   *
-   * \param r_command_buffer: After calling this function the VkCommandBuffer
-   *     referenced by this parameter will contain the VKCommandBuffer handle
-   *     of the current back buffer (when swap chains are enabled) or
-   *     it will contain a general VkCommandQueue.
-   * \returns GHOST_kFailure when context isn't a Vulkan context.
-   *     GHOST_kSuccess when the context is a Vulkan context and the
-   *     handles have been set.
-   */
-  virtual GHOST_TSuccess getVulkanCommandBuffer(void *r_command_buffer) = 0;
-
-  /**
-   * Gets the Vulkan back-buffer related resource handles associated with the Vulkan context.
-   * Needs to be called after each swap event as the back-buffer will change.
-   *
-   * \param r_image: After calling this function the VkImage
-   *     referenced by this parameter will contain the VKImage handle
-   *     of the current back buffer.
-   * \param r_framebuffer: After calling this function the VkFramebuffer
-   *     referenced by this parameter will contain the VKFramebuffer handle
-   *     of the current back buffer.
-   * \param r_render_pass: After calling this function the VkRenderPass
-   *     referenced by this parameter will contain the VKRenderPass handle
-   *     of the current back buffer.
+   * \param windowhandle:  GHOST window handle to a window to get the resource from.
+   * \param r_surface_format: After calling this function the VkSurfaceFormatKHR
+   *     referenced by this parameter will contain the surface format of the
+   *     surface. The format is the same as the image returned in the r_image
+   *     parameter.
    * \param r_extent: After calling this function the VkExtent2D
    *     referenced by this parameter will contain the size of the
    *     frame buffer and image in pixels.
-   * \param r_fb_id: After calling this function the uint32_t
-   *     referenced by this parameter will contain the id of the
-   *     framebuffer of the current back buffer.
-   * \returns GHOST_kFailure when context isn't a Vulkan context.
-   *     GHOST_kSuccess when the context is a Vulkan context and the
-   *     handles have been set.
    */
-  virtual GHOST_TSuccess getVulkanBackbuffer(void *r_image,
-                                             void *r_framebuffer,
-                                             void *r_render_pass,
-                                             void *r_extent,
-                                             uint32_t *r_fb_id) = 0;
+  virtual GHOST_TSuccess getVulkanSwapChainFormat(
+      GHOST_VulkanSwapChainData *r_swap_chain_data) = 0;
 
-  virtual GHOST_TSuccess swapBuffers() = 0;
+  /**
+   * Set the pre and post callbacks for vulkan swap chain in the given context.
+   *
+   * \param context: GHOST context handle of a vulkan context to
+   *     get the Vulkan handles from.
+   * \param swap_buffers_pre_callback: Function pointer to be called at the beginning of
+   * swapBuffers. Inside this callback the next swap chain image needs to be acquired and filled.
+   * \param swap_buffers_post_callback: Function to be called at th end of swapBuffers. swapBuffers
+   *     can recreate the swap chain. When this is done the application should be informed by those
+   *     changes.
+   */
+  virtual GHOST_TSuccess setVulkanSwapBuffersCallbacks(
+      std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback,
+      std::function<void(void)> swap_buffers_post_callback) = 0;
+#endif
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IContext")

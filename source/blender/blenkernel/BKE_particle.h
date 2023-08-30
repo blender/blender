@@ -11,6 +11,8 @@
 
 #include "BLI_buffer.h"
 #include "BLI_compiler_attrs.h"
+#include "BLI_map.hh"
+#include "BLI_ordered_edge.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_particle_types.h"
@@ -31,7 +33,6 @@ struct BlendLibReader;
 struct BlendWriter;
 struct CustomData_MeshMasks;
 struct Depsgraph;
-struct EdgeHash;
 struct KDTree_3d;
 struct LinkNode;
 struct MCol;
@@ -84,7 +85,7 @@ typedef struct SPHData {
   ParticleSystem *psys[10];
   ParticleData *pa;
   float mass;
-  struct EdgeHash *eh;
+  blender::Map<blender::OrderedEdge, int> eh;
   float *gravity;
   float hfac;
   /* Average distance to neighbors (other particles in the support domain),

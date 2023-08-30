@@ -135,6 +135,7 @@ void VKPipeline::finalize(VKContext &context,
   }
 
   VKFrameBuffer &framebuffer = *context.active_framebuffer_get();
+  framebuffer.vk_render_pass_ensure();
 
   VkGraphicsPipelineCreateInfo pipeline_create_info = {};
   pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

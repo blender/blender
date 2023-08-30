@@ -96,12 +96,22 @@ void socket_declarations_for_repeat_items(const Span<NodeRepeatItem> items,
 {
   for (const int i : items.index_range()) {
     const NodeRepeatItem &item = items[i];
-    r_declaration.inputs.append(socket_declaration_for_repeat_item(item, SOCK_IN));
-    r_declaration.outputs.append(
-        socket_declaration_for_repeat_item(item, SOCK_OUT, r_declaration.inputs.size() - 1));
+    SocketDeclarationPtr input_decl = socket_declaration_for_repeat_item(item, SOCK_IN);
+    r_declaration.inputs.append(input_decl.get());
+    r_declaration.items.append(std::move(input_decl));
+
+    SocketDeclarationPtr output_decl = socket_declaration_for_repeat_item(
+        item, SOCK_OUT, r_declaration.inputs.size() - 1);
+    r_declaration.outputs.append(output_decl.get());
+    r_declaration.items.append(std::move(output_decl));
   }
-  r_declaration.inputs.append(decl::create_extend_declaration(SOCK_IN));
-  r_declaration.outputs.append(decl::create_extend_declaration(SOCK_OUT));
+  SocketDeclarationPtr input_extend_decl = decl::create_extend_declaration(SOCK_IN);
+  r_declaration.inputs.append(input_extend_decl.get());
+  r_declaration.items.append(std::move(input_extend_decl));
+
+  SocketDeclarationPtr output_extend_decl = decl::create_extend_declaration(SOCK_OUT);
+  r_declaration.outputs.append(output_extend_decl.get());
+  r_declaration.items.append(std::move(output_extend_decl));
 }
 }  // namespace blender::nodes
 namespace blender::nodes::node_geo_repeat_output_cc {

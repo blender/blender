@@ -101,6 +101,34 @@ VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat forma
   return static_cast<VkImageAspectFlagBits>(0);
 }
 
+VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers)
+{
+  VkImageAspectFlagBits result = static_cast<VkImageAspectFlagBits>(0);
+  if (buffers & GPU_COLOR_BIT) {
+    result = static_cast<VkImageAspectFlagBits>(result | VK_IMAGE_ASPECT_COLOR_BIT);
+  }
+  if (buffers & GPU_DEPTH_BIT) {
+    result = static_cast<VkImageAspectFlagBits>(result | VK_IMAGE_ASPECT_DEPTH_BIT);
+  }
+  if (buffers & GPU_STENCIL_BIT) {
+    result = static_cast<VkImageAspectFlagBits>(result | VK_IMAGE_ASPECT_STENCIL_BIT);
+  }
+  return result;
+}
+
+eGPUTextureFormat to_gpu_format(const VkFormat format)
+{
+  switch (format) {
+    case VK_FORMAT_R8G8B8A8_UNORM:
+    case VK_FORMAT_B8G8R8A8_UNORM:
+      return GPU_RGBA8;
+
+    default:
+      BLI_assert_unreachable();
+  }
+  return GPU_RGBA32F;
+}
+
 VkFormat to_vk_format(const eGPUTextureFormat format)
 {
   switch (format) {
@@ -394,8 +422,8 @@ static VkFormat to_vk_format_float(const GPUVertCompType type, const uint32_t si
 
     case GPU_COMP_I32:
     case GPU_COMP_U32:
-      /* NOTE: GPU_COMP_I32/U32 using GPU_FETCH_INT_TO_FLOAT isn't natively supported. These are
-       * converted on host-side to signed floats. */
+      /* NOTE: GPU_COMP_I32/U32 using GPU_FETCH_INT_TO_FLOAT isn't natively supported. These
+       * are converted on host-side to signed floats. */
       switch (size) {
         case 4:
           return VK_FORMAT_R32_SFLOAT;
@@ -695,8 +723,9 @@ VkImageViewType to_vk_image_view_type(const eGPUTextureType type, const eImageVi
 
 VkComponentMapping to_vk_component_mapping(const eGPUTextureFormat /*format*/)
 {
-  /* TODO: this should map to OpenGL defaults based on the eGPUTextureFormat. The implementation of
-   * this function will be implemented when implementing other parts of VKTexture. */
+  /* TODO: this should map to OpenGL defaults based on the eGPUTextureFormat. The
+   * implementation of this function will be implemented when implementing other parts of
+   * VKTexture. */
   VkComponentMapping component_mapping;
   component_mapping.r = VK_COMPONENT_SWIZZLE_R;
   component_mapping.g = VK_COMPONENT_SWIZZLE_G;

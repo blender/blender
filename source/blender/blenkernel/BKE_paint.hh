@@ -13,6 +13,8 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_ordered_edge.hh"
+#include "BLI_set.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_enums.h"
@@ -31,7 +33,6 @@ struct BlendWriter;
 struct Brush;
 struct CurveMapping;
 struct Depsgraph;
-struct EdgeSet;
 struct EnumPropertyItem;
 struct ExpandCache;
 struct FilterCache;
@@ -353,7 +354,7 @@ struct SculptClothLengthConstraint {
 struct SculptClothSimulation {
   SculptClothLengthConstraint *length_constraints;
   int tot_length_constraints;
-  EdgeSet *created_length_constraints;
+  blender::Set<blender::OrderedEdge> created_length_constraints;
   int capacity_length_constraints;
   float *length_constraint_tweak;
 

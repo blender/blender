@@ -23,6 +23,7 @@
 #include "bpy_rna_gizmo.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_compat.h"
 #include "../generic/python_utildefines.h"
 
 #include "RNA_access.hh"
@@ -347,6 +348,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *arg
    * (see: rna_wm_gizmo_api.cc). conventions should match. */
   static const char *const _keywords[] = {"self", "target", "get", "set", "range", nullptr};
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `self` */
       "O&" /* `target` */
       "|$" /* Optional keyword only arguments. */
@@ -450,6 +452,7 @@ static PyObject *bpy_gizmo_target_get_value(PyObject * /*self*/, PyObject *args,
 
   static const char *const _keywords[] = {"self", "target", nullptr};
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `self` */
       "O&" /* `target` */
       ":target_get_value",
@@ -520,6 +523,7 @@ static PyObject *bpy_gizmo_target_set_value(PyObject * /*self*/, PyObject *args,
 
   static const char *const _keywords[] = {"self", "target", "value", nullptr};
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `self` */
       "O&" /* `target` */
       "O"  /* `value` */
@@ -603,6 +607,7 @@ static PyObject *bpy_gizmo_target_get_range(PyObject * /*self*/, PyObject *args,
 
   static const char *const _keywords[] = {"self", "target", nullptr};
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `self` */
       "O&" /* `target` */
       ":target_get_range",

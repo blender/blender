@@ -8,6 +8,8 @@
  */
 
 #include "BLI_math_vector_types.hh"
+#include "BLI_ordered_edge.hh"
+#include "BLI_set.hh"
 
 #include <float.h>
 
@@ -17,8 +19,6 @@ struct ClothModifierData;
 struct CollisionModifierData;
 struct Implicit_Data;
 struct Depsgraph;
-struct EdgeSet;
-struct GHash;
 struct LinkNode;
 struct Mesh;
 struct MVertTri;
@@ -78,13 +78,13 @@ struct Cloth {
   BVHTree *bvhtree;     /* collision tree for this cloth object */
   BVHTree *bvhselftree; /* collision tree for this cloth object (may be same as bvhtree) */
   MVertTri *tri;
-  Implicit_Data *implicit; /* our implicit solver connects to this pointer */
-  EdgeSet *edgeset;        /* used for selfcollisions */
+  Implicit_Data *implicit;                    /* our implicit solver connects to this pointer */
+  blender::Set<blender::OrderedEdge> edgeset; /* used for selfcollisions */
   int last_frame;
   float initial_mesh_volume;     /* Initial volume of the mesh. Used for pressure */
   float average_acceleration[3]; /* Moving average of overall acceleration. */
   const blender::int2 *edges;    /* Used for hair collisions. */
-  EdgeSet *sew_edge_graph;       /* Sewing edges represented using a GHash */
+  blender::Set<blender::OrderedEdge> sew_edge_graph; /* Sewing edges. */
 };
 
 /**

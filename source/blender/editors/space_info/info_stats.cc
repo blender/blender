@@ -325,7 +325,7 @@ static void stats_object_pose(const Object *ob, SceneStats *stats)
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       stats->totbone++;
       if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-        if (BKE_pose_is_layer_visible(arm, pchan)) {
+        if (BKE_pose_is_bonecoll_visible(arm, pchan)) {
           stats->totbonesel++;
         }
       }

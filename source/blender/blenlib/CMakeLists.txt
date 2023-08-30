@@ -63,7 +63,6 @@ set(SRC
   intern/dot_export.cc
   intern/dynlib.c
   intern/easing.c
-  intern/edgehash.c
   intern/endian_switch.c
   intern/expr_pylike_eval.c
   intern/fileops.c
@@ -221,7 +220,6 @@ set(SRC
   BLI_dynlib.h
   BLI_dynstr.h
   BLI_easing.h
-  BLI_edgehash.h
   BLI_endian_defines.h
   BLI_endian_switch.h
   BLI_endian_switch_inline.h
@@ -498,7 +496,6 @@ if(WITH_GTESTS)
     tests/BLI_cpp_type_test.cc
     tests/BLI_delaunay_2d_test.cc
     tests/BLI_disjoint_set_test.cc
-    tests/BLI_edgehash_test.cc
     tests/BLI_expr_pylike_eval_test.cc
     tests/BLI_fileops_test.cc
     tests/BLI_function_ref_test.cc

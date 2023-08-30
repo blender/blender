@@ -14,8 +14,8 @@ from bpy.props import (
 
 def build_default_empty_geometry_node_group(name):
     group = bpy.data.node_groups.new(name, 'GeometryNodeTree')
-    group.inputs.new('NodeSocketGeometry', data_("Geometry"))
-    group.outputs.new('NodeSocketGeometry', data_("Geometry"))
+    group.interface.new_socket(data_("Geometry"), in_out={'OUTPUT'}, socket_type='NodeSocketGeometry')
+    group.interface.new_socket(data_("Geometry"), in_out={'INPUT'}, socket_type='NodeSocketGeometry')
     input_node = group.nodes.new('NodeGroupInput')
     output_node = group.nodes.new('NodeGroupOutput')
     output_node.is_active_output = True
@@ -266,7 +266,8 @@ class NewGeometryNodeGroupTool(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.space_data.type == 'NODE_EDITOR' and context.space_data.geometry_nodes_type == 'TOOL'
+        space = context.space_data
+        return space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'TOOL'
 
     def execute(self, context):
         group = geometry_node_group_empty_new()

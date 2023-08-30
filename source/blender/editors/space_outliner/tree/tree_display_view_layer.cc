@@ -80,8 +80,9 @@ ListBase TreeDisplayViewLayer::buildTree(const TreeSourceData &source_data)
       add_view_layer(*scene, tree, (TreeElement *)nullptr);
     }
     else {
+      ViewLayerElementCreateData view_layer_data = {scene, view_layer};
       TreeElement &te_view_layer = *outliner_add_element(
-          &space_outliner_, &tree, view_layer, nullptr, TSE_R_LAYER, 0);
+          &space_outliner_, &tree, &view_layer_data, nullptr, TSE_R_LAYER, 0);
 
       TreeStoreElem *tselem = TREESTORE(&te_view_layer);
 

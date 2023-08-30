@@ -1237,21 +1237,20 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle contexthandle,
       r_instance, r_physical_device, r_device, r_graphic_queue_family, r_queue);
 }
 
-void GHOST_GetVulkanCommandBuffer(GHOST_ContextHandle contexthandle, void *r_command_buffer)
+void GHOST_SetVulkanSwapBuffersCallbacks(
+    GHOST_ContextHandle contexthandle,
+    void (*swap_buffers_pre_callback)(const GHOST_VulkanSwapChainData *),
+    void (*swap_buffers_post_callback)(void))
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
-  context->getVulkanCommandBuffer(r_command_buffer);
+  context->setVulkanSwapBuffersCallbacks(swap_buffers_pre_callback, swap_buffers_post_callback);
 }
 
-void GHOST_GetVulkanBackbuffer(GHOST_WindowHandle windowhandle,
-                               void *image,
-                               void *framebuffer,
-                               void *render_pass,
-                               void *extent,
-                               uint32_t *fb_id)
+void GHOST_GetVulkanSwapChainFormat(GHOST_WindowHandle windowhandle,
+                                    GHOST_VulkanSwapChainData *r_swap_chain_data)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-  window->getVulkanBackbuffer(image, framebuffer, render_pass, extent, fb_id);
+  window->getVulkanSwapChainFormat(r_swap_chain_data);
 }
 
 #endif /* WITH_VULKAN_BACKEND */

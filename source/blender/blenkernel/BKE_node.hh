@@ -11,6 +11,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 
 #include "DNA_listBase.h"
 
@@ -56,37 +57,6 @@ void ntreeLocalMerge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree);
  * \note `ntree` itself has been read!
  */
 void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree);
-
-/* -------------------------------------------------------------------- */
-/** \name Node Tree Interface
- * \{ */
-
-bNodeSocket *ntreeFindSocketInterface(bNodeTree *ntree,
-                                      eNodeSocketInOut in_out,
-                                      const char *identifier);
-
-bNodeSocket *ntreeInsertSocketInterface(bNodeTree *ntree,
-                                        eNodeSocketInOut in_out,
-                                        const char *idname,
-                                        bNodeSocket *next_sock,
-                                        const char *name);
-
-bNodeSocket *ntreeAddSocketInterfaceFromSocket(bNodeTree *ntree,
-                                               const bNode *from_node,
-                                               const bNodeSocket *from_sock);
-
-bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(bNodeTree *ntree,
-                                                       const bNode *from_node,
-                                                       const bNodeSocket *from_sock,
-                                                       const char *idname,
-                                                       const char *name);
-
-bNodeSocket *ntreeInsertSocketInterfaceFromSocket(bNodeTree *ntree,
-                                                  bNodeSocket *next_sock,
-                                                  const bNode *from_node,
-                                                  const bNodeSocket *from_sock);
-
-/** \} */
 
 bool node_type_is_undefined(const bNode *node);
 

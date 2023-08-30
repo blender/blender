@@ -500,6 +500,16 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
   return list;
 }
 
+void CTX_data_collection_remap_property(ListBase /*CollectionPointerLink*/ collection_pointers,
+                                        const char *propname)
+{
+  LISTBASE_FOREACH (CollectionPointerLink *, link, &collection_pointers) {
+    PointerRNA original_ptr = link->ptr;
+    PointerRNA remapped_ptr = RNA_pointer_get(&original_ptr, propname);
+    link->ptr = remapped_ptr;
+  }
+}
+
 int /*eContextResult*/ CTX_data_get(const bContext *C,
                                     const char *member,
                                     PointerRNA *r_ptr,

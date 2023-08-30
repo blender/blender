@@ -941,31 +941,13 @@ static int armature_bone_layers_invoke(bContext *C, wmOperator *op, const wmEven
 }
 
 /* Set the visible layers for the active armature (edit and pose modes) */
-static int armature_bone_layers_exec(bContext *C, wmOperator *op)
+static int armature_bone_layers_exec(bContext * /*C*/, wmOperator * /*op*/)
 {
-  Object *ob = CTX_data_edit_object(C);
-  PointerRNA ptr;
-  /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
-  bool layers[32];
-
-  /* get the values set in the operator properties */
-  RNA_boolean_get_array(op->ptr, "layers", layers);
-
-  /* set layers of pchans based on the values set in the operator props */
-  CTX_DATA_BEGIN_WITH_ID (C, EditBone *, ebone, selected_editable_bones, bArmature *, arm) {
-    /* get pointer for pchan, and write flags this way */
-    RNA_pointer_create((ID *)arm, &RNA_EditBone, ebone, &ptr);
-    RNA_boolean_set_array(&ptr, "layers", layers);
-  }
-  CTX_DATA_END;
-
-  ED_armature_edit_refresh_layer_used(static_cast<bArmature *>(ob->data));
-
-  /* NOTE: notifier might evolve. */
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-  DEG_id_tag_update((ID *)ob->data, ID_RECALC_PARAMETERS);
-
-  return OPERATOR_FINISHED;
+  // TODO: remove this entire operator, replacing it with a similar one for bone collections.
+  WM_report(
+      RPT_ERROR,
+      "Bone Layers have been converted to Bone Collections. This operator will be removed soon.");
+  return OPERATOR_CANCELLED;
 }
 
 void ARMATURE_OT_bone_layers(wmOperatorType *ot)
