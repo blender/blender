@@ -1950,15 +1950,16 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
 
 void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *timer, bool do_sleep)
 {
-  LISTBASE_FOREACH (wmTimer *, wt, &wm->timers) {
-    if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
-      continue;
-    }
-    if (wt == timer) {
-      wt->sleep = do_sleep;
-      break;
-    }
+  /* Extra security check. */
+  if (BLI_findindex(&wm->timers, timer) == -1) {
+    return;
   }
+  /* It's disputable if this is needed, when tagged for removal,
+   * the sleep value won't be used anyway. */
+  if (timer->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
+    return;
+  }
+  timer->sleep = do_sleep;
 }
 
 wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double timestep)
