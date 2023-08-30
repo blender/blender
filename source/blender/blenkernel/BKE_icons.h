@@ -216,7 +216,8 @@ void BKE_previewimg_ensure(struct PreviewImage *prv, int size);
 
 const char *BKE_previewimg_deferred_filepath_get(const struct PreviewImage *prv);
 #ifdef __cplusplus
-std::optional<int> BKE_previewimg_deferred_thumb_source_get(const struct PreviewImage *prv);
+extern "C++" std::optional<int> BKE_previewimg_deferred_thumb_source_get(
+    const struct PreviewImage *prv);
 #endif
 
 /**
