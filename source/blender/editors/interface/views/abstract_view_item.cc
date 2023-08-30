@@ -68,11 +68,13 @@ bool AbstractViewItem::set_state_active()
   return true;
 }
 
-void AbstractViewItem::activate(bContext &C)
+bool AbstractViewItem::activate(bContext &C)
 {
   if (set_state_active()) {
     on_activate(C);
+    return true;
   }
+  return false;
 }
 
 void AbstractViewItem::deactivate()
@@ -311,31 +313,6 @@ bool AbstractViewItem::is_interactive() const
   return is_interactive_;
 }
 
-bool AbstractViewItem::activate()
-{
-  BLI_assert_msg(get_view().is_reconstructed(),
-                 "Item activation can't be done until reconstruction is completed");
-
-  if (is_active()) {
-    return false;
-  }
-
-  /* Deactivate other items in the tree. */
-  get_view().foreach_abstract_item([](auto &item) { item.deactivate(); });
-
-  is_active_ = true;
-  return true;
-}
-
-bool AbstractViewItem::deactivate()
-{
-  if (!is_active_) {
-    return false;
-  }
-  is_active_ = false;
-  return true;
-}
-
 bool AbstractViewItem::is_active() const
 {
   BLI_assert_msg(get_view().is_reconstructed(),
@@ -464,10 +441,10 @@ bool UI_view_item_is_interactive(const uiViewItemHandle *item_handle)
   return item.is_interactive();
 }
 
-bool UI_view_item_activate(uiViewItemHandle *item_handle)
+bool UI_view_item_activate(bContext *C, uiViewItemHandle *item_handle)
 {
   AbstractViewItem &item = reinterpret_cast<AbstractViewItem &>(*item_handle);
-  return item.activate();
+  return item.activate(*C);
 }
 
 bool UI_view_item_is_active(const uiViewItemHandle *item_handle)

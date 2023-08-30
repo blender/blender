@@ -56,16 +56,6 @@ class AbstractGridViewItem : public AbstractViewItem {
   /** See AbstractViewItem::matches(). */
   /* virtual */ bool matches(const AbstractViewItem &other) const override;
 
-  /** Called when the item's state changes from inactive to active. */
-  virtual void on_activate();
-  /**
-   * If the result is not empty, it controls whether the item should be active or not,
-   * usually depending on the data that the view represents.
-   */
-  virtual std::optional<bool> should_be_active() const;
-
-  bool activate() override;
-
   /* virtual */ std::unique_ptr<DropTargetInterface> create_item_drop_target() final;
   virtual std::unique_ptr<GridViewItemDropTarget> create_drop_target();
 
@@ -104,7 +94,6 @@ class AbstractGridView : public AbstractView {
   AbstractGridView();
   /* virtual */ ~AbstractGridView() override = default;
 
-  void foreach_abstract_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const override;
   using ItemIterFn = FunctionRef<void(AbstractGridViewItem &)>;
   void foreach_item(ItemIterFn iter_fn) const;
   void foreach_filtered_item(ItemIterFn iter_fn) const;

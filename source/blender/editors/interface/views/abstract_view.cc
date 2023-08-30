@@ -6,7 +6,9 @@
  * \ingroup edinterface
  */
 
-#include "ED_select_utils.h"
+#include <string>
+
+#include "ED_select_utils.hh"
 
 #include "interface_intern.hh"
 
@@ -161,8 +163,6 @@ std::optional<rcti> AbstractView::get_bounds() const
 
 /** \} */
 
-}  // namespace blender::ui
-
 /* ---------------------------------------------------------------------- */
 /** \name Selection
  * \{ */
@@ -178,7 +178,7 @@ static SelectAction select_all_refine_action_type(const AbstractView &view, Sele
   }
 
   bool any_selected = false;
-  view.foreach_abstract_item([&any_selected](AbstractViewItem &item) {
+  view.foreach_view_item([&any_selected](AbstractViewItem &item) {
     if (item.is_selected()) {
       any_selected = true;
     }
@@ -224,7 +224,7 @@ bool view_select_all_from_action(uiViewHandle *view_handle, const int /*SelectAc
   const SelectAction refined_action = select_all_refine_action_type(view, SelectAction(action));
 
   bool changed = false;
-  view.foreach_abstract_item([&changed, refined_action](AbstractViewItem &item) {
+  view.foreach_view_item([&changed, refined_action](AbstractViewItem &item) {
     changed |= view_item_select_from_action(item, refined_action);
   });
 
@@ -236,8 +236,6 @@ bool view_select_all_from_action(uiViewHandle *view_handle, const int /*SelectAc
 /* ---------------------------------------------------------------------- */
 /** \name General API functions
  * \{ */
-
-namespace blender::ui {
 
 std::unique_ptr<DropTargetInterface> view_drop_target(uiViewHandle *view_handle)
 {

@@ -25,14 +25,19 @@
 #include "ED_asset_handle.h"
 
 blender::asset_system::AssetRepresentation *ED_asset_handle_get_representation(
-    const AssetHandle *asset)
+    const AssetHandle *asset_handle)
 {
-  return asset->file_data->asset;
+  return asset_handle->file_data->asset;
 }
 
-const char *ED_asset_handle_get_identifier(const AssetHandle *asset)
+const char *ED_asset_handle_get_identifier(const AssetHandle *asset_handle)
 {
-  return asset->file_data->relpath;
+  return asset_handle->file_data->asset->get_identifier().library_relative_identifier().c_str();
+}
+
+const char *ED_asset_handle_get_name(const AssetHandle *asset_handle)
+{
+  return asset_handle->file_data->asset->get_name().c_str();
 }
 
 ID_Type ED_asset_handle_get_id_type(const AssetHandle *asset_handle)
@@ -48,12 +53,6 @@ int ED_asset_handle_get_preview_icon_id(const AssetHandle *asset)
 int ED_asset_handle_get_preview_or_type_icon_id(const AssetHandle *asset)
 {
   return ED_file_icon(asset->file_data);
-}
-
-std::optional<eAssetImportMethod> ED_asset_handle_get_import_method(
-    const AssetHandle *asset_handle)
-{
-  return AS_asset_representation_import_method_get(asset_handle->file_data->asset);
 }
 
 void ED_asset_handle_get_full_library_path(const AssetHandle *asset_handle,

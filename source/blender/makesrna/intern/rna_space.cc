@@ -3407,25 +3407,26 @@ static void rna_FileAssetSelectParams_catalog_id_set(PointerRNA *ptr, const char
 
 static int RNA_SpaceAssetBrowser_asset_library_get(PointerRNA *ptr)
 {
-  SpaceAssets *asset_space = ptr->data;
+  SpaceAssets *asset_space = static_cast<SpaceAssets *>(ptr->data);
   return ED_asset_library_reference_to_enum_value(&asset_space->asset_library_ref);
 }
 
 static void RNA_SpaceAssetBrowser_asset_library_set(PointerRNA *ptr, int value)
 {
-  SpaceAssets *asset_space = ptr->data;
+  SpaceAssets *asset_space = static_cast<SpaceAssets *>(ptr->data);
   asset_space->asset_library_ref = ED_asset_library_reference_from_enum_value(value);
 }
 
 static void rna_AssetCatalogFilterSettings_active_catalog_id_get(PointerRNA *ptr, char *value)
 {
-  const AssetCatalogFilterSettings *settings = ptr->data;
+  const AssetCatalogFilterSettings *settings = static_cast<AssetCatalogFilterSettings *>(
+      ptr->data);
   BLI_uuid_format(value, settings->active_catalog_id);
 }
 
-static int rna_AssetCatalogFilterSettings_active_catalog_id_length(PointerRNA *UNUSED(ptr))
+static int rna_AssetCatalogFilterSettings_active_catalog_id_length(PointerRNA * /*ptr*/)
 {
-  return UUID_STRING_LEN - 1;
+  return UUID_STRING_SIZE - 1;
 }
 
 #else

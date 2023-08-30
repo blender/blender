@@ -23,6 +23,7 @@ void ED_spacemacros_init();
  * Calls for registering default spaces, only called once, from #ED_spacetypes_init
  * \{ */
 
+void ED_spacetype_assets();
 void ED_spacetype_outliner();
 void ED_spacetype_view3d();
 void ED_spacetype_ipo();

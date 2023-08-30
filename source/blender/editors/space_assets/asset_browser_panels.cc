@@ -15,17 +15,17 @@
 
 #include "BLT_translation.h"
 
-#include "ED_asset.h"
+#include "ED_asset.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "asset_browser_intern.hh"
 
@@ -40,7 +40,7 @@ static void assets_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pa
   PointerRNA assets_space_ptr;
   RNA_pointer_create(&screen->id, &RNA_SpaceAssetBrowser, assets_space, &assets_space_ptr);
 
-  uiItemR(row, &assets_space_ptr, "asset_library_ref", 0, "", ICON_NONE);
+  uiItemR(row, &assets_space_ptr, "asset_library_ref", UI_ITEM_NONE, "", ICON_NONE);
   if (assets_space->asset_library_ref.type == ASSET_LIBRARY_LOCAL) {
     bContext *mutable_ctx = CTX_copy(C);
     if (WM_operator_name_poll(mutable_ctx, "asset.bundle_install")) {

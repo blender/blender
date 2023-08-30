@@ -506,6 +506,7 @@ bool ED_operator_file_active(bContext *C);
  */
 bool ED_operator_file_browsing_active(bContext *C);
 bool ED_operator_asset_browsing_active(bContext *C);
+bool ED_operator_asset_browser_active(bContext *C);
 bool ED_operator_spreadsheet_active(bContext *C);
 bool ED_operator_action_active(bContext *C);
 bool ED_operator_buttons_active(bContext *C);

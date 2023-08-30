@@ -35,6 +35,8 @@ extern "C" {
 struct AssetHandle;
 
 AssetRepresentationHandle *ED_asset_handle_get_representation(const struct AssetHandle *asset);
+const char *ED_asset_handle_get_name(const AssetHandle *asset_handle);
+const char *ED_asset_handle_get_identifier(const struct AssetHandle *asset);
 ID_Type ED_asset_handle_get_id_type(const struct AssetHandle *asset);
 int ED_asset_handle_get_preview_icon_id(const struct AssetHandle *asset);
 int ED_asset_handle_get_preview_or_type_icon_id(const struct AssetHandle *asset);

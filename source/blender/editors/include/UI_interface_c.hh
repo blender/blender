@@ -3218,7 +3218,7 @@ bool UI_view_begin_filtering(const bContext *C, const uiViewHandle *view_handle)
 
 bool UI_view_item_is_interactive(const uiViewItemHandle *item_handle);
 /** \return True if the active state changed (requiring redraw). */
-bool UI_view_item_activate(uiViewItemHandle *item_handle);
+bool UI_view_item_activate(bContext *C, uiViewItemHandle *item_handle);
 bool UI_view_item_is_active(const uiViewItemHandle *item_handle);
 bool UI_view_item_is_selectable(const uiViewItemHandle *item_handle);
 bool UI_view_item_is_selected(const uiViewItemHandle *item_handle);

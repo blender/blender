@@ -2286,9 +2286,9 @@ def km_info(params):
 
     return keymap
 
+
 # ------------------------------------------------------------------------------
 # Editor (File Browser)
-
 
 def km_file_browser(params):
     items = []
@@ -2460,6 +2460,7 @@ def km_asset_browser(params):
         ("wm.context_toggle", {"type": 'T', "value": 'PRESS'},
          {"properties": [("data_path", 'space_data.show_region_nav_bar')]}),
         *_template_space_region_type_toggle(
+            params,
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         # UI keymap already adds "select all" items for the hovered view. We add our own here that

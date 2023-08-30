@@ -7,15 +7,14 @@
 
 #include "DNA_asset_types.h"
 
-#include "RNA_access.h"
-#include "RNA_types.h"
+#include "RNA_access.hh"
+#include "RNA_types.hh"
 
-#include "ED_asset.h"
+#include "ED_asset.hh"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
 
-#include "WM_message.h"
+#include "WM_message.hh"
 
 #include "asset_view.hh"
 
@@ -41,7 +40,7 @@ void AssetGridView::build_items()
     item.set_is_active_fn([this, idx]() -> bool {
       return idx == RNA_property_int_get(&active_asset_idx_owner_, &active_asset_idx_prop_);
     });
-    item.set_on_activate_fn([this, idx](ui::PreviewGridItem & /*item*/) {
+    item.set_on_activate_fn([this, idx](bContext & /*C*/, ui::PreviewGridItem & /*item*/) {
       RNA_property_int_set(&active_asset_idx_owner_, &active_asset_idx_prop_, idx);
       WM_msg_publish_rna(&msg_bus_, &active_asset_idx_owner_, &active_asset_idx_prop_);
     });

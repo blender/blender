@@ -59,8 +59,7 @@ static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
       ASSET_IMPORT_APPEND_REUSE);
 
   ImBuf *imbuf = ED_assetlist_asset_image_get(asset_handle);
-  UI_but_drag_set_asset(
-      but, asset, import_method, preview_icon_id, imbuf, 1.0f);
+  UI_but_drag_set_asset(but, asset, import_method, preview_icon_id, imbuf, 1.0f);
 }
 
 static void asset_view_draw_item(uiList *ui_list,
@@ -94,8 +93,8 @@ static void asset_view_draw_item(uiList *ui_list,
       block,
       UI_BTYPE_PREVIEW_TILE,
       0,
-      ED_assetlist_asset_preview_icon_id_request(&asset_handle),
-      show_names ? ED_asset_handle_get_representation(&asset_handle)->get_name().c_str() : "",
+      ED_assetlist_asset_preview_icon_id_request(asset_handle),
+      show_names ? ED_asset_handle_get_representation(asset_handle)->get_name().c_str() : "",
       0,
       0,
       size_x,
@@ -107,12 +106,12 @@ static void asset_view_draw_item(uiList *ui_list,
       0,
       "");
   ui_def_but_icon(but,
-                  ED_assetlist_asset_preview_icon_id_request(&asset_handle),
+                  ED_assetlist_asset_preview_icon_id_request(asset_handle),
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
   but->emboss = UI_EMBOSS_NONE;
   if (!ui_list->dyn_data->custom_drag_optype) {
-    asset_view_item_but_drag_set(but, &asset_handle);
+    asset_view_item_but_drag_set(but, asset_handle);
   }
 }
 
@@ -149,8 +148,9 @@ static void asset_view_filter_items(uiList *ui_list,
       });
 }
 
-static void asset_view_listener(uiList * /*ui_list*/, wmRegionListenerParams *params)
+static void asset_view_listener(uiList *ui_list, wmRegionListenerParams *params)
 {
+  const AssetViewListData *list_data = (AssetViewListData *)ui_list->dyn_data->customdata;
   const wmNotifier *notifier = params->notifier;
 
   switch (notifier->category) {
@@ -162,7 +162,7 @@ static void asset_view_listener(uiList * /*ui_list*/, wmRegionListenerParams *pa
     }
   }
 
-  if (ED_assetlist_listen(params->notifier)) {
+  if (ED_assetlist_listen(&list_data->asset_library_ref, params->notifier)) {
     ED_region_tag_redraw(params->region);
   }
 }

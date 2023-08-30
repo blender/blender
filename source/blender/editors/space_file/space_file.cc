@@ -252,7 +252,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
   if (asset_params) {
     filelist_set_asset_catalog_filter_options(
         sfile->files,
-        eFileSel_Params_AssetCatalogVisibility(asset_params->asset_catalog_visibility),
+        AssetCatalogFilterMode(asset_params->asset_catalog_visibility),
         &asset_params->catalog_id);
   }
 

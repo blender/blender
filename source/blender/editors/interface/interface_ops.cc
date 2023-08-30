@@ -55,7 +55,9 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-
+#include "ED_object.hh"
+#include "ED_paint.hh"
+#include "ED_select_utils.hh"
 
 /* for Copy As Driver */
 #include "ED_keyframing.hh"
@@ -2433,7 +2435,7 @@ static int ui_view_item_select_exec(bContext *C, wmOperator *op)
         /* Items may not support selection but a click should still activate it. */
         (action == SEL_SELECT))
     {
-      changed |= UI_view_item_activate(hovered_item);
+      changed |= UI_view_item_activate(C, hovered_item);
     }
   }
   /* Click on empty space, deselect all if requested. */
@@ -2496,7 +2498,7 @@ static void UI_OT_view_select_all(wmOperatorType *ot)
   ot->description = "Select or deselect all items in the view";
 
   ot->invoke = ui_view_select_all_invoke;
-  ot->poll = ui_view_under_cursor_poll;
+  ot->poll = ui_view_focused_poll;
 
   WM_operator_properties_select_all(ot);
 }

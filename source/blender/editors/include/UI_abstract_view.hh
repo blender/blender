@@ -76,12 +76,6 @@ class AbstractView {
    */
   virtual std::unique_ptr<DropTargetInterface> create_drop_target();
 
-  /**
-   * Iterate over all elements in the view executing \a iter_fn for each. Typically views would
-   * want to implement their own `foreach_item()` function with a more specific type.
-   */
-  virtual void foreach_abstract_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const = 0;
-
   /** Listen to a notifier, returning true if a redraw is needed. */
   virtual bool listen(const wmNotifier &) const;
 
@@ -94,6 +88,10 @@ class AbstractView {
 
   virtual void draw_overlays(const ARegion &region) const;
 
+  /**
+   * Iterate over all elements in the view executing \a iter_fn for each. Typically views would
+   * want to implement their own `foreach_item()` function with a more specific type.
+   */
   virtual void foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const = 0;
 
   /**
@@ -247,16 +245,11 @@ class AbstractViewItem {
    *
    * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise the
    * actual item state is unknown, possibly calling state-change update functions incorrectly.
+   *
+   * \return True if the item was activated successfully.
    */
-  void activate(bContext &C);
+  bool activate(bContext &C);
   void deactivate();
-  /**
-   * Activates this item and deactivates other items (only one can be active at any time).
-   * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise the
-   * actual item state is unknown, possibly calling state-change update functions incorrectly.
-   */
-  virtual bool activate();
-  virtual bool deactivate();
   /**
    * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise we
    * can't be sure about the item state.

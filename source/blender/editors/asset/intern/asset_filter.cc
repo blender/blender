@@ -109,7 +109,6 @@ AssetItemTree build_filtered_all_catalog_tree(
       assets_per_path;
 
   ED_assetlist_storage_fetch(&library_ref, &C);
-  ED_assetlist_ensure_previews_job(&library_ref, &C);
   asset_system::AssetLibrary *library = ED_assetlist_library_get_once_available(library_ref);
   if (!library) {
     return {};

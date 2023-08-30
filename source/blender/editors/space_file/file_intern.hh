@@ -227,7 +227,3 @@ void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library
                                                    uiLayout *layout,
                                                    SpaceFile *space_file,
                                                    FileAssetSelectParams *params);
-
-#ifdef __cplusplus
-}
-#endif

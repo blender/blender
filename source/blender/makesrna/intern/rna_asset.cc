@@ -386,7 +386,7 @@ static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
 
 static int rna_AssetHandle_preview_icon_id_get(PointerRNA *ptr)
 {
-  AssetHandle *asset = ptr->data;
+  AssetHandle *asset = static_cast<AssetHandle *>(ptr->data);
   return ED_assetlist_asset_preview_or_type_icon_id_request(asset);
 }
 

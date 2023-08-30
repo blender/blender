@@ -35,14 +35,15 @@
 #include "../space_file/file_indexer.hh"
 #include "../space_file/filelist.hh"
 
+#include "ED_asset_handle.h"
 #include "ED_asset_indexer.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"
 #include "ED_screen.hh"
 #include "asset_library_reference.hh"
 
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
 
 namespace blender::ed::asset {
 
@@ -97,7 +98,7 @@ class AssetList : NonCopyable {
   AssetList(AssetList &&other) = default;
   ~AssetList() = default;
 
-  static bool listen(const wmNotifier &notifier);
+  bool listen(const wmNotifier &notifier);
 
   void setup();
   void fetch(const bContext &C);
@@ -520,9 +521,9 @@ AssetHandle *ED_assetlist_asset_handle_get_by_index(const AssetLibraryReference 
 asset_system::AssetRepresentation *ED_assetlist_asset_get_by_index(
     const AssetLibraryReference &library_reference, int asset_index)
 {
-  AssetHandle asset_handle = ED_assetlist_asset_handle_get_by_index(&library_reference,
-                                                                    asset_index);
-  return reinterpret_cast<asset_system::AssetRepresentation *>(asset_handle.file_data->asset);
+  AssetHandle *asset_handle = ED_assetlist_asset_handle_get_by_index(&library_reference,
+                                                                     asset_index);
+  return reinterpret_cast<asset_system::AssetRepresentation *>(asset_handle->file_data->asset);
 }
 
 PreviewImage *ED_assetlist_asset_preview_request(AssetHandle *asset_handle)
@@ -531,14 +532,14 @@ PreviewImage *ED_assetlist_asset_preview_request(AssetHandle *asset_handle)
     return asset_handle->preview;
   }
 
-  if (ID *local_id = ED_asset_handle_get_local_id(asset_handle)) {
+  asset_system::AssetRepresentation *asset = ED_asset_handle_get_representation(asset_handle);
+  if (ID *local_id = asset->local_id()) {
     asset_handle->preview = BKE_previewimg_id_get(local_id);
   }
   else {
-    const char *asset_identifier = ED_asset_handle_get_identifier(asset_handle);
+    const char *asset_identifier = asset->get_identifier().library_relative_identifier().c_str();
     const int source = filelist_preview_source_get(asset_handle->file_data->typeflag);
-    const std::string asset_path = AS_asset_representation_full_path_get(
-        asset_handle->file_data->asset);
+    const std::string asset_path = asset->get_identifier().full_path();
 
     asset_handle->preview = BKE_previewimg_cached_thumbnail_read(
         asset_identifier, asset_path.c_str(), source, false);
@@ -549,8 +550,8 @@ PreviewImage *ED_assetlist_asset_preview_request(AssetHandle *asset_handle)
 
 static int preview_icon_id_ensure(AssetHandle *asset_handle, PreviewImage *preview)
 {
-  ID *local_id = ED_asset_handle_get_local_id(asset_handle);
-  return BKE_icon_preview_ensure(local_id, preview);
+  asset_system::AssetRepresentation *asset = ED_asset_handle_get_representation(asset_handle);
+  return BKE_icon_preview_ensure(asset->local_id(), preview);
 }
 
 int ED_assetlist_asset_preview_icon_id_request(AssetHandle *asset_handle)
@@ -598,9 +599,14 @@ AssetLibrary *ED_assetlist_library_get(const AssetLibraryReference *library_refe
   return nullptr;
 }
 
-bool ED_assetlist_listen(const wmNotifier *notifier)
+bool ED_assetlist_listen(const AssetLibraryReference *library_reference,
+                         const wmNotifier *notifier)
 {
-  return AssetList::listen(*notifier);
+  AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  if (list) {
+    return list->listen(*notifier);
+  }
+  return false;
 }
 
 int ED_assetlist_size(const AssetLibraryReference *library_reference)

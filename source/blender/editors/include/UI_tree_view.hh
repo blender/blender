@@ -69,6 +69,7 @@ class TreeViewItemContainer {
 
     /* Keep ENUM_OPERATORS() below updated! */
   };
+  using ItemIterFn = FunctionRef<void(AbstractTreeViewItem &)>;
 
   /**
    * Convenience wrapper constructing the item by forwarding given arguments to the constructor of
@@ -91,8 +92,7 @@ class TreeViewItemContainer {
   AbstractTreeViewItem &add_tree_item(std::unique_ptr<AbstractTreeViewItem> item);
 
  protected:
-  void foreach_item_recursive(FunctionRef<void(AbstractTreeViewItem &)> iter_fn,
-                              IterOptions options = IterOptions::None) const;
+  void foreach_item_recursive(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
 };
 
 ENUM_OPERATORS(TreeViewItemContainer::IterOptions,
@@ -121,9 +121,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
 
   void draw_overlays(const ARegion &region) const override;
 
-  void foreach_abstract_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const override;
-  void foreach_item(FunctionRef<void(AbstractTreeViewItem &)> iter_fn,
-                    IterOptions options = IterOptions::None) const;
+  void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
 
   /**
    * \param xy: The mouse coordinates in window space.

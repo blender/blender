@@ -40,6 +40,7 @@ using namespace blender;
 using namespace blender::ed::asset;
 
 static int asset_shelf_default_tile_height();
+static const AssetLibraryReference &asset_shelf_library_ref();
 
 namespace blender::ed::asset::shelf {
 
@@ -242,7 +243,8 @@ static void asset_shelf_region_listen(const wmRegionListenerParams *params)
 
 void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
 {
-  if (ED_assetlist_listen(params->notifier)) {
+  const AssetLibraryReference &library_ref = asset_shelf_library_ref();
+  if (ED_assetlist_listen(&library_ref, params->notifier)) {
     ED_region_tag_redraw_no_rebuild(params->region);
   }
   /* If the asset list didn't catch the notifier, let the region itself listen. */
