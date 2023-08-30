@@ -15,6 +15,7 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_screen.h"
 
 #include "BLT_translation.h"
@@ -698,6 +699,42 @@ void ED_asset_shelf_header_regiontype_register(ARegionType *region_type, const i
   BLI_addtail(&region_type->headertypes, ht);
 
   shelf::catalog_selector_panel_register(region_type);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Asset Shelf Type (un)registration
+ * \{ */
+
+void ED_asset_shelf_type_unlink(const Main &bmain, const AssetShelfType &shelf_type)
+{
+  LISTBASE_FOREACH (bScreen *, screen, &bmain.screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+        LISTBASE_FOREACH (ARegion *, region, regionbase) {
+          if (region->regiontype != RGN_TYPE_ASSET_SHELF) {
+            continue;
+          }
+
+          RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(
+              *region);
+          if (!shelf_regiondata) {
+            continue;
+          }
+          LISTBASE_FOREACH (AssetShelf *, shelf, &shelf_regiondata->shelves) {
+            if (shelf->type == &shelf_type) {
+              shelf->type = nullptr;
+            }
+          }
+
+          BLI_assert((shelf_regiondata->active_shelf == nullptr) ||
+                     (shelf_regiondata->active_shelf->type != &shelf_type));
+        }
+      }
+    }
+  }
 }
 
 /** \} */
