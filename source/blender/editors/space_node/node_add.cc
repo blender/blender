@@ -919,6 +919,8 @@ void NODE_OT_add_material(wmOperatorType *ot)
   WM_operator_properties_id_lookup(ot, true);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name New Node Tree Operator
  * \{ */

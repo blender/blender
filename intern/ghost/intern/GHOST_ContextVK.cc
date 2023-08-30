@@ -858,7 +858,7 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
   VK_CHECK(vkQueueSubmit(m_graphic_queue, 1, &submit_info, nullptr));
   VK_CHECK(vkQueueWaitIdle(m_graphic_queue));
 
-  delete barriers;
+  delete[] barriers;
 
   return GHOST_kSuccess;
 }
