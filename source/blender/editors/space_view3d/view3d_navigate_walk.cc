@@ -92,6 +92,10 @@ enum {
   WALK_MODAL_AXIS_LOCK_Z,
   WALK_MODAL_INCREASE_JUMP,
   WALK_MODAL_DECREASE_JUMP,
+  WALK_MODAL_DIR_LOCAL_UP,
+  WALK_MODAL_DIR_LOCAL_UP_STOP,
+  WALK_MODAL_DIR_LOCAL_DOWN,
+  WALK_MODAL_DIR_LOCAL_DOWN_STOP,
 };
 
 enum {
@@ -101,6 +105,8 @@ enum {
   WALK_BIT_RIGHT = 1 << 3,
   WALK_BIT_UP = 1 << 4,
   WALK_BIT_DOWN = 1 << 5,
+  WALK_BIT_LOCAL_UP = 1 << 6,
+  WALK_BIT_LOCAL_DOWN = 1 << 7,
 };
 
 enum eWalkTeleportState {
@@ -142,15 +148,19 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
       {WALK_MODAL_DIR_BACKWARD, "BACKWARD", 0, "Backward", ""},
       {WALK_MODAL_DIR_LEFT, "LEFT", 0, "Left", ""},
       {WALK_MODAL_DIR_RIGHT, "RIGHT", 0, "Right", ""},
-      {WALK_MODAL_DIR_UP, "UP", 0, "Up", ""},
-      {WALK_MODAL_DIR_DOWN, "DOWN", 0, "Down", ""},
+      {WALK_MODAL_DIR_UP, "UP", 0, "Global Up", ""},
+      {WALK_MODAL_DIR_DOWN, "DOWN", 0, "Global Down", ""},
+      {WALK_MODAL_DIR_LOCAL_UP, "LOCAL_UP", 0, "Local Up", ""},
+      {WALK_MODAL_DIR_LOCAL_DOWN, "LOCAL_DOWN", 0, "Local Down", ""},
 
       {WALK_MODAL_DIR_FORWARD_STOP, "FORWARD_STOP", 0, "Stop Move Forward", ""},
       {WALK_MODAL_DIR_BACKWARD_STOP, "BACKWARD_STOP", 0, "Stop Move Backward", ""},
       {WALK_MODAL_DIR_LEFT_STOP, "LEFT_STOP", 0, "Stop Move Left", ""},
       {WALK_MODAL_DIR_RIGHT_STOP, "RIGHT_STOP", 0, "Stop Mode Right", ""},
-      {WALK_MODAL_DIR_UP_STOP, "UP_STOP", 0, "Stop Move Up", ""},
-      {WALK_MODAL_DIR_DOWN_STOP, "DOWN_STOP", 0, "Stop Mode Down", ""},
+      {WALK_MODAL_DIR_UP_STOP, "UP_STOP", 0, "Stop Move Global Up", ""},
+      {WALK_MODAL_DIR_DOWN_STOP, "DOWN_STOP", 0, "Stop Mode Global Down", ""},
+      {WALK_MODAL_DIR_LOCAL_UP_STOP, "LOCAL_UP_STOP", 0, "Stop Move Local Up", ""},
+      {WALK_MODAL_DIR_LOCAL_DOWN_STOP, "LOCAL_DOWN_STOP", 0, "Stop Move Local Down", ""},
 
       {WALK_MODAL_TELEPORT, "TELEPORT", 0, "Teleport", "Move forward a few units at once"},
 
@@ -788,6 +798,12 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
       case WALK_MODAL_DIR_DOWN:
         walk->active_directions |= WALK_BIT_DOWN;
         break;
+      case WALK_MODAL_DIR_LOCAL_UP:
+        walk->active_directions |= WALK_BIT_LOCAL_UP;
+        break;
+      case WALK_MODAL_DIR_LOCAL_DOWN:
+        walk->active_directions |= WALK_BIT_LOCAL_DOWN;
+        break;
 
       case WALK_MODAL_DIR_FORWARD_STOP:
         walk->active_directions &= ~WALK_BIT_FORWARD;
@@ -806,6 +822,12 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
         break;
       case WALK_MODAL_DIR_DOWN_STOP:
         walk->active_directions &= ~WALK_BIT_DOWN;
+        break;
+      case WALK_MODAL_DIR_LOCAL_UP_STOP:
+        walk->active_directions &= ~WALK_BIT_LOCAL_UP;
+        break;
+      case WALK_MODAL_DIR_LOCAL_DOWN_STOP:
+        walk->active_directions &= ~WALK_BIT_LOCAL_DOWN;
         break;
 
       case WALK_MODAL_FAST_ENABLE:
@@ -1204,9 +1226,10 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
           add_v3_v3(dvec, dvec_tmp);
         }
 
-        if ((walk->active_directions & WALK_BIT_UP) || (walk->active_directions & WALK_BIT_DOWN)) {
+        /* Up and down movement is only available in free mode, not gravity mode. */
+        if (walk->navigation_mode == WALK_MODE_FREE) {
 
-          if (walk->navigation_mode == WALK_MODE_FREE) {
+          if (walk->active_directions & (WALK_BIT_UP | WALK_BIT_DOWN)) {
 
             direction = 0;
 
@@ -1215,11 +1238,26 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
             }
 
             if (walk->active_directions & WALK_BIT_DOWN) {
-              direction = 1;
+              direction += 1;
             }
 
             copy_v3_fl3(dvec_tmp, 0.0f, 0.0f, direction);
             add_v3_v3(dvec, dvec_tmp);
+          }
+
+          if (walk->active_directions & (WALK_BIT_LOCAL_UP | WALK_BIT_LOCAL_DOWN)) {
+
+            direction = 0;
+
+            if (walk->active_directions & WALK_BIT_LOCAL_UP) {
+              direction -= 1;
+            }
+
+            if (walk->active_directions & WALK_BIT_LOCAL_DOWN) {
+              direction += 1;
+            }
+
+            madd_v3_v3fl(dvec, rv3d->viewinv[1], direction);
           }
         }
 
