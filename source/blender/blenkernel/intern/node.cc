@@ -812,6 +812,8 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
     blender::bke::forward_compat::write_legacy_sockets(writer, ntree);
   }
 
+  BLO_write_struct(writer, GeometryNodeAssetTraits, ntree->geometry_node_asset_traits);
+
   BLO_write_struct_array(
       writer, bNestedNodeRef, ntree->nested_node_refs_num, ntree->nested_node_refs);
 
