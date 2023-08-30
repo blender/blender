@@ -650,28 +650,29 @@ static bool move_to_collection_poll(bContext *C)
   return ED_operator_object_active_local_editable_posemode_exclusive(C);
 }
 
-static const EnumPropertyItem *bone_collection_enum_items(bContext *C,
+static const EnumPropertyItem *bone_collection_enum_itemf(bContext *C,
                                                           PointerRNA * /*ptr*/,
                                                           PropertyRNA * /*prop*/,
                                                           bool *r_free)
 {
   EnumPropertyItem *item = nullptr, item_tmp = {0};
   int totitem = 0;
-  int bcoll_index = 0;
 
   if (C) {
-    Object *obpose = ED_pose_object_from_context(C);
-    bArmature *arm = static_cast<bArmature *>(obpose->data);
+    if (Object *obpose = ED_pose_object_from_context(C)) {
+      bArmature *arm = static_cast<bArmature *>(obpose->data);
 
-    LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections, bcoll_index) {
-      item_tmp.identifier = bcoll->name;
-      item_tmp.name = bcoll->name;
-      item_tmp.value = bcoll_index;
-      RNA_enum_item_add(&item, &totitem, &item_tmp);
+      int bcoll_index = 0;
+      LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections, bcoll_index) {
+        item_tmp.identifier = bcoll->name;
+        item_tmp.name = bcoll->name;
+        item_tmp.value = bcoll_index;
+        RNA_enum_item_add(&item, &totitem, &item_tmp);
+      }
+
+      RNA_enum_item_add_separator(&item, &totitem);
     }
   }
-
-  RNA_enum_item_add_separator(&item, &totitem);
 
   /* New Collection. */
   item_tmp.identifier = "__NEW__";
@@ -732,7 +733,7 @@ void ARMATURE_OT_move_to_collection(wmOperatorType *ot)
                       0,
                       "Collection",
                       "The bone collection to move the selected bones to");
-  RNA_def_enum_funcs(prop, bone_collection_enum_items);
+  RNA_def_enum_funcs(prop, bone_collection_enum_itemf);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
   prop = RNA_def_string(ot->srna,
@@ -771,7 +772,7 @@ void ARMATURE_OT_assign_to_collection(wmOperatorType *ot)
                       0,
                       "Collection",
                       "The bone collection to move the selected bones to");
-  RNA_def_enum_funcs(prop, bone_collection_enum_items);
+  RNA_def_enum_funcs(prop, bone_collection_enum_itemf);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
   prop = RNA_def_string(ot->srna,
