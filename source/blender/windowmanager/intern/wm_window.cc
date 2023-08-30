@@ -1609,53 +1609,52 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
     if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
     }
-    wmWindow *win = wt->win;
-
-    if (wt->sleep != 0) {
+    if (wt->sleep == true) {
       continue;
     }
 
-    if (time > wt->ntime) {
-      wt->delta = time - wt->ltime;
-      wt->duration += wt->delta;
-      wt->ltime = time;
-
-      wt->ntime = wt->stime;
-      if (wt->timestep != 0.0f) {
-        wt->ntime += wt->timestep * ceil(wt->duration / wt->timestep);
-      }
-
-      if (wt->event_type == TIMERJOBS) {
-        wm_jobs_timer(wm, wt);
-      }
-      else if (wt->event_type == TIMERAUTOSAVE) {
-        wm_autosave_timer(bmain, wm, wt);
-      }
-      else if (wt->event_type == TIMERNOTIFIER) {
-        WM_main_add_notifier(POINTER_AS_UINT(wt->customdata), nullptr);
-      }
-      else if (win) {
-        wmEvent event;
-        wm_event_init_from_window(win, &event);
-
-        event.type = wt->event_type;
-        event.val = KM_NOTHING;
-        event.keymodifier = 0;
-        event.flag = eWM_EventFlag(0);
-        event.custom = EVT_DATA_TIMER;
-        event.customdata = wt;
-        wm_event_add(win, &event);
-
-        has_event = true;
-      }
-    }
-    else {
+    /* Future timer, update nearest time & skip. */
+    if (wt->ntime >= time) {
       if ((has_event == false) && (sleep_us != 0)) {
         /* The timer is not ready to run but may run shortly. */
         if (wt->ntime < ntime_min) {
           ntime_min = wt->ntime;
         }
       }
+      continue;
+    }
+
+    wt->delta = time - wt->ltime;
+    wt->duration += wt->delta;
+    wt->ltime = time;
+
+    wt->ntime = wt->stime;
+    if (wt->timestep != 0.0f) {
+      wt->ntime += wt->timestep * ceil(wt->duration / wt->timestep);
+    }
+
+    if (wt->event_type == TIMERJOBS) {
+      wm_jobs_timer(wm, wt);
+    }
+    else if (wt->event_type == TIMERAUTOSAVE) {
+      wm_autosave_timer(bmain, wm, wt);
+    }
+    else if (wt->event_type == TIMERNOTIFIER) {
+      WM_main_add_notifier(POINTER_AS_UINT(wt->customdata), nullptr);
+    }
+    else if (wmWindow *win = wt->win) {
+      wmEvent event;
+      wm_event_init_from_window(win, &event);
+
+      event.type = wt->event_type;
+      event.val = KM_NOTHING;
+      event.keymodifier = 0;
+      event.flag = eWM_EventFlag(0);
+      event.custom = EVT_DATA_TIMER;
+      event.customdata = wt;
+      wm_event_add(win, &event);
+
+      has_event = true;
     }
   }
 
