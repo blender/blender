@@ -748,7 +748,7 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
 }
 
-ATTR_NO_OPT static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
+static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
   int ni = BM_ELEM_CD_GET_INT(f, data->cd_face_node_offset);
@@ -814,6 +814,8 @@ static void bmesh_undo_full_mesh(void *userdata)
     data->pbvh = nullptr;
   }
 
+  /* Recalculate face normals to prevent tessellation errors.*/
+  BM_mesh_normals_update(data->bm);
   data->do_full_recalc = true;
 }
 

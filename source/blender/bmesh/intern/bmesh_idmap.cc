@@ -498,7 +498,7 @@ void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
 #endif
 }
 
-ATTR_NO_OPT void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
+void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
 {
 #ifdef DEBUG_BM_IDMAP
   idmap_check_elem(idmap, elem);

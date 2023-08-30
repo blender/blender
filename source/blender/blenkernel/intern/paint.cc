@@ -2676,41 +2676,47 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
   }
 }
 
-static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool /*update_sculptverts*/)
+static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update_flags_valence)
 {
-  PBVH *pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_BMESH);
+  SculptSession *ss = ob->sculpt;
+  PBVH *pbvh = ss->pbvh = BKE_pbvh_new(PBVH_BMESH);
 
-  BKE_pbvh_set_bmesh(pbvh, ob->sculpt->bm);
-  BM_mesh_elem_table_ensure(ob->sculpt->bm, BM_VERT | BM_EDGE | BM_FACE);
+  BKE_pbvh_set_bmesh(pbvh, ss->bm);
+  BM_mesh_elem_table_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
 
   sculptsession_bmesh_add_layers(ob);
-  sculpt_boundary_flags_ensure(ob, pbvh, ob->sculpt->bm->totvert, ob->sculpt->bm->totedge);
+  sculpt_boundary_flags_ensure(ob, pbvh, ss->bm->totvert, ss->bm->totedge);
   BKE_sculpt_ensure_sculpt_layers(ob);
 
+  if (update_flags_valence) {
+    BKE_sculpt_init_flags_valence(ob, ss->pbvh, ss->bm->totvert, true);
+  }
+
   BKE_sculptsession_update_attr_refs(ob);
+
+  BKE_sculpt_ensure_origco(ob);
   sculpt_check_face_areas(ob, pbvh);
 
   BKE_sculpt_ensure_idmap(ob);
-  blender::bke::pbvh::sharp_limit_set(pbvh, ob->sculpt->sharp_angle_limit);
+  blender::bke::pbvh::sharp_limit_set(pbvh, ss->sharp_angle_limit);
 
   BKE_pbvh_build_bmesh(pbvh,
                        BKE_object_get_original_mesh(ob),
-                       ob->sculpt->bm,
-                       ob->sculpt->bm_log,
-                       ob->sculpt->bm_idmap,
-                       ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
-                       ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset,
-                       ob->sculpt->attrs.face_areas->bmesh_cd_offset,
-                       ob->sculpt->attrs.boundary_flags->bmesh_cd_offset,
-                       ob->sculpt->attrs.edge_boundary_flags->bmesh_cd_offset,
-                       ob->sculpt->attrs.flags ? ob->sculpt->attrs.flags->bmesh_cd_offset : -1,
-                       ob->sculpt->attrs.valence ? ob->sculpt->attrs.valence->bmesh_cd_offset : -1,
-                       ob->sculpt->attrs.orig_co ? ob->sculpt->attrs.orig_co->bmesh_cd_offset : -1,
-                       ob->sculpt->attrs.orig_no ? ob->sculpt->attrs.orig_no->bmesh_cd_offset :
-                                                   -1);
+                       ss->bm,
+                       ss->bm_log,
+                       ss->bm_idmap,
+                       ss->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
+                       ss->attrs.dyntopo_node_id_face->bmesh_cd_offset,
+                       ss->attrs.face_areas->bmesh_cd_offset,
+                       ss->attrs.boundary_flags->bmesh_cd_offset,
+                       ss->attrs.edge_boundary_flags->bmesh_cd_offset,
+                       ss->attrs.flags ? ss->attrs.flags->bmesh_cd_offset : -1,
+                       ss->attrs.valence ? ss->attrs.valence->bmesh_cd_offset : -1,
+                       ss->attrs.orig_co ? ss->attrs.orig_co->bmesh_cd_offset : -1,
+                       ss->attrs.orig_no ? ss->attrs.orig_no->bmesh_cd_offset : -1);
 
-  if (ob->sculpt->bm_log) {
-    BKE_pbvh_set_bm_log(pbvh, ob->sculpt->bm_log);
+  if (ss->bm_log) {
+    BKE_pbvh_set_bm_log(pbvh, ss->bm_log);
   }
 
   return pbvh;
@@ -2921,7 +2927,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       BKE_sculpt_ensure_idmap(ob);
       SCULPT_undo_ensure_bmlog(ob);
 
-      /* Note build_pbvh_for_dynamic_topology respects the pbvh cache. */
       pbvh = ss->pbvh = build_pbvh_for_dynamic_topology(ob, true);
 
       if (!CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
@@ -4274,6 +4279,73 @@ void BKE_sculpt_ensure_sculpt_layers(struct Object *ob)
                                           static_cast<uint8_t *>(ob->sculpt->attrs.flags->data),
                                           static_cast<int *>(ob->sculpt->attrs.valence->data));
   }
+}
+
+void BKE_sculpt_set_bmesh(Object *ob, BMesh *bm, bool free_existing)
+{
+  SculptSession *ss = ob->sculpt;
+
+  if (bm == ss->bm) {
+    return;
+  }
+
+  /* Destroy existing idmap. */
+  if (ss->bm_idmap) {
+    BM_idmap_destroy(ss->bm_idmap);
+    ss->bm_idmap = nullptr;
+  }
+
+  if (!ss->bm) {
+    ss->bm = bm;
+    return;
+  }
+
+  /* Free existing bmesh. */
+  if (ss->bm && free_existing) {
+    BM_mesh_free(ss->bm);
+    ss->bm = nullptr;
+  }
+
+  /* Destroy toolflags if they exist (will reallocate the bmesh). */
+  BM_mesh_toolflags_set(bm, false);
+
+  /* Ensure element indices & lookup tables are up to date. */
+  bm->elem_index_dirty = BM_VERT | BM_EDGE | BM_FACE;
+  bm->elem_table_dirty = BM_VERT | BM_EDGE | BM_FACE;
+  BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+  BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  /* Set new bmesh. */
+  ss->bm = bm;
+
+  /* Invalidate any existing bmesh attributes. */
+  SculptAttribute **attrs = reinterpret_cast<SculptAttribute **>(&ss->attrs);
+  int attrs_num = int(sizeof(ss->attrs) / sizeof(void *));
+  for (int i = 0; i < attrs_num; i++) {
+    if (attrs[i] && attrs[i]->data_for_bmesh) {
+      attrs[i]->used = false;
+      attrs[i] = nullptr;
+    }
+  }
+
+  /* Check for any stray attributes in the pool that weren't stored in ss->attrs. */
+  for (int i = 0; i < SCULPT_MAX_ATTRIBUTES; i++) {
+    SculptAttribute *attr = ss->temp_attributes + i;
+    if (attr->used && attr->data_for_bmesh) {
+      attr->used = false;
+    }
+  }
+
+  if (!ss->pbvh) {
+    /* Do nothing, no pbvh to rebuild. */
+    return;
+  }
+
+  /* Destroy and rebuild pbvh */
+  BKE_pbvh_free(ss->pbvh);
+  ss->pbvh = nullptr;
+
+  ss->pbvh = build_pbvh_for_dynamic_topology(ob, true);
 }
 
 namespace blender::bke::paint {

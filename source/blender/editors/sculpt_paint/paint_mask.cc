@@ -52,6 +52,7 @@
 #include "ED_sculpt.hh"
 #include "ED_view3d.hh"
 
+#include "../../bmesh/intern/bmesh_idmap.h"
 #include "bmesh.h"
 #include "tools/bmesh_boolean.h"
 
@@ -1408,28 +1409,28 @@ static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
 
 static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 {
+  SculptSession *ss = sgcontext->ss;
+  Object *ob = sgcontext->vc.obact;
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
-  Mesh *sculpt_mesh = BKE_mesh_from_object(sgcontext->vc.obact);
+  Mesh *sculpt_mesh = BKE_mesh_from_object(ob);
   Mesh *trim_mesh = trim_operation->mesh;
+
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
+  BMeshCreateParams create_params = {0};
+  create_params.use_toolflags = true;
+
+  BMeshFromMeshParams convert_params = {0};
+  convert_params.calc_face_normal = true;
 
   BMesh *bm;
 
-  if (sgcontext->ss && sgcontext->ss->bm) {
-    bm = sgcontext->ss->bm;
-    BM_mesh_normals_update(bm);
+  if (ss->bm) {
+    bm = BM_mesh_copy(ss->bm);
+    BM_mesh_toolflags_set(bm, true);
   }
-
   else {
-    const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
-    BMeshCreateParams params = {0};
-    params.use_toolflags = false;
-
-    BMeshFromMeshParams params2 = {0};
-    params2.calc_face_normal = true;
-
-    bm = BM_mesh_create(&allocsize, &params);
-
-    BM_mesh_bm_from_me(bm, sculpt_mesh, &params2);
+    bm = BM_mesh_create(&allocsize, &create_params);
+    BM_mesh_bm_from_me(bm, sculpt_mesh, &convert_params);
   }
 
   BMIter iter;
@@ -1439,17 +1440,12 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   }
 
   /* Create trim bmesh. */
-  BMeshCreateParams params1 = {0};
+  BMesh *trimbm = BM_mesh_create(&allocsize, &create_params);
 
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
-  BMesh *trimbm = BM_mesh_create(&allocsize, &params1);
-
-  BMeshFromMeshParams params3 = {0};
-  params3.calc_face_normal = params3.calc_vert_normal = true;
-  BM_mesh_bm_from_me(trimbm, trim_mesh, &params3);
+  convert_params.calc_face_normal = convert_params.calc_vert_normal = true;
+  BM_mesh_bm_from_me(trimbm, trim_mesh, &convert_params);
 
   BM_mesh_normals_update(bm);
-  BM_mesh_toolflags_set(bm, true);
 
   /* Add trim geometry to bm. */
   BMO_op_callf(trimbm, BMO_FLAG_DEFAULTS, "duplicate geom=%avef dest=%p", bm, 3);
@@ -1514,7 +1510,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   }
 
   MEM_freeN(looptris);
-  BKE_sculptsession_update_attr_refs(sgcontext->vc.obact);
+  BKE_sculptsession_update_attr_refs(ob);
 
   /* Flag intersection edges as sharp.*/
   BMEdge *e;
@@ -1535,29 +1531,8 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
     BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
   }
 
-  if (sgcontext->ss && sgcontext->ss->bm) { /* Rebuild pbvh. */
-    BKE_pbvh_free(sgcontext->ss->pbvh);
-
-    sgcontext->ss->pbvh = BKE_pbvh_new(PBVH_BMESH);
-    BKE_pbvh_set_bmesh(sgcontext->ss->pbvh, sgcontext->ss->bm);
-    BKE_sculpt_ensure_sculpt_layers(sgcontext->vc.obact);
-
-    blender::bke::pbvh::sharp_limit_set(sgcontext->ss->pbvh, sgcontext->ss->sharp_angle_limit);
-
-    BKE_pbvh_build_bmesh(sgcontext->ss->pbvh,
-                         sculpt_mesh,
-                         sgcontext->ss->bm,
-                         sgcontext->ss->bm_log,
-                         sgcontext->ss->bm_idmap,
-                         sgcontext->ss->cd_vert_node_offset,
-                         sgcontext->ss->cd_face_node_offset,
-                         sgcontext->ss->cd_face_areas,
-                         sgcontext->ss->attrs.boundary_flags->bmesh_cd_offset,
-                         sgcontext->ss->attrs.edge_boundary_flags->bmesh_cd_offset,
-                         sgcontext->ss->attrs.flags->bmesh_cd_offset,
-                         sgcontext->ss->attrs.valence->bmesh_cd_offset,
-                         sgcontext->ss->attrs.orig_co->bmesh_cd_offset,
-                         sgcontext->ss->attrs.orig_no->bmesh_cd_offset);
+  if (ss && ss->bm) { /* Swap out sculpt bmesh. */
+    BKE_sculpt_set_bmesh(ob, bm, true);
   }
   else {  // save result to mesh
     BMeshToMeshParams params = {0};
@@ -1566,7 +1541,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
     Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &params, sculpt_mesh);
     BM_mesh_free(bm);
 
-    BKE_mesh_nomain_to_mesh(result, (Mesh *)sgcontext->vc.obact->data, sgcontext->vc.obact);
+    BKE_mesh_nomain_to_mesh(result, (Mesh *)ob->data, ob);
   }
 }
 

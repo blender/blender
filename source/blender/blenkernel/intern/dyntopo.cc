@@ -20,9 +20,9 @@
 #include "BLI_index_range.hh"
 #include "BLI_linklist.h"
 #include "BLI_map.hh"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_geom.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_rand.h"
@@ -2435,7 +2435,7 @@ void detail_size_set(PBVH *pbvh, float detail_size, float detail_range)
 }
 }  // namespace blender::bke::dyntopo
 
-ATTR_NO_OPT void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face)
+void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face)
 {
   blender::bke::dyntopo::pbvh_bmesh_face_remove(pbvh, f, log_face, true, true);
 }

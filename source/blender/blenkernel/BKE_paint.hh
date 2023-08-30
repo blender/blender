@@ -1008,6 +1008,14 @@ char BKE_get_fset_boundary_symflag(Object *object);
 
 bool BKE_sculpt_has_persistent_base(SculptSession *ss);
 
+/**
+ * Sets ob->sculpt->bm.  The PBVH will be recreated if it exists
+ * (if it's of type PBVH_BMESH) as will ob->sculpt->bm_idmap.
+ *
+ * Note: BMLog (ob->sculpt->bm_log) doesn't need to be reallocated.
+ */
+void BKE_sculpt_set_bmesh(Object *ob, BMesh *bm, bool free_existing = true);
+
 enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
   SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1),

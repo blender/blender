@@ -593,7 +593,7 @@ struct BMLogEntry {
     CustomData_free(&pdata, 0);
   }
 
-  template<typename T> ATTR_NO_OPT T *get_elem_from_id(BMesh * /*bm*/, BMID<T> id)
+  template<typename T> T *get_elem_from_id(BMesh * /*bm*/, BMID<T> id)
   {
     T *elem = reinterpret_cast<T *>(BM_idmap_lookup(idmap, id.id));
     char htype = 0;
@@ -1378,9 +1378,9 @@ void BMLogSetDiff::restore_verts(BMesh *bm,
   bm->elem_table_dirty |= BM_VERT | BM_EDGE;
 }
 
-ATTR_NO_OPT void BMLogSetDiff::remove_verts(BMesh *bm,
-                                            blender::Map<BMID<BMVert>, BMLogVert *> verts,
-                                            BMLogCallbacks *callbacks)
+void BMLogSetDiff::remove_verts(BMesh *bm,
+                                blender::Map<BMID<BMVert>, BMLogVert *> verts,
+                                BMLogCallbacks *callbacks)
 {
   for (BMLogVert *lv : verts.values()) {
     BMVert *v = entry->get_elem_from_id(bm, lv->id);
@@ -1402,9 +1402,9 @@ ATTR_NO_OPT void BMLogSetDiff::remove_verts(BMesh *bm,
   bm->elem_table_dirty |= BM_VERT | BM_EDGE;
 }
 
-ATTR_NO_OPT void BMLogSetDiff::restore_edges(BMesh *bm,
-                                             blender::Map<BMID<BMEdge>, BMLogEdge *> edges,
-                                             BMLogCallbacks *callbacks)
+void BMLogSetDiff::restore_edges(BMesh *bm,
+                                 blender::Map<BMID<BMEdge>, BMLogEdge *> edges,
+                                 BMLogCallbacks *callbacks)
 {
   for (BMLogEdge *le : edges.values()) {
     BMVert *v1 = entry->get_elem_from_id<BMVert>(bm, le->v1);
@@ -1433,9 +1433,9 @@ ATTR_NO_OPT void BMLogSetDiff::restore_edges(BMesh *bm,
   }
 }
 
-ATTR_NO_OPT void BMLogSetDiff::remove_edges(BMesh *bm,
-                                            blender::Map<BMID<BMEdge>, BMLogEdge *> edges,
-                                            BMLogCallbacks *callbacks)
+void BMLogSetDiff::remove_edges(BMesh *bm,
+                                blender::Map<BMID<BMEdge>, BMLogEdge *> edges,
+                                BMLogCallbacks *callbacks)
 {
   for (BMLogEdge *le : edges.values()) {
     BMEdge *e = entry->get_elem_from_id<BMEdge>(bm, le->id);
@@ -1489,9 +1489,9 @@ void BMLogSetDiff::swap_edges(BMesh *bm,
   }
 }
 
-ATTR_NO_OPT void BMLogSetDiff::restore_faces(BMesh *bm,
-                                             blender::Map<BMID<BMFace>, BMLogFace *> faces,
-                                             BMLogCallbacks *callbacks)
+void BMLogSetDiff::restore_faces(BMesh *bm,
+                                 blender::Map<BMID<BMFace>, BMLogFace *> faces,
+                                 BMLogCallbacks *callbacks)
 {
   Vector<BMVert *, 16> verts;
 
@@ -1541,9 +1541,9 @@ ATTR_NO_OPT void BMLogSetDiff::restore_faces(BMesh *bm,
   bm->elem_table_dirty |= BM_FACE;
 }
 
-ATTR_NO_OPT void BMLogSetDiff::remove_faces(BMesh *bm,
-                                            blender::Map<BMID<BMFace>, BMLogFace *> faces,
-                                            BMLogCallbacks *callbacks)
+void BMLogSetDiff::remove_faces(BMesh *bm,
+                                blender::Map<BMID<BMFace>, BMLogFace *> faces,
+                                BMLogCallbacks *callbacks)
 {
   for (BMLogFace *lf : faces.values()) {
     BMFace *f = entry->get_elem_from_id<BMFace>(bm, lf->id);
