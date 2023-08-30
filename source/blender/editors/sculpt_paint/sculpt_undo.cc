@@ -80,8 +80,8 @@
 #include "ED_sculpt.hh"
 #include "ED_undo.hh"
 
-#include "bmesh_idmap.h"
 #include "bmesh.h"
+#include "bmesh_idmap.h"
 #include "bmesh_log.h"
 #include "sculpt_intern.hh"
 
@@ -1044,7 +1044,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
 
   SCULPT_pbvh_clear(ob);
 
-  ss->active_face.i = ss->active_vertex.i = 0;
+  ss->active_face.i = ss->active_vertex.i = PBVH_REF_NONE;
 
   /* Create empty BMesh and enable logging. */
   ss->bm = SCULPT_dyntopo_empty_bmesh();
@@ -1319,7 +1319,7 @@ static int sculpt_undo_bmesh_restore(
       sculpt_undo_bmesh_restore_begin(C, unode, ob, ss, dir);
       SCULPT_vertex_random_access_ensure(ss);
 
-      ss->active_face.i = ss->active_vertex.i = 0;
+      ss->active_face.i = ss->active_vertex.i = PBVH_REF_NONE;
 
       ret = true;
       break;
@@ -2350,17 +2350,20 @@ bool SCULPT_ensure_dyntopo_node_undo(
     unode->nodemap_size = newsize;
   }
 
-  bool check = !((type | extraType) & force_push_mask);
-  if (check && unode->nodemap[n] & (1 << type)) {
-    return false;
+  auto check = [&unode, force_push_mask, n](int type) {
+    return (type & force_push_mask) || !(unode->nodemap[n] & (1 << type));
+  };
+
+  if (check(type)) {
+    sculpt_undo_bmesh_push(ob, node, type);
+  }
+
+  if (extraType >= 0 && check(extraType)) {
+    sculpt_undo_bmesh_push(ob, node, (SculptUndoType)extraType);
+    unode->nodemap[n] |= 1 << extraType;
   }
 
   unode->nodemap[n] |= 1 << type;
-  sculpt_undo_bmesh_push(ob, node, type);
-
-  if (extraType >= 0) {
-    sculpt_undo_bmesh_push(ob, node, (SculptUndoType)extraType);
-  }
 
   return true;
 }

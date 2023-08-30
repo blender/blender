@@ -83,8 +83,8 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "bmesh_idmap.h"
 #include "bmesh.h"
+#include "bmesh_idmap.h"
 
 using blender::float3;
 using blender::IndexRange;
@@ -4113,12 +4113,6 @@ static void do_brush_action(Sculpt *sd,
       ((brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush->flag & BRUSH_ANCHORED)))
   {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-      /* Initialize auto-masking cache. */
-      if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
-        ss->cache->automasking = SCULPT_automasking_cache_init(sd, brush, ob);
-        ss->last_automasking_settings_hash = SCULPT_automasking_settings_hash(
-            ob, ss->cache->automasking);
-      }
       /* Initialize surface smooth cache. */
       if ((brush->sculpt_tool == SCULPT_TOOL_SMOOTH) &&
           (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE))
@@ -4177,21 +4171,21 @@ static void do_brush_action(Sculpt *sd,
       extra_type = int(SCULPT_UNDO_COORDS);
     }
 
-    for (int i : nodes.index_range()) {
-      SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], undo_type, extra_type);
+    for (PBVHNode *node : nodes) {
+      SCULPT_ensure_dyntopo_node_undo(ob, node, undo_type, extra_type);
 
       switch (undo_type) {
         case SCULPT_UNDO_FACE_SETS:
-          BKE_pbvh_node_mark_update_face_sets(nodes[i]);
+          BKE_pbvh_node_mark_update_face_sets(node);
           break;
         case SCULPT_UNDO_MASK:
-          BKE_pbvh_node_mark_update_mask(nodes[i]);
+          BKE_pbvh_node_mark_update_mask(node);
           break;
         case SCULPT_UNDO_COLOR:
-          BKE_pbvh_node_mark_update_color(nodes[i]);
+          BKE_pbvh_node_mark_update_color(node);
           break;
         case SCULPT_UNDO_COORDS:
-          BKE_pbvh_node_mark_update(nodes[i]);
+          BKE_pbvh_node_mark_update(node);
           break;
         case SCULPT_UNDO_HIDDEN:
         case SCULPT_UNDO_DYNTOPO_BEGIN:
@@ -4203,7 +4197,7 @@ static void do_brush_action(Sculpt *sd,
       }
 
       if (extra_type == int(SCULPT_UNDO_COORDS)) {
-        BKE_pbvh_node_mark_update(nodes[i]);
+        BKE_pbvh_node_mark_update(node);
       }
     }
   }
@@ -6351,6 +6345,16 @@ static void sculpt_stroke_update_step(bContext *C,
     do_dyntopo = do_dyntopo &&
                  (ss->cache->stroke_distance_t == 0.0f ||
                   ss->cache->stroke_distance_t - ss->cache->last_dyntopo_t > dyntopo_spacing);
+  }
+
+  /* Have to initialize automasking here since dyntopo might invalidate the active face. */
+  if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+    /* Initialize auto-masking cache. */
+    if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
+      ss->cache->automasking = SCULPT_automasking_cache_init(sd, brush, ob);
+      ss->last_automasking_settings_hash = SCULPT_automasking_settings_hash(
+          ob, ss->cache->automasking);
+    }
   }
 
   /* Running dyntopo before layer brush causes artifacts. */

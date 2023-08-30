@@ -57,8 +57,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "bmesh_idmap.h"
 #include "bmesh.h"
+#include "bmesh_idmap.h"
 #include "bmesh_log.h"
 #include "bmesh_tools.h"
 
@@ -364,7 +364,7 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
       SCULPT_undo_push_end(ob);
     }
 
-    ss->active_vertex.i = ss->active_face.i = 0;
+    ss->active_vertex.i = ss->active_face.i = PBVH_REF_NONE;
   }
 }
 
