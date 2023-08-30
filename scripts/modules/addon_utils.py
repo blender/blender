@@ -505,9 +505,22 @@ def reset_all(*, reload_scripts=False):
 def disable_all():
     import sys
     # Collect modules to disable first because dict can be modified as we disable.
+
+    # NOTE: don't use `getattr(item[1], "__addon_enabled__", False)` because this runs on all modules,
+    # including 3rd party modules unrelated to Blender.
+    #
+    # Some modules may have their own `__getattr__` and either:
+    # - Not raise an `AttributeError` (is they should),
+    #   causing `hasattr` & `getattr` to raise an exception instead of treating the attribute as missing.
+    # - Generate modules dynamically, modifying `sys.modules` which is being iterated over,
+    #   causing a RuntimeError: "dictionary changed size during iteration".
+    #
+    # Either way, running 3rd party logic here can cause undefined behavior.
+    # Use direct `__dict__` access to bypass `__getattr__`, see: #111649.
     addon_modules = [
         item for item in sys.modules.items()
-        if getattr(item[1], "__addon_enabled__", False)
+        if type(mod_dict := getattr(item[0], "__dict__", None)) is dict
+        if mod_dict.get("__addon_enabled__")
     ]
     # Check the enabled state again since it's possible the disable call
     # of one add-on disables others.
