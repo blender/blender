@@ -305,6 +305,8 @@ static void pydriver_error(ChannelDriver *driver, const PathResolvedRNA *anim_rn
 
 static bool is_opcode_secure(const int opcode)
 {
+  /* TODO(@ideasman42): Handle intrinsic opcodes (`CALL_INTRINSIC_1` & `CALL_INTRINSIC_2`).
+   * For Python 3.12. */
 
 #  define OK_OP(op) \
     case op: \
@@ -317,13 +319,17 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(POP_TOP)
     OK_OP(PUSH_NULL)
     OK_OP(NOP)
+#    if PY_VERSION_HEX < 0x030c0000
     OK_OP(UNARY_POSITIVE)
+#    endif
     OK_OP(UNARY_NEGATIVE)
     OK_OP(UNARY_NOT)
     OK_OP(UNARY_INVERT)
     OK_OP(BINARY_SUBSCR)
     OK_OP(GET_LEN)
+#    if PY_VERSION_HEX < 0x030c0000
     OK_OP(LIST_TO_TUPLE)
+#    endif
     OK_OP(RETURN_VALUE)
     OK_OP(SWAP)
     OK_OP(BUILD_TUPLE)
@@ -332,10 +338,12 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(BUILD_MAP)
     OK_OP(COMPARE_OP)
     OK_OP(JUMP_FORWARD)
+#    if PY_VERSION_HEX < 0x030c0000
     OK_OP(JUMP_IF_FALSE_OR_POP)
     OK_OP(JUMP_IF_TRUE_OR_POP)
     OK_OP(POP_JUMP_FORWARD_IF_FALSE)
     OK_OP(POP_JUMP_FORWARD_IF_TRUE)
+#    endif
     OK_OP(LOAD_GLOBAL)
     OK_OP(IS_OP)
     OK_OP(CONTAINS_OP)
@@ -343,8 +351,10 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(LOAD_FAST)
     OK_OP(STORE_FAST)
     OK_OP(DELETE_FAST)
+#    if PY_VERSION_HEX < 0x030c0000
     OK_OP(POP_JUMP_FORWARD_IF_NOT_NONE)
     OK_OP(POP_JUMP_FORWARD_IF_NONE)
+#    endif
     OK_OP(BUILD_SLICE)
     OK_OP(LOAD_DEREF)
     OK_OP(STORE_DEREF)
@@ -357,17 +367,23 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(DICT_MERGE)
     OK_OP(DICT_UPDATE)
 #    endif
+
+#    if PY_VERSION_HEX < 0x030c0000
     OK_OP(POP_JUMP_BACKWARD_IF_NOT_NONE)
     OK_OP(POP_JUMP_BACKWARD_IF_NONE)
     OK_OP(POP_JUMP_BACKWARD_IF_FALSE)
     OK_OP(POP_JUMP_BACKWARD_IF_TRUE)
+#    endif
 
     /* Special cases. */
     OK_OP(LOAD_CONST) /* Ok because constants are accepted. */
     OK_OP(LOAD_NAME)  /* Ok, because `PyCodeObject.names` is checked. */
     OK_OP(CALL)       /* Ok, because we check its "name" before calling. */
     OK_OP(KW_NAMES)   /* Ok, because it's used for calling functions with keyword arguments. */
-    OK_OP(PRECALL)    /* Ok, because it's used for calling. */
+
+#    if PY_VERSION_HEX < 0x030c0000
+    OK_OP(PRECALL) /* Ok, because it's used for calling. */
+#    endif
 
 #  else /* Python 3.10 and older. */
 

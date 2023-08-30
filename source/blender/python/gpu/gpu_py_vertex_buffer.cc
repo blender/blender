@@ -16,6 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_compat.h"
 #include "../generic/python_utildefines.h"
 
 #include "gpu_py_vertex_buffer.h" /* own include */
@@ -237,6 +238,7 @@ static PyObject *pygpu_vertbuf__tp_new(PyTypeObject * /*type*/, PyObject *args, 
 
   static const char *_keywords[] = {"format", "len", nullptr};
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "O!" /* `format` */
       "I"  /* `len` */
       ":GPUVertBuf.__new__",
@@ -273,6 +275,7 @@ static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, Py
 
   static const char *_keywords[] = {"id", "data", nullptr};
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "O" /* `id` */
       "O" /* `data` */
       ":attr_fill",

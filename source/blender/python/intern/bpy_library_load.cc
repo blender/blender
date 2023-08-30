@@ -39,6 +39,7 @@
 #include "bpy_library.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_compat.h"
 #include "../generic/python_utildefines.h"
 
 /* nifty feature. swap out strings for RNA data */
@@ -202,6 +203,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
       nullptr,
   };
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `filepath` */
       /* Optional keyword only arguments. */
       "|$"

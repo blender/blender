@@ -20,6 +20,8 @@
 
 #include "bpy_rna_context.h"
 
+#include "../generic/python_compat.h"
+
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
@@ -335,6 +337,7 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
 
   static const char *const _keywords[] = {"window", "area", "region", nullptr};
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "|$" /* Optional, keyword only arguments. */
       "O&" /* `window` */
       "O&" /* `area` */
