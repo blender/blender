@@ -469,10 +469,6 @@ void multires_force_sculpt_rebuild(Object *object)
     BKE_pbvh_free(ss->pbvh);
     object->sculpt->pbvh = nullptr;
   }
-
-  ss->vert_to_face_indices = {};
-  ss->vert_to_face_offsets = {};
-  ss->pmap = {};
 }
 
 void multires_force_external_reload(Object *object)

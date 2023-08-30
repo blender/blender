@@ -1391,13 +1391,7 @@ void BKE_sculptsession_free_deformMats(SculptSession *ss)
 
 void BKE_sculptsession_free_vwpaint_data(SculptSession *ss)
 {
-  SculptVertexPaintGeomMap *gmap = nullptr;
-  if (ss->mode_type == OB_MODE_VERTEX_PAINT) {
-    gmap = &ss->mode.vpaint.gmap;
-  }
-  else if (ss->mode_type == OB_MODE_WEIGHT_PAINT) {
-    gmap = &ss->mode.wpaint.gmap;
-
+  if (ss->mode_type == OB_MODE_WEIGHT_PAINT) {
     MEM_SAFE_FREE(ss->mode.wpaint.alpha_weight);
     if (ss->mode.wpaint.dvert_prev) {
       BKE_defvert_array_free_elems(ss->mode.wpaint.dvert_prev, ss->totvert);
@@ -1405,15 +1399,6 @@ void BKE_sculptsession_free_vwpaint_data(SculptSession *ss)
       ss->mode.wpaint.dvert_prev = nullptr;
     }
   }
-  else {
-    return;
-  }
-  gmap->vert_to_loop_offsets = {};
-  gmap->vert_to_loop_indices = {};
-  gmap->vert_to_loop = {};
-  gmap->vert_to_face_offsets = {};
-  gmap->vert_to_face_indices = {};
-  gmap->vert_to_face = {};
 }
 
 /**
@@ -1459,8 +1444,6 @@ static void sculptsession_free_pbvh(Object *object)
     ss->pbvh = nullptr;
   }
 
-  ss->vert_to_face_offsets = {};
-  ss->vert_to_face_indices = {};
   ss->pmap = {};
   ss->edge_to_face_offsets = {};
   ss->edge_to_face_indices = {};
@@ -1776,12 +1759,8 @@ static void sculpt_update_object(
   sculpt_attribute_update_refs(ob);
   sculpt_update_persistent_base(ob);
 
-  if (ob->type == OB_MESH && ss->pmap.is_empty()) {
-    ss->pmap = blender::bke::mesh::build_vert_to_face_map(me->faces(),
-                                                          me->corner_verts(),
-                                                          me->totvert,
-                                                          ss->vert_to_face_offsets,
-                                                          ss->vert_to_face_indices);
+  if (ob->type == OB_MESH) {
+    ss->pmap = me->vert_to_face_map();
   }
 
   if (ss->pbvh) {

@@ -75,12 +75,10 @@ class CornerPreviousEdgeFieldInput final : public bke::MeshFieldInput {
     }
     const OffsetIndices faces = mesh.faces();
     const Span<int> corner_edges = mesh.corner_edges();
-    Array<int> loop_to_face_map = bke::mesh::build_loop_to_face_map(faces);
+    const Span<int> corner_to_face = mesh.corner_to_face_map();
     return VArray<int>::ForFunc(
-        mesh.totloop,
-        [faces, corner_edges, loop_to_face_map = std::move(loop_to_face_map)](const int corner_i) {
-          return corner_edges[bke::mesh::face_corner_prev(faces[loop_to_face_map[corner_i]],
-                                                          corner_i)];
+        corner_edges.size(), [faces, corner_edges, corner_to_face](const int corner) {
+          return corner_edges[bke::mesh::face_corner_prev(faces[corner_to_face[corner]], corner)];
         });
   }
 

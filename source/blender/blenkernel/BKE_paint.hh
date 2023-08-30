@@ -267,12 +267,7 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
 
 /** Used for both vertex color and weight paint. */
 struct SculptVertexPaintGeomMap {
-  blender::Array<int> vert_to_loop_offsets;
-  blender::Array<int> vert_to_loop_indices;
   blender::GroupedSpan<int> vert_to_loop;
-
-  blender::Array<int> vert_to_face_offsets;
-  blender::Array<int> vert_to_face_indices;
   blender::GroupedSpan<int> vert_to_face;
 };
 
@@ -591,9 +586,7 @@ struct SculptSession {
   float *vmask;
 
   /* Mesh connectivity maps. */
-  /* Vertices to adjacent faces. */
-  blender::Array<int> vert_to_face_offsets;
-  blender::Array<int> vert_to_face_indices;
+  /* Vertices to adjacent polys. */
   blender::GroupedSpan<int> pmap;
 
   /* Edges to adjacent faces. */

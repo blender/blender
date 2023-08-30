@@ -52,7 +52,7 @@ struct MultiresUnsubdivideContext {
 
   /* Private data. */
   BMesh *bm_original_mesh;
-  blender::Array<int> loop_to_face_map;
+  blender::Span<int> loop_to_face_map;
   const int *base_to_orig_vmap;
 };
 

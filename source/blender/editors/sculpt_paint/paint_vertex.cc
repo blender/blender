@@ -241,15 +241,9 @@ void init_session_data(const ToolSettings *ts, Object *ob)
   }
 
   Mesh *me = (Mesh *)ob->data;
-  const blender::OffsetIndices faces = me->faces();
-  const Span<int> corner_verts = me->corner_verts();
 
-  if (gmap->vert_to_loop_indices.is_empty()) {
-    gmap->vert_to_loop = blender::bke::mesh::build_vert_to_loop_map(
-        corner_verts, me->totvert, gmap->vert_to_loop_offsets, gmap->vert_to_loop_indices);
-    gmap->vert_to_face = blender::bke::mesh::build_vert_to_face_map(
-        faces, corner_verts, me->totvert, gmap->vert_to_face_offsets, gmap->vert_to_face_indices);
-  }
+  gmap->vert_to_loop = me->vert_to_corner_map();
+  gmap->vert_to_face = me->vert_to_face_map();
 
   /* Create average brush arrays */
   if (ob->mode == OB_MODE_WEIGHT_PAINT) {

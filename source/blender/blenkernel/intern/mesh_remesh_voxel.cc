@@ -386,27 +386,13 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
     return;
   }
 
-  Array<int> source_vert_to_loop_offsets;
-  Array<int> source_vert_to_loop_indices;
   GroupedSpan<int> source_lmap;
-  Array<int> target_vert_to_loop_offsets;
-  Array<int> target_vert_to_loop_indices;
   GroupedSpan<int> target_lmap;
   BVHTreeFromMesh bvhtree = {nullptr};
   threading::parallel_invoke(
       [&]() { BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2); },
-      [&]() {
-        source_lmap = mesh::build_vert_to_loop_map(source->corner_verts(),
-                                                   source->totvert,
-                                                   source_vert_to_loop_offsets,
-                                                   source_vert_to_loop_indices);
-      },
-      [&]() {
-        target_lmap = mesh::build_vert_to_loop_map(target->corner_verts(),
-                                                   target->totvert,
-                                                   target_vert_to_loop_offsets,
-                                                   target_vert_to_loop_indices);
-      });
+      [&]() { source_lmap = source->vert_to_corner_map(); },
+      [&]() { target_lmap = target->vert_to_corner_map(); });
 
   const Span<float3> target_positions = target->vert_positions();
   Array<int> nearest_src_verts(target_positions.size());

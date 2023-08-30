@@ -139,6 +139,10 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->runtime->loose_edges_cache = mesh_src->runtime->loose_edges_cache;
   mesh_dst->runtime->looptris_cache = mesh_src->runtime->looptris_cache;
   mesh_dst->runtime->looptri_faces_cache = mesh_src->runtime->looptri_faces_cache;
+  mesh_dst->runtime->vert_to_face_offset_cache = mesh_src->runtime->vert_to_face_offset_cache;
+  mesh_dst->runtime->vert_to_face_map_cache = mesh_src->runtime->vert_to_face_map_cache;
+  mesh_dst->runtime->vert_to_corner_map_cache = mesh_src->runtime->vert_to_corner_map_cache;
+  mesh_dst->runtime->corner_to_face_map_cache = mesh_src->runtime->corner_to_face_map_cache;
 
   /* Only do tessface if we have no faces. */
   const bool do_tessface = ((mesh_src->totface_legacy != 0) && (mesh_src->faces_num == 0));
@@ -1778,7 +1782,7 @@ void BKE_mesh_calc_normals_split_ex(const Mesh *mesh,
       mesh->faces(),
       mesh->corner_verts(),
       mesh->corner_edges(),
-      {},
+      mesh->corner_to_face_map(),
       mesh->vert_normals(),
       mesh->face_normals(),
       sharp_edges,

@@ -517,10 +517,7 @@ void split_edges(Mesh &mesh,
   const BitVector<> selection_bits = selection_to_bit_vector(selected_edges, orig_edges.size());
   const bke::LooseEdgeCache &loose_edges = mesh.loose_edges();
 
-  Array<int> vert_to_corner_offsets;
-  Array<int> vert_to_corner_indices;
-  const GroupedSpan<int> vert_to_corner_map = bke::mesh::build_vert_to_loop_map(
-      mesh.corner_verts(), orig_verts_num, vert_to_corner_offsets, vert_to_corner_indices);
+  const GroupedSpan<int> vert_to_corner_map = mesh.vert_to_corner_map();
 
   Array<int> edge_to_corner_offsets;
   Array<int> edge_to_corner_indices;
@@ -535,7 +532,7 @@ void split_edges(Mesh &mesh,
         orig_edges, orig_verts_num, vert_to_edge_offsets, vert_to_edge_indices);
   }
 
-  const Array<int> corner_to_face_map = bke::mesh::build_loop_to_face_map(mesh.faces());
+  const Array<int> corner_to_face_map = mesh.corner_to_face_map();
 
   const Array<Vector<CornerGroup>> corner_groups = calc_all_corner_groups(faces,
                                                                           mesh.corner_verts(),

@@ -317,6 +317,23 @@ typedef struct Mesh {
   void bounds_set_eager(const blender::Bounds<blender::float3> &bounds);
 
   /**
+   * Cached map containing the index of the face using each face corner.
+   */
+  blender::Span<int> corner_to_face_map() const;
+  /**
+   * Offsets per vertex used to slice arrays containing data for connected faces or face corners.
+   */
+  blender::OffsetIndices<int> vert_to_face_map_offsets() const;
+  /**
+   * Cached map from each vertex to the corners using it.
+   */
+  blender::GroupedSpan<int> vert_to_corner_map() const;
+  /**
+   * Cached map from each vertex to the faces using it.
+   */
+  blender::GroupedSpan<int> vert_to_face_map() const;
+
+  /**
    * Cached information about loose edges, calculated lazily when necessary.
    */
   const blender::bke::LooseEdgeCache &loose_edges() const;
