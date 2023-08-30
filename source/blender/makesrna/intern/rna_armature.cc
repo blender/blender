@@ -1704,7 +1704,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 }
 
-/** Armature.collections collection-of-bonecollections interface. */
+/** Armature.collections collection-of-bone-collections interface. */
 static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;

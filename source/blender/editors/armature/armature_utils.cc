@@ -434,10 +434,12 @@ void ED_armature_edit_transform_mirror_update(Object *obedit)
 /** \name Armature EditMode Conversions
  * \{ */
 
-/** Copy the bone collection membership info from the bones to the ebones.
+/**
+ * Copy the bone collection membership info from the bones to the edit-bones.
  *
- * Operations on eBones (like subdividing, extruding, etc.) will have to deal
- * with collection assignments of those eBones as well. */
+ * Operations on edit-bones (like subdividing, extruding, etc.) will have to deal
+ * with collection assignments of those edit-bones as well.
+ */
 static void copy_bonecollection_membership(EditBone *eBone, const Bone *bone)
 {
   BLI_assert(BLI_listbase_is_empty(&eBone->bone_collections));

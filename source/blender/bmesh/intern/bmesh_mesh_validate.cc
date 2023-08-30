@@ -76,7 +76,7 @@ bool BM_mesh_validate(BMesh *bm)
       ERRMSG("edge %d: duplicate index: %d", i, BM_elem_index_get(e->v1));
     }
 
-    /* build edgehash at the same time */
+    /* Build edge-hash at the same time. */
     edge_hash.add_or_modify(
         {BM_elem_index_get(e->v1), BM_elem_index_get(e->v2)},
         [&](BMEdge **value) { *value = e; },

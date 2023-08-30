@@ -272,7 +272,7 @@ bool ANIM_armature_bonecoll_unassign(BoneCollection *bcoll, Bone *bone)
 {
   bool was_found = false;
 
-  /* Remove membersip from collection. */
+  /* Remove membership from collection. */
   LISTBASE_FOREACH_MUTABLE (BoneCollectionMember *, member, &bcoll->bones) {
     if (member->bone == bone) {
       BLI_freelinkN(&bcoll->bones, member);
@@ -342,6 +342,7 @@ static bool any_bone_collection_visible(const ListBase /*BoneCollectionRef*/ *co
 
 /* TODO: these two functions were originally implemented for armature layers, hence the armature
  * parameters. These should be removed at some point. */
+
 bool ANIM_bonecoll_is_visible(const struct bArmature * /*armature*/, const struct Bone *bone)
 {
   return any_bone_collection_visible(&bone->runtime.collections);

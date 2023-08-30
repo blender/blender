@@ -135,7 +135,7 @@ void ANIM_armature_bonecoll_assign_active(const struct bArmature *armature,
  * Reconstruct the bone collection memberships, based on the bone runtime data.
  *
  * This is needed to transition out of armature edit mode. That removes all bones, and
- * recreates them from the editbones.
+ * recreates them from the edit-bones.
  */
 void ANIM_armature_bonecoll_reconstruct(struct bArmature *armature);
 
