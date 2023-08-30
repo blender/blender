@@ -54,7 +54,7 @@ struct Object;
  * \warning This function doesn't calculate face normals.
  */
 void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *me, const struct BMeshFromMeshParams *params)
-    ATTR_NONNULL(2, 3);
+    ATTR_NONNULL(1, 3);
 
 struct BMeshToMeshParams {
   /** Update object hook indices & vertex parents. */
