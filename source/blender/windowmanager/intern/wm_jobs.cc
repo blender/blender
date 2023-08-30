@@ -613,21 +613,17 @@ void WM_jobs_kill(wmWindowManager *wm,
 
 void wm_jobs_timer_end(wmWindowManager *wm, wmTimer *wt)
 {
-  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
-    if (wm_job->wt == wt) {
-      wm_jobs_kill_job(wm, wm_job);
-      return;
-    }
+  wmJob *wm_job = static_cast<wmJob *>(BLI_findptr(&wm->jobs, wt, offsetof(wmJob, wt)));
+  if (wm_job) {
+    wm_jobs_kill_job(wm, wm_job);
   }
 }
 
 void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
 {
-  LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
-    if (wm_job->wt != wt) {
-      continue;
-    }
+  wmJob *wm_job = static_cast<wmJob *>(BLI_findptr(&wm->jobs, wt, offsetof(wmJob, wt)));
 
+  if (wm_job) {
     /* running threads */
     if (wm_job->threads.first) {
       /* let threads get temporary lock over main thread if needed */
