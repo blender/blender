@@ -201,6 +201,7 @@ static void update_zone_border_links(const bNodeTree &tree, bNodeTreeZones &tree
 
 static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree)
 {
+  tree.ensure_topology_cache();
   if (tree.has_available_link_cycle()) {
     return {};
   }

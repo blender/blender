@@ -19,9 +19,9 @@ namespace blender::bke::anonymous_attribute_inferencing {
 namespace aal = nodes::aal;
 using nodes::NodeDeclaration;
 
-static bool is_possible_field_socket(const bNodeSocket &socket)
+static bool is_possible_field_socket(const eNodeSocketDatatype type)
 {
-  return ELEM(socket.type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT);
+  return ELEM(type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT);
 }
 
 static bool socket_is_field(const bNodeSocket &socket)
@@ -187,7 +187,7 @@ class bNodeTreeToDotOptionsForAnonymousAttributeInferencing : public bNodeTreeTo
       ss << "]";
       return ss.str();
     }
-    else if (is_possible_field_socket(socket)) {
+    else if (is_possible_field_socket(eNodeSocketDatatype(socket.type))) {
       std::stringstream ss;
       ss << socket.identifier << " [";
       bits::foreach_1_index(result_.propagated_fields_by_socket[socket.index_in_tree()],
@@ -212,11 +212,13 @@ static AnonymousAttributeInferencingResult analyse_anonymous_attribute_usages(
 
   /* Find input field and geometry sources. */
   for (const int i : tree.interface_inputs().index_range()) {
-    const bNodeSocket &interface_socket = *tree.interface_inputs()[i];
-    if (interface_socket.type == SOCK_GEOMETRY) {
+    const bNodeTreeInterfaceSocket &interface_socket = *tree.interface_inputs()[i];
+    const bNodeSocketType *typeinfo = nodeSocketTypeFind(interface_socket.socket_type);
+    const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+    if (type == SOCK_GEOMETRY) {
       all_geometry_sources.append_and_get_index({InputGeometrySource{i}});
     }
-    else if (is_possible_field_socket(interface_socket)) {
+    else if (is_possible_field_socket(type)) {
       all_field_sources.append_and_get_index({InputFieldSource{i}});
     }
   }
@@ -368,7 +370,7 @@ static AnonymousAttributeInferencingResult analyse_anonymous_attribute_usages(
             for (const int field_source_index : geometry_source.field_sources) {
               for (const bNodeSocket *other_socket :
                    group_output_node->input_sockets().drop_back(1)) {
-                if (!is_possible_field_socket(*other_socket)) {
+                if (!is_possible_field_socket(eNodeSocketDatatype(other_socket->type))) {
                   continue;
                 }
                 if (propagated_fields_by_socket[other_socket->index_in_tree()][field_source_index]
@@ -383,7 +385,7 @@ static AnonymousAttributeInferencingResult analyse_anonymous_attribute_usages(
           }
         });
       }
-      else if (is_possible_field_socket(*socket)) {
+      else if (is_possible_field_socket(eNodeSocketDatatype(socket->type))) {
         const BoundedBitSpan propagated_fields =
             propagated_fields_by_socket[socket->index_in_tree()];
         bits::foreach_1_index(propagated_fields, [&](const int field_source_index) {
@@ -450,9 +452,13 @@ static AnonymousAttributeInferencingResult analyse_anonymous_attribute_usages(
   required_fields_by_geometry_socket.all_bits() &= available_fields_by_geometry_socket.all_bits();
 
   /* Create #EvalRelation for the tree. */
+  tree.ensure_topology_cache();
+
   for (const int interface_i : tree.interface_inputs().index_range()) {
-    const bNodeSocket &interface_socket = *tree.interface_inputs()[interface_i];
-    if (interface_socket.type != SOCK_GEOMETRY) {
+    const bNodeTreeInterfaceSocket &interface_socket = *tree.interface_inputs()[interface_i];
+    const bNodeSocketType *typeinfo = interface_socket.socket_typeinfo();
+    eNodeSocketDatatype socket_type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+    if (socket_type != SOCK_GEOMETRY) {
       continue;
     }
     BitVector<> required_fields(all_field_sources.size(), false);

@@ -583,6 +583,64 @@ static void version_replace_principled_hair_model(bNodeTree *ntree)
   }
 }
 
+static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &legacy_socket,
+                                                               const eNodeSocketInOut in_out)
+{
+  bNodeTreeInterfaceItem *new_item = static_cast<bNodeTreeInterfaceItem *>(
+      MEM_mallocN(sizeof(bNodeTreeInterfaceSocket), __func__));
+  new_item->item_type = NODE_INTERFACE_SOCKET;
+  bNodeTreeInterfaceSocket &new_socket = *reinterpret_cast<bNodeTreeInterfaceSocket *>(new_item);
+
+  /* Move reusable data. */
+  new_socket.name = BLI_strdup(legacy_socket.name);
+  new_socket.identifier = BLI_strdup(legacy_socket.identifier);
+  new_socket.description = BLI_strdup(legacy_socket.description);
+  new_socket.socket_type = BLI_strdup(legacy_socket.idname);
+  new_socket.flag = (in_out == SOCK_IN ? NODE_INTERFACE_SOCKET_INPUT :
+                                         NODE_INTERFACE_SOCKET_OUTPUT);
+  SET_FLAG_FROM_TEST(
+      new_socket.flag, legacy_socket.flag & SOCK_HIDE_VALUE, NODE_INTERFACE_SOCKET_HIDE_VALUE);
+  SET_FLAG_FROM_TEST(new_socket.flag,
+                     legacy_socket.flag & SOCK_HIDE_IN_MODIFIER,
+                     NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER);
+  new_socket.attribute_domain = legacy_socket.attribute_domain;
+  new_socket.default_attribute_name = BLI_strdup_null(legacy_socket.default_attribute_name);
+  new_socket.socket_data = legacy_socket.default_value;
+  new_socket.properties = legacy_socket.prop;
+
+  /* Clear moved pointers in legacy data. */
+  legacy_socket.default_value = nullptr;
+  legacy_socket.prop = nullptr;
+
+  /* Unused data */
+  MEM_delete(legacy_socket.runtime);
+  legacy_socket.runtime = nullptr;
+
+  return new_item;
+}
+
+static void versioning_convert_node_tree_socket_lists_to_interface(bNodeTree *ntree)
+{
+  bNodeTreeInterface &tree_interface = ntree->tree_interface;
+
+  const int num_inputs = BLI_listbase_count(&ntree->inputs_legacy);
+  const int num_outputs = BLI_listbase_count(&ntree->outputs_legacy);
+  tree_interface.root_panel.items_num = num_inputs + num_outputs;
+  tree_interface.root_panel.items_array = static_cast<bNodeTreeInterfaceItem **>(MEM_malloc_arrayN(
+      tree_interface.root_panel.items_num, sizeof(bNodeTreeInterfaceItem *), __func__));
+
+  /* Convert outputs first to retain old outputs/inputs ordering. */
+  int index;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &ntree->outputs_legacy, index) {
+    tree_interface.root_panel.items_array[index] = legacy_socket_move_to_interface(*socket,
+                                                                                   SOCK_OUT);
+  }
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &ntree->inputs_legacy, index) {
+    tree_interface.root_panel.items_array[num_outputs + index] = legacy_socket_move_to_interface(
+        *socket, SOCK_IN);
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -912,6 +970,29 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.gi_irradiance_pool_size = 16;
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 20)) {
+    /* Convert old socket lists into new interface items. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      versioning_convert_node_tree_socket_lists_to_interface(ntree);
+      /* Clear legacy sockets after conversion.
+       * Internal data pointers have been moved or freed already. */
+      BLI_freelistN(&ntree->inputs_legacy);
+      BLI_freelistN(&ntree->outputs_legacy);
+    }
+    FOREACH_NODETREE_END;
+  }
+  else {
+    /* Legacy node tree sockets are created for forward compatibilty,
+     * but have to be freed after loading and versioning. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      /* Clear legacy sockets after conversion.
+       * Internal data pointers have been moved or freed already. */
+      BLI_freelistN(&ntree->inputs_legacy);
+      BLI_freelistN(&ntree->outputs_legacy);
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**

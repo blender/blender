@@ -191,7 +191,8 @@ static void node_declare_dynamic(const bNodeTree &node_tree,
   delta_time->identifier = "Delta Time";
   delta_time->name = DATA_("Delta Time");
   delta_time->in_out = SOCK_OUT;
-  r_declaration.outputs.append(std::move(delta_time));
+  r_declaration.outputs.append(delta_time.get());
+  r_declaration.items.append(std::move(delta_time));
 
   const NodeGeometrySimulationOutput &storage = *static_cast<const NodeGeometrySimulationOutput *>(
       output_node->storage);

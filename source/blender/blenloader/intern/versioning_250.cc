@@ -577,7 +577,7 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
   //  if (stype->value_structsize > 0)
   //      gsock->default_value = MEM_callocN(stype->value_structsize, "default socket value");
 
-  BLI_addtail(in_out == SOCK_IN ? &ngroup->inputs : &ngroup->outputs, gsock);
+  BLI_addtail(in_out == SOCK_IN ? &ngroup->inputs_legacy : &ngroup->outputs_legacy, gsock);
 
   BKE_ntree_update_tag_interface(ngroup);
 
@@ -2099,10 +2099,10 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           }
         }
 
-        LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
+        LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
           do_versions_socket_default_value_259(sock);
         }
-        LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
+        LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
           do_versions_socket_default_value_259(sock);
         }
 

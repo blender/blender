@@ -87,9 +87,16 @@ static void add_reroute_node_fn(nodes::LinkSearchOpParams &params)
 static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
 {
   /* Add a group input based on the connected socket, and add a new group input node. */
-  bNodeSocket *interface_socket = bke::ntreeAddSocketInterfaceFromSocket(
-      &params.node_tree, &params.node, &params.socket);
-  const int group_input_index = BLI_findindex(&params.node_tree.inputs, interface_socket);
+  const eNodeSocketInOut in_out = eNodeSocketInOut(params.socket.in_out);
+  NodeTreeInterfaceSocketFlag flag = NodeTreeInterfaceSocketFlag(0);
+  SET_FLAG_FROM_TEST(flag, in_out & SOCK_IN, NODE_INTERFACE_SOCKET_INPUT);
+  SET_FLAG_FROM_TEST(flag, in_out & SOCK_OUT, NODE_INTERFACE_SOCKET_OUTPUT);
+  bNodeTreeInterfaceSocket *socket_iface = params.node_tree.tree_interface.add_socket(
+      params.socket.name,
+      params.socket.description,
+      params.socket.typeinfo->idname,
+      flag,
+      nullptr);
   bNode &group_input = params.add_node("NodeGroupInput");
 
   /* This is necessary to create the new sockets in the other input nodes. */
@@ -98,9 +105,10 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   /* Hide the new input in all other group input nodes, to avoid making them taller. */
   for (bNode *node : params.node_tree.all_nodes()) {
     if (node->type == NODE_GROUP_INPUT) {
-      bNodeSocket *new_group_input_socket = (bNodeSocket *)BLI_findlink(&node->outputs,
-                                                                        group_input_index);
-      new_group_input_socket->flag |= SOCK_HIDDEN;
+      bNodeSocket *new_group_input_socket = nodeFindSocket(node, in_out, socket_iface->identifier);
+      if (new_group_input_socket) {
+        new_group_input_socket->flag |= SOCK_HIDDEN;
+      }
     }
   }
 
@@ -109,37 +117,36 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
     socket->flag |= SOCK_HIDDEN;
   }
 
-  bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&group_input.outputs, group_input_index);
-  if (socket == nullptr) {
-    /* Adding sockets can fail in some cases. There's no good reason not to be safe here. */
-    return;
-  }
-  /* Unhide the socket for the new input in the new node and make a connection to it. */
-  socket->flag &= ~SOCK_HIDDEN;
-  nodeAddLink(&params.node_tree, &group_input, socket, &params.node, &params.socket);
+  bNodeSocket *socket = nodeFindSocket(&group_input, in_out, socket_iface->identifier);
+  if (socket) {
+    /* Unhide the socket for the new input in the new node and make a connection to it. */
+    socket->flag &= ~SOCK_HIDDEN;
+    nodeAddLink(&params.node_tree, &group_input, socket, &params.node, &params.socket);
 
-  bke::node_socket_move_default_value(
-      *CTX_data_main(&params.C), params.node_tree, params.socket, *socket);
+    bke::node_socket_move_default_value(
+        *CTX_data_main(&params.C), params.node_tree, params.socket, *socket);
+  }
 }
 
 static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
-                                        const bNodeSocket &interface_socket)
+                                        const bNodeTreeInterfaceSocket &interface_socket)
 {
-  const int group_input_index = BLI_findindex(&params.node_tree.inputs, &interface_socket);
+  const eNodeSocketInOut in_out = eNodeSocketInOut(params.socket.in_out);
+  NodeTreeInterfaceSocketFlag flag = NodeTreeInterfaceSocketFlag(0);
+  SET_FLAG_FROM_TEST(flag, in_out & SOCK_IN, NODE_INTERFACE_SOCKET_INPUT);
+  SET_FLAG_FROM_TEST(flag, in_out & SOCK_OUT, NODE_INTERFACE_SOCKET_OUTPUT);
+
   bNode &group_input = params.add_node("NodeGroupInput");
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &group_input.outputs) {
     socket->flag |= SOCK_HIDDEN;
   }
 
-  bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&group_input.outputs, group_input_index);
-  if (socket == nullptr) {
-    /* Adding sockets can fail in some cases. There's no good reason not to be safe here. */
-    return;
+  bNodeSocket *socket = nodeFindSocket(&group_input, in_out, interface_socket.identifier);
+  if (socket != nullptr) {
+    socket->flag &= ~SOCK_HIDDEN;
+    nodeAddLink(&params.node_tree, &group_input, socket, &params.node, &params.socket);
   }
-
-  socket->flag &= ~SOCK_HIDDEN;
-  nodeAddLink(&params.node_tree, &group_input, socket, &params.node, &params.socket);
 }
 
 /**
@@ -313,20 +320,30 @@ static void gather_socket_link_operations(const bContext &C,
     search_link_ops.append({IFACE_("Group Input"), add_group_input_node_fn});
 
     int weight = -1;
-    LISTBASE_FOREACH (const bNodeSocket *, interface_socket, &node_tree.inputs) {
-      eNodeSocketDatatype from = (eNodeSocketDatatype)interface_socket->type;
-      eNodeSocketDatatype to = (eNodeSocketDatatype)socket.type;
-      if (node_tree.typeinfo->validate_link && !node_tree.typeinfo->validate_link(from, to)) {
-        continue;
+    node_tree.tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
+      if (item.item_type != NODE_INTERFACE_SOCKET) {
+        return true;
+      }
+      const bNodeTreeInterfaceSocket &interface_socket =
+          reinterpret_cast<const bNodeTreeInterfaceSocket &>(item);
+      {
+        const bNodeSocketType *from_typeinfo = nodeSocketTypeFind(interface_socket.socket_type);
+        const eNodeSocketDatatype from = from_typeinfo ? eNodeSocketDatatype(from_typeinfo->type) :
+                                                         SOCK_CUSTOM;
+        const eNodeSocketDatatype to = eNodeSocketDatatype(socket.typeinfo->type);
+        if (node_tree.typeinfo->validate_link && !node_tree.typeinfo->validate_link(from, to)) {
+          return true;
+        }
       }
       search_link_ops.append(
-          {std::string(IFACE_("Group Input")) + " " + UI_MENU_ARROW_SEP + interface_socket->name,
+          {std::string(IFACE_("Group Input")) + " " + UI_MENU_ARROW_SEP + interface_socket.name,
            [interface_socket](nodes::LinkSearchOpParams &params) {
-             add_existing_group_input_fn(params, *interface_socket);
+             add_existing_group_input_fn(params, interface_socket);
            },
            weight});
       weight--;
-    }
+      return true;
+    });
   }
 
   gather_search_link_ops_for_all_assets(C, node_tree, socket, search_link_ops);

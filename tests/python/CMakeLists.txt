@@ -314,6 +314,15 @@ add_blender_test(
 )
 
 # ------------------------------------------------------------------------------
+# NODE INTERFACE TESTS
+add_blender_test(
+  bl_node_group_interface
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_node_group_interface.py
+  --
+  --testdir "${TEST_SRC_DIR}/node_group"
+)
+
+# ------------------------------------------------------------------------------
 # IO TESTS
 
 # STL Import tests

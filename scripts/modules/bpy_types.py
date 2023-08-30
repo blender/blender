@@ -1218,7 +1218,11 @@ class NodeSocket(StructRNA, metaclass=RNAMetaPropGroup):
                 link.to_socket == self))
 
 
-class NodeSocketInterface(StructRNA, metaclass=RNAMetaPropGroup):
+class NodeTreeInterfaceItem(StructRNA):
+    __slots__ = ()
+
+
+class NodeTreeInterfaceSocket(NodeTreeInterfaceItem, metaclass=RNAMetaPropGroup):
     __slots__ = ()
 
 

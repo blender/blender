@@ -115,9 +115,8 @@ using NodeDeclareFunction = void (*)(blender::nodes::NodeDeclarationBuilder &bui
 using NodeDeclareDynamicFunction = void (*)(const bNodeTree &tree,
                                             const bNode &node,
                                             blender::nodes::NodeDeclaration &r_declaration);
-using SocketGetCPPValueFunction = void (*)(const struct bNodeSocket &socket, void *r_value);
-using SocketGetGeometryNodesCPPValueFunction = void (*)(const struct bNodeSocket &socket,
-                                                        void *r_value);
+using SocketGetCPPValueFunction = void (*)(const void *socket_value, void *r_value);
+using SocketGetGeometryNodesCPPValueFunction = void (*)(const void *socket_value, void *r_value);
 
 /* Adds socket link operations that are specific to this node type. */
 using NodeGatherSocketLinkOperationsFunction =
@@ -170,18 +169,21 @@ typedef struct bNodeSocketType {
                      struct PointerRNA *ptr,
                      struct PointerRNA *node_ptr,
                      float *r_color);
+  void (*draw_color_simple)(const bNodeSocketType *socket_type, float *r_color);
 
-  void (*interface_draw)(struct bContext *C, struct uiLayout *layout, struct PointerRNA *ptr);
-  void (*interface_draw_color)(struct bContext *C, struct PointerRNA *ptr, float *r_color);
-  void (*interface_init_socket)(struct bNodeTree *ntree,
-                                const struct bNodeSocket *interface_socket,
+  void (*interface_draw)(struct ID *id,
+                         struct bNodeTreeInterfaceSocket *socket,
+                         struct bContext *C,
+                         struct uiLayout *layout);
+  void (*interface_init_socket)(struct ID *id,
+                                const struct bNodeTreeInterfaceSocket *interface_socket,
                                 struct bNode *node,
-                                struct bNodeSocket *sock,
+                                struct bNodeSocket *socket,
                                 const char *data_path);
-  void (*interface_from_socket)(struct bNodeTree *ntree,
-                                struct bNodeSocket *interface_socket,
+  void (*interface_from_socket)(struct ID *id,
+                                struct bNodeTreeInterfaceSocket *interface_socket,
                                 const struct bNode *node,
-                                const struct bNodeSocket *sock);
+                                const struct bNodeSocket *socket);
 
   /* RNA integration */
   ExtensionRNA ext_socket;
@@ -540,19 +542,6 @@ void ntreeBlendWrite(struct BlendWriter *writer, struct bNodeTree *ntree);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Node Tree Interface
- * \{ */
-
-void ntreeRemoveSocketInterface(bNodeTree *ntree, bNodeSocket *sock);
-
-struct bNodeSocket *ntreeAddSocketInterface(struct bNodeTree *ntree,
-                                            eNodeSocketInOut in_out,
-                                            const char *idname,
-                                            const char *name);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Generic API, Nodes
  * \{ */
 
@@ -585,7 +574,7 @@ struct GHashIterator *nodeSocketTypeGetIterator(void);
 const char *nodeSocketTypeLabel(const bNodeSocketType *stype);
 
 const char *nodeStaticSocketType(int type, int subtype);
-const char *nodeStaticSocketInterfaceType(int type, int subtype);
+const char *nodeStaticSocketInterfaceTypeNew(int type, int subtype);
 const char *nodeStaticSocketLabel(int type, int subtype);
 
 /* Helper macros for iterating over node types. */
