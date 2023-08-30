@@ -633,10 +633,10 @@ void *BLI_findstring_ptr(const ListBase *listbase, const char *id, const int off
   const char *id_iter;
 
   LISTBASE_FOREACH (Link *, link, listbase) {
-    /* exact copy of BLI_findstring(), except for this line */
+    /* Exact copy of BLI_findstring(), except for this line, and the check for potential nullptr
+     * below. */
     id_iter = *((const char **)(((const char *)link) + offset));
-
-    if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
+    if (id_iter && id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
     }
   }
@@ -650,9 +650,10 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
   const char *id_iter;
 
   LISTBASE_FOREACH_BACKWARD (Link *, link, listbase) {
-    /* Exact copy of #BLI_rfindstring(), except for this line */
+    /* Exact copy of BLI_rfindstring(), except for this line, and the check for potential nullptr
+     * below. */
     id_iter = *((const char **)(((const char *)link) + offset));
-    if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
+    if (id_iter && id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
     }
   }
@@ -665,10 +666,10 @@ void *BLI_listbase_findafter_string_ptr(Link *link, const char *id, const int of
   const char *id_iter;
 
   for (link = link->next; link; link = link->next) {
-    /* exact copy of BLI_findstring(), except for this line */
+    /* Exact copy of BLI_findstring(), except for this line, and the check for potential nullptr
+     * below. */
     id_iter = *((const char **)(((const char *)link) + offset));
-
-    if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
+    if (id_iter && id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
     }
   }

@@ -114,10 +114,7 @@ void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *me)
     return;
   }
 
-  Array<int> vert_to_loop_offsets;
-  Array<int> vert_to_loop_indices;
-  const GroupedSpan<int> vert_to_loop = bke::mesh::build_vert_to_loop_map(
-      me->corner_verts(), me->totvert, vert_to_loop_offsets, vert_to_loop_indices);
+  const GroupedSpan<int> vert_to_loop = me->vert_to_corner_map();
 
   Vector<float2 *> mloopuv_layers;
   mloopuv_layers.reserve(mloopuv_layers_num);

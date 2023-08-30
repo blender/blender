@@ -47,7 +47,7 @@ void node_tex_musgrave_fBm_1d(vec3 co,
   fac = value;
 }
 
-/* 1D Musgrave Multifractal
+/* 1D Musgrave Multi-fractal
  *
  * H: highest fractal dimension
  * lacunarity: gap between successive frequencies
@@ -133,7 +133,7 @@ void node_tex_musgrave_hetero_terrain_1d(vec3 co,
   fac = value;
 }
 
-/* 1D Hybrid Additive/Multiplicative Multifractal Terrain
+/* 1D Hybrid Additive/Multiplicative Multi-fractal Terrain
  *
  * H: fractal dimension of the roughest area
  * lacunarity: gap between successive frequencies
@@ -186,7 +186,7 @@ void node_tex_musgrave_hybrid_multi_fractal_1d(vec3 co,
   fac = value;
 }
 
-/* 1D Ridged Multifractal Terrain
+/* 1D Ridged Multi-fractal Terrain
  *
  * H: fractal dimension of the roughest area
  * lacunarity: gap between successive frequencies
@@ -272,7 +272,7 @@ void node_tex_musgrave_fBm_2d(vec3 co,
   fac = value;
 }
 
-/* 2D Musgrave Multifractal
+/* 2D Musgrave Multi-fractal
  *
  * H: highest fractal dimension
  * lacunarity: gap between successive frequencies
@@ -358,7 +358,7 @@ void node_tex_musgrave_hetero_terrain_2d(vec3 co,
   fac = value;
 }
 
-/* 2D Hybrid Additive/Multiplicative Multifractal Terrain
+/* 2D Hybrid Additive/Multiplicative Multi-fractal Terrain
  *
  * H: fractal dimension of the roughest area
  * lacunarity: gap between successive frequencies
@@ -411,7 +411,7 @@ void node_tex_musgrave_hybrid_multi_fractal_2d(vec3 co,
   fac = value;
 }
 
-/* 2D Ridged Multifractal Terrain
+/* 2D Ridged Multi-fractal Terrain
  *
  * H: fractal dimension of the roughest area
  * lacunarity: gap between successive frequencies
@@ -497,7 +497,7 @@ void node_tex_musgrave_fBm_3d(vec3 co,
   fac = value;
 }
 
-/* 3D Musgrave Multifractal
+/* 3D Musgrave Multi-fractal
  *
  * H: highest fractal dimension
  * lacunarity: gap between successive frequencies
@@ -583,7 +583,7 @@ void node_tex_musgrave_hetero_terrain_3d(vec3 co,
   fac = value;
 }
 
-/* 3D Hybrid Additive/Multiplicative Multifractal Terrain
+/* 3D Hybrid Additive/Multiplicative Multi-fractal Terrain
  *
  * H: fractal dimension of the roughest area
  * lacunarity: gap between successive frequencies
@@ -636,7 +636,7 @@ void node_tex_musgrave_hybrid_multi_fractal_3d(vec3 co,
   fac = value;
 }
 
-/* 3D Ridged Multifractal Terrain
+/* 3D Ridged Multi-fractal Terrain
  *
  * H: fractal dimension of the roughest area
  * lacunarity: gap between successive frequencies
@@ -722,7 +722,7 @@ void node_tex_musgrave_fBm_4d(vec3 co,
   fac = value;
 }
 
-/* 4D Musgrave Multifractal
+/* 4D Musgrave Multi-fractal
  *
  * H: highest fractal dimension
  * lacunarity: gap between successive frequencies
@@ -808,7 +808,7 @@ void node_tex_musgrave_hetero_terrain_4d(vec3 co,
   fac = value;
 }
 
-/* 4D Hybrid Additive/Multiplicative Multifractal Terrain
+/* 4D Hybrid Additive/Multiplicative Multi-fractal Terrain
  *
  * H: fractal dimension of the roughest area
  * lacunarity: gap between successive frequencies
@@ -861,7 +861,7 @@ void node_tex_musgrave_hybrid_multi_fractal_4d(vec3 co,
   fac = value;
 }
 
-/* 4D Ridged Multifractal Terrain
+/* 4D Ridged Multi-fractal Terrain
  *
  * H: fractal dimension of the roughest area
  * lacunarity: gap between successive frequencies

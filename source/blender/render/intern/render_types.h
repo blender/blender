@@ -160,7 +160,6 @@ struct Render : public BaseRender {
   bool prepare_viewlayer(struct ViewLayer *view_layer, struct Depsgraph *depsgraph) override;
 
   char name[RE_MAXNAME] = "";
-  int slot = 0;
 
   /* state settings */
   short flag = 0;
@@ -183,7 +182,7 @@ struct Render : public BaseRender {
   /* final picture width and height (within disprect) */
   int rectx = 0, recty = 0;
 
-  /* Camera transform, only used by Freestyle. */
+  /* Camera transform. Used by Freestyle, Eevee, and other draw manager engines.. */
   float winmat[4][4] = {{0}};
 
   /* Clipping. */

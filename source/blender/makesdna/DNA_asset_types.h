@@ -183,10 +183,13 @@ typedef struct AssetWeakReference {
   AssetWeakReference();
   AssetWeakReference(AssetWeakReference &&);
   AssetWeakReference(const AssetWeakReference &) = delete;
-  /** Enables use with `std::unique_ptr<AssetWeakReference>`. */
   ~AssetWeakReference();
 
-  static std::unique_ptr<AssetWeakReference> make_reference(
+  /**
+   * See AssetRepresentation::make_weak_reference(). Must be freed using
+   * #BKE_asset_weak_reference_free().
+   */
+  static AssetWeakReference *make_reference(
       const blender::asset_system::AssetLibrary &library,
       const blender::asset_system::AssetIdentifier &asset_identifier);
 #endif

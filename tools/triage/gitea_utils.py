@@ -76,7 +76,7 @@ def gitea_json_issues_search(
         type=None,
         since=None,
         before=None,
-        state=None,
+        state='all',
         labels=None,
         created=False,
         reviewed=False,
@@ -114,18 +114,6 @@ def gitea_json_issues_search(
     issues_url = f"{base_url}?{encoded_query_params}"
 
     issues = url_json_get_all_pages(issues_url, verbose=verbose)
-
-    if not state:
-        # Also search closed issues:
-        issues.extend(gitea_json_issues_search(type=type,
-                                               since=since,
-                                               before=before,
-                                               state="closed",
-                                               labels=labels,
-                                               created=created,
-                                               reviewed=reviewed,
-                                               access_token=access_token,
-                                               verbose=False))
 
     if verbose:
         print(f"Total: {len(issues)}         ", end="\n\n", flush=True)

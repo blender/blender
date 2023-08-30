@@ -97,11 +97,19 @@ void socket_declarations_for_simulation_items(const Span<NodeSimulationItem> ite
 {
   for (const int i : items.index_range()) {
     const NodeSimulationItem &item = items[i];
-    r_declaration.inputs.append(socket_declaration_for_simulation_item(item, SOCK_IN, i));
-    r_declaration.outputs.append(socket_declaration_for_simulation_item(item, SOCK_OUT, i));
+    SocketDeclarationPtr input_decl = socket_declaration_for_simulation_item(item, SOCK_IN, i);
+    SocketDeclarationPtr output_decl = socket_declaration_for_simulation_item(item, SOCK_OUT, i);
+    r_declaration.inputs.append(input_decl.get());
+    r_declaration.items.append(std::move(input_decl));
+    r_declaration.outputs.append(output_decl.get());
+    r_declaration.items.append(std::move(output_decl));
   }
-  r_declaration.inputs.append(decl::create_extend_declaration(SOCK_IN));
-  r_declaration.outputs.append(decl::create_extend_declaration(SOCK_OUT));
+  SocketDeclarationPtr input_extend_decl = decl::create_extend_declaration(SOCK_IN);
+  SocketDeclarationPtr output_extend_decl = decl::create_extend_declaration(SOCK_OUT);
+  r_declaration.inputs.append(input_extend_decl.get());
+  r_declaration.items.append(std::move(input_extend_decl));
+  r_declaration.outputs.append(output_extend_decl.get());
+  r_declaration.items.append(std::move(output_extend_decl));
 }
 
 struct SimulationItemsUniqueNameArgs {

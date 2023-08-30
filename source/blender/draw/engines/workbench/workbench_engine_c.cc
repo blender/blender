@@ -244,7 +244,7 @@ static void workbench_cache_hair_populate(WORKBENCH_PrivateData *wpd,
 
 static const CustomData *workbench_mesh_get_loop_custom_data(const Mesh *mesh)
 {
-  if (BKE_mesh_wrapper_type(mesh) == ME_WRAPPER_TYPE_BMESH) {
+  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
     BLI_assert(mesh->edit_mesh != nullptr);
     BLI_assert(mesh->edit_mesh->bm != nullptr);
     return &mesh->edit_mesh->bm->ldata;
@@ -254,7 +254,7 @@ static const CustomData *workbench_mesh_get_loop_custom_data(const Mesh *mesh)
 
 static const CustomData *workbench_mesh_get_vert_custom_data(const Mesh *mesh)
 {
-  if (BKE_mesh_wrapper_type(mesh) == ME_WRAPPER_TYPE_BMESH) {
+  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
     BLI_assert(mesh->edit_mesh != nullptr);
     BLI_assert(mesh->edit_mesh->bm != nullptr);
     return &mesh->edit_mesh->bm->vdata;

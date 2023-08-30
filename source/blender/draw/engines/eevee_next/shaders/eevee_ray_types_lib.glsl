@@ -14,7 +14,7 @@ struct Ray {
   float max_time;
 };
 
-/* Screenspace ray ([0..1] "uv" range) where direction is normalize to be as small as one
+/* Screen-space ray ([0..1] "uv" range) where direction is normalize to be as small as one
  * full-resolution pixel. The ray is also clipped to all frustum sides.
  * Z component is device normalized Z (aka. depth buffer value).
  * W component is device normalized Z + Thickness.

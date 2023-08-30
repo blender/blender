@@ -46,6 +46,8 @@
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
+#include "ANIM_bone_collections.h"
+
 #include "armature_intern.h"
 
 /* utility macros for storing a temp int in the bone (selection flag) */
@@ -751,7 +753,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
   const bool add_to_sel = RNA_boolean_get(op->ptr, "extend");
   bool changed = false;
 
-  pchan_act = BKE_pose_channel_active_if_layer_visible(ob);
+  pchan_act = BKE_pose_channel_active_if_bonecoll_visible(ob);
   if (pchan_act == nullptr) {
     return OPERATOR_CANCELLED;
   }

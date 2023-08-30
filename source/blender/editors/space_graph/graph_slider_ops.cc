@@ -1196,10 +1196,10 @@ static void match_slope_graph_keys(bAnimContext *ac, const float factor)
 
   if (!all_segments_valid) {
     if (factor >= 0) {
-      WM_report(RPT_WARNING, "You need at least 2 keys to the right side of the selection.");
+      WM_report(RPT_WARNING, "You need at least 2 keys to the right side of the selection");
     }
     else {
-      WM_report(RPT_WARNING, "You need at least 2 keys to the left side of the selection.");
+      WM_report(RPT_WARNING, "You need at least 2 keys to the left side of the selection");
     }
   }
 

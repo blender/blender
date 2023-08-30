@@ -3,7 +3,7 @@ import bpy
 
 class MyAssetShelf(bpy.types.AssetShelf):
     bl_space_type = 'VIEW_3D'
-    bl_idname = "my_template.my_material_asset_shelf"
+    bl_idname = "VIEW3D_AST_my_asset_shelf"
 
     @classmethod
     def poll(cls, context):

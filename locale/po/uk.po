@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -18215,20 +18215,40 @@ msgid "Camera near clipping distance"
 msgstr "Ближня відстань відсікання для камери"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Параметри Cycles для камери"
-
-
-msgid "Cycles camera settings"
-msgstr "Параметри Cycles для камери"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Видимий розмір об'єкта-камери у 3D-огляді"
 
 
 msgid "Depth Of Field"
 msgstr "Глибина різкості"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "Поле зору об'єктиву 'риб'яче око'"
+
+
+msgid "Fisheye Lens"
+msgstr "Об'єктив 'риб'яче око'"
+
+
+msgid "Lens focal length (mm)"
+msgstr "Фокусна відстань об'єктива (мм)"
+
+
+msgid "Max Latitude"
+msgstr "Найбільша широта"
+
+
+msgid "Maximum latitude (vertical angle) for the equirectangular lens"
+msgstr "Максимальна широта (вертикальний кут) для рівнопроміжкових об'єктивів"
+
+
+msgid "Min Latitude"
+msgstr "Найменша широта"
+
+
+msgid "Minimum latitude (vertical angle) for the equirectangular lens"
+msgstr "Мінімальна широта (вертикальний кут) для рівнопроміжкових об'єктивів"
 
 
 msgid "Focal Length"
@@ -18251,12 +18271,60 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "Задати об'єктив кутом поля зору"
 
 
+msgid "Max Longitude"
+msgstr "Найбільша довгота"
+
+
+msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Максимальна довгота (горизонтальний кут) для рівнопроміжкових об'єктивів"
+
+
+msgid "Min Longitude"
+msgstr "Найменша довгота"
+
+
+msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Мінімальна довгота (горизонтальний кут) для рівнопроміжкових об'єктивів"
+
+
 msgid "Orthographic Scale"
 msgstr "Ортогональний масштаб"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "Масштаб ортогональної камери (подібно до зумування)"
+
+
+msgid "Panorama Type"
+msgstr "Тип панорами"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "Спотворення, що використовується для обчислень"
+
+
+msgid "Equirectangular"
+msgstr "Еквідистантна"
+
+
+msgid "Mirror Ball"
+msgstr "Дзеркальна куля"
+
+
+msgid "Fisheye Equidistant"
+msgstr "Еквідистантне 'риб'яче око'"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "Ідеально для куполів, ігноруються розміри датчика"
+
+
+msgid "Fisheye Equisolid"
+msgstr "Еквітілесне 'риб'яче око'"
+
+
+msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
+msgstr "Подібний до більшості сучасних об'єктивів 'риб'яче око', враховує розміри сенсора"
 
 
 msgid "Passepartout Alpha"
@@ -35003,10 +35071,6 @@ msgid "Display Hidden"
 msgstr "Показати приховане"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "Включити канали з невидимих об'єктів/кісток"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "Поле сортування Аркуша експозицій"
 
@@ -38953,16 +39017,8 @@ msgid "Projection of the input image"
 msgstr "Проєкція ввідного зображення"
 
 
-msgid "Equirectangular"
-msgstr "Еквідистантна"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "Еквідистантна або проєкція широта-довгота"
-
-
-msgid "Mirror Ball"
-msgstr "Дзеркальна куля"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -40011,6 +40067,10 @@ msgstr "Вводи дерева вузлів"
 
 msgid "Collection of Node Tree Sockets"
 msgstr "Колекція ввідних роз'ємів дерева вузлів"
+
+
+msgid "Socket Type"
+msgstr "Тип роз'єму"
 
 
 msgid "Node Tree Outputs"
@@ -54187,10 +54247,6 @@ msgid "Add Node Tree Interface Socket"
 msgstr "Додати інтерфейсний роз'єм до дерева вузлів"
 
 
-msgid "Socket Type"
-msgstr "Тип роз'єму"
-
-
 msgctxt "Operator"
 msgid "Move Node Tree Socket"
 msgstr "Перемістити роз'єм дерева вузлів"
@@ -67233,6 +67289,10 @@ msgid "Edit Property"
 msgstr "Редагувати властивість"
 
 
+msgid "Speaker"
+msgstr "Гучномовець"
+
+
 msgid "Allow the property to be overridden when the data-block is linked"
 msgstr "Дозволити властивості бути заміщеною, коли блок даних пов'язаний"
 
@@ -68445,10 +68505,6 @@ msgid "Sampling Presets"
 msgstr "Передустави Відбору"
 
 
-msgid "View Object Types"
-msgstr "Типи Об'єктів Огляду"
-
-
 msgid "Film"
 msgstr "Фільм"
 
@@ -69645,6 +69701,10 @@ msgstr "Чотирибічний Огляд"
 
 msgid "Auto-Masking"
 msgstr "Авто-Маскування"
+
+
+msgid "Wire Color"
+msgstr "Колір зв'язку"
 
 
 msgid "Shadow Settings"
@@ -73306,74 +73366,6 @@ msgstr "Знаходження з регулярним виразом"
 
 msgid "Use regular expressions to match text in the 'Find' field"
 msgstr "Використати регулярні вирази для узгодження тексту у полі 'Знаходження'"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "Поле зору об'єктиву 'риб'яче око'"
-
-
-msgid "Fisheye Lens"
-msgstr "Об'єктив 'риб'яче око'"
-
-
-msgid "Lens focal length (mm)"
-msgstr "Фокусна відстань об'єктива (мм)"
-
-
-msgid "Max Latitude"
-msgstr "Найбільша широта"
-
-
-msgid "Maximum latitude (vertical angle) for the equirectangular lens"
-msgstr "Максимальна широта (вертикальний кут) для рівнопроміжкових об'єктивів"
-
-
-msgid "Min Latitude"
-msgstr "Найменша широта"
-
-
-msgid "Minimum latitude (vertical angle) for the equirectangular lens"
-msgstr "Мінімальна широта (вертикальний кут) для рівнопроміжкових об'єктивів"
-
-
-msgid "Max Longitude"
-msgstr "Найбільша довгота"
-
-
-msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Максимальна довгота (горизонтальний кут) для рівнопроміжкових об'єктивів"
-
-
-msgid "Min Longitude"
-msgstr "Найменша довгота"
-
-
-msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Мінімальна довгота (горизонтальний кут) для рівнопроміжкових об'єктивів"
-
-
-msgid "Panorama Type"
-msgstr "Тип панорами"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "Спотворення, що використовується для обчислень"
-
-
-msgid "Fisheye Equidistant"
-msgstr "Еквідистантне 'риб'яче око'"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "Ідеально для куполів, ігноруються розміри датчика"
-
-
-msgid "Fisheye Equisolid"
-msgstr "Еквітілесне 'риб'яче око'"
-
-
-msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "Подібний до більшості сучасних об'єктивів 'риб'яче око', враховує розміри сенсора"
 
 
 msgid "Rounded Ribbons"
@@ -80981,10 +80973,6 @@ msgid "Gizmo to adjust location"
 msgstr "Гізмо для наладнання локації "
 
 
-msgid "Speaker"
-msgstr "Гучномовець"
-
-
 msgid "Show Reconstruction"
 msgstr "Показати реконструкцію"
 
@@ -82755,10 +82743,6 @@ msgstr "Векторний вузол"
 
 msgid "Wires"
 msgstr "Зв'язки"
-
-
-msgid "Wire Color"
-msgstr "Колір зв'язку"
 
 
 msgid "Wire Select"
@@ -85222,6 +85206,10 @@ msgid "Show VR Camera"
 msgstr "Показ Камери ВР"
 
 
+msgid "Theme"
+msgstr "Тема"
+
+
 msgid "X-Ray Alpha"
 msgstr "Альфа Просвічення"
 
@@ -87300,10 +87288,6 @@ msgstr "Перейменовано %d з %d %s"
 
 msgid "Shortcuts"
 msgstr "Скорочення"
-
-
-msgid "Theme"
-msgstr "Тема"
 
 
 msgctxt "Operator"
@@ -92432,10 +92416,6 @@ msgid "Camera to View"
 msgstr "Камера за Оглядом"
 
 
-msgid "Object Types Visibility"
-msgstr "Видимість Типів Об'єктів"
-
-
 msgid "Object Gizmos"
 msgstr "Гізмо Об'єкта"
 
@@ -93965,16 +93945,16 @@ msgid "Checking sanity of current .blend file *BEFORE* save to disk"
 msgstr "Перевірка справності поточного .blend файлу *ПЕРЕД* збереженням на диск"
 
 
+msgid "Checking sanity of current .blend file *AFTER* save to disk"
+msgstr "Перевірка справності поточного .blend файлу *ПІСЛЯ* збереження на диск"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "Не вдалося зберегти версію (файл збережено з @)"
 
 
 msgid "Cannot change old file (file saved with @)"
 msgstr "Неможливо змінити старий файл (файл збережено з @)"
-
-
-msgid "Checking sanity of current .blend file *AFTER* save to disk"
-msgstr "Перевірка справності поточного .blend файлу *ПІСЛЯ* збереження на диск"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -100215,16 +100195,16 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Реєстрація класу роз'єму вузла: назва '%s' задовга, найбільша довжина - %d"
 
 
+msgid "Unable to create socket"
+msgstr "Неможливо створити роз'єм"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "Однаковий напрям вводу/виводу роз'ємів"
 
 
 msgid "Unable to locate link in node tree"
 msgstr "Не вдалося відшукати зв'язок у дереві вузлів"
-
-
-msgid "Unable to create socket"
-msgstr "Неможливо створити роз'єм"
 
 
 msgid "Node tree '%s' has undefined type %s"

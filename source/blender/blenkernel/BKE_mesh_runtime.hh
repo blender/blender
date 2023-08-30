@@ -23,8 +23,6 @@ struct Scene;
 /** Return the number of derived triangles (looptris). */
 int BKE_mesh_runtime_looptri_len(const Mesh *mesh);
 
-const int *BKE_mesh_runtime_looptri_faces_ensure(const Mesh *mesh);
-
 bool BKE_mesh_runtime_ensure_edit_data(Mesh *mesh);
 
 /**
@@ -55,11 +53,6 @@ void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
                                            const int *corner_verts,
                                            const MLoopTri *looptri,
                                            int looptri_num);
-
-/** \note Only used for access in C. */
-bool BKE_mesh_is_deformed_only(const Mesh *mesh);
-/** \note Only used for access in C. */
-eMeshWrapperType BKE_mesh_wrapper_type(const Mesh *mesh);
 
 /* NOTE: the functions below are defined in DerivedMesh.cc, and are intended to be moved
  * to a more suitable location when that file is removed.

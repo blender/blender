@@ -34,6 +34,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_fair.hh"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
@@ -785,7 +786,7 @@ static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
 
 static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *sgcontext)
 {
-  BKE_pbvh_update_vertex_data(sgcontext->ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(sgcontext->ss->pbvh);
 }
 
 static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcontext,
@@ -1382,6 +1383,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const blender::Span<int> &corner_edges = trim_operation->mesh->corner_edges();
   const OffsetIndices<int> &faces = trim_operation->mesh->faces();
   Span<float3> face_normals = trim_operation->mesh->face_normals();
+  const blender::Array<int> loop_to_face = blender::bke::mesh::build_loop_to_face_map(faces);
 
   for (int i = 0; i < trim_operation->mesh->totedge; i++) {
     sharp_edge[i] = false;
@@ -1391,6 +1393,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
                                                  corner_verts,
                                                  corner_edges,
                                                  face_normals,
+                                                 loop_to_face,
                                                  nullptr,
                                                  angle,
                                                  {sharp_edge, trim_operation->mesh->totedge});

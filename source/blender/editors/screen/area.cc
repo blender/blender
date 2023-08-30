@@ -343,48 +343,41 @@ static void region_draw_azones(ScrArea *area, ARegion *region)
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void region_draw_status_text(ScrArea *area, ARegion *region)
+static void region_draw_status_text(ScrArea * /*area*/, ARegion *region)
 {
-  bool overlap = ED_region_is_overlap(area->spacetype, region->regiontype);
+  float header_color[4];
+  UI_GetThemeColor4fv(TH_HEADER_ACTIVE, header_color);
 
-  if (overlap) {
-    GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+  /* Clear the region from the buffer. */
+  GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+
+  /* Fill with header color. */
+  if (header_color[3] > 0.0f) {
+    const rctf rect = {0.0f, float(region->winx), 0.0f, float(region->winy)};
+    UI_draw_roundbox_4fv(&rect, true, 0.0f, header_color);
   }
-  else {
-    UI_ThemeClearColor(TH_HEADER);
-  }
 
-  int fontid = BLF_set_default();
-
-  const float width = BLF_width(fontid, region->headerstr, BLF_DRAW_STR_DUMMY_MAX);
-  const float x = UI_UNIT_X;
+  const int fontid = BLF_set_default();
+  const float x = 12.0f * UI_SCALE_FAC;
   const float y = 0.4f * UI_UNIT_Y;
+  GPU_blend(GPU_BLEND_ALPHA);
 
-  if (overlap) {
-    const float pad = 2.0f * UI_SCALE_FAC;
-    const float x1 = x - (UI_UNIT_X - pad);
-    const float x2 = x + width + (UI_UNIT_X - pad);
-    const float y1 = pad;
-    const float y2 = region->winy - pad;
-
-    GPU_blend(GPU_BLEND_ALPHA);
-
-    float color[4] = {0.0f, 0.0f, 0.0f, 0.5f};
+  if (header_color[3] < 0.3f) {
+    /* Draw a background behind the text for extra contrast. */
+    const float width = BLF_width(fontid, region->headerstr, BLF_DRAW_STR_DUMMY_MAX);
+    const float pad = 5.0f * UI_SCALE_FAC;
+    const float x1 = x - pad;
+    const float x2 = x + width + pad;
+    const float y1 = 3.0f * UI_SCALE_FAC;
+    const float y2 = region->winy - (4.0f * UI_SCALE_FAC);
+    float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
     UI_GetThemeColor3fv(TH_BACK, color);
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    rctf rect{};
-    rect.xmin = x1;
-    rect.xmax = x2;
-    rect.ymin = y1;
-    rect.ymax = y2;
-    UI_draw_roundbox_aa(&rect, true, 4.0f, color);
-
-    UI_FontThemeColor(fontid, TH_TEXT);
-  }
-  else {
-    UI_FontThemeColor(fontid, TH_TEXT);
+    const rctf rect = {x1, x2, y1, y2};
+    UI_draw_roundbox_4fv(&rect, true, 4.0f * UI_SCALE_FAC, color);
   }
 
+  UI_FontThemeColor(fontid, TH_TEXT);
   BLF_position(fontid, x, y, 0.0f);
   BLF_draw(fontid, region->headerstr, BLF_DRAW_STR_DUMMY_MAX);
 }
@@ -818,20 +811,31 @@ void ED_area_status_text(ScrArea *area, const char *str)
     return;
   }
 
+  ARegion *ar = nullptr;
+
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype == RGN_TYPE_HEADER) {
-      if (str) {
-        if (region->headerstr == nullptr) {
-          region->headerstr = static_cast<char *>(MEM_mallocN(UI_MAX_DRAW_STR, "headerprint"));
-        }
-        BLI_strncpy(region->headerstr, str, UI_MAX_DRAW_STR);
-        BLI_str_rstrip(region->headerstr);
-      }
-      else {
-        MEM_SAFE_FREE(region->headerstr);
-      }
-      ED_region_tag_redraw(region);
+    if (region->regiontype == RGN_TYPE_HEADER && region->visible) {
+      ar = region;
     }
+    else if (region->regiontype == RGN_TYPE_TOOL_HEADER && region->visible) {
+      /* Prefer tool header when we also have a header. */
+      ar = region;
+      break;
+    }
+  }
+
+  if (ar) {
+    if (str) {
+      if (ar->headerstr == nullptr) {
+        ar->headerstr = static_cast<char *>(MEM_mallocN(UI_MAX_DRAW_STR, "headerprint"));
+      }
+      BLI_strncpy(ar->headerstr, str, UI_MAX_DRAW_STR);
+      BLI_str_rstrip(ar->headerstr);
+    }
+    else {
+      MEM_SAFE_FREE(ar->headerstr);
+    }
+    ED_region_tag_redraw(ar);
   }
 }
 
@@ -2035,7 +2039,10 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   }
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region->type = BKE_regiontype_from_id_or_first(area->type, region->regiontype);
+    region->type = BKE_regiontype_from_id(area->type, region->regiontype);
+    /* Invalid region types may be stored in files (e.g. for new files), but they should be handled
+     * on file read already, see #BKE_screen_area_blend_read_lib(). */
+    BLI_assert_msg(region->type != nullptr, "Region type not valid for this space type");
   }
 
   /* area sizes */
@@ -2101,7 +2108,7 @@ static void area_offscreen_init(ScrArea *area)
   BLI_assert(area->type != nullptr);
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region->type = BKE_regiontype_from_id_or_first(area->type, region->regiontype);
+    region->type = BKE_regiontype_from_id(area->type, region->regiontype);
   }
 }
 

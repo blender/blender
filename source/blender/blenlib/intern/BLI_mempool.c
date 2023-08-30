@@ -43,7 +43,7 @@
 #  define POISON_REDZONE_SIZE 0
 #endif
 
-/* NOTE: copied from BLO_blend_defs.h, don't use here because we're in BLI. */
+/* NOTE: copied from BLO_blend_defs.hh, don't use here because we're in BLI. */
 #ifdef __BIG_ENDIAN__
 /* Big Endian */
 #  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))

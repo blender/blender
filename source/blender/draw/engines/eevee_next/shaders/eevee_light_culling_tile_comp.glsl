@@ -21,7 +21,7 @@ struct CullingTile {
   vec4 bounds;
 };
 
-/* Corners are expected to be in viewspace so that the cone is starting from the origin.
+/* Corners are expected to be in view-space so that the cone is starting from the origin.
  * Corner order does not matter. */
 vec4 tile_bound_cone(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
 {
@@ -37,7 +37,7 @@ vec4 tile_bound_cone(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
   return vec4(center, angle_cosine);
 }
 
-/* Corners are expected to be in viewspace. Returns Z-aligned bounding cylinder.
+/* Corners are expected to be in view-space. Returns Z-aligned bounding cylinder.
  * Corner order does not matter. */
 vec4 tile_bound_cylinder(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
 {

@@ -53,7 +53,7 @@
 #include "BKE_scene.h"
 #include "BKE_softbody.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "BIK_api.h"
 

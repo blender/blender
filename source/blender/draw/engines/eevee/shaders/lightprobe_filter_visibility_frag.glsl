@@ -60,7 +60,7 @@ void main()
   /* clamp to [0-1] */
   cos.xy = fract(cos.xy);
 
-  /* get cubemap vector */
+  /* Get cube-map vector. */
   cos = normalize(octahedral_to_cubemap_proj(cos.xy));
 
   vec3 T, B;

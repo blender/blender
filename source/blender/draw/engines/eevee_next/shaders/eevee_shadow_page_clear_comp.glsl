@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Page Clear.
+ * Virtual shadow-mapping: Page Clear.
  *
- * Equivalent to a framebuffer depth clear but only for pages pushed to the clear_page_buf.
+ * Equivalent to a frame-buffer depth clear but only for pages pushed to the clear_page_buf.
  */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)

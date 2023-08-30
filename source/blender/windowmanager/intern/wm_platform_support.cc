@@ -164,7 +164,7 @@ bool WM_platform_support_perform_checks()
       STR_CONCAT(message,
                  slen,
                  CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER,
-                            "Your graphics card or macOS version is not supported."));
+                            "Your graphics card or macOS version is not supported"));
       STR_CONCAT(message, slen, "\n \n");
       STR_CONCAT(message,
                  slen,

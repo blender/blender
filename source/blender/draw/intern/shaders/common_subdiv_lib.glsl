@@ -78,20 +78,20 @@ struct PatchCoord {
 };
 
 /* This structure is a carbon copy of OpenSubDiv's PatchCoord.QuadNode.
- * Each child is a bitfield. */
+ * Each child is a bit-field. */
 struct QuadNode {
   uvec4 child;
 };
 
 bool is_set(uint i)
 {
-  /* QuadNode.Child.isSet is the first bit of the bitfield. */
+  /* QuadNode.Child.isSet is the first bit of the bit-field. */
   return (i & 0x1u) != 0;
 }
 
 bool is_leaf(uint i)
 {
-  /* QuadNode.Child.isLeaf is the second bit of the bitfield. */
+  /* QuadNode.Child.isLeaf is the second bit of the bit-field. */
   return (i & 0x2u) != 0;
 }
 

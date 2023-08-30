@@ -543,6 +543,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::animrig
   bf_asset_system
   bf_blenfont
   PRIVATE bf::blenlib

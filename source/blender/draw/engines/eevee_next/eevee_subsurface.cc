@@ -31,10 +31,6 @@ void SubsurfaceModule::end_sync()
     data_.sample_len = 55;
   }
 
-  if (!transmittance_tx_.is_valid()) {
-    precompute_transmittance_profile();
-  }
-
   precompute_samples_location();
 
   data_.push_update();
@@ -85,9 +81,13 @@ void SubsurfaceModule::precompute_samples_location()
   }
 }
 
-void SubsurfaceModule::precompute_transmittance_profile()
+const Vector<float> &SubsurfaceModule::transmittance_profile()
 {
-  Vector<float> profile(SSS_TRANSMIT_LUT_SIZE);
+  static Vector<float> profile;
+  if (!profile.is_empty()) {
+    return profile;
+  }
+  profile.resize(SSS_TRANSMIT_LUT_SIZE);
 
   /* Precompute sample position with white albedo. */
   float radius = 1.0f;
@@ -137,8 +137,7 @@ void SubsurfaceModule::precompute_transmittance_profile()
   profile.first() = 1;
   profile.last() = 0;
 
-  transmittance_tx_.ensure_1d(
-      GPU_R16F, profile.size(), GPU_TEXTURE_USAGE_SHADER_READ, profile.data());
+  return profile;
 }
 
 /** \} */

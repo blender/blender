@@ -14,12 +14,13 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_edgehash.h"
+#include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
+#include "BLI_ordered_edge.hh"
 #include "BLI_string.h"
 
 #include "BLT_translation.h"
@@ -67,7 +68,7 @@ struct LaplacianSystem {
   int storeweights;   /* store cotangent weights in fweights */
   bool variablesdone; /* variables set in linear system */
 
-  EdgeHash *edgehash; /* edge hash for construction */
+  blender::Map<blender::OrderedEdge, int> edgehash; /* edge hash for construction */
 
   struct HeatWeighting {
     const MLoopTri *mlooptri;
@@ -100,21 +101,19 @@ struct LaplacianSystem {
  * vertex and adjacent faces, since we don't store this adjacency. Also, the
  * formulas are tweaked a bit to work for non-manifold meshes. */
 
-static void laplacian_increase_edge_count(EdgeHash *edgehash, int v1, int v2)
+static void laplacian_increase_edge_count(blender::Map<blender::OrderedEdge, int> &edgehash,
+                                          int v1,
+                                          int v2)
 {
-  void **p;
-
-  if (BLI_edgehash_ensure_p(edgehash, v1, v2, &p)) {
-    *p = (void *)(intptr_t(*p) + intptr_t(1));
-  }
-  else {
-    *p = (void *)intptr_t(1);
-  }
+  edgehash.add_or_modify(
+      {v1, v2}, [](int *value) { *value = 1; }, [](int *value) { (*value)++; });
 }
 
-static int laplacian_edge_count(EdgeHash *edgehash, int v1, int v2)
+static int laplacian_edge_count(const blender::Map<blender::OrderedEdge, int> &edgehash,
+                                int v1,
+                                int v2)
 {
-  return int(intptr_t(BLI_edgehash_lookup(edgehash, v1, v2)));
+  return edgehash.lookup({v1, v2});
 }
 
 static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3)
@@ -253,8 +252,7 @@ static void laplacian_system_construct_end(LaplacianSystem *sys)
   sys->varea = static_cast<float *>(
       MEM_callocN(sizeof(float) * verts_num, "LaplacianSystemVarea"));
 
-  sys->edgehash = BLI_edgehash_new_ex(__func__,
-                                      BLI_EDGEHASH_SIZE_GUESS_FROM_FACES(sys->faces_num));
+  sys->edgehash.reserve(sys->faces_num);
   for (a = 0, face = sys->faces; a < sys->faces_num; a++, face++) {
     laplacian_increase_edge_count(sys->edgehash, (*face)[0], (*face)[1]);
     laplacian_increase_edge_count(sys->edgehash, (*face)[1], (*face)[2]);
@@ -296,9 +294,6 @@ static void laplacian_system_construct_end(LaplacianSystem *sys)
   sys->faces = nullptr;
 
   MEM_SAFE_FREE(sys->varea);
-
-  BLI_edgehash_free(sys->edgehash, nullptr);
-  sys->edgehash = nullptr;
 }
 
 static void laplacian_system_delete(LaplacianSystem *sys)

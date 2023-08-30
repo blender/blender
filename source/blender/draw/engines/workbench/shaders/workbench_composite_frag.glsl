@@ -9,7 +9,7 @@
 
 void main()
 {
-  /* Normal and Incident vector are in viewspace. Lighting is evaluated in viewspace. */
+  /* Normal and Incident vector are in view-space. Lighting is evaluated in view-space. */
   vec3 I = get_view_vector_from_screen_uv(uvcoordsvar.st);
   vec3 N = workbench_normal_decode(texture(normalBuffer, uvcoordsvar.st));
   vec4 mat_data = texture(materialBuffer, uvcoordsvar.st);

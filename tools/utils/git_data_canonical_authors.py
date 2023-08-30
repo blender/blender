@@ -254,6 +254,9 @@ def canonical_author_map() -> Dict[str, str]:
             "mano-wii <germano.costa@ig.com.br>",
             "mano-wii <grmncv@gmail.com>",
         ),
+        "Gilberto Rodrigues <gilbertorodrigues@outlook.com>": (
+            "Gilberto Rodrigues <gilberto_rodrigues>",
+        ),
         "Guillermo S. Romero <gsr.b3d@infernal-iceberg.com>": (
             "gsr b3d <gsr.b3d@infernal-iceberg.com>",
         ),
@@ -632,8 +635,9 @@ def canonical_author_map() -> Dict[str, str]:
         "Ulysse Martin <you.le@live.fr>": (
             "Ulysse Martin <youle>",
         ),
-        "Vitor Boschi da Silva <vitorboschi>": (
+        "Vitor Boschi <vitorboschi@gmail.com>": (
             "Vitor Boschi <vitorboschi>",
+            "Vitor Boschi da Silva <vitorboschi>"
         ),
         "Vuk Gardašević <lijenstina>": (
             "Vuk GardaÅ¡eviÄ\x87 <lijenstina>",

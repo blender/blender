@@ -771,6 +771,7 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
                                             me->corner_verts(),
                                             me->corner_edges(),
                                             me->face_normals(),
+                                            me->corner_to_face_map(),
                                             sharp_faces,
                                             me->smoothresh,
                                             sharp_edges.span);
@@ -1192,6 +1193,7 @@ void ED_mesh_split_faces(Mesh *mesh)
                                         corner_verts,
                                         corner_edges,
                                         mesh->face_normals(),
+                                        mesh->corner_to_face_map(),
                                         sharp_faces,
                                         split_angle,
                                         sharp_edges);

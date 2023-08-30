@@ -916,7 +916,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     return 0;
   }
 
-  if (!BKE_mesh_is_deformed_only(final_mesh) &&
+  if (!final_mesh->runtime->deformed_only &&
       !CustomData_get_layer(&final_mesh->fdata_legacy, CD_ORIGINDEX))
   {
     printf(

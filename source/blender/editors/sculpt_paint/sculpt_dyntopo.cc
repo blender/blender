@@ -79,14 +79,10 @@ void SCULPT_pbvh_clear(Object *ob)
   SculptSession *ss = ob->sculpt;
 
   ss->pmap = {};
-  ss->vert_to_face_indices = {};
-  ss->vert_to_face_offsets = {};
   ss->epmap = {};
   ss->edge_to_face_indices = {};
   ss->edge_to_face_offsets = {};
   ss->vemap = {};
-  ss->vert_to_edge_indices = {};
-  ss->vert_to_edge_offsets = {};
 
   /* Clear out any existing DM and PBVH. */
   if (ss->pbvh) {
@@ -122,14 +118,10 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object
 
   if (!ss->pmap.is_empty()) {
     ss->pmap = {};
-    ss->vert_to_face_indices = {};
-    ss->vert_to_face_offsets = {};
     ss->epmap = {};
     ss->edge_to_face_indices = {};
     ss->edge_to_face_offsets = {};
     ss->vemap = {};
-    ss->vert_to_edge_indices = {};
-    ss->vert_to_edge_offsets = {};
   }
 
   if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {

@@ -358,7 +358,7 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
                                             mr.faces,
                                             mr.corner_verts,
                                             mr.corner_edges,
-                                            {},
+                                            mr.me->corner_to_face_map(),
                                             mr.vert_normals,
                                             mr.face_normals,
                                             sharp_edges,

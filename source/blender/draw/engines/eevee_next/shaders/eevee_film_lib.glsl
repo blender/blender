@@ -334,7 +334,7 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
    * Compute Variance of neighborhood as described in:
    * "An Excursion in Temporal Supersampling" by Marco Salvi at GDC 2016.
    * and:
-   * "A Survey of Temporal Antialiasing Techniques" by Yang et al.
+   * "A Survey of Temporal Anti-aliasing Techniques" by Yang et al.
    */
 
   /* First 2 moments. */
@@ -352,7 +352,7 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
   const float gamma = 1.25;
   /* Standard deviation. */
   vec4 sigma = sqrt(abs(mu2 - sqr(mu1)));
-  /* eq. 6 in "A Survey of Temporal Antialiasing Techniques". */
+  /* eq. 6 in "A Survey of Temporal Anti-aliasing Techniques". */
   min_c = mu1 - gamma * sigma;
   max_c = mu1 + gamma * sigma;
 #else

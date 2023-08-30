@@ -204,8 +204,7 @@ class MeshFairingContext : public FairingContext {
     faces = mesh->faces();
     corner_verts_ = mesh->corner_verts();
     corner_edges_ = mesh->corner_edges();
-    vlmap_ = blender::bke::mesh::build_vert_to_loop_map(
-        corner_verts_, positions.size(), vert_to_face_offsets_, vert_to_face_indices_);
+    vlmap_ = mesh->vert_to_corner_map();
 
     /* Deformation coords. */
     co_.reserve(mesh->totvert);
@@ -220,7 +219,7 @@ class MeshFairingContext : public FairingContext {
       }
     }
 
-    loop_to_face_map_ = blender::bke::mesh::build_loop_to_face_map(faces);
+    loop_to_face_map_ = mesh->corner_to_face_map();
   }
 
   void adjacents_coords_from_loop(const int loop,
@@ -247,9 +246,7 @@ class MeshFairingContext : public FairingContext {
   Span<int> corner_edges_;
   blender::OffsetIndices<int> faces;
   Span<blender::int2> edges_;
-  Array<int> loop_to_face_map_;
-  Array<int> vert_to_face_offsets_;
-  Array<int> vert_to_face_indices_;
+  Span<int> loop_to_face_map_;
 };
 
 class BMeshFairingContext : public FairingContext {

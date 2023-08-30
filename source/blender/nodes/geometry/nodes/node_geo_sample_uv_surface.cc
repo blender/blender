@@ -7,12 +7,15 @@
 #include "BKE_mesh_sample.hh"
 #include "BKE_type_conversions.hh"
 
+#include "NOD_rna_define.hh"
+#include "NOD_socket_search_link.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "GEO_reverse_uv_sampler.hh"
 
-#include "NOD_socket_search_link.hh"
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
@@ -270,6 +273,18 @@ static void node_geo_exec(GeoNodeExecParams params)
   output_attribute_field(params, GField(sample_op, 0));
 }
 
+static void node_rna(StructRNA *srna)
+{
+  RNA_def_node_enum(srna,
+                    "data_type",
+                    "Data Type",
+                    "",
+                    rna_enum_attribute_type_items,
+                    NOD_inline_enum_accessors(custom1),
+                    CD_PROP_FLOAT,
+                    enums::attribute_type_type_with_socket_fn);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -282,6 +297,8 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

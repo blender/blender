@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Usage un-tagging
+ * Virtual shadow-mapping: Usage un-tagging
  *
  * Remove used tag from masked tiles (LOD overlap).
  */
@@ -22,7 +22,7 @@ void main()
      * the level underneath. If this adds up to 4 the underneath tile is flag unused as its data
      * is not needed for rendering.
      *
-     * This is because 2 receivers can tag used the same area of the shadowmap but with different
+     * This is because 2 receivers can tag used the same area of the shadow-map but with different
      * LODs. */
     bool is_used = false;
     ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);

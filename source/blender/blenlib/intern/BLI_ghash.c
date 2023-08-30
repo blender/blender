@@ -36,7 +36,7 @@
 /**
  * Next prime after `2^n` (skipping 2 & 3).
  *
- * \note Also used by: `BLI_edgehash` & `BLI_smallhash`.
+ * \note Also used by: `BLI_smallhash`.
  */
 extern const uint BLI_ghash_hash_sizes[]; /* Quiet warning, this is only used by smallhash.c */
 const uint BLI_ghash_hash_sizes[] = {

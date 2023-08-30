@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Usage tagging
+ * Virtual shadow-mapping: Usage tagging
  *
  * Shadow pages are only allocated if they are visible.
  * This contains the common logic used for tagging shadows for opaque and transparent receivers.
@@ -167,7 +167,7 @@ void shadow_tag_usage_tilemap_punctual(uint l_idx, vec3 P, float dist_to_cam, fl
 
 /**
  * \a radius Radius of the tagging area in world space.
- * Used for downsampled/ray-marched tagging, so all the shadowmap texels covered get correctly
+ * Used for downsampled/ray-marched tagging, so all the shadow-map texels covered get correctly
  * tagged.
  */
 void shadow_tag_usage(vec3 vP, vec3 P, vec3 V, float radius, float dist_to_cam, vec2 pixel)

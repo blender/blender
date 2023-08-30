@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -6486,6 +6486,10 @@ msgid "Pinned"
 msgstr "Przypięty"
 
 
+msgid "Speaker"
+msgstr "Głośnik"
+
+
 msgid "Property Name"
 msgstr "Nazwa właściwości"
 
@@ -6560,10 +6564,6 @@ msgstr "Masa grupy wierzchołków"
 
 msgid "Timeline and playback controls"
 msgstr "Oś czasu oraz kontrolki odtwarzania"
-
-
-msgid "Speaker"
-msgstr "Głośnik"
 
 
 msgid "3D"
@@ -10601,16 +10601,16 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Rejestracja node socket class: '%s' jest za długie, maksymalna długość: %d"
 
 
+msgid "Unable to create socket"
+msgstr "Utworzenie złącza niemożliwe"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "Identyczny kierunek wejście/wyjście złącza"
 
 
 msgid "Unable to locate link in node tree"
 msgstr "Niemożliwe odnalezienie łącza w drzewie nodów (node tree)"
-
-
-msgid "Unable to create socket"
-msgstr "Utworzenie złącza niemożliwe"
 
 
 msgid "Node tree '%s' has undefined type %s"

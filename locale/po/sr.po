@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -5654,6 +5654,14 @@ msgid "Depth Of Field"
 msgstr "Дубинско замућење"
 
 
+msgid "Fisheye Lens"
+msgstr "Завршено"
+
+
+msgid "Lens focal length (mm)"
+msgstr "Величина објектива камере"
+
+
 msgid "Focal Length"
 msgstr "Дужина фокуса"
 
@@ -5676,6 +5684,10 @@ msgstr "Ортогонална размера"
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "Размера ортогоналне камере (увећање)"
+
+
+msgid "Panorama Type"
+msgstr "Врста панораме"
 
 
 msgid "Passepartout Alpha"
@@ -10689,10 +10701,6 @@ msgstr "Користи милиметре за дужину фокуса кам�
 
 msgid "Display Hidden"
 msgstr "Прикажи сакривено"
-
-
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "Укључи приказ канала анимације објеката/костију који нису видљиви"
 
 
 msgid "Longest"
@@ -20343,6 +20351,10 @@ msgid "Edit Property"
 msgstr "Измени особину"
 
 
+msgid "Speaker"
+msgstr "Звучник"
+
+
 msgid "Property Name"
 msgstr "Назив особине"
 
@@ -21947,18 +21959,6 @@ msgid "Case"
 msgstr "Велика/мала слова"
 
 
-msgid "Fisheye Lens"
-msgstr "Завршено"
-
-
-msgid "Lens focal length (mm)"
-msgstr "Величина објектива камере"
-
-
-msgid "Panorama Type"
-msgstr "Врста панораме"
-
-
 msgid "Cast Shadow"
 msgstr "Бачена сенка"
 
@@ -23399,10 +23399,6 @@ msgstr "Прикажи путању камере"
 
 msgid "Show reconstructed camera path"
 msgstr "Прикажи реконструисану путању камере"
-
-
-msgid "Speaker"
-msgstr "Звучник"
 
 
 msgid "3D"

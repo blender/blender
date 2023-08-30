@@ -22,7 +22,7 @@
 #include "BKE_main.h"
 #include "BKE_speaker.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include <cstring>
 

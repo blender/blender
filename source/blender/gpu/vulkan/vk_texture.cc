@@ -31,10 +31,11 @@ VKTexture::~VKTexture()
   }
 }
 
-void VKTexture::init(VkImage vk_image, VkImageLayout layout)
+void VKTexture::init(VkImage vk_image, VkImageLayout layout, eGPUTextureFormat texture_format)
 {
   vk_image_ = vk_image;
   current_layout_ = layout;
+  format_ = texture_format;
 }
 
 void VKTexture::generate_mipmap()
@@ -142,6 +143,32 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
 
   command_buffer.clear(
       vk_image_, current_layout_get(), clear_color, Span<VkImageSubresourceRange>(&range, 1));
+}
+
+void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
+                                    float clear_depth,
+                                    uint clear_stencil)
+{
+  BLI_assert(buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
+
+  if (!is_allocated()) {
+    allocate();
+  }
+  VKContext &context = *VKContext::get();
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  VkClearDepthStencilValue clear_depth_stencil;
+  clear_depth_stencil.depth = clear_depth;
+  clear_depth_stencil.stencil = clear_stencil;
+  VkImageSubresourceRange range = {0};
+  range.aspectMask = to_vk_image_aspect_flag_bits(buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
+  range.levelCount = VK_REMAINING_MIP_LEVELS;
+  range.layerCount = VK_REMAINING_ARRAY_LAYERS;
+
+  layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
+  command_buffer.clear(vk_image_,
+                       current_layout_get(),
+                       clear_depth_stencil,
+                       Span<VkImageSubresourceRange>(&range, 1));
 }
 
 void VKTexture::swizzle_set(const char /*swizzle_mask*/[4])
@@ -499,7 +526,6 @@ void VKTexture::current_layout_set(const VkImageLayout new_layout)
 
 void VKTexture::layout_ensure(VKContext &context, const VkImageLayout requested_layout)
 {
-  BLI_assert(is_allocated());
   const VkImageLayout current_layout = current_layout_get();
   if (current_layout == requested_layout) {
     return;
@@ -513,7 +539,6 @@ void VKTexture::layout_ensure(VKContext &context,
                               const VkImageLayout current_layout,
                               const VkImageLayout requested_layout)
 {
-  BLI_assert(is_allocated());
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
   barrier.oldLayout = current_layout;

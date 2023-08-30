@@ -38,7 +38,7 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "data_transfer_intern.h"
 

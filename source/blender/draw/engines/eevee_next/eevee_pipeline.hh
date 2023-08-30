@@ -18,6 +18,8 @@
 /* TODO(fclem): Move it to GPU/DRAW. */
 #include "../eevee/eevee_lut.h"
 
+#include "eevee_subsurface.hh"
+
 namespace blender::eevee {
 
 class Instance;
@@ -355,7 +357,7 @@ class UtilityTexture : public Texture {
 
   static constexpr int lut_size = UTIL_TEX_SIZE;
   static constexpr int lut_size_sqr = lut_size * lut_size;
-  static constexpr int layer_count = 4 + UTIL_BTDF_LAYER_COUNT;
+  static constexpr int layer_count = UTIL_BTDF_LAYER + 1 + UTIL_BTDF_LAYER_COUNT;
 
  public:
   UtilityTexture()
@@ -381,6 +383,18 @@ class UtilityTexture : public Texture {
       memcpy(layer.data, blue_noise, sizeof(layer));
     }
     {
+      Layer &layer = data[UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER];
+      const Vector<float> &transmittance_profile = SubsurfaceModule::transmittance_profile();
+      BLI_assert(transmittance_profile.size() == UTIL_TEX_SIZE);
+      /* Repeatedly stored on every row for correct interpolation. */
+      for (auto y : IndexRange(UTIL_TEX_SIZE)) {
+        for (auto x : IndexRange(UTIL_TEX_SIZE)) {
+          /* Only the first channel is used. */
+          layer.data[y * UTIL_TEX_SIZE + x][0] = transmittance_profile[x];
+        }
+      }
+    }
+    {
       Layer &layer = data[UTIL_LTC_MAT_LAYER];
       memcpy(layer.data, ltc_mat_ggx, sizeof(layer));
     }
@@ -402,7 +416,7 @@ class UtilityTexture : public Texture {
     }
     {
       for (auto layer_id : IndexRange(16)) {
-        Layer &layer = data[3 + layer_id];
+        Layer &layer = data[UTIL_BTDF_LAYER + layer_id];
         for (auto i : IndexRange(lut_size_sqr)) {
           layer.data[i][0] = btdf_ggx_lut[layer_id][i * 2 + 0];
           layer.data[i][1] = btdf_ggx_lut[layer_id][i * 2 + 1];

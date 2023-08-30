@@ -134,6 +134,9 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 
   VKContext *context = new VKContext(ghost_window, ghost_context);
   device_.context_register(*context);
+  GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
+                                      VKContext::swap_buffers_pre_callback,
+                                      VKContext::swap_buffers_post_callback);
   return context;
 }
 

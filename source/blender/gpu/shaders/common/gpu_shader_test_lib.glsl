@@ -146,7 +146,7 @@ TestOutputRawData as_raw_data(mat4x4 v) { WRITE_MATRIX(v); }
 int g_test_id = 0;
 
 #ifdef GPU_METAL
-/* Vector comparison in MSL return a bvec. Collapse it like in GLSL. */
+/* Vector comparison in MSL return a `bvec`. Collapse it like in GLSL. */
 #  define COLLAPSE_BOOL(OP) bool(all(OP))
 #else
 #  define COLLAPSE_BOOL(OP) (OP)

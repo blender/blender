@@ -276,6 +276,11 @@ void RNA_def_context(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Space");
   RNA_def_property_pointer_funcs(prop, "rna_Context_space_data_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(prop,
+                           "",
+                           "The current space, may be None in background-mode, "
+                           "when the cursor is outside the window or "
+                           "when using menu-search");
 
   prop = RNA_def_property(srna, "region", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

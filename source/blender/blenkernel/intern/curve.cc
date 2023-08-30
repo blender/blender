@@ -56,7 +56,7 @@
 
 #include "CLG_log.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 using blender::float3;
 using blender::IndexRange;

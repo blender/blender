@@ -45,7 +45,7 @@ const bool no_slight_focus_pass = false;
 const bool no_focus_pass = false;
 const bool no_hole_fill_pass = false;
 
-/* Distribute weights between near/slightfocus/far fields (slide 117). */
+/* Distribute weights between near/slight-focus/far fields (slide 117). */
 const float dof_layer_threshold = 4.0;
 /* Make sure it overlaps. */
 const float dof_layer_offset_fg = 0.5 + 1.0;

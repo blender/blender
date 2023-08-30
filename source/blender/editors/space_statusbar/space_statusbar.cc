@@ -23,7 +23,7 @@
 
 #include "UI_interface.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"

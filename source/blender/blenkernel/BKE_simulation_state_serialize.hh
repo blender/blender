@@ -11,6 +11,7 @@
 
 struct Main;
 struct ModifierData;
+struct Object;
 
 namespace blender {
 class fstream;

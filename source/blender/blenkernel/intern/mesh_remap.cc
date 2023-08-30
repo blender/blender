@@ -1290,12 +1290,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
     blender::Array<blender::float3> face_cents_src;
 
-    Array<int> vert_to_loop_src_offsets;
-    Array<int> vert_to_loop_src_indices;
     GroupedSpan<int> vert_to_loop_map_src;
-
-    Array<int> vert_to_face_src_offsets;
-    Array<int> vert_to_face_src_indices;
     GroupedSpan<int> vert_to_face_map_src;
 
     Array<int> edge_to_face_src_offsets;
@@ -1306,7 +1301,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     int *face_to_looptri_map_src_buff = nullptr;
 
     /* Unlike above, those are one-to-one mappings, simpler! */
-    blender::Array<int> loop_to_face_map_src;
+    blender::Span<int> loop_to_face_map_src;
 
     const blender::Span<blender::float3> positions_src = me_src->vert_positions();
     const int num_verts_src = me_src->totvert;
@@ -1371,7 +1366,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               faces_dst,
               {corner_verts_dst, numloops_dst},
               {corner_edges_dst, numloops_dst},
-              {},
+              mesh_dst->corner_to_face_map(),
               mesh_dst->vert_normals(),
               mesh_dst->face_normals(),
               sharp_edges,
@@ -1397,15 +1392,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
 
     if (use_from_vert) {
-      vert_to_loop_map_src = bke::mesh::build_vert_to_loop_map(
-          corner_verts_src, num_verts_src, vert_to_loop_src_offsets, vert_to_loop_src_indices);
-
+      vert_to_loop_map_src = me_src->vert_to_corner_map();
       if (mode & MREMAP_USE_POLY) {
-        vert_to_face_map_src = bke::mesh::build_vert_to_face_map(faces_src,
-                                                                 corner_verts_src,
-                                                                 num_verts_src,
-                                                                 vert_to_face_src_offsets,
-                                                                 vert_to_face_src_indices);
+        vert_to_face_map_src = me_src->vert_to_face_map();
       }
     }
 
@@ -1417,7 +1406,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                                              edge_to_face_src_indices);
 
     if (use_from_vert) {
-      loop_to_face_map_src = blender::bke::mesh::build_loop_to_face_map(faces_src);
+      loop_to_face_map_src = me_src->corner_to_face_map();
       face_cents_src.reinitialize(faces_src.size());
       for (const int64_t i : faces_src.index_range()) {
         face_cents_src[i] = blender::bke::mesh::face_center_calc(

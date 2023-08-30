@@ -279,6 +279,7 @@ void SEQUENCER_OT_strip_modifier_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_remove(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_move(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_copy(struct wmOperatorType *ot);
+void SEQUENCER_OT_strip_modifier_equalizer_redefine(struct wmOperatorType *ot);
 
 /* `sequencer_view.cc` */
 

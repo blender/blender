@@ -234,6 +234,9 @@ static bool sculpt_expand_state_get(SculptSession *ss,
   }
 
   if (expand_cache->all_enabled) {
+    if (expand_cache->invert) {
+      return false;
+    }
     return true;
   }
 
@@ -284,6 +287,9 @@ static bool sculpt_expand_face_state_get(SculptSession *ss,
   }
 
   if (expand_cache->all_enabled) {
+    if (expand_cache->invert) {
+      return false;
+    }
     return true;
   }
 

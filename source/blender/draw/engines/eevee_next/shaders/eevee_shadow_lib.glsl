@@ -4,7 +4,7 @@
 
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
-/** \a unormalized_uv is the uv coordinates for the whole tilemap [0..SHADOW_TILEMAP_RES]. */
+/** \a unormalized_uv is the uv coordinates for the whole tile-map [0..SHADOW_TILEMAP_RES]. */
 vec2 shadow_page_uv_transform(
     vec2 atlas_size, uvec3 page, uint lod, vec2 unormalized_uv, ivec2 tile_lod0_coord)
 {
@@ -80,7 +80,7 @@ mat4x4 shadow_load_normal_matrix(LightData light)
   }
 }
 
-/* Returns minimum bias (in world space unit) needed for a given geometry normal and a shadowmap
+/* Returns minimum bias (in world space unit) needed for a given geometry normal and a shadow-map
  * page to avoid self shadowing artifacts. Note that this can return a negative bias to better
  * match the surface. */
 float shadow_slope_bias_get(vec2 atlas_size, LightData light, vec3 lNg, vec3 lP, vec2 uv, uint lod)
@@ -106,9 +106,9 @@ float shadow_slope_bias_get(vec2 atlas_size, LightData light, vec3 lNg, vec3 lP,
 struct ShadowSample {
   /* Signed delta in world units from the shading point to the occluder. Negative if occluded. */
   float occluder_delta;
-  /* Tile coordinate inside the tilemap [0..SHADOW_TILEMAP_RES). */
+  /* Tile coordinate inside the tile-map [0..SHADOW_TILEMAP_RES). */
   ivec2 tile_coord;
-  /* UV coordinate inside the tilemap [0..SHADOW_TILEMAP_RES). */
+  /* UV coordinate inside the tile-map [0..SHADOW_TILEMAP_RES). */
   vec2 uv;
   /* Minimum slope bias to apply during comparison. */
   float bias;

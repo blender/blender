@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Español <gabcorreo@gmail.com>\n"
@@ -21468,20 +21468,80 @@ msgid "Camera near clipping distance"
 msgstr "Distancia mínima de recorte de la cámara"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Cycles - Opciones de cámara"
-
-
-msgid "Cycles camera settings"
-msgstr "Opciones de cámara de Cycles"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Tamaño aparente de la cámara en la vista 3D"
 
 
 msgid "Depth Of Field"
 msgstr "Profundidad de campo"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "Campo de visión para la lente ojo de pez"
+
+
+msgid "Fisheye Lens"
+msgstr "Lente ojo de pez"
+
+
+msgid "Lens focal length (mm)"
+msgstr "Distancia focal de la lente (mm)"
+
+
+msgid "Fisheye Polynomial K0"
+msgstr "K0 (ojo de pez polinómico)"
+
+
+msgid "Coefficient K0 of the lens polynomial"
+msgstr "Coeficiente K0 del polinomio de la lente"
+
+
+msgid "Fisheye Polynomial K1"
+msgstr "K1 (ojo de pez polinómico)"
+
+
+msgid "Coefficient K1 of the lens polynomial"
+msgstr "Coeficiente K1 del polinomio de la lente"
+
+
+msgid "Fisheye Polynomial K2"
+msgstr "K2 (ojo de pez polinómico)"
+
+
+msgid "Coefficient K2 of the lens polynomial"
+msgstr "Coeficiente K2 del polinomio de la lente"
+
+
+msgid "Fisheye Polynomial K3"
+msgstr "K3 (ojo de pez polinómico)"
+
+
+msgid "Coefficient K3 of the lens polynomial"
+msgstr "Coeficiente K3 del polinomio de la lente"
+
+
+msgid "Fisheye Polynomial K4"
+msgstr "K4 (ojo de pez polinómico)"
+
+
+msgid "Coefficient K4 of the lens polynomial"
+msgstr "Coeficiente K4 del polinomio de la lente"
+
+
+msgid "Max Latitude"
+msgstr "Latitud máxima"
+
+
+msgid "Maximum latitude (vertical angle) for the equirectangular lens"
+msgstr "Latitud máxima (ángulo vertical) para la lente equirrectangular"
+
+
+msgid "Min Latitude"
+msgstr "Latitud mínima"
+
+
+msgid "Minimum latitude (vertical angle) for the equirectangular lens"
+msgstr "Latitud mínima (ángulo vertical) para la lente equirrectangular"
 
 
 msgid "Focal Length"
@@ -21512,12 +21572,84 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "Especificar la lente como ángulo de campo visual"
 
 
+msgid "Max Longitude"
+msgstr "Longitud máxima"
+
+
+msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Longitud máxima (ángulo hoarizontal) para la lente equirrectangular"
+
+
+msgid "Min Longitude"
+msgstr "Longitud mínima"
+
+
+msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Longitud mínima (ángulo hoarizontal) para la lente equirrectangular"
+
+
 msgid "Orthographic Scale"
 msgstr "Escala ortogonal"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "Escala de la cámara ortogonal (similar al zoom)"
+
+
+msgid "Panorama Type"
+msgstr "Tipo de Panorámica"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "Distorsión a usar para los calculos"
+
+
+msgid "Equirectangular"
+msgstr "Equirectangular"
+
+
+msgid "Spherical camera for environment maps, also known as Lat Long panorama"
+msgstr "Cámara esférica útil para mapeos de entorno, también conocido como panorama Lat Long"
+
+
+msgid "Equiangular Cubemap Face"
+msgstr "Cara de mapa cúbico equiangular"
+
+
+msgid "Single face of an equiangular cubemap"
+msgstr "Cara individual de un mapa cúbico equiangular"
+
+
+msgid "Mirror Ball"
+msgstr "Esfera espejada"
+
+
+msgid "Mirror ball mapping for environment maps"
+msgstr "Mapeo de tipo esfera espejada para mapeos de entorno"
+
+
+msgid "Fisheye Equidistant"
+msgstr "Ojo de pez equidistante"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "Ideal para bóvedas completas, ignora las dimensiones del sensor"
+
+
+msgid "Fisheye Equisolid"
+msgstr "Ojo de pez equisólido"
+
+
+msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
+msgstr "Similar a la mayoría de las lentes ojo de pez modernas, toma las dimensiones del sensor en consideración"
+
+
+msgid "Fisheye Lens Polynomial"
+msgstr "Ojo de pez polinómico"
+
+
+msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
+msgstr "Define la proyección de la lente como polinómica, para permitir simular lentes de cámara reales"
 
 
 msgid "Passepartout Alpha"
@@ -25550,10 +25682,6 @@ msgstr "Imagen completa"
 
 msgid "Composites full image result as fast as possible"
 msgstr "Se compondrá la imagen completa, tan rápido como sea posible"
-
-
-msgid "Realtime GPU"
-msgstr "Tiempo real por GPU"
 
 
 msgid "Use GPU accelerated compositing with more limited functionality"
@@ -40403,10 +40531,6 @@ msgid "Display Hidden"
 msgstr "Mostrar ocultos"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "Incluir canales de objetos o huesos ocultos"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "Orden de los campos"
 
@@ -47132,16 +47256,8 @@ msgid "Projection of the input image"
 msgstr "Proyección de la imagen de entrada"
 
 
-msgid "Equirectangular"
-msgstr "Equirectangular"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "Proyección tipo equirectangular o latitud-longitud"
-
-
-msgid "Mirror Ball"
-msgstr "Esfera espejada"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -48546,6 +48662,10 @@ msgstr "Entradas de árbol de nodos"
 
 msgid "Collection of Node Tree Sockets"
 msgstr "Colección de conectores de árbol de nodos"
+
+
+msgid "Socket Type"
+msgstr "Tipo de conector"
 
 
 msgid "Node Tree Outputs"
@@ -65367,10 +65487,6 @@ msgid "Add an input or output to the active node tree"
 msgstr "Agrega un conector de entrada o salida al árbol de nodos actual"
 
 
-msgid "Socket Type"
-msgstr "Tipo de conector"
-
-
 msgctxt "Operator"
 msgid "Change Node Tree Socket Subtype"
 msgstr "Cambiar subtipo de conector del árbol de nodos"
@@ -66066,10 +66182,6 @@ msgstr "Alternar atributo de entrada"
 
 msgid "Switch between an attribute and a single value to define the data for every element"
 msgstr "Permite cambiar entre un atributo y un valor para definir los datos para cada elemento"
-
-
-msgid "Prop Path"
-msgstr "Ruta prop"
 
 
 msgctxt "Operator"
@@ -81163,6 +81275,10 @@ msgid "Python value for unsupported custom property types"
 msgstr "Valor Python para tipos de propiedades personalizadas no soportados"
 
 
+msgid "Speaker"
+msgstr "Altavoz"
+
+
 msgid "Library Overridable"
 msgstr "Redefinible"
 
@@ -83046,10 +83162,6 @@ msgid "Viewport Sampling Presets"
 msgstr "Ajustes muestreo vista"
 
 
-msgid "View Object Types"
-msgstr "Ver tipos de objeto"
-
-
 msgid "Film"
 msgstr "Opciones de película"
 
@@ -84412,6 +84524,10 @@ msgstr "Vista cuádruple"
 
 msgid "Auto-Masking"
 msgstr "Autoenmascarar"
+
+
+msgid "Wire Color"
+msgstr "Conexión color"
 
 
 msgid "Compositor"
@@ -86669,14 +86785,6 @@ msgid "Enable the new Overlay codebase, requires restart"
 msgstr "Habilitar el nuevo código de Overlay, requiere reiniciar"
 
 
-msgid "Workbench Next"
-msgstr "Workbench Next"
-
-
-msgid "Enable the new Workbench codebase, requires restart"
-msgstr "Habilita el nuevo código de Workbench, requiere reiniciar"
-
-
 msgid "Override Auto Resync"
 msgstr "Auto resincronizar redefiniciones"
 
@@ -86771,14 +86879,6 @@ msgstr "Plantillas de redefinición"
 
 msgid "Enable library override template in the Python API"
 msgstr "Habilitar plantillas de redefinición de bibliotecas en la API de Python"
-
-
-msgid "Rotation Socket"
-msgstr "Conector de rotación"
-
-
-msgid "Enable the new rotation node socket type"
-msgstr "Habilita el nuevo tipo de conector de rotación de nodos"
 
 
 msgid "Sculpt Texture Paint"
@@ -89057,138 +89157,6 @@ msgstr "Buscar con expresión regular"
 
 msgid "Use regular expressions to match text in the 'Find' field"
 msgstr "Usa una expresión regular para buscar coincidencias en el campo 'Buscar'"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "Campo de visión para la lente ojo de pez"
-
-
-msgid "Fisheye Lens"
-msgstr "Lente ojo de pez"
-
-
-msgid "Lens focal length (mm)"
-msgstr "Distancia focal de la lente (mm)"
-
-
-msgid "Fisheye Polynomial K0"
-msgstr "K0 (ojo de pez polinómico)"
-
-
-msgid "Coefficient K0 of the lens polynomial"
-msgstr "Coeficiente K0 del polinomio de la lente"
-
-
-msgid "Fisheye Polynomial K1"
-msgstr "K1 (ojo de pez polinómico)"
-
-
-msgid "Coefficient K1 of the lens polynomial"
-msgstr "Coeficiente K1 del polinomio de la lente"
-
-
-msgid "Fisheye Polynomial K2"
-msgstr "K2 (ojo de pez polinómico)"
-
-
-msgid "Coefficient K2 of the lens polynomial"
-msgstr "Coeficiente K2 del polinomio de la lente"
-
-
-msgid "Fisheye Polynomial K3"
-msgstr "K3 (ojo de pez polinómico)"
-
-
-msgid "Coefficient K3 of the lens polynomial"
-msgstr "Coeficiente K3 del polinomio de la lente"
-
-
-msgid "Fisheye Polynomial K4"
-msgstr "K4 (ojo de pez polinómico)"
-
-
-msgid "Coefficient K4 of the lens polynomial"
-msgstr "Coeficiente K4 del polinomio de la lente"
-
-
-msgid "Max Latitude"
-msgstr "Latitud máxima"
-
-
-msgid "Maximum latitude (vertical angle) for the equirectangular lens"
-msgstr "Latitud máxima (ángulo vertical) para la lente equirrectangular"
-
-
-msgid "Min Latitude"
-msgstr "Latitud mínima"
-
-
-msgid "Minimum latitude (vertical angle) for the equirectangular lens"
-msgstr "Latitud mínima (ángulo vertical) para la lente equirrectangular"
-
-
-msgid "Max Longitude"
-msgstr "Longitud máxima"
-
-
-msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Longitud máxima (ángulo hoarizontal) para la lente equirrectangular"
-
-
-msgid "Min Longitude"
-msgstr "Longitud mínima"
-
-
-msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Longitud mínima (ángulo hoarizontal) para la lente equirrectangular"
-
-
-msgid "Panorama Type"
-msgstr "Tipo de Panorámica"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "Distorsión a usar para los calculos"
-
-
-msgid "Spherical camera for environment maps, also known as Lat Long panorama"
-msgstr "Cámara esférica útil para mapeos de entorno, también conocido como panorama Lat Long"
-
-
-msgid "Equiangular Cubemap Face"
-msgstr "Cara de mapa cúbico equiangular"
-
-
-msgid "Single face of an equiangular cubemap"
-msgstr "Cara individual de un mapa cúbico equiangular"
-
-
-msgid "Mirror ball mapping for environment maps"
-msgstr "Mapeo de tipo esfera espejada para mapeos de entorno"
-
-
-msgid "Fisheye Equidistant"
-msgstr "Ojo de pez equidistante"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "Ideal para bóvedas completas, ignora las dimensiones del sensor"
-
-
-msgid "Fisheye Equisolid"
-msgstr "Ojo de pez equisólido"
-
-
-msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "Similar a la mayoría de las lentes ojo de pez modernas, toma las dimensiones del sensor en consideración"
-
-
-msgid "Fisheye Lens Polynomial"
-msgstr "Ojo de pez polinómico"
-
-
-msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
-msgstr "Define la proyección de la lente como polinómica, para permitir simular lentes de cámara reales"
 
 
 msgid "Form of curves"
@@ -98235,10 +98203,6 @@ msgid "Gizmo to adjust location"
 msgstr "Manipulador para ajustar la posición de objetos"
 
 
-msgid "Speaker"
-msgstr "Altavoz"
-
-
 msgid "Show Reconstruction"
 msgstr "Mostrar reconstrucción"
 
@@ -100294,10 +100258,6 @@ msgstr "Nodo vectorial"
 
 msgid "Wires"
 msgstr "Conexiones"
-
-
-msgid "Wire Color"
-msgstr "Conexión color"
 
 
 msgid "Wire Select"
@@ -103234,6 +103194,10 @@ msgstr "Mostrar puntos de referencia"
 
 msgid "Show VR Camera"
 msgstr "Mostrar cámara de RV"
+
+
+msgid "Theme"
+msgstr "Tema"
 
 
 msgid "X-Ray Alpha"
@@ -108214,10 +108178,6 @@ msgstr "Se renombró %d de %d %s"
 
 msgid "Shortcuts"
 msgstr "Atajos"
-
-
-msgid "Theme"
-msgstr "Tema"
 
 
 msgctxt "Operator"
@@ -114384,10 +114344,6 @@ msgid "Camera to View"
 msgstr "Cámara a la vista"
 
 
-msgid "Object Types Visibility"
-msgstr "Visibilidad por tipo"
-
-
 msgid "Object Gizmos"
 msgstr "Objetos"
 
@@ -116437,16 +116393,16 @@ msgid "Checking sanity of current .blend file *BEFORE* save to disk"
 msgstr "Comprobando la sanidad del archivo .blend actual *ANTES* de guardarlo en el disco"
 
 
+msgid "Checking sanity of current .blend file *AFTER* save to disk"
+msgstr "Comprobando la sanidad del archivo .blend actual *DESPUÉS* de guardarlo en el disco"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "La versión de respaldo falló (archivo guardado con @)"
 
 
 msgid "Cannot change old file (file saved with @)"
 msgstr "No es posible cambiar archivo antiguo (archivo guardado con @)"
-
-
-msgid "Checking sanity of current .blend file *AFTER* save to disk"
-msgstr "Comprobando la sanidad del archivo .blend actual *DESPUÉS* de guardarlo en el disco"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -125748,6 +125704,10 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Registrando clase de conector de nodo: '%s' es demasiado largo, la longitud máxima es %d"
 
 
+msgid "Unable to create socket"
+msgstr "No es posible crear el conector"
+
+
 msgid "CustomGroup"
 msgstr "Grupo_personalizado"
 
@@ -125791,10 +125751,6 @@ msgstr "Conectores con la misma dirección (de entrada o salida)"
 
 msgid "Unable to locate link in node tree"
 msgstr "No es posible localizar el vínculo en el árbol de nodos"
-
-
-msgid "Unable to create socket"
-msgstr "No es posible crear el conector"
 
 
 msgid "Cannot add socket to built-in node"
@@ -128317,6 +128273,10 @@ msgid "Half the width of the narrow band in voxel units"
 msgstr "La mitad del ancho de la banda angosta, en vóxeles"
 
 
+msgid "Corner Index"
+msgstr "Identificador de esquina"
+
+
 msgid "The edge to retrieve data from. Defaults to the edge from the context"
 msgstr "El borde del cual proporcionar datos. De forma predefinida se usará el borde del contexto"
 
@@ -128327,10 +128287,6 @@ msgstr "Valores que ordenan las esquinas ancladas al borde"
 
 msgid "Which of the sorted corners to output"
 msgstr "Cuál de las esquinas ordenadas devolver"
-
-
-msgid "Corner Index"
-msgstr "Identificador de esquina"
 
 
 msgid "A corner of the input edge in its face's winding order, chosen by the sort index"

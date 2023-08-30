@@ -265,7 +265,7 @@ void dof_gather_accumulate_sample_ring(DofGatherData ring_data,
 }
 
 /* FIXME(fclem) Seems to be wrong since it needs `ringcount + 1` as input for
- * slightfocus gather. */
+ * slight-focus gather. */
 /* This should be replaced by web_sample_count_get() but doing so is breaking other things. */
 int dof_gather_total_sample_count(const int ring_count, const int ring_density)
 {
@@ -635,7 +635,7 @@ void dof_slight_focus_gather(depth2D depth_tx,
       pair_data[i].color = safe_color(textureLod(color_tx, sample_uv, 0.0));
       pair_data[i].dist = ring_dist;
       if (DOF_BOKEH_TEXTURE) {
-        /* Contains subpixel distance to bokeh shape. */
+        /* Contains sub-pixel distance to bokeh shape. */
         ivec2 lut_texel = ivec2(round(sample_offset)) + dof_max_slight_focus_radius;
         pair_data[i].dist = texelFetch(bkh_lut_tx, lut_texel, 0).r;
       }

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -9851,20 +9851,24 @@ msgid "Camera near clipping distance"
 msgstr "ﺍﺮﻴﻣﺎﻜﻠﻟ ﺎﻴﻧﺪﻟﺍ ﻢﻴﻠﻘﺘﻟﺍ ﺔﻓﺎﺴﻣ"
 
 
-msgid "Cycles Camera Settings"
-msgstr "ﺰﻠﻜﻳﺎﺳ ﺓﺮﻴﻣﺎﻛ ﺕﺍﺩﺍﺪﻋﺇ"
-
-
-msgid "Cycles camera settings"
-msgstr "ﺰﻠﻜﻳﺎﺳ ﺓﺮﻴﻣﺎﻛ ﺕﺍﺩﺍﺪﻋﺇ"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "ﻲﺛﻼ﻿ﺜﻟﺍ ﺮﻈﻨﻣ ﻲﻓ ﻱﺮﻫﺎﻈﻟﺍ ﺍﺮﻴﻣﺎﻜﻟﺍ ﻦﺋﺎﻛ ﻢﺠﺣ"
 
 
 msgid "Depth Of Field"
 msgstr "ﻞﻘﺤﻟﺍ ﻖﻤﻋ"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "ﺔﻜﻤﺴﻟﺍ ﻦﻴﻋ ﺔﺳﺪﻌﻟ ﺮﻈﻨﻟﺍ ﻞﻘﺣ"
+
+
+msgid "Fisheye Lens"
+msgstr "ﺔﻜﻤﺴﻟﺍ ﻦﻴﻋ ﺔﺳﺪﻫ"
+
+
+msgid "Lens focal length (mm)"
+msgstr "(ﻢﻣ) ﺔﺳﺪﻌﻠﻟ ﻱﺮﺼﺒﻟﺍ ﻝﻮﻄﻟﺍ"
 
 
 msgid "Focal Length"
@@ -9893,6 +9897,26 @@ msgstr "ﻲﺋﻼ﻿ﻣﻻ﻿ﺍ ﻢﻴﺠﺤﺘﻟﺍ"
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "(ﺮﻴﺒﻜﺘﻠﻟ ﻪﺑﺎﺸﻣ) ﺍﺮﻴﻣﺎﻜﻠﻟ ﻲﺋﻼ﻿ﻣﻻ﻿ﺍ ﻢﻴﺠﺤﺘﻟﺍ"
+
+
+msgid "Panorama Type"
+msgstr "ﺮﻈﻨﻤﻟﺍ ﻉﻮﻧ"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "ﺏﺎﺴﺤﻠﻟ ﻡﺪﺨﺘﺴﻤﻟﺍ ﻪﻳﻮﺸﺘﻟﺍ"
+
+
+msgid "Equirectangular"
+msgstr "ﺎﻳﺍﻭﺰﻟﺍ ﻱﻭﺎﺴﺘﻣ ﻞﻴﻄﺘﺴﻣ"
+
+
+msgid "Mirror Ball"
+msgstr "ﺱﺎﻜﻌﻧﺍ ﺓﺮﻛ"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "ﻪﺟﻮﻟﺍ ﻩﺎﺠﺗﺍ ﺲﻜﻋﺍ"
 
 
 msgid "Passepartout Alpha"
@@ -18844,10 +18868,6 @@ msgid "Display Hidden"
 msgstr "ﻲﻔﺨﻟﺍ ﺮﻬﻇﺃ"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "ﺔﻴﺋﺮﻣ ﺮﻴﻐﻟﺍ ﻡﺎﻈﻌﻟﺍ/ﺕﺎﻨﺋﺎﻜﻟﺍ ﻦﻣ ﺕﺍﻮﻨﻗ ﻦﻤﻀﺘﻳ"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "ﻂﻴﻄﺨﺘﻟﺍ ﺭﺮﺤﻤﻠﻟ ﻞﻘﺤﻟﺍ ﺐﺗﺭ"
 
@@ -20695,14 +20715,6 @@ msgstr "ﻁﺎﻘﺳﻹ﻿ﺍ"
 
 msgid "Projection of the input image"
 msgstr "ﻞﺧﺪﻟﺍ ﺓﺭﻮﺻ ﻁﺎﻘﺳﺍ"
-
-
-msgid "Equirectangular"
-msgstr "ﺎﻳﺍﻭﺰﻟﺍ ﻱﻭﺎﺴﺘﻣ ﻞﻴﻄﺘﺴﻣ"
-
-
-msgid "Mirror Ball"
-msgstr "ﺱﺎﻜﻌﻧﺍ ﺓﺮﻛ"
 
 
 msgid "Gradient Texture"
@@ -29601,6 +29613,10 @@ msgid "Edit Property"
 msgstr "ﺔﻤﺴﻟﺍ ﻝﺪﻋ"
 
 
+msgid "Speaker"
+msgstr "ﺕﻮﺻ ﺮﺒﻜﻣ"
+
+
 msgid "Property Name"
 msgstr "ﺔﻤﺴﻟﺍ ﻢﺳﺇ"
 
@@ -30259,6 +30275,10 @@ msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
 
 msgid "Pose Library"
 msgstr "ﺕﺎﻔﻗﻮﻟﺍ ﺔﺒﺘﻜﻣ"
+
+
+msgid "Wire Color"
+msgstr "ﻂﺑﺍﺮﻟﺍ ﻥﻮﻟ"
 
 
 msgid "Comb hairs"
@@ -32285,30 +32305,6 @@ msgstr "ﻑﺮﻌﻣ ﺹﺍﻮﺧ ﺔﻋﻮﻤﺠﻣ"
 
 msgid "Group of ID properties"
 msgstr "ﻑﺮﻌﻣ ﺹﺍﻮﺧ ﻦﻣ ﺔﻋﻮﻤﺠﻣ"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "ﺔﻜﻤﺴﻟﺍ ﻦﻴﻋ ﺔﺳﺪﻌﻟ ﺮﻈﻨﻟﺍ ﻞﻘﺣ"
-
-
-msgid "Fisheye Lens"
-msgstr "ﺔﻜﻤﺴﻟﺍ ﻦﻴﻋ ﺔﺳﺪﻫ"
-
-
-msgid "Lens focal length (mm)"
-msgstr "(ﻢﻣ) ﺔﺳﺪﻌﻠﻟ ﻱﺮﺼﺒﻟﺍ ﻝﻮﻄﻟﺍ"
-
-
-msgid "Panorama Type"
-msgstr "ﺮﻈﻨﻤﻟﺍ ﻉﻮﻧ"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "ﺏﺎﺴﺤﻠﻟ ﻡﺪﺨﺘﺴﻤﻟﺍ ﻪﻳﻮﺸﺘﻟﺍ"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "ﻪﺟﻮﻟﺍ ﻩﺎﺠﺗﺍ ﺲﻜﻋﺍ"
 
 
 msgid "Cast Shadow"
@@ -34435,10 +34431,6 @@ msgid "Show reconstructed camera path"
 msgstr "ﻩﺅﺎﻨﺑ ﺩﺎﻌﻤﻟﺍ ﺍﺮﻴﻣﺎﻜﻟﺍ ﺭﺎﺴﻣ ﺮﻬﻇﺇ"
 
 
-msgid "Speaker"
-msgstr "ﺕﻮﺻ ﺮﺒﻜﻣ"
-
-
 msgid "Show Reconstruction"
 msgstr "ءﺎﻨﺒﻟﺍ ﺓﺩﺎﻋﺍ ﺮﻬﻇﺇ"
 
@@ -35041,10 +35033,6 @@ msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﺺﻨﻟﺍ"
 
 msgid "Vector Node"
 msgstr "ﻪﺠﺘﻤﻟﺍ ﺓﺪﻘﻋ"
-
-
-msgid "Wire Color"
-msgstr "ﻂﺑﺍﺮﻟﺍ ﻥﻮﻟ"
 
 
 msgid "Filter Match"
@@ -39894,12 +39882,12 @@ msgid "Unable to create new strip"
 msgstr "ﻒﻠﻤﻟﺍ ﺢﺘﻓ ﻰﻠﻋ ﺭﺩﺎﻗ ﺮﻴﻏ"
 
 
-msgid "Unable to locate link in node tree"
-msgstr "ﺪﻘﻋ ﺓﺮﺠﺷ ﻲﻓ ﺪﻘﻋ ﻦﻴﺑ ﻂﺑﺍﺭ"
-
-
 msgid "Unable to create socket"
 msgstr "ﺔﺤﺘﻓ ءﺎﺸﻧﺇ ﻰﻠﻋ ﺭﺩﺎﻗ ﺮﻴﻏ"
+
+
+msgid "Unable to locate link in node tree"
+msgstr "ﺪﻘﻋ ﺓﺮﺠﺷ ﻲﻓ ﺪﻘﻋ ﻦﻴﺑ ﻂﺑﺍﺭ"
 
 
 msgid "Unable to locate socket '%s' in node"

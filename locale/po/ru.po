@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -18600,20 +18600,40 @@ msgid "Camera near clipping distance"
 msgstr "Минимальное расстояние зоны видимости камеры"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Настройки камеры Cycles"
-
-
-msgid "Cycles camera settings"
-msgstr "Настройки камеры Cycles"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Видимый размер объекта камеры в области 3D-просмотра"
 
 
 msgid "Depth Of Field"
 msgstr "Глубина резкости"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "Поле зрения для объектива типа «рыбий глаз»"
+
+
+msgid "Fisheye Lens"
+msgstr "Рыбий глаз"
+
+
+msgid "Lens focal length (mm)"
+msgstr "Фокусное расстояние объектива (мм)"
+
+
+msgid "Max Latitude"
+msgstr "Макс. широта"
+
+
+msgid "Maximum latitude (vertical angle) for the equirectangular lens"
+msgstr "Максимальная широта (вертикальный угол) для равнопрямоугольных объективов"
+
+
+msgid "Min Latitude"
+msgstr "Мин. широта"
+
+
+msgid "Minimum latitude (vertical angle) for the equirectangular lens"
+msgstr "Минимальная широта (вертикальный угол) для равнопрямоугольных объективов"
 
 
 msgid "Focal Length"
@@ -18636,12 +18656,60 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "Определение объектива через угол поля зрения"
 
 
+msgid "Max Longitude"
+msgstr "Макс. долгота"
+
+
+msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Максимальная долгота (горизонтальный угол) для равнопрямоугольных объективов"
+
+
+msgid "Min Longitude"
+msgstr "Мин. долгота"
+
+
+msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Минимальная долгота (горизонтальный угол) для равнопрямоугольных объективов"
+
+
 msgid "Orthographic Scale"
 msgstr "Ортогональный масштаб"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "Масштаб ортогональной камеры (аналогично увеличению)"
+
+
+msgid "Panorama Type"
+msgstr "Тип панорамы"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "Тип рассчитываемого искажения"
+
+
+msgid "Equirectangular"
+msgstr "Цилиндрическая"
+
+
+msgid "Mirror Ball"
+msgstr "Зеркальный шар"
+
+
+msgid "Fisheye Equidistant"
+msgstr "Равнопромежуточный рыбий глаз"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "Идеально подходит для куполов, размер сенсора игнорируется"
+
+
+msgid "Fisheye Equisolid"
+msgstr "Равноцельный рыбий глаз"
+
+
+msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
+msgstr "Похож на большинство современных объективов типа «рыбий глаз», учитывает размеры  сенсора"
 
 
 msgid "Passepartout Alpha"
@@ -33944,10 +34012,6 @@ msgid "Display Hidden"
 msgstr "Показывать скрытое"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "Показывать каналы невидимых объектов и костей"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "Поле сортировки экспозиционного листа"
 
@@ -37560,16 +37624,8 @@ msgid "Projection of the input image"
 msgstr "Проекция входного изображения"
 
 
-msgid "Equirectangular"
-msgstr "Цилиндрическая"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "Равнопромежуточная цилиндрическая (широтно-долготная) проекция"
-
-
-msgid "Mirror Ball"
-msgstr "Зеркальный шар"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -38335,6 +38391,10 @@ msgstr "Входы системы нодов"
 
 msgid "Collection of Node Tree Sockets"
 msgstr "Коллекция входов системы нодов"
+
+
+msgid "Socket Type"
+msgstr "Тип сокета"
 
 
 msgid "Node Tree Outputs"
@@ -50945,10 +51005,6 @@ msgid "Add Node Tree Interface Socket"
 msgstr "Добавить интерфейсный сокет к системе нодов"
 
 
-msgid "Socket Type"
-msgstr "Тип сокета"
-
-
 msgctxt "Operator"
 msgid "Move Node Tree Socket"
 msgstr "Переместить сокет системы нодов"
@@ -61980,6 +62036,10 @@ msgid "Edit Property"
 msgstr "Редактировать свойство"
 
 
+msgid "Speaker"
+msgstr "Источник звука"
+
+
 msgid "Property Name"
 msgstr "Имя свойства"
 
@@ -63003,10 +63063,6 @@ msgstr "Предустановки интегратора"
 
 msgid "Sampling Presets"
 msgstr "Предустановки сэмплирования"
-
-
-msgid "View Object Types"
-msgstr "Показать типы объектов"
 
 
 msgid "Film"
@@ -64095,6 +64151,10 @@ msgstr "Анализ"
 
 msgid "Quad View"
 msgstr "4-видовой просмотр"
+
+
+msgid "Wire Color"
+msgstr "Цвет сетки"
 
 
 msgid "Shadow Settings"
@@ -67353,74 +67413,6 @@ msgstr "Поиск по регулярному выражению"
 
 msgid "Use regular expressions to match text in the 'Find' field"
 msgstr "Использовать регулярные выражения для поиска соответствий с строкой поиска"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "Поле зрения для объектива типа «рыбий глаз»"
-
-
-msgid "Fisheye Lens"
-msgstr "Рыбий глаз"
-
-
-msgid "Lens focal length (mm)"
-msgstr "Фокусное расстояние объектива (мм)"
-
-
-msgid "Max Latitude"
-msgstr "Макс. широта"
-
-
-msgid "Maximum latitude (vertical angle) for the equirectangular lens"
-msgstr "Максимальная широта (вертикальный угол) для равнопрямоугольных объективов"
-
-
-msgid "Min Latitude"
-msgstr "Мин. широта"
-
-
-msgid "Minimum latitude (vertical angle) for the equirectangular lens"
-msgstr "Минимальная широта (вертикальный угол) для равнопрямоугольных объективов"
-
-
-msgid "Max Longitude"
-msgstr "Макс. долгота"
-
-
-msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Максимальная долгота (горизонтальный угол) для равнопрямоугольных объективов"
-
-
-msgid "Min Longitude"
-msgstr "Мин. долгота"
-
-
-msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Минимальная долгота (горизонтальный угол) для равнопрямоугольных объективов"
-
-
-msgid "Panorama Type"
-msgstr "Тип панорамы"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "Тип рассчитываемого искажения"
-
-
-msgid "Fisheye Equidistant"
-msgstr "Равнопромежуточный рыбий глаз"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "Идеально подходит для куполов, размер сенсора игнорируется"
-
-
-msgid "Fisheye Equisolid"
-msgstr "Равноцельный рыбий глаз"
-
-
-msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "Похож на большинство современных объективов типа «рыбий глаз», учитывает размеры  сенсора"
 
 
 msgid "Rounded Ribbons"
@@ -74510,10 +74502,6 @@ msgid "Gizmo to adjust location"
 msgstr "Манипулятор для настройки положения"
 
 
-msgid "Speaker"
-msgstr "Источник звука"
-
-
 msgid "Show Reconstruction"
 msgstr "Показать реконструкцию"
 
@@ -75976,10 +75964,6 @@ msgstr "Нода вектора"
 
 msgid "Wires"
 msgstr "Связи"
-
-
-msgid "Wire Color"
-msgstr "Цвет сетки"
 
 
 msgid "Wire Select"
@@ -78081,6 +78065,10 @@ msgid "Make the lighting fixed and not follow the camera"
 msgstr "Сделать освещение фиксированным и не следующим за камерой"
 
 
+msgid "Theme"
+msgstr "Тема"
+
+
 msgid "X-Ray Alpha"
 msgstr "Степень прозрачности"
 
@@ -79653,10 +79641,6 @@ msgstr "Перезагрузить начальный файл для восст
 
 msgid "Shortcuts"
 msgstr "Сочетания клавиш"
-
-
-msgid "Theme"
-msgstr "Тема"
 
 
 msgctxt "Operator"
@@ -83862,10 +83846,6 @@ msgid "Camera to View"
 msgstr "Камера к виду"
 
 
-msgid "Object Types Visibility"
-msgstr "Видимость типов объектов"
-
-
 msgid "Object Gizmos"
 msgstr "Манипуляторы объекта"
 
@@ -85243,16 +85223,16 @@ msgid "Checking sanity of current .blend file *BEFORE* save to disk"
 msgstr "Проверка текущего .blend-файла *ПЕРЕД* записью на диск"
 
 
+msgid "Checking sanity of current .blend file *AFTER* save to disk"
+msgstr "Проверка текущего .blend-файла *ПОСЛЕ* записи на диск"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "Ошибка создания резервной копии версии (файл сохранён с @)"
 
 
 msgid "Cannot change old file (file saved with @)"
 msgstr "Невозможно изменить старый файл (файл сохранён с @)"
-
-
-msgid "Checking sanity of current .blend file *AFTER* save to disk"
-msgstr "Проверка текущего .blend-файла *ПОСЛЕ* записи на диск"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -90688,16 +90668,16 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Регистрация класса нодового сокета: имя «%s» слишком длинное, максимальная длина — %d"
 
 
+msgid "Unable to create socket"
+msgstr "Не удалось создать сокет"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "Одинаковое входное/выходное направление сокетов"
 
 
 msgid "Unable to locate link in node tree"
 msgstr "Связь не найдена в нодовой системе"
-
-
-msgid "Unable to create socket"
-msgstr "Не удалось создать сокет"
 
 
 msgid "Node tree '%s' has undefined type %s"

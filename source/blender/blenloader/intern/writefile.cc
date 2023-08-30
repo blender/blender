@@ -21,7 +21,7 @@
  *
  * data-blocks: (also see struct #BHead).
  * <pre>
- * `bh.code`       `char[4]` see `BLO_blend_defs.h` for a list of known types.
+ * `bh.code`       `char[4]` see `BLO_blend_defs.hh` for a list of known types.
  * `bh.len`        `int32` length data after #BHead in bytes.
  * `bh.old`        `void *` old pointer (the address at the time of writing the file).
  * `bh.SDNAnr`     `int32` struct index of structs stored in #DNA1 data.
@@ -95,6 +95,7 @@
 #include "BLI_math_base.h"
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
+
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
 #include "BKE_blender_version.h"
@@ -107,19 +108,20 @@
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_node.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_workspace.h"
 
-#include "BLO_blend_defs.h"
-#include "BLO_blend_validate.h"
-#include "BLO_read_write.h"
+#include "BLO_blend_defs.hh"
+#include "BLO_blend_validate.hh"
+#include "BLO_read_write.hh"
 #include "BLO_readfile.h"
-#include "BLO_undofile.h"
-#include "BLO_writefile.h"
+#include "BLO_undofile.hh"
+#include "BLO_writefile.hh"
 
-#include "readfile.h"
+#include "readfile.hh"
 
 #include <zstd.h>
 
@@ -1404,6 +1406,40 @@ static bool do_history(const char *filepath, ReportList *reports)
   return true;
 }
 
+static void write_file_main_validate_pre(Main *bmain, ReportList *reports)
+{
+  if (!bmain->lock) {
+    return;
+  }
+
+  BKE_report(reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* save to disk");
+
+  BLO_main_validate_shapekeys(bmain, reports);
+  if (!BKE_main_namemap_validate_and_fix(bmain)) {
+    BKE_report(reports,
+               RPT_ERROR,
+               "Critical data corruption: Conflicts and/or otherwise invalid data-blocks names "
+               "(see console for details)");
+  }
+
+  if (G.debug & G_DEBUG_IO) {
+    BLO_main_validate_libraries(bmain, reports);
+  }
+}
+
+static void write_file_main_validate_post(Main *bmain, ReportList *reports)
+{
+  if (!bmain->lock) {
+    return;
+  }
+
+  if (G.debug & G_DEBUG_IO) {
+    BKE_report(
+        reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* save to disk");
+    BLO_main_validate_libraries(bmain, reports);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1434,11 +1470,7 @@ bool BLO_write_file(Main *mainvar,
   const eBPathForeachFlag path_list_flag = (BKE_BPATH_FOREACH_PATH_SKIP_LINKED |
                                             BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE);
 
-  if (G.debug & G_DEBUG_IO && mainvar->lock != nullptr) {
-    BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* save to disk");
-    BLO_main_validate_libraries(mainvar, reports);
-    BLO_main_validate_shapekeys(mainvar, reports);
-  }
+  write_file_main_validate_pre(mainvar, reports);
 
   /* open temporary file, so we preserve the original in case we crash */
   SNPRINTF(tempname, "%s@", filepath);
@@ -1566,10 +1598,7 @@ bool BLO_write_file(Main *mainvar,
     return false;
   }
 
-  if (G.debug & G_DEBUG_IO && mainvar->lock != nullptr) {
-    BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* save to disk");
-    BLO_main_validate_libraries(mainvar, reports);
-  }
+  write_file_main_validate_post(mainvar, reports);
 
   return true;
 }

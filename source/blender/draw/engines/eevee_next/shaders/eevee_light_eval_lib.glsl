@@ -10,7 +10,6 @@
  * - light_tile_buf
  * - shadow_atlas_tx
  * - shadow_tilemaps_tx
- * - sss_transmittance_tx
  * - utility_tx
  */
 
@@ -53,14 +52,8 @@ void light_eval_ex(ClosureDiffuse diffuse,
       float delta = max(thickness, -(samp.occluder_delta + samp.bias));
 
       vec3 intensity = visibility * light.transmit_power *
-                       light_translucent(sss_transmittance_tx,
-                                         is_directional,
-                                         light,
-                                         diffuse.N,
-                                         L,
-                                         dist,
-                                         diffuse.sss_radius,
-                                         delta);
+                       light_translucent(
+                           is_directional, light, diffuse.N, L, dist, diffuse.sss_radius, delta);
       out_diffuse += light.color * intensity;
     }
 #endif
@@ -97,9 +90,8 @@ void light_eval(ClosureDiffuse diffuse,
                 inout vec3 out_specular,
                 inout float out_shadow)
 {
-  vec2 uv = vec2(reflection.roughness, safe_sqrt(1.0 - dot(reflection.N, V)));
-  uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
-  vec4 ltc_mat = utility_tx_sample(utility_tx, uv, UTIL_LTC_MAT_LAYER);
+  vec4 ltc_mat = utility_tx_sample_lut(
+      utility_tx, dot(reflection.N, V), reflection.roughness, UTIL_LTC_MAT_LAYER);
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     light_eval_ex(diffuse,

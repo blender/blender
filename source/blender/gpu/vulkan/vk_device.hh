@@ -38,6 +38,7 @@ class VKDevice : public NonCopyable {
   VkDevice vk_device_ = VK_NULL_HANDLE;
   uint32_t vk_queue_family_ = 0;
   VkQueue vk_queue_ = VK_NULL_HANDLE;
+  VkCommandPool vk_command_pool_ = VK_NULL_HANDLE;
 
   /* Dummy sampler for now. */
   VKSampler sampler_;
@@ -125,6 +126,11 @@ class VKDevice : public NonCopyable {
     return sampler_;
   }
 
+  const VkCommandPool vk_command_pool_get() const
+  {
+    return vk_command_pool_;
+  }
+
   bool is_initialized() const;
   void init(void *ghost_context);
   /**
@@ -164,6 +170,7 @@ class VKDevice : public NonCopyable {
   void init_physical_device_properties();
   void init_debug_callbacks();
   void init_memory_allocator();
+  void init_command_pools();
   void init_descriptor_pools();
 
   /* During initialization the backend requires access to update the workarounds. */

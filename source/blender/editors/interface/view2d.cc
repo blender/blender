@@ -1308,7 +1308,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
   immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
   /* Scaling the dots fully with the zoom looks too busy, but a bit of size variation is nice. */
-  const float min_point_size = 2.0f * UI_SCALE_FAC;
+  const float min_point_size = 2.0f * U.pixelsize;
   const float point_size_factor = 1.5f;
   const float max_point_size = point_size_factor * min_point_size;
 
@@ -1329,6 +1329,9 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
     const float point_size_precise = min_point_size * level_scale * zoom_x;
     const float point_size_draw = ceilf(
         clamp_f(point_size_precise, min_point_size, max_point_size));
+
+    /* Offset point by this amount to better align centers as size changes. */
+    const float point_size_offset = (point_size_draw / 2.0f) - U.pixelsize;
 
     /* To compensate the for the clamped point_size we adjust the alpha to make the overall
      * brightness of the grid background more consistent. */
@@ -1353,10 +1356,14 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
     const float step = min_step * level_scale;
     int count_x;
     float start_x;
-    grid_axis_start_and_count(step, v2d->cur.xmin, v2d->cur.xmax, &start_x, &count_x);
+
+    /* Count points that fit in viewport minus space for the scroll-bars. */
+    grid_axis_start_and_count(
+        step, v2d->cur.xmin, v2d->cur.xmax - V2D_SCROLL_WIDTH, &start_x, &count_x);
     int count_y;
     float start_y;
-    grid_axis_start_and_count(step, v2d->cur.ymin, v2d->cur.ymax, &start_y, &count_y);
+    grid_axis_start_and_count(
+        step, v2d->cur.ymin + V2D_SCROLL_HEIGHT, v2d->cur.ymax, &start_y, &count_y);
     if (count_x == 0 || count_y == 0) {
       continue;
     }
@@ -1371,7 +1378,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
       for (int i_x = 0; i_x < count_x; i_x++) {
         const float x = start_x + step * i_x;
         immAttr4fv(color_id, color);
-        immVertex2f(pos, x, y);
+        immVertex2f(pos, x + point_size_offset, y + point_size_offset);
       }
     }
 

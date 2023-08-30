@@ -15,6 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -47,7 +48,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "atomic_ops.h"
 
@@ -84,6 +85,24 @@ struct DeferredIconDeleteNode {
 };
 /* Protected by gIconMutex. */
 static LockfreeLinkList g_icon_delete_queue;
+
+class PreviewImageDeferred : public PreviewImage {
+ public:
+  const std::string filepath;
+  const ThumbSource source;
+
+  /* Behavior is undefined if \a prv is not a deferred preview (#PRV_TAG_DEFFERED not set). */
+  static PreviewImageDeferred &from_base(PreviewImage &prv);
+  static const PreviewImageDeferred &from_base(const PreviewImage &prv);
+
+  PreviewImageDeferred(blender::StringRef filepath, ThumbSource source);
+  PreviewImageDeferred(const PreviewImageDeferred &) = delete;
+  /* Delete through #BKE_previewimg_free()! */
+  ~PreviewImageDeferred() = delete;
+  /* Keep this type non-copyable since ownership of #PreviewImage can be ambiguous (#PreviewImage
+   * allows shallow copies). */
+  PreviewImageDeferred &operator=(const PreviewImageDeferred &) = delete;
+};
 
 static void icon_free(void *val)
 {
@@ -230,40 +249,40 @@ void BKE_icons_deferred_free()
   BLI_linklist_lockfree_clear(&g_icon_delete_queue, MEM_freeN);
 }
 
-static PreviewImage *previewimg_create_ex(size_t deferred_data_size)
+PreviewImage::PreviewImage()
 {
-  PreviewImage *prv_img = (PreviewImage *)MEM_mallocN(sizeof(PreviewImage) + deferred_data_size,
-                                                      "img_prv");
-  memset(prv_img, 0, sizeof(*prv_img)); /* leave deferred data dirty */
-
-  if (deferred_data_size) {
-    prv_img->tag |= PRV_TAG_DEFFERED;
-  }
+  /* Zero initialize */
+  memset(this, 0, sizeof(*this));
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
-    prv_img->flag[i] |= PRV_CHANGED;
-    prv_img->changed_timestamp[i] = 0;
+    flag[i] |= PRV_CHANGED;
+    changed_timestamp[i] = 0;
   }
-  return prv_img;
 }
 
-static PreviewImage *previewimg_deferred_create(const char *filepath, int source)
+PreviewImageDeferred &PreviewImageDeferred::from_base(PreviewImage &prv)
 {
-  /* We pack needed data for lazy loading (source type, in a single char, and filepath). */
-  const size_t deferred_data_size = strlen(filepath) + 2;
-  char *deferred_data;
+  return static_cast<PreviewImageDeferred &>(prv);
+}
+const PreviewImageDeferred &PreviewImageDeferred::from_base(const PreviewImage &prv)
+{
+  return static_cast<const PreviewImageDeferred &>(prv);
+}
 
-  PreviewImage *prv = previewimg_create_ex(deferred_data_size);
-  deferred_data = (char *)PRV_DEFERRED_DATA(prv);
-  deferred_data[0] = source;
-  memcpy(&deferred_data[1], filepath, deferred_data_size - 1);
+PreviewImageDeferred::PreviewImageDeferred(blender::StringRef filepath, ThumbSource source)
+    : PreviewImage(), filepath(filepath), source(source)
+{
+  tag |= PRV_TAG_DEFFERED;
+}
 
-  return prv;
+static PreviewImageDeferred *previewimg_deferred_create(const char *filepath, ThumbSource source)
+{
+  return MEM_new<PreviewImageDeferred>(__func__, filepath, source);
 }
 
 PreviewImage *BKE_previewimg_create()
 {
-  return previewimg_create_ex(0);
+  return MEM_new<PreviewImage>(__func__);
 }
 
 void BKE_previewimg_freefunc(void *link)
@@ -272,25 +291,36 @@ void BKE_previewimg_freefunc(void *link)
   if (!prv) {
     return;
   }
-
-  for (int i = 0; i < NUM_ICON_SIZES; i++) {
-    if (prv->rect[i]) {
-      MEM_freeN(prv->rect[i]);
-    }
-    if (prv->gputexture[i]) {
-      GPU_texture_free(prv->gputexture[i]);
-    }
-  }
-
-  MEM_freeN(prv);
+  BKE_previewimg_free(&prv);
 }
 
 void BKE_previewimg_free(PreviewImage **prv)
 {
   if (prv && (*prv)) {
-    BKE_previewimg_freefunc(*prv);
+    for (int i = 0; i < NUM_ICON_SIZES; i++) {
+      if ((*prv)->rect[i]) {
+        MEM_freeN((*prv)->rect[i]);
+      }
+      if ((*prv)->gputexture[i]) {
+        GPU_texture_free((*prv)->gputexture[i]);
+      }
+    }
+
+    if ((*prv)->tag & PRV_TAG_DEFFERED) {
+      PreviewImageDeferred &this_deferred = PreviewImageDeferred::from_base(**prv);
+      std::destroy_at(&this_deferred.filepath);
+    }
+    MEM_delete(*prv);
     *prv = nullptr;
   }
+}
+
+/** Handy override for the deferred type (derives from #PreviewImage). */
+static void BKE_previewimg_free(PreviewImageDeferred **prv)
+{
+  PreviewImage *prv_base = *prv;
+  BKE_previewimg_free(&prv_base);
+  *prv = nullptr;
 }
 
 void BKE_previewimg_clear_single(PreviewImage *prv, enum eIconSizes size)
@@ -442,7 +472,7 @@ void BKE_previewimg_deferred_release(PreviewImage *prv)
   if (prv->icon_id) {
     BKE_icon_delete(prv->icon_id);
   }
-  BKE_previewimg_freefunc(prv);
+  BKE_previewimg_free(&prv);
 }
 
 PreviewImage *BKE_previewimg_cached_get(const char *name)
@@ -475,19 +505,19 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
 {
   BLI_assert(BLI_thread_is_main());
 
-  PreviewImage *prv = nullptr;
+  PreviewImageDeferred *prv = nullptr;
   void **prv_p;
 
   prv_p = BLI_ghash_lookup_p(gCachedPreviews, name);
 
   if (prv_p) {
-    prv = *(PreviewImage **)prv_p;
+    prv = static_cast<PreviewImageDeferred *>(*prv_p);
     BLI_assert(prv);
+    BLI_assert(prv->tag & PRV_TAG_DEFFERED);
   }
 
   if (prv && force_update) {
-    const char *prv_deferred_data = (char *)PRV_DEFERRED_DATA(prv);
-    if ((int(prv_deferred_data[0]) == source) && STREQ(&prv_deferred_data[1], filepath)) {
+    if ((prv->source == source) && (prv->filepath == filepath)) {
       /* If same filepath, no need to re-allocate preview, just clear it up. */
       BKE_previewimg_clear(prv);
     }
@@ -497,7 +527,7 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
   }
 
   if (!prv) {
-    prv = previewimg_deferred_create(filepath, source);
+    prv = previewimg_deferred_create(filepath, ThumbSource(source));
     force_update = true;
   }
 
@@ -536,13 +566,10 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
     return;
   }
 
-  ImBuf *thumb;
-  char *prv_deferred_data = (char *)PRV_DEFERRED_DATA(prv);
-  int source = prv_deferred_data[0];
-  char *filepath = &prv_deferred_data[1];
+  PreviewImageDeferred &prv_deferred = PreviewImageDeferred::from_base(*prv);
   int icon_w, icon_h;
 
-  thumb = IMB_thumb_manage(filepath, THB_LARGE, (ThumbSource)source);
+  ImBuf *thumb = IMB_thumb_manage(prv_deferred.filepath.c_str(), THB_LARGE, prv_deferred.source);
   if (!thumb) {
     return;
   }
@@ -576,6 +603,26 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
     prv->flag[ICON_SIZE_ICON] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
   }
   IMB_freeImBuf(thumb);
+}
+
+const char *BKE_previewimg_deferred_filepath_get(const PreviewImage *prv)
+{
+  if ((prv->tag & PRV_TAG_DEFFERED) == 0) {
+    return nullptr;
+  }
+
+  const PreviewImageDeferred &prv_deferred = PreviewImageDeferred::from_base(*prv);
+  return prv_deferred.filepath.c_str();
+}
+
+std::optional<int> BKE_previewimg_deferred_thumb_source_get(const PreviewImage *prv)
+{
+  if ((prv->tag & PRV_TAG_DEFFERED) == 0) {
+    return std::nullopt;
+  }
+
+  const PreviewImageDeferred &prv_deferred = PreviewImageDeferred::from_base(*prv);
+  return prv_deferred.source;
 }
 
 ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, const int size)

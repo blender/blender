@@ -19,7 +19,7 @@ float sample_pdf_ggx_reflect(float NH, float NV, float VH, float G1, float alpha
 {
   float a2 = sqr(alpha);
 #if GGX_USE_VISIBLE_NORMAL
-  return G1 * VH * bxdf_ggx_D(NH, a2) / NV;
+  return 0.25 * bxdf_ggx_D(NH, a2) * G1 / NV;
 #else
   return NH * bxdf_ggx_D(NH, a2);
 #endif
@@ -29,9 +29,9 @@ float sample_pdf_ggx_refract(
     float NH, float NV, float VH, float LH, float G1, float alpha, float eta)
 {
   float a2 = sqr(alpha);
-  float D = bxdf_ggx_D_opti(NH, a2);
+  float D = bxdf_ggx_D(NH, a2);
   float Ht2 = sqr(eta * LH + VH);
-  return VH * abs(LH) * ((G1 * D) * sqr(eta) * a2 / (D * NV * Ht2));
+  return (D * G1 * abs(VH * LH) * sqr(eta)) / (NV * Ht2);
 }
 
 /**
@@ -89,7 +89,7 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1)
  * \param T: Tangent vector.
  * \param B: Bitangent vector.
 
- * \return pdf: associated pdf for a reflection ray. 0 if ray is invalid.
+ * \return pdf: the pdf of sampling the reflected ray. 0 if ray is invalid.
  */
 vec3 sample_ggx_reflect(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, out float pdf)
 {
@@ -120,7 +120,7 @@ vec3 sample_ggx_reflect(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, 
  * \param T: Tangent vector.
  * \param B: Bitangent vector.
 
- * \return pdf_reflect: associated pdf for a reflection ray.
+ * \return pdf: the pdf of sampling the refracted ray. 0 if ray is invalid.
  */
 vec3 sample_ggx_refract(
     vec3 rand, float alpha, float ior, vec3 V, vec3 N, vec3 T, vec3 B, out float pdf)

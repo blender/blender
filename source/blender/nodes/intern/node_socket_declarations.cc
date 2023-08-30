@@ -680,6 +680,9 @@ bNodeSocket &Custom::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *nodeAddSocket(
       &ntree, &node, this->in_out, idname_, this->identifier.c_str(), this->name.c_str());
+  if (this->init_socket_fn) {
+    this->init_socket_fn(node, socket, "interface");
+  }
   return socket;
 }
 

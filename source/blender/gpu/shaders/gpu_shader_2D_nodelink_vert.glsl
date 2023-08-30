@@ -115,7 +115,7 @@ void main(void)
   gl_Position.xy += exp_axis * node_link_data.aspect * expand_dist;
 
   /* If the link is not muted or is not a reroute arrow the points are squashed to the center of
-   * the line. Magic numbers are defined in drawnode.c */
+   * the line. Magic numbers are defined in `drawnode.cc`. */
   if ((expand.x == 1.0 && !doMuted) ||
       (expand.y != 1.0 && (pos.x < 0.70 || pos.x > 0.71) && !doArrow))
   {

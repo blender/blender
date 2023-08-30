@@ -9,6 +9,7 @@
 #include "vk_command_buffer.hh"
 #include "vk_buffer.hh"
 #include "vk_context.hh"
+#include "vk_device.hh"
 #include "vk_framebuffer.hh"
 #include "vk_index_buffer.hh"
 #include "vk_memory.hh"
@@ -30,22 +31,36 @@ VKCommandBuffer::~VKCommandBuffer()
   }
 }
 
-void VKCommandBuffer::init(const VkDevice vk_device,
-                           const VkQueue vk_queue,
-                           VkCommandBuffer vk_command_buffer)
+bool VKCommandBuffer::is_initialized() const
 {
-  vk_device_ = vk_device;
-  vk_queue_ = vk_queue;
-  vk_command_buffer_ = vk_command_buffer;
-  submission_id_.reset();
-  state.stage = Stage::Initial;
+  return vk_command_buffer_ != VK_NULL_HANDLE;
+}
+
+void VKCommandBuffer::init(const VKDevice &device)
+{
+  if (is_initialized()) {
+    return;
+  }
+
+  vk_device_ = device.device_get();
+  vk_queue_ = device.queue_get();
 
   /* When a the last GHOST context is destroyed the device is deallocate. A moment later the GPU
    * context is destroyed. The first step is to activate it. Activating would retrieve the device
    * from GHOST which in that case is a #VK_NULL_HANDLE. */
-  if (vk_device == VK_NULL_HANDLE) {
+  if (vk_device_ == VK_NULL_HANDLE) {
     return;
   }
+
+  VkCommandBufferAllocateInfo alloc_info = {};
+  alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  alloc_info.commandPool = device.vk_command_pool_get();
+  alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  alloc_info.commandBufferCount = 1;
+  vkAllocateCommandBuffers(vk_device_, &alloc_info, &vk_command_buffer_);
+
+  submission_id_.reset();
+  state.stage = Stage::Initial;
 
   if (vk_fence_ == VK_NULL_HANDLE) {
     VK_ALLOCATION_CALLBACKS;
@@ -60,6 +75,7 @@ void VKCommandBuffer::init(const VkDevice vk_device,
 
 void VKCommandBuffer::begin_recording()
 {
+  ensure_no_active_framebuffer();
   if (is_in_stage(Stage::Submitted)) {
     vkWaitForFences(vk_device_, 1, &vk_fence_, VK_TRUE, FenceTimeout);
     vkResetFences(vk_device_, 1, &vk_fence_);
@@ -126,7 +142,7 @@ void VKCommandBuffer::bind(const VKBufferWithOffset &index_buffer, VkIndexType i
       vk_command_buffer_, index_buffer.buffer.vk_handle(), index_buffer.offset, index_type);
 }
 
-void VKCommandBuffer::begin_render_pass(const VKFrameBuffer &framebuffer)
+void VKCommandBuffer::begin_render_pass(VKFrameBuffer &framebuffer)
 {
   validate_framebuffer_not_exists();
   state.framebuffer_ = &framebuffer;
@@ -135,8 +151,7 @@ void VKCommandBuffer::begin_render_pass(const VKFrameBuffer &framebuffer)
 void VKCommandBuffer::end_render_pass(const VKFrameBuffer &framebuffer)
 {
   UNUSED_VARS_NDEBUG(framebuffer);
-  validate_framebuffer_exists();
-  BLI_assert(state.framebuffer_ == &framebuffer);
+  BLI_assert(state.framebuffer_ == nullptr || state.framebuffer_ == &framebuffer);
   ensure_no_active_framebuffer();
   state.framebuffer_ = nullptr;
 }
@@ -243,6 +258,20 @@ void VKCommandBuffer::clear(VkImage vk_image,
                        ranges.data());
 }
 
+void VKCommandBuffer::clear(VkImage vk_image,
+                            VkImageLayout vk_image_layout,
+                            const VkClearDepthStencilValue &vk_clear_value,
+                            Span<VkImageSubresourceRange> ranges)
+{
+  ensure_no_active_framebuffer();
+  vkCmdClearDepthStencilImage(vk_command_buffer_,
+                              vk_image,
+                              vk_image_layout,
+                              &vk_clear_value,
+                              ranges.size(),
+                              ranges.data());
+}
+
 void VKCommandBuffer::clear(Span<VkClearAttachment> attachments, Span<VkClearRect> areas)
 {
   validate_framebuffer_exists();
@@ -341,19 +370,11 @@ void VKCommandBuffer::submit()
 {
   ensure_no_active_framebuffer();
   end_recording();
-  encode_recorded_commands();
-  submit_encoded_commands();
+  submit_commands();
   begin_recording();
 }
 
-void VKCommandBuffer::encode_recorded_commands()
-{
-  /* Intentionally not implemented. For the graphics pipeline we want to extract the
-   * resources and its usages so we can encode multiple commands in the same command buffer with
-   * the correct synchronizations. */
-}
-
-void VKCommandBuffer::submit_encoded_commands()
+void VKCommandBuffer::submit_commands()
 {
   VkSubmitInfo submit_info = {};
   submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -397,6 +418,7 @@ void VKCommandBuffer::ensure_active_framebuffer()
   if (!state.framebuffer_active_) {
     VkRenderPassBeginInfo render_pass_begin_info = {};
     render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    state.framebuffer_->vk_render_pass_ensure();
     render_pass_begin_info.renderPass = state.framebuffer_->vk_render_pass_get();
     render_pass_begin_info.framebuffer = state.framebuffer_->vk_framebuffer_get();
     render_pass_begin_info.renderArea = state.framebuffer_->vk_render_areas_get()[0];

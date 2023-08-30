@@ -8,13 +8,11 @@
 
 #pragma once
 
-#ifdef __cplusplus
-#  include "BLI_function_ref.hh"
-#  include "BLI_map.hh"
-using blender::FunctionRef;
-#endif
+#include "BLI_function_ref.hh"
+#include "BLI_map.hh"
 
 struct ARegion;
+struct bNode;
 struct bNodeSocket;
 struct bNodeTree;
 struct ID;
@@ -23,19 +21,17 @@ struct ListBase;
 struct Main;
 struct ViewLayer;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+using blender::FunctionRef;
 
 /**
  * Check if a region of type \a region_type exists in \a regionbase. Otherwise add it after the
  * first region of type \a link_after_region_type.
  * \returns null if a region of the given type already existed, otherwise the newly added region.
  */
-struct ARegion *do_versions_add_region_if_not_found(struct ListBase *regionbase,
-                                                    int region_type,
-                                                    const char *allocname,
-                                                    int link_after_region_type);
+ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
+                                             int region_type,
+                                             const char *allocname,
+                                             int link_after_region_type);
 /**
  * Check if a region of type \a region_type exists in \a regionbase. Otherwise add it after the
  * first region of type \a link_after_region_type.
@@ -53,17 +49,17 @@ ARegion *do_versions_ensure_region(ListBase *regionbase,
  */
 ID *do_versions_rename_id(Main *bmain, short id_type, const char *name_src, const char *name_dst);
 
-bool version_node_socket_is_used(struct bNodeSocket *sock);
+bool version_node_socket_is_used(bNodeSocket *sock);
 
-void version_node_socket_name(struct bNodeTree *ntree,
+void version_node_socket_name(bNodeTree *ntree,
                               int node_type,
                               const char *old_name,
                               const char *new_name);
-void version_node_input_socket_name(struct bNodeTree *ntree,
+void version_node_input_socket_name(bNodeTree *ntree,
                                     int node_type,
                                     const char *old_name,
                                     const char *new_name);
-void version_node_output_socket_name(struct bNodeTree *ntree,
+void version_node_output_socket_name(bNodeTree *ntree,
                                      int node_type,
                                      const char *old_name,
                                      const char *new_name);
@@ -96,20 +92,20 @@ void version_node_socket_index_animdata(
 /**
  * Replace the ID name of all nodes in the tree with the given type with the new name.
  */
-void version_node_id(struct bNodeTree *ntree, int node_type, const char *new_name);
+void version_node_id(bNodeTree *ntree, int node_type, const char *new_name);
 
 /**
  * Convert `SocketName.001` unique name format to `SocketName_001`. Previously both were used.
  */
 void version_node_socket_id_delim(bNodeSocket *socket);
 
-struct bNodeSocket *version_node_add_socket_if_not_exist(struct bNodeTree *ntree,
-                                                         struct bNode *node,
-                                                         eNodeSocketInOut in_out,
-                                                         int type,
-                                                         int subtype,
-                                                         const char *identifier,
-                                                         const char *name);
+bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
+                                                  bNode *node,
+                                                  int in_out,
+                                                  int type,
+                                                  int subtype,
+                                                  const char *identifier,
+                                                  const char *name);
 
 /**
  * The versioning code generally expects `SOCK_IS_LINKED` to be set correctly. This function
@@ -124,29 +120,20 @@ void add_realize_instances_before_socket(bNodeTree *ntree,
                                          bNode *node,
                                          bNodeSocket *geometry_socket);
 
-float *version_cycles_node_socket_float_value(struct bNodeSocket *socket);
-float *version_cycles_node_socket_rgba_value(struct bNodeSocket *socket);
-float *version_cycles_node_socket_vector_value(struct bNodeSocket *socket);
+float *version_cycles_node_socket_float_value(bNodeSocket *socket);
+float *version_cycles_node_socket_rgba_value(bNodeSocket *socket);
+float *version_cycles_node_socket_vector_value(bNodeSocket *socket);
 
-struct IDProperty *version_cycles_properties_from_ID(struct ID *id);
-struct IDProperty *version_cycles_properties_from_view_layer(struct ViewLayer *view_layer);
-struct IDProperty *version_cycles_visibility_properties_from_ID(ID *id);
+IDProperty *version_cycles_properties_from_ID(ID *id);
+IDProperty *version_cycles_properties_from_view_layer(ViewLayer *view_layer);
+IDProperty *version_cycles_visibility_properties_from_ID(ID *id);
 
-float version_cycles_property_float(struct IDProperty *idprop,
-                                    const char *name,
-                                    float default_value);
-int version_cycles_property_int(struct IDProperty *idprop, const char *name, int default_value);
-void version_cycles_property_int_set(struct IDProperty *idprop, const char *name, int value);
-bool version_cycles_property_boolean(struct IDProperty *idprop,
-                                     const char *name,
-                                     bool default_value);
-void version_cycles_property_boolean_set(struct IDProperty *idprop, const char *name, bool value);
+float version_cycles_property_float(IDProperty *idprop, const char *name, float default_value);
+int version_cycles_property_int(IDProperty *idprop, const char *name, int default_value);
+void version_cycles_property_int_set(IDProperty *idprop, const char *name, int value);
+bool version_cycles_property_boolean(IDProperty *idprop, const char *name, bool default_value);
+void version_cycles_property_boolean_set(IDProperty *idprop, const char *name, bool value);
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
 void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
                                          bNode &old_node,
                                          bNode &new_node,
@@ -157,4 +144,3 @@ void version_update_node_input(
     const char *socket_identifier,
     FunctionRef<void(bNode *, bNodeSocket *)> update_input,
     FunctionRef<void(bNode *, bNodeSocket *, bNode *, bNodeSocket *)> update_input_link);
-#endif

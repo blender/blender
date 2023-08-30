@@ -58,7 +58,7 @@ void main()
   bool hit = false;
   float hit_time = 0.0;
 
-  /* Transform the ray into viewspace. */
+  /* Transform the ray into view-space. */
   Ray ray_view;
   ray_view.origin = transform_point(drw_view.viewmat, ray.origin);
   ray_view.direction = transform_direction(drw_view.viewmat, ray.direction);

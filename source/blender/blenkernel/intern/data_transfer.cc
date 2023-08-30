@@ -393,7 +393,7 @@ static void data_transfer_dtdata_type_preprocess(const Mesh *me_src,
                                             me_dst->faces(),
                                             me_dst->corner_verts(),
                                             me_dst->corner_edges(),
-                                            {},
+                                            me_dst->corner_to_face_map(),
                                             me_dst->vert_normals(),
                                             me_dst->face_normals(),
                                             sharp_edges,
@@ -1447,22 +1447,22 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
         if ((map_vert_mode == MREMAP_MODE_TOPOLOGY) && (num_verts_dst != num_verts_src)) {
           BKE_report(reports,
                      RPT_ERROR,
-                     "Source and destination meshes do not have the same amount of vertices, "
+                     "Source and destination meshes do not have the same number of vertices, "
                      "'Topology' mapping cannot be used in this case");
           continue;
         }
         if ((map_vert_mode & MREMAP_USE_EDGE) && (me_src->totedge == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
-                     "Source mesh doesn't have any edges, "
-                     "None of the 'Edge' mappings can be used in this case");
+                     "Source mesh does not have any edges, "
+                     "none of the 'Edge' mappings can be used in this case");
           continue;
         }
         if ((map_vert_mode & MREMAP_USE_POLY) && (me_src->faces_num == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
-                     "Source mesh doesn't have any faces, "
-                     "None of the 'Face' mappings can be used in this case");
+                     "Source mesh does not have any faces, "
+                     "none of the 'Face' mappings can be used in this case");
           continue;
         }
         if (ELEM(0, num_verts_dst, num_verts_src)) {
@@ -1532,15 +1532,15 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
         if ((map_edge_mode == MREMAP_MODE_TOPOLOGY) && (edges_dst.size() != num_edges_src)) {
           BKE_report(reports,
                      RPT_ERROR,
-                     "Source and destination meshes do not have the same amount of edges, "
+                     "Source and destination meshes do not have the same number of edges, "
                      "'Topology' mapping cannot be used in this case");
           continue;
         }
         if ((map_edge_mode & MREMAP_USE_POLY) && (me_src->faces_num == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
-                     "Source mesh doesn't have any faces, "
-                     "None of the 'Face' mappings can be used in this case");
+                     "Source mesh does not have any faces, "
+                     "none of the 'Face' mappings can be used in this case");
           continue;
         }
         if (ELEM(0, edges_dst.size(), num_edges_src)) {
@@ -1623,15 +1623,15 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
         {
           BKE_report(reports,
                      RPT_ERROR,
-                     "Source and destination meshes do not have the same amount of face corners, "
+                     "Source and destination meshes do not have the same number of face corners, "
                      "'Topology' mapping cannot be used in this case");
           continue;
         }
         if ((map_loop_mode & MREMAP_USE_EDGE) && (me_src->totedge == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
-                     "Source mesh doesn't have any edges, "
-                     "None of the 'Edge' mappings can be used in this case");
+                     "Source mesh does not have any edges, "
+                     "none of the 'Edge' mappings can be used in this case");
           continue;
         }
         if (ELEM(0, corner_verts_dst.size(), num_loops_src)) {
@@ -1717,15 +1717,15 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
         if ((map_face_mode == MREMAP_MODE_TOPOLOGY) && (faces_dst.size() != num_faces_src)) {
           BKE_report(reports,
                      RPT_ERROR,
-                     "Source and destination meshes do not have the same amount of faces, "
+                     "Source and destination meshes do not have the same number of faces, "
                      "'Topology' mapping cannot be used in this case");
           continue;
         }
         if ((map_face_mode & MREMAP_USE_EDGE) && (me_src->totedge == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
-                     "Source mesh doesn't have any edges, "
-                     "None of the 'Edge' mappings can be used in this case");
+                     "Source mesh does not have any edges, "
+                     "none of the 'Edge' mappings can be used in this case");
           continue;
         }
         if (ELEM(0, faces_dst.size(), num_faces_src)) {

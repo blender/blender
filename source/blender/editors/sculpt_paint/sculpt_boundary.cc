@@ -11,7 +11,6 @@
 #include "BLI_alloca.h"
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
-#include "BLI_edgehash.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 
@@ -640,7 +639,7 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
  * on the brush curve and its propagation steps. The falloff goes from the boundary into the mesh.
  */
 static void sculpt_boundary_falloff_factor_init(
-    SculptSession *ss, Sculpt *sd, SculptBoundary *boundary, Brush *brush, const float radius)
+    SculptSession *ss, Sculpt * /*sd*/, SculptBoundary *boundary, Brush *brush, const float radius)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
   BKE_curvemapping_init(brush->curve);
@@ -701,8 +700,11 @@ static void sculpt_boundary_falloff_factor_init(
 
 /* Main function to get SculptBoundary data both for brush deformation and viewport preview. Can
  * return nullptr if there is no boundary from the given vertex using the given radius. */
-SculptBoundary *SCULPT_boundary_data_init(
-    Sculpt *sd, Object *object, Brush *brush, const PBVHVertRef initial_vertex, const float radius)
+SculptBoundary *SCULPT_boundary_data_init(Sculpt * /*sd*/,
+                                          Object *object,
+                                          Brush *brush,
+                                          const PBVHVertRef initial_vertex,
+                                          const float radius)
 {
   if (initial_vertex.i == PBVH_REF_NONE) {
     return nullptr;
@@ -970,7 +972,7 @@ static void sculpt_boundary_slide_data_init(SculptSession *ss, SculptBoundary *b
   }
 }
 
-static void do_boundary_brush_circle_task(Object *ob, const Brush *brush, PBVHNode *node)
+static void do_boundary_brush_circle_task(Object *ob, const Brush * /*brush*/, PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
   const int symmetry_pass = ss->cache->mirror_symmetry_pass;
@@ -1106,7 +1108,7 @@ static float sculpt_boundary_displacement_from_grab_delta_get(SculptSession *ss,
   return dist_signed_to_plane_v3(pos, plane);
 }
 
-static void do_boundary_brush_bend_task(Object *ob, const Brush *brush, PBVHNode *node)
+static void do_boundary_brush_bend_task(Object *ob, const Brush * /*brush*/, PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
@@ -1161,7 +1163,7 @@ static void do_boundary_brush_bend_task(Object *ob, const Brush *brush, PBVHNode
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_boundary_brush_slide_task(Object *ob, const Brush *brush, PBVHNode *node)
+static void do_boundary_brush_slide_task(Object *ob, const Brush * /*brush*/, PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
@@ -1207,7 +1209,7 @@ static void do_boundary_brush_slide_task(Object *ob, const Brush *brush, PBVHNod
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_boundary_brush_inflate_task(Object *ob, const Brush *brush, PBVHNode *node)
+static void do_boundary_brush_inflate_task(Object *ob, const Brush * /*brush*/, PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
@@ -1256,7 +1258,7 @@ static void do_boundary_brush_inflate_task(Object *ob, const Brush *brush, PBVHN
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_boundary_brush_grab_task(Object *ob, const Brush *brush, PBVHNode *node)
+static void do_boundary_brush_grab_task(Object *ob, const Brush * /*brush*/, PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
@@ -1299,7 +1301,7 @@ static void do_boundary_brush_grab_task(Object *ob, const Brush *brush, PBVHNode
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_boundary_brush_twist_task(Object *ob, const Brush *brush, PBVHNode *node)
+static void do_boundary_brush_twist_task(Object *ob, const Brush * /*brush*/, PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
@@ -1353,7 +1355,7 @@ static void do_boundary_brush_twist_task(Object *ob, const Brush *brush, PBVHNod
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_boundary_brush_smooth_task(Object *ob, const Brush *brush, PBVHNode *node)
+static void do_boundary_brush_smooth_task(Object *ob, const Brush * /*brush*/, PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
   const int symmetry_pass = ss->cache->mirror_symmetry_pass;

@@ -72,7 +72,24 @@ const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
     {seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
     {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
     {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
-    {0, nullptr, 0, nullptr, nullptr},
+    {seqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Sound Equalizer", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_sequence_video_modifier_type_items[] = {
+    {seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Bright/Contrast", ""},
+    {seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
+    {seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
+    {seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
+    {seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
+    {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
+    {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_sequence_sound_modifier_type_items[] = {
+    {seqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Equalizer", ""},
+    {0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_strip_color_items[] = {
@@ -1286,6 +1303,8 @@ static StructRNA *rna_SequenceModifier_refine(PointerRNA *ptr)
       return &RNA_WhiteBalanceModifier;
     case seqModifierType_Tonemap:
       return &RNA_SequencerTonemapModifierData;
+    case seqModifierType_SoundEqualizer:
+      return &RNA_SoundEqualizerModifier;
     default:
       return &RNA_SequenceModifier;
   }
@@ -1344,14 +1363,34 @@ static void rna_SequenceModifier_name_set(PointerRNA *ptr, const char *value)
   }
 }
 
-static void rna_SequenceModifier_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+static void rna_SequenceModifier_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   /* strip from other scenes could be modified, so using active scene is not reliable */
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
   Sequence *seq = sequence_get_by_modifier(ed, static_cast<SequenceModifierData *>(ptr->data));
 
-  SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
+    DEG_relations_tag_update(bmain);
+  }
+  else {
+    SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+  }
+}
+
+/*
+ * Update of Curve in an EQ Sound Modifier
+ */
+static void rna_SequenceModifier_EQCurveMapping_update(Main *bmain,
+                                                       Scene * /*scene*/,
+                                                       PointerRNA *ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
+  DEG_relations_tag_update(bmain);
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 }
 
 static bool rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA value)
@@ -1552,6 +1591,23 @@ static char *rna_SeqTimelineChannel_path(const PointerRNA *ptr)
                         owner_name_esc,
                         channel_name_esc);
   }
+}
+
+static EQCurveMappingData *rna_Sequence_SoundEqualizer_Curve_add(SoundEqualizerModifierData *semd,
+                                                                 bContext * /* C */,
+                                                                 float min_freq,
+                                                                 float max_freq)
+{
+  EQCurveMappingData *eqcmd = SEQ_sound_equalizermodifier_add_graph(semd, min_freq, max_freq);
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+  return eqcmd;
+}
+
+static void rna_Sequence_SoundEqualizer_Curve_clear(SoundEqualizerModifierData *semd,
+                                                    bContext * /* C */)
+{
+  SEQ_sound_equalizermodifier_free((SequenceModifierData *)semd);
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 }
 
 #else
@@ -3757,6 +3813,89 @@ static void rna_def_modifiers(BlenderRNA *brna)
   rna_def_tonemap_modifier(brna);
 }
 
+static void rna_def_graphical_sound_equalizer(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  /* Define Sound EQ */
+  srna = RNA_def_struct(brna, "EQCurveMappingData", NULL);
+  RNA_def_struct_sdna(srna, "EQCurveMappingData");
+  RNA_def_struct_ui_text(srna, "EQCurveMappingData", "EQCurveMappingData");
+
+  prop = RNA_def_property(srna, "curve_mapping", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "curve_mapping");
+  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_ui_text(prop, "Curve Mapping", "");
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_EQCurveMapping_update");
+}
+
+static void rna_def_sound_equalizer_modifier(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  srna = RNA_def_struct(brna, "SoundEqualizerModifier", "SequenceModifier");
+  RNA_def_struct_sdna(srna, "SoundEqualizerModifierData");
+  RNA_def_struct_ui_text(srna, "SoundEqualizerModifier", "Equalize audio");
+
+  /* Sound Equalizers*/
+  prop = RNA_def_property(srna, "graphics", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "EQCurveMappingData");
+  RNA_def_property_ui_text(
+      prop, "Graphical definition equalization", "Graphical definition equalization");
+
+  /* add band*/
+  func = RNA_def_function(srna, "new_graphic", "rna_Sequence_SoundEqualizer_Curve_add");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(func, "Add a new EQ band");
+
+  parm = RNA_def_float(func,
+                       "min_freq",
+                       SOUND_EQUALIZER_DEFAULT_MIN_FREQ,
+                       0.0,
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ, /*  Hard min and max */
+                       "Minimum Frequency",
+                       "Minimum Frequency",
+                       0.0,
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ); /*  Soft min and max */
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_float(func,
+                       "max_freq",
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ,
+                       0.0,
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ, /*  Hard min and max */
+                       "Maximum Frequency",
+                       "Maximum Frequency",
+                       0.0,
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ); /*  Soft min and max */
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  /* return type */
+  parm = RNA_def_pointer(func,
+                         "graphic_eqs",
+                         "EQCurveMappingData",
+                         "",
+                         "Newly created graphical Equalizer definition");
+  RNA_def_function_return(func, parm);
+
+  /* clear all modifiers */
+  func = RNA_def_function(srna, "clear_soundeqs", "rna_Sequence_SoundEqualizer_Curve_clear");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(func,
+                                  "Remove all graphical equalizers from the Equalizer modifier");
+
+  rna_def_graphical_sound_equalizer(brna);
+}
+
+static void rna_def_sound_modifiers(BlenderRNA *brna)
+{
+  rna_def_sound_equalizer_modifier(brna);
+}
+
 void RNA_def_sequencer(BlenderRNA *brna)
 {
   rna_def_color_balance(brna);
@@ -3782,6 +3921,7 @@ void RNA_def_sequencer(BlenderRNA *brna)
   rna_def_effect(brna);
   rna_def_effects(brna);
   rna_def_modifiers(brna);
+  rna_def_sound_modifiers(brna);
 }
 
 #endif

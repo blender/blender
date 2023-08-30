@@ -157,7 +157,6 @@ GPU_SHADER_CREATE_INFO(eevee_surf_forward)
                      // "eevee_render_pass_out",
                      // "eevee_cryptomatte_out",
                      // "eevee_raytrace_data",
-                     // "eevee_transmittance_data",
     );
 
 GPU_SHADER_CREATE_INFO(eevee_surf_capture)

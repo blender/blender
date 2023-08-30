@@ -14,7 +14,6 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_buffer.h"
-#include "BLI_edgehash.h"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"

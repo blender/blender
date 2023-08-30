@@ -15,6 +15,7 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_screen.h"
 
 #include "BLT_translation.h"
@@ -54,11 +55,18 @@ void send_redraw_notifier(const bContext &C)
 /** \name Shelf Type
  * \{ */
 
-static bool asset_shelf_type_poll(const bContext &C, AssetShelfType *shelf_type)
+static bool asset_shelf_type_poll(const bContext &C,
+                                  const SpaceType &space_type,
+                                  AssetShelfType *shelf_type)
 {
   if (!shelf_type) {
     return false;
   }
+
+  BLI_assert_msg(BLI_findindex(&space_type.asset_shelf_types, shelf_type) != -1,
+                 "Asset shelf type is not registered");
+  UNUSED_VARS_NDEBUG(space_type);
+
   return !shelf_type->poll || shelf_type->poll(&C, shelf_type);
 }
 
@@ -134,8 +142,8 @@ static AssetShelf *update_active_shelf(const bContext &C,
 
   /* Case 1: */
   if (shelf_regiondata.active_shelf &&
-      asset_shelf_type_poll(C,
-                            asset_shelf_type_ensure(space_type, *shelf_regiondata.active_shelf)))
+      asset_shelf_type_poll(
+          C, space_type, asset_shelf_type_ensure(space_type, *shelf_regiondata.active_shelf)))
   {
     /* Not a strong precondition, but if this is wrong something weird might be going on. */
     BLI_assert(shelf_regiondata.active_shelf == shelf_regiondata.shelves.first);
@@ -149,7 +157,7 @@ static AssetShelf *update_active_shelf(const bContext &C,
       continue;
     }
 
-    if (asset_shelf_type_poll(C, asset_shelf_type_ensure(space_type, *shelf))) {
+    if (asset_shelf_type_poll(C, space_type, asset_shelf_type_ensure(space_type, *shelf))) {
       /* Found a valid previously activated shelf, reactivate it. */
       activate_shelf(shelf_regiondata, *shelf);
       return shelf;
@@ -158,7 +166,7 @@ static AssetShelf *update_active_shelf(const bContext &C,
 
   /* Case 3: */
   LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type.asset_shelf_types) {
-    if (asset_shelf_type_poll(C, shelf_type)) {
+    if (asset_shelf_type_poll(C, space_type, shelf_type)) {
       AssetShelf *new_shelf = create_shelf_from_type(*shelf_type);
       BLI_addhead(&shelf_regiondata.shelves, new_shelf);
       /* Moves ownership to the regiondata. */
@@ -206,7 +214,7 @@ static bool asset_shelf_space_poll(const bContext *C, const SpaceLink *space_lin
 
   /* Is there any asset shelf type registered that returns true for it's poll? */
   LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type->asset_shelf_types) {
-    if (asset_shelf_type_poll(*C, shelf_type)) {
+    if (asset_shelf_type_poll(*C, *space_type, shelf_type)) {
       return true;
     }
   }
@@ -698,6 +706,42 @@ void ED_asset_shelf_header_regiontype_register(ARegionType *region_type, const i
   BLI_addtail(&region_type->headertypes, ht);
 
   shelf::catalog_selector_panel_register(region_type);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Asset Shelf Type (un)registration
+ * \{ */
+
+void ED_asset_shelf_type_unlink(const Main &bmain, const AssetShelfType &shelf_type)
+{
+  LISTBASE_FOREACH (bScreen *, screen, &bmain.screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+        LISTBASE_FOREACH (ARegion *, region, regionbase) {
+          if (region->regiontype != RGN_TYPE_ASSET_SHELF) {
+            continue;
+          }
+
+          RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(
+              *region);
+          if (!shelf_regiondata) {
+            continue;
+          }
+          LISTBASE_FOREACH (AssetShelf *, shelf, &shelf_regiondata->shelves) {
+            if (shelf->type == &shelf_type) {
+              shelf->type = nullptr;
+            }
+          }
+
+          BLI_assert((shelf_regiondata->active_shelf == nullptr) ||
+                     (shelf_regiondata->active_shelf->type != &shelf_type));
+        }
+      }
+    }
+  }
 }
 
 /** \} */

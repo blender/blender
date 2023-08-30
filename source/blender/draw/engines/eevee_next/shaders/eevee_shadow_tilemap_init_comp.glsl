@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Setup phase for tilemaps.
+ * Virtual shadow-mapping: Setup phase for tile-maps.
  *
  * Clear the usage flag.
- * Also tag for update shifted tiles for directional shadow clipmaps.
- * Dispatched with one local thread per LOD0 tile and one workgroup per tilemap.
+ * Also tag for update shifted tiles for directional shadow clip-maps.
+ * Dispatched with one local thread per LOD0 tile and one work-group per tile-map.
  */
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
@@ -43,7 +43,7 @@ void main()
 
     int clip_index = tilemap.clip_data_index;
     if (clip_index == -1) {
-      /* Noop. This is the case for unused tilemaps that are getting pushed to the free heap. */
+      /* Noop. This is the case for unused tile-maps that are getting pushed to the free heap. */
     }
     else if (tilemap.projection_type != SHADOW_PROJECTION_CUBEFACE) {
       ShadowTileMapClip clip_data = tilemaps_clip_buf[clip_index];
@@ -60,7 +60,7 @@ void main()
       tilemaps_clip_buf[clip_index].clip_far = floatBitsToOrderedInt(-FLT_MAX);
     }
     else {
-      /* For cubefaces, simply use the light near and far distances. */
+      /* For cube-faces, simply use the light near and far distances. */
       tilemaps_clip_buf[clip_index].clip_near_stored = tilemap.clip_near;
       tilemaps_clip_buf[clip_index].clip_far_stored = tilemap.clip_far;
     }
@@ -74,7 +74,7 @@ void main()
   ivec2 tile_wrapped = ivec2((ivec2(SHADOW_TILEMAP_RES) + tile_shifted) % SHADOW_TILEMAP_RES);
 
   /* If this tile was shifted in and contains old information, update it.
-   * Note that cubemap always shift all tiles on update. */
+   * Note that cube-map always shift all tiles on update. */
   bool do_update = !in_range_inclusive(tile_shifted, ivec2(0), ivec2(SHADOW_TILEMAP_RES - 1));
 
   /* TODO(fclem): Might be better to resize the depth stored instead of a full render update. */

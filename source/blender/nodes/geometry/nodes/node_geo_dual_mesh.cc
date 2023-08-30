@@ -630,15 +630,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   /* Stores the indices of the faces connected to the vertex. Because the faces are looped
    * over in order of their indices, the face's indices will be sorted in ascending order.
    * (This can change once they are sorted using `sort_vertex_faces`). */
-  Array<int> vert_to_face_offset_data;
-  Array<int> vert_to_face_indices;
-  const GroupedSpan<int> vert_to_face_map = bke::mesh::build_vert_to_face_map(
-      src_faces,
-      src_corner_verts,
-      src_positions.size(),
-      vert_to_face_offset_data,
-      vert_to_face_indices);
-  const OffsetIndices<int> vert_to_face_offsets(vert_to_face_offset_data);
+  Array<int> vert_to_face_indices = src_mesh.vert_to_face_map().data;
+  const OffsetIndices<int> vert_to_face_offsets = src_mesh.vert_to_face_map().offsets;
 
   Array<Array<int>> vertex_shared_edges(src_mesh.totvert);
   Array<Array<int>> vertex_corners(src_mesh.totvert);
@@ -691,6 +684,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
       vertex_corners[i] = std::move(sorted_corners);
     }
   });
+
+  const GroupedSpan<int> vert_to_face_map(vert_to_face_offsets, vert_to_face_indices);
 
   Vector<float3> vert_positions(src_mesh.faces_num);
   for (const int i : src_faces.index_range()) {

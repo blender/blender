@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -15630,20 +15630,40 @@ msgid "Camera near clipping distance"
 msgstr "카메라 근거리 클리핑 거리"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Cycles 카메라 설정"
-
-
-msgid "Cycles camera settings"
-msgstr "Cycles 카메라 설정"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "3D 뷰에서 카메라 오브젝트의 외관상 크기"
 
 
 msgid "Depth Of Field"
 msgstr "피사계 심도 (DOF)"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "피쉬아이 렌즈에 대한 시야"
+
+
+msgid "Fisheye Lens"
+msgstr "피쉬아이 렌즈"
+
+
+msgid "Lens focal length (mm)"
+msgstr "렌즈 초점의 길이 (mm)"
+
+
+msgid "Max Latitude"
+msgstr "최대 위도"
+
+
+msgid "Maximum latitude (vertical angle) for the equirectangular lens"
+msgstr "등장방향도법 렌즈에 대한 최대 위도 (수직 각도)"
+
+
+msgid "Min Latitude"
+msgstr "최소 위도"
+
+
+msgid "Minimum latitude (vertical angle) for the equirectangular lens"
+msgstr "등장방향도법 렌즈에 대한 최소 위도 (수직 각도)"
 
 
 msgid "Focal Length"
@@ -15666,12 +15686,60 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "시야각으로 렌즈를 지정"
 
 
+msgid "Max Longitude"
+msgstr "최대 경도"
+
+
+msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
+msgstr "등장방향도법 렌즈에 대한 최대 경도 (수평 각도)"
+
+
+msgid "Min Longitude"
+msgstr "최소 경도"
+
+
+msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
+msgstr "등장방향도법 렌즈에 대한 최소 경도 (수평 각도)"
+
+
 msgid "Orthographic Scale"
 msgstr "정사법 축적"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "정사법 카메라 축적 (줌과 유사)"
+
+
+msgid "Panorama Type"
+msgstr "파노라마 유형"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "계산에 사용하는 왜곡"
+
+
+msgid "Equirectangular"
+msgstr "등장방향도법"
+
+
+msgid "Mirror Ball"
+msgstr "미러 볼"
+
+
+msgid "Fisheye Equidistant"
+msgstr "피쉬아이 등거리"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "전체 돔에 대해 이상적이며, 센서의 크기를 무시합니다"
+
+
+msgid "Fisheye Equisolid"
+msgstr "피쉬아이 등입체"
+
+
+msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
+msgstr "대부분의 어안 모던 렌즈와 유사하게 센서 크기가 고려됩니다"
 
 
 msgid "Passepartout Alpha"
@@ -30830,10 +30898,6 @@ msgid "Display Hidden"
 msgstr "숨긴 대상을 표시"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "보이지 않는 오브젝트/본으로부터의 채널을 포함"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "도프시트 분류 필드"
 
@@ -34328,16 +34392,8 @@ msgid "Projection of the input image"
 msgstr "입력 이미지의 투영"
 
 
-msgid "Equirectangular"
-msgstr "등장방향도법"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "등장방향도법 또는 위도-경도 투영"
-
-
-msgid "Mirror Ball"
-msgstr "미러 볼"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -35086,6 +35142,10 @@ msgstr "노드 트리 입력"
 
 msgid "Collection of Node Tree Sockets"
 msgstr "노드 트리 소켓의 컬렉션"
+
+
+msgid "Socket Type"
+msgstr "소켓 유형"
 
 
 msgid "Node Tree Outputs"
@@ -47563,10 +47623,6 @@ msgid "Add Node Tree Interface Socket"
 msgstr "노드 트리 인터페이스 소켓을 추가"
 
 
-msgid "Socket Type"
-msgstr "소켓 유형"
-
-
 msgctxt "Operator"
 msgid "Move Node Tree Socket"
 msgstr "노드 트리 소켓을 이동"
@@ -58466,6 +58522,10 @@ msgid "Edit Property"
 msgstr "속성을 편집"
 
 
+msgid "Speaker"
+msgstr "스피커"
+
+
 msgid "Property Name"
 msgstr "속성 이름"
 
@@ -59502,10 +59562,6 @@ msgstr "적분기 프리셋"
 
 msgid "Sampling Presets"
 msgstr "샘플링 프리셋"
-
-
-msgid "View Object Types"
-msgstr "오브젝트 유형을 보기"
 
 
 msgid "Film"
@@ -60595,6 +60651,10 @@ msgstr "분석"
 
 msgid "Quad View"
 msgstr "쿼드 뷰"
+
+
+msgid "Wire Color"
+msgstr "와이어 컬러"
 
 
 msgid "Shadow Settings"
@@ -63834,74 +63894,6 @@ msgstr "정규식 찾기"
 
 msgid "Use regular expressions to match text in the 'Find' field"
 msgstr "'찾기'필드의 텍스트와 일치 시키려면 정규식을 사용하십시오"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "피쉬아이 렌즈에 대한 시야"
-
-
-msgid "Fisheye Lens"
-msgstr "피쉬아이 렌즈"
-
-
-msgid "Lens focal length (mm)"
-msgstr "렌즈 초점의 길이 (mm)"
-
-
-msgid "Max Latitude"
-msgstr "최대 위도"
-
-
-msgid "Maximum latitude (vertical angle) for the equirectangular lens"
-msgstr "등장방향도법 렌즈에 대한 최대 위도 (수직 각도)"
-
-
-msgid "Min Latitude"
-msgstr "최소 위도"
-
-
-msgid "Minimum latitude (vertical angle) for the equirectangular lens"
-msgstr "등장방향도법 렌즈에 대한 최소 위도 (수직 각도)"
-
-
-msgid "Max Longitude"
-msgstr "최대 경도"
-
-
-msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
-msgstr "등장방향도법 렌즈에 대한 최대 경도 (수평 각도)"
-
-
-msgid "Min Longitude"
-msgstr "최소 경도"
-
-
-msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
-msgstr "등장방향도법 렌즈에 대한 최소 경도 (수평 각도)"
-
-
-msgid "Panorama Type"
-msgstr "파노라마 유형"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "계산에 사용하는 왜곡"
-
-
-msgid "Fisheye Equidistant"
-msgstr "피쉬아이 등거리"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "전체 돔에 대해 이상적이며, 센서의 크기를 무시합니다"
-
-
-msgid "Fisheye Equisolid"
-msgstr "피쉬아이 등입체"
-
-
-msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "대부분의 어안 모던 렌즈와 유사하게 센서 크기가 고려됩니다"
 
 
 msgid "Number of subdivisions used in Cardinal curve intersection (power of 2)"
@@ -70867,10 +70859,6 @@ msgid "Gizmo to adjust location"
 msgstr "기즈모로 위치를 조정합니다"
 
 
-msgid "Speaker"
-msgstr "스피커"
-
-
 msgid "Show Reconstruction"
 msgstr "복원을 표시"
 
@@ -72325,10 +72313,6 @@ msgstr "벡터 노드"
 
 msgid "Wires"
 msgstr "와이어"
-
-
-msgid "Wire Color"
-msgstr "와이어 컬러"
 
 
 msgid "Wire Select"
@@ -74420,6 +74404,10 @@ msgid "Make the lighting fixed and not follow the camera"
 msgstr "조명을 고정시키고 카메라를 따르지 않도록 만들기"
 
 
+msgid "Theme"
+msgstr "테마"
+
+
 msgid "X-Ray Alpha"
 msgstr "X-Ray 알파"
 
@@ -75662,10 +75650,6 @@ msgstr "활성 오브젝트는 메쉬가 아님"
 
 msgid "Built without Fluid modifier"
 msgstr "유체 모디파이어 없이 작성"
-
-
-msgid "Theme"
-msgstr "테마"
 
 
 msgctxt "Operator"
@@ -79692,10 +79676,6 @@ msgid "Toggle Overlays"
 msgstr "오버레이를 토글"
 
 
-msgid "Object Types Visibility"
-msgstr "오브젝트 유형 가시성"
-
-
 msgid "Object Gizmos"
 msgstr "오브젝트 기즈모"
 
@@ -80999,16 +80979,16 @@ msgid "Checking sanity of current .blend file *BEFORE* save to disk"
 msgstr "현재 .blend 파일의 온전성 검사 *이전* 디스크에 저장"
 
 
+msgid "Checking sanity of current .blend file *AFTER* save to disk"
+msgstr "현재 .blend 파일의 온전성 검사 *이후* 디스크에 저장"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "버전 백업 실패함 (file saved with @)"
 
 
 msgid "Cannot change old file (file saved with @)"
 msgstr "이전 파일을 변경할 수 없습니다. (@로 저장된 파일)"
-
-
-msgid "Checking sanity of current .blend file *AFTER* save to disk"
-msgstr "현재 .blend 파일의 온전성 검사 *이후* 디스크에 저장"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -86330,16 +86310,16 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "등록하는 노드 소켓 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
 
 
+msgid "Unable to create socket"
+msgstr "소켓을 만들 수 없음"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "소켓의 동일한 입력/출력 방향"
 
 
 msgid "Unable to locate link in node tree"
 msgstr "노드 트리에서 연결을 찾을 수 없음"
-
-
-msgid "Unable to create socket"
-msgstr "소켓을 만들 수 없음"
 
 
 msgid "Node tree '%s' has undefined type %s"

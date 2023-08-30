@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -2627,6 +2627,10 @@ msgid "Trusted Source"
 msgstr "Ишеничтүү булак"
 
 
+msgid "Speaker"
+msgstr "Үн булагы"
+
+
 msgctxt "Operator"
 msgid "Quit Blender"
 msgstr "Blender'ден чыгуу"
@@ -2975,10 +2979,6 @@ msgstr "UV-редактор"
 
 msgid "Lens"
 msgstr "Объектив"
-
-
-msgid "Speaker"
-msgstr "Үн булагы"
 
 
 msgid "3D"

@@ -146,6 +146,6 @@ class GatherLinkSearchOpParams {
 void search_link_ops_for_basic_node(GatherLinkSearchOpParams &params);
 
 void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
-                                      Span<SocketDeclarationPtr> declarations);
+                                      Span<SocketDeclaration *> declarations);
 
 }  // namespace blender::nodes

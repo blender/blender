@@ -42,7 +42,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "readfile.h" /* Own include. */
+#include "readfile.hh" /* Own include. */
 
 #include "WM_types.hh"
 #include "wm_event_types.hh"
@@ -554,7 +554,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
     userdef->flag &= ~(USER_FLAG_UNUSED_4);
 
-    userdef->uiflag &= ~(USER_HEADER_FROM_PREF | USER_UIFLAG_UNUSED_12 | USER_REGISTER_ALL_USERS);
+    userdef->uiflag &= ~(USER_HEADER_FROM_PREF | USER_REGISTER_ALL_USERS);
   }
 
   if (!USER_VERSION_ATLEAST(280, 41)) {
@@ -854,6 +854,10 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(400, 18)) {
     userdef->playback_fps_samples = 8;
+  }
+
+  if (!USER_VERSION_ATLEAST(400, 19)) {
+    userdef->uiflag |= USER_NODE_AUTO_OFFSET;
   }
 
   /**

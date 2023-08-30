@@ -10,6 +10,7 @@
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_memory.hh"
+#include "vk_state_manager.hh"
 #include "vk_texture.hh"
 
 namespace blender::gpu {
@@ -20,36 +21,12 @@ namespace blender::gpu {
 
 VKFrameBuffer::VKFrameBuffer(const char *name) : FrameBuffer(name)
 {
-  immutable_ = false;
-  flip_viewport_ = false;
   size_set(1, 1);
-}
-
-VKFrameBuffer::VKFrameBuffer(const char *name,
-                             VkImage vk_image,
-                             VkFramebuffer vk_framebuffer,
-                             VkRenderPass vk_render_pass,
-                             VkExtent2D vk_extent)
-    : FrameBuffer(name)
-{
-  immutable_ = true;
-  flip_viewport_ = true;
-  /* Never update an internal frame-buffer. */
-  dirty_attachments_ = false;
-  vk_image_ = vk_image;
-  vk_framebuffer_ = vk_framebuffer;
-  vk_render_pass_ = vk_render_pass;
-
-  size_set(vk_extent.width, vk_extent.height);
-  viewport_reset();
-  scissor_reset();
 }
 
 VKFrameBuffer::~VKFrameBuffer()
 {
-  if (!immutable_) {
-    render_pass_free();
-  }
+  render_pass_free();
 }
 
 /** \} */
@@ -66,8 +43,6 @@ void VKFrameBuffer::bind(bool /*enabled_srgb*/)
     context.deactivate_framebuffer();
   }
 
-  update_attachments();
-
   context.activate_framebuffer(*this);
 }
 
@@ -83,15 +58,6 @@ Array<VkViewport, 16> VKFrameBuffer::vk_viewports_get() const
     viewport.height = viewport_[index][3];
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
-    /*
-     * Vulkan has origin to the top left, Blender bottom left. We counteract this by using a
-     * negative viewport when flip_viewport_ is set. This flips the viewport making any draw/blit
-     * use the correct orientation.
-     */
-    if (flip_viewport_) {
-      viewport.y = height_ - viewport_[index][1];
-      viewport.height = -viewport_[index][3];
-    }
     index++;
   }
   return viewports;
@@ -187,14 +153,35 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
 {
   Vector<VkClearAttachment> attachments;
   if (buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
-    build_clear_attachments_depth_stencil(buffers, clear_depth, clear_stencil, attachments);
+    VKContext &context = *VKContext::get();
+    /* Clearing depth via vkCmdClearAttachments requires a render pass with write depth enabled.
+     * When not enabled, clearing should be done via texture directly. */
+    if (context.state_manager_get().state.write_mask & GPU_WRITE_DEPTH) {
+      build_clear_attachments_depth_stencil(buffers, clear_depth, clear_stencil, attachments);
+    }
+    else {
+      VKTexture *depth_texture = unwrap(unwrap(depth_tex()));
+      if (depth_texture != nullptr) {
+        if (G.debug & G_DEBUG_GPU) {
+          std::cout
+              << "PERFORMANCE: impact clearing depth texture in render pass that doesn't allow "
+                 "depth writes.\n";
+        }
+        depth_texture->ensure_allocated();
+        depth_attachment_layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
+        depth_texture->clear_depth_stencil(buffers, clear_depth, clear_stencil);
+      }
+    }
   }
   if (buffers & GPU_COLOR_BIT) {
     float clear_color_single[4];
     copy_v4_v4(clear_color_single, clear_color);
     build_clear_attachments_color(&clear_color_single, false, attachments);
   }
-  clear(attachments);
+
+  if (!attachments.is_empty()) {
+    clear(attachments);
+  }
 }
 
 void VKFrameBuffer::clear_multi(const float (*clear_color)[4])
@@ -224,6 +211,7 @@ void VKFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType /*type*/,
                                                 eGPULoadOp /*load_action*/,
                                                 eGPUStoreOp /*store_action*/)
 {
+  NOT_YET_IMPLEMENTED;
 }
 
 /** \} */
@@ -288,23 +276,19 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
   if (src_attachment.tex == nullptr) {
     return;
   }
+  color_attachment_layout_ensure(context, src_slot, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   VKTexture &src_texture = *unwrap(unwrap(src_attachment.tex));
-  src_texture.layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   /* Retrieve destination texture. */
-  const VKFrameBuffer &dst_framebuffer = *unwrap(dst);
+  VKFrameBuffer &dst_framebuffer = *unwrap(dst);
+  dst_framebuffer.color_attachment_layout_ensure(
+      context, dst_slot, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   const GPUAttachment &dst_attachment =
       dst_framebuffer.attachments_[GPU_FB_COLOR_ATTACHMENT0 + dst_slot];
-  VKTexture *dst_texture = nullptr;
-  VKTexture tmp_texture("FramebufferTexture");
-  if (dst_attachment.tex) {
-    dst_texture = unwrap(unwrap(dst_attachment.tex));
-    dst_texture->layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  if (dst_attachment.tex == nullptr) {
+    return;
   }
-  else {
-    tmp_texture.init(dst_framebuffer.vk_image_get(), VK_IMAGE_LAYOUT_GENERAL);
-    dst_texture = &tmp_texture;
-  }
+  VKTexture &dst_texture = *unwrap(unwrap(dst_attachment.tex));
 
   VkImageBlit image_blit = {};
   image_blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -326,16 +310,10 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
   image_blit.dstOffsets[0].y = dst_offset_y;
   image_blit.dstOffsets[0].z = 0;
   image_blit.dstOffsets[1].x = dst_offset_x + src_texture.width_get();
-  image_blit.dstOffsets[1].y = dst_offset_x + src_texture.height_get();
+  image_blit.dstOffsets[1].y = dst_offset_y + src_texture.height_get();
   image_blit.dstOffsets[1].z = 1;
 
-  const bool should_flip = flip_viewport_ != dst_framebuffer.flip_viewport_;
-  if (should_flip) {
-    image_blit.dstOffsets[0].y = dst_framebuffer.height_ - dst_offset_y;
-    image_blit.dstOffsets[1].y = dst_framebuffer.height_ - dst_offset_y - src_texture.height_get();
-  }
-
-  context.command_buffer_get().blit(*dst_texture, src_texture, Span<VkImageBlit>(&image_blit, 1));
+  context.command_buffer_get().blit(dst_texture, src_texture, Span<VkImageBlit>(&image_blit, 1));
 }
 
 /** \} */
@@ -344,15 +322,11 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
 /** \name Update attachments
  * \{ */
 
-void VKFrameBuffer::update_attachments()
+void VKFrameBuffer::vk_render_pass_ensure()
 {
-  if (immutable_) {
-    return;
-  }
   if (!dirty_attachments_) {
     return;
   }
-
   render_pass_free();
   render_pass_create();
 
@@ -361,7 +335,6 @@ void VKFrameBuffer::update_attachments()
 
 void VKFrameBuffer::render_pass_create()
 {
-  BLI_assert(!immutable_);
   BLI_assert(vk_render_pass_ == VK_NULL_HANDLE);
   BLI_assert(vk_framebuffer_ == VK_NULL_HANDLE);
 
@@ -494,7 +467,6 @@ void VKFrameBuffer::render_pass_create()
 
 void VKFrameBuffer::render_pass_free()
 {
-  BLI_assert(!immutable_);
   if (vk_render_pass_ == VK_NULL_HANDLE) {
     return;
   }
@@ -508,6 +480,56 @@ void VKFrameBuffer::render_pass_free()
   image_views_.clear();
   vk_render_pass_ = VK_NULL_HANDLE;
   vk_framebuffer_ = VK_NULL_HANDLE;
+}
+
+void VKFrameBuffer::color_attachment_layout_ensure(VKContext &context,
+                                                   int color_attachment,
+                                                   VkImageLayout requested_layout)
+{
+  VKTexture *color_texture = unwrap(unwrap(color_tex(color_attachment)));
+  if (color_texture == nullptr) {
+    return;
+  }
+
+  if (color_texture->current_layout_get() == requested_layout) {
+    return;
+  }
+
+  color_texture->layout_ensure(context, requested_layout);
+  dirty_attachments_ = true;
+}
+
+void VKFrameBuffer::depth_attachment_layout_ensure(VKContext &context,
+                                                   VkImageLayout requested_layout)
+{
+  VKTexture *depth_texture = unwrap(unwrap(depth_tex()));
+  if (depth_texture == nullptr) {
+    return;
+  }
+
+  if (depth_texture->current_layout_get() == requested_layout) {
+    return;
+  }
+  depth_texture->layout_ensure(context, requested_layout);
+  dirty_attachments_ = true;
+}
+
+void VKFrameBuffer::update_size()
+{
+  if (!dirty_attachments_) {
+    return;
+  }
+
+  for (int i = 0; i < GPU_FB_MAX_ATTACHMENT; i++) {
+    GPUAttachment &attachment = attachments_[i];
+    if (attachment.tex) {
+      int size[3];
+      GPU_texture_get_mipmap_size(attachment.tex, attachment.mip, size);
+      size_set(size[0], size[1]);
+      return;
+    }
+  }
+  size_set(1, 1);
 }
 
 /** \} */

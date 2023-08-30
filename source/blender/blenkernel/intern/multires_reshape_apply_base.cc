@@ -72,14 +72,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   blender::MutableSpan<blender::float3> base_positions = base_mesh->vert_positions_for_write();
   /* Update the context in case the vertices were duplicated. */
   reshape_context->base_positions = base_positions;
-  blender::Array<int> vert_to_face_offsets;
-  blender::Array<int> vert_to_face_indices;
-  const blender::GroupedSpan<int> pmap = blender::bke::mesh::build_vert_to_face_map(
-      reshape_context->base_faces,
-      reshape_context->base_corner_verts,
-      base_mesh->totvert,
-      vert_to_face_offsets,
-      vert_to_face_indices);
+  const blender::GroupedSpan<int> pmap = base_mesh->vert_to_face_map();
 
   float(*origco)[3] = static_cast<float(*)[3]>(
       MEM_calloc_arrayN(base_mesh->totvert, sizeof(float[3]), __func__));

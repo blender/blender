@@ -796,7 +796,14 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
 
   Object ob_copy = blender::dna::shallow_copy(*ob);
   ob_copy.adt = nullptr;
-  bArmature arm_copy = *((bArmature *)ob->data);
+
+  /* Copy the armature without using the default copy constructor. This prevents
+   * the compiler from complaining that the `layer`, `layer_used`, and
+   * `layer_protected` fields are DNA_DEPRECATED.
+   */
+  bArmature arm_copy;
+  memcpy(&arm_copy, ob->data, sizeof(arm_copy));
+
   arm_copy.adt = nullptr;
   ob_copy.data = &arm_copy;
   BLI_addtail(&temp_bmain->objects, &ob_copy);

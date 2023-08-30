@@ -14,7 +14,7 @@
 
 #include "DNA_screen_types.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"

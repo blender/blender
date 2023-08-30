@@ -44,7 +44,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "GPU_framebuffer.h"
 #include "file_indexer.hh"

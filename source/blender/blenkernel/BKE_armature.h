@@ -8,6 +8,8 @@
  */
 #include "BLI_listbase.h"
 
+#include "DNA_armature_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -100,6 +102,9 @@ typedef struct EditBone {
 
   /** connected child temporary during drawing */
   struct EditBone *bbone_child;
+
+  BoneColor color; /* MUST be named the same as in bPoseChannel and Bone structs. */
+  ListBase /*BoneCollectionReference*/ bone_collections;
 
   /* Used to store temporary data */
   union {
@@ -199,8 +204,6 @@ void BKE_armature_bone_hash_make(struct bArmature *arm);
 void BKE_armature_bone_hash_free(struct bArmature *arm);
 
 bool BKE_armature_bone_flag_test_recursive(const struct Bone *bone, int flag);
-
-void BKE_armature_refresh_layer_used(struct Depsgraph *depsgraph, struct bArmature *arm);
 
 /**
  * Using `vec` with dist to bone `b1 - b2`.
@@ -565,11 +568,8 @@ void BKE_pchan_bbone_deform_segment_index(const struct bPoseChannel *pchan,
                                           int *r_index,
                                           float *r_blend_next);
 
-/* like EBONE_VISIBLE */
-#define PBONE_VISIBLE(arm, bone) \
-  (CHECK_TYPE_INLINE(arm, bArmature *), \
-   CHECK_TYPE_INLINE(bone, Bone *), \
-   (((bone)->layer & (arm)->layer) && !((bone)->flag & BONE_HIDDEN_P)))
+/* like EBONE_VISIBLE,  be sure to #include "ANIM_bone_collections.h". */
+#define PBONE_VISIBLE(arm, bone) ANIM_bone_is_visible(arm, bone)
 
 #define PBONE_SELECTABLE(arm, bone) \
   (PBONE_VISIBLE(arm, bone) && !((bone)->flag & BONE_UNSELECTABLE))

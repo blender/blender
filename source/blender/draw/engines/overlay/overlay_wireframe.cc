@@ -60,10 +60,9 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
 
   pd->shdata.wire_opacity = pd->overlay.wireframe_opacity;
 
-  bool is_wire_shmode = (shading->type == OB_WIRE);
   bool is_material_shmode = (shading->type > OB_SOLID);
-  bool is_object_color = is_wire_shmode && (shading->wire_color_type == V3D_SHADING_OBJECT_COLOR);
-  bool is_random_color = is_wire_shmode && (shading->wire_color_type == V3D_SHADING_RANDOM_COLOR);
+
+  int color_type = shading->wire_color_type;
 
   const bool use_select = (DRW_state_is_select() || DRW_state_is_depth());
   GPUShader *wires_sh = use_select ? OVERLAY_shader_wireframe_select() :
@@ -95,8 +94,7 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_float_copy(grp, "wireOpacity", pd->shdata.wire_opacity);
       DRW_shgroup_uniform_bool_copy(grp, "useColoring", use_coloring);
       DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
-      DRW_shgroup_uniform_bool_copy(grp, "isObjectColor", is_object_color);
-      DRW_shgroup_uniform_bool_copy(grp, "isRandomColor", is_random_color);
+      DRW_shgroup_uniform_int_copy(grp, "colorType", color_type);
       DRW_shgroup_uniform_bool_copy(grp, "isHair", false);
 
       pd->wires_all_grp[xray][use_coloring] = grp = DRW_shgroup_create(wires_sh, pass);

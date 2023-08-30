@@ -302,7 +302,6 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
                             ss->cache->automasking->settings.initial_face_set ==
                                 ss->cache->paint_face_set;
 
-  TaskParallelSettings settings;
   if (ss->cache->alt_smooth) {
     SCULPT_boundary_info_ensure(ob);
     for (int i = 0; i < 4; i++) {
@@ -680,8 +679,6 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
     if (!ss->pmap.is_empty()) {
       ss->pmap = {};
-      ss->vert_to_face_indices = {};
-      ss->vert_to_face_offsets = {};
     }
   }
 
@@ -783,7 +780,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     BKE_pbvh_node_mark_update_visibility(node);
   }
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(ss->pbvh);
 
   SCULPT_tag_update_overlays(C);
 
@@ -963,7 +960,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
     BKE_pbvh_node_mark_update_visibility(node);
   }
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(ss->pbvh);
 
   SCULPT_tag_update_overlays(C);
 
@@ -1265,7 +1262,6 @@ static void sculpt_face_set_delete_geometry_bmesh(Object *ob, BMesh *bm)
 {
   SculptSession *ss = ob->sculpt;
   BMIter iter;
-  int cd_face_node = ss->cd_face_node_offset;
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr);
   for (PBVHNode *node : nodes) {
@@ -1313,7 +1309,6 @@ static void sculpt_face_set_delete_geometry_bmesh(Object *ob, BMesh *bm)
       continue;
     }
 
-    int ni = BM_ELEM_CD_GET_INT(f, cd_face_node);
     BKE_pbvh_bmesh_remove_face(ss->pbvh, f, true);
 
     BM_idmap_release(ss->bm_idmap, reinterpret_cast<BMElem *>(f), true);
@@ -1579,7 +1574,7 @@ static void face_set_edit_do_post_visibility_updates(Object *ob, Span<PBVHNode *
     BKE_pbvh_node_mark_update_visibility(node);
   }
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(ss->pbvh);
 }
 
 static void sculpt_face_set_edit_modify_face_sets(Object *ob,
@@ -1740,7 +1735,6 @@ static int sculpt_face_sets_invert_visibility_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
@@ -1775,7 +1769,7 @@ static int sculpt_face_sets_invert_visibility_exec(bContext *C, wmOperator *op)
     BKE_pbvh_node_mark_update_visibility(node);
   }
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(ss->pbvh);
 
   SCULPT_tag_update_overlays(C);
 

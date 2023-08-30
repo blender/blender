@@ -40,7 +40,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 int BKE_packedfile_seek(PackedFile *pf, int offset, int whence)
 {

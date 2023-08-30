@@ -35,7 +35,7 @@
 #include "BLI_vector_set.hh"
 #include "BLI_virtual_array.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "BLT_translation.h"
 

@@ -59,6 +59,12 @@ typedef enum eMeshBatchDirtyMode {
 void BKE_mesh_tag_positions_changed(struct Mesh *mesh);
 
 /**
+ * The same as #BKE_mesh_tag_positions_changed but doesn't tag normals dirty, instead expecting
+ * them to be updated separately.
+ */
+void BKE_mesh_tag_positions_changed_no_normals(struct Mesh *mesh);
+
+/**
  * Call after moving every mesh vertex by the same translation.
  */
 void BKE_mesh_tag_positions_changed_uniformly(struct Mesh *mesh);

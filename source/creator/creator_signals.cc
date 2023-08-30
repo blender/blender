@@ -58,7 +58,7 @@
 // #define USE_WRITE_CRASH_BLEND
 #  ifdef USE_WRITE_CRASH_BLEND
 #    include "BKE_undo_system.h"
-#    include "BLO_undofile.h"
+#    include "BLO_undofile.hh"
 #  endif
 
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */

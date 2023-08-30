@@ -1240,12 +1240,13 @@ BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
 #define UTIL_TEX_UV_BIAS (0.5f / UTIL_TEX_SIZE)
 
 #define UTIL_BLUE_NOISE_LAYER 0
-#define UTIL_LTC_MAT_LAYER 1
-#define UTIL_LTC_MAG_LAYER 2
-#define UTIL_BSDF_LAYER 2
-#define UTIL_BTDF_LAYER 3
-#define UTIL_DISK_INTEGRAL_LAYER 3
-#define UTIL_DISK_INTEGRAL_COMP 2
+#define UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER 1
+#define UTIL_LTC_MAT_LAYER 2
+#define UTIL_LTC_MAG_LAYER 3
+#define UTIL_BSDF_LAYER 3
+#define UTIL_BTDF_LAYER 4
+#define UTIL_DISK_INTEGRAL_LAYER 4
+#define UTIL_DISK_INTEGRAL_COMP 3
 
 /* __cplusplus is true when compiling with MSL, so include if inside a shader. */
 #if !defined(__cplusplus) || defined(GPU_SHADER)
@@ -1265,9 +1266,19 @@ float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
 float4 utility_tx_sample_lut(sampler2DArray util_tx, float2 uv, float layer)
 {
   /* Scale and bias coordinates, for correct filtered lookup. */
-  uv = uv * ((UTIL_TEX_SIZE - 1.0) / UTIL_TEX_SIZE) + (0.5 / UTIL_TEX_SIZE);
+  uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
   return textureLod(util_tx, float3(uv, layer), 0.0);
 }
+
+/* Sample LTC or BSDF LUTs with `cos_theta` and `roughness` as inputs. */
+float4 utility_tx_sample_lut(sampler2DArray util_tx, float cos_theta, float roughness, float layer)
+{
+  /* LUTs are parameterized by `sqrt(1.0 - cos_theta)` for more precision near grazing incidence.
+   */
+  vec2 coords = vec2(roughness, sqrt(clamp(1.0 - cos_theta, 0.0, 1.0)));
+  return utility_tx_sample_lut(util_tx, coords, layer);
+}
+
 #endif
 
 /** \} */

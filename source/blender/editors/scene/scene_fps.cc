@@ -5,7 +5,7 @@
 /** \file
  * \ingroup edscene
  *
- * Define `ED_scene_api_*` functions.
+ * Define `ED_scene_fps_*` functions.
  */
 
 #include <cmath>
@@ -49,6 +49,9 @@ struct ScreenFrameRateInfo {
   double error_sum;
   int error_samples;
 #endif
+
+  /** When the target FPS is not a whole number. */
+  bool fps_target_is_fractional;
 
   /** The target FPS, use to reset on change. */
   float fps_target;
@@ -111,6 +114,11 @@ void ED_scene_fps_average_accumulate(Scene *scene, const short fps_samples, cons
     fpsi->fps_target = fps_target;
     fpsi->times_fps_num = times_fps_num;
     fpsi->times_fps_num_set = 0;
+
+    /* Use 100 for 2 decimal places (currently used for FPS display), could be configurable. */
+    const double decimal_places = 100.0;
+    fpsi->fps_target_is_fractional = std::round(fps_target) !=
+                                     (std::round(fps_target * decimal_places) / decimal_places);
   }
 
   /* Update the values. */
@@ -121,24 +129,25 @@ void ED_scene_fps_average_accumulate(Scene *scene, const short fps_samples, cons
   fpsi->fps_average = -1.0f;
 }
 
-float ED_scene_fps_average_calc(const Scene *scene, float *r_fps_target)
+bool ED_scene_fps_average_calc(const Scene *scene, SceneFPS_State *r_state)
 {
   ScreenFrameRateInfo *fpsi = static_cast<ScreenFrameRateInfo *>(scene->fps_info);
   if (fpsi == nullptr) {
-    return -1.0f;
+    return false;
   }
 
-  /* Doing an average for a more robust calculation. */
   if (fpsi->time_prev == 0.0 || fpsi->time_curr == 0.0) {
     /* The user should never see this. */
     fpsi->fps_average = -1.0f;
+    return false;
   }
-  else if (fpsi->fps_average == -1.0) {
+
+  if (fpsi->fps_average == -1.0) {
+    /* Doing an average for a more robust calculation. */
     if (fpsi->times_fps_index >= fpsi->times_fps_num) {
       fpsi->times_fps_index = 0;
     }
 
-    /* Doing an average for a more robust calculation. */
     const double fps_sample = 1.0 / (fpsi->time_prev - fpsi->time_curr);
 
     {
@@ -187,6 +196,8 @@ float ED_scene_fps_average_calc(const Scene *scene, float *r_fps_target)
 #endif /* USE_DEBUG_REPORT_ERROR_MARGIN */
   }
 
-  *r_fps_target = fpsi->fps_target;
-  return fpsi->fps_average;
+  r_state->fps_average = fpsi->fps_average;
+  r_state->fps_target = fpsi->fps_target;
+  r_state->fps_target_is_fractional = fpsi->fps_target_is_fractional;
+  return true;
 }

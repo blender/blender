@@ -34,7 +34,7 @@ void blend_mode_output(
     case MODE_HARDLIGHT: {
       /* Reminder: Blending func is multiply blend `(dst.rgba * src.rgba)`. */
       /**
-       * We need to separate the overlay equation into 2 term (one mul and one add).
+       * We need to separate the overlay equation into 2 term (one multiply and one add).
        * This is the standard overlay equation (per channel):
        * `rtn = (src < 0.5) ? (2.0 * src * dst) : (1.0 - 2.0 * (1.0 - src) * (1.0 - dst));`
        * We rewrite the second branch like this:

@@ -7,7 +7,7 @@
 #define CAVITY_BUFFER_RANGE 4.0
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
- * Using Method #4: Spheremap Transform */
+ * Using Method #4: Sphere-map Transform */
 vec3 workbench_normal_decode(vec4 enc)
 {
   vec2 fenc = enc.xy * 4.0 - 2.0;
@@ -20,7 +20,7 @@ vec3 workbench_normal_decode(vec4 enc)
 }
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
- * Using Method #4: Spheremap Transform */
+ * Using Method #4: Sphere-map Transform */
 vec2 workbench_normal_encode(bool front_face, vec3 n)
 {
   n = normalize(front_face ? n : -n);

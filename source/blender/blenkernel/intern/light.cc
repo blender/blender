@@ -38,7 +38,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static void light_init_data(ID *id)
 {

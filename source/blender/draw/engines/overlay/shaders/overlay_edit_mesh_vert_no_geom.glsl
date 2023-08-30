@@ -145,10 +145,14 @@ void main()
   facing1 = 1.0 - abs(facing1) * 0.2;
 
   /* Do interpolation in a non-linear space to have a better visual result. */
-  out_finalColor[0].rgb = non_linear_blend_color(
-      colorEditMeshMiddle.rgb, out_finalColor[0].rgb, facing0);
-  out_finalColor[1].rgb = non_linear_blend_color(
-      colorEditMeshMiddle.rgb, out_finalColor[1].rgb, facing1);
+  out_finalColor[0].rgb = mix(
+      out_finalColor[0].rgb,
+      non_linear_blend_color(colorEditMeshMiddle.rgb, out_finalColor[0].rgb, facing0),
+      fresnelMixEdit);
+  out_finalColor[1].rgb = mix(
+      out_finalColor[1].rgb,
+      non_linear_blend_color(colorEditMeshMiddle.rgb, out_finalColor[1].rgb, facing1),
+      fresnelMixEdit);
 #endif
 
   // -------- GEOM SHADER ALTERNATIVE ----------- //
@@ -185,7 +189,7 @@ void main()
   half_size += (geometry_flat_out.finalColorOuter.a > 0.0) ? max(sizeEdge, 1.0) : 0.0;
 
   if (do_smooth_wire) {
-    /* Add 1 px for AA */
+    /* Add 1px for AA */
     half_size += 0.5;
   }
 

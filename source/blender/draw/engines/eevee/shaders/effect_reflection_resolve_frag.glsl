@@ -298,7 +298,7 @@ void main()
   in_Glossy_0.roughness = roughness;
 
   /* Do a full deferred evaluation of the glossy BSDF. The only difference is that we inject the
-   * SSR resolve before the cubemap iter. BRDF term is already computed during main pass and is
+   * SSR resolve before the cube-map iter. BRDF term is already computed during main pass and is
    * passed as specular color. */
   CLOSURE_EVAL_FUNCTION_1(ssr_resolve, Glossy);
 

@@ -147,7 +147,7 @@ static std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(
     case CD_PROP_QUATERNION:
       return pxr::SdfValueTypeNames->QuatfArray;
     default:
-      WM_reportf(RPT_WARNING, "Unsupported type for mesh data.");
+      WM_reportf(RPT_WARNING, "Unsupported type for mesh data");
       return std::nullopt;
   }
 }
@@ -165,7 +165,7 @@ static const std::optional<pxr::TfToken> convert_blender_domain_to_usd(
 
     /* Notice: Edge types are not supported in USD! */
     default:
-      WM_reportf(RPT_WARNING, "Unsupported type for mesh data.");
+      WM_reportf(RPT_WARNING, "Unsupported type for mesh data");
       return std::nullopt;
   }
 }
@@ -243,7 +243,7 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
 
   if (!prim_varying || !prim_attr_type) {
     WM_reportf(RPT_WARNING,
-               "Mesh %s, Attribute %s cannot be converted to USD.",
+               "Mesh %s, Attribute %s cannot be converted to USD",
                &mesh->id.name[2],
                attribute_id.name().data());
     return;
@@ -356,7 +356,7 @@ struct USDMeshData {
   pxr::VtArray<pxr::GfVec3f> points;
   pxr::VtIntArray face_vertex_counts;
   pxr::VtIntArray face_indices;
-  std::map<short, pxr::VtIntArray> face_groups;
+  Map<short, pxr::VtIntArray> face_groups;
 
   /* The length of this array specifies the number of creases on the surface. Each element gives
    * the number of (must be adjacent) vertices in each crease, whose indices are linearly laid out
@@ -496,15 +496,10 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   }
 }
 
-static void get_vertices(const Mesh *mesh, USDMeshData &usd_mesh_data)
+static void get_positions(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
-  usd_mesh_data.points.reserve(mesh->totvert);
-
-  const Span<float3> positions = mesh->vert_positions();
-  for (const int i : positions.index_range()) {
-    const float3 &position = positions[i];
-    usd_mesh_data.points.push_back(pxr::GfVec3f(position.x, position.y, position.z));
-  }
+  const Span<pxr::GfVec3f> positions = mesh->vert_positions().cast<pxr::GfVec3f>();
+  usd_mesh_data.points = pxr::VtArray<pxr::GfVec3f>(positions.begin(), positions.end());
 }
 
 static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
@@ -517,23 +512,19 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
   if (!material_indices.is_single() && mesh->totcol > 1) {
     const VArraySpan<int> indices_span(material_indices);
     for (const int i : indices_span.index_range()) {
-      usd_mesh_data.face_groups[indices_span[i]].push_back(i);
+      usd_mesh_data.face_groups.lookup_or_add_default(indices_span[i]).push_back(i);
     }
   }
 
-  usd_mesh_data.face_vertex_counts.reserve(mesh->faces_num);
-  usd_mesh_data.face_indices.reserve(mesh->totloop);
-
+  usd_mesh_data.face_vertex_counts.resize(mesh->faces_num);
   const OffsetIndices faces = mesh->faces();
-  const Span<int> corner_verts = mesh->corner_verts();
+  offset_indices::copy_group_sizes(
+      faces,
+      faces.index_range(),
+      MutableSpan(usd_mesh_data.face_vertex_counts.data(), mesh->faces_num));
 
-  for (const int i : faces.index_range()) {
-    const IndexRange face = faces[i];
-    usd_mesh_data.face_vertex_counts.push_back(face.size());
-    for (const int vert : corner_verts.slice(face)) {
-      usd_mesh_data.face_indices.push_back(vert);
-    }
-  }
+  const Span<int> corner_verts = mesh->corner_verts();
+  usd_mesh_data.face_indices = pxr::VtIntArray(corner_verts.begin(), corner_verts.end());
 }
 
 static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
@@ -581,7 +572,7 @@ static void get_vert_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 
 void USDGenericMeshWriter::get_geometry_data(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
-  get_vertices(mesh, usd_mesh_data);
+  get_positions(mesh, usd_mesh_data);
   get_loops_polys(mesh, usd_mesh_data);
   get_edge_creases(mesh, usd_mesh_data);
   get_vert_creases(mesh, usd_mesh_data);
@@ -638,9 +629,9 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
   }
 
   /* Define a geometry subset per material. */
-  for (const MaterialFaceGroups::value_type &face_group : usd_face_groups) {
-    short material_number = face_group.first;
-    const pxr::VtIntArray &face_indices = face_group.second;
+  for (const MaterialFaceGroups::Item &face_group : usd_face_groups.items()) {
+    short material_number = face_group.key;
+    const pxr::VtIntArray &face_indices = face_group.value;
 
     Material *material = BKE_object_material_get(context.object, material_number + 1);
     if (material == nullptr) {

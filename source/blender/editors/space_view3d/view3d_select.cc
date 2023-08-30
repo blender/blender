@@ -98,6 +98,8 @@
 #include "DRW_engine.h"
 #include "DRW_select_buffer.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "view3d_intern.h" /* own include */
 
 // #include "PIL_time_utildefines.h"

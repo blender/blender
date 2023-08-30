@@ -76,7 +76,7 @@
 
 #include "BLO_readfile.h"
 
-#include "readfile.h"
+#include "readfile.hh"
 
 /** Without empty statements, clang-format fails (tested with v12 & v15). */
 #define CLANG_FORMAT_NOP_WORKAROUND ((void)0)
@@ -229,10 +229,10 @@ static void do_versions_nodetree_socket_use_flags_2_62(bNodeTree *ntree)
       sock->flag &= ~SOCK_IS_LINKED;
     }
   }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
     sock->flag &= ~SOCK_IS_LINKED;
   }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
     sock->flag &= ~SOCK_IS_LINKED;
   }
 
@@ -920,10 +920,10 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
       }
     }
     /* tree sockets idname */
-    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
       STRNCPY(sock->idname, node_socket_get_static_idname(sock));
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
       STRNCPY(sock->idname, node_socket_get_static_idname(sock));
     }
   }
@@ -939,10 +939,10 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
         sock->in_out = SOCK_OUT;
       }
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
       sock->in_out = SOCK_IN;
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
       sock->in_out = SOCK_OUT;
     }
   }
@@ -969,18 +969,18 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
                        sizeof(sock->identifier));
       }
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
       STRNCPY(sock->identifier, sock->name);
-      BLI_uniquename(&ntree->inputs,
+      BLI_uniquename(&ntree->inputs_legacy,
                      sock,
                      "socket",
                      '.',
                      offsetof(bNodeSocket, identifier),
                      sizeof(sock->identifier));
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
       STRNCPY(sock->identifier, sock->name);
-      BLI_uniquename(&ntree->outputs,
+      BLI_uniquename(&ntree->outputs_legacy,
                      sock,
                      "socket",
                      '.',
@@ -2725,11 +2725,11 @@ void do_versions_after_linking_260(Main *bmain)
       // const float offsety = 0.0f;
 
       if (create_io_nodes) {
-        if (ntree->inputs.first) {
+        if (ntree->inputs_legacy.first) {
           input_node = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_INPUT);
         }
 
-        if (ntree->outputs.first) {
+        if (ntree->outputs_legacy.first) {
           output_node = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_OUTPUT);
         }
       }

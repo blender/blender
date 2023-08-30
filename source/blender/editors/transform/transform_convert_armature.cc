@@ -37,6 +37,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "transform.hh"
 #include "transform_orientations.hh"
 #include "transform_snap.hh"
@@ -412,7 +414,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
   /* Rule: allow multiple Bones
    * (but they must be selected, and only one ik-solver per chain should get added) */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    if (BKE_pose_is_layer_visible(arm, pchan)) {
+    if (BKE_pose_is_bonecoll_visible(arm, pchan)) {
       if (pchan->bone->flag & (BONE_SELECTED | BONE_TRANSFORM_MIRROR)) {
         /* Rule: no IK for solitary (unconnected) bones. */
         for (bonec = static_cast<Bone *>(pchan->bone->childbase.first); bonec; bonec = bonec->next)

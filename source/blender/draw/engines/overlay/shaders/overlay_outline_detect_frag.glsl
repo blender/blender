@@ -93,7 +93,7 @@ bool line_offset(bvec2 edges, vec2 ofs, inout vec2 line_point)
   return false;
 }
 
-/* Changes Antialiasing pattern and makes line thicker. 0.0 is thin. */
+/* Changes Anti-aliasing pattern and makes line thicker. 0.0 is thin. */
 #define PROXIMITY_OFS -0.35
 
 /* Use surrounding edges to approximate the outline direction to create smooth lines. */
@@ -225,7 +225,7 @@ void main()
     has_edge_neg_x = has_edge_neg_y = false;
   }
 
-  /* WATCH: Keep in sync with outlineId of the prepass. */
+  /* WATCH: Keep in sync with outlineId of the pre-pass. */
   uint color_id = ref_col >> 14u;
   if (ref_col == 0u) {
     fragColor = vec4(0.0);
@@ -247,7 +247,7 @@ void main()
   const float epsilon = 3.0 / 8388608.0;
   bool occluded = (ref_depth > scene_depth + epsilon);
 
-  /* NOTE: We never set alpha to 1.0 to avoid Antialiasing destroying the line. */
+  /* NOTE: We never set alpha to 1.0 to avoid Anti-aliasing destroying the line. */
   fragColor *= (occluded ? alphaOcclu : 1.0) * (254.0 / 255.0);
 
   int edge_case = 0;

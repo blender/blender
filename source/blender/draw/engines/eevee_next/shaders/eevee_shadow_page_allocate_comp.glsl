@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Allocation.
+ * Virtual shadow-mapping: Allocation.
  *
  * Allocates pages to tiles needing them.
  * Note that allocation can fail, in this case the tile is left with no page.

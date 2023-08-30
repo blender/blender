@@ -65,6 +65,8 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 #  include "BKE_report.h"
 #  include "BKE_screen.h"
 
+#  include "ED_asset_shelf.h"
+
 #  include "WM_api.hh"
 
 static ARegionType *region_type_find(ReportList *reports, int space_type, int region_type)
@@ -1149,7 +1151,7 @@ static void asset_shelf_draw_context_menu(const bContext *C,
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_AssetShelf_unregister(Main * /*bmain*/, StructRNA *type)
+static bool rna_AssetShelf_unregister(Main *bmain, StructRNA *type)
 {
   AssetShelfType *shelf_type = static_cast<AssetShelfType *>(RNA_struct_blender_type_get(type));
 
@@ -1161,6 +1163,8 @@ static bool rna_AssetShelf_unregister(Main * /*bmain*/, StructRNA *type)
   if (!space_type) {
     return false;
   }
+
+  ED_asset_shelf_type_unlink(*bmain, *shelf_type);
 
   RNA_struct_free_extension(type, &shelf_type->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);

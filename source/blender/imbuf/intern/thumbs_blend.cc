@@ -14,7 +14,7 @@
 #include "BLI_listbase.h" /* Needed due to import of BLO_readfile.h */
 #include "BLI_utildefines.h"
 
-#include "BLO_blend_defs.h"
+#include "BLO_blend_defs.hh"
 #include "BLO_readfile.h"
 
 #include "BKE_icons.h"

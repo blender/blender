@@ -52,7 +52,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     const VArray<int> corner_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
-    Array<int> loop_to_face_map = bke::mesh::build_loop_to_face_map(faces);
+    const Span<int> corner_to_face = mesh.corner_to_face_map();
 
     Array<int> offset_corners(mask.min_array_size());
     mask.foreach_index_optimized<int>(GrainSize(2048), [&](const int selection_i) {
@@ -63,7 +63,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
         return;
       }
 
-      const IndexRange face = faces[loop_to_face_map[corner_i]];
+      const IndexRange face = faces[corner_to_face[corner_i]];
       offset_corners[selection_i] = apply_offset_in_cyclic_range(face, corner_i, offset);
     });
 

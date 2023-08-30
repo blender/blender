@@ -16,6 +16,9 @@
  */
 
 #ifdef __cplusplus
+
+#  include <optional>
+
 extern "C" {
 #endif
 
@@ -210,6 +213,12 @@ struct PreviewImage *BKE_previewimg_id_ensure(struct ID *id);
  * For now, only used with file thumbnails.
  */
 void BKE_previewimg_ensure(struct PreviewImage *prv, int size);
+
+const char *BKE_previewimg_deferred_filepath_get(const struct PreviewImage *prv);
+#ifdef __cplusplus
+extern "C++" std::optional<int> BKE_previewimg_deferred_thumb_source_get(
+    const struct PreviewImage *prv);
+#endif
 
 /**
  * Create an #ImBuf holding a copy of the preview image buffer in \a prv.

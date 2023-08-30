@@ -1809,14 +1809,17 @@ void PreviewLoadJob::run_fn(void *customdata, bool *stop, bool *do_update, float
 
     PreviewImage *preview = request->preview;
 
-    const char *deferred_data = static_cast<char *>(PRV_DEFERRED_DATA(preview));
-    const ThumbSource source = static_cast<ThumbSource>(deferred_data[0]);
-    const char *filepath = &deferred_data[1];
+    const std::optional<int> source = BKE_previewimg_deferred_thumb_source_get(preview);
+    const char *filepath = BKE_previewimg_deferred_filepath_get(preview);
+
+    if (!source || !filepath) {
+      continue;
+    }
 
     // printf("loading deferred %d×%d preview for %s\n", request->sizex, request->sizey, filepath);
 
     IMB_thumb_path_lock(filepath);
-    ImBuf *thumb = IMB_thumb_manage(filepath, THB_LARGE, source);
+    ImBuf *thumb = IMB_thumb_manage(filepath, THB_LARGE, ThumbSource(*source));
     IMB_thumb_path_unlock(filepath);
 
     if (thumb) {

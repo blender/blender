@@ -26,7 +26,7 @@ void main()
   if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
     /* Clear num_groups_x to 0 so that we can use it as counter in the compaction phase.
      * Note that these writes are subject to race condition, but we write the same value
-     * from all workgroups. */
+     * from all work-groups. */
     denoise_dispatch_buf.num_groups_x = 0u;
     denoise_dispatch_buf.num_groups_y = 1u;
     denoise_dispatch_buf.num_groups_z = 1u;

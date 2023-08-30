@@ -15,10 +15,12 @@ extern "C" {
 struct ARegion;
 struct ARegionType;
 struct AssetShelfSettings;
+struct AssetShelfType;
 struct bContext;
 struct bContextDataResult;
 struct BlendDataReader;
 struct BlendWriter;
+struct Main;
 struct wmWindowManager;
 struct RegionPollParams;
 
@@ -58,6 +60,8 @@ void ED_asset_shelf_header_regiontype_register(struct ARegionType *region_type,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+
+void ED_asset_shelf_type_unlink(const struct Main &bmain, const struct AssetShelfType &shelf_type);
 
 int ED_asset_shelf_tile_width(const struct AssetShelfSettings &settings);
 int ED_asset_shelf_tile_height(const struct AssetShelfSettings &settings);

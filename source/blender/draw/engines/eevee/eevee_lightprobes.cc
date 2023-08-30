@@ -1036,15 +1036,15 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
         break;
       case 2:
         pinfo->samples_len = 40.0f;
-        bias = 2.0f;
+        bias = 1.0f;
         break;
       case 3:
         pinfo->samples_len = 64.0f;
-        bias = 2.0f;
+        bias = 1.0f;
         break;
       default:
         pinfo->samples_len = 128.0f;
-        bias = 2.0f;
+        bias = 1.0f;
         break;
     }
 #else /* Constant Sample count (slow) */

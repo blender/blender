@@ -31,6 +31,7 @@ set(SRC
   armature_select.cc
   armature_skinning.cc
   armature_utils.cc
+  bone_collections.cc
   editarmature_undo.cc
   meshlaplacian.cc
   pose_edit.cc

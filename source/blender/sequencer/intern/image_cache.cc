@@ -579,7 +579,9 @@ void seq_cache_free_temp_cache(Scene *scene, short id, int timeline_frame)
       {
         seq_cache_key_unlink(key);
         BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
-        BLI_assert(key != cache->last_key);
+        if (key == cache->last_key) {
+          cache->last_key = nullptr;
+        }
       }
     }
   }

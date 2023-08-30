@@ -23,7 +23,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "BLO_writefile.h"
+#include "BLO_writefile.hh"
 
 #include "RNA_types.hh"
 
@@ -32,6 +32,7 @@
 #include "bpy_rna.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_compat.h"
 
 PyDoc_STRVAR(
     bpy_lib_write_doc,
@@ -86,6 +87,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
       nullptr,
   };
   static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `filepath` */
       "O!" /* `datablocks` */
       "|$" /* Optional keyword only arguments. */

@@ -24,8 +24,9 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
-#include "BLI_edgehash.h"
 #include "BLI_memarena.h"
+#include "BLI_ordered_edge.hh"
+#include "BLI_set.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -265,7 +266,6 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
   UvVertMap *vmap;
   blender::Vector<CCGVertHDL, 16> fverts;
   float limit[2];
-  EdgeSet *eset;
   float uv[3] = {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
   limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
@@ -309,7 +309,8 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
   }
 
   /* create edges */
-  eset = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_FACES(totface));
+  blender::Set<blender::OrderedEdge> eset;
+  eset.reserve(totface);
 
   for (i = 0; i < totface; i++) {
     const blender::IndexRange face = faces[i];
@@ -326,7 +327,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
       uint v0 = POINTER_AS_UINT(fverts[j_next]);
       uint v1 = POINTER_AS_UINT(fverts[j]);
 
-      if (BLI_edgeset_add(eset, v0, v1)) {
+      if (eset.add({v0, v1})) {
         CCGEdge *e, *orige = ccgSubSurf_getFaceEdge(origf, j_next);
         CCGEdgeHDL ehdl = POINTER_FROM_INT(face[j_next]);
         float crease = ccgSubSurf_getEdgeCrease(orige);
@@ -335,8 +336,6 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
       }
     }
   }
-
-  BLI_edgeset_free(eset);
 
   /* create faces */
   for (i = 0; i < totface; i++) {
@@ -913,10 +912,10 @@ static void copyFinalLoopArray_task_cb(void *__restrict userdata,
           corner_verts[loop_i + 3] = v4;
         }
         if (corner_edges) {
-          corner_edges[loop_i + 0] = POINTER_AS_UINT(BLI_edgehash_lookup(ccgdm->ehash, v1, v2));
-          corner_edges[loop_i + 1] = POINTER_AS_UINT(BLI_edgehash_lookup(ccgdm->ehash, v2, v3));
-          corner_edges[loop_i + 2] = POINTER_AS_UINT(BLI_edgehash_lookup(ccgdm->ehash, v3, v4));
-          corner_edges[loop_i + 3] = POINTER_AS_UINT(BLI_edgehash_lookup(ccgdm->ehash, v4, v1));
+          corner_edges[loop_i + 0] = ccgdm->ehash->index_of({v1, v2});
+          corner_edges[loop_i + 1] = ccgdm->ehash->index_of({v2, v3});
+          corner_edges[loop_i + 2] = ccgdm->ehash->index_of({v3, v4});
+          corner_edges[loop_i + 3] = ccgdm->ehash->index_of({v4, v1});
         }
 
         loop_i += 4;
@@ -954,15 +953,14 @@ static void ccgDM_copyFinalCornerEdgeArray(DerivedMesh *dm, int *r_corner_edges)
   if (!ccgdm->ehash) {
     BLI_mutex_lock(&ccgdm->loops_cache_lock);
     if (!ccgdm->ehash) {
-      const blender::int2 *medge;
-      EdgeHash *ehash;
+      auto *ehash = new blender::VectorSet<blender::OrderedEdge>();
+      ehash->reserve(ccgdm->dm.numEdgeData);
 
-      ehash = BLI_edgehash_new_ex(__func__, ccgdm->dm.numEdgeData);
-      medge = reinterpret_cast<const blender::int2 *>(
+      const blender::int2 *medge = reinterpret_cast<const blender::int2 *>(
           ccgdm->dm.getEdgeArray((DerivedMesh *)ccgdm));
 
       for (int i = 0; i < ccgdm->dm.numEdgeData; i++) {
-        BLI_edgehash_insert(ehash, medge[i][0], medge[i][1], POINTER_FROM_INT(i));
+        ehash->add({medge[i][0], medge[i][1]});
       }
 
       atomic_cas_ptr((void **)&ccgdm->ehash, ccgdm->ehash, ehash);
@@ -1038,9 +1036,7 @@ static void ccgDM_release(DerivedMesh *dm)
     }
   }
 
-  if (ccgdm->ehash) {
-    BLI_edgehash_free(ccgdm->ehash, nullptr);
-  }
+  delete ccgdm->ehash;
 
   if (ccgdm->reverseFaceMap) {
     MEM_freeN(ccgdm->reverseFaceMap);

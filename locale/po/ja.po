@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2016-10-13 03:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese Translation Team (https://sites.google.com/site/blugjp/blender-translators)\n"
@@ -21786,20 +21786,80 @@ msgid "Camera near clipping distance"
 msgstr "カメラの手前のクリッピング距離"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Cyclesカメラ設定"
-
-
-msgid "Cycles camera settings"
-msgstr "Cyclesカメラ設定"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "3Dビュー内のカメラオブジェクトの見かけの大きさ"
 
 
 msgid "Depth Of Field"
 msgstr "被写界深度"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "魚眼レンズの被写界深度"
+
+
+msgid "Fisheye Lens"
+msgstr "魚眼レンズ"
+
+
+msgid "Lens focal length (mm)"
+msgstr "レンズの焦点距離(mm)"
+
+
+msgid "Fisheye Polynomial K0"
+msgstr "魚眼多項式 K0"
+
+
+msgid "Coefficient K0 of the lens polynomial"
+msgstr "レンズ多項式の K0 係数"
+
+
+msgid "Fisheye Polynomial K1"
+msgstr "魚眼多項式 K1"
+
+
+msgid "Coefficient K1 of the lens polynomial"
+msgstr "レンズ多項式の K1 係数"
+
+
+msgid "Fisheye Polynomial K2"
+msgstr "魚眼多項式 K2"
+
+
+msgid "Coefficient K2 of the lens polynomial"
+msgstr "レンズ多項式の K2 係数"
+
+
+msgid "Fisheye Polynomial K3"
+msgstr "魚眼多項式 K3"
+
+
+msgid "Coefficient K3 of the lens polynomial"
+msgstr "レンズ多項式の K3 係数"
+
+
+msgid "Fisheye Polynomial K4"
+msgstr "魚眼多項式 K4"
+
+
+msgid "Coefficient K4 of the lens polynomial"
+msgstr "レンズ多項式の K4 係数"
+
+
+msgid "Max Latitude"
+msgstr "最大緯度"
+
+
+msgid "Maximum latitude (vertical angle) for the equirectangular lens"
+msgstr "正距円筒レンズ用の最大緯度（垂直角度）"
+
+
+msgid "Min Latitude"
+msgstr "最小緯度"
+
+
+msgid "Minimum latitude (vertical angle) for the equirectangular lens"
+msgstr "正距円筒レンズ用の最小緯度（垂直角度）"
 
 
 msgid "Focal Length"
@@ -21830,12 +21890,84 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "レンズを視野角度で指定します"
 
 
+msgid "Max Longitude"
+msgstr "最大経度"
+
+
+msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
+msgstr "正距円筒レンズ用の最大経度（水平角度）"
+
+
+msgid "Min Longitude"
+msgstr "最小経度"
+
+
+msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
+msgstr "正距円筒レンズ用の最小経度（水平角度）"
+
+
 msgid "Orthographic Scale"
 msgstr "平行投影のスケール"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "平行投影のカメラスケール(ズームに似ています)"
+
+
+msgid "Panorama Type"
+msgstr "パノラマタイプ"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "計算に使用する歪み"
+
+
+msgid "Equirectangular"
+msgstr "正距円筒図"
+
+
+msgid "Spherical camera for environment maps, also known as Lat Long panorama"
+msgstr "環境マップ用の球体カメラ、いわゆる Lat Long（緯度経度）パノラマ"
+
+
+msgid "Equiangular Cubemap Face"
+msgstr "等角キューブマップ面"
+
+
+msgid "Single face of an equiangular cubemap"
+msgstr "等角キューブマップの単一面"
+
+
+msgid "Mirror Ball"
+msgstr "ミラーボール"
+
+
+msgid "Mirror ball mapping for environment maps"
+msgstr "環境マップ用ミラーボールマッピング"
+
+
+msgid "Fisheye Equidistant"
+msgstr "魚眼(等距離射影)"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "センサーの寸法を無視した、理想のフルドーム"
+
+
+msgid "Fisheye Equisolid"
+msgstr "魚眼(等距離射影)"
+
+
+msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
+msgstr "最近の大半の魚眼レンズ同様、センサー寸法が考慮されます"
+
+
+msgid "Fisheye Lens Polynomial"
+msgstr "魚眼レンズ多項式"
+
+
+msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
+msgstr "レンズの投影を多項式で表わし、現実のカメラレンズを模倣できるようにします"
 
 
 msgid "Passepartout Alpha"
@@ -25953,10 +26085,6 @@ msgstr "フルフレーム"
 
 msgid "Composites full image result as fast as possible"
 msgstr "画像全体をできるだけ早くコンポジティングします"
-
-
-msgid "Realtime GPU"
-msgstr "リアルタイムGPU"
 
 
 msgid "Use GPU accelerated compositing with more limited functionality"
@@ -41023,10 +41151,6 @@ msgid "Display Hidden"
 msgstr "非表示を表示"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "非表示オブジェクト/ボーンのチャンネルも含めます"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "ドープシートソートフィールド"
 
@@ -47868,16 +47992,8 @@ msgid "Projection of the input image"
 msgstr "入力画像の投影"
 
 
-msgid "Equirectangular"
-msgstr "正距円筒図"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "正距円筒もしく緯度/経度図法"
-
-
-msgid "Mirror Ball"
-msgstr "ミラーボール"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -49289,6 +49405,10 @@ msgstr "ノードツリー入力"
 
 msgid "Collection of Node Tree Sockets"
 msgstr "ノードツリーソケットの集合"
+
+
+msgid "Socket Type"
+msgstr "ソケットタイプ"
 
 
 msgid "Node Tree Outputs"
@@ -66370,10 +66490,6 @@ msgid "Add an input or output to the active node tree"
 msgstr "アクティブノードツリーに入出力ソケットを追加します"
 
 
-msgid "Socket Type"
-msgstr "ソケットタイプ"
-
-
 msgctxt "Operator"
 msgid "Change Node Tree Socket Subtype"
 msgstr "ノードツリーソケットサブタイプ変更"
@@ -67071,10 +67187,6 @@ msgstr "入力属性切り替え"
 
 msgid "Switch between an attribute and a single value to define the data for every element"
 msgstr "要素毎にデータを定義する属性と単一の値を切り替えます"
-
-
-msgid "Prop Path"
-msgstr "プロパティパス"
 
 
 msgctxt "Operator"
@@ -82283,6 +82395,10 @@ msgid "Python value for unsupported custom property types"
 msgstr "未対応のカスタムプロパティタイプ用の Python 値"
 
 
+msgid "Speaker"
+msgstr "スピーカー"
+
+
 msgid "Library Overridable"
 msgstr "ライブラリオーバーライドを許可"
 
@@ -84207,10 +84323,6 @@ msgid "Viewport Sampling Presets"
 msgstr "ビュー用サンプリングプリセット"
 
 
-msgid "View Object Types"
-msgstr "表示オブジェクトタイプ"
-
-
 msgid "Film"
 msgstr "フィルム"
 
@@ -85581,6 +85693,10 @@ msgstr "四分割表示"
 
 msgid "Auto-Masking"
 msgstr "自動マスク"
+
+
+msgid "Wire Color"
+msgstr "ワイヤカラー"
 
 
 msgid "Compositor"
@@ -87846,14 +87962,6 @@ msgid "Enable the new Overlay codebase, requires restart"
 msgstr "新しいオーバーレイコードベースを有効にします（要再起動）"
 
 
-msgid "Workbench Next"
-msgstr "Workbench Next"
-
-
-msgid "Enable the new Workbench codebase, requires restart"
-msgstr "新しい Workbench コードベースを有効にします（要再起動）"
-
-
 msgid "Override Auto Resync"
 msgstr "オーバーライド自動再同期"
 
@@ -87886,12 +87994,6 @@ msgstr "アセットインデクシング"
 
 msgid "Disabling the asset indexer forces every asset library refresh to completely reread assets from disk"
 msgstr "アセットインデクサーを無効にし、ディスクからアセットを完全に再読み込みすることで、強制的に全アセットライブラリをリフレッシュします"
-
-
-msgid "Enables the asset shelf regions in the 3D view. Used by the Pose Library add-on in Pose Mode only"
-msgstr ""
-"3Dビューポートにてアセットシェルフ領域を有効にします\n"
-"ポーズライブラリアドオンでポーズモードでのみ使用されます"
 
 
 msgid "Cycles Debug"
@@ -87976,14 +88078,6 @@ msgstr "オーバライドテンプレート"
 
 msgid "Enable library override template in the Python API"
 msgstr "Python API でライブラリオーバーライドテンプレートを利用可能にします"
-
-
-msgid "Rotation Socket"
-msgstr "回転ソケット"
-
-
-msgid "Enable the new rotation node socket type"
-msgstr "新しい回転ノードソケットタイプを有効にします"
 
 
 msgid "Sculpt Texture Paint"
@@ -90292,138 +90386,6 @@ msgstr "正規表現による検索"
 
 msgid "Use regular expressions to match text in the 'Find' field"
 msgstr "正規表現を使用し「検索」フィールドにマッチする物を探します"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "魚眼レンズの被写界深度"
-
-
-msgid "Fisheye Lens"
-msgstr "魚眼レンズ"
-
-
-msgid "Lens focal length (mm)"
-msgstr "レンズの焦点距離(mm)"
-
-
-msgid "Fisheye Polynomial K0"
-msgstr "魚眼多項式 K0"
-
-
-msgid "Coefficient K0 of the lens polynomial"
-msgstr "レンズ多項式の K0 係数"
-
-
-msgid "Fisheye Polynomial K1"
-msgstr "魚眼多項式 K1"
-
-
-msgid "Coefficient K1 of the lens polynomial"
-msgstr "レンズ多項式の K1 係数"
-
-
-msgid "Fisheye Polynomial K2"
-msgstr "魚眼多項式 K2"
-
-
-msgid "Coefficient K2 of the lens polynomial"
-msgstr "レンズ多項式の K2 係数"
-
-
-msgid "Fisheye Polynomial K3"
-msgstr "魚眼多項式 K3"
-
-
-msgid "Coefficient K3 of the lens polynomial"
-msgstr "レンズ多項式の K3 係数"
-
-
-msgid "Fisheye Polynomial K4"
-msgstr "魚眼多項式 K4"
-
-
-msgid "Coefficient K4 of the lens polynomial"
-msgstr "レンズ多項式の K4 係数"
-
-
-msgid "Max Latitude"
-msgstr "最大緯度"
-
-
-msgid "Maximum latitude (vertical angle) for the equirectangular lens"
-msgstr "正距円筒レンズ用の最大緯度（垂直角度）"
-
-
-msgid "Min Latitude"
-msgstr "最小緯度"
-
-
-msgid "Minimum latitude (vertical angle) for the equirectangular lens"
-msgstr "正距円筒レンズ用の最小緯度（垂直角度）"
-
-
-msgid "Max Longitude"
-msgstr "最大経度"
-
-
-msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
-msgstr "正距円筒レンズ用の最大経度（水平角度）"
-
-
-msgid "Min Longitude"
-msgstr "最小経度"
-
-
-msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
-msgstr "正距円筒レンズ用の最小経度（水平角度）"
-
-
-msgid "Panorama Type"
-msgstr "パノラマタイプ"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "計算に使用する歪み"
-
-
-msgid "Spherical camera for environment maps, also known as Lat Long panorama"
-msgstr "環境マップ用の球体カメラ、いわゆる Lat Long（緯度経度）パノラマ"
-
-
-msgid "Equiangular Cubemap Face"
-msgstr "等角キューブマップ面"
-
-
-msgid "Single face of an equiangular cubemap"
-msgstr "等角キューブマップの単一面"
-
-
-msgid "Mirror ball mapping for environment maps"
-msgstr "環境マップ用ミラーボールマッピング"
-
-
-msgid "Fisheye Equidistant"
-msgstr "魚眼(等距離射影)"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "センサーの寸法を無視した、理想のフルドーム"
-
-
-msgid "Fisheye Equisolid"
-msgstr "魚眼(等距離射影)"
-
-
-msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "最近の大半の魚眼レンズ同様、センサー寸法が考慮されます"
-
-
-msgid "Fisheye Lens Polynomial"
-msgstr "魚眼レンズ多項式"
-
-
-msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
-msgstr "レンズの投影を多項式で表わし、現実のカメラレンズを模倣できるようにします"
 
 
 msgid "Form of curves"
@@ -99742,10 +99704,6 @@ msgid "Gizmo to adjust location"
 msgstr "位置を調整するギズモ"
 
 
-msgid "Speaker"
-msgstr "スピーカー"
-
-
 msgid "Show Reconstruction"
 msgstr "再構築を表示"
 
@@ -101841,10 +101799,6 @@ msgstr "ベクトルノード"
 
 msgid "Wires"
 msgstr "ワイヤー"
-
-
-msgid "Wire Color"
-msgstr "ワイヤカラー"
 
 
 msgid "Wire Select"
@@ -104829,6 +104783,10 @@ msgstr "ランドマークを表示"
 
 msgid "Show VR Camera"
 msgstr "VRカメラを表示"
+
+
+msgid "Theme"
+msgstr "テーマ"
 
 
 msgid "X-Ray Alpha"
@@ -109853,10 +109811,6 @@ msgstr "リネームしました（%d/%d）%s"
 
 msgid "Shortcuts"
 msgstr "ショートカット"
-
-
-msgid "Theme"
-msgstr "テーマ"
 
 
 msgctxt "Operator"
@@ -116012,10 +115966,6 @@ msgid "Camera to View"
 msgstr "カメラをビューに"
 
 
-msgid "Object Types Visibility"
-msgstr "オブジェクトタイプ可視性"
-
-
 msgid "Object Gizmos"
 msgstr "オブジェクトギズモ"
 
@@ -118326,16 +118276,16 @@ msgid "Checking sanity of current .blend file *BEFORE* save to disk"
 msgstr "現在の .blend ファイルをディスクに保存する「前に」正当性チェックを行います"
 
 
+msgid "Checking sanity of current .blend file *AFTER* save to disk"
+msgstr "現在の .blend ファイルをディスクに保存した「後に」正当性チェックを行います"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "バージョンバックアップに失敗 (@をつけて保存済)"
 
 
 msgid "Cannot change old file (file saved with @)"
 msgstr "旧ファイルを変更できません (@をつけて保存済)"
-
-
-msgid "Checking sanity of current .blend file *AFTER* save to disk"
-msgstr "現在の .blend ファイルをディスクに保存した「後に」正当性チェックを行います"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -126967,10 +126917,6 @@ msgid "USD export:  couldn't copy texture from %s to %s"
 msgstr "USD Export: テクスチャを「%s」から「%s」にコピーできません"
 
 
-msgid "Mesh %s, Attribute %s cannot be converted to USD."
-msgstr "メッシュ「%s」の属性「%s」が USD に変換できません"
-
-
 msgid "USD Export: failed to resolve .vdb file for object: %s"
 msgstr "USD Export: オブジェクト「%s」の .vdb ファイルを解決できません"
 
@@ -127722,6 +127668,10 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "ノードソケットクラス登録:「%s」が長すぎです（最大長：%d）"
 
 
+msgid "Unable to create socket"
+msgstr "ソケットが作成できません"
+
+
 msgid "CustomGroup"
 msgstr "カスタムグループ"
 
@@ -127765,10 +127715,6 @@ msgstr "ソケットの入出力方向が同じです"
 
 msgid "Unable to locate link in node tree"
 msgstr "ノードツリー内にリンクがありません"
-
-
-msgid "Unable to create socket"
-msgstr "ソケットが作成できません"
 
 
 msgid "Cannot add socket to built-in node"
@@ -130317,16 +130263,16 @@ msgid "Half the width of the narrow band in voxel units"
 msgstr "ナローバンドの半分の幅（ボクセル単位）"
 
 
+msgid "Corner Index"
+msgstr "コーナーインデックス"
+
+
 msgid "The edge to retrieve data from. Defaults to the edge from the context"
 msgstr "データを取得する辺。デフォルトはこのコンテクストの辺"
 
 
 msgid "Which of the sorted corners to output"
 msgstr "どのソート後のコーナーを出力するか"
-
-
-msgid "Corner Index"
-msgstr "コーナーインデックス"
 
 
 msgid "The number of faces or corners connected to each edge"

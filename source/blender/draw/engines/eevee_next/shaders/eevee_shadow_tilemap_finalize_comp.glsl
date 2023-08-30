@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Tilemap to texture conversion.
+ * Virtual shadow-mapping: Tile-map to texture conversion.
  *
- * For all visible light tilemaps, copy page coordinate to a texture.
+ * For all visible light tile-maps, copy page coordinate to a texture.
  * This avoids one level of indirection when evaluating shadows and allows
  * to use a sampler instead of a SSBO bind.
  */
@@ -151,7 +151,7 @@ void main()
       /* Tile coordinate relative to chosen viewport origin. */
       ivec2 viewport_tile_co = tile_co_lod - rect_min;
       /* We need to add page indirection to the render map for the whole viewport even if this one
-       * might extend outside of the shadowmap range. To this end, we need to wrap the threads to
+       * might extend outside of the shadow-map range. To this end, we need to wrap the threads to
        * always cover the whole mip. This is because the viewport cannot be bigger than the mip
        * level itself. */
       int lod_res = SHADOW_TILEMAP_RES >> lod;

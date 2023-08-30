@@ -70,7 +70,6 @@ EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
   bone->rad_head = 0.10f;
   bone->rad_tail = 0.05f;
   bone->segments = 1;
-  ANIM_bone_set_ebone_layer_from_armature(bone, arm);
 
   /* Bendy-Bone parameters */
   bone->roll1 = 0.0f;
@@ -918,13 +917,19 @@ static void copy_pchan(EditBone *src_bone, EditBone *dst_bone, Object *src_ob, O
   }
 }
 
+void ED_armature_ebone_copy(EditBone *dest, const EditBone *source)
+{
+  memcpy(dest, source, sizeof(*dest));
+  BLI_duplicatelist(&dest->bone_collections, &dest->bone_collections);
+}
+
 EditBone *duplicateEditBoneObjects(
     EditBone *cur_bone, const char *name, ListBase *editbones, Object *src_ob, Object *dst_ob)
 {
   EditBone *e_bone = static_cast<EditBone *>(MEM_mallocN(sizeof(EditBone), "addup_editbone"));
 
   /* Copy data from old bone to new bone */
-  memcpy(e_bone, cur_bone, sizeof(EditBone));
+  ED_armature_ebone_copy(e_bone, cur_bone);
 
   cur_bone->temp.ebone = e_bone;
   e_bone->temp.ebone = cur_bone;
@@ -1538,6 +1543,9 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
             }
             ED_armature_ebone_unique_name(arm->edbo, newbone->name, nullptr);
 
+            /* Copy bone collection membership. */
+            BLI_duplicatelist(&newbone->bone_collections, &ebone->bone_collections);
+
             /* Add the new bone to the list */
             BLI_addtail(arm->edbo, newbone);
             if (!first) {
@@ -1639,6 +1647,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 
   /* Create a bone. */
   bone = ED_armature_ebone_add(static_cast<bArmature *>(obedit->data), name);
+  ANIM_armature_bonecoll_assign_active(static_cast<bArmature *>(obedit->data), bone);
 
   copy_v3_v3(bone->head, curs);
 
@@ -1648,8 +1657,6 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
   else {
     add_v3_v3v3(bone->tail, bone->head, imat[2]); /* bone with unit length 1, pointing up Z */
   }
-
-  ED_armature_edit_refresh_layer_used(static_cast<bArmature *>(obedit->data));
 
   /* NOTE: notifier might evolve. */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
@@ -1738,6 +1745,9 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
         }
       }
       newbone->parent = ebone;
+
+      /* Copy bone collection membership. */
+      BLI_duplicatelist(&newbone->bone_collections, &ebone->bone_collections);
     }
   }
   CTX_DATA_END;

@@ -30,7 +30,7 @@ enum NodeBorder {
 };
 ENUM_OPERATORS(NodeBorder, NODE_RIGHT)
 
-#define NODE_GRID_STEP_SIZE U.widget_unit /* Based on the grid nodes snap to. */
+#define NODE_GRID_STEP_SIZE (20.0f * UI_SCALE_FAC) /* Based on the grid nodes snap to. */
 #define NODE_EDGE_PAN_INSIDE_PAD 2
 #define NODE_EDGE_PAN_OUTSIDE_PAD 0 /* Disable clamping for node panning, use whole screen. */
 #define NODE_EDGE_PAN_SPEED_RAMP 1

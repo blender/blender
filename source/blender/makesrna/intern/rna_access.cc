@@ -4310,6 +4310,12 @@ int RNA_property_collection_lookup_string_index(
 
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
+  if (!key) {
+    *r_index = -1;
+    *r_ptr = PointerRNA_NULL;
+    return false;
+  }
+
   if (cprop->lookupstring) {
     /* we have a callback defined, use it */
     return cprop->lookupstring(ptr, key, r_ptr);
