@@ -78,8 +78,6 @@ struct BMeshToMeshParams {
   uint copy_temp_cdlayers;
 };
 
-void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);
-
 /**
  * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
  */

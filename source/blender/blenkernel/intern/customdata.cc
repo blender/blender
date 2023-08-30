@@ -2009,14 +2009,6 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      layerDefault_propquaternion},
-    /*53: CD_BMESH_TOOLFLAGS */
-    {sizeof(MToolFlags),
-     "MToolFlags",
-     1,
-     nullptr,  // flag singleton layer
-     nullptr,
-     nullptr,
-     layerInterp_noop},
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -2075,7 +2067,6 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDPropBoolean",
     "CDHairLength",
     "CDPropQuaternion",
-    "CDMToolFlags",
 };
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
@@ -4123,18 +4114,6 @@ void CustomData_bmesh_alloc_block(CustomData *data, void **block)
     *block = BLI_mempool_alloc(data->pool);
 
     CustomData_bmesh_poison(data, *block);
-
-    /* Clear toolflags pointer when created for the first time. */
-    int cd_tflags = data->typemap[CD_TOOLFLAGS];
-    if (cd_tflags != -1) {
-      cd_tflags = data->layers[cd_tflags].offset;
-
-      char *ptr = (char *)*block;
-      ptr += cd_tflags;
-
-      MToolFlags *flags = (MToolFlags *)ptr;
-      flags->flag = nullptr;
-    }
   }
   else {
     *block = nullptr;
@@ -4219,11 +4198,6 @@ void CustomData_bmesh_swap_data(CustomData *source,
            dest->layers[dest_i_start].type < source->layers[src_i].type)
     {
       dest_i_start++;
-    }
-
-    if (source->layers[src_i].type == CD_TOOLFLAGS) {
-      /* Do not swap toolflags. */
-      continue;
     }
 
     /* If there are no more dest layers, we're done. */
@@ -4642,11 +4616,6 @@ void CustomData_bmesh_interp_ex(CustomData *data,
   /* interpolates a layer at a time */
   for (int i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
-
-    /* Ignore toolflag layers. */
-    if (eCustomDataType(layer->type) == CD_TOOLFLAGS) {
-      continue;
-    }
 
     const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(layer->type));
 

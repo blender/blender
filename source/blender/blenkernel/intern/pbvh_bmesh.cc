@@ -656,7 +656,7 @@ void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 }
 
-ATTR_NO_OPT void pbvh_bmesh_face_remove(
+void pbvh_bmesh_face_remove(
     PBVH *pbvh, BMFace *f, bool log_face, bool check_verts, bool /*ensure_ownership_transfer*/)
 {
   PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, f);

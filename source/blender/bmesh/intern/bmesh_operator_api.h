@@ -8,10 +8,7 @@
  * \ingroup bmesh
  */
 
-#include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
-
-#include "DNA_meshdata_types.h"
 
 #include <stdarg.h>
 
@@ -59,142 +56,122 @@ extern "C" {
 
 struct GHashIterator;
 
-BLI_INLINE BMFlagLayer *BMO_elem_flag_from_header(BMesh *bm, BMElem *ele)
+BLI_INLINE BMFlagLayer *BMO_elem_flag_from_header(BMHeader *ele_head)
 {
-  int cd_tflags;
-
-  switch (ele->head.htype) {
+  switch (ele_head->htype) {
     case BM_VERT:
-      cd_tflags = bm->vdata.layers[bm->vdata.typemap[CD_TOOLFLAGS]].offset;
-      break;
+      return ((BMVert_OFlag *)ele_head)->oflags;
     case BM_EDGE:
-      cd_tflags = bm->edata.layers[bm->edata.typemap[CD_TOOLFLAGS]].offset;
-      break;
-    case BM_FACE:
-      cd_tflags = bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset;
-      break;
+      return ((BMEdge_OFlag *)ele_head)->oflags;
     default:
-      return NULL;
+      return ((BMFace_OFlag *)ele_head)->oflags;
   }
-
-  MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(ele, cd_tflags);
-
-  return (BMFlagLayer *)flags->flag;
 }
 
 #define BMO_elem_flag_test(bm, ele, oflag) \
-  _bmo_elem_flag_test(bm, BMO_elem_flag_from_header(bm, (BMElem *)(ele)), oflag)
+  _bmo_elem_flag_test(bm, BMO_elem_flag_from_header(&(ele)->head), oflag)
 #define BMO_elem_flag_test_bool(bm, ele, oflag) \
-  _bmo_elem_flag_test_bool(bm, BMO_elem_flag_from_header(bm, (BMElem *)(ele)), oflag)
+  _bmo_elem_flag_test_bool(bm, BMO_elem_flag_from_header(&(ele)->head), oflag)
 #define BMO_elem_flag_enable(bm, ele, oflag) \
   _bmo_elem_flag_enable( \
-      bm, \
-      (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(bm, (BMElem *)(ele))), \
-      oflag)
+      bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag)
 #define BMO_elem_flag_disable(bm, ele, oflag) \
   _bmo_elem_flag_disable( \
-      bm, \
-      (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(bm, (BMElem *)(ele))), \
-      oflag)
+      bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag)
 #define BMO_elem_flag_set(bm, ele, oflag, val) \
-  _bmo_elem_flag_set( \
-      bm, \
-      (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(bm, (BMElem *)(ele))), \
-      oflag, \
-      val)
+  _bmo_elem_flag_set(bm, \
+                     (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), \
+                     oflag, \
+                     val)
 #define BMO_elem_flag_toggle(bm, ele, oflag) \
   _bmo_elem_flag_toggle( \
-      bm, \
-      (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(bm, (BMElem *)(ele))), \
-      oflag)
+      bm, (BM_CHECK_TYPE_ELEM_NONCONST(ele), BMO_elem_flag_from_header(&(ele)->head)), oflag)
 
 /* take care not to instantiate args multiple times */
-#ifdef __GNUC__
-/* clang-format off */
-#define _BMO_CAST_V_CONST(bm, e) ({\
+#ifdef __GNUC___
+#  define _BMO_CAST_V_CONST(e) \
+    ({ \
       typeof(e) _e = e; \
       (BM_CHECK_TYPE_VERT(_e), \
-      (const BMFlagLayer*) BMO_elem_flag_from_header(bm, \
-       (BLI_assert(((const BMHeader *)_e)->htype == BM_VERT), \
-       (BMElem*)_e))); \
-})
-#define _BMO_CAST_V(bm, e) ({\
-      typeof(e) _e = e; \
-      (BM_CHECK_TYPE_VERT_NONCONST(_e), \
-       BMO_elem_flag_from_header(bm, \
-       (BLI_assert(((const BMHeader *)_e)->htype == BM_VERT), \
-       (BMElem*)_e))); \
-})
-
-#define _BMO_CAST_E_CONST(bm, e) ({\
+       BLI_assert(((const BMHeader *)_e)->htype == BM_VERT), \
+       (const BMVert_OFlag *)_e); \
+    })
+#  define _BMO_CAST_E_CONST(e) \
+    ({ \
       typeof(e) _e = e; \
       (BM_CHECK_TYPE_EDGE(_e), \
-      (const BMFlagLayer*) BMO_elem_flag_from_header(bm, \
-       (BLI_assert(((const BMHeader *)_e)->htype == BM_EDGE), \
-       (BMElem*)_e))); \
-})
-#define _BMO_CAST_E(bm, e) ({\
-      typeof(e) _e = e; \
-      (BM_CHECK_TYPE_EDGE_NONCONST(_e), \
-       BMO_elem_flag_from_header(bm, \
-       (BLI_assert(((const BMHeader *)_e)->htype == BM_EDGE), \
-       (BMElem*)_e))); \
-})
-
-#define _BMO_CAST_F_CONST(bm, e) ({\
+       BLI_assert(((const BMHeader *)_e)->htype == BM_EDGE), \
+       (const BMEdge_OFlag *)_e); \
+    })
+#  define _BMO_CAST_F_CONST(e) \
+    ({ \
       typeof(e) _e = e; \
       (BM_CHECK_TYPE_FACE(_e), \
-      (const BMFlagLayer*) BMO_elem_flag_from_header(bm, \
-       (BLI_assert(((const BMHeader *)_e)->htype == BM_FACE), \
-       (BMElem*)_e))); \
-})
-#define _BMO_CAST_F(bm, e) ({\
+       BLI_assert(((const BMHeader *)_e)->htype == BM_FACE), \
+       (const BMFace_OFlag *)_e); \
+    })
+#  define _BMO_CAST_V(e) \
+    ({ \
+      typeof(e) _e = e; \
+      (BM_CHECK_TYPE_VERT_NONCONST(_e), \
+       BLI_assert(((BMHeader *)_e)->htype == BM_VERT), \
+       (BMVert_OFlag *)_e); \
+    })
+#  define _BMO_CAST_E(e) \
+    ({ \
+      typeof(e) _e = e; \
+      (BM_CHECK_TYPE_EDGE_NONCONST(_e), \
+       BLI_assert(((BMHeader *)_e)->htype == BM_EDGE), \
+       (BMEdge_OFlag *)_e); \
+    })
+#  define _BMO_CAST_F(e) \
+    ({ \
       typeof(e) _e = e; \
       (BM_CHECK_TYPE_FACE_NONCONST(_e), \
-       BMO_elem_flag_from_header(bm, \
-       (BLI_assert(((const BMHeader *)_e)->htype == BM_FACE), \
-       (BMElem*)_e))); \
-})
-
-/* clang-format on */
+       BLI_assert(((BMHeader *)_e)->htype == BM_FACE), \
+       (BMFace_OFlag *)_e); \
+    })
 #else
-#  define _BMO_CAST_V_CONST(bm, e) \
-    (BM_CHECK_TYPE_VERT(e), (const BMFlagLayer *)BMO_elem_flag_from_header(bm, (BMElem *)(e)))
-#  define _BMO_CAST_E_CONST(bm, e) \
-    (BM_CHECK_TYPE_EDGE(e), (const BMFlagLayer *)BMO_elem_flag_from_header(bm, (BMElem *)(e)))
-#  define _BMO_CAST_F_CONST(bm, e) \
-    (BM_CHECK_TYPE_FACE(e), (const BMFlagLayer *)BMO_elem_flag_from_header(bm, (BMElem *)(e)))
-#  define _BMO_CAST_V(bm, e) \
-    (BM_CHECK_TYPE_VERT_NONCONST(e), BMO_elem_flag_from_header(bm, (BMElem *)(e)))
-#  define _BMO_CAST_E(bm, e) \
-    (BM_CHECK_TYPE_EDGE_NONCONST(e), BMO_elem_flag_from_header(bm, (BMElem *)(e)))
-#  define _BMO_CAST_F(bm, e) \
-    (BM_CHECK_TYPE_FACE_NONCONST(e), BMO_elem_flag_from_header(bm, (BMElem *)(e)))
+#  define _BMO_CAST_V_CONST(e) (BM_CHECK_TYPE_VERT(e), (const BMVert_OFlag *)e)
+#  define _BMO_CAST_E_CONST(e) (BM_CHECK_TYPE_EDGE(e), (const BMEdge_OFlag *)e)
+#  define _BMO_CAST_F_CONST(e) (BM_CHECK_TYPE_FACE(e), (const BMFace_OFlag *)e)
+#  define _BMO_CAST_V(e) (BM_CHECK_TYPE_VERT_NONCONST(e), (BMVert_OFlag *)e)
+#  define _BMO_CAST_E(e) (BM_CHECK_TYPE_EDGE_NONCONST(e), (BMEdge_OFlag *)e)
+#  define _BMO_CAST_F(e) (BM_CHECK_TYPE_FACE_NONCONST(e), (BMFace_OFlag *)e)
 #endif
 
-#define BMO_vert_flag_test(bm, e, oflag) _bmo_elem_flag_test(bm, _BMO_CAST_V_CONST(bm, e), oflag)
+#define BMO_vert_flag_test(bm, e, oflag) \
+  _bmo_elem_flag_test(bm, _BMO_CAST_V_CONST(e)->oflags, oflag)
 #define BMO_vert_flag_test_bool(bm, e, oflag) \
-  _bmo_elem_flag_test_bool(bm, _BMO_CAST_V_CONST(bm, e), oflag)
-#define BMO_vert_flag_enable(bm, e, oflag) _bmo_elem_flag_enable(bm, _BMO_CAST_V(bm, e), oflag)
-#define BMO_vert_flag_disable(bm, e, oflag) _bmo_elem_flag_disable(bm, _BMO_CAST_V(bm, e), oflag)
-#define BMO_vert_flag_set(bm, e, oflag, val) _bmo_elem_flag_set(bm, _BMO_CAST_V(bm, e), oflag, val)
-#define BMO_vert_flag_toggle(bm, e, oflag) _bmo_elem_flag_toggle(bm, _BMO_CAST_V(bm, e), oflag)
+  _bmo_elem_flag_test_bool(bm, _BMO_CAST_V_CONST(e)->oflags, oflag)
+#define BMO_vert_flag_enable(bm, e, oflag) _bmo_elem_flag_enable(bm, _BMO_CAST_V(e)->oflags, oflag)
+#define BMO_vert_flag_disable(bm, e, oflag) \
+  _bmo_elem_flag_disable(bm, _BMO_CAST_V(e)->oflags, oflag)
+#define BMO_vert_flag_set(bm, e, oflag, val) \
+  _bmo_elem_flag_set(bm, _BMO_CAST_V(e)->oflags, oflag, val)
+#define BMO_vert_flag_toggle(bm, e, oflag) _bmo_elem_flag_toggle(bm, _BMO_CAST_V(e)->oflags, oflag)
 
-#define BMO_edge_flag_test(bm, e, oflag) _bmo_elem_flag_test(bm, _BMO_CAST_E_CONST(bm, e), oflag)
+#define BMO_edge_flag_test(bm, e, oflag) \
+  _bmo_elem_flag_test(bm, _BMO_CAST_E_CONST(e)->oflags, oflag)
 #define BMO_edge_flag_test_bool(bm, e, oflag) \
-  _bmo_elem_flag_test_bool(bm, _BMO_CAST_E_CONST(bm, e), oflag)
-#define BMO_edge_flag_enable(bm, e, oflag) _bmo_elem_flag_enable(bm, _BMO_CAST_E(bm, e), oflag)
-#define BMO_edge_flag_disable(bm, e, oflag) _bmo_elem_flag_disable(bm, _BMO_CAST_E(bm, e), oflag)
-#define BMO_edge_flag_set(bm, e, oflag, val) _bmo_elem_flag_set(bm, _BMO_CAST_E(bm, e), oflag, val)
-#define BMO_edge_flag_toggle(bm, e, oflag) _bmo_elem_flag_toggle(bm, _BMO_CAST_E(bm, e), oflag)
+  _bmo_elem_flag_test_bool(bm, _BMO_CAST_E_CONST(e)->oflags, oflag)
+#define BMO_edge_flag_enable(bm, e, oflag) _bmo_elem_flag_enable(bm, _BMO_CAST_E(e)->oflags, oflag)
+#define BMO_edge_flag_disable(bm, e, oflag) \
+  _bmo_elem_flag_disable(bm, _BMO_CAST_E(e)->oflags, oflag)
+#define BMO_edge_flag_set(bm, e, oflag, val) \
+  _bmo_elem_flag_set(bm, _BMO_CAST_E(e)->oflags, oflag, val)
+#define BMO_edge_flag_toggle(bm, e, oflag) _bmo_elem_flag_toggle(bm, _BMO_CAST_E(e)->oflags, oflag)
 
-#define BMO_face_flag_test(bm, e, oflag) _bmo_elem_flag_test(bm, _BMO_CAST_F_CONST(bm, e), oflag)
+#define BMO_face_flag_test(bm, e, oflag) \
+  _bmo_elem_flag_test(bm, _BMO_CAST_F_CONST(e)->oflags, oflag)
 #define BMO_face_flag_test_bool(bm, e, oflag) \
-  _bmo_elem_flag_test_bool(bm, _BMO_CAST_F_CONST(bm, e), oflag)
-#define BMO_face_flag_enable(bm, e, oflag) _bmo_elem_flag_enable(bm, _BMO_CAST_F(bm, e), oflag)
-#define BMO_face_flag_disable(bm, e, oflag) _bmo_elem_flag_disable(bm, _BMO_CAST_F(bm, e), oflag)
-#define BMO_face_flag_set(bm, e, oflag, val) _bmo_elem_flag_set(bm, _BMO_CAST_F(bm, e), oflag, val)
-#define BMO_face_flag_toggle(bm, e, oflag) _bmo_elem_flag_toggle(bm, _BMO_CAST_F(bm, e), oflag)
+  _bmo_elem_flag_test_bool(bm, _BMO_CAST_F_CONST(e)->oflags, oflag)
+#define BMO_face_flag_enable(bm, e, oflag) _bmo_elem_flag_enable(bm, _BMO_CAST_F(e)->oflags, oflag)
+#define BMO_face_flag_disable(bm, e, oflag) \
+  _bmo_elem_flag_disable(bm, _BMO_CAST_F(e)->oflags, oflag)
+#define BMO_face_flag_set(bm, e, oflag, val) \
+  _bmo_elem_flag_set(bm, _BMO_CAST_F(e)->oflags, oflag, val)
+#define BMO_face_flag_toggle(bm, e, oflag) _bmo_elem_flag_toggle(bm, _BMO_CAST_F(e)->oflags, oflag)
 
 BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, const BMFlagLayer *oflags, short oflag);
 BLI_INLINE bool _bmo_elem_flag_test_bool(BMesh *bm, const BMFlagLayer *oflags, short oflag);

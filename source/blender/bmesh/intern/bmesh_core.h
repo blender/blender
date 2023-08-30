@@ -23,12 +23,8 @@ typedef enum eBMCreateFlag {
    * use if we immediately write custom-data into the element so this skips copying from 'example'
    * arguments or setting defaults, speeds up conversion when data is converted all at once.
    */
-  BM_CREATE_SKIP_CD = (1 << 2), /* if true, you must call bm_elem_check_toolflags(bm, elem) later
-                                   if toolflags are on */
+  BM_CREATE_SKIP_CD = (1 << 2),
 } eBMCreateFlag;
-
-/* if toolflags are enabled, checks that internal pointer to toolflags it not null */
-void bm_elem_check_toolflags(BMesh *bm, BMElem *elem);
 
 /**
  * \brief Main function for creating a new vertex.

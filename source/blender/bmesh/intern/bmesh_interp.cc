@@ -36,29 +36,8 @@ using blender::float4;
 using blender::IndexRange;
 using blender::Vector;
 
-static void copy_cdata_simple(BMesh * /*bm*/,
-                              CustomData *data_layer,
-                              BMElem *ele_dst,
-                              const BMElem *ele_src)
-{
-  int cd_tflags;
-  MToolFlags saved_tflags = {0};
-  ;
-  if ((cd_tflags = CustomData_get_offset(data_layer, CD_TOOLFLAGS)) != -1) {
-    saved_tflags = *(MToolFlags *)BM_ELEM_CD_GET_VOID_P(ele_dst, cd_tflags);
-  }
-
-  CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
-  CustomData_bmesh_copy_data(data_layer, data_layer, ele_src->head.data, &ele_dst->head.data);
-
-  if (cd_tflags != -1) {
-    *(MToolFlags *)BM_ELEM_CD_GET_VOID_P(ele_dst, cd_tflags) = saved_tflags;
-  }
-}
-
 /* edge and vertex share, currently there's no need to have different logic */
-static void bm_data_interp_from_elem(BMesh *bm,
-                                     CustomData *data_layer,
+static void bm_data_interp_from_elem(CustomData *data_layer,
                                      const BMElem *ele_src_1,
                                      const BMElem *ele_src_2,
                                      BMElem *ele_dst,
@@ -71,7 +50,9 @@ static void bm_data_interp_from_elem(BMesh *bm,
         /* do nothing */
       }
       else {
-        copy_cdata_simple(bm, data_layer, ele_dst, ele_src_1);
+        CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
+        CustomData_bmesh_copy_data(
+            data_layer, data_layer, ele_src_1->head.data, &ele_dst->head.data);
       }
     }
     else if (fac >= 1.0f) {
@@ -79,7 +60,9 @@ static void bm_data_interp_from_elem(BMesh *bm,
         /* do nothing */
       }
       else {
-        copy_cdata_simple(bm, data_layer, ele_dst, ele_src_2);
+        CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
+        CustomData_bmesh_copy_data(
+            data_layer, data_layer, ele_src_2->head.data, &ele_dst->head.data);
       }
     }
     else {
@@ -99,14 +82,14 @@ void BM_data_interp_from_verts(
     BMesh *bm, const BMVert *v_src_1, const BMVert *v_src_2, BMVert *v_dst, const float fac)
 {
   bm_data_interp_from_elem(
-      bm, &bm->vdata, (const BMElem *)v_src_1, (const BMElem *)v_src_2, (BMElem *)v_dst, fac);
+      &bm->vdata, (const BMElem *)v_src_1, (const BMElem *)v_src_2, (BMElem *)v_dst, fac);
 }
 
 void BM_data_interp_from_edges(
     BMesh *bm, const BMEdge *e_src_1, const BMEdge *e_src_2, BMEdge *e_dst, const float fac)
 {
   bm_data_interp_from_elem(
-      bm, &bm->edata, (const BMElem *)e_src_1, (const BMElem *)e_src_2, (BMElem *)e_dst, fac);
+      &bm->edata, (const BMElem *)e_src_1, (const BMElem *)e_src_2, (BMElem *)e_dst, fac);
 }
 
 /**

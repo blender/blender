@@ -154,7 +154,6 @@ static bool recount_totsels_are_ok(BMesh *bm)
 static bool bm_vert_is_edge_select_any_other(const BMVert *v, const BMEdge *e_first)
 {
   const BMEdge *e_iter = e_first;
-  int i = 0;
 
   /* start by stepping over the current edge */
   while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first) {
@@ -162,7 +161,6 @@ static bool bm_vert_is_edge_select_any_other(const BMVert *v, const BMEdge *e_fi
       return true;
     }
   }
-
   return false;
 }
 

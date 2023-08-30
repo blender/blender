@@ -82,8 +82,6 @@ int bmesh_elem_check(void *element, char htype);
 int bmesh_radial_length(const BMLoop *l);
 int bmesh_disk_count_at_most(const BMVert *v, int count_max);
 int bmesh_disk_count(const BMVert *v);
-void bm_rebuild_idmap(BMesh *bm);
-void bm_alloc_toolflags_cdlayers(BMesh *bm, bool set_elems);
 
 /**
  * Internal BMHeader.api_flag

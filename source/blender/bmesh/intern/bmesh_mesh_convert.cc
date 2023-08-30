@@ -350,10 +350,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
       restore_cd_copy_flags(bmesh_domains, nocopy_layers);
     }
 
-    if (bm->use_toolflags) {
-      bm_alloc_toolflags_cdlayers(bm, true);
-    }
-
     return;
   }
 
@@ -465,21 +461,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
     }
   }
 
-  if (bm->use_toolflags) {
-    bm_alloc_toolflags_cdlayers(bm, !is_new);
-
-    if (!bm->vtoolflagpool) {
-      bm->vtoolflagpool = BLI_mempool_create(
-          sizeof(BMFlagLayer), bm->totvert, 512, BLI_MEMPOOL_NOP);
-      bm->etoolflagpool = BLI_mempool_create(
-          sizeof(BMFlagLayer), bm->totedge, 512, BLI_MEMPOOL_NOP);
-      bm->ftoolflagpool = BLI_mempool_create(
-          sizeof(BMFlagLayer), bm->totface, 512, BLI_MEMPOOL_NOP);
-
-      bm->totflags = 1;
-    }
-  }
-
   const Vector<MeshToBMeshLayerInfo> vert_info = mesh_to_bm_copy_info_calc(mesh_vdata, bm->vdata);
   const Vector<MeshToBMeshLayerInfo> edge_info = mesh_to_bm_copy_info_calc(mesh_edata, bm->edata);
   const Vector<MeshToBMeshLayerInfo> poly_info = mesh_to_bm_copy_info_calc(mesh_pdata, bm->pdata);
@@ -540,8 +521,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
 
     mesh_attributes_copy_to_bmesh_block(bm->vdata, vert_info, i, v->head);
 
-    bm_elem_check_toolflags(bm, reinterpret_cast<BMElem *>(v));
-
     /* Set shape key original index. */
     if (cd_shape_keyindex_offset != -1) {
       BM_ELEM_CD_SET_INT(v, cd_shape_keyindex_offset, i);
@@ -582,7 +561,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
 
     /* Copy Custom Data */
     mesh_attributes_copy_to_bmesh_block(bm->edata, edge_info, i, e->head);
-    bm_elem_check_toolflags(bm, reinterpret_cast<BMElem *>(e));
   }
   if (is_new) {
     bm->elem_index_dirty &= ~BM_EDGE; /* Added in order, clear dirty flag. */
@@ -649,7 +627,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
     } while ((l_iter = l_iter->next) != l_first);
 
     mesh_attributes_copy_to_bmesh_block(bm->pdata, poly_info, i, f->head);
-    bm_elem_check_toolflags(bm, reinterpret_cast<BMElem *>(f));
 
     if (params->calc_face_normal) {
       BM_face_normal_update(f);
@@ -1191,7 +1168,7 @@ static Vector<BMeshToMeshLayerInfo> bm_to_mesh_copy_info_calc(const CustomData &
     info.n = per_type_index[type];
     info.bmesh_offset = bm_layer.offset;
     info.mesh_data = mesh_layer.data;
-    info.elem_size = CustomData_sizeof(type);
+    info.elem_size = CustomData_get_elem_size(&mesh_layer);
     infos.append(info);
 
     per_type_index[type]++;

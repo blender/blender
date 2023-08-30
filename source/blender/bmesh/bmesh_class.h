@@ -103,6 +103,11 @@ typedef struct BMVert {
   struct BMEdge *e;
 } BMVert;
 
+typedef struct BMVert_OFlag {
+  BMVert base;
+  struct BMFlagLayer *oflags;
+} BMVert_OFlag;
+
 /* disk link structure, only used by edges */
 typedef struct BMDiskLink {
   struct BMEdge *next, *prev;
@@ -136,6 +141,11 @@ typedef struct BMEdge {
    */
   BMDiskLink v1_disk_link, v2_disk_link;
 } BMEdge;
+
+typedef struct BMEdge_OFlag {
+  BMEdge base;
+  struct BMFlagLayer *oflags;
+} BMEdge_OFlag;
 
 typedef struct BMLoop {
   BMHeader head;
@@ -278,6 +288,11 @@ typedef struct BMFace {
   //  short _pad[3];
 } BMFace;
 
+typedef struct BMFace_OFlag {
+  BMFace base;
+  struct BMFlagLayer *oflags;
+} BMFace_OFlag;
+
 typedef struct BMFlagLayer {
   short f; /* flags */
 } BMFlagLayer;
@@ -412,10 +427,12 @@ enum {
 
 /* args for _Generic */
 #define _BM_GENERIC_TYPE_ELEM_NONCONST \
-  void *, BMVert *, BMEdge *, BMLoop *, BMFace *, BMElem *, BMElemF *, BMHeader *
+  void *, BMVert *, BMEdge *, BMLoop *, BMFace *, BMVert_OFlag *, BMEdge_OFlag *, BMFace_OFlag *, \
+      BMElem *, BMElemF *, BMHeader *
 
 #define _BM_GENERIC_TYPE_ELEM_CONST \
-  const void *, const BMVert *, const BMEdge *, const BMLoop *, const BMFace *, const BMElem *, \
+  const void *, const BMVert *, const BMEdge *, const BMLoop *, const BMFace *, \
+      const BMVert_OFlag *, const BMEdge_OFlag *, const BMFace_OFlag *, const BMElem *, \
       const BMElemF *, const BMHeader *
 
 #define BM_CHECK_TYPE_ELEM_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPES_CONST)
@@ -426,22 +443,22 @@ enum {
   CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST, _BM_GENERIC_TYPE_ELEM_CONST)
 
 /* vert */
-#define _BM_GENERIC_TYPE_VERT_NONCONST BMVert *
-#define _BM_GENERIC_TYPE_VERT_CONST const BMVert *
+#define _BM_GENERIC_TYPE_VERT_NONCONST BMVert *, BMVert_OFlag *
+#define _BM_GENERIC_TYPE_VERT_CONST const BMVert *, const BMVert_OFlag *
 #define BM_CHECK_TYPE_VERT_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_VERT_CONST)
 #define BM_CHECK_TYPE_VERT_NONCONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST)
 #define BM_CHECK_TYPE_VERT(ele) \
   CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_VERT_NONCONST, _BM_GENERIC_TYPE_VERT_CONST)
 /* edge */
-#define _BM_GENERIC_TYPE_EDGE_NONCONST BMEdge *
-#define _BM_GENERIC_TYPE_EDGE_CONST const BMEdge *
+#define _BM_GENERIC_TYPE_EDGE_NONCONST BMEdge *, BMEdge_OFlag *
+#define _BM_GENERIC_TYPE_EDGE_CONST const BMEdge *, const BMEdge_OFlag *
 #define BM_CHECK_TYPE_EDGE_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_EDGE_CONST)
 #define BM_CHECK_TYPE_EDGE_NONCONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST)
 #define BM_CHECK_TYPE_EDGE(ele) \
   CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_EDGE_NONCONST, _BM_GENERIC_TYPE_EDGE_CONST)
 /* face */
-#define _BM_GENERIC_TYPE_FACE_NONCONST BMFace *
-#define _BM_GENERIC_TYPE_FACE_CONST const BMFace *
+#define _BM_GENERIC_TYPE_FACE_NONCONST BMFace *, BMFace_OFlag *
+#define _BM_GENERIC_TYPE_FACE_CONST const BMFace *, const BMFace_OFlag *
 #define BM_CHECK_TYPE_FACE_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_FACE_CONST)
 #define BM_CHECK_TYPE_FACE_NONCONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST)
 #define BM_CHECK_TYPE_FACE(ele) \
@@ -543,17 +560,6 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
     (BLI_assert(offset != -1), (void *)((char *)(ele)->head.data + (offset)))
 #endif
 
-#ifdef __cplusplus
-}
-
-template<typename Tptr, typename ElemType> inline Tptr BM_ELEM_CD_PTR(ElemType e, int offset)
-{
-  return reinterpret_cast<Tptr>(BM_ELEM_CD_GET_VOID_P(e, offset));
-}
-
-extern "C" {
-#endif
-
 #define BM_ELEM_CD_SET_FLOAT(ele, offset, f) \
   { \
     CHECK_TYPE_NONCONST(ele); \
@@ -625,6 +631,17 @@ extern "C" {
 
 #define BM_ELEM_CD_GET_FLOAT_AS_UCHAR(ele, offset) \
   (BLI_assert(offset != -1), (uchar)(BM_ELEM_CD_GET_FLOAT(ele, offset) * 255.0f))
+
+#ifdef __cplusplus
+}
+
+template<typename Tptr, typename ElemType> inline Tptr BM_ELEM_CD_PTR(ElemType e, int offset)
+{
+  return reinterpret_cast<Tptr>(BM_ELEM_CD_GET_VOID_P(e, offset));
+}
+
+extern "C" {
+#endif
 
 /* Forward declarations. */
 

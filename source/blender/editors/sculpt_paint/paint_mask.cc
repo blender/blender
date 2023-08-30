@@ -52,8 +52,8 @@
 #include "ED_sculpt.hh"
 #include "ED_view3d.hh"
 
-#include "bmesh_idmap.h"
 #include "bmesh.h"
+#include "bmesh_idmap.h"
 #include "tools/bmesh_boolean.h"
 
 #include "paint_intern.hh"
@@ -1416,22 +1416,24 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   Mesh *trim_mesh = trim_operation->mesh;
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
-  BMeshCreateParams create_params = {0};
-  create_params.use_toolflags = true;
+  BMeshCreateParams create_params = {};
+  create_params.use_toolflags = false;
 
-  BMeshFromMeshParams convert_params = {0};
+  BMeshFromMeshParams convert_params = {};
   convert_params.calc_face_normal = true;
 
   BMesh *bm;
 
   if (ss->bm) {
     bm = BM_mesh_copy(ss->bm);
-    BM_mesh_toolflags_set(bm, true);
   }
   else {
     bm = BM_mesh_create(&allocsize, &create_params);
     BM_mesh_bm_from_me(bm, sculpt_mesh, &convert_params);
   }
+
+  BM_mesh_toolflags_set(bm, true);
+  BM_mesh_elem_toolflags_ensure(bm);
 
   BMIter iter;
   BMFace *efa;
@@ -1444,8 +1446,9 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   convert_params.calc_face_normal = convert_params.calc_vert_normal = true;
   BM_mesh_bm_from_me(trimbm, trim_mesh, &convert_params);
-
   BM_mesh_normals_update(bm);
+
+  BM_mesh_toolflags_set(trimbm, true);
 
   /* Add trim geometry to bm. */
   BMO_op_callf(trimbm, BMO_FLAG_DEFAULTS, "duplicate geom=%avef dest=%p", bm, 3);

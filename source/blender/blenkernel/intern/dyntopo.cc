@@ -70,31 +70,18 @@ using namespace blender::bke::sculpt;
 
 /* Executes a simple pointer swap;
  * if an element ID attribute exists (cd_id_offset is not -1)
- * it will unswap IDs. CD_TOOLFLAGS layer is also unswapped
- * if it exists.
+ * it will unswap IDs.
  */
 static void bmesh_swap_data_simple(CustomData *data, void **block1, void **block2, int cd_id)
 {
   std::swap(*block1, *block2);
 
-  int cd_toolflags = data->typemap[CD_TOOLFLAGS];
-  cd_toolflags = cd_toolflags != -1 ? data->layers[cd_toolflags].offset : -1;
+  /* Unswap element IDs if they exist. */
+  if (cd_id != -1 && *block1 && *block2) {
+    int *id1 = static_cast<int *>(POINTER_OFFSET(*block1, cd_id));
+    int *id2 = static_cast<int *>(POINTER_OFFSET(*block2, cd_id));
 
-  /* Unswap toolflags and/or element IDs if they exist */
-  if (*block1 && *block2) {
-    if (cd_toolflags != -1) {
-      MToolFlags *flags1 = static_cast<MToolFlags *>(POINTER_OFFSET(*block1, cd_toolflags));
-      MToolFlags *flags2 = static_cast<MToolFlags *>(POINTER_OFFSET(*block2, cd_toolflags));
-
-      std::swap(*flags1, *flags2);
-    }
-
-    if (cd_id != -1) {
-      int *id1 = static_cast<int *>(POINTER_OFFSET(*block1, cd_id));
-      int *id2 = static_cast<int *>(POINTER_OFFSET(*block2, cd_id));
-
-      std::swap(*id1, *id2);
-    }
+    std::swap(*id1, *id2);
   }
 }
 

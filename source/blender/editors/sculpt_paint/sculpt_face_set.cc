@@ -57,8 +57,8 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "bmesh_idmap.h"
 #include "bmesh.h"
+#include "bmesh_idmap.h"
 
 using blender::Array;
 using blender::float3;
@@ -1353,16 +1353,9 @@ static void sculpt_face_set_delete_geometry(Object *ob,
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   BMesh *bm;
 
-  if (ss->bm) {
-    bm = ss->bm;
-    BM_mesh_toolflags_set(bm, true);
-    BM_idmap_check_attributes(ss->bm_idmap);
-    BKE_sculptsession_update_attr_refs(ob);
-  }
-  else {
+  if (!ss->bm) {
     const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
     BMeshCreateParams create_params{};
-    create_params.use_toolflags = true;
 
     bm = BM_mesh_create(&allocsize, &create_params);
 
@@ -1371,6 +1364,9 @@ static void sculpt_face_set_delete_geometry(Object *ob,
     convert_params.calc_face_normal = true;
 
     BM_mesh_bm_from_me(bm, mesh, &convert_params);
+  }
+  else {
+    bm = ss->bm;
   }
 
   int cd_fset_offset = CustomData_get_offset_named(
@@ -1403,11 +1399,7 @@ static void sculpt_face_set_delete_geometry(Object *ob,
 
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
-  if (ss->bm) {
-    BM_mesh_toolflags_set(bm, false);
-    BM_idmap_check_attributes(ss->bm_idmap);
-  }
-  else {
+  if (!ss->bm) {
     BMeshToMeshParams bmesh_to_mesh_params{};
     bmesh_to_mesh_params.calc_object_remap = false;
     BM_mesh_bm_to_me(nullptr, bm, mesh, &bmesh_to_mesh_params);

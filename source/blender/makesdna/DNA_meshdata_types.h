@@ -506,11 +506,6 @@ typedef enum eSculptFlag {
   SCULPTFLAG_PBVH_BOUNDARY = (1 << 5),
 } eSculptFlag;
 
-/* for internal bmesh toolflags api */
-typedef struct MToolFlags {
-  short *flag;
-} MToolFlags;
-
 #ifdef __cplusplus
 }
 #endif

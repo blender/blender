@@ -4521,7 +4521,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
       for (int i = 0; i < 4; i++, data++) {
         for (int j = 0; j < data->totlayer; j++) {
-          /* CD_TOOLFLAGS used to be CD_MESH_ID. */
+          /* CD_PROP_QUATERNION used to be CD_MESH_ID. */
           if (data->layers[j].type == 52) {
             CustomData_free_layer(data, eCustomDataType(52), 0, j);
             j--;

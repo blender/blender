@@ -51,8 +51,6 @@ static BMVert *bmo_vert_copy(BMOperator *op,
   /* Copy attributes */
   BM_elem_attrs_copy(bm_src, bm_dst, v_src, v_dst);
 
-  bm_elem_check_toolflags(bm_dst, (BMElem *)v_dst);
-
   /* Mark the vert for output */
   BMO_vert_flag_enable(bm_dst, v_dst, DUPE_NEW);
 
@@ -115,8 +113,6 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
   /* Copy attributes */
   BM_elem_attrs_copy(bm_src, bm_dst, e_src, e_dst);
 
-  bm_elem_check_toolflags(bm_dst, (BMElem *)e_dst);
-
   /* Mark the edge for output */
   BMO_edge_flag_enable(bm_dst, e_dst, DUPE_NEW);
 
@@ -168,8 +164,6 @@ static BMFace *bmo_face_copy(BMOperator *op,
 
   /* Copy attributes */
   BM_elem_attrs_copy(bm_src, bm_dst, f_src, f_dst);
-
-  bm_elem_check_toolflags(bm_dst, (BMElem *)f_dst);
 
   /* copy per-loop custom data */
   l_iter_src = l_first_src;

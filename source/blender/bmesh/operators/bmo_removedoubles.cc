@@ -279,12 +279,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
             bmesh_face_swap_data(f_new, f);
 
             if (bm->use_toolflags) {
-              MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
-                  f, bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset);
-              MToolFlags *flags_new = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
-                  f_new, bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset);
-
-              SWAP(short *, flags->flag, flags_new->flag);
+              SWAP(BMFlagLayer *, ((BMFace_OFlag *)f)->oflags, ((BMFace_OFlag *)f_new)->oflags);
             }
 
             BMO_face_flag_disable(bm, f, ELE_DEL);

@@ -8,7 +8,6 @@
  * \ingroup bmesh
  */
 
-#include "BLI_compiler_compat.h"
 #include "bmesh_class.h"
 
 #ifdef __cplusplus
@@ -210,6 +209,7 @@ void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
                                          const float (*vert_coords)[3],
                                          const float mat[4][4]);
 
+/* Returns true if elem is freed.  ASAN-safe. */
 bool BM_elem_is_free(BMElem *elem, int htype);
 
 #ifdef __cplusplus

@@ -85,8 +85,7 @@ typedef struct CustomData {
    * MUST be >= CD_NUMTYPES, but we can't use a define here.
    * Correct size is ensured in CustomData_update_typemap assert().
    */
-  int typemap[54];
-  int _pad0[1];
+  int typemap[53];
 
   /** Number of layers, size of layers array. */
   int totlayer, maxlayer;
@@ -184,9 +183,8 @@ typedef enum eCustomDataType {
   /* CD_HAIRLENGTH = 51, */ /* UNUSED */
 
   CD_PROP_QUATERNION = 52,
-  CD_TOOLFLAGS = 53,
 
-  CD_NUMTYPES = 54,
+  CD_NUMTYPES = 53,
 } eCustomDataType;
 
 /* Bits for eCustomDataMask */
@@ -228,7 +226,6 @@ typedef enum eCustomDataType {
 #define CD_MASK_PROP_INT8 (1ULL << CD_PROP_INT8)
 #define CD_MASK_PROP_INT32_2D (1ULL << CD_PROP_INT32_2D)
 #define CD_MASK_PROP_QUATERNION (1ULL << CD_PROP_QUATERNION)
-#define CD_MASK_TOOLFLAGS (1ULL << CD_TOOLFLAGS)
 
 /** Multi-resolution loop data. */
 #define CD_MASK_MULTIRES_GRIDS (CD_MASK_MDISPS | CD_GRID_PAINT_MASK)
