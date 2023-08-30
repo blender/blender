@@ -776,7 +776,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       /* Curve. */
       custom_curve = brush->gpencil_settings->curve_sensitivity;
-      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f);
+      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
       BKE_curvemapping_init(custom_curve);
       brush_gpencil_curvemap_reset(custom_curve->cm, 3, GPCURVE_PRESET_INK);
 
@@ -813,7 +813,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       /* Curve. */
       custom_curve = brush->gpencil_settings->curve_sensitivity;
-      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f);
+      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
       BKE_curvemapping_init(custom_curve);
       brush_gpencil_curvemap_reset(custom_curve->cm, 3, GPCURVE_PRESET_INKNOISE);
 
@@ -850,7 +850,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       /* Curve. */
       custom_curve = brush->gpencil_settings->curve_sensitivity;
-      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f);
+      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
       BKE_curvemapping_init(custom_curve);
       brush_gpencil_curvemap_reset(custom_curve->cm, 4, GPCURVE_PRESET_MARKER);
 
@@ -886,12 +886,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       /* Curve. */
       custom_curve = brush->gpencil_settings->curve_sensitivity;
-      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f);
+      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
       BKE_curvemapping_init(custom_curve);
       brush_gpencil_curvemap_reset(custom_curve->cm, 3, GPCURVE_PRESET_CHISEL_SENSIVITY);
 
       custom_curve = brush->gpencil_settings->curve_strength;
-      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f);
+      BKE_curvemapping_set_defaults(custom_curve, 0, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
       BKE_curvemapping_init(custom_curve);
       brush_gpencil_curvemap_reset(custom_curve->cm, 4, GPCURVE_PRESET_CHISEL_STRENGTH);
 

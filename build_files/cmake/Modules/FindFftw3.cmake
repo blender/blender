@@ -37,7 +37,18 @@ find_path(FFTW3_INCLUDE_DIR
     include
 )
 
-find_library(FFTW3_LIBRARY
+set(_FFTW3_LIBRARIES)
+
+find_library(FFTW3_LIBRARY_F
+  NAMES
+    fftw3f
+  HINTS
+    ${_fftw3_SEARCH_DIRS}
+  PATH_SUFFIXES
+    lib64 lib
+  )
+
+find_library(FFTW3_LIBRARY_D
   NAMES
     fftw3
   HINTS
@@ -46,16 +57,21 @@ find_library(FFTW3_LIBRARY
     lib64 lib
   )
 
+list(APPEND _FFTW3_LIBRARIES "${FFTW3_LIBRARY_F}")
+list(APPEND _FFTW3_LIBRARIES "${FFTW3_LIBRARY_D}")
+
 # handle the QUIETLY and REQUIRED arguments and set FFTW3_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Fftw3 DEFAULT_MSG
-    FFTW3_LIBRARY FFTW3_INCLUDE_DIR)
+    _FFTW3_LIBRARIES FFTW3_INCLUDE_DIR)
 
 if(FFTW3_FOUND)
-  set(FFTW3_LIBRARIES ${FFTW3_LIBRARY})
+  set(FFTW3_LIBRARIES ${_FFTW3_LIBRARIES})
   set(FFTW3_INCLUDE_DIRS ${FFTW3_INCLUDE_DIR})
 endif()
+
+unset(_FFTW3_LIBRARIES)
 
 mark_as_advanced(
   FFTW3_INCLUDE_DIR

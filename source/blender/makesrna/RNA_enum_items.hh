@@ -45,6 +45,8 @@ DEF_ENUM(rna_enum_object_modifier_type_items)
 DEF_ENUM(rna_enum_constraint_type_items)
 DEF_ENUM(rna_enum_boidrule_type_items)
 DEF_ENUM(rna_enum_sequence_modifier_type_items)
+DEF_ENUM(rna_enum_sequence_video_modifier_type_items)
+DEF_ENUM(rna_enum_sequence_sound_modifier_type_items)
 DEF_ENUM(rna_enum_object_greasepencil_modifier_type_items)
 DEF_ENUM(rna_enum_object_shaderfx_type_items)
 

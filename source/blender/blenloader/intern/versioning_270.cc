@@ -999,7 +999,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_elem_find(fd->filesdna, "RenderData", "CurveMapping", "mblur_shutter_curve")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         CurveMapping *curve_mapping = &scene->r.mblur_shutter_curve;
-        BKE_curvemapping_set_defaults(curve_mapping, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+        BKE_curvemapping_set_defaults(curve_mapping, 1, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
         BKE_curvemapping_init(curve_mapping);
         BKE_curvemap_reset(
             curve_mapping->cm, &curve_mapping->clipr, CURVE_PRESET_MAX, CURVEMAP_SLOPE_POS_NEG);

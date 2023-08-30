@@ -789,6 +789,11 @@ void BKE_sound_update_scene_sound(void *handle, bSound *sound)
   AUD_SequenceEntry_setSound(handle, sound->playback_handle);
 }
 
+void BKE_sound_update_sequence_handle(void *handle, void *sound_handle)
+{
+  AUD_SequenceEntry_setSound(handle, sound_handle);
+}
+
 void BKE_sound_set_cfra(int cfra)
 {
   sound_cfra = cfra;
