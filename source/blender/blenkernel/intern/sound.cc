@@ -789,10 +789,18 @@ void BKE_sound_update_scene_sound(void *handle, bSound *sound)
   AUD_SequenceEntry_setSound(handle, sound->playback_handle);
 }
 
+#endif /* WITH_AUDASPACE */
+
 void BKE_sound_update_sequence_handle(void *handle, void *sound_handle)
 {
+#ifdef WITH_AUDASPACE
   AUD_SequenceEntry_setSound(handle, sound_handle);
+#else
+  UNUSED_VARS(handle, sound_handle);
+#endif
 }
+
+#ifdef WITH_AUDASPACE
 
 void BKE_sound_set_cfra(int cfra)
 {

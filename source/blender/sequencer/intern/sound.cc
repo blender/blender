@@ -29,7 +29,9 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "AUD_Sound.h"
+#ifdef WITH_AUDASPACE
+#  include "AUD_Sound.h"
+#endif
 
 #include "SEQ_sound.h"
 #include "SEQ_time.h"
@@ -267,6 +269,7 @@ void *SEQ_sound_equalizermodifier_recreator(struct Sequence *seq,
                                             struct SequenceModifierData *smd,
                                             void *sound)
 {
+#ifdef WITH_AUDASPACE
   UNUSED_VARS(seq);
 
   SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
@@ -319,6 +322,10 @@ void *SEQ_sound_equalizermodifier_recreator(struct Sequence *seq,
   MEM_freeN(buf);
 
   return equ;
+#else
+  UNUSED_VARS(seq, smd, sound);
+  return nullptr;
+#endif
 }
 
 const struct SoundModifierWorkerInfo *SEQ_sound_modifier_worker_info_get(int type)
