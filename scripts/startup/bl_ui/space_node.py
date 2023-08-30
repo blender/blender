@@ -906,6 +906,7 @@ class NODE_PT_node_tree_interface(Panel):
         active_item = tree.interface.active
         if active_item is not None:
             layout.use_property_split = True
+            layout.use_property_decorate = False
 
             if active_item.item_type == 'SOCKET':
                 layout.prop(active_item, "socket_type", text="Type")
