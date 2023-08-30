@@ -2251,96 +2251,74 @@ static eSnapMode snapCurve(SnapObjectContext *sctx,
   bool skip_selected = params->snap_target_select & SCE_SNAP_TARGET_NOT_SELECTED;
 
   LISTBASE_FOREACH (Nurb *, nu, (use_obedit ? &cu->editnurb->nurbs : &cu->nurb)) {
-    for (int u = 0; u < nu->pntsu; u++) {
-      if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
+    if (nu->bezt) {
+      for (int u : blender::IndexRange(nu->pntsu)) {
         if (use_obedit) {
-          if (nu->bezt) {
-            if (nu->bezt[u].hide) {
-              /* Skip hidden. */
-              continue;
-            }
-
-            bool is_selected = (nu->bezt[u].f2 & SELECT) != 0;
-            if (is_selected && skip_selected) {
-              continue;
-            }
-            has_snap |= test_projected_vert_dist(&neasrest_precalc,
-                                                 clip_planes_local,
-                                                 clip_plane_len,
-                                                 is_persp,
-                                                 nu->bezt[u].vec[1],
-                                                 &dist_px_sq,
-                                                 r_loc);
-
-            /* Don't snap if handle is selected (moving),
-             * or if it is aligning to a moving handle. */
-            bool is_selected_h1 = (nu->bezt[u].f1 & SELECT) != 0;
-            bool is_selected_h2 = (nu->bezt[u].f3 & SELECT) != 0;
-            bool is_autoalign_h1 = (nu->bezt[u].h1 & HD_ALIGN) != 0;
-            bool is_autoalign_h2 = (nu->bezt[u].h2 & HD_ALIGN) != 0;
-            if (!skip_selected || !(is_selected_h1 || (is_autoalign_h1 && is_selected_h2))) {
-              has_snap |= test_projected_vert_dist(&neasrest_precalc,
-                                                   clip_planes_local,
-                                                   clip_plane_len,
-                                                   is_persp,
-                                                   nu->bezt[u].vec[0],
-                                                   &dist_px_sq,
-                                                   r_loc);
-            }
-
-            if (!skip_selected || !(is_selected_h2 || (is_autoalign_h2 && is_selected_h1))) {
-              has_snap |= test_projected_vert_dist(&neasrest_precalc,
-                                                   clip_planes_local,
-                                                   clip_plane_len,
-                                                   is_persp,
-                                                   nu->bezt[u].vec[2],
-                                                   &dist_px_sq,
-                                                   r_loc);
-            }
+          if (nu->bezt[u].hide) {
+            /* Skip hidden. */
+            continue;
           }
-          else {
-            if (nu->bp[u].hide) {
-              /* Skip hidden. */
-              continue;
-            }
 
-            bool is_selected = (nu->bp[u].f1 & SELECT) != 0;
-            if (is_selected && skip_selected) {
-              continue;
-            }
+          bool is_selected = (nu->bezt[u].f2 & SELECT) != 0;
+          if (is_selected && skip_selected) {
+            continue;
+          }
 
+          /* Don't snap if handle is selected (moving),
+            * or if it is aligning to a moving handle. */
+          bool is_selected_h1 = (nu->bezt[u].f1 & SELECT) != 0;
+          bool is_selected_h2 = (nu->bezt[u].f3 & SELECT) != 0;
+          bool is_autoalign_h1 = (nu->bezt[u].h1 & HD_ALIGN) != 0;
+          bool is_autoalign_h2 = (nu->bezt[u].h2 & HD_ALIGN) != 0;
+          if (!skip_selected || !(is_selected_h1 || (is_autoalign_h1 && is_selected_h2))) {
             has_snap |= test_projected_vert_dist(&neasrest_precalc,
-                                                 clip_planes_local,
-                                                 clip_plane_len,
-                                                 is_persp,
-                                                 nu->bp[u].vec,
-                                                 &dist_px_sq,
-                                                 r_loc);
+                                                  clip_planes_local,
+                                                  clip_plane_len,
+                                                  is_persp,
+                                                  nu->bezt[u].vec[0],
+                                                  &dist_px_sq,
+                                                  r_loc);
+          }
+
+          if (!skip_selected || !(is_selected_h2 || (is_autoalign_h2 && is_selected_h1))) {
+            has_snap |= test_projected_vert_dist(&neasrest_precalc,
+                                                  clip_planes_local,
+                                                  clip_plane_len,
+                                                  is_persp,
+                                                  nu->bezt[u].vec[2],
+                                                  &dist_px_sq,
+                                                  r_loc);
           }
         }
-        else {
-          /* Curve is not visible outside editmode if nurb length less than two. */
-          if (nu->pntsu > 1) {
-            if (nu->bezt) {
-              has_snap |= test_projected_vert_dist(&neasrest_precalc,
-                                                   clip_planes_local,
-                                                   clip_plane_len,
-                                                   is_persp,
-                                                   nu->bezt[u].vec[1],
-                                                   &dist_px_sq,
-                                                   r_loc);
-            }
-            else {
-              has_snap |= test_projected_vert_dist(&neasrest_precalc,
-                                                   clip_planes_local,
-                                                   clip_plane_len,
-                                                   is_persp,
-                                                   nu->bp[u].vec,
-                                                   &dist_px_sq,
-                                                   r_loc);
-            }
+        has_snap |= test_projected_vert_dist(&neasrest_precalc,
+                                              clip_planes_local,
+                                              clip_plane_len,
+                                              is_persp,
+                                              nu->bezt[u].vec[1],
+                                              &dist_px_sq,
+                                              r_loc);
+      }
+    }
+    else if (nu->bp) {
+      for (int u : blender::IndexRange(nu->pntsu * nu->pntsv)) {
+        if (use_obedit) {
+          if (nu->bp[u].hide) {
+            /* Skip hidden. */
+            continue;
+          }
+
+          bool is_selected = (nu->bp[u].f1 & SELECT) != 0;
+          if (is_selected && skip_selected) {
+            continue;
           }
         }
+        has_snap |= test_projected_vert_dist(&neasrest_precalc,
+                                             clip_planes_local,
+                                             clip_plane_len,
+                                             is_persp,
+                                             nu->bp[u].vec,
+                                             &dist_px_sq,
+                                             r_loc);
       }
     }
   }
