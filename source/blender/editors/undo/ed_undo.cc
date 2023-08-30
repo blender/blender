@@ -172,7 +172,8 @@ static void ed_undo_step_pre(bContext *C,
 
   if (G.debug & G_DEBUG_IO) {
     if (bmain->lock != nullptr) {
-      BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* undo step");
+      BKE_report(
+          reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* undo step");
       BLO_main_validate_libraries(bmain, reports);
     }
   }
@@ -237,7 +238,7 @@ static void ed_undo_step_post(bContext *C,
 
   if (G.debug & G_DEBUG_IO) {
     if (bmain->lock != nullptr) {
-      BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* undo step");
+      BKE_report(reports, RPT_INFO, "Checking validity of current .blend file *AFTER* undo step");
       BLO_main_validate_libraries(bmain, reports);
     }
   }
