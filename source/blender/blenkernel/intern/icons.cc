@@ -310,9 +310,7 @@ void BKE_previewimg_free(PreviewImage **prv)
       PreviewImageDeferred &this_deferred = PreviewImageDeferred::from_base(**prv);
       std::destroy_at(&this_deferred.filepath);
     }
-    else {
-      MEM_delete(*prv);
-    }
+    MEM_delete(*prv);
     *prv = nullptr;
   }
 }
