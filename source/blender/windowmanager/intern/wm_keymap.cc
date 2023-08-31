@@ -1846,26 +1846,12 @@ void WM_keyconfig_update(wmWindowManager *wm)
   }
 
   if (wm_keymap_update_flag & WM_KEYMAP_UPDATE_OPERATORTYPE) {
-    /* an operatortype has been removed, this won't happen often
-     * but when it does we have to check _every_ keymap item */
-    ListBase *keymaps_lb[] = {
-        &U.user_keymaps,
-        &wm->userconf->keymaps,
-        &wm->defaultconf->keymaps,
-        &wm->addonconf->keymaps,
-        nullptr,
-    };
-
-    int i;
-
-    for (i = 0; keymaps_lb[i]; i++) {
-      wm_keymap_item_properties_update_ot_from_list(keymaps_lb[i]);
-    }
-
+    /* One or more operator-types have been removed, this won't happen often
+     * but when it does we have to check _every_ key-map item. */
+    wm_keymap_item_properties_update_ot_from_list(&U.user_keymaps);
     LISTBASE_FOREACH (wmKeyConfig *, kc, &wm->keyconfigs) {
       wm_keymap_item_properties_update_ot_from_list(&kc->keymaps);
     }
-
     wm_keymap_update_flag &= ~WM_KEYMAP_UPDATE_OPERATORTYPE;
   }
 
