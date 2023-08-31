@@ -1162,8 +1162,8 @@ void GRAPH_OT_blend_to_ease(wmOperatorType *ot)
                        0.0f,
                        -FLT_MAX,
                        FLT_MAX,
-                       "Curve Bend",
-                       "Control the bend of the curve",
+                       "Blend",
+                       "Favor either original data or ease curve",
                        -1.0f,
                        1.0f);
 }
