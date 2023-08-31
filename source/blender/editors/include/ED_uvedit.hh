@@ -41,6 +41,17 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf);
  */
 void ED_uvedit_select_all(BMesh *bm);
 
+void ED_uvedit_foreach_uv(const Scene *scene,
+                          BMesh *bm,
+                          const bool skip_invisible,
+                          const bool selected,
+                          blender::FunctionRef<void(float[2])> user_fn);
+void ED_uvedit_foreach_uv_multi(const Scene *scene,
+                                Object **objects_edit,
+                                uint objects_len,
+                                const bool skip_invisible,
+                                const bool skip_nonselected,
+                                blender::FunctionRef<void(float[2])> user_fn);
 bool ED_uvedit_minmax_multi(
     const Scene *scene, Object **objects_edit, uint objects_len, float r_min[2], float r_max[2]);
 bool ED_uvedit_center_multi(
