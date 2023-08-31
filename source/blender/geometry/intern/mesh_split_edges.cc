@@ -115,7 +115,7 @@ static BitVector<> selection_to_bit_vector(const IndexMask &selection, const int
 /**
  * Used for fanning around the corners connected to a vertex.
  *
- * Depending on the winding direction of neighboring faces, travelling from a corner across an edge
+ * Depending on the winding direction of neighboring faces, traveling from a corner across an edge
  * to a different face can give a corner that uses a different vertex than the original. To find
  * the face's corner that uses the original vertex, we may have to use the next corner instead.
  */
