@@ -226,11 +226,6 @@ bool ED_uvedit_minmax_multi(
   return changed;
 }
 
-bool ED_uvedit_minmax(const Scene *scene, Object *obedit, float r_min[2], float r_max[2])
-{
-  return ED_uvedit_minmax_multi(scene, &obedit, 1, r_min, r_max);
-}
-
 void ED_uvedit_select_all(BMesh *bm)
 {
   BMFace *efa;
@@ -340,12 +335,6 @@ bool ED_uvedit_center_from_pivot_ex(SpaceImage *sima,
     }
   }
   return changed;
-}
-
-bool ED_uvedit_center_from_pivot(
-    SpaceImage *sima, Scene *scene, ViewLayer *view_layer, float r_center[2], char mode)
-{
-  return ED_uvedit_center_from_pivot_ex(sima, scene, view_layer, r_center, mode, nullptr);
 }
 
 /** \} */

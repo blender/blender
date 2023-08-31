@@ -36,7 +36,6 @@ void ED_operatortypes_uvedit();
 void ED_operatormacros_uvedit();
 void ED_keymap_uvedit(wmKeyConfig *keyconf);
 
-bool ED_uvedit_minmax(const Scene *scene, Object *obedit, float min[2], float max[2]);
 /**
  * Be careful when using this, it bypasses all synchronization options.
  */
@@ -53,8 +52,6 @@ bool ED_uvedit_center_from_pivot_ex(SpaceImage *sima,
                                     float r_center[2],
                                     char mode,
                                     bool *r_has_select);
-bool ED_uvedit_center_from_pivot(
-    SpaceImage *sima, Scene *scene, ViewLayer *view_layer, float r_center[2], char mode);
 
 bool ED_object_get_active_image(Object *ob,
                                 int mat_nr,
