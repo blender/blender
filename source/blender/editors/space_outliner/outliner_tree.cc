@@ -383,12 +383,12 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else {
     /* Other cases must be caught above. */
     BLI_assert(TSE_IS_REAL_ID(tselem));
+    BLI_assert_msg(te->abstract_element != nullptr,
+                   "Element type should use `AbstractTreeElement` to for correct initialization "
+                   "of its `TreeElement` data");
 
     /* The new type design sets the name already, don't override that here. We need to figure out
      * how to deal with the idcode for non-TSE_SOME_ID types still. Some rely on it... */
-    if (!te->abstract_element) {
-      te->name = id->name + 2; /* Default, can be overridden by Library or non-ID data. */
-    }
     te->idcode = GS(id->name);
   }
 
