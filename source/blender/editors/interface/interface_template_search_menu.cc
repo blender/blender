@@ -22,13 +22,14 @@
 #include "DNA_shader_fx_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_alloca.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_memarena.h"
+#include "BLI_set.hh"
+#include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_search.hh"
 #include "BLI_string_utils.h"
@@ -313,9 +314,9 @@ static void menu_types_add_from_keymap_items(bContext *C,
                                              wmWindow *win,
                                              ScrArea *area,
                                              ARegion *region,
-                                             LinkNode **menuid_stack_p,
-                                             GHash *menu_to_kmi,
-                                             GSet *menu_tagged)
+                                             blender::Stack<MenuType *> &menu_stack,
+                                             blender::Map<MenuType *, wmKeyMapItem *> &menu_to_kmi,
+                                             blender::Set<MenuType *> &menu_tagged)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   ListBase *handlers[] = {
@@ -353,14 +354,10 @@ static void menu_types_add_from_keymap_items(bContext *C,
                 RNA_string_get(kmi->ptr, "name", menu_idname);
                 MenuType *mt = WM_menutype_find(menu_idname, false);
 
-                if (mt && BLI_gset_add(menu_tagged, mt)) {
+                if (mt && menu_tagged.add(mt)) {
                   /* Unlikely, but possible this will be included twice. */
-                  BLI_linklist_prepend(menuid_stack_p, mt);
-
-                  void **kmi_p;
-                  if (!BLI_ghash_ensure_p(menu_to_kmi, mt, &kmi_p)) {
-                    *kmi_p = kmi;
-                  }
+                  menu_stack.push(mt);
+                  menu_to_kmi.add(mt, kmi);
                 }
               }
             }
@@ -430,9 +427,8 @@ static MenuSearch_Data *menu_items_from_ui_create(
     bContext *C, wmWindow *win, ScrArea *area_init, ARegion *region_init, bool include_all_areas)
 {
   MemArena *memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-  /** Map (#MenuType to #MenuSearch_Parent) */
-  GHash *menu_parent_map = BLI_ghash_ptr_new(__func__);
-  GHash *menu_display_name_map = BLI_ghash_ptr_new(__func__);
+  blender::Map<MenuType *, MenuSearch_Parent *> menu_parent_map;
+  blender::Map<MenuType *, const char *> menu_display_name_map;
   const uiStyle *style = UI_style_get_dpi();
 
   /* Convert into non-ui structure. */
@@ -441,14 +437,12 @@ static MenuSearch_Data *menu_items_from_ui_create(
   DynStr *dyn_str = BLI_dynstr_new_memarena();
 
   /* Use a stack of menus to handle and discover new menus in passes. */
-  LinkNode *menu_stack = nullptr;
+  blender::Stack<MenuType *> menu_stack;
 
   /* Tag menu types not to add, either because they have already been added
-   * or they have been blacklisted.
-   * Set of #MenuType. */
-  GSet *menu_tagged = BLI_gset_ptr_new(__func__);
-  /** Map (#MenuType -> #wmKeyMapItem). */
-  GHash *menu_to_kmi = BLI_ghash_ptr_new(__func__);
+   * or they have been blacklisted. */
+  blender::Set<MenuType *> menu_tagged;
+  blender::Map<MenuType *, wmKeyMapItem *> menu_to_kmi;
 
   /* Blacklist menus we don't want to show. */
   {
@@ -462,7 +456,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
     for (int i = 0; i < ARRAY_SIZE(idname_array); i++) {
       MenuType *mt = WM_menutype_find(idname_array[i], false);
       if (mt != nullptr) {
-        BLI_gset_add(menu_tagged, mt);
+        menu_tagged.add(mt);
       }
     }
   }
@@ -479,7 +473,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
     for (WM_menutype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
       MenuType *mt = (MenuType *)BLI_ghashIterator_getValue(&iter);
       if (BLI_str_endswith(mt->idname, "_context_menu")) {
-        BLI_gset_add(menu_tagged, mt);
+        menu_tagged.add(mt);
       }
     }
     const char *idname_array[] = {
@@ -489,7 +483,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
     for (int i = 0; i < ARRAY_SIZE(idname_array); i++) {
       MenuType *mt = WM_menutype_find(idname_array[i], false);
       if (mt != nullptr) {
-        BLI_gset_remove(menu_tagged, mt, nullptr);
+        menu_tagged.remove(mt);
       }
     }
   }
@@ -561,8 +555,6 @@ static MenuSearch_Data *menu_items_from_ui_create(
 
     global_menu_prefix = CTX_IFACE_(RNA_property_translation_context(prop_ui_type), "Top Bar");
   }
-
-  GHashIterator iter;
 
   for (int space_type_ui_index = -1; space_type_ui_index < space_type_ui_items_len;
        space_type_ui_index += 1)
@@ -653,8 +645,8 @@ static MenuSearch_Data *menu_items_from_ui_create(
         MenuType *mt = WM_menutype_find(idname_array[i], false);
         if (mt != nullptr) {
           /* Check if this exists because of 'include_all_areas'. */
-          if (BLI_gset_add(menu_tagged, mt)) {
-            BLI_linklist_prepend(&menu_stack, mt);
+          if (menu_tagged.add(mt)) {
+            menu_stack.push(mt);
           }
         }
       }
@@ -664,8 +656,8 @@ static MenuSearch_Data *menu_items_from_ui_create(
 
     bool has_keymap_menu_items = false;
 
-    while (menu_stack != nullptr) {
-      MenuType *mt = (MenuType *)BLI_linklist_pop(&menu_stack);
+    while (!menu_stack.is_empty()) {
+      MenuType *mt = menu_stack.pop();
       if (!WM_menutype_poll(C, mt)) {
         continue;
       }
@@ -694,8 +686,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
           }
 
           if (but_test == nullptr) {
-            BLI_ghash_insert(
-                menu_display_name_map, mt, (void *)strdup_memarena(memarena, but->drawstr));
+            menu_display_name_map.add(mt, strdup_memarena(memarena, but->drawstr));
           }
         }
         else if (menu_items_from_ui_create_item_from_button(
@@ -704,11 +695,11 @@ static MenuSearch_Data *menu_items_from_ui_create(
         }
         else if ((mt_from_but = UI_but_menutype_get(but))) {
 
-          if (BLI_gset_add(menu_tagged, mt_from_but)) {
-            BLI_linklist_prepend(&menu_stack, mt_from_but);
+          if (menu_tagged.add(mt_from_but)) {
+            menu_stack.push(mt_from_but);
           }
 
-          if (!BLI_ghash_haskey(menu_parent_map, mt_from_but)) {
+          if (!menu_parent_map.contains(mt_from_but)) {
             MenuSearch_Parent *menu_parent = (MenuSearch_Parent *)BLI_memarena_calloc(
                 memarena, sizeof(*menu_parent));
             /* Use brackets for menu key shortcuts,
@@ -748,7 +739,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
               menu_parent->drawstr = strdup_memarena(memarena, drawstr);
             }
             menu_parent->parent_mt = mt;
-            BLI_ghash_insert(menu_parent_map, mt_from_but, menu_parent);
+            menu_parent_map.add(mt_from_but, menu_parent);
 
             if (drawstr_is_empty) {
               printf("Warning: '%s' menu has empty 'bl_label'.\n", mt_from_but->idname);
@@ -794,22 +785,20 @@ static MenuSearch_Data *menu_items_from_ui_create(
 
       /* Add key-map items as a second pass,
        * so all menus are accessed from the header & top-bar before key shortcuts are expanded. */
-      if ((menu_stack == nullptr) && (has_keymap_menu_items == false)) {
+      if (menu_stack.is_empty() && (has_keymap_menu_items == false)) {
         has_keymap_menu_items = true;
         menu_types_add_from_keymap_items(
-            C, win, area, region, &menu_stack, menu_to_kmi, menu_tagged);
+            C, win, area, region, menu_stack, menu_to_kmi, menu_tagged);
       }
     }
   }
 
   LISTBASE_FOREACH (MenuSearch_Item *, item, &data->items) {
-    item->menu_parent = (MenuSearch_Parent *)BLI_ghash_lookup(menu_parent_map, item->mt);
+    item->menu_parent = menu_parent_map.lookup_default(item->mt, nullptr);
   }
 
-  GHASH_ITER (iter, menu_parent_map) {
-    MenuSearch_Parent *menu_parent = (MenuSearch_Parent *)BLI_ghashIterator_getValue(&iter);
-    menu_parent->parent = (MenuSearch_Parent *)BLI_ghash_lookup(menu_parent_map,
-                                                                menu_parent->parent_mt);
+  for (MenuSearch_Parent *menu_parent : menu_parent_map.values()) {
+    menu_parent->parent = menu_parent_map.lookup_default(menu_parent->parent_mt, nullptr);
   }
 
   /* NOTE: currently this builds the full path for each menu item,
@@ -841,13 +830,13 @@ static MenuSearch_Data *menu_items_from_ui_create(
       }
     }
     else {
-      const char *drawstr = (const char *)BLI_ghash_lookup(menu_display_name_map, item->mt);
+      const char *drawstr = menu_display_name_map.lookup_default(item->mt, nullptr);
       if (drawstr == nullptr) {
         drawstr = CTX_IFACE_(item->mt->translation_context, item->mt->label);
       }
       BLI_dynstr_append(dyn_str, drawstr);
 
-      wmKeyMapItem *kmi = (wmKeyMapItem *)BLI_ghash_lookup(menu_to_kmi, item->mt);
+      wmKeyMapItem *kmi = menu_to_kmi.lookup_default(item->mt, nullptr);
       if (kmi != nullptr) {
         char kmi_str[128];
         WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
@@ -874,13 +863,6 @@ static MenuSearch_Data *menu_items_from_ui_create(
    *
    * NOTE: we might want to keep the in-menu order, for now sort all. */
   BLI_listbase_sort(&data->items, menu_item_sort_by_drawstr_full);
-
-  BLI_ghash_free(menu_parent_map, nullptr, nullptr);
-  BLI_ghash_free(menu_display_name_map, nullptr, nullptr);
-
-  BLI_ghash_free(menu_to_kmi, nullptr, nullptr);
-
-  BLI_gset_free(menu_tagged, nullptr);
 
   data->memarena = memarena;
 
