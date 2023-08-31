@@ -1647,7 +1647,7 @@ void uiItemsFullEnumO(uiLayout *layout,
     }
     else {
       bContext *C = static_cast<bContext *>(block->evil_C);
-      bContextStore *previous_ctx = CTX_store_get(C);
+      const bContextStore *previous_ctx = CTX_store_get(C);
       CTX_store_set(C, layout->context);
       RNA_property_enum_items_gettexted(C, &ptr, prop, &item_array, &totitem, &free);
       CTX_store_set(C, previous_ctx);
@@ -3096,7 +3096,7 @@ void uiItemMContents(uiLayout *layout, const char *menuname)
     return;
   }
 
-  bContextStore *previous_ctx = CTX_store_get(C);
+  const bContextStore *previous_ctx = CTX_store_get(C);
   UI_menutype_draw(C, mt, layout);
 
   /* Restore context that was cleared by `UI_menutype_draw`. */
@@ -5703,7 +5703,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
 
   if (layout->context) {
     but->context = layout->context;
-    but->context->used = true;
+    layout->context->used = true;
   }
 
   if (layout->emboss != UI_EMBOSS_UNDEFINED) {
@@ -5840,7 +5840,7 @@ bContextStore *uiLayoutGetContextStore(uiLayout *layout)
   return layout->context;
 }
 
-void uiLayoutContextCopy(uiLayout *layout, bContextStore *context)
+void uiLayoutContextCopy(uiLayout *layout, const bContextStore *context)
 {
   uiBlock *block = layout->root->block;
   layout->context = CTX_store_add_all(block->contexts, context);

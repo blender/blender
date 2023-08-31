@@ -202,7 +202,7 @@ struct uiBut {
   uiButHandleNFunc funcN = nullptr;
   void *func_argN = nullptr;
 
-  bContextStore *context = nullptr;
+  const bContextStore *context = nullptr;
 
   uiButCompleteFunc autocomplete_func = nullptr;
   void *autofunc_arg = nullptr;

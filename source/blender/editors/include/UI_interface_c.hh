@@ -1365,7 +1365,7 @@ void UI_but_context_ptr_set(uiBlock *block, uiBut *but, const char *name, const 
 const PointerRNA *UI_but_context_ptr_get(const uiBut *but,
                                          const char *name,
                                          const StructRNA *type CPP_ARG_DEFAULT(nullptr));
-bContextStore *UI_but_context_get(const uiBut *but);
+const bContextStore *UI_but_context_get(const uiBut *but);
 
 void UI_but_unit_type_set(uiBut *but, int unit_type);
 int UI_but_unit_type_get(const uiBut *but);
@@ -2111,7 +2111,7 @@ uiBlock *uiLayoutGetBlock(uiLayout *layout);
 void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, PointerRNA *ptr);
 bContextStore *uiLayoutGetContextStore(uiLayout *layout);
-void uiLayoutContextCopy(uiLayout *layout, bContextStore *context);
+void uiLayoutContextCopy(uiLayout *layout, const bContextStore *context);
 
 /**
  * Set tooltip function for all buttons in the layout.

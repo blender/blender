@@ -68,7 +68,7 @@ struct bContext {
     ARegion *region;
     ARegion *menu;
     wmGizmoGroup *gizmo_group;
-    bContextStore *store;
+    const bContextStore *store;
 
     /* Operator poll. */
     /**
@@ -148,7 +148,7 @@ bContextStore *CTX_store_add(blender::Vector<std::unique_ptr<bContextStore>> &co
 }
 
 bContextStore *CTX_store_add_all(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
-                                 bContextStore *context)
+                                 const bContextStore *context)
 {
   /* ensure we have a context to put the entry in, if it was already used
    * we have to copy the context to ensure */
@@ -167,12 +167,12 @@ bContextStore *CTX_store_add_all(blender::Vector<std::unique_ptr<bContextStore>>
   return ctx;
 }
 
-bContextStore *CTX_store_get(bContext *C)
+const bContextStore *CTX_store_get(const bContext *C)
 {
   return C->wm.store;
 }
 
-void CTX_store_set(bContext *C, bContextStore *store)
+void CTX_store_set(bContext *C, const bContextStore *store)
 {
   C->wm.store = store;
 }

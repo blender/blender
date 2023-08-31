@@ -106,7 +106,7 @@ struct MenuSearch_Item {
       wmOperatorType *type;
       PointerRNA *opptr;
       wmOperatorCallContext opcontext;
-      bContextStore *context;
+      const bContextStore *context;
     } op;
 
     /** Property (only for check-box/boolean). */

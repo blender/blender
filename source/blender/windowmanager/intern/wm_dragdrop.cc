@@ -271,7 +271,7 @@ static std::unique_ptr<bContextStore> wm_drop_ui_context_create(const bContext *
     return nullptr;
   }
 
-  bContextStore *but_context = UI_but_context_get(active_but);
+  const bContextStore *but_context = UI_but_context_get(active_but);
   if (!but_context) {
     return nullptr;
   }

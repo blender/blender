@@ -2008,7 +2008,7 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
     }
   }
 
-  if (bContextStore *store = CTX_store_get(C)) {
+  if (const bContextStore *store = CTX_store_get(C)) {
     opwait->context = *store;
   }
 
