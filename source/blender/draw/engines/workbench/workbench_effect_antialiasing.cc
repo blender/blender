@@ -292,9 +292,15 @@ void AntiAliasingPass::draw(Manager &manager,
     draw_overlay_depth(sample0_depth_tx_);
     GPU_texture_copy(sample0_depth_in_front_tx_, resources.depth_in_front_tx);
   }
-  /* Copy back the saved depth buffer for correct overlays. */
-  GPU_texture_copy(depth_tx, sample0_depth_tx_);
-  GPU_texture_copy(depth_in_front_tx, sample0_depth_in_front_tx_);
+  if (!DRW_state_is_scene_render()) {
+    /* Copy back the saved depth buffer for correct overlays. */
+    GPU_texture_copy(depth_tx, sample0_depth_tx_);
+    GPU_texture_copy(depth_in_front_tx, sample0_depth_in_front_tx_);
+  }
+  else if (last_sample) {
+    GPU_texture_copy(depth_tx, sample0_depth_tx_);
+    /* There's no depth_in_front_tx in scene image renders. */
+  }
 
   if (!DRW_state_is_image_render() || last_sample) {
     smaa_weight_tx_.acquire(
