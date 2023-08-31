@@ -76,7 +76,6 @@ struct MenuSearch_Context {
 
 struct MenuSearch_Parent {
   MenuSearch_Parent *parent;
-  MenuType *parent_mt;
   const char *drawstr;
 
   /** Set while writing menu items only. */
@@ -87,8 +86,6 @@ struct MenuSearch_Item {
   MenuSearch_Item *next, *prev;
   const char *drawstr;
   const char *drawwstr_full;
-  /** Support a single level sub-menu nesting (for operator buttons that expand). */
-  const char *drawstr_submenu;
   int icon;
   int state;
 
@@ -162,9 +159,9 @@ static const char *strdup_memarena_from_dynstr(MemArena *memarena, DynStr *dyn_s
 static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
                                                        MemArena *memarena,
                                                        MenuType *mt,
-                                                       const char *drawstr_submenu,
                                                        uiBut *but,
-                                                       MenuSearch_Context *wm_context)
+                                                       MenuSearch_Context *wm_context,
+                                                       MenuSearch_Parent *menu_parent)
 {
   MenuSearch_Item *item = nullptr;
 
@@ -251,9 +248,9 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
     item->state = (but->flag &
                    (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_BUT_REDALERT | UI_BUT_HAS_SEP_CHAR));
     item->mt = mt;
-    item->drawstr_submenu = drawstr_submenu ? strdup_memarena(memarena, drawstr_submenu) : nullptr;
 
     item->wm_context = wm_context;
+    item->menu_parent = menu_parent;
 
     BLI_addtail(&data->items, item);
     return true;
@@ -307,6 +304,12 @@ static bool menu_items_to_ui_button(MenuSearch_Item *item, uiBut *but)
   return changed;
 }
 
+struct MenuStackEntry {
+  MenuType *mt = nullptr;
+  /** Used as parent in submenus. */
+  MenuSearch_Parent *self_as_parent = nullptr;
+};
+
 /**
  * Populate \a menu_stack with menus from inspecting active key-maps for this context.
  */
@@ -314,7 +317,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
                                              wmWindow *win,
                                              ScrArea *area,
                                              ARegion *region,
-                                             blender::Stack<MenuType *> &menu_stack,
+                                             blender::Stack<MenuStackEntry> &menu_stack,
                                              blender::Map<MenuType *, wmKeyMapItem *> &menu_to_kmi,
                                              blender::Set<MenuType *> &menu_tagged)
 {
@@ -356,7 +359,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
 
                 if (mt && menu_tagged.add(mt)) {
                   /* Unlikely, but possible this will be included twice. */
-                  menu_stack.push(mt);
+                  menu_stack.push({mt});
                   menu_to_kmi.add(mt, kmi);
                 }
               }
@@ -427,7 +430,6 @@ static MenuSearch_Data *menu_items_from_ui_create(
     bContext *C, wmWindow *win, ScrArea *area_init, ARegion *region_init, bool include_all_areas)
 {
   MemArena *memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-  blender::Map<MenuType *, MenuSearch_Parent *> menu_parent_map;
   blender::Map<MenuType *, const char *> menu_display_name_map;
   const uiStyle *style = UI_style_get_dpi();
 
@@ -437,7 +439,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
   DynStr *dyn_str = BLI_dynstr_new_memarena();
 
   /* Use a stack of menus to handle and discover new menus in passes. */
-  blender::Stack<MenuType *> menu_stack;
+  blender::Stack<MenuStackEntry> menu_stack;
 
   /* Tag menu types not to add, either because they have already been added
    * or they have been blacklisted. */
@@ -646,7 +648,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
         if (mt != nullptr) {
           /* Check if this exists because of 'include_all_areas'. */
           if (menu_tagged.add(mt)) {
-            menu_stack.push(mt);
+            menu_stack.push({mt});
           }
         }
       }
@@ -657,7 +659,8 @@ static MenuSearch_Data *menu_items_from_ui_create(
     bool has_keymap_menu_items = false;
 
     while (!menu_stack.is_empty()) {
-      MenuType *mt = menu_stack.pop();
+      MenuStackEntry current_menu = menu_stack.pop();
+      MenuType *mt = current_menu.mt;
       if (!WM_menutype_poll(C, mt)) {
         continue;
       }
@@ -690,16 +693,14 @@ static MenuSearch_Data *menu_items_from_ui_create(
           }
         }
         else if (menu_items_from_ui_create_item_from_button(
-                     data, memarena, mt, nullptr, but, wm_context)) {
+                     data, memarena, mt, but, wm_context, current_menu.self_as_parent))
+        {
           /* pass */
         }
         else if ((mt_from_but = UI_but_menutype_get(but))) {
+          const bool scan_submenu = menu_tagged.add(mt_from_but);
 
-          if (menu_tagged.add(mt_from_but)) {
-            menu_stack.push(mt_from_but);
-          }
-
-          if (!menu_parent_map.contains(mt_from_but)) {
+          if (scan_submenu) {
             MenuSearch_Parent *menu_parent = (MenuSearch_Parent *)BLI_memarena_calloc(
                 memarena, sizeof(*menu_parent));
             /* Use brackets for menu key shortcuts,
@@ -738,19 +739,17 @@ static MenuSearch_Data *menu_items_from_ui_create(
               }
               menu_parent->drawstr = strdup_memarena(memarena, drawstr);
             }
-            menu_parent->parent_mt = mt;
-            menu_parent_map.add(mt_from_but, menu_parent);
+            menu_parent->parent = current_menu.self_as_parent;
 
             if (drawstr_is_empty) {
               printf("Warning: '%s' menu has empty 'bl_label'.\n", mt_from_but->idname);
             }
+
+            menu_stack.push({mt_from_but, menu_parent});
           }
         }
         else if (but->menu_create_func != nullptr) {
           /* A non 'MenuType' menu button. */
-
-          /* Only expand one level deep, this is mainly for expanding operator menus. */
-          const char *drawstr_submenu = but->drawstr;
 
           /* +1 to avoid overlap with the current 'block'. */
           uiBlock *sub_block = UI_block_begin(C, region, __func__ + 1, UI_EMBOSS);
@@ -765,9 +764,14 @@ static MenuSearch_Data *menu_items_from_ui_create(
 
           UI_block_end(C, sub_block);
 
+          MenuSearch_Parent *menu_parent = (MenuSearch_Parent *)BLI_memarena_calloc(
+              memarena, sizeof(*menu_parent));
+          menu_parent->drawstr = strdup_memarena(memarena, but->drawstr);
+          menu_parent->parent = current_menu.self_as_parent;
+
           LISTBASE_FOREACH (uiBut *, sub_but, &sub_block->buttons) {
             menu_items_from_ui_create_item_from_button(
-                data, memarena, mt, drawstr_submenu, sub_but, wm_context);
+                data, memarena, mt, sub_but, wm_context, menu_parent);
           }
 
           if (region) {
@@ -791,14 +795,6 @@ static MenuSearch_Data *menu_items_from_ui_create(
             C, win, area, region, menu_stack, menu_to_kmi, menu_tagged);
       }
     }
-  }
-
-  LISTBASE_FOREACH (MenuSearch_Item *, item, &data->items) {
-    item->menu_parent = menu_parent_map.lookup_default(item->mt, nullptr);
-  }
-
-  for (MenuSearch_Parent *menu_parent : menu_parent_map.values()) {
-    menu_parent->parent = menu_parent_map.lookup_default(menu_parent->parent_mt, nullptr);
   }
 
   /* NOTE: currently this builds the full path for each menu item,
@@ -843,12 +839,6 @@ static MenuSearch_Data *menu_items_from_ui_create(
         BLI_dynstr_appendf(dyn_str, " (%s)", kmi_str);
       }
 
-      BLI_dynstr_append(dyn_str, " " UI_MENU_ARROW_SEP " ");
-    }
-
-    /* Optional nested menu. */
-    if (item->drawstr_submenu != nullptr) {
-      BLI_dynstr_append(dyn_str, item->drawstr_submenu);
       BLI_dynstr_append(dyn_str, " " UI_MENU_ARROW_SEP " ");
     }
 
