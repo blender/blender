@@ -253,11 +253,6 @@ static void ui_popup_block_position(wmWindow *window,
     else {
       offset_x = butrct.xmin - block->rect.xmin - center_x;
     }
-    /* changed direction? */
-    if ((dir1 & block->direction) == 0) {
-      /* TODO: still do */
-      UI_block_order_flip(block);
-    }
   }
   else if (dir1 == UI_DIR_DOWN) {
     offset_y = (butrct.ymin - block->rect.ymax) + offset_overlap;
@@ -275,11 +270,6 @@ static void ui_popup_block_position(wmWindow *window,
     }
     else {
       offset_x = butrct.xmin - block->rect.xmin - center_x;
-    }
-    /* changed direction? */
-    if ((dir1 & block->direction) == 0) {
-      /* TODO: still do */
-      UI_block_order_flip(block);
     }
   }
 

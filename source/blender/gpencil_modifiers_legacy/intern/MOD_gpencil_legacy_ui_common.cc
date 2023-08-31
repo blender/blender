@@ -240,8 +240,6 @@ static void gpencil_modifier_ops_extra_draw(bContext *C, uiLayout *layout, void 
 
   uiLayoutSetUnitsX(layout, 4.0f);
 
-  UI_block_flag_enable(uiLayoutGetBlock(layout), UI_BLOCK_IS_FLIP);
-
   /* Apply. */
   if (!(mti->flags & eGpencilModifierTypeFlag_NoApply)) {
     uiItemO(layout,

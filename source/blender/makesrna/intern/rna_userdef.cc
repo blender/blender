@@ -4980,13 +4980,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "uiflag", USER_PLAINMENUS);
   RNA_def_property_ui_text(prop, "Toolbox Column Layout", "Use a column layout for toolbox");
 
-  prop = RNA_def_property(srna, "use_directional_menus", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, nullptr, "uiflag", USER_MENUFIXEDORDER);
-  RNA_def_property_ui_text(prop,
-                           "Contents Follow Opening Direction",
-                           "Otherwise menus, etc will always be top to bottom, left to right, "
-                           "no matter opening direction");
-
   static const EnumPropertyItem header_align_items[] = {
       {0, "NONE", 0, "Keep Existing", "Keep existing header alignment"},
       {USER_HEADER_FROM_PREF, "TOP", 0, "Top", "Top aligned on load"},

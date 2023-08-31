@@ -871,6 +871,9 @@ void blo_do_versions_userdef(UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Clear deprecated USER_MENUFIXEDORDER user flag for reuse. */
+    userdef->uiflag &= ~USER_UIFLAG_UNUSED_4;
   }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {

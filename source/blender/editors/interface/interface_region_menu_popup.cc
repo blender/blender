@@ -188,9 +188,7 @@ static void ui_popup_menu_create_block(bContext *C,
   const uiStyle *style = UI_style_get_dpi();
 
   pup->block = UI_block_begin(C, nullptr, block_name, UI_EMBOSS_PULLDOWN);
-  if (!pup->but) {
-    pup->block->flag |= UI_BLOCK_NO_FLIP;
-  }
+
   /* A title is only provided when a Menu has a label, this is not always the case, see e.g.
    * `VIEW3D_MT_edit_mesh_context_menu` -- this specifies its own label inside the draw function
    * depending on vertex/edge/face mode. We still want to flag the uiBlock (but only insert into
@@ -360,7 +358,6 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
         if (RGN_TYPE_IS_HEADER_ANY(region->regiontype)) {
           if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_BOTTOM) {
             UI_block_direction_set(block, UI_DIR_UP);
-            UI_block_order_flip(block);
           }
         }
       }
@@ -408,20 +405,6 @@ static uiPopupBlockHandle *ui_popup_menu_create(
     pup->my = window->eventstate->xy[1];
     pup->popup = true;
   }
-  /* some enums reversing is strange, currently we have no good way to
-   * reverse some enum's but not others, so reverse all so the first menu
-   * items are always close to the mouse cursor */
-  else {
-#if 0
-    /* if this is an rna button then we can assume its an enum
-     * flipping enums is generally not good since the order can be
-     * important #28786. */
-    if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
-      pup->block->flag |= UI_BLOCK_NO_FLIP;
-    }
-#endif
-  }
-
   uiPopupBlockHandle *handle = ui_popup_block_create(
       C, butregion, but, nullptr, ui_block_func_POPUP, pup, ui_block_free_func_POPUP);
 
@@ -492,8 +475,6 @@ uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
   pup->title = title;
 
   ui_popup_menu_create_block(C, pup, title, block_name);
-  /* Further buttons will be laid out top to bottom by default. */
-  pup->block->flag |= UI_BLOCK_IS_FLIP;
 
   /* create in advance so we can let buttons point to retval already */
   pup->block->handle = MEM_cnew<uiPopupBlockHandle>(__func__);

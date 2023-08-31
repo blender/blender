@@ -4311,7 +4311,6 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
     if (!item->identifier[0]) {
       /* inconsistent, but menus with categories do not look good flipped */
       if (item->name) {
-        block->flag |= UI_BLOCK_NO_FLIP;
         categories++;
         entries_nosepr_count++;
       }
@@ -4343,8 +4342,8 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
 
   const char *title = RNA_property_ui_name(but->rnaprop);
 
-  if (title[0] && (categories == 0) && (block->flag & UI_BLOCK_NO_FLIP)) {
-    /* Title at the top for menus with categories. */
+  if (title[0] && !but->str[0] && (categories == 0)) {
+    /* Show title when no categories and calling button has no text. */
     uiDefBut(block,
              UI_BTYPE_LABEL,
              0,
@@ -4468,32 +4467,11 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
     }
   }
 
-  if (title[0] && (categories == 0) && !(block->flag & UI_BLOCK_NO_FLIP)) {
-    /* Title at the bottom for menus without categories. */
-    uiItemS(layout);
-    uiDefBut(block,
-             UI_BTYPE_LABEL,
-             0,
-             title,
-             0,
-             0,
-             UI_UNIT_X * 5,
-             UI_UNIT_Y,
-             nullptr,
-             0.0,
-             0.0,
-             0,
-             0,
-             "");
-  }
-
   UI_block_layout_set_current(block, layout);
 
   if (free) {
     MEM_freeN((void *)item_array);
   }
-  BLI_assert((block->flag & UI_BLOCK_IS_FLIP) == 0);
-  block->flag |= UI_BLOCK_IS_FLIP;
 }
 
 static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_p)
@@ -5846,39 +5824,6 @@ int UI_blocklist_min_y_get(ListBase *lb)
 void UI_block_direction_set(uiBlock *block, char direction)
 {
   block->direction = direction;
-}
-
-void UI_block_order_flip(uiBlock *block)
-{
-  float centy, miny = 10000, maxy = -10000;
-
-  if (U.uiflag & USER_MENUFIXEDORDER) {
-    return;
-  }
-  if (block->flag & UI_BLOCK_NO_FLIP) {
-    return;
-  }
-
-  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    if (but->drawflag & UI_BUT_ALIGN) {
-      return;
-    }
-    if (but->rect.ymin < miny) {
-      miny = but->rect.ymin;
-    }
-    if (but->rect.ymax > maxy) {
-      maxy = but->rect.ymax;
-    }
-  }
-  /* mirror trick */
-  centy = (miny + maxy) / 2.0f;
-  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    but->rect.ymin = centy - (but->rect.ymin - centy);
-    but->rect.ymax = centy - (but->rect.ymax - centy);
-    std::swap(but->rect.ymin, but->rect.ymax);
-  }
-
-  block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
 void UI_block_flag_enable(uiBlock *block, int flag)

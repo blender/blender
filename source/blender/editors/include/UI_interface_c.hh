@@ -145,23 +145,19 @@ enum {
 /** #uiBlock.flag (controls) */
 enum {
   UI_BLOCK_LOOP = 1 << 0,
-  /** Indicate that items in a popup are drawn with inverted order. Used for arrow key navigation
-   *  so that it knows to invert the navigation direction to match the drawing order. */
-  UI_BLOCK_IS_FLIP = 1 << 1,
-  UI_BLOCK_NO_FLIP = 1 << 2,
-  UI_BLOCK_NUMSELECT = 1 << 3,
+  UI_BLOCK_NUMSELECT = 1 << 1,
   /** Don't apply window clipping. */
-  UI_BLOCK_NO_WIN_CLIP = 1 << 4,
-  UI_BLOCK_CLIPBOTTOM = 1 << 5,
-  UI_BLOCK_CLIPTOP = 1 << 6,
-  UI_BLOCK_MOVEMOUSE_QUIT = 1 << 7,
-  UI_BLOCK_KEEP_OPEN = 1 << 8,
-  UI_BLOCK_POPUP = 1 << 9,
-  UI_BLOCK_OUT_1 = 1 << 10,
-  UI_BLOCK_SEARCH_MENU = 1 << 11,
-  UI_BLOCK_POPUP_MEMORY = 1 << 12,
+  UI_BLOCK_NO_WIN_CLIP = 1 << 2,
+  UI_BLOCK_CLIPBOTTOM = 1 << 3,
+  UI_BLOCK_CLIPTOP = 1 << 4,
+  UI_BLOCK_MOVEMOUSE_QUIT = 1 << 5,
+  UI_BLOCK_KEEP_OPEN = 1 << 6,
+  UI_BLOCK_POPUP = 1 << 7,
+  UI_BLOCK_OUT_1 = 1 << 8,
+  UI_BLOCK_SEARCH_MENU = 1 << 9,
+  UI_BLOCK_POPUP_MEMORY = 1 << 10,
   /** Stop handling mouse events. */
-  UI_BLOCK_CLIP_EVENTS = 1 << 13,
+  UI_BLOCK_CLIP_EVENTS = 1 << 11,
 
   /* #uiBlock::flags bits 14-17 are identical to #uiBut::drawflag bits. */
 
@@ -874,7 +870,6 @@ void UI_block_direction_set(uiBlock *block, char direction);
 /**
  * This call escapes if there's alignment flags.
  */
-void UI_block_order_flip(uiBlock *block);
 void UI_block_flag_enable(uiBlock *block, int flag);
 void UI_block_flag_disable(uiBlock *block, int flag);
 void UI_block_translate(uiBlock *block, int x, int y);
