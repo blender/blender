@@ -398,43 +398,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (te->abstract_element) {
     tree_element_expand(*te->abstract_element, *space_outliner);
   }
-  else if (ELEM(type,
-                TSE_ANIM_DATA,
-                TSE_BONE,
-                TSE_DRIVER_BASE,
-                TSE_EBONE,
-                TSE_LINKED_PSYS,
-                TSE_NLA,
-                TSE_NLA_ACTION,
-                TSE_NLA_TRACK,
-                TSE_GP_LAYER,
-                TSE_RNA_STRUCT,
-                TSE_RNA_PROPERTY,
-                TSE_RNA_ARRAY_ELEM,
-                TSE_SEQUENCE,
-                TSE_SEQ_STRIP,
-                TSE_SEQUENCE_DUP,
-                TSE_GENERIC_LABEL) ||
-           ELEM(type,
-                TSE_DEFGROUP,
-                TSE_DEFGROUP_BASE,
-                TSE_GPENCIL_EFFECT,
-                TSE_GPENCIL_EFFECT_BASE,
-                TSE_CONSTRAINT,
-                TSE_CONSTRAINT_BASE,
-                TSE_POSE_BASE,
-                TSE_POSE_CHANNEL,
-                TSE_POSEGRP,
-                TSE_POSEGRP_BASE,
-                TSE_R_LAYER,
-                TSE_R_LAYER_BASE,
-                TSE_MODIFIER,
-                TSE_MODIFIER_BASE,
-                TSE_GREASE_PENCIL_NODE,
-                TSE_LINKED_OB) ||
-           ELEM(type, TSE_LAYER_COLLECTION, TSE_VIEW_COLLECTION_BASE))
-  {
-    BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
+  /* Only #TSE_ID_BASE isn't ported to use the abstract elements design yet. */
+  else if (!ELEM(type, TSE_ID_BASE)) {
+    BLI_assert_msg(false, "Element type should use `AbstractTreeElement`");
   }
 
   return te;
