@@ -411,6 +411,11 @@ void rotate_eulO(float beul[3], short order, char axis, float angle);
 void copy_dq_dq(DualQuat *r, const DualQuat *dq);
 void normalize_dq(DualQuat *dq, float totweight);
 void add_weighted_dq_dq(DualQuat *dq_sum, const DualQuat *dq, float weight);
+void add_weighted_dq_dq_pivot(DualQuat *dq_sum,
+                              const DualQuat *dq,
+                              const float pivot[3],
+                              float weight,
+                              bool compute_scale_matrix);
 void mul_v3m3_dq(float r[3], float R[3][3], DualQuat *dq);
 
 void mat4_to_dquat(DualQuat *dq, const float basemat[4][4], const float mat[4][4]);

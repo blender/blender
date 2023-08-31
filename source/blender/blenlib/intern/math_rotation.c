@@ -2088,6 +2088,53 @@ void add_weighted_dq_dq(DualQuat *dq_sum, const DualQuat *dq, float weight)
   }
 }
 
+/**
+ * Add the transformation defined by the given dual quaternion to the accumulator,
+ * using the specified pivot point for combining scale transformations.
+ *
+ * If the resulting dual quaternion would only be used to transform the pivot point itself,
+ * this function can avoid fully computing the combined scale matrix to get a performance
+ * boost without affecting the result.
+ */
+void add_weighted_dq_dq_pivot(DualQuat *dq_sum,
+                              const DualQuat *dq,
+                              const float pivot[3],
+                              const float weight,
+                              const bool compute_scale_matrix)
+{
+  /* FIX #32022, #43188, #100373 - bad deformation when combining scaling and rotation. */
+  if (dq->scale_weight) {
+    DualQuat mdq = *dq;
+
+    /* Compute the translation induced by scale at the pivot point. */
+    float dst[3];
+    mul_v3_m4v3(dst, mdq.scale, pivot);
+    sub_v3_v3(dst, pivot);
+
+    /* Apply the scale translation to the translation part of the DualQuat. */
+    mdq.trans[0] -= .5f * (mdq.quat[1] * dst[0] + mdq.quat[2] * dst[1] + mdq.quat[3] * dst[2]);
+    mdq.trans[1] += .5f * (mdq.quat[0] * dst[0] + mdq.quat[2] * dst[2] - mdq.quat[3] * dst[1]);
+    mdq.trans[2] += .5f * (mdq.quat[0] * dst[1] + mdq.quat[3] * dst[0] - mdq.quat[1] * dst[2]);
+    mdq.trans[3] += .5f * (mdq.quat[0] * dst[2] + mdq.quat[1] * dst[1] - mdq.quat[2] * dst[0]);
+
+    /* Neutralize the scale matrix at the pivot point. */
+    if (compute_scale_matrix) {
+      /* This translates the matrix to transform the pivot point to itself. */
+      sub_v3_v3(mdq.scale[3], dst);
+    }
+    else {
+      /* This completely discards the scale matrix - if the resulting DualQuat
+       * is converted to a matrix, it would have no scale or shear. */
+      mdq.scale_weight = 0.0f;
+    }
+
+    add_weighted_dq_dq(dq_sum, &mdq, weight);
+  }
+  else {
+    add_weighted_dq_dq(dq_sum, dq, weight);
+  }
+}
+
 void normalize_dq(DualQuat *dq, float totweight)
 {
   const float scale = 1.0f / totweight;
