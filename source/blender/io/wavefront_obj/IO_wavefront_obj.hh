@@ -8,13 +8,13 @@
 
 #pragma once
 
+#include "BLI_math_basis_types.hh"
 #include "BLI_path_util.h"
 
 #include "BKE_context.h"
 
 #include "DEG_depsgraph.h"
 
-#include "IO_orientation.hh"
 #include "IO_path_util_types.hh"
 
 struct OBJExportParams {
@@ -34,8 +34,8 @@ struct OBJExportParams {
   int end_frame;
 
   /* Geometry Transform options. */
-  eIOAxis forward_axis;
-  eIOAxis up_axis;
+  blender::math::AxisSigned forward_axis;
+  blender::math::AxisSigned up_axis;
   float global_scale;
 
   /* File Write Options. */
@@ -67,8 +67,8 @@ struct OBJImportParams {
   /** Value 0 disables clamping. */
   float clamp_size;
   float global_scale;
-  eIOAxis forward_axis;
-  eIOAxis up_axis;
+  blender::math::AxisSigned forward_axis;
+  blender::math::AxisSigned up_axis;
   bool use_split_objects;
   bool use_split_groups;
   bool import_vertex_groups;

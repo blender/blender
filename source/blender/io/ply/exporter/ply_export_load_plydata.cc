@@ -17,6 +17,7 @@
 #include "BLI_hash.hh"
 #include "BLI_math_color.hh"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_vector.hh"
@@ -45,18 +46,16 @@ static Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
 }
 
 static void set_world_axes_transform(Object *object,
-                                     const eIOAxis forward,
-                                     const eIOAxis up,
+                                     const math::AxisSigned forward,
+                                     const math::AxisSigned up,
                                      float r_world_and_axes_transform[4][4],
                                      float r_world_and_axes_normal_transform[3][3])
 {
-  float axes_transform[3][3];
-  unit_m3(axes_transform);
-  /* +Y-forward and +Z-up are the default Blender axis settings. */
-  mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
-  mul_m4_m3m4(r_world_and_axes_transform, axes_transform, object->object_to_world);
+  const math::CartesianBasis basis = math::from_orthonormal_axes(forward, up);
+  const float3x3 axes_transform = math::from_rotation<float3x3>(basis);
+  mul_m4_m3m4(r_world_and_axes_transform, axes_transform.ptr(), object->object_to_world);
   /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
-  mul_v3_m3v3(r_world_and_axes_transform[3], axes_transform, object->object_to_world[3]);
+  mul_v3_m3v3(r_world_and_axes_transform[3], axes_transform.ptr(), object->object_to_world[3]);
   r_world_and_axes_transform[3][3] = object->object_to_world[3][3];
 
   /* Normals need inverse transpose of the regular matrix to handle non-uniform scale. */

@@ -10,9 +10,10 @@
 
 #include "BKE_context.h"
 
+#include "BLI_math_basis_types.hh"
 #include "BLI_path_util.h"
+
 #include "DNA_windowmanager_types.h"
-#include "IO_orientation.hh"
 
 enum ePLYVertexColorMode {
   PLY_VERTEX_COLOR_NONE = 0,
@@ -33,8 +34,8 @@ struct PLYExportParams {
   bool ascii_format;
 
   /* Geometry Transform options. */
-  eIOAxis forward_axis;
-  eIOAxis up_axis;
+  blender::math::AxisSigned forward_axis;
+  blender::math::AxisSigned up_axis;
   float global_scale;
 
   /* File Write Options. */
@@ -49,8 +50,8 @@ struct PLYExportParams {
 struct PLYImportParams {
   /** Full path to the source PLY file to import. */
   char filepath[FILE_MAX];
-  eIOAxis forward_axis;
-  eIOAxis up_axis;
+  blender::math::AxisSigned forward_axis;
+  blender::math::AxisSigned up_axis;
   bool use_scene_unit;
   float global_scale;
   ePLYVertexColorMode vertex_colors;

@@ -82,8 +82,9 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.start_frame = RNA_int_get(op->ptr, "start_frame");
   export_params.end_frame = RNA_int_get(op->ptr, "end_frame");
 
-  export_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
-  export_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
+  export_params.forward_axis = blender::math::AxisSigned::from_int(
+      RNA_enum_get(op->ptr, "forward_axis"));
+  export_params.up_axis = blender::math::AxisSigned::from_int(RNA_enum_get(op->ptr, "up_axis"));
   export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
   export_params.export_eval_mode = eEvaluationMode(RNA_enum_get(op->ptr, "export_eval_mode"));
@@ -286,11 +287,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
               INT_MIN,
               INT_MAX);
   /* Object transform options. */
-  prop = RNA_def_enum(
-      ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
-  RNA_def_property_update_runtime(prop, io_ui_forward_axis_update);
-  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
-  RNA_def_property_update_runtime(prop, io_ui_up_axis_update);
+  io_ui_axes_register(*ot->srna);
   RNA_def_float(
       ot->srna,
       "global_scale",
@@ -398,8 +395,9 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", import_params.filepath);
   import_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
-  import_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
-  import_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
+  import_params.forward_axis = blender::math::AxisSigned::from_int(
+      RNA_enum_get(op->ptr, "forward_axis"));
+  import_params.up_axis = blender::math::AxisSigned::from_int(RNA_enum_get(op->ptr, "up_axis"));
   import_params.use_split_objects = RNA_boolean_get(op->ptr, "use_split_objects");
   import_params.use_split_groups = RNA_boolean_get(op->ptr, "use_split_groups");
   import_params.import_vertex_groups = RNA_boolean_get(op->ptr, "import_vertex_groups");
@@ -519,11 +517,7 @@ void WM_OT_obj_import(wmOperatorType *ot)
       "Resize the objects to keep bounding box under this value. Value 0 disables clamping",
       0.0f,
       1000.0f);
-  prop = RNA_def_enum(
-      ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
-  RNA_def_property_update_runtime(prop, io_ui_forward_axis_update);
-  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
-  RNA_def_property_update_runtime(prop, io_ui_up_axis_update);
+  io_ui_axes_register(*ot->srna);
   RNA_def_boolean(ot->srna,
                   "use_split_objects",
                   true,
