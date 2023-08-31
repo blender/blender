@@ -3951,6 +3951,7 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, pivot_points);
   RNA_def_property_ui_text(prop, "Pivot Point", "Rotation or scaling pivot point");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 }
 
 static void rna_def_unified_paint_settings(BlenderRNA *brna)

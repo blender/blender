@@ -396,6 +396,9 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
       has_select = SEQ_collection_len(strips) != 0;
       SEQ_collection_free(strips);
     }
+    else if (pivot_point == V3D_AROUND_CENTER_BOUNDS) {
+      has_select = gizmo2d_calc_bounds(C, r_pivot, nullptr, nullptr);
+    }
     else {
       has_select = seq_get_strip_pivot_median(scene, r_pivot);
     }
