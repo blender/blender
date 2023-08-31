@@ -758,10 +758,14 @@ bool OneapiDevice::enqueue_kernel(KernelContext *kernel_context,
 
 /* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
  * since Windows driver 101.3268. */
-/* The same min compute-runtime version is currently used across Windows and Linux.
- * For Windows driver 101.4314, compute-runtime version is 25977. */
-static const int lowest_supported_driver_version_win = 1014314;
+static const int lowest_supported_driver_version_win = 1014644;
+#  ifdef _WIN32
+/* For Windows driver 101.4644, compute-runtime version is 26771.
+ * This information is returned by `ocloc query OCL_DRIVER_VERSION`.*/
+static const int lowest_supported_driver_version_neo = 26771;
+#  else
 static const int lowest_supported_driver_version_neo = 25812;
+#  endif
 
 int OneapiDevice::parse_driver_build_version(const sycl::device &device)
 {
