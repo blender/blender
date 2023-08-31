@@ -284,27 +284,27 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
 {
   switch (bke::cpp_type_to_custom_data_type(field.cpp_type())) {
     case CD_PROP_FLOAT: {
-      params.set_output("Attribute_001", Field<float>(field));
+      params.set_output("Attribute_001", field);
       break;
     }
     case CD_PROP_FLOAT3: {
-      params.set_output("Attribute", Field<float3>(field));
+      params.set_output("Attribute", field);
       break;
     }
     case CD_PROP_COLOR: {
-      params.set_output("Attribute_002", Field<ColorGeometry4f>(field));
+      params.set_output("Attribute_002", field);
       break;
     }
     case CD_PROP_BOOL: {
-      params.set_output("Attribute_003", Field<bool>(field));
+      params.set_output("Attribute_003", field);
       break;
     }
     case CD_PROP_INT32: {
-      params.set_output("Attribute_004", Field<int>(field));
+      params.set_output("Attribute_004", field);
       break;
     }
     case CD_PROP_QUATERNION: {
-      params.set_output("Attribute_005", Field<math::Quaternion>(field));
+      params.set_output("Attribute_005", field);
       break;
     }
     default:
