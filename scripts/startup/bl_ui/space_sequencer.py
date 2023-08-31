@@ -2593,14 +2593,20 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
                             col = flow.column()
                             box = col.box()
                             split = box.split(factor=0.4)
-                            split.label(text = "{:.2f}".format(soundEq.curve_mapping.clip_min_x))
-                            split.label(text = "Hz")
+                            split.label(text="{:.2f}".format(soundEq.curve_mapping.clip_min_x))
+                            split.label(text="Hz")
                             split.alignment = "RIGHT"
-                            split.label(text = "{:.2f}".format(soundEq.curve_mapping.clip_max_x))
-                            box.template_curve_mapping(soundEq, "curve_mapping",
-                                type='NONE', levels=False, brush=True, use_negative_slope=True, show_tone=False)
+                            split.label(text="{:.2f}".format(soundEq.curve_mapping.clip_max_x))
+                            box.template_curve_mapping(
+                                soundEq,
+                                "curve_mapping",
+                                type='NONE',
+                                levels=False,
+                                brush=True,
+                                use_negative_slope=True,
+                                show_tone=False)
                             second_row = col.row()
-                            second_row.label(text = "dB")
+                            second_row.label(text="dB")
                             second_row.alignment = "CENTER"
 
 
