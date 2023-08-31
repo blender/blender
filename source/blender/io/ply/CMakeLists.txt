@@ -46,7 +46,7 @@ set(SRC
   importer/ply_import_buffer.hh
   importer/ply_import_data.hh
   importer/ply_import_mesh.hh
-  IO_ply.h
+  IO_ply.hh
 
   intern/ply_data.hh
 )

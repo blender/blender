@@ -20,7 +20,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "IO_wavefront_obj.h"
+#include "IO_wavefront_obj.hh"
 
 namespace blender::io::obj {
 /** Denote absence for usually non-negative numbers. */

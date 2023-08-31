@@ -14,7 +14,7 @@
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
-#include "IO_wavefront_obj.h"
+#include "IO_wavefront_obj.hh"
 #include "obj_export_io.hh"
 #include "obj_export_mtl.hh"
 

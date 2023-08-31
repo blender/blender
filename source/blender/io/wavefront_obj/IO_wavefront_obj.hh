@@ -8,15 +8,14 @@
 
 #pragma once
 
-#include "BKE_context.h"
 #include "BLI_path_util.h"
-#include "DEG_depsgraph.h"
-#include "IO_orientation.h"
-#include "IO_path_util_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BKE_context.h"
+
+#include "DEG_depsgraph.h"
+
+#include "IO_orientation.hh"
+#include "IO_path_util_types.hh"
 
 struct OBJExportParams {
   /** Full path to the destination .OBJ file. */
@@ -83,13 +82,9 @@ struct OBJImportParams {
  * Import also changes the selection & the active object; callers
  * need to update the UI bits if needed.
  */
-void OBJ_import(bContext *C, const struct OBJImportParams *import_params);
+void OBJ_import(bContext *C, const OBJImportParams *import_params);
 
 /**
  * Perform the full export process.
  */
-void OBJ_export(bContext *C, const struct OBJExportParams *export_params);
-
-#ifdef __cplusplus
-}
-#endif
+void OBJ_export(bContext *C, const OBJExportParams *export_params);

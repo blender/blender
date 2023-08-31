@@ -32,10 +32,10 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "IO_orientation.h"
-#  include "IO_path_util_types.h"
+#  include "IO_orientation.hh"
+#  include "IO_path_util_types.hh"
 
-#  include "IO_ply.h"
+#  include "IO_ply.hh"
 #  include "io_ply_ops.hh"
 
 static const EnumPropertyItem ply_vertex_colors_mode[] = {

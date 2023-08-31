@@ -7,7 +7,7 @@
  */
 
 #include "../ABC_alembic.h"
-#include "IO_types.h"
+#include "IO_types.hh"
 
 #include <Alembic/AbcMaterial/IMaterial.h>
 

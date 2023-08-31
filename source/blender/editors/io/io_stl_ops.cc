@@ -21,7 +21,7 @@
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"
 
-#  include "IO_stl.h"
+#  include "IO_stl.hh"
 #  include "io_stl_ops.hh"
 
 static int wm_stl_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)

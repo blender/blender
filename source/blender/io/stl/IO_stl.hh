@@ -10,11 +10,7 @@
 
 #include "BKE_context.h"
 #include "BLI_path_util.h"
-#include "IO_orientation.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "IO_orientation.hh"
 
 struct STLImportParams {
   /** Full path to the source STL file to import. */
@@ -30,8 +26,4 @@ struct STLImportParams {
 /**
  * C-interface for the importer.
  */
-void STL_import(bContext *C, const struct STLImportParams *import_params);
-
-#ifdef __cplusplus
-}
-#endif
+void STL_import(bContext *C, const STLImportParams *import_params);

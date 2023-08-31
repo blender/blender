@@ -6,7 +6,7 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
-#include "IO_path_util_types.h"
+#include "IO_path_util_types.hh"
 
 namespace blender::io {
 

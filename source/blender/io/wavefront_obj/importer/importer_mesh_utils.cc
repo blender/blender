@@ -18,7 +18,7 @@
 
 #include "DNA_object_types.h"
 
-#include "IO_wavefront_obj.h"
+#include "IO_wavefront_obj.hh"
 
 #include "importer_mesh_utils.hh"
 

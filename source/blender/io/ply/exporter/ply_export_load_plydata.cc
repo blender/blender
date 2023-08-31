@@ -7,7 +7,7 @@
  */
 
 #include "ply_export_load_plydata.hh"
-#include "IO_ply.h"
+#include "IO_ply.hh"
 #include "ply_data.hh"
 
 #include "BKE_attribute.hh"

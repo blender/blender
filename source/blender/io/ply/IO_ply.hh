@@ -12,17 +12,13 @@
 
 #include "BLI_path_util.h"
 #include "DNA_windowmanager_types.h"
-#include "IO_orientation.h"
+#include "IO_orientation.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef enum {
+enum ePLYVertexColorMode {
   PLY_VERTEX_COLOR_NONE = 0,
   PLY_VERTEX_COLOR_SRGB = 1,
   PLY_VERTEX_COLOR_LINEAR = 2,
-} ePLYVertexColorMode;
+};
 
 struct PLYExportParams {
   /** Full path to the destination .PLY file. */
@@ -64,10 +60,6 @@ struct PLYImportParams {
 /**
  * C-interface for the importer and exporter.
  */
-void PLY_export(bContext *C, const struct PLYExportParams *export_params);
+void PLY_export(bContext *C, const PLYExportParams *export_params);
 
-void PLY_import(bContext *C, const struct PLYImportParams *import_params, wmOperator *op);
-
-#ifdef __cplusplus
-}
-#endif
+void PLY_import(bContext *C, const PLYImportParams *import_params, wmOperator *op);
