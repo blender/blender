@@ -5832,7 +5832,7 @@ bool UI_block_layout_needs_resolving(const uiBlock *block)
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, PointerRNA *ptr)
 {
   uiBlock *block = layout->root->block;
-  layout->context = CTX_store_add(&block->contexts, name, ptr);
+  layout->context = CTX_store_add(block->contexts, name, ptr);
 }
 
 bContextStore *uiLayoutGetContextStore(uiLayout *layout)
@@ -5843,7 +5843,7 @@ bContextStore *uiLayoutGetContextStore(uiLayout *layout)
 void uiLayoutContextCopy(uiLayout *layout, bContextStore *context)
 {
   uiBlock *block = layout->root->block;
-  layout->context = CTX_store_add_all(&block->contexts, context);
+  layout->context = CTX_store_add_all(block->contexts, context);
 }
 
 void uiLayoutSetTooltipFunc(uiLayout *layout,

@@ -487,7 +487,7 @@ struct uiBlock {
   ListBase layouts;
   uiLayout *curlayout;
 
-  ListBase contexts;
+  blender::Vector<std::unique_ptr<bContextStore>> contexts;
 
   /** A block can store "views" on data-sets. Currently tree-views (#AbstractTreeView) only.
    * Others are imaginable, e.g. table-views, grid-views, etc. These are stored here to support

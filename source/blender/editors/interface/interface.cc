@@ -3523,10 +3523,6 @@ void UI_block_free(const bContext *C, uiBlock *block)
     MEM_freeN(block->func_argN);
   }
 
-  LISTBASE_FOREACH_MUTABLE (bContextStore *, store, &block->contexts) {
-    CTX_store_free(store);
-  }
-
   BLI_freelistN(&block->saferct);
   BLI_freelistN(&block->color_pickers.list);
   BLI_freelistN(&block->dynamic_listeners);
@@ -4739,7 +4735,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
      * access it. */
     const PointerRNA pptr = RNA_property_pointer_get(ptr, prop);
     if (pptr.data && RNA_struct_is_ID(pptr.type)) {
-      but->context = CTX_store_add(&block->contexts, "id", &pptr);
+      but->context = CTX_store_add(block->contexts, "id", &pptr);
     }
   }
 
@@ -5967,7 +5963,7 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but)
 
 void UI_but_context_ptr_set(uiBlock *block, uiBut *but, const char *name, const PointerRNA *ptr)
 {
-  but->context = CTX_store_add(&block->contexts, name, ptr);
+  but->context = CTX_store_add(block->contexts, name, ptr);
   but->context->used = true;
 }
 
