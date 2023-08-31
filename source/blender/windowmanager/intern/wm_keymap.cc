@@ -261,6 +261,22 @@ static void wm_keymap_diff_item_free(wmKeyMapDiffItem *kmdi)
 
 wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user_defined)
 {
+  BLI_assert(!BLI_findstring(&wm->keyconfigs, idname, offsetof(wmKeyConfig, idname)));
+  /* Create new configuration. */
+  wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(
+      MEM_callocN(sizeof(wmKeyConfig), "wmKeyConfig"));
+  STRNCPY(keyconf->idname, idname);
+  BLI_addtail(&wm->keyconfigs, keyconf);
+
+  if (user_defined) {
+    keyconf->flag |= KEYCONF_USER;
+  }
+
+  return keyconf;
+}
+
+wmKeyConfig *WM_keyconfig_ensure(wmWindowManager *wm, const char *idname, bool user_defined)
+{
   wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(
       BLI_findstring(&wm->keyconfigs, idname, offsetof(wmKeyConfig, idname)));
   if (keyconf) {
@@ -279,21 +295,7 @@ wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user
     return keyconf;
   }
 
-  /* Create new configuration. */
-  keyconf = static_cast<wmKeyConfig *>(MEM_callocN(sizeof(wmKeyConfig), "wmKeyConfig"));
-  STRNCPY(keyconf->idname, idname);
-  BLI_addtail(&wm->keyconfigs, keyconf);
-
-  if (user_defined) {
-    keyconf->flag |= KEYCONF_USER;
-  }
-
-  return keyconf;
-}
-
-wmKeyConfig *WM_keyconfig_new_user(wmWindowManager *wm, const char *idname)
-{
-  return WM_keyconfig_new(wm, idname, true);
+  return WM_keyconfig_new(wm, idname, user_defined);
 }
 
 bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
