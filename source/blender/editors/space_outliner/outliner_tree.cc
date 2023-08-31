@@ -366,19 +366,16 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     /* pass */
   }
   else if (type == TSE_SOME_ID) {
-    if (!te->abstract_element) {
-      BLI_assert_msg(0, "Expected this ID type to be ported to new Outliner tree-element design");
-    }
+    BLI_assert_msg(te->abstract_element != nullptr,
+                   "Expected this ID type to be ported to new Outliner tree-element design");
   }
   else if (ELEM(type,
                 TSE_LIBRARY_OVERRIDE_BASE,
                 TSE_LIBRARY_OVERRIDE,
                 TSE_LIBRARY_OVERRIDE_OPERATION))
   {
-    if (!te->abstract_element) {
-      BLI_assert_msg(0,
-                     "Expected override types to be ported to new Outliner tree-element design");
-    }
+    BLI_assert_msg(te->abstract_element != nullptr,
+                   "Expected override types to be ported to new Outliner tree-element design");
   }
   else {
     /* Other cases must be caught above. */
