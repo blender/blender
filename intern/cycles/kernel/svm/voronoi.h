@@ -880,6 +880,8 @@ ccl_device float voronoi_n_sphere_radius(ccl_private const VoronoiParams &params
 
 /* **** Fractal Voronoi **** */
 
+/* The fractalization logic is the same as for fBM Noise, except that some additions are replaced
+ * by lerps. */
 template<typename T>
 ccl_device VoronoiOutput fractal_voronoi_x_fx(ccl_private const VoronoiParams &params,
                                               const T coord)
@@ -889,8 +891,7 @@ ccl_device VoronoiOutput fractal_voronoi_x_fx(ccl_private const VoronoiParams &p
   float scale = 1.0f;
 
   VoronoiOutput output;
-  const bool zero_input = params.detail == 0.0f || params.roughness == 0.0f ||
-                          params.lacunarity == 0.0f;
+  const bool zero_input = params.detail == 0.0f || params.roughness == 0.0f;
 
   for (int i = 0; i <= ceilf(params.detail); ++i) {
     VoronoiOutput octave = (params.feature == NODE_VORONOI_F2) ?
@@ -936,6 +937,8 @@ ccl_device VoronoiOutput fractal_voronoi_x_fx(ccl_private const VoronoiParams &p
   return output;
 }
 
+/* The fractalization logic is the same as for fBM Noise, except that some additions are replaced
+ * by lerps. */
 template<typename T>
 ccl_device float fractal_voronoi_distance_to_edge(ccl_private const VoronoiParams &params,
                                                   const T coord)
@@ -945,8 +948,7 @@ ccl_device float fractal_voronoi_distance_to_edge(ccl_private const VoronoiParam
   float scale = 1.0f;
   float distance = 8.0f;
 
-  const bool zero_input = params.detail == 0.0f || params.roughness == 0.0f ||
-                          params.lacunarity == 0.0f;
+  const bool zero_input = params.detail == 0.0f || params.roughness == 0.0f;
 
   for (int i = 0; i <= ceilf(params.detail); ++i) {
     const float octave_distance = voronoi_distance_to_edge(params, coord * scale);
