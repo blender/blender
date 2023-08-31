@@ -104,6 +104,7 @@ struct wmEvent;
 struct wmOperator;
 struct wmWindowManager;
 
+#include <memory>
 #include <string>
 
 #include "BLI_compiler_attrs.h"
@@ -1169,7 +1170,7 @@ struct wmDragActiveDropState {
    * If `active_dropbox` is set, additional context provided by the active (i.e. hovered) button.
    * Activated before context sensitive operations (polling, drawing, dropping).
    */
-  bContextStore *ui_context;
+  std::unique_ptr<bContextStore> ui_context;
 
   /**
    * Text to show when a dropbox poll succeeds (so the dropbox itself is available) but the

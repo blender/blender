@@ -191,16 +191,6 @@ const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
   return nullptr;
 }
 
-bContextStore *CTX_store_copy(const bContextStore *store)
-{
-  return MEM_new<bContextStore>(__func__, *store);
-}
-
-void CTX_store_free(bContextStore *store)
-{
-  MEM_delete(store);
-}
-
 /* is python initialized? */
 
 bool CTX_py_init_get(bContext *C)

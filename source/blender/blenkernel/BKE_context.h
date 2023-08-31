@@ -159,8 +159,6 @@ void CTX_store_set(bContext *C, bContextStore *store);
 const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
                                        blender::StringRefNull name,
                                        const StructRNA *type = nullptr);
-bContextStore *CTX_store_copy(const bContextStore *store);
-void CTX_store_free(bContextStore *store);
 
 #endif
 
