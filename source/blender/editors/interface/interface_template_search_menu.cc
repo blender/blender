@@ -182,7 +182,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
 
     item->op.type = but->optype;
     item->op.opcontext = but->opcontext;
-    item->op.context = but->context;
+    item->op.context = but->context ? MEM_new<bContextStore>(__func__, *but->context) : nullptr;
     item->op.opptr = but->opptr;
     but->opptr = nullptr;
   }
@@ -308,6 +308,8 @@ struct MenuStackEntry {
   MenuType *mt = nullptr;
   /** Used as parent in submenus. */
   MenuSearch_Parent *self_as_parent = nullptr;
+  /** The menu might be context dependent. */
+  std::optional<bContextStore> context;
 };
 
 /**
@@ -671,6 +673,9 @@ static MenuSearch_Data *menu_items_from_ui_create(
 
       UI_block_flag_enable(block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
 
+      if (current_menu.context.has_value()) {
+        uiLayoutContextCopy(layout, &*current_menu.context);
+      }
       uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
       UI_menutype_draw(C, mt, layout);
 
@@ -698,7 +703,9 @@ static MenuSearch_Data *menu_items_from_ui_create(
           /* pass */
         }
         else if ((mt_from_but = UI_but_menutype_get(but))) {
-          const bool scan_submenu = menu_tagged.add(mt_from_but);
+          const bool uses_context = but->context && mt_from_but->context_dependent;
+          const bool tagged_first_time = menu_tagged.add(mt_from_but);
+          const bool scan_submenu = tagged_first_time || uses_context;
 
           if (scan_submenu) {
             MenuSearch_Parent *menu_parent = (MenuSearch_Parent *)BLI_memarena_calloc(
@@ -745,7 +752,12 @@ static MenuSearch_Data *menu_items_from_ui_create(
               printf("Warning: '%s' menu has empty 'bl_label'.\n", mt_from_but->idname);
             }
 
-            menu_stack.push({mt_from_but, menu_parent});
+            if (uses_context) {
+              menu_stack.push({mt_from_but, menu_parent, *but->context});
+            }
+            else {
+              menu_stack.push({mt_from_but, menu_parent});
+            }
           }
         }
         else if (but->menu_create_func != nullptr) {
@@ -893,6 +905,7 @@ static void menu_search_arg_free_fn(void *data_v)
           WM_operator_properties_free(item->op.opptr);
           MEM_freeN(item->op.opptr);
         }
+        MEM_delete(item->op.context);
         break;
       }
       case MenuSearch_Item::Type::RNA: {

@@ -200,6 +200,7 @@ MenuType add_catalog_assets_menu_type()
   type.poll = node_add_menu_poll;
   type.draw = node_add_catalog_assets_draw;
   type.listener = asset::asset_reading_region_listen_fn;
+  type.context_dependent = true;
   return type;
 }
 

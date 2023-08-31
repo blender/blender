@@ -414,6 +414,12 @@ typedef struct MenuType {
   void (*draw)(const struct bContext *C, struct Menu *menu);
   void (*listener)(const wmRegionListenerParams *params);
 
+  /**
+   * True if the menu depends on data retrieved via #CTX_data_pointer_get. If it is context
+   * dependent, menu search has to scan it in different contexts.
+   */
+  bool context_dependent;
+
   /* RNA integration */
   ExtensionRNA rna_ext;
 } MenuType;
