@@ -85,11 +85,6 @@ struct SubFrame {
   {
     return a.frame_ >= b.frame_ || (a.frame_ == b.frame_ && a.subframe_ >= b.subframe_);
   }
-
-  friend std::ostream &operator<<(std::ostream &stream, const SubFrame &a)
-  {
-    return stream << float(a);
-  }
 };
 
 }  // namespace blender

@@ -73,6 +73,7 @@ set(SRC
   intern/attribute_math.cc
   intern/autoexec.cc
   intern/bake_items.cc
+  intern/bake_items_paths.cc
   intern/bake_items_serialize.cc
   intern/bake_items_socket.cc
   intern/blender.cc
@@ -333,6 +334,7 @@ set(SRC
   BKE_attribute_math.hh
   BKE_autoexec.h
   BKE_bake_items.hh
+  BKE_bake_items_paths.hh
   BKE_bake_items_serialize.hh
   BKE_bake_items_socket.hh
   BKE_blender.h
