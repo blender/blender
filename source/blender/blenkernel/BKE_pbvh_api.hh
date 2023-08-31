@@ -210,7 +210,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           CCGElem **grids,
                           int totgrid,
                           CCGKey *key,
-                          void **gridfaces,
+                          blender::Span<int> grid_to_face_map,
                           DMFlagMat *flagmats,
                           unsigned int **grid_hidden,
                           Mesh *me,
@@ -445,7 +445,7 @@ void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3]);
 void BKE_pbvh_get_grid_updates(PBVH *pbvh, bool clear, void ***r_gridfaces, int *r_totface);
 void BKE_pbvh_grids_update(PBVH *pbvh,
                            CCGElem **grids,
-                           void **gridfaces,
+                           blender::Span<int> grid_to_face_map,
                            DMFlagMat *flagmats,
                            unsigned int **grid_hidden,
                            CCGKey *key);
