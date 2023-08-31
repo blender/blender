@@ -465,13 +465,7 @@ static void bone_collection_select(bContext *C,
       if (!editbone_is_member(ebone, bcoll)) {
         continue;
       }
-
-      if (select) {
-        ebone->flag |= BONE_SELECTED;
-      }
-      else {
-        ebone->flag &= ~BONE_SELECTED;
-      }
+      ED_armature_ebone_select_set(ebone, select);
     }
   }
   else {
@@ -494,7 +488,12 @@ static void bone_collection_select(bContext *C,
   }
 
   DEG_id_tag_update(&armature->id, ID_RECALC_SELECT);
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  if (is_editmode) {
+    WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+  }
+  else {
+    WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  }
 
   if (is_editmode) {
     ED_outliner_select_sync_from_edit_bone_tag(C);
