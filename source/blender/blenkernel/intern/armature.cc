@@ -87,6 +87,7 @@ static void armature_init_data(ID *id)
   /* Give the Armature its default bone collection. */
   BoneCollection *default_bonecoll = ANIM_bonecoll_new("");
   BLI_addhead(&armature->collections, default_bonecoll);
+  ANIM_armature_bonecoll_active_set(armature, default_bonecoll);
 }
 
 /**
