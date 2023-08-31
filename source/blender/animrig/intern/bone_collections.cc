@@ -92,7 +92,7 @@ static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bco
 {
   BLI_uniquename(&armature->collections,
                  bcoll,
-                 bcoll->name,
+                 "Bones",
                  '.',
                  offsetof(BoneCollection, name),
                  sizeof(bcoll->name));
