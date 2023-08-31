@@ -25,7 +25,7 @@ TreeElementSequence::TreeElementSequence(TreeElement &legacy_te, Sequence &seque
   legacy_te.name = sequence_.name + 2;
 }
 
-bool TreeElementSequence::expandPoll(const SpaceOutliner & /*space_outliner*/) const
+bool TreeElementSequence::expand_poll(const SpaceOutliner & /*space_outliner*/) const
 {
   return !(sequence_.type & SEQ_TYPE_EFFECT);
 }
@@ -50,12 +50,12 @@ void TreeElementSequence::expand(SpaceOutliner &space_outliner) const
   }
 }
 
-Sequence &TreeElementSequence::getSequence() const
+Sequence &TreeElementSequence::get_sequence() const
 {
   return sequence_;
 }
 
-SequenceType TreeElementSequence::getSequenceType() const
+SequenceType TreeElementSequence::get_sequence_type() const
 {
   return SequenceType(sequence_.type);
 }
@@ -87,7 +87,7 @@ TreeElementSequenceStripDuplicate::TreeElementSequenceStripDuplicate(TreeElement
   legacy_te_.name = sequence.strip->stripdata->filename;
 }
 
-Sequence &TreeElementSequenceStripDuplicate::getSequence() const
+Sequence &TreeElementSequenceStripDuplicate::get_sequence() const
 {
   return sequence_;
 }

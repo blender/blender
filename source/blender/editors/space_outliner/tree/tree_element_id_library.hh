@@ -18,7 +18,7 @@ class TreeElementIDLibrary final : public TreeElementID {
  public:
   TreeElementIDLibrary(TreeElement &legacy_te, Library &library);
 
-  blender::StringRefNull getWarning() const override;
+  blender::StringRefNull get_warning() const override;
 };
 
 }  // namespace blender::ed::outliner

@@ -49,9 +49,9 @@
 
 namespace blender::ed::outliner {
 
-std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const int type,
-                                                                         TreeElement &legacy_te,
-                                                                         void *idv)
+std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const int type,
+                                                                           TreeElement &legacy_te,
+                                                                           void *idv)
 {
   if (idv == nullptr) {
     return nullptr;
@@ -71,7 +71,7 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
 
   switch (type) {
     case TSE_SOME_ID:
-      return TreeElementID::createFromID(legacy_te, *static_cast<ID *>(idv));
+      return TreeElementID::create_from_id(legacy_te, *static_cast<ID *>(idv));
     case TSE_GENERIC_LABEL:
       return std::make_unique<TreeElementLabel>(legacy_te, static_cast<const char *>(idv));
     case TSE_ANIM_DATA:
@@ -198,12 +198,12 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
   return nullptr;
 }
 
-StringRefNull AbstractTreeElement::getWarning() const
+StringRefNull AbstractTreeElement::get_warning() const
 {
   return "";
 }
 
-std::optional<BIFIconID> AbstractTreeElement::getIcon() const
+std::optional<BIFIconID> AbstractTreeElement::get_icon() const
 {
   return {};
 }
@@ -231,7 +231,7 @@ void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner 
   /* Most types can just expand. IDs optionally expand (hence the poll) and do additional, common
    * expanding. Could be done nicer, we could request a small "expander" helper object from the
    * element type, that the IDs have a more advanced implementation for. */
-  if (!tree_element.expandPoll(space_outliner)) {
+  if (!tree_element.expand_poll(space_outliner)) {
     return;
   }
   tree_element.expand(space_outliner);

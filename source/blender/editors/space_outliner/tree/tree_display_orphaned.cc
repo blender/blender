@@ -29,7 +29,7 @@ TreeDisplayIDOrphans::TreeDisplayIDOrphans(SpaceOutliner &space_outliner)
 {
 }
 
-ListBase TreeDisplayIDOrphans::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayIDOrphans::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
   ListBase *lbarray[INDEX_ID_MAX];

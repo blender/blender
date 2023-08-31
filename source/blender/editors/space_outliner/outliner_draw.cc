@@ -1910,7 +1910,7 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
     if (const TreeElementOverridesPropertyOperation *override_op_elem =
             tree_element_cast<TreeElementOverridesPropertyOperation>(te))
     {
-      StringRefNull op_label = override_op_elem->getOverrideOperationLabel();
+      StringRefNull op_label = override_op_elem->get_override_operation_label();
       if (!op_label.is_empty()) {
         uiDefBut(block,
                  UI_BTYPE_LABEL,
@@ -2058,8 +2058,8 @@ static void outliner_draw_rnabuts(uiBlock *block,
     }
 
     if (TreeElementRNAProperty *te_rna_prop = tree_element_cast<TreeElementRNAProperty>(te)) {
-      ptr = te_rna_prop->getPointerRNA();
-      prop = te_rna_prop->getPropertyRNA();
+      ptr = te_rna_prop->get_pointer_rna();
+      prop = te_rna_prop->get_property_rna();
 
       if (!TSELEM_OPEN(tselem, space_outliner)) {
         if (RNA_property_type(prop) == PROP_POINTER) {
@@ -2104,8 +2104,8 @@ static void outliner_draw_rnabuts(uiBlock *block,
     else if (TreeElementRNAArrayElement *te_rna_array_elem =
                  tree_element_cast<TreeElementRNAArrayElement>(te))
     {
-      ptr = te_rna_array_elem->getPointerRNA();
-      prop = te_rna_array_elem->getPropertyRNA();
+      ptr = te_rna_array_elem->get_pointer_rna();
+      prop = te_rna_array_elem->get_property_rna();
 
       uiDefAutoButR(block,
                     &ptr,
@@ -2295,7 +2295,7 @@ static StringRefNull outliner_draw_get_warning_tree_element_subtree(const TreeEl
 {
   LISTBASE_FOREACH (const TreeElement *, sub_te, &parent_te->subtree) {
     const AbstractTreeElement *abstract_te = tree_element_cast<AbstractTreeElement>(sub_te);
-    StringRefNull warning_msg = abstract_te ? abstract_te->getWarning() : "";
+    StringRefNull warning_msg = abstract_te ? abstract_te->get_warning() : "";
 
     if (!warning_msg.is_empty()) {
       return warning_msg;
@@ -2314,7 +2314,7 @@ static StringRefNull outliner_draw_get_warning_tree_element(const SpaceOutliner 
                                                             const TreeElement *te)
 {
   const AbstractTreeElement *abstract_te = tree_element_cast<AbstractTreeElement>(te);
-  const StringRefNull warning_msg = abstract_te ? abstract_te->getWarning() : "";
+  const StringRefNull warning_msg = abstract_te ? abstract_te->get_warning() : "";
 
   if (!warning_msg.is_empty()) {
     return warning_msg;
@@ -2824,7 +2824,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         break;
       case TSE_SEQUENCE: {
         const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-        switch (te_seq->getSequenceType()) {
+        switch (te_seq->get_sequence_type()) {
           case SEQ_TYPE_SCENE:
             data.icon = ICON_SCENE_DATA;
             break;
@@ -2886,7 +2886,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         break;
       case TSE_RNA_STRUCT: {
         const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(te);
-        const PointerRNA &ptr = te_rna_struct->getPointerRNA();
+        const PointerRNA &ptr = te_rna_struct->get_pointer_rna();
 
         if (RNA_struct_is_ID(ptr.type)) {
           data.drag_id = static_cast<ID *>(ptr.data);
@@ -2943,7 +2943,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
   if (!te->abstract_element) {
     /* Pass */
   }
-  else if (auto icon = te->abstract_element->getIcon()) {
+  else if (auto icon = te->abstract_element->get_icon()) {
     data.icon = *icon;
   }
 
@@ -3470,7 +3470,7 @@ static void outliner_draw_tree_element(bContext *C,
 
     const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(te);
     if (ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION) ||
-        (te_rna_struct && RNA_struct_is_ID(te_rna_struct->getPointerRNA().type)))
+        (te_rna_struct && RNA_struct_is_ID(te_rna_struct->get_pointer_rna().type)))
     {
       const BIFIconID lib_icon = UI_icon_from_library(tselem->id);
       if (lib_icon != ICON_NONE) {

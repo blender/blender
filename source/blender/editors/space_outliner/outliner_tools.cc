@@ -2163,7 +2163,7 @@ static void ebone_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, voi
 static void sequence_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void *scene_ptr)
 {
   TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-  Sequence *seq = &te_seq->getSequence();
+  Sequence *seq = &te_seq->get_sequence();
   Scene *scene = (Scene *)scene_ptr;
   Editing *ed = SEQ_editing_get(scene);
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
@@ -2241,7 +2241,7 @@ static void data_select_linked_fn(int event,
   }
 
   if (event == OL_DOP_SELECT_LINKED) {
-    const PointerRNA &ptr = te_rna_struct->getPointerRNA();
+    const PointerRNA &ptr = te_rna_struct->get_pointer_rna();
     if (RNA_struct_is_ID(ptr.type)) {
       bContext *C = (bContext *)C_v;
       ID *id = static_cast<ID *>(ptr.data);

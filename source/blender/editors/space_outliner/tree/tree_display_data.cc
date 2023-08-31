@@ -24,7 +24,7 @@ TreeDisplayDataAPI::TreeDisplayDataAPI(SpaceOutliner &space_outliner)
 {
 }
 
-ListBase TreeDisplayDataAPI::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayDataAPI::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 

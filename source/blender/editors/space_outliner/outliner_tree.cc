@@ -311,7 +311,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 
   /* New inheritance based element representation. Not all element types support this yet,
    * eventually it should replace #TreeElement entirely. */
-  te->abstract_element = AbstractTreeElement::createFromType(type, *te, idv);
+  te->abstract_element = AbstractTreeElement::create_from_type(type, *te, idv);
   if (te->abstract_element) {
     /* Element types ported to the new design are expected to have their name set at this point! */
     BLI_assert(te->name != nullptr);
@@ -1229,14 +1229,14 @@ void outliner_build_tree(Main *mainvar,
   outliner_free_tree(&space_outliner->tree);
   outliner_storage_cleanup(space_outliner);
 
-  space_outliner->runtime->tree_display = AbstractTreeDisplay::createFromDisplayMode(
+  space_outliner->runtime->tree_display = AbstractTreeDisplay::create_from_display_mode(
       space_outliner->outlinevis, *space_outliner);
 
   /* All tree displays should be created as sub-classes of AbstractTreeDisplay. */
   BLI_assert(space_outliner->runtime->tree_display != nullptr);
 
   TreeSourceData source_data{*mainvar, *scene, *view_layer};
-  space_outliner->tree = space_outliner->runtime->tree_display->buildTree(source_data);
+  space_outliner->tree = space_outliner->runtime->tree_display->build_tree(source_data);
 
   if ((space_outliner->flag & SO_SKIP_SORT_ALPHA) == 0) {
     outliner_sort(&space_outliner->tree);

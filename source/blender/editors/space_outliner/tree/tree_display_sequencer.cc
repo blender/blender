@@ -30,7 +30,7 @@ TreeDisplaySequencer::TreeDisplaySequencer(SpaceOutliner &space_outliner)
 {
 }
 
-ListBase TreeDisplaySequencer::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplaySequencer::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 

@@ -28,12 +28,12 @@ TreeDisplayScenes::TreeDisplayScenes(SpaceOutliner &space_outliner)
 {
 }
 
-bool TreeDisplayScenes::supportsModeColumn() const
+bool TreeDisplayScenes::supports_mode_column() const
 {
   return true;
 }
 
-ListBase TreeDisplayScenes::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayScenes::build_tree(const TreeSourceData &source_data)
 {
   /* On first view we open scenes. */
   const int show_opened = !space_outliner_.treestore ||

@@ -36,19 +36,19 @@ class AbstractTreeElement {
  public:
   virtual ~AbstractTreeElement() = default;
 
-  static std::unique_ptr<AbstractTreeElement> createFromType(int type,
-                                                             TreeElement &legacy_te,
-                                                             void *idv);
+  static std::unique_ptr<AbstractTreeElement> create_from_type(int type,
+                                                               TreeElement &legacy_te,
+                                                               void *idv);
 
   /**
    * Check if the type is expandable in current context.
    */
-  virtual bool expandPoll(const SpaceOutliner &) const
+  virtual bool expand_poll(const SpaceOutliner &) const
   {
     return true;
   }
 
-  TreeElement &getLegacyElement()
+  TreeElement &get_legacy_element()
   {
     return legacy_te_;
   }
@@ -57,7 +57,7 @@ class AbstractTreeElement {
    * By letting this return a warning message, the tree element will display a warning icon with
    * the message in the tooltip.
    */
-  virtual StringRefNull getWarning() const;
+  virtual StringRefNull get_warning() const;
 
   /**
    * Define the icon to be displayed for this element. If this returns an icon, this will be
@@ -66,7 +66,7 @@ class AbstractTreeElement {
    *
    * All elements should be ported to use this over #tree_element_get_icon().
    */
-  virtual std::optional<BIFIconID> getIcon() const;
+  virtual std::optional<BIFIconID> get_icon() const;
 
   /**
    * Debugging helper: Print effective path of this tree element, constructed out of the

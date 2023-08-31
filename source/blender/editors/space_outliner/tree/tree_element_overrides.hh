@@ -43,7 +43,7 @@ class TreeElementOverridesBase final : public AbstractTreeElement {
 
   void expand(SpaceOutliner &) const override;
 
-  StringRefNull getWarning() const override;
+  StringRefNull get_warning() const override;
 };
 
 /**
@@ -62,9 +62,7 @@ class TreeElementOverridesProperty : public AbstractTreeElement {
  public:
   TreeElementOverridesProperty(TreeElement &legacy_te, TreeElementOverridesData &override_data);
 
-  StringRefNull getWarning() const override;
-
-  bool isCollectionOperation() const;
+  StringRefNull get_warning() const override;
 };
 
 /**
@@ -85,8 +83,8 @@ class TreeElementOverridesPropertyOperation final : public TreeElementOverridesP
 
   /** Return a short string to display in the right column of the properties mode, indicating what
    * the override operation did (e.g. added or removed a collection item). */
-  StringRefNull getOverrideOperationLabel() const;
-  std::optional<BIFIconID> getIcon() const override;
+  StringRefNull get_override_operation_label() const;
+  std::optional<BIFIconID> get_icon() const override;
 
  private:
   std::optional<PointerRNA> get_collection_ptr() const;
