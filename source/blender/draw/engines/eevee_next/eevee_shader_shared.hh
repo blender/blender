@@ -229,10 +229,12 @@ BLI_STATIC_ASSERT_ALIGN(FilmSample, 16)
 struct FilmData {
   /** Size of the film in pixels. */
   int2 extent;
-  /** Offset of the film in the full-res frame, in pixels. */
+  /** Offset to convert from Display space to Film space, in pixels. */
   int2 offset;
-  /** Extent used by the render buffers when rendering the main views. */
+  /** Size of the render buffers when rendering the main views, in pixels. */
   int2 render_extent;
+  /** Offset to convert from Film space to Render space, in pixels. */
+  int2 render_offset;
   /**
    * Sub-pixel offset applied to the window matrix.
    * NOTE: In final film pixel unit.
@@ -254,7 +256,7 @@ struct FilmData {
   bool1 any_render_pass_2;
   /** Controlled by user in lookdev mode or by render settings. */
   float background_opacity;
-  float _pad0;
+  float _pad0, _pad1, _pad2;
   /** Output counts per type. */
   int color_len, value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */
