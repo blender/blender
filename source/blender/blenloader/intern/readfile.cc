@@ -4249,7 +4249,7 @@ ID *BLO_library_link_named_part(Main *mainl,
 /* common routine to append/link something from a library */
 
 static Main *library_link_begin(Main *mainvar,
-                                FileData **fd,
+                                FileData *fd,
                                 const char *filepath,
                                 const int id_tag_extra)
 {
@@ -4260,21 +4260,21 @@ static Main *library_link_begin(Main *mainvar,
    * Other flags can be added here, as long as they are safe. */
   BLI_assert((id_tag_extra & ~LIB_TAG_TEMP_MAIN) == 0);
 
-  (*fd)->id_tag_extra = id_tag_extra;
+  fd->id_tag_extra = id_tag_extra;
 
-  (*fd)->mainlist = static_cast<ListBase *>(MEM_callocN(sizeof(ListBase), "FileData.mainlist"));
+  fd->mainlist = static_cast<ListBase *>(MEM_callocN(sizeof(ListBase), "FileData.mainlist"));
 
   /* make mains */
-  blo_split_main((*fd)->mainlist, mainvar);
+  blo_split_main(fd->mainlist, mainvar);
 
   /* which one do we need? */
-  mainl = blo_find_main(*fd, filepath, BKE_main_blendfile_path(mainvar));
+  mainl = blo_find_main(fd, filepath, BKE_main_blendfile_path(mainvar));
 
   /* needed for do_version */
-  mainl->versionfile = (*fd)->fileversion;
-  read_file_version(*fd, mainl);
+  mainl->versionfile = short(fd->fileversion);
+  read_file_version(fd, mainl);
 #ifdef USE_GHASH_BHEAD
-  read_file_bhead_idname_map_create(*fd);
+  read_file_bhead_idname_map_create(fd);
 #endif
 
   return mainl;
@@ -4312,8 +4312,8 @@ Main *BLO_library_link_begin(BlendHandle **bh,
                              const char *filepath,
                              const LibraryLink_Params *params)
 {
-  FileData *fd = (FileData *)(*bh);
-  return library_link_begin(params->bmain, &fd, filepath, params->id_tag_extra);
+  FileData *fd = reinterpret_cast<FileData *>(*bh);
+  return library_link_begin(params->bmain, fd, filepath, params->id_tag_extra);
 }
 
 static void split_main_newid(Main *mainptr, Main *main_newid)
