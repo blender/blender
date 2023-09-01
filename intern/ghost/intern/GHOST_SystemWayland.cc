@@ -7,6 +7,7 @@
  */
 
 #include "GHOST_SystemWayland.hh"
+#include "GHOST_Context.hh"
 #include "GHOST_Event.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
