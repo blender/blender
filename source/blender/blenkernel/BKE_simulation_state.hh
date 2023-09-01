@@ -12,6 +12,7 @@
 #include "BLI_sub_frame.hh"
 
 struct bNodeTree;
+struct ModifierData;
 struct NodesModifierData;
 struct Main;
 
@@ -72,5 +73,12 @@ std::optional<bake_paths::BakePath> get_simulation_zone_bake_path(const Main &bm
 std::optional<std::string> get_modifier_simulation_bake_path(const Main &bmain,
                                                              const Object &object,
                                                              const NodesModifierData &nmd);
+
+/**
+ * Get the directory that contains all baked simulation data for the given modifier.
+ */
+std::string get_default_modifier_bake_directory(const Main &bmain,
+                                                const Object &object,
+                                                const ModifierData &md);
 
 }  // namespace blender::bke::sim

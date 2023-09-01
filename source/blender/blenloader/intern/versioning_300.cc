@@ -71,7 +71,7 @@
 #include "BKE_modifier.h"
 #include "BKE_node.hh"
 #include "BKE_screen.h"
-#include "BKE_simulation_state_serialize.hh"
+#include "BKE_simulation_state.hh"
 #include "BKE_workspace.h"
 
 #include "RNA_access.hh"

@@ -42,7 +42,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_simulation_state.hh"
-#include "BKE_simulation_state_serialize.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
