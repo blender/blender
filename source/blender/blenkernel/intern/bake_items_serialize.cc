@@ -1064,4 +1064,82 @@ std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io_item,
   return {};
 }
 
+static constexpr int bake_file_version = 3;
+
+void serialize_bake(const Map<int, const BakeItem *> &items_by_id,
+                    BDataWriter &bdata_writer,
+                    BDataSharing &bdata_sharing,
+                    std::ostream &r_stream)
+{
+  io::serialize::DictionaryValue io_root;
+  io_root.append_int("version", bake_file_version);
+  io::serialize::DictionaryValue &io_items = *io_root.append_dict("items");
+  for (auto item : items_by_id.items()) {
+    io::serialize::DictionaryValue &io_item = *io_items.append_dict(std::to_string(item.key));
+    bke::serialize_bake_item(*item.value, bdata_writer, bdata_sharing, io_item);
+  }
+
+  io::serialize::JsonFormatter formatter;
+  formatter.serialize(r_stream, io_root);
+}
+
+void serialize_bake(const Map<int, std::unique_ptr<BakeItem>> &items_by_id,
+                    BDataWriter &bdata_writer,
+                    BDataSharing &bdata_sharing,
+                    std::ostream &r_stream)
+{
+  Map<int, const BakeItem *> map;
+  map.reserve(items_by_id.size());
+  for (auto item : items_by_id.items()) {
+    map.add_new(item.key, item.value.get());
+  }
+  serialize_bake(map, bdata_writer, bdata_sharing, r_stream);
+}
+
+std::optional<Map<int, std::unique_ptr<BakeItem>>> deserialize_bake(
+    std::istream &stream, const BDataReader &bdata_reader, const BDataSharing &bdata_sharing)
+{
+  JsonFormatter formatter;
+  std::unique_ptr<io::serialize::Value> io_root_value = formatter.deserialize(stream);
+  if (!io_root_value) {
+    return std::nullopt;
+  }
+  const io::serialize::DictionaryValue *io_root = io_root_value->as_dictionary_value();
+  if (!io_root) {
+    return std::nullopt;
+  }
+  const std::optional<int> version = io_root->lookup_int("version");
+  if (!version.has_value() || *version != bake_file_version) {
+    return std::nullopt;
+  }
+  const io::serialize::DictionaryValue *io_items = io_root->lookup_dict("items");
+  if (!io_items) {
+    return std::nullopt;
+  }
+  Map<int, std::unique_ptr<BakeItem>> bake_items;
+  for (const auto &io_item_value : io_items->elements()) {
+    const io::serialize::DictionaryValue *io_item = io_item_value.second->as_dictionary_value();
+    if (!io_item) {
+      return std::nullopt;
+    }
+    int id;
+    try {
+      id = std::stoi(io_item_value.first);
+    }
+    catch (...) {
+      return std::nullopt;
+    }
+    if (bake_items.contains(id)) {
+      return std::nullopt;
+    }
+    std::unique_ptr<BakeItem> bake_item = deserialize_bake_item(
+        *io_item, bdata_reader, bdata_sharing);
+    if (!bake_item) {
+      return std::nullopt;
+    }
+    bake_items.add_new(id, std::move(bake_item));
+  }
+  return bake_items;
+}
+
 }  // namespace blender::bke

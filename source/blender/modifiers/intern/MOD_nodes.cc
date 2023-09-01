@@ -1024,34 +1024,14 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
     if (!frame_cache.meta_path) {
       return;
     }
-    std::shared_ptr<io::serialize::Value> io_root_value = io::serialize::read_json_file(
-        *frame_cache.meta_path);
-    const io::serialize::DictionaryValue *io_root = io_root_value->as_dictionary_value();
-    if (!io_root) {
-      return;
-    }
-    if (io_root->lookup_int("version").value_or(0) != bke::sim::simulation_file_storage_version) {
-      return;
-    }
-    const io::serialize::DictionaryValue *io_items = io_root->lookup_dict("items");
-    if (!io_items) {
-      return;
-    }
-
     bke::DiskBDataReader bdata_reader{*zone_cache.bdata_dir};
-
-    for (const auto &io_item_value : io_items->elements()) {
-      const io::serialize::DictionaryValue *io_item = io_item_value.second->as_dictionary_value();
-      if (!io_item) {
-        continue;
-      }
-      const int zone_id = std::stoi(io_item_value.first);
-      std::unique_ptr<bke::BakeItem> item = bke::deserialize_bake_item(
-          *io_item, bdata_reader, *zone_cache.bdata_sharing);
-      if (item) {
-        frame_cache.items.add(zone_id, std::move(item));
-      }
+    fstream meta_file{*frame_cache.meta_path};
+    std::optional<Map<int, std::unique_ptr<bke::BakeItem>>> bake_items = bke::deserialize_bake(
+        meta_file, bdata_reader, *zone_cache.bdata_sharing);
+    if (!bake_items.has_value()) {
+      return;
     }
+    frame_cache.items = std::move(*bake_items);
   }
 };
 
