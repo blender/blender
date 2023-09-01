@@ -378,6 +378,7 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
   else if (!path_te_map.contains(override_data.override_property.rna_path)) {
     outliner_add_element(&space_outliner_,
                          &te_to_expand->subtree,
+                         &override_data.id,
                          &override_data,
                          te_to_expand,
                          TSE_LIBRARY_OVERRIDE,
@@ -434,6 +435,7 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
 
       current_te = outliner_add_element(&space_outliner_,
                                         &te_to_expand.subtree,
+                                        &override_op_data.id,
                                         /* Element will store a copy. */
                                         &override_op_data,
                                         &te_to_expand,
@@ -477,6 +479,7 @@ TreeElement &OverrideRNAPathTreeBuilder::ensure_label_element_for_prop(
   return *path_te_map.lookup_or_add_cb(elem_path, [&]() {
     TreeElement *new_te = outliner_add_element(&space_outliner_,
                                                &parent.subtree,
+                                               nullptr,
                                                (void *)RNA_property_ui_name(&prop),
                                                &parent,
                                                TSE_GENERIC_LABEL,
@@ -500,6 +503,7 @@ TreeElement &OverrideRNAPathTreeBuilder::ensure_label_element_for_ptr(TreeElemen
     TreeElement *new_te = outliner_add_element(
         &space_outliner_,
         &parent.subtree,
+        nullptr,
         (void *)(dyn_name ? dyn_name : RNA_struct_ui_name(ptr.type)),
         &parent,
         TSE_GENERIC_LABEL,

@@ -32,7 +32,7 @@ ListBase TreeDisplayDataAPI::build_tree(const TreeSourceData &source_data)
   RNA_main_pointer_create(source_data.bmain, &mainptr);
 
   TreeElement *te = outliner_add_element(
-      &space_outliner_, &tree, (void *)&mainptr, nullptr, TSE_RNA_STRUCT, -1);
+      &space_outliner_, &tree, nullptr, (void *)&mainptr, nullptr, TSE_RNA_STRUCT, -1);
 
   /* On first view open parent data elements */
   const int show_opened = !space_outliner_.treestore ||

@@ -129,18 +129,17 @@ bool TreeElementID::expand_poll(const SpaceOutliner &space_outliner) const
 void TreeElementID::expand(SpaceOutliner &space_outliner) const
 {
   /* Not all IDs support animation data. Will be null then. */
-  const AnimData *anim_data = BKE_animdata_from_id(&id_);
+  AnimData *anim_data = BKE_animdata_from_id(&id_);
   if (anim_data) {
     expand_animation_data(space_outliner, anim_data);
   }
 }
 
-void TreeElementID::expand_animation_data(SpaceOutliner &space_outliner,
-                                          const AnimData *anim_data) const
+void TreeElementID::expand_animation_data(SpaceOutliner &space_outliner, AnimData *anim_data) const
 {
   if (outliner_animdata_test(anim_data)) {
     outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &id_, &legacy_te_, TSE_ANIM_DATA, 0);
+        &space_outliner, &legacy_te_.subtree, &id_, anim_data, &legacy_te_, TSE_ANIM_DATA, 0);
   }
 }
 

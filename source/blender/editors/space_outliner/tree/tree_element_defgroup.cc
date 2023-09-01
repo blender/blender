@@ -33,10 +33,13 @@ void TreeElementDeformGroupBase::expand(SpaceOutliner &space_outliner) const
   int index;
   LISTBASE_FOREACH_INDEX (bDeformGroup *, defgroup, defbase, index) {
 
-    DeformGroupElementCreateData defgroup_data = {&object_, defgroup};
-
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &defgroup_data, &legacy_te_, TSE_DEFGROUP, index);
+    outliner_add_element(&space_outliner,
+                         &legacy_te_.subtree,
+                         &object_.id,
+                         defgroup,
+                         &legacy_te_,
+                         TSE_DEFGROUP,
+                         index);
   }
 }
 

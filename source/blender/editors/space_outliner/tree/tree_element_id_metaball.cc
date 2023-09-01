@@ -31,8 +31,13 @@ void TreeElementIDMetaBall::expand(SpaceOutliner &space_outliner) const
 void TreeElementIDMetaBall::expand_materials(SpaceOutliner &space_outliner) const
 {
   for (int a = 0; a < metaball_.totcol; a++) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, metaball_.mat[a], &legacy_te_, TSE_SOME_ID, a);
+    outliner_add_element(&space_outliner,
+                         &legacy_te_.subtree,
+                         reinterpret_cast<ID *>(metaball_.mat[a]),
+                         nullptr,
+                         &legacy_te_,
+                         TSE_SOME_ID,
+                         a);
   }
 }
 

@@ -34,25 +34,40 @@ void TreeElementIDScene::expand(SpaceOutliner &space_outliner) const
 void TreeElementIDScene::expand_view_layers(SpaceOutliner &space_outliner) const
 {
   outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_R_LAYER_BASE, 0);
+      &space_outliner, &legacy_te_.subtree, &scene_.id, nullptr, &legacy_te_, TSE_R_LAYER_BASE, 0);
 }
 
 void TreeElementIDScene::expand_world(SpaceOutliner &space_outliner) const
 {
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, scene_.world, &legacy_te_, TSE_SOME_ID, 0);
+  outliner_add_element(&space_outliner,
+                       &legacy_te_.subtree,
+                       reinterpret_cast<ID *>(scene_.world),
+                       nullptr,
+                       &legacy_te_,
+                       TSE_SOME_ID,
+                       0);
 }
 
 void TreeElementIDScene::expand_collections(SpaceOutliner &space_outliner) const
 {
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_SCENE_COLLECTION_BASE, 0);
+  outliner_add_element(&space_outliner,
+                       &legacy_te_.subtree,
+                       &scene_.id,
+                       nullptr,
+                       &legacy_te_,
+                       TSE_SCENE_COLLECTION_BASE,
+                       0);
 }
 
 void TreeElementIDScene::expand_objects(SpaceOutliner &space_outliner) const
 {
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_SCENE_OBJECTS_BASE, 0);
+  outliner_add_element(&space_outliner,
+                       &legacy_te_.subtree,
+                       &scene_.id,
+                       nullptr,
+                       &legacy_te_,
+                       TSE_SCENE_OBJECTS_BASE,
+                       0);
 }
 
 }  // namespace blender::ed::outliner

@@ -32,7 +32,8 @@ void TreeElementNLA::expand(SpaceOutliner &space_outliner) const
 {
   int a = 0;
   for (NlaTrack *nlt : ListBaseWrapper<NlaTrack>(anim_data_.nla_tracks)) {
-    outliner_add_element(&space_outliner, &legacy_te_.subtree, nlt, &legacy_te_, TSE_NLA_TRACK, a);
+    outliner_add_element(
+        &space_outliner, &legacy_te_.subtree, nullptr, nlt, &legacy_te_, TSE_NLA_TRACK, a);
     a++;
   }
 }
@@ -50,8 +51,13 @@ void TreeElementNLATrack::expand(SpaceOutliner &space_outliner) const
 {
   int a = 0;
   for (NlaStrip *strip : ListBaseWrapper<NlaStrip>(track_.strips)) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, strip->act, &legacy_te_, TSE_NLA_ACTION, a);
+    outliner_add_element(&space_outliner,
+                         &legacy_te_.subtree,
+                         reinterpret_cast<ID *>(strip->act),
+                         nullptr,
+                         &legacy_te_,
+                         TSE_NLA_ACTION,
+                         a);
     a++;
   }
 }

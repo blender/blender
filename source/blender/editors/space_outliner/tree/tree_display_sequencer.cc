@@ -42,11 +42,11 @@ ListBase TreeDisplaySequencer::build_tree(const TreeSourceData &source_data)
   for (Sequence *seq : List<Sequence>(ed->seqbasep)) {
     SequenceAddOp op = need_add_seq_dup(seq);
     if (op == SEQUENCE_DUPLICATE_NONE) {
-      outliner_add_element(&space_outliner_, &tree, seq, nullptr, TSE_SEQUENCE, 0);
+      outliner_add_element(&space_outliner_, &tree, nullptr, seq, nullptr, TSE_SEQUENCE, 0);
     }
     else if (op == SEQUENCE_DUPLICATE_ADD) {
       TreeElement *te = outliner_add_element(
-          &space_outliner_, &tree, seq, nullptr, TSE_SEQUENCE_DUP, 0);
+          &space_outliner_, &tree, nullptr, seq, nullptr, TSE_SEQUENCE_DUP, 0);
       add_seq_dup(seq, te, 0);
     }
   }
@@ -103,7 +103,8 @@ void TreeDisplaySequencer::add_seq_dup(Sequence *seq, TreeElement *te, short ind
     }
 
     if (STREQ(p->strip->stripdata->filename, seq->strip->stripdata->filename)) {
-      outliner_add_element(&space_outliner_, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);
+      outliner_add_element(
+          &space_outliner_, &te->subtree, nullptr, (void *)p, te, TSE_SEQUENCE, index);
     }
     p = p->next;
   }

@@ -42,8 +42,13 @@ void TreeElementDriverBase::expand(SpaceOutliner &space_outliner) const
         DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
           if (lastadded != dtar->id) {
             /* XXX this lastadded check is rather lame, and also fails quite badly... */
-            outliner_add_element(
-                &space_outliner, &legacy_te_.subtree, dtar->id, &legacy_te_, TSE_LINKED_OB, 0);
+            outliner_add_element(&space_outliner,
+                                 &legacy_te_.subtree,
+                                 dtar->id,
+                                 nullptr,
+                                 &legacy_te_,
+                                 TSE_LINKED_OB,
+                                 0);
             lastadded = dtar->id;
           }
         }

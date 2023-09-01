@@ -31,15 +31,25 @@ void TreeElementIDMesh::expand(SpaceOutliner &space_outliner) const
 
 void TreeElementIDMesh::expand_key(SpaceOutliner &space_outliner) const
 {
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, mesh_.key, &legacy_te_, TSE_SOME_ID, 0);
+  outliner_add_element(&space_outliner,
+                       &legacy_te_.subtree,
+                       reinterpret_cast<ID *>(mesh_.key),
+                       nullptr,
+                       &legacy_te_,
+                       TSE_SOME_ID,
+                       0);
 }
 
 void TreeElementIDMesh::expand_materials(SpaceOutliner &space_outliner) const
 {
   for (int a = 0; a < mesh_.totcol; a++) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, mesh_.mat[a], &legacy_te_, TSE_SOME_ID, a);
+    outliner_add_element(&space_outliner,
+                         &legacy_te_.subtree,
+                         reinterpret_cast<ID *>(mesh_.mat[a]),
+                         nullptr,
+                         &legacy_te_,
+                         TSE_SOME_ID,
+                         a);
   }
 }
 

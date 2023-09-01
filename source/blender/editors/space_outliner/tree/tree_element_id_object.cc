@@ -53,8 +53,13 @@ void TreeElementIDObject::expand(SpaceOutliner &space_outliner) const
 
 void TreeElementIDObject::expand_data(SpaceOutliner &space_outliner) const
 {
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, object_.data, &legacy_te_, TSE_SOME_ID, 0);
+  outliner_add_element(&space_outliner,
+                       &legacy_te_.subtree,
+                       static_cast<ID *>(object_.data),
+                       nullptr,
+                       &legacy_te_,
+                       TSE_SOME_ID,
+                       0);
 }
 
 void TreeElementIDObject::expand_pose(SpaceOutliner &space_outliner) const
@@ -63,20 +68,30 @@ void TreeElementIDObject::expand_pose(SpaceOutliner &space_outliner) const
     return;
   }
   outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_POSE_BASE, 0);
+      &space_outliner, &legacy_te_.subtree, &object_.id, nullptr, &legacy_te_, TSE_POSE_BASE, 0);
 
   /* Pose Groups */
   if (!BLI_listbase_is_empty(&object_.pose->agroups)) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_POSEGRP_BASE, 0);
+    outliner_add_element(&space_outliner,
+                         &legacy_te_.subtree,
+                         &object_.id,
+                         nullptr,
+                         &legacy_te_,
+                         TSE_POSEGRP_BASE,
+                         0);
   }
 }
 
 void TreeElementIDObject::expand_materials(SpaceOutliner &space_outliner) const
 {
   for (int a = 0; a < object_.totcol; a++) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, object_.mat[a], &legacy_te_, TSE_SOME_ID, a);
+    outliner_add_element(&space_outliner,
+                         &legacy_te_.subtree,
+                         reinterpret_cast<ID *>(object_.mat[a]),
+                         nullptr,
+                         &legacy_te_,
+                         TSE_SOME_ID,
+                         a);
   }
 }
 
@@ -85,15 +100,18 @@ void TreeElementIDObject::expand_constraints(SpaceOutliner &space_outliner) cons
   if (BLI_listbase_is_empty(&object_.constraints)) {
     return;
   }
-  TreeElement *tenla = outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_CONSTRAINT_BASE, 0);
+  TreeElement *tenla = outliner_add_element(&space_outliner,
+                                            &legacy_te_.subtree,
+                                            &object_.id,
+                                            nullptr,
+                                            &legacy_te_,
+                                            TSE_CONSTRAINT_BASE,
+                                            0);
 
   int index;
   LISTBASE_FOREACH_INDEX (bConstraint *, con, &object_.constraints, index) {
-    ConstraintElementCreateData con_data = {&object_, con};
-
     outliner_add_element(
-        &space_outliner, &tenla->subtree, &con_data, tenla, TSE_CONSTRAINT, index);
+        &space_outliner, &tenla->subtree, &object_.id, con, tenla, TSE_CONSTRAINT, index);
     /* possible add all other types links? */
   }
 }
@@ -103,8 +121,13 @@ void TreeElementIDObject::expand_modifiers(SpaceOutliner &space_outliner) const
   if (BLI_listbase_is_empty(&object_.modifiers)) {
     return;
   }
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_MODIFIER_BASE, 0);
+  outliner_add_element(&space_outliner,
+                       &legacy_te_.subtree,
+                       &object_.id,
+                       nullptr,
+                       &legacy_te_,
+                       TSE_MODIFIER_BASE,
+                       0);
 }
 
 void TreeElementIDObject::expand_gpencil_modifiers(SpaceOutliner &space_outliner) const
@@ -112,8 +135,13 @@ void TreeElementIDObject::expand_gpencil_modifiers(SpaceOutliner &space_outliner
   if (BLI_listbase_is_empty(&object_.greasepencil_modifiers)) {
     return;
   }
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_MODIFIER_BASE, 0);
+  outliner_add_element(&space_outliner,
+                       &legacy_te_.subtree,
+                       &object_.id,
+                       nullptr,
+                       &legacy_te_,
+                       TSE_MODIFIER_BASE,
+                       0);
 }
 
 void TreeElementIDObject::expand_gpencil_effects(SpaceOutliner &space_outliner) const
@@ -121,8 +149,13 @@ void TreeElementIDObject::expand_gpencil_effects(SpaceOutliner &space_outliner) 
   if (BLI_listbase_is_empty(&object_.shader_fx)) {
     return;
   }
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_GPENCIL_EFFECT_BASE, 0);
+  outliner_add_element(&space_outliner,
+                       &legacy_te_.subtree,
+                       &object_.id,
+                       nullptr,
+                       &legacy_te_,
+                       TSE_GPENCIL_EFFECT_BASE,
+                       0);
 }
 
 void TreeElementIDObject::expand_vertex_groups(SpaceOutliner &space_outliner) const
@@ -134,8 +167,13 @@ void TreeElementIDObject::expand_vertex_groups(SpaceOutliner &space_outliner) co
   if (BLI_listbase_is_empty(defbase)) {
     return;
   }
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_DEFGROUP_BASE, 0);
+  outliner_add_element(&space_outliner,
+                       &legacy_te_.subtree,
+                       &object_.id,
+                       nullptr,
+                       &legacy_te_,
+                       TSE_DEFGROUP_BASE,
+                       0);
 }
 
 void TreeElementIDObject::expand_duplicated_group(SpaceOutliner &space_outliner) const
@@ -143,7 +181,8 @@ void TreeElementIDObject::expand_duplicated_group(SpaceOutliner &space_outliner)
   if (object_.instance_collection && (object_.transflag & OB_DUPLICOLLECTION)) {
     outliner_add_element(&space_outliner,
                          &legacy_te_.subtree,
-                         object_.instance_collection,
+                         reinterpret_cast<ID *>(object_.instance_collection),
+                         nullptr,
                          &legacy_te_,
                          TSE_SOME_ID,
                          0);

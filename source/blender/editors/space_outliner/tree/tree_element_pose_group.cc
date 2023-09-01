@@ -31,10 +31,8 @@ void TreeElementPoseGroupBase::expand(SpaceOutliner &space_outliner) const
 {
   int index;
   LISTBASE_FOREACH_INDEX (bActionGroup *, agrp, &object_.pose->agroups, index) {
-    PoseGroupElementCreateData posegrp_data = {&object_, agrp};
-
     outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &posegrp_data, &legacy_te_, TSE_POSEGRP, index);
+        &space_outliner, &legacy_te_.subtree, &object_.id, agrp, &legacy_te_, TSE_POSEGRP, index);
   }
 }
 

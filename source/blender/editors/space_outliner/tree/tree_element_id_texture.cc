@@ -30,8 +30,13 @@ void TreeElementIDTexture::expand(SpaceOutliner &space_outliner) const
 
 void TreeElementIDTexture::expand_image(SpaceOutliner &space_outliner) const
 {
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, texture_.ima, &legacy_te_, TSE_SOME_ID, 0);
+  outliner_add_element(&space_outliner,
+                       &legacy_te_.subtree,
+                       reinterpret_cast<ID *>(texture_.ima),
+                       nullptr,
+                       &legacy_te_,
+                       TSE_SOME_ID,
+                       0);
 }
 
 }  // namespace blender::ed::outliner

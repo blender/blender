@@ -36,7 +36,7 @@ void TreeElementIDGPLegacy::expand_layers(SpaceOutliner &space_outliner) const
   int index = 0;
   LISTBASE_FOREACH_BACKWARD (bGPDlayer *, gpl, &gpd_.layers) {
     outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, gpl, &legacy_te_, TSE_GP_LAYER, index);
+        &space_outliner, &legacy_te_.subtree, &gpd_.id, gpl, &legacy_te_, TSE_GP_LAYER, index);
     index++;
   }
 }

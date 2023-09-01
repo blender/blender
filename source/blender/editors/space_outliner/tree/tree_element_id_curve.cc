@@ -31,8 +31,13 @@ void TreeElementIDCurve::expand(SpaceOutliner &space_outliner) const
 void TreeElementIDCurve::expand_materials(SpaceOutliner &space_outliner) const
 {
   for (int a = 0; a < curve_.totcol; a++) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, curve_.mat[a], &legacy_te_, TSE_SOME_ID, a);
+    outliner_add_element(&space_outliner,
+                         &legacy_te_.subtree,
+                         reinterpret_cast<ID *>(curve_.mat[a]),
+                         nullptr,
+                         &legacy_te_,
+                         TSE_SOME_ID,
+                         a);
   }
 }
 

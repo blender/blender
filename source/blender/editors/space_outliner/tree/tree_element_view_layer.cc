@@ -30,10 +30,8 @@ TreeElementViewLayerBase::TreeElementViewLayerBase(TreeElement &legacy_te, Scene
 void TreeElementViewLayerBase::expand(SpaceOutliner &space_outliner) const
 {
   for (auto *view_layer : ListBaseWrapper<ViewLayer>(scene_.view_layers)) {
-    ViewLayerElementCreateData view_layer_data = {&scene_, view_layer};
-
     outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &view_layer_data, &legacy_te_, TSE_R_LAYER, 0);
+        &space_outliner, &legacy_te_.subtree, &scene_.id, view_layer, &legacy_te_, TSE_R_LAYER, 0);
   }
 }
 
