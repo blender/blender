@@ -605,15 +605,17 @@ static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &lega
                      legacy_socket.flag & SOCK_HIDE_IN_MODIFIER,
                      NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER);
   new_socket.attribute_domain = legacy_socket.attribute_domain;
-  new_socket.default_attribute_name = BLI_strdup_null(legacy_socket.default_attribute_name);
-  new_socket.socket_data = legacy_socket.default_value;
-  new_socket.properties = legacy_socket.prop;
 
-  /* Clear moved pointers in legacy data. */
+  /* The following data are stolen from the old data, the ownership of their memory is directly
+   * transferred to the new data. */
+  new_socket.default_attribute_name = legacy_socket.default_attribute_name;
+  legacy_socket.default_attribute_name = nullptr;
+  new_socket.socket_data = legacy_socket.default_value;
   legacy_socket.default_value = nullptr;
+  new_socket.properties = legacy_socket.prop;
   legacy_socket.prop = nullptr;
 
-  /* Unused data */
+  /* Unused data. */
   MEM_delete(legacy_socket.runtime);
   legacy_socket.runtime = nullptr;
 
