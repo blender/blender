@@ -960,10 +960,10 @@ template<typename T>
   return false;
 }
 
-void serialize_bake_item(const BakeItem &item,
-                         BDataWriter &bdata_writer,
-                         BDataSharing &bdata_sharing,
-                         DictionaryValue &r_io_item)
+static void serialize_bake_item(const BakeItem &item,
+                                BDataWriter &bdata_writer,
+                                BDataSharing &bdata_sharing,
+                                DictionaryValue &r_io_item)
 {
   if (const auto *geometry_state_item = dynamic_cast<const GeometryBakeItem *>(&item)) {
     r_io_item.append_str("type", "GEOMETRY");
@@ -996,9 +996,9 @@ void serialize_bake_item(const BakeItem &item,
   }
 }
 
-std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io_item,
-                                                const BDataReader &bdata_reader,
-                                                const BDataSharing &bdata_sharing)
+static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io_item,
+                                                       const BDataReader &bdata_reader,
+                                                       const BDataSharing &bdata_sharing)
 {
 
   const std::optional<StringRefNull> state_item_type = io_item.lookup_str("type");

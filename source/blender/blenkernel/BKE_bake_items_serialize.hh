@@ -136,20 +136,6 @@ class DiskBDataWriter : public BDataWriter {
   BDataSlice write(const void *data, int64_t size) override;
 };
 
-/**
- * Writes the bake item into `r_io_item`.
- */
-void serialize_bake_item(const BakeItem &item,
-                         BDataWriter &bdata_writer,
-                         BDataSharing &bdata_sharing,
-                         io::serialize::DictionaryValue &r_io_item);
-/**
- * Creates a bake item from `io_item`.
- */
-std::unique_ptr<BakeItem> deserialize_bake_item(const io::serialize::DictionaryValue &io_item,
-                                                const BDataReader &bdata_reader,
-                                                const BDataSharing &bdata_sharing);
-
 void serialize_bake(const BakeState &bake_state,
                     BDataWriter &bdata_writer,
                     BDataSharing &bdata_sharing,
