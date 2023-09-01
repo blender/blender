@@ -1351,6 +1351,10 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes, Mesh &
       }
     });
   });
+
+  /* #SharedCache::update() reallocates the cached vectors if they were shared initially. */
+  pbvh->face_normals = mesh.runtime->face_normals_cache.data();
+  pbvh->vert_normals = mesh.runtime->vert_normals_cache.data();
 }
 
 static void node_update_mask_redraw(PBVH &pbvh, PBVHNode &node)
