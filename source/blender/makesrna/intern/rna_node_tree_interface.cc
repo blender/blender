@@ -603,7 +603,7 @@ static void rna_NodeTreeInterfaceItems_move_to_parent(ID *id,
                                                       bNodeTreeInterfacePanel *parent,
                                                       int to_position)
 {
-  if (item->item_type == NODE_INTERFACE_PANEL &&
+  if (item->item_type == NODE_INTERFACE_PANEL && parent &&
       !(parent->flag & NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS))
   {
     BKE_report(reports, RPT_WARNING, "Parent panel does not allow child panels");
