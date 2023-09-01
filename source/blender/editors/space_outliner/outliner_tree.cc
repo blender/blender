@@ -210,7 +210,7 @@ static void outliner_add_line_styles(SpaceOutliner *space_outliner,
           continue;
         }
         linestyle->id.tag &= ~LIB_TAG_DOIT;
-        outliner_add_element(
+        AbstractTreeDisplay::add_element(
             space_outliner, lb, reinterpret_cast<ID *>(linestyle), nullptr, te, TSE_SOME_ID, 0);
       }
     }
@@ -218,14 +218,31 @@ static void outliner_add_line_styles(SpaceOutliner *space_outliner,
 }
 #endif
 
-TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
-                                  ListBase *lb,
-                                  ID *owner_id,
-                                  void *create_data,
-                                  TreeElement *parent,
-                                  short type,
-                                  short index,
-                                  const bool expand)
+TreeElement *AbstractTreeDisplay::add_element(SpaceOutliner *space_outliner,
+                                              ListBase *lb,
+                                              ID *owner_id,
+                                              void *create_data,
+                                              TreeElement *parent,
+                                              short type,
+                                              short index,
+                                              const bool expand)
+{
+  if (!space_outliner->runtime || !space_outliner->runtime->tree_display) {
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+
+  return space_outliner->runtime->tree_display->add_element(
+      lb, owner_id, create_data, parent, type, index, expand);
+}
+
+TreeElement *AbstractTreeDisplay::add_element(ListBase *lb,
+                                              ID *owner_id,
+                                              void *create_data,
+                                              TreeElement *parent,
+                                              short type,
+                                              short index,
+                                              const bool expand)
 {
   /* Pointer to store in #TreeStoreElem.id to identify the element over rebuilds and reconstruct it
    * on file read. */
@@ -259,11 +276,11 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   /* add to the visual tree */
   BLI_addtail(lb, te);
   /* add to the storage */
-  check_persistent(space_outliner, te, persistent_dataptr, type, index);
+  check_persistent(&space_outliner_, te, persistent_dataptr, type, index);
   TreeStoreElem *tselem = TREESTORE(te);
 
   /* if we are searching for something expand to see child elements */
-  if (SEARCHING_OUTLINER(space_outliner)) {
+  if (SEARCHING_OUTLINER(&space_outliner_)) {
     tselem->flag |= TSE_CHILDSEARCH;
   }
 
@@ -276,6 +293,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   if (te->abstract_element) {
     /* Element types ported to the new design are expected to have their name set at this point! */
     BLI_assert(te->name != nullptr);
+
+    /* Let the new element inherit the tree display that creates this current tree. */
+    te->abstract_element->display_ = this;
   }
 
   if (ELEM(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
@@ -354,7 +374,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     /* Pass */
   }
   else if (te->abstract_element) {
-    tree_element_expand(*te->abstract_element, *space_outliner);
+    tree_element_expand(*te->abstract_element, space_outliner_);
   }
   /* Only #TSE_ID_BASE isn't ported to use the abstract elements design yet. */
   else if (!ELEM(type, TSE_ID_BASE)) {
@@ -378,7 +398,7 @@ BLI_INLINE void outliner_add_collection_objects(SpaceOutliner *space_outliner,
                                                 TreeElement *parent)
 {
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    outliner_add_element(
+    AbstractTreeDisplay::add_element(
         space_outliner, tree, reinterpret_cast<ID *>(cob->ob), nullptr, parent, TSE_SOME_ID, 0);
   }
 }
@@ -390,7 +410,7 @@ TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
   outliner_add_collection_init(ten, collection);
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    outliner_add_element(
+    AbstractTreeDisplay::add_element(
         space_outliner, &ten->subtree, &child->collection->id, nullptr, ten, TSE_SOME_ID, 0);
   }
 

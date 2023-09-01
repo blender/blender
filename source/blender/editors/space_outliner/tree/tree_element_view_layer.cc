@@ -27,11 +27,10 @@ TreeElementViewLayerBase::TreeElementViewLayerBase(TreeElement &legacy_te, Scene
   legacy_te_.name = IFACE_("View Layers");
 }
 
-void TreeElementViewLayerBase::expand(SpaceOutliner &space_outliner) const
+void TreeElementViewLayerBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   for (auto *view_layer : ListBaseWrapper<ViewLayer>(scene_.view_layers)) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &scene_.id, view_layer, &legacy_te_, TSE_R_LAYER, 0);
+    add_element(&legacy_te_.subtree, &scene_.id, view_layer, &legacy_te_, TSE_R_LAYER, 0);
   }
 }
 

@@ -21,7 +21,7 @@ class TreeElementIDTexture final : public TreeElementID {
   void expand(SpaceOutliner &) const override;
 
  private:
-  void expand_image(SpaceOutliner &) const;
+  void expand_image() const;
 };
 
 }  // namespace blender::ed::outliner

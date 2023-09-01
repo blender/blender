@@ -21,22 +21,21 @@ TreeElementIDTexture::TreeElementIDTexture(TreeElement &legacy_te, Tex &texture)
 {
 }
 
-void TreeElementIDTexture::expand(SpaceOutliner &space_outliner) const
+void TreeElementIDTexture::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  expand_animation_data(space_outliner, texture_.adt);
+  expand_animation_data(texture_.adt);
 
-  expand_image(space_outliner);
+  expand_image();
 }
 
-void TreeElementIDTexture::expand_image(SpaceOutliner &space_outliner) const
+void TreeElementIDTexture::expand_image() const
 {
-  outliner_add_element(&space_outliner,
-                       &legacy_te_.subtree,
-                       reinterpret_cast<ID *>(texture_.ima),
-                       nullptr,
-                       &legacy_te_,
-                       TSE_SOME_ID,
-                       0);
+  add_element(&legacy_te_.subtree,
+              reinterpret_cast<ID *>(texture_.ima),
+              nullptr,
+              &legacy_te_,
+              TSE_SOME_ID,
+              0);
 }
 
 }  // namespace blender::ed::outliner

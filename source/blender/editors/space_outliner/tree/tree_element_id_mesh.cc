@@ -21,35 +21,33 @@ TreeElementIDMesh::TreeElementIDMesh(TreeElement &legacy_te_, Mesh &mesh)
 {
 }
 
-void TreeElementIDMesh::expand(SpaceOutliner &space_outliner) const
+void TreeElementIDMesh::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  expand_animation_data(space_outliner, mesh_.adt);
+  expand_animation_data(mesh_.adt);
 
-  expand_key(space_outliner);
-  expand_materials(space_outliner);
+  expand_key();
+  expand_materials();
 }
 
-void TreeElementIDMesh::expand_key(SpaceOutliner &space_outliner) const
+void TreeElementIDMesh::expand_key() const
 {
-  outliner_add_element(&space_outliner,
-                       &legacy_te_.subtree,
-                       reinterpret_cast<ID *>(mesh_.key),
-                       nullptr,
-                       &legacy_te_,
-                       TSE_SOME_ID,
-                       0);
+  add_element(&legacy_te_.subtree,
+              reinterpret_cast<ID *>(mesh_.key),
+              nullptr,
+              &legacy_te_,
+              TSE_SOME_ID,
+              0);
 }
 
-void TreeElementIDMesh::expand_materials(SpaceOutliner &space_outliner) const
+void TreeElementIDMesh::expand_materials() const
 {
   for (int a = 0; a < mesh_.totcol; a++) {
-    outliner_add_element(&space_outliner,
-                         &legacy_te_.subtree,
-                         reinterpret_cast<ID *>(mesh_.mat[a]),
-                         nullptr,
-                         &legacy_te_,
-                         TSE_SOME_ID,
-                         a);
+    add_element(&legacy_te_.subtree,
+                reinterpret_cast<ID *>(mesh_.mat[a]),
+                nullptr,
+                &legacy_te_,
+                TSE_SOME_ID,
+                a);
   }
 }
 

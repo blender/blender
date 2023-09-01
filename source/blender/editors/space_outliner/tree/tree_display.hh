@@ -69,6 +69,18 @@ class AbstractTreeDisplay {
   static std::unique_ptr<AbstractTreeDisplay> create_from_display_mode(
       int /*eSpaceOutliner_Mode*/ mode, SpaceOutliner &space_outliner);
 
+  /** Static version of the function below, which can be called by helper functions/classes that
+   * have access to the #SpaceOutliner instance but not the tree-display directly. Should be
+   * avoided and instead use the tree-display. */
+  static TreeElement *add_element(SpaceOutliner *space_outliner,
+                                  ListBase *lb,
+                                  ID *owner_id,
+                                  void *create_data,
+                                  TreeElement *parent,
+                                  short type,
+                                  short index,
+                                  const bool expand = true);
+
   /**
    * Build a tree for this display mode with the Blender context data given in \a source_data and
    * the view settings in \a space_outliner.
@@ -92,6 +104,33 @@ class AbstractTreeDisplay {
    * state of any element.
    */
   virtual bool is_lazy_built() const;
+
+  /**
+   * \note If child items are only added to the tree if the item is open, the `TSE_` type _must_ be
+   *       added to #outliner_element_needs_rebuild_on_open_change().
+   *
+   * \param owner_id: The ID owning the represented data (or the ID itself if the element
+   *                  represents an ID directly). This is crucial to recognize tree elements over
+   *                  rebuilds, so that state like opened and selected is preserved. If this is not
+   *                  null, the \a create_data pointer will be used instead, refer to its
+   *                  description.
+   * \param create_data: Data passed to the constructor of the corresponding #AbstractTreeElement
+   *                     sub-type. If \a owner_id is not set, this pointer will be stored in an
+   *                     attempt to identify the element over rebuilds, so that state like opened
+   *                     and selected is preserved. Of course that won't work for volatile data
+   *                     (like stack variables).
+   * \param expand: If true, the element may add its own sub-tree. E.g. objects will list their
+   *                animation data, object data, constraints, modifiers, ... This often adds visual
+   *                noise, and can be expensive to add in big scenes. So prefer setting this to
+   *                false.
+   */
+  TreeElement *add_element(ListBase *lb,
+                           ID *owner_id,
+                           void *create_data,
+                           TreeElement *parent,
+                           short type,
+                           short index,
+                           const bool expand = true);
 
  protected:
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
@@ -199,7 +238,7 @@ class TreeDisplaySequencer final : public AbstractTreeDisplay {
    * Helped function to put duplicate sequence in the same tree.
    */
   SequenceAddOp need_add_seq_dup(Sequence *seq) const;
-  void add_seq_dup(Sequence *seq, TreeElement *te, short index) const;
+  void add_seq_dup(Sequence *seq, TreeElement *te, short index);
 };
 
 /* -------------------------------------------------------------------- */

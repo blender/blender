@@ -24,19 +24,18 @@ TreeElementIDGPLegacy::TreeElementIDGPLegacy(TreeElement &legacy_te, bGPdata &gp
 {
 }
 
-void TreeElementIDGPLegacy::expand(SpaceOutliner &space_outliner) const
+void TreeElementIDGPLegacy::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  expand_animation_data(space_outliner, gpd_.adt);
+  expand_animation_data(gpd_.adt);
 
-  expand_layers(space_outliner);
+  expand_layers();
 }
 
-void TreeElementIDGPLegacy::expand_layers(SpaceOutliner &space_outliner) const
+void TreeElementIDGPLegacy::expand_layers() const
 {
   int index = 0;
   LISTBASE_FOREACH_BACKWARD (bGPDlayer *, gpl, &gpd_.layers) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &gpd_.id, gpl, &legacy_te_, TSE_GP_LAYER, index);
+    add_element(&legacy_te_.subtree, &gpd_.id, gpl, &legacy_te_, TSE_GP_LAYER, index);
     index++;
   }
 }

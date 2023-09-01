@@ -21,15 +21,15 @@ class TreeElementIDObject final : public TreeElementID {
   void expand(SpaceOutliner &) const override;
 
  private:
-  void expand_data(SpaceOutliner &) const;
-  void expand_pose(SpaceOutliner &) const;
-  void expand_materials(SpaceOutliner &) const;
-  void expand_constraints(SpaceOutliner &) const;
-  void expand_modifiers(SpaceOutliner &) const;
-  void expand_gpencil_modifiers(SpaceOutliner &) const;
-  void expand_gpencil_effects(SpaceOutliner &) const;
-  void expand_vertex_groups(SpaceOutliner &) const;
-  void expand_duplicated_group(SpaceOutliner &) const;
+  void expand_data() const;
+  void expand_pose() const;
+  void expand_materials() const;
+  void expand_constraints() const;
+  void expand_modifiers() const;
+  void expand_gpencil_modifiers() const;
+  void expand_gpencil_effects() const;
+  void expand_vertex_groups() const;
+  void expand_duplicated_group() const;
 };
 
 }  // namespace blender::ed::outliner

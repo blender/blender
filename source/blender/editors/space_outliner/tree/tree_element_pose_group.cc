@@ -27,12 +27,11 @@ TreeElementPoseGroupBase::TreeElementPoseGroupBase(TreeElement &legacy_te, Objec
   legacy_te.name = IFACE_("Bone Groups");
 }
 
-void TreeElementPoseGroupBase::expand(SpaceOutliner &space_outliner) const
+void TreeElementPoseGroupBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   int index;
   LISTBASE_FOREACH_INDEX (bActionGroup *, agrp, &object_.pose->agroups, index) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &object_.id, agrp, &legacy_te_, TSE_POSEGRP, index);
+    add_element(&legacy_te_.subtree, &object_.id, agrp, &legacy_te_, TSE_POSEGRP, index);
   }
 }
 

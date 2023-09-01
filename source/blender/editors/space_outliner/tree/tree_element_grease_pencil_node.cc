@@ -25,19 +25,18 @@ TreeElementGreasePencilNode::TreeElementGreasePencilNode(TreeElement &legacy_te,
   legacy_te.name = node.name().c_str();
 }
 
-void TreeElementGreasePencilNode::expand(SpaceOutliner &space_outliner) const
+void TreeElementGreasePencilNode::expand(SpaceOutliner & /*space_outliner*/) const
 {
   if (!node_.is_group()) {
     return;
   }
   LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, child, &node_.as_group().children) {
-    outliner_add_element(&space_outliner,
-                         &legacy_te_.subtree,
-                         &owner_grease_pencil_.id,
-                         child,
-                         &legacy_te_,
-                         TSE_GREASE_PENCIL_NODE,
-                         0);
+    add_element(&legacy_te_.subtree,
+                &owner_grease_pencil_.id,
+                child,
+                &legacy_te_,
+                TSE_GREASE_PENCIL_NODE,
+                0);
   }
 }
 

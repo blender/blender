@@ -29,7 +29,7 @@ TreeElementDriverBase::TreeElementDriverBase(TreeElement &legacy_te, AnimData &a
   legacy_te.name = IFACE_("Drivers");
 }
 
-void TreeElementDriverBase::expand(SpaceOutliner &space_outliner) const
+void TreeElementDriverBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   ID *lastadded = nullptr;
 
@@ -42,13 +42,7 @@ void TreeElementDriverBase::expand(SpaceOutliner &space_outliner) const
         DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
           if (lastadded != dtar->id) {
             /* XXX this lastadded check is rather lame, and also fails quite badly... */
-            outliner_add_element(&space_outliner,
-                                 &legacy_te_.subtree,
-                                 dtar->id,
-                                 nullptr,
-                                 &legacy_te_,
-                                 TSE_LINKED_OB,
-                                 0);
+            add_element(&legacy_te_.subtree, dtar->id, nullptr, &legacy_te_, TSE_LINKED_OB, 0);
             lastadded = dtar->id;
           }
         }

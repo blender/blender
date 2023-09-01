@@ -80,13 +80,8 @@ ListBase TreeDisplayViewLayer::build_tree(const TreeSourceData &source_data)
       add_view_layer(*scene, tree, (TreeElement *)nullptr);
     }
     else {
-      TreeElement &te_view_layer = *outliner_add_element(&space_outliner_,
-                                                         &tree,
-                                                         reinterpret_cast<ID *>(scene),
-                                                         &view_layer,
-                                                         nullptr,
-                                                         TSE_R_LAYER,
-                                                         0);
+      TreeElement &te_view_layer = *add_element(
+          &tree, reinterpret_cast<ID *>(scene), &view_layer, nullptr, TSE_R_LAYER, 0);
 
       TreeStoreElem *tselem = TREESTORE(&te_view_layer);
 
@@ -112,13 +107,8 @@ void TreeDisplayViewLayer::add_view_layer(Scene &scene, ListBase &tree, TreeElem
     /* Show objects in the view layer. */
     BKE_view_layer_synced_ensure(&scene, view_layer_);
     for (Base *base : List<Base>(*BKE_view_layer_object_bases_get(view_layer_))) {
-      TreeElement *te_object = outliner_add_element(&space_outliner_,
-                                                    &tree,
-                                                    reinterpret_cast<ID *>(base->object),
-                                                    nullptr,
-                                                    parent,
-                                                    TSE_SOME_ID,
-                                                    0);
+      TreeElement *te_object = add_element(
+          &tree, reinterpret_cast<ID *>(base->object), nullptr, parent, TSE_SOME_ID, 0);
       te_object->directdata = base;
     }
 
@@ -128,7 +118,7 @@ void TreeDisplayViewLayer::add_view_layer(Scene &scene, ListBase &tree, TreeElem
   }
   else {
     /* Show collections in the view layer. */
-    TreeElement &ten = *outliner_add_element(
+    TreeElement &ten = *AbstractTreeDisplay::add_element(
         &space_outliner_, &tree, &scene.id, nullptr, parent, TSE_VIEW_COLLECTION_BASE, 0);
     TREESTORE(&ten)->flag &= ~TSE_CLOSED;
 
@@ -161,8 +151,7 @@ void TreeDisplayViewLayer::add_layer_collections_recursive(ListBase &tree,
     }
     else {
       ID *id = &lc->collection->id;
-      ten = outliner_add_element(
-          &space_outliner_, &tree, id, lc, &parent_ten, TSE_LAYER_COLLECTION, 0);
+      ten = add_element(&tree, id, lc, &parent_ten, TSE_LAYER_COLLECTION, 0);
 
       /* Open by default, except linked collections, which may contain many elements. */
       TreeStoreElem *tselem = TREESTORE(ten);
@@ -185,13 +174,8 @@ void TreeDisplayViewLayer::add_layer_collection_objects(ListBase &tree,
   BKE_view_layer_synced_ensure(scene_, view_layer_);
   for (CollectionObject *cob : List<CollectionObject>(lc.collection->gobject)) {
     Base *base = BKE_view_layer_base_find(view_layer_, cob->ob);
-    TreeElement *te_object = outliner_add_element(&space_outliner_,
-                                                  &tree,
-                                                  reinterpret_cast<ID *>(base->object),
-                                                  nullptr,
-                                                  &ten,
-                                                  TSE_SOME_ID,
-                                                  0);
+    TreeElement *te_object = add_element(
+        &tree, reinterpret_cast<ID *>(base->object), nullptr, &ten, TSE_SOME_ID, 0);
     te_object->directdata = base;
   }
 }
@@ -293,14 +277,15 @@ void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
       if (!found) {
         /* We add the child in the tree even if it is not in the collection.
          * We don't expand its sub-tree though, to make it less prominent. */
-        TreeElement *child_ob_tree_element = outliner_add_element(&outliner_,
-                                                                  &parent_ob_tree_element->subtree,
-                                                                  reinterpret_cast<ID *>(child),
-                                                                  nullptr,
-                                                                  parent_ob_tree_element,
-                                                                  TSE_SOME_ID,
-                                                                  0,
-                                                                  false);
+        TreeElement *child_ob_tree_element = AbstractTreeDisplay::add_element(
+            &outliner_,
+            &parent_ob_tree_element->subtree,
+            reinterpret_cast<ID *>(child),
+            nullptr,
+            parent_ob_tree_element,
+            TSE_SOME_ID,
+            0,
+            false);
         child_ob_tree_element->flag |= TE_CHILD_NOT_IN_COLLECTION;
         child_ob_tree_elements.append(child_ob_tree_element);
       }

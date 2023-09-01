@@ -18,6 +18,7 @@
 
 #include "BLT_translation.h"
 
+#include "tree_display.hh"
 #include "tree_element_anim_data.hh"
 #include "tree_element_bone.hh"
 #include "tree_element_collection.hh"
@@ -60,15 +61,15 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
 
   /*
    * The following calls make an implicit assumption about what data was passed to the
-   * `create_data` argument of #outliner_add_element(). The old code does this already, here we
-   * just centralize it as much as possible for now. Would be nice to entirely get rid of that, no
-   * more `void *`.
+   * `create_data` argument of #add_element(). The old code does this already, here we just
+   * centralize it as much as possible for now. Would be nice to entirely get rid of that, no more
+   * `void *`.
    *
-   * Once #outliner_add_element() is sufficiently simplified, it should be replaced by a C++ call.
-   * It could take the derived type as template parameter (e.g. #TreeElementAnimData) and use C++
-   * perfect forwarding to pass any data to the type's constructor.
-   * If general Outliner code wants to access the data, they can query that through the derived
-   * element type then. There's no need for `void *` anymore then.
+   * Once #add_element() is sufficiently simplified, it should be replaced by a C++ call. It could
+   * take the derived type as template parameter (e.g. #TreeElementAnimData) and use C++ perfect
+   * forwarding to pass any data to the type's constructor. If general Outliner code wants to
+   * access the data, they can query that through the derived element type then. There's no need
+   * for `void *` anymore then.
    */
 
   switch (type) {
@@ -231,6 +232,24 @@ void AbstractTreeElement::uncollapse_by_default(TreeElement *legacy_te)
   if (!TREESTORE(legacy_te)->used) {
     TREESTORE(legacy_te)->flag &= ~TSE_CLOSED;
   }
+}
+
+TreeElement *AbstractTreeElement::add_element(ListBase *lb,
+                                              ID *owner_id,
+                                              void *create_data,
+                                              TreeElement *parent,
+                                              short type,
+                                              short index,
+                                              const bool expand) const
+{
+  if (!display_) {
+    BLI_assert_msg(false,
+                   "Element not registered properly through AbstractTreeDisplay::add_element(), "
+                   "can't expand the tree further");
+    return nullptr;
+  }
+
+  return display_->add_element(lb, owner_id, create_data, parent, type, index, expand);
 }
 
 void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner)
