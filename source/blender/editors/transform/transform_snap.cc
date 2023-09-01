@@ -205,7 +205,6 @@ void drawSnapping(TransInfo *t)
   if (t->spacetype == SPACE_VIEW3D) {
     const float *source_loc = nullptr;
     const float *target_loc = nullptr;
-    const float *target_normal = nullptr;
 
     GPU_depth_test(GPU_DEPTH_NONE);
 
@@ -237,11 +236,6 @@ void drawSnapping(TransInfo *t)
       immUnbindProgram();
     }
 
-    /* draw normal if needed */
-    if (usingSnappingNormal(t) && validSnappingNormal(t)) {
-      target_normal = t->tsnap.snapNormal;
-    }
-
     if (draw_source) {
       source_loc = t->tsnap.snap_source;
     }
@@ -250,8 +244,28 @@ void drawSnapping(TransInfo *t)
       target_loc = t->tsnap.snap_target;
     }
 
-    ED_view3d_cursor_snap_draw_util(
-        rv3d, source_loc, target_loc, target_normal, col, activeCol, t->tsnap.target_type);
+    ED_view3d_cursor_snap_draw_util(rv3d,
+                                    source_loc,
+                                    target_loc,
+                                    t->tsnap.snapNormal,
+                                    col, activeCol, t->tsnap.target_type);
+
+    /* Draw normal if needed. */
+    if (usingSnappingNormal(t) && validSnappingNormal(t)) {
+      uint pos = GPU_vertformat_attr_add(
+          immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      immUniformColor4ubv(activeCol);
+      immBegin(GPU_PRIM_LINES, 2);
+      immVertex3fv(pos, target_loc);
+      immVertex3f(pos,
+                  target_loc[0] + t->tsnap.snapNormal[0],
+                  target_loc[1] + t->tsnap.snapNormal[1],
+                  target_loc[2] + t->tsnap.snapNormal[2]);
+      immEnd();
+      immUnbindProgram();
+    }
 
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
