@@ -366,8 +366,9 @@ def load():
             use_alt_click_leader=kc_prefs.use_alt_click_leader,
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
             use_file_single_click=kc_prefs.use_file_single_click,
-            experimental=prefs.experimental,
             use_alt_navigation=kc_prefs.use_alt_navigation,
+            # Experimental features.
+            use_experimental_grease_pencil_version3=prefs.experimental.use_grease_pencil_version3,
         ),
     )
 

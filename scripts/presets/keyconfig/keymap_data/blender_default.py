@@ -77,6 +77,14 @@ class Params:
         # File selector actions on single click.
         "use_file_single_click",
 
+        # Experimental variables:
+        # Options for experimental features.
+        #
+        # NOTE: don't pass the experimental struct directly as this makes it less
+        # clear which experimental options impact shortcuts. Further, any experimental option
+        # that adjust shortcuts need to reload the key-configuration (see: `rna_userdef.cc`).
+        "use_experimental_grease_pencil_version3",
+
         # Convenience variables:
         # (derived from other settings).
         #
@@ -98,8 +106,6 @@ class Params:
         # Since this means with RMB select enabled in edit-mode for e.g.
         # `Ctrl-LMB` would be caught by box-select instead of add/extrude.
         "tool_maybe_tweak_event",
-        # Access to bpy.context.preferences.experimental
-        "experimental",
         # Changes some transformers modal key-map items to avoid conflicts with navigation operations
         "use_alt_navigation",
     )
@@ -128,8 +134,8 @@ class Params:
             use_file_single_click=False,
             v3d_tilde_action='VIEW',
             v3d_alt_mmb_drag_action='RELATIVE',
-            experimental=None,
             use_alt_navigation=True,
+            use_experimental_grease_pencil_version3=False,
     ):
         from sys import platform
         self.apple = platform == 'darwin'
@@ -209,6 +215,9 @@ class Params:
 
         self.use_fallback_tool = use_fallback_tool
 
+        # Experimental variables:
+        self.use_experimental_grease_pencil_version3 = use_experimental_grease_pencil_version3
+
         # Convenience variables:
         self.use_fallback_tool_select_handled = (
             True if (select_mouse == 'LEFT') else
@@ -227,8 +236,6 @@ class Params:
         self.tool_tweak_event = {"type": self.tool_mouse, "value": 'CLICK_DRAG'}
         self.tool_maybe_tweak_event = {"type": self.tool_mouse, "value": self.tool_maybe_tweak_value}
         self.use_alt_navigation = use_alt_navigation
-
-        self.experimental = experimental
 
 
 # ------------------------------------------------------------------------------
@@ -3878,7 +3885,7 @@ def km_grease_pencil_stroke_paint_draw_brush(params):
     )
 
     # Draw
-    if params.experimental and params.experimental.use_grease_pencil_version3:
+    if params.use_experimental_grease_pencil_version3:
         items.extend([
             ("grease_pencil.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
             ("grease_pencil.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
