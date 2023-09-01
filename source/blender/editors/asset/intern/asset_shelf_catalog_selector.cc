@@ -12,6 +12,8 @@
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 
+#include "BLI_string.h"
+
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"

@@ -20,6 +20,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
+#include "BLI_string.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

@@ -9,6 +9,7 @@
 #include "BLI_array.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
 
 #include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"

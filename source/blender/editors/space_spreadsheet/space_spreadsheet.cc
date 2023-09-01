@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_global.h"
 #include "BKE_lib_remap.h"

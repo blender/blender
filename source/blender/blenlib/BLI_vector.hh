@@ -31,11 +31,8 @@
 
 #include "BLI_allocator.hh"
 #include "BLI_index_range.hh"
-#include "BLI_listbase_wrapper.hh"
-#include "BLI_math_base.h"
 #include "BLI_memory_utils.hh"
 #include "BLI_span.hh"
-#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -43,7 +40,7 @@
 namespace blender {
 
 namespace internal {
-void vector_print_stats(StringRef name,
+void vector_print_stats(const char *name,
                         void *address,
                         int64_t size,
                         int64_t capacity,
@@ -208,21 +205,6 @@ class Vector {
   {
     for (InputIt current = first; current != last; ++current) {
       this->append(*current);
-    }
-  }
-
-  /**
-   * Create a vector from a ListBase. The caller has to make sure that the values in the linked
-   * list have the correct type.
-   *
-   * Example Usage:
-   *  Vector<ModifierData *> modifiers(ob->modifiers);
-   */
-  Vector(const ListBase &values, Allocator allocator = {})
-      : Vector(NoExceptConstructor(), allocator)
-  {
-    LISTBASE_FOREACH (T, value, &values) {
-      this->append(value);
     }
   }
 
@@ -983,7 +965,7 @@ class Vector {
   /**
    * Print some debug information about the vector.
    */
-  void print_stats(StringRef name = "") const
+  void print_stats(const char *name) const
   {
     internal::vector_print_stats(
         name, this, this->size(), capacity_end_ - begin_, InlineBufferCapacity, sizeof(*this));

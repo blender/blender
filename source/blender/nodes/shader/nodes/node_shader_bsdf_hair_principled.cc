@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_string.h"
+
 #include "node_shader_util.hh"
 #include "node_util.hh"
 

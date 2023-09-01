@@ -17,6 +17,7 @@
 #include "BLI_fileops.hh"
 #include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.h"
 
 #include "MOD_nodes.hh"

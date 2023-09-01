@@ -6,12 +6,13 @@
  * \ingroup spoutliner
  */
 
+#include "BLI_listbase.h"
+
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_listBase.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_outliner_types.h"

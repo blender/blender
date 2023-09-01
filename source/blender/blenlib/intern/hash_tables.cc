@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-void blender::HashTableStats::print(StringRef name) const
+void blender::HashTableStats::print(const char *name) const
 {
   std::cout << "Hash Table Stats: " << name << "\n";
   std::cout << "  Address: " << address_ << "\n";

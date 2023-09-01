@@ -36,6 +36,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 #include "BLI_timeit.hh"
 
 #include "DEG_depsgraph_query.h"

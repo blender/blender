@@ -14,6 +14,7 @@
 #include "BKE_screen.h"
 
 #include "BLI_fnmatch.h"
+#include "BLI_string.h"
 
 #include "DNA_asset_types.h"
 #include "DNA_screen_types.h"

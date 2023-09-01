@@ -8,6 +8,7 @@
 #include "AS_asset_representation.hh"
 
 #include "BLI_multi_value_map.hh"
+#include "BLI_string.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"

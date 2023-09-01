@@ -4,6 +4,8 @@
 
 #include "COM_FullFrameExecutionModel.h"
 
+#include "BLI_string.h"
+
 #include "BLT_translation.h"
 
 #include "COM_Debug.h"

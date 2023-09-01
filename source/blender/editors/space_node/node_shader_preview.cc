@@ -22,6 +22,8 @@
  * the wanted viewlayer/pass for each previewed node.
  */
 
+#include "BLI_string.h"
+
 #include "DNA_camera_types.h"
 #include "DNA_material_types.h"
 #include "DNA_world_types.h"
@@ -101,7 +103,11 @@ static void ensure_nodetree_previews(const bContext &C,
 static std::optional<ComputeContextHash> get_compute_context_hash_for_node_editor(
     const SpaceNode &snode)
 {
-  Vector<const bNodeTreePath *> treepath = snode.treepath;
+  Vector<const bNodeTreePath *> treepath;
+  LISTBASE_FOREACH (const bNodeTreePath *, item, &snode.treepath) {
+    treepath.append(item);
+  }
+
   if (treepath.is_empty()) {
     return std::nullopt;
   }

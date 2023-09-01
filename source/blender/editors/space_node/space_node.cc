@@ -6,6 +6,8 @@
  * \ingroup spnode
  */
 
+#include "BLI_string.h"
+
 #include "DNA_ID.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"

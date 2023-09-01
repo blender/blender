@@ -28,6 +28,7 @@
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 

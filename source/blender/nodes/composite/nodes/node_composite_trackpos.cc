@@ -8,6 +8,7 @@
 
 #include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
 
 #include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"

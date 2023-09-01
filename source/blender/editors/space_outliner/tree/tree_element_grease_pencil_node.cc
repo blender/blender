@@ -6,6 +6,8 @@
  * \ingroup spoutliner
  */
 
+#include "BLI_listbase.h"
+
 #include "BKE_grease_pencil.hh"
 
 #include "DNA_outliner_types.h"

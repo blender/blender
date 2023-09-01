@@ -11,6 +11,7 @@
 #include "BLI_fileops.hh"
 #include "BLI_path_util.h"
 #include "BLI_serialize.hh"
+#include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_vector.hh"
 

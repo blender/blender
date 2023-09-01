@@ -8,6 +8,7 @@
  */
 
 #include "BLI_color.hh"
+#include "BLI_string.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
 

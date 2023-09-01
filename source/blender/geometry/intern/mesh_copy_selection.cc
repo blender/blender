@@ -6,6 +6,7 @@
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_listbase.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_geometry_fields.hh"

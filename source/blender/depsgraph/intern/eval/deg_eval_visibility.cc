@@ -13,6 +13,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_assert.h"
+#include "BLI_listbase.h"
 #include "BLI_stack.h"
 
 #include "DEG_depsgraph.h"

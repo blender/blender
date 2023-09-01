@@ -6,6 +6,7 @@
 
 #include "BLI_fileops.h" /* For PATH_MAX (at least on Windows). */
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "BKE_appdir.h"
 #include "BKE_callbacks.h"

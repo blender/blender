@@ -25,6 +25,7 @@
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 

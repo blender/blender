@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_matrix.hh"
+#include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_task.hh"
 

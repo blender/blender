@@ -287,8 +287,17 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
       ++new_num_panels;
     }
   }
-  Vector<bNodeSocket *> old_inputs = node.inputs;
-  Vector<bNodeSocket *> old_outputs = node.outputs;
+
+  Vector<bNodeSocket *> old_inputs;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+    old_inputs.append(socket);
+  }
+
+  Vector<bNodeSocket *> old_outputs;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
+    old_outputs.append(socket);
+  }
+
   Vector<bNodePanelState> old_panels = Vector<bNodePanelState>(node.panel_states());
 
   /* New panel states buffer. */

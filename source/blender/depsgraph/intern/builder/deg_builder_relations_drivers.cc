@@ -12,6 +12,8 @@
 
 #include <cstring>
 
+#include "BLI_listbase.h"
+
 #include "DNA_anim_types.h"
 
 #include "BKE_anim_data.h"

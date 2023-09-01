@@ -4,6 +4,8 @@
 
 #include "COM_OutputFileNode.h"
 
+#include "BLI_string.h"
+
 namespace blender::compositor {
 
 OutputFileNode::OutputFileNode(bNode *editor_node) : Node(editor_node)

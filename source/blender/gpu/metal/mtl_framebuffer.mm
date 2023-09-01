@@ -6,6 +6,8 @@
  * \ingroup gpu
  */
 
+#include "BLI_string.h"
+
 #include "BKE_global.h"
 
 #include "mtl_context.hh"

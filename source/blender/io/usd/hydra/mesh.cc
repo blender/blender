@@ -6,6 +6,8 @@
 #include <pxr/base/tf/staticTokens.h>
 #include <pxr/imaging/hd/tokens.h>
 
+#include "BLI_string.h"
+
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
