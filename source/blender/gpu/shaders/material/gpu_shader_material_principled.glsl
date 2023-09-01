@@ -64,9 +64,9 @@ void node_bsdf_principled(vec4 base_color,
   vec3 V = cameraVec(g_data.P);
   float NV = dot(N, V);
 
-  float fresnel = (do_multiscatter != 0.0) ? btdf_lut(NV, roughness, ior).y : F_eta(ior, NV);
-  float glass_reflection_weight = fresnel * transmission;
-  float glass_transmission_weight = (1.0 - fresnel) * transmission;
+  vec2 glass_bsdf = btdf_lut(NV, roughness, ior, do_multiscatter);
+  float glass_reflection_weight = glass_bsdf.y * transmission;
+  float glass_transmission_weight = glass_bsdf.x * transmission;
 
   vec3 base_color_tint = tint_from_color(base_color.rgb);
 
@@ -144,9 +144,7 @@ void node_bsdf_principled(vec4 base_color,
   /* Refraction. */
   ClosureRefraction refraction_data;
   refraction_data.weight = glass_transmission_weight * weight;
-  float btdf = (do_multiscatter != 0.0) ? 1.0 : btdf_lut(NV, roughness, ior).x;
-
-  refraction_data.color = base_color.rgb * btdf;
+  refraction_data.color = base_color.rgb;
   refraction_data.N = N;
   refraction_data.roughness = roughness;
   refraction_data.ior = ior;

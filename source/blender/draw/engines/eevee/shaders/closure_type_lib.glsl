@@ -95,7 +95,7 @@ float ambient_occlusion_eval(vec3 normal,
 vec3 safe_normalize(vec3 N);
 float fast_sqrt(float a);
 vec3 cameraVec(vec3 P);
-vec2 btdf_lut(float a, float b, float c);
+vec2 btdf_lut(float a, float b, float c, float d);
 vec2 brdf_lut(float a, float b);
 vec3 F_brdf_multi_scatter(vec3 a, vec3 b, vec2 c);
 vec3 F_brdf_single_scatter(vec3 a, vec3 b, vec2 c);
