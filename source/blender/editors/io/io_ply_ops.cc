@@ -71,9 +71,8 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.blen_filepath = CTX_data_main(C)->filepath;
 
-  export_params.forward_axis = blender::math::AxisSigned::from_int(
-      RNA_enum_get(op->ptr, "forward_axis"));
-  export_params.up_axis = blender::math::AxisSigned::from_int(RNA_enum_get(op->ptr, "up_axis"));
+  export_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
+  export_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
 
@@ -178,7 +177,10 @@ void WM_OT_ply_export(wmOperatorType *ot)
                                  FILE_SORT_DEFAULT);
 
   /* Object transform options. */
-  io_ui_axes_register(*ot->srna);
+  prop = RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
+  RNA_def_property_update_runtime(prop, io_ui_forward_axis_update);
+  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, io_ui_up_axis_update);
   RNA_def_float(
       ot->srna,
       "global_scale",
@@ -237,8 +239,8 @@ static int wm_ply_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
 static int wm_ply_import_exec(bContext *C, wmOperator *op)
 {
   PLYImportParams params{};
-  params.forward_axis = blender::math::AxisSigned::from_int(RNA_enum_get(op->ptr, "forward_axis"));
-  params.up_axis = blender::math::AxisSigned::from_int(RNA_enum_get(op->ptr, "up_axis"));
+  params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
+  params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
   params.merge_verts = RNA_boolean_get(op->ptr, "merge_verts");
@@ -306,7 +308,10 @@ void WM_OT_ply_import(wmOperatorType *ot)
                   false,
                   "Scene Unit",
                   "Apply current scene's unit (as defined by unit scale) to imported data");
-  io_ui_axes_register(*ot->srna);
+  prop = RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
+  RNA_def_property_update_runtime(prop, io_ui_forward_axis_update);
+  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, io_ui_up_axis_update);
   RNA_def_boolean(ot->srna, "merge_verts", false, "Merge Vertices", "Merges vertices by distance");
   RNA_def_enum(ot->srna,
                "import_colors",

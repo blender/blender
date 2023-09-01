@@ -18,7 +18,6 @@
 
 #include "BLI_fileops.hh"
 #include "BLI_math_matrix.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
@@ -116,14 +115,14 @@ void importer_main(Main *bmain,
     global_scale *= scene->unit.scale_length;
   }
   float scale_vec[3] = {global_scale, global_scale, global_scale};
-
-  const math::CartesianBasis basis = math::from_orthonormal_axes(import_params.forward_axis,
-                                                                 import_params.up_axis);
-  const float3x3 axes_transform = math::from_rotation<float3x3>(basis);
-
+  float obmat3x3[3][3];
+  unit_m3(obmat3x3);
   float obmat4x4[4][4];
   unit_m4(obmat4x4);
-  copy_m4_m3(obmat4x4, axes_transform.ptr());
+  /* +Y-forward and +Z-up are the Blender's default axis settings. */
+  mat3_from_axis_conversion(
+      IO_AXIS_Y, IO_AXIS_Z, import_params.forward_axis, import_params.up_axis, obmat3x3);
+  copy_m4_m3(obmat4x4, obmat3x3);
   rescale_m4(obmat4x4, scale_vec);
   BKE_object_apply_mat4(obj, obmat4x4, true, false);
 
