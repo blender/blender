@@ -9,6 +9,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math_color.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -48,7 +49,7 @@ BoneCollection *ANIM_bonecoll_new(const char *name)
    * armature, to ensure it is unique within the armature. */
   BoneCollection *bcoll = MEM_cnew<BoneCollection>(__func__);
 
-  STRNCPY(bcoll->name, name);
+  STRNCPY_UTF8(bcoll->name, name);
   bcoll->flags = default_flags;
 
   bcoll->prop = nullptr;
@@ -170,7 +171,7 @@ void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll,
 
   STRNCPY(old_name, bcoll->name);
 
-  STRNCPY(bcoll->name, name);
+  STRNCPY_UTF8(bcoll->name, name);
   bonecoll_ensure_name_unique(armature, bcoll);
 
   BKE_animdata_fix_paths_rename_all(&armature->id, "collections", old_name, bcoll->name);

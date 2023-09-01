@@ -265,7 +265,7 @@ wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user
   /* Create new configuration. */
   wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(
       MEM_callocN(sizeof(wmKeyConfig), "wmKeyConfig"));
-  STRNCPY(keyconf->idname, idname);
+  STRNCPY_UTF8(keyconf->idname, idname);
   BLI_addtail(&wm->keyconfigs, keyconf);
 
   if (user_defined) {
@@ -373,7 +373,7 @@ static wmKeyMap *wm_keymap_new(const char *idname, int spaceid, int regionid)
 {
   wmKeyMap *km = static_cast<wmKeyMap *>(MEM_callocN(sizeof(wmKeyMap), "keymap list"));
 
-  STRNCPY(km->idname, idname);
+  STRNCPY_UTF8(km->idname, idname);
   km->spaceid = spaceid;
   km->regionid = regionid;
 
