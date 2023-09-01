@@ -42,7 +42,7 @@
 /* Unlike _update_sound_ functions,
  * these ones take info from audaspace to update sequence length! */
 const SoundModifierWorkerInfo workersSoundModifiers[] = {
-    {seqModifierType_SoundEqualizer, SEQ_sound_equalizermodifier_recreator}, {0, NULL}};
+    {seqModifierType_SoundEqualizer, SEQ_sound_equalizermodifier_recreator}, {0, nullptr}};
 
 #ifdef WITH_AUDASPACE
 static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, ListBase *seqbase)
@@ -156,9 +156,9 @@ float SEQ_sound_pitch_get(const Scene *scene, const Sequence *seq)
   return seq->speed_factor;
 }
 
-struct EQCurveMappingData *SEQ_sound_equalizer_add(SoundEqualizerModifierData *semd,
-                                                   float minX,
-                                                   float maxX)
+EQCurveMappingData *SEQ_sound_equalizer_add(SoundEqualizerModifierData *semd,
+                                            float minX,
+                                            float maxX)
 {
   EQCurveMappingData *eqcmd;
 
@@ -191,7 +191,7 @@ struct EQCurveMappingData *SEQ_sound_equalizer_add(SoundEqualizerModifierData *s
   return eqcmd;
 }
 
-void SEQ_sound_equalizermodifier_set_graphs(struct SoundEqualizerModifierData *semd, int number)
+void SEQ_sound_equalizermodifier_set_graphs(SoundEqualizerModifierData *semd, int number)
 {
   SEQ_sound_equalizermodifier_free((SequenceModifierData *)semd);
   if (number == 1) {
@@ -209,21 +209,21 @@ void SEQ_sound_equalizermodifier_set_graphs(struct SoundEqualizerModifierData *s
   }
 }
 
-EQCurveMappingData *SEQ_sound_equalizermodifier_add_graph(struct SoundEqualizerModifierData *semd,
+EQCurveMappingData *SEQ_sound_equalizermodifier_add_graph(SoundEqualizerModifierData *semd,
                                                           float min_freq,
                                                           float max_freq)
 {
   if (min_freq < 0.0)
-    return NULL;
+    return nullptr;
   if (max_freq < 0.0)
-    return NULL;
+    return nullptr;
   if (max_freq <= min_freq)
-    return NULL;
+    return nullptr;
   return SEQ_sound_equalizer_add(semd, min_freq, max_freq);
 }
 
-void SEQ_sound_equalizermodifier_remove_graph(struct SoundEqualizerModifierData *semd,
-                                              struct EQCurveMappingData *eqcmd)
+void SEQ_sound_equalizermodifier_remove_graph(SoundEqualizerModifierData *semd,
+                                              EQCurveMappingData *eqcmd)
 {
   BLI_remlink_safe(&semd->graphics, eqcmd);
   MEM_freeN(eqcmd);
@@ -247,8 +247,7 @@ void SEQ_sound_equalizermodifier_free(SequenceModifierData *smd)
   BLI_listbase_clear(&semd->graphics);
 }
 
-void SEQ_sound_equalizermodifier_copy_data(struct SequenceModifierData *target,
-                                           struct SequenceModifierData *smd)
+void SEQ_sound_equalizermodifier_copy_data(SequenceModifierData *target, SequenceModifierData *smd)
 {
   SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
   SoundEqualizerModifierData *semd_target = (SoundEqualizerModifierData *)target;
@@ -260,14 +259,12 @@ void SEQ_sound_equalizermodifier_copy_data(struct SequenceModifierData *target,
     eqcmd_n = static_cast<EQCurveMappingData *>(MEM_dupallocN(eqcmd));
     BKE_curvemapping_copy_data(&eqcmd_n->curve_mapping, &eqcmd->curve_mapping);
 
-    eqcmd_n->next = eqcmd_n->prev = NULL;
+    eqcmd_n->next = eqcmd_n->prev = nullptr;
     BLI_addtail(&semd_target->graphics, eqcmd_n);
   }
 }
 
-void *SEQ_sound_equalizermodifier_recreator(struct Sequence *seq,
-                                            struct SequenceModifierData *smd,
-                                            void *sound)
+void *SEQ_sound_equalizermodifier_recreator(Sequence *seq, SequenceModifierData *smd, void *sound)
 {
 #ifdef WITH_AUDASPACE
   UNUSED_VARS(seq);
@@ -286,7 +283,7 @@ void *SEQ_sound_equalizermodifier_recreator(struct Sequence *seq,
   CurveMap *cm;
   float minX;
   float maxX;
-  float interval = SOUND_EQUALIZER_DEFAULT_MAX_FREQ / (float)SOUND_EQUALIZER_SIZE_DEFINITION;
+  float interval = SOUND_EQUALIZER_DEFAULT_MAX_FREQ / float(SOUND_EQUALIZER_SIZE_DEFINITION);
 
   // Visit all equalizer definitions
   LISTBASE_FOREACH (EQCurveMappingData *, mapping, &semd->graphics) {
@@ -295,7 +292,7 @@ void *SEQ_sound_equalizermodifier_recreator(struct Sequence *seq,
     cm = eq_mapping->cm;
     minX = eq_mapping->curr.xmin;
     maxX = eq_mapping->curr.xmax;
-    int idx = (int)ceil(minX / interval);
+    int idx = int(ceil(minX / interval));
     int i = idx;
     for (; i * interval <= maxX && i < SOUND_EQUALIZER_SIZE_DEFINITION; i++) {
       float freq = i * interval;
@@ -328,18 +325,16 @@ void *SEQ_sound_equalizermodifier_recreator(struct Sequence *seq,
 #endif
 }
 
-const struct SoundModifierWorkerInfo *SEQ_sound_modifier_worker_info_get(int type)
+const SoundModifierWorkerInfo *SEQ_sound_modifier_worker_info_get(int type)
 {
   for (int i = 0; workersSoundModifiers[i].type > 0; i++) {
     if (workersSoundModifiers[i].type == type)
       return &workersSoundModifiers[i];
   }
-  return NULL;
+  return nullptr;
 }
 
-void *SEQ_sound_modifier_recreator(struct Sequence *seq,
-                                   struct SequenceModifierData *smd,
-                                   void *sound)
+void *SEQ_sound_modifier_recreator(Sequence *seq, SequenceModifierData *smd, void *sound)
 {
 
   if (!(smd->flag & SEQUENCE_MODIFIER_MUTE)) {

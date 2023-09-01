@@ -167,7 +167,7 @@ void ARMATURE_OT_collection_move(wmOperatorType *ot)
   static const EnumPropertyItem bcoll_slot_move[] = {
       {-1, "UP", 0, "Up", ""},
       {1, "DOWN", 0, "Down", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -372,7 +372,7 @@ void ARMATURE_OT_collection_assign(wmOperatorType *ot)
   /* properties */
   RNA_def_string(ot->srna,
                  "name",
-                 NULL,
+                 nullptr,
                  MAX_NAME,
                  "Bone Collection",
                  "Name of the bone collection to assign this bone to; empty to assign to the "
@@ -433,7 +433,7 @@ void ARMATURE_OT_collection_unassign(wmOperatorType *ot)
 
   RNA_def_string(ot->srna,
                  "name",
-                 NULL,
+                 nullptr,
                  MAX_NAME,
                  "Bone Collection",
                  "Name of the bone collection to unassign this bone from; empty to unassign from "
@@ -537,7 +537,7 @@ void ARMATURE_OT_collection_select(wmOperatorType *ot)
   PropertyRNA *prop = RNA_def_string(
       ot->srna,
       "name",
-      NULL,
+      nullptr,
       MAX_NAME,
       "Bone Collection",
       "Name of the bone collection to select bones from; empty use the active bone collection");
@@ -577,7 +577,7 @@ void ARMATURE_OT_collection_deselect(wmOperatorType *ot)
   PropertyRNA *prop = RNA_def_string(
       ot->srna,
       "name",
-      NULL,
+      nullptr,
       MAX_NAME,
       "Bone Collection",
       "Name of the bone collection to deselect bones from; empty use the active bone collection");

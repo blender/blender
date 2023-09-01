@@ -50,7 +50,7 @@ static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree,
 
 class UsdExportTest : public BlendfileLoadingBaseTest {
  protected:
-  struct bContext *context = nullptr;
+  bContext *context = nullptr;
 
  public:
   bool load_file_and_depsgraph(const StringRefNull &filepath,

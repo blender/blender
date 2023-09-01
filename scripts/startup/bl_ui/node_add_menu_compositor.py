@@ -9,6 +9,7 @@ from bpy.app.translations import (
     pgettext_iface as iface_,
 )
 
+
 class NODE_MT_category_COMP_INPUT(Menu):
     bl_idname = "NODE_MT_category_COMP_INPUT"
     bl_label = "Input"

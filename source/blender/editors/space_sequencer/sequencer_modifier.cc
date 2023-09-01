@@ -342,7 +342,7 @@ void SEQUENCER_OT_strip_modifier_equalizer_redefine(wmOperatorType *ot)
       {1, "SIMPLE", 0, "Unique", "One unique graphical definition"},
       {2, "DOUBLE", 0, "Double", "Graphical definition in 2 sections"},
       {3, "TRIPLE", 0, "Triplet", "Graphical definition in 3 sections"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   PropertyRNA *prop;
 

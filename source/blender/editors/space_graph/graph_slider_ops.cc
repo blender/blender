@@ -1358,7 +1358,7 @@ static void shear_modal_update(bContext *C, wmOperator *op)
   const tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
 
   shear_graph_keys(&gso->ac, factor, direction);
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
 static int shear_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1419,7 +1419,7 @@ static int shear_exec(bContext *C, wmOperator *op)
   shear_graph_keys(&ac, factor, direction);
 
   /* Set notifier that keyframes have changed. */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }

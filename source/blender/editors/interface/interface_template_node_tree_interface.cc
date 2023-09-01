@@ -59,7 +59,7 @@ class NodeSocketDropTarget : public TreeViewItemDropTarget {
 
   bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
   std::string drop_tooltip(const DragInfo &drag_info) const override;
-  bool on_drop(struct bContext * /*C*/, const DragInfo &drag_info) const override;
+  bool on_drop(bContext * /*C*/, const DragInfo &drag_info) const override;
 
  protected:
   wmDragNodeTreeInterface *get_drag_node_tree_declaration(const wmDrag &drag) const;
@@ -494,7 +494,7 @@ wmDragNodeTreeInterface *NodePanelDropTarget::get_drag_node_tree_declaration(
 
 namespace ui = blender::ui;
 
-void uiTemplateNodeTreeInterface(struct uiLayout *layout, struct PointerRNA *ptr)
+void uiTemplateNodeTreeInterface(uiLayout *layout, PointerRNA *ptr)
 {
   if (!ptr->data) {
     return;

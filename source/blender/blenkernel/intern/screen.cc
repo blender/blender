@@ -1270,7 +1270,7 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
 static void regions_remove_invalid(SpaceType *space_type, ListBase *regionbase)
 {
   LISTBASE_FOREACH_MUTABLE (ARegion *, region, regionbase) {
-    if (BKE_regiontype_from_id(space_type, region->regiontype) != NULL) {
+    if (BKE_regiontype_from_id(space_type, region->regiontype) != nullptr) {
       continue;
     }
 

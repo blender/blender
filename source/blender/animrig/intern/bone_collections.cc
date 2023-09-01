@@ -49,7 +49,7 @@ BoneCollection *ANIM_bonecoll_new(const char *name)
   std::string alloc_name = std::string(__func__) + "('" + name + "')";
   BoneCollection *bcoll = MEM_cnew<BoneCollection>(alloc_name.c_str());
 
-  BLI_strncpy(bcoll->name, name, sizeof(bcoll->name));
+  STRNCPY(bcoll->name, name);
   bcoll->flags = default_flags;
 
   bcoll->prop = nullptr;
@@ -151,7 +151,7 @@ void ANIM_armature_bonecoll_active_index_set(bArmature *armature, const int bone
 
 bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, const int step)
 {
-  if (bcoll == NULL) {
+  if (bcoll == nullptr) {
     return false;
   }
 
@@ -169,9 +169,9 @@ void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll,
 {
   char old_name[sizeof(bcoll->name)];
 
-  BLI_strncpy(old_name, bcoll->name, sizeof(bcoll->name));
+  STRNCPY(old_name, bcoll->name);
 
-  BLI_strncpy(bcoll->name, name, sizeof(bcoll->name));
+  STRNCPY(bcoll->name, name);
   bonecoll_ensure_name_unique(armature, bcoll);
 
   BKE_animdata_fix_paths_rename_all(&armature->id, "collections", old_name, bcoll->name);
@@ -309,7 +309,7 @@ bool ANIM_armature_bonecoll_unassign_editbone(BoneCollection *bcoll, EditBone *e
   return was_found;
 }
 
-void ANIM_armature_bonecoll_reconstruct(struct bArmature *armature)
+void ANIM_armature_bonecoll_reconstruct(bArmature *armature)
 {
   /* Remove all the old collection memberships. */
   LISTBASE_FOREACH (BoneCollection *, bcoll, &armature->collections) {
@@ -343,12 +343,11 @@ static bool any_bone_collection_visible(const ListBase /*BoneCollectionRef*/ *co
 /* TODO: these two functions were originally implemented for armature layers, hence the armature
  * parameters. These should be removed at some point. */
 
-bool ANIM_bonecoll_is_visible(const struct bArmature * /*armature*/, const struct Bone *bone)
+bool ANIM_bonecoll_is_visible(const bArmature * /*armature*/, const Bone *bone)
 {
   return any_bone_collection_visible(&bone->runtime.collections);
 }
-bool ANIM_bonecoll_is_visible_editbone(const struct bArmature * /*armature*/,
-                                       const struct EditBone *ebone)
+bool ANIM_bonecoll_is_visible_editbone(const bArmature * /*armature*/, const EditBone *ebone)
 {
   return any_bone_collection_visible(&ebone->bone_collections);
 }

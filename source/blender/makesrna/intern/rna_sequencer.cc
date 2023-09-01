@@ -73,7 +73,7 @@ const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
     {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
     {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
     {seqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Sound Equalizer", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_sequence_video_modifier_type_items[] = {
@@ -84,12 +84,12 @@ const EnumPropertyItem rna_enum_sequence_video_modifier_type_items[] = {
     {seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
     {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
     {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_sequence_sound_modifier_type_items[] = {
     {seqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Equalizer", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_strip_color_items[] = {
@@ -3819,12 +3819,12 @@ static void rna_def_graphical_sound_equalizer(BlenderRNA *brna)
   PropertyRNA *prop;
 
   /* Define Sound EQ */
-  srna = RNA_def_struct(brna, "EQCurveMappingData", NULL);
+  srna = RNA_def_struct(brna, "EQCurveMappingData", nullptr);
   RNA_def_struct_sdna(srna, "EQCurveMappingData");
   RNA_def_struct_ui_text(srna, "EQCurveMappingData", "EQCurveMappingData");
 
   prop = RNA_def_property(srna, "curve_mapping", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "curve_mapping");
+  RNA_def_property_pointer_sdna(prop, nullptr, "curve_mapping");
   RNA_def_property_struct_type(prop, "CurveMapping");
   RNA_def_property_ui_text(prop, "Curve Mapping", "");
   RNA_def_property_update(

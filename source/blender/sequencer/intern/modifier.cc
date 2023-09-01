@@ -1379,7 +1379,7 @@ static SequenceModifierTypeInfo seqModifier_SoundEqualizer = {
     SEQ_sound_equalizermodifier_init_data,            /* init_data */
     SEQ_sound_equalizermodifier_free,                 /* free_data */
     SEQ_sound_equalizermodifier_copy_data,            /* copy_data */
-    NULL,                                             /* apply */
+    nullptr,                                          /* apply */
 };
 /** \} */
 
