@@ -138,9 +138,8 @@ void SceneState::init(Object *camera_ob /*= nullptr*/)
   else if (DRW_state_is_scene_render()) {
     _samples_len = scene->display.render_aa;
   }
-  if (is_navigating || is_playback || DRW_state_is_viewport_image_render()) {
+  if (is_navigating || is_playback) {
     /* Only draw using SMAA or no AA when navigating. */
-    /* Same for viewport image render, since it's limited to a single sample. */
     _samples_len = min_ii(_samples_len, 1);
   }
   /* 0 samples means no AA */
