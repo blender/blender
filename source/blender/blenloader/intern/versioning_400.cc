@@ -992,8 +992,16 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       /* Clear legacy sockets after conversion.
        * Internal data pointers have been moved or freed already. */
-      BLI_freelistN(&ntree->inputs_legacy);
-      BLI_freelistN(&ntree->outputs_legacy);
+      LISTBASE_FOREACH_MUTABLE (bNodeSocket *, legacy_socket, &ntree->inputs_legacy) {
+        MEM_delete(legacy_socket->runtime);
+        MEM_freeN(legacy_socket);
+      }
+      LISTBASE_FOREACH_MUTABLE (bNodeSocket *, legacy_socket, &ntree->outputs_legacy) {
+        MEM_delete(legacy_socket->runtime);
+        MEM_freeN(legacy_socket);
+      }
+      BLI_listbase_clear(&ntree->inputs_legacy);
+      BLI_listbase_clear(&ntree->outputs_legacy);
     }
     FOREACH_NODETREE_END;
   }
