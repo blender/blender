@@ -932,13 +932,15 @@ static void xdg_toplevel_handle_configure(void *data,
   std::lock_guard lock_frame_guard{win->frame_pending_mutex};
 #endif
 
-  if (win->frame.fractional_scale) {
-    win->frame_pending.size[0] = gwl_window_fractional_to_viewport_round(win->frame, width);
-    win->frame_pending.size[1] = gwl_window_fractional_to_viewport_round(win->frame, height);
-  }
-  else {
-    win->frame_pending.size[0] = width * win->frame.buffer_scale;
-    win->frame_pending.size[1] = height * win->frame.buffer_scale;
+  const int32_t size[2] = {width, height};
+  for (int i = 0; i < 2; i++) {
+    if (size[i] == 0) {
+      /* Values may be zero, in this case the client should choose. */
+      continue;
+    }
+    win->frame_pending.size[i] = win->frame.fractional_scale ?
+                                     gwl_window_fractional_to_viewport_round(win->frame, size[i]) :
+                                     (size[i] * win->frame.buffer_scale);
   }
 
   win->frame_pending.is_maximised = false;
