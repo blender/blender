@@ -1368,20 +1368,18 @@ static int shear_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   switch (event->type) {
-    {
-      case EVT_DKEY: {
-        tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
-        RNA_enum_set(op->ptr,
-                     "direction",
-                     (direction == SHEAR_FROM_LEFT) ? SHEAR_FROM_RIGHT : SHEAR_FROM_LEFT);
-        shear_modal_update(C, op);
-        break;
-      }
-
-      default:
-        return graph_slider_modal(C, op, event);
-        break;
+    case EVT_DKEY: {
+      tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
+      RNA_enum_set(op->ptr,
+                   "direction",
+                   (direction == SHEAR_FROM_LEFT) ? SHEAR_FROM_RIGHT : SHEAR_FROM_LEFT);
+      shear_modal_update(C, op);
+      break;
     }
+
+    default:
+      return graph_slider_modal(C, op, event);
+      break;
   }
   return OPERATOR_RUNNING_MODAL;
 }
