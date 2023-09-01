@@ -37,7 +37,7 @@ extensions = (
     ".c", ".cc", ".cpp", ".cxx",
     ".h", ".hh", ".hpp", ".hxx",
     ".m", ".mm",
-    ".osl", ".glsl",
+    ".osl", ".glsl", ".msl",
 )
 
 extensions_only_retab = (
