@@ -1230,7 +1230,7 @@ void bNodeTreeInterface::clear_items()
 
 bool bNodeTreeInterface::move_item(bNodeTreeInterfaceItem &item, const int new_position)
 {
-  bNodeTreeInterfacePanel *parent = this->find_item_parent(item);
+  bNodeTreeInterfacePanel *parent = this->find_item_parent(item, true);
   if (parent == nullptr) {
     return false;
   }
@@ -1241,11 +1241,11 @@ bool bNodeTreeInterface::move_item_to_parent(bNodeTreeInterfaceItem &item,
                                              bNodeTreeInterfacePanel *new_parent,
                                              int new_position)
 {
-  bNodeTreeInterfacePanel *parent = this->find_item_parent(item);
+  bNodeTreeInterfacePanel *parent = this->find_item_parent(item, true);
   if (parent == nullptr) {
     return false;
   }
-  if (item.item_type == NODE_INTERFACE_PANEL &&
+  if (item.item_type == NODE_INTERFACE_PANEL && new_parent &&
       !(new_parent->flag & NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS))
   {
     /* Parent does not allow adding child panels. */

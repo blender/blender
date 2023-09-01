@@ -98,7 +98,7 @@ static PointerRNA rna_NodeTreeInterfaceItem_parent_get(PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   const bNodeTreeInterfaceItem *item = static_cast<const bNodeTreeInterfaceItem *>(ptr->data);
-  bNodeTreeInterfacePanel *parent = ntree->tree_interface.find_item_parent(*item);
+  bNodeTreeInterfacePanel *parent = ntree->tree_interface.find_item_parent(*item, true);
   PointerRNA result;
   RNA_pointer_create(&ntree->id, &RNA_NodeTreeInterfacePanel, parent, &result);
   return result;
