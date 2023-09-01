@@ -231,6 +231,9 @@ static void direct_link_bones(BlendDataReader *reader, Bone *bone)
   BLO_read_data_address(reader, &bone->bbone_prev);
 
   bone->flag &= ~(BONE_DRAW_ACTIVE | BONE_DRAW_LOCKED_WEIGHT);
+  if (bone->layer == 0) {
+    bone->layer = 1;
+  }
 
   BLO_read_list(reader, &bone->childbase);
 
