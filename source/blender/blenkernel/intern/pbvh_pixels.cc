@@ -22,8 +22,6 @@
 #include "BKE_global.h"
 #include "BKE_image_wrappers.hh"
 
-#include "bmesh.h"
-
 #include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"
 #include "pbvh_uv_islands.hh"
