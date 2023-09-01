@@ -13,8 +13,6 @@
 #pragma BLENDER_REQUIRE(eevee_shadow_tag_usage_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-#pragma BLENDER_REQUIRE(common_debug_shape_lib.glsl)
-
 float ray_aabb(vec3 ray_origin, vec3 ray_direction, vec3 aabb_min, vec3 aabb_max)
 {
   /* https://gdbooks.gitbooks.io/3dcollisions/content/Chapter3/raycast_aabb.html */

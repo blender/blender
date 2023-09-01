@@ -7,7 +7,6 @@
  * See eShadowDebug for more information.
  */
 
-#pragma BLENDER_REQUIRE(common_debug_print_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
@@ -32,10 +31,12 @@ vec3 debug_random_color(int v)
 
 void debug_tile_print(ShadowTileData tile, ivec4 tile_coord)
 {
+#ifdef DRW_DEBUG_PRINT
   drw_print("Tile (", tile_coord.x, ",", tile_coord.y, ") in Tilemap ", tile_coord.z, " : ");
   drw_print(tile.lod);
   drw_print(tile.page);
   drw_print(tile.cache_index);
+#endif
 }
 
 vec3 debug_tile_state_color(ShadowTileData tile)
@@ -113,9 +114,11 @@ bool debug_tilemaps(vec3 P, LightData light)
       out_color_add = vec4(debug_tile_state_color(tile), 0.0);
       out_color_mul = vec4(0.0);
 
+#ifdef DRW_DEBUG_PRINT
       if (all(equal(ivec2(gl_FragCoord.xy), ivec2(0)))) {
         drw_print(light.object_mat);
       }
+#endif
       return true;
     }
   }

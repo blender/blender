@@ -108,6 +108,7 @@ struct GPUSource {
       if (source.find("'") != StringRef::not_found) {
         char_literals_preprocess();
       }
+#ifdef DEBUG
       if (source.find("drw_print") != StringRef::not_found) {
         string_preprocess();
       }
@@ -119,6 +120,7 @@ struct GPUSource {
       {
         builtins |= shader::BuiltinBits::USE_DEBUG_DRAW;
       }
+#endif
       check_no_quotes();
     }
 

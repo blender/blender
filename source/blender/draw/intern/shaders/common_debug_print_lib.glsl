@@ -5,10 +5,10 @@
 /**
  * Debug print implementation for shaders.
  *
- * `print()`:
+ * `drw_print()`:
  *   Log variable or strings inside the viewport.
  *   Using a unique non string argument will print the variable name with it.
- *   Concatenate by using multiple arguments. i.e: `print("Looped ", n, "times.")`.
+ *   Concatenate by using multiple arguments. i.e: `drw_print("Looped ", n, "times.")`.
  * `drw_print_no_endl()`:
  *   Same as `print()` but does not finish the line.
  * `drw_print_value()`:
