@@ -13,14 +13,7 @@ struct Main;
 struct ModifierData;
 struct Object;
 
-namespace blender {
-class fstream;
-}
-
 namespace blender::bke::sim {
-
-using DictionaryValue = io::serialize::DictionaryValue;
-using DictionaryValuePtr = std::shared_ptr<DictionaryValue>;
 
 /**
  * Get the directory that contains all baked simulation data for the given modifier.
@@ -28,7 +21,5 @@ using DictionaryValuePtr = std::shared_ptr<DictionaryValue>;
 std::string get_default_modifier_bake_directory(const Main &bmain,
                                                 const Object &object,
                                                 const ModifierData &md);
-
-constexpr int simulation_file_storage_version = 3;
 
 }  // namespace blender::bke::sim
