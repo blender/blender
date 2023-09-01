@@ -1562,7 +1562,6 @@ void SEQ_modifier_list_copy(Sequence *seqn, Sequence *seq)
       smti->copy_data(smdn, smd);
     }
 
-    smdn->next = smdn->prev = nullptr;
     BLI_addtail(&seqn->modifiers, smdn);
     BLI_uniquename(&seqn->modifiers,
                    smdn,
