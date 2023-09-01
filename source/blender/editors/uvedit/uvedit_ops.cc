@@ -769,10 +769,7 @@ static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  const ToolSettings *ts = scene->toolsettings;
-
   const float threshold = RNA_float_get(op->ptr, "threshold");
-  const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -996,10 +993,6 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 static bool uv_snap_uvs_to_cursor(Scene *scene, Object *obedit, const float cursor[2])
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  BMFace *efa;
-  BMLoop *l;
-  BMIter iter, liter;
-  float *luv;
   bool changed = false;
 
   ED_uvedit_foreach_uv(scene, em->bm, true, true, [&](float luv[2]) {
@@ -1013,10 +1006,6 @@ static bool uv_snap_uvs_to_cursor(Scene *scene, Object *obedit, const float curs
 static bool uv_snap_uvs_offset(Scene *scene, Object *obedit, const float offset[2])
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  BMFace *efa;
-  BMLoop *l;
-  BMIter iter, liter;
-  float *luv;
   bool changed = false;
 
   ED_uvedit_foreach_uv(scene, em->bm, true, true, [&](float luv[2]) {
@@ -1085,10 +1074,6 @@ static bool uv_snap_uvs_to_adjacent_unselected(Scene *scene, Object *obedit)
 static bool uv_snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  BMFace *efa;
-  BMLoop *l;
-  BMIter iter, liter;
-  float *luv;
   int width = 0, height = 0;
   float w, h;
   bool changed = false;
