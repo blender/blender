@@ -244,11 +244,8 @@ void drawSnapping(TransInfo *t)
       target_loc = t->tsnap.snap_target;
     }
 
-    ED_view3d_cursor_snap_draw_util(rv3d,
-                                    source_loc,
-                                    target_loc,
-                                    t->tsnap.snapNormal,
-                                    col, activeCol, t->tsnap.target_type);
+    ED_view3d_cursor_snap_draw_util(
+        rv3d, source_loc, target_loc, t->tsnap.snapNormal, col, activeCol, t->tsnap.target_type);
 
     /* Draw normal if needed. */
     if (usingSnappingNormal(t) && validSnappingNormal(t)) {

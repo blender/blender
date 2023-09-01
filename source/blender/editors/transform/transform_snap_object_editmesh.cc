@@ -559,7 +559,10 @@ static eSnapMode snapEditMesh(SnapCache_EditMesh *em_cache,
         auto test_looseverts_fn = [](BMElem *elem, void *user_data) {
           SnapObjectContext *sctx_ = static_cast<SnapObjectContext *>(user_data);
           BMVert *v = reinterpret_cast<BMVert *>(elem);
-          if (v->e && (!sctx_->callbacks.edit_mesh.test_edge_fn || sctx_->callbacks.edit_mesh.test_edge_fn(v->e, sctx_->callbacks.edit_mesh.user_data))) {
+          if (v->e && (!sctx_->callbacks.edit_mesh.test_edge_fn ||
+                       sctx_->callbacks.edit_mesh.test_edge_fn(
+                           v->e, sctx_->callbacks.edit_mesh.user_data)))
+          {
             return false;
           }
           return sctx_->callbacks.edit_mesh.test_vert_fn(v, sctx_->callbacks.edit_mesh.user_data);
