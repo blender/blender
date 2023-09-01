@@ -638,7 +638,7 @@ void Film::accumulate(const DRWView *view, GPUTexture *combined_final_tx)
       float4 clear_color = {0.0f, 0.0f, 0.0f, 0.0f};
       GPU_framebuffer_clear_color(dfbl->default_fb, clear_color);
     }
-    GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data.offset), UNPACK2(data_.extent));
+    GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data_.offset), UNPACK2(data_.extent));
   }
 
   update_sample_table();
@@ -670,7 +670,7 @@ void Film::display()
 
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   GPU_framebuffer_bind(dfbl->default_fb);
-  GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data.offset), UNPACK2(data_.extent));
+  GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data_.offset), UNPACK2(data_.extent));
 
   combined_final_tx_ = inst_.render_buffers.combined_tx;
 
