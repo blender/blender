@@ -1061,9 +1061,9 @@ static const wp_fractional_scale_v1_listener wp_fractional_scale_listener = {
 static CLG_LogRef LOG_WL_LIBDECOR_FRAME = {"ghost.wl.handle.libdecor_frame"};
 #  define LOG (&LOG_WL_LIBDECOR_FRAME)
 
-static void frame_handle_configure(libdecor_frame *frame,
-                                   libdecor_configuration *configuration,
-                                   void *data)
+static void libdecor_frame_handle_configure(libdecor_frame *frame,
+                                            libdecor_configuration *configuration,
+                                            void *data)
 {
   CLOG_INFO(LOG, 2, "configure");
 
@@ -1135,7 +1135,7 @@ static void frame_handle_configure(libdecor_frame *frame,
   }
 }
 
-static void frame_handle_close(libdecor_frame * /*frame*/, void *data)
+static void libdecor_frame_handle_close(libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "close");
 
@@ -1144,7 +1144,7 @@ static void frame_handle_close(libdecor_frame * /*frame*/, void *data)
   win->ghost_window->close();
 }
 
-static void frame_handle_commit(libdecor_frame * /*frame*/, void *data)
+static void libdecor_frame_handle_commit(libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "commit");
 
@@ -1158,9 +1158,9 @@ static void frame_handle_commit(libdecor_frame * /*frame*/, void *data)
 
 /* NOTE: cannot be `const` because of the LIBDECOR API. */
 static libdecor_frame_interface libdecor_frame_iface = {
-    frame_handle_configure,
-    frame_handle_close,
-    frame_handle_commit,
+    libdecor_frame_handle_configure,
+    libdecor_frame_handle_close,
+    libdecor_frame_handle_commit,
 };
 
 #  undef LOG
