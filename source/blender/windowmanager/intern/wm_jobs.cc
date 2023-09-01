@@ -100,7 +100,7 @@ struct wmJob {
   void (*canceled)(void *);
 
   /** Running jobs each have own timer */
-  double timestep;
+  double time_step;
   wmTimer *wt;
   /** Only start job after specified time delay */
   double start_delay_time;
@@ -343,9 +343,9 @@ void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *
   }
 }
 
-void WM_jobs_timer(wmJob *wm_job, double timestep, uint note, uint endnote)
+void WM_jobs_timer(wmJob *wm_job, double time_step, uint note, uint endnote)
 {
-  wm_job->timestep = timestep;
+  wm_job->time_step = time_step;
   wm_job->note = note;
   wm_job->endnote = endnote;
 }
@@ -451,8 +451,8 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
   else {
 
     if (wm_job->customdata && wm_job->startjob) {
-      const double timestep = (wm_job->start_delay_time > 0.0) ? wm_job->start_delay_time :
-                                                                 wm_job->timestep;
+      const double time_step = (wm_job->start_delay_time > 0.0) ? wm_job->start_delay_time :
+                                                                  wm_job->time_step;
 
       wm_jobs_test_suspend_stop(wm, wm_job);
 
@@ -479,12 +479,12 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
       }
 
       /* restarted job has timer already */
-      if (wm_job->wt && (wm_job->wt->timestep > timestep)) {
+      if (wm_job->wt && (wm_job->wt->time_step > time_step)) {
         WM_event_timer_remove(wm, wm_job->win, wm_job->wt);
-        wm_job->wt = WM_event_timer_add(wm, wm_job->win, TIMERJOBS, timestep);
+        wm_job->wt = WM_event_timer_add(wm, wm_job->win, TIMERJOBS, time_step);
       }
       if (wm_job->wt == nullptr) {
-        wm_job->wt = WM_event_timer_add(wm, wm_job->win, TIMERJOBS, timestep);
+        wm_job->wt = WM_event_timer_add(wm, wm_job->win, TIMERJOBS, time_step);
       }
 
       wm_job->start_time = PIL_check_seconds_timer();

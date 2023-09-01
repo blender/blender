@@ -4751,7 +4751,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const 
       /* Try to keep the playback in realtime by dropping frames. */
 
       /* How much time (in frames) has passed since the last frame was drawn? */
-      double delta_frames = wt->delta * FPS;
+      double delta_frames = wt->time_delta * FPS;
 
       /* Add the remaining fraction from the last time step. */
       delta_frames += sad->lagging_frame_count;
@@ -4873,7 +4873,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const 
     /* Update frame rate info too.
      * NOTE: this may not be accurate enough, since we might need this after modifiers/etc.
      * have been calculated instead of just before updates have been done? */
-    ED_scene_fps_average_accumulate(scene, U.playback_fps_samples, wt->ltime);
+    ED_scene_fps_average_accumulate(scene, U.playback_fps_samples, wt->time_last);
   }
 
   /* Recalculate the time-step for the timer now that we've finished calculating this,
@@ -4881,7 +4881,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const 
    */
   /* TODO: this may make evaluation a bit slower if the value doesn't change...
    * any way to avoid this? */
-  wt->timestep = (1.0 / FPS);
+  wt->time_step = (1.0 / FPS);
 
   return OPERATOR_FINISHED;
 }
@@ -5481,7 +5481,7 @@ float ED_region_blend_alpha(ARegion *region)
     RegionAlphaInfo *rgi = static_cast<RegionAlphaInfo *>(region->regiontimer->customdata);
     float alpha;
 
-    alpha = float(region->regiontimer->duration) / TIMEOUT;
+    alpha = float(region->regiontimer->time_duration) / TIMEOUT;
     /* makes sure the blend out works 100% - without area redraws */
     if (rgi->hidden) {
       alpha = 0.9f - TIMESTEP - alpha;
@@ -5577,7 +5577,7 @@ static int region_blend_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *
   }
 
   /* end timer? */
-  if (rgi->region->regiontimer->duration > double(TIMEOUT)) {
+  if (rgi->region->regiontimer->time_duration > double(TIMEOUT)) {
     region_blend_end(C, rgi->region, false);
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }

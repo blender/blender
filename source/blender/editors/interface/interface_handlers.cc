@@ -11051,10 +11051,10 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
   if (menu->scrolltimer == nullptr) {
     menu->scrolltimer = WM_event_timer_add(
         CTX_wm_manager(C), CTX_wm_window(C), TIMER, PIE_MENU_INTERVAL);
-    menu->scrolltimer->duration = 0.0;
+    menu->scrolltimer->time_duration = 0.0;
   }
 
-  const double duration = menu->scrolltimer->duration;
+  const double duration = menu->scrolltimer->time_duration;
 
   float event_xy[2] = {float(event->xy[0]), float(event->xy[1])};
 

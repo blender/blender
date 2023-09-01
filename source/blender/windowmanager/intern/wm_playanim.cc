@@ -448,12 +448,12 @@ static PlayAnimPict *playanim_step(PlayAnimPict *playanim, int step)
 
 static int pupdate_time()
 {
-  static double ltime;
+  static double time_last;
 
   double time = PIL_check_seconds_timer();
 
-  ptottime += (time - ltime);
-  ltime = time;
+  ptottime += (time - time_last);
+  time_last = time;
   return (ptottime < 0);
 }
 

@@ -2311,17 +2311,17 @@ static void rna_def_timer(BlenderRNA *brna)
 
   /* could wrap more, for now this is enough */
   prop = RNA_def_property(srna, "time_step", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "timestep");
+  RNA_def_property_float_sdna(prop, nullptr, "time_step");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Time Step", "");
 
   prop = RNA_def_property(srna, "time_delta", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "delta");
+  RNA_def_property_float_sdna(prop, nullptr, "time_delta");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Delta", "Time since last step in seconds");
 
   prop = RNA_def_property(srna, "time_duration", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "duration");
+  RNA_def_property_float_sdna(prop, nullptr, "time_duration");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Delta", "Time since the timer started seconds");
 

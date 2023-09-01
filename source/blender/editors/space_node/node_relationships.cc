@@ -2547,13 +2547,13 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_PASS_THROUGH;
   }
 
-  const float duration = float(iofsd->anim_timer->duration);
+  const float duration = float(iofsd->anim_timer->time_duration);
 
   /* handle animation - do this before possibly aborting due to duration, since
    * main thread might be so busy that node hasn't reached final position yet */
   for (bNode *node : snode->edittree->all_nodes()) {
     if (UNLIKELY(node->runtime->anim_ofsx)) {
-      const float prev_duration = duration - float(iofsd->anim_timer->delta);
+      const float prev_duration = duration - float(iofsd->anim_timer->time_delta);
       /* Clamp duration to not overshoot. */
       const float clamped_duration = math::min(duration, NODE_INSOFS_ANIM_DURATION);
       if (prev_duration < clamped_duration) {

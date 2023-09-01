@@ -599,7 +599,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const
   timeout = (report->type & RPT_ERROR_ALL) ? ERROR_TIMEOUT : INFO_TIMEOUT;
 
   /* clear the report display after timeout */
-  if (float(reports->reporttimer->duration) > timeout) {
+  if (float(reports->reporttimer->time_duration) > timeout) {
     WM_event_timer_remove(wm, nullptr, reports->reporttimer);
     reports->reporttimer = nullptr;
 
@@ -624,8 +624,8 @@ static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const
     rti->widthfac = 1.0f;
   }
 
-  progress = powf(float(reports->reporttimer->duration) / timeout, 2.0f);
-  flash_progress = powf(float(reports->reporttimer->duration) / flash_timeout, 2.0);
+  progress = powf(float(reports->reporttimer->time_duration) / timeout, 2.0f);
+  flash_progress = powf(float(reports->reporttimer->time_duration) / flash_timeout, 2.0);
 
   /* save us from too many draws */
   if (flash_progress <= 1.0f) {
