@@ -991,8 +991,6 @@ void bNodeTreeInterfacePanel::copy_from(
   /* Copy buffers. */
   for (const int i : items_src.index_range()) {
     const bNodeTreeInterfaceItem *item_src = items_src[i];
-    BLI_assert(item_src->item_type != NODE_INTERFACE_PANEL ||
-               (flag & NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS));
     items_array[i] = static_cast<bNodeTreeInterfaceItem *>(MEM_dupallocN(item_src));
     item_types::item_copy(*items_array[i], *item_src, flag);
   }
