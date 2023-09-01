@@ -235,6 +235,11 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain);
  * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
  *                    which case \a scene's master collection children hierarchy is used instead).
  * \param id_root: The root liboverride ID to resync from.
+ * \param do_hierarchy_enforce: If `true`, enforce the liboverride hierarchy of dependencies to
+ *                              match the one from the reference linked data (i.e. if some manually
+ *                              override were applied to some ID pointers, they will be reset to
+ *                              the default reference value).
+ *
  * \return true if override was successfully resynced.
  */
 bool BKE_lib_override_library_resync(Main *bmain,

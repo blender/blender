@@ -499,6 +499,11 @@ static void rna_KeyMap_remove(wmKeyConfig *keyconfig, ReportList *reports, Point
   RNA_POINTER_INVALIDATE(keymap_ptr);
 }
 
+wmKeyConfig *rna_KeyConfig_new(wmWindowManager *wm, const char *idname)
+{
+  return WM_keyconfig_ensure(wm, idname, true);
+}
+
 static void rna_KeyConfig_remove(wmWindowManager *wm, ReportList *reports, PointerRNA *keyconf_ptr)
 {
   wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(keyconf_ptr->data);
@@ -1305,7 +1310,7 @@ void RNA_api_keyconfigs(StructRNA *srna)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  func = RNA_def_function(srna, "new", "WM_keyconfig_new_user"); /* add_keyconfig */
+  func = RNA_def_function(srna, "new", "rna_KeyConfig_new"); /* add_keyconfig */
   parm = RNA_def_string(func, "name", nullptr, 0, "Name", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(

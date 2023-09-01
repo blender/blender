@@ -996,7 +996,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
   else {
-    /* Legacy node tree sockets are created for forward compatibilty,
+    /* Legacy node tree sockets are created for forward compatibility,
      * but have to be freed after loading and versioning. */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       /* Clear legacy sockets after conversion.

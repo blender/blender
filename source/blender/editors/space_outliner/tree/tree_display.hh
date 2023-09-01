@@ -11,7 +11,7 @@
  * tree-display class with the #AbstractTreeDisplay interface.
  *
  * Their main responsibility is building the Outliner tree for a display mode. For that, they
- * implement the #buildTree() function, which based on Blender data (#TreeSourceData), builds a
+ * implement the #build_tree() function, which based on Blender data (#TreeSourceData), builds a
  * custom tree of whatever data it wants to visualize.
  * Further, they can implement display mode dependent queries and general operations using the
  * #AbstractTreeDisplay abstraction as common interface.
@@ -66,14 +66,14 @@ class AbstractTreeDisplay {
   AbstractTreeDisplay(SpaceOutliner &space_outliner) : space_outliner_(space_outliner) {}
   virtual ~AbstractTreeDisplay() = default;
 
-  static std::unique_ptr<AbstractTreeDisplay> createFromDisplayMode(
+  static std::unique_ptr<AbstractTreeDisplay> create_from_display_mode(
       int /*eSpaceOutliner_Mode*/ mode, SpaceOutliner &space_outliner);
 
   /**
    * Build a tree for this display mode with the Blender context data given in \a source_data and
    * the view settings in \a space_outliner.
    */
-  virtual ListBase buildTree(const TreeSourceData &source_data) = 0;
+  virtual ListBase build_tree(const TreeSourceData &source_data) = 0;
 
   /**
    * Define if the display mode should be allowed to show a mode column on the left. This column
@@ -82,7 +82,7 @@ class AbstractTreeDisplay {
    *
    * Returns false by default.
    */
-  virtual bool supportsModeColumn() const;
+  virtual bool supports_mode_column() const;
 
   /**
    * Some trees may want to skip building children of collapsed parents. This should be done if the
@@ -112,9 +112,9 @@ class TreeDisplayViewLayer final : public AbstractTreeDisplay {
  public:
   TreeDisplayViewLayer(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
-  bool supportsModeColumn() const override;
+  bool supports_mode_column() const override;
 
  private:
   void add_view_layer(Scene &, ListBase &, TreeElement *);
@@ -133,7 +133,7 @@ class TreeDisplayLibraries final : public AbstractTreeDisplay {
  public:
   TreeDisplayLibraries(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
  private:
   TreeElement *add_library_contents(Main &, ListBase &, Library *);
@@ -151,7 +151,7 @@ class TreeDisplayOverrideLibraryProperties final : public AbstractTreeDisplay {
  public:
   TreeDisplayOverrideLibraryProperties(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
  private:
   ListBase add_library_contents(Main &);
@@ -165,7 +165,7 @@ class TreeDisplayOverrideLibraryHierarchies final : public AbstractTreeDisplay {
  public:
   TreeDisplayOverrideLibraryHierarchies(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
   bool is_lazy_built() const override;
 
@@ -191,7 +191,7 @@ class TreeDisplaySequencer final : public AbstractTreeDisplay {
  public:
   TreeDisplaySequencer(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
  private:
   TreeElement *add_sequencer_contents() const;
@@ -212,7 +212,7 @@ class TreeDisplayIDOrphans final : public AbstractTreeDisplay {
  public:
   TreeDisplayIDOrphans(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
  private:
   bool datablock_has_orphans(ListBase &) const;
@@ -228,9 +228,9 @@ class TreeDisplayScenes final : public AbstractTreeDisplay {
  public:
   TreeDisplayScenes(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
-  bool supportsModeColumn() const override;
+  bool supports_mode_column() const override;
 };
 
 /* -------------------------------------------------------------------- */
@@ -243,7 +243,7 @@ class TreeDisplayDataAPI final : public AbstractTreeDisplay {
  public:
   TreeDisplayDataAPI(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
   bool is_lazy_built() const override;
 };

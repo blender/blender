@@ -8,6 +8,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -15,7 +16,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "IO_wavefront_obj.h"
+#include "IO_wavefront_obj.hh"
 #include "obj_export_nurbs.hh"
 
 namespace blender::io::obj {
@@ -29,15 +30,14 @@ OBJCurve::OBJCurve(const Depsgraph *depsgraph,
   set_world_axes_transform(export_params.forward_axis, export_params.up_axis);
 }
 
-void OBJCurve::set_world_axes_transform(const eIOAxis forward, const eIOAxis up)
+void OBJCurve::set_world_axes_transform(const math::AxisSigned forward, const math::AxisSigned up)
 {
-  float axes_transform[3][3];
-  unit_m3(axes_transform);
-  /* +Y-forward and +Z-up are the Blender's default axis settings. */
-  mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
-  mul_m4_m3m4(world_axes_transform_, axes_transform, export_object_eval_->object_to_world);
+  const math::CartesianBasis basis = math::from_orthonormal_axes(forward, up);
+  const float3x3 axes_transform = math::from_rotation<float3x3>(basis);
+  mul_m4_m3m4(world_axes_transform_, axes_transform.ptr(), export_object_eval_->object_to_world);
   /* #mul_m4_m3m4 does not transform last row of #Object.object_to_world, i.e. location data. */
-  mul_v3_m3v3(world_axes_transform_[3], axes_transform, export_object_eval_->object_to_world[3]);
+  mul_v3_m3v3(
+      world_axes_transform_[3], axes_transform.ptr(), export_object_eval_->object_to_world[3]);
   world_axes_transform_[3][3] = export_object_eval_->object_to_world[3][3];
 }
 

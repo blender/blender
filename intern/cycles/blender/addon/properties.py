@@ -1638,7 +1638,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
-                    driver_version = "XX.X.101.4314"
+                    driver_version = "XX.X.101.4644"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
                     col.label(text=iface_("and Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)

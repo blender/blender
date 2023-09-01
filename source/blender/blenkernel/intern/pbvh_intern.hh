@@ -13,8 +13,8 @@
 #include "BKE_paint.hh" /* for SCULPT_BOUNDARY_NEEDS_UPDATE */
 #include "BKE_pbvh_api.hh"
 
-#include "bmesh_idmap.h"
 #include "bmesh.h"
+#include "bmesh_idmap.h"
 
 #define PBVH_STACK_FIXED_DEPTH 100
 
@@ -213,8 +213,8 @@ struct PBVH {
   /* Grid Data */
   CCGKey gridkey;
   CCGElem **grids;
-  void **gridfaces;
-  const struct DMFlagMat *grid_flag_mats;
+  blender::Span<int> grid_to_face_map;
+  const DMFlagMat *grid_flag_mats;
   int totgrid;
   BLI_bitmap **grid_hidden;
 

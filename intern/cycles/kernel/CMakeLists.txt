@@ -857,8 +857,13 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
     -shared
     -DWITH_ONEAPI
-    -ffast-math
     -O2
+    -fno-fast-math
+    -ffp-contract=fast
+    -fassociative-math
+    -freciprocal-math
+    -fno-signed-zeros
+    -ffinite-math-only
     -D__KERNEL_LOCAL_ATOMIC_SORT__
     -o"${cycles_kernel_oneapi_lib}"
     -I"${CMAKE_CURRENT_SOURCE_DIR}/.."

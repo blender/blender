@@ -36,6 +36,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
@@ -98,7 +99,14 @@ static void calculate_simulation_job_startjob(void *customdata,
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        nmd->runtime->simulation_cache->reset();
+        if (!nmd->runtime->simulation_cache) {
+          continue;
+        }
+        for (auto item : nmd->runtime->simulation_cache->cache_by_zone_id.items()) {
+          if (item.value->cache_state != CacheState::Baked) {
+            item.value->reset();
+          }
+        }
       }
     }
     objects_to_calc.append(object);
@@ -214,10 +222,15 @@ static bool bake_simulation_poll(bContext *C)
   return true;
 }
 
+struct ZoneBakeData {
+  int zone_id;
+  bke::bake_paths::BakePath path;
+  std::unique_ptr<bke::BDataSharing> bdata_sharing;
+};
+
 struct ModifierBakeData {
   NodesModifierData *nmd;
-  std::string absolute_bake_dir;
-  std::unique_ptr<bke::BDataSharing> bdata_sharing;
+  Vector<ZoneBakeData> zones;
 };
 
 struct ObjectBakeData {
@@ -251,19 +264,38 @@ static void bake_simulation_job_startjob(void *customdata,
       continue;
     }
 
-    const char *base_path = ID_BLEND_PATH(job.bmain, &object->id);
-
     ObjectBakeData bake_data;
     bake_data.object = object;
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        nmd->runtime->simulation_cache->reset();
-        char absolute_bake_dir[FILE_MAX];
-        STRNCPY(absolute_bake_dir, nmd->simulation_bake_directory);
-        BLI_path_abs(absolute_bake_dir, base_path);
-        bake_data.modifiers.append(
-            {nmd, absolute_bake_dir, std::make_unique<bke::BDataSharing>()});
+        if (!nmd->node_group) {
+          continue;
+        }
+        if (!nmd->runtime->simulation_cache) {
+          continue;
+        }
+        ModifierBakeData modifier_bake_data;
+        modifier_bake_data.nmd = nmd;
+
+        for (auto item : nmd->runtime->simulation_cache->cache_by_zone_id.items()) {
+          item.value->reset();
+        }
+
+        for (const bNestedNodeRef &nested_node_ref : nmd->node_group->nested_node_refs_span()) {
+          ZoneBakeData zone_bake_data;
+          zone_bake_data.zone_id = nested_node_ref.id;
+          zone_bake_data.bdata_sharing = std::make_unique<bke::BDataSharing>();
+          if (std::optional<bke::bake_paths::BakePath> path =
+                  bke::sim::get_simulation_zone_bake_path(
+                      *job.bmain, *object, *nmd, nested_node_ref.id))
+          {
+            zone_bake_data.path = std::move(*path);
+            modifier_bake_data.zones.append(std::move(zone_bake_data));
+          }
+        }
+
+        bake_data.modifiers.append(std::move(modifier_bake_data));
       }
     }
     objects_to_bake.append(std::move(bake_data));
@@ -288,51 +320,56 @@ static void bake_simulation_job_startjob(void *customdata,
     job.scene->r.cfra = frame.frame();
     job.scene->r.subframe = frame.subframe();
 
-    char frame_file_c_str[64];
-    SNPRINTF(frame_file_c_str, "%011.5f", double(frame));
-    BLI_string_replace_char(frame_file_c_str, '.', '_');
-    const StringRefNull frame_file_str = frame_file_c_str;
-
     BKE_scene_graph_update_for_newframe(job.depsgraph);
+
+    const std::string frame_file_name = bke::bake_paths::frame_to_file_name(frame);
 
     for (ObjectBakeData &object_bake_data : objects_to_bake) {
       for (ModifierBakeData &modifier_bake_data : object_bake_data.modifiers) {
         NodesModifierData &nmd = *modifier_bake_data.nmd;
-        if (!nmd.runtime->simulation_cache) {
-          continue;
+        const ModifierSimulationCache &simulation_cache = *nmd.runtime->simulation_cache;
+        for (ZoneBakeData &zone_bake_data : modifier_bake_data.zones) {
+          if (!simulation_cache.cache_by_zone_id.contains(zone_bake_data.zone_id)) {
+            continue;
+          }
+          const SimulationZoneCache &zone_cache = *simulation_cache.cache_by_zone_id.lookup(
+              zone_bake_data.zone_id);
+          if (zone_cache.frame_caches.is_empty()) {
+            continue;
+          }
+          const SimulationZoneFrameCache &frame_cache = *zone_cache.frame_caches.last();
+          if (frame_cache.frame != frame) {
+            continue;
+          }
+
+          const bke::bake_paths::BakePath path = zone_bake_data.path;
+
+          const std::string bdata_file_name = frame_file_name + ".bdata";
+
+          char bdata_path[FILE_MAX];
+          BLI_path_join(
+              bdata_path, sizeof(bdata_path), path.bdata_dir.c_str(), bdata_file_name.c_str());
+          char meta_path[FILE_MAX];
+          BLI_path_join(meta_path,
+                        sizeof(meta_path),
+                        path.meta_dir.c_str(),
+                        (frame_file_name + ".json").c_str());
+          BLI_file_ensure_parent_dir_exists(meta_path);
+          BLI_file_ensure_parent_dir_exists(bdata_path);
+          fstream bdata_file{bdata_path, std::ios::out | std::ios::binary};
+          bke::DiskBDataWriter bdata_writer{bdata_file_name, bdata_file, 0};
+
+          io::serialize::DictionaryValue io_root;
+          io_root.append_int("version", simulation_file_storage_version);
+          io::serialize::DictionaryValue &io_items = *io_root.append_dict("items");
+          for (auto item : frame_cache.items.items()) {
+            io::serialize::DictionaryValue &io_item = *io_items.append_dict(
+                std::to_string(item.key));
+            bke::serialize_bake_item(
+                *item.value, bdata_writer, *zone_bake_data.bdata_sharing, io_item);
+          }
+          io::serialize::write_json_file(meta_path, io_root);
         }
-        ModifierSimulationCache &sim_cache = *nmd.runtime->simulation_cache;
-        const ModifierSimulationState *sim_state = sim_cache.get_state_at_exact_frame(frame);
-        if (sim_state == nullptr || sim_state->zone_states_.is_empty()) {
-          continue;
-        }
-
-        const std::string bdata_file_name = frame_file_str + ".bdata";
-        const std::string meta_file_name = frame_file_str + ".json";
-
-        char bdata_path[FILE_MAX];
-        BLI_path_join(bdata_path,
-                      sizeof(bdata_path),
-                      modifier_bake_data.absolute_bake_dir.c_str(),
-                      "bdata",
-                      bdata_file_name.c_str());
-        char meta_path[FILE_MAX];
-        BLI_path_join(meta_path,
-                      sizeof(meta_path),
-                      modifier_bake_data.absolute_bake_dir.c_str(),
-                      "meta",
-                      meta_file_name.c_str());
-
-        BLI_file_ensure_parent_dir_exists(bdata_path);
-        fstream bdata_file{bdata_path, std::ios::out | std::ios::binary};
-        bke::DiskBDataWriter bdata_writer{bdata_file_name, bdata_file, 0};
-
-        io::serialize::DictionaryValue io_root;
-        bke::sim::serialize_modifier_simulation_state(
-            *sim_state, bdata_writer, *modifier_bake_data.bdata_sharing, io_root);
-
-        BLI_file_ensure_parent_dir_exists(meta_path);
-        io::serialize::write_json_file(meta_path, io_root);
       }
     }
 
@@ -343,9 +380,13 @@ static void bake_simulation_job_startjob(void *customdata,
   for (ObjectBakeData &object_bake_data : objects_to_bake) {
     for (ModifierBakeData &modifier_bake_data : object_bake_data.modifiers) {
       NodesModifierData &nmd = *modifier_bake_data.nmd;
-      if (nmd.runtime->simulation_cache) {
-        /* Tag the caches as being baked so that they are not changed anymore. */
-        nmd.runtime->simulation_cache->cache_state = CacheState::Baked;
+      for (ZoneBakeData &zone_bake_data : modifier_bake_data.zones) {
+        if (std::unique_ptr<SimulationZoneCache> &zone_cache =
+                nmd.runtime->simulation_cache->cache_by_zone_id.lookup(zone_bake_data.zone_id))
+        {
+          /* Tag the caches as being baked so that they are not changed anymore. */
+          zone_cache->cache_state = CacheState::Baked;
+        }
       }
     }
     DEG_id_tag_update(&object_bake_data.object->id, ID_RECALC_GEOMETRY);
@@ -593,40 +634,45 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
   }
 
   for (Object *object : objects) {
-    const char *base_path = ID_BLEND_PATH(bmain, &object->id);
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        nmd->runtime->simulation_cache->reset();
-        if (StringRef(nmd->simulation_bake_directory).is_empty()) {
+        if (!nmd->runtime->simulation_cache) {
           continue;
         }
-        char absolute_bake_dir[FILE_MAX];
-        STRNCPY(absolute_bake_dir, nmd->simulation_bake_directory);
-        BLI_path_abs(absolute_bake_dir, base_path);
+        for (auto item : nmd->runtime->simulation_cache->cache_by_zone_id.items()) {
+          item.value->reset();
 
-        char meta_dir[FILE_MAX];
-        BLI_path_join(meta_dir, sizeof(meta_dir), absolute_bake_dir, "meta");
-        char bdata_dir[FILE_MAX];
-        BLI_path_join(bdata_dir, sizeof(bdata_dir), absolute_bake_dir, "bdata");
+          const std::optional<bke::bake_paths::BakePath> bake_path =
+              bke::sim::get_simulation_zone_bake_path(*bmain, *object, *nmd, item.key);
+          if (!bake_path) {
+            continue;
+          }
 
-        if (BLI_exists(absolute_bake_dir)) {
+          const char *meta_dir = bake_path->meta_dir.c_str();
           if (BLI_exists(meta_dir)) {
             if (BLI_delete(meta_dir, true, true)) {
               BKE_reportf(op->reports, RPT_ERROR, "Failed to remove meta directory %s", meta_dir);
             }
           }
+          const char *bdata_dir = bake_path->bdata_dir.c_str();
           if (BLI_exists(bdata_dir)) {
             if (BLI_delete(bdata_dir, true, true)) {
               BKE_reportf(
                   op->reports, RPT_ERROR, "Failed to remove bdata directory %s", bdata_dir);
             }
           }
-          /* Delete the folder if it's empty. */
-          BLI_delete(absolute_bake_dir, true, false);
+          if (bake_path->bake_dir.has_value()) {
+            const char *zone_bake_dir = bake_path->bake_dir->c_str();
+            /* Try to delete zone bake directory if it is empty. */
+            BLI_delete(zone_bake_dir, true, false);
+          }
         }
-        else {
-          BKE_reportf(op->reports, RPT_ERROR, "Bake directory %s not found", absolute_bake_dir);
+        if (const std::optional<std::string> modifier_bake_dir =
+                bke::sim::get_modifier_simulation_bake_path(*bmain, *object, *nmd))
+        {
+          /* Try to delete modifier bake directory if it is empty. */
+          BLI_delete(modifier_bake_dir->c_str(), true, false);
         }
       }
     }

@@ -6,6 +6,8 @@
 #pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_material_voronoi.glsl)
 
+/* The fractalization logic is the same as for fBM Noise, except that some additions are replaced
+ * by lerps. */
 #define FRACTAL_VORONOI_X_FX(T) \
   VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, T coord) \
   { \
@@ -17,8 +19,7 @@
     Output.Distance = 0.0; \
     Output.Color = vec3(0.0, 0.0, 0.0); \
     Output.Position = vec4(0.0, 0.0, 0.0, 0.0); \
-    bool zero_input = params.detail == 0.0 || params.roughness == 0.0 || \
-                      params.lacunarity == 0.0; \
+    bool zero_input = params.detail == 0.0 || params.roughness == 0.0; \
 \
     for (int i = 0; i <= ceil(params.detail); ++i) { \
       VoronoiOutput octave; \
@@ -69,6 +70,8 @@
     return Output; \
   }
 
+/* The fractalization logic is the same as for fBM Noise, except that some additions are replaced
+ * by lerps. */
 #define FRACTAL_VORONOI_DISTANCE_TO_EDGE_FUNCTION(T) \
   float fractal_voronoi_distance_to_edge(VoronoiParams params, T coord) \
   { \
@@ -77,8 +80,7 @@
     float scale = 1.0; \
     float distance = 8.0; \
 \
-    bool zero_input = params.detail == 0.0 || params.roughness == 0.0 || \
-                      params.lacunarity == 0.0; \
+    bool zero_input = params.detail == 0.0 || params.roughness == 0.0; \
 \
     for (int i = 0; i <= ceil(params.detail); ++i) { \
       float octave_distance = voronoi_distance_to_edge(params, coord * scale); \

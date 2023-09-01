@@ -12,7 +12,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "IO_ply.h"
+#include "IO_ply.hh"
 #include "intern/ply_data.hh"
 
 #include "ply_export_data.hh"

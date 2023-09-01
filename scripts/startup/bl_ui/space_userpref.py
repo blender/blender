@@ -923,23 +923,23 @@ class USERPREF_PT_theme_interface_state(ThemePanel, CenterAlignMixIn, Panel):
 
         col = flow.column(align=True)
         col.prop(ui_state, "inner_anim")
-        col.prop(ui_state, "inner_anim_sel")
+        col.prop(ui_state, "inner_anim_sel", text="Selected")
 
         col = flow.column(align=True)
         col.prop(ui_state, "inner_driven")
-        col.prop(ui_state, "inner_driven_sel")
+        col.prop(ui_state, "inner_driven_sel", text="Selected")
 
         col = flow.column(align=True)
         col.prop(ui_state, "inner_key")
-        col.prop(ui_state, "inner_key_sel")
+        col.prop(ui_state, "inner_key_sel", text="Selected")
 
         col = flow.column(align=True)
         col.prop(ui_state, "inner_overridden")
-        col.prop(ui_state, "inner_overridden_sel")
+        col.prop(ui_state, "inner_overridden_sel", text="Selected")
 
         col = flow.column(align=True)
         col.prop(ui_state, "inner_changed")
-        col.prop(ui_state, "inner_changed_sel")
+        col.prop(ui_state, "inner_changed_sel", text="Selected")
 
         col = flow.column(align=True)
         col.prop(ui_state, "blend")
@@ -956,14 +956,19 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
-        flow.prop(ui, "menu_shadow_fac")
-        flow.prop(ui, "menu_shadow_width")
-        flow.prop(ui, "icon_alpha")
-        flow.prop(ui, "icon_saturation")
-        flow.prop(ui, "editor_outline")
-        flow.prop(ui, "widget_text_cursor")
-        flow.prop(ui, "widget_emboss")
-        flow.prop(ui, "panel_roundness")
+        col = flow.column(align=True)
+        col.prop(ui, "menu_shadow_fac")
+        col.prop(ui, "menu_shadow_width", text="Shadow Width")
+
+        col = flow.column(align=True)
+        col.prop(ui, "icon_alpha")
+        col.prop(ui, "icon_saturation", text="Saturation")
+
+        col = flow.column()
+        col.prop(ui, "widget_text_cursor")
+        col.prop(ui, "editor_outline")
+        col.prop(ui, "widget_emboss")
+        col.prop(ui, "panel_roundness")
 
 
 class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMixIn, Panel):
@@ -978,9 +983,12 @@ class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMix
         flow = layout.grid_flow(
             row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
-        flow.prop(ui, "transparent_checker_primary")
-        flow.prop(ui, "transparent_checker_secondary")
-        flow.prop(ui, "transparent_checker_size")
+        col = flow.column(align=True)
+        col.prop(ui, "transparent_checker_primary")
+        col.prop(ui, "transparent_checker_secondary")
+
+        col = flow.column()
+        col.prop(ui, "transparent_checker_size")
 
 
 class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
@@ -1001,12 +1009,12 @@ class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
 
         col = flow.column()
         col.prop(ui, "gizmo_primary")
-        col.prop(ui, "gizmo_secondary")
-        col.prop(ui, "gizmo_view_align")
+        col.prop(ui, "gizmo_secondary", text="Secondary")
+        col.prop(ui, "gizmo_view_align", text="View Align")
 
         col = flow.column()
         col.prop(ui, "gizmo_a")
-        col.prop(ui, "gizmo_b")
+        col.prop(ui, "gizmo_b", text="B")
 
 
 class USERPREF_PT_theme_interface_icons(ThemePanel, CenterAlignMixIn, Panel):
@@ -1037,7 +1045,7 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
     @staticmethod
     def _ui_font_style(layout, font_style):
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column()
         col.prop(font_style, "points")
@@ -1046,10 +1054,10 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
         col.prop(font_style, "shadow_offset_x", text="Shadow Offset X")
         col.prop(font_style, "shadow_offset_y", text="Y")
 
-        col = flow.column()
+        col = flow.column(align=True)
         col.prop(font_style, "shadow")
-        col.prop(font_style, "shadow_alpha")
-        col.prop(font_style, "shadow_value")
+        col.prop(font_style, "shadow_alpha", text="Alpha")
+        col.prop(font_style, "shadow_value", text="Brightness")
 
     def draw_header(self, _context):
         layout = self.layout
@@ -1090,10 +1098,10 @@ class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
         for i, ui in enumerate(theme.bone_color_sets, 1):
             layout.label(text=iface_("Color Set %d") % i, translate=False)
 
-            flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+            flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
             flow.prop(ui, "normal")
-            flow.prop(ui, "select")
+            flow.prop(ui, "select", text="Selected")
             flow.prop(ui, "active")
             flow.prop(ui, "show_colored_constraints")
 
@@ -1112,7 +1120,7 @@ class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
 
         layout.use_property_split = True
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=False, columns=2, even_columns=True, even_rows=False, align=False)
         for i, ui in enumerate(theme.collection_color, 1):
             flow.prop(ui, "color", text=iface_("Color %d") % i, translate=False)
 
@@ -1131,7 +1139,7 @@ class USERPREF_PT_theme_strip_colors(ThemePanel, CenterAlignMixIn, Panel):
 
         layout.use_property_split = True
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=False, columns=2, even_columns=True, even_rows=False, align=False)
         for i, ui in enumerate(theme.strip_color, 1):
             flow.prop(ui, "color", text=iface_("Color %d") % i, translate=False)
 
@@ -1217,28 +1225,28 @@ class ThemeGenericClassGenerator:
     @staticmethod
     def generate_panel_classes_for_wcols():
         wcols = [
+            ("Box", "wcol_box"),
+            ("List Item", "wcol_list_item"),
+            ("Menu", "wcol_menu"),
+            ("Menu Background", "wcol_menu_back"),
+            ("Menu Item", "wcol_menu_item"),
+            ("Number Field", "wcol_num"),
+            ("Option", "wcol_option"),
+            ("Pie Menu", "wcol_pie_menu"),
+            ("Progress Bar", "wcol_progress"),
+            ("Pulldown", "wcol_pulldown"),
+            ("Radio Buttons", "wcol_radio"),
             ("Regular", "wcol_regular"),
+            ("Scroll Bar", "wcol_scroll"),
+            ("Tab", "wcol_tab"),
+            ("Text", "wcol_text"),
+            ("Toggle", "wcol_toggle"),
             ("Tool", "wcol_tool"),
             ("Toolbar Item", "wcol_toolbar_item"),
-            ("Radio Buttons", "wcol_radio"),
-            ("Text", "wcol_text"),
-            ("Option", "wcol_option"),
-            ("Toggle", "wcol_toggle"),
-            ("Number Field", "wcol_num"),
-            ("Value Slider", "wcol_numslider"),
-            ("Box", "wcol_box"),
-            ("Menu", "wcol_menu"),
-            ("Pie Menu", "wcol_pie_menu"),
-            ("Pulldown", "wcol_pulldown"),
-            ("Menu Back", "wcol_menu_back"),
             ("Tooltip", "wcol_tooltip"),
-            ("Menu Item", "wcol_menu_item"),
-            ("Scroll Bar", "wcol_scroll"),
-            ("Progress Bar", "wcol_progress"),
-            ("List Item", "wcol_list_item"),
+            ("Value Slider", "wcol_numslider"),
             # Not used yet, so hide this from the UI.
             # ("Data-View Item", "wcol_view_item"),
-            ("Tab", "wcol_tab"),
         ]
 
         for (name, wcol) in wcols:
@@ -2588,11 +2596,11 @@ classes = (
 
     USERPREF_MT_interface_theme_presets,
     USERPREF_PT_theme,
+    USERPREF_PT_theme_interface_gizmos,
+    USERPREF_PT_theme_interface_icons,
     USERPREF_PT_theme_interface_state,
     USERPREF_PT_theme_interface_styles,
-    USERPREF_PT_theme_interface_gizmos,
     USERPREF_PT_theme_interface_transparent_checker,
-    USERPREF_PT_theme_interface_icons,
     USERPREF_PT_theme_text_style,
     USERPREF_PT_theme_bone_color_sets,
     USERPREF_PT_theme_collection_colors,

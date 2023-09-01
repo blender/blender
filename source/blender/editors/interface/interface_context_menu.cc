@@ -489,7 +489,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
   uiPopupMenu *pup;
   uiLayout *layout;
-  bContextStore *previous_ctx = CTX_store_get(C);
+  const bContextStore *previous_ctx = CTX_store_get(C);
   {
     uiStringInfo label = {BUT_GET_LABEL, nullptr};
 
@@ -946,7 +946,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     if (view_item_but) {
       BLI_assert(view_item_but->type == UI_BTYPE_VIEW_ITEM);
 
-      bContextStore *prev_ctx = CTX_store_get(C);
+      const bContextStore *prev_ctx = CTX_store_get(C);
       /* Sub-layout for context override. */
       uiLayout *sub = uiLayoutColumn(layout, false);
       set_layout_context_from_button(C, sub, view_item_but);

@@ -9,18 +9,15 @@
 #pragma once
 
 #include "BKE_context.h"
-#include "BLI_path_util.h"
-#include "IO_orientation.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_math_basis_types.hh"
+#include "BLI_path_util.h"
 
 struct STLImportParams {
   /** Full path to the source STL file to import. */
   char filepath[FILE_MAX];
-  eIOAxis forward_axis;
-  eIOAxis up_axis;
+  blender::math::AxisSigned forward_axis;
+  blender::math::AxisSigned up_axis;
   bool use_facet_normal;
   bool use_scene_unit;
   float global_scale;
@@ -30,8 +27,4 @@ struct STLImportParams {
 /**
  * C-interface for the importer.
  */
-void STL_import(bContext *C, const struct STLImportParams *import_params);
-
-#ifdef __cplusplus
-}
-#endif
+void STL_import(bContext *C, const STLImportParams *import_params);

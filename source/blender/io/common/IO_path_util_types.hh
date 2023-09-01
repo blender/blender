@@ -4,7 +4,7 @@
 #pragma once
 
 /** Method used to reference paths. Equivalent of bpy_extras.io_utils.path_reference_mode. */
-typedef enum {
+enum ePathReferenceMode {
   /** Use relative paths with subdirectories only. */
   PATH_REFERENCE_AUTO = 0,
   /** Always write absolute paths. */
@@ -17,4 +17,4 @@ typedef enum {
   PATH_REFERENCE_STRIP = 4,
   /** Copy the file to the destination path. */
   PATH_REFERENCE_COPY = 5,
-} ePathReferenceMode;
+};

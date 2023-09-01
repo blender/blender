@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "IO_wavefront_obj.h"
+#include "IO_wavefront_obj.hh"
 
 namespace blender::io::obj {
 

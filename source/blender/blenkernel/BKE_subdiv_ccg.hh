@@ -160,7 +160,7 @@ struct SubdivCCG {
   int num_faces = -1;
   SubdivCCGFace *faces = nullptr;
   /* Indexed by grid index, points to corresponding face from `faces`. */
-  SubdivCCGFace **grid_faces = nullptr;
+  blender::Array<int> grid_to_face_map;
 
   /* Edges which are adjacent to faces.
    * Used for faster grid stitching, in the cost of extra memory.

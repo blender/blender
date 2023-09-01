@@ -20,7 +20,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "IO_wavefront_obj.h"
+#include "IO_wavefront_obj.hh"
 
 namespace blender::io::obj {
 /** Denote absence for usually non-negative numbers. */
@@ -234,6 +234,6 @@ class OBJMesh : NonCopyable {
   /**
    * Set the final transform after applying axes settings and an Object's world transform.
    */
-  void set_world_axes_transform(eIOAxis forward, eIOAxis up);
+  void set_world_axes_transform(math::AxisSigned forward, math::AxisSigned up);
 };
 }  // namespace blender::io::obj

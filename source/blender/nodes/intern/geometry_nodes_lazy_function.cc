@@ -866,13 +866,15 @@ class LazyFunctionForViewerInputUsage : public LazyFunction {
 };
 
 class LazyFunctionForSimulationInputsUsage : public LazyFunction {
+ private:
+  const bNode *output_bnode_;
 
  public:
-  LazyFunctionForSimulationInputsUsage()
+  LazyFunctionForSimulationInputsUsage(const bNode &output_bnode) : output_bnode_(&output_bnode)
   {
     debug_name_ = "Simulation Inputs Usage";
-    outputs_.append_as("Is Initialization", CPPType::get<bool>());
-    outputs_.append_as("Do Simulation Step", CPPType::get<bool>());
+    outputs_.append_as("Need Input Inputs", CPPType::get<bool>());
+    outputs_.append_as("Need Output Inputs", CPPType::get<bool>());
   }
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
@@ -883,11 +885,39 @@ class LazyFunctionForSimulationInputsUsage : public LazyFunction {
       return;
     }
     const GeoNodesModifierData &modifier_data = *user_data.modifier_data;
+    if (!modifier_data.simulation_params) {
+      params.set_default_remaining_outputs();
+      return;
+    }
+    const std::optional<FoundNestedNodeID> found_id = find_nested_node_id(
+        user_data, output_bnode_->identifier);
+    if (!found_id) {
+      params.set_default_remaining_outputs();
+      return;
+    }
+    if (found_id->is_in_loop) {
+      params.set_default_remaining_outputs();
+      return;
+    }
+    SimulationZoneBehavior *zone_behavior = modifier_data.simulation_params->get(found_id->id);
+    if (!zone_behavior) {
+      params.set_default_remaining_outputs();
+      return;
+    }
 
-    params.set_output(0,
-                      modifier_data.current_simulation_state_for_write != nullptr &&
-                          modifier_data.prev_simulation_state == nullptr);
-    params.set_output(1, modifier_data.current_simulation_state_for_write != nullptr);
+    bool solve_contains_side_effect = false;
+    if (modifier_data.side_effect_nodes) {
+      const Span<const lf::FunctionNode *> side_effect_nodes =
+          modifier_data.side_effect_nodes->lookup(user_data.compute_context->hash());
+      solve_contains_side_effect = !side_effect_nodes.is_empty();
+    }
+
+    params.set_output(0, std::holds_alternative<sim_input::PassThrough>(zone_behavior->input));
+    params.set_output(
+        1,
+        solve_contains_side_effect ||
+            std::holds_alternative<sim_output::PassThrough>(zone_behavior->output) ||
+            std::holds_alternative<sim_output::StoreAndPassThrough>(zone_behavior->output));
   }
 };
 
@@ -1869,7 +1899,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     lf::Node &lf_border_link_usage_node = this->build_border_link_input_usage_node(zone, lf_graph);
 
     lf::Node &lf_simulation_usage_node = [&]() -> lf::Node & {
-      auto &lazy_function = scope_.construct<LazyFunctionForSimulationInputsUsage>();
+      auto &lazy_function = scope_.construct<LazyFunctionForSimulationInputsUsage>(
+          *zone.output_node);
       lf::Node &lf_node = lf_graph.add_function(lazy_function);
 
       if (lf_main_input_usage_node) {
@@ -4004,6 +4035,35 @@ GeoNodesLFLocalUserData::GeoNodesLFLocalUserData(GeoNodesLFUserData &user_data)
     this->tree_logger = &user_data.modifier_data->eval_log->get_local_tree_logger(
         *user_data.compute_context);
   }
+}
+
+std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesLFUserData &user_data,
+                                                     const int node_id)
+{
+  FoundNestedNodeID found;
+  Vector<int> node_ids;
+  for (const ComputeContext *context = user_data.compute_context; context != nullptr;
+       context = context->parent())
+  {
+    if (const auto *node_context = dynamic_cast<const bke::NodeGroupComputeContext *>(context)) {
+      node_ids.append(node_context->node_id());
+    }
+    else if (dynamic_cast<const bke::RepeatZoneComputeContext *>(context) != nullptr) {
+      found.is_in_loop = true;
+    }
+    else if (dynamic_cast<const bke::SimulationZoneComputeContext *>(context) != nullptr) {
+      found.is_in_simulation = true;
+    }
+  }
+  std::reverse(node_ids.begin(), node_ids.end());
+  node_ids.append(node_id);
+  const bNestedNodeRef *nested_node_ref = user_data.root_ntree->nested_node_ref_from_node_id_path(
+      node_ids);
+  if (nested_node_ref == nullptr) {
+    return std::nullopt;
+  }
+  found.id = nested_node_ref->id;
+  return found;
 }
 
 }  // namespace blender::nodes

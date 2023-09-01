@@ -311,7 +311,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 
   /* New inheritance based element representation. Not all element types support this yet,
    * eventually it should replace #TreeElement entirely. */
-  te->abstract_element = AbstractTreeElement::createFromType(type, *te, idv);
+  te->abstract_element = AbstractTreeElement::create_from_type(type, *te, idv);
   if (te->abstract_element) {
     /* Element types ported to the new design are expected to have their name set at this point! */
     BLI_assert(te->name != nullptr);
@@ -366,29 +366,26 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     /* pass */
   }
   else if (type == TSE_SOME_ID) {
-    if (!te->abstract_element) {
-      BLI_assert_msg(0, "Expected this ID type to be ported to new Outliner tree-element design");
-    }
+    BLI_assert_msg(te->abstract_element != nullptr,
+                   "Expected this ID type to be ported to new Outliner tree-element design");
   }
   else if (ELEM(type,
                 TSE_LIBRARY_OVERRIDE_BASE,
                 TSE_LIBRARY_OVERRIDE,
                 TSE_LIBRARY_OVERRIDE_OPERATION))
   {
-    if (!te->abstract_element) {
-      BLI_assert_msg(0,
-                     "Expected override types to be ported to new Outliner tree-element design");
-    }
+    BLI_assert_msg(te->abstract_element != nullptr,
+                   "Expected override types to be ported to new Outliner tree-element design");
   }
   else {
     /* Other cases must be caught above. */
     BLI_assert(TSE_IS_REAL_ID(tselem));
+    BLI_assert_msg(te->abstract_element != nullptr,
+                   "Element type should use `AbstractTreeElement` to for correct initialization "
+                   "of its `TreeElement` data");
 
     /* The new type design sets the name already, don't override that here. We need to figure out
      * how to deal with the idcode for non-TSE_SOME_ID types still. Some rely on it... */
-    if (!te->abstract_element) {
-      te->name = id->name + 2; /* Default, can be overridden by Library or non-ID data. */
-    }
     te->idcode = GS(id->name);
   }
 
@@ -398,43 +395,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (te->abstract_element) {
     tree_element_expand(*te->abstract_element, *space_outliner);
   }
-  else if (ELEM(type,
-                TSE_ANIM_DATA,
-                TSE_BONE,
-                TSE_DRIVER_BASE,
-                TSE_EBONE,
-                TSE_LINKED_PSYS,
-                TSE_NLA,
-                TSE_NLA_ACTION,
-                TSE_NLA_TRACK,
-                TSE_GP_LAYER,
-                TSE_RNA_STRUCT,
-                TSE_RNA_PROPERTY,
-                TSE_RNA_ARRAY_ELEM,
-                TSE_SEQUENCE,
-                TSE_SEQ_STRIP,
-                TSE_SEQUENCE_DUP,
-                TSE_GENERIC_LABEL) ||
-           ELEM(type,
-                TSE_DEFGROUP,
-                TSE_DEFGROUP_BASE,
-                TSE_GPENCIL_EFFECT,
-                TSE_GPENCIL_EFFECT_BASE,
-                TSE_CONSTRAINT,
-                TSE_CONSTRAINT_BASE,
-                TSE_POSE_BASE,
-                TSE_POSE_CHANNEL,
-                TSE_POSEGRP,
-                TSE_POSEGRP_BASE,
-                TSE_R_LAYER,
-                TSE_R_LAYER_BASE,
-                TSE_MODIFIER,
-                TSE_MODIFIER_BASE,
-                TSE_GREASE_PENCIL_NODE,
-                TSE_LINKED_OB) ||
-           ELEM(type, TSE_LAYER_COLLECTION, TSE_VIEW_COLLECTION_BASE))
-  {
-    BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
+  /* Only #TSE_ID_BASE isn't ported to use the abstract elements design yet. */
+  else if (!ELEM(type, TSE_ID_BASE)) {
+    BLI_assert_msg(false, "Element type should use `AbstractTreeElement`");
   }
 
   return te;
@@ -1229,14 +1192,14 @@ void outliner_build_tree(Main *mainvar,
   outliner_free_tree(&space_outliner->tree);
   outliner_storage_cleanup(space_outliner);
 
-  space_outliner->runtime->tree_display = AbstractTreeDisplay::createFromDisplayMode(
+  space_outliner->runtime->tree_display = AbstractTreeDisplay::create_from_display_mode(
       space_outliner->outlinevis, *space_outliner);
 
   /* All tree displays should be created as sub-classes of AbstractTreeDisplay. */
   BLI_assert(space_outliner->runtime->tree_display != nullptr);
 
   TreeSourceData source_data{*mainvar, *scene, *view_layer};
-  space_outliner->tree = space_outliner->runtime->tree_display->buildTree(source_data);
+  space_outliner->tree = space_outliner->runtime->tree_display->build_tree(source_data);
 
   if ((space_outliner->flag & SO_SKIP_SORT_ALPHA) == 0) {
     outliner_sort(&space_outliner->tree);

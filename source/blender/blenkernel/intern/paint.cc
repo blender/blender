@@ -2765,7 +2765,7 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
                        subdiv_ccg->grids,
                        subdiv_ccg->num_grids,
                        &key,
-                       (void **)subdiv_ccg->grid_faces,
+                       subdiv_ccg->grid_to_face_map,
                        subdiv_ccg->grid_flag_mats,
                        subdiv_ccg->grid_hidden,
                        (float *)ss->attrs.face_areas->data,
@@ -2956,7 +2956,7 @@ void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 
   BKE_pbvh_grids_update(pbvh,
                         subdiv_ccg->grids,
-                        (void **)subdiv_ccg->grid_faces,
+                        subdiv_ccg->grid_to_face_map,
                         subdiv_ccg->grid_flag_mats,
                         subdiv_ccg->grid_hidden,
                         &key);

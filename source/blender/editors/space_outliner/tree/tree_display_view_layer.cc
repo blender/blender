@@ -57,12 +57,12 @@ TreeDisplayViewLayer::TreeDisplayViewLayer(SpaceOutliner &space_outliner)
 {
 }
 
-bool TreeDisplayViewLayer::supportsModeColumn() const
+bool TreeDisplayViewLayer::supports_mode_column() const
 {
   return true;
 }
 
-ListBase TreeDisplayViewLayer::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayViewLayer::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
   Scene *scene = source_data.scene;

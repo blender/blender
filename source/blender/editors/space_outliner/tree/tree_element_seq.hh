@@ -23,11 +23,11 @@ class TreeElementSequence : public AbstractTreeElement {
  public:
   TreeElementSequence(TreeElement &legacy_te, Sequence &sequence);
 
-  bool expandPoll(const SpaceOutliner &) const override;
+  bool expand_poll(const SpaceOutliner &) const override;
   void expand(SpaceOutliner &) const override;
 
-  Sequence &getSequence() const;
-  SequenceType getSequenceType() const;
+  Sequence &get_sequence() const;
+  SequenceType get_sequence_type() const;
 };
 
 /* -------------------------------------------------------------------- */
@@ -45,7 +45,7 @@ class TreeElementSequenceStripDuplicate : public AbstractTreeElement {
  public:
   TreeElementSequenceStripDuplicate(TreeElement &legacy_te, Sequence &sequence);
 
-  Sequence &getSequence() const;
+  Sequence &get_sequence() const;
 };
 
 }  // namespace blender::ed::outliner

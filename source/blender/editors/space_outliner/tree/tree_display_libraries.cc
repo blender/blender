@@ -31,7 +31,7 @@ TreeDisplayLibraries::TreeDisplayLibraries(SpaceOutliner &space_outliner)
 {
 }
 
-ListBase TreeDisplayLibraries::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayLibraries::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 

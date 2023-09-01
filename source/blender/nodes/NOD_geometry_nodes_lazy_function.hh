@@ -20,6 +20,8 @@
  * #lazy_function::Graph is build that can be used when evaluating the graph (e.g. for logging).
  */
 
+#include <variant>
+
 #include "FN_lazy_function_graph.hh"
 #include "FN_lazy_function_graph_executor.hh"
 
@@ -40,6 +42,92 @@ namespace blender::nodes {
 using lf::LazyFunction;
 using mf::MultiFunction;
 
+/** The structs in here describe the different possible behaviors of a simulation input node. */
+namespace sim_input {
+
+/**
+ * The data is just passed through the node. Data that is incompatible with simulations (like
+ * anonymous attributes), is removed though.
+ */
+struct PassThrough {
+};
+
+/**
+ * The input is not evaluated, instead the values provided here are output by the node.
+ */
+struct OutputCopy {
+  float delta_time;
+  Map<int, const bke::BakeItem *> items_by_id;
+};
+
+/**
+ * Same as above, but the values can be output by move, instead of copy. This can reduce the amount
+ * of unnecessary copies, when the old simulation state is not needed anymore.
+ */
+struct OutputMove {
+  float delta_time;
+  Map<int, std::unique_ptr<bke::BakeItem>> items_by_id;
+};
+
+using Behavior = std::variant<PassThrough, OutputCopy, OutputMove>;
+
+}  // namespace sim_input
+
+/** The structs in here describe the different possible behaviors of a simulation output node. */
+namespace sim_output {
+
+/**
+ * The data is just passed through the node. Data that is incompatible with simulations (like
+ * anonymous attributes), is removed though.
+ */
+struct PassThrough {
+};
+
+/**
+ * Same as above, but also calls the given function with the data that is passed through the node.
+ * This allows the caller of geometry nodes (e.g. the modifier), to cache the new simulation state.
+ */
+struct StoreAndPassThrough {
+  std::function<void(Map<int, std::unique_ptr<bke::BakeItem>> items_by_id)> store_fn;
+};
+
+/**
+ * The inputs are not evaluated, instead the given cached items are output directly.
+ */
+struct ReadSingle {
+  Map<int, const bke::BakeItem *> items_by_id;
+};
+
+/**
+ * The inputs are not evaluated, instead of a mix of the two given states is output.
+ */
+struct ReadInterpolated {
+  /** Factor between 0 and 1 that determines the influence of the two simulation states. */
+  float mix_factor;
+  Map<int, const bke::BakeItem *> prev_items_by_id;
+  Map<int, const bke::BakeItem *> next_items_by_id;
+};
+
+using Behavior = std::variant<PassThrough, StoreAndPassThrough, ReadSingle, ReadInterpolated>;
+
+}  // namespace sim_output
+
+/** Controls the behavior of one simulation zone. */
+struct SimulationZoneBehavior {
+  sim_input::Behavior input;
+  sim_output::Behavior output;
+};
+
+class GeoNodesSimulationParams {
+ public:
+  /**
+   * Get the expected behavior for the simulation zone with the given id (see #bNestedNodeRef).
+   * It's possible that this method called multiple times for the same id. In this case, the same
+   * pointer should be returned in each call.
+   */
+  virtual SimulationZoneBehavior *get(const int zone_id) const = 0;
+};
+
 /**
  * Data that is passed into geometry nodes evaluation from the modifier.
  */
@@ -51,20 +139,7 @@ struct GeoNodesModifierData {
   /** Optional logger. */
   geo_eval_log::GeoModifierLog *eval_log = nullptr;
 
-  /** Read-only simulation states around the current frame. */
-  const bke::sim::ModifierSimulationState *current_simulation_state = nullptr;
-  const bke::sim::ModifierSimulationState *prev_simulation_state = nullptr;
-  const bke::sim::ModifierSimulationState *next_simulation_state = nullptr;
-  float simulation_state_mix_factor = 0.0f;
-  /** Used when the evaluation should create a new simulation state. */
-  bke::sim::ModifierSimulationState *current_simulation_state_for_write = nullptr;
-  float simulation_time_delta = 0.0f;
-
-  /**
-   * The same as #prev_simulation_state, but the cached values can be moved from,
-   * to keep data managed by implicit sharing mutable.
-   */
-  bke::sim::ModifierSimulationState *prev_simulation_state_mutable = nullptr;
+  GeoNodesSimulationParams *simulation_params = nullptr;
 
   /**
    * Some nodes should be executed even when their output is not used (e.g. active viewer nodes and
@@ -264,8 +339,14 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
     GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node);
 
-std::optional<bke::sim::SimulationZoneID> get_simulation_zone_id(
-    const GeoNodesLFUserData &user_data, const int output_node_id);
+struct FoundNestedNodeID {
+  int id;
+  bool is_in_simulation = false;
+  bool is_in_loop = false;
+};
+
+std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesLFUserData &user_data,
+                                                     const int node_id);
 
 /**
  * An anonymous attribute created by a node.

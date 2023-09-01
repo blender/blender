@@ -3529,10 +3529,6 @@ void UI_block_free(const bContext *C, uiBlock *block)
     MEM_freeN(block->func_argN);
   }
 
-  LISTBASE_FOREACH_MUTABLE (bContextStore *, store, &block->contexts) {
-    CTX_store_free(store);
-  }
-
   BLI_freelistN(&block->saferct);
   BLI_freelistN(&block->color_pickers.list);
   BLI_freelistN(&block->dynamic_listeners);
@@ -4745,7 +4741,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
      * access it. */
     const PointerRNA pptr = RNA_property_pointer_get(ptr, prop);
     if (pptr.data && RNA_struct_is_ID(pptr.type)) {
-      but->context = CTX_store_add(&block->contexts, "id", &pptr);
+      but->context = CTX_store_add(block->contexts, "id", &pptr);
     }
   }
 
@@ -5973,8 +5969,9 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but)
 
 void UI_but_context_ptr_set(uiBlock *block, uiBut *but, const char *name, const PointerRNA *ptr)
 {
-  but->context = CTX_store_add(&block->contexts, name, ptr);
-  but->context->used = true;
+  bContextStore *ctx = CTX_store_add(block->contexts, name, ptr);
+  ctx->used = true;
+  but->context = ctx;
 }
 
 const PointerRNA *UI_but_context_ptr_get(const uiBut *but, const char *name, const StructRNA *type)
@@ -5982,7 +5979,7 @@ const PointerRNA *UI_but_context_ptr_get(const uiBut *but, const char *name, con
   return CTX_store_ptr_lookup(but->context, name, type);
 }
 
-bContextStore *UI_but_context_get(const uiBut *but)
+const bContextStore *UI_but_context_get(const uiBut *but)
 {
   return but->context;
 }
@@ -6672,7 +6669,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           tmp = BLI_strdup(WM_operatortype_name(but->optype, opptr).c_str());
         }
         else {
-          bContextStore *previous_ctx = CTX_store_get(C);
+          const bContextStore *previous_ctx = CTX_store_get(C);
           CTX_store_set(C, but->context);
           tmp = BLI_strdup(WM_operatortype_description(C, but->optype, opptr).c_str());
           CTX_store_set(C, previous_ctx);

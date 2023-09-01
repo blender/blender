@@ -503,7 +503,7 @@ struct uiAfterFunc {
   uiBlockInteraction_CallbackData custom_interaction_callbacks;
   uiBlockInteraction_Handle *custom_interaction_handle;
 
-  bContextStore *context;
+  std::optional<bContextStore> context;
 
   char undostr[BKE_UNDO_STR_MAX];
   char drawstr[UI_MAX_DRAW_STR];
@@ -789,7 +789,7 @@ static void ui_handle_afterfunc_add_operator_ex(wmOperatorType *ot,
   }
 
   if (context_but && context_but->context) {
-    after->context = CTX_store_copy(context_but->context);
+    after->context = *context_but->context;
   }
 
   if (context_but) {
@@ -905,7 +905,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
   }
 
   if (but->context) {
-    after->context = CTX_store_copy(but->context);
+    after->context = *but->context;
   }
 
   ui_but_drawstr_without_sep_char(but, after->drawstr, sizeof(after->drawstr));
@@ -1020,7 +1020,7 @@ static void ui_apply_but_funcs_after(bContext *C)
     MEM_delete(afterf);
 
     if (after.context) {
-      CTX_store_set(C, after.context);
+      CTX_store_set(C, &after.context.value());
     }
 
     if (after.popup_op) {
@@ -1053,7 +1053,6 @@ static void ui_apply_but_funcs_after(bContext *C)
 
     if (after.context) {
       CTX_store_set(C, nullptr);
-      CTX_store_free(after.context);
     }
 
     if (after.func) {

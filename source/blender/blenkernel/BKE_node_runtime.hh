@@ -288,7 +288,7 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** Update flags. */
   int update = 0;
 
-  /** Offset that will be added to locx for insert offset animation. */
+  /** Offset that will be added to #bNote::locx for insert offset animation. */
   float anim_ofsx;
 
   /** List of cached internal links (input to output), for muted nodes and operators. */

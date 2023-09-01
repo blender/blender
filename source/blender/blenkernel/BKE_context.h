@@ -98,9 +98,6 @@ struct bContextStoreEntry {
 };
 
 struct bContextStore {
-  bContextStore *next = nullptr;
-  bContextStore *prev = nullptr;
-
   blender::Vector<bContextStoreEntry> entries;
   bool used = false;
 };
@@ -152,17 +149,16 @@ bContext *CTX_copy(const bContext *C);
 
 /* Stored Context */
 
-bContextStore *CTX_store_add(ListBase *contexts,
+bContextStore *CTX_store_add(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
                              blender::StringRefNull name,
                              const PointerRNA *ptr);
-bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context);
-bContextStore *CTX_store_get(bContext *C);
-void CTX_store_set(bContext *C, bContextStore *store);
+bContextStore *CTX_store_add_all(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
+                                 const bContextStore *context);
+const bContextStore *CTX_store_get(const bContext *C);
+void CTX_store_set(bContext *C, const bContextStore *store);
 const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
                                        blender::StringRefNull name,
                                        const StructRNA *type = nullptr);
-bContextStore *CTX_store_copy(const bContextStore *store);
-void CTX_store_free(bContextStore *store);
 
 #endif
 

@@ -20,7 +20,7 @@ void WM_keyconfig_init(bContext *C);
 void WM_keyconfig_reload(bContext *C);
 
 wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user_defined);
-wmKeyConfig *WM_keyconfig_new_user(wmWindowManager *wm, const char *idname);
+wmKeyConfig *WM_keyconfig_ensure(wmWindowManager *wm, const char *idname, bool user_defined);
 bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf);
 void WM_keyconfig_clear(wmKeyConfig *keyconf);
 void WM_keyconfig_free(wmKeyConfig *keyconf);

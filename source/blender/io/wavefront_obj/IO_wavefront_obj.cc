@@ -9,7 +9,7 @@
 #include "BLI_path_util.h"
 #include "BLI_timeit.hh"
 
-#include "IO_wavefront_obj.h"
+#include "IO_wavefront_obj.hh"
 
 #include "obj_exporter.hh"
 #include "obj_importer.hh"

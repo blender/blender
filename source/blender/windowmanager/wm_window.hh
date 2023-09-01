@@ -114,8 +114,10 @@ void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complet
 void wm_window_IME_end(wmWindow *win);
 #endif
 
-/** Effectively remove timers from the list and delete them. Calling this should only be done by
- * internal WM management code, from specific, safe places. */
+/**
+ * Effectively remove timers from the list and delete them. Calling this should only be done by
+ * internal WM management code, from specific, safe places.
+ */
 void wm_window_timers_delete_removed(wmWindowManager *wm);
 
 /* *************** window operators ************** */

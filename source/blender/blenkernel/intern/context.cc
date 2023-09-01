@@ -68,7 +68,7 @@ struct bContext {
     ARegion *region;
     ARegion *menu;
     wmGizmoGroup *gizmo_group;
-    bContextStore *store;
+    const bContextStore *store;
 
     /* Operator poll. */
     /**
@@ -128,60 +128,51 @@ void CTX_free(bContext *C)
 
 /* store */
 
-bContextStore *CTX_store_add(ListBase *contexts,
+bContextStore *CTX_store_add(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
                              const blender::StringRefNull name,
                              const PointerRNA *ptr)
 {
   /* ensure we have a context to put the entry in, if it was already used
    * we have to copy the context to ensure */
-  bContextStore *ctx = static_cast<bContextStore *>(contexts->last);
-
-  if (!ctx || ctx->used) {
-    if (ctx) {
-      ctx = MEM_new<bContextStore>(__func__, *ctx);
-    }
-    else {
-      ctx = MEM_new<bContextStore>(__func__);
-    }
-
-    BLI_addtail(contexts, ctx);
+  if (contexts.is_empty()) {
+    contexts.append(std::make_unique<bContextStore>());
+  }
+  else if (contexts.last()->used) {
+    auto new_ctx = std::make_unique<bContextStore>(bContextStore{contexts.last()->entries, false});
+    contexts.append(std::move(new_ctx));
   }
 
+  bContextStore *ctx = contexts.last().get();
   ctx->entries.append(bContextStoreEntry{name, *ptr});
-
   return ctx;
 }
 
-bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context)
+bContextStore *CTX_store_add_all(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
+                                 const bContextStore *context)
 {
-  /* ensure we have a context to put the entries in, if it was already used
+  /* ensure we have a context to put the entry in, if it was already used
    * we have to copy the context to ensure */
-  bContextStore *ctx = static_cast<bContextStore *>(contexts->last);
-
-  if (!ctx || ctx->used) {
-    if (ctx) {
-      ctx = MEM_new<bContextStore>(__func__, *ctx);
-    }
-    else {
-      ctx = MEM_new<bContextStore>(__func__);
-    }
-
-    BLI_addtail(contexts, ctx);
+  if (contexts.is_empty()) {
+    contexts.append(std::make_unique<bContextStore>());
+  }
+  else if (contexts.last()->used) {
+    auto new_ctx = std::make_unique<bContextStore>(bContextStore{contexts.last()->entries, false});
+    contexts.append(std::move(new_ctx));
   }
 
+  bContextStore *ctx = contexts.last().get();
   for (const bContextStoreEntry &src_entry : context->entries) {
     ctx->entries.append(src_entry);
   }
-
   return ctx;
 }
 
-bContextStore *CTX_store_get(bContext *C)
+const bContextStore *CTX_store_get(const bContext *C)
 {
   return C->wm.store;
 }
 
-void CTX_store_set(bContext *C, bContextStore *store)
+void CTX_store_set(bContext *C, const bContextStore *store)
 {
   C->wm.store = store;
 }
@@ -198,16 +189,6 @@ const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
     }
   }
   return nullptr;
-}
-
-bContextStore *CTX_store_copy(const bContextStore *store)
-{
-  return MEM_new<bContextStore>(__func__, *store);
-}
-
-void CTX_store_free(bContextStore *store)
-{
-  MEM_delete(store);
 }
 
 /* is python initialized? */

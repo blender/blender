@@ -224,12 +224,6 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
             bone = context.edit_bone
 
         col = layout.column()
-        col.use_property_split = False
-        col.prop(bone, "layers", text="")
-        col.use_property_split = True
-        col = layout.column()
-
-        col.separator()
 
         if context.bone:
             col.prop(bone, "parent")

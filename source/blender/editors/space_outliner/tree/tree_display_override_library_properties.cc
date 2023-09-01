@@ -33,7 +33,7 @@ TreeDisplayOverrideLibraryProperties::TreeDisplayOverrideLibraryProperties(
 {
 }
 
-ListBase TreeDisplayOverrideLibraryProperties::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayOverrideLibraryProperties::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = add_library_contents(*source_data.bmain);
 
