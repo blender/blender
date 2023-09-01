@@ -2587,27 +2587,33 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
                         eq_row = box.row()
                         # eq_graphs = eq_row.operator_menu_enum("sequencer.strip_modifier_equalizer_redefine", "graphs")
                         # eq_graphs.name = mod.name
-                        flow = box.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-                        for i in range(len(mod.graphics)):
-                            soundEq = mod.graphics[i]
+                        flow = box.grid_flow(
+                            row_major=True,
+                            columns=0,
+                            even_columns=True,
+                            even_rows=False,
+                            align=False,
+                        )
+                        for sound_eq in mod.graphics:
                             col = flow.column()
                             box = col.box()
                             split = box.split(factor=0.4)
-                            split.label(text="{:.2f}".format(soundEq.curve_mapping.clip_min_x))
+                            split.label(text="%.2f" % sound_eq.curve_mapping.clip_min_x)
                             split.label(text="Hz")
                             split.alignment = "RIGHT"
-                            split.label(text="{:.2f}".format(soundEq.curve_mapping.clip_max_x))
+                            split.label(text="%.2f" % sound_eq.curve_mapping.clip_max_x)
                             box.template_curve_mapping(
-                                soundEq,
+                                sound_eq,
                                 "curve_mapping",
                                 type='NONE',
                                 levels=False,
                                 brush=True,
                                 use_negative_slope=True,
-                                show_tone=False)
+                                show_tone=False,
+                            )
                             second_row = col.row()
                             second_row.label(text="dB")
-                            second_row.alignment = "CENTER"
+                            second_row.alignment = 'CENTER'
 
 
 class SEQUENCER_PT_annotation(AnnotationDataPanel, SequencerButtonsPanel_Output, Panel):
