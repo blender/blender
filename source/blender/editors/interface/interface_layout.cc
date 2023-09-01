@@ -3417,7 +3417,7 @@ void uiItemS_ex(uiLayout *layout, float factor)
   if (is_menu && !UI_block_can_add_separator(block)) {
     return;
   }
-  int space = (is_menu) ? 0.45f * UI_UNIT_X : 0.3f * UI_UNIT_X;
+  int space = (is_menu) ? int(0.35f * UI_UNIT_X) : int(0.3f * UI_UNIT_X);
   space *= factor;
 
   UI_block_layout_set_current(block, layout);
