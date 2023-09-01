@@ -110,7 +110,6 @@ class NODE_MT_category_SHADE_COLOR(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeHueSaturation")
         node_add_menu.add_node_type(layout, "ShaderNodeInvert")
         node_add_menu.add_node_type(layout, "ShaderNodeLightFalloff")
-        node_add_menu.add_node_type(layout, "ShaderNodeMix")
         props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=iface_("Mix Color"))
         ops = props.settings.add()
         ops.name = "data_type"
