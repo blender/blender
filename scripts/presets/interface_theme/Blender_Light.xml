@@ -305,7 +305,7 @@
           <ThemeWidgetColors
             outline="#e6e6e6"
             inner="#1a1a1a00"
-            inner_sel="#c0c0c0ff"
+            inner_sel="#668cccff"
             item="#1a1a1aff"
             text="#1a1a1a"
             text_sel="#000000"
@@ -316,21 +316,6 @@
             >
           </ThemeWidgetColors>
         </wcol_list_item>
-        <wcol_view_item>
-          <ThemeWidgetColors
-            outline="#e6e6e6"
-            inner="#c0c0c044"
-            inner_sel="#c0c0c0ff"
-            item="#1a1a1aff"
-            text="#1a1a1a"
-            text_sel="#000000"
-            show_shaded="FALSE"
-            shadetop="0"
-            shadedown="0"
-            roundness="0.4"
-            >
-          </ThemeWidgetColors>
-        </wcol_view_item>
         <wcol_state>
           <ThemeWidgetStateColors
             inner_anim="#73be4c"

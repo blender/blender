@@ -1245,8 +1245,6 @@ class ThemeGenericClassGenerator:
             ("Toolbar Item", "wcol_toolbar_item"),
             ("Tooltip", "wcol_tooltip"),
             ("Value Slider", "wcol_numslider"),
-            # Not used yet, so hide this from the UI.
-            # ("Data-View Item", "wcol_view_item"),
         ]
 
         for (name, wcol) in wcols:
