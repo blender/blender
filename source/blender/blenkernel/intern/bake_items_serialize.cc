@@ -1066,7 +1066,7 @@ std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io_item,
 
 static constexpr int bake_file_version = 3;
 
-void serialize_bake(const Map<int, const BakeItem *> &items_by_id,
+void serialize_bake(const BakeState &bake_state,
                     BDataWriter &bdata_writer,
                     BDataSharing &bdata_sharing,
                     std::ostream &r_stream)
@@ -1074,7 +1074,7 @@ void serialize_bake(const Map<int, const BakeItem *> &items_by_id,
   io::serialize::DictionaryValue io_root;
   io_root.append_int("version", bake_file_version);
   io::serialize::DictionaryValue &io_items = *io_root.append_dict("items");
-  for (auto item : items_by_id.items()) {
+  for (auto item : bake_state.items_by_id.items()) {
     io::serialize::DictionaryValue &io_item = *io_items.append_dict(std::to_string(item.key));
     bke::serialize_bake_item(*item.value, bdata_writer, bdata_sharing, io_item);
   }
@@ -1083,21 +1083,9 @@ void serialize_bake(const Map<int, const BakeItem *> &items_by_id,
   formatter.serialize(r_stream, io_root);
 }
 
-void serialize_bake(const Map<int, std::unique_ptr<BakeItem>> &items_by_id,
-                    BDataWriter &bdata_writer,
-                    BDataSharing &bdata_sharing,
-                    std::ostream &r_stream)
-{
-  Map<int, const BakeItem *> map;
-  map.reserve(items_by_id.size());
-  for (auto item : items_by_id.items()) {
-    map.add_new(item.key, item.value.get());
-  }
-  serialize_bake(map, bdata_writer, bdata_sharing, r_stream);
-}
-
-std::optional<Map<int, std::unique_ptr<BakeItem>>> deserialize_bake(
-    std::istream &stream, const BDataReader &bdata_reader, const BDataSharing &bdata_sharing)
+std::optional<BakeState> deserialize_bake(std::istream &stream,
+                                          const BDataReader &bdata_reader,
+                                          const BDataSharing &bdata_sharing)
 {
   JsonFormatter formatter;
   std::unique_ptr<io::serialize::Value> io_root_value = formatter.deserialize(stream);
@@ -1116,7 +1104,7 @@ std::optional<Map<int, std::unique_ptr<BakeItem>>> deserialize_bake(
   if (!io_items) {
     return std::nullopt;
   }
-  Map<int, std::unique_ptr<BakeItem>> bake_items;
+  BakeState bake_state;
   for (const auto &io_item_value : io_items->elements()) {
     const io::serialize::DictionaryValue *io_item = io_item_value.second->as_dictionary_value();
     if (!io_item) {
@@ -1129,7 +1117,7 @@ std::optional<Map<int, std::unique_ptr<BakeItem>>> deserialize_bake(
     catch (...) {
       return std::nullopt;
     }
-    if (bake_items.contains(id)) {
+    if (bake_state.items_by_id.contains(id)) {
       return std::nullopt;
     }
     std::unique_ptr<BakeItem> bake_item = deserialize_bake_item(
@@ -1137,9 +1125,9 @@ std::optional<Map<int, std::unique_ptr<BakeItem>>> deserialize_bake(
     if (!bake_item) {
       return std::nullopt;
     }
-    bake_items.add_new(id, std::move(bake_item));
+    bake_state.items_by_id.add_new(id, std::move(bake_item));
   }
-  return bake_items;
+  return bake_state;
 }
 
 }  // namespace blender::bke

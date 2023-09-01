@@ -185,7 +185,7 @@ static std::shared_ptr<AnonymousAttributeFieldInput> make_attribute_field(
 }
 
 void move_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
-                                     Map<int, std::unique_ptr<bke::BakeItem>> zone_state,
+                                     bke::BakeState zone_state,
                                      const Object &self_object,
                                      const ComputeContext &compute_context,
                                      const bNode &node,
@@ -194,7 +194,7 @@ void move_simulation_state_to_values(const Span<NodeSimulationItem> node_simulat
   const bke::BakeSocketConfig config = make_bake_socket_config(node_simulation_items);
   Vector<bke::BakeItem *> bake_items;
   for (const NodeSimulationItem &item : node_simulation_items) {
-    auto *bake_item = zone_state.lookup_ptr(item.identifier);
+    auto *bake_item = zone_state.items_by_id.lookup_ptr(item.identifier);
     bake_items.append(bake_item ? bake_item->get() : nullptr);
   }
 
@@ -209,7 +209,7 @@ void move_simulation_state_to_values(const Span<NodeSimulationItem> node_simulat
 }
 
 void copy_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
-                                     const Map<int, const bke::BakeItem *> &zone_state,
+                                     const bke::BakeStateRef &zone_state,
                                      const Object &self_object,
                                      const ComputeContext &compute_context,
                                      const bNode &node,
@@ -218,7 +218,7 @@ void copy_simulation_state_to_values(const Span<NodeSimulationItem> node_simulat
   const bke::BakeSocketConfig config = make_bake_socket_config(node_simulation_items);
   Vector<const bke::BakeItem *> bake_items;
   for (const NodeSimulationItem &item : node_simulation_items) {
-    const bke::BakeItem *const *bake_item = zone_state.lookup_ptr(item.identifier);
+    const bke::BakeItem *const *bake_item = zone_state.items_by_id.lookup_ptr(item.identifier);
     bake_items.append(bake_item ? *bake_item : nullptr);
   }
 
@@ -232,7 +232,7 @@ void copy_simulation_state_to_values(const Span<NodeSimulationItem> node_simulat
       r_output_values);
 }
 
-Map<int, std::unique_ptr<bke::BakeItem>> move_values_to_simulation_state(
+bke::BakeState move_values_to_simulation_state(
     const Span<NodeSimulationItem> node_simulation_items, const Span<void *> input_values)
 {
   const bke::BakeSocketConfig config = make_bake_socket_config(node_simulation_items);
@@ -240,15 +240,15 @@ Map<int, std::unique_ptr<bke::BakeItem>> move_values_to_simulation_state(
   Array<std::unique_ptr<bke::BakeItem>> bake_items = bke::move_socket_values_to_bake_items(
       input_values, config);
 
-  Map<int, std::unique_ptr<bke::BakeItem>> bake_items_map;
+  bke::BakeState bake_state;
   for (const int i : node_simulation_items.index_range()) {
     const NodeSimulationItem &item = node_simulation_items[i];
     std::unique_ptr<bke::BakeItem> &bake_item = bake_items[i];
     if (bake_item) {
-      bake_items_map.add_new(item.identifier, std::move(bake_item));
+      bake_state.items_by_id.add_new(item.identifier, std::move(bake_item));
     }
   }
-  return bake_items_map;
+  return bake_state;
 }
 
 }  // namespace blender::nodes
@@ -567,14 +567,14 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     }
     sim_output::Behavior &output_behavior = zone_behavior->output;
     if (auto *info = std::get_if<sim_output::ReadSingle>(&output_behavior)) {
-      this->output_cached_state(params, user_data, info->items_by_id);
+      this->output_cached_state(params, user_data, info->state);
     }
     else if (auto *info = std::get_if<sim_output::ReadInterpolated>(&output_behavior)) {
       this->output_mixed_cached_state(params,
                                       *modifier_data.self_object,
                                       *user_data.compute_context,
-                                      info->prev_items_by_id,
-                                      info->next_items_by_id,
+                                      info->prev_state,
+                                      info->next_state,
                                       info->mix_factor);
     }
     else if (std::get_if<sim_output::PassThrough>(&output_behavior)) {
@@ -590,7 +590,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
 
   void output_cached_state(lf::Params &params,
                            GeoNodesLFUserData &user_data,
-                           const Map<int, const bke::BakeItem *> &state) const
+                           const bke::BakeStateRef &state) const
   {
     Array<void *> output_values(simulation_items_.size());
     for (const int i : simulation_items_.index_range()) {
@@ -610,8 +610,8 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   void output_mixed_cached_state(lf::Params &params,
                                  const Object &self_object,
                                  const ComputeContext &compute_context,
-                                 const Map<int, const bke::BakeItem *> &prev_state,
-                                 const Map<int, const bke::BakeItem *> &next_state,
+                                 const bke::BakeStateRef &prev_state,
+                                 const bke::BakeStateRef &next_state,
                                  const float mix_factor) const
   {
     Array<void *> output_values(simulation_items_.size());
@@ -649,9 +649,8 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     /* Instead of outputting the initial values directly, convert them to a simulation state and
      * then back. This ensures that some geometry processing happens on the data consistently (e.g.
      * removing anonymous attributes). */
-    std::optional<Map<int, std::unique_ptr<bke::BakeItem>>> bake_items =
-        this->get_bake_items_from_inputs(params);
-    if (!bake_items) {
+    std::optional<bke::BakeState> bake_state = this->get_bake_state_from_inputs(params);
+    if (!bake_state) {
       /* Wait for inputs to be computed. */
       return;
     }
@@ -661,7 +660,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       output_values[i] = params.get_output_data_ptr(i);
     }
     move_simulation_state_to_values(simulation_items_,
-                                    std::move(*bake_items),
+                                    std::move(*bake_state),
                                     *user_data.modifier_data->self_object,
                                     *user_data.compute_context,
                                     node_,
@@ -675,22 +674,16 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
                               GeoNodesLFUserData &user_data,
                               const sim_output::StoreAndPassThrough &info) const
   {
-    std::optional<Map<int, std::unique_ptr<bke::BakeItem>>> bake_items =
-        this->get_bake_items_from_inputs(params);
-    if (!bake_items) {
+    std::optional<bke::BakeState> bake_state = this->get_bake_state_from_inputs(params);
+    if (!bake_state) {
       /* Wait for inputs to be computed. */
       return;
     }
-    Map<int, const bke::BakeItem *> bake_item_pointers;
-    for (const auto item : bake_items->items()) {
-      bake_item_pointers.add_new(item.key, item.value.get());
-    }
-    this->output_cached_state(params, user_data, bake_item_pointers);
-    info.store_fn(std::move(*bake_items));
+    this->output_cached_state(params, user_data, *bake_state);
+    info.store_fn(std::move(*bake_state));
   }
 
-  std::optional<Map<int, std::unique_ptr<bke::BakeItem>>> get_bake_items_from_inputs(
-      lf::Params &params) const
+  std::optional<bke::BakeState> get_bake_state_from_inputs(lf::Params &params) const
   {
     Array<void *> input_values(inputs_.size());
     for (const int i : inputs_.index_range()) {

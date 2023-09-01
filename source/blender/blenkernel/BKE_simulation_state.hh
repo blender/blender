@@ -31,13 +31,13 @@ enum class CacheState {
 
 struct SimulationZoneFrameCache {
   SubFrame frame;
-  Map<int, std::unique_ptr<BakeItem>> items;
+  BakeState state;
   /** Used when the baked data is loaded lazily. */
   std::optional<std::string> meta_path;
 };
 
 struct SimulationZonePrevState {
-  Map<int, std::unique_ptr<BakeItem>> items;
+  BakeState state;
   SubFrame frame;
 };
 

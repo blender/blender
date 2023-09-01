@@ -360,7 +360,7 @@ static void bake_simulation_job_startjob(void *customdata,
           bke::DiskBDataWriter bdata_writer{bdata_file_name, bdata_file, 0};
           fstream meta_file{meta_path, std::ios::out};
           bke::serialize_bake(
-              frame_cache.items, bdata_writer, *zone_bake_data.bdata_sharing, meta_file);
+              frame_cache.state, bdata_writer, *zone_bake_data.bdata_sharing, meta_file);
         }
       }
     }

@@ -150,16 +150,13 @@ std::unique_ptr<BakeItem> deserialize_bake_item(const io::serialize::DictionaryV
                                                 const BDataReader &bdata_reader,
                                                 const BDataSharing &bdata_sharing);
 
-void serialize_bake(const Map<int, const BakeItem *> &items_by_id,
-                    BDataWriter &bdata_writer,
-                    BDataSharing &bdata_sharing,
-                    std::ostream &r_stream);
-void serialize_bake(const Map<int, std::unique_ptr<BakeItem>> &items_by_id,
+void serialize_bake(const BakeState &bake_state,
                     BDataWriter &bdata_writer,
                     BDataSharing &bdata_sharing,
                     std::ostream &r_stream);
 
-std::optional<Map<int, std::unique_ptr<BakeItem>>> deserialize_bake(
-    std::istream &stream, const BDataReader &bdata_reader, const BDataSharing &bdata_sharing);
+std::optional<BakeState> deserialize_bake(std::istream &stream,
+                                          const BDataReader &bdata_reader,
+                                          const BDataSharing &bdata_sharing);
 
 }  // namespace blender::bke

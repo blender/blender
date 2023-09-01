@@ -137,16 +137,16 @@ void socket_declarations_for_simulation_items(Span<NodeSimulationItem> items,
 const CPPType &get_simulation_item_cpp_type(eNodeSocketDatatype socket_type);
 const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item);
 
-Map<int, std::unique_ptr<bke::BakeItem>> move_values_to_simulation_state(
+bke::BakeState move_values_to_simulation_state(
     const Span<NodeSimulationItem> node_simulation_items, const Span<void *> input_values);
 void move_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
-                                     Map<int, std::unique_ptr<bke::BakeItem>> zone_state,
+                                     bke::BakeState zone_state,
                                      const Object &self_object,
                                      const ComputeContext &compute_context,
                                      const bNode &sim_output_node,
                                      Span<void *> r_output_values);
 void copy_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
-                                     const Map<int, const bke::BakeItem *> &zone_state,
+                                     const bke::BakeStateRef &zone_state,
                                      const Object &self_object,
                                      const ComputeContext &compute_context,
                                      const bNode &sim_output_node,
