@@ -46,8 +46,7 @@ BoneCollection *ANIM_bonecoll_new(const char *name)
 
   /* Note: the collection name may change after the collection is added to an
    * armature, to ensure it is unique within the armature. */
-  std::string alloc_name = std::string(__func__) + "('" + name + "')";
-  BoneCollection *bcoll = MEM_cnew<BoneCollection>(alloc_name.c_str());
+  BoneCollection *bcoll = MEM_cnew<BoneCollection>(__func__);
 
   STRNCPY(bcoll->name, name);
   bcoll->flags = default_flags;
