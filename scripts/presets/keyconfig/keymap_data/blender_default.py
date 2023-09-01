@@ -41,7 +41,6 @@ class Params:
         # - Click selects only the item at the cursor position.
         # See: #97032.
         "use_tweak_select_passthrough",
-        "use_tweak_tool_lmb_interaction",
         "use_mouse_emulate_3_button",
 
         # User preferences:
@@ -120,8 +119,6 @@ class Params:
             use_gizmo_drag=True,
             use_fallback_tool=False,
             use_fallback_tool_select_handled=True,
-            use_tweak_select_passthrough=False,
-            use_tweak_tool_lmb_interaction=False,
             use_v3d_tab_menu=False,
             use_v3d_shade_ex_pie=False,
             use_v3d_mmb_pan=False,
@@ -152,8 +149,6 @@ class Params:
             else:
                 self.tool_maybe_tweak_value = 'CLICK_DRAG'
 
-            self.use_tweak_tool_lmb_interaction = use_tweak_tool_lmb_interaction
-
             self.context_menu_event = {"type": 'W', "value": 'PRESS'}
 
             # Use the "cursor" functionality for RMB select.
@@ -174,7 +169,6 @@ class Params:
             self.action_mouse = 'RIGHTMOUSE'
             self.tool_mouse = 'LEFTMOUSE'
             self.tool_maybe_tweak_value = 'CLICK_DRAG'
-            self.use_tweak_tool_lmb_interaction = False
 
             if self.legacy:
                 self.context_menu_event = {"type": 'W', "value": 'PRESS'}
@@ -211,7 +205,7 @@ class Params:
 
         self.use_file_single_click = use_file_single_click
 
-        self.use_tweak_select_passthrough = use_tweak_select_passthrough
+        self.use_tweak_select_passthrough = not legacy
 
         self.use_fallback_tool = use_fallback_tool
 
@@ -579,7 +573,7 @@ def _template_items_tool_select(
             select_passthrough = params.use_tweak_select_passthrough
         else:
             if not cursor_prioritize:
-                select_passthrough = params.use_tweak_tool_lmb_interaction
+                select_passthrough = True
 
         if select_passthrough:
             return [
