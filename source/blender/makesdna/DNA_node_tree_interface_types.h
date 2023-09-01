@@ -246,7 +246,10 @@ typedef struct bNodeTreeInterface {
     /* const_cast to avoid a const version of #find_parent_recursive. */
     const bNodeTreeInterfacePanel *parent =
         const_cast<bNodeTreeInterfacePanel &>(root_panel).find_parent_recursive(item);
-    BLI_assert(parent != nullptr);
+    if (parent == nullptr || parent == &root_panel) {
+      /* Panel is the root panel. */
+      return 0;
+    }
     return parent->item_position(item);
   }
   /**
@@ -274,11 +277,19 @@ typedef struct bNodeTreeInterface {
   }
   /**
    * Find the panel containing the item.
+   * \param include_root: Allow #root_panel as a return value,
+   *                      otherwise return nullptr for root items.
    * \return Parent panel containing the item.
    */
-  bNodeTreeInterfacePanel *find_item_parent(const bNodeTreeInterfaceItem &item)
+  bNodeTreeInterfacePanel *find_item_parent(const bNodeTreeInterfaceItem &item,
+                                            bool include_root = false)
   {
-    return root_panel.find_parent_recursive(item);
+    bNodeTreeInterfacePanel *parent = root_panel.find_parent_recursive(item);
+    /* Return nullptr instead the root panel. */
+    if (!include_root && parent == &root_panel) {
+      return nullptr;
+    }
+    return parent;
   }
 
   /**

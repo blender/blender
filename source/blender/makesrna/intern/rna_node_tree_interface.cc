@@ -554,9 +554,6 @@ static bNodeTreeInterfaceItem *rna_NodeTreeInterfaceItems_copy(ID *id,
 {
   /* Copy to same parent as the item. */
   bNodeTreeInterfacePanel *parent = interface->find_item_parent(*item);
-  if (parent == nullptr) {
-    return nullptr;
-  }
   return rna_NodeTreeInterfaceItems_copy_to_parent(id, interface, bmain, reports, item, parent);
 }
 
@@ -850,6 +847,7 @@ static void rna_def_node_interface_item(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, "rna_NodeTreeInterfaceItem_parent_get", nullptr, nullptr, nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Parent", "Panel that contains the item");
 
   prop = RNA_def_property(srna, "position", PROP_INT, PROP_NONE);
