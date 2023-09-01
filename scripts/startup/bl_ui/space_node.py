@@ -238,7 +238,7 @@ class NODE_MT_add(bpy.types.Menu):
         elif snode.tree_type == 'CompositorNodeTree':
             props = layout.operator("node.add_search", text="Search...", icon='VIEWZOOM')
             layout.separator()
-            layout.menu_contents("NODE_MT_compositing_node_add_all")
+            layout.menu_contents("NODE_MT_compositor_node_add_all")
         elif snode.tree_type == 'ShaderNodeTree':
             props = layout.operator("node.add_search", text="Search...", icon='VIEWZOOM')
             layout.separator()
