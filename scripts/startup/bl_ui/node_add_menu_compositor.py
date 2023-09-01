@@ -336,7 +336,7 @@ class NODE_MT_compositing_node_add_all(Menu):
         layout.menu("NODE_MT_category_COMP_VECTOR")
         layout.separator()
         layout.menu("NODE_MT_category_COMP_GROUP")
-        layout.menu("NODE_MT_category_COMP_LAYOUT")
+        layout.menu("NODE_MT_category_layout")
 
         node_add_menu.draw_root_assets(layout)
 
@@ -359,7 +359,6 @@ classes = (
     NODE_MT_category_COMP_UTIL,
     NODE_MT_category_COMP_VECTOR,
     NODE_MT_category_COMP_GROUP,
-    NODE_MT_category_COMP_LAYOUT,
 )
 
 if __name__ == "__main__":  # only for live edit.
