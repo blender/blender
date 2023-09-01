@@ -3226,6 +3226,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 static void do_versions_after_linking(FileData *fd, Main *main)
 {
+  BLI_assert(fd != nullptr);
+
   CLOG_INFO(&LOG,
             2,
             "Processing %s (%s), %d.%d",
@@ -3738,7 +3740,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       blo_split_main(&mainlist, bfd->main);
       LISTBASE_FOREACH (Main *, mainvar, &mainlist) {
         BLI_assert(mainvar->versionfile != 0);
-        do_versions_after_linking(fd, mainvar);
+        do_versions_after_linking(
+            (mainvar->curlib && mainvar->curlib->filedata) ? mainvar->curlib->filedata : fd,
+            mainvar);
       }
       blo_join_main(&mainlist);
 
@@ -3746,6 +3750,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
        * does not always properly handle user counts, and/or that function does not take into
        * account old, deprecated data. */
       BKE_main_id_refcount_recompute(bfd->main, false);
+    }
+
+    LISTBASE_FOREACH (Library *, lib, &bfd->main->libraries) {
+      /* Now we can clear this runtime library filedata, it is not needed anymore. */
+      if (lib->filedata) {
+        blo_filedata_free(lib->filedata);
+        lib->filedata = nullptr;
+      }
     }
 
     if (bfd->main->is_read_invalid) {
@@ -4269,6 +4281,9 @@ static Main *library_link_begin(Main *mainvar,
 
   /* which one do we need? */
   mainl = blo_find_main(fd, filepath, BKE_main_blendfile_path(mainvar));
+  if (mainl->curlib) {
+    mainl->curlib->filedata = fd;
+  }
 
   /* needed for do_version */
   mainl->versionfile = short(fd->fileversion);
@@ -4459,8 +4474,27 @@ void BLO_library_link_end(Main *mainl, BlendHandle **bh, const LibraryLink_Param
 
   if (!mainl->is_read_invalid) {
     library_link_end(mainl, &fd, params->flag);
-    *bh = reinterpret_cast<BlendHandle *>(fd);
   }
+
+  LISTBASE_FOREACH (Library *, lib, &params->bmain->libraries) {
+    /* Now we can clear this runtime library filedata, it is not needed anymore. */
+    if (lib->filedata == reinterpret_cast<FileData *>(*bh)) {
+      /* The filedata is owned and managed by caller code, only clear matching library ponter. */
+      lib->filedata = nullptr;
+    }
+    else if (lib->filedata) {
+      /* In case other libraries had to be read as dependencies of the main linked one, they need
+       * to be cleared here.
+       *
+       * TODO: In the future, could be worth keeping them in case data are linked from several
+       * libraries at once? To avoid closing and re-opening the same file several times. Would need
+       * a global cleanup callback then once all linking is done, though. */
+      blo_filedata_free(lib->filedata);
+      lib->filedata = nullptr;
+    }
+  }
+
+  *bh = reinterpret_cast<BlendHandle *>(fd);
 }
 
 void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname)
@@ -4765,12 +4799,14 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
        * do_versions multiple times, which would have bad consequences. */
       split_main_newid(mainptr, main_newid);
 
-      /* File data can be zero with link/append. */
+      /* `filedata` can be NULL when loading linked data from inexistant or invalid library
+       * reference. Or during linking/appending, when processing data from a library not involved
+       * in the current linking/appending operation.
+       *
+       * Skip versioning in these cases, since the only IDs here will be placeholders (missing
+       * lib), or already existing IDs (linking/appending). */
       if (mainptr->curlib->filedata) {
         do_versions(mainptr->curlib->filedata, mainptr->curlib, main_newid);
-      }
-      else {
-        do_versions(basefd, nullptr, main_newid);
       }
 
       add_main_to_main(mainptr, main_newid);
@@ -4784,13 +4820,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
     /* NOTE: No need to call #do_versions_after_linking() or #BKE_main_id_refcount_recompute()
      * here, as this function is only called for library 'subset' data handling, as part of
      * either full blendfile reading (#blo_read_file_internal()), or library-data linking
-     * (#library_link_end()). */
-
-    /* Free file data we no longer need. */
-    if (mainptr->curlib->filedata) {
-      blo_filedata_free(mainptr->curlib->filedata);
-    }
-    mainptr->curlib->filedata = nullptr;
+     * (#library_link_end()).
+     *
+     * For this to work reliably, `mainptr->curlib->filedata` also needs to be freed after said
+     * versioning code has run. */
   }
   BKE_main_free(main_newid);
 }
