@@ -276,6 +276,17 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 21)) {
+    if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "BoneColor", "color")) {
+      version_bonegroup_migrate_color(bmain);
+    }
+
+    if (!DNA_struct_elem_find(fd->filesdna, "bArmature", "ListBase", "collections")) {
+      version_bonelayers_to_bonecollections(bmain);
+      version_bonegroups_to_bonecollections(bmain);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -288,15 +299,6 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "BoneColor", "color")) {
-      version_bonegroup_migrate_color(bmain);
-    }
-
-    if (!DNA_struct_elem_find(fd->filesdna, "bArmature", "ListBase", "collections")) {
-      version_bonelayers_to_bonecollections(bmain);
-      version_bonegroups_to_bonecollections(bmain);
-    }
   }
 }
 

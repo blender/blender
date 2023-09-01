@@ -29,7 +29,7 @@ extern "C" {
 
 /* Blender file format version. */
 #define BLENDER_FILE_VERSION BLENDER_VERSION
-#define BLENDER_FILE_SUBVERSION 20
+#define BLENDER_FILE_SUBVERSION 21
 
 /* Minimum Blender version that supports reading file written with the current
  * version. Older Blender versions will test this and cancel loading the file, showing a warning to
@@ -37,7 +37,7 @@ extern "C" {
  *
  * See https://wiki.blender.org/wiki/Process/Compatibility_Handling for details. */
 #define BLENDER_FILE_MIN_VERSION 306
-#define BLENDER_FILE_MIN_SUBVERSION 11
+#define BLENDER_FILE_MIN_SUBVERSION 12
 
 /** User readable version string. */
 const char *BKE_blender_version_string(void);
