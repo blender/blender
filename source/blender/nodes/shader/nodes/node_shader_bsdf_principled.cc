@@ -170,7 +170,8 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   }
 #endif
 
-  bool use_diffuse = socket_not_one(SOCK_METALLIC_ID) && socket_not_one(SOCK_TRANSMISSION_ID);
+  bool use_diffuse = socket_not_zero(SOCK_SHEEN_ID) ||
+                     (socket_not_one(SOCK_METALLIC_ID) && socket_not_one(SOCK_TRANSMISSION_ID));
   bool use_subsurf = socket_not_zero(SOCK_SUBSURFACE_ID) && use_diffuse;
   bool use_refract = socket_not_one(SOCK_METALLIC_ID) && socket_not_zero(SOCK_TRANSMISSION_ID);
   bool use_transparency = socket_not_one(SOCK_ALPHA_ID);

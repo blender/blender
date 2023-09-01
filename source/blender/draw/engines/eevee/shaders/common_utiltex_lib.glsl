@@ -82,7 +82,7 @@ vec2 btdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter
 
   if (ior >= 1.0) {
     vec2 split_sum = brdf_lut(cos_theta, roughness);
-    float f0 = f0_from_ior(ior);
+    float f0 = F0_from_ior(ior);
     /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0, 1.33], to avoid harsh
      * transition at `IOR == 1`. */
     float f90 = fast_sqrt(saturate(f0 / 0.02));
