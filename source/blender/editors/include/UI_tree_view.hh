@@ -292,9 +292,8 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
 
  protected:
   /**
-   * Optionally passed to the #BasicTreeViewItem constructor. Called when activating this tree
-   * view item. This way users don't have to sub-class #BasicTreeViewItem, just to implement
-   * custom activation behavior (a common thing to do).
+   * Called when activating this tree view item. This way users don't have to sub-class
+   * #BasicTreeViewItem, just to implement custom activation behavior (a common thing to do).
    */
   ActivateFn activate_fn_;
 
