@@ -531,11 +531,7 @@ static void construct_interface_as_legacy_sockets(bNodeTree *ntree)
     SET_FLAG_FROM_TEST(
         iosock->flag, socket.flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER, SOCK_HIDE_IN_MODIFIER);
     iosock->attribute_domain = socket.attribute_domain;
-    if (socket.default_attribute_name) {
-      BLI_strncpy(iosock->default_attribute_name,
-                  socket.default_attribute_name,
-                  sizeof(iosock->default_attribute_name));
-    }
+    iosock->default_attribute_name = BLI_strdup_null(socket.default_attribute_name);
     return iosock;
   };
 
