@@ -1268,12 +1268,8 @@ static void image_open_cancel(bContext * /*C*/, wmOperator *op)
   op->customdata = nullptr;
 }
 
-static Image *image_open_single(Main *bmain,
-                                wmOperator *op,
-                                ImageFrameRange *range,
-                                const char *relbase,
-                                bool is_relative_path,
-                                bool use_multiview)
+static Image *image_open_single(
+    Main *bmain, wmOperator *op, ImageFrameRange *range, const char *relbase, bool use_multiview)
 {
   bool exists = false;
   Image *ima = nullptr;
@@ -1293,38 +1289,38 @@ static Image *image_open_single(Main *bmain,
     return nullptr;
   }
 
-  if (!exists) {
-    /* only image path after save, never ibuf */
-    if (is_relative_path) {
-      BLI_path_rel(ima->filepath, relbase);
-    }
+  /* If image already exists, update its file path based on relative path property, see: #109561.
+   */
+  if (exists) {
+    STRNCPY(ima->filepath, range->filepath);
+    return ima;
+  }
 
-    /* handle multiview images */
-    if (use_multiview) {
-      ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
-      ImageFormatData *imf = &iod->im_format;
+  /* handle multiview images */
+  if (use_multiview) {
+    ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
+    ImageFormatData *imf = &iod->im_format;
 
-      ima->flag |= IMA_USE_VIEWS;
-      ima->views_format = imf->views_format;
-      *ima->stereo3d_format = imf->stereo3d_format;
-    }
-    else {
-      ima->flag &= ~IMA_USE_VIEWS;
-      BKE_image_free_views(ima);
-    }
+    ima->flag |= IMA_USE_VIEWS;
+    ima->views_format = imf->views_format;
+    *ima->stereo3d_format = imf->stereo3d_format;
+  }
+  else {
+    ima->flag &= ~IMA_USE_VIEWS;
+    BKE_image_free_views(ima);
+  }
 
-    if (ima->source == IMA_SRC_FILE) {
-      if (range->udims_detected && range->udim_tiles.first) {
-        ima->source = IMA_SRC_TILED;
-        ImageTile *first_tile = static_cast<ImageTile *>(ima->tiles.first);
-        first_tile->tile_number = range->offset;
-        LISTBASE_FOREACH (LinkData *, node, &range->udim_tiles) {
-          BKE_image_add_tile(ima, POINTER_AS_INT(node->data), nullptr);
-        }
+  if (ima->source == IMA_SRC_FILE) {
+    if (range->udims_detected && range->udim_tiles.first) {
+      ima->source = IMA_SRC_TILED;
+      ImageTile *first_tile = static_cast<ImageTile *>(ima->tiles.first);
+      first_tile->tile_number = range->offset;
+      LISTBASE_FOREACH (LinkData *, node, &range->udim_tiles) {
+        BKE_image_add_tile(ima, POINTER_AS_INT(node->data), nullptr);
       }
-      else if (range->length > 1) {
-        ima->source = IMA_SRC_SEQUENCE;
-      }
+    }
+    else if (range->length > 1) {
+      ima->source = IMA_SRC_SEQUENCE;
     }
   }
 
@@ -1341,7 +1337,6 @@ static int image_open_exec(bContext *C, wmOperator *op)
   int frame_seq_len = 0;
   int frame_ofs = 1;
 
-  const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
   const bool use_multiview = RNA_boolean_get(op->ptr, "use_multiview");
   const bool use_udim = RNA_boolean_get(op->ptr, "use_udim_detecting");
 
@@ -1352,7 +1347,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
   ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     Image *ima_range = image_open_single(
-        bmain, op, range, BKE_main_blendfile_path(bmain), is_relative_path, use_multiview);
+        bmain, op, range, BKE_main_blendfile_path(bmain), use_multiview);
 
     /* take the first image */
     if ((ima == nullptr) && ima_range) {
