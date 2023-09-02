@@ -159,14 +159,10 @@ texture_node_categories = [
 
 
 def register():
-    nodeitems_utils.register_node_categories('SHADER', shader_node_categories)
-    nodeitems_utils.register_node_categories('COMPOSITING', compositor_node_categories)
     nodeitems_utils.register_node_categories('TEXTURE', texture_node_categories)
 
 
 def unregister():
-    nodeitems_utils.unregister_node_categories('SHADER')
-    nodeitems_utils.unregister_node_categories('COMPOSITING')
     nodeitems_utils.unregister_node_categories('TEXTURE')
 
 
