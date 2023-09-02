@@ -1111,10 +1111,6 @@ struct wmDragAssetCatalog {
   bUUID drag_catalog_id;
 };
 
-typedef struct wmDragNodeTreeInterface {
-  struct bNodeTreeInterfaceItem *item;
-} wmDragNodeTreeInterface;
-
 /**
  * For some specific cases we support dragging multiple assets (#WM_DRAG_ASSET_LIST). There is no
  * proper support for dragging multiple items in the `wmDrag`/`wmDrop` API yet, so this is really
