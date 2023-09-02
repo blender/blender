@@ -4412,7 +4412,9 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
      * or they will go again through do_versions - bad, very bad! */
     split_main_newid(mainvar, main_newid);
 
-    do_versions_after_linking(*fd, main_newid);
+    do_versions_after_linking(
+        (main_newid->curlib && main_newid->curlib->filedata) ? main_newid->curlib->filedata : *fd,
+        main_newid);
 
     add_main_to_main(mainvar, main_newid);
 
