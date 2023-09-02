@@ -142,7 +142,7 @@ void debug_atlas_values(vec3 P, LightData light)
 void debug_random_tile_color(vec3 P, LightData light)
 {
   ShadowSample samp = debug_tile_get(P, light);
-  out_color_add = vec4(debug_random_color(ivec2(samp.tile.page)), 0) * 0.5;
+  out_color_add = vec4(debug_random_color(ivec2(samp.tile.page.xy)), 0) * 0.5;
   out_color_mul = vec4(0.5);
 }
 
