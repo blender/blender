@@ -1561,6 +1561,15 @@ static bool rna_Node_is_registered_node_type(StructRNA *type)
   return (RNA_struct_blender_type_get(type) != nullptr);
 }
 
+static bool rna_Node_is_builtin(bNodeType *nt)
+{
+  BLI_assert(nt);
+
+  /* `nt->rna_ext.data` is the python object. If it's nullptr then it's a
+   * builtin node. */
+  return nt->rna_ext.data == nullptr;
+}
+
 static void rna_Node_is_registered_node_type_runtime(bContext * /*C*/,
                                                      ReportList * /*reports*/,
                                                      PointerRNA *ptr,
@@ -1574,9 +1583,7 @@ static bool rna_Node_unregister(Main * /*bmain*/, StructRNA *type)
 {
   bNodeType *nt = static_cast<bNodeType *>(RNA_struct_blender_type_get(type));
 
-  /* `nt->rna_ext.data` is the python object. If it's nullptr then it's an
-   * internally registered node, thus can't unregister. */
-  if (!nt || !nt->rna_ext.data) {
+  if (!nt || rna_Node_is_builtin(nt)) {
     return false;
   }
 
@@ -1638,6 +1645,17 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   /* check if we have registered this node type before, and remove it */
   nt = nodeTypeFind(dummy_nt.idname);
   if (nt) {
+    /* If it's an internal node, we cannot proceed. */
+    if (rna_Node_is_builtin(nt)) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' is a builtin node",
+                  error_prefix,
+                  identifier,
+                  dummy_nt.idname);
+      return nullptr;
+    }
+
     /* NOTE: unlike most types `nt->rna_ext.srna` doesn't need to be checked for nullptr. */
     if (!rna_Node_unregister(bmain, nt->rna_ext.srna)) {
       BKE_reportf(reports,
