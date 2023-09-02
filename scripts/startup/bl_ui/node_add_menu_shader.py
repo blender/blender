@@ -5,17 +5,58 @@
 import bpy
 from bpy.types import Menu
 from bl_ui import node_add_menu
-from nodeitems_builtins import (
-    eevee_cycles_shader_nodes_poll,
-    line_style_shader_nodes_poll,
-    object_cycles_shader_nodes_poll,
-    object_eevee_cycles_shader_nodes_poll,
-    object_eevee_shader_nodes_poll,
-    world_shader_nodes_poll,
-)
 from bpy.app.translations import (
     pgettext_iface as iface_,
 )
+
+
+# only show input/output nodes when editing line style node trees
+def line_style_shader_nodes_poll(context):
+    snode = context.space_data
+    return (snode.tree_type == 'ShaderNodeTree' and
+            snode.shader_type == 'LINESTYLE')
+
+
+# only show nodes working in world node trees
+def world_shader_nodes_poll(context):
+    snode = context.space_data
+    return (snode.tree_type == 'ShaderNodeTree' and
+            snode.shader_type == 'WORLD')
+
+
+# only show nodes working in object node trees
+def object_shader_nodes_poll(context):
+    snode = context.space_data
+    return (snode.tree_type == 'ShaderNodeTree' and
+            snode.shader_type == 'OBJECT')
+
+
+def cycles_shader_nodes_poll(context):
+    return context.engine == 'CYCLES'
+
+
+def eevee_shader_nodes_poll(context):
+    return context.engine == 'BLENDER_EEVEE'
+
+
+def eevee_cycles_shader_nodes_poll(context):
+    return (cycles_shader_nodes_poll(context) or
+            eevee_shader_nodes_poll(context))
+
+
+def object_cycles_shader_nodes_poll(context):
+    return (object_shader_nodes_poll(context) and
+            cycles_shader_nodes_poll(context))
+
+
+def object_eevee_shader_nodes_poll(context):
+    return (object_shader_nodes_poll(context) and
+            eevee_shader_nodes_poll(context))
+
+
+def object_eevee_cycles_shader_nodes_poll(context):
+    return (object_shader_nodes_poll(context) and
+            eevee_cycles_shader_nodes_poll(context))
 
 
 class NODE_MT_category_shader_input(Menu):
