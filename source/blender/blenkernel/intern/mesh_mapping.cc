@@ -323,7 +323,9 @@ static void sort_small_groups(const OffsetIndices<int> groups,
 static Array<int> reverse_indices_in_groups(const Span<int> group_indices,
                                             const OffsetIndices<int> offsets)
 {
-  BLI_assert(!group_indices.is_empty());
+  if (group_indices.is_empty()) {
+    return {};
+  }
   BLI_assert(*std::max_element(group_indices.begin(), group_indices.end()) < offsets.size());
   BLI_assert(*std::min_element(group_indices.begin(), group_indices.end()) >= 0);
   Array<int> counts(offsets.size(), -1);
@@ -344,11 +346,6 @@ static GroupedSpan<int> gather_groups(const Span<int> group_indices,
                                       Array<int> &r_offsets,
                                       Array<int> &r_indices)
 {
-  if (group_indices.is_empty()) {
-    r_offsets.reinitialize(groups_num + 1);
-    r_offsets.as_mutable_span().fill(0);
-    return {OffsetIndices<int>(r_offsets), {}};
-  }
   r_offsets = create_reverse_offsets(group_indices, groups_num);
   r_indices = reverse_indices_in_groups(group_indices, r_offsets.as_span());
   return {OffsetIndices<int>(r_offsets), r_indices};
