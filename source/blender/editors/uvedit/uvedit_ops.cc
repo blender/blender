@@ -202,7 +202,7 @@ void ED_uvedit_foreach_uv(const Scene *scene,
 {
   /* Check selection for quick return. */
   const bool synced_selection = (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
-  if (synced_selection && (bm->totvertsel == selected ? 0 : bm->totvert)) {
+  if (synced_selection && bm->totvertsel == (selected ? 0 : bm->totvert)) {
     return;
   }
 
