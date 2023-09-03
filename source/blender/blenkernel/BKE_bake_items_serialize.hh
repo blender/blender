@@ -9,7 +9,7 @@
 
 #include "BKE_bake_items.hh"
 
-namespace blender::bke {
+namespace blender::bke::bake {
 
 /**
  * Reference to a slice of memory typically stored on disk.
@@ -146,4 +146,4 @@ std::optional<BakeState> deserialize_bake(std::istream &stream,
                                           const BlobReader &blob_reader,
                                           const BlobSharing &blob_sharing);
 
-}  // namespace blender::bke
+}  // namespace blender::bke::bake

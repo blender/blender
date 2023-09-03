@@ -71,10 +71,10 @@ std::optional<std::string> get_modifier_simulation_bake_path(const Main &bmain,
   return absolute_bake_dir;
 }
 
-std::optional<bake_paths::BakePath> get_simulation_zone_bake_path(const Main &bmain,
-                                                                  const Object &object,
-                                                                  const NodesModifierData &nmd,
-                                                                  int zone_id)
+std::optional<bake::BakePath> get_simulation_zone_bake_path(const Main &bmain,
+                                                            const Object &object,
+                                                            const NodesModifierData &nmd,
+                                                            int zone_id)
 {
   const std::optional<std::string> modifier_bake_path = get_modifier_simulation_bake_path(
       bmain, object, nmd);
@@ -87,7 +87,7 @@ std::optional<bake_paths::BakePath> get_simulation_zone_bake_path(const Main &bm
                 sizeof(zone_bake_dir),
                 modifier_bake_path->c_str(),
                 std::to_string(zone_id).c_str());
-  return bake_paths::BakePath::from_single_root(zone_bake_dir);
+  return bake::BakePath::from_single_root(zone_bake_dir);
 }
 
 /**

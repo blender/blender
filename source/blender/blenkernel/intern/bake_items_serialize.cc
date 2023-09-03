@@ -22,7 +22,7 @@
 
 #include <sstream>
 
-namespace blender::bke {
+namespace blender::bke::bake {
 
 using namespace io::serialize;
 using DictionaryValuePtr = std::shared_ptr<DictionaryValue>;
@@ -1074,7 +1074,7 @@ void serialize_bake(const BakeState &bake_state,
   io::serialize::DictionaryValue &io_items = *io_root.append_dict("items");
   for (auto item : bake_state.items_by_id.items()) {
     io::serialize::DictionaryValue &io_item = *io_items.append_dict(std::to_string(item.key));
-    bke::serialize_bake_item(*item.value, blob_writer, blob_sharing, io_item);
+    serialize_bake_item(*item.value, blob_writer, blob_sharing, io_item);
   }
 
   io::serialize::JsonFormatter formatter;
@@ -1128,4 +1128,4 @@ std::optional<BakeState> deserialize_bake(std::istream &stream,
   return bake_state;
 }
 
-}  // namespace blender::bke
+}  // namespace blender::bke::bake

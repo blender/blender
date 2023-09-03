@@ -11,7 +11,7 @@
 #include "BLI_sub_frame.hh"
 #include "BLI_vector.hh"
 
-namespace blender::bke::bake_paths {
+namespace blender::bke::bake {
 
 struct MetaFile {
   SubFrame frame;
@@ -40,4 +40,4 @@ std::optional<SubFrame> file_name_to_frame(const StringRefNull file_name);
 
 Vector<MetaFile> find_sorted_meta_files(const StringRefNull meta_dir);
 
-}  // namespace blender::bke::bake_paths
+}  // namespace blender::bke::bake

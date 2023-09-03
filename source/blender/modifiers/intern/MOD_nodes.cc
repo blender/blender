@@ -753,23 +753,23 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
     /* Try load baked data. */
     if (!zone_cache.failed_finding_bake) {
       if (zone_cache.cache_state != CacheState::Baked) {
-        if (std::optional<bke::bake_paths::BakePath> zone_bake_path =
-                get_simulation_zone_bake_path(*bmain_, *ctx_.object, nmd_, zone_id))
+        if (std::optional<bke::bake::BakePath> zone_bake_path = get_simulation_zone_bake_path(
+                *bmain_, *ctx_.object, nmd_, zone_id))
         {
 
-          Vector<bke::bake_paths::MetaFile> meta_files = bke::bake_paths::find_sorted_meta_files(
+          Vector<bke::bake::MetaFile> meta_files = bke::bake::find_sorted_meta_files(
               zone_bake_path->meta_dir);
           if (!meta_files.is_empty()) {
             zone_cache.reset();
 
-            for (const bke::bake_paths::MetaFile &meta_file : meta_files) {
+            for (const bke::bake::MetaFile &meta_file : meta_files) {
               auto frame_cache = std::make_unique<SimulationZoneFrameCache>();
               frame_cache->frame = meta_file.frame;
               frame_cache->meta_path = meta_file.path;
               zone_cache.frame_caches.append(std::move(frame_cache));
             }
             zone_cache.blobs_dir = zone_bake_path->blobs_dir;
-            zone_cache.blob_sharing = std::make_unique<bke::BlobSharing>();
+            zone_cache.blob_sharing = std::make_unique<bke::bake::BlobSharing>();
             zone_cache.cache_state = CacheState::Baked;
           }
         }
@@ -899,15 +899,16 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
   {
     auto &store_and_pass_through_info =
         zone_behavior.output.emplace<sim_output::StoreAndPassThrough>();
-    store_and_pass_through_info.store_fn = [simulation_cache = simulation_cache_,
-                                            zone_cache = &zone_cache,
-                                            current_frame = current_frame_](bke::BakeState state) {
-      std::lock_guard lock{simulation_cache->mutex};
-      auto frame_cache = std::make_unique<bke::sim::SimulationZoneFrameCache>();
-      frame_cache->frame = current_frame;
-      frame_cache->state = std::move(state);
-      zone_cache->frame_caches.append(std::move(frame_cache));
-    };
+    store_and_pass_through_info.store_fn =
+        [simulation_cache = simulation_cache_,
+         zone_cache = &zone_cache,
+         current_frame = current_frame_](bke::bake::BakeState state) {
+          std::lock_guard lock{simulation_cache->mutex};
+          auto frame_cache = std::make_unique<bke::sim::SimulationZoneFrameCache>();
+          frame_cache->frame = current_frame;
+          frame_cache->state = std::move(state);
+          zone_cache->frame_caches.append(std::move(frame_cache));
+        };
   }
 
   void store_as_prev_items(bke::sim::SimulationZoneCache &zone_cache,
@@ -915,16 +916,17 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
   {
     auto &store_and_pass_through_info =
         zone_behavior.output.emplace<sim_output::StoreAndPassThrough>();
-    store_and_pass_through_info.store_fn = [simulation_cache = simulation_cache_,
-                                            zone_cache = &zone_cache,
-                                            current_frame = current_frame_](bke::BakeState state) {
-      std::lock_guard lock{simulation_cache->mutex};
-      if (!zone_cache->prev_state) {
-        zone_cache->prev_state.emplace();
-      }
-      zone_cache->prev_state->state = std::move(state);
-      zone_cache->prev_state->frame = current_frame;
-    };
+    store_and_pass_through_info.store_fn =
+        [simulation_cache = simulation_cache_,
+         zone_cache = &zone_cache,
+         current_frame = current_frame_](bke::bake::BakeState state) {
+          std::lock_guard lock{simulation_cache->mutex};
+          if (!zone_cache->prev_state) {
+            zone_cache->prev_state.emplace();
+          }
+          zone_cache->prev_state->state = std::move(state);
+          zone_cache->prev_state->frame = current_frame;
+        };
   }
 
   void read_from_cache(const FrameIndices &frame_indices,
@@ -1009,9 +1011,9 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
     if (!frame_cache.meta_path) {
       return;
     }
-    bke::DiskBlobReader blob_reader{*zone_cache.blobs_dir};
+    bke::bake::DiskBlobReader blob_reader{*zone_cache.blobs_dir};
     fstream meta_file{*frame_cache.meta_path};
-    std::optional<bke::BakeState> bake_state = bke::deserialize_bake(
+    std::optional<bke::bake::BakeState> bake_state = bke::bake::deserialize_bake(
         meta_file, blob_reader, *zone_cache.blob_sharing);
     if (!bake_state.has_value()) {
       return;

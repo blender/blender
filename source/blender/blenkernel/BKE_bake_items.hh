@@ -6,7 +6,7 @@
 
 #include "BKE_geometry_set.hh"
 
-namespace blender::bke {
+namespace blender::bke::bake {
 
 /**
  * A "bake item" contains the baked data of e.g. one node socket at one frame. Typically, multiple
@@ -103,4 +103,4 @@ class StringBakeItem : public BakeItem {
   }
 };
 
-}  // namespace blender::bke
+}  // namespace blender::bke::bake

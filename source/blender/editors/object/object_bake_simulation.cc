@@ -224,8 +224,8 @@ static bool bake_simulation_poll(bContext *C)
 
 struct ZoneBakeData {
   int zone_id;
-  bke::bake_paths::BakePath path;
-  std::unique_ptr<bke::BlobSharing> blob_sharing;
+  bke::bake::BakePath path;
+  std::unique_ptr<bke::bake::BlobSharing> blob_sharing;
 };
 
 struct ModifierBakeData {
@@ -285,10 +285,9 @@ static void bake_simulation_job_startjob(void *customdata,
         for (const bNestedNodeRef &nested_node_ref : nmd->node_group->nested_node_refs_span()) {
           ZoneBakeData zone_bake_data;
           zone_bake_data.zone_id = nested_node_ref.id;
-          zone_bake_data.blob_sharing = std::make_unique<bke::BlobSharing>();
-          if (std::optional<bke::bake_paths::BakePath> path =
-                  bke::sim::get_simulation_zone_bake_path(
-                      *job.bmain, *object, *nmd, nested_node_ref.id))
+          zone_bake_data.blob_sharing = std::make_unique<bke::bake::BlobSharing>();
+          if (std::optional<bke::bake::BakePath> path = bke::sim::get_simulation_zone_bake_path(
+                  *job.bmain, *object, *nmd, nested_node_ref.id))
           {
             zone_bake_data.path = std::move(*path);
             modifier_bake_data.zones.append(std::move(zone_bake_data));
@@ -322,7 +321,7 @@ static void bake_simulation_job_startjob(void *customdata,
 
     BKE_scene_graph_update_for_newframe(job.depsgraph);
 
-    const std::string frame_file_name = bke::bake_paths::frame_to_file_name(frame);
+    const std::string frame_file_name = bke::bake::frame_to_file_name(frame);
 
     for (ObjectBakeData &object_bake_data : objects_to_bake) {
       for (ModifierBakeData &modifier_bake_data : object_bake_data.modifiers) {
@@ -342,7 +341,7 @@ static void bake_simulation_job_startjob(void *customdata,
             continue;
           }
 
-          const bke::bake_paths::BakePath path = zone_bake_data.path;
+          const bke::bake::BakePath path = zone_bake_data.path;
 
           const std::string blob_file_name = frame_file_name + ".blob";
 
@@ -357,9 +356,9 @@ static void bake_simulation_job_startjob(void *customdata,
           BLI_file_ensure_parent_dir_exists(meta_path);
           BLI_file_ensure_parent_dir_exists(blob_path);
           fstream blob_file{blob_path, std::ios::out | std::ios::binary};
-          bke::DiskBlobWriter blob_writer{blob_file_name, blob_file, 0};
+          bke::bake::DiskBlobWriter blob_writer{blob_file_name, blob_file, 0};
           fstream meta_file{meta_path, std::ios::out};
-          bke::serialize_bake(
+          bke::bake::serialize_bake(
               frame_cache.state, blob_writer, *zone_bake_data.blob_sharing, meta_file);
         }
       }
@@ -635,7 +634,7 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
         for (auto item : nmd->runtime->simulation_cache->cache_by_zone_id.items()) {
           item.value->reset();
 
-          const std::optional<bke::bake_paths::BakePath> bake_path =
+          const std::optional<bke::bake::BakePath> bake_path =
               bke::sim::get_simulation_zone_bake_path(*bmain, *object, *nmd, item.key);
           if (!bake_path) {
             continue;

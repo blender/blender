@@ -9,7 +9,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 
-namespace blender::bke::bake_paths {
+namespace blender::bke::bake {
 
 std::string frame_to_file_name(const SubFrame &frame)
 {
@@ -73,4 +73,4 @@ BakePath BakePath::from_single_root(StringRefNull root_dir)
   return bake_path;
 }
 
-}  // namespace blender::bke::bake_paths
+}  // namespace blender::bke::bake

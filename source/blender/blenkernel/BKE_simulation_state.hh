@@ -32,13 +32,13 @@ enum class CacheState {
 
 struct SimulationZoneFrameCache {
   SubFrame frame;
-  BakeState state;
+  bake::BakeState state;
   /** Used when the baked data is loaded lazily. */
   std::optional<std::string> meta_path;
 };
 
 struct SimulationZonePrevState {
-  BakeState state;
+  bake::BakeState state;
   SubFrame frame;
 };
 
@@ -47,7 +47,7 @@ struct SimulationZoneCache {
   std::optional<SimulationZonePrevState> prev_state;
 
   std::optional<std::string> blobs_dir;
-  std::unique_ptr<BlobSharing> blob_sharing;
+  std::unique_ptr<bake::BlobSharing> blob_sharing;
   bool failed_finding_bake = false;
   CacheState cache_state = CacheState::Valid;
 
@@ -66,10 +66,10 @@ class ModifierSimulationCache {
  */
 void scene_simulation_states_reset(Scene &scene);
 
-std::optional<bake_paths::BakePath> get_simulation_zone_bake_path(const Main &bmain,
-                                                                  const Object &object,
-                                                                  const NodesModifierData &nmd,
-                                                                  int zone_id);
+std::optional<bake::BakePath> get_simulation_zone_bake_path(const Main &bmain,
+                                                            const Object &object,
+                                                            const NodesModifierData &nmd,
+                                                            int zone_id);
 std::optional<std::string> get_modifier_simulation_bake_path(const Main &bmain,
                                                              const Object &object,
                                                              const NodesModifierData &nmd);

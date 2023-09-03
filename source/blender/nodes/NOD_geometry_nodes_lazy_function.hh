@@ -57,7 +57,7 @@ struct PassThrough {
  */
 struct OutputCopy {
   float delta_time;
-  bke::BakeStateRef state;
+  bke::bake::BakeStateRef state;
 };
 
 /**
@@ -66,7 +66,7 @@ struct OutputCopy {
  */
 struct OutputMove {
   float delta_time;
-  bke::BakeState state;
+  bke::bake::BakeState state;
 };
 
 using Behavior = std::variant<PassThrough, OutputCopy, OutputMove>;
@@ -88,14 +88,14 @@ struct PassThrough {
  * This allows the caller of geometry nodes (e.g. the modifier), to cache the new simulation state.
  */
 struct StoreAndPassThrough {
-  std::function<void(bke::BakeState state)> store_fn;
+  std::function<void(bke::bake::BakeState state)> store_fn;
 };
 
 /**
  * The inputs are not evaluated, instead the given cached items are output directly.
  */
 struct ReadSingle {
-  bke::BakeStateRef state;
+  bke::bake::BakeStateRef state;
 };
 
 /**
@@ -104,8 +104,8 @@ struct ReadSingle {
 struct ReadInterpolated {
   /** Factor between 0 and 1 that determines the influence of the two simulation states. */
   float mix_factor;
-  bke::BakeStateRef prev_state;
-  bke::BakeStateRef next_state;
+  bke::bake::BakeStateRef prev_state;
+  bke::bake::BakeStateRef next_state;
 };
 
 using Behavior = std::variant<PassThrough, StoreAndPassThrough, ReadSingle, ReadInterpolated>;
