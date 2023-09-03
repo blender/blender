@@ -59,7 +59,7 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1_V)
   float x = r * rand.y;
   float y = r * rand.z;
   float s = 0.5 * (1.0 + Vh.z);
-  G1_V = 1.0 / s;
+  G1_V = Vh.z / s;
   y = (1.0 - s) * sqrt(1.0 - x * x) + s * y;
   float z = sqrt(saturate(1.0 - x * x - y * y));
   /* Compute normal. */
