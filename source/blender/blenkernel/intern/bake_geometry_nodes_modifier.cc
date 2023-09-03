@@ -4,10 +4,10 @@
 
 #include <sstream>
 
+#include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_collection.h"
 #include "BKE_curves.hh"
 #include "BKE_main.h"
-#include "BKE_simulation_state.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
@@ -22,18 +22,13 @@
 
 #include "MOD_nodes.hh"
 
-namespace blender::bke::sim {
+namespace blender::bke::bake {
 
-void SimulationZoneCache::reset()
+void NodeCache::reset()
 {
-  this->frame_caches.clear();
-  this->prev_state.reset();
-  this->blobs_dir.reset();
-  this->blob_sharing.reset();
-  this->failed_finding_bake = false;
-  this->cache_state = CacheState::Valid;
+  std::destroy_at(this);
+  new (this) NodeCache();
 }
-
 void scene_simulation_states_reset(Scene &scene)
 {
   FOREACH_SCENE_OBJECT_BEGIN (&scene, ob) {
@@ -42,10 +37,10 @@ void scene_simulation_states_reset(Scene &scene)
         continue;
       }
       NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-      if (!nmd->runtime->simulation_cache) {
+      if (!nmd->runtime->cache) {
         continue;
       }
-      for (auto item : nmd->runtime->simulation_cache->cache_by_zone_id.items()) {
+      for (auto item : nmd->runtime->cache->cache_by_id.items()) {
         item.value->reset();
       }
     }
@@ -53,9 +48,9 @@ void scene_simulation_states_reset(Scene &scene)
   FOREACH_SCENE_OBJECT_END;
 }
 
-std::optional<std::string> get_modifier_simulation_bake_path(const Main &bmain,
-                                                             const Object &object,
-                                                             const NodesModifierData &nmd)
+std::optional<std::string> get_modifier_bake_path(const Main &bmain,
+                                                  const Object &object,
+                                                  const NodesModifierData &nmd)
 {
   const StringRefNull bmain_path = BKE_main_blendfile_path(&bmain);
   if (bmain_path.is_empty()) {
@@ -71,13 +66,12 @@ std::optional<std::string> get_modifier_simulation_bake_path(const Main &bmain,
   return absolute_bake_dir;
 }
 
-std::optional<bake::BakePath> get_simulation_zone_bake_path(const Main &bmain,
-                                                            const Object &object,
-                                                            const NodesModifierData &nmd,
-                                                            int zone_id)
+std::optional<bake::BakePath> get_node_bake_path(const Main &bmain,
+                                                 const Object &object,
+                                                 const NodesModifierData &nmd,
+                                                 int node_id)
 {
-  const std::optional<std::string> modifier_bake_path = get_modifier_simulation_bake_path(
-      bmain, object, nmd);
+  const std::optional<std::string> modifier_bake_path = get_modifier_bake_path(bmain, object, nmd);
   if (!modifier_bake_path) {
     return std::nullopt;
   }
@@ -86,7 +80,7 @@ std::optional<bake::BakePath> get_simulation_zone_bake_path(const Main &bmain,
   BLI_path_join(zone_bake_dir,
                 sizeof(zone_bake_dir),
                 modifier_bake_path->c_str(),
-                std::to_string(zone_id).c_str());
+                std::to_string(node_id).c_str());
   return bake::BakePath::from_single_root(zone_bake_dir);
 }
 
@@ -123,16 +117,16 @@ static std::string get_blend_file_name(const Main &bmain)
   return "blendcache_" + StringRef(blend_name);
 }
 
-static std::string get_modifier_sim_name(const Object &object, const ModifierData &md)
+static std::string get_modifier_directory_name(const Object &object, const ModifierData &md)
 {
   const std::string object_name_escaped = escape_name(object.id.name + 2);
   const std::string modifier_name_escaped = escape_name(md.name);
-  return "sim_" + object_name_escaped + "_" + modifier_name_escaped;
+  return object_name_escaped + "_" + modifier_name_escaped;
 }
 
 std::string get_default_modifier_bake_directory(const Main &bmain,
                                                 const Object &object,
-                                                const ModifierData &md)
+                                                const NodesModifierData &nmd)
 {
   char dir[FILE_MAX];
   /* Make path that's relative to the .blend file. */
@@ -140,8 +134,8 @@ std::string get_default_modifier_bake_directory(const Main &bmain,
                 sizeof(dir),
                 "//",
                 get_blend_file_name(bmain).c_str(),
-                get_modifier_sim_name(object, md).c_str());
+                get_modifier_directory_name(object, nmd.modifier).c_str());
   return dir;
 }
 
-}  // namespace blender::bke::sim
+}  // namespace blender::bke::bake

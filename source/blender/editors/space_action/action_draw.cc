@@ -29,10 +29,10 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_action.h"
+#include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_context.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_pointcache.h"
-#include "BKE_simulation_state.hh"
 
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */
 
@@ -747,21 +747,19 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
   GPU_matrix_pop();
 }
 
-static void timeline_cache_draw_simulation_nodes(
-    const blender::bke::sim::ModifierSimulationCache &cache,
-    const float y_offset,
-    const float height,
-    const uint pos_id)
+static void timeline_cache_draw_simulation_nodes(const blender::bke::bake::ModifierCache &cache,
+                                                 const float y_offset,
+                                                 const float height,
+                                                 const uint pos_id)
 {
   std::lock_guard lock{cache.mutex};
-  if (cache.cache_by_zone_id.is_empty()) {
+  if (cache.cache_by_id.is_empty()) {
     return;
   }
   /* Draw the state if one of the simulation zones. This is fine for now, because there is no ui
    * that allows caching zones independently. */
-  const blender::bke::sim::SimulationZoneCache &zone_cache =
-      **cache.cache_by_zone_id.values().begin();
-  if (zone_cache.frame_caches.is_empty()) {
+  const blender::bke::bake::NodeCache &node_cache = **cache.cache_by_id.values().begin();
+  if (node_cache.frame_caches.is_empty()) {
     return;
   }
 
@@ -771,16 +769,16 @@ static void timeline_cache_draw_simulation_nodes(
 
   float color[4];
   UI_GetThemeColor4fv(TH_SIMULATED_FRAMES, color);
-  switch (zone_cache.cache_state) {
-    case blender::bke::sim::CacheState::Invalid: {
+  switch (node_cache.cache_status) {
+    case blender::bke::bake::CacheStatus::Invalid: {
       color[3] = 0.4f;
       break;
     }
-    case blender::bke::sim::CacheState::Valid: {
+    case blender::bke::bake::CacheStatus::Valid: {
       color[3] = 0.7f;
       break;
     }
-    case blender::bke::sim::CacheState::Baked: {
+    case blender::bke::bake::CacheStatus::Baked: {
       color[3] = 1.0f;
       break;
     }
@@ -788,10 +786,10 @@ static void timeline_cache_draw_simulation_nodes(
 
   immUniformColor4fv(color);
 
-  immBeginAtMost(GPU_PRIM_TRIS, zone_cache.frame_caches.size() * 6);
+  immBeginAtMost(GPU_PRIM_TRIS, node_cache.frame_caches.size() * 6);
 
-  for (const std::unique_ptr<blender::bke::sim::SimulationZoneFrameCache> &frame_cache :
-       zone_cache.frame_caches.as_span())
+  for (const std::unique_ptr<blender::bke::bake::FrameCache> &frame_cache :
+       node_cache.frame_caches.as_span())
   {
     const int frame = frame_cache->frame.frame();
     immRectf_fast(pos_id, frame - 0.5f, 0, frame + 0.5f, 1.0f);
@@ -841,14 +839,14 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
       if (nmd->node_group == nullptr) {
         continue;
       }
-      if (!nmd->runtime->simulation_cache) {
+      if (!nmd->runtime->cache) {
         continue;
       }
       if ((nmd->node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_SIMULATION_ZONE) == 0) {
         continue;
       }
       timeline_cache_draw_simulation_nodes(
-          *nmd->runtime->simulation_cache, y_offset, cache_draw_height, pos_id);
+          *nmd->runtime->cache, y_offset, cache_draw_height, pos_id);
       y_offset += cache_draw_height;
     }
   }

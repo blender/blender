@@ -30,8 +30,8 @@
 
 #include "BLI_compute_context.hh"
 
+#include "BKE_bake_items.hh"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_simulation_state.hh"
 
 struct Object;
 struct Depsgraph;

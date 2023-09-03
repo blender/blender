@@ -72,6 +72,7 @@ set(SRC
   intern/attribute_access.cc
   intern/attribute_math.cc
   intern/autoexec.cc
+  intern/bake_geometry_nodes_modifier.cc
   intern/bake_items.cc
   intern/bake_items_paths.cc
   intern/bake_items_serialize.cc
@@ -270,7 +271,6 @@ set(SRC
   intern/screen.cc
   intern/shader_fx.cc
   intern/shrinkwrap.cc
-  intern/simulation_state.cc
   intern/softbody.c
   intern/sound.cc
   intern/speaker.cc
@@ -332,6 +332,7 @@ set(SRC
   BKE_attribute.hh
   BKE_attribute_math.hh
   BKE_autoexec.h
+  BKE_bake_geometry_nodes_modifier.hh
   BKE_bake_items.hh
   BKE_bake_items_paths.hh
   BKE_bake_items_serialize.hh
@@ -480,7 +481,6 @@ set(SRC
   BKE_sequencer_offscreen.h
   BKE_shader_fx.h
   BKE_shrinkwrap.h
-  BKE_simulation_state.hh
   BKE_softbody.h
   BKE_sound.h
   BKE_speaker.h
