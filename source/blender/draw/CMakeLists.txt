@@ -119,7 +119,6 @@ set(SRC
   engines/eevee/eevee_lightprobes.cc
   engines/eevee/eevee_lights.cc
   engines/eevee/eevee_lookdev.cc
-  engines/eevee/eevee_lut.cc
   engines/eevee/eevee_lut_gen.cc
   engines/eevee/eevee_materials.cc
   engines/eevee/eevee_mist.cc
@@ -150,6 +149,7 @@ set(SRC
   engines/eevee_next/eevee_lightcache.cc
   engines/eevee_next/eevee_lightprobe.cc
   engines/eevee_next/eevee_lookdev.cc
+  engines/eevee_next/eevee_lut.cc
   engines/eevee_next/eevee_precompute.cc
   engines/eevee_next/eevee_material.cc
   engines/eevee_next/eevee_motion_blur.cc
@@ -298,6 +298,7 @@ set(SRC
   engines/eevee_next/eevee_lightcache.hh
   engines/eevee_next/eevee_lightprobe.hh
   engines/eevee_next/eevee_lookdev.hh
+  engines/eevee_next/eevee_lut.hh
   engines/eevee_next/eevee_precompute.hh
   engines/eevee_next/eevee_material.hh
   engines/eevee_next/eevee_motion_blur.hh

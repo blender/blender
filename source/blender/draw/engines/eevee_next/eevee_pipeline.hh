@@ -15,9 +15,7 @@
 #include "DRW_render.h"
 #include "draw_shader_shared.h"
 
-/* TODO(fclem): Move it to GPU/DRAW. */
-#include "../eevee/eevee_lut.h"
-
+#include "eevee_lut.hh"
 #include "eevee_subsurface.hh"
 
 namespace blender::eevee {
@@ -352,7 +350,7 @@ class CapturePipeline {
 
 class UtilityTexture : public Texture {
   struct Layer {
-    float data[UTIL_TEX_SIZE * UTIL_TEX_SIZE][4];
+    float4 data[UTIL_TEX_SIZE][UTIL_TEX_SIZE];
   };
 
   static constexpr int lut_size = UTIL_TEX_SIZE;
@@ -368,58 +366,55 @@ class UtilityTexture : public Texture {
                 layer_count,
                 nullptr)
   {
-#ifdef RUNTIME_LUT_CREATION
-    float *bsdf_ggx_lut = EEVEE_lut_update_ggx_brdf(lut_size);
-    float(*btdf_ggx_lut)[lut_size_sqr * 2] = (float(*)[lut_size_sqr * 2])
-        EEVEE_lut_update_ggx_btdf(lut_size, UTIL_BTDF_LAYER_COUNT);
-#else
-    const float *bsdf_ggx_lut = bsdf_split_sum_ggx;
-    const float(*btdf_ggx_lut)[lut_size_sqr * 2] = btdf_split_sum_ggx;
-#endif
-
     Vector<Layer> data(layer_count);
     {
       Layer &layer = data[UTIL_BLUE_NOISE_LAYER];
-      memcpy(layer.data, blue_noise, sizeof(layer));
+      memcpy(layer.data, lut::blue_noise, sizeof(layer));
     }
     {
       Layer &layer = data[UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER];
       const Vector<float> &transmittance_profile = SubsurfaceModule::transmittance_profile();
-      BLI_assert(transmittance_profile.size() == UTIL_TEX_SIZE);
+      BLI_assert(transmittance_profile.size() == lut_size);
       /* Repeatedly stored on every row for correct interpolation. */
-      for (auto y : IndexRange(UTIL_TEX_SIZE)) {
-        for (auto x : IndexRange(UTIL_TEX_SIZE)) {
+      for (auto y : IndexRange(lut_size)) {
+        for (auto x : IndexRange(lut_size)) {
           /* Only the first channel is used. */
-          layer.data[y * UTIL_TEX_SIZE + x][0] = transmittance_profile[x];
+          layer.data[y][x] = float4(transmittance_profile[x]);
         }
       }
     }
     {
       Layer &layer = data[UTIL_LTC_MAT_LAYER];
-      memcpy(layer.data, ltc_mat_ggx, sizeof(layer));
+      memcpy(layer.data, lut::ltc_mat_ggx, sizeof(layer));
     }
     {
       Layer &layer = data[UTIL_LTC_MAG_LAYER];
-      for (auto i : IndexRange(lut_size_sqr)) {
-        layer.data[i][0] = bsdf_ggx_lut[i * 2 + 0];
-        layer.data[i][1] = bsdf_ggx_lut[i * 2 + 1];
-        layer.data[i][2] = ltc_mag_ggx[i * 2 + 0];
-        layer.data[i][3] = ltc_mag_ggx[i * 2 + 1];
+      for (auto x : IndexRange(lut_size)) {
+        for (auto y : IndexRange(lut_size)) {
+          layer.data[y][x][0] = lut::bsdf_split_sum_ggx[y][x][0];
+          layer.data[y][x][1] = lut::bsdf_split_sum_ggx[y][x][1];
+          layer.data[y][x][2] = lut::ltc_mag_ggx[y][x][0];
+          layer.data[y][x][3] = lut::ltc_mag_ggx[y][x][1];
+        }
       }
       BLI_assert(UTIL_LTC_MAG_LAYER == UTIL_BSDF_LAYER);
     }
     {
       Layer &layer = data[UTIL_DISK_INTEGRAL_LAYER];
-      for (auto i : IndexRange(lut_size_sqr)) {
-        layer.data[i][UTIL_DISK_INTEGRAL_COMP] = ltc_disk_integral[i];
+      for (auto x : IndexRange(lut_size)) {
+        for (auto y : IndexRange(lut_size)) {
+          layer.data[y][x][UTIL_DISK_INTEGRAL_COMP] = lut::ltc_disk_integral[y][x][0];
+        }
       }
     }
     {
       for (auto layer_id : IndexRange(16)) {
         Layer &layer = data[UTIL_BTDF_LAYER + layer_id];
-        for (auto i : IndexRange(lut_size_sqr)) {
-          layer.data[i][0] = btdf_ggx_lut[layer_id][i * 2 + 0];
-          layer.data[i][1] = btdf_ggx_lut[layer_id][i * 2 + 1];
+        for (auto x : IndexRange(lut_size)) {
+          for (auto y : IndexRange(lut_size)) {
+            layer.data[y][x][0] = lut::btdf_split_sum_ggx[layer_id][y][x][0];
+            layer.data[y][x][1] = lut::btdf_split_sum_ggx[layer_id][y][x][1];
+          }
         }
       }
     }

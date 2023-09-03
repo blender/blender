@@ -17,7 +17,7 @@
 
 #include "BLI_rand.h"
 
-#include "../eevee/eevee_lut.h" /* TODO: find somewhere to share blue noise Table. */
+#include "../eevee_next/eevee_lut.hh" /* TODO: find somewhere to share blue noise Table. */
 
 #include "workbench_engine.h"
 #include "workbench_private.h"
@@ -56,19 +56,19 @@ static GPUTexture *create_jitter_texture(int num_samples)
   float jitter[64 * 64][4];
   const float num_samples_inv = 1.0f / num_samples;
 
-  for (int i = 0; i < 64 * 64; i++) {
-    float phi = blue_noise[i][0] * 2.0f * M_PI;
-    /* This rotate the sample per pixels */
-    jitter[i][0] = cosf(phi);
-    jitter[i][1] = sinf(phi);
-    /* This offset the sample along its direction axis (reduce banding) */
-    float bn = blue_noise[i][1] - 0.5f;
-    CLAMP(bn, -0.499f, 0.499f); /* fix fireflies */
-    jitter[i][2] = bn * num_samples_inv;
-    jitter[i][3] = blue_noise[i][1];
+  for (int x = 0; x < 64; x++) {
+    for (int y = 0; y < 64; y++) {
+      float phi = blender::eevee::lut::blue_noise[y][x][0] * 2.0f * M_PI;
+      /* This rotate the sample per pixels */
+      jitter[y * 64 + x][0] = cosf(phi);
+      jitter[y * 64 + x][1] = sinf(phi);
+      /* This offset the sample along its direction axis (reduce banding) */
+      float bn = blender::eevee::lut::blue_noise[y][x][1] - 0.5f;
+      CLAMP(bn, -0.499f, 0.499f); /* fix fireflies */
+      jitter[y * 64 + x][2] = bn * num_samples_inv;
+      jitter[y * 64 + x][3] = blender::eevee::lut::blue_noise[y][x][1];
+    }
   }
-
-  UNUSED_VARS(bsdf_split_sum_ggx, btdf_split_sum_ggx, ltc_mag_ggx, ltc_mat_ggx, ltc_disk_integral);
 
   return DRW_texture_create_2d(64, 64, GPU_RGBA16F, DRW_TEX_WRAP, &jitter[0][0]);
 }

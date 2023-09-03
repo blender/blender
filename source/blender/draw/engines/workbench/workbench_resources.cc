@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "../eevee/eevee_lut.h" /* TODO: find somewhere to share blue noise Table. */
+#include "../eevee_next/eevee_lut.hh" /* TODO: find somewhere to share blue noise Table. */
 #include "BKE_studiolight.h"
 #include "BLI_math_rotation.h"
 #include "IMB_imbuf_types.h"
@@ -75,26 +75,28 @@ static LightData get_light_data_from_studio_solidlight(const SolidLight *sl,
 
 void SceneResources::load_jitter_tx(int total_samples)
 {
-  const int texel_count = jitter_tx_size * jitter_tx_size;
-  static float4 jitter[texel_count];
+  float4 jitter[jitter_tx_size][jitter_tx_size];
 
   const float total_samples_inv = 1.0f / total_samples;
 
   /* Create blue noise jitter texture */
-  for (int i = 0; i < texel_count; i++) {
-    float phi = blue_noise[i][0] * 2.0f * M_PI;
-    /* This rotate the sample per pixels */
-    jitter[i].x = math::cos(phi);
-    jitter[i].y = math::sin(phi);
-    /* This offset the sample along its direction axis (reduce banding) */
-    float bn = blue_noise[i][1] - 0.5f;
-    bn = clamp_f(bn, -0.499f, 0.499f); /* fix fireflies */
-    jitter[i].z = bn * total_samples_inv;
-    jitter[i].w = blue_noise[i][1];
+  for (int x = 0; x < 64; x++) {
+    for (int y = 0; y < 64; y++) {
+      float phi = eevee::lut::blue_noise[y][x][0] * 2.0f * M_PI;
+      /* This rotate the sample per pixels */
+      jitter[y][x].x = math::cos(phi);
+      jitter[y][x].y = math::sin(phi);
+      /* This offset the sample along its direction axis (reduce banding) */
+      float bn = eevee::lut::blue_noise[y][x][1] - 0.5f;
+      bn = clamp_f(bn, -0.499f, 0.499f); /* fix fireflies */
+      jitter[y][x].z = bn * total_samples_inv;
+      jitter[y][x].w = eevee::lut::blue_noise[y][x][1];
+    }
   }
 
   jitter_tx.free();
-  jitter_tx.ensure_2d(GPU_RGBA16F, int2(jitter_tx_size), GPU_TEXTURE_USAGE_SHADER_READ, jitter[0]);
+  jitter_tx.ensure_2d(
+      GPU_RGBA16F, int2(jitter_tx_size), GPU_TEXTURE_USAGE_SHADER_READ, jitter[0][0]);
 }
 
 void SceneResources::init(const SceneState &scene_state)

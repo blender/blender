@@ -105,7 +105,7 @@ class Precompute {
     std::ofstream file;
 
     file.open(std::string(name) + ".hh");
-    file << "static const VecBase<float, " << VecT::type_length << "> table_" << name;
+    file << "const VecBase<float, " << VecT::type_length << "> " << name;
     if (n_w > 1) {
       file << "[" << n_w << "]";
     }
