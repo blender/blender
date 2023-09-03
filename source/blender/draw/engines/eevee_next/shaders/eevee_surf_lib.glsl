@@ -75,7 +75,7 @@ void init_globals_curves()
 
 void init_globals_gpencil()
 {
-  /* Undo backface flip as the gpencil normal is already pointing towards the camera. */
+  /* Undo back-face flip as the grease-pencil normal is already pointing towards the camera. */
   g_data.N = g_data.Ni = interp.N;
 }
 

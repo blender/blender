@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Screen-space raytracing routine.
+ * Screen-space ray-tracing routine.
  *
  * Based on "Efficient GPU Screen-Space Ray Tracing"
  * by Morgan McGuire & Michael Mara
@@ -24,16 +24,16 @@ void raytrace_clip_ray_to_near_plane(inout Ray ray)
 }
 
 /**
- * Raytrace against the given HIZ-buffer height-field.
+ * Ray-trace against the given HIZ-buffer height-field.
  *
  * \param stride_rand: Random number in [0..1] range. Offset along the ray to avoid banding
  *                     artifact when steps are too large.
  * \param roughness: Determine how lower depth mipmaps are used to make the tracing faster. Lower
  *                   roughness will use lower mipmaps.
- * \param discard_backface: If true, raytrace will return false  if we hit a surface from behind.
- * \param allow_self_intersection: If false, raytrace will return false if the ray is not covering
+ * \param discard_backface: If true, ray-trace will return false  if we hit a surface from behind.
+ * \param allow_self_intersection: If false, ray-trace will return false if the ray is not covering
  *                                 at least one pixel.
- * \param ray: View-space ray. Direction premultiplied by maximum length.
+ * \param ray: View-space ray. Direction pre-multiplied by maximum length.
  *
  * \return True if there is a valid intersection.
  */
@@ -102,7 +102,7 @@ bool raytrace_screen(RayTraceData rt_data,
     hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride * 2.0));
 
 #ifdef METAL_AMD_RAYTRACE_WORKAROUND
-    /* For workaround, perform discard backface and background check only within
+    /* For workaround, perform discard back-face and background check only within
      * the iteration where the first successful ray intersection is registered.
      * We flag failures to discard ray hits later. */
     bool hit_valid = !(discard_backface && prev_delta < 0.0) && (depth_sample != 1.0);
@@ -112,7 +112,7 @@ bool raytrace_screen(RayTraceData rt_data,
 #endif
   }
 #ifndef METAL_AMD_RAYTRACE_WORKAROUND
-  /* Discard backface hits. */
+  /* Discard back-face hits. */
   hit = hit && !(discard_backface && prev_delta < 0.0);
   /* Reject hit if background. */
   hit = hit && (depth_sample != 1.0);

@@ -9,9 +9,9 @@
  * that during the convolution phase.
  *
  * Inputs:
- * - Output of setup pass (halfres) and reduce downsample pass (quarter res).
+ * - Output of setup pass (half-resolution) and reduce downsample pass (quarter res).
  * Outputs:
- * - Halfres padded to avoid mipmap misalignment (so possibly not matching input size).
+ * - Half-resolution padded to avoid mipmap misalignment (so possibly not matching input size).
  * - Gather input color (whole mip chain), Scatter rect list, Signed CoC (whole mip chain).
  */
 
@@ -52,7 +52,7 @@ float dof_scatter_screen_border_rejection(float coc, ivec2 texel)
   vec2 uv = (vec2(texel) + 0.5) / screen_size;
   vec2 screen_pos = uv * screen_size;
   float min_screen_border_distance = min_v2(min(screen_pos, screen_size - screen_pos));
-  /* Fullres to halfres CoC. */
+  /* Full-resolution to half-resolution CoC. */
   coc *= 0.5;
   /* Allow 10px transition. */
   const float rejection_hardeness = 1.0 / 10.0;
@@ -153,7 +153,7 @@ void main()
           /* NOTE: Since we flipped the quad along (1,-1) line, we need to also swap the (1,1) and
            * (0,0) values so that quad_offsets is in the right order in the vertex shader. */
 
-          /* Circle of Confusion absolute radius in halfres pixels. */
+          /* Circle of Confusion absolute radius in half-resolution pixels. */
           rect_fg.color_and_coc[0].a = coc4_fg[0];
           rect_fg.color_and_coc[1].a = coc4_fg[3];
           rect_fg.color_and_coc[2].a = coc4_fg[2];
@@ -182,7 +182,7 @@ void main()
           rect_bg.offset = offset;
           rect_bg.half_extent = half_extent;
 
-          /* Circle of Confusion absolute radius in halfres pixels. */
+          /* Circle of Confusion absolute radius in half-resolution pixels. */
           rect_bg.color_and_coc[0].a = coc4_bg[0];
           rect_bg.color_and_coc[1].a = coc4_bg[1];
           rect_bg.color_and_coc[2].a = coc4_bg[2];

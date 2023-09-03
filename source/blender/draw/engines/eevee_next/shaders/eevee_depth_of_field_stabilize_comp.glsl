@@ -9,12 +9,12 @@
  * - We run this pass at half resolution.
  * - We store CoC instead of Opacity in the alpha channel of the history.
  *
- * This is and adaption of the code found in eevee_film_lib.glsl
+ * This is and adaption of the code found in `eevee_film_lib.glsl`.
  *
  * Inputs:
- * - Output of setup pass (halfres).
+ * - Output of setup pass (half-resolution).
  * Outputs:
- * - Stabilized Color and CoC (halfres).
+ * - Stabilized Color and CoC (half-resolution).
  */
 
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
@@ -81,7 +81,7 @@ void dof_cache_init()
       if (all(lessThan(gl_LocalInvocationID.xy, uvec2(cache_depth_size / 2u)))) {
         ivec2 offset = ivec2(x, y) * ivec2(cache_depth_size / 2u);
         ivec2 cache_texel = ivec2(gl_LocalInvocationID.xy) + offset;
-        /* Depth is fullres. Load every 2 pixels. */
+        /* Depth is full-resolution. Load every 2 pixels. */
         ivec2 load_texel = clamp((texel + offset - 2) * 2, ivec2(0), textureSize(depth_tx, 0) - 1);
 
         depth_cache[cache_texel.y][cache_texel.x] = texelFetch(depth_tx, load_texel, 0).x;

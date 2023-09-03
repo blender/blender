@@ -13,7 +13,7 @@
 
 void extrude_edge(bool invert)
 {
-  /* Reverse order if backfacing the light. */
+  /* Reverse order if back-facing the light. */
   ivec2 idx = (invert) ? ivec2(1, 2) : ivec2(2, 1);
   gl_Position = vData[idx.x].frontPosition;
   EmitVertex();

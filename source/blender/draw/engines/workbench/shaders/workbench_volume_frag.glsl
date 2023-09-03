@@ -305,6 +305,6 @@ void main()
                                  length(vs_ray_dir) * stepLength);
 #endif
 
-  /* Convert transmitance to alpha so we can use premul blending. */
+  /* Convert transmittance to alpha so we can use pre-multiply blending. */
   fragColor.a = 1.0 - fragColor.a;
 }

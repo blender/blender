@@ -3266,7 +3266,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   madd_v3fl_v3fl_v3fl_v3i(max, fds->p0, cell_size_scaled, fds->res_max);
   sub_v3_v3v3(size, max, min);
 
-  /* Biggest dimension will be used for upscaling. */
+  /* Biggest dimension will be used for up-scaling. */
   float max_size = MAX3(size[0], size[1], size[2]);
 
   float co_scale[3];

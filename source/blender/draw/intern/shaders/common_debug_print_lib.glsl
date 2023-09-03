@@ -221,7 +221,7 @@ void drw_print_value(bool value)
 
 #  endif
 
-/* NOTE(@fclem): This is homebrew and might not be 100% accurate (accuracy has
+/* NOTE(@fclem): This is home-brew and might not be 100% accurate (accuracy has
  * not been tested and might dependent on compiler implementation). If unsure,
  * use drw_print_value_hex and transcribe the value manually with another tool. */
 void drw_print_value(float val)

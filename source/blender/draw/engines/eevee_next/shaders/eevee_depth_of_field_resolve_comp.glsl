@@ -6,7 +6,7 @@
  * Recombine Pass: Load separate convolution layer and composite with self
  * slight defocus convolution and in-focus fields.
  *
- * The halfres gather methods are fast but lack precision for small CoC areas.
+ * The half-resolution gather methods are fast but lack precision for small CoC areas.
  * To fix this we do a brute-force gather to have a smooth transition between
  * in-focus and defocus regions.
  */
@@ -52,7 +52,7 @@ vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float
   const vec2 corners[4] = vec2[4](vec2(-1, -1), vec2(1, -1), vec2(-1, 1), vec2(1, 1));
   for (int i = 0; i < 4; i++) {
     /**
-     * Visit the 4 half-res texels around (and containing) the fullres texel.
+     * Visit the 4 half-res texels around (and containing) the full-resolution texel.
      * Here a diagram of a full-screen texel (f) in the bottom left corner of a half res texel.
      * We sample the stable half-resolution texture at the 4 location denoted by (h).
      * ┌───────┬───────┐
