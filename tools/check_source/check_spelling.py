@@ -58,7 +58,7 @@ else:
     COLOR_WORD = ""
     COLOR_ENDC = ""
 
-from check_spelling_c_config import (
+from check_spelling_config import (
     dict_custom,
     dict_ignore,
     dict_ignore_hyphenated_prefix,
