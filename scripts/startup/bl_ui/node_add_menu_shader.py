@@ -82,7 +82,7 @@ class NODE_MT_category_shader_input(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeRGB")
         node_add_menu.add_node_type(layout, "ShaderNodeTangent")
         node_add_menu.add_node_type(layout, "ShaderNodeTexCoord")
-        node_add_menu.add_node_type(layout, "ShaderNodeUVAlongStroke", poll=line_style_shader_nodes_poll(context)),
+        node_add_menu.add_node_type(layout, "ShaderNodeUVAlongStroke", poll=line_style_shader_nodes_poll(context))
         node_add_menu.add_node_type(layout, "ShaderNodeUVMap")
         node_add_menu.add_node_type(layout, "ShaderNodeValue")
         node_add_menu.add_node_type(layout, "ShaderNodeVolumeInfo")
@@ -98,11 +98,30 @@ class NODE_MT_category_shader_output(Menu):
     def draw(self, context):
         layout = self.layout
 
-        node_add_menu.add_node_type(layout, "ShaderNodeOutputMaterial", poll=object_eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeOutputLight", poll=object_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeOutputAOV"),
-        node_add_menu.add_node_type(layout, "ShaderNodeOutputWorld", poll=world_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeOutputLineStyle", poll=line_style_shader_nodes_poll(context)),
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeOutputMaterial",
+            poll=object_eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeOutputLight",
+            poll=object_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeOutputAOV",
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeOutputWorld",
+            poll=world_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeOutputLineStyle",
+            poll=line_style_shader_nodes_poll(context),
+        )
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
@@ -114,27 +133,110 @@ class NODE_MT_category_shader_shader(Menu):
     def draw(self, context):
         layout = self.layout
 
-        node_add_menu.add_node_type(layout, "ShaderNodeAddShader", poll=eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBackground", poll=world_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfDiffuse", poll=object_eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeEmission", poll=eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfGlass", poll=object_eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfGlossy", poll=object_eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfHair", poll=object_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeHoldout", poll=object_eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeMixShader", poll=eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfPrincipled", poll=object_eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfHairPrincipled", poll=object_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeVolumePrincipled"),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfRefraction", poll=object_eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfSheen", poll=object_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeEeveeSpecular", poll=object_eevee_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeSubsurfaceScattering", poll=object_eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfToon", poll=object_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfTranslucent", poll=object_eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeBsdfTransparent", poll=object_eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeVolumeAbsorption", poll=eevee_cycles_shader_nodes_poll(context)),
-        node_add_menu.add_node_type(layout, "ShaderNodeVolumeScatter", poll=eevee_cycles_shader_nodes_poll(context)),
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeAddShader",
+            poll=eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBackground",
+            poll=world_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfDiffuse",
+            poll=object_eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeEmission",
+            poll=eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfGlass",
+            poll=object_eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfGlossy",
+            poll=object_eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfHair",
+            poll=object_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeHoldout",
+            poll=object_eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeMixShader",
+            poll=eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfPrincipled",
+            poll=object_eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfHairPrincipled",
+            poll=object_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeVolumePrincipled"
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfRefraction",
+            poll=object_eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfSheen",
+            poll=object_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeEeveeSpecular",
+            poll=object_eevee_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeSubsurfaceScattering",
+            poll=object_eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfToon",
+            poll=object_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfTranslucent",
+            poll=object_eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfTransparent",
+            poll=object_eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeVolumeAbsorption",
+            poll=eevee_cycles_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeVolumeScatter",
+            poll=eevee_cycles_shader_nodes_poll(context),
+        )
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
@@ -179,7 +281,7 @@ class NODE_MT_category_shader_converter(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeRGBToBW")
         node_add_menu.add_node_type(layout, "ShaderNodeSeparateColor")
         node_add_menu.add_node_type(layout, "ShaderNodeSeparateXYZ")
-        node_add_menu.add_node_type(layout, "ShaderNodeShaderToRGB", poll=object_eevee_shader_nodes_poll(context)),
+        node_add_menu.add_node_type(layout, "ShaderNodeShaderToRGB", poll=object_eevee_shader_nodes_poll(context))
         node_add_menu.add_node_type(layout, "ShaderNodeVectorMath")
         node_add_menu.add_node_type(layout, "ShaderNodeWavelength")
 

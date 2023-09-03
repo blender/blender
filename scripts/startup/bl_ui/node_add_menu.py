@@ -17,7 +17,7 @@ def add_node_type(layout, node_type, *, label=None, poll=None):
     if not label:
         label = bl_rna.name if bl_rna else iface_("Unknown")
 
-    if poll == True or poll == None:
+    if poll is True or poll is None:
         translation_context = bl_rna.translation_context if bl_rna else i18n_contexts.default
         props = layout.operator("node.add_node", text=label, text_ctxt=translation_context)
         props.type = node_type
@@ -85,6 +85,7 @@ class NODE_MT_category_layout(Menu):
         node_add_menu.add_node_type(layout, "NodeReroute")
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+
 
 classes = (
     NODE_MT_category_layout,
