@@ -1268,8 +1268,10 @@ static void image_open_cancel(bContext * /*C*/, wmOperator *op)
   op->customdata = nullptr;
 }
 
-static Image *image_open_single(
-    Main *bmain, wmOperator *op, ImageFrameRange *range, const char *relbase, bool use_multiview)
+static Image *image_open_single(Main *bmain,
+                                wmOperator *op,
+                                ImageFrameRange *range,
+                                bool use_multiview)
 {
   bool exists = false;
   Image *ima = nullptr;
@@ -1346,8 +1348,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
   ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
-    Image *ima_range = image_open_single(
-        bmain, op, range, BKE_main_blendfile_path(bmain), use_multiview);
+    Image *ima_range = image_open_single(bmain, op, range, use_multiview);
 
     /* take the first image */
     if ((ima == nullptr) && ima_range) {
