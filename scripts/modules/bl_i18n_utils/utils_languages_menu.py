@@ -41,7 +41,7 @@ def gen_menu_file(stats, settings):
     highest_uid = 0
     for lvl, uid_num, label, uid, flag in stats:
         if lvl < limits[idx][0]:
-            # Sub-sort languages by iso-codes.
+            # Sub-sort languages by ISO-codes.
             langs_cats[idx].sort(key=lambda it: it[2])
             idx += 1
         if lvl < settings.IMPORT_MIN_LEVEL and flag == OK:
@@ -49,7 +49,7 @@ def gen_menu_file(stats, settings):
         langs_cats[idx].append((uid_num, label, uid, flag))
         if abs(uid_num) > highest_uid:
             highest_uid = abs(uid_num)
-    # Sub-sort last group of languages by iso-codes!
+    # Sub-sort last group of languages by ISO-codes!
     langs_cats[idx].sort(key=lambda it: it[2])
     data_lines = [
         "# File used by Blender to know which languages (translations) are available, ",

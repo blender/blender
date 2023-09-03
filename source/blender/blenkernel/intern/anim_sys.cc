@@ -1665,12 +1665,13 @@ static bool nla_combine_get_inverted_lower_value(const int mix_mode,
          * up interpolation for the animator, requiring further cleanup on their part.
          */
         if (IS_EQF(blended_value, 0.0f)) {
-          /* For blending, nla_combine_value(), when strip_value==0:
-           *
-           *        blended_value = lower_value * powf(strip_value / base_value, infl);
-           *        blended_value = lower_value * powf(0, infl);
-           *        blended_value = lower_value * 0;
-           *        blended_value = 0;
+          /* For blending, nla_combine_value(), when `strip_value == 0`:
+           * \code{.cc}
+           * blended_value = lower_value * powf(strip_value / base_value, infl);
+           * blended_value = lower_value * powf(0, infl);
+           * blended_value = lower_value * 0;
+           * blended_value = 0;
+           * \endcode
            *
            * Effectively, blended_value will equal 0 no matter what lower_value is. Put another
            * way, when (blended_value==0 and strip_value==0), then lower_value can be any value and

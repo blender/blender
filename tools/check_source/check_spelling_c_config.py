@@ -6,7 +6,7 @@
 
 dict_custom = {
     # Added to newer versions of the dictionary,
-    # we can remove these when the updated word-lists have been applied to aspell-en.
+    # we can remove these when the updated word-lists have been applied to `aspell-en`.
     "accessor",
     "accessors",
     "completer",
@@ -124,6 +124,11 @@ dict_custom = {
     "discretized",
     "discretizes",
     "downcasting",
+    "downsample",
+    "downsampled",
+    "downsampler",
+    "downsamples",
+    "downsampling",
     "draggable",
     "drawable",
     "durations",
@@ -210,6 +215,11 @@ dict_custom = {
     "orthonormalize",
     "orthonormalized",
     "overridable",
+    "oversample",
+    "oversampled",
+    "oversampler",
+    "oversamples",
+    "oversampling",
     "paddings",
     "paintable",
     "pannable",
@@ -302,6 +312,7 @@ dict_custom = {
     "reprojection",
     "reprojections",
     "repurpose",
+    "rescale",
     "rescaled",
     "respecialized",
     "resynced",
@@ -311,6 +322,7 @@ dict_custom = {
     "saveable",
     "schemas",
     "scrollable",
+    "selectability",
     "serializers",
     "shadowless",
     "sharpnesses",
@@ -333,6 +345,11 @@ dict_custom = {
     "subtractive",
     "subtype",
     "subtypes",
+    "supersample",
+    "supersampled",
+    "supersampler",
+    "supersamples",
+    "supersampling",
     "superset",
     "symmetrizable",
     "symmetrize",
@@ -375,6 +392,10 @@ dict_custom = {
     "undeform",
     "undeformed",
     "undeformed",
+    "undersample",
+    "undersampled",
+    "undersamples",
+    "undersampling",
     "undisplaced",
     "undistored",
     "undistorted",
@@ -421,6 +442,7 @@ dict_custom = {
     "unparsed",
     "unpause",
     "unpaused",
+    "unphysical",
     "unpoision",
     "unproject",
     "unquantifiable",
@@ -453,6 +475,11 @@ dict_custom = {
     "unusably",
     "unvisited",
     "unwritable",
+    "upsample",
+    "upsampled",
+    "upsampler",
+    "upsamples",
+    "upsampling",
     "userless",
     "vectorial",
     "vectorization",
@@ -795,6 +822,10 @@ dict_ignore_hyphenated_suffix = {
 
 files_ignore = {
     "tools/utils_doc/rna_manual_reference_updater.py",  # Contains language ID references.
+
+    # Maintained by 3rd party.
+    "source/blender/draw/intern/shaders/common_fxaa_lib.glsl",
+    "source/blender/gpu/shaders/common/gpu_shader_smaa_lib.glsl",
 }
 
 directories_ignore = {

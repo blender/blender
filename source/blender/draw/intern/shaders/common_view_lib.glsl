@@ -89,7 +89,7 @@ uniform int drw_resourceChunk;
 
 #    if defined(UNIFORM_RESOURCE_ID)
 /* This is in the case we want to do a special instance drawcall for one object but still want to
- * have the right resourceId and all the correct ubo datas. */
+ * have the right resourceId and all the correct UBO datas. */
 uniform int drw_ResourceID;
 #      define resource_id drw_ResourceID
 #    else

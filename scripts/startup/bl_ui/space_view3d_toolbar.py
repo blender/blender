@@ -738,9 +738,9 @@ class VIEW3D_PT_tools_brush_stroke_smooth_stroke(Panel, View3DPaintPanel, Smooth
 
 
 class VIEW3D_PT_tools_weight_gradient(Panel, View3DPaintPanel):
-    # dont give context on purpose to not show this in the generic header toolsettings
+    # Don't give context on purpose to not show this in the generic header tool-settings
     # this is added only in the gradient tool's ToolDef
-    # bl_context = ".weightpaint" # dot on purpose (access from topbar)
+    # `bl_context = ".weightpaint"` # dot on purpose (access from top-bar)
     bl_label = "Falloff"
     bl_options = {'DEFAULT_CLOSED'}
     # also dont draw as an extra panel in the sidebar (already included in the Brush settings)

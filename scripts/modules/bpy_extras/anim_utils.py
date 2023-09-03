@@ -287,7 +287,7 @@ def bake_action_iter(
                 while pbone.constraints:
                     pbone.constraints.remove(pbone.constraints[0])
 
-            # Create compatible eulers, quats.
+            # Create compatible euler & quaternion rotation values.
             euler_prev = None
             quat_prev = None
 

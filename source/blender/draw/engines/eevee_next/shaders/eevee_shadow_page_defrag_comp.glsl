@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadow-mapping: Defrag.
+ * Virtual shadow-mapping: Defragment.
  *
  * Defragment the cached page buffer making one continuous array.
  *

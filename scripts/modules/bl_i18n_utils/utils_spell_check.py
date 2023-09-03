@@ -756,7 +756,7 @@ class SpellChecker:
         "hc",
         "hdc",
         "hdr", "hdri", "hdris",
-        "hh", "mm", "ss", "ff",  # hh:mm:ss:ff timecode
+        "hh", "mm", "ss", "ff",  # `hh:mm:ss:ff` time-code.
         "hpg",  # Intel Xe-HPG architecture
         "hsv", "hsva", "hsl",
         "id",

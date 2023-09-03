@@ -299,7 +299,7 @@ vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
 
   /* The original paper uses `FssEss * radiance + Fms*Ems * irradiance`, but
    * "A Journey Through Implementing Multiscattering BRDFs and Area Lights" by Steve McAuley
-   * suggests to use `FssEss * radiance + Fms*Ems * radiance` which results in comparible quality.
+   * suggests to use `FssEss * radiance + Fms*Ems * radiance` which results in comparable quality.
    * We handle `radiance` outside of this function, so the result simplifies to:
    * `FssEss + Fms*Ems = FssEss * (1 + Ems*Favg / (1 - Ems*Favg)) = FssEss / (1 - Ems*Favg)`.
    * This is a simple albedo scaling very similar to the approach used by Cycles:

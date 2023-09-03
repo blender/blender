@@ -10,7 +10,7 @@ import sys
 
 # Hashes to be ignored
 #
-# The system sometimes fails to match commits and suggests to backport
+# The system sometimes fails to match commits and suggests to back-port
 # revision which was already ported. In order to solve that we can:
 #
 # - Explicitly ignore some of the commits.

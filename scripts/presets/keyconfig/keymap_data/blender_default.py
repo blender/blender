@@ -850,7 +850,7 @@ def km_screen(params):
         ])
 
     if params.apple:
-        # Apple undo and user prefs
+        # Apple undo and user-preferences.
         items.extend([
             ("screen.userpref_show", {"type": 'COMMA', "value": 'PRESS', "oskey": True}, None),
         ])
@@ -4041,7 +4041,7 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Context menu
         *_template_items_context_panel("VIEW3D_PT_gpencil_sculpt_context_menu", params.context_menu_event),
-        # Automasking Pie menu
+        # Auto-masking Pie menu.
         op_menu_pie("VIEW3D_MT_sculpt_gpencil_automasking_pie", {
                     "type": 'A', "shift": True, "alt": True, "value": 'PRESS'}),
     ])

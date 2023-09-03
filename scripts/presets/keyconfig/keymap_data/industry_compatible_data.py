@@ -3442,7 +3442,7 @@ def km_image_paint(params):
         # Stabilize Strokes
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.image_paint.brush.use_smooth_stroke')]}),
-        # Contrext Menu
+        # Context menu.
         *_template_items_context_panel("VIEW3D_PT_paint_texture_context_menu",
                                        {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         # Tools
@@ -3500,7 +3500,7 @@ def km_vertex_paint(params):
         # Stabilize Stroke
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.vertex_paint.brush.use_smooth_stroke')]}),
-        # Contrext Menu
+        # Context menu.
         *_template_items_context_panel("VIEW3D_PT_paint_vertex_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         # Tools
         op_tool_cycle("builtin.select_box", {"type": 'Q', "value": 'PRESS'}),
@@ -3546,7 +3546,7 @@ def km_weight_paint(params):
         # Stabilize Stroke
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.weight_paint.brush.use_smooth_stroke')]}),
-        # Contrext Menu
+        # Context menu.
         *_template_items_context_panel("VIEW3D_PT_paint_weight_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         # For combined weight paint + pose mode.
         ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True}, None),
@@ -3817,7 +3817,7 @@ def km_armature(params):
     return keymap
 
 
-# Metaball edit mode.
+# Meta-ball edit mode.
 def km_metaball(params):
     items = []
     keymap = (

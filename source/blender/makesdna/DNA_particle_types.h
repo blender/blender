@@ -137,7 +137,7 @@ typedef struct ParticleData {
   /** Size and multiplier so that we can update size when ever. */
   float size;
 
-  /** Density of sph particle. */
+  /** Density of SPH particle. */
   float sphdensity;
   char _pad[4];
 

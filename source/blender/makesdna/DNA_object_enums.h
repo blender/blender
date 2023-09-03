@@ -54,7 +54,7 @@ typedef enum eDrawType {
 /** Any mode that uses Object.sculpt. */
 #define OB_MODE_ALL_SCULPT (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)
 
-/** Any mode that uses weightpaint. */
+/** Any mode that uses weight-paint. */
 #define OB_MODE_ALL_WEIGHT_PAINT (OB_MODE_WEIGHT_PAINT | OB_MODE_WEIGHT_GPENCIL_LEGACY)
 
 /**

@@ -111,7 +111,7 @@ float dither_random_value(vec2 co)
   /* Convert uniform distribution into triangle-shaped distribution. */
   float orig = nrnd0 * 2.0 - 1.0;
   nrnd0 = orig * inversesqrt(abs(orig));
-  nrnd0 = max(-1.0, nrnd0); /* Removes nan's */
+  nrnd0 = max(-1.0, nrnd0); /* Removes NAN's. */
   return nrnd0 - sign(orig);
 }
 
@@ -133,7 +133,7 @@ vec4 apply_dither(vec4 col, vec2 uv)
 /** \name Main Processing
  * \{ */
 
-/* Prototypes: Implementation is generaterd and defined after. */
+/* Prototypes: Implementation is generated and defined after. */
 #ifndef GPU_METAL /* Forward declaration invalid in MSL. */
 vec4 OCIO_to_scene_linear(vec4 pixel);
 vec4 OCIO_to_display(vec4 pixel);
@@ -151,7 +151,7 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
     }
   }
 
-  /* NOTE: This is true we only do de-premul here and NO premul
+  /* NOTE: This is true we only do de-pre-multiply here and NO pre-multiply
    *       and the reason is simple -- opengl is always configured
    *       for straight alpha at this moment
    */

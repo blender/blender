@@ -304,7 +304,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         col.row().prop(self, "v3d_mmb_action", text="Middle Mouse Action", expand=True)
         col.row().prop(self, "v3d_alt_mmb_drag_action", text="Alt Middle Mouse Drag Action", expand=True)
 
-        # Checkboxes sub-layout.
+        # Check-boxes sub-layout.
         col = layout.column()
         sub = col.column(align=True)
         sub.prop(self, "use_v3d_tab_menu")

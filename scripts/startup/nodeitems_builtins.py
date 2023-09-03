@@ -82,10 +82,10 @@ def node_group_items(context):
     for group in context.blend_data.node_groups:
         if group.bl_idname != ntree.bl_idname:
             continue
-        # filter out recursive groups
+        # Filter out recursive groups.
         if group.contains_tree(ntree):
             continue
-        # filter out hidden nodetrees
+        # Filter out hidden node-trees.
         if group.name.startswith('.'):
             continue
         yield NodeItem(node_tree_group_type[group.bl_idname],

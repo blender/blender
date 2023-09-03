@@ -81,7 +81,7 @@ def complete(line, cursor, namespace, private):
 
 
 def expand(line, cursor, namespace, *, private=True):
-    """This method is invoked when the user asks autocompletion,
+    """This method is invoked when the user asks auto-completion,
     e.g. when Ctrl+Space is clicked.
 
     :arg line: incomplete text line

@@ -108,10 +108,10 @@ IMPORT_LANGUAGES_RTL = {
     'ar_EG', 'fa_IR', 'he_IL',
 }
 
-# The comment prefix used in generated messages.txt file.
+# The comment prefix used in generated `messages.txt` file.
 MSG_COMMENT_PREFIX = "#~ "
 
-# The comment prefix used in generated messages.txt file.
+# The comment prefix used in generated `messages.txt` file.
 MSG_CONTEXT_PREFIX = "MSGCTXT:"
 
 # The default comment prefix used in po's.
@@ -514,12 +514,12 @@ if not os.path.exists(BLENDER_EXEC):
 # The gettext msgfmt "compiler". You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 GETTEXT_MSGFMT_EXECUTABLE = "msgfmt"
 
-# The FriBidi C compiled library (.so under Linux, .dll under windows...).
-# You’ll likely have to edit it in your user_settings.py if you’re under Windows., e.g. using the included one:
-#     FRIBIDI_LIB = os.path.join(TOOLS_DIR, "libfribidi.dll")
+# The FriBidi C compiled library (.so under Linux, `.dll` under windows...).
+# You’ll likely have to edit it in your `user_settings.py` if you’re under Windows., e.g. using the included one:
+# `FRIBIDI_LIB = os.path.join(TOOLS_DIR, "libfribidi.dll")`
 FRIBIDI_LIB = "libfribidi.so.0"
 
-# The name of the (currently empty) file that must be present in a po's directory to enable rtl-preprocess.
+# The name of the (currently empty) file that must be present in a po's directory to enable RTL-preprocess.
 RTL_PREPROCESS_FILE = "is_rtl"
 
 # The Blender source root path.
@@ -565,7 +565,7 @@ ASSET_CATALOG_FILE = "blender_assets.cats.txt"
 # The template messages file (relative to I18N_DIR).
 REL_FILE_NAME_POT = os.path.join(REL_BRANCHES_DIR, DOMAIN + ".pot")
 
-# Mo root datapath.
+# Mo root data-path.
 REL_MO_PATH_ROOT = os.path.join(REL_TRUNK_DIR, "locale")
 
 # Mo path generator for a given language.

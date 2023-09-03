@@ -73,7 +73,7 @@ def main(context, event):
 class ViewOperatorRayCast(bpy.types.Operator):
     """Modal object selection with a ray cast"""
     bl_idname = "view3d.modal_operator_raycast"
-    bl_label = "RayCast View Operator"
+    bl_label = "Ray-cast View Operator"
 
     def modal(self, context, event):
         if event.type in {'MIDDLEMOUSE', 'WHEELUPMOUSE', 'WHEELDOWNMOUSE'}:
@@ -100,7 +100,7 @@ def menu_func(self, context):
     self.layout.operator(ViewOperatorRayCast.bl_idname, text="Raycast View Modal Operator")
 
 
-# Register and add to the "view" menu (required to also use F3 search "Raycast View Modal Operator" for quick access).
+# Register and add to the "view" menu (required to also use F3 search "Ray-cast View Modal Operator" for quick access).
 def register():
     bpy.utils.register_class(ViewOperatorRayCast)
     bpy.types.VIEW3D_MT_view.append(menu_func)

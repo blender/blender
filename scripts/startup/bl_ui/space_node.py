@@ -249,7 +249,7 @@ class NODE_MT_add(bpy.types.Menu):
 
             layout.separator()
 
-            # actual node submenus are defined by draw functions from node categories
+            # Actual node sub-menus are defined by draw functions from node categories.
             nodeitems_utils.draw_node_categories_menu(self, context)
 
 

@@ -2236,7 +2236,7 @@ static int rna_Object_mesh_symmetry_yz_editable(PointerRNA *ptr, const char ** /
 
   const Mesh *mesh = static_cast<Mesh *>(ob->data);
   if (ob->mode == OB_MODE_WEIGHT_PAINT && mesh->editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) {
-    /* Only X symmetry is available in weightpaint mode. */
+    /* Only X symmetry is available in weight-paint mode. */
     return 0;
   }
 

@@ -1183,7 +1183,7 @@ class WM_OT_path_open(Operator):
             try:
                 subprocess.check_call(["xdg-open", filepath])
             except BaseException:
-                # xdg-open *should* be supported by recent Gnome, KDE, Xfce
+                # `xdg-open` *should* be supported by recent Gnome, KDE, XFCE.
                 import traceback
                 traceback.print_exc()
 

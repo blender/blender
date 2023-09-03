@@ -836,7 +836,7 @@ class PerlinNoise2DShader(StrokeShader):
     that in a scene no strokes will be distorted identically.
 
     More information on the noise shaders can be found at:
-    freestyleintegration.wordpress.com/2011/09/25/development-updates-on-september-25/
+    https://freestyleintegration.wordpress.com/2011/09/25/development-updates-on-september-25/
     """
 
     def __init__(self, freq=10, amp=10, oct=4, angle=radians(45), seed=-1):

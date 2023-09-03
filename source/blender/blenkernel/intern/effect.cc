@@ -839,7 +839,7 @@ static void get_effector_tot(
     if (eff->pd->forcefield == PFIELD_CHARGE) {
       /* Only the charge of the effected particle is used for
        * interaction, not fall-offs. If the fall-offs aren't the
-       * same this will be unphysical, but for animation this
+       * same this will be nonphysical, but for animation this
        * could be the wanted behavior. If you want physical
        * correctness the fall-off should be spherical 2.0 anyways.
        */

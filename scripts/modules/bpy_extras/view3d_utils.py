@@ -159,7 +159,7 @@ def location_3d_to_region_2d(region, rv3d, coord, *, default=None):
     :type region: :class:`bpy.types.Region`
     :arg rv3d: 3D region data, typically bpy.context.space_data.region_3d.
     :type rv3d: :class:`bpy.types.RegionView3D`
-    :arg coord: 3d worldspace location.
+    :arg coord: 3d world-space location.
     :type coord: 3d vector
     :arg default: Return this value if ``coord``
        is behind the origin of a perspective view.

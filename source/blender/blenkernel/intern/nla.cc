@@ -2304,7 +2304,7 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
         BKE_nlastrip_recalculate_bounds_sync_action(strip);
       }
 
-      /* clear tweakuser flag */
+      /* Clear tweak-user flag. */
       strip->flag &= ~NLASTRIP_FLAG_TWEAKUSER;
     }
   }

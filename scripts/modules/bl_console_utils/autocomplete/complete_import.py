@@ -4,7 +4,7 @@
 
 # Copyright (c) 2009 Fernando Perez, www.stani.be
 
-# Original copyright (see docstring):
+# Original copyright (see doc-string):
 # ****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
 #
@@ -175,6 +175,6 @@ def complete(line):
         return filter_prefix(try_import(mod), words[-1])
 
     # get here if the import is not found
-    # import invalidmodule
-    #                      ^, in this case return nothing
+    # import invalid_module
+    #                       ^, in this case return nothing
     return []

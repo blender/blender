@@ -29,8 +29,8 @@
  * behavior. Uncomment DISABLE_DEBUG_SHADER_drw_print_BARRIER to remove the barriers if that
  * happens. But then you are limited to a single invocation output.
  *
- * IMPORTANT: All of these are copied to the CPU debug libs (draw_debug.cc). They need to be kept
- * in sync to write the same data.
+ * IMPORTANT: All of these are copied to the CPU debug libraries (draw_debug.cc).
+ * They need to be kept in sync to write the same data.
  */
 
 #ifdef DRW_DEBUG_PRINT
