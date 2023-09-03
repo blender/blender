@@ -16,7 +16,7 @@
 #include "draw_shader.h"
 #include "draw_testing.hh"
 #include "engines/eevee_next/eevee_instance.hh"
-#include "engines/eevee_next/eevee_lut.hh"
+#include "engines/eevee_next/eevee_precompute.hh"
 
 namespace blender::draw {
 
@@ -1448,8 +1448,8 @@ static void test_eevee_lut_gen()
   Manager manager;
 
   /* Check if LUT generation matches the header version. */
-  auto bsdf_ggx_gen = LookUpTable(manager, LUT_GGX_BRDF_SPLIT_SUM, {64, 64, 1}).data<float2>();
-  auto btdf_ggx_gen = LookUpTable(manager, LUT_GGX_BTDF_SPLIT_SUM, {64, 64, 16}).data<float2>();
+  auto bsdf_ggx_gen = Precompute(manager, LUT_GGX_BRDF_SPLIT_SUM, {64, 64, 1}).data<float2>();
+  auto btdf_ggx_gen = Precompute(manager, LUT_GGX_BTDF_SPLIT_SUM, {64, 64, 16}).data<float2>();
 
   Span<float2> bsdf_ggx_lut(reinterpret_cast<const float2 *>(bsdf_split_sum_ggx), 64 * 64);
   Span<float2> btdf_ggx_lut(reinterpret_cast<const float2 *>(btdf_split_sum_ggx), 64 * 64 * 16);

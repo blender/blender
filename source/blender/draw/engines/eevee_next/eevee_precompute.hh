@@ -21,16 +21,16 @@ namespace blender::eevee {
 /**
  * Create a look-up table of the specified type using GPU compute.
  * Not to be used at runtime in final release.
- * Usage example: `LookUpTable(manager, LUT_GGX_BRDF_SPLIT_SUM, {64, 64, 1}).data<float2>()`
+ * Usage example: `Precompute(manager, LUT_GGX_BRDF_SPLIT_SUM, {64, 64, 1}).data<float2>()`
  */
-class LookUpTable {
+class Precompute {
  private:
   int3 table_extent_;
   float4 *raw_data_ = nullptr;
 
  public:
-  LookUpTable(draw::Manager &manager, LookUpTableType table_type, int3 table_extent);
-  ~LookUpTable();
+  Precompute(draw::Manager &manager, PrecomputeType type, int3 table_extent);
+  ~Precompute();
 
   /* Cast each pixel data to type `T`. */
   template<typename T> Vector<T> data()
