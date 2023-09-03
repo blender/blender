@@ -27,7 +27,7 @@ namespace blender::bke {
 using namespace io::serialize;
 using DictionaryValuePtr = std::shared_ptr<DictionaryValue>;
 
-std::shared_ptr<DictionaryValue> BDataSlice::serialize() const
+std::shared_ptr<DictionaryValue> BlobSlice::serialize() const
 {
   auto io_slice = std::make_shared<DictionaryValue>();
   io_slice->append_str("name", this->name);
@@ -36,7 +36,7 @@ std::shared_ptr<DictionaryValue> BDataSlice::serialize() const
   return io_slice;
 }
 
-std::optional<BDataSlice> BDataSlice::deserialize(const DictionaryValue &io_slice)
+std::optional<BlobSlice> BlobSlice::deserialize(const DictionaryValue &io_slice)
 {
   const std::optional<StringRefNull> name = io_slice.lookup_str("name");
   const std::optional<int64_t> start = io_slice.lookup_int("start");
@@ -45,48 +45,48 @@ std::optional<BDataSlice> BDataSlice::deserialize(const DictionaryValue &io_slic
     return std::nullopt;
   }
 
-  return BDataSlice{*name, {*start, *size}};
+  return BlobSlice{*name, {*start, *size}};
 }
 
-DiskBDataReader::DiskBDataReader(std::string bdata_dir) : bdata_dir_(std::move(bdata_dir)) {}
+DiskBlobReader::DiskBlobReader(std::string blobs_dir) : blobs_dir_(std::move(blobs_dir)) {}
 
-[[nodiscard]] bool DiskBDataReader::read(const BDataSlice &slice, void *r_data) const
+[[nodiscard]] bool DiskBlobReader::read(const BlobSlice &slice, void *r_data) const
 {
   if (slice.range.is_empty()) {
     return true;
   }
 
-  char bdata_path[FILE_MAX];
-  BLI_path_join(bdata_path, sizeof(bdata_path), bdata_dir_.c_str(), slice.name.c_str());
+  char blob_path[FILE_MAX];
+  BLI_path_join(blob_path, sizeof(blob_path), blobs_dir_.c_str(), slice.name.c_str());
 
   std::lock_guard lock{mutex_};
-  std::unique_ptr<fstream> &bdata_file = open_input_streams_.lookup_or_add_cb_as(
-      bdata_path,
-      [&]() { return std::make_unique<fstream>(bdata_path, std::ios::in | std::ios::binary); });
-  bdata_file->seekg(slice.range.start());
-  bdata_file->read(static_cast<char *>(r_data), slice.range.size());
-  if (bdata_file->gcount() != slice.range.size()) {
+  std::unique_ptr<fstream> &blob_file = open_input_streams_.lookup_or_add_cb_as(blob_path, [&]() {
+    return std::make_unique<fstream>(blob_path, std::ios::in | std::ios::binary);
+  });
+  blob_file->seekg(slice.range.start());
+  blob_file->read(static_cast<char *>(r_data), slice.range.size());
+  if (blob_file->gcount() != slice.range.size()) {
     return false;
   }
   return true;
 }
 
-DiskBDataWriter::DiskBDataWriter(std::string bdata_name,
-                                 std::ostream &bdata_file,
-                                 const int64_t current_offset)
-    : bdata_name_(std::move(bdata_name)), bdata_file_(bdata_file), current_offset_(current_offset)
+DiskBlobWriter::DiskBlobWriter(std::string blob_name,
+                               std::ostream &blob_file,
+                               const int64_t current_offset)
+    : blob_name_(std::move(blob_name)), blob_file_(blob_file), current_offset_(current_offset)
 {
 }
 
-BDataSlice DiskBDataWriter::write(const void *data, const int64_t size)
+BlobSlice DiskBlobWriter::write(const void *data, const int64_t size)
 {
   const int64_t old_offset = current_offset_;
-  bdata_file_.write(static_cast<const char *>(data), size);
+  blob_file_.write(static_cast<const char *>(data), size);
   current_offset_ += size;
-  return {bdata_name_, {old_offset, size}};
+  return {blob_name_, {old_offset, size}};
 }
 
-BDataSharing::~BDataSharing()
+BlobSharing::~BlobSharing()
 {
   for (const ImplicitSharingInfo *sharing_info : stored_by_runtime_.keys()) {
     sharing_info->remove_weak_user_and_delete_if_last();
@@ -98,8 +98,8 @@ BDataSharing::~BDataSharing()
   }
 }
 
-DictionaryValuePtr BDataSharing::write_shared(const ImplicitSharingInfo *sharing_info,
-                                              FunctionRef<DictionaryValuePtr()> write_fn)
+DictionaryValuePtr BlobSharing::write_shared(const ImplicitSharingInfo *sharing_info,
+                                             FunctionRef<DictionaryValuePtr()> write_fn)
 {
   if (sharing_info == nullptr) {
     return write_fn();
@@ -126,7 +126,7 @@ DictionaryValuePtr BDataSharing::write_shared(const ImplicitSharingInfo *sharing
       });
 }
 
-std::optional<ImplicitSharingInfoAndData> BDataSharing::read_shared(
+std::optional<ImplicitSharingInfoAndData> BlobSharing::read_shared(
     const DictionaryValue &io_data,
     FunctionRef<std::optional<ImplicitSharingInfoAndData>()> read_fn) const
 {
@@ -196,10 +196,10 @@ static std::optional<eCustomDataType> get_data_type_from_io_name(const StringRef
 /**
  * Write the data and remember which endianness the data had.
  */
-static std::shared_ptr<DictionaryValue> write_bdata_raw_data_with_endian(
-    BDataWriter &bdata_writer, const void *data, const int64_t size_in_bytes)
+static std::shared_ptr<DictionaryValue> write_blob_raw_data_with_endian(
+    BlobWriter &blob_writer, const void *data, const int64_t size_in_bytes)
 {
-  auto io_data = bdata_writer.write(data, size_in_bytes).serialize();
+  auto io_data = blob_writer.write(data, size_in_bytes).serialize();
   if (ENDIAN_ORDER == B_ENDIAN) {
     io_data->append_str("endian", get_endian_io_name(ENDIAN_ORDER));
   }
@@ -209,20 +209,20 @@ static std::shared_ptr<DictionaryValue> write_bdata_raw_data_with_endian(
 /**
  * Read data of an into an array and optionally perform an endian switch if necessary.
  */
-[[nodiscard]] static bool read_bdata_raw_data_with_endian(const BDataReader &bdata_reader,
-                                                          const DictionaryValue &io_data,
-                                                          const int64_t element_size,
-                                                          const int64_t elements_num,
-                                                          void *r_data)
+[[nodiscard]] static bool read_blob_raw_data_with_endian(const BlobReader &blob_reader,
+                                                         const DictionaryValue &io_data,
+                                                         const int64_t element_size,
+                                                         const int64_t elements_num,
+                                                         void *r_data)
 {
-  const std::optional<BDataSlice> slice = BDataSlice::deserialize(io_data);
+  const std::optional<BlobSlice> slice = BlobSlice::deserialize(io_data);
   if (!slice) {
     return false;
   }
   if (slice->range.size() != element_size * elements_num) {
     return false;
   }
-  if (!bdata_reader.read(*slice, r_data)) {
+  if (!blob_reader.read(*slice, r_data)) {
     return false;
   }
   const StringRefNull stored_endian = io_data.lookup_str("endian").value_or("little");
@@ -249,95 +249,95 @@ static std::shared_ptr<DictionaryValue> write_bdata_raw_data_with_endian(
 }
 
 /** Write bytes ignoring endianness. */
-static std::shared_ptr<DictionaryValue> write_bdata_raw_bytes(BDataWriter &bdata_writer,
-                                                              const void *data,
-                                                              const int64_t size_in_bytes)
+static std::shared_ptr<DictionaryValue> write_blob_raw_bytes(BlobWriter &blob_writer,
+                                                             const void *data,
+                                                             const int64_t size_in_bytes)
 {
-  return bdata_writer.write(data, size_in_bytes).serialize();
+  return blob_writer.write(data, size_in_bytes).serialize();
 }
 
 /** Read bytes ignoring endianness. */
-[[nodiscard]] static bool read_bdata_raw_bytes(const BDataReader &bdata_reader,
-                                               const DictionaryValue &io_data,
-                                               const int64_t bytes_num,
-                                               void *r_data)
+[[nodiscard]] static bool read_blob_raw_bytes(const BlobReader &blob_reader,
+                                              const DictionaryValue &io_data,
+                                              const int64_t bytes_num,
+                                              void *r_data)
 {
-  const std::optional<BDataSlice> slice = BDataSlice::deserialize(io_data);
+  const std::optional<BlobSlice> slice = BlobSlice::deserialize(io_data);
   if (!slice) {
     return false;
   }
   if (slice->range.size() != bytes_num) {
     return false;
   }
-  return bdata_reader.read(*slice, r_data);
+  return blob_reader.read(*slice, r_data);
 }
 
-static std::shared_ptr<DictionaryValue> write_bdata_simple_gspan(BDataWriter &bdata_writer,
-                                                                 const GSpan data)
+static std::shared_ptr<DictionaryValue> write_blob_simple_gspan(BlobWriter &blob_writer,
+                                                                const GSpan data)
 {
   const CPPType &type = data.type();
   BLI_assert(type.is_trivial());
   if (type.size() == 1 || type.is<ColorGeometry4b>()) {
-    return write_bdata_raw_bytes(bdata_writer, data.data(), data.size_in_bytes());
+    return write_blob_raw_bytes(blob_writer, data.data(), data.size_in_bytes());
   }
-  return write_bdata_raw_data_with_endian(bdata_writer, data.data(), data.size_in_bytes());
+  return write_blob_raw_data_with_endian(blob_writer, data.data(), data.size_in_bytes());
 }
 
-[[nodiscard]] static bool read_bdata_simple_gspan(const BDataReader &bdata_reader,
-                                                  const DictionaryValue &io_data,
-                                                  GMutableSpan r_data)
+[[nodiscard]] static bool read_blob_simple_gspan(const BlobReader &blob_reader,
+                                                 const DictionaryValue &io_data,
+                                                 GMutableSpan r_data)
 {
   const CPPType &type = r_data.type();
   BLI_assert(type.is_trivial());
   if (type.size() == 1 || type.is<ColorGeometry4b>()) {
-    return read_bdata_raw_bytes(bdata_reader, io_data, r_data.size_in_bytes(), r_data.data());
+    return read_blob_raw_bytes(blob_reader, io_data, r_data.size_in_bytes(), r_data.data());
   }
   if (type.is_any<int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float>()) {
-    return read_bdata_raw_data_with_endian(
-        bdata_reader, io_data, type.size(), r_data.size(), r_data.data());
+    return read_blob_raw_data_with_endian(
+        blob_reader, io_data, type.size(), r_data.size(), r_data.data());
   }
   if (type.is_any<float2, int2>()) {
-    return read_bdata_raw_data_with_endian(
-        bdata_reader, io_data, sizeof(int32_t), r_data.size() * 2, r_data.data());
+    return read_blob_raw_data_with_endian(
+        blob_reader, io_data, sizeof(int32_t), r_data.size() * 2, r_data.data());
   }
   if (type.is<float3>()) {
-    return read_bdata_raw_data_with_endian(
-        bdata_reader, io_data, sizeof(float), r_data.size() * 3, r_data.data());
+    return read_blob_raw_data_with_endian(
+        blob_reader, io_data, sizeof(float), r_data.size() * 3, r_data.data());
   }
   if (type.is<float4x4>()) {
-    return read_bdata_raw_data_with_endian(
-        bdata_reader, io_data, sizeof(float), r_data.size() * 16, r_data.data());
+    return read_blob_raw_data_with_endian(
+        blob_reader, io_data, sizeof(float), r_data.size() * 16, r_data.data());
   }
   if (type.is<ColorGeometry4f>()) {
-    return read_bdata_raw_data_with_endian(
-        bdata_reader, io_data, sizeof(float), r_data.size() * 4, r_data.data());
+    return read_blob_raw_data_with_endian(
+        blob_reader, io_data, sizeof(float), r_data.size() * 4, r_data.data());
   }
   return false;
 }
 
-static std::shared_ptr<DictionaryValue> write_bdata_shared_simple_gspan(
-    BDataWriter &bdata_writer,
-    BDataSharing &bdata_sharing,
+static std::shared_ptr<DictionaryValue> write_blob_shared_simple_gspan(
+    BlobWriter &blob_writer,
+    BlobSharing &blob_sharing,
     const GSpan data,
     const ImplicitSharingInfo *sharing_info)
 {
-  return bdata_sharing.write_shared(
-      sharing_info, [&]() { return write_bdata_simple_gspan(bdata_writer, data); });
+  return blob_sharing.write_shared(sharing_info,
+                                   [&]() { return write_blob_simple_gspan(blob_writer, data); });
 }
 
-[[nodiscard]] static const void *read_bdata_shared_simple_gspan(
+[[nodiscard]] static const void *read_blob_shared_simple_gspan(
     const DictionaryValue &io_data,
-    const BDataReader &bdata_reader,
-    const BDataSharing &bdata_sharing,
+    const BlobReader &blob_reader,
+    const BlobSharing &blob_sharing,
     const CPPType &cpp_type,
     const int size,
     const ImplicitSharingInfo **r_sharing_info)
 {
-  const std::optional<ImplicitSharingInfoAndData> sharing_info_and_data =
-      bdata_sharing.read_shared(io_data, [&]() -> std::optional<ImplicitSharingInfoAndData> {
+  const std::optional<ImplicitSharingInfoAndData> sharing_info_and_data = blob_sharing.read_shared(
+      io_data, [&]() -> std::optional<ImplicitSharingInfoAndData> {
         void *data_mem = MEM_mallocN_aligned(
             size * cpp_type.size(), cpp_type.alignment(), __func__);
-        if (!read_bdata_simple_gspan(bdata_reader, io_data, {cpp_type, data_mem, size})) {
+        if (!read_blob_simple_gspan(blob_reader, io_data, {cpp_type, data_mem, size})) {
           MEM_freeN(data_mem);
           return std::nullopt;
         }
@@ -352,22 +352,22 @@ static std::shared_ptr<DictionaryValue> write_bdata_shared_simple_gspan(
 }
 
 template<typename T>
-[[nodiscard]] static bool read_bdata_shared_simple_span(const DictionaryValue &io_data,
-                                                        const BDataReader &bdata_reader,
-                                                        const BDataSharing &bdata_sharing,
-                                                        const int size,
-                                                        T **r_data,
-                                                        const ImplicitSharingInfo **r_sharing_info)
+[[nodiscard]] static bool read_blob_shared_simple_span(const DictionaryValue &io_data,
+                                                       const BlobReader &blob_reader,
+                                                       const BlobSharing &blob_sharing,
+                                                       const int size,
+                                                       T **r_data,
+                                                       const ImplicitSharingInfo **r_sharing_info)
 {
-  *r_data = const_cast<T *>(static_cast<const T *>(read_bdata_shared_simple_gspan(
-      io_data, bdata_reader, bdata_sharing, CPPType::get<T>(), size, r_sharing_info)));
+  *r_data = const_cast<T *>(static_cast<const T *>(read_blob_shared_simple_gspan(
+      io_data, blob_reader, blob_sharing, CPPType::get<T>(), size, r_sharing_info)));
   return *r_data != nullptr;
 }
 
 [[nodiscard]] static bool load_attributes(const io::serialize::ArrayValue &io_attributes,
                                           bke::MutableAttributeAccessor &attributes,
-                                          const BDataReader &bdata_reader,
-                                          const BDataSharing &bdata_sharing)
+                                          const BlobReader &blob_reader,
+                                          const BlobSharing &blob_sharing)
 {
   for (const auto &io_attribute_value : io_attributes.elements()) {
     const auto *io_attribute = io_attribute_value->as_dictionary_value();
@@ -393,8 +393,8 @@ template<typename T>
     }
     const int domain_size = attributes.domain_size(*domain);
     const ImplicitSharingInfo *attribute_sharing_info;
-    const void *attribute_data = read_bdata_shared_simple_gspan(
-        *io_data, bdata_reader, bdata_sharing, *cpp_type, domain_size, &attribute_sharing_info);
+    const void *attribute_data = read_blob_shared_simple_gspan(
+        *io_data, blob_reader, blob_sharing, *cpp_type, domain_size, &attribute_sharing_info);
     if (!attribute_data) {
       return false;
     }
@@ -425,8 +425,8 @@ template<typename T>
 }
 
 static PointCloud *try_load_pointcloud(const DictionaryValue &io_geometry,
-                                       const BDataReader &bdata_reader,
-                                       const BDataSharing &bdata_sharing)
+                                       const BlobReader &blob_reader,
+                                       const BlobSharing &blob_sharing)
 {
   const DictionaryValue *io_pointcloud = io_geometry.lookup_dict("pointcloud");
   if (!io_pointcloud) {
@@ -446,15 +446,15 @@ static PointCloud *try_load_pointcloud(const DictionaryValue &io_geometry,
   };
 
   bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
-  if (!load_attributes(*io_attributes, attributes, bdata_reader, bdata_sharing)) {
+  if (!load_attributes(*io_attributes, attributes, blob_reader, blob_sharing)) {
     return cancel();
   }
   return pointcloud;
 }
 
 static Curves *try_load_curves(const DictionaryValue &io_geometry,
-                               const BDataReader &bdata_reader,
-                               const BDataSharing &bdata_sharing)
+                               const BlobReader &blob_reader,
+                               const BlobSharing &blob_sharing)
 {
   const DictionaryValue *io_curves = io_geometry.lookup_dict("curves");
   if (!io_curves) {
@@ -482,19 +482,19 @@ static Curves *try_load_curves(const DictionaryValue &io_geometry,
     if (!io_curve_offsets) {
       return cancel();
     }
-    if (!read_bdata_shared_simple_span(*io_curve_offsets,
-                                       bdata_reader,
-                                       bdata_sharing,
-                                       curves.curves_num() + 1,
-                                       &curves.curve_offsets,
-                                       &curves.runtime->curve_offsets_sharing_info))
+    if (!read_blob_shared_simple_span(*io_curve_offsets,
+                                      blob_reader,
+                                      blob_sharing,
+                                      curves.curves_num() + 1,
+                                      &curves.curve_offsets,
+                                      &curves.runtime->curve_offsets_sharing_info))
     {
       return cancel();
     }
   }
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  if (!load_attributes(*io_attributes, attributes, bdata_reader, bdata_sharing)) {
+  if (!load_attributes(*io_attributes, attributes, blob_reader, blob_sharing)) {
     return cancel();
   }
 
@@ -504,8 +504,8 @@ static Curves *try_load_curves(const DictionaryValue &io_geometry,
 }
 
 static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
-                           const BDataReader &bdata_reader,
-                           const BDataSharing &bdata_sharing)
+                           const BlobReader &blob_reader,
+                           const BlobSharing &blob_sharing)
 {
   const DictionaryValue *io_mesh = io_geometry.lookup_dict("mesh");
   if (!io_mesh) {
@@ -537,19 +537,19 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
     if (!io_poly_offsets) {
       return cancel();
     }
-    if (!read_bdata_shared_simple_span(*io_poly_offsets,
-                                       bdata_reader,
-                                       bdata_sharing,
-                                       mesh->faces_num + 1,
-                                       &mesh->face_offset_indices,
-                                       &mesh->runtime->face_offsets_sharing_info))
+    if (!read_blob_shared_simple_span(*io_poly_offsets,
+                                      blob_reader,
+                                      blob_sharing,
+                                      mesh->faces_num + 1,
+                                      &mesh->face_offset_indices,
+                                      &mesh->runtime->face_offsets_sharing_info))
     {
       return cancel();
     }
   }
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  if (!load_attributes(*io_attributes, attributes, bdata_reader, bdata_sharing)) {
+  if (!load_attributes(*io_attributes, attributes, blob_reader, blob_sharing)) {
     return cancel();
   }
 
@@ -557,12 +557,12 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
 }
 
 static GeometrySet load_geometry(const DictionaryValue &io_geometry,
-                                 const BDataReader &bdata_reader,
-                                 const BDataSharing &bdata_sharing);
+                                 const BlobReader &blob_reader,
+                                 const BlobSharing &blob_sharing);
 
 static std::unique_ptr<bke::Instances> try_load_instances(const DictionaryValue &io_geometry,
-                                                          const BDataReader &bdata_reader,
-                                                          const BDataSharing &bdata_sharing)
+                                                          const BlobReader &blob_reader,
+                                                          const BlobSharing &blob_sharing)
 {
   const DictionaryValue *io_instances = io_geometry.lookup_dict("instances");
   if (!io_instances) {
@@ -588,7 +588,7 @@ static std::unique_ptr<bke::Instances> try_load_instances(const DictionaryValue 
     const DictionaryValue *io_reference = io_reference_value->as_dictionary_value();
     GeometrySet reference_geometry;
     if (io_reference) {
-      reference_geometry = load_geometry(*io_reference, bdata_reader, bdata_sharing);
+      reference_geometry = load_geometry(*io_reference, blob_reader, blob_sharing);
     }
     instances->add_reference(std::move(reference_geometry));
   }
@@ -597,7 +597,7 @@ static std::unique_ptr<bke::Instances> try_load_instances(const DictionaryValue 
   if (!io_transforms) {
     return {};
   }
-  if (!read_bdata_simple_gspan(bdata_reader, *io_transforms, instances->transforms())) {
+  if (!read_blob_simple_gspan(blob_reader, *io_transforms, instances->transforms())) {
     return {};
   }
 
@@ -605,12 +605,12 @@ static std::unique_ptr<bke::Instances> try_load_instances(const DictionaryValue 
   if (!io_handles) {
     return {};
   }
-  if (!read_bdata_simple_gspan(bdata_reader, *io_handles, instances->reference_handles())) {
+  if (!read_blob_simple_gspan(blob_reader, *io_handles, instances->reference_handles())) {
     return {};
   }
 
   bke::MutableAttributeAccessor attributes = instances->attributes_for_write();
-  if (!load_attributes(*io_attributes, attributes, bdata_reader, bdata_sharing)) {
+  if (!load_attributes(*io_attributes, attributes, blob_reader, blob_sharing)) {
     return {};
   }
 
@@ -618,15 +618,14 @@ static std::unique_ptr<bke::Instances> try_load_instances(const DictionaryValue 
 }
 
 static GeometrySet load_geometry(const DictionaryValue &io_geometry,
-                                 const BDataReader &bdata_reader,
-                                 const BDataSharing &bdata_sharing)
+                                 const BlobReader &blob_reader,
+                                 const BlobSharing &blob_sharing)
 {
   GeometrySet geometry;
-  geometry.replace_mesh(try_load_mesh(io_geometry, bdata_reader, bdata_sharing));
-  geometry.replace_pointcloud(try_load_pointcloud(io_geometry, bdata_reader, bdata_sharing));
-  geometry.replace_curves(try_load_curves(io_geometry, bdata_reader, bdata_sharing));
-  geometry.replace_instances(
-      try_load_instances(io_geometry, bdata_reader, bdata_sharing).release());
+  geometry.replace_mesh(try_load_mesh(io_geometry, blob_reader, blob_sharing));
+  geometry.replace_pointcloud(try_load_pointcloud(io_geometry, blob_reader, blob_sharing));
+  geometry.replace_curves(try_load_curves(io_geometry, blob_reader, blob_sharing));
+  geometry.replace_instances(try_load_instances(io_geometry, blob_reader, blob_sharing).release());
   return geometry;
 }
 
@@ -651,8 +650,8 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_material_slots(
 
 static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
     const bke::AttributeAccessor &attributes,
-    BDataWriter &bdata_writer,
-    BDataSharing &bdata_sharing,
+    BlobWriter &blob_writer,
+    BlobSharing &blob_sharing,
     const Set<std::string> &attributes_to_ignore)
 {
   auto io_attributes = std::make_shared<io::serialize::ArrayValue>();
@@ -676,9 +675,9 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
         const bke::GAttributeReader attribute = attributes.lookup(attribute_id);
         const GVArraySpan attribute_span(attribute.varray);
         io_attribute->append("data",
-                             write_bdata_shared_simple_gspan(
-                                 bdata_writer,
-                                 bdata_sharing,
+                             write_blob_shared_simple_gspan(
+                                 blob_writer,
+                                 blob_sharing,
                                  attribute_span,
                                  attribute.varray.is_span() ? attribute.sharing_info : nullptr));
         return true;
@@ -687,8 +686,8 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
 }
 
 static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet &geometry,
-                                                               BDataWriter &bdata_writer,
-                                                               BDataSharing &bdata_sharing)
+                                                               BlobWriter &blob_writer,
+                                                               BlobSharing &blob_sharing)
 {
   auto io_geometry = std::make_shared<DictionaryValue>();
   if (geometry.has_mesh()) {
@@ -702,16 +701,16 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
 
     if (mesh.faces_num > 0) {
       io_mesh->append("poly_offsets",
-                      write_bdata_shared_simple_gspan(bdata_writer,
-                                                      bdata_sharing,
-                                                      mesh.face_offsets(),
-                                                      mesh.runtime->face_offsets_sharing_info));
+                      write_blob_shared_simple_gspan(blob_writer,
+                                                     blob_sharing,
+                                                     mesh.face_offsets(),
+                                                     mesh.runtime->face_offsets_sharing_info));
     }
 
     auto io_materials = serialize_material_slots({mesh.mat, mesh.totcol});
     io_mesh->append("materials", io_materials);
 
-    auto io_attributes = serialize_attributes(mesh.attributes(), bdata_writer, bdata_sharing, {});
+    auto io_attributes = serialize_attributes(mesh.attributes(), blob_writer, blob_sharing, {});
     io_mesh->append("attributes", io_attributes);
   }
   if (geometry.has_pointcloud()) {
@@ -724,7 +723,7 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     io_pointcloud->append("materials", io_materials);
 
     auto io_attributes = serialize_attributes(
-        pointcloud.attributes(), bdata_writer, bdata_sharing, {});
+        pointcloud.attributes(), blob_writer, blob_sharing, {});
     io_pointcloud->append("attributes", io_attributes);
   }
   if (geometry.has_curves()) {
@@ -739,17 +738,16 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     if (curves.curve_num > 0) {
       io_curves->append(
           "curve_offsets",
-          write_bdata_shared_simple_gspan(bdata_writer,
-                                          bdata_sharing,
-                                          curves.offsets(),
-                                          curves.runtime->curve_offsets_sharing_info));
+          write_blob_shared_simple_gspan(blob_writer,
+                                         blob_sharing,
+                                         curves.offsets(),
+                                         curves.runtime->curve_offsets_sharing_info));
     }
 
     auto io_materials = serialize_material_slots({curves_id.mat, curves_id.totcol});
     io_curves->append("materials", io_materials);
 
-    auto io_attributes = serialize_attributes(
-        curves.attributes(), bdata_writer, bdata_sharing, {});
+    auto io_attributes = serialize_attributes(curves.attributes(), blob_writer, blob_sharing, {});
     io_curves->append("attributes", io_attributes);
   }
   if (geometry.has_instances()) {
@@ -762,16 +760,16 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     for (const bke::InstanceReference &reference : instances.references()) {
       BLI_assert(reference.type() == bke::InstanceReference::Type::GeometrySet);
       io_references->append(
-          serialize_geometry_set(reference.geometry_set(), bdata_writer, bdata_sharing));
+          serialize_geometry_set(reference.geometry_set(), blob_writer, blob_sharing));
     }
 
     io_instances->append("transforms",
-                         write_bdata_simple_gspan(bdata_writer, instances.transforms()));
+                         write_blob_simple_gspan(blob_writer, instances.transforms()));
     io_instances->append("handles",
-                         write_bdata_simple_gspan(bdata_writer, instances.reference_handles()));
+                         write_blob_simple_gspan(blob_writer, instances.reference_handles()));
 
     auto io_attributes = serialize_attributes(
-        instances.attributes(), bdata_writer, bdata_sharing, {"position"});
+        instances.attributes(), blob_writer, blob_sharing, {"position"});
     io_instances->append("attributes", io_attributes);
   }
   return io_geometry;
@@ -961,15 +959,15 @@ template<typename T>
 }
 
 static void serialize_bake_item(const BakeItem &item,
-                                BDataWriter &bdata_writer,
-                                BDataSharing &bdata_sharing,
+                                BlobWriter &blob_writer,
+                                BlobSharing &blob_sharing,
                                 DictionaryValue &r_io_item)
 {
   if (const auto *geometry_state_item = dynamic_cast<const GeometryBakeItem *>(&item)) {
     r_io_item.append_str("type", "GEOMETRY");
 
     const GeometrySet &geometry = geometry_state_item->geometry;
-    auto io_geometry = serialize_geometry_set(geometry, bdata_writer, bdata_sharing);
+    auto io_geometry = serialize_geometry_set(geometry, blob_writer, blob_sharing);
     r_io_item.append("data", io_geometry);
   }
   else if (const auto *attribute_state_item = dynamic_cast<const AttributeBakeItem *>(&item)) {
@@ -980,12 +978,12 @@ static void serialize_bake_item(const BakeItem &item,
     r_io_item.append_str("type", "STRING");
     const StringRefNull str = string_state_item->value();
     /* Small strings are inlined, larger strings are stored separately. */
-    const int64_t bdata_threshold = 100;
-    if (str.size() < bdata_threshold) {
+    const int64_t blob_threshold = 100;
+    if (str.size() < blob_threshold) {
       r_io_item.append_str("data", string_state_item->value());
     }
     else {
-      r_io_item.append("data", write_bdata_raw_bytes(bdata_writer, str.data(), str.size()));
+      r_io_item.append("data", write_blob_raw_bytes(blob_writer, str.data(), str.size()));
     }
   }
   else if (const auto *primitive_state_item = dynamic_cast<const PrimitiveBakeItem *>(&item)) {
@@ -997,8 +995,8 @@ static void serialize_bake_item(const BakeItem &item,
 }
 
 static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io_item,
-                                                       const BDataReader &bdata_reader,
-                                                       const BDataSharing &bdata_sharing)
+                                                       const BlobReader &blob_reader,
+                                                       const BlobSharing &blob_sharing)
 {
 
   const std::optional<StringRefNull> state_item_type = io_item.lookup_str("type");
@@ -1010,7 +1008,7 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
     if (!io_geometry) {
       return {};
     }
-    GeometrySet geometry = load_geometry(*io_geometry, bdata_reader, bdata_sharing);
+    GeometrySet geometry = load_geometry(*io_geometry, blob_reader, blob_sharing);
     return std::make_unique<GeometryBakeItem>(std::move(geometry));
   }
   if (*state_item_type == StringRef("ATTRIBUTE")) {
@@ -1041,7 +1039,7 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
       }
       std::string str;
       str.resize(*size);
-      if (!read_bdata_raw_bytes(bdata_reader, *io_string, *size, str.data())) {
+      if (!read_blob_raw_bytes(blob_reader, *io_string, *size, str.data())) {
         return {};
       }
       return std::make_unique<StringBakeItem>(std::move(str));
@@ -1067,8 +1065,8 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
 static constexpr int bake_file_version = 3;
 
 void serialize_bake(const BakeState &bake_state,
-                    BDataWriter &bdata_writer,
-                    BDataSharing &bdata_sharing,
+                    BlobWriter &blob_writer,
+                    BlobSharing &blob_sharing,
                     std::ostream &r_stream)
 {
   io::serialize::DictionaryValue io_root;
@@ -1076,7 +1074,7 @@ void serialize_bake(const BakeState &bake_state,
   io::serialize::DictionaryValue &io_items = *io_root.append_dict("items");
   for (auto item : bake_state.items_by_id.items()) {
     io::serialize::DictionaryValue &io_item = *io_items.append_dict(std::to_string(item.key));
-    bke::serialize_bake_item(*item.value, bdata_writer, bdata_sharing, io_item);
+    bke::serialize_bake_item(*item.value, blob_writer, blob_sharing, io_item);
   }
 
   io::serialize::JsonFormatter formatter;
@@ -1084,8 +1082,8 @@ void serialize_bake(const BakeState &bake_state,
 }
 
 std::optional<BakeState> deserialize_bake(std::istream &stream,
-                                          const BDataReader &bdata_reader,
-                                          const BDataSharing &bdata_sharing)
+                                          const BlobReader &blob_reader,
+                                          const BlobSharing &blob_sharing)
 {
   JsonFormatter formatter;
   std::unique_ptr<io::serialize::Value> io_root_value = formatter.deserialize(stream);
@@ -1121,7 +1119,7 @@ std::optional<BakeState> deserialize_bake(std::istream &stream,
       return std::nullopt;
     }
     std::unique_ptr<BakeItem> bake_item = deserialize_bake_item(
-        *io_item, bdata_reader, bdata_sharing);
+        *io_item, blob_reader, blob_sharing);
     if (!bake_item) {
       return std::nullopt;
     }

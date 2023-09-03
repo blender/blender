@@ -225,7 +225,7 @@ static bool bake_simulation_poll(bContext *C)
 struct ZoneBakeData {
   int zone_id;
   bke::bake_paths::BakePath path;
-  std::unique_ptr<bke::BDataSharing> bdata_sharing;
+  std::unique_ptr<bke::BlobSharing> blob_sharing;
 };
 
 struct ModifierBakeData {
@@ -285,7 +285,7 @@ static void bake_simulation_job_startjob(void *customdata,
         for (const bNestedNodeRef &nested_node_ref : nmd->node_group->nested_node_refs_span()) {
           ZoneBakeData zone_bake_data;
           zone_bake_data.zone_id = nested_node_ref.id;
-          zone_bake_data.bdata_sharing = std::make_unique<bke::BDataSharing>();
+          zone_bake_data.blob_sharing = std::make_unique<bke::BlobSharing>();
           if (std::optional<bke::bake_paths::BakePath> path =
                   bke::sim::get_simulation_zone_bake_path(
                       *job.bmain, *object, *nmd, nested_node_ref.id))
@@ -344,23 +344,23 @@ static void bake_simulation_job_startjob(void *customdata,
 
           const bke::bake_paths::BakePath path = zone_bake_data.path;
 
-          const std::string bdata_file_name = frame_file_name + ".bdata";
+          const std::string blob_file_name = frame_file_name + ".blob";
 
-          char bdata_path[FILE_MAX];
+          char blob_path[FILE_MAX];
           BLI_path_join(
-              bdata_path, sizeof(bdata_path), path.bdata_dir.c_str(), bdata_file_name.c_str());
+              blob_path, sizeof(blob_path), path.blobs_dir.c_str(), blob_file_name.c_str());
           char meta_path[FILE_MAX];
           BLI_path_join(meta_path,
                         sizeof(meta_path),
                         path.meta_dir.c_str(),
                         (frame_file_name + ".json").c_str());
           BLI_file_ensure_parent_dir_exists(meta_path);
-          BLI_file_ensure_parent_dir_exists(bdata_path);
-          fstream bdata_file{bdata_path, std::ios::out | std::ios::binary};
-          bke::DiskBDataWriter bdata_writer{bdata_file_name, bdata_file, 0};
+          BLI_file_ensure_parent_dir_exists(blob_path);
+          fstream blob_file{blob_path, std::ios::out | std::ios::binary};
+          bke::DiskBlobWriter blob_writer{blob_file_name, blob_file, 0};
           fstream meta_file{meta_path, std::ios::out};
           bke::serialize_bake(
-              frame_cache.state, bdata_writer, *zone_bake_data.bdata_sharing, meta_file);
+              frame_cache.state, blob_writer, *zone_bake_data.blob_sharing, meta_file);
         }
       }
     }
@@ -471,10 +471,10 @@ static bool bake_directory_has_data(const StringRefNull absolute_bake_dir)
 {
   char meta_dir[FILE_MAX];
   BLI_path_join(meta_dir, sizeof(meta_dir), absolute_bake_dir.c_str(), "meta");
-  char bdata_dir[FILE_MAX];
-  BLI_path_join(bdata_dir, sizeof(bdata_dir), absolute_bake_dir.c_str(), "bdata");
+  char blobs_dir[FILE_MAX];
+  BLI_path_join(blobs_dir, sizeof(blobs_dir), absolute_bake_dir.c_str(), "blobs");
 
-  if (!BLI_is_dir(meta_dir) || !BLI_is_dir(bdata_dir)) {
+  if (!BLI_is_dir(meta_dir) || !BLI_is_dir(blobs_dir)) {
     return false;
   }
 
@@ -647,11 +647,11 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
               BKE_reportf(op->reports, RPT_ERROR, "Failed to remove meta directory %s", meta_dir);
             }
           }
-          const char *bdata_dir = bake_path->bdata_dir.c_str();
-          if (BLI_exists(bdata_dir)) {
-            if (BLI_delete(bdata_dir, true, true)) {
+          const char *blobs_dir = bake_path->blobs_dir.c_str();
+          if (BLI_exists(blobs_dir)) {
+            if (BLI_delete(blobs_dir, true, true)) {
               BKE_reportf(
-                  op->reports, RPT_ERROR, "Failed to remove bdata directory %s", bdata_dir);
+                  op->reports, RPT_ERROR, "Failed to remove blobs directory %s", blobs_dir);
             }
           }
           if (bake_path->bake_dir.has_value()) {

@@ -28,8 +28,8 @@ void SimulationZoneCache::reset()
 {
   this->frame_caches.clear();
   this->prev_state.reset();
-  this->bdata_dir.reset();
-  this->bdata_sharing.reset();
+  this->blobs_dir.reset();
+  this->blob_sharing.reset();
   this->failed_finding_bake = false;
   this->cache_state = CacheState::Valid;
 }

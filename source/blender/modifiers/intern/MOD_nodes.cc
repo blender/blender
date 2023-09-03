@@ -768,8 +768,8 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
               frame_cache->meta_path = meta_file.path;
               zone_cache.frame_caches.append(std::move(frame_cache));
             }
-            zone_cache.bdata_dir = zone_bake_path->bdata_dir;
-            zone_cache.bdata_sharing = std::make_unique<bke::BDataSharing>();
+            zone_cache.blobs_dir = zone_bake_path->blobs_dir;
+            zone_cache.blob_sharing = std::make_unique<bke::BlobSharing>();
             zone_cache.cache_state = CacheState::Baked;
           }
         }
@@ -1003,16 +1003,16 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
     if (!frame_cache.state.items_by_id.is_empty()) {
       return;
     }
-    if (!zone_cache.bdata_dir) {
+    if (!zone_cache.blobs_dir) {
       return;
     }
     if (!frame_cache.meta_path) {
       return;
     }
-    bke::DiskBDataReader bdata_reader{*zone_cache.bdata_dir};
+    bke::DiskBlobReader blob_reader{*zone_cache.blobs_dir};
     fstream meta_file{*frame_cache.meta_path};
     std::optional<bke::BakeState> bake_state = bke::deserialize_bake(
-        meta_file, bdata_reader, *zone_cache.bdata_sharing);
+        meta_file, blob_reader, *zone_cache.blob_sharing);
     if (!bake_state.has_value()) {
       return;
     }

@@ -63,12 +63,12 @@ BakePath BakePath::from_single_root(StringRefNull root_dir)
 {
   char meta_dir[FILE_MAX];
   BLI_path_join(meta_dir, sizeof(meta_dir), root_dir.c_str(), "meta");
-  char bdata_dir[FILE_MAX];
-  BLI_path_join(bdata_dir, sizeof(bdata_dir), root_dir.c_str(), "bdata");
+  char blobs_dir[FILE_MAX];
+  BLI_path_join(blobs_dir, sizeof(blobs_dir), root_dir.c_str(), "blobs");
 
   BakePath bake_path;
   bake_path.meta_dir = meta_dir;
-  bake_path.bdata_dir = bdata_dir;
+  bake_path.blobs_dir = blobs_dir;
   bake_path.bake_dir = root_dir;
   return bake_path;
 }

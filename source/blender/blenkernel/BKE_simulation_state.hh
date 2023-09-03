@@ -46,8 +46,8 @@ struct SimulationZoneCache {
   Vector<std::unique_ptr<SimulationZoneFrameCache>> frame_caches;
   std::optional<SimulationZonePrevState> prev_state;
 
-  std::optional<std::string> bdata_dir;
-  std::unique_ptr<BDataSharing> bdata_sharing;
+  std::optional<std::string> blobs_dir;
+  std::unique_ptr<BlobSharing> blob_sharing;
   bool failed_finding_bake = false;
   CacheState cache_state = CacheState::Valid;
 
