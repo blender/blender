@@ -796,3 +796,8 @@ dict_ignore_hyphenated_suffix = {
 files_ignore = {
     "tools/utils_doc/rna_manual_reference_updater.py",  # Contains language ID references.
 }
+
+directories_ignore = {
+    "scripts/addons",
+    "scripts/addons_contrib",
+}
