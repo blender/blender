@@ -83,6 +83,17 @@ enum eDebugMode : uint32_t {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Look-Up Table Generation
+ * \{ */
+
+enum LookUpTableType : uint32_t {
+  LUT_GGX_BRDF_SPLIT_SUM = 0u,
+  LUT_GGX_BTDF_SPLIT_SUM = 1u,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Sampling
  * \{ */
 

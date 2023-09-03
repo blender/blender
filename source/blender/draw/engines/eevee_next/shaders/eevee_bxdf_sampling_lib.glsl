@@ -79,6 +79,12 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1)
 #endif
 }
 
+vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt)
+{
+  float G1_unused;
+  return sample_ggx(rand, alpha, Vt, G1_unused);
+}
+
 /**
  * Returns a reflected ray direction following the GGX distribution.
  *

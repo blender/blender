@@ -13,6 +13,9 @@
 #  pragma once
 #endif
 
+/* Look Up Tables. */
+#define LUT_WORKGROUP_SIZE 16
+
 /* Hierarchical Z down-sampling. */
 #define HIZ_MIP_COUNT 8
 /* NOTE: The shader is written to update 5 mipmaps using LDS. */

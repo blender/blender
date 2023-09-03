@@ -256,23 +256,6 @@ float nodetree_thickness();
 vec4 closure_to_rgba(Closure cl);
 #endif
 
-/* Fresnel monochromatic, perfect mirror */
-float F_eta(float eta, float cos_theta)
-{
-  /* Compute fresnel reflectance without explicitly computing
-   * the refracted direction. */
-  float c = abs(cos_theta);
-  float g = eta * eta - 1.0 + c * c;
-  if (g > 0.0) {
-    g = sqrt(g);
-    float A = (g - c) / (g + c);
-    float B = (c * (g + c) - 1.0) / (c * (g - c) + 1.0);
-    return 0.5 * A * A * (1.0 + B * B);
-  }
-  /* Total internal reflections. */
-  return 1.0;
-}
-
 /* Simplified form of F_eta(eta, 1.0). */
 float F0_from_ior(float eta)
 {

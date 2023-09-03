@@ -150,6 +150,7 @@ set(SRC
   engines/eevee_next/eevee_lightcache.cc
   engines/eevee_next/eevee_lightprobe.cc
   engines/eevee_next/eevee_lookdev.cc
+  engines/eevee_next/eevee_lut.cc
   engines/eevee_next/eevee_material.cc
   engines/eevee_next/eevee_motion_blur.cc
   engines/eevee_next/eevee_pipeline.cc
@@ -298,6 +299,7 @@ set(SRC
   engines/eevee_next/eevee_lightcache.hh
   engines/eevee_next/eevee_lightprobe.hh
   engines/eevee_next/eevee_lookdev.hh
+  engines/eevee_next/eevee_lut.hh
   engines/eevee_next/eevee_material.hh
   engines/eevee_next/eevee_motion_blur.hh
   engines/eevee_next/eevee_pipeline.hh
@@ -525,6 +527,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_lightprobe_irradiance_load_comp.glsl
   engines/eevee_next/shaders/eevee_lightprobe_lib.glsl
   engines/eevee_next/shaders/eevee_ltc_lib.glsl
+  engines/eevee_next/shaders/eevee_lut_comp.glsl
   engines/eevee_next/shaders/eevee_motion_blur_dilate_comp.glsl
   engines/eevee_next/shaders/eevee_motion_blur_flatten_comp.glsl
   engines/eevee_next/shaders/eevee_motion_blur_gather_comp.glsl
