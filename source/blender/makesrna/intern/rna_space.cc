@@ -6615,6 +6615,7 @@ static void rna_def_space_console(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "language", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Language", "Command line prompt language");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_PYTHON_CONSOLE);
 
   prop = RNA_def_property(srna, "history", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "history", nullptr);

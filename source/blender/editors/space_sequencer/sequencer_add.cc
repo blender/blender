@@ -1552,12 +1552,13 @@ void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(ot->srna,
-               "type",
-               sequencer_prop_effect_types,
-               SEQ_TYPE_CROSS,
-               "Type",
-               "Sequencer effect type");
+  prop = RNA_def_enum(ot->srna,
+                      "type",
+                      sequencer_prop_effect_types,
+                      SEQ_TYPE_CROSS,
+                      "Type",
+                      "Sequencer effect type");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME);
   /* Only used when strip is of the Color type. */
   prop = RNA_def_float_color(ot->srna,

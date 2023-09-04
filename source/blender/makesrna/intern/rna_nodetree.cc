@@ -4817,6 +4817,7 @@ static void def_sh_tex_image(StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_projection_items);
   RNA_def_property_ui_text(
       prop, "Projection", "Method to project 2D image on object with a 3D texture vector");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
   prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
@@ -5984,6 +5985,7 @@ static void def_cmp_blur(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, nullptr, "filtertype");
   RNA_def_property_enum_items(prop, filter_type_items);
   RNA_def_property_ui_text(prop, "Filter Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_bokeh", PROP_BOOLEAN, PROP_NONE);

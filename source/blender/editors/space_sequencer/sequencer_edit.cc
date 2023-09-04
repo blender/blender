@@ -2894,6 +2894,7 @@ void SEQUENCER_OT_change_effect_type(wmOperatorType *ot)
                           SEQ_TYPE_CROSS,
                           "Type",
                           "Sequencer effect type");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_SEQUENCE);
 }
 
 /** \} */

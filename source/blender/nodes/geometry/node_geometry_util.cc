@@ -52,7 +52,7 @@ std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket
 bool check_tool_context_and_error(GeoNodeExecParams &params)
 {
   if (!params.user_data()->operator_data) {
-    params.error_message_add(NodeWarningType::Error, "Node must be run as tool");
+    params.error_message_add(NodeWarningType::Error, TIP_("Node must be run as tool"));
     params.set_default_remaining_outputs();
     return false;
   }

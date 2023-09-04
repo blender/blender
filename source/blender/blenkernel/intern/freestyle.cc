@@ -15,6 +15,8 @@
 #include "BLI_math_rotation.h"
 #include "BLI_string_utils.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_freestyle.h"
 #include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
@@ -166,7 +168,7 @@ FreestyleLineSet *BKE_freestyle_lineset_add(Main *bmain, FreestyleConfig *config
   BLI_addtail(&config->linesets, (void *)lineset);
   BKE_freestyle_lineset_set_active_index(config, lineset_index);
 
-  lineset->linestyle = BKE_linestyle_new(bmain, "LineStyle");
+  lineset->linestyle = BKE_linestyle_new(bmain, DATA_("LineStyle"));
   lineset->flags |= FREESTYLE_LINESET_ENABLED;
   lineset->selection = FREESTYLE_SEL_VISIBILITY | FREESTYLE_SEL_EDGE_TYPES |
                        FREESTYLE_SEL_IMAGE_BORDER;
@@ -180,10 +182,10 @@ FreestyleLineSet *BKE_freestyle_lineset_add(Main *bmain, FreestyleConfig *config
     STRNCPY(lineset->name, name);
   }
   else if (lineset_index > 0) {
-    SNPRINTF(lineset->name, "LineSet %i", lineset_index + 1);
+    SNPRINTF(lineset->name, DATA_("LineSet %i"), lineset_index + 1);
   }
   else {
-    STRNCPY(lineset->name, "LineSet");
+    STRNCPY(lineset->name, DATA_("LineSet"));
   }
   BKE_freestyle_lineset_unique_name(config, lineset);
 

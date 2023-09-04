@@ -2257,7 +2257,7 @@ static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
     lineset->linestyle = (FreestyleLineStyle *)BKE_id_copy(bmain, &lineset->linestyle->id);
   }
   else {
-    lineset->linestyle = BKE_linestyle_new(bmain, "LineStyle");
+    lineset->linestyle = BKE_linestyle_new(bmain, DATA_("LineStyle"));
   }
   DEG_id_tag_update(&lineset->linestyle->id, 0);
   WM_event_add_notifier(C, NC_LINESTYLE, lineset->linestyle);

@@ -251,7 +251,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
                                      StructCallbackFunc call,
                                      StructFreeFunc free)
 {
-  const char *error_prefix = "Registering panel class:";
+  const char *error_prefix = TIP_("Registering panel class:");
   ARegionType *art;
   PanelType *pt, *parent = nullptr, dummy_pt = {nullptr};
   Panel dummy_panel = {nullptr};
