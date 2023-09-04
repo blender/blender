@@ -6,7 +6,6 @@
  * \ingroup spnode
  */
 
-
 #include "AS_asset_representation.hh"
 
 #include "BLI_string.h"
