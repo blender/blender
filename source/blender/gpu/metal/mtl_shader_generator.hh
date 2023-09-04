@@ -361,13 +361,20 @@ struct MSLFragmentOutputAttribute {
   int layout_index;
   shader::Type type;
   std::string name;
+  /* Raster order group can be specified to synchronize pixel read and write operations between
+   * subsequent draws. If a subsequent draw requires reading data from a GBuffer, raster order
+   * groups should be used to ensure all writes occur before reading. */
+  int raster_order_group;
 
   bool operator==(const MSLFragmentOutputAttribute &right) const
   {
     return (layout_location == right.layout_location && type == right.type && name == right.name &&
-            layout_index == right.layout_index);
+            layout_index == right.layout_index && raster_order_group == right.raster_order_group);
   }
 };
+
+/* Fragment tile inputs match fragment output attribute layout. */
+using MSLFragmentTileInputAttribute = MSLFragmentOutputAttribute;
 
 struct MSLSharedMemoryBlock {
   /* e.g. shared vec4 color_cache[cache_size][cache_size]; */
@@ -389,6 +396,8 @@ class MSLGeneratorInterface {
   blender::Vector<MSLTextureResource> texture_samplers;
   blender::Vector<MSLVertexInputAttribute> vertex_input_attributes;
   blender::Vector<MSLVertexOutputAttribute> vertex_output_varyings;
+  /* Fragment tile inputs. */
+  blender::Vector<MSLFragmentTileInputAttribute> fragment_tile_inputs;
   /* Should match vertex outputs, but defined separately as
    * some shader permutations will not utilize all inputs/outputs.
    * Final shader uses the intersection between the two sets. */
@@ -492,13 +501,14 @@ class MSLGeneratorInterface {
   std::string generate_msl_vertex_in_struct();
   std::string generate_msl_vertex_out_struct(ShaderStage shader_stage);
   std::string generate_msl_vertex_transform_feedback_out_struct(ShaderStage shader_stage);
-  std::string generate_msl_fragment_out_struct();
+  std::string generate_msl_fragment_struct(bool is_input);
   std::string generate_msl_vertex_inputs_string();
   std::string generate_msl_fragment_inputs_string();
   std::string generate_msl_compute_inputs_string();
   std::string generate_msl_vertex_entry_stub();
   std::string generate_msl_fragment_entry_stub();
   std::string generate_msl_compute_entry_stub();
+  std::string generate_msl_fragment_tile_input_population();
   std::string generate_msl_global_uniform_population(ShaderStage stage);
   std::string generate_ubo_block_macro_chain(MSLBufferBlock block);
   std::string generate_msl_uniform_block_population(ShaderStage stage);
@@ -795,6 +805,22 @@ inline const char *to_string(const shader::Type &type)
       return "char3";
     case shader::Type::CHAR4:
       return "char4";
+    case shader::Type::USHORT:
+      return "ushort";
+    case shader::Type::USHORT2:
+      return "ushort2";
+    case shader::Type::USHORT3:
+      return "ushort3";
+    case shader::Type::USHORT4:
+      return "ushort4";
+    case shader::Type::SHORT:
+      return "short";
+    case shader::Type::SHORT2:
+      return "short2";
+    case shader::Type::SHORT3:
+      return "short3";
+    case shader::Type::SHORT4:
+      return "short4";
     default:
       BLI_assert(false);
       return "unkown";
