@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"POT-Creation-Date: 2023-09-04 15:42:41\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -233,10 +233,6 @@ msgid "Inherit Scale"
 msgstr "Ärva skalning"
 
 
-msgid "Layers"
-msgstr "Lager"
-
-
 msgid "Length"
 msgstr "Längd"
 
@@ -263,6 +259,10 @@ msgstr "Ärv rotation"
 
 msgid "Local Location"
 msgstr "Lokalposition"
+
+
+msgid "Custom"
+msgstr "Anpassad"
 
 
 msgid "Bone Groups"
@@ -311,10 +311,6 @@ msgstr "Hårdhet"
 
 msgid "Thickness"
 msgstr "Tjocklek"
-
-
-msgid "Smooth"
-msgstr "Jämn"
 
 
 msgid "Saturation"
@@ -797,10 +793,6 @@ msgid "Layer"
 msgstr "Lager"
 
 
-msgid "Custom"
-msgstr "Anpassad"
-
-
 msgid "Grid"
 msgstr "Rutnät"
 
@@ -823,6 +815,10 @@ msgstr "Dela upp"
 
 msgid "Lattice"
 msgstr "Lattice"
+
+
+msgid "Smooth"
+msgstr "Jämn"
 
 
 msgid "Falloff Curve"
@@ -871,10 +867,6 @@ msgstr "Grupper"
 
 msgid "Wire"
 msgstr "Trådmodell"
-
-
-msgid "Visible Layers"
-msgstr "Synliga lager"
 
 
 msgid "Box"
@@ -939,6 +931,10 @@ msgstr "Min"
 
 msgid "Max"
 msgstr "Max"
+
+
+msgid "Layers"
+msgstr "Lager"
 
 
 msgid "Alpha Mode"
@@ -1225,10 +1221,6 @@ msgid "Rotation Angle"
 msgstr "Rotationsvinkel"
 
 
-msgid "Even"
-msgstr "Jämn"
-
-
 msgid "Pivot Point"
 msgstr "Fast punkt"
 
@@ -1371,6 +1363,10 @@ msgstr "Värld"
 
 msgid "Limits"
 msgstr "Gränser"
+
+
+msgid "Even"
+msgstr "Jämn"
 
 
 msgid "Aspect X"
@@ -1930,26 +1926,6 @@ msgid "Operator"
 msgstr "Operator"
 
 
-msgid "Alpha Under"
-msgstr "Alfa under"
-
-
-msgid "Gamma Cross"
-msgstr "Gamma-övertona"
-
-
-msgid "Wipe"
-msgstr "Torka"
-
-
-msgid "Glow"
-msgstr "Glöd"
-
-
-msgid "Adjustment Layer"
-msgstr "Justeringslager"
-
-
 msgctxt "Operator"
 msgid "Deinterlace Movies"
 msgstr "Avläta filmer"
@@ -2348,6 +2324,14 @@ msgid "Vectorscope Opacity"
 msgstr "Genomskinlighet för vektroskop"
 
 
+msgid "Alpha Under"
+msgstr "Alfa under"
+
+
+msgid "Gamma Cross"
+msgstr "Gamma-övertona"
+
+
 msgid "Camera Override"
 msgstr "Åsidosätt kamera"
 
@@ -2532,14 +2516,6 @@ msgid "Pivot Offset"
 msgstr "Rotationspunktförskjutning"
 
 
-msgid "Layers:"
-msgstr "Lager:"
-
-
-msgid "Protected Layers:"
-msgstr "Skyddade lager:"
-
-
 msgid "Axes"
 msgstr "Axlar"
 
@@ -2719,6 +2695,10 @@ msgstr "Brytningsindex"
 
 msgid "Transparency"
 msgstr "Genomskinlighet"
+
+
+msgid "Glow"
+msgstr "Glöd"
 
 
 msgid "English (English)"

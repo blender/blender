@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"POT-Creation-Date: 2023-09-04 15:42:41\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -1694,14 +1694,6 @@ msgid "Inherit Scale"
 msgstr "Dziedzicz skalę"
 
 
-msgid "Layers"
-msgstr "Warstwy"
-
-
-msgid "Layers bone exists in"
-msgstr "Warstwy na których ta kość istnieje"
-
-
 msgid "Bone Matrix"
 msgstr "Macierz kości"
 
@@ -1802,6 +1794,10 @@ msgid "Object children will use relative transform, like deform"
 msgstr "Obiekty potomne będą używać transformacji względnych, takich jak deformacje"
 
 
+msgid "Visible"
+msgstr "Widoczny"
+
+
 msgid "Bone Group"
 msgstr "Grupa kości"
 
@@ -1850,10 +1846,6 @@ msgid "Material"
 msgstr "Materiał"
 
 
-msgid "Flat"
-msgstr "Płaskie"
-
-
 msgid "Direction"
 msgstr "Kierunek"
 
@@ -1862,20 +1854,12 @@ msgid "All"
 msgstr "Wszystko"
 
 
-msgid "Visible"
-msgstr "Widoczny"
-
-
 msgid "Threshold"
 msgstr "Próg"
 
 
 msgid "Blur"
 msgstr "Rozmycie"
-
-
-msgid "Smooth"
-msgstr "Wygładzanie"
 
 
 msgid "Iterations"
@@ -6080,6 +6064,10 @@ msgid "Lattice"
 msgstr "Kratownica"
 
 
+msgid "Smooth"
+msgstr "Wygładzanie"
+
+
 msgid "Target Object"
 msgstr "Obiekt docelowy"
 
@@ -6150,6 +6138,10 @@ msgstr "Maks"
 
 msgid "Use Nodes"
 msgstr "Używaj Węzłów"
+
+
+msgid "Layers"
+msgstr "Warstwy"
 
 
 msgid "Cube"
@@ -6249,12 +6241,12 @@ msgid "Key"
 msgstr "Klucz"
 
 
-msgid "Distort"
-msgstr "Zniekształć"
-
-
 msgid "Text"
 msgstr "Tekst"
+
+
+msgid "Distort"
+msgstr "Zniekształć"
 
 
 msgid "Python"
@@ -6570,6 +6562,10 @@ msgid "3D"
 msgstr "3D"
 
 
+msgid "Flat"
+msgstr "Płaskie"
+
+
 msgid "Animated"
 msgstr "Animowana"
 
@@ -6686,22 +6682,6 @@ msgstr "OS Loop"
 
 msgid "PreviewLoopCol"
 msgstr "PreviewLoopCol"
-
-
-msgid "Source and destination meshes do not have the same amount of vertices, 'Topology' mapping cannot be used in this case"
-msgstr "Siatka źródłowa i docelowa nie mają tej samej liczby wierzchołków, Mapowanie 'Topologia' nie może być użyte w tym przypadku"
-
-
-msgid "Source and destination meshes do not have the same amount of edges, 'Topology' mapping cannot be used in this case"
-msgstr "Siatka źródłowa i docelowa nie mają tej samej liczby krawędzi, Mapowanie 'Topologia' nie może być użyte w tym przypadku"
-
-
-msgid "Source and destination meshes do not have the same amount of face corners, 'Topology' mapping cannot be used in this case"
-msgstr "Siatka źródłowa i docelowa nie mają tej samej liczby narożników ścian, Mapowanie 'Topologia' nie może być użyte w tym przypadku"
-
-
-msgid "Source and destination meshes do not have the same amount of faces, 'Topology' mapping cannot be used in this case"
-msgstr "Siatka źródłowa i docelowa nie mają tej samej liczby ścian, Mapowanie 'Topologia' nie może być użyte w tym przypadku"
 
 
 msgid "Not enough free memory"
@@ -7766,10 +7746,6 @@ msgstr "Przerzij to zadanie"
 
 msgid "Stop animation playback"
 msgstr "Zakończ odtwarzanie animacji"
-
-
-msgid "Click to see the remaining reports in text block: 'Recent Reports'"
-msgstr "Kliknij by zobaczyć pozostałe raporty w bloku tekstu: 'Ostatnie Raporty'"
 
 
 msgid "Browse Scene to be linked"
@@ -9613,10 +9589,6 @@ msgstr "Grupa"
 
 msgid "Library path '%s' does not exist, correct this before saving"
 msgstr "Ścieżka biblioteki '%s' nie istnieje, popraw to zanim zapiszesz"
-
-
-msgid "Cannot edit the path of an indirectly linked library"
-msgstr "Nie można edytować ścieżki z biblioteki zlinkowanej niebezpośrednio"
 
 
 msgid "Operation requires an active keying set"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"POT-Creation-Date: 2023-09-04 15:42:41\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -587,10 +587,6 @@ msgid "Selectable"
 msgstr "चयनयोग्य"
 
 
-msgid "Layers"
-msgstr "परतें"
-
-
 msgid "Parent"
 msgstr "कारण"
 
@@ -647,14 +643,6 @@ msgid "Vertex Color"
 msgstr "शिरोबिन्दु रंग"
 
 
-msgid "Round"
-msgstr "दौर"
-
-
-msgid "Flat"
-msgstr "समतल"
-
-
 msgid "Direction"
 msgstr "दिशा"
 
@@ -689,10 +677,6 @@ msgstr "धुंधला"
 
 msgid "Smear"
 msgstr "धब्बा"
-
-
-msgid "Smooth"
-msgstr "चिकना"
 
 
 msgid "Iterations"
@@ -1272,6 +1256,10 @@ msgid "Spring"
 msgstr "लचक"
 
 
+msgid "Curve Mapping"
+msgstr "वक्र प्रतिचित्रण"
+
+
 msgid "Roll"
 msgstr "पंजी"
 
@@ -1637,6 +1625,10 @@ msgid "Hook"
 msgstr "हुक"
 
 
+msgid "Smooth"
+msgstr "चिकना"
+
+
 msgid "Shift"
 msgstr "शिफ्ट"
 
@@ -1822,14 +1814,6 @@ msgid "Add Color"
 msgstr "रंग जोड़ें"
 
 
-msgid "Pinch"
-msgstr "चुटकी"
-
-
-msgid "Puff"
-msgstr "कश"
-
-
 msgid "Repeat"
 msgstr "दोहराएँ"
 
@@ -1840,10 +1824,6 @@ msgstr "कीलक"
 
 msgid "Brush"
 msgstr "तूलिका"
-
-
-msgid "Mask Tool"
-msgstr "आवरण यंत्र"
 
 
 msgid "Normal Weight"
@@ -1864,6 +1844,10 @@ msgstr "क्षेत्र समतल"
 
 msgid "View Plane"
 msgstr "दृश्य समतल"
+
+
+msgid "Pinch"
+msgstr "चुटकी"
 
 
 msgid "Dots"
@@ -1916,6 +1900,10 @@ msgstr "परिप्रेक्ष्य"
 
 msgid "Panoramic"
 msgstr "नयनाभिराम"
+
+
+msgid "Round"
+msgstr "दौर"
 
 
 msgid "Bevel Resolution"
@@ -2020,6 +2008,10 @@ msgstr "अधिकतम"
 
 msgid "Rounds"
 msgstr "दौर"
+
+
+msgid "Layers"
+msgstr "परतें"
 
 
 msgid "Alpha Mode"
@@ -2164,10 +2156,6 @@ msgstr "पदार्थ का व्याप्त रंग"
 
 msgid "Cube"
 msgstr "घन"
-
-
-msgid "Hair"
-msgstr "बाल"
 
 
 msgid "Cloth"
@@ -2412,6 +2400,10 @@ msgstr "कण संख्या दिखाएँ"
 
 msgid "Tweak"
 msgstr "सुधार"
+
+
+msgid "Hair"
+msgstr "बाल"
 
 
 msgid "Use Count"
@@ -2817,6 +2809,14 @@ msgid "Add"
 msgstr "जोड़ें"
 
 
+msgid "Text"
+msgstr "पाठ"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
 msgid "Converter"
 msgstr "परिवर्तक"
 
@@ -2825,16 +2825,8 @@ msgid "Distort"
 msgstr "विकृत"
 
 
-msgid "Matte"
-msgstr "मैट"
-
-
-msgid "Text"
-msgstr "पाठ"
-
-
-msgid "Math"
-msgstr "गणित"
+msgid "Keying"
+msgstr "कुंजीयन"
 
 
 msgid "Node"
@@ -3154,10 +3146,6 @@ msgid "Height of the node"
 msgstr "ग्रन्थि की ऊंचाई"
 
 
-msgid "Tent"
-msgstr "तम्बू"
-
-
 msgid "Not"
 msgstr "नहीं"
 
@@ -3220,10 +3208,6 @@ msgstr "छाया"
 
 msgid "Straight Alpha Output"
 msgstr "सीधे पारदर्शिता उत्पादित"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
 
 
 msgid "Pre Blur"
@@ -3328,6 +3312,10 @@ msgstr "ईंटें"
 
 msgid "Curve Time"
 msgstr "वक्र समय"
+
+
+msgid "Both"
+msgstr "दोनों"
 
 
 msgid "Column Select"
@@ -3601,10 +3589,6 @@ msgid "Insert"
 msgstr "सम्मिलित करें"
 
 
-msgid "Language"
-msgstr "भाषा"
-
-
 msgctxt "Operator"
 msgid "Move Cursor"
 msgstr "प्रसंकेतक विचलन"
@@ -3781,10 +3765,6 @@ msgstr "सीमा"
 
 msgid "Modifier"
 msgstr "संशोधक"
-
-
-msgid "Both"
-msgstr "दोनों"
 
 
 msgid "Flatten"
@@ -4111,6 +4091,10 @@ msgid "Reset"
 msgstr "पूर्ववत करें"
 
 
+msgid "Puff"
+msgstr "कश"
+
+
 msgid "Clone"
 msgstr "प्रतिरूप"
 
@@ -4237,12 +4221,44 @@ msgid "Symmetrize the topology modifications"
 msgstr "टोपोलॉजी संशोधन symmetrize"
 
 
+msgctxt "Sequence"
+msgid "Type"
+msgstr "प्रकार"
+
+
+msgctxt "Sequence"
+msgid "Add"
+msgstr "जोड़ें"
+
+
+msgctxt "Sequence"
+msgid "Multiply"
+msgstr "द्विगुणन"
+
+
+msgctxt "Sequence"
 msgid "Wipe"
 msgstr "मार्जन"
 
 
+msgctxt "Sequence"
 msgid "Glow"
 msgstr "चमक"
+
+
+msgctxt "Sequence"
+msgid "Transform"
+msgstr "संरचनांतरण"
+
+
+msgctxt "Sequence"
+msgid "Color"
+msgstr "रंग"
+
+
+msgctxt "Sequence"
+msgid "Speed"
+msgstr "गति"
 
 
 msgctxt "Operator"
@@ -4815,6 +4831,10 @@ msgid "New Window"
 msgstr "नई खिडकी"
 
 
+msgid "Language"
+msgstr "भाषा"
+
+
 msgid "Base"
 msgstr "आधार"
 
@@ -4948,11 +4968,6 @@ msgstr "मिश्रण अपारदर्शिता"
 
 
 msgctxt "Sequence"
-msgid "Type"
-msgstr "प्रकार"
-
-
-msgctxt "Sequence"
 msgid "Image"
 msgstr "छवि"
 
@@ -4982,47 +4997,8 @@ msgid "Sound"
 msgstr "ध्वनि"
 
 
-msgctxt "Sequence"
-msgid "Add"
-msgstr "जोड़ें"
-
-
-msgctxt "Sequence"
-msgid "Multiply"
-msgstr "द्विगुणन"
-
-
-msgctxt "Sequence"
-msgid "Wipe"
-msgstr "मार्जन"
-
-
-msgctxt "Sequence"
-msgid "Glow"
-msgstr "चमक"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "संरचनांतरण"
-
-
-msgctxt "Sequence"
-msgid "Color"
-msgstr "रंग"
-
-
-msgctxt "Sequence"
-msgid "Speed"
-msgstr "गति"
-
-
 msgid "Active Strip"
 msgstr "सक्रिय पट्टी"
-
-
-msgid "Curve Mapping"
-msgstr "वक्र प्रतिचित्रण"
 
 
 msgid "Aero"
@@ -5165,6 +5141,10 @@ msgstr "वस्तु के लिए तालाबंदी"
 
 msgid "3D"
 msgstr "त्रि-आयाम"
+
+
+msgid "Flat"
+msgstr "समतल"
 
 
 msgid "Density Factor"
@@ -5513,10 +5493,6 @@ msgstr "गणना..."
 msgctxt "Operator"
 msgid "Animate Path"
 msgstr "पथ अनुप्राणित करें"
-
-
-msgid "Layers:"
-msgstr "परत:"
 
 
 msgid "Axes"
@@ -5868,11 +5844,6 @@ msgstr "मार्जन"
 
 
 msgctxt "Operator"
-msgid "Multiply"
-msgstr "गुणा करें"
-
-
-msgctxt "Operator"
 msgid "Speed Control"
 msgstr "गति नियंत्रण"
 
@@ -6098,11 +6069,6 @@ msgstr "निष्क्रिय जोड़ें"
 msgctxt "Operator"
 msgid "Set Roll"
 msgstr "स्थापित पंजी"
-
-
-msgctxt "Operator"
-msgid "Assign to Group"
-msgstr "समूह को निर्दिष्ट"
 
 
 msgctxt "Operator"
@@ -6966,6 +6932,10 @@ msgid "Outer"
 msgstr "बाहरी"
 
 
+msgid "Matte"
+msgstr "मैट"
+
+
 msgid "Fac"
 msgstr "एफ़एसी"
 
@@ -7016,6 +6986,10 @@ msgstr "स्ट्रिप्स संगत नहीं थे"
 
 msgid "Strips must have the same number of inputs"
 msgstr "स्ट्रिप्स आदानों की समान संख्या होना आवश्यक"
+
+
+msgid "Glow"
+msgstr "चमक"
 
 
 msgid "Rim"
