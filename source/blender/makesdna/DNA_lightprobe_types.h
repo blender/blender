@@ -68,6 +68,9 @@ typedef struct LightProbe {
   float grid_dilation_threshold;
   float grid_dilation_radius;
   char _pad1[4];
+  /** Light intensity clamp. */
+  float grid_clamp_direct;
+  float grid_clamp_indirect;
 
   /** Surface element density for scene surface cache. In surfel per unit distance. */
   float surfel_density;

@@ -263,6 +263,19 @@ static void rna_def_lightprobe(BlenderRNA *brna)
       prop, "Capture Emission", "Bake emissive surfaces for more accurate lighting");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, nullptr);
 
+  prop = RNA_def_property(srna, "grid_clamp_direct", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_text(
+      prop, "Clamp Direct", "Clamp the direct lighting intensity to reduce noise (0 to disable)");
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
+  prop = RNA_def_property(srna, "grid_clamp_indirect", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_text(prop,
+                           "Clamp Indirect",
+                           "Clamp the indirect lighting intensity to reduce noise (0 to disable)");
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
   prop = RNA_def_property(srna, "visibility_buffer_bias", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "vis_bias");
   RNA_def_property_range(prop, 0.001f, 9999.0f);

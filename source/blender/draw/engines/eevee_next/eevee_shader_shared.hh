@@ -1036,6 +1036,11 @@ struct CaptureInfoData {
   int scene_bound_x_max;
   int scene_bound_y_max;
   int scene_bound_z_max;
+  /* Max intensity a ray can have. */
+  float clamp_direct;
+  float clamp_indirect;
+  float _pad1;
+  float _pad2;
   /** Minimum distance between a grid sample and a surface. Used to compute virtual offset. */
   float min_distance_to_surface;
   /** Maximum world scale offset an irradiance grid sample can be baked with. */

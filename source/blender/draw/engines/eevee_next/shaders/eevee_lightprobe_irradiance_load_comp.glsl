@@ -113,6 +113,8 @@ void main()
   SphericalHarmonicL1 sh_distant = lightprobe_irradiance_sample(P);
   /* Mask distant lighting by local visibility. */
   sh_distant = spherical_harmonics_triple_product(sh_visibility, sh_distant);
+  /* Apply intensity scaling. */
+  sh_local = spherical_harmonics_mul(sh_local, grid_intensity_factor);
   /* Add local lighting to distant lighting. */
   sh_local = spherical_harmonics_add(sh_local, sh_distant);
 
