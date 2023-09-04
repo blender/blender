@@ -81,7 +81,7 @@ class Precompute {
         int64_t src_x = x % n_x;
         int64_t src = (n_x * n_y * n_z * src_w) + (n_x * n_y * src_z) + (n_x * src_y) + src_x;
         float3 data(0.0f);
-        for (auto c : IndexRange(VecT::type_length)) {
+        for (int c : IndexRange(VecT::type_length)) {
           data[c] = pixels[src][c];
         }
         file.write(reinterpret_cast<char *>(&data), sizeof(float3));
