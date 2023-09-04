@@ -3176,6 +3176,7 @@ ARegion *UI_tooltip_create_from_search_item_generic(
 
 /* Typical UI text */
 #define UI_FSTYLE_WIDGET (const uiFontStyle *)&(UI_style_get()->widget)
+#define UI_FSTYLE_WIDGET_LABEL (const uiFontStyle *)&(UI_style_get()->widgetlabel)
 
 /**
  * Returns the best "UI" precision for given floating value,

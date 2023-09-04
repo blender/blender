@@ -310,7 +310,8 @@ static const uiTextIconPadFactor ui_text_pad_none = {0.25f, 1.50f, 0.0f};
 static int ui_text_icon_width_ex(uiLayout *layout,
                                  const char *name,
                                  int icon,
-                                 const uiTextIconPadFactor *pad_factor)
+                                 const uiTextIconPadFactor *pad_factor,
+                                 const uiFontStyle *fstyle)
 {
   const int unit_x = UI_UNIT_X * (layout->scale[0] ? layout->scale[0] : 1.0f);
 
@@ -335,7 +336,6 @@ static int ui_text_icon_width_ex(uiLayout *layout,
     }
 
     const float aspect = layout->root->block->aspect;
-    const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
     return UI_fontstyle_string_width_with_block_aspect(fstyle, name, aspect) +
            int(ceilf(unit_x * margin));
   }
@@ -345,7 +345,7 @@ static int ui_text_icon_width_ex(uiLayout *layout,
 static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool compact)
 {
   return ui_text_icon_width_ex(
-      layout, name, icon, compact ? &ui_text_pad_compact : &ui_text_pad_default);
+      layout, name, icon, compact ? &ui_text_pad_compact : &ui_text_pad_default, UI_FSTYLE_WIDGET);
 }
 
 static void ui_item_size(uiItem *item, int *r_w, int *r_h)
@@ -1019,7 +1019,8 @@ static uiBut *ui_item_with_label(uiLayout *layout,
         /* In this case, a pure label without additional padding.
          * Use a default width for property button(s). */
         prop_but_width = UI_UNIT_X * 5;
-        w_label = ui_text_icon_width_ex(layout, name, ICON_NONE, &ui_text_pad_none);
+        w_label = ui_text_icon_width_ex(
+            layout, name, ICON_NONE, &ui_text_pad_none, UI_FSTYLE_WIDGET_LABEL);
       }
       else {
         w_label = w_hint / 3;
@@ -2988,7 +2989,7 @@ static uiBut *ui_item_menu(uiLayout *layout,
     }
   }
 
-  const int w = ui_text_icon_width_ex(layout, name, icon, &pad_factor);
+  const int w = ui_text_icon_width_ex(layout, name, icon, &pad_factor, UI_FSTYLE_WIDGET);
   const int h = UI_UNIT_Y;
 
   if (heading_layout) {
@@ -3248,7 +3249,8 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
     icon = ICON_BLANK1;
   }
 
-  const int w = ui_text_icon_width_ex(layout, name, icon, &ui_text_pad_none);
+  const int w = ui_text_icon_width_ex(
+      layout, name, icon, &ui_text_pad_none, UI_FSTYLE_WIDGET_LABEL);
   uiBut *but;
   if (icon && name[0]) {
     but = uiDefIconTextBut(block,
