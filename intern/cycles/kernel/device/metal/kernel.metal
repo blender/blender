@@ -4,9 +4,13 @@
 
 /* Metal kernel entry points. */
 
+/* NOTE: Must come prior to other includes. */
 #include "kernel/device/metal/compat.h"
 #include "kernel/device/metal/globals.h"
+
+/* NOTE: Must come prior to the kernel.h. */
 #include "kernel/device/metal/function_constants.h"
+
 #include "kernel/device/gpu/kernel.h"
 
 /* MetalRT intersection handlers. */
