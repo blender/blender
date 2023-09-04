@@ -546,9 +546,12 @@ typedef enum eGPUTextureUsage {
   GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW = (1 << 3),
   /* Whether the texture needs to be read from by the CPU. */
   GPU_TEXTURE_USAGE_HOST_READ = (1 << 4),
+  /* When used, the texture will not have any backing storage and can solely exist as a virtual
+   * framebuffer attachment. */
+  GPU_TEXTURE_USAGE_MEMORYLESS = (1 << 5),
   /* Create a texture whose usage cannot be defined prematurely.
    * This is unoptimized and should not be used. */
-  GPU_TEXTURE_USAGE_GENERAL = 0xFF,
+  GPU_TEXTURE_USAGE_GENERAL = (0xFF & (~GPU_TEXTURE_USAGE_MEMORYLESS)),
 } eGPUTextureUsage;
 
 ENUM_OPERATORS(eGPUTextureUsage, GPU_TEXTURE_USAGE_GENERAL);
