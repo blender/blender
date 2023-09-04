@@ -1451,8 +1451,8 @@ static void test_eevee_lut_gen()
   auto bsdf_ggx_gen = Precompute(manager, LUT_GGX_BRDF_SPLIT_SUM, {64, 64, 1}).data<float2>();
   auto btdf_ggx_gen = Precompute(manager, LUT_GGX_BTDF_SPLIT_SUM, {64, 64, 16}).data<float2>();
 
-  Span<float2> bsdf_ggx_lut(&eevee::lut::bsdf_split_sum_ggx[0][0], 64 * 64);
-  Span<float2> btdf_ggx_lut(&eevee::lut::btdf_split_sum_ggx[0][0][0], 64 * 64 * 16);
+  Span<float2> bsdf_ggx_lut((const float2 *)&eevee::lut::bsdf_split_sum_ggx, 64 * 64);
+  Span<float2> btdf_ggx_lut((const float2 *)&eevee::lut::btdf_split_sum_ggx, 64 * 64 * 16);
 
   EXPECT_NEAR_ARRAY_ND(bsdf_ggx_lut.data(), bsdf_ggx_gen.data(), bsdf_ggx_gen.size(), 2, 1e-4f);
   EXPECT_NEAR_ARRAY_ND(btdf_ggx_lut.data(), btdf_ggx_gen.data(), btdf_ggx_gen.size(), 2, 1e-4f);
