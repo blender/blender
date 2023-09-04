@@ -10,10 +10,6 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Ordered Selection Storage
  * \{ */
@@ -497,7 +493,3 @@ typedef struct MRecast {
 #endif
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

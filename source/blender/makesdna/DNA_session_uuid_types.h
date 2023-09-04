@@ -10,10 +10,6 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Is a structure because of the following considerations:
  *
@@ -28,7 +24,3 @@ typedef struct SessionUUID {
    */
   uint64_t uuid_;
 } SessionUUID;
-
-#ifdef __cplusplus
-}
-#endif

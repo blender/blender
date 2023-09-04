@@ -14,10 +14,6 @@
 #include "DNA_image_types.h"
 #include "DNA_movieclip_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct Ipo;
 struct Object;
@@ -234,7 +230,3 @@ enum {
 enum {
   CAM_DOF_ENABLED = (1 << 0),
 };
-
-#ifdef __cplusplus
-}
-#endif

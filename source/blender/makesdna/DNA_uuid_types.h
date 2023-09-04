@@ -10,10 +10,6 @@
 
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * \brief Universally Unique Identifier according to RFC4122.
  *
@@ -33,7 +29,3 @@ typedef struct bUUID {
  * This is 36 characters for the string + a trailing zero byte.
  */
 #define UUID_STRING_SIZE 37
-
-#ifdef __cplusplus
-}
-#endif

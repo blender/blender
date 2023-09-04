@@ -26,10 +26,6 @@ using NodesModifierRuntimeHandle = blender::NodesModifierRuntime;
 typedef struct NodesModifierRuntimeHandle NodesModifierRuntimeHandle;
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END)
  */
@@ -2422,7 +2418,3 @@ typedef enum VolumeToMeshResolutionMode {
 typedef enum VolumeToMeshFlag {
   VOLUME_TO_MESH_USE_SMOOTH_SHADE = 1 << 0,
 } VolumeToMeshFlag;
-
-#ifdef __cplusplus
-}
-#endif

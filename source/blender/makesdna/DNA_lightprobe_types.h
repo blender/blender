@@ -14,10 +14,6 @@
 
 #include "BLI_assert.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct Object;
 
@@ -370,7 +366,3 @@ enum {
 };
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

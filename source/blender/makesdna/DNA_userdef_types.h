@@ -12,10 +12,6 @@
 #include "DNA_texture_types.h" /* ColorBand */
 #include "DNA_userdef_enums.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Scaling factor for all UI elements, based on the "Resolution Scale" user preference and the
  * DPI/OS Scale of each monitor. This is a read-only, run-time value calculated by
@@ -1498,7 +1494,3 @@ enum {
   ULANGUAGE_AUTO = 0,
   ULANGUAGE_ENGLISH = 1,
 };
-
-#ifdef __cplusplus
-}
-#endif

@@ -10,10 +10,6 @@
 
 #include "DNA_ID.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct bSound;
 
@@ -51,7 +47,3 @@ enum {
   SPK_MUTED = 1 << 1,
   // SPK_RELATIVE = 1 << 2, /* UNUSED */
 };
-
-#ifdef __cplusplus
-}
-#endif

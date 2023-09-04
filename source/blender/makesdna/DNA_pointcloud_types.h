@@ -33,10 +33,6 @@ using PointCloudRuntimeHandle = blender::bke::PointCloudRuntime;
 typedef struct PointCloudRuntimeHandle PointCloudRuntimeHandle;
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct PointCloud {
   ID id;
   struct AnimData *adt; /* animation data (must be immediately after id) */
@@ -82,7 +78,3 @@ enum {
 
 /* Only one material supported currently. */
 #define POINTCLOUD_MATERIAL_NR 1
-
-#ifdef __cplusplus
-}
-#endif

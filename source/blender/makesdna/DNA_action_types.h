@@ -20,10 +20,6 @@
 #include "DNA_vec_types.h"
 #include "DNA_view2d_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Collection;
 struct GHash;
 struct Object;
@@ -980,7 +976,3 @@ typedef struct bActionChannel {
   /** Temporary setting - may be used to indicate group that channel belongs to during syncing. */
   int temp;
 } bActionChannel;
-
-#ifdef __cplusplus
-}
-#endif

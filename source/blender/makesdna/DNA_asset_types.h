@@ -22,10 +22,6 @@ class AssetIdentifier;
 
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * \brief User defined tag.
  * Currently only used by assets, could be used more often at some point.
@@ -216,7 +212,3 @@ typedef enum eUserExtensionRepo_Flag {
   /** Maintain disk cache. */
   USER_EXTENSION_FLAG_NO_CACHE = 1 << 0,
 } eUserExtensionRepo_Flag;
-
-#ifdef __cplusplus
-}
-#endif

@@ -19,10 +19,6 @@
 #  include <memory>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct bContext;
 struct bNodeSocket;
 struct bNodeSocketType;
@@ -406,7 +402,3 @@ typedef struct bNodeTreeInterface {
 
 #endif
 } bNodeTreeInterface;
-
-#ifdef __cplusplus
-}
-#endif

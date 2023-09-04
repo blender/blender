@@ -44,10 +44,6 @@ typedef struct GreasePencilLayerRuntimeHandle GreasePencilLayerRuntimeHandle;
 typedef struct GreasePencilLayerGroupRuntimeHandle GreasePencilLayerGroupRuntimeHandle;
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct GreasePencil;
 struct BlendDataReader;
 struct BlendWriter;
@@ -539,7 +535,3 @@ typedef struct GreasePencil {
   void print_layer_tree();
 #endif
 } GreasePencil;
-
-#ifdef __cplusplus
-}
-#endif

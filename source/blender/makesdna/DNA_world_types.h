@@ -11,10 +11,6 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct Ipo;
 struct LightgroupMembership;
@@ -117,7 +113,3 @@ enum {
    */
   WO_DS_SHOW_TEXS = 1 << 2,
 };
-
-#ifdef __cplusplus
-}
-#endif

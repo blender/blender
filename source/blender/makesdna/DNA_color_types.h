@@ -11,10 +11,6 @@
 #include "DNA_defs.h"
 #include "DNA_vec_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* general defines for kernel functions */
 #define CM_RESOL 32
 #define CM_TABLE 256
@@ -212,7 +208,3 @@ enum {
   COLORMANAGE_VIEW_USE_CURVES = (1 << 0),
   COLORMANAGE_VIEW_USE_HDR = (1 << 1),
 };
-
-#ifdef __cplusplus
-}
-#endif

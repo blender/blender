@@ -10,10 +10,6 @@
 
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ID;
 
 typedef struct TreeStoreElem {
@@ -135,7 +131,3 @@ typedef enum eTreeStoreElemType {
          TSE_ID_BASE, \
          TSE_GP_LAYER, \
          TSE_GENERIC_LABEL))
-
-#ifdef __cplusplus
-}
-#endif

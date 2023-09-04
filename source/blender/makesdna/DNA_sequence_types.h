@@ -21,10 +21,6 @@
 #include "DNA_session_uuid_types.h" /* for #SessionUUID */
 #include "DNA_vec_types.h"          /* for #rctf */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Ipo;
 struct MovieClip;
 struct Scene;
@@ -861,7 +857,3 @@ typedef enum eSeqChannelFlag {
 } eSeqChannelFlag;
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

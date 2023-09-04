@@ -10,10 +10,6 @@
 
 #include "DNA_view3d_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* -------------------------------------------------------------------- */
 
 typedef struct XrSessionSettings {
@@ -208,7 +204,3 @@ typedef struct XrActionMap {
 } XrActionMap;
 
 /* -------------------------------------------------------------------- */
-
-#ifdef __cplusplus
-}
-#endif

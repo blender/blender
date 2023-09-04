@@ -10,10 +10,6 @@
 
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct PaintSurfaceData;
 
 /* surface format */
@@ -261,7 +257,3 @@ typedef struct DynamicPaintBrushSettings {
   float wave_factor, wave_clamp;
   float max_velocity, smudge_strength;
 } DynamicPaintBrushSettings;
-
-#ifdef __cplusplus
-}
-#endif

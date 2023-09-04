@@ -13,10 +13,6 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Action;
 struct Ipo;
 struct Text;
@@ -1172,7 +1168,3 @@ typedef enum eStretchTo_Flags {
   STRETCHTOCON_USE_BULGE_MIN = (1 << 0),
   STRETCHTOCON_USE_BULGE_MAX = (1 << 1),
 } eStretchTo_Flags;
-
-#ifdef __cplusplus
-}
-#endif

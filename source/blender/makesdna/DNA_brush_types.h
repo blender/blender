@@ -14,10 +14,6 @@
 #include "DNA_defs.h"
 #include "DNA_texture_types.h" /* for MTex */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct CurveMapping;
 struct Image;
 struct MTex;
@@ -441,7 +437,3 @@ typedef struct PaintCurve {
   /** Index where next point will be added. */
   int add_index;
 } PaintCurve;
-
-#ifdef __cplusplus
-}
-#endif
