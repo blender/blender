@@ -1257,20 +1257,27 @@ void MTLFrameBuffer::ensure_render_target_size()
 /** \ Clear values and Load-store actions
  * \{ */
 
-void MTLFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType type,
-                                                 eGPULoadOp load_action,
-                                                 eGPUStoreOp store_action)
+void MTLFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType type, GPULoadStore ls)
 {
   if (type >= GPU_FB_COLOR_ATTACHMENT0) {
     int slot = type - GPU_FB_COLOR_ATTACHMENT0;
-    this->set_color_loadstore_op(slot, load_action, store_action);
+    if (ls.load_action == GPU_LOADACTION_CLEAR) {
+      this->set_color_attachment_clear_color(slot, ls.clear_value);
+    }
+    this->set_color_loadstore_op(slot, ls.load_action, ls.store_action);
   }
   else if (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT) {
-    this->set_depth_loadstore_op(load_action, store_action);
-    this->set_stencil_loadstore_op(load_action, store_action);
+    if (ls.load_action == GPU_LOADACTION_CLEAR) {
+      this->set_depth_attachment_clear_value(ls.clear_value[0]);
+    }
+    this->set_depth_loadstore_op(ls.load_action, ls.store_action);
+    this->set_stencil_loadstore_op(ls.load_action, ls.store_action);
   }
   else if (type == GPU_FB_DEPTH_ATTACHMENT) {
-    this->set_depth_loadstore_op(load_action, store_action);
+    if (ls.load_action == GPU_LOADACTION_CLEAR) {
+      this->set_depth_attachment_clear_value(ls.clear_value[0]);
+    }
+    this->set_depth_loadstore_op(ls.load_action, ls.store_action);
   }
 }
 
