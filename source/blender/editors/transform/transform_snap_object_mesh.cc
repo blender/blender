@@ -108,7 +108,10 @@ static bool raycastMesh(SnapObjectContext *sctx,
   /* local scale in normal direction */
   ray_normal_local = math::normalize_and_get_length(ray_normal_local, local_scale);
 
-  local_depth = sctx->ret.ray_depth_max;
+  const bool is_in_front = sctx->runtime.params.use_occlusion_test &&
+                           (ob_eval->dtx & OB_DRAW_IN_FRONT) != 0;
+  const float depth_max = is_in_front ? sctx->ret.ray_depth_max_in_front : sctx->ret.ray_depth_max;
+  local_depth = depth_max;
   if (local_depth != BVH_RAYCAST_DIST_MAX) {
     local_depth *= local_scale;
   }
@@ -161,13 +164,8 @@ static bool raycastMesh(SnapObjectContext *sctx,
     data.hit_list = sctx->ret.hit_list;
 
     void *hit_last_prev = data.hit_list->last;
-    BLI_bvhtree_ray_cast_all(treedata.tree,
-                             ray_start_local,
-                             ray_normal_local,
-                             0.0f,
-                             sctx->ret.ray_depth_max,
-                             raycast_all_cb,
-                             &data);
+    BLI_bvhtree_ray_cast_all(
+        treedata.tree, ray_start_local, ray_normal_local, 0.0f, depth_max, raycast_all_cb, &data);
 
     retval = hit_last_prev != data.hit_list->last;
   }
@@ -188,14 +186,11 @@ static bool raycastMesh(SnapObjectContext *sctx,
     {
       hit.dist += len_diff;
       hit.dist /= local_scale;
-      if (hit.dist <= sctx->ret.ray_depth_max) {
-        sctx->ret.loc = math::transform_point(obmat, float3(hit.co));
-        sctx->ret.no = math::normalize(math::transform_direction(obmat, float3(hit.no)));
-
-        sctx->ret.ray_depth_max = hit.dist;
-        sctx->ret.index = looptri_faces[hit.index];
+      if (hit.dist <= depth_max) {
+        hit.index = looptri_faces[hit.index];
         retval = true;
       }
+      SnapData::register_result_raycast(sctx, ob_eval, &me_eval->id, obmat, &hit, is_in_front);
     }
   }
 
@@ -389,7 +384,7 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
   const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id);
 
   SnapData_Mesh nearest2d(sctx, mesh_eval, obmat);
-  nearest2d.clip_planes_enable(sctx);
+  nearest2d.clip_planes_enable(sctx, ob_eval);
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
@@ -493,7 +488,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     BLI_assert(treedata_dummy.cached);
   }
 
-  nearest2d.clip_planes_enable(sctx);
+  nearest2d.clip_planes_enable(sctx, ob_eval);
 
   BVHTreeNearest nearest{};
   nearest.index = -1;

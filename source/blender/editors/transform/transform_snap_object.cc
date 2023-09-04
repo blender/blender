@@ -40,6 +40,21 @@ static blender::timeit::Nanoseconds duration_;
 
 using namespace blender;
 
+static float4 occlusion_plane_create(float3 ray_dir, float3 ray_co, float3 ray_no)
+{
+  float4 plane;
+  plane_from_point_normal_v3(plane, ray_co, ray_no);
+  if (dot_v3v3(ray_dir, plane) > 0.0f) {
+    /* The plane is facing the wrong direction. */
+    negate_v4(plane);
+  }
+
+  /* Small offset to simulate a kind of volume for edges and vertices. */
+  plane[3] += 0.01f;
+
+  return plane;
+}
+
 static bool test_projected_vert_dist(const DistProjectedAABBPrecalc *precalc,
                                      const float (*clip_plane)[4],
                                      const int clip_plane_len,
@@ -118,23 +133,25 @@ SnapData::SnapData(SnapObjectContext *sctx, const float4x4 &obmat)
   copy_v3_fl3(this->nearest_point.no, 0.0f, 0.0f, 1.0f);
 }
 
-void SnapData::clip_planes_enable(SnapObjectContext *sctx, bool skip_occlusion_plane)
+void SnapData::clip_planes_enable(SnapObjectContext *sctx,
+                                  const Object *ob_eval,
+                                  bool skip_occlusion_plane)
 {
-  float(*clip_planes)[4] = reinterpret_cast<float(*)[4]>(sctx->runtime.clip_planes.data());
-  int clip_plane_len = sctx->runtime.clip_planes.size();
-
-  if (skip_occlusion_plane && sctx->runtime.has_occlusion_plane) {
-    /* We snap to vertices even if occluded. */
-    clip_planes++;
-    clip_plane_len--;
-  }
-
   float4x4 tobmat = math::transpose(this->obmat_);
-  for (int i : IndexRange(clip_plane_len)) {
-    this->clip_planes.append(tobmat * clip_planes[i]);
+  if (!skip_occlusion_plane) {
+    const bool is_in_front = sctx->runtime.params.use_occlusion_test &&
+                             (ob_eval->dtx & OB_DRAW_IN_FRONT) != 0;
+    if (!is_in_front && sctx->runtime.has_occlusion_plane) {
+      this->clip_planes.append(tobmat * sctx->runtime.occlusion_plane);
+    }
+    else if (sctx->runtime.has_occlusion_plane_in_front) {
+      this->clip_planes.append(tobmat * sctx->runtime.occlusion_plane_in_front);
+    }
   }
 
-  BLI_assert(this->clip_planes.size() == clip_plane_len);
+  for (float4 &plane : sctx->runtime.clip_planes) {
+    this->clip_planes.append(tobmat * plane);
+  }
 }
 
 bool SnapData::snap_boundbox(const float3 &min, const float3 &max)
@@ -302,6 +319,36 @@ void SnapData::register_result(SnapObjectContext *sctx,
 void SnapData::register_result(SnapObjectContext *sctx, Object *ob_eval, const ID *id_eval)
 {
   this->register_result(sctx, ob_eval, id_eval, this->obmat_, &this->nearest_point);
+}
+
+void SnapData::register_result_raycast(SnapObjectContext *sctx,
+                                       Object *ob_eval,
+                                       const ID *id_eval,
+                                       const blender::float4x4 &obmat,
+                                       const BVHTreeRayHit *hit,
+                                       const bool is_in_front)
+{
+  const float depth_max = is_in_front ? sctx->ret.ray_depth_max_in_front : sctx->ret.ray_depth_max;
+  if (hit->dist <= depth_max) {
+    float3 co = math::transform_point(obmat, float3(hit->co));
+    float3 no = math::normalize(math::transform_direction(obmat, float3(hit->no)));
+
+    sctx->ret.loc = co;
+    sctx->ret.no = no;
+    sctx->ret.index = hit->index;
+    sctx->ret.obmat = obmat;
+    sctx->ret.ob = ob_eval;
+    sctx->ret.data = id_eval;
+    if (hit->dist <= sctx->ret.ray_depth_max) {
+      sctx->ret.ray_depth_max = hit->dist;
+    }
+
+    if (is_in_front) {
+      sctx->runtime.occlusion_plane_in_front = occlusion_plane_create(
+          sctx->runtime.ray_dir, co, no);
+      sctx->runtime.has_occlusion_plane_in_front = true;
+    }
+  }
 }
 
 /* -------------------------------------------------------------------- */
@@ -584,9 +631,6 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
   }
 
   if (retval) {
-    sctx->ret.obmat = obmat;
-    sctx->ret.ob = ob_eval;
-    sctx->ret.data = ob_data;
     return SCE_SNAP_TO_FACE;
   }
   return SCE_SNAP_TO_NONE;
@@ -835,7 +879,7 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
 
   SnapData nearest2d(sctx, obmat);
 
-  nearest2d.clip_planes_enable(sctx);
+  nearest2d.clip_planes_enable(sctx, ob_eval);
 
   if (nearest2d.snap_point(float3(0.0f))) {
     nearest2d.register_result(sctx, ob_eval, static_cast<const ID *>(ob_eval->data));
@@ -1022,6 +1066,7 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
   sctx->runtime.use_occlusion_test_edit = use_occlusion_test &&
                                           (snap_to_flag & SCE_SNAP_TO_FACE) == 0;
   sctx->runtime.has_occlusion_plane = false;
+  sctx->runtime.has_occlusion_plane_in_front = false;
   sctx->runtime.object_index = 0;
 
   copy_v3_v3(sctx->runtime.ray_start, ray_start);
@@ -1053,7 +1098,7 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
     sctx->runtime.rv3d = rv3d;
   }
 
-  sctx->ret.ray_depth_max = ray_depth;
+  sctx->ret.ray_depth_max = sctx->ret.ray_depth_max_in_front = ray_depth;
   sctx->ret.index = -1;
   sctx->ret.hit_list = hit_list;
   sctx->ret.ob = nullptr;
@@ -1322,16 +1367,9 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
         sctx->ret.ob->type != OB_CURVES_LEGACY)
     {
       /* Compute the new clip_pane but do not add it yet. */
-      float new_clipplane[4];
       BLI_ASSERT_UNIT_V3(sctx->ret.no);
-      plane_from_point_normal_v3(new_clipplane, sctx->ret.loc, sctx->ret.no);
-      if (dot_v3v3(sctx->runtime.ray_dir, new_clipplane) > 0.0f) {
-        /* The plane is facing the wrong direction. */
-        negate_v4(new_clipplane);
-      }
-
-      /* Small offset to simulate a kind of volume for edges and vertices. */
-      new_clipplane[3] += 0.01f;
+      sctx->runtime.occlusion_plane = occlusion_plane_create(
+          sctx->runtime.ray_dir, sctx->ret.loc, sctx->ret.no);
 
       /* Try to snap only to the face. */
       elem_test = snap_polygon(sctx, sctx->runtime.snap_to_flag);
@@ -1339,8 +1377,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
         elem = elem_test;
       }
 
-      /* Add the new clip plane to the beginning of the list. */
-      sctx->runtime.clip_planes.prepend(new_clipplane);
+      /* Add the new clip plane. */
       sctx->runtime.has_occlusion_plane = true;
     }
 

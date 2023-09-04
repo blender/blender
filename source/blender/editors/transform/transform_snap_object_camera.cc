@@ -45,7 +45,7 @@ eSnapMode snapCamera(SnapObjectContext *sctx,
   BKE_tracking_get_camera_object_matrix(object, orig_camera_mat.ptr());
 
   SnapData nearest2d(sctx);
-  nearest2d.clip_planes_enable(sctx);
+  nearest2d.clip_planes_enable(sctx, object);
 
   MovieTracking *tracking = &clip->tracking;
   LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
