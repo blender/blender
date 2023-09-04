@@ -8,7 +8,7 @@
 #   HIPRT_FOUND, if SDK found
 
 # If `HIPRT_ROOT_DIR` was defined in the environment, use it.
-if(DEFINED HIPRT_ROOT_DIR)
+if(DEFINED HIPRT_ROOT_DIR AND HIPRT_ROOT_DIR)
   # Pass.
 elseif(DEFINED ENV{HIPRT_ROOT_DIR})
   set(HIPRT_ROOT_DIR $ENV{HIPRT_ROOT_DIR})

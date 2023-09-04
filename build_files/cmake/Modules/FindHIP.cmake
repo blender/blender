@@ -8,7 +8,7 @@
 #  HIP_FOUND, if the HIP toolkit is found.
 
 # If `HIP_ROOT_DIR` was defined in the environment, use it.
-if(DEFINED HIP_ROOT_DIR)
+if(DEFINED HIP_ROOT_DIR AND HIP_ROOT_DIR)
   # Pass.
 elseif(DEFINED ENV{HIP_ROOT_DIR})
   set(HIP_ROOT_DIR $ENV{HIP_ROOT_DIR})
