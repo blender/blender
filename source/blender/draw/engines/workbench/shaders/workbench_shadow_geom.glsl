@@ -46,12 +46,8 @@ void main()
   }
 #endif
 
-#ifdef WORKBENCH_NEXT
   vec2 facing = vec2(dot(n1, vData_flat[0].light_direction_os),
                      dot(n2, vData_flat[0].light_direction_os));
-#else
-  vec2 facing = vec2(dot(n1, lightDirection), dot(n2, lightDirection));
-#endif
 
   /* WATCH: maybe unpredictable in some cases. */
   bool is_manifold = any(notEqual(vData[0].pos, vData[3].pos));

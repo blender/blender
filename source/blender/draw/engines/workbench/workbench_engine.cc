@@ -855,7 +855,7 @@ DrawEngineType draw_engine_workbench_next = {
 RenderEngineType DRW_engine_viewport_workbench_next_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
-    /*idname*/ "BLENDER_WORKBENCH_NEXT",
+    /*idname*/ "BLENDER_WORKBENCH",
     /*name*/ N_("Workbench"),
     /*flag*/ RE_INTERNAL | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
     /*update*/ nullptr,

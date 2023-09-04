@@ -17,12 +17,6 @@ GPU_SHADER_INTERFACE_INFO(workbench_shadow_iface, "vData")
 GPU_SHADER_INTERFACE_INFO(workbench_shadow_flat_iface, "vData_flat")
     .flat(Type::VEC3, "light_direction_os"); /*Workbench Next*/
 
-GPU_SHADER_CREATE_INFO(workbench_shadow_common)
-    .vertex_in(0, Type::VEC3, "pos")
-    .push_constant(Type::FLOAT, "lightDistance")
-    .push_constant(Type::VEC3, "lightDirection")
-    .additional_info("draw_mesh");
-
 /* `workbench_shadow_vert.glsl` only used by geometry shader path.
  * Vertex output iface not needed by non-geometry shader variants,
  * as only gl_Position is returned. */
@@ -33,7 +27,6 @@ GPU_SHADER_CREATE_INFO(workbench_shadow_common_geom)
 
 GPU_SHADER_CREATE_INFO(workbench_next_shadow_common)
     .vertex_in(0, Type::VEC3, "pos")
-    .define("WORKBENCH_NEXT")
     .uniform_buf(1, "ShadowPassData", "pass_data")
     .typedef_source("workbench_shader_shared.h")
     .additional_info("draw_view")
@@ -160,16 +153,6 @@ GPU_SHADER_CREATE_INFO(workbench_next_shadow_debug).additional_info("workbench_s
       .define("DOUBLE_MANIFOLD") \
       .additional_info(common, "workbench_shadow_no_manifold", __VA_ARGS__) \
       .do_static_compilation(true);
-
-WORKBENCH_SHADOW_VARIATIONS("workbench_shadow_common",
-                            workbench_shadow,
-                            ,
-                            "workbench_shadow_no_debug")
-
-WORKBENCH_SHADOW_VARIATIONS("workbench_shadow_common",
-                            workbench_shadow,
-                            _debug,
-                            "workbench_shadow_debug")
 
 WORKBENCH_SHADOW_VARIATIONS("workbench_next_shadow_common",
                             workbench_next_shadow,

@@ -2233,7 +2233,6 @@ enum {
 /** #RenderData::engine (scene.cc) */
 extern const char *RE_engine_id_BLENDER_EEVEE;
 extern const char *RE_engine_id_BLENDER_WORKBENCH;
-extern const char *RE_engine_id_BLENDER_WORKBENCH_NEXT;
 extern const char *RE_engine_id_CYCLES;
 
 /** \} */
