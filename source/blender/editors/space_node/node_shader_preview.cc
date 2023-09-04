@@ -704,24 +704,23 @@ static void shader_preview_startjob(void *customdata,
     job_data->tree_previews->preview_size = U.node_preview_res;
   }
 
+  for (bNode *node_iter : job_data->mat_copy->nodetree->all_nodes()) {
+    if (node_iter->flag & NODE_DO_OUTPUT) {
+      node_iter->flag &= ~NODE_DO_OUTPUT;
+      bNodeSocket *disp_socket = nodeFindSocket(node_iter, SOCK_IN, "Displacement");
+      if (disp_socket != nullptr && disp_socket->link != nullptr) {
+        job_data->mat_displacement_copy = std::make_pair(disp_socket->link->fromnode,
+                                                         disp_socket->link->fromsock);
+      }
+      break;
+    }
+  }
+
   /* Add a new output node used only for the previews. This is useful to keep the previously
    * connected links (for previewing the output nodes for example). */
   job_data->mat_output_copy = nodeAddStaticNode(
       nullptr, job_data->mat_copy->nodetree, SH_NODE_OUTPUT_MATERIAL);
-  bNode *active_user_output_node = nullptr;
-  for (bNode *node_iter : job_data->mat_copy->nodetree->all_nodes()) {
-    if (node_iter->flag & NODE_DO_OUTPUT) {
-      node_iter->flag &= ~NODE_DO_OUTPUT;
-      active_user_output_node = node_iter;
-    }
-  }
   job_data->mat_output_copy->flag |= NODE_DO_OUTPUT;
-
-  bNodeSocket *disp_socket = nodeFindSocket(active_user_output_node, SOCK_IN, "Displacement");
-  if (disp_socket != nullptr && disp_socket->link != nullptr) {
-    job_data->mat_displacement_copy = std::make_pair(disp_socket->link->fromnode,
-                                                     disp_socket->link->fromsock);
-  }
 
   bNodeTree *active_nodetree = job_data->treepath_copy.last()->nodetree;
   for (bNode *node : active_nodetree->all_nodes()) {
