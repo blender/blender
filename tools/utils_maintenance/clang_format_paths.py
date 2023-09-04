@@ -38,6 +38,7 @@ extensions = (
     ".h", ".hh", ".hpp", ".hxx",
     ".m", ".mm",
     ".osl", ".glsl", ".msl",
+    ".metal",
 )
 
 extensions_only_retab = (

@@ -69,7 +69,7 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
 {
   TReturn result;
 
-#ifdef __BVH_LOCAL__
+#  ifdef __BVH_LOCAL__
   uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
 
   if ((object != payload.local_object) || intersection_skip_self_local(payload.self, prim)) {
@@ -141,10 +141,10 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
   result.accept = false;
   result.continue_search = true;
   return result;
-#endif
+#  endif
 }
 
-[[intersection(triangle, triangle_data )]] TriangleIntersectionResult
+[[intersection(triangle, triangle_data)]] TriangleIntersectionResult
 __anyhit__cycles_metalrt_local_hit_tri_prim(
     constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
     ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload [[payload]],
@@ -152,9 +152,10 @@ __anyhit__cycles_metalrt_local_hit_tri_prim(
     float2 barycentrics [[barycentric_coord]],
     float ray_tmax [[distance]])
 {
-  //instance_id, aka the user_id has been removed. If we take this function we optimized the
-  //SSS for starting traversal from a primitive acceleration structure instead of the root of the global AS.
-  //this means we will always be intersecting the correct object no need for the userid to check
+  // instance_id, aka the user_id has been removed. If we take this function we optimized the
+  // SSS for starting traversal from a primitive acceleration structure instead of the root of the
+  // global AS. this means we will always be intersecting the correct object no need for the userid
+  // to check
   return metalrt_local_hit<TriangleIntersectionResult, METALRT_HIT_TRIANGLE>(
       launch_params_metal, payload, payload.local_object, primitive_id, barycentrics, ray_tmax);
 }
@@ -182,7 +183,7 @@ __anyhit__cycles_metalrt_local_hit_box(const float ray_tmax [[max_distance]])
   return result;
 }
 
-[[intersection(bounding_box, triangle_data )]] BoundingBoxIntersectionResult
+[[intersection(bounding_box, triangle_data)]] BoundingBoxIntersectionResult
 __anyhit__cycles_metalrt_local_hit_box_prim(const float ray_tmax [[max_distance]])
 {
   /* unused function */
@@ -201,26 +202,26 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
                             const float2 barycentrics,
                             const float ray_tmax)
 {
-#ifdef __SHADOW_RECORD_ALL__
-#  ifdef __VISIBILITY_FLAG__
+#  ifdef __SHADOW_RECORD_ALL__
+#    ifdef __VISIBILITY_FLAG__
   const uint visibility = payload.visibility;
   if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     /* continue search */
     return true;
   }
-#  endif
+#    endif
 
   const float u = barycentrics.x;
   const float v = barycentrics.y;
   const int prim_type = kernel_data_fetch(objects, object).primitive_type;
   int type = prim_type;
-#  ifdef __HAIR__
+#    ifdef __HAIR__
   if (intersection_type != METALRT_HIT_TRIANGLE) {
-    if ( (prim_type == PRIMITIVE_CURVE_THICK || prim_type == PRIMITIVE_CURVE_RIBBON)) {
+    if ((prim_type == PRIMITIVE_CURVE_THICK || prim_type == PRIMITIVE_CURVE_RIBBON)) {
       const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
       type = segment.type;
       prim = segment.prim;
-      
+
       /* Filter out curve endcaps */
       if (u == 0.0f || u == 1.0f) {
         /* continue search */
@@ -228,19 +229,19 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
       }
     }
   }
-#  endif
+#    endif
 
   if (intersection_skip_self_shadow(payload.self, object, prim)) {
     /* continue search */
     return true;
   }
 
-#  ifndef __TRANSPARENT_SHADOWS__
+#    ifndef __TRANSPARENT_SHADOWS__
   /* No transparent shadows support compiled in, make opaque. */
   payload.result = true;
   /* terminate ray */
   return false;
-#  else
+#    else
   short max_hits = payload.max_hits;
   short num_hits = payload.num_hits;
   short num_recorded_hits = payload.num_recorded_hits;
@@ -249,7 +250,8 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
 
   /* If no transparent shadows, all light is blocked and we can stop immediately. */
   if (num_hits >= max_hits ||
-      !(context.intersection_get_shader_flags(NULL, prim, type) & SD_HAS_TRANSPARENT_SHADOW)) {
+      !(context.intersection_get_shader_flags(NULL, prim, type) & SD_HAS_TRANSPARENT_SHADOW))
+  {
     payload.result = true;
     /* terminate ray */
     return false;
@@ -308,10 +310,10 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, prim) = prim;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, object) = object;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, type) = type;
-  
+
   /* Continue tracing. */
-#  endif /* __TRANSPARENT_SHADOWS__ */
-#endif   /* __SHADOW_RECORD_ALL__ */
+#    endif /* __TRANSPARENT_SHADOWS__ */
+#  endif   /* __SHADOW_RECORD_ALL__ */
 
   return true;
 }
@@ -355,9 +357,11 @@ inline TReturnType metalrt_visibility_test(
 {
   TReturnType result;
 
-#ifdef __HAIR__
+#  ifdef __HAIR__
   const int type = kernel_data_fetch(objects, object).primitive_type;
-  if (intersection_type == METALRT_HIT_BOUNDING_BOX && (type == PRIMITIVE_CURVE_THICK || type == PRIMITIVE_CURVE_RIBBON)) {
+  if (intersection_type == METALRT_HIT_BOUNDING_BOX &&
+      (type == PRIMITIVE_CURVE_THICK || type == PRIMITIVE_CURVE_RIBBON))
+  {
     /* Filter out curve endcaps. */
     if (u == 0.0f || u == 1.0f) {
       result.accept = false;
@@ -365,16 +369,16 @@ inline TReturnType metalrt_visibility_test(
       return result;
     }
   }
-#endif
+#  endif
 
   uint visibility = payload.visibility;
-#ifdef __VISIBILITY_FLAG__
+#  ifdef __VISIBILITY_FLAG__
   if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     result.accept = false;
     result.continue_search = true;
     return result;
   }
-#endif
+#  endif
 
   if (intersection_type == METALRT_HIT_TRIANGLE) {
   }
@@ -441,7 +445,7 @@ __anyhit__cycles_metalrt_visibility_test_box(const float ray_tmax [[max_distance
 
 /* Primitive intersection functions. */
 
-#ifdef __HAIR__
+#  ifdef __HAIR__
 ccl_device_inline void metalrt_intersection_curve(
     constant KernelParamsMetal &launch_params_metal,
     ray_data MetalKernelContext::MetalRTIntersectionPayload &payload,
@@ -455,19 +459,20 @@ ccl_device_inline void metalrt_intersection_curve(
     const float ray_tmax,
     thread BoundingBoxIntersectionResult &result)
 {
-#  ifdef __VISIBILITY_FLAG__
+#    ifdef __VISIBILITY_FLAG__
   const uint visibility = payload.visibility;
   if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return;
   }
-#  endif
+#    endif
 
   Intersection isect;
   isect.t = ray_tmax;
 
   MetalKernelContext context(launch_params_metal);
   if (context.curve_intersect(
-          NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type)) {
+          NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
+  {
     result = metalrt_visibility_test<BoundingBoxIntersectionResult, METALRT_HIT_BOUNDING_BOX>(
         launch_params_metal, payload, object, prim, isect.u);
     if (result.accept) {
@@ -493,19 +498,20 @@ ccl_device_inline void metalrt_intersection_curve_shadow(
     const float ray_tmax,
     thread BoundingBoxIntersectionResult &result)
 {
-#  ifdef __VISIBILITY_FLAG__
+#    ifdef __VISIBILITY_FLAG__
   const uint visibility = payload.visibility;
   if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return;
   }
-#  endif
+#    endif
 
   Intersection isect;
   isect.t = ray_tmax;
 
   MetalKernelContext context(launch_params_metal);
   if (context.curve_intersect(
-          NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type)) {
+          NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
+  {
     result.continue_search = metalrt_shadow_all_hit<METALRT_HIT_BOUNDING_BOX>(
         launch_params_metal, payload, object, prim, float2(isect.u, isect.v), ray_tmax);
     result.accept = !result.continue_search;
@@ -539,11 +545,11 @@ __intersection__curve_ribbon(constant KernelParamsMetal &launch_params_metal [[b
                                segment.type,
                                ray_P,
                                ray_D,
-#  if defined(__METALRT_MOTION__)
+#    if defined(__METALRT_MOTION__)
                                payload.time,
-#  else
+#    else
                                0.0f,
-#  endif
+#    endif
                                ray_tmin,
                                ray_tmax,
                                result);
@@ -579,11 +585,11 @@ __intersection__curve_ribbon_shadow(
                                       segment.type,
                                       ray_P,
                                       ray_D,
-#  if defined(__METALRT_MOTION__)
+#    if defined(__METALRT_MOTION__)
                                       payload.time,
-#  else
+#    else
                                       0.0f,
-#  endif
+#    endif
                                       ray_tmin,
                                       ray_tmax,
                                       result);
@@ -617,11 +623,11 @@ __intersection__curve_all(constant KernelParamsMetal &launch_params_metal [[buff
                              segment.type,
                              ray_P,
                              ray_D,
-#  if defined(__METALRT_MOTION__)
+#    if defined(__METALRT_MOTION__)
                              payload.time,
-#  else
+#    else
                              0.0f,
-#  endif
+#    endif
                              ray_tmin,
                              ray_tmax,
                              result);
@@ -655,20 +661,20 @@ __intersection__curve_all_shadow(
                                     segment.type,
                                     ray_P,
                                     ray_D,
-#  if defined(__METALRT_MOTION__)
+#    if defined(__METALRT_MOTION__)
                                     payload.time,
-#  else
+#    else
                                     0.0f,
-#  endif
+#    endif
                                     ray_tmin,
                                     ray_tmax,
                                     result);
 
   return result;
 }
-#endif /* __HAIR__ */
+#  endif /* __HAIR__ */
 
-#ifdef __POINTCLOUD__
+#  ifdef __POINTCLOUD__
 ccl_device_inline void metalrt_intersection_point(
     constant KernelParamsMetal &launch_params_metal,
     ray_data MetalKernelContext::MetalRTIntersectionPayload &payload,
@@ -682,19 +688,20 @@ ccl_device_inline void metalrt_intersection_point(
     const float ray_tmax,
     thread BoundingBoxIntersectionResult &result)
 {
-#  ifdef __VISIBILITY_FLAG__
+#    ifdef __VISIBILITY_FLAG__
   const uint visibility = payload.visibility;
   if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return;
   }
-#  endif
+#    endif
 
   Intersection isect;
   isect.t = ray_tmax;
 
   MetalKernelContext context(launch_params_metal);
   if (context.point_intersect(
-          NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type)) {
+          NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
+  {
     result = metalrt_visibility_test<BoundingBoxIntersectionResult, METALRT_HIT_BOUNDING_BOX>(
         launch_params_metal, payload, object, prim, isect.u);
     if (result.accept) {
@@ -720,19 +727,20 @@ ccl_device_inline void metalrt_intersection_point_shadow(
     const float ray_tmax,
     thread BoundingBoxIntersectionResult &result)
 {
-#  ifdef __VISIBILITY_FLAG__
+#    ifdef __VISIBILITY_FLAG__
   const uint visibility = payload.visibility;
   if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return;
   }
-#  endif
+#    endif
 
   Intersection isect;
   isect.t = ray_tmax;
 
   MetalKernelContext context(launch_params_metal);
   if (context.point_intersect(
-          NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type)) {
+          NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
+  {
     result.continue_search = metalrt_shadow_all_hit<METALRT_HIT_BOUNDING_BOX>(
         launch_params_metal, payload, object, prim, float2(isect.u, isect.v), ray_tmax);
     result.accept = !result.continue_search;
@@ -768,11 +776,11 @@ __intersection__point(constant KernelParamsMetal &launch_params_metal [[buffer(1
                              type,
                              ray_origin,
                              ray_direction,
-#  if defined(__METALRT_MOTION__)
+#    if defined(__METALRT_MOTION__)
                              payload.time,
-#  else
+#    else
                              0.0f,
-#  endif
+#    endif
                              ray_tmin,
                              ray_tmax,
                              result);
@@ -806,16 +814,16 @@ __intersection__point_shadow(constant KernelParamsMetal &launch_params_metal [[b
                                     type,
                                     ray_origin,
                                     ray_direction,
-#  if defined(__METALRT_MOTION__)
+#    if defined(__METALRT_MOTION__)
                                     payload.time,
-#  else
+#    else
                                     0.0f,
-#  endif
+#    endif
                                     ray_tmin,
                                     ray_tmax,
                                     result);
 
   return result;
 }
-#endif /* __POINTCLOUD__ */
-#endif /* __METALRT__ */
+#  endif /* __POINTCLOUD__ */
+#endif   /* __METALRT__ */
