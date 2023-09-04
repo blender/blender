@@ -218,14 +218,9 @@ const MeshData::SubMesh &MeshData::submesh(pxr::SdfPath const &id) const
 
 void MeshData::write_submeshes(const Mesh *mesh)
 {
-  submeshes_.clear();
-
-  /* Insert base submeshes */
-  const int mat_count = BKE_object_material_count_eval((const Object *)id);
-  for (int i = 0; i < std::max(mat_count, 1); ++i) {
-    SubMesh sm;
-    sm.mat_index = i;
-    submeshes_.push_back(sm);
+  submeshes_.reinitialize(BKE_object_material_count_eval(reinterpret_cast<const Object *>(id)));
+  for (const int i : submeshes_.index_range()) {
+    submeshes_[i].mat_index = i;
   }
 
   /* Fill submeshes data */
@@ -266,16 +261,8 @@ void MeshData::write_submeshes(const Mesh *mesh)
   }
 
   /* Remove submeshes without faces */
-  for (auto it = submeshes_.begin(); it != submeshes_.end();) {
-    if (it->face_vertex_counts.empty()) {
-      it = submeshes_.erase(it);
-    }
-    else {
-      ++it;
-    }
-  }
-
-  if (submeshes_.empty()) {
+  submeshes_.remove_if([](const SubMesh &submesh) { return submesh.face_vertex_counts.empty(); });
+  if (submeshes_.is_empty()) {
     return;
   }
 
