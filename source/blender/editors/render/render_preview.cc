@@ -60,6 +60,7 @@
 #include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_pose_backup.h"
+#include "BKE_preview_image.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"

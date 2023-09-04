@@ -41,12 +41,12 @@
 #include "BLT_translation.h"
 
 #include "BKE_gpencil_legacy.h"
-#include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_node.h"
+#include "BKE_preview_image.hh"
 #include "BKE_screen.h"
 #include "BKE_viewer_path.h"
 #include "BKE_workspace.h"

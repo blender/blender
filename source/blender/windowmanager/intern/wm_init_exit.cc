@@ -50,6 +50,7 @@
 #include "BKE_main.h"
 #include "BKE_mball_tessellate.h"
 #include "BKE_node.hh"
+#include "BKE_preview_image.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -254,10 +255,11 @@ void WM_init(bContext *C, int argc, const char **argv)
    * since versioning code may create new IDs. See #57066. */
   BLT_lang_set(nullptr);
 
-  /* Init icons before reading .blend files for preview icons, which can
+  /* Init icons & previews before reading .blend files for preview icons, which can
    * get triggered by the depsgraph. This is also done in background mode
    * for scripts that do background processing with preview icons. */
   BKE_icons_init(BIFICONID_LAST_STATIC);
+  BKE_preview_images_init();
 
   /* Reports can't be initialized before the window-manager,
    * but keep before file reading, since that may report errors */

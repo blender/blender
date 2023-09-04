@@ -22,7 +22,6 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_collection.h"
-#include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
@@ -31,6 +30,7 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_preview_image.hh"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 

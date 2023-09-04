@@ -265,6 +265,7 @@ set(SRC
   intern/pointcloud.cc
   intern/pose_backup.cc
   intern/preferences.cc
+  intern/preview_image.cc
   intern/report.cc
   intern/rigidbody.cc
   intern/scene.cc
@@ -474,6 +475,7 @@ set(SRC
   BKE_pointcloud.h
   BKE_pose_backup.h
   BKE_preferences.h
+  BKE_preview_image.hh
   BKE_report.h
   BKE_rigidbody.h
   BKE_scene.h

@@ -458,6 +458,7 @@ static EnumPropertyItem rna_enum_gpencil_brush_vertex_icons_items[] = {
 #  include "BKE_icons.h"
 #  include "BKE_material.h"
 #  include "BKE_paint.hh"
+#  include "BKE_preview_image.hh"
 
 #  include "WM_api.hh"
 

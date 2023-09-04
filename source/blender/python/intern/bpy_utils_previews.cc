@@ -32,7 +32,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "BKE_icons.h"
+#include "BKE_preview_image.hh"
 
 #include "DNA_ID.h"
 

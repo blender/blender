@@ -44,6 +44,7 @@
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_paint.hh"
+#include "BKE_preview_image.hh"
 #include "BKE_studiolight.h"
 
 #include "IMB_imbuf.h"
@@ -1150,6 +1151,7 @@ void UI_icons_free()
   free_iconfile_list(&iconfilelist);
 #endif
   BKE_icons_free();
+  BKE_preview_images_free();
 }
 
 void UI_icons_free_drawinfo(void *drawinfo)

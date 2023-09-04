@@ -26,9 +26,9 @@
 #include "DNA_sdna_types.h"
 
 #include "BKE_asset.h"
-#include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
+#include "BKE_preview_image.hh"
 
 #include "BLO_blend_defs.hh"
 #include "BLO_readfile.h"

@@ -57,7 +57,6 @@
 #include "BKE_context.h"
 #include "BKE_cryptomatte.h"
 #include "BKE_global.h"
-#include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.h"
@@ -71,6 +70,7 @@
 #include "BKE_node_tree_interface.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_node_tree_zones.hh"
+#include "BKE_preview_image.hh"
 #include "BKE_type_conversions.hh"
 
 #include "RNA_access.hh"
