@@ -205,7 +205,7 @@ static void test_texture_cube_array()
 
   float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
   for (int index : IndexRange(SIZE * SIZE * 6 * LAYERS)) {
-    EXPECT_EQ(clear_colo1r, data[index]);
+    EXPECT_EQ(clear_color, data[index]);
   }
   MEM_freeN(data);
 
