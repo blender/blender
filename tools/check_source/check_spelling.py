@@ -354,11 +354,11 @@ def extract_py_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
     for toktype, ttext, (slineno, scol), (elineno, ecol), ltext in tokgen:
         if toktype == token.STRING:
             if prev_toktype == token.INDENT:
-                comments.append(Comment(filepath, ttext, slineno, 'DOCSTRING'))
+                comments.append(Comment(filepath, ttext, slineno - 1, 'DOCSTRING'))
         elif toktype == tokenize.COMMENT:
             # non standard hint for commented CODE that we can ignore
             if not ttext.startswith("#~"):
-                comments.append(Comment(filepath, ttext, slineno, 'COMMENT'))
+                comments.append(Comment(filepath, ttext, slineno - 1, 'COMMENT'))
         else:
             for match in re_vars.finditer(ttext):
                 code_words.add(match.group(0))
