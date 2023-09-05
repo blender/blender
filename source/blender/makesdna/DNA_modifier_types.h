@@ -15,9 +15,6 @@
 #include "DNA_session_uuid_types.h"
 
 #ifdef __cplusplus
-namespace blender::bke::sim {
-struct ModifierSimulationCachePtr;
-}
 namespace blender {
 struct NodesModifierRuntime;
 }
