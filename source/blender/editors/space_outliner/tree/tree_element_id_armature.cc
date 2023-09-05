@@ -54,7 +54,7 @@ void TreeElementIDArmature::expand_edit_bones() const
   int a = 0;
   LISTBASE_FOREACH_INDEX (EditBone *, ebone, arm_.edbo, a) {
     TreeElement *ten = add_element(
-        &legacy_te_.subtree, &arm_.id, &ebone, &legacy_te_, TSE_EBONE, a);
+        &legacy_te_.subtree, &arm_.id, ebone, &legacy_te_, TSE_EBONE, a);
     ebone->temp.p = ten;
   }
   /* make hierarchy */
