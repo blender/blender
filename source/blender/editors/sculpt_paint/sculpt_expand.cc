@@ -246,7 +246,7 @@ static bool sculpt_expand_state_get(SculptSession *ss,
      * from the Sculpt API instead of implementing a custom function to get them from
      * expand_cache->original_face_sets. */
     const int face_set = SCULPT_vertex_face_set_get(ss, v);
-    enabled = BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
+    enabled = expand_cache->snap_enabled_face_sets->contains(face_set);
   }
   else {
     const float max_falloff_factor = sculpt_expand_max_vertex_falloff_get(expand_cache);
@@ -292,7 +292,7 @@ static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_
 
   if (expand_cache->snap_enabled_face_sets) {
     const int face_set = expand_cache->original_face_sets[f];
-    enabled = BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
+    enabled = expand_cache->snap_enabled_face_sets->contains(face_set);
   }
   else {
     const float loop_len = (expand_cache->max_face_falloff / expand_cache->loop_count) +
@@ -1125,7 +1125,7 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
   const int totface = ss->totfaces;
   for (int i = 0; i < totface; i++) {
     const int face_set = expand_cache->original_face_sets[i];
-    BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
+    expand_cache->snap_enabled_face_sets->add(face_set);
   }
 
   for (const int i : ss->faces.index_range()) {
@@ -1135,7 +1135,7 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
                                           [&](const int vert) { return !enabled_verts[vert]; });
     if (any_disabled) {
       const int face_set = expand_cache->original_face_sets[i];
-      BLI_gset_remove(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set), nullptr);
+      expand_cache->snap_enabled_face_sets->remove(face_set);
     }
   }
 
@@ -1148,9 +1148,6 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
  */
 static void sculpt_expand_cache_data_free(ExpandCache *expand_cache)
 {
-  if (expand_cache->snap_enabled_face_sets) {
-    BLI_gset_free(expand_cache->snap_enabled_face_sets, nullptr);
-  }
   MEM_SAFE_FREE(expand_cache->vert_falloff);
   MEM_SAFE_FREE(expand_cache->face_falloff);
   MEM_SAFE_FREE(expand_cache->original_mask);
@@ -1798,15 +1795,12 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         if (expand_cache->snap) {
           expand_cache->snap = false;
           if (expand_cache->snap_enabled_face_sets) {
-            BLI_gset_free(expand_cache->snap_enabled_face_sets, nullptr);
-            expand_cache->snap_enabled_face_sets = nullptr;
+            expand_cache->snap_enabled_face_sets.reset();
           }
         }
         else {
           expand_cache->snap = true;
-          if (!expand_cache->snap_enabled_face_sets) {
-            expand_cache->snap_enabled_face_sets = BLI_gset_int_new("snap face sets");
-          }
+          expand_cache->snap_enabled_face_sets = std::make_unique<blender::Set<int>>();
           sculpt_expand_snap_initialize_from_enabled(ss, expand_cache);
         }
       } break;
@@ -1943,7 +1937,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   if (expand_cache->snap) {
     const int active_face_set_id = sculpt_expand_active_face_set_id_get(ss, expand_cache);
     /* The key may exist, in that case this does nothing. */
-    BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(active_face_set_id));
+    expand_cache->snap_enabled_face_sets->add(active_face_set_id);
   }
 
   /* Update the sculpt data with the current state of the #ExpandCache. */

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "DNA_brush_types.h"
 #include "DNA_key_types.h"
 #include "DNA_listBase.h"
@@ -24,6 +26,7 @@
 #include "BLI_generic_array.hh"
 #include "BLI_gsqueue.h"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_threads.h"
 #include "BLI_vector.hh"
@@ -657,8 +660,8 @@ struct ExpandCache {
   int active_connected_islands[EXPAND_SYMM_AREAS];
 
   /* Snapping. */
-  /* GSet containing all Face Sets IDs that Expand will use to snap the new data. */
-  GSet *snap_enabled_face_sets;
+  /* Set containing all Face Sets IDs that Expand will use to snap the new data. */
+  std::unique_ptr<blender::Set<int>> snap_enabled_face_sets;
 
   /* Texture distortion data. */
   Brush *brush;
