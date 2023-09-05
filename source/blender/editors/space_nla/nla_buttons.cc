@@ -92,16 +92,16 @@ bool nla_panel_context(const bContext *C,
         /* found it, now set the pointers */
         if (adt_ptr) {
           /* AnimData pointer */
-          RNA_pointer_create(ale->id, &RNA_AnimData, adt, adt_ptr);
+          *adt_ptr = RNA_pointer_create(ale->id, &RNA_AnimData, adt);
         }
         if (nlt_ptr) {
           /* NLA-Track pointer */
-          RNA_pointer_create(ale->id, &RNA_NlaTrack, nlt, nlt_ptr);
+          *nlt_ptr = RNA_pointer_create(ale->id, &RNA_NlaTrack, nlt);
         }
         if (strip_ptr) {
           /* NLA-Strip pointer */
           NlaStrip *strip = BKE_nlastrip_find_active(nlt);
-          RNA_pointer_create(ale->id, &RNA_NlaStrip, strip, strip_ptr);
+          *strip_ptr = RNA_pointer_create(ale->id, &RNA_NlaStrip, strip);
         }
 
         found = 1;
@@ -146,7 +146,7 @@ bool nla_panel_context(const bContext *C,
 
           /* AnimData pointer */
           if (adt_ptr) {
-            RNA_pointer_create(id, &RNA_AnimData, ale->adt, adt_ptr);
+            *adt_ptr = RNA_pointer_create(id, &RNA_AnimData, ale->adt);
           }
 
           /* set found status to -1, since setting to 1 would break the loop
@@ -293,9 +293,7 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
    */
   if (adt_ptr.owner_id) {
     ID *id = adt_ptr.owner_id;
-    PointerRNA id_ptr;
-
-    RNA_id_pointer_create(id, &id_ptr);
+    PointerRNA id_ptr = RNA_id_pointer_create(id);
 
     /* ID-block name > AnimData */
     row = uiLayoutRow(layout, true);

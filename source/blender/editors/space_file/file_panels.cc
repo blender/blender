@@ -131,7 +131,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   uiBlock *block = uiLayoutGetBlock(panel->layout);
   uiBut *but;
   uiLayout *row;
-  PointerRNA params_rna_ptr, *but_extra_rna_ptr;
+  PointerRNA *but_extra_rna_ptr;
 
   const bool overwrite_alert = file_draw_check_exists(sfile);
   const bool windows_layout =
@@ -141,7 +141,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
       false;
 #endif
 
-  RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params, &params_rna_ptr);
+  PointerRNA params_rna_ptr = RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params);
 
   row = uiLayoutRow(panel->layout, false);
   uiLayoutSetScaleY(row, 1.3f);
@@ -231,8 +231,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
   uiLayout *col = uiLayoutColumn(panel->layout, false);
   uiLayout *row = uiLayoutRow(col, true);
 
-  PointerRNA params_ptr;
-  RNA_pointer_create(&screen->id, &RNA_FileAssetSelectParams, params, &params_ptr);
+  PointerRNA params_ptr = RNA_pointer_create(&screen->id, &RNA_FileAssetSelectParams, params);
 
   uiItemR(row, &params_ptr, "asset_library_ref", UI_ITEM_NONE, "", ICON_NONE);
   if (params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) {

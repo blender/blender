@@ -113,9 +113,9 @@ float (&UnitConverter::get_scale())[4][4]
 
 void UnitConverter::calculate_scale(Scene &sce)
 {
-  PointerRNA scene_ptr, unit_settings;
+  PointerRNA unit_settings;
   PropertyRNA *system_ptr, *scale_ptr;
-  RNA_id_pointer_create(&sce.id, &scene_ptr);
+  PointerRNA scene_ptr = RNA_id_pointer_create(&sce.id);
 
   unit_settings = RNA_pointer_get(&scene_ptr, "unit_settings");
   system_ptr = RNA_struct_find_property(&unit_settings, "system");

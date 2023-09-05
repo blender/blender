@@ -368,8 +368,6 @@ static void nlastrip_fix_overlapping(TransInfo *t, TransDataNla *tdn, NlaStrip *
   NlaStrip *prev = BKE_nlastrip_prev_in_track(strip, true);
   NlaStrip *next = BKE_nlastrip_next_in_track(strip, true);
 
-  PointerRNA strip_ptr;
-
   for (short iter = 0; iter <= iter_max; iter++) {
     const bool p_exceeded = (prev != nullptr) && (tdn->h1[0] < prev->end);
     const bool n_exceeded = (next != nullptr) && (tdn->h2[0] > next->start);
@@ -410,7 +408,7 @@ static void nlastrip_fix_overlapping(TransInfo *t, TransDataNla *tdn, NlaStrip *
 
   /* Use RNA to write the values to ensure that constraints on these are obeyed
    * (e.g. for transition strips, the values are taken from the neighbors). */
-  RNA_pointer_create(nullptr, &RNA_NlaStrip, strip, &strip_ptr);
+  PointerRNA strip_ptr = RNA_pointer_create(nullptr, &RNA_NlaStrip, strip);
 
   switch (t->mode) {
     case TFM_TIME_EXTEND:

@@ -197,13 +197,12 @@ static bool RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 {
   extern FunctionRNA rna_KeyingSetInfo_poll_func;
 
-  PointerRNA ptr;
   ParameterList list;
   FunctionRNA *func;
   void *ret;
   int ok;
 
-  RNA_pointer_create(nullptr, ksi->rna_ext.srna, ksi, &ptr);
+  PointerRNA ptr = RNA_pointer_create(nullptr, ksi->rna_ext.srna, ksi);
   func = &rna_KeyingSetInfo_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -229,11 +228,10 @@ static void RKS_ITER_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks
 {
   extern FunctionRNA rna_KeyingSetInfo_iterator_func;
 
-  PointerRNA ptr;
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create(nullptr, ksi->rna_ext.srna, ksi, &ptr);
+  PointerRNA ptr = RNA_pointer_create(nullptr, ksi->rna_ext.srna, ksi);
   func = &rna_KeyingSetInfo_iterator_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -254,11 +252,10 @@ static void RKS_GEN_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks,
 {
   extern FunctionRNA rna_KeyingSetInfo_generate_func;
 
-  PointerRNA ptr;
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create(nullptr, ksi->rna_ext.srna, ksi, &ptr);
+  PointerRNA ptr = RNA_pointer_create(nullptr, ksi->rna_ext.srna, ksi);
   func = &rna_KeyingSetInfo_generate_func; /* RNA_struct_find_generate(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -315,13 +312,12 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   const char *error_prefix = "Registering keying set info class:";
   KeyingSetInfo dummy_ksi = {nullptr};
   KeyingSetInfo *ksi;
-  PointerRNA dummy_ksi_ptr = {nullptr};
   bool have_function[3];
 
   /* setup dummy type info to store static properties in */
   /* TODO: perhaps we want to get users to register
    * as if they're using 'KeyingSet' directly instead? */
-  RNA_pointer_create(nullptr, &RNA_KeyingSetInfo, &dummy_ksi, &dummy_ksi_ptr);
+  PointerRNA dummy_ksi_ptr = RNA_pointer_create(nullptr, &RNA_KeyingSetInfo, &dummy_ksi);
 
   /* validate the python class */
   if (validate(&dummy_ksi_ptr, data, have_function) != 0) {

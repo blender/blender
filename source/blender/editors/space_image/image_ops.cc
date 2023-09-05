@@ -1373,8 +1373,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
      * pointer use also increases user, so this compensates it */
     id_us_min(&ima->id);
 
-    PointerRNA imaptr;
-    RNA_id_pointer_create(&ima->id, &imaptr);
+    PointerRNA imaptr = RNA_id_pointer_create(&ima->id);
     RNA_property_pointer_set(&iod->pprop.ptr, iod->pprop.prop, imaptr, nullptr);
     RNA_property_update(C, &iod->pprop.ptr, iod->pprop.prop);
   }
@@ -1506,7 +1505,6 @@ static void image_open_draw(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
   ImageFormatData *imf = &iod->im_format;
-  PointerRNA imf_ptr;
 
   /* main draw call */
   uiDefAutoButsRNA(layout,
@@ -1518,7 +1516,7 @@ static void image_open_draw(bContext * /*C*/, wmOperator *op)
                    false);
 
   /* image template */
-  RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, imf, &imf_ptr);
+  PointerRNA imf_ptr = RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, imf);
 
   /* multiview template */
   if (RNA_boolean_get(op->ptr, "show_multiview")) {
@@ -1594,9 +1592,8 @@ static int image_file_browse_exec(bContext *C, wmOperator *op)
     BKE_image_ensure_tile_token(filepath, sizeof(filepath));
   }
 
-  PointerRNA imaptr;
   PropertyRNA *imaprop;
-  RNA_id_pointer_create(&ima->id, &imaptr);
+  PointerRNA imaptr = RNA_id_pointer_create(&ima->id);
   imaprop = RNA_struct_find_property(&imaptr, "filepath");
 
   RNA_property_string_set(&imaptr, imaprop, filepath);
@@ -1996,7 +1993,6 @@ static void image_save_as_draw(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   ImageSaveData *isd = static_cast<ImageSaveData *>(op->customdata);
-  PointerRNA imf_ptr;
   const bool is_multiview = RNA_boolean_get(op->ptr, "show_multiview");
   const bool save_as_render = RNA_boolean_get(op->ptr, "save_as_render");
 
@@ -2015,7 +2011,7 @@ static void image_save_as_draw(bContext * /*C*/, wmOperator *op)
   uiItemS(layout);
 
   /* Image format settings. */
-  RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, &isd->opts.im_format, &imf_ptr);
+  PointerRNA imf_ptr = RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, &isd->opts.im_format);
   uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
 
   if (!save_as_render) {
@@ -2601,8 +2597,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
      * pointer use also increases user, so this compensates it */
     id_us_min(&ima->id);
 
-    PointerRNA imaptr;
-    RNA_id_pointer_create(&ima->id, &imaptr);
+    PointerRNA imaptr = RNA_id_pointer_create(&ima->id);
     RNA_property_pointer_set(&data->pprop.ptr, data->pprop.prop, imaptr, nullptr);
     RNA_property_update(C, &data->pprop.ptr, data->pprop.prop);
   }

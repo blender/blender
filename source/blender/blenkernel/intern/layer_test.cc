@@ -93,8 +93,7 @@ static void test_render_pass_conflict(Scene *scene,
                                       const char *render_pass_name,
                                       const char *rna_prop_name)
 {
-  PointerRNA ptr;
-  RNA_pointer_create(&scene->id, &RNA_ViewLayer, view_layer, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&scene->id, &RNA_ViewLayer, view_layer);
   RNA_boolean_set(&ptr, rna_prop_name, false);
 
   /* Rename to Conflicting name */

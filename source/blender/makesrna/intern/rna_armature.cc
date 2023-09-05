@@ -825,7 +825,7 @@ static int rna_Armature_bones_lookup_string(PointerRNA *ptr, const char *key, Po
   bArmature *arm = (bArmature *)ptr->data;
   Bone *bone = BKE_armature_find_bone_name(arm, key);
   if (bone) {
-    RNA_pointer_create(ptr->owner_id, &RNA_Bone, bone, r_ptr);
+    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Bone, bone);
     return true;
   }
   else {

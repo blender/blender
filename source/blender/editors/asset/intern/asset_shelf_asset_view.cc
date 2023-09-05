@@ -196,13 +196,11 @@ void AssetViewItem::disable_asset_drag()
 
 void AssetViewItem::build_grid_tile(uiLayout &layout) const
 {
-  PointerRNA file_ptr;
-  RNA_pointer_create(
+  PointerRNA file_ptr = RNA_pointer_create(
       nullptr,
       &RNA_FileSelectEntry,
       /* XXX passing file pointer here, should be asset handle or asset representation. */
-      const_cast<FileDirEntry *>(asset_.file_data),
-      &file_ptr);
+      const_cast<FileDirEntry *>(asset_.file_data));
 
   uiBlock *block = uiLayoutGetBlock(&layout);
   UI_but_context_ptr_set(

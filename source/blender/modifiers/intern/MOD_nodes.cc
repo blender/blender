@@ -1499,8 +1499,7 @@ static void panel_draw(const bContext *C, Panel *panel)
                nullptr);
 
   if (nmd->node_group != nullptr && nmd->settings.properties != nullptr) {
-    PointerRNA bmain_ptr;
-    RNA_main_pointer_create(bmain, &bmain_ptr);
+    PointerRNA bmain_ptr = RNA_main_pointer_create(bmain);
 
     nmd->node_group->ensure_topology_cache();
 

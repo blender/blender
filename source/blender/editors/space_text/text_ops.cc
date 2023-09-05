@@ -286,7 +286,7 @@ static int text_new_exec(bContext *C, wmOperator * /*op*/)
   SpaceText *st = CTX_wm_space_text(C);
   Main *bmain = CTX_data_main(C);
   Text *text;
-  PointerRNA ptr, idptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
 
   text = BKE_text_add(bmain, DATA_("Text"));
@@ -295,7 +295,7 @@ static int text_new_exec(bContext *C, wmOperator * /*op*/)
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
-    RNA_id_pointer_create(&text->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&text->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
@@ -354,7 +354,6 @@ static int text_open_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Text *text;
   PropertyPointerRNA *pprop;
-  PointerRNA idptr;
   char filepath[FILE_MAX];
   const bool internal = RNA_boolean_get(op->ptr, "internal");
 
@@ -377,7 +376,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
   pprop = static_cast<PropertyPointerRNA *>(op->customdata);
 
   if (pprop->prop) {
-    RNA_id_pointer_create(&text->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&text->id);
     RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, nullptr);
     RNA_property_update(C, &pprop->ptr, pprop->prop);
   }

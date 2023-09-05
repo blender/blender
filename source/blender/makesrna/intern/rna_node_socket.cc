@@ -105,8 +105,7 @@ static void rna_NodeSocket_draw_color_simple(const bNodeSocketType *socket_type,
   func = &rna_NodeSocket_draw_color_simple_func; /* RNA_struct_find_function(&ptr,
                                                     "draw_color_simple"); */
 
-  PointerRNA ptr;
-  RNA_pointer_create(nullptr, socket_type->ext_socket.srna, nullptr, &ptr);
+  PointerRNA ptr = RNA_pointer_create(nullptr, socket_type->ext_socket.srna, nullptr);
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "type", socket_type);
   socket_type->ext_socket.call(nullptr, &ptr, func, &list);
@@ -144,7 +143,6 @@ static StructRNA *rna_NodeSocket_register(Main * /*bmain*/,
 {
   bNodeSocketType *st, dummy_st;
   bNodeSocket dummy_sock;
-  PointerRNA dummy_sock_ptr;
   bool have_function[3];
 
   /* setup dummy socket & socket type to store static properties in */
@@ -153,7 +151,7 @@ static StructRNA *rna_NodeSocket_register(Main * /*bmain*/,
 
   memset(&dummy_sock, 0, sizeof(bNodeSocket));
   dummy_sock.typeinfo = &dummy_st;
-  RNA_pointer_create(nullptr, &RNA_NodeSocket, &dummy_sock, &dummy_sock_ptr);
+  PointerRNA dummy_sock_ptr = RNA_pointer_create(nullptr, &RNA_NodeSocket, &dummy_sock);
 
   /* validate the python class */
   if (validate(&dummy_sock_ptr, data, have_function) != 0) {
@@ -249,11 +247,10 @@ static PointerRNA rna_NodeSocket_node_get(PointerRNA *ptr)
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
   bNode *node;
-  PointerRNA r_ptr;
 
   nodeFindNode(ntree, sock, &node, nullptr);
 
-  RNA_pointer_create(&ntree->id, &RNA_Node, node, &r_ptr);
+  PointerRNA r_ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
   return r_ptr;
 }
 
@@ -313,16 +310,14 @@ static void rna_NodeSocketStandard_draw(ID *id,
                                         PointerRNA *nodeptr,
                                         const char *text)
 {
-  PointerRNA ptr;
-  RNA_pointer_create(id, &RNA_NodeSocket, sock, &ptr);
+  PointerRNA ptr = RNA_pointer_create(id, &RNA_NodeSocket, sock);
   sock->typeinfo->draw(C, layout, &ptr, nodeptr, text);
 }
 
 static void rna_NodeSocketStandard_draw_color(
     ID *id, bNodeSocket *sock, bContext *C, PointerRNA *nodeptr, float r_color[4])
 {
-  PointerRNA ptr;
-  RNA_pointer_create(id, &RNA_NodeSocket, sock, &ptr);
+  PointerRNA ptr = RNA_pointer_create(id, &RNA_NodeSocket, sock);
   sock->typeinfo->draw_color(C, &ptr, nodeptr, r_color);
 }
 

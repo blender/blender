@@ -118,8 +118,7 @@ static void gizmo2d_pivot_point_message_subscribe(wmGizmoGroup *gzgroup,
   switch (area->spacetype) {
     case SPACE_IMAGE: {
       SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
-      PointerRNA ptr;
-      RNA_pointer_create(&screen->id, &RNA_SpaceImageEditor, sima, &ptr);
+      PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_SpaceImageEditor, sima);
       {
         const PropertyRNA *props[] = {
             &rna_SpaceImageEditor_pivot_point,

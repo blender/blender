@@ -392,8 +392,7 @@ static PointerRNA rna_AttributeGroup_new(
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 
-  PointerRNA ptr;
-  RNA_pointer_create(id, &RNA_Attribute, layer, &ptr);
+  PointerRNA ptr = RNA_pointer_create(id, &RNA_Attribute, layer);
   return ptr;
 }
 
@@ -521,8 +520,7 @@ static PointerRNA rna_AttributeGroup_active_get(PointerRNA *ptr)
   ID *id = ptr->owner_id;
   CustomDataLayer *layer = BKE_id_attributes_active_get(id);
 
-  PointerRNA attribute_ptr;
-  RNA_pointer_create(id, &RNA_Attribute, layer, &attribute_ptr);
+  PointerRNA attribute_ptr = RNA_pointer_create(id, &RNA_Attribute, layer);
   return attribute_ptr;
 }
 
@@ -563,8 +561,7 @@ static PointerRNA rna_AttributeGroup_active_color_get(PointerRNA *ptr)
                                                    CD_MASK_COLOR_ALL,
                                                    ATTR_DOMAIN_MASK_COLOR);
 
-  PointerRNA attribute_ptr;
-  RNA_pointer_create(id, &RNA_Attribute, layer, &attribute_ptr);
+  PointerRNA attribute_ptr = RNA_pointer_create(id, &RNA_Attribute, layer);
   return attribute_ptr;
 }
 

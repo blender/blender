@@ -906,7 +906,6 @@ char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, IDProperty *needle)
 
 static char *rna_path_from_ID_to_idpgroup(const PointerRNA *ptr)
 {
-  PointerRNA id_ptr;
 
   BLI_assert(ptr->owner_id != nullptr);
 
@@ -915,7 +914,7 @@ static char *rna_path_from_ID_to_idpgroup(const PointerRNA *ptr)
    *       Unless this is added only way to find this is to also search
    *       all bones and pose bones of an armature or object.
    */
-  RNA_id_pointer_create(ptr->owner_id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(ptr->owner_id);
 
   return RNA_path_from_struct_to_idproperty(&id_ptr, static_cast<IDProperty *>(ptr->data));
 }
@@ -993,13 +992,12 @@ char *RNA_path_from_ID_to_struct(const PointerRNA *ptr)
       ptrpath = ptr->type->path((PointerRNA *)ptr);
     }
     else if (ptr->type->nested && RNA_struct_is_ID(ptr->type->nested)) {
-      PointerRNA parentptr;
       PropertyRNA *userprop;
 
       /* find the property in the struct we're nested in that references this struct, and
        * use its identifier as the first part of the path used...
        */
-      RNA_id_pointer_create(ptr->owner_id, &parentptr);
+      PointerRNA parentptr = RNA_id_pointer_create(ptr->owner_id);
       userprop = rna_struct_find_nested(&parentptr, ptr->type);
 
       if (userprop) {
@@ -1151,7 +1149,6 @@ char *RNA_path_resolve_from_type_to_property(const PointerRNA *ptr,
 {
   /* Try to recursively find an "type"'d ancestor,
    * to handle situations where path from ID is not enough. */
-  PointerRNA idptr;
   ListBase path_elems = {nullptr};
   char *path = nullptr;
   char *full_path = RNA_path_from_ID_to_property(ptr, prop);
@@ -1160,7 +1157,7 @@ char *RNA_path_resolve_from_type_to_property(const PointerRNA *ptr,
     return nullptr;
   }
 
-  RNA_id_pointer_create(ptr->owner_id, &idptr);
+  PointerRNA idptr = RNA_id_pointer_create(ptr->owner_id);
 
   if (RNA_path_resolve_elements(&idptr, full_path, &path_elems)) {
     LISTBASE_FOREACH_BACKWARD (PropertyElemRNA *, prop_elem, &path_elems) {

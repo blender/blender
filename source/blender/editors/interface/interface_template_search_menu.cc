@@ -513,8 +513,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
       /* Anything besides #SPACE_EMPTY is fine,
        * as this value is only included in the enum when set. */
       area_dummy.spacetype = SPACE_TOPBAR;
-      PointerRNA ptr;
-      RNA_pointer_create(&screen->id, &RNA_Area, &area_dummy, &ptr);
+      PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_Area, &area_dummy);
       prop_ui_type = RNA_struct_find_property(&ptr, "ui_type");
       RNA_property_enum_items(C,
                               &ptr,
@@ -533,8 +532,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
       if (region != nullptr) {
-        PointerRNA ptr;
-        RNA_pointer_create(&screen->id, &RNA_Area, area, &ptr);
+        PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_Area, area);
         const int space_type_ui = RNA_property_enum_get(&ptr, prop_ui_type);
 
         const int space_type_ui_index = RNA_enum_from_value(space_type_ui_items, space_type_ui);

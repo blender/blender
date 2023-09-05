@@ -267,7 +267,7 @@ static int rna_SequenceEditor_sequences_all_lookup_string(PointerRNA *ptr,
 
   Sequence *seq = SEQ_sequence_lookup_seq_by_name(scene, key);
   if (seq) {
-    RNA_pointer_create(ptr->owner_id, &RNA_Sequence, seq, r_ptr);
+    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Sequence, seq);
     return true;
   }
   return false;
@@ -853,8 +853,7 @@ static PointerRNA rna_MovieSequence_metadata_get(Sequence *seq)
     return PointerRNA_NULL;
   }
 
-  PointerRNA ptr;
-  RNA_pointer_create(nullptr, &RNA_IDPropertyWrapPtr, metadata, &ptr);
+  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_IDPropertyWrapPtr, metadata);
   return ptr;
 }
 

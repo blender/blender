@@ -94,8 +94,7 @@ static void iterate_properties_to_display(ID &id,
   PointerRNA override_rna_ptr;
   PropertyRNA *override_rna_prop;
 
-  PointerRNA idpoin;
-  RNA_id_pointer_create(&id, &idpoin);
+  PointerRNA idpoin = RNA_id_pointer_create(&id);
 
   for (IDOverrideLibraryProperty *override_prop :
        ListBaseWrapper<IDOverrideLibraryProperty>(id.override_library->properties))
@@ -313,8 +312,7 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
                                             TreeElementOverridesData &override_data,
                                             short &index)
 {
-  PointerRNA idpoin;
-  RNA_id_pointer_create(&override_data.id, &idpoin);
+  PointerRNA idpoin = RNA_id_pointer_create(&override_data.id);
 
   ListBase path_elems = {nullptr};
   if (!RNA_path_resolve_elements(&idpoin, override_data.override_property.rna_path, &path_elems)) {

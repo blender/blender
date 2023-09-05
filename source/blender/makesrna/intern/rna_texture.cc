@@ -306,11 +306,10 @@ char *rna_TextureSlot_path(const PointerRNA *ptr)
       return BLI_strdup("texture_slot");
     }
     else {
-      PointerRNA id_ptr;
       PropertyRNA *prop;
 
       /* find the 'textures' property of the ID-struct */
-      RNA_id_pointer_create(ptr->owner_id, &id_ptr);
+      PointerRNA id_ptr = RNA_id_pointer_create(ptr->owner_id);
       prop = RNA_struct_find_property(&id_ptr, "texture_slots");
 
       /* get an iterator for this property, and try to find the relevant index */

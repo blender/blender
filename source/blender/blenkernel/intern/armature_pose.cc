@@ -55,8 +55,7 @@ void BKE_pose_apply_action_all_bones(Object *ob,
                                      bAction *action,
                                      AnimationEvalContext *anim_eval_context)
 {
-  PointerRNA pose_owner_ptr;
-  RNA_id_pointer_create(&ob->id, &pose_owner_ptr);
+  PointerRNA pose_owner_ptr = RNA_id_pointer_create(&ob->id);
   animsys_evaluate_action(&pose_owner_ptr, action, anim_eval_context, false);
 }
 
@@ -96,8 +95,7 @@ void pose_apply(Object *ob,
   }
 
   /* Apply the Action. */
-  PointerRNA pose_owner_ptr;
-  RNA_id_pointer_create(&ob->id, &pose_owner_ptr);
+  PointerRNA pose_owner_ptr = RNA_id_pointer_create(&ob->id);
 
   applier(&pose_owner_ptr, action, anim_eval_context);
 

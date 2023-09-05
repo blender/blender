@@ -67,14 +67,13 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks,
     /* make new linkage data */
     tPChanFCurveLink *pfl = static_cast<tPChanFCurveLink *>(
         MEM_callocN(sizeof(tPChanFCurveLink), "tPChanFCurveLink"));
-    PointerRNA ptr;
 
     pfl->ob = ob;
     pfl->fcurves = curves;
     pfl->pchan = pchan;
 
     /* get the RNA path to this pchan - this needs to be freed! */
-    RNA_pointer_create((ID *)ob, &RNA_PoseBone, pchan, &ptr);
+    PointerRNA ptr = RNA_pointer_create((ID *)ob, &RNA_PoseBone, pchan);
     pfl->pchan_path = RNA_path_from_ID_to_struct(&ptr);
 
     /* add linkage data to operator data */

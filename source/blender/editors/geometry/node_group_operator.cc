@@ -422,8 +422,7 @@ static void run_node_group_ui(bContext *C, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   Main *bmain = CTX_data_main(C);
-  PointerRNA bmain_ptr;
-  RNA_main_pointer_create(bmain, &bmain_ptr);
+  PointerRNA bmain_ptr = RNA_main_pointer_create(bmain);
 
   const bNodeTree *node_tree = get_node_group(*C, *op->ptr, nullptr);
   if (!node_tree) {

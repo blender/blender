@@ -1628,14 +1628,13 @@ static PointerRNA rna_ParticleInstanceModifier_particle_system_get(PointerRNA *p
 {
   ParticleInstanceModifierData *psmd = static_cast<ParticleInstanceModifierData *>(ptr->data);
   ParticleSystem *psys;
-  PointerRNA rptr;
 
   if (!psmd->ob) {
     return PointerRNA_NULL;
   }
 
   psys = static_cast<ParticleSystem *>(BLI_findlink(&psmd->ob->particlesystem, psmd->psys - 1));
-  RNA_pointer_create((ID *)psmd->ob, &RNA_ParticleSystem, psys, &rptr);
+  PointerRNA rptr = RNA_pointer_create((ID *)psmd->ob, &RNA_ParticleSystem, psys);
   return rptr;
 }
 

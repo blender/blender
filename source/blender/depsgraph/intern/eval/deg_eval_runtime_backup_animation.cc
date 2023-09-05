@@ -87,7 +87,7 @@ void AnimationBackup::init_from_id(ID *id)
   AnimatedPropertyStoreCalbackData data;
   data.backup = this;
   data.id = id;
-  RNA_id_pointer_create(id, &data.id_pointer_rna);
+  data.id_pointer_rna = RNA_id_pointer_create(id);
   BKE_fcurves_id_cb(id, animated_property_store_cb, &data);
 }
 
@@ -95,8 +95,7 @@ void AnimationBackup::restore_to_id(ID *id)
 {
   return;
 
-  PointerRNA id_pointer_rna;
-  RNA_id_pointer_create(id, &id_pointer_rna);
+  PointerRNA id_pointer_rna = RNA_id_pointer_create(id);
   for (const AnimationValueBackup &value_backup : values_backup) {
     /* Resolve path to the property.
      *

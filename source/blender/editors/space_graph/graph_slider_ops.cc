@@ -807,8 +807,7 @@ static void blend_to_default_graph_keys(bAnimContext *ac, const float factor)
       continue;
     }
 
-    PointerRNA id_ptr;
-    RNA_id_pointer_create(ale->id, &id_ptr);
+    PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
 
     blend_to_default_fcurve(&id_ptr, fcu, factor);
     ale->update |= ANIM_UPDATE_DEFAULT;

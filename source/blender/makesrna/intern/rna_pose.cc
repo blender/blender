@@ -802,7 +802,7 @@ static int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, Pointer
   bPose *pose = (bPose *)ptr->data;
   bPoseChannel *pchan = BKE_pose_channel_find_name(pose, key);
   if (pchan) {
-    RNA_pointer_create(ptr->owner_id, &RNA_PoseBone, pchan, r_ptr);
+    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_PoseBone, pchan);
     return true;
   }
   else {

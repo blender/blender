@@ -1896,7 +1896,6 @@ static PointerRNA rna_Mesh_vertex_color_new(Mesh *me,
                                             const char *name,
                                             const bool do_init)
 {
-  PointerRNA ptr;
   CustomData *ldata;
   CustomDataLayer *cdl = nullptr;
   int index = ED_mesh_color_add(me, name, false, do_init, reports);
@@ -1913,7 +1912,7 @@ static PointerRNA rna_Mesh_vertex_color_new(Mesh *me,
     }
   }
 
-  RNA_pointer_create(&me->id, &RNA_MeshLoopColorLayer, cdl, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&me->id, &RNA_MeshLoopColorLayer, cdl);
   return ptr;
 }
 
@@ -1927,7 +1926,6 @@ static PointerRNA rna_Mesh_uv_layers_new(Mesh *me,
                                          const char *name,
                                          const bool do_init)
 {
-  PointerRNA ptr;
   CustomData *ldata;
   CustomDataLayer *cdl = nullptr;
   int index = ED_mesh_uv_add(me, name, false, do_init, reports);
@@ -1937,7 +1935,7 @@ static PointerRNA rna_Mesh_uv_layers_new(Mesh *me,
     cdl = &ldata->layers[CustomData_get_layer_index_n(ldata, CD_PROP_FLOAT2, index)];
   }
 
-  RNA_pointer_create(&me->id, &RNA_MeshUVLoopLayer, cdl, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&me->id, &RNA_MeshUVLoopLayer, cdl);
   return ptr;
 }
 

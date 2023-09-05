@@ -150,11 +150,8 @@ class CollectionViewItem : public BasicTreeViewItem {
     uiBlock *block = uiLayoutGetBlock(&row);
     const int icon = get_state_icon();
 
-    PointerRNA collection_light_linking_ptr;
-    RNA_pointer_create(&collection_.id,
-                       &RNA_CollectionLightLinking,
-                       &collection_light_linking_,
-                       &collection_light_linking_ptr);
+    PointerRNA collection_light_linking_ptr = RNA_pointer_create(
+        &collection_.id, &RNA_CollectionLightLinking, &collection_light_linking_);
 
     uiBut *button = uiDefIconButR(block,
                                   UI_BTYPE_BUT,
@@ -178,11 +175,8 @@ class CollectionViewItem : public BasicTreeViewItem {
 
   void build_remove_button(uiLayout &row)
   {
-    PointerRNA id_ptr;
-    RNA_id_pointer_create(id_, &id_ptr);
-
-    PointerRNA collection_ptr;
-    RNA_id_pointer_create(&collection_.id, &collection_ptr);
+    PointerRNA id_ptr = RNA_id_pointer_create(id_);
+    PointerRNA collection_ptr = RNA_id_pointer_create(&collection_.id);
 
     uiLayoutSetContextPointer(&row, "id", &id_ptr);
     uiLayoutSetContextPointer(&row, "collection", &collection_ptr);

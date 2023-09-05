@@ -70,8 +70,7 @@ string OperationKey::identifier() const
 RNAPathKey::RNAPathKey(ID *id, const char *path, RNAPointerSource source) : id(id), source(source)
 {
   /* Create ID pointer for root of path lookup. */
-  PointerRNA id_ptr;
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
   /* Try to resolve path. */
   int index;
   if (!RNA_path_resolve_full(&id_ptr, path, &ptr, &prop, &index)) {

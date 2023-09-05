@@ -99,8 +99,7 @@ static PointerRNA rna_NodeTreeInterfaceItem_parent_get(PointerRNA *ptr)
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   const bNodeTreeInterfaceItem *item = static_cast<const bNodeTreeInterfaceItem *>(ptr->data);
   bNodeTreeInterfacePanel *parent = ntree->tree_interface.find_item_parent(*item, true);
-  PointerRNA result;
-  RNA_pointer_create(&ntree->id, &RNA_NodeTreeInterfacePanel, parent, &result);
+  PointerRNA result = RNA_pointer_create(&ntree->id, &RNA_NodeTreeInterfacePanel, parent);
   return result;
 }
 
@@ -155,8 +154,7 @@ static void rna_NodeTreeInterfaceSocket_draw_custom(ID *id,
     return;
   }
 
-  PointerRNA ptr;
-  RNA_pointer_create(id, &RNA_NodeTreeInterfaceSocket, interface_socket, &ptr);
+  PointerRNA ptr = RNA_pointer_create(id, &RNA_NodeTreeInterfaceSocket, interface_socket);
 
   FunctionRNA *func = &rna_NodeTreeInterfaceSocket_draw_func;
 
@@ -194,13 +192,10 @@ static void rna_NodeTreeInterfaceSocket_init_socket_custom(
     return;
   }
 
-  PointerRNA ptr, node_ptr, socket_ptr;
-  RNA_pointer_create(id,
-                     &RNA_NodeTreeInterfaceSocket,
-                     const_cast<bNodeTreeInterfaceSocket *>(interface_socket),
-                     &ptr);
-  RNA_pointer_create(id, &RNA_Node, node, &node_ptr);
-  RNA_pointer_create(id, &RNA_NodeSocket, socket, &socket_ptr);
+  PointerRNA ptr = RNA_pointer_create(
+      id, &RNA_NodeTreeInterfaceSocket, const_cast<bNodeTreeInterfaceSocket *>(interface_socket));
+  PointerRNA node_ptr = RNA_pointer_create(id, &RNA_Node, node);
+  PointerRNA socket_ptr = RNA_pointer_create(id, &RNA_NodeSocket, socket);
 
   FunctionRNA *func = &rna_NodeTreeInterfaceSocket_init_socket_func;
 
@@ -234,10 +229,10 @@ static void rna_NodeTreeInterfaceSocket_from_socket_custom(
     return;
   }
 
-  PointerRNA ptr, node_ptr, socket_ptr;
-  RNA_pointer_create(id, &RNA_NodeTreeInterfaceSocket, interface_socket, &ptr);
-  RNA_pointer_create(id, &RNA_Node, const_cast<bNode *>(node), &node_ptr);
-  RNA_pointer_create(id, &RNA_NodeSocket, const_cast<bNodeSocket *>(socket), &socket_ptr);
+  PointerRNA ptr = RNA_pointer_create(id, &RNA_NodeTreeInterfaceSocket, interface_socket);
+  PointerRNA node_ptr = RNA_pointer_create(id, &RNA_Node, const_cast<bNode *>(node));
+  PointerRNA socket_ptr = RNA_pointer_create(
+      id, &RNA_NodeSocket, const_cast<bNodeSocket *>(socket));
 
   FunctionRNA *func = &rna_NodeTreeInterfaceSocket_from_socket_func;
 
@@ -263,8 +258,8 @@ static StructRNA *rna_NodeTreeInterfaceSocket_register(Main * /*bmain*/,
   /* Set #item_type so that refining the type ends up with RNA_NodeTreeInterfaceSocket. */
   dummy_socket.item.item_type = NODE_INTERFACE_SOCKET;
 
-  PointerRNA dummy_socket_ptr;
-  RNA_pointer_create(nullptr, &RNA_NodeTreeInterfaceSocket, &dummy_socket, &dummy_socket_ptr);
+  PointerRNA dummy_socket_ptr = RNA_pointer_create(
+      nullptr, &RNA_NodeTreeInterfaceSocket, &dummy_socket);
 
   /* Validate the python class. */
   bool have_function[3];
@@ -398,8 +393,8 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_socket_type_itemf(
 static PointerRNA rna_NodeTreeInterfaceItems_active_get(PointerRNA *ptr)
 {
   bNodeTreeInterface *interface = static_cast<bNodeTreeInterface *>(ptr->data);
-  PointerRNA r_ptr;
-  RNA_pointer_create(ptr->owner_id, &RNA_NodeTreeInterfaceItem, interface->active_item(), &r_ptr);
+  PointerRNA r_ptr = RNA_pointer_create(
+      ptr->owner_id, &RNA_NodeTreeInterfaceItem, interface->active_item());
   return r_ptr;
 }
 
@@ -785,8 +780,8 @@ static int rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, Po
     return false;
   }
 
-  RNA_pointer_create(
-      ptr->owner_id, &RNA_NodeTreeInterfaceItem, ntree->interface_items()[index], r_ptr);
+  *r_ptr = RNA_pointer_create(
+      ptr->owner_id, &RNA_NodeTreeInterfaceItem, ntree->interface_items()[index]);
   return true;
 }
 
@@ -805,7 +800,7 @@ static int rna_NodeTreeInterface_items_lookup_string(struct PointerRNA *ptr,
       case NODE_INTERFACE_SOCKET: {
         bNodeTreeInterfaceSocket *socket = reinterpret_cast<bNodeTreeInterfaceSocket *>(item);
         if (STREQ(socket->name, key)) {
-          RNA_pointer_create(ptr->owner_id, &RNA_NodeTreeInterfaceSocket, socket, r_ptr);
+          *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_NodeTreeInterfaceSocket, socket);
           return true;
         }
         break;
@@ -813,7 +808,7 @@ static int rna_NodeTreeInterface_items_lookup_string(struct PointerRNA *ptr,
       case NODE_INTERFACE_PANEL: {
         bNodeTreeInterfacePanel *panel = reinterpret_cast<bNodeTreeInterfacePanel *>(item);
         if (STREQ(panel->name, key)) {
-          RNA_pointer_create(ptr->owner_id, &RNA_NodeTreeInterfacePanel, panel, r_ptr);
+          *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_NodeTreeInterfacePanel, panel);
           return true;
         }
         break;

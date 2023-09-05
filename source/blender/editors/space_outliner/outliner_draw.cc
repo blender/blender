@@ -260,7 +260,6 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  PointerRNA ptr;
 
   bool extend = (win->eventstate->modifier & KM_SHIFT);
 
@@ -273,7 +272,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
   StructRNA *struct_rna = ob ? &RNA_Object : &RNA_ObjectBase;
   void *data = ob ? (void *)ob : (void *)base;
 
-  RNA_pointer_create(id, struct_rna, data, &ptr);
+  PointerRNA ptr = RNA_pointer_create(id, struct_rna, data);
   PropertyRNA *base_or_object_prop = RNA_struct_type_find_property(struct_rna, propname);
   const bool value = RNA_property_boolean_get(&ptr, base_or_object_prop);
 
@@ -284,7 +283,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
   {
     if (BKE_object_is_child_recursive(ob_parent, ob_iter)) {
       if (ob) {
-        RNA_id_pointer_create(&ob_iter->id, &ptr);
+        ptr = RNA_id_pointer_create(&ob_iter->id);
         DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
       }
       else {
@@ -294,7 +293,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
         if (base_iter == nullptr) {
           continue;
         }
-        RNA_pointer_create(&scene->id, &RNA_ObjectBase, base_iter, &ptr);
+        ptr = RNA_pointer_create(&scene->id, &RNA_ObjectBase, base_iter);
       }
       RNA_property_boolean_set(&ptr, base_or_object_prop, value);
     }
@@ -338,10 +337,10 @@ static void outliner_layer_or_collection_pointer_create(Scene *scene,
                                                         PointerRNA *ptr)
 {
   if (collection) {
-    RNA_id_pointer_create(&collection->id, ptr);
+    *ptr = RNA_id_pointer_create(&collection->id);
   }
   else {
-    RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection, ptr);
+    *ptr = RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection);
   }
 }
 
@@ -350,12 +349,12 @@ static void outliner_base_or_object_pointer_create(
     Scene *scene, ViewLayer *view_layer, Collection *collection, Object *ob, PointerRNA *ptr)
 {
   if (collection) {
-    RNA_id_pointer_create(&ob->id, ptr);
+    *ptr = RNA_id_pointer_create(&ob->id);
   }
   else {
     BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
-    RNA_pointer_create(&scene->id, &RNA_ObjectBase, base, ptr);
+    *ptr = RNA_pointer_create(&scene->id, &RNA_ObjectBase, base);
   }
 }
 
@@ -570,7 +569,7 @@ void outliner_collection_isolate_flag(Scene *scene,
       if (parent->collection->flag & COLLECTION_IS_MASTER) {
         break;
       }
-      RNA_id_pointer_create(&parent->collection->id, &ptr);
+      ptr = RNA_id_pointer_create(&parent->collection->id);
       RNA_property_boolean_set(&ptr, layer_or_collection_prop, !is_hide);
       child = parent->collection;
     }
@@ -586,7 +585,6 @@ static void outliner_collection_set_flag_recursive_fn(bContext *C,
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  PointerRNA ptr;
 
   bool do_isolate = (win->eventstate->modifier & KM_CTRL);
   bool extend = (win->eventstate->modifier & KM_SHIFT);
@@ -600,7 +598,7 @@ static void outliner_collection_set_flag_recursive_fn(bContext *C,
   StructRNA *struct_rna = collection ? &RNA_Collection : &RNA_LayerCollection;
   void *data = collection ? (void *)collection : (void *)layer_collection;
 
-  RNA_pointer_create(id, struct_rna, data, &ptr);
+  PointerRNA ptr = RNA_pointer_create(id, struct_rna, data);
   outliner_layer_or_collection_pointer_create(scene, layer_collection, collection, &ptr);
   PropertyRNA *layer_or_collection_prop = RNA_struct_type_find_property(struct_rna, propname);
   const bool value = RNA_property_boolean_get(&ptr, layer_or_collection_prop);
@@ -1036,9 +1034,9 @@ static bool outliner_restrict_properties_collection_set(Scene *scene,
   }
 
   /* Create the PointerRNA. */
-  RNA_id_pointer_create(&collection->id, collection_ptr);
+  *collection_ptr = RNA_id_pointer_create(&collection->id);
   if (layer_collection != nullptr) {
-    RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection, layer_collection_ptr);
+    *layer_collection_ptr = RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection);
   }
 
   /* Update the restriction column values for the collection children. */
@@ -1170,17 +1168,15 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         /* Don't show restrict columns for children that are not directly inside the collection. */
       }
       else if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-        PointerRNA ptr;
         Object *ob = (Object *)tselem->id;
-        RNA_id_pointer_create(&ob->id, &ptr);
+        PointerRNA ptr = RNA_id_pointer_create(&ob->id);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
           BKE_view_layer_synced_ensure(scene, view_layer);
           Base *base = (te->directdata) ? (Base *)te->directdata :
                                           BKE_view_layer_base_find(view_layer, ob);
           if (base) {
-            PointerRNA base_ptr;
-            RNA_pointer_create(&scene->id, &RNA_ObjectBase, base, &base_ptr);
+            PointerRNA base_ptr = RNA_pointer_create(&scene->id, &RNA_ObjectBase, base);
             bt = uiDefIconButR_prop(block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
@@ -1285,8 +1281,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
       else if (tselem->type == TSE_CONSTRAINT) {
         bConstraint *con = (bConstraint *)te->directdata;
 
-        PointerRNA ptr;
-        RNA_pointer_create(tselem->id, &RNA_Constraint, con, &ptr);
+        PointerRNA ptr = RNA_pointer_create(tselem->id, &RNA_Constraint, con);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
           bt = uiDefIconButR_prop(block,
@@ -1314,8 +1309,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
       else if (tselem->type == TSE_MODIFIER) {
         ModifierData *md = (ModifierData *)te->directdata;
 
-        PointerRNA ptr;
-        RNA_pointer_create(tselem->id, &RNA_Modifier, md, &ptr);
+        PointerRNA ptr = RNA_pointer_create(tselem->id, &RNA_Modifier, md);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
           bt = uiDefIconButR_prop(block,
@@ -1364,13 +1358,12 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         }
       }
       else if (tselem->type == TSE_POSE_CHANNEL) {
-        PointerRNA ptr;
         bPoseChannel *pchan = (bPoseChannel *)te->directdata;
         Bone *bone = pchan->bone;
         Object *ob = (Object *)tselem->id;
         bArmature *arm = static_cast<bArmature *>(ob->data);
 
-        RNA_pointer_create(&arm->id, &RNA_Bone, bone, &ptr);
+        PointerRNA ptr = RNA_pointer_create(&arm->id, &RNA_Bone, bone);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
           bt = uiDefIconButR_prop(block,
@@ -1516,11 +1509,11 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         PointerRNA ptr;
         PropertyRNA *hide_prop;
         if (node.is_layer()) {
-          RNA_pointer_create(tselem->id, &RNA_GreasePencilLayer, &node, &ptr);
+          ptr = RNA_pointer_create(tselem->id, &RNA_GreasePencilLayer, &node);
           hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayer, "hide");
         }
         else if (node.is_group()) {
-          RNA_pointer_create(tselem->id, &RNA_GreasePencilLayerGroup, &node, &ptr);
+          ptr = RNA_pointer_create(tselem->id, &RNA_GreasePencilLayerGroup, &node);
           hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayerGroup, "hide");
         }
 
@@ -2014,8 +2007,7 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
                                UI_UNIT_X,
                                UI_UNIT_Y,
                                "");
-    PointerRNA idptr;
-    RNA_id_pointer_create(&id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&id);
     UI_but_context_ptr_set(block, but, "id", &idptr);
     UI_but_func_identity_compare_set(but, outliner_but_identity_cmp_context_id_fn);
     UI_but_flag_enable(but, UI_BUT_DRAG_LOCK);

@@ -932,7 +932,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   Main *bmain = CTX_data_main(C);
   bNodeTree *ntree;
-  PointerRNA ptr, idptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
   const char *idname;
   char treename_buf[MAX_ID_NAME - 2];
@@ -973,7 +973,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
      * user. */
     id_us_min(&ntree->id);
 
-    RNA_id_pointer_create(&ntree->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&ntree->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }

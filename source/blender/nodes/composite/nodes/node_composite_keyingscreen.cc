@@ -73,9 +73,7 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
   if (node->id) {
     MovieClip *clip = (MovieClip *)node->id;
     uiLayout *col;
-    PointerRNA tracking_ptr;
-
-    RNA_pointer_create(&clip->id, &RNA_MovieTracking, &clip->tracking, &tracking_ptr);
+    PointerRNA tracking_ptr = RNA_pointer_create(&clip->id, &RNA_MovieTracking, &clip->tracking);
 
     col = uiLayoutColumn(layout, true);
     uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);

@@ -28,8 +28,7 @@ ListBase TreeDisplayDataAPI::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 
-  PointerRNA mainptr;
-  RNA_main_pointer_create(source_data.bmain, &mainptr);
+  PointerRNA mainptr = RNA_main_pointer_create(source_data.bmain);
 
   TreeElement *te = add_element(&tree, nullptr, (void *)&mainptr, nullptr, TSE_RNA_STRUCT, -1);
 

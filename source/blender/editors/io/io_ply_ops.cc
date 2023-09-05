@@ -130,8 +130,7 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
 static void wm_ply_export_draw(bContext * /*C*/, wmOperator *op)
 {
-  PointerRNA ptr;
-  RNA_pointer_create(nullptr, op->type->srna, op->properties, &ptr);
+  PointerRNA ptr = RNA_pointer_create(nullptr, op->type->srna, op->properties);
   ui_ply_export_settings(op->layout, &ptr);
 }
 

@@ -181,7 +181,6 @@ static char *rna_ColorRamp_path(const PointerRNA *ptr)
       case ID_NT: {
         bNodeTree *ntree = (bNodeTree *)id;
         bNode *node;
-        PointerRNA node_ptr;
         char *node_path;
 
         for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
@@ -190,7 +189,7 @@ static char *rna_ColorRamp_path(const PointerRNA *ptr)
               /* all node color ramp properties called 'color_ramp'
                * prepend path from ID to the node
                */
-              RNA_pointer_create(id, &RNA_Node, node, &node_ptr);
+              PointerRNA node_ptr = RNA_pointer_create(id, &RNA_Node, node);
               node_path = RNA_path_from_ID_to_struct(&node_ptr);
               path = BLI_sprintfN("%s.color_ramp", node_path);
               MEM_freeN(node_path);
@@ -257,7 +256,7 @@ static char *rna_ColorRampElement_path(const PointerRNA *ptr)
 
         for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
           if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
-            RNA_pointer_create(id, &RNA_ColorRamp, node->storage, &ramp_ptr);
+            ramp_ptr = RNA_pointer_create(id, &RNA_ColorRamp, node->storage);
             COLRAMP_GETPATH;
           }
         }
@@ -269,7 +268,7 @@ static char *rna_ColorRampElement_path(const PointerRNA *ptr)
 
         BKE_linestyle_modifier_list_color_ramps((FreestyleLineStyle *)id, &listbase);
         for (link = (LinkData *)listbase.first; link; link = link->next) {
-          RNA_pointer_create(id, &RNA_ColorRamp, link->data, &ramp_ptr);
+          ramp_ptr = RNA_pointer_create(id, &RNA_ColorRamp, link->data);
           COLRAMP_GETPATH;
         }
         BLI_freelistN(&listbase);
@@ -279,7 +278,7 @@ static char *rna_ColorRampElement_path(const PointerRNA *ptr)
       default: /* everything else should have a "color_ramp" property */
       {
         /* create pointer to the ID block, and try to resolve "color_ramp" pointer */
-        RNA_id_pointer_create(id, &ramp_ptr);
+        ramp_ptr = RNA_id_pointer_create(id);
         if (RNA_path_resolve(&ramp_ptr, "color_ramp", &ramp_ptr, &prop)) {
           COLRAMP_GETPATH;
         }

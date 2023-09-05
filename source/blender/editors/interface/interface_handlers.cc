@@ -6369,10 +6369,9 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
             }
 
             if (updated) {
-              PointerRNA brush_ptr;
               PropertyRNA *brush_color_prop;
 
-              RNA_id_pointer_create(&brush->id, &brush_ptr);
+              PointerRNA brush_ptr = RNA_id_pointer_create(&brush->id);
               brush_color_prop = RNA_struct_find_property(&brush_ptr, "color");
               RNA_property_update(C, &brush_ptr, brush_color_prop);
             }

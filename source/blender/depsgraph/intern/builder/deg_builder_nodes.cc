@@ -1276,8 +1276,7 @@ void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve, int driver_index
 
 void DepsgraphNodeBuilder::build_driver_variables(ID *id, FCurve *fcurve)
 {
-  PointerRNA id_ptr;
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
 
   build_driver_id_property(id_ptr, fcurve->rna_path);
 
@@ -1321,8 +1320,7 @@ void DepsgraphNodeBuilder::build_driver_scene_camera_variable(Scene *scene,
   /* This skips scene->camera, which was already handled by the caller. */
   LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
     if (!ELEM(marker->camera, nullptr, scene->camera)) {
-      PointerRNA camera_ptr;
-      RNA_id_pointer_create(&marker->camera->id, &camera_ptr);
+      PointerRNA camera_ptr = RNA_id_pointer_create(&marker->camera->id);
       build_driver_id_property(camera_ptr, camera_path);
     }
   }

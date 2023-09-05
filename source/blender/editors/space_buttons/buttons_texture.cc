@@ -137,10 +137,8 @@ static void buttons_texture_users_find_nodetree(ListBase *users,
   if (ntree) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
-        PointerRNA ptr;
+        PointerRNA ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
         // PropertyRNA *prop; /* UNUSED */
-
-        RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
         // prop = RNA_struct_find_property(&ptr, "texture"); /* UNUSED */
 
         buttons_texture_user_node_add(
@@ -160,7 +158,6 @@ static void buttons_texture_modifier_geonodes_users_add(
     ListBase *users,
     blender::Set<const bNodeTree *> &handled_groups)
 {
-  PointerRNA ptr;
   PropertyRNA *prop;
 
   for (bNode *node : node_tree->all_nodes()) {
@@ -178,7 +175,7 @@ static void buttons_texture_modifier_geonodes_users_add(
       if (socket->type != SOCK_TEXTURE) {
         continue;
       }
-      RNA_pointer_create(&node_tree->id, &RNA_NodeSocket, socket, &ptr);
+      PointerRNA ptr = RNA_pointer_create(&node_tree->id, &RNA_NodeSocket, socket);
       prop = RNA_struct_find_property(&ptr, "default_value");
 
       PointerRNA texptr = RNA_property_pointer_get(&ptr, prop);
@@ -214,10 +211,9 @@ static void buttons_texture_modifier_foreach(void *user_data,
     }
   }
   else {
-    PointerRNA ptr;
     PropertyRNA *prop;
 
-    RNA_pointer_create(&ob->id, &RNA_Modifier, md, &ptr);
+    PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_Modifier, md);
     prop = RNA_struct_find_property(&ptr, propname);
 
     buttons_texture_user_property_add(
@@ -230,11 +226,10 @@ static void buttons_texture_modifier_gpencil_foreach(void *user_data,
                                                      GpencilModifierData *md,
                                                      const char *propname)
 {
-  PointerRNA ptr;
   PropertyRNA *prop;
   ListBase *users = static_cast<ListBase *>(user_data);
 
-  RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md);
   prop = RNA_struct_find_property(&ptr, propname);
 
   buttons_texture_user_property_add(users,
@@ -314,10 +309,10 @@ static void buttons_texture_users_from_context(ListBase *users,
         mtex = psys->part->mtex[a];
 
         if (mtex) {
-          PointerRNA ptr;
           PropertyRNA *prop;
 
-          RNA_pointer_create(&psys->part->id, &RNA_ParticleSettingsTextureSlot, mtex, &ptr);
+          PointerRNA ptr = RNA_pointer_create(
+              &psys->part->id, &RNA_ParticleSettingsTextureSlot, mtex);
           prop = RNA_struct_find_property(&ptr, "texture");
 
           buttons_texture_user_property_add(users,
@@ -333,10 +328,9 @@ static void buttons_texture_users_from_context(ListBase *users,
 
     /* field */
     if (ob->pd && ob->pd->forcefield == PFIELD_TEXTURE) {
-      PointerRNA ptr;
       PropertyRNA *prop;
 
-      RNA_pointer_create(&ob->id, &RNA_FieldSettings, ob->pd, &ptr);
+      PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_FieldSettings, ob->pd);
       prop = RNA_struct_find_property(&ptr, "texture");
 
       buttons_texture_user_property_add(
@@ -346,18 +340,17 @@ static void buttons_texture_users_from_context(ListBase *users,
 
   /* brush */
   if (brush) {
-    PointerRNA ptr;
     PropertyRNA *prop;
 
     /* texture */
-    RNA_pointer_create(&brush->id, &RNA_BrushTextureSlot, &brush->mtex, &ptr);
+    PointerRNA ptr = RNA_pointer_create(&brush->id, &RNA_BrushTextureSlot, &brush->mtex);
     prop = RNA_struct_find_property(&ptr, "texture");
 
     buttons_texture_user_property_add(
         users, &brush->id, ptr, prop, N_("Brush"), ICON_BRUSH_DATA, IFACE_("Brush"));
 
     /* mask texture */
-    RNA_pointer_create(&brush->id, &RNA_BrushTextureSlot, &brush->mask_mtex, &ptr);
+    ptr = RNA_pointer_create(&brush->id, &RNA_BrushTextureSlot, &brush->mask_mtex);
     prop = RNA_struct_find_property(&ptr, "texture");
 
     buttons_texture_user_property_add(

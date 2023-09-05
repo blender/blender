@@ -149,8 +149,7 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmGizmoGroup *
     /* Need to set property here for undo. TODO: would prefer to do this in _init. */
     SpaceNode *snode = CTX_wm_space_node(C);
 #if 0
-    PointerRNA nodeptr;
-    RNA_pointer_create(snode->id, &RNA_SpaceNodeEditor, snode, &nodeptr);
+    PointerRNA nodeptr = RNA_pointer_create(snode->id, &RNA_SpaceNodeEditor, snode);
     WM_gizmo_target_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
     WM_gizmo_target_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
 #endif
@@ -361,8 +360,8 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgro
     bNode *node = nodeGetActive(snode->edittree);
 
     crop_group->update_data.context = (bContext *)C;
-    RNA_pointer_create(
-        (ID *)snode->edittree, &RNA_CompositorNodeCrop, node, &crop_group->update_data.ptr);
+    crop_group->update_data.ptr = RNA_pointer_create(
+        (ID *)snode->edittree, &RNA_CompositorNodeCrop, node);
     crop_group->update_data.prop = RNA_struct_find_property(&crop_group->update_data.ptr,
                                                             "relative");
 
@@ -472,8 +471,8 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgr
     bNode *node = nodeGetActive(snode->edittree);
 
     /* Need to set property here for undo. TODO: would prefer to do this in _init. */
-    PointerRNA nodeptr;
-    RNA_pointer_create((ID *)snode->edittree, &RNA_CompositorNodeSunBeams, node, &nodeptr);
+    PointerRNA nodeptr = RNA_pointer_create(
+        (ID *)snode->edittree, &RNA_CompositorNodeSunBeams, node);
     WM_gizmo_target_property_def_rna(gz, "offset", &nodeptr, "source", -1);
 
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);
@@ -589,8 +588,7 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup 
       if (sock->type == SOCK_VECTOR) {
         wmGizmo *gz = cpin_group->gizmos[i++];
 
-        PointerRNA sockptr;
-        RNA_pointer_create((ID *)snode->edittree, &RNA_NodeSocket, sock, &sockptr);
+        PointerRNA sockptr = RNA_pointer_create((ID *)snode->edittree, &RNA_NodeSocket, sock);
         WM_gizmo_target_property_def_rna(gz, "offset", &sockptr, "default_value", -1);
 
         WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);
