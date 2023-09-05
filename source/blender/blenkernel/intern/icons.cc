@@ -417,13 +417,13 @@ Icon *BKE_icon_get(const int icon_id)
 bool BKE_icon_is_preview(const int icon_id)
 {
   const Icon *icon = BKE_icon_get(icon_id);
-  return icon->obj_type == ICON_DATA_PREVIEW;
+  return icon != nullptr && icon->obj_type == ICON_DATA_PREVIEW;
 }
 
 bool BKE_icon_is_image(const int icon_id)
 {
   const Icon *icon = BKE_icon_get(icon_id);
-  return icon->obj_type == ICON_DATA_IMBUF;
+  return icon != nullptr && icon->obj_type == ICON_DATA_IMBUF;
 }
 
 void BKE_icon_set(const int icon_id, Icon *icon)
