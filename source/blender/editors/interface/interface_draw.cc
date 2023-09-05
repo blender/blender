@@ -1012,64 +1012,24 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void ui_draw_colorband_handle_tri_hlight(
-    uint pos, float x1, float y1, float halfwidth, float height)
+static void ui_draw_colorband_handle_tri(uint pos, float x1, float y1, float halfwidth)
 {
-  GPU_line_smooth(true);
-
-  immBegin(GPU_PRIM_LINE_STRIP, 3);
+  /* Halfwidth equals height for better AA with 45 degree slope. */
+  immBegin(GPU_PRIM_TRIS, 3);
   immVertex2f(pos, x1 + halfwidth, y1);
-  immVertex2f(pos, x1, y1 + height);
+  immVertex2f(pos, x1, y1 + halfwidth);
   immVertex2f(pos, x1 - halfwidth, y1);
   immEnd();
-
-  GPU_line_smooth(false);
 }
 
-static void ui_draw_colorband_handle_tri(
-    uint pos, float x1, float y1, float halfwidth, float height, bool fill)
+static void ui_draw_colorband_handle_box(uint pos, float x1, float y1, float x2, float y2)
 {
-  if (fill) {
-    GPU_polygon_smooth(true);
-  }
-  else {
-    GPU_line_smooth(true);
-  }
-
-  immBegin(fill ? GPU_PRIM_TRIS : GPU_PRIM_LINE_LOOP, 3);
-  immVertex2f(pos, x1 + halfwidth, y1);
-  immVertex2f(pos, x1, y1 + height);
-  immVertex2f(pos, x1 - halfwidth, y1);
+  immBegin(GPU_PRIM_TRI_STRIP, 4);
+  immVertex2f(pos, x2, y1);
+  immVertex2f(pos, x1, y1);
+  immVertex2f(pos, x2, y2);
+  immVertex2f(pos, x1, y2);
   immEnd();
-
-  if (fill) {
-    GPU_polygon_smooth(false);
-  }
-  else {
-    GPU_line_smooth(false);
-  }
-}
-
-static void ui_draw_colorband_handle_box(
-    uint pos, float x1, float y1, float x2, float y2, bool fill)
-{
-  if (fill) {
-    immBegin(GPU_PRIM_TRI_STRIP, 4);
-    immVertex2f(pos, x2, y1);
-    immVertex2f(pos, x1, y1);
-    immVertex2f(pos, x2, y2);
-    immVertex2f(pos, x1, y2);
-    immEnd();
-  }
-  else {
-    immBegin(GPU_PRIM_LINE_STRIP, 5);
-    immVertex2f(pos, x1, y1);
-    immVertex2f(pos, x1, y2);
-    immVertex2f(pos, x2, y2);
-    immVertex2f(pos, x2, y1);
-    immVertex2f(pos, x1, y1);
-    immEnd();
-  }
 }
 
 static void ui_draw_colorband_handle(uint shdr_pos,
@@ -1080,98 +1040,101 @@ static void ui_draw_colorband_handle(uint shdr_pos,
                                      bool active)
 {
   const float sizey = BLI_rcti_size_y(rect);
-  const float min_width = 3.0f;
   float colf[3] = {UNPACK3(rgb)};
 
-  const float half_width = floorf(sizey / 3.5f);
+  const float half_width = sizey / 3.5f;
   const float height = half_width * 1.4f;
 
-  float y1 = rect->ymin + (sizey * 0.16f);
+  float y1 = rect->ymin;
   const float y2 = rect->ymax;
 
   /* align to pixels */
-  x = floorf(x + 0.5f);
-  y1 = floorf(y1 + 0.5f);
+  x = floorf(x);
 
-  if (active || half_width < min_width) {
-    immUnbindProgram();
-
-    immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
-
-    float viewport_size[4];
-    GPU_viewport_size_get_f(viewport_size);
-    immUniform2f(
-        "viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
-
-    immUniform1i("colors_len", 2); /* "advanced" mode */
-    immUniform4f("color", 0.8f, 0.8f, 0.8f, 1.0f);
-    immUniform4f("color2", 0.0f, 0.0f, 0.0f, 1.0f);
-    immUniform1f("dash_width", active ? 4.0f : 2.0f);
-    immUniform1f("udash_factor", 0.5f);
-
-    immBegin(GPU_PRIM_LINES, 2);
-    immVertex2f(shdr_pos, x, y1);
-    immVertex2f(shdr_pos, x, y2);
-    immEnd();
-
-    immUnbindProgram();
-
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-    /* hide handles when zoomed out too far */
-    if (half_width < min_width) {
-      return;
-    }
-  }
-
-  /* shift handle down */
-  y1 -= half_width;
-
-  immUniformColor3ub(0, 0, 0);
-  ui_draw_colorband_handle_box(
-      shdr_pos, x - half_width, y1 - 1, x + half_width, y1 + height, false);
-
-  /* draw all triangles blended */
   GPU_blend(GPU_BLEND_ALPHA);
 
-  ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width, half_width, true);
+  /* Allow the lines to decrease as we get really small. */
+  float line_width = MAX2(MIN2(U.pixelsize / 5.0f * fabs(half_width - 4.0f), U.pixelsize), 0.5f);
 
+  /* Make things transparent as we get tiny. */
+  uchar alpha = MIN2(int(fabs(half_width - 2.0f) * 50.0f), 255);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
+
+  float viewport_size[4];
+  GPU_viewport_size_get_f(viewport_size);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
+  immUniform1i("colors_len", 2); /* "advanced" mode */
   if (active) {
-    immUniformColor3ub(196, 196, 196);
+    immUniform4f("color", 1.0f, 1.0f, 1.0f, alpha / 255.0f);
+    immUniform4f("color2", 0.0f, 0.0f, 0.0f, alpha / 255.0f);
   }
   else {
-    immUniformColor3ub(96, 96, 96);
+    immUniform4f("color", 0.7f, 0.7f, 0.7f, alpha / 255.0f);
+    immUniform4f("color2", 0.4f, 0.4f, 0.4f, alpha / 255.0f);
   }
-  ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width, half_width, true);
+  immUniform1f("dash_width", sizey / 6.0f / UI_SCALE_FAC);
+  immUniform1f("udash_factor", 0.5f);
 
-  if (active) {
-    immUniformColor3ub(255, 255, 255);
-  }
-  else {
-    immUniformColor3ub(128, 128, 128);
-  }
-  ui_draw_colorband_handle_tri_hlight(
-      shdr_pos, x, y1 + height - 1, (half_width - 1), (half_width - 1));
+  immBegin(GPU_PRIM_LINES, 2);
+  immVertex2f(shdr_pos, x, y1);
+  immVertex2f(shdr_pos, x, y2);
+  immEnd();
 
-  immUniformColor3ub(0, 0, 0);
-  ui_draw_colorband_handle_tri_hlight(shdr_pos, x, y1 + height, half_width, half_width);
+  immUnbindProgram();
 
-  GPU_blend(GPU_BLEND_NONE);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  immUniformColor3ub(128, 128, 128);
-  ui_draw_colorband_handle_box(
-      shdr_pos, x - (half_width - 1), y1, x + (half_width - 1), y1 + height, true);
+  /* shift handle down */
+  y1 -= half_width / 2.0f;
+
+  /* Black outline around the lower box. */
+  immUniformColor4ub(0, 0, 0, alpha);
+
+  ui_draw_colorband_handle_box(shdr_pos,
+                               x - half_width - line_width,
+                               y1 - line_width,
+                               x + half_width + line_width,
+                               y1 + height);
+
+  /* Grey box, inset by line width. */
+  immUniformColor4ub(128, 128, 128, alpha);
+  ui_draw_colorband_handle_box(shdr_pos, x - half_width, y1, x + half_width, y1 + height);
 
   if (display) {
     IMB_colormanagement_scene_linear_to_display_v3(colf, display);
   }
 
-  immUniformColor3fv(colf);
-  ui_draw_colorband_handle_box(
-      shdr_pos, x - (half_width - 2), y1 + 1, x + (half_width - 2), y1 + height - 2, true);
+  /* Color value, inset by another line width. */
+  immUniformColor3fvAlpha(colf, alpha);
+  ui_draw_colorband_handle_box(shdr_pos,
+                               x - (half_width - line_width),
+                               y1 + line_width,
+                               x + (half_width - line_width),
+                               y1 + height - line_width);
+
+  /* Black outline around the top triangle. */
+  immUniformColor4ub(0, 0, 0, alpha);
+  ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width + line_width);
+
+  GPU_polygon_smooth(true);
+
+  /* Triangle main color. */
+  if (active) {
+    immUniformColor4ub(220, 220, 220, alpha);
+  }
+  else {
+    immUniformColor4ub(96, 96, 96, alpha);
+  }
+  ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width - (0.5f * line_width));
+
+  immUnbindProgram();
+
+  GPU_polygon_smooth(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
-void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors * /*wcol*/, const rcti *rect)
+void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
 {
   ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
   uint pos_id, col_id;
@@ -1184,28 +1147,40 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors * /*wcol*/, const rc
     return;
   }
 
-  const float x1 = rect->xmin;
-  const float sizex = rect->xmax - x1;
-  const float sizey = BLI_rcti_size_y(rect);
+  const float x1 = rect->xmin + U.pixelsize;
+  const float sizex = rect->xmax - x1 - U.pixelsize;
+  const float y1 = rect->ymin + U.pixelsize;
+  const float sizey = rect->ymax - y1 - U.pixelsize;
   const float sizey_solid = sizey * 0.25f;
-  const float y1 = rect->ymin;
 
   /* exit early if too narrow */
   if (sizex <= 0) {
     return;
   }
 
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  /* Line width outline. */
   GPUVertFormat *format = immVertexFormat();
   pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor4ubv(wcol->outline);
+  immBegin(GPU_PRIM_TRI_STRIP, 4);
+  immVertex2f(pos_id, rect->xmin, rect->ymin);
+  immVertex2f(pos_id, rect->xmax, rect->ymin);
+  immVertex2f(pos_id, rect->xmin, rect->ymax);
+  immVertex2f(pos_id, rect->xmax, rect->ymax);
+  immEnd();
+  immUnbindProgram();
 
   /* Drawing the checkerboard. */
+  immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
   const float checker_dark = UI_ALPHA_CHECKER_DARK / 255.0f;
   const float checker_light = UI_ALPHA_CHECKER_LIGHT / 255.0f;
   immUniform4f("color1", checker_dark, checker_dark, checker_dark, 1.0f);
   immUniform4f("color2", checker_light, checker_light, checker_light, 1.0f);
   immUniform1i("size", 8);
-  immRectf(pos_id, x1, y1, x1 + sizex, rect->ymax);
+  immRectf(pos_id, x1, y1, x1 + sizex, y1 + sizey);
   immUnbindProgram();
 
   /* New format */
@@ -1214,16 +1189,13 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors * /*wcol*/, const rc
   col_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
-  /* layer: color ramp */
-  GPU_blend(GPU_BLEND_ALPHA);
-
   CBData *cbd = coba->data;
 
   float v1[2], v2[2];
   float colf[4] = {0, 0, 0, 0}; /* initialize in case the colorband isn't valid */
 
   v1[1] = y1 + sizey_solid;
-  v2[1] = rect->ymax;
+  v2[1] = y1 + sizey;
 
   immBegin(GPU_PRIM_TRI_STRIP, (sizex + 1) * 2);
   for (int a = 0; a <= sizex; a++) {
@@ -1263,34 +1235,9 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors * /*wcol*/, const rc
 
   immUnbindProgram();
 
-  GPU_blend(GPU_BLEND_NONE);
-
   /* New format */
   format = immVertexFormat();
   pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-  /* layer: box outline */
-  immUniformColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-  imm_draw_box_wire_2d(pos_id, x1, y1, x1 + sizex, rect->ymax);
-
-  /* layer: box outline */
-  GPU_blend(GPU_BLEND_ALPHA);
-  immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-
-  immBegin(GPU_PRIM_LINES, 2);
-  immVertex2f(pos_id, x1, y1);
-  immVertex2f(pos_id, x1 + sizex, y1);
-  immEnd();
-
-  immUniformColor4f(1.0f, 1.0f, 1.0f, 0.25f);
-
-  immBegin(GPU_PRIM_LINES, 2);
-  immVertex2f(pos_id, x1, y1 - 1);
-  immVertex2f(pos_id, x1 + sizex, y1 - 1);
-  immEnd();
-
-  GPU_blend(GPU_BLEND_NONE);
 
   /* layer: draw handles */
   for (int a = 0; a < coba->tot; a++, cbd++) {
@@ -1306,8 +1253,6 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors * /*wcol*/, const rc
     const float pos = x1 + cbd->pos * (sizex - 1) + 1;
     ui_draw_colorband_handle(pos_id, rect, pos, &cbd->r, display, true);
   }
-
-  immUnbindProgram();
 }
 
 void ui_draw_but_UNITVEC(uiBut *but,
