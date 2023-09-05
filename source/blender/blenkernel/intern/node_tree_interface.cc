@@ -408,6 +408,23 @@ static void item_copy(bNodeTreeInterfaceItem &dst,
   }
 }
 
+static void item_set_unique_identifier(const int uid, bNodeTreeInterfaceItem &item)
+{
+  switch (item.item_type) {
+    case NODE_INTERFACE_SOCKET: {
+      bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
+      MEM_SAFE_FREE(socket.identifier);
+      socket.identifier = BLI_sprintfN("Socket_%d", uid);
+      break;
+    }
+    case NODE_INTERFACE_PANEL: {
+      bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
+      panel.identifier = uid;
+      break;
+    }
+  }
+}
+
 static void item_free(bNodeTreeInterfaceItem &item, const bool do_id_user)
 {
   switch (item.item_type) {
@@ -1172,6 +1189,7 @@ bNodeTreeInterfaceItem *bNodeTreeInterface::add_item_copy(const bNodeTreeInterfa
 
   bNodeTreeInterfaceItem *citem = static_cast<bNodeTreeInterfaceItem *>(MEM_dupallocN(&item));
   item_types::item_copy(*citem, item, 0);
+  item_types::item_set_unique_identifier(next_uid++, *citem);
   parent->add_item(*citem);
 
   return citem;
@@ -1196,6 +1214,7 @@ bNodeTreeInterfaceItem *bNodeTreeInterface::insert_item_copy(const bNodeTreeInte
 
   bNodeTreeInterfaceItem *citem = static_cast<bNodeTreeInterfaceItem *>(MEM_dupallocN(&item));
   item_types::item_copy(*citem, item, 0);
+  item_types::item_set_unique_identifier(next_uid++, *citem);
   parent->insert_item(*citem, position);
 
   return citem;
