@@ -28,7 +28,7 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#ifdef WITH_AUDASPACE
+#ifdef WITH_CONVOLUTION
 #  include "AUD_Sound.h"
 #endif
 
@@ -43,7 +43,7 @@
 const SoundModifierWorkerInfo workersSoundModifiers[] = {
     {seqModifierType_SoundEqualizer, SEQ_sound_equalizermodifier_recreator}, {0, nullptr}};
 
-#ifdef WITH_AUDASPACE
+#ifdef WITH_CONVOLUTION
 static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, ListBase *seqbase)
 {
   bool changed = false;
@@ -79,7 +79,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
 
 void SEQ_sound_update_length(Main *bmain, Scene *scene)
 {
-#ifdef WITH_AUDASPACE
+#ifdef WITH_CONVOLUTION
   if (scene->ed) {
     sequencer_refresh_sound_length_recursive(bmain, scene, &scene->ed->seqbase);
   }
@@ -265,7 +265,7 @@ void SEQ_sound_equalizermodifier_copy_data(SequenceModifierData *target, Sequenc
 
 void *SEQ_sound_equalizermodifier_recreator(Sequence *seq, SequenceModifierData *smd, void *sound)
 {
-#ifdef WITH_AUDASPACE
+#ifdef WITH_CONVOLUTION
   UNUSED_VARS(seq);
 
   SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
