@@ -36,13 +36,6 @@ class ShaderNodeCategory(SortedNodeCategory):
                 context.space_data.tree_type == 'ShaderNodeTree')
 
 
-class TextureNodeCategory(SortedNodeCategory):
-    @classmethod
-    def poll(cls, context):
-        return (context.space_data.type == 'NODE_EDITOR' and
-                context.space_data.tree_type == 'TextureNodeTree')
-
-
 # Menu entry for node group tools.
 def group_tools_draw(_self, layout, _context):
     layout.operator("node.group_make")
@@ -101,69 +94,12 @@ def group_input_output_item_poll(context):
     return False
 
 
-texture_node_categories = [
-    # Texture Nodes
-    TextureNodeCategory("TEX_INPUT", "Input", items=[
-        NodeItem("TextureNodeCurveTime"),
-        NodeItem("TextureNodeCoordinates"),
-        NodeItem("TextureNodeTexture"),
-        NodeItem("TextureNodeImage"),
-    ]),
-    TextureNodeCategory("TEX_OUTPUT", "Output", items=[
-        NodeItem("TextureNodeOutput"),
-        NodeItem("TextureNodeViewer"),
-    ]),
-    TextureNodeCategory("TEX_OP_COLOR", "Color", items=[
-        NodeItem("TextureNodeMixRGB"),
-        NodeItem("TextureNodeCurveRGB"),
-        NodeItem("TextureNodeInvert"),
-        NodeItem("TextureNodeHueSaturation"),
-        NodeItem("TextureNodeCombineColor"),
-        NodeItem("TextureNodeSeparateColor"),
-    ]),
-    TextureNodeCategory("TEX_PATTERN", "Pattern", items=[
-        NodeItem("TextureNodeChecker"),
-        NodeItem("TextureNodeBricks"),
-    ]),
-    TextureNodeCategory("TEX_TEXTURE", "Textures", items=[
-        NodeItem("TextureNodeTexNoise"),
-        NodeItem("TextureNodeTexDistNoise"),
-        NodeItem("TextureNodeTexClouds"),
-        NodeItem("TextureNodeTexBlend"),
-        NodeItem("TextureNodeTexVoronoi"),
-        NodeItem("TextureNodeTexMagic"),
-        NodeItem("TextureNodeTexMarble"),
-        NodeItem("TextureNodeTexWood"),
-        NodeItem("TextureNodeTexMusgrave"),
-        NodeItem("TextureNodeTexStucci"),
-    ]),
-    TextureNodeCategory("TEX_CONVERTOR", "Converter", items=[
-        NodeItem("TextureNodeMath"),
-        NodeItem("TextureNodeValToRGB"),
-        NodeItem("TextureNodeRGBToBW"),
-        NodeItem("TextureNodeValToNor"),
-        NodeItem("TextureNodeDistance"),
-    ]),
-    TextureNodeCategory("TEX_DISTORT", "Distort", items=[
-        NodeItem("TextureNodeScale"),
-        NodeItem("TextureNodeTranslate"),
-        NodeItem("TextureNodeRotate"),
-        NodeItem("TextureNodeAt"),
-    ]),
-    TextureNodeCategory("TEX_GROUP", "Group", items=node_group_items),
-    TextureNodeCategory("TEX_LAYOUT", "Layout", items=[
-        NodeItem("NodeFrame"),
-        NodeItem("NodeReroute"),
-    ]),
-]
-
-
 def register():
-    nodeitems_utils.register_node_categories('TEXTURE', texture_node_categories)
+    pass
 
 
 def unregister():
-    nodeitems_utils.unregister_node_categories('TEXTURE')
+    pass
 
 
 if __name__ == "__main__":
