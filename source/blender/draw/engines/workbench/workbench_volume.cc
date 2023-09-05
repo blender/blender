@@ -193,7 +193,7 @@ GPUShader *VolumePass::get_shader(bool slice, bool coba, int interpolation, bool
   GPUShader *&shader = shaders_[slice][coba][interpolation][smoke];
 
   if (shader == nullptr) {
-    std::string create_info_name = "workbench_next_volume";
+    std::string create_info_name = "workbench_volume";
     create_info_name += (smoke) ? "_smoke" : "_object";
     switch (interpolation) {
       case VOLUME_DISPLAY_INTERP_LINEAR:

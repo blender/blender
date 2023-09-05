@@ -13,7 +13,7 @@
 
 #include "GPU_capabilities.h"
 
-extern "C" DrawEngineType draw_engine_workbench_next;
+extern "C" DrawEngineType draw_engine_workbench;
 
 namespace blender::workbench {
 

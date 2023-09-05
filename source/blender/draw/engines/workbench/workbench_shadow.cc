@@ -245,11 +245,11 @@ void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
 
     if (dynamic_pass_type_shader_ == nullptr) {
       dynamic_pass_type_shader_ = GPU_shader_create_from_info_name(
-          "workbench_next_shadow_visibility_compute_dynamic_pass_type");
+          "workbench_shadow_visibility_compute_dynamic_pass_type");
     }
     if (static_pass_type_shader_ == nullptr) {
       static_pass_type_shader_ = GPU_shader_create_from_info_name(
-          "workbench_next_shadow_visibility_compute_static_pass_type");
+          "workbench_shadow_visibility_compute_static_pass_type");
     }
 
     GPUShader *shader = current_pass_type_ == ShadowPass::FORCED_FAIL ? static_pass_type_shader_ :
@@ -315,7 +315,7 @@ GPUShader *ShadowPass::get_shader(bool depth_pass, bool manifold, bool cap /*= f
   GPUShader *&shader = shaders_[depth_pass][manifold][cap];
 
   if (shader == nullptr) {
-    std::string create_info_name = "workbench_next_shadow";
+    std::string create_info_name = "workbench_shadow";
     create_info_name += (depth_pass) ? "_pass" : "_fail";
     create_info_name += (manifold) ? "_manifold" : "_no_manifold";
     create_info_name += (cap) ? "_caps" : "_no_caps";

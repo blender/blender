@@ -9,7 +9,7 @@
 /** \name Object Type
  * \{ */
 
-GPU_SHADER_CREATE_INFO(workbench_next_mesh)
+GPU_SHADER_CREATE_INFO(workbench_mesh)
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::VEC3, "nor")
     .vertex_in(2, Type::VEC4, "ac")
@@ -17,7 +17,7 @@ GPU_SHADER_CREATE_INFO(workbench_next_mesh)
     .vertex_source("workbench_prepass_vert.glsl")
     .additional_info("draw_modelmat_new_with_custom_id", "draw_resource_handle_new");
 
-GPU_SHADER_CREATE_INFO(workbench_next_curves)
+GPU_SHADER_CREATE_INFO(workbench_curves)
     .sampler(WB_CURVES_COLOR_SLOT, ImageType::FLOAT_BUFFER, "ac", Frequency::BATCH)
     .sampler(WB_CURVES_UV_SLOT, ImageType::FLOAT_BUFFER, "au", Frequency::BATCH)
     .push_constant(Type::INT, "emitter_object_id")
@@ -26,7 +26,7 @@ GPU_SHADER_CREATE_INFO(workbench_next_curves)
                      "draw_resource_handle_new",
                      "draw_hair_new");
 
-GPU_SHADER_CREATE_INFO(workbench_next_pointcloud)
+GPU_SHADER_CREATE_INFO(workbench_pointcloud)
     .vertex_source("workbench_prepass_pointcloud_vert.glsl")
     .additional_info("draw_modelmat_new_with_custom_id",
                      "draw_resource_handle_new",
@@ -41,11 +41,6 @@ GPU_SHADER_CREATE_INFO(workbench_next_pointcloud)
 GPU_SHADER_CREATE_INFO(workbench_lighting_flat).define("WORKBENCH_LIGHTING_FLAT");
 GPU_SHADER_CREATE_INFO(workbench_lighting_studio).define("WORKBENCH_LIGHTING_STUDIO");
 GPU_SHADER_CREATE_INFO(workbench_lighting_matcap)
-    .define("WORKBENCH_LIGHTING_MATCAP")
-    .sampler(4, ImageType::FLOAT_2D, "matcap_diffuse_tx")
-    .sampler(5, ImageType::FLOAT_2D, "matcap_specular_tx");
-
-GPU_SHADER_CREATE_INFO(workbench_next_lighting_matcap)
     .define("WORKBENCH_LIGHTING_MATCAP")
     .sampler(WB_MATCAP_SLOT, ImageType::FLOAT_2D_ARRAY, "matcap_tx");
 
@@ -82,7 +77,7 @@ GPU_SHADER_CREATE_INFO(workbench_color_texture)
 
 GPU_SHADER_CREATE_INFO(workbench_color_vertex).define("WORKBENCH_COLOR_VERTEX");
 
-GPU_SHADER_CREATE_INFO(workbench_next_prepass)
+GPU_SHADER_CREATE_INFO(workbench_prepass)
     .define("WORKBENCH_NEXT")
     .uniform_buf(WB_WORLD_SLOT, "WorldData", "world_data")
     .vertex_out(workbench_material_iface)
@@ -136,18 +131,18 @@ GPU_SHADER_CREATE_INFO(workbench_matcap).define("WORKBENCH_SHADING_MATCAP");
 #define WORKBENCH_SHADING_VARIATIONS(prefix, ...) \
   WORKBENCH_COLOR_VARIATIONS(prefix##_flat, "workbench_lighting_flat", __VA_ARGS__) \
   WORKBENCH_COLOR_VARIATIONS(prefix##_studio, "workbench_lighting_studio", __VA_ARGS__) \
-  WORKBENCH_COLOR_VARIATIONS(prefix##_matcap, "workbench_next_lighting_matcap", __VA_ARGS__)
+  WORKBENCH_COLOR_VARIATIONS(prefix##_matcap, "workbench_lighting_matcap", __VA_ARGS__)
 
 #define WORKBENCH_PIPELINE_VARIATIONS(prefix, ...) \
   WORKBENCH_SHADING_VARIATIONS(prefix##_transparent, "workbench_transparent_accum", __VA_ARGS__) \
   WORKBENCH_SHADING_VARIATIONS(prefix##_opaque, "workbench_opaque", __VA_ARGS__)
 
 #define WORKBENCH_GEOMETRY_VARIATIONS(prefix, ...) \
-  WORKBENCH_PIPELINE_VARIATIONS(prefix##_mesh, "workbench_next_mesh", __VA_ARGS__) \
-  WORKBENCH_PIPELINE_VARIATIONS(prefix##_curves, "workbench_next_curves", __VA_ARGS__) \
-  WORKBENCH_PIPELINE_VARIATIONS(prefix##_ptcloud, "workbench_next_pointcloud", __VA_ARGS__)
+  WORKBENCH_PIPELINE_VARIATIONS(prefix##_mesh, "workbench_mesh", __VA_ARGS__) \
+  WORKBENCH_PIPELINE_VARIATIONS(prefix##_curves, "workbench_curves", __VA_ARGS__) \
+  WORKBENCH_PIPELINE_VARIATIONS(prefix##_ptcloud, "workbench_pointcloud", __VA_ARGS__)
 
-WORKBENCH_GEOMETRY_VARIATIONS(workbench_next_prepass, "workbench_next_prepass");
+WORKBENCH_GEOMETRY_VARIATIONS(workbench_prepass, "workbench_prepass");
 
 #undef WORKBENCH_FINAL_VARIATION
 #undef WORKBENCH_CLIPPING_VARIATIONS

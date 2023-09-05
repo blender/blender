@@ -171,13 +171,13 @@ set(SRC
   engines/workbench/workbench_effect_dof.cc
   engines/workbench/workbench_effect_outline.cc
   engines/workbench/workbench_engine.cc
-  engines/workbench/workbench_materials_next.cc
+  engines/workbench/workbench_materials.cc
   engines/workbench/workbench_mesh_passes.cc
   engines/workbench/workbench_resources.cc
   engines/workbench/workbench_shader_cache.cc
   engines/workbench/workbench_shadow.cc
   engines/workbench/workbench_state.cc
-  engines/workbench/workbench_volume_next.cc
+  engines/workbench/workbench_volume.cc
   engines/external/external_engine.cc
   engines/gpencil/gpencil_antialiasing.cc
   engines/gpencil/gpencil_cache_utils.cc
@@ -584,7 +584,7 @@ set(GLSL_SRC
 
   engines/workbench/shaders/workbench_cavity_lib.glsl
   engines/workbench/shaders/workbench_common_lib.glsl
-  engines/workbench/shaders/workbench_next_composite_frag.glsl
+  engines/workbench/shaders/workbench_composite_frag.glsl
   engines/workbench/shaders/workbench_curvature_lib.glsl
   engines/workbench/shaders/workbench_effect_dof_frag.glsl
   engines/workbench/shaders/workbench_effect_outline_frag.glsl
@@ -595,7 +595,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_image_lib.glsl
   engines/workbench/shaders/workbench_matcap_lib.glsl
   engines/workbench/shaders/workbench_material_lib.glsl
-  engines/workbench/shaders/workbench_next_merge_depth_frag.glsl
+  engines/workbench/shaders/workbench_merge_depth_frag.glsl
   engines/workbench/shaders/workbench_overlay_depth_frag.glsl
   engines/workbench/shaders/workbench_prepass_frag.glsl
   engines/workbench/shaders/workbench_prepass_hair_vert.glsl

@@ -20,7 +20,7 @@ GPU_SHADER_CREATE_INFO(workbench_volume_common)
     .vertex_source("workbench_volume_vert.glsl")
     .fragment_source("workbench_volume_frag.glsl");
 
-GPU_SHADER_CREATE_INFO(workbench_next_volume)
+GPU_SHADER_CREATE_INFO(workbench_volume)
     .define("WORKBENCH_NEXT")
     .sampler(6, ImageType::UINT_2D, "stencil_tx")
     .additional_info("workbench_volume_common", "draw_object_infos_new", "draw_view");
@@ -43,10 +43,10 @@ GPU_SHADER_CREATE_INFO(workbench_volume_object_common)
     .push_constant(Type::MAT4, "volumeObjectToTexture")
     .additional_info("draw_resource_id_varying");
 
-GPU_SHADER_CREATE_INFO(workbench_next_volume_smoke)
+GPU_SHADER_CREATE_INFO(workbench_volume_smoke)
     .additional_info("workbench_volume_smoke_common", "draw_modelmat_new");
 
-GPU_SHADER_CREATE_INFO(workbench_next_volume_object)
+GPU_SHADER_CREATE_INFO(workbench_volume_object)
     .additional_info("workbench_volume_object_common", "draw_volume_new");
 
 /** \} */
@@ -116,10 +116,10 @@ GPU_SHADER_CREATE_INFO(workbench_volume_slice)
   WORKBENCH_VOLUME_COBA_VARIATIONS(prefix##_cubic, "workbench_volume_cubic", __VA_ARGS__) \
   WORKBENCH_VOLUME_COBA_VARIATIONS(prefix##_closest, "workbench_volume_closest", __VA_ARGS__)
 
-#define WORKBENCH_NEXT_VOLUME_SMOKE_VARIATIONS(prefix, ...) \
-  WORKBENCH_VOLUME_INTERP_VARIATIONS(prefix##_smoke, "workbench_next_volume_smoke", __VA_ARGS__) \
-  WORKBENCH_VOLUME_INTERP_VARIATIONS(prefix##_object, "workbench_next_volume_object", __VA_ARGS__)
+#define WORKBENCH_VOLUME_SMOKE_VARIATIONS(prefix, ...) \
+  WORKBENCH_VOLUME_INTERP_VARIATIONS(prefix##_smoke, "workbench_volume_smoke", __VA_ARGS__) \
+  WORKBENCH_VOLUME_INTERP_VARIATIONS(prefix##_object, "workbench_volume_object", __VA_ARGS__)
 
-WORKBENCH_NEXT_VOLUME_SMOKE_VARIATIONS(workbench_next_volume, "workbench_next_volume")
+WORKBENCH_VOLUME_SMOKE_VARIATIONS(workbench_volume, "workbench_volume")
 
 /** \} */

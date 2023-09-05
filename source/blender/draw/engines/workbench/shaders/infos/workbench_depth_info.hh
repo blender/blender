@@ -4,7 +4,7 @@
 
 #include "gpu_shader_create_info.hh"
 
-GPU_SHADER_CREATE_INFO(workbench_next_merge_depth)
+GPU_SHADER_CREATE_INFO(workbench_merge_depth)
     .sampler(0, ImageType::DEPTH_2D, "depth_tx")
     .fragment_source("workbench_merge_depth_frag.glsl")
     .additional_info("draw_fullscreen")
