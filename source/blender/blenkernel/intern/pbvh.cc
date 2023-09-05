@@ -2968,19 +2968,6 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
   }
 }
 
-float (*BKE_pbvh_vert_coords_alloc(PBVH *pbvh))[3]
-{
-  float(*vertCos)[3] = nullptr;
-
-  if (!pbvh->vert_positions.is_empty()) {
-    vertCos = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(pbvh->totvert, sizeof(float[3]), __func__));
-    memcpy(vertCos, pbvh->vert_positions.data(), sizeof(float[3]) * pbvh->totvert);
-  }
-
-  return vertCos;
-}
-
 void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int totvert)
 {
   if (totvert != pbvh->totvert) {

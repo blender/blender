@@ -3872,25 +3872,17 @@ void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob)
 static void sculpt_update_keyblock(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
-  float(*vertCos)[3];
 
   /* Key-block update happens after handling deformation caused by modifiers,
    * so ss->orig_cos would be updated with new stroke. */
   if (ss->orig_cos) {
-    vertCos = ss->orig_cos;
+    SCULPT_vertcos_to_key(ob, ss->shapekey_active, ss->orig_cos);
   }
   else {
-    vertCos = BKE_pbvh_vert_coords_alloc(ss->pbvh);
-  }
-
-  if (!vertCos) {
-    return;
-  }
-
-  SCULPT_vertcos_to_key(ob, ss->shapekey_active, vertCos);
-
-  if (vertCos != ss->orig_cos) {
-    MEM_freeN(vertCos);
+    const float(*positions)[3] = BKE_pbvh_get_vert_positions(ss->pbvh);
+    if (positions != nullptr) {
+      SCULPT_vertcos_to_key(ob, ss->shapekey_active, positions);
+    }
   }
 }
 
@@ -5641,6 +5633,7 @@ static void sculpt_stroke_update_step(bContext *C,
                                       PaintStroke *stroke,
                                       PointerRNA *itemptr)
 {
+  SCOPED_TIMER_AVERAGED(__func__);
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
