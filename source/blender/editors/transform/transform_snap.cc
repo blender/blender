@@ -128,6 +128,10 @@ bool validSnap(const TransInfo *t)
 
 void transform_snap_flag_from_modifiers_set(TransInfo *t)
 {
+  if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) {
+    /* Those spacetypes define their own invert behaviour instead of toggling it on/off. */
+    return;
+  }
   SET_FLAG_FROM_TEST(t->tsnap.flag,
                      (((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP) ||
                       ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT)),
@@ -151,7 +155,7 @@ bool transformModeUseSnap(const TransInfo *t)
   if (t->mode == TFM_RESIZE) {
     return (ts->snap_transform_mode_flag & SCE_SNAP_TRANSFORM_MODE_SCALE) != 0;
   }
-  if (ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE, TFM_SEQ_SLIDE)) {
+  if (ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE, TFM_SEQ_SLIDE, TFM_TIME_TRANSLATE)) {
     return true;
   }
 
@@ -161,11 +165,6 @@ bool transformModeUseSnap(const TransInfo *t)
 static bool doForceIncrementSnap(const TransInfo *t)
 {
   if (t->modifiers & MOD_SNAP_FORCED) {
-    return false;
-  }
-
-  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
-    /* No incremental snapping. */
     return false;
   }
 
@@ -632,9 +631,7 @@ static eSnapFlag snap_flag_from_spacetype(TransInfo *t)
     case SPACE_GRAPH:
     case SPACE_ACTION:
     case SPACE_NLA:
-      /* These editors have their own "Auto-Snap" activation option.
-       * See #getAnimEdit_SnapMode. */
-      return eSnapFlag(0);
+      return eSnapFlag(ts->snap_flag_anim);
   }
   /* #SPACE_EMPTY.
    * It can happen when the operator is called via a handle in `bpy.app.handlers`. */
@@ -680,9 +677,8 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
     return snap_mode;
   }
 
-  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
-    /* No incremental snapping. */
-    return eSnapMode(0);
+  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH)) {
+    return eSnapMode(ts->snap_anim_mode);
   }
 
   return SCE_SNAP_TO_INCREMENT;

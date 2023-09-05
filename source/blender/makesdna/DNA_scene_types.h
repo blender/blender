@@ -1639,11 +1639,14 @@ typedef struct ToolSettings {
   short snap_mode;
   char snap_node_mode;
   char snap_uv_mode;
+  short snap_anim_mode;
   /** Generic flags (per space-type), #eSnapFlag. */
   short snap_flag;
   short snap_flag_node;
   short snap_flag_seq;
+  short snap_flag_anim;
   short snap_uv_flag;
+  char _pad[4];
   /** Default snap source, #eSnapSourceOP. */
   /**
    * TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid previous ambiguity of
@@ -2324,6 +2327,8 @@ typedef enum eSnapFlag {
   /** Was `SCE_SNAP_NO_SELF`, but self should be active. */
   SCE_SNAP_NOT_TO_ACTIVE = (1 << 4),
   SCE_SNAP_ABS_GRID = (1 << 5),
+  /* Same value with different name to make it easier to understand in time based code. */
+  SCE_SNAP_ABS_TIME_STEP = (1 << 5),
   SCE_SNAP_BACKFACE_CULLING = (1 << 6),
   SCE_SNAP_KEEP_ON_SAME_OBJECT = (1 << 7),
   /** see #eSnapTargetOP */
@@ -2383,11 +2388,17 @@ typedef enum eSnapMode {
   /** For snap individual elements. */
   SCE_SNAP_INDIVIDUAL_NEAREST = (1 << 8),
   SCE_SNAP_INDIVIDUAL_PROJECT = (1 << 9),
+
+  /** #ToolSettings::snap_anim_mode */
+  SCE_SNAP_TO_FRAME = (1 << 10),
+  SCE_SNAP_TO_SECOND = (1 << 11),
+  SCE_SNAP_TO_MARKERS = (1 << 12),
 } eSnapMode;
+
 /* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
 /* TODO: move this macro to a more general place. */
 #ifdef ENUM_OPERATORS
-ENUM_OPERATORS(eSnapMode, SCE_SNAP_INDIVIDUAL_PROJECT)
+ENUM_OPERATORS(eSnapMode, SCE_SNAP_TO_MARKERS)
 #endif
 
 #define SCE_SNAP_TO_VERTEX (SCE_SNAP_TO_POINT | SCE_SNAP_TO_EDGE_ENDPOINT)

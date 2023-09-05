@@ -62,7 +62,6 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   saction = MEM_cnew<SpaceAction>("initaction");
   saction->spacetype = SPACE_ACTION;
 
-  saction->autosnap = SACTSNAP_FRAME;
   saction->mode = SACTCONT_DOPESHEET;
   saction->mode_prev = SACTCONT_DOPESHEET;
   saction->flag = SACTION_SHOW_INTERPOLATION | SACTION_SHOW_MARKERS;

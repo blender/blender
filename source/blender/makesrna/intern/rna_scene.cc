@@ -201,6 +201,13 @@ const EnumPropertyItem rna_enum_snap_node_element_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_snap_animation_element_items[] = {
+    {SCE_SNAP_TO_FRAME, "FRAME", 0, "Frame", "Snap to frame"},
+    {SCE_SNAP_TO_SECOND, "SECOND", 0, "Second", "Snap to seconds"},
+    {SCE_SNAP_TO_MARKERS, "MARKER", 0, "Nearest Marker", "Snap to nearest marker"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem snap_uv_element_items[] = {
     {SCE_SNAP_TO_INCREMENT,
@@ -3447,6 +3454,24 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_node_mode");
   RNA_def_property_enum_items(prop, rna_enum_snap_node_element_items);
   RNA_def_property_ui_text(prop, "Snap Node Element", "Type of element to snap to");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
+
+  prop = RNA_def_property(srna, "use_snap_anim", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "snap_flag_anim", SCE_SNAP);
+  RNA_def_property_ui_text(prop, "Snap", "Enable snapping when transforming keyframes");
+  RNA_def_property_ui_icon(prop, ICON_SNAP_OFF, 1);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+
+  prop = RNA_def_property(srna, "use_snap_time_absolute", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "snap_flag_anim", SCE_SNAP_ABS_TIME_STEP);
+  RNA_def_property_ui_text(
+      prop, "Absolute Time Snap", "Absolute time alignment while translating");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
+
+  prop = RNA_def_property(srna, "snap_anim_element", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_anim_mode");
+  RNA_def_property_enum_items(prop, rna_enum_snap_animation_element_items);
+  RNA_def_property_ui_text(prop, "Snap Anim Element", "Type of element to snap to");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   /* image editor uses own set of snap modes */

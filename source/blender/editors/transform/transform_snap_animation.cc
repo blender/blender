@@ -21,96 +21,59 @@
 /** \name Snapping in Anim Editors
  * \{ */
 
-short getAnimEdit_SnapMode(TransInfo *t)
-{
-  short autosnap = SACTSNAP_OFF;
-
-  if (t->spacetype == SPACE_ACTION) {
-    SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
-
-    if (saction) {
-      autosnap = saction->autosnap;
-    }
-  }
-  else if (t->spacetype == SPACE_GRAPH) {
-    if ((t->mode == TFM_TRANSLATION) && transform_snap_is_active(t)) {
-      return autosnap;
-    }
-    SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
-    if (sipo) {
-      autosnap = sipo->autosnap;
-    }
-  }
-  else if (t->spacetype == SPACE_NLA) {
-    SpaceNla *snla = (SpaceNla *)t->area->spacedata.first;
-
-    if (snla) {
-      autosnap = snla->autosnap;
-    }
-  }
-  else {
-    autosnap = SACTSNAP_OFF;
-  }
-
-  /* toggle autosnap on/off
-   * - when toggling on, prefer nearest frame over 1.0 frame increments
-   */
-  if (t->modifiers & MOD_SNAP_INVERT) {
-    if (autosnap) {
-      autosnap = SACTSNAP_OFF;
-    }
-    else {
-      autosnap = SACTSNAP_FRAME;
-    }
-  }
-
-  return autosnap;
-}
-
 void snapFrameTransform(TransInfo *t,
-                        const eAnimEdit_AutoSnap autosnap,
+                        const eSnapMode snap_mode,
                         const float val_initial,
                         const float val_final,
                         float *r_val_final)
 {
   float deltax = val_final - val_initial;
-  switch (autosnap) {
-    case SACTSNAP_FRAME:
-      *r_val_final = floorf(val_final + 0.5f);
-      break;
-    case SACTSNAP_MARKER:
-      /* Snap to nearest marker. */
-      /* TODO: need some more careful checks for where data comes from. */
-      *r_val_final = float(ED_markers_find_nearest_marker_time(&t->scene->markers, val_final));
-      break;
-    case SACTSNAP_SECOND:
-    case SACTSNAP_TSTEP: {
-      const Scene *scene = t->scene;
-      const double secf = FPS;
-      if (autosnap == SACTSNAP_SECOND) {
-        *r_val_final = floorf((val_final / secf) + 0.5) * secf;
+  /* This is needed for the FPS macro. */
+  const Scene *scene = t->scene;
+  const eSnapFlag snap_flag = t->tsnap.flag;
+
+  switch (snap_mode) {
+    case SCE_SNAP_TO_FRAME: {
+      if (snap_flag & SCE_SNAP_ABS_TIME_STEP) {
+        *r_val_final = floorf(val_final + 0.5f);
       }
       else {
-        deltax = float(floor((deltax / secf) + 0.5) * secf);
+        deltax = floorf(deltax + 0.5f);
         *r_val_final = val_initial + deltax;
       }
       break;
     }
-    case SACTSNAP_STEP:
-      deltax = floorf(deltax + 0.5f);
-      *r_val_final = val_initial + deltax;
+    case SCE_SNAP_TO_SECOND: {
+      if (snap_flag & SCE_SNAP_ABS_TIME_STEP) {
+        *r_val_final = floorf((val_final / FPS) + 0.5) * FPS;
+      }
+      else {
+        deltax = float(floor((deltax / FPS) + 0.5) * FPS);
+        *r_val_final = val_initial + deltax;
+      }
       break;
-    case SACTSNAP_OFF:
+    }
+    case SCE_SNAP_TO_MARKERS: {
+      /* Snap to nearest marker. */
+      /* TODO: need some more careful checks for where data comes from. */
+      const float nearest_marker_time = float(
+          ED_markers_find_nearest_marker_time(&t->scene->markers, val_final));
+      *r_val_final = nearest_marker_time;
       break;
+    }
+    default: {
+      *r_val_final = val_final;
+      break;
+    }
   }
 }
 
 void transform_snap_anim_flush_data(TransInfo *t,
                                     TransData *td,
-                                    const eAnimEdit_AutoSnap autosnap,
+                                    const eSnapMode snap_mode,
                                     float *r_val_final)
 {
-  BLI_assert(autosnap != SACTSNAP_OFF);
+  BLI_assert(t->tsnap.flag);
 
   float val = td->loc[0];
   float ival = td->iloc[0];
@@ -123,7 +86,7 @@ void transform_snap_anim_flush_data(TransInfo *t,
     ival = BKE_nla_tweakedit_remap(adt, ival, NLATIME_CONVERT_MAP);
   }
 
-  snapFrameTransform(t, autosnap, ival, val, &val);
+  snapFrameTransform(t, snap_mode, ival, val, &val);
 
   /* Convert frame out of nla-action time. */
   if (adt) {

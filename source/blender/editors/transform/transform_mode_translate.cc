@@ -212,10 +212,10 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
       /* WORKAROUND:
        * Special case where snapping is done in #recalData.
        * Update the header based on the #center_local. */
-      const short autosnap = getAnimEdit_SnapMode(t);
+      eSnapMode autosnap = t->tsnap.mode;
       float ival = TRANS_DATA_CONTAINER_FIRST_OK(t)->center_local[0];
       float val = ival + dvec[0];
-      snapFrameTransform(t, eAnimEdit_AutoSnap(autosnap), ival, val, &val);
+      snapFrameTransform(t, autosnap, ival, val, &val);
       dvec[0] = val - ival;
     }
 

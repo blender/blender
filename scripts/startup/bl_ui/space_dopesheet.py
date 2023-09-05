@@ -277,7 +277,14 @@ class DOPESHEET_HT_editor_buttons:
 
         # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
         if st.mode != 'GPENCIL':
-            layout.prop(st, "auto_snap", text="")
+            row = layout.row(align=True)
+            row.prop(tool_settings, "use_snap_anim", text="")
+            sub = row.row(align=True)
+            sub.popover(
+                panel="DOPESHEET_PT_snapping",
+                icon='NONE',
+                text="Modes",
+            )
 
         row = layout.row(align=True)
         row.prop(tool_settings, "use_proportional_action", text="", icon_only=True)
@@ -290,6 +297,21 @@ class DOPESHEET_HT_editor_buttons:
             icon_only=True,
             panel="DOPESHEET_PT_proportional_edit",
         )
+
+
+class DOPESHEET_PT_snapping(Panel):
+    bl_space_type = 'DOPESHEET_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Snapping"
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        col.label(text="Snap To")
+        tool_settings = context.tool_settings
+        col.prop(tool_settings, "snap_anim_element", expand=True)
+        if tool_settings.snap_anim_element not in ('MARKER', ):
+            col.prop(tool_settings, "use_snap_time_absolute")
 
 
 class DOPESHEET_PT_proportional_edit(Panel):
@@ -872,6 +894,7 @@ classes = (
     DOPESHEET_PT_gpencil_layer_relations,
     DOPESHEET_PT_gpencil_layer_display,
     DOPESHEET_PT_custom_props_action,
+    DOPESHEET_PT_snapping
 )
 
 if __name__ == "__main__":  # only for live edit.

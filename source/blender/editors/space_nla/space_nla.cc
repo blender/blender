@@ -57,7 +57,6 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   snla->ads->source = (ID *)(scene);
 
   /* set auto-snapping settings */
-  snla->autosnap = SACTSNAP_FRAME;
   snla->flag = SNLA_SHOW_MARKERS;
 
   /* header */

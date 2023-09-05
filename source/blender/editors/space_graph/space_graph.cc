@@ -62,8 +62,6 @@ static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
   sipo = static_cast<SpaceGraph *>(MEM_callocN(sizeof(SpaceGraph), "init graphedit"));
   sipo->spacetype = SPACE_GRAPH;
 
-  sipo->autosnap = SACTSNAP_FRAME;
-
   /* allocate DopeSheet data for Graph Editor */
   sipo->ads = static_cast<bDopeSheet *>(MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet"));
   sipo->ads->source = (ID *)scene;

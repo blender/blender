@@ -853,8 +853,8 @@ typedef struct SpaceAction {
   char mode;
   /* Storage for sub-space types. */
   char mode_prev;
-  /** Automatic keyframe snapping mode. */
-  char autosnap;
+  /* Snapping now lives on the Scene. */
+  char autosnap DNA_DEPRECATED;
   /** (eTimeline_Cache_Flag). */
   char cache_display;
   char _pad1[6];
@@ -917,10 +917,8 @@ typedef enum eAnimEdit_Context {
   SACTCONT_TIMELINE = 6,
 } eAnimEdit_Context;
 
-/* SpaceAction AutoSnap Settings (also used by other Animation Editors) */
+/* Old snapping enum that is only needed because of the versioning code. */
 typedef enum eAnimEdit_AutoSnap {
-  /* no auto-snap */
-  SACTSNAP_OFF = 0,
   /* snap to 1.0 frame/second intervals */
   SACTSNAP_STEP = 1,
   /* snap to actual frames/seconds (nla-action time) */
@@ -931,7 +929,7 @@ typedef enum eAnimEdit_AutoSnap {
   SACTSNAP_SECOND = 4,
   /* snap to 1.0 second increments */
   SACTSNAP_TSTEP = 5,
-} eAnimEdit_AutoSnap;
+} eAnimEdit_AutoSnap DNA_DEPRECATED;
 
 /* SAction->cache_display */
 typedef enum eTimeline_Cache_Flag {
