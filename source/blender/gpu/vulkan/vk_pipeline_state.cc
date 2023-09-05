@@ -301,12 +301,11 @@ void VKPipelineStateManager::set_stencil_test(const eGPUStencilTest test,
 void VKPipelineStateManager::set_stencil_mask(const eGPUStencilTest test,
                                               const GPUStateMutable &mutable_state)
 {
-  depth_stencil_state.front.writeMask = static_cast<uint32_t>(mutable_state.stencil_write_mask);
-  depth_stencil_state.front.reference = static_cast<uint32_t>(mutable_state.stencil_reference);
+  depth_stencil_state.front.writeMask = uint32_t(mutable_state.stencil_write_mask);
+  depth_stencil_state.front.reference = uint32_t(mutable_state.stencil_reference);
 
   depth_stencil_state.front.compareOp = VK_COMPARE_OP_ALWAYS;
-  depth_stencil_state.front.compareMask = static_cast<uint32_t>(
-      mutable_state.stencil_compare_mask);
+  depth_stencil_state.front.compareMask = uint32_t(mutable_state.stencil_compare_mask);
 
   switch (test) {
     case GPU_STENCIL_NEQUAL:
@@ -367,9 +366,9 @@ void VKPipelineStateManager::set_shadow_bias(const bool enable)
 {
   if (enable) {
     rasterization_state.depthBiasEnable = VK_TRUE;
-    rasterization_state.depthBiasSlopeFactor = 2.f;
-    rasterization_state.depthBiasConstantFactor = 1.f;
-    rasterization_state.depthBiasClamp = 0.f;
+    rasterization_state.depthBiasSlopeFactor = 2.0f;
+    rasterization_state.depthBiasConstantFactor = 1.0f;
+    rasterization_state.depthBiasClamp = 0.0f;
   }
   else {
     rasterization_state.depthBiasEnable = VK_FALSE;

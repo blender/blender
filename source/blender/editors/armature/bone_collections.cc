@@ -7,7 +7,7 @@
  * Implementation of Bone Collection operators and editing API's.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "ANIM_bone_collections.h"
 
