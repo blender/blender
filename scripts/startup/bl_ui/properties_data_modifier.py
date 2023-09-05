@@ -2,7 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from bpy.types import Panel, Menu
+import bpy
+from bpy.types import Panel, Menu, Operator
 
 
 class ModifierButtonsPanel:
@@ -181,6 +182,19 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         layout.template_grease_pencil_modifiers()
 
 
+class AddModifierMenu(Operator):
+    bl_idname = "object.add_modifier_menu"
+    bl_label = "Add Modifier"
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space and space.context == "MODIFIER"
+
+    def invoke(self, context, event):
+        return bpy.ops.wm.call_menu(name="OBJECT_MT_modifier_add")
+
+
 classes = (
     DATA_PT_modifiers,
     OBJECT_MT_modifier_add,
@@ -189,6 +203,7 @@ classes = (
     OBJECT_MT_modifier_add_deform,
     OBJECT_MT_modifier_add_physics,
     DATA_PT_gpencil_modifiers,
+    AddModifierMenu,
 )
 
 if __name__ == "__main__":  # only for live edit.
