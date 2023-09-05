@@ -38,6 +38,7 @@ const EnumPropertyItem rna_enum_icon_items[] = {
 #  include "DNA_asset_types.h"
 
 #  include "ED_geometry.hh"
+#  include "ED_object.hh"
 
 const char *rna_translate_ui_text(
     const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, bool translate)
@@ -782,6 +783,16 @@ static void rna_uiLayout_template_node_operator_asset_menu_items(uiLayout *layou
 {
   if (U.experimental.use_node_group_operators) {
     blender::ed::geometry::ui_template_node_operator_asset_menu_items(
+        *layout, *C, blender::StringRef(catalog_path));
+  }
+}
+
+static void rna_uiLayout_template_modifier_asset_menu_items(uiLayout *layout,
+                                                            bContext *C,
+                                                            const char *catalog_path)
+{
+  if (U.experimental.use_node_group_operators) {
+    blender::ed::object::ui_template_modifier_asset_menu_items(
         *layout, *C, blender::StringRef(catalog_path));
   }
 }
@@ -1890,6 +1901,12 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "template_node_asset_menu_items", "uiTemplateNodeAssetMenuItems");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  parm = RNA_def_string(func, "catalog_path", nullptr, 0, "", "");
+
+  func = RNA_def_function(srna,
+                          "template_modifier_asset_menu_items",
+                          "rna_uiLayout_template_modifier_asset_menu_items");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_string(func, "catalog_path", nullptr, 0, "", "");
 

@@ -28,6 +28,7 @@
 
 void ED_operatortypes_object()
 {
+  using namespace blender::ed::object;
   WM_operatortype_append(OBJECT_OT_location_clear);
   WM_operatortype_append(OBJECT_OT_rotation_clear);
   WM_operatortype_append(OBJECT_OT_scale_clear);
@@ -288,6 +289,8 @@ void ED_operatortypes_object()
   WM_operatortype_append(OBJECT_OT_light_linking_blockers_link);
 
   WM_operatortype_append(OBJECT_OT_light_linking_unlink_from_collection);
+
+  object_modifier_add_asset_register();
 }
 
 void ED_operatormacros_object()

@@ -206,23 +206,3 @@ bool ED_asset_catalogs_get_save_catalogs_when_file_is_saved()
 {
   return asset_system::AssetLibrary::save_catalogs_when_file_is_saved;
 }
-
-namespace blender::ed::asset {
-
-PointerRNA persistent_catalog_path_rna_pointer(const bScreen &owner_screen,
-                                               const asset_system::AssetLibrary &library,
-                                               const asset_system::AssetCatalogTreeItem &item)
-{
-  const asset_system::AssetCatalog *catalog = library.catalog_service->find_catalog_by_path(
-      item.catalog_path());
-  if (!catalog) {
-    return PointerRNA_NULL;
-  }
-
-  const asset_system::AssetCatalogPath &path = catalog->path;
-  return {&const_cast<ID &>(owner_screen.id),
-          &RNA_AssetCatalogPath,
-          const_cast<asset_system::AssetCatalogPath *>(&path)};
-}
-
-}  // namespace blender::ed::asset

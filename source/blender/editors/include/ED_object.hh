@@ -9,6 +9,8 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_string_ref.hh"
+
 #include "DNA_object_enums.h"
 #include "DNA_userdef_enums.h"
 #include "DNA_windowmanager_types.h"
@@ -636,3 +638,9 @@ void ED_object_data_xform_by_mat4(XFormObjectData *xod, const float mat[4][4]);
 
 void ED_object_data_xform_restore(XFormObjectData *xod);
 void ED_object_data_xform_tag_update(XFormObjectData *xod);
+
+namespace blender::ed::object {
+
+void ui_template_modifier_asset_menu_items(uiLayout &layout, bContext &C, StringRef catalog_path);
+
+}

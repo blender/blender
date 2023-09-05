@@ -160,6 +160,8 @@ class NODE_HT_header(Header):
                             row.template_ID(active_modifier, "node_group", new="node.new_geometry_node_group_assign")
                     else:
                         row.template_ID(snode, "node_tree", new="node.new_geometry_nodes_modifier")
+                if snode.node_tree and snode.node_tree.asset_data:
+                    layout.popover(panel="NODE_PT_geometry_node_asset_traits")
             else:
                 layout.template_ID(snode, "node_tree", new="node.new_geometry_node_group_tool")
                 if snode.node_tree and snode.node_tree.asset_data:
@@ -448,18 +450,21 @@ class NODE_PT_geometry_node_asset_traits(Panel):
         snode = context.space_data
         group = snode.node_tree
 
-        col = layout.column(heading="Type")
-        col.prop(group, "is_tool")
-        col = layout.column(heading="Mode")
-        col.active = group.is_tool
-        col.prop(group, "is_mode_edit")
-        col.prop(group, "is_mode_sculpt")
-        col = layout.column(heading="Geometry")
-        col.active = group.is_tool
-        col.prop(group, "is_type_mesh")
-        col.prop(group, "is_type_curve")
-        if context.preferences.experimental.use_new_point_cloud_type:
-            col.prop(group, "is_type_point_cloud")
+        if snode.geometry_nodes_type == 'MODIFIER':
+            layout.prop(group, "is_modifier")
+        else:
+            col = layout.column(heading="Type")
+            col.prop(group, "is_tool")
+            col = layout.column(heading="Mode")
+            col.active = group.is_tool
+            col.prop(group, "is_mode_edit")
+            col.prop(group, "is_mode_sculpt")
+            col = layout.column(heading="Geometry")
+            col.active = group.is_tool
+            col.prop(group, "is_type_mesh")
+            col.prop(group, "is_type_curve")
+            if context.preferences.experimental.use_new_point_cloud_type:
+                col.prop(group, "is_type_point_cloud")
 
 
 class NODE_PT_node_color_presets(PresetPanel, Panel):

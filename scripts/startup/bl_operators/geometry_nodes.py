@@ -230,6 +230,7 @@ class NewGeometryNodesModifier(Operator):
             return {'CANCELLED'}
 
         group = geometry_node_group_empty_new()
+        group.is_modifier = True
         modifier.node_group = group
 
         return {'FINISHED'}
@@ -257,6 +258,7 @@ class NewGeometryNodeTreeAssign(Operator):
             if not modifier:
                 return {'CANCELLED'}
             group = geometry_node_group_empty_new()
+            group.is_modifier = True
             modifier.node_group = group
 
         return {'FINISHED'}
