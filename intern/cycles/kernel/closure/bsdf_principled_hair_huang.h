@@ -152,7 +152,7 @@ ccl_device_inline float3 sphg_dir(float theta, float gamma, float b)
   fast_sincosf(theta, &sin_theta, &cos_theta);
   fast_sincosf(gamma, &sin_gamma, &cos_gamma);
 
-  if (b == 1.0f) {
+  if (b == 1.0f || fabsf(cos_gamma) < 1e-6f) {
     sin_phi = sin_gamma;
     cos_phi = cos_gamma;
   }
