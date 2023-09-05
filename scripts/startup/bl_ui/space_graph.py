@@ -101,6 +101,7 @@ class GRAPH_PT_filters(DopesheetFilterPopoverBase, Panel):
         layout.separator()
         DopesheetFilterPopoverBase.draw_standard_filters(context, layout)
 
+
 class GRAPH_PT_snapping(Panel):
     bl_space_type = 'GRAPH_EDITOR'
     bl_region_type = 'HEADER'
