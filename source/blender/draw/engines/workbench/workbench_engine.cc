@@ -104,6 +104,8 @@ class Instance {
         return scene_state.material_override;
       case V3D_SHADING_VERTEX_COLOR:
         return scene_state.material_attribute_color;
+      case V3D_SHADING_TEXTURE_COLOR:
+        ATTR_FALLTHROUGH;
       case V3D_SHADING_MATERIAL_COLOR:
         if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot)) {
           return Material(*_mat);
