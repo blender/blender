@@ -83,7 +83,7 @@ typedef struct SpaceType {
   /* called when the mouse moves out of the area */
   void (*deactivate)(struct ScrArea *area);
 
-  /* refresh context, called after filereads, ED_area_tag_refresh() */
+  /** Refresh context, called after file-reads, #ED_area_tag_refresh(). */
   void (*refresh)(const struct bContext *C, struct ScrArea *area);
 
   /* after a spacedata copy, an init should result in exact same situation */

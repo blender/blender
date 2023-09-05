@@ -707,7 +707,7 @@ class VIEW3D_HT_header(Header):
         #       (because internal RNA array iterator will free everything immediately...).
         # XXX This is an RNA internal issue, not sure how to fix it.
         # Note: Tried to add an accessor to get translated UI strings instead of manual call
-        #       to pgettext_iface below, but this fails because translated enumitems
+        #       to pgettext_iface below, but this fails because translated enum-items
         #       are always dynamically allocated.
         act_mode_item = bpy.types.Object.bl_rna.properties["mode"].enum_items[object_mode]
         act_mode_i18n_context = bpy.types.Object.bl_rna.properties["mode"].translation_context
@@ -795,7 +795,7 @@ class VIEW3D_HT_header(Header):
                 subrow.enabled = not gpd.use_curve_edit
                 subrow.prop_enum(tool_settings, "gpencil_selectmode_edit", text="", value='SEGMENT')
 
-                # Curve edit submode
+                # Curve edit sub-mode.
                 row = layout.row(align=True)
                 row.prop(gpd, "use_curve_edit", text="",
                          icon='IPO_BEZIER')
@@ -866,7 +866,7 @@ class VIEW3D_HT_header(Header):
 
             if object_mode == 'PAINT_GPENCIL':
                 # FIXME: this is bad practice!
-                # Tool options are to be displayed in the topbar.
+                # Tool options are to be displayed in the top-bar.
                 if context.workspace.tools.from_space_view3d_mode(object_mode).idname == "builtin_brush.Draw":
                     settings = tool_settings.gpencil_sculpt.guide
                     row = layout.row(align=True)
@@ -6224,7 +6224,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 system = prefs.system
 
                 if not system.use_studio_light_edit:
-                    sub.scale_y = 0.6  # smaller studiolight preview
+                    sub.scale_y = 0.6  # Smaller studio-light preview.
                     sub.template_icon_view(shading, "studio_light", scale_popup=3.0)
                 else:
                     sub.prop(

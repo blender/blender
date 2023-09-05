@@ -43,7 +43,7 @@ void main()
 
     int clip_index = tilemap.clip_data_index;
     if (clip_index == -1) {
-      /* Noop. This is the case for unused tile-maps that are getting pushed to the free heap. */
+      /* NOP. This is the case for unused tile-maps that are getting pushed to the free heap. */
     }
     else if (tilemap.projection_type != SHADOW_PROJECTION_CUBEFACE) {
       ShadowTileMapClip clip_data = tilemaps_clip_buf[clip_index];

@@ -61,7 +61,7 @@ func_lines.append(f"void {function_to_generate}();")
 func_lines.append(f"void {function_to_generate}()")
 func_lines.append("{")
 
-# Use a single regular expression to search for opening namespaces, closing namespaces
+# Use a single regular expression to search for opening name-spaces, closing name-spaces
 # and macro invocations. This makes it easy to iterate over the matches in order.
 re_namespace_begin = r"^namespace ([\w:]+) \{"
 re_namespace_end = r"^\}  // namespace ([\w:]+)"
@@ -74,24 +74,24 @@ for path in source_cc_files:
     with open(path, "r", encoding="utf-8") as fh:
         code = fh.read()
 
-    # Keeps track of the current namespace we're in.
+    # Keeps track of the current name-space we're in.
     namespace_parts = []
 
     for match in re_all_compiled.finditer(code):
         if entered_namespace := match.group(2):
-            # Enter a (nested) namespace.
+            # Enter a (nested) name-space.
             namespace_parts += entered_namespace.split("::")
         elif exited_namespace := match.group(4):
-            # Exit a (nested) namespace.
+            # Exit a (nested) name-space.
             del namespace_parts[-len(exited_namespace.split("::")):]
         elif function_name := match.group(6):
-            # Macro invocation in the current namespace.
+            # Macro invocation in the current name-space.
             namespace_str = "::".join(namespace_parts)
             # Add suffix so that this refers to the function created by the macro.
             auto_run_name = function_name + discover_suffix
 
-            # Declare either outside of any named namespace or in a (nested) namespace.
-            # Can't declare it in an anonymous namespace because that would make the
+            # Declare either outside of any named name-space or in a (nested) name-space.
+            # Can't declare it in an anonymous name-space because that would make the
             # declared function static.
             if namespace_str:
                 decl_lines.append(f"namespace {namespace_str} {{")

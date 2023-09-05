@@ -83,7 +83,7 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
 extern void BLO_memfile_free(MemFile *memfile);
 /**
  * Result is that 'first' is being freed.
- * to keep list of memfiles consistent, 'first' is always first in list.
+ * To keep the #MemFile linked list of consistent, `first` is always first in list.
  */
 extern void BLO_memfile_merge(MemFile *first, MemFile *second);
 /**

@@ -24,7 +24,7 @@ ivec3 lightprobe_irradiance_grid_brick_coord(vec3 lP)
 }
 
 /**
- * Return the local coordinated of the shading point inside the brick in unormalized coordinate.
+ * Return the local coordinated of the shading point inside the brick in unnormalized coordinate.
  */
 vec3 lightprobe_irradiance_grid_brick_local_coord(IrradianceGridData grid_data,
                                                   vec3 lP,

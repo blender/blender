@@ -2273,7 +2273,7 @@ class WM_OT_owner_disable(Operator):
 
 
 class WM_OT_tool_set_by_id(Operator):
-    """Set the tool by name (for keymaps)"""
+    """Set the tool by name (for key-maps)"""
     bl_idname = "wm.tool_set_by_id"
     bl_label = "Set Tool by Name"
 
@@ -2319,7 +2319,7 @@ class WM_OT_tool_set_by_id(Operator):
 
 
 class WM_OT_tool_set_by_index(Operator):
-    """Set the tool by index (for keymaps)"""
+    """Set the tool by index (for key-maps)"""
     bl_idname = "wm.tool_set_by_index"
     bl_label = "Set Tool by Index"
     index: IntProperty(

@@ -1710,9 +1710,9 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
     return nullptr;
   }
 
-  /* Metaball objects can't create instances, but the dupli system is used to "instance" their
+  /* Meta-ball objects can't create instances, but the dupli system is used to "instance" their
    * evaluated mesh to render engines. We need to exit early to avoid recursively instancing the
-   * evaluated metaball mesh on metaball instances that already contribute to the basis. */
+   * evaluated meta-ball mesh on meta-ball instances that already contribute to the basis. */
   if (ctx->object->type == OB_MBALL && ctx->level > 0) {
     return nullptr;
   }

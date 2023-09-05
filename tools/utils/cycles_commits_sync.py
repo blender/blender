@@ -28,7 +28,7 @@ GIT_SUBJECT_COMMON_PREFIX = b"Subject: [PATCH] "
 # Marker which indicates begin of new file in the patch set.
 GIT_FILE_SECTION_MARKER = b"diff --git"
 
-# Marker of the end of the patchset.
+# Marker of the end of the patch-set.
 GIT_PATCHSET_END_MARKER = b"-- "
 
 # Prefix of topic to be omitted

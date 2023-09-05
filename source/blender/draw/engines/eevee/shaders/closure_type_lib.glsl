@@ -91,7 +91,7 @@ float ambient_occlusion_eval(vec3 normal,
                              const float inverted,
                              const float sample_count);
 
-/* WORKAROUND: Included later with libs. This is because we are mixing include systems. */
+/* WORKAROUND: Included later with libraries. This is because we are mixing include systems. */
 vec3 safe_normalize(vec3 N);
 float fast_sqrt(float a);
 vec3 cameraVec(vec3 P);

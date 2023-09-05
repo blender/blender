@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Copyright (c) 2009 www.stani.be
+# Copyright (c) 2009 https://www.stani.be
 
 import inspect
 import re
@@ -131,7 +131,7 @@ def get_argspec(func, *, strip_self=True, doc=None, source=None):
 
 
 def complete(line, cursor, namespace):
-    """Complete callable with calltip.
+    """Complete callable with call-tip.
 
     :arg line: incomplete text line
     :type line: str

@@ -39,7 +39,7 @@ def dopesheet_filter(layout, context):
         row.prop(dopesheet, "show_only_errors", text="")
 
 #######################################
-# Dopesheet Filtering Popovers
+# Dope-sheet Filtering Popovers
 
 # Generic Layout - Used as base for filtering popovers used in all animation editors
 # Used for DopeSheet, NLA, and Graph Editors
@@ -62,7 +62,7 @@ class DopesheetFilterPopoverBase:
 
         if is_nla:
             col.prop(dopesheet, "show_missing_nla", icon='NONE')
-        else:  # graph and dopesheet editors - F-Curves and drivers only
+        else:  # Graph and dope-sheet editors - F-Curves and drivers only.
             col.prop(dopesheet, "show_only_errors", icon='NONE')
 
     # Name/Membership Filters

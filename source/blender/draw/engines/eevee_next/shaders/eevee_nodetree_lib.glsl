@@ -209,7 +209,7 @@ Closure closure_eval(ClosureDiffuse diffuse,
   return Closure(0);
 }
 
-/* Noop since we are sampling closures. */
+/* NOP since we are sampling closures. */
 Closure closure_add(Closure cl1, Closure cl2)
 {
   return Closure(0);
@@ -551,7 +551,7 @@ vec4 attr_load_color_post(vec4 attr)
   return attr;
 }
 
-#else /* Noop for any other surface. */
+#else /* NOP for any other surface. */
 
 float attr_load_temperature_post(float attr)
 {

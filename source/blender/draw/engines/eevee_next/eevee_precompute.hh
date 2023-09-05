@@ -92,7 +92,7 @@ class Precompute {
 
   /**
    * Write a the content of a texture as a C++ header file array.
-   * The content is to be copied to `eevee_lut.cc` and formated with `make format`.
+   * The content is to be copied to `eevee_lut.cc` and formatted with `make format`.
    */
   template<typename VecT>
   static void write_to_header(StringRefNull name,

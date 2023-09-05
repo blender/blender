@@ -364,7 +364,7 @@ def bake_action_iter(
             while obj.constraints:
                 obj.constraints.remove(obj.constraints[0])
 
-        # Create compatible eulers, quats.
+        # Create compatible euler & quaternion rotations.
         euler_prev = None
         quat_prev = None
 

@@ -147,7 +147,7 @@ def normal_at_I0D(it: Interface0DIterator) -> Vector:
         # give iterator back in original state
         it.decrement()
     elif it.is_end:
-        # just fail hard: this shouldn not happen
+        # Just fail hard: this should not happen.
         raise StopIteration()
     else:
         # this case sometimes has a small difference with Normal2DF0D (1e-3 -ish)
@@ -197,8 +197,8 @@ def phase_to_direction(length):
     return results
 
 
-# -- simplification of a set of points; based on simplify.js by Vladimir Agafonkin --
-#    https://mourner.github.io/simplify-js/
+# Simplification of a set of points; based on `simplify.js`:
+# See: https://mourner.github.io/simplify-js
 
 def getSquareSegmentDistance(p, p1, p2):
     """

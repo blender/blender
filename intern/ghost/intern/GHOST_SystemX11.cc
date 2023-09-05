@@ -482,7 +482,7 @@ static void SleepTillEvent(Display *display, int64_t maxSleep)
   }
 }
 
-/* This function borrowed from Qt's X11 support qclipboard_x11.cpp */
+/* This function borrowed from QT's X11 support `qclipboard_x11.cpp`. */
 struct init_timestamp_data {
   Time timestamp;
 };

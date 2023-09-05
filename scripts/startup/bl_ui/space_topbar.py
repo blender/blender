@@ -503,10 +503,10 @@ class TOPBAR_MT_file_export(Menu):
                 "wm.usd_export", text="Universal Scene Description (.usd*)")
 
         if bpy.app.build_options.io_gpencil:
-            # Pugixml lib dependency
+            # PUGIXML library dependency.
             if bpy.app.build_options.pugixml:
                 self.layout.operator("wm.gpencil_export_svg", text="Grease Pencil as SVG")
-            # Haru lib dependency
+            # HARU library dependency.
             if bpy.app.build_options.haru:
                 self.layout.operator("wm.gpencil_export_pdf", text="Grease Pencil as PDF")
 

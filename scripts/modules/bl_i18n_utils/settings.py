@@ -26,13 +26,13 @@ except ModuleNotFoundError:
 
 # The languages defined in Blender.
 LANGUAGES_CATEGORIES = (
-    # Min completeness level, UI english label.
+    # Min completeness level, UI English label.
     (0.95, "Complete"),
     (0.33, "In Progress"),
     (-1.0, "Starting"),
 )
 LANGUAGES = (
-    # ID, UI english label, ISO code.
+    # ID, UI English label, ISO code.
     (0, "Automatic (Automatic)", "DEFAULT"),
     (1, "English (English)", "en_US"),
     (2, "Japanese (日本語)", "ja_JP"),
@@ -195,8 +195,8 @@ PYGETTEXT_CONTEXTS = "#define\\s+(BLT_I18NCONTEXT_[A-Z_0-9]+)\\s+\"([^\"]*)\""
 # autopep8: off
 
 # Keywords' regex.
-# XXX Most unfortunately, we can't use named backreferences inside character sets,
-#     which makes the regexes even more twisty... :/
+# XXX Most unfortunately, we can't use named back-references inside character sets,
+#     which makes the REGEXES even more twisty... :/
 _str_base = (
     # Match void string
     "(?P<{_}1>[\"'])(?P={_}1)"  # Get opening quote (' or "), and closing immediately.
@@ -258,7 +258,7 @@ PYGETTEXT_KEYWORDS = (() +
     tuple(("{}\\((?:[^,]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")) +
 
-    # Node socket declarations: contextless names
+    # Node socket declarations: context-less names.
     tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"(?:,[^),]+)*\s*\)"
            r"(?![^;]*\.translation_context\()").format(it)
           for it in ("add_input", "add_output")) +

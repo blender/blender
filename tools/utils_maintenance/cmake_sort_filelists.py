@@ -50,7 +50,7 @@ def sort_cmake_file_lists(fn: str, data_src: str) -> Optional[str]:
         # Headers.
         if l and os.path.isdir(os.path.join(fn_dir, l)):
             return True
-        # Libs.
+        # Libraries.
         if l.startswith(("bf_", "extern_")) and "." not in l and "/" not in l:
             return True
         return False

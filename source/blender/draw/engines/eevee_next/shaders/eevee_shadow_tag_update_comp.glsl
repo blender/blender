@@ -7,8 +7,8 @@
  *
  * Any updated shadow caster needs to tag the shadow map tiles it was in and is now into.
  * This is done in 2 pass of this same shader. One for past object bounds and one for new object
- * bounds. The bounding boxes are roughly software rasterized (just a plain rect) in order to tag
- * the appropriate tiles.
+ * bounds. The bounding boxes are roughly software rasterized (just a plain rectangle) in order to
+ * tag the appropriate tiles.
  */
 
 #pragma BLENDER_REQUIRE(common_intersect_lib.glsl)

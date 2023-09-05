@@ -936,7 +936,7 @@ class PREFERENCES_OT_app_template_install(Operator):
                 return {'CANCELLED'}
 
         else:
-            # Only support installing zipfiles
+            # Only support installing zip-files.
             self.report({'WARNING'}, tip_("Expected a zip-file %r\n") % filepath)
             return {'CANCELLED'}
 

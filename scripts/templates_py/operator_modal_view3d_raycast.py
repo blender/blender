@@ -64,7 +64,7 @@ def main(context, event):
     # we could do lots of stuff but for the example just select.
     if best_obj is not None:
         # for selection etc. we need the original object,
-        # evaluated objects are not in viewlayer
+        # evaluated objects are not in view-layer.
         best_original = best_obj.original
         best_original.select_set(True)
         context.view_layer.objects.active = best_original

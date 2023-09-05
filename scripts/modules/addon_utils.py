@@ -441,9 +441,9 @@ def disable(module_name, *, default_set=False, handle_error=None):
 
     mod = sys.modules.get(module_name)
 
-    # possible this addon is from a previous session and didn't load a
+    # Possible this add-on is from a previous session and didn't load a
     # module this time. So even if the module is not found, still disable
-    # the addon in the user prefs.
+    # the add-on in the user preferences.
     if mod and getattr(mod, "__addon_enabled__", False) is not False:
         mod.__addon_enabled__ = False
         mod.__addon_persistent = False

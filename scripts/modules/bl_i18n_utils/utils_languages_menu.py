@@ -22,7 +22,7 @@ FLAG_MESSAGES = {
 
 def gen_menu_file(stats, settings):
     # Generate languages file content used by Blender's i18n system.
-    # First, match all entries in LANGUAGES to a lang in stats, if possible!
+    # First, match all entries in LANGUAGES to a `lang` in stats, if possible!
     # Returns a iterable of text lines.
     tmp = []
     for uid_num, label, uid in settings.LANGUAGES:

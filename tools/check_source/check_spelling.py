@@ -171,7 +171,7 @@ def hash_of_file_and_len(fp: str) -> Tuple[bytes, int]:
 import re
 re_vars = re.compile("[A-Za-z]+")
 
-# First remove this from comments, so we don't spell check example code, doxygen commands, etc.
+# First remove this from comments, so we don't spell check example code, DOXYGEN commands, etc.
 re_ignore = re.compile(
     r'('
 
@@ -184,17 +184,17 @@ re_ignore = re.compile(
     # Convention for TODO/FIXME messages: TODO(my name) OR FIXME(name+name) OR XXX(some-name) OR NOTE(name/other-name):
     r"\b(TODO|FIXME|XXX|NOTE|WARNING)\(@?[\w\s\+\-/]+\)|"
 
-    # Doxygen style: <pre> ... </pre>
+    # DOXYGEN style: <pre> ... </pre>
     r"<pre>.+</pre>|"
-    # Doxygen style: \code ... \endcode
+    # DOXYGEN style: \code ... \endcode
     r"\s+\\code\b.+\s\\endcode\b|"
-    # Doxygen style #SOME_CODE.
+    # DOXYGEN style #SOME_CODE.
     r'#\S+|'
-    # Doxygen commands: \param foo
+    # DOXYGEN commands: \param foo
     r"\\(section|subsection|subsubsection|defgroup|ingroup|addtogroup|param|tparam|page|a|see)\s+\S+|"
-    # Doxygen commands without any arguments after them: \command
+    # DOXYGEN commands without any arguments after them: \command
     r"\\(retval|todo|name)\b|"
-    # Doxygen 'param' syntax used rarely: \param foo[in,out]
+    # DOXYGEN 'param' syntax used rarely: \param foo[in,out]
     r"\\param\[[a-z,]+\]\S*|"
 
     # Words containing underscores: a_b

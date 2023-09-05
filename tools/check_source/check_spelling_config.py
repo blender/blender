@@ -39,6 +39,7 @@ dict_custom = {
     "adjugate",
     "affectable",
     "alignable",
+    "branchless",
     "allocatable",
     "allocator",
     "allocators",
@@ -152,6 +153,7 @@ dict_custom = {
     "generatrix",
     "glitchy",
     "haptics",
+    "headerless",
     "highlightable",
     "homogenous",
     "ideographic",
@@ -192,6 +194,7 @@ dict_custom = {
     "losslessly",
     "luminances",
     "mappable",
+    "memoryless",
     "merchantability",
     "mergeable",
     "minimalistic",
@@ -259,6 +262,7 @@ dict_custom = {
     "prefilter",
     "prefiltered",
     "prefiltering",
+    "preloading",
     "premutliplied",
     "preorder",
     "prepend",
@@ -363,6 +367,7 @@ dict_custom = {
     "tokenizing",
     "transcode",
     "transmissive",
+    "triaging",
     "triangulations",
     "triangulator",
     "trilinear",
@@ -823,7 +828,8 @@ dict_ignore_hyphenated_suffix = {
 files_ignore = {
     "tools/utils_doc/rna_manual_reference_updater.py",  # Contains language ID references.
 
-    # Maintained by 3rd party.
+    # Maintained by 3rd parties.
+    "source/blender/blenlib/intern/fnmatch.c",
     "source/blender/draw/intern/shaders/common_fxaa_lib.glsl",
     "source/blender/gpu/shaders/common/gpu_shader_smaa_lib.glsl",
 }
