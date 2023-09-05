@@ -36,13 +36,14 @@ namespace {
 /** Default flags for new bone collections. */
 constexpr eBoneCollection_Flag default_flags = BONE_COLLECTION_VISIBLE |
                                                BONE_COLLECTION_SELECTABLE;
+constexpr auto bonecoll_default_name = "Bones";
 }  // namespace
 
 BoneCollection *ANIM_bonecoll_new(const char *name)
 {
   if (name == nullptr || name[0] == '\0') {
     /* Use a default name if no name was given. */
-    name = "Bones";
+    name = bonecoll_default_name;
   }
 
   /* Note: the collection name may change after the collection is added to an
@@ -92,7 +93,7 @@ static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bco
 {
   BLI_uniquename(&armature->collections,
                  bcoll,
-                 "Bones",
+                 bonecoll_default_name,
                  '.',
                  offsetof(BoneCollection, name),
                  sizeof(bcoll->name));
