@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : thickness_fof_depth_discontinuity.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Assigns to strokes a thickness that depends on the depth discontinuity

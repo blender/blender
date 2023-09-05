@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : apriori_and_causal_density.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Selects the lines with high a priori density and
