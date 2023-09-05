@@ -1129,13 +1129,10 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
   }
 
   for (const int i : ss->faces.index_range()) {
-    bool any_disabled = false;
-    for (const int vert : ss->corner_verts.slice(ss->faces[i])) {
-      if (!enabled_verts[vert]) {
-        any_disabled = true;
-        break;
-      }
-    }
+    const Span<int> face_verts = ss->corner_verts.slice(ss->faces[i]);
+    const bool any_disabled = std::any_of(face_verts.begin(),
+                                          face_verts.end(),
+                                          [&](const int vert) { return !enabled_verts[vert]; });
     if (any_disabled) {
       const int face_set = expand_cache->original_face_sets[i];
       BLI_gset_remove(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set), nullptr);
