@@ -34,29 +34,6 @@ struct TriangleIntersectionResult {
 
 enum { METALRT_HIT_TRIANGLE, METALRT_HIT_BOUNDING_BOX };
 
-/* Utilities. */
-
-ccl_device_inline bool intersection_skip_self(ray_data const RaySelfPrimitives &self,
-                                              const int object,
-                                              const int prim)
-{
-  return (self.prim == prim) && (self.object == object);
-}
-
-ccl_device_inline bool intersection_skip_self_shadow(ray_data const RaySelfPrimitives &self,
-                                                     const int object,
-                                                     const int prim)
-{
-  return ((self.prim == prim) && (self.object == object)) ||
-         ((self.light_prim == prim) && (self.light_object == object));
-}
-
-ccl_device_inline bool intersection_skip_self_local(ray_data const RaySelfPrimitives &self,
-                                                    const int prim)
-{
-  return (self.prim == prim);
-}
-
 /* Hit functions. */
 
 template<typename TReturn, uint intersection_type>
@@ -72,7 +49,10 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
 #  ifdef __BVH_LOCAL__
   uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
 
-  if ((object != payload.local_object) || intersection_skip_self_local(payload.self, prim)) {
+  MetalKernelContext context(launch_params_metal);
+
+  if ((object != payload.local_object) || context.intersection_skip_self_local(payload.self, prim))
+  {
     /* Only intersect with matching object and skip self-intersecton. */
     result.accept = false;
     result.continue_search = true;
@@ -231,7 +211,9 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
   }
 #    endif
 
-  if (intersection_skip_self_shadow(payload.self, object, prim)) {
+  MetalKernelContext context(launch_params_metal);
+
+  if (context.intersection_skip_self_shadow(payload.self, object, prim)) {
     /* continue search */
     return true;
   }
@@ -245,8 +227,6 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
   short max_hits = payload.max_hits;
   short num_hits = payload.num_hits;
   short num_recorded_hits = payload.num_recorded_hits;
-
-  MetalKernelContext context(launch_params_metal);
 
   /* If no transparent shadows, all light is blocked and we can stop immediately. */
   if (num_hits >= max_hits ||
@@ -388,9 +368,11 @@ inline TReturnType metalrt_visibility_test(
   }
 #  endif
 
+  MetalKernelContext context(launch_params_metal);
+
   /* Shadow ray early termination. */
   if (visibility & PATH_RAY_SHADOW_OPAQUE) {
-    if (intersection_skip_self_shadow(payload.self, object, prim)) {
+    if (context.intersection_skip_self_shadow(payload.self, object, prim)) {
       result.accept = false;
       result.continue_search = true;
       return result;
@@ -402,7 +384,7 @@ inline TReturnType metalrt_visibility_test(
     }
   }
   else {
-    if (intersection_skip_self(payload.self, object, prim)) {
+    if (context.intersection_skip_self(payload.self, object, prim)) {
       result.accept = false;
       result.continue_search = true;
       return result;

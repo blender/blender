@@ -49,6 +49,7 @@
 #define ccl_loop_no_unroll
 #define ccl_optional_struct_init
 #define ccl_private
+#define ccl_ray_data ccl_private
 #define ccl_gpu_shared
 #define ATTR_FALLTHROUGH __attribute__((fallthrough))
 #define ccl_constant const

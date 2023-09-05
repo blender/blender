@@ -233,14 +233,14 @@ ccl_device_inline float intersection_curve_shadow_transparency(
   return (1.0f - u) * f0 + u * f1;
 }
 
-ccl_device_inline bool intersection_skip_self(ccl_private const RaySelfPrimitives &self,
+ccl_device_inline bool intersection_skip_self(ccl_ray_data const RaySelfPrimitives &self,
                                               const int object,
                                               const int prim)
 {
   return (self.prim == prim) && (self.object == object);
 }
 
-ccl_device_inline bool intersection_skip_self_shadow(ccl_private const RaySelfPrimitives &self,
+ccl_device_inline bool intersection_skip_self_shadow(ccl_ray_data const RaySelfPrimitives &self,
                                                      const int object,
                                                      const int prim)
 {
@@ -248,7 +248,7 @@ ccl_device_inline bool intersection_skip_self_shadow(ccl_private const RaySelfPr
          ((self.light_prim == prim) && (self.light_object == object));
 }
 
-ccl_device_inline bool intersection_skip_self_local(ccl_private const RaySelfPrimitives &self,
+ccl_device_inline bool intersection_skip_self_local(ccl_ray_data const RaySelfPrimitives &self,
                                                     const int prim)
 {
   return (self.prim == prim);
