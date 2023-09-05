@@ -133,6 +133,8 @@ CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_TOOLS, "wm.tool");
 CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_MSGBUS_PUB, "wm.msgbus.pub");
 CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_MSGBUS_SUB, "wm.msgbus.sub");
 
+static void wm_init_scripts_extensions_once(bContext *C);
+
 static void wm_init_reports(bContext *C)
 {
   ReportList *reports = CTX_wm_reports(C);
@@ -358,6 +360,13 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   STRNCPY(G.lib, BKE_main_blendfile_path_from_global());
 
+  CTX_py_init_set(C, true);
+  WM_keyconfig_init(C);
+
+  /* Load add-ons after key-maps have been initialized (but before the blend file has been read),
+   * important to guarantee default key-maps have been declared & before post-read handlers run. */
+  wm_init_scripts_extensions_once(C);
+
   wm_homefile_read_post(C, params_file_read_post);
 }
 
@@ -414,6 +423,13 @@ void WM_init_splash(bContext *C)
   CTX_wm_window_set(C, static_cast<wmWindow *>(wm->windows.first));
   WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
   CTX_wm_window_set(C, prevwin);
+}
+
+/** Load add-ons & app-templates once on startup. */
+static void wm_init_scripts_extensions_once(bContext *C)
+{
+  const char *imports[] = {"bpy", nullptr};
+  BPY_run_string_eval(C, imports, "bpy.utils.load_scripts_extensions()");
 }
 
 /* free strings of open recent files */
