@@ -186,6 +186,21 @@ static void version_bonegroups_to_bonecollections(Main *bmain)
     /* Convert the bone groups on a bone-by-bone basis. */
     bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
     bPose *pose = ob->pose;
+
+    blender::Map<const bActionGroup *, BoneCollection *> collections_by_group;
+    /* Convert all bone groups, regardless of whether they contain any bones. */
+    LISTBASE_FOREACH (bActionGroup *, bgrp, &pose->agroups) {
+      BoneCollection *bcoll = ANIM_armature_bonecoll_new(arm, bgrp->name);
+      collections_by_group.add_new(bgrp, bcoll);
+
+      /* Before now, bone visibility was determined by armature layers, and bone
+       * groups did not have any impact on this. To retain the behavior, that
+       * hiding all layers a bone is on hides the bone, the
+       * bone-group-collections should be created hidden. */
+      ANIM_bonecoll_hide(bcoll);
+    }
+
+    /* Assign the bones to their bone group based collection. */
     LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
       /* Find the bone group of this pose channel. */
       const bActionGroup *bgrp = (const bActionGroup *)BLI_findlink(&pose->agroups,
@@ -194,15 +209,8 @@ static void version_bonegroups_to_bonecollections(Main *bmain)
         continue;
       }
 
-      /* Get or create the bone collection. */
-      BoneCollection *bcoll = ANIM_armature_bonecoll_get_by_name(arm, bgrp->name);
-      if (!bcoll) {
-        bcoll = ANIM_armature_bonecoll_new(arm, bgrp->name);
-
-        ANIM_bonecoll_hide(bcoll);
-      }
-
       /* Assign the bone. */
+      BoneCollection *bcoll = collections_by_group.lookup(bgrp);
       ANIM_armature_bonecoll_assign(bcoll, pchan->bone);
     }
 
