@@ -360,7 +360,7 @@ static void createTransGPencil_curves(bContext *C,
                 BKE_nurb_bezt_handle_test(bezt,
                                           SELECT,
                                           hide_handles ? NURB_HANDLE_TEST_KNOT_ONLY :
-                                                         NURB_HANDLE_TEST_EACH,
+                                                         NURB_HANDLE_TEST_KNOT_OR_EACH,
                                           use_around_origins_for_handles_test);
                 need_handle_recalc = true;
               }
