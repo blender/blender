@@ -531,14 +531,9 @@ void IMB_thumb_delete(const char *filepath, ThumbSize size)
 
 ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source)
 {
-  char thumb_path[FILE_MAX];
-  char thumb_name[40];
-  char uri[URI_MAX];
   char path_buff[FILE_MAX_LIBEXTRA];
   const char *file_path;
   const char *path;
-  BLI_stat_t st;
-  ImBuf *img = nullptr;
   char *blen_group = nullptr, *blen_id = nullptr;
 
   path = file_path = filepath;
@@ -554,12 +549,15 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
     }
   }
 
+  BLI_stat_t st;
   if (BLI_stat(file_path, &st) == -1) {
     return nullptr;
   }
+  char uri[URI_MAX];
   if (!uri_from_filename(path, uri)) {
     return nullptr;
   }
+  char thumb_path[FILE_MAX];
   if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), THB_FAIL)) {
     /* failure thumb exists, don't try recreating */
     if (BLI_exists(thumb_path)) {
@@ -573,6 +571,8 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
     }
   }
 
+  ImBuf *img = nullptr;
+  char thumb_name[40];
   if (thumbpathname_from_uri(
           uri, thumb_path, sizeof(thumb_path), thumb_name, sizeof(thumb_name), size))
   {
