@@ -80,6 +80,7 @@ static void library_blend_read_data(BlendDataReader * /*reader*/, ID *id)
   lib->runtime.name_map = nullptr;
   /* This is runtime data. */
   lib->parent = nullptr;
+  lib->tag = 0;
 }
 
 IDTypeInfo IDType_ID_LI = {
