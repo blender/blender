@@ -118,6 +118,11 @@ class VolumeModule {
     ps.bind_image(VOLUME_PROP_PHASE_IMG_SLOT, &prop_phase_tx_);
   }
 
+  bool needs_shadow_tagging()
+  {
+    return enabled_ && data_.use_lights;
+  }
+
   int3 grid_size()
   {
     return data_.tex_size;
@@ -135,8 +140,11 @@ class VolumeModule {
 
   void end_sync();
 
+  /* Render material properties. */
+  void draw_prepass(View &view);
+  /* Compute scattering and integration. */
   void draw_compute(View &view);
-
+  /* Final image compositing. */
   void draw_resolve(View &view);
 };
 }  // namespace blender::eevee

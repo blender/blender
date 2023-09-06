@@ -119,6 +119,6 @@ void main()
     vec3 vP = point_world_to_view(P);
 
     shadow_tag_usage(
-        vP, P, ws_view_direction, step_radius, t, gl_FragCoord.xy * exp2(float(fb_lod)));
+        vP, P, ws_view_direction, step_radius, t, gl_FragCoord.xy * exp2(float(fb_lod)), 0);
   }
 }
