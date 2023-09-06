@@ -694,6 +694,10 @@ def keyconfig_set(filepath, *, report=None):
         print("loading preset:", filepath)
 
     keyconfigs = _bpy.context.window_manager.keyconfigs
+    name = splitext(basename(filepath))[0]
+
+    # Store the old key-configuration case of error, to know if it should be removed or not on failure.
+    kc_old = keyconfigs.get(name)
 
     try:
         error_msg = ""
@@ -702,14 +706,13 @@ def keyconfig_set(filepath, *, report=None):
         import traceback
         error_msg = traceback.format_exc()
 
-    name = splitext(basename(filepath))[0]
     kc_new = keyconfigs.get(name)
 
     if error_msg:
         if report is not None:
             report({'ERROR'}, error_msg)
         print(error_msg)
-        if kc_new is not None:
+        if (kc_new is not None) and (kc_new != kc_old):
             keyconfigs.remove(kc_new)
         return False
 
