@@ -532,15 +532,13 @@ void IMB_thumb_delete(const char *filepath, ThumbSize size)
 ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source)
 {
   char path_buff[FILE_MAX_LIBEXTRA];
-  /* Will be the actual path to the file, i.e. the same as #filepath or if that points into a
-   * .blend, the path of the .blend. */
-  const char *file_path;
-  const char *path;
   char *blen_group = nullptr, *blen_id = nullptr;
 
-  path = file_path = filepath;
+  /* Will be the actual path to the file, i.e. the same as #filepath, or if that points into a
+   * .blend, the path of the .blend. */
+  const char *file_path = filepath;
   if (source == THB_SOURCE_BLEND) {
-    if (BKE_blendfile_library_path_explode(path, path_buff, &blen_group, &blen_id)) {
+    if (BKE_blendfile_library_path_explode(filepath, path_buff, &blen_group, &blen_id)) {
       if (blen_group) {
         if (!blen_id) {
           /* No preview for blen groups */
@@ -556,7 +554,7 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
     return nullptr;
   }
   char uri[URI_MAX];
-  if (!uri_from_filename(path, uri)) {
+  if (!uri_from_filename(filepath, uri)) {
     return nullptr;
   }
   char thumb_path[FILE_MAX];
@@ -580,8 +578,8 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
   {
     /* The requested path points to a generated thumbnail already (path into the thumbnail cache
      * directory). Attempt to load that, there's nothing we can recreate. */
-    if (BLI_path_ncmp(path, thumb_path, sizeof(thumb_path)) == 0) {
-      img = IMB_loadiffname(path, IB_rect, nullptr);
+    if (BLI_path_ncmp(filepath, thumb_path, sizeof(thumb_path)) == 0) {
+      img = IMB_loadiffname(filepath, IB_rect, nullptr);
     }
     else {
       img = IMB_loadiffname(thumb_path, IB_rect | IB_metadata, nullptr);
@@ -617,9 +615,9 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
           /* recreate all thumbs */
           IMB_freeImBuf(img);
           img = nullptr;
-          IMB_thumb_delete(path, THB_NORMAL);
-          IMB_thumb_delete(path, THB_LARGE);
-          IMB_thumb_delete(path, THB_FAIL);
+          IMB_thumb_delete(filepath, THB_NORMAL);
+          IMB_thumb_delete(filepath, THB_LARGE);
+          IMB_thumb_delete(filepath, THB_FAIL);
           img = thumb_create_or_fail(
               file_path, uri, thumb_name, use_hash, thumb_hash, blen_group, blen_id, size, source);
         }
