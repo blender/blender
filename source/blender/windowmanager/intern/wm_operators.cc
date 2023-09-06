@@ -1196,7 +1196,7 @@ int WM_operator_confirm_message_ex(bContext *C,
   uiPopupMenu *pup = UI_popup_menu_begin(C, title, icon);
   uiLayout *layout = UI_popup_menu_layout(pup);
   uiItemFullO_ptr(
-      layout, op->type, message, ICON_NONE, properties, opcontext, UI_ITEM_NONE, nullptr);
+      layout, op->type, message, ICON_NONE, properties, opcontext, UI_ITEM_O_DEPRESS, nullptr);
   UI_popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
