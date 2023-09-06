@@ -701,7 +701,8 @@ static MenuSearch_Data *menu_items_from_ui_create(
           /* pass */
         }
         else if ((mt_from_but = UI_but_menutype_get(but))) {
-          const bool uses_context = but->context && mt_from_but->context_dependent;
+          const bool uses_context = but->context &&
+                                    bool(mt_from_but->flag & MenuTypeFlag::ContextDependent);
           const bool tagged_first_time = menu_tagged.add(mt_from_but);
           const bool scan_submenu = tagged_first_time || uses_context;
 

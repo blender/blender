@@ -642,7 +642,7 @@ MenuType node_group_operator_assets_menu()
   type.poll = asset_menu_poll;
   type.draw = node_add_catalog_assets_draw;
   type.listener = asset::asset_reading_region_listen_fn;
-  type.context_dependent = true;
+  type.flag = MenuTypeFlag::ContextDependent;
   return type;
 }
 
