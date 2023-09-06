@@ -372,8 +372,8 @@ static void data_transfer_dtdata_type_preprocess(const Mesh *me_src,
     BLI_assert(CustomData_get_layer(&me_src->ldata, CD_NORMAL) != nullptr);
     (void)me_src;
 
-    blender::short2 *custom_nors_dst = static_cast<blender::short2 *>(
-        CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, me_dst->totloop));
+    const blender::short2 *custom_nors_dst = static_cast<const blender::short2 *>(
+        CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL));
 
     /* Cache loop nors into a temp CDLayer. */
     blender::float3 *loop_nors_dst = static_cast<blender::float3 *>(
@@ -399,9 +399,9 @@ static void data_transfer_dtdata_type_preprocess(const Mesh *me_src,
                                             me_dst->poly_normals(),
                                             sharp_edges,
                                             sharp_faces,
+                                            custom_nors_dst,
                                             use_split_nors_dst,
                                             split_angle_dst,
-                                            custom_nors_dst,
                                             nullptr,
                                             {loop_nors_dst, me_dst->totloop});
     }

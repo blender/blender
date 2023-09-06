@@ -336,8 +336,8 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
       mr->loop_normals.reinitialize(mr->corner_verts.size());
-      blender::short2 *clnors = static_cast<blender::short2 *>(
-          CustomData_get_layer_for_write(&mr->me->ldata, CD_CUSTOMLOOPNORMAL, mr->me->totloop));
+      const blender::short2 *clnors = static_cast<const blender::short2 *>(
+          CustomData_get_layer(&mr->me->ldata, CD_CUSTOMLOOPNORMAL));
       const bool *sharp_edges = static_cast<const bool *>(
           CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, "sharp_edge"));
       blender::bke::mesh::normals_calc_loop(mr->vert_positions,
@@ -350,9 +350,9 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
                                             mr->poly_normals,
                                             sharp_edges,
                                             mr->sharp_faces,
+                                            clnors,
                                             is_auto_smooth,
                                             split_angle,
-                                            clnors,
                                             nullptr,
                                             mr->loop_normals);
     }

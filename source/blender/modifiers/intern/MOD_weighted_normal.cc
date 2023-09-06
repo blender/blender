@@ -229,9 +229,9 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                  wn_data->poly_normals,
                                  wn_data->sharp_edges.data(),
                                  wn_data->sharp_faces,
+                                 has_clnors ? clnors.data() : nullptr,
                                  true,
                                  split_angle,
-                                 has_clnors ? clnors.data() : nullptr,
                                  &lnors_spacearr,
                                  loop_normals);
 
@@ -360,9 +360,9 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
                                             poly_normals,
                                             wn_data->sharp_edges.data(),
                                             wn_data->sharp_faces,
+                                            has_clnors ? clnors.data() : nullptr,
                                             true,
                                             split_angle,
-                                            has_clnors ? clnors.data() : nullptr,
                                             nullptr,
                                             loop_normals);
 
