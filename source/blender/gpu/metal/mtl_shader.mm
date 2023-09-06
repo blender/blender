@@ -296,7 +296,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
       /* Raster order groups for tile data in struct require Metal 2.3.
        * Retaining Metal 2.2. for old shaders to maintain backwards
        * compatibility for existing features. */
-      if (info->fragment_tile_inputs_.size() > 0) {
+      if (info->subpass_inputs_.size() > 0) {
         options.languageVersion = MTLLanguageVersion2_3;
       }
     }

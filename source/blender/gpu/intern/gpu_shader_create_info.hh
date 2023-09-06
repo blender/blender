@@ -475,8 +475,8 @@ struct ShaderCreateInfo {
   };
   Vector<FragOut> fragment_outputs_;
 
-  using FragTileIn = FragOut;
-  Vector<FragTileIn> fragment_tile_inputs_;
+  using SubpassIn = FragOut;
+  Vector<SubpassIn> subpass_inputs_;
 
   struct Sampler {
     ImageType type;
@@ -674,14 +674,23 @@ struct ShaderCreateInfo {
     return *(Self *)this;
   }
 
-  /* Fragment tile inputs. */
-  Self &fragment_tile_in(int slot,
-                         Type type,
-                         StringRefNull name,
-                         DualBlend blend = DualBlend::NONE,
-                         int raster_order_group = -1)
+  /**
+   * Allows to fetch framebuffer values from previous render sub-pass.
+   *
+   * On Apple Silicon, the additional `raster_order_group` is there to set the sub-pass
+   * dependencies. Any sub-pass input need to have the same `raster_order_group` defined in the
+   * shader writing them.
+   *
+   * IMPORTANT: Currently emulated on all backend except Metal. This is only for debugging purpose
+   * as it is too slow to be viable.
+   *
+   * TODO(fclem): Vulkan can implement that using `subpassInput`. However sub-pass boundaries might
+   * be difficult to inject implicitly and will require more high level changes.
+   * TODO(fclem): OpenGL can emulate that using `GL_EXT_shader_framebuffer_fetch`.
+   */
+  Self &subpass_in(int slot, Type type, StringRefNull name, int raster_order_group = -1)
   {
-    fragment_tile_inputs_.append({slot, type, blend, name, raster_order_group});
+    subpass_inputs_.append({slot, type, DualBlend::NONE, name, raster_order_group});
     return *(Self *)this;
   }
 
@@ -959,7 +968,7 @@ struct ShaderCreateInfo {
     TEST_VECTOR_EQUAL(*this, b, geometry_out_interfaces_);
     TEST_VECTOR_EQUAL(*this, b, push_constants_);
     TEST_VECTOR_EQUAL(*this, b, typedef_sources_);
-    TEST_VECTOR_EQUAL(*this, b, fragment_tile_inputs_);
+    TEST_VECTOR_EQUAL(*this, b, subpass_inputs_);
     TEST_EQUAL(*this, b, vertex_source_);
     TEST_EQUAL(*this, b, geometry_source_);
     TEST_EQUAL(*this, b, fragment_source_);

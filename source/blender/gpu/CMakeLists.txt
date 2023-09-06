@@ -579,6 +579,7 @@ set(GLSL_SRC_TEST
   tests/shaders/gpu_compute_vbo_test.glsl
   tests/shaders/gpu_compute_dummy_test.glsl
   tests/shaders/gpu_framebuffer_layer_viewport_test.glsl
+  tests/shaders/gpu_framebuffer_subpass_input_test.glsl
   tests/shaders/gpu_push_constants_test.glsl
 )
 

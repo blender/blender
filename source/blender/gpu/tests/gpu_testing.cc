@@ -37,6 +37,7 @@ void GPUTest::SetUp()
 
   BLI_init_srgb_conversion();
 
+  GPU_render_begin();
   GPU_context_begin_frame(context);
   GPU_debug_capture_begin();
 }
@@ -45,6 +46,7 @@ void GPUTest::TearDown()
 {
   GPU_debug_capture_end();
   GPU_context_end_frame(context);
+  GPU_render_end();
 
   GPU_exit();
   GPU_context_discard(context);

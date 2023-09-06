@@ -821,8 +821,8 @@ std::string MTLShader::fragment_interface_declare(const shader::ShaderCreateInfo
   ss << "\n";
 
   ss << "\n/* Fragment Tile inputs. */\n";
-  for (const ShaderCreateInfo::FragOut &output : info.fragment_tile_inputs_) {
-    ss << to_string(output.type) << " " << output.name << ";\n";
+  for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
+    ss << to_string(input.type) << " " << input.name << ";\n";
   }
   ss << "\n";
 
@@ -1989,8 +1989,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
   }
 
   /* Fragment tile inputs. */
-  for (const shader::ShaderCreateInfo::FragOut &frag_tile_in : create_info_->fragment_tile_inputs_)
-  {
+  for (const shader::ShaderCreateInfo::SubpassIn &frag_tile_in : create_info_->subpass_inputs_) {
 
     /* Validate input. */
     BLI_assert(frag_tile_in.name.size() > 0);
@@ -2942,7 +2941,6 @@ std::string MSLGeneratorInterface::generate_msl_global_uniform_population(Shader
 
 std::string MSLGeneratorInterface::generate_msl_fragment_tile_input_population()
 {
-
   std::stringstream out;
   for (const MSLFragmentTileInputAttribute &tile_input : this->fragment_tile_inputs) {
     out << "\t" << get_shader_stage_instance_name(ShaderStage::FRAGMENT) << "." << tile_input.name
