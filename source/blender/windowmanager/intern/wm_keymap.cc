@@ -313,6 +313,14 @@ bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
   BLI_remlink(&wm->keyconfigs, keyconf);
   WM_keyconfig_free(keyconf);
 
+  /* Clear pointers. */
+  wmKeyConfig **keyconf_arr_p[] = {WM_KEYCONFIG_ARRAY_P(wm)};
+  for (int i = 0; i < ARRAY_SIZE(keyconf_arr_p); i++) {
+    wmKeyConfig **kc_p = keyconf_arr_p[i];
+    if (*kc_p == keyconf) {
+      *kc_p = nullptr;
+    }
+  }
   return true;
 }
 

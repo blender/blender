@@ -207,6 +207,8 @@ typedef struct wmWindowManager {
   //#endif
 } wmWindowManager;
 
+#define WM_KEYCONFIG_ARRAY_P(wm) &(wm)->defaultconf, &(wm)->addonconf, &(wm)->userconf
+
 /** #wmWindowManager.init_flag */
 enum {
   WM_INIT_FLAG_WINDOW = (1 << 0),
