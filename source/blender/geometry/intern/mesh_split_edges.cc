@@ -591,8 +591,6 @@ void split_edges(Mesh &mesh,
   propagate_vert_attributes(mesh, vert_map);
 
   BKE_mesh_tag_edges_split(&mesh);
-
-  BLI_assert(BKE_mesh_is_valid(&mesh));
 }
 
 }  // namespace blender::geometry

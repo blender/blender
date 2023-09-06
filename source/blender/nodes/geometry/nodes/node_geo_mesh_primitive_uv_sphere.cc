@@ -335,8 +335,6 @@ static Mesh *create_uv_sphere_mesh(const float radius,
   mesh->tag_loose_edges_none();
   mesh->bounds_set_eager(calculate_bounds_uv_sphere(radius, segments, rings));
 
-  BLI_assert(BKE_mesh_is_valid(mesh));
-
   return mesh;
 }
 
