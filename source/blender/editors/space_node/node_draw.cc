@@ -499,8 +499,8 @@ static void node_update_basis_from_declaration(
    * the stack. Each panel expects a number of items to be added, after which the panel is removed
    * from the stack again. */
   struct PanelUpdate {
-    /* How many items still to add. */
-    int remaining_items;
+    /* How many declarations still to add. */
+    int remaining_decls;
     /* True if the panel or its parent is collapsed. */
     bool is_collapsed;
     /* Location data, needed to finalize the panel when all items have been added. */
@@ -513,8 +513,8 @@ static void node_update_basis_from_declaration(
     bool is_parent_collapsed = false;
     if (PanelUpdate *parent_update = panel_updates.is_empty() ? nullptr : &panel_updates.peek()) {
       /* Adding an item to the parent panel, will be popped when reaching 0. */
-      BLI_assert(parent_update->remaining_items > 0);
-      --parent_update->remaining_items;
+      BLI_assert(parent_update->remaining_decls > 0);
+      --parent_update->remaining_decls;
       is_parent_collapsed = parent_update->is_collapsed;
     }
 
@@ -533,7 +533,7 @@ static void node_update_basis_from_declaration(
           current_panel_state->flag, is_parent_collapsed, NODE_PANEL_PARENT_COLLAPSED);
       /* New top panel is collapsed if self or parent is collapsed. */
       const bool is_collapsed = is_parent_collapsed || current_panel_state->is_collapsed();
-      panel_updates.push({panel_decl->num_items, is_collapsed, current_panel_runtime});
+      panel_updates.push({panel_decl->num_child_decls, is_collapsed, current_panel_runtime});
 
       /* Round the socket location to stop it from jiggling. */
       current_panel_runtime->location_y = round(locy + NODE_DYS);
@@ -592,7 +592,7 @@ static void node_update_basis_from_declaration(
     /* Close parent panels that have all items added. */
     while (!panel_updates.is_empty()) {
       PanelUpdate &top_panel = panel_updates.peek();
-      if (top_panel.remaining_items > 0) {
+      if (top_panel.remaining_decls > 0) {
         /* Incomplete panel, continue adding items. */
         break;
       }
