@@ -128,8 +128,12 @@ void node_bsdf_principled(vec4 base_color,
 
   /* Specular component */
   if (true) {
-    vec3 f0 = F0_from_ior(ior) * 2.0 * specular * reflection_tint;
-    vec3 f90 = vec3(1.0);
+    vec3 f0 = vec3(F0_from_ior(ior));
+    /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0, 1.33], to avoid harsh
+     * transition at `IOR == 1`. */
+    vec3 f90 = sqrt(saturate(f0 / 0.02));
+    f0 *= 2.0 * specular * reflection_tint;
+
     vec3 specular_brdf = (do_multiscatter != 0.0) ? F_brdf_multi_scatter(f0, f90, split_sum) :
                                                     F_brdf_single_scatter(f0, f90, split_sum);
     reflection_data.color += weight * specular_brdf;
