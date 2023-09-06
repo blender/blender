@@ -106,6 +106,12 @@ const EnumPropertyItem rna_enum_attribute_domain_point_face_curve_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_attribute_domain_edge_face_items[] = {
+    {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", "Attribute on mesh edge"},
+    {ATTR_DOMAIN_FACE, "FACE", 0, "Face", "Attribute on mesh faces"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 const EnumPropertyItem rna_enum_attribute_domain_without_corner_items[] = {
     {ATTR_DOMAIN_POINT, "POINT", 0, "Point", "Attribute on point"},
     {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", "Attribute on mesh edge"},

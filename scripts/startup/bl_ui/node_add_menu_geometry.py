@@ -360,6 +360,7 @@ class NODE_MT_geometry_node_GEO_MESH_READ(Menu):
             node_add_menu.add_node_type(layout, "GeometryNodeToolFaceSet")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceIsPlanar")
         node_add_menu.add_node_type(layout, "GeometryNodeInputShadeSmooth")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputEdgeSmooth")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshIsland")
         node_add_menu.add_node_type(layout, "GeometryNodeInputShortestEdgePaths")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshVertexNeighbors")

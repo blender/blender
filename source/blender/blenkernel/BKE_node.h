@@ -1205,7 +1205,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_INPUT_RADIUS 1105
 #define GEO_NODE_INPUT_CURVE_TILT 1106
 #define GEO_NODE_INPUT_CURVE_HANDLES 1107
-#define GEO_NODE_INPUT_SHADE_SMOOTH 1108
+#define GEO_NODE_INPUT_FACE_SMOOTH 1108
 #define GEO_NODE_INPUT_SPLINE_RESOLUTION 1109
 #define GEO_NODE_INPUT_SPLINE_CYCLIC 1110
 #define GEO_NODE_SET_CURVE_RADIUS 1111
@@ -1312,6 +1312,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_TOOL_FACE_SET 2112
 #define GEO_NODE_TOOL_SET_FACE_SET 2113
 #define GEO_NODE_POINTS_TO_CURVES 2114
+#define GEO_NODE_INPUT_EDGE_SMOOTH 2115
 
 /** \} */
 
