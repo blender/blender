@@ -255,8 +255,8 @@ ccl_device_inline bool intersection_skip_self_local(ccl_ray_data const RaySelfPr
 }
 
 #ifdef __SHADOW_LINKING__
-ccl_device_inline uint64_t ray_get_shadow_set_membership(KernelGlobals kg,
-                                                         ccl_private const RaySelfPrimitives &self)
+ccl_device_inline uint64_t
+ray_get_shadow_set_membership(KernelGlobals kg, ccl_ray_data const RaySelfPrimitives &self)
 {
   if (self.light != LAMP_NONE) {
     return kernel_data_fetch(lights, self.light).shadow_set_membership;
@@ -271,7 +271,7 @@ ccl_device_inline uint64_t ray_get_shadow_set_membership(KernelGlobals kg,
 #endif
 
 ccl_device_inline bool intersection_skip_shadow_link(KernelGlobals kg,
-                                                     ccl_private const RaySelfPrimitives &self,
+                                                     ccl_ray_data const RaySelfPrimitives &self,
                                                      const int isect_object)
 {
 #ifdef __SHADOW_LINKING__

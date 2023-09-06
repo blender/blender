@@ -218,6 +218,13 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
     return true;
   }
 
+#    ifdef __SHADOW_LINKING__
+  if (context.intersection_skip_shadow_link(nullptr, payload.self, object)) {
+    /* continue search */
+    return true;
+  }
+#    endif
+
 #    ifndef __TRANSPARENT_SHADOWS__
   /* No transparent shadows support compiled in, make opaque. */
   payload.result = true;
@@ -372,6 +379,14 @@ inline TReturnType metalrt_visibility_test(
 
   /* Shadow ray early termination. */
   if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+#  ifdef __SHADOW_LINKING__
+    if (context.intersection_skip_shadow_link(nullptr, payload.self, object)) {
+      result.accept = false;
+      result.continue_search = true;
+      return result;
+    }
+#  endif
+
     if (context.intersection_skip_self_shadow(payload.self, object, prim)) {
       result.accept = false;
       result.continue_search = true;
