@@ -318,8 +318,9 @@ static void view3d_free(SpaceLink *sl)
 
   MEM_SAFE_FREE(vd->runtime.local_stats);
 
-  if (vd->runtime.properties_storage) {
-    MEM_freeN(vd->runtime.properties_storage);
+  if (vd->runtime.properties_storage_free) {
+    vd->runtime.properties_storage_free(vd->runtime.properties_storage);
+    vd->runtime.properties_storage_free = nullptr;
   }
 
   if (vd->shading.prop) {
