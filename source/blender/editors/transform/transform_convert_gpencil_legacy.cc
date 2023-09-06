@@ -357,8 +357,11 @@ static void createTransGPencil_curves(bContext *C,
 
               /* Update the handle types so transformation is possible */
               if (bezt_use && !ELEM(t->mode, TFM_GPENCIL_OPACITY, TFM_GPENCIL_SHRINKFATTEN)) {
-                BKE_nurb_bezt_handle_test(
-                    bezt, SELECT, !hide_handles, use_around_origins_for_handles_test);
+                BKE_nurb_bezt_handle_test(bezt,
+                                          SELECT,
+                                          hide_handles ? NURB_HANDLE_TEST_KNOT_ONLY :
+                                                         NURB_HANDLE_TEST_EACH,
+                                          use_around_origins_for_handles_test);
                 need_handle_recalc = true;
               }
             }

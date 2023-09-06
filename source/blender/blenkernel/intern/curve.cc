@@ -4032,32 +4032,49 @@ void BKE_nurb_handle_calc_simple_auto(Nurb *nu, BezTriple *bezt)
   }
 }
 
-void BKE_nurb_bezt_handle_test(BezTriple *bezt,
-                               const eBezTriple_Flag__Alias sel_flag,
-                               const bool use_handle,
-                               const bool use_around_local)
-{
-  short flag = 0;
-
 #define SEL_F1 (1 << 0)
 #define SEL_F2 (1 << 1)
 #define SEL_F3 (1 << 2)
 
-  if (use_handle) {
-    if (bezt->f1 & sel_flag) {
-      flag |= SEL_F1;
-    }
-    if (bezt->f2 & sel_flag) {
-      flag |= SEL_F2;
-    }
-    if (bezt->f3 & sel_flag) {
-      flag |= SEL_F3;
-    }
-  }
-  else {
-    flag = (bezt->f2 & sel_flag) ? (SEL_F1 | SEL_F2 | SEL_F3) : 0;
-  }
+short BKE_nurb_bezt_handle_test_calc_flag(const BezTriple *bezt,
+                                          const eBezTriple_Flag__Alias sel_flag,
+                                          const eNurbHandleTest_Mode handle_mode)
+{
+  short flag = 0;
 
+  switch (handle_mode) {
+    case NURB_HANDLE_TEST_KNOT_ONLY: {
+      flag = (bezt->f2 & sel_flag) ? (SEL_F1 | SEL_F2 | SEL_F3) : 0;
+      break;
+    }
+    case NURB_HANDLE_TEST_KNOT_OR_EACH:
+      if (bezt->f2 & sel_flag) {
+        flag = (bezt->f2 & sel_flag) ? (SEL_F1 | SEL_F2 | SEL_F3) : 0;
+        break;
+      }
+      [[fallthrough]];
+    case NURB_HANDLE_TEST_EACH: {
+      if (bezt->f1 & sel_flag) {
+        flag |= SEL_F1;
+      }
+      if (bezt->f2 & sel_flag) {
+        flag |= SEL_F2;
+      }
+      if (bezt->f3 & sel_flag) {
+        flag |= SEL_F3;
+      }
+      break;
+    }
+  }
+  return flag;
+}
+
+void BKE_nurb_bezt_handle_test(BezTriple *bezt,
+                               const eBezTriple_Flag__Alias sel_flag,
+                               const eNurbHandleTest_Mode handle_mode,
+                               const bool use_around_local)
+{
+  short flag = BKE_nurb_bezt_handle_test_calc_flag(bezt, sel_flag, handle_mode);
   if (use_around_local) {
     flag &= ~SEL_F2;
   }
@@ -4082,13 +4099,15 @@ void BKE_nurb_bezt_handle_test(BezTriple *bezt,
       }
     }
   }
+}
 
 #undef SEL_F1
 #undef SEL_F2
 #undef SEL_F3
-}
 
-void BKE_nurb_handles_test(Nurb *nu, const bool use_handle, const bool use_around_local)
+void BKE_nurb_handles_test(Nurb *nu,
+                           const eNurbHandleTest_Mode handle_mode,
+                           const bool use_around_local)
 {
   BezTriple *bezt;
   int a;
@@ -4100,7 +4119,7 @@ void BKE_nurb_handles_test(Nurb *nu, const bool use_handle, const bool use_aroun
   bezt = nu->bezt;
   a = nu->pntsu;
   while (a--) {
-    BKE_nurb_bezt_handle_test(bezt, SELECT, use_handle, use_around_local);
+    BKE_nurb_bezt_handle_test(bezt, SELECT, handle_mode, use_around_local);
     bezt++;
   }
 
