@@ -211,11 +211,18 @@ ccl_device int bsdf_hair_huang_setup(ccl_private ShaderData *sd,
     /* Align local frame with the ray direction so that `phi_i == 0`. */
     bsdf->N = X;
   }
-  kernel_assert(!is_zero(bsdf->N) && isfinite_safe(bsdf->N));
 
   /* Fill extra closure. */
-  bsdf->extra->Z = safe_normalize(cross(bsdf->N, sd->dPdu));
-  bsdf->extra->Y = safe_normalize(cross(bsdf->extra->Z, bsdf->N));
+  if (is_zero(bsdf->N) || !isfinite_safe(bsdf->N)) {
+    bsdf->extra->Y = Y;
+    /* Construct arbitrary local coordinate system. The implementation should ensure smooth
+     * transition along the hair shaft. */
+    make_orthonormals(Y, &bsdf->extra->Z, &bsdf->N);
+  }
+  else {
+    bsdf->extra->Z = safe_normalize(cross(bsdf->N, sd->dPdu));
+    bsdf->extra->Y = safe_normalize(cross(bsdf->extra->Z, bsdf->N));
+  }
 
   const float3 I = make_float3(
       dot(sd->wi, bsdf->N), dot(sd->wi, bsdf->extra->Y), dot(sd->wi, bsdf->extra->Z));

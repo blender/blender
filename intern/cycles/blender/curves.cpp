@@ -335,8 +335,8 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
 
         if (attr_normal) {
           /* NOTE: the geometry normals are not computed for legacy particle hairs. This hair
-           * system is expected to be discarded. */
-          attr_normal->add(make_float3(1.0f, 0.0f, 0.0f));
+           * system is expected to be deprecated. */
+          attr_normal->add(make_float3(0.0f, 0.0f, 0.0f));
         }
 
         num_curve_keys++;
