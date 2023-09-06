@@ -148,6 +148,15 @@ static void BKE_previewimg_free(PreviewImageDeferred **prv)
   *prv = nullptr;
 }
 
+void BKE_previewimg_runtime_data_clear(PreviewImage *prv)
+{
+  prv->tag = 0;
+  prv->icon_id = 0;
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
+    prv->gputexture[i] = nullptr;
+  }
+}
+
 void BKE_previewimg_clear_single(PreviewImage *prv, enum eIconSizes size)
 {
   MEM_SAFE_FREE(prv->rect[size]);
@@ -508,7 +517,6 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
     if (prv->rect[i]) {
       BLO_read_data_address(reader, &prv->rect[i]);
     }
-    prv->gputexture[i] = nullptr;
 
     /* PRV_RENDERING is a runtime only flag currently, but don't mess with it on undo! It gets
      * special handling in #memfile_undosys_restart_unfinished_id_previews() then. */
@@ -516,6 +524,5 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
       prv->flag[i] &= ~PRV_RENDERING;
     }
   }
-  prv->icon_id = 0;
-  prv->tag = 0;
+  BKE_previewimg_runtime_data_clear(prv);
 }

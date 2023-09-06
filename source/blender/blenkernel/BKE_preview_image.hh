@@ -29,6 +29,9 @@ void BKE_previewimg_freefunc(void *link);
  */
 void BKE_previewimg_free(PreviewImage **prv);
 
+/** Must be called after reading a preview image from file. */
+void BKE_previewimg_runtime_data_clear(PreviewImage *prv);
+
 /**
  * Clear the preview image or icon, but does not free it.
  */
