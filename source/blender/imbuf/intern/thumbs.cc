@@ -532,6 +532,8 @@ void IMB_thumb_delete(const char *filepath, ThumbSize size)
 ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source)
 {
   char path_buff[FILE_MAX_LIBEXTRA];
+  /* Will be the actual path to the file, i.e. the same as #filepath or if that points into a
+   * .blend, the path of the .blend. */
   const char *file_path;
   const char *path;
   char *blen_group = nullptr, *blen_id = nullptr;
@@ -576,6 +578,8 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
   if (thumbpathname_from_uri(
           uri, thumb_path, sizeof(thumb_path), thumb_name, sizeof(thumb_name), size))
   {
+    /* The requested path points to a generated thumbnail already (path into the thumbnail cache
+     * directory). Attempt to load that, there's nothing we can recreate. */
     if (BLI_path_ncmp(path, thumb_path, sizeof(thumb_path)) == 0) {
       img = IMB_loadiffname(path, IB_rect, nullptr);
     }
