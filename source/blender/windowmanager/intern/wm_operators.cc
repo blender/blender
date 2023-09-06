@@ -2024,6 +2024,24 @@ static bool wm_operator_winactive_normal(bContext *C)
   return true;
 }
 
+static bool wm_operator_winactive_not_full(bContext *C)
+{
+  wmWindow *win = CTX_wm_window(C);
+  bScreen *screen;
+
+  if (win == nullptr) {
+    return false;
+  }
+  if (!((screen = WM_window_get_active_screen(win)) && (screen->state != SCREENFULL))) {
+    return false;
+  }
+  if (G.background) {
+    return false;
+  }
+
+  return true;
+}
+
 /* included for script-access */
 static void WM_OT_window_close(wmOperatorType *ot)
 {
@@ -2042,7 +2060,7 @@ static void WM_OT_window_new(wmOperatorType *ot)
   ot->description = "Create a new window";
 
   ot->exec = wm_window_new_exec;
-  ot->poll = wm_operator_winactive_normal;
+  ot->poll = wm_operator_winactive_not_full;
 }
 
 static void WM_OT_window_new_main(wmOperatorType *ot)
