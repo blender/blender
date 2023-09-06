@@ -183,6 +183,7 @@ class AbstractNodeGroupInterfaceTest(unittest.TestCase):
         for index, spec in enumerate(specs):
             self.compare_group_socket_to_spec(group.interface.ui_items[index], node, spec, test_links=test_links)
 
+
 class NodeGroupVersioning36Test(AbstractNodeGroupInterfaceTest):
     def open_file(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "nodegroup36.blend"))
