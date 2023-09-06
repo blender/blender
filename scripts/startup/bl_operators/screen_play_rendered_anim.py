@@ -39,7 +39,7 @@ def guess_player_path(preset):
                 # Remove trailing command line arguments from the path. The
                 # registry value looks like: `<full path>\djv.exe "%1"`.
                 binary = "djv.exe"
-                index = reg_value.find()
+                index = reg_value.find(binary)
                 if index > 0:
                     player_path = reg_value[:index + len(binary)]
 
