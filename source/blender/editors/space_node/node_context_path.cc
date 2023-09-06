@@ -56,7 +56,7 @@ static void context_path_add_node_tree_and_node_groups(const SpaceNode &snode,
                                                        const bool skip_base = false)
 {
   LISTBASE_FOREACH (const bNodeTreePath *, path_item, &snode.treepath) {
-    if (skip_base && path_item == snode.treepath.first) {
+    if (!(skip_base && path_item == snode.treepath.first)) {
       ui::context_path_add_generic(path, RNA_NodeTree, path_item->nodetree, ICON_NODETREE);
     }
   }
