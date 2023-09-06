@@ -673,17 +673,18 @@ def preset_find(name, preset_path, *, display_name=False, ext=".py"):
 def keyconfig_init():
     # Key configuration initialization and refresh, called from the Blender
     # window manager on startup and refresh.
+    default_config = "Blender"
     active_config = _preferences.keymap.active_keyconfig
 
     # Load the default key configuration.
-    default_filepath = preset_find("Blender", "keyconfig")
-    keyconfig_set(default_filepath)
+    filepath = preset_find(default_config, "keyconfig")
+    keyconfig_set(filepath)
 
-    # Set the active key configuration if different
-    filepath = preset_find(active_config, "keyconfig")
-
-    if filepath and filepath != default_filepath:
-        keyconfig_set(filepath)
+    # Set the active key configuration if different.
+    if default_config != active_config:
+        filepath = preset_find(active_config, "keyconfig")
+        if filepath:
+            keyconfig_set(filepath)
 
 
 def keyconfig_set(filepath, *, report=None):
