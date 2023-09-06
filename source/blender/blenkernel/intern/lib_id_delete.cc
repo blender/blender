@@ -273,6 +273,19 @@ static size_t id_delete(Main *bmain,
              * code has some specific handling of 'no main' IDs that would be a problem in that
              * case). */
             id->tag |= tag;
+
+            /* Forcefully also delete shapekeys of the deleted ID if any, 'orphaned' shapekeys are
+             * not allowed in Blender and will cause lots of problem in modern code (liboverrides,
+             * warning on write & read, etc.). */
+            Key *shape_key = BKE_key_from_id(id);
+            if (shape_key && (shape_key->id.tag & tag) == 0) {
+              BLI_remlink(&bmain->shapekeys, &shape_key->id);
+              BKE_main_namemap_remove_name(bmain, &shape_key->id, shape_key->id.name + 2);
+              BLI_addtail(&tagged_deleted_ids, &shape_key->id);
+              BKE_id_remapper_add(id_remapper, &shape_key->id, nullptr);
+              shape_key->id.tag |= tag;
+            }
+
             keep_looping = true;
           }
         }
