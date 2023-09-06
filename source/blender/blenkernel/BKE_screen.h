@@ -405,6 +405,10 @@ enum class MenuTypeFlag {
    * dependent, menu search has to scan it in different contexts.
    */
   ContextDependent = (1 << 0),
+  /**
+   * Automatically start searching in the menu when pressing a key.
+   */
+  SearchOnKeyPress = (1 << 1),
 };
 ENUM_OPERATORS(MenuTypeFlag, MenuTypeFlag::ContextDependent)
 

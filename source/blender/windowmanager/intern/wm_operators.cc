@@ -1741,27 +1741,30 @@ static void WM_OT_operator_defaults(wmOperatorType *ot)
 enum SearchType {
   SEARCH_TYPE_OPERATOR = 0,
   SEARCH_TYPE_MENU = 1,
+  SEARCH_TYPE_SINGLE_MENU = 2,
 };
 
 struct SearchPopupInit_Data {
   SearchType search_type;
   int size[2];
+  std::string single_menu_idname;
 };
+
+static char g_search_text[256] = "";
 
 static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdata)
 {
   const SearchPopupInit_Data *init_data = static_cast<const SearchPopupInit_Data *>(userdata);
-  static char search[256] = "";
 
   uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
   uiBut *but = uiDefSearchBut(block,
-                              search,
+                              g_search_text,
                               0,
                               ICON_VIEWZOOM,
-                              sizeof(search),
+                              sizeof(g_search_text),
                               10,
                               10,
                               init_data->size[0],
@@ -1775,6 +1778,10 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
   }
   else if (init_data->search_type == SEARCH_TYPE_MENU) {
     UI_but_func_menu_search(but);
+  }
+  else if (init_data->search_type == SEARCH_TYPE_SINGLE_MENU) {
+    UI_but_func_menu_search(but, init_data->single_menu_idname.c_str());
+    UI_but_flag2_enable(but, UI_BUT2_ACTIVATE_ON_INIT_NO_SELECT);
   }
   else {
     BLI_assert_unreachable();
@@ -1837,16 +1844,33 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     }
   }
 
-  int search_type;
+  SearchType search_type;
   if (STREQ(op->type->idname, "WM_OT_search_menu")) {
     search_type = SEARCH_TYPE_MENU;
+  }
+  else if (STREQ(op->type->idname, "WM_OT_search_single_menu")) {
+    search_type = SEARCH_TYPE_SINGLE_MENU;
   }
   else {
     search_type = SEARCH_TYPE_OPERATOR;
   }
 
   static SearchPopupInit_Data data{};
-  data.search_type = SearchType(search_type);
+
+  if (search_type == SEARCH_TYPE_SINGLE_MENU) {
+    {
+      char *buffer = RNA_string_get_alloc(op->ptr, "menu_idname", nullptr, 0, nullptr);
+      data.single_menu_idname = buffer;
+      MEM_SAFE_FREE(buffer);
+    }
+    {
+      char *buffer = RNA_string_get_alloc(op->ptr, "initial_query", nullptr, 0, nullptr);
+      STRNCPY(g_search_text, buffer);
+      MEM_SAFE_FREE(buffer);
+    }
+  }
+
+  data.search_type = search_type;
   data.size[0] = UI_searchbox_size_x() * 2;
   data.size[1] = UI_searchbox_size_y();
 
@@ -1875,6 +1899,25 @@ static void WM_OT_search_operator(wmOperatorType *ot)
   ot->invoke = wm_search_menu_invoke;
   ot->exec = wm_search_menu_exec;
   ot->poll = WM_operator_winactive;
+}
+
+static void WM_OT_search_single_menu(wmOperatorType *ot)
+{
+  ot->name = "Search Single Menu";
+  ot->idname = "WM_OT_search_single_menu";
+  ot->description = "Pop-up a search for a menu in current context";
+
+  ot->invoke = wm_search_menu_invoke;
+  ot->exec = wm_search_menu_exec;
+  ot->poll = WM_operator_winactive;
+
+  RNA_def_string(ot->srna, "menu_idname", nullptr, 0, "Menu Name", "Menu to search in");
+  RNA_def_string(ot->srna,
+                 "initial_query",
+                 nullptr,
+                 0,
+                 "Initial Query",
+                 "Query to insert into the search box");
 }
 
 static int wm_call_menu_exec(bContext *C, wmOperator *op)
@@ -3851,6 +3894,7 @@ void wm_operatortypes_register()
   WM_operatortype_append(WM_OT_splash_about);
   WM_operatortype_append(WM_OT_search_menu);
   WM_operatortype_append(WM_OT_search_operator);
+  WM_operatortype_append(WM_OT_search_single_menu);
   WM_operatortype_append(WM_OT_call_menu);
   WM_operatortype_append(WM_OT_call_menu_pie);
   WM_operatortype_append(WM_OT_call_panel);

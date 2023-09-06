@@ -1995,6 +1995,15 @@ static void rna_def_menu(BlenderRNA *brna)
   PropertyRNA *parm;
   FunctionRNA *func;
 
+  static const EnumPropertyItem menu_flag_items[] = {
+      {int(MenuTypeFlag::SearchOnKeyPress),
+       "SEARCH_ON_KEY_PRESS",
+       0,
+       "Search on Key Press",
+       "Open a menu search when a key pressed while the menu is open"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   srna = RNA_def_struct(brna, "Menu", nullptr);
   RNA_def_struct_ui_text(srna, "Menu", "Editor menu containing buttons");
   RNA_def_struct_sdna(srna, "Menu");
@@ -2058,6 +2067,12 @@ static void rna_def_menu(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bl_owner_id", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "type->owner_id");
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+  prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "type->flag");
+  RNA_def_property_enum_items(prop, menu_flag_items);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
+  RNA_def_property_ui_text(prop, "Options", "Options for this menu type");
 
   RNA_define_verify_sdna(true);
 }

@@ -5918,9 +5918,12 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout)
     printf("%s: opening menu \"%s\"\n", __func__, mt->idname);
   }
 
+  uiBlock *block = uiLayoutGetBlock(layout);
+  if (bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) {
+    UI_block_flag_enable(block, UI_BLOCK_NO_ACCELERATOR_KEYS);
+  }
   if (mt->listener) {
     /* Forward the menu type listener to the block we're drawing in. */
-    uiBlock *block = uiLayoutGetBlock(layout);
     uiBlockDynamicListener *listener = static_cast<uiBlockDynamicListener *>(
         MEM_mallocN(sizeof(*listener), __func__));
     listener->listener_func = mt->listener;

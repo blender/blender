@@ -175,6 +175,8 @@ enum {
   UI_BLOCK_SEARCH_ONLY = 1 << 25,
   /** Hack for quick setup (splash screen) to draw text centered. */
   UI_BLOCK_QUICK_SETUP = 1 << 26,
+  /** Don't accelerator keys for the items in the block. */
+  UI_BLOCK_NO_ACCELERATOR_KEYS = 1 << 27,
 };
 
 /** #uiPopupBlockHandle.menuretval */
@@ -245,6 +247,15 @@ enum {
 
   /** RNA property of the button is overridden from linked reference data. */
   UI_BUT_OVERRIDDEN = 1u << 31u,
+};
+
+enum {
+  /**
+   * This is used when `UI_BUT_ACTIVATE_ON_INIT` is used, which is used to activate e.g. a search
+   * box as soon as a popup opens. Usually, the text in the search box is selected by default.
+   * However, sometimes this behavior is not desired, so it can be disabled with this flag.
+   */
+  UI_BUT2_ACTIVATE_ON_INIT_NO_SELECT = 1 << 0,
 };
 
 /** #uiBut.dragflag */
@@ -887,6 +898,7 @@ bool UI_but_active_drop_color(bContext *C);
 void UI_but_flag_enable(uiBut *but, int flag);
 void UI_but_flag_disable(uiBut *but, int flag);
 bool UI_but_flag_is_set(uiBut *but, int flag);
+void UI_but_flag2_enable(uiBut *but, int flag);
 
 void UI_but_drawflag_enable(uiBut *but, int flag);
 void UI_but_drawflag_disable(uiBut *but, int flag);
@@ -2404,7 +2416,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C);
 void UI_but_func_operator_search(uiBut *but);
 void uiTemplateOperatorSearch(uiLayout *layout);
 
-void UI_but_func_menu_search(uiBut *but);
+void UI_but_func_menu_search(uiBut *but, const char *single_menu_idname = nullptr);
 void uiTemplateMenuSearch(uiLayout *layout);
 
 /**

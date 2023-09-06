@@ -428,8 +428,12 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
  * - Look up predefined editor-menus.
  * - Look up key-map items which call menus.
  */
-static MenuSearch_Data *menu_items_from_ui_create(
-    bContext *C, wmWindow *win, ScrArea *area_init, ARegion *region_init, bool include_all_areas)
+static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
+                                                  wmWindow *win,
+                                                  ScrArea *area_init,
+                                                  ARegion *region_init,
+                                                  bool include_all_areas,
+                                                  const char *single_menu_idname)
 {
   MemArena *memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
   blender::Map<MenuType *, const char *> menu_display_name_map;
@@ -591,11 +595,18 @@ static MenuSearch_Data *menu_items_from_ui_create(
       region = region_init;
     }
 
-    /* Populate menus from the editors,
-     * note that we could create a fake header, draw the header and extract the menus
-     * from the buttons, however this is quite involved and can be avoided as by convention
-     * each space-type has a single root-menu that headers use. */
-    {
+    if (single_menu_idname) {
+      if (MenuType *mt = WM_menutype_find(single_menu_idname, false)) {
+        if (menu_tagged.add(mt)) {
+          menu_stack.push({mt});
+        }
+      }
+    }
+    else {
+      /* Populate menus from the editors,
+       * note that we could create a fake header, draw the header and extract the menus
+       * from the buttons, however this is quite involved and can be avoided as by convention
+       * each space-type has a single root-menu that headers use. */
       const char *idname_array[2] = {nullptr};
       int idname_array_len = 0;
 
@@ -798,12 +809,14 @@ static MenuSearch_Data *menu_items_from_ui_create(
       }
       UI_block_free(nullptr, block);
 
-      /* Add key-map items as a second pass,
-       * so all menus are accessed from the header & top-bar before key shortcuts are expanded. */
-      if (menu_stack.is_empty() && (has_keymap_menu_items == false)) {
-        has_keymap_menu_items = true;
-        menu_types_add_from_keymap_items(
-            C, win, area, region, menu_stack, menu_to_kmi, menu_tagged);
+      if (single_menu_idname == nullptr) {
+        /* Add key-map items as a second pass, so all menus are accessed from the header & top-bar
+         * before key shortcuts are expanded. */
+        if (menu_stack.is_empty() && (has_keymap_menu_items == false)) {
+          has_keymap_menu_items = true;
+          menu_types_add_from_keymap_items(
+              C, win, area, region, menu_stack, menu_to_kmi, menu_tagged);
+        }
       }
     }
   }
@@ -887,7 +900,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
    * - Many operators need options to be set to give useful results, see: #74157.
    * - User who really prefer to list all operators can use #WM_OT_search_operator.
    */
-  if (U.flag & USER_DEVELOPER_UI) {
+  if ((U.flag & USER_DEVELOPER_UI) && single_menu_idname == nullptr) {
     menu_items_from_all_operators(C, data);
   }
 
@@ -1112,15 +1125,17 @@ static ARegion *ui_search_menu_create_tooltip(
 /** \name Menu Search Template Public API
  * \{ */
 
-void UI_but_func_menu_search(uiBut *but)
+void UI_but_func_menu_search(uiBut *but, const char *single_menu_idname)
 {
   bContext *C = (bContext *)but->block->evil_C;
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   /* When run from top-bar scan all areas in the current window. */
-  const bool include_all_areas = (area && (area->spacetype == SPACE_TOPBAR));
-  MenuSearch_Data *data = menu_items_from_ui_create(C, win, area, region, include_all_areas);
+  const bool include_all_areas = (area && (area->spacetype == SPACE_TOPBAR)) &&
+                                 !single_menu_idname;
+  MenuSearch_Data *data = menu_items_from_ui_create(
+      C, win, area, region, include_all_areas, single_menu_idname);
   UI_but_func_search_set(but,
                          /* Generic callback. */
                          ui_searchbox_create_menu,

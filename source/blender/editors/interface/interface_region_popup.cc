@@ -575,6 +575,11 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     block = handle_create_func(C, handle, arg);
   }
 
+  /* Don't create accelerator keys if the parent menu does not have them. */
+  if (but && but->block->flag & UI_BLOCK_NO_ACCELERATOR_KEYS) {
+    block->flag |= UI_BLOCK_NO_ACCELERATOR_KEYS;
+  }
+
   /* callbacks _must_ leave this for us, otherwise we can't call UI_block_update_from_old */
   BLI_assert(!block->endblock);
 
@@ -815,6 +820,10 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
 
 void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
+  /* This disables the status bar text that is set when opening a menu that supports search (see
+   * #MenuTypeFlag::SearchOnKeyPress). */
+  ED_workspace_status_text(C, nullptr);
+
   /* If this popup is created from a popover which does NOT have keep-open flag set,
    * then close the popover too. We could extend this to other popup types too. */
   ARegion *region = handle->popup_create_vars.butregion;
