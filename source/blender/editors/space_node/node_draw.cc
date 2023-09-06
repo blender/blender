@@ -1870,13 +1870,14 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
     }
 
     /* Invisible button covering the entire header for collapsing/expanding. */
+    const int header_but_margin = NODE_MARGIN_X / 3;
     but = uiDefIconBut(&block,
                        UI_BTYPE_BUT_TOGGLE,
                        0,
                        ICON_NONE,
-                       rect.xmin,
+                       rect.xmin + header_but_margin,
                        rect.ymin,
-                       rect.xmax - rect.xmin,
+                       std::max(int(rect.xmax - rect.xmin - 2 * header_but_margin), 0),
                        rect.ymax - rect.ymin,
                        nullptr,
                        0.0f,
