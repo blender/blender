@@ -659,6 +659,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     }
     MutableAttributeAccessor attributes = mesh_final->attributes_for_write();
     const AttributeReader positions = attributes.lookup<float3>("position");
+    attributes.remove("rest_position");
     if (positions) {
       if (positions.sharing_info && positions.varray.is_span()) {
         attributes.add<float3>("rest_position",
