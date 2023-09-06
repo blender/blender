@@ -75,7 +75,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
   short hide_handles = (v3d != nullptr) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
                                           false;
   const eNurbHandleTest_Mode handle_mode = hide_handles ? NURB_HANDLE_TEST_KNOT_ONLY :
-                                                          NURB_HANDLE_TEST_EACH;
+                                                          NURB_HANDLE_TEST_KNOT_OR_EACH;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Curve *cu = static_cast<Curve *>(tc->obedit->data);

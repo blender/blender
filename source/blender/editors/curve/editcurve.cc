@@ -3976,7 +3976,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
   const int handle_type = RNA_enum_get(op->ptr, "type");
   const bool hide_handles = (v3d && (v3d->overlay.handle_display == CURVE_HANDLE_NONE));
   const eNurbHandleTest_Mode handle_mode = hide_handles ? NURB_HANDLE_TEST_KNOT_ONLY :
-                                                          NURB_HANDLE_TEST_EACH;
+                                                          NURB_HANDLE_TEST_KNOT_OR_EACH;
 
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
