@@ -1067,9 +1067,6 @@ static void node_group_make_insert_selected(const bContext &C,
         if (!info.interface_socket) {
           info.interface_socket = add_interface_from_socket(ntree, group, *link->tosock);
         }
-        else {
-          links_to_remove.add(link);
-        }
       }
     }
   }
