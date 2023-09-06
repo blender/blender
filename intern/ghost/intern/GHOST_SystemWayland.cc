@@ -3736,7 +3736,8 @@ static void keyboard_handle_keymap(void *data,
   char *map_str = static_cast<char *>(mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0));
   if (map_str == MAP_FAILED) {
     close(fd);
-    throw std::runtime_error("keymap mmap failed: " + std::string(std::strerror(errno)));
+    CLOG_INFO(LOG, 2, "keymap mmap failed: %s", std::strerror(errno));
+    return;
   }
 
   xkb_keymap *keymap = xkb_keymap_new_from_string(
