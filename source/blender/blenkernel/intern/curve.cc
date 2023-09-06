@@ -4214,7 +4214,9 @@ void BKE_nurbList_handles_autocalc(ListBase *editnurb, uint8_t flag)
   }
 }
 
-void BKE_nurbList_handles_set(ListBase *editnurb, const char code)
+void BKE_nurbList_handles_set(ListBase *editnurb,
+                              eNurbHandleTest_Mode handle_mode,
+                              const char code)
 {
   BezTriple *bezt;
   int a;
@@ -4225,11 +4227,12 @@ void BKE_nurbList_handles_set(ListBase *editnurb, const char code)
         bezt = nu->bezt;
         a = nu->pntsu;
         while (a--) {
-          if ((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
-            if (bezt->f1 & SELECT) {
+          const short flag = BKE_nurb_bezt_handle_test_calc_flag(bezt, SELECT, handle_mode);
+          if ((flag & (1 << 0)) || (flag & (1 << 2))) {
+            if (flag & (1 << 0)) {
               bezt->h1 = code;
             }
-            if (bezt->f3 & SELECT) {
+            if (flag & (1 << 2)) {
               bezt->h2 = code;
             }
             if (bezt->h1 != bezt->h2) {
@@ -4266,8 +4269,9 @@ void BKE_nurbList_handles_set(ListBase *editnurb, const char code)
           bezt = nu->bezt;
           a = nu->pntsu;
           while (a--) {
-            if (((bezt->f1 & SELECT) && bezt->h1 != HD_FREE) ||
-                ((bezt->f3 & SELECT) && bezt->h2 != HD_FREE)) {
+            const short flag = BKE_nurb_bezt_handle_test_calc_flag(bezt, SELECT, handle_mode);
+            if (((flag & (1 << 0)) && bezt->h1 != HD_FREE) ||
+                ((flag & (1 << 2)) && bezt->h2 != HD_FREE)) {
               h_new = HD_AUTO;
               break;
             }

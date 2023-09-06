@@ -212,7 +212,9 @@ void BKE_nurbList_duplicate(struct ListBase *lb1, const struct ListBase *lb2);
  * - 5: Set align, like 3 but no toggle.
  * - 6: Clear align (setting #HD_FREE), like 3 but no toggle.
  */
-void BKE_nurbList_handles_set(struct ListBase *editnurb, char code);
+void BKE_nurbList_handles_set(struct ListBase *editnurb,
+                              eNurbHandleTest_Mode handle_mode,
+                              char code);
 void BKE_nurbList_handles_recalculate(struct ListBase *editnurb, bool calc_length, uint8_t flag);
 
 void BKE_nurbList_handles_autocalc(ListBase *editnurb, uint8_t flag);
