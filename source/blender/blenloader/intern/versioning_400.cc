@@ -88,6 +88,12 @@ static void version_bonegroup_migrate_color(Main *bmain)
     bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
     BLI_assert_msg(GS(arm->id.name) == ID_AR,
                    "Expected ARMATURE object to have an Armature as data");
+
+    /* There is no guarantee that the current state of poses is in sync with the Armature data.
+     *
+     * NOTE: No need to handle user refcounting in readfile code. */
+    BKE_pose_ensure(bmain, ob, arm, false);
+
     PoseSet &pose_set = armature_poses.lookup_or_add_default(arm);
     pose_set.add(ob->pose);
   }
