@@ -23,7 +23,7 @@
 GHOST_SystemSDL::GHOST_SystemSDL() : GHOST_System()
 {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
-    throw std::runtime_error("Error initializing SDL: " + std::string(SDL_GetError()));
+    throw std::runtime_error(SDL_GetError());
   }
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);

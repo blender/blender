@@ -114,7 +114,7 @@ GHOST_SystemX11::GHOST_SystemX11()
   m_display = XOpenDisplay(nullptr);
 
   if (!m_display) {
-    throw std::runtime_error("X11: Unable to open a display");
+    throw std::runtime_error("unable to open a display!");
   }
 
 #ifdef USE_X11_ERROR_HANDLERS
