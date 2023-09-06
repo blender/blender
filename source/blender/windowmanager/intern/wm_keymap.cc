@@ -300,19 +300,20 @@ wmKeyConfig *WM_keyconfig_ensure(wmWindowManager *wm, const char *idname, bool u
 
 bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 {
-  if (BLI_findindex(&wm->keyconfigs, keyconf) != -1) {
-    if (STREQLEN(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr))) {
-      STRNCPY(U.keyconfigstr, wm->defaultconf->idname);
-      U.runtime.is_dirty = true;
-      WM_keyconfig_update_tag(nullptr, nullptr);
-    }
-
-    BLI_remlink(&wm->keyconfigs, keyconf);
-    WM_keyconfig_free(keyconf);
-
-    return true;
+  if (UNLIKELY(BLI_findindex(&wm->keyconfigs, keyconf) == -1)) {
+    return false;
   }
-  return false;
+
+  if (STREQLEN(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr))) {
+    STRNCPY(U.keyconfigstr, wm->defaultconf->idname);
+    U.runtime.is_dirty = true;
+    WM_keyconfig_update_tag(nullptr, nullptr);
+  }
+
+  BLI_remlink(&wm->keyconfigs, keyconf);
+  WM_keyconfig_free(keyconf);
+
+  return true;
 }
 
 void WM_keyconfig_clear(wmKeyConfig *keyconf)
@@ -425,15 +426,15 @@ void WM_keymap_clear(wmKeyMap *keymap)
 
 bool WM_keymap_remove(wmKeyConfig *keyconf, wmKeyMap *keymap)
 {
-  if (BLI_findindex(&keyconf->keymaps, keymap) != -1) {
-
-    WM_keymap_clear(keymap);
-    BLI_remlink(&keyconf->keymaps, keymap);
-    MEM_freeN(keymap);
-
-    return true;
+  if (UNLIKELY(BLI_findindex(&keyconf->keymaps, keymap) == -1)) {
+    return false;
   }
-  return false;
+
+  WM_keymap_clear(keymap);
+  BLI_remlink(&keyconf->keymaps, keymap);
+  MEM_freeN(keymap);
+
+  return true;
 }
 
 bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
@@ -548,17 +549,18 @@ wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, wmKeyMapItem *kmi_src)
 
 bool WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
-  if (BLI_findindex(&keymap->items, kmi) != -1) {
-    if (kmi->ptr) {
-      WM_operator_properties_free(kmi->ptr);
-      MEM_freeN(kmi->ptr);
-    }
-    BLI_freelinkN(&keymap->items, kmi);
-
-    WM_keyconfig_update_tag(keymap, nullptr);
-    return true;
+  if (UNLIKELY(BLI_findindex(&keymap->items, kmi) == -1)) {
+    return false;
   }
-  return false;
+
+  if (kmi->ptr) {
+    WM_operator_properties_free(kmi->ptr);
+    MEM_freeN(kmi->ptr);
+  }
+  BLI_freelinkN(&keymap->items, kmi);
+
+  WM_keyconfig_update_tag(keymap, nullptr);
+  return true;
 }
 
 /** \} */
