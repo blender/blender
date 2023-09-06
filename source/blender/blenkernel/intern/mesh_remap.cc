@@ -1794,10 +1794,10 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         for (tindex = 0; tindex < num_trees; tindex++) {
           float island_fac = 0.0f;
 
-          for (plidx_dst = 0; plidx_dst < faces_dst.size(); plidx_dst++) {
+          for (plidx_dst = 0; plidx_dst < face_dst.size(); plidx_dst++) {
             island_fac += islands_res[tindex][plidx_dst].factor;
           }
-          island_fac /= float(faces_dst.size());
+          island_fac /= float(face_dst.size());
 
           if (island_fac > best_island_fac) {
             best_island_fac = island_fac;
