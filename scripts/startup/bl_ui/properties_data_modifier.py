@@ -189,7 +189,7 @@ class AddModifierMenu(Operator):
     @classmethod
     def poll(cls, context):
         space = context.space_data
-        return space and space.context == "MODIFIER"
+        return space and space.type == 'PROPERTIES' and space.context == "MODIFIER"
 
     def invoke(self, context, event):
         return bpy.ops.wm.call_menu(name="OBJECT_MT_modifier_add")
