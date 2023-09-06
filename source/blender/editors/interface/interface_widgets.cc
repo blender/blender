@@ -2737,10 +2737,8 @@ static void widget_state_menu_item(uiWidgetType *wt,
     /* Regular disabled. */
     color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
   }
-  else if ((state->but_flag & UI_BUT_LIST_ITEM) &&
-           state->but_flag & (UI_BUT_ACTIVE_DEFAULT | UI_SELECT))
-  {
-    /* Currently-selected list item. */
+  else if (state->but_flag & (UI_BUT_ACTIVE_DEFAULT | UI_SELECT_DRAW)) {
+    /* Currently-selected item. */
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     copy_v4_v4_uchar(wt->wcol.text, wt->wcol.text_sel);
   }

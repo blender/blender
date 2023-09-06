@@ -4467,9 +4467,8 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
                              -1,
                              item->description);
       }
-      item_but->flag |= UI_BUT_LIST_ITEM;
       if (item->value == current_value) {
-        item_but->flag |= UI_BUT_ACTIVE_DEFAULT;
+        item_but->flag |= UI_SELECT_DRAW;
       }
     }
   }
