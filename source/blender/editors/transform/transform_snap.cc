@@ -129,7 +129,7 @@ bool validSnap(const TransInfo *t)
 void transform_snap_flag_from_modifiers_set(TransInfo *t)
 {
   if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) {
-    /* Those spacetypes define their own invert behaviour instead of toggling it on/off. */
+    /* Those space-types define their own invert behavior instead of toggling it on/off. */
     return;
   }
   SET_FLAG_FROM_TEST(t->tsnap.flag,

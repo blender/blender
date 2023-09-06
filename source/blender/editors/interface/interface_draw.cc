@@ -1014,7 +1014,7 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
 
 static void ui_draw_colorband_handle_tri(uint pos, float x1, float y1, float halfwidth)
 {
-  /* Halfwidth equals height for better AA with 45 degree slope. */
+  /* Half-width equals height for better AA with 45 degree slope. */
   immBegin(GPU_PRIM_TRIS, 3);
   immVertex2f(pos, x1 + halfwidth, y1);
   immVertex2f(pos, x1, y1 + halfwidth);

@@ -666,7 +666,7 @@ typedef enum eBConstraint_Types {
 /* bConstraint->flag */
 /* flags 0x2 (1 << 1) and 0x8 (1 << 3) were used in past */
 /* flag 0x20 (1 << 5) was used to indicate that a constraint was evaluated
- *                  using a 'local' hack for posebones only. */
+ *                    using a 'local' hack for pose-bones only. */
 typedef enum eBConstraint_Flags {
 #ifdef DNA_DEPRECATED_ALLOW
   /* Expansion for old box constraint layouts. Just for versioning. */

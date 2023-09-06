@@ -454,7 +454,7 @@ static bool buttons_context_path_brush(const bContext *C, ButsContextPath *path)
   if (RNA_struct_is_a(ptr->type, &RNA_Brush)) {
     return true;
   }
-  /* if we have a scene, use the toolsettings brushes */
+  /* If we have a scene, use the tool-settings brushes. */
   if (buttons_context_path_scene(path)) {
     Scene *scene = static_cast<Scene *>(path->ptr[path->len - 1].data);
 

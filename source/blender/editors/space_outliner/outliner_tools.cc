@@ -2280,7 +2280,7 @@ static void constraint_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/
       /* there's no active constraint now, so make sure this is the case */
       BKE_constraints_active_set(&ob->constraints, nullptr);
 
-      /* needed to set the flags on posebones correctly */
+      /* Needed to set the flags on pose-bones correctly. */
       ED_object_constraint_update(bmain, ob);
 
       WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
@@ -3641,7 +3641,7 @@ static int outliner_operator_menu(bContext *C, const char *opname)
   uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(ot, nullptr).c_str(), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  /* set this so the default execution context is the same as submenus */
+  /* Set this so the default execution context is the same as sub-menus. */
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
 
   if (WM_operator_poll(C, ot)) {

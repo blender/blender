@@ -216,7 +216,7 @@ typedef struct Sequence {
   /* pointers for effects: */
   struct Sequence *seq1, *seq2, *seq3;
 
-  /** List of strips for metastrips. */
+  /** List of strips for meta-strips. */
   ListBase seqbase;
   ListBase channels; /* SeqTimelineChannel */
 
