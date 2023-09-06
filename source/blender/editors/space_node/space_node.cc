@@ -682,6 +682,10 @@ static bool node_group_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*ev
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
+  if (snode->edittree == nullptr) {
+    return false;
+  }
+
   if (!WM_drag_is_ID_type(drag, ID_NT)) {
     return false;
   }
