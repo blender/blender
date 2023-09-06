@@ -241,8 +241,6 @@ class NODE_MT_add(bpy.types.Menu):
         elif snode.tree_type == 'ShaderNodeTree':
             layout.menu_contents("NODE_MT_shader_node_add_all")
         elif snode.tree_type == 'TextureNodeTree':
-            props = layout.operator("node.add_search", text="Search...", icon='VIEWZOOM')
-            layout.separator()
             layout.menu_contents("NODE_MT_texture_node_add_all")
         elif nodeitems_utils.has_node_categories(context):
             # Actual node sub-menus are defined by draw functions from node categories.
