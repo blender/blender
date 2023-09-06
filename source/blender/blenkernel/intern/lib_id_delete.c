@@ -79,7 +79,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
   BLI_assert_msg(0, "IDType Missing IDTypeInfo");
 }
 
-void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_idtag)
+static int id_free(Main *bmain, void *idv, int flag, const bool use_flag_from_idtag)
 {
   ID *id = idv;
 
@@ -127,7 +127,7 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
   }
 
   if ((flag & LIB_ID_FREE_NO_MAIN) == 0 && key != NULL) {
-    BKE_id_free_ex(bmain, &key->id, flag, use_flag_from_idtag);
+    id_free(bmain, &key->id, flag, use_flag_from_idtag);
   }
 
   BKE_libblock_free_datablock(id, flag);
@@ -166,6 +166,23 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
 
   if ((flag & LIB_ID_FREE_NOT_ALLOCATED) == 0) {
     MEM_freeN(id);
+  }
+
+  return flag;
+}
+
+void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_idtag)
+{
+  /* ViewLayer resync needs to be delayed during Scene freeing, since internal relationships
+   * between the Scene's master collection and its view_layers become invalid (due to remapping .
+   */
+  BKE_layer_collection_resync_forbid();
+
+  flag = id_free(bmain, idv, flag, use_flag_from_idtag);
+
+  BKE_layer_collection_resync_allow();
+  if (bmain && (flag & LIB_ID_FREE_NO_MAIN) == 0) {
+    BKE_main_collection_sync_remap(bmain);
   }
 }
 
@@ -336,6 +353,11 @@ static size_t id_delete(Main *bmain,
 
   BKE_main_unlock(bmain);
 
+  /* ViewLayer resync needs to be delayed during Scene freeing, since internal relationships
+   * between the Scene's master collection and its view_layers become invalid (due to remapping .
+   */
+  BKE_layer_collection_resync_forbid();
+
   /* In usual reversed order, such that all usage of a given ID, even 'never NULL' ones,
    * have been already cleared when we reach it
    * (e.g. Objects being processed before meshes, they'll have already released their 'reference'
@@ -357,11 +379,14 @@ static size_t id_delete(Main *bmain,
                      ID_REAL_USERS(id),
                      (id->tag & LIB_TAG_EXTRAUSER_SET) != 0 ? 1 : 0);
         }
-        BKE_id_free_ex(bmain, id, free_flag, !do_tagged_deletion);
+        id_free(bmain, id, free_flag, !do_tagged_deletion);
         ++num_datablocks_deleted;
       }
     }
   }
+
+  BKE_layer_collection_resync_allow();
+  BKE_main_collection_sync_remap(bmain);
 
   bmain->is_memfile_undo_written = false;
   return num_datablocks_deleted;
