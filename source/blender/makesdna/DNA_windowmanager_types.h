@@ -105,7 +105,6 @@ typedef struct ReportList {
 #
 #
 typedef struct ReportTimerInfo {
-  float col[4];
   float widthfac;
   float flash_progress;
 } ReportTimerInfo;

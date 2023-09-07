@@ -34,7 +34,6 @@
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
-#include "UI_resources.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -581,7 +580,6 @@ static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const
   ReportList *reports = CTX_wm_reports(C);
   Report *report;
   ReportTimerInfo *rti;
-  float target_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float progress = 0.0, flash_progress = 0.0;
   float timeout = 0.0, flash_timeout = FLASH_TIMEOUT;
   int send_note = 0;
@@ -608,19 +606,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
 
-  /* set target color based on report type */
-  UI_GetThemeColorType3fv(UI_icon_colorid_from_report_type(report->type), SPACE_INFO, target_col);
-  target_col[3] = 0.65f;
-
   if (rti->widthfac == 0.0f) {
-    /* initialize color to a brighter shade of the target color */
-    rti->col[0] = target_col[0] + BRIGHTEN_AMOUNT;
-    rti->col[1] = target_col[1] + BRIGHTEN_AMOUNT;
-    rti->col[2] = target_col[2] + BRIGHTEN_AMOUNT;
-    rti->col[3] = 1.0f;
-
-    CLAMP3(rti->col, 0.0, 1.0);
-
     rti->widthfac = 1.0f;
   }
 
@@ -629,10 +615,8 @@ static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const
 
   /* save us from too many draws */
   if (flash_progress <= 1.0f) {
+    /* Flash report briefly according to progress through fade-out duration. */
     send_note = 1;
-
-    /* flash report briefly according to progress through fade-out duration */
-    interp_v4_v4v4(rti->col, rti->col, target_col, flash_progress);
   }
   rti->flash_progress = flash_progress;
 
