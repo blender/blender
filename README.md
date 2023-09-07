@@ -1,33 +1,33 @@
-<!--
-Keep this document short & concise,
-linking to external resources instead of including content in-line.
-See 'release/text/readme.html' for the end user read-me.
--->
+Sculpt-Blender
+==============
 
-Blender
-=======
+Sculpt-Blender is an independent branch of Blender focused on sculpting.
+It's purpose is to develop and maintain key improvements needed to make 
+Blender usable for a wider variety of sculpt workflows.
 
-Blender is the free and open source 3D creation suite.
-It supports the entirety of the 3D pipeline-modeling, rigging, animation, simulation, rendering, compositing,
-motion tracking and video editing.
+It arose out of my personal artistic need for a better dynamic topology
+system.  
 
-![Blender screenshot](https://code.blender.org/wp-content/uploads/2018/12/springrg.jpg "Blender screenshot")
+This is not a hard fork.  The branch will be regularly synced with official Blender.  
 
-Project Pages
--------------
+Main supported features:
+* Improved DynTopo that preserves attributes.
+* Various edge boundaries (e.g. marked seams, face set boundaries, UV island boundaries, etc)
+  are preserved.
+* Better hard surface modelling. 
 
-- [Main Website](http://www.blender.org)
-- [Reference Manual](https://docs.blender.org/manual/en/latest/index.html)
-- [User Community](https://www.blender.org/community/)
+Changes will be limited to "needed" functional improvements.
+Features like these are off the table for now:
 
-Development
------------
+* Sculpt layers.
+* Node/stack based brush composer.
+* Brush properties.
 
-- [Build Instructions](https://wiki.blender.org/wiki/Building_Blender)
-- [Code Review & Bug Tracker](https://projects.blender.org)
-- [Developer Forum](https://devtalk.blender.org)
-- [Developer Documentation](https://wiki.blender.org)
-
+For developers:
+* We'll try to avoid refactors.
+* There is a copy of a new sculpt brush API in the branch, but only smooth brushes are allowed to use it
+  (it fixes a performance bug that particularly affects smooth brushes).
+  
 
 License
 -------
