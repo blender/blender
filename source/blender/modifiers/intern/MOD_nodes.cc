@@ -1487,16 +1487,18 @@ static void panel_draw(const bContext *C, Panel *panel)
    * attribute/value toggle requires a manually built layout anyway. */
   uiLayoutSetPropDecorate(layout, false);
 
-  uiTemplateID(layout,
-               C,
-               ptr,
-               "node_group",
-               "node.new_geometry_node_group_assign",
-               nullptr,
-               nullptr,
-               0,
-               false,
-               nullptr);
+  if (!(nmd->flag & NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR)) {
+    uiTemplateID(layout,
+                 C,
+                 ptr,
+                 "node_group",
+                 "node.new_geometry_node_group_assign",
+                 nullptr,
+                 nullptr,
+                 0,
+                 false,
+                 nullptr);
+  }
 
   if (nmd->node_group != nullptr && nmd->settings.properties != nullptr) {
     PointerRNA bmain_ptr = RNA_main_pointer_create(bmain);

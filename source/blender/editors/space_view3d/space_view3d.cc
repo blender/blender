@@ -911,6 +911,13 @@ static void view3d_id_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
 
   WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
+  RNA_boolean_set(drop->ptr, "show_datablock_in_modifier", (drag->type != WM_DRAG_ASSET));
+}
+
+static void view3d_geometry_nodes_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
+{
+  view3d_id_drop_copy(C, drag, drop);
+  RNA_boolean_set(drop->ptr, "show_datablock_in_modifier", (drag->type != WM_DRAG_ASSET));
 }
 
 static void view3d_id_drop_copy_with_type(bContext *C, wmDrag *drag, wmDropBox *drop)
@@ -1008,7 +1015,7 @@ static void view3d_dropboxes()
   WM_dropbox_add(lb,
                  "OBJECT_OT_drop_geometry_nodes",
                  view3d_geometry_nodes_drop_poll,
-                 view3d_id_drop_copy,
+                 view3d_geometry_nodes_drop_copy,
                  WM_drag_free_imported_drag_ID,
                  view3d_geometry_nodes_drop_tooltip);
   WM_dropbox_add(lb,

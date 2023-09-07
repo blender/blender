@@ -288,6 +288,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
                 WM_OP_INVOKE_DEFAULT,
                 UI_ITEM_NONE,
                 &op_ptr);
+    uiItemR(layout, &ptr, "show_group_selector", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 }
 
