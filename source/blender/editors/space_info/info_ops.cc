@@ -634,6 +634,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const
     /* flash report briefly according to progress through fade-out duration */
     interp_v4_v4v4(rti->col, rti->col, target_col, flash_progress);
   }
+  rti->flash_progress = flash_progress;
 
   /* collapse report at end of timeout */
   if (progress * timeout > timeout - COLLAPSE_TIMEOUT) {

@@ -6406,6 +6406,12 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
       UI_text_colorid_from_report_type(report->type), SPACE_INFO, report_text_color);
   report_text_color[3] = 255; /* This theme color is RGB only, so have to set alpha here. */
 
+  if (rti->flash_progress <= 1.0) {
+    /* Flash report briefly according to progress through fade-out duration. */
+    const int brighten_amount = int(32 * (1.0f - rti->flash_progress));
+    add_v3_uchar_clamped(report_icon_color, brighten_amount);
+  }
+
   UI_fontstyle_set(&style->widgetlabel);
   int width = BLF_width(style->widgetlabel.uifont_id, report->message, report->len);
   width = min_ii(int(rti->widthfac * width), width);
@@ -6446,7 +6452,6 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                  0,
                  0,
                  "");
-
   /* Use icon background at low opacity to highlight, but still contrasting with area TH_TEXT. */
   copy_v3_v3_uchar(but->col, report_icon_color);
   but->col[3] = 64;
@@ -6465,7 +6470,6 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                       UI_UNIT_X,
                       UI_UNIT_Y,
                       TIP_("Click to open the info editor"));
-
   copy_v4_v4_uchar(but->col, report_text_color);
 
   /* The report message. */
