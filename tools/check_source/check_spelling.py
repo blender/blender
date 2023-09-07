@@ -79,6 +79,7 @@ SOURCE_EXT = (
     "hh",
     "m",
     "mm",
+    "metal",
     "msl",
     "glsl",
     "osl",

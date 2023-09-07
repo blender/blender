@@ -514,7 +514,7 @@ check_spelling_shaders: .FORCE
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
-	    --match=".*\.(osl|msl|glsl)$$" \
+	    --match=".*\.(osl|metal|msl|glsl)$$" \
 	    "$(BLENDER_DIR)/intern/" \
 	    "$(BLENDER_DIR)/source/"
 
