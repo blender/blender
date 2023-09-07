@@ -6397,6 +6397,15 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
   uiBlock *block = uiLayoutGetBlock(ui_abs);
   eUIEmbossType previous_emboss = UI_block_emboss_get(block);
 
+  uchar report_icon_color[4];
+  uchar report_text_color[4];
+
+  UI_GetThemeColorType4ubv(
+      UI_icon_colorid_from_report_type(report->type), SPACE_INFO, report_icon_color);
+  UI_GetThemeColorType4ubv(
+      UI_text_colorid_from_report_type(report->type), SPACE_INFO, report_text_color);
+  report_text_color[3] = 255; /* This theme color is RGB only, so have to set alpha here. */
+
   UI_fontstyle_set(&style->widgetlabel);
   int width = BLF_width(style->widgetlabel.uifont_id, report->message, report->len);
   width = min_ii(int(rti->widthfac * width), width);
@@ -6420,7 +6429,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                  0,
                  "");
   /* UI_BTYPE_ROUNDBOX's bg color is set in but->col. */
-  UI_GetThemeColorType4ubv(UI_icon_colorid_from_report_type(report->type), SPACE_INFO, but->col);
+  copy_v4_v4_uchar(but->col, report_icon_color);
 
   /* Background for the rest of the message. */
   but = uiDefBut(block,
@@ -6439,7 +6448,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                  "");
 
   /* Use icon background at low opacity to highlight, but still contrasting with area TH_TEXT. */
-  UI_GetThemeColorType4ubv(UI_icon_colorid_from_report_type(report->type), SPACE_INFO, but->col);
+  copy_v3_v3_uchar(but->col, report_icon_color);
   but->col[3] = 64;
 
   UI_block_align_end(block);
@@ -6456,8 +6465,8 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                       UI_UNIT_X,
                       UI_UNIT_Y,
                       TIP_("Click to open the info editor"));
-  UI_GetThemeColorType4ubv(UI_text_colorid_from_report_type(report->type), SPACE_INFO, but->col);
-  but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
+
+  copy_v4_v4_uchar(but->col, report_text_color);
 
   /* The report message. */
   but = uiDefButO(block,
