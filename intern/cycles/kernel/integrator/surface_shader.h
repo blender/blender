@@ -176,32 +176,6 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
     }
   }
 
-  /* Defensive sampling.
-   *
-   * We can likely also do defensive sampling at deeper bounces, particularly
-   * for cases like a perfect mirror but possibly also others. This will need
-   * a good heuristic. */
-  if (INTEGRATOR_STATE(state, path, bounce) + INTEGRATOR_STATE(state, path, transparent_bounce) ==
-          0 &&
-      sd->num_closure > 1)
-  {
-    float sum = 0.0f;
-
-    for (int i = 0; i < sd->num_closure; i++) {
-      ccl_private ShaderClosure *sc = &sd->closure[i];
-      if (CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
-        sum += sc->sample_weight;
-      }
-    }
-
-    for (int i = 0; i < sd->num_closure; i++) {
-      ccl_private ShaderClosure *sc = &sd->closure[i];
-      if (CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
-        sc->sample_weight = max(sc->sample_weight, 0.125f * sum);
-      }
-    }
-  }
-
   /* Filter glossy.
    *
    * Blurring of bsdf after bounces, for rays that have a small likelihood

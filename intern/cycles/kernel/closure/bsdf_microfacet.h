@@ -559,8 +559,7 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
   float lobe_pdf = 1.0f;
   if (m_glass) {
     float fresnel = fresnel_dielectric_cos(dot(H, wi), bsdf->ior);
-    float reflect_pdf = (fresnel == 1.0f) ? 1.0f : clamp(fresnel, 0.125f, 0.875f);
-    lobe_pdf = is_transmission ? (1.0f - reflect_pdf) : reflect_pdf;
+    lobe_pdf = is_transmission ? (1.0f - fresnel) : fresnel;
   }
 
   *pdf = common * lobe_pdf / (1.0f + lambdaI);
@@ -642,19 +641,8 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
 
     /* For glass closures, we decide between reflection and refraction here. */
     if (m_glass) {
-      if (fresnel == 1.0f) {
-        /* TIR, reflection is the only option. */
-        do_refract = false;
-        lobe_pdf = 1.0f;
-      }
-      else {
-        /* Decide between reflection and refraction, using defensive sampling to avoid
-         * excessive noise for reflection highlights. */
-        float reflect_pdf = (path_flag & PATH_RAY_CAMERA) ? clamp(fresnel, 0.125f, 0.875f) :
-                                                            fresnel;
-        do_refract = (rand.z >= reflect_pdf);
-        lobe_pdf = do_refract ? (1.0f - reflect_pdf) : reflect_pdf;
-      }
+      do_refract = (rand.z >= fresnel);
+      lobe_pdf = do_refract ? (1.0f - fresnel) : fresnel;
     }
     else {
       /* For pure refractive closures, refraction is the only option. */
