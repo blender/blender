@@ -554,8 +554,8 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
     mul_v3_m3v3(csmd->delta_cache.deltas[l_index], imat, delta);
   }
 
-  MEM_freeN(tangent_spaces);
-  MEM_freeN(smooth_vertex_coords);
+  MEM_SAFE_FREE(tangent_spaces);
+  MEM_SAFE_FREE(smooth_vertex_coords);
 }
 
 static void correctivesmooth_modifier_do(ModifierData *md,
