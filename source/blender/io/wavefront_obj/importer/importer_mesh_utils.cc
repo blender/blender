@@ -12,7 +12,6 @@
 #include "BLI_delaunay_2d.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
@@ -100,12 +99,14 @@ Vector<Vector<int>> fixup_invalid_polygon(Span<float3> vertex_coords,
 
 void transform_object(Object *object, const OBJImportParams &import_params)
 {
-  const math::CartesianBasis basis = math::from_orthonormal_axes(import_params.forward_axis,
-                                                                 import_params.up_axis);
-  const float3x3 axes_transform = math::from_rotation<float3x3>(basis);
+  float axes_transform[3][3];
+  unit_m3(axes_transform);
   float obmat[4][4];
   unit_m4(obmat);
-  copy_m4_m3(obmat, axes_transform.ptr());
+  /* +Y-forward and +Z-up are the default Blender axis settings. */
+  mat3_from_axis_conversion(
+      IO_AXIS_Y, IO_AXIS_Z, import_params.forward_axis, import_params.up_axis, axes_transform);
+  copy_m4_m3(obmat, axes_transform);
 
   float scale_vec[3] = {
       import_params.global_scale, import_params.global_scale, import_params.global_scale};

@@ -1039,7 +1039,7 @@ typedef enum IDRecalcFlag {
   ID_RECALC_ANIMATION = (1 << 2),
 
   /* ** Particle system changed. ** */
-  /* Only do pathcache etc. */
+  /* Only do path-cache etc. */
   ID_RECALC_PSYS_REDO = (1 << 3),
   /* Reset everything including point-cache. */
   ID_RECALC_PSYS_RESET = (1 << 4),

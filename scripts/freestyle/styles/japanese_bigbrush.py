@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : japanese_bigbrush.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Simulates a big brush fr oriental painting

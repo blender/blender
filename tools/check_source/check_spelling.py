@@ -16,6 +16,7 @@ Currently only python source is checked.
 
 import os
 import argparse
+import sys
 
 from typing import (
     Callable,
@@ -57,21 +58,47 @@ else:
     COLOR_WORD = ""
     COLOR_ENDC = ""
 
-from check_spelling_c_config import (
+from check_spelling_config import (
     dict_custom,
     dict_ignore,
     dict_ignore_hyphenated_prefix,
     dict_ignore_hyphenated_suffix,
     files_ignore,
+    directories_ignore,
+)
+
+SOURCE_EXT = (
+    "c",
+    "cc",
+    "inl",
+    "cpp",
+    "cxx",
+    "hpp",
+    "hxx",
+    "h",
+    "hh",
+    "m",
+    "mm",
+    "metal",
+    "msl",
+    "glsl",
+    "osl",
+    "py",
 )
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 ROOTDIR = os.path.normpath(os.path.join(BASEDIR, "..", ".."))
+ROOTDIR_WITH_SLASH = ROOTDIR + os.sep
 
 # Ensure native slashes.
 files_ignore = {
     os.path.normpath(os.path.join(ROOTDIR, f.replace("/", os.sep)))
     for f in files_ignore
+}
+
+directories_ignore = {
+    os.path.normpath(os.path.join(ROOTDIR, f.replace("/", os.sep)))
+    for f in directories_ignore
 }
 
 # -----------------------------------------------------------------------------
@@ -145,7 +172,7 @@ def hash_of_file_and_len(fp: str) -> Tuple[bytes, int]:
 import re
 re_vars = re.compile("[A-Za-z]+")
 
-# First remove this from comments, so we don't spell check example code, doxygen commands, etc.
+# First remove this from comments, so we don't spell check example code, DOXYGEN commands, etc.
 re_ignore = re.compile(
     r'('
 
@@ -158,17 +185,17 @@ re_ignore = re.compile(
     # Convention for TODO/FIXME messages: TODO(my name) OR FIXME(name+name) OR XXX(some-name) OR NOTE(name/other-name):
     r"\b(TODO|FIXME|XXX|NOTE|WARNING)\(@?[\w\s\+\-/]+\)|"
 
-    # Doxygen style: <pre> ... </pre>
+    # DOXYGEN style: <pre> ... </pre>
     r"<pre>.+</pre>|"
-    # Doxygen style: \code ... \endcode
+    # DOXYGEN style: \code ... \endcode
     r"\s+\\code\b.+\s\\endcode\b|"
-    # Doxygen style #SOME_CODE.
+    # DOXYGEN style #SOME_CODE.
     r'#\S+|'
-    # Doxygen commands: \param foo
+    # DOXYGEN commands: \param foo
     r"\\(section|subsection|subsubsection|defgroup|ingroup|addtogroup|param|tparam|page|a|see)\s+\S+|"
-    # Doxygen commands without any arguments after them: \command
+    # DOXYGEN commands without any arguments after them: \command
     r"\\(retval|todo|name)\b|"
-    # Doxygen 'param' syntax used rarely: \param foo[in,out]
+    # DOXYGEN 'param' syntax used rarely: \param foo[in,out]
     r"\\param\[[a-z,]+\]\S*|"
 
     # Words containing underscores: a_b
@@ -211,7 +238,7 @@ def words_from_text(text: str, check_type: str) -> List[Tuple[str, int]]:
         start, end = match.span()
         return re_not_newline.sub(" ", match.string[start:end])
 
-    # Handy for checking what we ignore, incase we ignore too much and miss real errors.
+    # Handy for checking what we ignore, in case we ignore too much and miss real errors.
     # for match in re_ignore.finditer(text):
     #     print(match.group(0))
 
@@ -328,11 +355,11 @@ def extract_py_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
     for toktype, ttext, (slineno, scol), (elineno, ecol), ltext in tokgen:
         if toktype == token.STRING:
             if prev_toktype == token.INDENT:
-                comments.append(Comment(filepath, ttext, slineno, 'DOCSTRING'))
+                comments.append(Comment(filepath, ttext, slineno - 1, 'DOCSTRING'))
         elif toktype == tokenize.COMMENT:
             # non standard hint for commented CODE that we can ignore
             if not ttext.startswith("#~"):
-                comments.append(Comment(filepath, ttext, slineno, 'COMMENT'))
+                comments.append(Comment(filepath, ttext, slineno - 1, 'COMMENT'))
         else:
             for match in re_vars.finditer(ttext):
                 code_words.add(match.group(0))
@@ -532,11 +559,12 @@ def spell_check_file(
 def spell_check_file_recursive(
         dirpath: str,
         check_type: str,
+        regex_list: List[re.Pattern[str]],
         extract_type: str = 'COMMENTS',
         cache_data: Optional[CacheData] = None,
 ) -> None:
     import os
-    from os.path import join, splitext
+    from os.path import join
 
     def source_list(
             path: str,
@@ -545,6 +573,9 @@ def spell_check_file_recursive(
         for dirpath, dirnames, filenames in os.walk(path):
             # Only needed so this can be matches with ignore paths.
             dirpath = os.path.abspath(dirpath)
+            if dirpath in directories_ignore:
+                dirnames.clear()
+                continue
             # skip '.git'
             dirnames[:] = [d for d in dirnames if not d.startswith(".")]
             for filename in filenames:
@@ -558,22 +589,16 @@ def spell_check_file_recursive(
                 yield filepath
 
     def is_source(filename: str) -> bool:
-        ext = splitext(filename)[1]
-        return (ext in {
-            ".c",
-            ".cc",
-            ".inl",
-            ".cpp",
-            ".cxx",
-            ".hpp",
-            ".hxx",
-            ".h",
-            ".hh",
-            ".m",
-            ".mm",
-            ".osl",
-            ".py",
-        })
+        from os.path import splitext
+        filename = filename.removeprefix(ROOTDIR_WITH_SLASH)
+        for regex in regex_list:
+            if regex.match(filename) is not None:
+                filename
+                ext = splitext(filename)[1].removeprefix(".")
+                if ext not in SOURCE_EXT:
+                    raise Exception("Unknown extension \".{:s}\" aborting!".format(ext))
+                return True
+        return False
 
     for filepath in source_list(dirpath, is_source):
         for report in spell_check_file_with_cache_support(
@@ -613,6 +638,7 @@ def spell_cache_write(cache_filepath: str, cache_store: Tuple[CacheData, Suggest
 def spell_check_file_with_cache_support(
         filepath: str,
         check_type: str,
+        *,
         extract_type: str = 'COMMENTS',
         cache_data: Optional[CacheData] = None,
 ) -> Generator[Report, None, None]:
@@ -660,6 +686,17 @@ def argparse_create() -> argparse.ArgumentParser:
     # When --help or no args are given, print this help
     description = __doc__
     parser = argparse.ArgumentParser(description=description)
+
+    parser.add_argument(
+        "--match",
+        nargs='+',
+        default=(
+            r".*\.(" + "|".join(SOURCE_EXT) + ")$",
+        ),
+        required=False,
+        metavar="REGEX",
+        help="Match file paths against this expression",
+    )
 
     parser.add_argument(
         '--extract',
@@ -710,12 +747,20 @@ def argparse_create() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> None:
+def main() -> int:
     global _suggest_map
 
     import os
 
     args = argparse_create().parse_args()
+
+    regex_list = []
+    for expr in args.match:
+        try:
+            regex_list.append(re.compile(expr))
+        except Exception as ex:
+            print("Error in expression: {!r}\n  {!r}".format(expr, ex))
+            return 1
 
     extract_type = args.extract
     cache_filepath = args.cache_file
@@ -730,12 +775,23 @@ def main() -> None:
     try:
         for filepath in args.paths:
             if os.path.isdir(filepath):
+
                 # recursive search
-                spell_check_file_recursive(filepath, check_type, extract_type=extract_type, cache_data=cache_data)
+                spell_check_file_recursive(
+                    filepath,
+                    check_type,
+                    regex_list=regex_list,
+                    extract_type=extract_type,
+                    cache_data=cache_data,
+                )
             else:
                 # single file
                 for report in spell_check_file_with_cache_support(
-                        filepath, check_type, extract_type=extract_type, cache_data=cache_data):
+                        filepath,
+                        check_type,
+                        extract_type=extract_type,
+                        cache_data=cache_data,
+                ):
                     spell_check_report(filepath, check_type, report)
     except KeyboardInterrupt:
         clear_stale_cache = False
@@ -754,7 +810,8 @@ def main() -> None:
                     del cache_data[filepath]
 
         spell_cache_write(cache_filepath, (cache_data, _suggest_map))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

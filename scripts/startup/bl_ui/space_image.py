@@ -1335,7 +1335,7 @@ class IMAGE_PT_uv_sculpt_brush_settings(Panel, ImagePaintPanel, UVSculptPanel):
 
 
 class IMAGE_PT_uv_sculpt_curve(Panel, FalloffPanel, ImagePaintPanel, UVSculptPanel):
-    bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
+    bl_context = ".uv_sculpt"  # Dot on purpose (access from top-bar).
     bl_parent_id = "IMAGE_PT_uv_sculpt_brush_settings"
     bl_category = "Tool"
     bl_label = "Falloff"
@@ -1343,7 +1343,7 @@ class IMAGE_PT_uv_sculpt_curve(Panel, FalloffPanel, ImagePaintPanel, UVSculptPan
 
 
 class IMAGE_PT_uv_sculpt_options(Panel, ImagePaintPanel, UVSculptPanel):
-    bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
+    bl_context = ".uv_sculpt"  # Dot on purpose (access from top-bar).
     bl_category = "Tool"
     bl_label = "Options"
 

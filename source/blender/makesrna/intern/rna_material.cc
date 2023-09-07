@@ -885,6 +885,7 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "pr_type");
   RNA_def_property_enum_items(prop, preview_type_items);
   RNA_def_property_ui_text(prop, "Preview Render Type", "Type of preview render");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MATERIAL);
   RNA_def_property_update(prop, 0, "rna_Material_update_previews");
 
   prop = RNA_def_property(srna, "use_preview_world", PROP_BOOLEAN, PROP_NONE);

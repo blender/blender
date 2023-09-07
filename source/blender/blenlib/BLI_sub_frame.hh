@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include "BLI_assert.h"
 #include "BLI_math_base.h"
 

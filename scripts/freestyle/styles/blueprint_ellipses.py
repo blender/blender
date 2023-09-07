@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : blueprint_ellipses.py
 #  Author   : Emmanuel Turquin
 #  Date     : 04/08/2005
 #  Purpose  : Produces a blueprint using elliptic contour strokes

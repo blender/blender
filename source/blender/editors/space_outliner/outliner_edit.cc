@@ -306,7 +306,10 @@ static void do_item_rename(ARegion *region,
 {
   bool add_textbut = false;
 
-  /* can't rename rna datablocks entries or listbases */
+  /* FIXME: These info messages are often useless, they should be either reworded to be more
+   * informative for the user, or purely removed? */
+
+  /* Can't rename rna datablocks entries or listbases. */
   if (ELEM(tselem->type,
            TSE_ANIM_DATA,
            TSE_NLA,
@@ -326,37 +329,29 @@ static void do_item_rename(ARegion *region,
            TSE_ID_BASE) ||
       ELEM(tselem->type, TSE_SCENE_OBJECTS_BASE, TSE_GENERIC_LABEL))
   {
-    BKE_report(reports, RPT_WARNING, "Not an editable name");
+    BKE_report(reports, RPT_INFO, "Not an editable name");
   }
   else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
-    BKE_report(reports, RPT_WARNING, "Sequence names are not editable from the Outliner");
+    BKE_report(reports, RPT_INFO, "Sequence names are not editable from the Outliner");
   }
   else if (TSE_IS_REAL_ID(tselem) && ID_IS_LINKED(tselem->id)) {
-    BKE_report(reports, RPT_WARNING, "External library data is not editable");
+    BKE_report(reports, RPT_INFO, "External library data is not editable");
   }
   else if (TSE_IS_REAL_ID(tselem) && ID_IS_OVERRIDE_LIBRARY(tselem->id)) {
-    BKE_report(reports, RPT_WARNING, "Overridden data-blocks are not editable");
+    BKE_report(reports, RPT_INFO, "Overridden data-blocks names are not editable");
   }
   else if (outliner_is_collection_tree_element(te)) {
     Collection *collection = outliner_collection_from_tree_element(te);
 
     if (collection->flag & COLLECTION_IS_MASTER) {
-      BKE_report(reports, RPT_WARNING, "Not an editable name");
+      BKE_report(reports, RPT_INFO, "Not an editable name");
     }
     else {
       add_textbut = true;
     }
   }
   else if (te->idcode == ID_LI) {
-    if (reinterpret_cast<Library *>(tselem->id)->parent) {
-      BKE_report(reports, RPT_WARNING, "Cannot edit the path of an indirectly linked library");
-    }
-    else {
-      BKE_report(
-          reports,
-          RPT_WARNING,
-          "Library path is not editable from here anymore, use the Relocate operation instead");
-    }
+    BKE_report(reports, RPT_INFO, "Library path is not editable, use the Relocate operation");
   }
   else {
     add_textbut = true;

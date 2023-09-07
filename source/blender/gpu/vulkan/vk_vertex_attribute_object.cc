@@ -179,6 +179,14 @@ static uint32_t to_binding_location_len(const shader::Type type)
     case shader::Type::CHAR2:
     case shader::Type::CHAR3:
     case shader::Type::CHAR4:
+    case shader::Type::SHORT:
+    case shader::Type::SHORT2:
+    case shader::Type::SHORT3:
+    case shader::Type::SHORT4:
+    case shader::Type::USHORT:
+    case shader::Type::USHORT2:
+    case shader::Type::USHORT3:
+    case shader::Type::USHORT4:
       return 1;
     case shader::Type::MAT3:
       return 3;

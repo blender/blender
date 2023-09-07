@@ -321,16 +321,10 @@ void BKE_mesh_recalc_looptri(const int *corner_verts,
 
 /* *** mesh_normals.cc *** */
 
-/**
- * Return true if the mesh vertex normals either are not stored or are dirty.
- * This can be used to help decide whether to transfer them when copying a mesh.
- */
+/** Return true if the mesh vertex normals either are not stored or are dirty. */
 bool BKE_mesh_vert_normals_are_dirty(const struct Mesh *mesh);
 
-/**
- * Return true if the mesh face normals either are not stored or are dirty.
- * This can be used to help decide whether to transfer them when copying a mesh.
- */
+/** Return true if the mesh face normals either are not stored or are dirty. */
 bool BKE_mesh_face_normals_are_dirty(const struct Mesh *mesh);
 
 /**

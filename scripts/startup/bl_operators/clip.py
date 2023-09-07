@@ -677,7 +677,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         self.createCollection(context, "foreground")
         self.createCollection(context, "background")
 
-        # rendersettings
+        # Render settings.
         setup_collection_recursively(
             vlayers["Foreground"].layer_collection.children,
             "background",

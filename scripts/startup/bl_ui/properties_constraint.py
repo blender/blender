@@ -957,7 +957,7 @@ class ConstraintButtonsPanel:
         self.draw_influence(layout, con)
 
 
-# Parent class for constraint subpanels
+# Parent class for constraint sub-panels.
 class ConstraintButtonsSubPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -1443,7 +1443,7 @@ class BONE_PT_bTransformConstraint_to(BoneConstraintPanel, ConstraintButtonsSubP
         self.draw_transform_to(context)
 
 
-# Shrinkwrap Constraint
+# Shrink-wrap Constraint.
 
 class OBJECT_PT_bShrinkwrapConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):

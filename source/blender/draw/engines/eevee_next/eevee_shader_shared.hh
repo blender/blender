@@ -83,6 +83,17 @@ enum eDebugMode : uint32_t {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Look-Up Table Generation
+ * \{ */
+
+enum PrecomputeType : uint32_t {
+  LUT_GGX_BRDF_SPLIT_SUM = 0u,
+  LUT_GGX_BTDF_SPLIT_SUM = 1u,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Sampling
  * \{ */
 
@@ -229,10 +240,12 @@ BLI_STATIC_ASSERT_ALIGN(FilmSample, 16)
 struct FilmData {
   /** Size of the film in pixels. */
   int2 extent;
-  /** Offset of the film in the full-res frame, in pixels. */
+  /** Offset to convert from Display space to Film space, in pixels. */
   int2 offset;
-  /** Extent used by the render buffers when rendering the main views. */
+  /** Size of the render buffers when rendering the main views, in pixels. */
   int2 render_extent;
+  /** Offset to convert from Film space to Render space, in pixels. */
+  int2 render_offset;
   /**
    * Sub-pixel offset applied to the window matrix.
    * NOTE: In final film pixel unit.
@@ -254,7 +267,7 @@ struct FilmData {
   bool1 any_render_pass_2;
   /** Controlled by user in lookdev mode or by render settings. */
   float background_opacity;
-  float _pad0;
+  float _pad0, _pad1, _pad2;
   /** Output counts per type. */
   int color_len, value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */
@@ -459,6 +472,8 @@ struct VolumesInfoData {
   packed_int3 tex_size;
   float light_clamp;
   packed_float3 inv_tex_size;
+  int tile_size;
+  int tile_size_lod;
   float shadow_steps;
   bool1 use_lights;
   bool1 use_soft_shadows;
@@ -466,8 +481,6 @@ struct VolumesInfoData {
   float depth_far;
   float depth_distribution;
   float _pad0;
-  float _pad1;
-  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(VolumesInfoData, 16)
 
@@ -1023,6 +1036,11 @@ struct CaptureInfoData {
   int scene_bound_x_max;
   int scene_bound_y_max;
   int scene_bound_z_max;
+  /* Max intensity a ray can have. */
+  float clamp_direct;
+  float clamp_indirect;
+  float _pad1;
+  float _pad2;
   /** Minimum distance between a grid sample and a surface. Used to compute virtual offset. */
   float min_distance_to_surface;
   /** Maximum world scale offset an irradiance grid sample can be baked with. */

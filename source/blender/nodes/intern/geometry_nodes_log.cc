@@ -553,7 +553,10 @@ static void find_tree_zone_hash_recursive(
 Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
     get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, StringRefNull modifier_name)
 {
-  const Vector<const bNodeTreePath *> tree_path = snode.treepath;
+  Vector<const bNodeTreePath *> tree_path;
+  LISTBASE_FOREACH (const bNodeTreePath *, item, &snode.treepath) {
+    tree_path.append(item);
+  }
   if (tree_path.is_empty()) {
     return {};
   }

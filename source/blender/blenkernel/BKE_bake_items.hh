@@ -6,7 +6,7 @@
 
 #include "BKE_geometry_set.hh"
 
-namespace blender::bke {
+namespace blender::bke::bake {
 
 /**
  * A "bake item" contains the baked data of e.g. one node socket at one frame. Typically, multiple
@@ -17,6 +17,22 @@ namespace blender::bke {
 class BakeItem {
  public:
   virtual ~BakeItem() = default;
+};
+
+struct BakeState {
+  /**
+   * The ids are usually correspond to socket ids, so that the mapping stays intact even if socket
+   * order changes.
+   */
+  Map<int, std::unique_ptr<BakeItem>> items_by_id;
+};
+
+/** Same as above, but does not own the bake items. */
+struct BakeStateRef {
+  Map<int, const BakeItem *> items_by_id;
+
+  BakeStateRef() = default;
+  BakeStateRef(const BakeState &bake_state);
 };
 
 class GeometryBakeItem : public BakeItem {
@@ -87,4 +103,4 @@ class StringBakeItem : public BakeItem {
   }
 };
 
-}  // namespace blender::bke
+}  // namespace blender::bke::bake

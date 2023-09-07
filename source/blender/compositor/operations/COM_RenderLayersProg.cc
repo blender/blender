@@ -4,6 +4,8 @@
 
 #include "COM_RenderLayersProg.h"
 
+#include "BLI_string.h"
+
 #include "BKE_image.h"
 
 namespace blender::compositor {

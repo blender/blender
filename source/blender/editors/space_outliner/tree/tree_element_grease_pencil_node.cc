@@ -6,6 +6,8 @@
  * \ingroup spoutliner
  */
 
+#include "BLI_listbase.h"
+
 #include "BKE_grease_pencil.hh"
 
 #include "DNA_outliner_types.h"
@@ -17,21 +19,26 @@
 namespace blender::ed::outliner {
 
 TreeElementGreasePencilNode::TreeElementGreasePencilNode(TreeElement &legacy_te,
+                                                         GreasePencil &owner_grease_pencil,
                                                          bke::greasepencil::TreeNode &node)
-    : AbstractTreeElement(legacy_te), node_(node)
+    : AbstractTreeElement(legacy_te), owner_grease_pencil_(owner_grease_pencil), node_(node)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_GREASE_PENCIL_NODE);
   legacy_te.name = node.name().c_str();
 }
 
-void TreeElementGreasePencilNode::expand(SpaceOutliner &space_outliner) const
+void TreeElementGreasePencilNode::expand(SpaceOutliner & /*space_outliner*/) const
 {
   if (!node_.is_group()) {
     return;
   }
   LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, child, &node_.as_group().children) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, child, &legacy_te_, TSE_GREASE_PENCIL_NODE, 0);
+    add_element(&legacy_te_.subtree,
+                &owner_grease_pencil_.id,
+                child,
+                &legacy_te_,
+                TSE_GREASE_PENCIL_NODE,
+                0);
   }
 }
 

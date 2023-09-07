@@ -29,6 +29,8 @@
     .grid_validity_threshold = 0.40f, \
     .grid_dilation_threshold = 0.5f, \
     .grid_dilation_radius = 1.0f, \
+    .grid_clamp_direct = 0.0f, \
+    .grid_clamp_indirect = 10.0f, \
     .surfel_density = 1.0f, \
     .distinf = 2.5f, \
     .distpar = 2.5f, \

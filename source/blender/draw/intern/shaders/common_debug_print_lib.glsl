@@ -5,10 +5,10 @@
 /**
  * Debug print implementation for shaders.
  *
- * `print()`:
+ * `drw_print()`:
  *   Log variable or strings inside the viewport.
  *   Using a unique non string argument will print the variable name with it.
- *   Concatenate by using multiple arguments. i.e: `print("Looped ", n, "times.")`.
+ *   Concatenate by using multiple arguments. i.e: `drw_print("Looped ", n, "times.")`.
  * `drw_print_no_endl()`:
  *   Same as `print()` but does not finish the line.
  * `drw_print_value()`:
@@ -29,8 +29,8 @@
  * behavior. Uncomment DISABLE_DEBUG_SHADER_drw_print_BARRIER to remove the barriers if that
  * happens. But then you are limited to a single invocation output.
  *
- * IMPORTANT: All of these are copied to the CPU debug libs (draw_debug.cc). They need to be kept
- * in sync to write the same data.
+ * IMPORTANT: All of these are copied to the CPU debug libraries (draw_debug.cc).
+ * They need to be kept in sync to write the same data.
  */
 
 #ifdef DRW_DEBUG_PRINT
@@ -221,7 +221,7 @@ void drw_print_value(bool value)
 
 #  endif
 
-/* NOTE(@fclem): This is homebrew and might not be 100% accurate (accuracy has
+/* NOTE(@fclem): This is home-brew and might not be 100% accurate (accuracy has
  * not been tested and might dependent on compiler implementation). If unsure,
  * use drw_print_value_hex and transcribe the value manually with another tool. */
 void drw_print_value(float val)

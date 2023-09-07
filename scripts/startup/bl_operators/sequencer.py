@@ -313,7 +313,7 @@ class SequencerFadesAdd(Operator):
             for point in (fade.start, fade.end):
                 keyframe_points.insert(frame=point.x, value=point.y, options={'FAST'})
         fade_fcurve.update()
-        # The graph editor and the audio waveforms only redraw upon "moving" a keyframe
+        # The graph editor and the audio wave-forms only redraw upon "moving" a keyframe.
         keyframe_points[-1].co = keyframe_points[-1].co
 
 

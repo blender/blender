@@ -13,10 +13,6 @@
 
 #include "DNA_ID.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct PackedFile;
 struct VFontData;
 
@@ -35,7 +31,3 @@ typedef struct VFont {
 } VFont;
 
 #define FO_BUILTIN_NAME "<builtin>"
-
-#ifdef __cplusplus
-}
-#endif

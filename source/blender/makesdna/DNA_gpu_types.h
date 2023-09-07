@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Keep for 'Camera' versioning. */
 /** Properties for DOF effect. */
 typedef struct GPUDOFSettings {
@@ -25,7 +21,3 @@ typedef struct GPUDOFSettings {
   int num_blades;
   int high_quality;
 } GPUDOFSettings;
-
-#ifdef __cplusplus
-}
-#endif

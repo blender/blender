@@ -202,14 +202,14 @@ static void accumululate_material_counts_mesh(
       for (const int i : range) {
         if (!mr.hide_poly[i]) {
           const int mat = std::clamp(material_indices[i], 0, last_index);
-          tri_counts[mat] += ME_FACE_TRI_TOT(faces[i].size());
+          tri_counts[mat] += bke::mesh::face_triangles_num(faces[i].size());
         }
       }
     }
     else {
       for (const int i : range) {
         const int mat = std::clamp(material_indices[i], 0, last_index);
-        tri_counts[mat] += ME_FACE_TRI_TOT(faces[i].size());
+        tri_counts[mat] += bke::mesh::face_triangles_num(faces[i].size());
       }
     }
   });

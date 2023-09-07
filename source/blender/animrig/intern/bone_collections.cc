@@ -9,6 +9,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math_color.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -19,6 +20,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_animsys.h"
+#include "BKE_idprop.h"
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.h"
@@ -35,21 +37,21 @@ namespace {
 /** Default flags for new bone collections. */
 constexpr eBoneCollection_Flag default_flags = BONE_COLLECTION_VISIBLE |
                                                BONE_COLLECTION_SELECTABLE;
+constexpr auto bonecoll_default_name = "Bones";
 }  // namespace
 
 BoneCollection *ANIM_bonecoll_new(const char *name)
 {
   if (name == nullptr || name[0] == '\0') {
     /* Use a default name if no name was given. */
-    name = "Bones";
+    name = bonecoll_default_name;
   }
 
   /* Note: the collection name may change after the collection is added to an
    * armature, to ensure it is unique within the armature. */
-  std::string alloc_name = std::string(__func__) + "('" + name + "')";
-  BoneCollection *bcoll = MEM_cnew<BoneCollection>(alloc_name.c_str());
+  BoneCollection *bcoll = MEM_cnew<BoneCollection>(__func__);
 
-  BLI_strncpy(bcoll->name, name, sizeof(bcoll->name));
+  STRNCPY_UTF8(bcoll->name, name);
   bcoll->flags = default_flags;
 
   bcoll->prop = nullptr;
@@ -62,6 +64,9 @@ void ANIM_bonecoll_free(BoneCollection *bcoll)
   BLI_assert_msg(BLI_listbase_is_empty(&bcoll->bones),
                  "bone collection still has bones assigned to it, will cause dangling pointers in "
                  "bone runtime data");
+  if (bcoll->prop) {
+    IDP_FreeProperty(bcoll->prop);
+  }
   MEM_delete(bcoll);
 }
 
@@ -92,7 +97,7 @@ static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bco
 {
   BLI_uniquename(&armature->collections,
                  bcoll,
-                 "Bones",
+                 bonecoll_default_name,
                  '.',
                  offsetof(BoneCollection, name),
                  sizeof(bcoll->name));
@@ -151,7 +156,7 @@ void ANIM_armature_bonecoll_active_index_set(bArmature *armature, const int bone
 
 bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, const int step)
 {
-  if (bcoll == NULL) {
+  if (bcoll == nullptr) {
     return false;
   }
 
@@ -169,9 +174,9 @@ void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll,
 {
   char old_name[sizeof(bcoll->name)];
 
-  BLI_strncpy(old_name, bcoll->name, sizeof(bcoll->name));
+  STRNCPY(old_name, bcoll->name);
 
-  BLI_strncpy(bcoll->name, name, sizeof(bcoll->name));
+  STRNCPY_UTF8(bcoll->name, name);
   bonecoll_ensure_name_unique(armature, bcoll);
 
   BKE_animdata_fix_paths_rename_all(&armature->id, "collections", old_name, bcoll->name);
@@ -309,7 +314,7 @@ bool ANIM_armature_bonecoll_unassign_editbone(BoneCollection *bcoll, EditBone *e
   return was_found;
 }
 
-void ANIM_armature_bonecoll_reconstruct(struct bArmature *armature)
+void ANIM_armature_bonecoll_reconstruct(bArmature *armature)
 {
   /* Remove all the old collection memberships. */
   LISTBASE_FOREACH (BoneCollection *, bcoll, &armature->collections) {
@@ -343,12 +348,11 @@ static bool any_bone_collection_visible(const ListBase /*BoneCollectionRef*/ *co
 /* TODO: these two functions were originally implemented for armature layers, hence the armature
  * parameters. These should be removed at some point. */
 
-bool ANIM_bonecoll_is_visible(const struct bArmature * /*armature*/, const struct Bone *bone)
+bool ANIM_bonecoll_is_visible(const bArmature * /*armature*/, const Bone *bone)
 {
   return any_bone_collection_visible(&bone->runtime.collections);
 }
-bool ANIM_bonecoll_is_visible_editbone(const struct bArmature * /*armature*/,
-                                       const struct EditBone *ebone)
+bool ANIM_bonecoll_is_visible_editbone(const bArmature * /*armature*/, const EditBone *ebone)
 {
   return any_bone_collection_visible(&ebone->bone_collections);
 }

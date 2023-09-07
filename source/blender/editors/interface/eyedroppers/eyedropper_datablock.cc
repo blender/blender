@@ -181,8 +181,7 @@ static void datadropper_id_sample_pt(
             }
           }
 
-          PointerRNA idptr;
-          RNA_id_pointer_create(id, &idptr);
+          PointerRNA idptr = RNA_id_pointer_create(id);
 
           if (id && RNA_property_pointer_poll(&ddr->ptr, ddr->prop, &idptr)) {
             SNPRINTF(ddr->name, "%s: %s", ddr->idcode_name, id->name + 2);
@@ -203,9 +202,7 @@ static void datadropper_id_sample_pt(
 /* sets the ID, returns success */
 static bool datadropper_id_set(bContext *C, DataDropper *ddr, ID *id)
 {
-  PointerRNA ptr_value;
-
-  RNA_id_pointer_create(id, &ptr_value);
+  PointerRNA ptr_value = RNA_id_pointer_create(id);
 
   RNA_property_pointer_set(&ddr->ptr, ddr->prop, ptr_value, nullptr);
 

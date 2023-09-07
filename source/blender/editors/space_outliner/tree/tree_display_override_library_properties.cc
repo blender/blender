@@ -87,8 +87,7 @@ ListBase TreeDisplayOverrideLibraryProperties::add_library_contents(Main &mainva
     ListBase *lb_to_expand = &tree;
 
     if (!filter_id_type) {
-      id_base_te = outliner_add_element(
-          &space_outliner_, &tree, lbarray[a], nullptr, TSE_ID_BASE, 0);
+      id_base_te = add_element(&tree, nullptr, lbarray[a], nullptr, TSE_ID_BASE, 0);
       id_base_te->directdata = lbarray[a];
       id_base_te->name = outliner_idcode_to_plural(GS(id->name));
 
@@ -97,8 +96,8 @@ ListBase TreeDisplayOverrideLibraryProperties::add_library_contents(Main &mainva
 
     for (ID *id : List<ID>(lbarray[a])) {
       if (ID_IS_OVERRIDE_LIBRARY_REAL(id) && !ID_IS_LINKED(id)) {
-        TreeElement *override_tree_element = outliner_add_element(
-            &space_outliner_, lb_to_expand, id, id_base_te, TSE_LIBRARY_OVERRIDE_BASE, 0);
+        TreeElement *override_tree_element = add_element(
+            lb_to_expand, id, nullptr, id_base_te, TSE_LIBRARY_OVERRIDE_BASE, 0);
 
         if (BLI_listbase_is_empty(&override_tree_element->subtree)) {
           outliner_free_tree_element(override_tree_element, lb_to_expand);

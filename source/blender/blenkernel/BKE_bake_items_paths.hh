@@ -11,7 +11,7 @@
 #include "BLI_sub_frame.hh"
 #include "BLI_vector.hh"
 
-namespace blender::bke::bake_paths {
+namespace blender::bke::bake {
 
 struct MetaFile {
   SubFrame frame;
@@ -25,10 +25,10 @@ struct BakePath {
    * Path to the directory that contains the binary data. Could be shared between multiple bakes
    * to reduce memory consumption.
    */
-  std::string bdata_dir;
+  std::string blobs_dir;
   /**
    * Folder that is allowed to be deleted when the bake is deleted and it doesn't contain anything
-   * else. Typically, this contains the meta and bdata directories.
+   * else. Typically, this contains the meta and blob directories.
    */
   std::optional<std::string> bake_dir;
 
@@ -40,4 +40,4 @@ std::optional<SubFrame> file_name_to_frame(const StringRefNull file_name);
 
 Vector<MetaFile> find_sorted_meta_files(const StringRefNull meta_dir);
 
-}  // namespace blender::bke::bake_paths
+}  // namespace blender::bke::bake

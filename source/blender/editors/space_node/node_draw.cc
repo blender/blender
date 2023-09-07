@@ -28,6 +28,7 @@
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -361,8 +362,7 @@ static bool node_update_basis_buttons(
     return false;
   }
 
-  PointerRNA nodeptr;
-  RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
+  PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
 
   /* Get "global" coordinates. */
   float2 loc = node_to_view(node, float2(0));
@@ -411,9 +411,8 @@ static bool node_update_basis_socket(const bContext &C,
   }
 
   const int topy = locy;
-  PointerRNA nodeptr, sockptr;
-  RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
-  RNA_pointer_create(&ntree.id, &RNA_NodeSocket, &socket, &sockptr);
+  PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
+  PointerRNA sockptr = RNA_pointer_create(&ntree.id, &RNA_NodeSocket, &socket);
 
   const eNodeSocketInOut in_out = eNodeSocketInOut(socket.in_out);
 
@@ -481,42 +480,42 @@ static void node_update_basis_from_declaration(
 
   BLI_assert(is_node_panels_supported(node));
   BLI_assert(node.runtime->panels.size() == node.num_panel_states);
-
   const nodes::NodeDeclaration &decl = *node.declaration();
-  const bool has_buttons = node_update_basis_buttons(C, ntree, node, block, locy);
+  /* Checked at various places to avoid adding duplicate spacers without anything in between. */
+  bool need_spacer_after_item = false;
+
+  /* Space at the top. */
+  locy -= NODE_DYS / 2;
+
+  need_spacer_after_item = node_update_basis_buttons(C, ntree, node, block, locy);
 
   bNodeSocket *current_input = static_cast<bNodeSocket *>(node.inputs.first);
   bNodeSocket *current_output = static_cast<bNodeSocket *>(node.outputs.first);
   bNodePanelState *current_panel_state = node.panel_states_array;
   bke::bNodePanelRuntime *current_panel_runtime = node.runtime->panels.begin();
-  bool has_sockets = false;
 
   /* The panel stack keeps track of the hierarchy of panels. When a panel declaration is found a
    * new #PanelUpdate is added to the stack. Items in the declaration are added to the top panel of
    * the stack. Each panel expects a number of items to be added, after which the panel is removed
    * from the stack again. */
   struct PanelUpdate {
-    /* How many items still to add. */
-    int remaining_items;
+    /* How many declarations still to add. */
+    int remaining_decls;
     /* True if the panel or its parent is collapsed. */
     bool is_collapsed;
     /* Location data, needed to finalize the panel when all items have been added. */
     bke::bNodePanelRuntime *runtime;
   };
 
+  bool is_first = true;
   Stack<PanelUpdate> panel_updates;
   for (const nodes::ItemDeclarationPtr &item_decl : decl.items) {
     bool is_parent_collapsed = false;
     if (PanelUpdate *parent_update = panel_updates.is_empty() ? nullptr : &panel_updates.peek()) {
       /* Adding an item to the parent panel, will be popped when reaching 0. */
-      BLI_assert(parent_update->remaining_items > 0);
-      --parent_update->remaining_items;
+      BLI_assert(parent_update->remaining_decls > 0);
+      --parent_update->remaining_decls;
       is_parent_collapsed = parent_update->is_collapsed;
-    }
-
-    /* Space after header and between items. */
-    if (!is_parent_collapsed) {
-      locy -= NODE_SOCKDY;
     }
 
     if (nodes::PanelDeclaration *panel_decl = dynamic_cast<nodes::PanelDeclaration *>(
@@ -526,13 +525,14 @@ static void node_update_basis_from_declaration(
 
       if (!is_parent_collapsed) {
         locy -= NODE_DY;
+        is_first = false;
       }
 
       SET_FLAG_FROM_TEST(
           current_panel_state->flag, is_parent_collapsed, NODE_PANEL_PARENT_COLLAPSED);
       /* New top panel is collapsed if self or parent is collapsed. */
       const bool is_collapsed = is_parent_collapsed || current_panel_state->is_collapsed();
-      panel_updates.push({panel_decl->num_items, is_collapsed, current_panel_runtime});
+      panel_updates.push({panel_decl->num_child_decls, is_collapsed, current_panel_runtime});
 
       /* Round the socket location to stop it from jiggling. */
       current_panel_runtime->location_y = round(locy + NODE_DYS);
@@ -553,8 +553,14 @@ static void node_update_basis_from_declaration(
             current_input->runtime->location = float2(locx, round(locy + NODE_DYS));
           }
           else {
-            has_sockets |= node_update_basis_socket(
-                C, ntree, node, *current_input, block, locx, locy);
+            /* Space between items. */
+            if (!is_first && current_input->is_visible()) {
+              locy -= NODE_SOCKDY;
+            }
+            if (node_update_basis_socket(C, ntree, node, *current_input, block, locx, locy)) {
+              is_first = false;
+              need_spacer_after_item = true;
+            }
           }
           current_input = current_input->next;
           break;
@@ -568,8 +574,14 @@ static void node_update_basis_from_declaration(
                                                        round(locy + NODE_DYS));
           }
           else {
-            has_sockets |= node_update_basis_socket(
-                C, ntree, node, *current_output, block, locx, locy);
+            /* Space between items. */
+            if (!is_first && current_output->is_visible()) {
+              locy -= NODE_SOCKDY;
+            }
+            if (node_update_basis_socket(C, ntree, node, *current_output, block, locx, locy)) {
+              is_first = false;
+              need_spacer_after_item = true;
+            }
           }
           current_output = current_output->next;
           break;
@@ -579,7 +591,7 @@ static void node_update_basis_from_declaration(
     /* Close parent panels that have all items added. */
     while (!panel_updates.is_empty()) {
       PanelUpdate &top_panel = panel_updates.peek();
-      if (top_panel.remaining_items > 0) {
+      if (top_panel.remaining_decls > 0) {
         /* Incomplete panel, continue adding items. */
         break;
       }
@@ -592,9 +604,9 @@ static void node_update_basis_from_declaration(
   /* Enough items should have been added to close all panels. */
   BLI_assert(panel_updates.is_empty());
 
-  /* Little bit of space in end. */
-  if (has_sockets || !has_buttons) {
+  if (need_spacer_after_item) {
     locy -= NODE_DYS / 2;
+    need_spacer_after_item = false;
   }
 }
 
@@ -658,9 +670,6 @@ static void node_update_basis(const bContext &C,
                               bNode &node,
                               uiBlock &block)
 {
-  PointerRNA nodeptr;
-  RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
-
   /* Get "global" coordinates. */
   float2 loc = node_to_view(node, float2(0));
   /* Round the node origin because text contents are always pixel-aligned. */
@@ -1564,10 +1573,6 @@ static void node_draw_sockets(const View2D &v2d,
     return;
   }
 
-  PointerRNA node_ptr;
-  RNA_pointer_create(
-      &const_cast<ID &>(ntree.id), &RNA_Node, &const_cast<bNode &>(node), &node_ptr);
-
   bool selected = false;
 
   GPUVertFormat *format = immVertexFormat();
@@ -1752,6 +1757,12 @@ static void node_draw_panels_background(const bNode &node, uiBlock &block)
 
   const nodes::NodeDeclaration &decl = *node.declaration();
   const rctf &rct = node.runtime->totr;
+  float color_panel[4];
+  UI_GetThemeColorBlend4f(TH_BACK, TH_NODE, 0.2f, color_panel);
+
+  /* True if the last panel is open, draw bottom gap as background. */
+  bool is_last_panel_visible = false;
+  float last_panel_content_y = 0.0f;
 
   int panel_i = 0;
   for (const nodes::ItemDeclarationPtr &item_decl : decl.items) {
@@ -1763,31 +1774,38 @@ static void node_draw_panels_background(const bNode &node, uiBlock &block)
     }
 
     const bNodePanelState &state = node.panel_states()[panel_i];
+    const bke::bNodePanelRuntime &runtime = node.runtime->panels[panel_i];
+
     /* Don't draw hidden or collapsed panels. */
-    if (state.is_collapsed() || state.is_parent_collapsed()) {
+    const bool is_visible = !(state.is_collapsed() || state.is_parent_collapsed());
+    is_last_panel_visible = is_visible;
+    last_panel_content_y = runtime.max_content_y;
+    if (!is_visible) {
       ++panel_i;
       continue;
     }
-    const bke::bNodePanelRuntime &runtime = node.runtime->panels[panel_i];
-
-    const rctf content_rect = {
-        rct.xmin,
-        rct.xmax,
-        runtime.min_content_y,
-        runtime.max_content_y,
-    };
 
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
 
     /* Panel background. */
-    float color_panel[4];
-    UI_GetThemeColorBlend4f(TH_BACK, TH_NODE, 0.2f, color_panel);
+    const rctf content_rect = {rct.xmin, rct.xmax, runtime.min_content_y, runtime.max_content_y};
     UI_draw_roundbox_corner_set(UI_CNR_NONE);
     UI_draw_roundbox_4fv(&content_rect, true, BASIS_RAD, color_panel);
 
     UI_block_emboss_set(&block, UI_EMBOSS);
 
     ++panel_i;
+  }
+
+  /* If last item is an open panel, extend the panel background to cover the bottom border. */
+  if (is_last_panel_visible) {
+    UI_block_emboss_set(&block, UI_EMBOSS_NONE);
+
+    const rctf content_rect = {rct.xmin, rct.xmax, rct.ymin, last_panel_content_y};
+    UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
+    UI_draw_roundbox_4fv(&content_rect, true, BASIS_RAD, color_panel);
+
+    UI_block_emboss_set(&block, UI_EMBOSS);
   }
 }
 
@@ -1851,7 +1869,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
                           panel_decl->name.c_str(),
                           int(rct.xmin + NODE_MARGIN_X + 0.4f),
                           int(runtime.location_y - NODE_DYS),
-                          short(rct.xmax - rct.xmin - 0.35f * U.widget_unit),
+                          short(rct.xmax - rct.xmin - (30.0f * UI_SCALE_FAC)),
                           short(NODE_DY),
                           nullptr,
                           0,
@@ -1864,13 +1882,14 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
     }
 
     /* Invisible button covering the entire header for collapsing/expanding. */
+    const int header_but_margin = NODE_MARGIN_X / 3;
     but = uiDefIconBut(&block,
                        UI_BTYPE_BUT_TOGGLE,
                        0,
                        ICON_NONE,
-                       rect.xmin,
+                       rect.xmin + header_but_margin,
                        rect.ymin,
-                       rect.xmax - rect.xmin,
+                       std::max(int(rect.xmax - rect.xmin - 2 * header_but_margin), 0),
                        rect.ymax - rect.ymin,
                        nullptr,
                        0.0f,

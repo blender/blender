@@ -1614,23 +1614,23 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
     }
 
     /* Future timer, update nearest time & skip. */
-    if (wt->ntime >= time) {
+    if (wt->time_next >= time) {
       if ((has_event == false) && (sleep_us != 0)) {
         /* The timer is not ready to run but may run shortly. */
-        if (wt->ntime < ntime_min) {
-          ntime_min = wt->ntime;
+        if (wt->time_next < ntime_min) {
+          ntime_min = wt->time_next;
         }
       }
       continue;
     }
 
-    wt->delta = time - wt->ltime;
-    wt->duration += wt->delta;
-    wt->ltime = time;
+    wt->time_delta = time - wt->time_last;
+    wt->time_duration += wt->time_delta;
+    wt->time_last = time;
 
-    wt->ntime = wt->stime;
-    if (wt->timestep != 0.0f) {
-      wt->ntime += wt->timestep * ceil(wt->duration / wt->timestep);
+    wt->time_next = wt->time_start;
+    if (wt->time_step != 0.0f) {
+      wt->time_next += wt->time_step * ceil(wt->time_duration / wt->time_step);
     }
 
     if (wt->event_type == TIMERJOBS) {
@@ -1961,16 +1961,16 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *time
   timer->sleep = do_sleep;
 }
 
-wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double timestep)
+wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double time_step)
 {
   wmTimer *wt = static_cast<wmTimer *>(MEM_callocN(sizeof(wmTimer), "window timer"));
-  BLI_assert(timestep >= 0.0f);
+  BLI_assert(time_step >= 0.0f);
 
   wt->event_type = event_type;
-  wt->ltime = PIL_check_seconds_timer();
-  wt->ntime = wt->ltime + timestep;
-  wt->stime = wt->ltime;
-  wt->timestep = timestep;
+  wt->time_last = PIL_check_seconds_timer();
+  wt->time_next = wt->time_last + time_step;
+  wt->time_start = wt->time_last;
+  wt->time_step = time_step;
   wt->win = win;
 
   BLI_addtail(&wm->timers, wt);
@@ -1981,16 +1981,16 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, 
 wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
                                      wmWindow *win,
                                      uint type,
-                                     double timestep)
+                                     double time_step)
 {
   wmTimer *wt = static_cast<wmTimer *>(MEM_callocN(sizeof(wmTimer), "window timer"));
-  BLI_assert(timestep >= 0.0f);
+  BLI_assert(time_step >= 0.0f);
 
   wt->event_type = TIMERNOTIFIER;
-  wt->ltime = PIL_check_seconds_timer();
-  wt->ntime = wt->ltime + timestep;
-  wt->stime = wt->ltime;
-  wt->timestep = timestep;
+  wt->time_last = PIL_check_seconds_timer();
+  wt->time_next = wt->time_last + time_step;
+  wt->time_start = wt->time_last;
+  wt->time_step = time_step;
   wt->win = win;
   wt->customdata = POINTER_FROM_UINT(type);
   wt->flags |= WM_TIMER_NO_FREE_CUSTOM_DATA;

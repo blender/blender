@@ -12,12 +12,12 @@
 #endif
 
 /**
- * Screen-Space Raytracing functions.
+ * Screen-Space Ray-tracing functions.
  */
 
 struct Ray {
   vec3 origin;
-  /* Ray direction premultiplied by its maximum length. */
+  /* Ray direction pre-multiplied by its maximum length. */
   vec3 direction;
 };
 
@@ -164,7 +164,7 @@ bool raytrace(Ray ray,
     hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride * 2.0));
 
 #ifdef METAL_AMD_RAYTRACE_WORKAROUND
-    /* For workaround, perform discard backface and background check only within
+    /* For workaround, perform discard back-face and background check only within
      * the iteration where the first successful ray intersection is registered.
      * We flag failures to discard ray hits later. */
     bool hit_valid = !(discard_backface && prev_delta < 0.0) && (depth_sample != 1.0);

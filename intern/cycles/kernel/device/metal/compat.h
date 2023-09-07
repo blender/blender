@@ -48,6 +48,11 @@ using namespace metal::raytracing;
 #define ccl_constant constant
 #define ccl_gpu_shared threadgroup
 #define ccl_private thread
+#ifdef __METALRT__
+#  define ccl_ray_data ray_data
+#else
+#  define ccl_ray_data ccl_private
+#endif
 #define ccl_may_alias
 #define ccl_restrict __restrict
 #define ccl_loop_no_unroll

@@ -255,13 +255,12 @@ int UI_pie_menu_invoke_from_rna_enum(bContext *C,
                                      const char *path,
                                      const wmEvent *event)
 {
-  PointerRNA ctx_ptr;
   PointerRNA r_ptr;
   PropertyRNA *r_prop;
   uiPieMenu *pie;
   uiLayout *layout;
 
-  RNA_pointer_create(nullptr, &RNA_Context, C, &ctx_ptr);
+  PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
 
   if (!RNA_path_resolve(&ctx_ptr, path, &r_ptr, &r_prop)) {
     return OPERATOR_CANCELLED;

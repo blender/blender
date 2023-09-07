@@ -11,10 +11,6 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct LatticeDeformData;
 struct ShrinkwrapTreeData;
 
@@ -1314,7 +1310,3 @@ typedef enum eEnvelopeGpencil_Mode {
   GP_ENVELOPE_SEGMENTS = 1,
   GP_ENVELOPE_FILLS = 2,
 } eEnvelopeGpencil_Mode;
-
-#ifdef __cplusplus
-}
-#endif

@@ -37,6 +37,11 @@ void irradiance_capture_surfel(Surfel surfel, vec3 P, inout SphericalHarmonicL1 
 
   vec4 irradiance_vis = vec4(0.0);
   irradiance_vis += facing ? surfel.radiance_direct.front : surfel.radiance_direct.back;
+
+  /* Clamped brightness. */
+  float luma = max(1e-8, max_v3(irradiance_vis.rgb));
+  irradiance_vis.rgb *= 1.0 - max(0.0, luma - capture_info_buf.clamp_direct) / luma;
+
   /* NOTE: The indirect radiance is already normalized and this is wanted, because we are not
    * integrating the same signal and we would have the SH lagging behind the surfel integration
    * otherwise. */
@@ -64,6 +69,10 @@ void irradiance_capture_world(vec3 L, inout SphericalHarmonicL1 sh)
 
   if (capture_info_buf.capture_world_direct) {
     radiance = reflection_probes_world_sample(L, 0.0).rgb;
+
+    /* Clamped brightness. */
+    float luma = max(1e-8, max_v3(radiance));
+    radiance *= 1.0 - max(0.0, luma - capture_info_buf.clamp_direct) / luma;
   }
 
   if (capture_info_buf.capture_visibility_direct) {

@@ -51,7 +51,7 @@ const EnumPropertyItem rna_enum_color_palettes_items[] = {
     {19, "THEME19", ICON_COLORSET_19_VEC, "19 - Theme Color Set", ""},
     {20, "THEME20", ICON_COLORSET_20_VEC, "20 - Theme Color Set", ""},
     {-1, "CUSTOM", 0, "Custom Color Set", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 #ifdef RNA_RUNTIME
 constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
@@ -825,7 +825,7 @@ static int rna_Armature_bones_lookup_string(PointerRNA *ptr, const char *key, Po
   bArmature *arm = (bArmature *)ptr->data;
   Bone *bone = BKE_armature_find_bone_name(arm, key);
   if (bone) {
-    RNA_pointer_create(ptr->owner_id, &RNA_Bone, bone, r_ptr);
+    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Bone, bone);
     return true;
   }
   else {
@@ -881,15 +881,15 @@ static void rna_def_bonecolor(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_BoneColor_path");
 
   prop = RNA_def_property(srna, "palette", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "palette_index");
+  RNA_def_property_enum_sdna(prop, nullptr, "palette_index");
   RNA_def_property_enum_items(prop, rna_enum_color_palettes_items);
-  RNA_def_property_enum_funcs(prop, NULL, "rna_BoneColor_palette_index_set", NULL);
+  RNA_def_property_enum_funcs(prop, nullptr, "rna_BoneColor_palette_index_set", nullptr);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Color Set", "Color palette to use");
   RNA_def_property_update(prop, 0, "rna_BoneColor_update");
 
   prop = RNA_def_property(srna, "is_custom", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(prop, "rna_BoneColor_is_custom_get", NULL);
+  RNA_def_property_boolean_funcs(prop, "rna_BoneColor_is_custom_get", nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop,
@@ -1714,19 +1714,19 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
   PropertyRNA *parm;
 
   RNA_def_property_srna(cprop, "BoneCollections");
-  srna = RNA_def_struct(brna, "BoneCollections", NULL);
+  srna = RNA_def_struct(brna, "BoneCollections", nullptr);
   RNA_def_struct_sdna(srna, "bArmature");
   RNA_def_struct_ui_text(
       srna, "Armature Bone Collections", "The Bone Collections of this Armature");
 
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoneCollection");
-  RNA_def_property_pointer_sdna(prop, NULL, "active_collection");
+  RNA_def_property_pointer_sdna(prop, nullptr, "active_collection");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Active Collection", "Armature's active bone collection");
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "runtime.active_collection_index");
+  RNA_def_property_int_sdna(prop, nullptr, "runtime.active_collection_index");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Active Collection Index",
@@ -1742,7 +1742,7 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Add a new empty bone collection to the armature");
   parm = RNA_def_string(func,
                         "name",
-                        NULL,
+                        nullptr,
                         0,
                         "Name",
                         "Name of the new collection. Blender will ensure it is unique within the "
@@ -1859,7 +1859,7 @@ static void rna_def_armature(BlenderRNA *brna)
   rna_def_armature_edit_bones(brna, prop);
 
   prop = RNA_def_property(srna, "collections", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "collections", NULL);
+  RNA_def_property_collection_sdna(prop, nullptr, "collections", nullptr);
   RNA_def_property_struct_type(prop, "BoneCollection");
   RNA_def_property_ui_text(prop, "Bone Collections", "");
   rna_def_armature_collections(brna, prop);
@@ -1948,22 +1948,24 @@ static void rna_def_bonecollection(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "BoneCollection", NULL);
+  srna = RNA_def_struct(brna, "BoneCollection", nullptr);
   RNA_def_struct_ui_text(srna, "BoneCollection", "Bone collection in an Armature data-block");
   RNA_def_struct_path_func(srna, "rna_BoneCollection_path");
   RNA_def_struct_idprops_func(srna, "rna_BoneCollection_idprops");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "name");
+  RNA_def_property_string_sdna(prop, nullptr, "name");
   RNA_def_property_ui_text(prop, "Name", "Unique within the Armature");
   RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_BoneCollection_name_set");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_BoneCollection_name_set");
   // RNA_def_property_update(prop, 0, "rna_Bone_update_renamed");
 
   prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_VISIBLE);
   RNA_def_property_ui_text(
       prop, "Visible", "Bones in this collection will be visible in pose/object mode");
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, nullptr);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 

@@ -503,10 +503,10 @@ class TOPBAR_MT_file_export(Menu):
                 "wm.usd_export", text="Universal Scene Description (.usd*)")
 
         if bpy.app.build_options.io_gpencil:
-            # Pugixml lib dependency
+            # PUGIXML library dependency.
             if bpy.app.build_options.pugixml:
                 self.layout.operator("wm.gpencil_export_svg", text="Grease Pencil as SVG")
-            # Haru lib dependency
+            # HARU library dependency.
             if bpy.app.build_options.haru:
                 self.layout.operator("wm.gpencil_export_pdf", text="Grease Pencil as PDF")
 
@@ -603,19 +603,13 @@ class TOPBAR_MT_edit(Menu):
 
         layout.operator("ed.undo")
         layout.operator("ed.redo")
-
-        layout.separator()
-
         layout.menu("TOPBAR_MT_undo_history")
 
         layout.separator()
 
+        layout.operator("screen.redo_last", text="Adjust Last Operation...")
         layout.operator("screen.repeat_last")
         layout.operator("screen.repeat_history", text="Repeat History...")
-
-        layout.separator()
-
-        layout.operator("screen.redo_last", text="Adjust Last Operation...")
 
         layout.separator()
 
@@ -699,45 +693,27 @@ class TOPBAR_MT_help(Menu):
 
         show_developer = context.preferences.view.show_developer_ui
 
-        layout.operator("wm.url_open_preset", text="Manual",
-                        icon='HELP').type = 'MANUAL'
-
-        layout.operator(
-            "wm.url_open", text="Tutorials", icon='URL',
-        ).url = "https://www.blender.org/tutorials"
-        layout.operator(
-            "wm.url_open", text="Support", icon='URL',
-        ).url = "https://www.blender.org/support"
+        layout.operator("wm.url_open_preset", text="Manual", icon='URL').type = 'MANUAL'
+        layout.operator("wm.url_open_preset", text="Release Notes").type = 'RELEASE_NOTES'
+        layout.operator("wm.url_open", text="Tutorials").url = "https://www.blender.org/tutorials"
+        layout.operator("wm.url_open", text="Support").url = "https://www.blender.org/support"
+        layout.operator("wm.url_open", text="User Communities").url = "https://www.blender.org/community/"
 
         layout.separator()
-
-        layout.operator(
-            "wm.url_open", text="User Communities", icon='URL',
-        ).url = "https://www.blender.org/community/"
-        layout.operator(
-            "wm.url_open", text="Developer Community", icon='URL',
-        ).url = "https://devtalk.blender.org"
-
-        layout.separator()
-
-        layout.operator(
-            "wm.url_open_preset", text="Python API Reference", icon='URL',
-        ).type = 'API'
 
         if show_developer:
             layout.operator(
-                "wm.url_open", text="Developer Documentation", icon='URL',
+                "wm.url_open",
+                text="Developer Documentation",
+                icon='URL',
             ).url = "https://wiki.blender.org/wiki/Main_Page"
-
+            layout.operator("wm.url_open", text="Developer Community").url = "https://devtalk.blender.org"
+            layout.operator("wm.url_open_preset", text="Python API Reference").type = 'API'
             layout.operator("wm.operator_cheat_sheet", icon='TEXT')
 
         layout.separator()
 
-        layout.operator("wm.url_open_preset",
-                        text="Report a Bug", icon='URL').type = 'BUG'
-
-        layout.separator()
-
+        layout.operator("wm.url_open_preset", text="Report a Bug", icon='URL').type = 'BUG'
         layout.operator("wm.sysinfo")
 
 

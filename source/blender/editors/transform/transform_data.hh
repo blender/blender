@@ -79,9 +79,11 @@ struct TransDataExtension {
   /** Use instead of #TransData.smtx,
    * It is the same but without the #Bone.bone_mat, see #TD_PBONE_LOCAL_MTX_C. */
   float l_smtx[3][3];
-  /** The rotscale matrix of pose bone, to allow using snap-align in translation mode,
-   * when #TransData.mtx is the loc pose bone matrix (and hence can't be used to apply
-   * rotation in some cases, namely when a bone is in "No-Local" or "Hinge" mode)... */
+  /**
+   * The rotation & scale matrix of pose bone, to allow using snap-align in translation mode,
+   * when #TransData.mtx is the location pose bone matrix (and hence can't be used to apply
+   * rotation in some cases, namely when a bone is in "No-Local" or "Hinge" mode).
+   */
   float r_mtx[3][3];
   /** Inverse of previous one. */
   float r_smtx[3][3];

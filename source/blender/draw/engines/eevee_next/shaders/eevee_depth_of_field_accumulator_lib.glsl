@@ -5,7 +5,7 @@
 /**
  * Depth of Field Gather accumulator.
  * We currently have only 2 which are very similar.
- * One is for the halfres gather passes and the other one for slight in focus regions.
+ * One is for the half-resolution gather passes and the other one for slight in focus regions.
  */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -376,7 +376,7 @@ void dof_gather_accumulate_resolve(int total_sample_count,
 float dof_load_gather_coc(sampler2D gather_input_coc_tx, vec2 uv, float lod)
 {
   float coc = textureLod(gather_input_coc_tx, uv, lod).r;
-  /* We gather at halfres. CoC must be divided by 2 to be compared against radii. */
+  /* We gather at half-resolution. CoC must be divided by 2 to be compared against radii. */
   return coc * 0.5;
 }
 
@@ -386,7 +386,7 @@ float dof_load_gather_coc(sampler2D gather_input_coc_tx, vec2 uv, float lod)
 /** \name Common Gather accumulator.
  * \{ */
 
-/* Radii needs to be halfres CoC sizes. */
+/* Radii needs to be half-resolution CoC sizes. */
 bool dof_do_density_change(float base_radius, float min_intersectable_radius)
 {
   /* Reduce artifact for very large blur. */

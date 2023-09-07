@@ -7,7 +7,6 @@
  * See eShadowDebug for more information.
  */
 
-#pragma BLENDER_REQUIRE(common_debug_print_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
@@ -32,10 +31,12 @@ vec3 debug_random_color(int v)
 
 void debug_tile_print(ShadowTileData tile, ivec4 tile_coord)
 {
+#ifdef DRW_DEBUG_PRINT
   drw_print("Tile (", tile_coord.x, ",", tile_coord.y, ") in Tilemap ", tile_coord.z, " : ");
   drw_print(tile.lod);
   drw_print(tile.page);
   drw_print(tile.cache_index);
+#endif
 }
 
 vec3 debug_tile_state_color(ShadowTileData tile)
@@ -104,7 +105,8 @@ bool debug_tilemaps(vec3 P, LightData light)
   if ((px.y < SHADOW_TILEMAP_RES) && (tilemap_index <= light_tilemap_max_get(light))) {
     /* Debug actual values in the tile-map buffer. */
     ShadowTileMapData tilemap = tilemaps_buf[tilemap_index];
-    int tile_index = shadow_tile_offset(px % SHADOW_TILEMAP_RES, tilemap.tiles_index, 0);
+    int tile_index = shadow_tile_offset(
+        (px + SHADOW_TILEMAP_RES) % SHADOW_TILEMAP_RES, tilemap.tiles_index, 0);
     ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
     /* Leave 1 px border between tile-maps. */
     if (!any(equal(ivec2(gl_FragCoord.xy) % (SHADOW_TILEMAP_RES * debug_tile_size_px), ivec2(0))))
@@ -113,9 +115,11 @@ bool debug_tilemaps(vec3 P, LightData light)
       out_color_add = vec4(debug_tile_state_color(tile), 0.0);
       out_color_mul = vec4(0.0);
 
+#ifdef DRW_DEBUG_PRINT
       if (all(equal(ivec2(gl_FragCoord.xy), ivec2(0)))) {
         drw_print(light.object_mat);
       }
+#endif
       return true;
     }
   }
@@ -139,7 +143,7 @@ void debug_atlas_values(vec3 P, LightData light)
 void debug_random_tile_color(vec3 P, LightData light)
 {
   ShadowSample samp = debug_tile_get(P, light);
-  out_color_add = vec4(debug_random_color(ivec2(samp.tile.page)), 0) * 0.5;
+  out_color_add = vec4(debug_random_color(ivec2(samp.tile.page.xy)), 0) * 0.5;
   out_color_mul = vec4(0.5);
 }
 

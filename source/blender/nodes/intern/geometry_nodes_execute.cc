@@ -9,6 +9,7 @@
 #include "BLI_math_color.hh"
 #include "BLI_math_euler.hh"
 #include "BLI_math_quaternion.hh"
+#include "BLI_string.h"
 
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"

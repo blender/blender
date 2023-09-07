@@ -436,13 +436,11 @@ static bool bpy_lib_exit_lapp_context_items_cb(BlendfileLinkAppendContext *lapp_
 
   PyObject *py_item;
   if (liboverride_id != nullptr) {
-    PointerRNA newid_ptr;
-    RNA_id_pointer_create(liboverride_id, &newid_ptr);
+    PointerRNA newid_ptr = RNA_id_pointer_create(liboverride_id);
     py_item = pyrna_struct_CreatePyObject(&newid_ptr);
   }
   else if (new_id != nullptr) {
-    PointerRNA newid_ptr;
-    RNA_id_pointer_create(new_id, &newid_ptr);
+    PointerRNA newid_ptr = RNA_id_pointer_create(new_id);
     py_item = pyrna_struct_CreatePyObject(&newid_ptr);
   }
   else {

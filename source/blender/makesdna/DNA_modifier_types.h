@@ -15,19 +15,12 @@
 #include "DNA_session_uuid_types.h"
 
 #ifdef __cplusplus
-namespace blender::bke::sim {
-struct ModifierSimulationCachePtr;
-}
 namespace blender {
 struct NodesModifierRuntime;
 }
 using NodesModifierRuntimeHandle = blender::NodesModifierRuntime;
 #else
 typedef struct NodesModifierRuntimeHandle NodesModifierRuntimeHandle;
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
@@ -2340,8 +2333,18 @@ typedef struct NodesModifierData {
    * Directory where baked simulation states are stored. This may be relative to the .blend file.
    */
   char *simulation_bake_directory;
+
+  /** NodesModifierFlag. */
+  int8_t flag;
+
+  char _pad[7];
+
   NodesModifierRuntimeHandle *runtime;
 } NodesModifierData;
+
+typedef enum NodesModifierFlag {
+  NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR = (1 << 0),
+} NodesModifierFlag;
 
 typedef struct MeshToVolumeModifierData {
   ModifierData modifier;
@@ -2422,7 +2425,3 @@ typedef enum VolumeToMeshResolutionMode {
 typedef enum VolumeToMeshFlag {
   VOLUME_TO_MESH_USE_SMOOTH_SHADE = 1 << 0,
 } VolumeToMeshFlag;
-
-#ifdef __cplusplus
-}
-#endif

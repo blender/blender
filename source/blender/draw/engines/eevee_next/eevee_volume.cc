@@ -86,6 +86,9 @@ void VolumeModule::init()
   const float2 viewport_size = float2(inst_.film.render_extent_get());
   const int tile_size = scene_eval->eevee.volumetric_tile_size;
 
+  data_.tile_size = tile_size;
+  data_.tile_size_lod = int(log2(tile_size));
+
   /* Find Froxel Texture resolution. */
   int3 tex_size = int3(math::ceil(math::max(float2(1.0f), viewport_size / float(tile_size))), 0);
   tex_size.z = std::max(1, scene_eval->eevee.volumetric_samples);
@@ -254,16 +257,18 @@ void VolumeModule::end_sync()
   scatter_ps_.shader_set(inst_.shaders.static_shader_get(
       data_.use_lights ? VOLUME_SCATTER_WITH_LIGHTS : VOLUME_SCATTER));
   inst_.lights.bind_resources(&scatter_ps_);
+  inst_.irradiance_cache.bind_resources(&scatter_ps_);
   inst_.shadows.bind_resources(&scatter_ps_);
   inst_.sampling.bind_resources(&scatter_ps_);
   scatter_ps_.bind_image("in_scattering_img", &prop_scattering_tx_);
   scatter_ps_.bind_image("in_extinction_img", &prop_extinction_tx_);
+  scatter_ps_.bind_texture("extinction_tx", &prop_extinction_tx_);
   scatter_ps_.bind_image("in_emission_img", &prop_emission_tx_);
   scatter_ps_.bind_image("in_phase_img", &prop_phase_tx_);
   scatter_ps_.bind_image("out_scattering_img", &scatter_tx_);
   scatter_ps_.bind_image("out_extinction_img", &extinction_tx_);
   /* Sync with the property pass. */
-  scatter_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  scatter_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
   scatter_ps_.dispatch(math::divide_ceil(data_.tex_size, int3(VOLUME_GROUP_SIZE)));
 
   integration_ps_.init();
@@ -290,22 +295,24 @@ void VolumeModule::end_sync()
   resolve_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 
+void VolumeModule::draw_prepass(View &view)
+{
+  if (!enabled_) {
+    return;
+  }
+
+  inst_.pipelines.world_volume.render(view);
+  inst_.pipelines.volume.render(view);
+}
+
 void VolumeModule::draw_compute(View &view)
 {
   if (!enabled_) {
     return;
   }
 
-  DRW_stats_group_start("Volumes");
-
-  inst_.pipelines.world_volume.render(view);
-  inst_.pipelines.volume.render(view);
-
   inst_.manager->submit(scatter_ps_, view);
-
   inst_.manager->submit(integration_ps_, view);
-
-  DRW_stats_group_end();
 }
 
 void VolumeModule::draw_resolve(View &view)

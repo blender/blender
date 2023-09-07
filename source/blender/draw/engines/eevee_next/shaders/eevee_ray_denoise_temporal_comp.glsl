@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Temporal Reprojection and accumulation of denoised raytraced radiance.
+ * Temporal Reprojection and accumulation of denoised ray-traced radiance.
  *
- * Dispatched at fullres using a tile list.
+ * Dispatched at full-resolution using a tile list.
  *
  * Input: Spatially denoised radiance, Variance, Hit depth
  * Output: Stabilized Radiance, Stabilized Variance

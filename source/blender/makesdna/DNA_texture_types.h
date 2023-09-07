@@ -12,10 +12,6 @@
 #include "DNA_defs.h"
 #include "DNA_image_types.h" /* ImageUser */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct ColorBand;
 struct CurveMapping;
@@ -627,7 +623,3 @@ enum {
 };
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

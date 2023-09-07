@@ -1090,10 +1090,8 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
   LISTBASE_FOREACH (NlaStrip *, strip, &mstrip->strips) {
     /* only if scale changed, need to perform RNA updates */
     if (scaleChanged) {
-      PointerRNA ptr;
-
       /* use RNA updates to compute scale properly */
-      RNA_pointer_create(nullptr, &RNA_NlaStrip, strip, &ptr);
+      PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_NlaStrip, strip);
 
       RNA_float_set(&ptr, "frame_start", strip->start);
       RNA_float_set(&ptr, "frame_end", strip->end);
@@ -2304,7 +2302,7 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
         BKE_nlastrip_recalculate_bounds_sync_action(strip);
       }
 
-      /* clear tweakuser flag */
+      /* Clear tweak-user flag. */
       strip->flag &= ~NLASTRIP_FLAG_TWEAKUSER;
     }
   }

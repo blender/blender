@@ -21,8 +21,6 @@
 namespace blender::animrig {
 class BoneColor;
 }
-
-extern "C" {
 #endif
 
 struct AnimData;
@@ -433,6 +431,5 @@ inline blender::animrig::BoneColor &BoneColor::wrap()
 inline const blender::animrig::BoneColor &BoneColor::wrap() const
 {
   return *reinterpret_cast<const blender::animrig::BoneColor *>(this);
-}
 }
 #endif

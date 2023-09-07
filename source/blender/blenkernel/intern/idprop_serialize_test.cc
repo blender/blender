@@ -4,6 +4,8 @@
 
 #include "testing/testing.h"
 
+#include "BLI_listbase.h"
+
 #include "DNA_ID.h"
 
 #include "BKE_idprop.hh"

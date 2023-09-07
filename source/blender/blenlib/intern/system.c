@@ -75,7 +75,14 @@ void BLI_system_backtrace(FILE *fp)
   char **strings;
   int i;
 
-  /* include a backtrace for good measure */
+  /* Include a back-trace for good measure.
+   *
+   * NOTE: often values printed are addresses (no line numbers of function names),
+   * this information can be expanded using `addr2line`, a utility is included to
+   * conveniently run addr2line on the output generated here:
+   *
+   *   `./tools/utils/addr2line_backtrace.py --exe=/path/to/blender trace.txt`
+   */
   nptrs = backtrace(buffer, SIZE);
   strings = backtrace_symbols(buffer, nptrs);
   for (i = 0; i < nptrs; i++) {

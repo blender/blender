@@ -452,12 +452,10 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
 
   /* Make sure active/default color attribute (names) are brought over. */
   if (source->active_color_attribute) {
-    MEM_SAFE_FREE(target->active_color_attribute);
-    target->active_color_attribute = BLI_strdup(source->active_color_attribute);
+    BKE_id_attributes_active_color_set(&target->id, source->active_color_attribute);
   }
   if (source->default_color_attribute) {
-    MEM_SAFE_FREE(target->default_color_attribute);
-    target->default_color_attribute = BLI_strdup(source->default_color_attribute);
+    BKE_id_attributes_default_color_set(&target->id, source->default_color_attribute);
   }
 
   free_bvhtree_from_mesh(&bvhtree);

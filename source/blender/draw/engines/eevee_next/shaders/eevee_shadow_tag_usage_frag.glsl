@@ -13,8 +13,6 @@
 #pragma BLENDER_REQUIRE(eevee_shadow_tag_usage_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-#pragma BLENDER_REQUIRE(common_debug_shape_lib.glsl)
-
 float ray_aabb(vec3 ray_origin, vec3 ray_direction, vec3 aabb_min, vec3 aabb_max)
 {
   /* https://gdbooks.gitbooks.io/3dcollisions/content/Chapter3/raycast_aabb.html */
@@ -121,6 +119,6 @@ void main()
     vec3 vP = point_world_to_view(P);
 
     shadow_tag_usage(
-        vP, P, ws_view_direction, step_radius, t, gl_FragCoord.xy * exp2(float(fb_lod)));
+        vP, P, ws_view_direction, step_radius, t, gl_FragCoord.xy * exp2(float(fb_lod)), 0);
   }
 }

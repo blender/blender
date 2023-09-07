@@ -21,10 +21,10 @@ class TreeElementIDScene final : public TreeElementID {
   void expand(SpaceOutliner &) const override;
 
  private:
-  void expand_view_layers(SpaceOutliner &) const;
-  void expand_world(SpaceOutliner &) const;
-  void expand_collections(SpaceOutliner &) const;
-  void expand_objects(SpaceOutliner &) const;
+  void expand_view_layers() const;
+  void expand_world() const;
+  void expand_collections() const;
+  void expand_objects() const;
 };
 
 }  // namespace blender::ed::outliner

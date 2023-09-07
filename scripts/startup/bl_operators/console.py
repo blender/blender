@@ -10,6 +10,7 @@ from bpy.props import (
     BoolProperty,
     StringProperty,
 )
+from bpy.app.translations import contexts as i18n_contexts
 
 
 def _lang_module_get(sc):
@@ -126,6 +127,7 @@ class ConsoleLanguage(Operator):
 
     language: StringProperty(
         name="Language",
+        translation_context=i18n_contexts.editor_python_console,
         maxlen=32,
     )
 

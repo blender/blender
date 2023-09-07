@@ -1981,8 +1981,7 @@ static int pyrna_py_to_prop(
             /* Error set. */
           }
           else {
-            PointerRNA tmp;
-            RNA_pointer_create(nullptr, ptr_type, nullptr, &tmp);
+            PointerRNA tmp = RNA_pointer_create(nullptr, ptr_type, nullptr);
             PyErr_Format(PyExc_TypeError,
                          "%.200s %.200s.%.200s expected a %.200s type, not %.200s",
                          error_prefix,
@@ -4005,11 +4004,10 @@ PyDoc_STRVAR(pyrna_struct_type_recast_doc,
              "   :rtype: subclass of :class:`bpy.types.bpy_struct`\n");
 static PyObject *pyrna_struct_type_recast(BPy_StructRNA *self)
 {
-  PointerRNA r_ptr;
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  RNA_pointer_recast(&self->ptr, &r_ptr);
+  PointerRNA r_ptr = RNA_pointer_recast(&self->ptr);
   return pyrna_struct_CreatePyObject(&r_ptr);
 }
 
@@ -4096,14 +4094,13 @@ static PyObject *pyrna_struct_bl_rna_get_subclass(PyObject *cls, PyObject *args)
   }
   const StructRNA *srna_base = static_cast<const StructRNA *>(py_srna->ptr.data);
 
-  PointerRNA ptr;
   if (srna_base == &RNA_Node) {
     /* If the given idname is an alias, translate it to the proper idname. */
     id = nodeTypeFindAlias(id);
 
     bNodeType *nt = nodeTypeFind(id);
     if (nt) {
-      RNA_pointer_create(nullptr, &RNA_Struct, nt->rna_ext.srna, &ptr);
+      PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_Struct, nt->rna_ext.srna);
       return pyrna_struct_CreatePyObject(&ptr);
     }
   }
@@ -4163,11 +4160,10 @@ static void pyrna_dir_members_rna(PyObject *list, PointerRNA *ptr)
   const char *idname;
 
   /* For looping over attributes and functions. */
-  PointerRNA tptr;
   PropertyRNA *iterprop;
 
   {
-    RNA_pointer_create(nullptr, &RNA_Struct, ptr->type, &tptr);
+    PointerRNA tptr = RNA_pointer_create(nullptr, &RNA_Struct, ptr->type);
     iterprop = RNA_struct_find_property(&tptr, "functions");
 
     RNA_PROP_BEGIN (&tptr, itemptr, iterprop) {
@@ -4428,8 +4424,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
           case CTX_DATA_TYPE_PROPERTY: {
             if (newprop != nullptr) {
               /* Create pointer to parent ID, and path from ID to property. */
-              PointerRNA idptr;
-              RNA_id_pointer_create(newptr.owner_id, &idptr);
+              PointerRNA idptr = RNA_id_pointer_create(newptr.owner_id);
               char *path_str = RNA_path_from_ID_to_property(&newptr, newprop);
 
               ret = PyTuple_New(3);
@@ -4522,9 +4517,8 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
     if (srna) {
       PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, PyUnicode_AsUTF8(attr));
       if (prop) {
-        PointerRNA tptr;
         PyErr_Clear(); /* Clear error from tp_getattro. */
-        RNA_pointer_create(nullptr, &RNA_Property, prop, &tptr);
+        PointerRNA tptr = RNA_pointer_create(nullptr, &RNA_Property, prop);
         ret = pyrna_struct_CreatePyObject(&tptr);
       }
     }
@@ -4896,8 +4890,7 @@ static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self, void * /*cl
 {
   /* Used for struct and pointer since both have a ptr. */
   if (self->ptr.owner_id) {
-    PointerRNA id_ptr;
-    RNA_id_pointer_create((ID *)self->ptr.owner_id, &id_ptr);
+    PointerRNA id_ptr = RNA_id_pointer_create((ID *)self->ptr.owner_id);
     return pyrna_struct_CreatePyObject(&id_ptr);
   }
 
@@ -4914,8 +4907,7 @@ static PyObject *pyrna_struct_get_data(BPy_DummyPointerRNA *self, void * /*closu
 PyDoc_STRVAR(pyrna_struct_get_rna_type_doc, "The property type for introspection");
 static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self, void * /*closure*/)
 {
-  PointerRNA tptr;
-  RNA_pointer_create(nullptr, &RNA_Property, self->prop, &tptr);
+  PointerRNA tptr = RNA_pointer_create(nullptr, &RNA_Property, self->prop);
   return pyrna_struct_Subtype(&tptr);
 }
 
@@ -6200,14 +6192,14 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
         }
         else {
           if (RNA_struct_is_ID(ptype)) {
-            RNA_id_pointer_create(static_cast<ID *>(*(void **)data), &newptr);
+            newptr = RNA_id_pointer_create(static_cast<ID *>(*(void **)data));
           }
           else {
             /* NOTE: this is taken from the function's ID pointer
              * and will break if a function returns a pointer from
              * another ID block, watch this! - it should at least be
              * easy to debug since they are all ID's */
-            RNA_pointer_create(ptr->owner_id, ptype, *(void **)data, &newptr);
+            newptr = RNA_pointer_create(ptr->owner_id, ptype, *(void **)data);
           }
         }
 
@@ -6300,7 +6292,6 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
   PointerRNA *self_ptr = &self->ptr;
   FunctionRNA *self_func = self->func;
 
-  PointerRNA funcptr;
   ParameterList parms;
   ParameterIterator iter;
   PropertyRNA *parm;
@@ -6353,7 +6344,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
   /* include the ID pointer for pyrna_param_to_py() so we can include the
    * ID pointer on return values, this only works when returned values have
    * the same ID as the functions. */
-  RNA_pointer_create(self_ptr->owner_id, &RNA_Function, self_func, &funcptr);
+  PointerRNA funcptr = RNA_pointer_create(self_ptr->owner_id, &RNA_Function, self_func);
 
   pyargs_len = PyTuple_GET_SIZE(args);
   pykw_len = kw ? PyDict_Size(kw) : 0;
@@ -7170,7 +7161,6 @@ static void pyrna_prop_collection_iter_dealloc(BPy_PropertyCollectionIterRNA *se
 
 static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 {
-  PointerRNA ptr;
   PyObject *item;
 
   Py_INCREF(newclass);
@@ -7187,7 +7177,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
    * having an instance within a type looks wrong, but this instance _is_ an RNA type. */
 
   /* Python deals with the circular reference. */
-  RNA_pointer_create(nullptr, &RNA_Struct, srna, &ptr);
+  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_Struct, srna);
   item = pyrna_struct_CreatePyObject(&ptr);
 
   /* NOTE: must set the class not the __dict__ else the internal slots are not updated correctly.
@@ -7596,8 +7586,7 @@ PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
 PyObject *pyrna_id_CreatePyObject(ID *id)
 {
   if (id) {
-    PointerRNA ptr;
-    RNA_id_pointer_create(id, &ptr);
+    PointerRNA ptr = RNA_id_pointer_create(id);
     return pyrna_struct_CreatePyObject(&ptr);
   }
 
@@ -7699,10 +7688,9 @@ static PointerRNA *rna_module_ptr = nullptr;
 PyObject *BPY_rna_module()
 {
   BPy_StructRNA *pyrna;
-  PointerRNA ptr;
 
   /* For now, return the base RNA type rather than a real module. */
-  RNA_main_pointer_create(G_MAIN, &ptr);
+  PointerRNA ptr = RNA_main_pointer_create(G_MAIN);
   pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 
   rna_module_ptr = &pyrna->ptr;
@@ -7713,7 +7701,7 @@ void BPY_update_rna_module()
 {
   if (rna_module_ptr) {
 #if 0
-    RNA_main_pointer_create(G_MAIN, rna_module_ptr);
+    *rna_module_ptr = RNA_main_pointer_create(G_MAIN);
 #else
     rna_module_ptr->data = G_MAIN; /* Just set data is enough. */
 #endif
@@ -7725,10 +7713,9 @@ void BPY_update_rna_module()
  * without having the data-types in Blender. */
 PyObject *BPY_rna_doc()
 {
-  PointerRNA ptr;
 
   /* For now, return the base RNA type rather than a real module. */
-  RNA_blender_rna_pointer_create(&ptr);
+  PointerRNA ptr = RNA_blender_rna_pointer_create();
 
   return pyrna_struct_CreatePyObject(&ptr);
 }
@@ -7839,7 +7826,7 @@ PyObject *BPY_rna_types()
   BPy_TypesModule_State *state = static_cast<BPy_TypesModule_State *>(
       PyModule_GetState(submodule));
 
-  RNA_blender_rna_pointer_create(&state->ptr);
+  state->ptr = RNA_blender_rna_pointer_create();
   state->prop = RNA_struct_find_property(&state->ptr, "structs");
 
   /* Internal base types we have no other accessors for. */
@@ -8592,7 +8579,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     PyObject *item = PyObject_GetAttrString((PyObject *)py_class, RNA_function_identifier(func));
 
     if (item) {
-      RNA_pointer_create(nullptr, &RNA_Function, func, &funcptr);
+      funcptr = RNA_pointer_create(nullptr, &RNA_Function, func);
 
       if (is_staticmethod) {
         arg_count =
@@ -8819,13 +8806,12 @@ void pyrna_alloc_types()
 #ifdef DEBUG
   PyGILState_STATE gilstate;
 
-  PointerRNA ptr;
   PropertyRNA *prop;
 
   gilstate = PyGILState_Ensure();
 
   /* Avoid doing this lookup for every getattr. */
-  RNA_blender_rna_pointer_create(&ptr);
+  PointerRNA ptr = RNA_blender_rna_pointer_create();
   prop = RNA_struct_find_property(&ptr, "structs");
 
   RNA_PROP_BEGIN (&ptr, itemptr, prop) {
@@ -8848,11 +8834,10 @@ void pyrna_alloc_types()
 
 void pyrna_free_types()
 {
-  PointerRNA ptr;
   PropertyRNA *prop;
 
   /* Avoid doing this lookup for every getattr. */
-  RNA_blender_rna_pointer_create(&ptr);
+  PointerRNA ptr = RNA_blender_rna_pointer_create();
   prop = RNA_struct_find_property(&ptr, "structs");
 
   RNA_PROP_BEGIN (&ptr, itemptr, prop) {
@@ -9051,8 +9036,7 @@ static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props,
   LISTBASE_FOREACH (LinkData *, link, lb) {
     prop = (PropertyRNA *)link;
     if (RNA_property_type(prop) == PROP_POINTER && !RNA_property_builtin(prop)) {
-      PointerRNA tptr;
-      RNA_pointer_create(nullptr, &RNA_Struct, srna_props, &tptr);
+      PointerRNA tptr = RNA_pointer_create(nullptr, &RNA_Struct, srna_props);
 
       if (RNA_property_pointer_type(&tptr, prop) == srna) {
         *r_prop_identifier = RNA_property_identifier(prop);
@@ -9147,11 +9131,10 @@ static PyObject *pyrna_unregister_class(PyObject * /*self*/, PyObject *py_class)
   if (G.debug & G_DEBUG_PYTHON) {
     /* Remove all properties using this class. */
     StructRNA *srna_iter;
-    PointerRNA ptr_rna;
     PropertyRNA *prop_rna;
     const char *prop_identifier = nullptr;
 
-    RNA_blender_rna_pointer_create(&ptr_rna);
+    PointerRNA ptr_rna = RNA_blender_rna_pointer_create();
     prop_rna = RNA_struct_find_property(&ptr_rna, "structs");
 
     /* Loop over all structs. */

@@ -1022,6 +1022,28 @@ static blender::float2 calculate_pixels_per_unit(View2D *v2d)
   return pixels_per_unit;
 }
 
+static float calculate_pixel_distance(const rctf &bounds, const blender::float2 pixels_per_unit)
+{
+  return BLI_rctf_size_x(&bounds) * pixels_per_unit[0] +
+         BLI_rctf_size_y(&bounds) * pixels_per_unit[1];
+}
+
+static void expand_key_bounds(const BezTriple *left_key, const BezTriple *right_key, rctf &bounds)
+{
+  bounds.xmax = right_key->vec[1][0];
+  if (left_key->ipo == BEZT_IPO_BEZ) {
+    /* Respect handles of bezier keys. */
+    bounds.ymin = min_ffff(
+        bounds.ymin, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]);
+    bounds.ymax = max_ffff(
+        bounds.ymax, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]);
+  }
+  else {
+    bounds.ymax = max_ff(bounds.ymax, right_key->vec[1][1]);
+    bounds.ymin = min_ff(bounds.ymin, right_key->vec[1][1]);
+  }
+}
+
 /* Helper function - draw one repeat of an F-Curve (using Bezier curve approximations). */
 static void draw_fcurve_curve_keys(
     bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, uint pos, const bool draw_extrapolation)
@@ -1048,12 +1070,9 @@ static void draw_fcurve_curve_keys(
 
   const int2 bounding_indices = get_bounding_bezt_indices(fcu, v2d->cur.xmin, v2d->cur.xmax);
 
-  /* This happens if there is only 1 frame in the curve or the view is only showing the
-   * extrapolation zone of the curve. */
-  if (bounding_indices[0] == bounding_indices[1]) {
-    BezTriple *bezt = &fcu->bezt[bounding_indices[0]];
-    curve_vertices.append({bezt->vec[1][0], bezt->vec[1][1]});
-  }
+  /* Always add the first point so the extrapolation line doesn't jump. */
+  curve_vertices.append(
+      {fcu->bezt[bounding_indices[0]].vec[1][0], fcu->bezt[bounding_indices[0]].vec[1][1]});
 
   const blender::float2 pixels_per_unit = calculate_pixels_per_unit(v2d);
   const int window_width = BLI_rcti_size_x(&v2d->mask);
@@ -1062,10 +1081,39 @@ static void draw_fcurve_curve_keys(
   const float samples_per_pixel = 0.66f;
   const float evaluation_step = pixel_width / samples_per_pixel;
 
+  BezTriple *first_key = &fcu->bezt[bounding_indices[0]];
+  rctf key_bounds = {
+      first_key->vec[1][0], first_key->vec[1][1], first_key->vec[1][0], first_key->vec[1][1]};
+  /* Used when skipping keys. */
+  bool has_skipped_keys = false;
+  const float min_pixel_distance = 3.0f;
+
   /* Draw curve between first and last keyframe (if there are enough to do so). */
   for (int i = bounding_indices[0] + 1; i <= bounding_indices[1]; i++) {
     BezTriple *prevbezt = &fcu->bezt[i - 1];
     BezTriple *bezt = &fcu->bezt[i];
+    expand_key_bounds(prevbezt, bezt, key_bounds);
+    float pixel_distance = calculate_pixel_distance(key_bounds, pixels_per_unit);
+
+    if (pixel_distance >= min_pixel_distance && has_skipped_keys) {
+      /* When the pixel distance is greater than the threshold, and we've skipped at least one, add
+       * a point. The point position is the average of all keys from INCLUDING prevbezt to
+       * EXCLUDING bezt. prevbezt then gets reset to the key before bezt because the distance
+       * between those is potentially below the threshold. */
+      curve_vertices.append({BLI_rctf_cent_x(&key_bounds), BLI_rctf_cent_y(&key_bounds)});
+      has_skipped_keys = false;
+      key_bounds = {
+          prevbezt->vec[1][0], prevbezt->vec[1][1], prevbezt->vec[1][0], prevbezt->vec[1][1]};
+      expand_key_bounds(prevbezt, bezt, key_bounds);
+      /* Calculate again based on the new prevbezt. */
+      pixel_distance = calculate_pixel_distance(key_bounds, pixels_per_unit);
+    }
+
+    if (pixel_distance < min_pixel_distance) {
+      /* Skip any keys that are too close to each other in screen space. */
+      has_skipped_keys = true;
+      continue;
+    }
 
     switch (prevbezt->ipo) {
 
@@ -1099,11 +1147,12 @@ static void draw_fcurve_curve_keys(
       }
     }
 
-    /* Last point? */
-    if (i == bounding_indices[1]) {
-      curve_vertices.append({bezt->vec[1][0], bezt->vec[1][1]});
-    }
+    prevbezt = bezt;
   }
+
+  /* Always add the last point so the extrapolation line doesn't jump. */
+  curve_vertices.append(
+      {fcu->bezt[bounding_indices[1]].vec[1][0], fcu->bezt[bounding_indices[1]].vec[1][1]});
 
   /* Extrapolate to the right? (see code for left-extrapolation above too) */
   if (draw_extrapolation && fcu->bezt[fcu->totvert - 1].vec[1][0] < v2d->cur.xmax) {

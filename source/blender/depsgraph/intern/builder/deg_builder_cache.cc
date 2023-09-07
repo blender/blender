@@ -102,7 +102,7 @@ AnimatedPropertyStorage::AnimatedPropertyStorage() : is_fully_initialized(false)
 void AnimatedPropertyStorage::initializeFromID(DepsgraphBuilderCache *builder_cache, const ID *id)
 {
   AnimatedPropertyCallbackData data;
-  RNA_id_pointer_create(const_cast<ID *>(id), &data.pointer_rna);
+  data.pointer_rna = RNA_id_pointer_create(const_cast<ID *>(id));
   data.animated_property_storage = this;
   data.builder_cache = builder_cache;
   BKE_fcurves_id_cb(const_cast<ID *>(id), animated_property_cb, &data);

@@ -698,11 +698,11 @@ void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
  * and seeing if we can resolve it. */
 static bool check_rna_path_is_valid(ID *owner_id, const char *path)
 {
-  PointerRNA id_ptr, ptr;
+  PointerRNA ptr;
   PropertyRNA *prop = nullptr;
 
   /* make initial RNA pointer to start resolving from */
-  RNA_id_pointer_create(owner_id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(owner_id);
 
   /* try to resolve */
   return RNA_path_resolve_property(&id_ptr, path, &ptr, &prop);

@@ -33,19 +33,10 @@
  * For the purpose of transform code we need to behave as if handles are selected,
  * even when they aren't (see special case below).
  */
-static int bezt_select_to_transform_triple_flag(const BezTriple *bezt, const bool hide_handles)
+static int bezt_select_to_transform_triple_flag(const BezTriple *bezt,
+                                                const eNurbHandleTest_Mode handle_mode)
 {
-  int flag = 0;
-
-  if (hide_handles) {
-    if (bezt->f2 & SELECT) {
-      flag = (1 << 0) | (1 << 1) | (1 << 2);
-    }
-  }
-  else {
-    flag = (((bezt->f1 & SELECT) ? (1 << 0) : 0) | ((bezt->f2 & SELECT) ? (1 << 1) : 0) |
-            ((bezt->f3 & SELECT) ? (1 << 2) : 0));
-  }
+  int flag = BKE_nurb_bezt_handle_test_calc_flag(bezt, SELECT, handle_mode);
 
   /* Special case for auto & aligned handles:
    * When a center point is being moved without the handles,
@@ -83,6 +74,8 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
   View3D *v3d = static_cast<View3D *>(t->view);
   short hide_handles = (v3d != nullptr) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
                                           false;
+  const eNurbHandleTest_Mode handle_mode = hide_handles ? NURB_HANDLE_TEST_KNOT_ONLY :
+                                                          NURB_HANDLE_TEST_KNOT_OR_EACH;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Curve *cu = static_cast<Curve *>(tc->obedit->data);
@@ -99,7 +92,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
       if (nu->type == CU_BEZIER) {
         for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
           if (bezt->hide == 0) {
-            const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, hide_handles);
+            const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, handle_mode);
             if (bezt_tx & (SEL_F1 | SEL_F2 | SEL_F3)) {
               if (bezt_tx & SEL_F1) {
                 countsel++;
@@ -208,7 +201,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
             }
 
             /* Elements that will be transform (not always a match to selection). */
-            const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, hide_handles);
+            const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, handle_mode);
             has_any_selected |= bezt_tx != 0;
 
             if (is_prop_edit || bezt_tx & SEL_F1) {
@@ -410,7 +403,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
           ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT, TFM_DUMMY) == 0) {
         /* sets the handles based on their selection,
          * do this after the data is copied to the TransData */
-        BKE_nurb_handles_test(nu, !hide_handles, use_around_origins_for_handles_test);
+        BKE_nurb_handles_test(nu, handle_mode, use_around_origins_for_handles_test);
       }
     }
   }

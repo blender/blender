@@ -4,6 +4,8 @@
 
 #include <cstring>
 
+#include "BLI_string.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "NOD_geometry.hh"

@@ -56,7 +56,7 @@ class NODE_HT_header(Header):
 
                 NODE_MT_editor_menus.draw_collapsible(context, layout)
 
-                # No shader nodes for Eevee lights
+                # No shader nodes for EEVEE lights.
                 if snode_id and not (context.engine == 'BLENDER_EEVEE' and ob_type == 'LIGHT'):
                     row = layout.row()
                     row.prop(snode_id, "use_nodes")
@@ -160,6 +160,8 @@ class NODE_HT_header(Header):
                             row.template_ID(active_modifier, "node_group", new="node.new_geometry_node_group_assign")
                     else:
                         row.template_ID(snode, "node_tree", new="node.new_geometry_nodes_modifier")
+                if snode.node_tree and snode.node_tree.asset_data:
+                    layout.popover(panel="NODE_PT_geometry_node_asset_traits")
             else:
                 layout.template_ID(snode, "node_tree", new="node.new_geometry_node_group_tool")
                 if snode.node_tree and snode.node_tree.asset_data:
@@ -223,6 +225,7 @@ class NODE_MT_add(bpy.types.Menu):
     bl_space_type = 'NODE_EDITOR'
     bl_label = "Add"
     bl_translation_context = i18n_contexts.operator_default
+    bl_options = {'SEARCH_ON_KEY_PRESS'}
 
     def draw(self, context):
         import nodeitems_utils
@@ -232,20 +235,15 @@ class NODE_MT_add(bpy.types.Menu):
 
         snode = context.space_data
         if snode.tree_type == 'GeometryNodeTree':
-            props = layout.operator("node.add_search", text="Search...", icon='VIEWZOOM')
-            layout.separator()
             layout.menu_contents("NODE_MT_geometry_node_add_all")
         elif snode.tree_type == 'CompositorNodeTree':
-            props = layout.operator("node.add_search", text="Search...", icon='VIEWZOOM')
-            layout.separator()
-            layout.menu_contents("NODE_MT_compositing_node_add_all")
+            layout.menu_contents("NODE_MT_compositor_node_add_all")
+        elif snode.tree_type == 'ShaderNodeTree':
+            layout.menu_contents("NODE_MT_shader_node_add_all")
+        elif snode.tree_type == 'TextureNodeTree':
+            layout.menu_contents("NODE_MT_texture_node_add_all")
         elif nodeitems_utils.has_node_categories(context):
-            props = layout.operator("node.add_search", text="Search...", icon='VIEWZOOM')
-            props.use_transform = True
-
-            layout.separator()
-
-            # actual node submenus are defined by draw functions from node categories
+            # Actual node sub-menus are defined by draw functions from node categories.
             nodeitems_utils.draw_node_categories_menu(self, context)
 
 
@@ -444,18 +442,21 @@ class NODE_PT_geometry_node_asset_traits(Panel):
         snode = context.space_data
         group = snode.node_tree
 
-        col = layout.column(heading="Type")
-        col.prop(group, "is_tool")
-        col = layout.column(heading="Mode")
-        col.active = group.is_tool
-        col.prop(group, "is_mode_edit")
-        col.prop(group, "is_mode_sculpt")
-        col = layout.column(heading="Geometry")
-        col.active = group.is_tool
-        col.prop(group, "is_type_mesh")
-        col.prop(group, "is_type_curve")
-        if context.preferences.experimental.use_new_point_cloud_type:
-            col.prop(group, "is_type_point_cloud")
+        if snode.geometry_nodes_type == 'MODIFIER':
+            layout.prop(group, "is_modifier")
+        else:
+            col = layout.column(heading="Type")
+            col.prop(group, "is_tool")
+            col = layout.column(heading="Mode")
+            col.active = group.is_tool
+            col.prop(group, "is_mode_edit")
+            col.prop(group, "is_mode_sculpt")
+            col = layout.column(heading="Geometry")
+            col.active = group.is_tool
+            col.prop(group, "is_type_mesh")
+            col.prop(group, "is_type_curve")
+            if context.preferences.experimental.use_new_point_cloud_type:
+                col.prop(group, "is_type_point_cloud")
 
 
 class NODE_PT_node_color_presets(PresetPanel, Panel):
@@ -711,7 +712,7 @@ class NODE_PT_texture_mapping(Panel):
     bl_category = "Node"
     bl_label = "Texture Mapping"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):

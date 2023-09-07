@@ -12,10 +12,6 @@
 #include "DNA_color_types.h" /* for color management */
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct GPUTexture;
 struct MovieCache;
 struct PackedFile;
@@ -289,7 +285,3 @@ enum {
   IMA_ALPHA_CHANNEL_PACKED = 2,
   IMA_ALPHA_IGNORE = 3,
 };
-
-#ifdef __cplusplus
-}
-#endif

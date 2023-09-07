@@ -38,7 +38,7 @@ void main()
   vec4 v1 = drw_view.viewmat * boneEnd_4d;
 
   /* Clip the bone to the camera origin plane (not the clip plane)
-   * to avoid glitches if one end is behind the camera origin (in persp). */
+   * to avoid glitches if one end is behind the camera origin (in perspective mode). */
   float clip_dist = (drw_view.winmat[3][3] == 0.0) ?
                         -1e-7 :
                         1e20; /* hard-coded, -1e-8 is giving glitches. */

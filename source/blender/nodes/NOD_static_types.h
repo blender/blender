@@ -357,7 +357,7 @@ DefNode(GeometryNode, GEO_NODE_INPUT_NORMAL, 0, "INPUT_NORMAL", InputNormal, "No
 DefNode(GeometryNode, GEO_NODE_INPUT_POSITION, 0, "POSITION", InputPosition, "Position", "Retrieve a vector indicating the location of each element")
 DefNode(GeometryNode, GEO_NODE_INPUT_RADIUS, 0, "INPUT_RADIUS", InputRadius, "Radius", "Retrieve the radius at each point on curve or point cloud geometry")
 DefNode(GeometryNode, GEO_NODE_INPUT_SCENE_TIME, 0, "INPUT_SCENE_TIME", InputSceneTime, "Scene Time", "Retrieve the current time in the scene's animation in units of seconds or frames")
-DefNode(GeometryNode, GEO_NODE_INPUT_SHADE_SMOOTH, 0, "INPUT_SHADE_SMOOTH", InputShadeSmooth, "Is Shade Smooth", "Retrieve whether each face is marked for smooth shading")
+DefNode(GeometryNode, GEO_NODE_INPUT_FACE_SMOOTH, 0, "INPUT_SHADE_SMOOTH", InputShadeSmooth, "Is Face Smooth", "Retrieve whether each face is marked for smooth or sharp normals")
 DefNode(GeometryNode, GEO_NODE_INPUT_SHORTEST_EDGE_PATHS, 0, "SHORTEST_EDGE_PATHS", InputShortestEdgePaths, "Shortest Edge Paths", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_SIGNED_DISTANCE, 0, "SIGNED_DISTANCE", InputSignedDistance, "Signed Distance", "Retrieve the signed distance field grid called 'distance' from a volume")
 DefNode(GeometryNode, GEO_NODE_INPUT_SPLINE_CYCLIC, 0, "INPUT_SPLINE_CYCLIC",InputSplineCyclic, "Is Spline Cyclic", "Retrieve whether each spline endpoint connects to the beginning")
@@ -461,6 +461,7 @@ DefNode(GeometryNode, GEO_NODE_VOLUME_TO_MESH, 0, "VOLUME_TO_MESH", VolumeToMesh
 
 DefNode(GeometryNode, GEO_NODE_INTERPOLATE_CURVES, 0, "INTERPOLATE_CURVES", InterpolateCurves, "Interpolate Curves", "Generate new curves on points by interpolating between existing curves")
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_CURVES, 0, "POINTS_TO_CURVES", PointsToCurves, "Points to Curves", "Split all points to curve by its group ID and reorder by weight")
+DefNode(GeometryNode, GEO_NODE_INPUT_EDGE_SMOOTH, 0, "INPUT_EDGE_SMOOTH", InputEdgeSmooth, "Is Edge Smooth", "Retrieve whether each edge is marked for smooth or split normals")
 
 /* undefine macros */
 #undef DefNode

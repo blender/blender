@@ -9,6 +9,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_set.hh"
+#include "BLI_string.h"
 
 #include "DEG_depsgraph_query.h"
 

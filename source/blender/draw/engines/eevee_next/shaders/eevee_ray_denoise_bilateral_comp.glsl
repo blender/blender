@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Bilateral filtering of denoised raytraced radiance.
+ * Bilateral filtering of denoised ray-traced radiance.
  *
- * Dispatched at fullres using a tile list.
+ * Dispatched at full-resolution using a tile list.
  *
  * Input: Temporally Stabilized Radiance, Stabilized Variance
  * Output: Denoised radiance

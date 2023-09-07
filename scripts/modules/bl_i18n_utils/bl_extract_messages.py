@@ -1105,7 +1105,7 @@ def dump_addon_messages(module_name, do_checks, settings):
     dump_rna_messages(msgs, reports, settings)
     print("C")
 
-    # Now disable our addon, and rescan RNA.
+    # Now disable our addon, and re-scan RNA.
     utils.enable_addons(addons={module_name}, disable=True)
     print("D")
     reports["check_ctxt"] = minus_check_ctxt

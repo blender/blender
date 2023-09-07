@@ -57,7 +57,9 @@ def main():
 
     # Initializes Python classes.
     # (good place to run a profiler or trace).
-    utils.load_scripts()
+    # Postpone loading `extensions` scripts (add-ons & app-templates),
+    # until after the key-maps have been initialized.
+    utils.load_scripts(extensions=False)
 
 
 main()

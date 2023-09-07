@@ -906,7 +906,7 @@ bool WM_toolsystem_ref_properties_get_ex(bToolRef *tref,
 {
   IDProperty *group = WM_toolsystem_ref_properties_get_idprops(tref);
   IDProperty *prop = group ? IDP_GetPropertyFromGroup(group, idname) : nullptr;
-  RNA_pointer_create(nullptr, type, prop, r_ptr);
+  *r_ptr = RNA_pointer_create(nullptr, type, prop);
   return (prop != nullptr);
 }
 
@@ -917,7 +917,7 @@ void WM_toolsystem_ref_properties_ensure_ex(bToolRef *tref,
 {
   IDProperty *group = WM_toolsystem_ref_properties_ensure_idprops(tref);
   IDProperty *prop = idprops_ensure_named_group(group, idname);
-  RNA_pointer_create(nullptr, type, prop, r_ptr);
+  *r_ptr = RNA_pointer_create(nullptr, type, prop);
 }
 
 void WM_toolsystem_ref_properties_init_for_keymap(bToolRef *tref,

@@ -27,24 +27,18 @@ TreeElementModifierBase::TreeElementModifierBase(TreeElement &legacy_te, Object 
   legacy_te.name = IFACE_("Modifiers");
 }
 
-void TreeElementModifierBase::expand(SpaceOutliner &space_outliner) const
+void TreeElementModifierBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   int index;
   LISTBASE_FOREACH_INDEX (ModifierData *, md, &object_.modifiers, index) {
     ModifierDataStoreElem md_store(md);
 
-    ModifierCreateElementData md_data = {&object_, &md_store};
-
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &md_data, &legacy_te_, TSE_MODIFIER, index);
+    add_element(&legacy_te_.subtree, &object_.id, &md_store, &legacy_te_, TSE_MODIFIER, index);
   }
   LISTBASE_FOREACH_INDEX (GpencilModifierData *, md, &object_.greasepencil_modifiers, index) {
     ModifierDataStoreElem md_store(md);
 
-    ModifierCreateElementData md_data = {&object_, &md_store};
-
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &md_data, &legacy_te_, TSE_MODIFIER, index);
+    add_element(&legacy_te_.subtree, &object_.id, &md_store, &legacy_te_, TSE_MODIFIER, index);
   }
 }
 
@@ -63,76 +57,73 @@ TreeElementModifier::TreeElementModifier(TreeElement &legacy_te,
   }
 }
 
-void TreeElementModifier::expand(SpaceOutliner &space_outliner) const
+void TreeElementModifier::expand(SpaceOutliner & /*space_outliner*/) const
 {
   if (md_.type == MODIFIER_TYPE) {
     ModifierData *md = md_.md;
     if (md->type == eModifierType_Lattice) {
-      outliner_add_element(&space_outliner,
-                           &legacy_te_.subtree,
-                           ((LatticeModifierData *)md)->object,
-                           &legacy_te_,
-                           TSE_LINKED_OB,
-                           0);
+      add_element(&legacy_te_.subtree,
+                  reinterpret_cast<ID *>(((LatticeModifierData *)md)->object),
+                  nullptr,
+                  &legacy_te_,
+                  TSE_LINKED_OB,
+                  0);
     }
     else if (md->type == eModifierType_Curve) {
-      outliner_add_element(&space_outliner,
-                           &legacy_te_.subtree,
-                           ((CurveModifierData *)md)->object,
-                           &legacy_te_,
-                           TSE_LINKED_OB,
-                           0);
+      add_element(&legacy_te_.subtree,
+                  reinterpret_cast<ID *>(((CurveModifierData *)md)->object),
+                  nullptr,
+                  &legacy_te_,
+                  TSE_LINKED_OB,
+                  0);
     }
     else if (md->type == eModifierType_Armature) {
-      outliner_add_element(&space_outliner,
-                           &legacy_te_.subtree,
-                           ((ArmatureModifierData *)md)->object,
-                           &legacy_te_,
-                           TSE_LINKED_OB,
-                           0);
+      add_element(&legacy_te_.subtree,
+                  reinterpret_cast<ID *>(((ArmatureModifierData *)md)->object),
+                  nullptr,
+                  &legacy_te_,
+                  TSE_LINKED_OB,
+                  0);
     }
     else if (md->type == eModifierType_Hook) {
-      outliner_add_element(&space_outliner,
-                           &legacy_te_.subtree,
-                           ((HookModifierData *)md)->object,
-                           &legacy_te_,
-                           TSE_LINKED_OB,
-                           0);
+      add_element(&legacy_te_.subtree,
+                  reinterpret_cast<ID *>(((HookModifierData *)md)->object),
+                  nullptr,
+                  &legacy_te_,
+                  TSE_LINKED_OB,
+                  0);
     }
     else if (md->type == eModifierType_ParticleSystem) {
       ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 
-      ParticleSystemElementCreateData psys_data = {&object_, psys};
-
-      outliner_add_element(
-          &space_outliner, &legacy_te_.subtree, &psys_data, &legacy_te_, TSE_LINKED_PSYS, 0);
+      add_element(&legacy_te_.subtree, &object_.id, psys, &legacy_te_, TSE_LINKED_PSYS, 0);
     }
   }
   if (md_.type == GPENCIL_MODIFIER_TYPE) {
     GpencilModifierData *md = md_.gp_md;
     if (md->type == eGpencilModifierType_Armature) {
-      outliner_add_element(&space_outliner,
-                           &legacy_te_.subtree,
-                           ((ArmatureGpencilModifierData *)md)->object,
-                           &legacy_te_,
-                           TSE_LINKED_OB,
-                           0);
+      add_element(&legacy_te_.subtree,
+                  reinterpret_cast<ID *>(((ArmatureGpencilModifierData *)md)->object),
+                  nullptr,
+                  &legacy_te_,
+                  TSE_LINKED_OB,
+                  0);
     }
     else if (md->type == eGpencilModifierType_Hook) {
-      outliner_add_element(&space_outliner,
-                           &legacy_te_.subtree,
-                           ((HookGpencilModifierData *)md)->object,
-                           &legacy_te_,
-                           TSE_LINKED_OB,
-                           0);
+      add_element(&legacy_te_.subtree,
+                  reinterpret_cast<ID *>(((HookGpencilModifierData *)md)->object),
+                  nullptr,
+                  &legacy_te_,
+                  TSE_LINKED_OB,
+                  0);
     }
     else if (md->type == eGpencilModifierType_Lattice) {
-      outliner_add_element(&space_outliner,
-                           &legacy_te_.subtree,
-                           ((LatticeGpencilModifierData *)md)->object,
-                           &legacy_te_,
-                           TSE_LINKED_OB,
-                           0);
+      add_element(&legacy_te_.subtree,
+                  reinterpret_cast<ID *>(((LatticeGpencilModifierData *)md)->object),
+                  nullptr,
+                  &legacy_te_,
+                  TSE_LINKED_OB,
+                  0);
     }
   }
 }

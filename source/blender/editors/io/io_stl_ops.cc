@@ -21,7 +21,6 @@
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"
 
-#  include "IO_orientation.hh"
 #  include "IO_stl.hh"
 #  include "io_stl_ops.hh"
 
@@ -33,8 +32,8 @@ static int wm_stl_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
 static int wm_stl_import_exec(bContext *C, wmOperator *op)
 {
   STLImportParams params{};
-  params.forward_axis = blender::math::AxisSigned::from_int(RNA_enum_get(op->ptr, "forward_axis"));
-  params.up_axis = blender::math::AxisSigned::from_int(RNA_enum_get(op->ptr, "up_axis"));
+  params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
+  params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   params.use_facet_normal = RNA_boolean_get(op->ptr, "use_facet_normal");
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
@@ -121,7 +120,8 @@ void WM_OT_stl_import(wmOperatorType *ot)
                   false,
                   "Facet Normals",
                   "Use (import) facet normals (note that this will still give flat shading)");
-  io_ui_axes_register(*ot->srna);
+  RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
+  RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
   RNA_def_boolean(ot->srna,
                   "use_mesh_validate",
                   false,

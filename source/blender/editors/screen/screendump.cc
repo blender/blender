@@ -217,8 +217,7 @@ static void screenshot_draw(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   /* image template */
-  PointerRNA ptr;
-  RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, &scd->im_format, &ptr);
+  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, &scd->im_format);
   uiTemplateImageSettings(layout, &ptr, false);
 
   /* main draw call */

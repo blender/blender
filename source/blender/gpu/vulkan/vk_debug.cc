@@ -229,8 +229,8 @@ void VKDebuggingTools::print_labels(const VkDebugUtilsMessengerCallbackDataEXT *
   std::stringstream ss;
   for (uint32_t object = 0; object < callback_data->objectCount; ++object) {
     ss << " - ObjectType[" << to_string(callback_data->pObjects[object].objectType) << "],";
-    ss << "Handle[0x" << std::hex
-       << static_cast<uintptr_t>(callback_data->pObjects[object].objectHandle) << "]";
+    ss << "Handle[0x" << std::hex << uintptr_t(callback_data->pObjects[object].objectHandle)
+       << "]";
     if (callback_data->pObjects[object].pObjectName) {
       ss << ",Name[" << callback_data->pObjects[object].pObjectName << "]";
     }

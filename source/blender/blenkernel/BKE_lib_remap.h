@@ -129,12 +129,12 @@ void BKE_libblock_remap_multiple(struct Main *bmain,
                                  const int remap_flags);
 
 /**
- * Bare raw remapping of IDs, with no other processing than actually updating the ID pointers. No
- * usercount, direct vs indirect linked status update, depsgraph tagging, etc.
+ * Bare raw remapping of IDs, with no other processing than actually updating the ID pointers.
+ * No user-count, direct vs indirect linked status update, depsgraph tagging, etc.
  *
  * This is way more efficient than regular remapping from #BKE_libblock_remap_multiple & co, but it
  * implies that calling code handles all the other aspects described above. This is typically the
- * case e.g. in readfile process.
+ * case e.g. in read-file process.
  *
  * WARNING: This call will likely leave the given BMain in invalid state in many aspects. */
 void BKE_libblock_remap_multiple_raw(struct Main *bmain,

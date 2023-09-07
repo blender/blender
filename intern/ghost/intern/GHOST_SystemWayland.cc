@@ -7,6 +7,7 @@
  */
 
 #include "GHOST_SystemWayland.hh"
+#include "GHOST_Context.hh"
 #include "GHOST_Event.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
@@ -3735,7 +3736,8 @@ static void keyboard_handle_keymap(void *data,
   char *map_str = static_cast<char *>(mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0));
   if (map_str == MAP_FAILED) {
     close(fd);
-    throw std::runtime_error("keymap mmap failed: " + std::string(std::strerror(errno)));
+    CLOG_INFO(LOG, 2, "keymap mmap failed: %s", std::strerror(errno));
+    return;
   }
 
   xkb_keymap *keymap = xkb_keymap_new_from_string(
@@ -5595,7 +5597,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   display_->wl.display = wl_display_connect(nullptr);
   if (!display_->wl.display) {
     display_destroy_and_free_all();
-    throw std::runtime_error("Wayland: unable to connect to display!");
+    throw std::runtime_error("unable to connect to display!");
   }
 
   /* This may be removed later if decorations are required, needed as part of registration. */
@@ -5648,7 +5650,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
               "falling back to X11\n");
 #  endif
       display_destroy_and_free_all();
-      throw std::runtime_error("Wayland: unable to find libdecor!");
+      throw std::runtime_error("unable to find libdecor!");
     }
   }
   else {
@@ -5663,7 +5665,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     decor.context = libdecor_new(display_->wl.display, &libdecor_interface);
     if (!decor.context) {
       display_destroy_and_free_all();
-      throw std::runtime_error("Wayland: unable to create window decorations!");
+      throw std::runtime_error("unable to create window decorations!");
     }
   }
   else
@@ -5674,7 +5676,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     const GWL_XDG_Decor_System &decor = *display_->xdg_decor;
     if (!decor.shell) {
       display_destroy_and_free_all();
-      throw std::runtime_error("Wayland: unable to access xdg_shell!");
+      throw std::runtime_error("unable to access xdg_shell!");
     }
   }
 

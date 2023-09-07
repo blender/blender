@@ -130,8 +130,7 @@ static void wm_msg_rna_update_by_id(wmMsgBus *mbus, ID *id_src, ID *id_dst)
       }
       else {
         /* We need to resolve this from the new ID pointer. */
-        PointerRNA idptr;
-        RNA_id_pointer_create(id_dst, &idptr);
+        PointerRNA idptr = RNA_id_pointer_create(id_dst);
         PointerRNA ptr;
         PropertyRNA *prop = nullptr;
         if (RNA_path_resolve(&idptr, key->msg.params.data_path, &ptr, &prop) &&
@@ -349,14 +348,14 @@ void WM_msg_subscribe_ID(wmMsgBus *mbus,
                          const char *id_repr)
 {
   wmMsgParams_RNA msg_key_params = {{nullptr}};
-  RNA_id_pointer_create(id, &msg_key_params.ptr);
+  msg_key_params.ptr = RNA_id_pointer_create(id);
   WM_msg_subscribe_rna_params(mbus, &msg_key_params, msg_val_params, id_repr);
 }
 
 void WM_msg_publish_ID(wmMsgBus *mbus, ID *id)
 {
   wmMsgParams_RNA msg_key_params = {{nullptr}};
-  RNA_id_pointer_create(id, &msg_key_params.ptr);
+  msg_key_params.ptr = RNA_id_pointer_create(id);
   WM_msg_publish_rna_params(mbus, &msg_key_params);
 }
 

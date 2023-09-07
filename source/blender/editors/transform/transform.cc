@@ -1717,7 +1717,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
           short *snap_flag_ptr;
 
           wmMsgParams_RNA msg_key_params = {{nullptr}};
-          RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts, &msg_key_params.ptr);
+          msg_key_params.ptr = RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts);
 
           if (t->spacetype == SPACE_NODE) {
             snap_flag_ptr = &ts->snap_flag_node;

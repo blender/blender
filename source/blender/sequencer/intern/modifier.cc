@@ -1379,7 +1379,7 @@ static SequenceModifierTypeInfo seqModifier_SoundEqualizer = {
     SEQ_sound_equalizermodifier_init_data,            /* init_data */
     SEQ_sound_equalizermodifier_free,                 /* free_data */
     SEQ_sound_equalizermodifier_copy_data,            /* copy_data */
-    NULL,                                             /* apply */
+    nullptr,                                          /* apply */
 };
 /** \} */
 
@@ -1562,7 +1562,6 @@ void SEQ_modifier_list_copy(Sequence *seqn, Sequence *seq)
       smti->copy_data(smdn, smd);
     }
 
-    smdn->next = smdn->prev = nullptr;
     BLI_addtail(&seqn->modifiers, smdn);
     BLI_uniquename(&seqn->modifiers,
                    smdn,

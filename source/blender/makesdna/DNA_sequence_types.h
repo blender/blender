@@ -21,10 +21,6 @@
 #include "DNA_session_uuid_types.h" /* for #SessionUUID */
 #include "DNA_vec_types.h"          /* for #rctf */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Ipo;
 struct MovieClip;
 struct Scene;
@@ -220,7 +216,7 @@ typedef struct Sequence {
   /* pointers for effects: */
   struct Sequence *seq1, *seq2, *seq3;
 
-  /** List of strips for metastrips. */
+  /** List of strips for meta-strips. */
   ListBase seqbase;
   ListBase channels; /* SeqTimelineChannel */
 
@@ -861,7 +857,3 @@ typedef enum eSeqChannelFlag {
 } eSeqChannelFlag;
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

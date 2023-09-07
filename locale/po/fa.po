@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"POT-Creation-Date: 2023-09-04 15:42:41\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -568,16 +568,16 @@ msgid "Children"
 msgstr "ﻥﺍﺪﻧﺯﺮﻓ"
 
 
-msgid "Layers"
-msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
-
-
 msgid "Parent"
 msgstr "ﻊﺒﻨﻣ"
 
 
 msgid "Deform"
 msgstr "ﻩﺪﻨﻫ ﺮﯿﯿﻐﺗ"
+
+
+msgid "Visible"
+msgstr "ﯽﺋﺮﻣ"
 
 
 msgid "Remove"
@@ -596,16 +596,8 @@ msgid "Material"
 msgstr "ﻩﺩﺎﻣ"
 
 
-msgid "Flat"
-msgstr "ﺖﺨﺗ"
-
-
 msgid "Direction"
 msgstr "ﺎﺘﺳﺍﺭ"
-
-
-msgid "Visible"
-msgstr "ﯽﺋﺮﻣ"
 
 
 msgid "Marker"
@@ -618,10 +610,6 @@ msgstr "ﺩﺍﺯﺁ ﯽﺷﺎﻘﻧ"
 
 msgid "Blur"
 msgstr "ﯽﮔﺮﯿﺗ"
-
-
-msgid "Smooth"
-msgstr "ﻑﺎﺻ"
 
 
 msgid "Hue"
@@ -1580,6 +1568,10 @@ msgid "Lattice"
 msgstr "ﻪﮑﺒﺷ"
 
 
+msgid "Smooth"
+msgstr "ﻑﺎﺻ"
+
+
 msgid "Matrix"
 msgstr "ﺲﯾﺮﺗﺎﻣ"
 
@@ -1708,6 +1700,10 @@ msgid "Max"
 msgstr "ﻪﻨﯿﺸﯿﺑ"
 
 
+msgid "Layers"
+msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
+
+
 msgid "U"
 msgstr "U"
 
@@ -1726,6 +1722,10 @@ msgstr "ﻪﻄﻘﻧ ﻩﺯﺍﺪﻧﺍ"
 
 msgid "Cube"
 msgstr "ﺐﻌﮑﻣ"
+
+
+msgid "Interface"
+msgstr "ﻂﺳﺍﻭ"
 
 
 msgid "Nodes"
@@ -2004,6 +2004,14 @@ msgid "Key"
 msgstr "ﺪﯿﻠﮐ"
 
 
+msgid "Text"
+msgstr "ﻦﺘﻣ"
+
+
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
+
+
 msgid "Distort"
 msgstr "ﻥﺩﺮﮐ‌ﺞﮐ"
 
@@ -2012,12 +2020,8 @@ msgid "Layout"
 msgstr "ﺡﺮﻃ"
 
 
-msgid "Text"
-msgstr "ﻦﺘﻣ"
-
-
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
+msgid "Tracking"
+msgstr "ﯽﺑﺎﯾﺩﺭ"
 
 
 msgid "Apply"
@@ -2248,10 +2252,6 @@ msgid "Space Sigma"
 msgstr "ﺎﻤﮕﯿﺳ ﯼﺎﻀﻓ"
 
 
-msgid "Filter Type"
-msgstr "ﺮﺘﻠﯿﻓ ﻉﻮﻧ"
-
-
 msgid "Single"
 msgstr "ﯽﮑﺗ"
 
@@ -2282,6 +2282,10 @@ msgstr "ﺮﭘ"
 
 msgid "Double Edge Mask"
 msgstr "ﻪﺒﻟ ﻭﺩ ﮏﺳﺎﻣ"
+
+
+msgid "Filter Type"
+msgstr "ﺮﺘﻠﯿﻓ ﻉﻮﻧ"
 
 
 msgid "Flip X"
@@ -2474,6 +2478,10 @@ msgstr "ﯼﺩﺎﻋ ﺖﻟﺎﺣ ﻪﺑ ﺭﺍﺪﻘﻣ"
 
 msgid "Linked"
 msgstr "ﻂﺒﺗﺮﻣ"
+
+
+msgid "Both"
+msgstr "ﻭﺩ ﺮﻫ"
 
 
 msgid "Object Constraints"
@@ -2794,10 +2802,6 @@ msgid "Mouse location"
 msgstr "ﺱﻭﺎﻣ ﻥﺎﮑﻣ"
 
 
-msgid "Both"
-msgstr "ﻭﺩ ﺮﻫ"
-
-
 msgid "Join"
 msgstr "ﻦﺘﺳﻮﯿﭘ"
 
@@ -3021,10 +3025,6 @@ msgstr "ﻦﯾﺮﺧﺁ ﺭﺍﺮﮑﺗ"
 
 msgid "Repeat last action"
 msgstr "ﺖﯿﻟﺎﻌﻓ ﻦﯾﺮﺧﺁ ﺭﺍﺮﮑﺗ"
-
-
-msgid "Interface"
-msgstr "ﻂﺳﺍﻭ"
 
 
 msgid "Themes"
@@ -3544,6 +3544,10 @@ msgid "3D"
 msgstr "3D"
 
 
+msgid "Flat"
+msgstr "ﺖﺨﺗ"
+
+
 msgid "X Mapping"
 msgstr "X ﺖﺷﺎﮕﻧ"
 
@@ -3658,10 +3662,6 @@ msgstr "ﯽﻄﺧ ﺖﻓﺮﺸﯿﭘ ﺯﺍ ﻩﺩﺎﻔﺘﺳﺍ"
 
 msgid "Search"
 msgstr "ﻮﺠﺘﺴﺟ"
-
-
-msgid "Tracking"
-msgstr "ﯽﺑﺎﯾﺩﺭ"
 
 
 msgid "3D View"

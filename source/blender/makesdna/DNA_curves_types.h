@@ -14,10 +14,6 @@
 #include "BLI_utildefines.h"
 
 #ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef __cplusplus
 namespace blender::bke {
 class CurvesGeometry;
 class CurvesGeometryRuntime;
@@ -215,7 +211,3 @@ ENUM_OPERATORS(eCurvesSymmetryType, CURVES_SYMMETRY_Z)
 
 /* Only one material supported currently. */
 #define CURVES_MATERIAL_NR 1
-
-#ifdef __cplusplus
-}
-#endif

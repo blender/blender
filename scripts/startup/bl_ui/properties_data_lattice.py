@@ -71,8 +71,7 @@ class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
     _context_path = "object.data"
     _property_type = bpy.types.Lattice
 

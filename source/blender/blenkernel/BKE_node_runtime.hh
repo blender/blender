@@ -792,7 +792,7 @@ inline bool bNodeSocket::is_panel_collapsed() const
 
 inline bool bNodeSocket::is_visible() const
 {
-  return !this->is_hidden() && this->is_available();
+  return !this->is_hidden() && this->is_available() && !this->is_panel_collapsed();
 }
 
 inline bNode &bNodeSocket::owner_node()

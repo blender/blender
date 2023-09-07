@@ -9,6 +9,8 @@
 #pragma once
 
 #include "DNA_brush_enums.h" /* For eAttrCorrectMode. */
+#include <memory>
+
 #include "DNA_brush_types.h"
 #include "DNA_key_types.h"
 #include "DNA_listBase.h"
@@ -30,6 +32,7 @@
 #include "BLI_gsqueue.h"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -825,8 +828,8 @@ struct ExpandCache {
   int active_connected_islands[EXPAND_SYMM_AREAS];
 
   /* Snapping. */
-  /* GSet containing all Face Sets IDs that Expand will use to snap the new data. */
-  GSet *snap_enabled_face_sets;
+  /* Set containing all Face Sets IDs that Expand will use to snap the new data. */
+  std::unique_ptr<blender::Set<int>> snap_enabled_face_sets;
 
   /* Texture distortion data. */
   Brush *brush;
@@ -1071,11 +1074,13 @@ void SCULPT_face_random_access_ensure(SculptSession *ss);
 int SCULPT_vertex_valence_get(const SculptSession *ss, PBVHVertRef vertex);
 int SCULPT_vertex_count_get(const SculptSession *ss);
 
-const float *SCULPT_vertex_co_get(SculptSession *ss, PBVHVertRef vertex);
+const float *SCULPT_vertex_co_get(const SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_co_set(SculptSession *ss, PBVHVertRef vertex, const float *co);
-void SCULPT_vertex_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3]);
-const float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex);
-void SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex, float no[3]);
+const float *SCULPT_vertex_origco_get(const SculptSession *ss, PBVHVertRef vertex);
+void SCULPT_vertex_origno_get(const SculptSession *ss, PBVHVertRef vertex, float no[3]);
+
+/** Get the normal for a given sculpt vertex; do not modify the result */
+void SCULPT_vertex_normal_get(const SculptSession *ss, PBVHVertRef vertex, float no[3]);
 
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_persistent_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3]);
@@ -1174,7 +1179,7 @@ float (*SCULPT_mesh_deformed_positions_get(SculptSession *ss))[3];
 
 #define FAKE_NEIGHBOR_NONE -1
 
-void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, float max_dist);
+void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist);
 void SCULPT_fake_neighbors_enable(Object *ob);
 void SCULPT_fake_neighbors_disable(Object *ob);
 void SCULPT_fake_neighbors_free(Object *ob);
@@ -1201,7 +1206,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
 /** \name Sculpt Visibility API
  * \{ */
 
-bool SCULPT_vertex_visible_get(SculptSession *ss, PBVHVertRef vertex);
+bool SCULPT_vertex_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
@@ -1230,7 +1235,7 @@ void SCULPT_face_set_islands_free(SculptSession *ss, SculptFaceSetIslands *islan
 SculptFaceSetIsland *SCULPT_face_set_island_get(SculptSession *ss, PBVHFaceRef face, int fset);
 void SCULPT_face_set_island_free(SculptFaceSetIsland *island);
 
-void SCULPT_face_normal_get(SculptSession *ss, PBVHFaceRef face, float no[3]);
+void SCULPT_face_normal_get(const SculptSession *ss, PBVHFaceRef face, float no[3]);
 
 /** \} */
 
@@ -1787,8 +1792,6 @@ BLI_INLINE eAttrCorrectMode SCULPT_need_reproject(const SculptSession *ss)
   return ss->bm ? ss->distort_correction_mode : UNDISTORT_NONE;
 }
 
-int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
-
 /** \} */
 void SCULPT_smooth_undo_push(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, Brush *brush);
 
@@ -2299,7 +2302,7 @@ void SCULPT_topology_islands_ensure(Object *ob);
 void SCULPT_topology_islands_invalidate(SculptSession *ss);
 
 /** Get vertex island key. */
-int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
+int SCULPT_vertex_island_get(const SculptSession *ss, PBVHVertRef vertex);
 
 /** \} */
 

@@ -63,6 +63,7 @@
 #  define ccl_inline_constant inline constexpr
 #  define ccl_constant const
 #  define ccl_private
+#  define ccl_ray_data ccl_private
 
 #  define ccl_restrict __restrict
 #  define ccl_optional_struct_init

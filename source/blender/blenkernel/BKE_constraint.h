@@ -74,7 +74,7 @@ typedef void (*ConstraintIDFunc)(struct bConstraint *con,
  * structs.
  */
 typedef struct bConstraintTypeInfo {
-  /* admin/ident */
+  /* Admin/identity. */
   /** CONSTRAINT_TYPE_### */
   short type;
   /** size in bytes of the struct */

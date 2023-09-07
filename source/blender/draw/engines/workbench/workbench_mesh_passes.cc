@@ -346,7 +346,7 @@ void TransparentDepthPass::sync(const SceneState &scene_state, SceneResources &r
       ePipelineType::OPAQUE, eLightingType::FLAT, clip, resources.shader_cache);
 
   if (merge_sh_ == nullptr) {
-    merge_sh_ = GPU_shader_create_from_info_name("workbench_next_merge_depth");
+    merge_sh_ = GPU_shader_create_from_info_name("workbench_merge_depth");
   }
   merge_ps_.init();
   merge_ps_.shader_set(merge_sh_);

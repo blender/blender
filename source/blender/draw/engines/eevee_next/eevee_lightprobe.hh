@@ -50,6 +50,7 @@ struct IrradianceGrid : public LightProbe, IrradianceGridData {
   float validity_threshold;
   float dilation_threshold;
   float dilation_radius;
+  float intensity;
 };
 
 struct ReflectionCube : public LightProbe {

@@ -266,7 +266,7 @@ class ToolSelectPanelHelper:
     # so if item is still a function (e.g._defs_XXX.generate_from_brushes)
     # seems like we cannot expand here (have no context yet)
     # if we yield None here, this will risk running into duplicate tool bl_idname [in register_tool()]
-    # but still better than erroring out
+    # but still better than raising an error to the user.
     @staticmethod
     def _tools_flatten(tools):
         for item_parent in tools:
@@ -534,7 +534,7 @@ class ToolSelectPanelHelper:
     def keymap_ui_hierarchy(cls, context_mode):
         # See: bpy_extras.keyconfig_utils
 
-        # Keymaps may be shared, don't show them twice.
+        # Key-maps may be shared, don't show them twice.
         visited = set()
 
         for context_mode_test, tools in cls.tools_all():

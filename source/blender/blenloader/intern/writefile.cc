@@ -84,6 +84,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_genfile.h"
+#include "DNA_key_types.h"
 #include "DNA_sdna_types.h"
 
 #include "BLI_bitmap.h"
@@ -1282,12 +1283,31 @@ static bool write_file_handle(Main *mainvar,
         BLI_assert(
             (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
-        /* We only write unused IDs in undo case.
-         * NOTE: All Scenes, WindowManagers and WorkSpaces should always be written to disk, so
-         * their user-count should never be zero currently. */
-        if (id->us == 0 && !wd->use_memfile) {
-          BLI_assert(!ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS));
-          continue;
+        /* We only write unused IDs in undo case. */
+        if (!wd->use_memfile) {
+          /* NOTE: All Scenes, WindowManagers and WorkSpaces should always be written to disk, so
+           * their user-count should never be zero currently. */
+          if (id->us == 0) {
+            BLI_assert(!ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS));
+            continue;
+          }
+
+          /* XXX Special handling for ShapeKeys, as having unused shapekeys is not a good thing
+           * (and reported as error by e.g. `BLO_main_validate_shapekeys`), skip writing shapekeys
+           * when their 'owner' is not written.
+           *
+           * NOTE: Since ShapeKeys are conceptually embedded IDs (like root node trees e.g.), this
+           * behavior actually makes sense anyway. This remains more of a temp hack until topic of
+           * how to handle unused data on save is properly tackled. */
+          if (GS(id->name) == ID_KE) {
+            Key *shape_key = reinterpret_cast<Key *>(id);
+            /* NOTE: Here we are accessing the real owner ID data, not it's 'proxy' shallow copy
+             * generated for its file-writing. This is not expected to be an issue, but is worth
+             * noting. */
+            if (shape_key->from == nullptr || shape_key->from->us == 0) {
+              continue;
+            }
+          }
         }
 
         if ((id->tag & LIB_TAG_RUNTIME) != 0 && !wd->use_memfile) {

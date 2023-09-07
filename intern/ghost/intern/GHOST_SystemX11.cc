@@ -114,7 +114,7 @@ GHOST_SystemX11::GHOST_SystemX11()
   m_display = XOpenDisplay(nullptr);
 
   if (!m_display) {
-    throw std::runtime_error("X11: Unable to open a display");
+    throw std::runtime_error("unable to open a display!");
   }
 
 #ifdef USE_X11_ERROR_HANDLERS
@@ -482,7 +482,7 @@ static void SleepTillEvent(Display *display, int64_t maxSleep)
   }
 }
 
-/* This function borrowed from Qt's X11 support qclipboard_x11.cpp */
+/* This function borrowed from QT's X11 support `qclipboard_x11.cpp`. */
 struct init_timestamp_data {
   Time timestamp;
 };
@@ -1882,7 +1882,7 @@ static GHOST_TKey ghost_key_from_keysym(const KeySym key)
       GXMAP(type, XK_KP_Multiply, GHOST_kKeyNumpadAsterisk);
       GXMAP(type, XK_KP_Divide, GHOST_kKeyNumpadSlash);
 
-      /* Media keys in some keyboards and laptops with XFree86/Xorg */
+      /* Media keys in some keyboards and laptops with XFree86/XORG. */
 #ifdef WITH_XF86KEYSYM
       GXMAP(type, XF86XK_AudioPlay, GHOST_kKeyMediaPlay);
       GXMAP(type, XF86XK_AudioStop, GHOST_kKeyMediaStop);

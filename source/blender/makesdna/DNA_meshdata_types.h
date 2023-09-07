@@ -10,10 +10,6 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Ordered Selection Storage
  * \{ */
@@ -86,7 +82,7 @@ enum {
  *
  * #MLoopTri's are allocated in an array, where each polygon's #MLoopTri's are stored contiguously,
  * the number of triangles for each polygon is guaranteed to be the corner count - 2,
- * even for degenerate geometry. See #ME_FACE_TRI_TOT macro.
+ * even for degenerate geometry. See #bke::mesh::face_triangles_num macro.
  *
  * It's also possible to perform a reverse lookup (find all #MLoopTri's for any given face).
  *
@@ -94,7 +90,7 @@ enum {
  * // loop over all looptri's for a given polygon: i
  * const IndexRange face = faces[i];
  * MLoopTri *lt = &looptri[poly_to_tri_count(i, face.start())];
- * int j, lt_tot = ME_FACE_TRI_TOT(face.size());
+ * int j, lt_tot = bke::mesh::face_triangles_num(face.size());
  *
  * for (j = 0; j < lt_tot; j++, lt++) {
  *     int vtri[3] = {
@@ -326,15 +322,6 @@ enum {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Utility Macros
- * \{ */
-
-/** Number of triangles that make up this face once tessellated. */
-#define ME_FACE_TRI_TOT(face_loop_num) ((face_loop_num)-2)
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Deprecated Structs
  * \{ */
 
@@ -505,7 +492,3 @@ typedef enum eSculptFlag {
   SCULPTFLAG_SPLIT_TEMP = (1 << 4),
   SCULPTFLAG_PBVH_BOUNDARY = (1 << 5),
 } eSculptFlag;
-
-#ifdef __cplusplus
-}
-#endif

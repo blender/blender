@@ -1568,6 +1568,10 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes, Mesh &
       }
     });
   });
+
+  /* #SharedCache::update() reallocates the cached vectors if they were shared initially. */
+  pbvh->face_normals = mesh.runtime->face_normals_cache.data();
+  pbvh->vert_normals = mesh.runtime->vert_normals_cache.data();
 }
 
 static void node_update_mask_redraw(PBVH &pbvh, PBVHNode &node)
@@ -3360,19 +3364,6 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
       BKE_pbvh_node_mark_rebuild_draw(&node);
     }
   }
-}
-
-float (*BKE_pbvh_vert_coords_alloc(PBVH *pbvh))[3]
-{
-  float(*vertCos)[3] = nullptr;
-
-  if (!pbvh->vert_positions.is_empty()) {
-    vertCos = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(pbvh->totvert, sizeof(float[3]), __func__));
-    memcpy(vertCos, pbvh->vert_positions.data(), sizeof(float[3]) * pbvh->totvert);
-  }
-
-  return vertCos;
 }
 
 void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int totvert)

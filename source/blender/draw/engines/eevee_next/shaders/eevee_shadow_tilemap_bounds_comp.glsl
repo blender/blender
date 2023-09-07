@@ -21,16 +21,26 @@ shared int global_max;
 
 void main()
 {
-  uint index = gl_GlobalInvocationID.x;
-  /* Keep uniform control flow. Do not return. */
-  index = min(index, uint(resource_len) - 1);
+  IsectBox box;
 
-  uint resource_id = casters_id_buf[index];
-  ObjectBounds bounds = bounds_buf[resource_id];
-  IsectBox box = isect_data_setup(bounds.bounding_corners[0].xyz,
-                                  bounds.bounding_corners[1].xyz,
-                                  bounds.bounding_corners[2].xyz,
-                                  bounds.bounding_corners[3].xyz);
+  if (resource_len > 0) {
+    uint index = gl_GlobalInvocationID.x;
+    /* Keep uniform control flow. Do not return. */
+    index = min(index, uint(resource_len) - 1);
+    uint resource_id = casters_id_buf[index];
+    resource_id = (resource_id & 0x7FFFFFFFu);
+
+    ObjectBounds bounds = bounds_buf[resource_id];
+    box = isect_data_setup(bounds.bounding_corners[0].xyz,
+                           bounds.bounding_corners[1].xyz,
+                           bounds.bounding_corners[2].xyz,
+                           bounds.bounding_corners[3].xyz);
+  }
+  else {
+    /* Create a dummy box so initialization happens even when there are no shadow casters. */
+    box = isect_data_setup(
+        vec3(-1.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0));
+  }
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     LightData light = light_buf[l_idx];

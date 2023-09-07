@@ -10,10 +10,6 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* BrushGpencilSettings->preset_type.
  * Use a range for each group and not continuous values. */
 typedef enum eGPBrush_Presets {
@@ -690,9 +686,4 @@ typedef enum eAttrCorrectMode {
 ENUM_OPERATORS(eAttrCorrectMode, UNDISTORT_RELAX_UVS);
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
-
 #define DYNTOPO_DETAIL_RANGE 0.4f
-
-#ifdef __cplusplus
-}
-#endif

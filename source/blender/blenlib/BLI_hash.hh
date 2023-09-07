@@ -66,7 +66,6 @@
 #include <string>
 #include <utility>
 
-#include "BLI_math_base.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 

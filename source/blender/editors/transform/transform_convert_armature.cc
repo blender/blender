@@ -821,7 +821,8 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
     const bool mirror = ((pose->flag & POSE_MIRROR_EDIT) != 0);
     const bool is_mirror_relative = ((pose->flag & POSE_MIRROR_RELATIVE) != 0);
 
-    tc->poseobj = ob; /* we also allow non-active objects to be transformed, in weightpaint */
+    /* We also allow non-active objects to be transformed, in weight-paint. */
+    tc->poseobj = ob;
 
     /* init trans data */
     td = tc->data = static_cast<TransData *>(

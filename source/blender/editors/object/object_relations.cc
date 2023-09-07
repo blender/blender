@@ -3027,6 +3027,10 @@ static int drop_geometry_nodes_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
+  if (!RNA_boolean_get(op->ptr, "show_datablock_in_modifier")) {
+    nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
+  }
+
   nmd->node_group = node_tree;
   id_us_plus(&node_tree->id);
   MOD_nodes_update_interface(ob, nmd);
@@ -3057,6 +3061,11 @@ void OBJECT_OT_drop_geometry_nodes(wmOperatorType *ot)
                                   INT32_MIN,
                                   INT32_MAX);
   RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_boolean(ot->srna,
+                  "show_datablock_in_modifier",
+                  true,
+                  "Show the datablock selector in the modifier",
+                  "");
 }
 
 /** \} */

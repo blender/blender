@@ -12,6 +12,8 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -595,6 +597,7 @@ static void rna_def_linestyle_mtex(BlenderRNA *brna)
   prop = RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_mapping_items);
   RNA_def_property_ui_text(prop, "Mapping", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_LineStyle_update");
 
   /* map to */
@@ -1336,6 +1339,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
   prop = RNA_def_property(srna, "smooth", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", LS_MODIFIER_SPATIAL_NOISE_SMOOTH);
   RNA_def_property_ui_text(prop, "Smooth", "If true, the spatial noise is smooth");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE);
   RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
   prop = RNA_def_property(srna, "use_pure_random", PROP_BOOLEAN, PROP_NONE);

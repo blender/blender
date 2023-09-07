@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_string.h"
+
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -134,8 +136,7 @@ void GeometryDataSetTreeViewItem::on_activate(bContext &C)
   if (domain_) {
     tree_view.sspreadsheet_.attribute_domain = *domain_;
   }
-  PointerRNA ptr;
-  RNA_pointer_create(&tree_view.screen_.id, &RNA_SpaceSpreadsheet, &sspreadsheet, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&tree_view.screen_.id, &RNA_SpaceSpreadsheet, &sspreadsheet);
   RNA_property_update(&C, &ptr, RNA_struct_find_property(&ptr, "attribute_domain"));
   RNA_property_update(&C, &ptr, RNA_struct_find_property(&ptr, "geometry_component_type"));
 }

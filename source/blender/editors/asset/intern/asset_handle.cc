@@ -57,16 +57,3 @@ void ED_asset_handle_get_full_library_path(const AssetHandle *asset_handle,
 
   BLI_strncpy(r_full_lib_path, library_path.c_str(), FILE_MAX);
 }
-
-namespace blender::ed::asset {
-
-PointerRNA create_asset_rna_ptr(const asset_system::AssetRepresentation *asset)
-{
-  PointerRNA ptr{};
-  ptr.owner_id = nullptr;
-  ptr.type = &RNA_AssetRepresentation;
-  ptr.data = const_cast<asset_system::AssetRepresentation *>(asset);
-  return ptr;
-}
-
-}  // namespace blender::ed::asset

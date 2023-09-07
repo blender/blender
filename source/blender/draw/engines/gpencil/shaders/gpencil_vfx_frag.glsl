@@ -207,7 +207,7 @@ void main()
     }
   }
   else {
-    /* Premult by foreground alpha (alpha mask). */
+    /* Pre-multiply by foreground alpha (alpha mask). */
     float mask = 1.0 - clamp(dot(vec3(0.333334), texture(colorBuf, uvcoordsvar.xy).rgb), 0.0, 1.0);
 
     /* fragRevealage is blurred shadow. */
@@ -251,7 +251,7 @@ void main()
   }
   fragRevealage /= weight_accum;
 
-  /* No blending in first pass, alpha over premult in second pass. */
+  /* No blending in first pass, alpha over pre-multiply in second pass. */
   if (isFirstPass) {
     /* In first pass we copy the reveal buffer. This let us do alpha under in second pass. */
     fragColor = texture(revealBuf, uvcoordsvar.xy);
@@ -259,7 +259,7 @@ void main()
   else {
     /* fragRevealage is blurred shadow. */
     float shadow_fac = 1.0 - clamp(dot(vec3(0.333334), fragRevealage.rgb), 0.0, 1.0);
-    /* Premult by foreground revealage (alpha under). */
+    /* Pre-multiply by foreground revealage (alpha under). */
     vec3 original_revealage = texture(colorBuf, uvcoordsvar.xy).rgb;
     shadow_fac *= clamp(dot(vec3(0.333334), original_revealage), 0.0, 1.0);
     /* Modulate by opacity */

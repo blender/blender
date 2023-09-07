@@ -843,12 +843,12 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
       kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY)
   {
     /* Path array implementation is serial in case of SYCL Host Task execution. */
-    global_size = 1;
-    local_size = 1;
+    kernel_global_size = 1;
+    kernel_local_size = 1;
   }
 #  endif
 
-  // assert(uniformed_kernel_work_size % local_size == 0);
+  assert(kernel_global_size % kernel_local_size == 0);
 }
 
 /* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows

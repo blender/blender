@@ -11,6 +11,7 @@
 #include "BLI_fileops.hh"
 #include "BLI_path_util.h"
 #include "BLI_serialize.hh"
+#include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_vector.hh"
 
@@ -29,6 +30,7 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_global.h"
@@ -41,8 +43,6 @@
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_simulation_state.hh"
-#include "BKE_simulation_state_serialize.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -58,6 +58,8 @@
 #include "WM_api.hh"
 
 #include "UI_interface.hh"
+
+namespace bake = blender::bke::bake;
 
 namespace blender::ed::object::bake_simulation {
 
@@ -84,8 +86,6 @@ static void calculate_simulation_job_startjob(void *customdata,
                                               bool *do_update,
                                               float *progress)
 {
-  using namespace bke::sim;
-
   CalculateSimulationJob &job = *static_cast<CalculateSimulationJob *>(customdata);
   G.is_rendering = true;
   G.is_break = false;
@@ -99,11 +99,11 @@ static void calculate_simulation_job_startjob(void *customdata,
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        if (!nmd->runtime->simulation_cache) {
+        if (!nmd->runtime->cache) {
           continue;
         }
-        for (auto item : nmd->runtime->simulation_cache->cache_by_zone_id.items()) {
-          if (item.value->cache_state != CacheState::Baked) {
+        for (auto item : nmd->runtime->cache->cache_by_id.items()) {
+          if (item.value->cache_status != bake::CacheStatus::Baked) {
             item.value->reset();
           }
         }
@@ -224,8 +224,8 @@ static bool bake_simulation_poll(bContext *C)
 
 struct ZoneBakeData {
   int zone_id;
-  bke::bake_paths::BakePath path;
-  std::unique_ptr<bke::BDataSharing> bdata_sharing;
+  bake::BakePath path;
+  std::unique_ptr<bake::BlobSharing> blob_sharing;
 };
 
 struct ModifierBakeData {
@@ -251,8 +251,6 @@ static void bake_simulation_job_startjob(void *customdata,
                                          bool *do_update,
                                          float *progress)
 {
-  using namespace bke::sim;
-
   BakeSimulationJob &job = *static_cast<BakeSimulationJob *>(customdata);
   G.is_rendering = true;
   G.is_break = false;
@@ -272,23 +270,22 @@ static void bake_simulation_job_startjob(void *customdata,
         if (!nmd->node_group) {
           continue;
         }
-        if (!nmd->runtime->simulation_cache) {
+        if (!nmd->runtime->cache) {
           continue;
         }
         ModifierBakeData modifier_bake_data;
         modifier_bake_data.nmd = nmd;
 
-        for (auto item : nmd->runtime->simulation_cache->cache_by_zone_id.items()) {
+        for (auto item : nmd->runtime->cache->cache_by_id.items()) {
           item.value->reset();
         }
 
         for (const bNestedNodeRef &nested_node_ref : nmd->node_group->nested_node_refs_span()) {
           ZoneBakeData zone_bake_data;
           zone_bake_data.zone_id = nested_node_ref.id;
-          zone_bake_data.bdata_sharing = std::make_unique<bke::BDataSharing>();
-          if (std::optional<bke::bake_paths::BakePath> path =
-                  bke::sim::get_simulation_zone_bake_path(
-                      *job.bmain, *object, *nmd, nested_node_ref.id))
+          zone_bake_data.blob_sharing = std::make_unique<bake::BlobSharing>();
+          if (std::optional<bake::BakePath> path = bake::get_node_bake_path(
+                  *job.bmain, *object, *nmd, nested_node_ref.id))
           {
             zone_bake_data.path = std::move(*path);
             modifier_bake_data.zones.append(std::move(zone_bake_data));
@@ -322,53 +319,45 @@ static void bake_simulation_job_startjob(void *customdata,
 
     BKE_scene_graph_update_for_newframe(job.depsgraph);
 
-    const std::string frame_file_name = bke::bake_paths::frame_to_file_name(frame);
+    const std::string frame_file_name = bake::frame_to_file_name(frame);
 
     for (ObjectBakeData &object_bake_data : objects_to_bake) {
       for (ModifierBakeData &modifier_bake_data : object_bake_data.modifiers) {
         NodesModifierData &nmd = *modifier_bake_data.nmd;
-        const ModifierSimulationCache &simulation_cache = *nmd.runtime->simulation_cache;
+        const bake::ModifierCache &modifier_cache = *nmd.runtime->cache;
         for (ZoneBakeData &zone_bake_data : modifier_bake_data.zones) {
-          if (!simulation_cache.cache_by_zone_id.contains(zone_bake_data.zone_id)) {
+          if (!modifier_cache.cache_by_id.contains(zone_bake_data.zone_id)) {
             continue;
           }
-          const SimulationZoneCache &zone_cache = *simulation_cache.cache_by_zone_id.lookup(
+          const bake::NodeCache &node_cache = *modifier_cache.cache_by_id.lookup(
               zone_bake_data.zone_id);
-          if (zone_cache.frame_caches.is_empty()) {
+          if (node_cache.frame_caches.is_empty()) {
             continue;
           }
-          const SimulationZoneFrameCache &frame_cache = *zone_cache.frame_caches.last();
+          const bake::FrameCache &frame_cache = *node_cache.frame_caches.last();
           if (frame_cache.frame != frame) {
             continue;
           }
 
-          const bke::bake_paths::BakePath path = zone_bake_data.path;
+          const bake::BakePath path = zone_bake_data.path;
 
-          const std::string bdata_file_name = frame_file_name + ".bdata";
+          const std::string blob_file_name = frame_file_name + ".blob";
 
-          char bdata_path[FILE_MAX];
+          char blob_path[FILE_MAX];
           BLI_path_join(
-              bdata_path, sizeof(bdata_path), path.bdata_dir.c_str(), bdata_file_name.c_str());
+              blob_path, sizeof(blob_path), path.blobs_dir.c_str(), blob_file_name.c_str());
           char meta_path[FILE_MAX];
           BLI_path_join(meta_path,
                         sizeof(meta_path),
                         path.meta_dir.c_str(),
                         (frame_file_name + ".json").c_str());
           BLI_file_ensure_parent_dir_exists(meta_path);
-          BLI_file_ensure_parent_dir_exists(bdata_path);
-          fstream bdata_file{bdata_path, std::ios::out | std::ios::binary};
-          bke::DiskBDataWriter bdata_writer{bdata_file_name, bdata_file, 0};
-
-          io::serialize::DictionaryValue io_root;
-          io_root.append_int("version", simulation_file_storage_version);
-          io::serialize::DictionaryValue &io_items = *io_root.append_dict("items");
-          for (auto item : frame_cache.items.items()) {
-            io::serialize::DictionaryValue &io_item = *io_items.append_dict(
-                std::to_string(item.key));
-            bke::serialize_bake_item(
-                *item.value, bdata_writer, *zone_bake_data.bdata_sharing, io_item);
-          }
-          io::serialize::write_json_file(meta_path, io_root);
+          BLI_file_ensure_parent_dir_exists(blob_path);
+          fstream blob_file{blob_path, std::ios::out | std::ios::binary};
+          bake::DiskBlobWriter blob_writer{blob_file_name, blob_file, 0};
+          fstream meta_file{meta_path, std::ios::out};
+          bake::serialize_bake(
+              frame_cache.state, blob_writer, *zone_bake_data.blob_sharing, meta_file);
         }
       }
     }
@@ -381,11 +370,11 @@ static void bake_simulation_job_startjob(void *customdata,
     for (ModifierBakeData &modifier_bake_data : object_bake_data.modifiers) {
       NodesModifierData &nmd = *modifier_bake_data.nmd;
       for (ZoneBakeData &zone_bake_data : modifier_bake_data.zones) {
-        if (std::unique_ptr<SimulationZoneCache> &zone_cache =
-                nmd.runtime->simulation_cache->cache_by_zone_id.lookup(zone_bake_data.zone_id))
+        if (std::unique_ptr<bake::NodeCache> &node_cache = nmd.runtime->cache->cache_by_id.lookup(
+                zone_bake_data.zone_id))
         {
           /* Tag the caches as being baked so that they are not changed anymore. */
-          zone_cache->cache_state = CacheState::Baked;
+          node_cache->cache_status = bake::CacheStatus::Baked;
         }
       }
     }
@@ -479,10 +468,10 @@ static bool bake_directory_has_data(const StringRefNull absolute_bake_dir)
 {
   char meta_dir[FILE_MAX];
   BLI_path_join(meta_dir, sizeof(meta_dir), absolute_bake_dir.c_str(), "meta");
-  char bdata_dir[FILE_MAX];
-  BLI_path_join(bdata_dir, sizeof(bdata_dir), absolute_bake_dir.c_str(), "bdata");
+  char blobs_dir[FILE_MAX];
+  BLI_path_join(blobs_dir, sizeof(blobs_dir), absolute_bake_dir.c_str(), "blobs");
 
-  if (!BLI_is_dir(meta_dir) || !BLI_is_dir(bdata_dir)) {
+  if (!BLI_is_dir(meta_dir) || !BLI_is_dir(blobs_dir)) {
     return false;
   }
 
@@ -514,7 +503,7 @@ static void bake_simulation_validate_paths(bContext *C,
                     md->name);
 
         nmd->simulation_bake_directory = BLI_strdup(
-            bke::sim::get_default_modifier_bake_directory(*bmain, *object, *md).c_str());
+            bake::get_default_modifier_bake_directory(*bmain, *object, *nmd).c_str());
       }
     }
   }
@@ -637,14 +626,14 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        if (!nmd->runtime->simulation_cache) {
+        if (!nmd->runtime->cache) {
           continue;
         }
-        for (auto item : nmd->runtime->simulation_cache->cache_by_zone_id.items()) {
+        for (auto item : nmd->runtime->cache->cache_by_id.items()) {
           item.value->reset();
 
-          const std::optional<bke::bake_paths::BakePath> bake_path =
-              bke::sim::get_simulation_zone_bake_path(*bmain, *object, *nmd, item.key);
+          const std::optional<bake::BakePath> bake_path = bake::get_node_bake_path(
+              *bmain, *object, *nmd, item.key);
           if (!bake_path) {
             continue;
           }
@@ -655,11 +644,11 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
               BKE_reportf(op->reports, RPT_ERROR, "Failed to remove meta directory %s", meta_dir);
             }
           }
-          const char *bdata_dir = bake_path->bdata_dir.c_str();
-          if (BLI_exists(bdata_dir)) {
-            if (BLI_delete(bdata_dir, true, true)) {
+          const char *blobs_dir = bake_path->blobs_dir.c_str();
+          if (BLI_exists(blobs_dir)) {
+            if (BLI_delete(blobs_dir, true, true)) {
               BKE_reportf(
-                  op->reports, RPT_ERROR, "Failed to remove bdata directory %s", bdata_dir);
+                  op->reports, RPT_ERROR, "Failed to remove blobs directory %s", blobs_dir);
             }
           }
           if (bake_path->bake_dir.has_value()) {
@@ -668,8 +657,8 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
             BLI_delete(zone_bake_dir, true, false);
           }
         }
-        if (const std::optional<std::string> modifier_bake_dir =
-                bke::sim::get_modifier_simulation_bake_path(*bmain, *object, *nmd))
+        if (const std::optional<std::string> modifier_bake_dir = bake::get_modifier_bake_path(
+                *bmain, *object, *nmd))
         {
           /* Try to delete modifier bake directory if it is empty. */
           BLI_delete(modifier_bake_dir->c_str(), true, false);

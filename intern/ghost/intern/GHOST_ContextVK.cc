@@ -229,13 +229,13 @@ class GHOST_DeviceVK {
     VkDeviceCreateInfo device_create_info = {};
     device_create_info.pNext = &maintenance_4;
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
+    device_create_info.queueCreateInfoCount = uint32_t(queue_create_infos.size());
     device_create_info.pQueueCreateInfos = queue_create_infos.data();
     /* layers_enabled are the same as instance extensions.
      * This is only needed for 1.0 implementations. */
-    device_create_info.enabledLayerCount = static_cast<uint32_t>(layers_enabled.size());
+    device_create_info.enabledLayerCount = uint32_t(layers_enabled.size());
     device_create_info.ppEnabledLayerNames = layers_enabled.data();
-    device_create_info.enabledExtensionCount = static_cast<uint32_t>(extensions_device.size());
+    device_create_info.enabledExtensionCount = uint32_t(extensions_device.size());
     device_create_info.ppEnabledExtensionNames = extensions_device.data();
     device_create_info.pEnabledFeatures = &device_features;
 
@@ -947,9 +947,9 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     VkInstanceCreateInfo create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     create_info.pApplicationInfo = &app_info;
-    create_info.enabledLayerCount = static_cast<uint32_t>(layers_enabled.size());
+    create_info.enabledLayerCount = uint32_t(layers_enabled.size());
     create_info.ppEnabledLayerNames = layers_enabled.data();
-    create_info.enabledExtensionCount = static_cast<uint32_t>(extensions_enabled.size());
+    create_info.enabledExtensionCount = uint32_t(extensions_enabled.size());
     create_info.ppEnabledExtensionNames = extensions_enabled.data();
     VK_CHECK(vkCreateInstance(&create_info, nullptr, &instance));
   }

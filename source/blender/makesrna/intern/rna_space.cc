@@ -392,21 +392,6 @@ static const EnumPropertyItem display_channels_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#ifndef RNA_RUNTIME
-static const EnumPropertyItem autosnap_items[] = {
-    {SACTSNAP_OFF, "NONE", 0, "No Auto-Snap", ""},
-    /* {-1, "", 0, "", ""}, */
-    {SACTSNAP_STEP, "STEP", 0, "Frame Step", "Snap to 1.0 frame intervals"},
-    {SACTSNAP_TSTEP, "TIME_STEP", 0, "Second Step", "Snap to 1.0 second intervals"},
-    /* {-1, "", 0, "", ""}, */
-    {SACTSNAP_FRAME, "FRAME", 0, "Nearest Frame", "Snap to actual frames (nla-action time)"},
-    {SACTSNAP_SECOND, "SECOND", 0, "Nearest Second", "Snap to actual seconds (nla-action time)"},
-    /* {-1, "", 0, "", ""}, */
-    {SACTSNAP_MARKER, "MARKER", 0, "Nearest Marker", "Snap to nearest marker"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-#endif
-
 const EnumPropertyItem rna_enum_shading_type_items[] = {
     {OB_WIRE, "WIREFRAME", ICON_SHADING_WIRE, "Wireframe", "Display the object as wire edges"},
     {OB_SOLID, "SOLID", ICON_SHADING_SOLID, "Solid", "Display in solid mode"},
@@ -2806,8 +2791,7 @@ static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(PointerRNA *ptr
    * the metadata RNA pointer if the metadata is stored locally and can thus be edited or not. */
 
   if (entry->asset->is_local_id()) {
-    PointerRNA id_ptr;
-    RNA_id_pointer_create(entry->id, &id_ptr);
+    PointerRNA id_ptr = RNA_id_pointer_create(entry->id);
     return rna_pointer_inherit_refine(&id_ptr, &RNA_AssetMetaData, asset_data);
   }
 
@@ -3020,10 +3004,7 @@ static void rna_FileBrowser_FSMenu_begin(CollectionPropertyIterator *iter, FSMen
 static PointerRNA rna_FileBrowser_FSMenu_get(CollectionPropertyIterator *iter)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
-  PointerRNA r_ptr;
-
-  RNA_pointer_create(nullptr, &RNA_FileBrowserFSMenuEntry, internal->link, &r_ptr);
-
+  PointerRNA r_ptr = RNA_pointer_create(nullptr, &RNA_FileBrowserFSMenuEntry, internal->link);
   return r_ptr;
 }
 
@@ -6283,14 +6264,6 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, nullptr, "ads");
   RNA_def_property_ui_text(prop, "Dope Sheet", "Settings for filtering animation data");
 
-  /* autosnap */
-  prop = RNA_def_property(srna, "auto_snap", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "autosnap");
-  RNA_def_property_enum_items(prop, autosnap_items);
-  RNA_def_property_ui_text(
-      prop, "Auto Snap", "Automatic time snapping settings for transformations");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, nullptr);
-
   /* displaying cache status */
   prop = RNA_def_property(srna, "show_cache", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "cache_display", TIME_CACHE_DISPLAY);
@@ -6452,14 +6425,6 @@ static void rna_def_space_graph(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, nullptr, "ads");
   RNA_def_property_ui_text(prop, "Dope Sheet", "Settings for filtering animation data");
 
-  /* Auto-snap. */
-  prop = RNA_def_property(srna, "auto_snap", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "autosnap");
-  RNA_def_property_enum_items(prop, autosnap_items);
-  RNA_def_property_ui_text(
-      prop, "Auto Snap", "Automatic time snapping settings for transformations");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, nullptr);
-
   /* Read-only state info. */
   prop = RNA_def_property(srna, "has_ghost_curves", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_SpaceGraphEditor_has_ghost_curves_get", nullptr);
@@ -6539,14 +6504,6 @@ static void rna_def_space_nla(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "DopeSheet");
   RNA_def_property_pointer_sdna(prop, nullptr, "ads");
   RNA_def_property_ui_text(prop, "Dope Sheet", "Settings for filtering animation data");
-
-  /* autosnap */
-  prop = RNA_def_property(srna, "auto_snap", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "autosnap");
-  RNA_def_property_enum_items(prop, autosnap_items);
-  RNA_def_property_ui_text(
-      prop, "Auto Snap", "Automatic time snapping settings for transformations");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NLA, nullptr);
 }
 
 static void rna_def_console_line(BlenderRNA *brna)
@@ -6615,6 +6572,7 @@ static void rna_def_space_console(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "language", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Language", "Command line prompt language");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_PYTHON_CONSOLE);
 
   prop = RNA_def_property(srna, "history", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "history", nullptr);

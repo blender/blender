@@ -6,6 +6,8 @@
  * \ingroup spoutliner
  */
 
+#include "BLI_listbase.h"
+
 #include "DNA_object_types.h"
 #include "DNA_outliner_types.h"
 
@@ -26,17 +28,13 @@ TreeElementDeformGroupBase::TreeElementDeformGroupBase(TreeElement &legacy_te, O
   legacy_te.name = IFACE_("Vertex Groups");
 }
 
-void TreeElementDeformGroupBase::expand(SpaceOutliner &space_outliner) const
+void TreeElementDeformGroupBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   const ListBase *defbase = BKE_object_defgroup_list(&object_);
 
   int index;
   LISTBASE_FOREACH_INDEX (bDeformGroup *, defgroup, defbase, index) {
-
-    DeformGroupElementCreateData defgroup_data = {&object_, defgroup};
-
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &defgroup_data, &legacy_te_, TSE_DEFGROUP, index);
+    add_element(&legacy_te_.subtree, &object_.id, defgroup, &legacy_te_, TSE_DEFGROUP, index);
   }
 }
 

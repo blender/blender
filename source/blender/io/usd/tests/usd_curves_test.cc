@@ -63,7 +63,7 @@ static void check_nurbs_circle(const pxr::UsdPrim nurbs_prim,
 
 class UsdCurvesTest : public BlendfileLoadingBaseTest {
  protected:
-  struct bContext *context = nullptr;
+  bContext *context = nullptr;
 
  public:
   bool load_file_and_depsgraph(const StringRefNull &filepath,

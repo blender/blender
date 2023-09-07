@@ -40,6 +40,7 @@ set(SRC
   ../include/ED_anim_api.hh
   ../include/ED_armature.hh
   ../include/ED_asset.hh
+  ../include/ED_asset_menu_utils.hh
   ../include/ED_buttons.hh
   ../include/ED_clip.hh
   ../include/ED_curve.hh

@@ -22,13 +22,8 @@ void main()
 
   uv_interp = vec2(0.0);
 
-#ifdef WORKBENCH_NEXT
   workbench_material_data_get(
       int(drw_CustomID), vec3(1.0), color_interp, alpha_interp, _roughness, metallic);
-#else
-  workbench_material_data_get(
-      resource_handle, vec3(1.0), color_interp, alpha_interp, _roughness, metallic);
-#endif
 
   object_id = int(uint(resource_handle) & 0xFFFFu) + 1;
 }

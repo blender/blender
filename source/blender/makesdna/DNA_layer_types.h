@@ -13,10 +13,6 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Render-passes for EEVEE.
  * #ViewLayerEEVEE.render_passes
@@ -278,7 +274,3 @@ enum {
   VIEW_LAYER_FREESTYLE = (1 << 2),
   VIEW_LAYER_OUT_OF_SYNC = (1 << 3),
 };
-
-#ifdef __cplusplus
-}
-#endif

@@ -183,9 +183,9 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   void on_activate(bContext &C) override
   {
-    PointerRNA grease_pencil_ptr, value_ptr;
-    RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilv3Layers, nullptr, &grease_pencil_ptr);
-    RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_, &value_ptr);
+    PointerRNA grease_pencil_ptr = RNA_pointer_create(
+        &grease_pencil_.id, &RNA_GreasePencilv3Layers, nullptr);
+    PointerRNA value_ptr = RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
 
     PropertyRNA *prop = RNA_struct_find_property(&grease_pencil_ptr, "active");
 
@@ -239,8 +239,7 @@ class LayerViewItem : public AbstractTreeViewItem {
   void build_layer_buttons(uiLayout &row)
   {
     uiBut *but;
-    PointerRNA layer_ptr;
-    RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_, &layer_ptr);
+    PointerRNA layer_ptr = RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
 
     uiBlock *block = uiLayoutGetBlock(&row);
     but = uiDefIconButR(block,
@@ -341,8 +340,8 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
 
   void build_layer_group_buttons(uiLayout &row)
   {
-    PointerRNA group_ptr;
-    RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_, &group_ptr);
+    PointerRNA group_ptr = RNA_pointer_create(
+        &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
 
     uiItemR(&row, &group_ptr, "hide", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
     uiItemR(&row, &group_ptr, "lock", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);

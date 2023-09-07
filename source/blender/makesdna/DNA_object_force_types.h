@@ -11,10 +11,6 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BodySpring;
 
 /** #PartDeflect.forcefield: Effector Fields types. */
@@ -407,7 +403,3 @@ enum {
   SBC_MODE_MAX = 3,
   SBC_MODE_AVGMINMAX = 4,
 };
-
-#ifdef __cplusplus
-}
-#endif

@@ -73,7 +73,7 @@ const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
     {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
     {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
     {seqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Sound Equalizer", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_sequence_video_modifier_type_items[] = {
@@ -84,12 +84,12 @@ const EnumPropertyItem rna_enum_sequence_video_modifier_type_items[] = {
     {seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
     {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
     {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_sequence_sound_modifier_type_items[] = {
     {seqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Equalizer", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_strip_color_items[] = {
@@ -267,7 +267,7 @@ static int rna_SequenceEditor_sequences_all_lookup_string(PointerRNA *ptr,
 
   Sequence *seq = SEQ_sequence_lookup_seq_by_name(scene, key);
   if (seq) {
-    RNA_pointer_create(ptr->owner_id, &RNA_Sequence, seq, r_ptr);
+    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Sequence, seq);
     return true;
   }
   return false;
@@ -853,8 +853,7 @@ static PointerRNA rna_MovieSequence_metadata_get(Sequence *seq)
     return PointerRNA_NULL;
   }
 
-  PointerRNA ptr;
-  RNA_pointer_create(nullptr, &RNA_IDPropertyWrapPtr, metadata, &ptr);
+  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_IDPropertyWrapPtr, metadata);
   return ptr;
 }
 
@@ -3819,12 +3818,12 @@ static void rna_def_graphical_sound_equalizer(BlenderRNA *brna)
   PropertyRNA *prop;
 
   /* Define Sound EQ */
-  srna = RNA_def_struct(brna, "EQCurveMappingData", NULL);
+  srna = RNA_def_struct(brna, "EQCurveMappingData", nullptr);
   RNA_def_struct_sdna(srna, "EQCurveMappingData");
   RNA_def_struct_ui_text(srna, "EQCurveMappingData", "EQCurveMappingData");
 
   prop = RNA_def_property(srna, "curve_mapping", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "curve_mapping");
+  RNA_def_property_pointer_sdna(prop, nullptr, "curve_mapping");
   RNA_def_property_struct_type(prop, "CurveMapping");
   RNA_def_property_ui_text(prop, "Curve Mapping", "");
   RNA_def_property_update(

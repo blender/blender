@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"POT-Creation-Date: 2023-09-04 15:42:41\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -606,16 +606,20 @@ msgid "Selectable"
 msgstr "Selecteerbaar"
 
 
-msgid "Layers"
-msgstr "Lagen"
-
-
 msgid "Length"
 msgstr "Lengte"
 
 
 msgid "Parent"
 msgstr "Ouder"
+
+
+msgid "Visible"
+msgstr "Zichtbaar"
+
+
+msgid "Custom"
+msgstr "Aangepast"
 
 
 msgid "Bone Group"
@@ -650,14 +654,6 @@ msgid "Vertex Color"
 msgstr "Kleur van Punt"
 
 
-msgid "Round"
-msgstr "Rond"
-
-
-msgid "Flat"
-msgstr "Vlak"
-
-
 msgid "Dissolve"
 msgstr "Oplossen"
 
@@ -674,10 +670,6 @@ msgid "Layer Mode"
 msgstr "Laagmodus"
 
 
-msgid "Visible"
-msgstr "Zichtbaar"
-
-
 msgid "Simplify"
 msgstr "Versimpel"
 
@@ -688,10 +680,6 @@ msgstr "Vul"
 
 msgid "Draw"
 msgstr "Potlood"
-
-
-msgid "Smooth"
-msgstr "Glad"
 
 
 msgid "Show Lines"
@@ -1626,10 +1614,6 @@ msgid "Layer"
 msgstr "Laag"
 
 
-msgid "Custom"
-msgstr "Aangepast"
-
-
 msgid "Grid"
 msgstr "Rooster"
 
@@ -1700,6 +1684,10 @@ msgstr "Bouw"
 
 msgid "Mirror"
 msgstr "Spiegel"
+
+
+msgid "Smooth"
+msgstr "Glad"
 
 
 msgid "Inverse Materials"
@@ -2064,6 +2052,10 @@ msgid "Disable Selection"
 msgstr "Selectie Uitschakelen"
 
 
+msgid "Round"
+msgstr "Rond"
+
+
 msgid "Profile"
 msgstr "Profiel"
 
@@ -2160,6 +2152,10 @@ msgid "Annotation"
 msgstr "Annotatie"
 
 
+msgid "Layers"
+msgstr "Lagen"
+
+
 msgid "Only selected keyframes"
 msgstr "Alleen geselecteerde sleutelframes"
 
@@ -2211,10 +2207,6 @@ msgid "Cube"
 msgstr "Kubus"
 
 
-msgid "Hair"
-msgstr "Haar"
-
-
 msgid "Cloth"
 msgstr "Kleding"
 
@@ -2229,6 +2221,10 @@ msgstr "Ruwheid van het materiaal"
 
 msgid "Shadow Mode"
 msgstr "Schaduwmodus"
+
+
+msgid "Interface"
+msgstr "Interface"
 
 
 msgid "Links"
@@ -2373,6 +2369,10 @@ msgstr "Draai"
 
 msgid "Particle type"
 msgstr "Deeltjestype"
+
+
+msgid "Hair"
+msgstr "Haar"
 
 
 msgid "Advanced"
@@ -2712,16 +2712,16 @@ msgid "Add"
 msgstr "Toevoegen"
 
 
+msgid "Text"
+msgstr "Tekst"
+
+
 msgid "Converter"
 msgstr "Converteerder"
 
 
 msgid "Layout"
 msgstr "Indeling"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgctxt "Operator"
@@ -3683,10 +3683,6 @@ msgstr "Verwijder"
 msgctxt "Operator"
 msgid "Insert"
 msgstr "Invoegen"
-
-
-msgid "Language"
-msgstr "Taal"
 
 
 msgctxt "Operator"
@@ -5668,10 +5664,6 @@ msgid "Open Preferences..."
 msgstr "Open Instellingen..."
 
 
-msgid "Interface"
-msgstr "Interface"
-
-
 msgid "File Paths"
 msgstr "Bestandspaden"
 
@@ -5714,12 +5706,59 @@ msgid "Modify Hidden"
 msgstr "Wijzig Verborgen"
 
 
+msgctxt "Sequence"
+msgid "Type"
+msgstr "Type"
+
+
+msgctxt "Sequence"
+msgid "Add"
+msgstr "Toevoegen"
+
+
+msgctxt "Sequence"
+msgid "Subtract"
+msgstr "Aftrekken"
+
+
+msgctxt "Sequence"
+msgid "Alpha Over"
+msgstr "Alpha Over"
+
+
+msgctxt "Sequence"
 msgid "Alpha Under"
 msgstr "Alpha Onder"
 
 
+msgctxt "Sequence"
+msgid "Multiply"
+msgstr "Vermenigvuldigen"
+
+
+msgctxt "Sequence"
 msgid "Wipe"
 msgstr "Veeg"
+
+
+msgctxt "Sequence"
+msgid "Transform"
+msgstr "Transformatie"
+
+
+msgctxt "Sequence"
+msgid "Color"
+msgstr "Kleur"
+
+
+msgctxt "Sequence"
+msgid "Speed"
+msgstr "Snelheid"
+
+
+msgctxt "Sequence"
+msgid "Text"
+msgstr "Tekst"
 
 
 msgctxt "Operator"
@@ -6663,6 +6702,10 @@ msgid "Interface Font"
 msgstr "Interface Lettertype"
 
 
+msgid "Language"
+msgstr "Taal"
+
+
 msgid "Language used for translation"
 msgstr "Taal gebruikt voor vertaling"
 
@@ -6763,9 +6806,8 @@ msgid "Max Roughness"
 msgstr "Maximale Ruwheid"
 
 
-msgctxt "Sequence"
-msgid "Type"
-msgstr "Type"
+msgid "Alpha Under"
+msgstr "Alpha Onder"
 
 
 msgctxt "Sequence"
@@ -6806,56 +6848,6 @@ msgstr "Geluid"
 msgctxt "Sequence"
 msgid "Cross"
 msgstr "Kruisovergang"
-
-
-msgctxt "Sequence"
-msgid "Add"
-msgstr "Toevoegen"
-
-
-msgctxt "Sequence"
-msgid "Subtract"
-msgstr "Aftrekken"
-
-
-msgctxt "Sequence"
-msgid "Alpha Over"
-msgstr "Alpha Over"
-
-
-msgctxt "Sequence"
-msgid "Alpha Under"
-msgstr "Alpha Onder"
-
-
-msgctxt "Sequence"
-msgid "Multiply"
-msgstr "Vermenigvuldigen"
-
-
-msgctxt "Sequence"
-msgid "Wipe"
-msgstr "Veeg"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "Transformatie"
-
-
-msgctxt "Sequence"
-msgid "Color"
-msgstr "Kleur"
-
-
-msgctxt "Sequence"
-msgid "Speed"
-msgstr "Snelheid"
-
-
-msgctxt "Sequence"
-msgid "Text"
-msgstr "Tekst"
 
 
 msgid "Add Sequence"
@@ -7029,6 +7021,10 @@ msgstr "Laat leeg krachtveld zien"
 
 msgid "3D"
 msgstr "3D"
+
+
+msgid "Flat"
+msgstr "Vlak"
 
 
 msgid "Force Field"
@@ -7989,31 +7985,6 @@ msgstr "Kruisovergang"
 msgctxt "Operator"
 msgid "Wipe"
 msgstr "Veeg"
-
-
-msgctxt "Operator"
-msgid "Subtract"
-msgstr "Aftrekken"
-
-
-msgctxt "Operator"
-msgid "Multiply"
-msgstr "Vermenigvuldigen"
-
-
-msgctxt "Operator"
-msgid "Alpha Over"
-msgstr "Alpha Over"
-
-
-msgctxt "Operator"
-msgid "Alpha Under"
-msgstr "Alpha Onder"
-
-
-msgctxt "Operator"
-msgid "Color Mix"
-msgstr "Kleur Mix"
 
 
 msgctxt "Operator"

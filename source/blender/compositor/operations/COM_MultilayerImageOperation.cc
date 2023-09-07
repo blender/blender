@@ -4,6 +4,8 @@
 
 #include "COM_MultilayerImageOperation.h"
 
+#include "BLI_string.h"
+
 #include "IMB_imbuf.h"
 
 namespace blender::compositor {

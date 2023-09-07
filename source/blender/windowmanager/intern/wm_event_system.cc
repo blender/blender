@@ -1365,7 +1365,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
     IDPropertyTemplate val = {0};
     op->properties = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
   }
-  RNA_pointer_create(&wm->id, ot->srna, op->properties, op->ptr);
+  *op->ptr = RNA_pointer_create(&wm->id, ot->srna, op->properties);
 
   /* Initialize error reports. */
   if (reports) {
@@ -1808,10 +1808,9 @@ int WM_operator_name_call_with_properties(bContext *C,
                                           IDProperty *properties,
                                           const wmEvent *event)
 {
-  PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
-  RNA_pointer_create(
-      &static_cast<wmWindowManager *>(G_MAIN->wm.first)->id, ot->srna, properties, &props_ptr);
+  PointerRNA props_ptr = RNA_pointer_create(
+      &static_cast<wmWindowManager *>(G_MAIN->wm.first)->id, ot->srna, properties);
   return WM_operator_name_call_ptr(C, ot, context, &props_ptr, event);
 }
 

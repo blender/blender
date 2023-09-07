@@ -1059,9 +1059,6 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
     CustomData_add_layer(&me_dst->fdata_legacy, CD_MFACE, CD_SET_DEFAULT, me_dst->totface_legacy);
   }
 
-  /* Expect that normals aren't copied at all, since the destination mesh is new. */
-  BLI_assert(BKE_mesh_vert_normals_are_dirty(me_dst));
-
   return me_dst;
 }
 

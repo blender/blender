@@ -102,7 +102,8 @@ set(SRC
   nodes/node_geo_input_position.cc
   nodes/node_geo_input_radius.cc
   nodes/node_geo_input_scene_time.cc
-  nodes/node_geo_input_shade_smooth.cc
+  nodes/node_geo_input_edge_smooth.cc
+  nodes/node_geo_input_face_smooth.cc
   nodes/node_geo_input_shortest_edge_paths.cc
   nodes/node_geo_input_signed_distance.cc
   nodes/node_geo_input_spline_cyclic.cc

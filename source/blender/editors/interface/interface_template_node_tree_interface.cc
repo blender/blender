@@ -32,6 +32,10 @@ namespace node_interface = blender::bke::node_interface;
 
 namespace blender::ui::nodes {
 
+struct wmDragNodeTreeInterface {
+  bNodeTreeInterfaceItem *item;
+};
+
 namespace {
 
 class NodeTreeInterfaceView;
@@ -59,7 +63,7 @@ class NodeSocketDropTarget : public TreeViewItemDropTarget {
 
   bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
   std::string drop_tooltip(const DragInfo &drag_info) const override;
-  bool on_drop(struct bContext * /*C*/, const DragInfo &drag_info) const override;
+  bool on_drop(bContext * /*C*/, const DragInfo &drag_info) const override;
 
  protected:
   wmDragNodeTreeInterface *get_drag_node_tree_declaration(const wmDrag &drag) const;
@@ -114,7 +118,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
       uiItemL(input_socket_layout, "", ICON_BLANK1);
     }
 
-    add_label(row);
+    this->add_label(row);
 
     uiLayout *output_socket_layout = uiLayoutRow(&row, true);
     if (socket_.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
@@ -180,7 +184,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
 
   void build_row(uiLayout &row) override
   {
-    add_label(row);
+    this->add_label(row);
 
     uiLayout *sub = uiLayoutRow(&row, true);
     uiLayoutSetPropDecorate(sub, false);
@@ -241,7 +245,7 @@ class NodeTreeInterfaceView : public AbstractTreeView {
   void build_tree() override
   {
     /* Draw root items */
-    add_items_for_panel_recursive(interface_.root_panel, *this);
+    this->add_items_for_panel_recursive(interface_.root_panel, *this);
   }
 
  protected:
@@ -275,25 +279,25 @@ class NodeTreeInterfaceView : public AbstractTreeView {
 std::unique_ptr<AbstractViewItemDragController> NodeSocketViewItem::create_drag_controller() const
 {
   return std::make_unique<NodeTreeInterfaceDragController>(
-      static_cast<NodeTreeInterfaceView &>(get_tree_view()), socket_.item);
+      static_cast<NodeTreeInterfaceView &>(this->get_tree_view()), socket_.item);
 }
 
 std::unique_ptr<TreeViewItemDropTarget> NodeSocketViewItem::create_drop_target()
 {
   return std::make_unique<NodeSocketDropTarget>(
-      static_cast<NodeTreeInterfaceView &>(get_tree_view()), socket_);
+      static_cast<NodeTreeInterfaceView &>(this->get_tree_view()), socket_);
 }
 
 std::unique_ptr<AbstractViewItemDragController> NodePanelViewItem::create_drag_controller() const
 {
   return std::make_unique<NodeTreeInterfaceDragController>(
-      static_cast<NodeTreeInterfaceView &>(get_tree_view()), panel_.item);
+      static_cast<NodeTreeInterfaceView &>(this->get_tree_view()), panel_.item);
 }
 
 std::unique_ptr<TreeViewItemDropTarget> NodePanelViewItem::create_drop_target()
 {
   return std::make_unique<NodePanelDropTarget>(
-      static_cast<NodeTreeInterfaceView &>(get_tree_view()), panel_);
+      static_cast<NodeTreeInterfaceView &>(this->get_tree_view()), panel_);
 }
 
 NodeTreeInterfaceDragController::NodeTreeInterfaceDragController(NodeTreeInterfaceView &view,
@@ -358,10 +362,10 @@ bool NodeSocketDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
   bNodeTreeInterfaceItem *drag_item = drag_data->item;
   BLI_assert(drag_item != nullptr);
 
-  bNodeTree &nodetree = get_view<NodeTreeInterfaceView>().nodetree();
-  bNodeTreeInterface &interface = get_view<NodeTreeInterfaceView>().interface();
+  bNodeTree &nodetree = this->get_view<NodeTreeInterfaceView>().nodetree();
+  bNodeTreeInterface &interface = this->get_view<NodeTreeInterfaceView>().interface();
 
-  bNodeTreeInterfacePanel *parent = interface.find_item_parent(socket_.item);
+  bNodeTreeInterfacePanel *parent = interface.find_item_parent(socket_.item, true);
   int index = -1;
 
   /* Insert into same panel as the target. */
@@ -456,14 +460,14 @@ bool NodePanelDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
     }
     case DropLocation::Before: {
       /* Insert into same panel as the target. */
-      parent = interface.find_item_parent(panel_.item);
+      parent = interface.find_item_parent(panel_.item, true);
       BLI_assert(parent != nullptr);
       index = parent->items().as_span().first_index_try(&panel_.item);
       break;
     }
     case DropLocation::After: {
       /* Insert into same panel as the target. */
-      parent = interface.find_item_parent(panel_.item);
+      parent = interface.find_item_parent(panel_.item, true);
       BLI_assert(parent != nullptr);
       index = parent->items().as_span().first_index_try(&panel_.item) + 1;
       break;
@@ -492,9 +496,7 @@ wmDragNodeTreeInterface *NodePanelDropTarget::get_drag_node_tree_declaration(
 
 }  // namespace blender::ui::nodes
 
-namespace ui = blender::ui;
-
-void uiTemplateNodeTreeInterface(struct uiLayout *layout, struct PointerRNA *ptr)
+void uiTemplateNodeTreeInterface(uiLayout *layout, PointerRNA *ptr)
 {
   if (!ptr->data) {
     return;
@@ -507,11 +509,11 @@ void uiTemplateNodeTreeInterface(struct uiLayout *layout, struct PointerRNA *ptr
 
   uiBlock *block = uiLayoutGetBlock(layout);
 
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  blender::ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "Node Tree Declaration Tree View",
       std::make_unique<blender::ui::nodes::NodeTreeInterfaceView>(nodetree, interface));
   tree_view->set_min_rows(3);
 
-  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
+  blender::ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }

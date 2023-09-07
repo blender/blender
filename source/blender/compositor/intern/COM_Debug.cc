@@ -4,14 +4,13 @@
 
 #include "COM_Debug.h"
 
-extern "C" {
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "BKE_appdir.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-}
 
 #include "COM_ExecutionGroup.h"
 #include "COM_ReadBufferOperation.h"

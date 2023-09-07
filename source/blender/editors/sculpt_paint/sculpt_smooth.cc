@@ -129,10 +129,10 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_type);
   const eSculptCorner is_corner = SCULPT_vertex_is_corner(ss, vertex, corner_type);
 
-  const float *(*vertex_co_get)(SculptSession * ss,
+  const float *(*vertex_co_get)(const SculptSession *ss,
                                 PBVHVertRef vertex) = smooth_origco ? SCULPT_vertex_origco_get :
                                                                       SCULPT_vertex_co_get;
-  void (*vertex_no_get)(SculptSession * ss,
+  void (*vertex_no_get)(const SculptSession *ss,
                         PBVHVertRef vertex,
                         float r_no[3]) = smooth_origco ? SCULPT_vertex_origno_get :
                                                          SCULPT_vertex_normal_get;

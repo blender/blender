@@ -1202,7 +1202,7 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
                 1.0f);
 }
 
-static int sculpt_reset_brushes_exec(bContext *C, wmOperator *op)
+static int sculpt_reset_brushes_exec(bContext *C, wmOperator */*op*/)
 {
   Main *bmain = CTX_data_main(C);
 
@@ -1474,9 +1474,7 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
       uiItemR(layout, op->ptr, "use_curve", UI_ITEM_NONE, nullptr, ICON_NONE);
 
       if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
-        PointerRNA sculpt_ptr;
-
-        RNA_pointer_create(&scene->id, &RNA_Sculpt, sd, &sculpt_ptr);
+        PointerRNA sculpt_ptr = RNA_pointer_create(&scene->id, &RNA_Sculpt, sd);
         uiTemplateCurveMapping(
             layout, &sculpt_ptr, "automasking_cavity_curve_op", 'v', false, false, false, false);
       }

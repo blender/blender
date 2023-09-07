@@ -298,7 +298,7 @@ def copy_as_script(context):
         text = line.body
         type = line.type
 
-        if type == 'INFO':  # ignore autocomp.
+        if type == 'INFO':  # Ignore auto-completion.
             continue
         if type == 'INPUT':
             if text.startswith(PROMPT):

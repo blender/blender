@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_string.h"
+
 #include "draw_attributes.hh"
 
 /* Return true if the given DRW_AttributeRequest is already in the requests. */

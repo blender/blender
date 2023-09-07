@@ -39,10 +39,6 @@ using MeshRuntimeHandle = blender::bke::MeshRuntime;
 typedef struct MeshRuntimeHandle MeshRuntimeHandle;
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct Ipo;
 struct Key;
@@ -469,7 +465,3 @@ typedef enum eMeshSymmetryType {
 } eMeshSymmetryType;
 
 #define MESH_MAX_VERTS 2000000000L
-
-#ifdef __cplusplus
-}
-#endif

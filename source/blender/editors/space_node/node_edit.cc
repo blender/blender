@@ -32,6 +32,7 @@
 #include "BKE_workspace.h"
 
 #include "BLI_set.hh"
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
 #include "BLT_translation.h"

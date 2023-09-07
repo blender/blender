@@ -30,8 +30,8 @@
 
 #include "BLI_compute_context.hh"
 
+#include "BKE_bake_items.hh"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_simulation_state.hh"
 
 struct Object;
 struct Depsgraph;
@@ -57,7 +57,7 @@ struct PassThrough {
  */
 struct OutputCopy {
   float delta_time;
-  Map<int, const bke::BakeItem *> items_by_id;
+  bke::bake::BakeStateRef state;
 };
 
 /**
@@ -66,7 +66,7 @@ struct OutputCopy {
  */
 struct OutputMove {
   float delta_time;
-  Map<int, std::unique_ptr<bke::BakeItem>> items_by_id;
+  bke::bake::BakeState state;
 };
 
 using Behavior = std::variant<PassThrough, OutputCopy, OutputMove>;
@@ -88,14 +88,14 @@ struct PassThrough {
  * This allows the caller of geometry nodes (e.g. the modifier), to cache the new simulation state.
  */
 struct StoreAndPassThrough {
-  std::function<void(Map<int, std::unique_ptr<bke::BakeItem>> items_by_id)> store_fn;
+  std::function<void(bke::bake::BakeState state)> store_fn;
 };
 
 /**
  * The inputs are not evaluated, instead the given cached items are output directly.
  */
 struct ReadSingle {
-  Map<int, const bke::BakeItem *> items_by_id;
+  bke::bake::BakeStateRef state;
 };
 
 /**
@@ -104,8 +104,8 @@ struct ReadSingle {
 struct ReadInterpolated {
   /** Factor between 0 and 1 that determines the influence of the two simulation states. */
   float mix_factor;
-  Map<int, const bke::BakeItem *> prev_items_by_id;
-  Map<int, const bke::BakeItem *> next_items_by_id;
+  bke::bake::BakeStateRef prev_state;
+  bke::bake::BakeStateRef next_state;
 };
 
 using Behavior = std::variant<PassThrough, StoreAndPassThrough, ReadSingle, ReadInterpolated>;

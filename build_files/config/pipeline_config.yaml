@@ -17,7 +17,7 @@ buildbot:
     optix:
         version: '7.3.0'
     ocloc:
-        version: '101.4032'
+        version: '101.4369'
     cmake:
         default:
             version: any

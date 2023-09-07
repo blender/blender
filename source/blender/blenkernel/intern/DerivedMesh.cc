@@ -1527,7 +1527,7 @@ static void object_get_datamask(const Depsgraph *depsgraph,
       r_mask->fmask |= CD_MASK_MTFACE;
     }
 
-    /* check if we need mcols due to vertex paint or weightpaint */
+    /* Check if we need mcols due to vertex paint or weight-paint. */
     if (ob->mode & OB_MODE_VERTEX_PAINT) {
       r_mask->lmask |= CD_MASK_PROP_BYTE_COLOR;
     }

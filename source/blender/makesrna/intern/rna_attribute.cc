@@ -106,6 +106,12 @@ const EnumPropertyItem rna_enum_attribute_domain_point_face_curve_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_attribute_domain_edge_face_items[] = {
+    {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", "Attribute on mesh edge"},
+    {ATTR_DOMAIN_FACE, "FACE", 0, "Face", "Attribute on mesh faces"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 const EnumPropertyItem rna_enum_attribute_domain_without_corner_items[] = {
     {ATTR_DOMAIN_POINT, "POINT", 0, "Point", "Attribute on point"},
     {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", "Attribute on mesh edge"},
@@ -392,8 +398,7 @@ static PointerRNA rna_AttributeGroup_new(
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 
-  PointerRNA ptr;
-  RNA_pointer_create(id, &RNA_Attribute, layer, &ptr);
+  PointerRNA ptr = RNA_pointer_create(id, &RNA_Attribute, layer);
   return ptr;
 }
 
@@ -521,8 +526,7 @@ static PointerRNA rna_AttributeGroup_active_get(PointerRNA *ptr)
   ID *id = ptr->owner_id;
   CustomDataLayer *layer = BKE_id_attributes_active_get(id);
 
-  PointerRNA attribute_ptr;
-  RNA_pointer_create(id, &RNA_Attribute, layer, &attribute_ptr);
+  PointerRNA attribute_ptr = RNA_pointer_create(id, &RNA_Attribute, layer);
   return attribute_ptr;
 }
 
@@ -563,8 +567,7 @@ static PointerRNA rna_AttributeGroup_active_color_get(PointerRNA *ptr)
                                                    CD_MASK_COLOR_ALL,
                                                    ATTR_DOMAIN_MASK_COLOR);
 
-  PointerRNA attribute_ptr;
-  RNA_pointer_create(id, &RNA_Attribute, layer, &attribute_ptr);
+  PointerRNA attribute_ptr = RNA_pointer_create(id, &RNA_Attribute, layer);
   return attribute_ptr;
 }
 

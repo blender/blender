@@ -480,7 +480,7 @@ static void view3d_smoothview_apply_from_timer(bContext *C, View3D *v3d, ARegion
   float factor;
 
   if (sms->time_allowed != 0.0) {
-    factor = float(rv3d->smooth_timer->duration / sms->time_allowed);
+    factor = float(rv3d->smooth_timer->time_duration / sms->time_allowed);
   }
   else {
     factor = 1.0f;

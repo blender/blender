@@ -15,23 +15,23 @@
 
 #define GGX_USE_VISIBLE_NORMAL 1
 
-float sample_pdf_ggx_reflect(float NH, float NV, float VH, float G1, float alpha)
+float sample_pdf_ggx_reflect(float NH, float NV, float VH, float G1_V, float alpha)
 {
   float a2 = sqr(alpha);
 #if GGX_USE_VISIBLE_NORMAL
-  return 0.25 * bxdf_ggx_D(NH, a2) * G1 / NV;
+  return 0.25 * bxdf_ggx_D(NH, a2) * G1_V / NV;
 #else
   return NH * bxdf_ggx_D(NH, a2);
 #endif
 }
 
 float sample_pdf_ggx_refract(
-    float NH, float NV, float VH, float LH, float G1, float alpha, float eta)
+    float NH, float NV, float VH, float LH, float G1_V, float alpha, float eta)
 {
   float a2 = sqr(alpha);
   float D = bxdf_ggx_D(NH, a2);
   float Ht2 = sqr(eta * LH + VH);
-  return (D * G1 * abs(VH * LH) * sqr(eta)) / (NV * Ht2);
+  return (D * G1_V * abs(VH * LH) * sqr(eta)) / (NV * Ht2);
 }
 
 /**
@@ -40,9 +40,9 @@ float sample_pdf_ggx_refract(
  * \param rand: random point on the unit cylinder (result of sample_cylinder).
  * \param alpha: roughness parameter.
  * \param tV: tangent space view vector.
- * \param G1: output G1 factor to be reused.
+ * \param G1_V: output G1_V factor to be reused.
  */
-vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1)
+vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1_V)
 {
 #if GGX_USE_VISIBLE_NORMAL
   /* From:
@@ -59,7 +59,7 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1)
   float x = r * rand.y;
   float y = r * rand.z;
   float s = 0.5 * (1.0 + Vh.z);
-  G1 = 1.0 / s;
+  G1_V = Vh.z / s;
   y = (1.0 - s) * sqrt(1.0 - x * x) + s * y;
   float z = sqrt(saturate(1.0 - x * x - y * y));
   /* Compute normal. */
@@ -79,6 +79,12 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1)
 #endif
 }
 
+vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt)
+{
+  float G1_unused;
+  return sample_ggx(rand, alpha, Vt, G1_unused);
+}
+
 /**
  * Returns a reflected ray direction following the GGX distribution.
  *
@@ -93,9 +99,9 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt, out float G1)
  */
 vec3 sample_ggx_reflect(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, out float pdf)
 {
-  float G1;
+  float G1_V;
   vec3 tV = world_to_tangent(V, N, T, B);
-  vec3 tH = sample_ggx(rand, alpha, tV, G1);
+  vec3 tH = sample_ggx(rand, alpha, tV, G1_V);
   float NH = saturate(tH.z);
   float NV = saturate(tV.z);
   float VH = dot(tV, tH);
@@ -103,7 +109,7 @@ vec3 sample_ggx_reflect(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, 
 
   if (VH > 0.0) {
     vec3 L = reflect(-V, H);
-    pdf = sample_pdf_ggx_reflect(NH, NV, VH, G1, alpha);
+    pdf = sample_pdf_ggx_reflect(NH, NV, VH, G1_V, alpha);
     return L;
   }
   pdf = 0.0;
@@ -125,9 +131,9 @@ vec3 sample_ggx_reflect(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, 
 vec3 sample_ggx_refract(
     vec3 rand, float alpha, float ior, vec3 V, vec3 N, vec3 T, vec3 B, out float pdf)
 {
-  float G1;
+  float G1_V;
   vec3 Vt = world_to_tangent(V, N, T, B);
-  vec3 Ht = sample_ggx(rand, alpha, Vt, G1);
+  vec3 Ht = sample_ggx(rand, alpha, Vt, G1_V);
   float NH = saturate(Ht.z);
   float NV = saturate(Vt.z);
   float VH = dot(Vt, Ht);
@@ -136,7 +142,7 @@ vec3 sample_ggx_refract(
   if (VH > 0.0) {
     vec3 L = refract(-V, H, 1.0 / ior);
     float LH = dot(L, H);
-    pdf = sample_pdf_ggx_refract(NH, NV, VH, LH, G1, alpha, ior);
+    pdf = sample_pdf_ggx_refract(NH, NV, VH, LH, G1_V, alpha, ior);
     return L;
   }
   pdf = 0.0;

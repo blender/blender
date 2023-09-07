@@ -33,6 +33,7 @@
 #include "BKE_light.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_preview_image.hh"
 
 #include "BLT_translation.h"
 

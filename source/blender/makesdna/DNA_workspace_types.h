@@ -14,10 +14,6 @@
 #include "DNA_asset_types.h"
 #include "DNA_viewer_path_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** #bToolRef_Runtime.flag */
 enum {
   /**
@@ -213,7 +209,3 @@ typedef enum eWorkSpaceFlags {
   WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
   WORKSPACE_USE_PIN_SCENE = (1 << 2),
 } eWorkSpaceFlags;
-
-#ifdef __cplusplus
-}
-#endif

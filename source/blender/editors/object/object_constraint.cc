@@ -1084,12 +1084,11 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
   }
   else {
     /* animate constraint's "fixed offset" */
-    PointerRNA ptr;
     PropertyRNA *prop;
     char *path;
 
     /* get RNA pointer to constraint's "offset_factor" property - to build RNA path */
-    RNA_pointer_create(&ob->id, &RNA_FollowPathConstraint, con, &ptr);
+    PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_FollowPathConstraint, con);
     prop = RNA_struct_find_property(&ptr, "offset_factor");
 
     path = RNA_path_from_ID_to_property(&ptr, prop);

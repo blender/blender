@@ -166,7 +166,7 @@ int DocumentExporter::exportCurrentScene()
   Scene *sce = blender_context.get_scene();
   bContext *C = blender_context.get_context();
 
-  PointerRNA sceneptr, unit_settings;
+  PointerRNA unit_settings;
   PropertyRNA *system; /* unused, *scale; */
 
   clear_global_id_map();
@@ -180,7 +180,7 @@ int DocumentExporter::exportCurrentScene()
   /* <asset> */
   COLLADASW::Asset asset(writer);
 
-  RNA_id_pointer_create(&(sce->id), &sceneptr);
+  PointerRNA sceneptr = RNA_id_pointer_create(&sce->id);
   unit_settings = RNA_pointer_get(&sceneptr, "unit_settings");
   system = RNA_struct_find_property(&unit_settings, "system");
   // scale = RNA_struct_find_property(&unit_settings, "scale_length");

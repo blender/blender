@@ -118,8 +118,7 @@ static void gizmo2d_pivot_point_message_subscribe(wmGizmoGroup *gzgroup,
   switch (area->spacetype) {
     case SPACE_IMAGE: {
       SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
-      PointerRNA ptr;
-      RNA_pointer_create(&screen->id, &RNA_SpaceImageEditor, sima, &ptr);
+      PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_SpaceImageEditor, sima);
       {
         const PropertyRNA *props[] = {
             &rna_SpaceImageEditor_pivot_point,
@@ -395,6 +394,9 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
       SEQ_filter_selected_strips(strips);
       has_select = SEQ_collection_len(strips) != 0;
       SEQ_collection_free(strips);
+    }
+    else if (pivot_point == V3D_AROUND_CENTER_BOUNDS) {
+      has_select = gizmo2d_calc_bounds(C, r_pivot, nullptr, nullptr);
     }
     else {
       has_select = seq_get_strip_pivot_median(scene, r_pivot);

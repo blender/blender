@@ -109,7 +109,7 @@ void main()
 
   List unsorted_list = list_split_after(sorted_list, sorted_list.first);
 
-  /* Mutable foreach. */
+  /* Mutable for-each. */
   for (int i = unsorted_list.first, next; i > -1; i = next) {
     next = surfel_buf[i].next;
 

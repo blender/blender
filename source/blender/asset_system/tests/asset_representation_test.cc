@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_string.h"
+
 #include "asset_library_service.hh"
 #include "asset_library_test_common.hh"
 

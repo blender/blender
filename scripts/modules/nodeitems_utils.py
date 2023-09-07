@@ -118,7 +118,7 @@ def register_node_categories(identifier, cat_list):
             if cat.poll(context):
                 layout.menu("NODE_MT_category_%s" % cat.identifier)
 
-    # stores: (categories list, menu draw function, submenu types)
+    # Stores: (categories list, menu draw function, sub-menu types).
     _node_categories[identifier] = (cat_list, draw_add_menu, menu_types)
 
 

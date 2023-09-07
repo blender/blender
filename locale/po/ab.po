@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
 "Report-Msgid-Bugs-To: \n"
 "\"POT-Creation-Date: 2019-02-25 20:41:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -272,6 +272,10 @@ msgid "Text"
 msgstr "Аҳәоу"
 
 
+msgid "Keying"
+msgstr " Аиҭаганҵа"
+
+
 msgid "File"
 msgstr "Ашәҟәы"
 
@@ -298,10 +302,6 @@ msgstr "Ампыл"
 
 msgid "New"
 msgstr "Аҿыц"
-
-
-msgid "Keying"
-msgstr " Аиҭаганҵа"
 
 
 msgctxt "Operator"
@@ -373,6 +373,11 @@ msgid "New"
 msgstr "Аҿыц"
 
 
+msgctxt "Sequence"
+msgid "Text"
+msgstr "Аҳәоу"
+
+
 msgid "Speaker"
 msgstr "Абжьы Ахыҵхырҭа"
 
@@ -398,11 +403,6 @@ msgstr "Аицыгьежь"
 msgctxt "Sequence"
 msgid "Image"
 msgstr "Асахьанҵа"
-
-
-msgctxt "Sequence"
-msgid "Text"
-msgstr "Аҳәоу"
 
 
 msgctxt "MovieClip"

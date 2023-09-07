@@ -60,10 +60,9 @@ static StructRNA *rna_USDHook_register(Main *bmain,
   const char *error_prefix = "Registering USD hook class:";
   USDHook dummy_hook = {{0}};
   USDHook *hook;
-  PointerRNA dummy_hook_ptr = {nullptr};
 
   /* setup dummy type info to store static properties in */
-  RNA_pointer_create(nullptr, &RNA_USDHook, &dummy_hook, &dummy_hook_ptr);
+  PointerRNA dummy_hook_ptr = RNA_pointer_create(nullptr, &RNA_USDHook, &dummy_hook);
 
   /* validate the python class */
   if (validate(&dummy_hook_ptr, data, nullptr) != 0) {

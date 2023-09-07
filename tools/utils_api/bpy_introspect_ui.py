@@ -100,7 +100,7 @@ class AttributeBuilder:
         return attr_obj
 
     # def __setattr__(self, attr, value):
-    #     setatte
+    #     pass
 
     def __getitem__(self, item):
         item_obj = NewAttr(self._attr + "[" + repr(item) + "]", item)

@@ -15,10 +15,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* ************************************************ */
 /* F-Curve DataTypes */
 
@@ -1204,7 +1200,3 @@ typedef struct IdAdtTemplate {
 #define SELECT 1
 
 /* ************************************************ */
-
-#ifdef __cplusplus
-};
-#endif

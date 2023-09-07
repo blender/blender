@@ -2136,10 +2136,27 @@ void gpu::MTLTexture::ensure_baked()
     /* Determine Resource Mode. */
     resource_mode_ = MTL_TEXTURE_MODE_DEFAULT;
 
+    /* Override storage mode if memoryless attachments are being used. */
+    if (gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MEMORYLESS) {
+      if (@available(macOS 11.00, *)) {
+        texture_descriptor_.storageMode = MTLStorageModeMemoryless;
+      }
+      else {
+        BLI_assert_msg(0, "GPU_TEXTURE_USAGE_MEMORYLESS is not available on older MacOS versions");
+      }
+    }
+
     /* Standard texture allocation. */
     texture_ = [ctx->device newTextureWithDescriptor:texture_descriptor_];
+#ifndef NDEBUG
+    if (gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MEMORYLESS) {
+      texture_.label = [NSString stringWithFormat:@"MemorylessTexture_%s", this->get_name()];
+    }
+    else {
+      texture_.label = [NSString stringWithFormat:@"Texture_%s", this->get_name()];
+    }
+#endif
 
-    texture_.label = [NSString stringWithUTF8String:this->get_name()];
     BLI_assert(texture_);
     is_baked_ = true;
     is_dirty_ = false;

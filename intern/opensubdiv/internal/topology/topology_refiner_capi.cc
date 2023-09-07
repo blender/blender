@@ -126,9 +126,7 @@ int getNumFacePtexFaces(const OpenSubdiv_TopologyRefiner *topology_refiner, cons
   if (num_face_vertices == 4) {
     return 1;
   }
-  else {
-    return num_face_vertices;
-  }
+  return num_face_vertices;
 }
 
 int getNumPtexFaces(const OpenSubdiv_TopologyRefiner *topology_refiner)

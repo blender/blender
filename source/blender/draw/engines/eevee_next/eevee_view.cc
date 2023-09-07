@@ -123,7 +123,7 @@ void ShadingView::render()
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_new_, extent_);
 
-  inst_.volume.draw_compute(render_view_new_);
+  inst_.volume.draw_prepass(render_view_new_);
 
   /* TODO: cleanup. */
   View main_view_new("MainView", main_view_);
@@ -135,6 +135,8 @@ void ShadingView::render()
                                   extent_,
                                   rt_buffer_opaque_,
                                   rt_buffer_refract_);
+
+  inst_.volume.draw_compute(render_view_new_);
 
   // inst_.lookdev.render_overlay(view_fb_);
 

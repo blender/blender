@@ -104,6 +104,8 @@ class Instance {
         return scene_state.material_override;
       case V3D_SHADING_VERTEX_COLOR:
         return scene_state.material_attribute_color;
+      case V3D_SHADING_TEXTURE_COLOR:
+        ATTR_FALLTHROUGH;
       case V3D_SHADING_MATERIAL_COLOR:
         if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot)) {
           return Material(*_mat);
@@ -495,6 +497,25 @@ class Instance {
       DRW_viewport_request_redraw();
     }
   }
+
+  void draw_viewport_image_render(Manager &manager,
+                                  GPUTexture *depth_tx,
+                                  GPUTexture *depth_in_front_tx,
+                                  GPUTexture *color_tx)
+  {
+    BLI_assert(scene_state.sample == 0);
+    for (auto i : IndexRange(scene_state.samples_len)) {
+      if (i != 0) {
+        scene_state.sample = i;
+        /* Re-sync anything dependent on scene_state.sample. */
+        resources.init(scene_state);
+        dof_ps.init(scene_state);
+        anti_aliasing_ps.init(scene_state);
+        anti_aliasing_ps.sync(resources, scene_state.resolution);
+      }
+      this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
+    }
+  }
 };
 
 }  // namespace blender::workbench
@@ -571,7 +592,13 @@ static void workbench_draw_scene(void *vedata)
   }
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   draw::Manager *manager = DRW_manager_get();
-  ved->instance->draw_viewport(*manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
+  if (DRW_state_is_viewport_image_render()) {
+    ved->instance->draw_viewport_image_render(
+        *manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
+  }
+  else {
+    ved->instance->draw_viewport(*manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
+  }
 }
 
 static void workbench_instance_free(void *instance)
@@ -807,7 +834,7 @@ extern "C" {
 
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
 
-DrawEngineType draw_engine_workbench_next = {
+DrawEngineType draw_engine_workbench = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ N_("Workbench"),
@@ -825,10 +852,10 @@ DrawEngineType draw_engine_workbench_next = {
     /*store_metadata*/ nullptr,
 };
 
-RenderEngineType DRW_engine_viewport_workbench_next_type = {
+RenderEngineType DRW_engine_viewport_workbench_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
-    /*idname*/ "BLENDER_WORKBENCH_NEXT",
+    /*idname*/ "BLENDER_WORKBENCH",
     /*name*/ N_("Workbench"),
     /*flag*/ RE_INTERNAL | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
     /*update*/ nullptr,
@@ -840,7 +867,7 @@ RenderEngineType DRW_engine_viewport_workbench_next_type = {
     /*view_draw*/ nullptr,
     /*update_script_node*/ nullptr,
     /*update_render_passes*/ &workbench_render_update_passes,
-    /*draw_engine*/ &draw_engine_workbench_next,
+    /*draw_engine*/ &draw_engine_workbench,
     /*rna_ext*/
     {
         /*data*/ nullptr,

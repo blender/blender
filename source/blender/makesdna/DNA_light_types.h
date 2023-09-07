@@ -11,10 +11,6 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef MAX_MTEX
 #  define MAX_MTEX 18
 #endif
@@ -162,7 +158,3 @@ enum {
   LA_AREA_DISK = 4,
   LA_AREA_ELLIPSE = 5,
 };
-
-#ifdef __cplusplus
-}
-#endif

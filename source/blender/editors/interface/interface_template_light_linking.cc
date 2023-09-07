@@ -35,6 +35,8 @@ namespace blender::ui::light_linking {
 namespace {
 
 class CollectionDropTarget : public DropTargetInterface {
+  Collection &collection_;
+
  public:
   CollectionDropTarget(Collection &collection) : collection_(collection) {}
 
@@ -84,12 +86,14 @@ class CollectionDropTarget : public DropTargetInterface {
 
     return true;
   }
-
- private:
-  Collection &collection_;
 };
 
 class CollectionViewItem : public BasicTreeViewItem {
+  Collection &collection_;
+
+  ID *id_ = nullptr;
+  CollectionLightLinking &collection_light_linking_;
+
  public:
   CollectionViewItem(Collection &collection,
                      ID &id,
@@ -146,11 +150,8 @@ class CollectionViewItem : public BasicTreeViewItem {
     uiBlock *block = uiLayoutGetBlock(&row);
     const int icon = get_state_icon();
 
-    PointerRNA collection_light_linking_ptr;
-    RNA_pointer_create(&collection_.id,
-                       &RNA_CollectionLightLinking,
-                       &collection_light_linking_,
-                       &collection_light_linking_ptr);
+    PointerRNA collection_light_linking_ptr = RNA_pointer_create(
+        &collection_.id, &RNA_CollectionLightLinking, &collection_light_linking_);
 
     uiBut *button = uiDefIconButR(block,
                                   UI_BTYPE_BUT,
@@ -174,25 +175,19 @@ class CollectionViewItem : public BasicTreeViewItem {
 
   void build_remove_button(uiLayout &row)
   {
-    PointerRNA id_ptr;
-    RNA_id_pointer_create(id_, &id_ptr);
-
-    PointerRNA collection_ptr;
-    RNA_id_pointer_create(&collection_.id, &collection_ptr);
+    PointerRNA id_ptr = RNA_id_pointer_create(id_);
+    PointerRNA collection_ptr = RNA_id_pointer_create(&collection_.id);
 
     uiLayoutSetContextPointer(&row, "id", &id_ptr);
     uiLayoutSetContextPointer(&row, "collection", &collection_ptr);
 
     uiItemO(&row, "", ICON_X, "OBJECT_OT_light_linking_unlink_from_collection");
   }
-
-  Collection &collection_;
-
-  ID *id_{nullptr};
-  CollectionLightLinking &collection_light_linking_;
 };
 
 class CollectionView : public AbstractTreeView {
+  Collection &collection_;
+
  public:
   explicit CollectionView(Collection &collection) : collection_(collection) {}
 
@@ -217,16 +212,11 @@ class CollectionView : public AbstractTreeView {
   {
     return std::make_unique<CollectionDropTarget>(collection_);
   }
-
- private:
-  Collection &collection_;
 };
 
 }  // namespace
 
 }  // namespace blender::ui::light_linking
-
-namespace ui = blender::ui;
 
 void uiTemplateLightLinkingCollection(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
@@ -265,11 +255,11 @@ void uiTemplateLightLinkingCollection(uiLayout *layout, PointerRNA *ptr, const c
 
   uiBlock *block = uiLayoutGetBlock(layout);
 
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  blender::ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "Light Linking Collection Tree View",
       std::make_unique<blender::ui::light_linking::CollectionView>(*collection));
   tree_view->set_min_rows(3);
 
-  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
+  blender::ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }

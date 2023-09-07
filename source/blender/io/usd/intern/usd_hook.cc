@@ -83,7 +83,7 @@ struct USDSceneExportContext {
 
   USDSceneExportContext(pxr::UsdStageRefPtr in_stage, Depsgraph *depsgraph) : stage(in_stage)
   {
-    RNA_pointer_create(nullptr, &RNA_Depsgraph, depsgraph, &depsgraph_ptr);
+    depsgraph_ptr = RNA_pointer_create(nullptr, &RNA_Depsgraph, depsgraph);
   }
 
   pxr::UsdStageRefPtr get_stage()
@@ -261,7 +261,7 @@ class OnMaterialExportInvoker : public USDHookInvoker {
                           pxr::UsdShadeMaterial &usd_material)
       : hook_context_(stage), usd_material_(usd_material)
   {
-    RNA_pointer_create(nullptr, &RNA_Material, material, &material_ptr_);
+    material_ptr_ = RNA_pointer_create(nullptr, &RNA_Material, material);
   }
 
  protected:

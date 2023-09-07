@@ -17,6 +17,7 @@
 #include "BKE_armature.h"
 
 #include "../outliner_intern.hh"
+#include "tree_display.hh"
 
 #include "tree_element_id_armature.hh"
 
@@ -29,10 +30,10 @@ TreeElementIDArmature::TreeElementIDArmature(TreeElement &legacy_te, bArmature &
 
 void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
 {
-  expand_animation_data(space_outliner, arm_.adt);
+  expand_animation_data(arm_.adt);
 
   if (arm_.edbo) {
-    expand_edit_bones(space_outliner);
+    expand_edit_bones();
   }
   else {
     /* do not extend Armature when we have posemode */
@@ -48,13 +49,12 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
   }
 }
 
-void TreeElementIDArmature::expand_edit_bones(SpaceOutliner &space_outiner) const
+void TreeElementIDArmature::expand_edit_bones() const
 {
   int a = 0;
   LISTBASE_FOREACH_INDEX (EditBone *, ebone, arm_.edbo, a) {
-    EditBoneElementCreateData ebone_data = {&arm_.id, ebone};
-    TreeElement *ten = outliner_add_element(
-        &space_outiner, &legacy_te_.subtree, &ebone_data, &legacy_te_, TSE_EBONE, a);
+    TreeElement *ten = add_element(
+        &legacy_te_.subtree, &arm_.id, ebone, &legacy_te_, TSE_EBONE, a);
     ebone->temp.p = ten;
   }
   /* make hierarchy */
@@ -82,9 +82,8 @@ static void outliner_add_bone(SpaceOutliner *space_outliner,
                               TreeElement *parent,
                               int *a)
 {
-  BoneElementCreateData bone_data = {id, curBone};
-
-  TreeElement *te = outliner_add_element(space_outliner, lb, &bone_data, parent, TSE_BONE, *a);
+  TreeElement *te = AbstractTreeDisplay::add_element(
+      space_outliner, lb, id, curBone, parent, TSE_BONE, *a);
 
   (*a)++;
 

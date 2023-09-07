@@ -14,6 +14,16 @@
  * - For dynamic scene (if an update is detected), we use a more temporally stable accumulation
  *   following the Temporal Anti-Aliasing method (a.k.a. Temporal Super-Sampling). This does
  *   history reprojection and rectification to avoid most of the flickering.
+ *
+ * The Film module uses the following terms to refer to different spaces/extents:
+ *
+ * - Display: The full output extent (matches the full viewport or the final image resolution).
+ *
+ * - Film: The same extent as display, or a subset of it when a Render Region is used.
+ *
+ * - Render: The extent used internally by the engine for rendering the main views.
+ *   Equals to the full display extent + overscan (even when a Render Region is used)
+ *   and its resolution can be scaled.
  */
 
 #pragma once
@@ -66,7 +76,7 @@ class Film {
   PassSimple cryptomatte_post_ps_ = {"Film.Cryptomatte.Post"};
 
   FilmDataBuf data_;
-  int2 display_offset;
+  int2 display_extent;
 
   eViewLayerEEVEEPassType enabled_passes_ = eViewLayerEEVEEPassType(0);
 
@@ -97,10 +107,10 @@ class Film {
     return data_.render_extent;
   }
 
-  /** Returns render output resolution. */
+  /** Returns final output resolution. */
   int2 display_extent_get() const
   {
-    return data_.extent;
+    return display_extent;
   }
 
   float2 pixel_jitter_get() const;

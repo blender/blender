@@ -24,7 +24,7 @@ float ior_from_f0(float f0)
 }
 
 /* Simplified form of F_eta(eta, 1.0). */
-float f0_from_ior(float eta)
+float F0_from_ior(float eta)
 {
   float A = (eta - 1.0) / (eta + 1.0);
   return A * A;
@@ -69,7 +69,7 @@ float F_eta(float eta, float cos_theta)
 /* Fresnel color blend base on fresnel factor */
 vec3 F_color_blend(float eta, float fresnel, vec3 f0_color)
 {
-  float f0 = f0_from_ior(eta);
+  float f0 = F0_from_ior(eta);
   float fac = saturate((fresnel - f0) / (1.0 - f0));
   return mix(f0_color, vec3(1.0), fac);
 }
@@ -93,7 +93,7 @@ vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
 
   /* The original paper uses `FssEss * radiance + Fms*Ems * irradiance`, but
    * "A Journey Through Implementing Multiscattering BRDFs and Area Lights" by Steve McAuley
-   * suggests to use `FssEss * radiance + Fms*Ems * radiance` which results in comparible quality.
+   * suggests to use `FssEss * radiance + Fms*Ems * radiance` which results in comparable quality.
    * We handle `radiance` outside of this function, so the result simplifies to:
    * `FssEss + Fms*Ems = FssEss * (1 + Ems*Favg / (1 - Ems*Favg)) = FssEss / (1 - Ems*Favg)`.
    * This is a simple albedo scaling very similar to the approach used by Cycles:

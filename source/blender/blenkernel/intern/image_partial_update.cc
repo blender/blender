@@ -57,6 +57,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_vector.hh"
 
 namespace blender::bke::image::partial_update {

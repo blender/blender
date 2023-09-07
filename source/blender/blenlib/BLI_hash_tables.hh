@@ -14,11 +14,7 @@
 #include <cmath>
 
 #include "BLI_allocator.hh"
-#include "BLI_array.hh"
-#include "BLI_math_base.h"
 #include "BLI_memory_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -303,7 +299,7 @@ class HashTableStats {
     removed_load_factor_ = (float)removed_amount_ / (float)capacity_;
   }
 
-  void print(StringRef name = "") const;
+  void print(const char *name) const;
 };
 
 /** \} */

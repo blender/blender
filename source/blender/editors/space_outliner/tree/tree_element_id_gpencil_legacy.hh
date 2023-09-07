@@ -21,7 +21,7 @@ class TreeElementIDGPLegacy final : public TreeElementID {
   void expand(SpaceOutliner &) const override;
 
  private:
-  void expand_layers(SpaceOutliner &) const;
+  void expand_layers() const;
 };
 
 }  // namespace blender::ed::outliner

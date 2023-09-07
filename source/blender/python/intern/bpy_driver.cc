@@ -203,8 +203,7 @@ static void bpy_pydriver_namespace_clear_self()
 
 static PyObject *bpy_pydriver_depsgraph_as_pyobject(Depsgraph *depsgraph)
 {
-  PointerRNA depsgraph_ptr;
-  RNA_pointer_create(nullptr, &RNA_Depsgraph, depsgraph, &depsgraph_ptr);
+  PointerRNA depsgraph_ptr = RNA_pointer_create(nullptr, &RNA_Depsgraph, depsgraph);
   return pyrna_struct_CreatePyObject(&depsgraph_ptr);
 }
 

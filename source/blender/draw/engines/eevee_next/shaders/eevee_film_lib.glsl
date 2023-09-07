@@ -59,7 +59,7 @@ FilmSample film_sample_get(int sample_n, ivec2 texel_film)
 #  endif
 
   FilmSample film_sample = film_buf.samples[sample_n];
-  film_sample.texel += texel_film + film_buf.offset;
+  film_sample.texel += texel_film + film_buf.render_offset;
   /* Use extend on borders. */
   film_sample.texel = clamp(film_sample.texel, ivec2(0, 0), film_buf.render_extent - 1);
 

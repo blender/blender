@@ -33,7 +33,7 @@
 
 #include "armature_intern.h"
 
-#include <string.h>
+#include <cstring>
 
 /* -------------------------------------------------------------------- */
 /** \name Validation

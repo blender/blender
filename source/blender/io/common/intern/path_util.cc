@@ -5,6 +5,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 namespace blender::io {
 
