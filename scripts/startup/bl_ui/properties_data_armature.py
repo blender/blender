@@ -96,16 +96,10 @@ class DATA_UL_bone_collections(UIList):
 class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
     bl_label = "Bone Collections"
 
-    @classmethod
-    def poll(cls, context):
-        ob = context.object
-        return (ob and ob.type == 'ARMATURE' and ob.pose)
-
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
-        arm = ob.data
+        arm = context.armature
         active_bcoll = arm.collections.active
 
         row = layout.row()
