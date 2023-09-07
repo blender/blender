@@ -329,7 +329,11 @@ ccl_device_inline void microfacet_ggx_preserve_energy(KernelGlobals kg,
  * code for that), but e.g. a reflection-only closure with Fresnel applied can end up having
  * a very low overall albedo.
  * This is used to adjust the sample weight, as well as for the Diff/Gloss/Trans Color pass
- * and the Denoising Albedo pass. */
+ * and the Denoising Albedo pass.
+ * Use lookup tables for generalized Schlick. Otherwise assuming that the surface is smooth. */
+/* TODO: The Schlick LUT seems to assume energy preservation, which is not true for GGX. if
+ * energy-preserving then transmission should just be `1 - reflection`. For dielectric we could
+ * probably split the LUT for multiGGX if smooth assumption is not good enough. */
 ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
                                                     ccl_private const ShaderData *sd,
                                                     ccl_private const MicrofacetBsdf *bsdf,
@@ -362,8 +366,6 @@ ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
       albedo += mix(fresnel->f0, fresnel->f90, s) * fresnel->reflection_tint;
     }
     else {
-      /* If we don't (yet) have a way to estimate albedo in a way that accounts for roughness,
-       * fall back to assuming that the surface is smooth. */
       albedo += microfacet_fresnel(bsdf, sd->wi, bsdf->N, false);
     }
   }
@@ -513,6 +515,9 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
   }
 
   /* Compute half vector. */
+  /* TODO: deal with the case when `bsdf->ior` is close to one. */
+  /* TODO: check if the refraction configuration is valid. See `btdf_ggx()` in
+   * `eevee_bxdf_lib.glsl`. */
   float3 H = is_transmission ? -(bsdf->ior * wo + wi) : (wi + wo);
   const float inv_len_H = 1.0f / len(H);
   H *= inv_len_H;
@@ -520,7 +525,8 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
   const float cos_NH = dot(N, H);
   float D, lambdaI, lambdaO;
 
-  /* TODO: add support for anisotropic transmission. */
+  /* NOTE: we could add support for anisotropic transmission, although it will make dispersion
+   * harder to compute. */
   if (alpha_x == alpha_y || is_transmission) { /* Isotropic. */
     float alpha2 = alpha_x * alpha_y;
 
