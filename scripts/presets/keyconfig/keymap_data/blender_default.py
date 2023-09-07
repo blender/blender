@@ -2126,6 +2126,10 @@ def km_node_editor(params):
         # Allow node selection with both for RMB select.
         if params.select_mouse == 'RIGHTMOUSE':
             items.extend(_template_node_select(type='LEFTMOUSE', value='PRESS', select_passthrough=True))
+        else:
+            items.extend([
+                op_tool_cycle("builtin.select_box", {"type": 'W', "value": 'PRESS'}),
+            ])
     else:
         items.extend(_template_node_select(
             type='RIGHTMOUSE', value=params.select_mouse_value, select_passthrough=True))
