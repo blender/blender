@@ -966,15 +966,9 @@ class SEQUENCER_MT_strip(Menu):
         if has_sequencer:
             if strip:
                 strip_type = strip.type
-
-                if strip_type != 'SOUND':
-                    layout.separator()
-                    layout.operator_menu_enum("sequencer.strip_video_modifier_add", "type", text="Add Modifier")
-                    layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
-                else:
-                    layout.separator()
-                    layout.operator_menu_enum("sequencer.strip_sound_modifier_add", "type", text="Add Modifier")
-                    layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
+                layout.separator()
+                layout.operator_menu_enum("sequencer.strip_modifier_add", "type", text="Add Modifier")
+                layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
 
                 if strip_type in {
                         'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
@@ -1112,18 +1106,16 @@ class SEQUENCER_MT_context_menu(Menu):
             strip_type = strip.type
             selected_sequences_count = selected_sequences_len(context)
 
+            layout.separator()
+            layout.operator_menu_enum("sequencer.strip_modifier_add", "type", text="Add Modifier")
+            layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
+
             if strip_type != 'SOUND':
-                layout.separator()
-                layout.operator_menu_enum("sequencer.strip_video_modifier_add", "type", text="Add Modifier")
-                layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
                 if selected_sequences_count >= 2:
                     layout.separator()
                     col = layout.column()
                     col.menu("SEQUENCER_MT_add_transitions", text="Add Transition")
             else:
-                layout.separator()
-                layout.operator_menu_enum("sequencer.strip_sound_modifier_add", "type", text="Add Modifier")
-                layout.operator("sequencer.strip_modifier_copy", text="Copy Modifiers to Selection")
                 if selected_sequences_count >= 2:
                     layout.separator()
                     layout.operator("sequencer.crossfade_sounds", text="Crossfade Sounds")
