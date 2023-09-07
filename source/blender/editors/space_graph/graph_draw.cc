@@ -1070,12 +1070,9 @@ static void draw_fcurve_curve_keys(
 
   const int2 bounding_indices = get_bounding_bezt_indices(fcu, v2d->cur.xmin, v2d->cur.xmax);
 
-  /* This happens if there is only 1 frame in the curve or the view is only showing the
-   * extrapolation zone of the curve. */
-  if (bounding_indices[0] == bounding_indices[1]) {
-    BezTriple *bezt = &fcu->bezt[bounding_indices[0]];
-    curve_vertices.append({bezt->vec[1][0], bezt->vec[1][1]});
-  }
+  /* Always add the first point so the extrapolation line doesn't jump. */
+  curve_vertices.append(
+      {fcu->bezt[bounding_indices[0]].vec[1][0], fcu->bezt[bounding_indices[0]].vec[1][1]});
 
   const blender::float2 pixels_per_unit = calculate_pixels_per_unit(v2d);
   const int window_width = BLI_rcti_size_x(&v2d->mask);
