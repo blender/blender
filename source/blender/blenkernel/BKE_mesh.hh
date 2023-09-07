@@ -260,6 +260,15 @@ inline int2 face_find_adjecent_verts(const IndexRange face,
 }
 
 /**
+ * Return the number of triangles needed to tessellate a face with \a face_size corners.
+ */
+inline int face_triangles_num(const int face_size)
+{
+  BLI_assert(face_size > 2);
+  return face_size - 2;
+}
+
+/**
  * Return the index of the edge's vertex that is not the \a vert.
  * If neither edge vertex is equal to \a v, returns -1.
  */

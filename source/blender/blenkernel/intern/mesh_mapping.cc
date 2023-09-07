@@ -286,7 +286,7 @@ void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
   index_step = indices;
   for (const int64_t i : faces.index_range()) {
     map[i].indices = index_step;
-    index_step += ME_FACE_TRI_TOT(faces[i].size());
+    index_step += blender::bke::mesh::face_triangles_num(int(faces[i].size()));
   }
 
   /* Assign face-tessellation users. */
