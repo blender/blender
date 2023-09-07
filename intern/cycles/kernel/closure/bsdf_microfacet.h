@@ -590,6 +590,7 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
   }
 
   const float m_eta = bsdf->ior;
+  const float m_inv_eta = 1.0f / bsdf->ior;
   const bool m_refraction = CLOSURE_IS_REFRACTION(bsdf->type);
   const bool m_glass = CLOSURE_IS_GLASS(bsdf->type);
   const float alpha_x = bsdf->alpha_x;
@@ -624,14 +625,14 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
 
     H = X * local_H.x + Y * local_H.y + N * local_H.z;
   }
+  const float cos_HI = dot(H, wi);
 
-  bool valid;
+  /* The angle between the half vector and the refracted ray. Not used when sampling reflection. */
+  float cos_HO;
   bool do_refract;
   float lobe_pdf;
   if (m_refraction || m_glass) {
-    bool inside;
-    float fresnel = fresnel_dielectric(m_eta, H, wi, wo, &inside);
-    valid = !inside;
+    float fresnel = fresnel_dielectric(cos_HI, m_eta, &cos_HO);
 
     /* For glass closures, we decide between reflection and refraction here. */
     if (m_glass) {
@@ -640,32 +641,30 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
     }
     else {
       /* For pure refractive closures, refraction is the only option. */
+      if (fresnel == 1.0f) {
+        return LABEL_NONE;
+      }
       do_refract = true;
       lobe_pdf = 1.0f;
-      valid = valid && (fresnel != 1.0f);
     }
   }
   else {
     /* Pure reflective closure, reflection is the only option. */
-    valid = true;
     lobe_pdf = 1.0f;
     do_refract = false;
   }
-  const float cos_HI = dot(H, wi);
 
   if (do_refract) {
-    /* wo was already set to the refracted direction by fresnel_dielectric. */
-    // valid = valid && (dot(Ng, *wo) < 0);
+    *wo = refract_angle(wi, H, cos_HO, m_inv_eta);
     /* If the IOR is close enough to 1.0, just treat the interaction as specular. */
     m_singular = m_singular || (fabsf(m_eta - 1.0f) < 1e-4f);
   }
   else {
     /* Eq. 39 - compute actual reflected direction */
     *wo = 2 * cos_HI * H - wi;
-    valid = valid && (dot(Ng, *wo) > 0);
   }
 
-  if (!valid) {
+  if ((dot(Ng, *wo) < 0) != do_refract) {
     return LABEL_NONE;
   }
 
@@ -706,9 +705,8 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
       lambdaI = bsdf_aniso_lambda<m_type>(alpha_x, alpha_y, local_I);
     }
 
-    const float cos_HO = dot(H, *wo);
     const float common = D / cos_NI *
-                         (do_refract ? fabsf(cos_HI * cos_HO) / sqr(cos_HO + cos_HI / m_eta) :
+                         (do_refract ? fabsf(cos_HI * cos_HO) / sqr(cos_HO + cos_HI * m_inv_eta) :
                                        0.25f);
 
     *pdf = common * lobe_pdf / (1.0f + lambdaI);
@@ -718,7 +716,7 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
   }
 
   *sampled_roughness = make_float2(alpha_x, alpha_y);
-  *eta = do_refract ? 1.0f / m_eta : m_eta;
+  *eta = do_refract ? m_inv_eta : m_eta;
 
   return (do_refract ? LABEL_TRANSMIT : LABEL_REFLECT) |
          (m_singular ? LABEL_SINGULAR : LABEL_GLOSSY);
