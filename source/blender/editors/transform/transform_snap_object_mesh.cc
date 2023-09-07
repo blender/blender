@@ -34,21 +34,9 @@ static void snap_object_data_mesh_get(const Mesh *me_eval,
                                       bool use_hide,
                                       BVHTreeFromMesh *r_treedata)
 {
-  const Span<float3> vert_positions = me_eval->vert_positions();
-  const blender::OffsetIndices faces = me_eval->faces();
-  const Span<int> corner_verts = me_eval->corner_verts();
-
   /* The BVHTree from looptris is always required. */
   BKE_bvhtree_from_mesh_get(
       r_treedata, me_eval, use_hide ? BVHTREE_FROM_LOOPTRI_NO_HIDDEN : BVHTREE_FROM_LOOPTRI, 4);
-
-  BLI_assert(reinterpret_cast<const float3 *>(r_treedata->vert_positions) ==
-             vert_positions.data());
-  BLI_assert(r_treedata->corner_verts == corner_verts.data());
-  BLI_assert(!faces.data() || r_treedata->looptri);
-  BLI_assert(!r_treedata->tree || r_treedata->looptri);
-
-  UNUSED_VARS_NDEBUG(vert_positions, faces, corner_verts);
 }
 
 /** \} */
