@@ -12,6 +12,9 @@ if(DEFINED HIP_ROOT_DIR AND HIP_ROOT_DIR)
   # Pass.
 elseif(DEFINED ENV{HIP_ROOT_DIR})
   set(HIP_ROOT_DIR $ENV{HIP_ROOT_DIR})
+elseif(DEFINED ENV{HIP_PATH})
+  # Built-in environment variable from SDK.
+  set(HIP_ROOT_DIR $ENV{HIP_PATH})
 else()
   set(HIP_ROOT_DIR "")
 endif()
