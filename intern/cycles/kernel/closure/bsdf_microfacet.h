@@ -582,32 +582,28 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
 
+  const float3 N = bsdf->N;
+  const float cos_NI = dot(N, wi);
+  if (cos_NI <= 0) {
+    /* Incident angle from the lower hemisphere is invalid. */
+    return LABEL_NONE;
+  }
+
   const float m_eta = bsdf->ior;
   const bool m_refraction = CLOSURE_IS_REFRACTION(bsdf->type);
   const bool m_glass = CLOSURE_IS_GLASS(bsdf->type);
-  const bool m_reflection = !(m_refraction || m_glass);
   const float alpha_x = bsdf->alpha_x;
   const float alpha_y = bsdf->alpha_y;
   bool m_singular = !bsdf_microfacet_eval_flag(bsdf);
 
-  const float3 N = bsdf->N;
-  const float cos_NI = dot(N, wi);
-  if (cos_NI <= 0) {
-    *eval = zero_spectrum();
-    *pdf = 0.0f;
-    return (m_reflection ? LABEL_REFLECT : LABEL_TRANSMIT) |
-           (m_singular ? LABEL_SINGULAR : LABEL_GLOSSY);
-  }
-
   float3 H;
-  float cos_NH, cos_HI;
-  float3 local_H, local_I, X, Y; /* Needed for anisotropic microfacets later. */
+  /* Needed for anisotropic microfacets later. */
+  float3 local_H, local_I;
   if (m_singular) {
     H = N;
-    cos_NH = 1.0f;
-    cos_HI = cos_NI;
   }
   else {
+    float3 X, Y;
     if (alpha_x == alpha_y) {
       make_orthonormals(N, &X, &Y);
     }
@@ -627,8 +623,6 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
     }
 
     H = X * local_H.x + Y * local_H.y + N * local_H.z;
-    cos_NH = local_H.z;
-    cos_HI = dot(H, wi);
   }
 
   bool valid;
@@ -657,12 +651,11 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
     lobe_pdf = 1.0f;
     do_refract = false;
   }
+  const float cos_HI = dot(H, wi);
 
-  int label;
   if (do_refract) {
     /* wo was already set to the refracted direction by fresnel_dielectric. */
     // valid = valid && (dot(Ng, *wo) < 0);
-    label = LABEL_TRANSMIT;
     /* If the IOR is close enough to 1.0, just treat the interaction as specular. */
     m_singular = m_singular || (fabsf(m_eta - 1.0f) < 1e-4f);
   }
@@ -670,29 +663,25 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
     /* Eq. 39 - compute actual reflected direction */
     *wo = 2 * cos_HI * H - wi;
     valid = valid && (dot(Ng, *wo) > 0);
-    label = LABEL_REFLECT;
   }
 
   if (!valid) {
-    *eval = zero_spectrum();
-    *pdf = 0.0f;
-    return label | (m_singular ? LABEL_SINGULAR : LABEL_GLOSSY);
+    return LABEL_NONE;
   }
 
   if (m_singular) {
-    label |= LABEL_SINGULAR;
     /* Some high number for MIS. */
     *pdf = lobe_pdf * 1e6f;
     *eval = make_spectrum(1e6f) * microfacet_fresnel(bsdf, wi, H, do_refract);
   }
   else {
-    label |= LABEL_GLOSSY;
-    float cos_NO = dot(N, *wo);
     float D, lambdaI, lambdaO;
 
     /* TODO: add support for anisotropic transmission. */
     if (alpha_x == alpha_y || do_refract) { /* Isotropic. */
       float alpha2 = alpha_x * alpha_y;
+      const float cos_NH = dot(N, H);
+      const float cos_NO = dot(N, *wo);
 
       if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
         D = bsdf_clearcoat_D(alpha2, cos_NH);
@@ -709,7 +698,7 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
       lambdaI = bsdf_lambda<m_type>(alpha2, cos_NI);
     }
     else { /* Anisotropic. */
-      const float3 local_O = make_float3(dot(X, *wo), dot(Y, *wo), cos_NO);
+      const float3 local_O = 2.0f * cos_HI * local_H - local_I;
 
       D = bsdf_aniso_D<m_type>(alpha_x, alpha_y, local_H);
 
@@ -731,7 +720,8 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
   *sampled_roughness = make_float2(alpha_x, alpha_y);
   *eta = do_refract ? 1.0f / m_eta : m_eta;
 
-  return label;
+  return (do_refract ? LABEL_TRANSMIT : LABEL_REFLECT) |
+         (m_singular ? LABEL_SINGULAR : LABEL_GLOSSY);
 }
 
 /* Fresnel term setup functions. These get called after the distribution-specific setup functions
