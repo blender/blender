@@ -243,6 +243,17 @@ class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):
     _property_type = bpy.types.Armature
 
 
+class DATA_PT_custom_props_bcoll(ArmatureButtonsPanel, PropertyPanel, Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    _context_path = "armature.collections.active"
+    _property_type = bpy.types.BoneCollection
+    bl_parent_id = "DATA_PT_bone_collections"
+
+    @classmethod
+    def poll(cls, context):
+        return context.armature and context.armature.collections.active
+
+
 classes = (
     DATA_PT_context_arm,
     DATA_PT_skeleton,
@@ -253,6 +264,7 @@ classes = (
     DATA_PT_display,
     DATA_PT_iksolver_itasc,
     DATA_PT_custom_props_arm,
+    DATA_PT_custom_props_bcoll,
 )
 
 if __name__ == "__main__":  # only for live edit.
