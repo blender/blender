@@ -674,7 +674,7 @@ static void rna_MeshPolygon_flip(ID *id, MIntProperty *poly_offset_p)
 {
   using namespace blender;
   Mesh *me = (Mesh *)id;
-  const int index = reinterpret_cast<int *>(poly_offset_p) - me->faces().data();
+  const int index = reinterpret_cast<int *>(poly_offset_p) - me->faces().data().data();
   bke::mesh_flip_faces(*me, IndexMask(IndexRange(index, 1)));
   BKE_mesh_tessface_clear(me);
   BKE_mesh_runtime_clear_geometry(me);
