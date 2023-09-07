@@ -1857,7 +1857,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
                           panel_decl->name.c_str(),
                           int(rct.xmin + NODE_MARGIN_X + 0.4f),
                           int(runtime.location_y - NODE_DYS),
-                          short(rct.xmax - rct.xmin - 0.35f * U.widget_unit),
+                          short(rct.xmax - rct.xmin - (30.0f * UI_SCALE_FAC)),
                           short(NODE_DY),
                           nullptr,
                           0,
