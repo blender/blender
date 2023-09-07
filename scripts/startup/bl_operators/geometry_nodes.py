@@ -35,6 +35,29 @@ def geometry_node_group_empty_new():
     return group
 
 
+def geometry_node_group_empty_tool_new(context):
+    group = build_default_empty_geometry_node_group(data_("Tool"))
+    group.links.new(group.nodes[data_("Group Input")].outputs[0], group.nodes[data_("Group Output")].inputs[0])
+    group.asset_mark()
+    group.is_tool = True
+
+    ob_type = context.object.type if context.object else 'MESH'
+    if ob_type == 'CURVES':
+        group.is_type_curve = True
+    elif ob_type == 'POINTCLOUD':
+        group.is_type_point_cloud = True
+    else:
+        group.is_type_mesh = True
+
+    mode = context.object.mode if context.object else 'EDIT'
+    if mode in {'SCULPT', 'SCULPT_CURVES'}:
+        group.is_mode_sculpt = True
+    else:
+        group.is_mode_edit = True
+
+    return group
+
+
 def geometry_modifier_poll(context):
     ob = context.object
 
@@ -276,9 +299,7 @@ class NewGeometryNodeGroupTool(Operator):
         return space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'TOOL'
 
     def execute(self, context):
-        group = geometry_node_group_empty_new()
-        group.asset_mark()
-        group.is_tool = True
+        group = geometry_node_group_empty_tool_new(context)
         context.space_data.node_tree = group
         return {'FINISHED'}
 
