@@ -797,6 +797,9 @@ void SEQ_retiming_sound_animation_data_set(const Scene *scene, const Sequence *s
       }
     }
     else {
+      const int range_start = max_ii(0, range.start);
+      const int range_end = max_ii(0, range.end);
+
       BKE_sound_set_scene_sound_pitch_constant_range(
           seq->scene_sound, range.start, range.end, range.speed);
     }
