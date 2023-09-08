@@ -56,6 +56,20 @@ static float fcurve_display_alpha(FCurve *fcu)
   return (fcu->flag & FCURVE_SELECTED) ? 1.0f : U.fcu_inactive_alpha;
 }
 
+/** Get the first and last index to the bezt array that are just outside min and max. */
+static blender::int2 get_bounding_bezt_indices(FCurve *fcu, const float min, const float max)
+{
+  bool replace;
+  int first, last;
+  first = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, min, fcu->totvert, &replace);
+  first = clamp_i(first - 1, 0, fcu->totvert - 1);
+
+  last = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, max, fcu->totvert, &replace);
+  last = replace ? last + 1 : last;
+  last = clamp_i(last, 0, fcu->totvert - 1);
+  return {first, last};
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -314,7 +328,8 @@ static void draw_fcurve_keyframe_vertices(
 static void draw_fcurve_selected_handle_vertices(
     FCurve *fcu, View2D *v2d, bool sel, bool sel_handle_only, uint pos)
 {
-  (void)v2d; /* TODO: use this to draw only points in view */
+  const blender::int2 bounding_indices = get_bounding_bezt_indices(
+      fcu, v2d->cur.xmin, v2d->cur.xmax);
 
   /* set handle color */
   float hcolor[3];
@@ -324,9 +339,9 @@ static void draw_fcurve_selected_handle_vertices(
 
   immBeginAtMost(GPU_PRIM_POINTS, fcu->totvert * 2);
 
-  BezTriple *bezt = fcu->bezt;
-  BezTriple *prevbezt = nullptr;
-  for (int i = 0; i < fcu->totvert; i++, prevbezt = bezt, bezt++) {
+  for (int i = bounding_indices[0] + 1; i <= bounding_indices[1]; i++) {
+    BezTriple *prevbezt = &fcu->bezt[i - 1];
+    BezTriple *bezt = &fcu->bezt[i];
     /* Draw the editmode handles for a bezier curve (others don't have handles)
      * if their selection status matches the selection status we're drawing for
      * - first handle only if previous beztriple was bezier-mode
@@ -464,9 +479,9 @@ static bool draw_fcurve_handles_check(SpaceGraph *sipo, FCurve *fcu)
 
 /* draw lines for F-Curve handles only (this is only done in EditMode)
  * NOTE: draw_fcurve_handles_check must be checked before running this. */
-static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
+static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
 {
-  int sel, b;
+  using namespace blender;
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -480,15 +495,19 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
 
   immBeginAtMost(GPU_PRIM_LINES, 4 * 2 * fcu->totvert);
 
+  const int2 bounding_indices = get_bounding_bezt_indices(
+      fcu, region->v2d.cur.xmin, region->v2d.cur.xmax);
+
   /* slightly hacky, but we want to draw unselected points before selected ones
    * so that selected points are clearly visible
    */
-  for (sel = 0; sel < 2; sel++) {
-    BezTriple *bezt = fcu->bezt, *prevbezt = nullptr;
+  for (int sel = 0; sel < 2; sel++) {
     int basecol = (sel) ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
     uchar col[4];
 
-    for (b = 0; b < fcu->totvert; b++, prevbezt = bezt, bezt++) {
+    for (int i = bounding_indices[0] + 1; i <= bounding_indices[1]; i++) {
+      BezTriple *prevbezt = &fcu->bezt[i - 1];
+      BezTriple *bezt = &fcu->bezt[i];
       /* if only selected keyframes can get their handles shown,
        * check that keyframe is selected
        */
@@ -923,20 +942,6 @@ static void add_bezt_vertices(BezTriple *bezt,
   MEM_freeN(bezier_diff_points);
 }
 
-/** Get the first and last index to the bezt array that are just outside min and max. */
-static blender::int2 get_bounding_bezt_indices(FCurve *fcu, const float min, const float max)
-{
-  bool replace;
-  int first, last;
-  first = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, min, fcu->totvert, &replace);
-  first = clamp_i(first - 1, 0, fcu->totvert - 1);
-
-  last = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, max, fcu->totvert, &replace);
-  last = replace ? last + 1 : last;
-  last = clamp_i(last, 0, fcu->totvert - 1);
-  return {first, last};
-}
-
 static void add_extrapolation_point_left(FCurve *fcu,
                                          const float v2d_xmin,
                                          blender::Vector<blender::float2> &curve_vertices)
@@ -1316,7 +1321,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
 
         if (do_handles) {
           /* only draw handles/vertices on keyframes */
-          draw_fcurve_handles(sipo, fcu);
+          draw_fcurve_handles(sipo, region, fcu);
         }
 
         draw_fcurve_vertices(
