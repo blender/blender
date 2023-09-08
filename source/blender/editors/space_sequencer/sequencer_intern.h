@@ -58,10 +58,17 @@ typedef struct SeqChannelDrawContext {
   float scale;
 } SeqChannelDrawContext;
 
-/* `sequencer_draw.cc` */
+/* `sequencer_timeline_draw.cc` */
 
 void draw_timeline_seq(const struct bContext *C, struct ARegion *region);
 void draw_timeline_seq_display(const struct bContext *C, struct ARegion *region);
+void color3ubv_from_seq(const struct Scene *curscene,
+                        const struct Sequence *seq,
+                        bool show_strip_color_tag,
+                        uchar r_col[3]);
+
+/* `sequencer_preview_draw.cc` */
+
 void sequencer_draw_preview(const struct bContext *C,
                             struct Scene *scene,
                             struct ARegion *region,
@@ -70,10 +77,8 @@ void sequencer_draw_preview(const struct bContext *C,
                             int offset,
                             bool draw_overlay,
                             bool draw_backdrop);
-void color3ubv_from_seq(const struct Scene *curscene,
-                        const struct Sequence *seq,
-                        bool show_strip_color_tag,
-                        uchar r_col[3]);
+bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene);
+int sequencer_draw_get_transform_preview_frame(Scene *scene);
 
 void sequencer_special_update_set(Sequence *seq);
 /* Get handle width in 2d-View space. */

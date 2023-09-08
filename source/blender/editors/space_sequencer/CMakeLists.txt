@@ -29,18 +29,19 @@ set(SRC
   sequencer_channels_draw.cc
   sequencer_channels_edit.cc
   sequencer_drag_drop.cc
-  sequencer_draw.cc
   sequencer_edit.cc
   sequencer_gizmo_retime.cc
   sequencer_gizmo_retime_type.cc
   sequencer_modifier.cc
   sequencer_ops.cc
   sequencer_preview.cc
+  sequencer_preview_draw.cc
   sequencer_proxy.cc
   sequencer_retiming.cc
   sequencer_scopes.cc
   sequencer_select.cc
   sequencer_thumbnails.cc
+  sequencer_timeline_draw.cc
   sequencer_view.cc
   space_sequencer.cc
 
