@@ -283,8 +283,8 @@ class GRAPH_MT_channel(Menu):
         layout.operator("anim.channels_fcurves_enable")
 
         layout.separator()
-        layout.operator("graph.bake")
-        layout.operator("graph.unbake")
+        layout.operator("graph.keys_to_samples")
+        layout.operator("graph.samples_to_keys")
         layout.operator("graph.sound_bake")
 
         layout.separator()

@@ -129,9 +129,9 @@ void GRAPH_OT_blend_to_default(struct wmOperatorType *ot);
 void GRAPH_OT_butterworth_smooth(struct wmOperatorType *ot);
 void GRAPH_OT_gaussian_smooth(struct wmOperatorType *ot);
 void GRAPH_OT_sample(struct wmOperatorType *ot);
-void GRAPH_OT_bake(struct wmOperatorType *ot);
-void GRAPH_OT_unbake(struct wmOperatorType *ot);
-void GRAPH_OT_sound_bake(struct wmOperatorType *ot);
+void GRAPH_OT_keys_to_samples(struct wmOperatorType *ot);
+void GRAPH_OT_samples_to_keys(struct wmOperatorType *ot);
+void GRAPH_OT_sound_to_samples(struct wmOperatorType *ot);
 void GRAPH_OT_smooth(struct wmOperatorType *ot);
 void GRAPH_OT_euler_filter(struct wmOperatorType *ot);
 

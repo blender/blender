@@ -460,9 +460,9 @@ void graphedit_operatortypes()
   WM_operatortype_append(GRAPH_OT_extrapolation_type);
   WM_operatortype_append(GRAPH_OT_easing_type);
   WM_operatortype_append(GRAPH_OT_sample);
-  WM_operatortype_append(GRAPH_OT_bake);
-  WM_operatortype_append(GRAPH_OT_unbake);
-  WM_operatortype_append(GRAPH_OT_sound_bake);
+  WM_operatortype_append(GRAPH_OT_keys_to_samples);
+  WM_operatortype_append(GRAPH_OT_samples_to_keys);
+  WM_operatortype_append(GRAPH_OT_sound_to_samples);
   WM_operatortype_append(GRAPH_OT_smooth);
   WM_operatortype_append(GRAPH_OT_clean);
   WM_operatortype_append(GRAPH_OT_decimate);
