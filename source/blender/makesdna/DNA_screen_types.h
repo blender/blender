@@ -702,7 +702,10 @@ enum {
   /* Maximum 15. */
 
   /* Flags start here. */
-  RGN_SPLIT_PREV = 32,
+  RGN_SPLIT_PREV = 1 << 5,
+  /** Always let scaling this region scale the previous region instead. Useful to let regions
+   * appear like they are one (while having independent layout, scrolling, etc.). */
+  RGN_SPLIT_SCALE_PREV = 1 << 6,
 };
 
 /** Mask out flags so we can check the alignment. */
