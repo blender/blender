@@ -459,6 +459,7 @@ ccl_device_inline
 {
   Spectrum eval = zero_spectrum();
   *pdf = 0.f;
+  const float3 Ng = (sd->type & PRIMITIVE_CURVE) ? sc->N : sd->Ng;
 
   switch (sc->type) {
     case CLOSURE_BSDF_DIFFUSE_ID:
@@ -486,15 +487,15 @@ ccl_device_inline
     case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
-      eval = bsdf_microfacet_ggx_eval(sc, sd->N, sd->wi, wo, pdf);
+      eval = bsdf_microfacet_ggx_eval(sc, Ng, sd->wi, wo, pdf);
       break;
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID:
-      eval = bsdf_microfacet_beckmann_eval(sc, sd->N, sd->wi, wo, pdf);
+      eval = bsdf_microfacet_beckmann_eval(sc, Ng, sd->wi, wo, pdf);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
-      eval = bsdf_ashikhmin_shirley_eval(sc, sd->N, sd->wi, wo, pdf);
+      eval = bsdf_ashikhmin_shirley_eval(sc, Ng, sd->wi, wo, pdf);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
       eval = bsdf_ashikhmin_velvet_eval(sc, sd->wi, wo, pdf);
