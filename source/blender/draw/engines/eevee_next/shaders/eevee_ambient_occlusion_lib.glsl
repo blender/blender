@@ -102,10 +102,10 @@ float ambient_ambient_occlusion_search_horizon(vec3 vI,
     /* Gives us good precision at center and ensure we cross at least one pixel per iteration. */
     time = 1.0 + iter + sqr((iter + noise) / sample_count) * ssray.max_time;
     float stride = time - prev_time;
-    float lod = (log2(stride) - noise) / (1.0 + ao_buf.quality);
+    float lod = (log2(stride) - noise) / (1.0 + uniform_buf.ao.quality);
 
     vec2 uv = ssray.origin.xy + ssray.direction.xy * time;
-    float depth = textureLod(depth_tx, uv * hiz_buf.uv_scale, floor(lod)).r;
+    float depth = textureLod(depth_tx, uv * uniform_buf.hiz.uv_scale, floor(lod)).r;
 
     if (depth == 1.0 && inverted == 0.0) {
       /* Skip background. Avoids making shadow on the geometry near the far plane. */
@@ -163,13 +163,13 @@ OcclusionData ambient_occlusion_search(vec3 vP,
 
     ScreenSpaceRay ssray;
 
-    ssray = raytrace_screenspace_ray_create(ray, ao_buf.pixel_size);
+    ssray = raytrace_screenspace_ray_create(ray, uniform_buf.ao.pixel_size);
     data.horizons[0 + i * 2] = ambient_ambient_occlusion_search_horizon(
         vI, vP, noise.y, ssray, depth_tx, inverted, radius, dir_sample_count);
 
     ray.direction = -ray.direction;
 
-    ssray = raytrace_screenspace_ray_create(ray, ao_buf.pixel_size);
+    ssray = raytrace_screenspace_ray_create(ray, uniform_buf.ao.pixel_size);
     data.horizons[1 + i * 2] = -ambient_ambient_occlusion_search_horizon(
         vI, vP, noise.y, ssray, depth_tx, inverted, radius, dir_sample_count);
 

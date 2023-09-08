@@ -99,11 +99,11 @@ void main(void)
 
   /* TODO/OPTI(fclem) Make separate sample set for lower radius. */
 
-  for (int i = 0; i < sss_buf.sample_len; i++) {
-    vec2 sample_uv = center_uv + sample_space * sss_buf.samples[i].xy;
-    float pdf_inv = sss_buf.samples[i].z;
+  for (int i = 0; i < uniform_buf.subsurface.sample_len; i++) {
+    vec2 sample_uv = center_uv + sample_space * uniform_buf.subsurface.samples[i].xy;
+    float pdf_inv = uniform_buf.subsurface.samples[i].z;
 
-    float sample_depth = textureLod(hiz_tx, sample_uv * hiz_buf.uv_scale, 0.0).r;
+    float sample_depth = textureLod(hiz_tx, sample_uv * uniform_buf.hiz.uv_scale, 0.0).r;
     vec3 sample_vP = get_view_space_from_depth(sample_uv, sample_depth);
 
     vec4 sample_data = texture(radiance_tx, sample_uv);
@@ -129,8 +129,8 @@ void main(void)
   /* Normalize the sum (slide 34). */
   accum /= accum_weight;
 
-  if (rp_buf.diffuse_light_id >= 0) {
-    imageStore(rp_color_img, ivec3(texel, rp_buf.diffuse_light_id), vec4(accum, 1.0));
+  if (uniform_buf.render_pass.diffuse_light_id >= 0) {
+    imageStore(rp_color_img, ivec3(texel, uniform_buf.render_pass.diffuse_light_id), vec4(accum, 1.0));
   }
 
   /* This pass uses additive blending.

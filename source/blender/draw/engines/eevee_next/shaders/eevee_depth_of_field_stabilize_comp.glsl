@@ -249,9 +249,9 @@ DofSample dof_sample_history(vec2 input_texel)
 
   /* Slide 92. */
   vec2 weight_12 = weights[1] + weights[2];
-  vec2 uv_12 = (center_texel + weights[2] / weight_12) * film_buf.extent_inv;
-  vec2 uv_0 = (center_texel - 1.0) * film_buf.extent_inv;
-  vec2 uv_3 = (center_texel + 2.0) * film_buf.extent_inv;
+  vec2 uv_12 = (center_texel + weights[2] / weight_12) * uniform_buf.film.extent_inv;
+  vec2 uv_0 = (center_texel - 1.0) * uniform_buf.film.extent_inv;
+  vec2 uv_3 = (center_texel + 2.0) * uniform_buf.film.extent_inv;
 
   vec4 color;
   vec4 weight_cross = weight_12.xyyx * vec4(weights[0].yx, weights[3].xy);

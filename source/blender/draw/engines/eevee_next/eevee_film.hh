@@ -75,13 +75,13 @@ class Film {
   PassSimple accumulate_ps_ = {"Film.Accumulate"};
   PassSimple cryptomatte_post_ps_ = {"Film.Cryptomatte.Post"};
 
-  FilmDataBuf data_;
+  FilmData &data_;
   int2 display_extent;
 
   eViewLayerEEVEEPassType enabled_passes_ = eViewLayerEEVEEPassType(0);
 
  public:
-  Film(Instance &inst) : inst_(inst){};
+  Film(Instance &inst, FilmData &data) : inst_(inst), data_(data){};
   ~Film(){};
 
   void init(const int2 &full_extent, const rcti *output_rect);

@@ -42,16 +42,16 @@ void main()
   vec4 environment = out_background;
   environment.a = 1.0 - environment.a;
   environment.rgb *= environment.a;
-  output_renderpass_color(rp_buf.environment_id, environment);
+  output_renderpass_color(uniform_buf.render_pass.environment_id, environment);
 
   vec4 clear_color = vec4(0.0, 0.0, 0.0, 1.0);
-  output_renderpass_color(rp_buf.normal_id, clear_color);
-  output_renderpass_color(rp_buf.diffuse_light_id, clear_color);
-  output_renderpass_color(rp_buf.specular_light_id, clear_color);
-  output_renderpass_color(rp_buf.diffuse_color_id, clear_color);
-  output_renderpass_color(rp_buf.specular_color_id, clear_color);
-  output_renderpass_color(rp_buf.emission_id, clear_color);
-  output_renderpass_value(rp_buf.shadow_id, 1.0);
+  output_renderpass_color(uniform_buf.render_pass.normal_id, clear_color);
+  output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, clear_color);
+  output_renderpass_color(uniform_buf.render_pass.specular_light_id, clear_color);
+  output_renderpass_color(uniform_buf.render_pass.diffuse_color_id, clear_color);
+  output_renderpass_color(uniform_buf.render_pass.specular_color_id, clear_color);
+  output_renderpass_color(uniform_buf.render_pass.emission_id, clear_color);
+  output_renderpass_value(uniform_buf.render_pass.shadow_id, 1.0);
   /** NOTE: AO is done on its own pass. */
   imageStore(rp_cryptomatte_img, texel, vec4(0.0));
 }

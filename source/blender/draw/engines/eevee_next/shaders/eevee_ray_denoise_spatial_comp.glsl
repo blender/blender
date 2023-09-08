@@ -107,9 +107,9 @@ void main()
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
 
   ivec2 texel_fullres = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
-  ivec2 texel = (texel_fullres) / raytrace_buf.resolution_scale;
+  ivec2 texel = (texel_fullres) / uniform_buf.raytrace.resolution_scale;
 
-  if (raytrace_buf.skip_denoise) {
+  if (uniform_buf.raytrace.skip_denoise) {
     imageStore(out_radiance_img, texel_fullres, imageLoad(ray_radiance_img, texel));
     return;
   }
@@ -152,7 +152,7 @@ void main()
     return;
   }
 
-  vec2 uv = (vec2(texel_fullres) + 0.5) * raytrace_buf.full_resolution_inv;
+  vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
   vec3 V = transform_direction(ViewMatrixInverse, get_view_vector_from_screen_uv(uv));
 
   ClosureT closure;
@@ -166,7 +166,7 @@ void main()
   /* NOTE: filter_size should never be greater than twice RAYTRACE_GROUP_SIZE. Otherwise, the
    * reconstruction can becomes ill defined since we don't know if further tiles are valid. */
   filter_size = 12.0 * sqrt(filter_size_factor);
-  if (raytrace_buf.resolution_scale > 1) {
+  if (uniform_buf.raytrace.resolution_scale > 1) {
     /* Filter at least 1 trace pixel to fight the undersampling. */
     filter_size = max(filter_size, 3.0);
     sample_count = max(sample_count, 5u);
@@ -189,7 +189,7 @@ void main()
     ivec2 sample_texel = texel + offset;
 
     /* Reject samples outside of valid neighbor tiles. */
-    ivec2 sample_tile = ivec2(sample_texel * raytrace_buf.resolution_scale) / int(tile_size);
+    ivec2 sample_tile = ivec2(sample_texel * uniform_buf.raytrace.resolution_scale) / int(tile_size);
     ivec2 sample_tile_relative = sample_tile - ivec2(tile_coord);
     if (neighbor_tile_mask_bit_get(invalid_neighbor_tile_mask, sample_tile_relative)) {
       continue;

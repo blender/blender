@@ -22,7 +22,7 @@ class Instance;
 
 class RenderBuffers {
  public:
-  UniformBuffer<RenderBuffersInfoData> data;
+  RenderBuffersInfoData &data;
 
   Texture depth_tx;
   TextureFromPool combined_tx;
@@ -38,7 +38,7 @@ class RenderBuffers {
   Instance &inst_;
 
  public:
-  RenderBuffers(Instance &inst) : inst_(inst){};
+  RenderBuffers(Instance &inst, RenderBuffersInfoData &data) : data(data), inst_(inst){};
 
   /** WARNING: RenderBuffers and Film use different storage types for AO and Shadow. */
   static ePassStorageType pass_storage_type(eViewLayerEEVEEPassType pass_type)

@@ -120,19 +120,19 @@ void main()
         cryptomatte_object_buf[resource_id], node_tree.crypto_hash, 0.0);
     imageStore(rp_cryptomatte_img, out_texel, cryptomatte_output);
   }
-  output_renderpass_color(rp_buf.normal_id, vec4(out_normal, 1.0));
-  output_renderpass_color(rp_buf.diffuse_color_id, vec4(g_diffuse_data.color, 1.0));
-  output_renderpass_color(rp_buf.diffuse_light_id, vec4(diffuse_light, 1.0));
-  output_renderpass_color(rp_buf.specular_color_id, vec4(specular_color, 1.0));
-  output_renderpass_color(rp_buf.specular_light_id, vec4(specular_light, 1.0));
-  output_renderpass_color(rp_buf.emission_id, vec4(g_emission, 1.0));
-  output_renderpass_value(rp_buf.shadow_id, shadow);
+  output_renderpass_color(uniform_buf.render_pass.normal_id, vec4(out_normal, 1.0));
+  output_renderpass_color(uniform_buf.render_pass.diffuse_color_id, vec4(g_diffuse_data.color, 1.0));
+  output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, vec4(diffuse_light, 1.0));
+  output_renderpass_color(uniform_buf.render_pass.specular_color_id, vec4(specular_color, 1.0));
+  output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(specular_light, 1.0));
+  output_renderpass_color(uniform_buf.render_pass.emission_id, vec4(g_emission, 1.0));
+  output_renderpass_value(uniform_buf.render_pass.shadow_id, shadow);
   /** NOTE: AO is done on its own pass. */
 #endif
 
 #ifdef MAT_TRANSPARENT
   /* Volumetric resolve and compositing. */
-  vec2 uvs = gl_FragCoord.xy * volumes_info_buf.viewport_size_inv;
+  vec2 uvs = gl_FragCoord.xy * uniform_buf.volumes.viewport_size_inv;
   VolumeResolveSample vol = volume_resolve(
       vec3(uvs, gl_FragCoord.z), volume_transmittance_tx, volume_scattering_tx);
 

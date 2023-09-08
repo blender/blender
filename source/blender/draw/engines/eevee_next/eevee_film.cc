@@ -434,7 +434,7 @@ void Film::sync()
   accumulate_ps_.init();
   accumulate_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
   accumulate_ps_.shader_set(inst_.shaders.static_shader_get(shader));
-  accumulate_ps_.bind_ubo("film_buf", &data_);
+  inst_.bind_uniform_data(&accumulate_ps_);
   accumulate_ps_.bind_ubo("camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
   accumulate_ps_.bind_ubo("camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
   accumulate_ps_.bind_ubo("camera_next", &(*velocity.camera_steps[step_next]));
@@ -455,7 +455,6 @@ void Film::sync()
   accumulate_ps_.bind_image("color_accum_img", &color_accum_tx_);
   accumulate_ps_.bind_image("value_accum_img", &value_accum_tx_);
   accumulate_ps_.bind_image("cryptomatte_img", &cryptomatte_tx_);
-  accumulate_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
   /* Sync with rendering passes. */
   accumulate_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
   if (use_compute) {
@@ -646,7 +645,7 @@ void Film::accumulate(const DRWView *view, GPUTexture *combined_final_tx)
   combined_final_tx_ = combined_final_tx;
 
   data_.display_only = false;
-  data_.push_update();
+  inst_.push_uniform_data();
 
   draw::View drw_view("MainView", view);
 
@@ -675,7 +674,7 @@ void Film::display()
   combined_final_tx_ = inst_.render_buffers.combined_tx;
 
   data_.display_only = true;
-  data_.push_update();
+  inst_.push_uniform_data();
 
   draw::View drw_view("MainView", DRW_view_default_get());
 

@@ -19,7 +19,7 @@ void main()
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
-  ivec2 texel_fullres = texel * raytrace_buf.resolution_scale + raytrace_buf.resolution_bias;
+  ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale + uniform_buf.raytrace.resolution_bias;
 
   bool valid_texel = in_texture_range(texel_fullres, stencil_tx);
   uint closure_bits = (!valid_texel) ? 0u : texelFetch(stencil_tx, texel_fullres, 0).r;

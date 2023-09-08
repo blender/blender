@@ -22,7 +22,7 @@
 
 namespace blender::eevee {
 
-bool VolumeModule::GridAABB::init(Object *ob, const Camera &camera, const VolumesInfoDataBuf &data)
+bool VolumeModule::GridAABB::init(Object *ob, const Camera &camera, const VolumesInfoData &data)
 {
   /* Returns the unified volume grid cell index of a world space coordinate. */
   auto to_global_grid_coords = [&](float3 wP) -> int3 {
@@ -149,8 +149,6 @@ void VolumeModule::begin_sync()
     data_.depth_distribution = 1.0f / (integration_end - integration_start);
   }
 
-  data_.push_update();
-
   enabled_ = inst_.world.has_volume();
 }
 
@@ -272,7 +270,7 @@ void VolumeModule::end_sync()
 
   integration_ps_.init();
   integration_ps_.shader_set(inst_.shaders.static_shader_get(VOLUME_INTEGRATION));
-  integration_ps_.bind_ubo(VOLUMES_INFO_BUF_SLOT, data_);
+  inst_.bind_uniform_data(&integration_ps_);
   integration_ps_.bind_texture("in_scattering_tx", &scatter_tx_);
   integration_ps_.bind_texture("in_extinction_tx", &extinction_tx_);
   integration_ps_.bind_image("out_scattering_img", &integrated_scatter_tx_);
@@ -285,9 +283,9 @@ void VolumeModule::end_sync()
   resolve_ps_.init();
   resolve_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
   resolve_ps_.shader_set(inst_.shaders.static_shader_get(VOLUME_RESOLVE));
+  inst_.bind_uniform_data(&resolve_ps_);
   bind_resources(resolve_ps_);
   resolve_ps_.bind_texture("depth_tx", &inst_.render_buffers.depth_tx);
-  resolve_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
   resolve_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
   /* Sync with the integration pass. */
   resolve_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);

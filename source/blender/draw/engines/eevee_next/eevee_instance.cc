@@ -280,6 +280,8 @@ void Instance::end_sync()
   light_probes.end_sync();
   reflection_probes.end_sync();
   volume.end_sync();
+
+  global_ubo_.push_update();
 }
 
 void Instance::render_sync()
