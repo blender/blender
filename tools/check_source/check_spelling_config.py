@@ -344,6 +344,8 @@ dict_custom = {
     "subclassing",
     "subdirectories",
     "subdirectory",
+    "submenu",
+    "submenus",
     "suboptimally",
     "subrange",
     "subtractive",

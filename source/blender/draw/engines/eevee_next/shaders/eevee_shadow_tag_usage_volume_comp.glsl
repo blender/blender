@@ -1,6 +1,6 @@
 
 /**
- * Virtual shadowmapping: Usage tagging
+ * Virtual shadow-mapping: Usage tagging
  *
  * Shadow pages are only allocated if they are visible.
  * This pass scans all volume froxels and tags tiles needed for shadowing.

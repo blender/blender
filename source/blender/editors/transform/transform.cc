@@ -2032,7 +2032,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   initSnapSpatial(t, t->snap_spatial, &t->snap_spatial_precision);
 
-  /* EVIL! posemode code can switch translation to rotate when 1 bone is selected.
+  /* EVIL! pose-mode code can switch translation to rotate when 1 bone is selected.
    * will be removed (ton) */
 
   /* EVIL2: we gave as argument also texture space context bit... was cleared */

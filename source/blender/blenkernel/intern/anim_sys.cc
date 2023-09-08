@@ -2879,7 +2879,7 @@ static void nlastrip_evaluate_meta(const int evaluation_mode,
   /* Assert currently supported modes. If new mode added, then assertion marks potentially missed
    * area.
    *
-   * NOTE: In the future if support is ever added to metastrips to support nested tracks, then
+   * NOTE: In the future if support is ever added to meta-strips to support nested tracks, then
    * STRIP_EVAL_BLEND and STRIP_EVAL_BLEND_GET_INVERTED_LOWER_SNAPSHOT cases are no longer
    * equivalent. The output of nlastrips_ctime_get_strip() may return a list of strips. The only
    * case difference should be the evaluation order.

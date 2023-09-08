@@ -638,7 +638,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
   }
-  ss << "\n/* Subpass Inputs. */\n";
+  ss << "\n/* Sub-pass Inputs. */\n";
   for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
     /* TODO(fclem): Add GL_EXT_shader_framebuffer_fetch support and fallback using imageLoad.
      * For now avoid compilation failure. */

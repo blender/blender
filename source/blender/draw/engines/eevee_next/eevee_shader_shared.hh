@@ -405,11 +405,14 @@ struct VelocityObjectIndex {
 BLI_STATIC_ASSERT_ALIGN(VelocityObjectIndex, 16)
 
 struct VelocityGeometryIndex {
-  /** Offset inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
+  /** Offset inside #VelocityGeometryBuf for each time-step. Indexed using eVelocityStep. */
   packed_int3 ofs;
   /** If true, compute deformation motion blur. */
   bool1 do_deform;
-  /** Length of data inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
+  /**
+   * Length of data inside #VelocityGeometryBuf for each time-step.
+   * Indexed using eVelocityStep.
+   */
   packed_int3 len;
 
   int _pad0;
@@ -861,9 +864,9 @@ struct ShadowPagesInfoData {
   int page_alloc_count;
   /** Index of the next cache page in the cached page buffer. */
   uint page_cached_next;
-  /** Index of the first page in the buffer since the last defrag. */
+  /** Index of the first page in the buffer since the last defragment. */
   uint page_cached_start;
-  /** Index of the last page in the buffer since the last defrag. */
+  /** Index of the last page in the buffer since the last defragment. */
   uint page_cached_end;
 
   int _pad0;
