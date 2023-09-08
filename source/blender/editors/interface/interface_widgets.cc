@@ -2726,8 +2726,16 @@ static void widget_state_menu_item(uiWidgetType *wt,
     color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.5f);
     wt->wcol.inner[3] = 64;
   }
-  else if (state->but_flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
+  else if (state->but_flag & UI_BUT_DISABLED) {
     /* Regular disabled. */
+    color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
+  }
+  else if (state->but_flag & UI_BUT_INACTIVE) {
+    /* Inactive. */
+    if (state->but_flag & UI_ACTIVE) {
+      color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.2f);
+      wt->wcol.inner[3] = 255;
+    }
     color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
   }
   else if (state->but_flag & (UI_BUT_ACTIVE_DEFAULT | UI_SELECT_DRAW)) {
