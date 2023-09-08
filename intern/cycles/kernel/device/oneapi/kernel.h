@@ -20,7 +20,7 @@ enum DeviceKernel : int;
 #        define CYCLES_KERNEL_ONEAPI_EXPORT extern __declspec(dllimport)
 #      endif
 #    else
-#      define CYCLES_KERNEL_ONEAPI_EXPORT
+#      define CYCLES_KERNEL_ONEAPI_EXPORT extern __attribute__((visibility("default")))
 #    endif
 #  endif
 
