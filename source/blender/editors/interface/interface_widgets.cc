@@ -2825,11 +2825,9 @@ static void widget_menu_back(
   }
   else if (direction == UI_DIR_DOWN) {
     roundboxalign = (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
-    rect->ymin -= 0.1f * U.widget_unit;
   }
   else if (direction == UI_DIR_UP) {
     roundboxalign = UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT;
-    rect->ymax += 0.1f * U.widget_unit;
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
