@@ -2951,11 +2951,9 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
   bool select = false;
   bool deselect = false;
   int npins = 0;
-  int id = 0;
 
   /* Give vertices matrix indices, count pins and check selections. */
   for (PVert *v = chart->verts; v; v = v->nextlink) {
-    v->u.id = id++;
     if (v->flag & PVERT_PIN) {
       npins++;
       if (v->flag & PVERT_SELECT) {
@@ -2991,6 +2989,13 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
     if (!p_chart_abf_solve(chart)) {
       param_warning("ABF solving failed: falling back to LSCM.\n");
     }
+  }
+
+  /* ABF uses these indices for it's internal references.
+   * Set the indices afterwards. */
+  int id = 0;
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
+    v->u.id = id++;
   }
 
   if (npins <= 1) {
