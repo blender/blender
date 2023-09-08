@@ -1667,7 +1667,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (ELEM(event->type, LEFTMOUSE)) {
     if (ELEM(event->val, KM_RELEASE, KM_DBL_CLICK)) {
       if (delete_point && !cpd->new_point && !cpd->dragging) {
-        if (ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, true, &params)) {
+        if (ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, &params)) {
           cpd->changed = delete_point_under_mouse(&vc, event);
         }
       }
@@ -1728,7 +1728,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
         }
         else if (select_point) {
-          ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, true, &params);
+          ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, &params);
         }
       }
 

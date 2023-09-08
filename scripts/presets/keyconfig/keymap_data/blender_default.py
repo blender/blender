@@ -568,7 +568,6 @@ def _template_items_tool_select(
         # Always use the cursor operator where possible,
         # needed for time-line views where we always want to be able to scrub time.
         cursor_prioritize=False,
-        operator_props=(),
         fallback=False,
 ):
     if not params.legacy and not fallback:
@@ -585,11 +584,11 @@ def _template_items_tool_select(
         if select_passthrough:
             return [
                 (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
-                 {"properties": [("deselect_all", True), ("select_passthrough", True), *operator_props]}),
+                 {"properties": [("deselect_all", True), ("select_passthrough", True)]}),
                 (operator, {"type": 'LEFTMOUSE', "value": 'CLICK'},
-                 {"properties": [("deselect_all", True), *operator_props]}),
+                 {"properties": [("deselect_all", True)]}),
                 (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-                 {"properties": [("deselect_all", False), ("toggle", True), *operator_props]}),
+                 {"properties": [("deselect_all", False), ("toggle", True)]}),
                 ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
                  {"properties": [("release_confirm", True)]}),
             ]
@@ -600,9 +599,9 @@ def _template_items_tool_select(
         # unless it is expected that the tool should operate on the selection (click-drag to rip for e.g.).
         return [
             (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
-             {"properties": [("deselect_all", True), *operator_props]}),
+             {"properties": [("deselect_all", True)]}),
             (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-             {"properties": [("toggle", True), *operator_props]}),
+             {"properties": [("toggle", True)]}),
 
             # Fallback key-map must transform as the primary tool is expected
             # to be accessed via gizmos in this case. See: #96885.
@@ -4886,10 +4885,6 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
     # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
     # as a tool key-map with RMB-select and `use_fallback_tool` is enabled with RMB select. See #92467.
 
-    props_vert_without_handles = ()
-    if select_passthrough:
-        props_vert_without_handles = ("vert_without_handles",)
-
     # See: `use_tweak_select_passthrough` doc-string.
     if select_passthrough and (value in {'CLICK', 'RELEASE'}):
         select_passthrough = False
@@ -4899,9 +4894,9 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
         {"type": type, "value": value, **{m: True for m in mods}},
         {"properties": [(c, True) for c in props]},
     ) for props, mods in (
-        ((("deselect_all", "select_passthrough", *props_vert_without_handles) if select_passthrough else
-          ("deselect_all", *props_vert_without_handles)) if not legacy else (), ()),
-        (("toggle", *props_vert_without_handles), ("shift",)),
+        ((("deselect_all", "select_passthrough") if select_passthrough else
+          ("deselect_all",)) if not legacy else (), ()),
+        (("toggle",), ("shift",)),
         (("center", "object"), ("ctrl",)),
         (("enumerate",), ("alt",)),
         (("toggle", "center"), ("shift", "ctrl")),
@@ -4918,7 +4913,7 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
             {"type": type, "value": 'CLICK'},
             {"properties": [
                 (c, True)
-                for c in ("deselect_all", *props_vert_without_handles)
+                for c in ("deselect_all",)
             ]},
         ))
 
@@ -7074,17 +7069,12 @@ def km_3d_view_tool_text_select(_params):
 
 
 def km_3d_view_tool_select(params, *, fallback):
-    if params.use_tweak_select_passthrough:
-        operator_props = (("vert_without_handles", True),)
-    else:
-        operator_props = ()
-
     return (
         _fallback_id("3D View Tool: Tweak", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
-                params, "view3d.select", "view3d.cursor3d", operator_props=operator_props, fallback=fallback)),
+                params, "view3d.select", "view3d.cursor3d", fallback=fallback)),
             *([] if params.use_fallback_tool_select_handled else
               _template_view3d_select(
                   type=params.select_mouse,
