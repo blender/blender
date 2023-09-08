@@ -463,7 +463,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_mis(KernelGlobals kg,
                                                              ccl_private float3 *wo,
                                                              ccl_private float *bsdf_pdf,
                                                              ccl_private float *unguided_bsdf_pdf,
-                                                             ccl_private float2 *sampled_rougness,
+                                                             ccl_private float2 *sampled_roughness,
                                                              ccl_private float *eta)
 {
   /* BSSRDF should already have been handled elsewhere. */
@@ -534,7 +534,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_mis(KernelGlobals kg,
 
     kernel_assert(reduce_min(bsdf_eval_sum(bsdf_eval)) >= 0.0f);
 
-    *sampled_rougness = make_float2(1.0f, 1.0f);
+    *sampled_roughness = make_float2(1.0f, 1.0f);
     *eta = 1.0f;
   }
   else {
@@ -548,14 +548,14 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_mis(KernelGlobals kg,
                         &eval,
                         wo,
                         unguided_bsdf_pdf,
-                        sampled_rougness,
+                        sampled_roughness,
                         eta);
 #  if 0
 // Code path to validate the estimation of the label, sampled roughness and eta
 // This should be activated from time to time when the BSDFs change to check if everything
 // is still working correctly.
     if (*unguided_bsdf_pdf > 0.0f) {
-      surface_shader_validate_bsdf_sample(kg, sc, *wo, label, sampled_roughness, eta);
+      surface_shader_validate_bsdf_sample(kg, sc, *wo, label, *sampled_roughness, *eta);
     }
 #  endif
 
@@ -798,7 +798,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_ris(KernelGlobals kg,
     // This should be activated from time to time when the BSDFs change to check if everything
     // is still working correctly.
     if (*unguided_bsdf_pdf > 0.0f) {
-      surface_shader_validate_bsdf_sample(kg, sc, *wo, label, sampled_roughness, eta);
+      surface_shader_validate_bsdf_sample(kg, sc, *wo, label, *sampled_roughness, *eta);
     }
 #  endif
 
