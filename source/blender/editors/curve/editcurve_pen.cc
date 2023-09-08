@@ -649,7 +649,7 @@ static void insert_bezt_to_nurb(Nurb *nu, const CutData *data, Curve *cu)
   nu->bezt = new_bezt_array;
   ED_curve_deselect_all(editnurb);
   BKE_nurb_handles_calc(nu);
-  BEZT_SEL_ALL(new_bezt);
+  BEZT_SEL_IDX(new_bezt, 1);
 }
 
 /**
@@ -1436,21 +1436,11 @@ static void init_selected_bezt_handles(ListBase *nurbs)
 
 static void toggle_select_bezt(BezTriple *bezt, const int bezt_idx, Curve *cu, Nurb *nu)
 {
-  if (bezt_idx == 1) {
-    if (BEZT_ISSEL_IDX(bezt, 1)) {
-      BEZT_DESEL_ALL(bezt);
-    }
-    else {
-      BEZT_SEL_ALL(bezt);
-    }
+  if (BEZT_ISSEL_IDX(bezt, bezt_idx)) {
+    BEZT_DESEL_IDX(bezt, bezt_idx);
   }
   else {
-    if (BEZT_ISSEL_IDX(bezt, bezt_idx)) {
-      BEZT_DESEL_IDX(bezt, bezt_idx);
-    }
-    else {
-      BEZT_SEL_IDX(bezt, bezt_idx);
-    }
+    BEZT_SEL_IDX(bezt, bezt_idx);
   }
 
   if (BEZT_ISSEL_ANY(bezt)) {
@@ -1677,7 +1667,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (ELEM(event->type, LEFTMOUSE)) {
     if (ELEM(event->val, KM_RELEASE, KM_DBL_CLICK)) {
       if (delete_point && !cpd->new_point && !cpd->dragging) {
-        if (ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, false, &params)) {
+        if (ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, true, &params)) {
           cpd->changed = delete_point_under_mouse(&vc, event);
         }
       }
@@ -1738,7 +1728,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
         }
         else if (select_point) {
-          ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, false, &params);
+          ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, true, &params);
         }
       }
 
@@ -1806,12 +1796,7 @@ static int curve_pen_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       /* Select the closest bezt or bp. */
       ED_curve_deselect_all(cu->editnurb);
       if (bezt1) {
-        if (bezt_idx == 1) {
-          BEZT_SEL_ALL(bezt1);
-        }
-        else {
-          BEZT_SEL_IDX(bezt1, bezt_idx);
-        }
+        BEZT_SEL_IDX(bezt1, bezt_idx);
         BKE_curve_nurb_vert_active_set(cu, nu1, bezt1);
       }
       else if (bp1) {
