@@ -836,14 +836,12 @@ void BKE_defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
   if (UNLIKELY(!dvert || !dw)) {
     return;
   }
-
-  int i = dw - dvert->dw;
-
-  /* Security check! */
-  if (i < 0 || i >= dvert->totweight) {
+  /* Ensure `dw` is part of `dvert` (security check). */
+  if (UNLIKELY(uintptr_t(dw - dvert->dw) < uintptr_t(dvert->totweight))) {
     return;
   }
 
+  const int i = dw - dvert->dw;
   dvert->totweight--;
   /* If there are still other deform weights attached to this vert then remove
    * this deform weight, and reshuffle the others. */
