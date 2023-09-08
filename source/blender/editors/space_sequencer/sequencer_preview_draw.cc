@@ -57,7 +57,7 @@
 #include "WM_types.hh"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 static Sequence *special_seq_update = nullptr;
 

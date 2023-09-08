@@ -31,7 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 struct ThumbnailDrawJob {
   SeqRenderData context;

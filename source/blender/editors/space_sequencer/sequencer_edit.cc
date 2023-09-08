@@ -72,7 +72,7 @@
 #include "DEG_depsgraph_build.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Structs & Enums

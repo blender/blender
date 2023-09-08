@@ -24,7 +24,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 struct PreviewJob {
   ListBase previews;

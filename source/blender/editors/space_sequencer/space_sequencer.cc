@@ -55,7 +55,7 @@
 #include "DRW_engine.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 /**************************** common state *****************************/
 

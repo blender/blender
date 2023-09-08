@@ -34,7 +34,7 @@
 #include "ED_util_imbuf.hh"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Sequencer Sample Backdrop Operator

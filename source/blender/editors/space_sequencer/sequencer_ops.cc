@@ -16,7 +16,7 @@
 
 #include "ED_sequencer.hh"
 
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 /* ************************** registration **********************************/
 

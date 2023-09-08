@@ -69,7 +69,7 @@
 #include "MEM_guardedalloc.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 #define SEQ_LEFTHANDLE 1
 #define SEQ_RIGHTHANDLE 2

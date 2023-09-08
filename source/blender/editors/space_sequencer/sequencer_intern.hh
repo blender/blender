@@ -11,10 +11,6 @@
 #include "DNA_sequence_types.h"
 #include "RNA_access.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Internal exports only. */
 
 struct ARegion;
@@ -328,7 +324,3 @@ void GIZMO_GT_retime_handle_add(struct wmGizmoType *gzt);
 void GIZMO_GT_retime_handle(struct wmGizmoType *gzt);
 void GIZMO_GT_retime_remove(struct wmGizmoType *gzt);
 void GIZMO_GT_speed_set_remove(struct wmGizmoType *gzt);
-
-#ifdef __cplusplus
-}
-#endif
