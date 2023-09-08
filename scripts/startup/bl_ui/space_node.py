@@ -929,7 +929,6 @@ class NODE_PT_node_tree_interface(Panel):
                 active_item.draw(context, layout)
 
             if active_item.item_type == 'PANEL':
-                layout.prop(active_item, "name")
                 layout.prop(active_item, "description")
                 layout.prop(active_item, "default_closed", text="Closed by Default")
 
