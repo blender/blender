@@ -232,7 +232,6 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
 
         if ob and pchan:
             col.prop(bone, "use_relative_parent")
-            col.prop_search(pchan, "bone_group", ob.pose, "bone_groups", text="Bone Group")
 
         sub = col.column()
         sub.active = (bone.parent is not None)
