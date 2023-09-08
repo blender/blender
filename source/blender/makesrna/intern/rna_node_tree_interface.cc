@@ -785,9 +785,9 @@ static int rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, Po
   return true;
 }
 
-static int rna_NodeTreeInterface_items_lookup_string(struct PointerRNA *ptr,
+static int rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
                                                      const char *key,
-                                                     struct PointerRNA *r_ptr)
+                                                     PointerRNA *r_ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   if (!ntree->runtime) {

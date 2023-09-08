@@ -499,7 +499,7 @@ static void rna_uiItemPopoverPanelFromGroup(uiLayout *layout,
   uiItemPopoverPanelFromGroup(layout, C, space_id, region_id, context, category);
 }
 
-static void rna_uiItemProgress(struct uiLayout *layout,
+static void rna_uiItemProgress(uiLayout *layout,
                                const char *text,
                                const char *text_ctxt,
                                bool translate,

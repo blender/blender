@@ -202,13 +202,13 @@ void ED_view3d_init_mats_rv3d_gl(const Object *ob, RegionView3D *rv3d)
 }
 
 #ifdef DEBUG
-void ED_view3d_clear_mats_rv3d(struct RegionView3D *rv3d)
+void ED_view3d_clear_mats_rv3d(RegionView3D *rv3d)
 {
   zero_m4(rv3d->viewmatob);
   zero_m4(rv3d->persmatob);
 }
 
-void ED_view3d_check_mats_rv3d(struct RegionView3D *rv3d)
+void ED_view3d_check_mats_rv3d(RegionView3D *rv3d)
 {
   BLI_ASSERT_ZERO_M4(rv3d->viewmatob);
   BLI_ASSERT_ZERO_M4(rv3d->persmatob);

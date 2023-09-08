@@ -481,6 +481,7 @@ class RENDER_PT_eevee_next_volumetric_lighting(RenderButtonsPanel, Panel):
         layout.active = props.use_volumetric_lights
         layout.prop(props, "volumetric_light_clamp", text="Light Clamping")
 
+
 class RENDER_PT_eevee_next_volumetric_shadows(RenderButtonsPanel, Panel):
     bl_label = "Volumetric Shadows"
     bl_parent_id = "RENDER_PT_eevee_next_volumetric"
