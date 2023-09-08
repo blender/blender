@@ -68,7 +68,8 @@ FilmSample film_sample_get(int sample_n, ivec2 texel_film)
 #  ifdef SCALED_RENDERING
   /* We need to compute the real distance and weight since a sample
    * can be used by many final pixel. */
-  vec2 offset = uniform_buf.film.subpixel_offset - vec2(texel_film % uniform_buf.film.scaling_factor);
+  vec2 offset = uniform_buf.film.subpixel_offset -
+                vec2(texel_film % uniform_buf.film.scaling_factor);
   film_sample.weight = film_filter_weight(uniform_buf.film.filter_size, len_squared(offset));
 #  endif
 
@@ -430,7 +431,8 @@ float film_history_blend_factor(float velocity,
   /* Linearly blend when history gets below to 25% of the bbox size. */
   blend *= saturate(distance_to_luma_clip * 4.0 + 0.1);
   /* Discard out of view history. */
-  if (any(lessThan(texel, vec2(0))) || any(greaterThanEqual(texel, vec2(uniform_buf.film.extent)))) {
+  if (any(lessThan(texel, vec2(0))) || any(greaterThanEqual(texel, vec2(uniform_buf.film.extent))))
+  {
     blend = 1.0;
   }
   /* Discard history if invalid. */
@@ -645,7 +647,8 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     FilmSample film_sample = film_sample_get(0, texel_film);
 
     if (uniform_buf.film.use_reprojection || film_sample.weight < film_distance) {
-      vec4 normal = texelFetch(rp_color_tx, ivec3(film_sample.texel, uniform_buf.render_pass.normal_id), 0);
+      vec4 normal = texelFetch(
+          rp_color_tx, ivec3(film_sample.texel, uniform_buf.render_pass.normal_id), 0);
       float depth = texelFetch(depth_tx, film_sample.texel, 0).x;
       vec4 vector = velocity_resolve(vector_tx, film_sample.texel, depth);
       /* Transform to pixel space. */
@@ -658,7 +661,8 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     }
     else {
       out_depth = imageLoad(depth_img, texel_film).r;
-      if (uniform_buf.film.display_id != -1 && uniform_buf.film.display_id == uniform_buf.film.normal_id) {
+      if (uniform_buf.film.display_id != -1 &&
+          uniform_buf.film.display_id == uniform_buf.film.normal_id) {
         out_color = imageLoad(color_accum_img, ivec3(texel_film, uniform_buf.film.display_id));
       }
     }
@@ -682,10 +686,16 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
                         uniform_buf.render_pass.specular_light_id,
                         rp_color_tx,
                         specular_light_accum);
-      film_sample_accum(
-          src, uniform_buf.film.volume_light_id, uniform_buf.render_pass.volume_light_id, rp_color_tx, volume_light_accum);
-      film_sample_accum(
-          src, uniform_buf.film.emission_id, uniform_buf.render_pass.emission_id, rp_color_tx, emission_accum);
+      film_sample_accum(src,
+                        uniform_buf.film.volume_light_id,
+                        uniform_buf.render_pass.volume_light_id,
+                        rp_color_tx,
+                        volume_light_accum);
+      film_sample_accum(src,
+                        uniform_buf.film.emission_id,
+                        uniform_buf.render_pass.emission_id,
+                        rp_color_tx,
+                        emission_accum);
     }
     film_store_color(dst, uniform_buf.film.diffuse_light_id, diffuse_light_accum, out_color);
     film_store_color(dst, uniform_buf.film.specular_light_id, specular_light_accum, out_color);
@@ -713,18 +723,29 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
                         uniform_buf.render_pass.specular_color_id,
                         rp_color_tx,
                         specular_color_accum);
-      film_sample_accum(
-          src, uniform_buf.film.environment_id, uniform_buf.render_pass.environment_id, rp_color_tx, environment_accum);
-      film_sample_accum(src, uniform_buf.film.shadow_id, uniform_buf.render_pass.shadow_id, rp_value_tx, shadow_accum);
-      film_sample_accum(
-          src, uniform_buf.film.ambient_occlusion_id, uniform_buf.render_pass.ambient_occlusion_id, rp_value_tx, ao_accum);
+      film_sample_accum(src,
+                        uniform_buf.film.environment_id,
+                        uniform_buf.render_pass.environment_id,
+                        rp_color_tx,
+                        environment_accum);
+      film_sample_accum(src,
+                        uniform_buf.film.shadow_id,
+                        uniform_buf.render_pass.shadow_id,
+                        rp_value_tx,
+                        shadow_accum);
+      film_sample_accum(src,
+                        uniform_buf.film.ambient_occlusion_id,
+                        uniform_buf.render_pass.ambient_occlusion_id,
+                        rp_value_tx,
+                        ao_accum);
       film_sample_accum_mist(src, mist_accum);
     }
     film_store_color(dst, uniform_buf.film.diffuse_color_id, diffuse_color_accum, out_color);
     film_store_color(dst, uniform_buf.film.specular_color_id, specular_color_accum, out_color);
     film_store_color(dst, uniform_buf.film.environment_id, environment_accum, out_color);
     film_store_color(dst, uniform_buf.film.shadow_id, vec4(vec3(shadow_accum), 1.0), out_color);
-    film_store_color(dst, uniform_buf.film.ambient_occlusion_id, vec4(vec3(ao_accum), 1.0), out_color);
+    film_store_color(
+        dst, uniform_buf.film.ambient_occlusion_id, vec4(vec3(ao_accum), 1.0), out_color);
     film_store_value(dst, uniform_buf.film.mist_id, mist_accum, out_color);
   }
 

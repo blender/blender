@@ -92,11 +92,15 @@ void main()
 
   /* Light passes. */
   if (uniform_buf.render_pass.diffuse_light_id >= 0) {
-    imageStore(rp_color_img, ivec3(texel, uniform_buf.render_pass.diffuse_light_id), vec4(diffuse_light, 1.0));
+    imageStore(rp_color_img,
+               ivec3(texel, uniform_buf.render_pass.diffuse_light_id),
+               vec4(diffuse_light, 1.0));
   }
   if (uniform_buf.render_pass.specular_light_id >= 0) {
     vec3 specular_light = reflection_light + refraction_light;
-    imageStore(rp_color_img, ivec3(texel, uniform_buf.render_pass.specular_light_id), vec4(specular_light, 1.0));
+    imageStore(rp_color_img,
+               ivec3(texel, uniform_buf.render_pass.specular_light_id),
+               vec4(specular_light, 1.0));
   }
   if (uniform_buf.render_pass.shadow_id >= 0) {
     imageStore(rp_value_img, ivec3(texel, uniform_buf.render_pass.shadow_id), vec4(shadow));

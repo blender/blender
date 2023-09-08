@@ -189,7 +189,8 @@ void main()
     ivec2 sample_texel = texel + offset;
 
     /* Reject samples outside of valid neighbor tiles. */
-    ivec2 sample_tile = ivec2(sample_texel * uniform_buf.raytrace.resolution_scale) / int(tile_size);
+    ivec2 sample_tile = ivec2(sample_texel * uniform_buf.raytrace.resolution_scale) /
+                        int(tile_size);
     ivec2 sample_tile_relative = sample_tile - ivec2(tile_coord);
     if (neighbor_tile_mask_bit_get(invalid_neighbor_tile_mask, sample_tile_relative)) {
       continue;

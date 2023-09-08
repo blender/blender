@@ -130,7 +130,8 @@ void main(void)
   accum /= accum_weight;
 
   if (uniform_buf.render_pass.diffuse_light_id >= 0) {
-    imageStore(rp_color_img, ivec3(texel, uniform_buf.render_pass.diffuse_light_id), vec4(accum, 1.0));
+    imageStore(
+        rp_color_img, ivec3(texel, uniform_buf.render_pass.diffuse_light_id), vec4(accum, 1.0));
   }
 
   /* This pass uses additive blending.

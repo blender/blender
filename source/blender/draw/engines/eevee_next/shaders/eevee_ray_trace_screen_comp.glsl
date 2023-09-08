@@ -20,7 +20,8 @@ void main()
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
-  ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale + uniform_buf.raytrace.resolution_bias;
+  ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
+                        uniform_buf.raytrace.resolution_bias;
 
   float depth = texelFetch(hiz_tx, texel_fullres, 0).r;
   vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;

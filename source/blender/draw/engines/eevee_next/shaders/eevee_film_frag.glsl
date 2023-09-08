@@ -17,7 +17,8 @@ void main()
       out_color = texelFetch(in_combined_tx, texel_film, 0);
     }
     else if (uniform_buf.film.display_storage_type == PASS_STORAGE_VALUE) {
-      out_color.rgb = imageLoad(value_accum_img, ivec3(texel_film, uniform_buf.film.display_id)).rrr;
+      out_color.rgb =
+          imageLoad(value_accum_img, ivec3(texel_film, uniform_buf.film.display_id)).rrr;
       out_color.a = 1.0;
     }
     else if (uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {

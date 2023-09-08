@@ -158,7 +158,8 @@ vec3 volume_shadow(LightData ld, vec3 ray_wpos, vec3 L, float l_dist, sampler3D 
   /* TODO use shadow maps instead. */
   vec3 shadow = vec3(1.0);
   for (float s = 1.0; s < VOLUMETRIC_SHADOW_MAX_STEP && s <= uniform_buf.volumes.shadow_steps;
-       s += 1.0) {
+       s += 1.0)
+  {
     vec3 pos = ray_wpos + L * s;
 
     vec3 ndc = project_point(ProjectionMatrix, transform_point(ViewMatrix, pos));
