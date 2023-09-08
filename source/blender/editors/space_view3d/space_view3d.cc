@@ -1227,6 +1227,7 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
       switch (wmn->data) {
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
+        case ND_BONE_COLLECTION:
         case ND_TRANSFORM:
         case ND_POSE:
         case ND_DRAW:
@@ -1847,6 +1848,7 @@ static void view3d_buttons_region_listener(const wmRegionListenerParams *params)
       switch (wmn->data) {
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
+        case ND_BONE_COLLECTION:
         case ND_TRANSFORM:
         case ND_POSE:
         case ND_DRAW:

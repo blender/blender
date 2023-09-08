@@ -272,7 +272,7 @@ static void bone_collection_assign_editbones(bContext *C,
   }
 
   ED_armature_edit_sync_selection(arm->edbo);
-  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
@@ -489,12 +489,7 @@ static void bone_collection_select(bContext *C,
   }
 
   DEG_id_tag_update(&armature->id, ID_RECALC_SELECT);
-  if (is_editmode) {
-    WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-  }
-  else {
-    WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-  }
+  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
 
   if (is_editmode) {
     ED_outliner_select_sync_from_edit_bone_tag(C);

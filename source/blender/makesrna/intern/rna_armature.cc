@@ -196,7 +196,7 @@ static void rna_BoneCollections_active_index_set(PointerRNA *ptr, const int bone
   bArmature *arm = (bArmature *)ptr->data;
   ANIM_armature_bonecoll_active_index_set(arm, bone_collection_index);
 
-  // TODO: send notifiers?
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, ptr->data);
 }
 
 static void rna_BoneCollections_active_index_range(
@@ -219,7 +219,7 @@ static void rna_BoneCollections_move(bArmature *arm, ReportList *reports, int fr
     BKE_reportf(reports, RPT_ERROR, "Cannot move collection from index '%d' to '%d'", from, to);
   }
 
-  // TODO: notifiers.
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, &arm->id);
 }
 
 static void rna_BoneCollection_name_set(PointerRNA *ptr, const char *name)
@@ -228,7 +228,7 @@ static void rna_BoneCollection_name_set(PointerRNA *ptr, const char *name)
   BoneCollection *bcoll = (BoneCollection *)ptr->data;
 
   ANIM_armature_bonecoll_name_set(arm, bcoll, name);
-  // TODO: notifiers.
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, &arm->id);
 }
 
 static char *rna_BoneCollection_path(const PointerRNA *ptr)
