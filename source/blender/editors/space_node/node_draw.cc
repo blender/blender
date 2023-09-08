@@ -2580,31 +2580,7 @@ static void node_draw_basis(const bContext &C,
   /* Show/hide icons. */
   float iconofs = rct.xmax - 0.35f * U.widget_unit;
 
-  /* Preview. */
-  if (node_is_previewable(snode, ntree, node)) {
-    iconofs -= iconbutw;
-    UI_block_emboss_set(&block, UI_EMBOSS_NONE);
-    uiBut *but = uiDefIconBut(&block,
-                              UI_BTYPE_BUT_TOGGLE,
-                              0,
-                              ICON_MATERIAL,
-                              iconofs,
-                              rct.ymax - NODE_DY,
-                              iconbutw,
-                              UI_UNIT_Y,
-                              nullptr,
-                              0,
-                              0,
-                              0,
-                              0,
-                              "");
-    UI_but_func_set(but,
-                    node_toggle_button_cb,
-                    POINTER_FROM_INT(node.identifier),
-                    (void *)"NODE_OT_preview_toggle");
-    UI_block_emboss_set(&block, UI_EMBOSS);
-  }
-  /* Group edit. */
+  /* Group edit. This icon should be the first for the node groups. */
   if (node.type == NODE_GROUP) {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
@@ -2629,6 +2605,30 @@ static void node_draw_basis(const bContext &C,
     if (node.id) {
       UI_but_icon_indicator_number_set(but, ID_REAL_USERS(node.id));
     }
+    UI_block_emboss_set(&block, UI_EMBOSS);
+  }
+  /* Preview. */
+  if (node_is_previewable(snode, ntree, node)) {
+    iconofs -= iconbutw;
+    UI_block_emboss_set(&block, UI_EMBOSS_NONE);
+    uiBut *but = uiDefIconBut(&block,
+                              UI_BTYPE_BUT_TOGGLE,
+                              0,
+                              ICON_MATERIAL,
+                              iconofs,
+                              rct.ymax - NODE_DY,
+                              iconbutw,
+                              UI_UNIT_Y,
+                              nullptr,
+                              0,
+                              0,
+                              0,
+                              0,
+                              "");
+    UI_but_func_set(but,
+                    node_toggle_button_cb,
+                    POINTER_FROM_INT(node.identifier),
+                    (void *)"NODE_OT_preview_toggle");
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
   if (node.type == NODE_CUSTOM && node.typeinfo->ui_icon != ICON_NONE) {
