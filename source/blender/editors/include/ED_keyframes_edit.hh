@@ -430,6 +430,7 @@ ListBase find_fcurve_segments(FCurve *fcu);
 void clean_fcurve(bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault);
 void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
+void scale_average_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment, float factor);
 
 /**
  * Get a 1D gauss kernel. Since the kernel is symmetrical, only calculates the positive side.
