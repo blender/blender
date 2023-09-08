@@ -281,6 +281,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   }
 
   if (md->type == eModifierType_Nodes) {
+    uiItemS(layout);
     uiItemFullO(layout,
                 "OBJECT_OT_geometry_nodes_move_to_nodes",
                 nullptr,
