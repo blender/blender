@@ -31,7 +31,9 @@
 /* Own include. */
 #include "sequencer_intern.hh"
 
-/*********************** Add modifier operator *************************/
+/* -------------------------------------------------------------------- */
+/** \name Add modifier operator
+ * \{ */
 
 static int strip_modifier_add_exec(bContext *C, wmOperator *op)
 {
@@ -87,7 +89,11 @@ void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-/*********************** Remove modifier operator *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Modifier Operator
+ * \{ */
 
 static int strip_modifier_remove_exec(bContext *C, wmOperator *op)
 {
@@ -140,7 +146,11 @@ void SEQUENCER_OT_strip_modifier_remove(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-/*********************** Move operator *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move Operator
+ * \{ */
 
 enum {
   SEQ_MODIFIER_MOVE_UP = 0,
@@ -220,7 +230,11 @@ void SEQUENCER_OT_strip_modifier_move(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-/*********************** Copy to selected operator *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy to Selected Operator
+ * \{ */
 
 enum {
   SEQ_MODIFIER_COPY_REPLACE = 0,
@@ -313,6 +327,12 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", type_items, SEQ_MODIFIER_COPY_REPLACE, "Type", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Redefine Equalizer Graphs Operator
+ * \{ */
+
 static int strip_modifier_equalizer_redefine_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
@@ -369,3 +389,5 @@ void SEQUENCER_OT_strip_modifier_equalizer_redefine(wmOperatorType *ot)
       ot->srna, "name", "Name", MAX_NAME, "Name", "Name of modifier to redefine");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
+
+/** \} */

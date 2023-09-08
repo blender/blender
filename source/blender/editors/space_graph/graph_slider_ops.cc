@@ -1289,6 +1289,8 @@ void GRAPH_OT_match_slope(wmOperatorType *ot)
                        1.0f);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Shear Operator
  * \{ */
@@ -1546,6 +1548,7 @@ void GRAPH_OT_scale_average(wmOperatorType *ot)
 }
 
 /** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Gauss Smooth Operator
  * \{ */
