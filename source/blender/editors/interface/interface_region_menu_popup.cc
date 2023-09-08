@@ -345,7 +345,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
      * This ensures we set an item to be active. */
     if (but_activate) {
       ARegion *region = CTX_wm_region(C);
-      if (region && region->regiontype == RGN_TYPE_TOOLS) {
+      if (region && region->regiontype == RGN_TYPE_TOOLS && but_activate->block &&
+          (but_activate->block->flag & UI_BLOCK_POPUP_HOLD))
+      {
         /* In Toolbars, highlight the button with select color. */
         but_activate->flag |= UI_SELECT_DRAW;
       }
