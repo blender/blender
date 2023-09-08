@@ -837,7 +837,7 @@ void BKE_defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
     return;
   }
   /* Ensure `dw` is part of `dvert` (security check). */
-  if (UNLIKELY(uintptr_t(dw - dvert->dw) < uintptr_t(dvert->totweight))) {
+  if (UNLIKELY(uintptr_t(dw - dvert->dw) >= uintptr_t(dvert->totweight))) {
     /* Assert as an invalid `dw` (while supported) isn't likely to do what the caller expected. */
     BLI_assert_unreachable();
     return;
