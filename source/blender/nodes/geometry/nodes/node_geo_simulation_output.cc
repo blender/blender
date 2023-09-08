@@ -195,7 +195,8 @@ void move_simulation_state_to_values(const Span<NodeSimulationItem> node_simulat
   const bke::bake::BakeSocketConfig config = make_bake_socket_config(node_simulation_items);
   Vector<bke::bake::BakeItem *> bake_items;
   for (const NodeSimulationItem &item : node_simulation_items) {
-    auto *bake_item = zone_state.items_by_id.lookup_ptr(item.identifier);
+    std::unique_ptr<bke::bake::BakeItem> *bake_item = zone_state.items_by_id.lookup_ptr(
+        item.identifier);
     bake_items.append(bake_item ? bake_item->get() : nullptr);
   }
 

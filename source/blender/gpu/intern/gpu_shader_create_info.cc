@@ -365,14 +365,14 @@ void gpu_shader_create_info_init()
   g_interfaces = new InterfaceDictionnary();
 
 #define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
-  auto *ptr_##_interface = new StageInterfaceInfo(#_interface, _inst_name); \
-  auto &_interface = *ptr_##_interface; \
+  StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface, _inst_name); \
+  StageInterfaceInfo &_interface = *ptr_##_interface; \
   g_interfaces->add_new(#_interface, ptr_##_interface); \
   _interface
 
 #define GPU_SHADER_CREATE_INFO(_info) \
-  auto *ptr_##_info = new ShaderCreateInfo(#_info); \
-  auto &_info = *ptr_##_info; \
+  ShaderCreateInfo *ptr_##_info = new ShaderCreateInfo(#_info); \
+  ShaderCreateInfo &_info = *ptr_##_info; \
   g_create_infos->add_new(#_info, ptr_##_info); \
   _info
 

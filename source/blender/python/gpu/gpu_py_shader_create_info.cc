@@ -322,7 +322,7 @@ static PyObject *pygpu_interface_info__tp_new(PyTypeObject * /*type*/,
   StageInterfaceInfo *interface = new StageInterfaceInfo(name, "");
   GPUStageInterfaceInfo *interface_info = reinterpret_cast<GPUStageInterfaceInfo *>(interface);
 
-  auto *self = BPyGPUStageInterfaceInfo_CreatePyObject(interface_info);
+  PyObject *self = BPyGPUStageInterfaceInfo_CreatePyObject(interface_info);
 
 #ifdef USE_GPU_PY_REFERENCES
   PyObject *py_name = PyTuple_GET_ITEM(args, 0);
