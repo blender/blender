@@ -960,6 +960,13 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
           MEM_freeN(nu1->bezt);
           nu1->bezt = new_bezt;
           nu1->pntsu += 2;
+
+          /* Set the new points selection. */
+          BEZT_DESEL_ALL(new_bezt);
+          BEZT_SEL_IDX(new_bezt, 0);
+
+          BEZT_DESEL_ALL(new_bezt + (nu1->pntsu - 1));
+          BEZT_SEL_IDX(new_bezt + (nu1->pntsu - 1), 2);
         }
         else {
           BezTriple *new_bezt = (BezTriple *)MEM_mallocN((nu1->pntsu + 1) * sizeof(BezTriple),
@@ -971,6 +978,10 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
           MEM_freeN(nu1->bezt);
           nu1->bezt = new_bezt;
           nu1->pntsu++;
+
+          /* Set the new points selection. */
+          BEZT_DESEL_ALL(new_bezt);
+          BEZT_SEL_IDX(new_bezt, 0);
         }
         cu->actnu = nu_index;
         cu->actvert = 0;
@@ -987,6 +998,10 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
         nu1->pntsu++;
         cu->actnu = nu_index;
         cu->actvert = nu1->pntsu - 1;
+
+        /* Set the new points selection. */
+        BEZT_DESEL_ALL(new_bezt + (nu1->pntsu - 1));
+        BEZT_SEL_IDX(new_bezt + (nu1->pntsu - 1), 2);
       }
     }
     else {
