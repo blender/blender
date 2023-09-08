@@ -4,7 +4,6 @@
 
 /** \file
  * \ingroup draw_engine
- *
  */
 
 #pragma once

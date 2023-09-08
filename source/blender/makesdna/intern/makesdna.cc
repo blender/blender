@@ -543,7 +543,6 @@ static bool match_preproc_prefix(const char *__restrict str, const char *__restr
 
 /**
  * \return The point in `str` that starts with `start` or nullptr when not found.
- *
  */
 static char *match_preproc_strstr(char *__restrict str, const char *__restrict start)
 {

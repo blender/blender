@@ -8,7 +8,6 @@
  * Volumetric effects rendering using Frostbite's Physically-based & Unified Volumetric Rendering
  * approach.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite
- *
  */
 
 #include "DNA_volume_types.h"

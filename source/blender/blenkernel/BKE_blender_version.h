@@ -49,10 +49,10 @@ bool BKE_blender_version_is_alpha(void);
  * Fill in given string buffer with user-readable formatted file version and subversion (if
  * provided).
  *
- * \param str_buff a char buffer where the formatted string is written, minimal recommended size is
- * 8, or 16 if subversion is provided.
+ * \param str_buff: a char buffer where the formatted string is written,
+ * minimal recommended size is 8, or 16 if subversion is provided.
  *
- * \param file_subversion the file subversion, if given value < 0, it is ignored, and only the
+ * \param file_subversion: the file subversion, if given value < 0, it is ignored, and only the
  * `file_version` is used.
  */
 void BKE_blender_version_blendfile_string_from_values(char *str_buff,

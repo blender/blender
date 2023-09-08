@@ -865,8 +865,8 @@ static int calculate_bezt_draw_resolution(BezTriple *bezt,
 }
 
 /**
- * Add points on the bezier between \param prevbezt and \param bezt to \param curve_vertices. The
- * amount of points added is based on the given \param resolution.
+ * Add points on the bezier between `prevbezt` and `bezt` to `curve_vertices`.
+ * The amount of points added is based on the given `resolution`.
  */
 static void add_bezt_vertices(BezTriple *bezt,
                               BezTriple *prevbezt,

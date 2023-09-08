@@ -4,7 +4,6 @@
 
 /** \file
  * \ingroup eevee
- *
  */
 
 #include "BLI_vector.hh"
@@ -18,7 +17,6 @@ namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
 /** \name Subsurface
- *
  * \{ */
 
 void SubsurfaceModule::end_sync()

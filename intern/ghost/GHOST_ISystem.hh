@@ -473,7 +473,6 @@ class GHOST_ISystem {
   /**
    * Returns the selection buffer
    * \return "unsigned char" from X11 XA_CUT_BUFFER0 buffer
-   *
    */
   virtual char *getClipboard(bool selection) const = 0;
 
