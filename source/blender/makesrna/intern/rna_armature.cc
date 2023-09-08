@@ -1930,9 +1930,9 @@ static void rna_def_armature(BlenderRNA *brna)
       prop, "Display Custom Bone Shapes", "Display bones with their custom shapes");
   RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
-  prop = RNA_def_property(srna, "show_group_colors", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "show_bone_colors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ARM_COL_CUSTOM);
-  RNA_def_property_ui_text(prop, "Display Bone Group Colors", "Display bone group colors");
+  RNA_def_property_ui_text(prop, "Display Bone Colors", "Display bone colors");
   RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
   prop = RNA_def_property(srna, "is_editmode", PROP_BOOLEAN, PROP_NONE);
