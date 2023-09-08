@@ -246,6 +246,28 @@ static IDProperty **rna_BoneCollection_idprops(PointerRNA *ptr)
   return &bcoll->prop;
 }
 
+/* BoneCollection.bones iterator functions. */
+
+static void rna_BoneCollection_bones_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  bArmature *arm = (bArmature *)ptr->owner_id;
+  if (arm->edbo) {
+    iter->valid = false;
+    BKE_reportf(nullptr, RPT_WARNING, "collection.bones is not available in armature edit mode");
+    return;
+  }
+
+  BoneCollection *bcoll = (BoneCollection *)ptr->data;
+  rna_iterator_listbase_begin(iter, &bcoll->bones, nullptr);
+}
+
+static PointerRNA rna_BoneCollection_bones_get(CollectionPropertyIterator *iter)
+{
+  ListBaseIterator *lb_iter = &iter->internal.listbase;
+  BoneCollectionMember *member = (BoneCollectionMember *)lb_iter->link;
+  return rna_pointer_inherit_refine(&iter->parent, &RNA_Bone, member->bone);
+}
+
 /* Bone.collections iterator functions. */
 
 static void rna_Bone_collections_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1968,6 +1990,25 @@ static void rna_def_bonecollection(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, nullptr);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Bone");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_BoneCollection_bones_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_BoneCollection_bones_get",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop,
+                           "Bones",
+                           "Bones assigned to this bone collection. In armature edit mode this "
+                           "will always return an empty list of bones, as the bone collection "
+                           "memberships are only synchronised when exiting edit mode");
 
   RNA_api_bonecollection(srna);
 }
