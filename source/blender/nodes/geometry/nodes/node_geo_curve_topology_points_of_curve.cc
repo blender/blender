@@ -196,10 +196,10 @@ class CurveStartPointInput final : public bke::CurvesFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
-                                 const eAttrDomain /*domain*/,
+                                 const eAttrDomain domain,
                                  const IndexMask /*mask*/) const final
   {
-    return VArray<int>::ForSpan(curves.offsets());
+    return curves.adapt_domain(VArray<int>::ForSpan(curves.offsets()), ATTR_DOMAIN_CURVE, domain);
   }
 
   uint64_t hash() const final
