@@ -435,6 +435,14 @@ void draw_seq_strip_thumbnail(View2D *v2d,
                               float pixelx,
                               float pixely)
 {
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) == 0 ||
+      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) == 0 ||
+      !ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE))
+  {
+    return;
+  }
+
   bool clipped = false;
   float image_height, image_width, thumb_width;
   rcti crop;
