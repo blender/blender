@@ -30,6 +30,8 @@
 
 #include "NOD_add_node_search.hh"
 
+#include "BLT_translation.h"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes {
@@ -40,7 +42,9 @@ std::string socket_identifier_for_simulation_item(const NodeSimulationItem &item
 }
 
 static std::unique_ptr<SocketDeclaration> socket_declaration_for_simulation_item(
-    const NodeSimulationItem &item, const eNodeSocketInOut in_out, const int index)
+    const NodeSimulationItem &item,
+    const eNodeSocketInOut in_out,
+    const int corresponding_input = -1)
 {
   const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
   BLI_assert(NOD_geometry_simulation_output_item_socket_type_supported(socket_type));
@@ -50,32 +54,38 @@ static std::unique_ptr<SocketDeclaration> socket_declaration_for_simulation_item
     case SOCK_FLOAT:
       decl = std::make_unique<decl::Float>();
       decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
+      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
+          {corresponding_input});
       break;
     case SOCK_VECTOR:
       decl = std::make_unique<decl::Vector>();
       decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
+      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
+          {corresponding_input});
       break;
     case SOCK_RGBA:
       decl = std::make_unique<decl::Color>();
       decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
+      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
+          {corresponding_input});
       break;
     case SOCK_BOOLEAN:
       decl = std::make_unique<decl::Bool>();
       decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
+      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
+          {corresponding_input});
       break;
     case SOCK_ROTATION:
       decl = std::make_unique<decl::Rotation>();
       decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
+      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
+          {corresponding_input});
       break;
     case SOCK_INT:
       decl = std::make_unique<decl::Int>();
       decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
+      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
+          {corresponding_input});
       break;
     case SOCK_STRING:
       decl = std::make_unique<decl::String>();
@@ -96,10 +106,12 @@ static std::unique_ptr<SocketDeclaration> socket_declaration_for_simulation_item
 void socket_declarations_for_simulation_items(const Span<NodeSimulationItem> items,
                                               NodeDeclaration &r_declaration)
 {
+  const int inputs_offset = r_declaration.inputs.size();
   for (const int i : items.index_range()) {
     const NodeSimulationItem &item = items[i];
-    SocketDeclarationPtr input_decl = socket_declaration_for_simulation_item(item, SOCK_IN, i);
-    SocketDeclarationPtr output_decl = socket_declaration_for_simulation_item(item, SOCK_OUT, i);
+    SocketDeclarationPtr input_decl = socket_declaration_for_simulation_item(item, SOCK_IN);
+    SocketDeclarationPtr output_decl = socket_declaration_for_simulation_item(
+        item, SOCK_OUT, inputs_offset + i);
     r_declaration.inputs.append(input_decl.get());
     r_declaration.items.append(std::move(input_decl));
     r_declaration.outputs.append(output_decl.get());
@@ -516,6 +528,18 @@ static void mix_simulation_state(const NodeSimulationItem &item,
 class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   const bNode &node_;
   Span<NodeSimulationItem> simulation_items_;
+  int skip_input_index_;
+  /**
+   * Start index of the simulation state inputs that are used when the simulation is skipped. Those
+   * inputs are linked directly to the simulation input node. Those inputs only exist internally,
+   * but not in the UI.
+   */
+  int skip_inputs_offset_;
+  /**
+   * Start index of the simulation state inputs that are used when the simulation is actually
+   * computed. Those correspond to the sockets that are visible in the UI.
+   */
+  int solve_inputs_offset_;
 
  public:
   LazyFunctionForSimulationOutputNode(const bNode &node,
@@ -528,9 +552,26 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
 
     MutableSpan<int> lf_index_by_bsocket = own_lf_graph_info.mapping.lf_index_by_bsocket;
 
+    const bNodeSocket &skip_bsocket = node.input_socket(0);
+    skip_input_index_ = inputs_.append_and_get_index_as(
+        "Skip", *skip_bsocket.typeinfo->geometry_nodes_cpp_type, lf::ValueUsage::Maybe);
+    lf_index_by_bsocket[skip_bsocket.index_in_tree()] = skip_input_index_;
+
+    skip_inputs_offset_ = inputs_.size();
+
+    /* Add the skip inputs that are linked to the simulation input node. */
     for (const int i : simulation_items_.index_range()) {
       const NodeSimulationItem &item = simulation_items_[i];
-      const bNodeSocket &input_bsocket = node.input_socket(i);
+      const CPPType &type = get_simulation_item_cpp_type(item);
+      inputs_.append_as(item.name, type, lf::ValueUsage::Maybe);
+    }
+
+    solve_inputs_offset_ = inputs_.size();
+
+    /* Add the solve inputs that correspond to the simulation state inputs in the UI. */
+    for (const int i : simulation_items_.index_range()) {
+      const NodeSimulationItem &item = simulation_items_[i];
+      const bNodeSocket &input_bsocket = node.input_socket(i + 1);
       const bNodeSocket &output_bsocket = node.output_socket(i);
 
       const CPPType &type = get_simulation_item_cpp_type(item);
@@ -583,8 +624,8 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     else if (std::get_if<sim_output::PassThrough>(&output_behavior)) {
       this->pass_through(params, user_data);
     }
-    else if (auto *info = std::get_if<sim_output::StoreAndPassThrough>(&output_behavior)) {
-      this->store_and_pass_through(params, user_data, *info);
+    else if (auto *info = std::get_if<sim_output::StoreNewState>(&output_behavior)) {
+      this->store_new_state(params, user_data, *info);
     }
     else {
       BLI_assert_unreachable();
@@ -649,10 +690,8 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
 
   void pass_through(lf::Params &params, GeoNodesLFUserData &user_data) const
   {
-    /* Instead of outputting the initial values directly, convert them to a simulation state and
-     * then back. This ensures that some geometry processing happens on the data consistently (e.g.
-     * removing anonymous attributes). */
-    std::optional<bke::bake::BakeState> bake_state = this->get_bake_state_from_inputs(params);
+    std::optional<bke::bake::BakeState> bake_state = this->get_bake_state_from_inputs(params,
+                                                                                      true);
     if (!bake_state) {
       /* Wait for inputs to be computed. */
       return;
@@ -673,11 +712,21 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     }
   }
 
-  void store_and_pass_through(lf::Params &params,
-                              GeoNodesLFUserData &user_data,
-                              const sim_output::StoreAndPassThrough &info) const
+  void store_new_state(lf::Params &params,
+                       GeoNodesLFUserData &user_data,
+                       const sim_output::StoreNewState &info) const
   {
-    std::optional<bke::bake::BakeState> bake_state = this->get_bake_state_from_inputs(params);
+    const bool *skip = params.try_get_input_data_ptr_or_request<bool>(skip_input_index_);
+    if (skip == nullptr) {
+      /* Wait for skip input to be computed. */
+      return;
+    }
+
+    /* Instead of outputting the values directly, convert them to a bake state and then back. This
+     * ensures that some geometry processing happens on the data consistently (e.g. removing
+     * anonymous attributes). */
+    std::optional<bke::bake::BakeState> bake_state = this->get_bake_state_from_inputs(params,
+                                                                                      *skip);
     if (!bake_state) {
       /* Wait for inputs to be computed. */
       return;
@@ -686,11 +735,14 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     info.store_fn(std::move(*bake_state));
   }
 
-  std::optional<bke::bake::BakeState> get_bake_state_from_inputs(lf::Params &params) const
+  std::optional<bke::bake::BakeState> get_bake_state_from_inputs(lf::Params &params,
+                                                                 const bool skip) const
   {
-    Array<void *> input_values(inputs_.size());
-    for (const int i : inputs_.index_range()) {
-      input_values[i] = params.try_get_input_data_ptr_or_request(i);
+    /* Choose which set of input parameters to use. The others are ignored. */
+    const int params_offset = skip ? skip_inputs_offset_ : solve_inputs_offset_;
+    Array<void *> input_values(simulation_items_.size());
+    for (const int i : simulation_items_.index_range()) {
+      input_values[i] = params.try_get_input_data_ptr_or_request(i + params_offset);
     }
     if (input_values.as_span().contains(nullptr)) {
       /* Wait for inputs to be computed. */
@@ -722,6 +774,17 @@ static void node_declare_dynamic(const bNodeTree & /*node_tree*/,
                                  NodeDeclaration &r_declaration)
 {
   const NodeGeometrySimulationOutput &storage = node_storage(node);
+  {
+    SocketDeclarationPtr skip_decl = std::make_unique<decl::Bool>();
+    skip_decl->name = "Skip";
+    skip_decl->identifier = skip_decl->name;
+    skip_decl->description = N_(
+        "Forward the output of the simulation input node directly to the output node and ignore "
+        "the nodes in the simulation zone");
+    skip_decl->in_out = SOCK_IN;
+    r_declaration.inputs.append(skip_decl.get());
+    r_declaration.items.append(std::move(skip_decl));
+  }
   socket_declarations_for_simulation_items({storage.items, storage.items_num}, r_declaration);
 }
 

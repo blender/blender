@@ -77,17 +77,17 @@ using Behavior = std::variant<PassThrough, OutputCopy, OutputMove>;
 namespace sim_output {
 
 /**
- * The data is just passed through the node. Data that is incompatible with simulations (like
- * anonymous attributes), is removed though.
+ * Output the data that comes from the corresponding simulation input node, ignoring the nodes in
+ * the zone.
  */
 struct PassThrough {
 };
 
 /**
- * Same as above, but also calls the given function with the data that is passed through the node.
- * This allows the caller of geometry nodes (e.g. the modifier), to cache the new simulation state.
+ * Computes the simulation step and calls the given function to cache the new simulation state.
+ * The new simulation state is the output of the node.
  */
-struct StoreAndPassThrough {
+struct StoreNewState {
   std::function<void(bke::bake::BakeState state)> store_fn;
 };
 
@@ -108,7 +108,7 @@ struct ReadInterpolated {
   bke::bake::BakeStateRef next_state;
 };
 
-using Behavior = std::variant<PassThrough, StoreAndPassThrough, ReadSingle, ReadInterpolated>;
+using Behavior = std::variant<PassThrough, StoreNewState, ReadSingle, ReadInterpolated>;
 
 }  // namespace sim_output
 
