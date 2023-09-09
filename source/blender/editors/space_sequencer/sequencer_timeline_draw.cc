@@ -1172,7 +1172,6 @@ static uchar mute_overlap_alpha_factor_get(const ListBase *channels, const Seque
 static void draw_strip_color_band(TimelineDrawContext *timeline_ctx, StripDrawContext *strip_ctx)
 {
   Sequence *seq = strip_ctx->seq;
-  Scene *scene = timeline_ctx->scene;
 
   if ((timeline_ctx->sseq->flag & SEQ_SHOW_OVERLAY) == 0 || (seq->type != SEQ_TYPE_COLOR)) {
     return;
@@ -1234,6 +1233,8 @@ static void draw_strip_background(TimelineDrawContext *timeline_ctx, StripDrawCo
 
   /* Draw background for hold still regions. */
   if (strip_ctx->is_single_image) {
+    GPU_blend(GPU_BLEND_NONE);
+    immUnbindProgram();
     return;
   }
 
