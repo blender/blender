@@ -157,13 +157,13 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
       label = bsdf_microfacet_ggx_sample(
-          sc, path_flag, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
+          sc, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
       break;
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID:
       label = bsdf_microfacet_beckmann_sample(
-          sc, path_flag, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
+          sc, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
       label = bsdf_ashikhmin_shirley_sample(

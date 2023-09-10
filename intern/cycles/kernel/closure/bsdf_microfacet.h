@@ -576,7 +576,6 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
 
 template<MicrofacetType m_type>
 ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
-                                      const int path_flag,
                                       float3 Ng,
                                       float3 wi,
                                       const float3 rand,
@@ -915,7 +914,6 @@ ccl_device Spectrum bsdf_microfacet_ggx_eval(ccl_private const ShaderClosure *sc
 }
 
 ccl_device int bsdf_microfacet_ggx_sample(ccl_private const ShaderClosure *sc,
-                                          const int path_flag,
                                           float3 Ng,
                                           float3 wi,
                                           const float3 rand,
@@ -927,7 +925,7 @@ ccl_device int bsdf_microfacet_ggx_sample(ccl_private const ShaderClosure *sc,
 {
 
   int label = bsdf_microfacet_sample<MicrofacetType::GGX>(
-      sc, path_flag, Ng, wi, rand, eval, wo, pdf, sampled_roughness, eta);
+      sc, Ng, wi, rand, eval, wo, pdf, sampled_roughness, eta);
   *eval *= ((ccl_private const MicrofacetBsdf *)sc)->energy_scale;
   return label;
 }
@@ -980,7 +978,6 @@ ccl_device Spectrum bsdf_microfacet_beckmann_eval(ccl_private const ShaderClosur
 }
 
 ccl_device int bsdf_microfacet_beckmann_sample(ccl_private const ShaderClosure *sc,
-                                               const int path_flag,
                                                float3 Ng,
                                                float3 wi,
                                                const float3 rand,
@@ -991,7 +988,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(ccl_private const ShaderClosure *
                                                ccl_private float *eta)
 {
   return bsdf_microfacet_sample<MicrofacetType::BECKMANN>(
-      sc, path_flag, Ng, wi, rand, eval, wo, pdf, sampled_roughness, eta);
+      sc, Ng, wi, rand, eval, wo, pdf, sampled_roughness, eta);
 }
 
 CCL_NAMESPACE_END
