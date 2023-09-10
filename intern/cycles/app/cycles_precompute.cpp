@@ -16,6 +16,8 @@
 #include "kernel/sample/lcg.h"
 #include "kernel/sample/mapping.h"
 
+#include "kernel/util/color.h"
+
 #include "kernel/closure/bsdf_microfacet.h"
 
 #include <iostream>
