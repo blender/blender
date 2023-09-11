@@ -513,17 +513,34 @@ class PanelDeclaration : public ItemDeclaration {
 
 class PanelDeclarationBuilder {
  protected:
+  using Self = PanelDeclarationBuilder;
   NodeDeclarationBuilder *node_decl_builder_ = nullptr;
   PanelDeclaration *decl_;
+  /**
+   * Panel is complete once items are added after it.
+   * Completed panels are locked and no more items can be added.
+   */
+  bool is_complete_ = false;
 
   friend class NodeDeclarationBuilder;
 
  public:
-  PanelDeclarationBuilder &default_closed(bool collapsed)
+  Self &description(std::string value = "")
   {
-    decl_->default_collapsed = collapsed;
+    decl_->description = std::move(value);
     return *this;
   }
+
+  Self &default_closed(bool closed)
+  {
+    decl_->default_collapsed = closed;
+    return *this;
+  }
+
+  template<typename DeclType>
+  typename DeclType::Builder &add_input(StringRef name, StringRef identifier = "");
+  template<typename DeclType>
+  typename DeclType::Builder &add_output(StringRef name, StringRef identifier = "");
 };
 
 using PanelDeclarationPtr = std::unique_ptr<PanelDeclaration>;
@@ -549,6 +566,9 @@ class NodeDeclaration {
 
   friend NodeDeclarationBuilder;
 
+  /** Returns true if the declaration is considered valid. */
+  bool is_valid() const;
+
   bool matches(const bNode &node) const;
   Span<SocketDeclaration *> sockets(eNodeSocketInOut in_out) const;
 
@@ -565,7 +585,11 @@ class NodeDeclarationBuilder {
   NodeDeclaration &declaration_;
   Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> input_builders_;
   Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> output_builders_;
+  Vector<std::unique_ptr<PanelDeclarationBuilder>> panel_builders_;
   bool is_function_node_ = false;
+
+ private:
+  friend PanelDeclarationBuilder;
 
  public:
   NodeDeclarationBuilder(NodeDeclaration &declaration);
@@ -581,10 +605,13 @@ class NodeDeclarationBuilder {
 
   void finalize();
 
+  void use_custom_socket_order(bool enable = true);
+
   template<typename DeclType>
   typename DeclType::Builder &add_input(StringRef name, StringRef identifier = "");
   template<typename DeclType>
   typename DeclType::Builder &add_output(StringRef name, StringRef identifier = "");
+  PanelDeclarationBuilder &add_panel(StringRef name, int identifier = -1);
 
   aal::RelationsInNode &get_anonymous_attribute_relations()
   {
@@ -599,6 +626,10 @@ class NodeDeclarationBuilder {
   typename DeclType::Builder &add_socket(StringRef name,
                                          StringRef identifier,
                                          eNodeSocketInOut in_out);
+
+  /* Mark the most recent builder as 'complete' when changing builders
+   * so no more items can be added. */
+  void set_active_panel_builder(const PanelDeclarationBuilder *panel_builder);
 };
 
 namespace implicit_field_inputs {
@@ -759,6 +790,38 @@ inline void SocketDeclaration::make_available(bNode &node) const
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name #PanelDeclarationBuilder Inline Methods
+ * \{ */
+
+template<typename DeclType>
+typename DeclType::Builder &PanelDeclarationBuilder::add_input(StringRef name,
+                                                               StringRef identifier)
+{
+  if (is_complete_) {
+    static typename DeclType::Builder dummy_builder = {};
+    BLI_assert_unreachable();
+    return dummy_builder;
+  }
+  ++this->decl_->num_child_decls;
+  return node_decl_builder_->add_socket<DeclType>(name, identifier, SOCK_IN);
+}
+
+template<typename DeclType>
+typename DeclType::Builder &PanelDeclarationBuilder::add_output(StringRef name,
+                                                                StringRef identifier)
+{
+  if (is_complete_) {
+    static typename DeclType::Builder dummy_builder = {};
+    BLI_assert_unreachable();
+    return dummy_builder;
+  }
+  ++this->decl_->num_child_decls;
+  return node_decl_builder_->add_socket<DeclType>(name, identifier, SOCK_OUT);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name #NodeDeclarationBuilder Inline Methods
  * \{ */
 
@@ -767,10 +830,16 @@ inline NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration &declarati
 {
 }
 
+inline void NodeDeclarationBuilder::use_custom_socket_order(bool enable)
+{
+  declaration_.use_custom_socket_order = enable;
+}
+
 template<typename DeclType>
 inline typename DeclType::Builder &NodeDeclarationBuilder::add_input(StringRef name,
                                                                      StringRef identifier)
 {
+  set_active_panel_builder(nullptr);
   return this->add_socket<DeclType>(name, identifier, SOCK_IN);
 }
 
@@ -778,6 +847,7 @@ template<typename DeclType>
 inline typename DeclType::Builder &NodeDeclarationBuilder::add_output(StringRef name,
                                                                       StringRef identifier)
 {
+  set_active_panel_builder(nullptr);
   return this->add_socket<DeclType>(name, identifier, SOCK_OUT);
 }
 
@@ -802,9 +872,11 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(StringRef 
   socket_decl->in_out = in_out;
   socket_decl_builder->index_ = declarations.append_and_get_index(socket_decl.get());
   declaration_.items.append(std::move(socket_decl));
+
   Builder &socket_decl_builder_ref = *socket_decl_builder;
   ((in_out == SOCK_IN) ? input_builders_ : output_builders_)
       .append(std::move(socket_decl_builder));
+
   return socket_decl_builder_ref;
 }
 
