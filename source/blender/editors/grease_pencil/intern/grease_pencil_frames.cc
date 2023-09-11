@@ -27,6 +27,16 @@
 
 namespace blender::ed::greasepencil {
 
+void set_selected_frames_type(bke::greasepencil::Layer &layer,
+                              const eBezTriple_KeyframeType key_type)
+{
+  for (GreasePencilFrame &frame : layer.frames_for_write().values()) {
+    if (frame.is_selected()) {
+      frame.type = key_type;
+    }
+  }
+}
+
 bool remove_all_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::Layer &layer)
 {
   Vector<int> frames_to_remove;

@@ -47,6 +47,9 @@ eAttrDomain ED_grease_pencil_selection_domain_get(bContext *C);
 
 namespace blender::ed::greasepencil {
 
+void set_selected_frames_type(bke::greasepencil::Layer &layer,
+                              const eBezTriple_KeyframeType key_type);
+
 bool remove_all_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::Layer &layer);
 
 void select_layer_channel(GreasePencil &grease_pencil, bke::greasepencil::Layer *layer);

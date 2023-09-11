@@ -1662,7 +1662,10 @@ static void setkeytype_action_keys(bAnimContext *ac, short mode)
         break;
 
       case ANIMTYPE_GREASE_PENCIL_LAYER:
-        /* GPv3: To be implemented. */
+        blender::ed::greasepencil::set_selected_frames_type(
+            static_cast<GreasePencilLayer *>(ale->data)->wrap(),
+            static_cast<eBezTriple_KeyframeType>(mode));
+        ale->update |= ANIM_UPDATE_DEPS;
         break;
 
       case ANIMTYPE_FCURVE:
