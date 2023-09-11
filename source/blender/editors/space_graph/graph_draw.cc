@@ -558,9 +558,9 @@ static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
           UI_GetThemeColor3ubv(basecol + bezt->h2, col);
           col[3] = fcurve_display_alpha(fcu) * 255;
           immAttr4ubv(color, col);
-          immVertex2fv(pos, bezt->vec[0]);
-          immAttr4ubv(color, col);
           immVertex2fv(pos, bezt->vec[1]);
+          immAttr4ubv(color, col);
+          immVertex2fv(pos, bezt->vec[2]);
         }
       }
     }
