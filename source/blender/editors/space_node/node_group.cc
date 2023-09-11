@@ -1100,8 +1100,8 @@ static void node_group_make_insert_selected(const bContext &C,
           }
         }
       };
-      expose_sockets(node->input_sockets());
       expose_sockets(node->output_sockets());
+      expose_sockets(node->input_sockets());
     }
   }
 
