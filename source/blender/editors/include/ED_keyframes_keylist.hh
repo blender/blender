@@ -181,7 +181,8 @@ void grease_pencil_layer_group_to_keylist(AnimData *adt,
 void grease_pencil_data_block_to_keylist(AnimData *adt,
                                          const GreasePencil *grease_pencil,
                                          AnimKeylist *keylist,
-                                         const int saction_flag);
+                                         const int saction_flag,
+                                         bool active_layer_only);
 /* Grease Pencil Layer (Legacy) */
 void gpl_to_keylist(bDopeSheet *ads, bGPDlayer *gpl, AnimKeylist *keylist);
 

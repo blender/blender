@@ -1784,6 +1784,19 @@ static int actkeys_framejump_exec(bContext *C, wmOperator * /*op*/)
         break;
       }
 
+      case ALE_GREASE_PENCIL_CEL: {
+        using namespace blender::bke::greasepencil;
+        const Layer &layer = *static_cast<Layer *>(ale->data);
+        for (auto [frame_number, frame] : layer.frames().items()) {
+          if (!frame.is_selected()) {
+            continue;
+          }
+          ked.f1 += frame_number;
+          ked.i1++;
+        }
+        break;
+      }
+
       case ALE_FCURVE: {
         AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
         FCurve *fcurve = static_cast<FCurve *>(ale->key_data);

@@ -455,7 +455,7 @@ static void ED_keylist_draw_list_elem_build_keylist(AnimKeylistDrawListElem *ele
     }
     case ANIM_KEYLIST_GREASE_PENCIL_DATA: {
       grease_pencil_data_block_to_keylist(
-          elem->adt, elem->grease_pencil, elem->keylist, elem->saction_flag);
+          elem->adt, elem->grease_pencil, elem->keylist, elem->saction_flag, false);
       break;
     }
     case ANIM_KEYLIST_GP_LAYER: {

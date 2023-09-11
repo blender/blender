@@ -1166,11 +1166,18 @@ void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, con
 void grease_pencil_data_block_to_keylist(AnimData *adt,
                                          const GreasePencil *grease_pencil,
                                          AnimKeylist *keylist,
-                                         const int saction_flag)
+                                         const int saction_flag,
+                                         const bool active_layer_only)
 {
   if ((grease_pencil == nullptr) || (keylist == nullptr)) {
     return;
   }
+
+  if (active_layer_only && grease_pencil->has_active_layer()) {
+    grease_pencil_cels_to_keylist(adt, grease_pencil->get_active_layer(), keylist, saction_flag);
+    return;
+  }
+
   for (const blender::bke::greasepencil::Layer *layer : grease_pencil->layers()) {
     grease_pencil_cels_to_keylist(adt, layer, keylist, saction_flag);
   }
