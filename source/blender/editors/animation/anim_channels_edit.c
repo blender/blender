@@ -2919,8 +2919,12 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
-            ANIMFILTER_FCURVESONLY);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+
+  if (!ANIM_animdata_can_have_greasepencil(ac->datatype)) {
+    filter |= ANIMFILTER_FCURVESONLY;
+  }
+
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   float ymax;
