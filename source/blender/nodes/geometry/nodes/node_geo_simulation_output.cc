@@ -28,8 +28,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "NOD_add_node_search.hh"
-
 #include "BLT_translation.h"
 
 #include "node_geometry_util.hh"
@@ -788,39 +786,6 @@ static void node_declare_dynamic(const bNodeTree & /*node_tree*/,
   socket_declarations_for_simulation_items({storage.items, storage.items_num}, r_declaration);
 }
 
-static void search_node_add_ops(GatherAddNodeSearchParams &params)
-{
-  AddNodeItem item;
-  item.ui_name = IFACE_("Simulation Zone");
-  item.description = TIP_("Add a new simulation input and output nodes to the node tree");
-  item.add_fn = [](const bContext &C, bNodeTree &node_tree, float2 cursor) {
-    bNode *input = nodeAddNode(&C, &node_tree, "GeometryNodeSimulationInput");
-    bNode *output = nodeAddNode(&C, &node_tree, "GeometryNodeSimulationOutput");
-    static_cast<NodeGeometrySimulationInput *>(input->storage)->output_node_id =
-        output->identifier;
-
-    NodeSimulationItem &item = node_storage(*output).items[0];
-
-    update_node_declaration_and_sockets(node_tree, *input);
-    update_node_declaration_and_sockets(node_tree, *output);
-
-    nodeAddLink(
-        &node_tree,
-        input,
-        nodeFindSocket(input, SOCK_OUT, socket_identifier_for_simulation_item(item).c_str()),
-        output,
-        nodeFindSocket(output, SOCK_IN, socket_identifier_for_simulation_item(item).c_str()));
-
-    input->locx = cursor.x / UI_SCALE_FAC - 150;
-    input->locy = cursor.y / UI_SCALE_FAC + 20;
-    output->locx = cursor.x / UI_SCALE_FAC + 150;
-    output->locy = cursor.y / UI_SCALE_FAC + 20;
-
-    return Vector<bNode *>({input, output});
-  };
-  params.add_item(std::move(item));
-}
-
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometrySimulationOutput *data = MEM_cnew<NodeGeometrySimulationOutput>(__func__);
@@ -913,7 +878,6 @@ static void node_register()
       &ntype, GEO_NODE_SIMULATION_OUTPUT, "Simulation Output", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
   ntype.declare_dynamic = node_declare_dynamic;
-  ntype.gather_add_node_search_ops = search_node_add_ops;
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
   node_type_storage(&ntype, "NodeGeometrySimulationOutput", node_free_storage, node_copy_storage);

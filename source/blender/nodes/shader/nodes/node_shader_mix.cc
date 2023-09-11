@@ -24,7 +24,6 @@
 
 #include "FN_multi_function_builder.hh"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
 
@@ -266,16 +265,6 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
                       weight);
     }
   }
-}
-
-static void gather_add_node_searches(GatherAddNodeSearchParams &params)
-{
-  params.add_single_node_item(IFACE_("Mix"), params.node_type().ui_description);
-  params.add_single_node_item(IFACE_("Mix Color"),
-                              params.node_type().ui_description,
-                              [](const bContext & /*C*/, bNodeTree & /*node_tree*/, bNode &node) {
-                                node_storage(node).data_type = SOCK_RGBA;
-                              });
 }
 
 static void node_mix_init(bNodeTree * /*tree*/, bNode *node)
@@ -573,6 +562,5 @@ void register_node_type_sh_mix()
   ntype.draw_buttons = file_ns::sh_node_mix_layout;
   ntype.labelfunc = file_ns::sh_node_mix_label;
   ntype.gather_link_search_ops = file_ns::node_mix_gather_link_searches;
-  ntype.gather_add_node_search_ops = file_ns::gather_add_node_searches;
   nodeRegisterType(&ntype);
 }

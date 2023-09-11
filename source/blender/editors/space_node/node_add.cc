@@ -1023,37 +1023,4 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Add Node Search
- * \{ */
-
-static int node_add_search_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  const ARegion &region = *CTX_wm_region(C);
-
-  float2 cursor;
-  UI_view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
-
-  invoke_add_node_search_menu(*C, cursor, RNA_boolean_get(op->ptr, "use_transform"));
-
-  return OPERATOR_FINISHED;
-}
-
-void NODE_OT_add_search(wmOperatorType *ot)
-{
-  ot->name = "Search and Add Node";
-  ot->idname = "NODE_OT_add_search";
-  ot->description = "Search for nodes and add one to the active tree";
-
-  ot->invoke = node_add_search_invoke;
-  ot->poll = ED_operator_node_editable;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  RNA_def_boolean(
-      ot->srna, "use_transform", true, "Use Transform", "Start moving the node after adding it");
-}
-
-/** \} */
-
 }  // namespace blender::ed::space_node

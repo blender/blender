@@ -1064,7 +1064,6 @@ def km_node_generic(_params):
 
     items.extend([
         op_panel("TOPBAR_PT_name", {"type": 'RET', "value": 'PRESS'}, [("keep_open", False)]),
-        ("node.add_search", {"type": 'TAB', "value": 'PRESS'}, None),
     ])
 
     return keymap

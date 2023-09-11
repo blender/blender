@@ -34,7 +34,6 @@ bool geo_node_poll_default(const bNodeType *ntype,
 namespace blender::nodes {
 
 bool check_tool_context_and_error(GeoNodeExecParams &params);
-void search_link_ops_for_for_tool_node(GatherAddNodeSearchParams &params);
 void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params);
 
 void transform_mesh(Mesh &mesh,
