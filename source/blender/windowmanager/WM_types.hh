@@ -986,6 +986,10 @@ struct wmOperatorType {
   /**
    * Return a different name to use in the user interface, based on property values.
    * The returned string is expected to be translated if needed.
+   *
+   * WARNING: This callback does not currently work as expected in most common usage cases (e.g.
+   * any definition of an operator button through the layout API will fail to execute it). See
+   * #112253 for details.
    */
   std::string (*get_name)(wmOperatorType *, PointerRNA *);
 
