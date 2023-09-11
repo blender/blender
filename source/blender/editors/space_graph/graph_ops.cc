@@ -509,7 +509,7 @@ void ED_operatormacros_graph()
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  RNA_boolean_set(otmacro->ptr, "use_automerge_and_split", true);
+  RNA_boolean_set(otmacro->ptr, "use_duplicated_keyframes", true);
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 }
 

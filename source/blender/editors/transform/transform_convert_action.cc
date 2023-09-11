@@ -1065,7 +1065,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
   bAnimContext ac;
 
   const bool canceled = (t->state == TRANS_CANCEL);
-  const bool duplicate = (t->flag & T_AUTOMERGE) != 0;
+  const bool duplicate = (t->flag & T_DUPLICATED_KEYFRAMES) != 0;
 
   /* initialize relevant anim-context 'context' data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
