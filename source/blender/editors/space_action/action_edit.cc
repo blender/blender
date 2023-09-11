@@ -2063,7 +2063,15 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
       ED_gpencil_layer_mirror_frames(static_cast<bGPDlayer *>(ale->data), ac->scene, mode);
     }
     else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-      /* GPv3: To be implemented. */
+      GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
+      GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ale->data);
+
+      const bool changed = blender::ed::greasepencil::mirror_selected_frames(
+          *grease_pencil, layer->wrap(), *(ac->scene), static_cast<eEditKeyframes_Mirror>(mode));
+
+      if (changed) {
+        DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+      }
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       /* TODO */
