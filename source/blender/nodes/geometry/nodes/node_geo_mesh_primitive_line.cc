@@ -2,14 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
-#include "BLI_math_vector.hh"
-#include "BLI_task.hh"
-
 #include "BKE_material.h"
-#include "BKE_mesh.hh"
 
 #include "NOD_rna_define.hh"
 
@@ -17,6 +10,8 @@
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+
+#include "GEO_mesh_primitive_line.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -150,24 +145,26 @@ static void node_geo_exec(GeoNodeExecParams params)
       const float resolution = std::max(params.extract_input<float>("Resolution"), 0.0001f);
       const int count = math::length(total_delta) / resolution + 1;
       const float3 delta = math::normalize(total_delta) * resolution;
-      mesh = create_line_mesh(start, delta, count);
+      mesh = geometry::create_line_mesh(start, delta, count);
     }
     else if (count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL) {
       const int count = params.extract_input<int>("Count");
       if (count == 1) {
-        mesh = create_line_mesh(start, float3(0), count);
+        mesh = geometry::create_line_mesh(start, float3(0), count);
       }
       else {
         const float3 delta = total_delta / float(count - 1);
-        mesh = create_line_mesh(start, delta, count);
+        mesh = geometry::create_line_mesh(start, delta, count);
       }
     }
   }
   else if (mode == GEO_NODE_MESH_LINE_MODE_OFFSET) {
     const float3 delta = params.extract_input<float3>("Offset");
     const int count = params.extract_input<int>("Count");
-    mesh = create_line_mesh(start, delta, count);
+    mesh = geometry::create_line_mesh(start, delta, count);
   }
+
+  BKE_id_material_eval_ensure_default_slot(reinterpret_cast<ID *>(mesh));
 
   params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
@@ -239,39 +236,3 @@ static void node_register()
 NOD_REGISTER_NODE(node_register)
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_line_cc
-
-namespace blender::nodes {
-
-Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
-{
-  if (count < 1) {
-    return nullptr;
-  }
-
-  Mesh *mesh = BKE_mesh_new_nomain(count, count - 1, 0, 0);
-  BKE_id_material_eval_ensure_default_slot(&mesh->id);
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<int2> edges = mesh->edges_for_write();
-
-  threading::parallel_invoke(
-      1024 < count,
-      [&]() {
-        threading::parallel_for(positions.index_range(), 4096, [&](IndexRange range) {
-          for (const int i : range) {
-            positions[i] = start + delta * i;
-          }
-        });
-      },
-      [&]() {
-        threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
-          for (const int i : range) {
-            edges[i][0] = i;
-            edges[i][1] = i + 1;
-          }
-        });
-      });
-
-  return mesh;
-}
-
-}  // namespace blender::nodes
