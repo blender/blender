@@ -876,6 +876,29 @@ Layer &LayerGroup::add_layer_after(StringRefNull name, TreeNode *link)
   return this->add_layer_after(new_layer, link);
 }
 
+void LayerGroup::move_node_up(TreeNode *node, const int step)
+{
+  BLI_listbase_link_move(&this->children, node, step);
+  this->tag_nodes_cache_dirty();
+}
+void LayerGroup::move_node_down(TreeNode *node, const int step)
+{
+  BLI_listbase_link_move(&this->children, node, -step);
+  this->tag_nodes_cache_dirty();
+}
+void LayerGroup::move_node_top(TreeNode *node)
+{
+  BLI_remlink(&this->children, node);
+  BLI_insertlinkafter(&this->children, this->children.last, node);
+  this->tag_nodes_cache_dirty();
+}
+void LayerGroup::move_node_bottom(TreeNode *node)
+{
+  BLI_remlink(&this->children, node);
+  BLI_insertlinkbefore(&this->children, this->children.first, node);
+  this->tag_nodes_cache_dirty();
+}
+
 int64_t LayerGroup::num_direct_nodes() const
 {
   return BLI_listbase_count(&this->children);
@@ -1845,6 +1868,24 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer_after(
   using namespace blender;
   std::string unique_name = unique_layer_name(*this, name);
   return group.add_layer_after(unique_name, link);
+}
+
+void GreasePencil::move_layer_up(blender::bke::greasepencil::Layer *layer,
+                                 blender::bke::greasepencil::Layer *move_along_layer)
+{
+  layer->parent_group().unlink_node(&layer->as_node());
+  move_along_layer->parent_group().add_layer_after(layer, &move_along_layer->as_node());
+}
+
+void GreasePencil::move_layer_down(blender::Span<blender::bke::greasepencil::Layer *> layers,
+                                   blender::bke::greasepencil::Layer *move_along_layer)
+{
+  for (int i = layers.size() - 1; i >= 0; i--) {
+    using namespace blender::bke::greasepencil;
+    Layer *layer = layers[i];
+    layer->parent_group().unlink_node(&layer->as_node());
+    move_along_layer->parent_group().add_layer_before(layer, &move_along_layer->as_node());
+  }
 }
 
 blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::StringRefNull name)

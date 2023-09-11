@@ -487,6 +487,17 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   Layer &add_layer_after(StringRefNull name, TreeNode *link);
 
   /**
+   * Move child \a node up/down by \a step.
+   */
+  void move_node_up(TreeNode *node, int step = 1);
+  void move_node_down(TreeNode *node, int step = 1);
+  /**
+   * Move child \a node to the top/bottom.
+   */
+  void move_node_top(TreeNode *node);
+  void move_node_bottom(TreeNode *node);
+
+  /**
    * Returns the number of direct nodes in this group.
    */
   int64_t num_direct_nodes() const;
