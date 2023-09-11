@@ -37,7 +37,7 @@ extern "C" {
  *
  * See https://wiki.blender.org/wiki/Process/Compatibility_Handling for details. */
 #define BLENDER_FILE_MIN_VERSION 306
-#define BLENDER_FILE_MIN_SUBVERSION 12
+#define BLENDER_FILE_MIN_SUBVERSION 13
 
 /** User readable version string. */
 const char *BKE_blender_version_string(void);
