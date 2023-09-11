@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -2530,40 +2530,16 @@ msgid "Relative Parenting"
 msgstr "Parentela Relativa"
 
 
+msgid "Bones"
+msgstr "Ossa"
+
+
 msgid "Visible"
 msgstr "Visibile"
 
 
 msgid "Custom"
 msgstr "Personalizzato"
-
-
-msgid "Bone Group"
-msgstr "Gruppo di Ossa"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "Canali Gruppi di Pose (Ossa)"
-
-
-msgid "Bone Groups"
-msgstr "Gruppi Ossa"
-
-
-msgid "Collection of bone groups"
-msgstr "Raccolta di gruppi ossa"
-
-
-msgid "Active Bone Group"
-msgstr "Gruppo Ossa Attivo"
-
-
-msgid "Active bone group for this pose"
-msgstr "Gruppo ossa attivo per questa posa"
-
-
-msgid "Active Bone Group Index"
-msgstr "Indice Gruppo Ossa Attivo"
 
 
 msgid "Brush Capabilities"
@@ -10288,10 +10264,6 @@ msgid "Axes Position"
 msgstr "Posizione Assi"
 
 
-msgid "Bones"
-msgstr "Ossa"
-
-
 msgid "Octahedral"
 msgstr "Ottaedrico"
 
@@ -12498,6 +12470,14 @@ msgid "Exponential Distribution"
 msgstr "Distribuzione Esponenziale"
 
 
+msgid "Clamp Direct"
+msgstr "Max Diretto"
+
+
+msgid "Clamp Indirect"
+msgstr "Max Indiretto"
+
+
 msgid "Resolution X"
 msgstr "Risoluzione X"
 
@@ -13016,6 +12996,10 @@ msgstr "Modifica"
 
 msgid "Sculpt"
 msgstr "Scultura"
+
+
+msgid "Modifier"
+msgstr "Modificatore"
 
 
 msgid "Tool"
@@ -18202,20 +18186,20 @@ msgid "Primitives"
 msgstr "Primitive"
 
 
-msgid "Converter"
-msgstr "Converti"
-
-
-msgid "Distort"
-msgstr "Distorcere"
+msgid "Tracking"
+msgstr "Tracciamento"
 
 
 msgid "Layout"
 msgstr "Livello"
 
 
-msgid "Tracking"
-msgstr "Tracciamento"
+msgid "Converter"
+msgstr "Converti"
+
+
+msgid "Distort"
+msgstr "Distorcere"
 
 
 msgid "Attribute"
@@ -18228,6 +18212,18 @@ msgstr "Nodo"
 
 msgid "Node Color Specials"
 msgstr "Speciali Colore Nodo"
+
+
+msgid "Add Modifier"
+msgstr "Aggiungi Modificatore"
+
+
+msgid "Generate"
+msgstr "Genera"
+
+
+msgid "Physics"
+msgstr "Fisica"
 
 
 msgid "Particle Specials"
@@ -20453,10 +20449,6 @@ msgstr "Fotogramma iniziale del precalcolo oceano"
 
 msgid "Method of modifying geometry"
 msgstr "Metodo per modificare la geometria"
-
-
-msgid "Generate"
-msgstr "Genera"
 
 
 msgid "Generate ocean surface geometry at the specified resolution"
@@ -29111,10 +29103,6 @@ msgid "Stroke Sculpt"
 msgstr "Scultura Tratto"
 
 
-msgid "Modifier"
-msgstr "Modificatore"
-
-
 msgid "Name of the modifier to edit"
 msgstr "Nome del modificatore da modificare"
 
@@ -29413,15 +29401,6 @@ msgstr "Campione Peso per Pittura Peso"
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "Precalcolo Curva"
-
-
-msgid "Bake selected F-Curves to a set of sampled points defining a similar curve"
-msgstr "Precalcolo delle Curve-F selezionate per disporre dei punti campione che definiscono una curva similare"
-
-
-msgctxt "Operator"
 msgid "Click-Insert Keyframes"
 msgstr "Click Inserisce Fotogramma Chiave"
 
@@ -29621,15 +29600,6 @@ msgstr "Appiattisci Maniglie"
 
 msgid "Flatten handles for a smoother transition"
 msgstr "Appiattisce le maniglie per una transizione più morbida"
-
-
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "Precalcola Suono a Curva-F"
-
-
-msgid "Bakes a sound wave to selected F-Curves"
-msgstr "Precalcola un'onda sonora alle Curve-Funzione selezionate"
 
 
 msgid "Square Threshold"
@@ -33206,6 +33176,11 @@ msgid "Add an object to the scene"
 msgstr "Aggiunge un oggetto alla scena"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Aggiungi Modificatore"
+
+
 msgid "Add named object"
 msgstr "Aggiunge un oggetto con nome"
 
@@ -33522,11 +33497,6 @@ msgstr "Commuta il campo di forza dell'oggetto"
 
 msgid "Monkey"
 msgstr "Scimmia"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Aggiungi Modificatore"
 
 
 msgctxt "Operator"
@@ -42060,10 +42030,6 @@ msgid "Structure"
 msgstr "Struttura"
 
 
-msgid "Physics"
-msgstr "Fisica"
-
-
 msgid "Battle"
 msgstr "Combattimento"
 
@@ -42148,12 +42114,12 @@ msgid "Volumetric Lighting"
 msgstr "Illuminazione Volumetrica"
 
 
-msgid "Screen Space Reflections"
-msgstr "Riflessioni Spazio Schermo"
-
-
 msgid "Volumetric Shadows"
 msgstr "Ombre Volumetriche"
+
+
+msgid "Screen Space Reflections"
+msgstr "Riflessioni Spazio Schermo"
 
 
 msgid "Encoding"
@@ -43209,10 +43175,6 @@ msgstr "Percorso libreria"
 
 msgid "Point Caches"
 msgstr "Cache Punti"
-
-
-msgid "Groups of the bones"
-msgstr "Gruppi delle ossa"
 
 
 msgid "Pose Bones"
@@ -45015,16 +44977,8 @@ msgid "Shutter Type"
 msgstr "Tipo Otturatore"
 
 
-msgid "Clamp Direct"
-msgstr "Max Diretto"
-
-
 msgid "If non-zero, the maximum value for a direct sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
 msgstr "Se diverso da zero, il massimo valore di un campione diretto; i valori superiori sono ridotti per evitare troppo rumore ed una lenta convergenza, al costo di una minor accuratezza"
-
-
-msgid "Clamp Indirect"
-msgstr "Max Indiretto"
 
 
 msgid "If non-zero, the maximum value for an indirect sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
@@ -47647,46 +47601,6 @@ msgid "Action displayed and edited in this space"
 msgstr "Azione mostrata e modificata in questo spazio"
 
 
-msgid "Auto Snap"
-msgstr "Snap Automatico"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "Impostazioni snap automatico del tempo per le trasformazioni"
-
-
-msgid "No Auto-Snap"
-msgstr "No Auto-Snap"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "Snap ad intervalli di 1.0 fotogramma"
-
-
-msgid "Second Step"
-msgstr "Passo Secondi"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "Snap a intervalli di 1.0 secondi"
-
-
-msgid "Nearest Frame"
-msgstr "Fotogramma Più Vicino"
-
-
-msgid "Nearest Second"
-msgstr "Secondo più Vicino"
-
-
-msgid "Nearest Marker"
-msgstr "Marcatore più Vicino"
-
-
-msgid "Snap to nearest marker"
-msgstr "Snap al marcatore più vicino"
-
-
 msgid "Show the active object's Dynamic Paint cache"
 msgstr "Mostra la cache Pittura Dinamica dell'oggetto attivo"
 
@@ -50015,12 +49929,24 @@ msgid "UV Local View"
 msgstr "Vista Locale UV"
 
 
-msgid "Snap Element"
-msgstr "Elemento Snap"
-
-
 msgid "Type of element to snap to"
 msgstr "Tipo di elemento a cui agganciare"
+
+
+msgid "Second"
+msgstr "Secondi"
+
+
+msgid "Nearest Marker"
+msgstr "Marcatore più Vicino"
+
+
+msgid "Snap to nearest marker"
+msgstr "Snap al marcatore più vicino"
+
+
+msgid "Snap Element"
+msgstr "Elemento Snap"
 
 
 msgid "Snap Node Element"
@@ -51553,6 +51479,16 @@ msgid "Mirror Shape Key (Topology)"
 msgstr "Specchia Chiave Forma (Topologia)"
 
 
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Armatura"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Lattice"
+
+
 msgid "Detail"
 msgstr "Dettaglio"
 
@@ -51955,10 +51891,6 @@ msgstr "Minuscolo"
 
 msgid "Fuel"
 msgstr "Combustibile"
-
-
-msgid "Second"
-msgstr "Secondi"
 
 
 msgid "Upper"
@@ -52601,11 +52533,6 @@ msgstr "Proiezione X"
 msgctxt "Operator"
 msgid "Fit"
 msgstr "Adatta"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "Cerca..."
 
 
 msgctxt "Operator"
@@ -53999,16 +53926,6 @@ msgstr "Profili Aperti (non-manifold)"
 msgctxt "Operator"
 msgid "Edge Rings"
 msgstr "Fascia di Spigoli (ring)"
-
-
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Armatura"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Lattice"
 
 
 msgctxt "Operator"
@@ -56944,10 +56861,6 @@ msgid "Update Dependencies"
 msgstr "Aggiorna Dipendenze"
 
 
-msgid "Add Modifier"
-msgstr "Aggiungi Modificatore"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "La Curva-F ha solo Modificatori-F"
 
@@ -57244,6 +57157,10 @@ msgstr "Non ancora implementato"
 
 msgid "Current File"
 msgstr "File Corrente"
+
+
+msgid "Bone Groups"
+msgstr "Gruppi Ossa"
 
 
 msgid "(empty)"
@@ -58212,15 +58129,6 @@ msgid "Mesh has no VCol data"
 msgstr "La mesh non ha dati di colore vertice"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "Gruppo"
-
-
-msgid "Bone group '%s' not found in this object"
-msgstr "Gruppo ossa '%s' non trovato in questo oggetto"
-
-
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Vincolo '%s' non trovato nell'osso-posa '%s'"
 
@@ -59137,10 +59045,6 @@ msgstr "Spagnolo (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Catalano (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Ceco (Český)"
 
 
 msgid "Portuguese (Português)"

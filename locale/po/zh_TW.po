@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -2847,24 +2847,16 @@ msgid "Multiply the final easing values by the Scale In/Out Y factors"
 msgstr "將 Y 的縮放輸入/輸出乘以最終緩和值"
 
 
+msgid "Bones"
+msgstr "骨骼"
+
+
 msgid "Visible"
 msgstr "可見"
 
 
 msgid "Custom"
 msgstr "自訂"
-
-
-msgid "Bone Group"
-msgstr "骨骼群組"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "姿勢通道 (骨骼) 的群組"
-
-
-msgid "Bone Groups"
-msgstr "骨骼群組"
 
 
 msgid "Bool Attribute Value"
@@ -11228,10 +11220,6 @@ msgid "Markers specific to this action, for labeling poses"
 msgstr "此動作的特定標記，用來為姿勢加上標籤"
 
 
-msgid "Bones"
-msgstr "骨骼"
-
-
 msgid "Octahedral"
 msgstr "八面體"
 
@@ -13754,6 +13742,14 @@ msgid "Cast a square spot light shape"
 msgstr "投射方形聚光外形"
 
 
+msgid "Clamp Direct"
+msgstr "緊固直接"
+
+
+msgid "Clamp Indirect"
+msgstr "緊固間接"
+
+
 msgid "Resolution X"
 msgstr "解析度 X"
 
@@ -14336,6 +14332,10 @@ msgstr "編輯"
 
 msgid "Sculpt"
 msgstr "雕塑"
+
+
+msgid "Modifier"
+msgstr "修改器"
 
 
 msgid "Tool"
@@ -18950,24 +18950,24 @@ msgid "Primitives"
 msgstr "原形"
 
 
-msgid "Converter"
-msgstr "轉換器"
-
-
-msgid "Distort"
-msgstr "扭曲"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
 msgid "Keying"
 msgstr "鍵處理"
 
 
 msgid "Tracking"
 msgstr "跟蹤"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
+msgid "Converter"
+msgstr "轉換器"
+
+
+msgid "Distort"
+msgstr "扭曲"
 
 
 msgid "Attribute"
@@ -18984,6 +18984,18 @@ msgstr "節點"
 
 msgid "Node Color Specials"
 msgstr "節點色彩特殊項"
+
+
+msgid "Add Modifier"
+msgstr "添加修改器"
+
+
+msgid "Generate"
+msgstr "生成"
+
+
+msgid "Physics"
+msgstr "物理"
 
 
 msgid "Frame Rate Presets"
@@ -20872,10 +20884,6 @@ msgstr "海洋烘焙的起始幀"
 
 msgid "Method of modifying geometry"
 msgstr "修改幾何的方法"
-
-
-msgid "Generate"
-msgstr "生成"
 
 
 msgid "Generate ocean surface geometry at the specified resolution"
@@ -30538,10 +30546,6 @@ msgid "Recalculate internal geometry"
 msgstr "重新計算內部幾何結構"
 
 
-msgid "Modifier"
-msgstr "修改器"
-
-
 msgid "Name of the modifier to edit"
 msgstr "要編輯的修改器名稱"
 
@@ -30689,15 +30693,6 @@ msgstr "權重繪製取樣權重"
 
 msgid "Use the mouse to sample a weight in the 3D view"
 msgstr "使用滑鼠來取樣 3D 視圖中的權重"
-
-
-msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "烘焙曲線"
-
-
-msgid "Bake selected F-Curves to a set of sampled points defining a similar curve"
-msgstr "將選取的 F 曲線烘焙成一套定義類似曲線的取樣點"
 
 
 msgctxt "Operator"
@@ -30870,15 +30865,6 @@ msgstr "平展控制桿以取得更平滑的過度"
 msgctxt "Operator"
 msgid "Snap Cursor Value to Selected"
 msgstr "游標數值吸附至所選項"
-
-
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "烘焙聲音至 F 曲線"
-
-
-msgid "Bakes a sound wave to selected F-Curves"
-msgstr "將聲音波形烘焙至選取的 F 曲線"
 
 
 msgid "Cutoff frequency of a low-pass filter that is applied to the audio data"
@@ -34401,6 +34387,11 @@ msgid "Add an object to the scene"
 msgstr "添加物體至場景中"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "添加修改器"
+
+
 msgid "Add named object"
 msgstr "添加已命名的物體"
 
@@ -34641,11 +34632,6 @@ msgstr "切換物體的力場"
 
 msgid "Monkey"
 msgstr "猴頭"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "添加修改器"
 
 
 msgctxt "Operator"
@@ -43265,10 +43251,6 @@ msgid "Structure"
 msgstr "結構"
 
 
-msgid "Physics"
-msgstr "物理"
-
-
 msgid "Battle"
 msgstr "戰場"
 
@@ -44352,10 +44334,6 @@ msgstr "物理模擬的點快取"
 
 msgid "A collection of pose channels, including settings for animating bones"
 msgstr "姿勢通道的集合，包括骨骼動畫的設定"
-
-
-msgid "Groups of the bones"
-msgstr "骨骼的群組"
 
 
 msgid "Pose Bones"
@@ -45944,14 +45922,6 @@ msgstr "暫停所有視接口的預覽算繪"
 
 msgid "Number of samples to render in the viewport, unlimited if 0"
 msgstr "視接口中要算繪的樣本數，如果 0 則為無限制"
-
-
-msgid "Clamp Direct"
-msgstr "緊固直接"
-
-
-msgid "Clamp Indirect"
-msgstr "緊固間接"
 
 
 msgid "Number of samples to render for each pixel"
@@ -48895,54 +48865,6 @@ msgid "Action displayed and edited in this space"
 msgstr "此空間中顯示的與編輯的動作"
 
 
-msgid "Auto Snap"
-msgstr "自動吸附"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "變換的自動時間吸附設定"
-
-
-msgid "No Auto-Snap"
-msgstr "無自動吸附"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "吸附 1.0 幀/秒間隔"
-
-
-msgid "Second Step"
-msgstr "第二步"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "吸附 1.0 幀/秒間隔"
-
-
-msgid "Nearest Frame"
-msgstr "最近框幀"
-
-
-msgid "Snap to actual frames (nla-action time)"
-msgstr "吸附實際幀/秒 (nla 動作時間)"
-
-
-msgid "Nearest Second"
-msgstr "次近"
-
-
-msgid "Snap to actual seconds (nla-action time)"
-msgstr "吸附實際幀/秒 (nla 動作時間)"
-
-
-msgid "Nearest Marker"
-msgstr "最近標記"
-
-
-msgid "Snap to nearest marker"
-msgstr "吸附最近標記"
-
-
 msgid "Show the active object's cloth point cache"
 msgstr "顯示作用中物體的布料點快取"
 
@@ -51556,12 +51478,20 @@ msgid "UV Local View"
 msgstr "UV 區域視圖"
 
 
-msgid "Snap Element"
-msgstr "吸附元素"
-
-
 msgid "Type of element to snap to"
 msgstr "吸附哪個元素類型"
+
+
+msgid "Nearest Marker"
+msgstr "最近標記"
+
+
+msgid "Snap to nearest marker"
+msgstr "吸附最近標記"
+
+
+msgid "Snap Element"
+msgstr "吸附元素"
 
 
 msgid "Snap to"
@@ -53278,6 +53208,11 @@ msgid "Mirror Shape Key (Topology)"
 msgstr "鏡射外形鍵 (拓樸)"
 
 
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "晶格"
+
+
 msgid "Detail"
 msgstr "細節"
 
@@ -53755,6 +53690,10 @@ msgstr "自動補完"
 
 msgid "Options:"
 msgstr "選項："
+
+
+msgid "Snap To"
+msgstr "吸附至"
 
 
 msgctxt "Operator"
@@ -55083,10 +55022,6 @@ msgid "Zero Weights"
 msgstr "顯示零權重"
 
 
-msgid "Snap To"
-msgstr "吸附至"
-
-
 msgctxt "Operator"
 msgid "Move Texture Space"
 msgstr "移動紋理空間"
@@ -55130,11 +55065,6 @@ msgstr "破口"
 msgctxt "Operator"
 msgid "Edge Rings"
 msgstr "環形線"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "晶格"
 
 
 msgctxt "Operator"
@@ -57809,10 +57739,6 @@ msgid "Driven Property:"
 msgstr "被驅動屬性:"
 
 
-msgid "Add Modifier"
-msgstr "添加修改器"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "F 曲線僅有 F 修改器"
 
@@ -58181,6 +58107,10 @@ msgstr "無法重新定位間接連結的「%s」藏庫位置"
 
 msgid "Not yet implemented"
 msgstr "尚未實作"
+
+
+msgid "Bone Groups"
+msgstr "骨骼群組"
 
 
 msgid "(empty)"
@@ -59289,11 +59219,6 @@ msgid "Mesh has no VCol data"
 msgstr "網格沒有 VCol 資料"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "群組"
-
-
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "姿勢骨骼「%s」中找不到約束「%s」"
 
@@ -60325,10 +60250,6 @@ msgstr "西班牙文 (Español)"
 
 msgid "Catalan (Català)"
 msgstr "加泰羅尼亞文 (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "捷克文 (Český)"
 
 
 msgid "Portuguese (Português)"

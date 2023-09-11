@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -574,6 +574,10 @@ msgstr "ﻊﺒﻨﻣ"
 
 msgid "Deform"
 msgstr "ﻩﺪﻨﻫ ﺮﯿﯿﻐﺗ"
+
+
+msgid "Bones"
+msgstr "ﺎﻫ‌ﻥﺍﻮﺨﺘﺳﺍ"
 
 
 msgid "Visible"
@@ -1616,10 +1620,6 @@ msgid "Library"
 msgstr "ﻪﻧﺎﺨﺑﺎﺘﮐ"
 
 
-msgid "Bones"
-msgstr "ﺎﻫ‌ﻥﺍﻮﺨﺘﺳﺍ"
-
-
 msgid "Edit Bones"
 msgstr "ﺎﻫ‌ﻥﺍﻮﺨﺘﺳﺍ ﺶﯾﺍﺮﯾﻭ"
 
@@ -2012,16 +2012,24 @@ msgid "Math"
 msgstr "ﯽﺿﺎﯾﺭ"
 
 
-msgid "Distort"
-msgstr "ﻥﺩﺮﮐ‌ﺞﮐ"
+msgid "Tracking"
+msgstr "ﯽﺑﺎﯾﺩﺭ"
 
 
 msgid "Layout"
 msgstr "ﺡﺮﻃ"
 
 
-msgid "Tracking"
-msgstr "ﯽﺑﺎﯾﺩﺭ"
+msgid "Distort"
+msgstr "ﻥﺩﺮﮐ‌ﺞﮐ"
+
+
+msgid "Add Modifier"
+msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
+msgid "Physics"
+msgstr "ﮏﯾﺰﯿﻓ"
 
 
 msgid "Apply"
@@ -2879,6 +2887,11 @@ msgstr "ءﯽﺷ ﻥﺩﻭﺰﻓﺍ"
 
 
 msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
+msgctxt "Operator"
 msgid "Bake"
 msgstr "ﻦﺘﺨﭘ"
 
@@ -2911,11 +2924,6 @@ msgstr "ﻩﺪﺷ ﺏﺎﺨﺘﻧﺍ ءﺎﯿﺷﺍ ﺮﯿﺜﮑﺗ"
 
 msgid "Duplicate Objects"
 msgstr "ءﺎﯿﺷﺍ ﺮﯿﺜﮑﺗ"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
 
 
 msgid "Object Data"
@@ -3318,10 +3326,6 @@ msgstr "ﺪﻠﯿﻓ ﯼﺎﻫ‌ﻥﺯﻭ"
 
 msgid "Force Field Settings"
 msgstr "ﻥﺍﺪﯿﻣ ﯼﻭﺮﯿﻧ ﺕﺎﻤﯿﻈﻨﺗ"
-
-
-msgid "Physics"
-msgstr "ﮏﯾﺰﯿﻓ"
 
 
 msgid "Sensitivity"
@@ -4099,10 +4103,6 @@ msgid "Update Dependencies"
 msgstr "ﺎﻫ‌ﯽﮕﺘﺴﺑﺍﻭ ﯽﻧﺎﺳﺭ ﺯﻭﺭ‌ﻪﺑ"
 
 
-msgid "Add Modifier"
-msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
-
-
 msgid "Unsupported audio format"
 msgstr "ﻩﺪﺸﻧ ﯽﻧﺎﺒﯿﺘﺸﭘ ﯽﺗﻮﺻ ﺖﻣﺮﻓ"
 
@@ -4217,10 +4217,6 @@ msgstr "(Español) ﯽﯾﺎﯿﻧﺎﭙﺳﺍ"
 
 msgid "Catalan (Català)"
 msgstr "(Català) ﯽﻧﻻ﻿ﺎﺗﺎﮐ"
-
-
-msgid "Czech (Český)"
-msgstr "(Český) ﮏﭼ"
 
 
 msgid "Portuguese (Português)"

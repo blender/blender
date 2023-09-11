@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Español <gabcorreo@gmail.com>\n"
@@ -3544,6 +3544,10 @@ msgid "Multiply the final easing values by the Scale In/Out Y factors"
 msgstr "Multiplica los valores finales de aceleración por los factores Y de Escala inicial / final"
 
 
+msgid "Bones"
+msgstr "Huesos"
+
+
 msgid "Visible"
 msgstr "Visible"
 
@@ -3554,38 +3558,6 @@ msgstr "Colección activa"
 
 msgid "Custom"
 msgstr "Personalizado"
-
-
-msgid "Bone Group"
-msgstr "Grupo de huesos"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "Grupos de canales de pose (huesos)"
-
-
-msgid "Bone Groups"
-msgstr "Grupos de huesos"
-
-
-msgid "Collection of bone groups"
-msgstr "Colección de grupos de huesos"
-
-
-msgid "Active Bone Group"
-msgstr "Grupo de huesos activo"
-
-
-msgid "Active bone group for this pose"
-msgstr "Grupo de huesos activo para esta pose"
-
-
-msgid "Active Bone Group Index"
-msgstr "Identificador del grupo de huesos activo"
-
-
-msgid "Active index in bone groups array"
-msgstr "Identificador del grupo activo en la matriz de grupos de huesos"
 
 
 msgid "Bool Attribute Value"
@@ -19164,10 +19136,6 @@ msgid "The position for the axes on the bone. Increasing the value moves it clos
 msgstr "La posición de los ejes del hueso. Al aumentar el valor éstos se desplazarán hacia la cola; al disminuirlo lo harán hacia la cabeza"
 
 
-msgid "Bones"
-msgstr "Huesos"
-
-
 msgid "Octahedral"
 msgstr "Octaedros"
 
@@ -19266,14 +19234,6 @@ msgstr "Mostrar formas personalizadas de huesos"
 
 msgid "Display bones with their custom shapes"
 msgstr "Muestra los huesos con sus formas personalizadas"
-
-
-msgid "Display Bone Group Colors"
-msgstr "Mostrar colores de grupos de huesos"
-
-
-msgid "Display bone group colors"
-msgstr "Muestra los colores de los grupos de huesos"
 
 
 msgid "Display Names"
@@ -24499,6 +24459,14 @@ msgid "Number of ray directions to evaluate when baking"
 msgstr "Cantidad de direcciones de rayos a ser evaluadas al capturar"
 
 
+msgid "Clamp Direct"
+msgstr "Limitar directa"
+
+
+msgid "Clamp Indirect"
+msgstr "Limitar indirecta"
+
+
 msgid "Smoother irradiance interpolation but introduce light bleeding"
 msgstr "Permite obtener una interpolación más suave de la irradiación, pero introduce sangrado de luz"
 
@@ -25642,6 +25610,10 @@ msgstr "Editar"
 
 msgid "Sculpt"
 msgstr "Esculpir"
+
+
+msgid "Modifier"
+msgstr "Modificador"
 
 
 msgid "Tool"
@@ -34529,24 +34501,24 @@ msgid "Primitives"
 msgstr "Primitivas"
 
 
-msgid "Converter"
-msgstr "Convertir"
-
-
-msgid "Distort"
-msgstr "Distorsionar"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Keying"
 msgstr "Recortar"
 
 
 msgid "Tracking"
 msgstr "Rastreo"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Converter"
+msgstr "Convertir"
+
+
+msgid "Distort"
+msgstr "Distorsionar"
 
 
 msgid "Node Context Menu"
@@ -34580,6 +34552,18 @@ msgstr "Nodo"
 
 msgid "Node Color Specials"
 msgstr "Especiales de color del nodo"
+
+
+msgid "Add Modifier"
+msgstr "Agregar modificador"
+
+
+msgid "Generate"
+msgstr "Generar"
+
+
+msgid "Physics"
+msgstr "Dinámicas"
 
 
 msgid "Assets"
@@ -38204,10 +38188,6 @@ msgstr "Fotograma inicial de captura del océano"
 
 msgid "Method of modifying geometry"
 msgstr "Método de modificación de geometría"
-
-
-msgid "Generate"
-msgstr "Generar"
 
 
 msgid "Generate ocean surface geometry at the specified resolution"
@@ -45090,14 +45070,6 @@ msgstr "Proporciona el radio de cada punto de la geometría de una curva o nube 
 
 msgid "Retrieve the current time in the scene's animation in units of seconds or frames"
 msgstr "Proporciona el tiempo actual de la animación de la escena, en segundos o fotogramas"
-
-
-msgid "Is Shade Smooth"
-msgstr "Es sombreado suave"
-
-
-msgid "Retrieve whether each face is marked for smooth shading"
-msgstr "Proporciona información indicando si cada cara se encuentra marcada para ser sombreada con suavizado automático"
 
 
 msgid "Shortest Edge Paths"
@@ -57653,10 +57625,6 @@ msgid "Add a segment to the dash modifier"
 msgstr "Agrega un segmento al modificador Punteado"
 
 
-msgid "Modifier"
-msgstr "Modificador"
-
-
 msgid "Name of the modifier to edit"
 msgstr "Nombre del modificador a editar"
 
@@ -58663,15 +58631,6 @@ msgstr "Permite ingresar o salir del modo de pintura de influencias de trazos de
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "Capturar curva"
-
-
-msgid "Bake selected F-Curves to a set of sampled points defining a similar curve"
-msgstr "Captura las curvas-f seleccionadas a un conjunto de puntos muestreados formando una curva similar"
-
-
-msgctxt "Operator"
 msgid "Blend to Default Value"
 msgstr "Fundir a valor predefinido"
 
@@ -59154,15 +59113,6 @@ msgid "Place the cursor value on the average value of selected keyframes"
 msgstr "Mueve el valor del cursor al valor promedio de los fotogramas clave seleccionados"
 
 
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "Capturar sonido a curvas-f"
-
-
-msgid "Bakes a sound wave to selected F-Curves"
-msgstr "Captura una onda de sonido y la aplica a las curvas-f seleccionadas"
-
-
 msgid "Attack Time"
 msgstr "Tiempo de ataque"
 
@@ -59197,15 +59147,6 @@ msgstr "Sólo cuadrada: todos los valores con una amplitud absoluta menor que es
 
 msgid "The output is a square curve (negative values always result in -1, and positive ones in 1)"
 msgstr "La salida es una curva cuadrada (los valores negativos siempre resultarán en -1 y los positivos en 1)"
-
-
-msgctxt "Operator"
-msgid "Un-Bake Curve"
-msgstr "Deshacer captura de curva"
-
-
-msgid "Un-Bake selected F-Points to F-Curves"
-msgstr "Permite deshacer la captura de puntos-f a curvas-f"
 
 
 msgid "Reset viewable area to show selected keyframe range"
@@ -65385,6 +65326,11 @@ msgid "Add an object to the scene"
 msgstr "Agrega un objeto a la escena"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Agregar modificador"
+
+
 msgid "Add named object"
 msgstr "Agrega un nuevo objeto"
 
@@ -66084,11 +66030,6 @@ msgstr "Mostrar las líneas de lápiz de cera en frente de todo lo demás"
 
 msgid "Use lights for this grease pencil object"
 msgstr "Las luces afectarán a este objeto de lápiz de cera"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Agregar modificador"
 
 
 msgid "Add a procedural operation/effect to the active grease pencil object"
@@ -78866,14 +78807,6 @@ msgid "Use object selection (edit mode only)"
 msgstr "Usa la selección de objetos (sólo en modo Edición)"
 
 
-msgid "Control Point Without Handles"
-msgstr "Punto de control sin asas"
-
-
-msgid "Only select the curve control point, not its handles"
-msgstr "Seleccionar sólo el punto de control de la curva, pero no sus asas"
-
-
 msgid "Select items using box selection"
 msgstr "Permite seleccionar elementos usando el marco de selección"
 
@@ -81738,10 +81671,6 @@ msgid "Set Tool by Name"
 msgstr "Herramienta por nombre"
 
 
-msgid "Set the tool by name (for keymaps)"
-msgstr "Define la herramienta por su nombre (para mapas de teclado)"
-
-
 msgid "Set Fallback"
 msgstr "Definir alternativa"
 
@@ -81765,10 +81694,6 @@ msgstr "Identificador de la herramienta"
 msgctxt "Operator"
 msgid "Set Tool by Index"
 msgstr "Activar herramienta por identificador"
-
-
-msgid "Set the tool by index (for keymaps)"
-msgstr "Activar una herramienta mediante su identificador (para mapas de teclado)"
 
 
 msgid "Set the fallback tool instead of the primary"
@@ -83356,6 +83281,10 @@ msgid "Filters"
 msgstr "Filtros"
 
 
+msgid "Snapping"
+msgstr "Adherencia"
+
+
 msgctxt "ID"
 msgid "Probe"
 msgstr "Sonda"
@@ -83460,10 +83389,6 @@ msgstr "Instrumentos"
 
 msgid "Sample Line"
 msgstr "Línea de muestra"
-
-
-msgid "Snapping"
-msgstr "Adherencia"
 
 
 msgctxt "Operator"
@@ -83721,10 +83646,6 @@ msgid "Hair Shape"
 msgstr "Forma del pelo"
 
 
-msgid "Physics"
-msgstr "Dinámicas"
-
-
 msgid "Battle"
 msgstr "Batalla"
 
@@ -83905,12 +83826,12 @@ msgid "Volumetric Lighting"
 msgstr "Iluminación volumétrica"
 
 
-msgid "Screen Space Reflections"
-msgstr "Reflexiones en espacio de pantalla"
-
-
 msgid "Volumetric Shadows"
 msgstr "Sombras volumétricas"
+
+
+msgid "Screen Space Reflections"
+msgstr "Reflexiones en espacio de pantalla"
 
 
 msgid "Encoding"
@@ -85800,10 +85721,6 @@ msgid "A collection of pose channels, including settings for animating bones"
 msgstr "Una colección de canales de pose, incluyendo opciones de animación de huesos"
 
 
-msgid "Groups of the bones"
-msgstr "Grupos de los huesos"
-
-
 msgid "Pose Bones"
 msgstr "Huesos pose"
 
@@ -85850,14 +85767,6 @@ msgstr "Canal que define datos de la pose de un hueso en una pose"
 
 msgid "Bone associated with this PoseBone"
 msgstr "Hueso asociado con este hueso de pose"
-
-
-msgid "Bone group this pose channel belongs to"
-msgstr "Grupo de huesos al que pertenece este canal de pose"
-
-
-msgid "Bone group this pose channel belongs to (0 means no group)"
-msgstr "Grupo de huesos al cual pertenece este canal de la pose (0 significa que no pertenece a ningún grupo)"
 
 
 msgid "Child of this pose bone"
@@ -90029,16 +89938,8 @@ msgid "Sensor is being scanned from top to bottom"
 msgstr "El sensor está siendo escaneado desde arriba hacia abajo"
 
 
-msgid "Clamp Direct"
-msgstr "Limitar directa"
-
-
 msgid "If non-zero, the maximum value for a direct sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
 msgstr "(Si es distinto a cero) define el valor máximo de las muestras directas. Los valores que excedan el límite serán reducidos para evitar demasiado ruido y una convergencia lenta, a costa de la precisión"
-
-
-msgid "Clamp Indirect"
-msgstr "Limitar indirecta"
 
 
 msgid "If non-zero, the maximum value for an indirect sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
@@ -96181,54 +96082,6 @@ msgid "Action displayed and edited in this space"
 msgstr "Acción visualizada y editada en este espacio"
 
 
-msgid "Auto Snap"
-msgstr "Adherencia automática"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "Opciones de adherencia automática al tiempo, de las transformaciones"
-
-
-msgid "No Auto-Snap"
-msgstr "No adherir"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "Adherir a intervalos de 1.0 fotogramas"
-
-
-msgid "Second Step"
-msgstr "Segundos"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "Adherir a intervalos de 1.0 segundos"
-
-
-msgid "Nearest Frame"
-msgstr "Fotograma más cercano"
-
-
-msgid "Snap to actual frames (nla-action time)"
-msgstr "Adherir a los fotogramas reales (tiempo de la acción de ANL)"
-
-
-msgid "Nearest Second"
-msgstr "Segundo más cercano"
-
-
-msgid "Snap to actual seconds (nla-action time)"
-msgstr "Adherir a los segundos reales (tiempo de la acción de ANL)"
-
-
-msgid "Nearest Marker"
-msgstr "Marcador más cercano"
-
-
-msgid "Snap to nearest marker"
-msgstr "Adherir al marcador más cercano"
-
-
 msgid "Show the active object's cloth point cache"
 msgstr "Mostrar el caché de puntos de ropa del objeto activo"
 
@@ -101045,12 +100898,24 @@ msgid "Display only faces with the currently displayed image assigned"
 msgstr "Mostrar sólo las caras que tienen asignada la imagen mostrada actualmente"
 
 
-msgid "Snap Element"
-msgstr "Elemento al cual adherir"
-
-
 msgid "Type of element to snap to"
 msgstr "Tipo de elemento al cual adherir"
+
+
+msgid "Second"
+msgstr "Segundo"
+
+
+msgid "Nearest Marker"
+msgstr "Marcador más cercano"
+
+
+msgid "Snap to nearest marker"
+msgstr "Adherir al marcador más cercano"
+
+
+msgid "Snap Element"
+msgstr "Elemento al cual adherir"
 
 
 msgid "Type of element for the 'Snap With' to snap to"
@@ -108440,10 +108305,6 @@ msgid "Weight Position"
 msgstr "Influencia  Posición"
 
 
-msgid "Group Colors"
-msgstr "Colores de grupos"
-
-
 msgid "Axes"
 msgstr "Ejes"
 
@@ -108873,6 +108734,31 @@ msgstr "Umbral de influencia"
 
 msgid "Update on Edit"
 msgstr "Actualizar al editar"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "Rehacer malla"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Esqueleto"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Jaula"
+
+
+msgctxt "Operator"
+msgid "Smooth Laplacian"
+msgstr "Suavizado laplaciano"
+
+
+msgctxt "Operator"
+msgid "Particle System"
+msgstr "Sistema de partículas"
 
 
 msgid "Distance Reference"
@@ -110033,10 +109919,6 @@ msgid "This object is part of a compound shape"
 msgstr "Este objeto es parte de una forma compuesta"
 
 
-msgid "Second"
-msgstr "Segundo"
-
-
 msgid "X Stiffness"
 msgstr "X  Resistencia"
 
@@ -110619,6 +110501,10 @@ msgstr "Filtrar por tipo:"
 
 msgid "Options:"
 msgstr "Opciones:"
+
+
+msgid "Snap To"
+msgstr "Adherir a"
 
 
 msgid "Multi-Word Match Search"
@@ -111341,11 +111227,6 @@ msgstr "Ruta del contexto"
 
 
 msgctxt "Operator"
-msgid "Search..."
-msgstr "Buscar..."
-
-
-msgctxt "Operator"
 msgid "Backdrop Move"
 msgstr "Mover imagen de fondo"
 
@@ -111929,6 +111810,11 @@ msgid "Stretch To Fill"
 msgstr "Estirar hasta rellenar"
 
 
+msgctxt "Operator"
+msgid "Copy Modifiers to Selection"
+msgstr "Copiar modificadores a selección"
+
+
 msgid "Default Fade"
 msgstr "Fundido predefinido"
 
@@ -111975,11 +111861,6 @@ msgstr "Mover/Extender desde el fotograma actual"
 msgctxt "Operator"
 msgid "Delete Strip & Data"
 msgstr "Borrar clips y datos"
-
-
-msgctxt "Operator"
-msgid "Copy Modifiers to Selection"
-msgstr "Copiar modificadores a selección"
 
 
 msgctxt "Operator"
@@ -114146,10 +114027,6 @@ msgid "Zero Weights"
 msgstr "Anular influencias"
 
 
-msgid "Snap To"
-msgstr "Adherir a"
-
-
 msgid "Snap Individual Elements To"
 msgstr "Adherir elementos individuales a"
 
@@ -114257,16 +114134,6 @@ msgstr "Lápiz de cera"
 
 
 msgctxt "Operator"
-msgid "Armature"
-msgstr "Esqueleto"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Jaula"
-
-
-msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "Instanciar colección..."
 
@@ -114329,11 +114196,6 @@ msgstr "Asignar superior sin compensar (preservar transformaciones)"
 msgctxt "Operator"
 msgid "Limit Total Vertex Groups"
 msgstr "Limitar total de grupos de vértices"
-
-
-msgctxt "Operator"
-msgid "Particle System"
-msgstr "Sistema de partículas"
 
 
 msgctxt "Operator"
@@ -114413,11 +114275,6 @@ msgstr "Pegar pose invertida en X"
 
 msgid "Vertex Context Menu"
 msgstr "Vértices - menú contextual"
-
-
-msgctxt "Operator"
-msgid "Smooth Laplacian"
-msgstr "Suavizado laplaciano"
 
 
 msgid "Mirror Vertices"
@@ -115105,11 +114962,6 @@ msgstr "Método de refinamiento"
 
 msgid "Detailing"
 msgstr "Detallado"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "Rehacer malla"
 
 
 msgid "Tile Offset"
@@ -119036,6 +118888,10 @@ msgid "Joining results in %d vertices, limit is %ld"
 msgstr "La unión produce %d vértices, el límite es %ld"
 
 
+msgid "Loading Asset Libraries"
+msgstr "Cargando bibliotecas de recursos"
+
+
 msgid "SoundTrack"
 msgstr "Pista_sonido"
 
@@ -121543,10 +121399,6 @@ msgid "Show in Drivers Editor"
 msgstr "Mostrar en el Editor de controladores"
 
 
-msgid "Add Modifier"
-msgstr "Agregar modificador"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "La curva-f sólo tiene modificadores-f"
 
@@ -121988,10 +121840,6 @@ msgid "Verts:%s | Tris:%s"
 msgstr "Vértices:%s | Triáng:%s"
 
 
-msgid "Verts:%s/%s | Faces:%s/%s"
-msgstr "Vértices:%s/%s | Caras:%s/%s"
-
-
 msgid "Verts:%s | Faces:%s | Tris:%s"
 msgstr "Vértices:%s | Caras:%s | Triáng:%s"
 
@@ -122110,10 +121958,6 @@ msgstr "No es posible intercambiar '%s' y '%s' porque uno o ambos no entrarán e
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "No fue posible agregar el modificador a (%s : %s) (ver la consola por más detalles)"
-
-
-msgid "Loading Asset Libraries"
-msgstr "Cargando bibliotecas de recursos"
 
 
 msgid "The internal clipboard is empty"
@@ -122871,6 +122715,10 @@ msgstr "Redefinición sustractiva"
 
 msgid "Multiplicative override"
 msgstr "Redefinición multiplicativa"
+
+
+msgid "Bone Groups"
+msgstr "Grupos de huesos"
 
 
 msgid "(empty)"
@@ -125626,15 +125474,6 @@ msgstr "El objeto aún no había sido evaluado"
 
 msgid "Mesh has no VCol data"
 msgstr "La malla no contiene datos de colores de vértices"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Grupo"
-
-
-msgid "Bone group '%s' not found in this object"
-msgstr "No se encontró el grupo de huesos '%s' en este objeto"
 
 
 msgid "Constraint '%s' not found in pose bone '%s'"
@@ -130132,10 +129971,6 @@ msgstr "Español"
 
 msgid "Catalan (Català)"
 msgstr "Catalán (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Checo (Český)"
 
 
 msgid "Portuguese (Português)"
