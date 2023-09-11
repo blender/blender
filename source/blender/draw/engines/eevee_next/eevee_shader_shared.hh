@@ -267,12 +267,13 @@ struct FilmData {
   bool1 any_render_pass_2;
   /** Controlled by user in lookdev mode or by render settings. */
   float background_opacity;
-  float _pad0, _pad1, _pad2;
+  float _pad0, _pad1;
   /** Output counts per type. */
   int color_len, value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */
   int mist_id;
   int normal_id;
+  int position_id;
   int vector_id;
   int diffuse_light_id;
   int diffuse_color_id;
@@ -364,6 +365,7 @@ struct RenderBuffersInfoData {
   /* Color. */
   int color_len;
   int normal_id;
+  int position_id;
   int diffuse_light_id;
   int diffuse_color_id;
   int specular_light_id;
@@ -375,6 +377,7 @@ struct RenderBuffersInfoData {
   int value_len;
   int shadow_id;
   int ambient_occlusion_id;
+  int _pad0, _pad1, _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(RenderBuffersInfoData, 16)
 

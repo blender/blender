@@ -78,6 +78,31 @@ class VIEWLAYER_PT_eevee_layer_passes_data(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_normal")
 
 
+class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
+    bl_label = "Data"
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
+
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        view_layer = context.view_layer
+
+        col = layout.column()
+        col.prop(view_layer, "use_pass_combined")
+        col.prop(view_layer, "use_pass_z")
+        col.prop(view_layer, "use_pass_mist")
+        col.prop(view_layer, "use_pass_normal")
+        col.prop(view_layer, "use_pass_position")
+        sub = col.column()
+        sub.active = not scene.eevee.use_motion_blur
+        sub.prop(view_layer, "use_pass_vector")
+
+
 class VIEWLAYER_PT_workbench_layer_passes_data(ViewLayerButtonsPanel, Panel):
     bl_label = "Data"
     bl_parent_id = "VIEWLAYER_PT_layer_passes"
@@ -269,6 +294,7 @@ classes = (
     VIEWLAYER_PT_layer_passes,
     VIEWLAYER_PT_workbench_layer_passes_data,
     VIEWLAYER_PT_eevee_layer_passes_data,
+    VIEWLAYER_PT_eevee_next_layer_passes_data,
     VIEWLAYER_PT_eevee_layer_passes_light,
     VIEWLAYER_PT_eevee_layer_passes_effects,
     VIEWLAYER_PT_layer_passes_cryptomatte,

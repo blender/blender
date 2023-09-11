@@ -46,6 +46,7 @@ void main()
 
   vec4 clear_color = vec4(0.0, 0.0, 0.0, 1.0);
   output_renderpass_color(uniform_buf.render_pass.normal_id, clear_color);
+  output_renderpass_color(uniform_buf.render_pass.position_id, clear_color);
   output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, clear_color);
   output_renderpass_color(uniform_buf.render_pass.specular_light_id, clear_color);
   output_renderpass_color(uniform_buf.render_pass.diffuse_color_id, clear_color);

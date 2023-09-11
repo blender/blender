@@ -176,6 +176,7 @@ static eViewLayerEEVEEPassType enabled_passes(const ViewLayer *view_layer)
   ENABLE_FROM_LEGACY(Z, Z)
   ENABLE_FROM_LEGACY(MIST, MIST)
   ENABLE_FROM_LEGACY(NORMAL, NORMAL)
+  ENABLE_FROM_LEGACY(POSITION, POSITION)
   ENABLE_FROM_LEGACY(SHADOW, SHADOW)
   ENABLE_FROM_LEGACY(AO, AO)
   ENABLE_FROM_LEGACY(EMIT, EMIT)
@@ -283,6 +284,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     }
 
     const eViewLayerEEVEEPassType data_passes = EEVEE_RENDER_PASS_Z | EEVEE_RENDER_PASS_NORMAL |
+                                                EEVEE_RENDER_PASS_POSITION |
                                                 EEVEE_RENDER_PASS_VECTOR;
     const eViewLayerEEVEEPassType color_passes_1 = EEVEE_RENDER_PASS_DIFFUSE_LIGHT |
                                                    EEVEE_RENDER_PASS_SPECULAR_LIGHT |
@@ -328,6 +330,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
 
     data_.mist_id = pass_index_get(EEVEE_RENDER_PASS_MIST);
     data_.normal_id = pass_index_get(EEVEE_RENDER_PASS_NORMAL);
+    data_.position_id = pass_index_get(EEVEE_RENDER_PASS_POSITION);
     data_.vector_id = pass_index_get(EEVEE_RENDER_PASS_VECTOR);
     data_.diffuse_light_id = pass_index_get(EEVEE_RENDER_PASS_DIFFUSE_LIGHT);
     data_.diffuse_color_id = pass_index_get(EEVEE_RENDER_PASS_DIFFUSE_COLOR);

@@ -647,15 +647,22 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     FilmSample film_sample = film_sample_get(0, texel_film);
 
     if (uniform_buf.film.use_reprojection || film_sample.weight < film_distance) {
-      vec4 normal = texelFetch(
-          rp_color_tx, ivec3(film_sample.texel, uniform_buf.render_pass.normal_id), 0);
       float depth = texelFetch(depth_tx, film_sample.texel, 0).x;
       vec4 vector = velocity_resolve(vector_tx, film_sample.texel, depth);
-      /* Transform to pixel space. */
-      vector *= vec4(vec2(uniform_buf.film.render_extent), -vec2(uniform_buf.film.render_extent));
+      /* Transform to pixel space, matching Cycles format. */
+      vector *= vec4(vec2(uniform_buf.film.render_extent), vec2(uniform_buf.film.render_extent));
 
       film_store_depth(texel_film, depth, out_depth);
-      film_store_data(texel_film, uniform_buf.film.normal_id, normal, out_color);
+      if (uniform_buf.film.normal_id != -1) {
+        vec4 normal = texelFetch(
+            rp_color_tx, ivec3(film_sample.texel, uniform_buf.render_pass.normal_id), 0);
+        film_store_data(texel_film, uniform_buf.film.normal_id, normal, out_color);
+      }
+      if (uniform_buf.film.position_id != -1) {
+        vec4 position = texelFetch(
+            rp_color_tx, ivec3(film_sample.texel, uniform_buf.render_pass.position_id), 0);
+        film_store_data(texel_film, uniform_buf.film.position_id, position, out_color);
+      }
       film_store_data(texel_film, uniform_buf.film.vector_id, vector, out_color);
       film_store_distance(texel_film, film_sample.weight);
     }
