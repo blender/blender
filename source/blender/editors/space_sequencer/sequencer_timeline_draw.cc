@@ -1024,7 +1024,7 @@ static size_t draw_seq_text_get_overlay_string(TimelineDrawContext *timeline_ctx
 
   char strip_duration_text[16];
   if (timeline_ctx->sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) {
-    SNPRINTF(strip_duration_text, "%d", strip_ctx->strip_length);
+    SNPRINTF(strip_duration_text, "%d", int(strip_ctx->strip_length));
     if (i != 0) {
       text_array[i++] = text_sep;
     }
@@ -2025,7 +2025,7 @@ static void draw_timeline_grid(TimelineDrawContext *ctx)
 
 static void draw_timeline_backdrop(TimelineDrawContext *ctx)
 {
-  if (ctx->sseq->view = !SEQ_VIEW_SEQUENCE || (ctx->sseq->draw_flag & SEQ_DRAW_BACKDROP) == 0) {
+  if (ctx->sseq->view != SEQ_VIEW_SEQUENCE || (ctx->sseq->draw_flag & SEQ_DRAW_BACKDROP) == 0) {
     return;
   }
 
