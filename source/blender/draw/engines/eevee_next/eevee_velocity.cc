@@ -344,8 +344,9 @@ void VelocityModule::end_sync()
                           (vel.geo.len[STEP_PREVIOUS] == GPU_vertbuf_get_vertex_len(pos_buf));
     }
     else {
-      vel.geo.do_deform = (vel.geo.len[STEP_PREVIOUS] == vel.geo.len[STEP_CURRENT]) &&
-                          (vel.geo.len[STEP_NEXT] == vel.geo.len[STEP_CURRENT]);
+      vel.geo.do_deform = (vel.geo.len[STEP_CURRENT] != 0) &&
+                          (vel.geo.len[STEP_CURRENT] == vel.geo.len[STEP_PREVIOUS]) &&
+                          (vel.geo.len[STEP_CURRENT] == vel.geo.len[STEP_NEXT]);
     }
     indirection_buf[vel.obj.resource_id] = vel;
     /* Reset for next sync. */
