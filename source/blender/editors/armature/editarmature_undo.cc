@@ -18,6 +18,7 @@
 #include "BLI_array_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_string.h"
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
@@ -70,7 +71,7 @@ static void remap_ebone_bone_collection_references(
 
 struct UndoArmature {
   EditBone *act_edbone;
-  BoneCollection *active_collection;
+  char active_collection_name[MAX_NAME];
   ListBase /* EditBone */ ebones;
   ListBase /* BoneCollection */ bone_collections;
   size_t undo_size;
@@ -98,7 +99,10 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
   ANIM_bonecoll_listbase_free(&arm->collections, true);
   auto bcoll_map = ANIM_bonecoll_listbase_copy_no_membership(
       &arm->collections, &uarm->bone_collections, true);
-  arm->active_collection = bcoll_map.lookup_default(uarm->active_collection, nullptr);
+
+  BoneCollection *active_bcoll = ANIM_armature_bonecoll_get_by_name(arm,
+                                                                    uarm->active_collection_name);
+  ANIM_armature_bonecoll_active_set(arm, active_bcoll);
 
   remap_ebone_bone_collection_references(arm->edbo, bcoll_map);
 
@@ -123,7 +127,7 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
   /* Copy bone collections. */
   auto bcoll_map = ANIM_bonecoll_listbase_copy_no_membership(
       &uarm->bone_collections, &arm->collections, false);
-  uarm->active_collection = bcoll_map.lookup_default(arm->active_collection, nullptr);
+  STRNCPY(uarm->active_collection_name, arm->active_collection_name);
 
   /* Point the new edit bones at the new collections. */
   remap_ebone_bone_collection_references(&uarm->ebones, bcoll_map);

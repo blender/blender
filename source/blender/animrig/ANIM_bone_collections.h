@@ -94,6 +94,9 @@ void ANIM_armature_bonecoll_remove(struct bArmature *armature, struct BoneCollec
  * Set the given bone collection as the active one.
  *
  * Pass `nullptr` to clear the active bone collection.
+ *
+ * The bone collection MUST already be owned by this armature. If it is not,
+ * this function will simply clear the active bone collection.
  */
 void ANIM_armature_bonecoll_active_set(struct bArmature *armature, struct BoneCollection *bcoll);
 

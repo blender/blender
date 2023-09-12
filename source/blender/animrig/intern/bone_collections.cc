@@ -77,7 +77,9 @@ void ANIM_armature_runtime_refresh(bArmature *armature)
 {
   ANIM_armature_runtime_free(armature);
 
-  ANIM_armature_bonecoll_active_set(armature, armature->active_collection);
+  BoneCollection *active = ANIM_armature_bonecoll_get_by_name(armature,
+                                                              armature->active_collection_name);
+  ANIM_armature_bonecoll_active_set(armature, active);
 
   /* Construct the bone-to-collections mapping. */
   LISTBASE_FOREACH (BoneCollection *, bcoll, &armature->collections) {
@@ -142,7 +144,8 @@ BoneCollection *ANIM_armature_bonecoll_insert_copy_after(bArmature *armature,
 static void armature_bonecoll_active_clear(bArmature *armature)
 {
   armature->runtime.active_collection_index = -1;
-  armature->active_collection = nullptr;
+  armature->runtime.active_collection = nullptr;
+  armature->active_collection_name[0] = '\0';
 }
 
 void ANIM_armature_bonecoll_active_set(bArmature *armature, BoneCollection *bcoll)
@@ -159,8 +162,9 @@ void ANIM_armature_bonecoll_active_set(bArmature *armature, BoneCollection *bcol
     return;
   }
 
+  STRNCPY(armature->active_collection_name, bcoll->name);
   armature->runtime.active_collection_index = index;
-  armature->active_collection = bcoll;
+  armature->runtime.active_collection = bcoll;
 }
 
 void ANIM_armature_bonecoll_active_index_set(bArmature *armature, const int bone_collection_index)
@@ -178,8 +182,9 @@ void ANIM_armature_bonecoll_active_index_set(bArmature *armature, const int bone
     return;
   }
 
+  STRNCPY(armature->active_collection_name, bcoll->name);
   armature->runtime.active_collection_index = bone_collection_index;
-  armature->active_collection = bcoll;
+  armature->runtime.active_collection = bcoll;
 }
 
 bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, const int step)
@@ -192,7 +197,7 @@ bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, con
     return false;
   }
 
-  if (bcoll == armature->active_collection) {
+  if (bcoll == armature->runtime.active_collection) {
     armature->runtime.active_collection_index = BLI_findindex(&armature->collections, bcoll);
   }
   return true;
@@ -204,7 +209,15 @@ void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll,
 
   STRNCPY(old_name, bcoll->name);
 
-  STRNCPY_UTF8(bcoll->name, name);
+  if (name[0] == '\0') {
+    /* Refuse to have nameless collections. The name of the active collection is stored in DNA, and
+     * an empty string means 'no active collection'. */
+    STRNCPY(bcoll->name, bonecoll_default_name);
+  }
+  else {
+    STRNCPY_UTF8(bcoll->name, name);
+  }
+
   bonecoll_ensure_name_unique(armature, bcoll);
 
   BKE_animdata_fix_paths_rename_all(&armature->id, "collections", old_name, bcoll->name);
@@ -420,7 +433,7 @@ void ANIM_bone_set_layer_ebone(EditBone *ebone, const int layer)
 
 void ANIM_armature_bonecoll_assign_active(const bArmature *armature, EditBone *ebone)
 {
-  if (armature->active_collection == nullptr) {
+  if (armature->runtime.active_collection == nullptr) {
     /* No active collection, do not assign to any. */
     printf("ANIM_armature_bonecoll_assign_active(%s, %s): no active collection\n",
            ebone->name,
@@ -428,7 +441,7 @@ void ANIM_armature_bonecoll_assign_active(const bArmature *armature, EditBone *e
     return;
   }
 
-  ANIM_armature_bonecoll_assign_editbone(armature->active_collection, ebone);
+  ANIM_armature_bonecoll_assign_editbone(armature->runtime.active_collection, ebone);
 }
 
 void ANIM_armature_bonecoll_show_from_bone(bArmature *armature, const Bone *bone)

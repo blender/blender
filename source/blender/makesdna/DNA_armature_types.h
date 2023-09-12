@@ -147,6 +147,7 @@ typedef struct bArmature_Runtime {
    */
   int active_collection_index;
   uint8_t _pad0[4];
+  struct BoneCollection *active_collection;
 } bArmature_Runtime;
 
 typedef struct bArmature {
@@ -185,8 +186,12 @@ typedef struct bArmature {
 
   /* BoneCollection. */
   ListBase collections;
-  /* Do not directly assign, use `ANIM_armature_bonecoll_active_set` instead. */
-  struct BoneCollection *active_collection;
+
+  /** Do not directly assign, use `ANIM_armature_bonecoll_active_set` instead.
+   * This is stored as a string to make it possible for the library overrides system to understand
+   * when it actually changed (compared to a BoneCollection*, which would change on every load).
+   */
+  char active_collection_name[64]; /* MAX_NAME. */
 
   /** For UI, to show which layers are there. */
   unsigned int layer_used DNA_DEPRECATED;

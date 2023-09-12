@@ -55,6 +55,13 @@ class ANIM_armature_bone_collections : public testing::Test {
     BLI_addtail(&arm.bonebase, &bone2);    /* bone2 is root bone. */
     BLI_addtail(&bone2.childbase, &bone3); /* bone3 has bone2 as parent. */
   }
+
+  void TearDown() override
+  {
+    LISTBASE_FOREACH_BACKWARD_MUTABLE (BoneCollection *, bcoll, &arm.collections) {
+      ANIM_armature_bonecoll_remove(&arm, bcoll);
+    }
+  }
 };
 
 TEST_F(ANIM_armature_bone_collections, armature_owned_collections)
@@ -110,6 +117,61 @@ TEST_F(ANIM_armature_bone_collections, bones_assign_remove)
   EXPECT_EQ(0, BLI_listbase_count(&bone2.runtime.collections))
       << "expecting back-references in bone2 runtime data to be cleared when the collection is "
          "removed";
+}
+
+TEST_F(ANIM_armature_bone_collections, active_set_clear_by_pointer)
+{
+  BoneCollection *bcoll1 = ANIM_armature_bonecoll_new(&arm, "Bones 1");
+  BoneCollection *bcoll2 = ANIM_armature_bonecoll_new(&arm, "Bones 2");
+  BoneCollection *bcoll3 = ANIM_bonecoll_new("Alien Bones");
+
+  ANIM_armature_bonecoll_active_set(&arm, bcoll1);
+  EXPECT_EQ(0, arm.runtime.active_collection_index);
+  EXPECT_EQ(bcoll1, arm.runtime.active_collection);
+  EXPECT_STREQ(bcoll1->name, arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_set(&arm, nullptr);
+  EXPECT_EQ(-1, arm.runtime.active_collection_index);
+  EXPECT_EQ(nullptr, arm.runtime.active_collection);
+  EXPECT_STREQ("", arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_set(&arm, bcoll2);
+  EXPECT_EQ(1, arm.runtime.active_collection_index);
+  EXPECT_EQ(bcoll2, arm.runtime.active_collection);
+  EXPECT_STREQ(bcoll2->name, arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_set(&arm, bcoll3);
+  EXPECT_EQ(-1, arm.runtime.active_collection_index);
+  EXPECT_EQ(nullptr, arm.runtime.active_collection);
+  EXPECT_STREQ("", arm.active_collection_name);
+
+  ANIM_bonecoll_free(bcoll3);
+}
+
+TEST_F(ANIM_armature_bone_collections, active_set_clear_by_index)
+{
+  BoneCollection *bcoll1 = ANIM_armature_bonecoll_new(&arm, "Bones 1");
+  BoneCollection *bcoll2 = ANIM_armature_bonecoll_new(&arm, "Bones 2");
+
+  ANIM_armature_bonecoll_active_index_set(&arm, 0);
+  EXPECT_EQ(0, arm.runtime.active_collection_index);
+  EXPECT_EQ(bcoll1, arm.runtime.active_collection);
+  EXPECT_STREQ(bcoll1->name, arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_index_set(&arm, -1);
+  EXPECT_EQ(-1, arm.runtime.active_collection_index);
+  EXPECT_EQ(nullptr, arm.runtime.active_collection);
+  EXPECT_STREQ("", arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_index_set(&arm, 1);
+  EXPECT_EQ(1, arm.runtime.active_collection_index);
+  EXPECT_EQ(bcoll2, arm.runtime.active_collection);
+  EXPECT_STREQ(bcoll2->name, arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_index_set(&arm, 47);
+  EXPECT_EQ(-1, arm.runtime.active_collection_index);
+  EXPECT_EQ(nullptr, arm.runtime.active_collection);
+  EXPECT_STREQ("", arm.active_collection_name);
 }
 
 }  // namespace blender::animrig::tests

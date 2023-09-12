@@ -99,7 +99,7 @@ static bool active_bone_collection_poll(bContext *C)
   }
 
   bArmature *armature = static_cast<bArmature *>(ob->data);
-  if (armature->active_collection == nullptr) {
+  if (armature->runtime.active_collection == nullptr) {
     CTX_wm_operator_poll_msg_set(C, "Armature has no active bone collection, select one first");
     return false;
   }
@@ -145,7 +145,7 @@ static int bone_collection_remove_exec(bContext *C, wmOperator * /* op */)
 
   /* The poll function ensures armature->active_collection is not NULL. */
   bArmature *armature = static_cast<bArmature *>(ob->data);
-  ANIM_armature_bonecoll_remove(armature, armature->active_collection);
+  ANIM_armature_bonecoll_remove(armature, armature->runtime.active_collection);
 
   /* notifiers for updates */
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -180,7 +180,8 @@ static int bone_collection_move_exec(bContext *C, wmOperator *op)
   /* Poll function makes sure this is valid. */
   bArmature *armature = static_cast<bArmature *>(ob->data);
 
-  const bool ok = ANIM_armature_bonecoll_move(armature, armature->active_collection, direction);
+  const bool ok = ANIM_armature_bonecoll_move(
+      armature, armature->runtime.active_collection, direction);
   if (!ok) {
     return OPERATOR_CANCELLED;
   }
@@ -233,7 +234,7 @@ static BoneCollection *get_bonecoll_named_or_active(bContext * /*C*/,
   RNA_string_get(op->ptr, "name", bcoll_name);
 
   if (bcoll_name[0] == '\0') {
-    return armature->active_collection;
+    return armature->runtime.active_collection;
   }
 
   BoneCollection *bcoll = ANIM_armature_bonecoll_get_by_name(armature, bcoll_name);

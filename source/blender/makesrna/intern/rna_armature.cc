@@ -185,6 +185,15 @@ static void rna_Armature_edit_bone_remove(bArmature *arm,
   RNA_POINTER_INVALIDATE(ebone_ptr);
 }
 
+static void rna_BoneCollections_active_set(PointerRNA *ptr,
+                                           PointerRNA value,
+                                           struct ReportList * /*reports*/)
+{
+  bArmature *arm = (bArmature *)ptr->data;
+  BoneCollection *bcoll = (BoneCollection *)value.data;
+  ANIM_armature_bonecoll_active_set(arm, bcoll);
+}
+
 static int rna_BoneCollections_active_index_get(PointerRNA *ptr)
 {
   bArmature *arm = (bArmature *)ptr->data;
@@ -208,6 +217,14 @@ static void rna_BoneCollections_active_index_range(
   // collection (i.e. the default collection that should remain first).
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&arm->collections) - 1);
+}
+
+static void rna_BoneCollections_active_name_set(PointerRNA *ptr, const char *name)
+{
+  bArmature *arm = (bArmature *)ptr->data;
+  BoneCollection *bcoll = ANIM_armature_bonecoll_get_by_name(arm, name);
+  ANIM_armature_bonecoll_active_set(arm, bcoll);
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, ptr->data);
 }
 
 static void rna_BoneCollections_move(bArmature *arm, ReportList *reports, int from, int to)
@@ -1791,13 +1808,16 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
 
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoneCollection");
-  RNA_def_property_pointer_sdna(prop, nullptr, "active_collection");
+  RNA_def_property_pointer_sdna(prop, nullptr, "runtime.active_collection");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_BoneCollections_active_set", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Active Collection", "Armature's active bone collection");
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "runtime.active_collection_index");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop,
                            "Active Collection Index",
                            "The index of the Armature's active bone collection; -1 when there "
@@ -1806,6 +1826,15 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
                              "rna_BoneCollections_active_index_get",
                              "rna_BoneCollections_active_index_set",
                              "rna_BoneCollections_active_index_range");
+
+  prop = RNA_def_property(srna, "active_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "active_collection_name");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop,
+                           "Active Collection Name",
+                           "The name of the Armature's active bone collection; empty when there "
+                           "is no active collection");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_BoneCollections_active_name_set");
 
   /* Armature.collections.new(...) */
   func = RNA_def_function(srna, "new", "ANIM_armature_bonecoll_new");
