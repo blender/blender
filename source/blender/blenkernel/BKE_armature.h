@@ -195,8 +195,11 @@ bool BKE_pose_minmax(
 bool bone_autoside_name(char name[64], int strip_number, short axis, float head, float tail);
 
 /**
- * Walk the list until the bone is found (slow!),
- * use #BKE_armature_bone_from_name_map for multiple lookups.
+ * Find the bone with the given name.
+ *
+ * When doing multiple subsequent calls to this function, consider calling
+ * #BKE_armature_bone_hash_make first to hash the bone names and speed up
+ * queries.
  */
 struct Bone *BKE_armature_find_bone_name(struct bArmature *arm, const char *name);
 
