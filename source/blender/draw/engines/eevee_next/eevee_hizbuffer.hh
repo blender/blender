@@ -42,10 +42,10 @@ class HiZBuffer {
   /** Dirty flag to check if the update is necessary. */
   bool is_dirty_ = true;
 
-  HiZDataBuf data_;
+  HiZData &data_;
 
  public:
-  HiZBuffer(Instance &inst) : inst_(inst)
+  HiZBuffer(Instance &inst, HiZData &data) : inst_(inst), data_(data)
   {
     atomic_tile_counter_.clear_to_zero();
   };
@@ -72,13 +72,11 @@ class HiZBuffer {
   void bind_resources(DRWShadingGroup *grp)
   {
     DRW_shgroup_uniform_texture_ref(grp, "hiz_tx", &hiz_tx_);
-    DRW_shgroup_uniform_block_ref(grp, "hiz_buf", &data_);
   }
 
   template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
   {
     pass->bind_texture(HIZ_TEX_SLOT, &hiz_tx_);
-    pass->bind_ubo(HIZ_BUF_SLOT, &data_);
   }
 };
 

@@ -274,7 +274,6 @@ bNode *add_node(const bContext &C, StringRef idname, const float2 &location);
 bNode *add_static_node(const bContext &C, int type, const float2 &location);
 
 void NODE_OT_add_reroute(wmOperatorType *ot);
-void NODE_OT_add_search(wmOperatorType *ot);
 void NODE_OT_add_group(wmOperatorType *ot);
 void NODE_OT_add_group_asset(wmOperatorType *ot);
 void NODE_OT_add_object(wmOperatorType *ot);
@@ -402,10 +401,6 @@ void invoke_node_link_drag_add_menu(bContext &C,
                                     bNode &node,
                                     bNodeSocket &socket,
                                     const float2 &cursor);
-
-/* `add_node_search.cc` */
-
-void invoke_add_node_search_menu(bContext &C, const float2 &cursor, bool use_transform);
 
 /* `add_menu_assets.cc` */
 

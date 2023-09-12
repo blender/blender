@@ -488,16 +488,16 @@ static VkFormat to_vk_format_int(const GPUVertCompType type, const uint32_t size
     case GPU_COMP_U8:
       switch (size) {
         case 1:
-          return VK_FORMAT_R8_USCALED;
+          return VK_FORMAT_R8_UINT;
         case 2:
-          return VK_FORMAT_R8G8_USCALED;
+          return VK_FORMAT_R8G8_UINT;
         case 3:
-          return VK_FORMAT_R8G8B8_USCALED;
+          return VK_FORMAT_R8G8B8_UINT;
         case 4:
-          return VK_FORMAT_R8G8B8A8_USCALED;
+          return VK_FORMAT_R8G8B8A8_UINT;
         default:
           BLI_assert_unreachable();
-          return VK_FORMAT_R8_USCALED;
+          return VK_FORMAT_R8_UINT;
       }
       break;
 
@@ -520,16 +520,16 @@ static VkFormat to_vk_format_int(const GPUVertCompType type, const uint32_t size
     case GPU_COMP_U16:
       switch (size) {
         case 2:
-          return VK_FORMAT_R16_USCALED;
+          return VK_FORMAT_R16_UINT;
         case 4:
-          return VK_FORMAT_R16G16_USCALED;
+          return VK_FORMAT_R16G16_UINT;
         case 6:
-          return VK_FORMAT_R16G16B16_USCALED;
+          return VK_FORMAT_R16G16B16_UINT;
         case 8:
-          return VK_FORMAT_R16G16B16A16_USCALED;
+          return VK_FORMAT_R16G16B16A16_UINT;
         default:
           BLI_assert_unreachable();
-          return VK_FORMAT_R16_USCALED;
+          return VK_FORMAT_R16_UINT;
       }
       break;
 
@@ -729,17 +729,27 @@ VkImageViewType to_vk_image_view_type(const eGPUTextureType type, const eImageVi
   return VK_IMAGE_VIEW_TYPE_1D;
 }
 
-VkComponentMapping to_vk_component_mapping(const eGPUTextureFormat /*format*/)
+VkComponentSwizzle to_vk_component_swizzle(const char swizzle)
 {
-  /* TODO: this should map to OpenGL defaults based on the eGPUTextureFormat. The
-   * implementation of this function will be implemented when implementing other parts of
-   * VKTexture. */
-  VkComponentMapping component_mapping;
-  component_mapping.r = VK_COMPONENT_SWIZZLE_R;
-  component_mapping.g = VK_COMPONENT_SWIZZLE_G;
-  component_mapping.b = VK_COMPONENT_SWIZZLE_B;
-  component_mapping.a = VK_COMPONENT_SWIZZLE_A;
-  return component_mapping;
+  switch (swizzle) {
+    case '0':
+      return VK_COMPONENT_SWIZZLE_ZERO;
+    case '1':
+      return VK_COMPONENT_SWIZZLE_ONE;
+    case 'r':
+      return VK_COMPONENT_SWIZZLE_R;
+    case 'g':
+      return VK_COMPONENT_SWIZZLE_G;
+    case 'b':
+      return VK_COMPONENT_SWIZZLE_B;
+    case 'a':
+      return VK_COMPONENT_SWIZZLE_A;
+
+    default:
+      break;
+  }
+  BLI_assert_unreachable();
+  return VK_COMPONENT_SWIZZLE_IDENTITY;
 }
 
 template<typename T> void copy_color(T dst[4], const T *src)

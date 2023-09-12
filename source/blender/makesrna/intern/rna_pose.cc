@@ -126,7 +126,7 @@ static char *rna_PoseBone_path(const PointerRNA *ptr)
   return BLI_sprintfN("pose.bones[\"%s\"]", name_esc);
 }
 
-/* Bone groups only. */
+/* shared for actions groups and bone groups */
 
 static bool rna_bone_group_poll(Object *ob, ReportList *reports)
 {
@@ -137,37 +137,6 @@ static bool rna_bone_group_poll(Object *ob, ReportList *reports)
 
   return true;
 }
-
-static bActionGroup *rna_bone_group_new(ID *id, bPose *pose, ReportList *reports, const char *name)
-{
-  if (!rna_bone_group_poll((Object *)id, reports)) {
-    return nullptr;
-  }
-
-  bActionGroup *grp = BKE_pose_add_group(pose, name);
-  WM_main_add_notifier(NC_OBJECT | ND_POSE | NA_ADDED, id);
-  return grp;
-}
-
-static void rna_bone_group_remove(ID *id, bPose *pose, ReportList *reports, PointerRNA *grp_ptr)
-{
-  if (!rna_bone_group_poll((Object *)id, reports)) {
-    return;
-  }
-
-  bActionGroup *grp = static_cast<bActionGroup *>(grp_ptr->data);
-  const int grp_idx = BLI_findindex(&pose->agroups, grp);
-
-  if (grp_idx == -1) {
-    BKE_reportf(reports, RPT_ERROR, "Bone group '%s' not found in this object", grp->name);
-    return;
-  }
-
-  BKE_pose_remove_group(pose, grp, grp_idx + 1);
-  WM_main_add_notifier(NC_OBJECT | ND_POSE | NA_REMOVED, id);
-}
-
-/* shared for actions groups and bone groups */
 
 void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
 {
@@ -192,26 +161,6 @@ bool rna_ActionGroup_is_custom_colorset_get(PointerRNA *ptr)
   bActionGroup *grp = static_cast<bActionGroup *>(ptr->data);
 
   return (grp->customCol < 0);
-}
-
-static void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  if (!rna_bone_group_poll(ob, nullptr)) {
-    return;
-  }
-
-  bActionGroup *agrp = static_cast<bActionGroup *>(ptr->data);
-
-  /* copy the new name into the name slot */
-  STRNCPY_UTF8(agrp->name, value);
-
-  BLI_uniquename(&ob->pose->agroups,
-                 agrp,
-                 CTX_DATA_(BLT_I18NCONTEXT_ID_ARMATURE, "Group"),
-                 '.',
-                 offsetof(bActionGroup, name),
-                 sizeof(agrp->name));
 }
 
 static IDProperty **rna_PoseBone_idprops(PointerRNA *ptr)
@@ -408,157 +357,6 @@ static void rna_Itasc_update_rebuild(Main *bmain, Scene *scene, PointerRNA *ptr)
   BKE_pose_tag_recalc(bmain, pose); /* checks & sorts pose channels */
   rna_Itasc_update(bmain, scene, ptr);
 }
-
-static PointerRNA rna_PoseChannel_bone_group_get(PointerRNA *ptr)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  bPose *pose = (ob) ? ob->pose : nullptr;
-  bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-  bActionGroup *grp;
-
-  if (pose) {
-    grp = static_cast<bActionGroup *>(BLI_findlink(&pose->agroups, pchan->agrp_index - 1));
-  }
-  else {
-    grp = nullptr;
-  }
-
-  return rna_pointer_inherit_refine(ptr, &RNA_BoneGroup, grp);
-}
-
-static void rna_PoseChannel_bone_group_set(PointerRNA *ptr,
-                                           PointerRNA value,
-                                           ReportList * /*reports*/)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  bPose *pose = (ob) ? ob->pose : nullptr;
-  bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-
-  if (pose) {
-    pchan->agrp_index = BLI_findindex(&pose->agroups, value.data) + 1;
-  }
-  else {
-    pchan->agrp_index = 0;
-  }
-}
-
-static int rna_PoseChannel_bone_group_index_get(PointerRNA *ptr)
-{
-  bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-  return MAX2(pchan->agrp_index - 1, 0);
-}
-
-static void rna_PoseChannel_bone_group_index_set(PointerRNA *ptr, int value)
-{
-  bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-  pchan->agrp_index = value + 1;
-}
-
-static void rna_PoseChannel_bone_group_index_range(
-    PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  bPose *pose = (ob) ? ob->pose : nullptr;
-
-  *min = 0;
-  *max = pose ? max_ii(0, BLI_listbase_count(&pose->agroups) - 1) : 0;
-}
-
-static PointerRNA rna_Pose_active_bone_group_get(PointerRNA *ptr)
-{
-  bPose *pose = (bPose *)ptr->data;
-  return rna_pointer_inherit_refine(
-      ptr, &RNA_BoneGroup, BLI_findlink(&pose->agroups, pose->active_group - 1));
-}
-
-static void rna_Pose_active_bone_group_set(PointerRNA *ptr,
-                                           PointerRNA value,
-                                           ReportList * /*reports*/)
-{
-  bPose *pose = (bPose *)ptr->data;
-  pose->active_group = BLI_findindex(&pose->agroups, value.data) + 1;
-}
-
-static int rna_Pose_active_bone_group_index_get(PointerRNA *ptr)
-{
-  bPose *pose = (bPose *)ptr->data;
-  return MAX2(pose->active_group - 1, 0);
-}
-
-static void rna_Pose_active_bone_group_index_set(PointerRNA *ptr, int value)
-{
-  bPose *pose = (bPose *)ptr->data;
-  pose->active_group = value + 1;
-}
-
-static void rna_Pose_active_bone_group_index_range(
-    PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
-{
-  bPose *pose = (bPose *)ptr->data;
-
-  *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&pose->agroups) - 1);
-}
-
-#  if 0
-static void rna_pose_bgroup_name_index_get(PointerRNA *ptr, char *value, int index)
-{
-  bPose *pose = (bPose *)ptr->data;
-  bActionGroup *grp;
-
-  grp = BLI_findlink(&pose->agroups, index - 1);
-
-  if (grp) {
-    strcpy(value, grp->name);
-  }
-  else {
-    value[0] = '\0';
-  }
-}
-
-static int rna_pose_bgroup_name_index_length(PointerRNA *ptr, int index)
-{
-  bPose *pose = (bPose *)ptr->data;
-  bActionGroup *grp;
-
-  grp = BLI_findlink(&pose->agroups, index - 1);
-  return (grp) ? strlen(grp->name) : 0;
-}
-
-static void rna_pose_bgroup_name_index_set(PointerRNA *ptr, const char *value, short *index)
-{
-  bPose *pose = (bPose *)ptr->data;
-  bActionGroup *grp;
-  int a;
-
-  for (a = 1, grp = pose->agroups.first; grp; grp = grp->next, a++) {
-    if (STREQ(grp->name, value)) {
-      *index = a;
-      return;
-    }
-  }
-
-  *index = 0;
-}
-
-static void rna_pose_pgroup_name_set(PointerRNA *ptr,
-                                     const char *value,
-                                     char *result,
-                                     int result_maxncpy)
-{
-  bPose *pose = (bPose *)ptr->data;
-  bActionGroup *grp;
-
-  for (grp = pose->agroups.first; grp; grp = grp->next) {
-    if (STREQ(grp->name, value)) {
-      BLI_strncpy(result, value, result_maxncpy);
-      return;
-    }
-  }
-
-  result[0] = '\0';
-}
-#  endif
 
 static PointerRNA rna_PoseChannel_active_constraint_get(PointerRNA *ptr)
 {
@@ -889,29 +687,6 @@ void rna_def_actionbone_group_common(StructRNA *srna, int update_flag, const cha
   RNA_def_property_ui_text(
       prop, "Colors", "Copy of the colors associated with the group's color set");
   RNA_def_property_update(prop, update_flag, update_cb);
-}
-
-static void rna_def_bone_group(BlenderRNA *brna)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  /* struct */
-  srna = RNA_def_struct(brna, "BoneGroup", nullptr);
-  RNA_def_struct_sdna(srna, "bActionGroup");
-  RNA_def_struct_ui_text(srna, "Bone Group", "Groups of Pose Channels (Bones)");
-  RNA_def_struct_ui_icon(srna, ICON_GROUP_BONE);
-
-  /* name */
-  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Name", "");
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_BoneGroup_name_set");
-  RNA_def_struct_name_property(srna, prop);
-
-  /* TODO: add some runtime-collections stuff to access grouped bones. */
-
-  /* color set */
-  rna_def_actionbone_group_common(srna, NC_OBJECT | ND_POSE, "rna_Pose_update");
 }
 
 static const EnumPropertyItem prop_iksolver_items[] = {
@@ -1384,29 +1159,6 @@ static void rna_def_pose_channel(BlenderRNA *brna)
       prop, nullptr, "rna_PoseChannel_custom_shape_transform_set", nullptr, nullptr);
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
-  /* bone groups */
-  prop = RNA_def_property(srna, "bone_group_index", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "agrp_index");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_int_funcs(prop,
-                             "rna_PoseChannel_bone_group_index_get",
-                             "rna_PoseChannel_bone_group_index_set",
-                             "rna_PoseChannel_bone_group_index_range");
-  RNA_def_property_ui_text(
-      prop, "Bone Group Index", "Bone group this pose channel belongs to (0 means no group)");
-  RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
-  RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
-
-  prop = RNA_def_property(srna, "bone_group", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "BoneGroup");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_pointer_funcs(
-      prop, "rna_PoseChannel_bone_group_get", "rna_PoseChannel_bone_group_set", nullptr, nullptr);
-  RNA_def_property_ui_text(prop, "Bone Group", "Bone group this pose channel belongs to");
-  RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
-  RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
-
   prop = RNA_def_property(srna, "color", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoneColor");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1624,54 +1376,6 @@ static void rna_def_pose_ikparam(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "IK Solver", "IK solver for which these parameters are defined");
 }
 
-/* pose.bone_groups */
-static void rna_def_bone_groups(BlenderRNA *brna, PropertyRNA *cprop)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  FunctionRNA *func;
-  PropertyRNA *parm;
-
-  RNA_def_property_srna(cprop, "BoneGroups");
-  srna = RNA_def_struct(brna, "BoneGroups", nullptr);
-  RNA_def_struct_sdna(srna, "bPose");
-  RNA_def_struct_ui_text(srna, "Bone Groups", "Collection of bone groups");
-
-  func = RNA_def_function(srna, "new", "rna_bone_group_new");
-  RNA_def_function_ui_description(func, "Add a new bone group to the object");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS); /* ID needed for refresh */
-  RNA_def_string(func, "name", "Group", MAX_NAME, "", "Name of the new group");
-  /* return type */
-  parm = RNA_def_pointer(func, "group", "BoneGroup", "", "New bone group");
-  RNA_def_function_return(func, parm);
-
-  func = RNA_def_function(srna, "remove", "rna_bone_group_remove");
-  RNA_def_function_ui_description(func, "Remove a bone group from this object");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID); /* ID needed for refresh */
-  /* bone group to remove */
-  parm = RNA_def_pointer(func, "group", "BoneGroup", "", "Removed bone group");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
-
-  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "BoneGroup");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_pointer_funcs(
-      prop, "rna_Pose_active_bone_group_get", "rna_Pose_active_bone_group_set", nullptr, nullptr);
-  RNA_def_property_ui_text(prop, "Active Bone Group", "Active bone group for this pose");
-  RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
-
-  prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, nullptr, "active_group");
-  RNA_def_property_int_funcs(prop,
-                             "rna_Pose_active_bone_group_index_get",
-                             "rna_Pose_active_bone_group_index_set",
-                             "rna_Pose_active_bone_group_index_range");
-  RNA_def_property_ui_text(prop, "Active Bone Group Index", "Active index in bone groups array");
-  RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
-}
-
 static void rna_def_pose(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -1699,13 +1403,6 @@ static void rna_def_pose(BlenderRNA *brna)
                                     nullptr,
                                     "rna_PoseBones_lookup_string",
                                     nullptr);
-
-  /* bone groups */
-  prop = RNA_def_property(srna, "bone_groups", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "agroups", nullptr);
-  RNA_def_property_struct_type(prop, "BoneGroup");
-  RNA_def_property_ui_text(prop, "Bone Groups", "Groups of the bones");
-  rna_def_bone_groups(brna, prop);
 
   /* ik solvers */
   prop = RNA_def_property(srna, "ik_solver", PROP_ENUM, PROP_NONE);
@@ -1765,7 +1462,6 @@ void RNA_def_pose(BlenderRNA *brna)
   rna_def_pose_channel(brna);
   rna_def_pose_ikparam(brna);
   rna_def_pose_itasc(brna);
-  rna_def_bone_group(brna);
 }
 
 #endif

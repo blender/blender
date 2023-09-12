@@ -179,7 +179,7 @@ void BKE_constraints_copy_ex(struct ListBase *dst,
 /**
  * Run the given callback on all ID-blocks in list of constraints.
  *
- * \param flag the `IDWALK_` flags controlling the behavior of the foreach_id code, see
+ * \param flag: the `IDWALK_` flags controlling the behavior of the foreach_id code, see
  * `BKE_lib_query.h`
  */
 void BKE_constraints_id_loop(struct ListBase *list,

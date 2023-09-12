@@ -35,6 +35,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "ED_asset.hh"
+#include "ED_asset_menu_utils.hh"
 #include "ED_node.hh" /* own include */
 #include "ED_render.hh"
 #include "ED_screen.hh"
@@ -437,7 +438,8 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
   ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
 
-  const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  const asset_system::AssetRepresentation *asset =
+      asset::operator_asset_reference_props_get_asset_from_all_library(*C, *op->ptr, op->reports);
   if (!asset) {
     return OPERATOR_CANCELLED;
   }
@@ -466,10 +468,11 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
 }
 
 static std::string node_add_group_asset_get_description(bContext *C,
-                                                        wmOperatorType * /*op*/,
-                                                        PointerRNA * /*values*/)
+                                                        wmOperatorType * /*ot*/,
+                                                        PointerRNA *values)
 {
-  const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  const asset_system::AssetRepresentation *asset =
+      asset::operator_asset_reference_props_get_asset_from_all_library(*C, *values, nullptr);
   if (!asset) {
     return "";
   }
@@ -491,6 +494,8 @@ void NODE_OT_add_group_asset(wmOperatorType *ot)
   ot->get_description = node_add_group_asset_get_description;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  asset::operator_asset_reference_props_register(*ot->srna);
 }
 
 /** \} */
@@ -1014,39 +1019,6 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
   prop = RNA_def_enum(ot->srna, "type", rna_enum_dummy_NULL_items, 0, "Tree Type", "");
   RNA_def_enum_funcs(prop, new_node_tree_type_itemf);
   RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME - 2, "Name", "");
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Add Node Search
- * \{ */
-
-static int node_add_search_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  const ARegion &region = *CTX_wm_region(C);
-
-  float2 cursor;
-  UI_view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
-
-  invoke_add_node_search_menu(*C, cursor, RNA_boolean_get(op->ptr, "use_transform"));
-
-  return OPERATOR_FINISHED;
-}
-
-void NODE_OT_add_search(wmOperatorType *ot)
-{
-  ot->name = "Search and Add Node";
-  ot->idname = "NODE_OT_add_search";
-  ot->description = "Search for nodes and add one to the active tree";
-
-  ot->invoke = node_add_search_invoke;
-  ot->poll = ED_operator_node_editable;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  RNA_def_boolean(
-      ot->srna, "use_transform", true, "Use Transform", "Start moving the node after adding it");
 }
 
 /** \} */

@@ -649,6 +649,14 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
 
+  if (op && (prop = RNA_struct_find_property(op->ptr, "use_duplicated_keyframes")) &&
+      RNA_property_is_set(op->ptr, prop))
+  {
+    if (RNA_property_boolean_get(op->ptr, prop)) {
+      t->flag |= T_DUPLICATED_KEYFRAMES;
+    }
+  }
+
 /* Mirror is not supported with proportional editing, turn it off. */
 #if 0
   if (t->flag & T_PROP_EDIT) {

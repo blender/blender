@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -2314,6 +2314,10 @@ msgid "Relative Parenting"
 msgstr "Relativní cesta"
 
 
+msgid "Bones"
+msgstr "Kosti"
+
+
 msgid "Visible"
 msgstr "Viditelný"
 
@@ -2324,14 +2328,6 @@ msgstr "Aktivní kolekce"
 
 msgid "Custom"
 msgstr "Vlastní"
-
-
-msgid "Bone Group"
-msgstr "Přidat do skupiny"
-
-
-msgid "Bone Groups"
-msgstr "Přidat do skupiny"
 
 
 msgid "Brush Capabilities"
@@ -8414,10 +8410,6 @@ msgid "Pose Markers"
 msgstr "Předchozí klíč"
 
 
-msgid "Bones"
-msgstr "Kosti"
-
-
 msgid "Octahedral"
 msgstr "Osmistěn"
 
@@ -10638,6 +10630,10 @@ msgstr "Upravit"
 
 msgid "Sculpt"
 msgstr "Tesat"
+
+
+msgid "Modifier"
+msgstr "Modifikátory"
 
 
 msgid "Tool"
@@ -14322,24 +14318,24 @@ msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Converter"
-msgstr "Převodník"
-
-
-msgid "Distort"
-msgstr "Historie vracení"
-
-
-msgid "Layout"
-msgstr "Rozložení"
-
-
 msgid "Keying"
 msgstr "Klíčovací sestava"
 
 
 msgid "Tracking"
 msgstr "Sledování"
+
+
+msgid "Layout"
+msgstr "Rozložení"
+
+
+msgid "Converter"
+msgstr "Převodník"
+
+
+msgid "Distort"
+msgstr "Historie vracení"
 
 
 msgid "Attribute"
@@ -14356,6 +14352,18 @@ msgstr "Uzel"
 
 msgid "Node Color Specials"
 msgstr "Materiál"
+
+
+msgid "Add Modifier"
+msgstr "Přidat modifikátor"
+
+
+msgid "Generate"
+msgstr "Oddělit"
+
+
+msgid "Physics"
+msgstr "Fyzika"
 
 
 msgid "Frame Rate Presets"
@@ -15581,10 +15589,6 @@ msgstr "Bake Start"
 
 msgid "Start frame of the ocean baking"
 msgstr "První frame animace"
-
-
-msgid "Generate"
-msgstr "Oddělit"
 
 
 msgid "Ocean is Cached"
@@ -22661,10 +22665,6 @@ msgid "Recalculate internal geometry"
 msgstr "Přepočítat vnitřek geometrie"
 
 
-msgid "Modifier"
-msgstr "Modifikátory"
-
-
 msgid "Name of the modifier to edit"
 msgstr "Jméno skriptu"
 
@@ -22841,15 +22841,6 @@ msgstr "Zobrazit obrázek na pozadí pohledu do 3D"
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "Bake Křivku"
-
-
-msgid "Bake selected F-Curves to a set of sampled points defining a similar curve"
-msgstr "Bake označené F-Křivky do sady odebraných vzorků bodů definující podobnou křivku"
-
-
-msgctxt "Operator"
 msgid "Click-Insert Keyframes"
 msgstr "Vložit klíč"
 
@@ -22981,22 +22972,8 @@ msgid "Flatten handles for a smoother transition"
 msgstr "Vyrovná úhly označených plošek"
 
 
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "Bake Zvuk do F-Křivek"
-
-
 msgid "Square Threshold"
 msgstr "Práh"
-
-
-msgctxt "Operator"
-msgid "Un-Bake Curve"
-msgstr "Un-Bake Křivku"
-
-
-msgid "Un-Bake selected F-Points to F-Curves"
-msgstr "Un-Bake označené F-Body do F-Křivek"
 
 
 msgid "Stroke Mode"
@@ -25776,6 +25753,11 @@ msgid "Add an object to the scene"
 msgstr "Přidá objekt do scény"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Přidat modifikátor"
+
+
 msgid "Add named object"
 msgstr "Přidá pojmenovaý objekt"
 
@@ -26005,11 +25987,6 @@ msgstr "Kopírovat Skupinu s Geometrickými Uzly"
 
 msgid "Monkey"
 msgstr "Opice"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Přidat modifikátor"
 
 
 msgctxt "Operator"
@@ -32149,10 +32126,6 @@ msgid "Set Tool by Name"
 msgstr "Nastavit Nástroj Podle Jména"
 
 
-msgid "Set the tool by name (for keymaps)"
-msgstr "Nastavit nástroj podle jména (pro klávesové zkratky)"
-
-
 msgid "Identifier of the tool"
 msgstr "Identifikátor nástroje"
 
@@ -32714,6 +32687,10 @@ msgid "Filters"
 msgstr "Filtry"
 
 
+msgid "Snapping"
+msgstr "Přichytávání"
+
+
 msgid "Bake Animation"
 msgstr "Bake Animaci"
 
@@ -32768,10 +32745,6 @@ msgstr "Výběr barvy"
 
 msgid "Color Palette"
 msgstr "Paleta barev"
-
-
-msgid "Snapping"
-msgstr "Přichytávání"
 
 
 msgctxt "Operator"
@@ -32959,10 +32932,6 @@ msgstr "Struktura"
 
 msgid "Hair Shape"
 msgstr "Tvar vlasů"
-
-
-msgid "Physics"
-msgstr "Fyzika"
 
 
 msgid "Misc"
@@ -34235,10 +34204,6 @@ msgstr "Limity"
 
 msgid "Library Path"
 msgstr "Knihovna"
-
-
-msgid "Groups of the bones"
-msgstr "Žádné skupiny vertexů"
 
 
 msgid "Pose Bones"
@@ -37516,30 +37481,6 @@ msgid "Command history"
 msgstr "Historie vracení"
 
 
-msgid "Auto Snap"
-msgstr "Automatické přichytávání"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "Samochytavý mód pro klíče během trasformace"
-
-
-msgid "Nearest Frame"
-msgstr "Nejblžší Snímek"
-
-
-msgid "Nearest Second"
-msgstr "Nejbližší značka"
-
-
-msgid "Nearest Marker"
-msgstr "Nejbližší značka"
-
-
-msgid "Snap to nearest marker"
-msgstr "Přesunout zcela dolů"
-
-
 msgid "Show the active object's cloth point cache"
 msgstr "Zobrazí prostor textury aktivního objektu"
 
@@ -39405,12 +39346,20 @@ msgid "UV Local View"
 msgstr "Lokální pohled"
 
 
-msgid "Snap Element"
-msgstr "Prvek pro přichytávání"
-
-
 msgid "Type of element to snap to"
 msgstr "Typ prvku pro přichytávání"
+
+
+msgid "Nearest Marker"
+msgstr "Nejbližší značka"
+
+
+msgid "Snap to nearest marker"
+msgstr "Přesunout zcela dolů"
+
+
+msgid "Snap Element"
+msgstr "Prvek pro přichytávání"
 
 
 msgid "Snap to"
@@ -40771,6 +40720,16 @@ msgid "Preserve"
 msgstr "Zachovat"
 
 
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Kostra"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Mříž"
+
+
 msgid "Detail"
 msgstr "Detail"
 
@@ -41643,6 +41602,10 @@ msgid "Options:"
 msgstr "Nastavení:"
 
 
+msgid "Snap To"
+msgstr "Přichytit na"
+
+
 msgctxt "Operator"
 msgid "Before Current Frame"
 msgstr "Před současným snímkem"
@@ -42026,11 +41989,6 @@ msgstr "Připojit v novém rámu"
 msgctxt "Operator"
 msgid "Remove from Frame"
 msgstr "Odstranit z rámu"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "Hledat..."
 
 
 msgctxt "Operator"
@@ -43515,10 +43473,6 @@ msgid "Edge Marks"
 msgstr "Značky okrajů"
 
 
-msgid "Snap To"
-msgstr "Přichytit na"
-
-
 msgctxt "Operator"
 msgid "Move Texture Space"
 msgstr "Posunout prostor textury"
@@ -43562,16 +43516,6 @@ msgstr "Bodový Mrak"
 msgctxt "Operator"
 msgid "Grease Pencil"
 msgstr "Skicovací tužka"
-
-
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Kostra"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Mříž"
 
 
 msgctxt "Operator"
@@ -45915,10 +45859,6 @@ msgid "Update Dependencies"
 msgstr "Přehrát animaci"
 
 
-msgid "Add Modifier"
-msgstr "Přidat modifikátor"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-Křivka má pouze F-Modifikátory"
 
@@ -46046,6 +45986,10 @@ msgstr "Nastavit aktivní klíčovací sestavu"
 
 msgid "Not yet implemented"
 msgstr "Dosud není implementováno"
+
+
+msgid "Bone Groups"
+msgstr "Přidat do skupiny"
 
 
 msgid "Movie clip not found"
@@ -46563,11 +46507,6 @@ msgstr "Zarovnaný"
 
 msgid "Bad vertex index in list"
 msgstr "Přidat značku"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Skupina"
 
 
 msgid "Keying set could not be added"

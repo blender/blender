@@ -32,7 +32,7 @@
 #include "ED_screen.hh"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Rebuild Proxy and Timecode Indices Operator

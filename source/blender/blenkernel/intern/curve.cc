@@ -4286,10 +4286,11 @@ void BKE_nurbList_handles_set(ListBase *editnurb,
         bezt = nu->bezt;
         a = nu->pntsu;
         while (a--) {
-          if (bezt->f1 & SELECT) {
+          const short flag = BKE_nurb_bezt_handle_test_calc_flag(bezt, SELECT, handle_mode);
+          if (flag & (1 << 0)) {
             bezt->h1 = h_new;
           }
-          if (bezt->f3 & SELECT) {
+          if (flag & (1 << 2)) {
             bezt->h2 = h_new;
           }
 

@@ -341,8 +341,9 @@ static uint32_t read_list_count(PlyReadBuffer &file,
   scratch.resize(8);
   file.read_bytes(scratch.data(), data_type_size[prop.count_type]);
   const uint8_t *ptr = scratch.data();
-  if (big_endian)
+  if (big_endian) {
     endian_switch((uint8_t *)ptr, data_type_size[prop.count_type]);
+  }
   uint32_t count = get_binary_value<uint32_t>(prop.count_type, ptr);
   return count;
 }
@@ -446,8 +447,9 @@ static const char *load_face_element(PlyReadBuffer &file,
       scratch.resize(count * data_type_size[prop.type]);
       file.read_bytes(scratch.data(), scratch.size());
       ptr = scratch.data();
-      if (header.type == PlyFormatType::BINARY_BE)
+      if (header.type == PlyFormatType::BINARY_BE) {
         endian_switch_array((uint8_t *)ptr, data_type_size[prop.type], count);
+      }
       for (int j = 0; j < count; ++j) {
         uint32_t index = get_binary_value<uint32_t>(prop.type, ptr);
         data->face_vertices.append(index);
@@ -508,8 +510,9 @@ static const char *load_tristrips_element(PlyReadBuffer &file,
     scratch.resize(count * data_type_size[prop.type]);
     file.read_bytes(scratch.data(), scratch.size());
     ptr = scratch.data();
-    if (header.type == PlyFormatType::BINARY_BE)
+    if (header.type == PlyFormatType::BINARY_BE) {
       endian_switch_array((uint8_t *)ptr, data_type_size[prop.type], count);
+    }
     for (int j = 0; j < count; ++j) {
       int index = get_binary_value<int>(prop.type, ptr);
       strip[j] = index;

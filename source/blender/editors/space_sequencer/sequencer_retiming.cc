@@ -35,7 +35,7 @@
 #include "DEG_depsgraph.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 using blender::MutableSpan;
 

@@ -87,7 +87,6 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_REPEAT_INPUT, "Repeat Input", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
   ntype.declare_dynamic = node_declare_dynamic;
-  ntype.gather_add_node_search_ops = nullptr;
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
   node_type_storage(

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -3370,6 +3370,10 @@ msgid "Multiply the final easing values by the Scale In/Out Y factors"
 msgstr "Nhân giá trị xoa dịu cuối bằng hệ số Phóng To/Phóng Ra Y"
 
 
+msgid "Bones"
+msgstr "Xương"
+
+
 msgid "Visible"
 msgstr "Hiện"
 
@@ -3380,38 +3384,6 @@ msgstr "Sưu Tập Hoạt Động"
 
 msgid "Custom"
 msgstr "Tùy Chọn"
-
-
-msgid "Bone Group"
-msgstr "Nhóm Xương"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "Nhóm của Các Kênh Dạng Đứng (Xương)"
-
-
-msgid "Bone Groups"
-msgstr "Nhóm Xương"
-
-
-msgid "Collection of bone groups"
-msgstr "Sưu tập nhóm xương"
-
-
-msgid "Active Bone Group"
-msgstr "Nhóm Xương Hoạt Đông"
-
-
-msgid "Active bone group for this pose"
-msgstr "Nhóm xương hoạt động cho dạng đứng này"
-
-
-msgid "Active Bone Group Index"
-msgstr "Chỉ Số Nhóm Xương Hoạt Động"
-
-
-msgid "Active index in bone groups array"
-msgstr "Chỉ số hoạt động trong mảng nhóm xương"
 
 
 msgid "Bool Attribute Value"
@@ -18336,10 +18308,6 @@ msgid "The position for the axes on the bone. Increasing the value moves it clos
 msgstr "Vị trí cho chiếu trục trên xương. Giá trị càng cao càng gần đến đỉnh; càng nhó càng gần rễ"
 
 
-msgid "Bones"
-msgstr "Xương"
-
-
 msgid "Octahedral"
 msgstr "Bát Diện"
 
@@ -18422,14 +18390,6 @@ msgstr "Hiển Thị Hình Dạng Xương Tùy Chọn"
 
 msgid "Display bones with their custom shapes"
 msgstr "Hiển thị xương mà bằng hình dạng tùy chọn"
-
-
-msgid "Display Bone Group Colors"
-msgstr "Hiển Thị Màu Nhóm Xương"
-
-
-msgid "Display bone group colors"
-msgstr "Hiển thị màu nhóm xương"
 
 
 msgid "Display Names"
@@ -23083,6 +23043,14 @@ msgid "Control how fast the probe influence decreases"
 msgstr "Điều khiển tốc độ giảm sự ảnh hưởng của ánh sáng kế"
 
 
+msgid "Clamp Direct"
+msgstr "Kẹp Lại Trực Tiếp"
+
+
+msgid "Clamp Indirect"
+msgstr "Kẹp Lại Gián Tiếp"
+
+
 msgid "Smoother irradiance interpolation but introduce light bleeding"
 msgstr "Suy nội sự rọi mịn hơn nhưng nó có tràn ánh sáng"
 
@@ -24105,6 +24073,10 @@ msgstr "Biên Tập"
 
 msgid "Sculpt"
 msgstr "Khắc"
+
+
+msgid "Modifier"
+msgstr "Bộ Điều Chỉnh"
 
 
 msgid "Tool"
@@ -32681,24 +32653,24 @@ msgid "Primitives"
 msgstr "Đồ Cơ Bản"
 
 
-msgid "Converter"
-msgstr "Đồ Biến Đổi"
-
-
-msgid "Distort"
-msgstr "Méo Hóa"
-
-
-msgid "Layout"
-msgstr "Bố Trí"
-
-
 msgid "Keying"
 msgstr "Màu Trong Suốt"
 
 
 msgid "Tracking"
 msgstr "Theo Đõi"
+
+
+msgid "Layout"
+msgstr "Bố Trí"
+
+
+msgid "Converter"
+msgstr "Đồ Biến Đổi"
+
+
+msgid "Distort"
+msgstr "Méo Hóa"
 
 
 msgid "Node Context Menu"
@@ -32727,6 +32699,18 @@ msgstr "Giao Điểm"
 
 msgid "Node Color Specials"
 msgstr "Đặc Biệt Màu Giao Điểm"
+
+
+msgid "Add Modifier"
+msgstr "Thêm Bộ Điều Chỉnh"
+
+
+msgid "Generate"
+msgstr "Chế Tạo"
+
+
+msgid "Physics"
+msgstr "Vật Lý"
 
 
 msgid "Assets"
@@ -36204,10 +36188,6 @@ msgstr "Số bức ảnh đầu cho nướng đại dương"
 
 msgid "Method of modifying geometry"
 msgstr "Phương pháp sửa đổi hình dạng"
-
-
-msgid "Generate"
-msgstr "Chế Tạo"
 
 
 msgid "Generate ocean surface geometry at the specified resolution"
@@ -42771,14 +42751,6 @@ msgstr "Rút bán kính tại mỗi điểm trên đường cong hay hình dạn
 
 msgid "Retrieve the current time in the scene's animation in units of seconds or frames"
 msgstr "Rút thời gian hiện tại trong hoạt hình của cảnh (đơn vị giây hoặc bức ảnh)"
-
-
-msgid "Is Shade Smooth"
-msgstr "Là Tô Sắc Mịn"
-
-
-msgid "Retrieve whether each face is marked for smooth shading"
-msgstr "Rút thông tin từng mật được ký dấu là tô bóng mịn hay không"
 
 
 msgid "Shortest Edge Paths"
@@ -54307,10 +54279,6 @@ msgid "Add a segment to the dash modifier"
 msgstr "Thêm một khúc cho bộ điều chỉnh gạch ngang"
 
 
-msgid "Modifier"
-msgstr "Bộ Điều Chỉnh"
-
-
 msgid "Name of the modifier to edit"
 msgstr "Tên của bộ điều chỉnh để biên tập"
 
@@ -55218,15 +55186,6 @@ msgstr "Vào/Thoát chế độ sơn quyền lượng cho nét Bút Sáp"
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "Nướng Đường Cong"
-
-
-msgid "Bake selected F-Curves to a set of sampled points defining a similar curve"
-msgstr "Nướng các Cong-F được chọn đến một tập mẫu vật được chỉ định một đường cong hơi giống"
-
-
-msgctxt "Operator"
 msgid "Blend to Default Value"
 msgstr "Pha Trộn Đến Giá Trị Mặc Định"
 
@@ -55619,15 +55578,6 @@ msgid "Place the cursor value on the average value of selected keyframes"
 msgstr "Đặt giá trị con trỏ tại giá trị trung bình của các bức ảnh mẫu được chọn"
 
 
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "Nướng Âm thanh Đến Cong-F"
-
-
-msgid "Bakes a sound wave to selected F-Curves"
-msgstr "Nướng một âm thanh đến các Cong-F được chọn"
-
-
 msgid "Attack Time"
 msgstr "Thời Gian Tăng"
 
@@ -55662,15 +55612,6 @@ msgstr "Chỉ vuông: hết giá trị có biên độ tuyệt đối thấp hơ
 
 msgid "The output is a square curve (negative values always result in -1, and positive ones in 1)"
 msgstr "Ngõ ra là đường cong vuông (giá trị âm luôn luôn = -1 và giá trị dương luôn luôn = 1)"
-
-
-msgctxt "Operator"
-msgid "Un-Bake Curve"
-msgstr "Bỏ Nướng Đường Cong"
-
-
-msgid "Un-Bake selected F-Points to F-Curves"
-msgstr "Bỏ Nướng của Điểm-F đến Cong-F"
 
 
 msgid "Reset viewable area to show selected keyframe range"
@@ -61374,6 +61315,11 @@ msgid "Add an object to the scene"
 msgstr "Thêm vật thể trong cảnh"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Thêm Bộ Điều Chỉnh"
+
+
 msgid "Add named object"
 msgstr "Thêm vật thể có tên"
 
@@ -62017,11 +61963,6 @@ msgstr "Hiện nghệ thuật bút sáp trước mỗi thứ"
 
 msgid "Use lights for this grease pencil object"
 msgstr "Dùng các đèn cho vật thể bút sáp này"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Thêm Bộ Điều Chỉnh"
 
 
 msgid "Add a procedural operation/effect to the active grease pencil object"
@@ -73848,10 +73789,6 @@ msgid "Use object selection (edit mode only)"
 msgstr "Dùng sự lựa chọn vật thể (chỉ cho chế độ biên tập)"
 
 
-msgid "Control Point Without Handles"
-msgstr "Điểm Kiểm Soát Thiếu Tay Cầm"
-
-
 msgid "Select items using box selection"
 msgstr "Chọn mặt hàng bằng sự lựa chọn kiểu hộp"
 
@@ -76580,10 +76517,6 @@ msgid "Set Tool by Name"
 msgstr "Đặt Dụng Cụ bằng Tên"
 
 
-msgid "Set the tool by name (for keymaps)"
-msgstr "Đặt dụng cụ bằng tên (cho bản đồ phím)"
-
-
 msgid "Set Fallback"
 msgstr "Đặt Dụng Cụ Dự Phòng"
 
@@ -76607,10 +76540,6 @@ msgstr "Tên xác định của dụng cụ"
 msgctxt "Operator"
 msgid "Set Tool by Index"
 msgstr "Đặt Dụng Cụ bằng Chỉ Số"
-
-
-msgid "Set the tool by index (for keymaps)"
-msgstr "Đặt dụng cụ bằng chỉ số (cho bản đồ phím)"
 
 
 msgid "Set the fallback tool instead of the primary"
@@ -78089,6 +78018,10 @@ msgid "Filters"
 msgstr "Bộ Lọc"
 
 
+msgid "Snapping"
+msgstr "Hút Dính"
+
+
 msgid "Bake Animation"
 msgstr "Nướng Hoạt Hình"
 
@@ -78163,10 +78096,6 @@ msgstr "Các Kế"
 
 msgid "Sample Line"
 msgstr "Đường Mẫu Vật"
-
-
-msgid "Snapping"
-msgstr "Hút Dính"
 
 
 msgctxt "Operator"
@@ -78415,10 +78344,6 @@ msgid "Hair Shape"
 msgstr "Hình Dạng Tóc"
 
 
-msgid "Physics"
-msgstr "Vật Lý"
-
-
 msgid "Battle"
 msgstr "Chiến Đấu"
 
@@ -78595,12 +78520,12 @@ msgid "Volumetric Lighting"
 msgstr "Ánh Sáng Thể Tích"
 
 
-msgid "Screen Space Reflections"
-msgstr "Phản Xạ Không Gian Màn"
-
-
 msgid "Volumetric Shadows"
 msgstr "Bóng Tối Thể Tích"
+
+
+msgid "Screen Space Reflections"
+msgstr "Phản Xạ Không Gian Màn"
 
 
 msgid "Encoding"
@@ -80429,10 +80354,6 @@ msgid "A collection of pose channels, including settings for animating bones"
 msgstr "Một tập kênh dạng đứng, gồm cài đặt cho họat hình xương"
 
 
-msgid "Groups of the bones"
-msgstr "Nhóm xương"
-
-
 msgid "Pose Bones"
 msgstr "Xương Dạng Đứng"
 
@@ -80479,14 +80400,6 @@ msgstr "Kênh chỉ định dữ liệu dạng đứng cho một xương trong m
 
 msgid "Bone associated with this PoseBone"
 msgstr "Xương liên quan với XươngDạngĐứng này"
-
-
-msgid "Bone group this pose channel belongs to"
-msgstr "Nhóm xương sở hữu kênh dạng đứng này"
-
-
-msgid "Bone group this pose channel belongs to (0 means no group)"
-msgstr "Nhóm xương sở hữu kênh dạng đứng này (0 nghĩa là không có nhóm)"
 
 
 msgid "Child of this pose bone"
@@ -84054,16 +83967,8 @@ msgid "Sensor is being scanned from top to bottom"
 msgstr "Quét cảm biến từ trên đến dưới"
 
 
-msgid "Clamp Direct"
-msgstr "Kẹp Lại Trực Tiếp"
-
-
 msgid "If non-zero, the maximum value for a direct sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
 msgstr "Nếu ≠ 0, giá trị là cực đại cho mẫu vật trực tiếp, giá trị cao hơn sẽ bị phóng nhỏ lại cho tránh qúa nhiều huyên náo và tính hội tụ chậm và không chính xác"
-
-
-msgid "Clamp Indirect"
-msgstr "Kẹp Lại Gián Tiếp"
 
 
 msgid "If non-zero, the maximum value for an indirect sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
@@ -89853,54 +89758,6 @@ msgid "Action displayed and edited in this space"
 msgstr "Hành động được hiển thị và chỉnh sửa trong không gian này"
 
 
-msgid "Auto Snap"
-msgstr "Tự Động Hút Dính"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "Cài đặt cho tự động hút dính thời gian cho biến hóa"
-
-
-msgid "No Auto-Snap"
-msgstr "Không Tự Động Hút Dính"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "Hút dính đến đoạn 1.0 bức ảnh"
-
-
-msgid "Second Step"
-msgstr "Bước Thứ Hai"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "Hút dính đến đoạn 1.0 giây"
-
-
-msgid "Nearest Frame"
-msgstr "Bức Ảnh Gần Nhất"
-
-
-msgid "Snap to actual frames (nla-action time)"
-msgstr "Hút dính đến bức ảnh thật (thời gian hành động NLA)"
-
-
-msgid "Nearest Second"
-msgstr "Giây Gần Nhất"
-
-
-msgid "Snap to actual seconds (nla-action time)"
-msgstr "Hút dính đến giây thật (thời gian hành động NLA)"
-
-
-msgid "Nearest Marker"
-msgstr "Ký Hiệu Gần Nhất"
-
-
-msgid "Snap to nearest marker"
-msgstr "Hút dính đến ký hiệu gần nhất"
-
-
 msgid "Show the active object's cloth point cache"
 msgstr "Hiện đệm chứa điểm vải của vật thể hoạt động"
 
@@ -94455,12 +94312,24 @@ msgid "Display only faces with the currently displayed image assigned"
 msgstr "Chỉ hiển thị các mặt có ảnh đang hiển thị được chỉ định"
 
 
-msgid "Snap Element"
-msgstr "Phần Tử Hút Dính"
-
-
 msgid "Type of element to snap to"
 msgstr "Hút dính đến loại phần tử nào"
+
+
+msgid "Second"
+msgstr "Giây"
+
+
+msgid "Nearest Marker"
+msgstr "Ký Hiệu Gần Nhất"
+
+
+msgid "Snap to nearest marker"
+msgstr "Hút dính đến ký hiệu gần nhất"
+
+
+msgid "Snap Element"
+msgstr "Phần Tử Hút Dính"
 
 
 msgid "Snap to"
@@ -100706,10 +100575,6 @@ msgid "Weight Position"
 msgstr "Vị Trí Quyền Lượng"
 
 
-msgid "Group Colors"
-msgstr "Màu Nhóm"
-
-
 msgid "Axes"
 msgstr "Trục"
 
@@ -101104,6 +100969,31 @@ msgstr "Ngưỡng Sự Ảnh Hưởng"
 
 msgid "Update on Edit"
 msgstr "Nâng cấp khi Biên Tập"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "Mạng Lưới Lại"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Cốt"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Lưới Rào"
+
+
+msgctxt "Operator"
+msgid "Smooth Laplacian"
+msgstr "Mịn Hóa LaPlace"
+
+
+msgctxt "Operator"
+msgid "Particle System"
+msgstr "Hệ Thống Hạt"
 
 
 msgid "Distance Reference"
@@ -102233,10 +102123,6 @@ msgid "This object is part of a compound shape"
 msgstr "Vật thể này là một bộ phận của hình dạng ghép"
 
 
-msgid "Second"
-msgstr "Giây"
-
-
 msgid "X Stiffness"
 msgstr "Độ Cứng X"
 
@@ -102780,6 +102666,10 @@ msgstr "Lọc Bằng Loại:"
 
 msgid "Options:"
 msgstr "Tùy Chọn:"
+
+
+msgid "Snap To"
+msgstr "Hút Dính Đến"
 
 
 msgid "Multi-Word Match Search"
@@ -103448,11 +103338,6 @@ msgstr "Đường Dẫn Bối Cảnh"
 
 
 msgctxt "Operator"
-msgid "Search..."
-msgstr "Tìm Kiếm..."
-
-
-msgctxt "Operator"
 msgid "Backdrop Move"
 msgstr "Di Chuyển Nền"
 
@@ -104002,6 +103887,11 @@ msgid "Stretch To Fill"
 msgstr "Kéo Ra cho Vừa"
 
 
+msgctxt "Operator"
+msgid "Copy Modifiers to Selection"
+msgstr "Chép Cụ Sửa _ổi đến Sự Lựa Chọn"
+
+
 msgid "Default Fade"
 msgstr "Phai Mặc Định"
 
@@ -104048,11 +103938,6 @@ msgstr "Di Chuyển/Kéo Ra từ Bức Ảnh Hiện Tại"
 msgctxt "Operator"
 msgid "Delete Strip & Data"
 msgstr "Xóa Đoạn & Dự Liệu"
-
-
-msgctxt "Operator"
-msgid "Copy Modifiers to Selection"
-msgstr "Chép Cụ Sửa _ổi đến Sự Lựa Chọn"
 
 
 msgctxt "Operator"
@@ -106042,10 +105927,6 @@ msgid "Zero Weights"
 msgstr "Quyền Lượng Không"
 
 
-msgid "Snap To"
-msgstr "Hút Dính Đến"
-
-
 msgid "Fade Inactive Layers"
 msgstr "Phai Lớp Không Hoạt Động"
 
@@ -106126,16 +106007,6 @@ msgstr "Bút Sáp"
 
 
 msgctxt "Operator"
-msgid "Armature"
-msgstr "Cốt"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Lưới Rào"
-
-
-msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "Thực Thể Sưu Tập..."
 
@@ -106193,11 +106064,6 @@ msgstr "Hình Dạng Hiện Đến Mạng Lưới"
 msgctxt "Operator"
 msgid "Limit Total Vertex Groups"
 msgstr "Hạn Chế Tổng Nhóm Đỉnh"
-
-
-msgctxt "Operator"
-msgid "Particle System"
-msgstr "Hệ Thống Hạt"
 
 
 msgctxt "Operator"
@@ -106277,11 +106143,6 @@ msgstr "Dán Dạng Đứng Lật Hướng X"
 
 msgid "Vertex Context Menu"
 msgstr "Danh Bạ Bối Cảnh Đỉnh"
-
-
-msgctxt "Operator"
-msgid "Smooth Laplacian"
-msgstr "Mịn Hóa LaPlace"
 
 
 msgid "Mirror Vertices"
@@ -106879,11 +106740,6 @@ msgstr "Phương Pháp Chỉnh Chi Tiết"
 
 msgid "Detailing"
 msgstr "Chi Tiết Hóa"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "Mạng Lưới Lại"
 
 
 msgid "Tile Offset"
@@ -112539,10 +112395,6 @@ msgid "Show in Drivers Editor"
 msgstr "Cho xem Điều Vận trong Trình Biên Soạn"
 
 
-msgid "Add Modifier"
-msgstr "Thêm Bộ Điều Chỉnh"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "Cong-F chỉ có Bộ Điều Chỉnh-F"
 
@@ -112938,10 +112790,6 @@ msgstr "Lớp:%s | Bức Ảnh:%s | Nét:%s | Điểm:%s"
 
 msgid "Verts:%s | Tris:%s"
 msgstr "Đỉnh:%s | TamGiác:%s"
-
-
-msgid "Verts:%s/%s | Faces:%s/%s"
-msgstr "Đỉnh:%s/%s | Mặt:%s/%s"
 
 
 msgid "Verts:%s | Faces:%s | Tris:%s"
@@ -113637,6 +113485,10 @@ msgstr "Cục dữ liệu vượt quyền này không tồn tại trong dữ li�
 
 msgid "Added through override"
 msgstr "Được thêm bằng vượt quyền"
+
+
+msgid "Bone Groups"
+msgstr "Nhóm Xương"
 
 
 msgid "(empty)"
@@ -115693,15 +115545,6 @@ msgstr "Chưa được tính toán vật thể"
 
 msgid "Mesh has no VCol data"
 msgstr "Mạng lưới không có dữ liệu màu đỉnh"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Nhóm"
-
-
-msgid "Bone group '%s' not found in this object"
-msgstr "Không tìm được nhóm xương '%s' trong vật thể này"
 
 
 msgid "Constraint '%s' not found in pose bone '%s'"
@@ -118978,10 +118821,6 @@ msgstr "Tiếng Tây Ban Nha (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Tiếng Catala (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Tiếng Séc (Český)"
 
 
 msgid "Portuguese (Português)"

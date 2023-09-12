@@ -2574,6 +2574,11 @@ static void ensure_layer_data_is_mutable(CustomDataLayer &layer, const int totel
   }
 }
 
+void CustomData_ensure_data_is_mutable(CustomDataLayer *layer, const int totelem)
+{
+  ensure_layer_data_is_mutable(*layer, totelem);
+}
+
 void CustomData_realloc(CustomData *data, const int old_size, const int new_size)
 {
   BLI_assert(new_size >= 0);

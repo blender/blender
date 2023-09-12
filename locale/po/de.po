@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -3138,6 +3138,10 @@ msgid "Object children will use relative transform, like deform"
 msgstr "Kindobjekt wird relative Transformation verwenden, ähnlich der Deformation"
 
 
+msgid "Bones"
+msgstr "Knochen"
+
+
 msgid "Visible"
 msgstr "Sichtbar"
 
@@ -3148,38 +3152,6 @@ msgstr "Aktive Sammlung"
 
 msgid "Custom"
 msgstr "Benutzerdefiniert"
-
-
-msgid "Bone Group"
-msgstr "Knochengruppe"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "Gruppen von Posenkanälen (Knochen)"
-
-
-msgid "Bone Groups"
-msgstr "Knochengruppen"
-
-
-msgid "Collection of bone groups"
-msgstr "Sammlung von Knochengruppen"
-
-
-msgid "Active Bone Group"
-msgstr "Aktive Knochengruppe"
-
-
-msgid "Active bone group for this pose"
-msgstr "Aktive Knochengruppe für diese Pose"
-
-
-msgid "Active Bone Group Index"
-msgstr "Aktive Knochengruppenindex"
-
-
-msgid "Active index in bone groups array"
-msgstr "Aktiver Index im Knochengruppenarray"
 
 
 msgid "Bool Attribute Value"
@@ -12600,10 +12572,6 @@ msgid "Axes Position"
 msgstr "Axenposition"
 
 
-msgid "Bones"
-msgstr "Knochen"
-
-
 msgid "Octahedral"
 msgstr "Achteckig"
 
@@ -12666,14 +12634,6 @@ msgstr "Benutzerdefinierte Knochenformen anzeigen"
 
 msgid "Display bones with their custom shapes"
 msgstr "Knochen mit ihren benutzerdefinierten Formen anzeigen"
-
-
-msgid "Display Bone Group Colors"
-msgstr "Knochengruppenfarben anzeigen"
-
-
-msgid "Display bone group colors"
-msgstr "Knochengruppenfarbe anzeigen"
 
 
 msgid "Display Names"
@@ -15573,6 +15533,10 @@ msgstr "Bearbeiten"
 
 msgid "Sculpt"
 msgstr "Skulptur"
+
+
+msgid "Modifier"
+msgstr "Modifikator"
 
 
 msgid "Tool"
@@ -20501,24 +20465,24 @@ msgid "Primitives"
 msgstr "Grundkörper"
 
 
-msgid "Converter"
-msgstr "Konverter"
-
-
-msgid "Distort"
-msgstr "Verzerren"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Keying"
 msgstr "Schlüsselbilder"
 
 
 msgid "Tracking"
 msgstr "Verfolgen"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Converter"
+msgstr "Konverter"
+
+
+msgid "Distort"
+msgstr "Verzerren"
 
 
 msgid "Attribute"
@@ -20543,6 +20507,18 @@ msgstr "Knoten"
 
 msgid "Node Color Specials"
 msgstr "Knoten-Farb-Specials"
+
+
+msgid "Add Modifier"
+msgstr "Modifikator hinzufügen"
+
+
+msgid "Generate"
+msgstr "Erzeugen"
+
+
+msgid "Physics"
+msgstr "Physik"
 
 
 msgid "Assets"
@@ -22204,10 +22180,6 @@ msgstr "Backe Start"
 
 msgid "Start frame of the ocean baking"
 msgstr "Startbild für die Animation"
-
-
-msgid "Generate"
-msgstr "Erzeugen"
 
 
 msgid "Invert Spray"
@@ -25747,10 +25719,6 @@ msgstr "Kanten-Scheitelpunkte"
 
 msgid "Named Attribute"
 msgstr "Benanntes Attribut"
-
-
-msgid "Is Shade Smooth"
-msgstr "Ist weich schattiert"
 
 
 msgid "Spline Resolution"
@@ -31489,10 +31457,6 @@ msgid "Add Segment"
 msgstr "Segment hinzufügen"
 
 
-msgid "Modifier"
-msgstr "Modifikator"
-
-
 msgid "Name of the modifier to edit"
 msgstr "Name des zu bearbeitenden Modifikators"
 
@@ -31904,11 +31868,6 @@ msgstr "Anfangen/Beenden vom Malereieinflussmodus für Wachsstiftstriche"
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "Kurve backen"
-
-
-msgctxt "Operator"
 msgid "Blend to Default Value"
 msgstr "Mit Standardwert verschmelzen"
 
@@ -32061,18 +32020,8 @@ msgid "Snap Cursor Value to Selected"
 msgstr "Cursorwert auf Ausgewähltes fangen"
 
 
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "Klang zu F-Kurven backen"
-
-
 msgid "Highest Frequency"
 msgstr "Höchste Frequenz"
-
-
-msgctxt "Operator"
-msgid "Un-Bake Curve"
-msgstr "Kurve nicht backen"
 
 
 msgid "Stroke Mode"
@@ -35035,6 +34984,11 @@ msgid "Add an object to the scene"
 msgstr "Ein Objekt zur Szene hinzufügen"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Modifikator hinzufügen"
+
+
 msgid "Add named object"
 msgstr "Benanntes Objekt hinzufügen"
 
@@ -35298,11 +35252,6 @@ msgstr "Affe"
 
 msgid "Show In Front"
 msgstr "Im Vordergrund anzeigen"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Modifikator hinzufügen"
 
 
 msgctxt "Operator"
@@ -42692,6 +42641,10 @@ msgid "Filters"
 msgstr "Filter"
 
 
+msgid "Snapping"
+msgstr "Einrasten"
+
+
 msgid "Bake Animation"
 msgstr "Animation backen"
 
@@ -42754,10 +42707,6 @@ msgstr "Diagramme"
 
 msgid "Sample Line"
 msgstr "Linie abtasten"
-
-
-msgid "Snapping"
-msgstr "Einrasten"
 
 
 msgctxt "Operator"
@@ -42945,10 +42894,6 @@ msgstr "Haardynamikenvoreinstellung"
 
 msgid "Structure"
 msgstr "Struktur"
-
-
-msgid "Physics"
-msgstr "Physik"
 
 
 msgid "Misc"
@@ -49165,50 +49110,6 @@ msgid "Command line prompt"
 msgstr "Komandozeilen Eingabeaufforderung"
 
 
-msgid "Auto Snap"
-msgstr "Automatisch einrasten"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "Automatische Zeiteinrastungseinstellungen für Transformationen"
-
-
-msgid "No Auto-Snap"
-msgstr "Nicht automatisch einrasten"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "In 1.0 Einzelbild-Intervallen einrasten"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "In 1.0 Sekunden-Intervallen einrasten"
-
-
-msgid "Nearest Frame"
-msgstr "Nächstes Einzelbild"
-
-
-msgid "Snap to actual frames (nla-action time)"
-msgstr "An tatsächlichen Frames ausrichten (nla-Aktionszeit)"
-
-
-msgid "Nearest Second"
-msgstr "Nächste Sekunde"
-
-
-msgid "Snap to actual seconds (nla-action time)"
-msgstr "Auf tatsächliche Sekunden ausrichten (nla-Aktionszeit)"
-
-
-msgid "Nearest Marker"
-msgstr "Nächster Marker"
-
-
-msgid "Snap to nearest marker"
-msgstr "An nächsten Marker einrasten"
-
-
 msgid "Show the active object's cloth point cache"
 msgstr "Gewebe-Punkt-Puffer der aktiven Objekte anzeigen"
 
@@ -51523,12 +51424,24 @@ msgid "Proportional Editing Falloff"
 msgstr "Proportionaler Bearbeitungsabfall"
 
 
-msgid "Snap Element"
-msgstr "Einrastelement"
-
-
 msgid "Type of element to snap to"
 msgstr "Typ an dem eingerastet werden soll"
+
+
+msgid "Second"
+msgstr "Sekunde"
+
+
+msgid "Nearest Marker"
+msgstr "Nächster Marker"
+
+
+msgid "Snap to nearest marker"
+msgstr "An nächsten Marker einrasten"
+
+
+msgid "Snap Element"
+msgstr "Einrastelement"
 
 
 msgid "Snap to"
@@ -54318,10 +54231,6 @@ msgid "No target bones added"
 msgstr "Keine Zielknochen hinzugefügt"
 
 
-msgid "Group Colors"
-msgstr "Gruppenfarben"
-
-
 msgid "Axes"
 msgstr "Achsen"
 
@@ -54632,6 +54541,21 @@ msgstr "Auflösung Viewport"
 
 msgid "Update on Edit"
 msgstr "Update beim bearbeiten"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "Neu vermaschen"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Gitter"
+
+
+msgctxt "Operator"
+msgid "Particle System"
+msgstr "Partikelsystem"
 
 
 msgid "Distance Reference"
@@ -55405,10 +55329,6 @@ msgid "Velocity Linear"
 msgstr "Lineare Geschwindigkeit"
 
 
-msgid "Second"
-msgstr "Sekunde"
-
-
 msgid "X Stiffness"
 msgstr "X Steifheit"
 
@@ -55871,6 +55791,10 @@ msgstr "Filtern nach Typ:"
 
 msgid "Options:"
 msgstr "Optionen:"
+
+
+msgid "Snap To"
+msgstr "Einrasten auf"
 
 
 msgid "Multi-Word Match Search"
@@ -56444,11 +56368,6 @@ msgstr "Drahtfarbe"
 
 
 msgctxt "Operator"
-msgid "Search..."
-msgstr "Suchen..."
-
-
-msgctxt "Operator"
 msgid "Backdrop Move"
 msgstr "Hintergrund bewegen"
 
@@ -56887,6 +56806,11 @@ msgid "Stretch To Fill"
 msgstr "Strecken zum füllen"
 
 
+msgctxt "Operator"
+msgid "Copy Modifiers to Selection"
+msgstr "Kopiere Modifikator zur Selektrion"
+
+
 msgid "Tracker"
 msgstr "Verfolger"
 
@@ -56903,11 +56827,6 @@ msgstr "Clip"
 msgctxt "Operator"
 msgid "Move/Extend from Current Frame"
 msgstr "Bewege/Strecke von aktuellem Einzelbild"
-
-
-msgctxt "Operator"
-msgid "Copy Modifiers to Selection"
-msgstr "Kopiere Modifikator zur Selektrion"
 
 
 msgctxt "Operator"
@@ -58484,10 +58403,6 @@ msgid "Zero Weights"
 msgstr "Null-Gewichtungen"
 
 
-msgid "Snap To"
-msgstr "Einrasten auf"
-
-
 msgctxt "Operator"
 msgid "Move Texture Space"
 msgstr "Texturraum verschieben"
@@ -58564,11 +58479,6 @@ msgstr "Wachsstift"
 
 
 msgctxt "Operator"
-msgid "Lattice"
-msgstr "Gitter"
-
-
-msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "Sammlungsinstanz..."
 
@@ -58596,11 +58506,6 @@ msgstr "Aktiven hinzufügen"
 msgctxt "Operator"
 msgid "Add Passive"
 msgstr "Passiven hinzufügen"
-
-
-msgctxt "Operator"
-msgid "Particle System"
-msgstr "Partikelsystem"
 
 
 msgctxt "Operator"
@@ -59069,11 +58974,6 @@ msgstr "Elternteil"
 
 msgid "Detailing"
 msgstr "Detaillierung"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "Neu vermaschen"
 
 
 msgid "Tile Offset"
@@ -61891,10 +61791,6 @@ msgid "Driven Property:"
 msgstr "Steuerungs Einstellungen:"
 
 
-msgid "Add Modifier"
-msgstr "Modifikator hinzufügen"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-Kurve die nur F-Modifikatoren haben"
 
@@ -62242,6 +62138,10 @@ msgstr "Aktuelle Datei"
 
 msgid "No Library Overrides"
 msgstr "Keine Bibliotheksüberschreibungen"
+
+
+msgid "Bone Groups"
+msgstr "Knochengruppen"
 
 
 msgid "(empty)"
@@ -63088,11 +62988,6 @@ msgstr "Masche hat keine UV Daten"
 
 msgid "Mesh has no VCol data"
 msgstr "Masche hat keine VCol Daten"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Gruppe"
 
 
 msgid "Keying set could not be added"
@@ -64389,10 +64284,6 @@ msgstr "Spanisch (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Katalanisch (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Tschechisch (Český)"
 
 
 msgid "Portuguese (Português)"

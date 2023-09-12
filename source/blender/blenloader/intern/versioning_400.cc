@@ -73,7 +73,7 @@ static void version_composite_nodetree_null_id(bNodeTree *ntree, Scene *scene)
   }
 }
 
-/* Move bonegroup color to the individual bones. */
+/* Move bone-group color to the individual bones. */
 static void version_bonegroup_migrate_color(Main *bmain)
 {
   using PoseSet = blender::Set<bPose *>;
@@ -91,14 +91,14 @@ static void version_bonegroup_migrate_color(Main *bmain)
 
     /* There is no guarantee that the current state of poses is in sync with the Armature data.
      *
-     * NOTE: No need to handle user refcounting in readfile code. */
+     * NOTE: No need to handle user reference-counting in readfile code. */
     BKE_pose_ensure(bmain, ob, arm, false);
 
     PoseSet &pose_set = armature_poses.lookup_or_add_default(arm);
     pose_set.add(ob->pose);
   }
 
-  /* Move colors from the pose's bonegroup to either the armature bones or the
+  /* Move colors from the pose's bone-group to either the armature bones or the
    * pose bones, depending on how many poses use the Armature. */
   for (const PoseSet &pose_set : armature_poses.values()) {
     /* If the Armature is shared, the bone group colors might be different, and thus they have to

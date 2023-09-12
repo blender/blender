@@ -131,7 +131,6 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_face)
     .define("FACE")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::UVEC4, "data")
-    .vertex_in(2, Type::VEC3, "vnor")
     .vertex_out(overlay_edit_flat_color_iface)
     .fragment_source("overlay_varying_color.glsl")
     .additional_info("overlay_edit_mesh_common");

@@ -11,7 +11,7 @@
 #include "BLI_sys_types.h"
 
 struct AnimData;
-struct AnimKeylistDrawList;
+struct ChannelDrawList;
 struct FCurve;
 struct MaskLayer;
 struct Object;
@@ -52,49 +52,49 @@ void draw_keyframe_shape(float x,
 
 /* Channel Drawing ------------------ */
 /* F-Curve */
-void draw_fcurve_channel(AnimKeylistDrawList *draw_list,
+void ED_add_fcurve_channel(ChannelDrawList *draw_list,
                          AnimData *adt,
                          FCurve *fcu,
                          float ypos,
                          float yscale_fac,
                          int saction_flag);
 /* Action Group Summary */
-void draw_agroup_channel(AnimKeylistDrawList *draw_list,
+void ED_add_action_group_channel(ChannelDrawList *draw_list,
                          AnimData *adt,
                          bActionGroup *agrp,
                          float ypos,
                          float yscale_fac,
                          int saction_flag);
 /* Action Summary */
-void draw_action_channel(AnimKeylistDrawList *draw_list,
+void ED_add_action_channel(ChannelDrawList *draw_list,
                          AnimData *adt,
                          bAction *act,
                          float ypos,
                          float yscale_fac,
                          int saction_flag);
 /* Object Summary */
-void draw_object_channel(AnimKeylistDrawList *draw_list,
+void ED_add_object_channel(ChannelDrawList *draw_list,
                          bDopeSheet *ads,
                          Object *ob,
                          float ypos,
                          float yscale_fac,
                          int saction_flag);
 /* Scene Summary */
-void draw_scene_channel(AnimKeylistDrawList *draw_list,
+void ED_add_scene_channel(ChannelDrawList *draw_list,
                         bDopeSheet *ads,
                         Scene *sce,
                         float ypos,
                         float yscale_fac,
                         int saction_flag);
 /* DopeSheet Summary */
-void draw_summary_channel(AnimKeylistDrawList *draw_list,
+void ED_add_summary_channel(ChannelDrawList *draw_list,
                           bAnimContext *ac,
                           float ypos,
                           float yscale_fac,
                           int saction_flag);
 
 /* Grease Pencil cels channels */
-void draw_grease_pencil_cels_channel(AnimKeylistDrawList *draw_list,
+void ED_add_grease_pencil_cels_channel(ChannelDrawList *draw_list,
                                      bDopeSheet *ads,
                                      const GreasePencilLayer *layer,
                                      float ypos,
@@ -102,7 +102,7 @@ void draw_grease_pencil_cels_channel(AnimKeylistDrawList *draw_list,
                                      int saction_flag);
 
 /* Grease Pencil layer group channels */
-void draw_grease_pencil_layer_group_channel(AnimKeylistDrawList *draw_list,
+void ED_add_grease_pencil_layer_group_channel(ChannelDrawList *draw_list,
                                             bDopeSheet *ads,
                                             const GreasePencilLayerTreeGroup *layer,
                                             float ypos,
@@ -110,7 +110,7 @@ void draw_grease_pencil_layer_group_channel(AnimKeylistDrawList *draw_list,
                                             int saction_flag);
 
 /* Grease Pencil data channels */
-void draw_grease_pencil_datablock_channel(AnimKeylistDrawList *draw_list,
+void ED_add_grease_pencil_datablock_channel(ChannelDrawList *draw_list,
                                           bDopeSheet *ads,
                                           const GreasePencil *grease_pencil,
                                           const float ypos,
@@ -118,20 +118,20 @@ void draw_grease_pencil_datablock_channel(AnimKeylistDrawList *draw_list,
                                           int saction_flag);
 
 /* Grease Pencil Layer */
-void draw_gpl_channel(AnimKeylistDrawList *draw_list,
-                      bDopeSheet *ads,
-                      bGPDlayer *gpl,
-                      float ypos,
-                      float yscale_fac,
-                      int saction_flag);
+void ED_add_grease_pencil_layer_legacy_channel(ChannelDrawList *draw_list,
+                                               bDopeSheet *ads,
+                                               bGPDlayer *gpl,
+                                               float ypos,
+                                               float yscale_fac,
+                                               int saction_flag);
 /* Mask Layer */
-void draw_masklay_channel(AnimKeylistDrawList *draw_list,
-                          bDopeSheet *ads,
-                          MaskLayer *masklay,
-                          float ypos,
-                          float yscale_fac,
-                          int saction_flag);
+void ED_add_mask_layer_channel(ChannelDrawList *draw_list,
+                               bDopeSheet *ads,
+                               MaskLayer *masklay,
+                               float ypos,
+                               float yscale_fac,
+                               int saction_flag);
 
-AnimKeylistDrawList *ED_keylist_draw_list_create();
-void ED_keylist_draw_list_flush(AnimKeylistDrawList *draw_list, View2D *v2d);
-void ED_keylist_draw_list_free(AnimKeylistDrawList *draw_list);
+ChannelDrawList *ED_channel_draw_list_create();
+void ED_channel_list_flush(ChannelDrawList *draw_list, View2D *v2d);
+void ED_channel_list_free(ChannelDrawList *draw_list);

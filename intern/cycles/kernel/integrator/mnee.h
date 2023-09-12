@@ -633,6 +633,7 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderCl
    * contribution = bsdf_do * |do/dh| * |n.wo / n.h| / pdf_dh
    *              = (1 - F) * G * |h.wi / (n.wi * n.h^2)|
    */
+  /* TODO: energy compensation for multi-GGX. */
   return bsdf->weight * F * G * fabsf(cosHI / (cosNI * sqr(cosThetaM)));
 }
 

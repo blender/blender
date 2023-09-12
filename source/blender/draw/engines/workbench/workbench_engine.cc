@@ -334,12 +334,14 @@ class Instance {
           mat.base_color = batch.debug_color();
         }
 
-        draw_mesh(ob_ref,
-                  mat,
-                  batch.batch,
-                  handle,
-                  object_state.image_paint_override,
-                  object_state.override_sampler_state);
+        ::Image *image = nullptr;
+        ImageUser *iuser = nullptr;
+        GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
+        if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+          get_material_image(ob_ref.object, batch.material_slot, image, iuser, sampler_state);
+        }
+
+        draw_mesh(ob_ref, mat, batch.batch, handle, image, sampler_state);
       }
     }
     else {

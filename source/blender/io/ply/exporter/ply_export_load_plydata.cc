@@ -137,8 +137,9 @@ static void generate_vertex_map(const Mesh *mesh,
 
   /* Add zero UVs for any loose vertices. */
   for (int vertex_index = 0; vertex_index < mesh->totvert; vertex_index++) {
-    if (r_vertex_to_ply[vertex_index] != -1)
+    if (r_vertex_to_ply[vertex_index] != -1) {
       continue;
+    }
     int ply_index = int(r_uvs.size());
     r_vertex_to_ply[vertex_index] = ply_index;
     r_uvs.append({0, 0});

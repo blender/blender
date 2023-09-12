@@ -31,7 +31,6 @@ void HiZBuffer::sync()
   GPU_texture_mipmap_mode(hiz_tx_, true, false);
 
   data_.uv_scale = float2(render_extent) / float2(hiz_extent);
-  data_.push_update();
 
   {
     hiz_update_ps_.init();

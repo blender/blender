@@ -485,8 +485,10 @@ static bool rule_follow_leader(BoidRule *rule,
   BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
   float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
   float mul, len;
-  int n = (flbr->queue_size <= 1) ? bbd->sim->psys->totpart : flbr->queue_size;
-  int i, p = pa - bbd->sim->psys->particles;
+  const int n = (flbr->queue_size <= 1) ? bbd->sim->psys->totpart : flbr->queue_size;
+  BLI_assert(ARRAY_HAS_ITEM(pa, bbd->sim->psys->particles, bbd->sim->psys->totpart));
+  const int p = int(pa - bbd->sim->psys->particles);
+  int i;
   bool ret = false;
 
   if (flbr->ob) {

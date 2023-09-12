@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
   ../clog
   ../../source/blender/imbuf
 )
@@ -89,8 +89,8 @@ if(WITH_VULKAN_BACKEND)
   )
 
   list(APPEND INC_SYS
-    ${VULKAN_INCLUDE_DIRS}
-    ${MOLTENVK_INCLUDE_DIRS}
+    PUBLIC ${VULKAN_INCLUDE_DIRS}
+    PUBLIC ${MOLTENVK_INCLUDE_DIRS}
   )
 
   list(APPEND LIB

@@ -694,6 +694,7 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
         case ND_POSE:
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
+        case ND_BONE_COLLECTION:
           buttons_area_redraw(area, BCONTEXT_BONE);
           buttons_area_redraw(area, BCONTEXT_BONE_CONSTRAINT);
           buttons_area_redraw(area, BCONTEXT_DATA);

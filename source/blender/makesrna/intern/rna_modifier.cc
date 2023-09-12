@@ -7078,7 +7078,7 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_group_selector", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(
       prop, nullptr, "flag", NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR);
-  RNA_def_property_ui_text(prop, "Show Node Group Selector", "");
+  RNA_def_property_ui_text(prop, "Show Node Group", "");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, nullptr);
 

@@ -11,7 +11,7 @@
 # dependencies have one assigned.
 
 set(ZLIB_VERSION 1.2.13)
-set(ZLIB_URI https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz)
+set(ZLIB_URI https://github.com/madler/zlib/releases/download/v${ZLIB_VERSION}/zlib-${ZLIB_VERSION}.tar.gz)
 set(ZLIB_HASH 9b8aa094c4e5765dabf4da391f00d15c)
 set(ZLIB_HASH_TYPE MD5)
 set(ZLIB_FILE zlib-${ZLIB_VERSION}.tar.gz)

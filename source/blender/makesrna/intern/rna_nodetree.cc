@@ -3139,7 +3139,7 @@ static bNode *find_node_by_repeat_item(PointerRNA *ptr)
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   ntree->ensure_topology_cache();
   for (bNode *node : ntree->nodes_by_type("GeometryNodeRepeatOutput")) {
-    auto *storage = static_cast<NodeGeometryRepeatOutput *>(node->storage);
+    NodeGeometryRepeatOutput *storage = static_cast<NodeGeometryRepeatOutput *>(node->storage);
     if (storage->items_span().contains_ptr(item)) {
       return node;
     }
@@ -3202,7 +3202,7 @@ static void rna_RepeatItem_name_set(PointerRNA *ptr, const char *value)
 {
   bNode *node = find_node_by_repeat_item(ptr);
   NodeRepeatItem *item = static_cast<NodeRepeatItem *>(ptr->data);
-  auto *storage = static_cast<NodeGeometryRepeatOutput *>(node->storage);
+  NodeGeometryRepeatOutput *storage = static_cast<NodeGeometryRepeatOutput *>(node->storage);
   storage->set_item_name(*item, value);
 }
 

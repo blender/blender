@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -2775,6 +2775,10 @@ msgid "Object children will use relative transform, like deform"
 msgstr "상대적인 변환을 사용하는 오브젝트 자식들, 변형과 같음"
 
 
+msgid "Bones"
+msgstr "본"
+
+
 msgid "Visible"
 msgstr "보임"
 
@@ -2785,38 +2789,6 @@ msgstr "활성 컬렉션"
 
 msgid "Custom"
 msgstr "커스텀"
-
-
-msgid "Bone Group"
-msgstr "본 그룹"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "포즈 채널 그룹 (본)"
-
-
-msgid "Bone Groups"
-msgstr "본 그룹"
-
-
-msgid "Collection of bone groups"
-msgstr "본 그룹의 컬렉션"
-
-
-msgid "Active Bone Group"
-msgstr "활성 본 그룹"
-
-
-msgid "Active bone group for this pose"
-msgstr "이 포즈에 대한 활성 본 그룹"
-
-
-msgid "Active Bone Group Index"
-msgstr "활성 본 그룹 인덱스"
-
-
-msgid "Active index in bone groups array"
-msgstr "본 그룹 배열의 활성 인덱스"
 
 
 msgid "Brush Capabilities"
@@ -14330,10 +14302,6 @@ msgid "Animation data for this data-block"
 msgstr "이 데이터 블록에 대한 애니메이션 데이터"
 
 
-msgid "Bones"
-msgstr "본"
-
-
 msgid "Octahedral"
 msgstr "팔면체"
 
@@ -14416,14 +14384,6 @@ msgstr "커스텀 본 셰이프를 표시"
 
 msgid "Display bones with their custom shapes"
 msgstr "커스텀 셰이프로 본을 표시"
-
-
-msgid "Display Bone Group Colors"
-msgstr "본 그룹 컬러를 표시"
-
-
-msgid "Display bone group colors"
-msgstr "본 그룹 컬러를 표시"
 
 
 msgid "Display Names"
@@ -18000,6 +17960,14 @@ msgid "Control how fast the probe influence decreases"
 msgstr "프로브 영향이 얼마나 빨리 감소하는지 제어합니다"
 
 
+msgid "Clamp Direct"
+msgstr "클램프 직접"
+
+
+msgid "Clamp Indirect"
+msgstr "클램프 간접"
+
+
 msgid "Smoother irradiance interpolation but introduce light bleeding"
 msgstr "매끄러운 방사 보간법이지만 라이트 번짐"
 
@@ -18898,6 +18866,10 @@ msgstr "편집"
 
 msgid "Sculpt"
 msgstr "스컬프트"
+
+
+msgid "Modifier"
+msgstr "모디파이어"
 
 
 msgid "Tool"
@@ -26099,24 +26071,24 @@ msgid "Primitives"
 msgstr "프리미티브"
 
 
-msgid "Converter"
-msgstr "컨버터"
-
-
-msgid "Distort"
-msgstr "왜곡"
-
-
-msgid "Layout"
-msgstr "레이아웃"
-
-
 msgid "Keying"
 msgstr "키잉"
 
 
 msgid "Tracking"
 msgstr "트래킹"
+
+
+msgid "Layout"
+msgstr "레이아웃"
+
+
+msgid "Converter"
+msgstr "컨버터"
+
+
+msgid "Distort"
+msgstr "왜곡"
 
 
 msgid "Node Context Menu"
@@ -26133,6 +26105,18 @@ msgstr "노드"
 
 msgid "Node Color Specials"
 msgstr "노드 컬러 지정"
+
+
+msgid "Add Modifier"
+msgstr "모디파이어를 추가"
+
+
+msgid "Generate"
+msgstr "생성"
+
+
+msgid "Physics"
+msgstr "피직스"
 
 
 msgid "Particle Specials"
@@ -29094,10 +29078,6 @@ msgstr "오션 배이킹의 시작 프레임"
 
 msgid "Method of modifying geometry"
 msgstr "지오메트리 수정하는 메서드"
-
-
-msgid "Generate"
-msgstr "생성"
 
 
 msgid "Generate ocean surface geometry at the specified resolution"
@@ -41606,10 +41586,6 @@ msgid "Enter/Exit sculpt mode for Grease Pencil strokes"
 msgstr "그리스 펜슬 스트로크의 스컬프트 모드를 들어가기/나가기"
 
 
-msgid "Modifier"
-msgstr "모디파이어"
-
-
 msgid "Name of the modifier to edit"
 msgstr "편집하는 모디파이어의 이름"
 
@@ -42196,15 +42172,6 @@ msgstr "그리스 펜슬 스트로크의 웨이트 페인트 모드를 들어가
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "커브를 베이크"
-
-
-msgid "Bake selected F-Curves to a set of sampled points defining a similar curve"
-msgstr "선택된 F-커브를 유사한 커브를 정의하는 샘플된 포인트의 설정으로 베이크"
-
-
-msgctxt "Operator"
 msgid "Click-Insert Keyframes"
 msgstr "클릭-키 프레임을 삽입"
 
@@ -42482,15 +42449,6 @@ msgstr "평평한 핸들"
 
 msgid "Flatten handles for a smoother transition"
 msgstr "매끄럽게 하는 전환에 대한 플랫 핸들"
-
-
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "사운드를 F-커브에 베이크"
-
-
-msgid "Bakes a sound wave to selected F-Curves"
-msgstr "사운드 웨이브를 선택된 F-커브에 베이크"
 
 
 msgid "Cutoff frequency of a low-pass filter that is applied to the audio data"
@@ -47549,6 +47507,11 @@ msgid "Add an object to the scene"
 msgstr "씬에 오브젝트를 추가"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "모디파이어를 추가"
+
+
 msgid "Add named object"
 msgstr "명명된 오브젝트를 추가"
 
@@ -47982,11 +47945,6 @@ msgstr "원숭이"
 
 msgid "Construct a Suzanne grease pencil object"
 msgstr "수잔 그리스 펜슬 오브젝트를 만들기"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "모디파이어를 추가"
 
 
 msgid "Add a procedural operation/effect to the active grease pencil object"
@@ -58839,10 +58797,6 @@ msgid "Generate system information, saved into a text file"
 msgstr "시스템 정보를 생성, 텍스트 파일에 저장됨"
 
 
-msgid "Set the tool by name (for keymaps)"
-msgstr "이름으로 도구를 설정 (키맵 용)"
-
-
 msgid "Set Fallback"
 msgstr "대체를 설정"
 
@@ -58861,10 +58815,6 @@ msgstr "이 그룹에서 도구를 통해 순환"
 
 msgid "Identifier of the tool"
 msgstr "도구의 식별자"
-
-
-msgid "Set the tool by index (for keymaps)"
-msgstr "인덱스로 도구를 설정 (키맵 용)"
 
 
 msgid "Set the fallback tool instead of the primary"
@@ -59743,6 +59693,10 @@ msgid "Filters"
 msgstr "필터"
 
 
+msgid "Snapping"
+msgstr "스냅하기"
+
+
 msgid "Bake Animation"
 msgstr "에니메이션을 베이크"
 
@@ -59793,10 +59747,6 @@ msgstr "범위"
 
 msgid "Sample Line"
 msgstr "샘플 라인"
-
-
-msgid "Snapping"
-msgstr "스냅하기"
 
 
 msgctxt "Operator"
@@ -60036,10 +59986,6 @@ msgid "Hair Shape"
 msgstr "헤어 셰이프"
 
 
-msgid "Physics"
-msgstr "피직스"
-
-
 msgid "Battle"
 msgstr "전투"
 
@@ -60208,12 +60154,12 @@ msgid "Volumetric Lighting"
 msgstr "볼륨메트릭 라이트닝"
 
 
-msgid "Screen Space Reflections"
-msgstr "화면 공간 반사"
-
-
 msgid "Volumetric Shadows"
 msgstr "볼륨메트릭 섀도우"
+
+
+msgid "Screen Space Reflections"
+msgstr "화면 공간 반사"
 
 
 msgid "Encoding"
@@ -61748,10 +61694,6 @@ msgstr "포인트 캐시의 컬렉션"
 
 msgid "A collection of pose channels, including settings for animating bones"
 msgstr "포즈 체널의 컬렉션, 에니메이션하는 본에 대한 설정을 포함"
-
-
-msgid "Groups of the bones"
-msgstr "본의 그룹"
 
 
 msgid "Pose Bones"
@@ -64378,16 +64320,8 @@ msgid "Sensor is being scanned from top to bottom"
 msgstr "센서는 위에서 아래로 스캔합니다"
 
 
-msgid "Clamp Direct"
-msgstr "클램프 직접"
-
-
 msgid "If non-zero, the maximum value for a direct sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
 msgstr "값이 0일경우 클램프 하지 않고 직접 샘플에 대한 최대치로 작동합니다. 값이 높을 수록 광선의 정확도를 위한 비용으로 많은 노이즈과 느린 수렴이 생깁니다. 값이 작을 경우 그 반대가 됩니다"
-
-
-msgid "Clamp Indirect"
-msgstr "클램프 간접"
 
 
 msgid "If non-zero, the maximum value for an indirect sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
@@ -69300,54 +69234,6 @@ msgid "Action displayed and edited in this space"
 msgstr "이 공간에 표시 및 편집된 액션"
 
 
-msgid "Auto Snap"
-msgstr "자동 스냅"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "변환을 위한 자동 시간 스냅을 설정"
-
-
-msgid "No Auto-Snap"
-msgstr "자동 스냅 없음"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "1.0 프레임 간격으로 스냅"
-
-
-msgid "Second Step"
-msgstr "두 번째 단계"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "1.0 초 간격으로 스냅"
-
-
-msgid "Nearest Frame"
-msgstr "가까운 프레임"
-
-
-msgid "Snap to actual frames (nla-action time)"
-msgstr "실제의 프레임들로 스냅 (NLA-액션 시간)"
-
-
-msgid "Nearest Second"
-msgstr "가까운 초"
-
-
-msgid "Snap to actual seconds (nla-action time)"
-msgstr "실제의 시간 초로 스냅 (NLA-액션 시간)"
-
-
-msgid "Nearest Marker"
-msgstr "가까운 마커"
-
-
-msgid "Snap to nearest marker"
-msgstr "가까운 마커에 스냅"
-
-
 msgid "Show the active object's cloth point cache"
 msgstr "활성 오브젝트의 옷감 포인트 캐시를 표시"
 
@@ -72933,12 +72819,24 @@ msgid "Display only faces with the currently displayed image assigned"
 msgstr "현재 표시된 이미지가 지정된 페이스만 표시"
 
 
-msgid "Snap Element"
-msgstr "스냅 요소"
-
-
 msgid "Type of element to snap to"
 msgstr "다음에 스냅하는 요소의 유형"
+
+
+msgid "Second"
+msgstr "초"
+
+
+msgid "Nearest Marker"
+msgstr "가까운 마커"
+
+
+msgid "Snap to nearest marker"
+msgstr "가까운 마커에 스냅"
+
+
+msgid "Snap Element"
+msgstr "스냅 요소"
 
 
 msgid "Snap Node Element"
@@ -75590,10 +75488,6 @@ msgid "Pivot Offset"
 msgstr "피벗 오프셋"
 
 
-msgid "Group Colors"
-msgstr "그룹 컬러"
-
-
 msgid "Axes"
 msgstr "축"
 
@@ -75892,6 +75786,26 @@ msgstr "영향 임계 값"
 
 msgid "Update on Edit"
 msgstr "편집에 대한 업데이트"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "리메쉬"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "아마튜어"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "래티스"
+
+
+msgctxt "Operator"
+msgid "Smooth Laplacian"
+msgstr "스무스 라플라시안"
 
 
 msgid "Distance Reference"
@@ -76792,10 +76706,6 @@ msgstr "감폭 옮기기"
 
 msgid "Velocity Linear"
 msgstr "속도 선형"
-
-
-msgid "Second"
-msgstr "초"
 
 
 msgid "X Stiffness"
@@ -77753,11 +77663,6 @@ msgstr "맞추기"
 
 
 msgctxt "Operator"
-msgid "Search..."
-msgstr "검색..."
-
-
-msgctxt "Operator"
 msgid "Backdrop Move"
 msgstr "배경 화면 이동"
 
@@ -78163,6 +78068,11 @@ msgid "Rotation"
 msgstr "회전"
 
 
+msgctxt "Operator"
+msgid "Copy Modifiers to Selection"
+msgstr "모디파이어를 선택 항목에 복사"
+
+
 msgid "Strip Offset Start"
 msgstr "스트립 오프셋 시작"
 
@@ -78186,11 +78096,6 @@ msgstr "별도의 색상 채널을 표시"
 msgctxt "Operator"
 msgid "Clip"
 msgstr "클립"
-
-
-msgctxt "Operator"
-msgid "Copy Modifiers to Selection"
-msgstr "모디파이어를 선택 항목에 복사"
 
 
 msgctxt "Operator"
@@ -79587,16 +79492,6 @@ msgstr "그리스 펜슬"
 
 
 msgctxt "Operator"
-msgid "Armature"
-msgstr "아마튜어"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "래티스"
-
-
-msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "컬렉션 인스턴스..."
 
@@ -79693,11 +79588,6 @@ msgstr "X-뒤집힌 포즈를 붙여 넣기"
 
 msgid "Vertex Context Menu"
 msgstr "버텍스 컨텍스트 메뉴"
-
-
-msgctxt "Operator"
-msgid "Smooth Laplacian"
-msgstr "스무스 라플라시안"
 
 
 msgid "Mirror Vertices"
@@ -80123,11 +80013,6 @@ msgstr "수정 방법"
 
 msgid "Detailing"
 msgstr "디테일링"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "리메쉬"
 
 
 msgid "Tile Offset"
@@ -84164,10 +84049,6 @@ msgid "Show in Drivers Editor"
 msgstr "드라이버 에디터에 표시"
 
 
-msgid "Add Modifier"
-msgstr "모디파이어를 추가"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-커브는 F-모디파이어 만 있음"
 
@@ -84752,6 +84633,10 @@ msgstr "%d개의 데이터-블록을 삭제했습니다"
 
 msgid "Not yet implemented"
 msgstr "아직 구현되지 안음"
+
+
+msgid "Bone Groups"
+msgstr "본 그룹"
 
 
 msgid "(empty)"
@@ -86188,15 +86073,6 @@ msgid "Mesh has no VCol data"
 msgstr "메쉬는 버텍스 컬러 데이터가 없음"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "그룹"
-
-
-msgid "Bone group '%s' not found in this object"
-msgstr "본 그룹 '%s'를 이 오브젝트에서 찾을 수 없습니다"
-
-
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "제약 '%s'를 포즈 본 '%s'에서 찾을 수 없습니다"
 
@@ -87224,10 +87100,6 @@ msgstr "스페인어 (Español)"
 
 msgid "Catalan (Català)"
 msgstr "카탈로니아어 (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "체코어 (Český)"
 
 
 msgid "Portuguese (Português)"

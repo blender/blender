@@ -286,21 +286,12 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
 void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
                                          pxr::UsdGeomMesh usd_mesh,
                                          const bke::AttributeIDRef &attribute_id,
-                                         const char *active_set_name)
+                                         const char * /*active_set_name*/)
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
   const pxr::UsdGeomPrimvarsAPI pvApi = pxr::UsdGeomPrimvarsAPI(usd_mesh);
 
-  const blender::StringRef active_ref(active_set_name);
-
-  /* Because prim-vars don't have a notion of "active" for data like
-   * UVs, but a specific UV set may be considered "active" by target
-   * applications, the [ ---- ] is to name the active set "st". */
-  const std::string name = active_set_name && (active_ref == attribute_id.name()) ?
-                               "st" :
-                               attribute_id.name();
-
-  pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(name));
+  pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(attribute_id.name()));
 
   pxr::UsdGeomPrimvar uv_pv = pvApi.CreatePrimvar(
       primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);

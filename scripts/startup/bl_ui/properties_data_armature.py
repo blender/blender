@@ -66,7 +66,7 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
         col = layout.column(heading="Show")
         col.prop(arm, "show_names", text="Names")
         col.prop(arm, "show_bone_custom_shapes", text="Shapes")
-        col.prop(arm, "show_group_colors", text="Group Colors")
+        col.prop(arm, "show_bone_colors", text="Bone Colors")
 
         if ob:
             col.prop(ob, "show_in_front", text="In Front")

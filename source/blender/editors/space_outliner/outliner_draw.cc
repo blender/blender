@@ -1988,9 +1988,12 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
     }
 
     ID &id = te_id->get_ID();
-    BLI_assert(ID_IS_OVERRIDE_LIBRARY(&id));
-
     if (ID_IS_LINKED(&id)) {
+      continue;
+    }
+    if (!ID_IS_OVERRIDE_LIBRARY(&id)) {
+      /* Some items may not be liboverrides, e.g. the root item for all linked libraries (see
+       * #TreeDisplayOverrideLibraryHierarchies::build_tree). */
       continue;
     }
 

@@ -348,9 +348,9 @@ std::string NodeSocketDropTarget::drop_tooltip(const DragInfo &drag_info) const
     case DropLocation::Into:
       return "";
     case DropLocation::Before:
-      return N_("Insert before socket");
+      return TIP_("Insert before socket");
     case DropLocation::After:
-      return N_("Insert after socket");
+      return TIP_("Insert after socket");
   }
   return "";
 }
@@ -430,11 +430,11 @@ std::string NodePanelDropTarget::drop_tooltip(const DragInfo &drag_info) const
 {
   switch (drag_info.drop_location) {
     case DropLocation::Into:
-      return "Insert into panel";
+      return TIP_("Insert into panel");
     case DropLocation::Before:
-      return N_("Insert before panel");
+      return TIP_("Insert before panel");
     case DropLocation::After:
-      return N_("Insert after panel");
+      return TIP_("Insert after panel");
   }
   return "";
 }

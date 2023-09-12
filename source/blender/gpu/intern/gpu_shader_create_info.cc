@@ -141,6 +141,7 @@ void ShaderCreateInfo::finalize()
       depth_write_ = info.depth_write_;
     }
 
+    /* Inherit builtin bits from additional info. */
     builtins_ |= info.builtins_;
 
     validate_merge(info);
@@ -179,9 +180,13 @@ void ShaderCreateInfo::finalize()
       assert_no_overlap(compute_source_.is_empty(), "Compute source already existing");
       compute_source_ = info.compute_source_;
     }
+  }
 
-    /* Inherit builtin bits from additional info. */
-    builtins_ |= info.builtins_;
+  if (!geometry_source_.is_empty() && bool(builtins_ & BuiltinBits::LAYER)) {
+    std::cout << name_
+              << ": Validation failed. BuiltinBits::LAYER shouldn't be used with geometry shaders."
+              << std::endl;
+    BLI_assert(0);
   }
 
   if (auto_resource_location_) {
@@ -365,14 +370,14 @@ void gpu_shader_create_info_init()
   g_interfaces = new InterfaceDictionnary();
 
 #define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
-  auto *ptr_##_interface = new StageInterfaceInfo(#_interface, _inst_name); \
-  auto &_interface = *ptr_##_interface; \
+  StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface, _inst_name); \
+  StageInterfaceInfo &_interface = *ptr_##_interface; \
   g_interfaces->add_new(#_interface, ptr_##_interface); \
   _interface
 
 #define GPU_SHADER_CREATE_INFO(_info) \
-  auto *ptr_##_info = new ShaderCreateInfo(#_info); \
-  auto &_info = *ptr_##_info; \
+  ShaderCreateInfo *ptr_##_info = new ShaderCreateInfo(#_info); \
+  ShaderCreateInfo &_info = *ptr_##_info; \
   g_create_infos->add_new(#_info, ptr_##_info); \
   _info
 

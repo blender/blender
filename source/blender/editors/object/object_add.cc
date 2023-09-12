@@ -4293,7 +4293,7 @@ static bool object_join_poll(bContext *C)
   }
 
   if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GPENCIL_LEGACY)) {
-    return ED_operator_screenactive(C);
+    return true;
   }
   return false;
 }

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -1423,6 +1423,14 @@ msgid "Node"
 msgstr "Түйүн"
 
 
+msgid "Add Modifier"
+msgstr "Модификаторду кошуу"
+
+
+msgid "Physics"
+msgstr "Физика"
+
+
 msgid "Apply"
 msgstr "Колдонуу"
 
@@ -2137,6 +2145,11 @@ msgstr "Жашыруу"
 
 
 msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Модификаторду кошуу"
+
+
+msgctxt "Operator"
 msgid "Add Armature"
 msgstr "Скелетти кошуу"
 
@@ -2178,11 +2191,6 @@ msgstr "Дубликаттоо"
 
 msgid "Monkey"
 msgstr "Маймыл"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Модификаторду кошуу"
 
 
 msgid "Object Data"
@@ -2738,10 +2746,6 @@ msgid "Vectorscope"
 msgstr "Вектороскоп"
 
 
-msgid "Physics"
-msgstr "Физика"
-
-
 msgid "Shadows"
 msgstr "Көлөкөлөр"
 
@@ -3206,6 +3210,11 @@ msgid "Add Image"
 msgstr "Сүрөттү кошуу"
 
 
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Решётка"
+
+
 msgid "Draw:"
 msgstr "Тартуу:"
 
@@ -3516,11 +3525,6 @@ msgstr "Эсептөө"
 
 
 msgctxt "Operator"
-msgid "Lattice"
-msgstr "Решётка"
-
-
-msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Тез оңдоо"
 
@@ -3779,10 +3783,6 @@ msgid "Value:"
 msgstr "Мааниси:"
 
 
-msgid "Add Modifier"
-msgstr "Модификаторду кошуу"
-
-
 msgid "<No ID>"
 msgstr "<ID жок>"
 
@@ -3855,11 +3855,6 @@ msgstr "Өзгөртүү"
 msgctxt "Key"
 msgid "Key"
 msgstr "Ачкыч"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Топ"
 
 
 msgid "AO"
@@ -3964,10 +3959,6 @@ msgstr "Испан (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Каталон (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Чех (Český)"
 
 
 msgid "Portuguese (Português)"

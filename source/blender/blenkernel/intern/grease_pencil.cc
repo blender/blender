@@ -876,6 +876,29 @@ Layer &LayerGroup::add_layer_after(StringRefNull name, TreeNode *link)
   return this->add_layer_after(new_layer, link);
 }
 
+void LayerGroup::move_node_up(TreeNode *node, const int step)
+{
+  BLI_listbase_link_move(&this->children, node, step);
+  this->tag_nodes_cache_dirty();
+}
+void LayerGroup::move_node_down(TreeNode *node, const int step)
+{
+  BLI_listbase_link_move(&this->children, node, -step);
+  this->tag_nodes_cache_dirty();
+}
+void LayerGroup::move_node_top(TreeNode *node)
+{
+  BLI_remlink(&this->children, node);
+  BLI_insertlinkafter(&this->children, this->children.last, node);
+  this->tag_nodes_cache_dirty();
+}
+void LayerGroup::move_node_bottom(TreeNode *node)
+{
+  BLI_remlink(&this->children, node);
+  BLI_insertlinkbefore(&this->children, this->children.first, node);
+  this->tag_nodes_cache_dirty();
+}
+
 int64_t LayerGroup::num_direct_nodes() const
 {
   return BLI_listbase_count(&this->children);
@@ -1541,26 +1564,43 @@ void GreasePencil::remove_drawings_with_no_users()
 void GreasePencil::move_frames(blender::bke::greasepencil::Layer &layer,
                                const blender::Map<int, int> &frame_number_destinations)
 {
-  using namespace blender;
+  return this->move_duplicate_frames(
+      layer, frame_number_destinations, blender::Map<int, GreasePencilFrame>());
+}
 
+void GreasePencil::move_duplicate_frames(
+    blender::bke::greasepencil::Layer &layer,
+    const blender::Map<int, int> &frame_number_destinations,
+    const blender::Map<int, GreasePencilFrame> &duplicate_frames)
+{
+  using namespace blender;
   Map<int, GreasePencilFrame> layer_frames_copy = layer.frames();
 
-  /* Remove all frames that have a mapping. */
-  for (const int frame_number : frame_number_destinations.keys()) {
-    layer.remove_frame(frame_number);
+  /* Copy frames durations. */
+  Map<int, int> layer_frames_durations;
+  for (const auto [frame_number, frame] : layer.frames().items()) {
+    if (!frame.is_implicit_hold()) {
+      layer_frames_durations.add(frame_number, layer.get_frame_duration_at(frame_number));
+    }
   }
 
-  /* Insert all frames of the transformation. */
   for (const auto [src_frame_number, dst_frame_number] : frame_number_destinations.items()) {
-    if (!layer_frames_copy.contains(src_frame_number)) {
+    const bool use_duplicate = duplicate_frames.contains(src_frame_number);
+
+    const Map<int, GreasePencilFrame> &frame_map = use_duplicate ? duplicate_frames :
+                                                                   layer_frames_copy;
+
+    if (!frame_map.contains(src_frame_number)) {
       continue;
     }
 
-    const GreasePencilFrame src_frame = layer_frames_copy.lookup(src_frame_number);
+    const GreasePencilFrame src_frame = frame_map.lookup(src_frame_number);
     const int drawing_index = src_frame.drawing_index;
-    const int duration = src_frame.is_implicit_hold() ?
-                             0 :
-                             layer.get_frame_duration_at(src_frame_number);
+    const int duration = layer_frames_durations.lookup_default(src_frame_number, 0);
+
+    if (!use_duplicate) {
+      layer.remove_frame(src_frame_number);
+    }
 
     /* Add and overwrite the frame at the destination number. */
     if (layer.frames().contains(dst_frame_number)) {
@@ -1847,6 +1887,24 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer_after(
   return group.add_layer_after(unique_name, link);
 }
 
+void GreasePencil::move_layer_up(blender::bke::greasepencil::Layer *layer,
+                                 blender::bke::greasepencil::Layer *move_along_layer)
+{
+  layer->parent_group().unlink_node(&layer->as_node());
+  move_along_layer->parent_group().add_layer_after(layer, &move_along_layer->as_node());
+}
+
+void GreasePencil::move_layer_down(blender::Span<blender::bke::greasepencil::Layer *> layers,
+                                   blender::bke::greasepencil::Layer *move_along_layer)
+{
+  for (int i = layers.size() - 1; i >= 0; i--) {
+    using namespace blender::bke::greasepencil;
+    Layer *layer = layers[i];
+    layer->parent_group().unlink_node(&layer->as_node());
+    move_along_layer->parent_group().add_layer_before(layer, &move_along_layer->as_node());
+  }
+}
+
 blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::StringRefNull name)
 {
   return this->add_layer(this->root_group(), name);
@@ -1990,14 +2048,17 @@ static void read_drawing_array(GreasePencil &grease_pencil, BlendDataReader *rea
 
 static void write_drawing_array(GreasePencil &grease_pencil, BlendWriter *writer)
 {
+  using namespace blender;
   BLO_write_pointer_array(writer, grease_pencil.drawing_array_num, grease_pencil.drawing_array);
   for (int i = 0; i < grease_pencil.drawing_array_num; i++) {
     GreasePencilDrawingBase *drawing_base = grease_pencil.drawing_array[i];
     switch (drawing_base->type) {
       case GP_DRAWING: {
         GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+        bke::CurvesGeometry::BlendWriteData write_data =
+            drawing->wrap().strokes_for_write().blend_write_prepare();
         BLO_write_struct(writer, GreasePencilDrawing, drawing);
-        drawing->wrap().strokes_for_write().blend_write(*writer, grease_pencil.id);
+        drawing->wrap().strokes_for_write().blend_write(*writer, grease_pencil.id, write_data);
         break;
       }
       case GP_DRAWING_REFERENCE: {

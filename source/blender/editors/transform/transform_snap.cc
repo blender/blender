@@ -164,6 +164,10 @@ bool transformModeUseSnap(const TransInfo *t)
 
 static bool doForceIncrementSnap(const TransInfo *t)
 {
+  if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) {
+    /* These spaces don't support increment snapping. */
+    return false;
+  }
   if (t->modifiers & MOD_SNAP_FORCED) {
     return false;
   }

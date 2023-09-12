@@ -202,7 +202,7 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
       type = segment.type;
       prim = segment.prim;
 
-      /* Filter out curve endcaps */
+      /* Filter out curve end-caps. */
       if (u == 0.0f || u == 1.0f) {
         /* continue search */
         return true;
@@ -349,7 +349,7 @@ inline TReturnType metalrt_visibility_test(
   if (intersection_type == METALRT_HIT_BOUNDING_BOX &&
       (type == PRIMITIVE_CURVE_THICK || type == PRIMITIVE_CURVE_RIBBON))
   {
-    /* Filter out curve endcaps. */
+    /* Filter out curve end-caps. */
     if (u == 0.0f || u == 1.0f) {
       result.accept = false;
       result.continue_search = true;

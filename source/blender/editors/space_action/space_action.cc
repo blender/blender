@@ -428,6 +428,7 @@ static void action_main_region_listener(const wmRegionListenerParams *params)
           break;
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
+        case ND_BONE_COLLECTION:
         case ND_KEYS:
           ED_region_tag_redraw(region);
           break;

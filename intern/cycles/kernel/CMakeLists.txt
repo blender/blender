@@ -1000,6 +1000,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
                 -L"${WINDOWS_KIT_DIR}/ucrt/x64")
   else() # Add Linux specific compiler flags.
     list(APPEND sycl_compiler_flags -fPIC)
+    list(APPEND sycl_compiler_flags -fvisibility=hidden)
 
     # We avoid getting __FAST_MATH__ to be defined when building on CentOS-7 and Rocky-8
     # until the compilation issues it triggers at either AoT or JIT stages gets fixed.

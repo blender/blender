@@ -304,6 +304,7 @@ static void panel_delete(const bContext *C, ARegion *region, ListBase *panels, P
   if (panel->activedata) {
     MEM_freeN(panel->activedata);
   }
+  MEM_SAFE_FREE(panel->drawname);
   MEM_freeN(panel);
 }
 
@@ -695,7 +696,7 @@ Panel *UI_panel_begin(
 
   panel->runtime.block = block;
 
-  STRNCPY(panel->drawname, drawname);
+  UI_panel_drawname_set(panel, drawname);
 
   /* If a new panel is added, we insert it right after the panel that was last added.
    * This way new panels are inserted in the right place between versions. */
@@ -829,6 +830,12 @@ void UI_panel_end(Panel *panel, int width, int height)
    * (including sub-panels) is calculated in #UI_panels_end. */
   panel->blocksizex = width;
   panel->blocksizey = height;
+}
+
+void UI_panel_drawname_set(Panel *panel, blender::StringRef name)
+{
+  MEM_SAFE_FREE(panel->drawname);
+  panel->drawname = BLI_strdupn(name.data(), name.size());
 }
 
 static void ui_offset_panel_block(uiBlock *block)
@@ -1108,7 +1115,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   }
 
   /* Draw text label. */
-  if (panel->drawname[0] != '\0') {
+  if (panel->drawname && panel->drawname[0] != '\0') {
     rcti title_rect;
     title_rect.xmin = widget_rect.xmin + (panel->labelofs / aspect) + scaled_unit * 1.1f;
     title_rect.xmax = widget_rect.xmax;
@@ -1118,7 +1125,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
     uiFontStyleDraw_Params params{};
     params.align = UI_STYLE_TEXT_LEFT;
     UI_fontstyle_draw(
-        fontstyle, &title_rect, panel->drawname, sizeof(panel->drawname), title_color, &params);
+        fontstyle, &title_rect, panel->drawname, strlen(panel->drawname), title_color, &params);
   }
 
   /* Draw the pin icon. */

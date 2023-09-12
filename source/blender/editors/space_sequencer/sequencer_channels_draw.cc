@@ -41,7 +41,7 @@
 #include "WM_api.hh"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 static float draw_offset_get(const View2D *timeline_region_v2d)
 {

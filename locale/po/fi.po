@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1872,14 +1872,6 @@ msgstr "Lokaali sijainti"
 
 msgid "Visible"
 msgstr "Näkyvä"
-
-
-msgid "Bone Group"
-msgstr "Luuryhmä"
-
-
-msgid "Bone Groups"
-msgstr "Luuryhmät"
 
 
 msgid "Has Color"
@@ -4701,6 +4693,10 @@ msgid "Sculpt"
 msgstr "Veistä"
 
 
+msgid "Modifier"
+msgstr "Muunnin"
+
+
 msgid "Mesh"
 msgstr "Muoto"
 
@@ -4777,6 +4773,14 @@ msgstr "Instanssit"
 
 msgid "Node"
 msgstr "Noodi"
+
+
+msgid "Add Modifier"
+msgstr "Lisää muunnin"
+
+
+msgid "Generate"
+msgstr "Luo"
 
 
 msgctxt "Operator"
@@ -5094,10 +5098,6 @@ msgstr "Kopioi uusien ja vanhojen normaalien erotus"
 
 msgid "Ocean Modifier"
 msgstr "Valtamerimuunnin"
-
-
-msgid "Generate"
-msgstr "Luo"
 
 
 msgid "Ocean is Cached"
@@ -7179,10 +7179,6 @@ msgid "Add Segment"
 msgstr "Lisää segmentti"
 
 
-msgid "Modifier"
-msgstr "Muunnin"
-
-
 msgid "Mouse location"
 msgstr "Hiiren sijainti"
 
@@ -7894,6 +7890,11 @@ msgid "Before"
 msgstr "Ennen"
 
 
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Säleikkö"
+
+
 msgid "Combination"
 msgstr "Kombinaatio"
 
@@ -8072,6 +8073,10 @@ msgstr "Aseta X-akselit"
 msgctxt "Operator"
 msgid "Set Y Axis"
 msgstr "Aseta Y-akselit"
+
+
+msgid "Snap To"
+msgstr "Napsauta"
 
 
 msgctxt "Operator"
@@ -8610,15 +8615,6 @@ msgstr "Lokaalikamera"
 
 msgid "Seams"
 msgstr "Saumat"
-
-
-msgid "Snap To"
-msgstr "Napsauta"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Säleikkö"
 
 
 msgctxt "Operator"
@@ -9839,10 +9835,6 @@ msgid "Driver:"
 msgstr "Ajuri:"
 
 
-msgid "Add Modifier"
-msgstr "Lisää muunnin"
-
-
 msgid "Driven Property"
 msgstr "Ajettu ominaisuus"
 
@@ -9986,6 +9978,10 @@ msgstr "Nykyinen tiedosto"
 
 msgid "Missing library"
 msgstr "Kirjasto puuttuu"
+
+
+msgid "Bone Groups"
+msgstr "Luuryhmät"
 
 
 msgid "(empty)"
@@ -10264,11 +10260,6 @@ msgstr "Muotoavainta ei kyetty poistamaan"
 
 msgid "Mesh has no UV data"
 msgstr "Muodolla ei ole UV-dataa"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Ryhmä"
 
 
 msgid "Scripting"
@@ -11730,10 +11721,6 @@ msgstr "Espanja (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Katalaani (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Tsekki (Český)"
 
 
 msgid "Portuguese (Português)"

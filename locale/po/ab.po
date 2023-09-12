@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
 "\"POT-Creation-Date: 2019-02-25 20:41:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -436,6 +436,16 @@ msgstr "Аҳәоу"
 
 
 msgctxt "Operator"
+msgid "Armature"
+msgstr "Абаҩ"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
+
+
+msgctxt "Operator"
 msgid "Location"
 msgstr "Аҭыԥ"
 
@@ -507,16 +517,6 @@ msgstr "Акамера"
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "Абжьы Ахыҵхырҭа"
-
-
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Абаҩ"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Аҭыџьеихац"
 
 
 msgctxt "Object"
@@ -712,9 +712,4 @@ msgstr "Аԥшра"
 
 msgid "cursor"
 msgstr "Ахырхага"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Агәыԥ"
 

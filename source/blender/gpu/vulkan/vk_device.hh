@@ -60,6 +60,9 @@ class VKDevice : public NonCopyable {
 
   /** Limits of the device linked to this context. */
   VkPhysicalDeviceProperties vk_physical_device_properties_ = {};
+  /** Features support. */
+  VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
+  VkPhysicalDeviceVulkan11Features vk_physical_device_vulkan_11_features_ = {};
 
   /** Functions of vk_ext_debugutils for this device/instance. */
   debug::VKDebuggingTools debugging_tools_;
@@ -79,6 +82,16 @@ class VKDevice : public NonCopyable {
   const VkPhysicalDeviceProperties &physical_device_properties_get() const
   {
     return vk_physical_device_properties_;
+  }
+
+  const VkPhysicalDeviceFeatures &physical_device_features_get() const
+  {
+    return vk_physical_device_features_;
+  }
+
+  const VkPhysicalDeviceVulkan11Features &physical_device_vulkan_11_features_get() const
+  {
+    return vk_physical_device_vulkan_11_features_;
   }
 
   VkInstance instance_get() const
@@ -168,6 +181,7 @@ class VKDevice : public NonCopyable {
 
  private:
   void init_physical_device_properties();
+  void init_physical_device_features();
   void init_debug_callbacks();
   void init_memory_allocator();
   void init_command_pools();

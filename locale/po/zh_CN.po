@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -3471,6 +3471,10 @@ msgid "Multiply the final easing values by the Scale In/Out Y factors"
 msgstr "将最终缓动值与首端/尾端缩放系数相乘"
 
 
+msgid "Bones"
+msgstr "骨骼"
+
+
 msgid "Visible"
 msgstr "可见"
 
@@ -3481,38 +3485,6 @@ msgstr "活动集合"
 
 msgid "Custom"
 msgstr "自定义"
-
-
-msgid "Bone Group"
-msgstr "骨骼组"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "姿态通道的组"
-
-
-msgid "Bone Groups"
-msgstr "骨骼组"
-
-
-msgid "Collection of bone groups"
-msgstr "骨骼组集合"
-
-
-msgid "Active Bone Group"
-msgstr "活动骨骼组"
-
-
-msgid "Active bone group for this pose"
-msgstr "当前姿态通道所属的骨骼组"
-
-
-msgid "Active Bone Group Index"
-msgstr "活动骨骼组编号"
-
-
-msgid "Active index in bone groups array"
-msgstr "活动骨骼组编号"
 
 
 msgid "Bool Attribute Value"
@@ -18789,10 +18761,6 @@ msgid "The position for the axes on the bone. Increasing the value moves it clos
 msgstr "骨骼上轴的位置。调高该值使其更接近尖端，调低将移至更靠近根部"
 
 
-msgid "Bones"
-msgstr "骨骼"
-
-
 msgid "Octahedral"
 msgstr "八面锥"
 
@@ -18891,14 +18859,6 @@ msgstr "绘制自定义骨骼形状"
 
 msgid "Display bones with their custom shapes"
 msgstr "显示骨骼为其自定义形状"
-
-
-msgid "Display Bone Group Colors"
-msgstr "显示骨骼组颜色"
-
-
-msgid "Display bone group colors"
-msgstr "显示骨骼组颜色"
 
 
 msgid "Display Names"
@@ -23762,6 +23722,14 @@ msgid "Control how fast the probe influence decreases"
 msgstr "控制光照探头影响衰减的速率"
 
 
+msgid "Clamp Direct"
+msgstr "钳制直接光"
+
+
+msgid "Clamp Indirect"
+msgstr "钳制间接光"
+
+
 msgid "Smoother irradiance interpolation but introduce light bleeding"
 msgstr "更平滑的辐射插值, 但引入光会渗出"
 
@@ -24784,6 +24752,10 @@ msgstr "编辑"
 
 msgid "Sculpt"
 msgstr "雕刻"
+
+
+msgid "Modifier"
+msgstr "修改器"
 
 
 msgid "Tool"
@@ -33502,24 +33474,24 @@ msgid "Primitives"
 msgstr "基本体"
 
 
-msgid "Converter"
-msgstr "转换器"
-
-
-msgid "Distort"
-msgstr "畸变"
-
-
-msgid "Layout"
-msgstr "布局"
-
-
 msgid "Keying"
 msgstr "抠像(插帧)"
 
 
 msgid "Tracking"
 msgstr "追踪"
+
+
+msgid "Layout"
+msgstr "布局"
+
+
+msgid "Converter"
+msgstr "转换器"
+
+
+msgid "Distort"
+msgstr "畸变"
 
 
 msgid "Node Context Menu"
@@ -33553,6 +33525,18 @@ msgstr "节点"
 
 msgid "Node Color Specials"
 msgstr "指定节点颜色"
+
+
+msgid "Add Modifier"
+msgstr "添加修改器"
+
+
+msgid "Generate"
+msgstr "生成"
+
+
+msgid "Physics"
+msgstr "物理"
 
 
 msgid "Assets"
@@ -37134,10 +37118,6 @@ msgstr "海洋面烘焙的起始帧"
 
 msgid "Method of modifying geometry"
 msgstr "几何体的修改方式"
-
-
-msgid "Generate"
-msgstr "生成"
 
 
 msgid "Generate ocean surface geometry at the specified resolution"
@@ -43920,14 +43900,6 @@ msgstr "检索曲线或点云几何体上每个点的半径"
 
 msgid "Retrieve the current time in the scene's animation in units of seconds or frames"
 msgstr "以秒或帧为单位检索场景动画中的当前时间"
-
-
-msgid "Is Shade Smooth"
-msgstr "是否平滑着色"
-
-
-msgid "Retrieve whether each face is marked for smooth shading"
-msgstr "检索是否已将每个面标记为平滑着色"
 
 
 msgid "Shortest Edge Paths"
@@ -55887,10 +55859,6 @@ msgid "Add a segment to the dash modifier"
 msgstr "向虚线修改器添加一个线段"
 
 
-msgid "Modifier"
-msgstr "修改器"
-
-
 msgid "Name of the modifier to edit"
 msgstr "要编辑的修改器名称"
 
@@ -56874,15 +56842,6 @@ msgstr "进入/退出蜡笔笔画的权重喷绘模式"
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "烘焙曲线"
-
-
-msgid "Bake selected F-Curves to a set of sampled points defining a similar curve"
-msgstr "将选择的函数曲线烘焙成全部由采样点组成的近似曲线"
-
-
-msgctxt "Operator"
 msgid "Blend to Default Value"
 msgstr "混合到默认值"
 
@@ -57292,15 +57251,6 @@ msgid "Place the cursor value on the average value of selected keyframes"
 msgstr "将光标置于所选关键帧的平均帧值"
 
 
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "将声音烘焙成函数曲线"
-
-
-msgid "Bakes a sound wave to selected F-Curves"
-msgstr "将选择的函数曲线烘焙成一个波形"
-
-
 msgid "Attack Time"
 msgstr "起音时间"
 
@@ -57335,15 +57285,6 @@ msgstr "仅平方: 绝对幅度低于该幅度的所有值结果为0"
 
 msgid "The output is a square curve (negative values always result in -1, and positive ones in 1)"
 msgstr "输出项为一个方形曲线 (负值始终得出结果 -1, 正值始终会得出结果 1)"
-
-
-msgctxt "Operator"
-msgid "Un-Bake Curve"
-msgstr "取消烘焙曲线"
-
-
-msgid "Un-Bake selected F-Points to F-Curves"
-msgstr "取消烘焙所选函数点为函数曲线"
 
 
 msgid "Reset viewable area to show selected keyframe range"
@@ -63300,6 +63241,11 @@ msgid "Add an object to the scene"
 msgstr "向场景中添加新物体"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "添加修改器"
+
+
 msgid "Add named object"
 msgstr "添加已命名的物体"
 
@@ -63961,11 +63907,6 @@ msgstr "在最前侧显示线条画蜡笔"
 
 msgid "Use lights for this grease pencil object"
 msgstr "为该蜡笔物体使用灯光"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "添加修改器"
 
 
 msgid "Add a procedural operation/effect to the active grease pencil object"
@@ -76089,14 +76030,6 @@ msgid "Use object selection (edit mode only)"
 msgstr "使用物体选中项(仅限编辑模式)"
 
 
-msgid "Control Point Without Handles"
-msgstr "不带控制柄的控制点"
-
-
-msgid "Only select the curve control point, not its handles"
-msgstr "仅选择曲线控制点，而非其控制柄"
-
-
 msgid "Select items using box selection"
 msgstr "使用框选方式选择项目"
 
@@ -78881,10 +78814,6 @@ msgid "Set Tool by Name"
 msgstr "按名称设置工具"
 
 
-msgid "Set the tool by name (for keymaps)"
-msgstr "按名称设置工具(用于键位映射)"
-
-
 msgid "Set Fallback"
 msgstr "设置回退"
 
@@ -78908,10 +78837,6 @@ msgstr "工具标识符"
 msgctxt "Operator"
 msgid "Set Tool by Index"
 msgstr "按编号设置工具"
-
-
-msgid "Set the tool by index (for keymaps)"
-msgstr "按索引设置工具(用于键映射)"
 
 
 msgid "Set the fallback tool instead of the primary"
@@ -80466,6 +80391,10 @@ msgid "Filters"
 msgstr "过滤器"
 
 
+msgid "Snapping"
+msgstr "吸附"
+
+
 msgid "Bake Animation"
 msgstr "烘焙动画"
 
@@ -80545,10 +80474,6 @@ msgstr "示波器"
 
 msgid "Sample Line"
 msgstr "采样线"
-
-
-msgid "Snapping"
-msgstr "吸附"
 
 
 msgctxt "Operator"
@@ -80802,10 +80727,6 @@ msgid "Hair Shape"
 msgstr "毛发形状"
 
 
-msgid "Physics"
-msgstr "物理"
-
-
 msgid "Battle"
 msgstr "战场"
 
@@ -80982,12 +80903,12 @@ msgid "Volumetric Lighting"
 msgstr "体积光照明"
 
 
-msgid "Screen Space Reflections"
-msgstr "屏幕空间反射"
-
-
 msgid "Volumetric Shadows"
 msgstr "体积阴影"
+
+
+msgid "Screen Space Reflections"
+msgstr "屏幕空间反射"
 
 
 msgid "Encoding"
@@ -82832,10 +82753,6 @@ msgid "A collection of pose channels, including settings for animating bones"
 msgstr "姿态通道集合,包括动画骨骼设置"
 
 
-msgid "Groups of the bones"
-msgstr "骨骼组"
-
-
 msgid "Pose Bones"
 msgstr "姿态骨骼"
 
@@ -82882,14 +82799,6 @@ msgstr "用于定义某姿态中一段骨骼的姿态数据"
 
 msgid "Bone associated with this PoseBone"
 msgstr "与此成姿骨骼相关的骨骼"
-
-
-msgid "Bone group this pose channel belongs to"
-msgstr "当前姿态通道所属的骨骼组"
-
-
-msgid "Bone group this pose channel belongs to (0 means no group)"
-msgstr "当前姿态通道所属的骨骼组(0=无骨骼组)"
 
 
 msgid "Child of this pose bone"
@@ -86599,16 +86508,8 @@ msgid "Sensor is being scanned from top to bottom"
 msgstr "正在从上到下扫描传感器"
 
 
-msgid "Clamp Direct"
-msgstr "钳制直接光"
-
-
 msgid "If non-zero, the maximum value for a direct sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
 msgstr "若为非零值, 则代表采样最大值, 较高的值将被按比例缩小, 以避免产生过多的噪点以及缓慢的聚敛, 以牺牲精确度为代价"
-
-
-msgid "Clamp Indirect"
-msgstr "钳制间接光"
 
 
 msgid "If non-zero, the maximum value for an indirect sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
@@ -92611,54 +92512,6 @@ msgid "Action displayed and edited in this space"
 msgstr "空间中激活并可编辑的动作"
 
 
-msgid "Auto Snap"
-msgstr "自动吸附"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "变换的时间自动吸附设置"
-
-
-msgid "No Auto-Snap"
-msgstr "无自动吸附"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "吸附至整数帧"
-
-
-msgid "Second Step"
-msgstr "秒步长"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "吸附至整数秒"
-
-
-msgid "Nearest Frame"
-msgstr "最近帧"
-
-
-msgid "Snap to actual frames (nla-action time)"
-msgstr "吸附至实际帧 (NLA 的动作时间)"
-
-
-msgid "Nearest Second"
-msgstr "最近整秒"
-
-
-msgid "Snap to actual seconds (nla-action time)"
-msgstr "吸附至实际秒 (NLA 的动作时间)"
-
-
-msgid "Nearest Marker"
-msgstr "最近标记"
-
-
-msgid "Snap to nearest marker"
-msgstr "吸附至最近的标记上"
-
-
 msgid "Show the active object's cloth point cache"
 msgstr "显示活动物体的布料模拟缓存"
 
@@ -97409,12 +97262,24 @@ msgid "Display only faces with the currently displayed image assigned"
 msgstr "仅显示指定了当前所显示图像的网格面"
 
 
-msgid "Snap Element"
-msgstr "吸附元素"
-
-
 msgid "Type of element to snap to"
 msgstr "吸附元素的类型"
+
+
+msgid "Second"
+msgstr "第二"
+
+
+msgid "Nearest Marker"
+msgstr "最近标记"
+
+
+msgid "Snap to nearest marker"
+msgstr "吸附至最近的标记上"
+
+
+msgid "Snap Element"
+msgstr "吸附元素"
 
 
 msgid "Snap to"
@@ -104271,10 +104136,6 @@ msgid "Weight Position"
 msgstr "位置权重"
 
 
-msgid "Group Colors"
-msgstr "组颜色"
-
-
 msgid "Axes"
 msgstr "轴向"
 
@@ -104679,6 +104540,31 @@ msgstr "影响阈值"
 
 msgid "Update on Edit"
 msgstr "编辑时更新"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "重构网格"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "骨架"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "晶格"
+
+
+msgctxt "Operator"
+msgid "Smooth Laplacian"
+msgstr "拉普拉斯平滑"
+
+
+msgctxt "Operator"
+msgid "Particle System"
+msgstr "粒子系统"
 
 
 msgid "Distance Reference"
@@ -105817,10 +105703,6 @@ msgid "This object is part of a compound shape"
 msgstr "此物体是复合形状的一部分"
 
 
-msgid "Second"
-msgstr "第二"
-
-
 msgid "X Stiffness"
 msgstr "X 硬度"
 
@@ -106380,6 +106262,10 @@ msgstr "按类型过滤:"
 
 msgid "Options:"
 msgstr "选项:"
+
+
+msgid "Snap To"
+msgstr "吸附至"
 
 
 msgid "Multi-Word Match Search"
@@ -107082,11 +106968,6 @@ msgstr "上下文路径"
 
 
 msgctxt "Operator"
-msgid "Search..."
-msgstr "查找..."
-
-
-msgctxt "Operator"
 msgid "Backdrop Move"
 msgstr "移动背景图"
 
@@ -107670,6 +107551,11 @@ msgid "Stretch To Fill"
 msgstr "拉伸至填充"
 
 
+msgctxt "Operator"
+msgid "Copy Modifiers to Selection"
+msgstr "复制修改器到选中项"
+
+
 msgid "Default Fade"
 msgstr "默认过渡"
 
@@ -107716,11 +107602,6 @@ msgstr "从当前帧移动/扩展"
 msgctxt "Operator"
 msgid "Delete Strip & Data"
 msgstr "删除片段 & 数据"
-
-
-msgctxt "Operator"
-msgid "Copy Modifiers to Selection"
-msgstr "复制修改器到选中项"
 
 
 msgctxt "Operator"
@@ -109757,10 +109638,6 @@ msgid "Zero Weights"
 msgstr "零权重"
 
 
-msgid "Snap To"
-msgstr "吸附至"
-
-
 msgid "Fade Inactive Layers"
 msgstr "淡化非活动层"
 
@@ -109841,16 +109718,6 @@ msgstr "蜡笔"
 
 
 msgctxt "Operator"
-msgid "Armature"
-msgstr "骨架"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "晶格"
-
-
-msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "集合实例..."
 
@@ -109908,11 +109775,6 @@ msgstr "可视几何 -> 网格"
 msgctxt "Operator"
 msgid "Limit Total Vertex Groups"
 msgstr "限制总顶点组"
-
-
-msgctxt "Operator"
-msgid "Particle System"
-msgstr "粒子系统"
 
 
 msgctxt "Operator"
@@ -109992,11 +109854,6 @@ msgstr "粘贴 X 轴向的翻转动作"
 
 msgid "Vertex Context Menu"
 msgstr "顶点上下文菜单"
-
-
-msgctxt "Operator"
-msgid "Smooth Laplacian"
-msgstr "拉普拉斯平滑"
 
 
 msgid "Mirror Vertices"
@@ -110674,11 +110531,6 @@ msgstr "改进方法"
 
 msgid "Detailing"
 msgstr "细节"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "重构网格"
 
 
 msgid "Tile Offset"
@@ -114327,6 +114179,10 @@ msgid "Joining results in %d vertices, limit is %ld"
 msgstr "%d 个顶点的接合结果, 上限为 %ld"
 
 
+msgid "Loading Asset Libraries"
+msgstr "加载资产库"
+
+
 msgid "SoundTrack"
 msgstr "声轨"
 
@@ -116594,10 +116450,6 @@ msgid "Show in Drivers Editor"
 msgstr "在驱动器编辑器中显示"
 
 
-msgid "Add Modifier"
-msgstr "添加修改器"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "函数曲线仅包含函数修改器"
 
@@ -117007,10 +116859,6 @@ msgid "Verts:%s | Tris:%s"
 msgstr "顶点:%s | 三角面:%s"
 
 
-msgid "Verts:%s/%s | Faces:%s/%s"
-msgstr "顶点:%s/%s | 面:%s/%s"
-
-
 msgid "Verts:%s | Faces:%s | Tris:%s"
 msgstr "顶点:%s | 面:%s | 三角面:%s"
 
@@ -117125,10 +116973,6 @@ msgstr "在 '%s' 与 '%s' 之间无法通过相互匹配来进行交换"
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "修改器无法被添加至 (%s : %s)(请参考控制台的打印信息)"
-
-
-msgid "Loading Asset Libraries"
-msgstr "加载资产库"
 
 
 msgid "Some nodes references could not be restored, will be left empty"
@@ -117774,6 +117618,10 @@ msgstr "此覆写属性不存在于当前数据中，它将在下一次.blend文
 
 msgid "Added through override"
 msgstr "通过重写添加"
+
+
+msgid "Bone Groups"
+msgstr "骨骼组"
 
 
 msgid "(empty)"
@@ -120112,15 +119960,6 @@ msgstr "物体尚未经解算"
 
 msgid "Mesh has no VCol data"
 msgstr "网格没有顶点色数据"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "群组"
-
-
-msgid "Bone group '%s' not found in this object"
-msgstr "在该物体中未找到骨骼群组 '%s'"
 
 
 msgid "Constraint '%s' not found in pose bone '%s'"
@@ -124095,10 +123934,6 @@ msgstr "西班牙文 (Español)"
 
 msgid "Catalan (Català)"
 msgstr "加泰罗尼亚文 (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "捷克文 (Český)"
 
 
 msgid "Portuguese (Português)"

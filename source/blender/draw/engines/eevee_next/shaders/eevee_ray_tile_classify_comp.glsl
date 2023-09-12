@@ -44,8 +44,8 @@ void main()
 
   eClosureBits closure_bits = eClosureBits(texelFetch(stencil_tx, texel, 0).r);
 
-  if (flag_test(closure_bits, raytrace_buf.closure_active)) {
-    int gbuffer_layer = raytrace_buf.closure_active == CLOSURE_REFRACTION ? 1 : 0;
+  if (flag_test(closure_bits, uniform_buf.raytrace.closure_active)) {
+    int gbuffer_layer = uniform_buf.raytrace.closure_active == CLOSURE_REFRACTION ? 1 : 0;
 
     vec4 gbuffer_packed = texelFetch(gbuffer_closure_tx, ivec3(texel, gbuffer_layer), 0);
     float roughness = gbuffer_packed.z;

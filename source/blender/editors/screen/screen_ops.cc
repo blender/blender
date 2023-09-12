@@ -2755,6 +2755,10 @@ static int region_scale_invoke(bContext *C, wmOperator *op, const wmEvent *event
     {
       rmd->region = az->region->prev;
     }
+    /* Flag to always forward scaling to the previous region. */
+    else if (az->region->prev && (az->region->alignment & RGN_SPLIT_SCALE_PREV)) {
+      rmd->region = az->region->prev;
+    }
     else {
       rmd->region = az->region;
     }
@@ -3178,6 +3182,12 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
     if (ob->type == OB_GPENCIL_LEGACY) {
       const bool active = !(scene->flag & SCE_KEYS_NO_SELONLY);
       gpencil_to_keylist(&ads, static_cast<bGPdata *>(ob->data), keylist, active);
+    }
+
+    if (ob->type == OB_GREASE_PENCIL) {
+      const bool active_layer_only = !(scene->flag & SCE_KEYS_NO_SELONLY);
+      grease_pencil_data_block_to_keylist(
+          nullptr, static_cast<const GreasePencil *>(ob->data), keylist, 0, active_layer_only);
     }
   }
 

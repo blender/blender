@@ -12,6 +12,7 @@
 #include <string>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_sys_types.h" /* size_t */
 #include "BLI_utildefines.h"
@@ -1876,6 +1877,9 @@ void UI_panel_header_buttons_begin(Panel *panel);
  */
 void UI_panel_header_buttons_end(Panel *panel);
 void UI_panel_end(Panel *panel, int width, int height);
+
+/** Set the name that should be drawn in the UI. Should be a translated string. */
+void UI_panel_drawname_set(Panel *panel, blender::StringRef name);
 
 /**
  * Set a context for this entire panel and its current layout. This should be used whenever panel

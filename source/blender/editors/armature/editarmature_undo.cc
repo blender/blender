@@ -17,9 +17,11 @@
 
 #include "BLI_array_utils.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -32,11 +34,35 @@
 #include "ED_undo.hh"
 #include "ED_util.hh"
 
+#include "ANIM_bone_collections.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+using namespace blender::animrig;
+
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo.armature"};
+
+/* Utility functions. */
+
+/**
+ * Remaps editbone collection membership.
+ *
+ * This is intended to be used in combination with ED_armature_ebone_listbase_copy()
+ * and ANIM_bonecoll_listbase_copy() to make a full duplicate of both edit
+ * bones and collections together.
+ */
+static void remap_ebone_bone_collection_references(
+    ListBase /* EditBone */ *edit_bones,
+    const blender::Map<BoneCollection *, BoneCollection *> &bcoll_map)
+{
+  LISTBASE_FOREACH (EditBone *, ebone, edit_bones) {
+    LISTBASE_FOREACH (BoneCollectionReference *, bcoll_ref, &ebone->bone_collections) {
+      bcoll_ref->bcoll = bcoll_map.lookup(bcoll_ref->bcoll);
+    }
+  }
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion
@@ -44,19 +70,21 @@ static CLG_LogRef LOG = {"ed.undo.armature"};
 
 struct UndoArmature {
   EditBone *act_edbone;
-  ListBase lb;
+  BoneCollection *active_collection;
+  ListBase /* EditBone */ ebones;
+  ListBase /* BoneCollection */ bone_collections;
   size_t undo_size;
 };
 
 static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
 {
-  EditBone *ebone;
-
+  /* Copy edit bones. */
   ED_armature_ebone_listbase_free(arm->edbo, true);
-  ED_armature_ebone_listbase_copy(arm->edbo, &uarm->lb, true);
+  ED_armature_ebone_listbase_copy(arm->edbo, &uarm->ebones, true);
 
-  /* active bone */
+  /* Active bone. */
   if (uarm->act_edbone) {
+    EditBone *ebone;
     ebone = uarm->act_edbone;
     arm->act_edbone = ebone->temp.ebone;
   }
@@ -65,35 +93,58 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
   }
 
   ED_armature_ebone_listbase_temp_clear(arm->edbo);
+
+  /* Copy bone collections. */
+  ANIM_bonecoll_listbase_free(&arm->collections, true);
+  auto bcoll_map = ANIM_bonecoll_listbase_copy_no_membership(
+      &arm->collections, &uarm->bone_collections, true);
+  arm->active_collection = bcoll_map.lookup_default(uarm->active_collection, nullptr);
+
+  remap_ebone_bone_collection_references(arm->edbo, bcoll_map);
+
+  ANIM_armature_runtime_refresh(arm);
 }
 
 static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
 {
   BLI_assert(BLI_array_is_zeroed(uarm, 1));
 
-  /* TODO: include size of ID-properties. */
-  uarm->undo_size = 0;
+  /* Copy edit bones. */
+  ED_armature_ebone_listbase_copy(&uarm->ebones, arm->edbo, false);
 
-  ED_armature_ebone_listbase_copy(&uarm->lb, arm->edbo, false);
-
-  /* active bone */
+  /* Active bone. */
   if (arm->act_edbone) {
     EditBone *ebone = arm->act_edbone;
     uarm->act_edbone = ebone->temp.ebone;
   }
 
-  ED_armature_ebone_listbase_temp_clear(&uarm->lb);
+  ED_armature_ebone_listbase_temp_clear(&uarm->ebones);
 
-  LISTBASE_FOREACH (EditBone *, ebone, &uarm->lb) {
+  /* Copy bone collections. */
+  auto bcoll_map = ANIM_bonecoll_listbase_copy_no_membership(
+      &uarm->bone_collections, &arm->collections, false);
+  uarm->active_collection = bcoll_map.lookup_default(arm->active_collection, nullptr);
+
+  /* Point the new edit bones at the new collections. */
+  remap_ebone_bone_collection_references(&uarm->ebones, bcoll_map);
+
+  /* Undo size.
+   * TODO: include size of ID-properties. */
+  uarm->undo_size = 0;
+  LISTBASE_FOREACH (EditBone *, ebone, &uarm->ebones) {
     uarm->undo_size += sizeof(EditBone);
+    uarm->undo_size += sizeof(BoneCollectionReference) *
+                       BLI_listbase_count(&ebone->bone_collections);
   }
+  uarm->undo_size += sizeof(BoneCollection) * BLI_listbase_count(&uarm->bone_collections);
 
   return uarm;
 }
 
 static void undoarm_free_data(UndoArmature *uarm)
 {
-  ED_armature_ebone_listbase_free(&uarm->lb, false);
+  ED_armature_ebone_listbase_free(&uarm->ebones, false);
+  ANIM_bonecoll_listbase_free(&uarm->bone_collections, false);
 }
 
 static Object *editarm_object_from_context(bContext *C)

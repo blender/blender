@@ -4789,7 +4789,6 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 bool ED_curve_editnurb_select_pick(bContext *C,
                                    const int mval[2],
                                    const int dist_px,
-                                   const bool vert_without_handles,
                                    const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -4805,8 +4804,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 
-  const bool use_handle_select = vert_without_handles &&
-                                 (vc.v3d->overlay.handle_display != CURVE_HANDLE_NONE);
+  const bool use_handle_select = (vc.v3d->overlay.handle_display != CURVE_HANDLE_NONE);
 
   bool found = ED_curve_pick_vert_ex(&vc, true, dist_px, &nu, &bezt, &bp, &hand, &basact);
 

@@ -32,7 +32,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_common.h"
 #include "NOD_node_declaration.hh"
 #include "NOD_register.hh"
@@ -196,18 +195,18 @@ static SocketDeclarationPtr declaration_for_interface_socket(
 {
   SocketDeclarationPtr dst;
 
-  bNodeSocketType *typeinfo = nodeSocketTypeFind(io_socket.socket_type);
-  if (typeinfo == nullptr) {
+  bNodeSocketType *base_typeinfo = nodeSocketTypeFind(io_socket.socket_type);
+  if (base_typeinfo == nullptr) {
     return dst;
   }
 
-  eNodeSocketDatatype datatype = eNodeSocketDatatype(typeinfo->type);
+  eNodeSocketDatatype datatype = eNodeSocketDatatype(base_typeinfo->type);
 
   switch (datatype) {
     case SOCK_FLOAT: {
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueFloat>(io_socket);
       std::unique_ptr<decl::Float> decl = std::make_unique<decl::Float>();
-      decl->subtype = PropertySubType(typeinfo->subtype);
+      decl->subtype = PropertySubType(value.subtype);
       decl->default_value = value.value;
       decl->soft_min_value = value.min;
       decl->soft_max_value = value.max;
@@ -217,7 +216,7 @@ static SocketDeclarationPtr declaration_for_interface_socket(
     case SOCK_VECTOR: {
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueVector>(io_socket);
       std::unique_ptr<decl::Vector> decl = std::make_unique<decl::Vector>();
-      decl->subtype = PropertySubType(typeinfo->subtype);
+      decl->subtype = PropertySubType(value.subtype);
       decl->default_value = value.value;
       decl->soft_min_value = value.min;
       decl->soft_max_value = value.max;
@@ -253,7 +252,7 @@ static SocketDeclarationPtr declaration_for_interface_socket(
     case SOCK_INT: {
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueInt>(io_socket);
       std::unique_ptr<decl::Int> decl = std::make_unique<decl::Int>();
-      decl->subtype = PropertySubType(typeinfo->subtype);
+      decl->subtype = PropertySubType(value.subtype);
       decl->default_value = value.value;
       decl->soft_min_value = value.min;
       decl->soft_max_value = value.max;
@@ -434,7 +433,6 @@ void register_node_type_frame()
 
   blender::bke::node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT);
   ntype->initfunc = node_frame_init;
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
   node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
   blender::bke::node_type_size(ntype, 150, 100, 0);
   ntype->flag |= NODE_BACKGROUND;
@@ -465,7 +463,6 @@ void register_node_type_reroute()
 
   blender::bke::node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT);
   ntype->initfunc = node_reroute_init;
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 
   nodeRegisterType(ntype);
 }
@@ -706,7 +703,6 @@ void register_node_type_group_input()
 
   blender::bke::node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE);
   blender::bke::node_type_size(ntype, 140, 80, 400);
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
   ntype->declare_dynamic = blender::nodes::group_input_declare_dynamic;
   ntype->insert_link = blender::nodes::group_input_insert_link;
 
@@ -731,7 +727,6 @@ void register_node_type_group_output()
 
   blender::bke::node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE);
   blender::bke::node_type_size(ntype, 140, 80, 400);
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
   ntype->declare_dynamic = blender::nodes::group_output_declare_dynamic;
   ntype->insert_link = blender::nodes::group_output_insert_link;
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2012-10-07 13:56+0300\n"
 "Last-Translator: Barak Itkin <lightningismyname@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -255,6 +255,10 @@ msgid "Mask"
 msgstr "הכסמ"
 
 
+msgid "Add Modifier"
+msgstr "הנשמ ףסוה"
+
+
 msgid "Apply"
 msgstr "לחה"
 
@@ -420,10 +424,6 @@ msgstr "ץבוק םש"
 
 msgid "Value:"
 msgstr ":ךרע"
-
-
-msgid "Add Modifier"
-msgstr "הנשמ ףסוה"
 
 
 msgid "Select Layer"

@@ -40,6 +40,7 @@ void RenderBuffers::sync()
   };
 
   data.normal_id = pass_index_get(EEVEE_RENDER_PASS_NORMAL, EEVEE_RENDER_PASS_AO);
+  data.position_id = pass_index_get(EEVEE_RENDER_PASS_POSITION);
   data.diffuse_light_id = pass_index_get(EEVEE_RENDER_PASS_DIFFUSE_LIGHT);
   data.diffuse_color_id = pass_index_get(EEVEE_RENDER_PASS_DIFFUSE_COLOR);
   data.specular_light_id = pass_index_get(EEVEE_RENDER_PASS_SPECULAR_LIGHT);
@@ -51,7 +52,6 @@ void RenderBuffers::sync()
   data.ambient_occlusion_id = pass_index_get(EEVEE_RENDER_PASS_AO);
 
   data.aovs = inst_.film.aovs_info;
-  data.push_update();
 }
 
 void RenderBuffers::acquire(int2 extent)

@@ -557,7 +557,7 @@ class DOPESHEET_MT_key(Menu):
         layout.separator()
         layout.operator("action.clean").channels = False
         layout.operator("action.clean", text="Clean Channels").channels = True
-        layout.operator("action.sample")
+        layout.operator("action.bake_keys")
 
         layout.separator()
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")

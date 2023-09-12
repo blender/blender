@@ -130,8 +130,9 @@ void GHOST_SystemPathsWin32::addToSystemRecentFiles(const char *filepath) const
   IShellItem *shell_item;
 
   HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-  if (!SUCCEEDED(hr))
+  if (!SUCCEEDED(hr)) {
     return;
+  }
 
   hr = SHCreateItemFromParsingName(filepath_16, nullptr, IID_PPV_ARGS(&shell_item));
   if (SUCCEEDED(hr)) {

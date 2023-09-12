@@ -7,8 +7,7 @@
 
 GPU_SHADER_CREATE_INFO(eevee_subsurface_eval)
     .do_static_compilation(true)
-    .additional_info("eevee_shared", "eevee_render_pass_out")
-    .uniform_buf(0, "SubsurfaceData", "sss_buf")
+    .additional_info("eevee_shared", "eevee_global_ubo", "eevee_render_pass_out")
     .sampler(0, ImageType::FLOAT_2D_ARRAY, "gbuffer_closure_tx")
     .sampler(1, ImageType::FLOAT_2D_ARRAY, "gbuffer_color_tx")
     .sampler(2, ImageType::FLOAT_2D, "radiance_tx")

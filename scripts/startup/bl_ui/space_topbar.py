@@ -726,6 +726,7 @@ class TOPBAR_MT_file_context_menu(Menu):
         layout.operator_context = 'INVOKE_AREA'
         layout.menu("TOPBAR_MT_file_new", text="New", text_ctxt=i18n_contexts.id_windowmanager, icon='FILE_NEW')
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
+        layout.menu("TOPBAR_MT_file_open_recent")
 
         layout.separator()
 

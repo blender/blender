@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -2525,44 +2525,16 @@ msgid "Object children will use relative transform, like deform"
 msgstr "Crianças do objeto irão usar a transformação relativa, como deformação."
 
 
+msgid "Bones"
+msgstr "Ossos"
+
+
 msgid "Visible"
 msgstr "Visíveis"
 
 
 msgid "Custom"
 msgstr "Personalizar"
-
-
-msgid "Bone Group"
-msgstr "Grupos de ossos"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "Grupos de canais de pose (ossos)."
-
-
-msgid "Bone Groups"
-msgstr "Grupos de ossos"
-
-
-msgid "Collection of bone groups"
-msgstr "Coleção de grupos de ossos."
-
-
-msgid "Active Bone Group"
-msgstr "Grupo de ossos ativo"
-
-
-msgid "Active bone group for this pose"
-msgstr "Grupo de ossos ativos para esta pose."
-
-
-msgid "Active Bone Group Index"
-msgstr "Índice do grupo de ossos ativo"
-
-
-msgid "Active index in bone groups array"
-msgstr "Índice ativo dentro da matriz do grupo de ossos."
 
 
 msgid "Brush Capabilities"
@@ -10945,10 +10917,6 @@ msgid "Animation data for this data-block"
 msgstr "Dados de animação para este bloco de dados."
 
 
-msgid "Bones"
-msgstr "Ossos"
-
-
 msgid "Octahedral"
 msgstr "Octaedro"
 
@@ -13625,6 +13593,14 @@ msgid "Cast a square spot light shape"
 msgstr "Projeta um foco de luz usando arestas de iluminação em formato de quadrado."
 
 
+msgid "Clamp Direct"
+msgstr "Truncar diretamente"
+
+
+msgid "Clamp Indirect"
+msgstr "Truncar indiretamente"
+
+
 msgid "Resolution X"
 msgstr "Resolução X"
 
@@ -14215,6 +14191,10 @@ msgstr "Editar"
 
 msgid "Sculpt"
 msgstr "Escultura"
+
+
+msgid "Modifier"
+msgstr "Modificador"
 
 
 msgid "Tool"
@@ -20478,24 +20458,24 @@ msgid "Math"
 msgstr "Matemática"
 
 
-msgid "Converter"
-msgstr "Conversor"
-
-
-msgid "Distort"
-msgstr "Distorcer"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Keying"
 msgstr "Inserção de chaves"
 
 
 msgid "Tracking"
 msgstr "Rastreamento"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Converter"
+msgstr "Conversor"
+
+
+msgid "Distort"
+msgstr "Distorcer"
 
 
 msgid "Attribute"
@@ -20508,6 +20488,18 @@ msgstr "Nós"
 
 msgid "Node Color Specials"
 msgstr "Nós especiais de cor"
+
+
+msgid "Add Modifier"
+msgstr "Adicionar modificador"
+
+
+msgid "Generate"
+msgstr "Gerar"
+
+
+msgid "Physics"
+msgstr "Físicas"
 
 
 msgid "Particle Specials"
@@ -22833,10 +22825,6 @@ msgstr "O fotograma inicial para geração de oceano."
 
 msgid "Method of modifying geometry"
 msgstr "Método de modificação da geometria."
-
-
-msgid "Generate"
-msgstr "Gerar"
 
 
 msgid "Generate ocean surface geometry at the specified resolution"
@@ -33395,10 +33383,6 @@ msgid "Enter a mini 'sculpt-mode' if enabled, otherwise, exit after drawing a si
 msgstr "Entra em um modo de escultura muito localizado caso ativo, caso contrário, encerra após o desenho de um único traço."
 
 
-msgid "Modifier"
-msgstr "Modificador"
-
-
 msgid "Name of the modifier to edit"
 msgstr "Nome do modificador para editar"
 
@@ -33732,15 +33716,6 @@ msgstr "Permite usar o rato para obter uma amostra de peso dentro da janela de v
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "Gerar e gravar curva"
-
-
-msgid "Bake selected F-Curves to a set of sampled points defining a similar curve"
-msgstr "Gera e grava as curvas-f para um conjunto de amostra de pontos que definem uma curva similar."
-
-
-msgctxt "Operator"
 msgid "Click-Insert Keyframes"
 msgstr "Clique para inserção de fotogramas chave"
 
@@ -33968,15 +33943,6 @@ msgstr "Achatar hastes"
 
 msgid "Flatten handles for a smoother transition"
 msgstr "Achata as hastes para uma transição mais suave."
-
-
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "Gerar e gravar som para as curvas-f"
-
-
-msgid "Bakes a sound wave to selected F-Curves"
-msgstr "Gera e grava uma onda de som para as curvas-f selecionadas."
 
 
 msgid "Cutoff frequency of a low-pass filter that is applied to the audio data"
@@ -37939,6 +37905,11 @@ msgid "Add an object to the scene"
 msgstr "Permite adicionar um objeto para a cena."
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Adicionar modificador"
+
+
 msgid "Add named object"
 msgstr "Permite a adição de um objeto nomeado."
 
@@ -38267,11 +38238,6 @@ msgstr "Alterna o campo de força do objeto."
 
 msgid "Monkey"
 msgstr "Macaco"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Adicionar modificador"
 
 
 msgctxt "Operator"
@@ -47630,10 +47596,6 @@ msgid "Structure"
 msgstr "Estrutura"
 
 
-msgid "Physics"
-msgstr "Físicas"
-
-
 msgid "Movement"
 msgstr "Movimento"
 
@@ -48624,10 +48586,6 @@ msgstr "Coleção de caches de pontos"
 
 msgid "A collection of pose channels, including settings for animating bones"
 msgstr "Uma coleção de canais de pose, incluindo definições para animação de ossos."
-
-
-msgid "Groups of the bones"
-msgstr "Grupos de ossos"
 
 
 msgid "Pose Bones"
@@ -50554,16 +50512,8 @@ msgid "Sensor is being scanned from top to bottom"
 msgstr "O sensor será escaneado do topo para a base."
 
 
-msgid "Clamp Direct"
-msgstr "Truncar diretamente"
-
-
 msgid "If non-zero, the maximum value for a direct sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
 msgstr "Caso não zero, o valor máximo para uma amostra direta, valores mais altos serão reduzidos em sua escala para evitar muito ruído e uma baixa convergência ao custo da precisão."
-
-
-msgid "Clamp Indirect"
-msgstr "Truncar indiretamente"
 
 
 msgid "If non-zero, the maximum value for an indirect sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
@@ -54131,54 +54081,6 @@ msgid "Action displayed and edited in this space"
 msgstr "Ação mostrada e editada neste espaço."
 
 
-msgid "Auto Snap"
-msgstr "Atração automática"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "Definições de atração automática de tempo para as transformações."
-
-
-msgid "No Auto-Snap"
-msgstr "Sem atração automática"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "Atrai para intervalos de 1.0 (fotogramas inteiros ou espaçamento da grelha)."
-
-
-msgid "Second Step"
-msgstr "Intervalos de segundo"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "Atrai para intervalos de 1.0 segundo (ou conforme remapeamento de tempo)."
-
-
-msgid "Nearest Frame"
-msgstr "Fotogramas mais próximos"
-
-
-msgid "Snap to actual frames (nla-action time)"
-msgstr "Atrai para os fotogramas atuais (tempo da ação na animação não linear)."
-
-
-msgid "Nearest Second"
-msgstr "Segundos mais próximos"
-
-
-msgid "Snap to actual seconds (nla-action time)"
-msgstr "Atrai para os segundos atuais (tempo da ação na animação não linear)."
-
-
-msgid "Nearest Marker"
-msgstr "Marcadores mais próximos"
-
-
-msgid "Snap to nearest marker"
-msgstr "Atrai para os marcadores mais próximos (em quaisquer dos lados)."
-
-
 msgid "Show the active object's cloth point cache"
 msgstr "Mostra o cache de pontos do objeto ativo de tecido."
 
@@ -56975,12 +56877,20 @@ msgid "UV Local View"
 msgstr "Visualização local de UV"
 
 
-msgid "Snap Element"
-msgstr "Elemento de atração"
-
-
 msgid "Type of element to snap to"
 msgstr "Tipo de elemento ao qual atrair"
+
+
+msgid "Nearest Marker"
+msgstr "Marcadores mais próximos"
+
+
+msgid "Snap to nearest marker"
+msgstr "Atrai para os marcadores mais próximos (em quaisquer dos lados)."
+
+
+msgid "Snap Element"
+msgstr "Elemento de atração"
 
 
 msgid "Snap Node Element"
@@ -58693,6 +58603,11 @@ msgid "Mirror Shape Key (Topology)"
 msgstr "Espelhar a chave de formato (topologia)"
 
 
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Treliça"
+
+
 msgid "Detail"
 msgstr "Detalhes"
 
@@ -60370,11 +60285,6 @@ msgstr "Superfícies não contíguas"
 msgctxt "Operator"
 msgid "Edge Rings"
 msgstr "Aros de arestas"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Treliça"
 
 
 msgctxt "Operator"
@@ -63795,10 +63705,6 @@ msgid "Update Dependencies"
 msgstr "Atualizar dependências"
 
 
-msgid "Add Modifier"
-msgstr "Adicionar modificador"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "Curva-f somente possui modificadores-f"
 
@@ -64175,6 +64081,10 @@ msgstr "Não é possível realocar a biblioteca '%s', vinculada indiretamente."
 
 msgid "Not yet implemented"
 msgstr "Ainda não implementado."
+
+
+msgid "Bone Groups"
+msgstr "Grupos de ossos"
 
 
 msgid "(empty)"
@@ -65343,15 +65253,6 @@ msgid "Mesh has no VCol data"
 msgstr "A malha não possui dados de cores de vértices."
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "Grupo"
-
-
-msgid "Bone group '%s' not found in this object"
-msgstr "O grupo de ossos '%s' não foi encontrado nesse objeto."
-
-
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Restrição '%s' não encontrada dentro do osso de pose '%s'"
 
@@ -66140,10 +66041,6 @@ msgstr "Espanhol (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Catalão (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Tcheco (Český)"
 
 
 msgid "Portuguese (Português)"

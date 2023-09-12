@@ -74,6 +74,9 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size);
 
 /**
  * Create the thumb if necessary and manage failed and old thumbs.
+ * Will not attempt to (re)create thumbnails of offline files. In this case only a preexisting
+ * thumbnail is returned, or null if none was found.
+ *
  * \param file_or_lib_path: File path or library-ID path (e.g. `/a/b.blend/Material/MyMaterial`) to
  *                          the thumbnail to be created/managed.
  */

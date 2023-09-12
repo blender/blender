@@ -17,7 +17,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "NOD_rna_define.hh"
@@ -44,13 +43,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(1.01f)
       .max(10.0f);
   b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
-}
-
-static void search_node_add_ops(GatherAddNodeSearchParams &params)
-{
-  if (U.experimental.use_new_volume_nodes) {
-    blender::nodes::search_node_add_ops_for_basic_node(params);
-  }
 }
 
 static void search_link_ops(GatherLinkSearchOpParams &params)
@@ -200,7 +192,6 @@ static void node_register()
   ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  ntype.gather_add_node_search_ops = search_node_add_ops;
   ntype.gather_link_search_ops = search_link_ops;
   node_type_storage(
       &ntype, "NodeGeometryMeshToVolume", node_free_standard_storage, node_copy_standard_storage);
