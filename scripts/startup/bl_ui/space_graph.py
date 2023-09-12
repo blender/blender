@@ -305,7 +305,7 @@ class GRAPH_MT_key_density(Menu):
         # as we do not have a modal mode for it, so just execute it.
         with operator_context(layout, 'EXEC_REGION_WIN'):
             layout.operator("graph.decimate", text="Decimate (Allowed Change)").mode = 'ERROR'
-        layout.operator("graph.sample")
+        layout.operator("graph.bake_keys")
 
         layout.separator()
         layout.operator("graph.clean").channels = False

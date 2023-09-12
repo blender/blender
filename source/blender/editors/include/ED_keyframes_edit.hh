@@ -487,7 +487,7 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, float factor);
  * Use a weighted moving-means method to reduce intensity of fluctuations.
  */
 void smooth_fcurve(FCurve *fcu);
-void sample_fcurve(FCurve *fcu);
+void bake_fcurve_segments(FCurve *fcu);
 /**
  * \param sample_rate: indicates how many samples per frame should be generated.
  */

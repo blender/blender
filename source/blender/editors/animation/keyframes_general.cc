@@ -1152,7 +1152,7 @@ void sample_fcurve_segment(FCurve *fcu,
   }
 }
 
-void sample_fcurve(FCurve *fcu)
+void bake_fcurve_segments(FCurve *fcu)
 {
   BezTriple *bezt, *start = nullptr, *end = nullptr;
   TempFrameValCache *value_cache, *fp;
