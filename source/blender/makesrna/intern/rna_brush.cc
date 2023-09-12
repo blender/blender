@@ -9,6 +9,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
