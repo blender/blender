@@ -153,7 +153,6 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       *eta = 1.0f;
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
       label = bsdf_microfacet_ggx_sample(
@@ -284,7 +283,6 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
       *eta = 1.0f;
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
@@ -385,7 +383,6 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
       label = LABEL_TRANSMIT | LABEL_TRANSPARENT;
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
@@ -484,7 +481,6 @@ ccl_device_inline
       eval = bsdf_transparent_eval(sc, sd->wi, wo, pdf);
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
       eval = bsdf_microfacet_ggx_eval(sc, Ng, sd->wi, wo, pdf);
@@ -555,7 +551,6 @@ ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, float
 #if defined(__SVM__) || defined(__OSL__)
   switch (sc->type) {
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:

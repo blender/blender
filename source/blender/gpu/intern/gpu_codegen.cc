@@ -404,8 +404,8 @@ void GPUCodegen::generate_resources()
 
   /* Ref. #98190: Defines are optimizations for old compilers.
    * Might become unnecessary with EEVEE-Next. */
-  if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_CLEARCOAT)) {
-    info.define("PRINCIPLED_CLEARCOAT");
+  if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_COAT)) {
+    info.define("PRINCIPLED_COAT");
   }
   if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_METALLIC)) {
     info.define("PRINCIPLED_METALLIC");

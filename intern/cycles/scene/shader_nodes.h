@@ -530,8 +530,10 @@ class PrincipledBsdfNode : public BsdfBaseNode {
                ShaderInput *sheen,
                ShaderInput *sheen_roughness,
                ShaderInput *sheen_tint,
-               ShaderInput *clearcoat,
-               ShaderInput *clearcoat_roughness,
+               ShaderInput *coat,
+               ShaderInput *coat_roughness,
+               ShaderInput *coat_ior,
+               ShaderInput *coat_tint,
                ShaderInput *ior,
                ShaderInput *transmission,
                ShaderInput *anisotropic_rotation);
@@ -550,13 +552,15 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, sheen)
   NODE_SOCKET_API(float, sheen_roughness)
   NODE_SOCKET_API(float3, sheen_tint)
-  NODE_SOCKET_API(float, clearcoat)
-  NODE_SOCKET_API(float, clearcoat_roughness)
+  NODE_SOCKET_API(float, coat)
+  NODE_SOCKET_API(float, coat_roughness)
+  NODE_SOCKET_API(float, coat_ior)
+  NODE_SOCKET_API(float3, coat_tint)
   NODE_SOCKET_API(float, ior)
   NODE_SOCKET_API(float, transmission)
   NODE_SOCKET_API(float, anisotropic_rotation)
   NODE_SOCKET_API(float3, normal)
-  NODE_SOCKET_API(float3, clearcoat_normal)
+  NODE_SOCKET_API(float3, coat_normal)
   NODE_SOCKET_API(float3, tangent)
   NODE_SOCKET_API(float, surface_mix_weight)
   NODE_SOCKET_API(ClosureType, distribution)

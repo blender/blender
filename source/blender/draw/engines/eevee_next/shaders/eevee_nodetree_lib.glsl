@@ -166,11 +166,11 @@ Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection)
   return Closure(0);
 }
 
-/* ClearCoat BSDF. */
-Closure closure_eval(ClosureReflection reflection, ClosureReflection clearcoat)
+/* Coat BSDF. */
+Closure closure_eval(ClosureReflection reflection, ClosureReflection coat)
 {
   SELECT_CLOSURE(g_reflection_data, g_reflection_rand, reflection);
-  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, clearcoat);
+  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, coat);
   return Closure(0);
 }
 
@@ -186,25 +186,23 @@ Closure closure_eval(ClosureVolumeScatter volume_scatter,
 }
 
 /* Specular BSDF. */
-Closure closure_eval(ClosureDiffuse diffuse,
-                     ClosureReflection reflection,
-                     ClosureReflection clearcoat)
+Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection, ClosureReflection coat)
 {
   SELECT_CLOSURE(g_diffuse_data, g_diffuse_rand, diffuse);
   SELECT_CLOSURE(g_reflection_data, g_reflection_rand, reflection);
-  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, clearcoat);
+  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, coat);
   return Closure(0);
 }
 
 /* Principled BSDF. */
 Closure closure_eval(ClosureDiffuse diffuse,
                      ClosureReflection reflection,
-                     ClosureReflection clearcoat,
+                     ClosureReflection coat,
                      ClosureRefraction refraction)
 {
   SELECT_CLOSURE(g_diffuse_data, g_diffuse_rand, diffuse);
   SELECT_CLOSURE(g_reflection_data, g_reflection_rand, reflection);
-  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, clearcoat);
+  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, coat);
   SELECT_CLOSURE(g_refraction_data, g_refraction_rand, refraction);
   return Closure(0);
 }

@@ -655,6 +655,35 @@ static void versioning_convert_node_tree_socket_lists_to_interface(bNodeTree *nt
   }
 }
 
+/* Convert coat inputs on the Principled BSDF. */
+static void version_principled_bsdf_coat(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+      continue;
+    }
+    if (nodeFindSocket(node, SOCK_IN, "Coat IOR") != nullptr) {
+      continue;
+    }
+    bNodeSocket *coat_ior_input = nodeAddStaticSocket(
+        ntree, node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Coat IOR", "Coat IOR");
+
+    /* Adjust for 4x change in intensity. */
+    bNodeSocket *coat_input = nodeFindSocket(node, SOCK_IN, "Clearcoat");
+    *version_cycles_node_socket_float_value(coat_input) *= 0.25f;
+    /* When the coat input is dynamic, instead of inserting a *0.25 math node, set the Coat IOR
+     * to 1.2 instead - this also roughly quarters reflectivity compared to the 1.5 default. */
+    *version_cycles_node_socket_float_value(coat_ior_input) = (coat_input->link) ? 1.2f : 1.5f;
+  }
+
+  /* Rename sockets. */
+  version_node_input_socket_name(ntree, SH_NODE_BSDF_PRINCIPLED, "Clearcoat", "Coat");
+  version_node_input_socket_name(
+      ntree, SH_NODE_BSDF_PRINCIPLED, "Clearcoat Roughness", "Coat Roughness");
+  version_node_input_socket_name(
+      ntree, SH_NODE_BSDF_PRINCIPLED, "Clearcoat Normal", "Coat Normal");
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -1062,5 +1091,13 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        /* Convert coat inputs on the Principled BSDF. */
+        version_principled_bsdf_coat(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 }

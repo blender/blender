@@ -33,8 +33,10 @@ void node_bsdf_principled(vec4 base_color,
                           float sheen,
                           float sheen_roughness,
                           vec4 sheen_tint,
-                          float clearcoat,
-                          float clearcoat_roughness,
+                          float coat,
+                          float coat_roughness,
+                          float coat_ior,
+                          vec4 coat_tint,
                           float ior,
                           float transmission,
                           vec4 emission,
@@ -45,7 +47,7 @@ void node_bsdf_principled(vec4 base_color,
                           vec3 T,
                           float weight,
                           const float do_diffuse,
-                          const float do_clearcoat,
+                          const float do_coat,
                           const float do_refraction,
                           const float do_multiscatter,
                           float do_sss,
@@ -54,7 +56,8 @@ void node_bsdf_principled(vec4 base_color,
   /* Match cycles. */
   metallic = clamp(metallic, 0.0, 1.0);
   transmission = clamp(transmission, 0.0, 1.0);
-  clearcoat = max(clearcoat, 0.0) * 0.25;
+  coat = max(coat, 0.0);
+  coat_ior = max(coat_ior, 1.0);
 
   N = safe_normalize(N);
   CN = safe_normalize(CN);
@@ -76,22 +79,31 @@ void node_bsdf_principled(vec4 base_color,
   /* Attenuate lower layers */
   weight *= (1.0 - max_v3(sheen_color));
 
-  /* Second layer: Clearcoat */
-  ClosureReflection clearcoat_data;
-  clearcoat_data.N = CN;
-  clearcoat_data.roughness = clearcoat_roughness;
-  float coat_ior = 1.5;
-  float coat_NV = dot(clearcoat_data.N, V);
-  float reflectance = btdf_lut(coat_NV, clearcoat_data.roughness, coat_ior, 0.0).y;
-  clearcoat_data.weight = weight * clearcoat * reflectance;
-  clearcoat_data.color = vec3(1.0);
+  /* Second layer: Coat */
+  ClosureReflection coat_data;
+  coat_data.N = CN;
+  coat_data.roughness = coat_roughness;
+  float coat_NV = dot(coat_data.N, V);
+  float reflectance = btdf_lut(coat_NV, coat_data.roughness, coat_ior, 0.0).y;
+  coat_data.weight = weight * coat * reflectance;
+  coat_data.color = vec3(1.0);
   /* Attenuate lower layers */
-  weight *= (1.0 - reflectance * clearcoat);
+  weight *= (1.0 - reflectance * coat);
 
-  /* Attenuated by sheen and clearcoat. */
+  if (coat == 0) {
+    coat_tint.rgb = vec3(1.0);
+  }
+  else if (!all(equal(coat_tint.rgb, vec3(1.0)))) {
+    float coat_neta = 1.0 / coat_ior;
+    float NT = fast_sqrt(1.0 - coat_neta * coat_neta * (1 - NV * NV));
+    /* Tint lower layers. */
+    coat_tint.rgb = pow(coat_tint.rgb, vec3(coat / NT));
+  }
+
+  /* Attenuated by sheen and coat. */
   ClosureEmission emission_data;
   emission_data.weight = weight;
-  emission_data.emission = emission.rgb * emission_strength;
+  emission_data.emission = coat_tint.rgb * emission.rgb * emission_strength;
 
   /* Metallic component */
   ClosureReflection reflection_data;
@@ -118,7 +130,7 @@ void node_bsdf_principled(vec4 base_color,
     reflection_data.color += weight * transmission * bsdf.y * reflection_tint;
 
     refraction_data.weight = weight * transmission * bsdf.x;
-    refraction_data.color = base_color.rgb;
+    refraction_data.color = base_color.rgb * coat_tint.rgb;
     refraction_data.N = N;
     refraction_data.roughness = roughness;
     refraction_data.ior = ior;
@@ -146,36 +158,38 @@ void node_bsdf_principled(vec4 base_color,
     vec3 diffuse_color = mix(base_color.rgb, subsurface_color.rgb, subsurface);
     diffuse_data.sss_radius = subsurface_radius * subsurface;
     diffuse_data.sss_id = uint(do_sss);
-    diffuse_data.color += weight * diffuse_color;
+    diffuse_data.color += weight * diffuse_color * coat_tint.rgb;
   }
 
   /* Adjust the weight of picking the closure. */
+  reflection_data.color *= coat_tint.rgb;
   reflection_data.weight = avg(reflection_data.color);
   reflection_data.color *= safe_rcp(reflection_data.weight);
+
   diffuse_data.weight = avg(diffuse_data.color);
   diffuse_data.color *= safe_rcp(diffuse_data.weight);
 
   /* Ref. #98190: Defines are optimizations for old compilers.
    * Might become unnecessary with EEVEE-Next. */
-  if (do_diffuse == 0.0 && do_refraction == 0.0 && do_clearcoat != 0.0) {
-#ifdef PRINCIPLED_CLEARCOAT
-    /* Metallic & Clearcoat case. */
-    result = closure_eval(reflection_data, clearcoat_data);
+  if (do_diffuse == 0.0 && do_refraction == 0.0 && do_coat != 0.0) {
+#ifdef PRINCIPLED_COAT
+    /* Metallic & Coat case. */
+    result = closure_eval(reflection_data, coat_data);
 #endif
   }
-  else if (do_diffuse == 0.0 && do_refraction == 0.0 && do_clearcoat == 0.0) {
+  else if (do_diffuse == 0.0 && do_refraction == 0.0 && do_coat == 0.0) {
 #ifdef PRINCIPLED_METALLIC
     /* Metallic case. */
     result = closure_eval(reflection_data);
 #endif
   }
-  else if (do_diffuse != 0.0 && do_refraction == 0.0 && do_clearcoat == 0.0) {
+  else if (do_diffuse != 0.0 && do_refraction == 0.0 && do_coat == 0.0) {
 #ifdef PRINCIPLED_DIELECTRIC
     /* Dielectric case. */
     result = closure_eval(diffuse_data, reflection_data);
 #endif
   }
-  else if (do_diffuse == 0.0 && do_refraction != 0.0 && do_clearcoat == 0.0) {
+  else if (do_diffuse == 0.0 && do_refraction != 0.0 && do_coat == 0.0) {
 #ifdef PRINCIPLED_GLASS
     /* Glass case. */
     result = closure_eval(reflection_data, refraction_data);
@@ -184,7 +198,7 @@ void node_bsdf_principled(vec4 base_color,
   else {
 #ifdef PRINCIPLED_ANY
     /* Un-optimized case. */
-    result = closure_eval(diffuse_data, reflection_data, clearcoat_data, refraction_data);
+    result = closure_eval(diffuse_data, reflection_data, coat_data, refraction_data);
 #endif
   }
   Closure emission_cl = closure_eval(emission_data);

@@ -420,10 +420,6 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
   else if (closure->distribution == make_string("ashikhmin_shirley", 11318482998918370922ull)) {
     sd->flag |= bsdf_ashikhmin_shirley_setup(bsdf);
   }
-  /* Clearcoat */
-  else if (closure->distribution == make_string("clearcoat", 3490136178980547276ull)) {
-    sd->flag |= bsdf_microfacet_ggx_clearcoat_setup(kg, bsdf, sd);
-  }
   /* GGX (either single- or multi-scattering) */
   else {
     if (closure->refract == 1) {

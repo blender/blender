@@ -67,20 +67,18 @@ Closure closure_eval(ClosureHair hair);
 Closure closure_eval(ClosureReflection reflection, ClosureRefraction refraction);
 /* Dielectric BSDF. */
 Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection);
-/* ClearCoat BSDF. */
-Closure closure_eval(ClosureReflection reflection, ClosureReflection clearcoat);
+/* Coat BSDF. */
+Closure closure_eval(ClosureReflection reflection, ClosureReflection coat);
 /* Volume BSDF. */
 Closure closure_eval(ClosureVolumeScatter volume_scatter,
                      ClosureVolumeAbsorption volume_absorption,
                      ClosureEmission emission);
 /* Specular BSDF. */
-Closure closure_eval(ClosureDiffuse diffuse,
-                     ClosureReflection reflection,
-                     ClosureReflection clearcoat);
+Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection, ClosureReflection coat);
 /* Principled BSDF. */
 Closure closure_eval(ClosureDiffuse diffuse,
                      ClosureReflection reflection,
-                     ClosureReflection clearcoat,
+                     ClosureReflection coat,
                      ClosureRefraction refraction);
 
 Closure closure_add(inout Closure cl1, inout Closure cl2);
