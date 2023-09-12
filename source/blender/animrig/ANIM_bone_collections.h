@@ -75,6 +75,17 @@ void ANIM_armature_runtime_free(struct bArmature *armature);
 struct BoneCollection *ANIM_armature_bonecoll_new(struct bArmature *armature, const char *name);
 
 /**
+ * Add a bone collection to the Armature.
+ *
+ * NOTE: this should not typically be used. It is only used by the library overrides system to
+ * apply override operations.
+ */
+struct BoneCollection *ANIM_armature_bonecoll_insert_copy_after(
+    struct bArmature *armature,
+    struct BoneCollection *anchor,
+    const struct BoneCollection *bcoll_to_copy);
+
+/**
  * Remove a bone collection from the armature.
  */
 void ANIM_armature_bonecoll_remove(struct bArmature *armature, struct BoneCollection *bcoll);

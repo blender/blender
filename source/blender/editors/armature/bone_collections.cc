@@ -66,6 +66,27 @@ static bool bone_collection_poll(bContext *C)
   return true;
 }
 
+static bool bone_collection_add_poll(bContext *C)
+{
+  Object *ob = ED_object_context(C);
+  if (ob == nullptr) {
+    return false;
+  }
+
+  if (ob->type != OB_ARMATURE) {
+    CTX_wm_operator_poll_msg_set(C, "Bone collections can only be added to an Armature");
+    return false;
+  }
+
+  if (ID_IS_LINKED(ob->data)) {
+    CTX_wm_operator_poll_msg_set(
+        C, "Cannot add bone collections to a linked Armature without an override");
+    return false;
+  }
+
+  return true;
+}
+
 static bool active_bone_collection_poll(bContext *C)
 {
   if (!bone_collection_poll(C)) {
@@ -109,7 +130,7 @@ void ARMATURE_OT_collection_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bone_collection_add_exec;
-  ot->poll = bone_collection_poll;
+  ot->poll = bone_collection_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

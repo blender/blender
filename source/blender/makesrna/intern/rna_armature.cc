@@ -299,6 +299,31 @@ static void rna_EditBone_collections_begin(CollectionPropertyIterator *iter, Poi
   rna_iterator_listbase_begin(iter, &bone_collection_refs, nullptr);
 }
 
+/* Armature.collections library override support. */
+static bool rna_Armature_collections_override_apply(Main *bmain,
+                                                    RNAPropertyOverrideApplyContext &rnaapply_ctx)
+{
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PointerRNA *ptr_item_dst = &rnaapply_ctx.ptr_item_dst;
+  PointerRNA *ptr_item_src = &rnaapply_ctx.ptr_item_src;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
+  if (opop->operation != LIBOVERRIDE_OP_INSERT_AFTER) {
+    printf("Unsupported RNA override operation on armature collections, ignoring\n");
+    return false;
+  }
+
+  bArmature *arm_dst = (bArmature *)ptr_dst->owner_id;
+  BoneCollection *bcoll_anchor = static_cast<BoneCollection *>(ptr_item_dst->data);
+  BoneCollection *bcoll_src = static_cast<BoneCollection *>(ptr_item_src->data);
+
+  ANIM_armature_bonecoll_insert_copy_after(arm_dst, bcoll_anchor, bcoll_src);
+
+  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  return true;
+}
+
 static char *rna_BoneColor_path_posebone(const PointerRNA *ptr)
 {
   /* Find the bPoseChan that owns this BoneColor. */
@@ -1907,6 +1932,10 @@ static void rna_def_armature(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "collections", nullptr);
   RNA_def_property_struct_type(prop, "BoneCollection");
   RNA_def_property_ui_text(prop, "Bone Collections", "");
+  RNA_def_property_override_funcs(
+      prop, nullptr, nullptr, "rna_Armature_collections_override_apply");
+  RNA_def_property_override_flag(
+      prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY | PROPOVERRIDE_LIBRARY_INSERTION);
   rna_def_armature_collections(brna, prop);
 
   /* Enum values */

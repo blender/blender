@@ -7,6 +7,7 @@
  */
 
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_color.h"
 #include "BLI_string.h"
@@ -110,6 +111,31 @@ BoneCollection *ANIM_armature_bonecoll_new(bArmature *armature, const char *name
   BoneCollection *bcoll = ANIM_bonecoll_new(name);
   bonecoll_ensure_name_unique(armature, bcoll);
   BLI_addtail(&armature->collections, bcoll);
+  return bcoll;
+}
+
+BoneCollection *ANIM_armature_bonecoll_insert_copy_after(bArmature *armature,
+                                                         BoneCollection *anchor,
+                                                         const BoneCollection *bcoll_to_copy)
+{
+  BoneCollection *bcoll = static_cast<BoneCollection *>(MEM_dupallocN(bcoll_to_copy));
+
+  /* Remap the bone pointers to the given armature, as `bcoll_to_copy` will
+   * likely be owned by another copy of the armature. */
+  BLI_duplicatelist(&bcoll->bones, &bcoll->bones);
+  BKE_armature_bone_hash_make(armature);
+  LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
+    member->bone = BKE_armature_find_bone_name(armature, member->bone->name);
+  }
+
+  if (bcoll_to_copy->prop) {
+    bcoll->prop = IDP_CopyProperty_ex(bcoll_to_copy->prop,
+                                      0 /*do_id_user ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT*/);
+  }
+
+  BLI_insertlinkafter(&armature->collections, anchor, bcoll);
+  bonecoll_ensure_name_unique(armature, bcoll);
+
   return bcoll;
 }
 
