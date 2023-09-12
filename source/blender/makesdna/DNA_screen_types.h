@@ -154,7 +154,7 @@ typedef struct Panel {
   /** Defined as UI_MAX_NAME_STR. */
   char panelname[64];
   /** Panel name is identifier for restoring location. */
-  char drawname[64];
+  char *drawname;
   /** Offset within the region. */
   int ofsx, ofsy;
   /** Panel size including children. */

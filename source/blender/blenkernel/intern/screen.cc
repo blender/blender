@@ -321,6 +321,7 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
   Panel *panel = static_cast<Panel *>(lb->first);
   for (; new_panel; new_panel = new_panel->next, panel = panel->next) {
     new_panel->activedata = nullptr;
+    new_panel->drawname = nullptr;
     memset(&new_panel->runtime, 0x0, sizeof(new_panel->runtime));
     panel_list_copy(&new_panel->children, &panel->children);
   }
@@ -488,6 +489,7 @@ void BKE_region_callback_free_gizmomap_set(void (*callback)(wmGizmoMap *))
 static void area_region_panels_free_recursive(Panel *panel)
 {
   MEM_SAFE_FREE(panel->activedata);
+  MEM_SAFE_FREE(panel->drawname);
 
   LISTBASE_FOREACH_MUTABLE (Panel *, child_panel, &panel->children) {
     area_region_panels_free_recursive(child_panel);
@@ -1096,6 +1098,7 @@ static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
     panel->runtime_flag = 0;
     panel->activedata = nullptr;
     panel->type = nullptr;
+    panel->drawname = nullptr;
     panel->runtime.custom_data_ptr = nullptr;
     direct_link_panel_list(reader, &panel->children);
   }
