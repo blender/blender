@@ -1919,8 +1919,10 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 
   /* At this stage, `extent` contains the fast/optimal/box_pack/xatlas UVs. */
 
-  if (all_can_rotate) {
-    /* Attempt to improve the layout even further by finding the minimal-bounding-square. */
+  /* If more islands remain to be packed, attempt to improve the layout further by finding the
+   * minimal-bounding-square. Disabled for other cases as users often prefer to avoid diagonal
+   * islands. */
+  if (all_can_rotate && aabbs.size() > slow_aabbs.size()) {
     rotate_inside_square(slow_aabbs, islands, params, scale, margin, r_phis, &extent);
   }
 
