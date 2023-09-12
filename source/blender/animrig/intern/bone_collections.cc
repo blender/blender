@@ -26,6 +26,7 @@
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.h"
+#include "ANIM_bone_collections.hh"
 
 #include <cstring>
 #include <string>
