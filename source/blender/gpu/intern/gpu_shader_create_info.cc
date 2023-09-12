@@ -182,6 +182,13 @@ void ShaderCreateInfo::finalize()
     }
   }
 
+  if (!geometry_source_.is_empty() && bool(builtins_ & BuiltinBits::LAYER)) {
+    std::cout << name_
+              << ": Validation failed. BuiltinBits::LAYER shouldn't be used with geometry shaders."
+              << std::endl;
+    BLI_assert(0);
+  }
+
   if (auto_resource_location_) {
     int images = 0, samplers = 0, ubos = 0, ssbos = 0;
 
