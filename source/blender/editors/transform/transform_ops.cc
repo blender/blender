@@ -1392,7 +1392,7 @@ static void TRANSFORM_OT_transform(wmOperatorType *ot)
   Transform_Properties(ot,
                        P_ORIENT_AXIS | P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR |
                            P_ALIGN_SNAP | P_GPENCIL_EDIT | P_CENTER | P_VIEW3D_ALT_NAVIGATION |
-                           P_POST_TRANSFORM);
+                           P_POST_TRANSFORM | P_OPTIONS);
 }
 
 static int transform_from_gizmo_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
