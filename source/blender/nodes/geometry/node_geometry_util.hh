@@ -34,7 +34,6 @@ bool geo_node_poll_default(const bNodeType *ntype,
 namespace blender::nodes {
 
 bool check_tool_context_and_error(GeoNodeExecParams &params);
-void search_link_ops_for_for_tool_node(GatherAddNodeSearchParams &params);
 void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params);
 
 void transform_mesh(Mesh &mesh,
@@ -46,36 +45,6 @@ void transform_geometry_set(GeoNodeExecParams &params,
                             GeometrySet &geometry,
                             const float4x4 &transform,
                             const Depsgraph &depsgraph);
-
-Mesh *create_line_mesh(const float3 start, const float3 delta, int count);
-
-Mesh *create_grid_mesh(
-    int verts_x, int verts_y, float size_x, float size_y, const AttributeIDRef &uv_map_id);
-
-struct ConeAttributeOutputs {
-  AnonymousAttributeIDPtr top_id;
-  AnonymousAttributeIDPtr bottom_id;
-  AnonymousAttributeIDPtr side_id;
-  AnonymousAttributeIDPtr uv_map_id;
-};
-
-Mesh *create_cylinder_or_cone_mesh(float radius_top,
-                                   float radius_bottom,
-                                   float depth,
-                                   int circle_segments,
-                                   int side_segments,
-                                   int fill_segments,
-                                   GeometryNodeMeshCircleFillType fill_type,
-                                   ConeAttributeOutputs &attribute_outputs);
-
-/**
- * Calculates the bounds of a radial primitive.
- * The algorithm assumes X-axis symmetry of primitives.
- */
-Bounds<float3> calculate_bounds_radial_primitive(float radius_top,
-                                                 float radius_bottom,
-                                                 int segments,
-                                                 float height);
 
 /**
  * Returns the parts of the geometry that are on the selection for the given domain. If the domain

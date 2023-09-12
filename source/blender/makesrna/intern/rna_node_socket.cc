@@ -321,7 +321,7 @@ static void rna_NodeSocketStandard_draw_color(
   sock->typeinfo->draw_color(C, &ptr, nodeptr, r_color);
 }
 
-static void rna_NodeSocketStandard_draw_color_simple(struct StructRNA *type, float r_color[4])
+static void rna_NodeSocketStandard_draw_color_simple(StructRNA *type, float r_color[4])
 {
   const bNodeSocketType *typeinfo = static_cast<const bNodeSocketType *>(
       RNA_struct_blender_type_get(type));

@@ -218,7 +218,8 @@ const MeshData::SubMesh &MeshData::submesh(pxr::SdfPath const &id) const
 
 void MeshData::write_submeshes(const Mesh *mesh)
 {
-  submeshes_.reinitialize(BKE_object_material_count_eval(reinterpret_cast<const Object *>(id)));
+  const int mat_count = BKE_object_material_count_eval(reinterpret_cast<const Object *>(id));
+  submeshes_.reinitialize(mat_count > 0 ? mat_count : 1);
   for (const int i : submeshes_.index_range()) {
     submeshes_[i].mat_index = i;
   }

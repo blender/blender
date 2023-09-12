@@ -18,7 +18,6 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_clear)
     .define("STANDALONE")
     .define("VOLUMETRICS")
     .define("CLEAR")
-    .builtins(BuiltinBits::LAYER)
     .additional_info("eevee_legacy_common_lib")
     .additional_info("draw_view")
     .additional_info("draw_resource_id_varying")
@@ -68,7 +67,6 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter_common)
     .define("STANDALONE")
     .define("VOLUMETRICS")
     .define("VOLUME_SHADOW")
-    .builtins(BuiltinBits::LAYER)
     .additional_info("eevee_legacy_common_lib")
     .additional_info("draw_view")
     .additional_info("draw_resource_id_varying")
@@ -100,6 +98,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter)
 #ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter_no_geom)
     .additional_info("eevee_legacy_volumes_scatter_common")
+    .builtins(BuiltinBits::LAYER)
     .vertex_out(legacy_volume_geom_frag_iface)
     .metal_backend_only(true)
     .do_static_compilation(true)
@@ -133,7 +132,6 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_integration_common)
     .additional_info("draw_view")
     .additional_info("eevee_legacy_volumetric_lib")
     .additional_info("draw_resource_id_varying")
-    .builtins(BuiltinBits::LAYER)
     /* NOTE: Unique sampler IDs assigned for consistency between library includes,
      * and to avoid unique assignment collision validation error.
      * However, resources will be auto assigned locations within shader usage. */
@@ -161,6 +159,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_integration_common_geom)
 #ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_integration_common_no_geom)
     .additional_info("eevee_legacy_volumes_integration_common")
+    .builtins(BuiltinBits::LAYER)
     .vertex_out(legacy_volume_geom_frag_iface);
 #endif
 

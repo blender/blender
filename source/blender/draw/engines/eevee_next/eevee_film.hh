@@ -75,13 +75,13 @@ class Film {
   PassSimple accumulate_ps_ = {"Film.Accumulate"};
   PassSimple cryptomatte_post_ps_ = {"Film.Cryptomatte.Post"};
 
-  FilmDataBuf data_;
+  FilmData &data_;
   int2 display_extent;
 
   eViewLayerEEVEEPassType enabled_passes_ = eViewLayerEEVEEPassType(0);
 
  public:
-  Film(Instance &inst) : inst_(inst){};
+  Film(Instance &inst, FilmData &data) : inst_(inst), data_(data){};
   ~Film(){};
 
   void init(const int2 &full_extent, const rcti *output_rect);
@@ -143,7 +143,7 @@ class Film {
   static bool pass_is_float3(eViewLayerEEVEEPassType pass_type)
   {
     return pass_storage_type(pass_type) == PASS_STORAGE_COLOR &&
-           pass_type != EEVEE_RENDER_PASS_COMBINED;
+           !ELEM(pass_type, EEVEE_RENDER_PASS_COMBINED, EEVEE_RENDER_PASS_VECTOR);
   }
 
   /* Returns layer offset in the accumulation texture. -1 if the pass is not enabled. */
@@ -158,6 +158,10 @@ class Film {
         return data_.mist_id;
       case EEVEE_RENDER_PASS_NORMAL:
         return data_.normal_id;
+      case EEVEE_RENDER_PASS_POSITION:
+        return data_.position_id;
+      case EEVEE_RENDER_PASS_VECTOR:
+        return data_.vector_id;
       case EEVEE_RENDER_PASS_DIFFUSE_LIGHT:
         return data_.diffuse_light_id;
       case EEVEE_RENDER_PASS_DIFFUSE_COLOR:
@@ -182,8 +186,6 @@ class Film {
         return data_.cryptomatte_asset_id;
       case EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL:
         return data_.cryptomatte_material_id;
-      case EEVEE_RENDER_PASS_VECTOR:
-        return data_.vector_id;
       default:
         return -1;
     }
@@ -218,6 +220,12 @@ class Film {
         break;
       case EEVEE_RENDER_PASS_NORMAL:
         result.append(RE_PASSNAME_NORMAL);
+        break;
+      case EEVEE_RENDER_PASS_POSITION:
+        result.append(RE_PASSNAME_POSITION);
+        break;
+      case EEVEE_RENDER_PASS_VECTOR:
+        result.append(RE_PASSNAME_VECTOR);
         break;
       case EEVEE_RENDER_PASS_DIFFUSE_LIGHT:
         result.append(RE_PASSNAME_DIFFUSE_DIRECT);
@@ -254,9 +262,6 @@ class Film {
         break;
       case EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL:
         build_cryptomatte_passes(RE_PASSNAME_CRYPTOMATTE_MATERIAL);
-        break;
-      case EEVEE_RENDER_PASS_VECTOR:
-        result.append(RE_PASSNAME_VECTOR);
         break;
       default:
         BLI_assert(0);

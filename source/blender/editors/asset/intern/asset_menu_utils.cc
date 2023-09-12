@@ -158,15 +158,6 @@ PointerRNA persistent_catalog_path_rna_pointer(const bScreen &owner_screen,
           const_cast<asset_system::AssetCatalogPath *>(&path)};
 }
 
-PointerRNA create_asset_rna_ptr(const asset_system::AssetRepresentation *asset)
-{
-  PointerRNA ptr{};
-  ptr.owner_id = nullptr;
-  ptr.type = &RNA_AssetRepresentation;
-  ptr.data = const_cast<asset_system::AssetRepresentation *>(asset);
-  return ptr;
-}
-
 void draw_menu_for_catalog(const bScreen &owner_screen,
                            const asset_system::AssetLibrary &library,
                            const asset_system::AssetCatalogTreeItem &item,

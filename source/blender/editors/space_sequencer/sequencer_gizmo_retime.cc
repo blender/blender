@@ -31,7 +31,7 @@
 #include "SEQ_sequencer.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 struct GizmoGroup_retime {
   wmGizmo *add_handle_gizmo;

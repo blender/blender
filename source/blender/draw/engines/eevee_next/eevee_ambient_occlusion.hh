@@ -10,7 +10,6 @@
  * Based on Practical Realtime Strategies for Accurate Indirect Occlusion
  * http://blog.selfshadow.com/publications/s2016-shading-course/activision/s2016_pbs_activision_occlusion.pdf
  * http://blog.selfshadow.com/publications/s2016-shading-course/activision/s2016_pbs_activision_occlusion.pptx
- *
  */
 
 #pragma once
@@ -31,11 +30,11 @@ class AmbientOcclusion {
 
   bool render_pass_enabled_;
 
-  AODataBuf data_;
+  AOData &data_;
   PassSimple render_pass_ps_ = {"AO Render Pass"};
 
  public:
-  AmbientOcclusion(Instance &inst) : inst_(inst){};
+  AmbientOcclusion(Instance &inst, AOData &data) : inst_(inst), data_(data){};
   ~AmbientOcclusion(){};
 
   void init();
@@ -44,11 +43,6 @@ class AmbientOcclusion {
 
   void render(View &view);
   void render_pass(View &view);
-
-  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
-  {
-    pass->bind_ubo(AO_BUF_SLOT, &data_);
-  }
 };
 
 /** \} */

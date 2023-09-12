@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -2761,6 +2761,10 @@ msgid "Object children will use relative transform, like deform"
 msgstr "Anak objek akan meggunakan transformasi relatif, seperti merusak bentuk"
 
 
+msgid "Bones"
+msgstr "Tulang"
+
+
 msgid "Visible"
 msgstr "Terlihat"
 
@@ -2771,38 +2775,6 @@ msgstr "Koleksi Aktif"
 
 msgid "Custom"
 msgstr "Kustom"
-
-
-msgid "Bone Group"
-msgstr "Kelompok Tulang"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "Kelompok Saluran Pose (Tulang)"
-
-
-msgid "Bone Groups"
-msgstr "Kelompok Tulang"
-
-
-msgid "Collection of bone groups"
-msgstr "Koleksi kelompok tulang"
-
-
-msgid "Active Bone Group"
-msgstr "Kelompok Tulang Aktif"
-
-
-msgid "Active bone group for this pose"
-msgstr "Kelompok tulang aktif untuk pose ini"
-
-
-msgid "Active Bone Group Index"
-msgstr "Indeks Kelompok Tulang Aktif"
-
-
-msgid "Active index in bone groups array"
-msgstr "Indeks aktif di larik kelompok tulang"
 
 
 msgid "Bool Attribute Value"
@@ -9026,10 +8998,6 @@ msgid "ID Root Type"
 msgstr "Tipe Akar ID"
 
 
-msgid "Bones"
-msgstr "Tulang"
-
-
 msgid "Stick"
 msgstr "Batang"
 
@@ -9873,6 +9841,10 @@ msgstr "Partikel"
 
 msgid "Edit"
 msgstr "Edit"
+
+
+msgid "Modifier"
+msgstr "Pengubah"
 
 
 msgid "Tool"
@@ -11630,16 +11602,16 @@ msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Converter"
-msgstr "Pengubah"
+msgid "Tracking"
+msgstr "Pelacakan"
 
 
 msgid "Layout"
 msgstr "Tata Letak"
 
 
-msgid "Tracking"
-msgstr "Pelacakan"
+msgid "Converter"
+msgstr "Pengubah"
 
 
 msgid "Node Context Menu"
@@ -15631,10 +15603,6 @@ msgid "Remove Mask Layer"
 msgstr "Warna Standar"
 
 
-msgid "Modifier"
-msgstr "Pengubah"
-
-
 msgid "Name of the modifier to edit"
 msgstr "Nama pengubah untuk diedit"
 
@@ -15741,11 +15709,6 @@ msgid "Paint stroke points with a color"
 msgstr "Cat garis luar titik dengan sebuah warna"
 
 
-msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "Bakar Kurva"
-
-
 msgid "Only Curves"
 msgstr "Hanya Kurva"
 
@@ -15800,11 +15763,6 @@ msgstr "Lompat ke Keyframe"
 msgctxt "Operator"
 msgid "Smooth Keys"
 msgstr "Semua Tampilan"
-
-
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "Gambar Latar"
 
 
 msgid "Stroke Mode"
@@ -16854,6 +16812,11 @@ msgstr "Tambah Objek"
 
 
 msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Modus Pahat"
+
+
+msgctxt "Operator"
 msgid "Align Objects"
 msgstr "Menyejajarkan Objek"
 
@@ -17057,11 +17020,6 @@ msgstr "Tambah Kosong"
 
 msgid "Add an empty object to the scene"
 msgstr "Tambahkan objek kosong ke adegan"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Modus Pahat"
 
 
 msgctxt "Operator"
@@ -21379,6 +21337,10 @@ msgid "Changed"
 msgstr "Saluran"
 
 
+msgid "Second"
+msgstr "Kedua"
+
+
 msgid "Snap Node Element"
 msgstr "Hapus Titik"
 
@@ -23215,10 +23177,6 @@ msgid "Guide Mode"
 msgstr "Mode Panduan"
 
 
-msgid "Second"
-msgstr "Kedua"
-
-
 msgid "X Stiffness"
 msgstr "Kekakuan X"
 
@@ -23898,11 +23856,6 @@ msgstr "Proyeksi X"
 msgctxt "Operator"
 msgid "Fit"
 msgstr "Cukupi"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "Cari..."
 
 
 msgctxt "Operator"
@@ -25736,6 +25689,10 @@ msgid "Operation requires an active keying set"
 msgstr "Tekstur"
 
 
+msgid "Bone Groups"
+msgstr "Kelompok Tulang"
+
+
 msgid "Movie clip not found"
 msgstr "Penyunting Logika"
 
@@ -26440,10 +26397,6 @@ msgstr "Spanyol (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Catalan (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Ceko (Český)"
 
 
 msgid "Portuguese (Português)"

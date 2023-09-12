@@ -24,6 +24,7 @@ class VKImageView : NonCopyable {
               eImageViewUsage usage,
               IndexRange layer_range,
               IndexRange mip_range,
+              bool use_stencil,
               StringRefNull name);
 
   VKImageView(VKImageView &&other);

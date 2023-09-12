@@ -2951,11 +2951,9 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
   bool select = false;
   bool deselect = false;
   int npins = 0;
-  int id = 0;
 
   /* Give vertices matrix indices, count pins and check selections. */
   for (PVert *v = chart->verts; v; v = v->nextlink) {
-    v->u.id = id++;
     if (v->flag & PVERT_PIN) {
       npins++;
       if (v->flag & PVERT_SELECT) {
@@ -2991,6 +2989,13 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
     if (!p_chart_abf_solve(chart)) {
       param_warning("ABF solving failed: falling back to LSCM.\n");
     }
+  }
+
+  /* ABF uses these indices for it's internal references.
+   * Set the indices afterwards. */
+  int id = 0;
+  for (PVert *v = chart->verts; v; v = v->nextlink) {
+    v->u.id = id++;
   }
 
   if (npins <= 1) {
@@ -3613,6 +3618,7 @@ static void p_chart_rotate_fit_aabb(PChart *chart)
 
 ParamHandle::ParamHandle()
 {
+  state = PHANDLE_STATE_ALLOCATED;
   arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "param construct arena");
   polyfill_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "param polyfill arena");
   polyfill_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
@@ -3813,6 +3819,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
                               const bool *select)
 {
   BLI_assert(nverts >= 3);
+  BLI_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
 
   if (nverts > 3) {
     /* Protect against (manifold) geometry which has a non-manifold triangulation.
@@ -3892,6 +3899,8 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
 
 void uv_parametrizer_edge_set_seam(ParamHandle *phandle, ParamKey *vkeys)
 {
+  BLI_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
+
   PEdge *e = p_edge_lookup(phandle, vkeys);
   if (e) {
     e->flag |= PEDGE_SEAM;
@@ -3904,6 +3913,8 @@ void uv_parametrizer_construct_end(ParamHandle *phandle,
                                    int *r_count_failed)
 {
   int i, j;
+
+  BLI_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
 
   phandle->ncharts = p_connect_pairs(phandle, topology_from_uvs);
   phandle->charts = p_split_charts(phandle, phandle->construction_chart, phandle->ncharts);
@@ -3941,10 +3952,15 @@ void uv_parametrizer_construct_end(ParamHandle *phandle,
   }
 
   phandle->ncharts = j;
+
+  phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
 void uv_parametrizer_lscm_begin(ParamHandle *phandle, bool live, bool abf)
 {
+  BLI_assert(phandle->state == PHANDLE_STATE_CONSTRUCTED);
+  phandle->state = PHANDLE_STATE_LSCM;
+
   for (int i = 0; i < phandle->ncharts; i++) {
     for (PFace *f = phandle->charts[i]->faces; f; f = f->nextlink) {
       p_face_backup_uvs(f);
@@ -3955,6 +3971,8 @@ void uv_parametrizer_lscm_begin(ParamHandle *phandle, bool live, bool abf)
 
 void uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, int *count_failed)
 {
+  BLI_assert(phandle->state == PHANDLE_STATE_LSCM);
+
   for (int i = 0; i < phandle->ncharts; i++) {
     PChart *chart = phandle->charts[i];
 
@@ -3991,16 +4009,23 @@ void uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, int *c
 
 void uv_parametrizer_lscm_end(ParamHandle *phandle)
 {
+  BLI_assert(phandle->state == PHANDLE_STATE_LSCM);
+
   for (int i = 0; i < phandle->ncharts; i++) {
     p_chart_lscm_end(phandle->charts[i]);
 #if 0
     p_chart_complexify(phandle->charts[i]);
 #endif
   }
+
+  phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
 void uv_parametrizer_stretch_begin(ParamHandle *phandle)
 {
+  BLI_assert(phandle->state == PHANDLE_STATE_CONSTRUCTED);
+  phandle->state = PHANDLE_STATE_STRETCH;
+
   phandle->rng = BLI_rng_new(31415926);
   phandle->blend = 0.0f;
 
@@ -4022,14 +4047,22 @@ void uv_parametrizer_stretch_begin(ParamHandle *phandle)
 
 void uv_parametrizer_stretch_blend(ParamHandle *phandle, float blend)
 {
+  BLI_assert(phandle->state == PHANDLE_STATE_STRETCH);
   phandle->blend = blend;
 }
 
 void uv_parametrizer_stretch_iter(ParamHandle *phandle)
 {
+  BLI_assert(phandle->state == PHANDLE_STATE_STRETCH);
   for (int i = 0; i < phandle->ncharts; i++) {
     p_chart_stretch_minimize(phandle->charts[i], phandle->rng);
   }
+}
+
+void uv_parametrizer_stretch_end(ParamHandle *phandle)
+{
+  BLI_assert(phandle->state == PHANDLE_STATE_STRETCH);
+  phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
 void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_pinned)

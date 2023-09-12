@@ -199,8 +199,8 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
     :arg refresh_scripts: only load scripts which are not already loaded
        as modules.
     :type refresh_scripts: bool
-    :arg: extensions: Loads additional scripts (add-ons & app-templates).
-    :type: extensions: bool
+    :arg extensions: Loads additional scripts (add-ons & app-templates).
+    :type extensions: bool
     """
     use_time = use_class_register_check = _bpy.app.debug_python
     use_user = not _is_factory_startup

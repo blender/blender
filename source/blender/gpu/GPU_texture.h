@@ -174,7 +174,6 @@ typedef enum GPUSamplerStateType {
  * GPU_texture_compare_mode(texture, true);
  * // Use the texture ...
  * GPU_texture_compare_mode(texture, false);
- *
  */
 typedef struct GPUSamplerState {
   /** Specifies the enabled filtering options for the sampler. */

@@ -56,6 +56,7 @@ void VKDevice::init(void *ghost_context)
                          &vk_queue_);
 
   init_physical_device_properties();
+  init_physical_device_features();
   VKBackend::platform_init(*this);
   VKBackend::capabilities_init(*this);
   init_debug_callbacks();
@@ -78,6 +79,18 @@ void VKDevice::init_physical_device_properties()
 {
   BLI_assert(vk_physical_device_ != VK_NULL_HANDLE);
   vkGetPhysicalDeviceProperties(vk_physical_device_, &vk_physical_device_properties_);
+}
+
+void VKDevice::init_physical_device_features()
+{
+  BLI_assert(vk_physical_device_ != VK_NULL_HANDLE);
+  VkPhysicalDeviceFeatures2 features = {};
+  features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+  vk_physical_device_vulkan_11_features_.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+  features.pNext = &vk_physical_device_vulkan_11_features_;
+  vkGetPhysicalDeviceFeatures2(vk_physical_device_, &features);
+  vk_physical_device_features_ = features.features;
 }
 
 void VKDevice::init_memory_allocator()

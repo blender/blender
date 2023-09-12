@@ -785,9 +785,9 @@ static int rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, Po
   return true;
 }
 
-static int rna_NodeTreeInterface_items_lookup_string(struct PointerRNA *ptr,
+static int rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
                                                      const char *key,
-                                                     struct PointerRNA *r_ptr)
+                                                     PointerRNA *r_ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   if (!ntree->runtime) {
@@ -1107,7 +1107,7 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
   func = RNA_def_function(srna, "move", "rna_NodeTreeInterfaceItems_move");
   RNA_def_function_ui_description(func, "Move an item to another position");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
-  parm = RNA_def_pointer(func, "item", "NodeTreeInterfaceItem", "Item", "The item to remove");
+  parm = RNA_def_pointer(func, "item", "NodeTreeInterfaceItem", "Item", "The item to move");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_int(func,
                      "to_position",
@@ -1123,7 +1123,7 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
   func = RNA_def_function(srna, "move_to_parent", "rna_NodeTreeInterfaceItems_move_to_parent");
   RNA_def_function_ui_description(func, "Move an item to a new panel and/or position.");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
-  parm = RNA_def_pointer(func, "item", "NodeTreeInterfaceItem", "Item", "The item to remove");
+  parm = RNA_def_pointer(func, "item", "NodeTreeInterfaceItem", "Item", "The item to move");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "parent", "NodeTreeInterfacePanel", "Parent", "New parent of the item");

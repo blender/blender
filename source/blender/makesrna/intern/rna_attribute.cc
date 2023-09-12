@@ -288,7 +288,8 @@ static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRN
   }
 
   const int length = BKE_id_attribute_data_length(id, layer);
-  const size_t struct_size = CustomData_sizeof(eCustomDataType(layer->type));
+  const size_t struct_size = CustomData_get_elem_size(layer);
+  CustomData_ensure_data_is_mutable(layer, length);
 
   rna_iterator_array_begin(iter, layer->data, struct_size, length, 0, nullptr);
 }

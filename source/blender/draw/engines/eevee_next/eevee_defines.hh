@@ -154,21 +154,14 @@
 
 /* Uniform Buffers. */
 /* Slot 0 is GPU_NODE_TREE_UBO_SLOT. */
-#define CAMERA_BUF_SLOT 1
-#define RBUFS_BUF_SLOT 2
+#define UNIFORM_BUF_SLOT 1
 /* Only during surface shading (forward and deferred eval). */
-#define HIZ_BUF_SLOT 3
-#define IRRADIANCE_GRID_BUF_SLOT 4
-#define AO_BUF_SLOT 5
-#define VOLUMES_INFO_BUF_SLOT 6
-/* SLOT 6 is used by render shaders (Film, DoF and Motion Blur). Need to check if it should be
- * assigned a different slot. */
-/* TODO(fclem): This is above the limit of slot 6 for engines. Keep it lower by merging others. */
-#define REFLECTION_PROBE_BUF_SLOT 7
+#define IRRADIANCE_GRID_BUF_SLOT 2
+#define REFLECTION_PROBE_BUF_SLOT 3
 /* Only during pre-pass. */
-#define VELOCITY_CAMERA_PREV_BUF 3
-#define VELOCITY_CAMERA_CURR_BUF 4
-#define VELOCITY_CAMERA_NEXT_BUF 5
+#define VELOCITY_CAMERA_PREV_BUF 2
+#define VELOCITY_CAMERA_CURR_BUF 3
+#define VELOCITY_CAMERA_NEXT_BUF 4
 
 /* Storage Buffers. */
 #define LIGHT_CULL_BUF_SLOT 0

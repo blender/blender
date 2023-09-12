@@ -42,8 +42,6 @@ void AmbientOcclusion::init()
   data_.quality = inst_.scene->eevee.gtao_quality;
   /* Size is multiplied by 2 because it is applied in NDC [-1..1] range. */
   data_.pixel_size = float2(2.0f) / float2(inst_.film.render_extent_get());
-
-  data_.push_update();
 }
 
 void AmbientOcclusion::sync()
@@ -56,9 +54,9 @@ void AmbientOcclusion::sync()
   render_pass_ps_.shader_set(inst_.shaders.static_shader_get(AMBIENT_OCCLUSION_PASS));
 
   render_pass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, &inst_.pipelines.utility_tx);
+  inst_.bind_uniform_data(&render_pass_ps_);
   inst_.sampling.bind_resources(&render_pass_ps_);
   inst_.hiz_buffer.bind_resources(&render_pass_ps_);
-  bind_resources(&render_pass_ps_);
 
   render_pass_ps_.bind_image("in_normal_img", &inst_.render_buffers.rp_color_tx);
   render_pass_ps_.push_constant("in_normal_img_layer_index", &inst_.render_buffers.data.normal_id);

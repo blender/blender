@@ -16,6 +16,8 @@
 #include "kernel/sample/lcg.h"
 #include "kernel/sample/mapping.h"
 
+#include "kernel/util/color.h"
+
 #include "kernel/closure/bsdf_microfacet.h"
 
 #include <iostream>
@@ -39,7 +41,6 @@ static float precompute_ggx_E(float rough, float mu, float3 rand)
   float pdf = 0.0f, sampled_eta;
   float2 sampled_roughness;
   bsdf_microfacet_ggx_sample((ShaderClosure *)&bsdf,
-                             0,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
                              rand,
@@ -71,7 +72,6 @@ static float precompute_ggx_glass_E(float rough, float mu, float eta, float3 ran
   float pdf = 0.0f, sampled_eta;
   float2 sampled_roughness;
   bsdf_microfacet_ggx_sample((ShaderClosure *)&bsdf,
-                             0,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
                              rand,
@@ -114,7 +114,6 @@ static float precompute_ggx_gen_schlick_s(
   float pdf = 0.0f, sampled_eta;
   float2 sampled_roughness;
   bsdf_microfacet_ggx_sample((ShaderClosure *)&bsdf,
-                             0,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
                              rand,

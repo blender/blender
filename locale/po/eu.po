@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -574,6 +574,10 @@ msgstr "Aurpegiak erakutsi/ezkutatu"
 
 msgid "Text"
 msgstr "Testua"
+
+
+msgid "Physics"
+msgstr "Fisikak"
 
 
 msgid "File"
@@ -1711,10 +1715,6 @@ msgid "Scale"
 msgstr "Eskalatu"
 
 
-msgid "Physics"
-msgstr "Fisikak"
-
-
 msgid "Dynamics"
 msgstr "Dinamikak"
 
@@ -2178,11 +2178,6 @@ msgid "normal"
 msgstr "Normala"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "Taldea"
-
-
 msgid "Sound not packed"
 msgstr "Soinua paketatu gabe"
 
@@ -2413,10 +2408,6 @@ msgstr "Gaztelania (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Katalana (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Txekiarra (Český)"
 
 
 msgid "Portuguese (Português)"

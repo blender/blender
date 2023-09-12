@@ -18,9 +18,9 @@ void main()
   ivec2 tile = ivec2(gl_GlobalInvocationID.xy);
 
   bool tracing_tile_is_used = false;
-  for (int x = 0; x < raytrace_buf.resolution_scale; x++) {
-    for (int y = 0; y < raytrace_buf.resolution_scale; y++) {
-      ivec2 full_res_tile = tile * raytrace_buf.resolution_scale + ivec2(x, y);
+  for (int x = 0; x < uniform_buf.raytrace.resolution_scale; x++) {
+    for (int y = 0; y < uniform_buf.raytrace.resolution_scale; y++) {
+      ivec2 full_res_tile = tile * uniform_buf.raytrace.resolution_scale + ivec2(x, y);
       if (any(greaterThanEqual(full_res_tile, imageSize(tile_mask_img)))) {
         continue;
       }

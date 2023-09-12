@@ -18,6 +18,7 @@ set(SRC
   intern/bonecolor.cc
 
   ANIM_bone_collections.h
+  ANIM_bone_collections.hh
   ANIM_bonecolor.hh
 )
 

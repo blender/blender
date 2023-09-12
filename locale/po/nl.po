@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -614,16 +614,16 @@ msgid "Parent"
 msgstr "Ouder"
 
 
+msgid "Bones"
+msgstr "Botten"
+
+
 msgid "Visible"
 msgstr "Zichtbaar"
 
 
 msgid "Custom"
 msgstr "Aangepast"
-
-
-msgid "Bone Group"
-msgstr "Groep van Botten"
 
 
 msgid "Has Color"
@@ -1876,10 +1876,6 @@ msgid "Users"
 msgstr "Gebruikers"
 
 
-msgid "Bones"
-msgstr "Botten"
-
-
 msgid "X-Axis Mirror"
 msgstr "X-As Spiegel"
 
@@ -2716,12 +2712,20 @@ msgid "Text"
 msgstr "Tekst"
 
 
+msgid "Layout"
+msgstr "Indeling"
+
+
 msgid "Converter"
 msgstr "Converteerder"
 
 
-msgid "Layout"
-msgstr "Indeling"
+msgid "Add Modifier"
+msgstr "Voeg Aanpasser Toe"
+
+
+msgid "Generate"
+msgstr "Genereer"
 
 
 msgctxt "Operator"
@@ -2903,10 +2907,6 @@ msgstr "Spiegel As"
 
 msgid "Copy"
 msgstr "Kopieer"
-
-
-msgid "Generate"
-msgstr "Genereer"
 
 
 msgid "World"
@@ -4246,11 +4246,6 @@ msgstr "Selecteer Groep van Punten"
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "Bak Curve"
-
-
-msgctxt "Operator"
 msgid "Set Cursor"
 msgstr "Zet Cursor"
 
@@ -4738,6 +4733,11 @@ msgstr "Voeg Object Toe"
 
 
 msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Voeg Aanpasser Toe"
+
+
+msgctxt "Operator"
 msgid "Add Armature"
 msgstr "Voeg Skellet Toe"
 
@@ -4817,11 +4817,6 @@ msgstr "Krachtveld Aan/Uit"
 
 msgid "Monkey"
 msgstr "Aap"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Voeg Aanpasser Toe"
 
 
 msgctxt "Operator"
@@ -7087,6 +7082,10 @@ msgid "Lock Markers"
 msgstr "Vergrendel Markeringen"
 
 
+msgid "Second"
+msgstr "Seconde"
+
+
 msgid "Only Endpoints"
 msgstr "Alleen Eindpunten"
 
@@ -7468,6 +7467,11 @@ msgid "Preserve"
 msgstr "Behouden"
 
 
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Skelet"
+
+
 msgid "Detail"
 msgstr "Detail"
 
@@ -7637,10 +7641,6 @@ msgstr "Lege Ruimte"
 msgctxt "Operator"
 msgid "Resume"
 msgstr "Hervat"
-
-
-msgid "Second"
-msgstr "Seconde"
 
 
 msgid "Auto-Step"
@@ -8560,11 +8560,6 @@ msgstr "Rol Rechts"
 
 
 msgctxt "Operator"
-msgid "Armature"
-msgstr "Skelet"
-
-
-msgctxt "Operator"
 msgid "Delete Global"
 msgstr "Verwijder Globale"
 
@@ -9227,10 +9222,6 @@ msgid "Value:"
 msgstr "Waarde:"
 
 
-msgid "Add Modifier"
-msgstr "Voeg Aanpasser Toe"
-
-
 msgid "It cannot be left blank"
 msgstr "Het kan niet leeg worden gelaten"
 
@@ -9356,11 +9347,6 @@ msgstr "Sleutel"
 
 msgid "Point is not found in given spline"
 msgstr "Punt is niet gevonden voor de opgegeven Spline"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Groep"
 
 
 msgid "Create Armature"

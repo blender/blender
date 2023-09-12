@@ -58,7 +58,6 @@ int compute_number_of_diagonals(ivec2 size)
  * all share the same maximum value, that is, the longest length:
  *
  *   Length => min(Longest Length, index + 1, Number Of Diagonals - index)
- *
  */
 int compute_diagonal_length(ivec2 size, int diagonal_index)
 {
@@ -94,7 +93,6 @@ int compute_diagonal_length(ivec2 size, int diagonal_index)
  * while other indices are zero. Which can be described using the compact equation:
  *
  *   Y => max(0, (height - 1) - index)
- *
  */
 ivec2 compute_diagonal_start(ivec2 size, int index)
 {
@@ -158,7 +156,6 @@ int compute_anti_diagonal_length(ivec2 size, int diagonal_index)
  * from zero to (height - 1). Which can be described using the compact equation:
  *
  *   Y => max(0, index - (width - 1))
- *
  */
 ivec2 compute_anti_diagonal_start(ivec2 size, int index)
 {

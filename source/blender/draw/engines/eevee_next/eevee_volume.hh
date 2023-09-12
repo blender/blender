@@ -47,7 +47,7 @@ class VolumeModule {
 
   bool enabled_;
 
-  VolumesInfoDataBuf data_;
+  VolumesInfoData &data_;
 
   /* Material Parameters */
   Texture prop_scattering_tx_;
@@ -82,7 +82,7 @@ class VolumeModule {
     int3 min, max;
 
     /* Returns true if visible. */
-    bool init(Object *ob, const Camera &camera, const VolumesInfoDataBuf &data);
+    bool init(Object *ob, const Camera &camera, const VolumesInfoData &data);
 
     bool overlaps(const GridAABB &aabb);
   };
@@ -92,7 +92,7 @@ class VolumeModule {
   Map<GPUShader *, Vector<GridAABB>> subpass_aabbs_;
 
  public:
-  VolumeModule(Instance &inst) : inst_(inst)
+  VolumeModule(Instance &inst, VolumesInfoData &data) : inst_(inst), data_(data)
   {
     dummy_scatter_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(0.0f));
     dummy_transmit_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(1.0f));
@@ -103,7 +103,6 @@ class VolumeModule {
   /* Bind resources needed by external passes to perform their own resolve. */
   template<typename PassType> void bind_resources(PassType &ps)
   {
-    ps.bind_ubo(VOLUMES_INFO_BUF_SLOT, data_);
     ps.bind_texture(VOLUME_SCATTERING_TEX_SLOT, &transparent_pass_scatter_tx_);
     ps.bind_texture(VOLUME_TRANSMITTANCE_TEX_SLOT, &transparent_pass_transmit_tx_);
   }
@@ -111,7 +110,6 @@ class VolumeModule {
   /* Bind the common resources needed by all volumetric passes. */
   template<typename PassType> void bind_properties_buffers(PassType &ps)
   {
-    ps.bind_ubo(VOLUMES_INFO_BUF_SLOT, &data_);
     ps.bind_image(VOLUME_PROP_SCATTERING_IMG_SLOT, &prop_scattering_tx_);
     ps.bind_image(VOLUME_PROP_EXTINCTION_IMG_SLOT, &prop_extinction_tx_);
     ps.bind_image(VOLUME_PROP_EMISSION_IMG_SLOT, &prop_emission_tx_);

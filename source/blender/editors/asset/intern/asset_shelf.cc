@@ -454,6 +454,7 @@ void ED_asset_shelf_header_region_listen(const wmRegionListenerParams *params)
 void ED_asset_shelf_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
+  region->alignment |= RGN_SPLIT_SCALE_PREV;
 }
 
 void ED_asset_shelf_header_region(const bContext *C, ARegion *region)

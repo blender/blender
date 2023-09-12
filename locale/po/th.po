@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -2048,16 +2048,20 @@ msgid "Math"
 msgstr "คณิตศาสตร์"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
-
-
 msgid "Keying"
 msgstr "คีย์"
 
 
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
 msgid "Node"
 msgstr "โนด"
+
+
+msgid "Add Modifier"
+msgstr "เพิ่มการปรับแต่ง"
 
 
 msgctxt "Operator"
@@ -3884,12 +3888,12 @@ msgid "Type of keyframes to create when inserting keyframes"
 msgstr "ชนิดของคีย์เฟรมที่จะสร้างเมื่อแทรกคีย์เฟรม"
 
 
-msgid "Snap Element"
-msgstr "ยึดตามส่วนประกอบ"
-
-
 msgid "Type of element to snap to"
 msgstr "ชนิดของส่วนประกอบที่จะยึดติด"
+
+
+msgid "Snap Element"
+msgstr "ยึดตามส่วนประกอบ"
 
 
 msgid "Snap to grid"
@@ -4093,6 +4097,11 @@ msgstr "เรนเดอร์ U"
 
 msgid "Offset X"
 msgstr "ออฟเซต X"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "โครงร่าง"
 
 
 msgid "Detail"
@@ -4320,11 +4329,6 @@ msgstr "เปลี่ยนชื่อ..."
 msgctxt "Operator"
 msgid "Fit"
 msgstr "พอดี"
-
-
-msgctxt "Operator"
-msgid "Search..."
-msgstr "ค้นหา..."
 
 
 msgctxt "Operator"
@@ -4976,11 +4980,6 @@ msgid "Sharp"
 msgstr "แหลม"
 
 
-msgctxt "Operator"
-msgid "Armature"
-msgstr "โครงร่าง"
-
-
 msgid "Mirror Vertices"
 msgstr "สะท้อนจุดยอด"
 
@@ -5332,10 +5331,6 @@ msgid "Cancel"
 msgstr "ยกเลิก"
 
 
-msgid "Add Modifier"
-msgstr "เพิ่มการปรับแต่ง"
-
-
 msgid " RGBA float"
 msgstr " ทศนิยม RGBA"
 
@@ -5498,11 +5493,6 @@ msgid "Overwrite %s"
 msgstr "เขียนทับ %s"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "กลุ่ม"
-
-
 msgid "%s '%s'"
 msgstr "%s '%s'"
 
@@ -5633,10 +5623,6 @@ msgstr "ภาษาสเปน (Español)"
 
 msgid "Catalan (Català)"
 msgstr "ภาษากาตาลา (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "ภาษาเช็ก (Český)"
 
 
 msgid "Portuguese (Português)"

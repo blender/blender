@@ -671,8 +671,9 @@ void GHOST_WindowWin32::updateMouseCapture(GHOST_MouseCaptureEventWin32 event)
       m_nPressedButtons++;
       break;
     case MouseReleased:
-      if (m_nPressedButtons)
+      if (m_nPressedButtons) {
         m_nPressedButtons--;
+      }
       break;
     case OperatorGrab:
       m_hasGrabMouse = true;
@@ -821,12 +822,14 @@ HCURSOR GHOST_WindowWin32::getStandardCursor(GHOST_TStandardCursor shape) const
 void GHOST_WindowWin32::loadCursor(bool visible, GHOST_TStandardCursor shape) const
 {
   if (!visible) {
-    while (::ShowCursor(FALSE) >= 0)
-      ;
+    while (::ShowCursor(FALSE) >= 0) {
+      /* Pass. */
+    }
   }
   else {
-    while (::ShowCursor(TRUE) < 0)
-      ;
+    while (::ShowCursor(TRUE) < 0) {
+      /* Pass. */
+    }
   }
 
   HCURSOR cursor = getStandardCursor(shape);

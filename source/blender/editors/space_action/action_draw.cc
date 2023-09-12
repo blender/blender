@@ -379,7 +379,7 @@ static void draw_keyframes(bAnimContext *ac,
   const float channel_step = ANIM_UI_get_channel_step();
   float ymax = ANIM_UI_get_first_channel_top(v2d);
 
-  AnimKeylistDrawList *draw_list = ED_keylist_draw_list_create();
+  ChannelDrawList *draw_list = ED_channel_draw_list_create();
 
   const float scale_factor = ANIM_UI_get_keyframe_scale_factor();
 
@@ -404,62 +404,62 @@ static void draw_keyframes(bAnimContext *ac,
 
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
-    /* draw 'keyframes' for each specific datatype */
+    /* Add channels to list to draw later. */
     switch (ale->datatype) {
       case ALE_ALL:
-        draw_summary_channel(
+        ED_add_summary_channel(
             draw_list, static_cast<bAnimContext *>(ale->data), ycenter, scale_factor, action_flag);
         break;
       case ALE_SCE:
-        draw_scene_channel(draw_list,
-                           ads,
-                           static_cast<Scene *>(ale->key_data),
-                           ycenter,
-                           scale_factor,
-                           action_flag);
+        ED_add_scene_channel(draw_list,
+                             ads,
+                             static_cast<Scene *>(ale->key_data),
+                             ycenter,
+                             scale_factor,
+                             action_flag);
         break;
       case ALE_OB:
-        draw_object_channel(draw_list,
-                            ads,
-                            static_cast<Object *>(ale->key_data),
-                            ycenter,
-                            scale_factor,
-                            action_flag);
+        ED_add_object_channel(draw_list,
+                              ads,
+                              static_cast<Object *>(ale->key_data),
+                              ycenter,
+                              scale_factor,
+                              action_flag);
         break;
       case ALE_ACT:
-        draw_action_channel(draw_list,
-                            adt,
-                            static_cast<bAction *>(ale->key_data),
-                            ycenter,
-                            scale_factor,
-                            action_flag);
+        ED_add_action_channel(draw_list,
+                              adt,
+                              static_cast<bAction *>(ale->key_data),
+                              ycenter,
+                              scale_factor,
+                              action_flag);
         break;
       case ALE_GROUP:
-        draw_agroup_channel(draw_list,
-                            adt,
-                            static_cast<bActionGroup *>(ale->data),
-                            ycenter,
-                            scale_factor,
-                            action_flag);
+        ED_add_action_group_channel(draw_list,
+                                    adt,
+                                    static_cast<bActionGroup *>(ale->data),
+                                    ycenter,
+                                    scale_factor,
+                                    action_flag);
         break;
       case ALE_FCURVE:
-        draw_fcurve_channel(draw_list,
-                            adt,
-                            static_cast<FCurve *>(ale->key_data),
-                            ycenter,
-                            scale_factor,
-                            action_flag);
+        ED_add_fcurve_channel(draw_list,
+                              adt,
+                              static_cast<FCurve *>(ale->key_data),
+                              ycenter,
+                              scale_factor,
+                              action_flag);
         break;
       case ALE_GREASE_PENCIL_CEL:
-        draw_grease_pencil_cels_channel(draw_list,
-                                        ads,
-                                        static_cast<const GreasePencilLayer *>(ale->data),
-                                        ycenter,
-                                        scale_factor,
-                                        action_flag);
+        ED_add_grease_pencil_cels_channel(draw_list,
+                                          ads,
+                                          static_cast<const GreasePencilLayer *>(ale->data),
+                                          ycenter,
+                                          scale_factor,
+                                          action_flag);
         break;
       case ALE_GREASE_PENCIL_GROUP:
-        draw_grease_pencil_layer_group_channel(
+        ED_add_grease_pencil_layer_group_channel(
             draw_list,
             ads,
             static_cast<const GreasePencilLayerTreeGroup *>(ale->data),
@@ -468,34 +468,35 @@ static void draw_keyframes(bAnimContext *ac,
             action_flag);
         break;
       case ALE_GREASE_PENCIL_DATA:
-        draw_grease_pencil_datablock_channel(draw_list,
-                                             ads,
-                                             static_cast<const GreasePencil *>(ale->data),
-                                             ycenter,
-                                             scale_factor,
-                                             action_flag);
+        ED_add_grease_pencil_datablock_channel(draw_list,
+                                               ads,
+                                               static_cast<const GreasePencil *>(ale->data),
+                                               ycenter,
+                                               scale_factor,
+                                               action_flag);
         break;
       case ALE_GPFRAME:
-        draw_gpl_channel(draw_list,
-                         ads,
-                         static_cast<bGPDlayer *>(ale->data),
-                         ycenter,
-                         scale_factor,
-                         action_flag);
+        ED_add_grease_pencil_layer_legacy_channel(draw_list,
+                                                  ads,
+                                                  static_cast<bGPDlayer *>(ale->data),
+                                                  ycenter,
+                                                  scale_factor,
+                                                  action_flag);
         break;
       case ALE_MASKLAY:
-        draw_masklay_channel(draw_list,
-                             ads,
-                             static_cast<MaskLayer *>(ale->data),
-                             ycenter,
-                             scale_factor,
-                             action_flag);
+        ED_add_mask_layer_channel(draw_list,
+                                  ads,
+                                  static_cast<MaskLayer *>(ale->data),
+                                  ycenter,
+                                  scale_factor,
+                                  action_flag);
         break;
     }
   }
 
-  ED_keylist_draw_list_flush(draw_list, v2d);
-  ED_keylist_draw_list_free(draw_list);
+  /* Drawing happens in here. */
+  ED_channel_list_flush(draw_list, v2d);
+  ED_channel_list_free(draw_list);
 }
 
 void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region)

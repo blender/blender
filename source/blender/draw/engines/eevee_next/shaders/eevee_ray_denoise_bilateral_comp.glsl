@@ -102,7 +102,7 @@ void main()
   const uint tile_size = RAYTRACE_GROUP_SIZE;
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel_fullres = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
-  vec2 center_uv = vec2(texel_fullres) * raytrace_buf.full_resolution_inv;
+  vec2 center_uv = vec2(texel_fullres) * uniform_buf.raytrace.full_resolution_inv;
 
   float center_depth = texelFetch(hiz_tx, texel_fullres, 0).r;
   vec3 center_P = get_world_space_from_depth(center_uv, center_depth);
@@ -160,7 +160,7 @@ void main()
     }
 
     float sample_depth = texelFetch(hiz_tx, sample_texel, 0).r;
-    vec2 sample_uv = vec2(sample_texel) * raytrace_buf.full_resolution_inv;
+    vec2 sample_uv = vec2(sample_texel) * uniform_buf.raytrace.full_resolution_inv;
     vec3 sample_P = get_world_space_from_depth(sample_uv, sample_depth);
 
     /* Background case. */

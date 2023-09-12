@@ -283,9 +283,9 @@ class GRAPH_MT_channel(Menu):
         layout.operator("anim.channels_fcurves_enable")
 
         layout.separator()
-        layout.operator("graph.bake")
-        layout.operator("graph.unbake")
-        layout.operator("graph.sound_bake")
+        layout.operator("graph.keys_to_samples")
+        layout.operator("graph.samples_to_keys")
+        layout.operator("graph.sound_to_samples")
 
         layout.separator()
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
@@ -305,7 +305,7 @@ class GRAPH_MT_key_density(Menu):
         # as we do not have a modal mode for it, so just execute it.
         with operator_context(layout, 'EXEC_REGION_WIN'):
             layout.operator("graph.decimate", text="Decimate (Allowed Change)").mode = 'ERROR'
-        layout.operator("graph.sample")
+        layout.operator("graph.bake_keys")
 
         layout.separator()
         layout.operator("graph.clean").channels = False
@@ -325,6 +325,7 @@ class GRAPH_MT_key_blending(Menu):
         layout.operator("graph.blend_to_ease", text="Blend to Ease")
         layout.operator("graph.match_slope", text="Match Slope")
         layout.operator("graph.shear", text="Shear Keys")
+        layout.operator("graph.scale_average", text="Scale Average")
 
 
 class GRAPH_MT_key_smoothing(Menu):

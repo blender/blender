@@ -431,7 +431,6 @@ void register_node_type_cmp_cryptomatte_legacy()
   node_type_storage(
       &ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
   ntype.gather_link_search_ops = nullptr;
-  ntype.gather_add_node_search_ops = nullptr;
   ntype.get_compositor_operation = legacy_file_ns::get_compositor_operation;
   ntype.realtime_compositor_unsupported_message = N_(
       "Node not supported in the Viewport compositor");

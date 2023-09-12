@@ -91,15 +91,19 @@ void main()
   diffuse_data.color = is_refraction ? vec3(0.0) : gbuffer_color_unpack(color_1_packed);
 
   /* Light passes. */
-  if (rp_buf.diffuse_light_id >= 0) {
-    imageStore(rp_color_img, ivec3(texel, rp_buf.diffuse_light_id), vec4(diffuse_light, 1.0));
+  if (uniform_buf.render_pass.diffuse_light_id >= 0) {
+    imageStore(rp_color_img,
+               ivec3(texel, uniform_buf.render_pass.diffuse_light_id),
+               vec4(diffuse_light, 1.0));
   }
-  if (rp_buf.specular_light_id >= 0) {
+  if (uniform_buf.render_pass.specular_light_id >= 0) {
     vec3 specular_light = reflection_light + refraction_light;
-    imageStore(rp_color_img, ivec3(texel, rp_buf.specular_light_id), vec4(specular_light, 1.0));
+    imageStore(rp_color_img,
+               ivec3(texel, uniform_buf.render_pass.specular_light_id),
+               vec4(specular_light, 1.0));
   }
-  if (rp_buf.shadow_id >= 0) {
-    imageStore(rp_value_img, ivec3(texel, rp_buf.shadow_id), vec4(shadow));
+  if (uniform_buf.render_pass.shadow_id >= 0) {
+    imageStore(rp_value_img, ivec3(texel, uniform_buf.render_pass.shadow_id), vec4(shadow));
   }
 
   if (!is_last_eval_pass) {

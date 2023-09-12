@@ -2,14 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_index_range.hh"
-#include "BLI_math_vector.h"
-#include "BLI_math_vector.hh"
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
-#include "BKE_geometry_set.hh"
+#include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
 
 #include "GEO_mesh_primitive_cuboid.hh"
@@ -77,7 +70,7 @@ static void calculate_positions(const CuboidConfig &config, MutableSpan<float3> 
         const float y_pos = y_front + y_delta * y;
         for (const int x : IndexRange(config.verts_x)) {
           const float x_pos = x_left + x_delta * x;
-          copy_v3_v3(positions[vert_index++], float3(x_pos, y_pos, z_pos));
+          positions[vert_index++] = float3(x_pos, y_pos, z_pos);
         }
       }
     }
@@ -89,7 +82,7 @@ static void calculate_positions(const CuboidConfig &config, MutableSpan<float3> 
           const float z_pos = z_bottom + z_delta * z;
           for (const int x : IndexRange(config.verts_x)) {
             const float x_pos = x_left + x_delta * x;
-            copy_v3_v3(positions[vert_index++], float3(x_pos, y_pos, z_pos));
+            positions[vert_index++] = float3(x_pos, y_pos, z_pos);
           }
         }
         else {
@@ -97,9 +90,9 @@ static void calculate_positions(const CuboidConfig &config, MutableSpan<float3> 
           const float x_pos = x_left;
           const float y_pos = y_front + y_delta * y;
           const float z_pos = z_bottom + z_delta * z;
-          copy_v3_v3(positions[vert_index++], float3(x_pos, y_pos, z_pos));
+          positions[vert_index++] = float3(x_pos, y_pos, z_pos);
           const float x_pos2 = x_left + x_delta * config.edges_x;
-          copy_v3_v3(positions[vert_index++], float3(x_pos2, y_pos, z_pos));
+          positions[vert_index++] = float3(x_pos2, y_pos, z_pos);
         }
       }
     }
@@ -154,7 +147,6 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
   for ([[maybe_unused]] const int z : IndexRange(config.edges_z)) {
     for (const int x : IndexRange(config.edges_x)) {
       define_quad(corner_verts,
-
                   loop_index,
                   vert_1_start + x,
                   vert_1_start + x + 1,
@@ -175,7 +167,6 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
   for ([[maybe_unused]] const int y : IndexRange(config.edges_y)) {
     for (const int x : IndexRange(config.edges_x)) {
       define_quad(corner_verts,
-
                   loop_index,
                   vert_1_start + x,
                   vert_1_start + x + 1,
@@ -197,7 +188,6 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
     }
     for (const int x : IndexRange(config.edges_x)) {
       define_quad(corner_verts,
-
                   loop_index,
                   vert_1_start + x,
                   vert_2_start + x,

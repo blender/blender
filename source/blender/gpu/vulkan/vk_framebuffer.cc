@@ -380,6 +380,7 @@ void VKFrameBuffer::render_pass_create()
                                       eImageViewUsage::Attachment,
                                       IndexRange(max_ii(attachment.layer, 0), 1),
                                       IndexRange(attachment.mip, 1),
+                                      false,
                                       name_));
       image_views[attachment_location] = image_views_.last().vk_handle();
 

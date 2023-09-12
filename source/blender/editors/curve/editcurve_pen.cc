@@ -96,7 +96,7 @@ struct CurvePenData {
   /* Whether a segment is being altered by click and drag. */
   bool spline_nearby;
   /* Whether some action was done. Used for select. */
-  bool acted;
+  bool changed;
   /* Whether a point was found underneath the mouse. */
   bool found_point;
   /* Whether multiple selected points should be moved. */
@@ -649,7 +649,7 @@ static void insert_bezt_to_nurb(Nurb *nu, const CutData *data, Curve *cu)
   nu->bezt = new_bezt_array;
   ED_curve_deselect_all(editnurb);
   BKE_nurb_handles_calc(nu);
-  BEZT_SEL_ALL(new_bezt);
+  BEZT_SEL_IDX(new_bezt, 1);
 }
 
 /**
@@ -960,6 +960,13 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
           MEM_freeN(nu1->bezt);
           nu1->bezt = new_bezt;
           nu1->pntsu += 2;
+
+          /* Set the new points selection. */
+          BEZT_DESEL_ALL(new_bezt);
+          BEZT_SEL_IDX(new_bezt, 0);
+
+          BEZT_DESEL_ALL(new_bezt + (nu1->pntsu - 1));
+          BEZT_SEL_IDX(new_bezt + (nu1->pntsu - 1), 2);
         }
         else {
           BezTriple *new_bezt = (BezTriple *)MEM_mallocN((nu1->pntsu + 1) * sizeof(BezTriple),
@@ -971,6 +978,10 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
           MEM_freeN(nu1->bezt);
           nu1->bezt = new_bezt;
           nu1->pntsu++;
+
+          /* Set the new points selection. */
+          BEZT_DESEL_ALL(new_bezt);
+          BEZT_SEL_IDX(new_bezt, 0);
         }
         cu->actnu = nu_index;
         cu->actvert = 0;
@@ -987,6 +998,10 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
         nu1->pntsu++;
         cu->actnu = nu_index;
         cu->actvert = nu1->pntsu - 1;
+
+        /* Set the new points selection. */
+        BEZT_DESEL_ALL(new_bezt + (nu1->pntsu - 1));
+        BEZT_SEL_IDX(new_bezt + (nu1->pntsu - 1), 2);
       }
     }
     else {
@@ -1421,21 +1436,11 @@ static void init_selected_bezt_handles(ListBase *nurbs)
 
 static void toggle_select_bezt(BezTriple *bezt, const int bezt_idx, Curve *cu, Nurb *nu)
 {
-  if (bezt_idx == 1) {
-    if (BEZT_ISSEL_IDX(bezt, 1)) {
-      BEZT_DESEL_ALL(bezt);
-    }
-    else {
-      BEZT_SEL_ALL(bezt);
-    }
+  if (BEZT_ISSEL_IDX(bezt, bezt_idx)) {
+    BEZT_DESEL_IDX(bezt, bezt_idx);
   }
   else {
-    if (BEZT_ISSEL_IDX(bezt, bezt_idx)) {
-      BEZT_DESEL_IDX(bezt, bezt_idx);
-    }
-    else {
-      BEZT_SEL_IDX(bezt, bezt_idx);
-    }
+    BEZT_SEL_IDX(bezt, bezt_idx);
   }
 
   if (BEZT_ISSEL_ANY(bezt)) {
@@ -1466,7 +1471,7 @@ static void toggle_handle_types(BezTriple *bezt, int bezt_idx, CurvePenData *cpd
         bezt->h2 = HD_FREE;
       }
     }
-    cpd->acted = true;
+    cpd->changed = true;
   }
   else if (bezt_idx == 2) {
     if (bezt->h2 == HD_VECT) {
@@ -1478,7 +1483,7 @@ static void toggle_handle_types(BezTriple *bezt, int bezt_idx, CurvePenData *cpd
         bezt->h1 = HD_FREE;
       }
     }
-    cpd->acted = true;
+    cpd->changed = true;
   }
 }
 
@@ -1643,59 +1648,60 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
       if (cpd->spline_nearby && move_seg && cpd->msd != nullptr) {
         MoveSegmentData *seg_data = cpd->msd;
         move_segment(&vc, seg_data, event);
-        cpd->acted = true;
+        cpd->changed = true;
         if (seg_data->nu && seg_data->nu->type == CU_BEZIER) {
           BKE_nurb_handles_calc(seg_data->nu);
         }
       }
       else if (cpd->move_adjacent) {
         move_adjacent_handle(&vc, event, nurbs);
-        cpd->acted = true;
+        cpd->changed = true;
       }
       else if (cpd->new_point || (move_point && !cpd->spline_nearby && cpd->found_point)) {
         /* Move only the bezt handles if it's a new point. */
         move_all_selected_points(&vc, event, cpd, nurbs, cpd->new_point);
-        cpd->acted = true;
+        cpd->changed = true;
       }
     }
   }
   else if (ELEM(event->type, LEFTMOUSE)) {
     if (ELEM(event->val, KM_RELEASE, KM_DBL_CLICK)) {
       if (delete_point && !cpd->new_point && !cpd->dragging) {
-        if (ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, false, &params)) {
-          cpd->acted = delete_point_under_mouse(&vc, event);
+        if (ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, &params)) {
+          cpd->changed = delete_point_under_mouse(&vc, event);
         }
       }
 
       /* Close spline on Click, if enabled. */
-      if (!cpd->acted && close_spline && close_spline_method == ON_CLICK && cpd->found_point &&
+      if (!cpd->changed && close_spline && close_spline_method == ON_CLICK && cpd->found_point &&
           !cpd->dragging)
       {
         if (cpd->nu && !is_cyclic(cpd->nu)) {
           copy_v2_v2_int(vc.mval, event->mval);
-          cpd->acted = make_cyclic_if_endpoints(&vc, cpd->nu, cpd->bezt, cpd->bp);
+          cpd->changed = make_cyclic_if_endpoints(&vc, cpd->nu, cpd->bezt, cpd->bp);
         }
       }
 
-      if (!cpd->acted && (insert_point || extrude_point) && cpd->spline_nearby && !cpd->dragging) {
+      if (!cpd->changed && (insert_point || extrude_point) && cpd->spline_nearby && !cpd->dragging)
+      {
         if (insert_point) {
           insert_point_to_segment(&vc, event);
           cpd->new_point = true;
-          cpd->acted = true;
+          cpd->changed = true;
         }
         else if (extrude_point) {
           extrude_points_from_selected_vertices(&vc, event, extrude_handle);
-          cpd->acted = true;
+          cpd->changed = true;
         }
       }
 
-      if (!cpd->acted && toggle_vector) {
+      if (!cpd->changed && toggle_vector) {
         int bezt_idx;
         get_closest_vertex_to_point_in_nurbs(&vc, nurbs, mval_fl, &nu, &bezt, &bp, &bezt_idx);
         if (bezt) {
           if (bezt_idx == 1 && cycle_handle_type) {
             cycle_handles(bezt);
-            cpd->acted = true;
+            cpd->changed = true;
           }
           else {
             toggle_handle_types(bezt, bezt_idx, cpd);
@@ -1707,7 +1713,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
 
-      if (!cpd->selection_made && !cpd->acted) {
+      if (!cpd->selection_made && !cpd->changed) {
         if (cpd->select_multi) {
           int bezt_idx;
           get_closest_vertex_to_point_in_nurbs(&vc, nurbs, mval_fl, &nu, &bezt, &bp, &bezt_idx);
@@ -1722,7 +1728,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
         }
         else if (select_point) {
-          ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, false, &params);
+          ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, &params);
         }
       }
 
@@ -1790,12 +1796,7 @@ static int curve_pen_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       /* Select the closest bezt or bp. */
       ED_curve_deselect_all(cu->editnurb);
       if (bezt1) {
-        if (bezt_idx == 1) {
-          BEZT_SEL_ALL(bezt1);
-        }
-        else {
-          BEZT_SEL_IDX(bezt1, bezt_idx);
-        }
+        BEZT_SEL_IDX(bezt1, bezt_idx);
         BKE_curve_nurb_vert_active_set(cu, nu1, bezt1);
       }
       else if (bp1) {
@@ -1809,11 +1810,11 @@ static int curve_pen_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       /* Close the spline on press. */
       if (close_spline && close_spline_method == ON_PRESS && cpd->nu && !is_cyclic(cpd->nu)) {
         copy_v2_v2_int(vc.mval, event->mval);
-        cpd->new_point = cpd->acted = cpd->link_handles = make_cyclic_if_endpoints(
+        cpd->new_point = cpd->changed = cpd->link_handles = make_cyclic_if_endpoints(
             &vc, cpd->nu, cpd->bezt, cpd->bp);
       }
     }
-    else if (!cpd->acted) {
+    else if (!cpd->changed) {
       if (is_spline_nearby(&vc, op, event, threshold_dist_px)) {
         cpd->spline_nearby = true;
 
@@ -1821,12 +1822,12 @@ static int curve_pen_invoke(bContext *C, wmOperator *op, const wmEvent *event)
          * "new_point" to true so that the new point's handles can be controlled. */
         if (insert_point && !move_seg) {
           insert_point_to_segment(&vc, event);
-          cpd->new_point = cpd->acted = cpd->link_handles = true;
+          cpd->new_point = cpd->changed = cpd->link_handles = true;
         }
       }
       else if (extrude_point) {
         extrude_points_from_selected_vertices(&vc, event, extrude_handle);
-        cpd->new_point = cpd->acted = cpd->link_handles = true;
+        cpd->new_point = cpd->changed = cpd->link_handles = true;
       }
     }
   }

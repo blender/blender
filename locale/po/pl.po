@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -1796,14 +1796,6 @@ msgstr "Obiekty potomne będą używać transformacji względnych, takich jak de
 
 msgid "Visible"
 msgstr "Widoczny"
-
-
-msgid "Bone Group"
-msgstr "Grupa kości"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "Grupy kanałów pozy (kości)"
 
 
 msgid "Brush Capabilities"
@@ -6249,6 +6241,10 @@ msgid "Distort"
 msgstr "Zniekształć"
 
 
+msgid "Add Modifier"
+msgstr "Dodaj Modyfikator"
+
+
 msgid "Python"
 msgstr "Python"
 
@@ -9294,10 +9290,6 @@ msgid "Update Dependencies"
 msgstr "Odśwież Zależności"
 
 
-msgid "Add Modifier"
-msgstr "Dodaj Modyfikator"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "Krzywa F ma tylko modyfikatory F"
 
@@ -10665,15 +10657,6 @@ msgid "Mesh has no VCol data"
 msgstr "Siatka nie posiada danych VCol"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "Grupa [ Szkielet ]"
-
-
-msgid "Bone group '%s' not found in this object"
-msgstr "Nie odnaleziono grupy kości '%s' w tym obiekcie"
-
-
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Nie odnaleziono ogranicznika '%s' w kości pozy (pose bone) '%s'"
 
@@ -11216,10 +11199,6 @@ msgstr "Hiszpański (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Kataloński (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Czeski (Český)"
 
 
 msgid "Portuguese (Português)"

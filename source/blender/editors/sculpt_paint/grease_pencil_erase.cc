@@ -376,7 +376,6 @@ struct EraseOperationExecutor {
    * source geometry, with the given \a factor.
    * A point in the destination is a \a cut if it splits the source curves geometry, meaning it is
    * the first point of a new curve in the destination.
-   *
    */
   struct PointTransferData {
     int src_point;

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -3316,6 +3316,10 @@ msgid "Multiply the final easing values by the Scale In/Out Y factors"
 msgstr "Умножить окончательные значения ослабления на множители масштаба начала/конца по Y"
 
 
+msgid "Bones"
+msgstr "Кости"
+
+
 msgid "Visible"
 msgstr "Видимо"
 
@@ -3326,38 +3330,6 @@ msgstr "Активная коллекция"
 
 msgid "Custom"
 msgstr "Особый"
-
-
-msgid "Bone Group"
-msgstr "Группа костей"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "Группы каналов (костей) поз"
-
-
-msgid "Bone Groups"
-msgstr "Группы костей"
-
-
-msgid "Collection of bone groups"
-msgstr "Коллекция групп костей"
-
-
-msgid "Active Bone Group"
-msgstr "Активная группа костей"
-
-
-msgid "Active bone group for this pose"
-msgstr "Активная группа костей для этой позы"
-
-
-msgid "Active Bone Group Index"
-msgstr "Индекс активной группы костей"
-
-
-msgid "Active index in bone groups array"
-msgstr "Активный индекс в массиве групп костей"
 
 
 msgid "Bool Attribute Value"
@@ -17301,10 +17273,6 @@ msgid "Animation data for this data-block"
 msgstr "Данные анимации для этого датаблока"
 
 
-msgid "Bones"
-msgstr "Кости"
-
-
 msgid "Octahedral"
 msgstr "8-гранник"
 
@@ -17387,14 +17355,6 @@ msgstr "Отображать особые формы костей"
 
 msgid "Display bones with their custom shapes"
 msgstr "Отображать кости с их особыми формами"
-
-
-msgid "Display Bone Group Colors"
-msgstr "Отображать цвета групп костей"
-
-
-msgid "Display bone group colors"
-msgstr "Отображать цвета групп костей"
 
 
 msgid "Display Names"
@@ -20983,6 +20943,14 @@ msgid "Control how fast the probe influence decreases"
 msgstr "Скорость уменьшения влияния зонда"
 
 
+msgid "Clamp Direct"
+msgstr "Ограничить прямое"
+
+
+msgid "Clamp Indirect"
+msgstr "Ограничить отраженое"
+
+
 msgid "Smoother irradiance interpolation but introduce light bleeding"
 msgstr "Более мягкая интерполяция освещённости, но создает смешение источников света"
 
@@ -21893,6 +21861,10 @@ msgstr "Правка"
 
 msgid "Sculpt"
 msgstr "Скульптура"
+
+
+msgid "Modifier"
+msgstr "Модификатор"
 
 
 msgid "Tool"
@@ -29340,24 +29312,24 @@ msgid "Primitives"
 msgstr "Примитивы"
 
 
-msgid "Converter"
-msgstr "Преобразователь"
-
-
-msgid "Distort"
-msgstr "Искажение"
-
-
-msgid "Layout"
-msgstr "Разметка"
-
-
 msgid "Keying"
 msgstr "Кеинг"
 
 
 msgid "Tracking"
 msgstr "Трекинг"
+
+
+msgid "Layout"
+msgstr "Разметка"
+
+
+msgid "Converter"
+msgstr "Преобразователь"
+
+
+msgid "Distort"
+msgstr "Искажение"
 
 
 msgid "Node Context Menu"
@@ -29379,6 +29351,18 @@ msgstr "Ноды"
 
 msgid "Node Color Specials"
 msgstr "Настройка цвета ноды"
+
+
+msgid "Add Modifier"
+msgstr "Добавить модификатор"
+
+
+msgid "Generate"
+msgstr "Генерация"
+
+
+msgid "Physics"
+msgstr "Физика"
 
 
 msgid "Particle Specials"
@@ -32212,10 +32196,6 @@ msgstr "Начальный кадр для запекания океана"
 
 msgid "Method of modifying geometry"
 msgstr "Метод изменения геометрии"
-
-
-msgid "Generate"
-msgstr "Генерация"
 
 
 msgid "Generate ocean surface geometry at the specified resolution"
@@ -44975,10 +44955,6 @@ msgid "Enter/Exit sculpt mode for Grease Pencil strokes"
 msgstr "Войти/выйти из режима скульптинга штрихов Grease Pencil"
 
 
-msgid "Modifier"
-msgstr "Модификатор"
-
-
 msgid "Name of the modifier to edit"
 msgstr "Имя редактируемого модификатора"
 
@@ -45589,15 +45565,6 @@ msgstr "Войти/выйти в режим покраски весов Grease P
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "Запечь кривую"
-
-
-msgid "Bake selected F-Curves to a set of sampled points defining a similar curve"
-msgstr "Запечь выбранную F-кривую в выборочный набор точек, определяющих схожую кривую"
-
-
-msgctxt "Operator"
 msgid "Click-Insert Keyframes"
 msgstr "Вставить ключевые кадры по щелчку"
 
@@ -45856,15 +45823,6 @@ msgstr "Выпрямить рукоятки"
 
 msgid "Flatten handles for a smoother transition"
 msgstr "Выпрямить рукоятки для сглаживания перехода"
-
-
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "Запечь звук в F-кривые"
-
-
-msgid "Bakes a sound wave to selected F-Curves"
-msgstr "Запечь звуковую волну для выбранных F-кривых"
 
 
 msgid "Cutoff frequency of a low-pass filter that is applied to the audio data"
@@ -50931,6 +50889,11 @@ msgid "Add an object to the scene"
 msgstr "Добавить объект на сцену"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Добавить модификатор"
+
+
 msgid "Add named object"
 msgstr "Добавить именованный объект"
 
@@ -51377,11 +51340,6 @@ msgstr "Обвести сцену"
 
 msgid "Collection Line Art"
 msgstr "Обвести коллекцию"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Добавить модификатор"
 
 
 msgid "Add a procedural operation/effect to the active grease pencil object"
@@ -62366,10 +62324,6 @@ msgid "Generate system information, saved into a text file"
 msgstr "Сгенерировать информацию о системе и сохранить в текстовый файл"
 
 
-msgid "Set the tool by name (for keymaps)"
-msgstr "Установить название инструмента (для списков клавиатурных комбинаций)"
-
-
 msgid "Cycle"
 msgstr "Цикл"
 
@@ -62380,10 +62334,6 @@ msgstr "Переключиться между инструментами в эт
 
 msgid "Identifier of the tool"
 msgstr "Идентификатор инструмента"
-
-
-msgid "Set the tool by index (for keymaps)"
-msgstr "Установить инструмент по индексу (для списков клавиатурных комбинаций)"
 
 
 msgctxt "Operator"
@@ -63248,6 +63198,10 @@ msgid "Filters"
 msgstr "Фильтры"
 
 
+msgid "Snapping"
+msgstr "Привязка"
+
+
 msgid "Bake Animation"
 msgstr "Запечь анимацию"
 
@@ -63307,10 +63261,6 @@ msgstr "Области"
 
 msgid "Sample Line"
 msgstr "Значения вдоль отрезка"
-
-
-msgid "Snapping"
-msgstr "Привязка"
 
 
 msgctxt "Operator"
@@ -63550,10 +63500,6 @@ msgid "Hair Shape"
 msgstr "Форма волоса"
 
 
-msgid "Physics"
-msgstr "Физика"
-
-
 msgid "Battle"
 msgstr "Сражение"
 
@@ -63714,12 +63660,12 @@ msgid "Volumetric Lighting"
 msgstr "Объёмное освещение"
 
 
-msgid "Screen Space Reflections"
-msgstr "Отражение в пространстве экрана"
-
-
 msgid "Volumetric Shadows"
 msgstr "Объёмные тени"
+
+
+msgid "Screen Space Reflections"
+msgstr "Отражение в пространстве экрана"
 
 
 msgid "Encoding"
@@ -65259,10 +65205,6 @@ msgstr "Коллекция кэшей точек"
 
 msgid "A collection of pose channels, including settings for animating bones"
 msgstr "Коллекция каналов поз, включающая настройки анимированных костей"
-
-
-msgid "Groups of the bones"
-msgstr "Группы костей"
 
 
 msgid "Pose Bones"
@@ -67921,16 +67863,8 @@ msgid "Sensor is being scanned from top to bottom"
 msgstr "Сенсор сканируется сверху вниз"
 
 
-msgid "Clamp Direct"
-msgstr "Ограничить прямое"
-
-
 msgid "If non-zero, the maximum value for a direct sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
 msgstr "Если указано ненулевое значение, то это значение будет использоваться в качестве максимального значения интенсивности прямых лучей; более интенсивные лучи будут ослаблены для уменьшения шума"
-
-
-msgid "Clamp Indirect"
-msgstr "Ограничить отраженое"
 
 
 msgid "If non-zero, the maximum value for an indirect sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
@@ -72911,54 +72845,6 @@ msgid "Action displayed and edited in this space"
 msgstr "Действие, отображаемое и редактируемое в этом пространстве"
 
 
-msgid "Auto Snap"
-msgstr "Автоматическая привязка"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "Настройки автоматической привязки ко времени для преобразований"
-
-
-msgid "No Auto-Snap"
-msgstr "Без автоматической привязки"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "Привязка к интервалу в один кадр"
-
-
-msgid "Second Step"
-msgstr "Секундный шаг"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "Привязка к интервалу в одну секунду"
-
-
-msgid "Nearest Frame"
-msgstr "Ближайший кадр"
-
-
-msgid "Snap to actual frames (nla-action time)"
-msgstr "Привязка к фактическим кадрам (время НЛА-действия)"
-
-
-msgid "Nearest Second"
-msgstr "Ближайшая секунда"
-
-
-msgid "Snap to actual seconds (nla-action time)"
-msgstr "Привязка к фактическим секундам (время НЛА-действия)"
-
-
-msgid "Nearest Marker"
-msgstr "Ближайший маркер"
-
-
-msgid "Snap to nearest marker"
-msgstr "Переместить к ближайшему маркеру"
-
-
 msgid "Show the active object's cloth point cache"
 msgstr "Отображать кэш точек ткани активного объекта"
 
@@ -76581,12 +76467,24 @@ msgid "Display only faces with the currently displayed image assigned"
 msgstr "Отображать только грани с назначенным изображением, отображаемым в данный момент"
 
 
-msgid "Snap Element"
-msgstr "Привязать элемент"
-
-
 msgid "Type of element to snap to"
 msgstr "Тип элемента, к которому осуществлять привязку"
+
+
+msgid "Second"
+msgstr "Второй"
+
+
+msgid "Nearest Marker"
+msgstr "Ближайший маркер"
+
+
+msgid "Snap to nearest marker"
+msgstr "Переместить к ближайшему маркеру"
+
+
+msgid "Snap Element"
+msgstr "Привязать элемент"
 
 
 msgid "Snap Node Element"
@@ -79662,10 +79560,6 @@ msgid "Pivot Offset"
 msgstr "Смещение центра вращения"
 
 
-msgid "Group Colors"
-msgstr "Цвета групп"
-
-
 msgid "Axes"
 msgstr "Оси"
 
@@ -79972,6 +79866,26 @@ msgstr "Порог влияния"
 
 msgid "Update on Edit"
 msgstr "Обновлять при редактировании"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "Ремеш"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Арматура"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Решётка"
+
+
+msgctxt "Operator"
+msgid "Smooth Laplacian"
+msgstr "Лапласово сглаживание"
 
 
 msgid "Distance Reference"
@@ -80739,10 +80653,6 @@ msgstr "Торможение перемещения"
 
 msgid "Velocity Linear"
 msgstr "Линейная скорость"
-
-
-msgid "Second"
-msgstr "Второй"
 
 
 msgid "X Stiffness"
@@ -81752,11 +81662,6 @@ msgstr "Цвета сетки"
 
 
 msgctxt "Operator"
-msgid "Search..."
-msgstr "Поиск…"
-
-
-msgctxt "Operator"
 msgid "Backdrop Move"
 msgstr "Режим подложки"
 
@@ -82184,6 +82089,11 @@ msgid "Rotation"
 msgstr "Повернуть"
 
 
+msgctxt "Operator"
+msgid "Copy Modifiers to Selection"
+msgstr "Скопировать модификаторы на выделение"
+
+
 msgid "Strip Offset Start"
 msgstr "Начальное смещение клипов"
 
@@ -82212,11 +82122,6 @@ msgstr "Клип"
 msgctxt "Operator"
 msgid "Move/Extend from Current Frame"
 msgstr "Переместить/расширить от текущего кадра"
-
-
-msgctxt "Operator"
-msgid "Copy Modifiers to Selection"
-msgstr "Скопировать модификаторы на выделение"
 
 
 msgctxt "Operator"
@@ -83776,16 +83681,6 @@ msgstr "Grease Pencil"
 
 
 msgctxt "Operator"
-msgid "Armature"
-msgstr "Арматура"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Решётка"
-
-
-msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "Экземпляр коллекции…"
 
@@ -83892,11 +83787,6 @@ msgstr "Вставить позу с отражением по X"
 
 msgid "Vertex Context Menu"
 msgstr "Контекстное меню вершин"
-
-
-msgctxt "Operator"
-msgid "Smooth Laplacian"
-msgstr "Лапласово сглаживание"
 
 
 msgid "Mirror Vertices"
@@ -84355,11 +84245,6 @@ msgstr "Метод уточнения"
 
 msgid "Detailing"
 msgstr "Детализация"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "Ремеш"
 
 
 msgid "Tile Offset"
@@ -88530,10 +88415,6 @@ msgid "Show in Drivers Editor"
 msgstr "Показать в редакторе драйверов"
 
 
-msgid "Add Modifier"
-msgstr "Добавить модификатор"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-кривая описана только F-модификаторами"
 
@@ -89130,6 +89011,10 @@ msgstr "Удалено датоблоков: %d"
 
 msgid "Not yet implemented"
 msgstr "Пока не реализовано"
+
+
+msgid "Bone Groups"
+msgstr "Группы костей"
 
 
 msgid "(empty)"
@@ -90554,15 +90439,6 @@ msgid "Mesh has no VCol data"
 msgstr "У меша нет данных цветов вершин"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "Группа"
-
-
-msgid "Bone group '%s' not found in this object"
-msgstr "Группа костей «%s» не найдена в этом объекте"
-
-
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Ограничитель «%s» не найден для позовой кости «%s»"
 
@@ -91836,10 +91712,6 @@ msgstr "Испанский (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Каталонский (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Чешский (Český)"
 
 
 msgid "Portuguese (Português)"

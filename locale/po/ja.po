@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2016-10-13 03:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese Translation Team (https://sites.google.com/site/blugjp/blender-translators)\n"
@@ -3600,6 +3600,10 @@ msgid "Multiply the final easing values by the Scale In/Out Y factors"
 msgstr "最終的なイージング値をスケールイン・アウトの Y 係数で乗算します"
 
 
+msgid "Bones"
+msgstr "ボーン"
+
+
 msgid "Visible"
 msgstr "可視"
 
@@ -3610,38 +3614,6 @@ msgstr "アクティブコレクション"
 
 msgid "Custom"
 msgstr "カスタム"
-
-
-msgid "Bone Group"
-msgstr "ボーングループ"
-
-
-msgid "Groups of Pose Channels (Bones)"
-msgstr "ポーズチャンネル(ボーン)のグループ"
-
-
-msgid "Bone Groups"
-msgstr "ボーングループ"
-
-
-msgid "Collection of bone groups"
-msgstr "ボーングループの集合"
-
-
-msgid "Active Bone Group"
-msgstr "アクティブボーングループ"
-
-
-msgid "Active bone group for this pose"
-msgstr "このポーズのアクティブボーングループ"
-
-
-msgid "Active Bone Group Index"
-msgstr "アクティブボーングループインデックス"
-
-
-msgid "Active index in bone groups array"
-msgstr "ボーングループ配列内のアクティブインデックス"
 
 
 msgid "Bool Attribute Value"
@@ -19494,10 +19466,6 @@ msgid "The position for the axes on the bone. Increasing the value moves it clos
 msgstr "ボーン上の軸の位置。大きくすると先端（テール）に近くなり、少なくすると根本（ヘッド）に近くなります"
 
 
-msgid "Bones"
-msgstr "ボーン"
-
-
 msgid "Octahedral"
 msgstr "八面体"
 
@@ -19596,14 +19564,6 @@ msgstr "カスタムボーンシェイプを表示"
 
 msgid "Display bones with their custom shapes"
 msgstr "ボーンをカスタムシェイプで表示します"
-
-
-msgid "Display Bone Group Colors"
-msgstr "ボーングループカラーを表示"
-
-
-msgid "Display bone group colors"
-msgstr "ボーングループの色を表示します"
 
 
 msgid "Display Names"
@@ -24902,6 +24862,14 @@ msgid "Capture World"
 msgstr "ワールドをキャプチャ"
 
 
+msgid "Clamp Direct"
+msgstr "直接値を制限"
+
+
+msgid "Clamp Indirect"
+msgstr "間接値を制限"
+
+
 msgid "Radius in grid sample to search valid grid samples to copy into invalid grid samples"
 msgstr "有効なグリッドサンプルを探し、無効なグリッドサンプルにコピーするグリッドサンプルの範囲"
 
@@ -26109,6 +26077,10 @@ msgstr "スカルプト"
 
 msgid "The node group is used in sculpt mode"
 msgstr "このノードグループはスカルプトモードで使用されます"
+
+
+msgid "Modifier"
+msgstr "モディファイアー"
 
 
 msgid "Tool"
@@ -35103,24 +35075,24 @@ msgid "Primitives"
 msgstr "プリミティブ"
 
 
-msgid "Converter"
-msgstr "コンバーター"
-
-
-msgid "Distort"
-msgstr "変形"
-
-
-msgid "Layout"
-msgstr "レイアウト"
-
-
 msgid "Keying"
 msgstr "キーイング"
 
 
 msgid "Tracking"
 msgstr "トラッキング"
+
+
+msgid "Layout"
+msgstr "レイアウト"
+
+
+msgid "Converter"
+msgstr "コンバーター"
+
+
+msgid "Distort"
+msgstr "変形"
 
 
 msgid "Node Context Menu"
@@ -35154,6 +35126,18 @@ msgstr "ノード"
 
 msgid "Node Color Specials"
 msgstr "ノードカラースペシャル"
+
+
+msgid "Add Modifier"
+msgstr "モディファイアーを追加"
+
+
+msgid "Generate"
+msgstr "生成"
+
+
+msgid "Physics"
+msgstr "物理演算"
 
 
 msgid "Assets"
@@ -38875,10 +38859,6 @@ msgstr "海洋をベイクする開始フレーム"
 
 msgid "Method of modifying geometry"
 msgstr "形状を変更する方法"
-
-
-msgid "Generate"
-msgstr "生成"
 
 
 msgid "Generate ocean surface geometry at the specified resolution"
@@ -45828,14 +45808,6 @@ msgstr "カーブまたはポイントクラウドジオメトリの各ポイン
 
 msgid "Retrieve the current time in the scene's animation in units of seconds or frames"
 msgstr "シーンのアニメーションの現在の時間を、秒またはフレーム数で取得します"
-
-
-msgid "Is Shade Smooth"
-msgstr "スムーズシェードフラグ"
-
-
-msgid "Retrieve whether each face is marked for smooth shading"
-msgstr "スムーズシェーディング用にマークされた面かどうかを取得します"
 
 
 msgid "Shortest Edge Paths"
@@ -58700,10 +58672,6 @@ msgid "Add a segment to the dash modifier"
 msgstr "セグメントを点線モディファイアーに追加します"
 
 
-msgid "Modifier"
-msgstr "モディファイアー"
-
-
 msgid "Name of the modifier to edit"
 msgstr "編集するモディファイアーの名前"
 
@@ -59713,15 +59681,6 @@ msgid "Enter/Exit weight paint mode for Grease Pencil strokes"
 msgstr "グリースペンシルストロークのウェイトペイントモードを切り替えます"
 
 
-msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "カーブをベイク"
-
-
-msgid "Bake selected F-Curves to a set of sampled points defining a similar curve"
-msgstr "選択中のFカーブを同様のカーブを定義するサンプルポイントの集結にベイクします"
-
-
 msgid "Shift selected keys to the value of the neighboring keys as a block"
 msgstr "選択中のキーをひとかたまりにして近くのキーの値にずらします"
 
@@ -60276,15 +60235,6 @@ msgid "Place the cursor value on the average value of selected keyframes"
 msgstr "カーソルの値を選択中のキーフレーム群の平均値に設定します"
 
 
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "音声をFカーブにベイク"
-
-
-msgid "Bakes a sound wave to selected F-Curves"
-msgstr "音声の波形を選択中のFカーブにベイクします"
-
-
 msgid "Attack Time"
 msgstr "アタック時間"
 
@@ -60335,15 +60285,6 @@ msgstr "エンベロープ振幅が集約されます（または「蓄積」が
 
 msgid "The output is a square curve (negative values always result in -1, and positive ones in 1)"
 msgstr "出力が矩形カーブに（負の値が常に-1に、正の値が1に）なります"
-
-
-msgctxt "Operator"
-msgid "Un-Bake Curve"
-msgstr "カーブをベイク解除"
-
-
-msgid "Un-Bake selected F-Points to F-Curves"
-msgstr "選択中の F ポイントを F カーブにベイク解除します"
 
 
 msgid "Reset viewable area to show selected keyframe range"
@@ -66635,6 +66576,11 @@ msgid "Add an object to the scene"
 msgstr "シーンにオブジェクトを追加"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "モディファイアーを追加"
+
+
 msgid "Add named object"
 msgstr "名前付きのオブジェクトを追加します"
 
@@ -67344,11 +67290,6 @@ msgstr "すべての前にグリースペンシルラインアートを表示し
 
 msgid "Use lights for this grease pencil object"
 msgstr "グリースペンシルオブジェクトにライトを使用します"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "モディファイアーを追加"
 
 
 msgid "Add a procedural operation/effect to the active grease pencil object"
@@ -80212,14 +80153,6 @@ msgid "Use object selection (edit mode only)"
 msgstr "オブジェクト選択を使用（編集モードのみ）"
 
 
-msgid "Control Point Without Handles"
-msgstr "制御点（ハンドル抜き）"
-
-
-msgid "Only select the curve control point, not its handles"
-msgstr "カーブの制御点をハンドル抜きで選択します"
-
-
 msgid "Select items using box selection"
 msgstr "ボックス選択を使用してアイテムを選択します"
 
@@ -83139,10 +83072,6 @@ msgid "Set Tool by Name"
 msgstr "ツールを名前で設定"
 
 
-msgid "Set the tool by name (for keymaps)"
-msgstr "名前でツールを設定します（キーマップ用）"
-
-
 msgid "Set Fallback"
 msgstr "フォールバックを設定"
 
@@ -83166,10 +83095,6 @@ msgstr "ツールの識別子"
 msgctxt "Operator"
 msgid "Set Tool by Index"
 msgstr "ツールをインデックスで設定"
-
-
-msgid "Set the tool by index (for keymaps)"
-msgstr "インデックスでツールを設定します（キーマップ用）"
 
 
 msgid "Set the fallback tool instead of the primary"
@@ -84810,6 +84735,10 @@ msgid "Filters"
 msgstr "フィルター"
 
 
+msgid "Snapping"
+msgstr "スナップ"
+
+
 msgctxt "ID"
 msgid "Probe"
 msgstr "プローブ"
@@ -84914,10 +84843,6 @@ msgstr "スコープ"
 
 msgid "Sample Line"
 msgstr "サンプルライン"
-
-
-msgid "Snapping"
-msgstr "スナップ"
 
 
 msgctxt "Operator"
@@ -85175,10 +85100,6 @@ msgid "Hair Shape"
 msgstr "ヘアー形状"
 
 
-msgid "Physics"
-msgstr "物理演算"
-
-
 msgid "Battle"
 msgstr "バトル"
 
@@ -85363,12 +85284,12 @@ msgid "Volumetric Lighting"
 msgstr "ボリューメトリックライティング"
 
 
-msgid "Screen Space Reflections"
-msgstr "スクリーンスペース反射"
-
-
 msgid "Volumetric Shadows"
 msgstr "ボリューメトリックシャドウ"
+
+
+msgid "Screen Space Reflections"
+msgstr "スクリーンスペース反射"
 
 
 msgid "Encoding"
@@ -87266,10 +87187,6 @@ msgid "A collection of pose channels, including settings for animating bones"
 msgstr "ボーンのアニメーション設定などのポーズチャンネル集"
 
 
-msgid "Groups of the bones"
-msgstr "ボーンのグループ"
-
-
 msgid "Pose Bones"
 msgstr "ポーズボーン"
 
@@ -87316,14 +87233,6 @@ msgstr "あるポーズ内のボーンのポーズデータを定義するチャ
 
 msgid "Bone associated with this PoseBone"
 msgstr "このポーズボーンに関連付けられているボーン"
-
-
-msgid "Bone group this pose channel belongs to"
-msgstr "このポーズチャンネルが属するボーングループ"
-
-
-msgid "Bone group this pose channel belongs to (0 means no group)"
-msgstr "このポーズチャンネルが属するボーングループ（0でグループなし）"
 
 
 msgid "Child of this pose bone"
@@ -91623,16 +91532,8 @@ msgid "Sensor is being scanned from top to bottom"
 msgstr "センサーを上から下にスキャンします"
 
 
-msgid "Clamp Direct"
-msgstr "直接値を制限"
-
-
 msgid "If non-zero, the maximum value for a direct sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
 msgstr "0以外で直接サンプルの最大値。多数のノイズと収束の遅さを回避するため、精度を犠牲にし、これより大きい値を減らします"
-
-
-msgid "Clamp Indirect"
-msgstr "間接値を制限"
 
 
 msgid "If non-zero, the maximum value for an indirect sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy"
@@ -97999,54 +97900,6 @@ msgid "Action displayed and edited in this space"
 msgstr "この場所で表示・編集中のアクション"
 
 
-msgid "Auto Snap"
-msgstr "自動スナップ"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "トランスフォーム時の自動タイムスナップ設定"
-
-
-msgid "No Auto-Snap"
-msgstr "自動スナップなし"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "1.0フレーム間隔にスナップします"
-
-
-msgid "Second Step"
-msgstr "秒ステップ"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "1.0秒間隔にスナップします"
-
-
-msgid "Nearest Frame"
-msgstr "一番近いフレーム"
-
-
-msgid "Snap to actual frames (nla-action time)"
-msgstr "実際のフレーム数にスナップします(NLAアクション時間)"
-
-
-msgid "Nearest Second"
-msgstr "一番近い秒"
-
-
-msgid "Snap to actual seconds (nla-action time)"
-msgstr "実際の秒数にスナップします(NLAアクション時間)"
-
-
-msgid "Nearest Marker"
-msgstr "一番近いマーカー"
-
-
-msgid "Snap to nearest marker"
-msgstr "一番近いマーカーへスナップします"
-
-
 msgid "Show the active object's cloth point cache"
 msgstr "アクティブオブジェクトのクロスポイントキャッシュの表示"
 
@@ -102989,12 +102842,24 @@ msgid "Display only faces with the currently displayed image assigned"
 msgstr "現在表示中の画像に対応している面のみ表示します"
 
 
-msgid "Snap Element"
-msgstr "スナップする要素"
-
-
 msgid "Type of element to snap to"
 msgstr "スナップする要素の種類"
+
+
+msgid "Second"
+msgstr "2つめ"
+
+
+msgid "Nearest Marker"
+msgstr "一番近いマーカー"
+
+
+msgid "Snap to nearest marker"
+msgstr "一番近いマーカーへスナップします"
+
+
+msgid "Snap Element"
+msgstr "スナップする要素"
 
 
 msgid "Type of element for the 'Snap With' to snap to"
@@ -110504,10 +110369,6 @@ msgid "Weight Position"
 msgstr "位置のウェイト"
 
 
-msgid "Group Colors"
-msgstr "グループカラー"
-
-
 msgid "Axes"
 msgstr "座標軸"
 
@@ -110937,6 +110798,31 @@ msgstr "強さのしきい値"
 
 msgid "Update on Edit"
 msgstr "編集時に更新"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "リメッシュ"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "アーマチュア"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "ラティス"
+
+
+msgctxt "Operator"
+msgid "Smooth Laplacian"
+msgstr "スムーズ（ラプラシアン）"
+
+
+msgctxt "Operator"
+msgid "Particle System"
+msgstr "パーティクルシステム"
 
 
 msgid "Distance Reference"
@@ -112097,10 +111983,6 @@ msgid "This object is part of a compound shape"
 msgstr "このオブジェクトは複合形状の一部です"
 
 
-msgid "Second"
-msgstr "2つめ"
-
-
 msgid "X Stiffness"
 msgstr "剛性 X"
 
@@ -112687,6 +112569,10 @@ msgstr "タイプでフィルター:"
 
 msgid "Options:"
 msgstr "オプション:"
+
+
+msgid "Snap To"
+msgstr "スナップ先"
 
 
 msgid "Multi-Word Match Search"
@@ -113414,11 +113300,6 @@ msgstr "コンテクストパス"
 
 
 msgctxt "Operator"
-msgid "Search..."
-msgstr "検索..."
-
-
-msgctxt "Operator"
 msgid "Backdrop Move"
 msgstr "背景を移動"
 
@@ -114006,6 +113887,11 @@ msgid "Stretch To Fill"
 msgstr "ストレッチで全体表示"
 
 
+msgctxt "Operator"
+msgid "Copy Modifiers to Selection"
+msgstr "モディファイアーを選択にコピー"
+
+
 msgid "Default Fade"
 msgstr "デフォルトフェード"
 
@@ -114052,11 +113938,6 @@ msgstr "現在のフレームから移動/延長"
 msgctxt "Operator"
 msgid "Delete Strip & Data"
 msgstr "ストリップとデータを削除"
-
-
-msgctxt "Operator"
-msgid "Copy Modifiers to Selection"
-msgstr "モディファイアーを選択にコピー"
 
 
 msgctxt "Operator"
@@ -116218,10 +116099,6 @@ msgid "Zero Weights"
 msgstr "ウェイト0"
 
 
-msgid "Snap To"
-msgstr "スナップ先"
-
-
 msgid "Fade Inactive Layers"
 msgstr "非アクティブレイヤーをフェード"
 
@@ -116325,16 +116202,6 @@ msgstr "グリースペンシル"
 
 
 msgctxt "Operator"
-msgid "Armature"
-msgstr "アーマチュア"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "ラティス"
-
-
-msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "コレクションインスタンス..."
 
@@ -116397,11 +116264,6 @@ msgstr "逆行列なしでペアレント（トランスフォーム維持）"
 msgctxt "Operator"
 msgid "Limit Total Vertex Groups"
 msgstr "頂点グループの合計を制限"
-
-
-msgctxt "Operator"
-msgid "Particle System"
-msgstr "パーティクルシステム"
 
 
 msgctxt "Operator"
@@ -116486,11 +116348,6 @@ msgstr "X軸反転ポーズを貼り付け"
 
 msgid "Vertex Context Menu"
 msgstr "頂点コンテクストメニュー"
-
-
-msgctxt "Operator"
-msgid "Smooth Laplacian"
-msgstr "スムーズ（ラプラシアン）"
 
 
 msgid "Mirror Vertices"
@@ -117188,11 +117045,6 @@ msgstr "リファイン方法"
 
 msgid "Detailing"
 msgstr "ディテールタイプ"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "リメッシュ"
 
 
 msgid "Tile Offset"
@@ -119191,6 +119043,14 @@ msgid "Programming error: missing clear transform function or keying set name"
 msgstr "プログラミングエラー：トランスフォームクリア関数またはキーイングセット名がありません"
 
 
+msgid "Asset loading is unfinished"
+msgstr "アセット読み込みが終わっていません"
+
+
+msgid "No asset found at path \"%s\""
+msgstr "アセットがありません（%s）"
+
+
 msgid "Data-block is not marked as asset"
 msgstr "データブロックがアセットとしてマークされていません"
 
@@ -119494,20 +119354,12 @@ msgid "Operation is not allowed in edit mode"
 msgstr "編集モード時は実行できません"
 
 
-msgid "Asset loading is unfinished"
-msgstr "アセット読み込みが終わっていません"
-
-
 msgid "Asset is not a geometry node group"
 msgstr "アセットがジオメトリノードグループではありません"
 
 
 msgid "Cannot evaluate node group"
 msgstr "ノードグループが評価できません"
-
-
-msgid "No asset found at path \"%s\""
-msgstr "アセットがありません（%s）"
 
 
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
@@ -121424,6 +121276,10 @@ msgstr "統合するのに同じ頂点数のメッシュが追加選択されて
 
 msgid "Joining results in %d vertices, limit is %ld"
 msgstr "%d個の頂点を統合しました(%ld個の制限中)"
+
+
+msgid "Loading Asset Libraries"
+msgstr "アセットライブラリ読み込み"
 
 
 msgid "SoundTrack"
@@ -123953,10 +123809,6 @@ msgid "Show in Drivers Editor"
 msgstr "ドライバーエディターに表示"
 
 
-msgid "Add Modifier"
-msgstr "モディファイアーを追加"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "F カーブに F モディファイアーしかありません"
 
@@ -124404,10 +124256,6 @@ msgid "Verts:%s | Tris:%s"
 msgstr "頂点:%s | 三角面:%s"
 
 
-msgid "Verts:%s/%s | Faces:%s/%s"
-msgstr "頂点:%s/%s | 面:%s/%s"
-
-
 msgid "Verts:%s | Faces:%s | Tris:%s"
 msgstr "頂点:%s | 面:%s | 三角面:%s"
 
@@ -124526,10 +124374,6 @@ msgstr "「%s」と「%s」の片方または両方が新しい場所に対応�
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "モディファイアーが(%s : %s)に追加できませんでした（コンソールに詳細）"
-
-
-msgid "Loading Asset Libraries"
-msgstr "アセットライブラリ読み込み"
 
 
 msgid "The internal clipboard is empty"
@@ -125307,6 +125151,10 @@ msgstr "減算可能なオーバーライド"
 
 msgid "Multiplicative override"
 msgstr "乗算可能なオーバーライド"
+
+
+msgid "Bone Groups"
+msgstr "ボーングループ"
 
 
 msgid "(empty)"
@@ -128158,15 +128006,6 @@ msgstr "オブジェクトが未評価です"
 
 msgid "Mesh has no VCol data"
 msgstr "メッシュに頂点色データがありません"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "グループ"
-
-
-msgid "Bone group '%s' not found in this object"
-msgstr "ボーングループ「%s」がこのオブジェクトにありません"
 
 
 msgid "Constraint '%s' not found in pose bone '%s'"
@@ -132763,10 +132602,6 @@ msgstr "スペイン語（Español）"
 
 msgid "Catalan (Català)"
 msgstr "カタロニア語（Català）"
-
-
-msgid "Czech (Český)"
-msgstr "チェコ語（Český）"
 
 
 msgid "Portuguese (Português)"

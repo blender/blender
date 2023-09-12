@@ -13,6 +13,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "GEO_mesh_primitive_uv_sphere.hh"
+
 #include "node_geometry_util.hh"
 
 #include "RNA_enum_types.hh"
@@ -107,7 +109,7 @@ static int circle_face_total(const GeometryNodeMeshCircleFillType fill_type, con
 
 static Bounds<float3> calculate_bounds_circle(const float radius, const int verts_num)
 {
-  return calculate_bounds_radial_primitive(0.0f, radius, verts_num, 0.0f);
+  return geometry::calculate_bounds_radial_primitive(0.0f, radius, verts_num, 0.0f);
 }
 
 static Mesh *create_circle_mesh(const float radius,

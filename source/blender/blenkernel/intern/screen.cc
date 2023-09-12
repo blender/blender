@@ -61,6 +61,10 @@
 #  include "BPY_extern.h"
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name ID Type Implementation
+ * \{ */
+
 static void screen_free_data(ID *id)
 {
   bScreen *screen = (bScreen *)id;
@@ -189,7 +193,11 @@ IDTypeInfo IDType_ID_SCR = {
     /*lib_override_apply_post*/ nullptr,
 };
 
-/* ************ Space-type/region-type handling ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Space-type/region-type handling
+ * \{ */
 
 /** Keep global; this has to be accessible outside of window-manager. */
 static ListBase spacetypes = {nullptr, nullptr};
@@ -277,7 +285,11 @@ bool BKE_spacetype_exists(int spaceid)
   return BKE_spacetype_from_id(spaceid) != nullptr;
 }
 
-/* ***************** Space handling ********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Space handling
+ * \{ */
 
 void BKE_spacedata_freelist(ListBase *lb)
 {
@@ -309,6 +321,7 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
   Panel *panel = static_cast<Panel *>(lb->first);
   for (; new_panel; new_panel = new_panel->next, panel = panel->next) {
     new_panel->activedata = nullptr;
+    new_panel->drawname = nullptr;
     memset(&new_panel->runtime, 0x0, sizeof(new_panel->runtime));
     panel_list_copy(&new_panel->children, &panel->children);
   }
@@ -476,6 +489,7 @@ void BKE_region_callback_free_gizmomap_set(void (*callback)(wmGizmoMap *))
 static void area_region_panels_free_recursive(Panel *panel)
 {
   MEM_SAFE_FREE(panel->activedata);
+  MEM_SAFE_FREE(panel->drawname);
 
   LISTBASE_FOREACH_MUTABLE (Panel *, child_panel, &panel->children) {
     area_region_panels_free_recursive(child_panel);
@@ -570,7 +584,11 @@ void BKE_screen_free_data(bScreen *screen)
   screen_free_data(&screen->id);
 }
 
-/* ***************** Screen edges & verts ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Screen edges & verts
+ * \{ */
 
 ScrEdge *BKE_screen_find_edge(const bScreen *screen, ScrVert *v1, ScrVert *v2)
 {
@@ -725,7 +743,11 @@ void BKE_screen_remove_unused_scrverts(bScreen *screen)
   }
 }
 
-/* ***************** Utilities ********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
 
 ARegion *BKE_region_find_in_listbase_by_type(const ListBase *regionbase, const int region_type)
 {
@@ -945,6 +967,12 @@ void BKE_screen_header_alignment_reset(bScreen *screen)
   screen->do_refresh = true;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend File IO (Screen & Related Data)
+ * \{ */
+
 void BKE_screen_view3d_shading_blend_write(BlendWriter *writer, View3DShading *shading)
 {
   if (shading->prop) {
@@ -1070,6 +1098,7 @@ static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
     panel->runtime_flag = 0;
     panel->activedata = nullptr;
     panel->type = nullptr;
+    panel->drawname = nullptr;
     panel->runtime.custom_data_ptr = nullptr;
     direct_link_panel_list(reader, &panel->children);
   }

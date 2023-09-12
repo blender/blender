@@ -44,7 +44,7 @@ LANGUAGES = (
     (8, "French (Français)", "fr_FR"),
     (9, "Spanish (Español)", "es"),
     (10, "Catalan (Català)", "ca_AD"),
-    (11, "Czech (Český)", "cs_CZ"),
+    (11, "Czech (Čeština)", "cs_CZ"),
     (12, "Portuguese (Português)", "pt_PT"),
     (13, "Simplified Chinese (简体中文)", "zh_CN"),
     (14, "Traditional Chinese (繁體中文)", "zh_TW"),

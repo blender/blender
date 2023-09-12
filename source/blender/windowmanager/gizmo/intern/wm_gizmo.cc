@@ -231,7 +231,7 @@ PointerRNA *WM_gizmo_operator_set(wmGizmo *gz,
 int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop, const wmEvent *event)
 {
   if (gz->flag & WM_GIZMO_OPERATOR_TOOL_INIT) {
-    /* Merge toolsettings into the gizmo properties. */
+    /* Merge tool-settings into the gizmo properties. */
     PointerRNA tref_ptr;
     bToolRef *tref = WM_toolsystem_ref_from_context(C);
     if (tref && WM_toolsystem_ref_properties_get_from_operator(tref, gzop->type, &tref_ptr)) {

@@ -1650,6 +1650,50 @@ static void rearrange_nla_control_channels(bAnimContext *ac,
 
 /* ------------------- */
 
+static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode mode)
+{
+  using namespace blender::bke::greasepencil;
+  ListBase anim_data = {nullptr, nullptr};
+  blender::Vector<Layer *> layer_list;
+  int filter = ANIMFILTER_DATA_VISIBLE;
+
+  ANIM_animdata_filter(
+      ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    Layer *layer = static_cast<Layer *>(ale->data);
+
+    switch (mode) {
+      case REARRANGE_ANIMCHAN_TOP: {
+        if (layer->is_selected()) {
+          layer->parent_group().move_node_top(&layer->as_node());
+        }
+        break;
+      }
+      case REARRANGE_ANIMCHAN_UP: {
+        if (layer->is_selected()) {
+          layer->parent_group().move_node_up(&layer->as_node());
+        }
+        break;
+      }
+      case REARRANGE_ANIMCHAN_DOWN: {
+        if (layer->is_selected()) {
+          layer->parent_group().move_node_down(&layer->as_node());
+        }
+        break;
+      }
+      case REARRANGE_ANIMCHAN_BOTTOM: {
+        if (layer->is_selected()) {
+          layer->parent_group().move_node_bottom(&layer->as_node());
+        }
+        break;
+      }
+    }
+  }
+
+  BLI_freelistN(&anim_data);
+}
+
 static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode mode)
 {
   ListBase anim_data = {nullptr, nullptr};
@@ -1720,7 +1764,12 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
   /* method to move channels depends on the editor */
   if (ac.datatype == ANIMCONT_GPENCIL) {
     /* Grease Pencil channels */
-    rearrange_gpencil_channels(&ac, mode);
+    if (U.experimental.use_grease_pencil_version3) {
+      rearrange_grease_pencil_channels(&ac, mode);
+    }
+    else {
+      rearrange_gpencil_channels(&ac, mode);
+    }
   }
   else if (ac.datatype == ANIMCONT_MASK) {
     /* Grease Pencil channels */
@@ -2937,8 +2986,12 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
-            ANIMFILTER_FCURVESONLY);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+
+  if (!ANIM_animdata_can_have_greasepencil(eAnimCont_Types(ac->datatype))) {
+    filter |= ANIMFILTER_FCURVESONLY;
+  }
+
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 

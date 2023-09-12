@@ -573,8 +573,9 @@ void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message)
   /* Tag given `bmain`, and 'root 'local' main one (in case given one is a library one) as invalid.
    */
   bmain->is_read_invalid = true;
-  for (; bmain->prev != nullptr; bmain = bmain->prev)
-    ;
+  for (; bmain->prev != nullptr; bmain = bmain->prev) {
+    /* Pass. */
+  }
   bmain->is_read_invalid = true;
 
   BLO_reportf_wrap(fd->reports,
@@ -3317,7 +3318,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       /* Some data that should be persistent, like the 3DCursor or the tool settings, are
        * stored in IDs affected by undo, like Scene. So this requires some specific handling. */
       /* NOTE: even though the ID may have been detected as unchanged, the 'undo_preserve' may have
-       * to actually change some of its ID pointers, it's e.g. the case with Scene's toolsettings
+       * to actually change some of its ID pointers, it's e.g. the case with Scene's tool-settings
        * Brush/Palette pointers. This is the case where both new and old ID may be the same. */
       if (id_type->blend_read_undo_preserve != nullptr) {
         BLI_assert(fd->flags & FD_FLAGS_IS_MEMFILE);

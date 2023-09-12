@@ -64,8 +64,9 @@ bool PlyReadBuffer::read_bytes(void *dst, size_t size)
       }
     }
     int to_copy = int(size);
-    if (to_copy > buf_used_)
+    if (to_copy > buf_used_) {
       to_copy = buf_used_;
+    }
     memcpy(dst, buffer_.data() + pos_, to_copy);
     pos_ += to_copy;
     dst = (char *)dst + to_copy;

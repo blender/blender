@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -263,10 +263,6 @@ msgstr "Lokalposition"
 
 msgid "Custom"
 msgstr "Anpassad"
-
-
-msgid "Bone Groups"
-msgstr "Bengrupper"
 
 
 msgid "Remove"
@@ -1249,6 +1245,10 @@ msgid "Node"
 msgstr "Nod"
 
 
+msgid "Physics"
+msgstr "Fysik"
+
+
 msgid "Frame Rate Presets"
 msgstr "Bildfrekvens-förinställningar"
 
@@ -2088,10 +2088,6 @@ msgid "Kink"
 msgstr "Nyck"
 
 
-msgid "Physics"
-msgstr "Fysik"
-
-
 msgid "Border Collisions"
 msgstr "Gränskrock"
 
@@ -2621,6 +2617,10 @@ msgid "File Path:"
 msgstr "Sökväg:"
 
 
+msgid "Bone Groups"
+msgstr "Bengrupper"
+
+
 msgid "Crease:"
 msgstr "Vecka:"
 
@@ -2731,10 +2731,6 @@ msgstr "Spanska (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Katalanska (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Tjeckiska (Český)"
 
 
 msgid "Traditional Chinese (繁體中文)"

@@ -20,9 +20,9 @@ void main()
   out_radiance = vec4(vol.scattering, 0.0);
   out_transmittance = vec4(vol.transmittance, saturate(avg(vol.transmittance)));
 
-  if (rp_buf.volume_light_id >= 0) {
+  if (uniform_buf.render_pass.volume_light_id >= 0) {
     imageStore(rp_color_img,
-               ivec3(ivec2(gl_FragCoord.xy), rp_buf.volume_light_id),
+               ivec3(ivec2(gl_FragCoord.xy), uniform_buf.render_pass.volume_light_id),
                vec4(vol.scattering, 1.0));
   }
 }

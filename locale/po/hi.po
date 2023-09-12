@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'526f935981fd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 15:42:41\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -611,8 +611,8 @@ msgid "Local Location"
 msgstr "स्थानीय स्थिति"
 
 
-msgid "Bone Groups"
-msgstr "अस्थि समूह"
+msgid "Bones"
+msgstr "हड्डियों"
 
 
 msgid "Count"
@@ -1746,10 +1746,6 @@ msgid "Users"
 msgstr "प्रयोक्ता"
 
 
-msgid "Bones"
-msgstr "हड्डियों"
-
-
 msgid "Stick"
 msgstr "छड़ी"
 
@@ -2240,6 +2236,10 @@ msgstr "संपादन"
 
 msgid "Sculpt"
 msgstr "शिल्प"
+
+
+msgid "Modifier"
+msgstr "संशोधक"
 
 
 msgid "Tool"
@@ -2817,6 +2817,10 @@ msgid "Math"
 msgstr "गणित"
 
 
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
 msgid "Converter"
 msgstr "परिवर्तक"
 
@@ -2825,12 +2829,16 @@ msgid "Distort"
 msgstr "विकृत"
 
 
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
 msgid "Node"
 msgstr "ग्रन्थि"
+
+
+msgid "Add Modifier"
+msgstr "संशोधक जोड़ें"
+
+
+msgid "Physics"
+msgstr "भौतिकी"
 
 
 msgid "Apply"
@@ -3763,10 +3771,6 @@ msgid "Limit"
 msgstr "सीमा"
 
 
-msgid "Modifier"
-msgstr "संशोधक"
-
-
 msgid "Flatten"
 msgstr "समतल"
 
@@ -4011,6 +4015,11 @@ msgstr "दर्शक संचालन के लिए सीमाएँ �
 
 
 msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "संशोधक जोड़ें"
+
+
+msgctxt "Operator"
 msgid "Bake"
 msgstr "भर्जन"
 
@@ -4040,11 +4049,6 @@ msgstr "खाली जोड़ें"
 
 msgid "Monkey"
 msgstr "बंदर"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "संशोधक जोड़ें"
 
 
 msgctxt "Operator"
@@ -4705,10 +4709,6 @@ msgstr "पूर्वनिर्धारित नोड रंग"
 
 msgid "Kink"
 msgstr "ऐंठन"
-
-
-msgid "Physics"
-msgstr "भौतिकी"
 
 
 msgid "Force Fields"
@@ -6760,10 +6760,6 @@ msgid "Value:"
 msgstr "मान:"
 
 
-msgid "Add Modifier"
-msgstr "संशोधक जोड़ें"
-
-
 msgid "Unsupported audio format"
 msgstr "असमर्थित श्रव्य स्वरूप"
 
@@ -6775,6 +6771,10 @@ msgstr "(कुंजी) "
 msgctxt "Action"
 msgid "Group"
 msgstr "समूह"
+
+
+msgid "Bone Groups"
+msgstr "अस्थि समूह"
 
 
 msgid "(empty)"
@@ -6923,11 +6923,6 @@ msgid "Key"
 msgstr "कुंजी"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "समूह"
-
-
 msgid "Outer"
 msgstr "बाहरी"
 
@@ -7063,10 +7058,6 @@ msgstr "स्पेनिश (Español)"
 
 msgid "Catalan (Català)"
 msgstr "कैटालैन (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "चेक (Český)"
 
 
 msgid "Portuguese (Português)"

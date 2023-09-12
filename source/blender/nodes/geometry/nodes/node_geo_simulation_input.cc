@@ -258,7 +258,6 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.declare_dynamic = node_declare_dynamic;
   ntype.insert_link = node_insert_link;
-  ntype.gather_add_node_search_ops = nullptr;
   ntype.gather_link_search_ops = nullptr;
   node_type_storage(&ntype,
                     "NodeGeometrySimulationInput",

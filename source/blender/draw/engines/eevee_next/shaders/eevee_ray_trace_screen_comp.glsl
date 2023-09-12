@@ -20,10 +20,11 @@ void main()
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
-  ivec2 texel_fullres = texel * raytrace_buf.resolution_scale + raytrace_buf.resolution_bias;
+  ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
+                        uniform_buf.raytrace.resolution_bias;
 
   float depth = texelFetch(hiz_tx, texel_fullres, 0).r;
-  vec2 uv = (vec2(texel_fullres) + 0.5) * raytrace_buf.full_resolution_inv;
+  vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
 
   vec4 ray_data = imageLoad(ray_data_img, texel);
   float ray_pdf_inv = ray_data.w;
@@ -68,8 +69,8 @@ void main()
    * (raytrace_clip_ray_to_near_plane) is not taking it into account. */
   ray_view.max_time = 1.0;
 
-  hit = raytrace_screen(raytrace_buf,
-                        hiz_buf,
+  hit = raytrace_screen(uniform_buf.raytrace,
+                        uniform_buf.hiz,
                         hiz_tx,
                         rand_trace,
                         roughness,
@@ -101,7 +102,7 @@ void main()
   }
 
   float luma = max(1e-8, max_v3(radiance));
-  radiance *= 1.0 - max(0.0, luma - raytrace_buf.brightness_clamp) / luma;
+  radiance *= 1.0 - max(0.0, luma - uniform_buf.raytrace.brightness_clamp) / luma;
 
   imageStore(ray_time_img, texel, vec4(hit_time));
   imageStore(ray_radiance_img, texel, vec4(radiance, 0.0));
