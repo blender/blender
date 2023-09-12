@@ -438,6 +438,18 @@ static void run_node_group_ui(bContext *C, wmOperator *op)
   }
 }
 
+static bool run_node_ui_poll(wmOperatorType * /*ot*/, PointerRNA *ptr)
+{
+  RNA_STRUCT_BEGIN (ptr, prop) {
+    int flag = RNA_property_flag(prop);
+    if ((flag & PROP_HIDDEN) == 0) {
+      return true;
+    }
+  }
+  RNA_STRUCT_END;
+  return false;
+}
+
 static std::string run_node_group_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
 {
   int len;
@@ -459,6 +471,7 @@ void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
   ot->exec = run_node_group_exec;
   ot->get_description = run_node_group_get_description;
   ot->ui = run_node_group_ui;
+  ot->ui_poll = run_node_ui_poll;
   ot->get_name = run_node_group_get_name;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

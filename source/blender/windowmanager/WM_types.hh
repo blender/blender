@@ -982,6 +982,11 @@ struct wmOperatorType {
 
   /** Optional panel for redo and repeat, auto-generated if not set. */
   void (*ui)(bContext *, wmOperator *);
+  /**
+   * Optional check for whether the #ui callback should be called (usually to create the redo
+   * panel interface).
+   */
+  bool (*ui_poll)(wmOperatorType *, PointerRNA *);
 
   /**
    * Return a different name to use in the user interface, based on property values.

@@ -830,7 +830,7 @@ void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot);
 void WM_operator_properties_clear(PointerRNA *ptr);
 void WM_operator_properties_free(PointerRNA *ptr);
 
-bool WM_operator_check_ui_empty(wmOperatorType *ot);
+bool WM_operator_ui_poll(wmOperatorType *ot, PointerRNA *ptr);
 /**
  * Return false, if the UI should be disabled.
  */

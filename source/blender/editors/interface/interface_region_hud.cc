@@ -66,7 +66,7 @@ static bool last_redo_poll(const bContext *C, short region_type)
     ARegion *region_prev = CTX_wm_region(C);
     CTX_wm_region_set((bContext *)C, region_op);
 
-    if (WM_operator_repeat_check(C, op) && WM_operator_check_ui_empty(op->type) == false) {
+    if (WM_operator_repeat_check(C, op) && WM_operator_ui_poll(op->type, op->ptr)) {
       success = WM_operator_poll((bContext *)C, op->type);
     }
     CTX_wm_region_set((bContext *)C, region_prev);
