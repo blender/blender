@@ -456,6 +456,23 @@ static bool editbone_is_member(const EditBone *ebone, const BoneCollection *bcol
   return false;
 }
 
+static bool armature_bone_select_poll(bContext *C)
+{
+  Object *ob = ED_object_context(C);
+  if (ob == nullptr || ob->type != OB_ARMATURE) {
+    return false;
+  }
+
+  /* For bone selection, at least the pose should be editable to actually store
+   * the selection state. */
+  if (ID_IS_LINKED(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot (de)select bones on linked Armature");
+    return false;
+  }
+
+  return true;
+}
+
 static void bone_collection_select(bContext *C,
                                    Object *ob,
                                    BoneCollection *bcoll,
@@ -530,7 +547,7 @@ void ARMATURE_OT_collection_select(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bone_collection_select_exec;
-  ot->poll = bone_collection_poll;
+  ot->poll = armature_bone_select_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -570,7 +587,7 @@ void ARMATURE_OT_collection_deselect(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bone_collection_deselect_exec;
-  ot->poll = bone_collection_poll;
+  ot->poll = armature_bone_select_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
