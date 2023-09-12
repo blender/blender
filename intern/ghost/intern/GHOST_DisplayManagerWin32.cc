@@ -41,8 +41,9 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplaySettings(uint8_t display,
    * function was called with #iModeNum set to zero. */
 
   DISPLAY_DEVICE display_device;
-  if (!get_dd(display, &display_device))
+  if (!get_dd(display, &display_device)) {
     return GHOST_kFailure;
+  }
 
   numSettings = 0;
   DEVMODE dm;
@@ -57,8 +58,9 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getDisplaySetting(uint8_t display,
                                                             GHOST_DisplaySetting &setting) const
 {
   DISPLAY_DEVICE display_device;
-  if (!get_dd(display, &display_device))
+  if (!get_dd(display, &display_device)) {
     return GHOST_kFailure;
+  }
 
   GHOST_TSuccess success;
   DEVMODE dm;
@@ -102,8 +104,9 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(
     uint8_t display, const GHOST_DisplaySetting &setting)
 {
   DISPLAY_DEVICE display_device;
-  if (!get_dd(display, &display_device))
+  if (!get_dd(display, &display_device)) {
     return GHOST_kFailure;
+  }
 
   GHOST_DisplaySetting match;
   findMatch(display, setting, match);

@@ -161,10 +161,12 @@ EQCurveMappingData *SEQ_sound_equalizer_add(SoundEqualizerModifierData *semd,
 {
   EQCurveMappingData *eqcmd;
 
-  if (maxX < 0)
+  if (maxX < 0) {
     maxX = SOUND_EQUALIZER_DEFAULT_MAX_FREQ;
-  if (minX < 0)
+  }
+  if (minX < 0) {
     minX = 0.0;
+  }
   /* It's the same as BKE_curvemapping_add , but changing the name */
   eqcmd = MEM_cnew<EQCurveMappingData>("Equalizer");
   BKE_curvemapping_set_defaults(&eqcmd->curve_mapping,
@@ -212,12 +214,15 @@ EQCurveMappingData *SEQ_sound_equalizermodifier_add_graph(SoundEqualizerModifier
                                                           float min_freq,
                                                           float max_freq)
 {
-  if (min_freq < 0.0)
+  if (min_freq < 0.0) {
     return nullptr;
-  if (max_freq < 0.0)
+  }
+  if (max_freq < 0.0) {
     return nullptr;
-  if (max_freq <= min_freq)
+  }
+  if (max_freq <= min_freq) {
     return nullptr;
+  }
   return SEQ_sound_equalizer_add(semd, min_freq, max_freq);
 }
 
@@ -327,8 +332,9 @@ void *SEQ_sound_equalizermodifier_recreator(Sequence *seq, SequenceModifierData 
 const SoundModifierWorkerInfo *SEQ_sound_modifier_worker_info_get(int type)
 {
   for (int i = 0; workersSoundModifiers[i].type > 0; i++) {
-    if (workersSoundModifiers[i].type == type)
+    if (workersSoundModifiers[i].type == type) {
       return &workersSoundModifiers[i];
+    }
   }
   return nullptr;
 }

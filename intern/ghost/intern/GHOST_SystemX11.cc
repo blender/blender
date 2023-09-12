@@ -2734,8 +2734,9 @@ void GHOST_SystemX11::refreshXInputDevices()
 void GHOST_SystemX11::clearXInputDevices()
 {
   for (GHOST_TabletX11 &xtablet : m_xtablets) {
-    if (xtablet.Device)
+    if (xtablet.Device) {
       XCloseDevice(m_display, xtablet.Device);
+    }
   }
 
   m_xtablets.clear();

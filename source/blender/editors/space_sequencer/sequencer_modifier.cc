@@ -263,8 +263,9 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
       /* If original is sound, only copy to "sound" strips
        * If original is not sound, only copy to "not sound" strips
        */
-      if (isSound != seq_iter_is_sound)
+      if (isSound != seq_iter_is_sound) {
         continue;
+      }
 
       if (type == SEQ_MODIFIER_COPY_REPLACE) {
         if (seq_iter->modifiers.first) {

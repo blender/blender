@@ -573,8 +573,9 @@ void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message)
   /* Tag given `bmain`, and 'root 'local' main one (in case given one is a library one) as invalid.
    */
   bmain->is_read_invalid = true;
-  for (; bmain->prev != nullptr; bmain = bmain->prev)
-    ;
+  for (; bmain->prev != nullptr; bmain = bmain->prev) {
+    /* Pass. */
+  }
   bmain->is_read_invalid = true;
 
   BLO_reportf_wrap(fd->reports,
