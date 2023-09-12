@@ -4863,9 +4863,15 @@ class VIEW3D_MT_edit_greasepencil_delete(Menu):
         layout = self.layout
 
         layout.operator_enum("grease_pencil.dissolve", "type")
-        
-        layout.operator("grease_pencil.delete_frame", text="Delete Active Keyframe (Active Layer)").type = 'ACTIVE_FRAME'
-        layout.operator("grease_pencil.delete_frame", text="Delete Active Keyframes (All Layers)").type = 'ALL_FRAMES'
+
+        layout.operator(
+            "grease_pencil.delete_frame",
+            text="Delete Active Keyframe (Active Layer)",
+        ).type = 'ACTIVE_FRAME'
+        layout.operator(
+            "grease_pencil.delete_frame",
+            text="Delete Active Keyframes (All Layers)",
+        ).type = 'ALL_FRAMES'
 
 
 # Edit Curve
