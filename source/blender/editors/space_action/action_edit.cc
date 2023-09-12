@@ -1249,7 +1249,7 @@ void ACTION_OT_clean(wmOperatorType *ot)
  * \{ */
 
 /* Evaluates the curves between each selected keyframe on each frame, and keys the value. */
-static void sample_action_keys(bAnimContext *ac)
+static void bake_action_keys(bAnimContext *ac)
 {
   ListBase anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
@@ -1272,7 +1272,7 @@ static void sample_action_keys(bAnimContext *ac)
 
 /* ------------------- */
 
-static int actkeys_sample_exec(bContext *C, wmOperator *op)
+static int actkeys_bake_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -1287,7 +1287,7 @@ static int actkeys_sample_exec(bContext *C, wmOperator *op)
   }
 
   /* sample keyframes */
-  sample_action_keys(&ac);
+  bake_action_keys(&ac);
 
   /* set notifier that keyframes have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
@@ -1295,15 +1295,15 @@ static int actkeys_sample_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void ACTION_OT_sample(wmOperatorType *ot)
+void ACTION_OT_bake_keys(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Sample Keyframes";
-  ot->idname = "ACTION_OT_sample";
+  ot->name = "Bake Keyframes";
+  ot->idname = "ACTION_OT_bake_keys";
   ot->description = "Add keyframes on every frame between the selected keyframes";
 
   /* api callbacks */
-  ot->exec = actkeys_sample_exec;
+  ot->exec = actkeys_bake_exec;
   ot->poll = ED_operator_action_active;
 
   /* flags */

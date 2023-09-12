@@ -47,7 +47,7 @@ void action_operatortypes()
   WM_operatortype_append(ACTION_OT_extrapolation_type);
   WM_operatortype_append(ACTION_OT_easing_type);
   WM_operatortype_append(ACTION_OT_keyframe_type);
-  WM_operatortype_append(ACTION_OT_sample);
+  WM_operatortype_append(ACTION_OT_bake_keys);
   WM_operatortype_append(ACTION_OT_clean);
   WM_operatortype_append(ACTION_OT_delete);
   WM_operatortype_append(ACTION_OT_duplicate);
