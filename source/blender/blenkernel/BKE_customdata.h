@@ -430,6 +430,12 @@ void CustomData_bmesh_interp(struct CustomData *data,
 void CustomData_swap_corners(struct CustomData *data, int index, const int *corner_indices);
 
 /**
+ * Custom data layers can be shared through implicit sharing (`BLI_implicit_sharing.h`). This
+ * function makes sure that the layer is unshared if it was shared, which makes it mutable.
+ */
+void CustomData_ensure_data_is_mutable(struct CustomDataLayer *layer, int totelem);
+
+/**
  * Retrieve a pointer to an element of the active layer of the given \a type, chosen by the
  * \a index, if it exists.
  */
