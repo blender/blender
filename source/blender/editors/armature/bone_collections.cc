@@ -48,15 +48,21 @@ static bool bone_collection_poll(bContext *C)
     return false;
   }
 
-  if (ID_IS_OVERRIDE_LIBRARY(ob)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit bone collections for library overrides");
-    return false;
-  }
-
   if (ob->type != OB_ARMATURE) {
     CTX_wm_operator_poll_msg_set(C, "Bone collections can only be edited on an Armature");
     return false;
   }
+
+  if (ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit bone collections for library overrides");
+    return false;
+  }
+
+  if (ID_IS_LINKED(ob->data)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit bone collections on linked Armature");
+    return false;
+  }
+
   return true;
 }
 
