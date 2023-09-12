@@ -518,6 +518,22 @@ typedef struct GreasePencil {
                    const blender::Map<int, int> &frame_number_destinations);
 
   /**
+   * Moves and/or inserts duplicates of a set of frames in a \a layer.
+   *
+   * \param frame_number_destination describes all transformations that should be applied on the
+   * frame keys.
+   * \param duplicate_frames the frames that should be duplicated instead of moved. Keys of the map
+   * are the keys of the corresponding source frames. Frames will be inserted at the key given by
+   * the map \a frame_number_destination.
+   *
+   * If a transformation overlaps another frames, the frame will be overwritten, and the
+   * corresponding drawing may be removed, if it no longer has users.
+   */
+  void move_duplicate_frames(blender::bke::greasepencil::Layer &layer,
+                             const blender::Map<int, int> &frame_number_destinations,
+                             const blender::Map<int, GreasePencilFrame> &duplicate_frames);
+
+  /**
    * Returns an editable drawing on \a layer at frame \a frame_number or `nullptr` if no such
    * drawing exists.
    */

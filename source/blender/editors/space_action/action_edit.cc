@@ -1011,7 +1011,9 @@ static bool duplicate_action_keys(bAnimContext *ac)
       changed |= ED_gpencil_layer_frame_select_check((bGPDlayer *)ale->data);
     }
     else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-      /* GPv3: To be implemented. */
+      changed |= blender::ed::greasepencil::duplicate_selected_frames(
+          *reinterpret_cast<GreasePencil *>(ale->id),
+          static_cast<GreasePencilLayer *>(ale->data)->wrap());
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       ED_masklayer_frames_duplicate((MaskLayer *)ale->data);

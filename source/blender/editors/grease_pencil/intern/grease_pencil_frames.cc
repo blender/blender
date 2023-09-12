@@ -94,6 +94,39 @@ bool mirror_selected_frames(GreasePencil &grease_pencil,
   return changed;
 }
 
+bool duplicate_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::Layer &layer)
+{
+  using namespace bke::greasepencil;
+  bool changed = false;
+  LayerTransformData &trans_data = layer.runtime->trans_data_;
+
+  for (auto [frame_number, frame] : layer.frames_for_write().items()) {
+    if (!frame.is_selected()) {
+      continue;
+    }
+
+    /* Create the duplicate drawing. */
+    const Drawing *drawing = grease_pencil.get_editable_drawing_at(&layer, frame_number);
+    if (drawing == nullptr) {
+      continue;
+    }
+    const int duplicated_drawing_index = grease_pencil.drawings().size();
+    grease_pencil.add_duplicate_drawings(1, *drawing);
+
+    /* Make a copy of the frame in the duplicates. */
+    GreasePencilFrame frame_duplicate = frame;
+    frame_duplicate.drawing_index = duplicated_drawing_index;
+    trans_data.temp_frames_buffer.add_overwrite(frame_number, frame_duplicate);
+
+    /* Deselect the current frame, so that only the copy is selected. */
+    frame.flag ^= GP_FRAME_SELECTED;
+
+    changed = true;
+  }
+
+  return changed;
+}
+
 bool remove_all_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::Layer &layer)
 {
   Vector<int> frames_to_remove;

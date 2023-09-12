@@ -260,6 +260,10 @@ struct LayerTransformData {
    * i.e. each frame that is not an implicit hold. */
   Map<int, int> frames_duration;
 
+  /* Temporary copy of duplicated frames before we decide on a place to insert them.
+   * Used in the move+duplicate operator. */
+  Map<int, GreasePencilFrame> temp_frames_buffer;
+
   FrameTransformationStatus status{TRANS_CLEAR};
 };
 
