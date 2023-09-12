@@ -19,10 +19,12 @@ VKImageView::VKImageView(VKTexture &texture,
                          eImageViewUsage usage,
                          IndexRange layer_range,
                          IndexRange mip_range,
+                         bool use_stencil,
                          StringRefNull name)
 {
   const VkImageAspectFlagBits allowed_bits = static_cast<VkImageAspectFlagBits>(
-      VK_IMAGE_ASPECT_COLOR_BIT | VK_IMAGE_ASPECT_DEPTH_BIT);
+      VK_IMAGE_ASPECT_COLOR_BIT |
+      (use_stencil ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT));
   VkImageAspectFlagBits image_aspect = static_cast<VkImageAspectFlagBits>(
       (to_vk_image_aspect_flag_bits(texture.format_get()) & allowed_bits));
 
