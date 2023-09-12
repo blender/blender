@@ -129,7 +129,7 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
   else if (ale->type == ANIMTYPE_GROUP) {
     /* TODO: why don't we just give groups key_data too? */
     bActionGroup *agrp = (bActionGroup *)ale->data;
-    agroup_to_keylist(adt, agrp, keylist, 0);
+    action_group_to_keylist(adt, agrp, keylist, 0);
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
     /* TODO: why don't we just give grease pencil layers key_data too? */

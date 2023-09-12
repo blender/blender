@@ -460,7 +460,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 
         if (agrp) {
           fcurve_list = &agrp->channels;
-          agroup_to_keylist(adt, agrp, mpt->keylist, 0);
+          action_group_to_keylist(adt, agrp, mpt->keylist, 0);
         }
       }
       else {

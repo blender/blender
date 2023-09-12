@@ -148,7 +148,7 @@ int64_t ED_keylist_array_len(const AnimKeylist *keylist);
 /* F-Curve */
 void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, int saction_flag);
 /* Action Group */
-void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, AnimKeylist *keylist, int saction_flag);
+void action_group_to_keylist(AnimData *adt, bActionGroup *agrp, AnimKeylist *keylist, int saction_flag);
 /* Action */
 void action_to_keylist(AnimData *adt, bAction *act, AnimKeylist *keylist, int saction_flag);
 /* Object */
