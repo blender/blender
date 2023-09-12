@@ -47,7 +47,7 @@ VkFormat to_vk_format(const GPUVertCompType type,
                       const GPUVertFetchMode fetch_mode);
 VkFormat to_vk_format(const shader::Type type);
 
-VkComponentMapping to_vk_component_mapping(const eGPUTextureFormat format);
+VkComponentSwizzle to_vk_component_swizzle(const char swizzle);
 VkImageViewType to_vk_image_view_type(const eGPUTextureType type, eImageViewUsage view_type);
 VkImageType to_vk_image_type(const eGPUTextureType type);
 VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const void *data);

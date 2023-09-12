@@ -172,9 +172,14 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
                        Span<VkImageSubresourceRange>(&range, 1));
 }
 
-void VKTexture::swizzle_set(const char /*swizzle_mask*/[4])
+void VKTexture::swizzle_set(const char swizzle_mask[4])
 {
-  NOT_YET_IMPLEMENTED;
+  vk_component_mapping_.r = to_vk_component_swizzle(swizzle_mask[0]);
+  vk_component_mapping_.g = to_vk_component_swizzle(swizzle_mask[1]);
+  vk_component_mapping_.b = to_vk_component_swizzle(swizzle_mask[2]);
+  vk_component_mapping_.a = to_vk_component_swizzle(swizzle_mask[3]);
+
+  flags_ |= IMAGE_VIEW_DIRTY;
 }
 
 void VKTexture::mip_range_set(int min, int max)

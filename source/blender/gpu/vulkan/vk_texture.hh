@@ -36,6 +36,11 @@ class VKTexture : public Texture, public VKBindableResource {
   int layer_offset_ = 0;
   bool use_stencil_ = false;
 
+  VkComponentMapping vk_component_mapping_ = {VK_COMPONENT_SWIZZLE_IDENTITY,
+                                              VK_COMPONENT_SWIZZLE_IDENTITY,
+                                              VK_COMPONENT_SWIZZLE_IDENTITY,
+                                              VK_COMPONENT_SWIZZLE_IDENTITY};
+
   enum eDirtyFlags {
     IMAGE_VIEW_DIRTY = (1 << 0),
   };
@@ -162,6 +167,11 @@ class VKTexture : public Texture, public VKBindableResource {
   {
     image_view_ensure();
     return *image_view_;
+  }
+
+  const VkComponentMapping &vk_component_mapping_get() const
+  {
+    return vk_component_mapping_;
   }
 
  private:

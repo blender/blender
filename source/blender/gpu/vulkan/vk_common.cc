@@ -729,17 +729,27 @@ VkImageViewType to_vk_image_view_type(const eGPUTextureType type, const eImageVi
   return VK_IMAGE_VIEW_TYPE_1D;
 }
 
-VkComponentMapping to_vk_component_mapping(const eGPUTextureFormat /*format*/)
+VkComponentSwizzle to_vk_component_swizzle(const char swizzle)
 {
-  /* TODO: this should map to OpenGL defaults based on the eGPUTextureFormat. The
-   * implementation of this function will be implemented when implementing other parts of
-   * VKTexture. */
-  VkComponentMapping component_mapping;
-  component_mapping.r = VK_COMPONENT_SWIZZLE_R;
-  component_mapping.g = VK_COMPONENT_SWIZZLE_G;
-  component_mapping.b = VK_COMPONENT_SWIZZLE_B;
-  component_mapping.a = VK_COMPONENT_SWIZZLE_A;
-  return component_mapping;
+  switch (swizzle) {
+    case '0':
+      return VK_COMPONENT_SWIZZLE_ZERO;
+    case '1':
+      return VK_COMPONENT_SWIZZLE_ONE;
+    case 'r':
+      return VK_COMPONENT_SWIZZLE_R;
+    case 'g':
+      return VK_COMPONENT_SWIZZLE_G;
+    case 'b':
+      return VK_COMPONENT_SWIZZLE_B;
+    case 'a':
+      return VK_COMPONENT_SWIZZLE_A;
+
+    default:
+      break;
+  }
+  BLI_assert_unreachable();
+  return VK_COMPONENT_SWIZZLE_IDENTITY;
 }
 
 template<typename T> void copy_color(T dst[4], const T *src)

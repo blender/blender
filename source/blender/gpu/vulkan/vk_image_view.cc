@@ -34,7 +34,7 @@ VKImageView::VKImageView(VKTexture &texture,
   image_view_info.image = texture.vk_image_handle();
   image_view_info.viewType = to_vk_image_view_type(texture.type_get(), usage);
   image_view_info.format = to_vk_format(texture.format_get());
-  image_view_info.components = to_vk_component_mapping(texture.format_get());
+  image_view_info.components = texture.vk_component_mapping_get();
   image_view_info.subresourceRange.aspectMask = image_aspect;
   image_view_info.subresourceRange.baseMipLevel = mip_range.first();
   image_view_info.subresourceRange.levelCount = mip_range.size();
