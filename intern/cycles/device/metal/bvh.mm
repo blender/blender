@@ -1145,8 +1145,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
 
     unique_blas_array.clear();
     unique_blas_array.reserve(all_blas.count);
-    [all_blas enumerateObjectsUsingBlock:^(
-                  id<MTLAccelerationStructure> blas, NSUInteger, BOOL *) {
+    [all_blas enumerateObjectsUsingBlock:^(id<MTLAccelerationStructure> blas, NSUInteger, BOOL *) {
       unique_blas_array.push_back(blas);
     }];
 
