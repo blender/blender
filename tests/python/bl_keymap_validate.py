@@ -330,6 +330,7 @@ def main() -> None:
                     print(error_text_consistency)
                 if error_text_duplicates:
                     print(error_text_duplicates)
+                has_error = True
             else:
                 print("OK!")
 
