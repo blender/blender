@@ -298,12 +298,9 @@ wmKeyConfig *WM_keyconfig_ensure(wmWindowManager *wm, const char *idname, bool u
   return WM_keyconfig_new(wm, idname, user_defined);
 }
 
-bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
+void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 {
-  if (UNLIKELY(BLI_findindex(&wm->keyconfigs, keyconf) == -1)) {
-    return false;
-  }
-
+  BLI_assert(BLI_findindex(&wm->keyconfigs, keyconf) != -1);
   if (STREQLEN(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr))) {
     STRNCPY(U.keyconfigstr, wm->defaultconf->idname);
     U.runtime.is_dirty = true;
@@ -321,7 +318,6 @@ bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
       *kc_p = nullptr;
     }
   }
-  return true;
 }
 
 void WM_keyconfig_clear(wmKeyConfig *keyconf)
@@ -432,17 +428,12 @@ void WM_keymap_clear(wmKeyMap *keymap)
   BLI_freelistN(&keymap->items);
 }
 
-bool WM_keymap_remove(wmKeyConfig *keyconf, wmKeyMap *keymap)
+void WM_keymap_remove(wmKeyConfig *keyconf, wmKeyMap *keymap)
 {
-  if (UNLIKELY(BLI_findindex(&keyconf->keymaps, keymap) == -1)) {
-    return false;
-  }
-
+  BLI_assert(BLI_findindex(&keyconf->keymaps, keymap) != -1);
   WM_keymap_clear(keymap);
   BLI_remlink(&keyconf->keymaps, keymap);
   MEM_freeN(keymap);
-
-  return true;
 }
 
 bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
@@ -555,12 +546,9 @@ wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, wmKeyMapItem *kmi_src)
   return kmi_dst;
 }
 
-bool WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
+void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
-  if (UNLIKELY(BLI_findindex(&keymap->items, kmi) == -1)) {
-    return false;
-  }
-
+  BLI_assert(BLI_findindex(&keymap->items, kmi) != -1);
   if (kmi->ptr) {
     WM_operator_properties_free(kmi->ptr);
     MEM_freeN(kmi->ptr);
@@ -568,7 +556,6 @@ bool WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
   BLI_freelinkN(&keymap->items, kmi);
 
   WM_keyconfig_update_tag(keymap, nullptr);
-  return true;
 }
 
 /** \} */

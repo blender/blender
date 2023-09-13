@@ -21,7 +21,7 @@ void WM_keyconfig_reload(bContext *C);
 
 wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user_defined);
 wmKeyConfig *WM_keyconfig_ensure(wmWindowManager *wm, const char *idname, bool user_defined);
-bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf);
+void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf);
 void WM_keyconfig_clear(wmKeyConfig *keyconf);
 void WM_keyconfig_free(wmKeyConfig *keyconf);
 
@@ -57,7 +57,7 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
                                  const KeyMapItem_Params *params);
 wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, wmKeyMapItem *kmi_src);
 
-bool WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi);
+void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi);
 int WM_keymap_item_to_string(const wmKeyMapItem *kmi,
                              bool compact,
                              char *result,
@@ -75,7 +75,7 @@ wmKeyMap *WM_keymap_find_all_spaceid_or_empty(wmWindowManager *wm,
                                               int spaceid,
                                               int regionid);
 wmKeyMap *WM_keymap_active(const wmWindowManager *wm, wmKeyMap *keymap);
-bool WM_keymap_remove(wmKeyConfig *keyconfig, wmKeyMap *keymap);
+void WM_keymap_remove(wmKeyConfig *keyconfig, wmKeyMap *keymap);
 bool WM_keymap_poll(bContext *C, wmKeyMap *keymap);
 
 wmKeyMapItem *WM_keymap_item_find_id(wmKeyMap *keymap, int id);
