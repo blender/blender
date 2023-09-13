@@ -272,6 +272,12 @@ def main() -> None:
     # Use `argparse` for full arg parsing, for now this is enough.
     relaxed = "--relaxed" not in argv
 
+    # NOTE(@ideasman42): Disable add-on items as they may cause differences in the key-map.
+    # An alternative would be to disable all add-ons, but this is simpler.
+    if kc_addon := bpy.context.window_manager.keyconfigs.addon:
+        kc_addon.keymaps.clear()
+    del kc_addon
+
     has_error = False
 
     presets = keyconfig_preset_scan()
