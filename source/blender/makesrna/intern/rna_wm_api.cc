@@ -419,13 +419,13 @@ static PointerRNA rna_KeyMap_item_match_event(ID *id, wmKeyMap *km, bContext *C,
   return kmi_ptr;
 }
 
-static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf,
-                                ReportList *reports,
-                                const char *idname,
-                                int spaceid,
-                                int regionid,
-                                bool modal,
-                                bool tool)
+static wmKeyMap *rna_KeyMaps_new(wmKeyConfig *keyconf,
+                                 ReportList *reports,
+                                 const char *idname,
+                                 int spaceid,
+                                 int regionid,
+                                 bool modal,
+                                 bool tool)
 {
   if (modal) {
     /* Sanity check: Don't allow add-ons to override internal modal key-maps
@@ -456,15 +456,15 @@ static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf,
   return keymap;
 }
 
-static wmKeyMap *rna_keymap_find(wmKeyConfig *keyconf,
-                                 const char *idname,
-                                 int spaceid,
-                                 int regionid)
+static wmKeyMap *rna_KeyMaps_find(wmKeyConfig *keyconf,
+                                  const char *idname,
+                                  int spaceid,
+                                  int regionid)
 {
   return WM_keymap_list_find(&keyconf->keymaps, idname, spaceid, regionid);
 }
 
-static wmKeyMap *rna_keymap_find_modal(wmKeyConfig * /*keyconf*/, const char *idname)
+static wmKeyMap *rna_KeyMaps_find_modal(wmKeyConfig * /*keyconf*/, const char *idname)
 {
   wmOperatorType *ot = WM_operatortype_find(idname, 0);
 
@@ -476,7 +476,7 @@ static wmKeyMap *rna_keymap_find_modal(wmKeyConfig * /*keyconf*/, const char *id
   }
 }
 
-static void rna_KeyMap_remove(wmKeyConfig *keyconfig, ReportList *reports, PointerRNA *keymap_ptr)
+static void rna_KeyMaps_remove(wmKeyConfig *keyconfig, ReportList *reports, PointerRNA *keymap_ptr)
 {
   wmKeyMap *keymap = static_cast<wmKeyMap *>(keymap_ptr->data);
 
@@ -1248,7 +1248,7 @@ void RNA_api_keymaps(StructRNA *srna)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  func = RNA_def_function(srna, "new", "rna_keymap_new"); /* add_keymap */
+  func = RNA_def_function(srna, "new", "rna_KeyMaps_new");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(
       func,
@@ -1265,13 +1265,13 @@ void RNA_api_keymaps(StructRNA *srna)
   parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Added key map");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "remove", "rna_KeyMap_remove"); /* remove_keymap */
+  func = RNA_def_function(srna, "remove", "rna_KeyMaps_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Removed key map");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 
-  func = RNA_def_function(srna, "find", "rna_keymap_find"); /* find_keymap */
+  func = RNA_def_function(srna, "find", "rna_KeyMaps_find");
   parm = RNA_def_string(func, "name", nullptr, 0, "Name", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_enum(func, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");
@@ -1280,7 +1280,7 @@ void RNA_api_keymaps(StructRNA *srna)
   parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Corresponding key map");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "find_modal", "rna_keymap_find_modal"); /* find_keymap_modal */
+  func = RNA_def_function(srna, "find_modal", "rna_KeyMaps_find_modal");
   parm = RNA_def_string(func, "name", nullptr, 0, "Operator Name", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Corresponding key map");
