@@ -98,6 +98,12 @@ enum RadialDirection {
   UI_RADIAL_NW = 7,
 };
 
+/** Next direction (clockwise). */
+#define UI_RADIAL_DIRECTION_NEXT(dir) RadialDirection((int(dir) + 1) % (int(UI_RADIAL_NW) + 1))
+/** Previous direction (counter-clockwise). */
+#define UI_RADIAL_DIRECTION_PREV(dir) \
+  RadialDirection(((int(dir) + int(UI_RADIAL_NW))) % (int(UI_RADIAL_NW) + 1))
+
 extern const char ui_radial_dir_order[8];
 extern const char ui_radial_dir_to_numpad[8];
 extern const short ui_radial_dir_to_angle[8];
