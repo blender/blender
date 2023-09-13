@@ -20,8 +20,8 @@ float principled_sheen(float NV, float rough)
 
 void node_bsdf_principled(vec4 base_color,
                           float subsurface,
+                          float subsurface_scale,
                           vec3 subsurface_radius,
-                          vec4 subsurface_color,
                           float subsurface_ior,
                           float subsurface_anisotropy,
                           float metallic,
@@ -155,10 +155,9 @@ void node_bsdf_principled(vec4 base_color,
 
   /* Diffuse component */
   if (true) {
-    vec3 diffuse_color = mix(base_color.rgb, subsurface_color.rgb, subsurface);
-    diffuse_data.sss_radius = subsurface_radius * subsurface;
+    diffuse_data.sss_radius = subsurface_radius * subsurface_scale;
     diffuse_data.sss_id = uint(do_sss);
-    diffuse_data.color += weight * diffuse_color * coat_tint.rgb;
+    diffuse_data.color += weight * base_color.rgb * coat_tint.rgb;
   }
 
   /* Adjust the weight of picking the closure. */

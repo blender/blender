@@ -517,30 +517,10 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   void expand(ShaderGraph *graph);
   bool has_surface_bssrdf();
   bool has_bssrdf_bump();
-  void compile(SVMCompiler &compiler,
-               ShaderInput *metallic,
-               ShaderInput *subsurface,
-               ShaderInput *subsurface_radius,
-               ShaderInput *subsurface_ior,
-               ShaderInput *subsurface_anisotropy,
-               ShaderInput *specular,
-               ShaderInput *roughness,
-               ShaderInput *specular_tint,
-               ShaderInput *anisotropic,
-               ShaderInput *sheen,
-               ShaderInput *sheen_roughness,
-               ShaderInput *sheen_tint,
-               ShaderInput *coat,
-               ShaderInput *coat_roughness,
-               ShaderInput *coat_ior,
-               ShaderInput *coat_tint,
-               ShaderInput *ior,
-               ShaderInput *transmission,
-               ShaderInput *anisotropic_rotation);
 
   NODE_SOCKET_API(float3, base_color)
-  NODE_SOCKET_API(float3, subsurface_color)
   NODE_SOCKET_API(float3, subsurface_radius)
+  NODE_SOCKET_API(float, subsurface_scale)
   NODE_SOCKET_API(float, subsurface_ior)
   NODE_SOCKET_API(float, subsurface_anisotropy)
   NODE_SOCKET_API(float, metallic)

@@ -34,7 +34,7 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
   const float3 P = INTEGRATOR_STATE(state, ray, P);
   const float ray_dP = INTEGRATOR_STATE(state, ray, dP);
   const float time = INTEGRATOR_STATE(state, ray, time);
-  const float3 Ng = INTEGRATOR_STATE(state, subsurface, Ng);
+  const float3 Ng = INTEGRATOR_STATE(state, subsurface, N);
   const int object = INTEGRATOR_STATE(state, isect, object);
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 

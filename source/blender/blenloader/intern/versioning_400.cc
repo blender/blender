@@ -580,6 +580,86 @@ static void version_principled_bsdf_sheen(bNodeTree *ntree)
   }
 }
 
+/* Convert subsurface inputs on the Principled BSDF. */
+static void version_principled_bsdf_subsurface(bNodeTree *ntree)
+{
+  /* - Create Subsurface Scale input
+   * - If a node's Subsurface input was connected or nonzero:
+   *   - Make the Base Color a mix of old Base Color and Subsurface Color,
+   *     using Subsurface as the mix factor
+   *   - Move Subsurface link and default value to the new Subsurface Scale input
+   *   - Set the Subsurface input to 1.0
+   * - Remove Subsurface Color input
+   */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+      continue;
+    }
+    if (nodeFindSocket(node, SOCK_IN, "Subsurface Scale")) {
+      /* Node is already updated. */
+      continue;
+    }
+
+    /* Add Scale input */
+    bNodeSocket *scale_in = nodeAddStaticSocket(
+        ntree, node, SOCK_IN, SOCK_FLOAT, PROP_DISTANCE, "Subsurface Scale", "Subsurface Scale");
+
+    bNodeSocket *subsurf = nodeFindSocket(node, SOCK_IN, "Subsurface");
+    float *subsurf_val = version_cycles_node_socket_float_value(subsurf);
+    *version_cycles_node_socket_float_value(scale_in) = *subsurf_val;
+
+    if (subsurf->link == nullptr && *subsurf_val == 0.0f) {
+      /* Node doesn't use Subsurf, we're done here. */
+      continue;
+    }
+
+    /* Fix up Subsurface Color input */
+    bNodeSocket *base_col = nodeFindSocket(node, SOCK_IN, "Base Color");
+    bNodeSocket *subsurf_col = nodeFindSocket(node, SOCK_IN, "Subsurface Color");
+    float *base_col_val = version_cycles_node_socket_rgba_value(base_col);
+    float *subsurf_col_val = version_cycles_node_socket_rgba_value(subsurf_col);
+    /* If any of the three inputs is dynamic, we need a Mix node. */
+    if (subsurf->link || subsurf_col->link || base_col->link) {
+      bNode *mix = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX);
+      static_cast<NodeShaderMix *>(mix->storage)->data_type = SOCK_RGBA;
+      mix->locx = node->locx - 170;
+      mix->locy = node->locy - 120;
+
+      bNodeSocket *a_in = nodeFindSocket(mix, SOCK_IN, "A_Color");
+      bNodeSocket *b_in = nodeFindSocket(mix, SOCK_IN, "B_Color");
+      bNodeSocket *fac_in = nodeFindSocket(mix, SOCK_IN, "Factor_Float");
+      bNodeSocket *result_out = nodeFindSocket(mix, SOCK_OUT, "Result_Color");
+
+      copy_v4_v4(version_cycles_node_socket_rgba_value(a_in), base_col_val);
+      copy_v4_v4(version_cycles_node_socket_rgba_value(b_in), subsurf_col_val);
+      *version_cycles_node_socket_float_value(fac_in) = *subsurf_val;
+
+      if (base_col->link) {
+        nodeAddLink(ntree, base_col->link->fromnode, base_col->link->fromsock, mix, a_in);
+        nodeRemLink(ntree, base_col->link);
+      }
+      if (subsurf_col->link) {
+        nodeAddLink(ntree, subsurf_col->link->fromnode, subsurf_col->link->fromsock, mix, b_in);
+        nodeRemLink(ntree, subsurf_col->link);
+      }
+      if (subsurf->link) {
+        nodeAddLink(ntree, subsurf->link->fromnode, subsurf->link->fromsock, mix, fac_in);
+        nodeAddLink(ntree, subsurf->link->fromnode, subsurf->link->fromsock, node, scale_in);
+        nodeRemLink(ntree, subsurf->link);
+      }
+      nodeAddLink(ntree, mix, result_out, node, base_col);
+    }
+    /* Mix the fixed values. */
+    interp_v4_v4v4(base_col_val, base_col_val, subsurf_col_val, *subsurf_val);
+
+    /* Set node to 100% subsurface, 0% diffuse. */
+    *subsurf_val = 1.0f;
+
+    /* Delete Subsurface Color input */
+    nodeRemoveSocket(ntree, node, subsurf_col);
+  }
+}
+
 /* Replace old Principled Hair BSDF as a variant in the new Principled Hair BSDF. */
 static void version_replace_principled_hair_model(bNodeTree *ntree)
 {
@@ -1096,6 +1176,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_SHADER) {
         /* Convert coat inputs on the Principled BSDF. */
         version_principled_bsdf_coat(ntree);
+        /* Convert subsurface inputs on the Principled BSDF. */
+        version_principled_bsdf_subsurface(ntree);
       }
     }
     FOREACH_NODETREE_END;

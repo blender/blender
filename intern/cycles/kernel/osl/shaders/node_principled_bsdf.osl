@@ -9,8 +9,8 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                             string subsurface_method = "random_walk",
                             color BaseColor = color(0.8, 0.8, 0.8),
                             float Subsurface = 0.0,
+                            float SubsurfaceScale = 0.1,
                             vector SubsurfaceRadius = vector(1.0, 1.0, 1.0),
-                            color SubsurfaceColor = color(0.7, 0.1, 0.1),
                             float SubsurfaceIOR = 1.4,
                             float SubsurfaceAnisotropy = 0.0,
                             float Metallic = 0.0,
@@ -47,21 +47,21 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
   }
 
   if (Metallic < 1.0 && Transmission < 1.0) {
-    color diffuse_color = mix(BaseColor, SubsurfaceColor, Subsurface);
+    BSDF = BaseColor * diffuse(Normal);
     if (Subsurface > 1e-5) {
-      BSDF = diffuse_color * bssrdf(subsurface_method,
-                                    Normal,
-                                    Subsurface * SubsurfaceRadius,
-                                    diffuse_color,
-                                    "roughness",
-                                    Roughness,
-                                    "ior",
-                                    SubsurfaceIOR,
-                                    "anisotropy",
-                                    SubsurfaceAnisotropy);
-    }
-    else {
-      BSDF = diffuse_color * diffuse(Normal);
+      vector radius = SubsurfaceScale * SubsurfaceRadius;
+      float subsurface_ior = (subsurface_method == "random_walk") ? SubsurfaceIOR : IOR;
+      closure color SubsurfBSDF = bssrdf(subsurface_method,
+                                         Normal,
+                                         SubsurfaceScale * SubsurfaceRadius,
+                                         BaseColor,
+                                         "roughness",
+                                         Roughness,
+                                         "ior",
+                                         subsurface_ior,
+                                         "anisotropy",
+                                         SubsurfaceAnisotropy);
+      BSDF = mix(BSDF, BaseColor * SubsurfBSDF, Subsurface);
     }
 
     color f0 = color(F0_from_ior(IOR));
