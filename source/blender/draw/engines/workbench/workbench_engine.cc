@@ -470,6 +470,10 @@ class Instance {
                                           GPU_DEPTH24_STENCIL8,
                                           GPU_TEXTURE_USAGE_SHADER_READ |
                                               GPU_TEXTURE_USAGE_ATTACHMENT);
+
+      fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_in_front_tx));
+      fb.bind();
+      GPU_framebuffer_clear_depth_stencil(fb, 1.0f, 0x00);
     }
 
     opaque_ps.draw(
