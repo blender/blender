@@ -152,7 +152,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(
   return data.batches;
 }
 
-Vector<SculptBatch> sculpt_batches_get(Object *ob, SculptBatchFeature features)
+Vector<SculptBatch> sculpt_batches_get(Object *ob, bool per_material, SculptBatchFeature features)
 {
   PBVHAttrReq attrs[16] = {};
   int attrs_len = 0;
@@ -193,7 +193,8 @@ Vector<SculptBatch> sculpt_batches_get(Object *ob, SculptBatchFeature features)
     }
   }
 
-  return sculpt_batches_get_ex(ob, features & SCULPT_BATCH_WIREFRAME, false, attrs, attrs_len);
+  return sculpt_batches_get_ex(
+      ob, features & SCULPT_BATCH_WIREFRAME, per_material, attrs, attrs_len);
 }
 
 Vector<SculptBatch> sculpt_batches_per_material_get(Object *ob,

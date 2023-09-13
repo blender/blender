@@ -68,7 +68,7 @@ void get_material_image(Object *ob,
 {
   const ::bNode *node = nullptr;
 
-  ED_object_get_active_image(ob, material_slot, &image, &iuser, &node, nullptr);
+  ED_object_get_active_image(ob, material_slot + 1, &image, &iuser, &node, nullptr);
   if (node && image) {
     switch (node->type) {
       case SH_NODE_TEX_IMAGE: {
