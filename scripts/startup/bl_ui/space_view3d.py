@@ -902,7 +902,7 @@ class VIEW3D_HT_header(Header):
                 icon = 'GROUP_VCOL' if canvas_source == 'COLOR_ATTRIBUTE' else canvas_source
                 row.popover(panel="VIEW3D_PT_slots_paint_canvas", icon=icon)
             else:
-                row.popover(panel="VIEW3D_PT_slots_color_attributes", icon="GROUP_VCOL")
+                row.popover(panel="VIEW3D_PT_slots_color_attributes", icon='GROUP_VCOL')
 
             layout.popover(
                 panel="VIEW3D_PT_sculpt_automasking",
@@ -913,12 +913,12 @@ class VIEW3D_HT_header(Header):
         elif object_mode == 'VERTEX_PAINT':
             row = layout.row()
             row.ui_units_x = 6
-            row.popover(panel="VIEW3D_PT_slots_color_attributes", icon="GROUP_VCOL")
+            row.popover(panel="VIEW3D_PT_slots_color_attributes", icon='GROUP_VCOL')
 
         elif object_mode == 'WEIGHT_PAINT':
             row = layout.row()
             row.ui_units_x = 6
-            row.popover(panel="VIEW3D_PT_slots_vertex_groups", icon="GROUP_VERTEX")
+            row.popover(panel="VIEW3D_PT_slots_vertex_groups", icon='GROUP_VERTEX')
 
         elif object_mode == 'TEXTURE_PAINT':
             tool_mode = tool_settings.image_paint.mode
@@ -927,7 +927,7 @@ class VIEW3D_HT_header(Header):
             row = layout.row()
             row.ui_units_x = 9
             row.popover(panel="VIEW3D_PT_slots_projectpaint", icon=icon)
-            row.popover(panel="VIEW3D_PT_mask", icon="MOD_MASK", text="")
+            row.popover(panel="VIEW3D_PT_mask", icon='MOD_MASK', text="")
         else:
             # Transform settings depending on tool header visibility
             VIEW3D_HT_header.draw_xform_template(layout, context)
@@ -2601,7 +2601,7 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_object_asset", icon="ASSET_MANAGER")
+        layout.menu("VIEW3D_MT_object_asset", icon='ASSET_MANAGER')
         layout.menu("VIEW3D_MT_object_parent")
         layout.menu("VIEW3D_MT_object_collection")
         layout.menu("VIEW3D_MT_object_relations")
@@ -6569,7 +6569,7 @@ class VIEW3D_PT_shading_compositor(Panel):
         row = self.layout.row()
         row.active = is_supported
         row.prop(shading, "use_compositor", expand=True)
-        if shading.use_compositor != "DISABLED" and not is_supported:
+        if shading.use_compositor != 'DISABLED' and not is_supported:
             self.layout.label(text="Compositor not supported on this platform", icon='ERROR')
 
 

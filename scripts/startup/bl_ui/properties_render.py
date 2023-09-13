@@ -651,7 +651,7 @@ class RENDER_PT_eevee_next_raytracing_reflection(EeveeRaytracingOptionsPanel):
 
     def draw_header(self, context):
         layout = self.layout
-        if context.scene.eevee.ray_split_settings == "UNIFIED":
+        if context.scene.eevee.ray_split_settings == 'UNIFIED':
             layout.label(text="Reflection & Refraction")
         else:
             layout.label(text="Reflection")
@@ -683,7 +683,7 @@ class RENDER_PT_eevee_next_raytracing_refraction(EeveeRaytracingOptionsPanel):
 
     @classmethod
     def poll(cls, context):
-        return (context.scene.eevee.ray_split_settings == "SPLIT")
+        return (context.scene.eevee.ray_split_settings == 'SPLIT')
 
     def draw(self, context):
         self.draw_internal(context, context.scene.eevee.refraction_options)
@@ -858,8 +858,8 @@ class RENDER_PT_eevee_next_indirect_lighting(RenderButtonsPanel, Panel):
         props = scene.eevee
 
         col = layout.column()
-        col.operator("object.lightprobe_cache_bake", text="Bake Light Caches", icon='RENDER_STILL').subset = "ALL"
-        col.operator("object.lightprobe_cache_free", text="Delete Light Caches").subset = "ALL"
+        col.operator("object.lightprobe_cache_bake", text="Bake Light Caches", icon='RENDER_STILL').subset = 'ALL'
+        col.operator("object.lightprobe_cache_free", text="Delete Light Caches").subset = 'ALL'
 
         col.prop(props, "gi_irradiance_pool_size", text="Pool Size")
 

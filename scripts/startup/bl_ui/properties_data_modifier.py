@@ -229,7 +229,7 @@ class AddModifierMenu(Operator):
     def poll(cls, context):
         # NOTE: This operator only exists to add a poll to the add modifier shortcut in the property editor.
         space = context.space_data
-        return space and space.type == 'PROPERTIES' and space.context == "MODIFIER"
+        return space and space.type == 'PROPERTIES' and space.context == 'MODIFIER'
 
     def invoke(self, context, event):
         return bpy.ops.wm.call_menu(name="OBJECT_MT_modifier_add")

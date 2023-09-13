@@ -87,17 +87,16 @@ def edit_geometry_nodes_modifier_poll(context):
 
 def socket_idname_to_attribute_type(idname):
     if idname.startswith("NodeSocketInt"):
-        return "INT"
+        return 'INT'
     elif idname.startswith("NodeSocketColor"):
-        return "FLOAT_COLOR"
+        return 'FLOAT_COLOR'
     elif idname.startswith("NodeSocketVector"):
-        return "FLOAT_VECTOR"
+        return 'FLOAT_VECTOR'
     elif idname.startswith("NodeSocketBool"):
-        return "BOOLEAN"
+        return 'BOOLEAN'
     elif idname.startswith("NodeSocketFloat"):
-        return "FLOAT"
+        return 'FLOAT'
     raise ValueError("Unsupported socket type")
-    return ""
 
 
 def modifier_attribute_name_get(modifier, identifier):
@@ -179,7 +178,7 @@ class MoveModifierToNodes(Operator):
                     first_geometry_input = group_node_input
 
         if not first_geometry_input:
-            self.report({"WARNING"}, "Node group must have a geometry input")
+            self.report({'WARNING'}, "Node group must have a geometry input")
             return {'CANCELLED'}
         group.links.new(group_input_node.outputs[0], first_geometry_input)
 
@@ -226,8 +225,8 @@ class MoveModifierToNodes(Operator):
             group.links.new(store_nodes[-1].outputs["Geometry"], group_output_node.inputs[data_("Geometry")])
         else:
             if not first_geometry_output:
-                self.report({"WARNING"}, "Node group must have a geometry output")
-                return {"CANCELLED"}
+                self.report({'WARNING'}, "Node group must have a geometry output")
+                return {'CANCELLED'}
             group.links.new(first_geometry_output, group_output_node.inputs[data_("Geometry")])
 
         modifier.node_group = group
