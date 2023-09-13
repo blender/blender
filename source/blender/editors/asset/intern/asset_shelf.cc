@@ -690,7 +690,6 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
   uiItemSpacer(layout);
 
   uiItemR(layout, &shelf_ptr, "search_filter", UI_ITEM_NONE, "", ICON_VIEWZOOM);
-  uiItemS(layout);
   uiItemPopoverPanel(layout, C, "ASSETSHELF_PT_display", "", ICON_IMGDISPLAY);
 }
 
