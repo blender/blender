@@ -6739,14 +6739,6 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem display_size_items[] = {
-      {64, "TINY", 0, "Tiny", ""},
-      {96, "SMALL", 0, "Small", ""},
-      {128, "NORMAL", 0, "Medium", ""},
-      {192, "LARGE", 0, "Large", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   srna = RNA_def_struct(brna, "FileSelectParams", nullptr);
   RNA_def_struct_path_func(srna, "rna_FileSelectParams_path");
   RNA_def_struct_ui_text(srna, "File Select Parameters", "File Select Parameters");
@@ -6921,13 +6913,15 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 
-  prop = RNA_def_property(srna, "display_size", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "thumbnail_size");
-  RNA_def_property_enum_items(prop, display_size_items);
+  prop = RNA_def_property(srna, "display_size", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "thumbnail_size");
   RNA_def_property_ui_text(prop,
                            "Display Size",
                            "Change the size of the display (width of columns or thumbnails size)");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
+  RNA_def_property_int_default(prop, 96);
+  RNA_def_property_range(prop, 16, 256);
+  RNA_def_property_ui_range(prop, 24, 256, 16, 0);
 }
 
 static void rna_def_fileselect_asset_params(BlenderRNA *brna)
