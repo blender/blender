@@ -473,7 +473,8 @@ void ED_asset_shelf_header_region(const bContext *C, ARegion *region)
 
 int ED_asset_shelf_header_region_size()
 {
-  /* A little smaller than a regular header. */
+  /* The asset shelf tends to look like a separate area. Making the shelf header smaller than a
+   * normal header helps a bit. */
   return ED_area_headersize() * 0.85f;
 }
 
