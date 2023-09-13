@@ -45,6 +45,8 @@
 #include "wm_event_system.h"
 #include "wm_event_types.hh"
 
+#include "ED_screen.hh"
+
 struct wmKeyMapItemFind_Params {
   bool (*filter_fn)(const wmKeyMap *km, const wmKeyMapItem *kmi, void *user_data);
   void *user_data;
@@ -1921,6 +1923,30 @@ void WM_keyconfig_update(wmWindowManager *wm)
   if (compat_update) {
     WM_keyconfig_update_tag(nullptr, nullptr);
     WM_keyconfig_update(wm);
+  }
+
+  /* NOTE(@ideasman42): open preferences will contain "stale" #wmKeyMapItem data.
+   *
+   * The common case this solves is using Blender with the key-map editor open,
+   * an action in the view-port for e.g. may manipulate the key-map causing it to be rebuilt.
+   * Later interaction with the key-map editor may then attempt to access freed data.
+   *
+   * Take care, this is _not_ fool proof because it's possible:
+   * - Key-map options to be shown in any region (using scripts).
+   * - Key-map re-generation could happen while the preferences is open,
+   *   where the data becomes stale before the UI has a chance to redraw.
+   *
+   * In practice both cases are quite unlikely though. */
+  if (U.space_data.section_active == USER_SECTION_KEYMAP) {
+    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+      bScreen *screen = WM_window_get_active_screen(win);
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        if (area->spacetype == SPACE_USERPREF) {
+          ED_area_tag_redraw(area);
+        }
+      }
+    }
   }
 }
 
