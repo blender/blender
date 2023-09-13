@@ -493,6 +493,13 @@ static void rna_KeyMaps_remove(wmKeyConfig *keyconfig, ReportList *reports, Poin
   RNA_POINTER_INVALIDATE(keymap_ptr);
 }
 
+static void rna_KeyMaps_clear(wmKeyConfig *keyconfig)
+{
+  while (wmKeyMap *keymap = static_cast<wmKeyMap *>(keyconfig->keymaps.first)) {
+    WM_keymap_remove(keyconfig, keymap);
+  }
+}
+
 wmKeyConfig *rna_KeyConfig_new(wmWindowManager *wm, const char *idname)
 {
   return WM_keyconfig_ensure(wm, idname, true);
@@ -1270,6 +1277,9 @@ void RNA_api_keymaps(StructRNA *srna)
   parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Removed key map");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "clear", "rna_KeyMaps_clear");
+  RNA_def_function_ui_description(func, "Remove all keymaps.");
 
   func = RNA_def_function(srna, "find", "rna_KeyMaps_find");
   parm = RNA_def_string(func, "name", nullptr, 0, "Name", "");
