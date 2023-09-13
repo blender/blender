@@ -119,7 +119,7 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C)
   ctx.v2d = UI_view2d_fromcontext(C);
 
   ctx.ed = SEQ_editing_get(ctx.scene);
-  ctx.channels = SEQ_channels_displayed_get(ctx.ed);
+  ctx.channels = ctx.ed ? SEQ_channels_displayed_get(ctx.ed) : nullptr;
 
   ctx.viewport = WM_draw_region_get_viewport(ctx.region);
   ctx.framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(ctx.viewport);
