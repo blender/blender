@@ -49,7 +49,7 @@ namespace blender::ed::greasepencil {
 
 void set_selected_frames_type(bke::greasepencil::Layer &layer,
                               const eBezTriple_KeyframeType key_type);
-                              
+
 /* Creates duplicate frames for each selected frame in the layer. The duplicates are stored in the
  * LayerTransformData structure of the layer runtime data. This function also unselects the
  * selected frames, while keeping the duplicates selected. */
