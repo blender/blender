@@ -143,9 +143,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .subtype(PROP_FACTOR);
 #define SOCK_TRANSMISSION_ID 20
-  b.add_input<decl::Color>("Emission").default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Color>("Emission").default_value({1.0f, 1.0f, 1.0f, 1.0f});
 #define SOCK_EMISSION_ID 21
-  b.add_input<decl::Float>("Emission Strength").default_value(1.0).min(0.0f).max(1000000.0f);
+  b.add_input<decl::Float>("Emission Strength").default_value(0.0).min(0.0f).max(1000000.0f);
 #define SOCK_EMISSION_STRENGTH_ID 22
   b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
 #define SOCK_ALPHA_ID 23

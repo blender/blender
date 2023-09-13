@@ -660,6 +660,33 @@ static void version_principled_bsdf_subsurface(bNodeTree *ntree)
   }
 }
 
+/* Convert emission inputs on the Principled BSDF. */
+static void version_principled_bsdf_emission(bNodeTree *ntree)
+{
+  /* Blender 3.x and before would default to Emission = 0.0, Emission Strength = 1.0.
+   * Now we default the other way around (1.0 and 0.0), but because the Strength input was added
+   * a bit later, a file that only has the Emission socket would now end up as (1.0, 0.0) instead
+   * of (1.0, 1.0).
+   * Therefore, set strength to 1.0 for those files.
+   */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+      continue;
+    }
+    if (!nodeFindSocket(node, SOCK_IN, "Emission")) {
+      /* Old enough to have neither, new defaults are fine. */
+      continue;
+    }
+    if (nodeFindSocket(node, SOCK_IN, "Emission Strength")) {
+      /* New enough to have both, no need to do anything. */
+      continue;
+    }
+    bNodeSocket *sock = nodeAddStaticSocket(
+        ntree, node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Emission Strength", "Emission Strength");
+    *version_cycles_node_socket_float_value(sock) = 1.0f;
+  }
+}
+
 /* Replace old Principled Hair BSDF as a variant in the new Principled Hair BSDF. */
 static void version_replace_principled_hair_model(bNodeTree *ntree)
 {
@@ -1178,6 +1205,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         version_principled_bsdf_coat(ntree);
         /* Convert subsurface inputs on the Principled BSDF. */
         version_principled_bsdf_subsurface(ntree);
+        /* Convert emission on the Principled BSDF. */
+        version_principled_bsdf_emission(ntree);
       }
     }
     FOREACH_NODETREE_END;

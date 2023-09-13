@@ -514,9 +514,9 @@ class PrincipledBsdfNode : public BsdfBaseNode {
  public:
   SHADER_NODE_CLASS(PrincipledBsdfNode)
 
-  void expand(ShaderGraph *graph);
   bool has_surface_bssrdf();
   bool has_bssrdf_bump();
+  void simplify_settings(Scene *scene);
 
   NODE_SOCKET_API(float3, base_color)
   NODE_SOCKET_API(float3, subsurface_radius)
@@ -555,6 +555,8 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   {
     return true;
   }
+  bool has_surface_transparent();
+  bool has_surface_emission();
 };
 
 class TranslucentBsdfNode : public BsdfNode {

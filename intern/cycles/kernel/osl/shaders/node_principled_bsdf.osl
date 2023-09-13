@@ -28,6 +28,9 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                             color CoatTint = color(1.0, 1.0, 1.0),
                             float IOR = 1.45,
                             float Transmission = 0.0,
+                            color Emission = 1.0,
+                            float EmissionStrength = 0.0,
+                            float Alpha = 1.0,
                             normal Normal = N,
                             normal CoatNormal = N,
                             normal Tangent = normalize(dPdu),
@@ -99,6 +102,10 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
     BSDF = mix(BSDF, MetallicBSDF, clamp(Metallic, 0.0, 1.0));
   }
 
+  if (EmissionStrength > 0.0 && Emission != color(0.0)) {
+    BSDF += EmissionStrength * Emission * emission();
+  }
+
   if (Coat > 1e-5) {
     float coat_ior = max(CoatIOR, 1.0);
     if (CoatTint != color(1.0)) {
@@ -117,4 +124,6 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
     closure color SheenBSDF = sheen(Normal, SheenRoughness);
     BSDF = layer(SheenTint * Sheen * SheenBSDF, BSDF);
   }
+
+  BSDF = mix(transparent(), BSDF, Alpha);
 }

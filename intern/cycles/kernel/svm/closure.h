@@ -22,6 +22,7 @@ ccl_device_inline int svm_node_closure_bsdf_skip(KernelGlobals kg, int offset, u
     read_node(kg, &offset);
     read_node(kg, &offset);
     read_node(kg, &offset);
+    read_node(kg, &offset);
   }
 
   return offset;
@@ -53,6 +54,12 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       return svm_node_closure_bsdf_skip(kg, offset, type);
     }
   }
+  else IF_KERNEL_NODES_FEATURE(EMISSION) {
+    if (type != CLOSURE_BSDF_PRINCIPLED_ID) {
+      /* Only principled BSDF can have emission. */
+      return svm_node_closure_bsdf_skip(kg, offset, type);
+    }
+  }
   else {
     return svm_node_closure_bsdf_skip(kg, offset, type);
   }
@@ -70,7 +77,8 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       uint specular_offset, roughness_offset, specular_tint_offset, anisotropic_offset,
           sheen_offset, sheen_tint_offset, sheen_roughness_offset, coat_offset,
           coat_roughness_offset, coat_ior_offset, eta_offset, transmission_offset,
-          anisotropic_rotation_offset, coat_tint_offset, coat_normal_offset, dummy;
+          anisotropic_rotation_offset, coat_tint_offset, coat_normal_offset, dummy,
+          alpha_offset, emission_strength_offset, emission_offset;
       uint4 data_node2 = read_node(kg, &offset);
 
       float3 T = stack_load_float3(stack, data_node.y);
@@ -129,6 +137,20 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
                                sd->N;
       coat_normal = maybe_ensure_valid_specular_reflection(sd, coat_normal);
 
+      uint4 data_alpha_emission = read_node(kg, &offset);
+      svm_unpack_node_uchar4(data_alpha_emission.x,
+                             &alpha_offset,
+                             &emission_strength_offset,
+                             &emission_offset,
+                             &dummy);
+      float alpha = stack_valid(alpha_offset) ? stack_load_float(stack, alpha_offset) :
+                                                __uint_as_float(data_alpha_emission.y);
+      float3 emission = stack_load_float3(stack, emission_offset);
+      /* Emission strength */
+      emission *= stack_valid(emission_strength_offset) ?
+                      stack_load_float(stack, emission_strength_offset) :
+                      __uint_as_float(data_alpha_emission.z);
+
       Spectrum weight = closure_weight * mix_weight;
 
       float alpha_x = sqr(roughness), alpha_y = sqr(roughness);
@@ -150,6 +172,12 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       const bool reflective_caustics = true;
       const bool glass_caustics = true;
 #endif
+
+      /* Before any actual shader components, apply transparency. */
+      if (alpha < 1.0f) {
+        bsdf_transparent_setup(sd, weight * (1.0f - alpha), path_flag);
+        weight *= alpha;
+      }
 
       /* First layer: Sheen */
       if (sheen > CLOSURE_WEIGHT_CUTOFF) {
@@ -215,6 +243,11 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
         float cosNT = sqrtf(1.0f - sqr(1.0f / coat_ior) * (1 - sqr(cosNI)));
         float optical_depth = 1.0f / cosNT;
         weight *= power(rgb_to_spectrum(coat_tint), coat * optical_depth);
+      }
+
+      /* Emission (attenuated by sheen and coat) */
+      if (!is_zero(emission)) {
+        emission_setup(sd, rgb_to_spectrum(emission) * weight);
       }
 
       /* Metallic component */

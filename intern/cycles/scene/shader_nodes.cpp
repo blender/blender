@@ -2681,8 +2681,8 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(ior, "IOR", 0.0f);
   SOCKET_IN_FLOAT(transmission, "Transmission", 0.0f);
   SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
-  SOCKET_IN_COLOR(emission, "Emission", zero_float3());
-  SOCKET_IN_FLOAT(emission_strength, "Emission Strength", 1.0f);
+  SOCKET_IN_COLOR(emission, "Emission", one_float3());
+  SOCKET_IN_FLOAT(emission_strength, "Emission Strength", 0.0f);
   SOCKET_IN_FLOAT(alpha, "Alpha", 1.0f);
   SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
   SOCKET_IN_NORMAL(coat_normal, "Coat Normal", zero_float3(), SocketType::LINK_NORMAL);
@@ -2700,60 +2700,33 @@ PrincipledBsdfNode::PrincipledBsdfNode() : BsdfBaseNode(get_node_type())
   distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
 }
 
-void PrincipledBsdfNode::expand(ShaderGraph *graph)
+void PrincipledBsdfNode::simplify_settings(Scene * /* scene */)
 {
-  ShaderOutput *principled_out = output("BSDF");
-
-  ShaderInput *emission_in = input("Emission");
-  ShaderInput *emission_strength_in = input("Emission Strength");
-  if ((emission_in->link || emission != zero_float3()) &&
-      (emission_strength_in->link || emission_strength != 0.0f))
-  {
-    /* Create add closure and emission, and relink inputs. */
-    AddClosureNode *add = graph->create_node<AddClosureNode>();
-    EmissionNode *emission_node = graph->create_node<EmissionNode>();
-    ShaderOutput *new_out = add->output("Closure");
-
-    graph->add(add);
-    graph->add(emission_node);
-
-    graph->relink(emission_strength_in, emission_node->input("Strength"));
-    graph->relink(emission_in, emission_node->input("Color"));
-    graph->relink(principled_out, new_out);
-    graph->connect(emission_node->output("Emission"), add->input("Closure1"));
-    graph->connect(principled_out, add->input("Closure2"));
-
-    principled_out = new_out;
-  }
-  else {
-    /* Disconnect unused links if the other value is zero, required before
-     * we remove the input from the node entirely. */
+  if (!has_surface_emission()) {
+    /* Emission will be zero, so optimize away any connected emission input. */
+    ShaderInput *emission_in = input("Emission");
+    ShaderInput *strength_in = input("Emission Strength");
     if (emission_in->link) {
       emission_in->disconnect();
     }
-    if (emission_strength_in->link) {
-      emission_strength_in->disconnect();
+    if (strength_in->link) {
+      strength_in->disconnect();
     }
   }
+}
 
+bool PrincipledBsdfNode::has_surface_transparent()
+{
   ShaderInput *alpha_in = input("Alpha");
-  if (alpha_in->link || alpha != 1.0f) {
-    /* Create mix and transparent BSDF for alpha transparency. */
-    MixClosureNode *mix = graph->create_node<MixClosureNode>();
-    TransparentBsdfNode *transparent = graph->create_node<TransparentBsdfNode>();
+  return (alpha_in->link != NULL || alpha < (1.0f - CLOSURE_WEIGHT_CUTOFF));
+}
 
-    graph->add(mix);
-    graph->add(transparent);
-
-    graph->relink(alpha_in, mix->input("Fac"));
-    graph->relink(principled_out, mix->output("Closure"));
-    graph->connect(transparent->output("BSDF"), mix->input("Closure1"));
-    graph->connect(principled_out, mix->input("Closure2"));
-  }
-
-  remove_input(emission_in);
-  remove_input(emission_strength_in);
-  remove_input(alpha_in);
+bool PrincipledBsdfNode::has_surface_emission()
+{
+  ShaderInput *emission_in = input("Emission");
+  ShaderInput *emission_strength_in = input("Emission Strength");
+  return (emission_in->link != NULL || reduce_max(emission) > CLOSURE_WEIGHT_CUTOFF) &&
+         (emission_strength_in->link != NULL || emission_strength > CLOSURE_WEIGHT_CUTOFF);
 }
 
 bool PrincipledBsdfNode::has_surface_bssrdf()
@@ -2781,6 +2754,9 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
   ShaderInput *p_metallic = input("Metallic");
   ShaderInput *p_subsurface = input("Subsurface");
 
+  ShaderInput *emission_strength_in = input("Emission Strength");
+  ShaderInput *alpha_in = input("Alpha");
+
   float3 weight = one_float3();
 
   compiler.add_node(NODE_CLOSURE_SET_WEIGHT, weight);
@@ -2806,6 +2782,9 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
   int subsurface_scale_offset = compiler.stack_assign(input("Subsurface Scale"));
   int subsurface_ior_offset = compiler.stack_assign(input("Subsurface IOR"));
   int subsurface_anisotropy_offset = compiler.stack_assign(input("Subsurface Anisotropy"));
+  int alpha_offset = compiler.stack_assign_if_linked(alpha_in);
+  int emission_strength_offset = compiler.stack_assign_if_linked(emission_strength_in);
+  int emission_offset = compiler.stack_assign(input("Emission"));
 
   compiler.add_node(NODE_CLOSURE_BSDF,
                     compiler.encode_uchar4(closure,
@@ -2843,6 +2822,13 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
                     subsurface_radius_offset,
                     subsurface_scale_offset,
                     subsurface_anisotropy_offset);
+
+  compiler.add_node(
+      compiler.encode_uchar4(
+          alpha_offset, emission_strength_offset, emission_offset, SVM_STACK_INVALID),
+      __float_as_int(get_float(alpha_in->socket_type)),
+      __float_as_int(get_float(emission_strength_in->socket_type)),
+      SVM_STACK_INVALID);
 }
 
 void PrincipledBsdfNode::compile(OSLCompiler &compiler)
