@@ -300,7 +300,7 @@ vec2 brdf_lut(float cos_theta, float roughness)
 vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
 {
   if (ior <= 1e-5) {
-    return vec2(0.0);
+    return vec2(0.0, 1.0);
   }
 
   if (ior >= 1.0) {
