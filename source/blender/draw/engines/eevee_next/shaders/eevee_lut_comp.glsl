@@ -99,7 +99,7 @@ vec4 ggx_btdf_split_sum(vec3 lut_coord)
     }
 
     /* Refraction. */
-    vec3 T = refract(-V, H, ior);
+    vec3 T = refract(-V, H, 1.0 / ior);
     float NT = T.z;
     /* In the case of TIR, `T == vec3(0)`. */
     if (NT < 0.0) {
