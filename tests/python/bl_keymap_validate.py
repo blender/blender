@@ -270,7 +270,7 @@ def main() -> None:
     argv = (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
 
     # Use `argparse` for full arg parsing, for now this is enough.
-    relaxed = "--relaxed" not in argv
+    relaxed = "--relaxed" in argv
 
     # NOTE(@ideasman42): Disable add-on items as they may cause differences in the key-map.
     # An alternative would be to disable all add-ons, but this is simpler.
