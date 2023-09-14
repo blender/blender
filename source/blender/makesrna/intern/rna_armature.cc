@@ -334,8 +334,13 @@ static bool rna_Armature_collections_override_apply(Main *bmain,
   bArmature *arm_dst = (bArmature *)ptr_dst->owner_id;
   BoneCollection *bcoll_anchor = static_cast<BoneCollection *>(ptr_item_dst->data);
   BoneCollection *bcoll_src = static_cast<BoneCollection *>(ptr_item_src->data);
+  BoneCollection *bcoll = ANIM_armature_bonecoll_insert_copy_after(
+      arm_dst, bcoll_anchor, bcoll_src);
 
-  ANIM_armature_bonecoll_insert_copy_after(arm_dst, bcoll_anchor, bcoll_src);
+  if (!ID_IS_LINKED(&arm_dst->id)) {
+    /* Mark this bone collection as local override, so that certain operations can be allowed. */
+    bcoll->flags |= BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL;
+  }
 
   RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
   return true;
@@ -2061,7 +2066,6 @@ static void rna_def_bonecollection(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Name", "Unique within the Armature");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_BoneCollection_name_set");
-  // RNA_def_property_update(prop, 0, "rna_Bone_update_renamed");
 
   prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_VISIBLE);
@@ -2071,6 +2075,14 @@ static void rna_def_bonecollection(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, nullptr);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "is_local_override", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL);
+  RNA_def_property_ui_text(
+      prop,
+      "Is Local Override",
+      "This collection was added via a library override in the current blend file");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Bone");

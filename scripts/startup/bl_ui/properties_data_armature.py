@@ -89,6 +89,16 @@ class DATA_UL_bone_collections(UIList):
 
         layout.prop(bcoll, "name", text="", emboss=False,
                     icon='DOT' if has_active_bone else 'BLANK1')
+
+        if armature.override_library:
+            icon = 'LIBRARY_DATA_OVERRIDE' if bcoll.is_local_override else 'BLANK1'
+            layout.prop(
+                bcoll,
+                "is_local_override",
+                text="",
+                emboss=False,
+                icon=icon)
+
         layout.prop(bcoll, "is_visible", text="", emboss=False,
                     icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
 

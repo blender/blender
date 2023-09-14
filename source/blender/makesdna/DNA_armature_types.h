@@ -424,8 +424,9 @@ typedef enum eBone_BBoneHandleFlag {
 typedef enum eBoneCollection_Flag {
   BONE_COLLECTION_VISIBLE = (1 << 0),
   BONE_COLLECTION_SELECTABLE = (1 << 1), /* Intended to be implemented in the not-so-far future. */
+  BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL = (1 << 2), /* Added by a local library override. */
 } eBoneCollection_Flag;
-ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_SELECTABLE)
+ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL)
 
 #ifdef __cplusplus
 

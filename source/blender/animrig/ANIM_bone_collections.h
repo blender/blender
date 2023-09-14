@@ -109,6 +109,15 @@ void ANIM_armature_bonecoll_active_index_set(struct bArmature *armature,
                                              int bone_collection_index);
 
 /**
+ * Determine whether the given bone collection is editable.
+ *
+ * Bone collections are editable when they are local, so either on a local Armature or added to a
+ * linked Armature via a library override in the local file.
+ */
+bool ANIM_armature_bonecoll_is_editable(const struct bArmature *armature,
+                                        const struct BoneCollection *bcoll);
+
+/**
  * Move the bone collection by \a step places up/down.
  *
  * \return whether the move actually happened.

@@ -174,4 +174,38 @@ TEST_F(ANIM_armature_bone_collections, active_set_clear_by_index)
   EXPECT_STREQ("", arm.active_collection_name);
 }
 
+TEST_F(ANIM_armature_bone_collections, bcoll_is_editable)
+{
+  BoneCollection *bcoll1 = ANIM_armature_bonecoll_new(&arm, "Bones 1");
+  BoneCollection *bcoll2 = ANIM_armature_bonecoll_new(&arm, "Bones 2");
+
+  EXPECT_EQ(0, bcoll1->flags & BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL);
+  EXPECT_EQ(0, bcoll2->flags & BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL);
+
+  EXPECT_TRUE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
+      << "Expecting local armature to be editable";
+
+  /* Fake that the armature is linked from another blend file. */
+  Library fake_lib;
+  arm.id.lib = &fake_lib;
+  EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
+      << "Expecting local armature to not be editable";
+
+  /* Fake that the armature is an override, but linked from another blend file. */
+  IDOverrideLibrary fake_override;
+  bArmature fake_reference;
+  fake_override.reference = &fake_reference.id;
+  arm.id.override_library = &fake_override;
+  EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
+      << "Expecting linked armature override to not be editable";
+
+  /* Fake that the armature is a local override. */
+  arm.id.lib = nullptr;
+  bcoll2->flags |= BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL;
+  EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
+      << "Expecting linked bone collection on local armature override to not be editable";
+  EXPECT_TRUE(ANIM_armature_bonecoll_is_editable(&arm, bcoll2))
+      << "Expecting local bone collection on local armature override to be editable";
+}
+
 }  // namespace blender::animrig::tests

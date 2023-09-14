@@ -111,6 +111,12 @@ static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bco
 BoneCollection *ANIM_armature_bonecoll_new(bArmature *armature, const char *name)
 {
   BoneCollection *bcoll = ANIM_bonecoll_new(name);
+
+  if (!ID_IS_LINKED(&armature->id) && ID_IS_OVERRIDE_LIBRARY(&armature->id)) {
+    /* Mark this bone collection as local override, so that certain operations can be allowed. */
+    bcoll->flags |= BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL;
+  }
+
   bonecoll_ensure_name_unique(armature, bcoll);
   BLI_addtail(&armature->collections, bcoll);
   return bcoll;
@@ -185,6 +191,18 @@ void ANIM_armature_bonecoll_active_index_set(bArmature *armature, const int bone
   STRNCPY(armature->active_collection_name, bcoll->name);
   armature->runtime.active_collection_index = bone_collection_index;
   armature->runtime.active_collection = bcoll;
+}
+
+bool ANIM_armature_bonecoll_is_editable(const bArmature *armature, const BoneCollection *bcoll)
+{
+  const bool is_override = ID_IS_OVERRIDE_LIBRARY(armature);
+  if (ID_IS_LINKED(armature) && !is_override) {
+    return false;
+  }
+  if (is_override && (bcoll->flags & BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL) == 0) {
+    return false;
+  }
+  return true;
 }
 
 bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, const int step)

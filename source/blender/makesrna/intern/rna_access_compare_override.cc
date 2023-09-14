@@ -157,6 +157,12 @@ bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop)
         return true;
       }
     }
+    else if (RNA_struct_is_a(ptr->type, &RNA_BoneCollection)) {
+      BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
+      if (bcoll->flags & BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL) {
+        return true;
+      }
+    }
     /* If this is a RNA-defined property (real or 'virtual' IDProp),
      * we want to use RNA prop flag. */
     return !(prop->flag_override & PROPOVERRIDE_NO_COMPARISON) &&

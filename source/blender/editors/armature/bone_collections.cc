@@ -53,6 +53,7 @@ static bool bone_collection_poll(bContext *C)
     return false;
   }
 
+  /* TODO: double-check these two conditions, I'm not sure they are correct: */
   if (ID_IS_OVERRIDE_LIBRARY(ob->data)) {
     CTX_wm_operator_poll_msg_set(C, "Cannot edit bone collections for library overrides");
     return false;
@@ -87,20 +88,30 @@ static bool bone_collection_add_poll(bContext *C)
   return true;
 }
 
+/** Allow edits of local bone collection only (full local or local override). */
 static bool active_bone_collection_poll(bContext *C)
 {
-  if (!bone_collection_poll(C)) {
-    return false;
-  }
-
   Object *ob = ED_object_context(C);
   if (ob == nullptr) {
     return false;
   }
 
+  if (ob->type != OB_ARMATURE) {
+    CTX_wm_operator_poll_msg_set(C, "Bone collections can only be edited on an Armature");
+    return false;
+  }
+
   bArmature *armature = static_cast<bArmature *>(ob->data);
-  if (armature->runtime.active_collection == nullptr) {
+  BoneCollection *bcoll = armature->runtime.active_collection;
+
+  if (bcoll == nullptr) {
     CTX_wm_operator_poll_msg_set(C, "Armature has no active bone collection, select one first");
+    return false;
+  }
+
+  if (!ANIM_armature_bonecoll_is_editable(armature, bcoll)) {
+    CTX_wm_operator_poll_msg_set(
+        C, "Cannot edit bone collections that are linked from another blend file");
     return false;
   }
   return true;
