@@ -429,7 +429,7 @@ static void run_node_group_ui(bContext *C, wmOperator *op)
     return;
   }
 
-  node_tree->ensure_topology_cache();
+  node_tree->ensure_interface_cache();
   int input_index = 0;
   for (bNodeTreeInterfaceSocket *io_socket : node_tree->interface_inputs()) {
     draw_property_for_socket(

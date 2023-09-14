@@ -337,6 +337,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
         continue;
       }
 
+      ngroup->ensure_interface_cache();
       Span<bNodeTreeInterfaceSocket *> iosockets = (in_out == SOCK_IN ?
                                                         ngroup->interface_inputs() :
                                                         ngroup->interface_outputs());

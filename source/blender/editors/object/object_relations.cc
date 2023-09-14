@@ -2966,7 +2966,7 @@ char *ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
 
 static bool check_geometry_node_group_sockets(wmOperator *op, const bNodeTree *tree)
 {
-  tree->ensure_topology_cache();
+  tree->ensure_interface_cache();
   if (!tree->interface_inputs().is_empty()) {
     const bNodeTreeInterfaceSocket *first_input = tree->interface_inputs()[0];
     if (!first_input) {

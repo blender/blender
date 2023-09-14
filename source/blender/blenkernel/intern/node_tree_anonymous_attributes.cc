@@ -203,6 +203,7 @@ static AnonymousAttributeInferencingResult analyse_anonymous_attribute_usages(
     const bNodeTree &tree)
 {
   BLI_assert(!tree.has_available_link_cycle());
+  tree.ensure_interface_cache();
 
   ResourceScope scope;
   const Array<const aal::RelationsInNode *> relations_by_node = get_relations_by_node(tree, scope);

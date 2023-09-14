@@ -151,7 +151,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
   bool rename(const bContext &C, StringRefNull new_name) override
   {
     socket_.name = BLI_strdup(new_name.c_str());
-    BKE_ntree_update_tag_interface(&nodetree_);
+    nodetree_.tree_interface.tag_items_changed();
     ED_node_tree_propagate_change(&C, CTX_data_main(&C), &nodetree_);
     return true;
   }
@@ -208,7 +208,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
   bool rename(const bContext &C, StringRefNull new_name) override
   {
     panel_.name = BLI_strdup(new_name.c_str());
-    BKE_ntree_update_tag_interface(&nodetree_);
+    nodetree_.tree_interface.tag_items_changed();
     ED_node_tree_propagate_change(&C, CTX_data_main(&C), &nodetree_);
     return true;
   }
@@ -389,7 +389,6 @@ bool NodeSocketDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
   interface.move_item_to_parent(*drag_item, parent, index);
 
   /* General update */
-  BKE_ntree_update_tag_interface(&nodetree);
   ED_node_tree_propagate_change(C, CTX_data_main(C), &nodetree);
   return true;
 }
@@ -480,7 +479,6 @@ bool NodePanelDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
   interface.move_item_to_parent(*drag_item, parent, index);
 
   /* General update */
-  BKE_ntree_update_tag_interface(&nodetree);
   ED_node_tree_propagate_change(C, CTX_data_main(C), &nodetree);
   return true;
 }
