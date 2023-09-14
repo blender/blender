@@ -2577,6 +2577,10 @@ void BKE_view_layer_verify_aov(RenderEngine *engine, Scene *scene, ViewLayer *vi
   viewlayer_aov_make_name_unique(view_layer);
 
   GHash *name_count = BLI_ghash_str_new(__func__);
+  LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
+    /* Disable conflict flag, so that the AOV is included when iterating over all passes below. */
+    aov->flag &= ~AOV_CONFLICT;
+  }
   RE_engine_update_render_passes(
       engine, scene, view_layer, bke_view_layer_verify_aov_cb, name_count);
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
