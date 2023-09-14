@@ -1070,9 +1070,8 @@ static void version_nla_action_strip_hold(Main *bmain)
     if (BKE_nlatrack_has_strips(&adt->nla_tracks)) {
       adt->act_extendmode = NLASTRIP_EXTEND_HOLD;
     }
-
-    FOREACH_MAIN_ID_END;
   }
+  FOREACH_MAIN_ID_END;
 }
 
 void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
