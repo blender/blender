@@ -297,6 +297,23 @@ vec2 brdf_lut(float cos_theta, float roughness)
 #endif
 }
 
+/* Return texture coordinates to sample BSDF LUT. */
+vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
+{
+  /* IOR is the sine of the critical angle. */
+  float critical_cos = sqrt(1.0 - ior * ior);
+
+  vec3 coords;
+  coords.x = sqr(ior);
+  coords.y = cos_theta;
+  coords.y -= critical_cos;
+  coords.y /= (coords.y > 0.0) ? (1.0 - critical_cos) : critical_cos;
+  coords.y = coords.y * 0.5 + 0.5;
+  coords.z = roughness;
+
+  return saturate(coords);
+}
+
 vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
 {
   if (ior <= 1e-5) {
@@ -318,28 +335,9 @@ vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter
     return vec2(btdf, brdf) * ((do_multiscatter == 0.0) ? sum(split_sum) : 1.0);
   }
 
-  /* IOR is sin of critical angle. */
-  float critical_cos = sqrt(1.0 - ior * ior);
-
-  vec3 coords;
-  coords.x = sqr(ior);
-  coords.y = cos_theta;
-  coords.y -= critical_cos;
-  coords.y /= (coords.y > 0.0) ? (1.0 - critical_cos) : critical_cos;
-  coords.y = coords.y * 0.5 + 0.5;
-  coords.z = roughness;
-
-  coords = saturate(coords);
-
-  float layer = coords.z * UTIL_BTDF_LAYER_COUNT;
-  float layer_floored = floor(layer);
-
 #ifdef EEVEE_UTILITY_TX
-  coords.z = UTIL_BTDF_LAYER + layer_floored;
-  vec2 btdf_brdf_low = utility_tx_sample_lut(utility_tx, coords.xy, coords.z).rg;
-  vec2 btdf_brdf_high = utility_tx_sample_lut(utility_tx, coords.xy, coords.z + 1.0).rg;
-  /* Manual trilinear interpolation. */
-  vec2 btdf_brdf = mix(btdf_brdf_low, btdf_brdf_high, layer - layer_floored);
+  vec3 coords = lut_coords_bsdf(cos_theta, roughness, ior);
+  vec2 btdf_brdf = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).rg;
 
   if (do_multiscatter != 0.0) {
     /* For energy-conserving BSDF the reflection and refraction lobes should sum to one. Assuming

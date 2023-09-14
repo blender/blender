@@ -51,8 +51,23 @@ vec2 brdf_lut(float cos_theta, float roughness)
   return textureLod(utilTex, vec3(lut_coords(cos_theta, roughness), BRDF_LUT_LAYER), 0.0).rg;
 }
 
-/* Return texture coordinates to sample Surface LUT. */
-vec3 lut_coords_btdf(float cos_theta, float roughness, float ior)
+vec4 sample_3D_texture(sampler2DArray tex, vec3 coords)
+{
+  float layer_floored;
+  float interp = modf(coords.z, layer_floored);
+
+  coords.z = layer_floored;
+  vec4 tex_low = textureLod(tex, coords, 0.0);
+
+  coords.z += 1.0;
+  vec4 tex_high = textureLod(tex, coords, 0.0);
+
+  /* Manual trilinear interpolation. */
+  return mix(tex_low, tex_high, interp);
+}
+
+/* Return texture coordinates to sample BSDF LUT. */
+vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
 {
   /* ior is sin of critical angle. */
   float critical_cos = sqrt(1.0 - ior * ior);
@@ -69,6 +84,7 @@ vec3 lut_coords_btdf(float cos_theta, float roughness, float ior)
 
   /* scale and bias coordinates, for correct filtered lookup */
   coords.xy = coords.xy * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
+  coords.z = coords.z * lut_btdf_layer_count + lut_btdf_layer_first;
 
   return coords;
 }
@@ -95,19 +111,7 @@ vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter
     return vec2(btdf, brdf) * ((do_multiscatter == 0.0) ? sum(split_sum) : 1.0);
   }
 
-  vec3 coords = lut_coords_btdf(cos_theta, roughness, ior);
-
-  float layer = coords.z * lut_btdf_layer_count;
-  float layer_floored = floor(layer);
-
-  coords.z = lut_btdf_layer_first + layer_floored;
-  vec2 btdf_brdf_low = textureLod(utilTex, coords, 0.0).rg;
-
-  coords.z += 1.0;
-  vec2 btdf_brdf_high = textureLod(utilTex, coords, 0.0).rg;
-
-  /* Manual trilinear interpolation. */
-  vec2 btdf_brdf = mix(btdf_brdf_low, btdf_brdf_high, layer - layer_floored);
+  vec2 btdf_brdf = sample_3D_texture(utilTex, lut_coords_bsdf(cos_theta, roughness, ior)).rg;
 
   if (do_multiscatter != 0.0) {
     /* For energy-conserving BSDF the reflection and refraction lobes should sum to one. Assuming

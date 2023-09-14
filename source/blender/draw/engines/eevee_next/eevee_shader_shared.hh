@@ -1316,6 +1316,23 @@ float4 utility_tx_sample_lut(sampler2DArray util_tx, float2 uv, float layer)
   return textureLod(util_tx, float3(uv, layer), 0.0);
 }
 
+/* Sample GGX BSDF LUT. */
+float4 utility_tx_sample_bsdf_lut(sampler2DArray util_tx, float2 uv, float layer)
+{
+  /* Scale and bias coordinates, for correct filtered lookup. */
+  uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
+  layer = layer * UTIL_BTDF_LAYER_COUNT + UTIL_BTDF_LAYER;
+
+  float layer_floored;
+  float interp = modf(layer, layer_floored);
+
+  float4 tex_low = textureLod(util_tx, float3(uv, layer_floored), 0.0);
+  float4 tex_high = textureLod(util_tx, float3(uv, layer_floored + 1.0), 0.0);
+
+  /* Manual trilinear interpolation. */
+  return mix(tex_low, tex_high, interp);
+}
+
 /* Sample LTC or BSDF LUTs with `cos_theta` and `roughness` as inputs. */
 float4 utility_tx_sample_lut(sampler2DArray util_tx, float cos_theta, float roughness, float layer)
 {
