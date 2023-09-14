@@ -216,17 +216,7 @@ static bool ui_but_isect_pie_seg(const uiBlock *block, const uiBut *but)
     dir_adjacent_4th = UI_RADIAL_DIRECTION_NEXT(dir_adjacent_8th);
   }
 
-  bool has_8th_adjacent = false;
-  if ((block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) == 0) {
-    LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block->buttons) {
-      if (but->pie_dir == dir_adjacent_8th) {
-        if (!ELEM(but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
-          has_8th_adjacent = true;
-        }
-        break;
-      }
-    }
-  }
+  const bool has_8th_adjacent = block->pie_data.pie_dir_mask & (1 << int(dir_adjacent_8th));
 
   /* Compare with the adjacent direction (even if there is no button). */
   const RadialDirection dir_adjacent = has_8th_adjacent ? dir_adjacent_8th : dir_adjacent_4th;

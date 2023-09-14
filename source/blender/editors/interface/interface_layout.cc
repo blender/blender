@@ -3986,7 +3986,6 @@ static void ui_litem_layout_radial(uiLayout *litem)
 {
   int itemh, itemw;
   int itemnum = 0;
-  int totitems = 0;
 
   /* For the radial layout we will use Matt Ebb's design
    * for radiation, see http://mattebb.com/weblog/radiation/
@@ -3999,14 +3998,7 @@ static void ui_litem_layout_radial(uiLayout *litem)
 
   int minx = x, miny = y, maxx = x, maxy = y;
 
-  /* first count total items */
-  LISTBASE_FOREACH (uiItem *, item, &litem->items) {
-    totitems++;
-  }
-
-  if (totitems < 5) {
-    litem->root->block->pie_data.flags |= UI_PIE_DEGREES_RANGE_LARGE;
-  }
+  litem->root->block->pie_data.pie_dir_mask = 0;
 
   LISTBASE_FOREACH (uiItem *, item, &litem->items) {
     /* not all button types are drawn in a radial menu, do filtering here */
@@ -4033,6 +4025,10 @@ static void ui_litem_layout_radial(uiLayout *litem)
         if (ui_item_is_radial_drawable(bitem)) {
           bitem->but->emboss = UI_EMBOSS_RADIAL;
           bitem->but->drawflag |= UI_BUT_ICON_LEFT;
+        }
+
+        if (!ELEM(bitem->but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
+          litem->root->block->pie_data.pie_dir_mask |= 1 << int(dir);
         }
       }
 
