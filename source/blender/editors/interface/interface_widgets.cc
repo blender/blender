@@ -1957,7 +1957,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     }
   }
 
-  /* If not editing and indeterminate, show dash.*/
+  /* If not editing and indeterminate, show dash. */
   if (but->drawflag & UI_BUT_INDETERMINATE && !but->editstr &&
       ELEM(but->type,
            UI_BTYPE_MENU,

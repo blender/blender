@@ -83,7 +83,7 @@ typedef struct StripDrawContext {
   Sequence *seq;
   float content_start, content_end, bottom, top; /* Strip boundary in timeline space. */
   float left_handle, right_handle;               /* Position in frames. */
-  float strip_content_top; /* Position in timeline space deliminates content and text overlay. */
+  float strip_content_top; /* Position in timeline space without content and text overlay. */
   float handle_width;      /* Width of strip handle in frames. */
   float strip_length;
 

@@ -368,7 +368,7 @@ typedef struct bNode {
 
   char _pad1[2];
 
-  /** Used for some builtin nodes that store properties but don't have a storage struct . */
+  /** Used for some builtin nodes that store properties but don't have a storage struct. */
   int16_t custom1, custom2;
   float custom3, custom4;
 

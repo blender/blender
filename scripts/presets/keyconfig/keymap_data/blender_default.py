@@ -3761,7 +3761,7 @@ def km_grease_pencil_stroke_edit_mode(params):
         # Close strokes
         ("gpencil.stroke_cyclical_set", {"type": 'F', "value": 'PRESS'},
          {"properties": [("type", 'CLOSE'), ("geometry", True)]}),
-        # Copy + paset
+        # Copy + paste.
         ("gpencil.copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("gpencil.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         # Snap

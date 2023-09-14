@@ -5625,7 +5625,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     /* Ignore windowing requirements when running in background mode,
      * as it doesn't make sense to fall back to X11 because of windowing functionality
      * in background mode, also LIBDECOR is crashing in background mode `blender -b -f 1`
-     * for e.g. while it could be fixed, requiring the library at all makes no sense . */
+     * for e.g. while it could be fixed, requiring the library at all makes no sense. */
     if (background) {
       display_->libdecor_required = false;
     }

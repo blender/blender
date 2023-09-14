@@ -224,7 +224,7 @@ void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup);
  * \note This must be called in the same context as the poll function that created it.
  */
 struct bContextPollMsgDyn_Params {
-  /** The result is allocated . */
+  /** The result is allocated. */
   char *(*get_fn)(bContext *C, void *user_data);
   /** Optionally free the user-data. */
   void (*free_fn)(bContext *C, void *user_data);

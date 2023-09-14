@@ -34,11 +34,11 @@ struct ID;
 typedef uint64_t eCustomDataMask;
 
 /* These names are used as prefixes for UV layer names to find the associated boolean
- * layers. They should never be longer than 2 chars, as MAX_CUSTOMDATA_LAYER_NAME
+ * layers. They should never be longer than 2 chars, as #MAX_CUSTOMDATA_LAYER_NAME
  * has 4 extra bytes above what can be used for the base layer name, and these
  * prefixes are placed between 2 '.'s at the start of the layer name.
- * For example The uv vert selection layer of a layer named 'UVMap.001'
- * will be called '.vs.UVMap.001' . */
+ * For example The uv vert selection layer of a layer named `UVMap.001`
+ * will be called `.vs.UVMap.001`. */
 #define UV_VERTSEL_NAME "vs"
 #define UV_EDGESEL_NAME "es"
 #define UV_PINNED_NAME "pn"

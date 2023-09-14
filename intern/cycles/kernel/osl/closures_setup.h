@@ -31,7 +31,7 @@ struct ccl_align(8) LayerClosure
   ccl_private const OSLClosure *top;
 };
 
-/* If we failed to allocate a layerable closure, we need to zero out the albedo
+/* If we failed to allocate a layer-able closure, we need to zero out the albedo
  * so that lower layers aren't falsely blocked.
  * Therefore, to keep the code clean, set it to zero at the start and overwrite
  * later if it succeeded. */

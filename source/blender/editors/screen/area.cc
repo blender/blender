@@ -993,7 +993,7 @@ static void region_azone_edge(const ScrArea *area, AZone *az, const ARegion *reg
    * the content, so move it a bit. */
   const int overlap_padding =
       /* Header-like regions are usually thin and there's not much padding around them,
-       * applying an offset would make the edge overlap buttons.*/
+       * applying an offset would make the edge overlap buttons. */
       (!RGN_TYPE_IS_HEADER_ANY(region->regiontype) &&
        /* Is the region background transparent? */
        region->overlap && region_background_is_transparent(area, region)) ?

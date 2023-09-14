@@ -3341,7 +3341,8 @@ void ui_but_range_set_soft(uiBut *but)
   if (but->rnaprop) {
     const PropertyType type = RNA_property_type(but->rnaprop);
     const PropertySubType subtype = RNA_property_subtype(but->rnaprop);
-    double softmin, softmax /*, step, precision*/;
+    double softmin, softmax;
+    // double step, precision; /* UNUSED. */
     double value_min;
     double value_max;
 

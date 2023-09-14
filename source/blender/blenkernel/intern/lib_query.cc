@@ -780,7 +780,7 @@ static bool lib_query_unused_ids_tag_recurse(Main *bmain,
             bmain, tag, do_local_ids, do_linked_ids, id_from, r_num_tagged))
     {
       /* Dependency loop case, ignore the `id_from` tag value here (as it should not be considered
-       * as valid yet), and presume that this is a 'valid user' case for now. . */
+       * as valid yet), and presume that this is a 'valid user' case for now. */
       is_part_of_dependency_loop = true;
       continue;
     }

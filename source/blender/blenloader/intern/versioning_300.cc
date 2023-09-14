@@ -1054,7 +1054,7 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
 }
 
 /* Change the action strip (if a NLA strip is preset) to HOLD instead of HOLD FORWARD to maintain
- * backwards compatibility.*/
+ * backwards compatibility. */
 static void version_nla_action_strip_hold(Main *bmain)
 {
   ID *id;

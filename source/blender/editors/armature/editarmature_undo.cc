@@ -47,7 +47,7 @@ static CLG_LogRef LOG = {"ed.undo.armature"};
 /* Utility functions. */
 
 /**
- * Remaps editbone collection membership.
+ * Remaps edit-bone collection membership.
  *
  * This is intended to be used in combination with ED_armature_ebone_listbase_copy()
  * and ANIM_bonecoll_listbase_copy() to make a full duplicate of both edit

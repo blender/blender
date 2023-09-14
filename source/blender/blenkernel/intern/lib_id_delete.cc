@@ -176,8 +176,8 @@ static int id_free(Main *bmain, void *idv, int flag, const bool use_flag_from_id
 void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_idtag)
 {
   /* ViewLayer resync needs to be delayed during Scene freeing, since internal relationships
-   * between the Scene's master collection and its view_layers become invalid (due to remapping .
-   */
+   * between the Scene's master collection and its view_layers become invalid
+   * (due to remapping). */
   BKE_layer_collection_resync_forbid();
 
   flag = id_free(bmain, idv, flag, use_flag_from_idtag);
@@ -371,8 +371,8 @@ static size_t id_delete(Main *bmain,
   BKE_main_unlock(bmain);
 
   /* ViewLayer resync needs to be delayed during Scene freeing, since internal relationships
-   * between the Scene's master collection and its view_layers become invalid (due to remapping .
-   */
+   * between the Scene's master collection and its view_layers become invalid
+   * (due to remapping). */
   BKE_layer_collection_resync_forbid();
 
   /* In usual reversed order, such that all usage of a given ID, even 'never nullptr' ones,

@@ -61,7 +61,7 @@ bool mirror_selected_frames(GreasePencil &grease_pencil,
                             const eEditKeyframes_Mirror mode);
 
 /* Creates duplicate frames for each selected frame in the layer. The duplicates are stored in the
- * LayerTransformData structure of the layer runtime data. This function also unselects the
+ * LayerTransformData structure of the layer runtime data. This function also deselects the
  * selected frames, while keeping the duplicates selected. */
 bool duplicate_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::Layer &layer);
 

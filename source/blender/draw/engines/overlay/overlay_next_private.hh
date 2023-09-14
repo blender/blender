@@ -97,7 +97,7 @@ class ShaderModule {
   using ShaderPtr = std::unique_ptr<GPUShader, ShaderDeleter>;
 
   /** Shared shader module across all engine instances. */
-  static ShaderModule *g_shader_modules[2 /*Selection Instance*/][2 /*Clipping Enabled*/];
+  static ShaderModule *g_shader_modules[2 /* Selection Instance. */][2 /* Clipping Enabled. */];
 
   const SelectionType selection_type_;
   /** TODO: Support clipping. This global state should be set by the overlay::Instance and switch

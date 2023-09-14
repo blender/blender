@@ -20,7 +20,7 @@
 
 namespace blender::workbench {
 
-void SceneState::init(Object *camera_ob /*= nullptr*/)
+void SceneState::init(Object *camera_ob /*=nullptr*/)
 {
   bool reset_taa = reset_taa_next_sample;
   reset_taa_next_sample = false;

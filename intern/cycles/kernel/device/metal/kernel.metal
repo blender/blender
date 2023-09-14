@@ -51,7 +51,7 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
 
   if ((object != payload.local_object) || context.intersection_skip_self_local(payload.self, prim))
   {
-    /* Only intersect with matching object and skip self-intersecton. */
+    /* Only intersect with matching object and skip self-intersection. */
     result.accept = false;
     result.continue_search = true;
     return result;

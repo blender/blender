@@ -271,8 +271,8 @@ static void nlatrack_truncate_temporary_tracks(bAnimContext *ac)
 
     /** Remove bottom tracks that weren't necessary. */
     LISTBASE_FOREACH_MUTABLE (NlaTrack *, track, nla_tracks) {
-      /** Library override tracks are the first N tracks. They're never temporary and determine
-       * where we start removing temporaries.*/
+      /* Library override tracks are the first N tracks. They're never temporary and determine
+       * where we start removing temporaries. */
       if ((track->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0) {
         continue;
       }

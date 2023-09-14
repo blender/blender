@@ -25,7 +25,7 @@ uniform sampler2DArray utilTex;
 #define NOISE_LAYER 2
 #define LTC_DISK_LAYER 3 /* UNUSED */
 
-/* Layers 4 to 20 are for BTDF Lut. */
+/* Layers 4 to 20 are for BTDF LUT. */
 #define lut_btdf_layer_first 4.0
 #define lut_btdf_layer_count 16.0
 

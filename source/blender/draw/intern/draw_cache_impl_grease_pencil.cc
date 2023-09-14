@@ -247,8 +247,7 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
 
     total_points_num += curves.points_num();
 
-    /* One vertex is stored before and after as padding. Cyclic strokes have one extra
-     * vertex.*/
+    /* One vertex is stored before and after as padding. Cyclic strokes have one extra vertex. */
     total_verts_num += curves.points_num() + num_cyclic + curves.curves_num() * 2;
     total_triangles_num += (curves.points_num() + num_cyclic) * 2;
     total_triangles_num += drawing->triangles().size();

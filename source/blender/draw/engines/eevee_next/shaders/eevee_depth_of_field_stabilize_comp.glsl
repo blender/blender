@@ -283,7 +283,7 @@ DofSample dof_amend_history(DofNeighborhoodMinMax bbox, DofSample history, DofSa
   /* More responsive. */
   history.color = clamp(history.color, bbox.min.color, bbox.max.color);
 #endif
-  /* Clamp CoC to reduce convergence time. Otherwise the result is laggy. */
+  /* Clamp CoC to reduce convergence time. Otherwise the result lags. */
   history.coc = clamp(history.coc, bbox.min.coc, bbox.max.coc);
 
   return history;

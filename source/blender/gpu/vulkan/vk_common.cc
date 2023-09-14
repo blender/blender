@@ -691,7 +691,7 @@ VkImageType to_vk_image_type(const eGPUTextureType type)
       return VK_IMAGE_TYPE_3D;
 
     case GPU_TEXTURE_ARRAY:
-      /* GPU_TEXTURE_ARRAY should always be used together with 1D, 2D, or CUBE*/
+      /* GPU_TEXTURE_ARRAY should always be used together with 1D, 2D, or CUBE. */
       break;
   }
 
@@ -721,7 +721,7 @@ VkImageViewType to_vk_image_view_type(const eGPUTextureType type, const eImageVi
                                                         VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
 
     case GPU_TEXTURE_ARRAY:
-      /* GPU_TEXTURE_ARRAY should always be used together with 1D, 2D, or CUBE*/
+      /* GPU_TEXTURE_ARRAY should always be used together with 1D, 2D, or CUBE. */
       break;
   }
 

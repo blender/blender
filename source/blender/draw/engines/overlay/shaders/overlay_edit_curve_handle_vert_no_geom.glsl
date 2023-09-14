@@ -169,26 +169,26 @@ void main()
       output_vert(vec2(0.0), inner_color, world_pos[1], ndc_pos[1]);
       break;
     }
-    /* Bottom outline left point*/
+    /* Bottom outline left point. */
     case 14:
     case 15:
     case 18: {
       output_vert(-offset, outer_color, world_pos[0], ndc_pos[0]);
       break;
     }
-    /* Bottom outline right point*/
+    /* Bottom outline right point. */
     case 17:
     case 19:
     case 22: {
       output_vert(-offset, outer_color, world_pos[1], ndc_pos[1]);
       break;
     }
-    /* Bottom transparent border left*/
+    /* Bottom transparent border left. */
     case 20:
     case 21: {
       output_vert(offset * -2.0, vec4(colorActiveSpline.rgb, 0.0), world_pos[0], ndc_pos[0]);
     }
-    /* Bottom transparent border right*/
+    /* Bottom transparent border right. */
     case 23: {
       output_vert(offset * -2.0, vec4(colorActiveSpline.rgb, 0.0), world_pos[1], ndc_pos[1]);
     }

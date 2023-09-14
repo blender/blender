@@ -164,7 +164,8 @@ SeqCollection *all_strips_from_context(bContext *C);
  */
 SeqCollection *selected_strips_from_context(bContext *C);
 
-/* Externs. */
+/* Externals. */
+
 extern EnumPropertyItem sequencer_prop_effect_types[];
 extern EnumPropertyItem prop_side_types[];
 

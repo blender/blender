@@ -1953,7 +1953,7 @@ static void rna_def_armature(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop,
                               "rna_Armature_relation_line_position_get",
                               "rna_Armature_relation_line_position_set",
-                              /*item function*/ nullptr);
+                              nullptr);
   RNA_define_verify_sdna(true); /* Restore default. */
 
   prop = RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
