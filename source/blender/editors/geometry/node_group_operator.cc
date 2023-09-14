@@ -584,10 +584,14 @@ static Set<std::string> get_builtin_menus(const ObjectType object_type, const eO
   Set<std::string> menus;
   switch (object_type) {
     case OB_CURVES:
-    case OB_POINTCLOUD:
       menus.add_new("View");
       menus.add_new("Select");
       menus.add_new("Curves");
+      break;
+    case OB_POINTCLOUD:
+      menus.add_new("View");
+      menus.add_new("Select");
+      menus.add_new("Point Cloud");
       break;
     case OB_MESH:
       switch (mode) {
