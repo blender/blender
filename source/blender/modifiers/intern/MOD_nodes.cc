@@ -820,7 +820,7 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
       if (node_cache.prev_cache->frame < current_frame_) {
         /* Do a simulation step. */
         const float delta_frames = std::min(
-            max_delta_frames, float(node_cache.prev_cache->frame) - float(current_frame_));
+            max_delta_frames, float(current_frame_) - float(node_cache.prev_cache->frame));
         auto &output_move_info = zone_behavior.input.emplace<sim_input::OutputMove>();
         output_move_info.delta_time = delta_frames / fps_;
         output_move_info.state = std::move(node_cache.prev_cache->state);
