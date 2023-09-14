@@ -73,8 +73,8 @@ vec3 lut_coords_btdf(float cos_theta, float roughness, float ior)
   return coords;
 }
 
-/* Returns GGX BTDF in first component and fresnel in second. */
-vec2 btdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
+/* Returns GGX transmittance in first component and reflectance in second. */
+vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
 {
   if (ior <= 1e-5) {
     return vec2(0.0);

@@ -55,7 +55,7 @@ vec4 ggx_brdf_split_sum(vec3 lut_coord)
 }
 
 /* Generate BSDF LUT for `IOR < 1`. Returns the transmittance and the reflectance. */
-vec4 ggx_btdf_split_sum(vec3 lut_coord)
+vec4 ggx_bsdf_split_sum(vec3 lut_coord)
 {
   float ior = sqrt(lut_coord.x);
   /* ior is sin of critical angle. */
@@ -125,8 +125,8 @@ void main()
     case LUT_GGX_BRDF_SPLIT_SUM:
       result = ggx_brdf_split_sum(lut_normalized_coordinate);
       break;
-    case LUT_GGX_BTDF_SPLIT_SUM:
-      result = ggx_btdf_split_sum(lut_normalized_coordinate);
+    case LUT_GGX_BSDF_SPLIT_SUM:
+      result = ggx_bsdf_split_sum(lut_normalized_coordinate);
       break;
   }
   imageStore(table_img, ivec3(gl_GlobalInvocationID), result);

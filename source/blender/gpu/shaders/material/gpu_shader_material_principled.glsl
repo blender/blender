@@ -84,7 +84,7 @@ void node_bsdf_principled(vec4 base_color,
   coat_data.N = CN;
   coat_data.roughness = coat_roughness;
   float coat_NV = dot(coat_data.N, V);
-  float reflectance = btdf_lut(coat_NV, coat_data.roughness, coat_ior, 0.0).y;
+  float reflectance = bsdf_lut(coat_NV, coat_data.roughness, coat_ior, 0.0).y;
   coat_data.weight = weight * coat * reflectance;
   coat_data.color = vec3(1.0);
   /* Attenuate lower layers */
@@ -125,7 +125,7 @@ void node_bsdf_principled(vec4 base_color,
   /* TODO: change `specular_tint` to rgb. */
   vec3 reflection_tint = mix(vec3(1.0), base_color.rgb, specular_tint);
   if (true) {
-    vec2 bsdf = btdf_lut(NV, roughness, ior, do_multiscatter);
+    vec2 bsdf = bsdf_lut(NV, roughness, ior, do_multiscatter);
 
     reflection_data.color += weight * transmission * bsdf.y * reflection_tint;
 

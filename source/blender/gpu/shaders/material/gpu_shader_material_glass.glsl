@@ -14,7 +14,7 @@ void node_bsdf_glass(vec4 color,
   vec3 V = cameraVec(g_data.P);
   float NV = dot(N, V);
 
-  vec2 bsdf = btdf_lut(NV, roughness, ior, do_multiscatter);
+  vec2 bsdf = bsdf_lut(NV, roughness, ior, do_multiscatter);
 
   ClosureReflection reflection_data;
   reflection_data.weight = bsdf.y * weight;
