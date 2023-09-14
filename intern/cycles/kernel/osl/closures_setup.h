@@ -333,9 +333,6 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
   else {
     bsdf->ior = ior_from_F0(average(closure->f0));
   }
-  if (sd->flag & SD_BACKFACING) {
-    bsdf->ior = 1.0f / bsdf->ior;
-  }
 
   bool preserve_energy = false;
 
