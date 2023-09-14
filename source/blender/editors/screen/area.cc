@@ -3464,6 +3464,31 @@ bool ED_region_property_search(const bContext *C,
   return has_result;
 }
 
+/**
+ * The drawable part of the region might be slightly smaller because of area edges. This is
+ * especially visible for header-like regions, where vertical space around widgets is small, and
+ * it's quite visible when widgets aren't centered properly.
+ */
+static void layout_coordinates_correct_for_drawable_rect(
+    const wmWindow *win, const ScrArea *area, const ARegion *region, int * /*r_xco*/, int *r_yco)
+{
+  /* Don't do corrections at the window borders where the region rectangles are clipped already. */
+  {
+    rcti win_rect;
+    WM_window_rect_calc(win, &win_rect);
+    if (region->winrct.ymin == win_rect.ymin) {
+      return;
+    }
+    if (region->winrct.ymax == (win_rect.ymax - 1)) {
+      return;
+    }
+  }
+
+  if (region->winrct.ymax == area->totrct.ymax) {
+    *r_yco -= 1;
+  }
+}
+
 void ED_region_header_layout(const bContext *C, ARegion *region)
 {
   const uiStyle *style = UI_style_get_dpi();
@@ -3478,11 +3503,8 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
   int yco = buttony + (region->winy - buttony) / 2;
   int maxco = xco;
 
-  /* XXX workaround for 1 px alignment issue. Not sure what causes it...
-   * Would prefer a proper fix - Julian */
-  if (!ELEM(CTX_wm_area(C)->spacetype, SPACE_TOPBAR, SPACE_STATUSBAR)) {
-    yco -= 1;
-  }
+  layout_coordinates_correct_for_drawable_rect(
+      CTX_wm_window(C), CTX_wm_area(C), region, &xco, &yco);
 
   /* set view2d view matrix for scrolling (without scrollers) */
   UI_view2d_view_ortho(&region->v2d);
