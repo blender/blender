@@ -440,14 +440,16 @@ static void run_node_group_ui(bContext *C, wmOperator *op)
 
 static bool run_node_ui_poll(wmOperatorType * /*ot*/, PointerRNA *ptr)
 {
+  bool result = false;
   RNA_STRUCT_BEGIN (ptr, prop) {
     int flag = RNA_property_flag(prop);
     if ((flag & PROP_HIDDEN) == 0) {
-      return true;
+      result = true;
+      break;
     }
   }
   RNA_STRUCT_END;
-  return false;
+  return result;
 }
 
 static std::string run_node_group_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)

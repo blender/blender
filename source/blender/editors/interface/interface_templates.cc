@@ -2876,6 +2876,7 @@ static bool ui_layout_operator_properties_only_booleans(const bContext *C,
 
     PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
 
+    bool all_booleans = true;
     RNA_STRUCT_BEGIN (&ptr, prop) {
       if (RNA_property_flag(prop) & PROP_HIDDEN) {
         continue;
@@ -2885,10 +2886,14 @@ static bool ui_layout_operator_properties_only_booleans(const bContext *C,
         continue;
       }
       if (RNA_property_type(prop) != PROP_BOOLEAN) {
-        return false;
+        all_booleans = false;
+        break;
       }
     }
     RNA_STRUCT_END;
+    if (all_booleans == false) {
+      return false;
+    }
   }
 
   return true;
