@@ -3660,9 +3660,8 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                       false);
         }
       }
-      Text *text = CTX_data_edit_text(C);
-      txt_add_char(text, auto_close_match);
-      txt_move_left(text, false);
+      txt_add_char(st->text, auto_close_match);
+      txt_move_left(st->text, false);
 
       /* If there was a selection, restore it. */
       if (auto_close_select.sell) {
