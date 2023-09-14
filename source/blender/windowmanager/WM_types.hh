@@ -468,6 +468,9 @@ struct wmNotifier {
 
 /* NC_NODE Nodes */
 
+/* Influences which menus node assets are included in. */
+#define ND_NODE_ASSET_DATA (1 << 16)
+
 /* NC_SPACE */
 #define ND_SPACE_CONSOLE (1 << 16)     /* general redraw */
 #define ND_SPACE_INFO_REPORT (2 << 16) /* update for reports, could specify type */

@@ -178,7 +178,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
   return lib;
 }
 
-static void rebuild_all_library(AssetLibrary &all_library, const bool reload_catalogs)
+static void rebuild_all_library_ex(AssetLibrary &all_library, const bool reload_catalogs)
 {
   /* Start with empty catalog storage. */
   all_library.catalog_service = std::make_unique<AssetCatalogService>(
@@ -193,6 +193,13 @@ static void rebuild_all_library(AssetLibrary &all_library, const bool reload_cat
       },
       false);
   all_library.catalog_service->rebuild_tree();
+}
+
+void AssetLibraryService::rebuild_all_library()
+{
+  if (all_library_) {
+    rebuild_all_library_ex(*all_library_, false);
+  }
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
@@ -218,10 +225,10 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   all_library_ = std::make_unique<AssetLibrary>(ASSET_LIBRARY_ALL);
 
   /* Don't reload catalogs on this initial read, they've just been loaded above. */
-  rebuild_all_library(*all_library_, /*reload_catlogs=*/false);
+  rebuild_all_library_ex(*all_library_, /*reload_catlogs=*/false);
 
   all_library_->on_refresh_ = [](AssetLibrary &all_library) {
-    rebuild_all_library(all_library, /*reload_catalogs=*/true);
+    rebuild_all_library_ex(all_library, /*reload_catalogs=*/true);
   };
 
   return all_library_.get();

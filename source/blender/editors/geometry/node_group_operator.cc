@@ -511,9 +511,9 @@ static GeometryNodeAssetTraitFlag asset_flag_for_context(const eContextObjectMod
   }
 }
 
-static asset::AssetItemTree *get_static_item_tree(const bContext &C)
+static asset::AssetItemTree *get_static_item_tree(const eContextObjectMode mode)
 {
-  switch (eContextObjectMode(CTX_data_mode_enum(&C))) {
+  switch (mode) {
     case CTX_MODE_EDIT_MESH: {
       static asset::AssetItemTree tree;
       return &tree;
@@ -536,6 +536,19 @@ static asset::AssetItemTree *get_static_item_tree(const bContext &C)
     }
     default:
       return nullptr;
+  }
+}
+
+static asset::AssetItemTree *get_static_item_tree(const bContext &C)
+{
+  return get_static_item_tree(eContextObjectMode(CTX_data_mode_enum(&C)));
+}
+
+void clear_operator_asset_trees()
+{
+  for (const int mode : IndexRange(CTX_MODE_NUM)) {
+    if (asset::AssetItemTree *tree = get_static_item_tree(eContextObjectMode(mode)))
+      *tree = {};
   }
 }
 
@@ -611,7 +624,7 @@ static Set<std::string> get_builtin_menus(const ObjectType object_type, const eO
   return menus;
 }
 
-static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
+static void catalog_assets_draw(const bContext *C, Menu *menu)
 {
   bScreen &screen = *CTX_wm_screen(C);
   asset::AssetItemTree *tree = get_static_item_tree(*C);
@@ -666,7 +679,7 @@ MenuType node_group_operator_assets_menu()
   MenuType type{};
   STRNCPY(type.idname, "GEO_MT_node_operator_catalog_assets");
   type.poll = asset_menu_poll;
-  type.draw = node_add_catalog_assets_draw;
+  type.draw = catalog_assets_draw;
   type.listener = asset::asset_reading_region_listen_fn;
   type.flag = MenuTypeFlag::ContextDependent;
   return type;
@@ -746,7 +759,9 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, bContext &C)
   if (!tree) {
     return;
   }
-  *tree = build_catalog_tree(C);
+  if (tree->assets_per_path.size() == 0) {
+    *tree = build_catalog_tree(C);
+  }
 
   asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
       asset_system::all_library_reference());
