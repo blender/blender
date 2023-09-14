@@ -339,8 +339,8 @@ static void draw_fcurve_selected_handle_vertices(
 
   immBeginAtMost(GPU_PRIM_POINTS, fcu->totvert * 2);
 
-  for (int i = bounding_indices[0] + 1; i <= bounding_indices[1]; i++) {
-    BezTriple *prevbezt = &fcu->bezt[i - 1];
+  BezTriple *prevbezt = nullptr;
+  for (int i = bounding_indices[0]; i <= bounding_indices[1]; i++) {
     BezTriple *bezt = &fcu->bezt[i];
     /* Draw the editmode handles for a bezier curve (others don't have handles)
      * if their selection status matches the selection status we're drawing for
@@ -368,6 +368,7 @@ static void draw_fcurve_selected_handle_vertices(
         }
       }
     }
+    prevbezt = bezt;
   }
 
   immEnd();
@@ -505,14 +506,15 @@ static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
     int basecol = (sel) ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
     uchar col[4];
 
-    for (int i = bounding_indices[0] + 1; i <= bounding_indices[1]; i++) {
-      BezTriple *prevbezt = &fcu->bezt[i - 1];
+    BezTriple *prevbezt = nullptr;
+    for (int i = bounding_indices[0]; i <= bounding_indices[1]; i++) {
       BezTriple *bezt = &fcu->bezt[i];
       /* if only selected keyframes can get their handles shown,
        * check that keyframe is selected
        */
       if (sipo->flag & SIPO_SELVHANDLESONLY) {
         if (BEZT_ISSEL_ANY(bezt) == 0) {
+          prevbezt = bezt;
           continue;
         }
       }
@@ -563,6 +565,7 @@ static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
           immVertex2fv(pos, bezt->vec[2]);
         }
       }
+      prevbezt = bezt;
     }
   }
 
