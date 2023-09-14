@@ -65,6 +65,7 @@
 #include "BKE_main_namemap.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
+#include "BKE_nla.h"
 #include "BKE_node.hh"
 #include "BKE_screen.h"
 #include "BKE_simulation_state_serialize.hh"
@@ -1064,6 +1065,28 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
   }
 }
 
+/* Change the action strip (if a NLA strip is preset) to HOLD instead of HOLD FORWARD to maintain
+ * backwards compatibility.*/
+static void version_nla_action_strip_hold(Main *bmain)
+{
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    AnimData *adt = BKE_animdata_from_id(id);
+    /* We only want to preserve existing behavior if there's an action and 1 or more NLA strips. */
+    if (adt == nullptr || adt->action == nullptr ||
+        adt->act_extendmode != NLASTRIP_EXTEND_HOLD_FORWARD)
+    {
+      continue;
+    }
+
+    if (BKE_nlatrack_has_strips(&adt->nla_tracks)) {
+      adt->act_extendmode = NLASTRIP_EXTEND_HOLD;
+    }
+
+    FOREACH_MAIN_ID_END;
+  }
+}
+
 void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
 {
   if (MAIN_VERSION_ATLEAST(bmain, 300, 0) && !MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
@@ -1339,6 +1362,10 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 13)) {
+    version_nla_action_strip_hold(bmain);
   }
 
   /**

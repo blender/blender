@@ -989,8 +989,23 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
   /* loop over strips, checking if they fall within the range */
   for (strip = strips->first; strip; strip = strip->next) {
     /* Check if current time occurs within this strip. */
-    if (IN_RANGE_INCL(ctime, strip->start, strip->end) ||
-        (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP)) {
+
+    /* This block leads to the Action Track and non-time-remapped tweak strip evaluation to respect
+     * the extrapolation modes. If in_range, these two tracks will always output NES_TIME_WITHIN so
+     * fcurve extrapolation isn't clamped to the keyframe bounds. */
+    bool in_range = IN_RANGE_INCL(ctime, strip->start, strip->end);
+    if (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP) {
+      switch (strip->extendmode) {
+        case NLASTRIP_EXTEND_HOLD:
+          in_range = true;
+          break;
+        case NLASTRIP_EXTEND_HOLD_FORWARD:
+          in_range = ctime >= strip->start;
+          break;
+      }
+    }
+
+    if (in_range) {
       /* this strip is active, so try to use it */
       estrip = strip;
       side = NES_TIME_WITHIN;
@@ -3246,16 +3261,10 @@ static void animsys_create_action_track_strip(const AnimData *adt,
   r_action_strip->extendmode = adt->act_extendmode;
   r_action_strip->influence = adt->act_influence;
 
-  /* NOTE: must set this, or else the default setting overrides,
-   * and this setting doesn't work. */
-  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
-
-  /* Unless extendmode is Nothing (might be useful for flattening NLA evaluation), disable range.
-   * Extendmode Nothing and Hold will behave as normal. Hold Forward will behave just like Hold.
+  /* Must set NLASTRIP_FLAG_USR_INFLUENCE, or else the default setting overrides, and influence
+   * doesn't work.
    */
-  if (r_action_strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
-    r_action_strip->flag |= NLASTRIP_FLAG_NO_TIME_MAP;
-  }
+  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
 
   const bool tweaking = (adt->flag & ADT_NLA_EDIT_ON) != 0;
   const bool soloing = (adt->flag & ADT_NLA_SOLO_TRACK) != 0;

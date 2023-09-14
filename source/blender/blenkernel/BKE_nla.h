@@ -271,6 +271,12 @@ void BKE_nlatrack_solo_toggle(struct AnimData *adt, struct NlaTrack *nlt);
  * Check if there is any space in the given track to add a strip of the given length.
  */
 bool BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);
+
+/**
+ * Check to see if there are any NLA strips in the NLA tracks.
+ */
+bool BKE_nlatrack_has_strips(ListBase *tracks);
+
 /**
  * Rearrange the strips in the track so that they are always in order
  * (usually only needed after a strip has been moved).

@@ -1229,6 +1229,24 @@ bool BKE_nlatrack_has_space(NlaTrack *nlt, float start, float end)
   return BKE_nlastrips_has_space(&nlt->strips, start, end);
 }
 
+bool BKE_nlatrack_has_strips(ListBase *tracks)
+{
+  /* sanity checks */
+  if (BLI_listbase_is_empty(tracks)) {
+    return false;
+  }
+
+  /* Check each track for NLA strips. */
+  LISTBASE_FOREACH (NlaTrack *, track, tracks) {
+    if (BLI_listbase_count(&track->strips) > 0) {
+      return true;
+    }
+  }
+
+  /* none found */
+  return false;
+}
+
 void BKE_nlatrack_sort_strips(NlaTrack *nlt)
 {
   /* sanity checks */
