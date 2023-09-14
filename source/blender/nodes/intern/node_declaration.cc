@@ -34,19 +34,26 @@ void build_node_declaration_dynamic(const bNodeTree &node_tree,
 
 void NodeDeclarationBuilder::finalize()
 {
-  BLI_assert(declaration_.is_valid());
+  /* Declarations generating both input and output should align these sockets. */
+  for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : socket_builders_) {
+    if (socket_builder->input_declaration() && socket_builder->output_declaration()) {
+      socket_builder->input_declaration()->inline_with_next = true;
+    }
+  }
 
   if (is_function_node_) {
-    for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : input_builders_) {
-      SocketDeclaration &socket_decl = *socket_builder->declaration();
-      if (socket_decl.input_field_type != InputSocketFieldType::Implicit) {
-        socket_decl.input_field_type = InputSocketFieldType::IsSupported;
+    for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : socket_builders_) {
+      if (SocketDeclaration *socket_decl = socket_builder->input_declaration()) {
+        if (socket_decl->input_field_type != InputSocketFieldType::Implicit) {
+          socket_decl->input_field_type = InputSocketFieldType::IsSupported;
+        }
       }
     }
-    for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : output_builders_) {
-      SocketDeclaration &socket_decl = *socket_builder->declaration();
-      socket_decl.output_field_dependency = OutputFieldDependency::ForDependentField();
-      socket_builder->reference_pass_all_ = true;
+    for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : socket_builders_) {
+      if (SocketDeclaration *socket_decl = socket_builder->output_declaration()) {
+        socket_decl->output_field_dependency = OutputFieldDependency::ForDependentField();
+        socket_builder->reference_pass_all_ = true;
+      }
     }
   }
 
@@ -63,26 +70,34 @@ void NodeDeclarationBuilder::finalize()
     }
   }
 
-  for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : input_builders_) {
+  for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : socket_builders_) {
+    if (!socket_builder->input_declaration()) {
+      continue;
+    }
+
     if (socket_builder->field_on_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int field_input = socket_builder->index_;
+      const int field_input = socket_builder->index_in_;
       for (const int geometry_input : geometry_inputs) {
         relations.eval_relations.append({field_input, geometry_input});
       }
     }
   }
-  for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : output_builders_) {
+  for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : socket_builders_) {
+    if (!socket_builder->output_declaration()) {
+      continue;
+    }
+
     if (socket_builder->field_on_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int field_output = socket_builder->index_;
+      const int field_output = socket_builder->index_out_;
       for (const int geometry_output : geometry_outputs) {
         relations.available_relations.append({field_output, geometry_output});
       }
     }
     if (socket_builder->reference_pass_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int field_output = socket_builder->index_;
+      const int field_output = socket_builder->index_out_;
       for (const int input_i : declaration_.inputs.index_range()) {
         SocketDeclaration &input_socket_decl = *declaration_.inputs[input_i];
         if (input_socket_decl.input_field_type != InputSocketFieldType::None) {
@@ -92,12 +107,14 @@ void NodeDeclarationBuilder::finalize()
     }
     if (socket_builder->propagate_from_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int geometry_output = socket_builder->index_;
+      const int geometry_output = socket_builder->index_out_;
       for (const int geometry_input : geometry_inputs) {
         relations.propagate_relations.append({geometry_input, geometry_output});
       }
     }
   }
+
+  BLI_assert(declaration_.is_valid());
 }
 
 void NodeDeclarationBuilder::set_active_panel_builder(const PanelDeclarationBuilder *panel_builder)
@@ -190,13 +207,17 @@ bool NodeDeclaration::is_valid() const
         return false;
       }
 
-      if (state.socket_in_out == SOCK_OUT && socket_decl->in_out == SOCK_IN) {
-        /* Start of input sockets. */
-        state.socket_in_out = SOCK_IN;
-      }
-      if (socket_decl->in_out != state.socket_in_out) {
-        std::cout << "Output socket added after input socket" << std::endl;
-        return false;
+      /* Check for consistent outputs.., inputs.. blocks.
+       * Ignored for sockets that are inline pairs. */
+      if (!socket_decl->inline_with_next) {
+        if (state.socket_in_out == SOCK_OUT && socket_decl->in_out == SOCK_IN) {
+          /* Start of input sockets. */
+          state.socket_in_out = SOCK_IN;
+        }
+        if (socket_decl->in_out != state.socket_in_out) {
+          std::cout << "Output socket added after input socket" << std::endl;
+          return false;
+        }
       }
 
       /* Item counting for the panels, but ignore for root items. */
