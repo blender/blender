@@ -889,6 +889,11 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
     zone_behavior.input.emplace<sim_input::PassThrough>();
   }
 
+  void output_pass_through(nodes::SimulationZoneBehavior &zone_behavior) const
+  {
+    zone_behavior.output.emplace<sim_output::PassThrough>();
+  }
+
   void output_store_frame_cache(bake::NodeCache &node_cache,
                                 nodes::SimulationZoneBehavior &zone_behavior) const
   {
@@ -944,20 +949,15 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
             *frame_indices.prev, *frame_indices.next, node_cache, zone_behavior);
       }
       else {
-        this->read_empty(zone_behavior);
+        this->output_pass_through(zone_behavior);
       }
     }
     else if (frame_indices.prev) {
       this->read_single(*frame_indices.prev, node_cache, zone_behavior);
     }
     else {
-      this->read_empty(zone_behavior);
+      this->output_pass_through(zone_behavior);
     }
-  }
-
-  void read_empty(nodes::SimulationZoneBehavior &zone_behavior) const
-  {
-    zone_behavior.output.emplace<sim_output::ReadSingle>();
   }
 
   void read_single(const int frame_index,
