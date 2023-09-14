@@ -561,6 +561,7 @@ static Vector<NodeInterfaceItemData> node_build_item_data(bNode &node)
   const SocketIterator output_end = node.output_sockets().end();
   const PanelStateIterator panel_state_end = node.panel_states().end();
   const PanelRuntimeIterator panel_runtime_end = node.runtime->panels.end();
+  UNUSED_VARS_NDEBUG(input_end, output_end, panel_state_end, panel_runtime_end);
 
   Vector<NodeInterfaceItemData> result;
   result.reserve(node.declaration()->items.size());
