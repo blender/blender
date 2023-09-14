@@ -179,11 +179,11 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
   /* Armature ------------------------ */
   /* only set in editmode armature, by space_view3d listener */
-  keymap = WM_keymap_ensure(keyconf, "Armature", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Armature", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_editarmature;
 
   /* Pose ------------------------ */
   /* only set in posemode, by space_view3d listener */
-  keymap = WM_keymap_ensure(keyconf, "Pose", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Pose", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_posemode;
 }

@@ -146,7 +146,7 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_PROPERTIES, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_PROPERTIES, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -536,7 +536,7 @@ static void buttons_operatortypes()
 
 static void buttons_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Property Editor", SPACE_PROPERTIES, 0);
+  WM_keymap_ensure(keyconf, "Property Editor", SPACE_PROPERTIES, RGN_TYPE_WINDOW);
 }
 
 /** \} */

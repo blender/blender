@@ -903,13 +903,14 @@ wmKeyMap *WM_modalkeymap_ensure(wmKeyConfig *keyconf,
                                 const char *idname,
                                 const EnumPropertyItem *items)
 {
-  wmKeyMap *km = WM_keymap_ensure(keyconf, idname, 0, 0);
+  wmKeyMap *km = WM_keymap_ensure(keyconf, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
   km->flag |= KEYMAP_MODAL;
 
   /* init modal items from default config */
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   if (wm->defaultconf && wm->defaultconf != keyconf) {
-    wmKeyMap *defaultkm = WM_keymap_list_find(&wm->defaultconf->keymaps, km->idname, 0, 0);
+    wmKeyMap *defaultkm = WM_keymap_list_find(
+        &wm->defaultconf->keymaps, km->idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 
     if (defaultkm) {
       km->modal_items = defaultkm->modal_items;
@@ -1020,7 +1021,8 @@ static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
       return;
     }
 
-    wmKeyMap *defaultkm = WM_keymap_list_find(&wm->defaultconf->keymaps, km->idname, 0, 0);
+    wmKeyMap *defaultkm = WM_keymap_list_find(
+        &wm->defaultconf->keymaps, km->idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
     if (!defaultkm) {
       return;
     }

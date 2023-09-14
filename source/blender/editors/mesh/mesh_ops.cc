@@ -358,7 +358,7 @@ void ED_operatormacros_mesh()
 
 void ED_keymap_mesh(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Mesh", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Mesh", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_editmesh;
 
   knifetool_modal_keymap(keyconf);

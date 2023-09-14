@@ -101,7 +101,7 @@ void outliner_operatortypes()
 
 void outliner_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Outliner", SPACE_OUTLINER, 0);
+  WM_keymap_ensure(keyconf, "Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
 }
 
 /** \} */

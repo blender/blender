@@ -171,7 +171,7 @@ static void image_free(SpaceLink *sl)
 /* spacetype; init callback, add handlers */
 static void image_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
-  ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
+  ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, RGN_TYPE_WINDOW);
 
   /* add drop boxes */
   WM_event_add_dropbox_handler(&area->handlers, lb);
@@ -245,8 +245,8 @@ static void image_operatortypes()
 
 static void image_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Image Generic", SPACE_IMAGE, 0);
-  WM_keymap_ensure(keyconf, "Image", SPACE_IMAGE, 0);
+  WM_keymap_ensure(keyconf, "Image Generic", SPACE_IMAGE, RGN_TYPE_WINDOW);
+  WM_keymap_ensure(keyconf, "Image", SPACE_IMAGE, RGN_TYPE_WINDOW);
 }
 
 /* dropboxes */
@@ -274,7 +274,7 @@ static void image_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 /* area+region dropbox definition */
 static void image_dropboxes()
 {
-  ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
+  ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, RGN_TYPE_WINDOW);
 
   WM_dropbox_add(lb, "IMAGE_OT_open", image_drop_poll, image_drop_copy, nullptr, nullptr);
 }
@@ -604,26 +604,26 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *region)
    * since the space clip manages own v2d in #image_main_region_set_view2d */
 
   /* mask polls mode */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* image paint polls for mode */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Curve", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Curve", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Paint Curve", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Paint Curve", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Image Paint", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Image Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "UV Editor", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "UV Editor", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
   /* own keymaps */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Image Generic", SPACE_IMAGE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
-  keymap = WM_keymap_ensure(wm->defaultconf, "Image", SPACE_IMAGE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Image", SPACE_IMAGE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -780,7 +780,7 @@ static void image_buttons_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Image Generic", SPACE_IMAGE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -894,7 +894,7 @@ static void image_tools_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Image Generic", SPACE_IMAGE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 

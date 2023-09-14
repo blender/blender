@@ -4370,7 +4370,7 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 {
   /* TODO: check on a poll callback for this, to get hotkeys into menus. */
 
-  WM_keymap_ensure(keyconf, "Animation Channels", 0, 0);
+  WM_keymap_ensure(keyconf, "Animation Channels", SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
 
 /** \} */

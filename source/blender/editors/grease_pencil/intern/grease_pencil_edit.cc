@@ -83,13 +83,15 @@ bool grease_pencil_painting_poll(bContext *C)
 
 static void keymap_grease_pencil_editing(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Edit Mode", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Edit Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = editable_grease_pencil_poll;
 }
 
 static void keymap_grease_pencil_painting(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Paint Mode", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Paint Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = grease_pencil_painting_poll;
 }
 
