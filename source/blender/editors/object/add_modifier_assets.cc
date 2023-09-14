@@ -122,6 +122,24 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   });
 }
 
+static void unassigned_assets_draw(const bContext * /*C*/, Menu *menu)
+{
+  asset::AssetItemTree &tree = *get_static_item_tree();
+  for (const asset_system::AssetRepresentation *asset : tree.unassigned_assets) {
+    wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_add_asset", true);
+    PointerRNA props_ptr;
+    uiItemFullO_ptr(menu->layout,
+                    ot,
+                    IFACE_(asset->get_name().c_str()),
+                    ICON_NONE,
+                    nullptr,
+                    WM_OP_INVOKE_DEFAULT,
+                    UI_ITEM_NONE,
+                    &props_ptr);
+    asset::operator_asset_reference_props_set(*asset, props_ptr);
+  }
+}
+
 static void root_catalogs_draw(const bContext *C, Menu *menu)
 {
   const Object *object = ED_object_active_context(C);
@@ -174,6 +192,11 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
           screen, *all_library, item, "OBJECT_MT_add_modifier_catalog_assets", *layout);
     }
   });
+
+  if (!tree.unassigned_assets.is_empty()) {
+    uiItemS(layout);
+    uiItemM(layout, "OBJECT_MT_add_modifier_unassigned_assets", IFACE_("No Catalog"), ICON_NONE);
+  }
 }
 
 static bNodeTree *get_node_group(const bContext &C, PointerRNA &ptr, ReportList *reports)
@@ -259,6 +282,19 @@ static void OBJECT_OT_modifier_add_asset(wmOperatorType *ot)
   asset::operator_asset_reference_props_register(*ot->srna);
 }
 
+static MenuType modifier_add_unassigned_assets_menu_type()
+{
+  MenuType type{};
+  STRNCPY(type.idname, "OBJECT_MT_add_modifier_unassigned_assets");
+  type.draw = unassigned_assets_draw;
+  type.listener = asset::asset_reading_region_listen_fn;
+  type.flag = MenuTypeFlag::ContextDependent;
+  type.description = N_(
+      "Modifier node group assets not assigned to a catalog.\n"
+      "Catalogs can be assigned in the Asset Browser.");
+  return type;
+}
+
 static MenuType modifier_add_catalog_assets_menu_type()
 {
   MenuType type{};
@@ -282,6 +318,7 @@ static MenuType modifier_add_root_catalogs_menu_type()
 void object_modifier_add_asset_register()
 {
   WM_menutype_add(MEM_new<MenuType>(__func__, modifier_add_catalog_assets_menu_type()));
+  WM_menutype_add(MEM_new<MenuType>(__func__, modifier_add_unassigned_assets_menu_type()));
   WM_menutype_add(MEM_new<MenuType>(__func__, modifier_add_root_catalogs_menu_type()));
   WM_operatortype_append(OBJECT_OT_modifier_add_asset);
 }

@@ -1311,6 +1311,7 @@ void ED_spacetype_node()
   BLI_addhead(&st->regiontypes, art);
 
   WM_menutype_add(MEM_new<MenuType>(__func__, add_catalog_assets_menu_type()));
+  WM_menutype_add(MEM_new<MenuType>(__func__, add_unassigned_assets_menu_type()));
   WM_menutype_add(MEM_new<MenuType>(__func__, add_root_catalogs_menu_type()));
 
   BKE_spacetype_register(st);

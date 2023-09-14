@@ -12,6 +12,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_multi_value_map.hh"
+#include "BLI_vector.hh"
 
 #include "AS_asset_catalog_path.hh"
 #include "AS_asset_catalog_tree.hh"
@@ -47,6 +48,8 @@ struct AssetItemTree {
   asset_system::AssetCatalogTree catalogs;
   MultiValueMap<asset_system::AssetCatalogPath, asset_system::AssetRepresentation *>
       assets_per_path;
+  /** Assets not added to a catalog, not part of #assets_per_path. */
+  Vector<asset_system::AssetRepresentation *> unassigned_assets;
 };
 
 asset_system::AssetCatalogTree build_filtered_catalog_tree(

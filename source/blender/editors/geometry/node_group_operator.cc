@@ -672,6 +672,41 @@ MenuType node_group_operator_assets_menu()
   return type;
 }
 
+static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
+{
+  asset::AssetItemTree *tree = get_static_item_tree(*C);
+  if (!tree) {
+    return;
+  }
+  for (const asset_system::AssetRepresentation *asset : tree->unassigned_assets) {
+    wmOperatorType *ot = WM_operatortype_find("GEOMETRY_OT_execute_node_group", true);
+    PointerRNA props_ptr;
+    uiItemFullO_ptr(menu->layout,
+                    ot,
+                    IFACE_(asset->get_name().c_str()),
+                    ICON_NONE,
+                    nullptr,
+                    WM_OP_INVOKE_DEFAULT,
+                    UI_ITEM_NONE,
+                    &props_ptr);
+    asset::operator_asset_reference_props_set(*asset, props_ptr);
+  }
+}
+
+MenuType node_group_operator_assets_menu_unassigned()
+{
+  MenuType type{};
+  STRNCPY(type.idname, "GEO_MT_node_operator_catalog_assets_unassigned");
+  type.poll = asset_menu_poll;
+  type.draw = catalog_assets_draw_unassigned;
+  type.listener = asset::asset_reading_region_listen_fn;
+  type.flag = MenuTypeFlag::ContextDependent;
+  type.description = N_(
+      "Tool node group assets not assigned to a catalog.\n"
+      "Catalogs can be assigned in the Asset Browser.");
+  return type;
+}
+
 void ui_template_node_operator_asset_menu_items(uiLayout &layout,
                                                 bContext &C,
                                                 const StringRef catalog_path)
@@ -712,9 +747,6 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, bContext &C)
     return;
   }
   *tree = build_catalog_tree(C);
-  if (tree->catalogs.is_empty()) {
-    return;
-  }
 
   asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
       asset_system::all_library_reference());
@@ -731,6 +763,13 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, bContext &C)
           screen, *all_library, item, "GEO_MT_node_operator_catalog_assets", layout);
     }
   });
+
+  if (!tree->unassigned_assets.is_empty()) {
+    uiItemM(&layout,
+            "GEO_MT_node_operator_catalog_assets_unassigned",
+            IFACE_("No Catalog"),
+            ICON_NONE);
+  }
 }
 
 /** \} */
