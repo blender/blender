@@ -41,32 +41,6 @@ struct wmOperator;
 /* ********************************************** */
 /* Bone collections */
 
-static bool bone_collection_poll(bContext *C)
-{
-  Object *ob = ED_object_context(C);
-  if (ob == nullptr) {
-    return false;
-  }
-
-  if (ob->type != OB_ARMATURE) {
-    CTX_wm_operator_poll_msg_set(C, "Bone collections can only be edited on an Armature");
-    return false;
-  }
-
-  /* TODO: double-check these two conditions, I'm not sure they are correct: */
-  if (ID_IS_OVERRIDE_LIBRARY(ob->data)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit bone collections for library overrides");
-    return false;
-  }
-
-  if (ID_IS_LINKED(ob->data)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit bone collections on linked Armature");
-    return false;
-  }
-
-  return true;
-}
-
 static bool bone_collection_add_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
@@ -352,6 +326,29 @@ static bool bone_collection_assign_mode_specific(bContext *C,
   }
 }
 
+static bool bone_collection_assign_poll(bContext *C)
+{
+  Object *ob = ED_object_context(C);
+  if (ob == nullptr) {
+    return false;
+  }
+
+  if (ob->type != OB_ARMATURE) {
+    CTX_wm_operator_poll_msg_set(C, "Bone collections can only be edited on an Armature");
+    return false;
+  }
+
+  if (ID_IS_LINKED(ob->data)) {
+    CTX_wm_operator_poll_msg_set(
+        C, "Cannot edit bone collections on linked Armatures without override");
+    return false;
+  }
+
+  /* The target bone collection can be specified by name in an operator property, but that's not
+   * available here. So just allow in the poll function, and do the final check in the execute. */
+  return true;
+}
+
 /* Assign selected pchans to the bone collection that the user selects */
 static int bone_collection_assign_exec(bContext *C, wmOperator *op)
 {
@@ -362,6 +359,12 @@ static int bone_collection_assign_exec(bContext *C, wmOperator *op)
 
   BoneCollection *bcoll = get_bonecoll_named_or_active(C, op, ob, CREATE_IF_MISSING);
   if (bcoll == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  bArmature *armature = static_cast<bArmature *>(ob->data);
+  if (!ANIM_armature_bonecoll_is_editable(armature, bcoll)) {
+    WM_reportf(RPT_ERROR, "Cannot assign to linked bone collection %s", bcoll->name);
     return OPERATOR_CANCELLED;
   }
 
@@ -403,7 +406,7 @@ void ARMATURE_OT_collection_assign(wmOperatorType *ot)
   // TODO: reinstate the menu?
   // ot->invoke = bone_collections_menu_invoke;
   ot->exec = bone_collection_assign_exec;
-  ot->poll = bone_collection_poll;
+  ot->poll = bone_collection_assign_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -465,7 +468,7 @@ void ARMATURE_OT_collection_unassign(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bone_collection_unassign_exec;
-  ot->poll = bone_collection_poll;
+  ot->poll = bone_collection_assign_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -668,6 +671,13 @@ static int add_or_move_to_collection_exec(bContext *C,
     }
   }
 
+  if (!ANIM_armature_bonecoll_is_editable(arm, target_bcoll)) {
+    WM_reportf(RPT_ERROR,
+               "Bone collection %s is not editable, maybe add an override on the armature?",
+               target_bcoll->name);
+    return OPERATOR_CANCELLED;
+  }
+
   FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (obpose, pchan) {
     assign_func(target_bcoll, pchan->bone);
   }
@@ -692,13 +702,25 @@ static int assign_to_collection_exec(bContext *C, wmOperator *op)
 
 static bool move_to_collection_poll(bContext *C)
 {
-  /* TODO: add outliner support.
-  if (CTX_wm_space_outliner(C) != nullptr) {
-    return ED_outliner_collections_editor_poll(C);
+  Object *ob = ED_object_context(C);
+  if (ob == nullptr) {
+    return false;
   }
-  */
-  // TODO: add armature edit mode support.
-  return ED_operator_object_active_local_editable_posemode_exclusive(C);
+
+  if (ob->type != OB_ARMATURE) {
+    CTX_wm_operator_poll_msg_set(C, "Bone collections can only be edited on an Armature");
+    return false;
+  }
+
+  if (ID_IS_LINKED(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+    CTX_wm_operator_poll_msg_set(C, "This needs a local Armature or an override");
+    return false;
+  }
+
+  /* Ideally this would also check the target bone collection to move/assign to.
+   * However, that requires access to the operator properties, and those are not
+   * available in the poll function. */
+  return true;
 }
 
 static const EnumPropertyItem *bone_collection_enum_itemf(bContext *C,
