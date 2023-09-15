@@ -766,35 +766,47 @@ PyObject *PyC_FrozenSetFromStrings(const char **strings)
 
 PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...)
 {
-  PyObject *error_value_prefix;
-  va_list args;
-
-  va_start(args, format);
-  error_value_prefix = PyUnicode_FromFormatV(format, args); /* can fail and be nullptr */
-  va_end(args);
+  PyObject *error_value_as_unicode = nullptr;
 
   if (PyErr_Occurred()) {
     PyObject *error_type, *error_value, *error_traceback;
     PyErr_Fetch(&error_type, &error_value, &error_traceback);
 
     if (PyUnicode_Check(error_value)) {
-      PyErr_Format(exception_type_prefix, "%S, %S", error_value_prefix, error_value);
+      error_value_as_unicode = error_value;
+      Py_INCREF(error_value_as_unicode);
     }
     else {
-      PyErr_Format(exception_type_prefix,
-                   "%S, %.200s(%S)",
-                   error_value_prefix,
-                   Py_TYPE(error_value)->tp_name,
-                   error_value);
+      error_value_as_unicode = PyUnicode_FromFormat(
+          "%.200s(%S)", Py_TYPE(error_value)->tp_name, error_value);
     }
-  }
-  else {
-    PyErr_SetObject(exception_type_prefix, error_value_prefix);
+    PyErr_Restore(error_type, error_value, error_traceback);
   }
 
-  Py_XDECREF(error_value_prefix);
+  va_list args;
 
-  /* dumb to always return nullptr but matches PyErr_Format */
+  va_start(args, format);
+  PyObject *error_value_format = PyUnicode_FromFormatV(format, args); /* Can fail and be null. */
+  va_end(args);
+
+  if (error_value_as_unicode) {
+    if (error_value_format) {
+      PyObject *error_value_format_prev = error_value_format;
+      error_value_format = PyUnicode_FromFormat(
+          "%S, %S", error_value_format, error_value_as_unicode);
+      Py_DECREF(error_value_format_prev);
+    }
+    else {
+      /* Should never happen, hints at incorrect API use or memory corruption. */
+      error_value_format = PyUnicode_FromFormat("(internal error), %S", error_value_as_unicode);
+    }
+    Py_DECREF(error_value_as_unicode);
+  }
+
+  PyErr_SetObject(exception_type_prefix, error_value_format);
+  Py_XDECREF(error_value_format);
+
+  /* Strange to always return null, matches #PyErr_Format. */
   return nullptr;
 }
 
