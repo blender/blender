@@ -155,7 +155,7 @@ void VolumeModule::begin_sync()
 void VolumeModule::sync_object(Object *ob,
                                ObjectHandle & /*ob_handle*/,
                                ResourceHandle res_handle,
-                               MaterialPass *material_pass /*= nullptr*/)
+                               MaterialPass *material_pass /*=nullptr*/)
 {
   float3 size = math::to_scale(float4x4(ob->object_to_world));
   /* Check if any of the axes have 0 length. (see #69070) */

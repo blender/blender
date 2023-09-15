@@ -166,11 +166,11 @@ Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection)
   return Closure(0);
 }
 
-/* ClearCoat BSDF. */
-Closure closure_eval(ClosureReflection reflection, ClosureReflection clearcoat)
+/* Coat BSDF. */
+Closure closure_eval(ClosureReflection reflection, ClosureReflection coat)
 {
   SELECT_CLOSURE(g_reflection_data, g_reflection_rand, reflection);
-  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, clearcoat);
+  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, coat);
   return Closure(0);
 }
 
@@ -186,25 +186,23 @@ Closure closure_eval(ClosureVolumeScatter volume_scatter,
 }
 
 /* Specular BSDF. */
-Closure closure_eval(ClosureDiffuse diffuse,
-                     ClosureReflection reflection,
-                     ClosureReflection clearcoat)
+Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection, ClosureReflection coat)
 {
   SELECT_CLOSURE(g_diffuse_data, g_diffuse_rand, diffuse);
   SELECT_CLOSURE(g_reflection_data, g_reflection_rand, reflection);
-  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, clearcoat);
+  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, coat);
   return Closure(0);
 }
 
 /* Principled BSDF. */
 Closure closure_eval(ClosureDiffuse diffuse,
                      ClosureReflection reflection,
-                     ClosureReflection clearcoat,
+                     ClosureReflection coat,
                      ClosureRefraction refraction)
 {
   SELECT_CLOSURE(g_diffuse_data, g_diffuse_rand, diffuse);
   SELECT_CLOSURE(g_reflection_data, g_reflection_rand, reflection);
-  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, clearcoat);
+  SELECT_CLOSURE(g_reflection_data, g_reflection_rand, coat);
   SELECT_CLOSURE(g_refraction_data, g_refraction_rand, refraction);
   return Closure(0);
 }
@@ -299,10 +297,27 @@ vec2 brdf_lut(float cos_theta, float roughness)
 #endif
 }
 
-vec2 btdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
+/* Return texture coordinates to sample BSDF LUT. */
+vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
+{
+  /* IOR is the sine of the critical angle. */
+  float critical_cos = sqrt(1.0 - ior * ior);
+
+  vec3 coords;
+  coords.x = sqr(ior);
+  coords.y = cos_theta;
+  coords.y -= critical_cos;
+  coords.y /= (coords.y > 0.0) ? (1.0 - critical_cos) : critical_cos;
+  coords.y = coords.y * 0.5 + 0.5;
+  coords.z = roughness;
+
+  return saturate(coords);
+}
+
+vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
 {
   if (ior <= 1e-5) {
-    return vec2(0.0);
+    return vec2(0.0, 1.0);
   }
 
   if (ior >= 1.0) {
@@ -320,28 +335,9 @@ vec2 btdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter
     return vec2(btdf, brdf) * ((do_multiscatter == 0.0) ? sum(split_sum) : 1.0);
   }
 
-  /* IOR is sin of critical angle. */
-  float critical_cos = sqrt(1.0 - ior * ior);
-
-  vec3 coords;
-  coords.x = sqr(ior);
-  coords.y = cos_theta;
-  coords.y -= critical_cos;
-  coords.y /= (coords.y > 0.0) ? (1.0 - critical_cos) : critical_cos;
-  coords.y = coords.y * 0.5 + 0.5;
-  coords.z = roughness;
-
-  coords = saturate(coords);
-
-  float layer = coords.z * UTIL_BTDF_LAYER_COUNT;
-  float layer_floored = floor(layer);
-
 #ifdef EEVEE_UTILITY_TX
-  coords.z = UTIL_BTDF_LAYER + layer_floored;
-  vec2 btdf_brdf_low = utility_tx_sample_lut(utility_tx, coords.xy, coords.z).rg;
-  vec2 btdf_brdf_high = utility_tx_sample_lut(utility_tx, coords.xy, coords.z + 1.0).rg;
-  /* Manual trilinear interpolation. */
-  vec2 btdf_brdf = mix(btdf_brdf_low, btdf_brdf_high, layer - layer_floored);
+  vec3 coords = lut_coords_bsdf(cos_theta, roughness, ior);
+  vec2 btdf_brdf = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).rg;
 
   if (do_multiscatter != 0.0) {
     /* For energy-conserving BSDF the reflection and refraction lobes should sum to one. Assuming

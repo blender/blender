@@ -96,7 +96,7 @@ void ED_operatormacros_action()
 void action_keymap(wmKeyConfig *keyconf)
 {
   /* keymap for all regions */
-  WM_keymap_ensure(keyconf, "Dopesheet Generic", SPACE_ACTION, 0);
+  WM_keymap_ensure(keyconf, "Dopesheet Generic", SPACE_ACTION, RGN_TYPE_WINDOW);
 
   /* channels */
   /* Channels are not directly handled by the Action Editor module,
@@ -107,5 +107,5 @@ void action_keymap(wmKeyConfig *keyconf)
    */
 
   /* keyframes */
-  WM_keymap_ensure(keyconf, "Dopesheet", SPACE_ACTION, 0);
+  WM_keymap_ensure(keyconf, "Dopesheet", SPACE_ACTION, RGN_TYPE_WINDOW);
 }

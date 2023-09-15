@@ -107,7 +107,7 @@ class Instance {
       case V3D_SHADING_TEXTURE_COLOR:
         ATTR_FALLTHROUGH;
       case V3D_SHADING_MATERIAL_COLOR:
-        if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot)) {
+        if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot + 1)) {
           return Material(*_mat);
         }
         ATTR_FALLTHROUGH;
@@ -271,8 +271,7 @@ class Instance {
             continue;
           }
 
-          /* Material slots start from 1. */
-          int material_slot = i + 1;
+          int material_slot = i;
           Material mat = get_material(ob_ref, object_state.color_type, material_slot);
           has_transparent_material = has_transparent_material || mat.is_transparent();
 
@@ -324,11 +323,16 @@ class Instance {
 
   void sculpt_sync(ObjectRef &ob_ref, ResourceHandle handle, const ObjectState &object_state)
   {
+    SculptBatchFeature features = SCULPT_BATCH_DEFAULT;
+    if (object_state.color_type == V3D_SHADING_VERTEX_COLOR) {
+      features = SCULPT_BATCH_VERTEX_COLOR;
+    }
+    else if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+      features = SCULPT_BATCH_UV;
+    }
+
     if (object_state.use_per_material_batches) {
-      const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
-      for (SculptBatch &batch : sculpt_batches_per_material_get(
-               ob_ref.object, {get_dummy_gpu_materials(material_count), material_count}))
-      {
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, true, features)) {
         Material mat = get_material(ob_ref, object_state.color_type, batch.material_slot);
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
@@ -346,15 +350,7 @@ class Instance {
     }
     else {
       Material mat = get_material(ob_ref, object_state.color_type);
-      SculptBatchFeature features = SCULPT_BATCH_DEFAULT;
-      if (object_state.color_type == V3D_SHADING_VERTEX_COLOR) {
-        features = SCULPT_BATCH_VERTEX_COLOR;
-      }
-      else if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-        features = SCULPT_BATCH_UV;
-      }
-
-      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, false, features)) {
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
         }
@@ -395,12 +391,12 @@ class Instance {
     /* Skip frustum culling. */
     ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
 
-    Material mat = get_material(ob_ref, object_state.color_type, psys->part->omat);
+    Material mat = get_material(ob_ref, object_state.color_type, psys->part->omat - 1);
     ::Image *image = nullptr;
     ImageUser *iuser = nullptr;
     GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
     if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-      get_material_image(ob_ref.object, psys->part->omat, image, iuser, sampler_state);
+      get_material_image(ob_ref.object, psys->part->omat - 1, image, iuser, sampler_state);
     }
     resources.material_buf.append(mat);
     int material_index = resources.material_buf.size() - 1;
@@ -470,6 +466,10 @@ class Instance {
                                           GPU_DEPTH24_STENCIL8,
                                           GPU_TEXTURE_USAGE_SHADER_READ |
                                               GPU_TEXTURE_USAGE_ATTACHMENT);
+
+      fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_in_front_tx));
+      fb.bind();
+      GPU_framebuffer_clear_depth_stencil(fb, 1.0f, 0x00);
     }
 
     opaque_ps.draw(

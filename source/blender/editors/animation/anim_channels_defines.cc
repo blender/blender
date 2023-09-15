@@ -5374,6 +5374,22 @@ static void draw_setting_widget(bAnimContext *ac,
       UI_but_disable(but, TIP_("Can't edit this property from a linked data-block"));
     }
   }
+
+  /* Post-button-creation modifications of the button. */
+  switch (setting) {
+    case ACHANNEL_SETTING_MOD_OFF:
+      /* Deactivate the button when there are no FCurve modifiers. */
+      if (ale->datatype == ALE_FCURVE) {
+        const FCurve *fcu = static_cast<const FCurve *>(ale->key_data);
+        if (BLI_listbase_is_empty(&fcu->modifiers)) {
+          UI_but_flag_enable(but, UI_BUT_INACTIVE);
+        }
+      }
+      break;
+
+    default:
+      break;
+  }
 }
 
 static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,

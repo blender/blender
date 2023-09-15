@@ -514,31 +514,13 @@ class PrincipledBsdfNode : public BsdfBaseNode {
  public:
   SHADER_NODE_CLASS(PrincipledBsdfNode)
 
-  void expand(ShaderGraph *graph);
   bool has_surface_bssrdf();
   bool has_bssrdf_bump();
-  void compile(SVMCompiler &compiler,
-               ShaderInput *metallic,
-               ShaderInput *subsurface,
-               ShaderInput *subsurface_radius,
-               ShaderInput *subsurface_ior,
-               ShaderInput *subsurface_anisotropy,
-               ShaderInput *specular,
-               ShaderInput *roughness,
-               ShaderInput *specular_tint,
-               ShaderInput *anisotropic,
-               ShaderInput *sheen,
-               ShaderInput *sheen_roughness,
-               ShaderInput *sheen_tint,
-               ShaderInput *clearcoat,
-               ShaderInput *clearcoat_roughness,
-               ShaderInput *ior,
-               ShaderInput *transmission,
-               ShaderInput *anisotropic_rotation);
+  void simplify_settings(Scene *scene);
 
   NODE_SOCKET_API(float3, base_color)
-  NODE_SOCKET_API(float3, subsurface_color)
   NODE_SOCKET_API(float3, subsurface_radius)
+  NODE_SOCKET_API(float, subsurface_scale)
   NODE_SOCKET_API(float, subsurface_ior)
   NODE_SOCKET_API(float, subsurface_anisotropy)
   NODE_SOCKET_API(float, metallic)
@@ -550,13 +532,15 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, sheen)
   NODE_SOCKET_API(float, sheen_roughness)
   NODE_SOCKET_API(float3, sheen_tint)
-  NODE_SOCKET_API(float, clearcoat)
-  NODE_SOCKET_API(float, clearcoat_roughness)
+  NODE_SOCKET_API(float, coat)
+  NODE_SOCKET_API(float, coat_roughness)
+  NODE_SOCKET_API(float, coat_ior)
+  NODE_SOCKET_API(float3, coat_tint)
   NODE_SOCKET_API(float, ior)
   NODE_SOCKET_API(float, transmission)
   NODE_SOCKET_API(float, anisotropic_rotation)
   NODE_SOCKET_API(float3, normal)
-  NODE_SOCKET_API(float3, clearcoat_normal)
+  NODE_SOCKET_API(float3, coat_normal)
   NODE_SOCKET_API(float3, tangent)
   NODE_SOCKET_API(float, surface_mix_weight)
   NODE_SOCKET_API(ClosureType, distribution)
@@ -571,6 +555,8 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   {
     return true;
   }
+  bool has_surface_transparent();
+  bool has_surface_emission();
 };
 
 class TranslucentBsdfNode : public BsdfNode {

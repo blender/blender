@@ -217,8 +217,8 @@ static void text_operatortypes()
 
 static void text_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Text Generic", SPACE_TEXT, 0);
-  WM_keymap_ensure(keyconf, "Text", SPACE_TEXT, 0);
+  WM_keymap_ensure(keyconf, "Text Generic", SPACE_TEXT, RGN_TYPE_WINDOW);
+  WM_keymap_ensure(keyconf, "Text", SPACE_TEXT, RGN_TYPE_WINDOW);
 }
 
 const char *text_context_dir[] = {"edit_text", nullptr};
@@ -254,9 +254,9 @@ static void text_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
-  keymap = WM_keymap_ensure(wm->defaultconf, "Text", SPACE_TEXT, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Text", SPACE_TEXT, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* add drop boxes */
@@ -370,7 +370,7 @@ static void text_properties_region_init(wmWindowManager *wm, ARegion *region)
   ED_region_panels_init(wm, region);
 
   /* own keymaps */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 

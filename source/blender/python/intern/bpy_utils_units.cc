@@ -30,7 +30,7 @@
 static PyTypeObject BPyUnitsSystemsType;
 static PyTypeObject BPyUnitsCategoriesType;
 
-/* XXX Maybe better as externs of BKE_unit.h ? */
+/* XXX: Maybe better as `extern` of `BKE_unit.h` ? */
 static const char *bpyunits_usystem_items[] = {
     "NONE",
     "METRIC",

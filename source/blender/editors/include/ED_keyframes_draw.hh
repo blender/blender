@@ -53,69 +53,66 @@ void draw_keyframe_shape(float x,
 /* Channel Drawing ------------------ */
 /* F-Curve */
 void ED_add_fcurve_channel(ChannelDrawList *draw_list,
-                         AnimData *adt,
-                         FCurve *fcu,
-                         float ypos,
-                         float yscale_fac,
-                         int saction_flag);
+                           AnimData *adt,
+                           FCurve *fcu,
+                           float ypos,
+                           float yscale_fac,
+                           int saction_flag);
 /* Action Group Summary */
 void ED_add_action_group_channel(ChannelDrawList *draw_list,
-                         AnimData *adt,
-                         bActionGroup *agrp,
-                         float ypos,
-                         float yscale_fac,
-                         int saction_flag);
+                                 AnimData *adt,
+                                 bActionGroup *agrp,
+                                 float ypos,
+                                 float yscale_fac,
+                                 int saction_flag);
 /* Action Summary */
 void ED_add_action_channel(ChannelDrawList *draw_list,
-                         AnimData *adt,
-                         bAction *act,
-                         float ypos,
-                         float yscale_fac,
-                         int saction_flag);
+                           AnimData *adt,
+                           bAction *act,
+                           float ypos,
+                           float yscale_fac,
+                           int saction_flag);
 /* Object Summary */
 void ED_add_object_channel(ChannelDrawList *draw_list,
-                         bDopeSheet *ads,
-                         Object *ob,
-                         float ypos,
-                         float yscale_fac,
-                         int saction_flag);
+                           bDopeSheet *ads,
+                           Object *ob,
+                           float ypos,
+                           float yscale_fac,
+                           int saction_flag);
 /* Scene Summary */
 void ED_add_scene_channel(ChannelDrawList *draw_list,
-                        bDopeSheet *ads,
-                        Scene *sce,
-                        float ypos,
-                        float yscale_fac,
-                        int saction_flag);
-/* DopeSheet Summary */
-void ED_add_summary_channel(ChannelDrawList *draw_list,
-                          bAnimContext *ac,
+                          bDopeSheet *ads,
+                          Scene *sce,
                           float ypos,
                           float yscale_fac,
                           int saction_flag);
+/* DopeSheet Summary */
+void ED_add_summary_channel(
+    ChannelDrawList *draw_list, bAnimContext *ac, float ypos, float yscale_fac, int saction_flag);
 
 /* Grease Pencil cels channels */
 void ED_add_grease_pencil_cels_channel(ChannelDrawList *draw_list,
-                                     bDopeSheet *ads,
-                                     const GreasePencilLayer *layer,
-                                     float ypos,
-                                     float yscale_fac,
-                                     int saction_flag);
+                                       bDopeSheet *ads,
+                                       const GreasePencilLayer *layer,
+                                       float ypos,
+                                       float yscale_fac,
+                                       int saction_flag);
 
 /* Grease Pencil layer group channels */
 void ED_add_grease_pencil_layer_group_channel(ChannelDrawList *draw_list,
-                                            bDopeSheet *ads,
-                                            const GreasePencilLayerTreeGroup *layer,
-                                            float ypos,
-                                            float yscale_fac,
-                                            int saction_flag);
+                                              bDopeSheet *ads,
+                                              const GreasePencilLayerTreeGroup *layer,
+                                              float ypos,
+                                              float yscale_fac,
+                                              int saction_flag);
 
 /* Grease Pencil data channels */
 void ED_add_grease_pencil_datablock_channel(ChannelDrawList *draw_list,
-                                          bDopeSheet *ads,
-                                          const GreasePencil *grease_pencil,
-                                          const float ypos,
-                                          const float yscale_fac,
-                                          int saction_flag);
+                                            bDopeSheet *ads,
+                                            const GreasePencil *grease_pencil,
+                                            const float ypos,
+                                            const float yscale_fac,
+                                            int saction_flag);
 
 /* Grease Pencil Layer */
 void ED_add_grease_pencil_layer_legacy_channel(ChannelDrawList *draw_list,

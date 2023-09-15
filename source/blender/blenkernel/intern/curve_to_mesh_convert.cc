@@ -790,7 +790,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     return nullptr;
   }
 
-  /* Add the position attribute later so it can be shared in some cases.*/
+  /* Add the position attribute later so it can be shared in some cases. */
   Mesh *mesh = BKE_mesh_new_nomain(
       0, offsets.edge.last(), offsets.face.last(), offsets.loop.last());
   CustomData_free_layer_named(&mesh->vert_data, "position", 0);

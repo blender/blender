@@ -8,6 +8,8 @@
 
 #include <cstdlib>
 
+#include "BLT_translation.h"
+
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -380,6 +382,14 @@ static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ID, id);
 }
 
+static int rna_AssetRepresentation_id_type_get(PointerRNA *ptr)
+{
+  using namespace blender::asset_system;
+
+  const AssetRepresentation *asset = static_cast<const AssetRepresentation *>(ptr->data);
+  return asset->get_id_type();
+}
+
 const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
                                                           PointerRNA * /*ptr*/,
                                                           PropertyRNA * /*prop*/,
@@ -585,12 +595,25 @@ static void rna_def_asset_handle(BlenderRNA *brna)
 static void rna_def_asset_representation(BlenderRNA *brna)
 {
   StructRNA *srna;
+  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "AssetRepresentation", nullptr);
   RNA_def_struct_ui_text(srna,
                          "Asset Representation",
                          "Information about an entity that makes it possible for the asset system "
                          "to deal with the entity as asset");
+
+  prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_id_type_items);
+  RNA_def_property_enum_funcs(prop, "rna_AssetRepresentation_id_type_get", nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Data-block Type",
+      /* Won't ever actually return 'NONE' currently, this is just for information for once non-ID
+       * assets are supported. */
+      "The type of the data-block, if the asset represents one ('NONE' otherwise)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
 }
 
 static void rna_def_asset_catalog_path(BlenderRNA *brna)

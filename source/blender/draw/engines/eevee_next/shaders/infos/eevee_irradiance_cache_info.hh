@@ -197,8 +197,8 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
     .uniform_buf(IRRADIANCE_GRID_BUF_SLOT,
                  "IrradianceGridData",
                  "grids_infos_buf[IRRADIANCE_GRID_MAX]")
-    /* NOTE: Use uint instead of IrradianceBrickPacked because Metal needs to know the exact
-     * type.*/
+    /* NOTE: Use uint instead of IrradianceBrickPacked because Metal needs to know the exact type.
+     */
     .storage_buf(IRRADIANCE_BRICK_BUF_SLOT, Qualifier::READ, "uint", "bricks_infos_buf[]")
     .sampler(IRRADIANCE_ATLAS_TEX_SLOT, ImageType::FLOAT_3D, "irradiance_atlas_tx");
 

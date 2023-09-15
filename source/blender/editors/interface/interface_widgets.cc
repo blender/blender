@@ -1957,7 +1957,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     }
   }
 
-  /* If not editing and indeterminate, show dash.*/
+  /* If not editing and indeterminate, show dash. */
   if (but->drawflag & UI_BUT_INDETERMINATE && !but->editstr &&
       ELEM(but->type,
            UI_BTYPE_MENU,
@@ -1988,7 +1988,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         /* We are drawing on top of widget bases. Flush cache. */
         GPU_blend(GPU_BLEND_ALPHA);
         UI_widgetbase_draw_cache_flush();
-        GPU_blend(GPU_BLEND_NONE);
 
         if (but->selsta >= but->ofs) {
           selsta_draw = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but->selsta - but->ofs);
@@ -2016,6 +2015,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                  selection_shape.ymax);
 
         immUnbindProgram();
+        GPU_blend(GPU_BLEND_NONE);
 
 #ifdef WITH_INPUT_IME
         /* IME candidate window uses selection position. */
@@ -5309,7 +5309,10 @@ void ui_draw_pie_center(uiBlock *block)
   const int subd = 40;
 
   const float angle = atan2f(pie_dir[1], pie_dir[0]);
-  const float range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? M_PI_2 : M_PI_4;
+  /* Use a smaller range if there are both axis aligned & diagonal buttons. */
+  const bool has_aligned = (block->pie_data.pie_dir_mask & UI_RADIAL_MASK_ALL_AXIS_ALIGNED) != 0;
+  const bool has_diagonal = (block->pie_data.pie_dir_mask & UI_RADIAL_MASK_ALL_DIAGONAL) != 0;
+  const float range = (has_aligned && has_diagonal) ? M_PI_4 : M_PI_2;
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(cx, cy);

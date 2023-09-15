@@ -1025,16 +1025,18 @@ bool WM_operator_ui_poll(wmOperatorType *ot, PointerRNA *ptr)
     return true;
   }
 
+  bool result = false;
   PointerRNA op_ptr;
   WM_operator_properties_create_ptr(&op_ptr, ot);
   RNA_STRUCT_BEGIN (&op_ptr, prop) {
     int flag = RNA_property_flag(prop);
     if ((flag & PROP_HIDDEN) == 0) {
-      return true;
+      result = true;
+      break;
     }
   }
   RNA_STRUCT_END;
-  return false;
+  return result;
 }
 
 void WM_operator_region_active_win_set(bContext *C)
@@ -5668,7 +5670,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
         event.utf8_buf[0] = '\0';
       }
       else {
-        if (event.utf8_buf[0] < 32 && event.utf8_buf[0] > 0) {
+        /* Check for ASCII control characters.
+         * Inline `iscntrl` because the users locale must not change behavior. */
+        if ((event.utf8_buf[0] < 32 && event.utf8_buf[0] > 0) || (event.utf8_buf[0] == 127)) {
           event.utf8_buf[0] = '\0';
         }
       }
@@ -6273,10 +6277,11 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *la
       wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
       if (handler->op != nullptr) {
         /* 'handler->keymap' could be checked too, seems not to be used. */
-        wmKeyMap *keymap_test = WM_keymap_active(wm, handler->op->type->modalkeymap);
+        wmOperator *op_test = handler->op->opm ? handler->op->opm : handler->op;
+        wmKeyMap *keymap_test = WM_keymap_active(wm, op_test->type->modalkeymap);
         if (keymap_test && keymap_test->modal_items) {
           keymap = keymap_test;
-          op = handler->op;
+          op = op_test;
           break;
         }
       }

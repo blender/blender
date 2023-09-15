@@ -1888,7 +1888,7 @@ static void edittranslation_find_po_file(const char *root,
     return;
   }
 
-  /* Now try without the second ISO code part (`_ES` in `es_ES`). */
+  /* Now try without the second ISO code part (`_BR` in `pt_BR`). */
   {
     const char *tc = nullptr;
     size_t szt = 0;
@@ -2631,7 +2631,7 @@ void ED_operatortypes_ui()
 
 void ED_keymap_ui(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "User Interface", 0, 0);
+  WM_keymap_ensure(keyconf, "User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   eyedropper_modal_keymap(keyconf);
   eyedropper_colorband_modal_keymap(keyconf);

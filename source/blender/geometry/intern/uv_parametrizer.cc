@@ -990,7 +990,7 @@ static PFace *p_face_add(ParamHandle *handle)
 
   /* allocate */
   f = (PFace *)BLI_memarena_alloc(handle->arena, sizeof(*f));
-  f->flag = 0; /* init ! */
+  f->flag = 0;
 
   PEdge *e1 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e1));
   PEdge *e2 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e2));

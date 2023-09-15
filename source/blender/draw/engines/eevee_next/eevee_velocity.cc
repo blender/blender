@@ -121,8 +121,8 @@ bool VelocityModule::step_object_sync(Object *ob,
                                       ObjectKey &object_key,
                                       ResourceHandle resource_handle,
                                       int /*IDRecalcFlag*/ recalc,
-                                      ModifierData *modifier_data /*= nullptr*/,
-                                      ParticleSystem *particle_sys /*= nullptr*/)
+                                      ModifierData *modifier_data /*=nullptr*/,
+                                      ParticleSystem *particle_sys /*=nullptr*/)
 {
   bool has_motion = object_has_velocity(ob) || (recalc & ID_RECALC_TRANSFORM);
   /* NOTE: Fragile. This will only work with 1 frame of lag since we can't record every geometry

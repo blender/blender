@@ -391,8 +391,8 @@ class UtilityTexture : public Texture {
       Layer &layer = data[UTIL_LTC_MAG_LAYER];
       for (auto x : IndexRange(lut_size)) {
         for (auto y : IndexRange(lut_size)) {
-          layer.data[y][x][0] = lut::bsdf_split_sum_ggx[y][x][0];
-          layer.data[y][x][1] = lut::bsdf_split_sum_ggx[y][x][1];
+          layer.data[y][x][0] = lut::brdf_ggx[y][x][0];
+          layer.data[y][x][1] = lut::brdf_ggx[y][x][1];
           layer.data[y][x][2] = lut::ltc_mag_ggx[y][x][0];
           layer.data[y][x][3] = lut::ltc_mag_ggx[y][x][1];
         }
@@ -412,8 +412,8 @@ class UtilityTexture : public Texture {
         Layer &layer = data[UTIL_BTDF_LAYER + layer_id];
         for (auto x : IndexRange(lut_size)) {
           for (auto y : IndexRange(lut_size)) {
-            layer.data[y][x][0] = lut::btdf_split_sum_ggx[layer_id][y][x][0];
-            layer.data[y][x][1] = lut::btdf_split_sum_ggx[layer_id][y][x][1];
+            layer.data[y][x][0] = lut::bsdf_ggx[layer_id][y][x][0];
+            layer.data[y][x][1] = lut::bsdf_ggx[layer_id][y][x][1];
           }
         }
       }

@@ -53,7 +53,7 @@ static int node_shader_gpu_eevee_specular(GPUMaterial *mat,
     GPU_link(mat, "world_normals_get", &in[5].link);
   }
 
-  /* Clearcoat Normals */
+  /* Coat Normals */
   if (!in[8].link) {
     GPU_link(mat, "world_normals_get", &in[8].link);
   }

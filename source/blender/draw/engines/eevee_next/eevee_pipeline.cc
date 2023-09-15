@@ -683,7 +683,7 @@ void DeferredProbeLayer::begin_sync()
     gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
   }
 
-  /* Light eval resources.*/
+  /* Light evaluate resources. */
   {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
     dummy_light_tx_.ensure_2d(GPU_RGBA16F, int2(1), usage);
@@ -827,7 +827,7 @@ void CapturePipeline::sync()
   surface_ps_.bind_ssbo(CAPTURE_BUF_SLOT, &inst_.irradiance_cache.bake.capture_info_buf_);
 
   surface_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-  /* TODO(fclem): Remove. Binded to get the camera data,
+  /* TODO(fclem): Remove. Bind to get the camera data,
    * but there should be no view dependent behavior during capture. */
   inst_.bind_uniform_data(&surface_ps_);
 }

@@ -2040,10 +2040,7 @@ static bool seq_convert_callback(Sequence *seq, void *userdata)
     return true;
   }
 
-  /* patch adrcode, so that we can map
-   * to different DNA variables later
-   * (semi-hack (tm) )
-   */
+  /* Patch `adrcode`, so that we can map to different DNA variables later (semi-hack (tm)). */
   switch (seq->type) {
     case SEQ_TYPE_IMAGE:
     case SEQ_TYPE_META:

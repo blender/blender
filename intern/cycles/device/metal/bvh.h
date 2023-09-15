@@ -22,7 +22,9 @@ class BVHMetal : public BVH {
 
   API_AVAILABLE(macos(11.0))
   vector<id<MTLAccelerationStructure>> blas_array;
-  vector<uint32_t> blas_lookup;
+
+  API_AVAILABLE(macos(11.0))
+  vector<id<MTLAccelerationStructure>> unique_blas_array;
 
   bool motion_blur = false;
 

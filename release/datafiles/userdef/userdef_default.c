@@ -214,7 +214,7 @@ const UserDef U_default = {
     .file_space_data =
         {
             .display_type = FILE_VERTICALDISPLAY,
-            .thumbnail_size = 128,
+            .thumbnail_size = 96,
             .sort_type = FILE_SORT_ALPHA,
             .details_flags = FILE_DETAILS_SIZE | FILE_DETAILS_DATETIME,
             .flag = FILE_HIDE_DOT,

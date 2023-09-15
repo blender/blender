@@ -15,7 +15,7 @@ GPU_SHADER_INTERFACE_INFO(workbench_shadow_iface, "vData")
     .smooth(Type::VEC4, "frontPosition")
     .smooth(Type::VEC4, "backPosition");
 GPU_SHADER_INTERFACE_INFO(workbench_shadow_flat_iface, "vData_flat")
-    .flat(Type::VEC3, "light_direction_os"); /*Workbench Next*/
+    .flat(Type::VEC3, "light_direction_os"); /* Workbench Next. */
 
 /* `workbench_shadow_vert.glsl` only used by geometry shader path.
  * Vertex output iface not needed by non-geometry shader variants,

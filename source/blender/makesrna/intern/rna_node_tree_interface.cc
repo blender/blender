@@ -52,7 +52,7 @@ namespace node_interface = blender::bke::node_interface;
 static void rna_NodeTreeInterfaceItem_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  BKE_ntree_update_tag_interface(ntree);
+  ntree->tree_interface.tag_items_changed();
   ED_node_tree_propagate_change(nullptr, bmain, ntree);
 }
 
@@ -85,7 +85,7 @@ static char *rna_NodeTreeInterfaceItem_path(const PointerRNA *ptr)
     return nullptr;
   }
 
-  ntree->ensure_topology_cache();
+  ntree->ensure_interface_cache();
   for (const int index : ntree->interface_items().index_range()) {
     if (ntree->interface_items()[index] == item) {
       return BLI_sprintfN("interface.ui_items[%d]", index);
@@ -449,7 +449,6 @@ static bNodeTreeInterfaceSocket *rna_NodeTreeInterfaceItems_new_socket(
     BKE_report(reports, RPT_ERROR, "Unable to create socket");
   }
   else {
-    BKE_ntree_update_tag_interface(ntree);
     ED_node_tree_propagate_change(nullptr, bmain, ntree);
     WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
   }
@@ -489,7 +488,6 @@ static bNodeTreeInterfacePanel *rna_NodeTreeInterfaceItems_new_panel(
   }
   else {
     bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-    BKE_ntree_update_tag_interface(ntree);
     ED_node_tree_propagate_change(nullptr, bmain, ntree);
     WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
   }
@@ -533,7 +531,6 @@ static bNodeTreeInterfaceItem *rna_NodeTreeInterfaceItems_copy_to_parent(
   }
   else {
     bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-    BKE_ntree_update_tag_interface(ntree);
     ED_node_tree_propagate_change(nullptr, bmain, ntree);
     WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
   }
@@ -561,7 +558,6 @@ static void rna_NodeTreeInterfaceItems_remove(ID *id,
   interface->remove_item(*item, move_content_to_parent);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  BKE_ntree_update_tag_interface(ntree);
   ED_node_tree_propagate_change(nullptr, bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
@@ -571,7 +567,6 @@ static void rna_NodeTreeInterfaceItems_clear(ID *id, bNodeTreeInterface *interfa
   interface->clear_items();
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  BKE_ntree_update_tag_interface(ntree);
   ED_node_tree_propagate_change(nullptr, bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
@@ -585,7 +580,6 @@ static void rna_NodeTreeInterfaceItems_move(ID *id,
   interface->move_item(*item, to_position);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  BKE_ntree_update_tag_interface(ntree);
   ED_node_tree_propagate_change(nullptr, bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
@@ -608,7 +602,6 @@ static void rna_NodeTreeInterfaceItems_move_to_parent(ID *id,
   interface->move_item_to_parent(*item, parent, to_position);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  BKE_ntree_update_tag_interface(ntree);
   ED_node_tree_propagate_change(nullptr, bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
@@ -748,7 +741,7 @@ static void rna_NodeTreeInterface_items_begin(CollectionPropertyIterator *iter, 
     return;
   }
 
-  ntree->ensure_topology_cache();
+  ntree->ensure_interface_cache();
   rna_iterator_array_begin(iter,
                            const_cast<bNodeTreeInterfaceItem **>(ntree->interface_items().data()),
                            sizeof(bNodeTreeInterfaceItem *),
@@ -764,7 +757,7 @@ static int rna_NodeTreeInterface_items_length(PointerRNA *ptr)
     return 0;
   }
 
-  ntree->ensure_topology_cache();
+  ntree->ensure_interface_cache();
   return ntree->interface_items().size();
 }
 
@@ -775,7 +768,7 @@ static int rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, Po
     return 0;
   }
 
-  ntree->ensure_topology_cache();
+  ntree->ensure_interface_cache();
   if (!ntree->interface_items().index_range().contains(index)) {
     return false;
   }
@@ -794,7 +787,7 @@ static int rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
     return 0;
   }
 
-  ntree->ensure_topology_cache();
+  ntree->ensure_interface_cache();
   for (bNodeTreeInterfaceItem *item : ntree->interface_items()) {
     switch (item->item_type) {
       case NODE_INTERFACE_SOCKET: {

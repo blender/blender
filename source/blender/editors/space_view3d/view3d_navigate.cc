@@ -410,7 +410,8 @@ struct ViewOpsData_Utility : ViewOpsData {
   {
     this->init_context(C);
 
-    wmKeyMap *keymap = WM_keymap_find_all(CTX_wm_manager(C), "3D View", SPACE_VIEW3D, 0);
+    wmKeyMap *keymap = WM_keymap_find_all(
+        CTX_wm_manager(C), "3D View", SPACE_VIEW3D, RGN_TYPE_WINDOW);
     wmKeyMap keymap_tmp = {};
 
     LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {

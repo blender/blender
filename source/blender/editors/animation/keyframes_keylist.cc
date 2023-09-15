@@ -1124,9 +1124,9 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, const i
 }
 
 void action_group_to_keylist(AnimData *adt,
-                       bActionGroup *agrp,
-                       AnimKeylist *keylist,
-                       const int saction_flag)
+                             bActionGroup *agrp,
+                             AnimKeylist *keylist,
+                             const int saction_flag)
 {
   if (agrp) {
     /* loop through F-Curves */

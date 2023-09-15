@@ -290,7 +290,7 @@ MINLINE uint divide_ceil_u(uint a, uint b);
 MINLINE uint64_t divide_ceil_ul(uint64_t a, uint64_t b);
 
 /**
- * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
+ * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a.
  */
 MINLINE uint ceil_to_multiple_u(uint a, uint b);
 MINLINE uint64_t ceil_to_multiple_ul(uint64_t a, uint64_t b);

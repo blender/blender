@@ -5927,16 +5927,16 @@ static void blend_file_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop
 void ED_keymap_screen(wmKeyConfig *keyconf)
 {
   /* Screen Editing ------------------------------------------------ */
-  WM_keymap_ensure(keyconf, "Screen Editing", 0, 0);
+  WM_keymap_ensure(keyconf, "Screen Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   /* Screen General ------------------------------------------------ */
-  WM_keymap_ensure(keyconf, "Screen", 0, 0);
+  WM_keymap_ensure(keyconf, "Screen", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   /* Anim Playback ------------------------------------------------ */
-  WM_keymap_ensure(keyconf, "Frames", 0, 0);
+  WM_keymap_ensure(keyconf, "Frames", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   /* dropbox for entire window */
-  ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
+  ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_dropbox_add(
       lb, "WM_OT_drop_blend_file", blend_file_drop_poll, blend_file_drop_copy, nullptr, nullptr);
   WM_dropbox_add(lb, "UI_OT_drop_color", UI_drop_color_poll, UI_drop_color_copy, nullptr, nullptr);

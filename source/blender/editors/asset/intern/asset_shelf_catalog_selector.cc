@@ -45,8 +45,10 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
       : shelf_(shelf), shelf_settings_(shelf_.settings)
   {
     catalog_tree_ = build_filtered_catalog_tree(
-        library, asset_system::all_library_reference(), [this](const AssetHandle asset_handle) {
-          return (!shelf_.type->asset_poll || shelf_.type->asset_poll(shelf_.type, &asset_handle));
+        library,
+        asset_system::all_library_reference(),
+        [this](const asset_system::AssetRepresentation &asset) {
+          return (!shelf_.type->asset_poll || shelf_.type->asset_poll(shelf_.type, &asset));
         });
   }
 

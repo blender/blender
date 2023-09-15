@@ -2660,10 +2660,10 @@ NODE_DEFINE(PrincipledBsdfNode)
               subsurface_method_enum,
               CLOSURE_BSSRDF_RANDOM_WALK_ID);
 
-  SOCKET_IN_COLOR(base_color, "Base Color", make_float3(0.8f, 0.8f, 0.8f));
-  SOCKET_IN_COLOR(subsurface_color, "Subsurface Color", make_float3(0.8f, 0.8f, 0.8f));
+  SOCKET_IN_COLOR(base_color, "Base Color", make_float3(0.8f, 0.8f, 0.8f))
   SOCKET_IN_FLOAT(metallic, "Metallic", 0.0f);
   SOCKET_IN_FLOAT(subsurface, "Subsurface", 0.0f);
+  SOCKET_IN_FLOAT(subsurface_scale, "Subsurface Scale", 0.1f);
   SOCKET_IN_VECTOR(subsurface_radius, "Subsurface Radius", make_float3(0.1f, 0.1f, 0.1f));
   SOCKET_IN_FLOAT(subsurface_ior, "Subsurface IOR", 1.4f);
   SOCKET_IN_FLOAT(subsurface_anisotropy, "Subsurface Anisotropy", 0.0f);
@@ -2674,16 +2674,18 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(sheen, "Sheen", 0.0f);
   SOCKET_IN_FLOAT(sheen_roughness, "Sheen Roughness", 0.5f);
   SOCKET_IN_COLOR(sheen_tint, "Sheen Tint", one_float3());
-  SOCKET_IN_FLOAT(clearcoat, "Clearcoat", 0.0f);
-  SOCKET_IN_FLOAT(clearcoat_roughness, "Clearcoat Roughness", 0.03f);
+  SOCKET_IN_FLOAT(coat, "Coat", 0.0f);
+  SOCKET_IN_FLOAT(coat_roughness, "Coat Roughness", 0.03f);
+  SOCKET_IN_FLOAT(coat_ior, "Coat IOR", 1.5f);
+  SOCKET_IN_COLOR(coat_tint, "Coat Tint", one_float3());
   SOCKET_IN_FLOAT(ior, "IOR", 0.0f);
   SOCKET_IN_FLOAT(transmission, "Transmission", 0.0f);
   SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
-  SOCKET_IN_COLOR(emission, "Emission", zero_float3());
-  SOCKET_IN_FLOAT(emission_strength, "Emission Strength", 1.0f);
+  SOCKET_IN_COLOR(emission, "Emission", one_float3());
+  SOCKET_IN_FLOAT(emission_strength, "Emission Strength", 0.0f);
   SOCKET_IN_FLOAT(alpha, "Alpha", 1.0f);
   SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
-  SOCKET_IN_NORMAL(clearcoat_normal, "Clearcoat Normal", zero_float3(), SocketType::LINK_NORMAL);
+  SOCKET_IN_NORMAL(coat_normal, "Coat Normal", zero_float3(), SocketType::LINK_NORMAL);
   SOCKET_IN_NORMAL(tangent, "Tangent", zero_float3(), SocketType::LINK_TANGENT);
   SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
@@ -2698,60 +2700,33 @@ PrincipledBsdfNode::PrincipledBsdfNode() : BsdfBaseNode(get_node_type())
   distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
 }
 
-void PrincipledBsdfNode::expand(ShaderGraph *graph)
+void PrincipledBsdfNode::simplify_settings(Scene * /* scene */)
 {
-  ShaderOutput *principled_out = output("BSDF");
-
-  ShaderInput *emission_in = input("Emission");
-  ShaderInput *emission_strength_in = input("Emission Strength");
-  if ((emission_in->link || emission != zero_float3()) &&
-      (emission_strength_in->link || emission_strength != 0.0f))
-  {
-    /* Create add closure and emission, and relink inputs. */
-    AddClosureNode *add = graph->create_node<AddClosureNode>();
-    EmissionNode *emission_node = graph->create_node<EmissionNode>();
-    ShaderOutput *new_out = add->output("Closure");
-
-    graph->add(add);
-    graph->add(emission_node);
-
-    graph->relink(emission_strength_in, emission_node->input("Strength"));
-    graph->relink(emission_in, emission_node->input("Color"));
-    graph->relink(principled_out, new_out);
-    graph->connect(emission_node->output("Emission"), add->input("Closure1"));
-    graph->connect(principled_out, add->input("Closure2"));
-
-    principled_out = new_out;
-  }
-  else {
-    /* Disconnect unused links if the other value is zero, required before
-     * we remove the input from the node entirely. */
+  if (!has_surface_emission()) {
+    /* Emission will be zero, so optimize away any connected emission input. */
+    ShaderInput *emission_in = input("Emission");
+    ShaderInput *strength_in = input("Emission Strength");
     if (emission_in->link) {
       emission_in->disconnect();
     }
-    if (emission_strength_in->link) {
-      emission_strength_in->disconnect();
+    if (strength_in->link) {
+      strength_in->disconnect();
     }
   }
+}
 
+bool PrincipledBsdfNode::has_surface_transparent()
+{
   ShaderInput *alpha_in = input("Alpha");
-  if (alpha_in->link || alpha != 1.0f) {
-    /* Create mix and transparent BSDF for alpha transparency. */
-    MixClosureNode *mix = graph->create_node<MixClosureNode>();
-    TransparentBsdfNode *transparent = graph->create_node<TransparentBsdfNode>();
+  return (alpha_in->link != NULL || alpha < (1.0f - CLOSURE_WEIGHT_CUTOFF));
+}
 
-    graph->add(mix);
-    graph->add(transparent);
-
-    graph->relink(alpha_in, mix->input("Fac"));
-    graph->relink(principled_out, mix->output("Closure"));
-    graph->connect(transparent->output("BSDF"), mix->input("Closure1"));
-    graph->connect(principled_out, mix->input("Closure2"));
-  }
-
-  remove_input(emission_in);
-  remove_input(emission_strength_in);
-  remove_input(alpha_in);
+bool PrincipledBsdfNode::has_surface_emission()
+{
+  ShaderInput *emission_in = input("Emission");
+  ShaderInput *emission_strength_in = input("Emission Strength");
+  return (emission_in->link != NULL || reduce_max(emission) > CLOSURE_WEIGHT_CUTOFF) &&
+         (emission_strength_in->link != NULL || emission_strength > CLOSURE_WEIGHT_CUTOFF);
 }
 
 bool PrincipledBsdfNode::has_surface_bssrdf()
@@ -2772,53 +2747,44 @@ void PrincipledBsdfNode::attributes(Shader *shader, AttributeRequestSet *attribu
   ShaderNode::attributes(shader, attributes);
 }
 
-void PrincipledBsdfNode::compile(SVMCompiler &compiler,
-                                 ShaderInput *p_metallic,
-                                 ShaderInput *p_subsurface,
-                                 ShaderInput *p_subsurface_radius,
-                                 ShaderInput *p_subsurface_ior,
-                                 ShaderInput *p_subsurface_anisotropy,
-                                 ShaderInput *p_specular,
-                                 ShaderInput *p_roughness,
-                                 ShaderInput *p_specular_tint,
-                                 ShaderInput *p_anisotropic,
-                                 ShaderInput *p_sheen,
-                                 ShaderInput *p_sheen_roughness,
-                                 ShaderInput *p_sheen_tint,
-                                 ShaderInput *p_clearcoat,
-                                 ShaderInput *p_clearcoat_roughness,
-                                 ShaderInput *p_ior,
-                                 ShaderInput *p_transmission,
-                                 ShaderInput *p_anisotropic_rotation)
+void PrincipledBsdfNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *base_color_in = input("Base Color");
-  ShaderInput *subsurface_color_in = input("Subsurface Color");
-  ShaderInput *normal_in = input("Normal");
-  ShaderInput *clearcoat_normal_in = input("Clearcoat Normal");
-  ShaderInput *tangent_in = input("Tangent");
+
+  ShaderInput *p_metallic = input("Metallic");
+  ShaderInput *p_subsurface = input("Subsurface");
+
+  ShaderInput *emission_strength_in = input("Emission Strength");
+  ShaderInput *alpha_in = input("Alpha");
 
   float3 weight = one_float3();
 
   compiler.add_node(NODE_CLOSURE_SET_WEIGHT, weight);
 
-  int normal_offset = compiler.stack_assign_if_linked(normal_in);
-  int clearcoat_normal_offset = compiler.stack_assign_if_linked(clearcoat_normal_in);
-  int tangent_offset = compiler.stack_assign_if_linked(tangent_in);
-  int specular_offset = compiler.stack_assign(p_specular);
-  int roughness_offset = compiler.stack_assign(p_roughness);
-  int specular_tint_offset = compiler.stack_assign(p_specular_tint);
-  int anisotropic_offset = compiler.stack_assign(p_anisotropic);
-  int sheen_offset = compiler.stack_assign(p_sheen);
-  int sheen_roughness_offset = compiler.stack_assign(p_sheen_roughness);
-  int sheen_tint_offset = compiler.stack_assign(p_sheen_tint);
-  int clearcoat_offset = compiler.stack_assign(p_clearcoat);
-  int clearcoat_roughness_offset = compiler.stack_assign(p_clearcoat_roughness);
-  int ior_offset = compiler.stack_assign(p_ior);
-  int transmission_offset = compiler.stack_assign(p_transmission);
-  int anisotropic_rotation_offset = compiler.stack_assign(p_anisotropic_rotation);
-  int subsurface_radius_offset = compiler.stack_assign(p_subsurface_radius);
-  int subsurface_ior_offset = compiler.stack_assign(p_subsurface_ior);
-  int subsurface_anisotropy_offset = compiler.stack_assign(p_subsurface_anisotropy);
+  int normal_offset = compiler.stack_assign_if_linked(input("Normal"));
+  int coat_normal_offset = compiler.stack_assign_if_linked(input("Coat Normal"));
+  int tangent_offset = compiler.stack_assign_if_linked(input("Tangent"));
+  int specular_offset = compiler.stack_assign(input("Specular"));
+  int roughness_offset = compiler.stack_assign(input("Roughness"));
+  int specular_tint_offset = compiler.stack_assign(input("Specular Tint"));
+  int anisotropic_offset = compiler.stack_assign(input("Anisotropic"));
+  int sheen_offset = compiler.stack_assign(input("Sheen"));
+  int sheen_roughness_offset = compiler.stack_assign(input("Sheen Roughness"));
+  int sheen_tint_offset = compiler.stack_assign(input("Sheen Tint"));
+  int coat_offset = compiler.stack_assign(input("Coat"));
+  int coat_roughness_offset = compiler.stack_assign(input("Coat Roughness"));
+  int coat_ior_offset = compiler.stack_assign(input("Coat IOR"));
+  int coat_tint_offset = compiler.stack_assign(input("Coat Tint"));
+  int ior_offset = compiler.stack_assign(input("IOR"));
+  int transmission_offset = compiler.stack_assign(input("Transmission"));
+  int anisotropic_rotation_offset = compiler.stack_assign(input("Anisotropic Rotation"));
+  int subsurface_radius_offset = compiler.stack_assign(input("Subsurface Radius"));
+  int subsurface_scale_offset = compiler.stack_assign(input("Subsurface Scale"));
+  int subsurface_ior_offset = compiler.stack_assign(input("Subsurface IOR"));
+  int subsurface_anisotropy_offset = compiler.stack_assign(input("Subsurface Anisotropy"));
+  int alpha_offset = compiler.stack_assign_if_linked(alpha_in);
+  int emission_strength_offset = compiler.stack_assign_if_linked(emission_strength_in);
+  int emission_offset = compiler.stack_assign(input("Emission"));
 
   compiler.add_node(NODE_CLOSURE_BSDF,
                     compiler.encode_uchar4(closure,
@@ -2834,14 +2800,15 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
       compiler.encode_uchar4(
           specular_offset, roughness_offset, specular_tint_offset, anisotropic_offset),
       compiler.encode_uchar4(
-          sheen_offset, sheen_tint_offset, clearcoat_offset, clearcoat_roughness_offset));
+          sheen_offset, sheen_tint_offset, sheen_roughness_offset, SVM_STACK_INVALID));
 
   compiler.add_node(
       compiler.encode_uchar4(
-          ior_offset, transmission_offset, anisotropic_rotation_offset, SVM_STACK_INVALID),
+          ior_offset, transmission_offset, anisotropic_rotation_offset, coat_normal_offset),
       distribution,
       subsurface_method,
-      sheen_roughness_offset);
+      compiler.encode_uchar4(
+          coat_offset, coat_roughness_offset, coat_ior_offset, coat_tint_offset));
 
   float3 bc_default = get_float3(base_color_in->socket_type);
 
@@ -2851,40 +2818,17 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
       __float_as_int(bc_default.y),
       __float_as_int(bc_default.z));
 
-  compiler.add_node(clearcoat_normal_offset,
+  compiler.add_node(subsurface_ior_offset,
                     subsurface_radius_offset,
-                    subsurface_ior_offset,
+                    subsurface_scale_offset,
                     subsurface_anisotropy_offset);
 
-  float3 ss_default = get_float3(subsurface_color_in->socket_type);
-
-  compiler.add_node(((subsurface_color_in->link) ? compiler.stack_assign(subsurface_color_in) :
-                                                   SVM_STACK_INVALID),
-                    __float_as_int(ss_default.x),
-                    __float_as_int(ss_default.y),
-                    __float_as_int(ss_default.z));
-}
-
-void PrincipledBsdfNode::compile(SVMCompiler &compiler)
-{
-  compile(compiler,
-          input("Metallic"),
-          input("Subsurface"),
-          input("Subsurface Radius"),
-          input("Subsurface IOR"),
-          input("Subsurface Anisotropy"),
-          input("Specular"),
-          input("Roughness"),
-          input("Specular Tint"),
-          input("Anisotropic"),
-          input("Sheen"),
-          input("Sheen Roughness"),
-          input("Sheen Tint"),
-          input("Clearcoat"),
-          input("Clearcoat Roughness"),
-          input("IOR"),
-          input("Transmission"),
-          input("Anisotropic Rotation"));
+  compiler.add_node(
+      compiler.encode_uchar4(
+          alpha_offset, emission_strength_offset, emission_offset, SVM_STACK_INVALID),
+      __float_as_int(get_float(alpha_in->socket_type)),
+      __float_as_int(get_float(emission_strength_in->socket_type)),
+      SVM_STACK_INVALID);
 }
 
 void PrincipledBsdfNode::compile(OSLCompiler &compiler)

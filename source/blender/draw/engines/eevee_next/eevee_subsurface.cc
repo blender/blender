@@ -29,8 +29,6 @@ void SubsurfaceModule::end_sync()
     data_.sample_len = 55;
   }
 
-  precompute_samples_location();
-
   subsurface_ps_.init();
   subsurface_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL |
                            DRW_STATE_BLEND_ADD_FULL);
@@ -51,6 +49,8 @@ void SubsurfaceModule::end_sync()
 
 void SubsurfaceModule::render(View &view, Framebuffer &fb, Texture &diffuse_light_tx)
 {
+  precompute_samples_location();
+
   fb.bind();
   diffuse_light_tx_ = *&diffuse_light_tx;
   inst_.manager->submit(subsurface_ps_, view);
@@ -74,6 +74,8 @@ void SubsurfaceModule::precompute_samples_location()
     data_.samples[i].y = sinf(theta) * r;
     data_.samples[i].z = 1.0f / burley_pdf(d, r);
   }
+
+  inst_.push_uniform_data();
 }
 
 const Vector<float> &SubsurfaceModule::transmittance_profile()

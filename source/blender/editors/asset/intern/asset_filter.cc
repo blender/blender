@@ -55,17 +55,17 @@ namespace blender::ed::asset {
 asset_system::AssetCatalogTree build_filtered_catalog_tree(
     const asset_system::AssetLibrary &library,
     const AssetLibraryReference &library_ref,
-    const blender::FunctionRef<bool(const AssetHandle &)> is_asset_visible_fn)
+    const blender::FunctionRef<bool(const asset_system::AssetRepresentation &)>
+        is_asset_visible_fn)
 {
   Set<StringRef> known_paths;
 
   /* Collect paths containing assets. */
-  ED_assetlist_iterate(library_ref, [&](AssetHandle asset_handle) {
-    if (!is_asset_visible_fn(asset_handle)) {
+  ED_assetlist_iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
+    if (!is_asset_visible_fn(asset)) {
       return true;
     }
 
-    asset_system::AssetRepresentation &asset = *ED_asset_handle_get_representation(&asset_handle);
     const AssetMetaData &meta_data = asset.get_metadata();
     if (BLI_uuid_is_nil(meta_data.catalog_id)) {
       return true;
@@ -107,6 +107,7 @@ AssetItemTree build_filtered_all_catalog_tree(
 {
   MultiValueMap<asset_system::AssetCatalogPath, asset_system::AssetRepresentation *>
       assets_per_path;
+  Vector<asset_system::AssetRepresentation *> unassigned_assets;
 
   ED_assetlist_storage_fetch(&library_ref, &C);
   ED_assetlist_ensure_previews_job(&library_ref, &C);
@@ -120,17 +121,21 @@ AssetItemTree build_filtered_all_catalog_tree(
       return true;
     }
     const AssetMetaData &meta_data = asset.get_metadata();
-    if (BLI_uuid_is_nil(meta_data.catalog_id)) {
+    if (meta_data_filter && !meta_data_filter(meta_data)) {
       return true;
     }
 
-    if (meta_data_filter && !meta_data_filter(meta_data)) {
+    if (BLI_uuid_is_nil(meta_data.catalog_id)) {
+      unassigned_assets.append(&asset);
       return true;
     }
 
     const asset_system::AssetCatalog *catalog = library->catalog_service->find_catalog(
         meta_data.catalog_id);
     if (catalog == nullptr) {
+      /* Also include assets with catalogs we're unable to find (e.g. the catalog was deleted) in
+       * the "Unassigned" list. */
+      unassigned_assets.append(&asset);
       return true;
     }
     assets_per_path.add(catalog->path, &asset);
@@ -151,7 +156,9 @@ AssetItemTree build_filtered_all_catalog_tree(
     catalogs_with_node_assets.insert_item(*catalog);
   });
 
-  return {std::move(catalogs_with_node_assets), std::move(assets_per_path)};
+  return {std::move(catalogs_with_node_assets),
+          std::move(assets_per_path),
+          std::move(unassigned_assets)};
 }
 
 }  // namespace blender::ed::asset

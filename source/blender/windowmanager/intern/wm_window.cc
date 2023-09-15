@@ -798,18 +798,18 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
   }
 
   /* add keymap handlers (1 handler for all keys in map!) */
-  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Window", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Screen", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Screen", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->modalhandlers, keymap);
 
   /* Add drop boxes. */
   {
-    ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
+    ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
     WM_event_add_dropbox_handler(&win->handlers, lb);
   }
   wm_window_title(wm, win);

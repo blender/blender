@@ -1665,11 +1665,11 @@ static int pyrna_py_to_prop(
             }
           }
           else {
-            PyC_Err_Format_Prefix(PyExc_TypeError,
-                                  "%.200s %.200s.%.200s doesn't support None from string types",
-                                  error_prefix,
-                                  RNA_struct_identifier(ptr->type),
-                                  RNA_property_identifier(prop));
+            PyErr_Format(PyExc_TypeError,
+                         "%.200s %.200s.%.200s doesn't support None from string types",
+                         error_prefix,
+                         RNA_struct_identifier(ptr->type),
+                         RNA_property_identifier(prop));
             return -1;
           }
         }

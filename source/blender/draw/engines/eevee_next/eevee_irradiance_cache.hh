@@ -163,9 +163,9 @@ class IrradianceBake {
   LightProbeGridCacheFrame *read_result_packed();
 
  private:
-  /** Read surfel data back to CPU into \a cache_frame . */
+  /** Read surfel data back to CPU into \a cache_frame. */
   void read_surfels(LightProbeGridCacheFrame *cache_frame);
-  /** Read virtual offset back to CPU into \a cache_frame . */
+  /** Read virtual offset back to CPU into \a cache_frame. */
   void read_virtual_offset(LightProbeGridCacheFrame *cache_frame);
 };
 

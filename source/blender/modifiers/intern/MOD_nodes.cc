@@ -622,6 +622,7 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
 
   int geometry_socket_count = 0;
 
+  nmd->node_group->ensure_interface_cache();
   for (const int i : nmd->node_group->interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket *socket = nmd->node_group->interface_inputs()[i];
     const bNodeSocketType *typeinfo = socket->socket_typeinfo();
@@ -820,7 +821,7 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
       if (node_cache.prev_cache->frame < current_frame_) {
         /* Do a simulation step. */
         const float delta_frames = std::min(
-            max_delta_frames, float(node_cache.prev_cache->frame) - float(current_frame_));
+            max_delta_frames, float(current_frame_) - float(node_cache.prev_cache->frame));
         auto &output_move_info = zone_behavior.input.emplace<sim_input::OutputMove>();
         output_move_info.delta_time = delta_frames / fps_;
         output_move_info.state = std::move(node_cache.prev_cache->state);
@@ -889,6 +890,11 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
     zone_behavior.input.emplace<sim_input::PassThrough>();
   }
 
+  void output_pass_through(nodes::SimulationZoneBehavior &zone_behavior) const
+  {
+    zone_behavior.output.emplace<sim_output::PassThrough>();
+  }
+
   void output_store_frame_cache(bake::NodeCache &node_cache,
                                 nodes::SimulationZoneBehavior &zone_behavior) const
   {
@@ -944,20 +950,15 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
             *frame_indices.prev, *frame_indices.next, node_cache, zone_behavior);
       }
       else {
-        this->read_empty(zone_behavior);
+        this->output_pass_through(zone_behavior);
       }
     }
     else if (frame_indices.prev) {
       this->read_single(*frame_indices.prev, node_cache, zone_behavior);
     }
     else {
-      this->read_empty(zone_behavior);
+      this->output_pass_through(zone_behavior);
     }
-  }
-
-  void read_empty(nodes::SimulationZoneBehavior &zone_behavior) const
-  {
-    zone_behavior.output.emplace<sim_output::ReadSingle>();
   }
 
   void read_single(const int frame_index,
@@ -1022,9 +1023,9 @@ static void modifyGeometry(ModifierData *md,
       BKE_modifier_get_original(ctx->object, &nmd->modifier));
 
   const bNodeTree &tree = *nmd->node_group;
-  tree.ensure_topology_cache();
   check_property_socket_sync(ctx->object, md);
 
+  tree.ensure_topology_cache();
   const bNode *output_node = tree.group_output_node();
   if (output_node == nullptr) {
     BKE_modifier_set_error(ctx->object, md, "Node group must have a group output node");
@@ -1499,7 +1500,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (nmd->node_group != nullptr && nmd->settings.properties != nullptr) {
     PointerRNA bmain_ptr = RNA_main_pointer_create(bmain);
 
-    nmd->node_group->ensure_topology_cache();
+    nmd->node_group->ensure_interface_cache();
 
     for (const int socket_index : nmd->node_group->interface_inputs().index_range()) {
       const bNodeTreeInterfaceSocket *socket = nmd->node_group->interface_inputs()[socket_index];

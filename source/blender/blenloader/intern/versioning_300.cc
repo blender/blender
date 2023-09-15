@@ -1056,7 +1056,7 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
 }
 
 /* Change the action strip (if a NLA strip is preset) to HOLD instead of HOLD FORWARD to maintain
- * backwards compatibility.*/
+ * backwards compatibility. */
 static void version_nla_action_strip_hold(Main *bmain)
 {
   ID *id;
@@ -1072,9 +1072,8 @@ static void version_nla_action_strip_hold(Main *bmain)
     if (BKE_nlatrack_has_strips(&adt->nla_tracks)) {
       adt->act_extendmode = NLASTRIP_EXTEND_HOLD;
     }
-
-    FOREACH_MAIN_ID_END;
   }
+  FOREACH_MAIN_ID_END;
 }
 
 void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)

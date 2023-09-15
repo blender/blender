@@ -1862,10 +1862,6 @@ void rna_ViewLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
 
-  if (scene->nodetree) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
-  }
-
   ViewLayer *view_layer = nullptr;
   if (ptr->type == &RNA_ViewLayer) {
     view_layer = (ViewLayer *)ptr->data;
@@ -1889,6 +1885,10 @@ void rna_ViewLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
       RE_engine_free(engine);
       engine = nullptr;
     }
+  }
+
+  if (scene->nodetree) {
+    ntreeCompositUpdateRLayers(scene->nodetree);
   }
 
   rna_Scene_render_update(bmain, activescene, ptr);

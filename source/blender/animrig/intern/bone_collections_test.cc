@@ -55,6 +55,13 @@ class ANIM_armature_bone_collections : public testing::Test {
     BLI_addtail(&arm.bonebase, &bone2);    /* bone2 is root bone. */
     BLI_addtail(&bone2.childbase, &bone3); /* bone3 has bone2 as parent. */
   }
+
+  void TearDown() override
+  {
+    LISTBASE_FOREACH_BACKWARD_MUTABLE (BoneCollection *, bcoll, &arm.collections) {
+      ANIM_armature_bonecoll_remove(&arm, bcoll);
+    }
+  }
 };
 
 TEST_F(ANIM_armature_bone_collections, armature_owned_collections)
@@ -110,6 +117,95 @@ TEST_F(ANIM_armature_bone_collections, bones_assign_remove)
   EXPECT_EQ(0, BLI_listbase_count(&bone2.runtime.collections))
       << "expecting back-references in bone2 runtime data to be cleared when the collection is "
          "removed";
+}
+
+TEST_F(ANIM_armature_bone_collections, active_set_clear_by_pointer)
+{
+  BoneCollection *bcoll1 = ANIM_armature_bonecoll_new(&arm, "Bones 1");
+  BoneCollection *bcoll2 = ANIM_armature_bonecoll_new(&arm, "Bones 2");
+  BoneCollection *bcoll3 = ANIM_bonecoll_new("Alien Bones");
+
+  ANIM_armature_bonecoll_active_set(&arm, bcoll1);
+  EXPECT_EQ(0, arm.runtime.active_collection_index);
+  EXPECT_EQ(bcoll1, arm.runtime.active_collection);
+  EXPECT_STREQ(bcoll1->name, arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_set(&arm, nullptr);
+  EXPECT_EQ(-1, arm.runtime.active_collection_index);
+  EXPECT_EQ(nullptr, arm.runtime.active_collection);
+  EXPECT_STREQ("", arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_set(&arm, bcoll2);
+  EXPECT_EQ(1, arm.runtime.active_collection_index);
+  EXPECT_EQ(bcoll2, arm.runtime.active_collection);
+  EXPECT_STREQ(bcoll2->name, arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_set(&arm, bcoll3);
+  EXPECT_EQ(-1, arm.runtime.active_collection_index);
+  EXPECT_EQ(nullptr, arm.runtime.active_collection);
+  EXPECT_STREQ("", arm.active_collection_name);
+
+  ANIM_bonecoll_free(bcoll3);
+}
+
+TEST_F(ANIM_armature_bone_collections, active_set_clear_by_index)
+{
+  BoneCollection *bcoll1 = ANIM_armature_bonecoll_new(&arm, "Bones 1");
+  BoneCollection *bcoll2 = ANIM_armature_bonecoll_new(&arm, "Bones 2");
+
+  ANIM_armature_bonecoll_active_index_set(&arm, 0);
+  EXPECT_EQ(0, arm.runtime.active_collection_index);
+  EXPECT_EQ(bcoll1, arm.runtime.active_collection);
+  EXPECT_STREQ(bcoll1->name, arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_index_set(&arm, -1);
+  EXPECT_EQ(-1, arm.runtime.active_collection_index);
+  EXPECT_EQ(nullptr, arm.runtime.active_collection);
+  EXPECT_STREQ("", arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_index_set(&arm, 1);
+  EXPECT_EQ(1, arm.runtime.active_collection_index);
+  EXPECT_EQ(bcoll2, arm.runtime.active_collection);
+  EXPECT_STREQ(bcoll2->name, arm.active_collection_name);
+
+  ANIM_armature_bonecoll_active_index_set(&arm, 47);
+  EXPECT_EQ(-1, arm.runtime.active_collection_index);
+  EXPECT_EQ(nullptr, arm.runtime.active_collection);
+  EXPECT_STREQ("", arm.active_collection_name);
+}
+
+TEST_F(ANIM_armature_bone_collections, bcoll_is_editable)
+{
+  BoneCollection *bcoll1 = ANIM_armature_bonecoll_new(&arm, "Bones 1");
+  BoneCollection *bcoll2 = ANIM_armature_bonecoll_new(&arm, "Bones 2");
+
+  EXPECT_EQ(0, bcoll1->flags & BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL);
+  EXPECT_EQ(0, bcoll2->flags & BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL);
+
+  EXPECT_TRUE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
+      << "Expecting local armature to be editable";
+
+  /* Fake that the armature is linked from another blend file. */
+  Library fake_lib;
+  arm.id.lib = &fake_lib;
+  EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
+      << "Expecting local armature to not be editable";
+
+  /* Fake that the armature is an override, but linked from another blend file. */
+  IDOverrideLibrary fake_override;
+  bArmature fake_reference;
+  fake_override.reference = &fake_reference.id;
+  arm.id.override_library = &fake_override;
+  EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
+      << "Expecting linked armature override to not be editable";
+
+  /* Fake that the armature is a local override. */
+  arm.id.lib = nullptr;
+  bcoll2->flags |= BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL;
+  EXPECT_FALSE(ANIM_armature_bonecoll_is_editable(&arm, bcoll1))
+      << "Expecting linked bone collection on local armature override to not be editable";
+  EXPECT_TRUE(ANIM_armature_bonecoll_is_editable(&arm, bcoll2))
+      << "Expecting local bone collection on local armature override to be editable";
 }
 
 }  // namespace blender::animrig::tests

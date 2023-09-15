@@ -23,7 +23,7 @@ void BLT_lang_free(void);
 
 /* Set the current locale. */
 void BLT_lang_set(const char *);
-/* Get the current locale ([partial] ISO code, e.g. es_ES). */
+/* Get the current locale ([partial] ISO code, e.g. `pt_BR`). */
 const char *BLT_lang_get(void);
 
 /* Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g.

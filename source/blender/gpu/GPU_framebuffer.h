@@ -644,7 +644,7 @@ void GPU_offscreen_unbind(GPUOffScreen *offscreen, bool restore);
  * Read the whole color texture of the a #GPUOffScreen.
  * The pixel data will be converted to \a data_format but it needs to be compatible with the
  * attachment type.
- * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format .
+ * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format.
  */
 void GPU_offscreen_read_color(GPUOffScreen *offscreen, eGPUDataFormat data_format, void *r_data);
 /**

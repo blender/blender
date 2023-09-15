@@ -1970,7 +1970,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap;
 
-  keymap = WM_keymap_ensure(keyconf, "UV Editor", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "UV Editor", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_uvedit;
 }
 

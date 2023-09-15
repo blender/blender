@@ -490,9 +490,6 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
         [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->blas_buffer
                                                   offset:0
                                                  atIndex:8];
-        [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->blas_lookup_buffer
-                                                  offset:0
-                                                 atIndex:9];
       }
 
       for (int table = 0; table < METALRT_TABLE_NUM; table++) {
@@ -546,10 +543,8 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
         [mtlComputeCommandEncoder useResource:bvhMetalRT->accel_struct usage:MTLResourceUsageRead];
         [mtlComputeCommandEncoder useResource:metal_device_->blas_buffer
                                         usage:MTLResourceUsageRead];
-        [mtlComputeCommandEncoder useResource:metal_device_->blas_lookup_buffer
-                                        usage:MTLResourceUsageRead];
-        [mtlComputeCommandEncoder useResources:bvhMetalRT->blas_array.data()
-                                         count:bvhMetalRT->blas_array.size()
+        [mtlComputeCommandEncoder useResources:bvhMetalRT->unique_blas_array.data()
+                                         count:bvhMetalRT->unique_blas_array.size()
                                          usage:MTLResourceUsageRead];
       }
     }

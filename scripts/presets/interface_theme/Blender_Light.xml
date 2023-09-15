@@ -96,7 +96,7 @@
             outline="#4d4d4dff"
             inner="#282828ff"
             inner_sel="#333333ff"
-            item="#8aace6ff"
+            item="#ffffff33"
             text="#dddddd"
             text_sel="#ffffff"
             show_shaded="TRUE"
@@ -306,7 +306,7 @@
             outline="#e6e6e6ff"
             inner="#1a1a1a00"
             inner_sel="#668cccff"
-            item="#8aace6ff"
+            item="#ffffff33"
             text="#1a1a1a"
             text_sel="#ffffff"
             show_shaded="FALSE"
@@ -918,7 +918,7 @@
         line_numbers="#d0d0d0"
         line_numbers_background="#313133"
         selected_text="#19191a"
-        cursor="#ff0000"
+        cursor="#71a8ff"
         syntax_builtin="#ff1961"
         syntax_symbols="#ff734d"
         syntax_special="#95d600"
@@ -926,7 +926,7 @@
         syntax_reserved="#c4753b"
         syntax_comment="#939393"
         syntax_string="#f6e162"
-        syntax_numbers="#50dbff"
+        syntax_numbers="#50faff"
         >
         <space>
           <ThemeSpaceGeneric

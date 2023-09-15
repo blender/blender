@@ -728,12 +728,12 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
       continue;
     }
 
+    blender::bke::ScopedModifierTimer modifier_timer{*md};
+
     if (md->type == eModifierType_Nodes) {
       mti->modify_geometry_set(md, &mectx_apply, &geometry_set);
       continue;
     }
-
-    blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     if (!geometry_set.has_mesh()) {
       geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0));

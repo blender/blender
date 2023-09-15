@@ -1681,9 +1681,13 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         import _cycles
         has_peer_memory = 0
+        has_rt_api_support = False
         for device in _cycles.available_devices(compute_device_type):
             if device[3] and self.find_existing_device_entry(device).use:
                 has_peer_memory += 1
+            if device[4] and self.find_existing_device_entry(device).use:
+                has_rt_api_support = True
+
         if has_peer_memory > 1:
             row = layout.row()
             row.use_property_split = True
@@ -1700,13 +1704,14 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
             # MetalRT only works on Apple Silicon and Navi2.
             is_arm64 = platform.machine() == 'arm64'
-            if is_arm64 or is_navi_2:
+            if is_arm64 or (is_navi_2 and has_rt_api_support):
                 col = layout.column()
                 col.use_property_split = True
                 # Kernel specialization is only supported on Apple Silicon
                 if is_arm64:
                     col.prop(self, "kernel_optimization_level")
-                col.prop(self, "use_metalrt")
+                if has_rt_api_support:
+                    col.prop(self, "use_metalrt")
 
         if compute_device_type == 'HIP':
             has_cuda, has_optix, has_hip, has_metal, has_oneapi, has_hiprt = _cycles.get_device_types()

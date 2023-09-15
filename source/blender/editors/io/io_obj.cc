@@ -334,7 +334,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
                   false,
                   "Export Materials with PBR Extensions",
                   "Export MTL library using PBR extensions (roughness, metallic, sheen, "
-                  "clearcoat, anisotropy, transmission)");
+                  "coat, anisotropy, transmission)");
   RNA_def_enum(ot->srna,
                "path_mode",
                io_obj_path_mode,

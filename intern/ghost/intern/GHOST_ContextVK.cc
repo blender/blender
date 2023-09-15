@@ -943,7 +943,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   }
   extensions_device.push_back("VK_KHR_dedicated_allocation");
   extensions_device.push_back("VK_KHR_get_memory_requirements2");
-  /* Allow relaxed interface matching between shader stages.*/
+  /* Allow relaxed interface matching between shader stages. */
   extensions_device.push_back("VK_KHR_maintenance4");
   /* Enable MoltenVK required instance extensions. */
 #ifdef VK_MVK_MOLTENVK_EXTENSION_NAME
