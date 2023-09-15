@@ -73,6 +73,7 @@ struct uiBut;
 struct uiButExtraOpIcon;
 struct uiLayout;
 struct uiPopupBlockHandle;
+struct uiTooltipData;
 /* C handle for C++ #ui::AbstractView type. */
 struct uiViewHandle;
 /* C handle for C++ #ui::AbstractViewItem type. */
@@ -580,6 +581,8 @@ using uiButSearchListenFn = void (*)(const wmRegionListenerParams *params, void 
 
 /** Must return an allocated string. */
 using uiButToolTipFunc = char *(*)(bContext *C, void *argN, const char *tip);
+
+using uiButToolTipCustomFunc = void (*)(bContext *C, uiTooltipData *data, void *argN);
 
 using uiBlockHandleFunc = void (*)(bContext *C, void *arg, int event);
 
@@ -1748,6 +1751,41 @@ void UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func);
 
 void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFreeArgFunc free_arg);
 void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func);
+
+typedef enum UiTooltipStyle {
+  UI_TIP_STYLE_NORMAL = 0, /* Regular text. */
+  UI_TIP_STYLE_HEADER,     /* Header text. */
+  UI_TIP_STYLE_MONO,       /* Monspaced text. */
+  UI_TIP_STYLE_IMAGE,      /* Image field. */
+} UiTooltipStyle;
+
+typedef enum UiTooltipColor {
+  UI_TIP_LC_MAIN = 0, /* Color of primary text. */
+  UI_TIP_LC_VALUE,    /* Color for the value of buttons (also shortcuts). */
+  UI_TIP_LC_ACTIVE,   /* Color of titles of active enum values. */
+  UI_TIP_LC_NORMAL,   /* Color of regular text. */
+  UI_TIP_LC_PYTHON,   /* Color of python snippets. */
+  UI_TIP_LC_ALERT,    /* Warning text color, eg: why operator can't run. */
+  UI_TIP_LC_MAX
+} UiTooltipColor;
+
+void UI_but_func_tooltip_custom_set(uiBut *but,
+                                    uiButToolTipCustomFunc func,
+                                    void *arg,
+                                    uiFreeArgFunc free_arg);
+
+void UI_tooltip_text_field_add(struct uiTooltipData *data,
+                               char *text,
+                               char *suffix,
+                               const UiTooltipStyle style,
+                               const UiTooltipColor color,
+                               const bool is_pad = false);
+
+void UI_tooltip_image_field_add(struct uiTooltipData *data,
+                                struct ImBuf *image,
+                                short width,
+                                short height);
+
 /**
  * Recreate tool-tip (use to update dynamic tips)
  */

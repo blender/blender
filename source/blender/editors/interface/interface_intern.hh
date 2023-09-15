@@ -236,6 +236,8 @@ struct uiBut {
    * #UI_BUT_HAS_TOOLTIP_LABEL drawflag. */
   std::function<std::string(const uiBut *)> tip_label_func;
 
+  uiButToolTipCustomFunc tip_custom_func = nullptr;
+
   /** info on why button is disabled, displayed in tooltip */
   const char *disabled_info = nullptr;
 
