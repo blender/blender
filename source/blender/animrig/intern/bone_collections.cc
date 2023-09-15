@@ -73,6 +73,20 @@ void ANIM_bonecoll_free(BoneCollection *bcoll)
   MEM_delete(bcoll);
 }
 
+/**
+ * Construct the mapping from the bones to this collection.
+ *
+ * This assumes that the bones do not have such a pointer yet, i.e. calling this
+ * twice for the same bone collection will cause duplicate pointers. */
+static void add_reverse_pointers(BoneCollection *bcoll)
+{
+  LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
+    BoneCollectionReference *ref = MEM_cnew<BoneCollectionReference>(__func__);
+    ref->bcoll = bcoll;
+    BLI_addtail(&member->bone->runtime.collections, ref);
+  }
+}
+
 void ANIM_armature_runtime_refresh(bArmature *armature)
 {
   ANIM_armature_runtime_free(armature);
@@ -83,11 +97,7 @@ void ANIM_armature_runtime_refresh(bArmature *armature)
 
   /* Construct the bone-to-collections mapping. */
   LISTBASE_FOREACH (BoneCollection *, bcoll, &armature->collections) {
-    LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
-      BoneCollectionReference *ref = MEM_cnew<BoneCollectionReference>(__func__);
-      ref->bcoll = bcoll;
-      BLI_addtail(&member->bone->runtime.collections, ref);
-    }
+    add_reverse_pointers(bcoll);
   }
 }
 
@@ -143,6 +153,7 @@ BoneCollection *ANIM_armature_bonecoll_insert_copy_after(bArmature *armature,
 
   BLI_insertlinkafter(&armature->collections, anchor, bcoll);
   bonecoll_ensure_name_unique(armature, bcoll);
+  add_reverse_pointers(bcoll);
 
   return bcoll;
 }
