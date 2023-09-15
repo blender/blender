@@ -220,12 +220,12 @@ bool python_script_error_jump(
   else {
     PyErr_NormalizeException(&exception, &value, (PyObject **)&tb);
 
-    for (tb = (PyTracebackObject *)PySys_GetObject("last_traceback");
-         tb && (PyObject *)tb != Py_None;
-         tb = tb->tb_next)
+    for (PyTracebackObject *tb_iter = (PyTracebackObject *)PySys_GetObject("last_traceback");
+         tb_iter && (PyObject *)tb_iter != Py_None;
+         tb_iter = tb_iter->tb_next)
     {
       PyObject *coerce;
-      const char *tb_filepath = traceback_filepath(tb, &coerce);
+      const char *tb_filepath = traceback_filepath(tb_iter, &coerce);
       const int match = ((BLI_path_cmp(tb_filepath, filepath) == 0) ||
                          (ELEM(tb_filepath[0], '\\', '/') &&
                           BLI_path_cmp(tb_filepath + 1, filepath) == 0));
@@ -233,7 +233,7 @@ bool python_script_error_jump(
 
       if (match) {
         success = true;
-        *r_lineno = *r_lineno_end = tb->tb_lineno;
+        *r_lineno = *r_lineno_end = tb_iter->tb_lineno;
         /* used to break here, but better find the inner most line */
       }
     }
