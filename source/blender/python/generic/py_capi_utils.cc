@@ -1162,15 +1162,25 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[])
 void PyC_MainModule_Backup(PyObject **r_main_mod)
 {
   PyObject *modules = PyImport_GetModuleDict();
-  *r_main_mod = PyDict_GetItemString(modules, "__main__");
-  Py_XINCREF(*r_main_mod); /* don't free */
+  PyObject *main_mod = PyDict_GetItemString(modules, "__main__");
+  if (main_mod) {
+    /* Ensure the backed up module is kept until it's ownership */
+    /* is transferred back to `sys.modules`. */
+    Py_INCREF(main_mod);
+  }
+  *r_main_mod = main_mod;
 }
 
 void PyC_MainModule_Restore(PyObject *main_mod)
 {
   PyObject *modules = PyImport_GetModuleDict();
-  PyDict_SetItemString(modules, "__main__", main_mod);
-  Py_XDECREF(main_mod);
+  if (main_mod) {
+    PyDict_SetItemString(modules, "__main__", main_mod);
+    Py_DECREF(main_mod);
+  }
+  else {
+    PyDict_DelItemString(modules, "__main__");
+  }
 }
 
 bool PyC_IsInterpreterActive()
