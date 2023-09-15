@@ -45,11 +45,11 @@
 
 #include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
+#include "ED_outliner.hh"
 #include "ED_screen.hh"
 #include "ED_transform_snap_object_context.hh"
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
-#include "ED_outliner.hh"
 
 #include "WM_toolsystem.h"
 
