@@ -255,7 +255,17 @@ class DATA_PT_custom_props_bcoll(ArmatureButtonsPanel, PropertyPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.armature and context.armature.collections.active
+        arm = context.armature
+        if not arm:
+            return False
+
+        is_lib_override = arm.id_data.override_library and arm.id_data.override_library.reference
+        if is_lib_override:
+            # This is due to a limitation in scripts/modules/rna_prop_ui.py; if that
+            # limitation is lifted, this poll function should be adjusted.
+            return False
+
+        return arm.collections.active
 
 
 classes = (
