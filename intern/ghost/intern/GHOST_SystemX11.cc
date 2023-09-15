@@ -1108,10 +1108,9 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           }
 
           if (ELEM(status, XLookupChars, XLookupBoth)) {
-            if (uchar(utf8_buf[0]) >= 32) { /* not an ascii control character */
-              /* do nothing for now, this is valid utf8 */
-            }
-            else {
+            /* Check for ASCII control characters.
+             * Inline `iscntrl` because the users locale must not change behavior. */
+            if ((utf8_buf[0] < 32 && utf8_buf[0] > 0) || (utf8_buf[0] == 127)) {
               utf8_buf[0] = '\0';
             }
           }
