@@ -701,7 +701,7 @@ class VIEW3D_HT_header(Header):
 
         row = layout.row(align=True)
         obj = context.active_object
-        # mode_string = context.mode
+        mode_string = context.mode
         object_mode = 'OBJECT' if obj is None else obj.mode
         has_pose_mode = (
             (object_mode == 'POSE') or
@@ -965,28 +965,27 @@ class VIEW3D_HT_header(Header):
         sub.popover(panel="VIEW3D_PT_overlay", text="")
 
         show_bone_overlays = (
-            (object_mode == 'POSE') or
-            (object_mode == 'PAINT_WEIGHT' and context.pose_object) or
+            has_pose_mode or
             (object_mode in {'EDIT_ARMATURE', 'OBJECT'} and VIEW3D_PT_overlay_bones.is_using_wireframe(context))
         )
 
         if show_bone_overlays:
             sub.popover(panel="VIEW3D_PT_overlay_bones", text="", icon='POSE_HLT')
-        elif context.mode == 'EDIT_MESH':
+        elif mode_string == 'EDIT_MESH':
             sub.popover(panel="VIEW3D_PT_overlay_edit_mesh", text="", icon='EDITMODE_HLT')
-        if context.mode == 'EDIT_CURVE':
+        if mode_string == 'EDIT_CURVE':
             sub.popover(panel="VIEW3D_PT_overlay_edit_curve", text="", icon='EDITMODE_HLT')
-        elif context.mode == 'SCULPT':
+        elif mode_string == 'SCULPT':
             sub.popover(panel="VIEW3D_PT_overlay_sculpt", text="", icon='SCULPTMODE_HLT')
-        elif context.mode == 'SCULPT_CURVES':
+        elif mode_string == 'SCULPT_CURVES':
             sub.popover(panel="VIEW3D_PT_overlay_sculpt_curves", text="", icon='SCULPTMODE_HLT')
-        elif context.mode == 'PAINT_WEIGHT':
+        elif mode_string == 'PAINT_WEIGHT':
             sub.popover(panel="VIEW3D_PT_overlay_weight_paint", text="", icon='WPAINT_HLT')
-        elif context.mode == 'PAINT_TEXTURE':
+        elif mode_string == 'PAINT_TEXTURE':
             sub.popover(panel="VIEW3D_PT_overlay_texture_paint", text="", icon='TPAINT_HLT')
-        elif context.mode == 'PAINT_VERTEX':
+        elif mode_string == 'PAINT_VERTEX':
             sub.popover(panel="VIEW3D_PT_overlay_vertex_paint", text="", icon='VPAINT_HLT')
-        elif context.object and context.object.type == 'GPENCIL':
+        elif obj is not None and obj.type == 'GPENCIL':
             sub.popover(panel="VIEW3D_PT_overlay_gpencil_options", text="", icon='OUTLINER_DATA_GREASEPENCIL')
 
         row = layout.row()
