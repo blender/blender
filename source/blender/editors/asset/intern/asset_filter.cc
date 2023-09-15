@@ -55,17 +55,17 @@ namespace blender::ed::asset {
 asset_system::AssetCatalogTree build_filtered_catalog_tree(
     const asset_system::AssetLibrary &library,
     const AssetLibraryReference &library_ref,
-    const blender::FunctionRef<bool(const AssetHandle &)> is_asset_visible_fn)
+    const blender::FunctionRef<bool(const asset_system::AssetRepresentation &)>
+        is_asset_visible_fn)
 {
   Set<StringRef> known_paths;
 
   /* Collect paths containing assets. */
-  ED_assetlist_iterate(library_ref, [&](AssetHandle asset_handle) {
-    if (!is_asset_visible_fn(asset_handle)) {
+  ED_assetlist_iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
+    if (!is_asset_visible_fn(asset)) {
       return true;
     }
 
-    asset_system::AssetRepresentation &asset = *ED_asset_handle_get_representation(&asset_handle);
     const AssetMetaData &meta_data = asset.get_metadata();
     if (BLI_uuid_is_nil(meta_data.catalog_id)) {
       return true;

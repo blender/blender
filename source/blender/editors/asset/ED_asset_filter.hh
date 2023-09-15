@@ -18,7 +18,6 @@
 #include "AS_asset_catalog_tree.hh"
 
 struct AssetFilterSettings;
-struct AssetHandle;
 struct AssetLibraryReference;
 struct bContext;
 
@@ -55,7 +54,7 @@ struct AssetItemTree {
 asset_system::AssetCatalogTree build_filtered_catalog_tree(
     const asset_system::AssetLibrary &library,
     const AssetLibraryReference &library_ref,
-    blender::FunctionRef<bool(const AssetHandle &)> is_asset_visible_fn);
+    blender::FunctionRef<bool(const asset_system::AssetRepresentation &)> is_asset_visible_fn);
 AssetItemTree build_filtered_all_catalog_tree(
     const AssetLibraryReference &library_ref,
     const bContext &C,

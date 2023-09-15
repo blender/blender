@@ -23,7 +23,6 @@
 
 struct ARegion;
 struct AssetFilterSettings;
-struct AssetRepresentation;
 struct AutoComplete;
 struct EnumPropertyItem;
 struct FileSelectParams;

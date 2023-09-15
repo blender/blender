@@ -8433,7 +8433,7 @@ class VIEW3D_AST_sculpt_brushes(bpy.types.AssetShelf):
 
     @classmethod
     def asset_poll(cls, asset):
-        return asset.file_data.id_type == 'BRUSH'
+        return asset.id_type == 'BRUSH'
 
 
 classes = (

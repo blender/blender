@@ -610,6 +610,8 @@ static void rna_def_asset_representation(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Data-block Type",
+      /* Won't ever actually return 'NONE' currently, this is just for information for once non-ID
+       * assets are supported. */
       "The type of the data-block, if the asset represents one ('NONE' otherwise)");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
 }
