@@ -573,6 +573,12 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
 
     return true;
   }
+#  else  /* MAC_OS_VERSION_14_0 */
+  (void)progress;
+  (void)device;
+  (void)queue;
+  (void)geom;
+  (void)(refit);
 #  endif /* MAC_OS_VERSION_14_0 */
   return false;
 }
