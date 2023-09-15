@@ -1834,6 +1834,8 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
 
   prop = RNA_def_property(srna, "active_name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "active_collection_name");
+  /* TODO: For some reason the overrides system doesn't register a new operation when this property
+   * changes. Needs further investigation to figure out why & fix it. */
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop,
                            "Active Collection Name",

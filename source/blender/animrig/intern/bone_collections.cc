@@ -371,6 +371,8 @@ bool ANIM_armature_bonecoll_unassign(BoneCollection *bcoll, Bone *bone)
 void ANIM_armature_bonecoll_unassign_all(Bone *bone)
 {
   LISTBASE_FOREACH_MUTABLE (BoneCollectionReference *, ref, &bone->runtime.collections) {
+    /* TODO: include Armature as parameter, and check that the bone collection to unassign from is
+     * actually editable. */
     ANIM_armature_bonecoll_unassign(ref->bcoll, bone);
   }
 }

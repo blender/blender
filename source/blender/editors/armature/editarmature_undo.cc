@@ -100,6 +100,8 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
   auto bcoll_map = ANIM_bonecoll_listbase_copy_no_membership(
       &arm->collections, &uarm->bone_collections, true);
 
+  /* Always do a lookup-by-name and assignment. Even when the name of the active collection is
+   * still the same, the order may have changed and thus the index needs to be updated. */
   BoneCollection *active_bcoll = ANIM_armature_bonecoll_get_by_name(arm,
                                                                     uarm->active_collection_name);
   ANIM_armature_bonecoll_active_set(arm, active_bcoll);
