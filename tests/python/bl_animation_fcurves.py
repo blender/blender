@@ -152,7 +152,7 @@ class EulerFilterTest(AbstractAnimationTest, unittest.TestCase):
         ob = bpy.context.view_layer.objects.active
         action = ob.animation_data.action
         return [action.fcurves.find('rotation_euler', index=idx) for idx in range(3)]
-    
+
 
 def get_view3d_context():
     ctx = bpy.context.copy()
@@ -173,7 +173,6 @@ class KeyframeInsertTest(AbstractAnimationTest, unittest.TestCase):
         super().setUp()
         bpy.ops.wm.read_homefile()
 
-
     def test_keyframe_insertion_basic(self):
         bpy.ops.mesh.primitive_monkey_add()
         key_count = 100
@@ -186,7 +185,7 @@ class KeyframeInsertTest(AbstractAnimationTest, unittest.TestCase):
         for key_index in range(key_count):
             key = key_object.animation_data.action.fcurves[0].keyframe_points[key_index]
             self.assertEqual(key.co.x, key_index)
-        
+
         bpy.ops.object.delete(use_global=False)
 
     def test_keyframe_insertion_high_frame_number(self):
@@ -201,8 +200,8 @@ class KeyframeInsertTest(AbstractAnimationTest, unittest.TestCase):
         key_object = bpy.context.active_object
         for key_index in range(key_count):
             key = key_object.animation_data.action.fcurves[0].keyframe_points[key_index]
-            self.assertEqual(key.co.x, key_index+frame_offset)
-        
+            self.assertEqual(key.co.x, key_index + frame_offset)
+
         bpy.ops.object.delete(use_global=False)
 
     def test_keyframe_insertion_subframes_basic(self):
@@ -210,14 +209,14 @@ class KeyframeInsertTest(AbstractAnimationTest, unittest.TestCase):
         key_count = 50
         with bpy.context.temp_override(**get_view3d_context()):
             for i in range(key_count):
-                bpy.context.scene.frame_set(0, subframe=i/key_count)
+                bpy.context.scene.frame_set(0, subframe=i / key_count)
                 bpy.ops.anim.keyframe_insert_by_name(type="Location")
 
         key_object = bpy.context.active_object
         for key_index in range(key_count):
             key = key_object.animation_data.action.fcurves[0].keyframe_points[key_index]
-            self.assertAlmostEqual(key.co.x, key_index/key_count)
-        
+            self.assertAlmostEqual(key.co.x, key_index / key_count)
+
         bpy.ops.object.delete(use_global=False)
 
     def test_keyframe_insertion_subframes_high_frame_number(self):
@@ -226,7 +225,7 @@ class KeyframeInsertTest(AbstractAnimationTest, unittest.TestCase):
         frame_offset = 1000000
         with bpy.context.temp_override(**get_view3d_context()):
             for i in range(key_count):
-                bpy.context.scene.frame_set(frame_offset, subframe=i/key_count)
+                bpy.context.scene.frame_set(frame_offset, subframe=i / key_count)
                 bpy.ops.anim.keyframe_insert_by_name(type="Location")
 
         key_object = bpy.context.active_object
@@ -248,7 +247,8 @@ class KeyframeInsertTest(AbstractAnimationTest, unittest.TestCase):
             1000000.8125,
             1000000.875,
             1000000.9375,
-            1000001.0 # Even though range() is exclusive, the floating point limitations mean keys end up on that position.
+            # Even though range() is exclusive, the floating point limitations mean keys end up on that position.
+            1000001.0
         ]
         keyframe_points = key_object.animation_data.action.fcurves[0].keyframe_points
         for i, value in enumerate(floating_point_steps):
@@ -257,9 +257,9 @@ class KeyframeInsertTest(AbstractAnimationTest, unittest.TestCase):
 
         # This checks that there is a key on every possible floating point value and not more than that.
         self.assertEqual(len(floating_point_steps), len(keyframe_points))
-        
+
         bpy.ops.object.delete(use_global=False)
-    
+
 
 class KeyframeDeleteTest(AbstractAnimationTest, unittest.TestCase):
     def setUp(self):
@@ -285,7 +285,7 @@ class KeyframeDeleteTest(AbstractAnimationTest, unittest.TestCase):
 
         # Only the key on frame -1 should be left
         self.assertEqual(len(fcu.keyframe_points), 1)
-        
+
         bpy.ops.object.delete(use_global=False)
 
     def test_keyframe_deletion_high_frame_number(self):
@@ -299,16 +299,16 @@ class KeyframeDeleteTest(AbstractAnimationTest, unittest.TestCase):
         key_object = bpy.context.active_object
         fcu = key_object.animation_data.action.fcurves[0]
         for i in range(key_count):
-            fcu.keyframe_points.insert(frame=i+frame_offset, value=0)
+            fcu.keyframe_points.insert(frame=i + frame_offset, value=0)
 
         with bpy.context.temp_override(**get_view3d_context()):
             for frame in range(key_count):
-                bpy.context.scene.frame_set(frame+frame_offset)
+                bpy.context.scene.frame_set(frame + frame_offset)
                 bpy.ops.anim.keyframe_delete_by_name(type="Location")
 
         # Only the key on frame -1 should be left
         self.assertEqual(len(fcu.keyframe_points), 1)
-        
+
         bpy.ops.object.delete(use_global=False)
 
     def test_keyframe_deletion_subframe_basic(self):
@@ -321,16 +321,16 @@ class KeyframeDeleteTest(AbstractAnimationTest, unittest.TestCase):
         key_object = bpy.context.active_object
         fcu = key_object.animation_data.action.fcurves[0]
         for i in range(key_count):
-            fcu.keyframe_points.insert(frame=i/key_count, value=0)
+            fcu.keyframe_points.insert(frame=i / key_count, value=0)
 
         with bpy.context.temp_override(**get_view3d_context()):
             for frame in range(key_count):
-                bpy.context.scene.frame_set(0, subframe=frame/key_count)
+                bpy.context.scene.frame_set(0, subframe=frame / key_count)
                 bpy.ops.anim.keyframe_delete_by_name(type="Location")
 
         # Only the key on frame -1 should be left
         self.assertEqual(len(fcu.keyframe_points), 1)
-        
+
         bpy.ops.object.delete(use_global=False)
 
     def test_keyframe_deletion_subframe_high_frame_number(self):
@@ -344,20 +344,20 @@ class KeyframeDeleteTest(AbstractAnimationTest, unittest.TestCase):
         key_object = bpy.context.active_object
         fcu = key_object.animation_data.action.fcurves[0]
         for i in range(key_count):
-            fcu.keyframe_points.insert(frame=i/key_count+frame_offset, value=0)
+            fcu.keyframe_points.insert(frame=i / key_count + frame_offset, value=0)
 
         with bpy.context.temp_override(**get_view3d_context()):
             for frame in range(key_count):
-                bpy.context.scene.frame_set(frame_offset, subframe=frame/key_count)
+                bpy.context.scene.frame_set(frame_offset, subframe=frame / key_count)
                 bpy.ops.anim.keyframe_delete_by_name(type="Location")
 
         # Only the key on frame -1 should be left
-        # This works even though there are floating point precision issues, 
+        # This works even though there are floating point precision issues,
         # because the deletion has the exact same precision as the insertion.
-        # Due to that, the code calls keyframe_delete_by_name for 
+        # Due to that, the code calls keyframe_delete_by_name for
         # every floating point step multiple times.
         self.assertEqual(len(fcu.keyframe_points), 1)
-        
+
         bpy.ops.object.delete(use_global=False)
 
 
