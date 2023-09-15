@@ -737,6 +737,12 @@ static const EnumPropertyItem *bone_collection_enum_itemf(bContext *C,
 
       int bcoll_index = 0;
       LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections, bcoll_index) {
+        if (!ANIM_armature_bonecoll_is_editable(arm, bcoll)) {
+          /* Skip bone collections that cannot be assigned to because they're
+           * linked and thus uneditable. If there is a way to still show these, but in a disabled
+           * state, that would be preferred. */
+          continue;
+        }
         item_tmp.identifier = bcoll->name;
         item_tmp.name = bcoll->name;
         item_tmp.value = bcoll_index;
