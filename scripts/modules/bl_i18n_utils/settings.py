@@ -46,8 +46,8 @@ LANGUAGES = (
     (10, "Catalan (Català)", "ca_AD"),
     (11, "Czech (Čeština)", "cs_CZ"),
     (12, "Portuguese (Português)", "pt_PT"),
-    (13, "Simplified Chinese (简体中文)", "zh_CN"),
-    (14, "Traditional Chinese (繁體中文)", "zh_TW"),
+    (13, "Simplified Chinese (简体中文)", "zh_HANS"),
+    (14, "Traditional Chinese (繁體中文)", "zh_HANT"),
     (15, "Russian (Русский)", "ru_RU"),
     (16, "Croatian (Hrvatski)", "hr_HR"),
     (17, "Serbian (Српски)", "sr_RS"),
@@ -72,9 +72,9 @@ LANGUAGES = (
     (33, "Hebrew (תירִבְעִ)", "he_IL"),
     (34, "Estonian (Eesti keel)", "et_EE"),
     (35, "Esperanto (Esperanto)", "eo"),
-    (36, "Spanish from Spain (Español de España)", "es_ES"),
+    # 36 is free, used to be 'Spanish from Spain' (`es_ES`).
     (37, "Amharic (አማርኛ)", "am_ET"),
-    (38, "Uzbek (Oʻzbek)", "uz_UZ"),
+    (38, "Uzbek (Oʻzbek)", "uz_UZ@latin"),
     (39, "Uzbek Cyrillic (Ўзбек)", "uz_UZ@cyrillic"),
     (40, "Hindi (हिन्दी)", "hi_IN"),
     (41, "Vietnamese (Tiếng Việt)", "vi_VN"),
@@ -100,7 +100,7 @@ IMPORT_MIN_LEVEL = 0.0
 
 # Languages in /branches we do not want to import in /trunk currently...
 IMPORT_LANGUAGES_SKIP = {
-    'am_ET', 'bg_BG', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ', 'uz_UZ@cyrillic', 'kk_KZ', 'es_ES',
+    'am_ET', 'bg_BG', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ@latin', 'uz_UZ@cyrillic', 'kk_KZ',
 }
 
 # Languages that need RTL pre-processing.
