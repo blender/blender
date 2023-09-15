@@ -99,6 +99,7 @@ typedef struct {
   float ob_scale_orig[3];
   float ob_dims[3];
   float *vertex_weights;
+  int vertex_weights_num;
   /* Floats only (treated as an array). */
   TransformMedian ve_median, median;
   bool tag_for_update;
@@ -1376,10 +1377,13 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
     vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
         ob, subset_type, &vgroup_tot, &subset_count);
     const ListBase *defbase = BKE_object_defgroup_list(ob);
-    MEM_SAFE_FREE(tfp->vertex_weights);
     const int vgroup_num = BLI_listbase_count(defbase);
-    if (vgroup_num > 0) {
-      tfp->vertex_weights = MEM_calloc_arrayN(vgroup_num, sizeof(float), __func__);
+    if (vgroup_num != tfp->vertex_weights_num) {
+      MEM_SAFE_FREE(tfp->vertex_weights);
+      if (vgroup_num > 0) {
+        tfp->vertex_weights = MEM_calloc_arrayN(vgroup_num, sizeof(float), __func__);
+        tfp->vertex_weights_num = vgroup_num;
+      }
     }
 
     for (i = 0, dg = defbase->first; dg; i++, dg = dg->next) {
