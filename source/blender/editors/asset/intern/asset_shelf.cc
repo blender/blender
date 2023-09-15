@@ -690,8 +690,11 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
 
   uiItemSpacer(layout);
 
-  uiItemR(layout, &shelf_ptr, "search_filter", UI_ITEM_NONE, "", ICON_VIEWZOOM);
   uiItemPopoverPanel(layout, C, "ASSETSHELF_PT_display", "", ICON_IMGDISPLAY);
+  uiLayout *sub = uiLayoutRow(layout, false);
+  /* Same as file/asset browser header. */
+  uiLayoutSetUnitsX(sub, 8);
+  uiItemR(sub, &shelf_ptr, "search_filter", UI_ITEM_NONE, "", ICON_VIEWZOOM);
 }
 
 void ED_asset_shelf_header_regiontype_register(ARegionType *region_type, const int space_type)
