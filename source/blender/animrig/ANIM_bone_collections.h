@@ -54,9 +54,6 @@ void ANIM_bonecoll_free(struct BoneCollection *bcoll);
 /**
  * Recalculate the armature & bone runtime data.
  *
- * NOTE: this should only be used when the runtime structs on the Armature and Bones are still
- * empty. Any data allocated there will NOT be freed.
- *
  * TODO: move to BKE?
  */
 void ANIM_armature_runtime_refresh(struct bArmature *armature);
