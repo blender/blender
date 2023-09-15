@@ -849,7 +849,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       !but->tip_func)
   {
     UI_tooltip_text_field_add(
-        data, BLI_strdup(but_label.strinfo), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+        data, BLI_strdup(but_tip_label.strinfo), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
   }
 
   /* Tip */
