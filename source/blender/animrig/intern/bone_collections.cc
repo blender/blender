@@ -141,7 +141,7 @@ BoneCollection *ANIM_armature_bonecoll_insert_copy_after(bArmature *armature,
   /* Remap the bone pointers to the given armature, as `bcoll_to_copy` will
    * likely be owned by another copy of the armature. */
   BLI_duplicatelist(&bcoll->bones, &bcoll->bones);
-  BKE_armature_bone_hash_make(armature);
+  BLI_assert_msg(armature->bonehash, "Expected armature bone hash to be there");
   LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
     member->bone = BKE_armature_find_bone_name(armature, member->bone->name);
   }
