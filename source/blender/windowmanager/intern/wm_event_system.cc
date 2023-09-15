@@ -6277,10 +6277,11 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *la
       wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
       if (handler->op != nullptr) {
         /* 'handler->keymap' could be checked too, seems not to be used. */
-        wmKeyMap *keymap_test = WM_keymap_active(wm, handler->op->type->modalkeymap);
+        wmOperator *op_test = handler->op->opm ? handler->op->opm : handler->op;
+        wmKeyMap *keymap_test = WM_keymap_active(wm, op_test->type->modalkeymap);
         if (keymap_test && keymap_test->modal_items) {
           keymap = keymap_test;
-          op = handler->op;
+          op = op_test;
           break;
         }
       }
