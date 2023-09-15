@@ -283,6 +283,13 @@ static void add_membership(BoneCollection *bcoll, Bone *bone)
   member->bone = bone;
   BLI_addtail(&bcoll->bones, member);
 }
+/* Store reverse membership on the bone. */
+static void add_reference(Bone *bone, BoneCollection *bcoll)
+{
+  BoneCollectionReference *ref = MEM_cnew<BoneCollectionReference>(__func__);
+  ref->bcoll = bcoll;
+  BLI_addtail(&bone->runtime.collections, ref);
+}
 
 bool ANIM_armature_bonecoll_assign(BoneCollection *bcoll, Bone *bone)
 {
@@ -294,11 +301,7 @@ bool ANIM_armature_bonecoll_assign(BoneCollection *bcoll, Bone *bone)
   }
 
   add_membership(bcoll, bone);
-
-  /* Store reverse membership on the bone. */
-  BoneCollectionReference *ref = MEM_cnew<BoneCollectionReference>(__func__);
-  ref->bcoll = bcoll;
-  BLI_addtail(&bone->runtime.collections, ref);
+  add_reference(bone, bcoll);
 
   return true;
 }
