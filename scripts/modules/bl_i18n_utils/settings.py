@@ -95,10 +95,10 @@ DEFAULT_CONTEXT = "*"
 # Name of language file used by Blender to generate translations' menu.
 LANGUAGES_FILE = "languages"
 
-# The min level of completeness for a po file to be imported from /branches into /trunk, as a percentage.
+# The min level of completeness for a po file to be imported from the working repository to the Blender one, as a percentage.
 IMPORT_MIN_LEVEL = 0.0
 
-# Languages in /branches we do not want to import in /trunk currently...
+# Languages in the working repository that should not be imported in the Blender one currently...
 IMPORT_LANGUAGES_SKIP = {
     'am_ET', 'bg_BG', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ@latin', 'uz_UZ@cyrillic', 'kk_KZ',
 }
@@ -529,25 +529,15 @@ SOURCE_DIR = os.path.abspath(os.path.join("blender"))
 # The bf-translation repository (you'll have to override this in your user_settings.py).
 I18N_DIR = os.path.abspath(os.path.join("i18n"))
 
-# The /branches path (relative to I18N_DIR).
-REL_BRANCHES_DIR = os.path.join("branches")
-
-# The /trunk path (relative to I18N_DIR).
-REL_TRUNK_DIR = os.path.join("trunk")
-
-# The /trunk/po path (relative to I18N_DIR).
-REL_TRUNK_PO_DIR = os.path.join(REL_TRUNK_DIR, "po")
-
-# The /trunk/mo path (relative to I18N_DIR).
-REL_TRUNK_MO_DIR = os.path.join(REL_TRUNK_DIR, "locale")
+# The 'work' path to PO files (relative to I18N_DIR).
+REL_WORK_DIR = os.path.join("")
 
 
-# The path to the *git* translation repository (relative to SOURCE_DIR).
-REL_GIT_I18N_DIR = os.path.join("locale")
+# The path to the Blender translation directory (relative to SOURCE_DIR).
+REL_BLENDER_I18N_DIR = os.path.join("locale")
 
-
-# The /po path of the *git* translation repository (relative to REL_GIT_I18N_DIR).
-REL_GIT_I18N_PO_DIR = os.path.join("po")
+# The /po path of the Blender translation directory (relative to REL_BLENDER_I18N_DIR).
+REL_BLENDER_I18N_PO_DIR = os.path.join("po")
 
 
 # The Blender source path to check for i18n macros (relative to SOURCE_DIR).
@@ -563,13 +553,8 @@ REL_TEMPLATES_DIR = os.path.join("scripts", "startup", "bl_app_templates_system"
 ASSET_CATALOG_FILE = "blender_assets.cats.txt"
 
 # The template messages file (relative to I18N_DIR).
-REL_FILE_NAME_POT = os.path.join(REL_BRANCHES_DIR, DOMAIN + ".pot")
+REL_FILE_NAME_POT = os.path.join(REL_WORK_DIR, DOMAIN + ".pot")
 
-# Mo root data-path.
-REL_MO_PATH_ROOT = os.path.join(REL_TRUNK_DIR, "locale")
-
-# Mo path generator for a given language.
-REL_MO_PATH_TEMPLATE = os.path.join(REL_MO_PATH_ROOT, "{}", "LC_MESSAGES")
 
 # Mo path generator for a given language (relative to any "locale" dir).
 MO_PATH_ROOT_RELATIVE = os.path.join("locale")
@@ -716,18 +701,13 @@ class I18nSettings:
         else:
             fname.write(self.to_json())
 
-    BRANCHES_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_BRANCHES_DIR")))
-    TRUNK_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_TRUNK_DIR")))
-    TRUNK_PO_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_TRUNK_PO_DIR")))
-    TRUNK_MO_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_TRUNK_MO_DIR")))
-    GIT_I18N_ROOT = property(*(_gen_get_set_path("SOURCE_DIR", "REL_GIT_I18N_DIR")))
-    GIT_I18N_PO_DIR = property(*(_gen_get_set_path("GIT_I18N_ROOT", "REL_GIT_I18N_PO_DIR")))
+    WORK_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_WORK_DIR")))
+    BLENDER_I18N_ROOT = property(*(_gen_get_set_path("SOURCE_DIR", "REL_BLENDER_I18N_DIR")))
+    BLENDER_I18N_PO_DIR = property(*(_gen_get_set_path("BLENDER_I18N_ROOT", "REL_BLENDER_I18N_PO_DIR")))
     POTFILES_SOURCE_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_POTFILES_SOURCE_DIR")))
     PRESETS_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_PRESETS_DIR")))
     TEMPLATES_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_TEMPLATES_DIR")))
     FILE_NAME_POT = property(*(_gen_get_set_path("I18N_DIR", "REL_FILE_NAME_POT")))
-    MO_PATH_ROOT = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_ROOT")))
-    MO_PATH_TEMPLATE = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_TEMPLATE")))
 
     def _get_py_sys_paths(self):
         return self.INTERN_PY_SYS_PATHS
