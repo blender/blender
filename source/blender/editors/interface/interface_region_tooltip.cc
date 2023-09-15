@@ -125,14 +125,14 @@ void UI_tooltip_text_field_add(uiTooltipData *data,
   field->format.style = style;
   field->format.color_id = color;
   field->format.is_pad = is_pad;
-  field->text = text ? text: nullptr;
+  field->text = text ? text : nullptr;
   field->text_suffix = suffix ? suffix : nullptr;
 }
 
 void UI_tooltip_image_field_add(uiTooltipData *data,
-                                 struct ImBuf *image,
-                                 short width,
-                                 short height)
+                                struct ImBuf *image,
+                                short width,
+                                short height)
 {
   uiTooltipField *field = text_field_add_only(data);
   field->format = {};
