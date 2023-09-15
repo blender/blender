@@ -83,7 +83,7 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
   }
   xray_mode = shading.xray_alpha != 1.0f;
 
-  if (SHADING_XRAY_FLAG_ENABLED(shading)) {
+  if (xray_mode) {
     /* Disable shading options that aren't supported in transparency mode. */
     shading.flag &= ~(V3D_SHADING_SHADOW | V3D_SHADING_CAVITY | V3D_SHADING_DEPTH_OF_FIELD);
   }
