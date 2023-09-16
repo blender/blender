@@ -1472,10 +1472,13 @@ struct ZoneBuildInfo {
 };
 
 /**
- * Describes what the individual inputs and outputs of the #LazyFunction mean that's created for
- * the repeat body.
+ * Contains the lazy-function for the "body" of a zone. It contains all the nodes inside of the
+ * zone. The "body" function is wrapped by another lazy-function which represents the zone as a
+ * hole. The wrapper function might invoke the zone body multiple times (like for repeat zones).
  */
-struct RepeatBodyIndices {
+struct ZoneBodyFunction {
+  const LazyFunction *function = nullptr;
+
   IndexRange main_inputs;
   IndexRange main_outputs;
   IndexRange border_link_inputs;
@@ -1498,19 +1501,16 @@ class LazyFunctionForRepeatZone : public LazyFunction {
   const bNodeTreeZone &zone_;
   const bNode &repeat_output_bnode_;
   const ZoneBuildInfo &zone_info_;
-  const LazyFunction &body_fn_;
-  const RepeatBodyIndices &body_indices_;
+  const ZoneBodyFunction &body_fn_;
 
  public:
   LazyFunctionForRepeatZone(const bNodeTreeZone &zone,
                             ZoneBuildInfo &zone_info,
-                            const LazyFunction &body_fn,
-                            const RepeatBodyIndices &body_indices)
+                            const ZoneBodyFunction &body_fn)
       : zone_(zone),
         repeat_output_bnode_(*zone.output_node),
         zone_info_(zone_info),
-        body_fn_(body_fn),
-        body_indices_(body_indices)
+        body_fn_(body_fn)
   {
     debug_name_ = "Repeat Zone";
 
@@ -1545,12 +1545,12 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     zone_info.border_link_input_usage_indices = outputs_.index_range().take_back(
         zone.border_links.size());
 
-    for (const auto item : body_indices.attribute_set_input_by_field_source_index.items()) {
+    for (const auto item : body_fn_.attribute_set_input_by_field_source_index.items()) {
       const int index = inputs_.append_and_get_index_as(
           "Attribute Set", CPPType::get<bke::AnonymousAttributeSet>());
       zone_info.attribute_set_input_by_field_source_index.add_new(item.key, index);
     }
-    for (const auto item : body_indices.attribute_set_input_by_caller_propagation_index.items()) {
+    for (const auto item : body_fn_.attribute_set_input_by_caller_propagation_index.items()) {
       const int index = inputs_.append_and_get_index_as(
           "Attribute Set", CPPType::get<bke::AnonymousAttributeSet>());
       zone_info.attribute_set_input_by_caller_propagation_index.add_new(item.key, index);
@@ -1571,9 +1571,9 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     const int repeat_items_num = node_storage.items_num;
     /* Gather data types of the repeat items. */
     Array<const CPPType *> repeat_item_types(repeat_items_num);
-    for (const int i : body_indices_.main_inputs.index_range()) {
-      const int input_i = body_indices_.main_inputs[i];
-      const CPPType &type = *body_fn_.inputs()[input_i].type;
+    for (const int i : body_fn_.main_inputs.index_range()) {
+      const int input_i = body_fn_.main_inputs[i];
+      const CPPType &type = *body_fn_.function->inputs()[input_i].type;
       repeat_item_types[i] = &type;
     }
 
@@ -1625,8 +1625,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
       attribute_set_by_caller_propagation_index.add_new(item.key, &attribute_set);
     }
 
-    const int body_inputs_num = body_fn_.inputs().size();
-    const int body_outputs_num = body_fn_.outputs().size();
+    const int body_inputs_num = body_fn_.function->inputs().size();
+    const int body_outputs_num = body_fn_.function->outputs().size();
     /* Evaluate the repeat zone eagerly, one iteration at a time.
      * This can be made more lazy as a separate step. */
     for (const int iteration : IndexRange(iterations)) {
@@ -1644,21 +1644,21 @@ class LazyFunctionForRepeatZone : public LazyFunction {
         const CPPType &type = *repeat_item_types[i];
         void *prev_value = repeat_item_values[iteration * repeat_items_num + i];
         void *next_value = repeat_item_values[(iteration + 1) * repeat_items_num + i];
-        inputs[body_indices_.main_inputs[i]] = {type, prev_value};
-        outputs[body_indices_.main_outputs[i]] = {type, next_value};
-        outputs[body_indices_.main_input_usages[i]] = &tmp_main_input_usages[i];
+        inputs[body_fn_.main_inputs[i]] = {type, prev_value};
+        outputs[body_fn_.main_outputs[i]] = {type, next_value};
+        outputs[body_fn_.main_input_usages[i]] = &tmp_main_input_usages[i];
       }
       static bool static_true = true;
-      for (const int input_index : body_indices_.main_output_usages) {
+      for (const int input_index : body_fn_.main_output_usages) {
         /* All main outputs are used currently. */
         inputs[input_index] = &static_true;
       }
       /* Prepare border link values for the repeat body. */
       Array<bool> tmp_border_link_usages(border_links_num);
       for (const int i : IndexRange(border_links_num)) {
-        const int input_index = body_indices_.border_link_inputs[i];
-        const int usage_index = body_indices_.border_link_usages[i];
-        const CPPType &type = *body_fn_.inputs()[input_index].type;
+        const int input_index = body_fn_.border_link_inputs[i];
+        const int usage_index = body_fn_.border_link_usages[i];
+        const CPPType &type = *body_fn_.function->inputs()[input_index].type;
         /* Need to copy because a lazy function is allowed to modify the input (e.g. move from
          * it). */
         void *value_copy = allocator.allocate(type.size(), type.alignment());
@@ -1668,7 +1668,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
       }
 
       /* Prepare attribute sets that are passed into the repeat body. */
-      for (const auto item : body_indices_.attribute_set_input_by_field_source_index.items()) {
+      for (const auto item : body_fn_.attribute_set_input_by_field_source_index.items()) {
         bke::AnonymousAttributeSet &attribute_set =
             *allocator
                  .construct<bke::AnonymousAttributeSet>(
@@ -1676,8 +1676,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
                  .release();
         inputs[item.value] = &attribute_set;
       }
-      for (const auto item : body_indices_.attribute_set_input_by_caller_propagation_index.items())
-      {
+      for (const auto item : body_fn_.attribute_set_input_by_caller_propagation_index.items()) {
         bke::AnonymousAttributeSet &attribute_set =
             *allocator
                  .construct<bke::AnonymousAttributeSet>(
@@ -1696,23 +1695,23 @@ class LazyFunctionForRepeatZone : public LazyFunction {
             body_compute_context.hash());
       }
       GeoNodesLFLocalUserData body_local_user_data{body_user_data};
-      void *body_storage = body_fn_.init_storage(allocator);
+      void *body_storage = body_fn_.function->init_storage(allocator);
       lf::Context body_context{body_storage, &body_user_data, &body_local_user_data};
 
       lf::BasicParams body_params{
-          body_fn_, inputs, outputs, input_usages, output_usages, set_outputs};
+          *body_fn_.function, inputs, outputs, input_usages, output_usages, set_outputs};
       /* Actually evaluate the repeat body. */
-      body_fn_.execute(body_params, body_context);
+      body_fn_.function->execute(body_params, body_context);
 
       /* Destruct values that are not needed after the evaluation anymore. */
-      body_fn_.destruct_storage(body_storage);
-      for (const int i : body_indices_.border_link_inputs) {
+      body_fn_.function->destruct_storage(body_storage);
+      for (const int i : body_fn_.border_link_inputs) {
         inputs[i].destruct();
       }
-      for (const int i : body_indices_.attribute_set_input_by_field_source_index.values()) {
+      for (const int i : body_fn_.attribute_set_input_by_field_source_index.values()) {
         inputs[i].destruct();
       }
-      for (const int i : body_indices_.attribute_set_input_by_caller_propagation_index.values()) {
+      for (const int i : body_fn_.attribute_set_input_by_caller_propagation_index.values()) {
         inputs[i].destruct();
       }
     }
@@ -2030,46 +2029,56 @@ struct GeometryNodesLazyFunctionGraphBuilder {
   }
 
   /**
-   * Builds a #LazyFunction for a repeat zone. For that it first builds a lazy-function graph
-   * from all the nodes in the zone, and then wraps that in another lazy-function that implements
-   * the repeating behavior.
+   * Builds a #LazyFunction for a repeat zone.
    */
   void build_repeat_zone_function(const bNodeTreeZone &zone)
   {
     ZoneBuildInfo &zone_info = zone_build_infos_[zone.index];
+    /* Build a function for the loop body. */
+    ZoneBodyFunction &body_fn = this->build_zone_body_function(zone);
+    /* Wrap the loop body by another function that implements the repeat behavior. */
+    auto &zone_fn = scope_.construct<LazyFunctionForRepeatZone>(zone, zone_info, body_fn);
+    zone_info.lazy_function = &zone_fn;
+  }
+
+  /**
+   * Build a lazy-function for the "body" of a zone, i.e. for all the nodes within the zone.
+   */
+  ZoneBodyFunction &build_zone_body_function(const bNodeTreeZone &zone)
+  {
     lf::Graph &lf_body_graph = scope_.construct<lf::Graph>();
 
     BuildGraphParams graph_params{lf_body_graph};
 
     Vector<const lf::OutputSocket *, 16> lf_body_inputs;
     Vector<const lf::InputSocket *, 16> lf_body_outputs;
-    RepeatBodyIndices &body_indices = scope_.construct<RepeatBodyIndices>();
+    ZoneBodyFunction &body_fn = scope_.construct<ZoneBodyFunction>();
 
     lf::DummyNode &lf_main_input_node = this->build_dummy_node_for_sockets(
-        "Repeat Input", {}, zone.input_node->output_sockets().drop_back(1), lf_body_graph);
+        "Main Inputs", {}, zone.input_node->output_sockets().drop_back(1), lf_body_graph);
     for (const int i : zone.input_node->output_sockets().drop_back(1).index_range()) {
       const bNodeSocket &bsocket = zone.input_node->output_socket(i);
       lf::OutputSocket &lf_socket = lf_main_input_node.output(i);
       graph_params.lf_output_by_bsocket.add_new(&bsocket, &lf_socket);
     }
     lf_body_inputs.extend(lf_main_input_node.outputs());
-    body_indices.main_inputs = lf_body_inputs.index_range();
+    body_fn.main_inputs = lf_body_inputs.index_range();
 
     lf::DummyNode &lf_main_output_node = this->build_dummy_node_for_sockets(
-        "Repeat Output", zone.output_node->input_sockets().drop_back(1), {}, lf_body_graph);
+        "Main Outputs", zone.output_node->input_sockets().drop_back(1), {}, lf_body_graph);
     lf_body_outputs.extend(lf_main_output_node.inputs());
-    body_indices.main_outputs = lf_body_outputs.index_range();
+    body_fn.main_outputs = lf_body_outputs.index_range();
 
     lf::Node &lf_main_input_usage_node = this->build_dummy_node_for_socket_usages(
         "Input Usages", zone.input_node->output_sockets().drop_back(1), {}, lf_body_graph);
     lf_body_outputs.extend(lf_main_input_usage_node.inputs());
-    body_indices.main_input_usages = lf_body_outputs.index_range().take_back(
+    body_fn.main_input_usages = lf_body_outputs.index_range().take_back(
         lf_main_input_usage_node.inputs().size());
 
     lf::Node &lf_main_output_usage_node = this->build_dummy_node_for_socket_usages(
         "Output Usages", {}, zone.output_node->input_sockets().drop_back(1), lf_body_graph);
     lf_body_inputs.extend(lf_main_output_usage_node.outputs());
-    body_indices.main_output_usages = lf_body_inputs.index_range().take_back(
+    body_fn.main_output_usages = lf_body_inputs.index_range().take_back(
         lf_main_output_usage_node.outputs().size());
 
     for (const int i : zone.output_node->input_sockets().drop_back(1).index_range()) {
@@ -2083,13 +2092,13 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     lf::Node &lf_border_link_input_node = this->build_zone_border_links_input_node(zone,
                                                                                    lf_body_graph);
     lf_body_inputs.extend(lf_border_link_input_node.outputs());
-    body_indices.border_link_inputs = lf_body_inputs.index_range().take_back(
+    body_fn.border_link_inputs = lf_body_inputs.index_range().take_back(
         lf_border_link_input_node.outputs().size());
 
     lf::Node &lf_border_link_usage_node = this->build_border_link_input_usage_node(zone,
                                                                                    lf_body_graph);
     lf_body_outputs.extend(lf_border_link_usage_node.inputs());
-    body_indices.border_link_usages = lf_body_outputs.index_range().take_back(
+    body_fn.border_link_usages = lf_body_outputs.index_range().take_back(
         lf_border_link_usage_node.inputs().size());
 
     this->insert_nodes_and_zones(zone.child_nodes, zone.child_zones, graph_params);
@@ -2127,15 +2136,15 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       lf::OutputSocket &lf_attribute_set_socket = *item.value;
       if (lf_attribute_set_socket.node().is_dummy()) {
         const int body_input_index = lf_body_inputs.append_and_get_index(&lf_attribute_set_socket);
-        body_indices.attribute_set_input_by_field_source_index.add_new(item.key, body_input_index);
+        body_fn.attribute_set_input_by_field_source_index.add_new(item.key, body_input_index);
       }
     }
     for (const auto item : lf_attribute_set_by_caller_propagation_index.items()) {
       lf::OutputSocket &lf_attribute_set_socket = *item.value;
       if (lf_attribute_set_socket.node().is_dummy()) {
         const int body_input_index = lf_body_inputs.append_and_get_index(&lf_attribute_set_socket);
-        body_indices.attribute_set_input_by_caller_propagation_index.add_new(item.key,
-                                                                             body_input_index);
+        body_fn.attribute_set_input_by_caller_propagation_index.add_new(item.key,
+                                                                        body_input_index);
       }
     }
     this->link_attribute_set_inputs(lf_body_graph,
@@ -2148,14 +2157,12 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
     auto &logger = scope_.construct<GeometryNodesLazyFunctionLogger>(*lf_graph_info_);
     auto &side_effect_provider = scope_.construct<GeometryNodesLazyFunctionSideEffectProvider>();
-    LazyFunction &body_graph_fn = scope_.construct<lf::GraphExecutor>(
+    body_fn.function = &scope_.construct<lf::GraphExecutor>(
         lf_body_graph, lf_body_inputs, lf_body_outputs, &logger, &side_effect_provider);
 
     // std::cout << "\n\n" << lf_body_graph.to_dot() << "\n\n";
 
-    auto &fn = scope_.construct<LazyFunctionForRepeatZone>(
-        zone, zone_info, body_graph_fn, body_indices);
-    zone_info.lazy_function = &fn;
+    return body_fn;
   }
 
   lf::DummyNode &build_zone_border_links_input_node(const bNodeTreeZone &zone, lf::Graph &lf_graph)
