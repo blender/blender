@@ -74,8 +74,8 @@
 #define UI_TIP_STR_MAX 1024
 
 struct uiTooltipFormat {
-  UiTooltipStyle style;
-  UiTooltipColor color_id;
+  uiTooltipStyle style;
+  uiTooltipColorID color_id;
   bool is_pad;
 };
 
@@ -116,14 +116,14 @@ static uiTooltipField *text_field_add_only(uiTooltipData *data)
 void UI_tooltip_text_field_add(uiTooltipData *data,
                                char *text,
                                char *suffix,
-                               const UiTooltipStyle style,
-                               const UiTooltipColor color,
+                               const uiTooltipStyle style,
+                               const uiTooltipColorID color_id,
                                const bool is_pad)
 {
   uiTooltipField *field = text_field_add_only(data);
   field->format = {};
   field->format.style = style;
-  field->format.color_id = color;
+  field->format.color_id = color_id;
   field->format.is_pad = is_pad;
   field->text = text ? text : nullptr;
   field->text_suffix = suffix ? suffix : nullptr;
