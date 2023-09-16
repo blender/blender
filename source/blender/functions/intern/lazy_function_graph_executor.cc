@@ -273,11 +273,11 @@ class Executor {
    * Remembers which inputs have been loaded from the caller already, to avoid loading them twice.
    * Atomics are used to make sure that every input is only retrieved once.
    */
-  Array<std::atomic<uint8_t>> loaded_inputs_;
+  MutableSpan<std::atomic<uint8_t>> loaded_inputs_;
   /**
    * State of every node, indexed by #Node::index_in_graph.
    */
-  Array<NodeState *> node_states_;
+  MutableSpan<NodeState *> node_states_;
   /**
    * Parameters provided by the caller. This is always non-null, while a node is running.
    */
@@ -321,7 +321,7 @@ class Executor {
   };
 
  public:
-  Executor(const GraphExecutor &self) : self_(self), loaded_inputs_(self.graph_inputs_.size())
+  Executor(const GraphExecutor &self) : self_(self)
   {
     /* The indices are necessary, because they are used as keys in #node_states_. */
     BLI_assert(self_.graph_.node_indices_are_valid());
@@ -366,8 +366,15 @@ class Executor {
 
     CurrentTask current_task;
     if (is_first_execution_) {
-      this->initialize_node_states();
+      /* Allocate a single large buffer instead of making many smaller allocations below. */
+      char *buffer = static_cast<char *>(
+          local_data.allocator->allocate(self_.init_buffer_info_.total_size, alignof(void *)));
+      this->initialize_node_states(buffer);
 
+      loaded_inputs_ = MutableSpan{
+          reinterpret_cast<std::atomic<uint8_t> *>(
+              buffer + self_.init_buffer_info_.loaded_inputs_array_offset),
+          self_.graph_inputs_.size()};
       /* Initialize atomics to zero. */
       memset(static_cast<void *>(loaded_inputs_.data()), 0, loaded_inputs_.size() * sizeof(bool));
 
@@ -400,41 +407,36 @@ class Executor {
   }
 
  private:
-  void initialize_node_states()
+  void initialize_node_states(char *buffer)
   {
     Span<const Node *> nodes = self_.graph_.nodes();
-    node_states_.reinitialize(nodes.size());
+    node_states_ = MutableSpan{
+        reinterpret_cast<NodeState **>(buffer + self_.init_buffer_info_.node_states_array_offset),
+        nodes.size()};
 
-    auto construct_node_range = [&](const IndexRange range, LinearAllocator<> &allocator) {
+    threading::parallel_for(nodes.index_range(), 256, [&](const IndexRange range) {
       for (const int i : range) {
         const Node &node = *nodes[i];
-        NodeState &node_state = *allocator.construct<NodeState>().release();
-        node_states_[i] = &node_state;
-        this->construct_initial_node_state(allocator, node, node_state);
+        char *memory = buffer + self_.init_buffer_info_.node_states_offsets[i];
+
+        /* Initialize node state. */
+        NodeState *node_state = reinterpret_cast<NodeState *>(memory);
+        memory += sizeof(NodeState);
+        new (node_state) NodeState();
+
+        /* Initialize socket states. */
+        const int num_inputs = node.inputs().size();
+        const int num_outputs = node.outputs().size();
+        node_state->inputs = MutableSpan{reinterpret_cast<InputState *>(memory), num_inputs};
+        memory += sizeof(InputState) * num_inputs;
+        node_state->outputs = MutableSpan{reinterpret_cast<OutputState *>(memory), num_outputs};
+
+        default_construct_n(node_state->inputs.data(), num_inputs);
+        default_construct_n(node_state->outputs.data(), num_outputs);
+
+        node_states_[i] = node_state;
       }
-    };
-    if (nodes.size() <= 256) {
-      construct_node_range(nodes.index_range(), main_allocator_);
-    }
-    else {
-      this->ensure_thread_locals();
-      /* Construct all node states in parallel. */
-      threading::parallel_for(nodes.index_range(), 256, [&](const IndexRange range) {
-        LinearAllocator<> &allocator = thread_locals_->local().allocator;
-        construct_node_range(range, allocator);
-      });
-    }
-  }
-
-  void construct_initial_node_state(LinearAllocator<> &allocator,
-                                    const Node &node,
-                                    NodeState &node_state)
-  {
-    const Span<const InputSocket *> node_inputs = node.inputs();
-    const Span<const OutputSocket *> node_outputs = node.outputs();
-
-    node_state.inputs = allocator.construct_array<InputState>(node_inputs.size());
-    node_state.outputs = allocator.construct_array<OutputState>(node_outputs.size());
+    });
   }
 
   void destruct_node_state(const Node &node, NodeState &node_state)
@@ -1433,6 +1435,31 @@ GraphExecutor::GraphExecutor(const Graph &graph,
     BLI_assert(socket->node().is_dummy());
     outputs_.append({"Out", socket->type()});
   }
+
+  /* Preprocess buffer offsets. */
+  int offset = 0;
+  const Span<const Node *> nodes = graph_.nodes();
+  init_buffer_info_.node_states_array_offset = offset;
+  offset += sizeof(NodeState *) * nodes.size();
+  init_buffer_info_.loaded_inputs_array_offset = offset;
+  offset += sizeof(std::atomic<uint8_t>) * graph_inputs_.size();
+  /* Align offset. */
+  offset = (offset + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
+
+  init_buffer_info_.node_states_offsets.reinitialize(graph_.nodes().size());
+  for (const int i : nodes.index_range()) {
+    const Node &node = *nodes[i];
+    init_buffer_info_.node_states_offsets[i] = offset;
+    offset += sizeof(NodeState);
+    offset += sizeof(InputState) * node.inputs().size();
+    offset += sizeof(OutputState) * node.outputs().size();
+    /* Make sure we don't have to worry about alignment. */
+    static_assert(sizeof(NodeState) % sizeof(void *) == 0);
+    static_assert(sizeof(InputState) % sizeof(void *) == 0);
+    static_assert(sizeof(OutputState) % sizeof(void *) == 0);
+  }
+
+  init_buffer_info_.total_size = offset;
 }
 
 void GraphExecutor::execute_impl(Params &params, const Context &context) const
