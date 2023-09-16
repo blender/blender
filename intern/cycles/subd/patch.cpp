@@ -25,8 +25,9 @@ static void decasteljau_cubic(float3 *P, float3 *dt, float t, const float3 cp[4]
   d1 += t * (d2 - d1);
 
   *P = d0 + t * (d1 - d0);
-  if (dt)
+  if (dt) {
     *dt = d1 - d0;
+  }
 }
 
 static void decasteljau_bicubic(
@@ -42,8 +43,9 @@ static void decasteljau_bicubic(
 
   /* interpolate over v */
   decasteljau_cubic(P, dv, v, ucp);
-  if (du)
+  if (du) {
     decasteljau_cubic(du, NULL, v, utn);
+  }
 }
 
 /* Linear Quad Patch */
@@ -70,8 +72,9 @@ BoundBox LinearQuadPatch::bound()
 {
   BoundBox bbox = BoundBox::empty;
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; i++) {
     bbox.grow(hull[i]);
+  }
 
   return bbox;
 }
@@ -100,8 +103,9 @@ BoundBox BicubicPatch::bound()
 {
   BoundBox bbox = BoundBox::empty;
 
-  for (int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; i++) {
     bbox.grow(hull[i]);
+  }
 
   return bbox;
 }

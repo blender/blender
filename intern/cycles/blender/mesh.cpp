@@ -648,10 +648,12 @@ static void attr_create_subd_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, 
 
       /* UV map */
       if (need_uv || need_tangent) {
-        if (active_render)
+        if (active_render) {
           uv_attr = mesh->subd_attributes.add(uv_std, uv_name);
-        else
+        }
+        else {
           uv_attr = mesh->subd_attributes.add(uv_name, TypeFloat2, ATTR_ELEMENT_CORNER);
+        }
 
         if (subdivide_uvs) {
           uv_attr->flags |= ATTR_SUBDIVIDED;
@@ -1344,7 +1346,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
                                      0.0f;
 
       /* Sync mesh itself. */
-      if (new_mesh.get_subdivision_type() != Mesh::SUBDIVISION_NONE)
+      if (new_mesh.get_subdivision_type() != Mesh::SUBDIVISION_NONE) {
         create_subd_mesh(scene,
                          &new_mesh,
                          b_ob_info,
@@ -1354,7 +1356,8 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
                          motion_scale,
                          dicing_rate,
                          max_subdivisions);
-      else
+      }
+      else {
         create_mesh(scene,
                     &new_mesh,
                     b_mesh,
@@ -1362,6 +1365,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
                     need_motion,
                     motion_scale,
                     false);
+      }
 
       free_object_to_mesh(b_data, b_ob_info, b_mesh);
     }
@@ -1434,8 +1438,9 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     /* Add new attributes if they don't exist already. */
     if (!attr_mP) {
       attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
-      if (attr_N)
+      if (attr_N) {
         attr_mN = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
+      }
 
       new_attribute = true;
     }
@@ -1471,8 +1476,9 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
           VLOG_DEBUG << "No actual deformation motion for object " << ob_name;
         }
         mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
-        if (attr_mN)
+        if (attr_mN) {
           mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_NORMAL);
+        }
       }
       else if (motion_step > 0) {
         VLOG_DEBUG << "Filling deformation motion for object " << ob_name;
@@ -1482,8 +1488,9 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
         float3 *N = (attr_N) ? attr_N->data_float3() : NULL;
         for (int step = 0; step < motion_step; step++) {
           memcpy(attr_mP->data_float3() + step * numverts, P, sizeof(float3) * numverts);
-          if (attr_mN)
+          if (attr_mN) {
             memcpy(attr_mN->data_float3() + step * numverts, N, sizeof(float3) * numverts);
+          }
         }
       }
     }

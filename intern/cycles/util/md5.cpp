@@ -120,8 +120,9 @@ void MD5Hash::process(const uint8_t *data /*[64]*/)
       int i;
 
       X = xbuf; /* (dynamic only) */
-      for (i = 0; i < 16; ++i, xp += 4)
+      for (i = 0; i < 16; ++i, xp += 4) {
         xbuf[i] = xp[0] + (xp[1] << 8) + (xp[2] << 16) + (xp[3] << 24);
+      }
     }
   }
 
@@ -258,34 +259,39 @@ void MD5Hash::append(const uint8_t *data, int nbytes)
   int offset = (count[0] >> 3) & 63;
   uint32_t nbits = (uint32_t)(nbytes << 3);
 
-  if (nbytes <= 0)
+  if (nbytes <= 0) {
     return;
+  }
 
   /* Update the message length. */
   count[1] += nbytes >> 29;
   count[0] += nbits;
-  if (count[0] < nbits)
+  if (count[0] < nbits) {
     count[1]++;
+  }
 
   /* Process an initial partial block. */
   if (offset) {
     int copy = (offset + nbytes > 64 ? 64 - offset : nbytes);
 
     memcpy(buf + offset, p, copy);
-    if (offset + copy < 64)
+    if (offset + copy < 64) {
       return;
+    }
     p += copy;
     left -= copy;
     process(buf);
   }
 
   /* Process full blocks. */
-  for (; left >= 64; p += 64, left -= 64)
+  for (; left >= 64; p += 64, left -= 64) {
     process(p);
+  }
 
   /* Process a final partial block. */
-  if (left)
+  if (left) {
     memcpy(buf, p, left);
+  }
 }
 
 void MD5Hash::append(const string &str)
@@ -331,16 +337,18 @@ void MD5Hash::finish(uint8_t digest[16])
   int i;
 
   /* Save the length before padding. */
-  for (i = 0; i < 8; ++i)
+  for (i = 0; i < 8; ++i) {
     data[i] = (uint8_t)(count[i >> 2] >> ((i & 3) << 3));
+  }
 
   /* Pad to 56 bytes mod 64. */
   append(pad, ((55 - (count[0] >> 3)) & 63) + 1);
   /* Append the length. */
   append(data, 8);
 
-  for (i = 0; i < 16; ++i)
+  for (i = 0; i < 16; ++i) {
     digest[i] = (uint8_t)(abcd[i >> 2] >> ((i & 3) << 3));
+  }
 }
 
 string MD5Hash::get_hex()

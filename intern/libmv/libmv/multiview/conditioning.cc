@@ -33,10 +33,12 @@ void PreconditionerFromPoints(const Mat& points, Mat3* T) {
 
   // If variance is equal to 0.0 set scaling factor to identity.
   // -> Else it will provide nan value (because division by 0).
-  if (variance(0) < 1e-8)
+  if (variance(0) < 1e-8) {
     xfactor = mean(0) = 1.0;
-  if (variance(1) < 1e-8)
+  }
+  if (variance(1) < 1e-8) {
     yfactor = mean(1) = 1.0;
+  }
 
   // clang-format off
   *T << xfactor, 0,       -xfactor * mean(0),

@@ -99,8 +99,9 @@ void ShaderNode::create_inputs_outputs(const NodeType *type)
 ShaderInput *ShaderNode::input(const char *name)
 {
   foreach (ShaderInput *socket, inputs) {
-    if (socket->name() == name)
+    if (socket->name() == name) {
       return socket;
+    }
   }
 
   return NULL;
@@ -109,8 +110,9 @@ ShaderInput *ShaderNode::input(const char *name)
 ShaderOutput *ShaderNode::output(const char *name)
 {
   foreach (ShaderOutput *socket, outputs)
-    if (socket->name() == name)
+    if (socket->name() == name) {
       return socket;
+    }
 
   return NULL;
 }
@@ -118,8 +120,9 @@ ShaderOutput *ShaderNode::output(const char *name)
 ShaderInput *ShaderNode::input(ustring name)
 {
   foreach (ShaderInput *socket, inputs) {
-    if (socket->name() == name)
+    if (socket->name() == name) {
       return socket;
+    }
   }
 
   return NULL;
@@ -128,8 +131,9 @@ ShaderInput *ShaderNode::input(ustring name)
 ShaderOutput *ShaderNode::output(ustring name)
 {
   foreach (ShaderOutput *socket, outputs)
-    if (socket->name() == name)
+    if (socket->name() == name) {
       return socket;
+    }
 
   return NULL;
 }
@@ -146,14 +150,17 @@ void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
   foreach (ShaderInput *input, inputs) {
     if (!input->link) {
       if (input->flags() & SocketType::LINK_TEXTURE_GENERATED) {
-        if (shader->has_surface_link())
+        if (shader->has_surface_link()) {
           attributes->add(ATTR_STD_GENERATED);
-        if (shader->has_volume)
+        }
+        if (shader->has_volume) {
           attributes->add(ATTR_STD_GENERATED_TRANSFORM);
+        }
       }
       else if (input->flags() & SocketType::LINK_TEXTURE_UV) {
-        if (shader->has_surface_link())
+        if (shader->has_surface_link()) {
           attributes->add(ATTR_STD_UV);
+        }
       }
     }
   }
@@ -322,8 +329,9 @@ void ShaderGraph::relink(ShaderOutput *from, ShaderOutput *to)
 
   foreach (ShaderInput *sock, outputs) {
     disconnect(sock);
-    if (to)
+    if (to) {
       connect(to, sock);
+    }
   }
 }
 
@@ -336,14 +344,16 @@ void ShaderGraph::relink(ShaderNode *node, ShaderOutput *from, ShaderOutput *to)
 
   /* Bypass node by moving all links from "from" to "to" */
   foreach (ShaderInput *sock, node->inputs) {
-    if (sock->link)
+    if (sock->link) {
       disconnect(sock);
+    }
   }
 
   foreach (ShaderInput *sock, outputs) {
     disconnect(sock);
-    if (to)
+    if (to) {
       connect(to, sock);
+    }
   }
 }
 
@@ -369,18 +379,21 @@ void ShaderGraph::finalize(Scene *scene, bool do_bump, bool bump_in_object_space
   if (!finalized) {
     simplify(scene);
 
-    if (do_bump)
+    if (do_bump) {
       bump_from_displacement(bump_in_object_space);
+    }
 
     ShaderInput *surface_in = output()->input("Surface");
     ShaderInput *volume_in = output()->input("Volume");
 
     /* todo: make this work when surface and volume closures are tangled up */
 
-    if (surface_in->link)
+    if (surface_in->link) {
       transform_multi_closure(surface_in->link->parent, NULL, false);
-    if (volume_in->link)
+    }
+    if (volume_in->link) {
       transform_multi_closure(volume_in->link->parent, NULL, true);
+    }
 
     finalized = true;
   }
@@ -479,14 +492,17 @@ void ShaderGraph::remove_proxy_nodes()
             vector<ShaderInput *> links = tonode->outputs[0]->links;
 
             foreach (ShaderInput *autoin, links) {
-              if (autoin->flags() & SocketType::DEFAULT_LINK_MASK)
+              if (autoin->flags() & SocketType::DEFAULT_LINK_MASK) {
                 disconnect(autoin);
-              else
+              }
+              else {
                 all_links_removed = false;
+              }
             }
 
-            if (all_links_removed)
+            if (all_links_removed) {
               removed[tonode->id] = true;
+            }
           }
 
           disconnect(to);
@@ -506,10 +522,12 @@ void ShaderGraph::remove_proxy_nodes()
     list<ShaderNode *> newnodes;
 
     foreach (ShaderNode *node, nodes) {
-      if (!removed[node->id])
+      if (!removed[node->id]) {
         newnodes.push_back(node);
-      else
+      }
+      else {
         delete_node(node);
+      }
     }
 
     nodes = newnodes;
@@ -805,10 +823,12 @@ void ShaderGraph::clean(Scene *scene)
   list<ShaderNode *> newnodes;
 
   foreach (ShaderNode *node, nodes) {
-    if (visited[node->id])
+    if (visited[node->id]) {
       newnodes.push_back(node);
-    else
+    }
+    else {
       delete_node(node);
+    }
   }
 
   nodes = newnodes;
@@ -834,44 +854,51 @@ void ShaderGraph::default_inputs(bool do_osl)
     foreach (ShaderInput *input, node->inputs) {
       if (!input->link && (!(input->flags() & SocketType::OSL_INTERNAL) || do_osl)) {
         if (input->flags() & SocketType::LINK_TEXTURE_GENERATED) {
-          if (!texco)
+          if (!texco) {
             texco = create_node<TextureCoordinateNode>();
+          }
 
           connect(texco->output("Generated"), input);
         }
         if (input->flags() & SocketType::LINK_TEXTURE_NORMAL) {
-          if (!texco)
+          if (!texco) {
             texco = create_node<TextureCoordinateNode>();
+          }
 
           connect(texco->output("Normal"), input);
         }
         else if (input->flags() & SocketType::LINK_TEXTURE_UV) {
-          if (!texco)
+          if (!texco) {
             texco = create_node<TextureCoordinateNode>();
+          }
 
           connect(texco->output("UV"), input);
         }
         else if (input->flags() & SocketType::LINK_INCOMING) {
-          if (!geom)
+          if (!geom) {
             geom = create_node<GeometryNode>();
+          }
 
           connect(geom->output("Incoming"), input);
         }
         else if (input->flags() & SocketType::LINK_NORMAL) {
-          if (!geom)
+          if (!geom) {
             geom = create_node<GeometryNode>();
+          }
 
           connect(geom->output("Normal"), input);
         }
         else if (input->flags() & SocketType::LINK_POSITION) {
-          if (!geom)
+          if (!geom) {
             geom = create_node<GeometryNode>();
+          }
 
           connect(geom->output("Position"), input);
         }
         else if (input->flags() & SocketType::LINK_TANGENT) {
-          if (!geom)
+          if (!geom) {
             geom = create_node<GeometryNode>();
+          }
 
           connect(geom->output("Tangent"), input);
         }
@@ -879,10 +906,12 @@ void ShaderGraph::default_inputs(bool do_osl)
     }
   }
 
-  if (geom)
+  if (geom) {
     add(geom);
-  if (texco)
+  }
+  if (texco) {
     add(texco);
+  }
 }
 
 void ShaderGraph::refine_bump_nodes()
@@ -957,8 +986,9 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
 
   ShaderInput *displacement_in = output()->input("Displacement");
 
-  if (!displacement_in->link)
+  if (!displacement_in->link) {
     return;
+  }
 
   /* find dependencies for the given input */
   ShaderNodeSet nodes_displace;
@@ -1056,13 +1086,16 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
       ShaderInput *fac_in = mix_node->input("Fac");
       ShaderInput *weight_in = mix_node->input("Weight");
 
-      if (fin->link)
+      if (fin->link) {
         connect(fin->link, fac_in);
-      else
+      }
+      else {
         mix_node->set_fac(node->get_float(fin->socket_type));
+      }
 
-      if (weight_out)
+      if (weight_out) {
         connect(weight_out, weight_in);
+      }
 
       weight1_out = mix_node->output("Weight1");
       weight2_out = mix_node->output("Weight2");
@@ -1073,17 +1106,20 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
       weight2_out = weight_out;
     }
 
-    if (cl1in->link)
+    if (cl1in->link) {
       transform_multi_closure(cl1in->link->parent, weight1_out, volume);
-    if (cl2in->link)
+    }
+    if (cl2in->link) {
       transform_multi_closure(cl2in->link->parent, weight2_out, volume);
+    }
   }
   else {
     ShaderInput *weight_in = node->input((volume) ? "VolumeMixWeight" : "SurfaceMixWeight");
 
     /* not a closure node? */
-    if (!weight_in)
+    if (!weight_in) {
       return;
+    }
 
     /* already has a weight connected to it? add weights */
     float weight_value = node->get_float(weight_in->socket_type);
@@ -1091,26 +1127,33 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
       MathNode *math_node = create_node<MathNode>();
       add(math_node);
 
-      if (weight_in->link)
+      if (weight_in->link) {
         connect(weight_in->link, math_node->input("Value1"));
-      else
+      }
+      else {
         math_node->set_value1(weight_value);
+      }
 
-      if (weight_out)
+      if (weight_out) {
         connect(weight_out, math_node->input("Value2"));
-      else
+      }
+      else {
         math_node->set_value2(1.0f);
+      }
 
       weight_out = math_node->output("Value");
-      if (weight_in->link)
+      if (weight_in->link) {
         disconnect(weight_in);
+      }
     }
 
     /* connected to closure mix weight */
-    if (weight_out)
+    if (weight_out) {
       connect(weight_out, weight_in);
-    else
+    }
+    else {
       node->set(weight_in->socket_type, weight_value + 1.0f);
+    }
   }
 }
 

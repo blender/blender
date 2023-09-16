@@ -33,10 +33,12 @@ static float shaperadius(float shape, float root, float tip, float time)
   float radius = 1.0f - time;
 
   if (shape != 0.0f) {
-    if (shape < 0.0f)
+    if (shape < 0.0f) {
       radius = powf(radius, 1.0f + shape);
-    else
+    }
+    else {
       radius = powf(radius, 1.0f / (1.0f - shape));
+    }
   }
   return (radius * (root - tip)) + tip;
 }
@@ -49,8 +51,9 @@ static bool ObtainCacheParticleData(
   int curvenum = 0;
   int keyno = 0;
 
-  if (!(hair && b_mesh && b_ob && CData))
+  if (!(hair && b_mesh && b_ob && CData)) {
     return false;
+  }
 
   Transform tfm = get_transform(b_ob->matrix_world());
   Transform itfm = transform_inverse(tfm);
@@ -147,8 +150,9 @@ static bool ObtainCacheParticleUV(Hair *hair,
                                   bool background,
                                   int uv_num)
 {
-  if (!(hair && b_mesh && b_ob && CData))
+  if (!(hair && b_mesh && b_ob && CData)) {
     return false;
+  }
 
   CData->curve_uv.clear();
 
@@ -211,8 +215,9 @@ static bool ObtainCacheParticleVcol(Hair *hair,
                                     bool background,
                                     int vcol_num)
 {
-  if (!(hair && b_mesh && b_ob && CData))
+  if (!(hair && b_mesh && b_ob && CData)) {
     return false;
+  }
 
   CData->curve_vcol.clear();
 
@@ -273,22 +278,27 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
   int num_keys = 0;
   int num_curves = 0;
 
-  if (hair->num_curves())
+  if (hair->num_curves()) {
     return;
+  }
 
   Attribute *attr_normal = NULL;
   Attribute *attr_intercept = NULL;
   Attribute *attr_length = NULL;
   Attribute *attr_random = NULL;
 
-  if (hair->need_attribute(scene, ATTR_STD_VERTEX_NORMAL))
+  if (hair->need_attribute(scene, ATTR_STD_VERTEX_NORMAL)) {
     attr_normal = hair->attributes.add(ATTR_STD_VERTEX_NORMAL);
-  if (hair->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT))
+  }
+  if (hair->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT)) {
     attr_intercept = hair->attributes.add(ATTR_STD_CURVE_INTERCEPT);
-  if (hair->need_attribute(scene, ATTR_STD_CURVE_LENGTH))
+  }
+  if (hair->need_attribute(scene, ATTR_STD_CURVE_LENGTH)) {
     attr_length = hair->attributes.add(ATTR_STD_CURVE_LENGTH);
-  if (hair->need_attribute(scene, ATTR_STD_CURVE_RANDOM))
+  }
+  if (hair->need_attribute(scene, ATTR_STD_CURVE_RANDOM)) {
     attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM);
+  }
 
   /* compute and reserve size of arrays */
   for (int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
@@ -330,8 +340,9 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
           radius = 0.0f;
         }
         hair->add_curve_key(ickey_loc, radius);
-        if (attr_intercept)
+        if (attr_intercept) {
           attr_intercept->add(time);
+        }
 
         if (attr_normal) {
           /* NOTE: the geometry normals are not computed for legacy particle hairs. This hair
@@ -374,7 +385,9 @@ static float4 CurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve,
 
   if (CData->psys_closetip[sys] &&
       (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
+  {
     radius = 0.0f;
+  }
 
   /* curve motion keys store both position and radius in float4 */
   float4 mP = float3_to_float4(ickey_loc);
@@ -476,8 +489,9 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, int 
                * space, so we use an epsilon to detect actual changes */
               float4 curve_key = float3_to_float4(hair->get_curve_keys()[i]);
               curve_key.w = hair->get_curve_radius()[i];
-              if (len_squared(mP[i] - curve_key) > 1e-5f * 1e-5f)
+              if (len_squared(mP[i] - curve_key) > 1e-5f * 1e-5f) {
                 have_motion = true;
+              }
             }
           }
           i++;
@@ -550,10 +564,12 @@ void BlenderSync::sync_particle_hair(
   ObtainCacheParticleData(hair, &b_mesh, &b_ob, &CData, !preview);
 
   /* add hair geometry */
-  if (motion)
+  if (motion) {
     ExportCurveSegmentsMotion(hair, &CData, motion_step);
-  else
+  }
+  else {
     ExportCurveSegments(scene, hair, &CData);
+  }
 
   /* generated coordinates from first key. we should ideally get this from
    * blender to handle deforming objects */
@@ -578,8 +594,9 @@ void BlenderSync::sync_particle_hair(
     int vcol_num = 0;
 
     for (b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l, vcol_num++) {
-      if (!hair->need_attribute(scene, ustring(l->name().c_str())))
+      if (!hair->need_attribute(scene, ustring(l->name().c_str()))) {
         continue;
+      }
 
       ObtainCacheParticleVcol(hair, &b_mesh, &b_ob, &CData, !preview, vcol_num);
 
@@ -615,10 +632,12 @@ void BlenderSync::sync_particle_hair(
 
         ObtainCacheParticleUV(hair, &b_mesh, &b_ob, &CData, !preview, uv_num);
 
-        if (active_render)
+        if (active_render) {
           attr_uv = hair->attributes.add(std, name);
-        else
+        }
+        else {
           attr_uv = hair->attributes.add(name, TypeFloat2, ATTR_ELEMENT_CURVE);
+        }
 
         float2 *uv = attr_uv->data_float2();
 

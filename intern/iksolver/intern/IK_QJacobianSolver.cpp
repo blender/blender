@@ -23,13 +23,16 @@ double IK_QJacobianSolver::ComputeScale()
   std::vector<IK_QSegment *>::iterator seg;
   double length = 0.0f;
 
-  for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
+  for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
     length += (*seg)->MaxExtension();
+  }
 
-  if (length == 0.0)
+  if (length == 0.0) {
     return 1.0;
-  else
+  }
+  else {
     return 1.0 / length;
+  }
 }
 
 void IK_QJacobianSolver::Scale(double scale, std::list<IK_QTask *> &tasks)
@@ -37,11 +40,13 @@ void IK_QJacobianSolver::Scale(double scale, std::list<IK_QTask *> &tasks)
   std::list<IK_QTask *>::iterator task;
   std::vector<IK_QSegment *>::iterator seg;
 
-  for (task = tasks.begin(); task != tasks.end(); task++)
+  for (task = tasks.begin(); task != tasks.end(); task++) {
     (*task)->Scale(scale);
+  }
 
-  for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
+  for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
     (*seg)->Scale(scale);
+  }
 
   m_rootmatrix.translation() *= scale;
   m_goal *= scale;
@@ -53,8 +58,9 @@ void IK_QJacobianSolver::AddSegmentList(IK_QSegment *seg)
   m_segments.push_back(seg);
 
   IK_QSegment *child;
-  for (child = seg->Child(); child; child = child->Sibling())
+  for (child = seg->Child(); child; child = child->Sibling()) {
     AddSegmentList(child);
+  }
 }
 
 bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *> &tasks)
@@ -71,8 +77,9 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *> &tasks)
     num_dof += (*seg)->NumberOfDoF();
   }
 
-  if (num_dof == 0)
+  if (num_dof == 0) {
     return false;
+  }
 
   // compute task ids and assign weights to task
   int primary_size = 0;
@@ -96,39 +103,47 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *> &tasks)
     }
   }
 
-  if (primary_size == 0 || FuzzyZero(primary_weight))
+  if (primary_size == 0 || FuzzyZero(primary_weight)) {
     return false;
+  }
 
   m_secondary_enabled = (secondary > 0);
 
   // rescale weights of tasks to sum up to 1
   double primary_rescale = 1.0 / primary_weight;
   double secondary_rescale;
-  if (FuzzyZero(secondary_weight))
+  if (FuzzyZero(secondary_weight)) {
     secondary_rescale = 0.0;
-  else
+  }
+  else {
     secondary_rescale = 1.0 / secondary_weight;
+  }
 
   for (task = tasks.begin(); task != tasks.end(); task++) {
     IK_QTask *qtask = *task;
 
-    if (qtask->Primary())
+    if (qtask->Primary()) {
       qtask->SetWeight(qtask->Weight() * primary_rescale);
-    else
+    }
+    else {
       qtask->SetWeight(qtask->Weight() * secondary_rescale);
+    }
   }
 
   // set matrix sizes
   m_jacobian.ArmMatrices(num_dof, primary_size);
-  if (secondary > 0)
+  if (secondary > 0) {
     m_jacobian_sub.ArmMatrices(num_dof, secondary_size);
+  }
 
   // set dof weights
   int i;
 
-  for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
-    for (i = 0; i < (*seg)->NumberOfDoF(); i++)
+  for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
+    for (i = 0; i < (*seg)->NumberOfDoF(); i++) {
       m_jacobian.SetDoFWeight((*seg)->DoFId() + i, (*seg)->Weight(i));
+    }
+  }
 
   return true;
 }
@@ -150,16 +165,19 @@ void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTa
   // solving gives predictable solutions by rotating towards the solution,
   // and calling it afterwards ensures the solution is exact.
 
-  if (!m_poleconstraint)
+  if (!m_poleconstraint) {
     return;
+  }
 
   // disable pole vector constraint in case of multiple position tasks
   std::list<IK_QTask *>::iterator task;
   int positiontasks = 0;
 
-  for (task = tasks.begin(); task != tasks.end(); task++)
-    if ((*task)->PositionTask())
+  for (task = tasks.begin(); task != tasks.end(); task++) {
+    if ((*task)->PositionTask()) {
       positiontasks++;
+    }
+  }
 
   if (positiontasks >= 2) {
     m_poleconstraint = false;
@@ -200,8 +218,9 @@ void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTa
     m_poleangle = angle(mat.row(1), polemat.row(1));
 
     double dt = rootz.dot(mat.row(1) * cos(m_poleangle) + mat.row(0) * sin(m_poleangle));
-    if (dt > 0.0)
+    if (dt > 0.0) {
       m_poleangle = -m_poleangle;
+    }
 
     // solve again, with the pole angle we just computed
     m_getpoleangle = false;
@@ -259,16 +278,18 @@ bool IK_QJacobianSolver::UpdateAngles(double &norm)
     minseg->Lock(mindof, m_jacobian, mindelta);
     locked = true;
 
-    if (minabsdelta > norm)
+    if (minabsdelta > norm) {
       norm = minabsdelta;
+    }
   }
 
-  if (locked == false)
+  if (locked == false) {
     // no locking done, last inner iteration, apply the angles
     for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
       (*seg)->UnLock();
       (*seg)->UpdateAngleApply();
     }
+  }
 
   // signal if another inner iteration is needed
   return locked;
@@ -298,10 +319,12 @@ bool IK_QJacobianSolver::Solve(IK_QSegment *root,
 
     // compute jacobian
     for (task = tasks.begin(); task != tasks.end(); task++) {
-      if ((*task)->Primary())
+      if ((*task)->Primary()) {
         (*task)->ComputeJacobian(m_jacobian);
-      else
+      }
+      else {
         (*task)->ComputeJacobian(m_jacobian_sub);
+      }
     }
 
     double norm = 0.0;
@@ -310,8 +333,9 @@ bool IK_QJacobianSolver::Solve(IK_QSegment *root,
       // invert jacobian
       try {
         m_jacobian.Invert();
-        if (m_secondary_enabled)
+        if (m_secondary_enabled) {
           m_jacobian.SubTask(m_jacobian_sub);
+        }
       }
       catch (...) {
         fprintf(stderr, "IK Exception\n");
@@ -323,13 +347,15 @@ bool IK_QJacobianSolver::Solve(IK_QSegment *root,
 
     // unlock segments again after locking in clamping loop
     std::vector<IK_QSegment *>::iterator seg;
-    for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
+    for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
       (*seg)->UnLock();
+    }
 
     // compute angle update norm
     double maxnorm = m_jacobian.AngleUpdateNorm();
-    if (maxnorm > norm)
+    if (maxnorm > norm) {
       norm = maxnorm;
+    }
 
     // check for convergence
     if (norm < 1e-3 && iterations > 10) {
@@ -338,8 +364,9 @@ bool IK_QJacobianSolver::Solve(IK_QSegment *root,
     }
   }
 
-  if (m_poleconstraint)
+  if (m_poleconstraint) {
     root->PrependBasis(m_rootmatrix.linear());
+  }
 
   Scale(1.0f / scale, tasks);
 
