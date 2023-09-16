@@ -15,11 +15,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct ChiangHairExtra {
-  /* Geometry data. */
-  float4 geom;
-} ChiangHairExtra;
-
 typedef struct ChiangHairBSDF {
   SHADER_CLOSURE_BASE;
 
@@ -36,12 +31,11 @@ typedef struct ChiangHairBSDF {
   /* Effective variance for the diffuse bounce only. */
   float m0_roughness;
 
-  /* Extra closure. */
-  ccl_private ChiangHairExtra *extra;
+  /* Azimuthal offset. */
+  float h;
 } ChiangHairBSDF;
 
 static_assert(sizeof(ShaderClosure) >= sizeof(ChiangHairBSDF), "ChiangHairBSDF is too large!");
-static_assert(sizeof(ShaderClosure) >= sizeof(ChiangHairExtra), "ChiangHairExtra is too large!");
 
 /* Gives the change in direction in the normal plane for the given angles and p-th-order
  * scattering. */
@@ -184,13 +178,13 @@ ccl_device int bsdf_hair_chiang_setup(ccl_private ShaderData *sd, ccl_private Ch
 
   /* TODO: we convert this value to a cosine later and discard the sign, so
    * we could probably save some operations. */
-  float h = (sd->type & PRIMITIVE_CURVE_RIBBON) ? -sd->v : dot(cross(sd->Ng, X), Z);
+  bsdf->h = (sd->type & PRIMITIVE_CURVE_RIBBON) ? -sd->v : dot(cross(sd->Ng, X), Z);
 
-  kernel_assert(fabsf(h) < 1.0f + 1e-4f);
+  kernel_assert(fabsf(bsdf->h) < 1.0f + 1e-4f);
   kernel_assert(isfinite_safe(Y));
   kernel_assert(isfinite_safe(h));
 
-  bsdf->extra->geom = make_float4(Y.x, Y.y, Y.z, h);
+  bsdf->N = Y;
 
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG | SD_BSDF_HAS_TRANSMISSION;
 }
@@ -261,7 +255,7 @@ ccl_device Spectrum bsdf_hair_chiang_eval(KernelGlobals kg,
   kernel_assert(isfinite_safe(sd->P) && isfinite_safe(sd->ray_length));
 
   ccl_private const ChiangHairBSDF *bsdf = (ccl_private const ChiangHairBSDF *)sc;
-  const float3 Y = float4_to_float3(bsdf->extra->geom);
+  const float3 Y = bsdf->N;
 
   const float3 X = safe_normalize(sd->dPdu);
   kernel_assert(fabsf(dot(X, Y)) < 1e-3f);
@@ -278,7 +272,7 @@ ccl_device Spectrum bsdf_hair_chiang_eval(KernelGlobals kg,
   const float sin_theta_t = sin_theta_o / bsdf->eta;
   const float cos_theta_t = cos_from_sin(sin_theta_t);
 
-  const float sin_gamma_o = bsdf->extra->geom.w;
+  const float sin_gamma_o = bsdf->h;
   const float cos_gamma_o = cos_from_sin(sin_gamma_o);
   const float gamma_o = safe_asinf(sin_gamma_o);
 
@@ -349,7 +343,7 @@ ccl_device int bsdf_hair_chiang_sample(KernelGlobals kg,
   *sampled_roughness = make_float2(bsdf->m0_roughness, bsdf->m0_roughness);
   *eta = bsdf->eta;
 
-  const float3 Y = float4_to_float3(bsdf->extra->geom);
+  const float3 Y = bsdf->N;
 
   const float3 X = safe_normalize(sd->dPdu);
   kernel_assert(fabsf(dot(X, Y)) < 1e-3f);
@@ -364,7 +358,7 @@ ccl_device int bsdf_hair_chiang_sample(KernelGlobals kg,
   const float sin_theta_t = sin_theta_o / bsdf->eta;
   const float cos_theta_t = cos_from_sin(sin_theta_t);
 
-  const float sin_gamma_o = bsdf->extra->geom.w;
+  const float sin_gamma_o = bsdf->h;
   const float cos_gamma_o = cos_from_sin(sin_gamma_o);
   const float gamma_o = safe_asinf(sin_gamma_o);
 
@@ -472,7 +466,7 @@ ccl_device Spectrum bsdf_hair_chiang_albedo(ccl_private const ShaderData *sd,
   ccl_private ChiangHairBSDF *bsdf = (ccl_private ChiangHairBSDF *)sc;
 
   const float cos_theta_o = cos_from_sin(dot(sd->wi, safe_normalize(sd->dPdu)));
-  const float cos_gamma_o = cos_from_sin(bsdf->extra->geom.w);
+  const float cos_gamma_o = cos_from_sin(bsdf->h);
   const float f = fresnel_dielectric_cos(cos_theta_o * cos_gamma_o, bsdf->eta);
 
   const float roughness_scale = bsdf_principled_hair_albedo_roughness_scale(bsdf->v);

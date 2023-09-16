@@ -858,12 +858,6 @@ ccl_device void osl_closure_hair_chiang_setup(KernelGlobals kg,
     return;
   }
 
-  ccl_private ChiangHairExtra *extra = (ccl_private ChiangHairExtra *)closure_alloc_extra(
-      sd, sizeof(ChiangHairExtra));
-  if (!extra) {
-    return;
-  }
-
   bsdf->N = ensure_valid_specular_reflection(sd->Ng, sd->wi, closure->N);
   bsdf->sigma = closure->sigma;
   bsdf->v = closure->v;
@@ -871,8 +865,6 @@ ccl_device void osl_closure_hair_chiang_setup(KernelGlobals kg,
   bsdf->alpha = closure->alpha;
   bsdf->eta = closure->eta;
   bsdf->m0_roughness = closure->m0_roughness;
-
-  bsdf->extra = extra;
 
   sd->flag |= bsdf_hair_chiang_setup(sd, bsdf);
 #endif
