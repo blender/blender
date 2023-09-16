@@ -1774,17 +1774,24 @@ void UI_but_func_tooltip_custom_set(uiBut *but,
                                     void *arg,
                                     uiFreeArgFunc free_arg);
 
+/**
+ * \param text: Allocated text (transfer ownership to `data`) or null.
+ * \param suffix: Allocated text (transfer ownership to `data`) or null.
+ */
 void UI_tooltip_text_field_add(struct uiTooltipData *data,
                                char *text,
                                char *suffix,
                                const uiTooltipStyle style,
                                const uiTooltipColorID color_id,
-                               const bool is_pad = false);
+                               const bool is_pad = false) ATTR_NONNULL(1);
 
+/**
+ * \param image: Image buffer (duplicated, ownership is *not* transferred to `data`).
+ * \param image_size: Display size for the image (pixels )
+ */
 void UI_tooltip_image_field_add(struct uiTooltipData *data,
-                                struct ImBuf *image,
-                                short width,
-                                short height);
+                                const struct ImBuf *image,
+                                const short image_size[2]) ATTR_NONNULL(1, 2, 3);
 
 /**
  * Recreate tool-tip (use to update dynamic tips)
