@@ -388,6 +388,7 @@ class Executor {
       if (self_.side_effect_provider_ != nullptr) {
         side_effect_nodes = self_.side_effect_provider_->get_nodes_with_side_effects(context);
         for (const FunctionNode *node : side_effect_nodes) {
+          BLI_assert(self_.graph_.nodes().contains(node));
           const int node_index = node->index_in_graph();
           NodeState &node_state = *node_states_[node_index];
           node_state.has_side_effects = true;
