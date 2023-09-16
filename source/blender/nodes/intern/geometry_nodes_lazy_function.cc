@@ -1008,7 +1008,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
                             std::move(graph_inputs),
                             std::move(graph_outputs),
                             &*lf_logger_,
-                            &*lf_side_effect_provider_);
+                            &*lf_side_effect_provider_,
+                            nullptr);
   }
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
@@ -2020,7 +2021,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     auto &side_effect_provider = scope_.construct<GeometryNodesLazyFunctionSideEffectProvider>();
 
     const auto &lf_graph_fn = scope_.construct<lf::GraphExecutor>(
-        lf_graph, lf_zone_inputs, lf_zone_outputs, &logger, &side_effect_provider);
+        lf_graph, lf_zone_inputs, lf_zone_outputs, &logger, &side_effect_provider, nullptr);
     const auto &zone_function = scope_.construct<LazyFunctionForSimulationZone>(*zone.output_node,
                                                                                 lf_graph_fn);
     zone_info.lazy_function = &zone_function;
@@ -2158,7 +2159,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     auto &logger = scope_.construct<GeometryNodesLazyFunctionLogger>(*lf_graph_info_);
     auto &side_effect_provider = scope_.construct<GeometryNodesLazyFunctionSideEffectProvider>();
     body_fn.function = &scope_.construct<lf::GraphExecutor>(
-        lf_body_graph, lf_body_inputs, lf_body_outputs, &logger, &side_effect_provider);
+        lf_body_graph, lf_body_inputs, lf_body_outputs, &logger, &side_effect_provider, nullptr);
 
     // std::cout << "\n\n" << lf_body_graph.to_dot() << "\n\n";
 

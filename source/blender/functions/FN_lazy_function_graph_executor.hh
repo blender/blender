@@ -56,10 +56,29 @@ class GraphExecutorSideEffectProvider {
   virtual Vector<const FunctionNode *> get_nodes_with_side_effects(const Context &context) const;
 };
 
+/**
+ * Can be used to pass extra context into the execution of a function. The main alternative to this
+ * is to create a wrapper `LazyFunction` for the `FunctionNode`s. Using this light weight wrapper
+ * is preferable if possible.
+ */
+class GraphExecutorNodeExecuteWrapper {
+ public:
+  virtual ~GraphExecutorNodeExecuteWrapper() = default;
+
+  /**
+   * Is expected to run `node.function().execute(params, context)` but might do some extra work,
+   * like adjusting the context.
+   */
+  virtual void execute_node(const FunctionNode &node,
+                            Params &params,
+                            const Context &context) const = 0;
+};
+
 class GraphExecutor : public LazyFunction {
  public:
   using Logger = GraphExecutorLogger;
   using SideEffectProvider = GraphExecutorSideEffectProvider;
+  using NodeExecuteWrapper = GraphExecutorNodeExecuteWrapper;
 
  private:
   /**
@@ -80,6 +99,10 @@ class GraphExecutor : public LazyFunction {
    * during evaluation.
    */
   const SideEffectProvider *side_effect_provider_;
+  /**
+   * Optional wrapper for node execution functions.
+   */
+  const NodeExecuteWrapper *node_execute_wrapper_;
 
   /**
    * When a graph is executed, various things have to be allocated (e.g. the state of all nodes).
@@ -100,7 +123,8 @@ class GraphExecutor : public LazyFunction {
                 Span<const OutputSocket *> graph_inputs,
                 Span<const InputSocket *> graph_outputs,
                 const Logger *logger,
-                const SideEffectProvider *side_effect_provider);
+                const SideEffectProvider *side_effect_provider,
+                const NodeExecuteWrapper *node_execute_wrapper);
 
   void *init_storage(LinearAllocator<> &allocator) const override;
   void destruct_storage(void *storage) const override;

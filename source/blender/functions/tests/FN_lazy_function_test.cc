@@ -108,7 +108,8 @@ TEST(lazy_function, SideEffects)
 
   SimpleSideEffectProvider side_effect_provider{{&store_node}};
 
-  GraphExecutor executor_fn{graph, {&input_node.output(0)}, {}, nullptr, &side_effect_provider};
+  GraphExecutor executor_fn{
+      graph, {&input_node.output(0)}, {}, nullptr, &side_effect_provider, nullptr};
   execute_lazy_function_eagerly(
       executor_fn, nullptr, nullptr, std::make_tuple(5), std::make_tuple());
 
@@ -172,7 +173,7 @@ TEST(lazy_function, GraphWithCycle)
   graph.update_node_indices();
 
   GraphExecutor executor_fn{
-      graph, {&input_node.output(0)}, {&output_node.input(0)}, nullptr, nullptr};
+      graph, {&input_node.output(0)}, {&output_node.input(0)}, nullptr, nullptr, nullptr};
   int result = 0;
   execute_lazy_function_eagerly(
       executor_fn, nullptr, nullptr, std::make_tuple(10), std::make_tuple(&result));

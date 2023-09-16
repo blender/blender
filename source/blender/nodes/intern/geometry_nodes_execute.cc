@@ -586,8 +586,12 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
   nodes::GeometryNodesLazyFunctionLogger lf_logger(lf_graph_info);
   nodes::GeometryNodesLazyFunctionSideEffectProvider lf_side_effect_provider;
 
-  lf::GraphExecutor graph_executor{
-      lf_graph_info.graph, graph_inputs, graph_outputs, &lf_logger, &lf_side_effect_provider};
+  lf::GraphExecutor graph_executor{lf_graph_info.graph,
+                                   graph_inputs,
+                                   graph_outputs,
+                                   &lf_logger,
+                                   &lf_side_effect_provider,
+                                   nullptr};
 
   nodes::GeoNodesLFUserData user_data;
   fill_user_data(user_data);

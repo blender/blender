@@ -1412,7 +1412,12 @@ inline void Executor::execute_node(const FunctionNode &node,
   };
 
   lazy_threading::HintReceiver blocking_hint_receiver{blocking_hint_fn};
-  fn.execute(node_params, fn_context);
+  if (self_.node_execute_wrapper_) {
+    self_.node_execute_wrapper_->execute_node(node, node_params, fn_context);
+  }
+  else {
+    fn.execute(node_params, fn_context);
+  }
 
   if (self_.logger_ != nullptr) {
     self_.logger_->log_after_node_execute(node, node_params, fn_context);
@@ -1423,12 +1428,14 @@ GraphExecutor::GraphExecutor(const Graph &graph,
                              const Span<const OutputSocket *> graph_inputs,
                              const Span<const InputSocket *> graph_outputs,
                              const Logger *logger,
-                             const SideEffectProvider *side_effect_provider)
+                             const SideEffectProvider *side_effect_provider,
+                             const NodeExecuteWrapper *node_execute_wrapper)
     : graph_(graph),
       graph_inputs_(graph_inputs),
       graph_outputs_(graph_outputs),
       logger_(logger),
-      side_effect_provider_(side_effect_provider)
+      side_effect_provider_(side_effect_provider),
+      node_execute_wrapper_(node_execute_wrapper)
 {
   /* The graph executor can handle partial execution when there are still missing inputs. */
   allow_missing_requested_inputs_ = true;
