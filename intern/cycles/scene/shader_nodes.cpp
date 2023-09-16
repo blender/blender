@@ -2708,6 +2708,7 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(specular, "Specular", 0.0f);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
   SOCKET_IN_FLOAT(specular_tint, "Specular Tint", 0.0f);
+  SOCKET_IN_COLOR(metallic_tint, "Metallic Tint", one_float3());
   SOCKET_IN_FLOAT(anisotropic, "Anisotropic", 0.0f);
   SOCKET_IN_FLOAT(sheen, "Sheen", 0.0f);
   SOCKET_IN_FLOAT(sheen_roughness, "Sheen Roughness", 0.5f);
@@ -2806,6 +2807,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
   int specular_offset = compiler.stack_assign(input("Specular"));
   int roughness_offset = compiler.stack_assign(input("Roughness"));
   int specular_tint_offset = compiler.stack_assign(input("Specular Tint"));
+  int metallic_tint_offset = compiler.stack_assign(input("Metallic Tint"));
   int anisotropic_offset = compiler.stack_assign(input("Anisotropic"));
   int sheen_offset = compiler.stack_assign(input("Sheen"));
   int sheen_roughness_offset = compiler.stack_assign(input("Sheen Roughness"));
@@ -2839,7 +2841,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
       compiler.encode_uchar4(
           specular_offset, roughness_offset, specular_tint_offset, anisotropic_offset),
       compiler.encode_uchar4(
-          sheen_offset, sheen_tint_offset, sheen_roughness_offset, SVM_STACK_INVALID));
+          sheen_offset, sheen_tint_offset, sheen_roughness_offset, metallic_tint_offset));
 
   compiler.add_node(
       compiler.encode_uchar4(

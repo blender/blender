@@ -26,6 +26,7 @@ enum MicrofacetFresnel {
   DIELECTRIC_TINT, /* used by the OSL MaterialX closures */
   CONDUCTOR,
   GENERALIZED_SCHLICK,
+  F82_TINT,
 };
 
 typedef struct FresnelDielectricTint {
@@ -45,6 +46,13 @@ typedef struct FresnelGeneralizedSchlick {
   /* Negative exponent signals a special case where the real Fresnel is remapped to F0...F90. */
   float exponent;
 } FresnelGeneralizedSchlick;
+
+typedef struct FresnelF82Tint {
+  /* Perpendicular reflectivity. */
+  Spectrum f0;
+  /* Precomputed (1-cos)^6 factor for edge tint. */
+  Spectrum b;
+} FresnelF82Tint;
 
 typedef struct MicrofacetBsdf {
   SHADER_CLOSURE_BASE;
@@ -236,6 +244,17 @@ ccl_device_forceinline void microfacet_fresnel(ccl_private const MicrofacetBsdf 
     *r_reflectance = fresnel_conductor(cos_theta_i, fresnel->n, fresnel->k);
     *r_transmittance = zero_spectrum();
   }
+  else if (bsdf->fresnel_type == MicrofacetFresnel::F82_TINT) {
+    /* F82-Tint model, described in "Novel aspects of the Adobe Standard Material" by Kutz et al.
+     * Essentially, this is the usual Schlick Fresnel with an additional cosI*(1-cosI)^6
+     * term which modulates the reflectivity around acos(1/7) degrees (ca. 82°). */
+    ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)bsdf->fresnel;
+    const float mu = saturatef(1.0f - cos_theta_i);
+    const float mu5 = sqr(sqr(mu)) * mu;
+    const Spectrum F_schlick = mix(fresnel->f0, one_spectrum(), mu5);
+    *r_reflectance = saturate(F_schlick - fresnel->b * cos_theta_i * mu5 * mu);
+    *r_transmittance = zero_spectrum();
+  }
   else if (bsdf->fresnel_type == MicrofacetFresnel::GENERALIZED_SCHLICK) {
     ccl_private FresnelGeneralizedSchlick *fresnel = (ccl_private FresnelGeneralizedSchlick *)
                                                          bsdf->fresnel;
@@ -378,6 +397,14 @@ ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
           kg, rough, cos_NI, z, kernel_data.tables.ggx_gen_schlick_s, 16, 16, 16);
     }
     reflectance = mix(fresnel->f0, fresnel->f90, s) * fresnel->reflection_tint;
+  }
+  else if (bsdf->fresnel_type == MicrofacetFresnel::F82_TINT) {
+    ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)bsdf->fresnel;
+    float rough = sqrtf(sqrtf(bsdf->alpha_x * bsdf->alpha_y));
+    const float s = lookup_table_read_3D(
+        kg, rough, cos_NI, 0.5f, kernel_data.tables.ggx_gen_schlick_s, 16, 16, 16);
+    /* TODO: Precompute B factor term and account for it here. */
+    reflectance = mix(fresnel->f0, one_spectrum(), s);
   }
 
   return reflectance + transmittance;
@@ -738,6 +765,7 @@ ccl_device void bsdf_microfacet_setup_fresnel_generalized_schlick(
     ccl_private FresnelGeneralizedSchlick *fresnel,
     const bool preserve_energy)
 {
+  fresnel->f0 = saturate(fresnel->f0);
   bsdf->fresnel_type = MicrofacetFresnel::GENERALIZED_SCHLICK;
   bsdf->fresnel = fresnel;
   bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd, bsdf, true, true));
@@ -776,6 +804,40 @@ ccl_device void bsdf_microfacet_setup_fresnel_generalized_schlick(
       Fss = fresnel->transmission_tint;
     }
 
+    microfacet_ggx_preserve_energy(kg, bsdf, sd, Fss);
+  }
+}
+
+ccl_device void bsdf_microfacet_setup_fresnel_f82_tint(KernelGlobals kg,
+                                                       ccl_private MicrofacetBsdf *bsdf,
+                                                       ccl_private const ShaderData *sd,
+                                                       ccl_private FresnelF82Tint *fresnel,
+                                                       const Spectrum f82_tint,
+                                                       const bool preserve_energy)
+{
+  if (isequal(f82_tint, one_spectrum())) {
+    fresnel->b = zero_spectrum();
+  }
+  else {
+    /* Precompute the F82 term factor for the Fresnel model.
+     * In the classic F82 model, the F82 input directly determines the value of the Fresnel
+     * model at ~82°, similar to F0 and F90.
+     * With F82-Tint, on the other hand, the value at 82° is the value of the classic Schlick
+     * model multiplied by the tint input.
+     * Therefore, the factor follows by setting F82Tint(cosI) = FSchlick(cosI) - b*cosI*(1-cosI)^6
+     * and F82Tint(acos(1/7)) = FSchlick(acos(1/7)) * f82_tint and solving for b. */
+    const float f = 6.0f / 7.0f;
+    const float f5 = sqr(sqr(f)) * f;
+    const Spectrum F_schlick = mix(fresnel->f0, one_spectrum(), f5);
+    fresnel->b = F_schlick * (7.0f / (f5 * f)) * (one_spectrum() - f82_tint);
+  }
+
+  bsdf->fresnel_type = MicrofacetFresnel::F82_TINT;
+  bsdf->fresnel = fresnel;
+  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd, bsdf, true, true));
+
+  if (preserve_energy) {
+    Spectrum Fss = mix(fresnel->f0, one_spectrum(), 1.0f / 21.0f) - fresnel->b * (1.0f / 126.0f);
     microfacet_ggx_preserve_energy(kg, bsdf, sd, Fss);
   }
 }
