@@ -474,6 +474,53 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
 
 /* Special-purpose Microfacet closures */
 
+ccl_device void osl_closure_microfacet_f82_tint_setup(
+    KernelGlobals kg,
+    ccl_private ShaderData *sd,
+    uint32_t path_flag,
+    float3 weight,
+    ccl_private const MicrofacetF82TintClosure *closure,
+    float3 *layer_albedo)
+{
+  if (osl_closure_skip(kg, sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
+    return;
+  }
+
+  ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
+      sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight));
+  if (!bsdf) {
+    return;
+  }
+
+  ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)closure_alloc_extra(
+      sd, sizeof(FresnelF82Tint));
+  if (!fresnel) {
+    return;
+  }
+
+  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->alpha_x = closure->alpha_x;
+  bsdf->alpha_y = closure->alpha_y;
+  bsdf->ior = 0.0f;
+  bsdf->T = closure->T;
+
+  bool preserve_energy = false;
+
+  /* Beckmann */
+  if (closure->distribution == make_string("beckmann", 14712237670914973463ull)) {
+    sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+  }
+  /* GGX (either single- or multi-scattering) */
+  else {
+    sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+    preserve_energy = (closure->distribution == make_string("multi_ggx", 16842698693386468366ull));
+  }
+
+  fresnel->f0 = rgb_to_spectrum(closure->f0);
+  bsdf_microfacet_setup_fresnel_f82_tint(
+      kg, bsdf, sd, fresnel, rgb_to_spectrum(closure->f82), preserve_energy);
+}
+
 ccl_device void osl_closure_microfacet_multi_ggx_glass_setup(
     KernelGlobals kg,
     ccl_private ShaderData *sd,
