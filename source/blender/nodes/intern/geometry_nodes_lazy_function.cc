@@ -328,9 +328,8 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     node_.typeinfo->geometry_node_execute(geo_params);
     geo_eval_log::TimePoint end_time = geo_eval_log::Clock::now();
 
-    if (local_user_data.tree_logger) {
-      local_user_data.tree_logger->node_execution_times.append(
-          {node_.identifier, start_time, end_time});
+    if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger()) {
+      tree_logger->node_execution_times.append({node_.identifier, start_time, end_time});
     }
   }
 
@@ -779,7 +778,8 @@ class LazyFunctionForViewerNode : public LazyFunction {
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
     const auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
-    if (local_user_data.tree_logger == nullptr) {
+    geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger();
+    if (tree_logger == nullptr) {
       return;
     }
 
@@ -828,7 +828,7 @@ class LazyFunctionForViewerNode : public LazyFunction {
       }
     }
 
-    local_user_data.tree_logger->log_viewer_node(bnode_, std::move(geometry));
+    tree_logger->log_viewer_node(bnode_, std::move(geometry));
   }
 };
 
@@ -3919,7 +3919,8 @@ void GeometryNodesLazyFunctionLogger::log_socket_value(
     return;
   }
   auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
-  if (local_user_data.tree_logger == nullptr) {
+  geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger();
+  if (tree_logger == nullptr) {
     return;
   }
 
@@ -3939,7 +3940,7 @@ void GeometryNodesLazyFunctionLogger::log_socket_value(
     if (bnode.is_reroute()) {
       continue;
     }
-    local_user_data.tree_logger->log_value(bsocket->owner_node(), *bsocket, value);
+    tree_logger->log_value(bsocket->owner_node(), *bsocket, value);
   }
 }
 
@@ -4000,7 +4001,8 @@ Vector<const lf::FunctionNode *> GeometryNodesLazyFunctionSideEffectProvider::
   static thread_local const std::string thread_id_str = "Thread: " + std::to_string(thread_id);
 
   const auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
-  if (local_user_data.tree_logger == nullptr) {
+  geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger();
+  if (tree_logger == nullptr) {
     return;
   }
 
@@ -4012,7 +4014,7 @@ Vector<const lf::FunctionNode *> GeometryNodesLazyFunctionSideEffectProvider::
       if (!bsockets.is_empty()) {
         const bNodeSocket &bsocket = *bsockets[0];
         const bNode &bnode = bsocket.owner_node();
-        local_user_data.tree_logger->debug_messages.append({bnode.identifier, thread_id_str});
+        tree_logger->debug_messages.append({bnode.identifier, thread_id_str});
         return true;
       }
     }
@@ -4040,16 +4042,18 @@ destruct_ptr<lf::LocalUserData> GeoNodesLFUserData::get_local(LinearAllocator<> 
   return allocator.construct<GeoNodesLFLocalUserData>(*this);
 }
 
-GeoNodesLFLocalUserData::GeoNodesLFLocalUserData(GeoNodesLFUserData &user_data)
+void GeoNodesLFLocalUserData::ensure_tree_logger() const
 {
-  if (user_data.modifier_data == nullptr) {
-    this->tree_logger = nullptr;
+  if (user_data_.modifier_data == nullptr) {
+    tree_logger_.emplace(nullptr);
     return;
   }
-  if (user_data.modifier_data->eval_log != nullptr) {
-    this->tree_logger = &user_data.modifier_data->eval_log->get_local_tree_logger(
-        *user_data.compute_context);
+  if (user_data_.modifier_data->eval_log != nullptr) {
+    tree_logger_.emplace(
+        &user_data_.modifier_data->eval_log->get_local_tree_logger(*user_data_.compute_context));
+    return;
   }
+  this->tree_logger_.emplace(nullptr);
 }
 
 std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesLFUserData &user_data,

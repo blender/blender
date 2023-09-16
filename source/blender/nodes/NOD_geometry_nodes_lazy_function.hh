@@ -194,13 +194,31 @@ struct GeoNodesLFUserData : public lf::UserData {
 };
 
 struct GeoNodesLFLocalUserData : public lf::LocalUserData {
- public:
+ private:
+  GeoNodesLFUserData &user_data_;
   /**
-   * Thread-local logger for the current node tree in the current compute context.
+   * Thread-local logger for the current node tree in the current compute context. It is only
+   * instantiated when it is actually used and then cached for the current thread.
    */
-  geo_eval_log::GeoTreeLogger *tree_logger = nullptr;
+  mutable std::optional<geo_eval_log::GeoTreeLogger *> tree_logger_;
 
-  GeoNodesLFLocalUserData(GeoNodesLFUserData &user_data);
+ public:
+  GeoNodesLFLocalUserData(GeoNodesLFUserData &user_data) : user_data_(user_data) {}
+
+  /**
+   * Get the current tree logger. This method is not thread-safe, each thread is supposed to have
+   * a separate logger.
+   */
+  geo_eval_log::GeoTreeLogger *try_get_tree_logger() const
+  {
+    if (!tree_logger_.has_value()) {
+      this->ensure_tree_logger();
+    }
+    return *tree_logger_;
+  }
+
+ private:
+  void ensure_tree_logger() const;
 };
 
 /**
