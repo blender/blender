@@ -55,7 +55,7 @@
 
 namespace blender::fn::lazy_function {
 
-enum class NodeScheduleState {
+enum class NodeScheduleState : uint8_t {
   /**
    * Default state of every node.
    */
@@ -115,14 +115,14 @@ struct OutputState {
    */
   ValueUsage usage_for_execution = ValueUsage::Maybe;
   /**
-   * Number of linked sockets that might still use the value of this output.
-   */
-  int potential_target_sockets = 0;
-  /**
    * Is set to true once the output has been computed and then stays true. Access does not require
    * holding the node lock.
    */
   bool has_been_computed = false;
+  /**
+   * Number of linked sockets that might still use the value of this output.
+   */
+  int potential_target_sockets = 0;
   /**
    * Holds the output value for a short period of time while the node is initializing it and before
    * it's forwarded to input sockets. Access does not require holding the node lock.

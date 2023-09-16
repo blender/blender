@@ -55,7 +55,7 @@
 
 namespace blender::fn::lazy_function {
 
-enum class ValueUsage {
+enum class ValueUsage : uint8_t {
   /**
    * The value is definitely used and therefore has to be computed.
    */
