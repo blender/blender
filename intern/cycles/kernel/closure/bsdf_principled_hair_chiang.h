@@ -182,7 +182,7 @@ ccl_device int bsdf_hair_chiang_setup(ccl_private ShaderData *sd, ccl_private Ch
 
   kernel_assert(fabsf(bsdf->h) < 1.0f + 1e-4f);
   kernel_assert(isfinite_safe(Y));
-  kernel_assert(isfinite_safe(h));
+  kernel_assert(isfinite_safe(bsdf->h));
 
   bsdf->N = Y;
 
