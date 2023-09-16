@@ -858,7 +858,7 @@ class LazyFunctionForViewerInputUsage : public LazyFunction {
     const ComputeContextHash &context_hash = user_data->compute_context->hash();
     const GeoNodesModifierData &modifier_data = *user_data->modifier_data;
     const Span<const lf::FunctionNode *> nodes_with_side_effects =
-        modifier_data.side_effect_nodes->lookup(context_hash);
+        modifier_data.side_effect_nodes->nodes_by_context.lookup(context_hash);
 
     const bool viewer_is_used = nodes_with_side_effects.contains(&lf_viewer_node_);
     params.set_output(0, viewer_is_used);
@@ -908,7 +908,8 @@ class LazyFunctionForSimulationInputsUsage : public LazyFunction {
     bool solve_contains_side_effect = false;
     if (modifier_data.side_effect_nodes) {
       const Span<const lf::FunctionNode *> side_effect_nodes =
-          modifier_data.side_effect_nodes->lookup(user_data.compute_context->hash());
+          modifier_data.side_effect_nodes->nodes_by_context.lookup(
+              user_data.compute_context->hash());
       solve_contains_side_effect = !side_effect_nodes.is_empty();
     }
 
@@ -3996,7 +3997,7 @@ Vector<const lf::FunctionNode *> GeometryNodesLazyFunctionSideEffectProvider::
   }
   const ComputeContextHash &context_hash = user_data->compute_context->hash();
   const GeoNodesModifierData &modifier_data = *user_data->modifier_data;
-  return modifier_data.side_effect_nodes->lookup(context_hash);
+  return modifier_data.side_effect_nodes->nodes_by_context.lookup(context_hash);
 }
 
 [[maybe_unused]] static void add_thread_id_debug_message(
