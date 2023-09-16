@@ -1755,7 +1755,7 @@ void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const u
 typedef enum UiTooltipStyle {
   UI_TIP_STYLE_NORMAL = 0, /* Regular text. */
   UI_TIP_STYLE_HEADER,     /* Header text. */
-  UI_TIP_STYLE_MONO,       /* Monspaced text. */
+  UI_TIP_STYLE_MONO,       /* Mono-spaced text. */
   UI_TIP_STYLE_IMAGE,      /* Image field. */
 } UiTooltipStyle;
 

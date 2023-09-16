@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Does not use any tracing method. Only rely on local light probes to get the incomming radiance.
+ * Does not use any tracing method. Only rely on local light probes to get the incoming radiance.
  */
 
 #pragma BLENDER_REQUIRE(eevee_reflection_probe_eval_lib.glsl)

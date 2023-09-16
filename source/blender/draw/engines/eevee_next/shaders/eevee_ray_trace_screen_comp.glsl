@@ -75,7 +75,7 @@ void main()
 
   if (hit.valid) {
     vec3 hit_P = transform_point(drw_view.viewinv, hit.v_hit_P);
-    /* TODO(fclem): Split matrix mult for precision. */
+    /* TODO(@fclem): Split matrix multiply for precision. */
     vec3 history_ndc_hit_P = project_point(uniform_buf.raytrace.radiance_persmat, hit_P);
     vec3 history_ss_hit_P = history_ndc_hit_P * 0.5 + 0.5;
     /* Evaluate radiance at hit-point. */

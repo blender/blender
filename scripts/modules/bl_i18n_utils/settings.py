@@ -95,7 +95,8 @@ DEFAULT_CONTEXT = "*"
 # Name of language file used by Blender to generate translations' menu.
 LANGUAGES_FILE = "languages"
 
-# The min level of completeness for a po file to be imported from the working repository to the Blender one, as a percentage.
+# The minimum level of completeness for a po file to be imported from
+# the working repository to the Blender one, as a percentage.
 IMPORT_MIN_LEVEL = 0.0
 
 # Languages in the working repository that should not be imported in the Blender one currently...
