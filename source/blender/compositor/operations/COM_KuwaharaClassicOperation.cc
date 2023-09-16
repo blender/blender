@@ -35,8 +35,8 @@ void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
                                                      float y,
                                                      PixelSampler sampler)
 {
-  float3 mean_of_color[] = {float3(0.0f), float3(0.0f), float3(0.0f), float3(0.0f)};
-  float3 mean_of_squared_color[] = {float3(0.0f), float3(0.0f), float3(0.0f), float3(0.0f)};
+  float4 mean_of_color[] = {float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
+  float4 mean_of_squared_color[] = {float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
   int quadrant_pixel_count[] = {0, 0, 0, 0};
 
   /* Split surroundings of pixel into 4 overlapping regions. */
@@ -49,33 +49,32 @@ void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
 
         float4 color;
         image_reader_->read_sampled(color, xx, yy, sampler);
-        const float3 v = color.xyz();
 
         if (dx >= 0 && dy >= 0) {
           const int quadrant_index = 0;
-          mean_of_color[quadrant_index] += v;
-          mean_of_squared_color[quadrant_index] += v * v;
+          mean_of_color[quadrant_index] += color;
+          mean_of_squared_color[quadrant_index] += color * color;
           quadrant_pixel_count[quadrant_index]++;
         }
 
         if (dx <= 0 && dy >= 0) {
           const int quadrant_index = 1;
-          mean_of_color[quadrant_index] += v;
-          mean_of_squared_color[quadrant_index] += v * v;
+          mean_of_color[quadrant_index] += color;
+          mean_of_squared_color[quadrant_index] += color * color;
           quadrant_pixel_count[quadrant_index]++;
         }
 
         if (dx <= 0 && dy <= 0) {
           const int quadrant_index = 2;
-          mean_of_color[quadrant_index] += v;
-          mean_of_squared_color[quadrant_index] += v * v;
+          mean_of_color[quadrant_index] += color;
+          mean_of_squared_color[quadrant_index] += color * color;
           quadrant_pixel_count[quadrant_index]++;
         }
 
         if (dx >= 0 && dy <= 0) {
           const int quadrant_index = 3;
-          mean_of_color[quadrant_index] += v;
-          mean_of_squared_color[quadrant_index] += v * v;
+          mean_of_color[quadrant_index] += color;
+          mean_of_squared_color[quadrant_index] += color * color;
           quadrant_pixel_count[quadrant_index]++;
         }
       }
@@ -88,9 +87,9 @@ void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
   for (int i = 0; i < 4; i++) {
     mean_of_color[i] /= quadrant_pixel_count[i];
     mean_of_squared_color[i] /= quadrant_pixel_count[i];
-    float3 color_variance = mean_of_squared_color[i] - mean_of_color[i] * mean_of_color[i];
+    float4 color_variance = mean_of_squared_color[i] - mean_of_color[i] * mean_of_color[i];
 
-    float variance = math::dot(color_variance, float3(1.0f));
+    float variance = math::dot(color_variance.xyz(), float3(1.0f));
     if (variance < min_var) {
       min_var = variance;
       min_index = i;
@@ -100,11 +99,7 @@ void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
   output[0] = mean_of_color[min_index].x;
   output[1] = mean_of_color[min_index].y;
   output[2] = mean_of_color[min_index].z;
-
-  /* No changes for alpha channel. */
-  float tmp[4];
-  image_reader_->read_sampled(tmp, x, y, sampler);
-  output[3] = tmp[3];
+  output[3] = mean_of_color[min_index].w; /* Also apply filter to alpha channel. */
 }
 
 void KuwaharaClassicOperation::set_kernel_size(int kernel_size)
@@ -127,8 +122,8 @@ void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output
     const int x = it.x;
     const int y = it.y;
 
-    float3 mean_of_color[] = {float3(0.0f), float3(0.0f), float3(0.0f), float3(0.0f)};
-    float3 mean_of_squared_color[] = {float3(0.0f), float3(0.0f), float3(0.0f), float3(0.0f)};
+    float4 mean_of_color[] = {float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
+    float4 mean_of_squared_color[] = {float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
     int quadrant_pixel_count[] = {0, 0, 0, 0};
 
     /* Split surroundings of pixel into 4 overlapping regions. */
@@ -141,33 +136,32 @@ void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output
 
           float4 color;
           image->read_elem(xx, yy, &color.x);
-          const float3 v = color.xyz();
 
           if (dx >= 0 && dy >= 0) {
             const int quadrant_index = 0;
-            mean_of_color[quadrant_index] += v;
-            mean_of_squared_color[quadrant_index] += v * v;
+            mean_of_color[quadrant_index] += color;
+            mean_of_squared_color[quadrant_index] += color * color;
             quadrant_pixel_count[quadrant_index]++;
           }
 
           if (dx <= 0 && dy >= 0) {
             const int quadrant_index = 1;
-            mean_of_color[quadrant_index] += v;
-            mean_of_squared_color[quadrant_index] += v * v;
+            mean_of_color[quadrant_index] += color;
+            mean_of_squared_color[quadrant_index] += color * color;
             quadrant_pixel_count[quadrant_index]++;
           }
 
           if (dx <= 0 && dy <= 0) {
             const int quadrant_index = 2;
-            mean_of_color[quadrant_index] += v;
-            mean_of_squared_color[quadrant_index] += v * v;
+            mean_of_color[quadrant_index] += color;
+            mean_of_squared_color[quadrant_index] += color * color;
             quadrant_pixel_count[quadrant_index]++;
           }
 
           if (dx >= 0 && dy <= 0) {
             const int quadrant_index = 3;
-            mean_of_color[quadrant_index] += v;
-            mean_of_squared_color[quadrant_index] += v * v;
+            mean_of_color[quadrant_index] += color;
+            mean_of_squared_color[quadrant_index] += color * color;
             quadrant_pixel_count[quadrant_index]++;
           }
         }
@@ -180,9 +174,9 @@ void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output
     for (int i = 0; i < 4; i++) {
       mean_of_color[i] /= quadrant_pixel_count[i];
       mean_of_squared_color[i] /= quadrant_pixel_count[i];
-      float3 color_variance = mean_of_squared_color[i] - mean_of_color[i] * mean_of_color[i];
+      float4 color_variance = mean_of_squared_color[i] - mean_of_color[i] * mean_of_color[i];
 
-      float variance = math::dot(color_variance, float3(1.0f));
+      float variance = math::dot(color_variance.xyz(), float3(1.0f));
       if (variance < min_var) {
         min_var = variance;
         min_index = i;
@@ -192,9 +186,7 @@ void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output
     it.out[0] = mean_of_color[min_index].x;
     it.out[1] = mean_of_color[min_index].y;
     it.out[2] = mean_of_color[min_index].z;
-
-    /* No changes for alpha channel. */
-    it.out[3] = image->get_value(x, y, 3);
+    it.out[3] = mean_of_color[min_index].w; /* Also apply filter to alpha channel. */
   }
 }
 
