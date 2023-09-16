@@ -279,7 +279,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
                                      1.0f,
                                      float(field->image_size[0]) / float(field->image->x),
                                      float(field->image_size[1]) / float(field->image->y),
-                                     NULL);
+                                     nullptr);
 
       GPU_blend(GPU_BLEND_ALPHA);
     }

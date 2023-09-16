@@ -208,7 +208,7 @@ static void callback_clg_fatal(void *fp)
 
 /* Called in `bpy_interface.cc` when building as a Python module. */
 int main_python_enter(int argc, const char **argv);
-void main_python_exit(void);
+void main_python_exit();
 
 /* Rename the 'main' function, allowing Python initialization to call it. */
 #  define main main_python_enter
@@ -599,7 +599,7 @@ int main(int argc,
 } /* End of `int main(...)` function. */
 
 #ifdef WITH_PYTHON_MODULE
-void main_python_exit(void)
+void main_python_exit()
 {
   WM_exit_ex((bContext *)evil_C, true, false);
   evil_C = nullptr;
