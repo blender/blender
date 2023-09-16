@@ -182,7 +182,7 @@ void main()
 
   /* Surface reprojection. */
   /* TODO(fclem): Use per pixel velocity. Is this worth it? */
-  float scene_depth = texelFetch(hiz_tx, texel_fullres, 0).r;
+  float scene_depth = texelFetch(depth_tx, texel_fullres, 0).r;
   vec3 P = get_world_space_from_depth(uv, scene_depth);
   vec4 history_radiance = radiance_history_sample(P, local);
   /* Reflection reprojection. */

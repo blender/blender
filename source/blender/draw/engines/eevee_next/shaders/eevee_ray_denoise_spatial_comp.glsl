@@ -228,7 +228,7 @@ void main()
   vec3 rgb_variance = abs(rgb_moment - sqr(rgb_mean));
   float hit_variance = max_v3(rgb_variance);
 
-  float scene_z = get_view_z_from_depth(texelFetch(hiz_tx, texel_fullres, 0).r);
+  float scene_z = get_view_z_from_depth(texelFetch(depth_tx, texel_fullres, 0).r);
   float hit_depth = get_depth_from_view_z(scene_z - closest_hit_time);
 
   imageStore(out_radiance_img, texel_fullres, vec4(radiance_accum, 0.0));

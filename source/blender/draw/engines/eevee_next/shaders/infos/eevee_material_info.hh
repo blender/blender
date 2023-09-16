@@ -133,6 +133,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .additional_info("eevee_global_ubo",
                      "eevee_utility_texture",
                      "eevee_sampling_data",
+                     "eevee_hiz_data",
                      /* Added at runtime because of test shaders not having `node_tree`. */
                      //  "eevee_render_pass_out",
                      "eevee_cryptomatte_out");
@@ -151,6 +152,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_forward)
                      "eevee_utility_texture",
                      "eevee_sampling_data",
                      "eevee_shadow_data",
+                     "eevee_hiz_data",
                      "eevee_volume_lib"
                      /* Optionally added depending on the material. */
                      // "eevee_render_pass_out",

@@ -30,6 +30,7 @@ void RayTraceModule::init()
 
   reflection_options_ = sce_eevee.reflection_options;
   refraction_options_ = sce_eevee.refraction_options;
+  tracing_method_ = RaytraceEEVEE_Method(sce_eevee.ray_tracing_method);
 
   if (sce_eevee.ray_split_settings == 0) {
     refraction_options_ = reflection_options_;
@@ -38,6 +39,8 @@ void RayTraceModule::init()
 
 void RayTraceModule::sync()
 {
+  Texture &depth_tx = inst_.render_buffers.depth_tx;
+
   /* Setup. */
   {
     PassSimple &pass = tile_classify_ps_;
@@ -90,10 +93,26 @@ void RayTraceModule::sync()
     pass.bind_ssbo("tiles_coord_buf", &ray_tiles_buf_);
     pass.bind_image("ray_data_img", &ray_data_tx_);
     pass.bind_image("ray_time_img", &ray_time_tx_);
+    pass.bind_texture("screen_radiance_tx", &screen_radiance_tx_);
+    pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_image("ray_radiance_img", &ray_radiance_tx_);
     inst_.bind_uniform_data(&pass);
     inst_.hiz_buffer.bind_resources(&pass);
     inst_.sampling.bind_resources(&pass);
+    inst_.reflection_probes.bind_resources(&pass);
+    pass.dispatch(ray_dispatch_buf_);
+    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  }
+  {
+    PassSimple &pass = trace_fallback_ps_;
+    pass.init();
+    pass.shader_set(inst_.shaders.static_shader_get(RAY_TRACE_FALLBACK));
+    pass.bind_ssbo("tiles_coord_buf", &ray_tiles_buf_);
+    pass.bind_image("ray_data_img", &ray_data_tx_);
+    pass.bind_image("ray_time_img", &ray_time_tx_);
+    pass.bind_image("ray_radiance_img", &ray_radiance_tx_);
+    pass.bind_texture("depth_tx", &depth_tx);
+    inst_.bind_uniform_data(&pass);
     inst_.reflection_probes.bind_resources(&pass);
     pass.dispatch(ray_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -108,6 +127,7 @@ void RayTraceModule::sync()
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     pass.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
     pass.bind_texture("stencil_tx", &renderbuf_stencil_view_);
+    pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_image("ray_data_img", &ray_data_tx_);
     pass.bind_image("ray_time_img", &ray_time_tx_);
     pass.bind_image("ray_radiance_img", &ray_radiance_tx_);
@@ -117,7 +137,6 @@ void RayTraceModule::sync()
     pass.bind_image("tile_mask_img", &tile_mask_tx_);
     inst_.bind_uniform_data(&pass);
     inst_.sampling.bind_resources(&pass);
-    inst_.hiz_buffer.bind_resources(&pass);
     pass.dispatch(denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
@@ -129,6 +148,7 @@ void RayTraceModule::sync()
     pass.bind_texture("radiance_history_tx", &radiance_history_tx_);
     pass.bind_texture("variance_history_tx", &variance_history_tx_);
     pass.bind_texture("tilemask_history_tx", &tilemask_history_tx_);
+    pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_image("hit_depth_img", &hit_depth_tx_);
     pass.bind_image("in_radiance_img", &denoised_spatial_tx_);
     pass.bind_image("out_radiance_img", &denoised_temporal_tx_);
@@ -136,7 +156,6 @@ void RayTraceModule::sync()
     pass.bind_image("out_variance_img", &denoise_variance_tx_);
     pass.bind_ssbo("tiles_coord_buf", &denoise_tiles_buf_);
     inst_.sampling.bind_resources(&pass);
-    inst_.hiz_buffer.bind_resources(&pass);
     pass.dispatch(denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
@@ -146,6 +165,7 @@ void RayTraceModule::sync()
     pass.shader_set(inst_.shaders.static_shader_get((type == 0) ? RAY_DENOISE_BILATERAL_REFLECT :
                                                                   RAY_DENOISE_BILATERAL_REFRACT));
     pass.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
+    pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_image("in_radiance_img", &denoised_temporal_tx_);
     pass.bind_image("out_radiance_img", &denoised_bilateral_tx_);
     pass.bind_image("in_variance_img", &denoise_variance_tx_);
@@ -153,7 +173,6 @@ void RayTraceModule::sync()
     pass.bind_ssbo("tiles_coord_buf", &denoise_tiles_buf_);
     inst_.bind_uniform_data(&pass);
     inst_.sampling.bind_resources(&pass);
-    inst_.hiz_buffer.bind_resources(&pass);
     pass.dispatch(denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
@@ -164,17 +183,26 @@ void RayTraceModule::debug_pass_sync() {}
 void RayTraceModule::debug_draw(View & /* view */, GPUFrameBuffer * /* view_fb */) {}
 
 RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
+                                     GPUTexture *screen_radiance_tx,
+                                     const float4x4 &screen_radiance_persmat,
                                      eClosureBits active_closures,
                                      eClosureBits raytrace_closure,
                                      /* TODO(fclem): Maybe wrap these two in some other class. */
                                      View &main_view,
-                                     View &render_view)
+                                     View &render_view,
+                                     bool force_no_tracing)
 {
   BLI_assert_msg(count_bits_i(raytrace_closure) == 1,
                  "Only one closure type can be raytraced at a time.");
   BLI_assert_msg(raytrace_closure ==
                      (raytrace_closure & (CLOSURE_REFLECTION | CLOSURE_REFRACTION)),
                  "Only reflection and refraction are implemented.");
+
+  if (tracing_method_ == RAYTRACE_EEVEE_METHOD_NONE) {
+    force_no_tracing = true;
+  }
+
+  screen_radiance_tx_ = screen_radiance_tx;
 
   RaytraceEEVEE options;
   PassSimple *generate_ray_ps = nullptr;
@@ -186,7 +214,7 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   if (raytrace_closure == CLOSURE_REFLECTION) {
     options = reflection_options_;
     generate_ray_ps = &generate_reflect_ps_;
-    trace_ray_ps = &trace_reflect_ps_;
+    trace_ray_ps = force_no_tracing ? &trace_fallback_ps_ : &trace_reflect_ps_;
     denoise_spatial_ps = &denoise_spatial_reflect_ps_;
     denoise_bilateral_ps = &denoise_bilateral_reflect_ps_;
     denoise_buf = &rt_buffer.reflection;
@@ -194,7 +222,7 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   else if (raytrace_closure == CLOSURE_REFRACTION) {
     options = refraction_options_;
     generate_ray_ps = &generate_refract_ps_;
-    trace_ray_ps = &trace_refract_ps_;
+    trace_ray_ps = force_no_tracing ? &trace_fallback_ps_ : &trace_refract_ps_;
     denoise_spatial_ps = &denoise_spatial_refract_ps_;
     denoise_bilateral_ps = &denoise_bilateral_refract_ps_;
     denoise_buf = &rt_buffer.refraction;
@@ -245,6 +273,7 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   data_.closure_active = raytrace_closure;
   data_.resolution_bias = int2(inst_.sampling.rng_2d_get(SAMPLING_RAYTRACE_V) * resolution_scale);
   data_.history_persmat = denoise_buf->history_persmat;
+  data_.radiance_persmat = screen_radiance_persmat;
   data_.full_resolution = extent;
   data_.full_resolution_inv = 1.0f / float2(extent);
   data_.skip_denoise = !use_spatial_denoise;
