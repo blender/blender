@@ -1787,7 +1787,7 @@ void UI_tooltip_text_field_add(struct uiTooltipData *data,
 
 /**
  * \param image: Image buffer (duplicated, ownership is *not* transferred to `data`).
- * \param image_size: Display size for the image (pixels )
+ * \param image_size: Display size for the image (pixels without UI scale applied).
  */
 void UI_tooltip_image_field_add(struct uiTooltipData *data,
                                 const struct ImBuf *image,

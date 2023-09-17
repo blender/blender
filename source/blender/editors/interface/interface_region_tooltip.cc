@@ -263,7 +263,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
     else if (field->format.style == UI_TIP_STYLE_IMAGE) {
 
       bbox.ymax -= field->image_size[0];
-      bbox.ymin -= field->image_size[1];
+      bbox.ymin -= field->image_size[0];
 
       GPU_blend(GPU_BLEND_ALPHA_PREMULT);
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
