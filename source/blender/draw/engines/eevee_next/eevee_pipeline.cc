@@ -424,35 +424,44 @@ void DeferredLayer::end_sync()
 {
   eClosureBits evaluated_closures = CLOSURE_DIFFUSE | CLOSURE_REFLECTION | CLOSURE_REFRACTION;
   if (closure_bits_ & evaluated_closures) {
-    const bool is_last_eval_pass = !(closure_bits_ & CLOSURE_SSS);
-
     eval_light_ps_.init();
     /* Use stencil test to reject pixel not written by this layer. */
-    eval_light_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL |
-                             DRW_STATE_BLEND_CUSTOM);
+    eval_light_ps_.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
     eval_light_ps_.state_stencil(0x00u, 0x00u, evaluated_closures);
     eval_light_ps_.shader_set(inst_.shaders.static_shader_get(DEFERRED_LIGHT));
-    eval_light_ps_.bind_image("out_diffuse_light_img", &diffuse_light_tx_);
-    eval_light_ps_.bind_image("out_specular_light_img", &specular_light_tx_);
-    eval_light_ps_.bind_image("indirect_refraction_img", &indirect_refraction_tx_);
-    eval_light_ps_.bind_image("indirect_reflection_img", &indirect_reflection_tx_);
+    eval_light_ps_.bind_image("direct_diffuse_img", &direct_diffuse_tx_);
+    eval_light_ps_.bind_image("direct_reflect_img", &direct_reflect_tx_);
+    eval_light_ps_.bind_image("direct_refract_img", &direct_refract_tx_);
     eval_light_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-    eval_light_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
-    eval_light_ps_.push_constant("is_last_eval_pass", is_last_eval_pass);
+    eval_light_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     eval_light_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
     eval_light_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-    eval_light_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-
     inst_.bind_uniform_data(&eval_light_ps_);
     inst_.lights.bind_resources(&eval_light_ps_);
     inst_.shadows.bind_resources(&eval_light_ps_);
     inst_.sampling.bind_resources(&eval_light_ps_);
     inst_.hiz_buffer.bind_resources(&eval_light_ps_);
-    inst_.reflection_probes.bind_resources(&eval_light_ps_);
-    inst_.irradiance_cache.bind_resources(&eval_light_ps_);
-
     eval_light_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     eval_light_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
+    combine_ps_.init();
+    /* Use stencil test to reject pixel not written by this layer. */
+    combine_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL | DRW_STATE_BLEND_ADD);
+    combine_ps_.state_stencil(0x00u, 0x00u, evaluated_closures);
+    combine_ps_.shader_set(inst_.shaders.static_shader_get(DEFERRED_COMBINE));
+    combine_ps_.bind_image("direct_diffuse_img", &direct_diffuse_tx_);
+    combine_ps_.bind_image("direct_reflect_img", &direct_reflect_tx_);
+    combine_ps_.bind_image("direct_refract_img", &direct_refract_tx_);
+    combine_ps_.bind_image("indirect_diffuse_img", &indirect_diffuse_tx_);
+    combine_ps_.bind_image("indirect_reflect_img", &indirect_reflect_tx_);
+    combine_ps_.bind_image("indirect_refract_img", &indirect_refract_tx_);
+    combine_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
+    combine_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
+    combine_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+    combine_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+    inst_.bind_uniform_data(&combine_ps_);
+    combine_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    combine_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 }
 
@@ -556,10 +565,30 @@ void DeferredLayer::render(View &main_view,
                                                          main_view,
                                                          render_view,
                                                          !do_screen_space_refraction);
-  indirect_refraction_tx_ = refract_result.get();
 
   /* Only update the HiZ after refraction tracing. */
   inst_.hiz_buffer.update();
+
+  inst_.shadows.set_view(render_view);
+
+  {
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
+                             GPU_TEXTURE_USAGE_ATTACHMENT;
+    direct_diffuse_tx_.acquire(extent, GPU_RGBA16F, usage);
+    direct_reflect_tx_.acquire(extent, GPU_RGBA16F, usage);
+    direct_refract_tx_.acquire(extent, GPU_RGBA16F, usage);
+  }
+
+  inst_.manager->submit(eval_light_ps_, render_view);
+
+  if (closure_bits_ & CLOSURE_SSS) {
+    inst_.subsurface.render(render_view, combined_fb, direct_diffuse_tx_);
+  }
+
+  TextureFromPool dummy_diffuse_indirect;
+  dummy_diffuse_indirect.acquire(int2(1), RAYTRACE_RADIANCE_FORMAT);
+  dummy_diffuse_indirect.clear(float4(0));
+  RayTraceResult diffuse_result = {dummy_diffuse_indirect};
 
   RayTraceResult reflect_result = inst_.raytracing.trace(rt_buffer,
                                                          radiance_feedback_tx_,
@@ -568,35 +597,26 @@ void DeferredLayer::render(View &main_view,
                                                          CLOSURE_REFLECTION,
                                                          main_view,
                                                          render_view);
-  indirect_reflection_tx_ = reflect_result.get();
 
-  {
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
-                             GPU_TEXTURE_USAGE_ATTACHMENT;
-    diffuse_light_tx_.acquire(extent, GPU_RGBA16F, usage);
-    diffuse_light_tx_.clear(float4(0.0f));
-    specular_light_tx_.acquire(extent, GPU_RGBA16F, usage);
-    specular_light_tx_.clear(float4(0.0f));
-  }
+  indirect_diffuse_tx_ = diffuse_result.get();
+  indirect_reflect_tx_ = reflect_result.get();
+  indirect_refract_tx_ = refract_result.get();
 
-  inst_.shadows.set_view(render_view);
+  GPU_framebuffer_bind(combined_fb);
+  inst_.manager->submit(combine_ps_);
 
-  inst_.manager->submit(eval_light_ps_, render_view);
-
+  diffuse_result.release();
   refract_result.release();
   reflect_result.release();
 
-  if (closure_bits_ & CLOSURE_SSS) {
-    inst_.subsurface.render(render_view, combined_fb, diffuse_light_tx_);
-  }
+  direct_diffuse_tx_.release();
+  direct_reflect_tx_.release();
+  direct_refract_tx_.release();
 
   if (do_screen_space_reflection) {
     GPU_texture_copy(radiance_feedback_tx_, rb.combined_tx);
     radiance_feedback_persmat_ = render_view.persmat();
   }
-
-  diffuse_light_tx_.release();
-  specular_light_tx_.release();
 
   inst_.gbuffer.release();
 }
@@ -770,11 +790,7 @@ void DeferredProbeLayer::end_sync()
     eval_light_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL |
                              DRW_STATE_BLEND_CUSTOM);
     eval_light_ps_.state_stencil(0x00u, 0x00u, (CLOSURE_DIFFUSE | CLOSURE_REFLECTION));
-    eval_light_ps_.shader_set(inst_.shaders.static_shader_get(DEFERRED_LIGHT_DIFFUSE_ONLY));
-    eval_light_ps_.bind_image("out_diffuse_light_img", dummy_light_tx_);
-    eval_light_ps_.bind_image("out_specular_light_img", dummy_light_tx_);
-    eval_light_ps_.bind_image("indirect_refraction_img", dummy_light_tx_);
-    eval_light_ps_.bind_image("indirect_reflection_img", dummy_light_tx_);
+    eval_light_ps_.shader_set(inst_.shaders.static_shader_get(DEFERRED_CAPTURE_EVAL));
     eval_light_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
     eval_light_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
     eval_light_ps_.push_constant("is_last_eval_pass", is_last_eval_pass);

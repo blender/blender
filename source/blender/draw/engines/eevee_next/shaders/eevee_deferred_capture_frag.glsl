@@ -3,16 +3,13 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Compute light objects lighting contribution using Gbuffer data.
- *
- * Output light either directly to the radiance buffers or to temporary radiance accumulation
- * buffer that will be processed by other deferred lighting passes.
+ * Compute light objects lighting contribution using captured Gbuffer data.
  */
 
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 
 void main()
 {
@@ -21,8 +18,6 @@ void main()
   float depth = texelFetch(hiz_tx, texel, 0).r;
   vec3 P = get_world_space_from_depth(uvcoordsvar.xy, depth);
 
-  /* TODO(fclem): High precision derivative. */
-  vec3 Ng = safe_normalize(cross(dFdx(P), dFdy(P)));
   vec3 V = cameraVec(P);
   float vP_z = dot(cameraForward, P) - dot(cameraForward, cameraPos);
 
@@ -58,10 +53,12 @@ void main()
     thickness = gbuffer_thickness_unpack(gbuffer_1_packed.z);
   }
 
+  vec3 Ng = diffuse_data.N;
+
   vec3 diffuse_light = vec3(0.0);
-  vec3 reflection_light = vec3(0.0);
-  vec3 refraction_light = vec3(0.0);
-  float shadow = 1.0;
+  vec3 unused_reflection_light = vec3(0.0);
+  vec3 unused_refraction_light = vec3(0.0);
+  float unused_shadow = 1.0;
 
   light_eval(diffuse_data,
              reflection_data,
@@ -71,16 +68,14 @@ void main()
              vP_z,
              thickness,
              diffuse_light,
-             reflection_light,
-             shadow);
+             unused_reflection_light,
+             unused_shadow);
 
-  render_pass_value_out(uniform_buf.render_pass.shadow_id, shadow);
+  /* Apply color and output lighting to render-passes. */
+  vec4 color_0_packed = texelFetch(gbuffer_color_tx, ivec3(texel, 0), 0);
+  vec4 color_1_packed = texelFetch(gbuffer_color_tx, ivec3(texel, 1), 0);
 
-  /* Store lighting for next deferred pass. */
-  /* Output object ID for sub-surface screen space processing. */
-  float f_sss_id = gbuffer_object_id_f16_pack(diffuse_data.sss_id);
+  vec3 albedo_color = gbuffer_color_unpack(color_0_packed) + gbuffer_color_unpack(color_1_packed);
 
-  imageStore(direct_diffuse_img, texel, vec4(diffuse_light, f_sss_id));
-  imageStore(direct_reflect_img, texel, vec4(reflection_light, 1.0));
-  imageStore(direct_refract_img, texel, vec4(refraction_light, 1.0));
+  out_radiance = vec4(diffuse_light * albedo_color, 0.0);
 }

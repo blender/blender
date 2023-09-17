@@ -180,7 +180,10 @@ class DeferredLayer {
   PassMain::Sub *gbuffer_single_sided_ps_ = nullptr;
   PassMain::Sub *gbuffer_double_sided_ps_ = nullptr;
 
+  /* Evaluate all light objects contribution. */
   PassSimple eval_light_ps_ = {"EvalLights"};
+  /* Combine direct and indirect light contributions and apply BSDF color. */
+  PassSimple combine_ps_ = {"Combine"};
 
   /* Closures bits from the materials in this pass. */
   eClosureBits closure_bits_ = CLOSURE_NONE;
@@ -193,16 +196,17 @@ class DeferredLayer {
    *
    * NOTE: Not to be confused with the render passes.
    */
-  TextureFromPool diffuse_light_tx_ = {"diffuse_light_accum_tx"};
-  TextureFromPool specular_light_tx_ = {"specular_light_accum_tx"};
+  TextureFromPool direct_diffuse_tx_ = {"direct_diffuse_tx"};
+  TextureFromPool direct_reflect_tx_ = {"direct_reflect_tx"};
+  TextureFromPool direct_refract_tx_ = {"direct_refract_tx"};
+  /* Reference to ray-tracing result. */
+  GPUTexture *indirect_diffuse_tx_ = nullptr;
+  GPUTexture *indirect_reflect_tx_ = nullptr;
+  GPUTexture *indirect_refract_tx_ = nullptr;
 
   Texture radiance_behind_tx_ = {"radiance_behind_tx"};
   Texture radiance_feedback_tx_ = {"radiance_feedback_tx"};
   float4x4 radiance_feedback_persmat_;
-
-  /* Reference to ray-tracing result. */
-  GPUTexture *indirect_refraction_tx_ = nullptr;
-  GPUTexture *indirect_reflection_tx_ = nullptr;
 
  public:
   DeferredLayer(Instance &inst) : inst_(inst){};
