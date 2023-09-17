@@ -656,7 +656,7 @@ class Executor {
 
     /* The notified output socket might be an input of the entire graph. In this case, notify the
      * caller that the input is required. */
-    if (node.is_dummy()) {
+    if (node.is_interface()) {
       const int graph_input_index = self_.graph_inputs_.index_of(&socket);
       std::atomic<uint8_t> &was_loaded = loaded_inputs_[graph_input_index];
       if (was_loaded.load()) {
@@ -701,7 +701,7 @@ class Executor {
             BLI_assert(output_state.usage != ValueUsage::Unused);
             if (output_state.usage == ValueUsage::Maybe) {
               output_state.usage = ValueUsage::Unused;
-              if (node.is_dummy()) {
+              if (node.is_interface()) {
                 const int graph_input_index = self_.graph_inputs_.index_of(&socket);
                 params_->set_input_unused(graph_input_index);
               }
@@ -1113,7 +1113,7 @@ class Executor {
       if (self_.logger_ != nullptr) {
         self_.logger_->log_socket_value(*target_socket, value_to_forward, local_context);
       }
-      if (target_node.is_dummy()) {
+      if (target_node.is_interface()) {
         /* Forward the value to the outside of the graph. */
         const int graph_output_index = self_.graph_outputs_.index_of_try(target_socket);
         if (graph_output_index != -1 &&
@@ -1441,11 +1441,11 @@ GraphExecutor::GraphExecutor(const Graph &graph,
   allow_missing_requested_inputs_ = true;
 
   for (const OutputSocket *socket : graph_inputs_) {
-    BLI_assert(socket->node().is_dummy());
+    BLI_assert(socket->node().is_interface());
     inputs_.append({"In", socket->type(), ValueUsage::Maybe});
   }
   for (const InputSocket *socket : graph_outputs_) {
-    BLI_assert(socket->node().is_dummy());
+    BLI_assert(socket->node().is_interface());
     outputs_.append({"Out", socket->type()});
   }
 

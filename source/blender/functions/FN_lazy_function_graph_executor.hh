@@ -88,8 +88,8 @@ class GraphExecutor : public LazyFunction {
   /**
    * Input and output sockets of the entire graph.
    */
-  VectorSet<const OutputSocket *> graph_inputs_;
-  VectorSet<const InputSocket *> graph_outputs_;
+  VectorSet<const GraphInputSocket *> graph_inputs_;
+  VectorSet<const GraphOutputSocket *> graph_outputs_;
   /**
    * Optional logger for events that happen during execution.
    */
@@ -120,8 +120,8 @@ class GraphExecutor : public LazyFunction {
 
  public:
   GraphExecutor(const Graph &graph,
-                Span<const OutputSocket *> graph_inputs,
-                Span<const InputSocket *> graph_outputs,
+                Span<const GraphInputSocket *> graph_inputs,
+                Span<const GraphOutputSocket *> graph_outputs,
                 const Logger *logger,
                 const SideEffectProvider *side_effect_provider,
                 const NodeExecuteWrapper *node_execute_wrapper);

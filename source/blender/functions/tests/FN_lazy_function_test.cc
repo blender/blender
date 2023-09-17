@@ -92,10 +92,10 @@ TEST(lazy_function, SideEffects)
   FunctionNode &add_node_1 = graph.add_function(add_fn);
   FunctionNode &add_node_2 = graph.add_function(add_fn);
   FunctionNode &store_node = graph.add_function(store_fn);
-  DummyNode &input_node = graph.add_dummy({}, {&CPPType::get<int>()});
+  GraphInputSocket &graph_input = graph.add_input(CPPType::get<int>());
 
-  graph.add_link(input_node.output(0), add_node_1.input(0));
-  graph.add_link(input_node.output(0), add_node_2.input(0));
+  graph.add_link(graph_input, add_node_1.input(0));
+  graph.add_link(graph_input, add_node_2.input(0));
   graph.add_link(add_node_1.output(0), store_node.input(0));
   graph.add_link(add_node_2.output(0), store_node.input(1));
 
@@ -108,8 +108,7 @@ TEST(lazy_function, SideEffects)
 
   SimpleSideEffectProvider side_effect_provider{{&store_node}};
 
-  GraphExecutor executor_fn{
-      graph, {&input_node.output(0)}, {}, nullptr, &side_effect_provider, nullptr};
+  GraphExecutor executor_fn{graph, {&graph_input}, {}, nullptr, &side_effect_provider, nullptr};
   execute_lazy_function_eagerly(
       executor_fn, nullptr, nullptr, std::make_tuple(5), std::make_tuple());
 
@@ -161,19 +160,18 @@ TEST(lazy_function, GraphWithCycle)
   Graph graph;
   FunctionNode &fn_node = graph.add_function(fn);
 
-  DummyNode &input_node = graph.add_dummy({}, {&CPPType::get<int>()});
-  DummyNode &output_node = graph.add_dummy({&CPPType::get<int>()}, {});
+  GraphInputSocket &input_socket = graph.add_input(CPPType::get<int>());
+  GraphOutputSocket &output_socket = graph.add_output(CPPType::get<int>());
 
-  graph.add_link(input_node.output(0), fn_node.input(0));
+  graph.add_link(input_socket, fn_node.input(0));
   /* Note: This creates a cycle in the graph. However, it should still be possible to evaluate it,
    * because there is no actual data dependency in the cycle. */
   graph.add_link(fn_node.output(0), fn_node.input(1));
-  graph.add_link(fn_node.output(1), output_node.input(0));
+  graph.add_link(fn_node.output(1), output_socket);
 
   graph.update_node_indices();
 
-  GraphExecutor executor_fn{
-      graph, {&input_node.output(0)}, {&output_node.input(0)}, nullptr, nullptr, nullptr};
+  GraphExecutor executor_fn{graph, {&input_socket}, {&output_socket}, nullptr, nullptr, nullptr};
   int result = 0;
   execute_lazy_function_eagerly(
       executor_fn, nullptr, nullptr, std::make_tuple(10), std::make_tuple(&result));
