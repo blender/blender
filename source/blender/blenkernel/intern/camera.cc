@@ -156,8 +156,7 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
    * previous blender versions. */
   IDProperty *idprop_prev = IDP_GetProperties(id);
   /* Make a copy to avoid modifying the original. */
-  IDProperty *idprop_temp = idprop_prev ? IDP_CopyProperty(idprop_prev) :
-                                          IDP_EnsureProperties(id);
+  IDProperty *idprop_temp = idprop_prev ? IDP_CopyProperty(idprop_prev) : IDP_EnsureProperties(id);
 
   Camera *cam = (Camera *)id;
   IDProperty *cycles_cam = cycles_data_ensure(idprop_temp);
