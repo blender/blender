@@ -239,6 +239,9 @@ class Graph : NonCopyable, NonMovable {
   Span<const FunctionNode *> function_nodes() const;
   Span<FunctionNode *> function_nodes();
 
+  Span<const GraphInputSocket *> graph_inputs() const;
+  Span<const GraphOutputSocket *> graph_outputs() const;
+
   /**
    * Add a new function node with sockets that match the passed in #LazyFunction.
    */
@@ -488,6 +491,11 @@ inline Span<const Node *> Graph::nodes() const
   return nodes_;
 }
 
+inline Span<Node *> Graph::nodes()
+{
+  return nodes_;
+}
+
 inline Span<const FunctionNode *> Graph::function_nodes() const
 {
   return nodes_.as_span().drop_front(2).cast<const FunctionNode *>();
@@ -498,9 +506,14 @@ inline Span<FunctionNode *> Graph::function_nodes()
   return nodes_.as_span().drop_front(2).cast<FunctionNode *>();
 }
 
-inline Span<Node *> Graph::nodes()
+inline Span<const GraphInputSocket *> Graph::graph_inputs() const
 {
-  return nodes_;
+  return graph_inputs_;
+}
+
+inline Span<const GraphOutputSocket *> Graph::graph_outputs() const
+{
+  return graph_outputs_;
 }
 
 inline int Graph::socket_num() const

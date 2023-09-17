@@ -657,7 +657,7 @@ class Executor {
     /* The notified output socket might be an input of the entire graph. In this case, notify the
      * caller that the input is required. */
     if (node.is_interface()) {
-      const int graph_input_index = self_.graph_inputs_.index_of(&socket);
+      const int graph_input_index = self_.graph_input_index_by_socket_index_[socket.index()];
       std::atomic<uint8_t> &was_loaded = loaded_inputs_[graph_input_index];
       if (was_loaded.load()) {
         return;
@@ -702,7 +702,8 @@ class Executor {
             if (output_state.usage == ValueUsage::Maybe) {
               output_state.usage = ValueUsage::Unused;
               if (node.is_interface()) {
-                const int graph_input_index = self_.graph_inputs_.index_of(&socket);
+                const int graph_input_index =
+                    self_.graph_input_index_by_socket_index_[socket.index()];
                 params_->set_input_unused(graph_input_index);
               }
               else {
@@ -1115,7 +1116,8 @@ class Executor {
       }
       if (target_node.is_interface()) {
         /* Forward the value to the outside of the graph. */
-        const int graph_output_index = self_.graph_outputs_.index_of_try(target_socket);
+        const int graph_output_index =
+            self_.graph_output_index_by_socket_index_[target_socket->index()];
         if (graph_output_index != -1 &&
             params_->get_output_usage(graph_output_index) != ValueUsage::Unused)
         {
@@ -1425,14 +1427,16 @@ inline void Executor::execute_node(const FunctionNode &node,
 }
 
 GraphExecutor::GraphExecutor(const Graph &graph,
-                             const Span<const OutputSocket *> graph_inputs,
-                             const Span<const InputSocket *> graph_outputs,
+                             Vector<const GraphInputSocket *> graph_inputs,
+                             Vector<const GraphOutputSocket *> graph_outputs,
                              const Logger *logger,
                              const SideEffectProvider *side_effect_provider,
                              const NodeExecuteWrapper *node_execute_wrapper)
     : graph_(graph),
-      graph_inputs_(graph_inputs),
-      graph_outputs_(graph_outputs),
+      graph_inputs_(std::move(graph_inputs)),
+      graph_outputs_(std::move(graph_outputs)),
+      graph_input_index_by_socket_index_(graph.graph_inputs().size(), -1),
+      graph_output_index_by_socket_index_(graph.graph_outputs().size(), -1),
       logger_(logger),
       side_effect_provider_(side_effect_provider),
       node_execute_wrapper_(node_execute_wrapper)
@@ -1440,13 +1444,17 @@ GraphExecutor::GraphExecutor(const Graph &graph,
   /* The graph executor can handle partial execution when there are still missing inputs. */
   allow_missing_requested_inputs_ = true;
 
-  for (const OutputSocket *socket : graph_inputs_) {
-    BLI_assert(socket->node().is_interface());
-    inputs_.append({"In", socket->type(), ValueUsage::Maybe});
+  for (const int i : graph_inputs_.index_range()) {
+    const OutputSocket &socket = *graph_inputs_[i];
+    BLI_assert(socket.node().is_interface());
+    inputs_.append({"In", socket.type(), ValueUsage::Maybe});
+    graph_input_index_by_socket_index_[socket.index()] = i;
   }
-  for (const InputSocket *socket : graph_outputs_) {
-    BLI_assert(socket->node().is_interface());
-    outputs_.append({"Out", socket->type()});
+  for (const int i : graph_outputs_.index_range()) {
+    const InputSocket &socket = *graph_outputs_[i];
+    BLI_assert(socket.node().is_interface());
+    outputs_.append({"Out", socket.type()});
+    graph_output_index_by_socket_index_[socket.index()] = i;
   }
 
   /* Preprocess buffer offsets. */
