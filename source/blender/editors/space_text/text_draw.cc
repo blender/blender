@@ -381,7 +381,7 @@ static const char *txt_utf8_forward_columns(const char *str, int columns, int *p
   int col;
   const char *p = str;
   while (*p) {
-    col = BLI_str_utf8_char_width(p);
+    col = BLI_str_utf8_char_width_safe(p);
     if (columns - col < 0) {
       break;
     }
