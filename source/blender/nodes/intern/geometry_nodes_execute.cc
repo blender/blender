@@ -569,29 +569,22 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
 {
   const nodes::GeometryNodesLazyFunctionGraphInfo &lf_graph_info =
       *nodes::ensure_geometry_nodes_lazy_function_graph(btree);
-  const nodes::GeometryNodeLazyFunctionGraphMapping &mapping = lf_graph_info.mapping;
+  const GeometryNodesGroupFunction &function = lf_graph_info.function;
+  const lf::LazyFunction &lazy_function = *function.function;
+  const int num_inputs = lazy_function.inputs().size();
+  const int num_outputs = lazy_function.outputs().size();
 
-  Vector<const lf::GraphInputSocket *> graph_inputs = mapping.group_input_sockets;
-  graph_inputs.extend(mapping.group_output_used_sockets);
-  graph_inputs.extend(mapping.attribute_set_by_geometry_output.values().begin(),
-                      mapping.attribute_set_by_geometry_output.values().end());
-  Vector<const lf::GraphOutputSocket *> graph_outputs = mapping.standard_group_output_sockets;
+  Array<GMutablePointer> param_inputs(num_inputs);
+  Array<GMutablePointer> param_outputs(num_outputs);
+  Array<std::optional<lf::ValueUsage>> param_input_usages(num_inputs);
+  Array<lf::ValueUsage> param_output_usages(num_outputs);
+  Array<bool> param_set_outputs(num_outputs, false);
 
-  Array<GMutablePointer> param_inputs(graph_inputs.size());
-  Array<GMutablePointer> param_outputs(graph_outputs.size());
-  Array<std::optional<lf::ValueUsage>> param_input_usages(graph_inputs.size());
-  Array<lf::ValueUsage> param_output_usages(graph_outputs.size(), lf::ValueUsage::Used);
-  Array<bool> param_set_outputs(graph_outputs.size(), false);
-
-  nodes::GeometryNodesLazyFunctionLogger lf_logger(lf_graph_info);
-  nodes::GeometryNodesLazyFunctionSideEffectProvider lf_side_effect_provider;
-
-  lf::GraphExecutor graph_executor{lf_graph_info.graph,
-                                   graph_inputs,
-                                   graph_outputs,
-                                   &lf_logger,
-                                   &lf_side_effect_provider,
-                                   nullptr};
+  /* We want to evaluate the main outputs, but don't care about which inputs are used for now. */
+  param_output_usages.as_mutable_span().slice(function.outputs.main).fill(lf::ValueUsage::Used);
+  param_output_usages.as_mutable_span()
+      .slice(function.outputs.input_usages)
+      .fill(lf::ValueUsage::Unused);
 
   nodes::GeoNodesLFUserData user_data;
   fill_user_data(user_data);
@@ -602,15 +595,15 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
   Vector<GMutablePointer> inputs_to_destruct;
 
   btree.ensure_interface_cache();
-  int input_index = -1;
+
+  /* Prepare main inputs. */
   for (const int i : btree.interface_inputs().index_range()) {
-    input_index++;
     const bNodeTreeInterfaceSocket &interface_socket = *btree.interface_inputs()[i];
     const bNodeSocketType *typeinfo = interface_socket.socket_typeinfo();
     const eNodeSocketDatatype socket_type = typeinfo ? eNodeSocketDatatype(typeinfo->type) :
                                                        SOCK_CUSTOM;
-    if (socket_type == SOCK_GEOMETRY && input_index == 0) {
-      param_inputs[input_index] = &input_geometry;
+    if (socket_type == SOCK_GEOMETRY && i == 0) {
+      param_inputs[function.inputs.main[0]] = &input_geometry;
       continue;
     }
 
@@ -618,41 +611,42 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
     BLI_assert(type != nullptr);
     void *value = allocator.allocate(type->size(), type->alignment());
     initialize_group_input(btree, properties, i, value);
-    param_inputs[input_index] = {type, value};
+    param_inputs[function.inputs.main[i]] = {type, value};
     inputs_to_destruct.append({type, value});
   }
 
+  /* Prepare used-outputs inputs. */
   Array<bool> output_used_inputs(btree.interface_outputs().size(), true);
   for (const int i : btree.interface_outputs().index_range()) {
-    input_index++;
-    param_inputs[input_index] = &output_used_inputs[i];
+    param_inputs[function.inputs.output_usages[i]] = &output_used_inputs[i];
   }
 
+  /* No anonymous attributes have to be propagated. */
   Array<bke::AnonymousAttributeSet> attributes_to_propagate(
-      mapping.attribute_set_by_geometry_output.size());
+      function.inputs.attributes_to_propagate.geometry_outputs.size());
   for (const int i : attributes_to_propagate.index_range()) {
-    input_index++;
-    param_inputs[input_index] = &attributes_to_propagate[i];
+    param_inputs[function.inputs.attributes_to_propagate.range[i]] = &attributes_to_propagate[i];
   }
 
-  for (const int i : graph_outputs.index_range()) {
-    const lf::GraphOutputSocket &socket = *graph_outputs[i];
-    const CPPType &type = socket.type();
+  /* Prepare memory for output values. */
+  for (const int i : IndexRange(num_outputs)) {
+    const lf::Output &lf_output = lazy_function.outputs()[i];
+    const CPPType &type = *lf_output.type;
     void *buffer = allocator.allocate(type.size(), type.alignment());
     param_outputs[i] = {type, buffer};
   }
 
   nodes::GeoNodesLFLocalUserData local_user_data(user_data);
 
-  lf::Context lf_context(graph_executor.init_storage(allocator), &user_data, &local_user_data);
-  lf::BasicParams lf_params{graph_executor,
+  lf::Context lf_context(lazy_function.init_storage(allocator), &user_data, &local_user_data);
+  lf::BasicParams lf_params{lazy_function,
                             param_inputs,
                             param_outputs,
                             param_input_usages,
                             param_output_usages,
                             param_set_outputs};
-  graph_executor.execute(lf_params, lf_context);
-  graph_executor.destruct_storage(lf_context.storage);
+  lazy_function.execute(lf_params, lf_context);
+  lazy_function.destruct_storage(lf_context.storage);
 
   for (GMutablePointer &ptr : inputs_to_destruct) {
     ptr.destruct();
@@ -661,8 +655,11 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
   bke::GeometrySet output_geometry = std::move(*param_outputs[0].get<bke::GeometrySet>());
   store_output_attributes(output_geometry, btree, properties, param_outputs);
 
-  for (GMutablePointer &ptr : param_outputs) {
-    ptr.destruct();
+  for (const int i : IndexRange(num_outputs)) {
+    if (param_set_outputs[i]) {
+      GMutablePointer &ptr = param_outputs[i];
+      ptr.destruct();
+    }
   }
 
   return output_geometry;

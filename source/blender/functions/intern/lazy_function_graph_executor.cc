@@ -1503,17 +1503,13 @@ void GraphExecutor::destruct_storage(void *storage) const
 std::string GraphExecutor::input_name(const int index) const
 {
   const lf::OutputSocket &socket = *graph_inputs_[index];
-  std::stringstream ss;
-  ss << socket.node().name() << " - " << socket.name();
-  return ss.str();
+  return socket.name();
 }
 
 std::string GraphExecutor::output_name(const int index) const
 {
   const lf::InputSocket &socket = *graph_outputs_[index];
-  std::stringstream ss;
-  ss << socket.node().name() << " - " << socket.name();
-  return ss.str();
+  return socket.name();
 }
 
 void GraphExecutorLogger::log_socket_value(const Socket &socket,

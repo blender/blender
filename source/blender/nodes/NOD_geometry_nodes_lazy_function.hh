@@ -253,35 +253,10 @@ struct InputUsageHint {
  */
 struct GeometryNodeLazyFunctionGraphMapping {
   /**
-   * The inputs sockets in the graph. Multiple group input nodes are combined into one in the
-   * lazy-function graph.
-   */
-  Vector<const lf::GraphInputSocket *> group_input_sockets;
-  /**
-   * Interface output sockets that correspond to the active group output node. If there is no such
-   * node, defaulted fallback outputs are created.
-   */
-  Vector<const lf::GraphOutputSocket *> standard_group_output_sockets;
-  /**
-   * Interface boolean sockets that have to be passed in from the outside and indicate whether a
-   * specific output will be used.
-   */
-  Vector<const lf::GraphInputSocket *> group_output_used_sockets;
-  /**
-   * Interface boolean sockets that can be used as group output that indicate whether a specific
-   * input will be used (this may depend on the used outputs as well as other inputs).
-   */
-  Vector<const lf::GraphOutputSocket *> group_input_usage_sockets;
-  /**
    * This is an optimization to avoid partially evaluating a node group just to figure out which
    * inputs are needed.
    */
   Vector<InputUsageHint> group_input_usage_hints;
-  /**
-   * If the node group propagates attributes from an input geometry to the output, it has to know
-   * which attributes should be propagated and which can be removed (for optimization purposes).
-   */
-  Map<int, const lf::GraphInputSocket *> attribute_set_by_geometry_output;
   /**
    * A mapping used for logging intermediate values.
    */
@@ -303,6 +278,52 @@ struct GeometryNodeLazyFunctionGraphMapping {
 };
 
 /**
+ * Contains the information that is necessary to execute a geometry node tree.
+ */
+struct GeometryNodesGroupFunction {
+  /**
+   * The lazy-function that does what the node group does. Its inputs and outputs are described
+   * below.
+   */
+  const LazyFunction *function = nullptr;
+
+  struct {
+    /**
+     * Main input values that come out of the Group Input node.
+     */
+    IndexRange main;
+    /**
+     * A boolean for every group output that indicates whether that output is needed. It's ok if
+     * those are set to true even when an output is not used, but the other way around will lead to
+     * bugs. The node group uses those values to compute the lifetimes of anonymous attributes.
+     */
+    IndexRange output_usages;
+    /**
+     * Some node groups can propagate attributes from a geometry input to a geometry output. In
+     * those cases, the caller of the node group has to decide which anonymous attributes have to
+     * be kept alive on the geometry because the caller requires them.
+     */
+    struct {
+      IndexRange range;
+      Vector<int> geometry_outputs;
+    } attributes_to_propagate;
+  } inputs;
+
+  struct {
+    /**
+     * Main output values that are passed into the Group Output node.
+     */
+    IndexRange main;
+    /**
+     * A boolean for every group input that indicates whether this input will be used. Oftentimes
+     * this can be determined without actually computing much. This is used to compute anonymous
+     * attribute lifetimes.
+     */
+    IndexRange input_usages;
+  } outputs;
+};
+
+/**
  * Data that is cached for every #bNodeTree.
  */
 struct GeometryNodesLazyFunctionGraphInfo {
@@ -310,6 +331,7 @@ struct GeometryNodesLazyFunctionGraphInfo {
    * Contains resources that need to be freed when the graph is not needed anymore.
    */
   ResourceScope scope;
+  GeometryNodesGroupFunction function;
   /**
    * The actual lazy-function graph.
    */
