@@ -1426,21 +1426,32 @@ struct BuildGraphParams {
   Map<Vector<lf::OutputSocket *>, lf::OutputSocket *> socket_usages_combination_cache;
 };
 
+struct ZoneFunctionIndices {
+  struct {
+    IndexRange main;
+    IndexRange border_links;
+    IndexRange output_usages;
+    /**
+     * Some attribute sets are input into the body of a zone from the outside. These two
+     * maps indicate which zone function inputs corresponds to attribute set. Attribute sets are
+     * identified by either a "field source index" or "caller propagation index".
+     */
+    Map<int, int> attributes_by_field_source_index;
+    Map<int, int> attributes_by_caller_propagation_index;
+  } inputs;
+  struct {
+    IndexRange main;
+    IndexRange border_link_usages;
+    IndexRange input_usages;
+  } outputs;
+};
+
 struct ZoneBuildInfo {
   /** The lazy function that contains the zone. */
   const LazyFunction *lazy_function = nullptr;
 
   /** Information about what the various inputs and outputs of the lazy-function are. */
-  IndexRange main_input_indices;
-  IndexRange main_output_indices;
-  IndexRange border_link_input_indices;
-
-  IndexRange main_input_usage_indices;
-  IndexRange main_output_usage_indices;
-  IndexRange border_link_input_usage_indices;
-
-  Map<int, int> attribute_set_input_by_field_source_index;
-  Map<int, int> attribute_set_input_by_caller_propagation_index;
+  ZoneFunctionIndices indices;
 };
 
 /**
@@ -1450,22 +1461,7 @@ struct ZoneBuildInfo {
  */
 struct ZoneBodyFunction {
   const LazyFunction *function = nullptr;
-
-  IndexRange main_inputs;
-  IndexRange main_outputs;
-  IndexRange border_link_inputs;
-
-  IndexRange main_input_usages;
-  IndexRange main_output_usages;
-  IndexRange border_link_usages;
-
-  /**
-   * Some anonymous attribute sets are input into the repeat body from the outside. These two maps
-   * indicate which repeat body input corresponds to attribute set. Attribute sets are identified
-   * by either a "field source index" or "caller propagation index".
-   */
-  Map<int, int> attribute_set_input_by_field_source_index;
-  Map<int, int> attribute_set_input_by_caller_propagation_index;
+  ZoneFunctionIndices indices;
 };
 
 class LazyFunctionForRepeatZone : public LazyFunction {
@@ -1489,43 +1485,44 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     for (const bNodeSocket *socket : zone.input_node->input_sockets().drop_back(1)) {
       inputs_.append_as(socket->name, *socket->typeinfo->geometry_nodes_cpp_type);
     }
-    zone_info.main_input_indices = inputs_.index_range();
+    zone_info.indices.inputs.main = inputs_.index_range();
 
     for (const bNodeLink *link : zone.border_links) {
       inputs_.append_as(link->fromsock->name, *link->tosock->typeinfo->geometry_nodes_cpp_type);
     }
-    zone_info.border_link_input_indices = inputs_.index_range().take_back(
+    zone_info.indices.inputs.border_links = inputs_.index_range().take_back(
         zone.border_links.size());
 
     for (const bNodeSocket *socket : zone.output_node->output_sockets().drop_back(1)) {
       inputs_.append_as("Usage", CPPType::get<bool>());
       outputs_.append_as(socket->name, *socket->typeinfo->geometry_nodes_cpp_type);
     }
-    zone_info.main_output_usage_indices = inputs_.index_range().take_back(
+    zone_info.indices.inputs.output_usages = inputs_.index_range().take_back(
         zone.output_node->output_sockets().drop_back(1).size());
-    zone_info.main_output_indices = outputs_.index_range();
+    zone_info.indices.outputs.main = outputs_.index_range();
 
     for ([[maybe_unused]] const bNodeSocket *socket :
          zone.input_node->input_sockets().drop_back(1)) {
       outputs_.append_as("Usage", CPPType::get<bool>());
     }
-    zone_info.main_input_usage_indices = outputs_.index_range().take_back(
+    zone_info.indices.outputs.input_usages = outputs_.index_range().take_back(
         zone.input_node->input_sockets().drop_back(1).size());
     for ([[maybe_unused]] const bNodeLink *link : zone.border_links) {
       outputs_.append_as("Border Link Usage", CPPType::get<bool>());
     }
-    zone_info.border_link_input_usage_indices = outputs_.index_range().take_back(
+    zone_info.indices.outputs.border_link_usages = outputs_.index_range().take_back(
         zone.border_links.size());
 
-    for (const auto item : body_fn_.attribute_set_input_by_field_source_index.items()) {
+    for (const auto item : body_fn_.indices.inputs.attributes_by_field_source_index.items()) {
       const int index = inputs_.append_and_get_index_as(
           "Attribute Set", CPPType::get<bke::AnonymousAttributeSet>());
-      zone_info.attribute_set_input_by_field_source_index.add_new(item.key, index);
+      zone_info.indices.inputs.attributes_by_field_source_index.add_new(item.key, index);
     }
-    for (const auto item : body_fn_.attribute_set_input_by_caller_propagation_index.items()) {
+    for (const auto item : body_fn_.indices.inputs.attributes_by_caller_propagation_index.items())
+    {
       const int index = inputs_.append_and_get_index_as(
           "Attribute Set", CPPType::get<bke::AnonymousAttributeSet>());
-      zone_info.attribute_set_input_by_caller_propagation_index.add_new(item.key, index);
+      zone_info.indices.inputs.attributes_by_caller_propagation_index.add_new(item.key, index);
     }
   }
 
@@ -1538,13 +1535,13 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 
     /* Number of iterations to evaluate. */
     const int iterations = std::max<int>(
-        0, params.get_input<ValueOrField<int>>(zone_info_.main_input_indices[0]).as_value());
+        0, params.get_input<ValueOrField<int>>(zone_info_.indices.inputs.main[0]).as_value());
 
     const int repeat_items_num = node_storage.items_num;
     /* Gather data types of the repeat items. */
     Array<const CPPType *> repeat_item_types(repeat_items_num);
-    for (const int i : body_fn_.main_inputs.index_range()) {
-      const int input_i = body_fn_.main_inputs[i];
+    for (const int i : body_fn_.indices.inputs.main.index_range()) {
+      const int input_i = body_fn_.indices.inputs.main[i];
       const CPPType &type = *body_fn_.function->inputs()[input_i].type;
       repeat_item_types[i] = &type;
     }
@@ -1567,17 +1564,17 @@ class LazyFunctionForRepeatZone : public LazyFunction {
         repeat_items_num);
     for (const int i : IndexRange(repeat_items_num)) {
       /* +1 because of the iterations input. */
-      const int input_index = zone_info_.main_input_indices[i + 1];
+      const int input_index = zone_info_.indices.inputs.main[i + 1];
       void *value = params.try_get_input_data_ptr(input_index);
       BLI_assert(value != nullptr);
       first_item_values[i] = value;
     }
 
     /* Load border link values. */
-    const int border_links_num = zone_info_.border_link_input_indices.size();
+    const int border_links_num = zone_info_.indices.inputs.border_links.size();
     Array<void *> border_link_input_values(border_links_num, nullptr);
     for (const int i : IndexRange(border_links_num)) {
-      const int input_index = zone_info_.border_link_input_indices[i];
+      const int input_index = zone_info_.indices.inputs.border_links[i];
       void *value = params.try_get_input_data_ptr(input_index);
       BLI_assert(value != nullptr);
       border_link_input_values[i] = value;
@@ -1586,12 +1583,13 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     /* Load attribute sets that are needed to propagate attributes correctly in the zone. */
     Map<int, bke::AnonymousAttributeSet *> attribute_set_by_field_source_index;
     Map<int, bke::AnonymousAttributeSet *> attribute_set_by_caller_propagation_index;
-    for (const auto item : zone_info_.attribute_set_input_by_field_source_index.items()) {
+    for (const auto item : zone_info_.indices.inputs.attributes_by_field_source_index.items()) {
       bke::AnonymousAttributeSet &attribute_set = params.get_input<bke::AnonymousAttributeSet>(
           item.value);
       attribute_set_by_field_source_index.add_new(item.key, &attribute_set);
     }
-    for (const auto item : zone_info_.attribute_set_input_by_caller_propagation_index.items()) {
+    for (const auto item :
+         zone_info_.indices.inputs.attributes_by_caller_propagation_index.items()) {
       bke::AnonymousAttributeSet &attribute_set = params.get_input<bke::AnonymousAttributeSet>(
           item.value);
       attribute_set_by_caller_propagation_index.add_new(item.key, &attribute_set);
@@ -1616,20 +1614,20 @@ class LazyFunctionForRepeatZone : public LazyFunction {
         const CPPType &type = *repeat_item_types[i];
         void *prev_value = repeat_item_values[iteration * repeat_items_num + i];
         void *next_value = repeat_item_values[(iteration + 1) * repeat_items_num + i];
-        inputs[body_fn_.main_inputs[i]] = {type, prev_value};
-        outputs[body_fn_.main_outputs[i]] = {type, next_value};
-        outputs[body_fn_.main_input_usages[i]] = &tmp_main_input_usages[i];
+        inputs[body_fn_.indices.inputs.main[i]] = {type, prev_value};
+        outputs[body_fn_.indices.outputs.main[i]] = {type, next_value};
+        outputs[body_fn_.indices.outputs.input_usages[i]] = &tmp_main_input_usages[i];
       }
       static bool static_true = true;
-      for (const int input_index : body_fn_.main_output_usages) {
+      for (const int input_index : body_fn_.indices.inputs.output_usages) {
         /* All main outputs are used currently. */
         inputs[input_index] = &static_true;
       }
       /* Prepare border link values for the repeat body. */
       Array<bool> tmp_border_link_usages(border_links_num);
       for (const int i : IndexRange(border_links_num)) {
-        const int input_index = body_fn_.border_link_inputs[i];
-        const int usage_index = body_fn_.border_link_usages[i];
+        const int input_index = body_fn_.indices.inputs.border_links[i];
+        const int usage_index = body_fn_.indices.outputs.border_link_usages[i];
         const CPPType &type = *body_fn_.function->inputs()[input_index].type;
         /* Need to copy because a lazy function is allowed to modify the input (e.g. move from
          * it). */
@@ -1640,7 +1638,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
       }
 
       /* Prepare attribute sets that are passed into the repeat body. */
-      for (const auto item : body_fn_.attribute_set_input_by_field_source_index.items()) {
+      for (const auto item : body_fn_.indices.inputs.attributes_by_field_source_index.items()) {
         bke::AnonymousAttributeSet &attribute_set =
             *allocator
                  .construct<bke::AnonymousAttributeSet>(
@@ -1648,7 +1646,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
                  .release();
         inputs[item.value] = &attribute_set;
       }
-      for (const auto item : body_fn_.attribute_set_input_by_caller_propagation_index.items()) {
+      for (const auto item :
+           body_fn_.indices.inputs.attributes_by_caller_propagation_index.items()) {
         bke::AnonymousAttributeSet &attribute_set =
             *allocator
                  .construct<bke::AnonymousAttributeSet>(
@@ -1677,13 +1676,13 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 
       /* Destruct values that are not needed after the evaluation anymore. */
       body_fn_.function->destruct_storage(body_storage);
-      for (const int i : body_fn_.border_link_inputs) {
+      for (const int i : body_fn_.indices.inputs.border_links) {
         inputs[i].destruct();
       }
-      for (const int i : body_fn_.attribute_set_input_by_field_source_index.values()) {
+      for (const int i : body_fn_.indices.inputs.attributes_by_field_source_index.values()) {
         inputs[i].destruct();
       }
-      for (const int i : body_fn_.attribute_set_input_by_caller_propagation_index.values()) {
+      for (const int i : body_fn_.indices.inputs.attributes_by_caller_propagation_index.values()) {
         inputs[i].destruct();
       }
     }
@@ -1691,17 +1690,17 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     /* Set outputs of the repeat zone. */
     for (const int i : IndexRange(repeat_items_num)) {
       void *computed_value = repeat_item_values[iterations * repeat_items_num + i];
-      const int output_index = zone_info_.main_output_indices[i];
+      const int output_index = zone_info_.indices.outputs.main[i];
       void *r_value = params.get_output_data_ptr(output_index);
       const CPPType &type = *repeat_item_types[i];
       type.move_construct(computed_value, r_value);
       params.output_set(output_index);
     }
-    for (const int i : zone_info_.main_input_usage_indices) {
+    for (const int i : zone_info_.indices.outputs.input_usages) {
       params.set_output(i, true);
     }
     for (const int i : IndexRange(border_links_num)) {
-      params.set_output(zone_info_.border_link_input_usage_indices[i], true);
+      params.set_output(zone_info_.indices.outputs.border_link_usages[i], true);
     }
 
     /* Destruct remaining values. */
@@ -1717,9 +1716,9 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 
   std::string input_name(const int i) const override
   {
-    if (zone_info_.main_output_usage_indices.contains(i)) {
+    if (zone_info_.indices.inputs.output_usages.contains(i)) {
       const bNodeSocket &bsocket = zone_.output_node->output_socket(
-          i - zone_info_.main_output_usage_indices.first());
+          i - zone_info_.indices.inputs.output_usages.first());
       return "Usage: " + StringRef(bsocket.name);
     }
     return inputs_[i].debug_name;
@@ -1727,9 +1726,9 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 
   std::string output_name(const int i) const override
   {
-    if (zone_info_.main_input_usage_indices.contains(i)) {
+    if (zone_info_.indices.outputs.input_usages.contains(i)) {
       const bNodeSocket &bsocket = zone_.input_node->input_socket(
-          i - zone_info_.main_input_usage_indices.first());
+          i - zone_info_.indices.outputs.input_usages.first());
       return "Usage: " + StringRef(bsocket.name);
     }
     return outputs_[i].debug_name;
@@ -1939,13 +1938,13 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
     Vector<const lf::GraphInputSocket *, 16> lf_zone_inputs;
     lf_zone_inputs.extend(lf_zone_main_inputs);
-    zone_info.main_input_indices = lf_zone_inputs.index_range();
+    zone_info.indices.inputs.main = lf_zone_inputs.index_range();
     lf_zone_inputs.extend(lf_border_link_inputs);
-    zone_info.border_link_input_indices = lf_zone_inputs.index_range().take_back(
+    zone_info.indices.inputs.border_links = lf_zone_inputs.index_range().take_back(
         lf_border_link_inputs.size());
 
     lf_zone_inputs.extend(lf_zone_main_output_usages);
-    zone_info.main_output_usage_indices = lf_zone_inputs.index_range().take_back(
+    zone_info.indices.inputs.output_usages = lf_zone_inputs.index_range().take_back(
         lf_zone_main_output_usages.size());
 
     Map<int, lf::OutputSocket *> lf_attribute_set_by_field_source_index;
@@ -1957,15 +1956,16 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       lf::OutputSocket &lf_attribute_set_socket = *item.value;
       if (lf_attribute_set_socket.node().is_interface()) {
         const int zone_input_index = lf_zone_inputs.append_and_get_index(&lf_attribute_set_socket);
-        zone_info.attribute_set_input_by_field_source_index.add_new(item.key, zone_input_index);
+        zone_info.indices.inputs.attributes_by_field_source_index.add_new(item.key,
+                                                                          zone_input_index);
       }
     }
     for (const auto item : lf_attribute_set_by_caller_propagation_index.items()) {
       lf::OutputSocket &lf_attribute_set_socket = *item.value;
       if (lf_attribute_set_socket.node().is_interface()) {
         const int zone_input_index = lf_zone_inputs.append_and_get_index(&lf_attribute_set_socket);
-        zone_info.attribute_set_input_by_caller_propagation_index.add_new(item.key,
-                                                                          zone_input_index);
+        zone_info.indices.inputs.attributes_by_caller_propagation_index.add_new(item.key,
+                                                                                zone_input_index);
       }
     }
     this->link_attribute_set_inputs(lf_graph,
@@ -1976,14 +1976,14 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
     Vector<const lf::GraphOutputSocket *, 16> lf_zone_outputs;
     lf_zone_outputs.extend(lf_zone_main_outputs);
-    zone_info.main_output_indices = lf_zone_outputs.index_range();
+    zone_info.indices.outputs.main = lf_zone_outputs.index_range();
 
     lf_zone_outputs.extend(lf_zone_main_input_usages);
-    zone_info.main_input_usage_indices = lf_zone_outputs.index_range().take_back(
+    zone_info.indices.outputs.input_usages = lf_zone_outputs.index_range().take_back(
         lf_zone_main_input_usages.size());
 
     lf_zone_outputs.extend(lf_border_link_usages);
-    zone_info.border_link_input_usage_indices = lf_zone_outputs.index_range().take_back(
+    zone_info.indices.outputs.border_link_usages = lf_zone_outputs.index_range().take_back(
         lf_border_link_usages.size());
 
     lf_graph.update_node_indices();
@@ -2040,10 +2040,10 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     }
 
     lf_body_inputs.extend(lf_main_inputs);
-    body_fn.main_inputs = lf_body_inputs.index_range().take_back(lf_main_inputs.size());
+    body_fn.indices.inputs.main = lf_body_inputs.index_range().take_back(lf_main_inputs.size());
 
     lf_body_outputs.extend(lf_main_input_usages);
-    body_fn.main_input_usages = lf_body_outputs.index_range().take_back(
+    body_fn.indices.outputs.input_usages = lf_body_outputs.index_range().take_back(
         lf_main_input_usages.size());
 
     Vector<lf::GraphOutputSocket *> lf_main_outputs;
@@ -2061,22 +2061,22 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     }
 
     lf_body_outputs.extend(lf_main_outputs);
-    body_fn.main_outputs = lf_body_outputs.index_range().take_back(lf_main_outputs.size());
+    body_fn.indices.outputs.main = lf_body_outputs.index_range().take_back(lf_main_outputs.size());
 
     lf_body_inputs.extend(lf_main_output_usages);
-    body_fn.main_output_usages = lf_body_inputs.index_range().take_back(
+    body_fn.indices.inputs.output_usages = lf_body_inputs.index_range().take_back(
         lf_main_output_usages.size());
 
     Vector<lf::GraphInputSocket *> lf_border_link_inputs = this->build_zone_border_links_inputs(
         zone, lf_body_graph);
     lf_body_inputs.extend(lf_border_link_inputs);
-    body_fn.border_link_inputs = lf_body_inputs.index_range().take_back(
+    body_fn.indices.inputs.border_links = lf_body_inputs.index_range().take_back(
         lf_border_link_inputs.size());
 
     Vector<lf::GraphOutputSocket *> lf_border_link_usages =
         this->build_zone_border_link_input_usages(zone, lf_body_graph);
     lf_body_outputs.extend(lf_border_link_usages);
-    body_fn.border_link_usages = lf_body_outputs.index_range().take_back(
+    body_fn.indices.outputs.border_link_usages = lf_body_outputs.index_range().take_back(
         lf_border_link_usages.size());
 
     this->insert_nodes_and_zones(zone.child_nodes, zone.child_zones, graph_params);
@@ -2114,15 +2114,16 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       lf::OutputSocket &lf_attribute_set_socket = *item.value;
       if (lf_attribute_set_socket.node().is_interface()) {
         const int body_input_index = lf_body_inputs.append_and_get_index(&lf_attribute_set_socket);
-        body_fn.attribute_set_input_by_field_source_index.add_new(item.key, body_input_index);
+        body_fn.indices.inputs.attributes_by_field_source_index.add_new(item.key,
+                                                                        body_input_index);
       }
     }
     for (const auto item : lf_attribute_set_by_caller_propagation_index.items()) {
       lf::OutputSocket &lf_attribute_set_socket = *item.value;
       if (lf_attribute_set_socket.node().is_interface()) {
         const int body_input_index = lf_body_inputs.append_and_get_index(&lf_attribute_set_socket);
-        body_fn.attribute_set_input_by_caller_propagation_index.add_new(item.key,
-                                                                        body_input_index);
+        body_fn.indices.inputs.attributes_by_caller_propagation_index.add_new(item.key,
+                                                                              body_input_index);
       }
     }
     this->link_attribute_set_inputs(lf_body_graph,
@@ -2600,22 +2601,22 @@ struct GeometryNodesLazyFunctionGraphBuilder {
         *child_zone_info.lazy_function);
     mapping_->zone_node_map.add_new(&child_zone, &child_zone_node);
 
-    for (const int i : child_zone_info.main_input_indices.index_range()) {
+    for (const int i : child_zone_info.indices.inputs.main.index_range()) {
       const bNodeSocket &bsocket = child_zone.input_node->input_socket(i);
       lf::InputSocket &lf_input_socket = child_zone_node.input(
-          child_zone_info.main_input_indices[i]);
+          child_zone_info.indices.inputs.main[i]);
       lf::OutputSocket &lf_usage_socket = child_zone_node.output(
-          child_zone_info.main_input_usage_indices[i]);
+          child_zone_info.indices.outputs.input_usages[i]);
       mapping_->bsockets_by_lf_socket_map.add(&lf_input_socket, &bsocket);
       graph_params.lf_inputs_by_bsocket.add(&bsocket, &lf_input_socket);
       graph_params.usage_by_bsocket.add(&bsocket, &lf_usage_socket);
     }
-    for (const int i : child_zone_info.main_output_indices.index_range()) {
+    for (const int i : child_zone_info.indices.outputs.main.index_range()) {
       const bNodeSocket &bsocket = child_zone.output_node->output_socket(i);
       lf::OutputSocket &lf_output_socket = child_zone_node.output(
-          child_zone_info.main_output_indices[i]);
+          child_zone_info.indices.outputs.main[i]);
       lf::InputSocket &lf_usage_input = child_zone_node.input(
-          child_zone_info.main_output_usage_indices[i]);
+          child_zone_info.indices.inputs.output_usages[i]);
       mapping_->bsockets_by_lf_socket_map.add(&lf_output_socket, &bsocket);
       graph_params.lf_output_by_bsocket.add(&bsocket, &lf_output_socket);
       graph_params.socket_usage_inputs.add(&lf_usage_input);
@@ -2632,23 +2633,25 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     const Span<const bNodeLink *> child_border_links = child_zone.border_links;
     for (const int child_border_link_i : child_border_links.index_range()) {
       lf::InputSocket &child_border_link_input = child_zone_node.input(
-          child_zone_info.border_link_input_indices[child_border_link_i]);
+          child_zone_info.indices.inputs.border_links[child_border_link_i]);
       const bNodeLink &link = *child_border_links[child_border_link_i];
       graph_params.lf_input_by_border_link.add(&link, &child_border_link_input);
       lf::OutputSocket &lf_usage = child_zone_node.output(
-          child_zone_info.border_link_input_usage_indices[child_border_link_i]);
+          child_zone_info.indices.outputs.border_link_usages[child_border_link_i]);
       graph_params.lf_inputs_by_bsocket.add(link.tosock, &child_border_link_input);
       graph_params.usage_by_bsocket.add(link.tosock, &lf_usage);
     }
 
-    for (const auto item : child_zone_info.attribute_set_input_by_field_source_index.items()) {
+    for (const auto item : child_zone_info.indices.inputs.attributes_by_field_source_index.items())
+    {
       const int field_source_index = item.key;
       const int child_zone_input_index = item.value;
       lf::InputSocket &lf_attribute_set_input = child_zone_node.input(child_zone_input_index);
       graph_params.lf_attribute_set_input_by_field_source_index.add(field_source_index,
                                                                     &lf_attribute_set_input);
     }
-    for (const auto item : child_zone_info.attribute_set_input_by_caller_propagation_index.items())
+    for (const auto item :
+         child_zone_info.indices.inputs.attributes_by_caller_propagation_index.items())
     {
       const int caller_propagation_index = item.key;
       const int child_zone_input_index = item.value;
