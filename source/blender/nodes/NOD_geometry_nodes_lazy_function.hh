@@ -347,30 +347,6 @@ struct GeometryNodesLazyFunctionGraphInfo {
   int num_inline_nodes_approximate = 0;
 };
 
-/**
- * Logs intermediate values from the lazy-function graph evaluation into #GeoModifierLog based on
- * the mapping between the lazy-function graph and the corresponding #bNodeTree.
- */
-class GeometryNodesLazyFunctionLogger : public fn::lazy_function::GraphExecutor::Logger {
- private:
-  const GeometryNodesLazyFunctionGraphInfo &lf_graph_info_;
-
- public:
-  GeometryNodesLazyFunctionLogger(const GeometryNodesLazyFunctionGraphInfo &lf_graph_info);
-  void log_socket_value(const fn::lazy_function::Socket &lf_socket,
-                        GPointer value,
-                        const fn::lazy_function::Context &context) const override;
-  void dump_when_outputs_are_missing(const lf::FunctionNode &node,
-                                     Span<const lf::OutputSocket *> missing_sockets,
-                                     const lf::Context &context) const override;
-  void dump_when_input_is_set_twice(const lf::InputSocket &target_socket,
-                                    const lf::OutputSocket &from_socket,
-                                    const lf::Context &context) const override;
-  void log_before_node_execute(const lf::FunctionNode &node,
-                               const lf::Params &params,
-                               const lf::Context &context) const override;
-};
-
 std::unique_ptr<LazyFunction> get_simulation_output_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
@@ -403,18 +379,6 @@ class NodeAnonymousAttributeID : public bke::AnonymousAttributeID {
                            const StringRef name);
 
   std::string user_name() const override;
-};
-
-/**
- * Tells the lazy-function graph evaluator which nodes have side effects based on the current
- * context. For example, the same viewer node can have side effects in one context, but not in
- * another (depending on e.g. which tree path is currently viewed in the node editor).
- */
-class GeometryNodesLazyFunctionSideEffectProvider
-    : public fn::lazy_function::GraphExecutor::SideEffectProvider {
- public:
-  Vector<const lf::FunctionNode *> get_nodes_with_side_effects(
-      const lf::Context &context) const override;
 };
 
 /**

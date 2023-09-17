@@ -1664,6 +1664,151 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 };
 
 /**
+ * Logs intermediate values from the lazy-function graph evaluation into #GeoModifierLog based on
+ * the mapping between the lazy-function graph and the corresponding #bNodeTree.
+ */
+class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
+ private:
+  const GeometryNodesLazyFunctionGraphInfo &lf_graph_info_;
+
+ public:
+  GeometryNodesLazyFunctionLogger(const GeometryNodesLazyFunctionGraphInfo &lf_graph_info)
+      : lf_graph_info_(lf_graph_info)
+  {
+  }
+
+  void log_socket_value(const lf::Socket &lf_socket,
+                        const GPointer value,
+                        const lf::Context &context) const override
+  {
+    auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    if (!user_data.log_socket_values) {
+      return;
+    }
+    auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
+    geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger();
+    if (tree_logger == nullptr) {
+      return;
+    }
+
+    const Span<const bNodeSocket *> bsockets =
+        lf_graph_info_.mapping.bsockets_by_lf_socket_map.lookup(&lf_socket);
+    if (bsockets.is_empty()) {
+      return;
+    }
+
+    for (const bNodeSocket *bsocket : bsockets) {
+      /* Avoid logging to some sockets when the same value will also be logged to a linked socket.
+       * This reduces the number of logged values without losing information. */
+      if (bsocket->is_input() && bsocket->is_directly_linked()) {
+        continue;
+      }
+      const bNode &bnode = bsocket->owner_node();
+      if (bnode.is_reroute()) {
+        continue;
+      }
+      tree_logger->log_value(bsocket->owner_node(), *bsocket, value);
+    }
+  }
+
+  static inline std::mutex dump_error_context_mutex;
+
+  void dump_when_outputs_are_missing(const lf::FunctionNode &node,
+                                     Span<const lf::OutputSocket *> missing_sockets,
+                                     const lf::Context &context) const override
+  {
+    std::lock_guard lock{dump_error_context_mutex};
+
+    GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
+    BLI_assert(user_data != nullptr);
+    user_data->compute_context->print_stack(std::cout, node.name());
+    std::cout << "Missing outputs:\n";
+    for (const lf::OutputSocket *socket : missing_sockets) {
+      std::cout << "  " << socket->name() << "\n";
+    }
+  }
+
+  void dump_when_input_is_set_twice(const lf::InputSocket &target_socket,
+                                    const lf::OutputSocket &from_socket,
+                                    const lf::Context &context) const override
+  {
+    std::lock_guard lock{dump_error_context_mutex};
+
+    std::stringstream ss;
+    ss << from_socket.node().name() << ":" << from_socket.name() << " -> "
+       << target_socket.node().name() << ":" << target_socket.name();
+
+    GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
+    BLI_assert(user_data != nullptr);
+    user_data->compute_context->print_stack(std::cout, ss.str());
+  }
+
+  void log_before_node_execute(const lf::FunctionNode &node,
+                               const lf::Params & /*params*/,
+                               const lf::Context &context) const override
+  {
+    /* Enable this to see the threads that invoked a node. */
+    if constexpr (false) {
+      this->add_thread_id_debug_message(node, context);
+    }
+  }
+
+  void add_thread_id_debug_message(const lf::FunctionNode &node, const lf::Context &context) const
+  {
+    static std::atomic<int> thread_id_source = 0;
+    static thread_local const int thread_id = thread_id_source.fetch_add(1);
+    static thread_local const std::string thread_id_str = "Thread: " + std::to_string(thread_id);
+
+    const auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
+    geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger();
+    if (tree_logger == nullptr) {
+      return;
+    }
+
+    /* Find corresponding node based on the socket mapping. */
+    auto check_sockets = [&](const Span<const lf::Socket *> lf_sockets) {
+      for (const lf::Socket *lf_socket : lf_sockets) {
+        const Span<const bNodeSocket *> bsockets =
+            lf_graph_info_.mapping.bsockets_by_lf_socket_map.lookup(lf_socket);
+        if (!bsockets.is_empty()) {
+          const bNodeSocket &bsocket = *bsockets[0];
+          const bNode &bnode = bsocket.owner_node();
+          tree_logger->debug_messages.append({bnode.identifier, thread_id_str});
+          return true;
+        }
+      }
+      return false;
+    };
+
+    if (check_sockets(node.inputs().cast<const lf::Socket *>())) {
+      return;
+    }
+    check_sockets(node.outputs().cast<const lf::Socket *>());
+  }
+};
+
+/**
+ * Tells the lazy-function graph evaluator which nodes have side effects based on the current
+ * context. For example, the same viewer node can have side effects in one context, but not in
+ * another (depending on e.g. which tree path is currently viewed in the node editor).
+ */
+class GeometryNodesLazyFunctionSideEffectProvider : public lf::GraphExecutor::SideEffectProvider {
+ public:
+  Vector<const lf::FunctionNode *> get_nodes_with_side_effects(
+      const lf::Context &context) const override
+  {
+    GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
+    BLI_assert(user_data != nullptr);
+    if (!user_data->modifier_data) {
+      return {};
+    }
+    const ComputeContextHash &context_hash = user_data->compute_context->hash();
+    const GeoNodesModifierData &modifier_data = *user_data->modifier_data;
+    return modifier_data.side_effect_nodes->nodes_by_context.lookup(context_hash);
+  }
+};
+
+/**
  * Utility class to build a lazy-function based on a geometry nodes tree.
  * This is mainly a separate class because it makes it easier to have variables that can be
  * accessed by many functions.
@@ -3786,140 +3931,6 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
 
   lf_graph_info_ptr = std::move(lf_graph_info);
   return lf_graph_info_ptr.get();
-}
-
-GeometryNodesLazyFunctionLogger::GeometryNodesLazyFunctionLogger(
-    const GeometryNodesLazyFunctionGraphInfo &lf_graph_info)
-    : lf_graph_info_(lf_graph_info)
-{
-}
-
-void GeometryNodesLazyFunctionLogger::log_socket_value(
-    const fn::lazy_function::Socket &lf_socket,
-    const GPointer value,
-    const fn::lazy_function::Context &context) const
-{
-  auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
-  if (!user_data.log_socket_values) {
-    return;
-  }
-  auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
-  geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger();
-  if (tree_logger == nullptr) {
-    return;
-  }
-
-  const Span<const bNodeSocket *> bsockets =
-      lf_graph_info_.mapping.bsockets_by_lf_socket_map.lookup(&lf_socket);
-  if (bsockets.is_empty()) {
-    return;
-  }
-
-  for (const bNodeSocket *bsocket : bsockets) {
-    /* Avoid logging to some sockets when the same value will also be logged to a linked socket.
-     * This reduces the number of logged values without losing information. */
-    if (bsocket->is_input() && bsocket->is_directly_linked()) {
-      continue;
-    }
-    const bNode &bnode = bsocket->owner_node();
-    if (bnode.is_reroute()) {
-      continue;
-    }
-    tree_logger->log_value(bsocket->owner_node(), *bsocket, value);
-  }
-}
-
-static std::mutex dump_error_context_mutex;
-
-void GeometryNodesLazyFunctionLogger::dump_when_outputs_are_missing(
-    const lf::FunctionNode &node,
-    Span<const lf::OutputSocket *> missing_sockets,
-    const lf::Context &context) const
-{
-  std::lock_guard lock{dump_error_context_mutex};
-
-  GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
-  BLI_assert(user_data != nullptr);
-  user_data->compute_context->print_stack(std::cout, node.name());
-  std::cout << "Missing outputs:\n";
-  for (const lf::OutputSocket *socket : missing_sockets) {
-    std::cout << "  " << socket->name() << "\n";
-  }
-}
-
-void GeometryNodesLazyFunctionLogger::dump_when_input_is_set_twice(
-    const lf::InputSocket &target_socket,
-    const lf::OutputSocket &from_socket,
-    const lf::Context &context) const
-{
-  std::lock_guard lock{dump_error_context_mutex};
-
-  std::stringstream ss;
-  ss << from_socket.node().name() << ":" << from_socket.name() << " -> "
-     << target_socket.node().name() << ":" << target_socket.name();
-
-  GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
-  BLI_assert(user_data != nullptr);
-  user_data->compute_context->print_stack(std::cout, ss.str());
-}
-
-Vector<const lf::FunctionNode *> GeometryNodesLazyFunctionSideEffectProvider::
-    get_nodes_with_side_effects(const lf::Context &context) const
-{
-  GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
-  BLI_assert(user_data != nullptr);
-  if (!user_data->modifier_data) {
-    return {};
-  }
-  const ComputeContextHash &context_hash = user_data->compute_context->hash();
-  const GeoNodesModifierData &modifier_data = *user_data->modifier_data;
-  return modifier_data.side_effect_nodes->nodes_by_context.lookup(context_hash);
-}
-
-[[maybe_unused]] static void add_thread_id_debug_message(
-    const GeometryNodesLazyFunctionGraphInfo &lf_graph_info,
-    const lf::FunctionNode &node,
-    const lf::Context &context)
-{
-  static std::atomic<int> thread_id_source = 0;
-  static thread_local const int thread_id = thread_id_source.fetch_add(1);
-  static thread_local const std::string thread_id_str = "Thread: " + std::to_string(thread_id);
-
-  const auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
-  geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger();
-  if (tree_logger == nullptr) {
-    return;
-  }
-
-  /* Find corresponding node based on the socket mapping. */
-  auto check_sockets = [&](const Span<const lf::Socket *> lf_sockets) {
-    for (const lf::Socket *lf_socket : lf_sockets) {
-      const Span<const bNodeSocket *> bsockets =
-          lf_graph_info.mapping.bsockets_by_lf_socket_map.lookup(lf_socket);
-      if (!bsockets.is_empty()) {
-        const bNodeSocket &bsocket = *bsockets[0];
-        const bNode &bnode = bsocket.owner_node();
-        tree_logger->debug_messages.append({bnode.identifier, thread_id_str});
-        return true;
-      }
-    }
-    return false;
-  };
-
-  if (check_sockets(node.inputs().cast<const lf::Socket *>())) {
-    return;
-  }
-  check_sockets(node.outputs().cast<const lf::Socket *>());
-}
-
-void GeometryNodesLazyFunctionLogger::log_before_node_execute(const lf::FunctionNode &node,
-                                                              const lf::Params & /*params*/,
-                                                              const lf::Context &context) const
-{
-  /* Enable this to see the threads that invoked a node. */
-  if constexpr (false) {
-    add_thread_id_debug_message(lf_graph_info_, node, context);
-  }
 }
 
 destruct_ptr<lf::LocalUserData> GeoNodesLFUserData::get_local(LinearAllocator<> &allocator)
