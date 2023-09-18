@@ -301,7 +301,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
           fresnel->reflection_tint = mix(
               one_spectrum(), rgb_to_spectrum(base_color), specular_tint);
-          fresnel->transmission_tint = rgb_to_spectrum(base_color);
+          fresnel->transmission_tint = sqrt(rgb_to_spectrum(base_color));
 
           /* setup bsdf */
           sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
