@@ -747,6 +747,15 @@ uint BLI_str_utf8_as_unicode_or_error(const char *p)
   return utf8_char_decode(p, mask, len, BLI_UTF8_ERR);
 }
 
+unsigned int BLI_str_utf8_as_unicode_safe(const char *p)
+{
+  const uint result = BLI_str_utf8_as_unicode_or_error(p);
+  if (UNLIKELY(result == BLI_UTF8_ERR)) {
+    return *p;
+  }
+  return result;
+}
+
 uint BLI_str_utf8_as_unicode_step_or_error(const char *__restrict p,
                                            const size_t p_len,
                                            size_t *__restrict index)

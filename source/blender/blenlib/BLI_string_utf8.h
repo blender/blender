@@ -55,6 +55,7 @@ int BLI_str_utf8_size_safe(const char *p) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1
  */
 unsigned int BLI_str_utf8_as_unicode_or_error(const char *p) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
+unsigned int BLI_str_utf8_as_unicode_safe(const char *p) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
  * UTF8 decoding that steps over the index (unless an error is encountered).
  *
