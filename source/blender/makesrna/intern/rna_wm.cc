@@ -655,7 +655,6 @@ static int rna_Event_ascii_length(PointerRNA *ptr)
 
 static void rna_Event_unicode_get(PointerRNA *ptr, char *value)
 {
-  /* utf8 buf isn't \0 terminated */
   const wmEvent *event = static_cast<wmEvent *>(ptr->data);
   size_t len = 0;
 
@@ -670,15 +669,18 @@ static void rna_Event_unicode_get(PointerRNA *ptr, char *value)
 
 static int rna_Event_unicode_length(PointerRNA *ptr)
 {
-
   const wmEvent *event = static_cast<wmEvent *>(ptr->data);
+  int len = 0;
   if (event->utf8_buf[0]) {
-    /* invalid value is checked on assignment so we don't need to account for this */
-    return BLI_str_utf8_size_or_error(event->utf8_buf);
+    len = BLI_str_utf8_size_or_error(event->utf8_buf);
+    if (len == -1) {
+      /* Even though this is documented as always being a valid UTF8 sequence,
+       * assert instead of returning a negative length if it is. */
+      BLI_assert_unreachable();
+      len = 0;
+    }
   }
-  else {
-    return 0;
-  }
+  return len;
 }
 
 static bool rna_Event_is_repeat_get(PointerRNA *ptr)
