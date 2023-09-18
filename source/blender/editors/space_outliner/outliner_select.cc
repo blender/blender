@@ -506,6 +506,16 @@ static void tree_element_grease_pencil_layer_activate(bContext *C,
   }
 }
 
+static void tree_element_bonecollection_activate(bContext *C,
+                                                 TreeElement *te,
+                                                 TreeStoreElem *tselem)
+{
+  bArmature *arm = reinterpret_cast<bArmature *>(tselem->id);
+  BoneCollection *bcoll = reinterpret_cast<BoneCollection *>(te->directdata);
+  ANIM_armature_bonecoll_active_set(arm, bcoll);
+  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, arm);
+}
+
 static void tree_element_posechannel_activate(bContext *C,
                                               const Scene *scene,
                                               ViewLayer *view_layer,
@@ -854,6 +864,8 @@ void tree_element_type_active_set(bContext *C,
     case TSE_R_LAYER:
       tree_element_viewlayer_activate(C, te);
       break;
+    case TSE_BONE_COLLECTION:
+      tree_element_bonecollection_activate(C, te, tselem);
       break;
     case TSE_SEQUENCE:
       tree_element_sequence_activate(C, tvc->scene, te, set);
@@ -976,6 +988,18 @@ static eOLDrawState tree_element_viewlayer_state_get(const bContext *C, const Tr
 
   if (CTX_data_view_layer(C) == view_layer) {
     return OL_DRAWSEL_NORMAL;
+  }
+  return OL_DRAWSEL_NONE;
+}
+
+static eOLDrawState tree_element_bone_collection_state_get(const TreeElement *te,
+                                                           const TreeStoreElem *tselem)
+{
+  const bArmature *arm = reinterpret_cast<const bArmature *>(tselem->id);
+  const BoneCollection *bcoll = reinterpret_cast<const BoneCollection *>(te->directdata);
+
+  if (arm->runtime.active_collection == bcoll) {
+    return OL_DRAWSEL_ACTIVE;
   }
   return OL_DRAWSEL_NONE;
 }
@@ -1168,6 +1192,8 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
       return tree_element_master_collection_state_get(C);
     case TSE_LAYER_COLLECTION:
       return tree_element_layer_collection_state_get(C, te);
+    case TSE_BONE_COLLECTION:
+      return tree_element_bone_collection_state_get(te, tselem);
   }
   return OL_DRAWSEL_NONE;
 }
@@ -1371,6 +1397,14 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
       case TSE_GP_LAYER:
       case TSE_GREASE_PENCIL_NODE:
         ptr = RNA_id_pointer_create(tselem->id);
+        context = BCONTEXT_DATA;
+        break;
+      case TSE_BONE_COLLECTION_BASE:
+        ptr = RNA_pointer_create(tselem->id, &RNA_Armature, tselem->id);
+        context = BCONTEXT_DATA;
+        break;
+      case TSE_BONE_COLLECTION:
+        ptr = RNA_pointer_create(tselem->id, &RNA_BoneCollection, te->directdata);
         context = BCONTEXT_DATA;
         break;
     }

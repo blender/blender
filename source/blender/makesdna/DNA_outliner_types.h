@@ -89,6 +89,8 @@ typedef enum eTreeStoreElemType {
   /* TSE_LINKED_MAT = 22, */
   /* NOTE: is used for light group. */
   /* TSE_LINKED_LAMP = 23, */
+  TSE_BONE_COLLECTION_BASE = 24,
+  TSE_BONE_COLLECTION = 25,
   TSE_SEQUENCE = 26,     /* NO ID */
   TSE_SEQ_STRIP = 27,    /* NO ID */
   TSE_SEQUENCE_DUP = 28, /* NO ID */

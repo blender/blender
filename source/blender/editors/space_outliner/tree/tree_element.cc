@@ -21,6 +21,7 @@
 #include "tree_display.hh"
 #include "tree_element_anim_data.hh"
 #include "tree_element_bone.hh"
+#include "tree_element_bone_collection.hh"
 #include "tree_element_collection.hh"
 #include "tree_element_constraint.hh"
 #include "tree_element_defgroup.hh"
@@ -191,6 +192,14 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
     case TSE_LAYER_COLLECTION:
       return std::make_unique<TreeElementLayerCollection>(
           legacy_te, *static_cast<LayerCollection *>(create_data));
+
+    case TSE_BONE_COLLECTION_BASE:
+      return std::make_unique<TreeElementBoneCollectionBase>(
+          legacy_te, *reinterpret_cast<bArmature *>(owner_id));
+    case TSE_BONE_COLLECTION:
+      return std::make_unique<TreeElementBoneCollection>(
+          legacy_te, *static_cast<BoneCollection *>(create_data));
+
     default:
       break;
   }
