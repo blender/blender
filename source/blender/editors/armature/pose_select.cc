@@ -846,7 +846,7 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 
 /* modes for select same */
 enum ePose_SelectSame_Mode {
-  POSE_SEL_SAME_LAYER = 0,
+  POSE_SEL_SAME_COLLECTION = 0,
   POSE_SEL_SAME_GROUP = 1,
   POSE_SEL_SAME_KEYINGSET = 2,
 };
@@ -956,92 +956,58 @@ static bool pose_select_same_group(bContext *C, bool extend)
   return changed;
 }
 
-static bool pose_select_same_layer(bContext *C, bool extend)
+static bool pose_select_same_collection(bContext *C, const bool extend)
 {
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  int *layers_array, *layers = nullptr;
-  Object *ob_prev = nullptr;
-  uint ob_index;
-  bool changed = false;
+  bool changed_any_selection = false;
+  blender::Set<Object *> updated_objects;
 
-  uint objects_len = 0;
-  Object **objects = BKE_object_pose_array_get_unique(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-
-  for (ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
-    ob->id.tag &= ~LIB_TAG_DOIT;
+  /* Refuse to do anything if there is no active pose bone. */
+  bPoseChannel *active_pchan = CTX_data_active_pose_bone(C);
+  if (!active_pchan) {
+    return false;
   }
 
-  layers_array = static_cast<int *>(
-      MEM_callocN(objects_len * sizeof(*layers_array), "pose_select_same_layer"));
-
-  /* Figure out what bones are selected. */
-  layers = nullptr;
-  ob_prev = nullptr;
-  ob_index = -1;
-  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
-    if (ob != ob_prev) {
-      layers = &layers_array[++ob_index];
-      ob_prev = ob;
-    }
-
-    /* Keep track of layers to use later? */
-    if (pchan->bone->flag & BONE_SELECTED) {
-      *layers |= pchan->bone->layer;
-    }
-
-    /* Deselect all bones before selecting new ones? */
-    if ((extend == false) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
+  if (!extend) {
+    /* Deselect all the bones. */
+    CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
       pchan->bone->flag &= ~BONE_SELECTED;
+      updated_objects.add(ob);
+      changed_any_selection = true;
     }
-  }
-  CTX_DATA_END;
-
-  bool any_layer = false;
-  for (ob_index = 0; ob_index < objects_len; ob_index++) {
-    if (layers_array[ob_index]) {
-      any_layer = true;
-      break;
-    }
+    CTX_DATA_END;
   }
 
-  if (!any_layer) {
-    goto cleanup;
+  /* Build a set of bone collection names, to allow cross-Armature selection. */
+  blender::Set<std::string> collection_names;
+  LISTBASE_FOREACH (BoneCollectionReference *, bcoll_ref, &active_pchan->bone->runtime.collections)
+  {
+    collection_names.add(bcoll_ref->bcoll->name);
   }
 
-  /* Select bones that are on same layers as layers flag. */
-  ob_prev = nullptr;
-  ob_index = -1;
+  /* Select all bones that match any of the collection names. */
   CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
-    if (ob != ob_prev) {
-      layers = &layers_array[++ob_index];
-      ob_prev = ob;
+    Bone *bone = pchan->bone;
+    if (bone->flag & (BONE_UNSELECTABLE | BONE_SELECTED)) {
+      continue;
     }
 
-    /* if bone is on a suitable layer, and the bone can have its selection changed, select it */
-    if ((*layers & pchan->bone->layer) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
-      pchan->bone->flag |= BONE_SELECTED;
-      ob->id.tag |= LIB_TAG_DOIT;
+    LISTBASE_FOREACH (BoneCollectionReference *, bcoll_ref, &bone->runtime.collections) {
+      if (!collection_names.contains(bcoll_ref->bcoll->name)) {
+        continue;
+      }
+
+      bone->flag |= BONE_SELECTED;
+      changed_any_selection = true;
+      updated_objects.add(ob);
     }
   }
   CTX_DATA_END;
 
-  for (ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
-    if (ob->id.tag & LIB_TAG_DOIT) {
-      ED_pose_bone_select_tag_update(ob);
-      changed = true;
-    }
+  for (Object *ob : updated_objects) {
+    ED_pose_bone_select_tag_update(ob);
   }
 
-cleanup:
-  /* Cleanup. */
-  MEM_freeN(layers_array);
-  MEM_freeN(objects);
-
-  return changed;
+  return changed_any_selection;
 }
 
 static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool extend)
@@ -1143,8 +1109,8 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 
   /* selection types */
   switch (type) {
-    case POSE_SEL_SAME_LAYER: /* layer */
-      changed = pose_select_same_layer(C, extend);
+    case POSE_SEL_SAME_COLLECTION:
+      changed = pose_select_same_collection(C, extend);
       break;
 
     case POSE_SEL_SAME_GROUP: /* group */
@@ -1172,7 +1138,11 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 void POSE_OT_select_grouped(wmOperatorType *ot)
 {
   static const EnumPropertyItem prop_select_grouped_types[] = {
-      {POSE_SEL_SAME_LAYER, "LAYER", 0, "Layer", "Shared layers"},
+      {POSE_SEL_SAME_COLLECTION,
+       "COLLECTION",
+       0,
+       "Collection",
+       "Same collections as the active bone"},
       {POSE_SEL_SAME_GROUP, "GROUP", 0, "Group", "Shared group"},
       {POSE_SEL_SAME_KEYINGSET,
        "KEYINGSET",
@@ -1190,7 +1160,7 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = pose_select_grouped_exec;
-  ot->poll = ED_operator_posemode;
+  ot->poll = ED_operator_posemode; /* TODO: expand to support edit mode as well. */
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
