@@ -47,6 +47,7 @@
 #include "ED_view3d.hh"
 
 #include "ANIM_bone_collections.h"
+#include "ANIM_bonecolor.hh"
 
 #include "armature_intern.h"
 
@@ -847,113 +848,68 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 /* modes for select same */
 enum ePose_SelectSame_Mode {
   POSE_SEL_SAME_COLLECTION = 0,
-  POSE_SEL_SAME_GROUP = 1,
+  POSE_SEL_SAME_COLOR = 1,
   POSE_SEL_SAME_KEYINGSET = 2,
 };
 
-static bool pose_select_same_group(bContext *C, bool extend)
+static bool pose_select_same_color(bContext *C, const bool extend)
 {
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  bool *group_flags_array;
-  bool *group_flags = nullptr;
-  int groups_len = 0;
-  bool changed = false, tagged = false;
-  Object *ob_prev = nullptr;
-  uint ob_index;
+  /* Get a set of all the colors of the selected bones. */
+  blender::Set<blender::animrig::BoneColor> used_colors;
+  blender::Set<Object *> updated_objects;
+  bool changed_any_selection = false;
 
-  uint objects_len = 0;
-  Object **objects = BKE_object_pose_array_get_unique(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-
-  for (ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
-    bArmature *arm = static_cast<bArmature *>((ob) ? ob->data : nullptr);
-    bPose *pose = (ob) ? ob->pose : nullptr;
-
-    /* Sanity checks. */
-    if (ELEM(nullptr, ob, pose, arm)) {
-      continue;
-    }
-
-    ob->id.tag &= ~LIB_TAG_DOIT;
-    groups_len = MAX2(groups_len, BLI_listbase_count(&pose->agroups));
-  }
-
-  /* Nothing to do here. */
-  if (groups_len == 0) {
-    MEM_freeN(objects);
-    return false;
-  }
-
-  /* alloc a small array to keep track of the groups to use
-   * - each cell stores on/off state for whether group should be used
-   * - size is (groups_len + 1), since (index = 0) is used for no-group
+  /* Old approach that we may want to reinstate behind some option at some point. This will match
+   * against the colors of all selected bones, instead of just the active one. It also explains why
+   * there is a set of colors to begin with.
+   *
+   * CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones) {
+   *   auto color = blender::animrig::ANIM_bonecolor_posebone_get(pchan);
+   *   used_colors.add(color);
+   * }
+   * CTX_DATA_END;
    */
-  groups_len++;
-  group_flags_array = static_cast<bool *>(
-      MEM_callocN(objects_len * groups_len * sizeof(bool), "pose_select_same_group"));
-
-  group_flags = nullptr;
-  ob_index = -1;
-  ob_prev = nullptr;
-  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
-    if (ob != ob_prev) {
-      ob_index++;
-      group_flags = group_flags_array + (ob_index * groups_len);
-      ob_prev = ob;
-    }
-
-    /* keep track of group as group to use later? */
-    if (pchan->bone->flag & BONE_SELECTED) {
-      group_flags[pchan->agrp_index] = true;
-      tagged = true;
-    }
-
-    /* deselect all bones before selecting new ones? */
-    if ((extend == false) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
+  if (!extend) {
+    CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
       pchan->bone->flag &= ~BONE_SELECTED;
-    }
-  }
-  CTX_DATA_END;
-
-  /* small optimization: only loop through bones a second time if there are any groups tagged */
-  if (tagged) {
-    group_flags = nullptr;
-    ob_index = -1;
-    ob_prev = nullptr;
-    /* only if group matches (and is not selected or current bone) */
-    CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
-      if (ob != ob_prev) {
-        ob_index++;
-        group_flags = group_flags_array + (ob_index * groups_len);
-        ob_prev = ob;
-      }
-
-      if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
-        /* check if the group used by this bone is counted */
-        if (group_flags[pchan->agrp_index]) {
-          pchan->bone->flag |= BONE_SELECTED;
-          ob->id.tag |= LIB_TAG_DOIT;
-        }
-      }
+      updated_objects.add(ob);
+      changed_any_selection = true;
     }
     CTX_DATA_END;
   }
 
-  for (ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
-    if (ob->id.tag & LIB_TAG_DOIT) {
-      ED_pose_bone_select_tag_update(ob);
-      changed = true;
+  /* Use the color of the active pose bone. */
+  bPoseChannel *active_pose_bone = CTX_data_active_pose_bone(C);
+  auto color = blender::animrig::ANIM_bonecolor_posebone_get(active_pose_bone);
+  used_colors.add(color);
+
+  /* Select all visible bones that have the same color. */
+  CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
+    Bone *bone = pchan->bone;
+    if (bone->flag & (BONE_UNSELECTABLE | BONE_SELECTED)) {
+      /* Skip bones that are unselectable or already selected. */
+      continue;
     }
+
+    auto color = blender::animrig::ANIM_bonecolor_posebone_get(pchan);
+    if (!used_colors.contains(color)) {
+      continue;
+    }
+
+    bone->flag |= BONE_SELECTED;
+    changed_any_selection = true;
+    updated_objects.add(ob);
+  }
+  CTX_DATA_END;
+
+  if (!changed_any_selection) {
+    return false;
   }
 
-  /* Cleanup. */
-  MEM_freeN(group_flags_array);
-  MEM_freeN(objects);
-
-  return changed;
+  for (Object *ob : updated_objects) {
+    ED_pose_bone_select_tag_update(ob);
+  }
+  return true;
 }
 
 static bool pose_select_same_collection(bContext *C, const bool extend)
@@ -1113,8 +1069,8 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
       changed = pose_select_same_collection(C, extend);
       break;
 
-    case POSE_SEL_SAME_GROUP: /* group */
-      changed = pose_select_same_group(C, extend);
+    case POSE_SEL_SAME_COLOR:
+      changed = pose_select_same_color(C, extend);
       break;
 
     case POSE_SEL_SAME_KEYINGSET: /* Keying Set */
@@ -1143,7 +1099,7 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
        0,
        "Collection",
        "Same collections as the active bone"},
-      {POSE_SEL_SAME_GROUP, "GROUP", 0, "Group", "Shared group"},
+      {POSE_SEL_SAME_COLOR, "COLOR", 0, "Color", "Same color as the active bone"},
       {POSE_SEL_SAME_KEYINGSET,
        "KEYINGSET",
        0,
