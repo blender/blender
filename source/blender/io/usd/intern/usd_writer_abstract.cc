@@ -195,12 +195,27 @@ const pxr::SdfPath &USDAbstractWriter::usd_path() const
   return usd_export_context_.usd_path;
 }
 
+void USDAbstractWriter::set_iterator(const USDHierarchyIterator *iter)
+{
+  hierarchy_iterator_ = iter;
+}
+
+bool USDAbstractWriter::is_prototype(const Object *obj) const
+{
+  if (hierarchy_iterator_) {
+    return hierarchy_iterator_->is_prototype(obj);
+  }
+
+  return false;
+}
+
+
 pxr::SdfPath USDAbstractWriter::get_material_library_path(const HierarchyContext &context) const
 {
   std::string material_library_path;
 
   /* For instance prototypes, create the material beneath the prototyp prim. */
-  if (usd_export_context_.export_params.use_instancing && context.is_prototype()) {
+  if (usd_export_context_.export_params.use_instancing && this->is_prototype(context.object)) {
 
     material_library_path += std::string(usd_export_context_.export_params.root_prim_path);
     if (context.object->data) {

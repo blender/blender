@@ -61,10 +61,6 @@ void HierarchyContext::mark_as_not_instanced()
 {
   original_export_path.clear();
 }
-bool HierarchyContext::is_prototype() const
-{
-  return this->duplicator && original_export_path.empty();
-}
 
 bool HierarchyContext::is_object_visible(const enum eEvaluationMode evaluation_mode) const
 {

@@ -34,6 +34,8 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   bool frame_has_been_written_;
   bool is_animated_;
 
+  const USDHierarchyIterator *hierarchy_iterator_;
+
  public:
   USDAbstractWriter(const USDExporterContext &usd_export_context);
 
@@ -51,6 +53,10 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   virtual bool is_supported(const HierarchyContext *context) const;
 
   const pxr::SdfPath &usd_path() const;
+
+  void set_iterator(const USDHierarchyIterator *iter);
+
+  bool is_prototype(const Object *obj) const;
 
  protected:
   virtual void do_write(HierarchyContext &context) = 0;

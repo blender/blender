@@ -204,6 +204,8 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
     add_usd_skel_export_mapping(context->object, data_writer->usd_path());
   }
 
+  data_writer->set_iterator(this);
+
   return data_writer;
 }
 

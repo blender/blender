@@ -26,6 +26,9 @@ class USDTransformWriter : public USDAbstractWriter {
 
   void set_xform_ops(float parent_relative_matrix[4][4], pxr::UsdGeomXformable &xf);
 
+  /* Return true if the given context is the root of a protoype. */
+  bool is_proto_root(const HierarchyContext &context) const;
+
   /* Subclasses may override this to create prims other than UsdGeomXform. */
   virtual pxr::UsdGeomXformable create_xformable() const;
 

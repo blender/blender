@@ -95,7 +95,6 @@ struct HierarchyContext {
   bool is_instance() const;
   void mark_as_instance_of(const std::string &reference_export_path);
   void mark_as_not_instanced();
-  bool is_prototype() const;
 
   bool is_object_visible(enum eEvaluationMode evaluation_mode) const;
 };
