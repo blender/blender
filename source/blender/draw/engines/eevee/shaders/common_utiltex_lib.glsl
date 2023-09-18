@@ -129,7 +129,7 @@ vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter
   float reflectance = F_brdf_single_scatter(vec3(F0), vec3(F90), split_sum).r;
   float transmittance = (1.0 - F0) * transmission_factor;
 
-  if (do_multiscatter) {
+  if (do_multiscatter != 0.0) {
     float Ess = F0 * split_sum.x + split_sum.y + (1.0 - F0) * transmission_factor;
     /* TODO: maybe add saturation for higher roughness similar as in `F_brdf_multi_scatter()`.
      * However, it is not necessarily desirable that the users see a different color than they
