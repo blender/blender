@@ -562,7 +562,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       }
     }
 
-    if (!editstr_insert_at_cursor(n, utf8_buf, BLI_str_utf8_size(utf8_buf))) {
+    if (!editstr_insert_at_cursor(n, utf8_buf, BLI_str_utf8_size_or_error(utf8_buf))) {
       return false;
     }
 

@@ -129,7 +129,7 @@ void WM_event_print(const wmEvent *event)
         flag_id,
         event->xy[0],
         event->xy[1],
-        BLI_str_utf8_size(event->utf8_buf),
+        BLI_str_utf8_size_or_error(event->utf8_buf),
         event->utf8_buf,
         (const void *)event);
 
@@ -445,7 +445,7 @@ void WM_event_drag_start_xy(const wmEvent *event, int r_xy[2])
 
 char WM_event_utf8_to_ascii(const wmEvent *event)
 {
-  if (BLI_str_utf8_size(event->utf8_buf) == 1) {
+  if (BLI_str_utf8_size_or_error(event->utf8_buf) == 1) {
     return event->utf8_buf[0];
   }
   return '\0';

@@ -985,7 +985,7 @@ size_t blf_str_offset_from_cursor_position(FontBLF *font,
     /* We are to the right of the string, so return position of null terminator. */
     data.r_offset = BLI_strnlen(str, str_len);
   }
-  else if (BLI_str_utf8_char_width(&str[data.r_offset]) == 0) {
+  else if (BLI_str_utf8_char_width_or_error(&str[data.r_offset]) == 0) {
     /* This is a combining character, so move to previous visible valid char. */
     int offset = int(data.r_offset);
     BLI_str_cursor_step_prev_utf8(str, str_len, &offset);

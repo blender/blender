@@ -1745,7 +1745,8 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
         if (width < 20 && but->ofs > 0) {
           ui_text_clip_give_prev_off(but, but->editstr);
         }
-        bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->editstr + len, but->editstr));
+        bytes = BLI_str_utf8_size_or_error(
+            BLI_str_find_prev_char_utf8(but->editstr + len, but->editstr));
         if (bytes == -1) {
           bytes = 1;
         }

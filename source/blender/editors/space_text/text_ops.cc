@@ -3629,7 +3629,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     RNA_string_set(op->ptr, "text", str);
 
     if (U.text_flag & USER_TEXT_EDIT_AUTO_CLOSE) {
-      auto_close_char_input = BLI_str_utf8_as_unicode(str);
+      auto_close_char_input = BLI_str_utf8_as_unicode_or_error(str);
       if (isascii(auto_close_char_input)) {
         auto_close_char_match = text_closing_character_pair_get(auto_close_char_input);
         if (auto_close_char_match != 0) {

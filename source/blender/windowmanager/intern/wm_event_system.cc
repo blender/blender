@@ -5694,7 +5694,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
                      utf8_buf_len);
         }
 
-        if (BLI_str_utf8_size(event.utf8_buf) == -1) {
+        if (BLI_str_utf8_size_or_error(event.utf8_buf) == -1) {
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected an invalid unicode character '%d'",
                      int(uchar(event.utf8_buf[0])));

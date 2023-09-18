@@ -1059,7 +1059,7 @@ static const char *key_event_glyph_or_text(const int font_id,
                                            const char *single_glyph)
 {
   BLI_assert(single_glyph == nullptr || (BLI_strlen_utf8(single_glyph) == 1));
-  return (single_glyph && BLF_has_glyph(font_id, BLI_str_utf8_as_unicode(single_glyph))) ?
+  return (single_glyph && BLF_has_glyph(font_id, BLI_str_utf8_as_unicode_or_error(single_glyph))) ?
              single_glyph :
              text;
 }

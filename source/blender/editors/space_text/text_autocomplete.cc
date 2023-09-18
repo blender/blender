@@ -177,8 +177,8 @@ static GHash *text_autocomplete_build(Text *text)
         if ((i_start != i_end) &&
             /* Check we're at the beginning of a line or that the previous char is not an
              * identifier this prevents digits from being added. */
-            ((i_start < 1) ||
-             !text_check_identifier_unicode(BLI_str_utf8_as_unicode(&linep->line[i_start - 1]))))
+            ((i_start < 1) || !text_check_identifier_unicode(
+                                  BLI_str_utf8_as_unicode_or_error(&linep->line[i_start - 1]))))
         {
           char *str_sub = &linep->line[i_start];
           const int choice_len = i_end - i_start;

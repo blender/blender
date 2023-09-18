@@ -674,7 +674,7 @@ static int rna_Event_unicode_length(PointerRNA *ptr)
   const wmEvent *event = static_cast<wmEvent *>(ptr->data);
   if (event->utf8_buf[0]) {
     /* invalid value is checked on assignment so we don't need to account for this */
-    return BLI_str_utf8_size(event->utf8_buf);
+    return BLI_str_utf8_size_or_error(event->utf8_buf);
   }
   else {
     return 0;

@@ -3983,7 +3983,7 @@ static void ui_do_but_textedit(
       }
 
       if (utf8_buf[0]) {
-        const int utf8_buf_len = BLI_str_utf8_size(utf8_buf);
+        const int utf8_buf_len = BLI_str_utf8_size_or_error(utf8_buf);
         BLI_assert(utf8_buf_len != -1);
         changed = ui_textedit_insert_buf(but, data, utf8_buf, utf8_buf_len);
       }

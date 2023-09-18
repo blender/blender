@@ -1052,7 +1052,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   }
 
   if ((settings_font->flags & BLF_MONOSPACED) && (settings_font != glyph_font)) {
-    const int col = BLI_wcwidth(char32_t(charcode));
+    const int col = BLI_wcwidth_or_error(char32_t(charcode));
     if (col > 0) {
       blf_glyph_transform_monospace(glyph, col * fixed_width);
     }

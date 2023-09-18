@@ -451,7 +451,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
 /* end wchar_t / utf8 functions */
 /* -------------------------------------------------------------------- */
 
-int BLI_wcwidth(char32_t ucs)
+int BLI_wcwidth_or_error(char32_t ucs)
 {
   /* Treat private use areas (icon fonts), symbols, and emoticons as double-width. */
   if (ucs >= 0xf0000 || (ucs >= 0xe000 && ucs < 0xf8ff) || (ucs >= 0x1f300 && ucs < 0x1fbff)) {
@@ -462,31 +462,31 @@ int BLI_wcwidth(char32_t ucs)
 
 int BLI_wcwidth_safe(char32_t ucs)
 {
-  const int columns = BLI_wcwidth(ucs);
+  const int columns = BLI_wcwidth_or_error(ucs);
   if (columns >= 0) {
     return columns;
   }
   return 1;
 }
 
-int BLI_wcswidth(const char32_t *pwcs, size_t n)
+int BLI_wcswidth_or_error(const char32_t *pwcs, size_t n)
 {
   return mk_wcswidth(pwcs, n);
 }
 
-int BLI_str_utf8_char_width(const char *p)
+int BLI_str_utf8_char_width_or_error(const char *p)
 {
-  uint unicode = BLI_str_utf8_as_unicode(p);
+  uint unicode = BLI_str_utf8_as_unicode_or_error(p);
   if (unicode == BLI_UTF8_ERR) {
     return -1;
   }
 
-  return BLI_wcwidth((char32_t)unicode);
+  return BLI_wcwidth_or_error((char32_t)unicode);
 }
 
 int BLI_str_utf8_char_width_safe(const char *p)
 {
-  uint unicode = BLI_str_utf8_as_unicode(p);
+  uint unicode = BLI_str_utf8_as_unicode_or_error(p);
   if (unicode == BLI_UTF8_ERR) {
     return 1;
   }
@@ -723,7 +723,7 @@ char32_t BLI_str_utf32_char_to_lower(const char32_t wc)
 
 /** \} */ /* -------------------------------------------------------------------- */
 
-int BLI_str_utf8_size(const char *p)
+int BLI_str_utf8_size_or_error(const char *p)
 {
   return utf8_char_compute_skip_or_error(*p);
 }
@@ -733,7 +733,7 @@ int BLI_str_utf8_size_safe(const char *p)
   return utf8_char_compute_skip(*p);
 }
 
-uint BLI_str_utf8_as_unicode(const char *p)
+uint BLI_str_utf8_as_unicode_or_error(const char *p)
 {
   /* Originally `g_utf8_get_char` in GLIB. */
 
@@ -982,7 +982,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
   }
 
   /* Note that here, we assume end points to a valid utf8 char! */
-  BLI_assert((end >= str) && (BLI_str_utf8_as_unicode(end) != BLI_UTF8_ERR));
+  BLI_assert((end >= str) && (BLI_str_utf8_as_unicode_or_error(end) != BLI_UTF8_ERR));
 
   char *suf = (char *)(str + str_len);
   size_t index = 0;
