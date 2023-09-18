@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
@@ -22,14 +23,14 @@
 
 #include "ED_node.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
-#include "transform.h"
-#include "transform_convert.h"
-#include "transform_snap.h"
+#include "transform.hh"
+#include "transform_convert.hh"
+#include "transform_snap.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 struct TransCustomDataNode {
   View2DEdgePanData edgepan_data;
@@ -154,8 +155,7 @@ static void node_snap_grid_apply(TransInfo *t)
   using namespace blender;
 
   if (!(transform_snap_is_active(t) &&
-        (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID))))
-  {
+        (t->tsnap.mode & (SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)))) {
     return;
   }
 
@@ -207,8 +207,8 @@ static void flushTransNodes(TransInfo *t)
     else {
       /* Edge panning functions expect window coordinates, mval is relative to region */
       const int xy[2] = {
-          t->region->winrct.xmin + t->mval[0],
-          t->region->winrct.ymin + t->mval[1],
+          t->region->winrct.xmin + int(t->mval[0]),
+          t->region->winrct.ymin + int(t->mval[1]),
       };
       UI_view2d_edge_pan_apply(t->context, &customdata->edgepan_data, xy);
     }
@@ -307,7 +307,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Node = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransNodeData,
-    /*recalcData*/ flushTransNodes,
+    /*create_trans_data*/ createTransNodeData,
+    /*recalc_data*/ flushTransNodes,
     /*special_aftertrans_update*/ special_aftertrans_update__node,
 };

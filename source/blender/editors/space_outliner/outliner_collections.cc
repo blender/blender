@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,17 +26,17 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "outliner_intern.hh" /* own include */
 
@@ -1098,9 +1098,8 @@ static int collection_isolate_exec(bContext *C, wmOperator *op)
       BKE_layer_collection_isolate_global(scene, view_layer, layer_collection, true);
     }
     else {
-      PointerRNA ptr;
       PropertyRNA *prop = RNA_struct_type_find_property(&RNA_LayerCollection, "hide_viewport");
-      RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection, &ptr);
+      PointerRNA ptr = RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection);
 
       /* We need to flip the value because the isolate flag routine was designed to work from the
        * outliner as a callback. That means the collection visibility was set before the callback

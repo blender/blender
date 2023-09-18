@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,7 +21,7 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-// ChainSilhouetteIterator (bool restrict_to_selection=true, ViewEdge *begin=NULL, bool
+// ChainSilhouetteIterator (bool restrict_to_selection=true, ViewEdge *begin=nullptr, bool
 // orientation=true) ChainSilhouetteIterator (const ChainSilhouetteIterator &brother)
 
 PyDoc_STRVAR(ChainSilhouetteIterator_doc,
@@ -30,10 +30,10 @@ PyDoc_STRVAR(ChainSilhouetteIterator_doc,
              ":class:`freestyle.types.ChainingIterator` >\n"
              ":class:`ChainSilhouetteIterator`\n"
              "\n"
-             "A ViewEdge Iterator used to follow ViewEdges the most naturally.  For\n"
-             "example, it will follow visible ViewEdges of same nature.  As soon, as\n"
+             "A ViewEdge Iterator used to follow ViewEdges the most naturally. For\n"
+             "example, it will follow visible ViewEdges of same nature. As soon, as\n"
              "the nature or the visibility changes, the iteration stops (by setting\n"
-             "the pointed ViewEdge to 0).  In the case of an iteration over a set of\n"
+             "the pointed ViewEdge to 0). In the case of an iteration over a set of\n"
              "ViewEdge that are both Silhouette and Crease, there will be a\n"
              "precedence of the silhouette over the crease criterion.\n"
              "\n"
@@ -49,7 +49,7 @@ PyDoc_STRVAR(ChainSilhouetteIterator_doc,
              "   :arg begin: The ViewEdge from where to start the iteration.\n"
              "   :type begin: :class:`freestyle.types.ViewEdge` or None\n"
              "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
-             "      the ViewEdges that surround the ending ViewVertex of begin.  If\n"
+             "      the ViewEdges that surround the ending ViewVertex of begin. If\n"
              "      false, we'll search over the ViewEdges surrounding the ending\n"
              "      ViewVertex of begin.\n"
              "   :type orientation: bool\n"
@@ -109,7 +109,7 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self,
 /*-----------------------BPy_ChainSilhouetteIterator type definition ----------------------------*/
 
 PyTypeObject ChainSilhouetteIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ChainSilhouetteIterator",
     /*tp_basicsize*/ sizeof(BPy_ChainSilhouetteIterator),
     /*tp_itemsize*/ 0,

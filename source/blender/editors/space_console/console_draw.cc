@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,9 +18,9 @@
 
 #include "GPU_immediate.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "console_intern.hh"
 

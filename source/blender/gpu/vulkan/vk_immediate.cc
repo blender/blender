@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -57,6 +57,8 @@ void VKImmediate::end()
   vertex_attributes_.bind(context);
 
   context.command_buffer_get().draw(0, vertex_len, 0, 1);
+  context.command_buffer_get().submit();
+
   buffer_offset_ += current_subbuffer_len_;
   current_subbuffer_len_ = 0;
 }

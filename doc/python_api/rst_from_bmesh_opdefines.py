@@ -1,9 +1,9 @@
-# SPDX-FileCopyrightText: 2012-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2012-2022 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # This is a quite stupid script which extracts bmesh api docs from
-# 'bmesh_opdefines.c' in order to avoid having to add a lot of introspection
+# 'bmesh_opdefines.cc' in order to avoid having to add a lot of introspection
 # data access into the api.
 #
 # The script is stupid because it makes assumptions about formatting...
@@ -19,7 +19,7 @@ import re
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(CURRENT_DIR, "..", ".."))))
-FILE_OP_DEFINES_C = os.path.join(SOURCE_DIR, "source", "blender", "bmesh", "intern", "bmesh_opdefines.c")
+FILE_OP_DEFINES_CC = os.path.join(SOURCE_DIR, "source", "blender", "bmesh", "intern", "bmesh_opdefines.cc")
 OUT_RST = os.path.join(CURRENT_DIR, "rst", "bmesh.ops.rst")
 
 HEADER = r"""
@@ -43,7 +43,7 @@ This script shows how operators can be used to model a link of a chain.
 
 
 def main():
-    fsrc = open(FILE_OP_DEFINES_C, 'r', encoding="utf-8")
+    fsrc = open(FILE_OP_DEFINES_CC, 'r', encoding="utf-8")
 
     blocks = []
 
@@ -157,6 +157,8 @@ def main():
             l = l.strip()
             # casts
             l = l.replace("(int)", "")
+            l = re.sub(r'to_subtype_union\((.*?)\)', '{\\1}', l)
+            l = re.sub(r'eBMOpSlotSubType_Elem\((.*?)\)', '\\1', l)
 
             l = l.replace("{", "(")
             l = l.replace("}", ")")

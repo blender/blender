@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -45,7 +45,7 @@ void View::frustum_boundbox_calc(int view_id)
 {
   /* Extract the 8 corners from a Projection Matrix. */
 #if 0 /* Equivalent to this but it has accuracy problems. */
-  BKE_boundbox_init_from_minmax(&bbox, float3(-1.0f),float3(1.0f));
+  BKE_boundbox_init_from_minmax(&bbox, float3(-1.0f), float3(1.0f));
   for (int i = 0; i < 8; i++) {
     mul_project_m4_v3(data_.wininv.ptr(), bbox.vec[i]);
   }

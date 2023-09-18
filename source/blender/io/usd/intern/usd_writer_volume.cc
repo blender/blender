@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,7 +19,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "usd_hierarchy_iterator.h"
 
@@ -81,7 +81,7 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
   }
 
   float3 volume_bound_min(std::numeric_limits<float>::max());
-  float3 volume_bound_max(std::numeric_limits<float>::min());
+  float3 volume_bound_max(std::numeric_limits<float>::lowest());
   if (BKE_volume_min_max(volume, volume_bound_min, volume_bound_max)) {
     const pxr::VtArray<pxr::GfVec3f> volume_extent = {pxr::GfVec3f(&volume_bound_min[0]),
                                                       pxr::GfVec3f(&volume_bound_max[0])};
@@ -139,12 +139,12 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
   const char *vdb_directory_name = "volumes";
 
   char vdb_directory_path[FILE_MAX];
-  BLI_strncpy(vdb_directory_path, usd_directory_path, FILE_MAX);
+  STRNCPY(vdb_directory_path, usd_directory_path);
   BLI_strncat(vdb_directory_path, vdb_directory_name, sizeof(vdb_directory_path));
   BLI_dir_create_recursive(vdb_directory_path);
 
   char vdb_file_name[FILE_MAXFILE];
-  BLI_strncpy(vdb_file_name, volume->id.name + 2, FILE_MAXFILE);
+  STRNCPY(vdb_file_name, volume->id.name + 2);
   const pxr::UsdTimeCode timecode = get_export_time_code();
   if (!timecode.IsDefault()) {
     const int frame = int(timecode.GetValue());
@@ -168,7 +168,7 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_relative_file_path(
   }
 
   char relative_path[FILE_MAX];
-  BLI_strncpy(relative_path, vdb_file_path.c_str(), FILE_MAX);
+  STRNCPY(relative_path, vdb_file_path.c_str());
   BLI_path_rel(relative_path, usd_file_path.c_str());
   if (!BLI_path_is_rel(relative_path)) {
     return std::nullopt;

@@ -1,14 +1,18 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * 2D Cubic Bezier thick line drawing
  */
-
-#define MID_VERTEX 65
 
 /**
  * `uv.x` is position along the curve, defining the tangent space.
  * `uv.y` is "signed" distance (compressed to [0..1] range) from the pos in expand direction
  * `pos` is the verts position in the curve tangent space
  */
+
+#define MID_VERTEX 65
 
 void main(void)
 {
@@ -30,8 +34,7 @@ void main(void)
   bool doMuted = node_link_data.doMuted;
   float dim_factor = node_link_data.dim_factor;
   float thickness = node_link_data.thickness;
-  float dash_factor = node_link_data.dash_factor;
-  float dash_alpha = node_link_data.dash_alpha;
+  vec3 dash_params = node_link_data.dash_params.xyz;
 
   vec4 colShadow = node_link_data.colors[0];
   vec4 colStart = node_link_data.colors[1];
@@ -63,10 +66,12 @@ void main(void)
     }
   }
 
+  aspect = node_link_data.aspect;
   /* Parameters for the dashed line. */
   isMainLine = expand.y != 1.0 ? 0 : 1;
-  dashFactor = dash_factor;
-  dashAlpha = dash_alpha;
+  dashLength = dash_params.x;
+  dashFactor = dash_params.y;
+  dashAlpha = dash_params.z;
   /* Approximate line length, no need for real bezier length calculation. */
   lineLength = distance(P0, P3);
   /* TODO: Incorrect U, this leads to non-uniform dash distribution. */
@@ -107,10 +112,10 @@ void main(void)
   finalColor[3] *= dim_factor;
 
   /* Expand into a line */
-  gl_Position.xy += exp_axis * node_link_data.expandSize * expand_dist;
+  gl_Position.xy += exp_axis * node_link_data.aspect * expand_dist;
 
   /* If the link is not muted or is not a reroute arrow the points are squashed to the center of
-   * the line. Magic numbers are defined in drawnode.c */
+   * the line. Magic numbers are defined in `drawnode.cc`. */
   if ((expand.x == 1.0 && !doMuted) ||
       (expand.y != 1.0 && (pos.x < 0.70 || pos.x > 0.71) && !doArrow))
   {

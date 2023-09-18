@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_hair.h"
@@ -13,6 +13,7 @@
 #include "BKE_particle.h"
 
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 
 #include "DNA_particle_types.h"
 

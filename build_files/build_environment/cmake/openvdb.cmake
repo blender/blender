@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2017-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2017-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -50,7 +50,7 @@ set(OPENVDB_PATCH ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATC
 if(APPLE)
   set(OPENVDB_PATCH
     ${OPENVDB_PATCH} &&
-    ${PATCH_CMD} -p 0 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb_metal.diff
+    ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb_metal.diff
   )
 endif()
 

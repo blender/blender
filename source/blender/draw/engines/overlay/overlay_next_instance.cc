@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,7 +7,7 @@
  */
 
 #include "DEG_depsgraph_query.h"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 #include "draw_debug.hh"
 
 #include "overlay_next_instance.hh"
@@ -247,6 +247,7 @@ bool Instance::object_is_edit_mode(const Object *ob)
       case OB_CURVES:
         return state.ctx_mode == CTX_MODE_EDIT_CURVES;
       case OB_POINTCLOUD:
+        return state.ctx_mode == CTX_MODE_EDIT_POINT_CLOUD;
       case OB_VOLUME:
         /* No edit mode yet. */
         return false;

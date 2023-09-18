@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void tangent_orco_x(vec3 orco_in, out vec3 orco_out)
 {
   orco_out = orco_in.xzy * vec3(0.0, -0.5, 0.5) + vec3(0.0, 0.25, -0.25);

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,6 +11,8 @@
  */
 
 #include "BLI_function_ref.hh"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -26,33 +28,37 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BLI_array_utils.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 
-#include "ED_armature.h"
-#include "ED_curves.h"
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_object.h"
-#include "ED_particle.h"
-#include "ED_screen.h"
+#include "ED_armature.hh"
+#include "ED_curves.hh"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_object.hh"
+#include "ED_particle.hh"
+#include "ED_screen.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+
+#include "ANIM_bone_collections.h"
 
 /* local module include */
-#include "transform.h"
-#include "transform_convert.h"
-#include "transform_gizmo.h"
-#include "transform_snap.h"
+#include "transform.hh"
+#include "transform_convert.hh"
+#include "transform_gizmo.hh"
+#include "transform_snap.hh"
+
+using namespace blender;
 
 static wmGizmoGroupType *g_GGT_xform_gizmo = nullptr;
 static wmGizmoGroupType *g_GGT_xform_gizmo_context = nullptr;
@@ -388,29 +394,29 @@ static void gizmo_get_axis_constraint(const int axis_idx, bool r_axis[3])
     case MAN_AXIS_TRANS_X:
     case MAN_AXIS_ROT_X:
     case MAN_AXIS_SCALE_X:
-      r_axis[0] = 1;
+      r_axis[0] = true;
       break;
     case MAN_AXIS_TRANS_Y:
     case MAN_AXIS_ROT_Y:
     case MAN_AXIS_SCALE_Y:
-      r_axis[1] = 1;
+      r_axis[1] = true;
       break;
     case MAN_AXIS_TRANS_Z:
     case MAN_AXIS_ROT_Z:
     case MAN_AXIS_SCALE_Z:
-      r_axis[2] = 1;
+      r_axis[2] = true;
       break;
     case MAN_AXIS_TRANS_XY:
     case MAN_AXIS_SCALE_XY:
-      r_axis[0] = r_axis[1] = 1;
+      r_axis[0] = r_axis[1] = true;
       break;
     case MAN_AXIS_TRANS_YZ:
     case MAN_AXIS_SCALE_YZ:
-      r_axis[1] = r_axis[2] = 1;
+      r_axis[1] = r_axis[2] = true;
       break;
     case MAN_AXIS_TRANS_ZX:
     case MAN_AXIS_SCALE_ZX:
-      r_axis[2] = r_axis[0] = 1;
+      r_axis[2] = r_axis[0] = true;
       break;
     default:
       break;
@@ -509,12 +515,10 @@ static int gizmo_3d_foreach_selected(const bContext *C,
                                      const short orient_index,
                                      const bool use_curve_handles,
                                      const bool use_only_center,
-                                     blender::FunctionRef<void(const blender::float3 &)> user_fn,
+                                     FunctionRef<void(const float3 &)> user_fn,
                                      const float (**r_mat)[4],
                                      short *r_drawflags)
 {
-  using namespace blender;
-
   const auto run_coord_with_matrix =
       [&](const float co[3], const bool use_matrix, const float matrix[4][4]) {
         float co_world[3];
@@ -532,7 +536,6 @@ static int gizmo_3d_foreach_selected(const bContext *C,
   Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
-  Base *base;
   bGPdata *gpd = CTX_data_gpencil_data(C);
   const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
   const bool is_curve_edit = GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
@@ -878,15 +881,15 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
     /* we need the one selected object, if its not active */
     BKE_view_layer_synced_ensure(scene, view_layer);
-    base = BKE_view_layer_active_base_get(view_layer);
-    ob = base ? base->object : nullptr;
-    if (base && ((base->flag & BASE_SELECTED) == 0)) {
-      ob = nullptr;
+    {
+      Base *base = BKE_view_layer_active_base_get(view_layer);
+      ob = base ? base->object : nullptr;
+      if (base && ((base->flag & BASE_SELECTED) == 0)) {
+        ob = nullptr;
+      }
     }
 
-    for (base = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer)->first); base;
-         base = base->next)
-    {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if (!BASE_SELECTED_EDITABLE(v3d, base)) {
         continue;
       }
@@ -983,9 +986,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     copy_m4_m4(tbounds->matrix_space, ob->object_to_world);
   }
 
-  const auto gizmo_3d_tbounds_calc_fn = [&](const blender::float3 &co) {
-    calc_tw_center(tbounds, co);
-  };
+  const auto gizmo_3d_tbounds_calc_fn = [&](const float3 &co) { calc_tw_center(tbounds, co); };
 
   totsel = gizmo_3d_foreach_selected(C,
                                      orient_index,
@@ -1043,8 +1044,6 @@ static bool gizmo_3d_calc_pos(const bContext *C,
                               const short pivot_type,
                               float r_pivot_pos[3])
 {
-  zero_v3(r_pivot_pos);
-
   switch (pivot_type) {
     case V3D_AROUND_CURSOR:
       copy_v3_v3(r_pivot_pos, scene->cursor.location);
@@ -1087,9 +1086,8 @@ static bool gizmo_3d_calc_pos(const bContext *C,
         return true;
       }
 
-      const auto gizmo_3d_calc_center_fn = [&](const blender::float3 &co) {
-        add_v3_v3(r_pivot_pos, co);
-      };
+      float co_sum[3] = {0.0f, 0.0f, 0.0f};
+      const auto gizmo_3d_calc_center_fn = [&](const float3 &co) { add_v3_v3(co_sum, co); };
       const float(*r_mat)[4] = nullptr;
       int totsel;
       totsel = gizmo_3d_foreach_selected(C,
@@ -1100,7 +1098,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
                                          &r_mat,
                                          nullptr);
       if (totsel) {
-        mul_v3_fl(r_pivot_pos, 1.0f / float(totsel));
+        mul_v3_v3fl(r_pivot_pos, co_sum, 1.0f / float(totsel));
         if (r_mat) {
           mul_m4_v3(r_mat, r_pivot_pos);
         }
@@ -1182,12 +1180,11 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   }
   TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get_from_flag(scene,
                                                                                    orient_flag);
-  PointerRNA orient_ref_ptr;
-  RNA_pointer_create(&scene->id, &RNA_TransformOrientationSlot, orient_slot, &orient_ref_ptr);
+  PointerRNA orient_ref_ptr = RNA_pointer_create(
+      &scene->id, &RNA_TransformOrientationSlot, orient_slot);
   const ToolSettings *ts = scene->toolsettings;
 
-  PointerRNA scene_ptr;
-  RNA_id_pointer_create(&scene->id, &scene_ptr);
+  PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);
   {
     const PropertyRNA *props[] = {
         &rna_Scene_transform_orientation_slots,
@@ -1200,8 +1197,7 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   if ((ts->transform_pivot_point == V3D_AROUND_CURSOR) || (orient_slot->type == V3D_ORIENT_CURSOR))
   {
     /* We could be more specific here, for now subscribe to any cursor change. */
-    PointerRNA cursor_ptr;
-    RNA_pointer_create(&scene->id, &RNA_View3DCursor, &scene->cursor, &cursor_ptr);
+    PointerRNA cursor_ptr = RNA_pointer_create(&scene->id, &RNA_View3DCursor, &scene->cursor);
     WM_msg_subscribe_rna(mbus, &cursor_ptr, nullptr, &msg_sub_value_gz_tag_refresh, __func__);
   }
 
@@ -1218,8 +1214,8 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
     }
   }
 
-  PointerRNA toolsettings_ptr;
-  RNA_pointer_create(&scene->id, &RNA_ToolSettings, scene->toolsettings, &toolsettings_ptr);
+  PointerRNA toolsettings_ptr = RNA_pointer_create(
+      &scene->id, &RNA_ToolSettings, scene->toolsettings);
 
   if (ELEM(type_fn, VIEW3D_GGT_xform_gizmo, VIEW3D_GGT_xform_shear)) {
     const PropertyRNA *props[] = {
@@ -1241,8 +1237,7 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
     }
   }
 
-  PointerRNA view3d_ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceView3D, area->spacedata.first, &view3d_ptr);
+  PointerRNA view3d_ptr = RNA_pointer_create(&screen->id, &RNA_SpaceView3D, area->spacedata.first);
 
   if (type_fn == VIEW3D_GGT_xform_gizmo) {
     GizmoGroup *ggd = static_cast<GizmoGroup *>(gzgroup->customdata);
@@ -1677,7 +1672,7 @@ static int gizmo_modal(bContext *C,
     calc_params.use_only_center = true;
     if (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds, rv3d)) {
       gizmo_prepare_mat(C, rv3d, &tbounds);
-      for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first); gz; gz = gz->next) {
+      LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
         WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
       }
     }
@@ -1743,7 +1738,7 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 
   MAN_ITER_AXES_BEGIN (axis, axis_idx) {
     const short axis_type = gizmo_get_axis_type(axis_idx);
-    bool constraint_axis[3] = {1, 0, 0};
+    bool constraint_axis[3] = {true, false, false};
     PointerRNA *ptr = nullptr;
 
     gizmo_get_axis_constraint(axis_idx, constraint_axis);
@@ -1794,7 +1789,7 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
         }
       }
 
-      RNA_boolean_set(ptr, "release_confirm", 1);
+      RNA_boolean_set(ptr, "release_confirm", true);
     }
   }
   MAN_ITER_AXES_END;
@@ -2421,7 +2416,7 @@ void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t)
       wmEvent event = {nullptr};
 
       /* Set the initial mouse value. Used for rotation gizmos. */
-      copy_v2_v2_int(event.mval, t->mouse.imval);
+      copy_v2_v2_int(event.mval, int2(t->mouse.imval));
 
       /* We need to update the position of the gizmo before invoking otherwise
        * #wmGizmo::scale_final could be calculated wrong. */

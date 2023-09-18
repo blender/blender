@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,10 +6,7 @@ set(INC
   .
   intern
   ../blenkernel
-  ../blenlib
-  ../makesdna
   ../../../intern/clog
-  ../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -39,17 +36,21 @@ set(SRC
   intern/utils.hh
 
   AS_asset_library.h
-  AS_asset_representation.h
 )
 
 set(LIB
   bf_blenkernel
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 
 blender_add_lib(bf_asset_system "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_GTESTS)
+  set(TEST_INC
+  )
   set(TEST_SRC
     tests/asset_catalog_path_test.cc
     tests/asset_catalog_test.cc

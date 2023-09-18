@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,7 +6,7 @@
  * \ingroup sptext
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_text_types.h"
 
@@ -17,23 +17,24 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
-#include "ED_space_api.h"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 
 #include "text_format.hh"
 #include "text_intern.hh" /* own include */
@@ -155,7 +156,7 @@ static void text_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void text_operatortypes(void)
+static void text_operatortypes()
 {
   WM_operatortype_append(TEXT_OT_new);
   WM_operatortype_append(TEXT_OT_open);
@@ -216,8 +217,8 @@ static void text_operatortypes(void)
 
 static void text_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Text Generic", SPACE_TEXT, 0);
-  WM_keymap_ensure(keyconf, "Text", SPACE_TEXT, 0);
+  WM_keymap_ensure(keyconf, "Text Generic", SPACE_TEXT, RGN_TYPE_WINDOW);
+  WM_keymap_ensure(keyconf, "Text", SPACE_TEXT, RGN_TYPE_WINDOW);
 }
 
 const char *text_context_dir[] = {"edit_text", nullptr};
@@ -253,9 +254,9 @@ static void text_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
-  keymap = WM_keymap_ensure(wm->defaultconf, "Text", SPACE_TEXT, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Text", SPACE_TEXT, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* add drop boxes */
@@ -335,7 +336,7 @@ static void text_drop_paste(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 }
 
 /* this region dropbox definition */
-static void text_dropboxes(void)
+static void text_dropboxes()
 {
   ListBase *lb = WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
 
@@ -369,7 +370,7 @@ static void text_properties_region_init(wmWindowManager *wm, ARegion *region)
   ED_region_panels_init(wm, region);
 
   /* own keymaps */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Text Generic", SPACE_TEXT, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -396,16 +397,16 @@ static void text_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper
   BKE_id_remapper_apply(mappings, (ID **)&stext->text, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
+static void text_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  SpaceText *st = reinterpret_cast<SpaceText *>(space_link);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, st->text, IDWALK_CB_USER_ONE);
+}
+
 static void text_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceText *st = (SpaceText *)sl;
   memset(&st->runtime, 0x0, sizeof(st->runtime));
-}
-
-static void text_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
-{
-  SpaceText *st = (SpaceText *)sl;
-  BLO_read_id_address(reader, parent_id, &st->text);
 }
 
 static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)
@@ -415,7 +416,7 @@ static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 /********************* registration ********************/
 
-void ED_spacetype_text(void)
+void ED_spacetype_text()
 {
   SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype text"));
   ARegionType *art;
@@ -433,8 +434,9 @@ void ED_spacetype_text(void)
   st->context = text_context;
   st->dropboxes = text_dropboxes;
   st->id_remap = text_id_remap;
+  st->foreach_id = text_foreach_id;
   st->blend_read_data = text_space_blend_read_data;
-  st->blend_read_lib = text_space_blend_read_lib;
+  st->blend_read_after_liblink = nullptr;
   st->blend_write = text_space_blend_write;
 
   /* regions: main window */

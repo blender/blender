@@ -92,6 +92,8 @@ class UsdLuxWrapper {
   MAKEFUNCS(Exposure, pxr::SdfValueTypeNames->Float, float);
   MAKEFUNCS(Specular, pxr::SdfValueTypeNames->Float, float);
   MAKEFUNCS(Color, pxr::SdfValueTypeNames->Color3f, pxr::GfVec3f);
+  MAKEFUNCS(Diffuse, pxr::SdfValueTypeNames->Float, float);
+  MAKEFUNCS(Normalize, pxr::SdfValueTypeNames->Bool, bool);
 
   // rect / disk light support
   MAKEFUNCS_NOAPI(Radius, pxr::SdfValueTypeNames->Float, float);

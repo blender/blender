@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,11 +19,6 @@ namespace blender::ed::outliner {
 TreeElementIDCollection::TreeElementIDCollection(TreeElement &legacy_te, Collection &collection)
     : TreeElementID(legacy_te, collection.id), collection_(collection)
 {
-}
-
-bool TreeElementIDCollection::isExpandValid() const
-{
-  return true;
 }
 
 void TreeElementIDCollection::expand(SpaceOutliner &space_outliner) const

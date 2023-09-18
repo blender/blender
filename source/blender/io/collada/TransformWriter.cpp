@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2010-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2010-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,7 +6,7 @@
  * \ingroup collada
  */
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_sys_types.h"
 
 #include "BKE_object.h"

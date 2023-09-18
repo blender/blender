@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -46,7 +46,8 @@ static int FalseBP1D___init__(BPy_FalseBP1D *self, PyObject *args, PyObject *kwd
 /*-----------------------BPy_FalseBP1D type definition ------------------------------*/
 
 PyTypeObject FalseBP1D_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "FalseBP1D",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "FalseBP1D",
     /*tp_basicsize*/ sizeof(BPy_FalseBP1D),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -82,7 +83,7 @@ PyTypeObject FalseBP1D_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)FalseBP1D___init__,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

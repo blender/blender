@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2016 Blender Foundation
+# SPDX-FileCopyrightText: 2016 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -77,7 +77,7 @@ if(DEFINED LIBDIR)
     set(WITH_OPENMP_STATIC ON)
   endif()
   set(Boost_NO_BOOST_CMAKE ON)
-  set(BOOST_ROOT ${LIBDIR}/boost)
+  set(Boost_ROOT ${LIBDIR}/boost)
   set(BOOST_LIBRARYDIR ${LIBDIR}/boost/lib)
   set(Boost_NO_SYSTEM_PATHS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
@@ -144,6 +144,9 @@ if(NOT WITH_SYSTEM_FREETYPE)
     # list(APPEND FREETYPE_LIBRARIES
     #   ${BROTLI_LIBRARIES}
     # )
+  else()
+    # Quiet warning as this variable will be used after `FREETYPE_LIBRARIES`.
+    set(BROTLI_LIBRARIES "")
   endif()
   check_freetype_for_brotli()
 endif()
@@ -181,6 +184,10 @@ Proceeding with PYTHON_SITE_PACKAGES install target, you have been warned!"
       unset(_is_prefix)
     endif()
   endif()
+else()
+  # Python executable is needed as part of the build-process,
+  # note that building without Python is quite unusual.
+  find_program(PYTHON_EXECUTABLE "python3")
 endif()
 
 if(WITH_IMAGE_OPENEXR)
@@ -321,11 +328,13 @@ endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
   set(CYCLES_LEVEL_ZERO ${LIBDIR}/level-zero CACHE PATH "Path to Level Zero installation")
+  mark_as_advanced(CYCLES_LEVEL_ZERO)
   if(EXISTS ${CYCLES_LEVEL_ZERO} AND NOT LEVEL_ZERO_ROOT_DIR)
     set(LEVEL_ZERO_ROOT_DIR ${CYCLES_LEVEL_ZERO})
   endif()
 
   set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to oneAPI DPC++ compiler")
+  mark_as_advanced(CYCLES_SYCL)
   if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
     set(SYCL_ROOT_DIR ${CYCLES_SYCL})
   endif()
@@ -598,6 +607,8 @@ if(WITH_SYSTEM_FREETYPE)
     message(FATAL_ERROR "Failed finding system FreeType version!")
   endif()
   check_freetype_for_brotli()
+  # Quiet warning as this variable will be used after `FREETYPE_LIBRARIES`.
+  set(BROTLI_LIBRARIES "")
 endif()
 
 if(WITH_LZO AND WITH_SYSTEM_LZO)
@@ -772,8 +783,11 @@ if(WITH_GHOST_X11)
 
   if(WITH_X11_XINPUT)
     if(NOT X11_Xinput_LIB)
-      message(FATAL_ERROR "LibXi not found. Disable WITH_X11_XINPUT if you
-      want to build without tablet support")
+      message(
+        FATAL_ERROR
+        "LibXi not found. "
+        "Disable WITH_X11_XINPUT if you want to build without tablet support"
+      )
     endif()
   endif()
 
@@ -782,15 +796,21 @@ if(WITH_GHOST_X11)
     find_library(X11_Xxf86vmode_LIB Xxf86vm   ${X11_LIB_SEARCH_PATH})
     mark_as_advanced(X11_Xxf86vmode_LIB)
     if(NOT X11_Xxf86vmode_LIB)
-      message(FATAL_ERROR "libXxf86vm not found. Disable WITH_X11_XF86VMODE if you
-      want to build without")
+      message(
+        FATAL_ERROR
+        "libXxf86vm not found. "
+        "Disable WITH_X11_XF86VMODE if you want to build without"
+      )
     endif()
   endif()
 
   if(WITH_X11_XFIXES)
     if(NOT X11_Xfixes_LIB)
-      message(FATAL_ERROR "libXfixes not found. Disable WITH_X11_XFIXES if you
-      want to build without")
+      message(
+        FATAL_ERROR
+        "libXfixes not found. "
+        "Disable WITH_X11_XFIXES if you want to build without"
+      )
     endif()
   endif()
 
@@ -798,8 +818,11 @@ if(WITH_GHOST_X11)
     find_library(X11_Xrender_LIB Xrender ${X11_LIB_SEARCH_PATH})
     mark_as_advanced(X11_Xrender_LIB)
     if(NOT X11_Xrender_LIB)
-      message(FATAL_ERROR "libXrender not found. Disable WITH_X11_ALPHA if you
-      want to build without")
+      message(
+        FATAL_ERROR
+        "libXrender not found. "
+        "Disable WITH_X11_ALPHA if you want to build without"
+      )
     endif()
   endif()
 
@@ -990,10 +1013,15 @@ endif()
 
 if(WITH_COMPILER_CCACHE)
   find_program(CCACHE_PROGRAM ccache)
+  mark_as_advanced(CCACHE_PROGRAM)
   if(CCACHE_PROGRAM)
     # Makefiles and ninja
     set(CMAKE_C_COMPILER_LAUNCHER   "${CCACHE_PROGRAM}" CACHE STRING "" FORCE)
     set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "" FORCE)
+    mark_as_advanced(
+      CMAKE_C_COMPILER_LAUNCHER
+      CMAKE_CXX_COMPILER_LAUNCHER
+    )
   else()
     message(WARNING "Ccache NOT found, disabling WITH_COMPILER_CCACHE")
     set(WITH_COMPILER_CCACHE OFF)
@@ -1038,7 +1066,7 @@ if(PLATFORM_BUNDLED_LIBRARIES)
 
   # Environment variables to run precompiled executables that needed libraries.
   list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
-  set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths}:${LD_LIBRARY_PATH}\"")
+  set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths}:$LD_LIBRARY_PATH\"")
   set(PLATFORM_ENV_INSTALL "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$LD_LIBRARY_PATH")
   unset(_library_paths)
 endif()

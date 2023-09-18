@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Merge overlays texture on top of image texture and transform to display space (assume sRGB) */
 
@@ -36,7 +39,15 @@ void main()
   vec4 overlay_col = texture(overlays_texture, texCoord_interp.xy);
 
   if (overlay) {
-    fragColor = clamp(fragColor, 0.0, 1.0);
+    if (!use_hdr) {
+      /* If we're not using an extended color space, clamp the color 0..1. */
+      fragColor = clamp(fragColor, 0.0, 1.0);
+    }
+    else {
+      /* When using extended color-space, interpolate towards clamped color to improve display of
+       * alpha-blended overlays. */
+      fragColor = mix(max(fragColor, 0.0), clamp(fragColor, 0.0, 1.0), overlay_col.a);
+    }
     fragColor *= 1.0 - overlay_col.a;
     fragColor += overlay_col;
   }

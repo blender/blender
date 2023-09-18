@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,7 +12,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_linklist_stack.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
@@ -23,10 +24,10 @@
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_paint.hh"
+#include "BKE_pbvh_api.hh"
 
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
@@ -75,9 +76,7 @@ static bool sculpt_geodesic_mesh_test_dist_add(const float (*vert_positions)[3],
   return false;
 }
 
-static float *SCULPT_geodesic_mesh_create(Object *ob,
-                                          GSet *initial_verts,
-                                          const float limit_radius)
+static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -89,7 +88,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 
   float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
   const blender::Span<blender::int2> edges = mesh->edges();
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
@@ -97,8 +96,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   if (ss->epmap.is_empty()) {
-    ss->epmap = blender::bke::mesh::build_edge_to_poly_map(
-        polys, corner_edges, edges.size(), ss->edge_to_poly_offsets, ss->edge_to_poly_indices);
+    ss->epmap = blender::bke::mesh::build_edge_to_face_map(
+        faces, corner_edges, edges.size(), ss->edge_to_face_offsets, ss->edge_to_face_indices);
   }
   if (ss->vemap.is_empty()) {
     ss->vemap = blender::bke::mesh::build_vert_to_edge_map(
@@ -173,12 +172,12 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
       }
 
       if (ss->epmap[e].size() != 0) {
-        for (int poly_map_index = 0; poly_map_index < ss->epmap[e].size(); poly_map_index++) {
-          const int poly = ss->epmap[e][poly_map_index];
-          if (ss->hide_poly && ss->hide_poly[poly]) {
+        for (int face_map_index = 0; face_map_index < ss->epmap[e].size(); face_map_index++) {
+          const int face = ss->epmap[e][face_map_index];
+          if (ss->hide_poly && ss->hide_poly[face]) {
             continue;
           }
-          for (const int v_other : corner_verts.slice(polys[poly])) {
+          for (const int v_other : corner_verts.slice(faces[face])) {
             if (ELEM(v_other, v1, v2)) {
               continue;
             }
@@ -231,7 +230,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 /* For sculpt mesh data that does not support a geodesic distances algorithm, fallback to the
  * distance to each vertex. In this case, only one of the initial vertices will be used to
  * calculate the distance. */
-static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_verts)
+static float *geodesic_fallback_create(Object *ob, GSet *initial_verts)
 {
 
   SculptSession *ss = ob->sculpt;
@@ -268,12 +267,12 @@ float *SCULPT_geodesic_distances_create(Object *ob, GSet *initial_verts, const f
   SculptSession *ss = ob->sculpt;
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return SCULPT_geodesic_mesh_create(ob, initial_verts, limit_radius);
+      return geodesic_mesh_create(ob, initial_verts, limit_radius);
     case PBVH_BMESH:
     case PBVH_GRIDS:
-      return SCULPT_geodesic_fallback_create(ob, initial_verts);
+      return geodesic_fallback_create(ob, initial_verts);
   }
-  BLI_assert(false);
+  BLI_assert_unreachable();
   return nullptr;
 }
 

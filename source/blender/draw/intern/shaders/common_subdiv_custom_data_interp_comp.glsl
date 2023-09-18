@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* To be compiled with common_subdiv_lib.glsl */
 
@@ -146,9 +149,9 @@ Vertex average(Vertex v0, Vertex v1)
   return result;
 }
 
-uint get_vertex_count(uint coarse_polygon)
+uint get_vertex_count(uint coarse_face)
 {
-  uint number_of_patches = face_ptex_offset[coarse_polygon + 1] - face_ptex_offset[coarse_polygon];
+  uint number_of_patches = face_ptex_offset[coarse_face + 1] - face_ptex_offset[coarse_face];
   if (number_of_patches == 1) {
     /* If there is only one patch for the current coarse polygon, then it is a quad. */
     return 4;
@@ -157,15 +160,15 @@ uint get_vertex_count(uint coarse_polygon)
   return number_of_patches;
 }
 
-uint get_polygon_corner_index(uint coarse_polygon, uint patch_index)
+uint get_polygon_corner_index(uint coarse_face, uint patch_index)
 {
-  uint patch_offset = face_ptex_offset[coarse_polygon];
+  uint patch_offset = face_ptex_offset[coarse_face];
   return patch_index - patch_offset;
 }
 
-uint get_loop_start(uint coarse_polygon)
+uint get_loop_start(uint coarse_face)
 {
-  return extra_coarse_face_data[coarse_polygon] & coarse_face_loopstart_mask;
+  return extra_coarse_face_data[coarse_face] & coarse_face_loopstart_mask;
 }
 
 void main()
@@ -179,8 +182,8 @@ void main()
   uint start_loop_index = quad_index * 4;
 
   /* Find which coarse polygon we came from. */
-  uint coarse_polygon = coarse_polygon_index_from_subdiv_quad_index(quad_index, coarse_poly_count);
-  uint loop_start = get_loop_start(coarse_polygon);
+  uint coarse_face = coarse_face_index_from_subdiv_quad_index(quad_index, coarse_face_count);
+  uint loop_start = get_loop_start(coarse_face);
 
   /* Find the number of vertices for the coarse polygon. */
   Vertex v0, v1, v2, v3;
@@ -189,7 +192,7 @@ void main()
   clear(v2);
   clear(v3);
 
-  uint number_of_vertices = get_vertex_count(coarse_polygon);
+  uint number_of_vertices = get_vertex_count(coarse_face);
   if (number_of_vertices == 4) {
     /* Interpolate the src data. */
     v0 = read_vertex(loop_start + 0);
@@ -211,7 +214,7 @@ void main()
 
     /* Interpolate between the previous and next corner for the middle values for the edges. */
     uint patch_index = uint(patch_coords[start_loop_index].patch_index);
-    uint current_coarse_corner = get_polygon_corner_index(coarse_polygon, patch_index);
+    uint current_coarse_corner = get_polygon_corner_index(coarse_face, patch_index);
     uint next_coarse_corner = (current_coarse_corner + 1) % number_of_vertices;
     uint prev_coarse_corner = (current_coarse_corner + number_of_vertices - 1) %
                               number_of_vertices;

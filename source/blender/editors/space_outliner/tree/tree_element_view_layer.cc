@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,14 +27,21 @@ TreeElementViewLayerBase::TreeElementViewLayerBase(TreeElement &legacy_te, Scene
   legacy_te_.name = IFACE_("View Layers");
 }
 
-void TreeElementViewLayerBase::expand(SpaceOutliner &space_outliner) const
+void TreeElementViewLayerBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   for (auto *view_layer : ListBaseWrapper<ViewLayer>(scene_.view_layers)) {
-    TreeElement *tenlay = outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_R_LAYER, 0);
-    tenlay->name = view_layer->name;
-    tenlay->directdata = view_layer;
+    add_element(&legacy_te_.subtree, &scene_.id, view_layer, &legacy_te_, TSE_R_LAYER, 0);
   }
+}
+
+TreeElementViewLayer::TreeElementViewLayer(TreeElement &legacy_te,
+                                           Scene & /* scene */,
+                                           ViewLayer &view_layer)
+    : AbstractTreeElement(legacy_te), /* scene_(scene), */ view_layer_(view_layer)
+{
+  BLI_assert(legacy_te.store_elem->type == TSE_R_LAYER);
+  legacy_te.name = view_layer_.name;
+  legacy_te.directdata = &view_layer_;
 }
 
 }  // namespace blender::ed::outliner

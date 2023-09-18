@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(common_debug_draw_lib.glsl)
 
 void main()
 {
@@ -38,9 +41,9 @@ void main()
   vec3 T, B;
   make_orthonormal_basis(N, T, B);
 
-  mat4 model_matrix = mat4(vec4(T * surfel_radius, 0),
-                           vec4(B * surfel_radius, 0),
-                           vec4(N * surfel_radius, 0),
+  mat4 model_matrix = mat4(vec4(T * debug_surfel_radius, 0),
+                           vec4(B * debug_surfel_radius, 0),
+                           vec4(N * debug_surfel_radius, 0),
                            vec4(surfel.position, 1));
 
   P = (model_matrix * vec4(lP, 1)).xyz;

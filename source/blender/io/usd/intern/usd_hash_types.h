@@ -1,5 +1,10 @@
-#ifndef BLENDER_USD_HASH_TYPES_H
-#define BLENDER_USD_HASH_TYPES_H
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+#include "BLI_hash.hh"
 
 #include <pxr/base/tf/token.h>
 #include <pxr/usd/sdf/valueTypeName.h>
@@ -19,6 +24,3 @@ template<> struct DefaultHash<pxr::TfToken> {
   }
 };
 }  // namespace blender
-
-#endif  // BLENDER_USD_HASH_TYPES_H
-

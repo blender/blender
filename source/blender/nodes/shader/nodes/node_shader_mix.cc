@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,15 +8,27 @@
 
 #include <algorithm>
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "BKE_material.h"
+
+#include "BLI_math_quaternion.hh"
+#include "BLI_math_vector.h"
+#include "BLI_string_utf8.h"
+
+#include "DNA_material_types.h"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
-#include "NOD_add_node_search.hh"
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
 
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
 namespace blender::nodes::node_sh_mix_cc {
 
@@ -62,26 +74,37 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
+  b.add_input<decl::Rotation>("A", "A_Rotation")
+      .is_default_link_socket()
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::Rotation>("B", "B_Rotation").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+
   b.add_output<decl::Float>("Result", "Result_Float");
   b.add_output<decl::Vector>("Result", "Result_Vector");
   b.add_output<decl::Color>("Result", "Result_Color");
+  b.add_output<decl::Rotation>("Result", "Result_Rotation");
 };
 
 static void sh_node_mix_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const NodeShaderMix &data = node_storage(*static_cast<const bNode *>(ptr->data));
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
-  if (data.data_type == SOCK_VECTOR) {
-    uiItemR(layout, ptr, "factor_mode", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  switch (data.data_type) {
+    case SOCK_FLOAT:
+      break;
+    case SOCK_VECTOR:
+      uiItemR(layout, ptr, "factor_mode", UI_ITEM_NONE, "", ICON_NONE);
+      break;
+    case SOCK_RGBA:
+      uiItemR(layout, ptr, "blend_type", UI_ITEM_NONE, "", ICON_NONE);
+      uiItemR(layout, ptr, "clamp_result", UI_ITEM_NONE, nullptr, ICON_NONE);
+      break;
+    case SOCK_ROTATION:
+      break;
+    default:
+      BLI_assert_unreachable();
   }
-  if (data.data_type == SOCK_RGBA) {
-    uiItemR(layout, ptr, "blend_type", 0, "", ICON_NONE);
-    uiItemR(layout, ptr, "clamp_result", 0, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "clamp_factor", 0, nullptr, ICON_NONE);
-  }
-  else {
-    uiItemR(layout, ptr, "clamp_factor", 0, nullptr, ICON_NONE);
-  }
+  uiItemR(layout, ptr, "clamp_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void sh_node_mix_label(const bNodeTree * /*ntree*/,
@@ -167,6 +190,9 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
     case SOCK_RGBA:
       type = SOCK_RGBA;
       break;
+    case SOCK_ROTATION:
+      type = SOCK_ROTATION;
+      break;
     default:
       return;
   }
@@ -210,15 +236,21 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
           weight);
       weight--;
     }
-    params.add_item(
-        IFACE_("Factor"),
-        [type](LinkSearchOpParams &params) {
-          bNode &node = params.add_node("ShaderNodeMix");
-          node_storage(node).data_type = type;
-          params.update_and_connect_available_socket(node, "Factor");
-        },
-        weight);
-    weight--;
+    if (type != SOCK_ROTATION) {
+      params.add_item(
+          IFACE_("Factor"),
+          [type](LinkSearchOpParams &params) {
+            bNode &node = params.add_node("ShaderNodeMix");
+            node_storage(node).data_type = type;
+            params.update_and_connect_available_socket(node, "Factor");
+          },
+          weight);
+      weight--;
+    }
+  }
+
+  if (type == SOCK_ROTATION) {
+    return;
   }
 
   if (type != SOCK_RGBA) {
@@ -233,16 +265,6 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
                       weight);
     }
   }
-}
-
-static void gather_add_node_searches(GatherAddNodeSearchParams &params)
-{
-  params.add_single_node_item(IFACE_("Mix"), params.node_type().ui_description);
-  params.add_single_node_item(IFACE_("Mix Color"),
-                              params.node_type().ui_description,
-                              [](const bContext & /*C*/, bNodeTree & /*node_tree*/, bNode &node) {
-                                node_storage(node).data_type = SOCK_RGBA;
-                              });
 }
 
 static void node_mix_init(bNodeTree * /*tree*/, bNode *node)
@@ -309,6 +331,8 @@ static const char *gpu_shader_get_name(eNodeSocketDatatype data_type,
           BLI_assert_unreachable();
           return nullptr;
       }
+    case SOCK_ROTATION:
+      return nullptr;
     default:
       BLI_assert_unreachable();
       return nullptr;
@@ -480,6 +504,26 @@ static const mf::MultiFunction *get_multi_function(const bNode &node)
         }
       }
     }
+    case SOCK_ROTATION: {
+      if (clamp_factor) {
+        static auto fn =
+            mf::build::SI3_SO<float, math::Quaternion, math::Quaternion, math::Quaternion>(
+                "Clamp Mix Rotation",
+                [](const float t, const math::Quaternion &a, const math::Quaternion &b) {
+                  return math::interpolate(a, b, math::clamp(t, 0.0f, 1.0f));
+                });
+        return &fn;
+      }
+      else {
+        static auto fn =
+            mf::build::SI3_SO<float, math::Quaternion, math::Quaternion, math::Quaternion>(
+                "Mix Rotation",
+                [](const float t, const math::Quaternion &a, const math::Quaternion &b) {
+                  return math::interpolate(a, b, t);
+                });
+        return &fn;
+      }
+    }
   }
   BLI_assert_unreachable();
   return nullptr;
@@ -518,6 +562,5 @@ void register_node_type_sh_mix()
   ntype.draw_buttons = file_ns::sh_node_mix_layout;
   ntype.labelfunc = file_ns::sh_node_mix_label;
   ntype.gather_link_search_ops = file_ns::node_mix_gather_link_searches;
-  ntype.gather_add_node_search_ops = file_ns::gather_add_node_searches;
   nodeRegisterType(&ntype);
 }

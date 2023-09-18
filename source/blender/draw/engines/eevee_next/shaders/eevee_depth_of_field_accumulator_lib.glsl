@@ -1,9 +1,12 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Depth of Field Gather accumulator.
  * We currently have only 2 which are very similar.
- * One is for the halfres gather passes and the other one for slight in focus regions.
- **/
+ * One is for the half-resolution gather passes and the other one for slight in focus regions.
+ */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
@@ -148,11 +151,13 @@ void dof_gather_accumulate_sample_pair(DofGatherData pair_data[2],
   /* TODO(fclem) Promote to parameter? dither with Noise? */
   const float mirroring_min_distance = 15.0;
   if (pair_data[0].coc < mirroring_threshold &&
-      (pair_data[1].coc - mirroring_min_distance) > pair_data[0].coc) {
+      (pair_data[1].coc - mirroring_min_distance) > pair_data[0].coc)
+  {
     pair_data[1].coc = pair_data[0].coc;
   }
   else if (pair_data[1].coc < mirroring_threshold &&
-           (pair_data[0].coc - mirroring_min_distance) > pair_data[1].coc) {
+           (pair_data[0].coc - mirroring_min_distance) > pair_data[1].coc)
+  {
     pair_data[0].coc = pair_data[1].coc;
   }
 #endif
@@ -164,10 +169,9 @@ void dof_gather_accumulate_sample_pair(DofGatherData pair_data[2],
         pair_data[i].coc, pair_data[i].dist, intersection_multiplier);
     float weight = inter_weight * layer_weight * sample_weight;
 
-    /**
-     * If a CoC is larger than bordering radius we accumulate it to the general accumulator.
+    /* If a CoC is larger than bordering radius we accumulate it to the general accumulator.
      * If not, we accumulate to the ring bucket. This is to have more consistent sample occlusion.
-     **/
+     */
     float accum_weight = dof_gather_accum_weight(pair_data[i].coc, bordering_radius, first_ring);
     dof_gather_accumulate_sample(pair_data[i], weight * accum_weight, accum_data);
     dof_gather_accumulate_sample(pair_data[i], weight * (1.0 - accum_weight), ring_data);
@@ -261,7 +265,7 @@ void dof_gather_accumulate_sample_ring(DofGatherData ring_data,
 }
 
 /* FIXME(fclem) Seems to be wrong since it needs `ringcount + 1` as input for
- * slightfocus gather. */
+ * slight-focus gather. */
 /* This should be replaced by web_sample_count_get() but doing so is breaking other things. */
 int dof_gather_total_sample_count(const int ring_count, const int ring_density)
 {
@@ -372,7 +376,7 @@ void dof_gather_accumulate_resolve(int total_sample_count,
 float dof_load_gather_coc(sampler2D gather_input_coc_tx, vec2 uv, float lod)
 {
   float coc = textureLod(gather_input_coc_tx, uv, lod).r;
-  /* We gather at halfres. CoC must be divided by 2 to be compared against radii. */
+  /* We gather at half-resolution. CoC must be divided by 2 to be compared against radii. */
   return coc * 0.5;
 }
 
@@ -382,7 +386,7 @@ float dof_load_gather_coc(sampler2D gather_input_coc_tx, vec2 uv, float lod)
 /** \name Common Gather accumulator.
  * \{ */
 
-/* Radii needs to be halfres CoC sizes. */
+/* Radii needs to be half-resolution CoC sizes. */
 bool dof_do_density_change(float base_radius, float min_intersectable_radius)
 {
   /* Reduce artifact for very large blur. */
@@ -631,7 +635,7 @@ void dof_slight_focus_gather(depth2D depth_tx,
       pair_data[i].color = safe_color(textureLod(color_tx, sample_uv, 0.0));
       pair_data[i].dist = ring_dist;
       if (DOF_BOKEH_TEXTURE) {
-        /* Contains subpixel distance to bokeh shape. */
+        /* Contains sub-pixel distance to bokeh shape. */
         ivec2 lut_texel = ivec2(round(sample_offset)) + dof_max_slight_focus_radius;
         pair_data[i].dist = texelFetch(bkh_lut_tx, lut_texel, 0).r;
       }

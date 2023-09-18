@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2012-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -26,13 +26,13 @@ except ModuleNotFoundError:
 
 # The languages defined in Blender.
 LANGUAGES_CATEGORIES = (
-    # Min completeness level, UI english label.
+    # Min completeness level, UI English label.
     (0.95, "Complete"),
     (0.33, "In Progress"),
     (-1.0, "Starting"),
 )
 LANGUAGES = (
-    # ID, UI english label, ISO code.
+    # ID, UI English label, ISO code.
     (0, "Automatic (Automatic)", "DEFAULT"),
     (1, "English (English)", "en_US"),
     (2, "Japanese (日本語)", "ja_JP"),
@@ -44,7 +44,7 @@ LANGUAGES = (
     (8, "French (Français)", "fr_FR"),
     (9, "Spanish (Español)", "es"),
     (10, "Catalan (Català)", "ca_AD"),
-    (11, "Czech (Český)", "cs_CZ"),
+    (11, "Czech (Čeština)", "cs_CZ"),
     (12, "Portuguese (Português)", "pt_PT"),
     (13, "Simplified Chinese (简体中文)", "zh_CN"),
     (14, "Traditional Chinese (繁體中文)", "zh_TW"),
@@ -108,10 +108,10 @@ IMPORT_LANGUAGES_RTL = {
     'ar_EG', 'fa_IR', 'he_IL',
 }
 
-# The comment prefix used in generated messages.txt file.
+# The comment prefix used in generated `messages.txt` file.
 MSG_COMMENT_PREFIX = "#~ "
 
-# The comment prefix used in generated messages.txt file.
+# The comment prefix used in generated `messages.txt` file.
 MSG_CONTEXT_PREFIX = "MSGCTXT:"
 
 # The default comment prefix used in po's.
@@ -158,7 +158,7 @@ PO_HEADER_MSGSTR = (
 )
 PO_HEADER_COMMENT_COPYRIGHT = (
     "# Blender's translation file (po format).\n"
-    "# Copyright (C) {year} The Blender Foundation.\n"
+    "# Copyright (C) {year} The Blender Authors.\n"
     "# This file is distributed under the same license as the Blender package.\n"
     "#\n"
 )
@@ -195,8 +195,8 @@ PYGETTEXT_CONTEXTS = "#define\\s+(BLT_I18NCONTEXT_[A-Z_0-9]+)\\s+\"([^\"]*)\""
 # autopep8: off
 
 # Keywords' regex.
-# XXX Most unfortunately, we can't use named backreferences inside character sets,
-#     which makes the regexes even more twisty... :/
+# XXX Most unfortunately, we can't use named back-references inside character sets,
+#     which makes the REGEXES even more twisty... :/
 _str_base = (
     # Match void string
     "(?P<{_}1>[\"'])(?P={_}1)"  # Get opening quote (' or "), and closing immediately.
@@ -258,7 +258,7 @@ PYGETTEXT_KEYWORDS = (() +
     tuple(("{}\\((?:[^,]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")) +
 
-    # Node socket declarations: contextless names
+    # Node socket declarations: context-less names.
     tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"(?:,[^),]+)*\s*\)"
            r"(?![^;]*\.translation_context\()").format(it)
           for it in ("add_input", "add_output")) +
@@ -282,8 +282,8 @@ PYGETTEXT_KEYWORDS = (() +
     # NOTE: regex is a bit more complex than it would need too. Since the actual
     # identifier (`B_UNIT_DEF_`) is at the end, if it's simpler/too general it
     # becomes extremely slow to process some (unrelated) source files.
-    ((r"\{(?:(?:\s*\"[^\",]+\"\s*,)|(?:\s*\"\\\"\",)|(?:\s*NULL\s*,)){4}\s*" +
-      _msg_re + r"\s*,(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,))(?:[^,]+,){2}"
+    ((r"\{(?:(?:\s*\"[^\",]+\"\s*,)|(?:\s*\"\\\"\",)|(?:\s*nullptr\s*,)){4}\s*" +
+      _msg_re + r"\s*,(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*nullptr\s*,))(?:[^,]+,){2}"
       + "(?:\|?\s*B_UNIT_DEF_[_A-Z]+\s*)+\}"),) +
 
     tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" +
@@ -373,6 +373,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "sRGB",
     "sRGB display space",
     "sRGB display space with Filmic view transform",
+    "sRGB IEC 61966-2-1 compound (piece-wise) encoding",
     "tan(A)",
     "tanh(A)",
     "utf-8",
@@ -418,6 +419,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "in %i hours",
     "in %i minutes",
     "in memory to enable editing!",
+    "in the asset shelf.",
     "insufficient content",
     "into",
     "jumps over",
@@ -430,6 +432,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "normal",
     "on {:%Y-%m-%d}",
     "or AMD with macOS %s or newer",
+    "parent",
     "performance impact!",
     "positions", "no positions",
     "read",
@@ -446,7 +449,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "unable to load text",
     "unable to open the file",
     "unknown error reading file",
-    "unknown error stating file",
+    "unknown error statting file",
     "unknown error writing file",
     "unselected",
     "unsupported font format",
@@ -478,6 +481,8 @@ WARN_MSGID_END_POINT_ALLOWED = {
     "Your graphics card or driver has limited support. It may work, but with issues.",
     "Your graphics card or driver is not supported.",
     "Invalid surface UVs on %d curves.",
+    "The pose library moved.",
+    "in the asset shelf.",
 }
 
 PARSER_CACHE_HASH = 'sha1'
@@ -509,12 +514,12 @@ if not os.path.exists(BLENDER_EXEC):
 # The gettext msgfmt "compiler". You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 GETTEXT_MSGFMT_EXECUTABLE = "msgfmt"
 
-# The FriBidi C compiled library (.so under Linux, .dll under windows...).
-# You’ll likely have to edit it in your user_settings.py if you’re under Windows., e.g. using the included one:
-#     FRIBIDI_LIB = os.path.join(TOOLS_DIR, "libfribidi.dll")
+# The FriBidi C compiled library (.so under Linux, `.dll` under windows...).
+# You’ll likely have to edit it in your `user_settings.py` if you’re under Windows., e.g. using the included one:
+# `FRIBIDI_LIB = os.path.join(TOOLS_DIR, "libfribidi.dll")`
 FRIBIDI_LIB = "libfribidi.so.0"
 
-# The name of the (currently empty) file that must be present in a po's directory to enable rtl-preprocess.
+# The name of the (currently empty) file that must be present in a po's directory to enable RTL-preprocess.
 RTL_PREPROCESS_FILE = "is_rtl"
 
 # The Blender source root path.
@@ -560,7 +565,7 @@ ASSET_CATALOG_FILE = "blender_assets.cats.txt"
 # The template messages file (relative to I18N_DIR).
 REL_FILE_NAME_POT = os.path.join(REL_BRANCHES_DIR, DOMAIN + ".pot")
 
-# Mo root datapath.
+# Mo root data-path.
 REL_MO_PATH_ROOT = os.path.join(REL_TRUNK_DIR, "locale")
 
 # Mo path generator for a given language.

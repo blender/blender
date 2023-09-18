@@ -11,251 +11,55 @@
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
-// first thing Eigen does: stop the compiler from committing suicide
+// first thing Eigen does: stop the compiler from reporting useless warnings.
 #include "src/Core/util/DisableStupidWarnings.h"
 
-#if defined(__CUDACC__) && !defined(EIGEN_NO_CUDA)
-  #define EIGEN_CUDACC __CUDACC__
+// then include this file where all our macros are defined. It's really important to do it first because
+// it's where we do all the compiler/OS/arch detections and define most defaults.
+#include "src/Core/util/Macros.h"
+
+// This detects SSE/AVX/NEON/etc. and configure alignment settings
+#include "src/Core/util/ConfigureVectorization.h"
+
+// We need cuda_runtime.h/hip_runtime.h to ensure that
+// the EIGEN_USING_STD macro works properly on the device side
+#if defined(EIGEN_CUDACC)
+  #include <cuda_runtime.h>
+#elif defined(EIGEN_HIPCC)
+  #include <hip/hip_runtime.h>
 #endif
 
-#if defined(__CUDA_ARCH__) && !defined(EIGEN_NO_CUDA)
-  #define EIGEN_CUDA_ARCH __CUDA_ARCH__
-#endif
-
-#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
-#define EIGEN_CUDACC_VER  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100))
-#elif defined(__CUDACC_VER__)
-#define EIGEN_CUDACC_VER __CUDACC_VER__
-#else
-#define EIGEN_CUDACC_VER 0
-#endif
-
-// Handle NVCC/CUDA/SYCL
-#if defined(__CUDACC__) || defined(__SYCL_DEVICE_ONLY__)
-  // Do not try asserts on CUDA and SYCL!
-  #ifndef EIGEN_NO_DEBUG
-  #define EIGEN_NO_DEBUG
-  #endif
-
-  #ifdef EIGEN_INTERNAL_DEBUGGING
-  #undef EIGEN_INTERNAL_DEBUGGING
-  #endif
-
-  #ifdef EIGEN_EXCEPTIONS
-  #undef EIGEN_EXCEPTIONS
-  #endif
-
-  // All functions callable from CUDA code must be qualified with __device__
-  #ifdef __CUDACC__
-    // Do not try to vectorize on CUDA and SYCL!
-    #ifndef EIGEN_DONT_VECTORIZE
-    #define EIGEN_DONT_VECTORIZE
-    #endif
-
-    #define EIGEN_DEVICE_FUNC __host__ __device__
-    // We need cuda_runtime.h to ensure that that EIGEN_USING_STD_MATH macro
-    // works properly on the device side
-    #include <cuda_runtime.h>
-  #else
-    #define EIGEN_DEVICE_FUNC
-  #endif
-
-#else
-  #define EIGEN_DEVICE_FUNC
-
-#endif
-
-// When compiling CUDA device code with NVCC, pull in math functions from the
-// global namespace.  In host mode, and when device doee with clang, use the
-// std versions.
-#if defined(__CUDA_ARCH__) && defined(__NVCC__)
-  #define EIGEN_USING_STD_MATH(FUNC) using ::FUNC;
-#else
-  #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
-#endif
-
-#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__) && !defined(EIGEN_EXCEPTIONS) && !defined(EIGEN_USE_SYCL)
-  #define EIGEN_EXCEPTIONS
-#endif
 
 #ifdef EIGEN_EXCEPTIONS
   #include <new>
 #endif
 
-// then include this file where all our macros are defined. It's really important to do it first because
-// it's where we do all the alignment settings (platform detection and honoring the user's will if he
-// defined e.g. EIGEN_DONT_ALIGN) so it needs to be done before we do anything with vectorization.
-#include "src/Core/util/Macros.h"
-
 // Disable the ipa-cp-clone optimization flag with MinGW 6.x or newer (enabled by default with -O3)
 // See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=556 for details.
-#if EIGEN_COMP_MINGW && EIGEN_GNUC_AT_LEAST(4,6)
+#if EIGEN_COMP_MINGW && EIGEN_GNUC_AT_LEAST(4,6) && EIGEN_GNUC_AT_MOST(5,5)
   #pragma GCC optimize ("-fno-ipa-cp-clone")
 #endif
 
+// Prevent ICC from specializing std::complex operators that silently fail
+// on device. This allows us to use our own device-compatible specializations
+// instead.
+#if defined(EIGEN_COMP_ICC) && defined(EIGEN_GPU_COMPILE_PHASE) \
+    && !defined(_OVERRIDE_COMPLEX_SPECIALIZATION_)
+#define _OVERRIDE_COMPLEX_SPECIALIZATION_ 1
+#endif
 #include <complex>
 
 // this include file manages BLAS and MKL related macros
 // and inclusion of their respective header files
 #include "src/Core/util/MKL_support.h"
 
-// if alignment is disabled, then disable vectorization. Note: EIGEN_MAX_ALIGN_BYTES is the proper check, it takes into
-// account both the user's will (EIGEN_MAX_ALIGN_BYTES,EIGEN_DONT_ALIGN) and our own platform checks
-#if EIGEN_MAX_ALIGN_BYTES==0
-  #ifndef EIGEN_DONT_VECTORIZE
-    #define EIGEN_DONT_VECTORIZE
-  #endif
+
+#if defined(EIGEN_HAS_CUDA_FP16) || defined(EIGEN_HAS_HIP_FP16)
+  #define EIGEN_HAS_GPU_FP16
 #endif
 
-#if EIGEN_COMP_MSVC
-  #include <malloc.h> // for _aligned_malloc -- need it regardless of whether vectorization is enabled
-  #if (EIGEN_COMP_MSVC >= 1500) // 2008 or later
-    // Remember that usage of defined() in a #define is undefined by the standard.
-    // a user reported that in 64-bit mode, MSVC doesn't care to define _M_IX86_FP.
-    #if (defined(_M_IX86_FP) && (_M_IX86_FP >= 2)) || EIGEN_ARCH_x86_64
-      #define EIGEN_SSE2_ON_MSVC_2008_OR_LATER
-    #endif
-  #endif
-#else
-  // Remember that usage of defined() in a #define is undefined by the standard
-  #if (defined __SSE2__) && ( (!EIGEN_COMP_GNUC) || EIGEN_COMP_ICC || EIGEN_GNUC_AT_LEAST(4,2) )
-    #define EIGEN_SSE2_ON_NON_MSVC_BUT_NOT_OLD_GCC
-  #endif
-#endif
-
-#ifndef EIGEN_DONT_VECTORIZE
-
-  #if defined (EIGEN_SSE2_ON_NON_MSVC_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
-
-    // Defines symbols for compile-time detection of which instructions are
-    // used.
-    // EIGEN_VECTORIZE_YY is defined if and only if the instruction set YY is used
-    #define EIGEN_VECTORIZE
-    #define EIGEN_VECTORIZE_SSE
-    #define EIGEN_VECTORIZE_SSE2
-
-    // Detect sse3/ssse3/sse4:
-    // gcc and icc defines __SSE3__, ...
-    // there is no way to know about this on msvc. You can define EIGEN_VECTORIZE_SSE* if you
-    // want to force the use of those instructions with msvc.
-    #ifdef __SSE3__
-      #define EIGEN_VECTORIZE_SSE3
-    #endif
-    #ifdef __SSSE3__
-      #define EIGEN_VECTORIZE_SSSE3
-    #endif
-    #ifdef __SSE4_1__
-      #define EIGEN_VECTORIZE_SSE4_1
-    #endif
-    #ifdef __SSE4_2__
-      #define EIGEN_VECTORIZE_SSE4_2
-    #endif
-    #ifdef __AVX__
-      #define EIGEN_VECTORIZE_AVX
-      #define EIGEN_VECTORIZE_SSE3
-      #define EIGEN_VECTORIZE_SSSE3
-      #define EIGEN_VECTORIZE_SSE4_1
-      #define EIGEN_VECTORIZE_SSE4_2
-    #endif
-    #ifdef __AVX2__
-      #define EIGEN_VECTORIZE_AVX2
-    #endif
-    #ifdef __FMA__
-      #define EIGEN_VECTORIZE_FMA
-    #endif
-    #if defined(__AVX512F__) && defined(EIGEN_ENABLE_AVX512)
-      #define EIGEN_VECTORIZE_AVX512
-      #define EIGEN_VECTORIZE_AVX2
-      #define EIGEN_VECTORIZE_AVX
-      #define EIGEN_VECTORIZE_FMA
-      #ifdef __AVX512DQ__
-        #define EIGEN_VECTORIZE_AVX512DQ
-      #endif
-      #ifdef __AVX512ER__
-        #define EIGEN_VECTORIZE_AVX512ER
-      #endif
-    #endif
-
-    // include files
-
-    // This extern "C" works around a MINGW-w64 compilation issue
-    // https://sourceforge.net/tracker/index.php?func=detail&aid=3018394&group_id=202880&atid=983354
-    // In essence, intrin.h is included by windows.h and also declares intrinsics (just as emmintrin.h etc. below do).
-    // However, intrin.h uses an extern "C" declaration, and g++ thus complains of duplicate declarations
-    // with conflicting linkage.  The linkage for intrinsics doesn't matter, but at that stage the compiler doesn't know;
-    // so, to avoid compile errors when windows.h is included after Eigen/Core, ensure intrinsics are extern "C" here too.
-    // notice that since these are C headers, the extern "C" is theoretically needed anyways.
-    extern "C" {
-      // In theory we should only include immintrin.h and not the other *mmintrin.h header files directly.
-      // Doing so triggers some issues with ICC. However old gcc versions seems to not have this file, thus:
-      #if EIGEN_COMP_ICC >= 1110
-        #include <immintrin.h>
-      #else
-        #include <mmintrin.h>
-        #include <emmintrin.h>
-        #include <xmmintrin.h>
-        #ifdef  EIGEN_VECTORIZE_SSE3
-        #include <pmmintrin.h>
-        #endif
-        #ifdef EIGEN_VECTORIZE_SSSE3
-        #include <tmmintrin.h>
-        #endif
-        #ifdef EIGEN_VECTORIZE_SSE4_1
-        #include <smmintrin.h>
-        #endif
-        #ifdef EIGEN_VECTORIZE_SSE4_2
-        #include <nmmintrin.h>
-        #endif
-        #if defined(EIGEN_VECTORIZE_AVX) || defined(EIGEN_VECTORIZE_AVX512)
-        #include <immintrin.h>
-        #endif
-      #endif
-    } // end extern "C"
-  #elif defined __VSX__
-    #define EIGEN_VECTORIZE
-    #define EIGEN_VECTORIZE_VSX
-    #include <altivec.h>
-    // We need to #undef all these ugly tokens defined in <altivec.h>
-    // => use __vector instead of vector
-    #undef bool
-    #undef vector
-    #undef pixel
-  #elif defined __ALTIVEC__
-    #define EIGEN_VECTORIZE
-    #define EIGEN_VECTORIZE_ALTIVEC
-    #include <altivec.h>
-    // We need to #undef all these ugly tokens defined in <altivec.h>
-    // => use __vector instead of vector
-    #undef bool
-    #undef vector
-    #undef pixel
-  #elif (defined  __ARM_NEON) || (defined __ARM_NEON__)
-    #define EIGEN_VECTORIZE
-    #define EIGEN_VECTORIZE_NEON
-    #include <arm_neon.h>
-  #elif (defined __s390x__ && defined __VEC__)
-    #define EIGEN_VECTORIZE
-    #define EIGEN_VECTORIZE_ZVECTOR
-    #include <vecintrin.h>
-  #endif
-#endif
-
-#if defined(__F16C__) && !defined(EIGEN_COMP_CLANG)
-  // We can use the optimized fp16 to float and float to fp16 conversion routines
-  #define EIGEN_HAS_FP16_C
-#endif
-
-#if defined __CUDACC__
-  #define EIGEN_VECTORIZE_CUDA
-  #include <vector_types.h>
-  #if EIGEN_CUDACC_VER >= 70500
-    #define EIGEN_HAS_CUDA_FP16
-  #endif
-#endif
-
-#if defined EIGEN_HAS_CUDA_FP16
-  #include <host_defines.h>
-  #include <cuda_fp16.h>
+#if defined(EIGEN_HAS_CUDA_BF16) || defined(EIGEN_HAS_HIP_BF16)
+  #define EIGEN_HAS_GPU_BF16
 #endif
 
 #if (defined _OPENMP) && (!defined EIGEN_DONT_PARALLELIZE)
@@ -279,13 +83,20 @@
 #include <cmath>
 #include <cassert>
 #include <functional>
-#include <iosfwd>
+#include <sstream>
+#ifndef EIGEN_NO_IO
+  #include <iosfwd>
+#endif
 #include <cstring>
 #include <string>
 #include <limits>
 #include <climits> // for CHAR_BIT
 // for min/max:
 #include <algorithm>
+
+#if EIGEN_HAS_CXX11
+#include <array>
+#endif
 
 // for std::is_nothrow_move_assignable
 #ifdef EIGEN_INCLUDE_TYPE_TRAITS
@@ -302,38 +113,25 @@
   #include <intrin.h>
 #endif
 
-/** \brief Namespace containing all symbols from the %Eigen library. */
-namespace Eigen {
-
-inline static const char *SimdInstructionSetsInUse(void) {
-#if defined(EIGEN_VECTORIZE_AVX512)
-  return "AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
-#elif defined(EIGEN_VECTORIZE_AVX)
-  return "AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
-#elif defined(EIGEN_VECTORIZE_SSE4_2)
-  return "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
-#elif defined(EIGEN_VECTORIZE_SSE4_1)
-  return "SSE, SSE2, SSE3, SSSE3, SSE4.1";
-#elif defined(EIGEN_VECTORIZE_SSSE3)
-  return "SSE, SSE2, SSE3, SSSE3";
-#elif defined(EIGEN_VECTORIZE_SSE3)
-  return "SSE, SSE2, SSE3";
-#elif defined(EIGEN_VECTORIZE_SSE2)
-  return "SSE, SSE2";
-#elif defined(EIGEN_VECTORIZE_ALTIVEC)
-  return "AltiVec";
-#elif defined(EIGEN_VECTORIZE_VSX)
-  return "VSX";
-#elif defined(EIGEN_VECTORIZE_NEON)
-  return "ARM NEON";
-#elif defined(EIGEN_VECTORIZE_ZVECTOR)
-  return "S390X ZVECTOR";
-#else
-  return "None";
+#if defined(EIGEN_USE_SYCL)
+  #undef min
+  #undef max
+  #undef isnan
+  #undef isinf
+  #undef isfinite
+  #include <CL/sycl.hpp>
+  #include <map>
+  #include <memory>
+  #include <utility>
+  #include <thread>
+  #ifndef EIGEN_SYCL_LOCAL_THREAD_DIM0
+  #define EIGEN_SYCL_LOCAL_THREAD_DIM0 16
+  #endif
+  #ifndef EIGEN_SYCL_LOCAL_THREAD_DIM1
+  #define EIGEN_SYCL_LOCAL_THREAD_DIM1 16
+  #endif
 #endif
-}
 
-} // end namespace Eigen
 
 #if defined EIGEN2_SUPPORT_STAGE40_FULL_EIGEN3_STRICTNESS || defined EIGEN2_SUPPORT_STAGE30_FULL_EIGEN3_API || defined EIGEN2_SUPPORT_STAGE20_RESOLVE_API_CONFLICTS || defined EIGEN2_SUPPORT_STAGE10_FULL_EIGEN2_API || defined EIGEN2_SUPPORT
 // This will generate an error message:
@@ -342,7 +140,7 @@ inline static const char *SimdInstructionSetsInUse(void) {
 
 namespace Eigen {
 
-// we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
+// we use size_t frequently and we'll never remember to prepend it with std:: every time just to
 // ensure QNX/QCC support
 using std::size_t;
 // gcc 4.6.0 wants std:: for ptrdiff_t
@@ -366,58 +164,90 @@ using std::ptrdiff_t;
 #include "src/Core/util/StaticAssert.h"
 #include "src/Core/util/XprHelper.h"
 #include "src/Core/util/Memory.h"
+#include "src/Core/util/IntegralConstant.h"
+#include "src/Core/util/SymbolicIndex.h"
 
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
 #include "src/Core/GenericPacketMath.h"
 #include "src/Core/MathFunctionsImpl.h"
 #include "src/Core/arch/Default/ConjHelper.h"
+// Generic half float support
+#include "src/Core/arch/Default/Half.h"
+#include "src/Core/arch/Default/BFloat16.h"
+#include "src/Core/arch/Default/TypeCasting.h"
+#include "src/Core/arch/Default/GenericPacketMathFunctionsFwd.h"
 
 #if defined EIGEN_VECTORIZE_AVX512
   #include "src/Core/arch/SSE/PacketMath.h"
+  #include "src/Core/arch/SSE/TypeCasting.h"
+  #include "src/Core/arch/SSE/Complex.h"
   #include "src/Core/arch/AVX/PacketMath.h"
+  #include "src/Core/arch/AVX/TypeCasting.h"
+  #include "src/Core/arch/AVX/Complex.h"
   #include "src/Core/arch/AVX512/PacketMath.h"
+  #include "src/Core/arch/AVX512/TypeCasting.h"
+  #include "src/Core/arch/AVX512/Complex.h"
+  #include "src/Core/arch/SSE/MathFunctions.h"
+  #include "src/Core/arch/AVX/MathFunctions.h"
   #include "src/Core/arch/AVX512/MathFunctions.h"
 #elif defined EIGEN_VECTORIZE_AVX
   // Use AVX for floats and doubles, SSE for integers
   #include "src/Core/arch/SSE/PacketMath.h"
-  #include "src/Core/arch/SSE/Complex.h"
-  #include "src/Core/arch/SSE/MathFunctions.h"
-  #include "src/Core/arch/AVX/PacketMath.h"
-  #include "src/Core/arch/AVX/MathFunctions.h"
-  #include "src/Core/arch/AVX/Complex.h"
-  #include "src/Core/arch/AVX/TypeCasting.h"
   #include "src/Core/arch/SSE/TypeCasting.h"
+  #include "src/Core/arch/SSE/Complex.h"
+  #include "src/Core/arch/AVX/PacketMath.h"
+  #include "src/Core/arch/AVX/TypeCasting.h"
+  #include "src/Core/arch/AVX/Complex.h"
+  #include "src/Core/arch/SSE/MathFunctions.h"
+  #include "src/Core/arch/AVX/MathFunctions.h"
 #elif defined EIGEN_VECTORIZE_SSE
   #include "src/Core/arch/SSE/PacketMath.h"
+  #include "src/Core/arch/SSE/TypeCasting.h"
   #include "src/Core/arch/SSE/MathFunctions.h"
   #include "src/Core/arch/SSE/Complex.h"
-  #include "src/Core/arch/SSE/TypeCasting.h"
 #elif defined(EIGEN_VECTORIZE_ALTIVEC) || defined(EIGEN_VECTORIZE_VSX)
   #include "src/Core/arch/AltiVec/PacketMath.h"
   #include "src/Core/arch/AltiVec/MathFunctions.h"
   #include "src/Core/arch/AltiVec/Complex.h"
 #elif defined EIGEN_VECTORIZE_NEON
   #include "src/Core/arch/NEON/PacketMath.h"
+  #include "src/Core/arch/NEON/TypeCasting.h"
   #include "src/Core/arch/NEON/MathFunctions.h"
   #include "src/Core/arch/NEON/Complex.h"
+#elif defined EIGEN_VECTORIZE_SVE
+  #include "src/Core/arch/SVE/PacketMath.h"
+  #include "src/Core/arch/SVE/TypeCasting.h"
+  #include "src/Core/arch/SVE/MathFunctions.h"
 #elif defined EIGEN_VECTORIZE_ZVECTOR
   #include "src/Core/arch/ZVector/PacketMath.h"
   #include "src/Core/arch/ZVector/MathFunctions.h"
   #include "src/Core/arch/ZVector/Complex.h"
+#elif defined EIGEN_VECTORIZE_MSA
+  #include "src/Core/arch/MSA/PacketMath.h"
+  #include "src/Core/arch/MSA/MathFunctions.h"
+  #include "src/Core/arch/MSA/Complex.h"
 #endif
 
-// Half float support
-#include "src/Core/arch/CUDA/Half.h"
-#include "src/Core/arch/CUDA/PacketMathHalf.h"
-#include "src/Core/arch/CUDA/TypeCasting.h"
+#if defined EIGEN_VECTORIZE_GPU
+  #include "src/Core/arch/GPU/PacketMath.h"
+  #include "src/Core/arch/GPU/MathFunctions.h"
+  #include "src/Core/arch/GPU/TypeCasting.h"
+#endif
 
-#if defined EIGEN_VECTORIZE_CUDA
-  #include "src/Core/arch/CUDA/PacketMath.h"
-  #include "src/Core/arch/CUDA/MathFunctions.h"
+#if defined(EIGEN_USE_SYCL)
+  #include "src/Core/arch/SYCL/SyclMemoryModel.h"
+  #include "src/Core/arch/SYCL/InteropHeaders.h"
+#if !defined(EIGEN_DONT_VECTORIZE_SYCL)
+  #include "src/Core/arch/SYCL/PacketMath.h"
+  #include "src/Core/arch/SYCL/MathFunctions.h"
+  #include "src/Core/arch/SYCL/TypeCasting.h"
+#endif
 #endif
 
 #include "src/Core/arch/Default/Settings.h"
+// This file provides generic implementations valid for scalar as well
+#include "src/Core/arch/Default/GenericPacketMathFunctions.h"
 
 #include "src/Core/functors/TernaryFunctors.h"
 #include "src/Core/functors/BinaryFunctors.h"
@@ -428,9 +258,16 @@ using std::ptrdiff_t;
 
 // Specialized functors to enable the processing of complex numbers
 // on CUDA devices
+#ifdef EIGEN_CUDACC
 #include "src/Core/arch/CUDA/Complex.h"
+#endif
 
-#include "src/Core/IO.h"
+#include "src/Core/util/IndexedViewHelper.h"
+#include "src/Core/util/ReshapedHelper.h"
+#include "src/Core/ArithmeticSequence.h"
+#ifndef EIGEN_NO_IO
+  #include "src/Core/IO.h"
+#endif
 #include "src/Core/DenseCoeffsBase.h"
 #include "src/Core/DenseBase.h"
 #include "src/Core/MatrixBase.h"
@@ -471,6 +308,8 @@ using std::ptrdiff_t;
 #include "src/Core/Ref.h"
 #include "src/Core/Block.h"
 #include "src/Core/VectorBlock.h"
+#include "src/Core/IndexedView.h"
+#include "src/Core/Reshaped.h"
 #include "src/Core/Transpose.h"
 #include "src/Core/DiagonalMatrix.h"
 #include "src/Core/Diagonal.h"
@@ -507,13 +346,21 @@ using std::ptrdiff_t;
 #include "src/Core/CoreIterators.h"
 #include "src/Core/ConditionEstimator.h"
 
+#if defined(EIGEN_VECTORIZE_ALTIVEC) || defined(EIGEN_VECTORIZE_VSX)
+  #include "src/Core/arch/AltiVec/MatrixProduct.h"
+#elif defined EIGEN_VECTORIZE_NEON
+  #include "src/Core/arch/NEON/GeneralBlockPanelKernel.h"
+#endif
+
 #include "src/Core/BooleanRedux.h"
 #include "src/Core/Select.h"
 #include "src/Core/VectorwiseOp.h"
+#include "src/Core/PartialReduxEvaluator.h"
 #include "src/Core/Random.h"
 #include "src/Core/Replicate.h"
 #include "src/Core/Reverse.h"
 #include "src/Core/ArrayWrapper.h"
+#include "src/Core/StlIterators.h"
 
 #ifdef EIGEN_USE_BLAS
 #include "src/Core/products/GeneralMatrixMatrix_BLAS.h"

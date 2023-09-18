@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #ifdef GPU_ARB_gpu_shader5
 #  define USE_INVOC_EXT
 #endif
@@ -9,7 +13,7 @@
 
 void extrude_edge(bool invert)
 {
-  /* Reverse order if backfacing the light. */
+  /* Reverse order if back-facing the light. */
   ivec2 idx = (invert) ? ivec2(1, 2) : ivec2(2, 1);
   gl_Position = vData[idx.x].frontPosition;
   EmitVertex();
@@ -42,11 +46,8 @@ void main()
   }
 #endif
 
-#ifdef WORKBENCH_NEXT
-  vec2 facing = vec2(dot(n1, vData[0].light_direction_os), dot(n2, vData[0].light_direction_os));
-#else
-  vec2 facing = vec2(dot(n1, lightDirection), dot(n2, lightDirection));
-#endif
+  vec2 facing = vec2(dot(n1, vData_flat[0].light_direction_os),
+                     dot(n2, vData_flat[0].light_direction_os));
 
   /* WATCH: maybe unpredictable in some cases. */
   bool is_manifold = any(notEqual(vData[0].pos, vData[3].pos));

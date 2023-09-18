@@ -55,6 +55,11 @@ class USDStageReader {
 
   void collect_readers(struct Main *bmain);
 
+  /**
+   * Complete setting up the armature modifiers that
+   * were created for skinned meshes by setting the
+   * modifier object on the corresponding modifier.
+   */
   void process_armature_modifiers() const;
 
   /* Convert every material prim on the stage to a Blender

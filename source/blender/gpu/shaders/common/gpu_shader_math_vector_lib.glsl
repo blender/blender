@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 
@@ -170,7 +173,7 @@ int dominant_axis(vec3 a);
 vec3 orthogonal(vec3 v);
 /**
  * Calculates a perpendicular vector to \a v.
- * \note Returned vector is always rotated 90° counter clock wise.
+ * \note Returned vector is always rotated 90 degrees counter clock wise.
  */
 vec2 orthogonal(vec2 v);
 
@@ -467,7 +470,7 @@ vec2 safe_normalize_and_get_length(vec2 vector, out float out_length)
     return vector / out_length;
   }
   /* Either the vector is small or one of it's values contained `nan`. */
-  out_length = 1.0;
+  out_length = 0.0;
   return vec2(1.0, 0.0);
 }
 vec3 safe_normalize_and_get_length(vec3 vector, out float out_length)
@@ -479,7 +482,7 @@ vec3 safe_normalize_and_get_length(vec3 vector, out float out_length)
     return vector / out_length;
   }
   /* Either the vector is small or one of it's values contained `nan`. */
-  out_length = 1.0;
+  out_length = 0.0;
   return vec3(1.0, 0.0, 0.0);
 }
 vec4 safe_normalize_and_get_length(vec4 vector, out float out_length)
@@ -491,7 +494,7 @@ vec4 safe_normalize_and_get_length(vec4 vector, out float out_length)
     return vector / out_length;
   }
   /* Either the vector is small or one of it's values contained `nan`. */
-  out_length = 1.0;
+  out_length = 0.0;
   return vec4(1.0, 0.0, 0.0, 0.0);
 }
 

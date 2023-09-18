@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -1031,6 +1031,63 @@ void gather_attributes(const AttributeAccessor src_attributes,
     dst.finish();
     return true;
   });
+}
+
+static bool indices_are_range(const Span<int> indices, const IndexRange range)
+{
+  if (indices.size() != range.size()) {
+    return false;
+  }
+  return threading::parallel_reduce(
+      range,
+      4096,
+      true,
+      [&](const IndexRange range, const bool init) {
+        if (!init) {
+          return false;
+        }
+        for (const int i : range) {
+          if (indices[i] != i) {
+            return false;
+          }
+        }
+        return true;
+      },
+      [](const bool a, const bool b) { return a && b; });
+}
+
+void gather_attributes(const AttributeAccessor src_attributes,
+                       const eAttrDomain domain,
+                       const AnonymousAttributePropagationInfo &propagation_info,
+                       const Set<std::string> &skip,
+                       const Span<int> indices,
+                       MutableAttributeAccessor dst_attributes)
+{
+  if (indices_are_range(indices, IndexRange(src_attributes.domain_size(domain)))) {
+    copy_attributes(src_attributes, domain, propagation_info, skip, dst_attributes);
+  }
+  else {
+    src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+      if (meta_data.domain != domain) {
+        return true;
+      }
+      if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+        return true;
+      }
+      if (skip.contains(id.name())) {
+        return true;
+      }
+      const bke::GAttributeReader src = src_attributes.lookup(id, domain);
+      bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+          id, domain, meta_data.data_type);
+      if (!dst) {
+        return true;
+      }
+      attribute_math::gather(src.varray, indices, dst.span);
+      dst.finish();
+      return true;
+    });
+  }
 }
 
 template<typename T>

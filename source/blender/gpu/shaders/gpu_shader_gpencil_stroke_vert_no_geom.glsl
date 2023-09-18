@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 27)
 
@@ -17,7 +20,7 @@ vec2 toScreenSpace(vec4 in_vertex)
   return vec2(in_vertex.xy / in_vertex.w) * gpencil_stroke_data.viewport;
 }
 
-/* get zdepth value */
+/* Get Z-depth value. */
 float getZdepth(vec4 point)
 {
   if (gpencil_stroke_data.xraymode == GP_XRAY_FRONT) {

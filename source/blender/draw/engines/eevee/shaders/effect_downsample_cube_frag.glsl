@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * Simple down-sample shader. Takes the average of the 4 texels of lower mip.
  */
@@ -32,8 +36,8 @@ void main()
 
   uvs = 2.0 * uvs - 1.0;
 
-  vec3 cubevec = x_axis[geom_iface.fFace] * uvs.x + y_axis[geom_iface.fFace] * uvs.y +
-                 maj_axes[geom_iface.fFace];
+  vec3 cubevec = x_axis[geom_iface_flat.fFace] * uvs.x + y_axis[geom_iface_flat.fFace] * uvs.y +
+                 maj_axes[geom_iface_flat.fFace];
 
   FragColor = textureLod(source, cubevec, 0.0);
 }

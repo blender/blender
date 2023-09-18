@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -94,8 +94,6 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
   else {
     random = ref.dupli_object->random_id * (1.0f / (float)0xFFFFFFFF);
   }
-  /* Default values. Set if needed. */
-  random = 0.0f;
 
   if (ref.object->data == nullptr) {
     orco_add = float3(0.0f);
@@ -107,7 +105,7 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
     case ID_VO: {
       BoundBox &bbox = *BKE_volume_boundbox_get(ref.object);
       orco_add = (float3(bbox.vec[6]) + float3(bbox.vec[0])) * 0.5f; /* Center. */
-      orco_mul = float3(bbox.vec[6]) - float3(bbox.vec[0]);          /* Size. */
+      orco_mul = (float3(bbox.vec[6]) - float3(bbox.vec[0])) * 0.5f; /* Half-Size. */
       break;
     }
     case ID_ME: {

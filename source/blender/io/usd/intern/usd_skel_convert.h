@@ -1,26 +1,11 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+/* SPDX-FileCopyrightText: 2023 NVIDIA Corporation. All rights reserved.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2022 NVIDIA Corporation.
- * All rights reserved.
- */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include <map>
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdSkel/skeletonQuery.h>
-#include <map>
 
 struct Main;
 struct Object;
@@ -32,21 +17,56 @@ namespace blender::io::usd {
 
 struct ImportSettings;
 
-void test_create_shapekeys(Main *bmain, Object *shape_obj);
+/**
+ * This file contains utilities for converting between `UsdSkel` data and
+ * Blender armatures and shape keys. The following is a reference on the
+ * `UsdSkel` API:
+ *
+ * https://openusd.org/23.05/api/usd_skel_page_front.html
+ */
 
-void import_blendshapes(Main *bmain, Object *shape_obj, pxr::UsdPrim prim);
+/**
+ * Import USD blend shapes from a USD primitive as shape keys on a mesh
+ * object. Optionally, if the blend shapes have animating weights, the
+ * time-sampled weights will be imported as shape key animation curves.
+ * If the USD primitive does not have blend shape targets defined, this
+ * function is a no-op.
+ *
+ * \param bmain: Main pointer
+ * \param mesh_obj: Mesh object to which imported shape keys will be added
+ * \param prim: The USD primitive from which blend-shapes will be imported
+ * \param import_anim: Whether to import time-sampled weights as shape key
+ *                     animation curves
+ */
+void import_blendshapes(Main *bmain,
+                        Object *mesh_obj,
+                        const pxr::UsdPrim &prim,
+                        bool import_anim = true);
 
-void create_skeleton_curves(Main *bmain,
-                            Object *obj,
-                            const pxr::UsdSkelSkeletonQuery &skel_query,
-                            const std::map<pxr::TfToken, std::string> &joint_to_bone_map);
-
-void import_skel_bindings(Main *bmain, Object *shape_obj, pxr::UsdPrim prim);
-
-bool compute_skel_space_bind_transforms(const pxr::UsdSkelSkeletonQuery &skel_query,
-                                        pxr::VtMatrix4dArray &out_xforms,
-                                        pxr::UsdTimeCode time);
-
-pxr::GfMatrix4d get_world_matrix(const pxr::UsdPrim &prim, pxr::UsdTimeCode time);
+/**
+ * Import the given USD skeleton as an armature object. Optionally, if the
+ * skeleton has an animation defined, the time sampled joint transforms will be
+ * imported as bone animation curves.
+ *
+ * \param bmain: Main pointer
+ * \param arm_obj: Armature object to which the bone hierarchy will be added
+ * \param skel: The USD skeleton from which bones and animation will be imported
+ * \param import_anim: Whether to import time-sampled joint transforms as bone
+ *                     animation curves
+ */
+void import_skeleton(Main *bmain,
+                     Object *arm_obj,
+                     const pxr::UsdSkelSkeleton &skel,
+                     bool import_anim = true);
+/**
+ * Import skinning data from a source USD prim as deform groups and an armature
+ * modifier on the given mesh object. If the USD prim does not have a skeleton
+ * binding defined, this function is a no-op.
+ *
+ * \param bmain: Main pointer
+ * \param obj: Mesh object to which an armature modifier will be added
+ * \param prim: The USD primitive from which skinning data will be imported
+ */
+void import_mesh_skel_bindings(Main *bmain, Object *mesh_obj, const pxr::UsdPrim &prim);
 
 }  // namespace blender::io::usd

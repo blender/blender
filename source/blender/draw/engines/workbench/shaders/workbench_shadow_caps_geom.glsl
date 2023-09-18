@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #ifdef GPU_ARB_gpu_shader5
 #  define USE_INVOC_EXT
 #endif
@@ -34,11 +38,8 @@ void main()
   vec3 v12 = vData[2].pos - vData[1].pos;
 
   vec3 n = cross(v12, v10);
-#ifdef WORKBENCH_NEXT
-  float facing = dot(n, vData[0].light_direction_os);
-#else
-  float facing = dot(n, lightDirection);
-#endif
+
+  float facing = dot(n, vData_flat[0].light_direction_os);
 
   bool backface = facing > 0.0;
 

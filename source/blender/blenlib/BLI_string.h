@@ -54,6 +54,15 @@ char *BLI_strdupn(const char *str, size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESU
 char *BLI_strdup(const char *str) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) ATTR_MALLOC;
 
 /**
+ * Duplicates the C-string \a str into a newly mallocN'd
+ * string and returns it.
+ *
+ * \param str: The string to be duplicated, can be null
+ * \retval Returns the duplicated string or null if \a str is null
+ */
+char *BLI_strdup_null(const char *str) ATTR_WARN_UNUSED_RESULT ATTR_MALLOC;
+
+/**
  * Appends the two strings, and returns new mallocN'ed string
  * \param str1: first string for copy
  * \param str2: second string for append
@@ -64,13 +73,11 @@ char *BLI_strdupcat(const char *__restrict str1,
     ATTR_NONNULL(1, 2) ATTR_MALLOC;
 
 /**
- * Like strncpy but ensures dst is always
- * '\0' terminated.
+ * Like `strncpy` but ensures dst is always `\0` terminated.
  *
- * \param dst: Destination for copy
- * \param src: Source string to copy
- * \param dst_maxncpy: Maximum number of characters to copy (generally
- * the size of dst)
+ * \param dst: Destination for copy.
+ * \param src: Source string to copy.
+ * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst).
  * \retval Returns dst
  */
 char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
@@ -78,12 +85,12 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t dst_m
 
 /**
  * Like BLI_strncpy but ensures dst is always padded by given char,
- * on both sides (unless src is empty).
+ * on both sides (unless `src` is empty).
  *
  * \param dst: Destination for copy
  * \param src: Source string to copy
  * \param pad: the char to use for padding
- * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst)
+ * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst).
  * \retval Returns dst
  */
 char *BLI_strncpy_ensure_pad(char *__restrict dst,
@@ -92,24 +99,19 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
                              size_t dst_maxncpy) ATTR_NONNULL(1, 2);
 
 /**
- * Like strncpy but ensures dst is always
- * '\0' terminated.
+ * Like `strncpy` but ensures dst is always `\0` terminated.
  *
  * \note This is a duplicate of #BLI_strncpy that returns bytes copied.
- * And is a drop in replacement for 'snprintf(str, sizeof(str), "%s", arg);'
+ * And is a drop in replacement for `snprintf(str, sizeof(str), "%s", arg);`
  *
  * \param dst: Destination for copy
  * \param src: Source string to copy
- * \param dst_maxncpy: Maximum number of characters to copy (generally
- * the size of dst)
- * \retval The number of bytes copied (The only difference from BLI_strncpy).
+ * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst).
+ * \retval The number of bytes copied (The only difference from #BLI_strncpy).
  */
 size_t BLI_strncpy_rlen(char *__restrict dst,
                         const char *__restrict src,
                         size_t dst_maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
-
-size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1, 2);
 
 char *BLI_strncat(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL(1, 2);
@@ -163,56 +165,9 @@ bool BLI_str_quoted_substr(const char *__restrict str,
                            const char *__restrict prefix,
                            char *result,
                            size_t result_maxncpy);
-/**
- * string with all instances of substr_old replaced with substr_new,
- * Returns a copy of the c-string \a str into a newly #MEM_mallocN'd
- * and returns it.
- *
- * \note A rather wasteful string-replacement utility, though this shall do for now.
- * Feel free to replace this with an even safe + nicer alternative
- *
- * \param str: The string to replace occurrences of substr_old in
- * \param substr_old: The text in the string to find and replace
- * \param substr_new: The text in the string to find and replace
- * \retval Returns the duplicated string
- */
-char *BLI_str_replaceN(const char *__restrict str,
-                       const char *__restrict substr_old,
-                       const char *__restrict substr_new) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1, 2, 3) ATTR_MALLOC;
 
 /**
- * In-place replace every \a src to \a dst in \a str.
- *
- * \param str: The string to operate on.
- * \param src: The character to replace.
- * \param dst: The character to replace with.
- */
-void BLI_str_replace_char(char *str, char src, char dst) ATTR_NONNULL(1);
-
-/**
- * Simple exact-match string replacement.
- *
- * \param replace_table: Array of source, destination pairs.
- *
- * \note Larger tables should use a hash table.
- */
-bool BLI_str_replace_table_exact(char *string,
-                                 size_t string_len,
-                                 const char *replace_table[][2],
-                                 int replace_table_len);
-
-/**
- * Write `dst` into the range between `src_beg` & `src_end`,
- * resize within `string_maxncpy` limits, ensure null terminated.
- *
- * \return the length of `string`.
- */
-size_t BLI_str_replace_range(
-    char *string, size_t string_maxncpy, int src_beg, int src_end, const char *dst);
-
-/**
- * Portable replacement for #snprintf
+ * Portable replacement for `snprintf`.
  */
 size_t BLI_snprintf(char *__restrict dst, size_t dst_maxncpy, const char *__restrict format, ...)
     ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
@@ -239,20 +194,28 @@ size_t BLI_vsnprintf_rlen(char *__restrict dst,
                           const char *__restrict format,
                           va_list arg) ATTR_PRINTF_FORMAT(3, 0);
 
+char *BLI_sprintfN_with_buffer(char *fixed_buf,
+                               size_t fixed_buf_size,
+                               size_t *result_len,
+                               const char *__restrict format,
+                               ...) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4)
+    ATTR_PRINTF_FORMAT(4, 5);
+char *BLI_vsprintfN_with_buffer(char *fixed_buf,
+                                size_t fixed_buf_size,
+                                size_t *result_len,
+                                const char *__restrict format,
+                                va_list args) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4)
+    ATTR_PRINTF_FORMAT(4, 0);
+
 /**
  * Print formatted string into a newly #MEM_mallocN'd string
  * and return it.
  */
 char *BLI_sprintfN(const char *__restrict format, ...) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_PRINTF_FORMAT(1, 2);
-
-/**
- * A wrapper around `::sprintf()` which does not generate security warnings.
- *
- * \note Use #BLI_snprintf for cases when the string size is known.
- */
-int BLI_sprintf(char *__restrict str, const char *__restrict format, ...) ATTR_NONNULL(1, 2)
-    ATTR_PRINTF_FORMAT(2, 3);
+/** A version of #BLI_sprintfN that takes a #va_list. */
+char *BLI_vsprintfN(const char *__restrict format, va_list args) ATTR_NONNULL(1, 2) ATTR_MALLOC
+    ATTR_PRINTF_FORMAT(1, 0);
 
 /**
  * This roughly matches C and Python's string escaping with double quotes - `"`.
@@ -278,7 +241,7 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, size_t d
  * \param src: The escaped source string.
  * \param src_maxncpy: The maximum number of bytes allowable to copy from `src`.
  * \param dst_maxncpy: The maximum number of bytes allowable to copy into `dst`.
- * \param r_is_complete: Set to true when
+ * \param r_is_complete: Set to true when.
  */
 size_t BLI_str_unescape_ex(char *__restrict dst,
                            const char *__restrict src,
@@ -310,11 +273,11 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t
 const char *BLI_str_escape_find_quote(const char *str) ATTR_NONNULL(1);
 
 /**
- * Format ints with decimal grouping.
+ * Format integers with decimal grouping.
  * 1000 -> 1,000
  *
- * \param dst: The resulting string
- * \param num: Number to format
+ * \param dst: The resulting string.
+ * \param num: Number to format.
  * \return The length of \a dst
  */
 size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], int num)
@@ -323,9 +286,9 @@ size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], i
  * Format uint64_t with decimal grouping.
  * 1000 -> 1,000
  *
- * \param dst: The resulting string
- * \param num: Number to format
- * \return The length of \a dst
+ * \param dst: The resulting string.
+ * \param num: Number to format.
+ * \return The length of \a dst.
  */
 size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], uint64_t num)
     ATTR_NONNULL(1);
@@ -343,7 +306,7 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
                               long long int bytes,
                               bool base_10) ATTR_NONNULL(1);
 /**
- * Format a count to up to 6 places (plus '\0' terminator) string using long number
+ * Format a count to up to 6 places (plus `\0` terminator) string using long number
  * names abbreviations. Used to produce a compact representation of large numbers.
  *
  * 1 -> 1
@@ -411,7 +374,7 @@ int BLI_strcasecmp_natural(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESU
     ATTR_NONNULL(1, 2);
 /**
  * Like `strcmp`, but will ignore any heading/trailing pad char for comparison.
- * So e.g. if pad is '*', '*world' and 'world*' will compare equal.
+ * So e.g. if pad is `*`, `*world` and `world*` will compare equal.
  */
 int BLI_strcmp_ignore_pad(const char *str1, const char *str2, char pad) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
@@ -437,8 +400,8 @@ char BLI_toupper_ascii(const char c) ATTR_WARN_UNUSED_RESULT;
 void BLI_str_rstrip(char *str) ATTR_NONNULL(1);
 /**
  * Strip trailing zeros from a float, eg:
- *   0.0000 -> 0.0
- *   2.0010 -> 2.001
+ * - 0.0000 -> 0.0
+ * - 2.0010 -> 2.001
  *
  * \param str:
  * \param pad:
@@ -448,7 +411,7 @@ int BLI_str_rstrip_float_zero(char *str, char pad) ATTR_NONNULL(1);
 
 /**
  * Strip trailing digits.
- *   ABC123 -> ABC
+ * - ABC123 -> ABC
  *
  * \param str:
  * \return The number of digits stripped.
@@ -671,4 +634,4 @@ template<size_t N> inline char *STRNCPY(char (&dst)[N], const char *src)
   return BLI_strncpy(dst, src, N);
 }
 
-#endif
+#endif /* __cplusplus */

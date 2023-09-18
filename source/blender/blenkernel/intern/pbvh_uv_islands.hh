@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -25,9 +25,7 @@
 #include <optional>
 
 #include "BLI_array.hh"
-#include "BLI_edgehash.h"
 #include "BLI_map.hh"
-#include "BLI_math.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"

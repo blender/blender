@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,33 +14,34 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
-#include "BKE_editmesh_cache.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_wrapper.hh"
+
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "bmesh.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_gizmo_library.hh"
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Shared Internal API
@@ -240,8 +241,8 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
       Object *ob = gz_ele->bases[gz_ele->base_index]->object;
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(depsgraph, static_cast<ID *>(ob->data));
-      if (me_eval->runtime->edit_data) {
-        coords = me_eval->runtime->edit_data->vertexCos;
+      if (BKE_mesh_wrapper_vert_len(me_eval) == bm->totvert) {
+        coords = BKE_mesh_wrapper_vert_coords(me_eval);
       }
     }
     EDBM_preselect_elem_update_from_single(gz_ele->psel, bm, best.ele, coords);
@@ -485,7 +486,7 @@ static void GIZMO_GT_mesh_preselect_edgering_3d(wmGizmoType *gzt)
 /** \name Gizmo API
  * \{ */
 
-void ED_gizmotypes_preselect_3d(void)
+void ED_gizmotypes_preselect_3d()
 {
   WM_gizmotype_append(GIZMO_GT_mesh_preselect_elem_3d);
   WM_gizmotype_append(GIZMO_GT_mesh_preselect_edgering_3d);

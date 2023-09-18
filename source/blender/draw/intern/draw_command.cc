@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -615,13 +615,14 @@ void DrawMultiBuf::bind(RecordingState &state,
     group.start = resource_id_count_;
     resource_id_count_ += group.len * view_len;
 
-    int batch_inst_len;
+    int batch_vert_len, batch_vert_first, batch_base_index, batch_inst_len;
     /* Now that GPUBatches are guaranteed to be finished, extract their parameters. */
-    GPU_batch_draw_parameter_get(group.gpu_batch,
-                                 &group.vertex_len,
-                                 &group.vertex_first,
-                                 &group.base_index,
-                                 &batch_inst_len);
+    GPU_batch_draw_parameter_get(
+        group.gpu_batch, &batch_vert_len, &batch_vert_first, &batch_base_index, &batch_inst_len);
+
+    group.vertex_len = group.vertex_len == -1 ? batch_vert_len : group.vertex_len;
+    group.vertex_first = group.vertex_first == -1 ? batch_vert_first : group.vertex_first;
+    group.base_index = batch_base_index;
 
     /* Instancing attributes are not supported using the new pipeline since we use the base
      * instance to set the correct resource_id. Workaround is a storage_buf + gl_InstanceID. */

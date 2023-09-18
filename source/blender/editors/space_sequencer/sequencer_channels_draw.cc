@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,7 +17,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
@@ -27,21 +27,21 @@
 #include "GPU_vertex_buffer.h"
 #include "GPU_viewport.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "SEQ_channels.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 static float draw_offset_get(const View2D *timeline_region_v2d)
 {
@@ -109,8 +109,7 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
   SeqTimelineChannel *channel = SEQ_channel_get_by_index(context->channels, channel_index);
   const int icon = SEQ_channel_is_muted(channel) ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT;
 
-  PointerRNA ptr;
-  RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel);
   PropertyRNA *hide_prop = RNA_struct_type_find_property(&RNA_SequenceTimelineChannel, "mute");
 
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
@@ -150,8 +149,7 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
   SeqTimelineChannel *channel = SEQ_channel_get_by_index(context->channels, channel_index);
   const int icon = SEQ_channel_is_locked(channel) ? ICON_LOCKED : ICON_UNLOCKED;
 
-  PointerRNA ptr;
-  RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel);
   PropertyRNA *hide_prop = RNA_struct_type_find_property(&RNA_SequenceTimelineChannel, "lock");
 
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
@@ -228,8 +226,8 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
 
   if (channel_is_being_renamed(sseq, channel_index)) {
     SeqTimelineChannel *channel = SEQ_channel_get_by_index(context->channels, channel_index);
-    PointerRNA ptr = {nullptr};
-    RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel, &ptr);
+    PointerRNA ptr = RNA_pointer_create(
+        &context->scene->id, &RNA_SequenceTimelineChannel, channel);
     PropertyRNA *prop = RNA_struct_name_property(ptr.type);
 
     UI_block_emboss_set(block, UI_EMBOSS);
@@ -308,7 +306,7 @@ static void draw_channel_headers(const SeqChannelDrawContext *context)
   GPU_matrix_pop();
 }
 
-static void draw_background(void)
+static void draw_background()
 {
   UI_ThemeClearColor(TH_BACK);
 }

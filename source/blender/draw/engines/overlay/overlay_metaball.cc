@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,7 +14,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_mball.h"
+#include "ED_mball.hh"
 
 #include "overlay_private.hh"
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation All rights reserved.
+/* SPDX-FileCopyrightText: 2023 Blender Authors All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -47,7 +47,12 @@ class VKVertexAttributeObject {
   void update_bindings(const VKContext &context, VKBatch &batch);
   void update_bindings(VKImmediate &immediate);
 
+  void debug_print() const;
+
  private:
+  /** Update unused bindings with a dummy binding. */
+  void fill_unused_bindings(const VKShaderInterface &interface,
+                            const AttributeMask occupied_attributes);
   void update_bindings(const GPUVertFormat &vertex_format,
                        VKVertexBuffer *vertex_buffer,
                        VKBufferWithOffset *immediate_vertex_buffer,
@@ -55,6 +60,9 @@ class VKVertexAttributeObject {
                        const VKShaderInterface &interface,
                        AttributeMask &r_occupied_attributes,
                        const bool use_instancing);
+
+  void bind_vbos(VKContext &context);
+  void bind_buffers(VKContext &context);
 };
 
 }  // namespace blender::gpu

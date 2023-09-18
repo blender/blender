@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2012-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -74,8 +74,8 @@ class NodeAddOperator:
 
         try:
             node = tree.nodes.new(type=node_type)
-        except RuntimeError as e:
-            self.report({'ERROR'}, str(e))
+        except RuntimeError as ex:
+            self.report({'ERROR'}, str(ex))
             return None
 
         for setting in self.settings:
@@ -91,11 +91,11 @@ class NodeAddOperator:
 
             try:
                 setattr(node_data, node_attr_name, value)
-            except AttributeError as e:
+            except AttributeError as ex:
                 self.report(
                     {'ERROR_INVALID_INPUT'},
                     tip_("Node has no attribute %s") % setting.name)
-                print(str(e))
+                print(str(ex))
                 # Continue despite invalid attribute
 
         node.select = True
@@ -154,14 +154,7 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
             return ""
 
 
-class NODE_OT_add_simulation_zone(NodeAddOperator, Operator):
-    """Add simulation zone input and output nodes to the active tree"""
-    bl_idname = "node.add_simulation_zone"
-    bl_label = "Add Simulation Zone"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    input_node_type = "GeometryNodeSimulationInput"
-    output_node_type = "GeometryNodeSimulationOutput"
+class NodeAddZoneOperator(NodeAddOperator):
     offset: FloatVectorProperty(
         name="Offset",
         description="Offset of nodes from the cursor when added",
@@ -194,6 +187,26 @@ class NODE_OT_add_simulation_zone(NodeAddOperator, Operator):
         tree.links.new(to_socket, from_socket)
 
         return {'FINISHED'}
+
+
+class NODE_OT_add_simulation_zone(NodeAddZoneOperator, Operator):
+    """Add simulation zone input and output nodes to the active tree"""
+    bl_idname = "node.add_simulation_zone"
+    bl_label = "Add Simulation Zone"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    input_node_type = "GeometryNodeSimulationInput"
+    output_node_type = "GeometryNodeSimulationOutput"
+
+
+class NODE_OT_add_repeat_zone(NodeAddZoneOperator, Operator):
+    """Add a repeat zone that allows executing nodes a dynamic number of times"""
+    bl_idname = "node.add_repeat_zone"
+    bl_label = "Add Repeat Zone"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    input_node_type = "GeometryNodeRepeatInput"
+    output_node_type = "GeometryNodeRepeatOutput"
 
 
 class NODE_OT_collapse_hide_unused_toggle(Operator):
@@ -247,7 +260,7 @@ class NODE_OT_tree_path_parent(Operator):
         return {'FINISHED'}
 
 
-class NodePanelOperator():
+class NodeInterfaceOperator():
     @classmethod
     def poll(cls, context):
         space = context.space_data
@@ -258,67 +271,97 @@ class NodePanelOperator():
         return True
 
 
-class NODE_OT_panel_add(NodePanelOperator, Operator):
-    '''Add a new panel to the tree'''
-    bl_idname = "node.panel_add"
-    bl_label = "Add Panel"
+class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
+    '''Add a new item to the interface'''
+    bl_idname = "node.interface_item_new"
+    bl_label = "New Item"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
-        snode = context.space_data
-        tree = snode.edit_tree
-        panels = tree.panels
-
-        # Remember index to move the item.
-        dst_index = min(panels.active_index + 1, len(panels))
-        panels.new("Panel")
-        panels.move(len(panels) - 1, dst_index)
-        panels.active_index = dst_index
-
-        return {'FINISHED'}
-
-
-class NODE_OT_panel_remove(NodePanelOperator, Operator):
-    '''Remove a panel from the tree'''
-    bl_idname = "node.panel_remove"
-    bl_label = "Remove Panel"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        snode = context.space_data
-        tree = snode.edit_tree
-        panels = tree.panels
-
-        if panels.active:
-            panels.remove(panels.active)
-            panels.active_index = min(panels.active_index, len(panels) - 1)
-
-        return {'FINISHED'}
-
-
-class NODE_OT_panel_move(NodePanelOperator, Operator):
-    '''Move a panel to another position'''
-    bl_idname = "node.panel_move"
-    bl_label = "Move Panel"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    direction: EnumProperty(
-        name="Direction",
-        items=[('UP', "Up", ""), ('DOWN', "Down", "")],
-        default='UP',
+    item_type: EnumProperty(
+        name="Item Type",
+        description="Type of the item to create",
+        items=[
+            ('INPUT', "Input", ""),
+            ('OUTPUT', "Output", ""),
+            ('PANEL', "Panel", "")],
+        default='INPUT',
     )
 
+    socket_type = 'NodeSocketFloat'
+
     def execute(self, context):
         snode = context.space_data
         tree = snode.edit_tree
-        panels = tree.panels
+        interface = tree.interface
 
-        if self.direction == 'UP' and panels.active_index > 0:
-            panels.move(panels.active_index, panels.active_index - 1)
-            panels.active_index -= 1
-        elif self.direction == 'DOWN' and panels.active_index < len(panels) - 1:
-            panels.move(panels.active_index, panels.active_index + 1)
-            panels.active_index += 1
+        # Remember active item and position to determine target position.
+        active_item = interface.active
+        active_pos = active_item.position if active_item else -1
+
+        if self.item_type == 'INPUT':
+            item = interface.new_socket("Socket", socket_type=self.socket_type, in_out={'INPUT'})
+        elif self.item_type == 'OUTPUT':
+            item = interface.new_socket("Socket", socket_type=self.socket_type, in_out={'OUTPUT'})
+        elif self.item_type == 'PANEL':
+            item = interface.new_panel("Panel")
+        else:
+            return {'CANCELLED'}
+
+        if active_item:
+            # Insert into active panel if possible, otherwise insert after active item.
+            if active_item.item_type == 'PANEL' and item.item_type != 'PANEL':
+                interface.move_to_parent(item, active_item, len(active_item.interface_items))
+            else:
+                interface.move_to_parent(item, active_item.parent, active_pos + 1)
+        interface.active = item
+
+        return {'FINISHED'}
+
+
+class NODE_OT_interface_item_duplicate(NodeInterfaceOperator, Operator):
+    '''Add a copy of the active item to the interface'''
+    bl_idname = "node.interface_item_duplicate"
+    bl_label = "Duplicate Item"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        if not super().poll(context):
+            return False
+
+        snode = context.space_data
+        tree = snode.edit_tree
+        interface = tree.interface
+        return interface.active is not None
+
+    def execute(self, context):
+        snode = context.space_data
+        tree = snode.edit_tree
+        interface = tree.interface
+        item = interface.active
+
+        if item:
+            item_copy = interface.copy(item)
+            interface.active = item_copy
+
+        return {'FINISHED'}
+
+
+class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
+    '''Remove active item from the interface'''
+    bl_idname = "node.interface_item_remove"
+    bl_label = "Remove Item"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        snode = context.space_data
+        tree = snode.edit_tree
+        interface = tree.interface
+        item = interface.active
+
+        if item:
+            interface.remove(item)
+            interface.active_index = min(interface.active_index, len(interface.ui_items) - 1)
 
         return {'FINISHED'}
 
@@ -328,9 +371,10 @@ classes = (
 
     NODE_OT_add_node,
     NODE_OT_add_simulation_zone,
+    NODE_OT_add_repeat_zone,
     NODE_OT_collapse_hide_unused_toggle,
-    NODE_OT_panel_add,
-    NODE_OT_panel_remove,
-    NODE_OT_panel_move,
+    NODE_OT_interface_item_new,
+    NODE_OT_interface_item_duplicate,
+    NODE_OT_interface_item_remove,
     NODE_OT_tree_path_parent,
 )

@@ -8,7 +8,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_rand.h"
 #include "BLI_string.h"
 
@@ -29,10 +29,10 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h" /* Texture masking. */
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -115,7 +115,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
                       Mesh *mesh,
                       const float fact,
                       const char defgrp_name[MAX_VGROUP_NAME],
-                      Scene *scene,
+                      Scene * /*scene*/,
                       Tex *texture,
                       const int tex_use_channel,
                       const int tex_mapping,
@@ -161,8 +161,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
       int idx = indices ? indices[i] : i;
       TexResult texres;
       float hsv[3]; /* For HSV color space. */
-      bool do_color_manage = tex_use_channel != MOD_WVG_MASK_TEX_USE_INT &&
-                             BKE_scene_check_color_management_enabled(scene);
+      bool do_color_manage = tex_use_channel != MOD_WVG_MASK_TEX_USE_INT;
 
       BKE_texture_get_value(texture, tex_co[idx], &texres, do_color_manage);
       /* Get the good channel value... */
@@ -215,7 +214,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     /* Proceed only if vgroup is valid, else use constant factor. */
     /* Get actual deform-verts (ie vertex group data). */
     const MDeformVert *dvert = static_cast<const MDeformVert *>(
-        CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT));
+        CustomData_get_layer(&mesh->vert_data, CD_MDEFORMVERT));
     /* Proceed only if vgroup is valid, else assume factor = O. */
     if (dvert == nullptr) {
       return;
@@ -296,7 +295,7 @@ void weightvg_update_vg(MDeformVert *dvert,
 
     /* If the vertex is in this vgroup, remove it if needed, or just update it. */
     if (dw != nullptr) {
-      if (do_rem && w < rem_thresh) {
+      if (do_rem && w <= rem_thresh) {
         BKE_defvert_remove_group(dv, dw);
       }
       else {
@@ -304,7 +303,7 @@ void weightvg_update_vg(MDeformVert *dvert,
       }
     }
     /* Else, add it if needed! */
-    else if (do_add && w > add_thresh) {
+    else if (do_add && w >= add_thresh) {
       BKE_defvert_add_index_notest(dv, defgrp_idx, w);
     }
   }
@@ -335,15 +334,15 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
                  nullptr,
                  nullptr,
                  0,
-                 ICON_NONE,
+                 false,
                  IFACE_("Mask Texture"));
 
     if (has_mask_texture) {
-      uiItemR(layout, ptr, "mask_tex_use_channel", 0, IFACE_("Channel"), ICON_NONE);
-      uiItemR(layout, ptr, "mask_tex_mapping", 0, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "mask_tex_use_channel", UI_ITEM_NONE, IFACE_("Channel"), ICON_NONE);
+      uiItemR(layout, ptr, "mask_tex_mapping", UI_ITEM_NONE, nullptr, ICON_NONE);
 
       if (mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
-        uiItemR(layout, ptr, "mask_tex_map_object", 0, IFACE_("Object"), ICON_NONE);
+        uiItemR(layout, ptr, "mask_tex_map_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
       }
       else if (mask_tex_mapping == MOD_DISP_MAP_UV && RNA_enum_get(ob_ptr, "type") == OB_MESH) {
         PointerRNA obj_data_ptr = RNA_pointer_get(ob_ptr, "data");

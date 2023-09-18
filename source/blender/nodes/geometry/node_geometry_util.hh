@@ -1,30 +1,18 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
-#include <string.h>
-
-#include "BLI_bounds_types.hh"
-#include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
-
 #include "MEM_guardedalloc.h"
-
-#include "DNA_node_types.h"
 
 #include "BKE_node.hh"
 
-#include "NOD_geometry.h"
 #include "NOD_geometry_exec.hh"
+#include "NOD_register.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
-#include "RNA_access.h"
-
-#include "node_geometry_register.hh"
 #include "node_util.hh"
 
 #ifdef WITH_OPENVDB
@@ -32,13 +20,21 @@
 #endif
 
 struct BVHTreeFromMesh;
+struct GeometrySet;
+namespace blender::nodes {
+class GatherAddNodeSearchParams;
+class GatherLinkSearchOpParams;
+}  // namespace blender::nodes
 
-void geo_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
-bool geo_node_poll_default(const struct bNodeType *ntype,
-                           const struct bNodeTree *ntree,
+void geo_node_type_base(bNodeType *ntype, int type, const char *name, short nclass);
+bool geo_node_poll_default(const bNodeType *ntype,
+                           const bNodeTree *ntree,
                            const char **r_disabled_hint);
 
 namespace blender::nodes {
+
+bool check_tool_context_and_error(GeoNodeExecParams &params);
+void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params);
 
 void transform_mesh(Mesh &mesh,
                     const float3 translation,
@@ -49,36 +45,6 @@ void transform_geometry_set(GeoNodeExecParams &params,
                             GeometrySet &geometry,
                             const float4x4 &transform,
                             const Depsgraph &depsgraph);
-
-Mesh *create_line_mesh(const float3 start, const float3 delta, int count);
-
-Mesh *create_grid_mesh(
-    int verts_x, int verts_y, float size_x, float size_y, const AttributeIDRef &uv_map_id);
-
-struct ConeAttributeOutputs {
-  AnonymousAttributeIDPtr top_id;
-  AnonymousAttributeIDPtr bottom_id;
-  AnonymousAttributeIDPtr side_id;
-  AnonymousAttributeIDPtr uv_map_id;
-};
-
-Mesh *create_cylinder_or_cone_mesh(float radius_top,
-                                   float radius_bottom,
-                                   float depth,
-                                   int circle_segments,
-                                   int side_segments,
-                                   int fill_segments,
-                                   GeometryNodeMeshCircleFillType fill_type,
-                                   ConeAttributeOutputs &attribute_outputs);
-
-/**
- * Calculates the bounds of a radial primitive.
- * The algorithm assumes X-axis symmetry of primitives.
- */
-Bounds<float3> calculate_bounds_radial_primitive(float radius_top,
-                                                 float radius_bottom,
-                                                 int segments,
-                                                 float height);
 
 /**
  * Returns the parts of the geometry that are on the selection for the given domain. If the domain
@@ -139,19 +105,39 @@ void socket_declarations_for_simulation_items(Span<NodeSimulationItem> items,
                                               NodeDeclaration &r_declaration);
 const CPPType &get_simulation_item_cpp_type(eNodeSocketDatatype socket_type);
 const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item);
-void values_to_simulation_state(const Span<NodeSimulationItem> node_simulation_items,
-                                const Span<void *> input_values,
-                                bke::sim::SimulationZoneState &r_zone_state);
-void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
-                                const bke::sim::SimulationZoneState &zone_state,
-                                const Object &self_object,
-                                const ComputeContext &compute_context,
-                                const bNode &sim_output_node,
-                                Span<void *> r_output_values);
+
+bke::bake::BakeState move_values_to_simulation_state(
+    const Span<NodeSimulationItem> node_simulation_items, const Span<void *> input_values);
+void move_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
+                                     bke::bake::BakeState zone_state,
+                                     const Object &self_object,
+                                     const ComputeContext &compute_context,
+                                     const bNode &sim_output_node,
+                                     Span<void *> r_output_values);
+void copy_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
+                                     const bke::bake::BakeStateRef &zone_state,
+                                     const Object &self_object,
+                                     const ComputeContext &compute_context,
+                                     const bNode &sim_output_node,
+                                     Span<void *> r_output_values);
 
 void copy_with_checked_indices(const GVArray &src,
                                const VArray<int> &indices,
                                const IndexMask &mask,
                                GMutableSpan dst);
+
+void socket_declarations_for_repeat_items(const Span<NodeRepeatItem> items,
+                                          NodeDeclaration &r_declaration);
+
+namespace enums {
+
+const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,
+                                                           PointerRNA * /*ptr*/,
+                                                           PropertyRNA * /*prop*/,
+                                                           bool *r_free);
+
+bool generic_attribute_type_supported(const EnumPropertyItem &item);
+
+}  // namespace enums
 
 }  // namespace blender::nodes

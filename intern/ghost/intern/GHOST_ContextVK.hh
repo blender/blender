@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -25,12 +25,6 @@
 #endif
 
 #include <vector>
-
-#ifdef __APPLE__
-#  include <MoltenVK/vk_mvk_moltenvk.h>
-#else
-#  include <vulkan/vulkan.h>
-#endif
 
 #ifndef GHOST_OPENGL_VK_CONTEXT_FLAGS
 /* leave as convenience define for the future */
@@ -117,15 +111,12 @@ class GHOST_ContextVK : public GHOST_Context {
                                   void *r_device,
                                   uint32_t *r_graphic_queue_family,
                                   void *r_queue);
-  GHOST_TSuccess getVulkanCommandBuffer(void *r_command_buffer);
 
-  /**
-   * Gets the Vulkan framebuffer related resource handles associated with the Vulkan context.
-   * Needs to be called after each swap events as the framebuffer will change.
-   * \return  A boolean success indicator.
-   */
-  GHOST_TSuccess getVulkanBackbuffer(
-      void *image, void *framebuffer, void *render_pass, void *extent, uint32_t *fb_id);
+  GHOST_TSuccess getVulkanSwapChainFormat(GHOST_VulkanSwapChainData *r_swap_chain_data) override;
+
+  GHOST_TSuccess setVulkanSwapBuffersCallbacks(
+      std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback,
+      std::function<void(void)> swap_buffers_post_callback) override;
 
   /**
    * Sets the swap interval for `swapBuffers`.
@@ -167,6 +158,7 @@ class GHOST_ContextVK : public GHOST_Context {
   const int m_debug;
 
   VkCommandPool m_command_pool;
+  VkCommandBuffer m_command_buffer;
 
   VkQueue m_graphic_queue;
   VkQueue m_present_queue;
@@ -175,29 +167,18 @@ class GHOST_ContextVK : public GHOST_Context {
   VkSurfaceKHR m_surface;
   VkSwapchainKHR m_swapchain;
   std::vector<VkImage> m_swapchain_images;
-  std::vector<VkImageView> m_swapchain_image_views;
-  std::vector<VkFramebuffer> m_swapchain_framebuffers;
-  std::vector<VkCommandBuffer> m_command_buffers;
-  VkRenderPass m_render_pass;
+
   VkExtent2D m_render_extent;
-  std::vector<VkSemaphore> m_image_available_semaphores;
-  std::vector<VkSemaphore> m_render_finished_semaphores;
-  std::vector<VkFence> m_in_flight_fences;
+  VkSurfaceFormatKHR m_surface_format;
+  VkFence m_fence;
+
   /** frame modulo swapchain_len. Used as index for sync objects. */
   int m_currentFrame = 0;
-  /**
-   * Last frame where the vulkan handles where retrieved from. This attribute is used to determine
-   * if a new image from the swap chain needs to be acquired.
-   *
-   * In a regular vulkan application this is done in the same method, but due to GHOST API this
-   * isn't possible. Swap chains are triggered by the window manager and the GPUBackend isn't
-   * informed about these changes.
-   */
-  int m_lastFrame = -1;
   /** Image index in the swapchain. Used as index for render objects. */
   uint32_t m_currentImage = 0;
-  /** Used to unique framebuffer ids to return when swapchain is recreated. */
-  uint32_t m_swapchain_id = 0;
+
+  std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback_;
+  std::function<void(void)> swap_buffers_post_callback_;
 
   const char *getPlatformSpecificSurfaceExtension() const;
   GHOST_TSuccess createSwapchain();

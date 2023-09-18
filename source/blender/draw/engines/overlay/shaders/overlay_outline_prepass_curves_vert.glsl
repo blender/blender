@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -44,7 +47,7 @@ void main()
                                      thickness);
   vec3 world_pos;
   if (hairThicknessRes > 1) {
-    /* Calculate the thickness, thicktime, worldpos taken into account the outline. */
+    /* Calculate the thickness, thick-time, worldpos taken into account the outline. */
     float outline_width = point_world_to_ndc(center_wpos).w * 1.25 * sizeViewportInv.y *
                           drw_view.wininv[1][1];
     thickness += outline_width;

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void node_eevee_specular(vec4 diffuse,
                          vec4 specular,

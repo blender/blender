@@ -1,15 +1,17 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_node_types.h"
+#include "DNA_scene_types.h"
+
 #include "COM_KuwaharaNode.h"
 
-#include "COM_ConvolutionFilterOperation.h"
-#include "COM_FastGaussianBlurOperation.h"
+#include "COM_GaussianXBlurOperation.h"
+#include "COM_GaussianYBlurOperation.h"
 #include "COM_KuwaharaAnisotropicOperation.h"
+#include "COM_KuwaharaAnisotropicStructureTensorOperation.h"
 #include "COM_KuwaharaClassicOperation.h"
-#include "COM_MathBaseOperation.h"
-#include "COM_SetValueOperation.h"
 
 namespace blender::compositor {
 
@@ -31,70 +33,46 @@ void KuwaharaNode::convert_to_operations(NodeConverter &converter,
     }
 
     case CMP_NODE_KUWAHARA_ANISOTROPIC: {
-      /* Edge detection */
-      auto const_fact = new SetValueOperation();
-      const_fact->set_value(1.0f);
-      converter.add_operation(const_fact);
+      KuwaharaAnisotropicStructureTensorOperation *structure_tensor_operation =
+          new KuwaharaAnisotropicStructureTensorOperation();
+      converter.add_operation(structure_tensor_operation);
+      converter.map_input_socket(get_input_socket(0),
+                                 structure_tensor_operation->get_input_socket(0));
 
-      auto sobel_x = new ConvolutionFilterOperation();
-      sobel_x->set3x3Filter(1, 0, -1, 2, 0, -2, 1, 0, -1);
-      converter.add_operation(sobel_x);
-      converter.map_input_socket(get_input_socket(0), sobel_x->get_input_socket(0));
-      converter.add_link(const_fact->get_output_socket(0), sobel_x->get_input_socket(1));
+      NodeBlurData blur_data;
+      blur_data.sizex = data->uniformity;
+      blur_data.sizey = data->uniformity;
+      blur_data.relative = false;
+      blur_data.filtertype = R_FILTER_GAUSS;
 
-      auto sobel_y = new ConvolutionFilterOperation();
-      sobel_y->set3x3Filter(1, 2, 1, 0, 0, 0, -1, -2, -1);
-      converter.add_operation(sobel_y);
-      converter.map_input_socket(get_input_socket(0), sobel_y->get_input_socket(0));
-      converter.add_link(const_fact->get_output_socket(0), sobel_y->get_input_socket(1));
+      GaussianXBlurOperation *blur_x_operation = new GaussianXBlurOperation();
+      blur_x_operation->set_data(&blur_data);
+      blur_x_operation->set_size(1.0f);
 
-      /* Compute intensity of edges */
-      auto sobel_xx = new MathMultiplyOperation();
-      auto sobel_yy = new MathMultiplyOperation();
-      auto sobel_xy = new MathMultiplyOperation();
-      converter.add_operation(sobel_xx);
-      converter.add_operation(sobel_yy);
-      converter.add_operation(sobel_xy);
+      converter.add_operation(blur_x_operation);
+      converter.add_link(structure_tensor_operation->get_output_socket(0),
+                         blur_x_operation->get_input_socket(0));
 
-      converter.add_link(sobel_x->get_output_socket(0), sobel_xx->get_input_socket(0));
-      converter.add_link(sobel_x->get_output_socket(0), sobel_xx->get_input_socket(1));
+      GaussianYBlurOperation *blur_y_operation = new GaussianYBlurOperation();
+      blur_y_operation->set_data(&blur_data);
+      blur_y_operation->set_size(1.0f);
 
-      converter.add_link(sobel_y->get_output_socket(0), sobel_yy->get_input_socket(0));
-      converter.add_link(sobel_y->get_output_socket(0), sobel_yy->get_input_socket(1));
+      converter.add_operation(blur_y_operation);
+      converter.add_link(blur_x_operation->get_output_socket(0),
+                         blur_y_operation->get_input_socket(0));
 
-      converter.add_link(sobel_x->get_output_socket(0), sobel_xy->get_input_socket(0));
-      converter.add_link(sobel_y->get_output_socket(0), sobel_xy->get_input_socket(1));
+      KuwaharaAnisotropicOperation *kuwahara_anisotropic_operation =
+          new KuwaharaAnisotropicOperation();
+      kuwahara_anisotropic_operation->data = *data;
 
-      /* Blurring for more robustness. */
-      const int sigma = data->smoothing;
+      converter.add_operation(kuwahara_anisotropic_operation);
+      converter.map_input_socket(get_input_socket(0),
+                                 kuwahara_anisotropic_operation->get_input_socket(0));
+      converter.add_link(blur_y_operation->get_output_socket(0),
+                         kuwahara_anisotropic_operation->get_input_socket(1));
 
-      auto blur_sobel_xx = new FastGaussianBlurOperation();
-      auto blur_sobel_yy = new FastGaussianBlurOperation();
-      auto blur_sobel_xy = new FastGaussianBlurOperation();
-
-      blur_sobel_yy->set_size(sigma, sigma);
-      blur_sobel_xx->set_size(sigma, sigma);
-      blur_sobel_xy->set_size(sigma, sigma);
-
-      converter.add_operation(blur_sobel_xx);
-      converter.add_operation(blur_sobel_yy);
-      converter.add_operation(blur_sobel_xy);
-
-      converter.add_link(sobel_xx->get_output_socket(0), blur_sobel_xx->get_input_socket(0));
-      converter.add_link(sobel_yy->get_output_socket(0), blur_sobel_yy->get_input_socket(0));
-      converter.add_link(sobel_xy->get_output_socket(0), blur_sobel_xy->get_input_socket(0));
-
-      /* Apply anisotropic Kuwahara filter. */
-      KuwaharaAnisotropicOperation *aniso = new KuwaharaAnisotropicOperation();
-      aniso->set_kernel_size(data->size + 4);
-      converter.map_input_socket(get_input_socket(0), aniso->get_input_socket(0));
-      converter.add_operation(aniso);
-
-      converter.add_link(blur_sobel_xx->get_output_socket(0), aniso->get_input_socket(1));
-      converter.add_link(blur_sobel_yy->get_output_socket(0), aniso->get_input_socket(2));
-      converter.add_link(blur_sobel_xy->get_output_socket(0), aniso->get_input_socket(3));
-
-      converter.map_output_socket(get_output_socket(0), aniso->get_output_socket(0));
+      converter.map_output_socket(get_output_socket(0),
+                                  kuwahara_anisotropic_operation->get_output_socket(0));
 
       break;
     }

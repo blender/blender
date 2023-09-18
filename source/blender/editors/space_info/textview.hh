@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,7 +17,7 @@ enum eTextViewContext_LineFlag {
 };
 ENUM_OPERATORS(eTextViewContext_LineFlag, TVC_LINE_ICON_BG)
 
-typedef struct TextViewContext {
+struct TextViewContext {
   /** Font size scaled by the interface size. */
   int lheight;
   /** Text selection, when a selection range is in use. */
@@ -34,23 +34,23 @@ typedef struct TextViewContext {
   int scroll_ymin, scroll_ymax;
 
   /* callbacks */
-  int (*begin)(struct TextViewContext *tvc);
-  void (*end)(struct TextViewContext *tvc);
+  int (*begin)(TextViewContext *tvc);
+  void (*end)(TextViewContext *tvc);
   const void *arg1;
   const void *arg2;
 
   /* iterator */
-  int (*step)(struct TextViewContext *tvc);
-  void (*line_get)(struct TextViewContext *tvc, const char **r_line, int *r_len);
-  enum eTextViewContext_LineFlag (*line_data)(struct TextViewContext *tvc,
+  int (*step)(TextViewContext *tvc);
+  void (*line_get)(TextViewContext *tvc, const char **r_line, int *r_len);
+  enum eTextViewContext_LineFlag (*line_data)(TextViewContext *tvc,
                                               uchar fg[4],
                                               uchar bg[4],
                                               int *r_icon,
                                               uchar r_icon_fg[4],
                                               uchar r_icon_bg[4]);
-  void (*draw_cursor)(struct TextViewContext *tvc, int cwidth, int columns);
+  void (*draw_cursor)(TextViewContext *tvc, int cwidth, int columns);
   /* constant theme colors */
-  void (*const_colors)(struct TextViewContext *tvc, unsigned char bg_sel[4]);
+  void (*const_colors)(TextViewContext *tvc, unsigned char bg_sel[4]);
   const void *iter;
   int iter_index;
   /** Used for internal multi-line iteration. */
@@ -59,8 +59,7 @@ typedef struct TextViewContext {
   int iter_char_end;
   /** Internal iterator use. */
   int iter_tmp;
-
-} TextViewContext;
+};
 
 /**
  * \param r_mval_pick_item: The resulting item clicked on using \a mval_init.
@@ -69,7 +68,7 @@ typedef struct TextViewContext {
  * \param r_mval_pick_offset: The offset in bytes of the \a mval_init.
  * Use for selection.
  */
-int textview_draw(struct TextViewContext *tvc,
+int textview_draw(TextViewContext *tvc,
                   bool do_draw,
                   const int mval_init[2],
                   void **r_mval_pick_item,

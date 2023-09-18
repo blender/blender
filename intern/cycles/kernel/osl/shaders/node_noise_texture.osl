@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "node_noise.h"
 #include "stdcycles.h"
@@ -42,22 +43,34 @@ vector4 random_vector4_offset(float seed)
                  100.0 + noise("hash", seed, 3.0) * 100.0);
 }
 
-float noise_texture(float co, float detail, float roughness, float distortion, output color Color)
+float noise_texture(float co,
+                    float detail,
+                    float roughness,
+                    float lacunarity,
+                    float distortion,
+                    int use_normalize,
+                    output color Color)
 {
   float p = co;
   if (distortion != 0.0) {
     p += safe_snoise(p + random_float_offset(0.0)) * distortion;
   }
 
-  float value = fractal_noise(p, detail, roughness);
-  Color = color(value,
-                fractal_noise(p + random_float_offset(1.0), detail, roughness),
-                fractal_noise(p + random_float_offset(2.0), detail, roughness));
+  float value = fractal_noise(p, detail, roughness, lacunarity, use_normalize);
+  Color = color(
+      value,
+      fractal_noise(p + random_float_offset(1.0), detail, roughness, lacunarity, use_normalize),
+      fractal_noise(p + random_float_offset(2.0), detail, roughness, lacunarity, use_normalize));
   return value;
 }
 
-float noise_texture(
-    vector2 co, float detail, float roughness, float distortion, output color Color)
+float noise_texture(vector2 co,
+                    float detail,
+                    float roughness,
+                    float lacunarity,
+                    float distortion,
+                    int use_normalize,
+                    output color Color)
 {
   vector2 p = co;
   if (distortion != 0.0) {
@@ -65,15 +78,21 @@ float noise_texture(
                  safe_snoise(p + random_vector2_offset(1.0)) * distortion);
   }
 
-  float value = fractal_noise(p, detail, roughness);
-  Color = color(value,
-                fractal_noise(p + random_vector2_offset(2.0), detail, roughness),
-                fractal_noise(p + random_vector2_offset(3.0), detail, roughness));
+  float value = fractal_noise(p, detail, roughness, lacunarity, use_normalize);
+  Color = color(
+      value,
+      fractal_noise(p + random_vector2_offset(2.0), detail, roughness, lacunarity, use_normalize),
+      fractal_noise(p + random_vector2_offset(3.0), detail, roughness, lacunarity, use_normalize));
   return value;
 }
 
-float noise_texture(
-    vector3 co, float detail, float roughness, float distortion, output color Color)
+float noise_texture(vector3 co,
+                    float detail,
+                    float roughness,
+                    float lacunarity,
+                    float distortion,
+                    int use_normalize,
+                    output color Color)
 {
   vector3 p = co;
   if (distortion != 0.0) {
@@ -82,15 +101,21 @@ float noise_texture(
                  safe_snoise(p + random_vector3_offset(2.0)) * distortion);
   }
 
-  float value = fractal_noise(p, detail, roughness);
-  Color = color(value,
-                fractal_noise(p + random_vector3_offset(3.0), detail, roughness),
-                fractal_noise(p + random_vector3_offset(4.0), detail, roughness));
+  float value = fractal_noise(p, detail, roughness, lacunarity, use_normalize);
+  Color = color(
+      value,
+      fractal_noise(p + random_vector3_offset(3.0), detail, roughness, lacunarity, use_normalize),
+      fractal_noise(p + random_vector3_offset(4.0), detail, roughness, lacunarity, use_normalize));
   return value;
 }
 
-float noise_texture(
-    vector4 co, float detail, float roughness, float distortion, output color Color)
+float noise_texture(vector4 co,
+                    float detail,
+                    float roughness,
+                    float lacunarity,
+                    float distortion,
+                    int use_normalize,
+                    output color Color)
 {
   vector4 p = co;
   if (distortion != 0.0) {
@@ -100,21 +125,24 @@ float noise_texture(
                  safe_snoise(p + random_vector4_offset(3.0)) * distortion);
   }
 
-  float value = fractal_noise(p, detail, roughness);
-  Color = color(value,
-                fractal_noise(p + random_vector4_offset(4.0), detail, roughness),
-                fractal_noise(p + random_vector4_offset(5.0), detail, roughness));
+  float value = fractal_noise(p, detail, roughness, lacunarity, use_normalize);
+  Color = color(
+      value,
+      fractal_noise(p + random_vector4_offset(4.0), detail, roughness, lacunarity, use_normalize),
+      fractal_noise(p + random_vector4_offset(5.0), detail, roughness, lacunarity, use_normalize));
   return value;
 }
 
 shader node_noise_texture(int use_mapping = 0,
                           matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                           string dimensions = "3D",
+                          int use_normalize = 0,
                           vector3 Vector = vector3(0, 0, 0),
                           float W = 0.0,
                           float Scale = 5.0,
                           float Detail = 2.0,
                           float Roughness = 0.5,
+                          float Lacunarity = 2.0,
                           float Distortion = 0.0,
                           output float Fac = 0.0,
                           output color Color = 0.0)
@@ -127,13 +155,20 @@ shader node_noise_texture(int use_mapping = 0,
   float w = W * Scale;
 
   if (dimensions == "1D")
-    Fac = noise_texture(w, Detail, Roughness, Distortion, Color);
+    Fac = noise_texture(w, Detail, Roughness, Lacunarity, Distortion, use_normalize, Color);
   else if (dimensions == "2D")
-    Fac = noise_texture(vector2(p[0], p[1]), Detail, Roughness, Distortion, Color);
+    Fac = noise_texture(
+        vector2(p[0], p[1]), Detail, Roughness, Lacunarity, Distortion, use_normalize, Color);
   else if (dimensions == "3D")
-    Fac = noise_texture(p, Detail, Roughness, Distortion, Color);
+    Fac = noise_texture(p, Detail, Roughness, Lacunarity, Distortion, use_normalize, Color);
   else if (dimensions == "4D")
-    Fac = noise_texture(vector4(p[0], p[1], p[2], w), Detail, Roughness, Distortion, Color);
+    Fac = noise_texture(vector4(p[0], p[1], p[2], w),
+                        Detail,
+                        Roughness,
+                        Lacunarity,
+                        Distortion,
+                        use_normalize,
+                        Color);
   else
     error("Unknown dimension!");
 }

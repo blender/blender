@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,7 +7,7 @@
  *
  * Pop-Over Region
  *
- * \note This is very close to 'interface_region_menu_popup.c'
+ * \note This is very close to `interface_region_menu_popup.cc`.
  *
  * We could even merge them, however menu logic is already over-loaded.
  * PopOver's have the following differences.
@@ -39,12 +39,12 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
@@ -107,8 +107,6 @@ static void ui_popover_create_block(bContext *C,
       uiLayoutContextCopy(pup->layout, pup->but->context);
     }
   }
-
-  pup->block->flag |= UI_BLOCK_NO_FLIP;
 }
 
 static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
@@ -117,7 +115,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 
   /* Create UI block and layout now if it wasn't done between begin/end. */
   if (!pup->layout) {
-    ui_popover_create_block(C, nullptr, pup, WM_OP_INVOKE_REGION_WIN);
+    ui_popover_create_block(C, handle->region, pup, WM_OP_INVOKE_REGION_WIN);
 
     if (pup->menu_func) {
       pup->block->handle = handle;
@@ -415,9 +413,6 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
    * The begin/end stype of calling popups doesn't allow 'can_refresh' to be set.
    * For now close this style of popovers when accessed. */
   UI_block_flag_disable(pup->block, UI_BLOCK_KEEP_OPEN);
-
-  /* Panels are created flipped (from event handling POV). */
-  pup->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
 uiLayout *UI_popover_layout(uiPopover *pup)

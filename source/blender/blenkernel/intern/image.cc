@@ -22,6 +22,7 @@
 #include <string>
 
 #include "BLI_array.hh"
+#include "BLI_string_utils.h"
 
 #include "CLG_log.h"
 
@@ -48,7 +49,6 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
@@ -75,6 +75,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_packedFile.h"
+#include "BKE_preview_image.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
@@ -95,7 +96,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 /* for image user iteration */
 #include "DNA_node_types.h"
@@ -365,8 +366,7 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BLO_write_id_struct(writer, Image, id_address, &ima->id);
   BKE_id_blend_write(writer, &ima->id);
 
-  for (imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first); imapf; imapf = imapf->next)
-  {
+  LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
     BLO_write_struct(writer, ImagePackedFile, imapf);
     BKE_packedfile_blend_write(writer, imapf->packedfile);
   }
@@ -420,9 +420,10 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   image_runtime_reset(ima);
 }
 
-static void image_blend_read_lib(BlendLibReader * /*reader*/, ID *id)
+static void image_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 {
-  Image *ima = (Image *)id;
+  Image *ima = reinterpret_cast<Image *>(id);
+
   /* Images have some kind of 'main' cache, when null we should also clear all others. */
   /* Needs to be done *after* cache pointers are restored (call to
    * `foreach_cache`/`blo_cache_storage_entry_restore_in_new`), easier for now to do it in
@@ -456,8 +457,7 @@ constexpr IDTypeInfo get_type_info()
 
   info.blend_write = image_blend_write;
   info.blend_read_data = image_blend_read_data;
-  info.blend_read_lib = image_blend_read_lib;
-  info.blend_read_expand = nullptr;
+  info.blend_read_after_liblink = image_blend_read_after_liblink;
 
   info.blend_read_undo_preserve = nullptr;
 
@@ -2559,7 +2559,7 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *im
 
   BLI_file_ensure_parent_dir_exists(filepath);
 
-  const bool ok = IMB_saveiff(ibuf, filepath, IB_rect | IB_zbuf | IB_zbuffloat);
+  const bool ok = IMB_saveiff(ibuf, filepath, IB_rect);
   if (ok == 0) {
     perror(filepath);
   }
@@ -2695,8 +2695,7 @@ static void image_viewer_create_views(const RenderData *rd, Image *ima)
     image_add_view(ima, "", "");
   }
   else {
-    for (SceneRenderView *srv = static_cast<SceneRenderView *>(rd->views.first); srv;
-         srv = srv->next) {
+    LISTBASE_FOREACH (SceneRenderView *, srv, &rd->views) {
       if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
         continue;
       }
@@ -2721,11 +2720,8 @@ void BKE_image_ensure_viewer_views(const RenderData *rd, Image *ima, ImageUser *
 
   /* multiview also needs to be sure all the views are synced */
   if (is_multiview && !do_reset) {
-    SceneRenderView *srv;
-    ImageView *iv;
-
-    for (iv = static_cast<ImageView *>(ima->views.first); iv; iv = iv->next) {
-      srv = static_cast<SceneRenderView *>(
+    LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
+      SceneRenderView *srv = static_cast<SceneRenderView *>(
           BLI_findstring(&rd->views, iv->name, offsetof(SceneRenderView, name)));
       if ((srv == nullptr) || (BKE_scene_multiview_is_render_view_active(rd, srv) == false)) {
         do_reset = true;
@@ -2888,11 +2884,6 @@ static void image_walk_id_all_users(
       if (scene->nodetree && scene->use_nodes && !skip_nested_nodes) {
         image_walk_ntree_all_users(scene->nodetree, &scene->id, customdata, callback);
       }
-      break;
-    }
-    case ID_SIM: {
-      Simulation *simulation = (Simulation *)id;
-      image_walk_ntree_all_users(simulation->nodetree, &simulation->id, customdata, callback);
       break;
     }
     default:
@@ -3166,9 +3157,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
           BKE_image_packfiles(nullptr, ima, ID_BLEND_PATH(bmain, &ima->id));
         }
         else {
-          ImagePackedFile *imapf;
-          for (imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first); imapf;
-               imapf = imapf->next) {
+          LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
             PackedFile *pf;
             pf = BKE_packedfile_new(nullptr, imapf->filepath, ID_BLEND_PATH(bmain, &ima->id));
             if (pf) {
@@ -3596,11 +3585,11 @@ char *BKE_image_get_tile_strformat(const char *filepath, eUDIM_TILE_FORMAT *r_ti
 
   if (strstr(filepath, "<UDIM>") != nullptr) {
     *r_tile_format = UDIM_TILE_FORMAT_UDIM;
-    return BLI_str_replaceN(filepath, "<UDIM>", "%d");
+    return BLI_string_replaceN(filepath, "<UDIM>", "%d");
   }
   if (strstr(filepath, "<UVTILE>") != nullptr) {
     *r_tile_format = UDIM_TILE_FORMAT_UVTILE;
-    return BLI_str_replaceN(filepath, "<UVTILE>", "u%d_v%d");
+    return BLI_string_replaceN(filepath, "<UVTILE>", "u%d_v%d");
   }
 
   *r_tile_format = UDIM_TILE_FORMAT_NONE;
@@ -3645,12 +3634,12 @@ void BKE_image_set_filepath_from_tile_number(char *filepath,
   }
 
   if (tile_format == UDIM_TILE_FORMAT_UDIM) {
-    BLI_sprintf(filepath, pattern, tile_number);
+    BLI_snprintf(filepath, FILE_MAX, pattern, tile_number);
   }
   else if (tile_format == UDIM_TILE_FORMAT_UVTILE) {
     int u = ((tile_number - 1001) % 10);
     int v = ((tile_number - 1001) / 10);
-    BLI_sprintf(filepath, pattern, u + 1, v + 1);
+    BLI_snprintf(filepath, FILE_MAX, pattern, u + 1, v + 1);
   }
 }
 
@@ -3996,12 +3985,9 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int e
   if (ima->rr) {
     RenderPass *rpass = BKE_image_multilayer_index(ima->rr, iuser);
 
-    if (rpass) {
-      // printf("load from pass %s\n", rpass->name);
-      ibuf = IMB_allocImBuf(ima->rr->rectx, ima->rr->recty, 32, 0);
-      ibuf->channels = rpass->channels;
-
-      IMB_assign_shared_float_buffer(ibuf, rpass->buffer.data, rpass->buffer.sharing_info);
+    if (rpass && rpass->ibuf) {
+      ibuf = rpass->ibuf;
+      IMB_refImBuf(ibuf);
 
       BKE_imbuf_stamp_info(ima->rr, ibuf);
 
@@ -4304,14 +4290,11 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
   if (ima->rr) {
     RenderPass *rpass = BKE_image_multilayer_index(ima->rr, iuser);
 
-    if (rpass) {
-      ibuf = IMB_allocImBuf(ima->rr->rectx, ima->rr->recty, 32, 0);
+    if (rpass && rpass->ibuf) {
+      ibuf = rpass->ibuf;
+      IMB_refImBuf(ibuf);
 
       image_init_after_load(ima, iuser, ibuf);
-
-      IMB_assign_shared_float_buffer(ibuf, rpass->buffer.data, rpass->buffer.sharing_info);
-
-      ibuf->channels = rpass->channels;
 
       BKE_imbuf_stamp_info(ima->rr, ibuf);
 
@@ -4327,15 +4310,10 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 /* always returns a single ibuf, also during render progress */
 static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_lock)
 {
-  Render *re;
   RenderView *rv;
-  RenderBuffer *combined_buffer, *z_buffer;
-  RenderByteBuffer *byte_buffer;
+  ImBuf *pass_ibuf = nullptr;
   float dither;
-  int channels, layer, pass;
-  ImBuf *ibuf;
-  int from_render = (ima->render_slot == ima->last_render_slot);
-  int actview;
+  const int from_render = (ima->render_slot == ima->last_render_slot);
 
   if (!(iuser && iuser->scene)) {
     return nullptr;
@@ -4346,12 +4324,11 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
     return nullptr;
   }
 
-  re = RE_GetSceneRender(iuser->scene);
+  Render *re = RE_GetSceneRender(iuser->scene);
 
-  channels = 4;
-  layer = iuser->layer;
-  pass = iuser->pass;
-  actview = iuser->view;
+  const int layer = iuser->layer;
+  const int pass = iuser->pass;
+  int actview = iuser->view;
 
   if (BKE_image_is_stereo(ima) && (iuser->flag & IMA_SHOW_STEREO)) {
     actview = iuser->multiview_eye;
@@ -4364,7 +4341,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   }
   else if ((slot = BKE_image_get_renderslot(ima, ima->render_slot))->render) {
     rres = *(slot->render);
-    rres.have_combined = ((RenderView *)rres.views.first)->combined_buffer.data != nullptr;
+    rres.have_combined = ((RenderView *)rres.views.first)->ibuf != nullptr;
   }
 
   if (!(rres.rectx > 0 && rres.recty > 0)) {
@@ -4389,14 +4366,10 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 
   /* this gives active layer, composite or sequence result */
   if (rv == nullptr) {
-    byte_buffer = &rres.byte_buffer;
-    combined_buffer = &rres.combined_buffer;
-    z_buffer = &rres.z_buffer;
+    pass_ibuf = rres.ibuf;
   }
   else {
-    byte_buffer = &rv->byte_buffer;
-    combined_buffer = &rv->combined_buffer;
-    z_buffer = &rv->z_buffer;
+    pass_ibuf = rv->ibuf;
   }
 
   dither = iuser->scene->r.dither_intensity;
@@ -4405,13 +4378,8 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   if (rres.have_combined && layer == 0) {
     /* pass */
   }
-  else if (byte_buffer && byte_buffer->data && layer == 0) {
-    /* rect32 is set when there's a Sequence pass, this pass seems
-     * to have layer=0 (this is from image_buttons.c)
-     * in this case we ignore float buffer, because it could have
-     * hung from previous pass which was float
-     */
-    combined_buffer = nullptr;
+  else if (pass_ibuf && pass_ibuf->byte_buffer.data && layer == 0) {
+    /* pass */
   }
   else if (rres.layers.first) {
     RenderLayer *rl = static_cast<RenderLayer *>(
@@ -4419,91 +4387,24 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
     if (rl) {
       RenderPass *rpass = image_render_pass_get(rl, pass, actview, nullptr);
       if (rpass) {
-        combined_buffer = &rpass->buffer;
+        pass_ibuf = rpass->ibuf;
         if (pass != 0) {
-          channels = rpass->channels;
           dither = 0.0f; /* don't dither passes */
-        }
-      }
-
-      for (rpass = static_cast<RenderPass *>(rl->passes.first); rpass; rpass = rpass->next) {
-        if (STREQ(rpass->name, RE_PASSNAME_Z) && rpass->view_id == actview) {
-          z_buffer = &rpass->buffer;
         }
       }
     }
   }
 
-  ibuf = image_get_cached_ibuf_for_index_entry(ima, IMA_NO_INDEX, 0, nullptr);
+  if (pass_ibuf) {
+    /* TODO(sergey): Perhaps its better to assign dither when ImBuf is allocated for the render
+     * result. It will avoid modification here, and allow comparing render results with different
+     * dither applied to them. */
+    pass_ibuf->dither = dither;
 
-  /* make ibuf if needed, and initialize it */
-  if (ibuf == nullptr) {
-    ibuf = IMB_allocImBuf(rres.rectx, rres.recty, 32, 0);
-    image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+    IMB_refImBuf(pass_ibuf);
   }
 
-  /* Set color space settings for a byte buffer.
-   *
-   * This is mainly to make it so color management treats byte buffer
-   * from render result with Save Buffers enabled as final display buffer
-   * and doesn't apply any color management on it.
-   *
-   * For other cases we need to be sure it stays to default byte buffer space.
-   */
-  if (ibuf->byte_buffer.data != byte_buffer->data) {
-    const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
-    IMB_colormanagement_assign_byte_colorspace(ibuf, colorspace);
-  }
-
-  /* invalidate color managed buffers if render result changed */
-  BLI_thread_lock(LOCK_COLORMANAGE);
-  if (combined_buffer && (ibuf->x != rres.rectx || ibuf->y != rres.recty ||
-                          ibuf->float_buffer.data != combined_buffer->data))
-  {
-    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-  }
-
-  ibuf->x = rres.rectx;
-  ibuf->y = rres.recty;
-  ibuf->channels = channels;
-
-  imb_freerectImBuf(ibuf);
-
-  if (byte_buffer) {
-    IMB_assign_shared_byte_buffer(ibuf, byte_buffer->data, byte_buffer->sharing_info);
-  }
-  else {
-    IMB_assign_byte_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
-  }
-
-  if (combined_buffer) {
-    IMB_assign_shared_float_buffer(ibuf, combined_buffer->data, combined_buffer->sharing_info);
-  }
-  else {
-    IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
-  }
-
-  if (z_buffer) {
-    IMB_assign_shared_float_z_buffer(ibuf, z_buffer->data, z_buffer->sharing_info);
-  }
-  else {
-    IMB_assign_float_z_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
-  }
-
-  /* TODO(sergey): Make this faster by either simply referencing the stamp
-   * or by changing both ImBuf and RenderResult to use same data type to
-   * store metadata. */
-  if (ibuf->metadata != nullptr) {
-    IMB_metadata_free(ibuf->metadata);
-    ibuf->metadata = nullptr;
-  }
-  BKE_imbuf_stamp_info(&rres, ibuf);
-
-  BLI_thread_unlock(LOCK_COLORMANAGE);
-
-  ibuf->dither = dither;
-
-  return ibuf;
+  return pass_ibuf;
 }
 
 static int image_get_multiview_index(Image *ima, ImageUser *iuser)
@@ -4841,7 +4742,7 @@ struct ImagePool {
   ThreadMutex mutex;
 };
 
-ImagePool *BKE_image_pool_new(void)
+ImagePool *BKE_image_pool_new()
 {
   ImagePool *pool = MEM_cnew<ImagePool>("Image Pool");
   pool->memory_pool = BLI_mempool_create(sizeof(ImagePoolItem), 0, 128, BLI_MEMPOOL_NOP);
@@ -4877,11 +4778,9 @@ void BKE_image_pool_free(ImagePool *pool)
 BLI_INLINE ImBuf *image_pool_find_item(
     ImagePool *pool, Image *image, int entry, int index, bool *found)
 {
-  ImagePoolItem *item;
-
   *found = false;
 
-  for (item = static_cast<ImagePoolItem *>(pool->image_buffers.first); item; item = item->next) {
+  LISTBASE_FOREACH (ImagePoolItem *, item, &pool->image_buffers) {
     if (item->image == image && item->entry == entry && item->index == index) {
       *found = true;
       return item->ibuf;
@@ -5468,7 +5367,6 @@ ImBuf *BKE_image_get_first_ibuf(Image *image)
 
 static void image_update_views_format(Image *ima, ImageUser *iuser)
 {
-  SceneRenderView *srv;
   ImageView *iv;
   Scene *scene = iuser->scene;
   const bool is_multiview = ((scene->r.scemode & R_MULTIVIEW) != 0) &&
@@ -5502,7 +5400,7 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
     }
 
     /* create all the image views */
-    for (srv = static_cast<SceneRenderView *>(scene->r.views.first); srv; srv = srv->next) {
+    LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
         char filepath_view[FILE_MAX];
         SNPRINTF(filepath_view, "%s%s%s", prefix, srv->suffix, ext);

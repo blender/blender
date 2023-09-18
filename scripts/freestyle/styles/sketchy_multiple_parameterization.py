@@ -1,8 +1,7 @@
-# SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2008-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : sketchy_multiple_parameterization.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Builds sketchy strokes whose topology relies on a

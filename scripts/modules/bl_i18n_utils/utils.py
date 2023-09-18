@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2012-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -133,9 +133,9 @@ def find_best_isocode_matches(uid, iso_codes):
 
 def get_po_files_from_dir(root_dir, langs=set()):
     """
-    Yield tuples (uid, po_path) of translations for each po file found in the given dir, which should be either
-    a dir containing po files using language uid's as names (e.g. fr.po, es_ES.po, etc.), or
-    a dir containing dirs which names are language uids, and containing po files of the same names.
+    Yield tuples (uid, po_path) of translations for each po file found in the given directory, which should be either
+    a directory containing po files using language uid's as names (e.g. fr.po, es_ES.po, etc.), or
+    a directory containing directories which names are language uids, and containing po files of the same names.
     """
     found_uids = set()
     for p in os.listdir(root_dir):
@@ -237,8 +237,8 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
                         continue
                     print("    Enabling module ", module_name)
                     bpy.ops.preferences.addon_enable(module=module_name)
-            except Exception as e:  # XXX TEMP WORKAROUND
-                print(e)
+            except BaseException as ex:  # XXX TEMP WORKAROUND
+                print(ex)
 
         # XXX There are currently some problems with bpy/rna...
         #     *Very* tricky to solve!
@@ -324,12 +324,12 @@ class I18nMessage:
     sources = property(_get_sources, _set_sources)
 
     def _get_is_tooltip(self):
-        # XXX For now, we assume that all messages > 30 chars are tooltips!
+        # XXX For now, we assume that all messages > 30 chars are tool-tips!
         return len(self.msgid) > 30
     is_tooltip = property(_get_is_tooltip)
 
     def copy(self):
-        # Deepcopy everything but the settings!
+        # Deep-copy everything but the settings!
         return self.__class__(msgctxt_lines=self.msgctxt_lines[:], msgid_lines=self.msgid_lines[:],
                               msgstr_lines=self.msgstr_lines[:], comment_lines=self.comment_lines[:],
                               is_commented=self.is_commented, is_fuzzy=self.is_fuzzy, settings=self.settings)
@@ -345,7 +345,7 @@ class I18nMessage:
             lns = text.splitlines()
             return [l + "\n" for l in lns[:-1]] + lns[-1:]
 
-        # We do not need the full power of textwrap... We just split first at escaped new lines, then into each line
+        # We do not need the full power of text-wrap... We just split first at escaped new lines, then into each line
         # if needed... No word splitting, nor fancy spaces handling!
         def _wrap(text, max_len, init_len):
             if len(text) + init_len < max_len:

@@ -1,7 +1,8 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_listbase.h"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
@@ -81,7 +82,10 @@ static KnotsMode knots_mode_from_legacy(const short flag)
 
 Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_list)
 {
-  const Vector<const Nurb *> src_curves(nurbs_list);
+  Vector<const Nurb *> src_curves;
+  LISTBASE_FOREACH (const Nurb *, item, &nurbs_list) {
+    src_curves.append(item);
+  }
   if (src_curves.is_empty()) {
     return nullptr;
   }

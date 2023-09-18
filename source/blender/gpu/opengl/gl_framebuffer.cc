@@ -1,10 +1,12 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
  */
+
+#include "BLI_string.h"
 
 #include "BKE_global.h"
 
@@ -43,10 +45,10 @@ GLFrameBuffer::GLFrameBuffer(
   height_ = h;
   srgb_ = false;
 
-  viewport_[0] = scissor_[0] = 0;
-  viewport_[1] = scissor_[1] = 0;
-  viewport_[2] = scissor_[2] = w;
-  viewport_[3] = scissor_[3] = h;
+  viewport_[0][0] = scissor_[0] = 0;
+  viewport_[0][1] = scissor_[1] = 0;
+  viewport_[0][2] = scissor_[2] = w;
+  viewport_[0][3] = scissor_[3] = h;
 
   if (fbo_id_) {
     debug::object_label(GL_FRAMEBUFFER, fbo_id_, name_);
@@ -230,7 +232,20 @@ void GLFrameBuffer::apply_state()
     return;
   }
 
-  glViewport(UNPACK4(viewport_));
+  if (multi_viewport_ == false) {
+    glViewport(UNPACK4(viewport_[0]));
+  }
+  else {
+    /* Great API you have there! You have to convert to float values for setting int viewport
+     * values. **Audible Facepalm** */
+    float viewports_f[GPU_MAX_VIEWPORTS][4];
+    for (int i = 0; i < GPU_MAX_VIEWPORTS; i++) {
+      for (int j = 0; j < 4; j++) {
+        viewports_f[i][j] = viewport_[i][j];
+      }
+    }
+    glViewportArrayv(0, GPU_MAX_VIEWPORTS, viewports_f[0]);
+  }
   glScissor(UNPACK4(scissor_));
 
   if (scissor_test_) {

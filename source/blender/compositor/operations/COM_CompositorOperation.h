@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,11 +32,6 @@ class CompositorOperation : public MultiThreadedOperation {
   float *output_buffer_;
 
   /**
-   * \brief reference to the output depth float buffer
-   */
-  float *depth_buffer_;
-
-  /**
    * \brief local reference to the input image operation
    */
   SocketReader *image_input_;
@@ -45,11 +40,6 @@ class CompositorOperation : public MultiThreadedOperation {
    * \brief local reference to the input alpha operation
    */
   SocketReader *alpha_input_;
-
-  /**
-   * \brief local reference to the depth operation
-   */
-  SocketReader *depth_input_;
 
   /**
    * \brief Ignore any alpha input
@@ -77,10 +67,7 @@ class CompositorOperation : public MultiThreadedOperation {
   {
     scene_ = scene;
   }
-  void set_scene_name(const char *scene_name)
-  {
-    BLI_strncpy(scene_name_, scene_name, sizeof(scene_name_));
-  }
+  void set_scene_name(const char *scene_name);
   void set_view_name(const char *view_name)
   {
     view_name_ = view_name;

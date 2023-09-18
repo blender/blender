@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,4 +8,12 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PyObject *bpygpu_select_init(void);
+
+#ifdef __cplusplus
+}
+#endif

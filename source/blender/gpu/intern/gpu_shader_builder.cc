@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -45,9 +45,11 @@ void ShaderBuilder::init()
 
   GHOST_GPUSettings gpuSettings = {0};
   switch (GPU_backend_type_selection_get()) {
+#ifdef WITH_OPENGL_BACKEND
     case GPU_BACKEND_OPENGL:
       gpuSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
       break;
+#endif
 
 #ifdef WITH_METAL_BACKEND
     case GPU_BACKEND_METAL:

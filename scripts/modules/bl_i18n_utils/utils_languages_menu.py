@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2013-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2013-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,8 +21,9 @@ FLAG_MESSAGES = {
 
 
 def gen_menu_file(stats, settings):
-    # Generate languages file used by Blender's i18n system.
-    # First, match all entries in LANGUAGES to a lang in stats, if possible!
+    # Generate languages file content used by Blender's i18n system.
+    # First, match all entries in LANGUAGES to a `lang` in stats, if possible!
+    # Returns a iterable of text lines.
     tmp = []
     for uid_num, label, uid in settings.LANGUAGES:
         if uid in stats:
@@ -40,7 +41,7 @@ def gen_menu_file(stats, settings):
     highest_uid = 0
     for lvl, uid_num, label, uid, flag in stats:
         if lvl < limits[idx][0]:
-            # Sub-sort languages by iso-codes.
+            # Sub-sort languages by ISO-codes.
             langs_cats[idx].sort(key=lambda it: it[2])
             idx += 1
         if lvl < settings.IMPORT_MIN_LEVEL and flag == OK:
@@ -48,7 +49,7 @@ def gen_menu_file(stats, settings):
         langs_cats[idx].append((uid_num, label, uid, flag))
         if abs(uid_num) > highest_uid:
             highest_uid = abs(uid_num)
-    # Sub-sort last group of languages by iso-codes!
+    # Sub-sort last group of languages by ISO-codes!
     langs_cats[idx].sort(key=lambda it: it[2])
     data_lines = [
         "# File used by Blender to know which languages (translations) are available, ",
@@ -77,7 +78,4 @@ def gen_menu_file(stats, settings):
             else:
                 # Non-existing, commented entry!
                 data_lines.append("# {} #{}:{}:{}".format(FLAG_MESSAGES[flag], uid_num, label, uid))
-    with open(os.path.join(settings.TRUNK_MO_DIR, settings.LANGUAGES_FILE), 'w', encoding="utf8") as f:
-        f.write("\n".join(data_lines))
-    with open(os.path.join(settings.GIT_I18N_ROOT, settings.LANGUAGES_FILE), 'w', encoding="utf8") as f:
-        f.write("\n".join(data_lines))
+    return data_lines

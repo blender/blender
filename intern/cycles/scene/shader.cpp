@@ -103,7 +103,6 @@ Shader::Shader() : Node(get_node_type())
   has_surface_spatial_varying = false;
   has_volume_spatial_varying = false;
   has_volume_attribute_dependency = false;
-  has_integrator_dependency = false;
   has_volume_connected = false;
   prev_volume_step_rate = 0.0f;
 
@@ -134,11 +133,18 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
     return zero_float3();
   }
   else if (node->type == EmissionNode::get_node_type() ||
-           node->type == BackgroundNode::get_node_type())
+           node->type == BackgroundNode::get_node_type() ||
+           node->type == PrincipledBsdfNode::get_node_type())
   {
+    const bool is_principled = (node->type == PrincipledBsdfNode::get_node_type());
     /* Emission and Background node. */
-    ShaderInput *color_in = node->input("Color");
-    ShaderInput *strength_in = node->input("Strength");
+    ShaderInput *color_in = node->input(is_principled ? "Emission" : "Color");
+    ShaderInput *strength_in = node->input(is_principled ? "Emission Strength" : "Strength");
+
+    if (is_principled) {
+      /* Too many parameters (coat, sheen, alpha) influence Emission for the Principled BSDF. */
+      is_constant = false;
+    }
 
     float3 estimate = one_float3();
 
@@ -340,6 +346,18 @@ void Shader::tag_update(Scene *scene)
   has_volume = has_volume || output->input("Volume")->link;
   has_displacement = has_displacement || output->input("Displacement")->link;
 
+  if (!has_surface) {
+    foreach (ShaderNode *node, graph->nodes) {
+      if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
+        foreach (const ShaderInput *in, node->inputs) {
+          if (in->link) {
+            has_surface = true;
+          }
+        }
+      }
+    }
+  }
+
   /* get requested attributes. this could be optimized by pruning unused
    * nodes here already, but that's the job of the shader manager currently,
    * and may not be so great for interactive rendering where you temporarily
@@ -348,8 +366,9 @@ void Shader::tag_update(Scene *scene)
   AttributeRequestSet prev_attributes = attributes;
 
   attributes.clear();
-  foreach (ShaderNode *node, graph->nodes)
+  foreach (ShaderNode *node, graph->nodes) {
     node->attributes(this, &attributes);
+  }
 
   if (has_displacement) {
     if (displacement_method == DISPLACE_BOTH) {
@@ -575,6 +594,9 @@ void ShaderManager::device_update_common(Device * /*device*/,
   ktables->ggx_glass_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_glass_Eavg);
   ktables->ggx_glass_inv_E = ensure_bsdf_table(dscene, scene, table_ggx_glass_inv_E);
   ktables->ggx_glass_inv_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_glass_inv_Eavg);
+  ktables->sheen_ltc = ensure_bsdf_table(dscene, scene, table_sheen_ltc);
+  ktables->ggx_gen_schlick_ior_s = ensure_bsdf_table(dscene, scene, table_ggx_gen_schlick_ior_s);
+  ktables->ggx_gen_schlick_s = ensure_bsdf_table(dscene, scene, table_ggx_gen_schlick_s);
 
   /* integrator */
   KernelIntegrator *kintegrator = &dscene->data.integrator;

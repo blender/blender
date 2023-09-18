@@ -27,27 +27,27 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_multires.h"
-#include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_multires.hh"
+#include "BKE_paint.hh"
+#include "BKE_pbvh_api.hh"
 #include "BKE_scene.h"
-#include "BKE_subsurf.h"
+#include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_sculpt.h"
-#include "ED_view3d.h"
+#include "ED_sculpt.hh"
+#include "ED_view3d.hh"
 
 #include "bmesh.h"
 #include "tools/bmesh_boolean.h"
@@ -103,23 +103,19 @@ struct MaskTaskData {
   float view_normal[3];
 };
 
-static void mask_flood_fill_task_cb(void *__restrict userdata,
-                                    const int i,
-                                    const TaskParallelTLS *__restrict /*tls*/)
+static void mask_flood_fill_task(MaskTaskData &data, const int i)
 {
-  MaskTaskData *data = static_cast<MaskTaskData *>(userdata);
+  PBVHNode *node = data.nodes[i];
 
-  PBVHNode *node = data->nodes[i];
-
-  const PaintMaskFloodMode mode = data->mode;
-  const float value = data->value;
+  const PaintMaskFloodMode mode = data.mode;
+  const float value = data.value;
   bool redraw = false;
 
   PBVHVertexIter vi;
 
-  SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+  SCULPT_undo_push_node(data.ob, node, SCULPT_UNDO_MASK);
 
-  BKE_pbvh_vertex_iter_begin (data->pbvh, node, vi, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (data.pbvh, node, vi, PBVH_ITER_UNIQUE) {
     float prevmask = *vi.mask;
     mask_flood_fill_set_elem(vi.mask, mode, value);
     if (prevmask != *vi.mask) {
@@ -130,7 +126,7 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
   if (redraw) {
     BKE_pbvh_node_mark_update_mask(node);
-    if (data->multires) {
+    if (data.multires) {
       BKE_pbvh_node_mark_normals_update(node);
     }
   }
@@ -138,11 +134,11 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PBVH *pbvh;
-  Vector<PBVHNode *> nodes;
   bool multires;
 
   PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
@@ -155,7 +151,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
-  nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
 
   SCULPT_undo_push_begin(ob, op);
 
@@ -167,9 +163,11 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   data.mode = mode;
   data.value = value;
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(0, nodes.size(), &data, mask_flood_fill_task_cb, &settings);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      mask_flood_fill_task(data, i);
+    }
+  });
 
   if (multires) {
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
@@ -599,8 +597,9 @@ static Vector<PBVHNode *> sculpt_gesture_update_effected_nodes_by_line_plane(
   frustum.planes = clip_planes;
   frustum.num_planes = sgcontext->line.use_side_planes ? 3 : 1;
 
-  return sgcontext->nodes = blender::bke::pbvh::search_gather(
-             ss->pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum);
+  return sgcontext->nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+           return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
+         });
 }
 
 static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureContext *sgcontext)
@@ -614,8 +613,9 @@ static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureCon
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
 
-  sgcontext->nodes = blender::bke::pbvh::search_gather(
-      ss->pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum);
+  sgcontext->nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+    return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
+  });
 }
 
 static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext)
@@ -775,7 +775,7 @@ static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
 
 static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *sgcontext)
 {
-  BKE_pbvh_update_vertex_data(sgcontext->ss->pbvh, PBVH_UpdateVisibility);
+  BKE_pbvh_update_visibility(sgcontext->ss->pbvh);
 }
 
 static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcontext,
@@ -1138,8 +1138,9 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   float(*screen_points)[2] = sgcontext->gesture_points;
 
   const int trim_totverts = tot_screen_points * 2;
-  const int trim_totpolys = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
-  trim_operation->mesh = BKE_mesh_new_nomain(trim_totverts, 0, trim_totpolys, trim_totpolys * 3);
+  const int trim_faces_nums = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
+  trim_operation->mesh = BKE_mesh_new_nomain(
+      trim_totverts, 0, trim_faces_nums, trim_faces_nums * 3);
   trim_operation->true_mesh_co = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(trim_totverts, sizeof(float[3]), "mesh orco"));
 
@@ -1166,7 +1167,9 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const float(*ob_imat)[4] = vc->obact->world_to_object;
 
   /* Write vertices coordinatesSCULPT_GESTURE_TRIM_DIFFERENCE for the front face. */
-  float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_operation->mesh);
+  blender::MutableSpan<blender::float3> positions =
+      trim_operation->mesh->vert_positions_for_write();
+
   float depth_point[3];
 
   /* Get origin point for SCULPT_GESTURE_TRIM_ORIENTATION_VIEW.
@@ -1238,26 +1241,26 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
 
   /* Write the front face triangle indices. */
-  blender::MutableSpan<int> poly_offsets = trim_operation->mesh->poly_offsets_for_write();
+  blender::MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
-  int poly_index = 0;
+  int face_index = 0;
   int loop_index = 0;
   for (int i = 0; i < tot_tris_face; i++) {
-    poly_offsets[poly_index] = loop_index;
+    face_offsets[face_index] = loop_index;
     corner_verts[loop_index + 0] = r_tris[i][0];
     corner_verts[loop_index + 1] = r_tris[i][1];
     corner_verts[loop_index + 2] = r_tris[i][2];
-    poly_index++;
+    face_index++;
     loop_index += 3;
   }
 
   /* Write the back face triangle indices. */
   for (int i = 0; i < tot_tris_face; i++) {
-    poly_offsets[poly_index] = loop_index;
+    face_offsets[face_index] = loop_index;
     corner_verts[loop_index + 0] = r_tris[i][0] + tot_screen_points;
     corner_verts[loop_index + 1] = r_tris[i][1] + tot_screen_points;
     corner_verts[loop_index + 2] = r_tris[i][2] + tot_screen_points;
-    poly_index++;
+    face_index++;
     loop_index += 3;
   }
 
@@ -1265,7 +1268,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* Write the indices for the lateral triangles. */
   for (int i = 0; i < tot_screen_points; i++) {
-    poly_offsets[poly_index] = loop_index;
+    face_offsets[face_index] = loop_index;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= tot_screen_points) {
@@ -1274,12 +1277,12 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
     corner_verts[loop_index + 0] = next_index + tot_screen_points;
     corner_verts[loop_index + 1] = next_index;
     corner_verts[loop_index + 2] = current_index;
-    poly_index++;
+    face_index++;
     loop_index += 3;
   }
 
   for (int i = 0; i < tot_screen_points; i++) {
-    poly_offsets[poly_index] = loop_index;
+    face_offsets[face_index] = loop_index;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= tot_screen_points) {
@@ -1288,7 +1291,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
     corner_verts[loop_index + 0] = current_index;
     corner_verts[loop_index + 1] = current_index + tot_screen_points;
     corner_verts[loop_index + 2] = next_index + tot_screen_points;
-    poly_index++;
+    face_index++;
     loop_index += 3;
   }
 
@@ -1335,7 +1338,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   BMIter iter;
   int i;
-  const int i_faces_end = trim_mesh->totpoly;
+  const int i_faces_end = trim_mesh->faces_num;
 
   /* We need face normals because of 'BM_face_split_edgenet'
    * we could calculate on the fly too (before calling split). */
@@ -1420,7 +1423,7 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
-  float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_mesh);
+  blender::MutableSpan<blender::float3> positions = trim_mesh->vert_positions_for_write();
   for (int i = 0; i < trim_mesh->totvert; i++) {
     flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], sgcontext->symmpass);
   }
@@ -1435,7 +1438,7 @@ static void sculpt_gesture_trim_end(bContext * /*C*/, SculptGestureContext *sgco
   Mesh *mesh = (Mesh *)object->data;
 
   ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
+      &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
   if (ss->face_sets) {
     /* Assign a new Face Set ID to the new faces created by the trim operation. */
     const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
@@ -1542,7 +1545,7 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
       continue;
     }
     add_v3_v3(vd.co, disp);
-    if (vd.vert_positions) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(sgcontext->ss->pbvh, vd.vertex);
     }
     any_updated = true;

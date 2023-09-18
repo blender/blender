@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,9 @@
  * \ingroup gpu
  */
 
+#include <sstream>
+
 #include "BKE_global.h"
-#include "BLI_dynstr.h"
 #include "CLG_log.h"
 
 #include "vk_backend.hh"
@@ -72,6 +73,7 @@ namespace blender::gpu::debug {
 
 void VKDebuggingTools::init(VkInstance vk_instance)
 {
+
   PFN_vkGetInstanceProcAddr instance_proc_addr = vkGetInstanceProcAddr;
   enabled = false;
   vk_debug_utils_messenger = nullptr;
@@ -227,8 +229,8 @@ void VKDebuggingTools::print_labels(const VkDebugUtilsMessengerCallbackDataEXT *
   std::stringstream ss;
   for (uint32_t object = 0; object < callback_data->objectCount; ++object) {
     ss << " - ObjectType[" << to_string(callback_data->pObjects[object].objectType) << "],";
-    ss << "Handle[0x" << std::hex
-       << static_cast<uintptr_t>(callback_data->pObjects[object].objectHandle) << "]";
+    ss << "Handle[0x" << std::hex << uintptr_t(callback_data->pObjects[object].objectHandle)
+       << "]";
     if (callback_data->pObjects[object].pObjectName) {
       ss << ",Name[" << callback_data->pObjects[object].pObjectName << "]";
     }
@@ -247,6 +249,7 @@ void VKDebuggingTools::print_labels(const VkDebugUtilsMessengerCallbackDataEXT *
   ss << std::endl;
   printf("%s", ss.str().c_str());
 }
+
 VKAPI_ATTR VkBool32 VKAPI_CALL
 messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
                    VkDebugUtilsMessageTypeFlagsEXT /* message_type*/,
@@ -262,71 +265,44 @@ messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
   if (debugging_tools.is_ignore(callback_data->messageIdNumber)) {
     return VK_FALSE;
   }
-  bool use_color = CLG_color_support_get(&LOG);
-  UNUSED_VARS(use_color);
-  bool enabled = false;
-  if ((message_severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) ||
-      (message_severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT))
+
+  CLG_Severity severity = CLG_SEVERITY_INFO;
+  if (message_severity & (VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT))
   {
-    if ((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= CLG_SEVERITY_INFO)) {
-      const char *format = "{0x%x}% s\n %s ";
-      CLG_logf(LOG.type,
-               CLG_SEVERITY_INFO,
-               "",
-               "",
-               format,
-               callback_data->messageIdNumber,
-               callback_data->pMessageIdName,
-               callback_data->pMessage);
-      enabled = true;
-    }
+    severity = CLG_SEVERITY_INFO;
   }
-  else {
-    CLG_Severity clog_severity;
-    switch (message_severity) {
-      case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-        clog_severity = CLG_SEVERITY_WARN;
-        break;
-      case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-        clog_severity = CLG_SEVERITY_ERROR;
-        break;
-      default:
-        BLI_assert_unreachable();
-    }
-    enabled = true;
-    if (clog_severity == CLG_SEVERITY_ERROR) {
-      const char *format = " %s {0x%x}\n %s ";
-      CLG_logf(LOG.type,
-               clog_severity,
-               "",
-               "",
-               format,
-               callback_data->pMessageIdName,
-               callback_data->messageIdNumber,
-               callback_data->pMessage);
-    }
-    else if (LOG.type->level >= CLG_SEVERITY_WARN) {
-      const char *format = " %s {0x%x}\n %s ";
-      CLG_logf(LOG.type,
-               clog_severity,
-               "",
-               "",
-               format,
-               callback_data->pMessageIdName,
-               callback_data->messageIdNumber,
-               callback_data->pMessage);
-    }
+  if (message_severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+    severity = CLG_SEVERITY_WARN;
   }
-  if ((enabled) && ((callback_data->objectCount > 0) || (callback_data->cmdBufLabelCount > 0) ||
-                    (callback_data->queueLabelCount > 0)))
-  {
+  if (message_severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+    severity = CLG_SEVERITY_ERROR;
+  }
+
+  if ((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level <= severity)) {
+    const char *format = "{0x%x}% s\n %s ";
+    CLG_logf(LOG.type,
+             severity,
+             "",
+             "",
+             format,
+             callback_data->messageIdNumber,
+             callback_data->pMessageIdName,
+             callback_data->pMessage);
+  }
+
+  const bool do_labels = (callback_data->objectCount + callback_data->cmdBufLabelCount +
+                          callback_data->queueLabelCount) > 0;
+  if (do_labels) {
     debugging_tools.print_labels(callback_data);
   }
+
   return VK_FALSE;
 };
 
 VkResult VKDebuggingTools::init_messenger(VkInstance vk_instance)
 {
+  CLG_logref_init(&LOG);
   vk_message_id_number_ignored.clear();
   BLI_assert(enabled);
 
@@ -389,17 +365,9 @@ void raise_message(int32_t id_number,
   const VKDevice &device = VKBackend::get().device_get();
   const VKDebuggingTools &debugging_tools = device.debugging_tools_get();
   if (debugging_tools.enabled) {
-    DynStr *ds = nullptr;
     va_list arg;
-    char *info = nullptr;
-
     va_start(arg, format);
-
-    ds = BLI_dynstr_new();
-    BLI_dynstr_vappendf(ds, format, arg);
-    info = BLI_dynstr_get_cstring(ds);
-    BLI_dynstr_free(ds);
-
+    char *info = BLI_vsprintfN(format, arg);
     va_end(arg);
 
     static VkDebugUtilsMessengerCallbackDataEXT vk_call_back_data;

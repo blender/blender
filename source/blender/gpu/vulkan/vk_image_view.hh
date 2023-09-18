@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,13 +20,12 @@ class VKImageView : NonCopyable {
   VkImageView vk_image_view_ = VK_NULL_HANDLE;
 
  public:
-  VKImageView(VKTexture &texture, int layer, int mip_level, StringRefNull name);
-
-  /**
-   * Wrap the given vk_image_view handle. Note that the vk_image_view handle ownership is
-   * transferred to VKImageView.
-   */
-  VKImageView(VkImageView vk_image_view);
+  VKImageView(VKTexture &texture,
+              eImageViewUsage usage,
+              IndexRange layer_range,
+              IndexRange mip_range,
+              bool use_stencil,
+              StringRefNull name);
 
   VKImageView(VKImageView &&other);
   ~VKImageView();
@@ -36,12 +35,6 @@ class VKImageView : NonCopyable {
     BLI_assert(vk_image_view_ != VK_NULL_HANDLE);
     return vk_image_view_;
   }
-
- private:
-  static VkImageView create_vk_image_view(VKTexture &texture,
-                                          int layer,
-                                          int mip_level,
-                                          StringRefNull name);
 };
 
 }  // namespace blender::gpu

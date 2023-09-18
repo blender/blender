@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -45,7 +45,6 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
@@ -56,6 +55,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_cachefile.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
@@ -88,17 +88,15 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_shader_fx.h"
-#include "BKE_simulation.h"
-#include "BKE_simulation_state.hh"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
 #include "BKE_volume.h"
 #include "BKE_world.h"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -638,9 +636,6 @@ void DepsgraphNodeBuilder::build_id(ID *id)
     case ID_SCE:
       build_scene_parameters((Scene *)id);
       break;
-    case ID_SIM:
-      build_simulation((Simulation *)id);
-      break;
     case ID_PA:
       build_particle_settings((ParticleSettings *)id);
       break;
@@ -812,7 +807,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   if (object->constraints.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
-    BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
+    BKE_constraints_id_loop(&object->constraints, constraint_walk, IDWALK_NOP, &data);
   }
   /* Object data. */
   build_object_data(object);
@@ -1281,8 +1276,7 @@ void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve, int driver_index
 
 void DepsgraphNodeBuilder::build_driver_variables(ID *id, FCurve *fcurve)
 {
-  PointerRNA id_ptr;
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
 
   build_driver_id_property(id_ptr, fcurve->rna_path);
 
@@ -1305,8 +1299,30 @@ void DepsgraphNodeBuilder::build_driver_variables(ID *id, FCurve *fcurve)
 
       build_id(target_id);
       build_driver_id_property(target_prop, dtar->rna_path);
+
+      /* For rna_path based variables: */
+      if ((dtar->flag & DTAR_FLAG_STRUCT_REF) == 0) {
+        /* Handle all other cameras used by the scene timeline if applicable. */
+        if (const char *camera_path = get_rna_path_relative_to_scene_camera(
+                scene_, target_prop, dtar->rna_path))
+        {
+          build_driver_scene_camera_variable(scene_, camera_path);
+        }
+      }
     }
     DRIVER_TARGETS_LOOPER_END;
+  }
+}
+
+void DepsgraphNodeBuilder::build_driver_scene_camera_variable(Scene *scene,
+                                                              const char *camera_path)
+{
+  /* This skips scene->camera, which was already handled by the caller. */
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    if (!ELEM(marker->camera, nullptr, scene->camera)) {
+      PointerRNA camera_ptr = RNA_id_pointer_create(&marker->camera->id);
+      build_driver_id_property(camera_ptr, camera_path);
+    }
   }
 }
 
@@ -1774,15 +1790,16 @@ void DepsgraphNodeBuilder::build_armature(bArmature *armature)
   build_idproperties(armature->id.properties);
   build_animdata(&armature->id);
   build_parameters(&armature->id);
-  /* Make sure pose is up-to-date with armature updates. */
-  bArmature *armature_cow = (bArmature *)get_cow_id(&armature->id);
-  add_operation_node(&armature->id,
-                     NodeType::ARMATURE,
-                     OperationCode::ARMATURE_EVAL,
-                     [armature_cow](::Depsgraph *depsgraph) {
-                       BKE_armature_refresh_layer_used(depsgraph, armature_cow);
-                     });
+  /* This operation is no longer necessary, as it was updating things with the bone layers (which
+   * got replaced by bone collections). However, it's still used by other depsgraph components as a
+   * dependency, so for now the node itself is kept as a no-op.
+   * TODO: remove this node & the references to it, if eventually it turns out we really don't need
+   * this.
+   */
+  add_operation_node(
+      &armature->id, NodeType::ARMATURE, OperationCode::ARMATURE_EVAL, [](::Depsgraph *) {});
   build_armature_bones(&armature->bonebase);
+  build_armature_bone_collections(&armature->collections);
 }
 
 void DepsgraphNodeBuilder::build_armature_bones(ListBase *bones)
@@ -1790,6 +1807,13 @@ void DepsgraphNodeBuilder::build_armature_bones(ListBase *bones)
   LISTBASE_FOREACH (Bone *, bone, bones) {
     build_idproperties(bone->prop);
     build_armature_bones(&bone->childbase);
+  }
+}
+
+void DepsgraphNodeBuilder::build_armature_bone_collections(ListBase *collections)
+{
+  LISTBASE_FOREACH (BoneCollection *, bcoll, collections) {
+    build_idproperties(bcoll->prop);
   }
 }
 
@@ -1935,11 +1959,13 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
     }
   }
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &ntree->inputs) {
-    build_idproperties(socket->prop);
+  /* Needed for interface cache. */
+  ntree->ensure_interface_cache();
+  for (bNodeTreeInterfaceSocket *socket : ntree->interface_inputs()) {
+    build_idproperties(socket->properties);
   }
-  LISTBASE_FOREACH (bNodeSocket *, socket, &ntree->outputs) {
-    build_idproperties(socket->prop);
+  for (bNodeTreeInterfaceSocket *socket : ntree->interface_outputs()) {
+    build_idproperties(socket->properties);
   }
 
   /* TODO: link from nodetree to owner_component? */
@@ -2146,28 +2172,6 @@ void DepsgraphNodeBuilder::build_sound(bSound *sound)
   build_idproperties(sound->id.properties);
   build_animdata(&sound->id);
   build_parameters(&sound->id);
-}
-
-void DepsgraphNodeBuilder::build_simulation(Simulation *simulation)
-{
-  if (built_map_.checkIsBuiltAndTag(simulation)) {
-    return;
-  }
-  add_id_node(&simulation->id);
-  build_idproperties(simulation->id.properties);
-  build_animdata(&simulation->id);
-  build_parameters(&simulation->id);
-  build_nodetree(simulation->nodetree);
-
-  Simulation *simulation_cow = get_cow_datablock(simulation);
-  Scene *scene_cow = get_cow_datablock(scene_);
-
-  add_operation_node(&simulation->id,
-                     NodeType::SIMULATION,
-                     OperationCode::SIMULATION_EVAL,
-                     [scene_cow, simulation_cow](::Depsgraph *depsgraph) {
-                       BKE_simulation_data_update(depsgraph, scene_cow, simulation_cow);
-                     });
 }
 
 void DepsgraphNodeBuilder::build_vfont(VFont *vfont)

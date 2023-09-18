@@ -174,7 +174,7 @@ struct direntry;
 
 /**
  * Does the specified path point to a directory?
- * \note Would be better in `fileops.c` except that it needs `stat.h` so add here.
+ * \note Would be better in `fileops.cc` except that it needs `stat.h` so add here.
  */
 bool BLI_is_dir(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**

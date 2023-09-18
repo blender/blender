@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -31,10 +31,6 @@ struct PointCloudRuntime;
 using PointCloudRuntimeHandle = blender::bke::PointCloudRuntime;
 #else
 typedef struct PointCloudRuntimeHandle PointCloudRuntimeHandle;
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 typedef struct PointCloud {
@@ -82,7 +78,3 @@ enum {
 
 /* Only one material supported currently. */
 #define POINTCLOUD_MATERIAL_NR 1
-
-#ifdef __cplusplus
-}
-#endif

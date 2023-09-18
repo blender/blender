@@ -48,6 +48,11 @@ set(SRC
 set(LIB
 )
 
+# Suppress warnings as GLOG has it's own define.
+if(HAVE_EXECINFO_H)
+  remove_definitions(-DHAVE_EXECINFO_H)
+endif()
+
 if(NOT WITH_SYSTEM_GFLAGS)
   list(APPEND LIB
     extern_gflags

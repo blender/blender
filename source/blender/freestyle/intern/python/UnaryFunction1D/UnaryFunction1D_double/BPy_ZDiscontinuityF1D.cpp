@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -37,7 +37,7 @@ static char ZDiscontinuityF1D___doc__[] =
     ".. method:: __call__(inter)\n"
     "\n"
     "   Returns a real value giving the distance between an Interface1D\n"
-    "   and the shape that lies behind (occludee).  This distance is\n"
+    "   and the shape that lies behind (occludee). This distance is\n"
     "   evaluated in the camera space and normalized between 0 and 1.\n"
     "   Therefore, if no object is occluded by the shape to which the\n"
     "   Interface1D belongs to, 1 is returned.\n"
@@ -64,7 +64,7 @@ static int ZDiscontinuityF1D___init__(BPy_ZDiscontinuityF1D *self, PyObject *arg
 /*-----------------------BPy_ZDiscontinuityF1D type definition ------------------------------*/
 
 PyTypeObject ZDiscontinuityF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ZDiscontinuityF1D",
     /*tp_basicsize*/ sizeof(BPy_ZDiscontinuityF1D),
     /*tp_itemsize*/ 0,

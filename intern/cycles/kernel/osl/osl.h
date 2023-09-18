@@ -70,6 +70,8 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
   float3 weight = one_float3();
   float3 weight_stack[16];
   ccl_private const OSLClosure *closure_stack[16];
+  int layer_stack_level = -1;
+  float3 layer_albedo = zero_float3();
 
   while (closure) {
     switch (closure->id) {
@@ -92,15 +94,39 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
         closure_stack[stack_size++] = add->closureB;
         continue;
       }
+      case OSL_CLOSURE_LAYER_ID: {
+        ccl_private const OSLClosureComponent *comp =
+            static_cast<ccl_private const OSLClosureComponent *>(closure);
+        ccl_private const LayerClosure *layer = reinterpret_cast<ccl_private const LayerClosure *>(
+            comp + 1);
+
+        /* Layer closures may not appear in the top layer subtree of another layer closure. */
+        kernel_assert(layer_stack_level == -1);
+
+        /* Push base layer onto the stack, will be handled after the top layers */
+        weight_stack[stack_size] = weight;
+        closure_stack[stack_size] = layer->base;
+        /* Start accumulating albedo of the top layers */
+        layer_stack_level = stack_size++;
+        layer_albedo = zero_float3();
+        /* Continue with the top layers */
+        closure = layer->top;
+        continue;
+      }
 #define OSL_CLOSURE_STRUCT_BEGIN(Upper, lower) \
   case OSL_CLOSURE_##Upper##_ID: { \
     ccl_private const OSLClosureComponent *comp = \
         static_cast<ccl_private const OSLClosureComponent *>(closure); \
+    float3 albedo = one_float3(); \
     osl_closure_##lower##_setup(kg, \
                                 sd, \
                                 path_flag, \
                                 weight * comp->weight, \
-                                reinterpret_cast<ccl_private const Upper##Closure *>(comp + 1)); \
+                                reinterpret_cast<ccl_private const Upper##Closure *>(comp + 1), \
+                                (layer_stack_level >= 0) ? &albedo : NULL); \
+    if (layer_stack_level >= 0) { \
+      layer_albedo += albedo; \
+    } \
     break; \
   }
 #include "closures_template.h"
@@ -111,6 +137,23 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
     if (stack_size > 0) {
       weight = weight_stack[--stack_size];
       closure = closure_stack[stack_size];
+      if (stack_size == layer_stack_level) {
+        /* We just finished processing the top layers of a Layer closure, so adjust the weight to
+         * account for the layering. */
+        weight *= saturatef(1.0f - reduce_max(safe_divide_color(layer_albedo, weight)));
+        layer_stack_level = -1;
+        if (is_zero(weight)) {
+          /* If it's fully occluded, skip the base layer we just popped from the stack and grab
+           * the next entry instead. */
+          if (stack_size > 0) {
+            weight = weight_stack[--stack_size];
+            closure = closure_stack[stack_size];
+          }
+          else {
+            closure = nullptr;
+          }
+        }
+      }
     }
     else {
       closure = nullptr;

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2020-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -90,7 +90,7 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
         # "Snap Source Toggle" did not exist until then.
         for km_name, _km_parms, km_items_data in keyconfig_data:
             if km_name == "Transform Modal Map":
-                km_items_data["items"].extend(("EDIT_SNAP_SOURCE_ON", {"type": 'B', "value": 'PRESS'}, None))
+                km_items_data["items"].append(("EDIT_SNAP_SOURCE_ON", {"type": 'B', "value": 'PRESS'}, None))
                 km_items_data["items"].append(("EDIT_SNAP_SOURCE_OFF", {"type": 'B', "value": 'PRESS'}, None))
                 break
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,7 +32,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_scene.h"
 
 #include "NOD_composite.h"
@@ -40,15 +40,16 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "ED_node.h"
-#include "ED_paint.h"
-#include "ED_render.h"
-#include "ED_view3d.h"
+#include "ED_node.hh"
+#include "ED_node_preview.hh"
+#include "ED_paint.hh"
+#include "ED_render.hh"
+#include "ED_view3d.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include <cstdio>
 
@@ -72,7 +73,7 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
 
     View3D *v3d = static_cast<View3D *>(area->spacedata.first);
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-    RenderEngine *engine = rv3d->render_engine;
+    RenderEngine *engine = rv3d->view_render ? RE_view_engine_get(rv3d->view_render) : nullptr;
 
     /* call update if the scene changed, or if the render engine
      * tagged itself for update (e.g. because it was busy at the
@@ -153,14 +154,13 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, const bool
 void ED_render_engine_area_exit(Main *bmain, ScrArea *area)
 {
   /* clear all render engines in this area */
-  ARegion *region;
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
   if (area->spacetype != SPACE_VIEW3D) {
     return;
   }
 
-  for (region = static_cast<ARegion *>(area->regionbase.first); region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (region->regiontype != RGN_TYPE_WINDOW || !(region->regiondata)) {
       continue;
     }
@@ -177,6 +177,11 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       ED_render_engine_area_exit(bmain, area);
     }
+  }
+  /* Invalidate all shader previews. */
+  blender::ed::space_node::stop_preview_job(*static_cast<wmWindowManager *>(bmain->wm.first));
+  LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
+    BKE_material_make_node_previews_dirty(ma);
   }
   RE_FreePersistentData(nullptr);
   /* Inform all render engines and draw managers. */
@@ -244,8 +249,6 @@ static void lamp_changed(Main * /*bmain*/, Light *la)
 static void texture_changed(Main *bmain, Tex *tex)
 {
   Scene *scene;
-  ViewLayer *view_layer;
-  bNode *node;
 
   /* icons */
   BKE_icon_changed(BKE_icon_id_ensure(&tex->id));
@@ -254,14 +257,12 @@ static void texture_changed(Main *bmain, Tex *tex)
        scene = static_cast<Scene *>(scene->id.next))
   {
     /* paint overlays */
-    for (view_layer = static_cast<ViewLayer *>(scene->view_layers.first); view_layer;
-         view_layer = view_layer->next)
-    {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       BKE_paint_invalidate_overlay_tex(scene, view_layer, tex);
     }
     /* find compositing nodes */
     if (scene->use_nodes && scene->nodetree) {
-      for (node = static_cast<bNode *>(scene->nodetree->nodes.first); node; node = node->next) {
+      LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
         if (node->id == &tex->id) {
           ED_node_tag_update_id(&scene->id);
         }

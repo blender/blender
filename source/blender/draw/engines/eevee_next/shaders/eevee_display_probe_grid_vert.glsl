@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
@@ -5,7 +8,7 @@
 void main()
 {
   /* Constant array moved inside function scope.
-   * Minimises local register allocation in MSL. */
+   * Minimizes local register allocation in MSL. */
   const vec2 pos[6] = vec2[6](vec2(-1.0, -1.0),
                               vec2(1.0, -1.0),
                               vec2(-1.0, 1.0),
@@ -25,10 +28,16 @@ void main()
 
   vec3 ws_cell_pos = lightprobe_irradiance_grid_sample_position(grid_to_world, grid_res, cell);
 
-  vec3 vs_offset = vec3(lP, 0.0) * sphere_radius;
+  float sphere_radius_final = sphere_radius;
+  if (display_validity) {
+    float validity = texelFetch(validity_tx, cell, 0).r;
+    sphere_radius_final *= mix(1.0, 0.1, validity);
+  }
+
+  vec3 vs_offset = vec3(lP, 0.0) * sphere_radius_final;
   vec3 vP = (ViewMatrix * vec4(ws_cell_pos, 1.0)).xyz + vs_offset;
 
   gl_Position = ProjectionMatrix * vec4(vP, 1.0);
-  /* Small bias to let the icon draw without zfighting. */
+  /* Small bias to let the icon draw without Z-fighting. */
   gl_Position.z += 0.0001;
 }

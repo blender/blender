@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -25,9 +25,6 @@ class USDTransformWriter : public USDAbstractWriter {
   bool check_is_animated(const HierarchyContext &context) const override;
 
   void set_xform_ops(float parent_relative_matrix[4][4], pxr::UsdGeomXformable &xf);
-
-  /* Return true if the given context is the root of a protoype. */
-  bool is_proto_root(const HierarchyContext &context) const;
 
   /* Subclasses may override this to create prims other than UsdGeomXform. */
   virtual pxr::UsdGeomXformable create_xformable() const;

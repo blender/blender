@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,6 +8,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_lasso_2d.h"
+#include "BLI_math_geom.h"
 #include "BLI_rand.hh"
 #include "BLI_rect.h"
 
@@ -15,10 +16,10 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
-#include "ED_curves.h"
-#include "ED_object.h"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
+#include "ED_curves.hh"
+#include "ED_object.hh"
+#include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 
 namespace blender::ed::curves {
 
@@ -126,6 +127,26 @@ void fill_selection_true(GMutableSpan selection)
   }
 }
 
+void fill_selection_false(GMutableSpan selection, const IndexMask &mask)
+{
+  if (selection.type().is<bool>()) {
+    index_mask::masked_fill(selection.typed<bool>(), false, mask);
+  }
+  else if (selection.type().is<float>()) {
+    index_mask::masked_fill(selection.typed<float>(), 0.0f, mask);
+  }
+}
+
+void fill_selection_true(GMutableSpan selection, const IndexMask &mask)
+{
+  if (selection.type().is<bool>()) {
+    index_mask::masked_fill(selection.typed<bool>(), true, mask);
+  }
+  else if (selection.type().is<float>()) {
+    index_mask::masked_fill(selection.typed<float>(), 1.0f, mask);
+  }
+}
+
 static bool contains(const VArray<bool> &varray, const IndexRange range_to_check, const bool value)
 {
   const CommonVArrayInfo info = varray.common_info();
@@ -225,34 +246,6 @@ void select_all(bke::CurvesGeometry &curves, const eAttrDomain selection_domain,
     }
     selection.finish();
   }
-}
-
-void select_ends(bke::CurvesGeometry &curves, int amount_start, int amount_end)
-{
-  const bool was_anything_selected = has_anything_selected(curves);
-  const OffsetIndices points_by_curve = curves.points_by_curve();
-  bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
-  if (!was_anything_selected) {
-    fill_selection_true(selection.span);
-  }
-  selection.span.type().to_static_type_tag<bool, float>([&](auto type_tag) {
-    using T = typename decltype(type_tag)::type;
-    if constexpr (std::is_void_v<T>) {
-      BLI_assert_unreachable();
-    }
-    else {
-      MutableSpan<T> selection_typed = selection.span.typed<T>();
-      threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
-        for (const int curve_i : range) {
-          selection_typed
-              .slice(points_by_curve[curve_i].drop_front(amount_start).drop_back(amount_end))
-              .fill(T(0));
-        }
-      });
-    }
-  });
-  selection.finish();
 }
 
 void select_linked(bke::CurvesGeometry &curves)
@@ -394,55 +387,6 @@ void select_adjacent(bke::CurvesGeometry &curves, const bool deselect)
     invert_selection(selection.span);
   }
 
-  selection.finish();
-}
-
-void select_random(bke::CurvesGeometry &curves,
-                   const eAttrDomain selection_domain,
-                   uint32_t random_seed,
-                   float probability)
-{
-  RandomNumberGenerator rng{random_seed};
-  const auto next_bool_random_value = [&]() { return rng.get_float() <= probability; };
-
-  const bool was_anything_selected = has_anything_selected(curves);
-  bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-      curves, selection_domain, CD_PROP_BOOL);
-  if (!was_anything_selected) {
-    curves::fill_selection_true(selection.span);
-  }
-  selection.span.type().to_static_type_tag<bool, float>([&](auto type_tag) {
-    using T = typename decltype(type_tag)::type;
-    if constexpr (std::is_void_v<T>) {
-      BLI_assert_unreachable();
-    }
-    else {
-      MutableSpan<T> selection_typed = selection.span.typed<T>();
-      switch (selection_domain) {
-        case ATTR_DOMAIN_POINT: {
-          for (const int point_i : selection_typed.index_range()) {
-            const bool random_value = next_bool_random_value();
-            if (!random_value) {
-              selection_typed[point_i] = T(0);
-            }
-          }
-
-          break;
-        }
-        case ATTR_DOMAIN_CURVE: {
-          for (const int curve_i : curves.curves_range()) {
-            const bool random_value = next_bool_random_value();
-            if (!random_value) {
-              selection_typed[curve_i] = T(0);
-            }
-          }
-          break;
-        }
-        default:
-          BLI_assert_unreachable();
-      }
-    }
-  });
   selection.finish();
 }
 

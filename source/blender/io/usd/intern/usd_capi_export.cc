@@ -1,11 +1,13 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd.h"
+#include "usd.hh"
 
 #include "usd_asset_utils.h"
 #include "usd_hierarchy_iterator.h"
+#include "usd_hook.h"
 #include "usd_light_convert.h"
 #include "usd_umm.h"
 #include "usd_writer_material.h"
@@ -50,10 +52,11 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_timeit.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 namespace blender::io::usd {
 
@@ -312,7 +315,7 @@ static void process_usdz_textures(const ExportJobData *data, const char *path) {
   image_size = image_size < 128 ? 128 : image_size;
 
   char texture_path[4096];
-  BLI_strcpy_rlen(texture_path, path);
+  BLI_strncpy_rlen(texture_path, path, 4096);
   BLI_path_append(texture_path, 4096, "textures");
   BLI_path_slash_ensure(texture_path, sizeof(texture_path));
 
@@ -422,87 +425,40 @@ static bool perform_usdz_conversion(const ExportJobData *data)
   return true;
 }
 
-static void export_startjob(void *customdata,
-                            /* Cannot be const, this function implements wm_jobs_start_callback.
-                             * NOLINTNEXTLINE: readability-non-const-parameter. */
-                            bool *stop,
-                            bool *do_update,
-                            float *progress)
+static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
+                                           Depsgraph *depsgraph,
+                                           const char *filepath,
+                                           bool *stop,
+                                           bool *do_update,
+                                           float *progress)
 {
-  ExportJobData *data = static_cast<ExportJobData *>(customdata);
-
-  data->progress = progress;
-  data->was_canceled = false;
-  data->start_time = timeit::Clock::now();
-
-  G.is_rendering = true;
-  if (data->wm) {
-    WM_set_locked_interface(data->wm, true);
-  }
-  G.is_break = false;
-
-  /* Construct the depsgraph for exporting. */
-  Scene *scene = DEG_get_input_scene(data->depsgraph);
-  if (data->params.visible_objects_only) {
-    DEG_graph_build_from_view_layer(data->depsgraph);
-  }
-  else {
-    DEG_graph_build_for_all_objects(data->depsgraph);
-  }
-  BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
-
-  validate_unique_root_prim_path(data->params, data->depsgraph);
-
-  *progress = 0.0f;
-  *do_update = true;
-
-  /* For restoring the current frame after exporting animation is done. */
-  const int orig_frame = scene->r.cfra;
-
-  if (!BLI_path_extension_check_glob(data->unarchived_filepath, "*.usd;*.usda;*.usdc"))
-    BLI_path_extension_ensure(data->unarchived_filepath, FILE_MAX, ".usd");
-
-  pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(data->unarchived_filepath);
+  pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(filepath);
 
   if (!usd_stage) {
-    /* This may happen when the USD JSON files cannot be found. When that happens,
-     * the USD library doesn't know it has the functionality to write USDA and
-     * USDC files, and creating a new UsdStage fails. */
-    WM_reportf(RPT_ERROR,
-               "USD Export: unable to create a stage for writing %s",
-               data->unarchived_filepath);
-
-    pxr::SdfLayerRefPtr existing_layer = pxr::SdfLayer::FindOrOpen(data->unarchived_filepath);
-    if (existing_layer) {
-      WM_reportf(RPT_ERROR,
-                 "USD Export: layer %s is currently open in the scene, "
-                 "possibly because it's referenced by modifiers, "
-                 "and can't be overwritten",
-                 data->unarchived_filepath);
-    }
-
-    data->export_ok = false;
-    return;
+    return usd_stage;
   }
 
-  if (data->params.export_lights && !data->params.selected_objects_only &&
-      data->params.convert_world_material) {
-    world_material_to_dome_light(data->params, scene, usd_stage);
+  Scene *scene = DEG_get_input_scene(depsgraph);
+  Main *bmain = DEG_get_bmain(depsgraph);
+
+  if (params.export_lights && !params.selected_objects_only &&
+      params.convert_world_material) {
+    world_material_to_dome_light(params, scene, usd_stage);
   }
 
   /* Define the material prim path as a scope. */
-  if (data->params.export_materials) {
-    pxr::SdfPath mtl_prim_path(data->params.material_prim_path);
+  if (params.export_materials) {
+    pxr::SdfPath mtl_prim_path(params.material_prim_path);
 
     blender::io::usd::usd_define_or_over<pxr::UsdGeomScope>(
-        usd_stage, mtl_prim_path, data->params.export_as_overs);
+        usd_stage, mtl_prim_path, params.export_as_overs);
   }
 
   pxr::VtValue upAxis = pxr::VtValue(pxr::UsdGeomTokens->z);
-  if (data->params.convert_orientation) {
-    if (data->params.up_axis == USD_GLOBAL_UP_X)
+  if (params.convert_orientation) {
+    if (params.up_axis == USD_GLOBAL_UP_X)
       upAxis = pxr::VtValue(pxr::UsdGeomTokens->x);
-    else if (data->params.up_axis == USD_GLOBAL_UP_Y)
+    else if (params.up_axis == USD_GLOBAL_UP_Y)
       upAxis = pxr::VtValue(pxr::UsdGeomTokens->y);
   }
 
@@ -512,13 +468,13 @@ static void export_startjob(void *customdata,
                                               BKE_blender_version_string());
 
   /* Add any Blender-specific custom export data */
-  if (data->params.export_blender_metadata && strlen(data->bmain->filepath)) {
+  if (params.export_blender_metadata && strlen(bmain->filepath)) {
     auto root_layer = usd_stage->GetRootLayer();
     char full_path[1024];
-    strcpy(full_path, data->bmain->filepath);
+    strcpy(full_path, bmain->filepath);
 
-    // make all paths uniformly unix-like
-    BLI_str_replace_char(full_path + 2, SEP, ALTSEP);
+    /* Make all paths uniformly unix-like. */
+    BLI_string_replace_char(full_path + 2, SEP, ALTSEP);
 
     char basename[128];
     strcpy(basename, BLI_path_basename(full_path));
@@ -531,26 +487,29 @@ static void export_startjob(void *customdata,
   }
 
   /* Set up the stage for animated data. */
-  if (data->params.export_animation) {
+  if (params.export_animation) {
     usd_stage->SetTimeCodesPerSecond(FPS);
-    usd_stage->SetStartTimeCode(data->params.frame_start);
-    usd_stage->SetEndTimeCode(data->params.frame_end);
+    usd_stage->SetStartTimeCode(params.frame_start);
+    usd_stage->SetEndTimeCode(params.frame_end);
   }
 
-  ensure_root_prim(usd_stage, data->params);
+  /* For restoring the current frame after exporting animation is done. */
+  const int orig_frame = scene->r.cfra;
 
-  USDHierarchyIterator iter(data->bmain, data->depsgraph, usd_stage, data->params);
+  /* Ensure Python types for invoking export hooks are registered. */
+  register_export_hook_converters();
 
-  if (data->params.export_animation) {
+  ensure_root_prim(usd_stage, params);
 
-    // Writing the animated frames is not 100% of the work, but it's our best guess.
-    float progress_per_frame = 1.0f / std::max(1.0f,
-                                               (float)(data->params.frame_end -
-                                                       data->params.frame_start + 1.0) /
-                                                   data->params.frame_step);
+  USDHierarchyIterator iter(bmain, depsgraph, usd_stage, params);
 
-    for (float frame = data->params.frame_start; frame <= data->params.frame_end;
-         frame += data->params.frame_step) {
+  if (params.export_animation) {
+     /* Writing the animated frames is not 100% of the work, but it's our best guess. */
+    float num_frames = (float)(params.frame_end - params.frame_start + 1.0) / params.frame_step;
+    float progress_per_frame = 1.0f / std::max(1.0f, num_frames);
+
+    for (float frame = params.frame_start; frame <= params.frame_end;
+         frame += params.frame_step) {
       if (G.is_break || (stop != nullptr && *stop)) {
         break;
       }
@@ -558,13 +517,17 @@ static void export_startjob(void *customdata,
       /* Update the scene for the next frame to render. */
       scene->r.cfra = int(frame);
       scene->r.subframe = frame - scene->r.cfra;
-      BKE_scene_graph_update_for_newframe(data->depsgraph);
+      BKE_scene_graph_update_for_newframe(depsgraph);
 
       iter.set_export_frame(frame);
       iter.iterate_and_write();
 
-      *progress += progress_per_frame;
-      *do_update = true;
+      if (progress) {
+        *progress += progress_per_frame;
+      }
+      if (do_update) {
+        *do_update = true;
+      }
     }
   }
   else {
@@ -574,14 +537,14 @@ static void export_startjob(void *customdata,
 
   iter.release_writers();
 
-  if (data->params.export_armatures) {
-    validate_skel_roots(usd_stage, data->params);
+  if (params.export_armatures) {
+    validate_skel_roots(usd_stage, params);
   }
 
-  // Set Stage Default Prim Path
-  if (strlen(data->params.default_prim_path) > 0) {
+  /* Set Stage Default Prim Path. */
+  if (strlen(params.default_prim_path) > 0) {
     std::string valid_default_prim_path = pxr::TfMakeValidIdentifier(
-        data->params.default_prim_path);
+        params.default_prim_path);
 
     if (valid_default_prim_path[0] == '_') {
       valid_default_prim_path[0] = '/';
@@ -609,17 +572,83 @@ static void export_startjob(void *customdata,
 
   /* Set unit scale.
    * TODO(makowalsk): Add an option to use scene->unit.scale_length as well? */
-  double meters_per_unit = data->params.convert_to_cm ? pxr::UsdGeomLinearUnits::centimeters :
-                                                        pxr::UsdGeomLinearUnits::meters;
+  double meters_per_unit = params.convert_to_cm ? pxr::UsdGeomLinearUnits::centimeters :
+                                                  pxr::UsdGeomLinearUnits::meters;
   pxr::UsdGeomSetStageMetersPerUnit(usd_stage, meters_per_unit);
 
   usd_stage->GetRootLayer()->Save();
 
+  call_export_hooks(usd_stage, depsgraph);
+
   /* Finish up by going back to the keyframe that was current before we started. */
   if (scene->r.cfra != orig_frame) {
     scene->r.cfra = orig_frame;
-    BKE_scene_graph_update_for_newframe(data->depsgraph);
+    BKE_scene_graph_update_for_newframe(depsgraph);
   }
+
+  return usd_stage;
+}
+
+pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
+                                    Depsgraph *depsgraph,
+                                    const char *filepath)
+{
+  return export_to_stage(params, depsgraph, filepath, nullptr, nullptr, nullptr);
+}
+
+static void export_startjob(void *customdata,
+                            /* Cannot be const, this function implements wm_jobs_start_callback.
+                             * NOLINTNEXTLINE: readability-non-const-parameter. */
+                            bool *stop,
+                            bool *do_update,
+                            float *progress)
+{
+  ExportJobData *data = static_cast<ExportJobData *>(customdata);
+  data->export_ok = false;
+  data->start_time = timeit::Clock::now();
+
+  G.is_rendering = true;
+  if (data->wm) {
+    WM_set_locked_interface(data->wm, true);
+  }
+  G.is_break = false;
+
+  /* Construct the depsgraph for exporting. */
+  if (data->params.visible_objects_only) {
+    DEG_graph_build_from_view_layer(data->depsgraph);
+  }
+  else {
+    DEG_graph_build_for_all_objects(data->depsgraph);
+  }
+  BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
+
+  validate_unique_root_prim_path(data->params, data->depsgraph);
+
+  *progress = 0.0f;
+  *do_update = true;
+
+  pxr::UsdStageRefPtr usd_stage = export_to_stage(
+      data->params, data->depsgraph, data->unarchived_filepath, stop, do_update, progress);
+  if (!usd_stage) {
+    /* This may happen when the USD JSON files cannot be found. When that happens,
+     * the USD library doesn't know it has the functionality to write USDA and
+     * USDC files, and creating a new UsdStage fails. */
+    WM_reportf(RPT_ERROR,
+               "USD Export: unable to create a stage for writing %s",
+               data->unarchived_filepath);
+
+    pxr::SdfLayerRefPtr existing_layer = pxr::SdfLayer::FindOrOpen(data->unarchived_filepath);
+    if (existing_layer) {
+      WM_reportf(RPT_ERROR,
+                 "USD Export: layer %s is currently open in the scene, "
+                 "possibly because it's referenced by modifiers, "
+                 "and can't be overwritten",
+                 data->unarchived_filepath);
+    }
+    return;
+  }
+
+  usd_stage->GetRootLayer()->Save();
 
   if (data->targets_usdz()) {
     bool usd_conversion_success = perform_usdz_conversion(data);
@@ -706,7 +735,7 @@ static void set_job_filepath(blender::io::usd::ExportJobData *job, const char *f
     return;
   }
 
-  BLI_strncpy(job->unarchived_filepath, filepath, sizeof(job->unarchived_filepath));
+  STRNCPY(job->unarchived_filepath, filepath);
   job->usdz_filepath[0] = '\0';
 }
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,19 +17,19 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
@@ -253,11 +253,6 @@ static void ui_popup_block_position(wmWindow *window,
     else {
       offset_x = butrct.xmin - block->rect.xmin - center_x;
     }
-    /* changed direction? */
-    if ((dir1 & block->direction) == 0) {
-      /* TODO: still do */
-      UI_block_order_flip(block);
-    }
   }
   else if (dir1 == UI_DIR_DOWN) {
     offset_y = (butrct.ymin - block->rect.ymax) + offset_overlap;
@@ -275,11 +270,6 @@ static void ui_popup_block_position(wmWindow *window,
     }
     else {
       offset_x = butrct.xmin - block->rect.xmin - center_x;
-    }
-    /* changed direction? */
-    if ((dir1 & block->direction) == 0) {
-      /* TODO: still do */
-      UI_block_order_flip(block);
     }
   }
 
@@ -548,7 +538,7 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
   }
 
   if (handle->scrolltimer) {
-    WM_event_remove_timer(wm, win, handle->scrolltimer);
+    WM_event_timer_remove(wm, win, handle->scrolltimer);
   }
 }
 
@@ -583,6 +573,11 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   }
   else {
     block = handle_create_func(C, handle, arg);
+  }
+
+  /* Don't create accelerator keys if the parent menu does not have them. */
+  if (but && but->block->flag & UI_BLOCK_NO_ACCELERATOR_KEYS) {
+    block->flag |= UI_BLOCK_NO_ACCELERATOR_KEYS;
   }
 
   /* callbacks _must_ leave this for us, otherwise we can't call UI_block_update_from_old */
@@ -825,6 +820,10 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
 
 void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
+  /* This disables the status bar text that is set when opening a menu that supports search (see
+   * #MenuTypeFlag::SearchOnKeyPress). */
+  ED_workspace_status_text(C, nullptr);
+
   /* If this popup is created from a popover which does NOT have keep-open flag set,
    * then close the popover too. We could extend this to other popup types too. */
   ARegion *region = handle->popup_create_vars.butregion;

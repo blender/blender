@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,6 +6,8 @@
  * \ingroup bgpencil
  */
 
+#include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -24,14 +26,14 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_view3d.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_view3d.hh"
 
 #ifdef WIN32
 #  include "utfconv.h"
 #endif
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "gpencil_io.h"
 #include "gpencil_io_export_svg.hh"

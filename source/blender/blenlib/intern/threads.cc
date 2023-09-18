@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -446,6 +446,7 @@ void BLI_spin_end(SpinLock *spin)
   BLI_mutex_end(spin);
 #elif defined(_MSC_VER)
   /* Nothing to do, spin is a simple integer type. */
+  UNUSED_VARS(spin);
 #else
   pthread_spin_destroy(spin);
 #endif

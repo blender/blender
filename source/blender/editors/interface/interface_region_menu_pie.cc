@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,18 +24,18 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
@@ -255,13 +255,12 @@ int UI_pie_menu_invoke_from_rna_enum(bContext *C,
                                      const char *path,
                                      const wmEvent *event)
 {
-  PointerRNA ctx_ptr;
   PointerRNA r_ptr;
   PropertyRNA *r_prop;
   uiPieMenu *pie;
   uiLayout *layout;
 
-  RNA_pointer_create(nullptr, &RNA_Context, C, &ctx_ptr);
+  PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
 
   if (!RNA_path_resolve(&ctx_ptr, path, &r_ptr, &r_prop)) {
     return OPERATOR_CANCELLED;
@@ -278,7 +277,7 @@ int UI_pie_menu_invoke_from_rna_enum(bContext *C,
   layout = UI_pie_menu_layout(pie);
 
   layout = uiLayoutRadial(layout);
-  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, nullptr, 0);
+  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   UI_pie_menu_end(C, pie);
 
@@ -311,7 +310,8 @@ struct PieMenuLevelData {
   wmOperatorType *ot;
   const char *propname;
   IDProperty *properties;
-  wmOperatorCallContext context, flag;
+  wmOperatorCallContext context;
+  eUI_Item_Flag flag;
 };
 
 /**
@@ -359,8 +359,8 @@ void ui_pie_menu_level_create(uiBlock *block,
                               IDProperty *properties,
                               const EnumPropertyItem *items,
                               int totitem,
-                              wmOperatorCallContext context,
-                              wmOperatorCallContext flag)
+                              const wmOperatorCallContext context,
+                              const eUI_Item_Flag flag)
 {
   const int totitem_parent = PIE_MAX_ITEMS - 1;
   const int totitem_remain = totitem - totitem_parent;

@@ -72,8 +72,8 @@ ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(ccl_private const Sh
   /* pump from original paper
    * (first derivative disc., but cancels the HdotI in the pdf nicely) */
   float pump = 1.0f / fmaxf(1e-6f, (HdotI * fmaxf(NdotI, NdotO)));
-  /* pump from d-brdf paper */
-  /*float pump = 1.0f / fmaxf(1e-4f, ((NdotI + NdotO) * (NdotI * NdotO))); */
+  /* `pump` from D-BRDF paper. */
+  // float pump = 1.0f / fmaxf(1e-4f, ((NdotI + NdotO) * (NdotI * NdotO)));
 
   float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_x);
   float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_y);
@@ -207,7 +207,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
   }
   else {
     /* leave the rest to eval */
-    *eval = bsdf_ashikhmin_shirley_eval(sc, N, wi, *wo, pdf);
+    *eval = bsdf_ashikhmin_shirley_eval(sc, Ng, wi, *wo, pdf);
   }
 
   return label;

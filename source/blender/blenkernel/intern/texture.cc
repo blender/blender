@@ -15,8 +15,10 @@
 
 #include "BLI_kdopbvh.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -50,6 +52,7 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_preview_image.hh"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
@@ -59,7 +62,7 @@
 
 #include "DRW_engine.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static void texture_init_data(ID *id)
 {
@@ -134,13 +137,19 @@ static void texture_free_data(ID *id)
 
 static void texture_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Tex *texture = (Tex *)id;
+  Tex *texture = reinterpret_cast<Tex *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
   if (texture->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
         data, BKE_library_foreach_ID_embedded(data, (ID **)&texture->nodetree));
   }
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, texture->ima, IDWALK_CB_USER);
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, texture->ipo, IDWALK_CB_USER);
+  }
 }
 
 static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -150,10 +159,6 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
   /* write LibData */
   BLO_write_id_struct(writer, Tex, id_address, &tex->id);
   BKE_id_blend_write(writer, &tex->id);
-
-  if (tex->adt) {
-    BKE_animdata_blend_write(writer, tex->adt);
-  }
 
   /* direct data */
   if (tex->coba) {
@@ -181,8 +186,6 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 static void texture_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Tex *tex = (Tex *)id;
-  BLO_read_data_address(reader, &tex->adt);
-  BKE_animdata_blend_read_data(reader, tex->adt);
 
   BLO_read_data_address(reader, &tex->coba);
 
@@ -190,20 +193,6 @@ static void texture_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, tex->preview);
 
   tex->iuser.scene = nullptr;
-}
-
-static void texture_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  Tex *tex = (Tex *)id;
-  BLO_read_id_address(reader, id, &tex->ima);
-  BLO_read_id_address(reader, id, &tex->ipo); /* XXX deprecated - old animation system */
-}
-
-static void texture_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Tex *tex = (Tex *)id;
-  BLO_expand(expander, tex->ima);
-  BLO_expand(expander, tex->ipo); /* XXX deprecated - old animation system */
 }
 
 IDTypeInfo IDType_ID_TE = {
@@ -228,8 +217,7 @@ IDTypeInfo IDType_ID_TE = {
 
     /*blend_write*/ texture_blend_write,
     /*blend_read_data*/ texture_blend_read_data,
-    /*blend_read_lib*/ texture_blend_read_lib,
-    /*blend_read_expand*/ texture_blend_read_expand,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -347,7 +335,7 @@ void BKE_texture_mapping_init(TexMapping *texmap)
   }
 }
 
-ColorMapping *BKE_texture_colormapping_add(void)
+ColorMapping *BKE_texture_colormapping_add()
 {
   ColorMapping *colormap = MEM_cnew<ColorMapping>("ColorMapping");
 
@@ -407,7 +395,7 @@ void BKE_texture_mtex_default(MTex *mtex)
 
 /* ------------------------------------------------------------------------- */
 
-MTex *BKE_texture_mtex_add(void)
+MTex *BKE_texture_mtex_add()
 {
   MTex *mtex;
 
@@ -635,7 +623,7 @@ void BKE_texture_pointdensity_init_data(PointDensity *pd)
   BKE_curvemapping_changed(pd->falloff_curve, false);
 }
 
-PointDensity *BKE_texture_pointdensity_add(void)
+PointDensity *BKE_texture_pointdensity_add()
 {
   PointDensity *pd = static_cast<PointDensity *>(
       MEM_callocN(sizeof(PointDensity), "pointdensity"));

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Gather pass: Convolve foreground and background parts in separate passes.
@@ -32,7 +35,7 @@ const float radius_downscale_factor = smaller_kernel_radius / large_kernel_radiu
 const int change_density_at_ring = (gather_ring_count - gather_density_change_ring + 1);
 const float coc_radius_error = 2.0;
 
-/* Radii needs to be halfres CoC sizes. */
+/* Radii needs to be half-resolution CoC sizes. */
 bool dof_do_density_change(float base_radius, float min_intersectable_radius)
 {
   /* Reduce artifact for very large blur. */

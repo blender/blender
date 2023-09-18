@@ -10,6 +10,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -22,21 +24,21 @@
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
-#include "BKE_multires.h"
-#include "BKE_paint.h"
-#include "BKE_pbvh.h"
-#include "BKE_subsurf.h"
+#include "BKE_multires.hh"
+#include "BKE_paint.hh"
+#include "BKE_pbvh_api.hh"
+#include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "bmesh.h"
 
@@ -79,13 +81,13 @@ static void partialvis_update_mesh(Object *ob,
 
   BKE_pbvh_node_num_verts(pbvh, node, nullptr, &totvert);
   const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
-  paint_mask = static_cast<const float *>(CustomData_get_layer(&me->vdata, CD_PAINT_MASK));
+  paint_mask = static_cast<const float *>(CustomData_get_layer(&me->vert_data, CD_PAINT_MASK));
 
-  bool *hide_vert = static_cast<bool *>(
-      CustomData_get_layer_named_for_write(&me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert));
+  bool *hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
+      &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert));
   if (hide_vert == nullptr) {
     hide_vert = static_cast<bool *>(CustomData_add_layer_named(
-        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, me->totvert, ".hide_vert"));
+        &me->vert_data, CD_PROP_BOOL, CD_SET_DEFAULT, me->totvert, ".hide_vert"));
   }
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
@@ -122,7 +124,8 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 {
   CCGElem **grids;
   BLI_bitmap **grid_hidden;
-  int *grid_indices, totgrid;
+  const int *grid_indices;
+  int totgrid;
   bool any_changed = false, any_visible = false;
 
   /* Get PBVH data. */
@@ -302,25 +305,22 @@ static void clip_planes_from_rect(bContext *C,
  * all nodes. */
 static Vector<PBVHNode *> get_pbvh_nodes(PBVH *pbvh, float clip_planes[4][4], PartialVisArea mode)
 {
-  BKE_pbvh_SearchCallback cb = nullptr;
-
-  /* Select search callback. */
-  switch (mode) {
-    case PARTIALVIS_INSIDE:
-      cb = BKE_pbvh_node_frustum_contain_AABB;
-      break;
-    case PARTIALVIS_OUTSIDE:
-      cb = BKE_pbvh_node_frustum_exclude_AABB;
-      break;
-    case PARTIALVIS_ALL:
-    case PARTIALVIS_MASKED:
-      break;
-  }
-
   PBVHFrustumPlanes frustum{};
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
-  return blender::bke::pbvh::search_gather(pbvh, cb, &frustum);
+  return blender::bke::pbvh::search_gather(pbvh, [&](PBVHNode &node) {
+    switch (mode) {
+      case PARTIALVIS_INSIDE:
+        return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
+      case PARTIALVIS_OUTSIDE:
+        return BKE_pbvh_node_frustum_exclude_AABB(&node, &frustum);
+      case PARTIALVIS_ALL:
+      case PARTIALVIS_MASKED:
+        return true;
+    }
+    BLI_assert_unreachable();
+    return true;
+  });
 }
 
 static int hide_show_exec(bContext *C, wmOperator *op)
@@ -382,9 +382,8 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
   /* Ensure that edges and faces get hidden as well (not used by
    * sculpt but it looks wrong when entering editmode otherwise). */
-  if (pbvh_type == PBVH_FACES) {
-    BKE_mesh_flush_hidden_from_verts(me);
-    BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
+  if (ELEM(pbvh_type, PBVH_FACES, PBVH_GRIDS)) {
+    BKE_pbvh_sync_visibility_from_verts(pbvh, me);
   }
 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);

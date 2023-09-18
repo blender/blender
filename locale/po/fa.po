@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -360,6 +360,10 @@ msgid "Area width"
 msgstr "ﻪﻘﻄﻨﻣ ﯼﺎﻨﻬﭘ"
 
 
+msgid "Show Names"
+msgstr "ﺎﻫ‌ﻡﺎﻧ ﺶﯾﺎﻤﻧ"
+
+
 msgid "Vector"
 msgstr "ﺭﺍﺩﺮﺑ"
 
@@ -426,6 +430,10 @@ msgstr "ﺪﯾﺩ ﻥﺍﺪﯿﻣ ﺖﯿﻌﺿﻭ"
 
 msgid "Weight"
 msgstr "ﻥﺯﻭ"
+
+
+msgid "Grease Pencil"
+msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
 
 
 msgid "Particles"
@@ -560,16 +568,20 @@ msgid "Children"
 msgstr "ﻥﺍﺪﻧﺯﺮﻓ"
 
 
-msgid "Layers"
-msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
-
-
 msgid "Parent"
 msgstr "ﻊﺒﻨﻣ"
 
 
 msgid "Deform"
 msgstr "ﻩﺪﻨﻫ ﺮﯿﯿﻐﺗ"
+
+
+msgid "Bones"
+msgstr "ﺎﻫ‌ﻥﺍﻮﺨﺘﺳﺍ"
+
+
+msgid "Visible"
+msgstr "ﯽﺋﺮﻣ"
 
 
 msgid "Remove"
@@ -588,16 +600,8 @@ msgid "Material"
 msgstr "ﻩﺩﺎﻣ"
 
 
-msgid "Flat"
-msgstr "ﺖﺨﺗ"
-
-
 msgid "Direction"
 msgstr "ﺎﺘﺳﺍﺭ"
-
-
-msgid "Visible"
-msgstr "ﯽﺋﺮﻣ"
 
 
 msgid "Marker"
@@ -612,20 +616,12 @@ msgid "Blur"
 msgstr "ﯽﮔﺮﯿﺗ"
 
 
-msgid "Smooth"
-msgstr "ﻑﺎﺻ"
-
-
 msgid "Hue"
 msgstr "ﮓﻧﺭ"
 
 
 msgid "Saturation"
 msgstr "ﻉﺎﺒﺷﺍ"
-
-
-msgid "Path"
-msgstr "ﺮﯿﺴﻣ"
 
 
 msgid "Background Image"
@@ -1324,10 +1320,6 @@ msgid "Rotational Difference"
 msgstr "ﯽﺸﺧﺮﭼ ﺕﻭﺎﻔﺗ"
 
 
-msgid "Force"
-msgstr "ﺭﻭﺯ‌ﻪﺑ"
-
-
 msgid "Max Displace"
 msgstr "ﯽﯾﺎﺠﺑﺎﺟ ﻪﻨﯿﺸﯿﺑ"
 
@@ -1386,6 +1378,10 @@ msgstr "ﻥﺪﯿﺘﻠﻏ"
 
 msgid "Bone rotation around head-tail axis"
 msgstr "ﻡﺩ ﻪﺑ ﺮﺳ ﺭﻮﺤﻣ ﻑﺍﺮﻃﺍ ﻥﺍﻮﺨﺘﺳﺍ ﺶﺧﺮﭼ"
+
+
+msgid "Force"
+msgstr "ﺭﻭﺯ‌ﻪﺑ"
 
 
 msgid "Wind"
@@ -1478,10 +1474,6 @@ msgstr "ﻪﻧﺍﺩ"
 
 msgid "Size"
 msgstr "ﻩﺯﺍﺪﻧﺍ"
-
-
-msgid "Grease Pencil"
-msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
 
 
 msgid "Save"
@@ -1580,6 +1572,10 @@ msgid "Lattice"
 msgstr "ﻪﮑﺒﺷ"
 
 
+msgid "Smooth"
+msgstr "ﻑﺎﺻ"
+
+
 msgid "Matrix"
 msgstr "ﺲﯾﺮﺗﺎﻣ"
 
@@ -1622,10 +1618,6 @@ msgstr "ﯽﺑﺁ"
 
 msgid "Library"
 msgstr "ﻪﻧﺎﺨﺑﺎﺘﮐ"
-
-
-msgid "Bones"
-msgstr "ﺎﻫ‌ﻥﺍﻮﺨﺘﺳﺍ"
 
 
 msgid "Edit Bones"
@@ -1680,6 +1672,10 @@ msgid "Dimensions"
 msgstr "ﺩﺎﻌﺑﺍ"
 
 
+msgid "Path"
+msgstr "ﺮﯿﺴﻣ"
+
+
 msgid "Text on Curve"
 msgstr "ﯽﻨﺤﻨﻣ ﯼﻭﺭ ﺮﺑ ﻦﺘﻣ"
 
@@ -1704,6 +1700,10 @@ msgid "Max"
 msgstr "ﻪﻨﯿﺸﯿﺑ"
 
 
+msgid "Layers"
+msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
+
+
 msgid "U"
 msgstr "U"
 
@@ -1724,12 +1724,28 @@ msgid "Cube"
 msgstr "ﺐﻌﮑﻣ"
 
 
+msgid "Interface"
+msgstr "ﻂﺳﺍﻭ"
+
+
 msgid "Nodes"
 msgstr "ﺎﻫ ﻩﺮﮔ"
 
 
 msgid "OpenCL"
 msgstr "OpenCL"
+
+
+msgid "Edit"
+msgstr "ﺶﯾﺍﺮﯾﻭ"
+
+
+msgid "Sculpt"
+msgstr "ﻥﺩﺮﮐ ﯼﺭﺎﺠﺣ"
+
+
+msgid "Mesh"
+msgstr "ﺶﻣ"
 
 
 msgid "Active Material"
@@ -1758,10 +1774,6 @@ msgstr "ﻪﺤﻔﺻ ﯼﺎﻫ ﺭﻮﺤﻣ"
 
 msgid "Circle"
 msgstr "ﻩﺮﯾﺍﺩ"
-
-
-msgid "Both"
-msgstr "ﻭﺩ ﺮﻫ"
 
 
 msgid "Lock Location"
@@ -1992,18 +2004,6 @@ msgid "Key"
 msgstr "ﺪﯿﻠﮐ"
 
 
-msgid "Edit"
-msgstr "ﺶﯾﺍﺮﯾﻭ"
-
-
-msgid "Distort"
-msgstr "ﻥﺩﺮﮐ‌ﺞﮐ"
-
-
-msgid "Layout"
-msgstr "ﺡﺮﻃ"
-
-
 msgid "Text"
 msgstr "ﻦﺘﻣ"
 
@@ -2012,8 +2012,24 @@ msgid "Math"
 msgstr "ﯽﺿﺎﯾﺭ"
 
 
-msgid "Mesh"
-msgstr "ﺶﻣ"
+msgid "Tracking"
+msgstr "ﯽﺑﺎﯾﺩﺭ"
+
+
+msgid "Layout"
+msgstr "ﺡﺮﻃ"
+
+
+msgid "Distort"
+msgstr "ﻥﺩﺮﮐ‌ﺞﮐ"
+
+
+msgid "Add Modifier"
+msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
+msgid "Physics"
+msgstr "ﮏﯾﺰﯿﻓ"
 
 
 msgid "Apply"
@@ -2058,10 +2074,6 @@ msgstr "ﻞﯾﺪﺒﺗ"
 
 msgid "Relations"
 msgstr "ﻂﺑﺍﻭﺭ"
-
-
-msgid "Sculpt"
-msgstr "ﻥﺩﺮﮐ ﯼﺭﺎﺠﺣ"
 
 
 msgid "Distortion"
@@ -2248,10 +2260,6 @@ msgid "Space Sigma"
 msgstr "ﺎﻤﮕﯿﺳ ﯼﺎﻀﻓ"
 
 
-msgid "Filter Type"
-msgstr "ﺮﺘﻠﯿﻓ ﻉﻮﻧ"
-
-
 msgid "Single"
 msgstr "ﯽﮑﺗ"
 
@@ -2282,6 +2290,10 @@ msgstr "ﺮﭘ"
 
 msgid "Double Edge Mask"
 msgstr "ﻪﺒﻟ ﻭﺩ ﮏﺳﺎﻣ"
+
+
+msgid "Filter Type"
+msgstr "ﺮﺘﻠﯿﻓ ﻉﻮﻧ"
 
 
 msgid "Flip X"
@@ -2476,6 +2488,10 @@ msgid "Linked"
 msgstr "ﻂﺒﺗﺮﻣ"
 
 
+msgid "Both"
+msgstr "ﻭﺩ ﺮﻫ"
+
+
 msgid "Object Constraints"
 msgstr "ءﺎﯿﺷﺍ ﯼﺎﻫ‌ﺖﯾﺩﻭﺪﺤﻣ"
 
@@ -2519,11 +2535,6 @@ msgstr "ﻝﺎﻌﻓ"
 msgctxt "Operator"
 msgid "Move Channels"
 msgstr "ﺎﻫ‌ﻝﺎﻧﺎﮐ ﻝﺎﻘﺘﻧﺍ"
-
-
-msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "ﺎﻫ‌ﻝﺎﻧﺎﮐ ﻡﺎﻧ ﺮﯿﯿﻐﺗ"
 
 
 msgctxt "Operator"
@@ -2876,6 +2887,11 @@ msgstr "ءﯽﺷ ﻥﺩﻭﺰﻓﺍ"
 
 
 msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
+msgctxt "Operator"
 msgid "Bake"
 msgstr "ﻦﺘﺨﭘ"
 
@@ -2908,11 +2924,6 @@ msgstr "ﻩﺪﺷ ﺏﺎﺨﺘﻧﺍ ءﺎﯿﺷﺍ ﺮﯿﺜﮑﺗ"
 
 msgid "Duplicate Objects"
 msgstr "ءﺎﯿﺷﺍ ﺮﯿﺜﮑﺗ"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
 
 
 msgid "Object Data"
@@ -3022,10 +3033,6 @@ msgstr "ﻦﯾﺮﺧﺁ ﺭﺍﺮﮑﺗ"
 
 msgid "Repeat last action"
 msgstr "ﺖﯿﻟﺎﻌﻓ ﻦﯾﺮﺧﺁ ﺭﺍﺮﮑﺗ"
-
-
-msgid "Interface"
-msgstr "ﻂﺳﺍﻭ"
 
 
 msgid "Themes"
@@ -3193,6 +3200,10 @@ msgid "Operator Cheat Sheet"
 msgstr "ﺮﺑﺭﺎﮐ ﺐﻠﻘﺗ ﻪﮔﺮﺑ"
 
 
+msgid "Speaker"
+msgstr "ﻮﮔﺪﻨﻠﺑ"
+
+
 msgid "Property Name"
 msgstr "ﯽﮔﮋﯾﻭ ﻡﺎﻧ"
 
@@ -3315,10 +3326,6 @@ msgstr "ﺪﻠﯿﻓ ﯼﺎﻫ‌ﻥﺯﻭ"
 
 msgid "Force Field Settings"
 msgstr "ﻥﺍﺪﯿﻣ ﯼﻭﺮﯿﻧ ﺕﺎﻤﯿﻈﻨﺗ"
-
-
-msgid "Physics"
-msgstr "ﮏﯾﺰﯿﻓ"
 
 
 msgid "Sensitivity"
@@ -3481,10 +3488,6 @@ msgid "Translation Unit"
 msgstr "ﯽﯾﺎﺠﺑﺎﺟ ﺪﺣﺍﻭ"
 
 
-msgid "Edge angle"
-msgstr "ﻪﺒﻟ ﻪﯾﻭﺍﺯ"
-
-
 msgid "Meta Sequence"
 msgstr "ﺎﺘﻣ ﺲﻧﺎﮑﺳ"
 
@@ -3529,10 +3532,6 @@ msgid "Show Green Channel"
 msgstr "ﺰﺒﺳ ﻝﺎﻧﺎﮐ ﺶﯾﺎﻤﻧ"
 
 
-msgid "Show Names"
-msgstr "ﺎﻫ‌ﻡﺎﻧ ﺶﯾﺎﻤﻧ"
-
-
 msgid "Show Red Channel"
 msgstr "ﺰﻣﺮﻗ ﻝﺎﻧﺎﮐ ﺶﯾﺎﻤﻧ"
 
@@ -3545,12 +3544,12 @@ msgid "Show 3D Marker Names"
 msgstr "3D ﺮﮕﻧﺎﺸﻧ ﻡﺎﻧ ﺶﯾﺎﻤﻧ"
 
 
-msgid "Speaker"
-msgstr "ﻮﮔﺪﻨﻠﺑ"
-
-
 msgid "3D"
 msgstr "3D"
+
+
+msgid "Flat"
+msgstr "ﺖﺨﺗ"
 
 
 msgid "X Mapping"
@@ -3667,10 +3666,6 @@ msgstr "ﯽﻄﺧ ﺖﻓﺮﺸﯿﭘ ﺯﺍ ﻩﺩﺎﻔﺘﺳﺍ"
 
 msgid "Search"
 msgstr "ﻮﺠﺘﺴﺟ"
-
-
-msgid "Tracking"
-msgstr "ﯽﺑﺎﯾﺩﺭ"
 
 
 msgid "3D View"
@@ -4108,10 +4103,6 @@ msgid "Update Dependencies"
 msgstr "ﺎﻫ‌ﯽﮕﺘﺴﺑﺍﻭ ﯽﻧﺎﺳﺭ ﺯﻭﺭ‌ﻪﺑ"
 
 
-msgid "Add Modifier"
-msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
-
-
 msgid "Unsupported audio format"
 msgstr "ﻩﺪﺸﻧ ﯽﻧﺎﺒﯿﺘﺸﭘ ﯽﺗﻮﺻ ﺖﻣﺮﻓ"
 
@@ -4130,10 +4121,6 @@ msgstr "RGBA ﺖﯾﺎﺑ"
 
 msgid " RGB byte"
 msgstr "RGB ﺖﯾﺎﺑ"
-
-
-msgid " + Z"
-msgstr " + Z"
 
 
 msgid "No images have been changed"
@@ -4230,10 +4217,6 @@ msgstr "(Español) ﯽﯾﺎﯿﻧﺎﭙﺳﺍ"
 
 msgid "Catalan (Català)"
 msgstr "(Català) ﯽﻧﻻ﻿ﺎﺗﺎﮐ"
-
-
-msgid "Czech (Český)"
-msgstr "(Český) ﮏﭼ"
 
 
 msgid "Portuguese (Português)"

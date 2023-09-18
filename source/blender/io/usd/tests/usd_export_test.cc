@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,7 +26,6 @@
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
 #include "BLI_fileops.h"
-#include "BLI_math.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
 #include "BLO_readfile.h"
@@ -35,7 +34,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "usd.h"
 #include "usd_writer_material.h"
@@ -51,7 +50,7 @@ static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree,
 
 class UsdExportTest : public BlendfileLoadingBaseTest {
  protected:
-  struct bContext *context = nullptr;
+  bContext *context = nullptr;
 
  public:
   bool load_file_and_depsgraph(const StringRefNull &filepath,
@@ -193,7 +192,7 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     mesh_prim.GetNormalsAttr().Get(&normals, 0.0);
 
     EXPECT_EQ(mesh->totvert, positions.size());
-    EXPECT_EQ(mesh->totpoly, face_counts.size());
+    EXPECT_EQ(mesh->faces_num, face_counts.size());
     EXPECT_EQ(mesh->totloop, face_indices.size());
     EXPECT_EQ(mesh->totloop, normals.size());
   }
@@ -209,10 +208,11 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
   /* File sanity check. */
   EXPECT_EQ(BLI_listbase_count(&bfile->main->objects), 3);
 
-  USDExportParams params{};
+  USDExportParams params;
+  params.export_materials = false;
   params.export_normals = true;
+  params.export_uvmaps = false;
   params.visible_objects_only = true;
-  params.evaluation_mode = eEvaluationMode::DAG_EVAL_VIEWPORT;
 
   bool result = USD_export(context, output_filename.c_str(), &params, false);
   ASSERT_TRUE(result) << "Writing to " << output_filename << " failed!";
@@ -272,12 +272,13 @@ TEST_F(UsdExportTest, usd_export_material)
 
   EXPECT_TRUE(bool(material));
 
-  USDExportParams params{};
-  params.export_normals = true;
+  USDExportParams params;
   params.export_materials = true;
-  params.generate_preview_surface = true;
+  params.export_normals = true;
+  params.export_textures = false;
   params.export_uvmaps = true;
-  params.evaluation_mode = eEvaluationMode::DAG_EVAL_VIEWPORT;
+  params.generate_preview_surface = true;
+  params.relative_paths = false;
 
   const bool result = USD_export(context, output_filename.c_str(), &params, false);
   ASSERT_TRUE(result) << "Unable to export stage to " << output_filename;

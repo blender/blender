@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,7 +24,7 @@ using namespace Freestyle;
 PyDoc_STRVAR(Interface0DIterator_doc,
              "Class hierarchy: :class:`Iterator` > :class:`Interface0DIterator`\n"
              "\n"
-             "Class defining an iterator over Interface0D elements.  An instance of\n"
+             "Class defining an iterator over Interface0D elements. An instance of\n"
              "this iterator is always obtained from a 1D element.\n"
              "\n"
              ".. method:: __init__(brother)\n"
@@ -131,7 +131,7 @@ static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 /*----------------------Interface0DIterator get/setters ----------------------------*/
 
 PyDoc_STRVAR(Interface0DIterator_object_doc,
-             "The 0D object currently pointed to by this iterator.  Note that the object\n"
+             "The 0D object currently pointed to by this iterator. Note that the object\n"
              "may be an instance of an Interface0D subclass. For example if the iterator\n"
              "has been created from the `vertices_begin()` method of the :class:`Stroke`\n"
              "class, the .object property refers to a :class:`StrokeVertex` object.\n"
@@ -197,7 +197,7 @@ static PyGetSetDef BPy_Interface0DIterator_getseters[] = {
 /*-----------------------BPy_Interface0DIterator type definition ------------------------------*/
 
 PyTypeObject Interface0DIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Interface0DIterator",
     /*tp_basicsize*/ sizeof(BPy_Interface0DIterator),
     /*tp_itemsize*/ 0,

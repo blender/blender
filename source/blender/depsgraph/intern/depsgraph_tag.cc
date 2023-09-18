@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -819,7 +819,6 @@ void DEG_graph_id_type_tag(Depsgraph *depsgraph, short id_type)
     DEG_graph_id_type_tag(depsgraph, ID_LA);
     DEG_graph_id_type_tag(depsgraph, ID_WO);
     DEG_graph_id_type_tag(depsgraph, ID_SCE);
-    DEG_graph_id_type_tag(depsgraph, ID_SIM);
   }
   const int id_type_index = BKE_idtype_idcode_to_index(id_type);
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);

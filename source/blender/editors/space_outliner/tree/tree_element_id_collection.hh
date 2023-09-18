@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,7 +19,6 @@ class TreeElementIDCollection final : public TreeElementID {
   TreeElementIDCollection(TreeElement &legacy_te, Collection &collection);
 
   void expand(SpaceOutliner &) const override;
-  bool isExpandValid() const override;
 };
 
 }  // namespace blender::ed::outliner

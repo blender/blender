@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_uvproject.h"
 
 #include "BLT_translation.h"
@@ -22,6 +23,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_lib_query.h"
@@ -29,10 +31,10 @@
 #include "BKE_mesh.hh"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_modifiertypes.hh"
@@ -44,7 +46,7 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   UVProjectModifierData *umd = (UVProjectModifierData *)md;
 
@@ -53,21 +55,21 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(umd, DNA_struct_default_get(UVProjectModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   /* ask for UV coordinates */
   r_cddata_masks->lmask |= CD_MASK_PROP_FLOAT2;
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   UVProjectModifierData *umd = (UVProjectModifierData *)md;
   for (int i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; i++) {
-    walk(userData, ob, (ID **)&umd->projectors[i], IDWALK_CB_NOP);
+    walk(user_data, ob, (ID **)&umd->projectors[i], IDWALK_CB_NOP);
   }
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   UVProjectModifierData *umd = (UVProjectModifierData *)md;
   bool do_add_own_transform = false;
@@ -96,8 +98,6 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
                                   Mesh *mesh)
 {
   using namespace blender;
-  float(*coords)[3], (*co)[3];
-  int i, verts_num;
   Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
   int projectors_num = 0;
   char uvname[MAX_CUSTOMDATA_LAYER_NAME];
@@ -107,7 +107,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   float scay = umd->scaley ? umd->scaley : 1.0f;
   int free_uci = 0;
 
-  for (i = 0; i < umd->projectors_num; i++) {
+  for (int i = 0; i < umd->projectors_num; i++) {
     if (umd->projectors[i] != nullptr) {
       projectors[projectors_num++].ob = umd->projectors[i];
     }
@@ -119,16 +119,14 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
   /* Create a new layer if no UV Maps are available
    * (e.g. if a preceding modifier could not preserve it). */
-  if (!CustomData_has_layer(&mesh->ldata, CD_PROP_FLOAT2)) {
-    CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, umd->uvlayer_name);
-  }
+  mesh->attributes_for_write().add<float2>(
+      umd->uvlayer_name, ATTR_DOMAIN_CORNER, bke::AttributeInitDefaultValue());
 
   /* make sure we're using an existing layer */
-  CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
+  CustomData_validate_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
 
   /* calculate a projection matrix and normal for each projector */
-  for (i = 0; i < projectors_num; i++) {
+  for (int i = 0; i < projectors_num; i++) {
     float tmpmat[4][4];
     float offsetmat[4][4];
     Camera *cam = nullptr;
@@ -182,48 +180,44 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     mul_mat3_m4_v3(projectors[i].ob->object_to_world, projectors[i].normal);
   }
 
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices polys = mesh->polys();
+  const Span<float3> positions = mesh->vert_positions();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   float(*mloop_uv)[2] = static_cast<float(*)[2]>(CustomData_get_layer_named_for_write(
-      &mesh->ldata, CD_PROP_FLOAT2, uvname, corner_verts.size()));
+      &mesh->loop_data, CD_PROP_FLOAT2, uvname, corner_verts.size()));
 
-  coords = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
+  Array<float3> coords(positions.size());
 
   /* Convert coords to world-space. */
-  for (i = 0, co = coords; i < verts_num; i++, co++) {
-    mul_m4_v3(ob->object_to_world, *co);
+  for (int64_t i = 0; i < positions.size(); i++) {
+    mul_v3_m4v3(coords[i], ob->object_to_world, positions[i]);
   }
 
   /* if only one projector, project coords to UVs */
   if (projectors_num == 1 && projectors[0].uci == nullptr) {
-    for (i = 0, co = coords; i < verts_num; i++, co++) {
-      mul_project_m4_v3(projectors[0].projmat, *co);
+    for (int64_t i = 0; i < coords.size(); i++) {
+      mul_project_m4_v3(projectors[0].projmat, coords[i]);
     }
   }
 
   /* apply coords as UVs */
-  for (const int i : polys.index_range()) {
-    const blender::IndexRange poly = polys[i];
+  for (const int i : faces.index_range()) {
+    const IndexRange face = faces[i];
     if (projectors_num == 1) {
       if (projectors[0].uci) {
-        uint fidx = poly.size() - 1;
-        do {
-          uint lidx = poly.start() + fidx;
-          const int vidx = corner_verts[lidx];
+        for (const int corner : face) {
+          const int vert = corner_verts[corner];
           BLI_uvproject_from_camera(
-              mloop_uv[lidx], coords[vidx], static_cast<ProjCameraInfo *>(projectors[0].uci));
-        } while (fidx--);
+              mloop_uv[corner], coords[vert], static_cast<ProjCameraInfo *>(projectors[0].uci));
+        }
       }
       else {
         /* apply transformed coords as UVs */
-        uint fidx = poly.size() - 1;
-        do {
-          uint lidx = poly.start() + fidx;
-          const int vidx = corner_verts[lidx];
-          copy_v2_v2(mloop_uv[lidx], coords[vidx]);
-        } while (fidx--);
+        for (const int corner : face) {
+          const int vert = corner_verts[corner];
+          copy_v2_v2(mloop_uv[corner], coords[vert]);
+        }
       }
     }
     else {
@@ -233,8 +227,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       float best_dot;
 
       /* get the untransformed face normal */
-      const blender::float3 face_no = blender::bke::mesh::poly_normal_calc(
-          positions, corner_verts.slice(poly));
+      const float3 face_no = blender::bke::mesh::face_normal_calc(positions,
+                                                                  corner_verts.slice(face));
 
       /* find the projector which the face points at most directly
        * (projector normal with largest dot product is best)
@@ -251,26 +245,20 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       }
 
       if (best_projector->uci) {
-        uint fidx = poly.size() - 1;
-        do {
-          uint lidx = poly.start() + fidx;
-          const int vidx = corner_verts[lidx];
+        for (const int corner : face) {
+          const int vert = corner_verts[corner];
           BLI_uvproject_from_camera(
-              mloop_uv[lidx], coords[vidx], static_cast<ProjCameraInfo *>(best_projector->uci));
-        } while (fidx--);
+              mloop_uv[corner], coords[vert], static_cast<ProjCameraInfo *>(best_projector->uci));
+        }
       }
       else {
-        uint fidx = poly.size() - 1;
-        do {
-          uint lidx = poly.start() + fidx;
-          const int vidx = corner_verts[lidx];
-          mul_v2_project_m4_v3(mloop_uv[lidx], best_projector->projmat, coords[vidx]);
-        } while (fidx--);
+        for (const int corner : face) {
+          const int vert = corner_verts[corner];
+          mul_v2_project_m4_v3(mloop_uv[corner], best_projector->projmat, coords[vert]);
+        }
       }
     }
   }
-
-  MEM_freeN(coords);
 
   if (free_uci) {
     int j;
@@ -286,7 +274,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   return mesh;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
   UVProjectModifierData *umd = (UVProjectModifierData *)md;
@@ -323,58 +311,59 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   sub = uiLayoutColumn(layout, true);
   uiLayoutSetActive(sub, has_camera);
-  uiItemR(sub, ptr, "aspect_x", 0, nullptr, ICON_NONE);
-  uiItemR(sub, ptr, "aspect_y", 0, IFACE_("Y"), ICON_NONE);
+  uiItemR(sub, ptr, "aspect_x", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(sub, ptr, "aspect_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
   sub = uiLayoutColumn(layout, true);
   uiLayoutSetActive(sub, has_camera);
-  uiItemR(sub, ptr, "scale_x", 0, nullptr, ICON_NONE);
-  uiItemR(sub, ptr, "scale_y", 0, IFACE_("Y"), ICON_NONE);
+  uiItemR(sub, ptr, "scale_x", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(sub, ptr, "scale_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, ptr, "projector_count", 0, IFACE_("Projectors"), ICON_NONE);
+  uiItemR(layout, ptr, "projector_count", UI_ITEM_NONE, IFACE_("Projectors"), ICON_NONE);
   RNA_BEGIN (ptr, projector_ptr, "projectors") {
-    uiItemR(layout, &projector_ptr, "object", 0, nullptr, ICON_NONE);
+    uiItemR(layout, &projector_ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   RNA_END;
 
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_UVProject, panel_draw);
 }
 
 ModifierTypeInfo modifierType_UVProject = {
+    /*idname*/ "UVProject",
     /*name*/ N_("UVProject"),
-    /*structName*/ "UVProjectModifierData",
-    /*structSize*/ sizeof(UVProjectModifierData),
+    /*struct_name*/ "UVProjectModifierData",
+    /*struct_size*/ sizeof(UVProjectModifierData),
     /*srna*/ &RNA_UVProjectModifier,
     /*type*/ eModifierTypeType_NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_UVPROJECT,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

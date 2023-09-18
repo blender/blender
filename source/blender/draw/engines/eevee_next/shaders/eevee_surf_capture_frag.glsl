@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Surface Capture: Output surface parameters to diverse storage.
@@ -47,9 +50,16 @@ void main()
         surfel_buf[surfel_id].normal = gl_FrontFacing ? g_data.Ng : -g_data.Ng;
         surfel_buf[surfel_id].albedo_front = albedo;
         surfel_buf[surfel_id].radiance_direct.front.rgb = g_emission;
+        surfel_buf[surfel_id].radiance_direct.front.a = 0.0;
         /* TODO(fclem): 2nd surface evaluation. */
         surfel_buf[surfel_id].albedo_back = albedo;
         surfel_buf[surfel_id].radiance_direct.back.rgb = g_emission;
+        surfel_buf[surfel_id].radiance_direct.back.a = 0.0;
+
+        if (!capture_info_buf.capture_emission) {
+          surfel_buf[surfel_id].radiance_direct.front.rgb = vec3(0.0);
+          surfel_buf[surfel_id].radiance_direct.back.rgb = vec3(0.0);
+        }
       }
     }
   }

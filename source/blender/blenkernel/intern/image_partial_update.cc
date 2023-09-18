@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 /**
@@ -57,6 +57,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_vector.hh"
 
 namespace blender::bke::image::partial_update {

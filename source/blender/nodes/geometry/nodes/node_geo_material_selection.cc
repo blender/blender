@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -33,7 +33,7 @@ static VArray<bool> select_mesh_faces_by_material(const Mesh &mesh,
     }
   }
   if (slots.is_empty()) {
-    return VArray<bool>::ForSingle(false, mesh.totpoly);
+    return VArray<bool>::ForSingle(false, mesh.faces_num);
   }
 
   const AttributeAccessor attributes = mesh.attributes();
@@ -41,7 +41,7 @@ static VArray<bool> select_mesh_faces_by_material(const Mesh &mesh,
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material_indices.is_single()) {
     const int slot_i = material_indices.get_internal_single();
-    return VArray<bool>::ForSingle(slots.contains(slot_i), mesh.totpoly);
+    return VArray<bool>::ForSingle(slots.contains(slot_i), mesh.faces_num);
   }
 
   const VArraySpan<int> material_indices_span(material_indices);
@@ -78,7 +78,7 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
     }
 
     const eAttrDomain domain = context.domain();
-    const IndexMask domain_mask = (domain == ATTR_DOMAIN_FACE) ? mask : IndexMask(mesh->totpoly);
+    const IndexMask domain_mask = (domain == ATTR_DOMAIN_FACE) ? mask : IndexMask(mesh->faces_num);
 
     VArray<bool> selection = select_mesh_faces_by_material(*mesh, material_, domain_mask);
     return mesh->attributes().adapt_domain<bool>(std::move(selection), ATTR_DOMAIN_FACE, domain);
@@ -113,17 +113,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Selection", std::move(material_field));
 }
 
-}  // namespace blender::nodes::node_geo_material_selection_cc
-
-void register_node_type_geo_material_selection()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_material_selection_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_MATERIAL_SELECTION, "Material Selection", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_material_selection_cc

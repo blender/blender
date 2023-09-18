@@ -64,24 +64,26 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename in
     typedef typename internal::ref_selector<MatrixType>::non_const_type MatrixTypeNested;
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
-    explicit inline CwiseUnaryView(MatrixType& mat, const ViewOp& func = ViewOp())
+    explicit EIGEN_DEVICE_FUNC inline CwiseUnaryView(MatrixType& mat, const ViewOp& func = ViewOp())
       : m_matrix(mat), m_functor(func) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(CwiseUnaryView)
 
-    EIGEN_STRONG_INLINE Index rows() const { return m_matrix.rows(); }
-    EIGEN_STRONG_INLINE Index cols() const { return m_matrix.cols(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_CONSTEXPR
+    Index rows() const EIGEN_NOEXCEPT { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_CONSTEXPR
+    Index cols() const EIGEN_NOEXCEPT { return m_matrix.cols(); }
 
     /** \returns the functor representing unary operation */
-    const ViewOp& functor() const { return m_functor; }
+    EIGEN_DEVICE_FUNC const ViewOp& functor() const { return m_functor; }
 
     /** \returns the nested expression */
-    const typename internal::remove_all<MatrixTypeNested>::type&
+    EIGEN_DEVICE_FUNC const typename internal::remove_all<MatrixTypeNested>::type&
     nestedExpression() const { return m_matrix; }
 
     /** \returns the nested expression */
-    typename internal::remove_reference<MatrixTypeNested>::type&
-    nestedExpression() { return m_matrix.const_cast_derived(); }
+    EIGEN_DEVICE_FUNC typename internal::remove_reference<MatrixTypeNested>::type&
+    nestedExpression() { return m_matrix; }
 
   protected:
     MatrixTypeNested m_matrix;
@@ -108,19 +110,21 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
 
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(CwiseUnaryViewImpl)
-    
+
     EIGEN_DEVICE_FUNC inline Scalar* data() { return &(this->coeffRef(0)); }
     EIGEN_DEVICE_FUNC inline const Scalar* data() const { return &(this->coeff(0)); }
 
-    EIGEN_DEVICE_FUNC inline Index innerStride() const
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR inline Index innerStride() const
     {
       return derived().nestedExpression().innerStride() * sizeof(typename internal::traits<MatrixType>::Scalar) / sizeof(Scalar);
     }
 
-    EIGEN_DEVICE_FUNC inline Index outerStride() const
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR inline Index outerStride() const
     {
       return derived().nestedExpression().outerStride() * sizeof(typename internal::traits<MatrixType>::Scalar) / sizeof(Scalar);
     }
+  protected:
+    EIGEN_DEFAULT_EMPTY_CONSTRUCTOR_AND_DESTRUCTOR(CwiseUnaryViewImpl)
 };
 
 } // end namespace Eigen

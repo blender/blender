@@ -1,9 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_bit_span.hh"
 #include "BLI_bit_span_ops.hh"
+
+#include <ostream>
 
 namespace blender::bits {
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,7 +20,6 @@
 #include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_mempool.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -32,10 +31,11 @@
 #include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
@@ -48,31 +48,33 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_armature.h"
-#include "ED_fileselect.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
+#include "ED_armature.hh"
+#include "ED_fileselect.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 #include "tree/tree_element.hh"
+#include "tree/tree_element_grease_pencil_node.hh"
 #include "tree/tree_element_id.hh"
 #include "tree/tree_element_overrides.hh"
 #include "tree/tree_element_rna.hh"
+#include "tree/tree_element_seq.hh"
 #include "tree/tree_iterator.hh"
 
 namespace blender::ed::outliner {
@@ -258,7 +260,6 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  PointerRNA ptr;
 
   bool extend = (win->eventstate->modifier & KM_SHIFT);
 
@@ -271,7 +272,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
   StructRNA *struct_rna = ob ? &RNA_Object : &RNA_ObjectBase;
   void *data = ob ? (void *)ob : (void *)base;
 
-  RNA_pointer_create(id, struct_rna, data, &ptr);
+  PointerRNA ptr = RNA_pointer_create(id, struct_rna, data);
   PropertyRNA *base_or_object_prop = RNA_struct_type_find_property(struct_rna, propname);
   const bool value = RNA_property_boolean_get(&ptr, base_or_object_prop);
 
@@ -282,7 +283,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
   {
     if (BKE_object_is_child_recursive(ob_parent, ob_iter)) {
       if (ob) {
-        RNA_id_pointer_create(&ob_iter->id, &ptr);
+        ptr = RNA_id_pointer_create(&ob_iter->id);
         DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
       }
       else {
@@ -292,7 +293,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
         if (base_iter == nullptr) {
           continue;
         }
-        RNA_pointer_create(&scene->id, &RNA_ObjectBase, base_iter, &ptr);
+        ptr = RNA_pointer_create(&scene->id, &RNA_ObjectBase, base_iter);
       }
       RNA_property_boolean_set(&ptr, base_or_object_prop, value);
     }
@@ -336,10 +337,10 @@ static void outliner_layer_or_collection_pointer_create(Scene *scene,
                                                         PointerRNA *ptr)
 {
   if (collection) {
-    RNA_id_pointer_create(&collection->id, ptr);
+    *ptr = RNA_id_pointer_create(&collection->id);
   }
   else {
-    RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection, ptr);
+    *ptr = RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection);
   }
 }
 
@@ -348,12 +349,12 @@ static void outliner_base_or_object_pointer_create(
     Scene *scene, ViewLayer *view_layer, Collection *collection, Object *ob, PointerRNA *ptr)
 {
   if (collection) {
-    RNA_id_pointer_create(&ob->id, ptr);
+    *ptr = RNA_id_pointer_create(&ob->id);
   }
   else {
     BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
-    RNA_pointer_create(&scene->id, &RNA_ObjectBase, base, ptr);
+    *ptr = RNA_pointer_create(&scene->id, &RNA_ObjectBase, base);
   }
 }
 
@@ -568,7 +569,7 @@ void outliner_collection_isolate_flag(Scene *scene,
       if (parent->collection->flag & COLLECTION_IS_MASTER) {
         break;
       }
-      RNA_id_pointer_create(&parent->collection->id, &ptr);
+      ptr = RNA_id_pointer_create(&parent->collection->id);
       RNA_property_boolean_set(&ptr, layer_or_collection_prop, !is_hide);
       child = parent->collection;
     }
@@ -584,7 +585,6 @@ static void outliner_collection_set_flag_recursive_fn(bContext *C,
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  PointerRNA ptr;
 
   bool do_isolate = (win->eventstate->modifier & KM_CTRL);
   bool extend = (win->eventstate->modifier & KM_SHIFT);
@@ -598,7 +598,7 @@ static void outliner_collection_set_flag_recursive_fn(bContext *C,
   StructRNA *struct_rna = collection ? &RNA_Collection : &RNA_LayerCollection;
   void *data = collection ? (void *)collection : (void *)layer_collection;
 
-  RNA_pointer_create(id, struct_rna, data, &ptr);
+  PointerRNA ptr = RNA_pointer_create(id, struct_rna, data);
   outliner_layer_or_collection_pointer_create(scene, layer_collection, collection, &ptr);
   PropertyRNA *layer_or_collection_prop = RNA_struct_type_find_property(struct_rna, propname);
   const bool value = RNA_property_boolean_get(&ptr, layer_or_collection_prop);
@@ -757,6 +757,10 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
+        case TSE_NLA_TRACK: {
+          WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, nullptr);
+          break;
+        }
         case TSE_EBONE: {
           bArmature *arm = (bArmature *)tselem->id;
           if (arm->edbo) {
@@ -848,6 +852,21 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
           WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
           DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+          break;
+        }
+        case TSE_GREASE_PENCIL_NODE: {
+          GreasePencil &grease_pencil = *(GreasePencil *)tselem->id;
+          bke::greasepencil::TreeNode &node =
+              tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+
+          /* The node already has the new name set. To properly rename the node, we need to first
+           * store the new name, restore the old name in the node, and then call the rename
+           * function. */
+          std::string new_name(node.name());
+          node.set_name(oldname);
+          grease_pencil.rename_node(node, new_name);
+          DEG_id_tag_update(&grease_pencil.id, ID_RECALC_COPY_ON_WRITE);
+          WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
           break;
         }
         case TSE_R_LAYER: {
@@ -1015,9 +1034,9 @@ static bool outliner_restrict_properties_collection_set(Scene *scene,
   }
 
   /* Create the PointerRNA. */
-  RNA_id_pointer_create(&collection->id, collection_ptr);
+  *collection_ptr = RNA_id_pointer_create(&collection->id);
   if (layer_collection != nullptr) {
-    RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection, layer_collection_ptr);
+    *layer_collection_ptr = RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection);
   }
 
   /* Update the restriction column values for the collection children. */
@@ -1149,21 +1168,19 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         /* Don't show restrict columns for children that are not directly inside the collection. */
       }
       else if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-        PointerRNA ptr;
         Object *ob = (Object *)tselem->id;
-        RNA_id_pointer_create(&ob->id, &ptr);
+        PointerRNA ptr = RNA_id_pointer_create(&ob->id);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
           BKE_view_layer_synced_ensure(scene, view_layer);
           Base *base = (te->directdata) ? (Base *)te->directdata :
                                           BKE_view_layer_base_find(view_layer, ob);
           if (base) {
-            PointerRNA base_ptr;
-            RNA_pointer_create(&scene->id, &RNA_ObjectBase, base, &base_ptr);
+            PointerRNA base_ptr = RNA_pointer_create(&scene->id, &RNA_ObjectBase, base);
             bt = uiDefIconButR_prop(block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
-                                    0,
+                                    ICON_NONE,
                                     int(region->v2d.cur.xmax - restrict_offsets.hide),
                                     te->ys,
                                     UI_UNIT_X,
@@ -1190,7 +1207,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
-                                  0,
+                                  ICON_NONE,
                                   int(region->v2d.cur.xmax - restrict_offsets.select),
                                   te->ys,
                                   UI_UNIT_X,
@@ -1215,7 +1232,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
-                                  0,
+                                  ICON_NONE,
                                   int(region->v2d.cur.xmax - restrict_offsets.viewport),
                                   te->ys,
                                   UI_UNIT_X,
@@ -1240,7 +1257,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
-                                  0,
+                                  ICON_NONE,
                                   int(region->v2d.cur.xmax - restrict_offsets.render),
                                   te->ys,
                                   UI_UNIT_X,
@@ -1264,14 +1281,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
       else if (tselem->type == TSE_CONSTRAINT) {
         bConstraint *con = (bConstraint *)te->directdata;
 
-        PointerRNA ptr;
-        RNA_pointer_create(tselem->id, &RNA_Constraint, con, &ptr);
+        PointerRNA ptr = RNA_pointer_create(tselem->id, &RNA_Constraint, con);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
-                                  0,
+                                  ICON_NONE,
                                   int(region->v2d.cur.xmax - restrict_offsets.hide),
                                   te->ys,
                                   UI_UNIT_X,
@@ -1293,14 +1309,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
       else if (tselem->type == TSE_MODIFIER) {
         ModifierData *md = (ModifierData *)te->directdata;
 
-        PointerRNA ptr;
-        RNA_pointer_create(tselem->id, &RNA_Modifier, md, &ptr);
+        PointerRNA ptr = RNA_pointer_create(tselem->id, &RNA_Modifier, md);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
-                                  0,
+                                  ICON_NONE,
                                   int(region->v2d.cur.xmax - restrict_offsets.viewport),
                                   te->ys,
                                   UI_UNIT_X,
@@ -1323,7 +1338,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
-                                  0,
+                                  ICON_NONE,
                                   int(region->v2d.cur.xmax - restrict_offsets.render),
                                   te->ys,
                                   UI_UNIT_X,
@@ -1343,19 +1358,18 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         }
       }
       else if (tselem->type == TSE_POSE_CHANNEL) {
-        PointerRNA ptr;
         bPoseChannel *pchan = (bPoseChannel *)te->directdata;
         Bone *bone = pchan->bone;
         Object *ob = (Object *)tselem->id;
         bArmature *arm = static_cast<bArmature *>(ob->data);
 
-        RNA_pointer_create(&arm->id, &RNA_Bone, bone, &ptr);
+        PointerRNA ptr = RNA_pointer_create(&arm->id, &RNA_Bone, bone);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
           bt = uiDefIconButR_prop(block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
-                                  0,
+                                  ICON_NONE,
                                   int(region->v2d.cur.xmax - restrict_offsets.viewport),
                                   te->ys,
                                   UI_UNIT_X,
@@ -1489,6 +1503,43 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
         }
       }
+      else if (tselem->type == TSE_GREASE_PENCIL_NODE) {
+        bke::greasepencil::TreeNode &node =
+            tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+        PointerRNA ptr;
+        PropertyRNA *hide_prop;
+        if (node.is_layer()) {
+          ptr = RNA_pointer_create(tselem->id, &RNA_GreasePencilLayer, &node);
+          hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayer, "hide");
+        }
+        else if (node.is_group()) {
+          ptr = RNA_pointer_create(tselem->id, &RNA_GreasePencilLayerGroup, &node);
+          hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayerGroup, "hide");
+        }
+
+        if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
+          bt = uiDefIconButR_prop(block,
+                                  UI_BTYPE_ICON_TOGGLE,
+                                  0,
+                                  0,
+                                  int(region->v2d.cur.xmax - restrict_offsets.hide),
+                                  te->ys,
+                                  UI_UNIT_X,
+                                  UI_UNIT_Y,
+                                  &ptr,
+                                  hide_prop,
+                                  -1,
+                                  0,
+                                  0,
+                                  -1,
+                                  -1,
+                                  nullptr);
+          UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+          if (node.parent_group() && node.parent_group()->is_visible()) {
+            UI_but_flag_enable(bt, UI_BUT_INACTIVE);
+          }
+        }
+      }
       else if (outliner_is_collection_tree_element(te)) {
         PointerRNA collection_ptr;
         PointerRNA layer_collection_ptr;
@@ -1507,7 +1558,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
               bt = uiDefIconButR_prop(block,
                                       UI_BTYPE_ICON_TOGGLE,
                                       0,
-                                      0,
+                                      ICON_NONE,
                                       int(region->v2d.cur.xmax) - restrict_offsets.enable,
                                       te->ys,
                                       UI_UNIT_X,
@@ -1527,7 +1578,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
               bt = uiDefIconButR_prop(block,
                                       UI_BTYPE_ICON_TOGGLE,
                                       0,
-                                      0,
+                                      ICON_NONE,
                                       int(region->v2d.cur.xmax - restrict_offsets.hide),
                                       te->ys,
                                       UI_UNIT_X,
@@ -1556,7 +1607,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
               bt = uiDefIconButR_prop(block,
                                       UI_BTYPE_ICON_TOGGLE,
                                       0,
-                                      0,
+                                      ICON_NONE,
                                       int(region->v2d.cur.xmax - restrict_offsets.holdout),
                                       te->ys,
                                       UI_UNIT_X,
@@ -1586,7 +1637,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                   block,
                   UI_BTYPE_ICON_TOGGLE,
                   0,
-                  0,
+                  ICON_NONE,
                   int(region->v2d.cur.xmax - restrict_offsets.indirect_only),
                   te->ys,
                   UI_UNIT_X,
@@ -1618,7 +1669,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
             bt = uiDefIconButR_prop(block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
-                                    0,
+                                    ICON_NONE,
                                     int(region->v2d.cur.xmax - restrict_offsets.viewport),
                                     te->ys,
                                     UI_UNIT_X,
@@ -1655,7 +1706,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
             bt = uiDefIconButR_prop(block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
-                                    0,
+                                    ICON_NONE,
                                     int(region->v2d.cur.xmax - restrict_offsets.render),
                                     te->ys,
                                     UI_UNIT_X,
@@ -1690,7 +1741,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
             bt = uiDefIconButR_prop(block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
-                                    0,
+                                    ICON_NONE,
                                     int(region->v2d.cur.xmax - restrict_offsets.select),
                                     te->ys,
                                     UI_UNIT_X,
@@ -1852,22 +1903,24 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
     if (const TreeElementOverridesPropertyOperation *override_op_elem =
             tree_element_cast<TreeElementOverridesPropertyOperation>(te))
     {
-      StringRefNull op_label = override_op_elem->getOverrideOperationLabel();
-      uiDefBut(block,
-               UI_BTYPE_LABEL,
-               0,
-               op_label.c_str(),
-               x + pad_x,
-               te->ys + pad_y,
-               item_max_width,
-               item_height,
-               nullptr,
-               0,
-               0,
-               0,
-               0,
-               "");
-      continue;
+      StringRefNull op_label = override_op_elem->get_override_operation_label();
+      if (!op_label.is_empty()) {
+        uiDefBut(block,
+                 UI_BTYPE_LABEL,
+                 0,
+                 op_label.c_str(),
+                 x + pad_x,
+                 te->ys + pad_y,
+                 item_max_width,
+                 item_height,
+                 nullptr,
+                 0,
+                 0,
+                 0,
+                 0,
+                 "");
+        continue;
+      }
     }
 
     PointerRNA *ptr = &override_elem->override_rna_ptr;
@@ -1935,9 +1988,12 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
     }
 
     ID &id = te_id->get_ID();
-    BLI_assert(ID_IS_OVERRIDE_LIBRARY(&id));
-
     if (ID_IS_LINKED(&id)) {
+      continue;
+    }
+    if (!ID_IS_OVERRIDE_LIBRARY(&id)) {
+      /* Some items may not be liboverrides, e.g. the root item for all linked libraries (see
+       * #TreeDisplayOverrideLibraryHierarchies::build_tree). */
       continue;
     }
 
@@ -1954,8 +2010,7 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
                                UI_UNIT_X,
                                UI_UNIT_Y,
                                "");
-    PointerRNA idptr;
-    RNA_id_pointer_create(&id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&id);
     UI_but_context_ptr_set(block, but, "id", &idptr);
     UI_but_func_identity_compare_set(but, outliner_but_identity_cmp_context_id_fn);
     UI_but_flag_enable(but, UI_BUT_DRAG_LOCK);
@@ -1998,8 +2053,8 @@ static void outliner_draw_rnabuts(uiBlock *block,
     }
 
     if (TreeElementRNAProperty *te_rna_prop = tree_element_cast<TreeElementRNAProperty>(te)) {
-      ptr = te_rna_prop->getPointerRNA();
-      prop = te_rna_prop->getPropertyRNA();
+      ptr = te_rna_prop->get_pointer_rna();
+      prop = te_rna_prop->get_property_rna();
 
       if (!TSELEM_OPEN(tselem, space_outliner)) {
         if (RNA_property_type(prop) == PROP_POINTER) {
@@ -2044,8 +2099,8 @@ static void outliner_draw_rnabuts(uiBlock *block,
     else if (TreeElementRNAArrayElement *te_rna_array_elem =
                  tree_element_cast<TreeElementRNAArrayElement>(te))
     {
-      ptr = te_rna_array_elem->getPointerRNA();
-      prop = te_rna_array_elem->getPropertyRNA();
+      ptr = te_rna_array_elem->get_pointer_rna();
+      prop = te_rna_array_elem->get_property_rna();
 
       uiDefAutoButR(block,
                     &ptr,
@@ -2235,7 +2290,7 @@ static StringRefNull outliner_draw_get_warning_tree_element_subtree(const TreeEl
 {
   LISTBASE_FOREACH (const TreeElement *, sub_te, &parent_te->subtree) {
     const AbstractTreeElement *abstract_te = tree_element_cast<AbstractTreeElement>(sub_te);
-    StringRefNull warning_msg = abstract_te ? abstract_te->getWarning() : "";
+    StringRefNull warning_msg = abstract_te ? abstract_te->get_warning() : "";
 
     if (!warning_msg.is_empty()) {
       return warning_msg;
@@ -2254,7 +2309,7 @@ static StringRefNull outliner_draw_get_warning_tree_element(const SpaceOutliner 
                                                             const TreeElement *te)
 {
   const AbstractTreeElement *abstract_te = tree_element_cast<AbstractTreeElement>(te);
-  const StringRefNull warning_msg = abstract_te ? abstract_te->getWarning() : "";
+  const StringRefNull warning_msg = abstract_te ? abstract_te->get_warning() : "";
 
   if (!warning_msg.is_empty()) {
     return warning_msg;
@@ -2444,7 +2499,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
         return ICON_FILE_TEXT;
       }
       /* Helps distinguish text-based formats like the file-browser does. */
-      return (BIFIconID)ED_file_extension_icon(text->filepath);
+      return ED_file_extension_icon(text->filepath);
     }
     case ID_GR:
       return ICON_OUTLINER_COLLECTION;
@@ -2466,6 +2521,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       }
     case ID_LS:
       return ICON_LINE_DATA;
+    case ID_GP:
     case ID_GD_LEGACY:
       return ICON_OUTLINER_DATA_GREASEPENCIL;
     case ID_LP: {
@@ -2491,15 +2547,12 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
     case ID_NT: {
       const bNodeTree *ntree = (bNodeTree *)id;
       const bNodeTreeType *ntreetype = ntree->typeinfo;
-      return (BIFIconID)ntreetype->ui_icon;
+      return ntreetype->ui_icon;
     }
     case ID_MC:
       return ICON_SEQUENCE;
     case ID_PC:
       return ICON_CURVE_BEZCURVE;
-    case ID_SIM:
-      /* TODO: Use correct icon. */
-      return ICON_PHYSICS;
     default:
       return ICON_NONE;
   }
@@ -2764,8 +2817,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_POSEGRP:
         data.icon = ICON_GROUP_BONE;
         break;
-      case TSE_SEQUENCE:
-        switch (te->idcode) {
+      case TSE_SEQUENCE: {
+        const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
+        switch (te_seq->get_sequence_type()) {
           case SEQ_TYPE_SCENE:
             data.icon = ICON_SCENE_DATA;
             break;
@@ -2818,6 +2872,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
             break;
         }
         break;
+      }
       case TSE_SEQ_STRIP:
         data.icon = ICON_LIBRARY_DATA_DIRECT;
         break;
@@ -2826,7 +2881,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         break;
       case TSE_RNA_STRUCT: {
         const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(te);
-        const PointerRNA &ptr = te_rna_struct->getPointerRNA();
+        const PointerRNA &ptr = te_rna_struct->get_pointer_rna();
 
         if (RNA_struct_is_ID(ptr.type)) {
           data.drag_id = static_cast<ID *>(ptr.data);
@@ -2853,6 +2908,17 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.icon = ICON_OUTLINER_DATA_GP_LAYER;
         break;
       }
+      case TSE_GREASE_PENCIL_NODE: {
+        bke::greasepencil::TreeNode &node =
+            tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+        if (node.is_layer()) {
+          data.icon = ICON_OUTLINER_DATA_GP_LAYER;
+        }
+        else if (node.is_group()) {
+          data.icon = ICON_FILE_FOLDER;
+        }
+        break;
+      }
       case TSE_GPENCIL_EFFECT_BASE:
       case TSE_GPENCIL_EFFECT:
         data.drag_id = tselem->id;
@@ -2872,7 +2938,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
   if (!te->abstract_element) {
     /* Pass */
   }
-  else if (auto icon = te->abstract_element->getIcon()) {
+  else if (auto icon = te->abstract_element->get_icon()) {
     data.icon = *icon;
   }
 
@@ -2903,7 +2969,7 @@ static bool tselem_draw_icon(uiBlock *block,
 
   /* Collection colors and icons covered by restrict buttons. */
   if (!is_clickable || x >= xmax || is_collection) {
-    /* Placement of icons, copied from interface_widgets.c */
+    /* Placement of icons, copied from `interface_widgets.cc`. */
     float aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
     x += 2.0f * aspect;
     y += 2.0f * aspect;
@@ -3038,8 +3104,19 @@ int tree_element_id_type_to_index(TreeElement *te)
 {
   TreeStoreElem *tselem = TREESTORE(te);
 
-  const int id_index = (tselem->type == TSE_SOME_ID) ? BKE_idtype_idcode_to_index(te->idcode) :
-                                                       INDEX_ID_GR;
+  int id_index = 0;
+  if (tselem->type == TSE_SOME_ID) {
+    id_index = BKE_idtype_idcode_to_index(te->idcode);
+  }
+  else if (tselem->type == TSE_GREASE_PENCIL_NODE) {
+    /* Use the index of the grease pencil ID for the grease pencil tree nodes (which are not IDs).
+     * All the Grease Pencil layer tree stats are stored in this index in #MergedIconRow. */
+    id_index = INDEX_ID_GP;
+  }
+  else {
+    id_index = INDEX_ID_GR;
+  }
+
   if (id_index < INDEX_ID_OB) {
     return id_index;
   }
@@ -3068,6 +3145,7 @@ static void outliner_draw_iconrow(bContext *C,
                                   int ys,
                                   float alpha_fac,
                                   bool in_bone_hierarchy,
+                                  const bool is_grease_pencil_node_hierarchy,
                                   MergedIconRow *merged)
 {
   eOLDrawState active = OL_DRAWSEL_NONE;
@@ -3081,7 +3159,12 @@ static void outliner_draw_iconrow(bContext *C,
      * an they are at the root level of a collapsed subtree (e.g. not "hidden" in a collapsed
      * collection). */
     const bool is_bone = ELEM(tselem->type, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL);
+    /* The Grease Pencil layer tree is a hierarchy where we merge and count the total number of
+     * layers in a node. We merge the counts for all the layers and skip counting nodes that are
+     * layer groups (for less visual clutter in the outliner). */
+    const bool is_grease_pencil_node = (tselem->type == TSE_GREASE_PENCIL_NODE);
     if ((level < 1) || ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) ||
+        (is_grease_pencil_node_hierarchy && is_grease_pencil_node) ||
         (in_bone_hierarchy && is_bone))
     {
       /* active blocks get white circle */
@@ -3106,6 +3189,7 @@ static void outliner_draw_iconrow(bContext *C,
                 TSE_LAYER_COLLECTION,
                 TSE_R_LAYER,
                 TSE_GP_LAYER,
+                TSE_GREASE_PENCIL_NODE,
                 TSE_LIBRARY_OVERRIDE_BASE,
                 TSE_LIBRARY_OVERRIDE,
                 TSE_LIBRARY_OVERRIDE_OPERATION,
@@ -3116,6 +3200,13 @@ static void outliner_draw_iconrow(bContext *C,
                 TSE_DEFGROUP))
       {
         outliner_draw_iconrow_doit(block, te, xmax, offsx, ys, alpha_fac, active, 1);
+      }
+      else if (tselem->type == TSE_GREASE_PENCIL_NODE &&
+               tree_element_cast<TreeElementGreasePencilNode>(te)->node().is_group())
+      {
+        /* Grease Pencil layer groups are tree nodes, but they shouldn't be counted. We only want
+         * to keep track of the nodes that are layers and show the total number of layers in a
+         * node. Adding the count of groups would add a lot of clutter. */
       }
       else {
         const int index = tree_element_id_type_to_index(te);
@@ -3128,12 +3219,17 @@ static void outliner_draw_iconrow(bContext *C,
     }
 
     /* TSE_R_LAYER tree element always has same amount of branches, so don't draw. */
-    /* Also only recurse into bone hierarchies if a direct child of the collapsed element to merge
-     * into. */
+    /* Also only recurse into bone hierarchies if a direct child of the collapsed element to
+     * merge into. */
     const bool is_root_level_bone = is_bone && (level == 0);
     in_bone_hierarchy |= is_root_level_bone;
+    /* Recurse into the grease pencil layer tree if we already are in the hierarchy or if we're at
+     * the root level and find a grease pencil node. */
+    const bool in_grease_pencil_node_hierarchy = is_grease_pencil_node_hierarchy ||
+                                                 (is_grease_pencil_node && level == 0);
     if (!ELEM(tselem->type, TSE_R_LAYER, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL) ||
-        in_bone_hierarchy) {
+        in_bone_hierarchy || in_grease_pencil_node_hierarchy)
+    {
       outliner_draw_iconrow(C,
                             block,
                             fstyle,
@@ -3146,6 +3242,7 @@ static void outliner_draw_iconrow(bContext *C,
                             ys,
                             alpha_fac,
                             in_bone_hierarchy,
+                            in_grease_pencil_node_hierarchy,
                             merged);
     }
   }
@@ -3215,6 +3312,11 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
       const bool is_visible = layer_collection->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
       const bool is_excluded = layer_collection->flag & LAYER_COLLECTION_EXCLUDE;
       return !is_visible || is_excluded;
+    }
+    case TSE_GREASE_PENCIL_NODE: {
+      bke::greasepencil::TreeNode &node =
+          tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+      return !node.is_visible();
     }
   }
 
@@ -3363,9 +3465,9 @@ static void outliner_draw_tree_element(bContext *C,
 
     const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(te);
     if (ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION) ||
-        (te_rna_struct && RNA_struct_is_ID(te_rna_struct->getPointerRNA().type)))
+        (te_rna_struct && RNA_struct_is_ID(te_rna_struct->get_pointer_rna().type)))
     {
-      const BIFIconID lib_icon = (BIFIconID)UI_icon_from_library(tselem->id);
+      const BIFIconID lib_icon = UI_icon_from_library(tselem->id);
       if (lib_icon != ICON_NONE) {
         UI_icon_draw_alpha(
             float(startx) + offsx + 2 * ufac, float(*starty) + 2 * ufac, lib_icon, alpha_fac);
@@ -3410,6 +3512,7 @@ static void outliner_draw_tree_element(bContext *C,
                                 &tempx,
                                 *starty,
                                 alpha_fac,
+                                false,
                                 false,
                                 &merged);
 
@@ -3513,6 +3616,14 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
         if (subtree_contains_object(&te->subtree)) {
           draw_hierarchy_line = true;
           is_object_line = true;
+          y = *starty;
+        }
+      }
+      else if (tselem->type == TSE_GREASE_PENCIL_NODE) {
+        bke::greasepencil::TreeNode &node =
+            tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+        if (node.is_group() && node.as_group().num_direct_nodes() > 0) {
+          draw_hierarchy_line = true;
           y = *starty;
         }
       }

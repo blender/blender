@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,15 +21,15 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "io_cache.hh"
 
@@ -97,8 +97,7 @@ static int cachefile_open_exec(bContext *C, wmOperator *op)
        * pointer see also increases user, so this compensates it. */
       id_us_min(&cache_file->id);
 
-      PointerRNA idptr;
-      RNA_id_pointer_create(&cache_file->id, &idptr);
+      PointerRNA idptr = RNA_id_pointer_create(&cache_file->id);
       RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, nullptr);
       RNA_property_update(C, &pprop->ptr, pprop->prop);
     }

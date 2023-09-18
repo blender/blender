@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,7 +14,7 @@
 namespace blender::io::ply {
 
 struct Expectation {
-  int totvert, totpoly, totindex, totedge;
+  int totvert, faces_num, totindex, totedge;
   uint16_t polyhash = 0, edgehash = 0;
   float3 vert_first, vert_last;
   float3 normal_first = {0, 0, 0};
@@ -41,14 +41,14 @@ class ply_import_test : public testing::Test {
     if (!data->error.empty()) {
       fprintf(stderr, "%s\n", data->error.c_str());
       ASSERT_EQ(0, exp.totvert);
-      ASSERT_EQ(0, exp.totpoly);
+      ASSERT_EQ(0, exp.faces_num);
       return;
     }
 
     /* Test expected amount of vertices, edges, and faces. */
     ASSERT_EQ(data->vertices.size(), exp.totvert);
     ASSERT_EQ(data->edges.size(), exp.totedge);
-    ASSERT_EQ(data->face_sizes.size(), exp.totpoly);
+    ASSERT_EQ(data->face_sizes.size(), exp.faces_num);
     ASSERT_EQ(data->face_vertices.size(), exp.totindex);
 
     /* Test hash of face and edge index data. */

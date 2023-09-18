@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -81,7 +81,7 @@ void InstancesComponent::ensure_owns_direct_data()
   }
 }
 
-const Instances *InstancesComponent::get_for_read() const
+const Instances *InstancesComponent::get() const
 {
   return instances_;
 }

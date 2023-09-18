@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,6 +17,7 @@
 #include "BKE_armature.h"
 
 #include "../outliner_intern.hh"
+#include "tree_display.hh"
 
 #include "tree_element_id_armature.hh"
 
@@ -29,13 +30,13 @@ TreeElementIDArmature::TreeElementIDArmature(TreeElement &legacy_te, bArmature &
 
 void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
 {
-  expand_animation_data(space_outliner, arm_.adt);
+  expand_animation_data(arm_.adt);
 
   if (arm_.edbo) {
-    expandEditBones(space_outliner);
+    expand_edit_bones();
   }
   else {
-    /* do not extend Armature when we have posemode */
+    /* Do not extend Armature when we have pose-mode. */
     TreeStoreElem *tselem = TREESTORE(legacy_te_.parent);
     if (TSE_IS_REAL_ID(tselem) && GS(tselem->id->name) == ID_OB &&
         ((Object *)tselem->id)->mode & OB_MODE_POSE)
@@ -43,24 +44,17 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
       /* pass */
     }
     else {
-      expandBones(space_outliner);
+      expand_bones(space_outliner);
     }
   }
 }
 
-bool TreeElementIDArmature::isExpandValid() const
-{
-  return true;
-}
-
-void TreeElementIDArmature::expandEditBones(SpaceOutliner &space_outiner) const
+void TreeElementIDArmature::expand_edit_bones() const
 {
   int a = 0;
   LISTBASE_FOREACH_INDEX (EditBone *, ebone, arm_.edbo, a) {
-    TreeElement *ten = outliner_add_element(
-        &space_outiner, &legacy_te_.subtree, &arm_.id, &legacy_te_, TSE_EBONE, a);
-    ten->directdata = ebone;
-    ten->name = ebone->name;
+    TreeElement *ten = add_element(
+        &legacy_te_.subtree, &arm_.id, ebone, &legacy_te_, TSE_EBONE, a);
     ebone->temp.p = ten;
   }
   /* make hierarchy */
@@ -88,18 +82,17 @@ static void outliner_add_bone(SpaceOutliner *space_outliner,
                               TreeElement *parent,
                               int *a)
 {
-  TreeElement *te = outliner_add_element(space_outliner, lb, id, parent, TSE_BONE, *a);
+  TreeElement *te = AbstractTreeDisplay::add_element(
+      space_outliner, lb, id, curBone, parent, TSE_BONE, *a);
 
   (*a)++;
-  te->name = curBone->name;
-  te->directdata = curBone;
 
   LISTBASE_FOREACH (Bone *, child_bone, &curBone->childbase) {
     outliner_add_bone(space_outliner, &te->subtree, id, child_bone, te, a);
   }
 }
 
-void TreeElementIDArmature::expandBones(SpaceOutliner &space_outliner) const
+void TreeElementIDArmature::expand_bones(SpaceOutliner &space_outliner) const
 {
   int a = 0;
   LISTBASE_FOREACH (Bone *, bone, &arm_.bonebase) {

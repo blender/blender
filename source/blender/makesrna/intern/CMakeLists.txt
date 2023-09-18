@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,118 +12,135 @@ if(HAVE_MALLOC_STATS_H)
   add_definitions(-DHAVE_MALLOC_STATS_H)
 endif()
 
-# files rna_access.cc rna_define.c makesrna.c intentionally excluded.
+# There is some code in `makesrna.cc` that forces files to be regenerated even if they have not
+# changed to keep make out of some dependency problem. Ninja and VisualStudios `msbuild` do not
+# appear to be requiring this and much time can be saved by not rebuilding hundreds of files
+# when not required, both generators have been whitelisted here not to take this code-path,
+# all other generators will take the conservative route and regenerate.
+if(CMAKE_GENERATOR MATCHES ".*Unix Makefiles")
+  add_definitions(-DUSE_MAKEFILE_WORKAROUND)
+endif()
+
+# files rna_access.cc rna_define.cc makesrna.cc intentionally excluded.
 set(DEFSRC
-  rna_ID.c
-  rna_action.c
-  rna_animation.c
-  rna_animviz.c
+  rna_ID.cc
+  rna_action.cc
+  rna_animation.cc
+  rna_animviz.cc
   rna_armature.cc
-  rna_asset.c
-  rna_attribute.c
-  rna_boid.c
-  rna_brush.c
-  rna_cachefile.c
-  rna_camera.c
-  rna_cloth.c
-  rna_collection.c
-  rna_color.c
-  rna_constraint.c
-  rna_context.c
+  rna_asset.cc
+  rna_attribute.cc
+  rna_boid.cc
+  rna_brush.cc
+  rna_cachefile.cc
+  rna_camera.cc
+  rna_cloth.cc
+  rna_collection.cc
+  rna_color.cc
+  rna_constraint.cc
+  rna_context.cc
   rna_curve.cc
-  rna_curveprofile.c
+  rna_curveprofile.cc
   rna_curves.cc
-  rna_depsgraph.c
-  rna_dynamicpaint.c
-  rna_fcurve.c
-  rna_fluid.c
-  rna_gpencil_legacy.c
-  rna_gpencil_legacy_modifier.c
-  rna_image.c
-  rna_key.c
+  rna_depsgraph.cc
+  rna_dynamicpaint.cc
+  rna_fcurve.cc
+  rna_fluid.cc
+  rna_gpencil_legacy.cc
+  rna_gpencil_legacy_modifier.cc
+  rna_image.cc
+  rna_key.cc
   rna_lattice.cc
-  rna_layer.c
-  rna_light.c
-  rna_lightprobe.c
-  rna_linestyle.c
-  rna_main.c
+  rna_layer.cc
+  rna_light.cc
+  rna_lightprobe.cc
+  rna_linestyle.cc
+  rna_main.cc
   rna_mask.cc
-  rna_material.c
+  rna_material.cc
   rna_mesh.cc
   rna_meta.cc
-  rna_modifier.c
-  rna_movieclip.c
-  rna_nla.c
+  rna_modifier.cc
+  rna_movieclip.cc
+  rna_nla.cc
+  rna_node_socket.cc
+  rna_node_tree_interface.cc
   rna_nodetree.cc
   rna_object.cc
-  rna_object_force.c
-  rna_packedfile.c
-  rna_palette.c
-  rna_particle.c
-  rna_pointcloud.c
+  rna_object_force.cc
+  rna_packedfile.cc
+  rna_palette.cc
+  rna_particle.cc
+  rna_pointcloud.cc
   rna_pose.cc
-  rna_render.c
-  rna_rigidbody.c
-  rna_rna.c
-  rna_scene.c
-  rna_screen.c
-  rna_sculpt_paint.c
-  rna_sequencer.c
-  rna_shader_fx.c
-  rna_sound.c
+  rna_render.cc
+  rna_rigidbody.cc
+  rna_rna.cc
+  rna_scene.cc
+  rna_screen.cc
+  rna_sculpt_paint.cc
+  rna_sequencer.cc
+  rna_shader_fx.cc
+  rna_sound.cc
   rna_space.cc
-  rna_speaker.c
-  rna_test.c
-  rna_text.c
-  rna_texture.c
-  rna_timeline.c
-  rna_tracking.c
+  rna_speaker.cc
+  rna_test.cc
+  rna_text.cc
+  rna_texture.cc
+  rna_timeline.cc
+  rna_tracking.cc
   rna_ui.cc
-  rna_userdef.c
-  rna_vfont.c
-  rna_volume.c
-  rna_wm.c
-  rna_wm_gizmo.c
-  rna_workspace.c
-  rna_world.c
-  rna_xr.c
+  rna_userdef.cc
+  rna_vfont.cc
+  rna_volume.cc
+  rna_wm.cc
+  rna_wm_gizmo.cc
+  rna_workspace.cc
+  rna_world.cc
+  rna_xr.cc
 )
+
+if(WITH_USD)
+  list(APPEND DEFSRC
+    rna_usd.cc
+  )
+  add_definitions(-DWITH_USD)
+endif()
 
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
   add_definitions(-DWITH_GREASE_PENCIL_V3)
   list(APPEND DEFSRC
-    rna_simulation.c
     rna_grease_pencil.cc
   )
 endif()
 
 set(APISRC
-  rna_action_api.c
-  rna_animation_api.c
+  rna_action_api.cc
+  rna_animation_api.cc
   rna_armature_api.cc
-  rna_camera_api.c
+  rna_camera_api.cc
   rna_curve_api.cc
-  rna_fcurve_api.c
-  rna_image_api.c
+  rna_fcurve_api.cc
+  rna_image_api.cc
   rna_lattice_api.cc
-  rna_main_api.c
-  rna_material_api.c
+  rna_main_api.cc
+  rna_material_api.cc
   rna_mesh_api.cc
-  rna_meta_api.c
+  rna_meta_api.cc
   rna_object_api.cc
-  rna_pose_api.c
-  rna_scene_api.c
-  rna_sequencer_api.c
-  rna_sound_api.c
+  rna_pose_api.cc
+  rna_scene_api.cc
+  rna_sequencer_api.cc
+  rna_sound_api.cc
   rna_space_api.cc
-  rna_text_api.c
-  rna_texture_api.c
+  rna_text_api.cc
+  rna_texture_api.cc
   rna_ui_api.cc
-  rna_vfont_api.c
-  rna_wm_api.c
-  rna_wm_gizmo_api.c
-  rna_workspace_api.c
+  rna_vfont_api.cc
+  rna_wm_api.cc
+  rna_wm_gizmo_api.cc
+  rna_workspace_api.cc
 )
 
 string(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).c" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.c" GENSRC "${DEFSRC}")
@@ -147,8 +164,10 @@ endif()
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   string(APPEND GENSRC_FLAGS " -Wno-missing-variable-declarations")
 elseif(MSVC)
-  # Restore warn C4100 (unreferenced formal parameter) back to w4
-  remove_cc_flag(/w34100)
+  remove_cc_flag(
+    # Restore warn C4100 (unreferenced formal parameter) back to w4.
+    "/w34100"
+  )
 endif()
 
 set(GENSRC_C ${GENSRC})
@@ -186,18 +205,18 @@ unset(CMAKE_C_CLANG_TIDY)
 unset(CMAKE_CXX_CLANG_TIDY)
 
 set(SRC_RNA_INC
-  ../RNA_access.h
-  ../RNA_define.h
-  ../RNA_documentation.h
-  ../RNA_enum_items.h
-  ../RNA_enum_types.h
-  ../RNA_path.h
-  ../RNA_types.h
+  ../RNA_access.hh
+  ../RNA_define.hh
+  ../RNA_documentation.hh
+  ../RNA_enum_items.hh
+  ../RNA_enum_types.hh
+  ../RNA_path.hh
+  ../RNA_types.hh
 )
 
 set(SRC
-  makesrna.c
-  rna_define.c
+  makesrna.cc
+  rna_define.cc
   ${DEFSRC}
   ${APISRC}
   ../../../../intern/clog/clog.c
@@ -227,25 +246,21 @@ set(INC
   ../../gpu
   ../../ikplugin
   ../../imbuf
-  ../../makesdna
+  ../../io/usd
   ../../modifiers
   ../../nodes
   ../../sequencer
   ../../simulation
   ../../windowmanager
+  ../../editors/asset
   ../../editors/include
   ../../render
   ../../../../intern/clog
   ../../../../intern/cycles/blender
-  ../../../../intern/atomic
-  ../../../../intern/guardedalloc
   ../../../../intern/memutil
   ../../../../intern/mantaflow/extern
 
-  ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesrna/
 )
@@ -384,6 +399,15 @@ if(WITH_OPENSUBDIV)
   )
   add_definitions(-DWITH_OPENSUBDIV)
 endif()
+if(WITH_OPENVDB)
+  list(APPEND INC
+    ../../../../intern/openvdb
+  )
+  list(APPEND INC_SYS
+    ${OPENVDB_INCLUDE_DIRS}
+  )
+  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
+endif()
 
 if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB)
@@ -401,8 +425,12 @@ if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
 endif()
 
-if(WITH_VULKAN_METAL)
-  add_definitions(-DWITH_VULKAN_METAL)
+if(WITH_OPENGL_BACKEND)
+  add_definitions(-DWITH_OPENGL_BACKEND)
+endif()
+
+if(WITH_METAL_BACKEND)
+  add_definitions(-DWITH_METAL_BACKEND)
 endif()
 
 if(WITH_VULKAN_BACKEND)
@@ -418,15 +446,18 @@ add_cc_flags_custom_test(makesrna)
 
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
 setup_platform_linker_flags(makesrna)
+setup_platform_linker_libs(makesrna)
 blender_target_include_dirs(makesrna ${INC})
 blender_target_include_dirs_sys(makesrna ${INC_SYS})
 
-target_link_libraries(makesrna bf_dna)
-target_link_libraries(makesrna bf_dna_blenlib)
+target_link_libraries(makesrna PRIVATE bf_dna)
+target_link_libraries(makesrna PRIVATE bf::intern::atomic)
+target_link_libraries(makesrna PRIVATE bf::intern::guardedalloc)
+target_link_libraries(makesrna PRIVATE bf_dna_blenlib)
 
 if(WIN32 AND NOT UNIX)
   if(DEFINED PTHREADS_LIBRARIES)
-    target_link_libraries(makesrna ${PTHREADS_LIBRARIES})
+    target_link_libraries(makesrna PRIVATE ${PTHREADS_LIBRARIES})
   endif()
 endif()
 
@@ -442,7 +473,7 @@ add_custom_command(
 # Build bf_rna
 set(SRC
   rna_access.cc
-  rna_access_compare_override.c
+  rna_access_compare_override.cc
   rna_path.cc
   ${GENSRC}
 
@@ -454,7 +485,8 @@ set(SRC
 )
 
 set(LIB
-  bf_dna
+  PRIVATE bf::animrig
+  PRIVATE bf::dna
   bf_editor_space_api
 
   bf_editor_animation
@@ -474,9 +506,7 @@ set(LIB
   bf_editor_sound
   bf_editor_transform
   bf_editor_undo
+  PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-
-# Needed so we can use dna_type_offsets.h for defaults initialization.
-add_dependencies(bf_blenkernel bf_dna)

@@ -16,7 +16,7 @@
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
-#include "ED_text.h"
+#include "ED_text.hh"
 
 #include "text_format.hh"
 
@@ -32,10 +32,10 @@ static void flatten_string_append(FlattenString *fs, const char *c, int accum, i
     fs->len *= 2;
 
     nbuf = static_cast<char *>(MEM_callocN(sizeof(*fs->buf) * fs->len, "fs->buf"));
-    naccum = static_cast<int *>(MEM_callocN(sizeof(*fs->accum) * fs->len, "fs->accum"));
+    memcpy(nbuf, fs->buf, sizeof(*fs->buf) * fs->pos);
 
-    memcpy(nbuf, fs->buf, fs->pos * sizeof(*fs->buf));
-    memcpy(naccum, fs->accum, fs->pos * sizeof(*fs->accum));
+    naccum = static_cast<int *>(MEM_callocN(sizeof(*fs->accum) * fs->len, "fs->accum"));
+    memcpy(naccum, fs->accum, sizeof(*fs->accum) * fs->pos);
 
     if (fs->buf != fs->fixedbuf) {
       MEM_freeN(fs->buf);
@@ -172,14 +172,12 @@ void ED_text_format_register(TextFormatType *tft)
 
 TextFormatType *ED_text_format_get(Text *text)
 {
-  TextFormatType *tft;
-
   if (text) {
     const char *text_ext = strchr(text->id.name + 2, '.');
     if (text_ext) {
       text_ext++; /* skip the '.' */
       /* Check all text formats in the static list */
-      for (tft = static_cast<TextFormatType *>(tft_lb.first); tft; tft = tft->next) {
+      LISTBASE_FOREACH (TextFormatType *, tft, &tft_lb) {
         /* All formats should have an ext, but just in case */
         const char **ext;
         for (ext = tft->ext; *ext; ext++) {
@@ -212,8 +210,6 @@ bool ED_text_is_syntax_highlight_supported(Text *text)
     return false;
   }
 
-  TextFormatType *tft;
-
   const char *text_ext = BLI_path_extension(text->id.name + 2);
   if (text_ext == nullptr) {
     /* Extensionless data-blocks are considered highlightable as Python. */
@@ -226,7 +222,7 @@ bool ED_text_is_syntax_highlight_supported(Text *text)
   }
 
   /* Check all text formats in the static list */
-  for (tft = static_cast<TextFormatType *>(tft_lb.first); tft; tft = tft->next) {
+  LISTBASE_FOREACH (TextFormatType *, tft, &tft_lb) {
     /* All formats should have an ext, but just in case */
     const char **ext;
     for (ext = tft->ext; *ext; ext++) {
@@ -257,7 +253,7 @@ int text_format_string_literal_find(const Span<const char *> string_literals, co
     }
   }
 
-  return -1;
+  return 0;
 }
 
 #ifndef NDEBUG

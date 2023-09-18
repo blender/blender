@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void node_tex_checker(
     vec3 co, vec4 color1, vec4 color2, float scale, out vec4 color, out float fac)
 {

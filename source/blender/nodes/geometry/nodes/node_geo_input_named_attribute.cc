@@ -1,11 +1,15 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_socket_search_link.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
@@ -29,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -90,33 +94,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class AttributeExistsFieldInput final : public bke::GeometryFieldInput {
- private:
-  std::string name_;
-
- public:
-  AttributeExistsFieldInput(std::string name, const CPPType &type)
-      : GeometryFieldInput(type, name), name_(std::move(name))
-  {
-    category_ = Category::Generated;
-  }
-
-  static Field<bool> Create(std::string name)
-  {
-    const CPPType &type = CPPType::get<bool>();
-    auto field_input = std::make_shared<AttributeExistsFieldInput>(std::move(name), type);
-    return Field<bool>(field_input);
-  }
-
-  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask & /*mask*/) const final
-  {
-    const bool exists = context.attributes()->contains(name_);
-    const int domain_size = context.attributes()->domain_size(context.domain());
-    return VArray<bool>::ForSingle(exists, domain_size);
-  }
-};
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryInputNamedAttribute &storage = node_storage(params.node());
@@ -159,27 +136,40 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
   }
 
-  params.set_output("Exists", AttributeExistsFieldInput::Create(std::move(name)));
+  params.set_output("Exists", bke::AttributeExistsFieldInput::Create(std::move(name)));
 }
 
-}  // namespace blender::nodes::node_geo_input_named_attribute_cc
-
-void register_node_type_geo_input_named_attribute()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_input_named_attribute_cc;
+  RNA_def_node_enum(srna,
+                    "data_type",
+                    "Data Type",
+                    "The data type used to read the attribute values",
+                    rna_enum_attribute_type_items,
+                    NOD_storage_enum_accessors(data_type),
+                    CD_PROP_FLOAT,
+                    enums::attribute_type_type_with_socket_fn);
+}
 
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_NAMED_ATTRIBUTE, "Named Attribute", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.initfunc = file_ns::node_init;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
+  ntype.updatefunc = node_update;
+  ntype.initfunc = node_init;
   node_type_storage(&ntype,
                     "NodeGeometryInputNamedAttribute",
                     node_free_standard_storage,
                     node_copy_standard_storage);
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_input_named_attribute_cc

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Reduce pass: Downsample the color buffer to generate mipmaps.
@@ -42,7 +45,7 @@ float dof_scatter_screen_border_rejection(float coc, vec2 uv, vec2 screen_size)
 {
   vec2 screen_pos = uv * screen_size;
   float min_screen_border_distance = min_v2(min(screen_pos, screen_size - screen_pos));
-  /* Fullres to halfres CoC. */
+  /* Full-resolution to half-resolution CoC. */
   coc *= 0.5;
   /* Allow 10px transition. */
   const float rejection_hardeness = 1.0 / 10.0;

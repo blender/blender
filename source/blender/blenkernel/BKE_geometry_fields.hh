@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -223,6 +223,28 @@ class AttributeFieldInput : public GeometryFieldInput {
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;
   std::optional<eAttrDomain> preferred_domain(const GeometryComponent &component) const override;
+};
+
+class AttributeExistsFieldInput final : public bke::GeometryFieldInput {
+ private:
+  std::string name_;
+
+ public:
+  AttributeExistsFieldInput(std::string name, const CPPType &type)
+      : GeometryFieldInput(type, name), name_(std::move(name))
+  {
+    category_ = Category::Generated;
+  }
+
+  static fn::Field<bool> Create(std::string name)
+  {
+    const CPPType &type = CPPType::get<bool>();
+    auto field_input = std::make_shared<AttributeExistsFieldInput>(std::move(name), type);
+    return fn::Field<bool>(field_input);
+  }
+
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 const IndexMask &mask) const final;
 };
 
 class IDAttributeFieldInput : public GeometryFieldInput {

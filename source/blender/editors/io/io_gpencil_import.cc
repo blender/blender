@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,19 +21,19 @@
 
 #  include "BLT_translation.h"
 
-#  include "RNA_access.h"
-#  include "RNA_define.h"
+#  include "RNA_access.hh"
+#  include "RNA_define.hh"
 
-#  include "UI_interface.h"
-#  include "UI_resources.h"
+#  include "UI_interface.hh"
+#  include "UI_resources.hh"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_query.h"
 
-#  include "ED_gpencil_legacy.h"
+#  include "ED_gpencil_legacy.hh"
 
 #  include "io_gpencil.hh"
 
@@ -116,10 +116,10 @@ static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
         MEM_freeN(filename);
 
         /* Do Import. */
-        WM_cursor_wait(1);
+        WM_cursor_wait(true);
         RNA_string_get(&itemptr, "name", params.filename);
         const bool done = gpencil_io_import(file_path, &params);
-        WM_cursor_wait(0);
+        WM_cursor_wait(false);
         if (!done) {
           BKE_reportf(op->reports, RPT_WARNING, "Unable to import '%s'", file_path);
         }
@@ -137,8 +137,8 @@ static void ui_gpencil_import_svg_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemR(col, imfptr, "resolution", 0, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "scale", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "resolution", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void wm_gpencil_import_svg_draw(bContext * /*C*/, wmOperator *op)

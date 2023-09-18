@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* TODO(fclem): deduplicate code. */
 bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
@@ -30,8 +33,6 @@ vec3 workbench_image_color(vec2 uvs)
 #ifdef WORKBENCH_COLOR_TEXTURE
   vec4 color;
 
-#  ifdef WORKBENCH_NEXT
-
   vec3 co = vec3(uvs, 0.0);
   if (isImageTile) {
     if (node_tex_tile_lookup(co, imageTileArray, imageTileData)) {
@@ -44,23 +45,6 @@ vec3 workbench_image_color(vec2 uvs)
   else {
     color = texture(imageTexture, uvs);
   }
-
-#  else  // WORKBENCH_NEXT
-
-#    ifdef WORKBENCH_TEXTURE_IMAGE_ARRAY
-  vec3 co = vec3(uvs, 0.0);
-  if (node_tex_tile_lookup(co, imageTileArray, imageTileData)) {
-    color = texture(imageTileArray, co);
-  }
-  else {
-    color = vec4(1.0, 0.0, 1.0, 1.0);
-  }
-#    else
-
-  color = texture(imageTexture, uvs);
-#    endif
-
-#  endif  // WORKBENCH_NEXT
 
   /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
   if (imagePremult && !(color.a == 0.0 || color.a == 1.0)) {

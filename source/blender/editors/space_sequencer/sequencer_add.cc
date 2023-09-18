@@ -6,16 +6,15 @@
  * \ingroup spseq
  */
 
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -37,11 +36,11 @@
 
 #include "IMB_imbuf.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "SEQ_add.h"
@@ -56,12 +55,12 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-#include "ED_scene.h"
+#include "ED_scene.hh"
 /* For menu, popup, icons, etc. */
-#include "ED_screen.h"
-#include "ED_sequencer.h"
+#include "ED_screen.hh"
+#include "ED_sequencer.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #ifdef WITH_AUDASPACE
 #  include <AUD_Sequence.h>
@@ -71,7 +70,7 @@
 #include "DEG_depsgraph_build.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 struct SequencerAddData {
   ImageFormatData im_format;
@@ -485,7 +484,7 @@ void SEQUENCER_OT_scene_strip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-  prop = RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+  prop = RNA_def_enum(ot->srna, "scene", rna_enum_dummy_NULL_items, 0, "Scene", "");
   RNA_def_enum_funcs(prop, RNA_scene_without_active_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
@@ -668,7 +667,7 @@ void SEQUENCER_OT_movieclip_strip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-  prop = RNA_def_enum(ot->srna, "clip", DummyRNA_NULL_items, 0, "Clip", "");
+  prop = RNA_def_enum(ot->srna, "clip", rna_enum_dummy_NULL_items, 0, "Clip", "");
   RNA_def_enum_funcs(prop, RNA_movieclip_itemf);
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
@@ -732,7 +731,7 @@ void SEQUENCER_OT_mask_strip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-  prop = RNA_def_enum(ot->srna, "mask", DummyRNA_NULL_items, 0, "Mask", "");
+  prop = RNA_def_enum(ot->srna, "mask", rna_enum_dummy_NULL_items, 0, "Mask", "");
   RNA_def_enum_funcs(prop, RNA_mask_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
@@ -972,6 +971,7 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
   }
 
   if (SEQ_collection_len(movie_strips) == 0) {
+    sequencer_add_cancel(C, op);
     SEQ_collection_free(movie_strips);
     return OPERATOR_CANCELLED;
   }
@@ -1023,7 +1023,6 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
   ImageFormatData *imf = &sad->im_format;
-  PointerRNA imf_ptr;
 
   /* Main draw call. */
   uiDefAutoButsRNA(layout,
@@ -1035,7 +1034,7 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
                    false);
 
   /* Image template. */
-  RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, imf, &imf_ptr);
+  PointerRNA imf_ptr = RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, imf);
 
   /* Multiview template. */
   if (RNA_boolean_get(op->ptr, "show_multiview")) {
@@ -1482,55 +1481,55 @@ static int sequencer_add_effect_strip_invoke(bContext *C,
   return sequencer_add_effect_strip_exec(C, op);
 }
 
-static char *sequencer_add_effect_strip_desc(bContext * /*C*/,
-                                             wmOperatorType * /*op*/,
-                                             PointerRNA *ptr)
+static std::string sequencer_add_effect_strip_desc(bContext * /*C*/,
+                                                   wmOperatorType * /*op*/,
+                                                   PointerRNA *ptr)
 {
   const int type = RNA_enum_get(ptr, "type");
 
   switch (type) {
     case SEQ_TYPE_CROSS:
-      return BLI_strdup(TIP_("Add a crossfade transition to the sequencer"));
+      return TIP_("Add a crossfade transition to the sequencer");
     case SEQ_TYPE_ADD:
-      return BLI_strdup(TIP_("Add an add effect strip to the sequencer"));
+      return TIP_("Add an add effect strip to the sequencer");
     case SEQ_TYPE_SUB:
-      return BLI_strdup(TIP_("Add a subtract effect strip to the sequencer"));
+      return TIP_("Add a subtract effect strip to the sequencer");
     case SEQ_TYPE_ALPHAOVER:
-      return BLI_strdup(TIP_("Add an alpha over effect strip to the sequencer"));
+      return TIP_("Add an alpha over effect strip to the sequencer");
     case SEQ_TYPE_ALPHAUNDER:
-      return BLI_strdup(TIP_("Add an alpha under effect strip to the sequencer"));
+      return TIP_("Add an alpha under effect strip to the sequencer");
     case SEQ_TYPE_GAMCROSS:
-      return BLI_strdup(TIP_("Add a gamma cross transition to the sequencer"));
+      return TIP_("Add a gamma cross transition to the sequencer");
     case SEQ_TYPE_MUL:
-      return BLI_strdup(TIP_("Add a multiply effect strip to the sequencer"));
+      return TIP_("Add a multiply effect strip to the sequencer");
     case SEQ_TYPE_OVERDROP:
-      return BLI_strdup(TIP_("Add an alpha over drop effect strip to the sequencer"));
+      return TIP_("Add an alpha over drop effect strip to the sequencer");
     case SEQ_TYPE_WIPE:
-      return BLI_strdup(TIP_("Add a wipe transition to the sequencer"));
+      return TIP_("Add a wipe transition to the sequencer");
     case SEQ_TYPE_GLOW:
-      return BLI_strdup(TIP_("Add a glow effect strip to the sequencer"));
+      return TIP_("Add a glow effect strip to the sequencer");
     case SEQ_TYPE_TRANSFORM:
-      return BLI_strdup(TIP_("Add a transform effect strip to the sequencer"));
+      return TIP_("Add a transform effect strip to the sequencer");
     case SEQ_TYPE_COLOR:
-      return BLI_strdup(TIP_("Add a color strip to the sequencer"));
+      return TIP_("Add a color strip to the sequencer");
     case SEQ_TYPE_SPEED:
-      return BLI_strdup(TIP_("Add a speed effect strip to the sequencer"));
+      return TIP_("Add a speed effect strip to the sequencer");
     case SEQ_TYPE_MULTICAM:
-      return BLI_strdup(TIP_("Add a multicam selector effect strip to the sequencer"));
+      return TIP_("Add a multicam selector effect strip to the sequencer");
     case SEQ_TYPE_ADJUSTMENT:
-      return BLI_strdup(TIP_("Add an adjustment layer effect strip to the sequencer"));
+      return TIP_("Add an adjustment layer effect strip to the sequencer");
     case SEQ_TYPE_GAUSSIAN_BLUR:
-      return BLI_strdup(TIP_("Add a gaussian blur effect strip to the sequencer"));
+      return TIP_("Add a gaussian blur effect strip to the sequencer");
     case SEQ_TYPE_TEXT:
-      return BLI_strdup(TIP_("Add a text strip to the sequencer"));
+      return TIP_("Add a text strip to the sequencer");
     case SEQ_TYPE_COLORMIX:
-      return BLI_strdup(TIP_("Add a color mix effect strip to the sequencer"));
+      return TIP_("Add a color mix effect strip to the sequencer");
     default:
       break;
   }
 
   /* Use default description. */
-  return nullptr;
+  return "";
 }
 
 void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
@@ -1552,12 +1551,13 @@ void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(ot->srna,
-               "type",
-               sequencer_prop_effect_types,
-               SEQ_TYPE_CROSS,
-               "Type",
-               "Sequencer effect type");
+  prop = RNA_def_enum(ot->srna,
+                      "type",
+                      sequencer_prop_effect_types,
+                      SEQ_TYPE_CROSS,
+                      "Type",
+                      "Sequencer effect type");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME);
   /* Only used when strip is of the Color type. */
   prop = RNA_def_float_color(ot->srna,

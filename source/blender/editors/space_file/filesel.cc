@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -49,23 +49,23 @@
 
 #include "BLF_api.h"
 
-#include "ED_fileselect.h"
-#include "ED_screen.h"
+#include "ED_fileselect.hh"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_view2d.hh"
 
-#include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 #include "AS_essentials_library.hh"
 
-#include "file_intern.h"
-#include "filelist.h"
+#include "file_intern.hh"
+#include "filelist.hh"
 
 #define VERTLIST_MAJORCOLUMN_WIDTH (25 * UI_UNIT_X)
 
@@ -172,7 +172,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     const bool is_relative_path = (RNA_struct_find_property(op->ptr, "relative_path") != nullptr);
 
     BLI_strncpy_utf8(
-        params->title, WM_operatortype_name(op->type, op->ptr), sizeof(params->title));
+        params->title, WM_operatortype_name(op->type, op->ptr).c_str(), sizeof(params->title));
 
     if ((prop = RNA_struct_find_property(op->ptr, "filemode"))) {
       params->type = RNA_property_int_get(op->ptr, prop);
@@ -424,8 +424,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
   if (library->type == ASSET_LIBRARY_CUSTOM) {
     BLI_assert(library->custom_library_index >= 0);
 
-    user_library = BKE_preferences_asset_library_find_from_index(&U,
-                                                                 library->custom_library_index);
+    user_library = BKE_preferences_asset_library_find_index(&U, library->custom_library_index);
     if (!user_library) {
       library->type = ASSET_LIBRARY_ALL;
     }
@@ -513,16 +512,15 @@ int ED_fileselect_asset_import_method_get(const SpaceFile *sfile, const FileDirE
   }
 
   /* First handle the case where the asset system dictates a certain import method. */
-  if (AS_asset_representation_may_override_import_method(file->asset) == false) {
-    BLI_assert(AS_asset_representation_import_method_get(file->asset).has_value());
-
-    return *AS_asset_representation_import_method_get(file->asset);
+  if (file->asset->may_override_import_method() == false) {
+    BLI_assert(file->asset->get_import_method().has_value());
+    return *file->asset->get_import_method();
   }
 
   const FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
 
   if (params->import_type == FILE_ASSET_IMPORT_FOLLOW_PREFS) {
-    std::optional import_method = AS_asset_representation_import_method_get(file->asset);
+    std::optional import_method = file->asset->get_import_method();
     return import_method ? *import_method : -1;
   }
 
@@ -713,7 +711,7 @@ void ED_fileselect_params_to_userdef(SpaceFile *sfile,
     sfile_udata_new->temp_win_sizey = temp_win_size[1];
   }
 
-  /* Tag prefs as dirty if something has changed. */
+  /* Tag preferences as dirty if something has changed. */
   if (memcmp(sfile_udata_new, &sfile_udata_old, sizeof(sfile_udata_old)) != 0) {
     U.runtime.is_dirty = true;
   }
@@ -957,7 +955,7 @@ float file_string_width(const char *str)
   return BLF_width(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
-float file_font_pointsize(void)
+float file_font_pointsize()
 {
 #if 0
   float s;
@@ -1326,7 +1324,7 @@ void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
 
 void file_params_smoothscroll_timer_clear(wmWindowManager *wm, wmWindow *win, SpaceFile *sfile)
 {
-  WM_event_remove_timer(wm, win, sfile->smoothscroll_timer);
+  WM_event_timer_remove(wm, win, sfile->smoothscroll_timer);
   sfile->smoothscroll_timer = nullptr;
 }
 
@@ -1339,7 +1337,7 @@ void file_params_invoke_rename_postscroll(wmWindowManager *wm, wmWindow *win, Sp
   if (sfile->smoothscroll_timer != nullptr) {
     file_params_smoothscroll_timer_clear(wm, win, sfile);
   }
-  sfile->smoothscroll_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 1000.0);
+  sfile->smoothscroll_timer = WM_event_timer_add(wm, win, TIMER1, 1.0 / 1000.0);
   sfile->scroll_offset = 0;
 }
 
@@ -1411,7 +1409,7 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
       params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE;
     }
   }
-  /* File listing is now async, only reset renaming if matching entry is not found
+  /* File listing is now asynchronous, only reset renaming if matching entry is not found
    * when file listing is not done. */
   else if (filelist_is_ready(sfile->files)) {
     file_params_renamefile_clear(params);

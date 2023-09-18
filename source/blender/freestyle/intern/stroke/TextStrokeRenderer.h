@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -40,7 +40,7 @@ namespace Freestyle {
 
 class TextStrokeRenderer : public StrokeRenderer {
  public:
-  TextStrokeRenderer(const char *iFileName = NULL);
+  TextStrokeRenderer(const char *iFileName = nullptr);
 
   /** Renders a stroke rep */
   virtual void RenderStrokeRep(StrokeRep *iStrokeRep) const;

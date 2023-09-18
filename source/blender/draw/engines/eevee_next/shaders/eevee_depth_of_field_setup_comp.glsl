@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Setup pass: CoC and luma aware downsample to half resolution of the input scene color buffer.
@@ -9,7 +12,7 @@
  *  Full-resolution color & depth buffer
  * Output:
  *  Half-resolution Color, signed CoC (out_coc.x), and max slight focus abs CoC (out_coc.y).
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -18,7 +21,7 @@
 void main()
 {
   vec2 fullres_texel_size = 1.0 / vec2(textureSize(color_tx, 0).xy);
-  /* Center uv around the 4 fullres pixels. */
+  /* Center uv around the 4 full-resolution pixels. */
   vec2 quad_center = vec2(gl_GlobalInvocationID.xy * 2 + 1) * fullres_texel_size;
 
   vec4 colors[4];

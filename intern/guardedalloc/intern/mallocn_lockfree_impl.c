@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2013-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -337,6 +337,8 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
 void MEM_lockfree_printmemlist_pydict(void) {}
 
 void MEM_lockfree_printmemlist(void) {}
+
+void mem_lockfree_clearmemlist(void) {}
 
 /* unused */
 void MEM_lockfree_callbackmemlist(void (*func)(void *))

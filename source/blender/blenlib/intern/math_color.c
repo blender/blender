@@ -6,7 +6,7 @@
  * \ingroup bli
  */
 
-#include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_strict_flags.h"

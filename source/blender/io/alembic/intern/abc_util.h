@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -9,6 +9,8 @@
 
 #include <Alembic/Abc/All.h>
 #include <Alembic/AbcGeom/All.h>
+
+#include <optional>
 
 using Alembic::Abc::chrono_t;
 
@@ -81,11 +83,27 @@ void get_min_max_time(const Alembic::AbcGeom::IObject &object,
 
 bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string &name);
 
-double get_weight_and_index(Alembic::AbcCoreAbstract::chrono_t time,
-                            const Alembic::AbcCoreAbstract::TimeSamplingPtr &time_sampling,
-                            int samples_number,
-                            Alembic::AbcGeom::index_t &i0,
-                            Alembic::AbcGeom::index_t &i1);
+/**
+ * The SampleInterpolationSettings struct holds information for interpolating data between two
+ * samples.
+ */
+struct SampleInterpolationSettings {
+  /* Index of the first ("floor") sample. */
+  Alembic::AbcGeom::index_t index;
+  /* Index of the second ("ceil") sample. */
+  Alembic::AbcGeom::index_t ceil_index;
+  /* Factor to interpolate between the `index` and `ceil_index`. */
+  double weight;
+};
+
+/** Check whether the requested time from the \a selector falls between two sampling time from the
+ * \a time_sampling. If so, returns a #SampleInterpolationSettings with the required data to
+ * interpolate. If not, returns nothing and we can assume that the requested time falls on a
+ * specific sampling time of \a time_sampling and no interpolation is necessary. */
+std::optional<SampleInterpolationSettings> get_sample_interpolation_settings(
+    const Alembic::AbcGeom::ISampleSelector &selector,
+    const Alembic::AbcCoreAbstract::TimeSamplingPtr &time_sampling,
+    size_t samples_number);
 
 AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSettings &settings);
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,6 +24,7 @@ class VKPushConstants;
 class VKStorageBuffer;
 class VKTexture;
 class VKVertexBuffer;
+class VKDevice;
 
 /** Command buffer to keep track of the life-time of a command buffer. */
 class VKCommandBuffer : NonCopyable, NonMovable {
@@ -77,7 +78,7 @@ class VKCommandBuffer : NonCopyable, NonMovable {
    */
   struct {
     /* Reference to the last_framebuffer where begin_render_pass was called for. */
-    const VKFrameBuffer *framebuffer_ = nullptr;
+    VKFrameBuffer *framebuffer_ = nullptr;
     /* Is last_framebuffer_ currently bound. Each call should ensure the correct state. */
     bool framebuffer_active_ = false;
     /* Amount of times a check has been requested. */
@@ -132,7 +133,8 @@ class VKCommandBuffer : NonCopyable, NonMovable {
 
  public:
   virtual ~VKCommandBuffer();
-  void init(const VkDevice vk_device, const VkQueue vk_queue, VkCommandBuffer vk_command_buffer);
+  bool is_initialized() const;
+  void init(const VKDevice &vk_device);
   void begin_recording();
   void end_recording();
 
@@ -149,7 +151,7 @@ class VKCommandBuffer : NonCopyable, NonMovable {
   /* Bind the given buffer as an index buffer. */
   void bind(const VKBufferWithOffset &index_buffer, VkIndexType index_type);
 
-  void begin_render_pass(const VKFrameBuffer &framebuffer);
+  void begin_render_pass(VKFrameBuffer &framebuffer);
   void end_render_pass(const VKFrameBuffer &framebuffer);
 
   /**
@@ -175,6 +177,7 @@ class VKCommandBuffer : NonCopyable, NonMovable {
   void pipeline_barrier(VkPipelineStageFlags source_stages,
                         VkPipelineStageFlags destination_stages);
   void pipeline_barrier(Span<VkImageMemoryBarrier> image_memory_barriers);
+
   /**
    * Clear color image resource.
    */
@@ -184,14 +187,31 @@ class VKCommandBuffer : NonCopyable, NonMovable {
              Span<VkImageSubresourceRange> ranges);
 
   /**
+   * Clear depth/stencil aspect of an image resource.
+   */
+  void clear(VkImage vk_image,
+             VkImageLayout vk_image_layout,
+             const VkClearDepthStencilValue &vk_clear_color,
+             Span<VkImageSubresourceRange> ranges);
+
+  /**
    * Clear attachments of the active framebuffer.
    */
   void clear(Span<VkClearAttachment> attachments, Span<VkClearRect> areas);
   void fill(VKBuffer &buffer, uint32_t data);
 
   void draw(int v_first, int v_count, int i_first, int i_count);
-  void draw(
+  void draw_indexed(
       int index_count, int instance_count, int first_index, int vertex_offset, int first_instance);
+
+  void draw_indirect(const VKStorageBuffer &buffer,
+                     VkDeviceSize offset,
+                     uint32_t draw_count,
+                     uint32_t stride);
+  void draw_indexed_indirect(const VKStorageBuffer &buffer,
+                             VkDeviceSize offset,
+                             uint32_t draw_count,
+                             uint32_t stride);
 
   /**
    * Stop recording commands, encode + send the recordings to Vulkan, wait for the until the
@@ -205,8 +225,7 @@ class VKCommandBuffer : NonCopyable, NonMovable {
   }
 
  private:
-  void encode_recorded_commands();
-  void submit_encoded_commands();
+  void submit_commands();
 
   /**
    * Validate that there isn't a framebuffer being tracked (bound or not bound).

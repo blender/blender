@@ -92,7 +92,7 @@ class GHOST_SystemCocoa : public GHOST_System {
                               GHOST_GPUSettings gpuSettings,
                               const bool exclusive = false,
                               const bool is_dialog = false,
-                              const GHOST_IWindow *parentWindow = NULL);
+                              const GHOST_IWindow *parentWindow = nullptr);
 
   /**
    * Create a new off-screen context.
@@ -237,7 +237,7 @@ class GHOST_SystemCocoa : public GHOST_System {
   /**
    * \see GHOST_ISystem
    */
-  bool setConsoleWindowState(GHOST_TConsoleWindowState action)
+  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
   {
     return false;
   }
@@ -266,6 +266,22 @@ class GHOST_SystemCocoa : public GHOST_System {
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess handleKeyEvent(void *eventPtr);
+
+  /**
+   * Show a system message box
+   * \param title: The title of the message box.
+   * \param message: The message to display.
+   * \param help_label: Help button label.
+   * \param continue_label: Continue button label.
+   * \param link: An optional hyperlink.
+   * \param dialog_options: Options  how to display the message.
+   */
+  virtual GHOST_TSuccess showMessageBox(const char *title,
+                                        const char *message,
+                                        const char *help_label,
+                                        const char *continue_label,
+                                        const char *link,
+                                        GHOST_DialogOptions dialog_options) const;
 
  protected:
   /**

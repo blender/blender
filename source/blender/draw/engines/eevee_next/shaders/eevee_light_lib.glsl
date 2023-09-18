@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ltc_lib.glsl)
@@ -19,6 +22,35 @@ void light_vector_get(LightData ld, vec3 P, out vec3 L, out float dist)
     dist = inversesqrt(len_squared(L));
     L *= dist;
     dist = 1.0 / dist;
+  }
+}
+
+/* Light vector to the closest point in the light shape. */
+void light_shape_vector_get(LightData ld, vec3 P, out vec3 L, out float dist)
+{
+  if (ld.type == LIGHT_RECT || ld.type == LIGHT_ELLIPSE) {
+    L = P - ld._position;
+    vec2 closest_point = vec2(dot(ld._right, L), dot(ld._up, L));
+    vec2 max_pos = vec2(ld._area_size_x, ld._area_size_y);
+    closest_point /= max_pos;
+
+    if (ld.type == LIGHT_ELLIPSE) {
+      closest_point /= max(1.0, length(closest_point));
+    }
+    else {
+      closest_point = clamp(closest_point, -1.0, 1.0);
+    }
+    closest_point *= max_pos;
+
+    vec3 L_prime = ld._right * closest_point.x + ld._up * closest_point.y;
+
+    L = L_prime - L;
+    dist = inversesqrt(len_squared(L));
+    L *= dist;
+    dist = 1.0 / dist;
+  }
+  else {
+    light_vector_get(ld, P, L, dist);
   }
 }
 
@@ -81,11 +113,10 @@ float light_point_light(LightData ld, const bool is_directional, vec3 L, float d
   if (is_directional) {
     return 1.0;
   }
-  /**
-   * Using "Point Light Attenuation Without Singularity" from Cem Yuksel
+  /* Using "Point Light Attenuation Without Singularity" from Cem Yuksel
    * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
    * http://www.cemyuksel.com/research/pointlightattenuation/
-   **/
+   */
   float d_sqr = sqr(dist);
   float r_sqr = ld.radius_squared;
   /* Using reformulation that has better numerical precision. */
@@ -211,8 +242,13 @@ float light_ltc(sampler2DArray utility_tx,
   }
 }
 
-vec3 light_translucent(sampler1D transmittance_tx,
-                       const bool is_directional,
+#ifdef SSS_TRANSMITTANCE
+float sample_transmittance_profile(float u)
+{
+  return utility_tx_sample(utility_tx, vec2(u, 0.0), UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER).r;
+}
+
+vec3 light_translucent(const bool is_directional,
                        LightData ld,
                        vec3 N,
                        vec3 L,
@@ -231,10 +267,11 @@ vec3 light_translucent(sampler1D transmittance_tx,
   vec3 channels_co = saturate(delta / sss_radius) * SSS_TRANSMIT_LUT_SCALE + SSS_TRANSMIT_LUT_BIAS;
 
   vec3 translucency;
-  translucency.x = (sss_radius.x > 0.0) ? texture(transmittance_tx, channels_co.x).r : 0.0;
-  translucency.y = (sss_radius.y > 0.0) ? texture(transmittance_tx, channels_co.y).r : 0.0;
-  translucency.z = (sss_radius.z > 0.0) ? texture(transmittance_tx, channels_co.z).r : 0.0;
+  translucency.x = (sss_radius.x > 0.0) ? sample_transmittance_profile(channels_co.x) : 0.0;
+  translucency.y = (sss_radius.y > 0.0) ? sample_transmittance_profile(channels_co.y) : 0.0;
+  translucency.z = (sss_radius.z > 0.0) ? sample_transmittance_profile(channels_co.z) : 0.0;
   return translucency * power;
 }
+#endif
 
 /** \} */

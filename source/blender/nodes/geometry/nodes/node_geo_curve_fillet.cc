@@ -1,9 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GEO_fillet_curves.hh"
 
@@ -72,7 +74,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    const Curves &curves_id = *geometry_set.get_curves_for_read();
+    const Curves &curves_id = *geometry_set.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     const bke::CurvesFieldContext context{curves, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator{context, curves.points_num()};
@@ -113,21 +115,47 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_curve_fillet_cc
-
-void register_node_type_geo_curve_fillet()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_curve_fillet_cc;
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_FILLET_BEZIER,
+       "BEZIER",
+       0,
+       "Bezier",
+       "Align Bezier handles to create circular arcs at each control point"},
+      {GEO_NODE_CURVE_FILLET_POLY,
+       "POLY",
+       0,
+       "Poly",
+       "Add control points along a circular arc (handle type is vector if Bezier Spline)"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "How to choose number of vertices on fillet",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    GEO_NODE_CURVE_FILLET_BEZIER);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_FILLET_CURVE, "Fillet Curve", NODE_CLASS_GEOMETRY);
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.draw_buttons = node_layout;
   node_type_storage(
       &ntype, "NodeGeometryCurveFillet", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::node_declare;
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_fillet_cc

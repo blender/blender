@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,19 +18,19 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
-#include "ED_space_api.h"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "console_intern.hh" /* own include */
 
@@ -124,11 +124,11 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
   }
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Include after "Console" so cursor motion keys such as "Home" isn't overridden. */
-  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
   /* add drop boxes */
@@ -220,7 +220,7 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
 
 static void console_operatortypes()
 {
-  /* console_ops.c */
+  /* `console_ops.cc` */
   WM_operatortype_append(CONSOLE_OT_move);
   WM_operatortype_append(CONSOLE_OT_delete);
   WM_operatortype_append(CONSOLE_OT_insert);
@@ -244,7 +244,7 @@ static void console_operatortypes()
 
 static void console_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Console", SPACE_CONSOLE, 0);
+  WM_keymap_ensure(keyconf, "Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
 }
 
 /****************** header region ******************/
@@ -322,7 +322,7 @@ static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   BLO_write_struct(writer, SpaceConsole, sl);
 }
 
-void ED_spacetype_console(void)
+void ED_spacetype_console()
 {
   SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype console"));
   ARegionType *art;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -33,6 +33,64 @@ using InterfaceDictionnary = Map<StringRef, StageInterfaceInfo *>;
 static CreateInfoDictionnary *g_create_infos = nullptr;
 static InterfaceDictionnary *g_interfaces = nullptr;
 
+/* -------------------------------------------------------------------- */
+/** \name Check Backend Support
+ *
+ * \{ */
+
+static bool is_vulkan_compatible_interface(const StageInterfaceInfo &iface)
+{
+  if (iface.instance_name.is_empty()) {
+    return true;
+  }
+
+  bool use_flat = false;
+  bool use_smooth = false;
+  bool use_noperspective = false;
+  for (const StageInterfaceInfo::InOut &attr : iface.inouts) {
+    switch (attr.interp) {
+      case Interpolation::FLAT:
+        use_flat = true;
+        break;
+      case Interpolation::SMOOTH:
+        use_smooth = true;
+        break;
+      case Interpolation::NO_PERSPECTIVE:
+        use_noperspective = true;
+        break;
+    }
+  }
+  int num_used_interpolation_types = (use_flat ? 1 : 0) + (use_smooth ? 1 : 0) +
+                                     (use_noperspective ? 1 : 0);
+
+#if 0
+  if (num_used_interpolation_types > 1) {
+    std::cout << "'" << iface.name << "' uses multiple interpolation types\n";
+  }
+#endif
+
+  return num_used_interpolation_types <= 1;
+}
+
+bool ShaderCreateInfo::is_vulkan_compatible() const
+{
+  /* Vulkan doesn't support setting an interpolation mode per attribute in a struct. */
+  for (const StageInterfaceInfo *iface : vertex_out_interfaces_) {
+    if (!is_vulkan_compatible_interface(*iface)) {
+      return false;
+    }
+  }
+  for (const StageInterfaceInfo *iface : geometry_out_interfaces_) {
+    if (!is_vulkan_compatible_interface(*iface)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/** \} */
+
 void ShaderCreateInfo::finalize()
 {
   if (finalized_) {
@@ -63,6 +121,7 @@ void ShaderCreateInfo::finalize()
     fragment_outputs_.extend_non_duplicates(info.fragment_outputs_);
     vertex_out_interfaces_.extend_non_duplicates(info.vertex_out_interfaces_);
     geometry_out_interfaces_.extend_non_duplicates(info.geometry_out_interfaces_);
+    subpass_inputs_.extend_non_duplicates(info.subpass_inputs_);
 
     validate_vertex_attributes(&info);
 
@@ -81,6 +140,9 @@ void ShaderCreateInfo::finalize()
     if (info.depth_write_ != DepthWrite::UNCHANGED) {
       depth_write_ = info.depth_write_;
     }
+
+    /* Inherit builtin bits from additional info. */
+    builtins_ |= info.builtins_;
 
     validate_merge(info);
 
@@ -118,6 +180,13 @@ void ShaderCreateInfo::finalize()
       assert_no_overlap(compute_source_.is_empty(), "Compute source already existing");
       compute_source_ = info.compute_source_;
     }
+  }
+
+  if (!geometry_source_.is_empty() && bool(builtins_ & BuiltinBits::LAYER)) {
+    std::cout << name_
+              << ": Validation failed. BuiltinBits::LAYER shouldn't be used with geometry shaders."
+              << std::endl;
+    BLI_assert(0);
   }
 
   if (auto_resource_location_) {
@@ -173,6 +242,14 @@ std::string ShaderCreateInfo::check_error() const
       error += "Compute shader has fragment_source_ shader attached in " + this->name_ + ".\n";
     }
   }
+
+#ifdef DEBUG
+  if (!this->is_vulkan_compatible()) {
+    error += this->name_ +
+             " contains a stage interface using an instance name and mixed interpolation modes. "
+             "This is not compatible with Vulkan and need to be adjusted.\n";
+  }
+#endif
 
   return error;
 }
@@ -293,14 +370,14 @@ void gpu_shader_create_info_init()
   g_interfaces = new InterfaceDictionnary();
 
 #define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
-  auto *ptr_##_interface = new StageInterfaceInfo(#_interface, _inst_name); \
-  auto &_interface = *ptr_##_interface; \
+  StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface, _inst_name); \
+  StageInterfaceInfo &_interface = *ptr_##_interface; \
   g_interfaces->add_new(#_interface, ptr_##_interface); \
   _interface
 
 #define GPU_SHADER_CREATE_INFO(_info) \
-  auto *ptr_##_info = new ShaderCreateInfo(#_info); \
-  auto &_info = *ptr_##_info; \
+  ShaderCreateInfo *ptr_##_info = new ShaderCreateInfo(#_info); \
+  ShaderCreateInfo &_info = *ptr_##_info; \
   g_create_infos->add_new(#_info, ptr_##_info); \
   _info
 
@@ -400,20 +477,20 @@ void gpu_shader_create_info_init()
 #endif
 
   for (ShaderCreateInfo *info : g_create_infos->values()) {
-    if (info->do_static_compilation_) {
-      info->builtins_ |= gpu_shader_dependency_get_builtins(info->vertex_source_);
-      info->builtins_ |= gpu_shader_dependency_get_builtins(info->fragment_source_);
-      info->builtins_ |= gpu_shader_dependency_get_builtins(info->geometry_source_);
-      info->builtins_ |= gpu_shader_dependency_get_builtins(info->compute_source_);
+    info->builtins_ |= gpu_shader_dependency_get_builtins(info->vertex_source_);
+    info->builtins_ |= gpu_shader_dependency_get_builtins(info->fragment_source_);
+    info->builtins_ |= gpu_shader_dependency_get_builtins(info->geometry_source_);
+    info->builtins_ |= gpu_shader_dependency_get_builtins(info->compute_source_);
 
-      /* Automatically amend the create info for ease of use of the debug feature. */
-      if ((info->builtins_ & BuiltinBits::USE_DEBUG_DRAW) == BuiltinBits::USE_DEBUG_DRAW) {
-        info->additional_info("draw_debug_draw");
-      }
-      if ((info->builtins_ & BuiltinBits::USE_DEBUG_PRINT) == BuiltinBits::USE_DEBUG_PRINT) {
-        info->additional_info("draw_debug_print");
-      }
+#ifdef DEBUG
+    /* Automatically amend the create info for ease of use of the debug feature. */
+    if ((info->builtins_ & BuiltinBits::USE_DEBUG_DRAW) == BuiltinBits::USE_DEBUG_DRAW) {
+      info->additional_info("draw_debug_draw");
     }
+    if ((info->builtins_ & BuiltinBits::USE_DEBUG_PRINT) == BuiltinBits::USE_DEBUG_PRINT) {
+      info->additional_info("draw_debug_print");
+    }
+#endif
   }
 
   /* TEST */
@@ -455,7 +532,7 @@ bool gpu_shader_create_info_compile_all()
       GPUShader *shader = GPU_shader_create_from_info(
           reinterpret_cast<const GPUShaderCreateInfo *>(info));
       if (shader == nullptr) {
-        printf("Compilation %s Failed\n", info->name_.c_str());
+        std::cerr << "Compilation " << info->name_.c_str() << " Failed\n";
       }
       else {
         success++;
@@ -493,12 +570,12 @@ bool gpu_shader_create_info_compile_all()
           }
 
           if (input == nullptr) {
-            std::cout << "Error: " << info->name_;
-            std::cout << ": Resource « " << name << " » not found in the shader interface\n";
+            std::cerr << "Error: " << info->name_;
+            std::cerr << ": Resource « " << name << " » not found in the shader interface\n";
           }
           else if (input->location == -1) {
-            std::cout << "Warning: " << info->name_;
-            std::cout << ": Resource « " << name << " » is optimized out\n";
+            std::cerr << "Warning: " << info->name_;
+            std::cerr << ": Resource « " << name << " » is optimized out\n";
           }
         }
 #endif

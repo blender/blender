@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,21 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
-#include "DNA_cachefile_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_curves_types.h"
-#include "DNA_key_types.h"
-#include "DNA_light_types.h"
-#include "DNA_lightprobe_types.h"
-#include "DNA_material_types.h"
-#include "DNA_pointcloud_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_simulation_types.h"
-#include "DNA_speaker_types.h"
-#include "DNA_volume_types.h"
-#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_fnmatch.h"
@@ -38,14 +24,15 @@
 #include "BKE_modifier.h"
 #include "BKE_outliner_treehash.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "outliner_intern.hh"
 #include "tree/common.hh"
 #include "tree/tree_display.hh"
 #include "tree/tree_element.hh"
+#include "tree/tree_element_overrides.hh"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */
@@ -124,7 +111,7 @@ static void check_persistent(
     SpaceOutliner *space_outliner, TreeElement *te, ID *id, short type, short nr)
 {
   if (space_outliner->treestore == nullptr) {
-    /* if treestore was not created in readfile.c, create it here */
+    /* If treestore was not created in `readfile.cc`, create it here. */
     space_outliner->treestore = BLI_mempool_create(
         sizeof(TreeStoreElem), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
   }
@@ -223,171 +210,77 @@ static void outliner_add_line_styles(SpaceOutliner *space_outliner,
           continue;
         }
         linestyle->id.tag &= ~LIB_TAG_DOIT;
-        outliner_add_element(space_outliner, lb, linestyle, te, TSE_SOME_ID, 0);
+        AbstractTreeDisplay::add_element(
+            space_outliner, lb, reinterpret_cast<ID *>(linestyle), nullptr, te, TSE_SOME_ID, 0);
       }
     }
   }
 }
 #endif
-/* Can be inlined if necessary. */
-static void outliner_add_id_contents(SpaceOutliner *space_outliner, TreeElement *te, ID *id)
+
+TreeElement *AbstractTreeDisplay::add_element(SpaceOutliner *space_outliner,
+                                              ListBase *lb,
+                                              ID *owner_id,
+                                              void *create_data,
+                                              TreeElement *parent,
+                                              short type,
+                                              short index,
+                                              const bool expand)
 {
-  /* expand specific data always */
-  switch (GS(id->name)) {
-    case ID_LI:
-    case ID_SCE:
-    case ID_ME:
-    case ID_CU_LEGACY:
-    case ID_MB:
-    case ID_TE:
-    case ID_LS:
-    case ID_GD_LEGACY:
-    case ID_GR:
-    case ID_AR:
-    case ID_OB:
-      BLI_assert_msg(0, "ID type expected to be expanded through new tree-element design");
-      break;
-    case ID_MA: {
-      Material *ma = (Material *)id;
-      if (outliner_animdata_test(ma->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, ma, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_CA: {
-      Camera *ca = (Camera *)id;
-      if (outliner_animdata_test(ca->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, ca, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_CF: {
-      CacheFile *cache_file = (CacheFile *)id;
-      if (outliner_animdata_test(cache_file->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, cache_file, te, TSE_ANIM_DATA, 0);
-      }
-
-      break;
-    }
-    case ID_LA: {
-      Light *la = (Light *)id;
-      if (outliner_animdata_test(la->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, la, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_SPK: {
-      Speaker *spk = (Speaker *)id;
-      if (outliner_animdata_test(spk->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, spk, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_LP: {
-      LightProbe *prb = (LightProbe *)id;
-      if (outliner_animdata_test(prb->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, prb, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_WO: {
-      World *wrld = (World *)id;
-      if (outliner_animdata_test(wrld->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, wrld, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_KE: {
-      Key *key = (Key *)id;
-      if (outliner_animdata_test(key->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, key, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_AC: {
-      /* XXX do we want to be exposing the F-Curves here? */
-      /* bAction *act = (bAction *)id; */
-      break;
-    }
-    case ID_CV: {
-      Curves *curves = (Curves *)id;
-      if (outliner_animdata_test(curves->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, curves, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_PT: {
-      PointCloud *pointcloud = (PointCloud *)id;
-      if (outliner_animdata_test(pointcloud->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, pointcloud, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_VO: {
-      Volume *volume = (Volume *)id;
-      if (outliner_animdata_test(volume->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, volume, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_SIM: {
-      Simulation *simulation = (Simulation *)id;
-      if (outliner_animdata_test(simulation->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, simulation, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    default:
-      break;
-  }
-}
-
-TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
-                                  ListBase *lb,
-                                  void *idv,
-                                  TreeElement *parent,
-                                  short type,
-                                  short index,
-                                  const bool expand)
-{
-  ID *id = static_cast<ID *>(idv);
-
-  if (ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
-    id = ((PointerRNA *)idv)->owner_id;
-    if (!id) {
-      id = static_cast<ID *>(((PointerRNA *)idv)->data);
-    }
-  }
-  else if (type == TSE_GP_LAYER) {
-    /* idv is the layer itself */
-    id = TREESTORE(parent)->id;
-  }
-  else if (ELEM(type, TSE_GENERIC_LABEL)) {
-    id = nullptr;
-  }
-
-  /* exceptions */
-  if (ELEM(type, TSE_ID_BASE, TSE_GENERIC_LABEL)) {
-    /* pass */
-  }
-  else if (id == nullptr) {
+  if (!space_outliner->runtime || !space_outliner->runtime->tree_display) {
+    BLI_assert_unreachable();
     return nullptr;
   }
 
-  if (type == 0) {
-    /* Zero type means real ID, ensure we do not get non-outliner ID types here... */
-    BLI_assert(TREESTORE_ID_TYPE(id));
+  return space_outliner->runtime->tree_display->add_element(
+      lb, owner_id, create_data, parent, type, index, expand);
+}
+
+TreeElement *AbstractTreeDisplay::add_element(ListBase *lb,
+                                              ID *owner_id,
+                                              void *create_data,
+                                              TreeElement *parent,
+                                              short type,
+                                              short index,
+                                              const bool expand)
+{
+  /* Pointer to store in #TreeStoreElem.id to identify the element over rebuilds and reconstruct it
+   * on file read. */
+  /* FIXME: This is may be an arbitrary void pointer that is cast to an ID pointer. Could be a
+   * temporary stack pointer even. Often works reliably enough at runtime, and file reading handles
+   * cases where data can't be reconstructed just fine (pointer is null`ed). This is still
+   * completely type unsafe and error-prone. */
+  ID *persistent_dataptr = owner_id ? owner_id : static_cast<ID *>(create_data);
+
+  if ((owner_id == nullptr) && ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
+    persistent_dataptr = static_cast<ID *>(((PointerRNA *)create_data)->data);
+  }
+
+  /* exceptions */
+  if (ELEM(type, TSE_ID_BASE)) {
+    /* pass */
+  }
+  else if (ELEM(type, TSE_GENERIC_LABEL)) {
+    persistent_dataptr = nullptr;
+  }
+  else if (persistent_dataptr == nullptr) {
+    return nullptr;
+  }
+
+  if (type == TSE_SOME_ID) {
+    /* Real ID, ensure we do not get non-outliner ID types here... */
+    BLI_assert(TREESTORE_ID_TYPE(owner_id));
   }
 
   TreeElement *te = MEM_new<TreeElement>(__func__);
   /* add to the visual tree */
   BLI_addtail(lb, te);
   /* add to the storage */
-  check_persistent(space_outliner, te, id, type, index);
+  check_persistent(&space_outliner_, te, persistent_dataptr, type, index);
   TreeStoreElem *tselem = TREESTORE(te);
 
   /* if we are searching for something expand to see child elements */
-  if (SEARCHING_OUTLINER(space_outliner)) {
+  if (SEARCHING_OUTLINER(&space_outliner_)) {
     tselem->flag |= TSE_CHILDSEARCH;
   }
 
@@ -396,10 +289,13 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 
   /* New inheritance based element representation. Not all element types support this yet,
    * eventually it should replace #TreeElement entirely. */
-  te->abstract_element = AbstractTreeElement::createFromType(type, *te, idv);
+  te->abstract_element = AbstractTreeElement::create_from_type(type, *te, owner_id, create_data);
   if (te->abstract_element) {
     /* Element types ported to the new design are expected to have their name set at this point! */
     BLI_assert(te->name != nullptr);
+
+    /* Let the new element inherit the tree display that creates this current tree. */
+    te->abstract_element->display_ = this;
   }
 
   if (ELEM(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
@@ -411,7 +307,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type, TSE_ANIM_DATA, TSE_NLA, TSE_NLA_TRACK, TSE_DRIVER_BASE)) {
     /* pass */
   }
-  else if (type == TSE_GP_LAYER) {
+  else if (ELEM(type, TSE_GP_LAYER, TSE_GREASE_PENCIL_NODE)) {
     /* pass */
   }
   else if (ELEM(type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
@@ -420,61 +316,69 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type, TSE_ID_BASE, TSE_GENERIC_LABEL)) {
     /* pass */
   }
+  else if (ELEM(type, TSE_BONE, TSE_EBONE)) {
+    /* pass */
+  }
+  else if (ELEM(type, TSE_GPENCIL_EFFECT_BASE, TSE_GPENCIL_EFFECT)) {
+    /* pass */
+  }
+  else if (ELEM(type, TSE_DEFGROUP, TSE_DEFGROUP_BASE)) {
+    /* pass */
+  }
+  else if (type == TSE_LINKED_PSYS) {
+    /* pass */
+  }
+  else if (ELEM(type, TSE_CONSTRAINT, TSE_CONSTRAINT_BASE)) {
+    /* pass */
+  }
+  else if (ELEM(type, TSE_POSE_BASE, TSE_POSE_CHANNEL)) {
+    /* pass */
+  }
+  else if (ELEM(type, TSE_POSEGRP, TSE_POSEGRP_BASE)) {
+    /* pass */
+  }
+  else if (ELEM(type, TSE_R_LAYER, TSE_R_LAYER_BASE)) {
+    /* pass */
+  }
+  else if (ELEM(type, TSE_MODIFIER, TSE_MODIFIER_BASE)) {
+    /* pass */
+  }
+  else if (type == TSE_LINKED_OB) {
+    /* pass */
+  }
   else if (type == TSE_SOME_ID) {
-    if (!te->abstract_element) {
-      BLI_assert_msg(0, "Expected this ID type to be ported to new Outliner tree-element design");
-    }
+    BLI_assert_msg(te->abstract_element != nullptr,
+                   "Expected this ID type to be ported to new Outliner tree-element design");
   }
   else if (ELEM(type,
                 TSE_LIBRARY_OVERRIDE_BASE,
                 TSE_LIBRARY_OVERRIDE,
                 TSE_LIBRARY_OVERRIDE_OPERATION))
   {
-    if (!te->abstract_element) {
-      BLI_assert_msg(0,
-                     "Expected override types to be ported to new Outliner tree-element design");
-    }
+    BLI_assert_msg(te->abstract_element != nullptr,
+                   "Expected override types to be ported to new Outliner tree-element design");
   }
   else {
     /* Other cases must be caught above. */
     BLI_assert(TSE_IS_REAL_ID(tselem));
+    BLI_assert_msg(te->abstract_element != nullptr,
+                   "Element type should use `AbstractTreeElement` to for correct initialization "
+                   "of its `TreeElement` data");
 
     /* The new type design sets the name already, don't override that here. We need to figure out
      * how to deal with the idcode for non-TSE_SOME_ID types still. Some rely on it... */
-    if (!te->abstract_element) {
-      te->name = id->name + 2; /* Default, can be overridden by Library or non-ID data. */
-    }
-    te->idcode = GS(id->name);
+    te->idcode = GS(owner_id->name);
   }
 
   if (!expand) {
     /* Pass */
   }
-  else if (te->abstract_element && te->abstract_element->isExpandValid()) {
-    tree_element_expand(*te->abstract_element, *space_outliner);
+  else if (te->abstract_element) {
+    tree_element_expand(*te->abstract_element, space_outliner_);
   }
-  else if (type == TSE_SOME_ID) {
-    /* ID types not (fully) ported to new design yet. */
-    if (te->abstract_element->expandPoll(*space_outliner)) {
-      outliner_add_id_contents(space_outliner, te, id);
-    }
-  }
-  else if (ELEM(type,
-                TSE_ANIM_DATA,
-                TSE_DRIVER_BASE,
-                TSE_NLA,
-                TSE_NLA_ACTION,
-                TSE_NLA_TRACK,
-                TSE_GP_LAYER,
-                TSE_RNA_STRUCT,
-                TSE_RNA_PROPERTY,
-                TSE_RNA_ARRAY_ELEM,
-                TSE_SEQUENCE,
-                TSE_SEQ_STRIP,
-                TSE_SEQUENCE_DUP,
-                TSE_GENERIC_LABEL))
-  {
-    BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
+  /* Only #TSE_ID_BASE isn't ported to use the abstract elements design yet. */
+  else if (!ELEM(type, TSE_ID_BASE)) {
+    BLI_assert_msg(false, "Element type should use `AbstractTreeElement`");
   }
 
   return te;
@@ -494,7 +398,8 @@ BLI_INLINE void outliner_add_collection_objects(SpaceOutliner *space_outliner,
                                                 TreeElement *parent)
 {
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    outliner_add_element(space_outliner, tree, cob->ob, parent, TSE_SOME_ID, 0);
+    AbstractTreeDisplay::add_element(
+        space_outliner, tree, reinterpret_cast<ID *>(cob->ob), nullptr, parent, TSE_SOME_ID, 0);
   }
 }
 
@@ -505,8 +410,8 @@ TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
   outliner_add_collection_init(ten, collection);
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    outliner_add_element(
-        space_outliner, &ten->subtree, &child->collection->id, ten, TSE_SOME_ID, 0);
+    AbstractTreeDisplay::add_element(
+        space_outliner, &ten->subtree, &child->collection->id, nullptr, ten, TSE_SOME_ID, 0);
   }
 
   if (space_outliner->outlinevis != SO_SCENES) {
@@ -1269,14 +1174,14 @@ void outliner_build_tree(Main *mainvar,
   outliner_free_tree(&space_outliner->tree);
   outliner_storage_cleanup(space_outliner);
 
-  space_outliner->runtime->tree_display = AbstractTreeDisplay::createFromDisplayMode(
+  space_outliner->runtime->tree_display = AbstractTreeDisplay::create_from_display_mode(
       space_outliner->outlinevis, *space_outliner);
 
   /* All tree displays should be created as sub-classes of AbstractTreeDisplay. */
   BLI_assert(space_outliner->runtime->tree_display != nullptr);
 
   TreeSourceData source_data{*mainvar, *scene, *view_layer};
-  space_outliner->tree = space_outliner->runtime->tree_display->buildTree(source_data);
+  space_outliner->tree = space_outliner->runtime->tree_display->build_tree(source_data);
 
   if ((space_outliner->flag & SO_SKIP_SORT_ALPHA) == 0) {
     outliner_sort(&space_outliner->tree);

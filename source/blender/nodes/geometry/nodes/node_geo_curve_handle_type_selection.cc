@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 
@@ -21,7 +21,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "handle_type", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "handle_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -130,24 +130,23 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Selection", std::move(selection_field));
 }
 
-}  // namespace blender::nodes::node_geo_curve_handle_type_selection_cc
-
-void register_node_type_geo_curve_handle_type_selection()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_handle_type_selection_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_HANDLE_TYPE_SELECTION, "Handle Type Selection", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.initfunc = file_ns::node_init;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.initfunc = node_init;
   node_type_storage(&ntype,
                     "NodeGeometryCurveSelectHandles",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.draw_buttons = node_layout;
 
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_handle_type_selection_cc

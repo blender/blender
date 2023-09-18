@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2011-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,8 +8,8 @@
 /* Logging, use `ghost.ndof.unix.*` prefix. */
 #include "CLG_log.h"
 
+#include <cstdio>
 #include <spnav.h>
-#include <stdio.h>
 #include <unistd.h>
 
 static const char *spnav_sock_path = "/var/run/spnav.sock";

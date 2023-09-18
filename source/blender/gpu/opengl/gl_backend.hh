@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -159,9 +159,9 @@ class GLBackend : public GPUBackend {
   }
 
   /* Render Frame Coordination */
-  void render_begin(void) override{};
-  void render_end(void) override{};
-  void render_step(void) override{};
+  void render_begin() override{};
+  void render_end() override{};
+  void render_step() override{};
 
   bool debug_capture_begin();
   void debug_capture_end();

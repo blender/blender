@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,9 @@
  * \ingroup modifiers
  */
 
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_math.h"
 
 #include "BLT_translation.h"
 
@@ -25,10 +25,10 @@
 #include "BKE_mesh.hh"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
@@ -38,11 +38,11 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "MEM_guardedalloc.h"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
 
@@ -51,7 +51,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(surmd, DNA_struct_default_get(SurfaceModifierData), modifier);
 }
 
-static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)
+static void copy_data(const ModifierData *md_src, ModifierData *md_dst, const int flag)
 {
   SurfaceModifierData *surmd_dst = (SurfaceModifierData *)md_dst;
 
@@ -60,7 +60,7 @@ static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int
   memset(&surmd_dst->runtime, 0, sizeof(surmd_dst->runtime));
 }
 
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
 
@@ -81,16 +81,16 @@ static void freeData(ModifierData *md)
   }
 }
 
-static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
+static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
 
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int /*verts_num*/)
+static void deform_verts(ModifierData *md,
+                         const ModifierEvalContext *ctx,
+                         Mesh *mesh,
+                         float (*vertexCos)[3],
+                         int /*verts_num*/)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
   const int cfra = int(DEG_get_ctime(ctx->depsgraph));
@@ -107,17 +107,11 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh) {
-    /* Not possible to use get_mesh() in this case as we'll modify its vertices
-     * and get_mesh() would return 'mesh' directly. */
-    surmd->runtime.mesh = (Mesh *)BKE_id_copy_ex(
-        nullptr, (ID *)mesh, nullptr, LIB_ID_COPY_LOCALIZE);
-  }
-  else {
-    surmd->runtime.mesh = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, nullptr);
+    surmd->runtime.mesh = BKE_mesh_copy_for_eval(mesh);
   }
 
   if (!ctx->object->pd) {
-    printf("SurfaceModifier deformVerts: Should not happen!\n");
+    printf("SurfaceModifier deform_verts: Should not happen!\n");
     return;
   }
 
@@ -166,13 +160,13 @@ static void deformVerts(ModifierData *md,
 
     surmd->runtime.cfra_prev = cfra;
 
-    const bool has_poly = surmd->runtime.mesh->totpoly > 0;
+    const bool has_face = surmd->runtime.mesh->faces_num > 0;
     const bool has_edge = surmd->runtime.mesh->totedge > 0;
-    if (has_poly || has_edge) {
+    if (has_face || has_edge) {
       surmd->runtime.bvhtree = static_cast<BVHTreeFromMesh *>(
           MEM_callocN(sizeof(BVHTreeFromMesh), __func__));
 
-      if (has_poly) {
+      if (has_face) {
         BKE_bvhtree_from_mesh_get(
             surmd->runtime.bvhtree, surmd->runtime.mesh, BVHTREE_FROM_LOOPTRI, 2);
       }
@@ -195,12 +189,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_Surface, panel_draw);
 }
 
-static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
+static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
 
@@ -208,35 +202,36 @@ static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Surface = {
+    /*idname*/ "Surface",
     /*name*/ N_("Surface"),
-    /*structName*/ "SurfaceModifierData",
-    /*structSize*/ sizeof(SurfaceModifierData),
+    /*struct_name*/ "SurfaceModifierData",
+    /*struct_size*/ sizeof(SurfaceModifierData),
     /*srna*/ &RNA_SurfaceModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_NoUserAdd,
     /*icon*/ ICON_MOD_PHYSICS,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ nullptr,
-    /*freeData*/ freeData,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ blendRead,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ nullptr,
+    /*free_data*/ free_data,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ depends_on_time,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ blend_read,
 };

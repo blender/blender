@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -124,6 +124,7 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 #define BLT_I18NCONTEXT_ID_WORLD "World"
 
 /* Editors-types contexts. */
+#define BLT_I18NCONTEXT_EDITOR_PYTHON_CONSOLE "Python console"
 #define BLT_I18NCONTEXT_EDITOR_FILEBROWSER "File browser"
 #define BLT_I18NCONTEXT_EDITOR_VIEW3D "View3D"
 
@@ -196,6 +197,7 @@ typedef struct {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "id_windowmanager"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORKSPACE, "id_workspace"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORLD, "id_world"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_PYTHON_CONSOLE, "editor_python_console"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_FILEBROWSER, "editor_filebrowser"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_VIEW3D, "editor_view3d"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_AMOUNT, "amount"), \

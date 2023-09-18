@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Create the Zbins from Z-sorted lights.
+ * Create the Z-bins from Z-sorted lights.
  * Perform min-max operation in LDS memory for speed.
  * For this reason, we only dispatch 1 thread group.
  */
@@ -49,7 +52,7 @@ void main()
   }
   barrier();
 
-  /* Write result to zbins buffer. Pack min & max into 1 uint. */
+  /* Write result to Z-bins buffer. Pack min & max into 1 `uint`. */
   for (uint i = 0u, l = zbin_local; i < zbin_iter; i++, l++) {
     out_zbin_buf[l] = (zbin_max[l] << 16u) | (zbin_min[l] & 0xFFFFu);
   }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,7 +20,7 @@
 #include "BLI_easing.h"
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_memarena.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -35,14 +35,14 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "BLF_api.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "interface_intern.hh"
 #include "view2d_intern.hh"
@@ -77,6 +77,11 @@ BLI_INLINE void clamp_rctf_to_rcti(rcti *dst, const rctf *src)
   dst->xmax = clamp_float_to_int(src->xmax);
   dst->ymin = clamp_float_to_int(src->ymin);
   dst->ymax = clamp_float_to_int(src->ymax);
+}
+
+float view2d_page_size_y(const View2D &v2d)
+{
+  return v2d.page_size_y ? v2d.page_size_y : BLI_rcti_size_y(&v2d.mask);
 }
 
 /* XXX still unresolved: scrolls hide/unhide vs region mask handling */
@@ -223,7 +228,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 
   do_init = (v2d->flag & V2D_IS_INIT) == 0;
 
-  /* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
+  /* see eView2D_CommonViewTypes in UI_view2d.hh for available view presets */
   switch (type) {
     /* 'standard view' - optimum setup for 'standard' view behavior,
      * that should be used new views as basis for their
@@ -842,6 +847,20 @@ void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
   }
 }
 
+void UI_view2d_curRect_clamp_y(View2D *v2d)
+{
+  const float cur_height_y = BLI_rctf_size_y(&v2d->cur);
+
+  if (BLI_rctf_size_y(&v2d->cur) > BLI_rctf_size_y(&v2d->tot)) {
+    v2d->cur.ymin = -cur_height_y;
+    v2d->cur.ymax = 0;
+  }
+  else if (v2d->cur.ymin < v2d->tot.ymin) {
+    v2d->cur.ymin = v2d->tot.ymin;
+    v2d->cur.ymax = v2d->cur.ymin + cur_height_y;
+  }
+}
+
 /* ------------------ */
 
 bool UI_view2d_area_supports_sync(ScrArea *area)
@@ -1025,7 +1044,7 @@ void UI_view2d_totRect_set(View2D *v2d, int width, int height)
   view2d_totRect_set_resize(v2d, width, height, false);
 }
 
-void UI_view2d_zoom_cache_reset(void)
+void UI_view2d_zoom_cache_reset()
 {
   /* TODO(sergey): This way we avoid threading conflict with sequencer rendering
    * text strip. But ideally we want to make glyph cache to be fully safe
@@ -1289,7 +1308,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
   immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
   /* Scaling the dots fully with the zoom looks too busy, but a bit of size variation is nice. */
-  const float min_point_size = 2.0f * UI_SCALE_FAC;
+  const float min_point_size = 2.0f * U.pixelsize;
   const float point_size_factor = 1.5f;
   const float max_point_size = point_size_factor * min_point_size;
 
@@ -1310,6 +1329,9 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
     const float point_size_precise = min_point_size * level_scale * zoom_x;
     const float point_size_draw = ceilf(
         clamp_f(point_size_precise, min_point_size, max_point_size));
+
+    /* Offset point by this amount to better align centers as size changes. */
+    const float point_size_offset = (point_size_draw / 2.0f) - U.pixelsize;
 
     /* To compensate the for the clamped point_size we adjust the alpha to make the overall
      * brightness of the grid background more consistent. */
@@ -1334,10 +1356,14 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
     const float step = min_step * level_scale;
     int count_x;
     float start_x;
-    grid_axis_start_and_count(step, v2d->cur.xmin, v2d->cur.xmax, &start_x, &count_x);
+
+    /* Count points that fit in viewport minus space for the scroll-bars. */
+    grid_axis_start_and_count(
+        step, v2d->cur.xmin, v2d->cur.xmax - V2D_SCROLL_WIDTH, &start_x, &count_x);
     int count_y;
     float start_y;
-    grid_axis_start_and_count(step, v2d->cur.ymin, v2d->cur.ymax, &start_y, &count_y);
+    grid_axis_start_and_count(
+        step, v2d->cur.ymin + V2D_SCROLL_HEIGHT, v2d->cur.ymax, &start_y, &count_y);
     if (count_x == 0 || count_y == 0) {
       continue;
     }
@@ -1352,7 +1378,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
       for (int i_x = 0; i_x < count_x; i_x++) {
         const float x = start_x + step * i_x;
         immAttr4fv(color_id, color);
-        immVertex2f(pos, x, y);
+        immVertex2f(pos, x + point_size_offset, y + point_size_offset);
       }
     }
 
@@ -1953,6 +1979,17 @@ void UI_view2d_offset(View2D *v2d, float xfac, float yfac)
     v2d->cur.ymin = (ymin * (1.0f - yfac)) + (ymax * yfac);
     v2d->cur.ymax = v2d->cur.ymin + ysize;
   }
+
+  UI_view2d_curRect_validate(v2d);
+}
+
+void UI_view2d_offset_y_snap_to_closest_page(View2D *v2d)
+{
+  const float cur_size_y = BLI_rctf_size_y(&v2d->cur);
+  const float page_size_y = view2d_page_size_y(*v2d);
+
+  v2d->cur.ymax = roundf(v2d->cur.ymax / page_size_y) * page_size_y;
+  v2d->cur.ymin = v2d->cur.ymax - cur_size_y;
 
   UI_view2d_curRect_validate(v2d);
 }

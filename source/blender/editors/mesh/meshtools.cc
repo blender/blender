@@ -1,16 +1,17 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
  *
- * meshtools.c: no editmode (violated already :), mirror & join),
+ * `meshtools.cc`: no editmode (violated already :), mirror & join),
  * tools operating on meshes
  */
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_matrix.h"
 #include "BLI_virtual_array.hh"
 
 #include "DNA_key_types.h"
@@ -35,9 +36,9 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_iterators.h"
-#include "BKE_mesh_runtime.h"
-#include "BKE_multires.h"
+#include "BKE_mesh_iterators.hh"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_multires.hh"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
@@ -48,12 +49,12 @@
 
 #include "DRW_select_buffer.h"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_view3d.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 using blender::float3;
 using blender::int2;
@@ -77,15 +78,15 @@ static void join_mesh_single(Depsgraph *depsgraph,
                              blender::int2 **medge_pp,
                              int **corner_verts_pp,
                              int **corner_edges_pp,
-                             int *all_poly_offsets,
-                             CustomData *vdata,
-                             CustomData *edata,
+                             int *all_face_offsets,
+                             CustomData *vert_data,
+                             CustomData *edge_data,
                              CustomData *ldata,
-                             CustomData *pdata,
+                             CustomData *face_data,
                              int totvert,
                              int totedge,
                              int totloop,
-                             int totpoly,
+                             int faces_num,
                              Key *key,
                              Key *nkey,
                              Material **matar,
@@ -106,13 +107,14 @@ static void join_mesh_single(Depsgraph *depsgraph,
 
   if (me->totvert) {
     /* standard data */
-    CustomData_merge_layout(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
-    CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
+    CustomData_merge_layout(
+        &me->vert_data, vert_data, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
+    CustomData_copy_data_named(&me->vert_data, vert_data, 0, *vertofs, me->totvert);
 
     /* vertex groups */
     MDeformVert *dvert = (MDeformVert *)CustomData_get_for_write(
-        vdata, *vertofs, CD_MDEFORMVERT, totvert);
-    const MDeformVert *dvert_src = (const MDeformVert *)CustomData_get_layer(&me->vdata,
+        vert_data, *vertofs, CD_MDEFORMVERT, totvert);
+    const MDeformVert *dvert_src = (const MDeformVert *)CustomData_get_layer(&me->vert_data,
                                                                              CD_MDEFORMVERT);
 
     /* Remap to correct new vgroup indices, if needed. */
@@ -206,8 +208,9 @@ static void join_mesh_single(Depsgraph *depsgraph,
   }
 
   if (me->totedge) {
-    CustomData_merge_layout(&me->edata, edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
-    CustomData_copy_data_named(&me->edata, edata, 0, *edgeofs, me->totedge);
+    CustomData_merge_layout(
+        &me->edge_data, edge_data, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
+    CustomData_copy_data_named(&me->edge_data, edge_data, 0, *edgeofs, me->totedge);
 
     for (a = 0; a < me->totedge; a++, edge++) {
       (*edge) += *vertofs;
@@ -226,8 +229,8 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge_layout(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
-    CustomData_copy_data_named(&me->ldata, ldata, 0, *loopofs, me->totloop);
+    CustomData_merge_layout(&me->loop_data, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
+    CustomData_copy_data_named(&me->loop_data, ldata, 0, *loopofs, me->totloop);
 
     for (a = 0; a < me->totloop; a++) {
       corner_verts[a] += *vertofs;
@@ -235,7 +238,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
     }
   }
 
-  if (me->totpoly) {
+  if (me->faces_num) {
     if (matmap) {
       /* make mapping for materials */
       for (a = 1; a <= ob_src->totcol; a++) {
@@ -250,27 +253,28 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge_layout(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
-    CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
+    CustomData_merge_layout(
+        &me->face_data, face_data, CD_MASK_MESH.pmask, CD_SET_DEFAULT, faces_num);
+    CustomData_copy_data_named(&me->face_data, face_data, 0, *polyofs, me->faces_num);
 
     /* Apply matmap. In case we don't have material indices yet, create them if more than one
      * material is the result of joining. */
-    int *material_indices = static_cast<int *>(
-        CustomData_get_layer_named_for_write(pdata, CD_PROP_INT32, "material_index", totpoly));
+    int *material_indices = static_cast<int *>(CustomData_get_layer_named_for_write(
+        face_data, CD_PROP_INT32, "material_index", faces_num));
     if (!material_indices && totcol > 1) {
       material_indices = (int *)CustomData_add_layer_named(
-          pdata, CD_PROP_INT32, CD_SET_DEFAULT, totpoly, "material_index");
+          face_data, CD_PROP_INT32, CD_SET_DEFAULT, faces_num, "material_index");
     }
     if (material_indices) {
-      for (a = 0; a < me->totpoly; a++) {
+      for (a = 0; a < me->faces_num; a++) {
         material_indices[a + *polyofs] = matmap ? matmap[material_indices[a + *polyofs]] : 0;
       }
     }
 
-    const Span<int> src_poly_offsets = me->poly_offsets();
-    int *poly_offsets = all_poly_offsets + *polyofs;
-    for (const int i : blender::IndexRange(me->totpoly)) {
-      poly_offsets[i] = src_poly_offsets[i] + *loopofs;
+    const Span<int> src_face_offsets = me->face_offsets();
+    int *face_offsets = all_face_offsets + *polyofs;
+    for (const int i : blender::IndexRange(me->faces_num)) {
+      face_offsets[i] = src_face_offsets[i] + *loopofs;
     }
   }
 
@@ -282,7 +286,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
   *loopofs += me->totloop;
   *corner_verts_pp += me->totloop;
   *corner_edges_pp += me->totloop;
-  *polyofs += me->totpoly;
+  *polyofs += me->faces_num;
 }
 
 /* Face Sets IDs are a sparse sequence, so this function offsets all the IDs by face_set_offset and
@@ -290,18 +294,18 @@ static void join_mesh_single(Depsgraph *depsgraph,
  * of them will have different IDs for their Face Sets. */
 static void mesh_join_offset_face_sets_ID(Mesh *mesh, int *face_set_offset)
 {
-  if (!mesh->totpoly) {
+  if (!mesh->faces_num) {
     return;
   }
 
   int *face_sets = (int *)CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly);
+      &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num);
   if (!face_sets) {
     return;
   }
 
   int max_face_set = 0;
-  for (int f = 0; f < mesh->totpoly; f++) {
+  for (int f = 0; f < mesh->faces_num; f++) {
     /* As face sets encode the visibility in the integer sign, the offset needs to be added or
      * subtracted depending on the initial sign of the integer to get the new ID. */
     if (face_sets[f] <= *face_set_offset) {
@@ -323,10 +327,10 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   Key *key, *nkey = nullptr;
   float imat[4][4];
   int a, b, totcol, totmat = 0, totedge = 0, totvert = 0;
-  int totloop = 0, totpoly = 0, vertofs, *matmap = nullptr;
+  int totloop = 0, faces_num = 0, vertofs, *matmap = nullptr;
   int i, haskey = 0, edgeofs, loopofs, polyofs;
   bool ok = false, join_parent = false;
-  CustomData vdata, edata, ldata, pdata;
+  CustomData vert_data, edge_data, ldata, face_data;
 
   if (ob->mode & OB_MODE_EDIT) {
     BKE_report(op->reports, RPT_WARNING, "Cannot join while in edit mode");
@@ -349,7 +353,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
       totvert += me->totvert;
       totedge += me->totedge;
       totloop += me->totloop;
-      totpoly += me->totpoly;
+      faces_num += me->faces_num;
       totmat += ob_iter->totcol;
 
       if (ob_iter == ob) {
@@ -541,21 +545,21 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   CTX_DATA_END;
 
   /* setup new data for destination mesh */
-  CustomData_reset(&vdata);
-  CustomData_reset(&edata);
+  CustomData_reset(&vert_data);
+  CustomData_reset(&edge_data);
   CustomData_reset(&ldata);
-  CustomData_reset(&pdata);
+  CustomData_reset(&face_data);
 
   float3 *vert_positions = (float3 *)CustomData_add_layer_named(
-      &vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
+      &vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
   edge = (int2 *)CustomData_add_layer_named(
-      &edata, CD_PROP_INT32_2D, CD_CONSTRUCT, totedge, ".edge_verts");
+      &edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, totedge, ".edge_verts");
   int *corner_verts = (int *)CustomData_add_layer_named(
       &ldata, CD_PROP_INT32, CD_CONSTRUCT, totloop, ".corner_vert");
   int *corner_edges = (int *)CustomData_add_layer_named(
       &ldata, CD_PROP_INT32, CD_CONSTRUCT, totloop, ".corner_edge");
-  int *poly_offsets = static_cast<int *>(MEM_malloc_arrayN(totpoly + 1, sizeof(int), __func__));
-  poly_offsets[totpoly] = totloop;
+  int *face_offsets = static_cast<int *>(MEM_malloc_arrayN(faces_num + 1, sizeof(int), __func__));
+  face_offsets[faces_num] = totloop;
 
   vertofs = 0;
   edgeofs = 0;
@@ -581,15 +585,15 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                    &edge,
                    &corner_verts,
                    &corner_edges,
-                   poly_offsets,
-                   &vdata,
-                   &edata,
+                   face_offsets,
+                   &vert_data,
+                   &edge_data,
                    &ldata,
-                   &pdata,
+                   &face_data,
                    totvert,
                    totedge,
                    totloop,
-                   totpoly,
+                   faces_num,
                    key,
                    nkey,
                    matar,
@@ -616,15 +620,15 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                        &edge,
                        &corner_verts,
                        &corner_edges,
-                       poly_offsets,
-                       &vdata,
-                       &edata,
+                       face_offsets,
+                       &vert_data,
+                       &edge_data,
                        &ldata,
-                       &pdata,
+                       &face_data,
                        totvert,
                        totedge,
                        totloop,
-                       totpoly,
+                       faces_num,
                        key,
                        nkey,
                        matar,
@@ -648,21 +652,21 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   BKE_mesh_clear_geometry(me);
 
-  if (totpoly) {
-    me->poly_offset_indices = poly_offsets;
-    me->runtime->poly_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
-        poly_offsets);
+  if (faces_num) {
+    me->face_offset_indices = face_offsets;
+    me->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
+        face_offsets);
   }
 
   me->totvert = totvert;
   me->totedge = totedge;
   me->totloop = totloop;
-  me->totpoly = totpoly;
+  me->faces_num = faces_num;
 
-  me->vdata = vdata;
-  me->edata = edata;
-  me->ldata = ldata;
-  me->pdata = pdata;
+  me->vert_data = vert_data;
+  me->edge_data = edge_data;
+  me->loop_data = ldata;
+  me->face_data = face_data;
 
   /* old material array */
   for (a = 1; a <= ob->totcol; a++) {
@@ -1104,14 +1108,14 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 
   const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
   const int totvert = me_eval ? me_eval->totvert : me->totvert;
-  const int totface = me_eval ? me_eval->totface : me->totface;
+  const int totface = me_eval ? me_eval->totface_legacy : me->totface_legacy;
   int a;
 
   mirrorverts = static_cast<int *>(MEM_callocN(sizeof(int) * totvert, "MirrorVerts"));
   mirrorfaces = static_cast<int *>(MEM_callocN(sizeof(int[2]) * totface, "MirrorFaces"));
 
   const Span<float3> vert_positions = me_eval ? me_eval->vert_positions() : me->vert_positions();
-  const MFace *mface = (const MFace *)CustomData_get_layer(&(me_eval ? me_eval : me)->fdata,
+  const MFace *mface = (const MFace *)CustomData_get_layer(&(me_eval ? me_eval : me)->fdata_legacy,
                                                            CD_MFACE);
 
   ED_mesh_mirror_spatial_table_begin(ob, em, me_eval);
@@ -1122,7 +1126,8 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 
   ED_mesh_mirror_spatial_table_end(ob);
 
-  fhash = BLI_ghash_new_ex(mirror_facehash, mirror_facecmp, "mirror_facehash gh", me->totface);
+  fhash = BLI_ghash_new_ex(
+      mirror_facehash, mirror_facecmp, "mirror_facehash gh", me->totface_legacy);
   for (a = 0, mf = mface; a < totface; a++, mf++) {
     BLI_ghash_insert(fhash, (void *)mf, (void *)mf);
   }
@@ -1164,7 +1169,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
 
-  if (!me || me->totpoly == 0) {
+  if (!me || me->faces_num == 0) {
     return false;
   }
 
@@ -1176,14 +1181,14 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
     /* Sample rect to increase chances of selecting, so that when clicking
      * on an edge in the back-buffer, we can still select a face. */
     *r_index = DRW_select_buffer_find_nearest_to_point(
-        vc.depsgraph, vc.region, vc.v3d, mval, 1, me->totpoly + 1, &dist_px);
+        vc.depsgraph, vc.region, vc.v3d, mval, 1, me->faces_num + 1, &dist_px);
   }
   else {
     /* sample only on the exact position */
     *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.region, vc.v3d, mval);
   }
 
-  if ((*r_index) == 0 || (*r_index) > uint(me->totpoly)) {
+  if ((*r_index) == 0 || (*r_index) > uint(me->faces_num)) {
     return false;
   }
 
@@ -1197,16 +1202,16 @@ static void ed_mesh_pick_face_vert__mpoly_find(
     ARegion *region,
     const float mval[2],
     /* mesh data (evaluated) */
-    const blender::IndexRange poly,
+    const blender::IndexRange face,
     const Span<float3> vert_positions,
     const int *corner_verts,
     /* return values */
     float *r_len_best,
     int *r_v_idx_best)
 {
-  for (int j = poly.size(); j--;) {
+  for (int j = face.size(); j--;) {
     float sco[2];
-    const int v_idx = corner_verts[poly[j]];
+    const int v_idx = corner_verts[face[j]];
     if (ED_view3d_project_float_object(region, vert_positions[v_idx], sco, V3D_PROJ_TEST_NOP) ==
         V3D_PROJ_RET_OK)
     {
@@ -1222,12 +1227,12 @@ bool ED_mesh_pick_face_vert(
     bContext *C, Object *ob, const int mval[2], uint dist_px, uint *r_index)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  uint poly_index;
+  uint face_index;
   Mesh *me = static_cast<Mesh *>(ob->data);
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
 
-  if (ED_mesh_pick_face(C, ob, mval, dist_px, &poly_index)) {
+  if (ED_mesh_pick_face(C, ob, mval, dist_px, &face_index)) {
     const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
     const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
     if (!me_eval) {
@@ -1242,18 +1247,19 @@ bool ED_mesh_pick_face_vert(
     float len_best = FLT_MAX;
 
     const Span<float3> vert_positions = me_eval->vert_positions();
-    const blender::OffsetIndices polys = me_eval->polys();
+    const blender::OffsetIndices faces = me_eval->faces();
     const Span<int> corner_verts = me_eval->corner_verts();
 
-    const int *index_mp_to_orig = (const int *)CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
+    const int *index_mp_to_orig = (const int *)CustomData_get_layer(&me_eval->face_data,
+                                                                    CD_ORIGINDEX);
 
     /* tag all verts using this face */
     if (index_mp_to_orig) {
-      for (const int i : polys.index_range()) {
-        if (index_mp_to_orig[i] == poly_index) {
+      for (const int i : faces.index_range()) {
+        if (index_mp_to_orig[i] == face_index) {
           ed_mesh_pick_face_vert__mpoly_find(region,
                                              mval_f,
-                                             polys[i],
+                                             faces[i],
                                              vert_positions,
                                              corner_verts.data(),
                                              &len_best,
@@ -1262,10 +1268,10 @@ bool ED_mesh_pick_face_vert(
       }
     }
     else {
-      if (poly_index < polys.size()) {
+      if (face_index < faces.size()) {
         ed_mesh_pick_face_vert__mpoly_find(region,
                                            mval_f,
-                                           polys[poly_index],
+                                           faces[face_index],
                                            vert_positions,
                                            corner_verts.data(),
                                            &len_best,
@@ -1275,7 +1281,7 @@ bool ED_mesh_pick_face_vert(
 
     /* map 'dm -> me' r_index if possible */
     if (v_idx_best != ORIGINDEX_NONE) {
-      const int *index_mv_to_orig = (const int *)CustomData_get_layer(&me_eval->vdata,
+      const int *index_mv_to_orig = (const int *)CustomData_get_layer(&me_eval->vert_data,
                                                                       CD_ORIGINDEX);
       if (index_mv_to_orig) {
         v_idx_best = index_mv_to_orig[v_idx_best];
@@ -1307,12 +1313,12 @@ struct VertPickData {
   int v_idx_best;
 };
 
-static void ed_mesh_pick_vert__mapFunc(void *userData,
+static void ed_mesh_pick_vert__mapFunc(void *user_data,
                                        int index,
                                        const float co[3],
                                        const float /*no*/[3])
 {
-  VertPickData *data = static_cast<VertPickData *>(userData);
+  VertPickData *data = static_cast<VertPickData *>(user_data);
   if (data->hide_vert && data->hide_vert[index]) {
     return;
   }
@@ -1384,7 +1390,7 @@ bool ED_mesh_pick_vert(
     data.len_best = FLT_MAX;
     data.v_idx_best = -1;
     data.hide_vert = (const bool *)CustomData_get_layer_named(
-        &me_eval->vdata, CD_PROP_BOOL, ".hide_vert");
+        &me_eval->vert_data, CD_PROP_BOOL, ".hide_vert");
 
     BKE_mesh_foreach_mapped_vert(me_eval, ed_mesh_pick_vert__mapFunc, &data, MESH_FOREACH_NOP);
 

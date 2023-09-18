@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -156,6 +156,18 @@
     .viewport_aa = SCE_DISPLAY_AA_FXAA, \
   }
 
+#define _DNA_DEFAULT_RaytraceEEVEE \
+  { \
+    .flag = RAYTRACE_EEVEE_USE_DENOISE, \
+    .denoise_stages = RAYTRACE_EEVEE_DENOISE_SPATIAL | \
+                    RAYTRACE_EEVEE_DENOISE_TEMPORAL | \
+                    RAYTRACE_EEVEE_DENOISE_BILATERAL, \
+    .screen_trace_quality = 0.25f, \
+    .screen_trace_thickness = 0.2f, \
+    .sample_clamp = 10.0f, \
+    .resolution_scale = 2, \
+  }
+
 #define _DNA_DEFAULT_PhysicsSettings \
   { \
     .gravity = {0.0f, 0.0f, -9.81f}, \
@@ -171,6 +183,7 @@
     .gi_irradiance_draw_size = 0.1f, \
     .gi_irradiance_smoothing = 0.1f, \
     .gi_filter_quality = 3.0f, \
+    .gi_irradiance_pool_size = 16, \
  \
     .taa_samples = 16, \
     .taa_render_samples = 64, \
@@ -217,6 +230,12 @@
     .shadow_cube_size = 512, \
     .shadow_cascade_size = 1024, \
  \
+    .ray_split_settings = 0, \
+    .ray_tracing_method = RAYTRACE_EEVEE_METHOD_SCREEN, \
+ \
+    .reflection_options = _DNA_DEFAULT_RaytraceEEVEE, \
+    .refraction_options = _DNA_DEFAULT_RaytraceEEVEE, \
+ \
     .light_cache_data = NULL, \
     .light_threshold = 0.01f, \
  \
@@ -225,6 +244,11 @@
     .flag = SCE_EEVEE_VOLUMETRIC_LIGHTS | SCE_EEVEE_GTAO_BENT_NORMALS | \
                     SCE_EEVEE_GTAO_BOUNCE | SCE_EEVEE_TAA_REPROJECTION | \
                     SCE_EEVEE_SSR_HALF_RESOLUTION | SCE_EEVEE_SHADOW_SOFT, \
+  }
+
+#define _DNA_DEFAULT_SceneHydra \
+  { \
+    .export_method = SCE_HYDRA_EXPORT_HYDRA, \
   }
 
 #define _DNA_DEFAULT_Scene \
@@ -240,6 +264,8 @@
     .safe_areas = _DNA_DEFAULT_DisplaySafeAreas, \
  \
     .eevee = _DNA_DEFAULT_SceneEEVEE, \
+ \
+    .hydra = _DNA_DEFAULT_SceneHydra, \
   }
 
 /** \} */
@@ -336,10 +362,12 @@
     .autokey_mode = AUTOKEY_MODE_NORMAL, \
  \
     .transform_pivot_point = V3D_AROUND_CENTER_MEDIAN, \
-    .snap_mode = SCE_SNAP_MODE_INCREMENT, \
-    .snap_node_mode = SCE_SNAP_MODE_GRID, \
-    .snap_uv_mode = SCE_SNAP_MODE_INCREMENT, \
+    .snap_mode = SCE_SNAP_TO_INCREMENT, \
+    .snap_node_mode = SCE_SNAP_TO_GRID, \
+    .snap_uv_mode = SCE_SNAP_TO_INCREMENT, \
+    .snap_anim_mode = SCE_SNAP_TO_FRAME, \
     .snap_flag = SCE_SNAP_TO_INCLUDE_EDITED | SCE_SNAP_TO_INCLUDE_NONEDITED, \
+    .snap_flag_anim = SCE_SNAP, \
     .snap_transform_mode_flag = SCE_SNAP_TRANSFORM_MODE_TRANSLATE, \
     .snap_face_nearest_steps = 1, \
  \
@@ -370,10 +398,25 @@
     .uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN, \
 \
     /* Placement */ \
-    .snap_mode_tools = SCE_SNAP_MODE_GEOM,\
+    .snap_mode_tools = SCE_SNAP_TO_GEOM,\
     .plane_axis = 2,\
   }
 
+#define _DNA_DEFAULT_Sculpt \
+  { \
+    .detail_size = 12,\
+    .detail_percent = 25,\
+    .constant_detail = 3.0f,\
+    .automasking_start_normal_limit = 0.34906585f, /* 20 / 180 * pi. */ \
+    .automasking_start_normal_falloff = 0.25f, \
+    .automasking_view_normal_limit = 1.570796, /* 0.5 * pi. */ \
+    .automasking_view_normal_falloff = 0.25f, \
+    .flags = SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE,\
+    .paint = {\
+      .symmetry_flags = PAINT_SYMMETRY_FEATHER,\
+      .tile_offset = {1.0f, 1.0f, 1.0f},\
+    }\
+  }
 /* clang-format off */
 
 /** \} */

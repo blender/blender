@@ -1,6 +1,6 @@
 /* SPDX-FileCopyrightText: 2009-2010 Sony Pictures Imageworks Inc., et al.
  *                         All Rights Reserved. (BSD-3-Clause).
- * SPDX-FileCopyrightText: 2011 Blender Foundation (GPL-2.0-or-later).
+ * SPDX-FileCopyrightText: 2011 Blender Authors (GPL-2.0-or-later).
  *
  * SPDX-License-Identifier: GPL-2.0-or-later AND BSD-3-Clause */
 
@@ -531,7 +531,9 @@ float perlin(float4 position)
 
 /* Positive fractal perlin noise. */
 
-template<typename T> float perlin_fractal_template(T position, float octaves, float roughness)
+template<typename T>
+float perlin_fractal_template(
+    T position, float octaves, float roughness, float lacunarity, bool normalize)
 {
   float fscale = 1.0f;
   float amp = 1.0f;
@@ -540,42 +542,46 @@ template<typename T> float perlin_fractal_template(T position, float octaves, fl
   octaves = CLAMPIS(octaves, 0.0f, 15.0f);
   int n = int(octaves);
   for (int i = 0; i <= n; i++) {
-    float t = perlin(fscale * position);
+    float t = perlin_signed(fscale * position);
     sum += t * amp;
     maxamp += amp;
     amp *= CLAMPIS(roughness, 0.0f, 1.0f);
-    fscale *= 2.0f;
+    fscale *= lacunarity;
   }
   float rmd = octaves - std::floor(octaves);
-  if (rmd == 0.0f) {
-    return sum / maxamp;
+  if (rmd != 0.0f) {
+    float t = perlin_signed(fscale * position);
+    float sum2 = sum + t * amp;
+    return normalize ? mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) :
+                       mix(sum, sum2, rmd);
   }
-
-  float t = perlin(fscale * position);
-  float sum2 = sum + t * amp;
-  sum /= maxamp;
-  sum2 /= maxamp + amp;
-  return (1.0f - rmd) * sum + rmd * sum2;
+  else {
+    return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
+  }
 }
 
-float perlin_fractal(float position, float octaves, float roughness)
+float perlin_fractal(
+    float position, float octaves, float roughness, float lacunarity, bool normalize)
 {
-  return perlin_fractal_template(position, octaves, roughness);
+  return perlin_fractal_template(position, octaves, roughness, lacunarity, normalize);
 }
 
-float perlin_fractal(float2 position, float octaves, float roughness)
+float perlin_fractal(
+    float2 position, float octaves, float roughness, float lacunarity, bool normalize)
 {
-  return perlin_fractal_template(position, octaves, roughness);
+  return perlin_fractal_template(position, octaves, roughness, lacunarity, normalize);
 }
 
-float perlin_fractal(float3 position, float octaves, float roughness)
+float perlin_fractal(
+    float3 position, float octaves, float roughness, float lacunarity, bool normalize)
 {
-  return perlin_fractal_template(position, octaves, roughness);
+  return perlin_fractal_template(position, octaves, roughness, lacunarity, normalize);
 }
 
-float perlin_fractal(float4 position, float octaves, float roughness)
+float perlin_fractal(
+    float4 position, float octaves, float roughness, float lacunarity, bool normalize)
 {
-  return perlin_fractal_template(position, octaves, roughness);
+  return perlin_fractal_template(position, octaves, roughness, lacunarity, normalize);
 }
 
 /* The following offset functions generate random offsets to be added to
@@ -641,28 +647,48 @@ BLI_INLINE float4 perlin_distortion(float4 position, float strength)
 
 /* Positive distorted fractal perlin noise. */
 
-float perlin_fractal_distorted(float position, float octaves, float roughness, float distortion)
+float perlin_fractal_distorted(float position,
+                               float octaves,
+                               float roughness,
+                               float lacunarity,
+                               float distortion,
+                               bool normalize)
 {
   position += perlin_distortion(position, distortion);
-  return perlin_fractal(position, octaves, roughness);
+  return perlin_fractal(position, octaves, roughness, lacunarity, normalize);
 }
 
-float perlin_fractal_distorted(float2 position, float octaves, float roughness, float distortion)
+float perlin_fractal_distorted(float2 position,
+                               float octaves,
+                               float roughness,
+                               float lacunarity,
+                               float distortion,
+                               bool normalize)
 {
   position += perlin_distortion(position, distortion);
-  return perlin_fractal(position, octaves, roughness);
+  return perlin_fractal(position, octaves, roughness, lacunarity, normalize);
 }
 
-float perlin_fractal_distorted(float3 position, float octaves, float roughness, float distortion)
+float perlin_fractal_distorted(float3 position,
+                               float octaves,
+                               float roughness,
+                               float lacunarity,
+                               float distortion,
+                               bool normalize)
 {
   position += perlin_distortion(position, distortion);
-  return perlin_fractal(position, octaves, roughness);
+  return perlin_fractal(position, octaves, roughness, lacunarity, normalize);
 }
 
-float perlin_fractal_distorted(float4 position, float octaves, float roughness, float distortion)
+float perlin_fractal_distorted(float4 position,
+                               float octaves,
+                               float roughness,
+                               float lacunarity,
+                               float distortion,
+                               bool normalize)
 {
   position += perlin_distortion(position, distortion);
-  return perlin_fractal(position, octaves, roughness);
+  return perlin_fractal(position, octaves, roughness, lacunarity, normalize);
 }
 
 /* Positive distorted fractal perlin noise that outputs a float3. The arbitrary seeds are for
@@ -671,45 +697,65 @@ float perlin_fractal_distorted(float4 position, float octaves, float roughness, 
 float3 perlin_float3_fractal_distorted(float position,
                                        float octaves,
                                        float roughness,
-                                       float distortion)
+                                       float lacunarity,
+                                       float distortion,
+                                       bool normalize)
 {
   position += perlin_distortion(position, distortion);
-  return float3(perlin_fractal(position, octaves, roughness),
-                perlin_fractal(position + random_float_offset(1.0f), octaves, roughness),
-                perlin_fractal(position + random_float_offset(2.0f), octaves, roughness));
+  return float3(
+      perlin_fractal(position, octaves, roughness, lacunarity, normalize),
+      perlin_fractal(
+          position + random_float_offset(1.0f), octaves, roughness, lacunarity, normalize),
+      perlin_fractal(
+          position + random_float_offset(2.0f), octaves, roughness, lacunarity, normalize));
 }
 
 float3 perlin_float3_fractal_distorted(float2 position,
                                        float octaves,
                                        float roughness,
-                                       float distortion)
+                                       float lacunarity,
+                                       float distortion,
+                                       bool normalize)
 {
   position += perlin_distortion(position, distortion);
-  return float3(perlin_fractal(position, octaves, roughness),
-                perlin_fractal(position + random_float2_offset(2.0f), octaves, roughness),
-                perlin_fractal(position + random_float2_offset(3.0f), octaves, roughness));
+  return float3(
+      perlin_fractal(position, octaves, roughness, lacunarity, normalize),
+      perlin_fractal(
+          position + random_float2_offset(2.0f), octaves, roughness, lacunarity, normalize),
+      perlin_fractal(
+          position + random_float2_offset(3.0f), octaves, roughness, lacunarity, normalize));
 }
 
 float3 perlin_float3_fractal_distorted(float3 position,
                                        float octaves,
                                        float roughness,
-                                       float distortion)
+                                       float lacunarity,
+                                       float distortion,
+                                       bool normalize)
 {
   position += perlin_distortion(position, distortion);
-  return float3(perlin_fractal(position, octaves, roughness),
-                perlin_fractal(position + random_float3_offset(3.0f), octaves, roughness),
-                perlin_fractal(position + random_float3_offset(4.0f), octaves, roughness));
+  return float3(
+      perlin_fractal(position, octaves, roughness, lacunarity, normalize),
+      perlin_fractal(
+          position + random_float3_offset(3.0f), octaves, roughness, lacunarity, normalize),
+      perlin_fractal(
+          position + random_float3_offset(4.0f), octaves, roughness, lacunarity, normalize));
 }
 
 float3 perlin_float3_fractal_distorted(float4 position,
                                        float octaves,
                                        float roughness,
-                                       float distortion)
+                                       float lacunarity,
+                                       float distortion,
+                                       bool normalize)
 {
   position += perlin_distortion(position, distortion);
-  return float3(perlin_fractal(position, octaves, roughness),
-                perlin_fractal(position + random_float4_offset(4.0f), octaves, roughness),
-                perlin_fractal(position + random_float4_offset(5.0f), octaves, roughness));
+  return float3(
+      perlin_fractal(position, octaves, roughness, lacunarity, normalize),
+      perlin_fractal(
+          position + random_float4_offset(4.0f), octaves, roughness, lacunarity, normalize),
+      perlin_fractal(
+          position + random_float4_offset(5.0f), octaves, roughness, lacunarity, normalize));
 }
 
 /** \} */
@@ -1464,7 +1510,7 @@ VoronoiOutput voronoi_f1(const VoronoiParams &params, const float coord)
   float cellPosition = floorf(coord);
   float localPosition = coord - cellPosition;
 
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   float targetOffset = 0.0f;
   float targetPosition = 0.0f;
   for (int i = -1; i <= 1; i++) {
@@ -1493,16 +1539,19 @@ VoronoiOutput voronoi_smooth_f1(const VoronoiParams &params,
   float cellPosition = floorf(coord);
   float localPosition = coord - cellPosition;
 
-  float smoothDistance = 8.0f;
+  float smoothDistance = 0.0f;
   float smoothPosition = 0.0f;
   float3 smoothColor = {0.0f, 0.0f, 0.0f};
+  float h = -1.0f;
   for (int i = -2; i <= 2; i++) {
     float cellOffset = i;
     float pointPosition = cellOffset +
                           hash_float_to_float(cellPosition + cellOffset) * params.randomness;
     float distanceToPoint = voronoi_distance(pointPosition, localPosition);
-    float h = smoothstep(
-        0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / params.smoothness);
+    h = h == -1.0f ?
+            1.0f :
+            smoothstep(
+                0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / params.smoothness);
     float correctionFactor = params.smoothness * h * (1.0f - h);
     smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
     correctionFactor /= 1.0f + 3.0f * params.smoothness;
@@ -1526,8 +1575,8 @@ VoronoiOutput voronoi_f2(const VoronoiParams &params, const float coord)
   float cellPosition = floorf(coord);
   float localPosition = coord - cellPosition;
 
-  float distanceF1 = 8.0f;
-  float distanceF2 = 8.0f;
+  float distanceF1 = FLT_MAX;
+  float distanceF2 = FLT_MAX;
   float offsetF1 = 0.0f;
   float positionF1 = 0.0f;
   float offsetF2 = 0.0f;
@@ -1580,7 +1629,7 @@ float voronoi_n_sphere_radius(const VoronoiParams &params, const float coord)
 
   float closestPoint = 0.0f;
   float closestPointOffset = 0.0f;
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   for (int i = -1; i <= 1; i++) {
     float cellOffset = i;
     float pointPosition = cellOffset +
@@ -1593,7 +1642,7 @@ float voronoi_n_sphere_radius(const VoronoiParams &params, const float coord)
     }
   }
 
-  minDistance = 8.0f;
+  minDistance = FLT_MAX;
   float closestPointToClosestPoint = 0.0f;
   for (int i = -1; i <= 1; i++) {
     if (i == 0) {
@@ -1624,7 +1673,7 @@ VoronoiOutput voronoi_f1(const VoronoiParams &params, const float2 coord)
   float2 cellPosition = math::floor(coord);
   float2 localPosition = coord - cellPosition;
 
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   float2 targetOffset = {0.0f, 0.0f};
   float2 targetPosition = {0.0f, 0.0f};
   for (int j = -1; j <= 1; j++) {
@@ -1655,17 +1704,21 @@ VoronoiOutput voronoi_smooth_f1(const VoronoiParams &params,
   float2 cellPosition = math::floor(coord);
   float2 localPosition = coord - cellPosition;
 
-  float smoothDistance = 8.0f;
+  float smoothDistance = 0.0f;
   float3 smoothColor = {0.0f, 0.0f, 0.0f};
   float2 smoothPosition = {0.0f, 0.0f};
+  float h = -1.0f;
   for (int j = -2; j <= 2; j++) {
     for (int i = -2; i <= 2; i++) {
       float2 cellOffset(i, j);
       float2 pointPosition = cellOffset +
                              hash_float_to_float2(cellPosition + cellOffset) * params.randomness;
       float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
-      float h = smoothstep(
-          0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / params.smoothness);
+      h = h == -1.0f ?
+              1.0f :
+              smoothstep(0.0f,
+                         1.0f,
+                         0.5f + 0.5f * (smoothDistance - distanceToPoint) / params.smoothness);
       float correctionFactor = params.smoothness * h * (1.0f - h);
       smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
       correctionFactor /= 1.0f + 3.0f * params.smoothness;
@@ -1690,8 +1743,8 @@ VoronoiOutput voronoi_f2(const VoronoiParams &params, const float2 coord)
   float2 cellPosition = math::floor(coord);
   float2 localPosition = coord - cellPosition;
 
-  float distanceF1 = 8.0f;
-  float distanceF2 = 8.0f;
+  float distanceF1 = FLT_MAX;
+  float distanceF2 = FLT_MAX;
   float2 offsetF1 = {0.0f, 0.0f};
   float2 positionF1 = {0.0f, 0.0f};
   float2 offsetF2 = {0.0f, 0.0f};
@@ -1731,7 +1784,7 @@ float voronoi_distance_to_edge(const VoronoiParams &params, const float2 coord)
   float2 localPosition = coord - cellPosition;
 
   float2 vectorToClosest = {0.0f, 0.0f};
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       float2 cellOffset(i, j);
@@ -1746,7 +1799,7 @@ float voronoi_distance_to_edge(const VoronoiParams &params, const float2 coord)
     }
   }
 
-  minDistance = 8.0f;
+  minDistance = FLT_MAX;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       float2 cellOffset(i, j);
@@ -1772,7 +1825,7 @@ float voronoi_n_sphere_radius(const VoronoiParams &params, const float2 coord)
 
   float2 closestPoint = {0.0f, 0.0f};
   float2 closestPointOffset = {0.0f, 0.0f};
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       float2 cellOffset(i, j);
@@ -1787,7 +1840,7 @@ float voronoi_n_sphere_radius(const VoronoiParams &params, const float2 coord)
     }
   }
 
-  minDistance = 8.0f;
+  minDistance = FLT_MAX;
   float2 closestPointToClosestPoint = {0.0f, 0.0f};
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
@@ -1820,7 +1873,7 @@ VoronoiOutput voronoi_f1(const VoronoiParams &params, const float3 coord)
   float3 cellPosition = math::floor(coord);
   float3 localPosition = coord - cellPosition;
 
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   float3 targetOffset = {0.0f, 0.0f, 0.0f};
   float3 targetPosition = {0.0f, 0.0f, 0.0f};
   for (int k = -1; k <= 1; k++) {
@@ -1853,9 +1906,10 @@ VoronoiOutput voronoi_smooth_f1(const VoronoiParams &params,
   float3 cellPosition = math::floor(coord);
   float3 localPosition = coord - cellPosition;
 
-  float smoothDistance = 8.0f;
+  float smoothDistance = 0.0f;
   float3 smoothColor = {0.0f, 0.0f, 0.0f};
   float3 smoothPosition = {0.0f, 0.0f, 0.0f};
+  float h = -1.0f;
   for (int k = -2; k <= 2; k++) {
     for (int j = -2; j <= 2; j++) {
       for (int i = -2; i <= 2; i++) {
@@ -1863,8 +1917,11 @@ VoronoiOutput voronoi_smooth_f1(const VoronoiParams &params,
         float3 pointPosition = cellOffset +
                                hash_float_to_float3(cellPosition + cellOffset) * params.randomness;
         float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
-        float h = smoothstep(
-            0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / params.smoothness);
+        h = h == -1.0f ?
+                1.0f :
+                smoothstep(0.0f,
+                           1.0f,
+                           0.5f + 0.5f * (smoothDistance - distanceToPoint) / params.smoothness);
         float correctionFactor = params.smoothness * h * (1.0f - h);
         smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
         correctionFactor /= 1.0f + 3.0f * params.smoothness;
@@ -1890,8 +1947,8 @@ VoronoiOutput voronoi_f2(const VoronoiParams &params, const float3 coord)
   float3 cellPosition = math::floor(coord);
   float3 localPosition = coord - cellPosition;
 
-  float distanceF1 = 8.0f;
-  float distanceF2 = 8.0f;
+  float distanceF1 = FLT_MAX;
+  float distanceF2 = FLT_MAX;
   float3 offsetF1 = {0.0f, 0.0f, 0.0f};
   float3 positionF1 = {0.0f, 0.0f, 0.0f};
   float3 offsetF2 = {0.0f, 0.0f, 0.0f};
@@ -1933,7 +1990,7 @@ float voronoi_distance_to_edge(const VoronoiParams &params, const float3 coord)
   float3 localPosition = coord - cellPosition;
 
   float3 vectorToClosest = {0.0f, 0.0f, 0.0f};
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
@@ -1951,7 +2008,7 @@ float voronoi_distance_to_edge(const VoronoiParams &params, const float3 coord)
     }
   }
 
-  minDistance = 8.0f;
+  minDistance = FLT_MAX;
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
@@ -1980,7 +2037,7 @@ float voronoi_n_sphere_radius(const VoronoiParams &params, const float3 coord)
 
   float3 closestPoint = {0.0f, 0.0f, 0.0f};
   float3 closestPointOffset = {0.0f, 0.0f, 0.0f};
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
@@ -1997,7 +2054,7 @@ float voronoi_n_sphere_radius(const VoronoiParams &params, const float3 coord)
     }
   }
 
-  minDistance = 8.0f;
+  minDistance = FLT_MAX;
   float3 closestPointToClosestPoint = {0.0f, 0.0f, 0.0f};
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
@@ -2032,7 +2089,7 @@ VoronoiOutput voronoi_f1(const VoronoiParams &params, const float4 coord)
   float4 cellPosition = math::floor(coord);
   float4 localPosition = coord - cellPosition;
 
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   float4 targetOffset = {0.0f, 0.0f, 0.0f, 0.0f};
   float4 targetPosition = {0.0f, 0.0f, 0.0f, 0.0f};
   for (int u = -1; u <= 1; u++) {
@@ -2067,9 +2124,10 @@ VoronoiOutput voronoi_smooth_f1(const VoronoiParams &params,
   float4 cellPosition = math::floor(coord);
   float4 localPosition = coord - cellPosition;
 
-  float smoothDistance = 8.0f;
+  float smoothDistance = 0.0f;
   float3 smoothColor = {0.0f, 0.0f, 0.0f};
   float4 smoothPosition = {0.0f, 0.0f, 0.0f, 0.0f};
+  float h = -1.0f;
   for (int u = -2; u <= 2; u++) {
     for (int k = -2; k <= 2; k++) {
       for (int j = -2; j <= 2; j++) {
@@ -2078,8 +2136,11 @@ VoronoiOutput voronoi_smooth_f1(const VoronoiParams &params,
           float4 pointPosition = cellOffset + hash_float_to_float4(cellPosition + cellOffset) *
                                                   params.randomness;
           float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
-          float h = smoothstep(
-              0.0f, 1.0f, 0.5f + 0.5f * (smoothDistance - distanceToPoint) / params.smoothness);
+          h = h == -1.0f ?
+                  1.0f :
+                  smoothstep(0.0f,
+                             1.0f,
+                             0.5f + 0.5f * (smoothDistance - distanceToPoint) / params.smoothness);
           float correctionFactor = params.smoothness * h * (1.0f - h);
           smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
           correctionFactor /= 1.0f + 3.0f * params.smoothness;
@@ -2106,8 +2167,8 @@ VoronoiOutput voronoi_f2(const VoronoiParams &params, const float4 coord)
   float4 cellPosition = math::floor(coord);
   float4 localPosition = coord - cellPosition;
 
-  float distanceF1 = 8.0f;
-  float distanceF2 = 8.0f;
+  float distanceF1 = FLT_MAX;
+  float distanceF2 = FLT_MAX;
   float4 offsetF1 = {0.0f, 0.0f, 0.0f, 0.0f};
   float4 positionF1 = {0.0f, 0.0f, 0.0f, 0.0f};
   float4 offsetF2 = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -2151,7 +2212,7 @@ float voronoi_distance_to_edge(const VoronoiParams &params, const float4 coord)
   float4 localPosition = coord - cellPosition;
 
   float4 vectorToClosest = {0.0f, 0.0f, 0.0f, 0.0f};
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
@@ -2171,7 +2232,7 @@ float voronoi_distance_to_edge(const VoronoiParams &params, const float4 coord)
     }
   }
 
-  minDistance = 8.0f;
+  minDistance = FLT_MAX;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
@@ -2202,7 +2263,7 @@ float voronoi_n_sphere_radius(const VoronoiParams &params, const float4 coord)
 
   float4 closestPoint = {0.0f, 0.0f, 0.0f, 0.0f};
   float4 closestPointOffset = {0.0f, 0.0f, 0.0f, 0.0f};
-  float minDistance = 8.0f;
+  float minDistance = FLT_MAX;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
@@ -2221,7 +2282,7 @@ float voronoi_n_sphere_radius(const VoronoiParams &params, const float4 coord)
     }
   }
 
-  minDistance = 8.0f;
+  minDistance = FLT_MAX;
   float4 closestPointToClosestPoint = {0.0f, 0.0f, 0.0f, 0.0f};
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
@@ -2248,6 +2309,8 @@ float voronoi_n_sphere_radius(const VoronoiParams &params, const float4 coord)
 
 /* **** Fractal Voronoi **** */
 
+/* The fractalization logic is the same as for fBM Noise, except that some additions are replaced
+ * by lerps. */
 template<typename T>
 VoronoiOutput fractal_voronoi_x_fx(const VoronoiParams &params,
                                    const T coord,
@@ -2258,8 +2321,7 @@ VoronoiOutput fractal_voronoi_x_fx(const VoronoiParams &params,
   float scale = 1.0f;
 
   VoronoiOutput output;
-  const bool zero_input = params.detail == 0.0f || params.roughness == 0.0f ||
-                          params.lacunarity == 0.0f;
+  const bool zero_input = params.detail == 0.0f || params.roughness == 0.0f;
 
   for (int i = 0; i <= ceilf(params.detail); ++i) {
     VoronoiOutput octave = (params.feature == NOISE_SHD_VORONOI_F2) ?
@@ -2306,16 +2368,17 @@ VoronoiOutput fractal_voronoi_x_fx(const VoronoiParams &params,
   return output;
 }
 
+/* The fractalization logic is the same as for fBM Noise, except that some additions are replaced
+ * by lerps. */
 template<typename T>
 float fractal_voronoi_distance_to_edge(const VoronoiParams &params, const T coord)
 {
   float amplitude = 1.0f;
-  float max_amplitude = 0.5f + 0.5f * params.randomness;
+  float max_amplitude = params.max_distance;
   float scale = 1.0f;
   float distance = 8.0f;
 
-  const bool zero_input = params.detail == 0.0f || params.roughness == 0.0f ||
-                          params.lacunarity == 0.0f;
+  const bool zero_input = params.detail == 0.0f || params.roughness == 0.0f;
 
   for (int i = 0; i <= ceilf(params.detail); ++i) {
     const float octave_distance = voronoi_distance_to_edge(params, coord * scale);
@@ -2325,7 +2388,7 @@ float fractal_voronoi_distance_to_edge(const VoronoiParams &params, const T coor
       break;
     }
     else if (i <= params.detail) {
-      max_amplitude = mix(max_amplitude, (0.5f + 0.5f * params.randomness) / scale, amplitude);
+      max_amplitude = mix(max_amplitude, params.max_distance / scale, amplitude);
       distance = mix(distance, math::min(distance, octave_distance / scale), amplitude);
       scale *= params.lacunarity;
       amplitude *= params.roughness;
@@ -2333,8 +2396,7 @@ float fractal_voronoi_distance_to_edge(const VoronoiParams &params, const T coor
     else {
       float remainder = params.detail - floorf(params.detail);
       if (remainder != 0.0f) {
-        float lerp_amplitude = mix(
-            max_amplitude, (0.5f + 0.5f * params.randomness) / scale, amplitude);
+        float lerp_amplitude = mix(max_amplitude, params.max_distance / scale, amplitude);
         max_amplitude = mix(max_amplitude, lerp_amplitude, remainder);
         float lerp_distance = mix(
             distance, math::min(distance, octave_distance / scale), amplitude);

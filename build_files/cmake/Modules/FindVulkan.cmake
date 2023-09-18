@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -13,22 +13,26 @@
 #  VULKAN_FOUND, If false, do not try to use Vulkan.
 #
 
-# If VULKAN_ROOT_DIR was defined in the environment, use it.
-IF(NOT VULKAN_ROOT_DIR AND NOT $ENV{VULKAN_ROOT_DIR} STREQUAL "")
-  SET(VULKAN_ROOT_DIR $ENV{VULKAN_ROOT_DIR})
-ENDIF()
+# If `VULKAN_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED VULKAN_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{VULKAN_ROOT_DIR})
+  set(VULKAN_ROOT_DIR $ENV{VULKAN_ROOT_DIR})
+else()
+  set(VULKAN_ROOT_DIR "")
+endif()
 
-SET(_vulkan_SEARCH_DIRS
+set(_vulkan_SEARCH_DIRS
   ${VULKAN_ROOT_DIR}
 )
 
 # FIXME: These finder modules typically don't use LIBDIR,
 # this should be set by `./build_files/cmake/platform/` instead.
-IF(DEFINED LIBDIR)
-  SET(_vulkan_SEARCH_DIRS ${_vulkan_SEARCH_DIRS} ${LIBDIR}/vulkan)
-ENDIF()
+if(DEFINED LIBDIR)
+  set(_vulkan_SEARCH_DIRS ${_vulkan_SEARCH_DIRS} ${LIBDIR}/vulkan)
+endif()
 
-FIND_PATH(VULKAN_INCLUDE_DIR
+find_path(VULKAN_INCLUDE_DIR
   NAMES
     vulkan/vulkan.h
   HINTS
@@ -37,7 +41,7 @@ FIND_PATH(VULKAN_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(VULKAN_LIBRARY
+find_library(VULKAN_LIBRARY
   NAMES
     vulkan
   HINTS
@@ -48,17 +52,17 @@ FIND_LIBRARY(VULKAN_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set VULKAN_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Vulkan DEFAULT_MSG VULKAN_LIBRARY VULKAN_INCLUDE_DIR)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Vulkan DEFAULT_MSG VULKAN_LIBRARY VULKAN_INCLUDE_DIR)
 
-IF(VULKAN_FOUND)
-  SET(VULKAN_LIBRARIES ${VULKAN_LIBRARY})
-  SET(VULKAN_INCLUDE_DIRS ${VULKAN_INCLUDE_DIR})
-ENDIF()
+if(VULKAN_FOUND)
+  set(VULKAN_LIBRARIES ${VULKAN_LIBRARY})
+  set(VULKAN_INCLUDE_DIRS ${VULKAN_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   VULKAN_INCLUDE_DIR
   VULKAN_LIBRARY
 )
 
-UNSET(_vulkan_SEARCH_DIRS)
+unset(_vulkan_SEARCH_DIRS)

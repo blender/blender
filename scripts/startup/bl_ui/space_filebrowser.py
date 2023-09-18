@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -849,10 +849,10 @@ classes = (
     FILEBROWSER_PT_display,
     FILEBROWSER_PT_filter,
     FILEBROWSER_UL_dir,
-    FILEBROWSER_PT_bookmarks_volumes,
-    FILEBROWSER_PT_bookmarks_system,
     FILEBROWSER_MT_bookmarks_context_menu,
     FILEBROWSER_PT_bookmarks_favorites,
+    FILEBROWSER_PT_bookmarks_system,
+    FILEBROWSER_PT_bookmarks_volumes,
     FILEBROWSER_PT_bookmarks_recents,
     FILEBROWSER_PT_advanced_filter,
     FILEBROWSER_PT_directory_path,

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,7 +27,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (!geometry_set.has_curves()) {
       return;
     }
-    const Curves &src_curves_id = *geometry_set.get_curves_for_read();
+    const Curves &src_curves_id = *geometry_set.get_curves();
     const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
     const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
@@ -47,15 +47,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_curve_reverse_cc
-
-void register_node_type_geo_curve_reverse()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_reverse_cc;
-
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_REVERSE_CURVE, "Reverse Curve", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_reverse_cc

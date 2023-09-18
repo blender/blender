@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2014-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2014-2022 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -117,7 +117,7 @@ def dice_icon_name(
             # Search for eg: DEF_ICON(BRUSH_NUDGE) --> BRUSH_NUDGE
             re_icon = re.compile(r'^\s*DEF_ICON.*\(\s*([A-Za-z0-9_]+)\s*\).*$')
 
-            ui_icons_h = os.path.join(SOURCE_DIR, "source", "blender", "editors", "include", "UI_icons.h")
+            ui_icons_h = os.path.join(SOURCE_DIR, "source", "blender", "editors", "include", "UI_icons.hh")
             with open(ui_icons_h, 'r', encoding="utf-8") as f:
                 for l in f:
                     match = re_icon.search(l)

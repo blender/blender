@@ -1,24 +1,28 @@
-# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2022-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
+from bpy.types import Menu
+from bl_ui import node_add_menu
 from bpy.app.translations import (
     pgettext_iface as iface_,
     contexts as i18n_contexts,
 )
 
 
-def add_node_type(layout, node_type, *, label=None):
+def add_node_type(layout, node_type, *, label=None, poll=None):
     """Add a node type to a menu."""
     bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
     if not label:
         label = bl_rna.name if bl_rna else iface_("Unknown")
-    translation_context = bl_rna.translation_context if bl_rna else i18n_contexts.default
-    props = layout.operator("node.add_node", text=label, text_ctxt=translation_context)
-    props.type = node_type
-    props.use_transform = True
-    return props
+
+    if poll is True or poll is None:
+        translation_context = bl_rna.translation_context if bl_rna else i18n_contexts.default
+        props = layout.operator("node.add_node", text=label, text_ctxt=translation_context)
+        props.type = node_type
+        props.use_transform = True
+        return props
 
 
 def draw_node_group_add_menu(context, layout):
@@ -27,8 +31,6 @@ def draw_node_group_add_menu(context, layout):
     node_tree = space_node.edit_tree
     all_node_groups = context.blend_data.node_groups
 
-    layout.operator("node.group_make")
-    layout.operator("node.group_ungroup")
     if node_tree in all_node_groups.values():
         layout.separator()
         add_node_type(layout, "NodeGroupInput")
@@ -62,17 +64,31 @@ def draw_root_assets(layout):
 
 def add_simulation_zone(layout, label):
     """Add simulation zone to a menu."""
-    target_bl_rna = bpy.types.Node.bl_rna_get_subclass("GeometryNodeSimulationOutput")
-    if target_bl_rna:
-        translation_context = target_bl_rna.translation_context
-    else:
-        translation_context = i18n_contexts.default
-    props = layout.operator("node.add_simulation_zone", text=label, text_ctxt=translation_context)
+    props = layout.operator("node.add_simulation_zone", text=label, text_ctxt=i18n_contexts.default)
     props.use_transform = True
     return props
 
 
+def add_repeat_zone(layout, label):
+    props = layout.operator("node.add_repeat_zone", text=label, text_ctxt=i18n_contexts.default)
+    props.use_transform = True
+    return props
+
+
+class NODE_MT_category_layout(Menu):
+    bl_idname = "NODE_MT_category_layout"
+    bl_label = "Layout"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "NodeFrame")
+        node_add_menu.add_node_type(layout, "NodeReroute")
+
+        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+
+
 classes = (
+    NODE_MT_category_layout,
 )
 
 if __name__ == "__main__":  # only for live edit.

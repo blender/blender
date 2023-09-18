@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2012-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2012-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -634,6 +634,9 @@ def brush_settings(layout, context, brush, popover=False):
         if sculpt_tool == 'CLAY_STRIPS':
             row = layout.row()
             row.prop(brush, "tip_roundness")
+
+            row = layout.row()
+            row.prop(brush, "tip_scale_x")
 
         elif sculpt_tool == 'ELASTIC_DEFORM':
             layout.separator()

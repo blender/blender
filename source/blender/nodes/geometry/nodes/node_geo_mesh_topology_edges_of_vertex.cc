@@ -1,11 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 
-#include "BLI_task.hh"
+#include "BLI_array_utils.hh"
 
 #include "node_geometry_util.hh"
 
@@ -160,12 +160,8 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_POINT) {
       return {};
     }
-    const Span<int2> edges = mesh.edges();
     Array<int> counts(mesh.totvert, 0);
-    for (const int i : edges.index_range()) {
-      counts[edges[i][0]]++;
-      counts[edges[i][1]]++;
-    }
+    array_utils::count_indices(mesh.edges().cast<int>(), counts);
     return VArray<int>::ForContainer(std::move(counts));
   }
 
@@ -176,10 +172,7 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const final
   {
-    if (dynamic_cast<const EdgesOfVertCountInput *>(&other)) {
-      return true;
-    }
-    return false;
+    return dynamic_cast<const EdgesOfVertCountInput *>(&other) != nullptr;
   }
 
   std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
@@ -207,16 +200,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_mesh_topology_edges_of_vertex_cc
-
-void register_node_type_geo_mesh_topology_edges_of_vertex()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_topology_edges_of_vertex_cc;
-
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_TOPOLOGY_EDGES_OF_VERTEX, "Edges of Vertex", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_mesh_topology_edges_of_vertex_cc

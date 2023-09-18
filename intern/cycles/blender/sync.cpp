@@ -120,8 +120,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
         if (geom->is_mesh()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
           if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE) {
-            PointerRNA id_ptr;
-            RNA_id_pointer_create((::ID *)iter.first.id, &id_ptr);
+            PointerRNA id_ptr = RNA_id_pointer_create((::ID *)iter.first.id);
             geometry_map.set_recalc(BL::ID(id_ptr));
           }
         }

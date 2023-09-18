@@ -1,11 +1,10 @@
-# SPDX-FileCopyrightText: 2002-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2002-2022 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   .
   ../atomic
-  ../guardedalloc
 )
 
 set(INC_SYS
@@ -19,6 +18,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::intern::guardedalloc
 )
 
 # Disabled for makesdna/makesrna.

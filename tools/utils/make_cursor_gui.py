@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -30,7 +30,7 @@ class App:
 
         self.state = []
         self.states = 256
-        self.laststate = 2  # 0=Black, 1=White, 2=Transp.
+        self.laststate = 2  # 0=Black, 1=White, 2=Transparent.
 
         self.size = 16
         self.gridsz = 20

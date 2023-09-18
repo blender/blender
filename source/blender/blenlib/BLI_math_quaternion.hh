@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -88,7 +88,7 @@ template<typename T>
  * \{ */
 
 /**
- * Transform \a v by rotation using the quaternion \a q .
+ * Transform \a v by rotation using the quaternion \a q.
  */
 template<typename T>
 [[nodiscard]] inline VecBase<T, 3> transform_point(const QuaternionBase<T> &q,

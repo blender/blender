@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -44,7 +44,7 @@ static char GetViewMapGradientNormF1D___doc__[] =
     "\n"
     ".. method:: __call__(inter)\n"
     "\n"
-    "   Returns the density of the ViewMap for a given Interface1D.  The\n"
+    "   Returns the density of the ViewMap for a given Interface1D. The\n"
     "   density of each :class:`freestyle.types.FEdge` is evaluated in the\n"
     "   proper steerable :class:`freestyle.types.ViewMap` depending on its\n"
     "   orientation.\n"
@@ -76,7 +76,7 @@ static int GetViewMapGradientNormF1D___init__(BPy_GetViewMapGradientNormF1D *sel
 /*-----------------------BPy_GetViewMapGradientNormF1D type definition --------------------------*/
 
 PyTypeObject GetViewMapGradientNormF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GetViewMapGradientNormF1D",
     /*tp_basicsize*/ sizeof(BPy_GetViewMapGradientNormF1D),
     /*tp_itemsize*/ 0,

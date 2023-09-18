@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,10 +17,10 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "wm_draw.h"
+#include "WM_api.hh"
+#include "wm_draw.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "interface_regions_intern.hh"
 
@@ -48,4 +48,11 @@ void ui_region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
   ED_region_exit(C, region);
   BKE_area_region_free(nullptr, region); /* nullptr: no space-type. */
   BLI_freelinkN(&screen->regionbase, region);
+
+  if (CTX_wm_region(C) == region) {
+    CTX_wm_region_set(C, nullptr);
+  }
+  if (CTX_wm_menu(C) == region) {
+    CTX_wm_menu_set(C, nullptr);
+  }
 }

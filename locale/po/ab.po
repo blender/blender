@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
 "\"POT-Creation-Date: 2019-02-25 20:41:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -227,6 +227,14 @@ msgid "Specular"
 msgstr "Ацырцырра"
 
 
+msgid "Edit"
+msgstr "Аиҭакра"
+
+
+msgid "Mesh"
+msgstr "Аҿарҧага"
+
+
 msgid "Circle"
 msgstr "Аицыгьежь"
 
@@ -260,16 +268,12 @@ msgid "3D Cursor"
 msgstr "3Д Ахырхага"
 
 
-msgid "Edit"
-msgstr "Аиҭакра"
-
-
 msgid "Text"
 msgstr "Аҳәоу"
 
 
-msgid "Mesh"
-msgstr "Аҿарҧага"
+msgid "Keying"
+msgstr " Аиҭаганҵа"
 
 
 msgid "File"
@@ -298,10 +302,6 @@ msgstr "Ампыл"
 
 msgid "New"
 msgstr "Аҿыц"
-
-
-msgid "Keying"
-msgstr " Аиҭаганҵа"
 
 
 msgctxt "Operator"
@@ -373,6 +373,15 @@ msgid "New"
 msgstr "Аҿыц"
 
 
+msgctxt "Sequence"
+msgid "Text"
+msgstr "Аҳәоу"
+
+
+msgid "Speaker"
+msgstr "Абжьы Ахыҵхырҭа"
+
+
 msgid "Overlays"
 msgstr "Ақәҵакәа"
 
@@ -396,18 +405,9 @@ msgid "Image"
 msgstr "Асахьанҵа"
 
 
-msgctxt "Sequence"
-msgid "Text"
-msgstr "Аҳәоу"
-
-
 msgctxt "MovieClip"
 msgid "View"
 msgstr "Аԥшра"
-
-
-msgid "Speaker"
-msgstr "Абжьы Ахыҵхырҭа"
 
 
 msgctxt "WindowManager"
@@ -433,6 +433,16 @@ msgstr "Асахьанҵа"
 msgctxt "WindowManager"
 msgid "Text"
 msgstr "Аҳәоу"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Абаҩ"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
 
 
 msgctxt "Operator"
@@ -507,16 +517,6 @@ msgstr "Акамера"
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "Абжьы Ахыҵхырҭа"
-
-
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Абаҩ"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Аҭыџьеихац"
 
 
 msgctxt "Object"
@@ -712,9 +712,4 @@ msgstr "Аԥшра"
 
 msgid "cursor"
 msgstr "Ахырхага"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Агәыԥ"
 

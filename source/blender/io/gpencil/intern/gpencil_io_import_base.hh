@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -13,11 +13,11 @@ namespace blender::io::gpencil {
 class GpencilImporter : public GpencilIO {
 
  public:
-  GpencilImporter(const struct GpencilIOParams *iparams);
+  GpencilImporter(const GpencilIOParams *iparams);
   virtual bool read() = 0;
 
  protected:
-  struct Object *create_object();
+  Object *create_object();
   int32_t create_material(const char *name, bool stroke, bool fill);
 
  private:

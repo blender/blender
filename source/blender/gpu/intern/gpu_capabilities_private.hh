@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -48,6 +48,8 @@ struct GPUCapabilities {
   bool shader_image_load_store_support = false;
   bool shader_draw_parameters_support = false;
   bool transform_feedback_support = false;
+  bool hdr_viewport_support = false;
+  bool texture_view_support = true;
 
   /* OpenGL related workarounds. */
   bool mip_render_workaround = false;

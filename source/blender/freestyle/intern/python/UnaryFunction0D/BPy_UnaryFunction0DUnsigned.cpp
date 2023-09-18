@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -115,7 +115,7 @@ static PyObject *UnaryFunction0DUnsigned___call__(BPy_UnaryFunction0DUnsigned *s
 /*-----------------------BPy_UnaryFunction0DUnsigned type definition ----------------------------*/
 
 PyTypeObject UnaryFunction0DUnsigned_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction0DUnsigned",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction0DUnsigned),
     /*tp_itemsize*/ 0,

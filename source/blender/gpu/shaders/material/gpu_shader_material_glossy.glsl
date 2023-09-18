@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void node_bsdf_glossy(vec4 color,
                       float roughness,

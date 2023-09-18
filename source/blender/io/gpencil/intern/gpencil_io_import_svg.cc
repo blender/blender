@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,13 @@
  * \ingroup bgpencil
  */
 
-#include "BLI_math.h"
+#include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 
 #include "DNA_gpencil_legacy_types.h"
 
@@ -18,16 +22,14 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 
 #include "gpencil_io.h"
 #include "gpencil_io_import_svg.hh"
 
-/* Custom flags for NanoSVG. */
-#define NANOSVG_ALL_COLOR_KEYWORDS
-#define NANOSVG_IMPLEMENTATION
-
 #include "nanosvg.h"
+
+#include <iostream>
 
 using blender::MutableSpan;
 

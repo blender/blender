@@ -1,10 +1,15 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
+#include "BKE_image.h"
 #include "BKE_node_runtime.hh"
+#include "BKE_texture.h"
+
+#include "IMB_colormanagement.h"
 
 namespace blender::nodes::node_shader_tex_environment_cc {
 

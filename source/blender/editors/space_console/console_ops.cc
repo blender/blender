@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,7 +17,6 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
@@ -26,14 +25,14 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
-#include "UI_view2d.h"
+#include "ED_screen.hh"
+#include "UI_view2d.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "console_intern.hh"
 
@@ -51,7 +50,7 @@ static char *console_select_to_buffer(SpaceConsole *sc)
   console_scrollback_prompt_begin(sc, &cl_dummy);
 
   int offset = 0;
-  for (ConsoleLine *cl = static_cast<ConsoleLine *>(sc->scrollback.first); cl; cl = cl->next) {
+  LISTBASE_FOREACH (ConsoleLine *, cl, &sc->scrollback) {
     offset += cl->len + 1;
   }
 
@@ -60,7 +59,7 @@ static char *console_select_to_buffer(SpaceConsole *sc)
     offset -= 1;
     int sel[2] = {offset - sc->sel_end, offset - sc->sel_start};
     DynStr *buf_dyn = BLI_dynstr_new();
-    for (ConsoleLine *cl = static_cast<ConsoleLine *>(sc->scrollback.first); cl; cl = cl->next) {
+    LISTBASE_FOREACH (ConsoleLine *, cl, &sc->scrollback) {
       if (sel[0] <= cl->len && sel[1] >= 0) {
         int sta = max_ii(sel[0], 0);
         int end = min_ii(sel[1], cl->len);
@@ -148,9 +147,7 @@ static void console_scrollback_limit(SpaceConsole *sc)
 
 static ConsoleLine *console_history_find(SpaceConsole *sc, const char *str, ConsoleLine *cl_ignore)
 {
-  ConsoleLine *cl;
-
-  for (cl = static_cast<ConsoleLine *>(sc->history.last); cl; cl = cl->prev) {
+  LISTBASE_FOREACH_BACKWARD (ConsoleLine *, cl, &sc->history) {
     if (cl == cl_ignore) {
       continue;
     }
@@ -956,8 +953,8 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
 
   ED_area_tag_redraw(area);
 
-  /* when calling render modally this can be NULL when calling:
-   * bpy.ops.render.render('INVOKE_DEFAULT') */
+  /* When calling render modally this can be null when calling:
+   * `bpy.ops.render.render('INVOKE_DEFAULT')`. */
   if (region) {
     console_scroll_bottom(region);
   }

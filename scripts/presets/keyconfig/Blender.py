@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2018-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -88,22 +88,11 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
-    # Experimental: only show with developer extras, see: #96544.
-    use_tweak_select_passthrough: BoolProperty(
-        name="Tweak Select: Mouse Select & Move",
+    # Experimental: only show with developer extras, see: #107785.
+    use_region_toggle_pie: BoolProperty(
+        name="Region Toggle Pie",
         description=(
-            "The tweak tool is activated immediately instead of placing the cursor. "
-            "This is an experimental preference and may be removed"
-        ),
-        default=False,
-        update=update_fn,
-    )
-    # Experimental: only show with developer extras, see: #96544.
-    use_tweak_tool_lmb_interaction: BoolProperty(
-        name="Tweak Tool: Left Mouse Select & Move",
-        description=(
-            "The tweak tool is activated immediately instead of placing the cursor. "
-            "This is an experimental preference and may be removed"
+            "N-key opens a pie menu to toggle regions"
         ),
         default=False,
         update=update_fn,
@@ -252,12 +241,12 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
-    use_transform_navigation: BoolProperty(
-        name="Navigate during Transform",
+    use_alt_navigation: BoolProperty(
+        name="Transform Navigation with Alt",
         description=(
-            "Enable view navigation while using transform operators. "
-            "Proportional Influence, Automatic Constraints and Auto IK Chain Length shortcuts will require holding Alt key"),
-        default=False,
+            "During transformations, use Alt to navigate in the 3D View. "
+            "Note that if disabled, hotkeys for Proportional Editing, Automatic Constraints, and Auto IK Chain Length will require holding Alt"),
+        default=True,
         update=update_fn,
     )
 
@@ -306,10 +295,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
 
         if show_developer_ui:
             row = sub.row()
-            row.prop(self, "use_tweak_select_passthrough")
-        if show_developer_ui and (not is_select_left):
-            row = sub.row()
-            row.prop(self, "use_tweak_tool_lmb_interaction")
+            row.prop(self, "use_region_toggle_pie")
 
         # 3DView settings.
         col = layout.column()
@@ -318,13 +304,13 @@ class Prefs(bpy.types.KeyConfigPreferences):
         col.row().prop(self, "v3d_mmb_action", text="Middle Mouse Action", expand=True)
         col.row().prop(self, "v3d_alt_mmb_drag_action", text="Alt Middle Mouse Drag Action", expand=True)
 
-        # Checkboxes sub-layout.
+        # Check-boxes sub-layout.
         col = layout.column()
         sub = col.column(align=True)
         sub.prop(self, "use_v3d_tab_menu")
         sub.prop(self, "use_pie_click_drag")
         sub.prop(self, "use_v3d_shade_ex_pie")
-        sub.prop(self, "use_transform_navigation")
+        sub.prop(self, "use_alt_navigation")
 
         # File Browser settings.
         col = layout.column()
@@ -357,6 +343,7 @@ def load():
             use_mouse_emulate_3_button=use_mouse_emulate_3_button,
             spacebar_action=kc_prefs.spacebar_action,
             use_key_activate_tools=(kc_prefs.tool_key_mode == 'TOOL'),
+            use_region_toggle_pie=(show_developer_ui and kc_prefs.use_region_toggle_pie),
             v3d_tilde_action=kc_prefs.v3d_tilde_action,
             use_v3d_mmb_pan=(kc_prefs.v3d_mmb_action == 'PAN'),
             v3d_alt_mmb_drag_action=kc_prefs.v3d_alt_mmb_drag_action,
@@ -372,11 +359,6 @@ def load():
                 # Otherwise LMB activates the fallback tool and RMB always tweak-selects.
                 (kc_prefs.rmb_action != 'FALLBACK_TOOL')
             ),
-            use_tweak_select_passthrough=(show_developer_ui and kc_prefs.use_tweak_select_passthrough),
-            use_tweak_tool_lmb_interaction=(
-                False if is_select_left else
-                (show_developer_ui and kc_prefs.use_tweak_tool_lmb_interaction)
-            ),
             use_alt_tool_or_cursor=(
                 (not use_mouse_emulate_3_button) and
                 (kc_prefs.use_alt_tool if is_select_left else kc_prefs.use_alt_cursor)
@@ -384,8 +366,9 @@ def load():
             use_alt_click_leader=kc_prefs.use_alt_click_leader,
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
             use_file_single_click=kc_prefs.use_file_single_click,
-            experimental=prefs.experimental,
-            use_transform_navigation=kc_prefs.use_transform_navigation,
+            use_alt_navigation=kc_prefs.use_alt_navigation,
+            # Experimental features.
+            use_experimental_grease_pencil_version3=prefs.experimental.use_grease_pencil_version3,
         ),
     )
 

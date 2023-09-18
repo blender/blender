@@ -1,13 +1,11 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
   ../clog
-  ../../source/blender/blenlib
   ../../source/blender/imbuf
-  ../../source/blender/makesdna
 )
 
 set(INC_SYS
@@ -75,7 +73,13 @@ set(SRC
 
 set(LIB
   ${Epoxy_LIBRARIES}
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
 )
+
+if(WITH_OPENGL_BACKEND)
+  add_definitions(-DWITH_OPENGL_BACKEND)
+endif()
 
 if(WITH_VULKAN_BACKEND)
   list(APPEND SRC
@@ -85,8 +89,8 @@ if(WITH_VULKAN_BACKEND)
   )
 
   list(APPEND INC_SYS
-    ${VULKAN_INCLUDE_DIRS}
-    ${MOLTENVK_INCLUDE_DIRS}
+    PUBLIC ${VULKAN_INCLUDE_DIRS}
+    PUBLIC ${MOLTENVK_INCLUDE_DIRS}
   )
 
   list(APPEND LIB
@@ -246,7 +250,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     if(WITH_X11_XF86VMODE)
       add_definitions(-DWITH_X11_XF86VMODE)
       list(APPEND INC_SYS
-        ${X11_Xxf86vmode_INCLUDE_PATH}
+        ${X11_Xxf86vm_INCLUDE_PATH}
       )
       list(APPEND LIB
         ${X11_Xxf86vmode_LIB}

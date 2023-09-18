@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -383,9 +383,7 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
    */
 
   if (ctx.ibuf->metadata) {
-    for (IDProperty *prop = static_cast<IDProperty *>(ctx.ibuf->metadata->data.group.first); prop;
-         prop = prop->next)
-    {
+    LISTBASE_FOREACH (IDProperty *, prop, &ctx.ibuf->metadata->data.group) {
       if (prop->type == IDP_STRING) {
         /* If this property has a prefixed name (oiio:, tiff:, etc.) and it belongs to
          * oiio or a different format, then skip. */

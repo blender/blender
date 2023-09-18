@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,14 +26,18 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_armature.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
+#include "ED_armature.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
 
 #include "SEQ_select.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
+
+#include "ANIM_bone_collections.h"
+
+#include "tree/tree_element_seq.hh"
 
 #include "outliner_intern.hh"
 
@@ -288,9 +292,12 @@ static void outliner_select_sync_to_pose_bone(TreeElement *te,
   }
 }
 
-static void outliner_select_sync_to_sequence(Scene *scene, TreeStoreElem *tselem)
+static void outliner_select_sync_to_sequence(Scene *scene, const TreeElement *te)
 {
-  Sequence *seq = (Sequence *)tselem->id;
+  const TreeStoreElem *tselem = TREESTORE(te);
+
+  const TreeElementSequence *te_sequence = tree_element_cast<TreeElementSequence>(te);
+  Sequence *seq = &te_sequence->get_sequence();
 
   if (tselem->flag & TSE_ACTIVE) {
     SEQ_select_active_set(scene, seq);
@@ -333,7 +340,7 @@ static void outliner_sync_selection_from_outliner(Scene *scene,
     }
     else if (tselem->type == TSE_SEQUENCE) {
       if (sync_types->sequence) {
-        outliner_select_sync_to_sequence(scene, tselem);
+        outliner_select_sync_to_sequence(scene, te);
       }
     }
 
@@ -464,9 +471,12 @@ static void outliner_select_sync_from_pose_bone(bPoseChannel *pchan_active,
   }
 }
 
-static void outliner_select_sync_from_sequence(Sequence *sequence_active, TreeStoreElem *tselem)
+static void outliner_select_sync_from_sequence(Sequence *sequence_active, const TreeElement *te)
 {
-  Sequence *seq = (Sequence *)tselem->id;
+  TreeStoreElem *tselem = TREESTORE(te);
+
+  const TreeElementSequence *te_sequence = tree_element_cast<TreeElementSequence>(te);
+  const Sequence *seq = &te_sequence->get_sequence();
 
   if (seq == sequence_active) {
     tselem->flag |= TSE_ACTIVE;
@@ -522,7 +532,7 @@ static void outliner_sync_selection_to_outliner(const Scene *scene,
     }
     else if (tselem->type == TSE_SEQUENCE) {
       if (sync_types->sequence) {
-        outliner_select_sync_from_sequence(active_data->sequence, tselem);
+        outliner_select_sync_from_sequence(active_data->sequence, te);
       }
     }
     else {

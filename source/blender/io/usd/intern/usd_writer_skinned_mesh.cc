@@ -27,7 +27,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -36,7 +36,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 
-#include "ED_armature.h"
+#include "ED_armature.hh"
 
 #include <string>
 
@@ -320,7 +320,11 @@ pxr::SdfPath USDSkinnedMeshWriter::get_skel_path(Object *arm_obj) const
 {
   ID *arm_id = reinterpret_cast<ID *>(arm_obj->data);
 
-  std::string skel_path = usd_export_context_.hierarchy_iterator->get_object_export_path(arm_id);
+  /* Commenting out to compile, which is okay as this file will soon be obsolete, so the
+   * code is no longer relevant. */
+  //std::string skel_path = usd_export_context_.hierarchy_iterator->get_object_export_path(arm_id);
+
+  std::string skel_path;
 
   if (skel_path.empty()) {
     return pxr::SdfPath();

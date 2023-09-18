@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -78,28 +78,11 @@ void VKPipelineStateManager::force_state(const GPUState &state,
 void VKPipelineStateManager::finalize_color_blend_state(const VKFrameBuffer &framebuffer)
 {
   color_blend_attachments.clear();
-  if (framebuffer.is_immutable()) {
-    /* Immutable frame-buffers are owned by GHOST and don't have any attachments assigned. In this
-     * case we assume that there is a single color texture assigned. */
-    color_blend_attachments.append(color_blend_attachment_template);
-  }
-  else {
-
-    bool is_sequential = true;
-    for (int color_slot = 0; color_slot < GPU_FB_MAX_COLOR_ATTACHMENT; color_slot++) {
-      VKTexture *texture = unwrap(unwrap(framebuffer.color_tex(color_slot)));
-      if (texture) {
-        BLI_assert(is_sequential);
-        color_blend_attachments.append(color_blend_attachment_template);
-      }
-      else {
-        /* Test to detect if all color textures are sequential attached from the first slot. We
-         * assume at this moment that this is the case. Otherwise we need to rewire how attachments
-         * and bindings work. */
-        is_sequential = false;
-      }
+  for (int color_slot = 0; color_slot < GPU_FB_MAX_COLOR_ATTACHMENT; color_slot++) {
+    VKTexture *texture = unwrap(unwrap(framebuffer.color_tex(color_slot)));
+    if (texture) {
+      color_blend_attachments.append(color_blend_attachment_template);
     }
-    UNUSED_VARS_NDEBUG(is_sequential);
   }
 
   pipeline_color_blend_state.attachmentCount = color_blend_attachments.size();
@@ -318,12 +301,11 @@ void VKPipelineStateManager::set_stencil_test(const eGPUStencilTest test,
 void VKPipelineStateManager::set_stencil_mask(const eGPUStencilTest test,
                                               const GPUStateMutable &mutable_state)
 {
-  depth_stencil_state.front.writeMask = static_cast<uint32_t>(mutable_state.stencil_write_mask);
-  depth_stencil_state.front.reference = static_cast<uint32_t>(mutable_state.stencil_reference);
+  depth_stencil_state.front.writeMask = uint32_t(mutable_state.stencil_write_mask);
+  depth_stencil_state.front.reference = uint32_t(mutable_state.stencil_reference);
 
   depth_stencil_state.front.compareOp = VK_COMPARE_OP_ALWAYS;
-  depth_stencil_state.front.compareMask = static_cast<uint32_t>(
-      mutable_state.stencil_compare_mask);
+  depth_stencil_state.front.compareMask = uint32_t(mutable_state.stencil_compare_mask);
 
   switch (test) {
     case GPU_STENCIL_NEQUAL:
@@ -384,9 +366,9 @@ void VKPipelineStateManager::set_shadow_bias(const bool enable)
 {
   if (enable) {
     rasterization_state.depthBiasEnable = VK_TRUE;
-    rasterization_state.depthBiasSlopeFactor = 2.f;
-    rasterization_state.depthBiasConstantFactor = 1.f;
-    rasterization_state.depthBiasClamp = 0.f;
+    rasterization_state.depthBiasSlopeFactor = 2.0f;
+    rasterization_state.depthBiasConstantFactor = 1.0f;
+    rasterization_state.depthBiasClamp = 0.0f;
   }
   else {
     rasterization_state.depthBiasEnable = VK_FALSE;

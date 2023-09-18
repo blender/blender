@@ -11,8 +11,11 @@ typedef struct Bssrdf {
 
   Spectrum radius;
   Spectrum albedo;
-  float roughness;
   float anisotropy;
+
+  /* Parameters for refractive entry bounce. */
+  float ior;
+  float alpha;
 } Bssrdf;
 
 static_assert(sizeof(ShaderClosure) >= sizeof(Bssrdf), "Bssrdf is too large!");
@@ -54,9 +57,7 @@ ccl_device float bssrdf_dipole_compute_alpha_prime(float rd, float fourthirdA)
   return xmid;
 }
 
-ccl_device void bssrdf_setup_radius(ccl_private Bssrdf *bssrdf,
-                                    const ClosureType type,
-                                    const float eta)
+ccl_device void bssrdf_setup_radius(ccl_private Bssrdf *bssrdf, const ClosureType type)
 {
   if (type == CLOSURE_BSSRDF_BURLEY_ID || type == CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID) {
     /* Scale mean free path length so it gives similar looking result to older
@@ -65,8 +66,8 @@ ccl_device void bssrdf_setup_radius(ccl_private Bssrdf *bssrdf,
   }
   else {
     /* Adjust radius based on IOR and albedo. */
-    const float inv_eta = 1.0f / eta;
-    const float F_dr = inv_eta * (-1.440f * inv_eta + 0.710f) + 0.668f + 0.0636f * eta;
+    const float inv_eta = 1.0f / bssrdf->ior;
+    const float F_dr = inv_eta * (-1.440f * inv_eta + 0.710f) + 0.668f + 0.0636f * bssrdf->ior;
     const float fourthirdA = (4.0f / 3.0f) * (1.0f + F_dr) /
                              (1.0f - F_dr); /* From Jensen's `Fdr` ratio formula. */
 
@@ -263,6 +264,11 @@ ccl_device_forceinline float bssrdf_pdf(const Spectrum radius, float r)
 
 ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd, Spectrum weight)
 {
+  float sample_weight = fabsf(average(weight));
+  if (sample_weight < CLOSURE_WEIGHT_CUTOFF) {
+    return NULL;
+  }
+
   ccl_private Bssrdf *bssrdf = (ccl_private Bssrdf *)closure_alloc(
       sd, sizeof(Bssrdf), CLOSURE_NONE_ID, weight);
 
@@ -270,40 +276,40 @@ ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd, S
     return NULL;
   }
 
-  float sample_weight = fabsf(average(weight));
   bssrdf->sample_weight = sample_weight;
-  return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? bssrdf : NULL;
+  return bssrdf;
 }
 
 ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
                             ccl_private Bssrdf *bssrdf,
-                            ClosureType type,
-                            const float ior)
+                            int path_flag,
+                            ClosureType type)
 {
+  /* Clamps protecting against bad/extreme and non physical values. */
+  bssrdf->anisotropy = clamp(bssrdf->anisotropy, 0.0f, 0.9f);
+  bssrdf->ior = clamp(bssrdf->ior, 1.01f, 3.8f);
+
   int flag = 0;
 
-  /* Add retro-reflection component as separate diffuse BSDF. */
-  if (bssrdf->roughness != FLT_MAX) {
-    ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
-        sd, sizeof(PrincipledDiffuseBsdf), bssrdf->weight);
-
-    if (bsdf) {
-      bsdf->N = bssrdf->N;
-      bsdf->roughness = bssrdf->roughness;
-      flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_RETRO_REFLECTION);
-
-      /* Ad-hoc weight adjustment to avoid retro-reflection taking away half the
-       * samples from BSSRDF. */
-      bsdf->sample_weight *= bsdf_principled_diffuse_retro_reflection_sample_weight(bsdf, sd->wi);
-    }
+  if (type == CLOSURE_BSSRDF_RANDOM_WALK_ID) {
+    /* CLOSURE_BSSRDF_RANDOM_WALK_ID uses a fixed roughness. */
+    bssrdf->alpha = 1.0f;
   }
 
   /* Verify if the radii are large enough to sample without precision issues. */
   int bssrdf_channels = SPECTRUM_CHANNELS;
   Spectrum diffuse_weight = zero_spectrum();
 
+  /* Fall back to diffuse if the radius is smaller than a quarter pixel. */
+  float min_radius = max(0.25f * sd->dP, BSSRDF_MIN_RADIUS);
+  if (path_flag & PATH_RAY_DIFFUSE_ANCESTOR) {
+    /* Always fall back to diffuse after a diffuse ancestor. Can't see it well then and adds
+     * considerable noise due to probabilities of continuing the path getting lower and lower. */
+    min_radius = FLT_MAX;
+  }
+
   FOREACH_SPECTRUM_CHANNEL (i) {
-    if (GET_SPECTRUM_CHANNEL(bssrdf->radius, i) < BSSRDF_MIN_RADIUS) {
+    if (GET_SPECTRUM_CHANNEL(bssrdf->radius, i) < min_radius) {
       GET_SPECTRUM_CHANNEL(diffuse_weight, i) = GET_SPECTRUM_CHANNEL(bssrdf->weight, i);
       GET_SPECTRUM_CHANNEL(bssrdf->weight, i) = 0.0f;
       GET_SPECTRUM_CHANNEL(bssrdf->radius, i) = 0.0f;
@@ -313,24 +319,12 @@ ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
 
   if (bssrdf_channels < SPECTRUM_CHANNELS) {
     /* Add diffuse BSDF if any radius too small. */
-    if (bssrdf->roughness != FLT_MAX) {
-      ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
-          sd, sizeof(PrincipledDiffuseBsdf), diffuse_weight);
+    ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
+        sd, sizeof(DiffuseBsdf), diffuse_weight);
 
-      if (bsdf) {
-        bsdf->N = bssrdf->N;
-        bsdf->roughness = bssrdf->roughness;
-        flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_LAMBERT);
-      }
-    }
-    else {
-      ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
-          sd, sizeof(DiffuseBsdf), diffuse_weight);
-
-      if (bsdf) {
-        bsdf->N = bssrdf->N;
-        flag |= bsdf_diffuse_setup(bsdf);
-      }
+    if (bsdf) {
+      bsdf->N = bssrdf->N;
+      flag |= bsdf_diffuse_setup(bsdf);
     }
   }
 
@@ -339,12 +333,12 @@ ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
     bssrdf->type = type;
     bssrdf->sample_weight = fabsf(average(bssrdf->weight)) * bssrdf_channels;
 
-    bssrdf_setup_radius(bssrdf, type, ior);
+    bssrdf_setup_radius(bssrdf, type);
 
     flag |= SD_BSSRDF;
   }
   else {
-    bssrdf->type = type;
+    bssrdf->type = CLOSURE_NONE_ID;
     bssrdf->sample_weight = 0.0f;
   }
 

@@ -1,15 +1,8 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_index_range.hh"
-#include "BLI_math_vector.h"
-#include "BLI_math_vector.hh"
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
-#include "BKE_geometry_set.hh"
+#include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
 
 #include "GEO_mesh_primitive_cuboid.hh"
@@ -25,7 +18,7 @@ struct CuboidConfig {
   int edges_y;
   int edges_z;
   int vertex_count;
-  int poly_count;
+  int face_count;
   int loop_count;
 
   CuboidConfig(float3 size, int verts_x, int verts_y, int verts_z)
@@ -39,8 +32,8 @@ struct CuboidConfig {
   {
     BLI_assert(edges_x > 0 && edges_y > 0 && edges_z > 0);
     this->vertex_count = this->get_vertex_count();
-    this->poly_count = this->get_poly_count();
-    this->loop_count = this->poly_count * 4;
+    this->face_count = this->get_face_count();
+    this->loop_count = this->face_count * 4;
   }
 
  private:
@@ -50,7 +43,7 @@ struct CuboidConfig {
     return verts_x * verts_y * verts_z - inner_position_count;
   }
 
-  int get_poly_count()
+  int get_face_count()
   {
     return 2 * (edges_x * edges_y + edges_y * edges_z + edges_z * edges_x);
   }
@@ -77,7 +70,7 @@ static void calculate_positions(const CuboidConfig &config, MutableSpan<float3> 
         const float y_pos = y_front + y_delta * y;
         for (const int x : IndexRange(config.verts_x)) {
           const float x_pos = x_left + x_delta * x;
-          copy_v3_v3(positions[vert_index++], float3(x_pos, y_pos, z_pos));
+          positions[vert_index++] = float3(x_pos, y_pos, z_pos);
         }
       }
     }
@@ -89,7 +82,7 @@ static void calculate_positions(const CuboidConfig &config, MutableSpan<float3> 
           const float z_pos = z_bottom + z_delta * z;
           for (const int x : IndexRange(config.verts_x)) {
             const float x_pos = x_left + x_delta * x;
-            copy_v3_v3(positions[vert_index++], float3(x_pos, y_pos, z_pos));
+            positions[vert_index++] = float3(x_pos, y_pos, z_pos);
           }
         }
         else {
@@ -97,9 +90,9 @@ static void calculate_positions(const CuboidConfig &config, MutableSpan<float3> 
           const float x_pos = x_left;
           const float y_pos = y_front + y_delta * y;
           const float z_pos = z_bottom + z_delta * z;
-          copy_v3_v3(positions[vert_index++], float3(x_pos, y_pos, z_pos));
+          positions[vert_index++] = float3(x_pos, y_pos, z_pos);
           const float x_pos2 = x_left + x_delta * config.edges_x;
-          copy_v3_v3(positions[vert_index++], float3(x_pos2, y_pos, z_pos));
+          positions[vert_index++] = float3(x_pos2, y_pos, z_pos);
         }
       }
     }
@@ -107,38 +100,31 @@ static void calculate_positions(const CuboidConfig &config, MutableSpan<float3> 
 }
 
 /* vert_1 = bottom left, vert_2 = bottom right, vert_3 = top right, vert_4 = top left.
- * Hence they are passed as 1,4,3,2 when calculating polys clockwise, and 1,2,3,4 for
+ * Hence they are passed as 1,4,3,2 when calculating faces clockwise, and 1,2,3,4 for
  * anti-clockwise.
  */
-static void define_quad(MutableSpan<int> poly_offsets,
-                        MutableSpan<int> corner_verts,
-                        const int poly_index,
+static void define_quad(MutableSpan<int> corner_verts,
                         const int loop_index,
                         const int vert_1,
                         const int vert_2,
                         const int vert_3,
                         const int vert_4)
 {
-  poly_offsets[poly_index] = loop_index;
-
   corner_verts[loop_index] = vert_1;
   corner_verts[loop_index + 1] = vert_2;
   corner_verts[loop_index + 2] = vert_3;
   corner_verts[loop_index + 3] = vert_4;
 }
 
-static void calculate_polys(const CuboidConfig &config,
-                            MutableSpan<int> poly_offsets,
-                            MutableSpan<int> corner_verts)
+static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> corner_verts)
 {
   int loop_index = 0;
-  int poly_index = 0;
 
   /* Number of vertices in an XY cross-section of the cube (barring top and bottom faces). */
   const int xy_cross_section_vert_count = config.verts_x * config.verts_y -
                                           (config.verts_x - 2) * (config.verts_y - 2);
 
-  /* Calculate polys for Bottom faces. */
+  /* Calculate faces for Bottom faces. */
   int vert_1_start = 0;
 
   for ([[maybe_unused]] const int y : IndexRange(config.edges_y)) {
@@ -148,36 +134,31 @@ static void calculate_polys(const CuboidConfig &config,
       const int vert_3 = vert_2 + 1;
       const int vert_4 = vert_1 + 1;
 
-      define_quad(
-          poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_2, vert_3, vert_4);
+      define_quad(corner_verts, loop_index, vert_1, vert_2, vert_3, vert_4);
       loop_index += 4;
-      poly_index++;
     }
     vert_1_start += config.verts_x;
   }
 
-  /* Calculate polys for Front faces. */
+  /* Calculate faces for Front faces. */
   vert_1_start = 0;
   int vert_2_start = config.verts_x * config.verts_y;
 
   for ([[maybe_unused]] const int z : IndexRange(config.edges_z)) {
     for (const int x : IndexRange(config.edges_x)) {
-      define_quad(poly_offsets,
-                  corner_verts,
-                  poly_index,
+      define_quad(corner_verts,
                   loop_index,
                   vert_1_start + x,
                   vert_1_start + x + 1,
                   vert_2_start + x + 1,
                   vert_2_start + x);
       loop_index += 4;
-      poly_index++;
     }
     vert_1_start = vert_2_start;
     vert_2_start += config.verts_x * config.verts_y - (config.verts_x - 2) * (config.verts_y - 2);
   }
 
-  /* Calculate polys for Top faces. */
+  /* Calculate faces for Top faces. */
   vert_1_start = config.verts_x * config.verts_y +
                  (config.verts_z - 2) * (config.verts_x * config.verts_y -
                                          (config.verts_x - 2) * (config.verts_y - 2));
@@ -185,22 +166,19 @@ static void calculate_polys(const CuboidConfig &config,
 
   for ([[maybe_unused]] const int y : IndexRange(config.edges_y)) {
     for (const int x : IndexRange(config.edges_x)) {
-      define_quad(poly_offsets,
-                  corner_verts,
-                  poly_index,
+      define_quad(corner_verts,
                   loop_index,
                   vert_1_start + x,
                   vert_1_start + x + 1,
                   vert_2_start + x + 1,
                   vert_2_start + x);
       loop_index += 4;
-      poly_index++;
     }
     vert_2_start += config.verts_x;
     vert_1_start += config.verts_x;
   }
 
-  /* Calculate polys for Back faces. */
+  /* Calculate faces for Back faces. */
   vert_1_start = config.verts_x * config.edges_y;
   vert_2_start = vert_1_start + xy_cross_section_vert_count;
 
@@ -209,22 +187,19 @@ static void calculate_polys(const CuboidConfig &config,
       vert_2_start += (config.verts_x - 2) * (config.verts_y - 2);
     }
     for (const int x : IndexRange(config.edges_x)) {
-      define_quad(poly_offsets,
-                  corner_verts,
-                  poly_index,
+      define_quad(corner_verts,
                   loop_index,
                   vert_1_start + x,
                   vert_2_start + x,
                   vert_2_start + x + 1,
                   vert_1_start + x + 1);
       loop_index += 4;
-      poly_index++;
     }
     vert_2_start += xy_cross_section_vert_count;
     vert_1_start += xy_cross_section_vert_count;
   }
 
-  /* Calculate polys for Left faces. */
+  /* Calculate faces for Left faces. */
   vert_1_start = 0;
   vert_2_start = config.verts_x * config.verts_y;
 
@@ -255,10 +230,8 @@ static void calculate_polys(const CuboidConfig &config,
         vert_3 = vert_2 + 2;
       }
 
-      define_quad(
-          poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_2, vert_3, vert_4);
+      define_quad(corner_verts, loop_index, vert_1, vert_2, vert_3, vert_4);
       loop_index += 4;
-      poly_index++;
     }
     if (z == 0) {
       vert_1_start += config.verts_x * config.verts_y;
@@ -269,7 +242,7 @@ static void calculate_polys(const CuboidConfig &config,
     vert_2_start += xy_cross_section_vert_count;
   }
 
-  /* Calculate polys for Right faces. */
+  /* Calculate faces for Right faces. */
   vert_1_start = config.edges_x;
   vert_2_start = vert_1_start + config.verts_x * config.verts_y;
 
@@ -303,10 +276,8 @@ static void calculate_polys(const CuboidConfig &config,
         vert_4 = vert_1 + config.verts_x;
       }
 
-      define_quad(
-          poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_4, vert_3, vert_2);
+      define_quad(corner_verts, loop_index, vert_1, vert_4, vert_3, vert_2);
       loop_index += 4;
-      poly_index++;
     }
     if (z == 0) {
       vert_1_start += config.verts_x * config.verts_y;
@@ -402,15 +373,14 @@ Mesh *create_cuboid_mesh(const float3 &size,
 {
   const CuboidConfig config(size, verts_x, verts_y, verts_z);
 
-  Mesh *mesh = BKE_mesh_new_nomain(config.vertex_count, 0, config.poly_count, config.loop_count);
+  Mesh *mesh = BKE_mesh_new_nomain(config.vertex_count, 0, config.face_count, config.loop_count);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   BKE_mesh_smooth_flag_set(mesh, false);
 
   calculate_positions(config, positions);
-
-  calculate_polys(config, poly_offsets, corner_verts);
+  offset_indices::fill_constant_group_size(4, 0, mesh->face_offsets_for_write());
+  calculate_corner_verts(config, corner_verts);
   BKE_mesh_calc_edges(mesh, false, false);
 
   if (uv_id) {

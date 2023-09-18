@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -580,6 +580,12 @@ class Texture : NonCopyable {
     return &tx_;
   }
 
+  /** WORKAROUND: used when needing a ref to the Texture and not the GPUTexture. */
+  Texture *ptr()
+  {
+    return this;
+  }
+
   Texture &operator=(Texture &&a)
   {
     if (this != std::addressof(a)) {
@@ -624,6 +630,7 @@ class Texture : NonCopyable {
                        float *data = nullptr,
                        int mip_len = 1)
   {
+    BLI_assert(layers > 0);
     return ensure_impl(extent, layers, 0, mip_len, format, usage, data, true, false);
   }
 
@@ -651,6 +658,7 @@ class Texture : NonCopyable {
                        float *data = nullptr,
                        int mip_len = 1)
   {
+    BLI_assert(layers > 0);
     return ensure_impl(UNPACK2(extent), layers, mip_len, format, usage, data, true, false);
   }
 
@@ -691,7 +699,7 @@ class Texture : NonCopyable {
                          float *data = nullptr,
                          int mip_len = 1)
   {
-    return ensure_impl(extent, extent, layers, mip_len, format, usage, data, false, true);
+    return ensure_impl(extent, extent, layers, mip_len, format, usage, data, true, true);
   }
 
   /**
@@ -1001,6 +1009,12 @@ class TextureFromPool : public Texture, NonMovable {
   static void swap(TextureFromPool &a, TextureFromPool &b)
   {
     Texture::swap(a, b);
+  }
+
+  /** WORKAROUND: used when needing a ref to the Texture and not the GPUTexture. */
+  TextureFromPool *ptr()
+  {
+    return this;
   }
 
   /** Remove methods that are forbidden with this type of textures. */

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
@@ -9,16 +12,16 @@
 #endif
 
 /**
- * Screen-Space Raytracing functions.
+ * Screen-Space Ray-tracing functions.
  */
 
 struct Ray {
   vec3 origin;
-  /* Ray direction premultiplied by its maximum length. */
+  /* Ray direction pre-multiplied by its maximum length. */
   vec3 direction;
 };
 
-/* Inputs expected to be in viewspace. */
+/* Inputs expected to be in view-space. */
 void raytrace_clip_ray_to_near_plane(inout Ray ray)
 {
   float near_dist = get_view_z_from_depth(0.0);
@@ -27,7 +30,7 @@ void raytrace_clip_ray_to_near_plane(inout Ray ray)
   }
 }
 
-/* Screenspace ray ([0..1] "uv" range) where direction is normalize to be as small as one
+/* Screen-space ray ([0..1] "uv" range) where direction is normalize to be as small as one
  * full-resolution pixel. The ray is also clipped to all frustum sides.
  */
 struct ScreenSpaceRay {
@@ -105,6 +108,9 @@ struct RayTraceParameters {
 
 /* Returns true on hit. */
 /* TODO(fclem): remove the back-face check and do it the SSR resolve code. */
+#ifdef METAL_AMD_RAYTRACE_WORKAROUND
+__attribute__((noinline))
+#endif
 bool raytrace(Ray ray,
               RayTraceParameters params,
               const bool discard_backface,
@@ -137,9 +143,9 @@ bool raytrace(Ray ray,
 #ifdef METAL_AMD_RAYTRACE_WORKAROUND
   bool hit_failsafe = true;
 #endif
-  const float max_steps = 255.0;
-  for (float iter = 1.0; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
-    float stride = 1.0 + iter * params.trace_quality;
+  const int max_steps = 255;
+  for (int iter = 1; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
+    float stride = 1.0 + float(iter) * params.trace_quality;
     float lod = log2(stride) * lod_fac;
 
     prev_time = time;
@@ -158,7 +164,7 @@ bool raytrace(Ray ray,
     hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride * 2.0));
 
 #ifdef METAL_AMD_RAYTRACE_WORKAROUND
-    /* For workaround, perform discard backface and background check only within
+    /* For workaround, perform discard back-face and background check only within
      * the iteration where the first successful ray intersection is registered.
      * We flag failures to discard ray hits later. */
     bool hit_valid = !(discard_backface && prev_delta < 0.0) && (depth_sample != 1.0);
@@ -174,7 +180,7 @@ bool raytrace(Ray ray,
   /* Reject hit if background. */
   hit = hit && (depth_sample != 1.0);
 #endif
-  /* Refine hit using intersection between the sampled heightfield and the ray.
+  /* Refine hit using intersection between the sampled height-field and the ray.
    * This simplifies nicely to this single line. */
   time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
 
@@ -210,9 +216,9 @@ bool raytrace_planar(Ray ray, RayTraceParameters params, int planar_ref_id, out 
   /* On very sharp reflections, the ray can be perfectly aligned with the view direction
    * making the tracing useless. Bypass tracing in this case. */
   bool hit = false;
-  const float max_steps = 255.0;
-  for (float iter = 1.0; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
-    float stride = 1.0 + iter * params.trace_quality;
+  const int max_steps = 255;
+  for (int iter = 1; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
+    float stride = 1.0 + float(iter) * params.trace_quality;
 
     prev_time = time;
     prev_delta = delta;
@@ -230,7 +236,7 @@ bool raytrace_planar(Ray ray, RayTraceParameters params, int planar_ref_id, out 
   }
   /* Reject hit if background. */
   hit = hit && (depth_sample != 1.0);
-  /* Refine hit using intersection between the sampled heightfield and the ray.
+  /* Refine hit using intersection between the sampled height-field and the ray.
    * This simplifies nicely to this single line. */
   time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
 

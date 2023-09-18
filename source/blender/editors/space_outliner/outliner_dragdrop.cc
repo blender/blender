@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,17 +32,17 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "outliner_intern.hh"
 
@@ -1367,12 +1367,13 @@ static int collection_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEven
     }
 
     if (from) {
-      DEG_id_tag_update(&from->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(&from->id,
+                        ID_RECALC_COPY_ON_WRITE | ID_RECALC_GEOMETRY | ID_RECALC_HIERARCHY);
     }
   }
 
   /* Update dependency graph. */
-  DEG_id_tag_update(&data.to->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&data.to->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_HIERARCHY);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,10 +13,10 @@
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_math_base.h"
+
 #include "BKE_camera.h"
 #include "BKE_object.h"
-
-#include "BLI_math.h"
 
 #include "BLT_translation.h"
 
@@ -49,14 +49,14 @@ bool AbcCameraReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::ICamera::matches(alembic_header)) {
-    *err_str = N_(
+    *err_str = TIP_(
         "Object type mismatch, Alembic object path pointed to Camera when importing, but not any "
-        "more.");
+        "more");
     return false;
   }
 
   if (ob->type != OB_CAMERA) {
-    *err_str = N_("Object type mismatch, Alembic object path points to Camera.");
+    *err_str = TIP_("Object type mismatch, Alembic object path points to Camera");
     return false;
   }
 

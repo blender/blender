@@ -16,6 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_base.h"
 #include "BLI_mempool.h"
 #include "BLI_sys_types.h" /* for intptr_t support */
 #include "BLI_utildefines.h"
@@ -35,7 +36,7 @@
 /**
  * Next prime after `2^n` (skipping 2 & 3).
  *
- * \note Also used by: `BLI_edgehash` & `BLI_smallhash`.
+ * \note Also used by: `BLI_smallhash`.
  */
 extern const uint BLI_ghash_hash_sizes[]; /* Quiet warning, this is only used by smallhash.c */
 const uint BLI_ghash_hash_sizes[] = {
@@ -1083,8 +1084,6 @@ void *BLI_gset_pop_key(GSet *gs, const void *key)
 /* -------------------------------------------------------------------- */
 /** \name Debugging & Introspection
  * \{ */
-
-#include "BLI_math.h"
 
 int BLI_ghash_buckets_len(const GHash *gh)
 {

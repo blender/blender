@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -168,7 +168,7 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
                                  size_t dst_maxncpy) ATTR_NONNULL(1, 2);
 size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
                                    const char *__restrict src_c,
-                                   size_t dst_maxncpy) ATTR_NONNULL(1, 2);
+                                   size_t dst_w_maxncpy) ATTR_NONNULL(1, 2);
 
 /**
  * Count columns that character/string occupies (based on `wcwidth.co`).

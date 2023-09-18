@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,16 +10,18 @@
 #include "DNA_brush_types.h"
 #include "DNA_grease_pencil_types.h"
 
-#include "ED_grease_pencil.h"
-#include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_grease_pencil.hh"
+#include "ED_image.hh"
+#include "ED_keyframing.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
 
 #include "grease_pencil_intern.hh"
@@ -34,7 +36,7 @@ namespace blender::ed::sculpt_paint {
 static bool start_brush_operation(bContext &C,
                                   wmOperator & /*op*/,
                                   PaintStroke *paint_stroke,
-                                  const StrokeExtension & /*stroke_start*/)
+                                  const InputSample &start_sample)
 {
   // const BrushStrokeMode mode = static_cast<BrushStrokeMode>(RNA_enum_get(op.ptr, "mode"));
 
@@ -47,10 +49,14 @@ static bool start_brush_operation(bContext &C,
       /* FIXME: Somehow store the unique_ptr in the PaintStroke. */
       operation = greasepencil::new_paint_operation().release();
       break;
+    case GPAINT_TOOL_ERASE:
+      operation = greasepencil::new_erase_operation().release();
+      break;
   }
 
   if (operation) {
     paint_stroke_set_mode_data(paint_stroke, operation);
+    operation->on_stroke_begin(C, start_sample);
     return true;
   }
   return false;
@@ -71,12 +77,11 @@ static bool stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
 {
   PaintStroke *paint_stroke = static_cast<PaintStroke *>(op->customdata);
 
-  StrokeExtension stroke_extension;
-  stroke_extension.mouse_position = float2(mouse);
-  stroke_extension.pressure = 0.0f;
-  stroke_extension.is_first = true;
+  InputSample start_sample;
+  start_sample.mouse_position = float2(mouse);
+  start_sample.pressure = 0.0f;
 
-  if (!start_brush_operation(*C, *op, paint_stroke, stroke_extension)) {
+  if (!start_brush_operation(*C, *op, paint_stroke, start_sample)) {
     return false;
   }
 
@@ -91,13 +96,12 @@ static void stroke_update_step(bContext *C,
   GreasePencilStrokeOperation *operation = static_cast<GreasePencilStrokeOperation *>(
       paint_stroke_mode_data(stroke));
 
-  StrokeExtension stroke_extension;
-  RNA_float_get_array(stroke_element, "mouse", stroke_extension.mouse_position);
-  stroke_extension.pressure = RNA_float_get(stroke_element, "pressure");
-  stroke_extension.is_first = false;
+  InputSample extension_sample;
+  RNA_float_get_array(stroke_element, "mouse", extension_sample.mouse_position);
+  extension_sample.pressure = RNA_float_get(stroke_element, "pressure");
 
   if (operation) {
-    operation->on_stroke_extended(*C, stroke_extension);
+    operation->on_stroke_extended(*C, extension_sample);
   }
 }
 
@@ -170,10 +174,12 @@ static void GREASE_PENCIL_OT_brush_stroke(wmOperatorType *ot)
 /** \name Toggle Draw Mode
  * \{ */
 
-static bool grease_pencil_poll(bContext *C)
+static bool grease_pencil_mode_poll_view3d(bContext *C)
 {
-  Object *object = CTX_data_active_object(C);
-  if (object == nullptr || object->type != OB_GREASE_PENCIL) {
+  if (!ed::greasepencil::grease_pencil_painting_poll(C)) {
+    return false;
+  }
+  if (CTX_wm_region_view3d(C) == nullptr) {
     return false;
   }
   return true;
@@ -188,11 +194,10 @@ static void grease_pencil_draw_mode_enter(bContext *C)
   GpPaint *grease_pencil_paint = scene->toolsettings->gp_paint;
   BKE_paint_ensure(scene->toolsettings, (Paint **)&grease_pencil_paint);
 
-  ob->mode = OB_MODE_PAINT_GPENCIL;
+  ob->mode = OB_MODE_PAINT_GREASE_PENCIL;
 
   /* TODO: Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
-  /* TODO: Call ED_paint_cursor_start(...) */
-
+  ED_paint_cursor_start(&grease_pencil_paint->paint, grease_pencil_mode_poll_view3d);
   paint_init_pivot(ob, scene);
 
   /* Necessary to change the object mode on the evaluated object. */
@@ -212,10 +217,10 @@ static int grease_pencil_draw_mode_toggle_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   wmMsgBus *mbus = CTX_wm_message_bus(C);
 
-  const bool is_mode_set = ob->mode == OB_MODE_PAINT_GPENCIL;
+  const bool is_mode_set = ob->mode == OB_MODE_PAINT_GREASE_PENCIL;
 
   if (is_mode_set) {
-    if (!ED_object_mode_compat_set(C, ob, OB_MODE_PAINT_GPENCIL, op->reports)) {
+    if (!ED_object_mode_compat_set(C, ob, OB_MODE_PAINT_GREASE_PENCIL, op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -243,7 +248,7 @@ static void GREASE_PENCIL_OT_draw_mode_toggle(wmOperatorType *ot)
   ot->description = "Enter/Exit draw mode for grease pencil";
 
   ot->exec = grease_pencil_draw_mode_toggle_exec;
-  ot->poll = grease_pencil_poll;
+  ot->poll = ed::greasepencil::active_grease_pencil_poll;
 
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 }

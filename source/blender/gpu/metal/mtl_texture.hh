@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -64,11 +64,11 @@ struct TextureUpdateRoutineSpecialisation {
  * 1 = 24 bit integer (0 - 2^24)
  * 2 = 32 bit integer (0 - 2^32) */
 
-typedef enum {
+enum DepthTextureUpdateMode {
   MTL_DEPTH_UPDATE_MODE_FLOAT = 0,
   MTL_DEPTH_UPDATE_MODE_INT24 = 1,
   MTL_DEPTH_UPDATE_MODE_INT32 = 2
-} DepthTextureUpdateMode;
+};
 
 struct DepthTextureUpdateRoutineSpecialisation {
   DepthTextureUpdateMode data_mode;
@@ -588,7 +588,7 @@ inline MTLPixelFormat mtl_format_get_writeable_view_format(MTLPixelFormat format
        * manual data upload */
       return MTLPixelFormatInvalid;
     case MTLPixelFormatDepth24Unorm_Stencil8:
-      /* No direct format, but we'll just mirror the bytes -- Uint
+      /* No direct format, but we'll just mirror the bytes -- `Uint`
        * should ensure bytes are not re-normalized or manipulated */
       /* return MTLPixelFormatR32Uint; */
       return MTLPixelFormatInvalid;

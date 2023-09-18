@@ -118,9 +118,9 @@ ccl_device bool area_light_spread_clamp_light(const float3 P,
                                               const float tan_half_spread,
                                               ccl_private bool *sample_rectangle)
 {
-  /* Closest point in area light plane and distance to that plane. */
-  const float3 closest_P = P - dot(lightNg, P - *lightP) * lightNg;
-  const float t = len(closest_P - P);
+  /* Distance from shading point to area light plane and the closest point on that plane. */
+  const float t = dot(lightNg, P - *lightP);
+  const float3 closest_P = P - t * lightNg;
 
   /* Radius of circle on area light that actually affects the shading point. */
   const float r_spread = t * tan_half_spread;
@@ -290,7 +290,8 @@ ccl_device_inline bool area_light_eval(const ccl_global KernelLight *klight,
     ls->D = normalize_len(*light_P - ray_P, &ls->t);
   }
 
-  ls->eval_fac = 0.25f * invarea;
+  /* Convert radiant flux to radiance. */
+  ls->eval_fac = M_1_PI_F * invarea;
 
   if (klight->area.normalize_spread > 0) {
     /* Area Light spread angle attenuation */

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -188,7 +188,7 @@ void MTLShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
   shd_builder_->glsl_vertex_source_ = ss.str();
 }
 
-void MTLShader::geometry_shader_from_glsl(MutableSpan<const char *> sources)
+void MTLShader::geometry_shader_from_glsl(MutableSpan<const char *> /*sources*/)
 {
   MTL_LOG_ERROR("MTLShader::geometry_shader_from_glsl - Geometry shaders unsupported!");
 }
@@ -291,6 +291,15 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
     MTLCompileOptions *options = [[[MTLCompileOptions alloc] init] autorelease];
     options.languageVersion = MTLLanguageVersion2_2;
     options.fastMathEnabled = YES;
+
+    if (@available(macOS 11.00, *)) {
+      /* Raster order groups for tile data in struct require Metal 2.3.
+       * Retaining Metal 2.2. for old shaders to maintain backwards
+       * compatibility for existing features. */
+      if (info->subpass_inputs_.size() > 0) {
+        options.languageVersion = MTLLanguageVersion2_3;
+      }
+    }
 
     NSString *source_to_compile = shd_builder_->msl_source_vert_;
 
@@ -806,7 +815,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
   }
 
   /* Primitive Type -- Primitive topology class needs to be specified for layered rendering. */
-  bool requires_specific_topology_class = uses_mtl_array_index_ ||
+  bool requires_specific_topology_class = uses_gpu_layer || uses_gpu_viewport_index ||
                                           prim_type == MTLPrimitiveTopologyClassPoint;
   pipeline_descriptor.vertex_descriptor.prim_topology_class =
       (requires_specific_topology_class) ? prim_type : MTLPrimitiveTopologyClassUnspecified;
@@ -1534,7 +1543,8 @@ void MTLShader::ssbo_vertex_fetch_bind_attribute(const MTLSSBOAttribute &ssbo_at
   ssbo_vbo_slot_used_[ssbo_attr.vbo_id] = true;
 }
 
-void MTLShader::ssbo_vertex_fetch_bind_attributes_end(id<MTLRenderCommandEncoder> active_encoder)
+void MTLShader::ssbo_vertex_fetch_bind_attributes_end(
+    id<MTLRenderCommandEncoder> /*active_encoder*/)
 {
   ssbo_vertex_attribute_bind_active_ = false;
 

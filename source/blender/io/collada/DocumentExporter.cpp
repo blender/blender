@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2009-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -62,7 +62,6 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -81,14 +80,14 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 #ifdef WITH_BUILDINFO
 extern "C" char build_commit_date[];
 extern "C" char build_commit_time[];
 extern "C" char build_hash[];
 #endif
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "DocumentExporter.h"
 #include "collada_internal.h"
@@ -167,7 +166,7 @@ int DocumentExporter::exportCurrentScene()
   Scene *sce = blender_context.get_scene();
   bContext *C = blender_context.get_context();
 
-  PointerRNA sceneptr, unit_settings;
+  PointerRNA unit_settings;
   PropertyRNA *system; /* unused, *scale; */
 
   clear_global_id_map();
@@ -181,7 +180,7 @@ int DocumentExporter::exportCurrentScene()
   /* <asset> */
   COLLADASW::Asset asset(writer);
 
-  RNA_id_pointer_create(&(sce->id), &sceneptr);
+  PointerRNA sceneptr = RNA_id_pointer_create(&sce->id);
   unit_settings = RNA_pointer_get(&sceneptr, "unit_settings");
   system = RNA_struct_find_property(&unit_settings, "system");
   // scale = RNA_struct_find_property(&unit_settings, "scale_length");

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -123,6 +123,14 @@ TEST(generic_array, ReinitEmpty)
   array.as_mutable_span().typed<int>()[9] = 7;
   EXPECT_EQ(array.size(), 10);
   EXPECT_EQ(array.as_span().typed<int>()[9], 7);
+}
+
+TEST(generic_array, AssignDefault)
+{
+  GArray<> array(CPPType::get<int32_t>(), int64_t(5));
+  array = {};
+  EXPECT_EQ(array.size(), 0);
+  EXPECT_EQ(array.data(), nullptr);
 }
 
 }  // namespace blender::tests

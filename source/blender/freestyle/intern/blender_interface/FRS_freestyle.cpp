@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -40,12 +40,15 @@ using namespace Freestyle;
 #include "BLT_translation.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 
 #include "BPY_extern.h"
 
 #include "DEG_depsgraph_query.h"
+
+#include "IMB_imbuf.h"
 
 #include "pipeline.hh"
 
@@ -277,13 +280,13 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
 {
   // load mesh
   re->i.infostr = TIP_("Freestyle: Mesh loading");
-  re->stats_draw(re->sdh, &re->i);
+  re->stats_draw(&re->i);
   re->i.infostr = nullptr;
   if (controller->LoadMesh(re, view_layer, depsgraph)) {
     /* Returns if scene cannot be loaded or if empty. */
     return;
   }
-  if (re->test_break(re->tbh)) {
+  if (re->test_break()) {
     return;
   }
 
@@ -300,10 +303,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
       if (G.debug & G_DEBUG_FREESTYLE) {
         cout << "Modules :" << endl;
       }
-      for (FreestyleModuleConfig *module_conf = (FreestyleModuleConfig *)config->modules.first;
-           module_conf;
-           module_conf = module_conf->next)
-      {
+      LISTBASE_FOREACH (FreestyleModuleConfig *, module_conf, &config->modules) {
         if (module_conf->script && module_conf->is_displayed) {
           const char *id_name = module_conf->script->id.name + 2;
           if (G.debug & G_DEBUG_FREESTYLE) {
@@ -347,13 +347,11 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
       if (G.debug & G_DEBUG_FREESTYLE) {
         cout << "Linesets:" << endl;
       }
-      for (FreestyleLineSet *lineset = (FreestyleLineSet *)config->linesets.first; lineset;
-           lineset = lineset->next)
-      {
+      LISTBASE_FOREACH (FreestyleLineSet *, lineset, &config->linesets) {
         if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
           if (G.debug & G_DEBUG_FREESTYLE) {
             cout << "  " << layer_count + 1 << ": " << lineset->name << " - "
-                 << (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<NULL>") << endl;
+                 << (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<null>") << endl;
           }
           char *buffer = create_lineset_handler(view_layer->name, lineset->name);
           controller->InsertStyleModule(layer_count, lineset->name, buffer);
@@ -446,8 +444,8 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   // set diffuse and z depth passes
   RenderLayer *rl = RE_GetRenderLayer(re->result, view_layer->name);
   bool diffuse = false, z = false;
-  for (RenderPass *rpass = (RenderPass *)rl->passes.first; rpass; rpass = rpass->next) {
-    float *rpass_buffer_data = rpass->buffer.data;
+  LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
+    float *rpass_buffer_data = rpass->ibuf->float_buffer.data;
     if (STREQ(rpass->name, RE_PASSNAME_DIFFUSE_COLOR)) {
       controller->setPassDiffuse(rpass_buffer_data, rpass->rectx, rpass->recty);
       diffuse = true;
@@ -469,7 +467,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
 
   // compute view map
   re->i.infostr = TIP_("Freestyle: View map creation");
-  re->stats_draw(re->sdh, &re->i);
+  re->stats_draw(&re->i);
   re->i.infostr = nullptr;
   controller->ComputeViewMap();
 }
@@ -557,22 +555,14 @@ static int displayed_layer_count(ViewLayer *view_layer)
 
   switch (view_layer->freestyle_config.mode) {
     case FREESTYLE_CONTROL_SCRIPT_MODE:
-      for (FreestyleModuleConfig *module =
-               (FreestyleModuleConfig *)view_layer->freestyle_config.modules.first;
-           module;
-           module = module->next)
-      {
+      LISTBASE_FOREACH (FreestyleModuleConfig *, module, &view_layer->freestyle_config.modules) {
         if (module->script && module->is_displayed) {
           count++;
         }
       }
       break;
     case FREESTYLE_CONTROL_EDITOR_MODE:
-      for (FreestyleLineSet *lineset =
-               (FreestyleLineSet *)view_layer->freestyle_config.linesets.first;
-           lineset;
-           lineset = lineset->next)
-      {
+      LISTBASE_FOREACH (FreestyleLineSet *, lineset, &view_layer->freestyle_config.linesets) {
         if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
           count++;
         }
@@ -640,7 +630,7 @@ void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
   //   - compute view map
   prepare(re, view_layer, depsgraph);
 
-  if (re->test_break(re->tbh)) {
+  if (re->test_break()) {
     controller->CloseFile();
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "Break" << endl;
@@ -651,7 +641,7 @@ void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
     if (controller->_ViewMap) {
       // render strokes
       re->i.infostr = TIP_("Freestyle: Stroke rendering");
-      re->stats_draw(re->sdh, &re->i);
+      re->stats_draw(&re->i);
       re->i.infostr = nullptr;
       g_freestyle.scene = DEG_get_evaluated_scene(depsgraph);
       int strokeCount = controller->DrawStrokes();
@@ -679,7 +669,7 @@ void FRS_end_stroke_rendering(Render * /*re*/)
   controller->Clear();
 }
 
-void FRS_free_view_map_cache(void)
+void FRS_free_view_map_cache()
 {
   // free cache
   controller->DeleteViewMap(true);

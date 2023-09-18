@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -49,7 +49,14 @@ class GRAPH_HT_header(Header):
 
         layout.prop(st, "pivot_point", icon_only=True)
 
-        layout.prop(st, "auto_snap", text="")
+        row = layout.row(align=True)
+        row.prop(tool_settings, "use_snap_anim", text="")
+        sub = row.row(align=True)
+        sub.popover(
+            panel="GRAPH_PT_snapping",
+            icon='NONE',
+            text="Modes",
+        )
 
         row = layout.row(align=True)
         row.prop(tool_settings, "use_proportional_fcurve", text="", icon_only=True)
@@ -93,6 +100,21 @@ class GRAPH_PT_filters(DopesheetFilterPopoverBase, Panel):
         DopesheetFilterPopoverBase.draw_search_filters(context, layout)
         layout.separator()
         DopesheetFilterPopoverBase.draw_standard_filters(context, layout)
+
+
+class GRAPH_PT_snapping(Panel):
+    bl_space_type = 'GRAPH_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Snapping"
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        col.label(text="Snap To")
+        tool_settings = context.tool_settings
+        col.prop(tool_settings, "snap_anim_element", expand=True)
+        if tool_settings.snap_anim_element not in ('MARKER', ):
+            col.prop(tool_settings, "use_snap_time_absolute")
 
 
 class GRAPH_MT_editor_menus(Menu):
@@ -261,9 +283,9 @@ class GRAPH_MT_channel(Menu):
         layout.operator("anim.channels_fcurves_enable")
 
         layout.separator()
-        layout.operator("graph.bake")
-        layout.operator("graph.unbake")
-        layout.operator("graph.sound_bake")
+        layout.operator("graph.keys_to_samples")
+        layout.operator("graph.samples_to_keys")
+        layout.operator("graph.sound_to_samples")
 
         layout.separator()
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
@@ -283,7 +305,7 @@ class GRAPH_MT_key_density(Menu):
         # as we do not have a modal mode for it, so just execute it.
         with operator_context(layout, 'EXEC_REGION_WIN'):
             layout.operator("graph.decimate", text="Decimate (Allowed Change)").mode = 'ERROR'
-        layout.operator("graph.sample")
+        layout.operator("graph.bake_keys")
 
         layout.separator()
         layout.operator("graph.clean").channels = False
@@ -299,6 +321,11 @@ class GRAPH_MT_key_blending(Menu):
         layout.operator("graph.blend_to_neighbor", text="Blend to Neighbor")
         layout.operator("graph.blend_to_default", text="Blend to Default Value")
         layout.operator("graph.ease", text="Ease")
+        layout.operator("graph.blend_offset", text="Blend Offset")
+        layout.operator("graph.blend_to_ease", text="Blend to Ease")
+        layout.operator("graph.match_slope", text="Match Slope")
+        layout.operator("graph.shear", text="Shear Keys")
+        layout.operator("graph.scale_average", text="Scale Average")
 
 
 class GRAPH_MT_key_smoothing(Menu):
@@ -309,6 +336,7 @@ class GRAPH_MT_key_smoothing(Menu):
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("graph.gaussian_smooth", text="Smooth (Gaussian)")
         layout.operator("graph.smooth", text="Smooth (Legacy)")
+        layout.operator("graph.butterworth_smooth")
 
 
 class GRAPH_MT_key(Menu):
@@ -522,6 +550,7 @@ classes = (
     GRAPH_MT_snap_pie,
     GRAPH_MT_view_pie,
     GRAPH_PT_filters,
+    GRAPH_PT_snapping,
 )
 
 if __name__ == "__main__":  # only for live edit.

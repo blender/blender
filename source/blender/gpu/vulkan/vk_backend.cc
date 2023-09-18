@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -90,14 +90,13 @@ void VKBackend::detect_workarounds(VKDevice &device)
 void VKBackend::platform_exit()
 {
   GPG.clear();
-}
-
-void VKBackend::delete_resources()
-{
-  if (device_.is_initialized()) {
-    device_.deinit();
+  VKDevice &device = VKBackend::get().device_;
+  if (device.is_initialized()) {
+    device.deinit();
   }
 }
+
+void VKBackend::delete_resources() {}
 
 void VKBackend::samplers_update() {}
 
@@ -135,6 +134,9 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 
   VKContext *context = new VKContext(ghost_window, ghost_context);
   device_.context_register(*context);
+  GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
+                                      VKContext::swap_buffers_pre_callback,
+                                      VKContext::swap_buffers_post_callback);
   return context;
 }
 
@@ -217,8 +219,11 @@ void VKBackend::capabilities_init(VKDevice &device)
   /* Reset all capabilities from previous context. */
   GCaps = {};
   GCaps.compute_shader_support = true;
+  GCaps.geometry_shader_support = true;
   GCaps.shader_storage_buffer_objects_support = true;
   GCaps.shader_image_load_store_support = true;
+  GCaps.shader_draw_parameters_support =
+      device.physical_device_vulkan_11_features_get().shaderDrawParameters;
 
   GCaps.max_texture_size = max_ii(limits.maxImageDimension1D, limits.maxImageDimension2D);
   GCaps.max_texture_3d_size = limits.maxImageDimension3D;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,12 +16,12 @@
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 #include "BKE_object.h"
-#include "BKE_subdiv.h"
-#include "BKE_subsurf.h"
+#include "BKE_subdiv.hh"
+#include "BKE_subsurf.hh"
 #include "BLI_math_vector.h"
 
 #include "DEG_depsgraph_query.h"
@@ -183,9 +183,9 @@ void multiresModifier_subdivide_to_level(Object *object,
 
   /* There was no multires at all, all displacement is at 0. Can simply make sure all mdisps grids
    * are allocated at a proper level and return. */
-  const bool has_mdisps = CustomData_has_layer(&coarse_mesh->ldata, CD_MDISPS);
+  const bool has_mdisps = CustomData_has_layer(&coarse_mesh->loop_data, CD_MDISPS);
   if (!has_mdisps) {
-    CustomData_add_layer(&coarse_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->totloop);
+    CustomData_add_layer(&coarse_mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->totloop);
   }
 
   /* NOTE: Subdivision happens from the top level of the existing multires modifier. If it is set

@@ -1,7 +1,8 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_assert.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -15,17 +16,44 @@
 
 namespace blender::realtime_compositor {
 
-Result::Result(ResultType type, TexturePool &texture_pool)
-    : type_(type), texture_pool_(&texture_pool)
+Result::Result(ResultType type, TexturePool &texture_pool, ResultPrecision precision)
+    : type_(type), precision_(precision), texture_pool_(&texture_pool)
 {
 }
 
-Result Result::Temporary(ResultType type, TexturePool &texture_pool)
+Result Result::Temporary(ResultType type, TexturePool &texture_pool, ResultPrecision precision)
 {
-  Result result = Result(type, texture_pool);
+  Result result = Result(type, texture_pool, precision);
   result.set_initial_reference_count(1);
   result.reset();
   return result;
+}
+
+eGPUTextureFormat Result::get_texture_format() const
+{
+  switch (precision_) {
+    case ResultPrecision::Half:
+      switch (type_) {
+        case ResultType::Float:
+          return GPU_R16F;
+        case ResultType::Vector:
+        case ResultType::Color:
+          return GPU_RGBA16F;
+      }
+      break;
+    case ResultPrecision::Full:
+      switch (type_) {
+        case ResultType::Float:
+          return GPU_R32F;
+        case ResultType::Vector:
+        case ResultType::Color:
+          return GPU_RGBA32F;
+      }
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return GPU_RGBA32F;
 }
 
 void Result::allocate_texture(Domain domain)
@@ -39,17 +67,7 @@ void Result::allocate_texture(Domain domain)
   }
 
   is_single_value_ = false;
-  switch (type_) {
-    case ResultType::Float:
-      texture_ = texture_pool_->acquire_float(domain.size);
-      break;
-    case ResultType::Vector:
-      texture_ = texture_pool_->acquire_vector(domain.size);
-      break;
-    case ResultType::Color:
-      texture_ = texture_pool_->acquire_color(domain.size);
-      break;
-  }
+  texture_ = texture_pool_->acquire(domain.size, get_texture_format());
   domain_ = domain;
 }
 
@@ -58,17 +76,7 @@ void Result::allocate_single_value()
   is_single_value_ = true;
   /* Single values are stored in 1x1 textures as well as the single value members. */
   const int2 texture_size{1, 1};
-  switch (type_) {
-    case ResultType::Float:
-      texture_ = texture_pool_->acquire_float(texture_size);
-      break;
-    case ResultType::Vector:
-      texture_ = texture_pool_->acquire_vector(texture_size);
-      break;
-    case ResultType::Color:
-      texture_ = texture_pool_->acquire_color(texture_size);
-      break;
-  }
+  texture_ = texture_pool_->acquire(texture_size, get_texture_format());
   domain_ = Domain::identity();
 }
 
@@ -131,6 +139,33 @@ void Result::pass_through(Result &target)
   target.initial_reference_count_ = initial_reference_count;
 
   target.master_ = this;
+}
+
+void Result::steal_data(Result &source)
+{
+  BLI_assert(type_ == source.type_);
+  BLI_assert(!is_allocated() && source.is_allocated());
+  BLI_assert(master_ == nullptr && source.master_ == nullptr);
+
+  is_single_value_ = source.is_single_value_;
+  texture_ = source.texture_;
+  texture_pool_ = source.texture_pool_;
+  domain_ = source.domain_;
+
+  switch (type_) {
+    case ResultType::Float:
+      float_value_ = source.float_value_;
+      break;
+    case ResultType::Vector:
+      vector_value_ = source.vector_value_;
+      break;
+    case ResultType::Color:
+      color_value_ = source.color_value_;
+      break;
+  }
+
+  source.texture_ = nullptr;
+  source.texture_pool_ = nullptr;
 }
 
 void Result::transform(const float3x3 &transformation)
@@ -235,6 +270,7 @@ void Result::release()
   reference_count_--;
   if (reference_count_ == 0) {
     texture_pool_->release(texture_);
+    texture_ = nullptr;
   }
 }
 

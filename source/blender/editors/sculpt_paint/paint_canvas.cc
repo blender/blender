@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,11 +9,11 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "WM_toolsystem.h"
 
-#include "ED_paint.h"
+#include "ED_paint.hh"
 
 namespace blender::ed::sculpt_paint::canvas {
 static TexPaintSlot *get_active_slot(Object *ob)
@@ -34,8 +34,6 @@ static TexPaintSlot *get_active_slot(Object *ob)
 }
 
 }  // namespace blender::ed::sculpt_paint::canvas
-
-extern "C" {
 
 using namespace blender::ed::sculpt_paint::canvas;
 
@@ -140,5 +138,4 @@ eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
   }
 
   return color_type;
-}
 }

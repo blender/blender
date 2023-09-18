@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -43,7 +43,7 @@ static char SpatialNoiseShader___doc__[] =
     "\n"
     ".. method:: shade(stroke)\n"
     "\n"
-    "   Spatial Noise stroke shader.  Moves the vertices to make the stroke\n"
+    "   Spatial Noise stroke shader. Moves the vertices to make the stroke\n"
     "   more noisy.\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"
@@ -81,7 +81,7 @@ static int SpatialNoiseShader___init__(BPy_SpatialNoiseShader *self,
 /*-----------------------BPy_SpatialNoiseShader type definition ------------------------------*/
 
 PyTypeObject SpatialNoiseShader_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "SpatialNoiseShader",
     /*tp_basicsize*/ sizeof(BPy_SpatialNoiseShader),
     /*tp_itemsize*/ 0,

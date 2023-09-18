@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -59,7 +59,7 @@ class GeometryDataSource : public DataSource {
                      ExtraColumns extra_columns = {})
       : object_eval_(object_eval),
         geometry_set_(std::move(geometry_set)),
-        component_(geometry_set_.get_component_for_read(component_type)),
+        component_(geometry_set_.get_component(component_type)),
         domain_(domain),
         extra_columns_(std::move(extra_columns))
   {
@@ -89,7 +89,7 @@ class VolumeDataSource : public DataSource {
  public:
   VolumeDataSource(bke::GeometrySet geometry_set)
       : geometry_set_(std::move(geometry_set)),
-        component_(geometry_set_.get_component_for_read<bke::VolumeComponent>())
+        component_(geometry_set_.get_component<bke::VolumeComponent>())
   {
   }
 

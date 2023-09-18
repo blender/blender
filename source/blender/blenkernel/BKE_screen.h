@@ -9,7 +9,7 @@
 
 #include "BLI_compiler_attrs.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "BKE_context.h"
 
@@ -83,7 +83,7 @@ typedef struct SpaceType {
   /* called when the mouse moves out of the area */
   void (*deactivate)(struct ScrArea *area);
 
-  /* refresh context, called after filereads, ED_area_tag_refresh() */
+  /** Refresh context, called after file-reads, #ED_area_tag_refresh(). */
   void (*refresh)(const struct bContext *C, struct ScrArea *area);
 
   /* after a spacedata copy, an init should result in exact same situation */
@@ -105,6 +105,13 @@ typedef struct SpaceType {
   /* Used when we want to replace an ID by another (or NULL). */
   void (*id_remap)(struct ScrArea *area, struct SpaceLink *sl, const struct IDRemapper *mappings);
 
+  /**
+   * foreach_id callback to process all ID pointers of the editor. Used indirectly by lib_query's
+   * #BKE_library_foreach_ID_link when #IDWALK_INCLUDE_UI bit-flag is set (through WM's foreach_id
+   * usage of #BKE_screen_foreach_id_screen_area).
+   */
+  void (*foreach_id)(struct SpaceLink *space_link, struct LibraryForeachIDData *data);
+
   int (*space_subtype_get)(struct ScrArea *area);
   void (*space_subtype_set)(struct ScrArea *area, int value);
   void (*space_subtype_item_extend)(struct bContext *C, EnumPropertyItem **item, int *totitem);
@@ -117,9 +124,9 @@ typedef struct SpaceType {
   /**
    * Update pointers to other id data blocks.
    */
-  void (*blend_read_lib)(struct BlendLibReader *reader,
-                         struct ID *parent_id,
-                         struct SpaceLink *space_link);
+  void (*blend_read_after_liblink)(struct BlendLibReader *reader,
+                                   struct ID *parent_id,
+                                   struct SpaceLink *space_link);
 
   /**
    * Write all structs that should be saved in a .blend file.
@@ -128,6 +135,9 @@ typedef struct SpaceType {
 
   /* region type definitions */
   ListBase regiontypes;
+
+  /** Asset shelf type definitions. */
+  ListBase asset_shelf_types; /* #AssetShelfType */
 
   /* read and write... */
 
@@ -161,7 +171,8 @@ typedef struct RegionPollParams {
   const struct ScrArea *area;
   const struct ARegion *region;
 
-  /* For now only WM context members here, could add the scene or even #bContext if needed. */
+  /** Full context, if WM context above is not enough. */
+  const struct bContext *context;
 } RegionPollParams;
 
 typedef struct ARegionType {
@@ -388,6 +399,19 @@ typedef struct Header {
 
 /* menu types */
 
+enum class MenuTypeFlag {
+  /**
+   * Whether the menu depends on data retrieved via #CTX_data_pointer_get. If it is context
+   * dependent, menu search has to scan it in different contexts.
+   */
+  ContextDependent = (1 << 0),
+  /**
+   * Automatically start searching in the menu when pressing a key.
+   */
+  SearchOnKeyPress = (1 << 1),
+};
+ENUM_OPERATORS(MenuTypeFlag, MenuTypeFlag::ContextDependent)
+
 typedef struct MenuType {
   struct MenuType *next, *prev;
 
@@ -403,6 +427,8 @@ typedef struct MenuType {
   void (*draw)(const struct bContext *C, struct Menu *menu);
   void (*listener)(const wmRegionListenerParams *params);
 
+  MenuTypeFlag flag;
+
   /* RNA integration */
   ExtensionRNA rna_ext;
 } MenuType;
@@ -412,10 +438,47 @@ typedef struct Menu {
   struct uiLayout *layout; /* runtime for drawing */
 } Menu;
 
+/* asset shelf types */
+
+/* #AssetShelfType.flag */
+typedef enum AssetShelfTypeFlag {
+  /** Do not trigger asset dragging on drag events. Drag events can be overridden with custom
+   * keymap items then. */
+  ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG = (1 << 0),
+
+  ASSET_SHELF_TYPE_FLAG_MAX
+} AssetShelfTypeFlag;
+ENUM_OPERATORS(AssetShelfTypeFlag, ASSET_SHELF_TYPE_FLAG_MAX);
+
+typedef struct AssetShelfType {
+  struct AssetShelfType *next, *prev;
+
+  char idname[BKE_ST_MAXNAME]; /* unique name */
+
+  int space_type;
+
+  AssetShelfTypeFlag flag;
+
+  /** Determine if asset shelves of this type should be available in current context or not. */
+  bool (*poll)(const struct bContext *C, const struct AssetShelfType *shelf_type);
+
+  /** Determine if an individual asset should be visible or not. May be a temporary design,
+   * visibility should first and foremost be controlled by asset traits. */
+  bool (*asset_poll)(const struct AssetShelfType *shelf_type, const struct AssetHandle *asset);
+
+  /** Asset shelves can define their own context menu via this layout definition callback. */
+  void (*draw_context_menu)(const struct bContext *C,
+                            const struct AssetShelfType *shelf_type,
+                            const struct AssetHandle *asset,
+                            struct uiLayout *layout);
+
+  /* RNA integration */
+  ExtensionRNA rna_ext;
+} AssetShelfType;
+
 /* Space-types. */
 
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
-struct ARegionType *BKE_regiontype_from_id_or_first(const struct SpaceType *st, int regionid);
 struct ARegionType *BKE_regiontype_from_id(const struct SpaceType *st, int regionid);
 const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
@@ -488,37 +551,39 @@ struct ARegion *BKE_region_find_in_listbase_by_type(const struct ListBase *regio
  * Use #BKE_spacedata_find_region_type if that may be the case.
  */
 struct ARegion *BKE_area_find_region_type(const struct ScrArea *area, int type);
-struct ARegion *BKE_area_find_region_active_win(struct ScrArea *area);
-struct ARegion *BKE_area_find_region_xy(struct ScrArea *area, int regiontype, const int xy[2])
-    ATTR_NONNULL(3);
+struct ARegion *BKE_area_find_region_active_win(const struct ScrArea *area);
+struct ARegion *BKE_area_find_region_xy(const struct ScrArea *area,
+                                        int regiontype,
+                                        const int xy[2]) ATTR_NONNULL(3);
 /**
  * \note This is only for screen level regions (typically menus/popups).
  */
-struct ARegion *BKE_screen_find_region_xy(struct bScreen *screen,
+struct ARegion *BKE_screen_find_region_xy(const struct bScreen *screen,
                                           int regiontype,
                                           const int xy[2]) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 3);
 
-struct ARegion *BKE_screen_find_main_region_at_xy(struct bScreen *screen,
+struct ARegion *BKE_screen_find_main_region_at_xy(const struct bScreen *screen,
                                                   int space_type,
                                                   const int xy[2]) ATTR_NONNULL(1, 3);
 /**
  * \note Ideally we can get the area from the context,
  * there are a few places however where this isn't practical.
  */
-struct ScrArea *BKE_screen_find_area_from_space(struct bScreen *screen,
-                                                struct SpaceLink *sl) ATTR_WARN_UNUSED_RESULT
+struct ScrArea *BKE_screen_find_area_from_space(const struct bScreen *screen,
+                                                const struct SpaceLink *sl) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
 /**
  * \note Using this function is generally a last resort, you really want to be
  * using the context when you can - campbell
  */
-struct ScrArea *BKE_screen_find_big_area(struct bScreen *screen, int spacetype, short min);
+struct ScrArea *BKE_screen_find_big_area(const struct bScreen *screen, int spacetype, short min);
 struct ScrArea *BKE_screen_area_map_find_area_xy(const struct ScrAreaMap *areamap,
                                                  int spacetype,
                                                  const int xy[2]) ATTR_NONNULL(1, 3);
-struct ScrArea *BKE_screen_find_area_xy(struct bScreen *screen, int spacetype, const int xy[2])
-    ATTR_NONNULL(1, 3);
+struct ScrArea *BKE_screen_find_area_xy(const struct bScreen *screen,
+                                        int spacetype,
+                                        const int xy[2]) ATTR_NONNULL(1, 3);
 
 void BKE_screen_gizmo_tag_refresh(struct bScreen *screen);
 
@@ -578,9 +643,15 @@ bool BKE_screen_area_map_blend_read_data(struct BlendDataReader *reader,
  * For the saved 2.50 files without `regiondata`.
  */
 void BKE_screen_view3d_do_versions_250(struct View3D *v3d, ListBase *regions);
-void BKE_screen_area_blend_read_lib(struct BlendLibReader *reader,
-                                    struct ID *parent_id,
-                                    struct ScrArea *area);
+
+/**
+ * Called after lib linking process is done, to perform some validation on the read data, or some
+ * complex specific reading process that requires the data to be fully read and ID pointers to be
+ * valid.
+ */
+void BKE_screen_area_blend_read_after_liblink(struct BlendLibReader *reader,
+                                              struct ID *parent_id,
+                                              struct ScrArea *area);
 /**
  * Cannot use #IDTypeInfo callback yet, because of the return value.
  */

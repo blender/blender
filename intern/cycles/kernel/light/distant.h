@@ -10,28 +10,42 @@
 
 CCL_NAMESPACE_BEGIN
 
+ccl_device_inline void distant_light_uv(const ccl_global KernelLight *klight,
+                                        const float3 D,
+                                        ccl_private float *u,
+                                        ccl_private float *v)
+{
+  /* Map direction (x, y, z) to disk [-0.5, 0.5]^2:
+   * r^2 = (1 - z) / (1 - cos(klight->distant.angle))
+   * u_ = 0.5 * x * r / sin_angle(D, -klight->co)
+   * v_ = 0.5 * y * r / sin_angle(D, -klight->co) */
+  const float fac = klight->distant.half_inv_sin_half_angle / len(D - klight->co);
+
+  /* Get u axis and v axis. */
+  const Transform itfm = klight->itfm;
+  const float u_ = dot(D, float4_to_float3(itfm.x)) * fac;
+  const float v_ = dot(D, float4_to_float3(itfm.y)) * fac;
+
+  /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
+  *u = v_ + 0.5f;
+  *v = -u_ - v_;
+}
+
 ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight,
                                             const float2 rand,
                                             ccl_private LightSample *ls)
 {
-  /* distant light */
-  float3 lightD = klight->co;
-  float3 D = lightD;
-  float radius = klight->distant.radius;
-  float invarea = klight->distant.invarea;
+  float unused;
+  ls->Ng = sample_uniform_cone(
+      klight->co, klight->distant.one_minus_cosangle, rand, &unused, &ls->pdf);
 
-  if (radius > 0.0f) {
-    D = normalize(D + disk_light_sample(D, rand) * radius);
-  }
-
-  ls->P = D;
-  ls->Ng = D;
-  ls->D = -D;
+  ls->P = ls->Ng;
+  ls->D = -ls->Ng;
   ls->t = FLT_MAX;
 
-  float costheta = dot(lightD, D);
-  ls->pdf = invarea / (costheta * costheta * costheta);
-  ls->eval_fac = ls->pdf;
+  ls->eval_fac = klight->distant.eval_fac;
+
+  distant_light_uv(klight, ls->D, &ls->u, &ls->v);
 
   return true;
 }
@@ -50,15 +64,11 @@ ccl_device bool distant_light_intersect(const ccl_global KernelLight *klight,
 {
   kernel_assert(klight->type == LIGHT_DISTANT);
 
-  if (klight->distant.radius == 0.0f) {
+  if (klight->distant.angle == 0.0f) {
     return false;
   }
 
-  const float3 lightD = klight->co;
-  const float costheta = dot(-lightD, ray->D);
-  const float cosangle = klight->distant.cosangle;
-
-  if (costheta < cosangle) {
+  if (vector_angle(-klight->co, ray->D) > klight->distant.angle) {
     return false;
   }
 
@@ -76,7 +86,6 @@ ccl_device bool distant_light_sample_from_intersection(KernelGlobals kg,
 {
   ccl_global const KernelLight *klight = &kernel_data_fetch(lights, lamp);
   const int shader = klight->shader_id;
-  const float radius = klight->distant.radius;
   const LightType type = (LightType)klight->type;
 
   if (type != LIGHT_DISTANT) {
@@ -85,28 +94,9 @@ ccl_device bool distant_light_sample_from_intersection(KernelGlobals kg,
   if (!(shader & SHADER_USE_MIS)) {
     return false;
   }
-  if (radius == 0.0f) {
+  if (klight->distant.angle == 0.0f) {
     return false;
   }
-
-  /* a distant light is infinitely far away, but equivalent to a disk
-   * shaped light exactly 1 unit away from the current shading point.
-   *
-   *     radius              t^2/cos(theta)
-   *  <---------->           t = sqrt(1^2 + tan(theta)^2)
-   *       tan(th)           area = radius*radius*pi
-   *       <----->
-   *        \    |           (1 + tan(theta)^2)/cos(theta)
-   *         \   |           (1 + tan(acos(cos(theta)))^2)/cos(theta)
-   *       t  \th| 1         simplifies to
-   *           \-|           1/(cos(theta)^3)
-   *            \|           magic!
-   *             P
-   */
-
-  float3 lightD = klight->co;
-  float costheta = dot(-lightD, ray_D);
-  float cosangle = klight->distant.cosangle;
 
   /* Workaround to prevent a hang in the classroom scene with AMD HIP drivers 22.10,
    * Remove when a compiler fix is available. */
@@ -114,8 +104,9 @@ ccl_device bool distant_light_sample_from_intersection(KernelGlobals kg,
   ls->shader = klight->shader_id;
 #endif
 
-  if (costheta < cosangle)
+  if (vector_angle(-klight->co, ray_D) > klight->distant.angle) {
     return false;
+  }
 
   ls->type = type;
 #ifndef __HIP__
@@ -124,19 +115,16 @@ ccl_device bool distant_light_sample_from_intersection(KernelGlobals kg,
   ls->object = PRIM_NONE;
   ls->prim = PRIM_NONE;
   ls->lamp = lamp;
-  /* todo: missing texture coordinates */
-  ls->u = 0.0f;
-  ls->v = 0.0f;
   ls->t = FLT_MAX;
   ls->P = -ray_D;
   ls->Ng = -ray_D;
   ls->D = ray_D;
   ls->group = lamp_lightgroup(kg, lamp);
 
-  /* compute pdf */
-  float invarea = klight->distant.invarea;
-  ls->pdf = invarea / (costheta * costheta * costheta);
-  ls->eval_fac = ls->pdf;
+  ls->pdf = klight->distant.pdf;
+  ls->eval_fac = klight->distant.eval_fac;
+
+  distant_light_uv(klight, ray_D, &ls->u, &ls->v);
 
   return true;
 }

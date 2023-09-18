@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,6 +11,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -28,10 +29,10 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -209,17 +210,6 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree,
                                  &prev_index);
 
   if (ima) {
-    if (!ima->rr) {
-      cmp_node_image_add_pass_output(ntree,
-                                     node,
-                                     RE_PASSNAME_Z,
-                                     RE_PASSNAME_Z,
-                                     -1,
-                                     SOCK_FLOAT,
-                                     false,
-                                     available_sockets,
-                                     &prev_index);
-    }
     BKE_image_release_ibuf(ima, ibuf, nullptr);
   }
 }
@@ -725,7 +715,7 @@ static bool node_composit_poll_rlayers(const bNodeType * /*ntype*/,
   Scene *scene;
 
   /* XXX ugly: check if ntree is a local scene node tree.
-   * Render layers node can only be used in local scene->nodetree,
+   * Render layers node can only be used in local `scene->nodetree`,
    * since it directly links to the scene.
    */
   for (scene = (Scene *)G.main->scenes.first; scene; scene = (Scene *)scene->id.next) {
@@ -810,8 +800,14 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
   RNA_string_get(&scn_ptr, "name", scene_name);
 
   PointerRNA op_ptr;
-  uiItemFullO(
-      row, "RENDER_OT_render", "", ICON_RENDER_STILL, nullptr, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+  uiItemFullO(row,
+              "RENDER_OT_render",
+              "",
+              ICON_RENDER_STILL,
+              nullptr,
+              WM_OP_INVOKE_DEFAULT,
+              UI_ITEM_NONE,
+              &op_ptr);
   RNA_string_set(&op_ptr, "layer", layer_name);
   RNA_string_set(&op_ptr, "scene", scene_name);
 }

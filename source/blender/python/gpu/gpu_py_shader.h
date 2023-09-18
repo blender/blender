@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,11 +12,15 @@
 #  include "../generic/py_capi_utils.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Make sure that there is always a reference count for PyObjects of type String as the strings are
  * passed by reference in the #GPUStageInterfaceInfo and #GPUShaderCreateInfo APIs. */
 #define USE_GPU_PY_REFERENCES
 
-/* gpu_py_shader.c */
+/* `gpu_py_shader.cc` */
 
 extern PyTypeObject BPyGPUShader_Type;
 
@@ -30,10 +34,6 @@ typedef struct BPyGPUShader {
 
 PyObject *BPyGPUShader_CreatePyObject(struct GPUShader *shader, bool is_builtin);
 PyObject *bpygpu_shader_init(void);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* gpu_py_shader_create_info.cc */
 

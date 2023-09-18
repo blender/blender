@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,10 +8,13 @@
 #include "BKE_bvhutils.h"
 #include "BKE_mesh_sample.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-
+#include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
@@ -57,8 +60,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "mapping", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "mapping", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -79,7 +82,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_color4f = socket_float->next;
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
-  bNodeSocket *socket_quat = socket_boolean->next;
+  bNodeSocket *socket_quat = socket_int32->next;
 
   bke::nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
@@ -93,7 +96,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *out_socket_color4f = out_socket_float->next;
   bNodeSocket *out_socket_boolean = out_socket_color4f->next;
   bNodeSocket *out_socket_int32 = out_socket_boolean->next;
-  bNodeSocket *out_socket_quat = out_socket_boolean->next;
+  bNodeSocket *out_socket_quat = out_socket_int32->next;
 
   bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
@@ -223,7 +226,7 @@ class RaycastFunction : public mf::MultiFunction {
   void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     BLI_assert(target_.has_mesh());
-    const Mesh &mesh = *target_.get_mesh_for_read();
+    const Mesh &mesh = *target_.get_mesh();
 
     raycast_to_mesh(mask,
                     mesh,
@@ -281,27 +284,27 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
 {
   switch (bke::cpp_type_to_custom_data_type(field.cpp_type())) {
     case CD_PROP_FLOAT: {
-      params.set_output("Attribute_001", Field<float>(field));
+      params.set_output("Attribute_001", field);
       break;
     }
     case CD_PROP_FLOAT3: {
-      params.set_output("Attribute", Field<float3>(field));
+      params.set_output("Attribute", field);
       break;
     }
     case CD_PROP_COLOR: {
-      params.set_output("Attribute_002", Field<ColorGeometry4f>(field));
+      params.set_output("Attribute_002", field);
       break;
     }
     case CD_PROP_BOOL: {
-      params.set_output("Attribute_003", Field<bool>(field));
+      params.set_output("Attribute_003", field);
       break;
     }
     case CD_PROP_INT32: {
-      params.set_output("Attribute_004", Field<int>(field));
+      params.set_output("Attribute_004", field);
       break;
     }
     case CD_PROP_QUATERNION: {
-      params.set_output("Attribute_005", Field<math::Quaternion>(field));
+      params.set_output("Attribute_005", field);
       break;
     }
     default:
@@ -326,7 +329,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  if (target.get_mesh_for_read()->totpoly == 0) {
+  if (target.get_mesh()->faces_num == 0) {
     params.error_message_add(NodeWarningType::Error, TIP_("The target mesh must have faces"));
     params.set_default_remaining_outputs();
     return;
@@ -372,23 +375,57 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_raycast_cc
-
-void register_node_type_geo_raycast()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_raycast_cc;
+  static EnumPropertyItem mapping_items[] = {
+      {GEO_NODE_RAYCAST_INTERPOLATED,
+       "INTERPOLATED",
+       0,
+       "Interpolated",
+       "Interpolate the attribute from the corners of the hit face"},
+      {GEO_NODE_RAYCAST_NEAREST,
+       "NEAREST",
+       0,
+       "Nearest",
+       "Use the attribute value of the closest mesh element"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(srna,
+                    "mapping",
+                    "Mapping",
+                    "Mapping from the target geometry to hit points",
+                    mapping_items,
+                    NOD_storage_enum_accessors(mapping),
+                    GEO_NODE_RAYCAST_INTERPOLATED);
+  RNA_def_node_enum(srna,
+                    "data_type",
+                    "Data Type",
+                    "Type of data stored in attribute",
+                    rna_enum_attribute_type_items,
+                    NOD_storage_enum_accessors(data_type),
+                    CD_PROP_FLOAT,
+                    enums::attribute_type_type_with_socket_fn);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY);
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
   node_type_storage(
       &ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_raycast_cc

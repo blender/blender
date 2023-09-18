@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -286,7 +286,7 @@ class SubdivisionSet(Operator):
                 else:
                     mod = obj.modifiers.new("Subdivision", 'SUBSURF')
                     mod.levels = level
-            except:
+            except BaseException:
                 self.report({'WARNING'},
                             "Modifiers cannot be added to object: " + obj.name)
 
@@ -908,6 +908,7 @@ class LoadImageAsEmpty:
     )
 
     filter_image: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    filter_movie: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
     filter_folder: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
 
     view_align: BoolProperty(

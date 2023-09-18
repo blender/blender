@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,22 +26,24 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_node_runtime.hh"
+#include "BKE_node_tree_interface.hh"
 #include "BKE_node_tree_update.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "NOD_node_declaration.hh"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 
 #include "../interface/interface_intern.hh" /* XXX bad level */
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "ED_node.h" /* own include */
+#include "ED_node.hh" /* own include */
 #include "node_intern.hh"
 
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 using blender::nodes::NodeDeclaration;
 
@@ -89,15 +91,13 @@ static void node_link_item_apply(bNodeTree *ntree, bNode *node, NodeLinkItem *it
 
 static void node_tag_recursive(bNode *node)
 {
-  bNodeSocket *input;
-
   if (!node || (node->flag & NODE_TEST)) {
     return; /* in case of cycles */
   }
 
   node->flag |= NODE_TEST;
 
-  for (input = (bNodeSocket *)node->inputs.first; input; input = input->next) {
+  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
     if (input->link) {
       node_tag_recursive(input->link->fromnode);
     }
@@ -106,15 +106,13 @@ static void node_tag_recursive(bNode *node)
 
 static void node_clear_recursive(bNode *node)
 {
-  bNodeSocket *input;
-
   if (!node || !(node->flag & NODE_TEST)) {
     return; /* in case of cycles */
   }
 
   node->flag &= ~NODE_TEST;
 
-  for (input = (bNodeSocket *)node->inputs.first; input; input = input->next) {
+  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
     if (input->link) {
       node_clear_recursive(input->link->fromnode);
     }
@@ -124,23 +122,22 @@ static void node_clear_recursive(bNode *node)
 static void node_remove_linked(Main *bmain, bNodeTree *ntree, bNode *rem_node)
 {
   bNode *node, *next;
-  bNodeSocket *sock;
 
   if (!rem_node) {
     return;
   }
 
   /* tag linked nodes to be removed */
-  for (node = (bNode *)ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->flag &= ~NODE_TEST;
   }
 
   node_tag_recursive(rem_node);
 
   /* clear tags on nodes that are still used by other nodes */
-  for (node = (bNode *)ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (!(node->flag & NODE_TEST)) {
-      for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         if (sock->link && sock->link->fromnode != rem_node) {
           node_clear_recursive(sock->link->fromnode);
         }
@@ -254,17 +251,14 @@ static void node_socket_add_replace(const bContext *C,
 
   /* copy input sockets from previous node */
   if (node_prev && node_from != node_prev) {
-    bNodeSocket *sock_prev, *sock_from;
-
-    for (sock_prev = (bNodeSocket *)node_prev->inputs.first; sock_prev;
-         sock_prev = sock_prev->next) {
-      for (sock_from = (bNodeSocket *)node_from->inputs.first; sock_from;
-           sock_from = sock_from->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock_prev, &node_prev->inputs) {
+      LISTBASE_FOREACH (bNodeSocket *, sock_from, &node_from->inputs) {
         if (nodeCountSocketLinks(ntree, sock_from) >= nodeSocketLinkLimit(sock_from)) {
           continue;
         }
 
-        if (STREQ(sock_prev->name, sock_from->name) && sock_prev->type == sock_from->type) {
+        if (STREQ(sock_prev->identifier, sock_from->identifier) &&
+            sock_prev->type == sock_from->type) {
           bNodeLink *link = sock_prev->link;
 
           if (link && link->fromnode) {
@@ -323,7 +317,6 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
   /* XXX this should become a callback for node types! */
   if (arg->node_type->type == NODE_GROUP) {
     bNodeTree *ngroup;
-    int i;
 
     for (ngroup = (bNodeTree *)arg->bmain->nodetrees.first; ngroup;
          ngroup = (bNodeTree *)ngroup->id.next)
@@ -335,7 +328,6 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
       }
     }
 
-    i = 0;
     for (ngroup = (bNodeTree *)arg->bmain->nodetrees.first; ngroup;
          ngroup = (bNodeTree *)ngroup->id.next)
     {
@@ -345,17 +337,20 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
         continue;
       }
 
-      ListBase *lb = (in_out == SOCK_IN ? &ngroup->inputs : &ngroup->outputs);
-      bNodeSocket *stemp;
-      int index;
-      for (stemp = (bNodeSocket *)lb->first, index = 0; stemp; stemp = stemp->next, index++, i++) {
+      ngroup->ensure_interface_cache();
+      Span<bNodeTreeInterfaceSocket *> iosockets = (in_out == SOCK_IN ?
+                                                        ngroup->interface_inputs() :
+                                                        ngroup->interface_outputs());
+      for (const int index : iosockets.index_range()) {
+        bNodeTreeInterfaceSocket *iosock = iosockets[index];
         NodeLinkItem item;
         item.socket_index = index;
         /* NOTE: int stemp->type is not fully reliable, not used for node group
          * interface sockets. use the typeinfo->type instead.
          */
-        item.socket_type = stemp->typeinfo->type;
-        item.socket_name = stemp->name;
+        const bNodeSocketType *typeinfo = iosock->socket_typeinfo();
+        item.socket_type = typeinfo->type;
+        item.socket_name = iosock->name;
         item.node_name = ngroup->id.name + 2;
         item.ngroup = ngroup;
 
@@ -369,10 +364,10 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
 
     r_node_decl.emplace(NodeDeclaration());
     blender::nodes::build_node_declaration(*arg->node_type, *r_node_decl);
-    Span<SocketDeclarationPtr> socket_decls = (in_out == SOCK_IN) ? r_node_decl->inputs :
-                                                                    r_node_decl->outputs;
+    Span<SocketDeclaration *> socket_decls = (in_out == SOCK_IN) ? r_node_decl->inputs :
+                                                                   r_node_decl->outputs;
     int index = 0;
-    for (const SocketDeclarationPtr &socket_decl_ptr : socket_decls) {
+    for (const SocketDeclaration *socket_decl_ptr : socket_decls) {
       const SocketDeclaration &socket_decl = *socket_decl_ptr;
       NodeLinkItem item;
       item.socket_index = index++;
@@ -657,7 +652,6 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
   bNodeSocket *sock = arg->sock;
   bNodeTreeType *ntreetype = arg->ntree->typeinfo;
 
-  UI_block_flag_enable(block, UI_BLOCK_NO_FLIP | UI_BLOCK_IS_FLIP);
   UI_block_layout_set_current(block, layout);
   split = uiLayoutSplit(layout, 0.0f, false);
 
@@ -717,7 +711,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
 }  // namespace blender::ed::space_node
 
 void uiTemplateNodeLink(
-    uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input)
+    uiLayout *layout, bContext * /*C*/, bNodeTree *ntree, bNode *node, bNodeSocket *input)
 {
   using namespace blender::ed::space_node;
 
@@ -731,9 +725,7 @@ void uiTemplateNodeLink(
   arg->node = node;
   arg->sock = input;
 
-  PointerRNA node_ptr;
-  RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
-  node_socket_color_get(*C, *ntree, node_ptr, *input, socket_col);
+  node_socket_color_get(*input->typeinfo, socket_col);
 
   UI_block_layout_set_current(block, layout);
 
@@ -772,9 +764,7 @@ static void ui_node_draw_input(
 static void ui_node_draw_node(
     uiLayout &layout, bContext &C, bNodeTree &ntree, bNode &node, int depth)
 {
-  PointerRNA nodeptr;
-
-  RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
+  PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
 
   if (node.typeinfo->draw_buttons) {
     if (node.type != NODE_GROUP) {
@@ -791,7 +781,6 @@ static void ui_node_draw_node(
 static void ui_node_draw_input(
     uiLayout &layout, bContext &C, bNodeTree &ntree, bNode &node, bNodeSocket &input, int depth)
 {
-  PointerRNA inputptr, nodeptr;
   uiBlock *block = uiLayoutGetBlock(&layout);
   uiLayout *row = nullptr;
   bool dependency_loop;
@@ -810,8 +799,8 @@ static void ui_node_draw_input(
   }
 
   /* socket RNA pointer */
-  RNA_pointer_create(&ntree.id, &RNA_NodeSocket, &input, &inputptr);
-  RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
+  PointerRNA inputptr = RNA_pointer_create(&ntree.id, &RNA_NodeSocket, &input);
+  PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
 
   row = uiLayoutRow(&layout, true);
   /* Decorations are added manually here. */
@@ -879,7 +868,7 @@ static void ui_node_draw_input(
         case SOCK_ROTATION:
         case SOCK_BOOLEAN:
         case SOCK_RGBA:
-          uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
+          uiItemR(sub, &inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
           uiItemDecoratorR(
               split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
           break;
@@ -892,12 +881,15 @@ static void ui_node_draw_input(
             node_geometry_add_attribute_search_button(C, node, inputptr, *sub);
           }
           else {
-            uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
+            uiItemR(sub, &inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
           }
           uiItemDecoratorR(
               split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
           break;
         }
+        case SOCK_CUSTOM:
+          input.typeinfo->draw(&C, sub, &inputptr, &nodeptr, input.name);
+          break;
         default:
           add_dummy_decorator = true;
       }
@@ -921,14 +913,12 @@ void uiTemplateNodeView(
 {
   using namespace blender::ed::space_node;
 
-  bNode *tnode;
-
   if (!ntree) {
     return;
   }
 
   /* clear for cycle check */
-  for (tnode = (bNode *)ntree->nodes.first; tnode; tnode = tnode->next) {
+  LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
     tnode->flag &= ~NODE_TEST;
   }
 

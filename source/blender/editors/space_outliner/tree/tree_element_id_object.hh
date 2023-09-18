@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,18 +19,17 @@ class TreeElementIDObject final : public TreeElementID {
   TreeElementIDObject(TreeElement &legacy_te, Object &object);
 
   void expand(SpaceOutliner &) const override;
-  bool isExpandValid() const override;
 
  private:
-  void expandData(SpaceOutliner &) const;
-  void expandPose(SpaceOutliner &) const;
-  void expandMaterials(SpaceOutliner &) const;
-  void expandConstraints(SpaceOutliner &) const;
-  void expandModifiers(SpaceOutliner &) const;
-  void expandGPencilModifiers(SpaceOutliner &) const;
-  void expandGPencilEffects(SpaceOutliner &) const;
-  void expandVertexGroups(SpaceOutliner &) const;
-  void expandDuplicatedGroup(SpaceOutliner &) const;
+  void expand_data() const;
+  void expand_pose() const;
+  void expand_materials() const;
+  void expand_constraints() const;
+  void expand_modifiers() const;
+  void expand_gpencil_modifiers() const;
+  void expand_gpencil_effects() const;
+  void expand_vertex_groups() const;
+  void expand_duplicated_group() const;
 };
 
 }  // namespace blender::ed::outliner

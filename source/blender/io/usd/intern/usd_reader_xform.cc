@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2021 Tangent Animation. All rights reserved.
- * SPDX-FileCopyrightText: 2023 Blender Foundation
+ * SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
@@ -14,6 +14,7 @@
 #include "BKE_object.h"
 
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -68,61 +69,32 @@ void USDXformReader::apply_cache_file(CacheFile *cache_file)
   std::string prim_path = use_parent_xform_ ? prim_.GetParent().GetPath().GetAsString() :
                                               prim_path_;
 
-  BLI_strncpy(data->object_path, prim_path.c_str(), FILE_MAX);
+  STRNCPY(data->object_path, prim_path.c_str());
 
   data->cache_file = cache_file;
   id_us_plus(&cache_file->id);
 }
 
-bool USDXformReader::get_local_usd_xform(pxr::GfMatrix4d * r_xform,
-                                         bool *r_is_constant,
-                                         const float time) const
-{
-  if (!r_xform) {
-    return false;
-  }
-
-  pxr::UsdGeomXformable xformable;
-
-  if (use_parent_xform_) {
-    xformable = pxr::UsdGeomXformable(prim_.GetParent());
-  }
-  else {
-    xformable = pxr::UsdGeomXformable(prim_);
-  }
-
-  if (!xformable) {
-    /* This might happen if the prim is a Scope. */
-    return false;
-  }
-
-  if (r_is_constant) {
-    *r_is_constant = !xformable.TransformMightBeTimeVarying();
-  }
-
-  bool reset_xform_stack;
-  return xformable.GetLocalTransformation(r_xform, &reset_xform_stack, time);
-}
 
 void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
                                  const float time,
                                  const float scale,
                                  bool *r_is_constant)
 {
-  if (r_is_constant) {
-    *r_is_constant = true;
-  }
+  BLI_assert(r_mat);
+  BLI_assert(r_is_constant);
 
+  *r_is_constant = true;
   unit_m4(r_mat);
 
-  pxr::GfMatrix4d usd_local_xf;
-  if (!get_local_usd_xform(&usd_local_xf, r_is_constant, time)) {
+  std::optional<XformResult> xf_result = get_local_usd_xform(time);
+
+  if (!xf_result) {
     return;
   }
 
-  /* Convert the result to a float matrix. */
-  pxr::GfMatrix4f mat4f = pxr::GfMatrix4f(usd_local_xf);
-  mat4f.Get(r_mat);
+  std::get<0>(*xf_result).Get(r_mat);
+  *r_is_constant = std::get<1>(*xf_result);
 
   /* Apply global scaling and rotation only to root objects, parenting
    * will propagate it. */
@@ -191,6 +163,30 @@ bool USDXformReader::is_root_xform_prim() const
   }
 
   return false;
+}
+
+std::optional<XformResult> USDXformReader::get_local_usd_xform(const float time) const
+{
+  pxr::UsdGeomXformable xformable = use_parent_xform_ ? pxr::UsdGeomXformable(prim_.GetParent()) :
+                                                        pxr::UsdGeomXformable(prim_);
+
+  if (!xformable) {
+    /* This might happen if the prim is a Scope. */
+    return std::nullopt;
+  }
+
+  bool is_constant = !xformable.TransformMightBeTimeVarying();
+
+  bool reset_xform_stack;
+  pxr::GfMatrix4d xform;
+  if (!xformable.GetLocalTransformation(&xform, &reset_xform_stack, time)) {
+    return std::nullopt;
+  }
+
+  /* The USD bind transform is a matrix of doubles,
+   * but we cast it to GfMatrix4f because Blender expects
+   * a matrix of floats. */
+  return XformResult(pxr::GfMatrix4f(xform), is_constant);
 }
 
 }  // namespace blender::io::usd

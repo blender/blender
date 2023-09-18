@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,14 +18,13 @@
 
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "node_intern.hh"
 
@@ -56,9 +55,10 @@ static void context_path_add_node_tree_and_node_groups(const SpaceNode &snode,
                                                        Vector<ui::ContextPathItem> &path,
                                                        const bool skip_base = false)
 {
-  Vector<const bNodeTreePath *> tree_path = snode.treepath;
-  for (const bNodeTreePath *path_item : tree_path.as_span().drop_front(int(skip_base))) {
-    ui::context_path_add_generic(path, RNA_NodeTree, path_item->nodetree, ICON_NODETREE);
+  LISTBASE_FOREACH (const bNodeTreePath *, path_item, &snode.treepath) {
+    if (!(skip_base && path_item == snode.treepath.first)) {
+      ui::context_path_add_generic(path, RNA_NodeTree, path_item->nodetree, ICON_NODETREE);
+    }
   }
 }
 
@@ -128,7 +128,7 @@ static void get_context_path_node_geometry(const bContext &C,
                                            SpaceNode &snode,
                                            Vector<ui::ContextPathItem> &path)
 {
-  if (snode.flag & SNODE_PIN) {
+  if (snode.flag & SNODE_PIN || snode.geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
     context_path_add_node_tree_and_node_groups(snode, path);
   }
   else {

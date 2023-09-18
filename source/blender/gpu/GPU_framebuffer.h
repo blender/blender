@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -34,6 +34,9 @@ typedef enum eGPUFrameBufferBits {
 } eGPUFrameBufferBits;
 
 ENUM_OPERATORS(eGPUFrameBufferBits, GPU_STENCIL_BIT)
+
+/* Guaranteed by the spec and is never greater than 16 on any hardware or implementation. */
+#define GPU_MAX_VIEWPORTS 16
 
 #ifdef __cplusplus
 extern "C" {
@@ -133,12 +136,17 @@ void GPU_framebuffer_restore(void);
 typedef struct GPULoadStore {
   eGPULoadOp load_action;
   eGPUStoreOp store_action;
+  float clear_value[4];
 } GPULoadStore;
 
 /* Empty bind point. */
+#define NULL_ATTACHMENT_COLOR \
+  { \
+    0.0, 0.0, 0.0, 0.0 \
+  }
 #define NULL_LOAD_STORE \
   { \
-    GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_DONT_CARE \
+    GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_DONT_CARE, NULL_ATTACHMENT_COLOR \
   }
 
 /**
@@ -340,9 +348,22 @@ void GPU_framebuffer_default_size(GPUFrameBuffer *framebuffer, int width, int he
  * or when binding the frame-buffer after modifying its attachments.
  *
  * \note Viewport and scissor size is stored per frame-buffer.
+ * \note Setting a singular viewport will only change the state of the first viewport.
+ * \note Must be called after first bind.
  */
 void GPU_framebuffer_viewport_set(
     GPUFrameBuffer *framebuffer, int x, int y, int width, int height);
+
+/**
+ * Similar to `GPU_framebuffer_viewport_set()` but specify the bounds of all 16 viewports.
+ * By default geometry renders only to the first viewport. That can be changed by setting
+ * `gpu_ViewportIndex` in the vertex.
+ *
+ * \note Viewport and scissor size is stored per frame-buffer.
+ * \note Must be called after first bind.
+ */
+void GPU_framebuffer_multi_viewports_set(GPUFrameBuffer *gpu_fb,
+                                         const int viewport_rects[GPU_MAX_VIEWPORTS][4]);
 
 /**
  * Return the viewport offset and size in a int quadruple: (x, y, width, height).
@@ -569,8 +590,8 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read,
  */
 void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *framebuffer,
                                           int max_level,
-                                          void (*per_level_callback)(void *userData, int level),
-                                          void *userData);
+                                          void (*per_level_callback)(void *user_data, int level),
+                                          void *user_data);
 
 /** \} */
 
@@ -623,7 +644,7 @@ void GPU_offscreen_unbind(GPUOffScreen *offscreen, bool restore);
  * Read the whole color texture of the a #GPUOffScreen.
  * The pixel data will be converted to \a data_format but it needs to be compatible with the
  * attachment type.
- * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format .
+ * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format.
  */
 void GPU_offscreen_read_color(GPUOffScreen *offscreen, eGPUDataFormat data_format, void *r_data);
 /**
@@ -652,6 +673,11 @@ int GPU_offscreen_height(const GPUOffScreen *offscreen);
  * \note only to be used by viewport code!
  */
 struct GPUTexture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen);
+
+/**
+ * Return the texture format of a #GPUOffScreen.
+ */
+eGPUTextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen);
 
 /**
  * Return the internals of a #GPUOffScreen. Does not give ownership.

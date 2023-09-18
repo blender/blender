@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,7 +20,7 @@
 #include "BLI_multi_value_map.hh"
 #include "BLI_task.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "DNA_curves_types.h"
 
@@ -60,8 +60,8 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   CustomData_reset(&this->point_data);
   CustomData_reset(&this->curve_data);
 
-  CustomData_add_layer_named(
-      &this->point_data, CD_PROP_FLOAT3, CD_CONSTRUCT, this->point_num, ATTR_POSITION.c_str());
+  this->attributes_for_write().add<float3>(
+      "position", ATTR_DOMAIN_POINT, AttributeInitConstruct());
 
   this->runtime = MEM_new<CurvesGeometryRuntime>(__func__);
 
@@ -1477,17 +1477,22 @@ void CurvesGeometry::blend_read(BlendDataReader &reader)
   this->update_curve_types();
 }
 
-void CurvesGeometry::blend_write(BlendWriter &writer, ID &id)
+CurvesGeometry::BlendWriteData CurvesGeometry::blend_write_prepare()
 {
-  Vector<CustomDataLayer, 16> point_layers;
-  Vector<CustomDataLayer, 16> curve_layers;
-  CustomData_blend_write_prepare(this->point_data, point_layers);
-  CustomData_blend_write_prepare(this->curve_data, curve_layers);
+  CurvesGeometry::BlendWriteData write_data;
+  CustomData_blend_write_prepare(this->point_data, write_data.point_layers);
+  CustomData_blend_write_prepare(this->curve_data, write_data.curve_layers);
+  return write_data;
+}
 
+void CurvesGeometry::blend_write(BlendWriter &writer,
+                                 ID &id,
+                                 const CurvesGeometry::BlendWriteData &write_data)
+{
   CustomData_blend_write(
-      &writer, &this->point_data, point_layers, this->point_num, CD_MASK_ALL, &id);
+      &writer, &this->point_data, write_data.point_layers, this->point_num, CD_MASK_ALL, &id);
   CustomData_blend_write(
-      &writer, &this->curve_data, curve_layers, this->curve_num, CD_MASK_ALL, &id);
+      &writer, &this->curve_data, write_data.curve_layers, this->curve_num, CD_MASK_ALL, &id);
 
   BLO_write_int32_array(&writer, this->curve_num + 1, this->curve_offsets);
 }

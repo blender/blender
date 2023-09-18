@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -35,10 +38,10 @@ void main()
   vec4 v1 = drw_view.viewmat * boneEnd_4d;
 
   /* Clip the bone to the camera origin plane (not the clip plane)
-   * to avoid glitches if one end is behind the camera origin (in persp). */
+   * to avoid glitches if one end is behind the camera origin (in perspective mode). */
   float clip_dist = (drw_view.winmat[3][3] == 0.0) ?
                         -1e-7 :
-                        1e20; /* hardcoded, -1e-8 is giving gliches. */
+                        1e20; /* hard-coded, -1e-8 is giving glitches. */
   vec3 bvec = v1.xyz - v0.xyz;
   vec3 clip_pt = v0.xyz + bvec * ((v0.z - clip_dist) / -bvec.z);
   if (v0.z > clip_dist) {

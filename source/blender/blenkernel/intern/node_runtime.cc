@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -22,13 +22,6 @@ void preprocess_geometry_node_tree_for_evaluation(bNodeTree &tree_cow)
   /* Rebuild geometry nodes lazy function graph. */
   tree_cow.runtime->geometry_nodes_lazy_function_graph_info.reset();
   blender::nodes::ensure_geometry_nodes_lazy_function_graph(tree_cow);
-}
-
-static void update_interface_sockets(const bNodeTree &ntree)
-{
-  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  tree_runtime.interface_inputs = ntree.inputs;
-  tree_runtime.interface_outputs = ntree.outputs;
 }
 
 static void update_node_vector(const bNodeTree &ntree)
@@ -89,6 +82,15 @@ static void update_socket_vectors_and_owner_node(const bNodeTree &ntree)
       tree_runtime.has_undefined_nodes_or_sockets |= socket->typeinfo ==
                                                      &bke::NodeSocketTypeUndefined;
     }
+  }
+}
+
+static void update_panels(const bNodeTree &ntree)
+{
+  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
+  for (bNode *node : tree_runtime.nodes_by_id) {
+    bNodeRuntime &node_runtime = *node->runtime;
+    node_runtime.panels.reinitialize(node->num_panel_states);
   }
 }
 
@@ -294,6 +296,17 @@ static Vector<const bNode *> get_implicit_origin_nodes(const bNodeTree &ntree, b
       }
     }
   }
+  if (node.type == GEO_NODE_REPEAT_OUTPUT) {
+    for (const bNode *repeat_input_node :
+         ntree.runtime->nodes_by_type.lookup(nodeTypeFind("GeometryNodeRepeatInput")))
+    {
+      const auto &storage = *static_cast<const NodeGeometryRepeatInput *>(
+          repeat_input_node->storage);
+      if (storage.output_node_id == node.identifier) {
+        origin_nodes.append(repeat_input_node);
+      }
+    }
+  }
   return origin_nodes;
 }
 
@@ -304,6 +317,12 @@ static Vector<const bNode *> get_implicit_target_nodes(const bNodeTree &ntree, b
     const auto &storage = *static_cast<const NodeGeometrySimulationInput *>(node.storage);
     if (const bNode *sim_output_node = ntree.node_by_id(storage.output_node_id)) {
       target_nodes.append(sim_output_node);
+    }
+  }
+  if (node.type == GEO_NODE_REPEAT_INPUT) {
+    const auto &storage = *static_cast<const NodeGeometryRepeatInput *>(node.storage);
+    if (const bNode *repeat_output_node = ntree.node_by_id(storage.output_node_id)) {
+      target_nodes.append(repeat_output_node);
     }
   }
   return target_nodes;
@@ -511,10 +530,10 @@ static void ensure_topology_cache(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
   tree_runtime.topology_cache_mutex.ensure([&]() {
-    update_interface_sockets(ntree);
     update_node_vector(ntree);
     update_link_vector(ntree);
     update_socket_vectors_and_owner_node(ntree);
+    update_panels(ntree);
     update_internal_link_inputs(ntree);
     update_directly_linked_links_and_sockets(ntree);
     update_nodes_by_type(ntree);
@@ -553,4 +572,54 @@ static void ensure_topology_cache(const bNodeTree &ntree)
 void bNodeTree::ensure_topology_cache() const
 {
   blender::bke::node_tree_runtime::ensure_topology_cache(*this);
+}
+
+const bNestedNodeRef *bNodeTree::find_nested_node_ref(const int32_t nested_node_id) const
+{
+  for (const bNestedNodeRef &ref : this->nested_node_refs_span()) {
+    if (ref.id == nested_node_id) {
+      return &ref;
+    }
+  }
+  return nullptr;
+}
+
+const bNestedNodeRef *bNodeTree::nested_node_ref_from_node_id_path(
+    const blender::Span<int32_t> node_ids) const
+{
+  if (node_ids.is_empty()) {
+    return nullptr;
+  }
+  for (const bNestedNodeRef &ref : this->nested_node_refs_span()) {
+    blender::Vector<int> current_node_ids;
+    if (this->node_id_path_from_nested_node_ref(ref.id, current_node_ids)) {
+      if (current_node_ids.as_span() == node_ids) {
+        return &ref;
+      }
+    }
+  }
+  return nullptr;
+}
+
+bool bNodeTree::node_id_path_from_nested_node_ref(const int32_t nested_node_id,
+                                                  blender::Vector<int> &r_node_ids) const
+{
+  const bNestedNodeRef *ref = this->find_nested_node_ref(nested_node_id);
+  if (ref == nullptr) {
+    return false;
+  }
+  const int32_t node_id = ref->path.node_id;
+  const bNode *node = this->node_by_id(node_id);
+  if (node == nullptr) {
+    return false;
+  }
+  r_node_ids.append(node_id);
+  if (!node->is_group()) {
+    return true;
+  }
+  const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id);
+  if (group == nullptr) {
+    return false;
+  }
+  return group->node_id_path_from_nested_node_ref(ref->path.id_in_node, r_node_ids);
 }

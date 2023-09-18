@@ -15,7 +15,6 @@
 #include <stdlib.h>
 
 #include "BLI_math_base.h"
-#include "BLI_simd.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -645,26 +644,48 @@ MINLINE int compare_ff(float a, float b, const float max_diff)
   return fabsf(a - b) <= max_diff;
 }
 
-MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps)
+MINLINE uint ulp_diff_ff(float a, float b)
 {
+  BLI_assert(sizeof(float) == sizeof(uint));
+
+  const uint sign_bit = 0x80000000;
+  const uint infinity = 0x7f800000;
+
   union {
     float f;
-    int i;
+    uint i;
   } ua, ub;
+  ua.f = a;
+  ub.f = b;
 
-  BLI_assert(sizeof(float) == sizeof(int));
-  BLI_assert(max_ulps < (1 << 22));
+  const uint a_sign = ua.i & sign_bit;
+  const uint b_sign = ub.i & sign_bit;
+  const uint a_abs = ua.i & ~sign_bit;
+  const uint b_abs = ub.i & ~sign_bit;
+
+  if (a_abs > infinity || b_abs > infinity) {
+    /* NaNs always return maximum ulps apart. */
+    return 0xffffffff;
+  }
+  else if (a_sign == b_sign) {
+    const uint min_abs = a_abs < b_abs ? a_abs : b_abs;
+    const uint max_abs = a_abs > b_abs ? a_abs : b_abs;
+    return max_abs - min_abs;
+  }
+  else {
+    return a_abs + b_abs;
+  }
+}
+
+MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps)
+{
+  BLI_assert(max_ulps >= 0 && max_ulps < (1 << 22));
 
   if (fabsf(a - b) <= max_diff) {
     return 1;
   }
 
-  ua.f = a;
-  ub.f = b;
-
-  /* Important to compare sign from integers, since (-0.0f < 0) is false
-   * (though this shall not be an issue in common cases)... */
-  return ((ua.i < 0) != (ub.i < 0)) ? 0 : (abs(ua.i - ub.i) <= max_ulps) ? 1 : 0;
+  return (ulp_diff_ff(a, b) <= (uint)max_ulps) ? 1 : 0;
 }
 
 MINLINE bool compare_threshold_relative(const float value1, const float value2, const float thresh)
@@ -737,108 +758,6 @@ MINLINE int integer_digits_i(const int i)
 {
   return (int)log10((double)i) + 1;
 }
-
-/* Internal helpers for SSE2 implementation.
- *
- * NOTE: Are to be called ONLY from inside `#ifdef BLI_HAVE_SSE2` !!!
- */
-
-#ifdef BLI_HAVE_SSE2
-
-/**
- * Calculate initial guess for `arg^exp` based on float representation
- * This method gives a constant bias, which can be easily compensated by
- * multiplying with bias_coeff.
- * Gives better results for exponents near 1 (e.g. `4/5`).
- * exp = exponent, encoded as uint32_t
- * `e2coeff = 2^(127/exponent - 127) * bias_coeff^(1/exponent)`, encoded as `uint32_t`.
- *
- * We hope that exp and e2coeff gets properly inlined.
- */
-MALWAYS_INLINE __m128 _bli_math_fastpow(const int exp, const int e2coeff, const __m128 arg)
-{
-  __m128 ret;
-  ret = _mm_mul_ps(arg, _mm_castsi128_ps(_mm_set1_epi32(e2coeff)));
-  ret = _mm_cvtepi32_ps(_mm_castps_si128(ret));
-  ret = _mm_mul_ps(ret, _mm_castsi128_ps(_mm_set1_epi32(exp)));
-  ret = _mm_castsi128_ps(_mm_cvtps_epi32(ret));
-  return ret;
-}
-
-/** Improve `x ^ 1.0f/5.0f` solution with Newton-Raphson method */
-MALWAYS_INLINE __m128 _bli_math_improve_5throot_solution(const __m128 old_result, const __m128 x)
-{
-  __m128 approx2 = _mm_mul_ps(old_result, old_result);
-  __m128 approx4 = _mm_mul_ps(approx2, approx2);
-  __m128 t = _mm_div_ps(x, approx4);
-  __m128 summ = _mm_add_ps(_mm_mul_ps(_mm_set1_ps(4.0f), old_result), t); /* FMA. */
-  return _mm_mul_ps(summ, _mm_set1_ps(1.0f / 5.0f));
-}
-
-/** Calculate `powf(x, 2.4)`. Working domain: `1e-10 < x < 1e+10`. */
-MALWAYS_INLINE __m128 _bli_math_fastpow24(const __m128 arg)
-{
-  /* max, avg and |avg| errors were calculated in gcc without FMA instructions
-   * The final precision should be better than powf in glibc */
-
-  /* Calculate x^4/5, coefficient 0.994 was constructed manually to minimize
-   * avg error.
-   */
-  /* 0x3F4CCCCD = 4/5 */
-  /* 0x4F55A7FB = 2^(127/(4/5) - 127) * 0.994^(1/(4/5)) */
-  /* error max = 0.17, avg = 0.0018, |avg| = 0.05 */
-  __m128 x = _bli_math_fastpow(0x3F4CCCCD, 0x4F55A7FB, arg);
-  __m128 arg2 = _mm_mul_ps(arg, arg);
-  __m128 arg4 = _mm_mul_ps(arg2, arg2);
-  /* error max = 0.018        avg = 0.0031    |avg| = 0.0031 */
-  x = _bli_math_improve_5throot_solution(x, arg4);
-  /* error max = 0.00021    avg = 1.6e-05    |avg| = 1.6e-05 */
-  x = _bli_math_improve_5throot_solution(x, arg4);
-  /* error max = 6.1e-07    avg = 5.2e-08    |avg| = 1.1e-07 */
-  x = _bli_math_improve_5throot_solution(x, arg4);
-  return _mm_mul_ps(x, _mm_mul_ps(x, x));
-}
-
-MALWAYS_INLINE __m128 _bli_math_rsqrt(__m128 in)
-{
-  __m128 r = _mm_rsqrt_ps(in);
-  /* Only do additional Newton-Raphson iterations when using actual SSE
-   * code path. When we are emulating SSE on NEON via sse2neon, the
-   * additional NR iterations are already done inside _mm_rsqrt_ps
-   * emulation. */
-#  if defined(__SSE2__)
-  r = _mm_add_ps(_mm_mul_ps(_mm_set1_ps(1.5f), r),
-                 _mm_mul_ps(_mm_mul_ps(_mm_mul_ps(in, _mm_set1_ps(-0.5f)), r), _mm_mul_ps(r, r)));
-#  endif
-  return r;
-}
-
-/* Calculate powf(x, 1.0f / 2.4) */
-MALWAYS_INLINE __m128 _bli_math_fastpow512(const __m128 arg)
-{
-  /* 5/12 is too small, so compute the 4th root of 20/12 instead.
-   * 20/12 = 5/3 = 1 + 2/3 = 2 - 1/3. 2/3 is a suitable argument for fastpow.
-   * weighting coefficient: a^-1/2 = 2 a; a = 2^-2/3
-   */
-  __m128 xf = _bli_math_fastpow(0x3f2aaaab, 0x5eb504f3, arg);
-  __m128 xover = _mm_mul_ps(arg, xf);
-  __m128 xfm1 = _bli_math_rsqrt(xf);
-  __m128 x2 = _mm_mul_ps(arg, arg);
-  __m128 xunder = _mm_mul_ps(x2, xfm1);
-  /* sqrt2 * over + 2 * sqrt2 * under */
-  __m128 xavg = _mm_mul_ps(_mm_set1_ps(1.0f / (3.0f * 0.629960524947437f) * 0.999852f),
-                           _mm_add_ps(xover, xunder));
-  xavg = _mm_mul_ps(xavg, _bli_math_rsqrt(xavg));
-  xavg = _mm_mul_ps(xavg, _bli_math_rsqrt(xavg));
-  return xavg;
-}
-
-MALWAYS_INLINE __m128 _bli_math_blend_sse(const __m128 mask, const __m128 a, const __m128 b)
-{
-  return _mm_or_ps(_mm_and_ps(mask, a), _mm_andnot_ps(mask, b));
-}
-
-#endif /* BLI_HAVE_SSE2 */
 
 /* Low level conversion functions */
 MINLINE unsigned char unit_float_to_uchar_clamp(float val)

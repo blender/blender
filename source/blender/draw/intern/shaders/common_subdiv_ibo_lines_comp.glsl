@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* To be compiled with common_subdiv_lib.glsl */
 
@@ -32,8 +35,7 @@ void emit_line(uint line_offset, uint quad_index, uint start_loop_index, uint co
 {
   uint vertex_index = start_loop_index + corner_index;
 
-  uint coarse_quad_index = coarse_polygon_index_from_subdiv_quad_index(quad_index,
-                                                                       coarse_poly_count);
+  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(quad_index, coarse_face_count);
 
   if (use_hide && is_face_hidden(coarse_quad_index) || (input_edge_draw_flag[vertex_index] == 0)) {
     output_lines[line_offset + 0] = 0xffffffff;

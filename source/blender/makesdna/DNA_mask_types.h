@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,10 +15,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef struct Mask {
   ID id;
@@ -164,8 +160,10 @@ typedef struct MaskLayer {
   char visibility_flag;
 } MaskLayer;
 
-/* MaskParent->flag */
-/* #define MASK_PARENT_ACTIVE  (1 << 0) */ /* UNUSED */
+// /** #MaskParent::flag */
+// enum {
+//   MASK_PARENT_ACTIVE = 1 << 0, /* UNUSED. */
+// };
 
 /* MaskParent->type */
 enum {
@@ -194,14 +192,18 @@ enum {
 };
 
 /* MaskLayer->visibility_flag */
-#define MASK_HIDE_VIEW (1 << 0)
-#define MASK_HIDE_SELECT (1 << 1)
-#define MASK_HIDE_RENDER (1 << 2)
+enum {
+  MASK_HIDE_VIEW = 1 << 0,
+  MASK_HIDE_SELECT = 1 << 1,
+  MASK_HIDE_RENDER = 1 << 2,
+};
 
 /* SpaceClip->mask_draw_flag */
-/* #define MASK_DRAWFLAG_SMOOTH_DEPRECATED (1 << 0) */ /* Deprecated */
-#define MASK_DRAWFLAG_OVERLAY (1 << 1)
-#define MASK_DRAWFLAG_SPLINE (1 << 2)
+enum {
+  MASK_DRAWFLAG_SMOOTH_DEPRECATED = 1 << 0, /* Deprecated. */
+  MASK_DRAWFLAG_OVERLAY = 1 << 1,
+  MASK_DRAWFLAG_SPLINE = 1 << 2,
+};
 
 /* copy of eSpaceImage_UVDT */
 /* SpaceClip->mask_draw_type */
@@ -255,7 +257,3 @@ enum {
 enum {
   MASK_ANIMF_EXPAND = (1 << 4),
 };
-
-#ifdef __cplusplus
-}
-#endif

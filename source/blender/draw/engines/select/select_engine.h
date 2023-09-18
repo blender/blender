@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,13 +12,13 @@
 extern "C" {
 #endif
 
-/* select_engine.c */
+/* `select_engine.cc` */
 
 extern DrawEngineType draw_engine_select_type;
 extern RenderEngineType DRW_engine_viewport_select_type;
 
 #ifdef WITH_DRAW_DEBUG
-/* select_debug_engine.c */
+/* `select_debug_engine.cc` */
 
 extern DrawEngineType draw_engine_debug_select_type;
 #endif

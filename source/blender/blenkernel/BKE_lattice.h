@@ -77,7 +77,7 @@ extern void (*BKE_lattice_batch_cache_dirty_tag_cb)(struct Lattice *lt, int mode
 extern void (*BKE_lattice_batch_cache_free_cb)(struct Lattice *lt);
 
 /* -------------------------------------------------------------------- */
-/** \name Deform 3D Coordinates by Lattice (lattice_deform.c)
+/** \name Deform 3D Coordinates by Lattice (`lattice_deform.cc`)
  * \{ */
 
 struct LatticeDeformData *BKE_lattice_deform_data_create(

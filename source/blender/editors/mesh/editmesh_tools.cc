@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,7 +24,10 @@
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_sort_utils.h"
 #include "BLI_string.h"
@@ -49,27 +52,27 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
-#include "ED_transform.h"
-#include "ED_uvedit.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
+#include "ED_transform.hh"
+#include "ED_uvedit.hh"
+#include "ED_view3d.hh"
 
 #include "RE_texture.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "mesh_intern.h" /* own include */
 
@@ -1117,7 +1120,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  prop = RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+  prop = RNA_def_boolean(ot->srna, "clear", false, "Clear", "");
   RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 
   WM_operatortype_props_advanced_begin(ot);
@@ -1508,12 +1511,11 @@ static bool bm_vert_connect_select_history(BMesh *bm)
 static bool bm_vert_connect_select_history_edge_to_vert_path(BMesh *bm, ListBase *r_selected)
 {
   ListBase selected_orig = {nullptr, nullptr};
-  BMEditSelection *ese;
   int edges_len = 0;
   bool side = false;
 
   /* first check all edges are OK */
-  for (ese = static_cast<BMEditSelection *>(bm->selected.first); ese; ese = ese->next) {
+  LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
     if (ese->htype == BM_EDGE) {
       edges_len += 1;
     }
@@ -1529,7 +1531,7 @@ static bool bm_vert_connect_select_history_edge_to_vert_path(BMesh *bm, ListBase
   SWAP(ListBase, bm->selected, selected_orig);
 
   /* convert edge selection into 2 ordered loops (where the first edge ends up in the middle) */
-  for (ese = static_cast<BMEditSelection *>(selected_orig.first); ese; ese = ese->next) {
+  LISTBASE_FOREACH (BMEditSelection *, ese, &selected_orig) {
     BMEdge *e_curr = (BMEdge *)ese->ele;
     BMEdge *e_prev = ese->prev ? (BMEdge *)ese->prev->ele : nullptr;
     BMLoop *l_curr;
@@ -3703,7 +3705,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
  * \{ */
 
 /* BMESH_TODO this should be properly encapsulated in a bmop.  but later. */
-static bool shape_propagate(BMEditMesh *em)
+static bool shape_propagate(BMEditMesh *em, bool use_symmetry)
 {
   BMIter iter;
   BMVert *eve = nullptr;
@@ -3716,7 +3718,12 @@ static bool shape_propagate(BMEditMesh *em)
 
   BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
     if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-      continue;
+      BMVert *mirr = use_symmetry ? EDBM_verts_mirror_get(em, eve) : nullptr;
+
+      if (!mirr || !BM_elem_flag_test(mirr, BM_ELEM_SELECT) ||
+          BM_elem_flag_test(mirr, BM_ELEM_HIDDEN)) {
+        continue;
+      }
     }
 
     for (int i = 0; i < totshape; i++) {
@@ -3748,8 +3755,20 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
     }
     tot_selected_verts_objects++;
 
-    if (shape_propagate(em)) {
+    const bool use_symmetry = (me->symmetry & ME_SYMMETRY_X) != 0;
+
+    if (use_symmetry) {
+      const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+
+      EDBM_verts_mirror_cache_begin(em, 0, false, true, false, use_topology);
+    }
+
+    if (shape_propagate(em, use_symmetry)) {
       tot_shapekeys++;
+    }
+
+    if (use_symmetry) {
+      EDBM_verts_mirror_cache_end(em);
     }
 
     EDBMUpdate_Params params{};
@@ -3853,6 +3872,14 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
     shape = BLI_findindex(&key->block, kb);
 
     if (kb) {
+      const bool use_symmetry = (me->symmetry & ME_SYMMETRY_X) != 0;
+
+      if (use_symmetry) {
+        const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+
+        EDBM_verts_mirror_cache_begin(em, 0, false, true, false, use_topology);
+      }
+
       /* Perform blending on selected vertices. */
       BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
         if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
@@ -3877,6 +3904,12 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
           interp_v3_v3v3(eve->co, eve->co, co, blend);
         }
       }
+
+      if (use_symmetry) {
+        EDBM_verts_mirror_apply(em, BM_ELEM_SELECT, 0);
+        EDBM_verts_mirror_cache_end(em);
+      }
+
       EDBMUpdate_Params params{};
       params.calc_looptri = true;
       params.calc_normals = true;
@@ -3934,16 +3967,15 @@ static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
   uiLayout *layout = op->layout;
   Object *obedit = CTX_data_edit_object(C);
   Mesh *me = static_cast<Mesh *>(obedit->data);
-  PointerRNA ptr_key;
 
-  RNA_id_pointer_create((ID *)me->key, &ptr_key);
+  PointerRNA ptr_key = RNA_id_pointer_create((ID *)me->key);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
   uiItemPointerR(layout, op->ptr, "shape", &ptr_key, "key_blocks", nullptr, ICON_SHAPEKEY_DATA);
-  uiItemR(layout, op->ptr, "blend", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "add", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "blend", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "add", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void MESH_OT_blend_from_shape(wmOperatorType *ot)
@@ -3967,7 +3999,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_enum(
-      ot->srna, "shape", DummyRNA_NULL_items, 0, "Shape", "Shape key to use for blending");
+      ot->srna, "shape", rna_enum_dummy_NULL_items, 0, "Shape", "Shape key to use for blending");
   RNA_def_enum_funcs(prop, shape_itemf);
   RNA_def_property_flag(prop, PropertyFlag(PROP_ENUM_NO_TRANSLATE | PROP_NEVER_UNLINK));
   RNA_def_float(ot->srna, "blend", 1.0f, -1e3f, 1e3f, "Blend", "Blending factor", -2.0f, 2.0f);
@@ -5037,9 +5069,9 @@ static bool edbm_fill_grid_prepare(BMesh *bm, int offset, int *span_p, const boo
     }
     else {
       /* find the vertex with the best angle (a corner vertex) */
-      LinkData *v_link, *v_link_best = nullptr;
+      LinkData *v_link_best = nullptr;
       float angle_best = -1.0f;
-      for (v_link = static_cast<LinkData *>(verts->first); v_link; v_link = v_link->next) {
+      LISTBASE_FOREACH (LinkData *, v_link, verts) {
         const float angle = edbm_fill_grid_vert_tag_angle(static_cast<BMVert *>(v_link->data));
         if ((angle > angle_best) || (v_link_best == nullptr)) {
           angle_best = angle;
@@ -5908,16 +5940,16 @@ static void edbm_decimate_ui(bContext * /*C*/, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, op->ptr, "ratio", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "ratio", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, op->ptr, "use_vertex_group", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "use_vertex_group", UI_ITEM_NONE, nullptr, ICON_NONE);
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, RNA_boolean_get(op->ptr, "use_vertex_group"));
-  uiItemR(col, op->ptr, "vertex_group_factor", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "invert_vertex_group", 0, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "vertex_group_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "invert_vertex_group", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
-  uiItemR(row, op->ptr, "use_symmetry", 0, "", ICON_NONE);
+  uiItemR(row, op->ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "use_symmetry"));
   uiItemR(sub, op->ptr, "symmetry_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
@@ -8833,9 +8865,8 @@ static void edbm_point_normals_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
-  PointerRNA ptr;
 
-  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -9328,9 +9359,8 @@ static void edbm_average_normals_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
-  PointerRNA ptr;
 
-  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -9586,9 +9616,8 @@ static void edbm_normals_tools_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
-  PointerRNA ptr;
 
-  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
 
   /* Main auto-draw call */
   uiDefAutoButsRNA(layout,
@@ -9743,7 +9772,8 @@ void MESH_OT_set_normals_from_faces(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "keep_sharp", 0, "Keep Sharp Edges", "Do not set sharp edges to face");
+  RNA_def_boolean(
+      ot->srna, "keep_sharp", false, "Keep Sharp Edges", "Do not set sharp edges to face");
 }
 
 /** \} */
@@ -9958,7 +9988,7 @@ void MESH_OT_mod_weighted_strength(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  ot->prop = RNA_def_boolean(ot->srna, "set", 0, "Set Value", "Set value of faces");
+  ot->prop = RNA_def_boolean(ot->srna, "set", false, "Set Value", "Set value of faces");
 
   ot->prop = RNA_def_enum(
       ot->srna,

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,7 +15,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -30,14 +30,13 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "info_intern.hh"
 
@@ -360,7 +359,7 @@ static int unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent * /*eve
                    "method",
                    static_cast<IDProperty *>(op->ptr->data),
                    WM_OP_EXEC_REGION_WIN,
-                   0);
+                   UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);
 
@@ -566,7 +565,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 
 /* NOTE(@broken): Hard to decide whether to keep this as an operator,
  * or turn it into a hard_coded UI control feature,
- * handling TIMER events for all regions in `interface_handlers.c`.
+ * handling TIMER events for all regions in `interface_handlers.cc`.
  * Not sure how good that is to be accessing UI data from
  * inactive regions, so use this for now. */
 
@@ -574,17 +573,11 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 #define ERROR_TIMEOUT 10.0f
 #define FLASH_TIMEOUT 1.0f
 #define COLLAPSE_TIMEOUT 0.25f
-#define BRIGHTEN_AMOUNT 0.1f
+
 static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
   ReportList *reports = CTX_wm_reports(C);
   Report *report;
-  ReportTimerInfo *rti;
-  float target_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  float progress = 0.0, flash_progress = 0.0;
-  float timeout = 0.0, flash_timeout = FLASH_TIMEOUT;
-  int send_note = 0;
 
   /* escape if not our timer */
   if ((reports->reporttimer == nullptr) || (reports->reporttimer != event->customdata) ||
@@ -594,13 +587,17 @@ static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const
     return OPERATOR_PASS_THROUGH;
   }
 
-  rti = (ReportTimerInfo *)reports->reporttimer->customdata;
+  wmWindowManager *wm = CTX_wm_manager(C);
+  ReportTimerInfo *rti = (ReportTimerInfo *)reports->reporttimer->customdata;
+  const float flash_timeout = FLASH_TIMEOUT;
+  bool send_notifier = false;
 
-  timeout = (report->type & RPT_ERROR_ALL) ? ERROR_TIMEOUT : INFO_TIMEOUT;
+  const float timeout = (report->type & RPT_ERROR_ALL) ? ERROR_TIMEOUT : INFO_TIMEOUT;
+  const float time_duration = float(reports->reporttimer->time_duration);
 
   /* clear the report display after timeout */
-  if (float(reports->reporttimer->duration) > timeout) {
-    WM_event_remove_timer(wm, nullptr, reports->reporttimer);
+  if (time_duration > timeout) {
+    WM_event_timer_remove(wm, nullptr, reports->reporttimer);
     reports->reporttimer = nullptr;
 
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, nullptr);
@@ -608,41 +605,28 @@ static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
 
-  /* set target color based on report type */
-  UI_GetThemeColorType3fv(UI_icon_colorid_from_report_type(report->type), SPACE_INFO, target_col);
-  target_col[3] = 0.65f;
-
   if (rti->widthfac == 0.0f) {
-    /* initialize color to a brighter shade of the target color */
-    rti->col[0] = target_col[0] + BRIGHTEN_AMOUNT;
-    rti->col[1] = target_col[1] + BRIGHTEN_AMOUNT;
-    rti->col[2] = target_col[2] + BRIGHTEN_AMOUNT;
-    rti->col[3] = 1.0f;
-
-    CLAMP3(rti->col, 0.0, 1.0);
-
     rti->widthfac = 1.0f;
   }
 
-  progress = powf(float(reports->reporttimer->duration) / timeout, 2.0f);
-  flash_progress = powf(float(reports->reporttimer->duration) / flash_timeout, 2.0);
+  const float progress = powf(time_duration / timeout, 2.0f);
+  const float flash_progress = powf(time_duration / flash_timeout, 2.0);
 
   /* save us from too many draws */
   if (flash_progress <= 1.0f) {
-    send_note = 1;
-
-    /* flash report briefly according to progress through fade-out duration */
-    interp_v4_v4v4(rti->col, rti->col, target_col, flash_progress);
+    /* Flash report briefly according to progress through fade-out duration. */
+    send_notifier = true;
   }
+  rti->flash_progress = flash_progress;
 
   /* collapse report at end of timeout */
   if (progress * timeout > timeout - COLLAPSE_TIMEOUT) {
     rti->widthfac = (progress * timeout - (timeout - COLLAPSE_TIMEOUT)) / COLLAPSE_TIMEOUT;
     rti->widthfac = 1.0f - rti->widthfac;
-    send_note = 1;
+    send_notifier = true;
   }
 
-  if (send_note) {
+  if (send_notifier) {
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, nullptr);
   }
 

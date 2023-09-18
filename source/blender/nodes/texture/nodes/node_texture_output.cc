@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,6 +10,7 @@
 
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
+#include "node_util.hh"
 
 /* **************** COMPOSITE ******************** */
 static bNodeSocketTemplate inputs[] = {
@@ -84,7 +85,8 @@ static void unique_name(bNode *node)
       STRNCPY(new_name, name);
       name = new_name;
     }
-    BLI_sprintf(new_name + new_len - 4, ".%03d", ++suffix);
+    int name_ofs = new_len - 4;
+    BLI_snprintf(new_name + name_ofs, sizeof(new_name) - name_ofs, ".%03d", ++suffix);
   }
 
   if (new_name[0] != '\0') {
@@ -132,7 +134,7 @@ static void copy(bNodeTree *dest_ntree, bNode *dest_node, const bNode *src_node)
   assign_index(dest_node);
 }
 
-void register_node_type_tex_output(void)
+void register_node_type_tex_output()
 {
   static bNodeType ntype;
 

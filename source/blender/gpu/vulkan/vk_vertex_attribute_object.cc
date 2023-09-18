@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation All rights reserved.
+/* SPDX-FileCopyrightText: 2023 Blender Authors All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,6 +12,7 @@
 #include "vk_vertex_buffer.hh"
 
 #include "BLI_array.hh"
+#include "BLI_math_vector_types.hh"
 
 namespace blender::gpu {
 VKVertexAttributeObject::VKVertexAttributeObject()
@@ -48,8 +49,24 @@ VKVertexAttributeObject &VKVertexAttributeObject::operator=(const VKVertexAttrib
   return *this;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Bind resources
+ * \{ */
+
 void VKVertexAttributeObject::bind(VKContext &context)
 {
+  const bool use_vbos = !vbos.is_empty();
+  if (use_vbos) {
+    bind_vbos(context);
+  }
+  else {
+    bind_buffers(context);
+  }
+}
+
+void VKVertexAttributeObject::bind_vbos(VKContext &context)
+{
+  /* Bind VBOS from batches. */
   Array<bool> visited_bindings(bindings.size());
   visited_bindings.fill(false);
 
@@ -59,21 +76,49 @@ void VKVertexAttributeObject::bind(VKContext &context)
     }
     visited_bindings[attribute.binding] = true;
 
-    /* Bind VBOS from batches. */
     if (attribute.binding < vbos.size()) {
       BLI_assert(vbos[attribute.binding]);
       VKVertexBuffer &vbo = *vbos[attribute.binding];
       vbo.upload();
       context.command_buffer_get().bind(attribute.binding, vbo, 0);
     }
+    else {
+      const VKBuffer &buffer = VKBackend::get().device_get().dummy_buffer_get();
+      const VKBufferWithOffset buffer_with_offset = {buffer, 0};
+      context.command_buffer_get().bind(attribute.binding, buffer_with_offset);
+    }
+  }
+}
 
-    /* Bind dynamic buffers from immediate mode. */
+void VKVertexAttributeObject::bind_buffers(VKContext &context)
+{
+  /* Bind dynamic buffers from immediate mode. */
+  Array<bool> visited_bindings(bindings.size());
+  visited_bindings.fill(false);
+
+  for (VkVertexInputAttributeDescription attribute : attributes) {
+    if (visited_bindings[attribute.binding]) {
+      continue;
+    }
+    visited_bindings[attribute.binding] = true;
+
     if (attribute.binding < buffers.size()) {
       VKBufferWithOffset &buffer = buffers[attribute.binding];
       context.command_buffer_get().bind(attribute.binding, buffer);
     }
+    else {
+      const VKBuffer &buffer = VKBackend::get().device_get().dummy_buffer_get();
+      const VKBufferWithOffset buffer_with_offset = {buffer, 0};
+      context.command_buffer_get().bind(attribute.binding, buffer_with_offset);
+    }
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Update bindings
+ * \{ */
 
 void VKVertexAttributeObject::update_bindings(const VKContext &context, VKBatch &batch)
 {
@@ -96,7 +141,95 @@ void VKVertexAttributeObject::update_bindings(const VKContext &context, VKBatch 
     }
   }
 
+  if (occupied_attributes != interface.enabled_attr_mask_) {
+    fill_unused_bindings(interface, occupied_attributes);
+  }
   is_valid = true;
+}
+
+/* Determine the number of binding location the given attribute uses. */
+static uint32_t to_binding_location_len(const GPUVertAttr &attribute)
+{
+  return ceil_division(attribute.comp_len, 4u);
+}
+
+/* Determine the number of binding location the given type uses. */
+static uint32_t to_binding_location_len(const shader::Type type)
+{
+  switch (type) {
+    case shader::Type::FLOAT:
+    case shader::Type::VEC2:
+    case shader::Type::VEC3:
+    case shader::Type::VEC4:
+    case shader::Type::UINT:
+    case shader::Type::UVEC2:
+    case shader::Type::UVEC3:
+    case shader::Type::UVEC4:
+    case shader::Type::INT:
+    case shader::Type::IVEC2:
+    case shader::Type::IVEC3:
+    case shader::Type::IVEC4:
+    case shader::Type::BOOL:
+    case shader::Type::VEC3_101010I2:
+    case shader::Type::UCHAR:
+    case shader::Type::UCHAR2:
+    case shader::Type::UCHAR3:
+    case shader::Type::UCHAR4:
+    case shader::Type::CHAR:
+    case shader::Type::CHAR2:
+    case shader::Type::CHAR3:
+    case shader::Type::CHAR4:
+    case shader::Type::SHORT:
+    case shader::Type::SHORT2:
+    case shader::Type::SHORT3:
+    case shader::Type::SHORT4:
+    case shader::Type::USHORT:
+    case shader::Type::USHORT2:
+    case shader::Type::USHORT3:
+    case shader::Type::USHORT4:
+      return 1;
+    case shader::Type::MAT3:
+      return 3;
+    case shader::Type::MAT4:
+      return 4;
+  }
+
+  return 1;
+}
+
+void VKVertexAttributeObject::fill_unused_bindings(const VKShaderInterface &interface,
+                                                   const AttributeMask occupied_attributes)
+{
+  for (int location : IndexRange(16)) {
+    AttributeMask location_mask = 1 << location;
+    /* Skip occupied slots */
+    if (occupied_attributes & location_mask) {
+      continue;
+    }
+    /* Skip slots that are not used by the vertex shader. */
+    if ((interface.enabled_attr_mask_ & location_mask) == 0) {
+      continue;
+    }
+
+    /* Use dummy binding. */
+    shader::Type attribute_type = interface.get_attribute_type(location);
+    const uint32_t num_locations = to_binding_location_len(attribute_type);
+    for (const uint32_t location_offset : IndexRange(num_locations)) {
+      const uint32_t binding = bindings.size();
+      VkVertexInputAttributeDescription attribute_description = {};
+      attribute_description.binding = binding;
+      attribute_description.location = location + location_offset;
+      attribute_description.offset = 0;
+      attribute_description.format = to_vk_format(attribute_type);
+      attributes.append(attribute_description);
+
+      VkVertexInputBindingDescription vk_binding_descriptor = {};
+      vk_binding_descriptor.binding = binding;
+      vk_binding_descriptor.stride = 0;
+      vk_binding_descriptor.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+      bindings.append(vk_binding_descriptor);
+    }
+  }
 }
 
 void VKVertexAttributeObject::update_bindings(VKImmediate &immediate)
@@ -148,9 +281,6 @@ void VKVertexAttributeObject::update_bindings(const GPUVertFormat &vertex_format
       offset = attribute.offset;
     }
 
-    const uint32_t binding = bindings.size();
-
-    bool attribute_used_by_shader = false;
     for (uint32_t name_index = 0; name_index < attribute.name_len; name_index++) {
       const char *name = GPU_vertformat_attr_name_get(&vertex_format, &attribute, name_index);
       const ShaderInput *shader_input = interface.attr_get(name);
@@ -164,34 +294,78 @@ void VKVertexAttributeObject::update_bindings(const GPUVertFormat &vertex_format
         continue;
       }
       r_occupied_attributes |= attribute_mask;
-      attribute_used_by_shader = true;
+      const uint32_t num_locations = to_binding_location_len(attribute);
+      for (const uint32_t location_offset : IndexRange(num_locations)) {
+        const uint32_t binding = bindings.size();
+        VkVertexInputAttributeDescription attribute_description = {};
+        attribute_description.binding = binding;
+        attribute_description.location = shader_input->location + location_offset;
+        attribute_description.offset = offset + location_offset * sizeof(float4);
+        attribute_description.format = to_vk_format(
+            static_cast<GPUVertCompType>(attribute.comp_type),
+            attribute.size,
+            static_cast<GPUVertFetchMode>(attribute.fetch_mode));
+        attributes.append(attribute_description);
 
-      VkVertexInputAttributeDescription attribute_description = {};
-      attribute_description.binding = binding;
-      attribute_description.location = shader_input->location;
-      attribute_description.offset = offset;
-      attribute_description.format = to_vk_format(
-          static_cast<GPUVertCompType>(attribute.comp_type),
-          attribute.size,
-          static_cast<GPUVertFetchMode>(attribute.fetch_mode));
-      attributes.append(attribute_description);
-    }
-
-    if (attribute_used_by_shader) {
-      VkVertexInputBindingDescription vk_binding_descriptor = {};
-      vk_binding_descriptor.binding = binding;
-      vk_binding_descriptor.stride = stride;
-      vk_binding_descriptor.inputRate = use_instancing ? VK_VERTEX_INPUT_RATE_INSTANCE :
-                                                         VK_VERTEX_INPUT_RATE_VERTEX;
-      bindings.append(vk_binding_descriptor);
-      if (vertex_buffer) {
-        vbos.append(vertex_buffer);
-      }
-      if (immediate_vertex_buffer) {
-        buffers.append(*immediate_vertex_buffer);
+        VkVertexInputBindingDescription vk_binding_descriptor = {};
+        vk_binding_descriptor.binding = binding;
+        vk_binding_descriptor.stride = stride;
+        vk_binding_descriptor.inputRate = use_instancing ? VK_VERTEX_INPUT_RATE_INSTANCE :
+                                                           VK_VERTEX_INPUT_RATE_VERTEX;
+        bindings.append(vk_binding_descriptor);
+        if (vertex_buffer) {
+          vbos.append(vertex_buffer);
+        }
+        if (immediate_vertex_buffer) {
+          buffers.append(*immediate_vertex_buffer);
+        }
       }
     }
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Debugging
+ * \{ */
+
+void VKVertexAttributeObject::debug_print() const
+{
+  std::cout << __FILE__ << "::" << __func__ << "\n";
+  Array<bool> visited_bindings(bindings.size());
+  visited_bindings.fill(false);
+
+  for (VkVertexInputAttributeDescription attribute : attributes) {
+    std::cout << " - attribute(binding=" << attribute.binding
+              << ", location=" << attribute.location << ")";
+
+    if (visited_bindings[attribute.binding]) {
+      std::cout << " WARNING: Already bound\n";
+      continue;
+    }
+    visited_bindings[attribute.binding] = true;
+
+    /* Bind VBOS from batches. */
+    if (!vbos.is_empty()) {
+      if (attribute.binding < vbos.size()) {
+        std::cout << " Attach to VBO [" << vbos[attribute.binding] << "]\n";
+      }
+      else {
+        std::cout << " WARNING: Attach to dummy\n";
+      }
+    }
+    else if (!buffers.is_empty()) {
+      if (attribute.binding < vbos.size()) {
+        std::cout << " Attach to ImmediateModeVBO\n";
+      }
+      else {
+        std::cout << " WARNING: Attach to dummy\n";
+      }
+    }
+  }
+}
+
+/** \} */
 
 }  // namespace blender::gpu

@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2021 Tangent Animation. All rights reserved.
- * SPDX-FileCopyrightText: 2023 Blender Foundation
+ * SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
@@ -11,6 +11,10 @@
 #include "usd_reader_prim.h"
 
 namespace blender::io::usd {
+
+/** A transformation matrix and a boolean indicating
+ * whether the matrix is constant over time. */
+using XformResult = std::tuple<pxr::GfMatrix4f, bool>;
 
 class USDXformReader : public USDPrimReader {
  protected:
@@ -60,9 +64,17 @@ class USDXformReader : public USDPrimReader {
   /* Returns true if the contained USD prim is the root of a transform hierarchy. */
   bool is_root_xform_prim() const;
 
-  virtual bool get_local_usd_xform(pxr::GfMatrix4d *r_xform,
-                                   bool *r_is_constant,
-                                   const float time) const;
+  /**
+   * Return the USD prim's local transformation.
+   *
+   * \param time: Time code for evaluating the transform.
+   *
+   * \return: Optional tuple with the following elements:
+   *          - The transform matrix.
+   *          - A boolean flag indicating whether the matrix
+   *            is constant over time.
+   */
+  virtual std::optional<XformResult> get_local_usd_xform(float time) const;
 };
 
 }  // namespace blender::io::usd

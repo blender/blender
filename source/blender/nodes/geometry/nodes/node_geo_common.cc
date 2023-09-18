@@ -1,21 +1,23 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_node.hh"
 
-#include "NOD_geometry.h"
+#include "NOD_geometry.hh"
 #include "NOD_node_declaration.hh"
 
 #include "NOD_common.h"
 #include "node_common.h"
 #include "node_geometry_util.hh"
 
+#include "RNA_access.hh"
+
 namespace blender::nodes {
 
-static void node_declare(const bNodeTree &node_tree,
-                         const bNode &node,
-                         NodeDeclaration &r_declaration)
+static void node_group_declare(const bNodeTree &node_tree,
+                               const bNode &node,
+                               NodeDeclaration &r_declaration)
 {
   const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node.id);
   if (!group) {
@@ -38,13 +40,11 @@ static void node_declare(const bNodeTree &node_tree,
   }
 }
 
-}  // namespace blender::nodes
-
-void register_node_type_geo_group()
+static void register_node_type_geo_group()
 {
   static bNodeType ntype;
 
-  node_type_base_custom(&ntype, "GeometryNodeGroup", "Group", NODE_CLASS_GROUP);
+  node_type_base_custom(&ntype, "GeometryNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.type = NODE_GROUP;
   ntype.poll = geo_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;
@@ -55,10 +55,13 @@ void register_node_type_geo_group()
 
   blender::bke::node_type_size(&ntype, 140, 60, 400);
   ntype.labelfunc = node_group_label;
-  ntype.declare_dynamic = blender::nodes::node_declare;
+  ntype.declare_dynamic = node_group_declare;
 
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(register_node_type_geo_group)
+
+}  // namespace blender::nodes
 
 void register_node_type_geo_custom_group(bNodeType *ntype)
 {

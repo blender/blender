@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,8 +14,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_tracking.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"

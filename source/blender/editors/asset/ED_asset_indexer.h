@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "ED_file_indexer.h"
+#include "ED_file_indexer.hh"
 
 #ifdef __cplusplus
 extern "C" {

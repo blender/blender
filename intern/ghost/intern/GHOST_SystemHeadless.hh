@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -50,6 +50,7 @@ class GHOST_SystemHeadless : public GHOST_System {
                                  /* No windowing functionality supported. */
                                  ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
                                    GHOST_kCapabilityPrimaryClipboard |
+                                   GHOST_kCapabilityDesktopSample |
                                    GHOST_kCapabilityClipboardImages));
   }
   char *getClipboard(bool /*selection*/) const override
@@ -85,7 +86,7 @@ class GHOST_SystemHeadless : public GHOST_System {
   {
 #ifdef __linux__
     GHOST_Context *context;
-    for (int minor = 6; minor >= 0; --minor) {
+    for (int minor = 6; minor >= 3; --minor) {
       context = new GHOST_ContextEGL((GHOST_System *)this,
                                      false,
                                      EGLNativeWindowType(0),
@@ -104,21 +105,6 @@ class GHOST_SystemHeadless : public GHOST_System {
       context = nullptr;
     }
 
-    context = new GHOST_ContextEGL((GHOST_System *)this,
-                                   false,
-                                   EGLNativeWindowType(0),
-                                   EGLNativeDisplayType(EGL_DEFAULT_DISPLAY),
-                                   EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                   3,
-                                   3,
-                                   GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                   GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                   EGL_OPENGL_API);
-
-    if (context->initializeDrawingContext() != GHOST_kSuccess) {
-      delete context;
-      context = nullptr;
-    }
     return context;
 #else
     return nullptr;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,14 +11,13 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BLI_math.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 #include "BLI_memarena.h"
 
 #include "BLI_strict_flags.h"
@@ -110,21 +109,18 @@ void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *me)
   if (me->totloop == 0) {
     return;
   }
-  const int mloopuv_layers_num = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
+  const int mloopuv_layers_num = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
   if (mloopuv_layers_num == 0) {
     return;
   }
 
-  Array<int> vert_to_loop_offsets;
-  Array<int> vert_to_loop_indices;
-  const GroupedSpan<int> vert_to_loop = bke::mesh::build_vert_to_loop_map(
-      me->corner_verts(), me->totvert, vert_to_loop_offsets, vert_to_loop_indices);
+  const GroupedSpan<int> vert_to_loop = me->vert_to_corner_map();
 
   Vector<float2 *> mloopuv_layers;
   mloopuv_layers.reserve(mloopuv_layers_num);
   for (int a = 0; a < mloopuv_layers_num; a++) {
     float2 *mloopuv = static_cast<float2 *>(
-        CustomData_get_layer_n_for_write(&me->ldata, CD_PROP_FLOAT2, a, me->totloop));
+        CustomData_get_layer_n_for_write(&me->loop_data, CD_PROP_FLOAT2, a, me->totloop));
     mloopuv_layers.append_unchecked(mloopuv);
   }
 

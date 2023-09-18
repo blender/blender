@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void main()
 {
   /* Each invocation corresponds to one output pixel, where the output has twice the size of the
@@ -12,10 +16,10 @@ void main()
    * image, so compute its normalized pixel size. */
   vec2 pixel_size = 1.0 / vec2(imageSize(output_img));
 
-  /* Upsample by applying a 3x3 tent filter on the bi-linearly interpolated values evaluated at the
-   * center of neighbouring output pixels. As more tent filter upsampling passes are applied, the
-   * result approximates a large sized Gaussian filter. This upsampling strategy is described in
-   * the talk:
+  /* Upsample by applying a 3x3 tent filter on the bi-linearly interpolated values evaluated at
+   * the center of neighboring output pixels. As more tent filter upsampling passes are applied,
+   * the result approximates a large sized Gaussian filter. This upsampling strategy is described
+   * in the talk:
    *
    *   Next Generation Post Processing in Call of Duty: Advanced Warfare
    *   https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare

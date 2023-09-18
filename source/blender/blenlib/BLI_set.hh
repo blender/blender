@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -45,8 +45,6 @@
  *   memory usage of the set.
  * - The method names don't follow the std::unordered_set names in many cases. Searching for such
  *   names in this file will usually let you discover the new name.
- * - There is a #StdUnorderedSetWrapper class, that wraps std::unordered_set and gives it the same
- *   interface as blender::Set. This is useful for bench-marking.
  *
  * Possible Improvements:
  * - Use a branch-less loop over slots in grow function (measured ~10% performance improvement when
@@ -56,8 +54,6 @@
  *   significant improvements in simple tests (~30% faster). It still needs to be investigated how
  *   to make a nice interface for this functionality.
  */
-
-#include <unordered_set>
 
 #include "BLI_array.hh"
 #include "BLI_hash.hh"
@@ -515,7 +511,7 @@ class Set {
   /**
    * Print common statistics like size and collision count. This is useful for debugging purposes.
    */
-  void print_stats(StringRef name = "") const
+  void print_stats(const char *name) const
   {
     HashTableStats stats(*this, *this);
     stats.print(name);
@@ -886,87 +882,6 @@ class Set {
       this->realloc_and_reinsert(this->size() + 1);
       BLI_assert(occupied_and_removed_slots_ < usable_slots_);
     }
-  }
-};
-
-/**
- * A wrapper for std::unordered_set with the API of blender::Set. This can be used for
- * benchmarking.
- */
-template<typename Key> class StdUnorderedSetWrapper {
- private:
-  using SetType = std::unordered_set<Key, blender::DefaultHash<Key>>;
-  SetType set_;
-
- public:
-  int64_t size() const
-  {
-    return int64_t(set_.size());
-  }
-
-  bool is_empty() const
-  {
-    return set_.empty();
-  }
-
-  void reserve(int64_t n)
-  {
-    set_.reserve(n);
-  }
-
-  void add_new(const Key &key)
-  {
-    set_.insert(key);
-  }
-  void add_new(Key &&key)
-  {
-    set_.insert(std::move(key));
-  }
-
-  bool add(const Key &key)
-  {
-    return set_.insert(key).second;
-  }
-  bool add(Key &&key)
-  {
-    return set_.insert(std::move(key)).second;
-  }
-
-  void add_multiple(Span<Key> keys)
-  {
-    for (const Key &key : keys) {
-      set_.insert(key);
-    }
-  }
-
-  bool contains(const Key &key) const
-  {
-    return set_.find(key) != set_.end();
-  }
-
-  bool remove(const Key &key)
-  {
-    return bool(set_.erase(key));
-  }
-
-  void remove_contained(const Key &key)
-  {
-    return set_.erase(key);
-  }
-
-  void clear()
-  {
-    set_.clear();
-  }
-
-  typename SetType::iterator begin() const
-  {
-    return set_.begin();
-  }
-
-  typename SetType::iterator end() const
-  {
-    return set_.end();
   }
 };
 

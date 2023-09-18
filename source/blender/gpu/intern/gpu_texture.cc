@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -190,6 +190,17 @@ void Texture::usage_set(eGPUTextureUsage usage_flags)
 
 void Texture::attach_to(FrameBuffer *fb, GPUAttachmentType type)
 {
+  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
+    if (fb_[i] == fb) {
+      /* Already stores a reference */
+      if (fb_attachment_[i] != type) {
+        /* Ensure it's not attached twice to the same FrameBuffer. */
+        fb_[i]->attachment_remove(fb_attachment_[i]);
+        fb_attachment_[i] = type;
+      }
+      return;
+    }
+  }
   for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
     if (fb_[i] == nullptr) {
       fb_attachment_[i] = type;

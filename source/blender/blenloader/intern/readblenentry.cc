@@ -26,15 +26,15 @@
 #include "DNA_sdna_types.h"
 
 #include "BKE_asset.h"
-#include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
+#include "BKE_preview_image.hh"
 
-#include "BLO_blend_defs.h"
+#include "BLO_blend_defs.hh"
 #include "BLO_readfile.h"
-#include "BLO_undofile.h"
+#include "BLO_undofile.hh"
 
-#include "readfile.h"
+#include "readfile.hh"
 
 #include "BLI_sys_types.h" /* Needed for `intptr_t`. */
 
@@ -45,7 +45,7 @@
 /* local prototypes --------------------- */
 void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp);
 
-/* Access routines used by filesel. */
+/* Access routines used by file-selector. */
 
 void BLO_datablock_info_free(BLODataBlockInfo *datablock_info)
 {
@@ -272,6 +272,7 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
         if (preview_from_file == nullptr) {
           break;
         }
+        BKE_previewimg_runtime_data_clear(preview_from_file);
 
         PreviewImage *result = static_cast<PreviewImage *>(MEM_dupallocN(preview_from_file));
         bhead = blo_blendhandle_read_preview_rects(fd, bhead, result, preview_from_file);
@@ -334,6 +335,8 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_
           prv = static_cast<PreviewImage *>(BLO_library_read_struct(fd, bhead, "PreviewImage"));
 
           if (prv) {
+            BKE_previewimg_runtime_data_clear(prv);
+
             memcpy(new_prv, prv, sizeof(PreviewImage));
             bhead = blo_blendhandle_read_preview_rects(fd, bhead, new_prv, prv);
             MEM_freeN(prv);
@@ -501,4 +504,9 @@ void BLO_blendfiledata_free(BlendFileData *bfd)
   }
 
   MEM_freeN(bfd);
+}
+
+void BLO_read_do_version_after_setup(Main *new_bmain, BlendFileReadReport *reports)
+{
+  do_versions_after_setup(new_bmain, reports);
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,41 +21,41 @@
 
 #include "GPU_state.h"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
-#include "ED_anim_api.h"
-#include "ED_armature.h"
-#include "ED_asset.h"
-#include "ED_clip.h"
-#include "ED_curve.h"
-#include "ED_curves.h"
-#include "ED_curves_sculpt.h"
-#include "ED_fileselect.h"
-#include "ED_geometry.h"
-#include "ED_gizmo_library.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_grease_pencil.h"
-#include "ED_lattice.h"
-#include "ED_markers.h"
-#include "ED_mask.h"
-#include "ED_mball.h"
-#include "ED_mesh.h"
-#include "ED_node.h"
-#include "ED_object.h"
-#include "ED_paint.h"
-#include "ED_physics.h"
-#include "ED_render.h"
-#include "ED_scene.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
-#include "ED_sequencer.h"
-#include "ED_sound.h"
-#include "ED_space_api.h"
-#include "ED_transform.h"
-#include "ED_userpref.h"
-#include "ED_util.h"
-#include "ED_uvedit.h"
+#include "ED_anim_api.hh"
+#include "ED_armature.hh"
+#include "ED_asset.hh"
+#include "ED_clip.hh"
+#include "ED_curve.hh"
+#include "ED_curves.hh"
+#include "ED_curves_sculpt.hh"
+#include "ED_fileselect.hh"
+#include "ED_geometry.hh"
+#include "ED_gizmo_library.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_grease_pencil.hh"
+#include "ED_lattice.hh"
+#include "ED_markers.hh"
+#include "ED_mask.hh"
+#include "ED_mball.hh"
+#include "ED_mesh.hh"
+#include "ED_node.hh"
+#include "ED_object.hh"
+#include "ED_paint.hh"
+#include "ED_physics.hh"
+#include "ED_render.hh"
+#include "ED_scene.hh"
+#include "ED_screen.hh"
+#include "ED_sculpt.hh"
+#include "ED_sequencer.hh"
+#include "ED_sound.hh"
+#include "ED_space_api.hh"
+#include "ED_transform.hh"
+#include "ED_userpref.hh"
+#include "ED_util.hh"
+#include "ED_uvedit.hh"
 
 #include "io_ops.hh"
 
@@ -220,7 +220,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 /* ********************** Custom Draw Call API ***************** */
 
 struct RegionDrawCB {
-  struct RegionDrawCB *next, *prev;
+  RegionDrawCB *next, *prev;
 
   void (*draw)(const bContext *, ARegion *, void *);
   void *customdata;

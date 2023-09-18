@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,6 +11,10 @@
 #include "CLG_log.h"
 
 #include "wm_xr.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct wmXrActionSet;
 
@@ -187,12 +191,12 @@ typedef struct wmXrActionSet {
   ListBase active_haptic_actions;
 } wmXrActionSet;
 
-/* wm_xr.c */
+/* `wm_xr.cc` */
 
 wmXrRuntimeData *wm_xr_runtime_data_create(void);
 void wm_xr_runtime_data_free(wmXrRuntimeData **runtime);
 
-/* wm_xr_session.c */
+/* `wm_xr_session.cc` */
 
 void wm_xr_session_data_free(wmXrSessionState *state);
 wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
@@ -222,7 +226,7 @@ void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
                                             wmXrData *xr);
 void wm_xr_session_controller_data_clear(wmXrSessionState *state);
 
-/* wm_xr_draw.c */
+/* `wm_xr_draw.cc` */
 
 void wm_xr_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4]);
 void wm_xr_pose_scale_to_mat(const GHOST_XrPose *pose, float scale, float r_mat[4][4]);
@@ -236,3 +240,7 @@ void wm_xr_pose_scale_to_imat(const GHOST_XrPose *pose, float scale, float r_ima
  */
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
 void wm_xr_draw_controllers(const struct bContext *C, struct ARegion *region, void *customdata);
+
+#ifdef __cplusplus
+}
+#endif

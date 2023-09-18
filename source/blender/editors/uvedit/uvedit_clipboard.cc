@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,22 +18,20 @@
  *   * An iso_edge is undirected.
  */
 
-#include "BLI_math.h"
-
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
-#include "BKE_mesh_mapping.h" /* UvElementMap */
+#include "BKE_mesh_mapping.hh" /* UvElementMap */
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_uvedit.h" /* Own include. */
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_uvedit.hh" /* Own include. */
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "uvedit_clipboard_graph_iso.hh"
 #include "uvedit_intern.h" /* linker, extern "C" */

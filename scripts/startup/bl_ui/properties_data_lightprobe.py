@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -103,13 +103,58 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
 
             col.separator()
 
-            col.operator("object.lightprobe_cache_bake").subset = "ACTIVE"
-            col.operator("object.lightprobe_cache_free").subset = "ACTIVE"
+            col.prop(probe, "intensity")
+
+            col.separator()
+
+            col.operator("object.lightprobe_cache_bake").subset = 'ACTIVE'
+            col.operator("object.lightprobe_cache_free").subset = 'ACTIVE'
 
             col.separator()
 
             col.prop(probe, "grid_bake_samples")
             col.prop(probe, "surfel_density")
+
+            col.separator()
+
+            col.prop(probe, "grid_clamp_direct")
+            col.prop(probe, "grid_clamp_indirect")
+
+            col.separator()
+
+            col.prop(probe, "grid_normal_bias")
+            col.prop(probe, "grid_view_bias")
+            col.prop(probe, "grid_irradiance_smoothing")
+            col.prop(probe, "grid_validity_threshold")
+
+            col.separator()
+
+            col.prop(probe, "grid_surface_bias")
+            col.prop(probe, "grid_escape_bias")
+
+            col.separator()
+
+            col.prop(probe, "grid_dilation_threshold")
+            col.prop(probe, "grid_dilation_radius")
+
+            col.separator()
+
+            col.prop(probe, "grid_capture_world")
+            col.prop(probe, "grid_capture_indirect")
+            col.prop(probe, "grid_capture_emission")
+
+            col.separator()
+
+            row = col.row(align=True)
+            row.prop(probe, "visibility_collection")
+            row.prop(probe, "invert_visibility_collection", text="", icon='ARROW_LEFTRIGHT')
+
+        elif probe.type == 'CUBEMAP':
+            col = layout.column()
+            col.prop(probe, "resolution")
+            sub = layout.column(align=True)
+            sub.prop(probe, "clip_start", text="Clipping Start")
+            sub.prop(probe, "clip_end", text="End")
 
         elif probe.type == 'PLANAR':
             # Currently unsupported

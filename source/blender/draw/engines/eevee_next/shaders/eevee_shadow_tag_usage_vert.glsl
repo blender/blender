@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Usage tagging
+ * Virtual shadow-mapping: Usage tagging
  *
  * Shadow pages are only allocated if they are visible.
  * This renders the bounding boxes for transparent objects in order to tag the correct shadows.
@@ -8,8 +11,6 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_shape_lib.glsl)
-
-#pragma BLENDER_REQUIRE(common_debug_shape_lib.glsl)
 
 /* Inflate bounds by half a pixel as a conservative rasterization alternative,
  * to ensure the tiles needed by all LOD0 pixels get tagged */
@@ -65,8 +66,8 @@ void main()
     ls_conservative_max = max(ls_conservative_max, lP);
   }
 
-  interp.ls_aabb_min = ls_conservative_min;
-  interp.ls_aabb_max = ls_conservative_max;
+  interp_flat.ls_aabb_min = ls_conservative_min;
+  interp_flat.ls_aabb_max = ls_conservative_max;
 
   vec3 lP = mix(ls_conservative_min, ls_conservative_max, max(vec3(0), pos));
 

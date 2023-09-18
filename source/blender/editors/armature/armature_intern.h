@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,10 @@
  */
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* internal exports only */
 struct wmOperatorType;
@@ -70,6 +74,17 @@ void ARMATURE_OT_layers_show_all(struct wmOperatorType *ot);
 void ARMATURE_OT_armature_layers(struct wmOperatorType *ot);
 void ARMATURE_OT_bone_layers(struct wmOperatorType *ot);
 
+void ARMATURE_OT_collection_add(struct wmOperatorType *ot);
+void ARMATURE_OT_collection_remove(struct wmOperatorType *ot);
+void ARMATURE_OT_collection_move(struct wmOperatorType *ot);
+void ARMATURE_OT_collection_assign(struct wmOperatorType *ot);
+void ARMATURE_OT_collection_unassign(struct wmOperatorType *ot);
+void ARMATURE_OT_collection_select(struct wmOperatorType *ot);
+void ARMATURE_OT_collection_deselect(struct wmOperatorType *ot);
+
+void ARMATURE_OT_move_to_collection(struct wmOperatorType *ot);
+void ARMATURE_OT_assign_to_collection(struct wmOperatorType *ot);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -129,7 +144,7 @@ void POSE_OT_bone_layers(struct wmOperatorType *ot);
 /** \name Pose Tool Utilities (for PoseLib, Pose Sliding, etc.)
  * \{ */
 
-/* pose_utils.c */
+/* `pose_utils.cc` */
 
 /* Temporary data linking PoseChannels with the F-Curves they affect */
 typedef struct tPChanFCurveLink {
@@ -191,8 +206,9 @@ void poseAnim_mapping_autoKeyframe(struct bContext *C,
                                    float cframe);
 
 /**
- * Find the next F-Curve for a PoseChannel with matching path...
- * - path is not just the pfl rna_path, since that path doesn't have property info yet.
+ * Find the next F-Curve for a PoseChannel with matching path.
+ * - `path` is not just the #tPChanFCurveLink (`pfl`) rna_path,
+ *   since that path doesn't have property info yet.
  */
 LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, const char *path);
 
@@ -202,7 +218,7 @@ LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, con
 /** \name PoseLib
  * \{ */
 
-/* pose_lib_2.c */
+/* `pose_lib_2.cc` */
 
 void POSELIB_OT_apply_pose_asset(struct wmOperatorType *ot);
 void POSELIB_OT_blend_pose_asset(struct wmOperatorType *ot);
@@ -213,12 +229,11 @@ void POSELIB_OT_blend_pose_asset(struct wmOperatorType *ot);
 /** \name Pose Sliding Tools
  * \{ */
 
-/* pose_slide.c */
+/* `pose_slide.cc` */
 
 void POSE_OT_push(struct wmOperatorType *ot);
 void POSE_OT_relax(struct wmOperatorType *ot);
-void POSE_OT_push_rest(struct wmOperatorType *ot);
-void POSE_OT_relax_rest(struct wmOperatorType *ot);
+void POSE_OT_blend_with_rest(struct wmOperatorType *ot);
 void POSE_OT_breakdown(struct wmOperatorType *ot);
 void POSE_OT_blend_to_neighbors(struct wmOperatorType *ot);
 
@@ -331,3 +346,7 @@ int bone_looper(struct Object *ob,
                 int (*bone_func)(struct Object *, struct Bone *, void *));
 
 /** \} */
+
+#ifdef __cplusplus
+}
+#endif

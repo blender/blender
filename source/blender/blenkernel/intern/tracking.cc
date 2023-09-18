@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,11 +6,11 @@
  * \ingroup bke
  */
 
+#include <climits>
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
-#include <limits.h>
-#include <math.h>
 #include <memory.h>
-#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -26,8 +26,9 @@
 #include "BLI_ghash.h"
 #include "BLI_hash.hh"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_base.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
@@ -48,19 +49,19 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "libmv-capi.h"
 #include "tracking_private.h"
 
-typedef struct MovieDistortion {
+struct MovieDistortion {
   libmv_CameraIntrinsics *intrinsics;
   /* Parameters needed for coordinates normalization. */
   float principal_px[2];
   float pixel_aspect;
   float focal;
-} MovieDistortion;
+};
 
 static struct {
   ListBase tracks;
@@ -164,13 +165,13 @@ void BKE_tracking_free(MovieTracking *tracking)
   tracking_dopesheet_free(&tracking->dopesheet);
 }
 
-typedef struct TrackingCopyContext {
+struct TrackingCopyContext {
   /* Map from point and plane track pointer from the source object to the destination object. */
   GHash *old_to_new_track_map;
   GHash *old_to_new_plane_track_map;
-} TrackingCopyContext;
+};
 
-static TrackingCopyContext tracking_copy_context_new(void)
+static TrackingCopyContext tracking_copy_context_new()
 {
   TrackingCopyContext ctx = {};
   ctx.old_to_new_track_map = BLI_ghash_ptr_new(__func__);
@@ -436,7 +437,7 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking,
  * Clipboard.
  */
 
-void BKE_tracking_clipboard_free(void)
+void BKE_tracking_clipboard_free()
 {
   MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(tracking_clipboard.tracks.first),
                      *next_track;
@@ -469,7 +470,7 @@ void BKE_tracking_clipboard_copy_tracks(MovieTracking * /*tracking*/,
   }
 }
 
-bool BKE_tracking_clipboard_has_tracks(void)
+bool BKE_tracking_clipboard_has_tracks()
 {
   return (BLI_listbase_is_empty(&tracking_clipboard.tracks) == false);
 }
@@ -1077,11 +1078,11 @@ static bGPDlayer *track_mask_gpencil_layer_get(const MovieTrackingTrack *track)
   return nullptr;
 }
 
-typedef struct TrackMaskSetPixelData {
+struct TrackMaskSetPixelData {
   float *mask;
   int mask_width;
   int mask_height;
-} TrackMaskSetPixelData;
+};
 
 static void track_mask_set_pixel_cb(int x, int x_end, int y, void *user_data)
 {

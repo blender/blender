@@ -12,7 +12,6 @@
 
 #include "util/map.h"
 #include "util/set.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

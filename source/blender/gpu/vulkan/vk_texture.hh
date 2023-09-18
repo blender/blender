@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,6 +19,8 @@ namespace blender::gpu {
 class VKSampler;
 
 class VKTexture : public Texture, public VKBindableResource {
+  /** When set the instance is considered to be a texture view from `source_texture_` */
+  VKTexture *source_texture_ = nullptr;
   VkImage vk_image_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
 
@@ -31,6 +33,14 @@ class VKTexture : public Texture, public VKBindableResource {
    * can be done. */
   VkImageLayout current_layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
 
+  int layer_offset_ = 0;
+  bool use_stencil_ = false;
+
+  VkComponentMapping vk_component_mapping_ = {VK_COMPONENT_SWIZZLE_IDENTITY,
+                                              VK_COMPONENT_SWIZZLE_IDENTITY,
+                                              VK_COMPONENT_SWIZZLE_IDENTITY,
+                                              VK_COMPONENT_SWIZZLE_IDENTITY};
+
   enum eDirtyFlags {
     IMAGE_VIEW_DIRTY = (1 << 0),
   };
@@ -42,11 +52,14 @@ class VKTexture : public Texture, public VKBindableResource {
 
   virtual ~VKTexture() override;
 
-  void init(VkImage vk_image, VkImageLayout layout);
+  void init(VkImage vk_image, VkImageLayout layout, eGPUTextureFormat texture_format);
 
   void generate_mipmap() override;
   void copy_to(Texture *tex) override;
   void clear(eGPUDataFormat format, const void *data) override;
+  void clear_depth_stencil(const eGPUFrameBufferBits buffer,
+                           float clear_depth,
+                           uint clear_stencil);
   void swizzle_set(const char swizzle_mask[4]) override;
   void mip_range_set(int min, int max) override;
   void *read(int mip, eGPUDataFormat format) override;
@@ -65,6 +78,9 @@ class VKTexture : public Texture, public VKBindableResource {
 
   VkImage vk_image_handle() const
   {
+    if (is_texture_view()) {
+      return source_texture_->vk_image_handle();
+    }
     BLI_assert(vk_image_ != VK_NULL_HANDLE);
     return vk_image_;
   }
@@ -77,6 +93,9 @@ class VKTexture : public Texture, public VKBindableResource {
   bool init_internal(GPUTexture *src, int mip_offset, int layer_offset, bool use_stencil) override;
 
  private:
+  /** Is this texture a view of another texture. */
+  bool is_texture_view() const;
+
   /** Is this texture already allocated on device. */
   bool is_allocated() const;
 
@@ -86,9 +105,18 @@ class VKTexture : public Texture, public VKBindableResource {
    */
   bool allocate();
 
-  int layer_count();
-
   VkImageViewType vk_image_view_type() const;
+
+  /**
+   * Determine the layerCount for vulkan based on the texture type. Will pass the
+   * #non_layered_value for non layered textures.
+   */
+  int vk_layer_count(int non_layered_value) const;
+
+  /**
+   * Determine the VkExtent3D for the given mip_level.
+   */
+  VkExtent3D vk_extent_3d(int mip_level) const;
 
   /* -------------------------------------------------------------------- */
   /** \name Image Layout
@@ -141,8 +169,14 @@ class VKTexture : public Texture, public VKBindableResource {
     return *image_view_;
   }
 
+  const VkComponentMapping &vk_component_mapping_get() const
+  {
+    return vk_component_mapping_;
+  }
+
  private:
   IndexRange mip_map_range() const;
+  IndexRange layer_range() const;
   void image_view_ensure();
   void image_view_update();
 

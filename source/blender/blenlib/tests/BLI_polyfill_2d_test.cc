@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -14,8 +14,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.h"
-#include "BLI_edgehash.h"
-#include "BLI_math.h"
+#include "BLI_map.hh"
+#include "BLI_math_geom.h"
+#include "BLI_ordered_edge.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_utildefines.h"
 
@@ -44,7 +45,7 @@ using ePolyFill2DTestFlag = enum ePolyFill2DTestFlag {
 /* -------------------------------------------------------------------- */
 /* test utility functions */
 
-#define TRI_ERROR_VALUE (uint) - 1
+#define TRI_ERROR_VALUE uint(-1)
 
 static void test_valid_polyfill_prepare(uint tris[][3], uint tris_num)
 {
@@ -92,42 +93,29 @@ static void test_polyfill_topology(const float /*poly*/[][2],
                                    const uint tris[][3],
                                    const uint tris_num)
 {
-  EdgeHash *edgehash = BLI_edgehash_new(__func__);
-  EdgeHashIterator *ehi;
+  blender::Map<blender::OrderedEdge, int> edgehash;
   uint i;
   for (i = 0; i < tris_num; i++) {
     uint j;
     for (j = 0; j < 3; j++) {
       const uint v1 = tris[i][j];
       const uint v2 = tris[i][(j + 1) % 3];
-      void **p = BLI_edgehash_lookup_p(edgehash, v1, v2);
-      if (p) {
-        *p = (void *)(intptr_t(*p) + intptr_t(1));
-      }
-      else {
-        BLI_edgehash_insert(edgehash, v1, v2, (void *)intptr_t(1));
-      }
+      edgehash.add_or_modify(
+          {v1, v2}, [](int *value) { *value = 1; }, [](int *value) { (*value)++; });
     }
   }
-  EXPECT_EQ(BLI_edgehash_len(edgehash), poly_num + (poly_num - 3));
+  EXPECT_EQ(edgehash.size(), poly_num + (poly_num - 3));
 
   for (i = 0; i < poly_num; i++) {
     const uint v1 = i;
     const uint v2 = (i + 1) % poly_num;
-    void **p = BLI_edgehash_lookup_p(edgehash, v1, v2);
-    EXPECT_NE((void *)p, nullptr);
-    EXPECT_EQ(intptr_t(*p), 1);
+    EXPECT_TRUE(edgehash.contains({v1, v2}));
+    EXPECT_EQ(edgehash.lookup({v1, v2}), 1);
   }
 
-  for (ehi = BLI_edgehashIterator_new(edgehash), i = 0; BLI_edgehashIterator_isDone(ehi) == false;
-       BLI_edgehashIterator_step(ehi), i++)
-  {
-    void **p = BLI_edgehashIterator_getValue_p(ehi);
-    EXPECT_TRUE(ELEM(intptr_t(*p), 1, 2));
+  for (const int value : edgehash.values()) {
+    EXPECT_TRUE(ELEM(value, 1, 2));
   }
-
-  BLI_edgehashIterator_free(ehi);
-  BLI_edgehash_free(edgehash, nullptr);
 }
 
 /**

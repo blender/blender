@@ -7,10 +7,46 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// Function void Eigen::AlignedBox::transform(const Transform& transform)
+// is provided under the following license agreement:
+//
+// Software License Agreement (BSD License)
+//
+// Copyright (c) 2011-2014, Willow Garage, Inc.
+// Copyright (c) 2014-2015, Open Source Robotics Foundation
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above
+//    copyright notice, this list of conditions and the following
+//    disclaimer in the documentation and/or other materials provided
+//    with the distribution.
+//  * Neither the name of Open Source Robotics Foundation nor the names of its
+//    contributors may be used to endorse or promote products derived
+//    from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
 #ifndef EIGEN_ALIGNEDBOX_H
 #define EIGEN_ALIGNEDBOX_H
 
-namespace Eigen { 
+namespace Eigen {
 
 /** \geometry_module \ingroup Geometry_Module
   *
@@ -63,7 +99,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
 
   /** Default constructor initializing a null box. */
   EIGEN_DEVICE_FUNC inline AlignedBox()
-  { if (AmbientDimAtCompileTime!=Dynamic) setEmpty(); }
+  { if (EIGEN_CONST_CONDITIONAL(AmbientDimAtCompileTime!=Dynamic)) setEmpty(); }
 
   /** Constructs a null box with \a _dim the dimension of the ambient space. */
   EIGEN_DEVICE_FUNC inline explicit AlignedBox(Index _dim) : m_min(_dim), m_max(_dim)
@@ -231,7 +267,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   {return AlignedBox(m_min.cwiseMax(b.m_min), m_max.cwiseMin(b.m_max)); }
 
   /** Returns an AlignedBox that is the union of \a b and \c *this.
-   * \note Merging with an empty box may result in a box bigger than \c *this. 
+   * \note Merging with an empty box may result in a box bigger than \c *this.
    * \sa extend(const AlignedBox&) */
   EIGEN_DEVICE_FUNC inline AlignedBox merged(const AlignedBox& b) const
   { return AlignedBox(m_min.cwiseMin(b.m_min), m_max.cwiseMax(b.m_max)); }
@@ -244,6 +280,15 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
     m_min += t;
     m_max += t;
     return *this;
+  }
+
+  /** \returns a copy of \c *this translated by the vector \a t. */
+  template<typename Derived>
+  EIGEN_DEVICE_FUNC inline AlignedBox translated(const MatrixBase<Derived>& a_t) const
+  {
+    AlignedBox result(m_min, m_max);
+    result.translate(a_t);
+    return result;
   }
 
   /** \returns the squared distance between the point \a p and the box \c *this,
@@ -265,14 +310,63 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
     */
   template<typename Derived>
   EIGEN_DEVICE_FUNC inline NonInteger exteriorDistance(const MatrixBase<Derived>& p) const
-  { EIGEN_USING_STD_MATH(sqrt) return sqrt(NonInteger(squaredExteriorDistance(p))); }
+  { EIGEN_USING_STD(sqrt) return sqrt(NonInteger(squaredExteriorDistance(p))); }
 
   /** \returns the distance between the boxes \a b and \c *this,
     * and zero if the boxes intersect.
     * \sa squaredExteriorDistance(const AlignedBox&), exteriorDistance(const MatrixBase&)
     */
   EIGEN_DEVICE_FUNC inline NonInteger exteriorDistance(const AlignedBox& b) const
-  { EIGEN_USING_STD_MATH(sqrt) return sqrt(NonInteger(squaredExteriorDistance(b))); }
+  { EIGEN_USING_STD(sqrt) return sqrt(NonInteger(squaredExteriorDistance(b))); }
+
+  /**
+   * Specialization of transform for pure translation.
+   */
+  template<int Mode, int Options>
+  EIGEN_DEVICE_FUNC inline void transform(
+      const typename Transform<Scalar, AmbientDimAtCompileTime, Mode, Options>::TranslationType& translation)
+  {
+    this->translate(translation);
+  }
+
+  /**
+   * Transforms this box by \a transform and recomputes it to
+   * still be an axis-aligned box.
+   *
+   * \note This method is provided under BSD license (see the top of this file).
+   */
+  template<int Mode, int Options>
+  EIGEN_DEVICE_FUNC inline void transform(const Transform<Scalar, AmbientDimAtCompileTime, Mode, Options>& transform)
+  {
+    // Only Affine and Isometry transforms are currently supported.
+    EIGEN_STATIC_ASSERT(Mode == Affine || Mode == AffineCompact || Mode == Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS);
+
+    // Method adapted from FCL src/shape/geometric_shapes_utility.cpp#computeBV<AABB, Box>(...)
+    // https://github.com/flexible-collision-library/fcl/blob/fcl-0.4/src/shape/geometric_shapes_utility.cpp#L292
+    //
+    // Here's a nice explanation why it works: https://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
+
+    // two times rotated extent
+    const VectorType rotated_extent_2 = transform.linear().cwiseAbs() * sizes();
+    // two times new center
+    const VectorType rotated_center_2 = transform.linear() * (this->m_max + this->m_min) +
+        Scalar(2) * transform.translation();
+
+    this->m_max = (rotated_center_2 + rotated_extent_2) / Scalar(2);
+    this->m_min = (rotated_center_2 - rotated_extent_2) / Scalar(2);
+  }
+
+  /**
+   * \returns a copy of \c *this transformed by \a transform and recomputed to
+   * still be an axis-aligned box.
+   */
+  template<int Mode, int Options>
+  EIGEN_DEVICE_FUNC AlignedBox transformed(const Transform<Scalar, AmbientDimAtCompileTime, Mode, Options>& transform) const
+  {
+    AlignedBox result(m_min, m_max);
+    result.transform(transform);
+    return result;
+  }
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *

@@ -1,12 +1,14 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstring>
 
+#include "BLI_string.h"
+
 #include "MEM_guardedalloc.h"
 
-#include "NOD_geometry.h"
+#include "NOD_geometry.hh"
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
@@ -17,22 +19,26 @@
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "BLT_translation.h"
 
 #include "node_common.h"
-
-#include "node_geometry_register.hh"
 
 bNodeTreeType *ntreeType_Geometry;
 
 static void geometry_node_tree_get_from_context(
     const bContext *C, bNodeTreeType * /*treetype*/, bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  if (snode->geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+    *r_ntree = snode->nodetree;
+    return;
+  }
+
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);

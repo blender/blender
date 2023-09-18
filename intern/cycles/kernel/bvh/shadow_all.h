@@ -147,7 +147,7 @@ ccl_device_inline
             }
 
 #ifdef __SHADOW_LINKING__
-            if (intersection_skip_shadow_link(kg, ray, prim_object)) {
+            if (intersection_skip_shadow_link(kg, ray->self, prim_object)) {
               continue;
             }
 #endif

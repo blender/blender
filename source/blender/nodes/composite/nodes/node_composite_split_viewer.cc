@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,8 +9,8 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,6 +12,7 @@
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.h"
+#include "IMB_imbuf.h"
 
 #include "DNA_node_types.h"
 
@@ -121,10 +122,20 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   if (!node_declaration) {
     return input_descriptor;
   }
-  const SocketDeclarationPtr &socket_declaration = node_declaration->inputs[socket->index()];
+  const SocketDeclaration *socket_declaration = node_declaration->inputs[socket->index()];
   input_descriptor.domain_priority = socket_declaration->compositor_domain_priority();
-  input_descriptor.skip_realization = socket_declaration->compositor_skip_realization();
   input_descriptor.expects_single_value = socket_declaration->compositor_expects_single_value();
+
+  input_descriptor.realization_options.realize_on_operation_domain = bool(
+      socket_declaration->compositor_realization_options() &
+      CompositorInputRealizationOptions::RealizeOnOperationDomain);
+  input_descriptor.realization_options.realize_rotation = bool(
+      socket_declaration->compositor_realization_options() &
+      CompositorInputRealizationOptions::RealizeRotation);
+  input_descriptor.realization_options.realize_scale = bool(
+      socket_declaration->compositor_realization_options() &
+      CompositorInputRealizationOptions::RealizeScale);
+
   return input_descriptor;
 }
 
@@ -220,7 +231,7 @@ void compute_preview_from_result(Context &context, const DNode &node, Result &in
       for (const int64_t x : IndexRange(preview_size.x)) {
         const int index = (y * preview_size.x + x) * 4;
         IMB_colormanagement_processor_apply_v4(color_processor, preview_pixels + index);
-        rgba_float_to_uchar(preview->rect + index, preview_pixels + index);
+        rgba_float_to_uchar(preview->ibuf->byte_buffer.data + index, preview_pixels + index);
       }
     }
   });

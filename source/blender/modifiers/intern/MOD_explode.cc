@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,10 +10,12 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_edgehash.h"
 #include "BLI_kdtree.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.h"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.h"
 
@@ -29,18 +31,18 @@
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_legacy_convert.h"
+#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph_query.h"
@@ -50,7 +52,7 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   ExplodeModifierData *emd = (ExplodeModifierData *)md;
 
@@ -58,13 +60,13 @@ static void initData(ModifierData *md)
 
   MEMCPY_STRUCT_AFTER(emd, DNA_struct_default_get(ExplodeModifierData), modifier);
 }
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   ExplodeModifierData *emd = (ExplodeModifierData *)md;
 
   MEM_SAFE_FREE(emd->facepa);
 }
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
   const ExplodeModifierData *emd = (const ExplodeModifierData *)md;
@@ -75,11 +77,11 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
   temd->facepa = nullptr;
 }
-static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
+static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   ExplodeModifierData *emd = (ExplodeModifierData *)md;
 
@@ -101,9 +103,10 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   const bool invert_vgroup = (emd->flag & eExplodeFlag_INVERT_VGROUP) != 0;
 
   blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
-  mface = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
+  mface = (MFace *)CustomData_get_layer_for_write(
+      &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
   totvert = mesh->totvert;
-  totface = mesh->totface;
+  totface = mesh->totface_legacy;
   totpart = psmd->psys->totpart;
 
   rng = BLI_rng_new_srandom(psys->seed);
@@ -205,9 +208,9 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   BLI_rng_free(rng);
 }
 
-static int edgecut_get(EdgeHash *edgehash, uint v1, uint v2)
+static int edgecut_get(const blender::VectorSet<blender::OrderedEdge> &edgehash, uint v1, uint v2)
 {
-  return POINTER_AS_INT(BLI_edgehash_lookup(edgehash, v1, v2));
+  return edgehash.index_of({int(v1), int(v2)});
 }
 
 static const short add_faces[24] = {
@@ -217,9 +220,9 @@ static const short add_faces[24] = {
 static MFace *get_dface(Mesh *mesh, Mesh *split, int cur, int i, MFace *mf)
 {
   MFace *mfaces = static_cast<MFace *>(
-      CustomData_get_layer_for_write(&split->fdata, CD_MFACE, split->totface));
+      CustomData_get_layer_for_write(&split->fdata_legacy, CD_MFACE, split->totface_legacy));
   MFace *df = &mfaces[cur];
-  CustomData_copy_data(&mesh->fdata, &split->fdata, i, cur, 1);
+  CustomData_copy_data(&mesh->fdata_legacy, &split->fdata_legacy, i, cur, 1);
   *df = *mf;
   return df;
 }
@@ -246,7 +249,7 @@ static void remap_faces_3_6_9_12(Mesh *mesh,
                                  int *facepa,
                                  const int *vertpa,
                                  int i,
-                                 EdgeHash *eh,
+                                 const blender::VectorSet<blender::OrderedEdge> &eh,
                                  int cur,
                                  int v1,
                                  int v2,
@@ -286,13 +289,13 @@ static void remap_uvs_3_6_9_12(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
+    mf = static_cast<MTFace *>(CustomData_get_layer_n_for_write(
+        &split->fdata_legacy, CD_MTFACE, l, split->totface_legacy));
     df1 = mf + cur;
     df2 = df1 + 1;
     df3 = df1 + 2;
     mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
+        CustomData_get_layer_n_for_write(&mesh->fdata_legacy, CD_MTFACE, l, mesh->totface_legacy));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -316,7 +319,7 @@ static void remap_faces_5_10(Mesh *mesh,
                              int *facepa,
                              const int *vertpa,
                              int i,
-                             EdgeHash *eh,
+                             const blender::VectorSet<blender::OrderedEdge> &eh,
                              int cur,
                              int v1,
                              int v2,
@@ -348,12 +351,12 @@ static void remap_uvs_5_10(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
+    mf = static_cast<MTFace *>(CustomData_get_layer_n_for_write(
+        &split->fdata_legacy, CD_MTFACE, l, split->totface_legacy));
     df1 = mf + cur;
     df2 = df1 + 1;
     mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
+        CustomData_get_layer_n_for_write(&mesh->fdata_legacy, CD_MTFACE, l, mesh->totface_legacy));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -374,7 +377,7 @@ static void remap_faces_15(Mesh *mesh,
                            int *facepa,
                            const int *vertpa,
                            int i,
-                           EdgeHash *eh,
+                           const blender::VectorSet<blender::OrderedEdge> &eh,
                            int cur,
                            int v1,
                            int v2,
@@ -422,14 +425,14 @@ static void remap_uvs_15(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
+    mf = static_cast<MTFace *>(CustomData_get_layer_n_for_write(
+        &split->fdata_legacy, CD_MTFACE, l, split->totface_legacy));
     df1 = mf + cur;
     df2 = df1 + 1;
     df3 = df1 + 2;
     df4 = df1 + 3;
     mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
+        CustomData_get_layer_n_for_write(&mesh->fdata_legacy, CD_MTFACE, l, mesh->totface_legacy));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -460,7 +463,7 @@ static void remap_faces_7_11_13_14(Mesh *mesh,
                                    int *facepa,
                                    const int *vertpa,
                                    int i,
-                                   EdgeHash *eh,
+                                   const blender::VectorSet<blender::OrderedEdge> &eh,
                                    int cur,
                                    int v1,
                                    int v2,
@@ -500,13 +503,13 @@ static void remap_uvs_7_11_13_14(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
+    mf = static_cast<MTFace *>(CustomData_get_layer_n_for_write(
+        &split->fdata_legacy, CD_MTFACE, l, split->totface_legacy));
     df1 = mf + cur;
     df2 = df1 + 1;
     df3 = df1 + 2;
     mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
+        CustomData_get_layer_n_for_write(&mesh->fdata_legacy, CD_MTFACE, l, mesh->totface_legacy));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -531,7 +534,7 @@ static void remap_faces_19_21_22(Mesh *mesh,
                                  int *facepa,
                                  const int *vertpa,
                                  int i,
-                                 EdgeHash *eh,
+                                 const blender::VectorSet<blender::OrderedEdge> &eh,
                                  int cur,
                                  int v1,
                                  int v2,
@@ -562,12 +565,12 @@ static void remap_uvs_19_21_22(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
+    mf = static_cast<MTFace *>(CustomData_get_layer_n_for_write(
+        &split->fdata_legacy, CD_MTFACE, l, split->totface_legacy));
     df1 = mf + cur;
     df2 = df1 + 1;
     mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
+        CustomData_get_layer_n_for_write(&mesh->fdata_legacy, CD_MTFACE, l, mesh->totface_legacy));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -587,7 +590,7 @@ static void remap_faces_23(Mesh *mesh,
                            int *facepa,
                            const int *vertpa,
                            int i,
-                           EdgeHash *eh,
+                           const blender::VectorSet<blender::OrderedEdge> &eh,
                            int cur,
                            int v1,
                            int v2,
@@ -626,12 +629,12 @@ static void remap_uvs_23(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
+    mf = static_cast<MTFace *>(CustomData_get_layer_n_for_write(
+        &split->fdata_legacy, CD_MTFACE, l, split->totface_legacy));
     df1 = mf + cur;
     df2 = df1 + 1;
     mf = static_cast<MTFace *>(
-        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
+        CustomData_get_layer_n_for_write(&mesh->fdata_legacy, CD_MTFACE, l, mesh->totface_legacy));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -654,23 +657,20 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   Mesh *split_m;
   MFace *mf = nullptr, *df1 = nullptr;
   MFace *mface = static_cast<MFace *>(
-      CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface));
+      CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   float *dupve;
-  EdgeHash *edgehash;
-  EdgeHashIterator *ehi;
   int totvert = mesh->totvert;
-  int totface = mesh->totface;
+  int totface = mesh->totface_legacy;
 
   int *facesplit = static_cast<int *>(MEM_calloc_arrayN(totface, sizeof(int), __func__));
   int *vertpa = static_cast<int *>(MEM_calloc_arrayN(totvert, sizeof(int), __func__));
   int *facepa = emd->facepa;
-  int *fs, totesplit = 0, totfsplit = 0, curdupface = 0;
-  int i, v1, v2, v3, v4, esplit, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
-      uv[4] = {0, 0, 0, 0};                           /* To quite gcc barking... */
+  int *fs, totfsplit = 0, curdupface = 0;
+  int i, v1, v2, v3, v4, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
+      uv[4] = {0, 0, 0, 0};                   /* To quite gcc barking... */
   int layers_num;
-  int ed_v1, ed_v2;
 
-  edgehash = BLI_edgehash_new(__func__);
+  blender::VectorSet<blender::OrderedEdge> edgehash;
 
   /* recreate vertpa from facepa calculation */
   for (i = 0, mf = mface; i < totface; i++, mf++) {
@@ -689,12 +689,12 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     v3 = vertpa[mf->v3];
 
     if (v1 != v2) {
-      BLI_edgehash_reinsert(edgehash, mf->v1, mf->v2, nullptr);
+      edgehash.add({mf->v1, mf->v2});
       (*fs) |= 1;
     }
 
     if (v2 != v3) {
-      BLI_edgehash_reinsert(edgehash, mf->v2, mf->v3, nullptr);
+      edgehash.add({mf->v2, mf->v3});
       (*fs) |= 2;
     }
 
@@ -702,38 +702,31 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
       v4 = vertpa[mf->v4];
 
       if (v3 != v4) {
-        BLI_edgehash_reinsert(edgehash, mf->v3, mf->v4, nullptr);
+        edgehash.add({mf->v3, mf->v4});
         (*fs) |= 4;
       }
 
       if (v1 != v4) {
-        BLI_edgehash_reinsert(edgehash, mf->v1, mf->v4, nullptr);
+        edgehash.add({mf->v1, mf->v4});
         (*fs) |= 8;
       }
 
       /* mark center vertex as a fake edge split */
       if (*fs == 15) {
-        BLI_edgehash_reinsert(edgehash, mf->v1, mf->v3, nullptr);
+        edgehash.add({mf->v1, mf->v3});
       }
     }
     else {
       (*fs) |= 16; /* mark face as tri */
 
       if (v1 != v3) {
-        BLI_edgehash_reinsert(edgehash, mf->v1, mf->v3, nullptr);
+        edgehash.add({mf->v1, mf->v3});
         (*fs) |= 4;
       }
     }
   }
 
   /* count splits & create indexes for new verts */
-  ehi = BLI_edgehashIterator_new(edgehash);
-  totesplit = totvert;
-  for (; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-    BLI_edgehashIterator_setValue(ehi, POINTER_FROM_INT(totesplit));
-    totesplit++;
-  }
-  BLI_edgehashIterator_free(ehi);
 
   /* count new faces due to splitting */
   for (i = 0, fs = facesplit; i < totface; i++, fs++) {
@@ -741,15 +734,15 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   }
 
   split_m = BKE_mesh_new_nomain_from_template_ex(
-      mesh, totesplit, 0, totface + totfsplit, 0, 0, CD_MASK_EVERYTHING);
+      mesh, totvert + edgehash.size(), 0, totface + totfsplit, 0, 0, CD_MASK_EVERYTHING);
 
-  layers_num = CustomData_number_of_layers(&split_m->fdata, CD_MTFACE);
+  layers_num = CustomData_number_of_layers(&split_m->fdata_legacy, CD_MTFACE);
 
-  float(*split_m_positions)[3] = BKE_mesh_vert_positions_for_write(split_m);
+  blender::MutableSpan<blender::float3> split_m_positions = split_m->vert_positions_for_write();
 
   /* copy new faces & verts (is it really this painful with custom data??) */
   for (i = 0; i < totvert; i++) {
-    CustomData_copy_data(&mesh->vdata, &split_m->vdata, i, i, 1);
+    CustomData_copy_data(&mesh->vert_data, &split_m->vert_data, i, i, 1);
   }
 
   /* override original facepa (original pointer is saved in caller function) */
@@ -764,19 +757,17 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   emd->facepa = facepa;
 
   /* create new verts */
-  ehi = BLI_edgehashIterator_new(edgehash);
-  for (; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-    BLI_edgehashIterator_getKey(ehi, &ed_v1, &ed_v2);
-    esplit = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
+  for (const int esplit : edgehash.index_range()) {
+    const int ed_v1 = edgehash[esplit].v_low;
+    const int ed_v2 = edgehash[esplit].v_high;
 
-    CustomData_copy_data(&split_m->vdata, &split_m->vdata, ed_v2, esplit, 1);
+    CustomData_copy_data(&split_m->vert_data, &split_m->vert_data, ed_v2, esplit, 1);
 
     dupve = split_m_positions[esplit];
     copy_v3_v3(dupve, split_m_positions[ed_v2]);
 
     mid_v3_v3v3(dupve, dupve, split_m_positions[ed_v1]);
   }
-  BLI_edgehashIterator_free(ehi);
 
   /* create new faces */
   curdupface = 0;  //=totface;
@@ -887,13 +878,13 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   }
 
   MFace *split_mface = static_cast<MFace *>(
-      CustomData_get_layer_for_write(&split_m->fdata, CD_MFACE, split_m->totface));
+      CustomData_get_layer_for_write(&split_m->fdata_legacy, CD_MFACE, split_m->totface_legacy));
   for (i = 0; i < curdupface; i++) {
     mf = &split_mface[i];
-    BKE_mesh_mface_index_validate(mf, &split_m->fdata, i, ((mf->flag & ME_FACE_SEL) ? 4 : 3));
+    BKE_mesh_mface_index_validate(
+        mf, &split_m->fdata_legacy, i, ((mf->flag & ME_FACE_SEL) ? 4 : 3));
   }
 
-  BLI_edgehash_free(edgehash, nullptr);
   MEM_freeN(facesplit);
   MEM_freeN(vertpa);
 
@@ -915,21 +906,19 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   ParticleSimulationData sim = {nullptr};
   ParticleData *pa = nullptr, *pars = psmd->psys->particles;
   ParticleKey state, birth;
-  EdgeHash *vertpahash;
-  EdgeHashIterator *ehi;
   float *vertco = nullptr, imat[4][4];
   float rot[4];
   float ctime;
   // float timestep;
   const int *facepa = emd->facepa;
-  int totdup = 0, totvert = 0, totface = 0, totpart = 0, delface = 0;
-  int i, v, u;
-  int ed_v1, ed_v2, mindex = 0;
+  int totvert = 0, totface = 0, totpart = 0, delface = 0;
+  int i, u;
+  uint mindex = 0;
 
-  totface = mesh->totface;
+  totface = mesh->totface_legacy;
   totvert = mesh->totvert;
   mface = static_cast<MFace *>(
-      CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface));
+      CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   totpart = psmd->psys->totpart;
 
   sim.depsgraph = ctx->depsgraph;
@@ -943,7 +932,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   ctime = BKE_scene_ctime_get(scene);
 
   /* hash table for vertex <-> particle relations */
-  vertpahash = BLI_edgehash_new(__func__);
+  blender::VectorSet<blender::OrderedEdge> vertpahash;
 
   for (i = 0; i < totface; i++) {
     if (facepa[i] != totpart) {
@@ -961,8 +950,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       pa = nullptr;
     }
 
-    /* do mindex + totvert to ensure the vertex index to be the first
-     * with BLI_edgehashIterator_getKey */
+    /* do mindex + totvert to ensure the vertex index to be the first. */
     if (pa == nullptr || ctime < pa->time) {
       mindex = totvert + totpart;
     }
@@ -973,28 +961,20 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
     mf = &mface[i];
 
     /* set face vertices to exist in particle group */
-    BLI_edgehash_reinsert(vertpahash, mf->v1, mindex, nullptr);
-    BLI_edgehash_reinsert(vertpahash, mf->v2, mindex, nullptr);
-    BLI_edgehash_reinsert(vertpahash, mf->v3, mindex, nullptr);
+    vertpahash.add({mf->v1, mindex});
+    vertpahash.add({mf->v2, mindex});
+    vertpahash.add({mf->v3, mindex});
     if (mf->v4) {
-      BLI_edgehash_reinsert(vertpahash, mf->v4, mindex, nullptr);
+      vertpahash.add({mf->v4, mindex});
     }
   }
 
-  /* make new vertex indexes & count total vertices after duplication */
-  ehi = BLI_edgehashIterator_new(vertpahash);
-  for (; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-    BLI_edgehashIterator_setValue(ehi, POINTER_FROM_INT(totdup));
-    totdup++;
-  }
-  BLI_edgehashIterator_free(ehi);
-
   /* the final duplicated vertices */
   explode = BKE_mesh_new_nomain_from_template_ex(
-      mesh, totdup, 0, totface - delface, 0, 0, CD_MASK_EVERYTHING);
+      mesh, vertpahash.size(), 0, totface - delface, 0, 0, CD_MASK_EVERYTHING);
 
   MTFace *mtface = static_cast<MTFace *>(CustomData_get_layer_named_for_write(
-      &explode->fdata, CD_MTFACE, emd->uvname, explode->totface));
+      &explode->fdata_legacy, CD_MTFACE, emd->uvname, explode->totface_legacy));
 
   /* getting back to object space */
   invert_m4_m4(imat, ctx->object->object_to_world);
@@ -1002,20 +982,17 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   psys_sim_data_init(&sim);
 
   const blender::Span<blender::float3> positions = mesh->vert_positions();
-  float(*explode_positions)[3] = BKE_mesh_vert_positions_for_write(explode);
+  blender::MutableSpan<blender::float3> explode_positions = explode->vert_positions_for_write();
 
-  /* duplicate & displace vertices */
-  ehi = BLI_edgehashIterator_new(vertpahash);
-  for (; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-
+  for (const int v : vertpahash.index_range()) {
     /* get particle + vertex from hash */
-    BLI_edgehashIterator_getKey(ehi, &ed_v1, &ed_v2);
+    int ed_v1 = vertpahash[v].v_low;
+    int ed_v2 = vertpahash[v].v_high;
     ed_v2 -= totvert;
-    v = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
 
     copy_v3_v3(explode_positions[v], positions[ed_v1]);
 
-    CustomData_copy_data(&mesh->vdata, &explode->vdata, ed_v1, v, 1);
+    CustomData_copy_data(&mesh->vert_data, &explode->vert_data, ed_v1, v, 1);
 
     copy_v3_v3(explode_positions[v], positions[ed_v1]);
 
@@ -1026,7 +1003,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       psys_get_birth_coords(&sim, pa, &birth, 0, 0);
 
       state.time = ctime;
-      psys_get_particle_state(&sim, ed_v2, &state, 1);
+      psys_get_particle_state(&sim, ed_v2, &state, true);
 
       vertco = explode_positions[v];
       mul_m4_v3(ctx->object->object_to_world, vertco);
@@ -1049,11 +1026,10 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       pa = nullptr;
     }
   }
-  BLI_edgehashIterator_free(ehi);
 
   /* Map new vertices to faces. */
   MFace *explode_mface = static_cast<MFace *>(
-      CustomData_get_layer_for_write(&explode->fdata, CD_MFACE, explode->totface));
+      CustomData_get_layer_for_write(&explode->fdata_legacy, CD_MFACE, explode->totface_legacy));
   for (i = 0, u = 0; i < totface; i++) {
     MFace source;
     int orig_v4;
@@ -1095,7 +1071,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       source.v4 = edgecut_get(vertpahash, source.v4, mindex);
     }
 
-    CustomData_copy_data(&mesh->fdata, &explode->fdata, i, u, 1);
+    CustomData_copy_data(&mesh->fdata_legacy, &explode->fdata_legacy, i, u, 1);
 
     *mf = source;
 
@@ -1111,12 +1087,9 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       mtf->uv[0][1] = mtf->uv[1][1] = mtf->uv[2][1] = mtf->uv[3][1] = 0.5f;
     }
 
-    BKE_mesh_mface_index_validate(mf, &explode->fdata, u, (orig_v4 ? 4 : 3));
+    BKE_mesh_mface_index_validate(mf, &explode->fdata_legacy, u, (orig_v4 ? 4 : 3));
     u++;
   }
-
-  /* cleanup */
-  BLI_edgehash_free(vertpahash, nullptr);
 
   /* finalization */
   BKE_mesh_calc_edges_tessface(explode);
@@ -1140,7 +1113,7 @@ static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, Modif
   }
   return psmd;
 }
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   ExplodeModifierData *emd = (ExplodeModifierData *)md;
   ParticleSystemModifierData *psmd = findPrecedingParticlesystem(ctx->object, md);
@@ -1163,7 +1136,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* 1. find faces to be exploded if needed */
     if (emd->facepa == nullptr || psmd->flag & eParticleSystemFlag_Pars ||
         emd->flag & eExplodeFlag_CalcFaces ||
-        MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface)
+        MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface_legacy)
     {
       if (psmd->flag & eParticleSystemFlag_Pars) {
         psmd->flag &= ~eParticleSystemFlag_Pars;
@@ -1195,7 +1168,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *col;
   uiLayout *layout = panel->layout;
-  int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -1215,26 +1188,26 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "use_edge_cut", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "use_size", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_edge_cut", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_size", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, has_vertex_group);
-  uiItemR(row, ptr, "protect", 0, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "protect", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiItemO(layout, IFACE_("Refresh"), ICON_NONE, "OBJECT_OT_explode_refresh");
 
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_Explode, panel_draw);
 }
 
-static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
+static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
   ExplodeModifierData *psmd = (ExplodeModifierData *)md;
 
@@ -1242,33 +1215,34 @@ static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Explode = {
+    /*idname*/ "Explode",
     /*name*/ N_("Explode"),
-    /*structName*/ "ExplodeModifierData",
-    /*structSize*/ sizeof(ExplodeModifierData),
+    /*struct_name*/ "ExplodeModifierData",
+    /*struct_size*/ sizeof(ExplodeModifierData),
     /*srna*/ &RNA_ExplodeModifier,
     /*type*/ eModifierTypeType_Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh,
     /*icon*/ ICON_MOD_EXPLODE,
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ freeData,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ blendRead,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ depends_on_time,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ blend_read,
 };

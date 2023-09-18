@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,7 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -27,22 +27,21 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_workspace.h"
 
-#include "ED_node.h"  /* own include */
 #include "ED_node.hh" /* own include */
-#include "ED_screen.h"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 #include "ED_viewer_path.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "DEG_depsgraph.h"
 
@@ -149,7 +148,7 @@ static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse
 
 static bool node_under_mouse_tweak(const SpaceNode &snode, const float2 &mouse)
 {
-  const bNodeTree ntree = *snode.edittree;
+  const bNodeTree &ntree = *snode.edittree;
   LISTBASE_FOREACH_BACKWARD (const bNode *, node, &ntree.nodes) {
     switch (node->type) {
       case NODE_REROUTE: {
@@ -318,6 +317,17 @@ void node_select_paired(bNodeTree &node_tree)
 {
   for (bNode *input_node : node_tree.nodes_by_type("GeometryNodeSimulationInput")) {
     const auto *storage = static_cast<const NodeGeometrySimulationInput *>(input_node->storage);
+    if (bNode *output_node = node_tree.node_by_id(storage->output_node_id)) {
+      if (input_node->flag & NODE_SELECT) {
+        output_node->flag |= NODE_SELECT;
+      }
+      if (output_node->flag & NODE_SELECT) {
+        input_node->flag |= NODE_SELECT;
+      }
+    }
+  }
+  for (bNode *input_node : node_tree.nodes_by_type("GeometryNodeRepeatInput")) {
+    const auto *storage = static_cast<const NodeGeometryRepeatInput *>(input_node->storage);
     if (bNode *output_node = node_tree.node_by_id(storage->output_node_id)) {
       if (input_node->flag & NODE_SELECT) {
         output_node->flag |= NODE_SELECT;
@@ -1346,28 +1356,23 @@ static void node_find_update_fn(const bContext *C,
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  StringSearch *search = BLI_string_search_new();
+  string_search::StringSearch<bNode> search;
 
   for (bNode *node : snode->edittree->all_nodes()) {
     char name[256];
     node_find_create_label(node, name, ARRAY_SIZE(name));
-    BLI_string_search_add(search, name, node, 0);
+    search.add(name, node);
   }
 
-  bNode **filtered_nodes;
-  int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_nodes);
+  const Vector<bNode *> filtered_nodes = search.query(str);
 
-  for (int i = 0; i < filtered_amount; i++) {
-    bNode *node = filtered_nodes[i];
+  for (bNode *node : filtered_nodes) {
     char name[256];
     node_find_create_label(node, name, ARRAY_SIZE(name));
     if (!UI_search_item_add(items, name, node, ICON_NONE, 0, 0)) {
       break;
     }
   }
-
-  MEM_freeN(filtered_nodes);
-  BLI_string_search_free(search);
 }
 
 static void node_find_exec_fn(bContext *C, void * /*arg1*/, void *arg2)

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2012-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -60,11 +60,11 @@ namespace Freestyle {
     (void)0
 
 #  define NEST(TYPE, f, F) \
-    TYPE f(unsigned short *xsubi) \
+    TYPE f(ushort *xsubi) \
     { \
       int i; \
       TYPE v; \
-      unsigned temp[3]; \
+      uint temp[3]; \
       for (i = 0; i < 3; i++) { \
         temp[i] = x[i]; \
         x[i] = LOW(xsubi[i]); \

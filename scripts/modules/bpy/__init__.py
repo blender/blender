@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -57,7 +57,9 @@ def main():
 
     # Initializes Python classes.
     # (good place to run a profiler or trace).
-    utils.load_scripts()
+    # Postpone loading `extensions` scripts (add-ons & app-templates),
+    # until after the key-maps have been initialized.
+    utils.load_scripts(extensions=False)
 
 
 main()

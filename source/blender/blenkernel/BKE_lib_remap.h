@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -21,6 +21,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,8 +89,8 @@ enum {
   ID_REMAP_FORCE_USER_REFCOUNT = 1 << 17,
   /**
    * Do NOT handle user count for IDs (used in some cases when dealing with IDs from different
-   * BMains, if usercount will be recomputed anyway afterwards, like e.g. in memfile reading during
-   * undo step decoding).
+   * BMains, if user-count will be recomputed anyway afterwards, like e.g.
+   * in memfile reading during undo step decoding).
    */
   ID_REMAP_SKIP_USER_REFCOUNT = 1 << 18,
   /**
@@ -128,12 +129,12 @@ void BKE_libblock_remap_multiple(struct Main *bmain,
                                  const int remap_flags);
 
 /**
- * Bare raw remapping of IDs, with no other processing than actually updating the ID pointers. No
- * usercount, direct vs indirect linked status update, depsgraph tagging, etc.
+ * Bare raw remapping of IDs, with no other processing than actually updating the ID pointers.
+ * No user-count, direct vs indirect linked status update, depsgraph tagging, etc.
  *
  * This is way more efficient than regular remapping from #BKE_libblock_remap_multiple & co, but it
  * implies that calling code handles all the other aspects described above. This is typically the
- * case e.g. in readfile process.
+ * case e.g. in read-file process.
  *
  * WARNING: This call will likely leave the given BMain in invalid state in many aspects. */
 void BKE_libblock_remap_multiple_raw(struct Main *bmain,
@@ -226,7 +227,7 @@ typedef enum IDRemapperApplyOptions {
    * NOTE: Currently unused by main remapping code, since user-count is handled by
    * `foreach_libblock_remap_callback_apply` there, depending on whether the remapped pointer does
    * use it or not. Need for rare cases in UI handling though (see e.g. `image_id_remap` in
-   * `space_image.c`).
+   * `space_image.cc`).
    */
   ID_REMAP_APPLY_UPDATE_REFCOUNT = (1 << 0),
 
@@ -246,6 +247,7 @@ typedef enum IDRemapperApplyOptions {
 
   ID_REMAP_APPLY_DEFAULT = 0,
 } IDRemapperApplyOptions;
+ENUM_OPERATORS(IDRemapperApplyOptions, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF)
 
 typedef void (*IDRemapperIterFunction)(struct ID *old_id, struct ID *new_id, void *user_data);
 

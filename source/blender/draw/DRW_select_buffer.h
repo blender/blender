@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -70,7 +70,7 @@ typedef struct SELECTID_Context {
   bool is_dirty;
 } SELECTID_Context;
 
-/* draw_select_buffer.c */
+/* `draw_select_buffer.cc` */
 
 bool DRW_select_buffer_elem_get(uint sel_id, uint *r_elem, uint *r_base_index, char *r_elem_type);
 uint DRW_select_buffer_context_offset_for_object_elem(struct Depsgraph *depsgraph,
@@ -107,7 +107,7 @@ uint *DRW_select_buffer_bitmap_from_circle(struct Depsgraph *depsgraph,
                                            uint *r_bitmap_len);
 /**
  * \param poly: The polygon coordinates.
- * \param poly_len: Length of the polygon.
+ * \param face_len: Length of the polygon.
  * \param rect: Polygon boundaries.
  * \returns a #BLI_bitmap.
  */
@@ -115,7 +115,7 @@ uint *DRW_select_buffer_bitmap_from_poly(struct Depsgraph *depsgraph,
                                          struct ARegion *region,
                                          struct View3D *v3d,
                                          const int poly[][2],
-                                         int poly_len,
+                                         int face_len,
                                          const struct rcti *rect,
                                          uint *r_bitmap_len);
 /**

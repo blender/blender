@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2011-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,10 +15,10 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
     bl_label = "Extrude Individual and Move"
     bl_idname = "view3d.edit_mesh_extrude_individual_move"
 
-    allow_navigation: BoolProperty(
-        name="allow_navigation",
+    alt_navigation: BoolProperty(
+        name="alt_navigation",
         default=False,
-        description="Allow navigation",
+        description="Transform Navigation with Alt",
     )
 
     @classmethod
@@ -40,27 +40,31 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
                 TRANSFORM_OT_translate={
                     "orient_type": 'NORMAL',
                     "constraint_axis": (False, False, True),
-                    "allow_navigation": self.allow_navigation,
+                    "release_confirm": False,
+                    "alt_navigation": self.alt_navigation,
                 },
             )
         elif select_mode[2] and totface > 1:
             bpy.ops.mesh.extrude_faces_move(
                 'INVOKE_REGION_WIN',
                 TRANSFORM_OT_shrink_fatten={
-                    "allow_navigation": self.allow_navigation,
+                    "release_confirm": False,
+                    "alt_navigation": self.alt_navigation,
                 })
         elif select_mode[1] and totedge >= 1:
             bpy.ops.mesh.extrude_edges_move(
                 'INVOKE_REGION_WIN',
                 TRANSFORM_OT_translate={
-                    "allow_navigation": self.allow_navigation,
+                    "release_confirm": False,
+                    "alt_navigation": self.alt_navigation,
                 },
             )
         else:
             bpy.ops.mesh.extrude_vertices_move(
                 'INVOKE_REGION_WIN',
                 TRANSFORM_OT_translate={
-                    "allow_navigation": self.allow_navigation,
+                    "release_confirm": False,
+                    "alt_navigation": self.alt_navigation,
                 },
             )
 
@@ -83,10 +87,10 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
         description="Dissolves adjacent faces and intersects new geometry",
     )
 
-    allow_navigation: BoolProperty(
-        name="allow_navigation",
+    alt_navigation: BoolProperty(
+        name="alt_navigation",
         default=False,
-        description="Allow navigation",
+        description="Transform Navigation with Alt",
     )
 
     @classmethod
@@ -95,7 +99,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
         return (obj is not None and obj.mode == 'EDIT')
 
     @staticmethod
-    def extrude_region(context, use_vert_normals, dissolve_and_intersect, allow_navigation):
+    def extrude_region(context, use_vert_normals, dissolve_and_intersect, alt_navigation):
         mesh = context.object.data
 
         totface = mesh.total_face_sel
@@ -107,7 +111,8 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                 bpy.ops.mesh.extrude_region_shrink_fatten(
                     'INVOKE_REGION_WIN',
                     TRANSFORM_OT_shrink_fatten={
-                        "allow_navigation": allow_navigation,
+                        "release_confirm": False,
+                        "alt_navigation": alt_navigation,
                     },
                 )
             elif dissolve_and_intersect:
@@ -119,7 +124,8 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                     TRANSFORM_OT_translate={
                         "orient_type": 'NORMAL',
                         "constraint_axis": (False, False, True),
-                        "allow_navigation": allow_navigation,
+                        "release_confirm": False,
+                        "alt_navigation": alt_navigation,
                     },
                 )
             else:
@@ -128,7 +134,8 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                     TRANSFORM_OT_translate={
                         "orient_type": 'NORMAL',
                         "constraint_axis": (False, False, True),
-                        "allow_navigation": allow_navigation,
+                        "release_confirm": False,
+                        "alt_navigation": alt_navigation,
                     },
                 )
 
@@ -142,13 +149,15 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                     # Not a popular choice, too restrictive for retopo.
                     # "constraint_axis": (True, True, False)})
                     "constraint_axis": (False, False, False),
-                    "allow_navigation": allow_navigation,
+                    "release_confirm": False,
+                    "alt_navigation": alt_navigation,
                 })
         else:
             bpy.ops.mesh.extrude_region_move(
                 'INVOKE_REGION_WIN',
                 TRANSFORM_OT_translate={
-                    "allow_navigation": allow_navigation,
+                    "release_confirm": False,
+                    "alt_navigation": alt_navigation,
                 },
             )
 
@@ -158,7 +167,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
 
     def execute(self, context):
         return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(
-            context, False, self.dissolve_and_intersect, self.allow_navigation)
+            context, False, self.dissolve_and_intersect, self.alt_navigation)
 
     def invoke(self, context, _event):
         return self.execute(context)
@@ -169,10 +178,10 @@ class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
     bl_label = "Extrude and Move on Individual Normals"
     bl_idname = "view3d.edit_mesh_extrude_move_shrink_fatten"
 
-    allow_navigation: BoolProperty(
-        name="allow_navigation",
+    alt_navigation: BoolProperty(
+        name="alt_navigation",
         default=False,
-        description="Allow navigation",
+        description="Transform Navigation with Alt",
     )
 
     @classmethod
@@ -181,7 +190,7 @@ class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
         return (obj is not None and obj.mode == 'EDIT')
 
     def execute(self, context):
-        return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, True, False, self.allow_navigation)
+        return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, True, False, self.alt_navigation)
 
     def invoke(self, context, _event):
         return self.execute(context)
@@ -192,10 +201,10 @@ class VIEW3D_OT_edit_mesh_extrude_manifold_normal(Operator):
     bl_label = "Extrude Manifold Along Normals"
     bl_idname = "view3d.edit_mesh_extrude_manifold_normal"
 
-    allow_navigation: BoolProperty(
-        name="allow_navigation",
+    alt_navigation: BoolProperty(
+        name="alt_navigation",
         default=False,
-        description="Allow navigation",
+        description="Transform Navigation with Alt",
     )
 
     @classmethod
@@ -212,7 +221,8 @@ class VIEW3D_OT_edit_mesh_extrude_manifold_normal(Operator):
             TRANSFORM_OT_translate={
                 "orient_type": 'NORMAL',
                 "constraint_axis": (False, False, True),
-                "allow_navigation": self.allow_navigation,
+                "release_confirm": False,
+                "alt_navigation": self.alt_navigation,
             },
         )
         return {'FINISHED'}

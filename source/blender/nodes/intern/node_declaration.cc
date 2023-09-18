@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,12 @@
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
+#include "BLI_stack.hh"
+#include "BLI_utildefines.h"
+
 #include "BKE_geometry_fields.hh"
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 namespace blender::nodes {
 
@@ -22,6 +26,7 @@ void build_node_declaration_dynamic(const bNodeTree &node_tree,
                                     const bNode &node,
                                     NodeDeclaration &r_declaration)
 {
+  r_declaration.items.clear();
   r_declaration.inputs.clear();
   r_declaration.outputs.clear();
   node.typeinfo->declare_dynamic(node_tree, node, r_declaration);
@@ -29,53 +34,70 @@ void build_node_declaration_dynamic(const bNodeTree &node_tree,
 
 void NodeDeclarationBuilder::finalize()
 {
+  /* Declarations generating both input and output should align these sockets. */
+  for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : socket_builders_) {
+    if (socket_builder->input_declaration() && socket_builder->output_declaration()) {
+      socket_builder->input_declaration()->inline_with_next = true;
+    }
+  }
+
   if (is_function_node_) {
-    for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : input_builders_) {
-      SocketDeclaration &socket_decl = *socket_builder->declaration();
-      if (socket_decl.input_field_type != InputSocketFieldType::Implicit) {
-        socket_decl.input_field_type = InputSocketFieldType::IsSupported;
+    for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : socket_builders_) {
+      if (SocketDeclaration *socket_decl = socket_builder->input_declaration()) {
+        if (socket_decl->input_field_type != InputSocketFieldType::Implicit) {
+          socket_decl->input_field_type = InputSocketFieldType::IsSupported;
+        }
       }
     }
-    for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : output_builders_) {
-      SocketDeclaration &socket_decl = *socket_builder->declaration();
-      socket_decl.output_field_dependency = OutputFieldDependency::ForDependentField();
-      socket_builder->reference_pass_all_ = true;
+    for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : socket_builders_) {
+      if (SocketDeclaration *socket_decl = socket_builder->output_declaration()) {
+        socket_decl->output_field_dependency = OutputFieldDependency::ForDependentField();
+        socket_builder->reference_pass_all_ = true;
+      }
     }
   }
 
   Vector<int> geometry_inputs;
   for (const int i : declaration_.inputs.index_range()) {
-    if (dynamic_cast<decl::Geometry *>(declaration_.inputs[i].get())) {
+    if (dynamic_cast<decl::Geometry *>(declaration_.inputs[i])) {
       geometry_inputs.append(i);
     }
   }
   Vector<int> geometry_outputs;
   for (const int i : declaration_.outputs.index_range()) {
-    if (dynamic_cast<decl::Geometry *>(declaration_.outputs[i].get())) {
+    if (dynamic_cast<decl::Geometry *>(declaration_.outputs[i])) {
       geometry_outputs.append(i);
     }
   }
 
-  for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : input_builders_) {
+  for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : socket_builders_) {
+    if (!socket_builder->input_declaration()) {
+      continue;
+    }
+
     if (socket_builder->field_on_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int field_input = socket_builder->index_;
+      const int field_input = socket_builder->index_in_;
       for (const int geometry_input : geometry_inputs) {
         relations.eval_relations.append({field_input, geometry_input});
       }
     }
   }
-  for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : output_builders_) {
+  for (std::unique_ptr<BaseSocketDeclarationBuilder> &socket_builder : socket_builders_) {
+    if (!socket_builder->output_declaration()) {
+      continue;
+    }
+
     if (socket_builder->field_on_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int field_output = socket_builder->index_;
+      const int field_output = socket_builder->index_out_;
       for (const int geometry_output : geometry_outputs) {
         relations.available_relations.append({field_output, geometry_output});
       }
     }
     if (socket_builder->reference_pass_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int field_output = socket_builder->index_;
+      const int field_output = socket_builder->index_out_;
       for (const int input_i : declaration_.inputs.index_range()) {
         SocketDeclaration &input_socket_decl = *declaration_.inputs[input_i];
         if (input_socket_decl.input_field_type != InputSocketFieldType::None) {
@@ -85,11 +107,27 @@ void NodeDeclarationBuilder::finalize()
     }
     if (socket_builder->propagate_from_all_) {
       aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int geometry_output = socket_builder->index_;
+      const int geometry_output = socket_builder->index_out_;
       for (const int geometry_input : geometry_inputs) {
         relations.propagate_relations.append({geometry_input, geometry_output});
       }
     }
+  }
+
+  BLI_assert(declaration_.is_valid());
+}
+
+void NodeDeclarationBuilder::set_active_panel_builder(const PanelDeclarationBuilder *panel_builder)
+{
+  if (panel_builders_.is_empty()) {
+    BLI_assert(panel_builder == nullptr);
+    return;
+  }
+
+  BLI_assert(!panel_builder || !panel_builder->is_complete_);
+  PanelDeclarationBuilder *last_panel_builder = panel_builders_.last().get();
+  if (last_panel_builder != panel_builder) {
+    last_panel_builder->is_complete_ = true;
   }
 }
 
@@ -137,27 +175,134 @@ std::ostream &operator<<(std::ostream &stream, const RelationsInNode &relations)
 
 }  // namespace anonymous_attribute_lifetime
 
-bool NodeDeclaration::matches(const bNode &node) const
+bool NodeDeclaration::is_valid() const
 {
-  auto check_sockets = [&](ListBase sockets, Span<SocketDeclarationPtr> socket_decls) {
-    const int tot_sockets = BLI_listbase_count(&sockets);
-    if (tot_sockets != socket_decls.size()) {
-      return false;
-    }
-    int i;
-    LISTBASE_FOREACH_INDEX (const bNodeSocket *, socket, &sockets, i) {
-      const SocketDeclaration &socket_decl = *socket_decls[i];
-      if (!socket_decl.matches(*socket)) {
-        return false;
-      }
-    }
+  if (!this->use_custom_socket_order) {
+    /* Skip validation for conventional socket layouts. */
     return true;
+  }
+
+  /* Validation state for the interface root items as well as any panel content. */
+  struct ValidationState {
+    /* Remaining number of items expected in a panel */
+    int remaining_items = 0;
+    /* Sockets first, followed by panels. */
+    NodeTreeInterfaceItemType item_type = NODE_INTERFACE_SOCKET;
+    /* Output sockets first, followed by input sockets. */
+    eNodeSocketInOut socket_in_out = SOCK_OUT;
   };
 
-  if (!check_sockets(node.inputs, inputs)) {
+  Stack<ValidationState> panel_states;
+  panel_states.push({});
+
+  for (const ItemDeclarationPtr &item_decl : items) {
+    BLI_assert(panel_states.size() >= 1);
+    ValidationState &state = panel_states.peek();
+
+    if (const SocketDeclaration *socket_decl = dynamic_cast<const SocketDeclaration *>(
+            item_decl.get()))
+    {
+      if (state.item_type != NODE_INTERFACE_SOCKET) {
+        std::cout << "Socket added after panel" << std::endl;
+        return false;
+      }
+
+      /* Check for consistent outputs.., inputs.. blocks.
+       * Ignored for sockets that are inline pairs. */
+      if (!socket_decl->inline_with_next) {
+        if (state.socket_in_out == SOCK_OUT && socket_decl->in_out == SOCK_IN) {
+          /* Start of input sockets. */
+          state.socket_in_out = SOCK_IN;
+        }
+        if (socket_decl->in_out != state.socket_in_out) {
+          std::cout << "Output socket added after input socket" << std::endl;
+          return false;
+        }
+      }
+
+      /* Item counting for the panels, but ignore for root items. */
+      if (panel_states.size() > 1) {
+        if (state.remaining_items <= 0) {
+          std::cout << "More sockets than expected in panel" << std::endl;
+          return false;
+        }
+        --state.remaining_items;
+        /* Panel closed after last item is added. */
+        if (state.remaining_items == 0) {
+          panel_states.pop();
+        }
+      }
+    }
+    else if (const PanelDeclaration *panel_decl = dynamic_cast<const PanelDeclaration *>(
+                 item_decl.get()))
+    {
+      if (state.item_type == NODE_INTERFACE_SOCKET) {
+        /* Start of panels section */
+        state.item_type = NODE_INTERFACE_PANEL;
+      }
+      BLI_assert(state.item_type == NODE_INTERFACE_PANEL);
+
+      if (panel_decl->num_child_decls > 0) {
+        /* New panel started. */
+        panel_states.push({panel_decl->num_child_decls});
+      }
+    }
+    else {
+      BLI_assert_unreachable();
+      return false;
+    }
+  }
+
+  /* All panels complete? */
+  if (panel_states.size() != 1) {
+    std::cout << "Incomplete last panel" << std::endl;
     return false;
   }
-  if (!check_sockets(node.outputs, outputs)) {
+  return true;
+}
+
+bool NodeDeclaration::matches(const bNode &node) const
+{
+  const bNodeSocket *current_input = static_cast<bNodeSocket *>(node.inputs.first);
+  const bNodeSocket *current_output = static_cast<bNodeSocket *>(node.outputs.first);
+  const bNodePanelState *current_panel = node.panel_states_array;
+  for (const ItemDeclarationPtr &item_decl : items) {
+    if (const SocketDeclaration *socket_decl = dynamic_cast<const SocketDeclaration *>(
+            item_decl.get()))
+    {
+      switch (socket_decl->in_out) {
+        case SOCK_IN:
+          if (current_input == nullptr || !socket_decl->matches(*current_input)) {
+            return false;
+          }
+          current_input = current_input->next;
+          break;
+        case SOCK_OUT:
+          if (current_output == nullptr || !socket_decl->matches(*current_output)) {
+            return false;
+          }
+          current_output = current_output->next;
+          break;
+      }
+    }
+    else if (const PanelDeclaration *panel_decl = dynamic_cast<const PanelDeclaration *>(
+                 item_decl.get()))
+    {
+      if (!node.panel_states().contains_ptr(current_panel) || !panel_decl->matches(*current_panel))
+      {
+        return false;
+      }
+      ++current_panel;
+    }
+    else {
+      /* Unknown item type. */
+      BLI_assert_unreachable();
+    }
+  }
+  /* If items are left over, some were removed from the declaration. */
+  if (current_input == nullptr || current_output == nullptr ||
+      !node.panel_states().contains_ptr(current_panel))
+  {
     return false;
   }
   return true;
@@ -210,6 +355,51 @@ bool SocketDeclaration::matches_common_data(const bNodeSocket &socket) const
     return false;
   }
   return true;
+}
+
+PanelDeclarationBuilder &NodeDeclarationBuilder::add_panel(StringRef name, int identifier)
+{
+  std::unique_ptr<PanelDeclaration> panel_decl = std::make_unique<PanelDeclaration>();
+  std::unique_ptr<PanelDeclarationBuilder> panel_decl_builder =
+      std::make_unique<PanelDeclarationBuilder>();
+  panel_decl_builder->decl_ = &*panel_decl;
+
+  panel_decl_builder->node_decl_builder_ = this;
+  if (identifier >= 0) {
+    panel_decl->identifier = identifier;
+  }
+  else {
+    /* Use index as identifier. */
+    panel_decl->identifier = declaration_.items.size();
+  }
+  panel_decl->name = name;
+  declaration_.items.append(std::move(panel_decl));
+
+  PanelDeclarationBuilder &builder_ref = *panel_decl_builder;
+  panel_builders_.append(std::move(panel_decl_builder));
+  set_active_panel_builder(&builder_ref);
+
+  return builder_ref;
+}
+
+void PanelDeclaration::build(bNodePanelState &panel) const
+{
+  panel = {0};
+  panel.identifier = this->identifier;
+  SET_FLAG_FROM_TEST(panel.flag, this->default_collapsed, NODE_PANEL_COLLAPSED);
+}
+
+bool PanelDeclaration::matches(const bNodePanelState &panel) const
+{
+  return panel.identifier == this->identifier;
+}
+
+void PanelDeclaration::update_or_build(const bNodePanelState &old_panel,
+                                       bNodePanelState &new_panel) const
+{
+  build(new_panel);
+  /* Copy existing state to the new panel */
+  SET_FLAG_FROM_TEST(new_panel.flag, old_panel.is_collapsed(), NODE_PANEL_COLLAPSED);
 }
 
 namespace implicit_field_inputs {

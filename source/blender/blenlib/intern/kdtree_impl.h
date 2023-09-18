@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,9 +9,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_kdtree_impl.h"
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 #include "BLI_strict_flags.h"
 #include "BLI_utildefines.h"
+
+#include <string.h>
 
 #define _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2) MACRO_ARG1##MACRO_ARG2
 #define _BLI_KDTREE_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)

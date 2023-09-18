@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,8 @@
  * \ingroup modifiers
  */
 
+#include "BLI_math_geom.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_math.h"
 
 #include "BLT_translation.h"
 
@@ -25,14 +24,14 @@
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_ui_common.hh"
@@ -54,7 +53,7 @@ struct LaplacianSystem {
   /* Pointers to data. */
   float (*vertexCos)[3];
   blender::Span<blender::int2> edges;
-  blender::OffsetIndices<int> polys;
+  blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
   LinearSolver *context;
 
@@ -113,17 +112,17 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numLoops, in
 
 static float compute_volume(const float center[3],
                             float (*vertexCos)[3],
-                            const blender::OffsetIndices<int> polys,
+                            const blender::OffsetIndices<int> faces,
                             const blender::Span<int> corner_verts)
 {
   float vol = 0.0f;
 
-  for (const int i : polys.index_range()) {
-    const blender::IndexRange poly = polys[i];
-    int corner_first = poly.start();
+  for (const int i : faces.index_range()) {
+    const blender::IndexRange face = faces[i];
+    int corner_first = face.start();
     int corner_prev = corner_first + 1;
     int corner_curr = corner_first + 2;
-    int corner_term = corner_first + poly.size();
+    int corner_term = corner_first + face.size();
 
     for (; corner_curr != corner_term; corner_prev = corner_curr, corner_curr++) {
       vol += volume_tetrahedron_signed_v3(center,
@@ -191,10 +190,10 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 
   const blender::Span<int> corner_verts = sys->corner_verts;
 
-  for (const int i : sys->polys.index_range()) {
-    const blender::IndexRange poly = sys->polys[i];
-    int corner_next = poly.start();
-    int corner_term = corner_next + poly.size();
+  for (const int i : sys->faces.index_range()) {
+    const blender::IndexRange face = sys->faces[i];
+    int corner_next = face.start();
+    int corner_term = corner_next + face.size();
     int corner_prev = corner_term - 2;
     int corner_curr = corner_term - 1;
 
@@ -249,10 +248,10 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 
   const blender::Span<int> corner_verts = sys->corner_verts;
 
-  for (const int i : sys->polys.index_range()) {
-    const blender::IndexRange poly = sys->polys[i];
-    int corner_next = poly.start();
-    int corner_term = corner_next + poly.size();
+  for (const int i : sys->faces.index_range()) {
+    const blender::IndexRange face = sys->faces[i];
+    int corner_next = face.start();
+    int corner_term = corner_next + face.size();
     int corner_prev = corner_term - 2;
     int corner_curr = corner_term - 1;
 
@@ -329,7 +328,7 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
   float vini = 0.0f, vend = 0.0f;
 
   if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
-    vini = compute_volume(sys->vert_centroid, sys->vertexCos, sys->polys, sys->corner_verts);
+    vini = compute_volume(sys->vert_centroid, sys->vertexCos, sys->faces, sys->corner_verts);
   }
   for (i = 0; i < sys->verts_num; i++) {
     if (sys->zerola[i] == false) {
@@ -350,7 +349,7 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
     }
   }
   if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
-    vend = compute_volume(sys->vert_centroid, sys->vertexCos, sys->polys, sys->corner_verts);
+    vend = compute_volume(sys->vert_centroid, sys->vertexCos, sys->faces, sys->corner_verts);
     volume_preservation(sys, vini, vend, flag);
   }
 }
@@ -372,7 +371,7 @@ static void laplaciansmoothModifier_do(
   }
 
   sys->edges = mesh->edges();
-  sys->polys = mesh->polys();
+  sys->faces = mesh->faces();
   sys->corner_verts = mesh->corner_verts();
   sys->vertexCos = vertexCos;
   sys->min_area = 0.00001f;
@@ -477,7 +476,7 @@ static void init_data(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(LaplacianSmoothModifierData), modifier);
 }
 
-static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
   short flag;
@@ -486,10 +485,10 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*useRen
 
   /* disable if modifier is off for X, Y and Z or if factor is 0 */
   if (flag == 0) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
@@ -502,119 +501,84 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
   }
 }
 
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData *md,
+                         const ModifierEvalContext *ctx,
+                         Mesh *mesh,
+                         float (*vertexCos)[3],
+                         int verts_num)
 {
-  Mesh *mesh_src;
-
   if (verts_num == 0) {
     return;
   }
 
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
-
   laplaciansmoothModifier_do(
-      (LaplacianSmoothModifierData *)md, ctx->object, mesh_src, vertexCos, verts_num);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
-}
-
-static void deformVertsEM(ModifierData *md,
-                          const ModifierEvalContext *ctx,
-                          BMEditMesh *editData,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
-{
-  Mesh *mesh_src;
-
-  if (verts_num == 0) {
-    return;
-  }
-
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr);
-
-  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
-  if (mesh_src != nullptr) {
-    BKE_mesh_wrapper_ensure_mdata(mesh_src);
-  }
-
-  laplaciansmoothModifier_do(
-      (LaplacianSmoothModifierData *)md, ctx->object, mesh_src, vertexCos, verts_num);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
+      (LaplacianSmoothModifierData *)md, ctx->object, mesh, vertexCos, verts_num);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
-  int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "iterations", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "iterations", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
   uiItemR(row, ptr, "use_x", toggles_flag, nullptr, ICON_NONE);
   uiItemR(row, ptr, "use_y", toggles_flag, nullptr, ICON_NONE);
   uiItemR(row, ptr, "use_z", toggles_flag, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "lambda_factor", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "lambda_border", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "lambda_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "lambda_border", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_volume_preserve", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_normalized", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_volume_preserve", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_normalized", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_LaplacianSmooth, panel_draw);
 }
 
 ModifierTypeInfo modifierType_LaplacianSmooth = {
+    /*idname*/ "LaplacianSmooth",
     /*name*/ N_("LaplacianSmooth"),
-    /*structName*/ "LaplacianSmoothModifierData",
-    /*structSize*/ sizeof(LaplacianSmoothModifierData),
+    /*struct_name*/ "LaplacianSmoothModifierData",
+    /*struct_size*/ sizeof(LaplacianSmoothModifierData),
     /*srna*/ &RNA_LaplacianSmoothModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_SMOOTH,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ init_data,
-    /*requiredDataMask*/ required_data_mask,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ is_disabled,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

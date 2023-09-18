@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,8 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
@@ -17,17 +18,17 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_clip.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
+#include "ED_clip.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "clip_intern.h" /* own include */
 
@@ -54,9 +55,9 @@ static bool clip_graph_knots_poll(bContext *C)
   return false;
 }
 
-typedef struct {
+struct SelectUserData {
   int action;
-} SelectUserData;
+};
 
 static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 {
@@ -77,7 +78,7 @@ static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 
 /******************** mouse select operator ********************/
 
-typedef struct {
+struct MouseSelectUserData {
   SpaceClip *sc;
   eClipCurveValueSource value_source;
   bool has_prev; /* if there's valid coordinate of previous point of curve segment */
@@ -89,7 +90,7 @@ typedef struct {
 
   MovieTrackingTrack *track;   /* nearest found track */
   MovieTrackingMarker *marker; /* nearest found marker */
-} MouseSelectUserData;
+};
 
 static void find_nearest_tracking_segment_cb(void *userdata,
                                              MovieTrackingTrack *track,
@@ -339,7 +340,7 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
                        100.0f);
   prop = RNA_def_boolean(ot->srna,
                          "extend",
-                         0,
+                         false,
                          "Extend",
                          "Extend selection rather than clearing the existing selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -347,10 +348,10 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
 
 /********************** box select operator *********************/
 
-typedef struct BoxSelectuserData {
+struct BoxSelectuserData {
   rctf rect;
   bool select, extend, changed;
-} BoxSelectuserData;
+};
 
 static void box_select_cb(void *userdata,
                           MovieTrackingTrack * /*track*/,
@@ -586,9 +587,9 @@ void CLIP_OT_graph_delete_knot(wmOperatorType *ot)
 
 /******************** view all operator ********************/
 
-typedef struct {
+struct ViewAllUserData {
   float min, max;
-} ViewAllUserData;
+};
 
 static void view_all_cb(void *userdata,
                         MovieTrackingTrack * /*track*/,

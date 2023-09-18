@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2022-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -113,7 +113,7 @@ def island_uv_bounds_center(island, uv_layer):
 # ------------------------------------------------------------------------------
 # Align UV Rotation Operator
 
-def find_rotation_auto(bm, uv_layer, faces):
+def find_rotation_auto(bm, uv_layer, faces, aspect_y):
     sum_u = 0.0
     sum_v = 0.0
     for face in faces:
@@ -122,7 +122,7 @@ def find_rotation_auto(bm, uv_layer, faces):
             uv = loop[uv_layer].uv
             du = uv[0] - prev_uv[0]
             dv = uv[1] - prev_uv[1]
-            edge_angle = math.atan2(dv, du)
+            edge_angle = math.atan2(dv, du * aspect_y)
             edge_angle *= 4.0  # Wrap 4 times around the circle
             sum_u += math.cos(edge_angle)
             sum_v += math.sin(edge_angle)
@@ -132,7 +132,7 @@ def find_rotation_auto(bm, uv_layer, faces):
     return -math.atan2(sum_v, sum_u) / 4.0
 
 
-def find_rotation_edge(bm, uv_layer, faces):
+def find_rotation_edge(bm, uv_layer, faces, aspect_y):
     sum_u = 0.0
     sum_v = 0.0
     for face in faces:
@@ -143,7 +143,7 @@ def find_rotation_edge(bm, uv_layer, faces):
             if prev_select:
                 du = uv[0] - prev_uv[0]
                 dv = uv[1] - prev_uv[1]
-                edge_angle = math.atan2(dv, du)
+                edge_angle = math.atan2(dv, du * aspect_y)
                 edge_angle *= 2.0  # Wrap 2 times around the circle
                 sum_u += math.cos(edge_angle)
                 sum_v += math.sin(edge_angle)
@@ -159,7 +159,7 @@ def find_rotation_edge(bm, uv_layer, faces):
     return -math.atan2(sum_v, sum_u) / 2.0
 
 
-def find_rotation_geometry(bm, uv_layer, faces, method, axis):
+def find_rotation_geometry(bm, uv_layer, faces, method, axis, aspect_y):
     sum_u_co = Vector((0.0, 0.0, 0.0))
     sum_v_co = Vector((0.0, 0.0, 0.0))
     for face in faces:
@@ -167,6 +167,9 @@ def find_rotation_geometry(bm, uv_layer, faces, method, axis):
         for fan in range(2, len(face.loops)):
             delta_uv0 = face.loops[fan - 1][uv_layer].uv - face.loops[0][uv_layer].uv
             delta_uv1 = face.loops[fan][uv_layer].uv - face.loops[0][uv_layer].uv
+
+            delta_uv0[0] *= aspect_y
+            delta_uv1[0] *= aspect_y
 
             mat = Matrix((delta_uv0, delta_uv1))
             mat.invert_safe()
@@ -190,14 +193,14 @@ def find_rotation_geometry(bm, uv_layer, faces, method, axis):
     return math.atan2(sum_u_co[axis_index], sum_v_co[axis_index])
 
 
-def align_uv_rotation_island(bm, uv_layer, faces, method, axis):
+def align_uv_rotation_island(bm, uv_layer, faces, method, axis, aspect_y):
     angle = 0.0
     if method == 'AUTO':
-        angle = find_rotation_auto(bm, uv_layer, faces)
+        angle = find_rotation_auto(bm, uv_layer, faces, aspect_y)
     elif method == 'EDGE':
-        angle = find_rotation_edge(bm, uv_layer, faces)
+        angle = find_rotation_edge(bm, uv_layer, faces, aspect_y)
     elif method == 'GEOMETRY':
-        angle = find_rotation_geometry(bm, uv_layer, faces, method, axis)
+        angle = find_rotation_geometry(bm, uv_layer, faces, method, axis, aspect_y)
 
     if angle == 0.0:
         return False  # No change.
@@ -208,21 +211,21 @@ def align_uv_rotation_island(bm, uv_layer, faces, method, axis):
     cos_angle = math.cos(angle)
     sin_angle = math.sin(angle)
 
-    delta_u = mid_u - cos_angle * mid_u + sin_angle * mid_v
-    delta_v = mid_v - sin_angle * mid_u - cos_angle * mid_v
+    delta_u = mid_u - cos_angle * mid_u + sin_angle / aspect_y * mid_v
+    delta_v = mid_v - sin_angle * aspect_y * mid_u - cos_angle * mid_v
 
     # Apply transform.
     for face in faces:
         for loop in face.loops:
             pre_uv = loop[uv_layer].uv
-            u = cos_angle * pre_uv[0] - sin_angle * pre_uv[1] + delta_u
-            v = sin_angle * pre_uv[0] + cos_angle * pre_uv[1] + delta_v
+            u = cos_angle * pre_uv[0] - sin_angle / aspect_y * pre_uv[1] + delta_u
+            v = sin_angle * aspect_y * pre_uv[0] + cos_angle * pre_uv[1] + delta_v
             loop[uv_layer].uv = u, v
 
     return True
 
 
-def align_uv_rotation_bmesh(mesh, bm, method, axis):
+def align_uv_rotation_bmesh(mesh, bm, method, axis, aspect_y):
     import bpy_extras.bmesh_utils
 
     uv_layer = bm.loops.layers.uv.active
@@ -233,18 +236,39 @@ def align_uv_rotation_bmesh(mesh, bm, method, axis):
     changed = False
     for island in islands:
         if is_island_uv_selected(island, uv_layer, method == 'EDGE'):
-            if align_uv_rotation_island(bm, uv_layer, island, method, axis):
+            if align_uv_rotation_island(bm, uv_layer, island, method, axis, aspect_y):
                 changed = True
     return changed
 
 
-def align_uv_rotation(context, method, axis):
+def get_aspect_y(context):
+    area = context.area
+    if not area:
+        return 1.0
+    space_data = context.area.spaces.active
+    if not space_data:
+        return 1.0
+    if not space_data.image:
+        return 1.0
+    image_width = space_data.image.size[0]
+    image_height = space_data.image.size[1]
+    if image_height:
+        return image_width / image_height
+    return 1.0
+
+
+def align_uv_rotation(context, method, axis, correct_aspect):
     import bmesh
+
+    aspect_y = 1.0
+    if correct_aspect:
+        aspect_y = get_aspect_y(context)
+
     ob_list = context.objects_in_mode_unique_data
     for ob in ob_list:
         bm = bmesh.from_edit_mesh(ob.data)
         if bm.loops.layers.uv:
-            if align_uv_rotation_bmesh(ob.data, bm, method, axis):
+            if align_uv_rotation_bmesh(ob.data, bm, method, axis, aspect_y):
                 bmesh.update_edit_mesh(ob.data)
 
     return {'FINISHED'}
@@ -274,14 +298,21 @@ class AlignUVRotation(Operator):
         ),
     )
 
+    correct_aspect: BoolProperty(
+        name="Correct Aspect",
+        description="Take image aspect ratio into account",
+        default=False,
+    )
+
     def execute(self, context):
-        return align_uv_rotation(context, self.method, self.axis)
+        return align_uv_rotation(context, self.method, self.axis, self.correct_aspect)
 
     def draw(self, _context):
         layout = self.layout
         layout.prop(self, "method")
         if self.method == 'GEOMETRY':
             layout.prop(self, "axis")
+        layout.prop(self, "correct_aspect")
 
     @classmethod
     def poll(cls, context):

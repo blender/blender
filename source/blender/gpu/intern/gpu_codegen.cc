@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,6 +17,8 @@
 #include "BLI_ghash.h"
 #include "BLI_hash_mm2a.h"
 #include "BLI_link_utils.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -201,7 +203,7 @@ static std::ostream &operator<<(std::ostream &stream, const GPUInput *input)
     case GPU_SOURCE_ATTR:
       return stream << "var_attrs.v" << input->attr->id;
     case GPU_SOURCE_UNIFORM_ATTR:
-      return stream << "unf_attrs[resource_id].attr" << input->uniform_attr->id;
+      return stream << "UNI_ATTR(unf_attrs[resource_id].attr" << input->uniform_attr->id << ")";
     case GPU_SOURCE_LAYER_ATTR:
       return stream << "attr_load_layer(" << input->layer_attr->hash_code << ")";
     case GPU_SOURCE_STRUCT:
@@ -230,12 +232,12 @@ static std::ostream &operator<<(std::ostream &stream, const GPUConstant *input)
 {
   stream << input->type << "(";
   for (int i = 0; i < input->type; i++) {
-    char formated_float[32];
+    char formatted_float[32];
     /* Use uint representation to allow exact same bit pattern even if NaN. This is because we can
      * pass UINTs as floats for constants. */
     const uint32_t *uint_vec = reinterpret_cast<const uint32_t *>(input->vec);
-    SNPRINTF(formated_float, "uintBitsToFloat(%uu)", uint_vec[i]);
-    stream << formated_float;
+    SNPRINTF(formatted_float, "uintBitsToFloat(%uu)", uint_vec[i]);
+    stream << formatted_float;
     if (i < input->type - 1) {
       stream << ", ";
     }
@@ -323,7 +325,9 @@ class GPUCodegen {
   void set_unique_ids();
 
   void node_serialize(std::stringstream &eval_ss, const GPUNode *node);
-  char *graph_serialize(eGPUNodeTag tree_tag, GPUNodeLink *output_link);
+  char *graph_serialize(eGPUNodeTag tree_tag,
+                        GPUNodeLink *output_link,
+                        const char *output_default = nullptr);
   char *graph_serialize(eGPUNodeTag tree_tag);
 
   static char *extract_c_str(std::stringstream &stream)
@@ -364,25 +368,27 @@ void GPUCodegen::generate_attribs()
     eGPUType input_type, iface_type;
 
     load_ss << "var_attrs." << var_name;
-    switch (attr->type) {
-      case CD_ORCO:
-        /* Need vec4 to detect usage of default attribute. */
-        input_type = GPU_VEC4;
-        iface_type = GPU_VEC3;
-        load_ss << " = attr_load_orco(" << attr_name << ");\n";
-        break;
-      case CD_HAIRLENGTH:
-        iface_type = input_type = GPU_FLOAT;
-        load_ss << " = attr_load_" << input_type << "(" << attr_name << ");\n";
-        break;
-      case CD_TANGENT:
-        iface_type = input_type = GPU_VEC4;
-        load_ss << " = attr_load_tangent(" << attr_name << ");\n";
-        break;
-      default:
-        iface_type = input_type = GPU_VEC4;
-        load_ss << " = attr_load_" << input_type << "(" << attr_name << ");\n";
-        break;
+    if (attr->is_hair_length) {
+      iface_type = input_type = GPU_FLOAT;
+      load_ss << " = attr_load_" << input_type << "(" << attr_name << ");\n";
+    }
+    else {
+      switch (attr->type) {
+        case CD_ORCO:
+          /* Need vec4 to detect usage of default attribute. */
+          input_type = GPU_VEC4;
+          iface_type = GPU_VEC3;
+          load_ss << " = attr_load_orco(" << attr_name << ");\n";
+          break;
+        case CD_TANGENT:
+          iface_type = input_type = GPU_VEC4;
+          load_ss << " = attr_load_tangent(" << attr_name << ");\n";
+          break;
+        default:
+          iface_type = input_type = GPU_VEC4;
+          load_ss << " = attr_load_" << input_type << "(" << attr_name << ");\n";
+          break;
+      }
     }
 
     info.vertex_in(slot--, to_type(input_type), attr_name);
@@ -398,8 +404,8 @@ void GPUCodegen::generate_resources()
 
   /* Ref. #98190: Defines are optimizations for old compilers.
    * Might become unnecessary with EEVEE-Next. */
-  if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_CLEARCOAT)) {
-    info.define("PRINCIPLED_CLEARCOAT");
+  if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_COAT)) {
+    info.define("PRINCIPLED_COAT");
   }
   if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_METALLIC)) {
     info.define("PRINCIPLED_METALLIC");
@@ -457,7 +463,7 @@ void GPUCodegen::generate_resources()
     }
     ss << "};\n\n";
 
-    info.uniform_buf(1, "NodeTree", GPU_UBO_BLOCK_NAME, Frequency::BATCH);
+    info.uniform_buf(GPU_NODE_TREE_UBO_SLOT, "NodeTree", GPU_UBO_BLOCK_NAME, Frequency::BATCH);
   }
 
   if (!BLI_listbase_is_empty(&graph.uniform_attrs.list)) {
@@ -576,13 +582,16 @@ void GPUCodegen::node_serialize(std::stringstream &eval_ss, const GPUNode *node)
   nodes_total_++;
 }
 
-char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag, GPUNodeLink *output_link)
+char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag,
+                                  GPUNodeLink *output_link,
+                                  const char *output_default)
 {
-  if (output_link == nullptr) {
+  if (output_link == nullptr && output_default == nullptr) {
     return nullptr;
   }
 
   std::stringstream eval_ss;
+  bool has_nodes = false;
   /* NOTE: The node order is already top to bottom (or left to right in node editor)
    * because of the evaluation order inside ntreeExecGPUNodes(). */
   LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {
@@ -590,8 +599,20 @@ char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag, GPUNodeLink *output_link
       continue;
     }
     node_serialize(eval_ss, node);
+    has_nodes = true;
   }
-  eval_ss << "return " << output_link->output << ";\n";
+
+  if (!has_nodes) {
+    return nullptr;
+  }
+
+  if (output_link) {
+    eval_ss << "return " << output_link->output << ";\n";
+  }
+  else {
+    /* Default output in case there are only AOVs. */
+    eval_ss << "return " << output_default << ";\n";
+  }
 
   char *eval_c_str = extract_c_str(eval_ss);
   BLI_hash_mm2a_add(&hm2a_, (uchar *)eval_c_str, eval_ss.str().size());
@@ -665,10 +686,12 @@ void GPUCodegen::generate_graphs()
 {
   set_unique_ids();
 
-  output.surface = graph_serialize(GPU_NODE_TAG_SURFACE | GPU_NODE_TAG_AOV, graph.outlink_surface);
-  output.volume = graph_serialize(GPU_NODE_TAG_VOLUME, graph.outlink_volume);
-  output.displacement = graph_serialize(GPU_NODE_TAG_DISPLACEMENT, graph.outlink_displacement);
-  output.thickness = graph_serialize(GPU_NODE_TAG_THICKNESS, graph.outlink_thickness);
+  output.surface = graph_serialize(
+      GPU_NODE_TAG_SURFACE | GPU_NODE_TAG_AOV, graph.outlink_surface, "CLOSURE_DEFAULT");
+  output.volume = graph_serialize(GPU_NODE_TAG_VOLUME, graph.outlink_volume, "CLOSURE_DEFAULT");
+  output.displacement = graph_serialize(
+      GPU_NODE_TAG_DISPLACEMENT, graph.outlink_displacement, nullptr);
+  output.thickness = graph_serialize(GPU_NODE_TAG_THICKNESS, graph.outlink_thickness, nullptr);
   if (!BLI_listbase_is_empty(&graph.outlink_compositor)) {
     output.composite = graph_serialize(GPU_NODE_TAG_COMPOSITOR);
   }
@@ -922,7 +945,7 @@ void GPU_pass_release(GPUPass *pass)
   BLI_spin_unlock(&pass_cache_spin);
 }
 
-void GPU_pass_cache_garbage_collect(void)
+void GPU_pass_cache_garbage_collect()
 {
   const int shadercollectrate = 60; /* hardcoded for now. */
   int ctime = int(PIL_check_seconds_timer());
@@ -945,12 +968,12 @@ void GPU_pass_cache_garbage_collect(void)
   BLI_spin_unlock(&pass_cache_spin);
 }
 
-void GPU_pass_cache_init(void)
+void GPU_pass_cache_init()
 {
   BLI_spin_init(&pass_cache_spin);
 }
 
-void GPU_pass_cache_free(void)
+void GPU_pass_cache_free()
 {
   BLI_spin_lock(&pass_cache_spin);
   while (pass_cache) {
@@ -969,9 +992,9 @@ void GPU_pass_cache_free(void)
 /** \name Module
  * \{ */
 
-void gpu_codegen_init(void) {}
+void gpu_codegen_init() {}
 
-void gpu_codegen_exit(void)
+void gpu_codegen_exit()
 {
   BKE_material_defaults_free_gpu();
   GPU_shader_free_builtin_shaders();

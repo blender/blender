@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,7 +13,7 @@ void ConvertAlphaNode::convert_to_operations(NodeConverter &converter,
   NodeOperation *operation = nullptr;
   const bNode *node = this->get_bnode();
 
-  /* value hardcoded in rna_nodetree.c */
+  /* Value hardcoded in `rna_nodetree.cc`. */
   if (node->custom1 == 1) {
     operation = new ConvertPremulToStraightOperation();
   }

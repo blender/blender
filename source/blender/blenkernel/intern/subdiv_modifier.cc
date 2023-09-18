@@ -1,8 +1,8 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_subdiv_modifier.h"
+#include "BKE_subdiv_modifier.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -14,7 +14,7 @@
 
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 
 #include "GPU_capabilities.h"
 #include "GPU_context.h"
@@ -86,7 +86,7 @@ static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,
 bool BKE_subsurf_modifier_use_custom_loop_normals(const SubsurfModifierData *smd, const Mesh *mesh)
 {
   return (smd->flags & eSubsurfModifierFlag_UseCustomNormals) && (mesh->flag & ME_AUTOSMOOTH) &&
-         CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
+         CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL);
 }
 
 static bool subsurf_modifier_use_autosmooth_or_split_normals(const SubsurfModifierData *smd,

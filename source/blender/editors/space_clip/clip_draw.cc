@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,7 +16,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BLI_math.h"
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -27,24 +26,24 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "ED_clip.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_mask.h"
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_clip.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_mask.hh"
+#include "ED_screen.hh"
+#include "ED_util.hh"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "BLF_api.h"
 
@@ -393,10 +392,10 @@ enum {
   PATH_POINT_FLAG_KEYFRAME = (1 << 0),
 };
 
-typedef struct TrachPathPoint {
+struct TrackPathPoint {
   float co[2];
   uchar flag;
-} TrackPathPoint;
+};
 
 static void marker_to_path_point(SpaceClip *sc,
                                  const MovieTrackingTrack *track,
@@ -2003,6 +2002,6 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
     }
   }
   else {
-    ED_annotation_draw_view2d(C, 0);
+    ED_annotation_draw_view2d(C, false);
   }
 }

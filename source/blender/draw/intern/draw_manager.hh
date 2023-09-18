@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -121,6 +121,14 @@ class Manager {
    */
   ResourceHandle resource_handle(const ObjectRef ref);
   /**
+   * Create a new resource handle for the given object, but optionally override model matrix and
+   * bounds.
+   */
+  ResourceHandle resource_handle(const ObjectRef ref,
+                                 const float4x4 *model_matrix,
+                                 const float3 *bounds_center,
+                                 const float3 *bounds_half_extent);
+  /**
    * Get resource id for a loose matrix. The draw-calls for this resource handle won't be culled
    * and there won't be any associated object info / bounds. Assumes correct handedness / winding.
    */
@@ -203,6 +211,28 @@ inline ResourceHandle Manager::resource_handle(const ObjectRef ref)
   bool is_active_object = (ref.dupli_object ? ref.dupli_parent : ref.object) == object_active;
   matrix_buf.current().get_or_resize(resource_len_).sync(*ref.object);
   bounds_buf.current().get_or_resize(resource_len_).sync(*ref.object);
+  infos_buf.current().get_or_resize(resource_len_).sync(ref, is_active_object);
+  return ResourceHandle(resource_len_++, (ref.object->transflag & OB_NEG_SCALE) != 0);
+}
+
+inline ResourceHandle Manager::resource_handle(const ObjectRef ref,
+                                               const float4x4 *model_matrix,
+                                               const float3 *bounds_center,
+                                               const float3 *bounds_half_extent)
+{
+  bool is_active_object = (ref.dupli_object ? ref.dupli_parent : ref.object) == object_active;
+  if (model_matrix) {
+    matrix_buf.current().get_or_resize(resource_len_).sync(*model_matrix);
+  }
+  else {
+    matrix_buf.current().get_or_resize(resource_len_).sync(*ref.object);
+  }
+  if (bounds_center && bounds_half_extent) {
+    bounds_buf.current().get_or_resize(resource_len_).sync(*bounds_center, *bounds_half_extent);
+  }
+  else {
+    bounds_buf.current().get_or_resize(resource_len_).sync(*ref.object);
+  }
   infos_buf.current().get_or_resize(resource_len_).sync(ref, is_active_object);
   return ResourceHandle(resource_len_++, (ref.object->transflag & OB_NEG_SCALE) != 0);
 }

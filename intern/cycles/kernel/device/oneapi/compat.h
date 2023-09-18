@@ -49,6 +49,7 @@
 #define ccl_loop_no_unroll
 #define ccl_optional_struct_init
 #define ccl_private
+#define ccl_ray_data ccl_private
 #define ccl_gpu_shared
 #define ATTR_FALLTHROUGH __attribute__((fallthrough))
 #define ccl_constant const
@@ -188,6 +189,23 @@ using uchar = unsigned char;
 using sycl::half;
 
 /* math functions */
+ccl_device_forceinline float __uint_as_float(unsigned int x)
+{
+  return sycl::bit_cast<float>(x);
+}
+ccl_device_forceinline unsigned int __float_as_uint(float x)
+{
+  return sycl::bit_cast<unsigned int>(x);
+}
+ccl_device_forceinline float __int_as_float(int x)
+{
+  return sycl::bit_cast<float>(x);
+}
+ccl_device_forceinline int __float_as_int(float x)
+{
+  return sycl::bit_cast<int>(x);
+}
+
 #define fabsf(x) sycl::fabs((x))
 #define copysignf(x, y) sycl::copysign((x), (y))
 #define asinf(x) sycl::asin((x))
@@ -205,15 +223,9 @@ using sycl::half;
 #define fmodf(x, y) sycl::fmod((x), (y))
 #define lgammaf(x) sycl::lgamma((x))
 
-/* `sycl::native::cos` precision is not sufficient and `-ffast-math` lets
- * the current DPC++ compiler overload `sycl::cos` with it.
- * We work around this issue by directly calling the SPIRV implementation which
- * provides greater precision. */
-#if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
-#  define cosf(x) __spirv_ocl_cos(((float)(x)))
-#else
-#  define cosf(x) sycl::cos(((float)(x)))
-#endif
+/* sycl::native::cos precision is not sufficient when using Nishita Sky node
+ * with a small sun size. */
+#define cosf(x) sycl::cos(((float)(x)))
 #define sinf(x) sycl::native::sin(((float)(x)))
 #define powf(x, y) sycl::native::powr(((float)(x)), ((float)(y)))
 #define tanf(x) sycl::native::tan(((float)(x)))

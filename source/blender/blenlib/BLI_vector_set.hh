@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -482,7 +482,7 @@ class VectorSet {
   /**
    * Print common statistics like size and collision count. This is useful for debugging purposes.
    */
-  void print_stats(StringRef name = "") const
+  void print_stats(const char *name) const
   {
     HashTableStats stats(*this, this->as_span());
     stats.print(name);

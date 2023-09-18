@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2021 Tangent Animation. All rights reserved.
- * SPDX-FileCopyrightText: 2023 Blender Foundation
+ * SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
@@ -129,13 +129,14 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
 
     /* TODO(makowalski): investigate setting Cyclic U and Endpoint U options. */
 #if 0
-     if (knots.size() > 3) {
-       if ((knots[0] == knots[1]) && (knots[knots.size()] == knots[knots.size() - 1])) {
-         nu->flagu |= CU_NURB_ENDPOINT;
-       } else {
-         nu->flagu |= CU_NURB_CYCLIC;
-       }
-     }
+    if (knots.size() > 3) {
+      if ((knots[0] == knots[1]) && (knots[knots.size()] == knots[knots.size() - 1])) {
+        nu->flagu |= CU_NURB_ENDPOINT;
+      }
+      else {
+        nu->flagu |= CU_NURB_CYCLIC;
+      }
+    }
 #endif
 
     float weight = 1.0f;
@@ -167,7 +168,7 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
   }
 }
 
-Mesh *USDNurbsReader::read_mesh(struct Mesh * /* existing_mesh */,
+Mesh *USDNurbsReader::read_mesh(Mesh * /* existing_mesh */,
                                 const USDMeshReadParams params,
                                 const char ** /* err_str */)
 {

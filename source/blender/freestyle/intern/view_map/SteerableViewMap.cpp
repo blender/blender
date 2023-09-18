@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2008-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,7 +18,7 @@
 #include "../image/Image.h"
 #include "../image/ImagePyramid.h"
 
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 #include "BLI_sys_types.h"
 
 #include "BKE_global.h"
@@ -137,7 +137,7 @@ double *SteerableViewMap::AddFEdge(FEdge *iFEdge)
 
 uint SteerableViewMap::getSVMNumber(Vec2f dir)
 {
-  // soc unsigned res = 0;
+  // soc uint res = 0;
   real norm = dir.norm();
   if (norm < 1.0e-6) {
     return _nbOrientations + 1;
@@ -254,7 +254,7 @@ void SteerableViewMap::saveSteerableViewMap() const
           if (c > 255) {
             c = 255;
           }
-          // int c = (int)(_imagesPyramids[i]->pixel(x, y, j));
+          // int c = int(_imagesPyramids[i]->pixel(x, y, j));
 
           // soc qtmp.setPixel(x, y, qRgb(c, c, c));
           pix = ibuf->byte_buffer.data + y * rowbytes + x * 4;
@@ -270,19 +270,19 @@ void SteerableViewMap::saveSteerableViewMap() const
     }
 #if 0
     QString base("SteerableViewMap");
-    for (unsigned j = 0; j < _imagesPyramids[i]->getNumberOfLevels(); ++j) {
+    for (uint j = 0; j < _imagesPyramids[i]->getNumberOfLevels(); ++j) {
       GrayImage *img = _imagesPyramids[i]->getLevel(j);
       int ow = img->width();
       int oh = img->height();
       float coeff = 1.0f;  // 100 * 255; // * pow(2, j);
       QImage qtmp(ow, oh, 32);
-      for (unsigned int y = 0; y < oh; ++y) {
-        for (unsigned int x = 0; x < ow; ++x) {
-          int c = (int)(coeff * img->pixel(x, y));
+      for (uint y = 0; y < oh; ++y) {
+        for (uint x = 0; x < ow; ++x) {
+          int c = int(coeff * img->pixel(x, y));
           if (c > 255) {
             c = 255;
           }
-          //int c = (int)(_imagesPyramids[i]->pixel(x, y, j));
+          // int c = int(_imagesPyramids[i]->pixel(x, y, j));
           qtmp.setPixel(x, y, qRgb(c, c, c));
         }
       }

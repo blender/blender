@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,8 +26,8 @@ using namespace Freestyle;
 PyDoc_STRVAR(FEdgeSmooth_doc,
              "Class hierarchy: :class:`Interface1D` > :class:`FEdge` > :class:`FEdgeSmooth`\n"
              "\n"
-             "Class defining a smooth edge.  This kind of edge typically runs across\n"
-             "a face of the input mesh.  It can be a silhouette, a ridge or valley,\n"
+             "Class defining a smooth edge. This kind of edge typically runs across\n"
+             "a face of the input mesh. It can be a silhouette, a ridge or valley,\n"
              "a suggestive contour.\n"
              "\n"
              ".. method:: __init__()\n"
@@ -236,7 +236,7 @@ static PyGetSetDef BPy_FEdgeSmooth_getseters[] = {
 /*-----------------------BPy_FEdgeSmooth type definition ------------------------------*/
 
 PyTypeObject FEdgeSmooth_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "FEdgeSmooth",
     /*tp_basicsize*/ sizeof(BPy_FEdgeSmooth),
     /*tp_itemsize*/ 0,

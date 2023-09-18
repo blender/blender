@@ -12,10 +12,6 @@
 #include "DNA_color_types.h" /* for color management */
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct GPUTexture;
 struct MovieCache;
 struct PackedFile;
@@ -104,13 +100,15 @@ typedef struct ImageTile {
   char label[64];
 } ImageTile;
 
-/* iuser->flag */
-#define IMA_ANIM_ALWAYS (1 << 0)
-/* #define IMA_UNUSED_1         (1 << 1) */
-/* #define IMA_UNUSED_2         (1 << 2) */
-#define IMA_NEED_FRAME_RECALC (1 << 3)
-#define IMA_SHOW_STEREO (1 << 4)
-/* #define IMA_UNUSED_5         (1 << 5) */
+/** #ImageUser::flag */
+enum {
+  IMA_ANIM_ALWAYS = 1 << 0,
+  // IMA_UNUSED_1 = 1 << 1,
+  // IMA_UNUSED_2 = 1 << 2,
+  IMA_NEED_FRAME_RECALC = 1 << 3,
+  IMA_SHOW_STEREO = 1 << 4,
+  // IMA_UNUSED_5 = 1 << 5,
+};
 
 /* Used to get the correct gpu texture from an Image datablock. */
 typedef enum eGPUTextureTarget {
@@ -271,8 +269,8 @@ enum {
   IMA_GENTYPE_GRID_COLOR = 2,
 };
 
-/* render */
-#define IMA_MAX_RENDER_TEXT (1 << 9)
+/** Size of allocated string #RenderResult::text. */
+#define IMA_MAX_RENDER_TEXT_SIZE 512
 
 /** #Image.gen_flag */
 enum {
@@ -287,7 +285,3 @@ enum {
   IMA_ALPHA_CHANNEL_PACKED = 2,
   IMA_ALPHA_IGNORE = 3,
 };
-
-#ifdef __cplusplus
-}
-#endif

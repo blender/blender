@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -31,6 +31,7 @@
 #include "BKE_deform.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -43,31 +44,34 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_armature.h"
-#include "ED_buttons.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
-#include "ED_sequencer.h"
-#include "ED_text.h"
-#include "ED_undo.h"
+#include "ED_armature.hh"
+#include "ED_buttons.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
+#include "ED_sequencer.hh"
+#include "ED_text.hh"
+#include "ED_undo.hh"
 
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.h"
+
+#include "ANIM_bone_collections.h"
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
+#include "tree/tree_element_grease_pencil_node.hh"
 #include "tree/tree_element_seq.hh"
 #include "tree/tree_iterator.hh"
 
@@ -360,6 +364,9 @@ static void tree_element_object_activate(bContext *C,
         }
       }
     }
+    else if (recursive) {
+      /* Pass */
+    }
     else {
       /* De-select all. */
 
@@ -386,7 +393,9 @@ static void tree_element_object_activate(bContext *C,
     }
 
     if (set != OL_SETSEL_NONE) {
-      ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
+      if (!recursive) {
+        ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
+      }
       DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     }
@@ -400,7 +409,7 @@ static void tree_element_material_activate(bContext *C,
 {
   /* we search for the object parent */
   Object *ob = (Object *)outliner_search_back(te, ID_OB);
-  /* Note : ob->matbits can be nullptr when a local object points to a library mesh. */
+  /* NOTE: `ob->matbits` can be nullptr when a local object points to a library mesh. */
   BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == nullptr || ob != BKE_view_layer_active_object_get(view_layer) ||
       ob->matbits == nullptr) {
@@ -481,6 +490,19 @@ static void tree_element_gplayer_activate(bContext *C, TreeElement *te, TreeStor
     BKE_gpencil_layer_active_set(gpd, gpl);
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
+  }
+}
+
+static void tree_element_grease_pencil_layer_activate(bContext *C,
+                                                      TreeElement *te,
+                                                      TreeStoreElem *tselem)
+{
+  GreasePencil &grease_pencil = *(GreasePencil *)tselem->id;
+  bke::greasepencil::TreeNode &node = tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+  if (node.is_layer()) {
+    grease_pencil.set_active_layer(&node.as_layer());
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
   }
 }
 
@@ -697,7 +719,7 @@ static void tree_element_sequence_activate(bContext *C,
                                            const eOLSetState set)
 {
   const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-  Sequence *seq = &te_seq->getSequence();
+  Sequence *seq = &te_seq->get_sequence();
   Editing *ed = SEQ_editing_get(scene);
 
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
@@ -853,6 +875,9 @@ void tree_element_type_active_set(bContext *C,
     case TSE_GP_LAYER:
       tree_element_gplayer_activate(C, te, tselem);
       break;
+    case TSE_GREASE_PENCIL_NODE:
+      tree_element_grease_pencil_layer_activate(C, te, tselem);
+      break;
     case TSE_VIEW_COLLECTION_BASE:
       tree_element_master_collection_activate(C);
       break;
@@ -985,7 +1010,7 @@ static eOLDrawState tree_element_posegroup_state_get(const Scene *scene,
 static eOLDrawState tree_element_sequence_state_get(const Scene *scene, const TreeElement *te)
 {
   const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-  const Sequence *seq = &te_seq->getSequence();
+  const Sequence *seq = &te_seq->get_sequence();
   const Editing *ed = scene->ed;
 
   if (ed && ed->act_seq == seq && seq->flag & SELECT) {
@@ -998,7 +1023,7 @@ static eOLDrawState tree_element_sequence_dup_state_get(const TreeElement *te)
 {
   const TreeElementSequenceStripDuplicate *te_dup =
       tree_element_cast<TreeElementSequenceStripDuplicate>(te);
-  const Sequence *seq = &te_dup->getSequence();
+  const Sequence *seq = &te_dup->get_sequence();
   if (seq->flag & SELECT) {
     return OL_DRAWSEL_NORMAL;
   }
@@ -1008,6 +1033,16 @@ static eOLDrawState tree_element_sequence_dup_state_get(const TreeElement *te)
 static eOLDrawState tree_element_gplayer_state_get(const TreeElement *te)
 {
   if (((const bGPDlayer *)te->directdata)->flag & GP_LAYER_ACTIVE) {
+    return OL_DRAWSEL_NORMAL;
+  }
+  return OL_DRAWSEL_NONE;
+}
+
+static eOLDrawState tree_element_grease_pencil_node_state_get(const TreeElement *te)
+{
+  GreasePencil &grease_pencil = *(GreasePencil *)te->store_elem->id;
+  bke::greasepencil::TreeNode &node = tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+  if (node.is_layer() && grease_pencil.is_layer_active(&node.as_layer())) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1040,7 +1075,7 @@ static eOLDrawState tree_element_active_material_get(const Scene *scene,
 {
   /* we search for the object parent */
   const Object *ob = (const Object *)outliner_search_back((TreeElement *)te, ID_OB);
-  /* Note : ob->matbits can be nullptr when a local object points to a library mesh. */
+  /* NOTE: `ob->matbits` can be nullptr when a local object points to a library mesh. */
   BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == nullptr || ob != BKE_view_layer_active_object_get(view_layer) ||
       ob->matbits == nullptr) {
@@ -1156,6 +1191,8 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
       return tree_element_sequence_dup_state_get(te);
     case TSE_GP_LAYER:
       return tree_element_gplayer_state_get(te);
+    case TSE_GREASE_PENCIL_NODE:
+      return tree_element_grease_pencil_node_state_get(te);
     case TSE_VIEW_COLLECTION_BASE:
       return tree_element_master_collection_state_get(C);
     case TSE_LAYER_COLLECTION:
@@ -1206,7 +1243,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
 
   /* ID Types */
   if (tselem->type == TSE_SOME_ID) {
-    RNA_id_pointer_create(tselem->id, &ptr);
+    ptr = RNA_id_pointer_create(tselem->id);
 
     switch (te->idcode) {
       case ID_SCE:
@@ -1244,7 +1281,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
     switch (tselem->type) {
       case TSE_DEFGROUP_BASE:
       case TSE_DEFGROUP:
-        RNA_id_pointer_create(tselem->id, &ptr);
+        ptr = RNA_id_pointer_create(tselem->id);
         context = BCONTEXT_DATA;
         break;
       case TSE_CONSTRAINT_BASE:
@@ -1253,11 +1290,11 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         bPoseChannel *pchan = outliner_find_parent_bone(te, &bone_te);
 
         if (pchan) {
-          RNA_pointer_create(TREESTORE(bone_te)->id, &RNA_PoseBone, pchan, &ptr);
+          ptr = RNA_pointer_create(TREESTORE(bone_te)->id, &RNA_PoseBone, pchan);
           context = BCONTEXT_BONE_CONSTRAINT;
         }
         else {
-          RNA_id_pointer_create(tselem->id, &ptr);
+          ptr = RNA_id_pointer_create(tselem->id);
           context = BCONTEXT_CONSTRAINT;
         }
 
@@ -1269,7 +1306,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
       }
       case TSE_MODIFIER_BASE:
       case TSE_MODIFIER:
-        RNA_id_pointer_create(tselem->id, &ptr);
+        ptr = RNA_id_pointer_create(tselem->id);
         context = BCONTEXT_MODIFIER;
 
         if (tselem->type != TSE_MODIFIER_BASE) {
@@ -1305,7 +1342,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         break;
       case TSE_GPENCIL_EFFECT_BASE:
       case TSE_GPENCIL_EFFECT:
-        RNA_id_pointer_create(tselem->id, &ptr);
+        ptr = RNA_id_pointer_create(tselem->id);
         context = BCONTEXT_SHADERFX;
 
         if (tselem->type != TSE_GPENCIL_EFFECT_BASE) {
@@ -1316,7 +1353,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         bArmature *arm = (bArmature *)tselem->id;
         Bone *bone = static_cast<Bone *>(te->directdata);
 
-        RNA_pointer_create(&arm->id, &RNA_Bone, bone, &ptr);
+        ptr = RNA_pointer_create(&arm->id, &RNA_Bone, bone);
         context = BCONTEXT_BONE;
         break;
       }
@@ -1324,7 +1361,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         bArmature *arm = (bArmature *)tselem->id;
         EditBone *ebone = static_cast<EditBone *>(te->directdata);
 
-        RNA_pointer_create(&arm->id, &RNA_EditBone, ebone, &ptr);
+        ptr = RNA_pointer_create(&arm->id, &RNA_EditBone, ebone);
         context = BCONTEXT_BONE;
         break;
       }
@@ -1333,7 +1370,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         bArmature *arm = static_cast<bArmature *>(ob->data);
         bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
 
-        RNA_pointer_create(&arm->id, &RNA_PoseBone, pchan, &ptr);
+        ptr = RNA_pointer_create(&arm->id, &RNA_PoseBone, pchan);
         context = BCONTEXT_BONE;
         break;
       }
@@ -1341,15 +1378,14 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         Object *ob = (Object *)tselem->id;
         bArmature *arm = static_cast<bArmature *>(ob->data);
 
-        RNA_pointer_create(&arm->id, &RNA_Armature, arm, &ptr);
+        ptr = RNA_pointer_create(&arm->id, &RNA_Armature, arm);
         context = BCONTEXT_DATA;
         break;
       }
-      case TSE_R_LAYER_BASE:
       case TSE_R_LAYER: {
         ViewLayer *view_layer = static_cast<ViewLayer *>(te->directdata);
 
-        RNA_pointer_create(tselem->id, &RNA_ViewLayer, view_layer, &ptr);
+        ptr = RNA_pointer_create(tselem->id, &RNA_ViewLayer, view_layer);
         context = BCONTEXT_VIEW_LAYER;
         break;
       }
@@ -1358,7 +1394,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         Object *ob = (Object *)tselem->id;
         bArmature *arm = static_cast<bArmature *>(ob->data);
 
-        RNA_pointer_create(&arm->id, &RNA_Armature, arm, &ptr);
+        ptr = RNA_pointer_create(&arm->id, &RNA_Armature, arm);
         context = BCONTEXT_DATA;
         break;
       }
@@ -1366,12 +1402,13 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         Object *ob = (Object *)tselem->id;
         ParticleSystem *psys = psys_get_current(ob);
 
-        RNA_pointer_create(&ob->id, &RNA_ParticleSystem, psys, &ptr);
+        ptr = RNA_pointer_create(&ob->id, &RNA_ParticleSystem, psys);
         context = BCONTEXT_PARTICLE;
         break;
       }
       case TSE_GP_LAYER:
-        RNA_id_pointer_create(tselem->id, &ptr);
+      case TSE_GREASE_PENCIL_NODE:
+        ptr = RNA_id_pointer_create(tselem->id);
         context = BCONTEXT_DATA;
         break;
     }
@@ -1418,6 +1455,15 @@ static void do_outliner_item_activate_tree_element(bContext *C,
                                  (extend && tselem->type == TSE_SOME_ID) ? OL_SETSEL_EXTEND :
                                                                            OL_SETSEL_NORMAL,
                                  recursive && tselem->type == TSE_SOME_ID);
+  }
+  else if (recursive && !(space_outliner->flag & SO_SYNC_SELECT)) {
+    /* Selection of child objects in hierarchy when sync-selection is OFF. */
+    tree_iterator::all(te->subtree, [&](TreeElement *te) {
+      TreeStoreElem *tselem = TREESTORE(te);
+      if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
+        tselem->flag |= TSE_SELECTED;
+      }
+    });
   }
 
   if (tselem->type == TSE_SOME_ID) { /* The lib blocks. */
@@ -1489,10 +1535,13 @@ void outliner_item_select(bContext *C,
   const bool activate = select_flag & OL_ITEM_ACTIVATE;
   const bool extend = select_flag & OL_ITEM_EXTEND;
   const bool activate_data = select_flag & OL_ITEM_SELECT_DATA;
+  const bool recursive = select_flag & OL_ITEM_RECURSIVE;
 
   /* Clear previous active when activating and clear selection when not extending selection */
   const short clear_flag = (activate ? TSE_ACTIVE : 0) | (extend ? 0 : TSE_SELECTED);
-  if (clear_flag) {
+
+  /* Do not clear the active and select flag when selecting hierarchies. */
+  if (clear_flag && !recursive) {
     outliner_flag_set(*space_outliner, clear_flag, false);
   }
 
@@ -1507,7 +1556,10 @@ void outliner_item_select(bContext *C,
     TreeViewContext tvc;
     outliner_viewcontext_init(C, &tvc);
 
-    tselem->flag |= TSE_ACTIVE;
+    if (!recursive) {
+      tselem->flag |= TSE_ACTIVE;
+    }
+
     do_outliner_item_activate_tree_element(C,
                                            &tvc,
                                            space_outliner,

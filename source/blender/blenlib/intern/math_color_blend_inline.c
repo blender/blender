@@ -10,7 +10,6 @@
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
 
 #ifndef __MATH_COLOR_BLEND_INLINE_C__
 #  define __MATH_COLOR_BLEND_INLINE_C__

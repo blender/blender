@@ -1,11 +1,14 @@
-
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Geometric shape structures.
  * Some constructors might seems redundant but are here to make the API cleaner and
  * allow for more than one constructor per type.
  */
+
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 
 /* ---------------------------------------------------------------------- */
 /** \name Circle

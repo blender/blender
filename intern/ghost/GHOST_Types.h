@@ -10,6 +10,14 @@
 
 #include <stdint.h>
 
+#ifdef WITH_VULKAN_BACKEND
+#  ifdef __APPLE__
+#    include <MoltenVK/vk_mvk_moltenvk.h>
+#  else
+#    include <vulkan/vulkan.h>
+#  endif
+#endif
+
 /* This is used by `GHOST_C-api.h` too, cannot use C++ conventions. */
 // NOLINTBEGIN: modernize-use-using
 
@@ -107,6 +115,10 @@ typedef enum {
    * Set when there is support for system clipboard copy/paste.
    */
   GHOST_kCapabilityClipboardImages = (1 << 4),
+  /**
+   * Support for sampling a color outside of the Blender windows.
+   */
+  GHOST_kCapabilityDesktopSample = (1 << 5),
 } GHOST_TCapabilityFlag;
 
 /**
@@ -115,7 +127,8 @@ typedef enum {
  */
 #define GHOST_CAPABILITY_FLAG_ALL \
   (GHOST_kCapabilityCursorWarp | GHOST_kCapabilityWindowPosition | \
-   GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityGPUReadFrontBuffer)
+   GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityGPUReadFrontBuffer | \
+   GHOST_kCapabilityClipboardImages | GHOST_kCapabilityDesktopSample)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the
@@ -193,11 +206,13 @@ typedef enum { GHOST_kWindowOrderTop = 0, GHOST_kWindowOrderBottom } GHOST_TWind
 
 typedef enum {
   GHOST_kDrawingContextTypeNone = 0,
+#if defined(WITH_OPENGL_BACKEND)
   GHOST_kDrawingContextTypeOpenGL,
+#endif
 #ifdef WIN32
   GHOST_kDrawingContextTypeD3D,
 #endif
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(WITH_METAL_BACKEND)
   GHOST_kDrawingContextTypeMetal,
 #endif
 #ifdef WITH_VULKAN_BACKEND
@@ -295,7 +310,7 @@ typedef enum {
   GHOST_kEventImeComposition,
   GHOST_kEventImeCompositionEnd,
 
-  GHOST_kNumEventTypes
+#define GHOST_kNumEventTypes (GHOST_kEventImeCompositionEnd + 1)
 } GHOST_TEventType;
 
 typedef enum {
@@ -645,7 +660,7 @@ typedef struct {
   /** The key code. */
   GHOST_TKey key;
 
-  /** The unicode character. if the length is 6, not NULL terminated if all 6 are set. */
+  /** The unicode character. if the length is 6, not nullptr terminated if all 6 are set. */
   char utf8_buf[6];
 
   /**
@@ -683,6 +698,17 @@ typedef struct {
   int flags;
   GHOST_TDrawingContextType context_type;
 } GHOST_GPUSettings;
+
+#ifdef WITH_VULKAN_BACKEND
+typedef struct {
+  /** Image handle to the image that will be presented to the user. */
+  VkImage image;
+  /** Format of the image. */
+  VkFormat format;
+  /** Resolution of the image. */
+  VkExtent2D extent;
+} GHOST_VulkanSwapChainData;
+#endif
 
 typedef enum {
   /** Axis that cursor grab will wrap. */

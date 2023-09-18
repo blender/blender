@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <ostream>  // NOLINT
+#include <iosfwd>
 
 #include "util/string.h"
 #include "util/vector.h"

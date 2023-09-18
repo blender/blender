@@ -9,6 +9,8 @@
  * \brief Blender kernel action and pose functionality.
  */
 
+#include "BLI_compiler_attrs.h"
+
 #include "DNA_listBase.h"
 
 #ifdef __cplusplus
@@ -16,14 +18,15 @@ extern "C" {
 #endif
 
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct bArmature;
 
 /* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */
 struct AnimationEvalContext;
+struct BoneColor;
 struct FCurve;
+struct ID;
 struct Main;
 struct Object;
 struct bAction;
@@ -40,8 +43,9 @@ struct bAction *BKE_action_add(struct Main *bmain, const char name[]);
 
 /* Action API ----------------- */
 
-/* types of transforms applied to the given item
- * - these are the return flags for action_get_item_transforms()
+/**
+ * Types of transforms applied to the given item:
+ * - these are the return flags for #BKE_action_get_item_transform_flags()
  */
 typedef enum eAction_TransformFlags {
   /* location */
@@ -69,29 +73,36 @@ typedef enum eAction_TransformFlags {
  * - if 'curves' is provided, a list of links to these curves are also returned
  *   whose nodes WILL NEED FREEING.
  */
-short action_get_item_transforms(struct bAction *act,
-                                 struct Object *ob,
-                                 struct bPoseChannel *pchan,
-                                 ListBase *curves);
+eAction_TransformFlags BKE_action_get_item_transform_flags(struct bAction *act,
+                                                           struct Object *ob,
+                                                           struct bPoseChannel *pchan,
+                                                           ListBase *curves)
+    ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Calculate the extents of given action.
  */
-void calc_action_range(const struct bAction *act, float *start, float *end, short incl_modifiers);
+void BKE_action_frame_range_calc(const struct bAction *act,
+                                 bool include_modifiers,
+                                 float *r_start,
+                                 float *r_end) ATTR_NONNULL(3, 4);
 
-/* Retrieve the intended playback frame range, using the manually set range if available,
- * or falling back to scanning F-Curves for their first & last frames otherwise. */
-void BKE_action_get_frame_range(const struct bAction *act, float *r_start, float *r_end);
+/**
+ * Retrieve the intended playback frame range, using the manually set range if available,
+ * or falling back to scanning F-Curves for their first & last frames otherwise.
+ */
+void BKE_action_frame_range_get(const struct bAction *act, float *r_start, float *r_end)
+    ATTR_NONNULL(2, 3);
 
 /**
  * Check if the given action has any keyframes.
  */
-bool action_has_motion(const struct bAction *act);
+bool BKE_action_has_motion(const struct bAction *act) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Is the action configured as cyclic.
  */
-bool BKE_action_is_cyclic(const struct bAction *act);
+bool BKE_action_is_cyclic(const struct bAction *act) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Remove all fcurves from the action.
@@ -103,7 +114,7 @@ void BKE_action_fcurves_clear(struct bAction *act);
 /**
  * Get the active action-group for an Action.
  */
-struct bActionGroup *get_active_actiongroup(struct bAction *act);
+struct bActionGroup *get_active_actiongroup(struct bAction *act) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Make the given Action-Group the active one.
@@ -114,6 +125,19 @@ void set_active_action_group(struct bAction *act, struct bActionGroup *agrp, sho
  * Sync colors used for action/bone group with theme settings.
  */
 void action_group_colors_sync(struct bActionGroup *grp, const struct bActionGroup *ref_grp);
+
+/**
+ * Set colors used on this action group.
+ */
+void action_group_colors_set(struct bActionGroup *grp, const struct BoneColor *color);
+
+/**
+ * Set colors used on this action group, using the color of the pose bone.
+ *
+ * If `pchan->color` is set to a non-default color, that is used. Otherwise the
+ * armature bone color is used.
+ */
+void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel *pchan);
 
 /**
  * Add a new action group with the given name to the action>
@@ -160,58 +184,58 @@ void action_groups_clear_tempflags(struct bAction *act);
  * \return `false` when there is no keyframe at all or keys on different points in time, `true`
  * when exactly one point in time is keyed.
  */
-bool BKE_action_has_single_frame(const struct bAction *act);
+bool BKE_action_has_single_frame(const struct bAction *act) ATTR_WARN_UNUSED_RESULT;
 
 /* Pose API ----------------- */
 
-void BKE_pose_channel_free(struct bPoseChannel *pchan);
+void BKE_pose_channel_free(struct bPoseChannel *pchan) ATTR_NONNULL(1);
 /**
  * Deallocates a pose channel.
  * Does not free the pose channel itself.
  */
-void BKE_pose_channel_free_ex(struct bPoseChannel *pchan, bool do_id_user);
+void BKE_pose_channel_free_ex(struct bPoseChannel *pchan, bool do_id_user) ATTR_NONNULL(1);
 
 /**
  * Clears the runtime cache of a pose channel without free.
  */
-void BKE_pose_channel_runtime_reset(struct bPoseChannel_Runtime *runtime);
+void BKE_pose_channel_runtime_reset(struct bPoseChannel_Runtime *runtime) ATTR_NONNULL(1);
 /**
  * Reset all non-persistent fields.
  */
-void BKE_pose_channel_runtime_reset_on_copy(struct bPoseChannel_Runtime *runtime);
+void BKE_pose_channel_runtime_reset_on_copy(struct bPoseChannel_Runtime *runtime) ATTR_NONNULL(1);
 
 /**
  * Deallocates runtime cache of a pose channel
  */
-void BKE_pose_channel_runtime_free(struct bPoseChannel_Runtime *runtime);
+void BKE_pose_channel_runtime_free(struct bPoseChannel_Runtime *runtime) ATTR_NONNULL(1);
 
 /**
  * Deallocates runtime cache of a pose channel's B-Bone shape.
  */
-void BKE_pose_channel_free_bbone_cache(struct bPoseChannel_Runtime *runtime);
+void BKE_pose_channel_free_bbone_cache(struct bPoseChannel_Runtime *runtime) ATTR_NONNULL(1);
 
-void BKE_pose_channels_free(struct bPose *pose);
+void BKE_pose_channels_free(struct bPose *pose) ATTR_NONNULL(1);
 /**
  * Removes and deallocates all channels from a pose.
  * Does not free the pose itself.
  */
-void BKE_pose_channels_free_ex(struct bPose *pose, bool do_id_user);
+void BKE_pose_channels_free_ex(struct bPose *pose, bool do_id_user) ATTR_NONNULL(1);
 
 /**
  * Removes the hash for quick lookup of channels, must be done when adding/removing channels.
  */
-void BKE_pose_channels_hash_ensure(struct bPose *pose);
-void BKE_pose_channels_hash_free(struct bPose *pose);
+void BKE_pose_channels_hash_ensure(struct bPose *pose) ATTR_NONNULL(1);
+void BKE_pose_channels_hash_free(struct bPose *pose) ATTR_NONNULL(1);
 
 /**
  * Selectively remove pose channels.
  */
 void BKE_pose_channels_remove(struct Object *ob,
                               bool (*filter_fn)(const char *bone_name, void *user_data),
-                              void *user_data);
+                              void *user_data) ATTR_NONNULL(1, 2);
 
-void BKE_pose_free_data_ex(struct bPose *pose, bool do_id_user);
-void BKE_pose_free_data(struct bPose *pose);
+void BKE_pose_free_data_ex(struct bPose *pose, bool do_id_user) ATTR_NONNULL(1);
+void BKE_pose_free_data(struct bPose *pose) ATTR_NONNULL(1);
 void BKE_pose_free(struct bPose *pose);
 /**
  * Removes and deallocates all data from a pose, and also frees the pose.
@@ -243,28 +267,30 @@ void BKE_pose_channel_session_uuid_generate(struct bPoseChannel *pchan);
  */
 struct bPoseChannel *BKE_pose_channel_find_name(const struct bPose *pose, const char *name);
 /**
- * Checks if the bone is on a visible armature layer
+ * Checks if the bone is on a visible bone collection
  *
  * \return true if on a visible layer, false otherwise.
  */
-bool BKE_pose_is_layer_visible(const struct bArmature *arm, const struct bPoseChannel *pchan);
+bool BKE_pose_is_bonecoll_visible(const struct bArmature *arm,
+                                  const struct bPoseChannel *pchan) ATTR_WARN_UNUSED_RESULT;
 /**
  * Find the active pose-channel for an object
  *
- * \param check_arm_layer: checks if the bone is on a visible armature layer (this might be skipped
+ * \param check_bonecoll: checks if the bone is on a visible bone collection (this might be skipped
  * (e.g. for "Show Active" from the Outliner).
  * \return #bPoseChannel if found or NULL.
- * \note #Object, not #bPose is used here, as we need info (layer/active bone) from Armature.
+ * \note #Object, not #bPose is used here, as we need info (collection/active bone) from Armature.
  */
-struct bPoseChannel *BKE_pose_channel_active(struct Object *ob, bool check_arm_layer);
+struct bPoseChannel *BKE_pose_channel_active(struct Object *ob, bool check_bonecoll);
 /**
- * Find the active pose-channel for an object if it is on a visible armature layer
- * (calls #BKE_pose_channel_active with check_arm_layer set to true)
+ * Find the active pose-channel for an object if it is on a visible bone collection
+ * (calls #BKE_pose_channel_active with check_bonecoll set to true)
  *
  * \return #bPoseChannel if found or NULL.
- * \note #Object, not #bPose is used here, as we need info (layer/active bone) from Armature.
+ * \note #Object, not #bPose is used here, as we need info (collection/active bone) from Armature.
  */
-struct bPoseChannel *BKE_pose_channel_active_if_layer_visible(struct Object *ob);
+struct bPoseChannel *BKE_pose_channel_active_if_bonecoll_visible(struct Object *ob)
+    ATTR_WARN_UNUSED_RESULT;
 /**
  * Use this when detecting the "other selected bone",
  * when we have multiple armatures in pose mode.
@@ -274,7 +300,8 @@ struct bPoseChannel *BKE_pose_channel_active_if_layer_visible(struct Object *ob)
  * active object is the _real_ active bone, so any other non-active selected bone
  * is a candidate for being the other selected bone, see: #58447.
  */
-struct bPoseChannel *BKE_pose_channel_active_or_first_selected(struct Object *ob);
+struct bPoseChannel *BKE_pose_channel_active_or_first_selected(struct Object *ob)
+    ATTR_WARN_UNUSED_RESULT;
 /**
  * Looks to see if the channel with the given name already exists
  * in this pose - if not a new one is allocated and initialized.
@@ -282,38 +309,39 @@ struct bPoseChannel *BKE_pose_channel_active_or_first_selected(struct Object *ob
  * \note Use with care, not on Armature poses but for temporal ones.
  * \note (currently used for action constraints and in rebuild_pose).
  */
-struct bPoseChannel *BKE_pose_channel_ensure(struct bPose *pose, const char *name);
+struct bPoseChannel *BKE_pose_channel_ensure(struct bPose *pose, const char *name) ATTR_NONNULL(2);
 /**
  * \see #ED_armature_ebone_get_mirrored (edit-mode, matching function)
  */
-struct bPoseChannel *BKE_pose_channel_get_mirrored(const struct bPose *pose, const char *name);
+struct bPoseChannel *BKE_pose_channel_get_mirrored(const struct bPose *pose,
+                                                   const char *name) ATTR_WARN_UNUSED_RESULT;
 
 void BKE_pose_check_uuids_unique_and_report(const struct bPose *pose);
 
 #ifndef NDEBUG
-bool BKE_pose_channels_is_valid(const struct bPose *pose);
+bool BKE_pose_channels_is_valid(const struct bPose *pose) ATTR_WARN_UNUSED_RESULT;
 #endif
 
 /**
  * Checks for IK constraint, Spline IK, and also for Follow-Path constraint.
  * can do more constraints flags later. pose should be entirely OK.
  */
-void BKE_pose_update_constraint_flags(struct bPose *pose);
+void BKE_pose_update_constraint_flags(struct bPose *pose) ATTR_NONNULL(1);
 
 /**
  * Tag constraint flags for update.
  */
-void BKE_pose_tag_update_constraint_flags(struct bPose *pose);
+void BKE_pose_tag_update_constraint_flags(struct bPose *pose) ATTR_NONNULL(1);
 
 /**
  * Return the name of structure pointed by `pose->ikparam`.
  */
-const char *BKE_pose_ikparam_get_name(struct bPose *pose);
+const char *BKE_pose_ikparam_get_name(struct bPose *pose) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Allocate and initialize `pose->ikparam` according to `pose->iksolver`.
  */
-void BKE_pose_ikparam_init(struct bPose *pose);
+void BKE_pose_ikparam_init(struct bPose *pose) ATTR_NONNULL(1);
 
 /**
  * Initialize a #bItasc structure with default value.
@@ -330,17 +358,18 @@ bool BKE_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan)
 /**
  * Adds a new bone-group (name may be NULL).
  */
-struct bActionGroup *BKE_pose_add_group(struct bPose *pose, const char *name);
+struct bActionGroup *BKE_pose_add_group(struct bPose *pose, const char *name) ATTR_NONNULL(1);
 
 /**
  * Remove the given bone-group (expects 'virtual' index (+1 one, used by active_group etc.))
  * index might be invalid ( < 1), in which case it will be find from grp.
  */
-void BKE_pose_remove_group(struct bPose *pose, struct bActionGroup *grp, int index);
+void BKE_pose_remove_group(struct bPose *pose, struct bActionGroup *grp, int index)
+    ATTR_NONNULL(1);
 /**
  * Remove the indexed bone-group (expects 'virtual' index (+1 one, used by active_group etc.)).
  */
-void BKE_pose_remove_group_index(struct bPose *pose, int index);
+void BKE_pose_remove_group_index(struct bPose *pose, int index) ATTR_NONNULL(1);
 
 /* Assorted Evaluation ----------------- */
 
@@ -353,10 +382,10 @@ void what_does_obaction(struct Object *ob,
                         struct bPose *pose,
                         struct bAction *act,
                         char groupname[],
-                        const struct AnimationEvalContext *anim_eval_context);
+                        const struct AnimationEvalContext *anim_eval_context) ATTR_NONNULL(1, 2);
 
-void BKE_pose_copy_pchan_result(struct bPoseChannel *pchanto,
-                                const struct bPoseChannel *pchanfrom);
+void BKE_pose_copy_pchan_result(struct bPoseChannel *pchanto, const struct bPoseChannel *pchanfrom)
+    ATTR_NONNULL(1, 2);
 /**
  * Both poses should be in sync.
  */
@@ -369,16 +398,20 @@ void BKE_pose_rest(struct bPose *pose, bool selected_bones_only);
 /**
  * Tag pose for recalculation. Also tag all related data to be recalculated.
  */
-void BKE_pose_tag_recalc(struct Main *bmain, struct bPose *pose);
+void BKE_pose_tag_recalc(struct Main *bmain, struct bPose *pose) ATTR_NONNULL(1, 2);
 
-void BKE_pose_blend_write(struct BlendWriter *writer, struct bPose *pose, struct bArmature *arm);
-void BKE_pose_blend_read_data(struct BlendDataReader *reader, struct bPose *pose);
-void BKE_pose_blend_read_lib(struct BlendLibReader *reader, struct Object *ob, struct bPose *pose);
-void BKE_pose_blend_read_expand(struct BlendExpander *expander, struct bPose *pose);
+void BKE_pose_blend_write(struct BlendWriter *writer, struct bPose *pose, struct bArmature *arm)
+    ATTR_NONNULL(1, 2, 3);
+void BKE_pose_blend_read_data(struct BlendDataReader *reader,
+                              struct ID *id_owner,
+                              struct bPose *pose) ATTR_NONNULL(1, 2);
+void BKE_pose_blend_read_after_liblink(struct BlendLibReader *reader,
+                                       struct Object *ob,
+                                       struct bPose *pose) ATTR_NONNULL(1, 2);
 
-/* action_mirror.c */
+/* `action_mirror.cc` */
 
-void BKE_action_flip_with_pose(struct bAction *act, struct Object *ob_arm);
+void BKE_action_flip_with_pose(struct bAction *act, struct Object *ob_arm) ATTR_NONNULL(1, 2);
 
 #ifdef __cplusplus
 };

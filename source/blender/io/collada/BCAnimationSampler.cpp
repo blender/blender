@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,7 +26,7 @@
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 
 static std::string EMPTY_STRING;
 static BCAnimationCurveMap BCEmptyAnimationCurves;
@@ -102,7 +102,7 @@ static void add_keyframes_from(bAction *action, BCFrameSet &frameset)
 {
   if (action) {
     FCurve *fcu = nullptr;
-    for (fcu = (FCurve *)action->curves.first; fcu; fcu = fcu->next) {
+    LISTBASE_FOREACH (FCurve *, fcu, &action->curves) {
       BezTriple *bezt = fcu->bezt;
       for (int i = 0; i < fcu->totvert; bezt++, i++) {
         int frame_index = nearbyint(bezt->vec[1][0]);
@@ -154,8 +154,7 @@ BCSample &BCAnimationSampler::sample_object(Object *ob, int frame_index, bool fo
 #endif
 
   if (ob->type == OB_ARMATURE) {
-    bPoseChannel *pchan;
-    for (pchan = (bPoseChannel *)ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       Bone *bone = pchan->bone;
       Matrix bmat;
       if (bc_bone_matrix_local_get(ob, bone, bmat, for_opensim)) {
@@ -222,8 +221,7 @@ bool BCAnimationSampler::is_animated_by_constraint(Object *ob,
                                                    ListBase *conlist,
                                                    std::set<Object *> &animated_objects)
 {
-  bConstraint *con;
-  for (con = (bConstraint *)conlist->first; con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, conlist) {
     ListBase targets = {nullptr, nullptr};
 
     if (!bc_validateConstraints(con)) {
@@ -231,11 +229,10 @@ bool BCAnimationSampler::is_animated_by_constraint(Object *ob,
     }
 
     if (BKE_constraint_targets_get(con, &targets)) {
-      bConstraintTarget *ct;
       Object *obtar;
       bool found = false;
 
-      for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
+      LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
         obtar = ct->tar;
         if (obtar) {
           if (animated_objects.find(obtar) != animated_objects.end()) {
@@ -400,7 +397,7 @@ void BCAnimationSampler::generate_transforms(Object *ob, Bone *bone, BCAnimation
   std::string prep = "pose.bones[\"" + std::string(bone->name) + "\"].";
   generate_transforms(ob, prep, BC_ANIMATION_TYPE_BONE, curves);
 
-  for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+  LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
     generate_transforms(ob, child, curves);
   }
 }
@@ -446,7 +443,7 @@ void BCAnimationSampler::initialize_curves(BCAnimationCurveMap &curves, Object *
   generate_transforms(ob, EMPTY_STRING, object_type, curves);
   if (ob->type == OB_ARMATURE) {
     bArmature *arm = (bArmature *)ob->data;
-    for (Bone *root_bone = (Bone *)arm->bonebase.first; root_bone; root_bone = root_bone->next) {
+    LISTBASE_FOREACH (Bone *, root_bone, &arm->bonebase) {
       generate_transforms(ob, root_bone, curves);
     }
   }

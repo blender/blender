@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -42,44 +42,14 @@ extern "C" {
 /* only used as handle */
 typedef struct Render Render;
 
-/* Buffer of a floating point values which uses implicit sharing.
- *
- * The buffer is allocated by render passes creation, and then is shared with the render result
- * and image buffer.
- *
- * The GPU texture is an optional read-only copy of the render buffer in GPU memory. */
-typedef struct RenderBuffer {
-  float *data;
-  const ImplicitSharingInfoHandle *sharing_info;
-  struct GPUTexture *gpu_texture;
-} RenderBuffer;
-
-/* Specialized render buffer to store 8bpp passes. */
-typedef struct RenderByteBuffer {
-  uint8_t *data;
-  const ImplicitSharingInfoHandle *sharing_info;
-  struct GPUTexture *gpu_texture;
-} RenderByteBuffer;
-
-/* Render Result usage:
- *
- * - render engine allocates/frees and delivers raw floating point rects
- * - right now it's full rects, but might become tiles or file
- * - the display client has to allocate display rects, sort out what to display,
- *   and how it's converted
- */
-
 typedef struct RenderView {
   struct RenderView *next, *prev;
   char name[64]; /* EXR_VIEW_MAXNAME */
 
-  /* if this exists, result of composited layers */
-  RenderBuffer combined_buffer;
-  RenderBuffer z_buffer;
-
-  /* optional, 32 bits version of picture, used for sequencer, OpenGL render and image curves */
-  RenderByteBuffer byte_buffer;
-
+  /* Image buffer of a composited layer or a sequencer output.
+   * The ibuf is only allocated if it has an actual data in one of its buffers (float, byte, or
+   * GPU). */
+  struct ImBuf *ibuf;
 } RenderView;
 
 typedef struct RenderPass {
@@ -88,7 +58,14 @@ typedef struct RenderPass {
   char name[64];   /* amount defined in IMB_openexr.h */
   char chan_id[8]; /* amount defined in IMB_openexr.h */
 
-  RenderBuffer buffer;
+  /* Image buffer which contains data of this pass.
+   *
+   * The data can be either CPU side stored in ibuf->float_buffer, or a GPU-side stored in
+   * ibuf->gpu (during rendering, i.e.).
+   *
+   * The pass data storage is lazily allocated, and until data is actually provided (via either CPU
+   * buffer of GPU texture) the ibuf is not allocated. */
+  struct ImBuf *ibuf;
 
   int rectx, recty;
 
@@ -127,15 +104,10 @@ typedef struct RenderResult {
   /* target image size */
   int rectx, recty;
 
-  /* The following byte, combined, and z buffers are for temporary storage only,
-   * for RenderResult structs created in #RE_AcquireResultImage - which do not have RenderView */
-
-  /* Optional, 32 bits version of picture, used for OpenGL render and image curves. */
-  RenderByteBuffer byte_buffer;
-
-  /* if this exists, a copy of one of layers, or result of composited layers */
-  RenderBuffer combined_buffer;
-  RenderBuffer z_buffer;
+  /* The temporary storage to pass image data from #RE_AcquireResultImage.
+   * Is null pointer when the RenderResult is not coming from the #RE_AcquireResultImage, and is
+   * a pointer to an existing ibuf in either RenderView or a RenderPass otherwise. */
+  struct ImBuf *ibuf;
 
   /* coordinates within final image (after cropping) */
   rcti tilerect;
@@ -188,6 +160,9 @@ struct Scene;
 struct Render *RE_NewSceneRender(const struct Scene *scene);
 struct Render *RE_GetSceneRender(const struct Scene *scene);
 
+struct RenderEngineType;
+struct ViewRender *RE_NewViewRender(struct RenderEngineType *engine_type);
+
 /* Assign default dummy callbacks. */
 
 /**
@@ -202,6 +177,7 @@ void RE_InitRenderCB(struct Render *re);
  * Only call this while you know it will remove the link too.
  */
 void RE_FreeRender(struct Render *re);
+void RE_FreeViewRender(struct ViewRender *view_render);
 /**
  * Only called on exit.
  */
@@ -269,6 +245,7 @@ struct RenderStats *RE_GetStats(struct Render *re);
  * Caller is responsible for allocating `rect` in correct size!
  */
 void RE_ResultGet32(struct Render *re, unsigned int *rect);
+void RE_ResultGetFloat(struct Render *re, float *rect);
 
 void RE_render_result_full_channel_name(char *fullname,
                                         const char *layname,
@@ -287,9 +264,9 @@ void RE_render_result_rect_from_ibuf(struct RenderResult *rr,
 
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, const char *name, const char *viewname);
-RenderBuffer *RE_RenderLayerGetPassBuffer(struct RenderLayer *rl,
-                                          const char *name,
-                                          const char *viewname);
+struct ImBuf *RE_RenderLayerGetPassImBuf(struct RenderLayer *rl,
+                                         const char *name,
+                                         const char *viewname);
 
 bool RE_HasSingleLayer(struct Render *re);
 
@@ -430,6 +407,9 @@ void RE_stats_draw_cb(struct Render *re, void *handle, void (*f)(void *handle, R
 void RE_progress_cb(struct Render *re, void *handle, void (*f)(void *handle, float));
 void RE_draw_lock_cb(struct Render *re, void *handle, void (*f)(void *handle, bool lock));
 void RE_test_break_cb(struct Render *re, void *handle, bool (*f)(void *handle));
+void RE_prepare_viewlayer_cb(struct Render *re,
+                             void *handle,
+                             bool (*f)(void *handle, ViewLayer *vl, struct Depsgraph *depsgraph));
 void RE_current_scene_update_cb(struct Render *re,
                                 void *handle,
                                 void (*f)(void *handle, struct Scene *scene));
@@ -492,6 +472,13 @@ void RE_GetCameraModelMatrix(const struct Render *re,
                              const struct Object *camera,
                              float r_modelmat[4][4]);
 
+void RE_GetWindowMatrixWithOverscan(bool is_ortho,
+                                    float clip_start,
+                                    float clip_end,
+                                    rctf viewplane,
+                                    float overscan,
+                                    float r_winmat[4][4]);
+
 struct Scene *RE_GetScene(struct Render *re);
 void RE_SetScene(struct Render *re, struct Scene *sce);
 
@@ -502,7 +489,7 @@ bool RE_is_rendering_allowed(struct Scene *scene,
 
 bool RE_allow_render_generic_object(struct Object *ob);
 
-/******* defined in render_result.c *********/
+/******* defined in `render_result.cc` *********/
 
 bool RE_HasCombinedLayer(const RenderResult *result);
 bool RE_HasFloatPixels(const RenderResult *result);
@@ -512,42 +499,8 @@ struct RenderView *RE_RenderViewGetByName(struct RenderResult *rr, const char *v
 
 RenderResult *RE_DuplicateRenderResult(RenderResult *rr);
 
-/**
- * Create new render buffer which takes ownership of the given data.
- * Creates an implicit sharing  handle for the data as well. */
-RenderBuffer RE_RenderBuffer_new(float *data);
-
-/**
- * Assign the buffer data.
- *
- * The current buffer data is freed and the new one is assigned, and the implicit sharing for it.
- */
-void RE_RenderBuffer_assign_data(RenderBuffer *render_buffer, float *data);
-
-/**
- * Effectively `lhs = rhs`. The lhs will share the same buffer as the rhs (with an increased user
- * counter).
- *
- * The current content of the lhs is freed.
- * The rhs and its data is allowed to be nullptr, in which case the lhs's data will be nullptr
- * after this call.
- */
-void RE_RenderBuffer_assign_shared(RenderBuffer *lhs, const RenderBuffer *rhs);
-
-/**
- * Free data of the given buffer.
- *
- * The data and implicit sharing information of the buffer is set to nullptr after this call.
- * The buffer itself is not freed.
- */
-void RE_RenderBuffer_data_free(RenderBuffer *render_buffer);
-
-/* Implementation of above, but for byte buffer. */
-/* TODO(sergey): Once everything is C++ we can remove the duplicated API. */
-RenderByteBuffer RE_RenderByteBuffer_new(uint8_t *data);
-void RE_RenderByteBuffer_assign_data(RenderByteBuffer *render_buffer, uint8_t *data);
-void RE_RenderByteBuffer_assign_shared(RenderByteBuffer *lhs, const RenderByteBuffer *rhs);
-void RE_RenderByteBuffer_data_free(RenderByteBuffer *render_buffer);
+struct ImBuf *RE_RenderPassEnsureImBuf(RenderPass *render_pass);
+struct ImBuf *RE_RenderViewEnsureImBuf(const RenderResult *render_result, RenderView *render_view);
 
 #ifdef __cplusplus
 }

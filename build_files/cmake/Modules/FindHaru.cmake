@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021 Blender Foundation
+# SPDX-FileCopyrightText: 2021 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  HARU_LIBRARY, where to find the Haru library.
 
-# If HARU_ROOT_DIR was defined in the environment, use it.
-if(NOT HARU_ROOT_DIR AND NOT $ENV{HARU_ROOT_DIR} STREQUAL "")
+# If `HARU_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED HARU_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{HARU_ROOT_DIR})
   set(HARU_ROOT_DIR $ENV{HARU_ROOT_DIR})
+else()
+  set(HARU_ROOT_DIR "")
 endif()
 
 set(_haru_SEARCH_DIRS

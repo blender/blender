@@ -12,7 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
@@ -23,23 +23,23 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_image.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 #include "IMB_imbuf_types.h"
 
@@ -444,7 +444,7 @@ static bool paint_brush_update(bContext *C,
     }
     /* curve strokes do their own rake calculation */
     else if (!(brush->flag & BRUSH_CURVE)) {
-      if (!paint_calculate_rake_rotation(ups, brush, mouse_init, mode)) {
+      if (!paint_calculate_rake_rotation(ups, brush, mouse_init, mode, stroke->rake_started)) {
         /* Not enough motion to define an angle. */
         if (!stroke->rake_started) {
           is_dry_run = true;
@@ -538,8 +538,8 @@ static void paint_brush_stroke_add_step(
    * windows for some tablets, then we just skip first touch. */
   if (tablet && (pressure >= 0.99f) &&
       ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) ||
-       BKE_brush_use_alpha_pressure(pop->s.brush) ||
-       BKE_brush_use_size_pressure(pop->s.brush))) {
+       BKE_brush_use_alpha_pressure(pop->s.brush) || BKE_brush_use_size_pressure(pop->s.brush)))
+  {
     return;
   }
 
@@ -551,8 +551,8 @@ static void paint_brush_stroke_add_step(
    * which is the sensitivity of the most sensitive pen tablet available */
   if (tablet && (pressure < 0.0002f) &&
       ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) ||
-       BKE_brush_use_alpha_pressure(pop->s.brush) ||
-       BKE_brush_use_size_pressure(pop->s.brush))) {
+       BKE_brush_use_alpha_pressure(pop->s.brush) || BKE_brush_use_size_pressure(pop->s.brush)))
+  {
     return;
   }
 #endif
@@ -984,7 +984,7 @@ void paint_stroke_free(bContext *C, wmOperator * /*op*/, PaintStroke *stroke)
   ups->stroke_active = false;
 
   if (stroke->timer) {
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
+    WM_event_timer_remove(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
   }
 
   if (stroke->rng) {
@@ -1048,6 +1048,11 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
   if (mode == PAINT_MODE_SCULPT_CURVES &&
       !curves_sculpt_brush_uses_spacing(eBrushCurvesSculptTool(br->curves_sculpt_tool)))
   {
+    return false;
+  }
+
+  if (mode == PAINT_MODE_GPENCIL) {
+    /* No spacing needed for now. */
     return false;
   }
 
@@ -1513,7 +1518,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
 
     if (stroke->stroke_started) {
       if (br->flag & BRUSH_AIRBRUSH) {
-        stroke->timer = WM_event_add_timer(
+        stroke->timer = WM_event_timer_add(
             CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
       }
 
@@ -1570,7 +1575,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
       {
         copy_v2_v2(stroke->ups->last_rake, stroke->last_mouse_position);
       }
-      paint_calculate_rake_rotation(stroke->ups, br, mouse, mode);
+      paint_calculate_rake_rotation(stroke->ups, br, mouse, mode, true);
     }
   }
   else if (first_modal ||
@@ -1606,20 +1611,21 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     redraw = true;
   }
 
-  /* do updates for redraw. if event is in between mouse-move there are more
-   * coming, so postpone potentially slow redraw updates until all are done */
+  /* Don't update the paint cursor in #INBETWEEN_MOUSEMOVE events. */
   if (event->type != INBETWEEN_MOUSEMOVE) {
     wmWindow *window = CTX_wm_window(C);
     ARegion *region = CTX_wm_region(C);
 
-    /* At the very least, invalidate the cursor */
     if (region && (p->flags & PAINT_SHOW_BRUSH)) {
       WM_paint_cursor_tag_redraw(window, region);
     }
+  }
 
-    if (redraw && stroke->redraw) {
-      stroke->redraw(C, stroke, false);
-    }
+  /* Draw for all events (even in between) otherwise updating the brush
+   * display is noticeably delayed.
+   */
+  if (redraw && stroke->redraw) {
+    stroke->redraw(C, stroke, false);
   }
 
   return OPERATOR_RUNNING_MODAL;

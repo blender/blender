@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Blender Foundation
+/* SPDX-FileCopyrightText: Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,10 @@
  */
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct Depsgraph;
 struct GpencilModifierData;
@@ -36,9 +40,9 @@ bool is_stroke_affected_by_modifier(struct Object *ob,
 /**
  * Verify if valid vertex group *and return weight.
  */
-float get_modifier_point_weight(struct MDeformVert *dvert, bool inverse, int def_nr);
+float get_modifier_point_weight(const struct MDeformVert *dvert, bool inverse, int def_nr);
 /**
- * Generic bake function for deformStroke.
+ * Generic bake function for deform_stroke.
  */
 typedef void (*gpBakeCb)(struct GpencilModifierData *md_,
                          struct Depsgraph *depsgraph_,
@@ -52,3 +56,7 @@ void generic_bake_deform_stroke(struct Depsgraph *depsgraph,
                                 struct Object *ob,
                                 bool retime,
                                 gpBakeCb bake_cb);
+
+#ifdef __cplusplus
+}
+#endif

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Compute visibility of each resource bounds for a given view.
@@ -23,7 +26,7 @@ void mask_visibility_bit(uint view_id)
 
 void main()
 {
-  if (gl_GlobalInvocationID.x >= resource_len) {
+  if (int(gl_GlobalInvocationID.x) >= resource_len) {
     return;
   }
 
@@ -38,7 +41,7 @@ void main()
     Sphere inscribed_sphere = shape_sphere(bounds.bounding_sphere.xyz,
                                            bounds._inner_sphere_radius);
 
-    for (drw_view_id = 0; drw_view_id < view_len; drw_view_id++) {
+    for (drw_view_id = 0u; drw_view_id < uint(view_len); drw_view_id++) {
       if (drw_view_culling.bound_sphere.w == -1.0) {
         /* View disabled. */
         mask_visibility_bit(drw_view_id);

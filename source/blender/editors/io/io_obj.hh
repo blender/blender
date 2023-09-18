@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,5 +10,5 @@
 
 struct wmOperatorType;
 
-void WM_OT_obj_export(struct wmOperatorType *ot);
-void WM_OT_obj_import(struct wmOperatorType *ot);
+void WM_OT_obj_export(wmOperatorType *ot);
+void WM_OT_obj_import(wmOperatorType *ot);

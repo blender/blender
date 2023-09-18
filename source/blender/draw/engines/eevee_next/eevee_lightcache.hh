@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -25,7 +27,7 @@ struct EEVEE_NEXT_LightBake;
 
 /**
  * Create the job description.
- * This is called for async (modal) bake operator.
+ * This is called for asynchronous (modal) bake operator.
  * The actual work will be done by `EEVEE_NEXT_lightbake_job()`.
  * IMPORTANT: Must run on the main thread because of potential GPUContext creation.
  */

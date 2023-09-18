@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -29,7 +29,7 @@ enum TransformType {
 #define COLORSPACE_SRGB ((OCIO_ConstColorSpaceRcPtr *)2)
 #define COLORSPACE_DATA ((OCIO_ConstColorSpaceRcPtr *)3)
 
-typedef struct OCIO_PackedImageDescription {
+struct OCIO_PackedImageDescription {
   float *data;
   long width;
   long height;
@@ -37,7 +37,7 @@ typedef struct OCIO_PackedImageDescription {
   long chanStrideBytes;
   long xStrideBytes;
   long yStrideBytes;
-} OCIO_PackedImageDescription;
+};
 
 struct FallbackTransform {
   FallbackTransform() : type(TRANSFORM_UNKNOWN), scale(1.0f), exponent(1.0f) {}
@@ -77,6 +77,12 @@ struct FallbackTransform {
     applyRGB(pixel);
   }
 
+  bool isNoOp()
+  {
+    /* Rely on the short-circuiting based on name-space comparison in the IMB_colormanagement. */
+    return false;
+  }
+
   TransformType type;
   /* Scale transform. */
   float scale;
@@ -97,6 +103,11 @@ struct FallbackProcessor {
   void applyRGBA(float *pixel)
   {
     transform.applyRGBA(pixel);
+  }
+
+  bool isNoOp()
+  {
+    return transform.isNoOp();
   }
 
   FallbackTransform transform;
@@ -335,6 +346,11 @@ OCIO_ConstCPUProcessorRcPtr *FallbackImpl::processorGetCPUProcessor(
 void FallbackImpl::processorRelease(OCIO_ConstProcessorRcPtr *processor)
 {
   delete (FallbackProcessor *)(processor);
+}
+
+bool FallbackImpl::cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor)
+{
+  return ((FallbackProcessor *)cpu_processor)->isNoOp();
 }
 
 void FallbackImpl::cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor,

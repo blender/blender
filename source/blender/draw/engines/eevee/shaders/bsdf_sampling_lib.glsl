@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2021 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Sampling distribution routines for Monte-carlo integration.
@@ -16,9 +19,9 @@ float pdf_ggx_reflect(float NH, float NV, float VH, float alpha)
 {
   float a2 = sqr(alpha);
 #if USE_VISIBLE_NORMAL
-  float D = a2 / D_ggx_opti(NH, a2);
-  float G1 = NV * 2.0 / G1_Smith_GGX_opti(NV, a2);
-  return G1 * VH * D / NV;
+  float D = bxdf_ggx_D(NH, a2);
+  float G1 = bxdf_ggx_smith_G1(NV, a2);
+  return 0.25 * D * G1 / NV;
 #else
   return NH * a2 / D_ggx_opti(NH, a2);
 #endif

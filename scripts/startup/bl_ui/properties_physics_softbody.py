@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -34,8 +34,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -55,8 +54,7 @@ class PHYSICS_PT_softbody_object(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -88,8 +86,7 @@ class PHYSICS_PT_softbody_simulation(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -111,8 +108,7 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         md = context.soft_body
@@ -127,8 +123,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         softbody = context.soft_body.settings
@@ -157,8 +152,7 @@ class PHYSICS_PT_softbody_goal_strengths(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -188,8 +182,7 @@ class PHYSICS_PT_softbody_goal_settings(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -216,8 +209,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         softbody = context.soft_body.settings
@@ -272,8 +264,7 @@ class PHYSICS_PT_softbody_edge_aerodynamics(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -300,8 +291,7 @@ class PHYSICS_PT_softbody_edge_stiffness(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         softbody = context.soft_body.settings
@@ -329,8 +319,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         softbody = context.soft_body.settings
@@ -369,8 +358,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -399,8 +387,7 @@ class PHYSICS_PT_softbody_solver_diagnostics(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -423,8 +410,7 @@ class PHYSICS_PT_softbody_solver_helpers(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -451,8 +437,7 @@ class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         md = context.soft_body

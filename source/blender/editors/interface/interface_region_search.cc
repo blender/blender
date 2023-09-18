@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,8 +18,6 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_math.h"
-
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -28,18 +26,18 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_view2d.hh"
 
 #include "BLT_translation.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "GPU_state.h"
 #include "interface_intern.hh"

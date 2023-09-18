@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,6 +14,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -236,19 +237,21 @@ static void store_bsdf_properties(const bNode *bsdf_node,
   mul_v3_fl(emission_col, emission_strength);
 
   float sheen = -1.0f;
-  float clearcoat = -1.0f;
-  float clearcoat_roughness = -1.0f;
+  float coat = -1.0f;
+  float coat_roughness = -1.0f;
   float aniso = -1.0f;
   float aniso_rot = -1.0f;
   float transmission = -1.0f;
   if (bsdf_node) {
     copy_property_from_node(SOCK_FLOAT, bsdf_node, "Sheen", {&sheen, 1});
-    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Clearcoat", {&clearcoat, 1});
-    copy_property_from_node(
-        SOCK_FLOAT, bsdf_node, "Clearcoat Roughness", {&clearcoat_roughness, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Coat", {&coat, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Coat Roughness", {&coat_roughness, 1});
     copy_property_from_node(SOCK_FLOAT, bsdf_node, "Anisotropic", {&aniso, 1});
     copy_property_from_node(SOCK_FLOAT, bsdf_node, "Anisotropic Rotation", {&aniso_rot, 1});
     copy_property_from_node(SOCK_FLOAT, bsdf_node, "Transmission", {&transmission, 1});
+
+    /* Clearcoat used to include an implicit 0.25 factor, so stay compatible to old versions. */
+    coat *= 4.0f;
   }
 
   /* See https://wikipedia.org/wiki/Wavefront_.obj_file for all possible values of `illum`. */
@@ -289,8 +292,8 @@ static void store_bsdf_properties(const bNode *bsdf_node,
   r_mtl_mat.roughness = roughness;
   r_mtl_mat.metallic = metallic;
   r_mtl_mat.sheen = sheen;
-  r_mtl_mat.cc_thickness = clearcoat;
-  r_mtl_mat.cc_roughness = clearcoat_roughness;
+  r_mtl_mat.cc_thickness = coat;
+  r_mtl_mat.cc_roughness = coat_roughness;
   r_mtl_mat.aniso = aniso;
   r_mtl_mat.aniso_rot = aniso_rot;
   r_mtl_mat.transmit_color = {transmission, transmission, transmission};

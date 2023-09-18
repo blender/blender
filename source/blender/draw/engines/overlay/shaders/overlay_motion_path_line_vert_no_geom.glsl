@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 6)
 
@@ -34,7 +37,7 @@ void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_
   float intensity; /* how faint */
   vec3 blend_base = (abs(frame - frameCurrent) == 0) ?
                         colorCurrentFrame.rgb :
-                        colorBackground.rgb; /* "bleed" cframe color to ease color blending */
+                        colorBackground.rgb; /* "bleed" CFRAME color to ease color blending. */
   bool use_custom_color = customColor.x >= 0.0;
   /* TODO: We might want something more consistent with custom color and standard colors. */
   if (frame < frameCurrent) {
@@ -120,8 +123,8 @@ void main()
   do_vertex_shader(out_pos0, base_vertex_id, ssPos[0], finalColor_geom[0]);
   do_vertex_shader(out_pos1, base_vertex_id + 1, ssPos[1], finalColor_geom[1]);
 
-  /* Geometry shader alternative -- Output is trianglelist consisting of 6 vertices.
-   * Each vertex shader invocation is one vertex in the output primitive, so outptut
+  /* Geometry shader alternative -- Output is triangle-list consisting of 6 vertices.
+   * Each vertex shader invocation is one vertex in the output primitive, so output
    * required ID. */
   vec2 t;
   vec2 edge_dir = compute_dir(ssPos[0], ssPos[1]) * sizeViewportInv;

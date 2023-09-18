@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,12 +9,16 @@
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_math_vector.h"
+#include "BLI_string.h"
+
 #include "BKE_context.h"
 #include "BKE_node_runtime.hh"
 
+#include "IMB_colormanagement.h"
+
 #include "node_shader_util.hh"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RE_engine.h"
@@ -50,7 +54,6 @@ void sh_node_type_base(bNodeType *ntype, int type, const char *name, short nclas
   ntype->poll = sh_node_poll_default;
   ntype->insert_link = node_insert_link_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 }
 
 void sh_fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
@@ -58,7 +61,6 @@ void sh_fn_node_type_base(bNodeType *ntype, int type, const char *name, short nc
   sh_node_type_base(ntype, type, name, nclass);
   ntype->poll = sh_fn_poll_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
-  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 }
 
 bool line_style_shader_nodes_poll(const bContext *C)
@@ -204,9 +206,12 @@ static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeS
 
 static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNodeStack *gs)
 {
-  int i;
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, i) {
-    node_data_from_gpu_stack(ns[i], &gs[i]);
+  int i = 0;
+  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
+    if (ELEM(socket->type, SOCK_FLOAT, SOCK_INT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER)) {
+      node_data_from_gpu_stack(ns[i], &gs[i]);
+      i++;
+    }
   }
 }
 

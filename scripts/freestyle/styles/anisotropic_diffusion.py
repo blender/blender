@@ -1,8 +1,7 @@
-# SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2008-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : anisotropic_diffusion.py
 #  Author   : Fredo Durand
 #  Date     : 12/08/2004
 #  Purpose  : Smooth lines using an anisotropic diffusion scheme

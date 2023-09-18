@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,14 +13,14 @@ struct View3D;
 struct bContext;
 struct wmOperatorType;
 
-void WM_OT_gpencil_import_svg(struct wmOperatorType *ot);
+void WM_OT_gpencil_import_svg(wmOperatorType *ot);
 
 #ifdef WITH_PUGIXML
-void WM_OT_gpencil_export_svg(struct wmOperatorType *ot);
+void WM_OT_gpencil_export_svg(wmOperatorType *ot);
 #endif
 #ifdef WITH_HARU
-void WM_OT_gpencil_export_pdf(struct wmOperatorType *ot);
+void WM_OT_gpencil_export_pdf(wmOperatorType *ot);
 #endif
 
-struct ARegion *get_invoke_region(struct bContext *C);
-struct View3D *get_invoke_view3d(struct bContext *C);
+ARegion *get_invoke_region(bContext *C);
+View3D *get_invoke_view3d(bContext *C);

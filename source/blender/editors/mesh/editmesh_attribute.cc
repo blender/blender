@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,25 +18,25 @@
 #include "BKE_report.h"
 #include "BKE_type_conversions.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
+#include "ED_view3d.hh"
 
 #include "BLT_translation.h"
 
 #include "DNA_object_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "bmesh_tools.h"
 
@@ -363,7 +363,7 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
   const eCustomDataType active_type = eCustomDataType(active_attribute->type);
   const StringRefNull prop_name = rna_property_name_for_type(active_type);
   const char *name = active_attribute->name;
-  uiItemR(layout, op->ptr, prop_name.c_str(), 0, name, ICON_NONE);
+  uiItemR(layout, op->ptr, prop_name.c_str(), UI_ITEM_NONE, name, ICON_NONE);
 }
 
 }  // namespace set_attribute

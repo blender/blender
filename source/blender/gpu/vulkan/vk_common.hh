@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,6 +19,7 @@
 #include "vk_mem_alloc.h"
 
 #include "gpu_index_buffer_private.hh"
+#include "gpu_shader_create_info.hh"
 #include "gpu_texture_private.hh"
 
 namespace blender::gpu {
@@ -38,11 +39,15 @@ enum class eImageViewUsage {
 };
 
 VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat format);
+VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers);
 VkFormat to_vk_format(const eGPUTextureFormat format);
+eGPUTextureFormat to_gpu_format(const VkFormat format);
 VkFormat to_vk_format(const GPUVertCompType type,
                       const uint32_t size,
                       const GPUVertFetchMode fetch_mode);
-VkComponentMapping to_vk_component_mapping(const eGPUTextureFormat format);
+VkFormat to_vk_format(const shader::Type type);
+
+VkComponentSwizzle to_vk_component_swizzle(const char swizzle);
 VkImageViewType to_vk_image_view_type(const eGPUTextureType type, eImageViewUsage view_type);
 VkImageType to_vk_image_type(const eGPUTextureType type);
 VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const void *data);

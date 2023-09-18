@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -171,7 +171,8 @@ static Array<float> calculate_point_parameters(const bke::CurvesGeometry &curves
 
 class CurveParameterFieldInput final : public bke::CurvesFieldInput {
  public:
-  CurveParameterFieldInput() : bke::CurvesFieldInput(CPPType::get<float>(), "Curve Parameter node")
+  CurveParameterFieldInput()
+      : bke::CurvesFieldInput(CPPType::get<float>(), "Spline Parameter node")
   {
     category_ = Category::Generated;
   }
@@ -290,16 +291,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Index", std::move(index_on_spline_field));
 }
 
-}  // namespace blender::nodes::node_geo_curve_spline_parameter_cc
-
-void register_node_type_geo_curve_spline_parameter()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_spline_parameter_cc;
-
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_SPLINE_PARAMETER, "Spline Parameter", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_spline_parameter_cc

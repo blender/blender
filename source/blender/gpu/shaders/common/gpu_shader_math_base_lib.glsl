@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* WORKAROUND: to guard against double include in EEVEE. */
 #ifndef GPU_SHADER_MATH_BASE_LIB_GLSL
@@ -57,7 +60,19 @@ uint square_uint(uint v)
 {
   return v * v;
 }
-float square_f(float v)
+float square(float v)
+{
+  return v * v;
+}
+vec2 square(vec2 v)
+{
+  return v * v;
+}
+vec3 square(vec3 v)
+{
+  return v * v;
+}
+vec4 square(vec4 v)
 {
   return v * v;
 }

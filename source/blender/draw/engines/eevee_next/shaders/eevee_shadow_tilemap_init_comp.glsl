@@ -1,10 +1,13 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Setup phase for tilemaps.
+ * Virtual shadow-mapping: Setup phase for tile-maps.
  *
  * Clear the usage flag.
- * Also tag for update shifted tiles for directional shadow clipmaps.
- * Dispatched with one local thread per LOD0 tile and one workgroup per tilemap.
+ * Also tag for update shifted tiles for directional shadow clip-maps.
+ * Dispatched with one local thread per LOD0 tile and one work-group per tile-map.
  */
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
@@ -36,36 +39,47 @@ void main()
     /* Reset shift to not tag for update more than once per sync cycle. */
     tilemaps_buf[tilemap_index].grid_shift = ivec2(0);
 
-    if (tilemap.projection_type != SHADOW_PROJECTION_CUBEFACE) {
-      int clip_index = tilemap.clip_data_index;
+    directional_range_changed = 0;
+
+    int clip_index = tilemap.clip_data_index;
+    if (clip_index == -1) {
+      /* NOP. This is the case for unused tile-maps that are getting pushed to the free heap. */
+    }
+    else if (tilemap.projection_type != SHADOW_PROJECTION_CUBEFACE) {
       ShadowTileMapClip clip_data = tilemaps_clip_buf[clip_index];
       float clip_near_new = orderedIntBitsToFloat(clip_data.clip_near);
       float clip_far_new = orderedIntBitsToFloat(clip_data.clip_far);
       bool near_changed = clip_near_new != clip_data.clip_near_stored;
       bool far_changed = clip_far_new != clip_data.clip_far_stored;
       directional_range_changed = int(near_changed || far_changed);
-      /* NOTE(fclem): This assumes clip near/far are computed each time the init phase runs. */
+      /* NOTE(fclem): This assumes clip near/far are computed each time the initial phase runs. */
       tilemaps_clip_buf[clip_index].clip_near_stored = clip_near_new;
       tilemaps_clip_buf[clip_index].clip_far_stored = clip_far_new;
       /* Reset for next update. */
-      tilemaps_clip_buf[clip_index].clip_near = floatBitsToOrderedInt(-FLT_MAX);
-      tilemaps_clip_buf[clip_index].clip_far = floatBitsToOrderedInt(FLT_MAX);
+      tilemaps_clip_buf[clip_index].clip_near = floatBitsToOrderedInt(FLT_MAX);
+      tilemaps_clip_buf[clip_index].clip_far = floatBitsToOrderedInt(-FLT_MAX);
+    }
+    else {
+      /* For cube-faces, simply use the light near and far distances. */
+      tilemaps_clip_buf[clip_index].clip_near_stored = tilemap.clip_near;
+      tilemaps_clip_buf[clip_index].clip_far_stored = tilemap.clip_far;
     }
   }
 
   barrier();
 
   ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 tile_shifted = tile_co + tilemap.grid_shift;
-  /* Ensure value is shifted into positive range to avoid modulo on negative. */
+  ivec2 tile_shifted = tile_co + clamp(tilemap.grid_shift,
+                                       ivec2(-SHADOW_TILEMAP_RES),
+                                       ivec2(SHADOW_TILEMAP_RES));
   ivec2 tile_wrapped = ivec2((ivec2(SHADOW_TILEMAP_RES) + tile_shifted) % SHADOW_TILEMAP_RES);
 
   /* If this tile was shifted in and contains old information, update it.
-   * Note that cubemap always shift all tiles on update. */
+   * Note that cube-map always shift all tiles on update. */
   bool do_update = !in_range_inclusive(tile_shifted, ivec2(0), ivec2(SHADOW_TILEMAP_RES - 1));
 
   /* TODO(fclem): Might be better to resize the depth stored instead of a full render update. */
-  if (tilemap.projection_type != SHADOW_PROJECTION_CUBEFACE && directional_range_changed != 0) {
+  if (directional_range_changed != 0) {
     do_update = true;
   }
 
@@ -85,7 +99,7 @@ void main()
     if (thread_active) {
       int tile_store = shadow_tile_offset(tile_co, tilemap.tiles_index, lod);
       if ((tile_load != tile_store) && flag_test(tile, SHADOW_IS_CACHED)) {
-        /* Inlining of shadow_page_cache_update_tile_ref to avoid buffer depedencies. */
+        /* Inlining of shadow_page_cache_update_tile_ref to avoid buffer dependencies. */
         pages_cached_buf[shadow_tile_unpack(tile).cache_index].y = tile_store;
       }
       tiles_buf[tile_store] = tile;

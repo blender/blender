@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -25,9 +25,9 @@ using namespace Freestyle;
 PyDoc_STRVAR(ViewVertex_doc,
              "Class hierarchy: :class:`Interface0D` > :class:`ViewVertex`\n"
              "\n"
-             "Class to define a view vertex.  A view vertex is a feature vertex\n"
+             "Class to define a view vertex. A view vertex is a feature vertex\n"
              "corresponding to a point of the image graph, where the characteristics\n"
-             "of an edge (e.g., nature and visibility) might change.  A\n"
+             "of an edge (e.g., nature and visibility) might change. A\n"
              ":class:`ViewVertex` can be of two kinds: A :class:`TVertex` when it\n"
              "corresponds to the intersection between two ViewEdges or a\n"
              ":class:`NonTVertex` when it corresponds to a vertex of the initial\n"
@@ -151,7 +151,8 @@ static PyGetSetDef BPy_ViewVertex_getseters[] = {
 /*-----------------------BPy_ViewVertex type definition ------------------------------*/
 
 PyTypeObject ViewVertex_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "ViewVertex",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "ViewVertex",
     /*tp_basicsize*/ sizeof(BPy_ViewVertex),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -187,7 +188,7 @@ PyTypeObject ViewVertex_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)ViewVertex_init,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

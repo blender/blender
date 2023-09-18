@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,25 +13,26 @@
 
 #include "BLI_lasso_2d.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_tracking.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_clip.h"
-#include "ED_mask.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
+#include "ED_clip.hh"
+#include "ED_mask.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "DEG_depsgraph.h"
 
@@ -42,7 +43,7 @@
 /** \name Point track marker picking.
  * \{ */
 
-BLI_INLINE PointTrackPick point_track_pick_make_null(void)
+BLI_INLINE PointTrackPick point_track_pick_make_null()
 {
   PointTrackPick pick = {nullptr};
 
@@ -355,7 +356,7 @@ bool ed_tracking_point_track_pick_can_slide(const SpaceClip *space_clip,
 /** \name Plane track marker picking.
  * \{ */
 
-BLI_INLINE PlaneTrackPick plane_track_pick_make_null(void)
+BLI_INLINE PlaneTrackPick plane_track_pick_make_null()
 {
   PlaneTrackPick result = {nullptr};
 
@@ -458,7 +459,7 @@ bool ed_tracking_plane_track_pick_can_slide(const PlaneTrackPick *pick)
 /** \name Pick closest point or plane track.
  * \{ */
 
-BLI_INLINE TrackingPick tracking_pick_make_null(void)
+BLI_INLINE TrackingPick tracking_pick_make_null()
 {
   TrackingPick result;
 
@@ -702,7 +703,7 @@ void CLIP_OT_select(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_boolean(ot->srna,
                          "extend",
-                         0,
+                         false,
                          "Extend",
                          "Extend selection rather than clearing the existing selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);

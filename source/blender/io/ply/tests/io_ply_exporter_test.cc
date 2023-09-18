@@ -1,16 +1,18 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "testing/testing.h"
 #include "tests/blendfile_loading_base_test.h"
 
+#include "BLI_string.h"
+
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
 
 #include "DEG_depsgraph.h"
 
-#include "IO_ply.h"
+#include "IO_ply.hh"
 #include "intern/ply_data.hh"
 
 #include "ply_export_data.hh"
@@ -74,7 +76,7 @@ static std::unique_ptr<PlyData> load_cube(PLYExportParams &params)
   plyData->face_vertices = {0, 2, 6, 4, 3, 7, 6, 2, 7, 5, 4, 6,
                             5, 7, 3, 1, 1, 3, 2, 0, 5, 1, 0, 4};
 
-  if (params.export_normals)
+  if (params.export_normals) {
     plyData->vertex_normals = {
         {-0.5773503, -0.5773503, -0.5773503},
         {-0.5773503, -0.5773503, 0.5773503},
@@ -85,6 +87,7 @@ static std::unique_ptr<PlyData> load_cube(PLYExportParams &params)
         {0.5773503, 0.5773503, -0.5773503},
         {0.5773503, 0.5773503, 0.5773503},
     };
+  }
 
   return plyData;
 }

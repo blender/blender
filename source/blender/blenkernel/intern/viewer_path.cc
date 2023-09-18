@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 using blender::IndexRange;
 using blender::StringRef;
@@ -88,6 +88,11 @@ void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_p
         BLO_write_struct(writer, ViewerNodeViewerPathElem, typed_elem);
         break;
       }
+      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
+        const auto *typed_elem = reinterpret_cast<RepeatZoneViewerPathElem *>(elem);
+        BLO_write_struct(writer, RepeatZoneViewerPathElem, typed_elem);
+        break;
+      }
     }
     BLO_write_string(writer, elem->ui_name);
   }
@@ -102,31 +107,13 @@ void BKE_viewer_path_blend_read_data(BlendDataReader *reader, ViewerPath *viewer
       case VIEWER_PATH_ELEM_TYPE_GROUP_NODE:
       case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE:
       case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
+      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE:
       case VIEWER_PATH_ELEM_TYPE_ID: {
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
         auto *typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
         BLO_read_data_address(reader, &typed_elem->modifier_name);
-        break;
-      }
-    }
-  }
-}
-
-void BKE_viewer_path_blend_read_lib(BlendLibReader *reader, ID *self_id, ViewerPath *viewer_path)
-{
-  LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
-    switch (ViewerPathElemType(elem->type)) {
-      case VIEWER_PATH_ELEM_TYPE_ID: {
-        auto *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
-        BLO_read_id_address(reader, self_id, &typed_elem->id);
-        break;
-      }
-      case VIEWER_PATH_ELEM_TYPE_MODIFIER:
-      case VIEWER_PATH_ELEM_TYPE_GROUP_NODE:
-      case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE:
-      case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE: {
         break;
       }
     }
@@ -145,7 +132,8 @@ void BKE_viewer_path_foreach_id(LibraryForeachIDData *data, ViewerPath *viewer_p
       case VIEWER_PATH_ELEM_TYPE_MODIFIER:
       case VIEWER_PATH_ELEM_TYPE_GROUP_NODE:
       case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE:
-      case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE: {
+      case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
+      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
         break;
       }
     }
@@ -164,7 +152,8 @@ void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const IDRemapper *mapping
       case VIEWER_PATH_ELEM_TYPE_MODIFIER:
       case VIEWER_PATH_ELEM_TYPE_GROUP_NODE:
       case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE:
-      case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE: {
+      case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
+      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
         break;
       }
     }
@@ -195,6 +184,9 @@ ViewerPathElem *BKE_viewer_path_elem_new(const ViewerPathElemType type)
     }
     case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE: {
       return &make_elem<ViewerNodeViewerPathElem>(type)->base;
+    }
+    case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
+      return &make_elem<RepeatZoneViewerPathElem>(type)->base;
     }
   }
   BLI_assert_unreachable();
@@ -228,6 +220,12 @@ ViewerNodeViewerPathElem *BKE_viewer_path_elem_new_viewer_node()
 {
   return reinterpret_cast<ViewerNodeViewerPathElem *>(
       BKE_viewer_path_elem_new(VIEWER_PATH_ELEM_TYPE_VIEWER_NODE));
+}
+
+RepeatZoneViewerPathElem *BKE_viewer_path_elem_new_repeat_zone()
+{
+  return reinterpret_cast<RepeatZoneViewerPathElem *>(
+      BKE_viewer_path_elem_new(VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE));
 }
 
 ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src)
@@ -269,6 +267,13 @@ ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src)
       new_elem->node_id = old_elem->node_id;
       break;
     }
+    case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
+      const auto *old_elem = reinterpret_cast<const RepeatZoneViewerPathElem *>(src);
+      auto *new_elem = reinterpret_cast<RepeatZoneViewerPathElem *>(dst);
+      new_elem->repeat_output_node_id = old_elem->repeat_output_node_id;
+      new_elem->iteration = old_elem->iteration;
+      break;
+    }
   }
   return dst;
 }
@@ -304,6 +309,12 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a, const ViewerPathElem *b
       const auto *b_elem = reinterpret_cast<const ViewerNodeViewerPathElem *>(b);
       return a_elem->node_id == b_elem->node_id;
     }
+    case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
+      const auto *a_elem = reinterpret_cast<const RepeatZoneViewerPathElem *>(a);
+      const auto *b_elem = reinterpret_cast<const RepeatZoneViewerPathElem *>(b);
+      return a_elem->repeat_output_node_id == b_elem->repeat_output_node_id &&
+             a_elem->iteration == b_elem->iteration;
+    }
   }
   return false;
 }
@@ -314,7 +325,8 @@ void BKE_viewer_path_elem_free(ViewerPathElem *elem)
     case VIEWER_PATH_ELEM_TYPE_ID:
     case VIEWER_PATH_ELEM_TYPE_GROUP_NODE:
     case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE:
-    case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE: {
+    case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
+    case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
       break;
     }
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {

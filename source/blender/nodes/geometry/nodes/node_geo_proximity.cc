@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,8 +11,10 @@
 #include "BKE_bvhutils.h"
 #include "BKE_geometry_set.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 
@@ -31,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "target_element", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "target_element", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void geo_proximity_init(bNodeTree * /*tree*/, bNode *node)
@@ -95,8 +97,8 @@ static bool calculate_pointcloud_proximity(const VArray<float3> &positions,
                                            MutableSpan<float3> r_locations)
 {
   BVHTreeFromPointCloud bvh_data;
-  BKE_bvhtree_from_pointcloud_get(&bvh_data, &pointcloud, 2);
-  if (bvh_data.tree == nullptr) {
+  const BVHTree *tree = BKE_bvhtree_from_pointcloud_get(&bvh_data, &pointcloud, 2);
+  if (tree == nullptr) {
     return false;
   }
 
@@ -162,12 +164,12 @@ class ProximityFunction : public mf::MultiFunction {
     bool success = false;
     if (target_.has_mesh()) {
       success |= calculate_mesh_proximity(
-          src_positions, mask, *target_.get_mesh_for_read(), type_, distances, positions);
+          src_positions, mask, *target_.get_mesh(), type_, distances, positions);
     }
 
     if (target_.has_pointcloud() && type_ == GEO_NODE_PROX_TARGET_POINTS) {
       success |= calculate_pointcloud_proximity(
-          src_positions, mask, *target_.get_pointcloud_for_read(), distances, positions);
+          src_positions, mask, *target_.get_pointcloud(), distances, positions);
     }
 
     if (!success) {
@@ -208,20 +210,51 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Distance", Field<float>(proximity_op, 1));
 }
 
-}  // namespace blender::nodes::node_geo_proximity_cc
-
-void register_node_type_geo_proximity()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_proximity_cc;
+  static const EnumPropertyItem target_element_items[] = {
+      {GEO_NODE_PROX_TARGET_POINTS,
+       "POINTS",
+       ICON_NONE,
+       "Points",
+       "Calculate the proximity to the target's points (faster than the other modes)"},
+      {GEO_NODE_PROX_TARGET_EDGES,
+       "EDGES",
+       ICON_NONE,
+       "Edges",
+       "Calculate the proximity to the target's edges"},
+      {GEO_NODE_PROX_TARGET_FACES,
+       "FACES",
+       ICON_NONE,
+       "Faces",
+       "Calculate the proximity to the target's faces"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(srna,
+                    "target_element",
+                    "Target Geometry",
+                    "Element of the target geometry to calculate the distance from",
+                    target_element_items,
+                    NOD_storage_enum_accessors(target_element),
+                    GEO_NODE_PROX_TARGET_FACES);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_PROXIMITY, "Geometry Proximity", NODE_CLASS_GEOMETRY);
-  ntype.initfunc = file_ns::geo_proximity_init;
+  ntype.initfunc = geo_proximity_init;
   node_type_storage(
       &ntype, "NodeGeometryProximity", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_proximity_cc

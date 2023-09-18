@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,7 +7,7 @@
 #include "BKE_context.h"
 #include "BKE_node.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 
@@ -30,6 +30,11 @@ void GatherLinkSearchOpParams::add_item(std::string socket_name,
 const bNodeSocket &GatherLinkSearchOpParams::other_socket() const
 {
   return other_socket_;
+}
+
+const SpaceNode &GatherLinkSearchOpParams::space_node() const
+{
+  return snode_;
 }
 
 const bNodeTree &GatherLinkSearchOpParams::node_tree() const
@@ -89,7 +94,7 @@ void LinkSearchOpParams::update_and_connect_available_socket(bNode &new_node,
 }
 
 void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
-                                      Span<SocketDeclarationPtr> declarations)
+                                      Span<SocketDeclaration *> declarations)
 {
   const bNodeType &node_type = params.node_type();
 

@@ -23,8 +23,10 @@
 #  include "GHOST_DropTargetX11.hh"
 #endif
 
-#include "GHOST_ContextEGL.hh"
-#include "GHOST_ContextGLX.hh"
+#ifdef WITH_OPENGL_BACKEND
+#  include "GHOST_ContextEGL.hh"
+#  include "GHOST_ContextGLX.hh"
+#endif
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_ContextVK.hh"
 #endif
@@ -51,7 +53,7 @@
 /* For obscure full screen mode stuff
  * lifted verbatim from blut. */
 
-using MotifWmHints = struct {
+struct MotifWmHints {
   long flags;
   long functions;
   long decorations;
@@ -87,6 +89,7 @@ enum {
 #define _NET_WM_STATE_ADD 1
 // #define _NET_WM_STATE_TOGGLE 2 // UNUSED
 
+#ifdef WITH_OPENGL_BACKEND
 static XVisualInfo *get_x11_visualinfo(Display *display)
 {
   int num_visuals;
@@ -94,6 +97,7 @@ static XVisualInfo *get_x11_visualinfo(Display *display)
   vinfo_template.screen = DefaultScreen(display);
   return XGetVisualInfo(display, VisualScreenMask, &vinfo_template, &num_visuals);
 }
+#endif
 
 GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
                                  Display *display,
@@ -130,10 +134,13 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
       m_valid_setup(false),
       m_is_debug_context(is_debug)
 {
+#ifdef WITH_OPENGL_BACKEND
   if (type == GHOST_kDrawingContextTypeOpenGL) {
     m_visualInfo = get_x11_visualinfo(m_display);
   }
-  else {
+  else
+#endif
+  {
     XVisualInfo tmp = {nullptr};
     int n;
     m_visualInfo = XGetVisualInfo(m_display, 0, &tmp, &n);
@@ -395,8 +402,9 @@ bool GHOST_WindowX11::createX11_XIC()
                     XNDestroyCallback,
                     &destroy,
                     nullptr);
-  if (!m_xic)
+  if (!m_xic) {
     return false;
+  }
 
   ulong fevent;
   XGetICValues(m_xic, XNFilterEvents, &fevent, nullptr);
@@ -1166,152 +1174,77 @@ GHOST_WindowX11::~GHOST_WindowX11()
   }
 }
 
-#ifdef USE_EGL
-static GHOST_Context *create_egl_context(GHOST_SystemX11 *system,
-                                         Window window,
-                                         Display *display,
-                                         bool want_stereo,
-                                         bool debug_context,
-                                         int ver_major,
-                                         int ver_minor)
-{
-  GHOST_Context *context;
-  context = new GHOST_ContextEGL(system,
-                                 want_stereo,
-                                 EGLNativeWindowType(window),
-                                 EGLNativeDisplayType(display),
-                                 EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                 ver_major,
-                                 ver_minor,
-                                 GHOST_OPENGL_EGL_CONTEXT_FLAGS |
-                                     (debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
-                                 GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                 EGL_OPENGL_API);
-
-  if (context->initializeDrawingContext()) {
-    return context;
-  }
-  delete context;
-
-  return nullptr;
-}
-#endif
-
-static GHOST_Context *create_glx_context(Window window,
-                                         Display *display,
-                                         GLXFBConfig fbconfig,
-                                         bool want_stereo,
-                                         bool debug_context,
-                                         int ver_major,
-                                         int ver_minor)
-{
-  GHOST_Context *context;
-  context = new GHOST_ContextGLX(want_stereo,
-                                 window,
-                                 display,
-                                 fbconfig,
-                                 GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-                                 ver_major,
-                                 ver_minor,
-                                 GHOST_OPENGL_GLX_CONTEXT_FLAGS |
-                                     (debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
-                                 GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
-
-  if (context->initializeDrawingContext()) {
-    return context;
-  }
-  delete context;
-
-  return nullptr;
-}
-
 GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type)
 {
-#if defined(WITH_VULKAN_BACKEND)
-  if (type == GHOST_kDrawingContextTypeVulkan) {
-    GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual,
-                                                 GHOST_kVulkanPlatformX11,
-                                                 m_window,
-                                                 m_display,
-                                                 NULL,
-                                                 NULL,
-                                                 1,
-                                                 2,
-                                                 m_is_debug_context);
-
-    if (!context->initializeDrawingContext()) {
+  switch (type) {
+#ifdef WITH_VULKAN_BACKEND
+    case GHOST_kDrawingContextTypeVulkan: {
+      GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual,
+                                                   GHOST_kVulkanPlatformX11,
+                                                   m_window,
+                                                   m_display,
+                                                   nullptr,
+                                                   nullptr,
+                                                   1,
+                                                   2,
+                                                   m_is_debug_context);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
       delete context;
       return nullptr;
     }
-    return context;
-  }
 #endif
 
-  if (type == GHOST_kDrawingContextTypeOpenGL) {
-
-    /* During development:
-     * - Try 4.x compatibility profile.
-     * - Try 3.3 compatibility profile.
-     * - Fall back to 3.0 if needed.
-     *
-     * Final Blender 2.8:
-     * - Try 4.x core profile
-     * - Try 3.3 core profile
-     * - No fall-backs. */
-
-    GHOST_Context *context;
-
-#ifdef USE_EGL
-    /* Try to initialize an EGL context. */
-    for (int minor = 5; minor >= 0; --minor) {
-      context = create_egl_context(
-          this->m_system, m_window, m_display, m_wantStereoVisual, m_is_debug_context, 4, minor);
-      if (context != nullptr) {
-        return context;
+#ifdef WITH_OPENGL_BACKEND
+    case GHOST_kDrawingContextTypeOpenGL: {
+#  ifdef USE_EGL
+      /* Try to initialize an EGL context. */
+      for (int minor = 6; minor >= 3; --minor) {
+        GHOST_Context *context = GHOST_ContextEGL(
+            this->m_system,
+            m_wantStereoVisual,
+            EGLNativeWindowType(m_window),
+            EGLNativeDisplayType(m_display),
+            EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+            4,
+            minor,
+            GHOST_OPENGL_EGL_CONTEXT_FLAGS |
+                (m_is_debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
+            GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+            EGL_OPENGL_API);
+        if (context->initializeDrawingContext()) {
+          return context;
+        }
+        delete context;
       }
-    }
+      /* EGL initialization failed, try to fallback to a GLX context. */
+#  endif
 
-    context = create_egl_context(
-        this->m_system, m_window, m_display, m_wantStereoVisual, m_is_debug_context, 3, 3);
-    if (context != nullptr) {
-      return context;
+      for (int minor = 6; minor >= 3; --minor) {
+        GHOST_Context *context = new GHOST_ContextGLX(
+            m_wantStereoVisual,
+            m_window,
+            m_display,
+            (GLXFBConfig)m_fbconfig,
+            GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+            4,
+            minor,
+            GHOST_OPENGL_GLX_CONTEXT_FLAGS | (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
+            GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
+        if (context->initializeDrawingContext()) {
+          return context;
+        }
+        delete context;
+      }
+      return nullptr;
     }
-
-    /* EGL initialization failed, try to fallback to a GLX context. */
 #endif
-    for (int minor = 5; minor >= 0; --minor) {
-      context = create_glx_context(m_window,
-                                   m_display,
-                                   (GLXFBConfig)m_fbconfig,
-                                   m_wantStereoVisual,
-                                   m_is_debug_context,
-                                   4,
-                                   minor);
-      if (context != nullptr) {
-        return context;
-      }
-    }
-    context = create_glx_context(m_window,
-                                 m_display,
-                                 (GLXFBConfig)m_fbconfig,
-                                 m_wantStereoVisual,
-                                 m_is_debug_context,
-                                 3,
-                                 3);
-    if (context != nullptr) {
-      return context;
-    }
 
-    /* Ugly, but we get crashes unless a whole bunch of systems are patched. */
-    fprintf(stderr, "Error! Unsupported graphics card or driver.\n");
-    fprintf(stderr,
-            "A graphics card and driver with support for OpenGL 3.3 or higher is required.\n");
-    fprintf(stderr, "The program will now close.\n");
-    fflush(stderr);
-    exit(1);
+    default:
+      /* Unsupported backend. */
+      return nullptr;
   }
-
-  return nullptr;
 }
 
 GHOST_TSuccess GHOST_WindowX11::getStandardCursor(GHOST_TStandardCursor g_cursor, Cursor &xcursor)

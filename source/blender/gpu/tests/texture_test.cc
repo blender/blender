@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -63,6 +63,110 @@ static void test_texture_read()
 }
 GPU_TEST(texture_read)
 
+static void test_texture_1d_array()
+{
+  const int LAYERS = 8;
+  const int SIZE = 32;
+  GPU_render_begin();
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  GPUTexture *tex = GPU_texture_create_1d_array(
+      "tex", SIZE, LAYERS, 1, GPU_RGBA32F, usage, nullptr);
+  float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
+  GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
+
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+
+  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  for (int index : IndexRange(SIZE * LAYERS)) {
+    EXPECT_EQ(clear_color, data[index]);
+  }
+  MEM_freeN(data);
+
+  GPU_texture_free(tex);
+
+  GPU_render_end();
+}
+GPU_TEST(texture_1d_array)
+
+static void test_texture_1d_array_upload()
+{
+  const int LAYERS = 8;
+  const int SIZE = 32;
+  GPU_render_begin();
+
+  int total_size = LAYERS * SIZE * 4;
+  float *data_in = (float *)MEM_callocN(sizeof(float) * total_size, __func__);
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  GPUTexture *tex = GPU_texture_create_1d_array(
+      "tex", SIZE, LAYERS, 1, GPU_RGBA32F, usage, data_in);
+
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+
+  void *data_out = GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  GPU_texture_free(tex);
+
+  EXPECT_EQ(memcmp(data_in, data_out, sizeof(float) * total_size), 0);
+  MEM_freeN(data_in);
+  MEM_freeN(data_out);
+
+  GPU_render_end();
+}
+GPU_TEST(texture_1d_array_upload)
+
+static void test_texture_2d_array()
+{
+  const int LAYERS = 8;
+  const int SIZE = 32;
+  GPU_render_begin();
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  GPUTexture *tex = GPU_texture_create_2d_array(
+      "tex", SIZE, SIZE, LAYERS, 1, GPU_RGBA32F, usage, nullptr);
+  float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
+  GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
+
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+
+  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  for (int index : IndexRange(SIZE * SIZE * LAYERS)) {
+    EXPECT_EQ(clear_color, data[index]);
+  }
+  MEM_freeN(data);
+
+  GPU_texture_free(tex);
+
+  GPU_render_end();
+}
+GPU_TEST(texture_2d_array)
+
+static void test_texture_2d_array_upload()
+{
+  const int LAYERS = 8;
+  const int SIZE = 32;
+  GPU_render_begin();
+
+  int total_size = LAYERS * SIZE * SIZE * 4;
+  float *data_in = (float *)MEM_callocN(sizeof(float) * total_size, __func__);
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  GPUTexture *tex = GPU_texture_create_2d_array(
+      "tex", SIZE, SIZE, LAYERS, 1, GPU_RGBA32F, usage, data_in);
+
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+
+  void *data_out = GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  GPU_texture_free(tex);
+
+  EXPECT_EQ(memcmp(data_in, data_out, sizeof(float) * total_size), 0);
+  MEM_freeN(data_in);
+  MEM_freeN(data_out);
+
+  GPU_render_end();
+}
+GPU_TEST(texture_2d_array_upload)
+
 static void test_texture_cube()
 {
   const int SIZE = 32;
@@ -89,18 +193,18 @@ GPU_TEST(texture_cube)
 
 static void test_texture_cube_array()
 {
+  const int LAYERS = 2;
   const int SIZE = 32;
-  const int ARRAY = 2;
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
   GPUTexture *tex = GPU_texture_create_cube_array(
-      "tex", SIZE, ARRAY, 1, GPU_RGBA32F, usage, nullptr);
+      "tex", SIZE, LAYERS, 1, GPU_RGBA32F, usage, nullptr);
   float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
   GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
 
   float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
-  for (int index : IndexRange(SIZE * SIZE * 6 * ARRAY)) {
+  for (int index : IndexRange(SIZE * SIZE * 6 * LAYERS)) {
     EXPECT_EQ(clear_color, data[index]);
   }
   MEM_freeN(data);

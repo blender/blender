@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -347,13 +347,14 @@ static char attr_prefix_get(GPUMaterialAttribute *attr)
   if (attr->is_default_color) {
     return 'c';
   }
+  if (attr->is_hair_length) {
+    return 'l';
+  }
   switch (attr->type) {
     case CD_TANGENT:
       return 't';
     case CD_AUTO_FROM_NAME:
       return 'a';
-    case CD_HAIRLENGTH:
-      return 'l';
     default:
       BLI_assert_msg(0, "GPUVertAttr Prefix type not found : This should not happen!");
       return '\0';
@@ -549,6 +550,21 @@ GPUNodeLink *GPU_attribute_default_color(GPUMaterial *mat)
     return GPU_constant(zero_data);
   }
   attr->is_default_color = true;
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_ATTR;
+  link->attr = attr;
+  return link;
+}
+
+GPUNodeLink *GPU_attribute_hair_length(GPUMaterial *mat)
+{
+  GPUNodeGraph *graph = gpu_material_node_graph(mat);
+  GPUMaterialAttribute *attr = gpu_node_graph_add_attribute(graph, CD_AUTO_FROM_NAME, "", true);
+  if (attr == nullptr) {
+    static const float zero_data[GPU_MAX_CONSTANT_DATA] = {0.0f};
+    return GPU_constant(zero_data);
+  }
+  attr->is_hair_length = true;
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_ATTR;
   link->attr = attr;
@@ -815,9 +831,7 @@ bool GPU_stack_link(GPUMaterial *material,
 
 static void gpu_inputs_free(ListBase *inputs)
 {
-  GPUInput *input;
-
-  for (input = static_cast<GPUInput *>(inputs->first); input; input = input->next) {
+  LISTBASE_FOREACH (GPUInput *, input, inputs) {
     switch (input->source) {
       case GPU_SOURCE_ATTR:
         input->attr->users--;
@@ -846,11 +860,9 @@ static void gpu_inputs_free(ListBase *inputs)
 
 static void gpu_node_free(GPUNode *node)
 {
-  GPUOutput *output;
-
   gpu_inputs_free(&node->inputs);
 
-  for (output = static_cast<GPUOutput *>(node->outputs.first); output; output = output->next) {
+  LISTBASE_FOREACH (GPUOutput *, output, &node->outputs) {
     if (output->link) {
       output->link->output = nullptr;
       gpu_node_link_free(output->link);
@@ -863,9 +875,7 @@ static void gpu_node_free(GPUNode *node)
 
 void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
 {
-  GPUNode *node;
-
-  while ((node = static_cast<GPUNode *>(BLI_pophead(&graph->nodes)))) {
+  while (GPUNode *node = static_cast<GPUNode *>(BLI_pophead(&graph->nodes))) {
     gpu_node_free(node);
   }
 

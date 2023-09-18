@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,7 +32,10 @@ static KDTree_3d *build_kdtree(const Span<float3> positions, const IndexMask &ma
 static int find_nearest_non_self(const KDTree_3d &tree, const float3 &position, const int index)
 {
   return BLI_kdtree_3d_find_nearest_cb_cpp(
-      &tree, position, 0, [index](const int other, const float * /*co*/, const float /*dist_sq*/) {
+      &tree,
+      position,
+      nullptr,
+      [index](const int other, const float * /*co*/, const float /*dist_sq*/) {
         return index == other ? 0 : 1;
       });
 }
@@ -106,9 +109,11 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
 
     if (mask.size() == domain_size) {
       lookup_indices_by_group_id = all_indices_by_group_id;
+      result.reinitialize(domain_size);
     }
     else {
-      IndexMask::from_groups<int>(mask, mask_memory, get_group_index, all_indices_by_group_id);
+      IndexMask::from_groups<int>(mask, mask_memory, get_group_index, lookup_indices_by_group_id);
+      result.reinitialize(mask.min_array_size());
     }
 
     /* The grain size should be larger as each tree gets smaller. */
@@ -239,16 +244,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_index_of_nearest_cc
-
-void register_node_type_geo_index_of_nearest()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_index_of_nearest_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INDEX_OF_NEAREST, "Index of Nearest", NODE_CLASS_CONVERTER);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_index_of_nearest_cc

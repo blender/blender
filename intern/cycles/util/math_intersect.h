@@ -28,7 +28,7 @@ ccl_device bool ray_sphere_intersect(float3 ray_P,
     return false;
   }
 
-  const float d_sin_theta_sq = d_sq - d_cos_theta * d_cos_theta;
+  const float d_sin_theta_sq = len_squared(d_vec - d_cos_theta * ray_D);
 
   if (d_sin_theta_sq > r_sq) {
     /* Closest point on ray outside sphere. */

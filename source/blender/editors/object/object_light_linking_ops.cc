@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2001-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2001-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,18 +11,18 @@
 #include "BKE_context.h"
 #include "BKE_light_linking.h"
 
-#include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_object.hh"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "DNA_collection_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"

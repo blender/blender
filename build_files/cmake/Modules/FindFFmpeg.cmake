@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020 Blender Foundation
+# SPDX-FileCopyrightText: 2020 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -13,9 +13,13 @@
 #  FFMPEG_FOUND, If false, do not try to use FFmpeg.
 #  FFMPEG_<COMPONENT>_LIBRARY, the given individual component libraries.
 
-# If FFMPEG_ROOT_DIR was defined in the environment, use it.
-if(NOT FFMPEG_ROOT_DIR AND NOT $ENV{FFMPEG_ROOT_DIR} STREQUAL "")
+# If `FFMPEG_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED FFMPEG_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{FFMPEG_ROOT_DIR})
   set(FFMPEG_ROOT_DIR $ENV{FFMPEG_ROOT_DIR})
+else()
+  set(FFMPEG_ROOT_DIR "")
 endif()
 
 set(_ffmpeg_SEARCH_DIRS
@@ -69,10 +73,10 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(FFmpeg DEFAULT_MSG
     _ffmpeg_LIBRARIES _ffmpeg_INCLUDE_DIR)
 
-IF(FFMPEG_FOUND)
+if(FFMPEG_FOUND)
   set(FFMPEG_LIBRARIES ${_ffmpeg_LIBRARIES})
   set(FFMPEG_INCLUDE_DIRS ${_ffmpeg_INCLUDE_DIR})
-ENDIF()
+endif()
 
 mark_as_advanced(
   FFMPEG_INCLUDE_DIR

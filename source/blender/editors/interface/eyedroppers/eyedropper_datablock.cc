@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,17 +27,17 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_outliner.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_view3d.h"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_view3d.hh"
 
 #include "eyedropper_intern.hh"
 #include "interface_intern.hh"
@@ -137,7 +137,7 @@ static void datadropper_exit(bContext *C, wmOperator *op)
  * \brief get the ID from the 3D view or outliner.
  */
 static void datadropper_id_sample_pt(
-    bContext *C, wmWindow *win, ScrArea *area, DataDropper *ddr, const int m_xy[2], ID **r_id)
+    bContext *C, wmWindow *win, ScrArea *area, DataDropper *ddr, const int event_xy[2], ID **r_id)
 {
   wmWindow *win_prev = CTX_wm_window(C);
   ScrArea *area_prev = CTX_wm_area(C);
@@ -147,9 +147,9 @@ static void datadropper_id_sample_pt(
 
   if (area) {
     if (ELEM(area->spacetype, SPACE_VIEW3D, SPACE_OUTLINER)) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, m_xy);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, event_xy);
       if (region) {
-        const int mval[2] = {m_xy[0] - region->winrct.xmin, m_xy[1] - region->winrct.ymin};
+        const int mval[2] = {event_xy[0] - region->winrct.xmin, event_xy[1] - region->winrct.ymin};
         Base *base;
 
         CTX_wm_window_set(C, win);
@@ -181,8 +181,7 @@ static void datadropper_id_sample_pt(
             }
           }
 
-          PointerRNA idptr;
-          RNA_id_pointer_create(id, &idptr);
+          PointerRNA idptr = RNA_id_pointer_create(id);
 
           if (id && RNA_property_pointer_poll(&ddr->ptr, ddr->prop, &idptr)) {
             SNPRINTF(ddr->name, "%s: %s", ddr->idcode_name, id->name + 2);
@@ -203,9 +202,7 @@ static void datadropper_id_sample_pt(
 /* sets the ID, returns success */
 static bool datadropper_id_set(bContext *C, DataDropper *ddr, ID *id)
 {
-  PointerRNA ptr_value;
-
-  RNA_id_pointer_create(id, &ptr_value);
+  PointerRNA ptr_value = RNA_id_pointer_create(id);
 
   RNA_property_pointer_set(&ddr->ptr, ddr->prop, ptr_value, nullptr);
 
@@ -217,16 +214,16 @@ static bool datadropper_id_set(bContext *C, DataDropper *ddr, ID *id)
 }
 
 /* single point sample & set */
-static bool datadropper_id_sample(bContext *C, DataDropper *ddr, const int m_xy[2])
+static bool datadropper_id_sample(bContext *C, DataDropper *ddr, const int event_xy[2])
 {
   ID *id = nullptr;
 
-  int mval[2];
+  int event_xy_win[2];
   wmWindow *win;
   ScrArea *area;
-  datadropper_win_area_find(C, m_xy, mval, &win, &area);
+  datadropper_win_area_find(C, event_xy, event_xy_win, &win, &area);
 
-  datadropper_id_sample_pt(C, win, area, ddr, mval, &id);
+  datadropper_id_sample_pt(C, win, area, ddr, event_xy_win, &id);
   return datadropper_id_set(C, ddr, id);
 }
 
@@ -288,15 +285,15 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (event->type == MOUSEMOVE) {
     ID *id = nullptr;
 
-    int mval[2];
+    int event_xy_win[2];
     wmWindow *win;
     ScrArea *area;
-    datadropper_win_area_find(C, event->xy, mval, &win, &area);
+    datadropper_win_area_find(C, event->xy, event_xy_win, &win, &area);
 
     /* Set the region for eyedropper cursor text drawing */
     datadropper_set_draw_callback_region(area, ddr);
 
-    datadropper_id_sample_pt(C, win, area, ddr, mval, &id);
+    datadropper_id_sample_pt(C, win, area, ddr, event_xy_win, &id);
   }
 
   return OPERATOR_RUNNING_MODAL;

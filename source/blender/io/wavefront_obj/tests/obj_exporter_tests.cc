@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -17,6 +17,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_index_range.hh"
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 

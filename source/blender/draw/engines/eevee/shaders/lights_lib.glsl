@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(engine_eevee_shared_defines.h)
 #pragma BLENDER_REQUIRE(engine_eevee_legacy_shared.h)
@@ -164,7 +167,7 @@ float sample_cube_shadow(int shadow_id, vec3 P)
   /* TODO: Shadow Cube Array. */
   float face = cubeFaceIndexEEVEE(cubevec);
   vec2 coord = cubeFaceCoordEEVEE(cubevec, face, shadowCubeTexture);
-  /* tex_id == data_id for cube shadowmap */
+  /* `tex_id == data_id` for cube shadow-map. */
   float tex_id = float(data_id);
   return texture(shadowCubeTexture, vec4(coord, tex_id * 6.0 + face, dist));
 }

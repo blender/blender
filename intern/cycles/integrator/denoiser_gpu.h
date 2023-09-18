@@ -45,6 +45,17 @@ class DenoiserGPU : public Denoiser {
     bool allow_inplace_modification;
   };
 
+  /* Make sure the GPU denoiser is created and configured. */
+  virtual bool denoise_ensure(DenoiseContext &context);
+
+  /* Create GPU denoiser descriptor if needed.
+   * Will do nothing if the current GPU descriptor is usable for the given parameters.
+   * If the GPU denoiser descriptor did re-allocate here it is left unconfigured. */
+  virtual bool denoise_create_if_needed(DenoiseContext &context) = 0;
+
+  /* Configure existing GPU denoiser descriptor for the use for the given task. */
+  virtual bool denoise_configure_if_needed(DenoiseContext &context) = 0;
+
   /* Read input color pass from the render buffer into the memory which corresponds to the noisy
    * input within the given context. Pixels are scaled to the number of samples, but are not
    * preprocessed yet. */
@@ -56,10 +67,17 @@ class DenoiserGPU : public Denoiser {
   bool denoise_filter_color_postprocess(const DenoiseContext &context, const DenoisePass &pass);
   bool denoise_filter_guiding_set_fake_albedo(const DenoiseContext &context);
 
+  /* Read guiding passes from the render buffers, preprocess them in a way which is expected by
+   * the GPU denoiser and store in the guiding passes memory within the given context.
+   *
+   * Pre-processing of the guiding passes is to only happen once per context lifetime. DO not
+   * preprocess them for every pass which is being denoised. */
+  bool denoise_filter_guiding_preprocess(const DenoiseContext &context);
+
   void denoise_pass(DenoiseContext &context, PassType pass_type);
 
   /* Returns true if task is fully handled. */
-  virtual bool denoise_buffer(const DenoiseTask & /*task*/) = 0;
+  virtual bool denoise_buffer(const DenoiseTask &task);
   virtual bool denoise_run(const DenoiseContext &context, const DenoisePass &pass) = 0;
 
   virtual Device *ensure_denoiser_device(Progress *progress) override;

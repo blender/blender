@@ -38,9 +38,13 @@
 # GLOG_LIBRARY: glog library, not including the libraries of any
 #               dependencies.
 
-# If GLOG_ROOT_DIR was defined in the environment, use it.
-if(NOT GLOG_ROOT_DIR AND NOT $ENV{GLOG_ROOT_DIR} STREQUAL "")
+# If `GLOG_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED GLOG_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{GLOG_ROOT_DIR})
   set(GLOG_ROOT_DIR $ENV{GLOG_ROOT_DIR})
+else()
+  set(GLOG_ROOT_DIR "")
 endif()
 
 if(DEFINED GLOG_ROOT_DIR)

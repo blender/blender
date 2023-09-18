@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -235,7 +235,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
         # TODO: 1) the template_any_ID needs to be fixed for the text alignment.
         #       2) use_property_decorate has to properly skip the non animatable properties.
         #          Properties affected with needless draw:
-        #          group_method, template_any_ID dropdown, use_entire_array
+        #          group_method, template_any_ID drop-down, use_entire_array.
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation (remove this later on).

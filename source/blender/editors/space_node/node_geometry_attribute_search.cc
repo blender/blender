@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,8 +7,9 @@
 #include "BLI_map.hh"
 #include "BLI_rect.h"
 #include "BLI_set.hh"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
@@ -21,18 +22,17 @@
 #include "BKE_node_tree_zones.hh"
 #include "BKE_object.h"
 
-#include "RNA_access.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
-#include "ED_node.h"
-#include "ED_screen.h"
-#include "ED_undo.h"
+#include "ED_node.hh"
+#include "ED_screen.hh"
+#include "ED_undo.hh"
 
 #include "BLT_translation.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "NOD_geometry_nodes_log.hh"
 
@@ -144,10 +144,6 @@ static void attribute_search_update_fn(
  */
 static eCustomDataType data_type_in_attribute_input_node(const eCustomDataType type)
 {
-  if (!U.experimental.use_rotation_socket && type == CD_PROP_QUATERNION) {
-    /* Invalid type, no implicit conversions available. */
-    return CD_PROP_BOOL;
-  }
   switch (type) {
     case CD_PROP_FLOAT:
     case CD_PROP_INT32:

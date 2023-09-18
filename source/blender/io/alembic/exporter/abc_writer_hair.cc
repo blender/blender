@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,11 +17,13 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_legacy_convert.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_legacy_convert.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 
@@ -128,8 +130,8 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
   invert_m4_m4_safe(inv_mat, context.object->object_to_world);
 
   MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(
-      &mesh->fdata, CD_MTFACE, mesh->totface);
-  const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+      &mesh->fdata_legacy, CD_MTFACE, mesh->totface_legacy);
+  const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
   const Span<float3> positions = mesh->vert_positions();
   const Span<float3> vert_normals = mesh->vert_normals();
 
@@ -158,7 +160,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
     if (part->from == PART_FROM_FACE && mtface) {
       const int num = pa->num_dmcache >= 0 ? pa->num_dmcache : pa->num;
 
-      if (num < mesh->totface) {
+      if (num < mesh->totface_legacy) {
         /* TODO(Sybren): check whether the null check here and if(mface) are actually required
          */
         const MFace *face = mface == nullptr ? nullptr : &mface[num];
@@ -188,7 +190,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
         }
       }
       else {
-        std::fprintf(stderr, "Particle to faces overflow (%d/%d)\n", num, mesh->totface);
+        std::fprintf(stderr, "Particle to faces overflow (%d/%d)\n", num, mesh->totface_legacy);
       }
     }
     else if (part->from == PART_FROM_VERT && mtface) {
@@ -196,7 +198,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
       const int num = (pa->num_dmcache >= 0) ? pa->num_dmcache : pa->num;
 
       /* iterate over all faces to find a corresponding underlying UV */
-      for (int n = 0; n < mesh->totface; n++) {
+      for (int n = 0; n < mesh->totface_legacy; n++) {
         const MFace *face = &mface[n];
         const MTFace *tface = mtface + n;
         uint vtx[4];
@@ -252,9 +254,9 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
   float inv_mat[4][4];
   invert_m4_m4_safe(inv_mat, context.object->object_to_world);
 
-  const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
   MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(
-      &mesh->fdata, CD_MTFACE, mesh->totface);
+      &mesh->fdata_legacy, CD_MTFACE, mesh->totface_legacy);
   const Span<float3> positions = mesh->vert_positions();
   const Span<float3> vert_normals = mesh->vert_normals();
 

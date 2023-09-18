@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,6 +10,10 @@
 
 #include "GPU_batch.h"
 #include "MEM_guardedalloc.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Common */
 // #define DRW_DEBUG_MESH_CACHE_REQUEST
@@ -80,3 +84,7 @@ BLI_INLINE bool DRW_vbo_requested(GPUVertBuf *vbo)
 {
   return (vbo != NULL && (GPU_vertbuf_get_status(vbo) & GPU_VERTBUF_INIT) == 0);
 }
+
+#ifdef __cplusplus
+}
+#endif

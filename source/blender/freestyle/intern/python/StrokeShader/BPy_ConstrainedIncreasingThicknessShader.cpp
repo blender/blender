@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -62,7 +62,7 @@ static int ConstrainedIncreasingThicknessShader___init__(
 /*-----------------------BPy_ConstrainedIncreasingThicknessShader type definition ---------------*/
 
 PyTypeObject ConstrainedIncreasingThicknessShader_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ConstrainedIncreasingThicknessShader",
     /*tp_basicsize*/ sizeof(BPy_ConstrainedIncreasingThicknessShader),
     /*tp_itemsize*/ 0,

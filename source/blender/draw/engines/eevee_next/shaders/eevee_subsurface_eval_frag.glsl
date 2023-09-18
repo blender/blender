@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Postprocess diffuse radiance output from the diffuse evaluation pass to mimic subsurface
@@ -9,7 +12,7 @@
  *
  * But, instead of having all the precomputed weights for all three color primaries,
  * we precompute a weight profile texture to be able to support per pixel AND per channel radius.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
@@ -34,10 +37,10 @@ vec3 burley_eval(vec3 d, float r)
   /* Slide 33. */
   vec3 exp_r_3_d = exp(-r / (3.0 * d));
   vec3 exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
-  /** NOTE:
+  /* NOTE:
    * - Surface albedo is applied at the end.
    * - This is normalized diffuse model, so the equation is multiplied
-   *   by 2*pi, which also matches cdf().
+   *   by 2*pi, which also matches `cdf()`.
    */
   return (exp_r_d + exp_r_3_d) / (4.0 * d);
 }
@@ -96,11 +99,11 @@ void main(void)
 
   /* TODO/OPTI(fclem) Make separate sample set for lower radius. */
 
-  for (int i = 0; i < sss_buf.sample_len; i++) {
-    vec2 sample_uv = center_uv + sample_space * sss_buf.samples[i].xy;
-    float pdf_inv = sss_buf.samples[i].z;
+  for (int i = 0; i < uniform_buf.subsurface.sample_len; i++) {
+    vec2 sample_uv = center_uv + sample_space * uniform_buf.subsurface.samples[i].xy;
+    float pdf_inv = uniform_buf.subsurface.samples[i].z;
 
-    float sample_depth = textureLod(hiz_tx, sample_uv * hiz_buf.uv_scale, 0.0).r;
+    float sample_depth = textureLod(hiz_tx, sample_uv * uniform_buf.hiz.uv_scale, 0.0).r;
     vec3 sample_vP = get_view_space_from_depth(sample_uv, sample_depth);
 
     vec4 sample_data = texture(radiance_tx, sample_uv);
@@ -126,8 +129,9 @@ void main(void)
   /* Normalize the sum (slide 34). */
   accum /= accum_weight;
 
-  if (rp_buf.diffuse_light_id >= 0) {
-    imageStore(rp_color_img, ivec3(texel, rp_buf.diffuse_light_id), vec4(accum, 1.0));
+  if (uniform_buf.render_pass.diffuse_light_id >= 0) {
+    imageStore(
+        rp_color_img, ivec3(texel, uniform_buf.render_pass.diffuse_light_id), vec4(accum, 1.0));
   }
 
   /* This pass uses additive blending.

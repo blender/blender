@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -202,6 +202,7 @@ GHOST_ContextEGL::GHOST_ContextEGL(const GHOST_System *const system,
       m_context(EGL_NO_CONTEXT),
       m_surface(EGL_NO_SURFACE),
       m_display(EGL_NO_DISPLAY),
+      m_config(EGL_NO_CONFIG_KHR),
       m_swap_interval(1),
       m_sharedContext(
           choose_api(api, s_gl_sharedContext, s_gles_sharedContext, s_vg_sharedContext)),

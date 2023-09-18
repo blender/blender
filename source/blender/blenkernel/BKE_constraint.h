@@ -9,7 +9,6 @@
  */
 
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct Depsgraph;
@@ -46,7 +45,8 @@ typedef struct bConstraintOb {
 
   /** type of owner. */
   short type;
-  /** rotation order for constraint owner (as defined in #eEulerRotationOrders in BLI_math.h) */
+  /** rotation order for constraint owner (as defined in #eEulerRotationOrders in
+   * BLI_math_rotation.h) */
   short rotOrder;
 } bConstraintOb;
 
@@ -74,7 +74,7 @@ typedef void (*ConstraintIDFunc)(struct bConstraint *con,
  * structs.
  */
 typedef struct bConstraintTypeInfo {
-  /* admin/ident */
+  /* Admin/identity. */
   /** CONSTRAINT_TYPE_### */
   short type;
   /** size in bytes of the struct */
@@ -82,7 +82,7 @@ typedef struct bConstraintTypeInfo {
   /** name of constraint in interface */
   char name[32];
   /** name of struct for SDNA */
-  char structName[32];
+  char struct_name[32];
 
   /* data management function pointers - special handling */
   /** free any data that is allocated separately (optional) */
@@ -116,7 +116,10 @@ typedef struct bConstraintTypeInfo {
                             struct bConstraintOb *cob,
                             struct bConstraintTarget *ct,
                             float ctime);
-  /** evaluate the constraint for the given time */
+  /**
+   * Evaluate the constraint for the given time.
+   * solved as separate loop.
+   */
   void (*evaluate_constraint)(struct bConstraint *con,
                               struct bConstraintOb *cob,
                               struct ListBase *targets);
@@ -175,8 +178,14 @@ void BKE_constraints_copy_ex(struct ListBase *dst,
                              bool do_extern);
 /**
  * Run the given callback on all ID-blocks in list of constraints.
+ *
+ * \param flag: the `IDWALK_` flags controlling the behavior of the foreach_id code, see
+ * `BKE_lib_query.h`
  */
-void BKE_constraints_id_loop(struct ListBase *list, ConstraintIDFunc func, void *userdata);
+void BKE_constraints_id_loop(struct ListBase *list,
+                             ConstraintIDFunc func,
+                             const int flag,
+                             void *userdata);
 void BKE_constraint_free_data(struct bConstraint *con);
 /**
  * Free data of a specific constraint if it has any info.
@@ -359,11 +368,9 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
                            float ctime);
 
 void BKE_constraint_blend_write(struct BlendWriter *writer, struct ListBase *conlist);
-void BKE_constraint_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);
-void BKE_constraint_blend_read_lib(struct BlendLibReader *reader,
-                                   struct ID *id,
-                                   struct ListBase *conlist);
-void BKE_constraint_blend_read_expand(struct BlendExpander *expander, struct ListBase *lb);
+void BKE_constraint_blend_read_data(struct BlendDataReader *reader,
+                                    struct ID *id_owner,
+                                    struct ListBase *lb);
 
 #ifdef __cplusplus
 }

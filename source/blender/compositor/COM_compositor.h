@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -293,8 +293,8 @@ struct Render;
 
 /**
  * \brief The main method that is used to execute the compositor tree.
- * It can be executed during editing (blenkernel/node.cc) or rendering
- * (renderer/pipeline.c)
+ * It can be executed during editing (`blenkernel/node.cc`) or rendering
+ * (`renderer/pipeline.cc`).
  *
  * \param render: [struct Render]
  *   Render instance for GPU context.

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,6 +9,7 @@
 #include "BLI_array.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
 
 #include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
@@ -19,11 +20,11 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -40,7 +41,8 @@ NODE_STORAGE_FUNCS(NodePlaneTrackDeformData)
 
 static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").compositor_skip_realization();
+  b.add_input<decl::Color>("Image").compositor_realization_options(
+      CompositorInputRealizationOptions::None);
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Plane");
 }
@@ -92,24 +94,21 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
     MovieTracking *tracking = &clip->tracking;
     MovieTrackingObject *tracking_object;
     uiLayout *col;
-    PointerRNA tracking_ptr;
-
-    RNA_pointer_create(&clip->id, &RNA_MovieTracking, tracking, &tracking_ptr);
+    PointerRNA tracking_ptr = RNA_pointer_create(&clip->id, &RNA_MovieTracking, tracking);
 
     col = uiLayoutColumn(layout, false);
     uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
 
     tracking_object = BKE_tracking_object_get_named(tracking, data->tracking_object);
     if (tracking_object) {
-      PointerRNA object_ptr;
-
-      RNA_pointer_create(&clip->id, &RNA_MovieTrackingObject, tracking_object, &object_ptr);
+      PointerRNA object_ptr = RNA_pointer_create(
+          &clip->id, &RNA_MovieTrackingObject, tracking_object);
 
       uiItemPointerR(
           col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
     }
     else {
-      uiItemR(layout, ptr, "plane_track_name", 0, "", ICON_ANIM_DATA);
+      uiItemR(layout, ptr, "plane_track_name", UI_ITEM_NONE, "", ICON_ANIM_DATA);
     }
   }
 

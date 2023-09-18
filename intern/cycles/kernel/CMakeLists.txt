@@ -40,12 +40,16 @@ set(SRC_KERNEL_DEVICE_OPTIX
   device/optix/kernel_shader_raytrace.cu
 )
 
-if(WITH_CYCLES_OSL AND (OSL_LIBRARY_VERSION_MINOR GREATER_EQUAL 13 OR OSL_LIBRARY_VERSION_MAJOR GREATER 1))
-  set(SRC_KERNEL_DEVICE_OPTIX
-    ${SRC_KERNEL_DEVICE_OPTIX}
-    osl/services_optix.cu
-    device/optix/kernel_osl.cu
-  )
+if(WITH_CYCLES_OSL)
+  math(EXPR OSL_LIBRARY_VERSION_CODE "${OSL_LIBRARY_VERSION_MAJOR} * 10000 + ${OSL_LIBRARY_VERSION_MINOR} * 100 + ${OSL_LIBRARY_VERSION_PATCH}")
+
+  if (OSL_LIBRARY_VERSION_CODE GREATER_EQUAL 11300)
+    set(SRC_KERNEL_DEVICE_OPTIX
+      ${SRC_KERNEL_DEVICE_OPTIX}
+      osl/services_optix.cu
+      device/optix/kernel_osl.cu
+    )
+  endif()
 endif()
 
 set(SRC_KERNEL_DEVICE_ONEAPI
@@ -126,6 +130,7 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/bsdf_microfacet.h
   closure/bsdf_oren_nayar.h
   closure/bsdf_phong_ramp.h
+  closure/bsdf_sheen.h
   closure/bsdf_toon.h
   closure/bsdf_transparent.h
   closure/bsdf_util.h
@@ -134,9 +139,8 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/bssrdf.h
   closure/emissive.h
   closure/volume.h
-  closure/bsdf_principled_diffuse.h
-  closure/bsdf_principled_sheen.h
-  closure/bsdf_hair_principled.h
+  closure/bsdf_principled_hair_chiang.h
+  closure/bsdf_principled_hair_huang.h
 )
 
 set(SRC_KERNEL_SVM_HEADERS
@@ -666,7 +670,7 @@ if(WITH_CYCLES_DEVICE_HIPRT AND WITH_CYCLES_HIP_BINARIES)
     ${SRC_UTIL_HEADERS})
   set(bitcode_file ${CMAKE_CURRENT_BINARY_DIR}/kernel_rt_gfx.bc)
   set(hiprt_file ${CMAKE_CURRENT_BINARY_DIR}/kernel_rt_gfx.hipfb)
-  set(kernel_sources ${sources})
+  set(kernel_sources ${hiprt_sources})
   set(hiprt_kernel_src "/device/hiprt/kernel.cpp")
   if(WIN32)
     set(hiprt_compile_command ${CMAKE_COMMAND})
@@ -739,7 +743,7 @@ endif()
 # OptiX PTX modules
 
 if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
-  macro(CYCLES_OPTIX_KERNEL_ADD name input flags)
+  macro(cycles_optix_kernel_add name input flags)
     set(output "${CMAKE_CURRENT_BINARY_DIR}/${name}.ptx")
 
     set(cuda_flags ${flags}
@@ -754,6 +758,10 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
       set(cuda_flags ${cuda_flags}
         -D WITH_NANOVDB
         -I "${NANOVDB_INCLUDE_DIR}")
+    endif()
+    if(WITH_CYCLES_OSL)
+      set(cuda_flags ${cuda_flags}
+        -D OSL_LIBRARY_VERSION_CODE=${OSL_LIBRARY_VERSION_CODE})
     endif()
 
     if(WITH_CYCLES_DEBUG)
@@ -792,12 +800,12 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
     kernel_optix_shader_raytrace
     "device/optix/kernel_shader_raytrace.cu"
     "--keep-device-functions")
-  if(WITH_CYCLES_OSL AND (OSL_LIBRARY_VERSION_MINOR GREATER_EQUAL 13 OR OSL_LIBRARY_VERSION_MAJOR GREATER 1))
-    CYCLES_OPTIX_KERNEL_ADD(
+  if(WITH_CYCLES_OSL AND OSL_LIBRARY_VERSION_CODE GREATER_EQUAL 11300)
+    cycles_optix_kernel_add(
       kernel_optix_osl
       "device/optix/kernel_osl.cu"
       "--relocatable-device-code=true")
-    CYCLES_OPTIX_KERNEL_ADD(
+    cycles_optix_kernel_add(
       kernel_optix_osl_services
       "osl/services_optix.cu"
       "--relocatable-device-code=true")
@@ -832,6 +840,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   )
 
   set(SYCL_OFFLINE_COMPILER_PARALLEL_JOBS 1 CACHE STRING "Number of parallel compiler instances to use for device binaries compilation (expect ~8GB peak memory usage per instance).")
+  mark_as_advanced(SYCL_OFFLINE_COMPILER_PARALLEL_JOBS)
+
   if(WITH_CYCLES_ONEAPI_BINARIES)
     message(STATUS "${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS} instance(s) of oneAPI offline compiler will be used.")
   endif()
@@ -847,8 +857,13 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
     -shared
     -DWITH_ONEAPI
-    -ffast-math
     -O2
+    -fno-fast-math
+    -ffp-contract=fast
+    -fassociative-math
+    -freciprocal-math
+    -fno-signed-zeros
+    -ffinite-math-only
     -D__KERNEL_LOCAL_ATOMIC_SORT__
     -o"${cycles_kernel_oneapi_lib}"
     -I"${CMAKE_CURRENT_SOURCE_DIR}/.."
@@ -865,6 +880,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   endif()
   if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen)
     set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}" CACHE STRING "Extra build options for spir64_gen target")
+    mark_as_advanced(CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen)
   endif()
   # Enable zebin, a graphics binary format with improved compatibility.
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "--format zebin ")
@@ -984,6 +1000,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
                 -L"${WINDOWS_KIT_DIR}/ucrt/x64")
   else() # Add Linux specific compiler flags.
     list(APPEND sycl_compiler_flags -fPIC)
+    list(APPEND sycl_compiler_flags -fvisibility=hidden)
 
     # We avoid getting __FAST_MATH__ to be defined when building on CentOS-7 and Rocky-8
     # until the compilation issues it triggers at either AoT or JIT stages gets fixed.
@@ -1117,8 +1134,11 @@ endif()
 
 # Warnings to avoid using doubles in the kernel.
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  add_check_cxx_compiler_flag(CMAKE_CXX_FLAGS _has_cxxflag_float_conversion "-Werror=float-conversion")
-  add_check_cxx_compiler_flag(CMAKE_CXX_FLAGS _has_cxxflag_double_promotion "-Werror=double-promotion")
+  add_check_cxx_compiler_flags(
+    CMAKE_CXX_FLAGS
+    _has_cxxflag_float_conversion "-Werror=float-conversion"
+    _has_cxxflag_double_promotion "-Werror=double-promotion"
+  )
   unset(_has_cxxflag_float_conversion)
   unset(_has_cxxflag_double_promotion)
 endif()

@@ -28,7 +28,7 @@
 #include "BLI_alloca.h"
 #include "BLI_heap_simple.h"
 #include "BLI_kdopbvh.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
 #include "BLI_stack.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -2332,7 +2332,7 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
                                        float projmat[4][4],
                                        float winsize[2],
                                        float mval[2],
-                                       float clip_plane[6][4],
+                                       float (*clip_plane)[4],
                                        int clip_plane_len,
                                        BVHTreeNearest *nearest,
                                        BVHTree_NearestProjectedCallback callback,

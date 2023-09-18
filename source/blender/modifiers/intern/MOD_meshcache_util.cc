@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,8 @@
  * \ingroup modifiers
  */
 
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_math.h"
 
 #include "DNA_modifier_types.h"
 

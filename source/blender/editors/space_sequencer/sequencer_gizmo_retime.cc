@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,15 +15,15 @@
 
 #include "BLI_span.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
 
 #include "SEQ_iterator.h"
 #include "SEQ_retiming.h"
@@ -31,14 +31,14 @@
 #include "SEQ_sequencer.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
-typedef struct GizmoGroup_retime {
+struct GizmoGroup_retime {
   wmGizmo *add_handle_gizmo;
   wmGizmo *move_handle_gizmo;
   wmGizmo *remove_handle_gizmo;
   wmGizmo *speed_set_gizmo;
-} GizmoGroup_retime;
+};
 
 static bool gizmogroup_retime_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {

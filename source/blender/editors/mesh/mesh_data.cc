@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,7 +15,6 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.h"
@@ -24,26 +23,26 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "BLT_translation.h"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_paint.h"
-#include "ED_screen.h"
-#include "ED_uvedit.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_paint.hh"
+#include "ED_screen.hh"
+#include "ED_uvedit.hh"
+#include "ED_view3d.hh"
 
 #include "GEO_mesh_split_edges.hh"
 
@@ -68,7 +67,7 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
         tot = bm->totvert;
       }
       else {
-        data = &me->vdata;
+        data = &me->vert_data;
         tot = me->totvert;
       }
       break;
@@ -78,7 +77,7 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
         tot = bm->totedge;
       }
       else {
-        data = &me->edata;
+        data = &me->edge_data;
         tot = me->totedge;
       }
       break;
@@ -88,7 +87,7 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
         tot = bm->totloop;
       }
       else {
-        data = &me->ldata;
+        data = &me->loop_data;
         tot = me->totloop;
       }
       break;
@@ -98,8 +97,8 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
         tot = bm->totface;
       }
       else {
-        data = &me->pdata;
-        tot = me->totpoly;
+        data = &me->face_data;
+        tot = me->faces_num;
       }
       break;
     default:
@@ -109,11 +108,11 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
       break;
   }
 
-  *r_tot = tot;
+  if (r_tot) {
+    *r_tot = tot;
+  }
   return data;
 }
-
-#define GET_CD_DATA(me, data) ((me)->edit_mesh ? &(me)->edit_mesh->bm->data : &(me)->data)
 
 static void mesh_uv_reset_array(float **fuv, const int len)
 {
@@ -169,15 +168,15 @@ static void mesh_uv_reset_bmface(BMFace *f, const int cd_loop_uv_offset)
   mesh_uv_reset_array(fuv.data(), f->len);
 }
 
-static void mesh_uv_reset_mface(const blender::IndexRange poly, float2 *mloopuv)
+static void mesh_uv_reset_mface(const blender::IndexRange face, float2 *mloopuv)
 {
-  Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(poly.size());
+  Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(face.size());
 
-  for (int i = 0; i < poly.size(); i++) {
-    fuv[i] = mloopuv[poly[i]];
+  for (int i = 0; i < face.size(); i++) {
+    fuv[i] = mloopuv[face[i]];
   }
 
-  mesh_uv_reset_array(fuv.data(), poly.size());
+  mesh_uv_reset_array(fuv.data(), face.size());
 }
 
 void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
@@ -204,11 +203,11 @@ void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
   }
   else {
     /* Collect Mesh UVs */
-    BLI_assert(CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2));
+    BLI_assert(CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2));
     float2 *mloopuv = static_cast<float2 *>(
-        CustomData_get_layer_n_for_write(&me->ldata, CD_PROP_FLOAT2, layernum, me->totloop));
+        CustomData_get_layer_n_for_write(&me->loop_data, CD_PROP_FLOAT2, layernum, me->totloop));
 
-    const blender::OffsetIndices polys = me->polys();
+    const blender::OffsetIndices polys = me->faces();
     for (const int i : polys.index_range()) {
       mesh_uv_reset_mface(polys[i], mloopuv);
     }
@@ -220,7 +219,7 @@ void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
 void ED_mesh_uv_loop_reset(bContext *C, Mesh *me)
 {
   /* could be ldata or pdata */
-  CustomData *ldata = GET_CD_DATA(me, ldata);
+  CustomData *ldata = mesh_customdata_get_type(me, BM_LOOP, nullptr);
   const int layernum = CustomData_get_active_layer(ldata, CD_PROP_FLOAT2);
   ED_mesh_uv_loop_reset_ex(me, layernum);
 
@@ -266,17 +265,17 @@ int ED_mesh_uv_add(
     }
   }
   else {
-    layernum_dst = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
+    layernum_dst = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
     if (layernum_dst >= MAX_MTFACE) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i UV maps", MAX_MTFACE);
       return -1;
     }
 
-    if (CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2) && do_init) {
+    if (CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2) && do_init) {
       CustomData_add_layer_named_with_data(
-          &me->ldata,
+          &me->loop_data,
           CD_PROP_FLOAT2,
-          MEM_dupallocN(CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2)),
+          MEM_dupallocN(CustomData_get_layer(&me->loop_data, CD_PROP_FLOAT2)),
           me->totloop,
           unique_name,
           nullptr);
@@ -285,11 +284,11 @@ int ED_mesh_uv_add(
     }
     else {
       CustomData_add_layer_named(
-          &me->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, me->totloop, unique_name);
+          &me->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, me->totloop, unique_name);
     }
 
     if (active_set || layernum_dst == 0) {
-      CustomData_set_layer_active(&me->ldata, CD_PROP_FLOAT2, layernum_dst);
+      CustomData_set_layer_active(&me->loop_data, CD_PROP_FLOAT2, layernum_dst);
     }
   }
 
@@ -306,14 +305,15 @@ int ED_mesh_uv_add(
 
 static const bool *mesh_loop_boolean_custom_data_get_by_name(const Mesh &mesh, const char *name)
 {
-  return static_cast<const bool *>(CustomData_get_layer_named(&mesh.ldata, CD_PROP_BOOL, name));
+  return static_cast<const bool *>(
+      CustomData_get_layer_named(&mesh.loop_data, CD_PROP_BOOL, name));
 }
 
 const bool *ED_mesh_uv_map_vert_select_layer_get(const Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->ldata, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
   return mesh_loop_boolean_custom_data_get_by_name(
       *mesh, BKE_uv_map_vert_select_name_get(uv_name, buffer));
 }
@@ -324,7 +324,7 @@ const bool *ED_mesh_uv_map_edge_select_layer_get(const Mesh *mesh, const int uv_
 
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->ldata, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
   return mesh_loop_boolean_custom_data_get_by_name(
       *mesh, BKE_uv_map_edge_select_name_get(uv_name, buffer));
 }
@@ -333,18 +333,18 @@ const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->ldata, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
   return mesh_loop_boolean_custom_data_get_by_name(*mesh,
                                                    BKE_uv_map_pin_name_get(uv_name, buffer));
 }
 
 static bool *ensure_corner_boolean_attribute(Mesh &mesh, const blender::StringRefNull name)
 {
-  bool *data = static_cast<bool *>(
-      CustomData_get_layer_named_for_write(&mesh.ldata, CD_PROP_BOOL, name.c_str(), mesh.totloop));
+  bool *data = static_cast<bool *>(CustomData_get_layer_named_for_write(
+      &mesh.loop_data, CD_PROP_BOOL, name.c_str(), mesh.totloop));
   if (!data) {
     data = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh.ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh.totpoly, name.c_str()));
+        &mesh.loop_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh.faces_num, name.c_str()));
   }
   return data;
 }
@@ -353,21 +353,21 @@ bool *ED_mesh_uv_map_vert_select_layer_ensure(Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->ldata, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
   return ensure_corner_boolean_attribute(*mesh, BKE_uv_map_vert_select_name_get(uv_name, buffer));
 }
 bool *ED_mesh_uv_map_edge_select_layer_ensure(Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->ldata, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
   return ensure_corner_boolean_attribute(*mesh, BKE_uv_map_edge_select_name_get(uv_name, buffer));
 }
 bool *ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->ldata, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = CustomData_get_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, uv_index);
   return ensure_corner_boolean_attribute(*mesh, BKE_uv_map_pin_name_get(uv_name, buffer));
 }
 
@@ -385,7 +385,7 @@ void ED_mesh_uv_ensure(Mesh *me, const char *name)
     }
   }
   else {
-    layernum_dst = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
+    layernum_dst = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
     if (layernum_dst == 0) {
       ED_mesh_uv_add(me, name, true, true, nullptr);
     }
@@ -474,7 +474,7 @@ static bool uv_texture_remove_poll(bContext *C)
 
   Object *ob = ED_object_context(C);
   Mesh *me = static_cast<Mesh *>(ob->data);
-  CustomData *ldata = GET_CD_DATA(me, ldata);
+  CustomData *ldata = mesh_customdata_get_type(me, BM_LOOP, nullptr);
   const int active = CustomData_get_active_layer(ldata, CD_PROP_FLOAT2);
   if (active != -1) {
     return true;
@@ -521,7 +521,7 @@ static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_context(C);
   Mesh *me = static_cast<Mesh *>(ob->data);
 
-  CustomData *ldata = GET_CD_DATA(me, ldata);
+  CustomData *ldata = mesh_customdata_get_type(me, BM_LOOP, nullptr);
   const char *name = CustomData_get_active_layer_name(ldata, CD_PROP_FLOAT2);
   if (!BKE_id_attribute_remove(&me->id, name, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -596,11 +596,11 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
     }
 
     if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
-      CustomData *data = GET_CD_DATA(me, vdata);
+      CustomData *data = mesh_customdata_get_type(me, BM_VERT, nullptr);
       if (CustomData_has_layer(data, CD_PAINT_MASK)) {
         return true;
       }
-      data = GET_CD_DATA(me, ldata);
+      data = mesh_customdata_get_type(me, BM_LOOP, nullptr);
       if (CustomData_has_layer(data, CD_GRID_PAINT_MASK)) {
         return true;
       }
@@ -647,7 +647,7 @@ static int mesh_customdata_skin_state(bContext *C)
   if (ob && ob->type == OB_MESH) {
     Mesh *me = static_cast<Mesh *>(ob->data);
     if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
-      CustomData *data = GET_CD_DATA(me, vdata);
+      CustomData *data = mesh_customdata_get_type(me, BM_VERT, nullptr);
       return CustomData_has_layer(data, CD_MVERT_SKIN);
     }
   }
@@ -739,18 +739,19 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
       bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
           "sharp_edge", ATTR_DOMAIN_EDGE);
       const bool *sharp_faces = static_cast<const bool *>(
-          CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, "sharp_face"));
-      bke::mesh::edges_sharp_from_angle_set(me->polys(),
+          CustomData_get_layer_named(&me->face_data, CD_PROP_BOOL, "sharp_face"));
+      bke::mesh::edges_sharp_from_angle_set(me->faces(),
                                             me->corner_verts(),
                                             me->corner_edges(),
-                                            me->poly_normals(),
+                                            me->face_normals(),
+                                            me->corner_to_face_map(),
                                             sharp_faces,
                                             me->smoothresh,
                                             sharp_edges.span);
       sharp_edges.finish();
     }
 
-    CustomData_add_layer(&me->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, me->totloop);
+    CustomData_add_layer(&me->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, me->totloop);
   }
 
   DEG_id_tag_update(&me->id, 0);
@@ -811,16 +812,17 @@ static void mesh_add_verts(Mesh *mesh, int len)
   }
 
   int totvert = mesh->totvert + len;
-  CustomData vdata;
-  CustomData_copy_layout(&mesh->vdata, &vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
-  CustomData_copy_data(&mesh->vdata, &vdata, 0, 0, mesh->totvert);
+  CustomData vert_data;
+  CustomData_copy_layout(
+      &mesh->vert_data, &vert_data, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
+  CustomData_copy_data(&mesh->vert_data, &vert_data, 0, 0, mesh->totvert);
 
-  if (!CustomData_has_layer_named(&vdata, CD_PROP_FLOAT3, "position")) {
-    CustomData_add_layer_named(&vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
+  if (!CustomData_has_layer_named(&vert_data, CD_PROP_FLOAT3, "position")) {
+    CustomData_add_layer_named(&vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
   }
 
-  CustomData_free(&mesh->vdata, mesh->totvert);
-  mesh->vdata = vdata;
+  CustomData_free(&mesh->vert_data, mesh->totvert);
+  mesh->vert_data = vert_data;
 
   BKE_mesh_runtime_clear_cache(mesh);
 
@@ -836,7 +838,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
 static void mesh_add_edges(Mesh *mesh, int len)
 {
   using namespace blender;
-  CustomData edata;
+  CustomData edge_data;
   int totedge;
 
   if (len == 0) {
@@ -846,15 +848,17 @@ static void mesh_add_edges(Mesh *mesh, int len)
   totedge = mesh->totedge + len;
 
   /* Update custom-data. */
-  CustomData_copy_layout(&mesh->edata, &edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
-  CustomData_copy_data(&mesh->edata, &edata, 0, 0, mesh->totedge);
+  CustomData_copy_layout(
+      &mesh->edge_data, &edge_data, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
+  CustomData_copy_data(&mesh->edge_data, &edge_data, 0, 0, mesh->totedge);
 
-  if (!CustomData_has_layer_named(&edata, CD_PROP_INT32_2D, ".edge_verts")) {
-    CustomData_add_layer_named(&edata, CD_PROP_INT32_2D, CD_SET_DEFAULT, totedge, ".edge_verts");
+  if (!CustomData_has_layer_named(&edge_data, CD_PROP_INT32_2D, ".edge_verts")) {
+    CustomData_add_layer_named(
+        &edge_data, CD_PROP_INT32_2D, CD_SET_DEFAULT, totedge, ".edge_verts");
   }
 
-  CustomData_free(&mesh->edata, mesh->totedge);
-  mesh->edata = edata;
+  CustomData_free(&mesh->edge_data, mesh->totedge);
+  mesh->edge_data = edge_data;
 
   BKE_mesh_runtime_clear_cache(mesh);
 
@@ -879,8 +883,8 @@ static void mesh_add_loops(Mesh *mesh, int len)
   totloop = mesh->totloop + len; /* new face count */
 
   /* update customdata */
-  CustomData_copy_layout(&mesh->ldata, &ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
-  CustomData_copy_data(&mesh->ldata, &ldata, 0, 0, mesh->totloop);
+  CustomData_copy_layout(&mesh->loop_data, &ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
+  CustomData_copy_data(&mesh->loop_data, &ldata, 0, 0, mesh->totloop);
 
   if (!CustomData_has_layer_named(&ldata, CD_PROP_INT32, ".corner_vert")) {
     CustomData_add_layer_named(&ldata, CD_PROP_INT32, CD_SET_DEFAULT, totloop, ".corner_vert");
@@ -891,48 +895,49 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  CustomData_free(&mesh->ldata, mesh->totloop);
-  mesh->ldata = ldata;
+  CustomData_free(&mesh->loop_data, mesh->totloop);
+  mesh->loop_data = ldata;
 
   mesh->totloop = totloop;
 
-  /* Keep the last poly offset up to date with the corner total (they must be the same). We have
+  /* Keep the last face offset up to date with the corner total (they must be the same). We have
    * to be careful here though, since the mesh may not be in a valid state at this point. */
-  if (mesh->poly_offset_indices) {
-    mesh->poly_offsets_for_write().last() = mesh->totloop;
+  if (mesh->face_offset_indices) {
+    mesh->face_offsets_for_write().last() = mesh->totloop;
   }
 }
 
-static void mesh_add_polys(Mesh *mesh, int len)
+static void mesh_add_faces(Mesh *mesh, int len)
 {
   using namespace blender;
-  CustomData pdata;
-  int totpoly;
+  CustomData face_data;
+  int faces_num;
 
   if (len == 0) {
     return;
   }
 
-  totpoly = mesh->totpoly + len; /* new face count */
+  faces_num = mesh->faces_num + len; /* new face count */
 
   /* update customdata */
-  CustomData_copy_layout(&mesh->pdata, &pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
-  CustomData_copy_data(&mesh->pdata, &pdata, 0, 0, mesh->totpoly);
+  CustomData_copy_layout(
+      &mesh->face_data, &face_data, CD_MASK_MESH.pmask, CD_SET_DEFAULT, faces_num);
+  CustomData_copy_data(&mesh->face_data, &face_data, 0, 0, mesh->faces_num);
 
-  implicit_sharing::resize_trivial_array(&mesh->poly_offset_indices,
-                                         &mesh->runtime->poly_offsets_sharing_info,
-                                         mesh->totpoly == 0 ? 0 : (mesh->totpoly + 1),
-                                         totpoly + 1);
+  implicit_sharing::resize_trivial_array(&mesh->face_offset_indices,
+                                         &mesh->runtime->face_offsets_sharing_info,
+                                         mesh->faces_num == 0 ? 0 : (mesh->faces_num + 1),
+                                         faces_num + 1);
   /* Set common values for convenience. */
-  mesh->poly_offset_indices[0] = 0;
-  mesh->poly_offset_indices[totpoly] = mesh->totloop;
+  mesh->face_offset_indices[0] = 0;
+  mesh->face_offset_indices[faces_num] = mesh->totloop;
 
-  CustomData_free(&mesh->pdata, mesh->totpoly);
-  mesh->pdata = pdata;
+  CustomData_free(&mesh->face_data, mesh->faces_num);
+  mesh->face_data = face_data;
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  mesh->totpoly = totpoly;
+  mesh->faces_num = faces_num;
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
@@ -972,13 +977,13 @@ void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
   mesh_add_loops(mesh, count);
 }
 
-void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
+void ED_mesh_faces_add(Mesh *mesh, ReportList *reports, int count)
 {
   if (mesh->edit_mesh) {
-    BKE_report(reports, RPT_ERROR, "Cannot add polygons in edit mode");
+    BKE_report(reports, RPT_ERROR, "Cannot add faces in edit mode");
     return;
   }
-  mesh_add_polys(mesh, count);
+  mesh_add_faces(mesh, count);
 }
 
 /** \} */
@@ -993,7 +998,7 @@ static void mesh_remove_verts(Mesh *mesh, int len)
     return;
   }
   const int totvert = mesh->totvert - len;
-  CustomData_free_elem(&mesh->vdata, totvert, len);
+  CustomData_free_elem(&mesh->vert_data, totvert, len);
   mesh->totvert = totvert;
 }
 
@@ -1003,7 +1008,7 @@ static void mesh_remove_edges(Mesh *mesh, int len)
     return;
   }
   const int totedge = mesh->totedge - len;
-  CustomData_free_elem(&mesh->edata, totedge, len);
+  CustomData_free_elem(&mesh->edge_data, totedge, len);
   mesh->totedge = totedge;
 }
 
@@ -1013,18 +1018,18 @@ static void mesh_remove_loops(Mesh *mesh, int len)
     return;
   }
   const int totloop = mesh->totloop - len;
-  CustomData_free_elem(&mesh->ldata, totloop, len);
+  CustomData_free_elem(&mesh->loop_data, totloop, len);
   mesh->totloop = totloop;
 }
 
-static void mesh_remove_polys(Mesh *mesh, int len)
+static void mesh_remove_faces(Mesh *mesh, int len)
 {
   if (len == 0) {
     return;
   }
-  const int totpoly = mesh->totpoly - len;
-  CustomData_free_elem(&mesh->pdata, totpoly, len);
-  mesh->totpoly = totpoly;
+  const int faces_num = mesh->faces_num - len;
+  CustomData_free_elem(&mesh->face_data, faces_num, len);
+  mesh->faces_num = faces_num;
 }
 
 void ED_mesh_verts_remove(Mesh *mesh, ReportList *reports, int count)
@@ -1069,18 +1074,18 @@ void ED_mesh_loops_remove(Mesh *mesh, ReportList *reports, int count)
   mesh_remove_loops(mesh, count);
 }
 
-void ED_mesh_polys_remove(Mesh *mesh, ReportList *reports, int count)
+void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count)
 {
   if (mesh->edit_mesh) {
     BKE_report(reports, RPT_ERROR, "Cannot remove polys in edit mode");
     return;
   }
-  if (count > mesh->totpoly) {
+  if (count > mesh->faces_num) {
     BKE_report(reports, RPT_ERROR, "Cannot remove more polys than the mesh contains");
     return;
   }
 
-  mesh_remove_polys(mesh, count);
+  mesh_remove_faces(mesh, count);
 }
 
 void ED_mesh_geometry_clear(Mesh *mesh)
@@ -1088,7 +1093,7 @@ void ED_mesh_geometry_clear(Mesh *mesh)
   mesh_remove_verts(mesh, mesh->totvert);
   mesh_remove_edges(mesh, mesh->totedge);
   mesh_remove_loops(mesh, mesh->totloop);
-  mesh_remove_polys(mesh, mesh->totpoly);
+  mesh_remove_faces(mesh, mesh->faces_num);
 }
 
 /** \} */
@@ -1144,7 +1149,7 @@ Mesh *ED_mesh_context(bContext *C)
 void ED_mesh_split_faces(Mesh *mesh)
 {
   using namespace blender;
-  const OffsetIndices polys = mesh->polys();
+  const OffsetIndices polys = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
   const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
@@ -1152,7 +1157,7 @@ void ED_mesh_split_faces(Mesh *mesh)
   const VArray<bool> mesh_sharp_edges = *attributes.lookup_or_default<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE, false);
   const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
+      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
 
   Array<bool> sharp_edges(mesh->totedge);
   mesh_sharp_edges.materialize(sharp_edges);
@@ -1160,15 +1165,16 @@ void ED_mesh_split_faces(Mesh *mesh)
   bke::mesh::edges_sharp_from_angle_set(polys,
                                         corner_verts,
                                         corner_edges,
-                                        mesh->poly_normals(),
+                                        mesh->face_normals(),
+                                        mesh->corner_to_face_map(),
                                         sharp_faces,
                                         split_angle,
                                         sharp_edges);
 
   threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
-    for (const int poly_i : range) {
-      if (sharp_faces && sharp_faces[poly_i]) {
-        for (const int edge : corner_edges.slice(polys[poly_i])) {
+    for (const int face_i : range) {
+      if (sharp_faces && sharp_faces[face_i]) {
+        for (const int edge : corner_edges.slice(polys[face_i])) {
           sharp_edges[edge] = true;
         }
       }

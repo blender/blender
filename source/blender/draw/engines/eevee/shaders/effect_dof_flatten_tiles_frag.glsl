@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2021-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Tile flatten pass: Takes the halfres CoC buffer and converts it to 8x8 tiles.
+ * Tile flatten pass: Takes the half-resolution CoC buffer and converts it to 8x8 tiles.
  *
  * Output min and max values for each tile and for both foreground & background.
  * Also outputs min intersectable CoC for the background, which is the minimum CoC

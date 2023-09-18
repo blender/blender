@@ -23,7 +23,6 @@
 #include <pxr/usd/usdGeom/sphere.h>
 
 #include "BLI_assert.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_object_force_types.h"
@@ -32,8 +31,8 @@
 
 #include "BKE_particle.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 namespace blender::io::usd {
 

@@ -1,8 +1,11 @@
-
-#pragma BLENDER_REQUIRE(volumetric_lib.glsl)
+/* SPDX-FileCopyrightText: 2017-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
+
+#pragma BLENDER_REQUIRE(volumetric_lib.glsl)
 
 /* Step 4 : Apply final integration on top of the scene color. */
 

@@ -1,13 +1,13 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_context.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_viewer_path.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /**
  * Checks if the viewer path stored in the workspace is still active and resets it if not.

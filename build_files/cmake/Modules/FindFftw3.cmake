@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2011 Blender Foundation
+# SPDX-FileCopyrightText: 2011 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -15,16 +15,20 @@
 # also defined, but not for general use are
 #  FFTW3_LIBRARY, where to find the Fftw3 library.
 
-# If FFTW3_ROOT_DIR was defined in the environment, use it.
-IF(NOT FFTW3_ROOT_DIR AND NOT $ENV{FFTW3_ROOT_DIR} STREQUAL "")
-  SET(FFTW3_ROOT_DIR $ENV{FFTW3_ROOT_DIR})
-ENDIF()
+# If `FFTW3_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED FFTW3_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{FFTW3_ROOT_DIR})
+  set(FFTW3_ROOT_DIR $ENV{FFTW3_ROOT_DIR})
+else()
+  set(FFTW3_ROOT_DIR "")
+endif()
 
-SET(_fftw3_SEARCH_DIRS
+set(_fftw3_SEARCH_DIRS
   ${FFTW3_ROOT_DIR}
 )
 
-FIND_PATH(FFTW3_INCLUDE_DIR
+find_path(FFTW3_INCLUDE_DIR
   NAMES
     fftw3.h
   HINTS
@@ -33,7 +37,18 @@ FIND_PATH(FFTW3_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(FFTW3_LIBRARY
+set(_FFTW3_LIBRARIES)
+
+find_library(FFTW3_LIBRARY_F
+  NAMES
+    fftw3f
+  HINTS
+    ${_fftw3_SEARCH_DIRS}
+  PATH_SUFFIXES
+    lib64 lib
+  )
+
+find_library(FFTW3_LIBRARY_D
   NAMES
     fftw3
   HINTS
@@ -42,18 +57,23 @@ FIND_LIBRARY(FFTW3_LIBRARY
     lib64 lib
   )
 
+list(APPEND _FFTW3_LIBRARIES "${FFTW3_LIBRARY_F}")
+list(APPEND _FFTW3_LIBRARIES "${FFTW3_LIBRARY_D}")
+
 # handle the QUIETLY and REQUIRED arguments and set FFTW3_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Fftw3 DEFAULT_MSG
-    FFTW3_LIBRARY FFTW3_INCLUDE_DIR)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Fftw3 DEFAULT_MSG
+    _FFTW3_LIBRARIES FFTW3_INCLUDE_DIR)
 
-IF(FFTW3_FOUND)
-  SET(FFTW3_LIBRARIES ${FFTW3_LIBRARY})
-  SET(FFTW3_INCLUDE_DIRS ${FFTW3_INCLUDE_DIR})
-ENDIF()
+if(FFTW3_FOUND)
+  set(FFTW3_LIBRARIES ${_FFTW3_LIBRARIES})
+  set(FFTW3_INCLUDE_DIRS ${FFTW3_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+unset(_FFTW3_LIBRARIES)
+
+mark_as_advanced(
   FFTW3_INCLUDE_DIR
   FFTW3_LIBRARY
 )

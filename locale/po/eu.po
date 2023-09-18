@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -451,10 +451,6 @@ msgid "Groups"
 msgstr "Taldeak"
 
 
-msgid "Visible Layers"
-msgstr "Ikusgai Dauden Geruzak"
-
-
 msgid "Local"
 msgstr "Lokala"
 
@@ -477,6 +473,10 @@ msgstr "Hautatutako"
 
 msgid "Cube"
 msgstr "Kuboa"
+
+
+msgid "Edit"
+msgstr "Editatu"
 
 
 msgid "Cylinder"
@@ -572,12 +572,12 @@ msgid "Show/Hide Faces"
 msgstr "Aurpegiak erakutsi/ezkutatu"
 
 
-msgid "Edit"
-msgstr "Editatu"
-
-
 msgid "Text"
 msgstr "Testua"
+
+
+msgid "Physics"
+msgstr "Fisikak"
 
 
 msgid "File"
@@ -639,6 +639,10 @@ msgstr "Y Ardatza"
 
 msgid "Original"
 msgstr "Jatorrizkoa"
+
+
+msgid "Selection"
+msgstr "Hautaketa"
 
 
 msgid "Reflection"
@@ -787,10 +791,6 @@ msgid "Console Language"
 msgstr "Kontsolaren Hizkuntza"
 
 
-msgid "Language"
-msgstr "Hizkuntza"
-
-
 msgctxt "Operator"
 msgid "Move Cursor"
 msgstr "Kurtsorea Mugitu"
@@ -819,10 +819,6 @@ msgstr "Arbeletik itsatsi"
 
 msgid "Paste text from clipboard"
 msgstr "Arbeletik testua itsatsi"
-
-
-msgid "Selection"
-msgstr "Hautaketa"
 
 
 msgid "Console output type"
@@ -945,15 +941,6 @@ msgstr "-Z ardatza"
 
 msgid "Use Metadata"
 msgstr "Metadata erabili"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "Esportatu OBJ"
-
-
-msgid "Include UVs"
-msgstr "Gehitu UVs"
 
 
 msgid "Hierarchy"
@@ -1613,6 +1600,36 @@ msgid "Save Screenshot"
 msgstr "Pantaila-irudia Gorde"
 
 
+msgctxt "Sequence"
+msgid "Type"
+msgstr "Mota"
+
+
+msgctxt "Sequence"
+msgid "Add"
+msgstr "Gehitu"
+
+
+msgctxt "Sequence"
+msgid "Subtract"
+msgstr "Kendu"
+
+
+msgctxt "Sequence"
+msgid "Color"
+msgstr "Kolorea"
+
+
+msgctxt "Sequence"
+msgid "Speed"
+msgstr "Abiadura"
+
+
+msgctxt "Sequence"
+msgid "Text"
+msgstr "Testua"
+
+
 msgid "Property"
 msgstr "Ezaugarria"
 
@@ -1670,6 +1687,10 @@ msgid "Prev"
 msgstr "Aurrekoa"
 
 
+msgid "Speaker"
+msgstr "Bozgorailua"
+
+
 msgctxt "Operator"
 msgid "Load Factory Settings"
 msgstr "Lehenetsitako ezarpenak kargatu"
@@ -1685,13 +1706,13 @@ msgid "Save System Info"
 msgstr "Sistemaren Informazioa Gorde"
 
 
+msgid "Refraction"
+msgstr "Errefrakzioa"
+
+
 msgctxt "Operator"
 msgid "Scale"
 msgstr "Eskalatu"
-
-
-msgid "Physics"
-msgstr "Fisikak"
 
 
 msgid "Dynamics"
@@ -1719,13 +1740,12 @@ msgid "Continue"
 msgstr "Jarraitu"
 
 
+msgid "Language"
+msgstr "Hizkuntza"
+
+
 msgid "Temperature"
 msgstr "Tenperatura"
-
-
-msgctxt "Sequence"
-msgid "Type"
-msgstr "Mota"
 
 
 msgctxt "Sequence"
@@ -1758,31 +1778,6 @@ msgid "Cross"
 msgstr "Gurutzatu"
 
 
-msgctxt "Sequence"
-msgid "Add"
-msgstr "Gehitu"
-
-
-msgctxt "Sequence"
-msgid "Subtract"
-msgstr "Kendu"
-
-
-msgctxt "Sequence"
-msgid "Color"
-msgstr "Kolorea"
-
-
-msgctxt "Sequence"
-msgid "Speed"
-msgstr "Abiadura"
-
-
-msgctxt "Sequence"
-msgid "Text"
-msgstr "Testua"
-
-
 msgid "Gray Scale"
 msgstr "Gris-eskala"
 
@@ -1797,10 +1792,6 @@ msgstr "Blender Fitxategia"
 
 msgid "Sort Alphabetically"
 msgstr "Alfabetikoki Ordenatu"
-
-
-msgid "Speaker"
-msgstr "Bozgorailua"
 
 
 msgid "3D"
@@ -1917,10 +1908,6 @@ msgid "Upper"
 msgstr "Altua"
 
 
-msgid "Refraction"
-msgstr "Errefrakzioa"
-
-
 msgctxt "Image"
 msgid "New"
 msgstr "Berria"
@@ -1990,13 +1977,13 @@ msgstr "Irudia Renderizatu"
 
 
 msgctxt "Operator"
-msgid "Developer Community"
-msgstr "Garatzaileen Komunitatea"
+msgid "Report a Bug"
+msgstr "Akats baten berri eman"
 
 
 msgctxt "Operator"
-msgid "Report a Bug"
-msgstr "Akats baten berri eman"
+msgid "Developer Community"
+msgstr "Garatzaileen Komunitatea"
 
 
 msgctxt "Operator"
@@ -2191,11 +2178,6 @@ msgid "normal"
 msgstr "Normala"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "Taldea"
-
-
 msgid "Sound not packed"
 msgstr "Soinua paketatu gabe"
 
@@ -2216,12 +2198,12 @@ msgid "AO"
 msgstr "Inguruneko Oklusioa"
 
 
-msgid "Anisotropy"
-msgstr "Anisotropia"
-
-
 msgid "BSDF"
 msgstr "BSDF"
+
+
+msgid "Anisotropy"
+msgstr "Anisotropia"
 
 
 msgid "View Vector"
@@ -2426,10 +2408,6 @@ msgstr "Gaztelania (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Katalana (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Txekiarra (Český)"
 
 
 msgid "Portuguese (Português)"

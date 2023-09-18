@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,8 +14,10 @@
 
 #include "BLI_task.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 
@@ -75,16 +77,16 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
 {
   const int vert_len = result.vert.size();
   const int edge_len = result.edge.size();
-  const int poly_len = result.face.size();
+  const int face_len = result.face.size();
   int loop_len = 0;
   for (const Vector<int> &face : result.face) {
     loop_len += face.size();
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, poly_len, loop_len);
+  Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, face_len, loop_len);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   mesh->edges_for_write().copy_from(result.edge.as_span().cast<int2>());
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   for (const int i : IndexRange(result.vert.size())) {
@@ -92,7 +94,7 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
   }
   int i_loop = 0;
   for (const int i : IndexRange(result.face.size())) {
-    poly_offsets[i] = i_loop;
+    face_offsets[i] = i_loop;
     for (const int j : result.face[i].index_range()) {
       corner_verts[i_loop] = result.face[i][j];
       i_loop++;
@@ -112,7 +114,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
     return;
   }
 
-  const Curves &curves_id = *geometry_set.get_curves_for_read();
+  const Curves &curves_id = *geometry_set.get_curves();
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.curves_num() == 0) {
     geometry_set.replace_curves(nullptr);
@@ -143,21 +145,39 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Mesh", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_curve_fill_cc
-
-void register_node_type_geo_curve_fill()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_curve_fill_cc;
+  static const EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_FILL_MODE_TRIANGULATED, "TRIANGLES", 0, "Triangles", ""},
+      {GEO_NODE_CURVE_FILL_MODE_NGONS, "NGONS", 0, "N-gons", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    GEO_NODE_CURVE_FILL_MODE_TRIANGULATED);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_FILL_CURVE, "Fill Curve", NODE_CLASS_GEOMETRY);
 
-  ntype.initfunc = file_ns::node_init;
+  ntype.initfunc = node_init;
   node_type_storage(
       &ntype, "NodeGeometryCurveFill", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_fill_cc

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,10 +16,10 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_clip.h"
+#include "ED_clip.hh"
 
 #include "clip_intern.h"
 
@@ -33,7 +33,7 @@ static bool stabilize_2d_poll(bContext *C)
     MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
     return (tracking_object->flag & TRACKING_OBJECT_CAMERA) != 0;
   }
-  return 0;
+  return false;
 }
 
 static int stabilize_2d_add_exec(bContext *C, wmOperator * /*op*/)

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -85,7 +85,7 @@ class MeshMirrorUV(Operator):
             puvs_cpy[i] = tuple(uv.copy() for uv in puvs[i])
             puvsel[i] = (False not in
                          (uv.select for uv in uv_loops[lstart:lend]))
-            # Vert idx of the poly.
+            # Vert index of the poly.
             vidxs[i] = tuple(l.vertex_index for l in loops[lstart:lend])
             pcents[i] = p.center
             # Preparing next step finding matching polys.

@@ -28,7 +28,7 @@
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -39,8 +39,8 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include <string>
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -124,7 +124,7 @@ class MESH_UL_shape_keys(UIList):
             row = split.row(align=True)
             row.emboss = 'NONE_OR_STATUS'
             if key_block.mute or (obj.mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH')):
-                row.active = False
+                split.active = False
             if not item.id_data.use_relative:
                 row.prop(key_block, "frame", text="")
             elif index > 0:
@@ -163,7 +163,7 @@ class MeshButtonsPanel:
 class DATA_PT_context_mesh(MeshButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -181,7 +181,7 @@ class DATA_PT_context_mesh(MeshButtonsPanel, Panel):
 class DATA_PT_normals(MeshButtonsPanel, Panel):
     bl_label = "Normals"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -203,7 +203,7 @@ class DATA_PT_normals(MeshButtonsPanel, Panel):
 class DATA_PT_texture_space(MeshButtonsPanel, Panel):
     bl_label = "Texture Space"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -223,7 +223,7 @@ class DATA_PT_texture_space(MeshButtonsPanel, Panel):
 
 class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
     bl_label = "Vertex Groups"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -279,7 +279,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
 
 class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
     bl_label = "Shape Keys"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -376,7 +376,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
     bl_label = "UV Maps"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -396,7 +396,7 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
 class DATA_PT_remesh(MeshButtonsPanel, Panel):
     bl_label = "Remesh"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -426,7 +426,7 @@ class DATA_PT_remesh(MeshButtonsPanel, Panel):
 class DATA_PT_customdata(MeshButtonsPanel, Panel):
     bl_label = "Geometry Data"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -446,7 +446,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
 
 
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
     _context_path = "object.data"
     _property_type = bpy.types.Mesh
 
@@ -495,7 +495,7 @@ class MESH_UL_attributes(UIList):
 class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
     bl_label = "Attributes"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         mesh = context.mesh
@@ -548,7 +548,8 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         if not colliding_names:
             return
 
-        layout.label(text=tip_("Name collisions: ") + ", ".join(set(colliding_names)), icon='ERROR')
+        layout.label(text=tip_("Name collisions: ") + ", ".join(set(colliding_names)),
+                     icon='ERROR', translate=False)
 
 
 class ColorAttributesListBase():
@@ -573,8 +574,8 @@ class ColorAttributesListBase():
 
         for idx, item in enumerate(attributes):
             skip = (
-                (item.domain not in {"POINT", "CORNER"}) or
-                (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"}) or
+                (item.domain not in {'POINT', 'CORNER'}) or
+                (item.data_type not in {'FLOAT_COLOR', 'BYTE_COLOR'}) or
                 item.is_internal
             )
             flags[idx] = 0 if skip else flags[idx]
@@ -619,7 +620,7 @@ class MESH_UL_color_attributes_selector(UIList, ColorAttributesListBase):
 class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
     bl_label = "Color Attributes"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         mesh = context.mesh

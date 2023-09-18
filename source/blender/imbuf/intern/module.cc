@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "BLI_utildefines.h"
 
@@ -15,7 +15,7 @@
 #include "IMB_filetype.h"
 #include "IMB_imbuf.h"
 
-void IMB_init(void)
+void IMB_init()
 {
   imb_refcounter_lock_init();
   imb_mmap_lock_init();
@@ -23,7 +23,7 @@ void IMB_init(void)
   colormanagement_init();
 }
 
-void IMB_exit(void)
+void IMB_exit()
 {
   imb_filetypes_exit();
   colormanagement_exit();

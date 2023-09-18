@@ -10,10 +10,6 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Ipo;
 struct PackedFile;
 
@@ -112,7 +108,3 @@ enum {
   SOUND_TAGS_WAVEFORM_NO_RELOAD = 1 << 0,
   SOUND_TAGS_WAVEFORM_LOADING = (1 << 6),
 };
-
-#ifdef __cplusplus
-}
-#endif

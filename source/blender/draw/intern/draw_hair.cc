@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation
+/* SPDX-FileCopyrightText: 2017 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -73,7 +73,7 @@ static GPUShader *hair_refine_shader_get(ParticleRefineShader refinement)
   return DRW_shader_hair_refine_get(refinement, drw_hair_shader_type_get());
 }
 
-void DRW_hair_init(void)
+void DRW_hair_init()
 {
   if (GPU_transform_feedback_support() || GPU_compute_shader_support()) {
     g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_NO_DRAW);
@@ -428,8 +428,98 @@ void DRW_hair_update()
   }
 }
 
-void DRW_hair_free(void)
+void DRW_hair_free()
 {
   GPU_VERTBUF_DISCARD_SAFE(g_dummy_vbo);
   MEM_delete(g_dummy_curves_info);
 }
+
+/* New Draw Manager. */
+#include "draw_common.hh"
+
+namespace blender::draw {
+
+template<typename PassT>
+GPUBatch *hair_sub_pass_setup_implementation(PassT &sub_ps,
+                                             const Scene *scene,
+                                             Object *object,
+                                             ParticleSystem *psys,
+                                             ModifierData *md,
+                                             GPUMaterial *gpu_material)
+{
+  int subdiv = scene->r.hair_subdiv;
+  int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
+  ParticleHairCache *hair_cache = drw_hair_particle_cache_get(
+      object, psys, md, gpu_material, subdiv, thickness_res);
+
+  /* TODO: optimize this. Only bind the ones #GPUMaterial needs. */
+  for (int i : IndexRange(hair_cache->num_uv_layers)) {
+    for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->uv_layer_names[i][n][0] != '\0'; n++) {
+      sub_ps.bind_texture(hair_cache->uv_layer_names[i][n], hair_cache->uv_tex[i]);
+    }
+  }
+  for (int i : IndexRange(hair_cache->num_col_layers)) {
+    for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->col_layer_names[i][n][0] != '\0'; n++) {
+      sub_ps.bind_texture(hair_cache->col_layer_names[i][n], hair_cache->col_tex[i]);
+    }
+  }
+
+  /* Fix issue with certain driver not drawing anything if there is nothing bound to
+   * "ac", "au", "u" or "c". */
+  if (hair_cache->num_uv_layers == 0) {
+    sub_ps.bind_texture("u", g_dummy_vbo);
+    sub_ps.bind_texture("au", g_dummy_vbo);
+  }
+  if (hair_cache->num_col_layers == 0) {
+    sub_ps.bind_texture("c", g_dummy_vbo);
+    sub_ps.bind_texture("ac", g_dummy_vbo);
+  }
+
+  float4x4 dupli_mat;
+  DRW_hair_duplimat_get(object, psys, md, dupli_mat.ptr());
+
+  /* Get hair shape parameters. */
+  ParticleSettings *part = psys->part;
+  float hair_rad_shape = part->shape;
+  float hair_rad_root = part->rad_root * part->rad_scale * 0.5f;
+  float hair_rad_tip = part->rad_tip * part->rad_scale * 0.5f;
+  bool hair_close_tip = (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0;
+
+  sub_ps.bind_texture("hairPointBuffer", hair_cache->final[subdiv].proc_buf);
+  if (hair_cache->proc_length_buf) {
+    sub_ps.bind_texture("l", hair_cache->proc_length_buf);
+  }
+
+  sub_ps.bind_ubo("drw_curves", *g_dummy_curves_info);
+  sub_ps.push_constant("hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
+  sub_ps.push_constant("hairThicknessRes", thickness_res);
+  sub_ps.push_constant("hairRadShape", hair_rad_shape);
+  sub_ps.push_constant("hairDupliMatrix", dupli_mat);
+  sub_ps.push_constant("hairRadRoot", hair_rad_root);
+  sub_ps.push_constant("hairRadTip", hair_rad_tip);
+  sub_ps.push_constant("hairCloseTip", hair_close_tip);
+
+  return hair_cache->final[subdiv].proc_hairs[thickness_res - 1];
+}
+
+GPUBatch *hair_sub_pass_setup(PassMain::Sub &sub_ps,
+                              const Scene *scene,
+                              Object *object,
+                              ParticleSystem *psys,
+                              ModifierData *md,
+                              GPUMaterial *gpu_material)
+{
+  return hair_sub_pass_setup_implementation(sub_ps, scene, object, psys, md, gpu_material);
+}
+
+GPUBatch *hair_sub_pass_setup(PassSimple::Sub &sub_ps,
+                              const Scene *scene,
+                              Object *object,
+                              ParticleSystem *psys,
+                              ModifierData *md,
+                              GPUMaterial *gpu_material)
+{
+  return hair_sub_pass_setup_implementation(sub_ps, scene, object, psys, md, gpu_material);
+}
+
+}  // namespace blender::draw

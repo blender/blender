@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_transform.h"
@@ -87,26 +87,12 @@ bool USDTransformWriter::should_apply_root_xform(const HierarchyContext &context
     return false;
   }
 
-  if (usd_export_context_.export_params.use_instancing &&
-      usd_export_context_.hierarchy_iterator->is_prototype(context.object)) {
+  if (usd_export_context_.export_params.use_instancing && context.is_prototype()) {
     /* This is an instancing prototype. */
     return false;
   }
 
   return true;
-}
-
-bool USDTransformWriter::is_proto_root(const HierarchyContext &context) const
-{
-  if (!usd_export_context_.export_params.use_instancing) {
-    return false;
-  }
-  bool is_proto = usd_export_context_.hierarchy_iterator->is_prototype(context.object);
-  bool parent_is_proto = context.export_parent &&
-                         usd_export_context_.hierarchy_iterator->is_prototype(
-                             context.export_parent);
-
-  return is_proto && !parent_is_proto;
 }
 
 void USDTransformWriter::do_write(HierarchyContext &context)
@@ -166,17 +152,14 @@ void USDTransformWriter::do_write(HierarchyContext &context)
   }
 
   if (usd_export_context_.export_params.use_instancing) {
-
     if (context.is_instance()) {
       mark_as_instance(context, xform.GetPrim());
       /* Explicitly set visibility, since the prototype might be invisible. */
       xform.GetVisibilityAttr().Set(pxr::UsdGeomTokens->inherited);
     }
-    else {
-      if (is_proto_root(context)) {
-        /* TODO(makowalski): perhaps making prototypes invisible should be optional. */
-        xform.GetVisibilityAttr().Set(pxr::UsdGeomTokens->invisible);
-      }
+    else if (context.is_prototype() && !context.export_parent) {
+      /* TODO(makowalski): perhaps making prototypes invisible should be optional. */
+      xform.GetVisibilityAttr().Set(pxr::UsdGeomTokens->invisible);
     }
   }
 }

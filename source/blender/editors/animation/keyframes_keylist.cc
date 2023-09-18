@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+/* SPDX-FileCopyrightText: 2009 Blender Authors, Joshua Leung. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,7 +21,6 @@
 #include "BLI_array.hh"
 #include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_range.h"
 #include "BLI_utildefines.h"
 
@@ -33,11 +32,11 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_fcurve.h"
+#include "BKE_grease_pencil.hh"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_keylist.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_keylist.hh"
 
-extern "C" {
 /* *************************** Keyframe Processing *************************** */
 
 /* ActKeyColumns (Keyframe Columns) ------------------------------------------ */
@@ -53,6 +52,15 @@ BLI_INLINE bool is_cfra_lt(const float a, const float b)
 }
 
 /* --------------- */
+
+/**
+ * Animation data of Grease Pencil cels,
+ * which are drawings positioned in time.
+ */
+struct GreasePencilCel {
+  int frame_number;
+  GreasePencilFrame frame;
+};
 
 struct AnimKeylist {
   /* Number of ActKeyColumn's in the keylist. */
@@ -502,6 +510,47 @@ static void nupdate_ak_bezt(ActKeyColumn *ak, void *data)
 }
 
 /* ......... */
+/* New node callback used for building ActKeyColumns from GPencil frames */
+static ActKeyColumn *nalloc_ak_cel(void *data)
+{
+  ActKeyColumn *ak = static_cast<ActKeyColumn *>(
+      MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumnCel"));
+  GreasePencilCel &cel = *static_cast<GreasePencilCel *>(data);
+
+  /* Store settings based on state of BezTriple */
+  ak->cfra = cel.frame_number;
+  ak->sel = (cel.frame.flag & SELECT) != 0;
+  ak->key_type = cel.frame.type;
+
+  /* Count keyframes in this column */
+  ak->totkey = 1;
+  /* Set as visible block. */
+  ak->totblock = 1;
+  ak->block.sel = ak->sel;
+
+  return ak;
+}
+
+/* Node updater callback used for building ActKeyColumns from GPencil frames */
+static void nupdate_ak_cel(ActKeyColumn *ak, void *data)
+{
+  GreasePencilCel &cel = *static_cast<GreasePencilCel *>(data);
+
+  /* Update selection status */
+  if (cel.frame.flag & GP_FRAME_SELECTED) {
+    ak->sel = SELECT;
+  }
+
+  /* Count keyframes in this column */
+  ak->totkey++;
+
+  /* Update keytype status */
+  if (cel.frame.type == BEZT_KEYTYPE_KEYFRAME) {
+    ak->key_type = BEZT_KEYTYPE_KEYFRAME;
+  }
+}
+
+/* ......... */
 
 /* New node callback used for building ActKeyColumns from GPencil frames */
 static ActKeyColumn *nalloc_ak_gpframe(void *data)
@@ -911,6 +960,10 @@ void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, const int sactio
         case ALE_GPFRAME:
           gpl_to_keylist(ac->ads, static_cast<bGPDlayer *>(ale->data), keylist);
           break;
+        case ALE_GREASE_PENCIL_CEL:
+          grease_pencil_cels_to_keylist(
+              ale->adt, static_cast<const GreasePencilLayer *>(ale->data), keylist, saction_flag);
+          break;
         default:
           // printf("%s: datatype %d unhandled\n", __func__, ale->datatype);
           break;
@@ -1070,10 +1123,10 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, const i
   }
 }
 
-void agroup_to_keylist(AnimData *adt,
-                       bActionGroup *agrp,
-                       AnimKeylist *keylist,
-                       const int saction_flag)
+void action_group_to_keylist(AnimData *adt,
+                             bActionGroup *agrp,
+                             AnimKeylist *keylist,
+                             const int saction_flag)
 {
   if (agrp) {
     /* loop through F-Curves */
@@ -1110,6 +1163,64 @@ void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, con
   }
 }
 
+void grease_pencil_data_block_to_keylist(AnimData *adt,
+                                         const GreasePencil *grease_pencil,
+                                         AnimKeylist *keylist,
+                                         const int saction_flag,
+                                         const bool active_layer_only)
+{
+  if ((grease_pencil == nullptr) || (keylist == nullptr)) {
+    return;
+  }
+
+  if (active_layer_only && grease_pencil->has_active_layer()) {
+    grease_pencil_cels_to_keylist(adt, grease_pencil->get_active_layer(), keylist, saction_flag);
+    return;
+  }
+
+  for (const blender::bke::greasepencil::Layer *layer : grease_pencil->layers()) {
+    grease_pencil_cels_to_keylist(adt, layer, keylist, saction_flag);
+  }
+}
+
+void grease_pencil_cels_to_keylist(AnimData * /*adt*/,
+                                   const GreasePencilLayer *gpl,
+                                   AnimKeylist *keylist,
+                                   int /*saction_flag*/)
+{
+  using namespace blender::bke::greasepencil;
+  const Layer &layer = gpl->wrap();
+  for (auto item : layer.frames().items()) {
+    GreasePencilCel cel{};
+    cel.frame_number = item.key;
+    cel.frame = item.value;
+
+    float cfra = float(item.key);
+    ED_keylist_add_or_update_column(
+        keylist, cfra, nalloc_ak_cel, nupdate_ak_cel, static_cast<void *>(&cel));
+  }
+}
+
+void grease_pencil_layer_group_to_keylist(AnimData *adt,
+                                          const GreasePencilLayerTreeGroup *layer_group,
+                                          AnimKeylist *keylist,
+                                          const int saction_flag)
+{
+  if ((layer_group == nullptr) || (keylist == nullptr)) {
+    return;
+  }
+
+  LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &layer_group->children) {
+    const blender::bke::greasepencil::TreeNode &node = node_->wrap();
+    if (node.is_group()) {
+      grease_pencil_layer_group_to_keylist(adt, &node.as_group(), keylist, saction_flag);
+    }
+    else if (node.is_layer()) {
+      grease_pencil_cels_to_keylist(adt, &node.as_layer(), keylist, saction_flag);
+    }
+  }
+}
+
 void gpl_to_keylist(bDopeSheet * /*ads*/, bGPDlayer *gpl, AnimKeylist *keylist)
 {
   if (gpl && keylist) {
@@ -1134,5 +1245,4 @@ void mask_to_keylist(bDopeSheet * /*ads*/, MaskLayer *masklay, AnimKeylist *keyl
 
     update_keyblocks(keylist, nullptr, 0);
   }
-}
 }

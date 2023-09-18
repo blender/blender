@@ -18,7 +18,7 @@
  */
 #include "usd_writer_skel_root.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>

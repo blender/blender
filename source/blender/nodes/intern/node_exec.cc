@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -37,17 +37,15 @@ bNodeStack *node_get_socket_stack(bNodeStack *stack, bNodeSocket *sock)
 
 void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack **out)
 {
-  bNodeSocket *sock;
-
   /* build pointer stack */
   if (in) {
-    for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       *(in++) = node_get_socket_stack(stack, sock);
     }
   }
 
   if (out) {
-    for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
       *(out++) = node_get_socket_stack(stack, sock);
     }
   }
@@ -148,7 +146,6 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   bNode *node;
   bNodeExec *nodeexec;
   bNodeInstanceKey nodekey;
-  bNodeSocket *sock;
   bNodeStack *ns;
   int index;
   /* XXX: texture-nodes have threading issues with muting, have to disable it there. */
@@ -173,17 +170,17 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     node = nodelist[n];
 
     /* init node socket stack indexes */
-    for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       node_init_input_index(sock, &index);
     }
 
     if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
-      for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
         node_init_output_index_muted(sock, &index, node->runtime->internal_links);
       }
     }
     else {
-      for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
         node_init_output_index(sock, &index);
       }
     }
@@ -209,7 +206,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     nodeexec->free_exec_fn = node->typeinfo->free_exec_fn;
 
     /* tag inputs */
-    for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       /* disable the node if an input link is invalid */
       if (sock->link && !(sock->link->flag & NODE_LINK_VALID)) {
         node->runtime->need_exec = 0;
@@ -222,7 +219,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     }
 
     /* tag all outputs */
-    for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
       /* ns = */ setup_stack(exec->stack, ntree, node, sock);
     }
 

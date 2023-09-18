@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,6 +12,7 @@
 #include "DNA_node_types.h"
 
 #include "BLI_easing.h"
+#include "BLI_math_geom.h"
 #include "BLI_stack.hh"
 
 #include "BKE_anim_data.h"
@@ -25,26 +26,26 @@
 #include "BKE_screen.h"
 
 #include "ED_node.hh" /* own include */
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_util.h"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_util.hh"
 #include "ED_viewer_path.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "GPU_state.h"
 
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "BLT_translation.h"
 
@@ -66,8 +67,6 @@ struct NodeInsertOfsData {
 };
 
 namespace blender::ed::space_node {
-
-bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out);
 
 static void clear_picking_highlight(ListBase *links)
 {
@@ -171,7 +170,7 @@ static void pick_input_link_by_link_intersect(const bContext &C,
 
 static bool socket_is_available(bNodeTree * /*ntree*/, bNodeSocket *sock, const bool allow_used)
 {
-  if (!sock->is_visible()) {
+  if (!sock->is_visible_or_panel_collapsed()) {
     return false;
   }
 
@@ -2202,7 +2201,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode)
   }
 
   /* Set up insert offset data, it needs stuff from here. */
-  if ((snode.flag & SNODE_SKIP_INSOFFSET) == 0) {
+  if (U.uiflag & USER_NODE_AUTO_OFFSET) {
     BLI_assert(snode.runtime->iofsd == nullptr);
     NodeInsertOfsData *iofsd = MEM_cnew<NodeInsertOfsData>(__func__);
 
@@ -2260,12 +2259,12 @@ bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_
   bke::nodeDeclarationEnsure(&ntree, &node);
   const nodes::NodeDeclaration *node_decl = node.declaration();
   if (node_decl != nullptr) {
-    Span<nodes::SocketDeclarationPtr> socket_decls = (in_out == SOCK_IN) ? node_decl->inputs :
-                                                                           node_decl->outputs;
+    Span<nodes::SocketDeclaration *> socket_decls = (in_out == SOCK_IN) ? node_decl->inputs :
+                                                                          node_decl->outputs;
     int index;
     LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, index) {
       const nodes::SocketDeclaration &socket_decl = *socket_decls[index];
-      if (!socket->is_visible()) {
+      if (!socket->is_visible_or_panel_collapsed()) {
         continue;
       }
       if (socket_decl.is_default_link_socket) {
@@ -2286,7 +2285,7 @@ bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_
   /* Try all priorities, starting from 'highest'. */
   for (int priority = maxpriority; priority >= 0; priority--) {
     LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-      if (!!sock->is_visible() && priority == get_main_socket_priority(sock)) {
+      if (!!sock->is_visible_or_panel_collapsed() && priority == get_main_socket_priority(sock)) {
         return sock;
       }
     }
@@ -2320,7 +2319,6 @@ static void node_offset_apply(bNode &node, const float offset_x)
 {
   /* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
   if ((node.flag & NODE_TEST) == 0) {
-    node.runtime->anim_init_locx = node.locx;
     node.runtime->anim_ofsx = (offset_x / UI_SCALE_FAC);
     node.flag |= NODE_TEST;
   }
@@ -2450,11 +2448,10 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
   if (!insert.parent ||
       (prev->parent && (prev->parent == next->parent) && (prev->parent != insert.parent)))
   {
-    bNode *frame;
     rctf totr_frame;
 
     /* check nodes front to back */
-    for (frame = (bNode *)ntree->nodes.last; frame; frame = frame->prev) {
+    LISTBASE_FOREACH_BACKWARD (bNode *, frame, &ntree->nodes) {
       /* skip selected, those are the nodes we want to attach */
       if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT)) {
         continue;
@@ -2550,24 +2547,22 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_PASS_THROUGH;
   }
 
-  const float duration = float(iofsd->anim_timer->duration);
+  const float duration = float(iofsd->anim_timer->time_duration);
 
   /* handle animation - do this before possibly aborting due to duration, since
    * main thread might be so busy that node hasn't reached final position yet */
   for (bNode *node : snode->edittree->all_nodes()) {
     if (UNLIKELY(node->runtime->anim_ofsx)) {
-      const float endval = node->runtime->anim_init_locx + node->runtime->anim_ofsx;
-      if (IS_EQF(node->locx, endval) == false) {
-        node->locx = BLI_easing_cubic_ease_in_out(duration,
-                                                  node->runtime->anim_init_locx,
-                                                  node->runtime->anim_ofsx,
-                                                  NODE_INSOFS_ANIM_DURATION);
-        if (node->runtime->anim_ofsx < 0) {
-          CLAMP_MIN(node->locx, endval);
-        }
-        else {
-          CLAMP_MAX(node->locx, endval);
-        }
+      const float prev_duration = duration - float(iofsd->anim_timer->time_delta);
+      /* Clamp duration to not overshoot. */
+      const float clamped_duration = math::min(duration, NODE_INSOFS_ANIM_DURATION);
+      if (prev_duration < clamped_duration) {
+        const float offset_step = node->runtime->anim_ofsx *
+                                  (BLI_easing_cubic_ease_in_out(
+                                       clamped_duration, 0.0f, 1.0f, NODE_INSOFS_ANIM_DURATION) -
+                                   BLI_easing_cubic_ease_in_out(
+                                       prev_duration, 0.0f, 1.0f, NODE_INSOFS_ANIM_DURATION));
+        node->locx += offset_step;
         redraw = true;
       }
     }
@@ -2578,10 +2573,10 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
 
   /* end timer + free insert offset data */
   if (duration > NODE_INSOFS_ANIM_DURATION) {
-    WM_event_remove_timer(CTX_wm_manager(C), nullptr, iofsd->anim_timer);
+    WM_event_timer_remove(CTX_wm_manager(C), nullptr, iofsd->anim_timer);
 
     for (bNode *node : snode->edittree->all_nodes()) {
-      node->runtime->anim_init_locx = node->runtime->anim_ofsx = 0.0f;
+      node->runtime->anim_ofsx = 0.0f;
     }
 
     MEM_freeN(iofsd);
@@ -2605,10 +2600,10 @@ static int node_insert_offset_invoke(bContext *C, wmOperator *op, const wmEvent 
     return OPERATOR_CANCELLED;
   }
 
-  BLI_assert((snode->flag & SNODE_SKIP_INSOFFSET) == 0);
+  BLI_assert(U.uiflag & USER_NODE_AUTO_OFFSET);
 
   iofsd->ntree = snode->edittree;
-  iofsd->anim_timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.02);
+  iofsd->anim_timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.02);
 
   node_link_insert_offset_ntree(
       iofsd, CTX_wm_region(C), event->mval, (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT));

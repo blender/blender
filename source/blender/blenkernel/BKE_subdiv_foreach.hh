@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2018 Blender Foundation
+/* SPDX-FileCopyrightText: 2018 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,8 +19,8 @@ using SubdivForeachTopologyInformationCb = bool (*)(const SubdivForeachContext *
                                                     int num_vertices,
                                                     int num_edges,
                                                     int num_loops,
-                                                    int num_polygons,
-                                                    const int *subdiv_polygon_offset);
+                                                    int num_faces,
+                                                    const int *subdiv_face_offset);
 
 using SubdivForeachVertexFromCornerCb = void (*)(const SubdivForeachContext *context,
                                                  void *tls,
@@ -28,7 +28,7 @@ using SubdivForeachVertexFromCornerCb = void (*)(const SubdivForeachContext *con
                                                  float u,
                                                  float v,
                                                  int coarse_vertex_index,
-                                                 int coarse_poly_index,
+                                                 int coarse_face_index,
                                                  int coarse_corner,
                                                  int subdiv_vertex_index);
 
@@ -38,7 +38,7 @@ using SubdivForeachVertexFromEdgeCb = void (*)(const SubdivForeachContext *conte
                                                float u,
                                                float v,
                                                int coarse_edge_index,
-                                               int coarse_poly_index,
+                                               int coarse_face_index,
                                                int coarse_corner,
                                                int subdiv_vertex_index);
 
@@ -47,7 +47,7 @@ using SubdivForeachVertexInnerCb = void (*)(const SubdivForeachContext *context,
                                             int ptex_face_index,
                                             float u,
                                             float v,
-                                            int coarse_poly_index,
+                                            int coarse_face_index,
                                             int coarse_corner,
                                             int subdiv_vertex_index);
 
@@ -65,7 +65,7 @@ using SubdivForeachLoopCb = void (*)(const SubdivForeachContext *context,
                                      float u,
                                      float v,
                                      int coarse_loop_index,
-                                     int coarse_poly_index,
+                                     int coarse_face_index,
                                      int coarse_corner,
                                      int subdiv_loop_index,
                                      int subdiv_vertex_index,
@@ -73,8 +73,8 @@ using SubdivForeachLoopCb = void (*)(const SubdivForeachContext *context,
 
 using SubdivForeachPolygonCb = void (*)(const SubdivForeachContext *context,
                                         void *tls,
-                                        int coarse_poly_index,
-                                        int subdiv_poly_index,
+                                        int coarse_face_index,
+                                        int subdiv_face_index,
                                         int start_loop_index,
                                         int num_loops);
 
@@ -143,7 +143,7 @@ struct SubdivForeachContext {
  * of final subdivided mesh.
  *
  * Main goal is to abstract all the traversal routines to give geometry element
- * indices (for vertices, edges, loops, polygons) in the same way as subdivision
+ * indices (for vertices, edges, loops, faces) in the same way as subdivision
  * modifier will do for a dense mesh.
  *
  * Returns true if the whole topology was traversed, without any early exits.

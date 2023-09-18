@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,26 +18,27 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
-#include "ED_anim_api.h"
-#include "ED_markers.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_time_scrub_ui.h"
+#include "ED_anim_api.hh"
+#include "ED_markers.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "nla_intern.hh" /* own include */
 
@@ -56,7 +57,6 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   snla->ads->source = (ID *)(scene);
 
   /* set auto-snapping settings */
-  snla->autosnap = SACTSNAP_FRAME;
   snla->flag = SNLA_SHOW_MARKERS;
 
   /* header */
@@ -162,13 +162,13 @@ static void nla_channel_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
   /* own channels map first to override some channel keymaps */
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Channels", SPACE_NLA, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Channels", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
   /* now generic channels map for everything else that can apply */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -206,9 +206,9 @@ static void nla_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Editor", SPACE_NLA, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Editor", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -243,7 +243,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* markers */
-  UI_view2d_view_orthoSpecial(region, v2d, 1);
+  UI_view2d_view_orthoSpecial(region, v2d, true);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
   if (snla->flag & SNLA_SHOW_MARKERS) {
     ED_markers_draw(C, marker_draw_flag);
@@ -295,7 +295,7 @@ static void nla_buttons_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -405,12 +405,7 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
 {
   wmMsgBus *mbus = params->message_bus;
   Scene *scene = params->scene;
-  bScreen *screen = params->screen;
-  ScrArea *area = params->area;
   ARegion *region = params->region;
-
-  PointerRNA ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceNLA, area->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {};
   msg_sub_value_region_tag_redraw.owner = region;
@@ -427,13 +422,18 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
         &rna_Scene_frame_current,
     };
 
-    PointerRNA idptr;
-    RNA_id_pointer_create(&scene->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&scene->id);
 
     for (int i = 0; i < ARRAY_SIZE(props); i++) {
       WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_region_tag_redraw, __func__);
     }
   }
+}
+
+static void nla_main_region_view2d_changed(const bContext * /*C*/, ARegion *region)
+{
+  View2D *v2d = &region->v2d;
+  UI_view2d_curRect_clamp_y(v2d);
 }
 
 static void nla_channel_region_listener(const wmRegionListenerParams *params)
@@ -481,12 +481,7 @@ static void nla_channel_region_listener(const wmRegionListenerParams *params)
 static void nla_channel_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   wmMsgBus *mbus = params->message_bus;
-  bScreen *screen = params->screen;
-  ScrArea *area = params->area;
   ARegion *region = params->region;
-
-  PointerRNA ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceNLA, area->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {};
   msg_sub_value_region_tag_redraw.owner = region;
@@ -497,7 +492,7 @@ static void nla_channel_region_message_subscribe(const wmRegionMessageSubscribeP
    * so just whitelist the entire struct for updates
    */
   {
-    wmMsgParams_RNA msg_key_params = {{0}};
+    wmMsgParams_RNA msg_key_params = {{nullptr}};
     StructRNA *type_array[] = {
         &RNA_DopeSheet,
     };
@@ -564,21 +559,23 @@ static void nla_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper 
       mappings, reinterpret_cast<ID **>(&snla->ads->source), ID_REMAP_APPLY_DEFAULT);
 }
 
+static void nla_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(space_link);
+
+  /* NOTE: Could be deduplicated with the #bDopeSheet handling of #SpaceAction and #SpaceGraph. */
+  if (snla->ads == nullptr) {
+    return;
+  }
+
+  BKE_LIB_FOREACHID_PROCESS_ID(data, snla->ads->source, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snla->ads->filter_grp, IDWALK_CB_NOP);
+}
+
 static void nla_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
   BLO_read_data_address(reader, &snla->ads);
-}
-
-static void nla_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
-{
-  SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
-  bDopeSheet *ads = snla->ads;
-
-  if (ads) {
-    BLO_read_id_address(reader, parent_id, &ads->source);
-    BLO_read_id_address(reader, parent_id, &ads->filter_grp);
-  }
 }
 
 static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
@@ -591,7 +588,7 @@ static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   }
 }
 
-void ED_spacetype_nla(void)
+void ED_spacetype_nla()
 {
   SpaceType *st = MEM_cnew<SpaceType>("spacetype nla");
   ARegionType *art;
@@ -607,8 +604,9 @@ void ED_spacetype_nla(void)
   st->listener = nla_listener;
   st->keymap = nla_keymap;
   st->id_remap = nla_id_remap;
+  st->foreach_id = nla_foreach_id;
   st->blend_read_data = nla_space_blend_read_data;
-  st->blend_read_lib = nla_space_blend_read_lib;
+  st->blend_read_after_liblink = nullptr;
   st->blend_write = nla_space_blend_write;
 
   /* regions: main window */
@@ -619,6 +617,7 @@ void ED_spacetype_nla(void)
   art->draw_overlay = nla_main_region_draw_overlay;
   art->listener = nla_main_region_listener;
   art->message_subscribe = nla_main_region_message_subscribe;
+  art->on_view2d_changed = nla_main_region_view2d_changed;
   art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
 
   BLI_addhead(&st->regiontypes, art);

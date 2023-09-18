@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,8 +8,8 @@
 
 #include "DNA_object_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "rna_internal.h"
 
@@ -17,9 +17,9 @@
 
 #  include "BKE_global.h"
 
-#  include "ED_fileselect.h"
-#  include "ED_screen.h"
-#  include "ED_text.h"
+#  include "ED_fileselect.hh"
+#  include "ED_screen.hh"
+#  include "ED_text.hh"
 
 int rna_object_type_visibility_icon_get_common(int object_type_exclude_viewport,
                                                const int *object_type_exclude_select)
@@ -130,39 +130,72 @@ void rna_def_object_type_visibility_flags_common(StructRNA *srna,
     const char *name;
     int type_mask;
     const char *identifier[2];
+    const char *description[2];
   } info[] = {
-      {"Mesh", (1 << OB_MESH), {"show_object_viewport_mesh", "show_object_select_mesh"}},
+      {"Mesh",
+       (1 << OB_MESH),
+       {"show_object_viewport_mesh", "show_object_select_mesh"},
+       {"Show mesh objects", "Allow selection of mesh objects"}},
       {"Curve",
        (1 << OB_CURVES_LEGACY),
-       {"show_object_viewport_curve", "show_object_select_curve"}},
-      {"Surface", (1 << OB_SURF), {"show_object_viewport_surf", "show_object_select_surf"}},
-      {"Meta", (1 << OB_MBALL), {"show_object_viewport_meta", "show_object_select_meta"}},
-      {"Font", (1 << OB_FONT), {"show_object_viewport_font", "show_object_select_font"}},
+       {"show_object_viewport_curve", "show_object_select_curve"},
+       {"Show curves", "Allow selection of curves"}},
+      {"Surface",
+       (1 << OB_SURF),
+       {"show_object_viewport_surf", "show_object_select_surf"},
+       {"Show surfaces", "Allow selection of surfaces"}},
+      {"Meta",
+       (1 << OB_MBALL),
+       {"show_object_viewport_meta", "show_object_select_meta"},
+       {"Show metaballs", "Allow selection of metaballs"}},
+      {"Font",
+       (1 << OB_FONT),
+       {"show_object_viewport_font", "show_object_select_font"},
+       {"Show text objects", "Allow selection of text objects"}},
       {"Hair Curves",
        (1 << OB_CURVES),
-       {"show_object_viewport_curves", "show_object_select_curves"}},
+       {"show_object_viewport_curves", "show_object_select_curves"},
+       {"Show hair curves", "Allow selection of hair curves"}},
       {"Point Cloud",
        (1 << OB_POINTCLOUD),
-       {"show_object_viewport_pointcloud", "show_object_select_pointcloud"}},
-      {"Volume", (1 << OB_VOLUME), {"show_object_viewport_volume", "show_object_select_volume"}},
+       {"show_object_viewport_pointcloud", "show_object_select_pointcloud"},
+       {"Show point clouds", "Allow selection of point clouds"}},
+      {"Volume",
+       (1 << OB_VOLUME),
+       {"show_object_viewport_volume", "show_object_select_volume"},
+       {"Show volumes", "Allow selection of volumes"}},
       {"Armature",
        (1 << OB_ARMATURE),
-       {"show_object_viewport_armature", "show_object_select_armature"}},
+       {"show_object_viewport_armature", "show_object_select_armature"},
+       {"Show armatures", "Allow selection of armatures"}},
       {"Lattice",
        (1 << OB_LATTICE),
-       {"show_object_viewport_lattice", "show_object_select_lattice"}},
-      {"Empty", (1 << OB_EMPTY), {"show_object_viewport_empty", "show_object_select_empty"}},
+       {"show_object_viewport_lattice", "show_object_select_lattice"},
+       {"Show lattices", "Allow selection of lattices"}},
+      {"Empty",
+       (1 << OB_EMPTY),
+       {"show_object_viewport_empty", "show_object_select_empty"},
+       {"Show empties", "Allow selection of empties"}},
       {"Grease Pencil",
        (1 << OB_GPENCIL_LEGACY),
-       {"show_object_viewport_grease_pencil", "show_object_select_grease_pencil"}},
-      {"Camera", (1 << OB_CAMERA), {"show_object_viewport_camera", "show_object_select_camera"}},
-      {"Light", (1 << OB_LAMP), {"show_object_viewport_light", "show_object_select_light"}},
+       {"show_object_viewport_grease_pencil", "show_object_select_grease_pencil"},
+       {"Show grease pencil objects", "Allow selection of grease pencil objects"}},
+      {"Camera",
+       (1 << OB_CAMERA),
+       {"show_object_viewport_camera", "show_object_select_camera"},
+       {"Show cameras", "Allow selection of cameras"}},
+      {"Light",
+       (1 << OB_LAMP),
+       {"show_object_viewport_light", "show_object_select_light"},
+       {"Show lights", "Allow selection of lights"}},
       {"Speaker",
        (1 << OB_SPEAKER),
-       {"show_object_viewport_speaker", "show_object_select_speaker"}},
+       {"show_object_viewport_speaker", "show_object_select_speaker"},
+       {"Show speakers", "Allow selection of speakers"}},
       {"Light Probe",
        (1 << OB_LIGHTPROBE),
-       {"show_object_viewport_light_probe", "show_object_select_light_probe"}},
+       {"show_object_viewport_light_probe", "show_object_select_light_probe"},
+       {"Show light probes", "Allow selection of light probes"}},
   };
 
   const char *view_mask_member[2] = {
@@ -175,7 +208,8 @@ void rna_def_object_type_visibility_flags_common(StructRNA *srna,
           srna, info[type_index].identifier[mask_index], PROP_BOOLEAN, PROP_NONE);
       RNA_def_property_boolean_negative_sdna(
           prop, nullptr, view_mask_member[mask_index], info[type_index].type_mask);
-      RNA_def_property_ui_text(prop, info[type_index].name, "");
+      RNA_def_property_ui_text(
+          prop, info[type_index].name, info[type_index].description[mask_index]);
       RNA_def_property_update(prop, noteflag, update_func);
     }
   }
@@ -197,7 +231,7 @@ void RNA_api_space_filebrowser(StructRNA *srna)
   parm = RNA_def_boolean(
       func,
       "deferred",
-      0,
+      false,
       "",
       "Whether to activate the ID immediately (false) or after the file browser refreshes (true)");
 

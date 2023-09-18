@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* WORKAROUND: to guard against double include in EEVEE. */
 #ifndef COMMON_VIEW_LIB_GLSL
@@ -86,7 +89,7 @@ uniform int drw_resourceChunk;
 
 #    if defined(UNIFORM_RESOURCE_ID)
 /* This is in the case we want to do a special instance drawcall for one object but still want to
- * have the right resourceId and all the correct ubo datas. */
+ * have the right resourceId and all the correct UBO datas. */
 uniform int drw_ResourceID;
 #      define resource_id drw_ResourceID
 #    else
@@ -192,7 +195,7 @@ layout(std140) uniform modelBlock
 /* Intel GPU seems to suffer performance impact when the model matrix is in UBO storage.
  * So for now we just force using the legacy path. */
 /* Note that this is also a workaround of a problem on OSX (AMD or NVIDIA)
- * and older amd driver on windows. */
+ * and older AMD driver on windows. */
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
 #  endif /* USE_GPU_SHADER_CREATE_INFO */
@@ -205,7 +208,7 @@ uniform mat4 ModelMatrixInverse;
 #endif
 
 /** Transform shortcuts. */
-/* Rule of thumb: Try to reuse world positions and normals because converting through viewspace
+/* Rule of thumb: Try to reuse world positions and normals because converting through view-space
  * will always be decomposed in at least 2 matrix operation. */
 
 /**
@@ -257,12 +260,16 @@ vec3 point_world_to_view(vec3 p)
   return (ViewMatrix * vec4(p, 1.0)).xyz;
 }
 
-/* Viewspace Z is used to adjust for perspective projection.
+/* View-space Z is used to adjust for perspective projection.
  * Homogenous W is used to convert from NDC to homogenous space.
- * Offset is in viewspace, so positive values are closer to the camera. */
+ * Offset is in view-space, so positive values are closer to the camera. */
 float get_homogenous_z_offset(float vs_z, float hs_w, float vs_offset)
 {
-  if (ProjectionMatrix[3][3] == 0.0) {
+  if (vs_offset == 0.0) {
+    /* Don't calculate homogenous offset if view-space offset is zero. */
+    return 0.0;
+  }
+  else if (ProjectionMatrix[3][3] == 0.0) {
     /* Clamp offset to half of Z to avoid floating point precision errors. */
     vs_offset = min(vs_offset, vs_z * -0.5);
     /* From "Projection Matrix Tricks" by Eric Lengyel:
@@ -286,6 +293,11 @@ float get_homogenous_z_offset(float vs_z, float hs_w, float vs_offset)
 #define DRW_BASE_FROM_DUPLI (1 << 2)
 #define DRW_BASE_FROM_SET (1 << 3)
 #define DRW_BASE_ACTIVE (1 << 4)
+
+/* Wire Color Types, matching eV3DShadingColorType. */
+#define V3D_SHADING_SINGLE_COLOR 2
+#define V3D_SHADING_OBJECT_COLOR 4
+#define V3D_SHADING_RANDOM_COLOR 1
 
 /* ---- Opengl Depth conversion ---- */
 

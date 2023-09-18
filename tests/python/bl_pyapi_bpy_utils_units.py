@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2014-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2014-2022 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
 

@@ -23,7 +23,7 @@
 #include "BKE_armature.h"
 #include "DNA_armature_types.h"
 
-#include "ED_armature.h"
+#include "ED_armature.hh"
 
 #include <pxr/base/gf/matrix4d.h>
 #include <pxr/base/gf/matrix4f.h>

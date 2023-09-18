@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2018 Blender Foundation
+/* SPDX-FileCopyrightText: 2018 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,6 +12,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_hash_mm3.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
@@ -430,7 +431,6 @@ void register_node_type_cmp_cryptomatte_legacy()
   node_type_storage(
       &ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
   ntype.gather_link_search_ops = nullptr;
-  ntype.gather_add_node_search_ops = nullptr;
   ntype.get_compositor_operation = legacy_file_ns::get_compositor_operation;
   ntype.realtime_compositor_unsupported_message = N_(
       "Node not supported in the Viewport compositor");

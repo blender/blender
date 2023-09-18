@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,7 +11,6 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 
-#include "BLI_math.h"
 #include "BLI_math_matrix.hh"
 
 #include "BLT_translation.h"
@@ -19,7 +18,7 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
-#include "ED_grease_pencil.h"
+#include "ED_grease_pencil.hh"
 
 namespace blender::ed::greasepencil {
 
@@ -1199,13 +1198,9 @@ void create_blank(Main &bmain, Object &object, const int frame_number)
   int material_index = add_material_from_template(bmain, object, gp_stroke_material_black);
   object.actcol = material_index + 1;
 
-  Layer &new_layer = grease_pencil.add_layer(grease_pencil.root_group.wrap(), "GP_Layer");
+  Layer &new_layer = grease_pencil.add_layer("GP_Layer");
   grease_pencil.set_active_layer(&new_layer);
-
-  grease_pencil.add_empty_drawings(1);
-
-  GreasePencilFrame frame{0, 0, BEZT_KEYTYPE_KEYFRAME};
-  new_layer.insert_frame(frame_number, frame);
+  grease_pencil.insert_blank_frame(new_layer, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 }
 
 void create_stroke(Main &bmain, Object &object, float4x4 matrix, const int frame_number)
@@ -1222,21 +1217,17 @@ void create_stroke(Main &bmain, Object &object, float4x4 matrix, const int frame
   add_material_from_template(bmain, object, gp_fill_material_grey);
   object.actcol = material_index + 1;
 
-  Layer &layer_lines = grease_pencil.add_layer(grease_pencil.root_group.wrap(), "Lines");
-  Layer &layer_color = grease_pencil.add_layer(grease_pencil.root_group.wrap(), "Color");
+  Layer &layer_lines = grease_pencil.add_layer("Lines");
+  Layer &layer_color = grease_pencil.add_layer("Color");
   grease_pencil.set_active_layer(&layer_lines);
 
-  grease_pencil.add_empty_drawings(2);
+  grease_pencil.insert_blank_frame(layer_lines, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+  grease_pencil.insert_blank_frame(layer_color, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 
   GreasePencilDrawing &drawing = *reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawings_for_write()[1]);
+      grease_pencil.drawings(1));
   drawing.geometry.wrap() = create_drawing_data(
       stroke_positions, stroke_radii, stroke_opacities, {0, 175}, {material_index}, {75}, matrix);
-
-  GreasePencilFrame frame_lines{0, 0, BEZT_KEYTYPE_KEYFRAME};
-  GreasePencilFrame frame_color{1, 0, BEZT_KEYTYPE_KEYFRAME};
-  layer_lines.insert_frame(frame_number, frame_lines);
-  layer_color.insert_frame(frame_number, frame_color);
 }
 
 void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int frame_number)
@@ -1287,14 +1278,15 @@ void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int fram
       color_skin_shadow,
   });
 
-  Layer &layer_fills = grease_pencil.add_layer(grease_pencil.root_group.wrap(), "Fills");
-  Layer &layer_lines = grease_pencil.add_layer(grease_pencil.root_group.wrap(), "Lines");
+  Layer &layer_fills = grease_pencil.add_layer("Fills");
+  Layer &layer_lines = grease_pencil.add_layer("Lines");
   grease_pencil.set_active_layer(&layer_lines);
 
-  grease_pencil.add_empty_drawings(2);
+  grease_pencil.insert_blank_frame(layer_lines, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+  grease_pencil.insert_blank_frame(layer_fills, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 
   GreasePencilDrawing *drawing_lines = reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawings_for_write()[0]);
+      grease_pencil.drawings(0));
   drawing_lines->geometry.wrap() = create_drawing_data(monkey_line_positions,
                                                        monkey_line_radii,
                                                        monkey_line_opacities,
@@ -1304,7 +1296,7 @@ void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int fram
                                                        matrix);
 
   GreasePencilDrawing *drawing_fills = reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawings_for_write()[1]);
+      grease_pencil.drawings(1));
   drawing_fills->geometry.wrap() = create_drawing_data(monkey_fill_positions,
                                                        monkey_fill_radii,
                                                        monkey_fill_opacities,
@@ -1312,11 +1304,6 @@ void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int fram
                                                        monkey_fill_materials,
                                                        monkey_fill_radii_factors,
                                                        matrix);
-
-  GreasePencilFrame frame_lines{0, 0, BEZT_KEYTYPE_KEYFRAME};
-  GreasePencilFrame frame_fills{1, 0, BEZT_KEYTYPE_KEYFRAME};
-  layer_lines.insert_frame(frame_number, frame_lines);
-  layer_fills.insert_frame(frame_number, frame_fills);
 }
 
 }  // namespace blender::ed::greasepencil

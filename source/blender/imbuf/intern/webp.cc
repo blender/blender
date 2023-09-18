@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,9 +12,9 @@
 #  include <unistd.h>
 #endif
 
+#include <cstdio>
+#include <cstdlib>
 #include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <webp/decode.h>
 #include <webp/encode.h>
 

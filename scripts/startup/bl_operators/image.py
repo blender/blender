@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -63,7 +63,7 @@ class EditExternally(Operator):
 
         try:
             subprocess.Popen(cmd)
-        except:
+        except BaseException:
             import traceback
             traceback.print_exc()
             self.report({'ERROR'},
@@ -119,8 +119,8 @@ class ProjectEdit(Operator):
         # opengl buffer may fail, we can't help this, but best report it.
         try:
             bpy.ops.paint.image_from_view()
-        except RuntimeError as err:
-            self.report({'ERROR'}, str(err))
+        except RuntimeError as ex:
+            self.report({'ERROR'}, str(ex))
             return {'CANCELLED'}
 
         image_new = None
@@ -166,8 +166,8 @@ class ProjectEdit(Operator):
 
         try:
             bpy.ops.image.external_edit(filepath=filepath_final)
-        except RuntimeError as re:
-            self.report({'ERROR'}, str(re))
+        except RuntimeError as ex:
+            self.report({'ERROR'}, str(ex))
 
         return {'FINISHED'}
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -29,6 +29,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
+#include "BKE_lib_query.h"
 
 #include "RNA_prototypes.h"
 
@@ -76,8 +77,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
    * one Init IK node per armature, this link has quite high risk of spurious dependency cycles.
    */
   const bool is_itasc = (object->pose->iksolver == IKSOLVER_ITASC);
-  PointerRNA con_ptr;
-  RNA_pointer_create(&object->id, &RNA_Constraint, con, &con_ptr);
+  PointerRNA con_ptr = RNA_pointer_create(&object->id, &RNA_Constraint, con);
   if (is_itasc || cache_->isAnyPropertyAnimated(&con_ptr)) {
     add_relation(pchan_local_key, init_ik_key, "IK Constraint -> Init IK Tree");
   }
@@ -397,7 +397,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
       /* Build relations for indirectly linked objects. */
       BuilderWalkUserData data;
       data.builder = this;
-      BKE_constraints_id_loop(&pchan->constraints, constraint_walk, &data);
+      BKE_constraints_id_loop(&pchan->constraints, constraint_walk, IDWALK_NOP, &data);
       /* Constraints stack and constraint dependencies. */
       build_constraints(&object->id, NodeType::BONE, pchan->name, &pchan->constraints, &root_map);
       /* Pose -> constraints. */

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2021-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -12,6 +12,8 @@ from pxr import UsdGeom
 from pxr import Sdf
 
 import bpy
+
+from mathutils import Matrix, Vector, Quaternion, Euler
 
 args = None
 
@@ -301,6 +303,109 @@ class USDImportTest(AbstractUSDTest):
                     num_uvmaps_found += 1
 
         self.assertEqual(4, num_uvmaps_found, "One or more test materials failed to import")
+
+    def test_import_usd_blend_shapes(self):
+        """Test importing USD blend shapes with animated weights."""
+
+        infile = str(self.testdir / "usd_blend_shape_test.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res)
+
+        obj = bpy.data.objects["Plane"]
+
+        obj.active_shape_key_index = 1
+
+        key = obj.active_shape_key
+        self.assertEqual(key.name, "Key_1", "Unexpected shape key name")
+
+        # Verify the number of shape key points.
+        self.assertEqual(len(key.data), 4, "Unexpected number of shape key point")
+
+        # Verify shape key point coordinates
+
+        # Reference point values.
+        refs = ((-2.51, -1.92, 0.20), (0.86, -1.46, -0.1),
+                (-1.33, 1.29, .84), (1.32, 2.20, -0.42))
+
+        for i in range(4):
+            co = key.data[i].co
+            ref = refs[i]
+            # Compare coordinates.
+            for j in range(3):
+                self.assertAlmostEqual(co[j], ref[j], 2)
+
+        # Verify the shape key values.
+        bpy.context.scene.frame_set(1)
+        self.assertAlmostEqual(key.value, .002, 1)
+        bpy.context.scene.frame_set(30)
+        self.assertAlmostEqual(key.value, .900, 3)
+        bpy.context.scene.frame_set(60)
+        self.assertAlmostEqual(key.value, .100, 3)
+
+    def test_import_usd_skel_joints(self):
+        """Test importing USD animated skeleton joints."""
+
+        infile = str(self.testdir / "arm.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res)
+
+        # Verify armature was imported.
+        arm_obj = bpy.data.objects["Skel"]
+        self.assertEqual(arm_obj.type, "ARMATURE", "'Skel' object is not an armature")
+
+        arm = arm_obj.data
+        bones = arm.bones
+
+        # Verify bone parenting.
+        self.assertIsNone(bones['Shoulder'].parent, "Shoulder bone should not be parented")
+        self.assertEqual(bones['Shoulder'], bones['Elbow'].parent, "Elbow bone should be child of Shoulder bone")
+        self.assertEqual(bones['Elbow'], bones['Hand'].parent, "Hand bone should be child of Elbow bone")
+
+        # Verify armature modifier was created on the mesh.
+        mesh_obj = bpy.data.objects['Arm']
+        # Get all the armature modifiers on the mesh.
+        arm_mods = [m for m in mesh_obj.modifiers if m.type == "ARMATURE"]
+        self.assertEqual(len(arm_mods), 1, "Didn't get expected armatrue modifier")
+        self.assertEqual(arm_mods[0].object, arm_obj, "Armature modifier does not reference the imported armature")
+
+        # Verify expected deform groups.
+        # There are 4 points in each group.
+        for i in range(4):
+            self.assertAlmostEqual(mesh_obj.vertex_groups['Hand'].weight(
+                i), 1.0, 2, "Unexpected weight for Hand deform vert")
+            self.assertAlmostEqual(mesh_obj.vertex_groups['Shoulder'].weight(
+                4 + i), 1.0, 2, "Unexpected weight for Shoulder deform vert")
+            self.assertAlmostEqual(mesh_obj.vertex_groups['Elbow'].weight(
+                8 + i), 1.0, 2, "Unexpected weight for Elbow deform vert")
+
+        action = bpy.data.actions['SkelAction']
+
+        # Verify the Elbow joint rotation animation.
+        curve_path = 'pose.bones["Elbow"].rotation_quaternion'
+
+        # Quat W
+        f = action.fcurves.find(curve_path, index=0)
+        self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion W curve")
+        self.assertAlmostEqual(f.evaluate(0), 1.0, 2, "Unexpected value for rotation quaternion W curve at frame 0")
+        self.assertAlmostEqual(f.evaluate(10), 0.707, 2, "Unexpected value for rotation quaternion W curve at frame 10")
+
+        # Quat X
+        f = action.fcurves.find(curve_path, index=1)
+        self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion X curve")
+        self.assertAlmostEqual(f.evaluate(0), 0.0, 2, "Unexpected value for rotation quaternion X curve at frame 0")
+        self.assertAlmostEqual(f.evaluate(10), 0.707, 2, "Unexpected value for rotation quaternion X curve at frame 10")
+
+        # Quat Y
+        f = action.fcurves.find(curve_path, index=2)
+        self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion Y curve")
+        self.assertAlmostEqual(f.evaluate(0), 0.0, 2, "Unexpected value for rotation quaternion Y curve at frame 0")
+        self.assertAlmostEqual(f.evaluate(10), 0.0, 2, "Unexpected value for rotation quaternion Y curve at frame 10")
+
+        # Quat Z
+        f = action.fcurves.find(curve_path, index=3)
+        self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion Z curve")
+        self.assertAlmostEqual(f.evaluate(0), 0.0, 2, "Unexpected value for rotation quaternion Z curve at frame 0")
+        self.assertAlmostEqual(f.evaluate(10), 0.0, 2, "Unexpected value for rotation quaternion Z curve at frame 10")
 
 
 def main():

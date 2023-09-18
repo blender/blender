@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -49,12 +49,6 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
 
         layout.row().prop(arm, "pose_position", expand=True)
 
-        col = layout.column()
-        col.label(text="Layers:")
-        col.prop(arm, "layers", text="")
-        col.label(text="Protected Layers:")
-        col.prop(arm, "layers_protected", text="")
-
 
 class DATA_PT_display(ArmatureButtonsPanel, Panel):
     bl_label = "Viewport Display"
@@ -72,7 +66,7 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
         col = layout.column(heading="Show")
         col.prop(arm, "show_names", text="Names")
         col.prop(arm, "show_bone_custom_shapes", text="Shapes")
-        col.prop(arm, "show_group_colors", text="Group Colors")
+        col.prop(arm, "show_bone_colors", text="Bone Colors")
 
         if ob:
             col.prop(ob, "show_in_front", text="In Front")
@@ -88,91 +82,69 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
         sub.prop(arm, "relation_line_position", text="Relations", expand=True)
 
 
-class DATA_MT_bone_group_context_menu(Menu):
-    bl_label = "Bone Group Specials"
+class DATA_UL_bone_collections(UIList):
+    def draw_item(self, _context, layout, armature, bcoll, _icon, _active_data, _active_propname, _index):
+        active_bone = armature.edit_bones.active or armature.bones.active
+        has_active_bone = active_bone and bcoll.name in active_bone.collections
 
-    def draw(self, _context):
-        layout = self.layout
+        layout.prop(bcoll, "name", text="", emboss=False,
+                    icon='DOT' if has_active_bone else 'BLANK1')
 
-        layout.operator("pose.group_sort", icon='SORTALPHA')
+        if armature.override_library:
+            icon = 'LIBRARY_DATA_OVERRIDE' if bcoll.is_local_override else 'BLANK1'
+            layout.prop(
+                bcoll,
+                "is_local_override",
+                text="",
+                emboss=False,
+                icon=icon)
+
+        layout.prop(bcoll, "is_visible", text="", emboss=False,
+                    icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
 
 
-class DATA_UL_bone_groups(UIList):
-    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
-        layout.prop(item, "name", text="", emboss=False, icon='GROUP_BONE')
-
-        if item.is_custom_color_set or item.color_set == 'DEFAULT':
-            layout.prop(item, "color_set", icon_only=True, icon='COLOR')
-        else:
-            layout.prop(item, "color_set", icon_only=True)
-
-
-class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
-    bl_label = "Bone Groups"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        ob = context.object
-        return (ob and ob.type == 'ARMATURE' and ob.pose)
+class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
+    bl_label = "Bone Collections"
 
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
-        pose = ob.pose
-        group = pose.bone_groups.active
+        arm = context.armature
+        active_bcoll = arm.collections.active
 
         row = layout.row()
 
         rows = 1
-        if group:
+        if active_bcoll:
             rows = 4
 
         row.template_list(
-            "DATA_UL_bone_groups",
-            "bone_groups",
-            pose,
-            "bone_groups",
-            pose.bone_groups,
+            "DATA_UL_bone_collections",
+            "collections",
+            arm,
+            "collections",
+            arm.collections,
             "active_index",
             rows=rows,
         )
 
         col = row.column(align=True)
-        col.operator("pose.group_add", icon='ADD', text="")
-        col.operator("pose.group_remove", icon='REMOVE', text="")
-        col.menu("DATA_MT_bone_group_context_menu", icon='DOWNARROW_HLT', text="")
-        if group:
+        col.operator("armature.collection_add", icon='ADD', text="")
+        col.operator("armature.collection_remove", icon='REMOVE', text="")
+        if active_bcoll:
             col.separator()
-            col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'
-            col.operator("pose.group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
-
-            if group.is_custom_color_set:
-                col = layout.column()
-                split = col.split(factor=0.4)
-
-                col = split.column()
-                row = col.row()
-                row.alignment = 'RIGHT'
-                row.label(text="Custom Colors")
-
-                col = split.column(align=True)
-                row = col.row(align=True)
-                row.prop(group.colors, "normal", text="")
-                row.prop(group.colors, "select", text="")
-                row.prop(group.colors, "active", text="")
+            col.operator("armature.collection_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("armature.collection_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
         row = layout.row()
 
         sub = row.row(align=True)
-        sub.operator("pose.group_assign", text="Assign")
-        # row.operator("pose.bone_group_remove_from", text="Remove")
-        sub.operator("pose.group_unassign", text="Remove")
+        sub.operator("armature.collection_assign", text="Assign")
+        sub.operator("armature.collection_unassign", text="Remove")
 
         sub = row.row(align=True)
-        sub.operator("pose.group_select", text="Select")
-        sub.operator("pose.group_deselect", text="Deselect")
+        sub.operator("armature.collection_select", text="Select")
+        sub.operator("armature.collection_deselect", text="Deselect")
 
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
@@ -270,22 +242,43 @@ class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
 
 
 class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
     _context_path = "object.data"
     _property_type = bpy.types.Armature
+
+
+class DATA_PT_custom_props_bcoll(ArmatureButtonsPanel, PropertyPanel, Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    _context_path = "armature.collections.active"
+    _property_type = bpy.types.BoneCollection
+    bl_parent_id = "DATA_PT_bone_collections"
+
+    @classmethod
+    def poll(cls, context):
+        arm = context.armature
+        if not arm:
+            return False
+
+        is_lib_override = arm.id_data.override_library and arm.id_data.override_library.reference
+        if is_lib_override:
+            # This is due to a limitation in scripts/modules/rna_prop_ui.py; if that
+            # limitation is lifted, this poll function should be adjusted.
+            return False
+
+        return arm.collections.active
 
 
 classes = (
     DATA_PT_context_arm,
     DATA_PT_skeleton,
-    DATA_MT_bone_group_context_menu,
-    DATA_PT_bone_groups,
-    DATA_UL_bone_groups,
+    DATA_PT_bone_collections,
+    DATA_UL_bone_collections,
     DATA_PT_motion_paths,
     DATA_PT_motion_paths_display,
     DATA_PT_display,
     DATA_PT_iksolver_itasc,
     DATA_PT_custom_props_arm,
+    DATA_PT_custom_props_bcoll,
 )
 
 if __name__ == "__main__":  # only for live edit.

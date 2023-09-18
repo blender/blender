@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -28,9 +28,9 @@ PyDoc_STRVAR(TVertex_doc,
              "Class hierarchy: :class:`Interface0D` > :class:`ViewVertex` > :class:`TVertex`\n"
              "\n"
              "Class to define a T vertex, i.e. an intersection between two edges.\n"
-             "It points towards two SVertex and four ViewEdges.  Among the\n"
-             "ViewEdges, two are front and the other two are back.  Basically a\n"
-             "front edge hides part of a back edge.  So, among the back edges, one\n"
+             "It points towards two SVertex and four ViewEdges. Among the\n"
+             "ViewEdges, two are front and the other two are back. Basically a\n"
+             "front edge hides part of a back edge. So, among the back edges, one\n"
              "is of invisibility N and the other of invisibility N+1.\n"
              "\n"
              ".. method:: __init__()\n"
@@ -81,9 +81,9 @@ static PyObject *TVertex_get_svertex(BPy_TVertex *self, PyObject *args, PyObject
 PyDoc_STRVAR(TVertex_get_mate_doc,
              ".. method:: get_mate(viewedge)\n"
              "\n"
-             "   Returns the mate edge of the ViewEdge given as argument.  If the\n"
-             "   ViewEdge is frontEdgeA, frontEdgeB is returned.  If the ViewEdge is\n"
-             "   frontEdgeB, frontEdgeA is returned.  Same for back edges.\n"
+             "   Returns the mate edge of the ViewEdge given as argument. If the\n"
+             "   ViewEdge is frontEdgeA, frontEdgeB is returned. If the ViewEdge is\n"
+             "   frontEdgeB, frontEdgeA is returned. Same for back edges.\n"
              "\n"
              "   :arg viewedge: A ViewEdge object.\n"
              "   :type viewedge: :class:`ViewEdge`\n"
@@ -206,7 +206,8 @@ static PyGetSetDef BPy_TVertex_getseters[] = {
 /*-----------------------BPy_TVertex type definition ------------------------------*/
 
 PyTypeObject TVertex_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "TVertex",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "TVertex",
     /*tp_basicsize*/ sizeof(BPy_TVertex),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -242,7 +243,7 @@ PyTypeObject TVertex_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)TVertex_init,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

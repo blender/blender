@@ -17,7 +17,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "IMB_allocimbuf.h"
 #include "IMB_filetype.h"
@@ -33,7 +33,7 @@
 static void imb_handle_alpha(ImBuf *ibuf,
                              int flags,
                              char colorspace[IM_MAX_SPACE],
-                             char effective_colorspace[IM_MAX_SPACE])
+                             const char effective_colorspace[IM_MAX_SPACE])
 {
   if (colorspace) {
     if (ibuf->byte_buffer.data != nullptr && ibuf->float_buffer.data == nullptr) {

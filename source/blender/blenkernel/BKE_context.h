@@ -15,7 +15,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_object_enums.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 #  include "BLI_string_ref.hh"
@@ -98,12 +98,13 @@ struct bContextStoreEntry {
 };
 
 struct bContextStore {
-  bContextStore *next = nullptr;
-  bContextStore *prev = nullptr;
-
   blender::Vector<bContextStoreEntry> entries;
   bool used = false;
 };
+
+namespace blender::asset_system {
+class AssetRepresentation;
+}
 
 #endif
 
@@ -119,6 +120,7 @@ typedef enum eContextObjectMode {
   CTX_MODE_EDIT_LATTICE,
   CTX_MODE_EDIT_CURVES,
   CTX_MODE_EDIT_GREASE_PENCIL,
+  CTX_MODE_EDIT_POINT_CLOUD,
   CTX_MODE_POSE,
   CTX_MODE_SCULPT,
   CTX_MODE_PAINT_WEIGHT,
@@ -126,14 +128,15 @@ typedef enum eContextObjectMode {
   CTX_MODE_PAINT_TEXTURE,
   CTX_MODE_PARTICLE,
   CTX_MODE_OBJECT,
-  CTX_MODE_PAINT_GPENCIL,
+  CTX_MODE_PAINT_GPENCIL_LEGACY,
   CTX_MODE_EDIT_GPENCIL_LEGACY,
-  CTX_MODE_SCULPT_GPENCIL,
-  CTX_MODE_WEIGHT_GPENCIL,
-  CTX_MODE_VERTEX_GPENCIL,
+  CTX_MODE_SCULPT_GPENCIL_LEGACY,
+  CTX_MODE_WEIGHT_GPENCIL_LEGACY,
+  CTX_MODE_VERTEX_GPENCIL_LEGACY,
   CTX_MODE_SCULPT_CURVES,
+  CTX_MODE_PAINT_GREASE_PENCIL,
 } eContextObjectMode;
-#define CTX_MODE_NUM (CTX_MODE_SCULPT_CURVES + 1)
+#define CTX_MODE_NUM (CTX_MODE_PAINT_GREASE_PENCIL + 1)
 
 /* Context */
 
@@ -146,17 +149,16 @@ bContext *CTX_copy(const bContext *C);
 
 /* Stored Context */
 
-bContextStore *CTX_store_add(ListBase *contexts,
+bContextStore *CTX_store_add(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
                              blender::StringRefNull name,
                              const PointerRNA *ptr);
-bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context);
-bContextStore *CTX_store_get(bContext *C);
-void CTX_store_set(bContext *C, bContextStore *store);
+bContextStore *CTX_store_add_all(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
+                                 const bContextStore *context);
+const bContextStore *CTX_store_get(const bContext *C);
+void CTX_store_set(bContext *C, const bContextStore *store);
 const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
                                        blender::StringRefNull name,
                                        const StructRNA *type = nullptr);
-bContextStore *CTX_store_copy(const bContextStore *store);
-void CTX_store_free(bContextStore *store);
 
 #endif
 
@@ -222,7 +224,7 @@ void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup);
  * \note This must be called in the same context as the poll function that created it.
  */
 struct bContextPollMsgDyn_Params {
-  /** The result is allocated . */
+  /** The result is allocated. */
   char *(*get_fn)(bContext *C, void *user_data);
   /** Optionally free the user-data. */
   void (*free_fn)(bContext *C, void *user_data);
@@ -255,6 +257,21 @@ PointerRNA CTX_data_pointer_get_type_silent(const bContext *C,
                                             const char *member,
                                             StructRNA *type);
 ListBase CTX_data_collection_get(const bContext *C, const char *member);
+
+/**
+ * For each pointer in collection_pointers, remap it to point to `ptr->propname`.
+ *
+ * Example:
+ *
+ *   lb = CTX_data_collection_get(C, "selected_pose_bones"); // lb contains pose bones.
+ *   CTX_data_collection_remap_property(lb, "color");        // lb now contains bone colors.
+ *
+ * NOTE: this alters the items contained in the given listbase.
+ * It does not change the listbase itself.
+ */
+void CTX_data_collection_remap_property(ListBase /*CollectionPointerLink*/ collection_pointers,
+                                        const char *propname);
+
 /**
  * \param C: Context.
  * \param use_store: Use 'C->wm.store'.
@@ -398,7 +415,9 @@ bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 const struct AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
 struct AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid);
 
-struct AssetRepresentation *CTX_wm_asset(const bContext *C);
+#ifdef __cplusplus
+class blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C);
+#endif
 
 bool CTX_wm_interface_locked(const bContext *C);
 

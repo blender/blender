@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_camera.h"
@@ -14,8 +14,8 @@
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
-#include "RNA_access.h"
-#include "RNA_types.h"
+#include "RNA_access.hh"
+#include "RNA_types.hh"
 
 namespace blender::io::usd {
 
@@ -28,7 +28,7 @@ bool USDCameraWriter::is_supported(const HierarchyContext *context) const
 }
 
 //static void camera_sensor_size_for_render(const Camera *camera,
-//                                          const struct RenderData *rd,
+//                                          const RenderData *rd,
 //                                          float *r_sensor_x,
 //                                          float *r_sensor_y)
 //{

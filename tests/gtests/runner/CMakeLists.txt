@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020 Blender Foundation
+# SPDX-FileCopyrightText: 2020 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -41,7 +41,7 @@ if(WIN32)
     # Both target_link_libraries and target_link_options are required here
     # target_link_libraries will add any dependent libraries, while just setting
     # the wholearchive flag in target link options will not.
-    target_link_libraries(blender_test ${_lib})
+    target_link_libraries(blender_test PRIVATE ${_lib})
     target_link_options(blender_test PRIVATE /wholearchive:$<TARGET_FILE:${_lib}>)
   endforeach()
   set_target_properties(blender_test PROPERTIES VS_DEBUGGER_ENVIRONMENT "${PLATFORM_ENV_INSTALL};$<TARGET_FILE_DIR:blender>")
@@ -49,7 +49,7 @@ elseif(APPLE)
   foreach(_lib ${_test_libs})
     # We need -force_load for every test library and target_link_libraries will
     # deduplicate it. So explicitly set as linker option for every test lib.
-    target_link_libraries(blender_test ${_lib} "-Wl,-force_load,$<TARGET_PROPERTY:${_lib},IMPORTED_LOCATION>")
+    target_link_libraries(blender_test PRIVATE ${_lib} "-Wl,-force_load,$<TARGET_PROPERTY:${_lib},IMPORTED_LOCATION>")
   endforeach()
 endif()
 

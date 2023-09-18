@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,7 +11,7 @@
 
 #include "DNA_space_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "../outliner_intern.hh"
 #include "tree_display.hh"
@@ -24,15 +24,13 @@ TreeDisplayDataAPI::TreeDisplayDataAPI(SpaceOutliner &space_outliner)
 {
 }
 
-ListBase TreeDisplayDataAPI::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayDataAPI::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 
-  PointerRNA mainptr;
-  RNA_main_pointer_create(source_data.bmain, &mainptr);
+  PointerRNA mainptr = RNA_main_pointer_create(source_data.bmain);
 
-  TreeElement *te = outliner_add_element(
-      &space_outliner_, &tree, (void *)&mainptr, nullptr, TSE_RNA_STRUCT, -1);
+  TreeElement *te = add_element(&tree, nullptr, (void *)&mainptr, nullptr, TSE_RNA_STRUCT, -1);
 
   /* On first view open parent data elements */
   const int show_opened = !space_outliner_.treestore ||

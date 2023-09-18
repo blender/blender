@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,6 +13,8 @@
 #include "eevee_instance.hh"
 
 #include "eevee_light.hh"
+
+#include "BLI_math_rotation.h"
 
 namespace blender::eevee {
 
@@ -178,9 +180,8 @@ float Light::shape_radiance_get(const ::Light *la)
       if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
         area *= M_PI / 4.0f;
       }
-      /* NOTE: The 4 factor is from Cycles definition of power. */
-      /* NOTE: Missing a factor of PI here to match Cycles. */
-      return 1.0f / (4.0f * area);
+      /* Convert radiant flux to radiance. */
+      return float(M_1_PI) / area;
     }
     case LA_SPOT:
     case LA_LOCAL: {
@@ -191,14 +192,9 @@ float Light::shape_radiance_get(const ::Light *la)
     }
     default:
     case LA_SUN: {
-      /* Disk area. */
-      float area = float(M_PI) * square_f(_radius);
-      /* Make illumination power closer to cycles for bigger radii. Cycles uses a cos^3 term that
-       * we cannot reproduce so we account for that by scaling the light power. This function is
-       * the result of a rough manual fitting. */
-      float sun_scaling = 1.0f + square_f(_radius) / 2.0f;
-      /* NOTE: Missing a factor of PI here to match Cycles. */
-      return sun_scaling / area;
+      float inv_sin_sq = 1.0f + 1.0f / square_f(_radius);
+      /* Convert irradiance to radiance. */
+      return float(M_1_PI) * inv_sin_sq;
     }
   }
 }
@@ -214,9 +210,7 @@ float Light::point_radiance_get(const ::Light *la)
       float tmp = M_PI_2 / (M_PI_2 + sqrtf(area));
       /* Lerp between 1.0 and the limit (1 / pi). */
       float mrp_scaling = tmp + (1.0f - tmp) * M_1_PI;
-      /* NOTE: The 4 factor is from Cycles definition of power. */
-      /* NOTE: Missing a factor of PI here to match Cycles. */
-      return mrp_scaling / 4.0f;
+      return float(M_1_PI) * mrp_scaling;
     }
     case LA_SPOT:
     case LA_LOCAL: {
@@ -226,7 +220,6 @@ float Light::point_radiance_get(const ::Light *la)
     }
     default:
     case LA_SUN: {
-      /* NOTE: Missing a factor of PI here to match Cycles. */
       return 1.0f;
     }
   }
@@ -424,6 +417,7 @@ void LightModule::debug_pass_sync()
     debug_draw_ps_.init();
     debug_draw_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     debug_draw_ps_.shader_set(inst_.shaders.static_shader_get(LIGHT_CULLING_DEBUG));
+    inst_.bind_uniform_data(&debug_draw_ps_);
     inst_.hiz_buffer.bind_resources(&debug_draw_ps_);
     debug_draw_ps_.bind_ssbo("light_buf", &culling_light_buf_);
     debug_draw_ps_.bind_ssbo("light_cull_buf", &culling_data_buf_);

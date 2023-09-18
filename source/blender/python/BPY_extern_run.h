@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -34,7 +34,7 @@ struct ReportList;
 struct Text;
 struct bContext;
 
-/* bpy_interface_run.c */
+/* `bpy_interface_run.cc` */
 
 /* -------------------------------------------------------------------- */
 /** \name Run File/Text as a Script

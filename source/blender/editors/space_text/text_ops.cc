@@ -14,8 +14,8 @@
 #include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_math_base.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_cursor_utf8.h"
 
 #include "BLT_translation.h"
@@ -28,17 +28,17 @@
 #include "BKE_report.h"
 #include "BKE_text.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_curve.h"
-#include "ED_screen.h"
-#include "ED_text.h"
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "ED_curve.hh"
+#include "ED_screen.hh"
+#include "ED_text.hh"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
@@ -93,6 +93,52 @@ static char text_closing_character_pair_get(const char character)
     default:
       return 0;
   }
+}
+
+/**
+ * This function receives a range and returns true if the range is blank.
+ * \param line1: The first TextLine argument.
+ * \param line1_char: The character number of line1.
+ * \param line2: The second TextLine argument.
+ * \param line2_char: The character number of line2.
+ * \return True if the span is blank.
+ */
+static bool text_span_is_blank(TextLine *line1,
+                               const int line1_char,
+                               TextLine *line2,
+                               const int line2_char)
+{
+  const TextLine *start_line;
+  const TextLine *end_line;
+  int start_char;
+  int end_char;
+
+  /* Get the start and end lines. */
+  if (txt_get_span(line1, line2) > 0 || (line1 == line2 && line1_char <= line2_char)) {
+    start_line = line1;
+    end_line = line2;
+    start_char = line1_char;
+    end_char = line2_char;
+  }
+  else {
+    start_line = line2;
+    end_line = line1;
+    start_char = line2_char;
+    end_char = line1_char;
+  }
+
+  for (const TextLine *line = start_line; line != end_line->next; line = line->next) {
+    const int start = (line == start_line) ? start_char : 0;
+    const int end = (line == end_line) ? end_char : line->len;
+
+    for (int i = start; i < end; i++) {
+      if (!ELEM(line->line[i], ' ', '\t', '\n')) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -270,9 +316,7 @@ void text_update_line_edited(TextLine *line)
 
 void text_update_edited(Text *text)
 {
-  TextLine *line;
-
-  for (line = static_cast<TextLine *>(text->lines.first); line; line = line->next) {
+  LISTBASE_FOREACH (TextLine *, line, &text->lines) {
     text_update_line_edited(line);
   }
 }
@@ -288,7 +332,7 @@ static int text_new_exec(bContext *C, wmOperator * /*op*/)
   SpaceText *st = CTX_wm_space_text(C);
   Main *bmain = CTX_data_main(C);
   Text *text;
-  PointerRNA ptr, idptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
 
   text = BKE_text_add(bmain, DATA_("Text"));
@@ -297,7 +341,7 @@ static int text_new_exec(bContext *C, wmOperator * /*op*/)
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
-    RNA_id_pointer_create(&text->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&text->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
@@ -356,7 +400,6 @@ static int text_open_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Text *text;
   PropertyPointerRNA *pprop;
-  PointerRNA idptr;
   char filepath[FILE_MAX];
   const bool internal = RNA_boolean_get(op->ptr, "internal");
 
@@ -379,7 +422,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
   pprop = static_cast<PropertyPointerRNA *>(op->customdata);
 
   if (pprop->prop) {
-    RNA_id_pointer_create(&text->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&text->id);
     RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, nullptr);
     RNA_property_update(C, &pprop->ptr, pprop->prop);
   }
@@ -606,9 +649,13 @@ void TEXT_OT_make_internal(wmOperatorType *ot)
 static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
 {
   FILE *fp;
-  TextLine *tmp;
   BLI_stat_t st;
   char filepath[FILE_MAX];
+
+  if (text->filepath == nullptr) {
+    BKE_reportf(reports, RPT_ERROR, "No file path for \"%s\"", text->id.name + 2);
+    return;
+  }
 
   STRNCPY(filepath, text->filepath);
   BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
@@ -630,7 +677,7 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
     return;
   }
 
-  for (tmp = static_cast<TextLine *>(text->lines.first); tmp; tmp = tmp->next) {
+  LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
     fputs(tmp->line, fp);
     if (tmp->next) {
       fputc('\n', fp);
@@ -1377,14 +1424,13 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 {
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
-  TextLine *tmp;
   FlattenString fs;
   size_t a, j, max_len = 0;
   int type = RNA_enum_get(op->ptr, "type");
 
   /* first convert to all space, this make it a lot easier to convert to tabs
    * because there is no mixtures of ' ' && '\t' */
-  for (tmp = static_cast<TextLine *>(text->lines.first); tmp; tmp = tmp->next) {
+  LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
     char *new_line;
 
     BLI_assert(tmp->line);
@@ -1410,7 +1456,7 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
   if (type == TO_TABS) {
     char *tmp_line = static_cast<char *>(MEM_mallocN(sizeof(*tmp_line) * (max_len + 1), __func__));
 
-    for (tmp = static_cast<TextLine *>(text->lines.first); tmp; tmp = tmp->next) {
+    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
       const char *text_check_line = tmp->line;
       const int text_check_line_len = tmp->len;
       char *tmp_line_cur = tmp_line;
@@ -3230,7 +3276,7 @@ static void text_cursor_timer_ensure(bContext *C, SetSelection *ssel)
     wmWindowManager *wm = CTX_wm_manager(C);
     wmWindow *win = CTX_wm_window(C);
 
-    ssel->timer = WM_event_add_timer(wm, win, TIMER, 0.02f);
+    ssel->timer = WM_event_timer_add(wm, win, TIMER, 0.02f);
   }
 }
 
@@ -3240,7 +3286,7 @@ static void text_cursor_timer_remove(bContext *C, SetSelection *ssel)
     wmWindowManager *wm = CTX_wm_manager(C);
     wmWindow *win = CTX_wm_window(C);
 
-    WM_event_remove_timer(wm, win, ssel->timer);
+    WM_event_timer_remove(wm, win, ssel->timer);
   }
   ssel->timer = nullptr;
 }
@@ -3528,6 +3574,14 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   SpaceText *st = CTX_wm_space_text(C);
   uint auto_close_char = 0;
   int ret;
+  /* Variables needed to restore the selection when auto-closing around an existing selection. */
+  struct {
+    TextLine *sell;
+    TextLine *curl;
+    int selc;
+    int curc;
+    int curl_sell_span;
+  } auto_close_select = {nullptr};
 
   /* NOTE: the "text" property is always set from key-map,
    * so we can't use #RNA_struct_property_is_set, check the length instead. */
@@ -3548,6 +3602,34 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     if (U.text_flag & USER_TEXT_EDIT_AUTO_CLOSE) {
       auto_close_char = BLI_str_utf8_as_unicode(str);
+
+      if (txt_has_sel(st->text) && text_closing_character_pair_get(auto_close_char) != 0 &&
+          !text_span_is_blank(st->text->sell, st->text->selc, st->text->curl, st->text->curc))
+      {
+        auto_close_select.sell = st->text->sell;
+        auto_close_select.curl = st->text->curl;
+        auto_close_select.selc = st->text->selc;
+        auto_close_select.curc = st->text->curc;
+        auto_close_select.curl_sell_span = txt_get_span(auto_close_select.curl,
+                                                        auto_close_select.sell);
+
+        /* Move the cursor to the start of the selection. */
+        if (auto_close_select.curl_sell_span > 0 ||
+            (auto_close_select.curl == auto_close_select.sell &&
+             auto_close_select.selc > auto_close_select.curc))
+        {
+          txt_move_to(st->text,
+                      BLI_findindex(&st->text->lines, auto_close_select.curl),
+                      auto_close_select.curc,
+                      false);
+        }
+        else {
+          txt_move_to(st->text,
+                      BLI_findindex(&st->text->lines, auto_close_select.sell),
+                      auto_close_select.selc,
+                      false);
+        }
+      }
     }
   }
 
@@ -3556,9 +3638,44 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if ((ret == OPERATOR_FINISHED) && (auto_close_char != 0)) {
     const uint auto_close_match = text_closing_character_pair_get(auto_close_char);
     if (auto_close_match != 0) {
-      Text *text = CTX_data_edit_text(C);
-      txt_add_char(text, auto_close_match);
-      txt_move_left(text, false);
+      /* If there was a selection, move cursor to the end of it. */
+      if (auto_close_select.sell) {
+        /* Move the cursor to the end of the selection. */
+        if (auto_close_select.curl_sell_span < 0) {
+          txt_move_to(st->text,
+                      BLI_findindex(&st->text->lines, auto_close_select.curl),
+                      auto_close_select.curc,
+                      false);
+        }
+        else if (auto_close_select.curl == auto_close_select.sell) {
+          const int ch = auto_close_select.curc > auto_close_select.selc ? auto_close_select.curc :
+                                                                           auto_close_select.selc;
+          txt_move_to(
+              st->text, BLI_findindex(&st->text->lines, auto_close_select.sell), ch + 1, false);
+        }
+        else {
+          txt_move_to(st->text,
+                      BLI_findindex(&st->text->lines, auto_close_select.sell),
+                      auto_close_select.selc,
+                      false);
+        }
+      }
+      txt_add_char(st->text, auto_close_match);
+      txt_move_left(st->text, false);
+
+      /* If there was a selection, restore it. */
+      if (auto_close_select.sell) {
+        st->text->sell = auto_close_select.sell;
+        st->text->curl = auto_close_select.curl;
+        st->text->selc = (auto_close_select.sell == auto_close_select.curl ||
+                          auto_close_select.curl_sell_span < 0) ?
+                             auto_close_select.selc + 1 :
+                             auto_close_select.selc;
+        st->text->curc = (auto_close_select.sell == auto_close_select.curl ||
+                          auto_close_select.curl_sell_span > 0) ?
+                             auto_close_select.curc + 1 :
+                             auto_close_select.curc;
+      }
     }
   }
 
@@ -3972,19 +4089,19 @@ static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, const wmEve
         uiItemEnumO_ptr(layout,
                         op->type,
                         IFACE_("Reload from disk (ignore local changes)"),
-                        0,
+                        ICON_NONE,
                         "resolution",
                         RESOLVE_RELOAD);
         uiItemEnumO_ptr(layout,
                         op->type,
                         IFACE_("Save to disk (ignore outside changes)"),
-                        0,
+                        ICON_NONE,
                         "resolution",
                         RESOLVE_SAVE);
         uiItemEnumO_ptr(layout,
                         op->type,
                         IFACE_("Make text internal (separate copy)"),
-                        0,
+                        ICON_NONE,
                         "resolution",
                         RESOLVE_MAKE_INTERNAL);
         UI_popup_menu_end(C, pup);
@@ -3993,23 +4110,29 @@ static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, const wmEve
         pup = UI_popup_menu_begin(C, IFACE_("File Modified Outside Blender"), ICON_NONE);
         layout = UI_popup_menu_layout(pup);
         uiItemEnumO_ptr(
-            layout, op->type, IFACE_("Reload from disk"), 0, "resolution", RESOLVE_RELOAD);
+            layout, op->type, IFACE_("Reload from disk"), ICON_NONE, "resolution", RESOLVE_RELOAD);
         uiItemEnumO_ptr(layout,
                         op->type,
                         IFACE_("Make text internal (separate copy)"),
-                        0,
+                        ICON_NONE,
                         "resolution",
                         RESOLVE_MAKE_INTERNAL);
-        uiItemEnumO_ptr(layout, op->type, IFACE_("Ignore"), 0, "resolution", RESOLVE_IGNORE);
+        uiItemEnumO_ptr(
+            layout, op->type, IFACE_("Ignore"), ICON_NONE, "resolution", RESOLVE_IGNORE);
         UI_popup_menu_end(C, pup);
       }
       break;
     case 2:
       pup = UI_popup_menu_begin(C, IFACE_("File Deleted Outside Blender"), ICON_NONE);
       layout = UI_popup_menu_layout(pup);
+      uiItemEnumO_ptr(layout,
+                      op->type,
+                      IFACE_("Make text internal"),
+                      ICON_NONE,
+                      "resolution",
+                      RESOLVE_MAKE_INTERNAL);
       uiItemEnumO_ptr(
-          layout, op->type, IFACE_("Make text internal"), 0, "resolution", RESOLVE_MAKE_INTERNAL);
-      uiItemEnumO_ptr(layout, op->type, IFACE_("Recreate file"), 0, "resolution", RESOLVE_SAVE);
+          layout, op->type, IFACE_("Recreate file"), ICON_NONE, "resolution", RESOLVE_SAVE);
       UI_popup_menu_end(C, pup);
       break;
   }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,7 +21,6 @@ extern "C" {
  * \return The number of indices in r_points.
  *
  * \note Performance is `O(n.log(n))`, same as `qsort`.
- *
  */
 int BLI_convexhull_2d(const float (*points)[2], int n, int r_points[/* n */]);
 

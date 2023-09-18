@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -39,10 +39,10 @@ struct OpenVDBMeshData {
   }
 };
 
-struct Mesh *volume_to_mesh(const openvdb::GridBase &grid,
-                            const VolumeToMeshResolution &resolution,
-                            float threshold,
-                            float adaptivity);
+Mesh *volume_to_mesh(const openvdb::GridBase &grid,
+                     const VolumeToMeshResolution &resolution,
+                     float threshold,
+                     float adaptivity);
 
 /**
  * Convert an OpenVDB volume grid to corresponding mesh data: vertex positions and quad and
@@ -62,10 +62,10 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
                                  const Span<openvdb::Vec3I> vdb_tris,
                                  const Span<openvdb::Vec4I> vdb_quads,
                                  int vert_offset,
-                                 int poly_offset,
+                                 int face_offset,
                                  int loop_offset,
                                  MutableSpan<float3> vert_positions,
-                                 MutableSpan<int> poly_offsets,
+                                 MutableSpan<int> face_offsets,
                                  MutableSpan<int> corner_verts);
 
 #endif

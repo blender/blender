@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -53,7 +53,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static CLG_LogRef LOG = {"bke.layercollection"};
 
@@ -566,10 +566,9 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
                  sizeof(view_layer->name));
 
   if (scene->nodetree) {
-    bNode *node;
     int index = BLI_findindex(&scene->view_layers, view_layer);
 
-    for (node = static_cast<bNode *>(scene->nodetree->nodes.first); node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
       if (node->type == CMP_NODE_R_LAYERS && node->id == nullptr) {
         if (node->custom1 == index) {
           STRNCPY(node->name, view_layer->name);
@@ -778,12 +777,12 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
 
 static bool no_resync = false;
 
-void BKE_layer_collection_resync_forbid(void)
+void BKE_layer_collection_resync_forbid()
 {
   no_resync = true;
 }
 
-void BKE_layer_collection_resync_allow(void)
+void BKE_layer_collection_resync_allow()
 {
   no_resync = false;
 }
@@ -2400,10 +2399,6 @@ static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb,
 {
   BLO_read_list(reader, lb);
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
-#ifdef USE_COLLECTION_COMPAT_28
-    BLO_read_data_address(reader, &lc->scene_collection);
-#endif
-
     /* Master collection is not a real data-block. */
     if (master) {
       BLO_read_data_address(reader, &lc->collection);
@@ -2439,37 +2434,11 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
   view_layer->object_bases_hash = nullptr;
 }
 
-static void lib_link_layer_collection(BlendLibReader *reader,
-                                      ID *self_id,
-                                      LayerCollection *layer_collection,
-                                      const bool master)
+void BKE_view_layer_blend_read_after_liblink(BlendLibReader * /*reader*/,
+                                             ID * /*self_id*/,
+                                             ViewLayer *view_layer)
 {
-  /* Master collection is not a real data-block. */
-  if (!master) {
-    BLO_read_id_address(reader, self_id, &layer_collection->collection);
-  }
-
-  LISTBASE_FOREACH (
-      LayerCollection *, layer_collection_nested, &layer_collection->layer_collections) {
-    lib_link_layer_collection(reader, self_id, layer_collection_nested, false);
-  }
-}
-
-void BKE_view_layer_blend_read_lib(BlendLibReader *reader, ID *self_id, ViewLayer *view_layer)
-{
-  LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
-    BLO_read_id_address(reader, self_id, &fmc->script);
-  }
-
-  LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    BLO_read_id_address(reader, self_id, &fls->linestyle);
-    BLO_read_id_address(reader, self_id, &fls->group);
-  }
-
   LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
-    /* we only bump the use count for the collection objects */
-    BLO_read_id_address(reader, self_id, &base->object);
-
     if (base->object == nullptr) {
       /* Free in case linked object got lost. */
       BLI_freelinkN(&view_layer->object_bases, base);
@@ -2478,14 +2447,6 @@ void BKE_view_layer_blend_read_lib(BlendLibReader *reader, ID *self_id, ViewLaye
       }
     }
   }
-
-  LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
-    lib_link_layer_collection(reader, self_id, layer_collection, true);
-  }
-
-  BLO_read_id_address(reader, self_id, &view_layer->mat_override);
-
-  IDP_BlendReadLib(reader, self_id, view_layer->id_properties);
 }
 
 /** \} */
@@ -2503,7 +2464,7 @@ static void viewlayer_aov_make_name_unique(ViewLayer *view_layer)
 
   /* Don't allow dots, it's incompatible with OpenEXR convention to store channels
    * as "layer.pass.channel". */
-  BLI_str_replace_char(aov->name, '.', '_');
+  BLI_string_replace_char(aov->name, '.', '_');
   BLI_uniquename(
       &view_layer->aovs, aov, DATA_("AOV"), '_', offsetof(ViewLayerAOV, name), sizeof(aov->name));
 }
@@ -2579,6 +2540,10 @@ void BKE_view_layer_verify_aov(RenderEngine *engine, Scene *scene, ViewLayer *vi
   viewlayer_aov_make_name_unique(view_layer);
 
   GHash *name_count = BLI_ghash_str_new(__func__);
+  LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
+    /* Disable conflict flag, so that the AOV is included when iterating over all passes below. */
+    aov->flag &= ~AOV_CONFLICT;
+  }
   RE_engine_update_render_passes(
       engine, scene, view_layer, bke_view_layer_verify_aov_cb, name_count);
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
@@ -2620,7 +2585,7 @@ static void viewlayer_lightgroup_make_name_unique(ViewLayer *view_layer,
 {
   /* Don't allow dots, it's incompatible with OpenEXR convention to store channels
    * as "layer.pass.channel". */
-  BLI_str_replace_char(lightgroup->name, '.', '_');
+  BLI_string_replace_char(lightgroup->name, '.', '_');
   BLI_uniquename(&view_layer->lightgroups,
                  lightgroup,
                  DATA_("Lightgroup"),

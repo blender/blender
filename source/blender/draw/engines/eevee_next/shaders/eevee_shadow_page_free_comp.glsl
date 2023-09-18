@@ -1,8 +1,11 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Tile page freeing.
+ * Virtual shadow-mapping: Tile page freeing.
  *
- * Releases the allocated pages held by tilemaps that have been become unused.
+ * Releases the allocated pages held by tile-maps that have been become unused.
  * Also reclaim cached pages if the tiles needs them.
  * Note that we also count the number of new page allocations needed.
  */

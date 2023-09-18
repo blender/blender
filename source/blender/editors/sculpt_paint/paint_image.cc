@@ -14,8 +14,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_math_vector.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -29,7 +29,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
@@ -38,7 +38,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_scene.h"
 
 #include "NOD_texture.h"
@@ -46,21 +46,21 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
-#include "ED_image.h"
-#include "ED_object.h"
-#include "ED_paint.h"
-#include "ED_screen.h"
+#include "ED_image.hh"
+#include "ED_object.hh"
+#include "ED_paint.hh"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "IMB_colormanagement.h"
 
@@ -77,7 +77,7 @@
  */
 static ImagePaintPartialRedraw imapaintpartial = {{0}};
 
-ImagePaintPartialRedraw *get_imapaintpartial(void)
+ImagePaintPartialRedraw *get_imapaintpartial()
 {
   return &imapaintpartial;
 }
@@ -89,7 +89,7 @@ void set_imapaintpartial(ImagePaintPartialRedraw *ippr)
 
 /* Image paint Partial Redraw & Dirty Region. */
 
-void ED_imapaint_clear_partial_redraw(void)
+void ED_imapaint_clear_partial_redraw()
 {
   BLI_rcti_init_minmax(&imapaintpartial.dirty_region);
 }
@@ -774,7 +774,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
   ot->poll = sample_color_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* properties */
   PropertyRNA *prop;

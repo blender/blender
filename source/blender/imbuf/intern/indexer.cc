@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -14,7 +14,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
@@ -460,9 +460,9 @@ static void get_tc_filepath(anim *anim, IMB_Timecode_Type tc, char *filepath)
  * - common rebuilder structures
  * ---------------------------------------------------------------------- */
 
-typedef struct IndexBuildContext {
+struct IndexBuildContext {
   int anim_type;
-} IndexBuildContext;
+};
 
 /* ----------------------------------------------------------------------
  * - ffmpeg rebuilder
@@ -680,7 +680,7 @@ static void add_to_proxy_output_ffmpeg(proxy_output_ctx *ctx, AVFrame *frame)
               ctx->frame->linesize);
   }
 
-  frame = ctx->sws_ctx ? (frame ? ctx->frame : 0) : frame;
+  frame = ctx->sws_ctx ? (frame ? ctx->frame : nullptr) : frame;
 
   if (frame) {
     frame->pts = ctx->cfra++;
@@ -788,7 +788,7 @@ static void free_proxy_output_ffmpeg(proxy_output_ctx *ctx, int rollback)
   MEM_freeN(ctx);
 }
 
-typedef struct FFmpegIndexBuilderContext {
+struct FFmpegIndexBuilderContext {
   int anim_type;
 
   AVFormatContext *iFormatCtx;
@@ -820,7 +820,7 @@ typedef struct FFmpegIndexBuilderContext {
 
   bool build_only_on_bad_performance;
   bool building_cancelled;
-} FFmpegIndexBuilderContext;
+};
 
 static IndexBuildContext *index_ffmpeg_create_context(anim *anim,
                                                       int tcs_in_use,
@@ -1243,13 +1243,13 @@ static bool indexer_need_to_build_proxy(FFmpegIndexBuilderContext *context)
  * ---------------------------------------------------------------------- */
 
 #ifdef WITH_AVI
-typedef struct FallbackIndexBuilderContext {
+struct FallbackIndexBuilderContext {
   int anim_type;
 
   struct anim *anim;
   AviMovie *proxy_ctx[IMB_PROXY_MAX_SLOT];
   int proxy_sizes_in_use;
-} FallbackIndexBuilderContext;
+};
 
 static AviMovie *alloc_proxy_output_avi(
     anim *anim, char *filepath, int width, int height, int quality)

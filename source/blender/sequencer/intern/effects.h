@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,8 @@
 /** \file
  * \ingroup sequencer
  */
+
+#include "SEQ_effects.h"
 
 #ifdef __cplusplus
 extern "C" {

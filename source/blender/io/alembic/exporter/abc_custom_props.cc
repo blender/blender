@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,6 +17,8 @@
 
 #include <Alembic/Abc/OTypedArrayProperty.h>
 #include <Alembic/Abc/OTypedScalarProperty.h>
+
+#include "BLI_listbase.h"
 
 #include "BKE_idprop.h"
 #include "DNA_ID.h"

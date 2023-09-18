@@ -1,10 +1,14 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
  */
+
+#include <sstream>
+
+#include "GPU_capabilities.h"
 
 #include "vk_shader.hh"
 
@@ -332,7 +336,7 @@ static void print_resource(std::ostream &os,
                            const VKDescriptorSet::Location location,
                            const ShaderCreateInfo::Resource &res)
 {
-  os << "layout(binding = " << static_cast<uint32_t>(location);
+  os << "layout(binding = " << uint32_t(location);
   if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
     os << ", " << to_string(res.image.format);
   }
@@ -397,6 +401,40 @@ inline int get_location_count(const Type &type)
   return 1;
 }
 
+static void print_interface_as_attributes(std::ostream &os,
+                                          const std::string &prefix,
+                                          const StageInterfaceInfo &iface,
+                                          int &location)
+{
+  for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
+    os << "layout(location=" << location << ") " << prefix << " " << to_string(inout.interp) << " "
+       << to_string(inout.type) << " " << inout.name << ";\n";
+    location += get_location_count(inout.type);
+  }
+}
+
+static void print_interface_as_struct(std::ostream &os,
+                                      const std::string &prefix,
+                                      const StageInterfaceInfo &iface,
+                                      int &location,
+                                      const StringRefNull &suffix)
+{
+  std::string struct_name = prefix + iface.name;
+  Interpolation qualifier = iface.inouts[0].interp;
+
+  os << "struct " << struct_name << " {\n";
+  for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
+    os << "  " << to_string(inout.type) << " " << inout.name << ";\n";
+  }
+  os << "};\n";
+  os << "layout(location=" << location << ") " << prefix << " " << to_string(qualifier) << " "
+     << struct_name << " " << iface.instance_name << suffix << ";\n";
+
+  for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
+    location += get_location_count(inout.type);
+  }
+}
+
 static void print_interface(std::ostream &os,
                             const std::string &prefix,
                             const StageInterfaceInfo &iface,
@@ -404,44 +442,10 @@ static void print_interface(std::ostream &os,
                             const StringRefNull &suffix = "")
 {
   if (iface.instance_name.is_empty()) {
-    for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
-      os << "layout(location=" << location << ") " << prefix << " " << to_string(inout.interp)
-         << " " << to_string(inout.type) << " " << inout.name << ";\n";
-      location += get_location_count(inout.type);
-    }
+    print_interface_as_attributes(os, prefix, iface, location);
   }
   else {
-    std::string struct_name = prefix + iface.name;
-    std::string iface_attribute;
-    if (iface.instance_name.is_empty()) {
-      iface_attribute = "iface_";
-    }
-    else {
-      iface_attribute = iface.instance_name;
-    }
-    std::string flat = "";
-    if (prefix == "in") {
-      flat = "flat ";
-    }
-    const bool add_defines = iface.instance_name.is_empty();
-
-    os << "struct " << struct_name << " {\n";
-    for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
-      os << "  " << to_string(inout.type) << " " << inout.name << ";\n";
-    }
-    os << "};\n";
-    os << "layout(location=" << location << ") " << prefix << " " << flat << struct_name << " "
-       << iface_attribute << suffix << ";\n";
-
-    if (add_defines) {
-      for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
-        os << "#define " << inout.name << " (" << iface_attribute << "." << inout.name << ")\n";
-      }
-    }
-
-    for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
-      location += get_location_count(inout.type);
-    }
+    print_interface_as_struct(os, prefix, iface, location, suffix);
   }
 }
 
@@ -493,12 +497,22 @@ static char *glsl_patch_get()
   size_t slen = 0;
   /* Version need to go first. */
   STR_CONCAT(patch, slen, "#version 450\n");
+
+  if (GPU_shader_draw_parameters_support()) {
+    STR_CONCAT(patch, slen, "#extension GL_ARB_shader_draw_parameters : enable\n");
+    STR_CONCAT(patch, slen, "#define GPU_ARB_shader_draw_parameters\n");
+    STR_CONCAT(patch, slen, "#define gpu_BaseInstance (gl_BaseInstanceARB)\n");
+  }
+
   STR_CONCAT(patch, slen, "#define gl_VertexID gl_VertexIndex\n");
-  STR_CONCAT(patch, slen, "#define gpu_BaseInstance (0)\n");
   STR_CONCAT(patch, slen, "#define gpu_InstanceIndex (gl_InstanceIndex)\n");
   STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
+  STR_CONCAT(patch, slen, "#define gl_InstanceID (gpu_InstanceIndex - gpu_BaseInstance)\n");
 
-  STR_CONCAT(patch, slen, "#define gl_InstanceID gpu_InstanceIndex\n");
+  /* TODO(fclem): This creates a validation error and should be already part of Vulkan 1.2. */
+  STR_CONCAT(patch, slen, "#extension GL_ARB_shader_viewport_layer_array: enable\n");
+  STR_CONCAT(patch, slen, "#define gpu_Layer gl_Layer\n");
+  STR_CONCAT(patch, slen, "#define gpu_ViewportIndex gl_ViewportIndex\n");
 
   STR_CONCAT(patch, slen, "#define DFDX_SIGN 1.0\n");
   STR_CONCAT(patch, slen, "#define DFDY_SIGN 1.0\n");
@@ -526,6 +540,7 @@ Vector<uint32_t> VKShader::compile_glsl_to_spirv(Span<const char *> sources,
   shaderc::Compiler &compiler = backend.get_shaderc_compiler();
   shaderc::CompileOptions options;
   options.SetOptimizationLevel(shaderc_optimization_level_performance);
+  options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
     options.SetOptimizationLevel(shaderc_optimization_level_zero);
     options.SetGenerateDebugInfo();
@@ -565,7 +580,10 @@ void VKShader::build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *
   const VKDevice &device = VKBackend::get().device_get();
   VkResult result = vkCreateShaderModule(
       device.device_get(), &create_info, vk_allocation_callbacks, r_shader_module);
-  if (result != VK_SUCCESS) {
+  if (result == VK_SUCCESS) {
+    debug::object_label(*r_shader_module, name);
+  }
+  else {
     compilation_failed_ = true;
     *r_shader_module = VK_NULL_HANDLE;
   }

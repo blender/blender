@@ -1,16 +1,19 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_context.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+#include "NOD_socket_search_link.hh"
 
-#include "ED_node.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "ED_node.hh"
 #include "ED_viewer_path.hh"
 
-#include "NOD_socket_search_link.hh"
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
@@ -40,12 +43,12 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static eNodeSocketDatatype custom_data_type_to_socket_type(const eCustomDataType type)
@@ -121,7 +124,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
       /* If the source node has a geometry socket, connect it to the new viewer node as well. */
       LISTBASE_FOREACH (bNodeSocket *, socket, &params.node.outputs) {
-        if (socket->type == SOCK_GEOMETRY && !(socket->flag & (SOCK_UNAVAIL | SOCK_HIDDEN))) {
+        if (socket->type == SOCK_GEOMETRY && socket->is_visible_or_panel_collapsed()) {
           nodeAddLink(&params.node_tree,
                       &params.node,
                       socket,
@@ -135,23 +138,44 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_viewer_cc
-
-void register_node_type_geo_viewer()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_viewer_cc;
+  RNA_def_node_enum(srna,
+                    "data_type",
+                    "Data Type",
+                    "",
+                    rna_enum_attribute_type_items,
+                    NOD_storage_enum_accessors(data_type),
+                    CD_PROP_FLOAT,
+                    enums::attribute_type_type_with_socket_fn);
 
+  RNA_def_node_enum(srna,
+                    "domain",
+                    "Domain",
+                    "Domain to evaluate the field on",
+                    rna_enum_attribute_domain_with_auto_items,
+                    NOD_storage_enum_accessors(domain),
+                    ATTR_DOMAIN_POINT);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT);
   node_type_storage(
       &ntype, "NodeGeometryViewer", node_free_standard_storage, node_copy_standard_storage);
-  ntype.updatefunc = file_ns::node_update;
-  ntype.initfunc = file_ns::node_init;
-  ntype.declare = file_ns::node_declare;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.draw_buttons_ex = file_ns::node_layout_ex;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.updatefunc = node_update;
+  ntype.initfunc = node_init;
+  ntype.declare = node_declare;
+  ntype.draw_buttons = node_layout;
+  ntype.draw_buttons_ex = node_layout_ex;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.no_muting = true;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_viewer_cc

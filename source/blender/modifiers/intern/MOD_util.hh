@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -31,14 +31,6 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
                             float (*r_texco)[3]);
 
 void MOD_previous_vcos_store(ModifierData *md, const float (*vert_coords)[3]);
-
-/**
- * \returns a mesh if mesh == null, for deforming modifiers that need it.
- */
-Mesh *MOD_deform_mesh_eval_get(Object *ob,
-                               BMEditMesh *em,
-                               Mesh *mesh,
-                               const float (*vertexCos)[3]);
 
 void MOD_get_vgroup(const Object *ob,
                     const Mesh *mesh,

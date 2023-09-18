@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -287,6 +287,10 @@ BMITER_CB_DEF(loop_of_face);
 
 #undef BMITER_CB_DEF
 
+#ifdef __cplusplus
+}
+#endif
+
 #include "intern/bmesh_iterators_inline.h"
 
 #define BM_ITER_CHECK_TYPE_DATA(data) \
@@ -296,7 +300,3 @@ BMITER_CB_DEF(loop_of_face);
   (BM_ITER_CHECK_TYPE_DATA(data), BM_iter_new(iter, bm, itype, data))
 #define BM_iter_init(iter, bm, itype, data) \
   (BM_ITER_CHECK_TYPE_DATA(data), BM_iter_init(iter, bm, itype, data))
-
-#ifdef __cplusplus
-}
-#endif

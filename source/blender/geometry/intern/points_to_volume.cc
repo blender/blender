@@ -1,10 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_matrix.hh"
 
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 #include "GEO_points_to_volume.hh"
 

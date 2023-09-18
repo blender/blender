@@ -1,15 +1,17 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
+#include "BLI_color.hh"
 #include "BLI_math_quaternion_types.hh"
 
 #include "FN_field.hh"
 #include "FN_lazy_function.hh"
 #include "FN_multi_function_builder.hh"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 
@@ -157,6 +159,13 @@ class GeoNodeExecParams {
       using BaseType = typename StoredT::base_type;
       this->set_output(identifier, ValueOrField<BaseType>(std::forward<T>(value)));
     }
+    else if constexpr (std::is_same_v<std::decay_t<StoredT>, GField>) {
+      bke::attribute_math::convert_to_static_type(value.cpp_type(), [&](auto dummy) {
+        using ValueT = decltype(dummy);
+        Field<ValueT> value_typed(std::forward<T>(value));
+        this->set_output(identifier, ValueOrField<ValueT>(std::move(value_typed)));
+      });
+    }
     else {
 #ifdef DEBUG
       const CPPType &type = CPPType::get<StoredT>();
@@ -207,6 +216,9 @@ class GeoNodeExecParams {
       if (data->modifier_data) {
         return data->modifier_data->self_object;
       }
+      if (data->operator_data) {
+        return data->operator_data->self_object;
+      }
     }
     return nullptr;
   }
@@ -216,6 +228,9 @@ class GeoNodeExecParams {
     if (const auto *data = this->user_data()) {
       if (data->modifier_data) {
         return data->modifier_data->depsgraph;
+      }
+      if (data->operator_data) {
+        return data->operator_data->depsgraph;
       }
     }
     return nullptr;

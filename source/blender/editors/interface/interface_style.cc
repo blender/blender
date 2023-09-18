@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,7 +27,7 @@
 
 #include "BLT_translation.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "ED_datafiles.h"
 
@@ -303,7 +303,7 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
 
 /* ************** helpers ************************ */
 
-const uiStyle *UI_style_get(void)
+const uiStyle *UI_style_get()
 {
 #if 0
   uiStyle *style = nullptr;
@@ -315,7 +315,7 @@ const uiStyle *UI_style_get(void)
 #endif
 }
 
-const uiStyle *UI_style_get_dpi(void)
+const uiStyle *UI_style_get_dpi()
 {
   const uiStyle *style = UI_style_get();
   static uiStyle _style;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,13 +16,13 @@
 #include <cstdio>
 #include <vector>
 
-HGLRC GHOST_ContextWGL::s_sharedHGLRC = NULL;
+HGLRC GHOST_ContextWGL::s_sharedHGLRC = nullptr;
 int GHOST_ContextWGL::s_sharedCount = 0;
 
 /* Some third-generation Intel video-cards are constantly bring problems */
 static bool is_crappy_intel_card()
 {
-  return strstr((const char *)glGetString(GL_VENDOR), "Intel") != NULL;
+  return strstr((const char *)glGetString(GL_VENDOR), "Intel") != nullptr;
 }
 
 GHOST_ContextWGL::GHOST_ContextWGL(bool stereoVisual,
@@ -43,30 +43,31 @@ GHOST_ContextWGL::GHOST_ContextWGL(bool stereoVisual,
       m_contextFlags(contextFlags),
       m_alphaBackground(alphaBackground),
       m_contextResetNotificationStrategy(contextResetNotificationStrategy),
-      m_hGLRC(NULL)
+      m_hGLRC(nullptr)
 #ifndef NDEBUG
       ,
-      m_dummyVendor(NULL),
-      m_dummyRenderer(NULL),
-      m_dummyVersion(NULL)
+      m_dummyVendor(nullptr),
+      m_dummyRenderer(nullptr),
+      m_dummyVersion(nullptr)
 #endif
 {
-  assert(m_hDC != NULL);
+  assert(m_hDC != nullptr);
 }
 
 GHOST_ContextWGL::~GHOST_ContextWGL()
 {
-  if (m_hGLRC != NULL) {
+  if (m_hGLRC != nullptr) {
     if (m_hGLRC == ::wglGetCurrentContext())
-      WIN32_CHK(::wglMakeCurrent(NULL, NULL));
+      WIN32_CHK(::wglMakeCurrent(nullptr, nullptr));
 
     if (m_hGLRC != s_sharedHGLRC || s_sharedCount == 1) {
       assert(s_sharedCount > 0);
 
       s_sharedCount--;
 
-      if (s_sharedCount == 0)
-        s_sharedHGLRC = NULL;
+      if (s_sharedCount == 0) {
+        s_sharedHGLRC = nullptr;
+      }
 
       WIN32_CHK(::wglDeleteContext(m_hGLRC));
     }
@@ -88,10 +89,12 @@ GHOST_TSuccess GHOST_ContextWGL::swapBuffers()
 
 GHOST_TSuccess GHOST_ContextWGL::setSwapInterval(int interval)
 {
-  if (epoxy_has_wgl_extension(m_hDC, "WGL_EXT_swap_control"))
+  if (epoxy_has_wgl_extension(m_hDC, "WGL_EXT_swap_control")) {
     return WIN32_CHK(::wglSwapIntervalEXT(interval)) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
-  else
+  }
+  else {
     return GHOST_kFailure;
+  }
 }
 
 GHOST_TSuccess GHOST_ContextWGL::getSwapInterval(int &intervalOut)
@@ -117,7 +120,7 @@ GHOST_TSuccess GHOST_ContextWGL::activateDrawingContext()
 
 GHOST_TSuccess GHOST_ContextWGL::releaseDrawingContext()
 {
-  if (WIN32_CHK(::wglMakeCurrent(NULL, NULL))) {
+  if (WIN32_CHK(::wglMakeCurrent(nullptr, nullptr))) {
     return GHOST_kSuccess;
   }
   else {
@@ -149,8 +152,9 @@ static int weight_pixel_format(PIXELFORMATDESCRIPTOR &pfd, PIXELFORMATDESCRIPTOR
 
   weight += pfd.cColorBits - 8;
 
-  if (preferredPFD.cAlphaBits > 0 && pfd.cAlphaBits > 0)
+  if (preferredPFD.cAlphaBits > 0 && pfd.cAlphaBits > 0) {
     weight++;
+  }
 #ifdef WIN32_COMPOSITING
   if ((preferredPFD.dwFlags & PFD_SUPPORT_COMPOSITION) && (pfd.dwFlags & PFD_SUPPORT_COMPOSITION))
     weight++;
@@ -176,7 +180,7 @@ static int choose_pixel_format_legacy(HDC hDC, PIXELFORMATDESCRIPTOR &preferredP
 
   WIN32_CHK(iLastResortPixelFormat != 0);
 
-  int lastPFD = ::DescribePixelFormat(hDC, 1, sizeof(PIXELFORMATDESCRIPTOR), NULL);
+  int lastPFD = ::DescribePixelFormat(hDC, 1, sizeof(PIXELFORMATDESCRIPTOR), nullptr);
 
   WIN32_CHK(lastPFD != 0);
 
@@ -200,8 +204,9 @@ static int choose_pixel_format_legacy(HDC hDC, PIXELFORMATDESCRIPTOR &preferredP
   }
 
   /* choose any available stereo format over a non-stereo format */
-  if (iStereoPixelFormat != 0)
+  if (iStereoPixelFormat != 0) {
     iPixelFormat = iStereoPixelFormat;
+  }
 
   if (iPixelFormat == 0) {
     fprintf(stderr, "Warning! Using result of ChoosePixelFormat.\n");
@@ -262,7 +267,7 @@ static HWND clone_window(HWND hWnd, LPVOID lpParam)
                                     hInstance,
                                     lpParam);
 
-  WIN32_CHK(hwndCloned != NULL);
+  WIN32_CHK(hwndCloned != nullptr);
 
   return hwndCloned;
 }
@@ -306,13 +311,13 @@ static void makeAttribList(std::vector<int> &out, bool stereoVisual, bool needAl
 /* Temporary context used to create the actual context. We need ARB pixel format
  * and context extensions, which are only available within a context. */
 struct DummyContextWGL {
-  HWND dummyHWND = NULL;
+  HWND dummyHWND = nullptr;
 
-  HDC dummyHDC = NULL;
-  HGLRC dummyHGLRC = NULL;
+  HDC dummyHDC = nullptr;
+  HGLRC dummyHGLRC = nullptr;
 
-  HDC prevHDC = NULL;
-  HGLRC prevHGLRC = NULL;
+  HDC prevHDC = nullptr;
+  HGLRC prevHGLRC = nullptr;
 
   int dummyPixelFormat = 0;
 
@@ -351,7 +356,7 @@ struct DummyContextWGL {
         0,
         0,
         0,
-        0,              /* accum bits (ignored) */
+        0,              /* Accumulation bits (ignored). */
         0,              /* depth buffer */
         0,              /* stencil buffer */
         0,              /* no auxiliary buffers */
@@ -372,36 +377,44 @@ struct DummyContextWGL {
 
     dummyPixelFormat = choose_pixel_format_legacy(hDC, preferredPFD);
 
-    if (dummyPixelFormat == 0)
+    if (dummyPixelFormat == 0) {
       return;
+    }
 
     PIXELFORMATDESCRIPTOR chosenPFD;
     if (!WIN32_CHK(::DescribePixelFormat(
             hDC, dummyPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &chosenPFD)))
+    {
       return;
+    }
 
     if (hWnd) {
-      dummyHWND = clone_window(hWnd, NULL);
+      dummyHWND = clone_window(hWnd, nullptr);
 
-      if (dummyHWND == NULL)
+      if (dummyHWND == nullptr) {
         return;
+      }
 
       dummyHDC = GetDC(dummyHWND);
     }
 
-    if (!WIN32_CHK(dummyHDC != NULL))
+    if (!WIN32_CHK(dummyHDC != nullptr)) {
       return;
+    }
 
-    if (!WIN32_CHK(::SetPixelFormat(dummyHDC, dummyPixelFormat, &chosenPFD)))
+    if (!WIN32_CHK(::SetPixelFormat(dummyHDC, dummyPixelFormat, &chosenPFD))) {
       return;
+    }
 
     dummyHGLRC = ::wglCreateContext(dummyHDC);
 
-    if (!WIN32_CHK(dummyHGLRC != NULL))
+    if (!WIN32_CHK(dummyHGLRC != nullptr)) {
       return;
+    }
 
-    if (!WIN32_CHK(::wglMakeCurrent(dummyHDC, dummyHGLRC)))
+    if (!WIN32_CHK(::wglMakeCurrent(dummyHDC, dummyHGLRC))) {
       return;
+    }
 
     has_WGL_ARB_pixel_format = epoxy_has_wgl_extension(hDC, "WGL_ARB_pixel_format");
     has_WGL_ARB_create_context = epoxy_has_wgl_extension(hDC, "WGL_ARB_create_context");
@@ -415,11 +428,11 @@ struct DummyContextWGL {
   {
     WIN32_CHK(::wglMakeCurrent(prevHDC, prevHGLRC));
 
-    if (dummyHGLRC != NULL)
+    if (dummyHGLRC != nullptr)
       WIN32_CHK(::wglDeleteContext(dummyHGLRC));
 
-    if (dummyHWND != NULL) {
-      if (dummyHDC != NULL)
+    if (dummyHWND != nullptr) {
+      if (dummyHDC != nullptr)
         WIN32_CHK(::ReleaseDC(dummyHWND, dummyHDC));
 
       WIN32_CHK(::DestroyWindow(dummyHWND));
@@ -440,7 +453,7 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_1(bool stereoVisual, bool needAlp
 
   uint nNumFormats;
   WIN32_CHK(wglChoosePixelFormatARB(
-      m_hDC, &(iAttributes[0]), NULL, _MAX_PIXEL_FORMATS, iPixelFormats, &nNumFormats));
+      m_hDC, &(iAttributes[0]), nullptr, _MAX_PIXEL_FORMATS, iPixelFormats, &nNumFormats));
 
   if (nNumFormats > 0) {
     iPixelFormat = iPixelFormats[0];
@@ -523,8 +536,9 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
     if (!dummy.has_WGL_ARB_create_context || ::GetPixelFormat(m_hDC) == 0) {
       int iPixelFormat = 0;
 
-      if (dummy.has_WGL_ARB_pixel_format)
+      if (dummy.has_WGL_ARB_pixel_format) {
         iPixelFormat = choose_pixel_format_arb(m_stereoVisual, needAlpha);
+      }
 
       if (iPixelFormat == 0)
         iPixelFormat = choose_pixel_format_legacy(m_hDC, dummy.preferredPFD);
@@ -541,8 +555,9 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
         goto error;
       }
 
-      if (needAlpha && chosenPFD.cAlphaBits == 0)
+      if (needAlpha && chosenPFD.cAlphaBits == 0) {
         fprintf(stderr, "Warning! Unable to find a pixel format with an alpha channel.\n");
+      }
 
       if (!WIN32_CHK(::SetPixelFormat(m_hDC, iPixelFormat, &chosenPFD))) {
         goto error;
@@ -553,22 +568,27 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
       int profileBitCore = m_contextProfileMask & WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
       int profileBitCompat = m_contextProfileMask & WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 
-      if (!dummy.has_WGL_ARB_create_context_profile && profileBitCore)
+      if (!dummy.has_WGL_ARB_create_context_profile && profileBitCore) {
         fprintf(stderr, "Warning! OpenGL core profile not available.\n");
+      }
 
-      if (!dummy.has_WGL_ARB_create_context_profile && profileBitCompat)
+      if (!dummy.has_WGL_ARB_create_context_profile && profileBitCompat) {
         fprintf(stderr, "Warning! OpenGL compatibility profile not available.\n");
+      }
 
       int profileMask = 0;
 
-      if (dummy.has_WGL_ARB_create_context_profile && profileBitCore)
+      if (dummy.has_WGL_ARB_create_context_profile && profileBitCore) {
         profileMask |= profileBitCore;
+      }
 
-      if (dummy.has_WGL_ARB_create_context_profile && profileBitCompat)
+      if (dummy.has_WGL_ARB_create_context_profile && profileBitCompat) {
         profileMask |= profileBitCompat;
+      }
 
-      if (profileMask != m_contextProfileMask)
+      if (profileMask != m_contextProfileMask) {
         fprintf(stderr, "Warning! Ignoring untested OpenGL context profile mask bits.");
+      }
 
       std::vector<int> iAttributes;
 
@@ -604,7 +624,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
       iAttributes.push_back(0);
 
-      m_hGLRC = ::wglCreateContextAttribsARB(m_hDC, NULL, &(iAttributes[0]));
+      m_hGLRC = ::wglCreateContextAttribsARB(m_hDC, nullptr, &(iAttributes[0]));
     }
   }
 
@@ -612,14 +632,14 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
    * a context with version higher than 3.3 Core. */
   {
     const bool silent = m_contextMajorVersion > 3;
-    if (!WIN32_CHK_SILENT(m_hGLRC != NULL, silent)) {
+    if (!WIN32_CHK_SILENT(m_hGLRC != nullptr, silent)) {
       goto error;
     }
   }
 
   s_sharedCount++;
 
-  if (s_sharedHGLRC == NULL) {
+  if (s_sharedHGLRC == nullptr) {
     s_sharedHGLRC = m_hGLRC;
   }
   else if (!WIN32_CHK(::wglShareLists(s_sharedHGLRC, m_hGLRC))) {
@@ -667,8 +687,8 @@ GHOST_TSuccess GHOST_ContextWGL::releaseNativeHandles()
   GHOST_TSuccess success = m_hGLRC != s_sharedHGLRC || s_sharedCount == 1 ? GHOST_kSuccess :
                                                                             GHOST_kFailure;
 
-  m_hWnd = NULL;
-  m_hDC = NULL;
+  m_hWnd = nullptr;
+  m_hDC = nullptr;
 
   return success;
 }

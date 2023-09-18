@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,7 +11,9 @@
 #include "workbench_enums.hh"
 #include "workbench_shader_shared.h"
 
-extern "C" DrawEngineType draw_engine_workbench_next;
+#include "GPU_capabilities.h"
+
+extern "C" DrawEngineType draw_engine_workbench;
 
 namespace blender::workbench {
 
@@ -88,7 +90,6 @@ struct SceneState {
   bool draw_aa = false;
 
   bool draw_object_id = false;
-  bool draw_transparent_depth = false;
 
   int sample = 0;
   int samples_len = 0;
@@ -106,7 +107,6 @@ struct SceneState {
 struct ObjectState {
   eV3DShadingColorType color_type = V3D_SHADING_SINGLE_COLOR;
   bool sculpt_pbvh = false;
-  bool texture_paint_mode = false;
   ::Image *image_paint_override = nullptr;
   GPUSamplerState override_sampler_state = GPUSamplerState::default_sampler();
   bool draw_shadow = false;
@@ -114,6 +114,8 @@ struct ObjectState {
 
   ObjectState(const SceneState &scene_state, Object *ob);
 };
+
+struct SceneResources;
 
 class CavityEffect {
  private:
@@ -129,11 +131,61 @@ class CavityEffect {
   bool cavity_enabled_ = false;
 
  public:
-  void init(const SceneState &scene_state, struct SceneResources &resources);
-  void setup_resolve_pass(PassSimple &pass, struct SceneResources &resources);
+  void init(const SceneState &scene_state, SceneResources &resources);
+  void setup_resolve_pass(PassSimple &pass, SceneResources &resources);
 
  private:
   void load_samples_buf(int ssao_samples);
+};
+
+/* Used as a temporary workaround for the lack of texture views support on Windows ARM. */
+class StencilViewWorkaround {
+ private:
+  Texture stencil_copy_tx_ = "stencil_copy_tx";
+  GPUShader *stencil_copy_sh_ = nullptr;
+
+ public:
+  StencilViewWorkaround()
+  {
+    stencil_copy_sh_ = GPU_shader_create_from_info_name("workbench_extract_stencil");
+  }
+  ~StencilViewWorkaround()
+  {
+    DRW_SHADER_FREE_SAFE(stencil_copy_sh_);
+  }
+
+  /** WARNING: Should only be called at render time.
+   * When the workaround path is active,
+   * the returned texture won't stay in sync with the stencil_src,
+   * and will only be valid until the next time this function is called.
+   * Note that the output is a binary mask,
+   * any stencil value that is not 0x00 will be rendered as 0xFF. */
+  GPUTexture *extract(Manager &manager, Texture &stencil_src)
+  {
+    if (GPU_texture_view_support()) {
+      return stencil_src.stencil_view();
+    }
+
+    int2 extent = int2(stencil_src.width(), stencil_src.height());
+    stencil_copy_tx_.ensure_2d(
+        GPU_R8UI, extent, GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ);
+
+    PassSimple ps("Stencil View Workaround");
+    ps.init();
+    ps.clear_color(float4(0));
+    ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL);
+    ps.state_stencil(0x00, 0x00, 0xFF);
+    ps.shader_set(stencil_copy_sh_);
+    ps.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
+    Framebuffer fb;
+    fb.ensure(GPU_ATTACHMENT_TEXTURE(stencil_src), GPU_ATTACHMENT_TEXTURE(stencil_copy_tx_));
+    fb.bind();
+
+    manager.submit(ps);
+
+    return stencil_copy_tx_;
+  }
 };
 
 struct SceneResources {
@@ -156,6 +208,8 @@ struct SceneResources {
   Texture jitter_tx = "wb_jitter_tx";
 
   CavityEffect cavity = {};
+
+  StencilViewWorkaround stencil_view;
 
   void init(const SceneState &scene_state);
   void load_jitter_tx(int total_samples);
@@ -183,13 +237,10 @@ class MeshPass : public PassMain {
                       bool clip,
                       ShaderCache &shaders);
 
-  void draw(ObjectRef &ref,
-            GPUBatch *batch,
-            ResourceHandle handle,
-            uint material_index,
-            ::Image *image = nullptr,
-            GPUSamplerState sampler_state = GPUSamplerState::default_sampler(),
-            ImageUser *iuser = nullptr);
+  PassMain::Sub &get_subpass(eGeometryType geometry_type,
+                             ::Image *image = nullptr,
+                             GPUSamplerState sampler_state = GPUSamplerState::default_sampler(),
+                             ImageUser *iuser = nullptr);
 };
 
 class OpaquePass {
@@ -210,8 +261,7 @@ class OpaquePass {
             View &view,
             SceneResources &resources,
             int2 resolution,
-            class ShadowPass *shadow_pass,
-            bool accumulation_ps_is_empty);
+            class ShadowPass *shadow_pass);
   bool is_empty() const;
 };
 
@@ -458,6 +508,8 @@ class AntiAliasingPass {
   float weights_sum_ = 0;
 
   Texture sample0_depth_tx_ = {"sample0_depth_tx"};
+  Texture sample0_depth_in_front_tx_ = {"sample0_depth_in_front_tx"};
+  GPUTexture *stencil_tx_ = nullptr;
 
   Texture taa_accumulation_tx_ = {"taa_accumulation_tx"};
   Texture smaa_search_tx_ = {"smaa_search_tx"};
@@ -469,6 +521,7 @@ class AntiAliasingPass {
   Framebuffer smaa_edge_fb_ = {"smaa_edge_fb"};
   Framebuffer smaa_weight_fb_ = {"smaa_weight_fb"};
   Framebuffer smaa_resolve_fb_ = {"smaa_resolve_fb"};
+  Framebuffer overlay_depth_fb_ = {"overlay_depth_fb"};
 
   float4 smaa_viewport_metrics_ = float4(0);
   float smaa_mix_factor_ = 0;
@@ -477,11 +530,13 @@ class AntiAliasingPass {
   GPUShader *smaa_edge_detect_sh_ = nullptr;
   GPUShader *smaa_aa_weight_sh_ = nullptr;
   GPUShader *smaa_resolve_sh_ = nullptr;
+  GPUShader *overlay_depth_sh_ = nullptr;
 
   PassSimple taa_accumulation_ps_ = {"TAA.Accumulation"};
   PassSimple smaa_edge_detect_ps_ = {"SMAA.EdgeDetect"};
   PassSimple smaa_aa_weight_ps_ = {"SMAA.BlendWeights"};
   PassSimple smaa_resolve_ps_ = {"SMAA.Resolve"};
+  PassSimple overlay_depth_ps_ = {"Overlay Depth"};
 
  public:
   AntiAliasingPass();
@@ -495,6 +550,7 @@ class AntiAliasingPass {
             SceneResources &resources,
             int2 resolution,
             GPUTexture *depth_tx,
+            GPUTexture *depth_in_front_tx,
             GPUTexture *color_tx);
 };
 

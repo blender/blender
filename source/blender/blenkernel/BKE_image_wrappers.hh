@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,8 @@
 
 #include "DNA_image_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
 #include "IMB_imbuf_types.h"

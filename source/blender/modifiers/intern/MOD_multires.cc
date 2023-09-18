@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,22 +24,22 @@
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_multires.h"
-#include "BKE_paint.h"
+#include "BKE_multires.hh"
+#include "BKE_paint.hh"
 #include "BKE_screen.h"
-#include "BKE_subdiv.h"
-#include "BKE_subdiv_ccg.h"
-#include "BKE_subdiv_deform.h"
+#include "BKE_subdiv.hh"
+#include "BKE_subdiv_ccg.hh"
+#include "BKE_subdiv_deform.hh"
 #include "BKE_subdiv_mesh.hh"
-#include "BKE_subsurf.h"
+#include "BKE_subsurf.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_types.h" /* For subdivide operator UI. */
+#include "WM_types.hh" /* For subdivide operator UI. */
 
 #include "DEG_depsgraph_query.h"
 
@@ -51,7 +51,7 @@ struct MultiresRuntimeData {
   Subdiv *subdiv;
 };
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   MultiresModifierData *mmd = (MultiresModifierData *)md;
 
@@ -63,7 +63,7 @@ static void initData(ModifierData *md)
   md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT | UI_SUBPANEL_DATA_EXPAND_1;
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   MultiresModifierData *mmd = (MultiresModifierData *)md;
   if (mmd->flags & eMultiresModifierFlag_UseCustomNormals) {
@@ -72,7 +72,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnNormals(ModifierData *md)
+static bool depends_on_normals(ModifierData *md)
 {
   MultiresModifierData *mmd = (MultiresModifierData *)md;
   if (mmd->flags & eMultiresModifierFlag_UseCustomNormals) {
@@ -81,12 +81,12 @@ static bool dependsOnNormals(ModifierData *md)
   return false;
 }
 
-static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)
+static void copy_data(const ModifierData *md_src, ModifierData *md_dst, const int flag)
 {
   BKE_modifier_copydata_generic(md_src, md_dst, flag);
 }
 
-static void freeRuntimeData(void *runtime_data_v)
+static void free_runtime_data(void *runtime_data_v)
 {
   if (runtime_data_v == nullptr) {
     return;
@@ -98,10 +98,10 @@ static void freeRuntimeData(void *runtime_data_v)
   MEM_freeN(runtime_data);
 }
 
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   MultiresModifierData *mmd = (MultiresModifierData *)md;
-  freeRuntimeData(mmd->modifier.runtime);
+  free_runtime_data(mmd->modifier.runtime);
 }
 
 static MultiresRuntimeData *multires_ensure_runtime(MultiresModifierData *mmd)
@@ -163,7 +163,7 @@ static void multires_ccg_settings_init(SubdivToCCGSettings *settings,
                                        const ModifierEvalContext *ctx,
                                        Mesh *mesh)
 {
-  const bool has_mask = CustomData_has_layer(&mesh->ldata, CD_GRID_PAINT_MASK);
+  const bool has_mask = CustomData_has_layer(&mesh->loop_data, CD_GRID_PAINT_MASK);
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
   const bool ignore_simplify = (ctx->flag & MOD_APPLY_IGNORE_SIMPLIFY);
   const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -197,7 +197,7 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
   return result;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
@@ -218,7 +218,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
   const bool use_clnors = mmd->flags & eMultiresModifierFlag_UseCustomNormals &&
                           mesh->flag & ME_AUTOSMOOTH &&
-                          CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
+                          CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL);
   /* NOTE: Orco needs final coordinates on CPU side, which are expected to be
    * accessible via mesh vertices. For this reason we do not evaluate multires to
    * grids when orco is requested. */
@@ -244,9 +244,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       sculpt_session->multires.modifier = mmd;
       sculpt_session->multires.level = mmd->sculptlvl;
       sculpt_session->totvert = mesh->totvert;
-      sculpt_session->totpoly = mesh->totpoly;
-      sculpt_session->vert_positions = nullptr;
-      sculpt_session->polys = {};
+      sculpt_session->faces_num = mesh->faces_num;
+      sculpt_session->vert_positions = {};
+      sculpt_session->faces = {};
       sculpt_session->corner_verts = {};
     }
     // BKE_subdiv_stats_print(&subdiv->stats);
@@ -256,18 +256,18 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* If custom normals are present and the option is turned on calculate the split
        * normals and clear flag so the normals get interpolated to the result mesh. */
       BKE_mesh_calc_normals_split(mesh);
-      CustomData_clear_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+      CustomData_clear_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
     }
 
     result = multires_as_mesh(mmd, ctx, mesh, subdiv);
 
     if (use_clnors) {
       float(*lnors)[3] = static_cast<float(*)[3]>(
-          CustomData_get_layer_for_write(&result->ldata, CD_NORMAL, result->totloop));
+          CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->totloop));
       BLI_assert(lnors != nullptr);
       BKE_mesh_set_custom_normals(result, lnors);
-      CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
-      CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+      CustomData_set_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+      CustomData_set_layer_flag(&result->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
     }
     // BKE_subdiv_stats_print(&subdiv->stats);
     if (subdiv != runtime_data->subdiv) {
@@ -277,12 +277,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void deformMatrices(ModifierData *md,
-                           const ModifierEvalContext *ctx,
-                           Mesh *mesh,
-                           float (*vertex_cos)[3],
-                           float (*deform_matrices)[3][3],
-                           int verts_num)
+static void deform_matrices(ModifierData *md,
+                            const ModifierEvalContext *ctx,
+                            Mesh *mesh,
+                            float (*vertex_cos)[3],
+                            float (*deform_matrices)[3][3],
+                            int verts_num)
 
 {
 #if !defined(WITH_OPENSUBDIV)
@@ -330,17 +330,17 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "levels", 0, IFACE_("Level Viewport"), ICON_NONE);
-  uiItemR(col, ptr, "sculpt_levels", 0, IFACE_("Sculpt"), ICON_NONE);
-  uiItemR(col, ptr, "render_levels", 0, IFACE_("Render"), ICON_NONE);
+  uiItemR(col, ptr, "levels", UI_ITEM_NONE, IFACE_("Level Viewport"), ICON_NONE);
+  uiItemR(col, ptr, "sculpt_levels", UI_ITEM_NONE, IFACE_("Sculpt"), ICON_NONE);
+  uiItemR(col, ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
 
   const bool is_sculpt_mode = CTX_data_active_object(C)->mode & OB_MODE_SCULPT;
   uiBlock *block = uiLayoutGetBlock(panel->layout);
   UI_block_lock_set(block, !is_sculpt_mode, IFACE_("Sculpt Base Mesh"));
-  uiItemR(col, ptr, "use_sculpt_base_mesh", 0, IFACE_("Sculpt Base Mesh"), ICON_NONE);
+  uiItemR(col, ptr, "use_sculpt_base_mesh", UI_ITEM_NONE, IFACE_("Sculpt Base Mesh"), ICON_NONE);
   UI_block_lock_clear(block);
 
-  uiItemR(layout, ptr, "show_only_control_edges", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "show_only_control_edges", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -375,7 +375,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
               ICON_NONE,
               nullptr,
               WM_OP_EXEC_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_CATMULL_CLARK);
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
@@ -387,7 +387,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
               ICON_NONE,
               nullptr,
               WM_OP_EXEC_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_SIMPLE);
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
@@ -397,7 +397,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
               ICON_NONE,
               nullptr,
               WM_OP_EXEC_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_LINEAR);
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
@@ -444,7 +444,7 @@ static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
     uiItemO(row, IFACE_("Pack External"), ICON_NONE, "OBJECT_OT_multires_external_pack");
     uiLayoutSetPropSep(col, true);
     row = uiLayoutRow(col, false);
-    uiItemR(row, ptr, "filepath", 0, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "filepath", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else {
     uiItemO(col, IFACE_("Save External..."), ICON_NONE, "OBJECT_OT_multires_external_save");
@@ -464,18 +464,18 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetActive(layout, !has_displacement);
 
-  uiItemR(layout, ptr, "quality", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "quality", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, true);
-  uiItemR(col, ptr, "uv_smooth", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "boundary_smooth", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "uv_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "boundary_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_creases", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_custom_normals", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_creases", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_custom_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Multires, panel_draw);
   modifier_subpanel_register(
@@ -488,35 +488,36 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Multires = {
+    /*idname*/ "Multires",
     /*name*/ N_("Multires"),
-    /*structName*/ "MultiresModifierData",
-    /*structSize*/ sizeof(MultiresModifierData),
+    /*struct_name*/ "MultiresModifierData",
+    /*struct_size*/ sizeof(MultiresModifierData),
     /*srna*/ &RNA_MultiresModifier,
     /*type*/ eModifierTypeType_Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_RequiresOriginalData,
     /*icon*/ ICON_MOD_MULTIRES,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ deformMatrices,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ deform_matrices,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ freeData,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ dependsOnNormals,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ freeRuntimeData,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ depends_on_normals,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ free_runtime_data,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

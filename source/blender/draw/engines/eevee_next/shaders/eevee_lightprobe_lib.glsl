@@ -1,13 +1,16 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 
-vec3 lightprobe_irradiance_grid_sample_position(mat4 grid_local_to_world,
+vec3 lightprobe_irradiance_grid_sample_position(mat4 grid_local_to_world_mat,
                                                 ivec3 grid_res,
                                                 ivec3 cell_coord)
 {
   vec3 ls_cell_pos = (vec3(cell_coord) + vec3(0.5)) / vec3(grid_res);
   ls_cell_pos = ls_cell_pos * 2.0 - 1.0;
-  vec3 ws_cell_pos = (grid_local_to_world * vec4(ls_cell_pos, 1.0)).xyz;
+  vec3 ws_cell_pos = (grid_local_to_world_mat * vec4(ls_cell_pos, 1.0)).xyz;
   return ws_cell_pos;
 }
 
@@ -34,4 +37,10 @@ int lightprobe_irradiance_grid_brick_index_get(IrradianceGridData grid_data, ive
   brick_index += brick_coord.y * grid_size_in_bricks.x;
   brick_index += brick_coord.z * grid_size_in_bricks.x * grid_size_in_bricks.y;
   return brick_index;
+}
+
+/* Return cell corner from a corner ID [0..7]. */
+ivec3 lightprobe_irradiance_grid_cell_corner(int cell_corner_id)
+{
+  return (ivec3(cell_corner_id) >> ivec3(0, 1, 2)) & 1;
 }

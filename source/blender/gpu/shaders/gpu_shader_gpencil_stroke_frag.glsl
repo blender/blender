@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #ifdef USE_GEOMETRY_SHADER
 vec4 fragment_in_color()
 {

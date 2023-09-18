@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021 Blender Foundation
+# SPDX-FileCopyrightText: 2021 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -15,23 +15,27 @@
 # also defined, but not for general use are
 #  LIBPULSE_LIBRARY, where to find the PulseAudio library.
 
-# If LIBPULSE_ROOT_DIR was defined in the environment, use it.
-IF(NOT LIBPULSE_ROOT_DIR AND NOT $ENV{LIBPULSE_ROOT_DIR} STREQUAL "")
-  SET(LIBPULSE_ROOT_DIR $ENV{LIBPULSE_ROOT_DIR})
-ENDIF()
+# If `LIBPULSE_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED LIBPULSE_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{LIBPULSE_ROOT_DIR})
+  set(LIBPULSE_ROOT_DIR $ENV{LIBPULSE_ROOT_DIR})
+else()
+  set(LIBPULSE_ROOT_DIR "")
+endif()
 
-SET(_pulse_SEARCH_DIRS
+set(_pulse_SEARCH_DIRS
   ${LIBPULSE_ROOT_DIR}
 )
 
-FIND_PATH(LIBPULSE_INCLUDE_DIR pulse/pulseaudio.h
+find_path(LIBPULSE_INCLUDE_DIR pulse/pulseaudio.h
   HINTS
     ${_pulse_SEARCH_DIRS}
   PATH_SUFFIXES
     include
 )
 
-FIND_LIBRARY(LIBPULSE_LIBRARY
+find_library(LIBPULSE_LIBRARY
   NAMES
     pulse
   HINTS
@@ -42,16 +46,16 @@ FIND_LIBRARY(LIBPULSE_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set PULSE_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Pulse DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Pulse DEFAULT_MSG
   LIBPULSE_LIBRARY LIBPULSE_INCLUDE_DIR)
 
-IF(PULSE_FOUND)
-  SET(LIBPULSE_LIBRARIES ${LIBPULSE_LIBRARY})
-  SET(LIBPULSE_INCLUDE_DIRS ${LIBPULSE_INCLUDE_DIR})
-ENDIF()
+if(PULSE_FOUND)
+  set(LIBPULSE_LIBRARIES ${LIBPULSE_LIBRARY})
+  set(LIBPULSE_INCLUDE_DIRS ${LIBPULSE_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   LIBPULSE_INCLUDE_DIR
   LIBPULSE_LIBRARY
 )

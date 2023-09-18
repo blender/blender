@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,8 @@
 
 #include "BKE_attribute_math.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -79,9 +79,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "clamp", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "clamp", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -152,7 +152,7 @@ static bool component_is_available(const GeometrySet &geometry,
   if (!geometry.has(type)) {
     return false;
   }
-  const GeometryComponent &component = *geometry.get_component_for_read(type);
+  const GeometryComponent &component = *geometry.get_component(type);
   return component.attribute_domain_size(domain) != 0;
 }
 
@@ -168,7 +168,7 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
       GeometryComponent::Type::Instance};
   for (const GeometryComponent::Type src_type : supported_types) {
     if (component_is_available(geometry, src_type, domain)) {
-      return geometry.get_component_for_read(src_type);
+      return geometry.get_component(src_type);
     }
   }
 
@@ -289,27 +289,27 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
 {
   switch (bke::cpp_type_to_custom_data_type(field.cpp_type())) {
     case CD_PROP_FLOAT: {
-      params.set_output("Value_Float", Field<float>(field));
+      params.set_output("Value_Float", field);
       break;
     }
     case CD_PROP_FLOAT3: {
-      params.set_output("Value_Vector", Field<float3>(field));
+      params.set_output("Value_Vector", field);
       break;
     }
     case CD_PROP_COLOR: {
-      params.set_output("Value_Color", Field<ColorGeometry4f>(field));
+      params.set_output("Value_Color", field);
       break;
     }
     case CD_PROP_BOOL: {
-      params.set_output("Value_Bool", Field<bool>(field));
+      params.set_output("Value_Bool", field);
       break;
     }
     case CD_PROP_INT32: {
-      params.set_output("Value_Int", Field<int>(field));
+      params.set_output("Value_Int", field);
       break;
     }
     case CD_PROP_QUATERNION: {
-      params.set_output("Value_Rotation", Field<math::Quaternion>(field));
+      params.set_output("Value_Rotation", field);
       break;
     }
     default:
@@ -369,22 +369,21 @@ static void node_geo_exec(GeoNodeExecParams params)
   output_attribute_field(params, std::move(output_field));
 }
 
-}  // namespace blender::nodes::node_geo_sample_index_cc
-
-void register_node_type_geo_sample_index()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_sample_index_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_INDEX, "Sample Index", NODE_CLASS_GEOMETRY);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.declare = file_ns::node_declare;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.declare = node_declare;
   node_type_storage(
       &ntype, "NodeGeometrySampleIndex", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_sample_index_cc

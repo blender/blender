@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -35,11 +37,20 @@ struct IrradianceGrid : public LightProbe, IrradianceGridData {
    * already have been freed (along with its cache). It is only safe to dereference after the
    * pruning have been done.
    */
-  const struct LightProbeObjectCache *cache = nullptr;
+  const LightProbeObjectCache *cache = nullptr;
   /** List of associated atlas bricks that are used by this grid. */
   Vector<IrradianceBrickPacked> bricks;
+  /** True if the grid needs to be reuploaded & re-composited with other light-grids. */
+  bool do_update;
   /** Index of the grid inside the grid UBO. */
   int grid_index;
+  /** Copy of surfel density for debugging purpose. */
+  float surfel_density;
+  /** Copy of DNA members. */
+  float validity_threshold;
+  float dilation_threshold;
+  float dilation_radius;
+  float intensity;
 };
 
 struct ReflectionCube : public LightProbe {

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2010-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2010-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -299,7 +299,7 @@ class SequencerFadesAdd(Operator):
                 try:
                     if fade.start.x < keyframe.co[0] <= fade.end.x:
                         keyframe_points.remove(keyframe, fast=True)
-                except Exception:
+                except BaseException:
                     pass
             fade_fcurve.update()
 
@@ -313,7 +313,7 @@ class SequencerFadesAdd(Operator):
             for point in (fade.start, fade.end):
                 keyframe_points.insert(frame=point.x, value=point.y, options={'FAST'})
         fade_fcurve.update()
-        # The graph editor and the audio waveforms only redraw upon "moving" a keyframe
+        # The graph editor and the audio wave-forms only redraw upon "moving" a keyframe.
         keyframe_points[-1].co = keyframe_points[-1].co
 
 

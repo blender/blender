@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -28,19 +28,19 @@
 #include "BKE_mesh.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_subdiv.h"
-#include "BKE_subdiv_ccg.h"
-#include "BKE_subdiv_deform.h"
+#include "BKE_subdiv.hh"
+#include "BKE_subdiv_ccg.hh"
+#include "BKE_subdiv_deform.hh"
 #include "BKE_subdiv_mesh.hh"
-#include "BKE_subdiv_modifier.h"
-#include "BKE_subsurf.h"
+#include "BKE_subdiv_modifier.hh"
+#include "BKE_subsurf.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "RE_engine.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
@@ -49,11 +49,11 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "intern/CCGSubSurf.h"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
@@ -62,7 +62,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SubsurfModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   if (smd->flags & eSubsurfModifierFlag_UseCustomNormals) {
@@ -71,7 +71,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnNormals(ModifierData *md)
+static bool depends_on_normals(ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   if (smd->flags & eSubsurfModifierFlag_UseCustomNormals) {
@@ -80,7 +80,7 @@ static bool dependsOnNormals(ModifierData *md)
   return false;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
   const SubsurfModifierData *smd = (const SubsurfModifierData *)md;
@@ -92,7 +92,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tsmd->emCache = tsmd->mCache = nullptr;
 }
 
-static void freeRuntimeData(void *runtime_data_v)
+static void free_runtime_data(void *runtime_data_v)
 {
   if (runtime_data_v == nullptr) {
     return;
@@ -107,7 +107,7 @@ static void freeRuntimeData(void *runtime_data_v)
   MEM_freeN(runtime_data);
 }
 
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
@@ -119,15 +119,15 @@ static void freeData(ModifierData *md)
     ccgSubSurf_free(static_cast<CCGSubSurf *>(smd->emCache));
     smd->emCache = nullptr;
   }
-  freeRuntimeData(smd->modifier.runtime);
+  free_runtime_data(smd->modifier.runtime);
 }
 
-static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParams)
+static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_params)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
-  int levels = (useRenderParams) ? smd->renderLevels : smd->levels;
+  int levels = (use_render_params) ? smd->renderLevels : smd->levels;
 
-  return get_render_subsurf_level(&scene->r, levels, useRenderParams != 0) == 0;
+  return get_render_subsurf_level(&scene->r, levels, use_render_params != 0) == 0;
 }
 
 static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
@@ -214,7 +214,7 @@ static void subdiv_cache_mesh_wrapper_settings(const ModifierEvalContext *ctx,
 
 /* Modifier itself. */
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
@@ -263,7 +263,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* If custom normals are present and the option is turned on calculate the split
      * normals and clear flag so the normals get interpolated to the result mesh. */
     BKE_mesh_calc_normals_split(mesh);
-    CustomData_clear_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_clear_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   /* TODO(sergey): Decide whether we ever want to use CCG for subsurf,
    * maybe when it is a last modifier in the stack? */
@@ -276,11 +276,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   if (use_clnors) {
     float(*lnors)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer_for_write(&result->ldata, CD_NORMAL, result->totloop));
+        CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->totloop));
     BLI_assert(lnors != nullptr);
     BKE_mesh_set_custom_normals(result, lnors);
-    CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
-    CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&result->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   // BKE_subdiv_stats_print(&subdiv->stats);
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
@@ -289,12 +289,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void deformMatrices(ModifierData *md,
-                           const ModifierEvalContext *ctx,
-                           Mesh *mesh,
-                           float (*vertex_cos)[3],
-                           float (*deform_matrices)[3][3],
-                           int verts_num)
+static void deform_matrices(ModifierData *md,
+                            const ModifierEvalContext *ctx,
+                            Mesh *mesh,
+                            float (*vertex_cos)[3],
+                            float (*deform_matrices)[3][3],
+                            int verts_num)
 {
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
@@ -364,9 +364,8 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA cycles_ptr = {nullptr};
   PointerRNA ob_cycles_ptr = {nullptr};
 #ifdef WITH_CYCLES
-  PointerRNA scene_ptr;
   Scene *scene = CTX_data_scene(C);
-  RNA_id_pointer_create(&scene->id, &scene_ptr);
+  PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);
   if (BKE_scene_uses_cycles(scene)) {
     cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
     ob_cycles_ptr = RNA_pointer_get(&ob_ptr, "cycles");
@@ -387,12 +386,12 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(layout,
             &ob_cycles_ptr,
             "use_adaptive_subdivision",
-            0,
+            UI_ITEM_NONE,
             IFACE_("Adaptive Subdivision"),
             ICON_NONE);
   }
   if (ob_use_adaptive_subdivision && show_adaptive_options) {
-    uiItemR(layout, &ob_cycles_ptr, "dicing_rate", 0, nullptr, ICON_NONE);
+    uiItemR(layout, &ob_cycles_ptr, "dicing_rate", UI_ITEM_NONE, nullptr, ICON_NONE);
     float render = MAX2(RNA_float_get(&cycles_ptr, "dicing_rate") *
                             RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
                         0.1f);
@@ -405,15 +404,15 @@ static void panel_draw(const bContext *C, Panel *panel)
 
     uiItemS(layout);
 
-    uiItemR(layout, ptr, "levels", 0, IFACE_("Levels Viewport"), ICON_NONE);
+    uiItemR(layout, ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
   }
   else {
     uiLayout *col = uiLayoutColumn(layout, true);
-    uiItemR(col, ptr, "levels", 0, IFACE_("Levels Viewport"), ICON_NONE);
-    uiItemR(col, ptr, "render_levels", 0, IFACE_("Render"), ICON_NONE);
+    uiItemR(col, ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
+    uiItemR(col, ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "show_only_control_edges", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "show_only_control_edges", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SubsurfModifierData *smd = static_cast<SubsurfModifierData *>(ptr->data);
@@ -464,26 +463,26 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiLayoutSetActive(layout, !(show_adaptive_options && ob_use_adaptive_subdivision));
-  uiItemR(layout, ptr, "use_limit_surface", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_limit_surface", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, true);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_limit_surface"));
-  uiItemR(col, ptr, "quality", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "quality", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "uv_smooth", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "boundary_smooth", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_creases", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_custom_normals", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "uv_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "boundary_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_creases", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_custom_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Subsurf, panel_draw);
   modifier_subpanel_register(
       region_type, "advanced", "Advanced", nullptr, advanced_panel_draw, panel_type);
 }
 
-static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
+static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
@@ -491,9 +490,10 @@ static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Subsurf = {
+    /*idname*/ "Subdivision",
     /*name*/ N_("Subdivision"),
-    /*structName*/ "SubsurfModifierData",
-    /*structSize*/ sizeof(SubsurfModifierData),
+    /*struct_name*/ "SubsurfModifierData",
+    /*struct_size*/ sizeof(SubsurfModifierData),
     /*srna*/ &RNA_SubsurfModifier,
     /*type*/ eModifierTypeType_Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
@@ -501,26 +501,26 @@ ModifierTypeInfo modifierType_Subsurf = {
         eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_MOD_SUBSURF,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ deformMatrices,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ deform_matrices,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ freeData,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ dependsOnNormals,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ freeRuntimeData,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ blendRead,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ depends_on_normals,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ free_runtime_data,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ blend_read,
 };

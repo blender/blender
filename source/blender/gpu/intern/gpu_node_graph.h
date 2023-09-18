@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -181,7 +181,7 @@ typedef struct GPUNodeGraph {
   /* The list of layer attributes. */
   ListBase layer_attrs;
 
-  /** Set of all the GLSL lib code blocks . */
+  /** Set of all the GLSL lib code blocks. */
   GSet *used_libraries;
 } GPUNodeGraph;
 

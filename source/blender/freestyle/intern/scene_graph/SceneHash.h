@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -52,7 +52,7 @@ class SceneHash : public SceneVisitor {
   }
 
  private:
-  void adler32(const unsigned char *data, int size);
+  void adler32(const uchar *data, int size);
 
   uint32_t _sum;
   uint32_t _prevSum;

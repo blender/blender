@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -36,6 +36,10 @@
 
 using namespace blender;
 using namespace blender::gpu;
+
+/* Fire off a single dispatch per encoder. Can make debugging view clearer for texture resources
+ * associated with each dispatch. */
+#define MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER 1 && !NDEBUG
 
 /* Debug option to bind null buffer for missing UBOs.
  * Enabled by default. TODO: Ensure all required UBO bindings are present. */
@@ -385,7 +389,7 @@ void MTLContext::end_frame()
   is_inside_frame_ = false;
 }
 
-void MTLContext::check_error(const char *info)
+void MTLContext::check_error(const char * /*info*/)
 {
   /* TODO(Metal): Implement. */
 }
@@ -717,12 +721,10 @@ void MTLContext::pipeline_state_init()
     for (int t = 0; t < GPU_max_textures(); t++) {
       /* Textures. */
       this->pipeline_state.texture_bindings[t].used = false;
-      this->pipeline_state.texture_bindings[t].slot_index = -1;
       this->pipeline_state.texture_bindings[t].texture_resource = nullptr;
 
       /* Images. */
       this->pipeline_state.image_bindings[t].used = false;
-      this->pipeline_state.image_bindings[t].slot_index = -1;
       this->pipeline_state.image_bindings[t].texture_resource = nullptr;
     }
     for (int s = 0; s < MTL_MAX_SAMPLER_SLOTS; s++) {
@@ -751,10 +753,12 @@ void MTLContext::pipeline_state_init()
   this->pipeline_state.src_rgb_blend_factor = MTLBlendFactorOne;
 
   /* Viewport and scissor. */
-  this->pipeline_state.viewport_offset_x = 0;
-  this->pipeline_state.viewport_offset_y = 0;
-  this->pipeline_state.viewport_width = 0;
-  this->pipeline_state.viewport_height = 0;
+  for (int v = 0; v < GPU_MAX_VIEWPORTS; v++) {
+    this->pipeline_state.viewport_offset_x[v] = 0;
+    this->pipeline_state.viewport_offset_y[v] = 0;
+    this->pipeline_state.viewport_width[v] = 0;
+    this->pipeline_state.viewport_height[v] = 0;
+  }
   this->pipeline_state.scissor_x = 0;
   this->pipeline_state.scissor_y = 0;
   this->pipeline_state.scissor_width = 0;
@@ -804,14 +808,46 @@ void MTLContext::set_viewport(int origin_x, int origin_y, int width, int height)
   BLI_assert(height > 0);
   BLI_assert(origin_x >= 0);
   BLI_assert(origin_y >= 0);
-  bool changed = (this->pipeline_state.viewport_offset_x != origin_x) ||
-                 (this->pipeline_state.viewport_offset_y != origin_y) ||
-                 (this->pipeline_state.viewport_width != width) ||
-                 (this->pipeline_state.viewport_height != height);
-  this->pipeline_state.viewport_offset_x = origin_x;
-  this->pipeline_state.viewport_offset_y = origin_y;
-  this->pipeline_state.viewport_width = width;
-  this->pipeline_state.viewport_height = height;
+  bool changed = (this->pipeline_state.viewport_offset_x[0] != origin_x) ||
+                 (this->pipeline_state.viewport_offset_y[0] != origin_y) ||
+                 (this->pipeline_state.viewport_width[0] != width) ||
+                 (this->pipeline_state.viewport_height[0] != height) ||
+                 (this->pipeline_state.num_active_viewports != 1);
+  this->pipeline_state.viewport_offset_x[0] = origin_x;
+  this->pipeline_state.viewport_offset_y[0] = origin_y;
+  this->pipeline_state.viewport_width[0] = width;
+  this->pipeline_state.viewport_height[0] = height;
+  this->pipeline_state.num_active_viewports = 1;
+
+  if (changed) {
+    this->pipeline_state.dirty_flags = (this->pipeline_state.dirty_flags |
+                                        MTL_PIPELINE_STATE_VIEWPORT_FLAG);
+  }
+}
+
+void MTLContext::set_viewports(int count, const int (&viewports)[GPU_MAX_VIEWPORTS][4])
+{
+  BLI_assert(this);
+  bool changed = (this->pipeline_state.num_active_viewports != count);
+  for (int v = 0; v < count; v++) {
+    const int(&viewport_info)[4] = viewports[v];
+
+    BLI_assert(viewport_info[0] >= 0);
+    BLI_assert(viewport_info[1] >= 0);
+    BLI_assert(viewport_info[2] > 0);
+    BLI_assert(viewport_info[3] > 0);
+
+    changed = changed || (this->pipeline_state.viewport_offset_x[v] != viewport_info[0]) ||
+              (this->pipeline_state.viewport_offset_y[v] != viewport_info[1]) ||
+              (this->pipeline_state.viewport_width[v] != viewport_info[2]) ||
+              (this->pipeline_state.viewport_height[v] != viewport_info[3]);
+    this->pipeline_state.viewport_offset_x[v] = viewport_info[0];
+    this->pipeline_state.viewport_offset_y[v] = viewport_info[1];
+    this->pipeline_state.viewport_width[v] = viewport_info[2];
+    this->pipeline_state.viewport_height[v] = viewport_info[3];
+  }
+  this->pipeline_state.num_active_viewports = count;
+
   if (changed) {
     this->pipeline_state.dirty_flags = (this->pipeline_state.dirty_flags |
                                         MTL_PIPELINE_STATE_VIEWPORT_FLAG);
@@ -989,18 +1025,30 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 
     /** Dynamic Per-draw Render State on RenderCommandEncoder. */
     /* State: Viewport. */
-    if (this->pipeline_state.dirty_flags & MTL_PIPELINE_STATE_VIEWPORT_FLAG) {
+    if (this->pipeline_state.num_active_viewports > 1) {
+      /* Multiple Viewports. */
+      MTLViewport viewports[GPU_MAX_VIEWPORTS];
+      for (int v = 0; v < this->pipeline_state.num_active_viewports; v++) {
+        MTLViewport &viewport = viewports[v];
+        viewport.originX = (double)this->pipeline_state.viewport_offset_x[v];
+        viewport.originY = (double)this->pipeline_state.viewport_offset_y[v];
+        viewport.width = (double)this->pipeline_state.viewport_width[v];
+        viewport.height = (double)this->pipeline_state.viewport_height[v];
+        viewport.znear = this->pipeline_state.depth_stencil_state.depth_range_near;
+        viewport.zfar = this->pipeline_state.depth_stencil_state.depth_range_far;
+      }
+      [rec setViewports:viewports count:this->pipeline_state.num_active_viewports];
+    }
+    else {
+      /* Single Viewport. */
       MTLViewport viewport;
-      viewport.originX = (double)this->pipeline_state.viewport_offset_x;
-      viewport.originY = (double)this->pipeline_state.viewport_offset_y;
-      viewport.width = (double)this->pipeline_state.viewport_width;
-      viewport.height = (double)this->pipeline_state.viewport_height;
+      viewport.originX = (double)this->pipeline_state.viewport_offset_x[0];
+      viewport.originY = (double)this->pipeline_state.viewport_offset_y[0];
+      viewport.width = (double)this->pipeline_state.viewport_width[0];
+      viewport.height = (double)this->pipeline_state.viewport_height[0];
       viewport.znear = this->pipeline_state.depth_stencil_state.depth_range_near;
       viewport.zfar = this->pipeline_state.depth_stencil_state.depth_range_far;
       [rec setViewport:viewport];
-
-      this->pipeline_state.dirty_flags = (this->pipeline_state.dirty_flags &
-                                          ~MTL_PIPELINE_STATE_VIEWPORT_FLAG);
     }
 
     /* State: Scissor. */
@@ -1093,7 +1141,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 /* Bind UBOs and SSBOs to an active render command encoder using the rendering state of the
  * current context -> Active shader, Bound UBOs). */
 bool MTLContext::ensure_buffer_bindings(
-    id<MTLRenderCommandEncoder> rec,
+    id<MTLRenderCommandEncoder> /*rec*/,
     const MTLShaderInterface *shader_interface,
     const MTLRenderPipelineStateInstance *pipeline_state_instance)
 {
@@ -1338,7 +1386,7 @@ bool MTLContext::ensure_buffer_bindings(
 /* Variant for compute. Bind UBOs and SSBOs to an active compute command encoder using the
  * rendering state of the current context -> Active shader, Bound UBOs). */
 bool MTLContext::ensure_buffer_bindings(
-    id<MTLComputeCommandEncoder> rec,
+    id<MTLComputeCommandEncoder> /*rec*/,
     const MTLShaderInterface *shader_interface,
     const MTLComputePipelineStateInstance &pipeline_state_instance)
 {
@@ -1447,9 +1495,9 @@ bool MTLContext::ensure_buffer_bindings(
     const MTLShaderBufferBlock &ssbo = shader_interface->get_storage_block(ssbo_index);
 
     if (ssbo.buffer_index >= 0 && ssbo.location >= 0) {
-      /* Explicit lookup location for UBO in bind table. */
+      /* Explicit lookup location for SSBO in bind table. */
       const uint32_t ssbo_location = ssbo.location;
-      /* buffer(N) index of where to bind the UBO. */
+      /* buffer(N) index of where to bind the SSBO. */
       const uint32_t buffer_index = ssbo.buffer_index;
       id<MTLBuffer> ssbo_buffer = nil;
       int ssbo_size = 0;
@@ -1516,6 +1564,7 @@ void MTLContext::ensure_texture_bindings(
 {
   BLI_assert(shader_interface != nil);
   BLI_assert(rec != nil);
+  UNUSED_VARS_NDEBUG(rec);
 
   /* Fetch Render Pass state. */
   MTLRenderPassState &rps = this->main_command_buffer.get_render_pass_state();
@@ -1752,6 +1801,7 @@ void MTLContext::ensure_texture_bindings(
 {
   BLI_assert(shader_interface != nil);
   BLI_assert(rec != nil);
+  UNUSED_VARS_NDEBUG(rec);
 
   /* Fetch Render Pass state. */
   MTLComputeState &cs = this->main_command_buffer.get_compute_state();
@@ -2135,6 +2185,10 @@ void MTLContext::compute_dispatch(int groups_x_len, int groups_y_len, int groups
     return;
   }
 
+#if MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER == 1
+  GPU_finish();
+#endif
+
   /* Shader instance. */
   MTLShaderInterface *shader_interface = this->pipeline_state.active_shader->get_interface();
   const MTLComputePipelineStateInstance &compute_pso_inst =
@@ -2166,10 +2220,18 @@ void MTLContext::compute_dispatch(int groups_x_len, int groups_y_len, int groups
                   threadsPerThreadgroup:MTLSizeMake(compute_pso_inst.threadgroup_x_len,
                                                     compute_pso_inst.threadgroup_y_len,
                                                     compute_pso_inst.threadgroup_z_len)];
+#if MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER == 1
+  GPU_finish();
+#endif
 }
 
 void MTLContext::compute_dispatch_indirect(StorageBuf *indirect_buf)
 {
+
+#if MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER == 1
+  GPU_finish();
+#endif
+
   /* Ensure all resources required by upcoming compute submission are correctly bound. */
   if (this->ensure_compute_pipeline_state()) {
     /* Shader instance. */
@@ -2212,6 +2274,9 @@ void MTLContext::compute_dispatch_indirect(StorageBuf *indirect_buf)
                          threadsPerThreadgroup:MTLSizeMake(compute_pso_inst.threadgroup_x_len,
                                                            compute_pso_inst.threadgroup_y_len,
                                                            compute_pso_inst.threadgroup_z_len)];
+#if MTL_DEBUG_SINGLE_DISPATCH_PER_ENCODER == 1
+    GPU_finish();
+#endif
   }
 }
 
@@ -2597,7 +2662,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
 
   /* Increment free pool reference and decrement upon command buffer completion. */
   cmd_free_buffer_list->increment_reference();
-  [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> cb) {
+  [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> /*cb*/) {
     /* Flag freed buffers associated with this CMD buffer as ready to be freed. */
     cmd_free_buffer_list->decrement_reference();
     [cmd_buffer_ref release];

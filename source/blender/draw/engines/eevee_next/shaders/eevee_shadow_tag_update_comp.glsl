@@ -1,11 +1,14 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Virtual shadowmapping: Update tagging
+ * Virtual shadow-mapping: Update tagging
  *
  * Any updated shadow caster needs to tag the shadow map tiles it was in and is now into.
  * This is done in 2 pass of this same shader. One for past object bounds and one for new object
- * bounds. The bounding boxes are roughly software rasterized (just a plain rect) in order to tag
- * the appropriate tiles.
+ * bounds. The bounding boxes are roughly software rasterized (just a plain rectangle) in order to
+ * tag the appropriate tiles.
  */
 
 #pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
@@ -32,6 +35,7 @@ void main()
   }
 
   uint resource_id = resource_ids_buf[gl_GlobalInvocationID.x];
+  resource_id = (resource_id & 0x7FFFFFFFu);
 
   IsectBox box = isect_data_setup(bounds_buf[resource_id].bounding_corners[0].xyz,
                                   bounds_buf[resource_id].bounding_corners[1].xyz,
@@ -67,7 +71,7 @@ void main()
   AABB aabb_tag;
   AABB aabb_map = shape_aabb(vec3(-0.99999), vec3(0.99999));
 
-  /* Directionnal winmat have no correct near/far in the Z dimension at this point.
+  /* Directional `winmat` have no correct near/far in the Z dimension at this point.
    * Do not clip in this dimension. */
   if (tilemap.projection_type != SHADOW_PROJECTION_CUBEFACE) {
     aabb_map.min.z = -FLT_MAX;

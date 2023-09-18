@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,6 +19,15 @@ class TreeElementViewLayerBase final : public AbstractTreeElement {
   TreeElementViewLayerBase(TreeElement &legacy_te, Scene &scene);
 
   void expand(SpaceOutliner &) const override;
+};
+
+class TreeElementViewLayer final : public AbstractTreeElement {
+  /* Not needed right now, avoid unused member variable warning. */
+  // Scene &scene_;
+  ViewLayer &view_layer_;
+
+ public:
+  TreeElementViewLayer(TreeElement &legacy_te, Scene &scene, ViewLayer &view_layer);
 };
 
 }  // namespace blender::ed::outliner

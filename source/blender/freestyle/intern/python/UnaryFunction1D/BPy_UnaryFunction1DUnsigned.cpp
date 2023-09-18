@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2008-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -162,7 +162,7 @@ static PyGetSetDef BPy_UnaryFunction1DUnsigned_getseters[] = {
 /*-----------------------BPy_UnaryFunction1DUnsigned type definition ----------------------------*/
 
 PyTypeObject UnaryFunction1DUnsigned_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction1DUnsigned",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction1DUnsigned),
     /*tp_itemsize*/ 0,

@@ -176,32 +176,6 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
     }
   }
 
-  /* Defensive sampling.
-   *
-   * We can likely also do defensive sampling at deeper bounces, particularly
-   * for cases like a perfect mirror but possibly also others. This will need
-   * a good heuristic. */
-  if (INTEGRATOR_STATE(state, path, bounce) + INTEGRATOR_STATE(state, path, transparent_bounce) ==
-          0 &&
-      sd->num_closure > 1)
-  {
-    float sum = 0.0f;
-
-    for (int i = 0; i < sd->num_closure; i++) {
-      ccl_private ShaderClosure *sc = &sd->closure[i];
-      if (CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
-        sum += sc->sample_weight;
-      }
-    }
-
-    for (int i = 0; i < sd->num_closure; i++) {
-      ccl_private ShaderClosure *sc = &sd->closure[i];
-      if (CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
-        sc->sample_weight = max(sc->sample_weight, 0.125f * sum);
-      }
-    }
-  }
-
   /* Filter glossy.
    *
    * Blurring of bsdf after bounces, for rays that have a small likelihood
@@ -223,6 +197,12 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
         if (CLOSURE_IS_BSDF(sc->type)) {
           bsdf_blur(kg, sc, blur_roughness);
         }
+      }
+
+      /* NOTE: this is a sufficient condition. If `blur_roughness < THRESH < original_roughness`
+       * then the flag was already set. */
+      if (sqr(blur_roughness) > BSDF_ROUGHNESS_SQ_THRESH) {
+        sd->flag |= SD_BSDF_HAS_EVAL;
       }
     }
   }
@@ -483,7 +463,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_mis(KernelGlobals kg,
                                                              ccl_private float3 *wo,
                                                              ccl_private float *bsdf_pdf,
                                                              ccl_private float *unguided_bsdf_pdf,
-                                                             ccl_private float2 *sampled_rougness,
+                                                             ccl_private float2 *sampled_roughness,
                                                              ccl_private float *eta)
 {
   /* BSSRDF should already have been handled elsewhere. */
@@ -554,7 +534,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_mis(KernelGlobals kg,
 
     kernel_assert(reduce_min(bsdf_eval_sum(bsdf_eval)) >= 0.0f);
 
-    *sampled_rougness = make_float2(1.0f, 1.0f);
+    *sampled_roughness = make_float2(1.0f, 1.0f);
     *eta = 1.0f;
   }
   else {
@@ -568,14 +548,14 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_mis(KernelGlobals kg,
                         &eval,
                         wo,
                         unguided_bsdf_pdf,
-                        sampled_rougness,
+                        sampled_roughness,
                         eta);
 #  if 0
 // Code path to validate the estimation of the label, sampled roughness and eta
 // This should be activated from time to time when the BSDFs change to check if everything
 // is still working correctly.
     if (*unguided_bsdf_pdf > 0.0f) {
-      surface_shader_validate_bsdf_sample(kg, sc, *wo, label, sampled_roughness, eta);
+      surface_shader_validate_bsdf_sample(kg, sc, *wo, label, *sampled_roughness, *eta);
     }
 #  endif
 
@@ -818,7 +798,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_ris(KernelGlobals kg,
     // This should be activated from time to time when the BSDFs change to check if everything
     // is still working correctly.
     if (*unguided_bsdf_pdf > 0.0f) {
-      surface_shader_validate_bsdf_sample(kg, sc, *wo, label, sampled_roughness, eta);
+      surface_shader_validate_bsdf_sample(kg, sc, *wo, label, *sampled_roughness, *eta);
     }
 #  endif
 
@@ -1005,7 +985,7 @@ ccl_device Spectrum surface_shader_diffuse(KernelGlobals kg, ccl_private const S
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
     if (CLOSURE_IS_BSDF_DIFFUSE(sc->type) || CLOSURE_IS_BSSRDF(sc->type))
-      eval += bsdf_albedo(sd, sc, true, true);
+      eval += bsdf_albedo(kg, sd, sc, true, true);
   }
 
   return eval;
@@ -1019,7 +999,7 @@ ccl_device Spectrum surface_shader_glossy(KernelGlobals kg, ccl_private const Sh
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
     if (CLOSURE_IS_BSDF_GLOSSY(sc->type) || CLOSURE_IS_GLASS(sc->type))
-      eval += bsdf_albedo(sd, sc, true, false);
+      eval += bsdf_albedo(kg, sd, sc, true, false);
   }
 
   return eval;
@@ -1033,7 +1013,7 @@ ccl_device Spectrum surface_shader_transmission(KernelGlobals kg, ccl_private co
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
     if (CLOSURE_IS_BSDF_TRANSMISSION(sc->type) || CLOSURE_IS_GLASS(sc->type))
-      eval += bsdf_albedo(sd, sc, false, true);
+      eval += bsdf_albedo(kg, sd, sc, false, true);
   }
 
   return eval;

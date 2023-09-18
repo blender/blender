@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -26,14 +26,14 @@ PyDoc_STRVAR(StrokeVertexIterator_doc,
              "Class hierarchy: :class:`Iterator` > :class:`StrokeVertexIterator`\n"
              "\n"
              "Class defining an iterator designed to iterate over the\n"
-             ":class:`StrokeVertex` of a :class:`Stroke`.  An instance of a\n"
+             ":class:`StrokeVertex` of a :class:`Stroke`. An instance of a\n"
              "StrokeVertexIterator can be obtained from a Stroke by calling\n"
-             "iter(), stroke_vertices_begin() or stroke_vertices_begin().  It is iterating\n"
-             "over the same vertices as an :class:`Interface0DIterator`.  The difference\n"
+             "iter(), stroke_vertices_begin() or stroke_vertices_begin(). It is iterating\n"
+             "over the same vertices as an :class:`Interface0DIterator`. The difference\n"
              "resides in the object access: an Interface0DIterator only allows\n"
              "access to an Interface0D while one might need to access the\n"
-             "specialized StrokeVertex type.  In this case, one should use a\n"
-             "StrokeVertexIterator.  To call functions of the UnaryFuntion0D type,\n"
+             "specialized StrokeVertex type. In this case, one should use a\n"
+             "StrokeVertexIterator. To call functions of the UnaryFuntion0D type,\n"
              "a StrokeVertexIterator can be converted to an Interface0DIterator by\n"
              "by calling Interface0DIterator(it).\n"
              "\n"
@@ -281,7 +281,7 @@ static PyGetSetDef BPy_StrokeVertexIterator_getseters[] = {
 /*-----------------------BPy_StrokeVertexIterator type definition ------------------------------*/
 
 PyTypeObject StrokeVertexIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "StrokeVertexIterator",
     /*tp_basicsize*/ sizeof(BPy_StrokeVertexIterator),
     /*tp_itemsize*/ 0,

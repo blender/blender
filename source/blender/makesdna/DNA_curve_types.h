@@ -13,11 +13,8 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
+/** Used in `readfile.cc` and `editfont.cc`. */
+#define MAXTEXTBOX 256
 
 struct AnimData;
 struct Curves;
@@ -30,7 +27,7 @@ struct Material;
 struct Object;
 struct VFont;
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct BevPoint {
@@ -42,7 +39,7 @@ typedef struct BevPoint {
   short dupe_tag;
 } BevPoint;
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct BevList {
@@ -170,7 +167,7 @@ typedef struct TextBox {
   float x, y, w, h;
 } TextBox;
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct EditNurb {
@@ -611,8 +608,4 @@ enum {
 #define KEY_CU_EASE 3
 
 /* indicates point has been seen during surface duplication */
-#define SURF_SEEN 4
-
-#ifdef __cplusplus
-}
-#endif
+#define SURF_SEEN (1 << 2)

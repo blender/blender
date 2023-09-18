@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -44,6 +44,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_clear_no_geom)
     .define("STANDALONE")
     .define("VOLUMETRICS")
     .define("CLEAR")
+    .builtins(BuiltinBits::LAYER)
     .additional_info("eevee_legacy_common_lib")
     .additional_info("draw_view")
     .additional_info("draw_resource_id_varying")
@@ -97,6 +98,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter)
 #ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter_no_geom)
     .additional_info("eevee_legacy_volumes_scatter_common")
+    .builtins(BuiltinBits::LAYER)
     .vertex_out(legacy_volume_geom_frag_iface)
     .metal_backend_only(true)
     .do_static_compilation(true)
@@ -157,6 +159,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_integration_common_geom)
 #ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_integration_common_no_geom)
     .additional_info("eevee_legacy_volumes_integration_common")
+    .builtins(BuiltinBits::LAYER)
     .vertex_out(legacy_volume_geom_frag_iface);
 #endif
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-09-11 10:35:14\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1014,6 +1014,10 @@ msgid "Vector font data-blocks"
 msgstr "Vektorifontin data-palikat"
 
 
+msgid "Grease Pencil"
+msgstr "Öljykynä"
+
+
 msgid "Images"
 msgstr "Kuvat"
 
@@ -1834,28 +1838,12 @@ msgid "Selectable"
 msgstr "Valittavissa oleva"
 
 
-msgid "Layers"
-msgstr "Tasot"
-
-
-msgid "Layers bone exists in"
-msgstr "Tasot, joissa luut esiintyvät"
-
-
 msgid "Length"
 msgstr "Pituus"
 
 
 msgid "Length of the bone"
 msgstr "Luun pituus"
-
-
-msgid "3x3 bone matrix"
-msgstr "3x3 luumatriisi"
-
-
-msgid "4x4 bone matrix relative to armature"
-msgstr "4x4 luumatriisi suhteellinen luurankoon"
 
 
 msgid "Parent"
@@ -1882,12 +1870,8 @@ msgid "Local Location"
 msgstr "Lokaali sijainti"
 
 
-msgid "Bone Group"
-msgstr "Luuryhmä"
-
-
-msgid "Bone Groups"
-msgstr "Luuryhmät"
+msgid "Visible"
+msgstr "Näkyvä"
 
 
 msgid "Has Color"
@@ -1950,14 +1934,6 @@ msgid "Material"
 msgstr "Materiaali"
 
 
-msgid "Round"
-msgstr "Pyöreä"
-
-
-msgid "Flat"
-msgstr "Tasainen"
-
-
 msgid "Random Curve"
 msgstr "Satunnainen käyrä"
 
@@ -2008,10 +1984,6 @@ msgstr "Tasotila"
 
 msgid "Layers used as boundaries"
 msgstr "Rajoina käytetyt tasot"
-
-
-msgid "Visible"
-msgstr "Näkyvä"
 
 
 msgid "Visible layers"
@@ -2118,6 +2090,10 @@ msgid "Show Lasso"
 msgstr "Näytä lasso"
 
 
+msgid "Active Layer"
+msgstr "Aktiivinen taso"
+
+
 msgid "Default Eraser"
 msgstr "Oletuspyyhekumi"
 
@@ -2190,20 +2166,12 @@ msgid "Collection of cache layers"
 msgstr "Kokoelma välimuistitasoista"
 
 
-msgid "Active Layer"
-msgstr "Aktiivinen taso"
-
-
 msgid "Active layer of the CacheFile"
 msgstr "Välimuistitiedoston aktiivinen taso"
 
 
 msgid "Object Path"
 msgstr "Objektin polku"
-
-
-msgid "Path"
-msgstr "Polku"
 
 
 msgid "Object path"
@@ -2453,20 +2421,8 @@ msgid "Is Data"
 msgstr "On data"
 
 
-msgid "Linear ACES"
-msgstr "Linear ACES"
-
-
 msgid "Non-Color"
 msgstr "Väritön"
-
-
-msgid "Raw"
-msgstr "Raaka"
-
-
-msgid "XYZ"
-msgstr "XYZ"
 
 
 msgid "Color Space"
@@ -3750,11 +3706,6 @@ msgstr "Kohtaus"
 
 
 msgctxt "ID"
-msgid "Simulation"
-msgstr "Simulaatio"
-
-
-msgctxt "ID"
 msgid "Sound"
 msgstr "Ääni"
 
@@ -3884,18 +3835,6 @@ msgstr "Maksimi nopeus"
 
 msgid "Factor"
 msgstr "Tekijä"
-
-
-msgid "Wave Type"
-msgstr "Aaltotyyppi"
-
-
-msgid "Depth Change"
-msgstr "Syvyysvaihdos"
-
-
-msgid "Force"
-msgstr "Voima"
 
 
 msgid "Canvas Settings"
@@ -4072,6 +4011,10 @@ msgstr "Häntävalinta"
 
 msgid "Boid"
 msgstr "Boid"
+
+
+msgid "Force"
+msgstr "Voima"
 
 
 msgid "Harmonic"
@@ -4398,10 +4341,6 @@ msgid "Axis"
 msgstr "Akseli"
 
 
-msgid "Wave"
-msgstr "Aalto"
-
-
 msgid "Noise"
 msgstr "Kohina"
 
@@ -4482,10 +4421,6 @@ msgid "Show Font data-blocks"
 msgstr "Näytä fontin data-palikat"
 
 
-msgid "Grease Pencil"
-msgstr "Öljykynä"
-
-
 msgid "Show Grease pencil data-blocks"
 msgstr "Näytä öljykynän data-palikat"
 
@@ -4540,14 +4475,6 @@ msgstr "Näytä/piilosta pistepilven data-palikat"
 
 msgid "Show Scene data-blocks"
 msgstr "Näytä kohtauksen data-palikat"
-
-
-msgid "Simulations"
-msgstr "Simulaatiot"
-
-
-msgid "Show Simulation data-blocks"
-msgstr "Näytä simulaation data-palikat"
 
 
 msgid "Show Sound data-blocks"
@@ -4738,12 +4665,40 @@ msgid "Auto-Masking Strokes"
 msgstr "Automaattinen maskauspiirto"
 
 
+msgid "Active Grease Pencil layer"
+msgstr "Aktiivinen öljykynän taso"
+
+
 msgid "Push"
 msgstr "Työnnä"
 
 
+msgid "Round"
+msgstr "Pyöreä"
+
+
+msgid "Path"
+msgstr "Polku"
+
+
 msgid "Normals"
 msgstr "Normaalit"
+
+
+msgid "Layers"
+msgstr "Tasot"
+
+
+msgid "Sculpt"
+msgstr "Veistä"
+
+
+msgid "Modifier"
+msgstr "Muunnin"
+
+
+msgid "Mesh"
+msgstr "Muoto"
 
 
 msgid "Mirror Object"
@@ -4816,12 +4771,16 @@ msgid "Instances"
 msgstr "Instanssit"
 
 
-msgid "Mesh"
-msgstr "Muoto"
-
-
 msgid "Node"
 msgstr "Noodi"
+
+
+msgid "Add Modifier"
+msgstr "Lisää muunnin"
+
+
+msgid "Generate"
+msgstr "Luo"
 
 
 msgctxt "Operator"
@@ -4919,10 +4878,6 @@ msgstr "Valoluotain"
 
 msgid "Random Mask"
 msgstr "Satunnainen maski"
-
-
-msgid "Sculpt"
-msgstr "Veistä"
 
 
 msgid "UV Mapping"
@@ -5027,6 +4982,10 @@ msgstr "Ruuvi"
 
 msgid "Skin"
 msgstr "Iho"
+
+
+msgid "Wave"
+msgstr "Aalto"
 
 
 msgid "U Offset"
@@ -5141,10 +5100,6 @@ msgid "Ocean Modifier"
 msgstr "Valtamerimuunnin"
 
 
-msgid "Generate"
-msgstr "Luo"
-
-
 msgid "Ocean is Cached"
 msgstr "Valtameri on viety välimuistiin"
 
@@ -5208,10 +5163,6 @@ msgstr "Luo iho"
 
 msgid "Material Offset"
 msgstr "Materiaalisiirros"
-
-
-msgid "Boundary Shape"
-msgstr "Rajamuoto"
 
 
 msgid "Surface Modifier"
@@ -5824,15 +5775,6 @@ msgstr "Vain luvun A:n desimaaliosa"
 
 
 msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Jakojäännös"
-
-
-msgid "Modulo using fmod(A,B)"
-msgstr "A:n ja B:n jakojäännös"
-
-
-msgctxt "NodeTree"
 msgid "Wrap"
 msgstr "Kiedo"
 
@@ -6383,6 +6325,10 @@ msgid "Join Strings"
 msgstr "Yhdistä merkkijonot"
 
 
+msgid "Selection"
+msgstr "Valinta"
+
+
 msgid "Pack UV Islands"
 msgstr "Pakkaa UV-saaret"
 
@@ -6628,6 +6574,15 @@ msgid "Wave Profile"
 msgstr "Aaltoprofiili"
 
 
+msgid "Wave Type"
+msgstr "Aaltotyyppi"
+
+
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "Jakojäännös"
+
+
 msgid "Vector Rotate"
 msgstr "Vektorin kirto"
 
@@ -6728,10 +6683,6 @@ msgid "Only Channel"
 msgstr "Vain kanava"
 
 
-msgid "Selection"
-msgstr "Valinta"
-
-
 msgid "Output A"
 msgstr "A-tuloste"
 
@@ -6818,46 +6769,6 @@ msgstr "Objektiasetukset"
 
 msgid "Animation settings"
 msgstr "Animaatioasetukset"
-
-
-msgid "Material Groups"
-msgstr "Materiaaliryhmät"
-
-
-msgid "OBJ Groups"
-msgstr "OBJ-ryhmät"
-
-
-msgid "Export Blender objects as OBJ groups"
-msgstr "Vie Blender-objektit OBJ-ryhminä"
-
-
-msgid "Keep Vertex Order"
-msgstr "Pidä kärkien järjestys"
-
-
-msgid "OBJ Objects"
-msgstr "OBJ-objektit"
-
-
-msgid "Export Blender objects as OBJ objects"
-msgstr "Vie Blender-objektit OBJ-objekteina"
-
-
-msgid "Include Edges"
-msgstr "Sisällytä reunat"
-
-
-msgid "Write Materials"
-msgstr "Kirjoita materiaalit"
-
-
-msgid "Apply modifiers"
-msgstr "Kytke muuntimet"
-
-
-msgid "Write Normals"
-msgstr "Kirjoita normaalit"
 
 
 msgctxt "Operator"
@@ -7149,10 +7060,6 @@ msgid "Active Layer"
 msgstr "Aktiivinen taso"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Aktiivinen öljykynän taso"
-
-
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Lisää uusi taso"
@@ -7272,10 +7179,6 @@ msgid "Add Segment"
 msgstr "Lisää segmentti"
 
 
-msgid "Modifier"
-msgstr "Muunnin"
-
-
 msgid "Mouse location"
 msgstr "Hiiren sijainti"
 
@@ -7359,6 +7262,11 @@ msgstr "Pidä materiaali"
 
 msgid "New Material"
 msgstr "Uusi materiaali"
+
+
+msgctxt "View3D"
+msgid "Camera"
+msgstr "Kamera"
 
 
 msgid "Selected Points"
@@ -7507,8 +7415,16 @@ msgid "Save Sequence"
 msgstr "Tallenna sekvenssi"
 
 
+msgid "Column"
+msgstr "Sarake"
+
+
 msgid "Canvas"
 msgstr "Kangas"
+
+
+msgid "XYZ"
+msgstr "XYZ"
 
 
 msgid "Pixel Size"
@@ -7517,6 +7433,10 @@ msgstr "Pikselin koko"
 
 msgid "3D"
 msgstr "3D"
+
+
+msgid "Flat"
+msgstr "Tasainen"
 
 
 msgid "Corner"
@@ -7645,6 +7565,10 @@ msgid "AOV"
 msgstr "AOV"
 
 
+msgid "Theme"
+msgstr "Teema"
+
+
 msgid "Active AOV"
 msgstr "Aktiivinen AOV"
 
@@ -7667,10 +7591,6 @@ msgstr "Aktiivinen valoryhmä -indeksi"
 
 msgid "Index of active lightgroup"
 msgstr "Aktiivisen valoryhmän indeksi"
-
-
-msgid "Node Name"
-msgstr "Noodin nimi"
 
 
 msgid "3D float vector"
@@ -7922,10 +7842,6 @@ msgid "Shortcuts"
 msgstr "Pikanäppäimet"
 
 
-msgid "Theme"
-msgstr "Teema"
-
-
 msgid "Spacebar"
 msgstr "Välilyönti"
 
@@ -7950,10 +7866,6 @@ msgid "Z Min"
 msgstr "Z-minimi"
 
 
-msgid "Layers:"
-msgstr "Tasot:"
-
-
 msgid "Triangle A"
 msgstr "A-kolmio"
 
@@ -7976,6 +7888,11 @@ msgstr "X-siirros"
 
 msgid "Before"
 msgstr "Ennen"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Säleikkö"
 
 
 msgid "Combination"
@@ -8156,6 +8073,10 @@ msgstr "Aseta X-akselit"
 msgctxt "Operator"
 msgid "Set Y Axis"
 msgstr "Aseta Y-akselit"
+
+
+msgid "Snap To"
+msgstr "Napsauta"
 
 
 msgctxt "Operator"
@@ -8378,6 +8299,10 @@ msgid "Empties"
 msgstr "Tyhjät"
 
 
+msgid "Raw"
+msgstr "Raaka"
+
+
 msgctxt "Operator"
 msgid "Mask..."
 msgstr "Maski..."
@@ -8391,16 +8316,6 @@ msgstr "Väri"
 msgctxt "Operator"
 msgid "Text"
 msgstr "Teksti"
-
-
-msgctxt "Operator"
-msgid "Subtract"
-msgstr "Vähennä"
-
-
-msgctxt "Operator"
-msgid "Multiply"
-msgstr "Kerro"
 
 
 msgid "Add Transition"
@@ -8565,11 +8480,6 @@ msgid "Active Camera"
 msgstr "Aktiivinen kamera"
 
 
-msgctxt "View3D"
-msgid "Camera"
-msgstr "Kamera"
-
-
 msgctxt "Operator"
 msgid "Plane"
 msgstr "Taso"
@@ -8707,15 +8617,6 @@ msgid "Seams"
 msgstr "Saumat"
 
 
-msgid "Snap To"
-msgstr "Napsauta"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Säleikkö"
-
-
 msgctxt "Operator"
 msgid "Delete Global"
 msgstr "Poista globaali"
@@ -8850,40 +8751,8 @@ msgid "Undefined Type"
 msgstr "Määrittelemätön tyyppi"
 
 
-msgid "Kilometers"
-msgstr "Kilometrit"
-
-
-msgid "100 Meters"
-msgstr "100 metriä"
-
-
-msgid "10 Meters"
-msgstr "10 metriä"
-
-
-msgid "Meters"
-msgstr "Metrit"
-
-
-msgid "10 Centimeters"
-msgstr "10 senttimetriä"
-
-
-msgid "Centimeters"
-msgstr "Senttimetrit"
-
-
 msgid "Micrometers"
 msgstr "Mikrometrit"
-
-
-msgid "Miles"
-msgstr "Mailit"
-
-
-msgid "Yards"
-msgstr "Jaardit"
 
 
 msgid "Feet"
@@ -8894,60 +8763,12 @@ msgid "Inches"
 msgstr "Tuumat"
 
 
-msgid "Square Kilometers"
-msgstr "Neliökilometrit"
-
-
-msgid "Square Hectometers"
-msgstr "Hehtaarit"
-
-
-msgid "Square Dekameters"
-msgstr "Aarit"
-
-
-msgid "Square Meters"
-msgstr "Neliömetrit"
-
-
-msgid "Square Decimeters"
-msgstr "Neliö"
-
-
 msgid "Tonnes"
 msgstr "Tonnit"
 
 
 msgid "100 Kilograms"
 msgstr "100 kilogrammaa"
-
-
-msgid "Kilograms"
-msgstr "Kilogrammat"
-
-
-msgid "10 Grams"
-msgstr "10 grammaa"
-
-
-msgid "Grams"
-msgstr "Grammat"
-
-
-msgid "Milligrams"
-msgstr "Milligrammat"
-
-
-msgid "Pounds"
-msgstr "Paunat"
-
-
-msgid "Ounces"
-msgstr "Unssit"
-
-
-msgid "Days"
-msgstr "Päivät"
 
 
 msgid "Hours"
@@ -8958,60 +8779,8 @@ msgid "Minutes"
 msgstr "Minuuti"
 
 
-msgid "Milliseconds"
-msgstr "Millisekunnit"
-
-
 msgid "Microseconds"
 msgstr "Mikrosekunnit"
-
-
-msgid "Arcminutes"
-msgstr "Kaariminuutti"
-
-
-msgid "Arcseconds"
-msgstr "Kaarisekuntti"
-
-
-msgid "Gigawatts"
-msgstr "Gigawatit"
-
-
-msgid "Megawatts"
-msgstr "Megawatit"
-
-
-msgid "Kilowatts"
-msgstr "Kilowatit"
-
-
-msgid "Watts"
-msgstr "Watit"
-
-
-msgid "Milliwatts"
-msgstr "Milliwatit"
-
-
-msgid "Microwatts"
-msgstr "Mikrowatit"
-
-
-msgid "Nanowatts"
-msgstr "Nanowatit"
-
-
-msgid "Kelvin"
-msgstr "Kelvin"
-
-
-msgid "Celsius"
-msgstr "Celsius"
-
-
-msgid "Fahrenheit"
-msgstr "Fahrenheit"
 
 
 msgid "Error writing frame"
@@ -9494,11 +9263,6 @@ msgid "New"
 msgstr "Uusi"
 
 
-msgctxt "Simulation"
-msgid "New"
-msgstr "Uusi"
-
-
 msgid "Manual Transform"
 msgstr "Manuaalinen muutos"
 
@@ -9521,6 +9285,10 @@ msgstr "Vienti asetukset"
 
 msgid "Grouping"
 msgstr "Ryhmittäminen"
+
+
+msgid "Material Groups"
+msgstr "Materiaaliryhmät"
 
 
 msgid "Data Types"
@@ -9610,10 +9378,6 @@ msgstr "Reunoja ei voida lisätä muokkaustilassa"
 
 msgid "Cannot add loops in edit mode"
 msgstr "Silmukoita ei voida lisätä muokkaustilassa"
-
-
-msgid "Cannot add polygons in edit mode"
-msgstr "Monikulmioita ei voida lisätä muokkaustilassa"
 
 
 msgid "Cannot remove vertices in edit mode"
@@ -9883,10 +9647,6 @@ msgid "Stone"
 msgstr "Kivi"
 
 
-msgid "3D Local View"
-msgstr "Lokaali 3D-näkymä"
-
-
 msgid "Scene has no camera"
 msgstr "Kohtauksessa ei ole kameraa"
 
@@ -10075,10 +9835,6 @@ msgid "Driver:"
 msgstr "Ajuri:"
 
 
-msgid "Add Modifier"
-msgstr "Lisää muunnin"
-
-
 msgid "Driven Property"
 msgstr "Ajettu ominaisuus"
 
@@ -10121,10 +9877,6 @@ msgstr "RGBA-bitti"
 
 msgid " RGB byte"
 msgstr "RGB-bitti"
-
-
-msgid " + Z"
-msgstr " + Z"
 
 
 msgid "No packed file"
@@ -10228,6 +9980,10 @@ msgid "Missing library"
 msgstr "Kirjasto puuttuu"
 
 
+msgid "Bone Groups"
+msgstr "Luuryhmät"
+
+
 msgid "(empty)"
 msgstr "(tyhjä)"
 
@@ -10258,10 +10014,6 @@ msgstr "Tasosarja"
 
 msgid "Data Set"
 msgstr "Data-sarja"
-
-
-msgid "Column"
-msgstr "Sarake"
 
 
 msgid "Reload from disk"
@@ -10508,11 +10260,6 @@ msgstr "Muotoavainta ei kyetty poistamaan"
 
 msgid "Mesh has no UV data"
 msgstr "Muodolla ei ole UV-dataa"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Ryhmä"
 
 
 msgid "Scripting"
@@ -11087,16 +10834,16 @@ msgid "AO"
 msgstr "AO"
 
 
-msgid "Anisotropy"
-msgstr "Anisotropia"
-
-
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "IOR"
+
+
+msgid "Anisotropy"
+msgstr "Anisotropia"
 
 
 msgid "RoughnessU"
@@ -11754,46 +11501,6 @@ msgid "4:3 in 16:9"
 msgstr "4:3 in 16:9"
 
 
-msgid "apple"
-msgstr "omena"
-
-
-msgid "chicken"
-msgstr "kana"
-
-
-msgid "cream"
-msgstr "kerma"
-
-
-msgid "ketchup"
-msgstr "ketsuppi"
-
-
-msgid "marble"
-msgstr "marmori"
-
-
-msgid "potato"
-msgstr "peruna"
-
-
-msgid "skim milk"
-msgstr "rasvaton maito"
-
-
-msgid "skin1"
-msgstr "iho1"
-
-
-msgid "skin2"
-msgstr "iho2"
-
-
-msgid "whole milk"
-msgstr "täysmaito"
-
-
 msgid "Blurry Footage"
 msgstr "Sumea kuvamateriaali"
 
@@ -12014,10 +11721,6 @@ msgstr "Espanja (Español)"
 
 msgid "Catalan (Català)"
 msgstr "Katalaani (Català)"
-
-
-msgid "Czech (Český)"
-msgstr "Tsekki (Český)"
 
 
 msgid "Portuguese (Português)"

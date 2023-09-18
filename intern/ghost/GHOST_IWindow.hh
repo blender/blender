@@ -209,13 +209,10 @@ class GHOST_IWindow {
    */
   virtual unsigned int getDefaultFramebuffer() = 0;
 
-  /**
-   * Gets the Vulkan framebuffer related resource handles associated with the Vulkan context.
-   * Needs to be called after each swap events as the framebuffer will change.
-   * \return  A boolean success indicator.
-   */
-  virtual GHOST_TSuccess getVulkanBackbuffer(
-      void *image, void *framebuffer, void *render_pass, void *extent, uint32_t *fb_id) = 0;
+#ifdef WITH_VULKAN_BACKEND
+  virtual GHOST_TSuccess getVulkanSwapChainFormat(
+      GHOST_VulkanSwapChainData *r_swap_chain_data) = 0;
+#endif
 
   /**
    * Invalidates the contents of this window.

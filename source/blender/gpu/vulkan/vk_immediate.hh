@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -37,8 +37,8 @@ class VKImmediate : public Immediate, VKResourceTracker<VKBuffer> {
   VKImmediate();
   virtual ~VKImmediate();
 
-  uchar *begin(void) override;
-  void end(void) override;
+  uchar *begin() override;
+  void end() override;
 
   friend class VKVertexAttributeObject;
 

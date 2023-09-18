@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,10 +11,6 @@
 
 #include "DNA_listBase.h"
 #include "DNA_object_force_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct Collection;
 
@@ -357,7 +353,3 @@ typedef enum eRigidBodyCon_Flag {
 } eRigidBodyCon_Flag;
 
 /* ******************************** */
-
-#ifdef __cplusplus
-}
-#endif

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,17 +20,17 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_fileselect.h"
-#  include "ED_object.h"
+#  include "ED_fileselect.hh"
+#  include "ED_object.hh"
 
-#  include "RNA_access.h"
-#  include "RNA_define.h"
+#  include "RNA_access.hh"
+#  include "RNA_define.hh"
 
-#  include "UI_interface.h"
-#  include "UI_resources.h"
+#  include "UI_interface.hh"
+#  include "UI_resources.hh"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 #  include "collada.h"
 
@@ -251,29 +251,34 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     /* Export data options. */
     box = uiLayoutBox(layout);
     col = uiLayoutColumn(box, false);
-    uiItemR(col, imfptr, "selected", 0, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "selected", UI_ITEM_NONE, nullptr, ICON_NONE);
     sub = uiLayoutColumn(col, false);
     uiLayoutSetEnabled(sub, RNA_boolean_get(imfptr, "selected"));
-    uiItemR(sub, imfptr, "include_children", 0, nullptr, ICON_NONE);
-    uiItemR(sub, imfptr, "include_armatures", 0, nullptr, ICON_NONE);
-    uiItemR(sub, imfptr, "include_shapekeys", 0, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "include_children", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "include_armatures", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "include_shapekeys", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     box = uiLayoutBox(layout);
     row = uiLayoutRow(box, false);
     uiItemL(row, IFACE_("Global Orientation"), ICON_ORIENTATION_GLOBAL);
 
-    uiItemR(box, imfptr, "apply_global_orientation", 0, IFACE_("Apply"), ICON_NONE);
-    uiItemR(box, imfptr, "export_global_forward_selection", 0, IFACE_("Forward Axis"), ICON_NONE);
-    uiItemR(box, imfptr, "export_global_up_selection", 0, IFACE_("Up Axis"), ICON_NONE);
+    uiItemR(box, imfptr, "apply_global_orientation", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
+    uiItemR(box,
+            imfptr,
+            "export_global_forward_selection",
+            UI_ITEM_NONE,
+            IFACE_("Forward Axis"),
+            ICON_NONE);
+    uiItemR(box, imfptr, "export_global_up_selection", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
 
     /* Texture options */
     box = uiLayoutBox(layout);
     uiItemL(box, IFACE_("Texture Options"), ICON_TEXTURE_DATA);
 
     col = uiLayoutColumn(box, false);
-    uiItemR(col, imfptr, "use_texture_copies", 0, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "use_texture_copies", UI_ITEM_NONE, nullptr, ICON_NONE);
     row = uiLayoutRowWithHeading(col, true, IFACE_("UV"));
-    uiItemR(row, imfptr, "active_uv_only", 0, IFACE_("Only Selected Map"), ICON_NONE);
+    uiItemR(row, imfptr, "active_uv_only", UI_ITEM_NONE, IFACE_("Only Selected Map"), ICON_NONE);
   }
   else if (ui_section == BC_UI_SECTION_GEOMETRY) {
     box = uiLayoutBox(layout);
@@ -281,20 +286,29 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     col = uiLayoutColumn(box, false);
 
-    uiItemR(col, imfptr, "triangulate", 0, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "triangulate", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     row = uiLayoutRowWithHeading(col, true, IFACE_("Apply Modifiers"));
-    uiItemR(row, imfptr, "apply_modifiers", 0, "", ICON_NONE);
+    uiItemR(row, imfptr, "apply_modifiers", UI_ITEM_NONE, "", ICON_NONE);
     sub = uiLayoutColumn(row, false);
     uiLayoutSetActive(sub, RNA_boolean_get(imfptr, "apply_modifiers"));
-    uiItemR(sub, imfptr, "export_mesh_type_selection", 0, "", ICON_NONE);
+    uiItemR(sub, imfptr, "export_mesh_type_selection", UI_ITEM_NONE, "", ICON_NONE);
 
     if (RNA_boolean_get(imfptr, "include_animations")) {
-      uiItemR(
-          col, imfptr, "export_animation_transformation_type_selection", 0, nullptr, ICON_NONE);
+      uiItemR(col,
+              imfptr,
+              "export_animation_transformation_type_selection",
+              UI_ITEM_NONE,
+              nullptr,
+              ICON_NONE);
     }
     else {
-      uiItemR(col, imfptr, "export_object_transformation_type_selection", 0, nullptr, ICON_NONE);
+      uiItemR(col,
+              imfptr,
+              "export_object_transformation_type_selection",
+              UI_ITEM_NONE,
+              nullptr,
+              ICON_NONE);
     }
   }
   else if (ui_section == BC_UI_SECTION_ARMATURE) {
@@ -303,13 +317,13 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
 
     col = uiLayoutColumn(box, false);
-    uiItemR(col, imfptr, "deform_bones_only", 0, nullptr, ICON_NONE);
-    uiItemR(col, imfptr, "open_sim", 0, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "deform_bones_only", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "open_sim", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else if (ui_section == BC_UI_SECTION_ANIMATION) {
     /* Animation options. */
     box = uiLayoutBox(layout);
-    uiItemR(box, imfptr, "include_animations", 0, nullptr, ICON_NONE);
+    uiItemR(box, imfptr, "include_animations", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     col = uiLayoutColumn(box, false);
     row = uiLayoutRow(col, false);
@@ -318,11 +332,20 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     uiLayoutSetActive(row, include_animations && animation_type == BC_ANIMATION_EXPORT_SAMPLES);
     if (RNA_boolean_get(imfptr, "include_animations")) {
-      uiItemR(
-          box, imfptr, "export_animation_transformation_type_selection", 0, nullptr, ICON_NONE);
+      uiItemR(box,
+              imfptr,
+              "export_animation_transformation_type_selection",
+              UI_ITEM_NONE,
+              nullptr,
+              ICON_NONE);
     }
     else {
-      uiItemR(box, imfptr, "export_object_transformation_type_selection", 0, nullptr, ICON_NONE);
+      uiItemR(box,
+              imfptr,
+              "export_object_transformation_type_selection",
+              UI_ITEM_NONE,
+              nullptr,
+              ICON_NONE);
     }
 
     row = uiLayoutColumn(col, false);
@@ -330,17 +353,17 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
                       include_animations &&
                           (animation_transformation_type == BC_TRANSFORMATION_TYPE_DECOMPOSED ||
                            animation_type == BC_ANIMATION_EXPORT_KEYS));
-    uiItemR(row, imfptr, "keep_smooth_curves", 0, nullptr, ICON_NONE);
+    uiItemR(row, imfptr, "keep_smooth_curves", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     sub = uiLayoutColumn(col, false);
     uiLayoutSetActive(sub, sampling && include_animations);
-    uiItemR(sub, imfptr, "sampling_rate", 0, nullptr, ICON_NONE);
-    uiItemR(sub, imfptr, "keep_keyframes", 0, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "sampling_rate", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "keep_keyframes", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     sub = uiLayoutColumn(col, false);
     uiLayoutSetActive(sub, include_animations);
-    uiItemR(sub, imfptr, "keep_flat_curves", 0, nullptr, ICON_NONE);
-    uiItemR(sub, imfptr, "include_all_actions", 0, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "keep_flat_curves", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "include_all_actions", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else if (ui_section == BC_UI_SECTION_COLLADA) {
     /* Collada options: */
@@ -349,11 +372,11 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemL(row, IFACE_("Collada Options"), ICON_MODIFIER);
 
     col = uiLayoutColumn(box, false);
-    uiItemR(col, imfptr, "use_object_instantiation", 1, nullptr, ICON_NONE);
-    uiItemR(col, imfptr, "use_blender_profile", 1, nullptr, ICON_NONE);
-    uiItemR(col, imfptr, "sort_by_name", 0, nullptr, ICON_NONE);
-    uiItemR(col, imfptr, "keep_bind_info", 0, nullptr, ICON_NONE);
-    uiItemR(col, imfptr, "limit_precision", 0, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "use_object_instantiation", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "use_blender_profile", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "sort_by_name", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "keep_bind_info", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "limit_precision", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 }
 
@@ -661,11 +684,12 @@ void WM_OT_collada_export(wmOperatorType *ot)
                "Note: The Animation transformation type in the Anim Tab "
                "is always equal to the Object transformation type in the Geom tab");
 
-  RNA_def_boolean(ot->srna,
-                  "open_sim",
-                  0,
-                  "Export to SL/OpenSim",
-                  "Compatibility mode for SL, OpenSim and other compatible online worlds");
+  RNA_def_boolean(
+      ot->srna,
+      "open_sim",
+      0,
+      "Export to SL/OpenSim",
+      "Compatibility mode for Second Life, OpenSimulator and other compatible online worlds");
 
   RNA_def_boolean(ot->srna,
                   "limit_precision",
@@ -741,21 +765,21 @@ static void uiCollada_importSettings(uiLayout *layout, PointerRNA *imfptr)
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Import Data Options"), ICON_MESH_DATA);
 
-  uiItemR(box, imfptr, "import_units", 0, nullptr, ICON_NONE);
-  uiItemR(box, imfptr, "custom_normals", 0, nullptr, ICON_NONE);
+  uiItemR(box, imfptr, "import_units", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(box, imfptr, "custom_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
 
   col = uiLayoutColumn(box, false);
-  uiItemR(col, imfptr, "fix_orientation", 0, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "find_chains", 0, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "auto_connect", 0, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "min_chain_length", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "fix_orientation", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "find_chains", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "auto_connect", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "min_chain_length", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
 
-  uiItemR(box, imfptr, "keep_bind_info", 0, nullptr, ICON_NONE);
+  uiItemR(box, imfptr, "keep_bind_info", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void wm_collada_import_draw(bContext * /*C*/, wmOperator *op)

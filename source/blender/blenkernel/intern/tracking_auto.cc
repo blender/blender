@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,7 +7,7 @@
  */
 
 #include "atomic_ops.h"
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -15,7 +15,7 @@
 #include "DNA_object_types.h" /* SELECT */
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -31,16 +31,16 @@
 #include "libmv-capi.h"
 #include "tracking_private.h"
 
-typedef struct AutoTrackClip {
+struct AutoTrackClip {
   MovieClip *clip;
 
   /* Dimensions of movie frame, in pixels.
    *
    * NOTE: All frames within a clip are expected to have match3ed dimensions. */
   int width, height;
-} AutoTrackClip;
+};
 
-typedef struct AutoTrackTrack {
+struct AutoTrackTrack {
   /* Index of a clip from `AutoTrackContext::autotrack_clips` this track belongs to. */
   int clip_index;
 
@@ -53,11 +53,11 @@ typedef struct AutoTrackTrack {
    * Is usually initialized based on track's selection. Non-trackable tracks are still added to the
    * context to provide AutoTrack all knowledge about what is going on in the scene. */
   bool is_trackable;
-} AutoTrackTrack;
+};
 
-typedef struct AutoTrackMarker {
+struct AutoTrackMarker {
   libmv_Marker libmv_marker;
-} AutoTrackMarker;
+};
 
 /* Result of tracking step for a single marker.
  *
@@ -65,15 +65,15 @@ typedef struct AutoTrackMarker {
  *
  * On failure marker's frame number is initialized to frame number where it was attempted to be
  * tracked to. The position and other fields of tracked marker are the same as the input. */
-typedef struct AutoTrackTrackingResult {
+struct AutoTrackTrackingResult {
   AutoTrackTrackingResult *next, *prev;
 
   bool success;
   libmv_Marker libmv_marker;
   libmv_TrackRegionResult libmv_result;
-} AutoTrackTrackingResult;
+};
 
-typedef struct AutoTrackContext {
+struct AutoTrackContext {
   /* --------------------------------------------------------------------
    * Invariant part.
    * Stays unchanged during the tracking process.
@@ -133,7 +133,7 @@ typedef struct AutoTrackContext {
   int synchronized_scene_frame;
 
   SpinLock spin_lock;
-} AutoTrackContext;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Marker coordinate system conversion.
@@ -278,8 +278,7 @@ static MovieTrackingMarker libmv_marker_to_dna_marker(const libmv_Marker &libmv_
 /* -------------------------------------------------------------------- */
 /** \name General helpers.
  *
- * TODO(sergey): Should be moved to tracking_util.c
- *
+ * TODO(sergey): Should be moved to `tracking_util.cc`.
  * \{ */
 
 /* Returns false if marker crossed margin area from frame bounds. */
@@ -624,9 +623,9 @@ void BKE_autotrack_context_start(AutoTrackContext *context)
 
 /* NOTE: This is a TLS in a sense that this struct is never accessed from multiple threads, and
  * that threads are re-using the struct as much as possible. */
-typedef struct AutoTrackTLS {
+struct AutoTrackTLS {
   ListBase results; /* Elements of `AutoTrackTrackingResult`. */
-} AutoTrackTLS;
+};
 
 static void autotrack_context_step_cb(void *__restrict userdata,
                                       const int marker_index,

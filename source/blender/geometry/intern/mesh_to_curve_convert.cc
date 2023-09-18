@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -35,38 +35,44 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
   bke::MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
 
   if (!cyclic_curves.is_empty()) {
-    bke::SpanAttributeWriter cyclic = curves_attributes.lookup_or_add_for_write_span<bool>(
-        "cyclic", ATTR_DOMAIN_CURVE);
-    cyclic.span.slice(cyclic_curves).fill(true);
-    cyclic.finish();
+    curves.cyclic_for_write().slice(cyclic_curves).fill(true);
   }
 
-  Set<bke::AttributeIDRef> source_attribute_ids = mesh_attributes.all_ids();
-
-  for (const bke::AttributeIDRef &attribute_id : source_attribute_ids) {
-    if (mesh_attributes.is_builtin(attribute_id) && !curves_attributes.is_builtin(attribute_id)) {
-      /* Don't copy attributes that are built-in on meshes but not on curves. */
-      continue;
+  /* Don't copy attributes that are built-in on meshes but not on curves. */
+  Set<std::string> skip;
+  for (const bke::AttributeIDRef &id : mesh_attributes.all_ids()) {
+    if (mesh_attributes.is_builtin(id) && !curves_attributes.is_builtin(id)) {
+      skip.add(id.name());
     }
-
-    if (attribute_id.is_anonymous() && !propagation_info.propagate(attribute_id.anonymous_id())) {
-      continue;
-    }
-
-    const GVArray src = *mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
-    /* Some attributes might not exist if they were builtin attribute on domains that don't
-     * have any elements, i.e. a face attribute on the output of the line primitive node. */
-    if (!src) {
-      continue;
-    }
-    const eCustomDataType type = bke::cpp_type_to_custom_data_type(src.type());
-
-    /* Copy attribute based on the map for this curve. */
-    bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, ATTR_DOMAIN_POINT, type);
-    bke::attribute_math::gather(src, vert_indices, dst.span);
-    dst.finish();
   }
+
+  bke::gather_attributes(
+      mesh_attributes, ATTR_DOMAIN_POINT, propagation_info, skip, vert_indices, curves_attributes);
+
+  mesh_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
+        if (meta_data.domain == ATTR_DOMAIN_POINT) {
+          return true;
+        }
+        if (skip.contains(id.name())) {
+          return true;
+        }
+        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+          return true;
+        }
+
+        const bke::GAttributeReader src = mesh_attributes.lookup(id, ATTR_DOMAIN_POINT);
+        /* Some attributes might not exist if they were builtin on domains that don't have
+         * any elements, i.e. a face attribute on the output of the line primitive node. */
+        if (!src) {
+          return true;
+        }
+        bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
+            id, ATTR_DOMAIN_POINT, meta_data.data_type);
+        bke::attribute_math::gather(*src, vert_indices, dst.span);
+        dst.finish();
+        return true;
+      });
 
   return curves;
 }
@@ -83,16 +89,9 @@ struct CurveFromEdgesOutput {
 BLI_NOINLINE static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
                                                                       const Span<int2> edges)
 {
-  Vector<int> vert_indices;
-  vert_indices.reserve(edges.size());
-  Vector<int> curve_offsets;
-
   /* Compute the number of edges connecting to each vertex. */
   Array<int> neighbor_offsets_data(verts_num + 1, 0);
-  for (const int vert : edges.cast<int>()) {
-    neighbor_offsets_data[vert]++;
-  }
-  offset_indices::accumulate_counts_to_offsets(neighbor_offsets_data);
+  offset_indices::build_reverse_offsets(edges.cast<int>(), neighbor_offsets_data);
   const OffsetIndices<int> neighbor_offsets(neighbor_offsets_data);
 
   /* Use as an index into the "neighbor group" for each vertex. */
@@ -108,11 +107,15 @@ BLI_NOINLINE static CurveFromEdgesOutput edges_to_curve_point_indices(const int 
     used_slots[v2]++;
   }
 
-  /* Now use the neighbor group offsets calculated above as a count used edges at each vertex. */
+  Vector<int> vert_indices;
+  vert_indices.reserve(edges.size());
+  Vector<int> curve_offsets;
+
+  /* Now use the neighbor group offsets calculated above to count used edges at each vertex. */
   Array<int> unused_edges = std::move(used_slots);
 
   for (const int start_vert : IndexRange(verts_num)) {
-    /* The vertex will be part of a cyclic curve. */
+    /* Don't start at vertices with two neighbors, which may become part of cyclic curves. */
     if (neighbor_offsets[start_vert].size() == 2) {
       continue;
     }
@@ -158,7 +161,8 @@ BLI_NOINLINE static CurveFromEdgesOutput edges_to_curve_point_indices(const int 
   /* All curves added after this are cyclic. */
   const int cyclic_start = curve_offsets.size();
 
-  /* All remaining edges are part of cyclic curves (we skipped vertices with two edges before). */
+  /* All remaining edges are part of cyclic curves because
+   * we skipped starting at vertices with two edges before. */
   for (const int start_vert : IndexRange(verts_num)) {
     if (unused_edges[start_vert] != 2) {
       continue;

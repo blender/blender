@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,16 +8,18 @@
 
 #include "DNA_node_types.h"
 
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 #include "NOD_common.h"
 #include "node_common.h"
 #include "node_exec.hh"
 #include "node_texture_util.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 static void copy_stack(bNodeStack *to, bNodeStack *from)
 {
@@ -61,12 +63,11 @@ static void group_freeexec(void *nodedata)
 static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
 {
   bNodeTree *ngroup = (bNodeTree *)gnode->id;
-  bNode *node;
   bNodeSocket *sock;
   bNodeStack *ns;
   int a;
 
-  for (node = static_cast<bNode *>(ngroup->nodes.first); node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
     if (node->type == NODE_GROUP_INPUT) {
       for (sock = static_cast<bNodeSocket *>(node->outputs.first), a = 0; sock;
            sock = sock->next, a++) {
@@ -124,11 +125,8 @@ static void group_execute(void *data,
   /* XXX same behavior as trunk: all nodes inside group are executed.
    * it's stupid, but just makes it work. compo redesign will do this better.
    */
-  {
-    bNode *inode;
-    for (inode = static_cast<bNode *>(exec->nodetree->nodes.first); inode; inode = inode->next) {
-      inode->runtime->need_exec = 1;
-    }
+  LISTBASE_FOREACH (bNode *, inode, &exec->nodetree->nodes) {
+    inode->runtime->need_exec = 1;
   }
 
   nts = ntreeGetThreadStack(exec, thread);
@@ -140,14 +138,14 @@ static void group_execute(void *data,
   ntreeReleaseThreadStack(nts);
 }
 
-void register_node_type_tex_group(void)
+void register_node_type_tex_group()
 {
   static bNodeType ntype;
 
   /* NOTE: Cannot use #sh_node_type_base for node group, because it would map the node type
    * to the shared #NODE_GROUP integer type id. */
 
-  node_type_base_custom(&ntype, "TextureNodeGroup", "Group", NODE_CLASS_GROUP);
+  node_type_base_custom(&ntype, "TextureNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.type = NODE_GROUP;
   ntype.poll = tex_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;

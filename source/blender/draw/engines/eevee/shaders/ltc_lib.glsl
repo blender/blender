@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * Adapted from :
  * Real-Time Polygonal-Light Shading with Linearly Transformed Cosines.

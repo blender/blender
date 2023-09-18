@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -30,8 +30,8 @@ PyDoc_STRVAR(
     ViewEdge_doc,
     "Class hierarchy: :class:`Interface1D` > :class:`ViewEdge`\n"
     "\n"
-    "Class defining a ViewEdge.  A ViewEdge in an edge of the image graph.\n"
-    "it connects two :class:`ViewVertex` objects.  It is made by connecting\n"
+    "Class defining a ViewEdge. A ViewEdge in an edge of the image graph.\n"
+    "it connects two :class:`ViewVertex` objects. It is made by connecting\n"
     "a set of FEdges.\n"
     "\n"
     ".. method:: __init__()\n"
@@ -199,7 +199,7 @@ static int ViewEdge_viewshape_set(BPy_ViewEdge *self, PyObject *value, void * /*
 
 PyDoc_STRVAR(ViewEdge_occludee_doc,
              "The shape that is occluded by the ViewShape to which this ViewEdge\n"
-             "belongs to.  If no object is occluded, this property is set to None.\n"
+             "belongs to. If no object is occluded, this property is set to None.\n"
              "\n"
              ":type: :class:`ViewShape`");
 
@@ -370,7 +370,7 @@ static PyGetSetDef BPy_ViewEdge_getseters[] = {
 /*-----------------------BPy_ViewEdge type definition ------------------------------*/
 
 PyTypeObject ViewEdge_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ViewEdge",
     /*tp_basicsize*/ sizeof(BPy_ViewEdge),
     /*tp_itemsize*/ 0,

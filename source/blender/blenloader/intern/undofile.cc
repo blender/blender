@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -28,7 +28,7 @@
 #include "BLI_ghash.h"
 
 #include "BLO_readfile.h"
-#include "BLO_undofile.h"
+#include "BLO_undofile.hh"
 
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -41,9 +41,7 @@
 
 void BLO_memfile_free(MemFile *memfile)
 {
-  MemFileChunk *chunk;
-
-  while ((chunk = static_cast<MemFileChunk *>(BLI_pophead(&memfile->chunks)))) {
+  while (MemFileChunk *chunk = static_cast<MemFileChunk *>(BLI_pophead(&memfile->chunks))) {
     if (chunk->is_identical == false) {
       MEM_freeN((void *)chunk->buf);
     }
@@ -207,10 +205,9 @@ bool BLO_memfile_write_file(MemFile *memfile, const char *filepath)
   int file, oflags;
 
   /* NOTE: This is currently used for auto-save and `quit.blend`,
-   * where _not_ following symlinks is OK,
+   * where _not_ following symbolic-links is OK,
    * however if this is ever executed explicitly by the user,
-   * we may want to allow writing to symlinks.
-   */
+   * we may want to allow writing to symbolic-links. */
 
   oflags = O_BINARY | O_WRONLY | O_CREAT | O_TRUNC;
 #ifdef O_NOFOLLOW

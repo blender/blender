@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,13 +8,15 @@
  * Functions for evaluating the mask beziers into points for the outline and feather.
  */
 
-#include <stddef.h>
-#include <string.h>
+#include <cstddef>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mask_types.h"
@@ -187,11 +189,11 @@ float (*BKE_mask_spline_differentiate(
 
 /* ** feather points self-intersection collapse routine ** */
 
-typedef struct FeatherEdgesBucket {
+struct FeatherEdgesBucket {
   int tot_segment;
   int (*segments)[2];
   int alloc_segment;
-} FeatherEdgesBucket;
+};
 
 static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int end)
 {
@@ -851,7 +853,7 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
 #if 0
       printf("%s: exact %d %d (%d)\n",
              __func__,
-             (int)ctime,
+             int(ctime),
              BLI_listbase_count(&masklay->splines_shapes),
              masklay_shape_a->frame);
 #endif
@@ -862,7 +864,7 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
 #if 0
       printf("%s: tween %d %d (%d %d)\n",
              __func__,
-             (int)ctime,
+             int(ctime),
              BLI_listbase_count(&masklay->splines_shapes),
              masklay_shape_a->frame,
              masklay_shape_b->frame);

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,8 +14,8 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_material.h"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_object.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_object.hh"
 
 #include "gpencil_io_import_base.hh"
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation
+/* SPDX-FileCopyrightText: 2017 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,10 @@
  */
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern DrawEngineType draw_engine_external_type;
 extern RenderEngineType DRW_engine_viewport_external_type;
@@ -17,3 +21,7 @@ extern RenderEngineType DRW_engine_viewport_external_type;
  *
  * NOTE: Released by the draw engine when it is done drawing. */
 bool DRW_engine_external_acquire_for_image_editor(void);
+
+#ifdef __cplusplus
+}
+#endif

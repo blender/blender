@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,7 +18,9 @@
 #include "BKE_preferences.h"
 
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "DNA_userdef_types.h"
 
@@ -302,6 +304,13 @@ AssetIdentifier AssetLibrary::asset_identifier_from_library(StringRef relative_a
   return AssetIdentifier(root_path_, relative_asset_path);
 }
 
+std::string AssetLibrary::resolve_asset_weak_reference_to_full_path(
+    const AssetWeakReference &asset_reference)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  return service->resolve_asset_weak_reference_to_full_path(asset_reference);
+}
+
 void AssetLibrary::refresh_catalog_simplename(AssetMetaData *asset_data)
 {
   if (BLI_uuid_is_nil(asset_data->catalog_id)) {
@@ -357,6 +366,14 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
   library_ref.type = ASSET_LIBRARY_LOCAL;
   result.append(library_ref);
   return result;
+}
+
+AssetLibraryReference all_library_reference()
+{
+  AssetLibraryReference all_library_ref{};
+  all_library_ref.custom_library_index = -1;
+  all_library_ref.type = ASSET_LIBRARY_ALL;
+  return all_library_ref;
 }
 
 }  // namespace blender::asset_system

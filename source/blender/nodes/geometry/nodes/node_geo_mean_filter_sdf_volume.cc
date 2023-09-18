@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,14 +10,14 @@
 #include "node_geometry_util.hh"
 
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 #include "DNA_node_types.h"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_geo_mean_filter_sdf_volume_cc {
 
@@ -29,13 +29,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Iterations").min(1).max(256).default_value(1);
   b.add_input<decl::Int>("Width").min(0).default_value(1);
   b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
-}
-
-static void search_node_add_ops(GatherAddNodeSearchParams &params)
-{
-  if (U.experimental.use_new_volume_nodes) {
-    blender::nodes::search_node_add_ops_for_basic_node(params);
-  }
 }
 
 static void search_link_ops(GatherLinkSearchOpParams &params)
@@ -90,20 +83,18 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-}  // namespace blender::nodes::node_geo_mean_filter_sdf_volume_cc
-
-void register_node_type_geo_mean_filter_sdf_volume()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_mean_filter_sdf_volume_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_MEAN_FILTER_SDF_VOLUME, "Mean Filter SDF Volume", NODE_CLASS_GEOMETRY);
   blender::bke::node_type_size(&ntype, 160, 120, 700);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.gather_add_node_search_ops = file_ns::search_node_add_ops;
-  ntype.gather_link_search_ops = file_ns::search_link_ops;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.gather_link_search_ops = search_link_ops;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_mean_filter_sdf_volume_cc

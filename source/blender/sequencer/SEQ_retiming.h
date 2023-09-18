@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,7 +18,7 @@ struct SeqRetimingHandle;
 
 int SEQ_retiming_handles_count(const struct Sequence *seq);
 bool SEQ_retiming_is_active(const struct Sequence *seq);
-void SEQ_retiming_data_ensure(struct Sequence *seq);
+void SEQ_retiming_data_ensure(const struct Scene *scene, struct Sequence *seq);
 void SEQ_retiming_data_clear(struct Sequence *seq);
 bool SEQ_retiming_is_allowed(const struct Sequence *seq);
 

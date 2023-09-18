@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2022-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,14 +14,14 @@ if [ `id -u` -ne 0 ]; then
 fi
 
 # Required by: config manager command below to enable powertools.
-dnf install 'dnf-command(config-manager)'
+dnf -y install 'dnf-command(config-manager)'
 
 # Packages `ninja-build` and `meson` are not available unless CBR or PowerTools repositories are enabled.
 # See: https://wiki.rockylinux.org/rocky/repo/#notes-on-unlisted-repositories
 dnf config-manager --set-enabled powertools
 
 # Required by: epel-release has the patchelf and rubygem-asciidoctor packages
-dnf install epel-release
+dnf -y install epel-release
 
 # `yum-config-manager` does not come in the default minimal install,
 # so make sure it is installed and available.

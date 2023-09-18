@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,14 +13,14 @@
 #include "DEG_depsgraph.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 
 #include "DNA_brush_enums.h"
@@ -30,10 +30,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "DEG_depsgraph_query.h"
 
@@ -167,7 +167,7 @@ struct SlideOperationExecutor {
 
     surface_ob_orig_ = curves_id_orig_->surface;
     surface_orig_ = static_cast<Mesh *>(surface_ob_orig_->data);
-    if (surface_orig_->totpoly == 0) {
+    if (surface_orig_->faces_num == 0) {
       report_empty_original_surface(stroke_extension.reports);
       return;
     }
@@ -178,12 +178,12 @@ struct SlideOperationExecutor {
       report_missing_uv_map_on_original_surface(stroke_extension.reports);
       return;
     }
-    if (!CustomData_has_layer(&surface_orig_->ldata, CD_NORMAL)) {
+    if (!CustomData_has_layer(&surface_orig_->loop_data, CD_NORMAL)) {
       BKE_mesh_calc_normals_split(surface_orig_);
     }
-    corner_normals_orig_su_ = {
-        reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_orig_->ldata, CD_NORMAL)),
-        surface_orig_->totloop};
+    corner_normals_orig_su_ = {reinterpret_cast<const float3 *>(
+                                   CustomData_get_layer(&surface_orig_->loop_data, CD_NORMAL)),
+                               surface_orig_->totloop};
 
     surface_ob_eval_ = DEG_get_evaluated_object(ctx_.depsgraph, surface_ob_orig_);
     if (surface_ob_eval_ == nullptr) {
@@ -193,7 +193,7 @@ struct SlideOperationExecutor {
     if (surface_eval_ == nullptr) {
       return;
     }
-    if (surface_eval_->totpoly == 0) {
+    if (surface_eval_->faces_num == 0) {
       report_empty_evaluated_surface(stroke_extension.reports);
       return;
     }

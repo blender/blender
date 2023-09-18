@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2007 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,8 +6,8 @@
  * \ingroup imbuf
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -18,6 +18,7 @@
 #include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -30,11 +31,11 @@
 #include "IMB_metadata.h"
 #include "IMB_thumbs.h"
 
-#include <ctype.h>
-#include <string.h>
+#include <cctype>
+#include <cstring>
+#include <ctime>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <time.h>
 
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */
@@ -84,7 +85,7 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
   const char *home = BLI_getenv("HOME");
 #  endif
   if (!home) {
-    return 0;
+    return false;
   }
   s += BLI_strncpy_rlen(s, home, FILE_MAX);
 
@@ -105,13 +106,13 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
       subdir = SEP_STR THUMBNAILS SEP_STR "fail" SEP_STR "blender" SEP_STR;
       break;
     default:
-      return 0; /* unknown size */
+      return false; /* unknown size */
   }
 
   s += BLI_strncpy_rlen(s, subdir, FILE_MAX - (s - dir));
   (void)s;
 
-  return 1;
+  return true;
 }
 
 #undef THUMBNAILS
@@ -127,13 +128,13 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
  *
  * \{ */
 
-typedef enum {
+enum eUnsafeCharacterSet {
   UNSAFE_ALL = 0x1,        /* Escape all unsafe characters. */
   UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+' */
   UNSAFE_PATH = 0x8,       /* Allows '/', '&', '=', ':', '@', '+', '$' and ',' */
   UNSAFE_HOST = 0x10,      /* Allows '/' and ':' and '@' */
   UNSAFE_SLASHES = 0x20,   /* Allows all characters except for '/' and '%' */
-} UnsafeCharacterSet;
+};
 
 /* Don't lose comment alignment. */
 /* clang-format off */
@@ -160,38 +161,35 @@ static const char hex[17] = "0123456789abcdef";
  * escape something else, please read RFC-2396 */
 static void escape_uri_string(const char *string,
                               char *escaped_string,
-                              int escaped_string_size,
-                              UnsafeCharacterSet mask)
+                              const int escaped_string_size,
+                              const eUnsafeCharacterSet mask)
 {
-#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a)-32] & use_mask))
+#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a)-32] & mask))
+
+  BLI_assert(escaped_string_size > 0);
+  /* Remove space for \0. */
+  int escaped_string_len = escaped_string_size - 1;
 
   const char *p;
   char *q;
   int c;
-  UnsafeCharacterSet use_mask;
-  use_mask = mask;
 
-  BLI_assert(escaped_string_size > 0);
-
-  /* space for \0 */
-  escaped_string_size -= 1;
-
-  for (q = escaped_string, p = string; (*p != '\0') && escaped_string_size; p++) {
+  for (q = escaped_string, p = string; (*p != '\0') && escaped_string_len; p++) {
     c = uchar(*p);
 
     if (!ACCEPTABLE(c)) {
-      if (escaped_string_size < 3) {
+      if (escaped_string_len < 3) {
         break;
       }
 
       *q++ = '%'; /* means hex coming */
       *q++ = hex[c >> 4];
       *q++ = hex[c & 15];
-      escaped_string_size -= 3;
+      escaped_string_len -= 3;
     }
     else {
       *q++ = *p;
-      escaped_string_size -= 1;
+      escaped_string_len -= 1;
     }
   }
 
@@ -241,14 +239,14 @@ static bool uri_from_filename(const char *path, char *uri)
     /* Not a correct absolute path with a drive letter or UNC prefix. */
     return false;
   }
-  BLI_str_replace_char(orig_uri, '\\', '/');
+  BLI_string_replace_char(orig_uri, '\\', '/');
 #else
   SNPRINTF(orig_uri, "file://%s", path);
 #endif
 
   escape_uri_string(orig_uri, uri, URI_MAX, UNSAFE_PATH);
 
-  return 1;
+  return true;
 }
 
 static bool thumbpathname_from_uri(const char *uri,
@@ -296,7 +294,7 @@ static bool thumbpath_from_uri(const char *uri, char *path, const int path_maxnc
   return thumbpathname_from_uri(uri, path, path_maxncpy, nullptr, 0, size);
 }
 
-void IMB_thumb_makedirs(void)
+void IMB_thumb_makedirs()
 {
   char tpath[FILE_MAX];
 #if 0 /* UNUSED */
@@ -360,7 +358,8 @@ static ImBuf *thumb_create_ex(const char *file_path,
       }
     }
     else {
-      if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT)) {
+      if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT, THB_SOURCE_OBJECT_IO))
+      {
         /* only load if we didn't give an image */
         if (img == nullptr) {
           switch (source) {
@@ -373,6 +372,12 @@ static ImBuf *thumb_create_ex(const char *file_path,
             case THB_SOURCE_FONT:
               img = IMB_thumb_load_font(file_path, tsize, tsize);
               break;
+            case THB_SOURCE_OBJECT_IO: {
+              if (BLI_path_extension_check(file_path, ".svg")) {
+                img = IMB_thumb_load_image(file_path, tsize, nullptr);
+              }
+              break;
+            }
             default:
               BLI_assert_unreachable(); /* This should never happen */
           }
@@ -490,13 +495,13 @@ ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source
       filepath, uri, thumb_name, false, THUMB_DEFAULT_HASH, nullptr, nullptr, size, source, img);
 }
 
-ImBuf *IMB_thumb_read(const char *filepath, ThumbSize size)
+ImBuf *IMB_thumb_read(const char *file_or_lib_path, ThumbSize size)
 {
   char thumb[FILE_MAX];
   char uri[URI_MAX];
   ImBuf *img = nullptr;
 
-  if (!uri_from_filename(filepath, uri)) {
+  if (!uri_from_filename(file_or_lib_path, uri)) {
     return nullptr;
   }
   if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
@@ -506,16 +511,16 @@ ImBuf *IMB_thumb_read(const char *filepath, ThumbSize size)
   return img;
 }
 
-void IMB_thumb_delete(const char *filepath, ThumbSize size)
+void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size)
 {
   char thumb[FILE_MAX];
   char uri[URI_MAX];
 
-  if (!uri_from_filename(filepath, uri)) {
+  if (!uri_from_filename(file_or_lib_path, uri)) {
     return;
   }
   if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
-    if (BLI_path_ncmp(filepath, thumb, sizeof(thumb)) == 0) {
+    if (BLI_path_ncmp(file_or_lib_path, thumb, sizeof(thumb)) == 0) {
       return;
     }
     if (BLI_exists(thumb)) {
@@ -524,21 +529,16 @@ void IMB_thumb_delete(const char *filepath, ThumbSize size)
   }
 }
 
-ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source)
+ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSource source)
 {
-  char thumb_path[FILE_MAX];
-  char thumb_name[40];
-  char uri[URI_MAX];
   char path_buff[FILE_MAX_LIBEXTRA];
-  const char *file_path;
-  const char *path;
-  BLI_stat_t st;
-  ImBuf *img = nullptr;
   char *blen_group = nullptr, *blen_id = nullptr;
 
-  path = file_path = filepath;
+  /* Will be the actual path to the file, i.e. the same as #file_or_lib_path, or if that points
+   * into a .blend, the path of the .blend. */
+  const char *file_path = file_or_lib_path;
   if (source == THB_SOURCE_BLEND) {
-    if (BKE_blendfile_library_path_explode(path, path_buff, &blen_group, &blen_id)) {
+    if (BKE_blendfile_library_path_explode(file_or_lib_path, path_buff, &blen_group, &blen_id)) {
       if (blen_group) {
         if (!blen_id) {
           /* No preview for blen groups */
@@ -549,12 +549,26 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
     }
   }
 
+  BLI_stat_t st;
   if (BLI_stat(file_path, &st) == -1) {
     return nullptr;
   }
-  if (!uri_from_filename(path, uri)) {
+  char uri[URI_MAX];
+  if (!uri_from_filename(file_or_lib_path, uri)) {
     return nullptr;
   }
+
+  /* Don't access offline files, only use already existing thumbnails (don't recreate). */
+  const eFileAttributes file_attributes = BLI_file_attributes(file_path);
+  if (file_attributes & FILE_ATTR_OFFLINE) {
+    char thumb_path[FILE_MAX];
+    if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), size)) {
+      return IMB_loadiffname(thumb_path, IB_rect | IB_metadata, nullptr);
+    }
+    return nullptr;
+  }
+
+  char thumb_path[FILE_MAX];
   if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), THB_FAIL)) {
     /* failure thumb exists, don't try recreating */
     if (BLI_exists(thumb_path)) {
@@ -568,11 +582,15 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
     }
   }
 
+  ImBuf *img = nullptr;
+  char thumb_name[40];
   if (thumbpathname_from_uri(
           uri, thumb_path, sizeof(thumb_path), thumb_name, sizeof(thumb_name), size))
   {
-    if (BLI_path_ncmp(path, thumb_path, sizeof(thumb_path)) == 0) {
-      img = IMB_loadiffname(path, IB_rect, nullptr);
+    /* The requested path points to a generated thumbnail already (path into the thumbnail cache
+     * directory). Attempt to load that, there's nothing we can recreate. */
+    if (BLI_path_ncmp(file_or_lib_path, thumb_path, sizeof(thumb_path)) == 0) {
+      img = IMB_loadiffname(file_or_lib_path, IB_rect, nullptr);
     }
     else {
       img = IMB_loadiffname(thumb_path, IB_rect | IB_metadata, nullptr);
@@ -608,9 +626,9 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
           /* recreate all thumbs */
           IMB_freeImBuf(img);
           img = nullptr;
-          IMB_thumb_delete(path, THB_NORMAL);
-          IMB_thumb_delete(path, THB_LARGE);
-          IMB_thumb_delete(path, THB_FAIL);
+          IMB_thumb_delete(file_or_lib_path, THB_NORMAL);
+          IMB_thumb_delete(file_or_lib_path, THB_LARGE);
+          IMB_thumb_delete(file_or_lib_path, THB_FAIL);
           img = thumb_create_or_fail(
               file_path, uri, thumb_name, use_hash, thumb_hash, blen_group, blen_id, size, source);
         }
@@ -647,9 +665,9 @@ static struct IMBThumbLocks {
   GSet *locked_paths;
   int lock_counter;
   ThreadCondition cond;
-} thumb_locks = {0};
+} thumb_locks = {nullptr};
 
-void IMB_thumb_locks_acquire(void)
+void IMB_thumb_locks_acquire()
 {
   BLI_thread_lock(LOCK_IMAGE);
 
@@ -665,7 +683,7 @@ void IMB_thumb_locks_acquire(void)
   BLI_thread_unlock(LOCK_IMAGE);
 }
 
-void IMB_thumb_locks_release(void)
+void IMB_thumb_locks_release()
 {
   BLI_thread_lock(LOCK_IMAGE);
   BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));

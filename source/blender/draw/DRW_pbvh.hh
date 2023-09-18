@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,10 +11,15 @@
 /* Needed for BKE_ccg.h. */
 #include "BLI_assert.h"
 #include "BLI_bitmap.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 
 #include "BKE_ccg.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct PBVHAttrReq;
 struct GPUBatch;
@@ -34,37 +39,36 @@ struct PBVH_GPU_Args {
 
   BMesh *bm;
   const Mesh *me;
-  const float (*vert_positions)[3];
-  blender::OffsetIndices<int> polys;
+  blender::MutableSpan<blender::float3> vert_positions;
+  blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
-  int mesh_verts_num, mesh_faces_num, mesh_grids_num;
-  CustomData *vdata, *ldata, *pdata;
-  const float (*vert_normals)[3];
+  int mesh_grids_num;
+  const CustomData *vert_data;
+  const CustomData *loop_data;
+  const CustomData *face_data;
+  blender::Span<blender::float3> vert_normals;
+  blender::Span<blender::float3> face_normals;
 
   const char *active_color;
   const char *render_color;
 
   int face_sets_color_seed, face_sets_color_default;
-  int *face_sets; /* for PBVH_FACES and PBVH_GRIDS */
+  const int *face_sets; /* for PBVH_FACES and PBVH_GRIDS */
 
   SubdivCCG *subdiv_ccg;
   const DMFlagMat *grid_flag_mats;
-  const int *grid_indices;
+  blender::Span<int> grid_indices;
   CCGKey ccg_key;
   CCGElem **grids;
-  void **gridfaces;
   BLI_bitmap **grid_hidden;
 
-  int *prim_indices;
-  int totprim;
+  blender::Span<int> prim_indices;
 
   const bool *hide_poly;
 
-  int node_verts_num;
-
-  const MLoopTri *mlooptri;
-  const int *looptri_polys;
+  blender::Span<MLoopTri> mlooptri;
+  blender::Span<int> looptri_faces;
   PBVHNode *node;
 
   /* BMesh. */
@@ -72,21 +76,25 @@ struct PBVH_GPU_Args {
   int cd_mask_layer;
 };
 
-void DRW_pbvh_node_update(PBVHBatches *batches, PBVH_GPU_Args *args);
-void DRW_pbvh_update_pre(PBVHBatches *batches, PBVH_GPU_Args *args);
+void DRW_pbvh_node_update(PBVHBatches *batches, const PBVH_GPU_Args &args);
+void DRW_pbvh_update_pre(PBVHBatches *batches, const PBVH_GPU_Args &args);
 
 void DRW_pbvh_node_gpu_flush(PBVHBatches *batches);
-PBVHBatches *DRW_pbvh_node_create(PBVH_GPU_Args *args);
+PBVHBatches *DRW_pbvh_node_create(const PBVH_GPU_Args &args);
 void DRW_pbvh_node_free(PBVHBatches *batches);
 GPUBatch *DRW_pbvh_tris_get(PBVHBatches *batches,
                             PBVHAttrReq *attrs,
                             int attrs_num,
-                            PBVH_GPU_Args *args,
+                            const PBVH_GPU_Args &args,
                             int *r_prim_count,
                             bool do_coarse_grids);
 GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
                              PBVHAttrReq *attrs,
                              int attrs_num,
-                             PBVH_GPU_Args *args,
+                             const PBVH_GPU_Args &args,
                              int *r_prim_count,
                              bool do_coarse_grids);
+
+#ifdef __cplusplus
+}
+#endif

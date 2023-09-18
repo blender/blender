@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,12 +15,18 @@
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
+#include "BLI_math_matrix_types.hh"
+
 #include "GHOST_C-api.h"
 
 namespace blender::gpu {
 
 void VKDevice::deinit()
 {
+  VK_ALLOCATION_CALLBACKS;
+  vkDestroyCommandPool(vk_device_, vk_command_pool_, vk_allocation_callbacks);
+
+  dummy_buffer_.free();
   sampler_.free();
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
@@ -50,10 +56,12 @@ void VKDevice::init(void *ghost_context)
                          &vk_queue_);
 
   init_physical_device_properties();
+  init_physical_device_features();
   VKBackend::platform_init(*this);
   VKBackend::capabilities_init(*this);
   init_debug_callbacks();
   init_memory_allocator();
+  init_command_pools();
   init_descriptor_pools();
 
   sampler_.create();
@@ -73,6 +81,18 @@ void VKDevice::init_physical_device_properties()
   vkGetPhysicalDeviceProperties(vk_physical_device_, &vk_physical_device_properties_);
 }
 
+void VKDevice::init_physical_device_features()
+{
+  BLI_assert(vk_physical_device_ != VK_NULL_HANDLE);
+  VkPhysicalDeviceFeatures2 features = {};
+  features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+  vk_physical_device_vulkan_11_features_.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+  features.pNext = &vk_physical_device_vulkan_11_features_;
+  vkGetPhysicalDeviceFeatures2(vk_physical_device_, &features);
+  vk_physical_device_features_ = features.features;
+}
+
 void VKDevice::init_memory_allocator()
 {
   VK_ALLOCATION_CALLBACKS;
@@ -85,9 +105,33 @@ void VKDevice::init_memory_allocator()
   vmaCreateAllocator(&info, &mem_allocator_);
 }
 
+void VKDevice::init_command_pools()
+{
+  VK_ALLOCATION_CALLBACKS;
+  VkCommandPoolCreateInfo command_pool_info = {};
+  command_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  command_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+  command_pool_info.queueFamilyIndex = vk_queue_family_;
+
+  vkCreateCommandPool(vk_device_, &command_pool_info, vk_allocation_callbacks, &vk_command_pool_);
+}
+
 void VKDevice::init_descriptor_pools()
 {
   descriptor_pools_.init(vk_device_);
+}
+
+void VKDevice::init_dummy_buffer(VKContext &context)
+{
+  if (dummy_buffer_.is_allocated()) {
+    return;
+  }
+
+  dummy_buffer_.create(sizeof(float4x4),
+                       GPU_USAGE_DEVICE_ONLY,
+                       static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                                                          VK_BUFFER_USAGE_TRANSFER_DST_BIT));
+  dummy_buffer_.clear(context, 0);
 }
 
 /* -------------------------------------------------------------------- */

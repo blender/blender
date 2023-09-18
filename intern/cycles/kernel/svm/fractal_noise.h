@@ -9,7 +9,8 @@
 CCL_NAMESPACE_BEGIN
 
 /* The fractal_noise_[1-4] functions are all exactly the same except for the input type. */
-ccl_device_noinline float fractal_noise_1d(float p, float octaves, float roughness)
+ccl_device_noinline float fractal_noise_1d(
+    float p, float octaves, float roughness, float lacunarity, bool normalize)
 {
   float fscale = 1.0f;
   float amp = 1.0f;
@@ -18,27 +19,27 @@ ccl_device_noinline float fractal_noise_1d(float p, float octaves, float roughne
   octaves = clamp(octaves, 0.0f, 15.0f);
   int n = float_to_int(octaves);
   for (int i = 0; i <= n; i++) {
-    float t = noise_1d(fscale * p);
+    float t = snoise_1d(fscale * p);
     sum += t * amp;
     maxamp += amp;
     amp *= clamp(roughness, 0.0f, 1.0f);
-    fscale *= 2.0f;
+    fscale *= lacunarity;
   }
   float rmd = octaves - floorf(octaves);
   if (rmd != 0.0f) {
-    float t = noise_1d(fscale * p);
+    float t = snoise_1d(fscale * p);
     float sum2 = sum + t * amp;
-    sum /= maxamp;
-    sum2 /= maxamp + amp;
-    return (1.0f - rmd) * sum + rmd * sum2;
+    return normalize ? mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) :
+                       mix(sum, sum2, rmd);
   }
   else {
-    return sum / maxamp;
+    return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
   }
 }
 
 /* The fractal_noise_[1-4] functions are all exactly the same except for the input type. */
-ccl_device_noinline float fractal_noise_2d(float2 p, float octaves, float roughness)
+ccl_device_noinline float fractal_noise_2d(
+    float2 p, float octaves, float roughness, float lacunarity, bool normalize)
 {
   float fscale = 1.0f;
   float amp = 1.0f;
@@ -47,27 +48,27 @@ ccl_device_noinline float fractal_noise_2d(float2 p, float octaves, float roughn
   octaves = clamp(octaves, 0.0f, 15.0f);
   int n = float_to_int(octaves);
   for (int i = 0; i <= n; i++) {
-    float t = noise_2d(fscale * p);
+    float t = snoise_2d(fscale * p);
     sum += t * amp;
     maxamp += amp;
     amp *= clamp(roughness, 0.0f, 1.0f);
-    fscale *= 2.0f;
+    fscale *= lacunarity;
   }
   float rmd = octaves - floorf(octaves);
   if (rmd != 0.0f) {
-    float t = noise_2d(fscale * p);
+    float t = snoise_2d(fscale * p);
     float sum2 = sum + t * amp;
-    sum /= maxamp;
-    sum2 /= maxamp + amp;
-    return (1.0f - rmd) * sum + rmd * sum2;
+    return normalize ? mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) :
+                       mix(sum, sum2, rmd);
   }
   else {
-    return sum / maxamp;
+    return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
   }
 }
 
 /* The fractal_noise_[1-4] functions are all exactly the same except for the input type. */
-ccl_device_noinline float fractal_noise_3d(float3 p, float octaves, float roughness)
+ccl_device_noinline float fractal_noise_3d(
+    float3 p, float octaves, float roughness, float lacunarity, bool normalize)
 {
   float fscale = 1.0f;
   float amp = 1.0f;
@@ -76,27 +77,27 @@ ccl_device_noinline float fractal_noise_3d(float3 p, float octaves, float roughn
   octaves = clamp(octaves, 0.0f, 15.0f);
   int n = float_to_int(octaves);
   for (int i = 0; i <= n; i++) {
-    float t = noise_3d(fscale * p);
+    float t = snoise_3d(fscale * p);
     sum += t * amp;
     maxamp += amp;
     amp *= clamp(roughness, 0.0f, 1.0f);
-    fscale *= 2.0f;
+    fscale *= lacunarity;
   }
   float rmd = octaves - floorf(octaves);
   if (rmd != 0.0f) {
-    float t = noise_3d(fscale * p);
+    float t = snoise_3d(fscale * p);
     float sum2 = sum + t * amp;
-    sum /= maxamp;
-    sum2 /= maxamp + amp;
-    return (1.0f - rmd) * sum + rmd * sum2;
+    return normalize ? mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) :
+                       mix(sum, sum2, rmd);
   }
   else {
-    return sum / maxamp;
+    return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
   }
 }
 
 /* The fractal_noise_[1-4] functions are all exactly the same except for the input type. */
-ccl_device_noinline float fractal_noise_4d(float4 p, float octaves, float roughness)
+ccl_device_noinline float fractal_noise_4d(
+    float4 p, float octaves, float roughness, float lacunarity, bool normalize)
 {
   float fscale = 1.0f;
   float amp = 1.0f;
@@ -105,22 +106,21 @@ ccl_device_noinline float fractal_noise_4d(float4 p, float octaves, float roughn
   octaves = clamp(octaves, 0.0f, 15.0f);
   int n = float_to_int(octaves);
   for (int i = 0; i <= n; i++) {
-    float t = noise_4d(fscale * p);
+    float t = snoise_4d(fscale * p);
     sum += t * amp;
     maxamp += amp;
     amp *= clamp(roughness, 0.0f, 1.0f);
-    fscale *= 2.0f;
+    fscale *= lacunarity;
   }
   float rmd = octaves - floorf(octaves);
   if (rmd != 0.0f) {
-    float t = noise_4d(fscale * p);
+    float t = snoise_4d(fscale * p);
     float sum2 = sum + t * amp;
-    sum /= maxamp;
-    sum2 /= maxamp + amp;
-    return (1.0f - rmd) * sum + rmd * sum2;
+    return normalize ? mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) :
+                       mix(sum, sum2, rmd);
   }
   else {
-    return sum / maxamp;
+    return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
   }
 }
 

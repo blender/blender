@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -55,9 +55,6 @@ class Context {
    * to not support the composite output and just displays its viewer output. In that case, the
    * composite output will be used as a fallback viewer if no other viewer exists */
   virtual bool use_composite_output() const = 0;
-
-  /* True if color management should be used for texture evaluation. */
-  virtual bool use_texture_color_management() const = 0;
 
   /* Get the render settings for compositing. */
   virtual const RenderData &get_render_data() const = 0;

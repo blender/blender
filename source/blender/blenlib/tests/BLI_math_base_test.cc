@@ -1,10 +1,9 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
-#include "BLI_math.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
 
@@ -62,32 +61,57 @@ TEST(math_base, CompareFFRelativeZero)
 
   EXPECT_TRUE(compare_ff_relative(f0, f1, -1.0f, 3));
   EXPECT_TRUE(compare_ff_relative(f1, f0, -1.0f, 3));
+  EXPECT_FALSE(compare_ff_relative(f0, f1, -1.0f, 2));
+  EXPECT_FALSE(compare_ff_relative(f1, f0, -1.0f, 2));
+  EXPECT_TRUE(compare_ff_relative(f0, f1, max_diff, 2));
+  EXPECT_TRUE(compare_ff_relative(f1, f0, max_diff, 2));
 
-  EXPECT_FALSE(compare_ff_relative(f0, f1, -1.0f, 1));
-  EXPECT_FALSE(compare_ff_relative(f1, f0, -1.0f, 1));
+  EXPECT_TRUE(compare_ff_relative(fn0, f1, -1.0f, 3));
+  EXPECT_TRUE(compare_ff_relative(f1, fn0, -1.0f, 3));
+  EXPECT_FALSE(compare_ff_relative(fn0, f1, -1.0f, 2));
+  EXPECT_FALSE(compare_ff_relative(f1, fn0, -1.0f, 2));
+  EXPECT_TRUE(compare_ff_relative(fn0, f1, max_diff, 2));
+  EXPECT_TRUE(compare_ff_relative(f1, fn0, max_diff, 2));
 
-  EXPECT_TRUE(compare_ff_relative(fn0, fn1, -1.0f, 8));
-  EXPECT_TRUE(compare_ff_relative(fn1, fn0, -1.0f, 8));
+  EXPECT_TRUE(compare_ff_relative(fn0, fn1, -1.0f, 2));
+  EXPECT_TRUE(compare_ff_relative(fn1, fn0, -1.0f, 2));
+  EXPECT_FALSE(compare_ff_relative(fn0, fn1, -1.0f, 1));
+  EXPECT_FALSE(compare_ff_relative(fn1, fn0, -1.0f, 1));
+  EXPECT_TRUE(compare_ff_relative(fn0, fn1, max_diff, 1));
+  EXPECT_TRUE(compare_ff_relative(fn1, fn0, max_diff, 1));
 
-  EXPECT_TRUE(compare_ff_relative(f0, f1, max_diff, 1));
-  EXPECT_TRUE(compare_ff_relative(f1, f0, max_diff, 1));
-
-  EXPECT_TRUE(compare_ff_relative(fn0, f0, max_diff, 1));
-  EXPECT_TRUE(compare_ff_relative(f0, fn0, max_diff, 1));
-
+  EXPECT_TRUE(compare_ff_relative(f0, fn1, -1.0f, 2));
+  EXPECT_TRUE(compare_ff_relative(fn1, f0, -1.0f, 2));
+  EXPECT_FALSE(compare_ff_relative(f0, fn1, -1.0f, 1));
+  EXPECT_FALSE(compare_ff_relative(fn1, f0, -1.0f, 1));
   EXPECT_TRUE(compare_ff_relative(f0, fn1, max_diff, 1));
   EXPECT_TRUE(compare_ff_relative(fn1, f0, max_diff, 1));
 
-  /* NOTE: in theory, this should return false, since 0.0f  and -0.0f have 0x80000000 diff,
-   *       but overflow in subtraction seems to break something here
-   *       (abs(*(int *)&fn0 - *(int *)&f0) == 0x80000000 == fn0), probably because int32 cannot
-   * hold this abs value. this is yet another illustration of why one shall never use (near-)zero
-   * floats in pure-ULP comparison. */
-  //  EXPECT_FALSE(compare_ff_relative(fn0, f0, -1.0f, 1024));
-  //  EXPECT_FALSE(compare_ff_relative(f0, fn0, -1.0f, 1024));
+  EXPECT_TRUE(compare_ff_relative(fn0, f0, -1.0f, 0));
+  EXPECT_TRUE(compare_ff_relative(f0, fn0, -1.0f, 0));
+}
 
-  EXPECT_FALSE(compare_ff_relative(fn0, f1, -1.0f, 1024));
-  EXPECT_FALSE(compare_ff_relative(f1, fn0, -1.0f, 1024));
+TEST(math_base, UlpDiffFF)
+{
+  EXPECT_EQ(ulp_diff_ff(0.0, 0.0), 0);
+  EXPECT_EQ(ulp_diff_ff(0.0, -0.0), 0);
+  EXPECT_EQ(ulp_diff_ff(-0.0, -0.0), 0);
+  EXPECT_EQ(ulp_diff_ff(1.0, 1.0), 0);
+  EXPECT_EQ(ulp_diff_ff(1.0, 2.0), 1 << 23);
+  EXPECT_EQ(ulp_diff_ff(2.0, 4.0), 1 << 23);
+  EXPECT_EQ(ulp_diff_ff(-1.0, -2.0), 1 << 23);
+  EXPECT_EQ(ulp_diff_ff(-2.0, -4.0), 1 << 23);
+  EXPECT_EQ(ulp_diff_ff(-1.0, 1.0), 0x7f000000);
+  EXPECT_EQ(ulp_diff_ff(0.0, 1.0), 0x3f800000);
+  EXPECT_EQ(ulp_diff_ff(-0.0, 1.0), 0x3f800000);
+  EXPECT_EQ(ulp_diff_ff(0.0, -1.0), 0x3f800000);
+  EXPECT_EQ(ulp_diff_ff(-0.0, -1.0), 0x3f800000);
+  EXPECT_EQ(ulp_diff_ff(INFINITY, -INFINITY), 0xff000000);
+  EXPECT_EQ(ulp_diff_ff(NAN, NAN), 0xffffffff);
+  EXPECT_EQ(ulp_diff_ff(NAN, 1.0), 0xffffffff);
+  EXPECT_EQ(ulp_diff_ff(1.0, NAN), 0xffffffff);
+  EXPECT_EQ(ulp_diff_ff(-NAN, 1.0), 0xffffffff);
+  EXPECT_EQ(ulp_diff_ff(1.0, -NAN), 0xffffffff);
 }
 
 TEST(math_base, Log2FloorU)

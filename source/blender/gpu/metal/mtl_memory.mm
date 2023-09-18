@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -204,7 +204,7 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
 }
 
 gpu::MTLBuffer *MTLBufferPool::allocate_aligned_with_data(uint64_t size,
-                                                          uint32_t alignment,
+                                                          uint32_t /*alignment*/,
                                                           bool cpu_visible,
                                                           const void *data)
 {
@@ -327,7 +327,7 @@ void MTLBufferPool::update_memory_pools()
       {
         deletion_time_threshold_s = 4;
       }
-      /* Spare pool memory >= 512MB.*/
+      /* Spare pool memory >= 512MB. */
       else if (allocations_in_pool_ >= MEMORY_SIZE_512MB) {
         deletion_time_threshold_s = 15;
       }

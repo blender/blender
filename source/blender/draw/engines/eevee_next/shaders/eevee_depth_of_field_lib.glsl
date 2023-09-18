@@ -1,7 +1,10 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Depth of Field utils.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
@@ -42,7 +45,7 @@ const bool no_slight_focus_pass = false;
 const bool no_focus_pass = false;
 const bool no_hole_fill_pass = false;
 
-/* Distribute weights between near/slightfocus/far fields (slide 117). */
+/* Distribute weights between near/slight-focus/far fields (slide 117). */
 const float dof_layer_threshold = 4.0;
 /* Make sure it overlaps. */
 const float dof_layer_offset_fg = 0.5 + 1.0;
@@ -127,7 +130,7 @@ float dof_coc_from_depth(DepthOfFieldData dof_data, vec2 uv, float depth)
 
 float dof_layer_weight(float coc, const bool is_foreground)
 {
-  /* NOTE: These are fullres pixel CoC value. */
+  /* NOTE: These are full-resolution pixel CoC value. */
   if (is_resolve) {
     return saturate(-abs(coc) + dof_layer_threshold + dof_layer_offset) *
            float(is_foreground ? (coc <= 0.5) : (coc > -0.5));
@@ -146,7 +149,7 @@ vec4 dof_layer_weight(vec4 coc)
   return saturate(coc - dof_layer_threshold + dof_layer_offset);
 }
 
-/* NOTE: This is halfres CoC radius. */
+/* NOTE: This is half-resolution CoC radius. */
 float dof_sample_weight(float coc)
 {
 #if 1 /* Optimized */
@@ -305,7 +308,7 @@ CocTilePrediction dof_coc_tile_prediction_get(CocTile tile)
  *                 . . . . .
  *
  * Samples are expected to be mirrored to complete the pattern.
- **/
+ */
 ivec2 dof_square_ring_sample_offset(int ring_distance, int sample_id)
 {
   ivec2 offset;

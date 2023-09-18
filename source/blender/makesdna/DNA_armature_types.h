@@ -11,12 +11,20 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
+
+#include "BLI_utildefines.h"
+
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
-extern "C" {
+namespace blender::animrig {
+class BoneColor;
+}
 #endif
 
 struct AnimData;
+struct BoneCollection;
 
 /* this system works on different transformation space levels;
  *
@@ -25,6 +33,27 @@ struct AnimData;
  * 3) Pose Space;      the animation position, in Object space
  * 4) World Space;     Object matrix applied to Pose or Armature space
  */
+
+typedef struct BoneColor {
+  /**
+   * Index of color palette to use when drawing bones.
+   * 0=default, >0 = predefined in theme, -1=custom color in #custom.
+   *
+   * For the predefined ones, see #rna_enum_color_sets_items in rna_armature.c.
+   */
+  int8_t palette_index;
+  uint8_t _pad0[7];
+  ThemeWireColor custom;
+#ifdef __cplusplus
+  blender::animrig::BoneColor &wrap();
+  const blender::animrig::BoneColor &wrap() const;
+#endif
+} BoneColor;
+
+typedef struct Bone_Runtime {
+  /* #BoneCollectionReference */
+  ListBase collections;
+} Bone_Runtime;
 
 typedef struct Bone {
   /** Next/previous elements within this list. */
@@ -48,8 +77,11 @@ typedef struct Bone {
 
   int flag;
 
+  char _pad1[4];
+  BoneColor color; /* MUST be named the same as in bPoseChannel and EditBone structs. */
+
   char inherit_scale_mode;
-  char _pad[7];
+  char _pad[3];
 
   float arm_head[3];
   /** Head/tail in Armature Space (rest pose). */
@@ -101,7 +133,22 @@ typedef struct Bone {
   /** Next/prev bones to use as handle references when calculating bbones (optional). */
   struct Bone *bbone_prev;
   struct Bone *bbone_next;
+
+  /* Keep last. */
+  Bone_Runtime runtime;
 } Bone;
+
+typedef struct bArmature_Runtime {
+  /**
+   * Index of the active collection, -1 if there is no collection active.
+   *
+   * For UIList support in the user interface. Assigning here does nothing, use
+   * `ANIM_armature_bonecoll_active_set` to set the active bone collection.
+   */
+  int active_collection_index;
+  uint8_t _pad0[4];
+  struct BoneCollection *active_collection;
+} bArmature_Runtime;
 
 typedef struct bArmature {
   ID id;
@@ -137,14 +184,71 @@ typedef struct bArmature {
   short deformflag;
   short pathflag;
 
+  /* BoneCollection. */
+  ListBase collections;
+
+  /** Do not directly assign, use `ANIM_armature_bonecoll_active_set` instead.
+   * This is stored as a string to make it possible for the library overrides system to understand
+   * when it actually changed (compared to a BoneCollection*, which would change on every load).
+   */
+  char active_collection_name[64]; /* MAX_NAME. */
+
   /** For UI, to show which layers are there. */
-  unsigned int layer_used;
+  unsigned int layer_used DNA_DEPRECATED;
   /** For buttons to work, both variables in this order together. */
-  unsigned int layer, layer_protected;
+  unsigned int layer DNA_DEPRECATED, layer_protected DNA_DEPRECATED;
 
   /** Relative position of the axes on the bone, from head (0.0f) to tail (1.0f). */
   float axes_position;
+
+  /** Keep last, for consistency with the position of other DNA runtime structures. */
+  struct bArmature_Runtime runtime;
 } bArmature;
+
+/**
+ * Collection of Bones within an Armature.
+ *
+ * BoneCollections are owned by their Armature, and cannot be shared between
+ * different armatures.
+ *
+ * Bones can be in more than one collection at a time.
+ *
+ * Selectability and visibility of bones are determined by OR-ing the collection
+ * flags.
+ */
+typedef struct BoneCollection {
+  struct BoneCollection *next, *prev;
+
+  /** MAX_NAME. */
+  char name[64];
+
+  /** BoneCollectionMember. */
+  ListBase bones;
+
+  /** eBoneCollection_Flag. */
+  uint8_t flags;
+  uint8_t _pad0[7];
+
+  /** Custom properties. */
+  struct IDProperty *prop;
+} BoneCollection;
+
+/** Membership relation of a bone with a bone collection. */
+typedef struct BoneCollectionMember {
+  struct BoneCollectionMember *next, *prev;
+  struct Bone *bone;
+} BoneCollectionMember;
+
+/**
+ * Membership relation of a bone with its collections.
+ *
+ * This is only bone-runtime data for easy lookups, the actual membership is
+ * stored on the #bArmature in #BoneCollectionMember structs.
+ */
+typedef struct BoneCollectionReference {
+  struct BoneCollectionReference *next, *prev;
+  struct BoneCollection *bcoll;
+} BoneCollectionReference;
 
 /* armature->flag */
 /* don't use bit 7, was saved in files to disable stuff */
@@ -154,7 +258,7 @@ typedef enum eArmature_Flag {
   ARM_FLAG_UNUSED_1 = (1 << 1), /* cleared */
   ARM_DRAWAXES = (1 << 2),
   ARM_DRAWNAMES = (1 << 3),
-  ARM_POSEMODE = (1 << 4),
+  /* ARM_POSEMODE = (1 << 4), Deprecated. */
   /** Position of the parent-child relation lines on the bone (cleared = drawn
    * from the tail, set = drawn from the head). Only controls the parent side of
    * the line; the child side is always drawn to the head of the bone. */
@@ -265,6 +369,7 @@ typedef enum eBone_Flag {
   /** this bone is associated with a locked vertex group, ONLY USE FOR DRAWING */
   BONE_DRAW_LOCKED_WEIGHT = (1 << 26),
 } eBone_Flag;
+ENUM_OPERATORS(eBone_Flag, BONE_DRAW_LOCKED_WEIGHT)
 
 /* bone->inherit_scale_mode */
 typedef enum eBone_InheritScaleMode {
@@ -315,6 +420,22 @@ typedef enum eBone_BBoneHandleFlag {
 
 #define MAXBONENAME 64
 
+/** #BoneCollection.flag */
+typedef enum eBoneCollection_Flag {
+  BONE_COLLECTION_VISIBLE = (1 << 0),
+  BONE_COLLECTION_SELECTABLE = (1 << 1), /* Intended to be implemented in the not-so-far future. */
+  BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL = (1 << 2), /* Added by a local library override. */
+} eBoneCollection_Flag;
+ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL)
+
 #ifdef __cplusplus
+
+inline blender::animrig::BoneColor &BoneColor::wrap()
+{
+  return *reinterpret_cast<blender::animrig::BoneColor *>(this);
+}
+inline const blender::animrig::BoneColor &BoneColor::wrap() const
+{
+  return *reinterpret_cast<const blender::animrig::BoneColor *>(this);
 }
 #endif

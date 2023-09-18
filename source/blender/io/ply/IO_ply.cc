@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,7 +9,7 @@
 #include "BLI_timeit.hh"
 
 #include "DNA_windowmanager_types.h"
-#include "IO_ply.h"
+#include "IO_ply.hh"
 #include "ply_export.hh"
 #include "ply_import.hh"
 

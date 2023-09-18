@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,11 +7,11 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "NOD_geometry.h"
-#include "NOD_socket.h"
+#include "NOD_geometry.hh"
+#include "NOD_socket.hh"
 
 #include "node_geometry_util.hh"
 
@@ -59,54 +59,105 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
   {
     const GeoNodesLFUserData &user_data = *static_cast<const GeoNodesLFUserData *>(
         context.user_data);
-    const GeoNodesModifierData &modifier_data = *user_data.modifier_data;
-    if (modifier_data.current_simulation_state == nullptr) {
+    if (!user_data.modifier_data) {
       params.set_default_remaining_outputs();
       return;
     }
-
+    const GeoNodesModifierData &modifier_data = *user_data.modifier_data;
+    if (!modifier_data.simulation_params) {
+      params.set_default_remaining_outputs();
+      return;
+    }
+    std::optional<FoundNestedNodeID> found_id = find_nested_node_id(user_data, output_node_id_);
+    if (!found_id) {
+      params.set_default_remaining_outputs();
+      return;
+    }
+    if (found_id->is_in_loop) {
+      params.set_default_remaining_outputs();
+      return;
+    }
+    SimulationZoneBehavior *zone_behavior = modifier_data.simulation_params->get(found_id->id);
+    if (!zone_behavior) {
+      params.set_default_remaining_outputs();
+      return;
+    }
+    sim_input::Behavior &input_behavior = zone_behavior->input;
+    float delta_time = 0.0f;
+    if (auto *info = std::get_if<sim_input::OutputCopy>(&input_behavior)) {
+      delta_time = info->delta_time;
+      this->output_simulation_state_copy(params, user_data, info->state);
+    }
+    else if (auto *info = std::get_if<sim_input::OutputMove>(&input_behavior)) {
+      delta_time = info->delta_time;
+      this->output_simulation_state_move(params, user_data, std::move(info->state));
+    }
+    else if (std::get_if<sim_input::PassThrough>(&input_behavior)) {
+      delta_time = 0.0f;
+      this->pass_through(params, user_data);
+    }
+    else {
+      BLI_assert_unreachable();
+    }
     if (!params.output_was_set(0)) {
-      const float delta_time = modifier_data.simulation_time_delta;
       params.set_output(0, fn::ValueOrField<float>(delta_time));
     }
+  }
 
-    const bke::sim::SimulationZoneID zone_id = get_simulation_zone_id(*user_data.compute_context,
-                                                                      output_node_id_);
-
-    const bke::sim::SimulationZoneState *prev_zone_state =
-        modifier_data.prev_simulation_state == nullptr ?
-            nullptr :
-            modifier_data.prev_simulation_state->get_zone_state(zone_id);
-
-    std::optional<bke::sim::SimulationZoneState> initial_prev_zone_state;
-    if (prev_zone_state == nullptr) {
-      Array<void *> input_values(simulation_items_.size(), nullptr);
-      for (const int i : simulation_items_.index_range()) {
-        input_values[i] = params.try_get_input_data_ptr_or_request(i);
-      }
-      if (input_values.as_span().contains(nullptr)) {
-        /* Wait until all inputs are available. */
-        return;
-      }
-
-      initial_prev_zone_state.emplace();
-      values_to_simulation_state(simulation_items_, input_values, *initial_prev_zone_state);
-      prev_zone_state = &*initial_prev_zone_state;
-    }
-
-    Array<void *> output_values(simulation_items_.size());
+  void output_simulation_state_copy(lf::Params &params,
+                                    const GeoNodesLFUserData &user_data,
+                                    const bke::bake::BakeStateRef &zone_state) const
+  {
+    Array<void *> outputs(simulation_items_.size());
     for (const int i : simulation_items_.index_range()) {
-      output_values[i] = params.get_output_data_ptr(i + 1);
+      outputs[i] = params.get_output_data_ptr(i + 1);
     }
-    simulation_state_to_values(simulation_items_,
-                               *prev_zone_state,
-                               *modifier_data.self_object,
-                               *user_data.compute_context,
-                               node_,
-                               output_values);
+    copy_simulation_state_to_values(simulation_items_,
+                                    zone_state,
+                                    *user_data.modifier_data->self_object,
+                                    *user_data.compute_context,
+                                    node_,
+                                    outputs);
     for (const int i : simulation_items_.index_range()) {
       params.output_set(i + 1);
     }
+  }
+
+  void output_simulation_state_move(lf::Params &params,
+                                    const GeoNodesLFUserData &user_data,
+                                    bke::bake::BakeState zone_state) const
+  {
+    Array<void *> outputs(simulation_items_.size());
+    for (const int i : simulation_items_.index_range()) {
+      outputs[i] = params.get_output_data_ptr(i + 1);
+    }
+    move_simulation_state_to_values(simulation_items_,
+                                    std::move(zone_state),
+                                    *user_data.modifier_data->self_object,
+                                    *user_data.compute_context,
+                                    node_,
+                                    outputs);
+    for (const int i : simulation_items_.index_range()) {
+      params.output_set(i + 1);
+    }
+  }
+
+  void pass_through(lf::Params &params, const GeoNodesLFUserData &user_data) const
+  {
+    Array<void *> input_values(inputs_.size());
+    for (const int i : inputs_.index_range()) {
+      input_values[i] = params.try_get_input_data_ptr_or_request(i);
+    }
+    if (input_values.as_span().contains(nullptr)) {
+      /* Wait for inputs to be computed. */
+      return;
+    }
+    /* Instead of outputting the initial values directly, convert them to a simulation state and
+     * then back. This ensures that some geometry processing happens on the data consistently (e.g.
+     * removing anonymous attributes). */
+    bke::bake::BakeState bake_state = move_values_to_simulation_state(simulation_items_,
+                                                                      input_values);
+    this->output_simulation_state_move(params, user_data, std::move(bake_state));
   }
 };
 
@@ -142,7 +193,8 @@ static void node_declare_dynamic(const bNodeTree &node_tree,
   delta_time->identifier = "Delta Time";
   delta_time->name = DATA_("Delta Time");
   delta_time->in_out = SOCK_OUT;
-  r_declaration.outputs.append(std::move(delta_time));
+  r_declaration.outputs.append(delta_time.get());
+  r_declaration.items.append(std::move(delta_time));
 
   const NodeGeometrySimulationOutput &storage = *static_cast<const NodeGeometrySimulationOutput *>(
       output_node->storage);
@@ -199,18 +251,13 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
   return true;
 }
 
-}  // namespace blender::nodes::node_geo_simulation_input_cc
-
-void register_node_type_geo_simulation_input()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_simulation_input_cc;
-
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_SIMULATION_INPUT, "Simulation Input", NODE_CLASS_INTERFACE);
-  ntype.initfunc = file_ns::node_init;
-  ntype.declare_dynamic = file_ns::node_declare_dynamic;
-  ntype.insert_link = file_ns::node_insert_link;
-  ntype.gather_add_node_search_ops = nullptr;
+  ntype.initfunc = node_init;
+  ntype.declare_dynamic = node_declare_dynamic;
+  ntype.insert_link = node_insert_link;
   ntype.gather_link_search_ops = nullptr;
   node_type_storage(&ntype,
                     "NodeGeometrySimulationInput",
@@ -218,6 +265,9 @@ void register_node_type_geo_simulation_input()
                     node_copy_standard_storage);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_simulation_input_cc
 
 bNode *NOD_geometry_simulation_input_get_paired_output(bNodeTree *node_tree,
                                                        const bNode *simulation_input_node)

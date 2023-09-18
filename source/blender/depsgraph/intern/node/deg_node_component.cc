@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -339,7 +339,6 @@ DEG_COMPONENT_NODE_DEFINE(Audio, AUDIO, 0);
 DEG_COMPONENT_NODE_DEFINE(Armature, ARMATURE, 0);
 DEG_COMPONENT_NODE_DEFINE(GenericDatablock, GENERIC_DATABLOCK, 0);
 DEG_COMPONENT_NODE_DEFINE(Visibility, VISIBILITY, 0);
-DEG_COMPONENT_NODE_DEFINE(Simulation, SIMULATION, 0);
 DEG_COMPONENT_NODE_DEFINE(NTreeOutput, NTREE_OUTPUT, ID_RECALC_NTREE_OUTPUT);
 DEG_COMPONENT_NODE_DEFINE(NTreeGeometryPreprocess, NTREE_GEOMETRY_PREPROCESS, 0);
 
@@ -375,7 +374,6 @@ void deg_register_component_depsnodes()
   register_node_typeinfo(&DNTI_ARMATURE);
   register_node_typeinfo(&DNTI_GENERIC_DATABLOCK);
   register_node_typeinfo(&DNTI_VISIBILITY);
-  register_node_typeinfo(&DNTI_SIMULATION);
   register_node_typeinfo(&DNTI_NTREE_OUTPUT);
   register_node_typeinfo(&DNTI_NTREE_GEOMETRY_PREPROCESS);
 }

@@ -79,6 +79,13 @@ ccl_device_inline bool light_link_object_match(KernelGlobals kg,
     return true;
   }
 
+  /* Emitter is OBJECT_NONE when the emitter is a world volume.
+   * It is not explicitly linkable to any object, so assume it is coming from the default light
+   * set which affects all objects in the scene. */
+  if (object_emitter == OBJECT_NONE) {
+    return true;
+  }
+
   const uint64_t set_membership = kernel_data_fetch(objects, object_emitter).light_set_membership;
   const uint receiver_set = (object_receiver != OBJECT_NONE) ?
                                 kernel_data_fetch(objects, object_receiver).receiver_light_set :
@@ -147,7 +154,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->eval_fac = 1.0f;
   }
   else if (type == LIGHT_SPOT) {
-    if (!spot_light_sample<in_volume_segment>(klight, rand, P, ls)) {
+    if (!spot_light_sample<in_volume_segment>(klight, rand, P, N, shader_flags, ls)) {
       return false;
     }
   }
@@ -462,14 +469,13 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
   ls->object = isect->object;
   ls->prim = isect->prim;
   ls->lamp = lamp;
-  /* todo: missing texture coordinates */
   ls->t = isect->t;
   ls->P = ray_P + ray_D * ls->t;
   ls->D = ray_D;
   ls->group = lamp_lightgroup(kg, lamp);
 
   if (type == LIGHT_SPOT) {
-    if (!spot_light_sample_from_intersection(klight, isect, ray_P, ray_D, ls)) {
+    if (!spot_light_sample_from_intersection(klight, isect, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }

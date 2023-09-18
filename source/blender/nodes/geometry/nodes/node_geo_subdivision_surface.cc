@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,11 +10,15 @@
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "RNA_enum_types.hh"
+
+#include "NOD_rna_define.hh"
 
 #include "node_geometry_util.hh"
 
@@ -43,8 +47,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "uv_smooth", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "boundary_smooth", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "uv_smooth", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "boundary_smooth", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -177,7 +181,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+    if (const Mesh *mesh = geometry_set.get_mesh()) {
       geometry_set.replace_mesh(
           mesh_subsurf_calc(mesh, level, vert_crease, edge_crease, boundary_smooth, uv_smooth));
     }
@@ -190,24 +194,44 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Mesh", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_subdivision_surface_cc
-
-void register_node_type_geo_subdivision_surface()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_subdivision_surface_cc;
+  RNA_def_node_enum(srna,
+                    "uv_smooth",
+                    "UV Smooth",
+                    "Controls how smoothing is applied to UVs",
+                    rna_enum_subdivision_uv_smooth_items,
+                    NOD_storage_enum_accessors(uv_smooth),
+                    SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES);
 
+  RNA_def_node_enum(srna,
+                    "boundary_smooth",
+                    "Boundary Smooth",
+                    "Controls how open boundaries are smoothed",
+                    rna_enum_subdivision_boundary_smooth_items,
+                    NOD_storage_enum_accessors(boundary_smooth),
+                    SUBSURF_BOUNDARY_SMOOTH_ALL);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_SUBDIVISION_SURFACE, "Subdivision Surface", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.initfunc = file_ns::node_init;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.initfunc = node_init;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   node_type_storage(&ntype,
                     "NodeGeometrySubdivisionSurface",
                     node_free_standard_storage,
                     node_copy_standard_storage);
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_subdivision_surface_cc

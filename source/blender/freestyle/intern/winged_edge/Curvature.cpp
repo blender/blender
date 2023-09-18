@@ -22,9 +22,9 @@
 #include "Curvature.h"
 #include "WEdge.h"
 
-#include "../geometry/normal_cycle.h"
+#include "BLI_math_base.h"
 
-#include "BLI_math.h"
+#include "../geometry/normal_cycle.h"
 
 namespace Freestyle {
 

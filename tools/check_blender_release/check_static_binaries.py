@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -16,7 +16,7 @@ from check_utils import (
 
 
 ALLOWED_LIBS = (
-    # Core C/C++ libraries
+    # Core C/C++ libraries:
     "ld-linux.so",
     "ld-linux-x86-64.so",
     "libc.so",
@@ -28,12 +28,12 @@ ALLOWED_LIBS = (
     "librt.so",
     "libutil.so",
 
-    # Libraries which are oart of default install,
+    # Libraries which are part of default install:
     "libcrypt.so",
     "libnsl.so",
     "libmvec.so.1",
 
-    # X11 libraries we don't link statically,
+    # X11 libraries we don't link statically:
     "libX11.so",
     "libXext.so",
     "libXrender.so",
@@ -41,15 +41,15 @@ ALLOWED_LIBS = (
     "libXi.so",
     "libXfixes.so",
 
-    # OpenGL libraries.
+    # OpenGL libraries:
     "libGL.so",
     "libGLU.so",
 
-    # Library the software-GL is linking against and distributes with it.
+    # Library the software-GL is linking against and distributes with it:
     'libglapi.so',
     'libxcb.so',
 
-    # Own dependencies we don't link statically.
+    # Own dependencies we don't link statically:
     "libfreetype.so",
 )
 

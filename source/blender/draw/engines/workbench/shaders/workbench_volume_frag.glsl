@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -222,14 +225,13 @@ vec4 volume_integration(vec3 ray_ori, vec3 ray_dir, float ray_inc, float ray_max
 
 void main()
 {
-#ifdef WORKBENCH_NEXT
   uint stencil = texelFetch(stencil_tx, ivec2(gl_FragCoord.xy), 0).r;
   if (stencil != 0) {
     /* Don't draw on top of "in front" objects. */
     discard;
     return;
   }
-#endif
+
 #ifdef VOLUME_SLICE
   /* Manual depth test. TODO: remove. */
   float depth = texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r;
@@ -302,6 +304,6 @@ void main()
                                  length(vs_ray_dir) * stepLength);
 #endif
 
-  /* Convert transmitance to alpha so we can use premul blending. */
+  /* Convert transmittance to alpha so we can use pre-multiply blending. */
   fragColor.a = 1.0 - fragColor.a;
 }

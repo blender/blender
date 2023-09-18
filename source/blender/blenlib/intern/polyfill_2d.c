@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -31,10 +31,11 @@
  * No globals - keep threadsafe.
  */
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_alloca.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 
 #include "BLI_polyfill_2d.h" /* own include */
@@ -144,7 +145,7 @@ typedef struct PolyIndex {
 
 /* based on libgdx 2013-11-28, apache 2.0 licensed */
 
-static void pf_coord_sign_calc(PolyFill *pf, PolyIndex *pi);
+static void pf_coord_sign_calc(const PolyFill *pf, PolyIndex *pi);
 
 static PolyIndex *pf_ear_tip_find(PolyFill *pf
 #ifdef USE_CLIP_EVEN
@@ -576,7 +577,7 @@ static void pf_triangulate(PolyFill *pf)
 /**
  * \return CONCAVE, TANGENTIAL or CONVEX
  */
-static void pf_coord_sign_calc(PolyFill *pf, PolyIndex *pi)
+static void pf_coord_sign_calc(const PolyFill *pf, PolyIndex *pi)
 {
   /* localize */
   const float(*coords)[2] = pf->coords;

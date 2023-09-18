@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,6 +13,7 @@
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
 #include "BLI_vector.hh"
 
 #include "DNA_gpencil_legacy_types.h"
@@ -40,7 +41,8 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   }
 
   /* Resize the CurvesGeometry. */
-  CurvesGeometry &curves = r_drawing.geometry.wrap();
+  Drawing &drawing = r_drawing.wrap();
+  CurvesGeometry &curves = drawing.strokes_for_write();
   curves.resize(num_points, num_strokes);
   if (num_strokes > 0) {
     curves.offsets_for_write().copy_from(offsets);
@@ -53,10 +55,8 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
   /* Point Attributes. */
   MutableSpan<float3> positions = curves.positions_for_write();
-  SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
-      "radius", ATTR_DOMAIN_POINT);
-  SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
-      "opacity", ATTR_DOMAIN_POINT);
+  MutableSpan<float> radii = drawing.radii_for_write();
+  MutableSpan<float> opacities = drawing.opacities_for_write();
   SpanAttributeWriter<float> delta_times = attributes.lookup_or_add_for_write_span<float>(
       "delta_time", ATTR_DOMAIN_POINT);
   SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
@@ -118,8 +118,8 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
     Span<bGPDspoint> stroke_points{gps->points, gps->totpoints};
     MutableSpan<float3> stroke_positions = positions.slice(stroke_points_range);
-    MutableSpan<float> stroke_radii = radii.span.slice(stroke_points_range);
-    MutableSpan<float> stroke_opacities = opacities.span.slice(stroke_points_range);
+    MutableSpan<float> stroke_radii = radii.slice(stroke_points_range);
+    MutableSpan<float> stroke_opacities = opacities.slice(stroke_points_range);
     MutableSpan<float> stroke_deltatimes = delta_times.span.slice(stroke_points_range);
     MutableSpan<float> stroke_rotations = rotations.span.slice(stroke_points_range);
     MutableSpan<ColorGeometry4f> stroke_vertex_colors = vertex_colors.span.slice(
@@ -153,8 +153,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     }
   }
 
-  radii.finish();
-  opacities.finish();
   delta_times.finish();
   rotations.finish();
   vertex_colors.finish();
@@ -187,18 +185,15 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
       MEM_cnew_array<GreasePencilDrawing *>(num_drawings, __func__));
 
   int i = 0, layer_idx = 0;
-  LayerGroup &root_group = grease_pencil.root_group.wrap();
   LISTBASE_FOREACH_INDEX (bGPDlayer *, gpl, &gpd.layers, layer_idx) {
     /* Create a new layer. */
     Layer &new_layer = grease_pencil.add_layer(
-        root_group, StringRefNull(gpl->info, BLI_strnlen(gpl->info, 128)));
+        grease_pencil.root_group(), StringRefNull(gpl->info, BLI_strnlen(gpl->info, 128)));
 
     /* Flags. */
-    SET_FLAG_FROM_TEST(new_layer.base.flag, (gpl->flag & GP_LAYER_HIDE), GP_LAYER_TREE_NODE_HIDE);
-    SET_FLAG_FROM_TEST(
-        new_layer.base.flag, (gpl->flag & GP_LAYER_LOCKED), GP_LAYER_TREE_NODE_LOCKED);
-    SET_FLAG_FROM_TEST(
-        new_layer.base.flag, (gpl->flag & GP_LAYER_SELECT), GP_LAYER_TREE_NODE_SELECT);
+    new_layer.set_visible((gpl->flag & GP_LAYER_HIDE) == 0);
+    new_layer.set_locked((gpl->flag & GP_LAYER_LOCKED) != 0);
+    new_layer.set_selected((gpl->flag & GP_LAYER_SELECT) != 0);
     SET_FLAG_FROM_TEST(
         new_layer.base.flag, (gpl->flag & GP_LAYER_FRAMELOCK), GP_LAYER_TREE_NODE_MUTE);
     SET_FLAG_FROM_TEST(
@@ -226,11 +221,11 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
       /* Convert the frame to a drawing. */
       legacy_gpencil_frame_to_grease_pencil_drawing(*gpf, drawing);
 
-      GreasePencilFrame new_frame;
-      new_frame.drawing_index = i;
-      new_frame.type = gpf->key_type;
-      SET_FLAG_FROM_TEST(new_frame.flag, (gpf->flag & GP_FRAME_SELECT), GP_FRAME_SELECTED);
-      new_layer.insert_frame(gpf->framenum, std::move(new_frame));
+      /* Add the frame to the layer. */
+      if (GreasePencilFrame *new_frame = new_layer.add_frame(gpf->framenum, i)) {
+        new_frame->type = gpf->key_type;
+        SET_FLAG_FROM_TEST(new_frame->flag, (gpf->flag & GP_FRAME_SELECT), GP_FRAME_SELECTED);
+      }
       i++;
     }
 

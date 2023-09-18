@@ -12,6 +12,8 @@
 #  include <OpenImageIO/refcnt.h>
 #  include <OpenImageIO/unordered_map_concurrent.h>
 
+#  include "kernel/osl/compat.h"
+
 #  include "util/map.h"
 #  include "util/param.h"
 #  include "util/thread.h"
@@ -61,7 +63,7 @@ struct OSLGlobals {
   OSL::ShaderGroupRef background_state;
 
   /* attributes */
-  typedef unordered_map<ustring, int, ustringHash> ObjectNameMap;
+  typedef unordered_map<OSLUStringHash, int> ObjectNameMap;
 
   ObjectNameMap object_name_map;
   vector<ustring> object_names;

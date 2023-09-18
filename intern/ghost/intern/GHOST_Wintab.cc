@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2021-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -90,7 +90,9 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
   /* Wintab provides no way to determine the maximum queue size aside from checking if attempts
    * to change the queue size are successful. */
   const int maxQueue = 500;
-  int queueSize = queueSizeGet(hctx.get());
+  /* < 0 should realistically never happen, but given we cast to size_t later on better safe than
+   * sorry. */
+  int queueSize = max(0, queueSizeGet(hctx.get()));
 
   while (queueSize < maxQueue) {
     int testSize = min(queueSize + 16, maxQueue);
@@ -136,7 +138,7 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
                           std::move(hctx),
                           tablet,
                           system,
-                          queueSize);
+                          size_t(queueSize));
 }
 
 void GHOST_Wintab::modifyContext(LOGCONTEXT &lc)
@@ -179,7 +181,7 @@ GHOST_Wintab::GHOST_Wintab(unique_hmodule handle,
                            unique_hctx hctx,
                            Coord tablet,
                            Coord system,
-                           int queueSize)
+                           size_t queueSize)
     : m_handle{std::move(handle)},
       m_fpInfo{info},
       m_fpGet{get},
@@ -346,7 +348,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
        *
        * wintab.h defines orAltitude as a `uint` but documents orAltitude as positive for upward
        * angles and negative for downward angles. WACOM uses negative altitude values to show that
-       * the pen is inverted; therefore we cast orAltitude as an (int) and then use the absolute
+       * the pen is inverted; therefore we cast orAltitude as an `int` and then use the absolute
        * value.
        */
 

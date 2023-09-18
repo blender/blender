@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -23,18 +23,18 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "BLT_translation.h"
 
-#include "ED_screen.h"
-#include "ED_undo.h"
+#include "ED_screen.hh"
+#include "ED_undo.hh"
 
 #include "GPU_framebuffer.h"
 #include "interface_intern.hh"
@@ -66,7 +66,7 @@ static bool last_redo_poll(const bContext *C, short region_type)
     ARegion *region_prev = CTX_wm_region(C);
     CTX_wm_region_set((bContext *)C, region_op);
 
-    if (WM_operator_repeat_check(C, op) && WM_operator_check_ui_empty(op->type) == false) {
+    if (WM_operator_repeat_check(C, op) && WM_operator_ui_poll(op->type, op->ptr)) {
       success = WM_operator_poll((bContext *)C, op->type);
     }
     CTX_wm_region_set((bContext *)C, region_prev);
@@ -104,7 +104,8 @@ static bool hud_panel_operator_redo_poll(const bContext *C, PanelType * /*pt*/)
 static void hud_panel_operator_redo_draw_header(const bContext *C, Panel *panel)
 {
   wmOperator *op = WM_operator_last_redo(C);
-  STRNCPY(panel->drawname, WM_operatortype_name(op->type, op->ptr));
+  const std::string opname = WM_operatortype_name(op->type, op->ptr);
+  UI_panel_drawname_set(panel, opname);
 }
 
 static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
@@ -325,12 +326,12 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   /* Let 'ED_area_update_region_sizes' do the work of placing the region.
    * Otherwise we could set the 'region->winrct' & 'region->winx/winy' here. */
   if (init) {
-    area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+    ED_area_tag_region_size_update(area, region);
   }
   else {
     if (region->flag & RGN_FLAG_HIDDEN) {
       /* Also forces recalculating HUD size in hud_region_layout(). */
-      area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+      ED_area_tag_region_size_update(area, region);
     }
     region->flag &= ~RGN_FLAG_HIDDEN;
   }
@@ -383,6 +384,18 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   }
 
   region->visible = !((region->flag & RGN_FLAG_HIDDEN) || (region->flag & RGN_FLAG_TOO_SMALL));
+}
+
+ARegion *ED_area_type_hud_redo_region_find(const ScrArea *area, const ARegion *hud_region)
+{
+  BLI_assert(hud_region->regiontype == RGN_TYPE_HUD);
+  HudRegionData *hrd = static_cast<HudRegionData *>(hud_region->regiondata);
+
+  if (hrd->regionid == -1) {
+    return nullptr;
+  }
+
+  return BKE_area_find_region_type(area, hrd->regionid);
 }
 
 /** \} */

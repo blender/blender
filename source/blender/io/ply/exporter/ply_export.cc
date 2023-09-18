@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,7 +13,7 @@
 
 #include "BKE_context.h"
 #include "BLI_memory_utils.hh"
-#include "IO_ply.h"
+#include "IO_ply.hh"
 
 #include "ply_data.hh"
 #include "ply_export.hh"

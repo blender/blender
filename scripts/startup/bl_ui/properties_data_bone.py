@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -224,12 +224,6 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
             bone = context.edit_bone
 
         col = layout.column()
-        col.use_property_split = False
-        col.prop(bone, "layers", text="")
-        col.use_property_split = True
-        col = layout.column()
-
-        col.separator()
 
         if context.bone:
             col.prop(bone, "parent")
@@ -238,7 +232,6 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
 
         if ob and pchan:
             col.prop(bone, "use_relative_parent")
-            col.prop_search(pchan, "bone_group", ob.pose, "bone_groups", text="Bone Group")
 
         sub = col.column()
         sub.active = (bone.parent is not None)
@@ -258,7 +251,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.bone
+        return context.bone or context.edit_bone
 
     def draw(self, context):
         # note. this works ok in edit-mode but isn't
@@ -266,13 +259,55 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        bone = context.bone
-        if bone is None:
-            bone = context.edit_bone
+        if context.bone is None:
+            self.draw_edit_bone(context, layout)
+        else:
+            self.draw_bone(context, layout)
 
-        if bone:
-            col = layout.column()
-            col.prop(bone, "hide", text="Hide", toggle=False)
+    def draw_bone(self, context, layout):
+        bone = context.bone
+
+        col = layout.column()
+        col.prop(bone, "hide", text="Hide", toggle=False)
+
+        # Figure out the pose bone.
+        ob = context.object
+        if not ob:
+            return
+        pose_bone = ob.pose.bones[bone.name]
+
+        layout.prop(bone.color, 'palette', text='Edit Bone Color')
+        self.draw_bone_color_ui(layout, bone.color)
+        layout.prop(pose_bone.color, 'palette', text='Pose Bone Color')
+        self.draw_bone_color_ui(layout, pose_bone.color)
+
+    def draw_edit_bone(self, context, layout):
+        bone = context.edit_bone
+        if bone is None:
+            return
+
+        col = layout.column()
+        col.prop(bone, "hide", text="Hide", toggle=False)
+        layout.prop(bone.color, 'palette', text='Edit Bone Color')
+        self.draw_bone_color_ui(layout, bone.color)
+
+    def draw_bone_color_ui(self, layout, bone_color):
+        if not bone_color.is_custom:
+            return
+
+        layout.use_property_split = False
+        split = layout.split(factor=0.4)
+
+        col = split.column()
+        row = col.row()
+        row.alignment = 'RIGHT'
+        row.label(text="Custom Colors")
+
+        col = split.column(align=True)
+        row = col.row(align=True)
+        row.prop(bone_color.custom, "normal", text="")
+        row.prop(bone_color.custom, "select", text="")
+        row.prop(bone_color.custom, "active", text="")
 
 
 class BONE_PT_display_custom_shape(BoneButtonsPanel, Panel):
@@ -450,8 +485,7 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
     _property_type = bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone
 
     @property

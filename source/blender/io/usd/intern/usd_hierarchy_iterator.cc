@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd.h"
@@ -69,22 +69,8 @@ void USDHierarchyIterator::set_export_frame(float frame_nr)
   export_time_ = pxr::UsdTimeCode(frame_nr);
 }
 
-std::string USDHierarchyIterator::get_export_file_path() const
-{
-  /* Returns the same path that was passed to `stage_` object during it's creation (via
-   * `pxr::UsdStage::CreateNew` function). */
-  const pxr::SdfLayerHandle root_layer = stage_->GetRootLayer();
-  const std::string usd_export_file_path = root_layer->GetRealPath();
-  return usd_export_file_path;
-}
 
-const pxr::UsdTimeCode &USDHierarchyIterator::get_export_time_code() const
-{
-  return export_time_;
-}
-
-USDExporterContext USDHierarchyIterator::create_usd_export_context(const HierarchyContext *context,
-                                                                   bool mergeTransformAndShape)
+USDExporterContext USDHierarchyIterator::create_usd_export_context(const HierarchyContext *context)
 {
   pxr::SdfPath path;
   if (params_.root_prim_path[0] != '\0') {
@@ -93,8 +79,6 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
   else {
     path = pxr::SdfPath(context->export_path);
   }
-
-  // TODO: Somewhat of a workaround. There could be a better way to incoporate this...
 
   bool can_merge_with_xform = true;
   if (this->params_.export_armatures &&
@@ -106,11 +90,18 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
     can_merge_with_xform = false;
   }
 
-  if (can_merge_with_xform && mergeTransformAndShape) {
+  if (can_merge_with_xform && this->params_.merge_transform_and_shape) {
     path = path.GetParentPath();
   }
 
-  return USDExporterContext{bmain_, depsgraph_, stage_, path, this, params_};
+  /* Returns the same path that was passed to `stage_` object during it's creation (via
+   * `pxr::UsdStage::CreateNew` function). */
+  const pxr::SdfLayerHandle root_layer = stage_->GetRootLayer();
+  const std::string export_file_path = root_layer->GetRealPath();
+  auto get_time_code = [this]() { return this->export_time_; };
+
+  return USDExporterContext{
+      bmain_, depsgraph_, stage_, path, get_time_code, params_, export_file_path};
 }
 
 AbstractHierarchyWriter *USDHierarchyIterator::create_transform_writer(
@@ -134,8 +125,7 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
     return nullptr;
   }
 
-  USDExporterContext usd_export_context = create_usd_export_context(
-      context, params_.merge_transform_and_shape);
+  USDExporterContext usd_export_context = create_usd_export_context(context);
   USDAbstractWriter *data_writer = nullptr;
 
   switch (context->object->type) {

@@ -1,10 +1,12 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_node_types.h"
 
 #include "BKE_compute_contexts.hh"
+
+#include <ostream>
 
 namespace blender::bke {
 
@@ -86,6 +88,35 @@ SimulationZoneComputeContext::SimulationZoneComputeContext(const ComputeContext 
 void SimulationZoneComputeContext::print_current_in_line(std::ostream &stream) const
 {
   stream << "Simulation Zone ID: " << output_node_id_;
+}
+
+RepeatZoneComputeContext::RepeatZoneComputeContext(const ComputeContext *parent,
+                                                   const int32_t output_node_id,
+                                                   const int iteration)
+    : ComputeContext(s_static_type, parent), output_node_id_(output_node_id), iteration_(iteration)
+{
+  /* Mix static type and node id into a single buffer so that only a single call to #mix_in is
+   * necessary. */
+  const int type_size = strlen(s_static_type);
+  const int buffer_size = type_size + 1 + sizeof(int32_t) + sizeof(int);
+  DynamicStackBuffer<64, 8> buffer_owner(buffer_size, 8);
+  char *buffer = static_cast<char *>(buffer_owner.buffer());
+  memcpy(buffer, s_static_type, type_size + 1);
+  memcpy(buffer + type_size + 1, &output_node_id_, sizeof(int32_t));
+  memcpy(buffer + type_size + 1 + sizeof(int32_t), &iteration_, sizeof(int));
+  hash_.mix_in(buffer, buffer_size);
+}
+
+RepeatZoneComputeContext::RepeatZoneComputeContext(const ComputeContext *parent,
+                                                   const bNode &node,
+                                                   const int iteration)
+    : RepeatZoneComputeContext(parent, node.identifier, iteration)
+{
+}
+
+void RepeatZoneComputeContext::print_current_in_line(std::ostream &stream) const
+{
+  stream << "Repeat Zone ID: " << output_node_id_;
 }
 
 }  // namespace blender::bke

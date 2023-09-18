@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,9 @@
  * \ingroup edinterface
  */
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "interface_intern.hh"
 
@@ -22,7 +22,7 @@ void UI_but_drag_set_id(uiBut *but, ID *id)
   but->dragpoin = (void *)id;
 }
 
-void UI_but_drag_attach_image(uiBut *but, ImBuf *imb, const float scale)
+void UI_but_drag_attach_image(uiBut *but, const ImBuf *imb, const float scale)
 {
   but->imb = imb;
   but->imb_scale = scale;
@@ -30,20 +30,13 @@ void UI_but_drag_attach_image(uiBut *but, ImBuf *imb, const float scale)
 }
 
 void UI_but_drag_set_asset(uiBut *but,
-                           const AssetRepresentation *asset,
+                           const blender::asset_system::AssetRepresentation *asset,
                            int import_type,
                            int icon,
-                           ImBuf *imb,
+                           const ImBuf *imb,
                            float scale)
 {
   wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, import_type);
-
-  /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
-   * #wmDropBox.
-   * TODO: Handle link/append in operator called at the end of the drop process, and NOT in its
-   * copy callback.
-   * */
-  asset_drag->evil_C = static_cast<bContext *>(but->block->evil_C);
 
   but->dragtype = WM_DRAG_ASSET;
   ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
@@ -90,7 +83,7 @@ void UI_but_drag_set_value(uiBut *but)
   but->dragtype = WM_DRAG_VALUE;
 }
 
-void UI_but_drag_set_image(uiBut *but, const char *path, int icon, ImBuf *imb, float scale)
+void UI_but_drag_set_image(uiBut *but, const char *path, int icon, const ImBuf *imb, float scale)
 {
   ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
   UI_but_drag_set_path(but, path);

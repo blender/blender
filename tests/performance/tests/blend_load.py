@@ -1,10 +1,8 @@
-# SPDX-FileCopyrightText: 2021-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2021-2022 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
 
 import api
-import os
-import pathlib
 
 
 def _run(filepath):
@@ -13,7 +11,7 @@ def _run(filepath):
 
     # Load once to ensure it's cached by OS
     bpy.ops.wm.open_mainfile(filepath=filepath)
-    bpy.ops.wm.read_homefile()
+    bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
 
     # Measure loading the second time
     start_time = time.time()

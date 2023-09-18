@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+/* SPDX-FileCopyrightText: 2009 Blender Authors, Joshua Leung. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,19 +21,19 @@
 #include "BKE_nla.h"
 #include "BKE_screen.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_edit.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "nla_intern.hh" /* own include */
 
@@ -421,10 +421,10 @@ void NLA_OT_select_box(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+  RNA_def_boolean(ot->srna, "axis_range", false, "Axis Range", "");
 
   PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
+      ot->srna, "tweak", false, "Tweak", "Operator has been activated using a click-drag event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   WM_operator_properties_gesture_box(ot);
@@ -436,7 +436,7 @@ void NLA_OT_select_box(wmOperatorType *ot)
 
 /* defines for left-right select tool */
 static const EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
-    {NLAEDIT_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
+    {NLAEDIT_LRSEL_TEST, "CHECK", 0, "Based on Mouse Position", ""},
     {NLAEDIT_LRSEL_LEFT, "LEFT", 0, "Before Current Frame", ""},
     {NLAEDIT_LRSEL_RIGHT, "RIGHT", 0, "After Current Frame", ""},
     {0, nullptr, 0, nullptr, nullptr},
@@ -591,7 +591,7 @@ void NLA_OT_select_leftright(wmOperatorType *ot)
       ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -730,7 +730,7 @@ void NLA_OT_click_select(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_generic_select(ot);
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); /* SHIFTKEY */
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", ""); /* SHIFTKEY */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,

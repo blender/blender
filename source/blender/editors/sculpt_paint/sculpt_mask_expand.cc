@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,7 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 
 #include "BLT_translation.h"
@@ -20,18 +20,18 @@
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_paint.hh"
+#include "BKE_pbvh_api.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "sculpt_intern.hh"
 
 #include "bmesh.h"
@@ -74,15 +74,16 @@ static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
   ED_workspace_status_text(C, nullptr);
 }
 
-static void sculpt_expand_task_cb(void *__restrict userdata,
-                                  const int i,
-                                  const TaskParallelTLS *__restrict /*tls*/)
+static void sculpt_expand_task(Object *ob,
+                               const int update_it,
+                               const bool mask_expand_use_normals,
+                               const bool mask_expand_create_face_set,
+                               const bool mask_expand_keep_prev_mask,
+                               const bool mask_expand_invert_mask,
+                               PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  PBVHNode *node = data->nodes[i];
+  SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
-  int update_it = data->mask_expand_update_it;
 
   PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
   int active_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, active_vertex);
@@ -92,7 +93,7 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
     int vi = vd.index;
     float final_mask = *vd.mask;
-    if (data->mask_expand_use_normals) {
+    if (mask_expand_use_normals) {
       if (ss->filter_cache->normal_factor[active_vertex_i] <
           ss->filter_cache->normal_factor[vd.index]) {
         final_mask = 1.0f;
@@ -111,7 +112,7 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
       }
     }
 
-    if (data->mask_expand_create_face_set) {
+    if (mask_expand_create_face_set) {
       if (final_mask == 1.0f) {
         SCULPT_vertex_face_set_set(ss, vd.vertex, ss->filter_cache->new_face_set);
         face_sets_changed = true;
@@ -120,11 +121,11 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
     }
     else {
 
-      if (data->mask_expand_keep_prev_mask) {
+      if (mask_expand_keep_prev_mask) {
         final_mask = MAX2(ss->filter_cache->prev_mask[vd.index], final_mask);
       }
 
-      if (data->mask_expand_invert_mask) {
+      if (mask_expand_invert_mask) {
         final_mask = 1.0f - final_mask;
       }
 
@@ -137,12 +138,13 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 
   if (face_sets_changed) {
-    SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_FACE_SETS);
+    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_FACE_SETS);
   }
 }
 
 static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  using namespace blender;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -261,20 +263,24 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
         ss->face_sets[i] = ss->filter_cache->prev_face_set[i];
       }
     }
-    SculptThreadedTaskData data{};
-    data.sd = sd;
-    data.ob = ob;
-    data.nodes = ss->filter_cache->nodes;
-    data.mask_expand_update_it = mask_expand_update_it;
-    data.mask_expand_use_normals = RNA_boolean_get(op->ptr, "use_normals");
-    data.mask_expand_invert_mask = RNA_boolean_get(op->ptr, "invert");
-    data.mask_expand_keep_prev_mask = RNA_boolean_get(op->ptr, "keep_previous_mask");
-    data.mask_expand_create_face_set = RNA_boolean_get(op->ptr, "create_face_set");
 
-    TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
-    BLI_task_parallel_range(
-        0, ss->filter_cache->nodes.size(), &data, sculpt_expand_task_cb, &settings);
+    const bool use_normals = RNA_boolean_get(op->ptr, "use_normals");
+    const bool invert_mask = RNA_boolean_get(op->ptr, "invert");
+    const bool keep_prev_mask = RNA_boolean_get(op->ptr, "keep_previous_mask");
+    const bool create_face_set = RNA_boolean_get(op->ptr, "create_face_set");
+
+    threading::parallel_for(ss->filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+      for (const int i : range) {
+        sculpt_expand_task(ob,
+                           mask_expand_update_it,
+                           use_normals,
+                           create_face_set,
+                           keep_prev_mask,
+                           invert_mask,
+                           ss->filter_cache->nodes[i]);
+      }
+    });
+
     ss->filter_cache->mask_update_current_it = mask_expand_update_it;
   }
 
@@ -330,6 +336,7 @@ static bool mask_expand_floodfill_cb(
 
 static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  using namespace blender;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -358,7 +365,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   ss->filter_cache = MEM_new<FilterCache>(__func__);
 
-  ss->filter_cache->nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
+  ss->filter_cache->nodes = blender::bke::pbvh::search_gather(pbvh, {});
 
   SCULPT_undo_push_begin(ob, op);
 
@@ -438,20 +445,20 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
     MEM_SAFE_FREE(ss->filter_cache->edge_factor);
   }
 
-  SculptThreadedTaskData data{};
-  data.sd = sd;
-  data.ob = ob;
-  data.nodes = ss->filter_cache->nodes;
-  data.mask_expand_update_it = 0;
-  data.mask_expand_use_normals = RNA_boolean_get(op->ptr, "use_normals");
-  data.mask_expand_invert_mask = RNA_boolean_get(op->ptr, "invert");
-  data.mask_expand_keep_prev_mask = RNA_boolean_get(op->ptr, "keep_previous_mask");
-  data.mask_expand_create_face_set = RNA_boolean_get(op->ptr, "create_face_set");
+  const bool invert_mask = RNA_boolean_get(op->ptr, "invert");
+  const bool keep_prev_mask = RNA_boolean_get(op->ptr, "keep_previous_mask");
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
-  BLI_task_parallel_range(
-      0, ss->filter_cache->nodes.size(), &data, sculpt_expand_task_cb, &settings);
+  threading::parallel_for(ss->filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      sculpt_expand_task(ob,
+                         0,
+                         use_normals,
+                         create_face_set,
+                         keep_prev_mask,
+                         invert_mask,
+                         ss->filter_cache->nodes[i]);
+    }
+  });
 
   const char *status_str = TIP_(
       "Move the mouse to expand the mask from the active vertex. LMB: confirm mask, ESC/RMB: "

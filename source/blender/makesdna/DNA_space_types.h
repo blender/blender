@@ -25,10 +25,6 @@
 #include "DNA_view2d_types.h"
 #include "DNA_viewer_path_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BLI_mempool;
 struct FileLayout;
 struct FileList;
@@ -49,6 +45,15 @@ struct bNodeTree;
 struct wmOperator;
 struct wmTimer;
 
+#ifdef __cplusplus
+namespace blender::asset_system {
+class AssetRepresentation;
+}
+using AssetRepresentationHandle = blender::asset_system::AssetRepresentation;
+#else
+typedef struct AssetRepresentationHandle AssetRepresentationHandle;
+#endif
+
 /** Defined in `buttons_intern.h`. */
 typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 
@@ -67,7 +72,7 @@ typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
 #endif
 
-/** Defined in `file_intern.h`. */
+/** Defined in `file_intern.hh`. */
 typedef struct SpaceFile_Runtime SpaceFile_Runtime;
 
 /** Defined in `spreadsheet_intern.hh`. */
@@ -145,6 +150,8 @@ typedef enum eSpaceInfo_RptMask {
 
 /** Properties Editor. */
 typedef struct SpaceProperties {
+  DNA_DEFINE_CXX_METHODS(SpaceProperties)
+
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
   ListBase regionbase;
@@ -184,31 +191,35 @@ typedef struct SpaceProperties {
 /* button defines (deprecated) */
 #ifdef DNA_DEPRECATED_ALLOW
 /* WARNING: the values of these defines are used in SpaceProperties.tabs[8] */
-/* SpaceProperties.mainb new */
-#  define CONTEXT_SCENE 0
-#  define CONTEXT_OBJECT 1
-// #define CONTEXT_TYPES   2
-#  define CONTEXT_SHADING 3
-#  define CONTEXT_EDITING 4
-// #define CONTEXT_SCRIPT  5
-// #define CONTEXT_LOGIC   6
+/** #SpaceProperties::mainb new */
+enum {
+  CONTEXT_SCENE = 0,
+  CONTEXT_OBJECT = 1,
+  // CONTEXT_TYPES = 2,
+  CONTEXT_SHADING = 3,
+  CONTEXT_EDITING = 4,
+  // CONTEXT_SCRIPT = 5,
+  // CONTEXT_LOGIC = 6,
+};
 
-/* SpaceProperties.mainb old (deprecated) */
-// #define BUTS_VIEW           0
-#  define BUTS_LAMP 1
-#  define BUTS_MAT 2
-#  define BUTS_TEX 3
-#  define BUTS_ANIM 4
-#  define BUTS_WORLD 5
-#  define BUTS_RENDER 6
-#  define BUTS_EDIT 7
-// #define BUTS_GAME           8
-#  define BUTS_FPAINT 9
-#  define BUTS_RADIO 10
-#  define BUTS_SCRIPT 11
-// #define BUTS_SOUND          12
-#  define BUTS_CONSTRAINT 13
-// #define BUTS_EFFECTS        14
+/** #SpaceProperties::mainb old (deprecated) */
+enum {
+  // BUTS_VIEW = 0,
+  BUTS_LAMP = 1,
+  BUTS_MAT = 2,
+  BUTS_TEX = 3,
+  BUTS_ANIM = 4,
+  BUTS_WORLD = 5,
+  BUTS_RENDER = 6,
+  BUTS_EDIT = 7,
+  // BUTS_GAME = 8,
+  BUTS_FPAINT = 9,
+  BUTS_RADIO = 10,
+  BUTS_SCRIPT = 11,
+  // BUTS_SOUND = 12,
+  BUTS_CONSTRAINT = 13,
+  // BUTS_EFFECTS = 14,
+};
 #endif /* DNA_DEPRECATED_ALLOW */
 
 /** #SpaceProperties.mainb new */
@@ -275,11 +286,12 @@ typedef struct SpaceOutliner {
 
   ListBase tree;
 
-  /* treestore is an ordered list of TreeStoreElem's from outliner tree;
+  /**
+   * Treestore is an ordered list of TreeStoreElem's from outliner tree;
    * Note that treestore may contain duplicate elements if element
    * is used multiple times in outliner tree (e. g. linked objects)
    * Also note that BLI_mempool can not be read/written in DNA directly,
-   * therefore `readfile.c/writefile.c` linearize treestore into TreeStore structure
+   * therefore `readfile.cc` / `writefile.cc` linearize treestore into #TreeStore structure.
    */
   struct BLI_mempool *treestore;
 
@@ -458,11 +470,8 @@ typedef struct SpaceGraph {
 
   /** Mode for the Graph editor (eGraphEdit_Mode). */
   short mode;
-  /**
-   * Time-transform auto-snapping settings for Graph editor
-   * (eAnimEdit_AutoSnap in DNA_action_types.h).
-   */
-  short autosnap;
+  /* Snapping now lives on the Scene. */
+  short autosnap DNA_DEPRECATED;
   /** Settings for Graph editor (eGraphEdit_Flag). */
   int flag;
 
@@ -548,8 +557,8 @@ typedef struct SpaceNla {
   char _pad0[6];
   /* End 'SpaceLink' header. */
 
-  /** This uses the same settings as autosnap for Action Editor. */
-  short autosnap;
+  /* Snapping now lives on the Scene. */
+  short autosnap DNA_DEPRECATED;
   short flag;
   char _pad[4];
 
@@ -1144,7 +1153,7 @@ typedef struct FileDirEntry {
   /** If this file represents an asset, its asset data is here. Note that we may show assets of
    * external files in which case this is set but not the id above.
    * Note comment for FileListInternEntry.local_data, the same applies here! */
-  struct AssetRepresentation *asset;
+  AssetRepresentationHandle *asset;
 
   /* The icon_id for the preview image. */
   int preview_icon_id;
@@ -1543,6 +1552,8 @@ typedef struct bNodeTreePath {
 typedef struct SpaceNodeOverlay {
   /* eSpaceNodeOverlay_Flag */
   int flag;
+  /* eSpaceNodeOverlay_preview_shape */
+  int preview_shape;
 } SpaceNodeOverlay;
 
 typedef enum eSpaceNodeOverlay_Flag {
@@ -1551,7 +1562,13 @@ typedef enum eSpaceNodeOverlay_Flag {
   SN_OVERLAY_SHOW_TIMINGS = (1 << 3),
   SN_OVERLAY_SHOW_PATH = (1 << 4),
   SN_OVERLAY_SHOW_NAMED_ATTRIBUTES = (1 << 5),
+  SN_OVERLAY_SHOW_PREVIEWS = (1 << 6),
 } eSpaceNodeOverlay_Flag;
+
+typedef enum eSpaceNodeOverlay_preview_shape {
+  SN_OVERLAY_PREVIEW_FLAT = 0,
+  SN_OVERLAY_PREVIEW_3D = 1,
+} eSpaceNodeOverlay_preview_shape;
 
 typedef struct SpaceNode {
   SpaceLink *next, *prev;
@@ -1601,13 +1618,17 @@ typedef struct SpaceNode {
   /** Texture-from object, world or brush (#eSpaceNode_TexFrom). */
   short texfrom;
   /** Shader from object or world (#eSpaceNode_ShaderFrom). */
-  short shaderfrom;
+  char shaderfrom;
+  /**
+   * Whether to edit any geometry node group, or follow the active modifier context.
+   * #SpaceNodeGeometryNodesType.
+   */
+  char geometry_nodes_type;
 
   /** Grease-pencil data. */
   struct bGPdata *gpd;
 
   SpaceNodeOverlay overlay;
-  char _pad2[4];
 
   SpaceNode_Runtime *runtime;
 } SpaceNode;
@@ -1626,8 +1647,7 @@ typedef enum eSpaceNode_Flag {
   SNODE_FLAG_UNUSED_10 = (1 << 10), /* cleared */
   SNODE_FLAG_UNUSED_11 = (1 << 11), /* cleared */
   SNODE_PIN = (1 << 12),
-  /** automatically offset following nodes in a chain on insertion */
-  SNODE_SKIP_INSOFFSET = (1 << 13),
+  SNODE_FLAG_UNUSED_12 = (1 << 13),
 } eSpaceNode_Flag;
 
 /** #SpaceNode.texfrom */
@@ -1644,6 +1664,12 @@ typedef enum eSpaceNode_ShaderFrom {
   SNODE_SHADER_WORLD = 1,
   SNODE_SHADER_LINESTYLE = 2,
 } eSpaceNode_ShaderFrom;
+
+/** #SpaceNode.geometry_nodes_type */
+typedef enum SpaceNodeGeometryNodesType {
+  SNODE_GEOMETRY_MODIFIER = 0,
+  SNODE_GEOMETRY_TOOL = 1,
+} SpaceNodeGeometryNodesType;
 
 /** #SpaceNode.insert_ofs_dir */
 enum {
@@ -2090,7 +2116,3 @@ typedef enum eSpace_Type {
 #define IMG_SIZE_FALLBACK 256
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

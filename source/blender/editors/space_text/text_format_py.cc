@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -89,7 +89,7 @@ static const Span<const char *> text_format_py_literals_builtinfunc(
     text_format_py_literals_builtinfunc_data,
     ARRAY_SIZE(text_format_py_literals_builtinfunc_data));
 
-/** Python special name.*/
+/** Python special name. */
 static const char *text_format_py_literals_specialvar_data[]{
     /* Force single column, sorted list. */
     /* clang-format off */
@@ -100,7 +100,7 @@ static const char *text_format_py_literals_specialvar_data[]{
 static const Span<const char *> text_format_py_literals_specialvar(
     text_format_py_literals_specialvar_data, ARRAY_SIZE(text_format_py_literals_specialvar_data));
 
-/** Python bool values.*/
+/** Python bool values. */
 static const char *text_format_py_literals_bool_data[]{
     /* Force single column, sorted list. */
     /* clang-format off */

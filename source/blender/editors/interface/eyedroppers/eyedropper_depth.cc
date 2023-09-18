@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,17 +27,17 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_view3d.hh"
 
 #include "eyedropper_intern.hh"
 #include "interface_intern.hh"
@@ -92,7 +92,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
           BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data)))
       {
         Camera *camera = (Camera *)v3d->camera->data;
-        RNA_pointer_create(&camera->id, &RNA_CameraDOFSettings, &camera->dof, &ddr->ptr);
+        ddr->ptr = RNA_pointer_create(&camera->id, &RNA_CameraDOFSettings, &camera->dof);
         ddr->prop = RNA_struct_find_property(&ddr->ptr, "focus_distance");
         ddr->is_undo = true;
       }

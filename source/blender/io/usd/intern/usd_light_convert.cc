@@ -43,14 +43,15 @@
 #include "BKE_scene.h"
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "DNA_light_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
-#include "ED_node.h"
+#include "ED_node.hh"
 
 #include <iostream>
 #include <string>

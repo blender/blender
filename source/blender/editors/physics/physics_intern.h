@@ -16,7 +16,11 @@ struct PointCache;
 struct Scene;
 struct wmOperatorType;
 
-/* particle_edit.c */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* `particle_edit.cc` */
 
 void PARTICLE_OT_select_all(struct wmOperatorType *ot);
 void PARTICLE_OT_select_roots(struct wmOperatorType *ot);
@@ -66,7 +70,7 @@ void recalc_emitter_field(struct Depsgraph *depsgraph,
                           struct ParticleSystem *psys);
 void update_world_cos(struct Object *ob, struct PTCacheEdit *edit);
 
-/* particle_object.c */
+/* `particle_object.cc` */
 
 void OBJECT_OT_particle_system_add(struct wmOperatorType *ot);
 void OBJECT_OT_particle_system_remove(struct wmOperatorType *ot);
@@ -87,7 +91,7 @@ void PARTICLE_OT_dupliob_move_up(struct wmOperatorType *ot);
 void PARTICLE_OT_dupliob_move_down(struct wmOperatorType *ot);
 void PARTICLE_OT_dupliob_refresh(struct wmOperatorType *ot);
 
-/* particle_boids.c */
+/* `particle_boids.cc` */
 
 void BOID_OT_rule_add(struct wmOperatorType *ot);
 void BOID_OT_rule_del(struct wmOperatorType *ot);
@@ -99,7 +103,7 @@ void BOID_OT_state_del(struct wmOperatorType *ot);
 void BOID_OT_state_move_up(struct wmOperatorType *ot);
 void BOID_OT_state_move_down(struct wmOperatorType *ot);
 
-/* physics_fluid.c */
+/* `physics_fluid.cc` */
 
 void FLUID_OT_bake_all(struct wmOperatorType *ot);
 void FLUID_OT_free_all(struct wmOperatorType *ot);
@@ -129,7 +133,7 @@ void DPAINT_OT_surface_slot_remove(struct wmOperatorType *ot);
 void DPAINT_OT_type_toggle(struct wmOperatorType *ot);
 void DPAINT_OT_output_toggle(struct wmOperatorType *ot);
 
-/* physics_pointcache.c */
+/* `physics_pointcache.cc` */
 
 void PTCACHE_OT_bake_all(struct wmOperatorType *ot);
 void PTCACHE_OT_free_bake_all(struct wmOperatorType *ot);
@@ -139,7 +143,7 @@ void PTCACHE_OT_bake_from_cache(struct wmOperatorType *ot);
 void PTCACHE_OT_add(struct wmOperatorType *ot);
 void PTCACHE_OT_remove(struct wmOperatorType *ot);
 
-/* rigidbody_object.c */
+/* `rigidbody_object.cc` */
 
 void RIGIDBODY_OT_object_add(struct wmOperatorType *ot);
 void RIGIDBODY_OT_object_remove(struct wmOperatorType *ot);
@@ -150,13 +154,17 @@ void RIGIDBODY_OT_objects_remove(struct wmOperatorType *ot);
 void RIGIDBODY_OT_shape_change(struct wmOperatorType *ot);
 void RIGIDBODY_OT_mass_calculate(struct wmOperatorType *ot);
 
-/* rigidbody_constraint.c */
+/* `rigidbody_constraint.cc` */
 
 void RIGIDBODY_OT_constraint_add(struct wmOperatorType *ot);
 void RIGIDBODY_OT_constraint_remove(struct wmOperatorType *ot);
 
-/* rigidbody_world.c */
+/* `rigidbody_world.cc` */
 
 void RIGIDBODY_OT_world_add(struct wmOperatorType *ot);
 void RIGIDBODY_OT_world_remove(struct wmOperatorType *ot);
 void RIGIDBODY_OT_world_export(struct wmOperatorType *ot);
+
+#ifdef __cplusplus
+}
+#endif

@@ -9,7 +9,7 @@
 /* It's become a bit messy... Basically, only the IMB_ prefixed files
  * should remain. */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -23,18 +23,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_implicit_sharing.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "GPU_texture.h"
+
 static SpinLock refcounter_spin;
 
-void imb_refcounter_lock_init(void)
+void imb_refcounter_lock_init()
 {
   BLI_spin_init(&refcounter_spin);
 }
 
-void imb_refcounter_lock_exit(void)
+void imb_refcounter_lock_exit()
 {
   BLI_spin_end(&refcounter_spin);
 }
@@ -42,22 +43,22 @@ void imb_refcounter_lock_exit(void)
 #ifndef WIN32
 static SpinLock mmap_spin;
 
-void imb_mmap_lock_init(void)
+void imb_mmap_lock_init()
 {
   BLI_spin_init(&mmap_spin);
 }
 
-void imb_mmap_lock_exit(void)
+void imb_mmap_lock_exit()
 {
   BLI_spin_end(&mmap_spin);
 }
 
-void imb_mmap_lock(void)
+void imb_mmap_lock()
 {
   BLI_spin_lock(&mmap_spin);
 }
 
-void imb_mmap_unlock(void)
+void imb_mmap_unlock()
 {
   BLI_spin_unlock(&mmap_spin);
 }
@@ -67,16 +68,12 @@ void imb_mmap_unlock(void)
  * buffer to its defaults. */
 template<class BufferType> static void imb_free_buffer(BufferType &buffer)
 {
-  if (buffer.implicit_sharing) {
-    blender::implicit_sharing::free_shared_data(&buffer.data, &buffer.implicit_sharing);
-  }
-  else if (buffer.data) {
+  if (buffer.data) {
     switch (buffer.ownership) {
       case IB_DO_NOT_TAKE_OWNERSHIP:
         break;
 
       case IB_TAKE_OWNERSHIP:
-        BLI_assert(buffer.implicit_sharing == nullptr);
         MEM_freeN(buffer.data);
         break;
     }
@@ -85,7 +82,6 @@ template<class BufferType> static void imb_free_buffer(BufferType &buffer)
   /* Reset buffer to defaults. */
   buffer.data = nullptr;
   buffer.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
-  buffer.implicit_sharing = nullptr;
 }
 
 /* Allocate pixel storage of the given buffer. The buffer owns the allocated memory.
@@ -101,7 +97,6 @@ bool imb_alloc_buffer(
   }
 
   buffer.ownership = IB_TAKE_OWNERSHIP;
-  buffer.implicit_sharing = nullptr;
 
   return true;
 }
@@ -118,12 +113,6 @@ template<class BufferType> void imb_make_writeable_buffer(BufferType &buffer)
     case IB_DO_NOT_TAKE_OWNERSHIP:
       buffer.data = static_cast<decltype(BufferType::data)>(MEM_dupallocN(buffer.data));
       buffer.ownership = IB_TAKE_OWNERSHIP;
-
-      if (buffer.implicit_sharing) {
-        buffer.implicit_sharing->remove_user_and_delete_if_last();
-        buffer.implicit_sharing = nullptr;
-      }
-      break;
 
     case IB_TAKE_OWNERSHIP:
       break;
@@ -155,30 +144,6 @@ auto imb_steal_buffer_data(BufferType &buffer) -> decltype(BufferType::data)
   BLI_assert_unreachable();
 
   return nullptr;
-}
-
-/* Assign the new data of the buffer which is implicitly shared via the given handle.
- * The old content of the buffer is freed using imb_free_buffer. */
-template<class BufferType>
-void imb_assign_shared_buffer(BufferType &buffer,
-                              decltype(BufferType::data) buffer_data,
-                              const ImplicitSharingInfoHandle *implicit_sharing)
-{
-  imb_free_buffer(buffer);
-
-  if (implicit_sharing) {
-    BLI_assert(buffer_data != nullptr);
-
-    blender::implicit_sharing::copy_shared_pointer(
-        buffer_data, implicit_sharing, &buffer.data, &buffer.implicit_sharing);
-  }
-  else {
-    BLI_assert(buffer_data == nullptr);
-    buffer.data = nullptr;
-    buffer.implicit_sharing = nullptr;
-  }
-
-  buffer.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
 }
 
 void imb_freemipmapImBuf(ImBuf *ibuf)
@@ -237,35 +202,21 @@ static void freeencodedbufferImBuf(ImBuf *ibuf)
   ibuf->flags &= ~IB_mem;
 }
 
-void IMB_freezbufImBuf(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return;
-  }
-
-  imb_free_buffer(ibuf->z_buffer);
-
-  ibuf->flags &= ~IB_zbuf;
-}
-
-void IMB_freezbuffloatImBuf(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return;
-  }
-
-  imb_free_buffer(ibuf->float_z_buffer);
-
-  ibuf->flags &= ~IB_zbuffloat;
-}
-
 void imb_freerectImbuf_all(ImBuf *ibuf)
 {
   imb_freerectImBuf(ibuf);
   imb_freerectfloatImBuf(ibuf);
-  IMB_freezbufImBuf(ibuf);
-  IMB_freezbuffloatImBuf(ibuf);
   freeencodedbufferImBuf(ibuf);
+}
+
+void IMB_free_gpu_textures(ImBuf *ibuf)
+{
+  if (!ibuf || !ibuf->gpu.texture) {
+    return;
+  }
+
+  GPU_texture_free(ibuf->gpu.texture);
+  ibuf->gpu.texture = nullptr;
 }
 
 void IMB_freeImBuf(ImBuf *ibuf)
@@ -291,6 +242,7 @@ void IMB_freeImBuf(ImBuf *ibuf)
                    "'.blend' relative \"//\" must not be used in ImBuf!");
 
     imb_freerectImbuf_all(ibuf);
+    IMB_free_gpu_textures(ibuf);
     IMB_metadata_free(ibuf->metadata);
     colormanage_cache_free(ibuf);
 
@@ -329,40 +281,6 @@ ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
   IMB_freeImBuf(ibuf);
 
   return rval;
-}
-
-bool addzbufImBuf(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return false;
-  }
-
-  IMB_freezbufImBuf(ibuf);
-
-  if (!imb_alloc_buffer(ibuf->z_buffer, ibuf->x, ibuf->y, 1, sizeof(uint))) {
-    return false;
-  }
-
-  ibuf->flags |= IB_zbuf;
-
-  return false;
-}
-
-bool addzbuffloatImBuf(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return false;
-  }
-
-  IMB_freezbuffloatImBuf(ibuf);
-
-  if (!imb_alloc_buffer(ibuf->float_z_buffer, ibuf->x, ibuf->y, 1, sizeof(float))) {
-    return false;
-  }
-
-  ibuf->flags |= IB_zbuffloat;
-
-  return true;
 }
 
 bool imb_addencodedbufferImBuf(ImBuf *ibuf)
@@ -478,10 +396,6 @@ bool imb_addrectImBuf(ImBuf *ibuf)
 
   ibuf->flags |= IB_rect;
 
-  if (ibuf->planes > 32) {
-    return addzbufImBuf(ibuf);
-  }
-
   return true;
 }
 
@@ -521,45 +435,6 @@ void IMB_make_writable_float_buffer(ImBuf *ibuf)
   imb_make_writeable_buffer(ibuf->float_buffer);
 }
 
-void IMB_assign_shared_byte_buffer(ImBuf *ibuf,
-                                   uint8_t *buffer_data,
-                                   const ImplicitSharingInfoHandle *implicit_sharing)
-{
-  imb_free_buffer(ibuf->byte_buffer);
-  ibuf->flags &= ~IB_rect;
-
-  if (buffer_data) {
-    imb_assign_shared_buffer(ibuf->byte_buffer, buffer_data, implicit_sharing);
-    ibuf->flags |= IB_rect;
-  }
-}
-
-void IMB_assign_shared_float_buffer(ImBuf *ibuf,
-                                    float *buffer_data,
-                                    const ImplicitSharingInfoHandle *implicit_sharing)
-{
-  imb_free_buffer(ibuf->float_buffer);
-  ibuf->flags &= ~IB_rectfloat;
-
-  if (buffer_data) {
-    imb_assign_shared_buffer(ibuf->float_buffer, buffer_data, implicit_sharing);
-    ibuf->flags |= IB_rectfloat;
-  }
-}
-
-void IMB_assign_shared_float_z_buffer(ImBuf *ibuf,
-                                      float *buffer_data,
-                                      const ImplicitSharingInfoHandle *implicit_sharing)
-{
-  imb_free_buffer(ibuf->float_z_buffer);
-  ibuf->flags &= ~IB_zbuffloat;
-
-  if (buffer_data) {
-    imb_assign_shared_buffer(ibuf->float_z_buffer, buffer_data, implicit_sharing);
-    ibuf->flags |= IB_zbuffloat;
-  }
-}
-
 void IMB_assign_byte_buffer(ImBuf *ibuf, uint8_t *buffer_data, const ImBufOwnership ownership)
 {
   imb_free_buffer(ibuf->byte_buffer);
@@ -583,32 +458,6 @@ void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, const ImBufOwnersh
     ibuf->float_buffer.ownership = ownership;
 
     ibuf->flags |= IB_rectfloat;
-  }
-}
-
-void IMB_assign_z_buffer(ImBuf *ibuf, int *buffer_data, ImBufOwnership ownership)
-{
-  imb_free_buffer(ibuf->z_buffer);
-  ibuf->flags &= ~IB_zbuf;
-
-  if (buffer_data) {
-    ibuf->z_buffer.ownership = ownership;
-    ibuf->z_buffer.data = buffer_data;
-
-    ibuf->flags |= IB_zbuf;
-  }
-}
-
-void IMB_assign_float_z_buffer(ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership)
-{
-  imb_free_buffer(ibuf->float_z_buffer);
-  ibuf->flags &= ~IB_zbuffloat;
-
-  if (buffer_data) {
-    ibuf->float_z_buffer.ownership = ownership;
-    ibuf->float_z_buffer.data = buffer_data;
-
-    ibuf->flags |= IB_zbuffloat;
   }
 }
 
@@ -711,18 +560,6 @@ bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
     }
   }
 
-  if (flags & IB_zbuf) {
-    if (addzbufImBuf(ibuf) == false) {
-      return false;
-    }
-  }
-
-  if (flags & IB_zbuffloat) {
-    if (addzbuffloatImBuf(ibuf) == false) {
-      return false;
-    }
-  }
-
   /* assign default spaces */
   colormanage_imbuf_set_default_spaces(ibuf);
 
@@ -739,19 +576,11 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
     return nullptr;
   }
 
-  /* TODO(sergey): Use implicit sharing. */
-
   if (ibuf1->byte_buffer.data) {
     flags |= IB_rect;
   }
   if (ibuf1->float_buffer.data) {
     flags |= IB_rectfloat;
-  }
-  if (ibuf1->z_buffer.data) {
-    flags |= IB_zbuf;
-  }
-  if (ibuf1->float_z_buffer.data) {
-    flags |= IB_zbuffloat;
   }
 
   x = ibuf1->x;
@@ -770,14 +599,6 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
     memcpy(ibuf2->float_buffer.data,
            ibuf1->float_buffer.data,
            size_t(ibuf1->channels) * x * y * sizeof(float));
-  }
-
-  if (flags & IB_zbuf) {
-    memcpy(ibuf2->z_buffer.data, ibuf1->z_buffer.data, size_t(x) * y * sizeof(int));
-  }
-
-  if (flags & IB_zbuffloat) {
-    memcpy(ibuf2->float_buffer.data, ibuf1->float_buffer.data, size_t(x) * y * sizeof(float));
   }
 
   if (ibuf1->encoded_buffer.data) {
@@ -800,8 +621,6 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   tbuf.byte_buffer = ibuf2->byte_buffer;
   tbuf.float_buffer = ibuf2->float_buffer;
   tbuf.encoded_buffer = ibuf2->encoded_buffer;
-  tbuf.z_buffer = ibuf2->z_buffer;
-  tbuf.float_z_buffer = ibuf2->float_z_buffer;
   for (a = 0; a < IMB_MIPMAP_LEVELS; a++) {
     tbuf.mipmap[a] = nullptr;
   }

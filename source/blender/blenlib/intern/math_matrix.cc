@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,7 +7,9 @@
  */
 
 #include "BLI_math_matrix.hh"
+
 #include "BLI_math_rotation.hh"
+#include "BLI_simd.h"
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -25,7 +27,7 @@ template<> float4x4 float4x4::operator*(const float4x4 &b) const
   const float4x4 &a = *this;
   float4x4 result;
 
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
   __m128 A0 = _mm_load_ps(a[0]);
   __m128 A1 = _mm_load_ps(a[1]);
   __m128 A2 = _mm_load_ps(a[2]);
@@ -43,13 +45,27 @@ template<> float4x4 float4x4::operator*(const float4x4 &b) const
     _mm_store_ps(result[i], sum);
   }
 #else
-  const float4x4 T = transpose(b);
+  result[0][0] = b[0][0] * a[0][0] + b[0][1] * a[1][0] + b[0][2] * a[2][0] + b[0][3] * a[3][0];
+  result[0][1] = b[0][0] * a[0][1] + b[0][1] * a[1][1] + b[0][2] * a[2][1] + b[0][3] * a[3][1];
+  result[0][2] = b[0][0] * a[0][2] + b[0][1] * a[1][2] + b[0][2] * a[2][2] + b[0][3] * a[3][2];
+  result[0][3] = b[0][0] * a[0][3] + b[0][1] * a[1][3] + b[0][2] * a[2][3] + b[0][3] * a[3][3];
 
-  result.x = float4(dot(a.x, T.x), dot(a.x, T.y), dot(a.x, T.z), dot(a.x, T.w));
-  result.y = float4(dot(a.y, T.x), dot(a.y, T.y), dot(a.y, T.z), dot(a.y, T.w));
-  result.z = float4(dot(a.z, T.x), dot(a.z, T.y), dot(a.z, T.z), dot(a.z, T.w));
-  result.w = float4(dot(a.w, T.x), dot(a.w, T.y), dot(a.w, T.z), dot(a.w, T.w));
+  result[1][0] = b[1][0] * a[0][0] + b[1][1] * a[1][0] + b[1][2] * a[2][0] + b[1][3] * a[3][0];
+  result[1][1] = b[1][0] * a[0][1] + b[1][1] * a[1][1] + b[1][2] * a[2][1] + b[1][3] * a[3][1];
+  result[1][2] = b[1][0] * a[0][2] + b[1][1] * a[1][2] + b[1][2] * a[2][2] + b[1][3] * a[3][2];
+  result[1][3] = b[1][0] * a[0][3] + b[1][1] * a[1][3] + b[1][2] * a[2][3] + b[1][3] * a[3][3];
+
+  result[2][0] = b[2][0] * a[0][0] + b[2][1] * a[1][0] + b[2][2] * a[2][0] + b[2][3] * a[3][0];
+  result[2][1] = b[2][0] * a[0][1] + b[2][1] * a[1][1] + b[2][2] * a[2][1] + b[2][3] * a[3][1];
+  result[2][2] = b[2][0] * a[0][2] + b[2][1] * a[1][2] + b[2][2] * a[2][2] + b[2][3] * a[3][2];
+  result[2][3] = b[2][0] * a[0][3] + b[2][1] * a[1][3] + b[2][2] * a[2][3] + b[2][3] * a[3][3];
+
+  result[3][0] = b[3][0] * a[0][0] + b[3][1] * a[1][0] + b[3][2] * a[2][0] + b[3][3] * a[3][0];
+  result[3][1] = b[3][0] * a[0][1] + b[3][1] * a[1][1] + b[3][2] * a[2][1] + b[3][3] * a[3][1];
+  result[3][2] = b[3][0] * a[0][2] + b[3][1] * a[1][2] + b[3][2] * a[2][2] + b[3][3] * a[3][2];
+  result[3][3] = b[3][0] * a[0][3] + b[3][1] * a[1][3] + b[3][2] * a[2][3] + b[3][3] * a[3][3];
 #endif
+
   return result;
 }
 

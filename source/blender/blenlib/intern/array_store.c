@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -470,7 +470,7 @@ static void bchunk_list_ensure_min_size_last(const BArrayInfo *info,
 {
   BChunkRef *cref = chunk_list->chunk_refs.last;
   if (cref && cref->prev) {
-    /* Both are decref'd after use (end of this block) */
+    /* Both are decrefed after use (end of this block). */
     BChunk *chunk_curr = cref->link;
     BChunk *chunk_prev = cref->prev->link;
 

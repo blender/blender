@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,47 +21,52 @@ GHOST_SystemPathsWin32::~GHOST_SystemPathsWin32() {}
 
 const char *GHOST_SystemPathsWin32::getSystemDir(int, const char *versionstr) const
 {
+  const char *system_dir = nullptr;
+
   /* 1 utf-16 might translate into 3 utf-8. 2 utf-16 translates into 4 utf-8. */
   static char knownpath[MAX_PATH * 3 + 128] = {0};
-  PWSTR knownpath_16 = NULL;
+  PWSTR knownpath_16 = nullptr;
 
   HRESULT hResult = SHGetKnownFolderPath(
-      FOLDERID_ProgramData, KF_FLAG_DEFAULT, NULL, &knownpath_16);
+      FOLDERID_ProgramData, KF_FLAG_DEFAULT, nullptr, &knownpath_16);
 
   if (hResult == S_OK) {
     conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
-    CoTaskMemFree(knownpath_16);
     strcat(knownpath, "\\Blender Foundation\\Blender\\");
     strcat(knownpath, versionstr);
-    return knownpath;
+    system_dir = knownpath;
   }
 
-  return NULL;
+  CoTaskMemFree(knownpath_16);
+  return system_dir;
 }
 
 const char *GHOST_SystemPathsWin32::getUserDir(int, const char *versionstr) const
 {
+  const char *user_dir = nullptr;
+
   static char knownpath[MAX_PATH * 3 + 128] = {0};
-  PWSTR knownpath_16 = NULL;
+  PWSTR knownpath_16 = nullptr;
 
   HRESULT hResult = SHGetKnownFolderPath(
-      FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, NULL, &knownpath_16);
+      FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &knownpath_16);
 
   if (hResult == S_OK) {
     conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
-    CoTaskMemFree(knownpath_16);
     strcat(knownpath, "\\Blender Foundation\\Blender\\");
     strcat(knownpath, versionstr);
-    return knownpath;
+    user_dir = knownpath;
   }
 
-  return NULL;
+  CoTaskMemFree(knownpath_16);
+  return user_dir;
 }
 
 const char *GHOST_SystemPathsWin32::getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const
 {
-  GUID folderid;
+  const char *special_dir = nullptr;
 
+  GUID folderid;
   switch (type) {
     case GHOST_kUserSpecialDirDesktop:
       folderid = FOLDERID_Desktop;
@@ -88,21 +93,20 @@ const char *GHOST_SystemPathsWin32::getUserSpecialDir(GHOST_TUserSpecialDirTypes
       GHOST_ASSERT(
           false,
           "GHOST_SystemPathsWin32::getUserSpecialDir(): Invalid enum value for type parameter");
-      return NULL;
+      return nullptr;
   }
 
   static char knownpath[MAX_PATH * 3] = {0};
-  PWSTR knownpath_16 = NULL;
-  HRESULT hResult = SHGetKnownFolderPath(folderid, KF_FLAG_DEFAULT, NULL, &knownpath_16);
+  PWSTR knownpath_16 = nullptr;
+  HRESULT hResult = SHGetKnownFolderPath(folderid, KF_FLAG_DEFAULT, nullptr, &knownpath_16);
 
   if (hResult == S_OK) {
     conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
-    CoTaskMemFree(knownpath_16);
-    return knownpath;
+    special_dir = knownpath;
   }
 
   CoTaskMemFree(knownpath_16);
-  return NULL;
+  return special_dir;
 }
 
 const char *GHOST_SystemPathsWin32::getBinaryDir() const
@@ -115,7 +119,7 @@ const char *GHOST_SystemPathsWin32::getBinaryDir() const
     return fullname;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void GHOST_SystemPathsWin32::addToSystemRecentFiles(const char *filepath) const
@@ -125,11 +129,12 @@ void GHOST_SystemPathsWin32::addToSystemRecentFiles(const char *filepath) const
   SHARDAPPIDINFO info;
   IShellItem *shell_item;
 
-  HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-  if (!SUCCEEDED(hr))
+  HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  if (!SUCCEEDED(hr)) {
     return;
+  }
 
-  hr = SHCreateItemFromParsingName(filepath_16, NULL, IID_PPV_ARGS(&shell_item));
+  hr = SHCreateItemFromParsingName(filepath_16, nullptr, IID_PPV_ARGS(&shell_item));
   if (SUCCEEDED(hr)) {
     info.psi = shell_item;
     info.pszAppID = BLENDER_WIN_APPID_16;

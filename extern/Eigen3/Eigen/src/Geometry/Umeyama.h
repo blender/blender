@@ -87,7 +87,7 @@ struct umeyama_transform_matrix_type
 * \f{align*}
 *   T = \begin{bmatrix} c\mathbf{R} & \mathbf{t} \\ \mathbf{0} & 1 \end{bmatrix}
 * \f}
-* minimizing the resudiual above. This transformation is always returned as an 
+* minimizing the residual above. This transformation is always returned as an 
 * Eigen::Matrix.
 */
 template <typename Derived, typename OtherDerived>

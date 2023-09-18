@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,7 +15,7 @@
 
 #include "DNA_gpencil_legacy_types.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "overlay_private.hh"
 
@@ -171,12 +171,12 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
   }
 }
 
-typedef struct iterData {
+struct iterData {
   Object *ob;
   DRWShadingGroup *stroke_grp;
   int cfra;
   float plane[4];
-} iterData;
+};
 
 static void gpencil_layer_cache_populate(bGPDlayer *gpl,
                                          bGPDframe * /*gpf*/,

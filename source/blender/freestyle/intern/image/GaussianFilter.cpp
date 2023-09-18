@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2008-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,6 +10,8 @@
 #include <cstdlib>
 
 #include "GaussianFilter.h"
+
+#include "BLI_math_base.h"
 
 namespace Freestyle {
 

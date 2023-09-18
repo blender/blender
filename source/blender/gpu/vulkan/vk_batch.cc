@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,12 +11,13 @@
 #include "vk_context.hh"
 #include "vk_index_buffer.hh"
 #include "vk_state_manager.hh"
+#include "vk_storage_buffer.hh"
 #include "vk_vertex_attribute_object.hh"
 #include "vk_vertex_buffer.hh"
 
 namespace blender::gpu {
 
-void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int instance_count)
+void VKBatch::draw_setup()
 {
   /* Currently the pipeline is rebuild on each draw command. Clearing the dirty flag for
    * consistency with the internals of GPU module. */
@@ -38,26 +39,54 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
   if (draw_indexed) {
     index_buffer->upload_data();
     index_buffer->bind(context);
-    context.command_buffer_get().draw(index_buffer->index_len_get(),
-                                      instance_count,
-                                      index_buffer->index_start_get(),
-                                      vertex_first,
-                                      instance_first);
   }
-  else {
-    context.command_buffer_get().draw(vertex_first, vertex_count, instance_first, instance_count);
-  }
-
-  context.command_buffer_get().submit();
 }
 
-void VKBatch::draw_indirect(GPUStorageBuf * /*indirect_buf*/, intptr_t /*offset*/) {}
-
-void VKBatch::multi_draw_indirect(GPUStorageBuf * /*indirect_buf*/,
-                                  int /*count*/,
-                                  intptr_t /*offset*/,
-                                  intptr_t /*stride*/)
+void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int instance_count)
 {
+  draw_setup();
+
+  VKContext &context = *VKContext::get();
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  VKIndexBuffer *index_buffer = index_buffer_get();
+  const bool draw_indexed = index_buffer != nullptr;
+  if (draw_indexed) {
+    command_buffer.draw_indexed(index_buffer->index_len_get(),
+                                instance_count,
+                                index_buffer->index_start_get(),
+                                vertex_first,
+                                instance_first);
+  }
+  else {
+    command_buffer.draw(vertex_first, vertex_count, instance_first, instance_count);
+  }
+
+  command_buffer.submit();
+}
+
+void VKBatch::draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
+{
+  multi_draw_indirect(indirect_buf, 1, offset, 0);
+}
+
+void VKBatch::multi_draw_indirect(GPUStorageBuf *indirect_buf,
+                                  int count,
+                                  intptr_t offset,
+                                  intptr_t stride)
+{
+  draw_setup();
+
+  VKStorageBuffer &indirect_buffer = *unwrap(unwrap(indirect_buf));
+  VKContext &context = *VKContext::get();
+  const bool draw_indexed = index_buffer_get() != nullptr;
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  if (draw_indexed) {
+    command_buffer.draw_indexed_indirect(indirect_buffer, offset, count, stride);
+  }
+  else {
+    command_buffer.draw_indirect(indirect_buffer, offset, count, stride);
+  }
+  command_buffer.submit();
 }
 
 VKVertexBuffer *VKBatch::vertex_buffer_get(int index)

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -316,7 +316,7 @@ TEST_F(obj_mtl_parser_test, materials_pbr)
   mat[0].illum_mode = 3;
   mat[0].roughness = 0.4f;
   mat[0].metallic = 0.9f;
-  mat[0].sheen = 0.3f;
+  mat[0].sheen = 0.06f;
   mat[0].cc_thickness = 0.393182f;
   mat[0].cc_roughness = 0.05f;
   mat[0].aniso = 0.2f;

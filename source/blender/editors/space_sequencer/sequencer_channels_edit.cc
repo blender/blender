@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,21 +15,21 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "SEQ_channels.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 static int sequencer_rename_channel_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {

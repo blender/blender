@@ -1,11 +1,11 @@
-# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2011-2022 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 string(TIMESTAMP CURRENT_YEAR "%Y")
 
 set(PROJECT_DESCRIPTION  "Blender is the free and open source 3D creation suite software.")
-set(PROJECT_COPYRIGHT    "Copyright (C) 2001-${CURRENT_YEAR} Blender Foundation")
+set(PROJECT_COPYRIGHT    "Copyright (C) 2001-${CURRENT_YEAR} Blender Authors")
 set(PROJECT_CONTACT      "foundation@blender.org")
 set(PROJECT_VENDOR       "Blender Foundation")
 

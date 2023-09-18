@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2020-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,7 +17,7 @@ def update_factory_startup_screens():
             space = area.spaces.active
             space.context = 'TOOL'
         elif area.type == 'DOPESHEET_EDITOR':
-            # Open sidebar in Dopesheet.
+            # Open sidebar in Dope-sheet.
             space = area.spaces.active
             space.show_region_ui = True
 

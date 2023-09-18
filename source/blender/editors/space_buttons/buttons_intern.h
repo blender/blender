@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,7 @@
 
 #include "BLI_bitmap.h"
 #include "DNA_listBase.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,7 +76,7 @@ typedef struct ButsContextTexture {
 
 /* internal exports only */
 
-/* buttons_context.c */
+/* `buttons_context.cc` */
 
 void buttons_context_compute(const struct bContext *C, struct SpaceProperties *sbuts);
 int buttons_context(const struct bContext *C,
@@ -87,11 +87,11 @@ struct ID *buttons_context_id_path(const struct bContext *C);
 
 extern const char *buttons_context_dir[]; /* doc access */
 
-/* buttons_texture.c */
+/* `buttons_texture.cc` */
 
 void buttons_texture_context_compute(const struct bContext *C, struct SpaceProperties *sbuts);
 
-/* buttons_ops.c */
+/* `buttons_ops.cc` */
 
 void BUTTONS_OT_start_filter(struct wmOperatorType *ot);
 void BUTTONS_OT_clear_filter(struct wmOperatorType *ot);

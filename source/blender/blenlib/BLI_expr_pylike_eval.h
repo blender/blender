@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2018 Blender Foundation, Alexander Gavrilov. All rights reserved.
+/* SPDX-FileCopyrightText: 2018 Blender Authors, Alexander Gavrilov. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 

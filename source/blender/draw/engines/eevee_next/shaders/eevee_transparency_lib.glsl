@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire. */
 float transparency_hash(vec2 a)
@@ -28,7 +31,7 @@ float transparency_hashed_alpha_threshold(float hash_scale, float hash_offset, v
   float fac = fract(log2(pix_scale));
   /* Interpolate alpha threshold from noise at two scales. */
   float x = mix(alpha.x, alpha.y, fac);
-  /* Pass into CDF to compute uniformly distrib threshold. */
+  /* Pass into CDF to compute uniformly distributed threshold. */
   float a = min(fac, 1.0 - fac);
   float one_a = 1.0 - a;
   float denom = 1.0 / (2 * a * one_a);

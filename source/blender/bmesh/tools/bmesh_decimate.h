@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,6 +7,10 @@
 /** \file
  * \ingroup bmesh
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief BM_mesh_decimate
@@ -49,3 +53,7 @@ void BM_mesh_decimate_dissolve(BMesh *bm,
                                float angle_limit,
                                bool do_dissolve_boundaries,
                                const BMO_Delimit delimit);
+
+#ifdef __cplusplus
+}
+#endif

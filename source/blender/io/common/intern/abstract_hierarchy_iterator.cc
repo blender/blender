@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "IO_abstract_hierarchy_iterator.h"
@@ -60,6 +60,10 @@ void HierarchyContext::mark_as_instance_of(const std::string &reference_export_p
 void HierarchyContext::mark_as_not_instanced()
 {
   original_export_path.clear();
+}
+bool HierarchyContext::is_prototype() const
+{
+  return this->duplicator && original_export_path.empty();
 }
 
 bool HierarchyContext::is_object_visible(const enum eEvaluationMode evaluation_mode) const
@@ -606,7 +610,7 @@ void AbstractHierarchyIterator::determine_export_paths(const HierarchyContext *p
 }
 
 void AbstractHierarchyIterator::determine_duplication_references(
-    const HierarchyContext *parent_context, std::string indent)
+    const HierarchyContext *parent_context, const std::string &indent)
 {
   ExportChildren children = graph_children(parent_context);
 

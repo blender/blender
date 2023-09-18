@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -16,10 +16,10 @@
 
 namespace blender::gpu {
 
-typedef enum {
+enum GPUIndexBufType {
   GPU_INDEX_U16,
   GPU_INDEX_U32,
-} GPUIndexBufType;
+};
 
 static inline size_t to_bytesize(GPUIndexBufType type)
 {

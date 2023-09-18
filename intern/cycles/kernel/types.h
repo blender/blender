@@ -289,10 +289,9 @@ enum PathRayFlag : uint32_t {
   /* Perform subsurface scattering. */
   PATH_RAY_SUBSURFACE_RANDOM_WALK = (1U << 21U),
   PATH_RAY_SUBSURFACE_DISK = (1U << 22U),
-  PATH_RAY_SUBSURFACE_USE_FRESNEL = (1U << 23U),
   PATH_RAY_SUBSURFACE_BACKFACING = (1U << 24U),
   PATH_RAY_SUBSURFACE = (PATH_RAY_SUBSURFACE_RANDOM_WALK | PATH_RAY_SUBSURFACE_DISK |
-                         PATH_RAY_SUBSURFACE_USE_FRESNEL | PATH_RAY_SUBSURFACE_BACKFACING),
+                         PATH_RAY_SUBSURFACE_BACKFACING),
 
   /* Contribute to denoising features. */
   PATH_RAY_DENOISING_FEATURES = (1U << 25U),
@@ -990,7 +989,6 @@ typedef struct ccl_align(16) ShaderData
   /* Closure data, we store a fixed array of closures */
   int num_closure;
   int num_closure_left;
-  Spectrum svm_closure_weight;
 
   /* Closure weights summed directly, so we can evaluate
    * emission and shadow transparency with MAX_CLOSURE 0. */
@@ -1233,7 +1231,11 @@ typedef struct KernelTables {
   int ggx_glass_Eavg;
   int ggx_glass_inv_E;
   int ggx_glass_inv_Eavg;
+  int sheen_ltc;
+  int ggx_gen_schlick_ior_s;
+  int ggx_gen_schlick_s;
   int pad1;
+  int pad2;
 } KernelTables;
 static_assert_align(KernelTables, 16);
 
@@ -1353,12 +1355,13 @@ typedef struct KernelSpotLight {
   packed_float3 scaled_axis_u;
   float radius;
   packed_float3 scaled_axis_v;
-  float invarea;
+  float eval_fac;
   packed_float3 dir;
   float cos_half_spot_angle;
+  float half_cot_half_spot_angle;
   float inv_len_z;
   float spot_smooth;
-  float pad[2];
+  float pad;
 } KernelSpotLight;
 
 /* PointLight is SpotLight with only radius and invarea being used. */
@@ -1376,10 +1379,12 @@ typedef struct KernelAreaLight {
 } KernelAreaLight;
 
 typedef struct KernelDistantLight {
-  float radius;
-  float cosangle;
-  float invarea;
-  float pad;
+  float angle;
+  float one_minus_cosangle;
+  float half_inv_sin_half_angle;
+  float pdf;
+  float eval_fac;
+  float pad[3];
 } KernelDistantLight;
 
 typedef struct KernelLight {
@@ -1703,7 +1708,7 @@ enum KernelFeatureFlag : uint32_t {
   KERNEL_FEATURE_TRANSPARENT = (1U << 19U),
 
   /* Use shadow catcher. */
-  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 29U),
+  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 20U),
 
   /* Light render passes. */
   KERNEL_FEATURE_LIGHT_PASSES = (1U << 21U),
@@ -1735,9 +1740,9 @@ enum KernelFeatureFlag : uint32_t {
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND \
   (KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT | KERNEL_FEATURE_NODE_AOV)
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW \
-  (KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | \
-   KERNEL_FEATURE_NODE_BUMP | KERNEL_FEATURE_NODE_BUMP_STATE | \
-   KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_LIGHT_PATH)
+  (KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_BUMP | \
+   KERNEL_FEATURE_NODE_BUMP_STATE | KERNEL_FEATURE_NODE_VORONOI_EXTRA | \
+   KERNEL_FEATURE_NODE_LIGHT_PATH)
 #define KERNEL_FEATURE_NODE_MASK_SURFACE \
   (KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW | KERNEL_FEATURE_NODE_RAYTRACE | \
    KERNEL_FEATURE_NODE_AOV | KERNEL_FEATURE_NODE_LIGHT_PATH)

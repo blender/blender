@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -45,6 +45,10 @@ struct ObjectRef;
 typedef enum eObjectInfoFlag eObjectInfoFlag;
 
 #  endif
+#endif
+
+#if defined(__cplusplus) && !defined(GPU_SHADER)
+extern "C" {
 #endif
 
 #define DRW_SHADER_SHARED_H
@@ -95,7 +99,7 @@ uint drw_view_id = 0;
      (DRW_VIEW_LEN > 2)  ? 2 : \
                            1)
 #  define DRW_VIEW_MASK ~(0xFFFFFFFFu << DRW_VIEW_SHIFT)
-#  define DRW_VIEW_FROM_RESOURCE_ID drw_view_id = (drw_ResourceID & DRW_VIEW_MASK)
+#  define DRW_VIEW_FROM_RESOURCE_ID drw_view_id = (uint(drw_ResourceID) & DRW_VIEW_MASK)
 #endif
 
 struct FrustumCorners {
@@ -169,7 +173,7 @@ enum eObjectInfoFlag {
 
 struct ObjectInfos {
 #if defined(GPU_SHADER) && !defined(DRAW_FINALIZE_SHADER)
-  /* TODO Rename to struct member for glsl too. */
+  /* TODO Rename to struct member for GLSL too. */
   float4 orco_mul_bias[2];
   float4 ob_color;
   float4 infos;
@@ -380,3 +384,7 @@ BLI_STATIC_ASSERT_ALIGN(DRWDebugPrintBuffer, 16)
 #define drw_debug_draw_offset 2
 
 /** \} */
+
+#if defined(__cplusplus) && !defined(GPU_SHADER)
+}
+#endif

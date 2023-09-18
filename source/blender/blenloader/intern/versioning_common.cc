@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,15 +20,21 @@
 
 #include "BKE_animsys.h"
 #include "BKE_idprop.h"
+#include "BKE_ipo.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.hh"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
+#include "SEQ_sequencer.h"
+
 #include "MEM_guardedalloc.h"
 
-#include "versioning_common.h"
+#include "BLO_readfile.h"
+#include "readfile.hh"
+#include "versioning_common.hh"
 
 using blender::Map;
 using blender::StringRef;
@@ -179,17 +185,18 @@ void version_node_output_socket_name(bNodeTree *ntree,
 
 bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
                                                   bNode *node,
-                                                  eNodeSocketInOut in_out,
+                                                  int in_out,
                                                   int type,
                                                   int subtype,
                                                   const char *identifier,
                                                   const char *name)
 {
-  bNodeSocket *sock = nodeFindSocket(node, in_out, identifier);
+  bNodeSocket *sock = nodeFindSocket(node, eNodeSocketInOut(in_out), identifier);
   if (sock != nullptr) {
     return sock;
   }
-  return nodeAddStaticSocket(ntree, node, in_out, type, subtype, identifier, name);
+  return nodeAddStaticSocket(
+      ntree, node, eNodeSocketInOut(in_out), type, subtype, identifier, name);
 }
 
 void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name)
@@ -354,13 +361,13 @@ float *version_cycles_node_socket_vector_value(bNodeSocket *socket)
 IDProperty *version_cycles_properties_from_ID(ID *id)
 {
   IDProperty *idprop = IDP_GetProperties(id, false);
-  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : NULL;
+  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : nullptr;
 }
 
 IDProperty *version_cycles_properties_from_view_layer(ViewLayer *view_layer)
 {
   IDProperty *idprop = view_layer->id_properties;
-  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : NULL;
+  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : nullptr;
 }
 
 float version_cycles_property_float(IDProperty *idprop, const char *name, float default_value)
@@ -401,5 +408,122 @@ void version_cycles_property_boolean_set(IDProperty *idprop, const char *name, b
 IDProperty *version_cycles_visibility_properties_from_ID(ID *id)
 {
   IDProperty *idprop = IDP_GetProperties(id, false);
-  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles_visibility", IDP_GROUP) : NULL;
+  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles_visibility", IDP_GROUP) : nullptr;
+}
+
+void version_update_node_input(
+    bNodeTree *ntree,
+    FunctionRef<bool(bNode *)> check_node,
+    const char *socket_identifier,
+    FunctionRef<void(bNode *, bNodeSocket *)> update_input,
+    FunctionRef<void(bNode *, bNodeSocket *, bNode *, bNodeSocket *)> update_input_link)
+{
+  bool need_update = false;
+
+  /* Iterate backwards from end so we don't encounter newly added links. */
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
+    /* Detect link to replace. */
+    bNode *fromnode = link->fromnode;
+    bNodeSocket *fromsock = link->fromsock;
+    bNode *tonode = link->tonode;
+    bNodeSocket *tosock = link->tosock;
+
+    if (!(tonode != nullptr && check_node(tonode) && STREQ(tosock->identifier, socket_identifier)))
+    {
+      continue;
+    }
+
+    /* Replace links with updated equivalent */
+    nodeRemLink(ntree, link);
+    update_input_link(fromnode, fromsock, tonode, tosock);
+
+    need_update = true;
+  }
+
+  /* Update sockets and/or their default values.
+   * Do this after the link update in case it changes the identifier. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (check_node(node)) {
+      bNodeSocket *input = nodeFindSocket(node, SOCK_IN, socket_identifier);
+      if (input != nullptr) {
+        update_input(node, input);
+      }
+    }
+  }
+
+  if (need_update) {
+    version_socket_update_is_used(ntree);
+  }
+}
+
+static bool blendfile_or_libraries_versions_atleast(Main *bmain,
+                                                    const short versionfile,
+                                                    const short subversionfile)
+{
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, versionfile, subversionfile)) {
+    return false;
+  }
+
+  LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
+    if (!MAIN_VERSION_FILE_ATLEAST(library, versionfile, subversionfile)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports)
+{
+  /* WARNING: The code below may add IDs. These IDs _will_ be (by definition) conforming to current
+   * code's version already, and _must not_ be 'versionned' again.
+   *
+   * This means that when adding code here, _extreme_ care must be taken that it will not badly
+   * affect these 'modern' IDs potentially added by already existing processing.
+   *
+   * Adding code here should only be done in exceptional cases.
+   *
+   * Some further points to keep in mind:
+   *   - While typically versioning order should be respected in code below (i.e. versioning
+   *     affecting older versions should be done first), _this is not a hard rule_. And it should
+   *     not be assumed older code must not be checked when adding newer code.
+   *   - Do not rely strongly on versioning numbers here. This code may be run on data from
+   *     different Blender versions (through the usage of linked data), and all existing data have
+   *     already been processed through the whole do_version during blendfile reading itself. So
+   *     decision to apply some versioning on some data should mostly rely on the data itself.
+   *   - Unlike the regular do_version code, this one should _not_ be assumed as 'valid forever'.
+   *     It is closer to the Editing or BKE code in that respect, changes to the logic or data
+   *     model of an ID will require a careful update here as well.
+   *
+   * Another critical weakness of this code is that it is currently _not_ performed on data linked
+   * during an editing session, but only on data linked while reading a whole blendfile. This will
+   * have to be fixed at some point.
+   */
+
+  /* NOTE: Version number is checked against Main version (i.e. current blend file version), AND
+   * the versions of all the linked libraries. */
+
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
+    do_versions_ipos_to_animato(new_bmain);
+  }
+
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
+    LISTBASE_FOREACH (Scene *, scene, &new_bmain->scenes) {
+      if (scene->ed) {
+        SEQ_doversion_250_sound_proxy_update(new_bmain, scene->ed);
+      }
+    }
+  }
+
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 302, 1)) {
+    BKE_lib_override_library_main_proxy_convert(new_bmain, reports);
+    /* Currently liboverride code can generate invalid namemap. This is a known issue, requires
+     * #107847 to be properly fixed. */
+    BKE_main_namemap_validate_and_fix(new_bmain);
+  }
+
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 302, 3)) {
+    /* Does not add any new IDs, but needs the full Main data-base. */
+    BKE_lib_override_library_main_hierarchy_root_ensure(new_bmain);
+  }
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -80,6 +80,7 @@ class AssetLibraryService {
   AssetLibrary *get_asset_library_current_file();
   /** Get the "All" asset library, which loads all others and merges them into one. */
   AssetLibrary *get_asset_library_all(const Main *bmain);
+  void rebuild_all_library();
 
   /**
    * Return the start position of the last blend-file extension in given path,

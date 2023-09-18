@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -19,7 +22,7 @@ void main()
   bool is_persp = (drw_view.winmat[3][3] == 0.0);
 
   /* This is the local space camera ray (not normalize).
-   * In perspective mode it's also the viewspace position
+   * In perspective mode it's also the view-space position
    * of the sphere center. */
   vec3 cam_ray = (is_persp) ? model_view_matrix[3].xyz : vec3(0.0, 0.0, -1.0);
   cam_ray = mat3(sphereMatrix) * cam_ray;
@@ -48,7 +51,7 @@ void main()
     float cos_b = cos(a);
     float sin_b = sqrt(clamp(1.0 - cos_b * cos_b, 0.0, 1.0));
 #if 1
-    /* Instead of choosing the biggest circle in screenspace,
+    /* Instead of choosing the biggest circle in screen-space,
      * we choose the nearest with the same angular size. This
      * permit us to leverage GL_ARB_conservative_depth in the
      * fragment shader. */

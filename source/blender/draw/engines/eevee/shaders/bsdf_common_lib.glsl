@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
@@ -21,7 +24,7 @@ float ior_from_f0(float f0)
 }
 
 /* Simplified form of F_eta(eta, 1.0). */
-float f0_from_ior(float eta)
+float F0_from_ior(float eta)
 {
   float A = (eta - 1.0) / (eta + 1.0);
   return A * A;
@@ -66,7 +69,7 @@ float F_eta(float eta, float cos_theta)
 /* Fresnel color blend base on fresnel factor */
 vec3 F_color_blend(float eta, float fresnel, vec3 f0_color)
 {
-  float f0 = f0_from_ior(eta);
+  float f0 = F0_from_ior(eta);
   float fac = saturate((fresnel - f0) / (1.0 - f0));
   return mix(f0_color, vec3(1.0), fac);
 }
@@ -74,44 +77,58 @@ vec3 F_color_blend(float eta, float fresnel, vec3 f0_color)
 /* Fresnel split-sum approximation. */
 vec3 F_brdf_single_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
-  /* Unreal specular matching : if specular color is below 2% intensity,
-   * treat as shadowning */
-  return lut.y * f90 + lut.x * f0;
+  return f0 * lut.x + f90 * lut.y;
 }
 
-/* Multi-scattering brdf approximation from :
+/* Multi-scattering brdf approximation from
  * "A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting"
- * by Carmelo J. Fdez-Agüera. */
+ * https://jcgt.org/published/0008/01/03/paper.pdf by Carmelo J. Fdez-Agüera. */
 vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
-  vec3 FssEss = lut.y * f90 + lut.x * f0;
+  vec3 FssEss = F_brdf_single_scatter(f0, f90, lut);
 
   float Ess = lut.x + lut.y;
   float Ems = 1.0 - Ess;
-  vec3 Favg = f0 + (1.0 - f0) / 21.0;
-  vec3 Fms = FssEss * Favg / (1.0 - (1.0 - Ess) * Favg);
-  /* We don't do anything special for diffuse surfaces because the principle bsdf
-   * does not care about energy conservation of the specular layer for dielectrics. */
-  return FssEss + Fms * Ems;
+  vec3 Favg = f0 + (f90 - f0) / 21.0;
+
+  /* The original paper uses `FssEss * radiance + Fms*Ems * irradiance`, but
+   * "A Journey Through Implementing Multiscattering BRDFs and Area Lights" by Steve McAuley
+   * suggests to use `FssEss * radiance + Fms*Ems * radiance` which results in comparable quality.
+   * We handle `radiance` outside of this function, so the result simplifies to:
+   * `FssEss + Fms*Ems = FssEss * (1 + Ems*Favg / (1 - Ems*Favg)) = FssEss / (1 - Ems*Favg)`.
+   * This is a simple albedo scaling very similar to the approach used by Cycles:
+   * "Practical multiple scattering compensation for microfacet model". */
+  return FssEss / (1.0 - Ems * Favg);
 }
 
 /* GGX */
+float bxdf_ggx_D(float NH, float a2)
+{
+  return a2 / (M_PI * sqr((a2 - 1.0) * (NH * NH) + 1.0));
+}
+
 float D_ggx_opti(float NH, float a2)
 {
   float tmp = (NH * a2 - NH) * NH + 1.0;
-  return M_PI * tmp * tmp; /* Doing RCP and mul a2 at the end */
+  return M_PI * tmp * tmp; /* Doing RCP and multiply a2 at the end. */
+}
+
+float bxdf_ggx_smith_G1(float NX, float a2)
+{
+  return 2.0 / (1.0 + sqrt(1.0 + a2 * (1.0 / (NX * NX) - 1.0)));
 }
 
 float G1_Smith_GGX_opti(float NX, float a2)
 {
   /* Using Brian Karis approach and refactoring by NX/NX
    * this way the (2*NL)*(2*NV) in G = G1(V) * G1(L) gets canceled by the brdf denominator 4*NL*NV
-   * Rcp is done on the whole G later
+   * RCP is done on the whole G later
    * Note that this is not convenient for the transmission formula */
   return NX + sqrt(NX * (NX - NX * a2) + a2);
-  /* return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function */
+  // return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function. */
 }
 
+/* Compute the GGX BRDF without the Fresnel term, multiplied by the cosine foreshortening term. */
 float bsdf_ggx(vec3 N, vec3 L, vec3 V, float roughness)
 {
   float a = roughness;
@@ -122,12 +139,11 @@ float bsdf_ggx(vec3 N, vec3 L, vec3 V, float roughness)
   float NL = max(dot(N, L), 1e-8);
   float NV = max(dot(N, V), 1e-8);
 
-  float G = G1_Smith_GGX_opti(NV, a2) * G1_Smith_GGX_opti(NL, a2); /* Doing RCP at the end */
-  float D = D_ggx_opti(NH, a2);
+  float G = bxdf_ggx_smith_G1(NV, a2) * bxdf_ggx_smith_G1(NL, a2);
+  float D = bxdf_ggx_D(NH, a2);
 
-  /* Denominator is canceled by G1_Smith */
-  /* bsdf = D * G / (4.0 * NL * NV); /* Reference function */
-  return NL * a2 / (D * G); /* NL to Fit cycles Equation : line. 345 in bsdf_microfacet.h */
+  /* brdf * NL =  `((D * G) / (4 * NV * NL)) * NL`. */
+  return (0.25 * D * G) / NV;
 }
 
 void accumulate_light(vec3 light, float fac, inout vec4 accum)

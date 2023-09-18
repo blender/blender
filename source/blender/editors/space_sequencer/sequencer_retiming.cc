@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -26,17 +25,17 @@
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "DEG_depsgraph.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 using blender::MutableSpan;
 
@@ -325,7 +324,7 @@ static int sequesequencer_retiming_handle_add_exec(bContext *C, wmOperator *op)
   const Editing *ed = SEQ_editing_get(scene);
   Sequence *seq = ed->act_seq;
 
-  SEQ_retiming_data_ensure(seq);
+  SEQ_retiming_data_ensure(scene, seq);
 
   float timeline_frame;
   if (RNA_struct_property_is_set(op->ptr, "timeline_frame")) {

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -71,6 +71,7 @@ void MotionBlurModule::init()
      * function is only called after rendering a sample. */
     inst_.velocity.step_sync(STEP_PREVIOUS, time_steps_[0]);
     inst_.velocity.step_sync(STEP_NEXT, time_steps_[2]);
+    /* Let the main sync loop handle the current step. */
   }
   inst_.set_time(time_steps_[1]);
 }
@@ -124,7 +125,9 @@ void MotionBlurModule::sync()
 {
   /* Disable motion blur in viewport when changing camera projection type.
    * Avoids really high velocities. */
-  if (inst_.velocity.camera_changed_projection()) {
+  if (inst_.velocity.camera_changed_projection() ||
+      (inst_.is_viewport() && inst_.camera.overscan_changed()))
+  {
     motion_blur_fx_enabled_ = false;
   }
 
@@ -141,8 +144,9 @@ void MotionBlurModule::sync()
   {
     /* Create max velocity tiles. */
     PassSimple::Sub &sub = motion_blur_ps_.sub("TilesFlatten");
-    eShaderType shader = inst_.is_viewport() ? MOTION_BLUR_TILE_FLATTEN_VIEWPORT :
-                                               MOTION_BLUR_TILE_FLATTEN_RENDER;
+    eGPUTextureFormat vector_tx_format = inst_.render_buffers.vector_tx_format();
+    eShaderType shader = vector_tx_format == GPU_RG16F ? MOTION_BLUR_TILE_FLATTEN_RG :
+                                                         MOTION_BLUR_TILE_FLATTEN_RGBA;
     sub.shader_set(inst_.shaders.static_shader_get(shader));
     sub.bind_ubo("motion_blur_buf", data_);
     sub.bind_texture("depth_tx", &render_buffers.depth_tx);
@@ -210,9 +214,6 @@ void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **ou
       }
     }
     was_navigating_ = DRW_state_is_navigating();
-
-    /* Change texture swizzling to avoid complexity in gather pass shader. */
-    GPU_texture_swizzle_set(inst_.render_buffers.vector_tx, "rgrg");
   }
   else {
     data_.motion_scale = float2(1.0f);
@@ -235,16 +236,22 @@ void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **ou
 
   tile_indirection_buf_.clear_to_zero();
 
+  const bool do_motion_vectors_swizzle = inst_.render_buffers.vector_tx_format() == GPU_RG16F;
+  if (do_motion_vectors_swizzle) {
+    /* Change texture swizzling to avoid complexity in gather pass shader. */
+    GPU_texture_swizzle_set(inst_.render_buffers.vector_tx, "rgrg");
+  }
+
   inst_.manager->submit(motion_blur_ps_, view);
+
+  if (do_motion_vectors_swizzle) {
+    /* Reset swizzle since this texture might be reused in other places. */
+    GPU_texture_swizzle_set(inst_.render_buffers.vector_tx, "rgba");
+  }
 
   tiles_tx_.release();
 
   DRW_stats_group_end();
-
-  if (inst_.is_viewport()) {
-    /* Reset swizzle since this texture might be reused in other places. */
-    GPU_texture_swizzle_set(inst_.render_buffers.vector_tx, "rgba");
-  }
 
   /* Swap buffers so that next effect has the right input. */
   *input_tx = output_color_tx_;

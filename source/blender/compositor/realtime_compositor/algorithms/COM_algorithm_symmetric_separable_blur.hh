@@ -1,10 +1,12 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #include "BLI_math_vector_types.hh"
+
+#include "DNA_scene_types.h"
 
 #include "COM_context.hh"
 #include "COM_result.hh"
@@ -22,8 +24,8 @@ void symmetric_separable_blur(Context &context,
                               Result &input,
                               Result &output,
                               float2 radius,
-                              int filter_type,
-                              bool extend_bounds,
-                              bool gamma_correct);
+                              int filter_type = R_FILTER_GAUSS,
+                              bool extend_bounds = false,
+                              bool gamma_correct = false);
 
 }  // namespace blender::realtime_compositor

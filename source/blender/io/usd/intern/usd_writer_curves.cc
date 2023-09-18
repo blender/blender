@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation All rights reserved.
+/* SPDX-FileCopyrightText: 2023 Blender Authors All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,11 +24,11 @@
 #include "BLI_math_geom.h"
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 namespace blender::io::usd {
 
@@ -441,10 +441,11 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
   else if (first_frame_curve_type != curve_type) {
     const char *first_frame_curve_type_name = nullptr;
     RNA_enum_name_from_value(
-        rna_enum_curves_types, int(first_frame_curve_type), &first_frame_curve_type_name);
+        rna_enum_curves_type_items, int(first_frame_curve_type), &first_frame_curve_type_name);
 
     const char *current_curve_type_name = nullptr;
-    RNA_enum_name_from_value(rna_enum_curves_types, int(curve_type), &current_curve_type_name);
+    RNA_enum_name_from_value(
+        rna_enum_curves_type_items, int(curve_type), &current_curve_type_name);
 
     WM_reportf(RPT_WARNING,
                "USD does not support animating curve types. The curve type changes from %s to "

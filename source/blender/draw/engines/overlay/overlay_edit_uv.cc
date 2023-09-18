@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,8 +7,10 @@
  */
 #include "DRW_render.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "draw_manager_text.h"
+
+#include "BLI_math_color.h"
 
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -16,21 +18,21 @@
 #include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 
 #include "IMB_imbuf_types.h"
 
 #include "GPU_batch.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "overlay_private.hh"
 
@@ -444,8 +446,8 @@ static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_edit_object = DRW_object_is_in_edit_mode(ob);
   Mesh *me = (Mesh *)ob->data;
-  const bool has_active_object_uvmap = CustomData_get_active_layer(&me->ldata, CD_PROP_FLOAT2) !=
-                                       -1;
+  const bool has_active_object_uvmap = CustomData_get_active_layer(&me->loop_data,
+                                                                   CD_PROP_FLOAT2) != -1;
   const bool has_active_edit_uvmap = is_edit_object &&
                                      (CustomData_get_active_layer(&me->edit_mesh->bm->ldata,
                                                                   CD_PROP_FLOAT2) != -1);

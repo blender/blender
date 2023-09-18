@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -41,9 +41,6 @@ void BKE_viewer_path_copy(ViewerPath *dst, const ViewerPath *src);
 bool BKE_viewer_path_equal(const ViewerPath *a, const ViewerPath *b);
 void BKE_viewer_path_blend_write(struct BlendWriter *writer, const ViewerPath *viewer_path);
 void BKE_viewer_path_blend_read_data(struct BlendDataReader *reader, ViewerPath *viewer_path);
-void BKE_viewer_path_blend_read_lib(struct BlendLibReader *reader,
-                                    struct ID *self_id,
-                                    ViewerPath *viewer_path);
 void BKE_viewer_path_foreach_id(struct LibraryForeachIDData *data, ViewerPath *viewer_path);
 void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const struct IDRemapper *mappings);
 
@@ -53,6 +50,7 @@ ModifierViewerPathElem *BKE_viewer_path_elem_new_modifier(void);
 GroupNodeViewerPathElem *BKE_viewer_path_elem_new_group_node(void);
 SimulationZoneViewerPathElem *BKE_viewer_path_elem_new_simulation_zone(void);
 ViewerNodeViewerPathElem *BKE_viewer_path_elem_new_viewer_node(void);
+RepeatZoneViewerPathElem *BKE_viewer_path_elem_new_repeat_zone(void);
 ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src);
 bool BKE_viewer_path_elem_equal(const ViewerPathElem *a, const ViewerPathElem *b);
 void BKE_viewer_path_elem_free(ViewerPathElem *elem);

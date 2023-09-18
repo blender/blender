@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -52,9 +52,9 @@ const UserDef U_default = {
     .dbl_click_time = 350,
     .mini_axis_type = USER_MINI_AXIS_TYPE_GIZMO,
     .uiflag = (USER_FILTERFILEEXTS | USER_DRAWVIEWINFO | USER_PLAINMENUS |
-               USER_LOCK_CURSOR_ADJUST | USER_DEPTH_CURSOR | USER_AUTOPERSP | USER_GLOBALUNDO |
-               USER_HIDE_DOT | USER_SHOW_GIZMO_NAVIGATE | USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS |
-               USER_CONTINUOUS_MOUSE | USER_SAVE_PROMPT),
+               USER_LOCK_CURSOR_ADJUST | USER_DEPTH_CURSOR | USER_AUTOPERSP |
+               USER_NODE_AUTO_OFFSET | USER_GLOBALUNDO | USER_HIDE_DOT | USER_SHOW_GIZMO_NAVIGATE |
+               USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS | USER_CONTINUOUS_MOUSE | USER_SAVE_PROMPT),
     .uiflag2 = USER_REGION_OVERLAP,
     .gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE | USER_GPU_FLAG_SUBDIVISION_EVALUATION,
     .app_flag = 0,
@@ -79,6 +79,7 @@ const UserDef U_default = {
 
     .scrollback = 256,
     .node_margin = 80,
+    .node_preview_res = 120,
     .transopts = USER_TR_TOOLTIPS,
     .menuthreshold1 = 5,
     .menuthreshold2 = 2,
@@ -107,6 +108,7 @@ const UserDef U_default = {
     .gp_euclideandist = 2,
     .gp_eraser = 25,
     .gp_settings = 0,
+    .playback_fps_samples = 8,
 #ifdef __APPLE__
     .gpu_backend = GPU_BACKEND_METAL,
 #else
@@ -212,7 +214,7 @@ const UserDef U_default = {
     .file_space_data =
         {
             .display_type = FILE_VERTICALDISPLAY,
-            .thumbnail_size = 128,
+            .thumbnail_size = 96,
             .sort_type = FILE_SORT_ALPHA,
             .details_flags = FILE_DETAILS_SIZE | FILE_DETAILS_DATETIME,
             .flag = FILE_HIDE_DOT,

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -31,7 +31,7 @@ void GaussianYBlurOperation::init_execution()
     filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
     gausstab_ = BlurBaseOperation::make_gausstab(rad, filtersize_);
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
     gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
 #endif
   }
@@ -46,7 +46,7 @@ void GaussianYBlurOperation::update_gauss()
     filtersize_ = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
     gausstab_ = BlurBaseOperation::make_gausstab(rad, filtersize_);
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
     gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
 #endif
   }
@@ -71,7 +71,7 @@ void GaussianYBlurOperation::execute_pixel(float output[4], int x, int y, void *
   int step = get_step();
   const int buffer_indexx = ((xmin - bufferstartx) * 4);
 
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
   __m128 accum_r = _mm_load_ps(color_accum);
   for (int ny = ymin; ny < ymax; ny += step) {
     index = (ny - y) + filtersize_;
@@ -139,7 +139,7 @@ void GaussianYBlurOperation::deinit_execution()
     MEM_freeN(gausstab_);
     gausstab_ = nullptr;
   }
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
   if (gausstab_sse_) {
     MEM_freeN(gausstab_sse_);
     gausstab_sse_ = nullptr;

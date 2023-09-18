@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,7 +11,7 @@
 #include "overlay_next_private.hh"
 #include "overlay_shader_shared.h"
 
-#include "ED_mball.h"
+#include "ED_mball.hh"
 
 namespace blender::draw::overlay {
 

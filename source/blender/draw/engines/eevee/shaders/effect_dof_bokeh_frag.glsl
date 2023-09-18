@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Bokeh Look Up Table: This outputs a radius multiplier to shape the sampling in gather pass or

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2020-2022 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -23,17 +23,21 @@
 # also defined, but not for general use are
 #  XR_OPENXR_SDK_LOADER_LIBRARY, where to find the OpenXR-SDK loader library.
 
-# If XR_OPENXR_SDK_ROOT_DIR was defined in the environment, use it.
-IF(NOT XR_OPENXR_SDK_ROOT_DIR AND NOT $ENV{XR_OPENXR_SDK_ROOT_DIR} STREQUAL "")
-  SET(XR_OPENXR_SDK_ROOT_DIR $ENV{XR_OPENXR_SDK_ROOT_DIR})
-ENDIF()
+# If `XR_OPENXR_SDK_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED XR_OPENXR_SDK_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{XR_OPENXR_SDK_ROOT_DIR})
+  set(XR_OPENXR_SDK_ROOT_DIR $ENV{XR_OPENXR_SDK_ROOT_DIR})
+else()
+  set(XR_OPENXR_SDK_ROOT_DIR "")
+endif()
 
-SET(_xr_openxr_sdk_SEARCH_DIRS
+set(_xr_openxr_sdk_SEARCH_DIRS
   ${XR_OPENXR_SDK_ROOT_DIR}
   /opt/lib/xr-openxr-sdk
 )
 
-FIND_PATH(XR_OPENXR_SDK_INCLUDE_DIR
+find_path(XR_OPENXR_SDK_INCLUDE_DIR
   NAMES
     openxr/openxr.h
   HINTS
@@ -42,7 +46,7 @@ FIND_PATH(XR_OPENXR_SDK_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(XR_OPENXR_SDK_LOADER_LIBRARY
+find_library(XR_OPENXR_SDK_LOADER_LIBRARY
   NAMES
     openxr_loader
   HINTS
@@ -53,16 +57,16 @@ FIND_LIBRARY(XR_OPENXR_SDK_LOADER_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set XR_OPENXR_SDK_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(XR_OpenXR_SDK DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(XR_OpenXR_SDK DEFAULT_MSG
     XR_OPENXR_SDK_LOADER_LIBRARY XR_OPENXR_SDK_INCLUDE_DIR)
 
-IF(XR_OPENXR_SDK_FOUND)
-  SET(XR_OPENXR_SDK_LIBRARIES ${XR_OPENXR_SDK_LOADER_LIBRARY})
-  SET(XR_OPENXR_SDK_INCLUDE_DIRS ${XR_OPENXR_SDK_INCLUDE_DIR})
-ENDIF()
+if(XR_OPENXR_SDK_FOUND)
+  set(XR_OPENXR_SDK_LIBRARIES ${XR_OPENXR_SDK_LOADER_LIBRARY})
+  set(XR_OPENXR_SDK_INCLUDE_DIRS ${XR_OPENXR_SDK_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   XR_OPENXR_SDK_INCLUDE_DIR
   XR_OPENXR_SDK_LOADER_LIBRARY
 )

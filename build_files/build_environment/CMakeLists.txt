@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -174,4 +174,5 @@ include(cmake/shaderc.cmake)
 include(cmake/vulkan.cmake)
 include(cmake/pybind11.cmake)
 include(cmake/harvest.cmake)
+include(cmake/deps_html.cmake)
 include(cmake/cve_check.cmake)

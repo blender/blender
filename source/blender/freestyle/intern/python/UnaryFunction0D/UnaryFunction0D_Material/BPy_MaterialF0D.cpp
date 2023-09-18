@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,13 +32,13 @@ static char MaterialF0D___doc__[] =
     "\n"
     "   Returns the material of the object evaluated at the\n"
     "   :class:`freestyle.types.Interface0D` pointed by the\n"
-    "   Interface0DIterator.  This evaluation can be ambiguous (in the case of\n"
-    "   a :class:`freestyle.types.TVertex` for example.  This functor tries to\n"
+    "   Interface0DIterator. This evaluation can be ambiguous (in the case of\n"
+    "   a :class:`freestyle.types.TVertex` for example. This functor tries to\n"
     "   remove this ambiguity using the context offered by the 1D element to\n"
     "   which the Interface0DIterator belongs to and by arbitrary choosing the\n"
     "   material of the face that lies on its left when following the 1D\n"
     "   element if there are two different materials on each side of the\n"
-    "   point.  However, there still can be problematic cases, and the user\n"
+    "   point. However, there still can be problematic cases, and the user\n"
     "   willing to deal with this cases in a specific way should implement its\n"
     "   own getMaterial functor.\n"
     "\n"
@@ -63,7 +63,7 @@ static int MaterialF0D___init__(BPy_MaterialF0D *self, PyObject *args, PyObject 
 /*-----------------------BPy_MaterialF0D type definition ------------------------------*/
 
 PyTypeObject MaterialF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "MaterialF0D",
     /*tp_basicsize*/ sizeof(BPy_MaterialF0D),
     /*tp_itemsize*/ 0,

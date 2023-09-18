@@ -1,14 +1,18 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * Draw the icons, leaving a semi-transparent rectangle on top of the icon.
  *
- * The top-left corner of the rectangle is rounded and drawned with anti-alias.
+ * The top-left corner of the rectangle is rounded and drawn with anti-alias.
  * The anti-alias is done by transitioning from the outer to the inner radius of
  * the rounded corner, and the rectangle sides.
  */
 
 void main()
 {
-  /* Sample texture with LOD BIAS. Used instead of custom lod bias in GPU_SAMPLER_CUSTOM_ICON. */
+  /* Sample texture with LOD BIAS. Used instead of custom LOD bias in GPU_SAMPLER_CUSTOM_ICON. */
   fragColor = texture(image, texCoord_interp, -0.5) * finalColor;
 
 #ifdef DO_CORNER_MASKING

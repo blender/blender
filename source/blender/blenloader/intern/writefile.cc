@@ -21,7 +21,7 @@
  *
  * data-blocks: (also see struct #BHead).
  * <pre>
- * `bh.code`       `char[4]` see `BLO_blend_defs.h` for a list of known types.
+ * `bh.code`       `char[4]` see `BLO_blend_defs.hh` for a list of known types.
  * `bh.len`        `int32` length data after #BHead in bytes.
  * `bh.old`        `void *` old pointer (the address at the time of writing the file).
  * `bh.SDNAnr`     `int32` struct index of structs stored in #DNA1 data.
@@ -84,6 +84,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_genfile.h"
+#include "DNA_key_types.h"
 #include "DNA_sdna_types.h"
 
 #include "BLI_bitmap.h"
@@ -95,6 +96,7 @@
 #include "BLI_math_base.h"
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
+
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
 #include "BKE_blender_version.h"
@@ -104,22 +106,23 @@
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_node.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_workspace.h"
 
-#include "BLO_blend_defs.h"
-#include "BLO_blend_validate.h"
-#include "BLO_read_write.h"
+#include "BLO_blend_defs.hh"
+#include "BLO_blend_validate.hh"
+#include "BLO_read_write.hh"
 #include "BLO_readfile.h"
-#include "BLO_undofile.h"
-#include "BLO_writefile.h"
+#include "BLO_undofile.hh"
+#include "BLO_writefile.hh"
 
-#include "readfile.h"
+#include "readfile.hh"
 
 #include <zstd.h>
 
@@ -934,6 +937,10 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
     BLO_write_struct(writer, bUserAssetLibrary, asset_library_ref);
   }
 
+  LISTBASE_FOREACH (const bUserExtensionRepo *, repo_ref, &userdef->extension_repos) {
+    BLO_write_struct(writer, bUserExtensionRepo, repo_ref);
+  }
+
   LISTBASE_FOREACH (const uiStyle *, style, &userdef->uistyles) {
     BLO_write_struct(writer, uiStyle, style);
   }
@@ -1020,7 +1027,7 @@ static void write_libraries(WriteData *wd, Main *main)
 }
 
 #ifdef WITH_BUILDINFO
-extern "C" unsigned long build_commit_timestamp;
+extern "C" ulong build_commit_timestamp;
 extern "C" char build_hash[];
 #endif
 
@@ -1094,11 +1101,11 @@ static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 
 #define ID_BUFFER_STATIC_SIZE 8192
 
-typedef struct BLO_Write_IDBuffer {
+struct BLO_Write_IDBuffer {
   const IDTypeInfo *id_type;
   ID *temp_id;
   char id_buffer_static[ID_BUFFER_STATIC_SIZE];
-} BLO_Write_IDBuffer;
+};
 
 static void id_buffer_init_for_id_type(BLO_Write_IDBuffer *id_buffer, const IDTypeInfo *id_type)
 {
@@ -1160,7 +1167,7 @@ static void id_buffer_init_from_id(BLO_Write_IDBuffer *id_buffer, ID *id, const 
   temp_id->newid = nullptr;
   /* Even though in theory we could be able to preserve this python instance across undo even
    * when we need to re-read the ID into its original address, this is currently cleared in
-   * #direct_link_id_common in `readfile.c` anyway. */
+   * #direct_link_id_common in `readfile.cc` anyway. */
   temp_id->py_instance = nullptr;
 }
 
@@ -1221,16 +1228,6 @@ static bool write_file_handle(Main *mainvar,
            * asap afterward. */
           id_lib_extern(id_iter);
         }
-        else if (ID_FAKE_USERS(id_iter) > 0 && id_iter->asset_data == nullptr) {
-          /* Even though fake user is not directly editable by the user on linked data, it is a
-           * common 'work-around' to set it in library files on data-blocks that need to be linked
-           * but typically do not have an actual real user (e.g. texts, etc.).
-           * See e.g. #105687 and #103867.
-           *
-           * Would be good to find a better solution, but for now consider these as directly linked
-           * as well. */
-          id_lib_extern(id_iter);
-        }
         else {
           id_iter->tag |= LIB_TAG_INDIRECT;
           id_iter->tag &= ~LIB_TAG_EXTERN;
@@ -1286,12 +1283,31 @@ static bool write_file_handle(Main *mainvar,
         BLI_assert(
             (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
-        /* We only write unused IDs in undo case.
-         * NOTE: All Scenes, WindowManagers and WorkSpaces should always be written to disk, so
-         * their user-count should never be zero currently. */
-        if (id->us == 0 && !wd->use_memfile) {
-          BLI_assert(!ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS));
-          continue;
+        /* We only write unused IDs in undo case. */
+        if (!wd->use_memfile) {
+          /* NOTE: All Scenes, WindowManagers and WorkSpaces should always be written to disk, so
+           * their user-count should never be zero currently. */
+          if (id->us == 0) {
+            BLI_assert(!ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS));
+            continue;
+          }
+
+          /* XXX Special handling for ShapeKeys, as having unused shapekeys is not a good thing
+           * (and reported as error by e.g. `BLO_main_validate_shapekeys`), skip writing shapekeys
+           * when their 'owner' is not written.
+           *
+           * NOTE: Since ShapeKeys are conceptually embedded IDs (like root node trees e.g.), this
+           * behavior actually makes sense anyway. This remains more of a temp hack until topic of
+           * how to handle unused data on save is properly tackled. */
+          if (GS(id->name) == ID_KE) {
+            Key *shape_key = reinterpret_cast<Key *>(id);
+            /* NOTE: Here we are accessing the real owner ID data, not it's 'proxy' shallow copy
+             * generated for its file-writing. This is not expected to be an issue, but is worth
+             * noting. */
+            if (shape_key->from == nullptr || shape_key->from->us == 0) {
+              continue;
+            }
+          }
         }
 
         if ((id->tag & LIB_TAG_RUNTIME) != 0 && !wd->use_memfile) {
@@ -1410,6 +1426,40 @@ static bool do_history(const char *filepath, ReportList *reports)
   return true;
 }
 
+static void write_file_main_validate_pre(Main *bmain, ReportList *reports)
+{
+  if (!bmain->lock) {
+    return;
+  }
+
+  BKE_report(reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* save to disk");
+
+  BLO_main_validate_shapekeys(bmain, reports);
+  if (!BKE_main_namemap_validate_and_fix(bmain)) {
+    BKE_report(reports,
+               RPT_ERROR,
+               "Critical data corruption: Conflicts and/or otherwise invalid data-blocks names "
+               "(see console for details)");
+  }
+
+  if (G.debug & G_DEBUG_IO) {
+    BLO_main_validate_libraries(bmain, reports);
+  }
+}
+
+static void write_file_main_validate_post(Main *bmain, ReportList *reports)
+{
+  if (!bmain->lock) {
+    return;
+  }
+
+  if (G.debug & G_DEBUG_IO) {
+    BKE_report(
+        reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* save to disk");
+    BLO_main_validate_libraries(bmain, reports);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1440,11 +1490,7 @@ bool BLO_write_file(Main *mainvar,
   const eBPathForeachFlag path_list_flag = (BKE_BPATH_FOREACH_PATH_SKIP_LINKED |
                                             BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE);
 
-  if (G.debug & G_DEBUG_IO && mainvar->lock != nullptr) {
-    BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* save to disk");
-    BLO_main_validate_libraries(mainvar, reports);
-    BLO_main_validate_shapekeys(mainvar, reports);
-  }
+  write_file_main_validate_pre(mainvar, reports);
 
   /* open temporary file, so we preserve the original in case we crash */
   SNPRINTF(tempname, "%s@", filepath);
@@ -1572,10 +1618,7 @@ bool BLO_write_file(Main *mainvar,
     return false;
   }
 
-  if (G.debug & G_DEBUG_IO && mainvar->lock != nullptr) {
-    BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* save to disk");
-    BLO_main_validate_libraries(mainvar, reports);
-  }
+  write_file_main_validate_post(mainvar, reports);
 
   return true;
 }

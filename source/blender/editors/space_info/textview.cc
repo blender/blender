@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,7 @@
 
 #include "BLF_api.h"
 
-#include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -19,8 +19,8 @@
 
 #include "DNA_userdef_types.h" /* For 'UI_SCALE_FAC' */
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
 
 #include "textview.hh"
 

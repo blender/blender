@@ -10,7 +10,7 @@
 #ifndef EIGEN_BANDMATRIX_H
 #define EIGEN_BANDMATRIX_H
 
-namespace Eigen { 
+namespace Eigen {
 
 namespace internal {
 
@@ -45,7 +45,7 @@ class BandMatrixBase : public EigenBase<Derived>
     };
 
   public:
-    
+
     using Base::derived;
     using Base::rows;
     using Base::cols;
@@ -55,10 +55,10 @@ class BandMatrixBase : public EigenBase<Derived>
 
     /** \returns the number of sub diagonals */
     inline Index subs() const { return derived().subs(); }
-    
+
     /** \returns an expression of the underlying coefficient matrix */
     inline const CoefficientsType& coeffs() const { return derived().coeffs(); }
-    
+
     /** \returns an expression of the underlying coefficient matrix */
     inline CoefficientsType& coeffs() { return derived().coeffs(); }
 
@@ -67,7 +67,7 @@ class BandMatrixBase : public EigenBase<Derived>
       * \warning the internal storage must be column major. */
     inline Block<CoefficientsType,Dynamic,1> col(Index i)
     {
-      EIGEN_STATIC_ASSERT((Options&RowMajor)==0,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
+      EIGEN_STATIC_ASSERT((int(Options) & int(RowMajor)) == 0, THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
       Index start = 0;
       Index len = coeffs().rows();
       if (i<=supers())
@@ -90,7 +90,7 @@ class BandMatrixBase : public EigenBase<Derived>
 
     template<int Index> struct DiagonalIntReturnType {
       enum {
-        ReturnOpposite = (Options&SelfAdjoint) && (((Index)>0 && Supers==0) || ((Index)<0 && Subs==0)),
+        ReturnOpposite = (int(Options) & int(SelfAdjoint)) && (((Index) > 0 && Supers == 0) || ((Index) < 0 && Subs == 0)),
         Conjugate = ReturnOpposite && NumTraits<Scalar>::IsComplex,
         ActualIndex = ReturnOpposite ? -Index : Index,
         DiagonalSize = (RowsAtCompileTime==Dynamic || ColsAtCompileTime==Dynamic)
@@ -130,7 +130,7 @@ class BandMatrixBase : public EigenBase<Derived>
       eigen_assert((i<0 && -i<=subs()) || (i>=0 && i<=supers()));
       return Block<const CoefficientsType,1,Dynamic>(coeffs(), supers()-i, std::max<Index>(0,i), 1, diagonalLength(i));
     }
-    
+
     template<typename Dest> inline void evalTo(Dest& dst) const
     {
       dst.resize(rows(),cols());
@@ -192,7 +192,7 @@ struct traits<BandMatrix<_Scalar,_Rows,_Cols,_Supers,_Subs,_Options> >
     Options = _Options,
     DataRowsAtCompileTime = ((Supers!=Dynamic) && (Subs!=Dynamic)) ? 1 + Supers + Subs : Dynamic
   };
-  typedef Matrix<Scalar,DataRowsAtCompileTime,ColsAtCompileTime,Options&RowMajor?RowMajor:ColMajor> CoefficientsType;
+  typedef Matrix<Scalar, DataRowsAtCompileTime, ColsAtCompileTime, int(Options) & int(RowMajor) ? RowMajor : ColMajor> CoefficientsType;
 };
 
 template<typename _Scalar, int Rows, int Cols, int Supers, int Subs, int Options>
@@ -211,16 +211,16 @@ class BandMatrix : public BandMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
     }
 
     /** \returns the number of columns */
-    inline Index rows() const { return m_rows.value(); }
+    inline EIGEN_CONSTEXPR Index rows() const { return m_rows.value(); }
 
     /** \returns the number of rows */
-    inline Index cols() const { return m_coeffs.cols(); }
+    inline EIGEN_CONSTEXPR Index cols() const { return m_coeffs.cols(); }
 
     /** \returns the number of super diagonals */
-    inline Index supers() const { return m_supers.value(); }
+    inline EIGEN_CONSTEXPR Index supers() const { return m_supers.value(); }
 
     /** \returns the number of sub diagonals */
-    inline Index subs() const { return m_subs.value(); }
+    inline EIGEN_CONSTEXPR Index subs() const { return m_subs.value(); }
 
     inline const CoefficientsType& coeffs() const { return m_coeffs; }
     inline CoefficientsType& coeffs() { return m_coeffs; }
@@ -275,16 +275,16 @@ class BandMatrixWrapper : public BandMatrixBase<BandMatrixWrapper<_CoefficientsT
     }
 
     /** \returns the number of columns */
-    inline Index rows() const { return m_rows.value(); }
+    inline EIGEN_CONSTEXPR Index rows() const { return m_rows.value(); }
 
     /** \returns the number of rows */
-    inline Index cols() const { return m_coeffs.cols(); }
+    inline EIGEN_CONSTEXPR Index cols() const { return m_coeffs.cols(); }
 
     /** \returns the number of super diagonals */
-    inline Index supers() const { return m_supers.value(); }
+    inline EIGEN_CONSTEXPR Index supers() const { return m_supers.value(); }
 
     /** \returns the number of sub diagonals */
-    inline Index subs() const { return m_subs.value(); }
+    inline EIGEN_CONSTEXPR Index subs() const { return m_subs.value(); }
 
     inline const CoefficientsType& coeffs() const { return m_coeffs; }
 

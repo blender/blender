@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -13,22 +13,26 @@
 #  SHADERC_FOUND, If false, do not try to use ShaderC.
 #
 
-# If SHADERC_ROOT_DIR was defined in the environment, use it.
-IF(NOT SHADERC_ROOT_DIR AND NOT $ENV{SHADERC_ROOT_DIR} STREQUAL "")
-  SET(SHADERC_ROOT_DIR $ENV{SHADERC_ROOT_DIR})
-ENDIF()
+# If `SHADERC_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED SHADERC_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{SHADERC_ROOT_DIR})
+  set(SHADERC_ROOT_DIR $ENV{SHADERC_ROOT_DIR})
+else()
+  set(SHADERC_ROOT_DIR "")
+endif()
 
-SET(_shaderc_SEARCH_DIRS
+set(_shaderc_SEARCH_DIRS
   ${SHADERC_ROOT_DIR}
 )
 
 # FIXME: These finder modules typically don't use LIBDIR,
 # this should be set by `./build_files/cmake/platform/` instead.
-IF(DEFINED LIBDIR)
-  SET(_shaderc_SEARCH_DIRS ${_shaderc_SEARCH_DIRS} ${LIBDIR}/shaderc)
-ENDIF()
+if(DEFINED LIBDIR)
+  set(_shaderc_SEARCH_DIRS ${_shaderc_SEARCH_DIRS} ${LIBDIR}/shaderc)
+endif()
 
-FIND_PATH(SHADERC_INCLUDE_DIR
+find_path(SHADERC_INCLUDE_DIR
   NAMES
     shaderc/shaderc.h
   HINTS
@@ -37,7 +41,7 @@ FIND_PATH(SHADERC_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(SHADERC_LIBRARY
+find_library(SHADERC_LIBRARY
   NAMES
     shaderc_combined
   HINTS
@@ -48,17 +52,17 @@ FIND_LIBRARY(SHADERC_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set SHADERC_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(ShaderC DEFAULT_MSG SHADERC_LIBRARY SHADERC_INCLUDE_DIR)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(ShaderC DEFAULT_MSG SHADERC_LIBRARY SHADERC_INCLUDE_DIR)
 
-IF(SHADERC_FOUND)
-  SET(SHADERC_LIBRARIES ${SHADERC_LIBRARY})
-  SET(SHADERC_INCLUDE_DIRS ${SHADERC_INCLUDE_DIR})
-ENDIF()
+if(SHADERC_FOUND)
+  set(SHADERC_LIBRARIES ${SHADERC_LIBRARY})
+  set(SHADERC_INCLUDE_DIRS ${SHADERC_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   SHADERC_INCLUDE_DIR
   SHADERC_LIBRARY
 )
 
-UNSET(_shaderc_SEARCH_DIRS)
+unset(_shaderc_SEARCH_DIRS)

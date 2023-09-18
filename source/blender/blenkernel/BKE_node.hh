@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,6 +11,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 
 #include "DNA_listBase.h"
 
@@ -19,7 +20,7 @@
 /* for FOREACH_NODETREE_BEGIN */
 #include "DNA_node_types.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
@@ -43,6 +44,9 @@ void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node);
 
 void ntreeUpdateAllNew(Main *main);
 
+/** Update asset meta-data cache of data-block properties. */
+void node_update_asset_metadata(bNodeTree &node_tree);
+
 void ntreeNodeFlagSet(const bNodeTree *ntree, int flag, bool enable);
 
 /**
@@ -56,40 +60,6 @@ void ntreeLocalMerge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree);
  * \note `ntree` itself has been read!
  */
 void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree);
-void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree);
-
-void ntreeBlendReadExpand(BlendExpander *expander, bNodeTree *ntree);
-
-/* -------------------------------------------------------------------- */
-/** \name Node Tree Interface
- * \{ */
-
-bNodeSocket *ntreeFindSocketInterface(bNodeTree *ntree,
-                                      eNodeSocketInOut in_out,
-                                      const char *identifier);
-
-bNodeSocket *ntreeInsertSocketInterface(bNodeTree *ntree,
-                                        eNodeSocketInOut in_out,
-                                        const char *idname,
-                                        bNodeSocket *next_sock,
-                                        const char *name);
-
-bNodeSocket *ntreeAddSocketInterfaceFromSocket(bNodeTree *ntree,
-                                               const bNode *from_node,
-                                               const bNodeSocket *from_sock);
-
-bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(bNodeTree *ntree,
-                                                       const bNode *from_node,
-                                                       const bNodeSocket *from_sock,
-                                                       const char *idname,
-                                                       const char *name);
-
-bNodeSocket *ntreeInsertSocketInterfaceFromSocket(bNodeTree *ntree,
-                                                  bNodeSocket *next_sock,
-                                                  const bNode *from_node,
-                                                  const bNodeSocket *from_sock);
-
-/** \} */
 
 bool node_type_is_undefined(const bNode *node);
 
@@ -98,8 +68,6 @@ bool nodeIsStaticSocketType(const bNodeSocketType *stype);
 const char *nodeSocketSubTypeLabel(int subtype);
 
 void nodeRemoveSocketEx(bNodeTree *ntree, bNode *node, bNodeSocket *sock, bool do_id_user);
-
-void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node);
 
 void nodeModifySocketType(bNodeTree *ntree, bNode *node, bNodeSocket *sock, const char *idname);
 

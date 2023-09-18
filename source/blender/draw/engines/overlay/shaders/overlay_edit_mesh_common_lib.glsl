@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 vec4 EDIT_MESH_edge_color_outer(uint edge_flag, uint face_flag, float crease, float bweight)
 {

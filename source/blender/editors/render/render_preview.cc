@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Blender Foundation
+/* SPDX-FileCopyrightText: Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,7 +21,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
 #include "PIL_time.h"
@@ -44,7 +45,7 @@
 #include "BKE_animsys.h"
 #include "BKE_appdir.h"
 #include "BKE_armature.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -59,10 +60,13 @@
 #include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_pose_backup.h"
+#include "BKE_preview_image.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_world.h"
+
+#include "BLI_math_vector.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -72,7 +76,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "GPU_shader.h"
 
@@ -80,16 +84,16 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_datafiles.h"
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
-#include "ED_view3d_offscreen.h"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
+#include "ED_view3d_offscreen.hh"
 
-#include "UI_interface_icons.h"
+#include "UI_interface_icons.hh"
 
 #ifndef NDEBUG
 /* Used for database init assert(). */
@@ -112,7 +116,7 @@ struct ShaderPreview {
   ID *parent;
   MTex *slot;
 
-  /* datablocks with nodes need full copy during preview render, glsl uses it too */
+  /* Data-blocks with nodes need full copy during preview render, GLSL uses it too. */
   Material *matcopy;
   Tex *texcopy;
   Light *lampcopy;
@@ -157,7 +161,6 @@ struct IconPreview {
 /** \name Preview for Buttons
  * \{ */
 
-static Main *G_pr_main = nullptr;
 static Main *G_pr_main_grease_pencil = nullptr;
 
 #ifndef WITH_HEADLESS
@@ -180,21 +183,27 @@ static Main *load_main_from_memory(const void *blend, int blend_size)
 }
 #endif
 
-void ED_preview_ensure_dbase()
+void ED_preview_ensure_dbase(const bool with_gpencil)
 {
 #ifndef WITH_HEADLESS
   static bool base_initialized = false;
+  static bool base_initialized_gpencil = false;
   BLI_assert(BLI_thread_is_main());
   if (!base_initialized) {
-    G_pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
-    G_pr_main_grease_pencil = load_main_from_memory(datatoc_preview_grease_pencil_blend,
-                                                    datatoc_preview_grease_pencil_blend_size);
+    G.pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
     base_initialized = true;
   }
+  if (!base_initialized_gpencil && with_gpencil) {
+    G_pr_main_grease_pencil = load_main_from_memory(datatoc_preview_grease_pencil_blend,
+                                                    datatoc_preview_grease_pencil_blend_size);
+    base_initialized_gpencil = true;
+  }
+#else
+  UNUSED_VARS(with_gpencil);
 #endif
 }
 
-static bool check_engine_supports_preview(Scene *scene)
+bool ED_check_engine_supports_preview(const Scene *scene)
 {
   RenderEngineType *type = RE_engines_find(scene->r.engine);
   return (type->flag & RE_USE_PREVIEW) != 0;
@@ -207,8 +216,8 @@ static bool preview_method_is_render(const ePreviewRenderMethod pr_method)
 
 void ED_preview_free_dbase()
 {
-  if (G_pr_main) {
-    BKE_main_free(G_pr_main);
+  if (G.pr_main) {
+    BKE_main_free(G.pr_main);
   }
 
   if (G_pr_main_grease_pencil) {
@@ -225,7 +234,7 @@ static Scene *preview_get_scene(Main *pr_main)
   return static_cast<Scene *>(pr_main->scenes.first);
 }
 
-static const char *preview_collection_name(const ePreviewType pr_type)
+const char *ED_preview_collection_name(const ePreviewType pr_type)
 {
   switch (pr_type) {
     case MA_FLAT:
@@ -265,7 +274,7 @@ static void switch_preview_collection_visibility(ViewLayer *view_layer, const eP
 {
   /* Set appropriate layer as visible. */
   LayerCollection *lc = static_cast<LayerCollection *>(view_layer->layer_collections.first);
-  const char *collection_name = preview_collection_name(pr_type);
+  const char *collection_name = ED_preview_collection_name(pr_type);
 
   for (lc = static_cast<LayerCollection *>(lc->layer_collections.first); lc; lc = lc->next) {
     if (STREQ(lc->collection->id.name + 2, collection_name)) {
@@ -326,11 +335,11 @@ static void switch_preview_floor_visibility(Main *pr_main,
   }
 }
 
-static void set_preview_visibility(Main *pr_main,
-                                   Scene *scene,
-                                   ViewLayer *view_layer,
-                                   const ePreviewType pr_type,
-                                   const ePreviewRenderMethod pr_method)
+void ED_preview_set_visibility(Main *pr_main,
+                               Scene *scene,
+                               ViewLayer *view_layer,
+                               const ePreviewType pr_type,
+                               const ePreviewRenderMethod pr_method)
 {
   switch_preview_collection_visibility(view_layer, pr_type);
   switch_preview_floor_visibility(pr_main, scene, view_layer, pr_method);
@@ -443,13 +452,13 @@ static void preview_sync_exposure(World *dst, const World *src)
   dst->range = src->range;
 }
 
-static World *preview_prepare_world(Main *pr_main,
-                                    const Scene *sce,
-                                    const World *world,
-                                    const ID_Type id_type,
-                                    const ePreviewRenderMethod pr_method)
+World *ED_preview_prepare_world(Main *pr_main,
+                                const Scene *scene,
+                                const World *world,
+                                const ID_Type id_type,
+                                const ePreviewRenderMethod pr_method)
 {
-  World *result = preview_get_world(pr_main, sce, id_type, pr_method);
+  World *result = preview_get_world(pr_main, scene, id_type, pr_method);
   if (world) {
     preview_sync_exposure(result, world);
   }
@@ -494,7 +503,7 @@ static Scene *preview_prepare_scene(
     sce->r.cfra = scene->r.cfra;
 
     /* Setup the world. */
-    sce->world = preview_prepare_world(
+    sce->world = ED_preview_prepare_world(
         pr_main, sce, scene->world, static_cast<ID_Type>(id_type), sp->pr_method);
 
     if (id_type == ID_TE) {
@@ -531,7 +540,7 @@ static Scene *preview_prepare_scene(
             (sp->pr_method == PR_ICON_RENDER && sp->pr_main == G_pr_main_grease_pencil) ?
                 MA_SPHERE_A :
                 (ePreviewType)mat->pr_type);
-        set_preview_visibility(pr_main, sce, view_layer, preview_type, sp->pr_method);
+        ED_preview_set_visibility(pr_main, sce, view_layer, preview_type, sp->pr_method);
       }
       else {
         sce->display.render_aa = SCE_DISPLAY_AA_OFF;
@@ -579,7 +588,7 @@ static Scene *preview_prepare_scene(
         BLI_addtail(&pr_main->lights, la);
       }
 
-      set_preview_visibility(pr_main, sce, view_layer, MA_LAMP, sp->pr_method);
+      ED_preview_set_visibility(pr_main, sce, view_layer, MA_LAMP, sp->pr_method);
 
       if (sce->world) {
         /* Only use lighting from the light. */
@@ -608,7 +617,7 @@ static Scene *preview_prepare_scene(
         BLI_addtail(&pr_main->worlds, wrld);
       }
 
-      set_preview_visibility(pr_main, sce, view_layer, MA_SKY, sp->pr_method);
+      ED_preview_set_visibility(pr_main, sce, view_layer, MA_SKY, sp->pr_method);
       sce->world = wrld;
     }
 
@@ -668,7 +677,7 @@ static bool ed_preview_draw_rect(
     rv = nullptr;
   }
 
-  if (rv && rv->combined_buffer.data) {
+  if (rv && rv->ibuf) {
     if (abs(rres.rectx - newx) < 2 && abs(rres.recty - newy) < 2) {
       newrect->xmax = max_ii(newrect->xmax, rect->xmin + rres.rectx + offx);
       newrect->ymax = max_ii(newrect->ymax, rect->ymin + rres.recty);
@@ -677,13 +686,8 @@ static bool ed_preview_draw_rect(
         float fx = rect->xmin + offx;
         float fy = rect->ymin;
 
-        ImBuf *ibuf = IMB_allocImBuf(rres.rectx, rres.recty, 0, 0);
-        IMB_assign_float_buffer(ibuf, rv->combined_buffer.data, IB_DO_NOT_TAKE_OWNERSHIP);
-
         ED_draw_imbuf(
-            ibuf, fx, fy, false, &scene->view_settings, &scene->display_settings, 1.0f, 1.0f);
-
-        IMB_freeImBuf(ibuf);
+            rv->ibuf, fx, fy, false, &scene->view_settings, &scene->display_settings, 1.0f, 1.0f);
 
         ok = true;
       }
@@ -1062,9 +1066,11 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   /* Create buffer in empty RenderView created in the init step. */
   RenderResult *rr = RE_AcquireResultWrite(re);
   RenderView *rv = (RenderView *)rr->views.first;
-  RE_RenderBuffer_assign_data(&rv->combined_buffer,
-                              static_cast<float *>(MEM_callocN(sizeof(float[4]) * width * height,
-                                                               "texture render result")));
+  ImBuf *rv_ibuf = RE_RenderViewEnsureImBuf(rr, rv);
+  IMB_assign_float_buffer(rv_ibuf,
+                          static_cast<float *>(MEM_callocN(sizeof(float[4]) * width * height,
+                                                           "texture render result")),
+                          IB_TAKE_OWNERSHIP);
   RE_ReleaseResult(re);
 
   /* Get texture image pool (if any) */
@@ -1072,9 +1078,8 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   BKE_texture_fetch_images_for_pool(tex, img_pool);
 
   /* Fill in image buffer. */
-  float *rect_float = rv->combined_buffer.data;
+  float *rect_float = rv_ibuf->float_buffer.data;
   float tex_coord[3] = {0.0f, 0.0f, 0.0f};
-  bool color_manage = BKE_scene_check_color_management_enabled(sce);
 
   for (int y = 0; y < height; y++) {
     /* Tex coords between -1.0f and 1.0f. */
@@ -1085,7 +1090,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
 
       /* Evaluate texture at tex_coord. */
       TexResult texres = {0};
-      BKE_texture_get_value_ex(tex, tex_coord, &texres, img_pool, color_manage);
+      BKE_texture_get_value_ex(tex, tex_coord, &texres, img_pool, true);
       copy_v4_fl4(rect_float,
                   texres.trgba[0],
                   texres.trgba[1],
@@ -1458,12 +1463,6 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
 
     *do_update = true;
   }
-  else if (idtype == ID_SCR) {
-    bScreen *screen = (bScreen *)id;
-
-    ED_screen_preview_render(screen, sp->sizex, sp->sizey, sp->pr_rect);
-    *do_update = true;
-  }
   else {
     /* re-use shader job */
     shader_preview_startjob(customdata, stop, do_update);
@@ -1532,7 +1531,7 @@ static void other_id_types_preview_render(IconPreview *ip,
     }
 
     if ((ma == nullptr) || (ma->gp_style == nullptr)) {
-      sp->pr_main = G_pr_main;
+      sp->pr_main = G.pr_main;
     }
     else {
       sp->pr_main = G_pr_main_grease_pencil;
@@ -1567,11 +1566,8 @@ static void icon_preview_startjob_all_sizes(void *customdata,
                                             float *progress)
 {
   IconPreview *ip = (IconPreview *)customdata;
-  IconPreviewSize *cur_size;
 
-  for (cur_size = static_cast<IconPreviewSize *>(ip->sizes.first); cur_size;
-       cur_size = cur_size->next)
-  {
+  LISTBASE_FOREACH (IconPreviewSize *, cur_size, &ip->sizes) {
     PreviewImage *prv = static_cast<PreviewImage *>(ip->owner);
     /* Is this a render job or a deferred loading job? */
     const ePreviewRenderMethod pr_method = (prv->tag & PRV_TAG_DEFFERED) ? PR_ICON_DEFERRED :
@@ -1594,7 +1590,7 @@ static void icon_preview_startjob_all_sizes(void *customdata,
      * necessary to know here what happens inside lower-level functions. */
     const bool use_solid_render_mode = (ip->id != nullptr) && ELEM(GS(ip->id->name), ID_OB, ID_AC);
     if (!use_solid_render_mode && preview_method_is_render(pr_method) &&
-        !check_engine_supports_preview(ip->scene))
+        !ED_check_engine_supports_preview(ip->scene))
     {
       continue;
     }
@@ -1814,14 +1810,17 @@ void PreviewLoadJob::run_fn(void *customdata, bool *stop, bool *do_update, float
 
     PreviewImage *preview = request->preview;
 
-    const char *deferred_data = static_cast<char *>(PRV_DEFERRED_DATA(preview));
-    const ThumbSource source = static_cast<ThumbSource>(deferred_data[0]);
-    const char *filepath = &deferred_data[1];
+    const std::optional<int> source = BKE_previewimg_deferred_thumb_source_get(preview);
+    const char *filepath = BKE_previewimg_deferred_filepath_get(preview);
+
+    if (!source || !filepath) {
+      continue;
+    }
 
     // printf("loading deferred %d×%d preview for %s\n", request->sizex, request->sizey, filepath);
 
     IMB_thumb_path_lock(filepath);
-    ImBuf *thumb = IMB_thumb_manage(filepath, THB_LARGE, source);
+    ImBuf *thumb = IMB_thumb_manage(filepath, THB_LARGE, ThumbSource(*source));
     IMB_thumb_path_unlock(filepath);
 
     if (thumb) {
@@ -1942,7 +1941,7 @@ void ED_preview_icon_render(
   bool stop = false, update = false;
   float progress = 0.0f;
 
-  ED_preview_ensure_dbase();
+  ED_preview_ensure_dbase(true);
 
   ip.bmain = CTX_data_main(C);
   ip.scene = scene;
@@ -1986,7 +1985,7 @@ void ED_preview_icon_job(
 
   IconPreview *ip, *old_ip;
 
-  ED_preview_ensure_dbase();
+  ED_preview_ensure_dbase(true);
 
   /* suspended start means it starts after 1 timer step, see WM_jobs_timer below */
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
@@ -2051,11 +2050,11 @@ void ED_preview_shader_job(const bContext *C,
   /* Use workspace render only for buttons Window,
    * since the other previews are related to the datablock. */
 
-  if (preview_method_is_render(method) && !check_engine_supports_preview(scene)) {
+  if (preview_method_is_render(method) && !ED_check_engine_supports_preview(scene)) {
     return;
   }
 
-  ED_preview_ensure_dbase();
+  ED_preview_ensure_dbase(true);
 
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
@@ -2088,7 +2087,7 @@ void ED_preview_shader_job(const bContext *C,
   }
 
   if ((ma == nullptr) || (ma->gp_style == nullptr)) {
-    sp->pr_main = G_pr_main;
+    sp->pr_main = G.pr_main;
   }
   else {
     sp->pr_main = G_pr_main_grease_pencil;

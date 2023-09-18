@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_abstract.h"
@@ -14,7 +14,7 @@
 #include "BLI_assert.h"
 #include "DNA_mesh_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -66,7 +66,7 @@ static std::string get_mesh_active_uvlayer_name(const Object *ob)
 
   const Mesh *me = static_cast<Mesh *>(ob->data);
 
-  const char *name = CustomData_get_active_layer_name(&me->ldata, CD_PROP_FLOAT2);
+  const char *name = CustomData_get_active_layer_name(&me->loop_data, CD_PROP_FLOAT2);
 
   return name ? name : "";
 }
@@ -159,16 +159,17 @@ bool USDAbstractWriter::is_supported(const HierarchyContext * /*context*/) const
 
 std::string USDAbstractWriter::get_export_file_path() const
 {
-  return usd_export_context_.hierarchy_iterator->get_export_file_path();
+  return usd_export_context_.export_file_path;
 }
 
 pxr::UsdTimeCode USDAbstractWriter::get_export_time_code() const
 {
   if (is_animated_) {
-    return usd_export_context_.hierarchy_iterator->get_export_time_code();
+    BLI_assert(usd_export_context_.get_time_code);
+    return usd_export_context_.get_time_code();
   }
-  /* By using the default timecode USD won't even write a single `timeSample` for non-animated
-   * data. Instead, it writes it as non-timesampled. */
+  /* By using the default time-code USD won't even write a single `timeSample` for non-animated
+   * data. Instead, it writes it as non-time-sampled. */
   static pxr::UsdTimeCode default_timecode = pxr::UsdTimeCode::Default();
   return default_timecode;
 }
@@ -199,8 +200,7 @@ pxr::SdfPath USDAbstractWriter::get_material_library_path(const HierarchyContext
   std::string material_library_path;
 
   /* For instance prototypes, create the material beneath the prototyp prim. */
-  if (usd_export_context_.export_params.use_instancing && !context.is_instance() &&
-      usd_export_context_.hierarchy_iterator->is_prototype(context.object))
+  if (usd_export_context_.export_params.use_instancing && context.is_prototype())
   {
 
     material_library_path += std::string(usd_export_context_.export_params.root_prim_path);
@@ -226,49 +226,18 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
   /* Construct the material. */
-  pxr::TfToken material_name(usd_export_context_.hierarchy_iterator->get_id_name(&material->id));
+  pxr::TfToken material_name(pxr::TfMakeValidIdentifier(material->id.name + 2));
   pxr::SdfPath usd_path = get_material_library_path(context).AppendChild(material_name);
+
   pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Get(stage, usd_path);
   if (usd_material) {
     return usd_material;
   }
 
-  usd_material = (usd_export_context_.export_params.export_as_overs) ?
-                     pxr::UsdShadeMaterial(usd_export_context_.stage->OverridePrim(usd_path)) :
-                     pxr::UsdShadeMaterial::Define(usd_export_context_.stage, usd_path);
+  std::string active_uv = get_mesh_active_uvlayer_name(context.object);
 
-  bool textures_exported = false;
+  usd_material = create_usd_material(usd_export_context_, usd_path, material, active_uv);
 
-  // TODO(bskinner) maybe always export viewport material as variant...
-  if (material->use_nodes && this->usd_export_context_.export_params.generate_mdl) {
-    create_mdl_material(this->usd_export_context_, material, usd_material);
-    if (this->usd_export_context_.export_params.export_textures) {
-      export_textures(material,
-                      this->usd_export_context_.stage,
-                      this->usd_export_context_.export_params.overwrite_textures);
-      textures_exported = true;
-    }
-  }
-  if (material->use_nodes && this->usd_export_context_.export_params.generate_cycles_shaders) {
-    create_usd_cycles_material(this->usd_export_context_.stage,
-                               material,
-                               usd_material,
-                               this->usd_export_context_.export_params);
-    if (!textures_exported && this->usd_export_context_.export_params.export_textures) {
-      export_textures(material,
-                      this->usd_export_context_.stage,
-                      this->usd_export_context_.export_params.overwrite_textures);
-      textures_exported = true;
-    }
-  }
-  if (material->use_nodes && this->usd_export_context_.export_params.generate_preview_surface) {
-    std::string active_uv = get_mesh_active_uvlayer_name(context.object);
-    create_usd_preview_surface_material(
-        this->usd_export_context_, material, usd_material, active_uv);
-  }
-  else {
-    create_usd_viewport_material(this->usd_export_context_, material, usd_material);
-  }
   if (usd_export_context_.export_params.export_custom_properties && material) {
     auto prim = usd_material.GetPrim();
     write_id_properties(prim, material->id, get_export_time_code());

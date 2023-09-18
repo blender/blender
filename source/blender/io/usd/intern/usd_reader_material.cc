@@ -22,11 +22,12 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_vector.hh"
 
 #include "DNA_material_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include <pxr/base/gf/vec3f.h>
 #include <pxr/usd/ar/resolver.h>
@@ -185,7 +186,7 @@ static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &attribute)
 static blender::Vector<int> get_udim_tiles(const std::string &file_path)
 {
   char base_udim_path[FILE_MAX];
-  BLI_strncpy(base_udim_path, file_path.c_str(), sizeof(base_udim_path));
+  STRNCPY(base_udim_path, file_path.c_str());
 
   blender::Vector<int> udim_tiles;
 
@@ -590,15 +591,13 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
     set_node_input(roughness_input, principled, "Roughness", ntree, column, &context);
   }
 
-  if (pxr::UsdShadeInput clearcoat_input = usd_shader.GetInput(usdtokens::clearcoat)) {
-    set_node_input(clearcoat_input, principled, "Clearcoat", ntree, column, &context);
+  if (pxr::UsdShadeInput coat_input = usd_shader.GetInput(usdtokens::clearcoat)) {
+    set_node_input(coat_input, principled, "Coat", ntree, column, &context);
   }
 
-  if (pxr::UsdShadeInput clearcoat_roughness_input = usd_shader.GetInput(
-          usdtokens::clearcoatRoughness))
+  if (pxr::UsdShadeInput coat_roughness_input = usd_shader.GetInput(usdtokens::clearcoatRoughness))
   {
-    set_node_input(
-        clearcoat_roughness_input, principled, "Clearcoat Roughness", ntree, column, &context);
+    set_node_input(coat_roughness_input, principled, "Coat Roughness", ntree, column, &context);
   }
 
   if (pxr::UsdShadeInput opacity_input = usd_shader.GetInput(usdtokens::opacity)) {
@@ -955,7 +954,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
         BLI_path_join(result, FILE_MAX, dir_abs_path.c_str(), file);
 
         /* Use forward slashes. */
-        BLI_str_replace_char(result, SEP, ALTSEP);
+        BLI_string_replace_char(result, SEP, ALTSEP);
         file_path = result;
       }
     }
@@ -1098,7 +1097,7 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
         std::string varname = varname_val.Cast<std::string>().Get<std::string>();
         if (!varname.empty()) {
           NodeShaderUVMap *storage = (NodeShaderUVMap *)uv_map->storage;
-          BLI_strncpy(storage->uv_map, varname.c_str(), sizeof(storage->uv_map));
+          STRNCPY(storage->uv_map, varname.c_str());
         }
       }
     }

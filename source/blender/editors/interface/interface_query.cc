@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,22 +9,23 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_screen_types.h"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "interface_intern.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Button (#uiBut) State
@@ -38,7 +39,7 @@ bool ui_but_is_editable(const uiBut *but)
                UI_BTYPE_SEPR_LINE,
                UI_BTYPE_ROUNDBOX,
                UI_BTYPE_LISTBOX,
-               UI_BTYPE_PROGRESS_BAR);
+               UI_BTYPE_PROGRESS);
 }
 
 bool ui_but_is_editable_as_text(const uiBut *but)
@@ -144,16 +145,7 @@ bool UI_but_is_tool(const uiBut *but)
 
 bool UI_but_has_tooltip_label(const uiBut *but)
 {
-  /* No tooltip label if the button itself shows a label already. */
-  if (but->drawstr[0] != '\0') {
-    return false;
-  }
-
-  if (UI_but_is_tool(but)) {
-    return !ui_block_is_popover(but->block);
-  }
-
-  return ELEM(but->type, UI_BTYPE_TAB);
+  return (but->drawflag & UI_BUT_HAS_TOOLTIP_LABEL) != 0;
 }
 
 int ui_but_icon(const uiBut *but)
@@ -188,21 +180,56 @@ void ui_but_pie_dir(RadialDirection dir, float vec[2])
 
 static bool ui_but_isect_pie_seg(const uiBlock *block, const uiBut *but)
 {
-  const float angle_range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? M_PI_4 :
-                                                                                   M_PI_4 / 2.0;
-  float vec[2];
-
   if (block->pie_data.flags & UI_PIE_INVALID_DIR) {
     return false;
   }
 
-  ui_but_pie_dir(but->pie_dir, vec);
+  /* Plus/minus 45 degrees: `cosf(DEG2RADF(45)) == M_SQRT1_2`. */
+  const float angle_4th_cos = M_SQRT1_2;
+  /* Plus/minus 22.5 degrees: `cosf(DEG2RADF(22.5))`. */
+  const float angle_8th_cos = 0.9238795f;
 
-  if (saacos(dot_v2v2(vec, block->pie_data.pie_dir)) < angle_range) {
+  /* Use a large bias so edge-cases fall back to comparing with the adjacent direction. */
+  const float eps_bias = 1e-4;
+
+  float but_dir[2];
+  ui_but_pie_dir(but->pie_dir, but_dir);
+
+  const float angle_but_cos = dot_v2v2(but_dir, block->pie_data.pie_dir);
+  /* Outside range (with bias). */
+  if (angle_but_cos < angle_4th_cos - eps_bias) {
+    return false;
+  }
+  /* Inside range (with bias). */
+  if (angle_but_cos > angle_8th_cos + eps_bias) {
     return true;
   }
 
-  return false;
+  /* Check if adjacent direction is closer (with tie breaker). */
+  RadialDirection dir_adjacent_8th, dir_adjacent_4th;
+  if (angle_signed_v2v2(but_dir, block->pie_data.pie_dir) < 0.0f) {
+    dir_adjacent_8th = UI_RADIAL_DIRECTION_PREV(but->pie_dir);
+    dir_adjacent_4th = UI_RADIAL_DIRECTION_PREV(dir_adjacent_8th);
+  }
+  else {
+    dir_adjacent_8th = UI_RADIAL_DIRECTION_NEXT(but->pie_dir);
+    dir_adjacent_4th = UI_RADIAL_DIRECTION_NEXT(dir_adjacent_8th);
+  }
+
+  const bool has_8th_adjacent = block->pie_data.pie_dir_mask & (1 << int(dir_adjacent_8th));
+
+  /* Compare with the adjacent direction (even if there is no button). */
+  const RadialDirection dir_adjacent = has_8th_adjacent ? dir_adjacent_8th : dir_adjacent_4th;
+  float but_dir_adjacent[2];
+  ui_but_pie_dir(dir_adjacent, but_dir_adjacent);
+
+  const float angle_adjacent_cos = dot_v2v2(but_dir_adjacent, block->pie_data.pie_dir);
+
+  /* Tie breaker, so one of the buttons is always selected. */
+  if (UNLIKELY(angle_but_cos == angle_adjacent_cos)) {
+    return but->pie_dir > dir_adjacent;
+  }
+  return angle_but_cos > angle_adjacent_cos;
 }
 
 bool ui_but_contains_pt(const uiBut *but, float mx, float my)
@@ -446,7 +473,7 @@ static bool ui_but_is_listrow_at_index(const uiBut *but, const void *customdata)
          (but->hardmax == find_data->index);
 }
 
-uiBut *ui_list_row_find_from_index(const ARegion *region, const int index, uiBut *listbox)
+uiBut *ui_list_row_find_index(const ARegion *region, const int index, uiBut *listbox)
 {
   BLI_assert(listbox->type == UI_BTYPE_LISTBOX);
   ListRowFindIndexData data = {};

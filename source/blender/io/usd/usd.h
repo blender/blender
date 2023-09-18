@@ -1,10 +1,12 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #include "DEG_depsgraph.h"
+
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,7 +104,7 @@ struct USDExportParams {
   bool export_animation;
   bool export_hair;
   bool export_vertices;
-  bool export_vertex_colors;
+  bool export_mesh_colors;
   bool export_vertex_groups;
   bool export_uvmaps;
   bool export_normals;
@@ -161,9 +163,9 @@ struct USDExportParams {
   bool export_usd_kind;
   eUSDDefaultPrimKind default_prim_kind;
   char *default_prim_custom_kind;
-  char root_prim_path[1024]; /* FILE_MAX */
-  char default_prim_path[1024];  /* FILE_MAX */
-  char material_prim_path[1024];  /* FILE_MAX */
+  char root_prim_path[1024] = "";     /* FILE_MAX */
+  char default_prim_path[1024] = "";  /* FILE_MAX */
+  char material_prim_path[1024] = ""; /* FILE_MAX */
 };
 
 struct USDImportParams {
@@ -179,10 +181,10 @@ struct USDImportParams {
   bool import_lights;
   bool import_materials;
   bool import_meshes;
-  bool import_blendshapes;
   bool import_volumes;
-  bool import_skeletons;
   bool import_shapes;
+  bool import_skeletons;
+  bool import_blendshapes;
   char *prim_path_mask;
   bool import_subdiv;
   bool import_instance_proxies;
@@ -204,7 +206,7 @@ struct USDImportParams {
   bool triangulate_meshes;
   bool import_defined_only;
   eUSDTexImportMode import_textures_mode;
-  char import_textures_dir[768]; /* FILE_MAXDIR */
+  char import_textures_dir[768] = ""; /* FILE_MAXDIR */
   eUSDTexNameCollisionMode tex_name_collision_mode;
   bool import_all_materials;
 };
@@ -278,6 +280,29 @@ struct CacheReader *CacheReader_open_usd_object(struct CacheArchiveHandle *handl
 
 void USD_CacheReader_incref(struct CacheReader *reader);
 void USD_CacheReader_free(struct CacheReader *reader);
+
+/* Data for registering USD IO hooks. */
+typedef struct USDHook {
+
+  /* Identifier used for class name. */
+  char idname[64];
+  /* Identifier used as label. */
+  char name[64];
+  /* Short help/description. */
+  char description[1024]; /* #RNA_DYN_DESCR_MAX */
+
+  /* rna_ext.data points to the USDHook class PyObject. */
+  struct ExtensionRNA rna_ext;
+} USDHook;
+
+void USD_register_hook(struct USDHook *hook);
+/* Remove the given entry from the list of registered hooks.
+ * Note that this does not free the allocated memory for the
+ * hook instance, so a separate call to MEM_freeN(hook) is
+ * required.  */
+void USD_unregister_hook(struct USDHook *hook);
+USDHook *USD_find_hook_name(const char name[]);
+
 #ifdef __cplusplus
 }
 #endif

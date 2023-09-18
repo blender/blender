@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2004-2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -60,7 +60,7 @@ static int GetProjectedZF1D___init__(BPy_GetProjectedZF1D *self, PyObject *args,
 /*-----------------------BPy_GetProjectedZF1D type definition ------------------------------*/
 
 PyTypeObject GetProjectedZF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GetProjectedZF1D",
     /*tp_basicsize*/ sizeof(BPy_GetProjectedZF1D),
     /*tp_itemsize*/ 0,

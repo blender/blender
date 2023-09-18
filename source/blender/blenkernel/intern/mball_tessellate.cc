@@ -22,7 +22,10 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -48,62 +51,62 @@
 /* Data types */
 
 /** Corner of a cube. */
-typedef struct corner {
+struct CORNER {
   int i, j, k;        /* (i, j, k) is index within lattice */
   float co[3], value; /* location and function value */
-  corner *next;
-} CORNER;
+  CORNER *next;
+};
 
 /** Partitioning cell (cube). */
-typedef struct cube {
+struct CUBE {
   int i, j, k;        /* lattice location of cube */
   CORNER *corners[8]; /* eight corners */
-} CUBE;
+};
 
 /** Linked list of cubes acting as stack. */
-typedef struct cubes {
+struct CUBES {
   CUBE cube;   /* a single cube */
-  cubes *next; /* remaining elements */
-} CUBES;
+  CUBES *next; /* remaining elements */
+};
 
 /** List of cube locations. */
-typedef struct centerlist {
+struct CENTERLIST {
   int i, j, k;      /* cube location */
-  centerlist *next; /* remaining elements */
-} CENTERLIST;
+  CENTERLIST *next; /* remaining elements */
+};
 
 /** List of edges. */
-typedef struct edgelist {
+struct EDGELIST {
   int i1, j1, k1, i2, j2, k2; /* edge corner ids */
   int vid;                    /* vertex id */
-  edgelist *next;             /* remaining elements */
-} EDGELIST;
+  EDGELIST *next;             /* remaining elements */
+};
 
 /** List of integers. */
-typedef struct intlist {
+struct INTLIST {
   int i;         /* an integer */
-  intlist *next; /* remaining elements */
-} INTLIST;
+  INTLIST *next; /* remaining elements */
+};
 
 /** List of list of integers. */
-typedef struct intlists {
+struct INTLISTS {
   INTLIST *list;  /* a list of integers */
-  intlists *next; /* remaining elements */
-} INTLISTS;
+  INTLISTS *next; /* remaining elements */
+};
 
 /** An AABB with pointer to metal-elem. */
-typedef struct Box {
+struct Box {
   float min[3], max[3];
   const MetaElem *ml;
-} Box;
+};
 
-typedef struct MetaballBVHNode { /* BVH node */
-  Box bb[2];                     /* AABB of children */
+struct MetaballBVHNode { /* node */
+  Box bb[2];             /* AABB of children */
   MetaballBVHNode *child[2];
-} MetaballBVHNode;
+};
 
 /** Parameters, storage. */
-typedef struct process {
+struct PROCESS {
   float thresh, size; /* mball threshold, single cube size */
   float delta;        /* small delta for calculating normals */
   uint converge_res;  /* converge procedure resolution (more = slower) */
@@ -131,7 +134,7 @@ typedef struct process {
 
   /* memory allocation from common pool */
   MemArena *pgn_elements;
-} PROCESS;
+};
 
 /* Forward declarations */
 static int vertid(PROCESS *process, const CORNER *c1, const CORNER *c2);
@@ -826,7 +829,7 @@ static void makecubetable()
   }
 }
 
-void BKE_mball_cubeTable_free(void)
+void BKE_mball_cubeTable_free()
 {
   for (int i = 0; i < 256; i++) {
     INTLISTS *lists = cubetable[i];
@@ -1464,15 +1467,15 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   Mesh *mesh = BKE_mesh_new_nomain(int(process.co.size()), 0, int(process.curindex), corners_num);
   mesh->vert_positions_for_write().copy_from(process.co);
-  blender::MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  blender::MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   int loop_offset = 0;
-  for (int i = 0; i < mesh->totpoly; i++) {
+  for (int i = 0; i < mesh->faces_num; i++) {
     const int *indices = process.indices[i];
 
     const int count = indices[2] != indices[3] ? 4 : 3;
-    poly_offsets[i] = loop_offset;
+    face_offsets[i] = loop_offset;
 
     corner_verts[loop_offset] = indices[0];
     corner_verts[loop_offset + 1] = indices[1];
@@ -1488,10 +1491,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   for (int i = 0; i < mesh->totvert; i++) {
     normalize_v3(process.no[i]);
   }
-  memcpy(BKE_mesh_vert_normals_for_write(mesh),
-         process.no.data(),
-         sizeof(float[3]) * size_t(mesh->totvert));
-  BKE_mesh_vert_normals_clear_dirty(mesh);
+  blender::bke::mesh_vert_normals_assign(*mesh, std::move(process.no));
 
   BKE_mesh_calc_edges(mesh, false, false);
 

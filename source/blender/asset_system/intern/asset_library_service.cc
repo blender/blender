@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -178,7 +178,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
   return lib;
 }
 
-static void rebuild_all_library(AssetLibrary &all_library, const bool reload_catalogs)
+static void rebuild_all_library_ex(AssetLibrary &all_library, const bool reload_catalogs)
 {
   /* Start with empty catalog storage. */
   all_library.catalog_service = std::make_unique<AssetCatalogService>(
@@ -193,6 +193,13 @@ static void rebuild_all_library(AssetLibrary &all_library, const bool reload_cat
       },
       false);
   all_library.catalog_service->rebuild_tree();
+}
+
+void AssetLibraryService::rebuild_all_library()
+{
+  if (all_library_) {
+    rebuild_all_library_ex(*all_library_, false);
+  }
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
@@ -218,10 +225,10 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   all_library_ = std::make_unique<AssetLibrary>(ASSET_LIBRARY_ALL);
 
   /* Don't reload catalogs on this initial read, they've just been loaded above. */
-  rebuild_all_library(*all_library_, /*reload_catlogs=*/false);
+  rebuild_all_library_ex(*all_library_, /*reload_catlogs=*/false);
 
   all_library_->on_refresh_ = [](AssetLibrary &all_library) {
-    rebuild_all_library(all_library, /*reload_catalogs=*/true);
+    rebuild_all_library_ex(all_library, /*reload_catalogs=*/true);
   };
 
   return all_library_.get();
@@ -234,8 +241,7 @@ bUserAssetLibrary *AssetLibraryService::find_custom_preferences_asset_library_fr
     return nullptr;
   }
 
-  return BKE_preferences_asset_library_find_from_name(&U,
-                                                      asset_reference.asset_library_identifier);
+  return BKE_preferences_asset_library_find_by_name(&U, asset_reference.asset_library_identifier);
 }
 
 AssetLibrary *AssetLibraryService::find_loaded_on_disk_asset_library_from_name(
@@ -428,7 +434,7 @@ bUserAssetLibrary *AssetLibraryService::find_custom_asset_library_from_library_r
   BLI_assert(library_reference.type == ASSET_LIBRARY_CUSTOM);
   BLI_assert(library_reference.custom_library_index >= 0);
 
-  return BKE_preferences_asset_library_find_from_index(&U, library_reference.custom_library_index);
+  return BKE_preferences_asset_library_find_index(&U, library_reference.custom_library_index);
 }
 
 std::string AssetLibraryService::root_path_from_library_ref(

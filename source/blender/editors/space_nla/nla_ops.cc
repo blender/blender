@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+/* SPDX-FileCopyrightText: 2009 Blender Authors, Joshua Leung. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -14,13 +14,13 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_anim_api.h"
-#include "ED_screen.h"
+#include "ED_anim_api.hh"
+#include "ED_screen.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "nla_intern.hh" /* own include */
 
@@ -37,15 +37,15 @@ bool nlaop_poll_tweakmode_off(bContext *C)
    *    but not all AnimData blocks will be in tweak-mode for various reasons.
    */
   if (ED_operator_nla_active(C) == 0) {
-    return 0;
+    return false;
   }
 
   scene = CTX_data_scene(C);
   if ((scene == nullptr) || (scene->flag & SCE_NLA_EDIT_ON)) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool nlaop_poll_tweakmode_on(bContext *C)
@@ -59,15 +59,15 @@ bool nlaop_poll_tweakmode_on(bContext *C)
    *    but not all AnimData blocks will be in tweak-mode for various reasons.
    */
   if (ED_operator_nla_active(C) == 0) {
-    return 0;
+    return false;
   }
 
   scene = CTX_data_scene(C);
   if ((scene == nullptr) || !(scene->flag & SCE_NLA_EDIT_ON)) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool nlaedit_is_tweakmode_on(bAnimContext *ac)
@@ -75,12 +75,12 @@ bool nlaedit_is_tweakmode_on(bAnimContext *ac)
   if (ac && ac->scene) {
     return (ac->scene->flag & SCE_NLA_EDIT_ON) != 0;
   }
-  return 0;
+  return false;
 }
 
 /* ************************** registration - operator types **********************************/
 
-void nla_operatortypes(void)
+void nla_operatortypes()
 {
   /* channels */
   WM_operatortype_append(NLA_OT_channels_click);
@@ -141,23 +141,26 @@ void nla_operatortypes(void)
   WM_operatortype_append(NLA_OT_fmodifier_paste);
 }
 
-void ED_operatormacros_nla(void)
+void ED_operatormacros_nla()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;
 
-  ot = WM_operatortype_append_macro("NLA_OT_duplicate_move",
-                                    "Duplicate",
-                                    "Duplicate selected strips and their Actions and move them",
-                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  ot = WM_operatortype_append_macro(
+      "NLA_OT_duplicate_move",
+      "Duplicate",
+      "Duplicate selected NLA-Strips, adding the new strips to new track(s)",
+      OPTYPE_UNDO | OPTYPE_REGISTER);
   otmacro = WM_operatortype_macro_define(ot, "NLA_OT_duplicate");
   RNA_boolean_set(otmacro->ptr, "linked", false);
   WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
-  ot = WM_operatortype_append_macro("NLA_OT_duplicate_linked_move",
-                                    "Duplicate Linked",
-                                    "Duplicate selected strips and move them",
-                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  ot = WM_operatortype_append_macro(
+      "NLA_OT_duplicate_linked_move",
+      "Duplicate Linked",
+      "Duplicate Linked selected NLA-Strips, adding the new strips to new track(s)",
+      OPTYPE_UNDO | OPTYPE_REGISTER);
+
   otmacro = WM_operatortype_macro_define(ot, "NLA_OT_duplicate");
   RNA_boolean_set(otmacro->ptr, "linked", true);
   WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
@@ -168,7 +171,7 @@ void ED_operatormacros_nla(void)
 void nla_keymap(wmKeyConfig *keyconf)
 {
   /* keymap for all regions ------------------------------------------- */
-  WM_keymap_ensure(keyconf, "NLA Generic", SPACE_NLA, 0);
+  WM_keymap_ensure(keyconf, "NLA Generic", SPACE_NLA, RGN_TYPE_WINDOW);
 
   /* channels ---------------------------------------------------------- */
   /* Channels are not directly handled by the NLA Editor module, but are inherited from the
@@ -179,8 +182,8 @@ void nla_keymap(wmKeyConfig *keyconf)
    * However, those operations which involve clicking on channels and/or
    * the placement of them in the view are implemented here instead
    */
-  WM_keymap_ensure(keyconf, "NLA Channels", SPACE_NLA, 0);
+  WM_keymap_ensure(keyconf, "NLA Channels", SPACE_NLA, RGN_TYPE_WINDOW);
 
   /* data ------------------------------------------------------------- */
-  WM_keymap_ensure(keyconf, "NLA Editor", SPACE_NLA, 0);
+  WM_keymap_ensure(keyconf, "NLA Editor", SPACE_NLA, RGN_TYPE_WINDOW);
 }

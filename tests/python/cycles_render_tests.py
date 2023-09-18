@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2015-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2015-2023 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
 import os
 import shlex
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2018-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,7 +28,7 @@ class STATUSBAR_HT_header(Header):
         row.alignment = 'RIGHT'
 
         # Stats & Info
-        row.label(text=context.screen.statusbar_info(), translate=False)
+        layout.template_status_info()
 
 
 classes = (

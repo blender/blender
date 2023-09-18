@@ -19,9 +19,9 @@ CCL_NAMESPACE_BEGIN
 #  define GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE 512
 #endif
 
-/* TODO: abstract more device differences, define ccl_gpu_local_syncthreads,
- * ccl_gpu_thread_warp, ccl_gpu_warp_index, ccl_gpu_num_warps for all devices
- * and keep device specific code in compat.h */
+/* TODO: abstract more device differences, define `ccl_gpu_local_syncthreads`,
+ * `ccl_gpu_thread_warp`, `ccl_gpu_warp_index`, `ccl_gpu_num_warps` for all devices
+ * and keep device specific code in `compat.h`. */
 
 #ifdef __KERNEL_ONEAPI__
 

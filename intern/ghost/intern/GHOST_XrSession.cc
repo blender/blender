@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -277,7 +277,8 @@ GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
 {
   m_oxr->session_state = lifecycle.state;
 
-  /* Runtime may send events for apparently destroyed session. Our handle should be NULL then. */
+  /* Runtime may send events for apparently destroyed session. Our handle should be nullptr then.
+   */
   assert(m_oxr->session == XR_NULL_HANDLE || m_oxr->session == lifecycle.session);
 
   switch (lifecycle.state) {

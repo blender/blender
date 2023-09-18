@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -20,7 +20,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "IO_wavefront_obj.h"
+#include "IO_wavefront_obj.hh"
 
 namespace blender::io::obj {
 /** Denote absence for usually non-negative numbers. */
@@ -41,7 +41,7 @@ class OBJMesh : NonCopyable {
   Mesh *owned_export_mesh_ = nullptr;
   Span<float3> mesh_positions_;
   Span<int2> mesh_edges_;
-  OffsetIndices<int> mesh_polys_;
+  OffsetIndices<int> mesh_faces_;
   Span<int> mesh_corner_verts_;
   VArray<bool> sharp_faces_;
 
@@ -100,7 +100,7 @@ class OBJMesh : NonCopyable {
   void clear();
 
   int tot_vertices() const;
-  int tot_polygons() const;
+  int tot_faces() const;
   int tot_uv_vertices() const;
   int tot_normal_indices() const;
   int tot_edges() const;
@@ -129,8 +129,8 @@ class OBJMesh : NonCopyable {
   /**
    * \return Smooth group of the polygon at the given index.
    */
-  int ith_smooth_group(int poly_index) const;
-  bool is_ith_poly_smooth(int poly_index) const;
+  int ith_smooth_group(int face_index) const;
+  bool is_ith_poly_smooth(int face_index) const;
 
   /**
    * Get object name as it appears in the outliner.
@@ -152,7 +152,7 @@ class OBJMesh : NonCopyable {
   /**
    * Calculate vertex indices of all vertices of the polygon at the given index.
    */
-  Span<int> calc_poly_vertex_indices(int poly_index) const;
+  Span<int> calc_poly_vertex_indices(int face_index) const;
   /**
    * Calculate UV vertex coordinates of an Object.
    * Stores the coordinates and UV vertex indices in the member variables.
@@ -163,13 +163,13 @@ class OBJMesh : NonCopyable {
   {
     return uv_coords_;
   }
-  Span<int> calc_poly_uv_indices(int poly_index) const;
+  Span<int> calc_poly_uv_indices(int face_index) const;
   /**
    * Calculate polygon normal of a polygon at given index.
    *
    * Should be used for flat-shaded polygons.
    */
-  float3 calc_poly_normal(int poly_index) const;
+  float3 calc_poly_normal(int face_index) const;
   /**
    * Find the unique normals of the mesh and stores them in a member variable.
    * Also stores the indices into that vector with for each loop.
@@ -182,10 +182,10 @@ class OBJMesh : NonCopyable {
   }
   /**
    * Calculate a polygon's polygon/loop normal indices.
-   * \param poly_index: Index of the polygon to calculate indices for.
+   * \param face_index: Index of the polygon to calculate indices for.
    * \return Vector of normal indices, aligned with vertices of polygon.
    */
-  Vector<int> calc_poly_normal_indices(int poly_index) const;
+  Vector<int> calc_poly_normal_indices(int face_index) const;
   /**
    * Find the most representative vertex group of a polygon.
    *
@@ -195,7 +195,7 @@ class OBJMesh : NonCopyable {
    * group_weights is temporary storage to avoid reallocations, it must
    * be the size of amount of vertex groups in the object.
    */
-  int16_t get_poly_deform_group_index(int poly_index, MutableSpan<float> group_weights) const;
+  int16_t get_poly_deform_group_index(int face_index, MutableSpan<float> group_weights) const;
   /**
    * Find the name of the vertex deform group at the given index.
    * The index indices into the #Object.defbase.
@@ -213,7 +213,7 @@ class OBJMesh : NonCopyable {
    * When materials are not being written, the polygon order array
    * might be empty, in which case remap is a no-op.
    */
-  int remap_poly_index(int i) const
+  int remap_face_index(int i) const
   {
     return i < 0 || i >= poly_order_.size() ? i : poly_order_[i];
   }

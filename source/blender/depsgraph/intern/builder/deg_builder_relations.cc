@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -47,7 +47,6 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
@@ -69,6 +68,7 @@
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
+#include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
@@ -84,9 +84,9 @@
 #include "BKE_tracking.h"
 #include "BKE_world.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "SEQ_iterator.h"
 
@@ -583,9 +583,6 @@ void DepsgraphRelationBuilder::build_id(ID *id)
     case ID_SCE:
       build_scene_parameters((Scene *)id);
       break;
-    case ID_SIM:
-      build_simulation((Simulation *)id);
-      break;
     case ID_PA:
       build_particle_settings((ParticleSettings *)id);
       break;
@@ -771,7 +768,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   if (object->constraints.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
-    BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
+    BKE_constraints_id_loop(&object->constraints, constraint_walk, IDWALK_NOP, &data);
   }
 
   /* Object constraints. */
@@ -929,12 +926,12 @@ void DepsgraphRelationBuilder::build_object_modifiers(Object *object)
     add_relation(previous_key, modifier_key, "Modifier");
 
     const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)modifier->type);
-    if (mti->updateDepsgraph) {
+    if (mti->update_depsgraph) {
       const BuilderStack::ScopedEntry stack_entry = stack_.trace(*modifier);
 
       DepsNodeHandle handle = create_node_handle(modifier_key);
       ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);
-      mti->updateDepsgraph(modifier, &ctx);
+      mti->update_depsgraph(modifier, &ctx);
     }
 
     /* Time dependency. */
@@ -1343,7 +1340,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
                                      OperationCode::BONE_CONSTRAINTS :
                                      OperationCode::TRANSFORM_CONSTRAINTS);
   /* Add dependencies for each constraint in turn. */
-  for (bConstraint *con = (bConstraint *)constraints->first; con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, constraints) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
     ListBase targets = {nullptr, nullptr};
     /* Invalid constraint type. */
@@ -1579,8 +1576,7 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id,
                                                              ListBase *curves)
 {
   /* Iterate over all curves and build relations. */
-  PointerRNA id_ptr;
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
   LISTBASE_FOREACH (FCurve *, fcu, curves) {
     PointerRNA ptr;
     PropertyRNA *prop;
@@ -1836,9 +1832,8 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
      * data-block, which means driver execution should wait for that
      * data-block to be copied. */
     {
-      PointerRNA id_ptr;
+      PointerRNA id_ptr = RNA_id_pointer_create(id);
       PointerRNA ptr;
-      RNA_id_pointer_create(id, &id_ptr);
       if (RNA_path_resolve_full(&id_ptr, fcu->rna_path, &ptr, nullptr, nullptr)) {
         if (id_ptr.owner_id != ptr.owner_id) {
           ComponentKey cow_key(ptr.owner_id, NodeType::COPY_ON_WRITE);
@@ -1934,52 +1929,14 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
         add_relation(target_key, driver_key, "Target -> Driver");
       }
       else if (dtar->rna_path != nullptr && dtar->rna_path[0] != '\0') {
-        RNAPathKey variable_exit_key(target_prop, dtar->rna_path, RNAPointerSource::EXIT);
-        if (RNA_pointer_is_null(&variable_exit_key.ptr)) {
-          continue;
-        }
-        if (is_same_bone_dependency(variable_exit_key, self_key) ||
-            is_same_nodetree_node_dependency(variable_exit_key, self_key))
-        {
-          continue;
-        }
-        add_relation(variable_exit_key, driver_key, "RNA Target -> Driver");
+        build_driver_rna_path_variable(
+            driver_key, self_key, target_id, target_prop, dtar->rna_path);
 
-        /* It is possible that RNA path points to a property of a different ID than the target_id:
-         * for example, paths like "data" on Object, "camera" on Scene.
-         *
-         * For the demonstration purposes lets consider a driver variable uses Scene ID as target
-         * and "camera.location.x" as its RNA path. If the scene has 2 different cameras at
-         * 2 different locations changing the active scene camera is expected to immediately be
-         * reflected in the variable value. In order to achieve this behavior we create a relation
-         * from the target ID to the driver so that if the ID property of the target ID changes the
-         * driver is re-evaluated.
-         *
-         * The most straightforward (at the moment of writing this comment) way of figuring out
-         * such relation is to use copy-on-write operation of the target ID. There are two down
-         * sides of this approach which are considered a design limitation as there is a belief
-         * that they are not common in practice or are not reliable due to other issues:
-         *
-         * - IDs which are not covered with the copy-on-write mechanism.
-         *
-         *   Such IDs are either do not have ID properties, or are not part of the dependency
-         *   graph.
-         *
-         * - Modifications of evaluated IDs from a Python handler.
-         *   Such modifications are not fully integrated in the dependency graph evaluation as it
-         *   has issues with copy-on-write tagging and the fact that relations are defined by the
-         *   original main database status.
-         *
-         * The original report for this is #98618.
-         *
-         * The not-so-obvious part is that we don't do such relation for the context properties.
-         * They are resolved at the graph build time and do not change at runtime (#107081).
-         */
-        if (target_id != variable_exit_key.ptr.owner_id && dvar->type != DVAR_TYPE_CONTEXT_PROP) {
-          if (deg_copy_on_write_is_needed(GS(target_id->name))) {
-            ComponentKey target_id_key(target_id, NodeType::COPY_ON_WRITE);
-            add_relation(target_id_key, driver_key, "Target ID -> Driver");
-          }
+        /* Add relations to all other cameras used by the scene timeline if applicable. */
+        if (const char *camera_path = get_rna_path_relative_to_scene_camera(
+                scene_, target_prop, dtar->rna_path))
+        {
+          build_driver_scene_camera_variable(driver_key, self_key, scene_, camera_path);
         }
 
         /* The RNA getter for `object.data` can write to the mesh datablock due
@@ -2004,6 +1961,88 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
       }
     }
     DRIVER_TARGETS_LOOPER_END;
+  }
+}
+
+void DepsgraphRelationBuilder::build_driver_scene_camera_variable(const OperationKey &driver_key,
+                                                                  const RNAPathKey &self_key,
+                                                                  Scene *scene,
+                                                                  const char *rna_path)
+{
+  /* First, add relations to all cameras used in the timeline,
+   * excluding scene->camera which was already handled by the caller. */
+  bool animated = false;
+
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    if (!ELEM(marker->camera, nullptr, scene->camera)) {
+      PointerRNA camera_ptr = RNA_id_pointer_create(&marker->camera->id);
+      build_driver_id_property(camera_ptr, rna_path);
+      build_driver_rna_path_variable(driver_key, self_key, &scene->id, camera_ptr, rna_path);
+      animated = true;
+    }
+  }
+
+  /* If timeline indeed switches the camera, this variable also implicitly depends on time. */
+  if (animated) {
+    TimeSourceKey time_src_key;
+    add_relation(time_src_key, driver_key, "TimeSrc -> Driver Camera Ref");
+  }
+}
+
+void DepsgraphRelationBuilder::build_driver_rna_path_variable(const OperationKey &driver_key,
+                                                              const RNAPathKey &self_key,
+                                                              ID *target_id,
+                                                              const PointerRNA &target_prop,
+                                                              const char *rna_path)
+{
+  RNAPathKey variable_exit_key(target_prop, rna_path, RNAPointerSource::EXIT);
+  if (RNA_pointer_is_null(&variable_exit_key.ptr)) {
+    return;
+  }
+  if (is_same_bone_dependency(variable_exit_key, self_key) ||
+      is_same_nodetree_node_dependency(variable_exit_key, self_key))
+  {
+    return;
+  }
+  add_relation(variable_exit_key, driver_key, "RNA Target -> Driver");
+
+  /* It is possible that RNA path points to a property of a different ID than the target_id:
+   * for example, paths like "data" on Object, "camera" on Scene.
+   *
+   * For the demonstration purposes lets consider a driver variable uses Scene ID as target
+   * and "camera.location.x" as its RNA path. If the scene has 2 different cameras at
+   * 2 different locations changing the active scene camera is expected to immediately be
+   * reflected in the variable value. In order to achieve this behavior we create a relation
+   * from the target ID to the driver so that if the ID property of the target ID changes the
+   * driver is re-evaluated.
+   *
+   * The most straightforward (at the moment of writing this comment) way of figuring out
+   * such relation is to use copy-on-write operation of the target ID. There are two down
+   * sides of this approach which are considered a design limitation as there is a belief
+   * that they are not common in practice or are not reliable due to other issues:
+   *
+   * - IDs which are not covered with the copy-on-write mechanism.
+   *
+   *   Such IDs are either do not have ID properties, or are not part of the dependency
+   *   graph.
+   *
+   * - Modifications of evaluated IDs from a Python handler.
+   *   Such modifications are not fully integrated in the dependency graph evaluation as it
+   *   has issues with copy-on-write tagging and the fact that relations are defined by the
+   *   original main database status.
+   *
+   * The original report for this is #98618.
+   *
+   * The not-so-obvious part is that we don't do such relation for the context properties.
+   * They are resolved at the graph build time and do not change at runtime (#107081).
+   * Thus scene has to be excluded as a special case; this is OK because changes to
+   * scene.camera not caused by animation should actually force a dependency graph rebuild.
+   */
+  if (target_id != variable_exit_key.ptr.owner_id && GS(target_id->name) != ID_SCE) {
+    if (deg_copy_on_write_is_needed(GS(target_id->name))) {
+      ComponentKey target_id_key(target_id, NodeType::COPY_ON_WRITE);
+      add_relation(target_id_key, driver_key, "Target ID -> Driver");
+    }
   }
 }
 
@@ -2430,10 +2469,10 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     LISTBASE_FOREACH (GpencilModifierData *, md, &object->greasepencil_modifiers) {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
           (GpencilModifierType)md->type);
-      if (mti->updateDepsgraph) {
+      if (mti->update_depsgraph) {
         DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
         ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);
-        mti->updateDepsgraph(md, &ctx, graph_->mode);
+        mti->update_depsgraph(md, &ctx, graph_->mode);
       }
       if (BKE_gpencil_modifier_depends_ontime(md)) {
         TimeSourceKey time_src_key;
@@ -2448,10 +2487,10 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     ctx.object = object;
     LISTBASE_FOREACH (ShaderFxData *, fx, &object->shader_fx) {
       const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info((ShaderFxType)fx->type);
-      if (fxi->updateDepsgraph) {
+      if (fxi->update_depsgraph) {
         DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
         ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);
-        fxi->updateDepsgraph(fx, &ctx);
+        fxi->update_depsgraph(fx, &ctx);
       }
       if (BKE_shaderfx_depends_ontime(fx)) {
         TimeSourceKey time_src_key;
@@ -2650,8 +2689,12 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       }
       break;
     }
-    case ID_GP:
+    case ID_GP: {
+      TimeSourceKey time_key;
+      ComponentKey geometry_key(obdata, NodeType::GEOMETRY);
+      add_relation(time_key, geometry_key, "Grease Pencil Frame Change");
       break;
+    }
     default:
       BLI_assert_msg(0, "Should not happen");
       break;
@@ -2670,6 +2713,7 @@ void DepsgraphRelationBuilder::build_armature(bArmature *armature)
   build_animdata(&armature->id);
   build_parameters(&armature->id);
   build_armature_bones(&armature->bonebase);
+  build_armature_bone_collections(&armature->collections);
 }
 
 void DepsgraphRelationBuilder::build_armature_bones(ListBase *bones)
@@ -2677,6 +2721,13 @@ void DepsgraphRelationBuilder::build_armature_bones(ListBase *bones)
   LISTBASE_FOREACH (Bone *, bone, bones) {
     build_idproperties(bone->prop);
     build_armature_bones(&bone->childbase);
+  }
+}
+
+void DepsgraphRelationBuilder::build_armature_bone_collections(ListBase *collections)
+{
+  LISTBASE_FOREACH (BoneCollection *, bcoll, collections) {
+    build_idproperties(bcoll->prop);
   }
 }
 
@@ -2884,11 +2935,12 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     }
   }
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &ntree->inputs) {
-    build_idproperties(socket->prop);
+  ntree->ensure_interface_cache();
+  for (bNodeTreeInterfaceSocket *socket : ntree->interface_inputs()) {
+    build_idproperties(socket->properties);
   }
-  LISTBASE_FOREACH (bNodeSocket *, socket, &ntree->outputs) {
-    build_idproperties(socket->prop);
+  for (bNodeTreeInterfaceSocket *socket : ntree->interface_outputs()) {
+    build_idproperties(socket->properties);
   }
 
   if (check_id_has_anim_component(&ntree->id)) {
@@ -3147,32 +3199,7 @@ void DepsgraphRelationBuilder::build_sound(bSound *sound)
   add_relation(parameters_key, audio_key, "Parameters -> Audio");
 }
 
-void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)
-{
-  if (built_map_.checkIsBuiltAndTag(simulation)) {
-    return;
-  }
-
-  const BuilderStack::ScopedEntry stack_entry = stack_.trace(simulation->id);
-
-  build_idproperties(simulation->id.properties);
-  build_animdata(&simulation->id);
-  build_parameters(&simulation->id);
-
-  build_nodetree(simulation->nodetree);
-  build_nested_nodetree(&simulation->id, simulation->nodetree);
-
-  OperationKey simulation_eval_key(
-      &simulation->id, NodeType::SIMULATION, OperationCode::SIMULATION_EVAL);
-  TimeSourceKey time_src_key;
-  add_relation(time_src_key, simulation_eval_key, "TimeSrc -> Simulation");
-
-  OperationKey nodetree_key(
-      &simulation->nodetree->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
-  add_relation(nodetree_key, simulation_eval_key, "NodeTree -> Simulation", 0);
-}
-
-using Seq_build_prop_cb_data = struct Seq_build_prop_cb_data {
+struct Seq_build_prop_cb_data {
   DepsgraphRelationBuilder *builder;
   ComponentKey sequencer_key;
   bool has_audio_strips;

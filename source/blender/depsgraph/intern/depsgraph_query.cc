@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,7 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <cstring> /* XXX: memcpy */
+#include <cstring> /* XXX: `memcpy`. */
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -23,8 +23,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
@@ -256,8 +256,7 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
      * common types too above (e.g. modifiers) */
     char *path = RNA_path_from_ID_to_struct(ptr);
     if (path) {
-      PointerRNA cow_id_ptr;
-      RNA_id_pointer_create(cow_id, &cow_id_ptr);
+      PointerRNA cow_id_ptr = RNA_id_pointer_create(cow_id);
       if (!RNA_path_resolve(&cow_id_ptr, path, r_ptr_eval, nullptr)) {
         /* Couldn't find COW copy of data */
         fprintf(stderr,

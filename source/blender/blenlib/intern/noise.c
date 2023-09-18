@@ -1051,9 +1051,11 @@ static float voronoi_Cr(float x, float y, float z)
   return t;
 }
 
-/* Signed version of all 6 of the above, just 2x-1, not really correct though
- * (range is potentially (0, sqrt(6)).
- * Used in the musgrave functions */
+/**
+ * Signed version of all 6 of the above, just 2x-1, not really correct though
+ * (range is potentially `(0, sqrt(6))`.
+ * Used in the musgrave functions.
+ */
 static float voronoi_F1S(float x, float y, float z)
 {
   float da[4], pa[12];

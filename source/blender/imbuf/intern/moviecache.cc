@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -247,7 +247,7 @@ static bool get_item_destroyable(void *item_v)
   return true;
 }
 
-void IMB_moviecache_init(void)
+void IMB_moviecache_init()
 {
   limitor = new_MEM_CacheLimiter(moviecache_destructor, get_item_size);
 
@@ -255,7 +255,7 @@ void IMB_moviecache_init(void)
   MEM_CacheLimiter_ItemDestroyable_Func_set(limitor, get_item_destroyable);
 }
 
-void IMB_moviecache_destruct(void)
+void IMB_moviecache_destruct()
 {
   if (limitor) {
     delete_MEM_CacheLimiter(limitor);

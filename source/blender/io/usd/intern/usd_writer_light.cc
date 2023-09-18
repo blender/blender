@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_light.h"
@@ -13,13 +13,13 @@
 #include <pxr/usd/usdLux/sphereLight.h>
 
 #include "BLI_assert.h"
-#include "BLI_math.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_light_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 
 namespace blender::io::usd {
@@ -49,7 +49,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
   UsdLuxWrapper usd_light_api;
 
   switch (light->type) {
-    case LA_AREA:
+    case LA_AREA: {
       switch (light->area_shape) {
         case LA_AREA_DISK:
         case LA_AREA_ELLIPSE: { /* An ellipse light will deteriorate into a disk light. */
@@ -61,8 +61,13 @@ void USDLightWriter::do_write(HierarchyContext &context)
                                                usd_export_context_.usd_path);
           usd_light_api = UsdLuxWrapper(disk_light.GetPrim());
           usd_light_api.CreateRadiusAttr();
-          usd_light_api.SetRadiusAttr(light->area_size / 2.0f, timecode);
 
+          if (light->type == LA_AREA_ELLIPSE) {
+            usd_light_api.SetRadiusAttr((light->area_size + light->area_sizey) / 4.0f, timecode);
+          }
+          else {
+            usd_light_api.SetRadiusAttr(light->area_size / 2.0f, timecode);
+          }
           break;
         }
         case LA_AREA_RECT: {
@@ -92,11 +97,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
           usd_light_api.SetWidthAttr(light->area_size, timecode);
           usd_light_api.CreateHeightAttr();
           usd_light_api.SetHeightAttr(light->area_size, timecode);
-
           break;
         }
       }
       break;
+    }
     case LA_LOCAL: {
 
       pxr::UsdLuxSphereLight sphere_light =
@@ -150,11 +155,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
       usd_light_api = UsdLuxWrapper(sun_light.GetPrim());
       usd_light_api.CreateAngleAttr();
       usd_light_api.SetAngleAttr(light->sun_angle * (180.0f / (float)M_PI), timecode);
-
       break;
     }
     default:
-      BLI_assert_msg(0, "is_supported() returned true for unsupported light type");
+      BLI_assert_unreachable();
+      break;
   }
 
   float usd_intensity = light->energy * usd_export_context_.export_params.light_intensity_scale;
@@ -162,15 +167,21 @@ void USDLightWriter::do_write(HierarchyContext &context)
   if (usd_export_context_.export_params.convert_light_to_nits) {
     usd_intensity /= nits_to_energy_scale_factor(light, world_scale, radius_scale);
   }
+  else if (light->type == LA_SUN) {
+    /* Unclear why, but approximately matches Karma. */
+    usd_intensity /= 4.0f;
+  }
+  else {
+    /* Convert from radiant flux to intensity. */
+    usd_intensity /= M_PI;
+  }
 
-  usd_light_api.CreateIntensityAttr();
-  usd_light_api.SetIntensityAttr(usd_intensity, timecode);
-
-  usd_light_api.CreateColorAttr();
-  usd_light_api.SetColorAttr(pxr::GfVec3f(light->r, light->g, light->b), timecode);
-
-  usd_light_api.CreateSpecularAttr();
-  usd_light_api.SetSpecularAttr(light->spec_fac, timecode);
+  usd_light_api.CreateIntensityAttr().Set(usd_intensity, timecode);
+  usd_light_api.CreateExposureAttr().Set(0.0f, timecode);
+  usd_light_api.CreateColorAttr().Set(pxr::GfVec3f(light->r, light->g, light->b), timecode);
+  usd_light_api.CreateDiffuseAttr().Set(light->diff_fac, timecode);
+  usd_light_api.CreateSpecularAttr().Set(light->spec_fac, timecode);
+  usd_light_api.CreateNormalizeAttr().Set(true, timecode);
 
   if (usd_export_context_.export_params.export_custom_properties && light) {
     auto prim = usd_light_api.GetPrim();

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -43,7 +43,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 using blender::float3;
 using blender::IndexRange;
@@ -105,26 +105,24 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 {
   Curves *curves = (Curves *)id;
 
+  blender::bke::CurvesGeometry::BlendWriteData write_data =
+      curves->geometry.wrap().blend_write_prepare();
+
   /* Write LibData */
   BLO_write_id_struct(writer, Curves, id_address, &curves->id);
   BKE_id_blend_write(writer, &curves->id);
 
   /* Direct data */
-  curves->geometry.wrap().blend_write(*writer, curves->id);
+  curves->geometry.wrap().blend_write(*writer, curves->id, write_data);
 
   BLO_write_string(writer, curves->surface_uv_map);
 
   BLO_write_pointer_array(writer, curves->totcol, curves->mat);
-  if (curves->adt) {
-    BKE_animdata_blend_write(writer, curves->adt);
-  }
 }
 
 static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Curves *curves = (Curves *)id;
-  BLO_read_data_address(reader, &curves->adt);
-  BKE_animdata_blend_read_data(reader, curves->adt);
 
   /* Geometry */
   curves->geometry.wrap().blend_read(*reader);
@@ -133,24 +131,6 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 
   /* Materials */
   BLO_read_pointer_array(reader, (void **)&curves->mat);
-}
-
-static void curves_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  Curves *curves = (Curves *)id;
-  for (int a = 0; a < curves->totcol; a++) {
-    BLO_read_id_address(reader, id, &curves->mat[a]);
-  }
-  BLO_read_id_address(reader, id, &curves->surface);
-}
-
-static void curves_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Curves *curves = (Curves *)id;
-  for (int a = 0; a < curves->totcol; a++) {
-    BLO_expand(expander, curves->mat[a]);
-  }
-  BLO_expand(expander, curves->surface);
 }
 
 IDTypeInfo IDType_ID_CV = {
@@ -175,8 +155,7 @@ IDTypeInfo IDType_ID_CV = {
 
     /*blend_write*/ curves_blend_write,
     /*blend_read_data*/ curves_blend_read_data,
-    /*blend_read_lib*/ curves_blend_read_lib,
-    /*blend_read_expand*/ curves_blend_read_expand,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -243,8 +222,8 @@ static void curves_evaluate_modifiers(Depsgraph *depsgraph,
 
   /* Get effective list of modifiers to execute. Some effects like shape keys
    * are added as virtual modifiers before the user created modifiers. */
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(object, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(object, &virtual_modifier_data);
 
   /* Evaluate modifiers. */
   for (; md; md = md->next) {
@@ -256,8 +235,8 @@ static void curves_evaluate_modifiers(Depsgraph *depsgraph,
 
     blender::bke::ScopedModifierTimer modifier_timer{*md};
 
-    if (mti->modifyGeometrySet != nullptr) {
-      mti->modifyGeometrySet(md, &mectx, &geometry_set);
+    if (mti->modify_geometry_set != nullptr) {
+      mti->modify_geometry_set(md, &mectx, &geometry_set);
     }
   }
 }
@@ -271,8 +250,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
 
   /* Evaluate modifiers. */
   Curves *curves = static_cast<Curves *>(object->data);
-  GeometrySet geometry_set = GeometrySet::create_with_curves(curves,
-                                                             GeometryOwnershipType::ReadOnly);
+  GeometrySet geometry_set = GeometrySet::from_curves(curves, GeometryOwnershipType::ReadOnly);
   if (object->mode == OB_MODE_SCULPT_CURVES) {
     /* Try to propagate deformation data through modifier evaluation, so that sculpt mode can work
      * on evaluated curves. */
@@ -284,7 +262,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
   curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   /* Assign evaluated object. */
-  Curves *curves_eval = const_cast<Curves *>(geometry_set.get_curves_for_read());
+  Curves *curves_eval = const_cast<Curves *>(geometry_set.get_curves());
   if (curves_eval == nullptr) {
     curves_eval = curves_new_nomain(0, 0);
     BKE_object_eval_assign_data(object, &curves_eval->id, true);

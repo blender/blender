@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2010-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2010-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -31,9 +31,9 @@ static std::string getActiveUVLayerName(Object *ob)
 {
   Mesh *me = (Mesh *)ob->data;
 
-  int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
+  int num_layers = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
   if (num_layers) {
-    return std::string(bc_CustomData_get_active_layer_name(&me->ldata, CD_PROP_FLOAT2));
+    return std::string(bc_CustomData_get_active_layer_name(&me->loop_data, CD_PROP_FLOAT2));
   }
 
   return "";
@@ -210,9 +210,11 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
   set_transparency(ep, ma);
 
   /* TODO: */
-  // set_shininess(ep, ma); shininess not supported for lambert
-  // set_ambient(ep, ma);
-  // set_specular(ep, ma);
+#if 0
+  set_shininess(ep, ma); /* Shininess not supported for lambert. */
+  set_ambient(ep, ma);
+  set_specular(ep, ma);
+#endif
 
   get_images(ma, material_image_map);
   std::string active_uv(getActiveUVLayerName(ob));
@@ -244,7 +246,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
       /* store pointers so they can be used later when we create <texture>s */
       samp_surf[b] = &samplers[a];
-      //samp_surf[b][1] = &surfaces[a];
+      // samp_surf[b][1] = &surfaces[a];
 
       im_samp_map[key] = b;
       b++;
@@ -264,7 +266,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
     int i = im_samp_map[key];
     std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
     COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)
-        samp_surf[i];  /* possibly uninitialized memory ... */
+        samp_surf[i]; /* possibly uninitialized memory ... */
     writeTextures(ep, key, sampler, t, ima, uvname);
   }
 #endif

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -24,8 +24,13 @@ struct ImBuf;
 struct Scopes;
 struct rctf;
 
-void BKE_curvemapping_set_defaults(
-    struct CurveMapping *cumap, int tot, float minx, float miny, float maxx, float maxy);
+void BKE_curvemapping_set_defaults(struct CurveMapping *cumap,
+                                   int tot,
+                                   float minx,
+                                   float miny,
+                                   float maxx,
+                                   float maxy,
+                                   short default_handle_type);
 struct CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, float maxy);
 void BKE_curvemapping_free_data(struct CurveMapping *cumap);
 void BKE_curvemapping_free(struct CurveMapping *cumap);

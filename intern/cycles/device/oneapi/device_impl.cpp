@@ -748,21 +748,119 @@ void OneapiDevice::set_global_memory(SyclQueue *queue_,
 #  undef KERNEL_DATA_ARRAY
 }
 
-bool OneapiDevice::enqueue_kernel(KernelContext *kernel_context,
-                                  int kernel,
-                                  size_t global_size,
-                                  void **args)
+bool OneapiDevice::enqueue_kernel(
+    KernelContext *kernel_context, int kernel, size_t global_size, size_t local_size, void **args)
 {
-  return oneapi_enqueue_kernel(
-      kernel_context, kernel, global_size, kernel_features, use_hardware_raytracing, args);
+  return oneapi_enqueue_kernel(kernel_context,
+                               kernel,
+                               global_size,
+                               local_size,
+                               kernel_features,
+                               use_hardware_raytracing,
+                               args);
+}
+
+void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
+                                                       const DeviceKernel kernel,
+                                                       size_t &kernel_global_size,
+                                                       size_t &kernel_local_size)
+{
+  assert(queue);
+
+  const static size_t preferred_work_group_size_intersect_shading = 32;
+  /* Shader evaluation kernels seems to use some amount of shared memory, so better
+   * to avoid usage of maximum work group sizes for them. */
+  const static size_t preferred_work_group_size_shader_evaluation = 256;
+  /* NOTE(@nsirgien): 1024 currently may lead to issues with cryptomatte kernels, so
+   * for now their work-group size is restricted to 512. */
+  const static size_t preferred_work_group_size_cryptomatte = 512;
+  const static size_t preferred_work_group_size_default = 1024;
+
+  size_t preferred_work_group_size = 0;
+  switch (kernel) {
+    case DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA:
+    case DEVICE_KERNEL_INTEGRATOR_INIT_FROM_BAKE:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT:
+      preferred_work_group_size = preferred_work_group_size_intersect_shading;
+      break;
+
+    case DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS:
+      preferred_work_group_size = preferred_work_group_size_cryptomatte;
+      break;
+
+    case DEVICE_KERNEL_SHADER_EVAL_DISPLACE:
+    case DEVICE_KERNEL_SHADER_EVAL_BACKGROUND:
+    case DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY:
+      preferred_work_group_size = preferred_work_group_size_shader_evaluation;
+      break;
+
+    default:
+      /* Do nothing and keep initial zero value. */
+      break;
+  }
+
+  /* Such order of logic allow us to override Blender default values, if needed,
+   * yet respect them otherwise. */
+  if (preferred_work_group_size == 0) {
+    preferred_work_group_size = oneapi_suggested_gpu_kernel_size((::DeviceKernel)kernel);
+  }
+
+  /* If there is no recommendation, then use manual default value. */
+  if (preferred_work_group_size == 0) {
+    preferred_work_group_size = preferred_work_group_size_default;
+  }
+
+  const size_t limit_work_group_size = reinterpret_cast<sycl::queue *>(queue)
+                                           ->get_device()
+                                           .get_info<sycl::info::device::max_work_group_size>();
+
+  kernel_local_size = std::min(limit_work_group_size, preferred_work_group_size);
+
+  /* NOTE(@nsirgien): As for now non-uniform work-groups don't work on most oneAPI devices,
+   * we extend work size to fit uniformity requirements. */
+  kernel_global_size = round_up(kernel_global_size, kernel_local_size);
+
+#  ifdef WITH_ONEAPI_SYCL_HOST_TASK
+  /* Kernels listed below need a specific number of work groups. */
+  if (kernel == DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_SHADOW_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY)
+  {
+    /* Path array implementation is serial in case of SYCL Host Task execution. */
+    kernel_global_size = 1;
+    kernel_local_size = 1;
+  }
+#  endif
+
+  assert(kernel_global_size % kernel_local_size == 0);
 }
 
 /* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
  * since Windows driver 101.3268. */
-/* The same min compute-runtime version is currently used across Windows and Linux.
- * For Windows driver 101.4314, compute-runtime version is 25977. */
-static const int lowest_supported_driver_version_win = 1014314;
+static const int lowest_supported_driver_version_win = 1014644;
+#  ifdef _WIN32
+/* For Windows driver 101.4644, compute-runtime version is 26771.
+ * This information is returned by `ocloc query OCL_DRIVER_VERSION`.*/
+static const int lowest_supported_driver_version_neo = 26771;
+#  else
 static const int lowest_supported_driver_version_neo = 25812;
+#  endif
 
 int OneapiDevice::parse_driver_build_version(const sycl::device &device)
 {

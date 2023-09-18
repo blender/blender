@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,8 +7,9 @@
  *
  * Abstractions to manage runtime asset lists with a global cache for multiple UI elements to
  * access.
- * Internally this uses the #FileList API and structures from `filelist.c`. This is just because it
- * contains most necessary logic already and there's not much time for a more long-term solution.
+ * Internally this uses the #FileList API and structures from `filelist.cc`.
+ * This is just because it contains most necessary logic already and
+ * there's not much time for a more long-term solution.
  */
 
 #include <optional>
@@ -17,23 +18,26 @@
 #include "AS_asset_library.hh"
 
 #include "BKE_context.h"
+#include "BKE_screen.h"
 
 #include "BLI_map.hh"
+#include "BLI_string.h"
 #include "BLI_utility_mixins.hh"
 
 #include "DNA_space_types.h"
 
 #include "BKE_preferences.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /* XXX uses private header of file-space. */
-#include "../space_file/file_indexer.h"
-#include "../space_file/filelist.h"
+#include "../space_file/file_indexer.hh"
+#include "../space_file/filelist.hh"
 
 #include "ED_asset_indexer.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"
+#include "ED_screen.hh"
 #include "asset_library_reference.hh"
 
 namespace blender::ed::asset {
@@ -83,7 +87,7 @@ class PreviewTimer {
   void ensureRunning(const bContext *C)
   {
     if (!timer_) {
-      timer_ = WM_event_add_timer_notifier(
+      timer_ = WM_event_timer_add_notifier(
           CTX_wm_manager(C), CTX_wm_window(C), NC_ASSET | ND_ASSET_LIST_PREVIEW, 0.01);
     }
   }
@@ -91,7 +95,7 @@ class PreviewTimer {
   void stop(const bContext *C)
   {
     if (timer_) {
-      WM_event_remove_timer_notifier(CTX_wm_manager(C), CTX_wm_window(C), timer_);
+      WM_event_timer_remove_notifier(CTX_wm_manager(C), CTX_wm_window(C), timer_);
       timer_ = nullptr;
     }
   }
@@ -119,6 +123,7 @@ class AssetList : NonCopyable {
 
   bool needsRefetch() const;
   bool isLoaded() const;
+  bool isAssetPreviewLoading(const AssetHandle &asset) const;
   asset_system::AssetLibrary *asset_library() const;
   void iterate(AssetListHandleIterFn fn) const;
   void iterate(AssetListIterFn fn) const;
@@ -189,6 +194,11 @@ bool AssetList::needsRefetch() const
 bool AssetList::isLoaded() const
 {
   return filelist_is_ready(filelist_);
+}
+
+bool AssetList::isAssetPreviewLoading(const AssetHandle &asset) const
+{
+  return filelist_file_is_preview_pending(filelist_, asset.file_data);
 }
 
 asset_system::AssetLibrary *AssetList::asset_library() const
@@ -426,6 +436,20 @@ AssetListStorage::AssetListMap &AssetListStorage::global_storage()
 
 /** \} */
 
+void asset_reading_region_listen_fn(const wmRegionListenerParams *params)
+{
+  const wmNotifier *wmn = params->notifier;
+  ARegion *region = params->region;
+
+  switch (wmn->category) {
+    case NC_ASSET:
+      if (wmn->data == ND_ASSET_LIST_READING) {
+        ED_region_tag_refresh_ui(region);
+      }
+      break;
+  }
+}
+
 }  // namespace blender::ed::asset
 
 /* -------------------------------------------------------------------- */
@@ -514,6 +538,13 @@ asset_system::AssetRepresentation *ED_assetlist_asset_get_by_index(
   AssetHandle asset_handle = ED_assetlist_asset_handle_get_by_index(&library_reference,
                                                                     asset_index);
   return reinterpret_cast<asset_system::AssetRepresentation *>(asset_handle.file_data->asset);
+}
+
+bool ED_assetlist_asset_image_is_loading(const AssetLibraryReference *library_reference,
+                                         const AssetHandle *asset_handle)
+{
+  const AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  return list->isAssetPreviewLoading(*asset_handle);
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)

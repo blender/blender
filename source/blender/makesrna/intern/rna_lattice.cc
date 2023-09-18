@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -16,8 +16,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "rna_internal.h"
 
 #ifdef RNA_RUNTIME
@@ -32,9 +32,9 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_lattice.h"
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "ED_lattice.hh"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 static void rna_LatticePoint_co_get(PointerRNA *ptr, float *values)
 {
@@ -229,7 +229,7 @@ static char *rna_LatticePoint_path(const PointerRNA *ptr)
 
     /* only return index if in range */
     if ((point >= (void *)points) && (point < (void *)(points + tot))) {
-      int pt_index = (int)((BPoint *)point - points);
+      int pt_index = int((BPoint *)point - points);
 
       return BLI_sprintfN("points[%d]", pt_index);
     }

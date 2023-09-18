@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -344,7 +344,7 @@ class OUTLINER_MT_asset(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("asset.mark")
+        layout.operator("asset.mark", icon='ASSET_MANAGER')
         layout.operator("asset.clear", text="Clear Asset").set_fake_user = False
         layout.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
 

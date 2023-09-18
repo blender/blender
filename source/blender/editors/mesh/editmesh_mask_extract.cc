@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,8 +10,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math.h"
-
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
@@ -20,26 +18,28 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_shrinkwrap.h"
 
+#include "BLI_math_vector.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
-#include "ED_undo.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_sculpt.hh"
+#include "ED_undo.hh"
+#include "ED_view3d.hh"
 
 #include "bmesh_tools.h"
 
@@ -208,10 +208,10 @@ static int geometry_extract_apply(bContext *C,
   /* Remove the Face Sets as they need to be recreated when entering Sculpt Mode in the new object.
    * TODO(pablodobarro): In the future we can try to preserve them from the original mesh. */
   Mesh *new_ob_mesh = static_cast<Mesh *>(new_ob->data);
-  CustomData_free_layer_named(&new_ob_mesh->pdata, ".sculpt_face_set", new_ob_mesh->totpoly);
+  CustomData_free_layer_named(&new_ob_mesh->face_data, ".sculpt_face_set", new_ob_mesh->faces_num);
 
   /* Remove the mask from the new object so it can be sculpted directly after extracting. */
-  CustomData_free_layers(&new_ob_mesh->vdata, CD_PAINT_MASK, new_ob_mesh->totvert);
+  CustomData_free_layers(&new_ob_mesh->vert_data, CD_PAINT_MASK, new_ob_mesh->totvert);
 
   BKE_mesh_copy_parameters_for_eval(new_ob_mesh, mesh);
 
@@ -273,8 +273,8 @@ static void geometry_extract_tag_face_set(BMesh *bm, GeometryExtractParams *para
   BMFace *f;
   BMIter iter;
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    const int face_set_id = abs(BM_ELEM_CD_GET_INT(f, cd_face_sets_offset));
-    BM_elem_flag_set(f, BM_ELEM_TAG, face_set_id != tag_face_set_id);
+    const int face_set = BM_ELEM_CD_GET_INT(f, cd_face_sets_offset);
+    BM_elem_flag_set(f, BM_ELEM_TAG, face_set != tag_face_set_id);
   }
 }
 
@@ -347,7 +347,7 @@ void MESH_OT_paint_mask_extract(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_float(
+  RNA_def_float_factor(
       ot->srna,
       "mask_threshold",
       0.5f,
@@ -361,60 +361,29 @@ void MESH_OT_paint_mask_extract(wmOperatorType *ot)
   geometry_extract_props(ot->srna);
 }
 
-static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ED_workspace_status_text(C, TIP_("Click on the mesh to select a Face Set"));
-  WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
-  WM_event_add_modal_handler(C, op);
-  return OPERATOR_RUNNING_MODAL;
-}
+  if (!CTX_wm_region_view3d(C)) {
+    return OPERATOR_CANCELLED;
+  }
+  ARegion *region = CTX_wm_region(C);
 
-static int face_set_extract_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  switch (event->type) {
-    case LEFTMOUSE:
-      if (event->val == KM_PRESS) {
-        WM_cursor_modal_restore(CTX_wm_window(C));
-        ED_workspace_status_text(C, nullptr);
+  const float mval[2] = {float(event->xy[0] - region->winrct.xmin),
+                         float(event->xy[1] - region->winrct.ymin)};
 
-        /* This modal operator uses and eyedropper to pick a Face Set from the mesh. This ensures
-         * that the mouse clicked in a viewport region and its coordinates can be used to ray-cast
-         * the PBVH and update the active Face Set ID. */
-        bScreen *screen = CTX_wm_screen(C);
-        ARegion *region = BKE_screen_find_main_region_at_xy(screen, SPACE_VIEW3D, event->xy);
-
-        if (!region) {
-          return OPERATOR_CANCELLED;
-        }
-
-        const float mval[2] = {float(event->xy[0] - region->winrct.xmin),
-                               float(event->xy[1] - region->winrct.ymin)};
-
-        Object *ob = CTX_data_active_object(C);
-        const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
-        if (face_set_id == SCULPT_FACE_SET_NONE) {
-          return OPERATOR_CANCELLED;
-        }
-
-        GeometryExtractParams params;
-        params.active_face_set = face_set_id;
-        params.num_smooth_iterations = 0;
-        params.add_boundary_loop = false;
-        params.apply_shrinkwrap = true;
-        params.add_solidify = true;
-        return geometry_extract_apply(C, op, geometry_extract_tag_face_set, &params);
-      }
-      break;
-    case EVT_ESCKEY:
-    case RIGHTMOUSE: {
-      WM_cursor_modal_restore(CTX_wm_window(C));
-      ED_workspace_status_text(C, nullptr);
-
-      return OPERATOR_CANCELLED;
-    }
+  Object *ob = CTX_data_active_object(C);
+  const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
+  if (face_set_id == SCULPT_FACE_SET_NONE) {
+    return OPERATOR_CANCELLED;
   }
 
-  return OPERATOR_RUNNING_MODAL;
+  GeometryExtractParams params;
+  params.active_face_set = face_set_id;
+  params.num_smooth_iterations = 0;
+  params.add_boundary_loop = false;
+  params.apply_shrinkwrap = true;
+  params.add_solidify = true;
+  return geometry_extract_apply(C, op, geometry_extract_tag_face_set, &params);
 }
 
 void MESH_OT_face_set_extract(wmOperatorType *ot)
@@ -427,9 +396,8 @@ void MESH_OT_face_set_extract(wmOperatorType *ot)
   /* api callbacks */
   ot->poll = geometry_extract_poll;
   ot->invoke = face_set_extract_invoke;
-  ot->modal = face_set_extract_modal;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   geometry_extract_props(ot->srna);
 }
@@ -539,11 +507,10 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     BM_mesh_free(bm);
 
     /* Remove the mask from the new object so it can be sculpted directly after slicing. */
-    CustomData_free_layers(&new_ob_mesh->vdata, CD_PAINT_MASK, new_ob_mesh->totvert);
+    CustomData_free_layers(&new_ob_mesh->vert_data, CD_PAINT_MASK, new_ob_mesh->totvert);
 
     Mesh *new_mesh = static_cast<Mesh *>(new_ob->data);
     BKE_mesh_nomain_to_mesh(new_ob_mesh, new_mesh, new_ob);
-    BKE_mesh_copy_parameters_for_eval(new_mesh, mesh);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, new_ob);
     BKE_mesh_batch_cache_dirty_tag(new_mesh, BKE_MESH_BATCH_DIRTY_ALL);
     DEG_relations_tag_update(bmain);
@@ -557,7 +524,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   if (ob->mode == OB_MODE_SCULPT) {
     SculptSession *ss = ob->sculpt;
     ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-        &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
+        &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
     if (ss->face_sets) {
       /* Assign a new Face Set ID to the new faces created by the slice operation. */
       const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);

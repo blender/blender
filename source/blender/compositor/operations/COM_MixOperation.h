@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,7 +12,6 @@ namespace blender::compositor {
  * All this programs converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
-
 class MixBaseOperation : public MultiThreadedOperation {
  protected:
   struct PixelCursor {

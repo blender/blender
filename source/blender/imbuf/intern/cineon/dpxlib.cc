@@ -11,12 +11,12 @@
 #include "dpxlib.h"
 #include "logmemfile.h"
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <sys/types.h>
-#include <time.h>
 
 #include "BLI_fileops.h"
 #include "BLI_string.h"

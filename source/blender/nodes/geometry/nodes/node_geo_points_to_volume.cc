@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,8 +17,10 @@
 #include "BKE_lib_id.h"
 #include "BKE_volume.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #ifdef WITH_OPENVDB
 namespace blender::nodes {
@@ -93,7 +95,7 @@ void initialize_volume_component_from_points(GeoNodeExecParams &params,
   {
     if (r_geometry_set.has(type)) {
       gather_point_data_from_component(
-          radius_field, *r_geometry_set.get_component_for_read(type), positions, radii);
+          radius_field, *r_geometry_set.get_component(type), positions, radii);
     }
   }
 
@@ -171,7 +173,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "resolution_mode", 0, IFACE_("Resolution"), ICON_NONE);
+  uiItemR(layout, ptr, "resolution_mode", UI_ITEM_NONE, IFACE_("Resolution"), ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -213,12 +215,33 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-}  // namespace blender::nodes::node_geo_points_to_volume_cc
-
-void register_node_type_geo_points_to_volume()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_points_to_volume_cc;
+  static EnumPropertyItem resolution_mode_items[] = {
+      {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT,
+       "VOXEL_AMOUNT",
+       0,
+       "Amount",
+       "Specify the approximate number of voxels along the diagonal"},
+      {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE,
+       "VOXEL_SIZE",
+       0,
+       "Size",
+       "Specify the voxel side length"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(srna,
+                    "resolution_mode",
+                    "Resolution Mode",
+                    "How the voxel size is specified",
+                    resolution_mode_items,
+                    NOD_storage_enum_accessors(resolution_mode),
+                    GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_POINTS_TO_VOLUME, "Points to Volume", NODE_CLASS_GEOMETRY);
@@ -227,10 +250,15 @@ void register_node_type_geo_points_to_volume()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   blender::bke::node_type_size(&ntype, 170, 120, 700);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_points_to_volume_cc

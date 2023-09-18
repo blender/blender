@@ -8,96 +8,186 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float spot_light_attenuation(const ccl_global KernelSpotLight *spot, float3 ray)
+/* Transform vector to spot light's local coordinate system. */
+ccl_device float3 spot_light_to_local(const ccl_global KernelSpotLight *spot, const float3 ray)
 {
-  const float3 scaled_ray = safe_normalize(make_float3(dot(ray, spot->scaled_axis_u),
-                                                       dot(ray, spot->scaled_axis_v),
-                                                       dot(ray, spot->dir * spot->inv_len_z)));
+  return safe_normalize(make_float3(dot(ray, spot->scaled_axis_u),
+                                    dot(ray, spot->scaled_axis_v),
+                                    dot(ray, spot->dir * spot->inv_len_z)));
+}
 
-  return smoothstepf((scaled_ray.z - spot->cos_half_spot_angle) * spot->spot_smooth);
+/* Compute spot light attenuation of a ray given in local coordinate system. */
+ccl_device float spot_light_attenuation(const ccl_global KernelSpotLight *spot, const float3 ray)
+{
+  return smoothstepf((ray.z - spot->cos_half_spot_angle) * spot->spot_smooth);
+}
+
+ccl_device void spot_light_uv(const float3 ray,
+                              const float half_cot_half_spot_angle,
+                              ccl_private float *u,
+                              ccl_private float *v)
+{
+  /* Ensures that the spot light projects the full image regardless of the spot angle. */
+  const float factor = half_cot_half_spot_angle / ray.z;
+
+  /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
+  *u = ray.y * factor + 0.5f;
+  *v = -(ray.x + ray.y) * factor;
 }
 
 template<bool in_volume_segment>
 ccl_device_inline bool spot_light_sample(const ccl_global KernelLight *klight,
                                          const float2 rand,
                                          const float3 P,
+                                         const float3 N,
+                                         const int shader_flags,
                                          ccl_private LightSample *ls)
 {
-  ls->P = klight->co;
+  const float radius = klight->spot.radius;
+  const float r_sq = sqr(klight->spot.radius);
 
   const float3 center = klight->co;
-  const float radius = klight->spot.radius;
-  /* disk oriented normal */
-  const float3 lightN = normalize(P - center);
-  ls->P = center;
 
-  if (radius > 0.0f) {
-    /* disk light */
-    ls->P += disk_light_sample(lightN, rand) * radius;
+  float3 lightN = P - center;
+  const float d_sq = len_squared(lightN);
+  const float d = sqrtf(d_sq);
+  lightN /= d;
+
+  float cos_theta;
+  ls->t = FLT_MAX;
+  if (d_sq > r_sq) {
+    const float one_minus_cos_half_spot_spread = 1.0f - klight->spot.cos_half_spot_angle;
+    const float one_minus_cos_half_angle = sin_sqr_to_one_minus_cos(r_sq / d_sq);
+
+    if (in_volume_segment || one_minus_cos_half_angle < one_minus_cos_half_spot_spread) {
+      /* Sample visible part of the sphere. */
+      ls->D = sample_uniform_cone(-lightN, one_minus_cos_half_angle, rand, &cos_theta, &ls->pdf);
+    }
+    else {
+      /* Sample spread cone. */
+      ls->D = sample_uniform_cone(
+          -klight->spot.dir, one_minus_cos_half_spot_spread, rand, &cos_theta, &ls->pdf);
+
+      if (!ray_sphere_intersect(P, ls->D, 0.0f, FLT_MAX, center, radius, &ls->P, &ls->t)) {
+        /* Sampled direction does not intersect with the light. */
+        return false;
+      }
+    }
+  }
+  else {
+    const bool has_transmission = (shader_flags & SD_BSDF_HAS_TRANSMISSION);
+    if (has_transmission) {
+      ls->D = sample_uniform_sphere(rand);
+      ls->pdf = M_1_2PI_F * 0.5f;
+    }
+    else {
+      sample_cos_hemisphere(N, rand, &ls->D, &ls->pdf);
+    }
+    cos_theta = -dot(ls->D, lightN);
   }
 
-  const float invarea = klight->spot.invarea;
-  ls->pdf = invarea;
+  if (ls->t == FLT_MAX) {
+    /* Law of cosines. */
+    ls->t = d * cos_theta -
+            copysignf(safe_sqrtf(r_sq - d_sq + d_sq * sqr(cos_theta)), d_sq - r_sq);
+    ls->P = P + ls->D * ls->t;
+  }
+  else {
+    /* Already computed when sampling the spread cone. */
+  }
 
-  ls->D = normalize_len(ls->P - P, &ls->t);
-  /* we set the light normal to the outgoing direction to support texturing */
-  ls->Ng = -ls->D;
+  const float3 local_ray = spot_light_to_local(&klight->spot, -ls->D);
+  ls->eval_fac = klight->spot.eval_fac;
+  if (d_sq > r_sq) {
+    ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
+  }
 
-  ls->eval_fac = (0.25f * M_1_PI_F) * invarea;
-
-  /* spot light attenuation */
-  ls->eval_fac *= spot_light_attenuation(&klight->spot, -ls->D);
   if (!in_volume_segment && ls->eval_fac == 0.0f) {
     return false;
   }
 
-  float2 uv = map_to_sphere(ls->Ng);
-  ls->u = uv.x;
-  ls->v = uv.y;
+  if (r_sq == 0) {
+    /* Use intensity instead of radiance when the radius is zero. */
+    ls->eval_fac /= sqr(ls->t);
+    /* `ls->Ng` is not well-defined when the radius is zero, use the incoming direction instead. */
+    ls->Ng = -ls->D;
+  }
+  else {
+    ls->Ng = normalize(ls->P - center);
+    /* Remap sampled point onto the sphere to prevent precision issues with small radius. */
+    ls->P = ls->Ng * radius + center;
+  }
 
-  ls->pdf *= lamp_light_pdf(lightN, -ls->D, ls->t);
+  spot_light_uv(local_ray, klight->spot.half_cot_half_spot_angle, &ls->u, &ls->v);
+
   return true;
+}
+
+ccl_device_forceinline float spot_light_pdf(const float cos_half_spread,
+                                            const float d_sq,
+                                            const float r_sq,
+                                            const float3 N,
+                                            const float3 D,
+                                            const uint32_t path_flag)
+{
+  if (d_sq > r_sq) {
+    return M_1_2PI_F / min(sin_sqr_to_one_minus_cos(r_sq / d_sq), 1.0f - cos_half_spread);
+  }
+
+  const bool has_transmission = (path_flag & PATH_RAY_MIS_HAD_TRANSMISSION);
+  return has_transmission ? M_1_2PI_F * 0.5f : pdf_cos_hemisphere(N, D);
 }
 
 ccl_device_forceinline void spot_light_mnee_sample_update(const ccl_global KernelLight *klight,
                                                           ccl_private LightSample *ls,
-                                                          const float3 P)
+                                                          const float3 P,
+                                                          const float3 N,
+                                                          const uint32_t path_flag)
 {
   ls->D = normalize_len(ls->P - P, &ls->t);
-  ls->Ng = -ls->D;
 
-  float2 uv = map_to_sphere(ls->Ng);
-  ls->u = uv.x;
-  ls->v = uv.y;
+  const float3 local_ray = spot_light_to_local(&klight->spot, -ls->D);
+  ls->eval_fac = klight->spot.eval_fac;
 
-  float invarea = klight->spot.invarea;
-  ls->eval_fac = (0.25f * M_1_PI_F) * invarea;
-  /* NOTE : preserve pdf in area measure. */
-  ls->pdf = invarea;
+  const float radius = klight->spot.radius;
 
-  /* spot light attenuation */
-  ls->eval_fac *= spot_light_attenuation(&klight->spot, ls->Ng);
+  if (radius > 0) {
+    const float d_sq = len_squared(P - klight->co);
+    const float r_sq = sqr(radius);
+    const float t_sq = sqr(ls->t);
+
+    ls->pdf = spot_light_pdf(klight->spot.cos_half_spot_angle, d_sq, r_sq, N, ls->D, path_flag);
+
+    /* NOTE : preserve pdf in area measure. */
+    ls->pdf *= 0.5f * fabsf(d_sq - r_sq - t_sq) / (radius * ls->t * t_sq);
+
+    ls->Ng = normalize(ls->P - klight->co);
+
+    if (d_sq > r_sq) {
+      ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
+    }
+  }
+  else {
+    ls->Ng = -ls->D;
+
+    ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
+
+    /* PDF does not change. */
+  }
+
+  spot_light_uv(local_ray, klight->spot.half_cot_half_spot_angle, &ls->u, &ls->v);
 }
 
 ccl_device_inline bool spot_light_intersect(const ccl_global KernelLight *klight,
                                             const ccl_private Ray *ccl_restrict ray,
                                             ccl_private float *t)
 {
-  /* Spot/Disk light. */
-  const float3 lightP = klight->co;
-  const float radius = klight->spot.radius;
-  if (radius == 0.0f) {
-    return false;
-  }
-  /* disk oriented normal */
-  const float3 lightN = normalize(ray->P - lightP);
   /* One sided. */
-  if (dot(ray->D, lightN) >= 0.0f) {
+  if (dot(ray->D, ray->P - klight->co) >= 0.0f) {
     return false;
   }
 
-  float3 P;
-  return ray_disk_intersect(ray->P, ray->D, ray->tmin, ray->tmax, lightP, lightN, radius, &P, t);
+  return point_light_intersect(klight, ray, t);
 }
 
 ccl_device_inline bool spot_light_sample_from_intersection(
@@ -105,35 +195,27 @@ ccl_device_inline bool spot_light_sample_from_intersection(
     ccl_private const Intersection *ccl_restrict isect,
     const float3 ray_P,
     const float3 ray_D,
+    const float3 N,
+    const uint32_t path_flag,
     ccl_private LightSample *ccl_restrict ls)
 {
-  /* the normal of the oriented disk */
-  const float3 lightN = normalize(ray_P - klight->co);
-  /* We set the light normal to the outgoing direction to support texturing. */
-  ls->Ng = -ls->D;
+  const float d_sq = len_squared(ray_P - klight->co);
+  const float r_sq = sqr(klight->spot.radius);
 
-  float invarea = klight->spot.invarea;
-  ls->eval_fac = (0.25f * M_1_PI_F) * invarea;
-  ls->pdf = invarea;
+  ls->pdf = spot_light_pdf(klight->spot.cos_half_spot_angle, d_sq, r_sq, N, ray_D, path_flag);
 
-  /* spot light attenuation */
-  ls->eval_fac *= spot_light_attenuation(&klight->spot, -ls->D);
-
-  if (ls->eval_fac == 0.0f) {
+  const float3 local_ray = spot_light_to_local(&klight->spot, -ray_D);
+  ls->eval_fac = klight->spot.eval_fac;
+  if (d_sq > r_sq) {
+    ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
+  }
+  if (ls->eval_fac == 0) {
     return false;
   }
 
-  float2 uv = map_to_sphere(ls->Ng);
-  ls->u = uv.x;
-  ls->v = uv.y;
+  ls->Ng = r_sq > 0 ? normalize(ls->P - klight->co) : -ray_D;
 
-  /* compute pdf */
-  if (ls->t != FLT_MAX) {
-    ls->pdf *= lamp_light_pdf(lightN, -ls->D, ls->t);
-  }
-  else {
-    ls->pdf = 0.f;
-  }
+  spot_light_uv(local_ray, klight->spot.half_cot_half_spot_angle, &ls->u, &ls->v);
 
   return true;
 }
@@ -146,18 +228,20 @@ ccl_device_forceinline bool spot_light_tree_parameters(const ccl_global KernelLi
                                                        ccl_private float2 &distance,
                                                        ccl_private float3 &point_to_centroid)
 {
-  float min_distance;
-  const float3 point_to_centroid_ = safe_normalize_len(centroid - P, &min_distance);
+  float dist_point_to_centroid;
+  const float3 point_to_centroid_ = safe_normalize_len(centroid - P, &dist_point_to_centroid);
 
   const float radius = klight->spot.radius;
-  const float hypotenus = sqrtf(sqr(radius) + sqr(min_distance));
-  cos_theta_u = min_distance / hypotenus;
+  cos_theta_u = (dist_point_to_centroid > radius) ? cos_from_sin(radius / dist_point_to_centroid) :
+                                                    -1.0f;
 
   if (in_volume_segment) {
     return true;
   }
 
-  distance = make_float2(hypotenus, min_distance);
+  distance = (dist_point_to_centroid > radius) ?
+                 dist_point_to_centroid * make_float2(1.0f / cos_theta_u, 1.0f) :
+                 one_float2() * radius / M_SQRT2_F;
   point_to_centroid = point_to_centroid_;
 
   return true;
