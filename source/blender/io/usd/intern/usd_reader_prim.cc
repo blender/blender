@@ -145,7 +145,7 @@ void USDPrimReader::set_props(ID *id, const pxr::UsdPrim &prim, const double mot
     return;
   }
 
-  IDProperty *idgroup = IDP_GetProperties(id, 1);
+  IDProperty *idgroup = IDP_GetProperties(id);
 
   if (!idgroup) {
     return;
