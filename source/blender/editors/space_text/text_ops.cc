@@ -909,11 +909,11 @@ static int text_refresh_pyconstraints_exec(bContext * /*C*/, wmOperator * /*op*/
   Text *text = CTX_data_edit_text(C);
   Object *ob;
   bConstraint *con;
-  short update;
+  bool update;
 
   /* check all pyconstraints */
   for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-    update = 0;
+    update = false;
     if (ob->type == OB_ARMATURE && ob->pose) {
       bPoseChannel *pchan;
       for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -923,7 +923,7 @@ static int text_refresh_pyconstraints_exec(bContext * /*C*/, wmOperator * /*op*/
             if (data->text == text) {
               BPY_pyconstraint_update(ob, con);
             }
-            update = 1;
+            update = true;
           }
         }
       }
@@ -934,7 +934,7 @@ static int text_refresh_pyconstraints_exec(bContext * /*C*/, wmOperator * /*op*/
         if (data->text == text) {
           BPY_pyconstraint_update(ob, con);
         }
-        update = 1;
+        update = true;
       }
     }
 
@@ -1752,14 +1752,15 @@ static const EnumPropertyItem move_type_items[] = {
 static int text_get_cursor_rel(
     SpaceText *st, ARegion *region, TextLine *linein, int rell, int relc)
 {
-  int i, j, start, end, max, chop, curs, loop, endj, found, selc;
+  int i, j, start, end, max, curs, endj, selc;
+  bool chop, loop, found;
   char ch;
 
   max = wrap_width(st, region);
 
-  selc = start = endj = curs = found = 0;
+  selc = start = endj = curs = found = false;
   end = max;
-  chop = loop = 1;
+  chop = loop = true;
 
   for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe(linein->line + j)) {
     int chars;
@@ -1780,7 +1781,7 @@ static int text_get_cursor_rel(
         /* current position could be wrapped to next line */
         /* this should be checked when end of current line would be reached */
         selc = j;
-        found = 1;
+        found = true;
       }
       else if (i - end <= relc && i + columns - end > relc) {
         curs = j;
@@ -1794,7 +1795,7 @@ static int text_get_cursor_rel(
           if (selc > endj && !chop) {
             selc = endj;
           }
-          loop = 0;
+          loop = false;
           break;
         }
 
@@ -1804,12 +1805,12 @@ static int text_get_cursor_rel(
 
         start = end;
         end += max;
-        chop = 1;
+        chop = true;
         rell--;
 
         if (rell == 0 && i + columns - start > relc) {
           selc = curs;
-          loop = 0;
+          loop = false;
           break;
         }
       }
@@ -1817,23 +1818,23 @@ static int text_get_cursor_rel(
         if (!found) {
           selc = linein->len;
         }
-        loop = 0;
+        loop = false;
         break;
       }
       else if (ELEM(ch, ' ', '-')) {
         if (found) {
-          loop = 0;
+          loop = false;
           break;
         }
 
         if (rell == 0 && i + columns - start > relc) {
           selc = curs;
-          loop = 0;
+          loop = false;
           break;
         }
         end = i + 1;
         endj = j;
-        chop = 0;
+        chop = false;
       }
       i += columns;
     }
@@ -1936,7 +1937,8 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
   Text *text = st->text;
   TextLine **linep;
   int *charp;
-  int oldc, i, j, max, start, end, endj, chop, loop;
+  int oldc, i, j, max, start, end, endj;
+  bool chop, loop;
   char ch;
 
   text_update_character_width(st);
@@ -1956,7 +1958,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
 
   start = endj = 0;
   end = max;
-  chop = loop = 1;
+  chop = loop = true;
   *charp = 0;
 
   for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe((*linep)->line + j)) {
@@ -1984,7 +1986,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
             *charp = BLI_str_utf8_offset_from_column_with_tabs(
                 (*linep)->line, (*linep)->len, start, TXT_TABSIZE);
           }
-          loop = 0;
+          loop = false;
           break;
         }
 
@@ -1994,19 +1996,19 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
 
         start = end;
         end += max;
-        chop = 1;
+        chop = true;
       }
       else if (ELEM(ch, ' ', '-', '\0')) {
         if (j >= oldc) {
           *charp = BLI_str_utf8_offset_from_column_with_tabs(
               (*linep)->line, (*linep)->len, start, TXT_TABSIZE);
-          loop = 0;
+          loop = false;
           break;
         }
 
         end = i + 1;
         endj = j + 1;
-        chop = 0;
+        chop = false;
       }
       i += columns;
     }
@@ -2022,7 +2024,8 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
   Text *text = st->text;
   TextLine **linep;
   int *charp;
-  int oldc, i, j, max, start, end, endj, chop, loop;
+  int oldc, i, j, max, start, end, endj;
+  bool chop, loop;
   char ch;
 
   text_update_character_width(st);
@@ -2042,7 +2045,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
 
   start = endj = 0;
   end = max;
-  chop = loop = 1;
+  chop = loop = true;
   *charp = 0;
 
   for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe((*linep)->line + j)) {
@@ -2074,23 +2077,23 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
           else {
             *charp = endj;
           }
-          loop = 0;
+          loop = false;
           break;
         }
 
         start = end;
         end += max;
-        chop = 1;
+        chop = true;
       }
       else if (ch == '\0') {
         *charp = (*linep)->len;
-        loop = 0;
+        loop = false;
         break;
       }
       else if (ELEM(ch, ' ', '-')) {
         end = i + 1;
         endj = j;
-        chop = 0;
+        chop = false;
       }
       i += columns;
     }

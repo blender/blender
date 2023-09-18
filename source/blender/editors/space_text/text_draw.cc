@@ -191,7 +191,8 @@ void wrap_offset(
 {
   Text *text;
   TextLine *linep;
-  int i, j, start, end, max, chop;
+  int i, j, start, end, max;
+  bool chop;
   char ch;
 
   *offl = *offc = 0;
@@ -234,7 +235,7 @@ void wrap_offset(
   while (linep) {
     start = 0;
     end = max;
-    chop = 1;
+    chop = true;
     *offc = 0;
     for (i = 0, j = 0; linep->line[j]; j += BLI_str_utf8_size_safe(linep->line + j)) {
       int chars;
@@ -271,11 +272,11 @@ void wrap_offset(
 
           start = end;
           end += max;
-          chop = 1;
+          chop = true;
         }
         else if (ELEM(ch, ' ', '-')) {
           end = i + 1;
-          chop = 0;
+          chop = false;
           if (linep == linein && i >= cursin) {
             return;
           }
@@ -293,7 +294,8 @@ void wrap_offset(
 void wrap_offset_in_line(
     const SpaceText *st, ARegion *region, TextLine *linein, int cursin, int *offl, int *offc)
 {
-  int i, j, start, end, chars, max, chop;
+  int i, j, start, end, chars, max;
+  bool chop;
   char ch;
 
   *offl = *offc = 0;
@@ -309,7 +311,7 @@ void wrap_offset_in_line(
 
   start = 0;
   end = max;
-  chop = 1;
+  chop = true;
   *offc = 0;
   cursin = BLI_str_utf8_offset_to_column(linein->line, linein->len, cursin);
 
@@ -347,11 +349,11 @@ void wrap_offset_in_line(
 
         start = end;
         end += max;
-        chop = 1;
+        chop = true;
       }
       else if (ELEM(ch, ' ', '-')) {
         end = i + 1;
-        chop = 0;
+        chop = false;
         if (i >= cursin) {
           return;
         }
@@ -576,8 +578,8 @@ struct DrawCache {
   char cwidth_px;
   char text_id[MAX_ID_NAME];
 
-  /* for partial lines recalculation */
-  short update_flag;
+  /** For partial lines recalculation. */
+  bool update;
   int valid_head, valid_tail; /* amount of unchanged lines */
 };
 
@@ -596,7 +598,8 @@ static void text_drawcache_init(SpaceText *st)
 static void text_update_drawcache(SpaceText *st, ARegion *region)
 {
   DrawCache *drawcache;
-  int full_update = 0, nlines = 0;
+  bool full_update = false;
+  int nlines = 0;
   Text *txt = st->text;
 
   if (st->runtime.drawcache == nullptr) {
@@ -630,10 +633,10 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
     if (full_update || !drawcache->line_height) {
       drawcache->valid_head = 0;
       drawcache->valid_tail = 0;
-      drawcache->update_flag = 1;
+      drawcache->update = true;
     }
 
-    if (drawcache->update_flag) {
+    if (drawcache->update) {
       TextLine *line = static_cast<TextLine *>(st->text->lines.first);
       int lineno = 0, size, lines_count;
       int *fp = drawcache->line_height, *new_tail, *old_tail;
@@ -684,7 +687,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
   else {
     MEM_SAFE_FREE(drawcache->line_height);
 
-    if (full_update || drawcache->update_flag) {
+    if (full_update || drawcache->update) {
       nlines = BLI_listbase_count(&txt->lines);
 
       if (st->showlinenrs) {
@@ -708,7 +711,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
   STRNCPY(drawcache->text_id, txt->id.name);
 
   /* clear update flag */
-  drawcache->update_flag = 0;
+  drawcache->update = false;
   drawcache->valid_head = 0;
   drawcache->valid_tail = 0;
 }
@@ -724,7 +727,7 @@ void text_drawcache_tag_update(SpaceText *st, const bool full)
     DrawCache *drawcache = static_cast<DrawCache *>(st->runtime.drawcache);
     Text *txt = st->text;
 
-    if (drawcache->update_flag) {
+    if (drawcache->update) {
       /* happens when tagging update from space listener */
       /* should do nothing to prevent locally tagged cache be fully recalculated */
       return;
@@ -758,7 +761,7 @@ void text_drawcache_tag_update(SpaceText *st, const bool full)
       drawcache->valid_tail = 0;
     }
 
-    drawcache->update_flag = 1;
+    drawcache->update = true;
   }
 }
 
@@ -1145,7 +1148,8 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 static void draw_text_decoration(SpaceText *st, ARegion *region)
 {
   Text *text = st->text;
-  int vcurl, vcurc, vsell, vselc, hidden = 0;
+  int vcurl, vcurc, vsell, vselc;
+  bool hidden = false;
   int x, y, w, i;
   int offl, offc;
   const int lheight = TXT_LINE_HEIGHT(st);
@@ -1157,7 +1161,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
 
   if (vselc < 0) {
     vselc = 0;
-    hidden = 1;
+    hidden = true;
   }
 
   if (text->curl == text->sell && text->curc == text->selc && !st->line_hlight && hidden) {
