@@ -1033,12 +1033,12 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
   parm = RNA_def_string(func, "name", nullptr, 0, "Name", "Name of the socket");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_string(func, "description", nullptr, 0, "Description", "Description of the socket");
-  RNA_def_enum_flag(func,
-                    "in_out",
-                    node_tree_interface_socket_in_out_items,
-                    NODE_INTERFACE_SOCKET_INPUT,
-                    "Input/Output Type",
-                    "Create an input or output socket");
+  RNA_def_enum(func,
+               "in_out",
+               node_tree_interface_socket_in_out_items,
+               NODE_INTERFACE_SOCKET_INPUT,
+               "Input/Output Type",
+               "Create an input or output socket");
   parm = RNA_def_enum(func,
                       "socket_type",
                       rna_enum_dummy_DEFAULT_items,
