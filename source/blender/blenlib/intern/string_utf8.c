@@ -460,6 +460,15 @@ int BLI_wcwidth(char32_t ucs)
   return mk_wcwidth(ucs);
 }
 
+int BLI_wcwidth_safe(char32_t ucs)
+{
+  const int columns = BLI_wcwidth(ucs);
+  if (columns >= 0) {
+    return columns;
+  }
+  return 1;
+}
+
 int BLI_wcswidth(const char32_t *pwcs, size_t n)
 {
   return mk_wcswidth(pwcs, n);
@@ -477,16 +486,12 @@ int BLI_str_utf8_char_width(const char *p)
 
 int BLI_str_utf8_char_width_safe(const char *p)
 {
-  int columns;
-
   uint unicode = BLI_str_utf8_as_unicode(p);
   if (unicode == BLI_UTF8_ERR) {
     return 1;
   }
 
-  columns = BLI_wcwidth((char32_t)unicode);
-
-  return (columns < 0) ? 1 : columns;
+  return BLI_wcwidth_safe((char32_t)unicode);
 }
 
 /* -------------------------------------------------------------------- */

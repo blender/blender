@@ -174,6 +174,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
  * Count columns that character/string occupies (based on `wcwidth.co`).
  */
 int BLI_wcwidth(char32_t ucs) ATTR_WARN_UNUSED_RESULT;
+int BLI_wcwidth_safe(char32_t ucs) ATTR_WARN_UNUSED_RESULT;
 int BLI_wcswidth(const char32_t *pwcs, size_t n) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /**
