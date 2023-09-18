@@ -335,13 +335,11 @@ ccl_device int bsdf_hair_chiang_sample(KernelGlobals kg,
                                        ccl_private Spectrum *eval,
                                        ccl_private float3 *wo,
                                        ccl_private float *pdf,
-                                       ccl_private float2 *sampled_roughness,
-                                       ccl_private float *eta)
+                                       ccl_private float2 *sampled_roughness)
 {
   ccl_private ChiangHairBSDF *bsdf = (ccl_private ChiangHairBSDF *)sc;
 
   *sampled_roughness = make_float2(bsdf->m0_roughness, bsdf->m0_roughness);
-  *eta = bsdf->eta;
 
   const float3 Y = bsdf->N;
 

@@ -196,10 +196,12 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       *eta = 1.0f;
       break;
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
-      label = bsdf_hair_chiang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness, eta);
+      label = bsdf_hair_chiang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness);
+      *eta = 1.0f;
       break;
     case CLOSURE_BSDF_HAIR_HUANG_ID:
-      label = bsdf_hair_huang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness, eta);
+      label = bsdf_hair_huang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness);
+      *eta = 1.0f;
       break;
     case CLOSURE_BSDF_SHEEN_ID:
       label = bsdf_sheen_sample(sc, Ng, sd->wi, rand_xy, eval, wo, pdf);
@@ -247,6 +249,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
 
 ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
                                           ccl_private const ShaderClosure *sc,
+                                          const float3 wo,
                                           ccl_private float2 *roughness,
                                           ccl_private float *eta)
 {
@@ -290,12 +293,7 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID: {
       ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
       *roughness = make_float2(bsdf->alpha_x, bsdf->alpha_y);
-      if (CLOSURE_IS_REFRACTION(bsdf->type) || CLOSURE_IS_GLASS(bsdf->type)) {
-        *eta = 1.0f / bsdf->ior;
-      }
-      else {
-        *eta = bsdf->ior;
-      }
+      *eta = (bsdf_is_transmission(sc, wo)) ? bsdf->ior : 1.0f;
       break;
     }
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID: {
@@ -330,12 +328,12 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
       alpha = ((ccl_private ChiangHairBSDF *)sc)->m0_roughness;
       *roughness = make_float2(alpha, alpha);
-      *eta = ((ccl_private ChiangHairBSDF *)sc)->eta;
+      *eta = 1.0f;
       break;
     case CLOSURE_BSDF_HAIR_HUANG_ID:
       alpha = ((ccl_private HuangHairBSDF *)sc)->roughness;
       *roughness = make_float2(alpha, alpha);
-      *eta = ((ccl_private HuangHairBSDF *)sc)->eta;
+      *eta = 1.0f;
       break;
     case CLOSURE_BSDF_SHEEN_ID:
       alpha = ((ccl_private SheenBsdf *)sc)->roughness;

@@ -683,7 +683,7 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
   }
 
   *sampled_roughness = make_float2(alpha_x, alpha_y);
-  *eta = do_refract ? m_inv_eta : m_eta;
+  *eta = do_refract ? m_eta : 1.0f;
 
   return (do_refract ? LABEL_TRANSMIT : LABEL_REFLECT) |
          (m_singular ? LABEL_SINGULAR : LABEL_GLOSSY);
