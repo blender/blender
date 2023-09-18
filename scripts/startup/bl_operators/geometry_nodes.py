@@ -271,17 +271,12 @@ class NewGeometryNodeTreeAssign(Operator):
 
     def execute(self, context):
         space = context.space_data
-        if space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'TOOL':
-            group = geometry_node_group_empty_new()
-            space.node_tree = group
-            return {'FINISHED'}
-        else:
-            modifier = get_context_modifier(context)
-            if not modifier:
-                return {'CANCELLED'}
-            group = geometry_node_group_empty_new()
-            group.is_modifier = True
-            modifier.node_group = group
+        modifier = get_context_modifier(context)
+        if not modifier:
+            return {'CANCELLED'}
+        group = geometry_node_group_empty_new()
+        group.is_modifier = True
+        modifier.node_group = group
 
         return {'FINISHED'}
 
