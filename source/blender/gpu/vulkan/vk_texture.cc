@@ -61,6 +61,19 @@ void VKTexture::generate_mipmap()
     mip_size_get(src_mipmap, src_size);
     mip_size_get(dst_mipmap, dst_size);
 
+    /* GPU Texture stores the array length in the first unused dimension size.
+     * Vulkan uses layers and the array length should be removed from the dimensions. */
+    if (ELEM(this->type_get(), GPU_TEXTURE_1D_ARRAY)) {
+      src_size.y = 1;
+      src_size.z = 1;
+      dst_size.y = 1;
+      dst_size.z = 1;
+    }
+    if (ELEM(this->type_get(), GPU_TEXTURE_2D_ARRAY)) {
+      src_size.z = 1;
+      dst_size.z = 1;
+    }
+
     layout_ensure(context,
                   IndexRange(src_mipmap, 1),
                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -362,6 +375,7 @@ bool VKTexture::init_internal(GPUTexture *src, int mip_offset, int layer_offset,
   VKTexture *texture = unwrap(unwrap(src));
   source_texture_ = texture;
   mip_min_ = mip_offset;
+  mip_max_ = mip_offset;
   layer_offset_ = layer_offset;
   use_stencil_ = use_stencil;
   flags_ |= IMAGE_VIEW_DIRTY;
@@ -376,7 +390,11 @@ bool VKTexture::is_texture_view() const
 
 void VKTexture::ensure_allocated()
 {
-  BLI_assert(!is_texture_view());
+  if (is_texture_view()) {
+    source_texture_->ensure_allocated();
+    return;
+  }
+
   if (!is_allocated()) {
     allocate();
   }
@@ -563,6 +581,7 @@ void VKTexture::layout_ensure(VKContext &context,
                               const VkImageLayout current_layout,
                               const VkImageLayout requested_layout)
 {
+  BLI_assert(vk_image_ != VK_NULL_HANDLE);
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
   barrier.oldLayout = current_layout;

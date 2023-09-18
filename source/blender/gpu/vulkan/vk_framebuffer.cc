@@ -493,6 +493,7 @@ void VKFrameBuffer::color_attachment_layout_ensure(VKContext &context,
     return;
   }
 
+  color_texture->ensure_allocated();
   color_texture->layout_ensure(context, requested_layout);
   dirty_attachments_ = true;
 }
