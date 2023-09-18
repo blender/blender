@@ -507,6 +507,11 @@ static bool armature_bone_select_poll(bContext *C)
     return false;
   }
 
+  const bArmature *armature = reinterpret_cast<bArmature *>(ob->data);
+  if (armature->runtime.active_collection == nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "No active bone collection");
+    return false;
+  }
   return true;
 }
 
@@ -559,14 +564,15 @@ static void bone_collection_select(bContext *C,
   }
 }
 
-static int bone_collection_select_exec(bContext *C, wmOperator *op)
+static int bone_collection_select_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  BoneCollection *bcoll = get_bonecoll_named_or_active(C, op, ob, FAIL_IF_MISSING);
+  bArmature *armature = reinterpret_cast<bArmature *>(ob->data);
+  BoneCollection *bcoll = armature->runtime.active_collection;
   if (bcoll == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -588,25 +594,17 @@ void ARMATURE_OT_collection_select(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  PropertyRNA *prop = RNA_def_string(
-      ot->srna,
-      "name",
-      nullptr,
-      MAX_NAME,
-      "Bone Collection",
-      "Name of the bone collection to select bones from; empty use the active bone collection");
-  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-static int bone_collection_deselect_exec(bContext *C, wmOperator *op)
+static int bone_collection_deselect_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  BoneCollection *bcoll = get_bonecoll_named_or_active(C, op, ob, FAIL_IF_MISSING);
+  bArmature *armature = reinterpret_cast<bArmature *>(ob->data);
+  BoneCollection *bcoll = armature->runtime.active_collection;
   if (bcoll == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -628,15 +626,6 @@ void ARMATURE_OT_collection_deselect(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  PropertyRNA *prop = RNA_def_string(
-      ot->srna,
-      "name",
-      nullptr,
-      MAX_NAME,
-      "Bone Collection",
-      "Name of the bone collection to deselect bones from; empty use the active bone collection");
-  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* -------------------------- */
