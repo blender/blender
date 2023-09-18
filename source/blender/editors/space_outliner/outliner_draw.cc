@@ -822,21 +822,6 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
-        case TSE_POSEGRP: {
-          Object *ob = (Object *)tselem->id; /* id = object. */
-          bActionGroup *grp = static_cast<bActionGroup *>(te->directdata);
-
-          BLI_uniquename(&ob->pose->agroups,
-                         grp,
-                         CTX_DATA_(BLT_I18NCONTEXT_ID_ACTION, "Group"),
-                         '.',
-                         offsetof(bActionGroup, name),
-                         sizeof(grp->name));
-          WM_msg_publish_rna_prop(mbus, &ob->id, grp, ActionGroup, name);
-          WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
-          break;
-        }
         case TSE_GP_LAYER: {
           bGPdata *gpd = (bGPdata *)tselem->id; /* id = GP Datablock */
           bGPDlayer *gpl = static_cast<bGPDlayer *>(te->directdata);
@@ -2813,8 +2798,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_R_LAYER:
         data.icon = ICON_RENDER_RESULT;
         break;
-      case TSE_POSEGRP_BASE:
-      case TSE_POSEGRP:
         data.icon = ICON_GROUP_BONE;
         break;
       case TSE_SEQUENCE: {
@@ -3196,7 +3179,6 @@ static void outliner_draw_iconrow(bContext *C,
                 TSE_BONE,
                 TSE_EBONE,
                 TSE_POSE_CHANNEL,
-                TSE_POSEGRP,
                 TSE_DEFGROUP))
       {
         outliner_draw_iconrow_doit(block, te, xmax, offsx, ys, alpha_fac, active, 1);

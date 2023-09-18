@@ -64,11 +64,6 @@ void TreeElementIDObject::expand_pose() const
     return;
   }
   add_element(&legacy_te_.subtree, &object_.id, nullptr, &legacy_te_, TSE_POSE_BASE, 0);
-
-  /* Pose Groups */
-  if (!BLI_listbase_is_empty(&object_.pose->agroups)) {
-    add_element(&legacy_te_.subtree, &object_.id, nullptr, &legacy_te_, TSE_POSEGRP_BASE, 0);
-  }
 }
 
 void TreeElementIDObject::expand_materials() const

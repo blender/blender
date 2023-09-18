@@ -506,15 +506,6 @@ static void tree_element_grease_pencil_layer_activate(bContext *C,
   }
 }
 
-static void tree_element_posegroup_activate(bContext *C, TreeElement *te, TreeStoreElem *tselem)
-{
-  Object *ob = (Object *)tselem->id;
-  if (ob->pose) {
-    ob->pose->active_group = te->index + 1;
-    WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-  }
-}
-
 static void tree_element_posechannel_activate(bContext *C,
                                               const Scene *scene,
                                               ViewLayer *view_layer,
@@ -863,8 +854,6 @@ void tree_element_type_active_set(bContext *C,
     case TSE_R_LAYER:
       tree_element_viewlayer_activate(C, te);
       break;
-    case TSE_POSEGRP:
-      tree_element_posegroup_activate(C, te, tselem);
       break;
     case TSE_SEQUENCE:
       tree_element_sequence_activate(C, tvc->scene, te, set);
@@ -987,22 +976,6 @@ static eOLDrawState tree_element_viewlayer_state_get(const bContext *C, const Tr
 
   if (CTX_data_view_layer(C) == view_layer) {
     return OL_DRAWSEL_NORMAL;
-  }
-  return OL_DRAWSEL_NONE;
-}
-
-static eOLDrawState tree_element_posegroup_state_get(const Scene *scene,
-                                                     ViewLayer *view_layer,
-                                                     const TreeElement *te,
-                                                     const TreeStoreElem *tselem)
-{
-  const Object *ob = (const Object *)tselem->id;
-
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  if (ob == BKE_view_layer_active_object_get(view_layer) && ob->pose) {
-    if (ob->pose->active_group == te->index + 1) {
-      return OL_DRAWSEL_NORMAL;
-    }
   }
   return OL_DRAWSEL_NONE;
 }
@@ -1183,8 +1156,6 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
       return OL_DRAWSEL_NONE;
     case TSE_R_LAYER:
       return tree_element_viewlayer_state_get(C, te);
-    case TSE_POSEGRP:
-      return tree_element_posegroup_state_get(tvc->scene, tvc->view_layer, te, tselem);
     case TSE_SEQUENCE:
       return tree_element_sequence_state_get(tvc->scene, te);
     case TSE_SEQUENCE_DUP:
@@ -1387,15 +1358,6 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
 
         ptr = RNA_pointer_create(tselem->id, &RNA_ViewLayer, view_layer);
         context = BCONTEXT_VIEW_LAYER;
-        break;
-      }
-      case TSE_POSEGRP_BASE:
-      case TSE_POSEGRP: {
-        Object *ob = (Object *)tselem->id;
-        bArmature *arm = static_cast<bArmature *>(ob->data);
-
-        ptr = RNA_pointer_create(&arm->id, &RNA_Armature, arm);
-        context = BCONTEXT_DATA;
         break;
       }
       case TSE_LINKED_PSYS: {

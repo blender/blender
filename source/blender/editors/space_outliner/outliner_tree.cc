@@ -334,9 +334,6 @@ TreeElement *AbstractTreeDisplay::add_element(ListBase *lb,
   else if (ELEM(type, TSE_POSE_BASE, TSE_POSE_CHANNEL)) {
     /* pass */
   }
-  else if (ELEM(type, TSE_POSEGRP, TSE_POSEGRP_BASE)) {
-    /* pass */
-  }
   else if (ELEM(type, TSE_R_LAYER, TSE_R_LAYER_BASE)) {
     /* pass */
   }
