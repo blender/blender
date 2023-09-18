@@ -1830,6 +1830,7 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "runtime.active_collection_index");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
   RNA_def_property_ui_text(prop,
                            "Active Collection Index",
                            "The index of the Armature's active bone collection; -1 when there "
