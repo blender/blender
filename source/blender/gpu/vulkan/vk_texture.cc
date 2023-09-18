@@ -26,8 +26,11 @@ namespace blender::gpu {
 VKTexture::~VKTexture()
 {
   if (is_allocated() && !is_texture_view()) {
-    const VKDevice &device = VKBackend::get().device_get();
-    vmaDestroyImage(device.mem_allocator_get(), vk_image_, allocation_);
+    VKDevice &device = VKBackend::get().device_get();
+    device.discard_image(vk_image_, allocation_);
+
+    vk_image_ = VK_NULL_HANDLE;
+    allocation_ = VK_NULL_HANDLE;
   }
 }
 
