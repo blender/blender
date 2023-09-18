@@ -776,9 +776,9 @@ void txt_move_up(Text *text, const bool sel)
   }
 
   if ((*linep)->prev) {
-    int column = BLI_str_utf8_offset_to_column((*linep)->line, *charp);
+    int column = BLI_str_utf8_offset_to_column((*linep)->line, (*linep)->len, *charp);
     *linep = (*linep)->prev;
-    *charp = BLI_str_utf8_offset_from_column((*linep)->line, column);
+    *charp = BLI_str_utf8_offset_from_column((*linep)->line, (*linep)->len, column);
   }
   else {
     txt_move_bol(text, sel);
@@ -806,9 +806,9 @@ void txt_move_down(Text *text, const bool sel)
   }
 
   if ((*linep)->next) {
-    int column = BLI_str_utf8_offset_to_column((*linep)->line, *charp);
+    int column = BLI_str_utf8_offset_to_column((*linep)->line, (*linep)->len, *charp);
     *linep = (*linep)->next;
-    *charp = BLI_str_utf8_offset_from_column((*linep)->line, column);
+    *charp = BLI_str_utf8_offset_from_column((*linep)->line, (*linep)->len, column);
   }
   else {
     txt_move_eol(text, sel);
@@ -1320,9 +1320,9 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
   CLAMP(endc, 0, tollen);
 
   text->curl = froml;
-  text->curc = BLI_str_utf8_offset_from_index(froml->line, startc);
+  text->curc = BLI_str_utf8_offset_from_index(froml->line, froml->len, startc);
   text->sell = tol;
-  text->selc = BLI_str_utf8_offset_from_index(tol->line, endc);
+  text->selc = BLI_str_utf8_offset_from_index(tol->line, tol->len, endc);
 }
 
 /** \} */

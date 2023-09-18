@@ -211,14 +211,18 @@ size_t BLI_str_partition_ex_utf8(const char *str,
                                  const char **r_suf,
                                  bool from_right) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4, 5);
 
-int BLI_str_utf8_offset_to_index(const char *str, int offset) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
-int BLI_str_utf8_offset_from_index(const char *str, int index) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
-int BLI_str_utf8_offset_to_column(const char *str, int offset) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
-int BLI_str_utf8_offset_from_column(const char *str, int column) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
+int BLI_str_utf8_offset_to_index(const char *str,
+                                 size_t str_len,
+                                 int offset_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_str_utf8_offset_from_index(const char *str,
+                                   size_t str_len,
+                                   int index_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_str_utf8_offset_to_column(const char *str,
+                                  size_t str_len,
+                                  int offset_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_str_utf8_offset_from_column(const char *str,
+                                    size_t str_len,
+                                    int column_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /** Size in bytes. */
 #define BLI_UTF8_MAX 6
