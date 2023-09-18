@@ -444,70 +444,58 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
     color_data.span.fill(
         ColorGeometry4f(usd_colors[0][0], usd_colors[0][1], usd_colors[0][2], 1.0f));
   }
-  else {
-    /* Check for situations that allow for a straight-forward copy by index. */
-    if (ELEM(interp, pxr::UsdGeomTokens->vertex) ||
-        (color_domain == ATTR_DOMAIN_CORNER && !is_left_handed_))
-    {
-      for (int i = 0; i < usd_colors.size(); i++) {
-        ColorGeometry4f color = ColorGeometry4f(
-            usd_colors[i][0], usd_colors[i][1], usd_colors[i][2], 1.0f);
-        color_data.span[i] = color;
-      }
+  /* Check for situations that allow for a straight-forward copy by index. */
+  else if (interp == pxr::UsdGeomTokens->vertex ||
+           (interp == pxr::UsdGeomTokens->faceVarying && !is_left_handed_))
+  {
+    for (int i = 0; i < usd_colors.size(); i++) {
+      ColorGeometry4f color = ColorGeometry4f(
+          usd_colors[i][0], usd_colors[i][1], usd_colors[i][2], 1.0f);
+      color_data.span[i] = color;
     }
+  }
+  else {
+    /* Catch all for the remaining cases. */
 
-    /* Special case: expand uniform color into corner color.
+    /* Special case: we will expand uniform color into corner color.
      * Uniforms in USD come through as single colors, face-varying. Since Blender does not
      * support this particular combination for paintable color attributes, we convert the type
      * here to make sure that the user gets the same visual result.
-     * */
-    else if (ELEM(interp, pxr::UsdGeomTokens->uniform)) {
-      for (int i = 0; i < usd_colors.size(); i++) {
-        const ColorGeometry4f color = ColorGeometry4f(
-            usd_colors[i][0], usd_colors[i][1], usd_colors[i][2], 1.0f);
-        color_data.span[i * 4] = color;
-        color_data.span[i * 4 + 1] = color;
-        color_data.span[i * 4 + 2] = color;
-        color_data.span[i * 4 + 3] = color;
-      }
-    }
+     */
+    const OffsetIndices faces = mesh->faces();
+    const Span<int> corner_verts = mesh->corner_verts();
+    for (const int i : faces.index_range()) {
+      const IndexRange &face = faces[i];
+      for (int j = 0; j < face.size(); ++j) {
+        int loop_index = face[j];
 
-    else {
-      const OffsetIndices faces = mesh->faces();
-      const Span<int> corner_verts = mesh->corner_verts();
-      for (const int i : faces.index_range()) {
-        const IndexRange &face = faces[i];
-        for (int j = 0; j < face.size(); ++j) {
-          int loop_index = face[j];
+        /* Default for constant interpolation. */
+        int usd_index = 0;
 
-          /* Default for constant varying interpolation. */
-          int usd_index = 0;
-
-          if (interp == pxr::UsdGeomTokens->vertex) {
-            usd_index = corner_verts[loop_index];
-          }
-          else if (interp == pxr::UsdGeomTokens->faceVarying) {
-            usd_index = face.start();
-            if (is_left_handed_) {
-              usd_index += face.size() - 1 - j;
-            }
-            else {
-              usd_index += j;
-            }
-          }
-          else if (interp == pxr::UsdGeomTokens->uniform) {
-            /* Uniform varying uses the face index. */
-            usd_index = i;
-          }
-
-          if (usd_index >= usd_colors.size()) {
-            continue;
-          }
-
-          ColorGeometry4f color = ColorGeometry4f(
-              usd_colors[usd_index][0], usd_colors[usd_index][1], usd_colors[usd_index][2], 1.0f);
-          color_data.span[usd_index] = color;
+        if (interp == pxr::UsdGeomTokens->vertex) {
+          usd_index = corner_verts[loop_index];
         }
+        else if (interp == pxr::UsdGeomTokens->faceVarying) {
+          usd_index = face.start();
+          if (is_left_handed_) {
+            usd_index += face.size() - 1 - j;
+          }
+          else {
+            usd_index += j;
+          }
+        }
+        else if (interp == pxr::UsdGeomTokens->uniform) {
+          /* Uniform varying uses the face index. */
+          usd_index = i;
+        }
+
+        if (usd_index >= usd_colors.size()) {
+          continue;
+        }
+
+        ColorGeometry4f color = ColorGeometry4f(
+            usd_colors[usd_index][0], usd_colors[usd_index][1], usd_colors[usd_index][2], 1.0f);
+        color_data.span[loop_index] = color;
       }
     }
   }
