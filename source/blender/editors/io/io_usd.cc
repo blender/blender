@@ -1484,7 +1484,6 @@ static void usd_export_panel_geometry_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(col, true);
   uiItemR(col, ptr, "apply_subdiv", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_mesh_colors", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "export_vertex_groups", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_mesh_attributes", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -1660,7 +1659,6 @@ static void usd_export_panel_rigging_draw(const bContext *C, Panel *panel)
   col = uiLayoutColumn(panel->layout, false);
   uiLayoutSetPropSep(col, true);
   uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "export_armatures"));
-  uiItemR(col, ptr, "fix_skel_root", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumnWithHeading(panel->layout, true, IFACE_("Shapes: "));
   uiLayoutSetPropSep(col, true);
