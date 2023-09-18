@@ -323,8 +323,9 @@ void Shader::tag_update(Scene *scene)
   /* if the shader previously was emissive, update light distribution,
    * if the new shader is emissive, a light manager update tag will be
    * done in the shader manager device update. */
-  if (emission_sampling != EMISSION_SAMPLING_NONE)
+  if (emission_sampling != EMISSION_SAMPLING_NONE) {
     scene->light_manager->tag_update(scene, LightManager::SHADER_MODIFIED);
+  }
 
   /* Special handle of background MIS light for now: for some reason it
    * has use_mis set to false. We are quite close to release now, so
@@ -450,8 +451,9 @@ uint64_t ShaderManager::get_attribute_id(ustring name)
   /* get a unique id for each name, for SVM attribute lookup */
   AttributeIDMap::iterator it = unique_attribute_id.find(name);
 
-  if (it != unique_attribute_id.end())
+  if (it != unique_attribute_id.end()) {
     return it->second;
+  }
 
   uint64_t id = ATTR_STD_NUM + unique_attribute_id.size();
   unique_attribute_id[name] = id;
@@ -469,8 +471,9 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
   int id = shader->id;
 
   /* smooth flag */
-  if (smooth)
+  if (smooth) {
     id |= SHADER_SMOOTH_NORMAL;
+  }
 
   /* default flags */
   id |= SHADER_CAST_SHADOW | SHADER_AREA_LIGHT;
@@ -509,8 +512,9 @@ void ShaderManager::device_update_common(Device * /*device*/,
 {
   dscene->shaders.free();
 
-  if (scene->shaders.size() == 0)
+  if (scene->shaders.size() == 0) {
     return;
+  }
 
   KernelShader *kshader = dscene->shaders.alloc(scene->shaders.size());
   bool has_volumes = false;
@@ -529,12 +533,15 @@ void ShaderManager::device_update_common(Device * /*device*/,
       flag |= SD_MIS_FRONT | SD_MIS_BACK;
     }
 
-    if (!is_zero(shader->emission_estimate))
+    if (!is_zero(shader->emission_estimate)) {
       flag |= SD_HAS_EMISSION;
-    if (shader->has_surface_transparent && shader->get_use_transparent_shadow())
+    }
+    if (shader->has_surface_transparent && shader->get_use_transparent_shadow()) {
       flag |= SD_HAS_TRANSPARENT_SHADOW;
-    if (shader->has_surface_raytrace)
+    }
+    if (shader->has_surface_raytrace) {
       flag |= SD_HAS_RAYTRACE;
+    }
     if (shader->has_volume) {
       flag |= SD_HAS_VOLUME;
       has_volumes = true;
@@ -545,30 +552,40 @@ void ShaderManager::device_update_common(Device * /*device*/,
       flag |= SD_HAS_TRANSPARENT_SHADOW;
     }
     /* in this case we can assume transparent surface */
-    if (shader->has_volume_connected && !shader->has_surface)
+    if (shader->has_volume_connected && !shader->has_surface) {
       flag |= SD_HAS_ONLY_VOLUME;
-    if (shader->has_volume) {
-      if (shader->get_heterogeneous_volume() && shader->has_volume_spatial_varying)
-        flag |= SD_HETEROGENEOUS_VOLUME;
     }
-    if (shader->has_volume_attribute_dependency)
+    if (shader->has_volume) {
+      if (shader->get_heterogeneous_volume() && shader->has_volume_spatial_varying) {
+        flag |= SD_HETEROGENEOUS_VOLUME;
+      }
+    }
+    if (shader->has_volume_attribute_dependency) {
       flag |= SD_NEED_VOLUME_ATTRIBUTES;
-    if (shader->has_bssrdf_bump)
+    }
+    if (shader->has_bssrdf_bump) {
       flag |= SD_HAS_BSSRDF_BUMP;
-    if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_EQUIANGULAR)
+    }
+    if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_EQUIANGULAR) {
       flag |= SD_VOLUME_EQUIANGULAR;
-    if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_MULTIPLE_IMPORTANCE)
+    }
+    if (shader->get_volume_sampling_method() == VOLUME_SAMPLING_MULTIPLE_IMPORTANCE) {
       flag |= SD_VOLUME_MIS;
-    if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_CUBIC)
+    }
+    if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_CUBIC) {
       flag |= SD_VOLUME_CUBIC;
-    if (shader->has_bump)
+    }
+    if (shader->has_bump) {
       flag |= SD_HAS_BUMP;
-    if (shader->get_displacement_method() != DISPLACE_BUMP)
+    }
+    if (shader->get_displacement_method() != DISPLACE_BUMP) {
       flag |= SD_HAS_DISPLACEMENT;
+    }
 
     /* constant emission check */
-    if (shader->emission_is_constant)
+    if (shader->emission_is_constant) {
       flag |= SD_HAS_CONSTANT_EMISSION;
+    }
 
     uint32_t cryptomatte_id = util_murmur_hash3(shader->name.c_str(), shader->name.length(), 0);
 

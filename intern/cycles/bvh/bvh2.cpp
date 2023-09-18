@@ -92,8 +92,9 @@ void BVH2::refit(Progress &progress)
   progress.set_substatus("Packing BVH primitives");
   pack_primitives();
 
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   progress.set_substatus("Refitting BVH nodes");
   refit_nodes();
@@ -393,8 +394,9 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
             size_t steps = hair->get_motion_steps() - 1;
             float3 *key_steps = attr->data_float3();
 
-            for (size_t i = 0; i < steps; i++)
+            for (size_t i = 0; i < steps; i++) {
               curve.bounds_grow(k, key_steps + i * hair_size, &hair->get_curve_radius()[0], bbox);
+            }
           }
         }
       }
@@ -417,8 +419,9 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
             size_t steps = pointcloud->get_motion_steps() - 1;
             float3 *point_steps = attr->data_float3();
 
-            for (size_t i = 0; i < steps; i++)
+            for (size_t i = 0; i < steps; i++) {
               point.bounds_grow(point_steps + i * pointcloud_size, radius, bbox);
+            }
           }
         }
       }
@@ -440,8 +443,9 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
             size_t steps = mesh->motion_steps - 1;
             float3 *vert_steps = attr->data_float3();
 
-            for (size_t i = 0; i < steps; i++)
+            for (size_t i = 0; i < steps; i++) {
               triangle.bounds_grow(vert_steps + i * mesh_size, bbox);
+            }
           }
         }
       }
@@ -563,10 +567,12 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
     int geom_prim_offset = geom->prim_offset;
 
     /* fill in node indexes for instances */
-    if (bvh->pack.root_index == -1)
+    if (bvh->pack.root_index == -1) {
       pack.object_node[object_offset++] = -noffset_leaf - 1;
-    else
+    }
+    else {
       pack.object_node[object_offset++] = noffset;
+    }
 
     geometry_map[geom] = pack.object_node[object_offset - 1];
 

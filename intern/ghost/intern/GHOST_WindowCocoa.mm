@@ -175,14 +175,18 @@
   NSPoint mouseLocation = [sender draggingLocation];
   NSPasteboard *draggingPBoard = [sender draggingPasteboard];
 
-  if ([[draggingPBoard types] containsObject:NSPasteboardTypeTIFF])
+  if ([[draggingPBoard types] containsObject:NSPasteboardTypeTIFF]) {
     m_draggedObjectType = GHOST_kDragnDropTypeBitmap;
-  else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType])
+  }
+  else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType]) {
     m_draggedObjectType = GHOST_kDragnDropTypeFilenames;
-  else if ([[draggingPBoard types] containsObject:NSPasteboardTypeString])
+  }
+  else if ([[draggingPBoard types] containsObject:NSPasteboardTypeString]) {
     m_draggedObjectType = GHOST_kDragnDropTypeString;
-  else
+  }
+  else {
     return NSDragOperationNone;
+  }
 
   associatedWindow->setAcceptDragOperation(TRUE);  // Drag operation is accepted by default
   systemCocoa->handleDraggingEvent(GHOST_kEventDraggingEntered,
@@ -240,8 +244,10 @@
         droppedImg = [[NSImage alloc] initWithPasteboard:draggingPBoard];
         data = droppedImg;  //[draggingPBoard dataForType:NSPasteboardTypeTIFF];
       }
-      else
+      else {
         return NO;
+      }
+
       break;
     case GHOST_kDragnDropTypeFilenames:
       data = [draggingPBoard propertyListForType:NSFilenamesPboardType];
@@ -418,8 +424,9 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     [m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
   }
 
-  if (state == GHOST_kWindowStateFullScreen)
+  if (state == GHOST_kWindowStateFullScreen) {
     setState(GHOST_kWindowStateFullScreen);
+  }
 
   setNativePixelSize();
 
@@ -783,10 +790,12 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
         // Lion style fullscreen
         [m_window toggleFullScreen:nil];
       }
-      else if ([m_window isMiniaturized])
+      else if ([m_window isMiniaturized]) {
         [m_window deminiaturize:nil];
-      else if ([m_window isZoomed])
+      }
+      else if ([m_window isZoomed]) {
         [m_window zoom:nil];
+      }
       [pool drain];
       break;
   }
@@ -920,8 +929,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 
 GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 {
-  if (!m_progressBarVisible)
+  if (!m_progressBarVisible) {
     return GHOST_kFailure;
+  }
   m_progressBarVisible = false;
 
   /* Reset application icon to remove the progress bar. */

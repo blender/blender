@@ -174,6 +174,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
  * Count columns that character/string occupies (based on `wcwidth.co`).
  */
 int BLI_wcwidth(char32_t ucs) ATTR_WARN_UNUSED_RESULT;
+int BLI_wcwidth_safe(char32_t ucs) ATTR_WARN_UNUSED_RESULT;
 int BLI_wcswidth(const char32_t *pwcs, size_t n) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /**
@@ -210,13 +211,26 @@ size_t BLI_str_partition_ex_utf8(const char *str,
                                  const char **r_suf,
                                  bool from_right) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4, 5);
 
-int BLI_str_utf8_offset_to_index(const char *str, int offset) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
-int BLI_str_utf8_offset_from_index(const char *str, int index) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
-int BLI_str_utf8_offset_to_column(const char *str, int offset) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
-int BLI_str_utf8_offset_from_column(const char *str, int column) ATTR_WARN_UNUSED_RESULT
+int BLI_str_utf8_offset_to_index(const char *str,
+                                 size_t str_len,
+                                 int offset_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_str_utf8_offset_from_index(const char *str,
+                                   size_t str_len,
+                                   int index_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_str_utf8_offset_to_column(const char *str,
+                                  size_t str_len,
+                                  int offset_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_str_utf8_offset_from_column(const char *str,
+                                    size_t str_len,
+                                    int column_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_str_utf8_offset_to_column_with_tabs(const char *str,
+                                            size_t str_len,
+                                            int offset_target,
+                                            int tab_width) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_str_utf8_offset_from_column_with_tabs(const char *str,
+                                              size_t str_len,
+                                              int column_target,
+                                              int tab_width) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
 
 /** Size in bytes. */

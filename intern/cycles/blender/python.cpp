@@ -44,8 +44,9 @@ bool debug_flags_set = false;
 
 void *pylong_as_voidptr_typesafe(PyObject *object)
 {
-  if (object == Py_None)
+  if (object == Py_None) {
     return NULL;
+  }
   return PyLong_AsVoidPtr(object);
 }
 
@@ -224,8 +225,9 @@ static PyObject *render_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession, *pydepsgraph;
 
-  if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph))
+  if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph)) {
     return NULL;
+  }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
@@ -300,7 +302,9 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
                         &pass_filter,
                         &width,
                         &height))
+  {
     return NULL;
+  }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
@@ -324,8 +328,9 @@ static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession, *pygraph, *pyv3d, *pyrv3d;
 
-  if (!PyArg_ParseTuple(args, "OOOO", &pysession, &pygraph, &pyv3d, &pyrv3d))
+  if (!PyArg_ParseTuple(args, "OOOO", &pysession, &pygraph, &pyv3d, &pyrv3d)) {
     return NULL;
+  }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
@@ -344,8 +349,9 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession, *pydata, *pydepsgraph;
 
-  if (!PyArg_ParseTuple(args, "OOO", &pysession, &pydata, &pydepsgraph))
+  if (!PyArg_ParseTuple(args, "OOO", &pysession, &pydata, &pydepsgraph)) {
     return NULL;
+  }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
@@ -369,8 +375,9 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession, *pydepsgraph;
 
-  if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph))
+  if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph)) {
     return NULL;
+  }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 

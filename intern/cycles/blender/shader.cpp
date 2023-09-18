@@ -254,8 +254,9 @@ static void set_default_value(ShaderInput *input,
 
 static void get_tex_mapping(TextureNode *mapping, BL::TexMapping &b_mapping)
 {
-  if (!b_mapping)
+  if (!b_mapping) {
     return;
+  }
 
   mapping->set_tex_mapping_translation(get_float3(b_mapping.translation()));
   mapping->set_tex_mapping_rotation(get_float3(b_mapping.rotation()));
@@ -1084,8 +1085,9 @@ static ShaderNode *add_node(Scene *scene,
 
 static bool node_use_modified_socket_name(ShaderNode *node)
 {
-  if (node->special_type == SHADER_SPECIAL_TYPE_OSL)
+  if (node->special_type == SHADER_SPECIAL_TYPE_OSL) {
     return false;
+  }
 
   return true;
 }

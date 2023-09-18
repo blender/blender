@@ -175,12 +175,12 @@ struct IDProperty *IDP_GetPropertyTypeFromGroup(const struct IDProperty *prop,
 /*-------- Main Functions --------*/
 /**
  * Get the Group property that contains the id properties for ID `id`.
- *
- * \param create_if_needed: Set to create the group property and attach it to id if it doesn't
- * exist; otherwise the function will return NULL if there's no Group property attached to the ID.
  */
-struct IDProperty *IDP_GetProperties(struct ID *id, bool create_if_needed) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+struct IDProperty *IDP_GetProperties(struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+/**
+ * Ensure the Group property that contains the id properties for ID `id` exists & return it.
+ */
+struct IDProperty *IDP_EnsureProperties(struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 struct IDProperty *IDP_CopyProperty(const struct IDProperty *prop) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 struct IDProperty *IDP_CopyProperty_ex(const struct IDProperty *prop,
@@ -219,7 +219,7 @@ bool IDP_EqualsProperties(const struct IDProperty *prop1,
  * val.array.type = IDP_FLOAT;
  * color = IDP_New(IDP_ARRAY, val, "color1");
  *
- * idgroup = IDP_GetProperties(some_id, 1);
+ * idgroup = IDP_EnsureProperties(some_id);
  * IDP_AddToGroup(idgroup, color);
  * IDP_AddToGroup(idgroup, group);
  * \endcode

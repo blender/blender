@@ -330,8 +330,9 @@ ImageManager::ImageManager(const DeviceInfo &info)
 
 ImageManager::~ImageManager()
 {
-  for (size_t slot = 0; slot < images.size(); slot++)
+  for (size_t slot = 0; slot < images.size(); slot++) {
     assert(!images[slot]);
+  }
 }
 
 void ImageManager::set_osl_texture_system(void *texture_system)
@@ -346,8 +347,9 @@ bool ImageManager::set_animation_frame_update(int frame)
     animation_frame = frame;
 
     for (size_t slot = 0; slot < images.size(); slot++) {
-      if (images[slot] && images[slot]->params.animated)
+      if (images[slot] && images[slot]->params.animated) {
         return true;
+      }
     }
   }
 
@@ -468,8 +470,9 @@ size_t ImageManager::add_image_slot(ImageLoader *loader,
 
   /* Find free slot. */
   for (slot = 0; slot < images.size(); slot++) {
-    if (!images[slot])
+    if (!images[slot]) {
       break;
+    }
   }
 
   if (slot == images.size()) {
@@ -514,8 +517,9 @@ void ImageManager::remove_image_user(size_t slot)
   /* don't remove immediately, rather do it all together later on. one of
    * the reasons for this is that on shader changes we add and remove nodes
    * that use them, but we do not want to reload the image all the time. */
-  if (image->users == 0)
+  if (image->users == 0) {
     need_update_ = true;
+  }
 }
 
 static bool image_associate_alpha(ImageManager::Image *img)

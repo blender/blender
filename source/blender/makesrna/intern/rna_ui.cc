@@ -1071,7 +1071,8 @@ static StructRNA *rna_Menu_refine(PointerRNA *mtr)
 
 /* Asset Shelf */
 
-static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type, const AssetHandle *asset)
+static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type,
+                                   const AssetRepresentationHandle *asset)
 {
   extern FunctionRNA rna_AssetShelf_asset_poll_func;
 
@@ -1080,7 +1081,7 @@ static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type, const Asset
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
-  RNA_parameter_set_lookup(&list, "asset_handle", &asset);
+  RNA_parameter_set_lookup(&list, "asset", &asset);
   shelf_type->rna_ext.call(nullptr, &ptr, func, &list);
 
   void *ret;
@@ -1117,7 +1118,7 @@ static bool asset_shelf_poll(const bContext *C, const AssetShelfType *shelf_type
 
 static void asset_shelf_draw_context_menu(const bContext *C,
                                           const AssetShelfType *shelf_type,
-                                          const AssetHandle *asset,
+                                          const AssetRepresentationHandle *asset,
                                           uiLayout *layout)
 {
   extern FunctionRNA rna_AssetShelf_draw_context_menu_func;
@@ -1130,7 +1131,7 @@ static void asset_shelf_draw_context_menu(const bContext *C,
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
-  RNA_parameter_set_lookup(&list, "asset_handle", &asset);
+  RNA_parameter_set_lookup(&list, "asset", &asset);
   RNA_parameter_set_lookup(&list, "layout", &layout);
   shelf_type->rna_ext.call((bContext *)C, &ptr, func, &list);
 
@@ -2143,7 +2144,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
       "non-null output, the asset will be visible");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
-  parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
+  parm = RNA_def_pointer(func, "asset", "AssetRepresentation", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "draw_context_menu", nullptr);
@@ -2152,7 +2153,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
+  parm = RNA_def_pointer(func, "asset", "AssetRepresentation", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);

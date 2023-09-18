@@ -290,8 +290,9 @@ bool RenderBuffers::copy_from_device()
 {
   DCHECK(params.pass_stride != -1);
 
-  if (!buffer.device_pointer)
+  if (!buffer.device_pointer) {
     return false;
+  }
 
   buffer.copy_from_device(0, params.width * params.pass_stride, params.height);
 

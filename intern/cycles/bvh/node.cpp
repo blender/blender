@@ -85,18 +85,22 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
       assert(0); /* unknown mode */
   }
 
-  if (!is_leaf())
-    for (int i = 0; i < num_children(); i++)
+  if (!is_leaf()) {
+    for (int i = 0; i < num_children(); i++) {
       cnt += get_child(i)->getSubtreeSize(stat);
+    }
+  }
 
   return cnt;
 }
 
 void BVHNode::deleteSubtree()
 {
-  for (int i = 0; i < num_children(); i++)
-    if (get_child(i))
+  for (int i = 0; i < num_children(); i++) {
+    if (get_child(i)) {
       get_child(i)->deleteSubtree();
+    }
+  }
 
   delete this;
 }
@@ -192,21 +196,25 @@ void BVHNode::dump_graph(const char *filename)
 
 void InnerNode::print(int depth) const
 {
-  for (int i = 0; i < depth; i++)
+  for (int i = 0; i < depth; i++) {
     printf("  ");
+  }
 
   printf("inner node %p\n", (void *)this);
 
-  if (children[0])
+  if (children[0]) {
     children[0]->print(depth + 1);
-  if (children[1])
+  }
+  if (children[1]) {
     children[1]->print(depth + 1);
+  }
 }
 
 void LeafNode::print(int depth) const
 {
-  for (int i = 0; i < depth; i++)
+  for (int i = 0; i < depth; i++) {
     printf("  ");
+  }
 
   printf("leaf node %d to %d\n", lo, hi);
 }

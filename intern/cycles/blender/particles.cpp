@@ -21,20 +21,23 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
 {
   /* Test if this dupli was generated from a particle system. */
   BL::ParticleSystem b_psys = b_instance.particle_system();
-  if (!b_psys)
+  if (!b_psys) {
     return false;
+  }
 
   object->set_hide_on_missing_motion(true);
 
   /* test if we need particle data */
-  if (!object->get_geometry()->need_attribute(scene, ATTR_STD_PARTICLE))
+  if (!object->get_geometry()->need_attribute(scene, ATTR_STD_PARTICLE)) {
     return false;
+  }
 
   /* don't handle child particles yet */
   BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id = b_instance.persistent_id();
 
-  if (persistent_id[0] >= b_psys.particles.length())
+  if (persistent_id[0] >= b_psys.particles.length()) {
     return false;
+  }
 
   /* find particle system */
   ParticleSystemKey key(b_ob, persistent_id);
@@ -46,7 +49,9 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
   /* no update needed? */
   if (!need_update && !object->get_geometry()->is_modified() &&
       !scene->object_manager->need_update())
+  {
     return true;
+  }
 
   /* first time used in this sync loop? clear and tag update */
   if (first_use) {
@@ -72,8 +77,9 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
   object->set_particle_system(psys);
   object->set_particle_index(psys->particles.size() - 1);
 
-  if (object->particle_index_is_modified())
+  if (object->particle_index_is_modified()) {
     scene->object_manager->tag_update(scene, ObjectManager::PARTICLE_MODIFIED);
+  }
 
   /* return that this object has particle data */
   return true;

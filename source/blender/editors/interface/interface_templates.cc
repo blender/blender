@@ -3479,7 +3479,7 @@ static uiBlock *colorband_tools_func(bContext *C, ARegion *region, void *coba_v)
     uiDefIconTextBut(block,
                      UI_BTYPE_BUT_MENU,
                      1,
-                     ICON_BLANK1,
+                     ICON_ARROW_LEFTRIGHT,
                      IFACE_("Flip Color Ramp"),
                      0,
                      yco -= UI_UNIT_Y,
@@ -3522,12 +3522,16 @@ static uiBlock *colorband_tools_func(bContext *C, ARegion *region, void *coba_v)
                      CB_FUNC_DISTRIBUTE_EVENLY,
                      "");
 
+    uiItemS(layout);
+
     uiItemO(layout, IFACE_("Eyedropper"), ICON_EYEDROPPER, "UI_OT_eyedropper_colorramp");
+
+    uiItemS(layout);
 
     uiDefIconTextBut(block,
                      UI_BTYPE_BUT_MENU,
                      1,
-                     ICON_BLANK1,
+                     ICON_LOOP_BACK,
                      IFACE_("Reset Color Ramp"),
                      0,
                      yco -= UI_UNIT_Y,

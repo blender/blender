@@ -6053,6 +6053,19 @@ void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFre
   but->tip_arg_free = free_arg;
 }
 
+void UI_but_func_tooltip_custom_set(uiBut *but,
+                                    uiButToolTipCustomFunc func,
+                                    void *arg,
+                                    uiFreeArgFunc free_arg)
+{
+  but->tip_custom_func = func;
+  if (but->tip_arg_free) {
+    but->tip_arg_free(but->tip_arg);
+  }
+  but->tip_arg = arg;
+  but->tip_arg_free = free_arg;
+}
+
 void UI_but_func_pushed_state_set(uiBut *but, std::function<bool(const uiBut &)> func)
 {
   but->pushed_state_func = func;

@@ -24,6 +24,9 @@ class RenderBuffers {
  public:
   RenderBuffersInfoData &data;
 
+  static constexpr eGPUTextureFormat color_format = GPU_RGBA16F;
+  static constexpr eGPUTextureFormat float_format = GPU_R16F;
+
   Texture depth_tx;
   TextureFromPool combined_tx;
 
@@ -36,6 +39,8 @@ class RenderBuffers {
 
  private:
   Instance &inst_;
+
+  int2 extent_;
 
  public:
   RenderBuffers(Instance &inst, RenderBuffersInfoData &data) : data(data), inst_(inst){};
@@ -63,6 +68,12 @@ class RenderBuffers {
   /* Acquires (also ensures) the render buffer before rendering to them. */
   void acquire(int2 extent);
   void release();
+
+  /* Return the size of the allocated render buffers. Undefined if called before `acquire()`. */
+  int2 extent_get() const
+  {
+    return extent_;
+  }
 
   eGPUTextureFormat vector_tx_format();
 };

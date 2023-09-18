@@ -58,13 +58,13 @@ void RenderBuffers::acquire(int2 extent)
 {
   const eViewLayerEEVEEPassType enabled_passes = inst_.film.enabled_passes_get();
 
+  extent_ = extent;
+
   auto pass_extent = [&](eViewLayerEEVEEPassType pass_bit) -> int2 {
     /* Use dummy texture for disabled passes. Allows correct bindings. */
     return (enabled_passes & pass_bit) ? extent : int2(1);
   };
 
-  eGPUTextureFormat color_format = GPU_RGBA16F;
-  eGPUTextureFormat float_format = GPU_R16F;
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
 
   /* Depth and combined are always needed. */

@@ -526,6 +526,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_ray_generate_lib.glsl
   engines/eevee_next/shaders/eevee_ray_tile_classify_comp.glsl
   engines/eevee_next/shaders/eevee_ray_tile_compact_comp.glsl
+  engines/eevee_next/shaders/eevee_ray_trace_fallback_comp.glsl
   engines/eevee_next/shaders/eevee_ray_trace_screen_comp.glsl
   engines/eevee_next/shaders/eevee_ray_trace_screen_lib.glsl
   engines/eevee_next/shaders/eevee_octahedron_lib.glsl

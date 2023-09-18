@@ -1148,6 +1148,8 @@ enum eClosureBits : uint32_t {
 struct RayTraceData {
   /** ViewProjection matrix used to render the previous frame. */
   float4x4 history_persmat;
+  /** ViewProjection matrix used to render the radiance texture. */
+  float4x4 radiance_persmat;
   /** Input resolution. */
   int2 full_resolution;
   /** Inverse of input resolution to get screen UVs. */

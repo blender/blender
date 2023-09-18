@@ -25,10 +25,12 @@ int blender_device_threads(BL::Scene &b_scene)
 {
   BL::RenderSettings b_r = b_scene.render();
 
-  if (b_r.threads_mode() == BL::RenderSettings::threads_mode_FIXED)
+  if (b_r.threads_mode() == BL::RenderSettings::threads_mode_FIXED) {
     return b_r.threads();
-  else
+  }
+  else {
     return 0;
+  }
 }
 
 void static adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpreferences)

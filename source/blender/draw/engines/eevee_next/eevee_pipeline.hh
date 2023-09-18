@@ -196,6 +196,10 @@ class DeferredLayer {
   TextureFromPool diffuse_light_tx_ = {"diffuse_light_accum_tx"};
   TextureFromPool specular_light_tx_ = {"specular_light_accum_tx"};
 
+  Texture radiance_behind_tx_ = {"radiance_behind_tx"};
+  Texture radiance_feedback_tx_ = {"radiance_feedback_tx"};
+  float4x4 radiance_feedback_persmat_;
+
   /* Reference to ray-tracing result. */
   GPUTexture *indirect_refraction_tx_ = nullptr;
   GPUTexture *indirect_reflection_tx_ = nullptr;
@@ -214,7 +218,8 @@ class DeferredLayer {
               Framebuffer &prepass_fb,
               Framebuffer &combined_fb,
               int2 extent,
-              RayTraceBuffer &rt_buffer);
+              RayTraceBuffer &rt_buffer,
+              bool is_first_pass);
 };
 
 class DeferredPipeline {

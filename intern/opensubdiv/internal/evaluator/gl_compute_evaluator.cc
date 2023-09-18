@@ -110,24 +110,33 @@ GLStencilTableSSBO::GLStencilTableSSBO(LimitStencilTable const *limitStencilTabl
 
 GLStencilTableSSBO::~GLStencilTableSSBO()
 {
-  if (_sizes)
+  if (_sizes) {
     glDeleteBuffers(1, &_sizes);
-  if (_offsets)
+  }
+  if (_offsets) {
     glDeleteBuffers(1, &_offsets);
-  if (_indices)
+  }
+  if (_indices) {
     glDeleteBuffers(1, &_indices);
-  if (_weights)
+  }
+  if (_weights) {
     glDeleteBuffers(1, &_weights);
-  if (_duWeights)
+  }
+  if (_duWeights) {
     glDeleteBuffers(1, &_duWeights);
-  if (_dvWeights)
+  }
+  if (_dvWeights) {
     glDeleteBuffers(1, &_dvWeights);
-  if (_duuWeights)
+  }
+  if (_duuWeights) {
     glDeleteBuffers(1, &_duuWeights);
-  if (_duvWeights)
+  }
+  if (_duvWeights) {
     glDeleteBuffers(1, &_duvWeights);
-  if (_dvvWeights)
+  }
+  if (_dvvWeights) {
     glDeleteBuffers(1, &_dvvWeights);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -363,8 +372,9 @@ bool GLComputeEvaluator::EvalStencils(GLuint srcBuffer,
                                       int end) const
 {
 
-  if (!_stencilKernel.program)
+  if (!_stencilKernel.program) {
     return false;
+  }
   int count = end - start;
   if (count <= 0) {
     return true;
@@ -381,16 +391,21 @@ bool GLComputeEvaluator::EvalStencils(GLuint srcBuffer,
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, offsetsBuffer);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, indicesBuffer);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, weightsBuffer);
-  if (duWeightsBuffer)
+  if (duWeightsBuffer) {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, duWeightsBuffer);
-  if (dvWeightsBuffer)
+  }
+  if (dvWeightsBuffer) {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, dvWeightsBuffer);
-  if (duuWeightsBuffer)
+  }
+  if (duuWeightsBuffer) {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 13, duuWeightsBuffer);
-  if (duvWeightsBuffer)
+  }
+  if (duvWeightsBuffer) {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 14, duvWeightsBuffer);
-  if (dvvWeightsBuffer)
+  }
+  if (dvvWeightsBuffer) {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 15, dvvWeightsBuffer);
+  }
 
   GLint activeProgram;
   glGetIntegerv(GL_CURRENT_PROGRAM, &activeProgram);
@@ -485,8 +500,9 @@ bool GLComputeEvaluator::EvalPatches(GLuint srcBuffer,
                                      GLuint patchParamsBuffer) const
 {
 
-  if (!_patchKernel.program)
+  if (!_patchKernel.program) {
     return false;
+  }
 
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, srcBuffer);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dstBuffer);
@@ -578,8 +594,9 @@ bool GLComputeEvaluator::_StencilKernel::Compile(BufferDescriptor const &srcDesc
 
   program = compileKernel(
       srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc, kernelDefine, workGroupSize);
-  if (program == 0)
+  if (program == 0) {
     return false;
+  }
 
   // cache uniform locations (TODO: use uniform block)
   uniformStart = glGetUniformLocation(program, "batchStart");
@@ -623,8 +640,9 @@ bool GLComputeEvaluator::_PatchKernel::Compile(BufferDescriptor const &srcDesc,
 
   program = compileKernel(
       srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc, kernelDefine, workGroupSize);
-  if (program == 0)
+  if (program == 0) {
     return false;
+  }
 
   // cache uniform locations
   uniformSrcOffset = glGetUniformLocation(program, "srcOffset");

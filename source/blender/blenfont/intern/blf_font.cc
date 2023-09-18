@@ -462,7 +462,7 @@ void blf_font_draw(FontBLF *font, const char *str, const size_t str_len, ResultB
 int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int cwidth)
 {
   GlyphBLF *g;
-  int col, columns = 0;
+  int columns = 0;
   ft_pix pen_x = 0, pen_y = 0;
   ft_pix cwidth_fpx = ft_pix_from_int(cwidth);
 
@@ -481,11 +481,7 @@ int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int
     /* do not return this loop if clipped, we want every character tested */
     blf_glyph_draw(font, gc, g, ft_pix_to_int_floor(pen_x), ft_pix_to_int_floor(pen_y));
 
-    col = BLI_wcwidth(char32_t(g->c));
-    if (col < 0) {
-      col = 1;
-    }
-
+    const int col = BLI_wcwidth_safe(char32_t(g->c));
     columns += col;
     pen_x += cwidth_fpx * col;
   }
@@ -989,9 +985,11 @@ size_t blf_str_offset_from_cursor_position(FontBLF *font,
     /* We are to the right of the string, so return position of null terminator. */
     data.r_offset = BLI_strnlen(str, str_len);
   }
-  else if (BLI_str_utf8_char_width(&str[data.r_offset]) < 1) {
-    /* This is a combining character (or invalid), so move to previous visible valid char. */
-    BLI_str_cursor_step_prev_utf8(str, str_len, (int *)&data.r_offset);
+  else if (BLI_str_utf8_char_width(&str[data.r_offset]) == 0) {
+    /* This is a combining character, so move to previous visible valid char. */
+    int offset = int(data.r_offset);
+    BLI_str_cursor_step_prev_utf8(str, str_len, &offset);
+    data.r_offset = size_t(offset);
   }
 
   return data.r_offset;
