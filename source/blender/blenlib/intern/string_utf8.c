@@ -1084,4 +1084,41 @@ int BLI_str_utf8_offset_from_column(const char *str, const size_t str_len, const
   return (int)offset;
 }
 
+int BLI_str_utf8_offset_to_column_with_tabs(const char *str,
+                                            const size_t str_len,
+                                            const int offset_target,
+                                            const int tab_width)
+{
+  BLI_assert(offset_target >= 0);
+  const size_t offset_target_clamp = MIN2((size_t)offset_target, str_len);
+  size_t offset = 0;
+  int column = 0;
+  while (offset < offset_target_clamp) {
+    const uint code = BLI_str_utf8_as_unicode_step(str, str_len, &offset);
+    /* The following line is the only change compared with #BLI_str_utf8_offset_to_column. */
+    column += (code == '\t') ? (tab_width - (column % tab_width)) : BLI_wcwidth_safe(code);
+    BLI_assert(offset <= (size_t)offset_target); /* See DOXY section comment. */
+  }
+  return column;
+}
+
+int BLI_str_utf8_offset_from_column_with_tabs(const char *str,
+                                              const size_t str_len,
+                                              const int column_target,
+                                              const int tab_width)
+{
+  size_t offset = 0, offset_next = 0;
+  int column = 0;
+  while ((offset < str_len) && (column < column_target)) {
+    const uint code = BLI_str_utf8_as_unicode_step(str, str_len, &offset_next);
+    /* The following line is the only change compared with #BLI_str_utf8_offset_from_column. */
+    column += (code == '\t') ? (tab_width - (column % tab_width)) : BLI_wcwidth_safe(code);
+    if (column > column_target) {
+      break;
+    }
+    offset = offset_next;
+  }
+  return (int)offset;
+}
+
 /** \} */
