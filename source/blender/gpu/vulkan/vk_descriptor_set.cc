@@ -211,4 +211,17 @@ std::unique_ptr<VKDescriptorSet> VKDescriptorSetTracker::create_resource(VKConte
   return device.descriptor_pools_get().allocate(layout_);
 }
 
+void VKDescriptorSetTracker::debug_print() const
+{
+  for (const Binding &binding : bindings_) {
+    binding.debug_print();
+  }
+}
+
+void VKDescriptorSetTracker::Binding::debug_print() const
+{
+  std::cout << "VkDescriptorSetTrackker::Binding(type: " << type
+            << ", location:" << location.binding << ")\n";
+}
+
 }  // namespace blender::gpu
