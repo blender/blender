@@ -24,7 +24,11 @@ void VKUniformBuffer::update(const void *data)
 
 void VKUniformBuffer::allocate()
 {
-  buffer_.create(size_in_bytes_, GPU_USAGE_STATIC, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+  buffer_.create(size_in_bytes_,
+                 GPU_USAGE_STATIC,
+                 static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT |
+                                                    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                                                    VK_BUFFER_USAGE_TRANSFER_DST_BIT));
   debug::object_label(buffer_.vk_handle(), name_);
 }
 
@@ -41,6 +45,12 @@ void VKUniformBuffer::bind(int slot, shader::ShaderCreateInfo::Resource::BindTyp
 {
   if (!buffer_.is_allocated()) {
     allocate();
+  }
+
+  /* Upload attached data, during bind time. */
+  if (data_) {
+    buffer_.update(data_);
+    MEM_SAFE_FREE(data_);
   }
 
   VKContext &context = *VKContext::get();
