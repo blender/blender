@@ -392,6 +392,7 @@ static int bone_collection_assign_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, &ob->id);
   return OPERATOR_FINISHED;
 }
 

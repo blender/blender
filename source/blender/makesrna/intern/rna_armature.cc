@@ -269,6 +269,13 @@ static void rna_BoneCollectionMemberships_clear(Bone *bone)
   WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, nullptr);
 }
 
+static bool rna_BoneCollection_is_editable_get(PointerRNA *ptr)
+{
+  bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
+  BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
+  return ANIM_armature_bonecoll_is_editable(arm, bcoll);
+}
+
 /* BoneCollection.bones iterator functions. */
 
 static void rna_BoneCollection_bones_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -2084,6 +2091,14 @@ static void rna_def_bonecollection(BlenderRNA *brna)
       prop,
       "Is Local Override",
       "This collection was added via a library override in the current blend file");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_BoneCollection_is_editable_get", nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Is Editable",
+                           "This collection is owned by a local Armature, or was added via a "
+                           "library override in the current blend file");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
