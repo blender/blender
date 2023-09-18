@@ -419,6 +419,8 @@ class UtilityTexture : public Texture {
           for (auto y : IndexRange(lut_size)) {
             layer.data[y][x][0] = lut::bsdf_ggx[layer_id][y][x][0];
             layer.data[y][x][1] = lut::bsdf_ggx[layer_id][y][x][1];
+            layer.data[y][x][2] = lut::bsdf_ggx[layer_id][y][x][2];
+            layer.data[y][x][3] = lut::btdf_ggx[layer_id][y][x][0];
           }
         }
       }

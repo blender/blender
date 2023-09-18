@@ -88,7 +88,8 @@ enum eDebugMode : uint32_t {
 
 enum PrecomputeType : uint32_t {
   LUT_GGX_BRDF_SPLIT_SUM = 0u,
-  LUT_GGX_BSDF_SPLIT_SUM = 1u,
+  LUT_GGX_BTDF_IOR_GT_ONE = 1u,
+  LUT_GGX_BSDF_SPLIT_SUM = 2u,
 };
 
 /** \} */
@@ -1292,7 +1293,7 @@ BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 #define UTIL_LTC_MAT_LAYER 2
 #define UTIL_LTC_MAG_LAYER 3
 #define UTIL_BSDF_LAYER 3
-#define UTIL_BTDF_LAYER 4
+#define UTIL_BTDF_LAYER 5
 #define UTIL_DISK_INTEGRAL_LAYER 4
 #define UTIL_DISK_INTEGRAL_COMP 3
 
