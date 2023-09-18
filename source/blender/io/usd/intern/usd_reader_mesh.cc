@@ -329,13 +329,13 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
     const int face_size = face_counts_[i];
 
     /* Check for faces with the same vertex specified twice in a row. */
-    if (face_indices_[loop_index] == face_indices_[loop_index+face_size-1]) {
+    if (face_indices_[loop_index] == face_indices_[loop_index + face_size - 1]) {
       /* Loop below does not test first to last. */
       degenerate_faces.push_back(i);
     }
     else {
-      for (int j = loop_index+1; j < loop_index + face_size; j++) {
-        if (face_indices_[j] == face_indices_[j-1]) {
+      for (int j = loop_index + 1; j < loop_index + face_size; j++) {
+        if (face_indices_[j] == face_indices_[j - 1]) {
           degenerate_faces.push_back(i);
           break;
         }

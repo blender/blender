@@ -204,7 +204,8 @@ void USDSkinnedMeshWriter::write_weights(const Object *ob,
   std::vector<int> group_to_bone_idx;
 
   for (const bDeformGroup *def = (const bDeformGroup *)mesh->vertex_group_names.first; def;
-       def = def->next) {
+       def = def->next)
+  {
 
     int bone_idx = -1;
     /* For now, n-squared search is acceptable. */
@@ -322,7 +323,8 @@ pxr::SdfPath USDSkinnedMeshWriter::get_skel_path(Object *arm_obj) const
 
   /* Commenting out to compile, which is okay as this file will soon be obsolete, so the
    * code is no longer relevant. */
-  //std::string skel_path = usd_export_context_.hierarchy_iterator->get_object_export_path(arm_id);
+  // std::string skel_path =
+  // usd_export_context_.hierarchy_iterator->get_object_export_path(arm_id);
 
   std::string skel_path;
 

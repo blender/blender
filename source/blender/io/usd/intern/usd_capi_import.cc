@@ -304,7 +304,6 @@ static void main_thread_lock_release(ImportJobData *data)
   }
 }
 
-
 static CacheFile *create_cache_file(const ImportJobData *data)
 {
   if (!data) {
@@ -447,7 +446,8 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
   archive->collect_readers(data->bmain);
 
   if (data->params.import_lights && data->params.create_background_shader &&
-      !archive->dome_lights().empty()) {
+      !archive->dome_lights().empty())
+  {
     dome_light_to_world_material(
         data->params, data->settings, data->scene, data->bmain, archive->dome_lights().front());
   }
@@ -480,7 +480,7 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
     for (USDPrimReader *reader : pair.second) {
       if (reader) {
         reader->create_object(data->bmain, 0.0);
-      }   
+      }
     }
   }
 

@@ -75,7 +75,6 @@ void USDXformReader::apply_cache_file(CacheFile *cache_file)
   id_us_plus(&cache_file->id);
 }
 
-
 void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
                                  const float time,
                                  const float scale,

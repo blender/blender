@@ -200,8 +200,7 @@ pxr::SdfPath USDAbstractWriter::get_material_library_path(const HierarchyContext
   std::string material_library_path;
 
   /* For instance prototypes, create the material beneath the prototyp prim. */
-  if (usd_export_context_.export_params.use_instancing && context.is_prototype())
-  {
+  if (usd_export_context_.export_params.use_instancing && context.is_prototype()) {
 
     material_library_path += std::string(usd_export_context_.export_params.root_prim_path);
     if (context.object->data) {
@@ -260,7 +259,7 @@ void USDAbstractWriter::write_visibility(const HierarchyContext &context,
   usd_value_writer_.SetAttribute(attr_visibility, pxr::VtValue(visibility), timecode);
 }
 
-void USDAbstractWriter::write_kind(pxr::UsdPrim& prim, pxr::TfToken kind)
+void USDAbstractWriter::write_kind(pxr::UsdPrim &prim, pxr::TfToken kind)
 {
   pxr::UsdModelAPI api(prim);
   api.SetKind(kind);
@@ -341,7 +340,8 @@ void USDAbstractWriter::write_user_properties(pxr::UsdPrim &prim,
   for (prop = (IDProperty *)properties->data.group.first; prop; prop = prop->next) {
     if (kind_identifier == prop->name) {
       if (prop->type == IDP_STRING && usd_export_context_.export_params.export_usd_kind &&
-          prop->data.pointer) {
+          prop->data.pointer)
+      {
         write_kind(prim, pxr::TfToken(static_cast<char *>(prop->data.pointer)));
       }
       continue;
@@ -366,25 +366,29 @@ void USDAbstractWriter::write_user_properties(pxr::UsdPrim &prim,
     switch (prop->type) {
       case IDP_INT:
         if (pxr::UsdAttribute int_attr = prim.CreateAttribute(
-                prop_token, pxr::SdfValueTypeNames->Int, true)) {
+                prop_token, pxr::SdfValueTypeNames->Int, true))
+        {
           int_attr.Set<int>(prop->data.val, timecode);
         }
         break;
       case IDP_FLOAT:
         if (pxr::UsdAttribute float_attr = prim.CreateAttribute(
-                prop_token, pxr::SdfValueTypeNames->Float, true)) {
+                prop_token, pxr::SdfValueTypeNames->Float, true))
+        {
           float_attr.Set<float>(*reinterpret_cast<float *>(&prop->data.val), timecode);
         }
         break;
       case IDP_DOUBLE:
         if (pxr::UsdAttribute double_attr = prim.CreateAttribute(
-                prop_token, pxr::SdfValueTypeNames->Double, true)) {
+                prop_token, pxr::SdfValueTypeNames->Double, true))
+        {
           double_attr.Set<double>(*reinterpret_cast<double *>(&prop->data.val), timecode);
         }
         break;
       case IDP_STRING:
         if (pxr::UsdAttribute str_attr = prim.CreateAttribute(
-                prop_token, pxr::SdfValueTypeNames->String, true)) {
+                prop_token, pxr::SdfValueTypeNames->String, true))
+        {
           str_attr.Set<std::string>(static_cast<const char *>(prop->data.pointer), timecode);
         }
         break;

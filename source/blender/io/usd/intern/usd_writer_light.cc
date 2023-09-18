@@ -21,7 +21,6 @@
 
 #include "WM_api.hh"
 
-
 namespace blender::io::usd {
 
 USDLightWriter::USDLightWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}

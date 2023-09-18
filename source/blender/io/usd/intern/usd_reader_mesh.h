@@ -7,7 +7,6 @@
 
 #include "BKE_attribute.hh"
 #include "BLI_span.hh"
-#include "BKE_attribute.hh"
 
 #include "usd.h"
 #include "usd_reader_geom.h"

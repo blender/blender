@@ -38,9 +38,7 @@
 
 namespace blender::io::usd {
 
-USDCurveWriter::USDCurveWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDCurveWriter::USDCurveWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 void USDCurveWriter::do_write(HierarchyContext &context)
 {
@@ -200,8 +198,8 @@ void USDCurveWriter::do_write(HierarchyContext &context)
   // need to create multiple Basis Curves per mat_nr
   assign_materials(context, curves);
 
-  if (usd_export_context_.export_params.export_custom_properties && curve &&
-      curve->id.properties) {
+  if (usd_export_context_.export_params.export_custom_properties && curve && curve->id.properties)
+  {
     auto prim = curves.GetPrim();
     write_id_properties(prim, curve->id, timecode);
   }

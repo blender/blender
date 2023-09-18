@@ -83,7 +83,7 @@ bool USDStageReader::valid() const
 bool USDStageReader::is_primitive_prim(const pxr::UsdPrim &prim) const
 {
   return (prim.IsA<pxr::UsdGeomCapsule>() || prim.IsA<pxr::UsdGeomCylinder>() ||
-          prim.IsA<pxr::UsdGeomCone>()    || prim.IsA<pxr::UsdGeomCube>()     ||
+          prim.IsA<pxr::UsdGeomCone>() || prim.IsA<pxr::UsdGeomCube>() ||
           prim.IsA<pxr::UsdGeomSphere>());
 }
 
@@ -270,8 +270,8 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
   /* Don't merge Xform, Scope or undefined prims. */
   if (xform_reader->prim().IsA<pxr::UsdGeomXform>() ||
       xform_reader->prim().IsA<pxr::UsdGeomScope>() ||
-      xform_reader->prim().GetPrimTypeInfo()
-        == pxr::UsdPrimTypeInfo::GetEmptyPrimType()) {
+      xform_reader->prim().GetPrimTypeInfo() == pxr::UsdPrimTypeInfo::GetEmptyPrimType())
+  {
     return false;
   }
 
@@ -330,7 +330,8 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
   /* We prune the current prim if it's a Scope
    * and we didn't convert any of its children. */
   if (child_readers.empty() && prim.IsA<pxr::UsdGeomScope>() &&
-      !(params_.use_instancing && prim.IsInstance())) {
+      !(params_.use_instancing && prim.IsInstance()))
+  {
     return nullptr;
   }
 

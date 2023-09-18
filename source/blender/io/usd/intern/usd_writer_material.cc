@@ -19,8 +19,8 @@
 #include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_node.hh"
-#include "BKE_node_tree_update.h"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_update.h"
 
 #include "IMB_colormanagement.h"
 
@@ -371,7 +371,7 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
   const char *shader_name = uv_node ? uv_node->name : "uvmap";
 
   pxr::UsdShadeShader uv_shader = create_usd_preview_shader(
-    usd_export_context, usd_material, shader_name, SH_NODE_UVMAP);
+      usd_export_context, usd_material, shader_name, SH_NODE_UVMAP);
 
   if (!uv_shader) {
     WM_reportf(RPT_WARNING, "%s: Couldn't create USD shader for UV map", __func__);
@@ -400,7 +400,8 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
                                       const pxr::TfToken &default_uv)
 
 {
-  bNode *mapping_node = (mapping_link && mapping_link->fromnode ? mapping_link->fromnode : nullptr);
+  bNode *mapping_node = (mapping_link && mapping_link->fromnode ? mapping_link->fromnode :
+                                                                  nullptr);
 
   BLI_assert(mapping_node && mapping_node->type == SH_NODE_MAPPING);
 
@@ -410,7 +411,7 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
 
   if (mapping_node->custom1 != TEXMAP_TYPE_POINT) {
     if (bNodeSocket *socket = nodeFindSocket(mapping_node, SOCK_IN, "Vector")) {
-       create_uv_input(usd_export_context, socket, usd_material, usd_input, default_uv);
+      create_uv_input(usd_export_context, socket, usd_material, usd_input, default_uv);
     }
     return;
   }
@@ -472,8 +473,8 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
     }
   }
 
-  if (pxr::UsdShadeInput rot_input = transform2d_shader.CreateInput(
-          usdtokens::rotation, pxr::SdfValueTypeNames->Float))
+  if (pxr::UsdShadeInput rot_input = transform2d_shader.CreateInput(usdtokens::rotation,
+                                                                    pxr::SdfValueTypeNames->Float))
   {
     /* Convert to degrees. */
     float rot_val = rot[2] * 180.0f / M_PI;
@@ -486,8 +487,8 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
   }
 
   if (bNodeSocket *socket = nodeFindSocket(mapping_node, SOCK_IN, "Vector")) {
-    if (pxr::UsdShadeInput in_input = transform2d_shader.CreateInput(usdtokens::in,
-                                                                     pxr::SdfValueTypeNames->Float2))
+    if (pxr::UsdShadeInput in_input = transform2d_shader.CreateInput(
+            usdtokens::in, pxr::SdfValueTypeNames->Float2))
     {
       create_uv_input(usd_export_context, socket, usd_material, in_input, default_uv);
     }
@@ -600,8 +601,7 @@ static void export_in_memory_texture(Image *ima,
     /* We are copying to a file system directory, so we can write the image buffer
      * directly to the destination. */
     if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == 0) {
-      WM_reportf(RPT_WARNING,
-                 "USD export: couldn't save in-memory texture to %s", export_path);
+      WM_reportf(RPT_WARNING, "USD export: couldn't save in-memory texture to %s", export_path);
     }
     return;
   }
@@ -618,17 +618,18 @@ static void export_in_memory_texture(Image *ima,
   std::cout << "Saving in-memory texture to temporary location " << temp_filepath << std::endl;
 
   if (BKE_imbuf_write_as(imbuf, temp_filepath, &imageFormat, true) == 0) {
-    WM_reportf(RPT_WARNING, "USD export: couldn't save in-memory texture to temporary location %s", temp_filepath);
+    WM_reportf(RPT_WARNING,
+               "USD export: couldn't save in-memory texture to temporary location %s",
+               temp_filepath);
   }
 
   /* Copy to destination. */
   if (!copy_asset(temp_filepath,
                   export_path,
                   allow_overwrite ? USD_TEX_NAME_COLLISION_OVERWRITE :
-                                    USD_TEX_NAME_COLLISION_USE_EXISTING)) {
-    WM_reportf(RPT_WARNING,
-               "USD export: couldn't export in-memory texture to %s",
-               temp_filepath);
+                                    USD_TEX_NAME_COLLISION_USE_EXISTING))
+  {
+    WM_reportf(RPT_WARNING, "USD export: couldn't export in-memory texture to %s", temp_filepath);
   }
 
   BLI_delete(temp_filepath, false, false);
@@ -862,8 +863,8 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
     /* Also iterate over the new links to cover passthrough links. */
     glinks_last = (bNodeLink *)ntree->links.last;
     /* output links */
-    for (tlink = (bNodeLink *)ntree->links.first; tlink != glinks_first->next;
-         tlink = tlink->next) {
+    for (tlink = (bNodeLink *)ntree->links.first; tlink != glinks_first->next; tlink = tlink->next)
+    {
       if (tlink->fromnode == gnode) {
         const char *identifier = tlink->fromsock->identifier;
         /* find internal links to this output */
@@ -1362,7 +1363,6 @@ static void set_default(bNode *node,
       break;
   }
 }
-
 
 /* Creates a USDShadeShader based on given cycles shading node */
 static pxr::UsdShadeShader create_cycles_shader_node(pxr::UsdStageRefPtr a_stage,
@@ -2134,13 +2134,8 @@ void create_usd_cycles_material(pxr::UsdStageRefPtr a_stage,
 
   localize(localtree, localtree);
 
-  store_cycles_nodes(a_stage,
-                     localtree,
-                     usd_material.GetPath(),
-                     &output,
-                     export_params);
-  link_cycles_nodes(
-      a_stage, usd_material, localtree, usd_material.GetPath());
+  store_cycles_nodes(a_stage, localtree, usd_material.GetPath(), &output, export_params);
+  link_cycles_nodes(a_stage, usd_material, localtree, usd_material.GetPath());
 
   ntreeFreeLocalTree(localtree);
   MEM_freeN(localtree);
@@ -2316,7 +2311,8 @@ static std::string get_tex_image_asset_filepath(Image *ima)
 static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_export_context,
                                                 bNode *node)
 {
-  return get_tex_image_asset_filepath(node, usd_export_context.stage, usd_export_context.export_params);
+  return get_tex_image_asset_filepath(
+      node, usd_export_context.stage, usd_export_context.export_params);
 }
 
 /* Gets an asset path for the given texture image node. The resulting path
@@ -2454,9 +2450,7 @@ static void copy_tiled_textures(Image *ima,
     }
 
     /* Copy the file. */
-    if (!copy_asset(src_tile_path,
-                    dest_tile_path,
-                    tex_name_collision_mode)) {
+    if (!copy_asset(src_tile_path, dest_tile_path, tex_name_collision_mode)) {
       WM_reportf(RPT_WARNING,
                  "USD export:  couldn't copy texture tile from %s to %s",
                  src_tile_path,
@@ -2492,7 +2486,8 @@ static void copy_single_file(Image *ima, const std::string &dest_dir, const bool
   if (!copy_asset(source_path,
                   dest_path,
                   allow_overwrite ? USD_TEX_NAME_COLLISION_OVERWRITE :
-                                    USD_TEX_NAME_COLLISION_USE_EXISTING)) {
+                                    USD_TEX_NAME_COLLISION_USE_EXISTING))
+  {
     WM_reportf(
         RPT_WARNING, "USD export:  couldn't copy texture from %s to %s", source_path, dest_path);
   }
@@ -2534,9 +2529,7 @@ static void export_texture(const USDExporterContext &usd_export_context, bNode *
       node, usd_export_context.stage, usd_export_context.export_params.overwrite_textures);
 }
 
-void export_texture(bNode *node,
-                    const pxr::UsdStageRefPtr stage,
-                    const bool allow_overwrite)
+void export_texture(bNode *node, const pxr::UsdStageRefPtr stage, const bool allow_overwrite)
 {
   if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
     return;
@@ -2565,9 +2558,10 @@ void export_texture(bNode *node,
   }
 }
 
-
 /* Export the texture of every texture image node in the given material's node tree. */
-static void export_textures(const Material *material, const pxr::UsdStageRefPtr stage, const bool allow_overwrite)
+static void export_textures(const Material *material,
+                            const pxr::UsdStageRefPtr stage,
+                            const bool allow_overwrite)
 {
   if (!(material && material->use_nodes)) {
     return;
@@ -2579,7 +2573,6 @@ static void export_textures(const Material *material, const pxr::UsdStageRefPtr 
 
   export_textures(material->nodetree, stage, allow_overwrite);
 }
-
 
 const pxr::TfToken token_for_input(const char *input_name)
 {
@@ -2601,26 +2594,22 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Define(usd_export_context.stage,
                                                                      usd_path);
 
-    bool textures_exported = false;
+  bool textures_exported = false;
 
   if (material->use_nodes && usd_export_context.export_params.generate_mdl) {
     create_mdl_material(usd_export_context, material, usd_material);
     if (usd_export_context.export_params.export_textures) {
-      export_textures(material,
-                      usd_export_context.stage,
-                      usd_export_context.export_params.overwrite_textures);
+      export_textures(
+          material, usd_export_context.stage, usd_export_context.export_params.overwrite_textures);
       textures_exported = true;
     }
   }
   if (material->use_nodes && usd_export_context.export_params.generate_cycles_shaders) {
-    create_usd_cycles_material(usd_export_context.stage,
-                               material,
-                               usd_material,
-                               usd_export_context.export_params);
+    create_usd_cycles_material(
+        usd_export_context.stage, material, usd_material, usd_export_context.export_params);
     if (!textures_exported && usd_export_context.export_params.export_textures) {
-      export_textures(material,
-                      usd_export_context.stage,
-                      usd_export_context.export_params.overwrite_textures);
+      export_textures(
+          material, usd_export_context.stage, usd_export_context.export_params.overwrite_textures);
       textures_exported = true;
     }
   }

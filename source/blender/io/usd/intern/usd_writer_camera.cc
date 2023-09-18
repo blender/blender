@@ -27,7 +27,7 @@ bool USDCameraWriter::is_supported(const HierarchyContext *context) const
   return camera->type == CAM_PERSP;
 }
 
-//static void camera_sensor_size_for_render(const Camera *camera,
+// static void camera_sensor_size_for_render(const Camera *camera,
 //                                          const RenderData *rd,
 //                                          float *r_sensor_x,
 //                                          float *r_sensor_y)
@@ -70,10 +70,10 @@ void USDCameraWriter::do_write(HierarchyContext &context)
   usd_camera.CreateProjectionAttr().Set(pxr::UsdGeomTokens->perspective);
 
   /*
-  * For USD, these camera properties are in tenths of a world unit.
-  * https://graphics.pixar.com/usd/release/api/class_usd_geom_camera.html#UsdGeom_CameraUnits
-  * val_in_tenths_of_units = val_in_meters * 10.0f * (units / meter)
-  */
+   * For USD, these camera properties are in tenths of a world unit.
+   * https://graphics.pixar.com/usd/release/api/class_usd_geom_camera.html#UsdGeom_CameraUnits
+   * val_in_tenths_of_units = val_in_meters * 10.0f * (units / meter)
+   */
   const float scale_from_mm = .001f * 10.0f * unit_scale;
 
   const float focal_length = camera->lens * scale_from_mm;
@@ -83,7 +83,7 @@ void USDCameraWriter::do_write(HierarchyContext &context)
   /*float aperture_x, aperture_y;
   camera_sensor_size_for_render(camera, &scene->r, &aperture_x, &aperture_y);*/
 
-  float aperture_x = camera->sensor_x  * scale_from_mm;
+  float aperture_x = camera->sensor_x * scale_from_mm;
   float aperture_y = camera->sensor_y * scale_from_mm;
 
   float film_aspect = aperture_x / aperture_y;

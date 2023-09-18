@@ -53,4 +53,3 @@ std::string get_tex_image_asset_filepath(const std::string &asset_path,
                                          const USDExportParams &export_params);
 
 }  // namespace blender::io::usd
-

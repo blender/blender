@@ -69,7 +69,6 @@ void USDHierarchyIterator::set_export_frame(float frame_nr)
   export_time_ = pxr::UsdTimeCode(frame_nr);
 }
 
-
 USDExporterContext USDHierarchyIterator::create_usd_export_context(const HierarchyContext *context)
 {
   pxr::SdfPath path;
@@ -82,7 +81,8 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
 
   bool can_merge_with_xform = true;
   if (this->params_.export_armatures &&
-      (is_skinned_mesh(context->object) || context->object->type == OB_ARMATURE)) {
+      (is_skinned_mesh(context->object) || context->object->type == OB_ARMATURE))
+  {
     can_merge_with_xform = false;
   }
 
@@ -108,7 +108,8 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_transform_writer(
     const HierarchyContext *context)
 {
   if (this->params_.export_armatures &&
-      (is_skinned_mesh(context->object) || context->object->type == OB_ARMATURE)) {
+      (is_skinned_mesh(context->object) || context->object->type == OB_ARMATURE))
+  {
     return new USDSkelRootWriter(create_usd_export_context(context));
   }
 
@@ -131,12 +132,13 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
   switch (context->object->type) {
     case OB_MESH:
       if (usd_export_context.export_params.export_meshes) {
-        if (usd_export_context.export_params.export_armatures &&
-            is_skinned_mesh(context->object)) {
+        if (usd_export_context.export_params.export_armatures && is_skinned_mesh(context->object))
+        {
           data_writer = new USDSkinnedMeshWriter(usd_export_context);
         }
         else if (usd_export_context.export_params.export_blendshapes &&
-                 is_blendshape_mesh(context->object)) {
+                 is_blendshape_mesh(context->object))
+        {
           data_writer = new USDBlendShapeMeshWriter(usd_export_context);
         }
         else {
@@ -162,7 +164,7 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
       data_writer = new USDMetaballWriter(usd_export_context);
       break;
     case OB_CURVES_LEGACY:
-    case OB_CURVES:   
+    case OB_CURVES:
       if (usd_export_context.export_params.export_curves) {
         data_writer = new USDCurvesWriter(usd_export_context);
       }

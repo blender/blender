@@ -75,7 +75,8 @@ pxr::UsdGeomXformable USDTransformWriter::create_xformable() const
 bool USDTransformWriter::should_apply_root_xform(const HierarchyContext &context) const
 {
   if (!(usd_export_context_.export_params.convert_orientation ||
-        usd_export_context_.export_params.convert_to_cm)) {
+        usd_export_context_.export_params.convert_to_cm))
+  {
     return false;
   }
 
@@ -107,7 +108,8 @@ void USDTransformWriter::do_write(HierarchyContext &context)
   if (usd_export_context_.export_params.export_transforms) {
     float parent_relative_matrix[4][4];  // The object matrix relative to the parent.
 
-    // TODO(makowalski): This is inefficient checking for every transform and should be moved elsewhere.
+    // TODO(makowalski): This is inefficient checking for every transform and should be moved
+    // elsewhere.
     // TODO(makowalski): Use get_export_conversion_matrix() here, to avoid duplicating code.
     if (should_apply_root_xform(context)) {
       float matrix_world[4][4];
@@ -141,7 +143,8 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     // This check ensures transforms of non-identity are authored
     // preventing usd composition collisions up and down stream.
     if (usd_export_context_.export_params.export_identity_transforms ||
-        !compare_m4m4(parent_relative_matrix, UNIT_M4, 0.000000001f)) {
+        !compare_m4m4(parent_relative_matrix, UNIT_M4, 0.000000001f))
+    {
       set_xform_ops(parent_relative_matrix, xform);
     }
   }

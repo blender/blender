@@ -63,9 +63,7 @@ struct BoneVisitor {
 struct BoneNameList : public BoneVisitor {
   std::vector<std::string> *names;
 
-  BoneNameList(std::vector<std::string> *in_names) : names(in_names)
-  {
-  }
+  BoneNameList(std::vector<std::string> *in_names) : names(in_names) {}
 
   void Visit(const Bone *bone) override
   {
@@ -85,9 +83,7 @@ struct BoneDataBuilder : public BoneVisitor {
 
   pxr::GfMatrix4f world_mat;
 
-  BoneDataBuilder(const pxr::GfMatrix4f &in_world_mat) : world_mat(in_world_mat)
-  {
-  }
+  BoneDataBuilder(const pxr::GfMatrix4f &in_world_mat) : world_mat(in_world_mat) {}
 
   void Visit(const Bone *bone) override
   {
@@ -219,9 +215,7 @@ void USDArmatureWriter::get_armature_bone_names(Object *obj, std::vector<std::st
   visit_bones(obj, &name_list);
 }
 
-USDArmatureWriter::USDArmatureWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDArmatureWriter::USDArmatureWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 void USDArmatureWriter::do_write(HierarchyContext &context)
 {

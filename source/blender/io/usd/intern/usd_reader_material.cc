@@ -4,7 +4,6 @@
 
 #include "usd_reader_material.h"
 
-
 #include "usd_umm.h"
 
 #include "usd_asset_utils.h"
@@ -30,8 +29,8 @@
 #include "WM_api.hh"
 
 #include <pxr/base/gf/vec3f.h>
-#include <pxr/usd/ar/resolver.h>
 #include <pxr/usd/ar/packageUtils.h>
+#include <pxr/usd/ar/resolver.h>
 
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/shader.h>
@@ -383,7 +382,8 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
   }
 }
 
-static pxr::UsdShadeInput get_input(const pxr::UsdShadeShader &usd_shader, const pxr::TfToken &input_name)
+static pxr::UsdShadeInput get_input(const pxr::UsdShadeShader &usd_shader,
+                                    const pxr::TfToken &input_name)
 {
   pxr::UsdShadeInput input = usd_shader.GetInput(input_name);
 
@@ -488,7 +488,9 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
     if (!mdl_imported && usd_preview) {
       /* The material has no MDL shader or we couldn't convert the MDL,
        * so fall back on importing UsdPreviewSuface. */
-      WM_reportf(RPT_INFO, "Couldn't import MDL shader for material %s, importing USD Preview Surface shaders instead",
+      WM_reportf(RPT_INFO,
+                 "Couldn't import MDL shader for material %s, importing USD Preview Surface "
+                 "shaders instead",
                  mtl_name.c_str());
       import_usd_preview(mtl, usd_preview);
     }
@@ -866,7 +868,6 @@ void USDMaterialReader::convert_usd_transform_2d(const pxr::UsdShadeShader &usd_
         }
       }
     }
-
   }
 
   /* Connect to destination node input. */
@@ -906,7 +907,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
     }
     else {
       std::cerr << "ERROR: couldn't get connected source for file input "
-        << file_input.GetPrim().GetPath() << " " << file_input.GetFullName() << std::endl;
+                << file_input.GetPrim().GetPath() << " " << file_input.GetFullName() << std::endl;
     }
   }
 
@@ -1107,7 +1108,8 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
   link_nodes(ntree, uv_map, "UV", dest_node, dest_socket_name);
 }
 
-void USDMaterialReader::pack_imported_textures(Material *material, bool delete_temp_textures_dir) const
+void USDMaterialReader::pack_imported_textures(Material *material,
+                                               bool delete_temp_textures_dir) const
 {
   if (!(material && material->use_nodes)) {
     return;

@@ -24,7 +24,6 @@
 
 #include <iostream>
 
-
 namespace {
 
 template<typename T>
@@ -192,7 +191,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   const float radius_scale = meters_per_unit * usd_world_scale_;
 
   /* Intensity */
- 
+
   float intensity = 0.0f;
   if (get_authored_value(light_api.GetIntensityAttr(), motionSampleTime, &intensity)) {
 

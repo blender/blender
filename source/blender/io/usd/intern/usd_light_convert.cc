@@ -573,7 +573,8 @@ void dome_light_to_world_material(const USDImportParams &params,
   tex->id = &image->id;
 
   if (import_textures && params.import_textures_mode == USD_TEX_IMPORT_PACK &&
-      !BKE_image_has_packedfile(image)) {
+      !BKE_image_has_packedfile(image))
+  {
     BKE_image_packfiles(nullptr, image, ID_BLEND_PATH(bmain, &image->id));
     if (BLI_is_dir(temp_textures_dir())) {
       BLI_delete(temp_textures_dir(), true, true);

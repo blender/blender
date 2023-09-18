@@ -108,7 +108,6 @@ bool should_import_asset(const std::string &path);
  */
 bool paths_equal(const char *p1, const char *p2);
 
-
 /**
  * Returns path to temporary folder for saving imported textures prior to packing.
  * CAUTION: this directory is recursively deleted after material import.

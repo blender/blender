@@ -302,7 +302,7 @@ bool is_udim_path(const std::string &path)
          path.find(UDIM_PATTERN2) != std::string::npos;
 }
 
- std::string get_export_textures_dir(const pxr::UsdStageRefPtr stage)
+std::string get_export_textures_dir(const pxr::UsdStageRefPtr stage)
 {
   pxr::SdfLayerHandle layer = stage->GetRootLayer();
 
@@ -315,8 +315,7 @@ bool is_udim_path(const std::string &path)
   pxr::ArResolvedPath stage_path = layer->GetResolvedPath();
 
   if (stage_path.empty()) {
-    WM_reportf(
-        RPT_WARNING, "%s: Can't get resolved path for stage", __func__);
+    WM_reportf(RPT_WARNING, "%s: Can't get resolved path for stage", __func__);
     return "";
   }
 
@@ -358,35 +357,33 @@ bool should_import_asset(const std::string &path)
   return !BLI_is_file(path.c_str()) && asset_exists(path.c_str());
 }
 
- bool paths_equal(const char *p1, const char *p2)
- {
-   BLI_assert_msg(!BLI_path_is_rel(p1) && !BLI_path_is_rel(p2),
-                  "Paths arguments must be absolute");
+bool paths_equal(const char *p1, const char *p2)
+{
+  BLI_assert_msg(!BLI_path_is_rel(p1) && !BLI_path_is_rel(p2), "Paths arguments must be absolute");
 
-   pxr::ArResolver &ar = pxr::ArGetResolver();
+  pxr::ArResolver &ar = pxr::ArGetResolver();
 
-   std::string resolved_p1 = ar.ResolveForNewAsset(p1).GetPathString();
-   std::string resolved_p2 = ar.ResolveForNewAsset(p2).GetPathString();
+  std::string resolved_p1 = ar.ResolveForNewAsset(p1).GetPathString();
+  std::string resolved_p2 = ar.ResolveForNewAsset(p2).GetPathString();
 
-   return resolved_p1 == resolved_p2;
- }
+  return resolved_p1 == resolved_p2;
+}
 
- const char *temp_textures_dir()
- {
-   static bool inited = false;
+const char *temp_textures_dir()
+{
+  static bool inited = false;
 
-   static char temp_dir[FILE_MAXDIR] = {'\0'};
+  static char temp_dir[FILE_MAXDIR] = {'\0'};
 
-   if (!inited) {
-     BLI_path_join(temp_dir, sizeof(temp_dir), BKE_tempdir_session(), "usd_textures_tmp", SEP_STR);
-     inited = true;
-   }
+  if (!inited) {
+    BLI_path_join(temp_dir, sizeof(temp_dir), BKE_tempdir_session(), "usd_textures_tmp", SEP_STR);
+    inited = true;
+  }
 
-   return temp_dir;
- }
+  return temp_dir;
+}
 
 }  // namespace blender::io::usd
-
 
 void USD_path_abs(char *path, const char *basepath, bool for_import)
 {
@@ -402,7 +399,8 @@ void USD_path_abs(char *path, const char *basepath, bool for_import)
         return;
       }
       WM_reportf(RPT_ERROR,
-                 "In %s: resolved path %s exceeds path buffer length.", __func__,
+                 "In %s: resolved path %s exceeds path buffer length.",
+                 __func__,
                  path_str.c_str());
     }
   }

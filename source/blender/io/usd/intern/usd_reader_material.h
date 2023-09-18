@@ -152,7 +152,7 @@ class USDMaterialReader {
    * Pack imported textures referenced by this material and optionally delete
    * the temporary textures import directory when done processing.
    */
-  void pack_imported_textures(Material *material, bool delete_temp_textures_dir=true) const;
+  void pack_imported_textures(Material *material, bool delete_temp_textures_dir = true) const;
 };
 
 /* Utility functions. */

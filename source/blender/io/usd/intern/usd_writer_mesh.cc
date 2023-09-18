@@ -134,7 +134,8 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
                                 eModifierMode_Render;
 
   m_subsurf_mod = get_subsurf_modifier(context.object, mode);
-  const bool should_disable_temporary = m_subsurf_mod && !usd_export_context_.export_params.apply_subdiv;
+  const bool should_disable_temporary = m_subsurf_mod &&
+                                        !usd_export_context_.export_params.apply_subdiv;
 
   if (should_disable_temporary) {
     m_subsurf_mod->mode |= eModifierMode_DisableTemporary;
@@ -245,7 +246,6 @@ void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh 
         return true;
       });
 }
-
 
 static std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(
     const eCustomDataType blender_type)

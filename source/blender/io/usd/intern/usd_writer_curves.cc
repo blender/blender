@@ -16,8 +16,8 @@
 
 #include "DNA_curve_types.h"
 
-#include "BKE_curves.hh"
 #include "BKE_curve_legacy_convert.hh"
+#include "BKE_curves.hh"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
 
@@ -71,7 +71,9 @@ pxr::UsdGeomCurves USDCurvesWriter::DefineUsdGeomBasisCurves(pxr::VtValue curve_
   return curves;
 }
 
-static void populate_curve_widths(const bke::CurvesGeometry &geometry, pxr::VtArray<float> &widths, const float multiplier)
+static void populate_curve_widths(const bke::CurvesGeometry &geometry,
+                                  pxr::VtArray<float> &widths,
+                                  const float multiplier)
 {
   const bke::AttributeAccessor curve_attributes = geometry.attributes();
   const bke::AttributeReader<float> radii = curve_attributes.lookup<float>("radius",
@@ -460,15 +462,27 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
     case CURVE_TYPE_POLY:
       usd_curves = DefineUsdGeomBasisCurves(pxr::VtValue(), is_cyclic, false);
 
-      populate_curve_props(
-          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, false, bevel_radius);
+      populate_curve_props(geometry,
+                           verts,
+                           control_point_counts,
+                           widths,
+                           interpolation,
+                           is_cyclic,
+                           false,
+                           bevel_radius);
       break;
     case CURVE_TYPE_CATMULL_ROM:
       usd_curves = DefineUsdGeomBasisCurves(
           pxr::VtValue(pxr::UsdGeomTokens->catmullRom), is_cyclic, true);
 
-      populate_curve_props(
-          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, true, bevel_radius);
+      populate_curve_props(geometry,
+                           verts,
+                           control_point_counts,
+                           widths,
+                           interpolation,
+                           is_cyclic,
+                           true,
+                           bevel_radius);
       break;
     case CURVE_TYPE_BEZIER:
       usd_curves = DefineUsdGeomBasisCurves(
@@ -485,8 +499,15 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       usd_curves = pxr::UsdGeomNurbsCurves::Define(usd_export_context_.stage,
                                                    usd_export_context_.usd_path);
 
-      populate_curve_props_for_nurbs(
-          geometry, verts, control_point_counts, widths, knots, orders, interpolation, is_cyclic, bevel_radius);
+      populate_curve_props_for_nurbs(geometry,
+                                     verts,
+                                     control_point_counts,
+                                     widths,
+                                     knots,
+                                     orders,
+                                     interpolation,
+                                     is_cyclic,
+                                     bevel_radius);
 
       set_writer_attributes_for_nurbs(usd_curves, knots, orders, timecode);
 

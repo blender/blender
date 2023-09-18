@@ -22,10 +22,10 @@
 #  include "usd_asset_utils.h"
 #  include "usd_exporter_context.h"
 
-#include <boost/python/call.hpp>
-#include <boost/python/dict.hpp>
-#include <boost/python/import.hpp>
-#include <boost/python/list.hpp>
+#  include <boost/python/call.hpp>
+#  include <boost/python/dict.hpp>
+#  include <boost/python/import.hpp>
+#  include <boost/python/list.hpp>
 
 #  include <pxr/usd/sdf/copyUtils.h>
 
@@ -80,13 +80,12 @@ static PyObject *import_texture_noop(PyObject *self, PyObject *args)
   return PyUnicode_FromString(asset_path);
 }
 
-static PyMethodDef import_texture_noop_method = {
-    "import_texture_noop_cb",
-    import_texture_noop,
-    METH_VARARGS,
-    "A no-op function that returns the input path "
-    "argument unchanged, used when texture importing "
-    "is turned off."};
+static PyMethodDef import_texture_noop_method = {"import_texture_noop_cb",
+                                                 import_texture_noop,
+                                                 METH_VARARGS,
+                                                 "A no-op function that returns the input path "
+                                                 "argument unchanged, used when texture importing "
+                                                 "is turned off."};
 
 static PyObject *import_texture(PyObject *self, PyObject *args)
 {
@@ -134,19 +133,17 @@ static PyObject *import_texture(PyObject *self, PyObject *args)
   return PyUnicode_FromString(asset_path);
 }
 
-static PyMethodDef import_texture_method = {
-    "import_texture",
-    import_texture,
-    METH_VARARGS,
-    "If the given texture asset path is a URI or is "
-    "relative to a USDZ arhive, attempt to copy the "
-    "texture to the local file system and return the "
-    "asset's local path. The source path will be "
-    "returned unchanged if it's alreay a local "
-    "file or if it could not be copied to a local "
-    "destination. The function may return None if "
-    "there was a Python error."};
-
+static PyMethodDef import_texture_method = {"import_texture",
+                                            import_texture,
+                                            METH_VARARGS,
+                                            "If the given texture asset path is a URI or is "
+                                            "relative to a USDZ arhive, attempt to copy the "
+                                            "texture to the local file system and return the "
+                                            "asset's local path. The source path will be "
+                                            "returned unchanged if it's alreay a local "
+                                            "file or if it could not be copied to a local "
+                                            "destination. The function may return None if "
+                                            "there was a Python error."};
 
 static PyObject *create_import_texture_cb(const USDImportParams &import_params)
 {

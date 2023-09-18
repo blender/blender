@@ -38,7 +38,8 @@
 #include "io_ply_ops.hh"
 #include "io_stl_ops.hh"
 
-bool IO_paneltype_set_parent(struct PanelType *panel) {
+bool IO_paneltype_set_parent(struct PanelType *panel)
+{
   PanelType *parent = NULL;
 
   SpaceType *space_type = BKE_spacetype_from_id(SPACE_FILE);

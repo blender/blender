@@ -36,9 +36,7 @@
 
 namespace blender::io::usd {
 
-USDParticleWriter::USDParticleWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDParticleWriter::USDParticleWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 bool USDParticleWriter::is_supported(const HierarchyContext *context) const
 {

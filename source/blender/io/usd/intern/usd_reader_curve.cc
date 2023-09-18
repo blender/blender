@@ -156,7 +156,7 @@ void USDCurvesReader::read_curve_sample(Curve *cu, const double motionSampleTime
         else {
           /* When the number of width values is less than the number of points,
            * continue using the last available value. */
-          radius = usdWidths[usdWidths.size()-1];
+          radius = usdWidths[usdWidths.size() - 1];
         }
 
         bp->radius = radius;

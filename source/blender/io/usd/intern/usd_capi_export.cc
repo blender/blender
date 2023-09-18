@@ -39,12 +39,12 @@
 #include "BKE_blender_version.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
+#include "BKE_image_format.h"
+#include "BKE_image_save.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
-#include "BKE_image.h"
-#include "BKE_image_save.h"
-#include "BKE_image_format.h"
-#include "BKE_lib_id.h"
 
 #include "BLI_fileops.h"
 #include "BLI_math_matrix.h"
@@ -214,8 +214,10 @@ static void validate_unique_root_prim_path(USDExportParams &params, Depsgraph *d
   DEG_OBJECT_ITER_END;
 
   if (match) {
-    WM_reportf(
-      RPT_WARNING, "USD Export: the root prim will not be added because a root object named '%s' already exists", root_name.c_str());
+    WM_reportf(RPT_WARNING,
+               "USD Export: the root prim will not be added because a root object named '%s' "
+               "already exists",
+               root_name.c_str());
     params.root_prim_path[0] = '\0';
   }
 }
@@ -232,7 +234,8 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
     return;
   }
 
-  pxr::UsdGeomXform root_xf = pxr::UsdGeomXform::Define(stage, pxr::SdfPath(params.root_prim_path));
+  pxr::UsdGeomXform root_xf = pxr::UsdGeomXform::Define(stage,
+                                                        pxr::SdfPath(params.root_prim_path));
 
   if (!(params.convert_orientation || params.convert_to_cm)) {
     return;
@@ -302,15 +305,16 @@ static void report_job_duration(const ExportJobData *data)
   std::cout << '\n';
 }
 
-static void process_usdz_textures(const ExportJobData *data, const char *path) {
+static void process_usdz_textures(const ExportJobData *data, const char *path)
+{
   const eUSDZTextureDownscaleSize enum_value = data->params.usdz_downscale_size;
   if (enum_value == USD_TEXTURE_SIZE_KEEP) {
     return;
   }
 
-  int image_size = (
-      (enum_value == USD_TEXTURE_SIZE_CUSTOM ? data->params.usdz_downscale_custom_size : enum_value)
-  );
+  int image_size = ((enum_value == USD_TEXTURE_SIZE_CUSTOM ?
+                         data->params.usdz_downscale_custom_size :
+                         enum_value));
 
   image_size = image_size < 128 ? 128 : image_size;
 
@@ -328,7 +332,8 @@ static void process_usdz_textures(const ExportJobData *data, const char *path) {
     if (!BLI_is_dir(entries[index].path)) {
       Image *im = BKE_image_load_ex(data->bmain, entries[index].path, LIB_ID_CREATE_NO_MAIN);
       if (!im) {
-        std::cerr << "-- Unable to open file for downscaling: " << entries[index].path << std::endl;
+        std::cerr << "-- Unable to open file for downscaling: " << entries[index].path
+                  << std::endl;
         continue;
       }
 
@@ -338,7 +343,7 @@ static void process_usdz_textures(const ExportJobData *data, const char *path) {
       const float scale = 1.0 / ((float)longest / (float)image_size);
 
       if (longest > image_size) {
-        const int width_adjusted  = (float)width * scale;
+        const int width_adjusted = (float)width * scale;
         const int height_adjusted = (float)height * scale;
         BKE_image_scale(im, width_adjusted, height_adjusted);
 
@@ -347,12 +352,13 @@ static void process_usdz_textures(const ExportJobData *data, const char *path) {
         if (BKE_image_save_options_init(&opts, data->bmain, data->scene, im, NULL, false, false)) {
           bool result = BKE_image_save(NULL, data->bmain, im, NULL, &opts);
           if (!result) {
-            std::cerr << "-- Unable to resave " << data->usdz_filepath << " (new size: "
-                      << width_adjusted << "x" << height_adjusted << ")" << std::endl;
+            std::cerr << "-- Unable to resave " << data->usdz_filepath
+                      << " (new size: " << width_adjusted << "x" << height_adjusted << ")"
+                      << std::endl;
           }
           else {
-            std::cout << "Downscaled " << entries[index].path << " to "
-                      << width_adjusted << "x" << height_adjusted << std::endl;
+            std::cout << "Downscaled " << entries[index].path << " to " << width_adjusted << "x"
+                      << height_adjusted << std::endl;
           }
         }
 
@@ -361,7 +367,7 @@ static void process_usdz_textures(const ExportJobData *data, const char *path) {
 
       /* Make sure to free the image so it doesn't stick
        * around in the library of the open file. */
-      BKE_id_free(data->bmain, (void*)im);
+      BKE_id_free(data->bmain, (void *)im);
     }
   }
 
@@ -441,8 +447,7 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
   Scene *scene = DEG_get_input_scene(depsgraph);
   Main *bmain = DEG_get_bmain(depsgraph);
 
-  if (params.export_lights && !params.selected_objects_only &&
-      params.convert_world_material) {
+  if (params.export_lights && !params.selected_objects_only && params.convert_world_material) {
     world_material_to_dome_light(params, scene, usd_stage);
   }
 
@@ -504,12 +509,11 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
   USDHierarchyIterator iter(bmain, depsgraph, usd_stage, params);
 
   if (params.export_animation) {
-     /* Writing the animated frames is not 100% of the work, but it's our best guess. */
+    /* Writing the animated frames is not 100% of the work, but it's our best guess. */
     float num_frames = (float)(params.frame_end - params.frame_start + 1.0) / params.frame_step;
     float progress_per_frame = 1.0f / std::max(1.0f, num_frames);
 
-    for (float frame = params.frame_start; frame <= params.frame_end;
-         frame += params.frame_step) {
+    for (float frame = params.frame_start; frame <= params.frame_end; frame += params.frame_step) {
       if (G.is_break || (stop != nullptr && *stop)) {
         break;
       }
@@ -543,8 +547,7 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
   /* Set Stage Default Prim Path. */
   if (strlen(params.default_prim_path) > 0) {
-    std::string valid_default_prim_path = pxr::TfMakeValidIdentifier(
-        params.default_prim_path);
+    std::string valid_default_prim_path = pxr::TfMakeValidIdentifier(params.default_prim_path);
 
     if (valid_default_prim_path[0] == '_') {
       valid_default_prim_path[0] = '/';

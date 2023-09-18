@@ -29,9 +29,7 @@ void validate_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &param
 class USDSkelRootWriter : public USDTransformWriter {
 
  public:
-  USDSkelRootWriter(const USDExporterContext &ctx) : USDTransformWriter(ctx)
-  {
-  }
+  USDSkelRootWriter(const USDExporterContext &ctx) : USDTransformWriter(ctx) {}
 
  protected:
   /* Override to create UsdSkelRoot prim. */

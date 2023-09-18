@@ -82,7 +82,7 @@ static const Key *get_shape_key(Object *obj)
   return mesh->key;
 }
 
-//static void print_blendshape_info(Object *obj)
+// static void print_blendshape_info(Object *obj)
 //{
 //  const Key *key = get_shape_key(obj);
 //
@@ -364,13 +364,16 @@ Mesh *USDBlendShapeMeshWriter::get_export_mesh(Object *object_eval, bool &r_need
   KeyBlock *basis = reinterpret_cast<KeyBlock *>(src_mesh->key->block.first);
 
   if (src_mesh->totvert != basis->totelem) {
-    WM_reportf(RPT_WARNING,
-               "USD Export: mesh %s can't be exported as a blendshape because the mesh vertex count %d "
-               "doesn't match shape key number of elements %d'.  This may be because the mesh topology was "
-               "changed by a modifier.  Exporting meshes with modifiers as blendshapes isn't currently supported",
-               object_eval->id.name + 2,
-               src_mesh->totvert,
-               basis->totelem);
+    WM_reportf(
+        RPT_WARNING,
+        "USD Export: mesh %s can't be exported as a blendshape because the mesh vertex count %d "
+        "doesn't match shape key number of elements %d'.  This may be because the mesh topology "
+        "was "
+        "changed by a modifier.  Exporting meshes with modifiers as blendshapes isn't currently "
+        "supported",
+        object_eval->id.name + 2,
+        src_mesh->totvert,
+        basis->totelem);
 
     return USDMeshWriter::get_export_mesh(object_eval, r_needsfree);
   }

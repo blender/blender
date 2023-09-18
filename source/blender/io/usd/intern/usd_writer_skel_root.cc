@@ -72,8 +72,7 @@ pxr::UsdGeomXformable USDSkelRootWriter::create_xformable() const
   return root;
 }
 
-static pxr::UsdGeomXform get_xform_ancestor(const pxr::UsdPrim &prim1,
-                                            const pxr::UsdPrim &prim2)
+static pxr::UsdGeomXform get_xform_ancestor(const pxr::UsdPrim &prim1, const pxr::UsdPrim &prim2)
 {
   if (!prim1 || !prim2) {
     return pxr::UsdGeomXform();
@@ -116,7 +115,8 @@ void validate_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &param
         if (skel_bind_api.GetSkeleton(&skel)) {
 
           if (!skel.GetPrim().IsValid()) {
-            std::cout << "WARNING in validate_skel_roots(): invalid skeleton for prim " << prim.GetPath() << std::endl;
+            std::cout << "WARNING in validate_skel_roots(): invalid skeleton for prim "
+                      << prim.GetPath() << std::endl;
             continue;
           }
 
@@ -130,26 +130,38 @@ void validate_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &param
           }
 
           if (!common_root) {
-            WM_reportf(RPT_WARNING, "USD Export: skinned prim %s and skeleton %s do not share a common SkelRoot and may not bind correctly.  See the documentation for possible solutions.\n",
-              prim.GetPath().GetAsString().c_str(), skel.GetPrim().GetPath().GetAsString().c_str());
-            std::cout << "WARNING: skinned prim " << prim.GetPath() << " and skeleton " << skel.GetPrim().GetPath()
-              << " do not share a common SkelRoot and may not bind correctly.  See the documentation for possible solutions." << std::endl;
+            WM_reportf(
+                RPT_WARNING,
+                "USD Export: skinned prim %s and skeleton %s do not share a common SkelRoot and "
+                "may not bind correctly.  See the documentation for possible solutions.\n",
+                prim.GetPath().GetAsString().c_str(),
+                skel.GetPrim().GetPath().GetAsString().c_str());
+            std::cout << "WARNING: skinned prim " << prim.GetPath() << " and skeleton "
+                      << skel.GetPrim().GetPath()
+                      << " do not share a common SkelRoot and may not bind correctly.  See the "
+                         "documentation for possible solutions."
+                      << std::endl;
 
             if (params.fix_skel_root) {
               std::cout << "Attempting to fix the Skel Root hierarchy." << std::endl;
-              WM_reportf(RPT_WARNING, "Attempting to fix the Skel Root hierarchy.  See the console for information");
+              WM_reportf(
+                  RPT_WARNING,
+                  "Attempting to fix the Skel Root hierarchy.  See the console for information");
 
               if (pxr::UsdGeomXform xf = get_xform_ancestor(prim, skel.GetPrim())) {
                 /* Enable skeletal processing by setting the type to UsdSkelRoot. */
-                std::cout << "Converting Xform prim " << xf.GetPath() << " to a SkelRoot" << std::endl;
+                std::cout << "Converting Xform prim " << xf.GetPath() << " to a SkelRoot"
+                          << std::endl;
 
                 pxr::UsdSkelRoot::Define(stage, xf.GetPath());
                 created_skel_root = true;
               }
               else {
-                std::cout << "Couldn't find a commone Xform ancestor for skinned prim " << prim.GetPath()
-                  << " and skeleton " << skel.GetPrim().GetPath() << " to convert to a USDSkelRoot\n";
-                std::cout << "You might wish to group these objects under an Empty in the Blender scene.\n";
+                std::cout << "Couldn't find a commone Xform ancestor for skinned prim "
+                          << prim.GetPath() << " and skeleton " << skel.GetPrim().GetPath()
+                          << " to convert to a USDSkelRoot\n";
+                std::cout << "You might wish to group these objects under an Empty in the Blender "
+                             "scene.\n";
               }
             }
           }
@@ -167,12 +179,12 @@ void validate_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &param
     if (prim.IsA<pxr::UsdSkelRoot>()) {
       if (pxr::UsdSkelRoot root = pxr::UsdSkelRoot::Find(prim.GetParent())) {
         /* This is a nested SkelRoot, so convert it to an Xform. */
-        std::cout << "Converting nested SkelRoot " << prim.GetPath() << " to an Xform." << std::endl;
+        std::cout << "Converting nested SkelRoot " << prim.GetPath() << " to an Xform."
+                  << std::endl;
         pxr::UsdGeomXform::Define(stage, prim.GetPath());
       }
     }
   }
-
 }
 
 }  // namespace blender::io::usd
