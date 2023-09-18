@@ -32,6 +32,7 @@ class BoneColor : public ::BoneColor {
 
   /* Support for storing in a blender::Set<BoneColor>.*/
   bool operator==(const BoneColor &other) const;
+  bool operator!=(const BoneColor &other) const;
   uint64_t hash() const;
 };
 

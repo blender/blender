@@ -62,6 +62,11 @@ bool BoneColor::operator==(const BoneColor &other) const
   return true;
 }
 
+bool BoneColor::operator!=(const BoneColor &other) const
+{
+  return !(*this == other);
+}
+
 uint64_t BoneColor::hash() const
 {
   if (palette_index >= 0) {
