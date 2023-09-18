@@ -158,8 +158,9 @@ Integrator::~Integrator() {}
 
 void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
-  if (!is_modified())
+  if (!is_modified()) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {

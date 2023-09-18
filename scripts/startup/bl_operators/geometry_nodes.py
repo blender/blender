@@ -14,8 +14,8 @@ from bpy.props import (
 
 def build_default_empty_geometry_node_group(name):
     group = bpy.data.node_groups.new(name, 'GeometryNodeTree')
-    group.interface.new_socket(data_("Geometry"), in_out={'OUTPUT'}, socket_type='NodeSocketGeometry')
-    group.interface.new_socket(data_("Geometry"), in_out={'INPUT'}, socket_type='NodeSocketGeometry')
+    group.interface.new_socket(data_("Geometry"), in_out='OUTPUT', socket_type='NodeSocketGeometry')
+    group.interface.new_socket(data_("Geometry"), in_out='INPUT', socket_type='NodeSocketGeometry')
     input_node = group.nodes.new('NodeGroupInput')
     output_node = group.nodes.new('NodeGroupOutput')
     output_node.is_active_output = True
@@ -158,7 +158,7 @@ class MoveModifierToNodes(Operator):
         # Copy default values for inputs and create named attribute input nodes.
         input_nodes = []
         first_geometry_input = None
-        for input_socket in old_group.interface.ui_items:
+        for input_socket in old_group.interface.items_tree:
             if input_socket.item_type != 'SOCKET' or (input_socket.in_out not in {'INPUT', 'BOTH'}):
                 continue
             identifier = input_socket.identifier
@@ -192,7 +192,7 @@ class MoveModifierToNodes(Operator):
         # Connect outputs to store named attribute nodes to replace modifier attribute outputs.
         store_nodes = []
         first_geometry_output = None
-        for output_socket in old_group.interface.ui_items:
+        for output_socket in old_group.interface.items_tree:
             if output_socket.item_type != 'SOCKET' or (output_socket.in_out not in {'OUTPUT', 'BOTH'}):
                 continue
             identifier = output_socket.identifier
@@ -271,17 +271,12 @@ class NewGeometryNodeTreeAssign(Operator):
 
     def execute(self, context):
         space = context.space_data
-        if space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'TOOL':
-            group = geometry_node_group_empty_new()
-            space.node_tree = group
-            return {'FINISHED'}
-        else:
-            modifier = get_context_modifier(context)
-            if not modifier:
-                return {'CANCELLED'}
-            group = geometry_node_group_empty_new()
-            group.is_modifier = True
-            modifier.node_group = group
+        modifier = get_context_modifier(context)
+        if not modifier:
+            return {'CANCELLED'}
+        group = geometry_node_group_empty_new()
+        group.is_modifier = True
+        modifier.node_group = group
 
         return {'FINISHED'}
 

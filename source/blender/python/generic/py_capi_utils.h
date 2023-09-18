@@ -10,6 +10,7 @@
 #ifndef __PY_CAPI_UTILS_H__
 #define __PY_CAPI_UTILS_H__
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines_variadic.h"
 
@@ -26,8 +27,18 @@ void PyC_ObSpit(const char *name, PyObject *var);
 void PyC_ObSpitStr(char *result, size_t result_maxncpy, PyObject *var);
 void PyC_LineSpit(void);
 void PyC_StackSpit(void);
-PyObject *PyC_ExceptionBuffer(void);
-PyObject *PyC_ExceptionBuffer_Simple(void);
+
+/**
+ * Return a string containing the full stack trace.
+ * - Only call when `PyErr_Occurred() != 0` .
+ * - The always returns a Python string.
+ */
+PyObject *PyC_ExceptionBuffer(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+/**
+ * A version of #PyC_ExceptionBuffer that returns the last exception only.
+ */
+PyObject *PyC_ExceptionBuffer_Simple(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+
 PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 PyObject *PyC_FrozenSetFromStrings(const char **strings);
 

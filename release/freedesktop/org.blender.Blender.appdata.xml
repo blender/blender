@@ -282,7 +282,7 @@
                 <p>Enhancements:</p>
                 <ul>
                     <li>Grease Pencil closer integration and improved performance</li>
-                    <li>Eevee improved render passes, light cache and hair transparency</li>
+                    <li>EEVEE improved render passes, light cache and hair transparency</li>
                     <li>Faster undo system</li>
                     <li>Rewritten multiresolution modifier</li>
                     <li>Improved hair physics collisions</li>
@@ -322,8 +322,8 @@
                 </ul>
                 <p>Enhancements:</p>
                 <ul>
-                    <li>Eevee shadows, transparency and bump mapping redesigned</li>
-                    <li>Viewport options for look development with Cycles and Eevee</li>
+                    <li>EEVEE shadows, transparency and bump mapping redesigned</li>
+                    <li>Viewport options for look development with Cycles and EEVEE</li>
                     <li>Finer control over rotations and scale in bones, constraints and drivers</li>
                     <li>Outliner improvements, new file browser and batch rename</li>
                 </ul>
@@ -335,7 +335,7 @@
                 <ul>
                     <li>Revamped user interface</li>
                     <li>Toolbar with tools and gizmos</li>
-                    <li>Eevee - physically based realtime renderer</li>
+                    <li>EEVEE - physically based realtime renderer</li>
                     <li>Modern 3D viewport</li>
                     <li>Full 2D animation and drawing system</li>
                     <li>New shaders for hair, sss, volumes, bevel and AO</li>

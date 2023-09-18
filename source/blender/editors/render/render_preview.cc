@@ -1240,7 +1240,7 @@ static void preview_id_copy_free(ID *id)
 {
   IDProperty *properties;
   /* get rid of copied ID */
-  properties = IDP_GetProperties(id, false);
+  properties = IDP_GetProperties(id);
   if (properties) {
     IDP_FreePropertyContent_ex(properties, false);
     MEM_freeN(properties);

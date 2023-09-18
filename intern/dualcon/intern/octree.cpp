@@ -325,16 +325,18 @@ void Octree::addTriangle(Triangle *trian, int triind)
 
   /* Project the triangle's coordinates into the grid */
   for (i = 0; i < 3; i++) {
-    for (j = 0; j < 3; j++)
+    for (j = 0; j < 3; j++) {
       trian->vt[i][j] = dimen * (trian->vt[i][j] - origin[j]) / range;
+    }
   }
 
   /* Generate projections */
   int64_t cube[2][3] = {{0, 0, 0}, {dimen, dimen, dimen}};
   int64_t trig[3][3];
   for (i = 0; i < 3; i++) {
-    for (j = 0; j < 3; j++)
+    for (j = 0; j < 3; j++) {
       trig[i][j] = (int64_t)(trian->vt[i][j]);
+    }
   }
 
   /* Add triangle to the octree */
@@ -379,22 +381,27 @@ InternalNode *Octree::addTriangle(InternalNode *node, CubeTriangleIsect *p, int 
       /* Pruning using intersection test */
       if (subp->isIntersecting()) {
         if (!node->has_child(i)) {
-          if (height == 1)
+          if (height == 1) {
             node = addLeafChild(node, i, count, createLeaf(0));
-          else
+          }
+          else {
             node = addInternalChild(node, i, count, createInternal(0));
+          }
         }
         Node *chd = node->get_child(count);
 
-        if (node->is_child_leaf(i))
+        if (node->is_child_leaf(i)) {
           node->set_child(count, (Node *)updateCell(&chd->leaf, subp));
-        else
+        }
+        else {
           node->set_child(count, (Node *)addTriangle(&chd->internal, subp, height - 1));
+        }
       }
     }
 
-    if (node->has_child(i))
+    if (node->has_child(i)) {
       count++;
+    }
   }
 
   delete subp;
@@ -445,10 +452,12 @@ void Octree::preparePrimalEdgesMask(InternalNode *node)
   int count = 0;
   for (int i = 0; i < 8; i++) {
     if (node->has_child(i)) {
-      if (node->is_child_leaf(i))
+      if (node->is_child_leaf(i)) {
         createPrimalEdgesMask(&node->get_child(count)->leaf);
-      else
+      }
+      else {
         preparePrimalEdgesMask(&node->get_child(count)->internal);
+      }
 
       count++;
     }
@@ -2016,8 +2025,9 @@ int Octree::floodFill(LeafNode *leaf, int st[3], int len, int /*height*/, int th
 
         // cells
         LeafNode *cs[2];
-        for (j = 0; j < 2; j++)
+        for (j = 0; j < 2; j++) {
           cs[j] = locateLeaf(cst[j]);
+        }
 
         // Middle sign
         int s = getSign(cs[0], 0);
@@ -2195,8 +2205,9 @@ static void solve_least_squares(const float halfA[],
   b2 = b2 + A * -mp;
   result = pinv * b2 + mp;
 
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++) {
     rvalue[i] = result(i);
+  }
 }
 
 static void mass_point(float mp[3], const float pts[12][3], const int parity[12])

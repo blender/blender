@@ -487,34 +487,99 @@ void DeferredLayer::render(View &main_view,
                            Framebuffer &prepass_fb,
                            Framebuffer &combined_fb,
                            int2 extent,
-                           RayTraceBuffer &rt_buffer)
+                           RayTraceBuffer &rt_buffer,
+                           bool is_first_pass)
 {
+  RenderBuffers &rb = inst_.render_buffers;
+
+  /* The first pass will never have any surfaces behind it. Nothing is refracted except the
+   * environment. So in this case, disable tracing and fallback to probe. */
+  bool do_screen_space_refraction = !is_first_pass && (closure_bits_ & CLOSURE_REFRACTION);
+  bool do_screen_space_reflection = (closure_bits_ & CLOSURE_REFLECTION);
+
+  if (do_screen_space_reflection) {
+    /* TODO(fclem): Verify if GPU_TEXTURE_USAGE_ATTACHMENT is needed for the copy and the clear. */
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+    if (radiance_feedback_tx_.ensure_2d(rb.color_format, extent, usage)) {
+      radiance_feedback_tx_.clear(float4(0.0));
+      radiance_feedback_persmat_ = render_view.persmat();
+    }
+  }
+  else {
+    /* Dummy texture. Will not be used. */
+    radiance_feedback_tx_.ensure_2d(rb.color_format, int2(1), GPU_TEXTURE_USAGE_SHADER_READ);
+  }
+
+  if (do_screen_space_refraction) {
+    /* Update for refraction. */
+    inst_.hiz_buffer.update();
+    /* TODO(fclem): Verify if GPU_TEXTURE_USAGE_ATTACHMENT is needed for the copy. */
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+    radiance_behind_tx_.ensure_2d(rb.color_format, extent, usage);
+    GPU_texture_copy(radiance_behind_tx_, rb.combined_tx);
+  }
+  else {
+    /* Dummy texture. Will not be used. */
+    radiance_behind_tx_.ensure_2d(rb.color_format, int2(1), GPU_TEXTURE_USAGE_SHADER_READ);
+  }
+
   GPU_framebuffer_bind(prepass_fb);
   inst_.manager->submit(prepass_ps_, render_view);
 
-  inst_.hiz_buffer.set_dirty();
-  inst_.shadows.set_view(render_view);
-  inst_.irradiance_cache.set_view(render_view);
-
   inst_.gbuffer.acquire(extent, closure_bits_);
+
+  if (closure_bits_ & CLOSURE_AMBIENT_OCCLUSION) {
+    /* If the shader needs Ambient Occlusion, we need to update the HiZ here. */
+    if (do_screen_space_refraction) {
+      /* TODO(fclem): This update conflicts with the refraction screen tracing which need the depth
+       * behind the refractive surface. In this case, we do not update the Hi-Z and only consider
+       * surfaces already in the Hi-Z buffer for the ambient occlusion computation. This might be
+       * solved (if really problematic) by having another copy of the Hi-Z buffer. */
+    }
+    else {
+      inst_.hiz_buffer.update();
+    }
+  }
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(gbuffer_ps_, render_view);
 
-  RayTraceResult refract_result = inst_.raytracing.trace(
-      rt_buffer, closure_bits_, CLOSURE_REFRACTION, main_view, render_view);
+  inst_.hiz_buffer.set_dirty();
+
+  inst_.irradiance_cache.set_view(render_view);
+
+  RayTraceResult refract_result = inst_.raytracing.trace(rt_buffer,
+                                                         radiance_behind_tx_,
+                                                         render_view.persmat(),
+                                                         closure_bits_,
+                                                         CLOSURE_REFRACTION,
+                                                         main_view,
+                                                         render_view,
+                                                         !do_screen_space_refraction);
   indirect_refraction_tx_ = refract_result.get();
 
-  RayTraceResult reflect_result = inst_.raytracing.trace(
-      rt_buffer, closure_bits_, CLOSURE_REFLECTION, main_view, render_view);
+  /* Only update the HiZ after refraction tracing. */
+  inst_.hiz_buffer.update();
+
+  RayTraceResult reflect_result = inst_.raytracing.trace(rt_buffer,
+                                                         radiance_feedback_tx_,
+                                                         radiance_feedback_persmat_,
+                                                         closure_bits_,
+                                                         CLOSURE_REFLECTION,
+                                                         main_view,
+                                                         render_view);
   indirect_reflection_tx_ = reflect_result.get();
 
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
-                           GPU_TEXTURE_USAGE_ATTACHMENT;
-  diffuse_light_tx_.acquire(extent, GPU_RGBA16F, usage);
-  diffuse_light_tx_.clear(float4(0.0f));
-  specular_light_tx_.acquire(extent, GPU_RGBA16F, usage);
-  specular_light_tx_.clear(float4(0.0f));
+  {
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
+                             GPU_TEXTURE_USAGE_ATTACHMENT;
+    diffuse_light_tx_.acquire(extent, GPU_RGBA16F, usage);
+    diffuse_light_tx_.clear(float4(0.0f));
+    specular_light_tx_.acquire(extent, GPU_RGBA16F, usage);
+    specular_light_tx_.clear(float4(0.0f));
+  }
+
+  inst_.shadows.set_view(render_view);
 
   inst_.manager->submit(eval_light_ps_, render_view);
 
@@ -523,6 +588,11 @@ void DeferredLayer::render(View &main_view,
 
   if (closure_bits_ & CLOSURE_SSS) {
     inst_.subsurface.render(render_view, combined_fb, diffuse_light_tx_);
+  }
+
+  if (do_screen_space_reflection) {
+    GPU_texture_copy(radiance_feedback_tx_, rb.combined_tx);
+    radiance_feedback_persmat_ = render_view.persmat();
   }
 
   diffuse_light_tx_.release();
@@ -583,12 +653,12 @@ void DeferredPipeline::render(View &main_view,
 {
   DRW_stats_group_start("Deferred.Opaque");
   opaque_layer_.render(
-      main_view, render_view, prepass_fb, combined_fb, extent, rt_buffer_opaque_layer);
+      main_view, render_view, prepass_fb, combined_fb, extent, rt_buffer_opaque_layer, true);
   DRW_stats_group_end();
 
   DRW_stats_group_start("Deferred.Refract");
   refraction_layer_.render(
-      main_view, render_view, prepass_fb, combined_fb, extent, rt_buffer_refract_layer);
+      main_view, render_view, prepass_fb, combined_fb, extent, rt_buffer_refract_layer, false);
   DRW_stats_group_end();
 }
 

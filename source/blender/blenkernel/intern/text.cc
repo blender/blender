@@ -776,9 +776,11 @@ void txt_move_up(Text *text, const bool sel)
   }
 
   if ((*linep)->prev) {
-    int column = BLI_str_utf8_offset_to_column((*linep)->line, *charp);
+    int column = BLI_str_utf8_offset_to_column_with_tabs(
+        (*linep)->line, (*linep)->len, *charp, TXT_TABSIZE);
     *linep = (*linep)->prev;
-    *charp = BLI_str_utf8_offset_from_column((*linep)->line, column);
+    *charp = BLI_str_utf8_offset_from_column_with_tabs(
+        (*linep)->line, (*linep)->len, column, TXT_TABSIZE);
   }
   else {
     txt_move_bol(text, sel);
@@ -806,9 +808,11 @@ void txt_move_down(Text *text, const bool sel)
   }
 
   if ((*linep)->next) {
-    int column = BLI_str_utf8_offset_to_column((*linep)->line, *charp);
+    int column = BLI_str_utf8_offset_to_column_with_tabs(
+        (*linep)->line, (*linep)->len, *charp, TXT_TABSIZE);
     *linep = (*linep)->next;
-    *charp = BLI_str_utf8_offset_from_column((*linep)->line, column);
+    *charp = BLI_str_utf8_offset_from_column_with_tabs(
+        (*linep)->line, (*linep)->len, column, TXT_TABSIZE);
   }
   else {
     txt_move_eol(text, sel);
@@ -1320,9 +1324,9 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
   CLAMP(endc, 0, tollen);
 
   text->curl = froml;
-  text->curc = BLI_str_utf8_offset_from_index(froml->line, startc);
+  text->curc = BLI_str_utf8_offset_from_index(froml->line, froml->len, startc);
   text->sell = tol;
-  text->selc = BLI_str_utf8_offset_from_index(tol->line, endc);
+  text->selc = BLI_str_utf8_offset_from_index(tol->line, tol->len, endc);
 }
 
 /** \} */
@@ -1552,7 +1556,7 @@ void txt_insert_buf(Text *text, const char *in_buffer, int in_buffer_len)
 
   /* Read the first line (or as close as possible */
   while (buffer[i] && buffer[i] != '\n') {
-    txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, in_buffer_len, &i));
+    txt_add_raw_char(text, BLI_str_utf8_as_unicode_step_safe(buffer, in_buffer_len, &i));
   }
 
   if (buffer[i] == '\n') {
@@ -1574,7 +1578,7 @@ void txt_insert_buf(Text *text, const char *in_buffer, int in_buffer_len)
       }
       else {
         for (j = i - l; j < i && j < in_buffer_len;) {
-          txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, in_buffer_len, &j));
+          txt_add_raw_char(text, BLI_str_utf8_as_unicode_step_safe(buffer, in_buffer_len, &j));
         }
         break;
       }
@@ -1944,7 +1948,7 @@ bool txt_replace_char(Text *text, uint add)
   }
 
   del_size = text->curc;
-  del = BLI_str_utf8_as_unicode_step(text->curl->line, text->curl->len, &del_size);
+  del = BLI_str_utf8_as_unicode_step_safe(text->curl->line, text->curl->len, &del_size);
   del_size -= text->curc;
   UNUSED_VARS(del);
   add_size = BLI_str_utf8_from_unicode(add, ch, sizeof(ch));

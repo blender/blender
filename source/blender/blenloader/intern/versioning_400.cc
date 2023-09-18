@@ -128,7 +128,7 @@ static void version_bonelayers_to_bonecollections(Main *bmain)
   char custom_prop_name[MAX_NAME];
 
   LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
-    IDProperty *arm_idprops = IDP_GetProperties(&arm->id, false);
+    IDProperty *arm_idprops = IDP_GetProperties(&arm->id);
 
     BLI_assert_msg(arm->edbo == nullptr, "did not expect an Armature to be saved in edit mode");
     const uint layer_used = arm->layer_used;

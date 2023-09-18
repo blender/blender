@@ -174,8 +174,9 @@ static void window_display()
 
   glRasterPos3f(0, 0, 0);
 
-  if (V.display)
+  if (V.display) {
     V.display();
+  }
 
   SDL_GL_SwapWindow(V.window);
   window_opengl_context_disable();
@@ -195,12 +196,14 @@ static void window_reshape(int width, int height)
 
 static bool window_keyboard(unsigned char key)
 {
-  if (V.keyboard)
+  if (V.keyboard) {
     V.keyboard(key);
+  }
 
   if (key == 'q') {
-    if (V.exitf)
+    if (V.exitf) {
       V.exitf();
+    }
     return true;
   }
 
@@ -237,8 +240,9 @@ static void window_motion(int x, int y)
   const int distX = x - V.mouseX;
   const int distY = y - V.mouseY;
 
-  if (V.motion)
+  if (V.motion) {
     V.motion(distX, distY, but);
+  }
 
   V.mouseX = x;
   V.mouseY = y;

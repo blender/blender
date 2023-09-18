@@ -408,19 +408,22 @@ bool CUDADevice::load_kernels(const uint kernel_features)
   }
 
   /* check if cuda init succeeded */
-  if (cuContext == 0)
+  if (cuContext == 0) {
     return false;
+  }
 
   /* check if GPU is supported */
-  if (!support_device(kernel_features))
+  if (!support_device(kernel_features)) {
     return false;
+  }
 
   /* get kernel */
   const char *kernel_name = "kernel";
   string cflags = compile_kernel_get_common_cflags(kernel_features);
   string cubin = compile_kernel(cflags, kernel_name);
-  if (cubin.empty())
+  if (cubin.empty()) {
     return false;
+  }
 
   /* open module */
   CUDAContextScope scope(this);
@@ -428,14 +431,17 @@ bool CUDADevice::load_kernels(const uint kernel_features)
   string cubin_data;
   CUresult result;
 
-  if (path_read_text(cubin, cubin_data))
+  if (path_read_text(cubin, cubin_data)) {
     result = cuModuleLoadData(&cuModule, cubin_data.c_str());
-  else
+  }
+  else {
     result = CUDA_ERROR_FILE_NOT_FOUND;
+  }
 
-  if (result != CUDA_SUCCESS)
+  if (result != CUDA_SUCCESS) {
     set_error(string_printf(
         "Failed to load CUDA kernel from '%s' (%s)", cubin.c_str(), cuewErrorString(result)));
+  }
 
   if (result == CUDA_SUCCESS) {
     kernels.load(this);

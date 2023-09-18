@@ -58,6 +58,20 @@ GPU_SHADER_CREATE_INFO(eevee_ray_generate)
 
 EEVEE_RAYTRACE_CLOSURE_VARIATION(eevee_ray_generate)
 
+GPU_SHADER_CREATE_INFO(eevee_ray_trace_fallback)
+    .do_static_compilation(true)
+    .local_group_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)
+    .additional_info("eevee_shared",
+                     "eevee_global_ubo",
+                     "draw_view",
+                     "eevee_reflection_probe_data")
+    .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D, "ray_data_img")
+    .image(1, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_time_img")
+    .image(2, RAYTRACE_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_radiance_img")
+    .sampler(1, ImageType::DEPTH_2D, "depth_tx")
+    .storage_buf(4, Qualifier::READ, "uint", "tiles_coord_buf[]")
+    .compute_source("eevee_ray_trace_fallback_comp.glsl");
+
 GPU_SHADER_CREATE_INFO(eevee_ray_trace_screen)
     .local_group_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)
     .additional_info("eevee_shared",
@@ -69,6 +83,8 @@ GPU_SHADER_CREATE_INFO(eevee_ray_trace_screen)
     .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D, "ray_data_img")
     .image(1, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_time_img")
     .image(2, RAYTRACE_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_radiance_img")
+    .sampler(0, ImageType::FLOAT_2D, "screen_radiance_tx")
+    .sampler(1, ImageType::DEPTH_2D, "depth_tx")
     .storage_buf(4, Qualifier::READ, "uint", "tiles_coord_buf[]")
     .compute_source("eevee_ray_trace_screen_comp.glsl");
 
@@ -80,10 +96,10 @@ GPU_SHADER_CREATE_INFO(eevee_ray_denoise_spatial)
                      "eevee_global_ubo",
                      "eevee_sampling_data",
                      "draw_view",
-                     "eevee_hiz_data",
                      "eevee_utility_texture")
     .sampler(0, ImageType::FLOAT_2D_ARRAY, "gbuffer_closure_tx")
     .sampler(1, ImageType::UINT_2D, "stencil_tx")
+    .sampler(3, ImageType::DEPTH_2D, "depth_tx")
     .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D, "ray_data_img")
     .image(1, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D, "ray_time_img")
     .image(2, RAYTRACE_RADIANCE_FORMAT, Qualifier::READ, ImageType::FLOAT_2D, "ray_radiance_img")
@@ -99,10 +115,11 @@ EEVEE_RAYTRACE_CLOSURE_VARIATION(eevee_ray_denoise_spatial)
 GPU_SHADER_CREATE_INFO(eevee_ray_denoise_temporal)
     .do_static_compilation(true)
     .local_group_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)
-    .additional_info("eevee_shared", "eevee_global_ubo", "draw_view", "eevee_hiz_data")
+    .additional_info("eevee_shared", "eevee_global_ubo", "draw_view")
     .sampler(0, ImageType::FLOAT_2D, "radiance_history_tx")
     .sampler(1, ImageType::FLOAT_2D, "variance_history_tx")
     .sampler(2, ImageType::UINT_2D, "tilemask_history_tx")
+    .sampler(3, ImageType::DEPTH_2D, "depth_tx")
     .image(0, GPU_R32F, Qualifier::READ, ImageType::FLOAT_2D, "hit_depth_img")
     .image(1, RAYTRACE_RADIANCE_FORMAT, Qualifier::READ, ImageType::FLOAT_2D, "in_radiance_img")
     .image(2, RAYTRACE_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "out_radiance_img")
@@ -113,9 +130,9 @@ GPU_SHADER_CREATE_INFO(eevee_ray_denoise_temporal)
 
 GPU_SHADER_CREATE_INFO(eevee_ray_denoise_bilateral)
     .local_group_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)
-    .additional_info(
-        "eevee_shared", "eevee_global_ubo", "eevee_sampling_data", "draw_view", "eevee_hiz_data")
+    .additional_info("eevee_shared", "eevee_global_ubo", "eevee_sampling_data", "draw_view")
     .sampler(0, ImageType::FLOAT_2D_ARRAY, "gbuffer_closure_tx")
+    .sampler(1, ImageType::DEPTH_2D, "depth_tx")
     .image(1, RAYTRACE_RADIANCE_FORMAT, Qualifier::READ, ImageType::FLOAT_2D, "in_radiance_img")
     .image(2, RAYTRACE_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "out_radiance_img")
     .image(3, RAYTRACE_VARIANCE_FORMAT, Qualifier::READ, ImageType::FLOAT_2D, "in_variance_img")

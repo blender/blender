@@ -30,6 +30,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_blender_version.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -481,20 +482,22 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
      * because #WM_window_open always sets window title. */
   }
   else if (win->ghostwin) {
-    /* this is set to 1 if you don't have startup.blend open */
-    const char *blendfile_path = BKE_main_blendfile_path_from_global();
-    if (blendfile_path[0] != '\0') {
-      char str[sizeof(Main::filepath) + 24];
-      SNPRINTF(str,
-               "Blender%s [%s%s]",
-               wm->file_saved ? "" : "*",
-               blendfile_path,
-               G_MAIN->recovered ? " (Recovered)" : "");
-      GHOST_SetTitle(static_cast<GHOST_WindowHandle>(win->ghostwin), str);
-    }
-    else {
-      GHOST_SetTitle(static_cast<GHOST_WindowHandle>(win->ghostwin), "Blender");
-    }
+    char str[sizeof(Main::filepath) + 24];
+    const char *filepath = BKE_main_blendfile_path_from_global();
+    const char *filename = BLI_path_basename(filepath);
+    const bool has_filepath = filepath[0] != '\0';
+    const bool has_directory = has_filepath && (filepath != filename);
+    SNPRINTF(str,
+             "%s %s%s%s%.*s%s - Blender %s",
+             wm->file_saved ? "" : "*",
+             has_filepath ? filename : IFACE_("(Unsaved)"),
+             G_MAIN->recovered ? " (Recovered)" : "",
+             has_directory ? " [" : "",
+             has_directory ? int(filename - filepath) : 0,
+             has_directory ? filepath : "",
+             has_directory ? "]" : "",
+             BKE_blender_version_string_compact());
+    GHOST_SetTitle(static_cast<GHOST_WindowHandle>(win->ghostwin), str);
 
     /* Informs GHOST of unsaved changes, to set window modified visual indicator (macOS)
      * and to give hint of unsaved changes for a user warning mechanism in case of OS application

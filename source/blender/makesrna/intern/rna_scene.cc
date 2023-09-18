@@ -3463,10 +3463,10 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   prop = RNA_def_property(srna, "use_snap_anim", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "snap_flag_anim", SCE_SNAP);
+  RNA_def_property_boolean_sdna(prop, nullptr, "snap_flag_anim", SCE_SNAP);
   RNA_def_property_ui_text(prop, "Snap", "Enable snapping when transforming keyframes");
   RNA_def_property_ui_icon(prop, ICON_SNAP_OFF, 1);
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   prop = RNA_def_property(srna, "use_snap_time_absolute", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "snap_flag_anim", SCE_SNAP_ABS_TIME_STEP);
@@ -4495,7 +4495,7 @@ static void rna_def_view_layer_eevee(BlenderRNA *brna)
   PropertyRNA *prop;
   srna = RNA_def_struct(brna, "ViewLayerEEVEE", nullptr);
   RNA_def_struct_path_func(srna, "rna_ViewLayerEEVEE_path");
-  RNA_def_struct_ui_text(srna, "Eevee Settings", "View layer settings for Eevee");
+  RNA_def_struct_ui_text(srna, "EEVEE Settings", "View Layer settings for EEVEE");
 
   prop = RNA_def_property(srna, "use_pass_volume_direct", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "render_passes", EEVEE_RENDER_PASS_VOLUME_LIGHT);
@@ -4654,7 +4654,7 @@ void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, const bool sce
     prop = RNA_def_property(srna, "eevee", PROP_POINTER, PROP_NONE);
     RNA_def_property_flag(prop, PROP_NEVER_NULL);
     RNA_def_property_struct_type(prop, "ViewLayerEEVEE");
-    RNA_def_property_ui_text(prop, "Eevee Settings", "View layer settings for Eevee");
+    RNA_def_property_ui_text(prop, "EEVEE Settings", "View layer settings for EEVEE");
 
     prop = RNA_def_property(srna, "aovs", PROP_COLLECTION, PROP_NONE);
     RNA_def_property_collection_sdna(prop, nullptr, "aovs", nullptr);
@@ -6463,7 +6463,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem engine_items[] = {
-      {0, "BLENDER_EEVEE", 0, "Eevee", ""},
+      {0, "BLENDER_EEVEE", 0, "EEVEE", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -8197,12 +8197,12 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   prop = RNA_def_property(srna, "reflection_options", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "RaytraceEEVEE");
   RNA_def_property_ui_text(
-      prop, "Reflection Trace Options", "Eevee settings for the tracing reflections");
+      prop, "Reflection Trace Options", "EEVEE settings for tracing reflections");
 
   prop = RNA_def_property(srna, "refraction_options", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "RaytraceEEVEE");
   RNA_def_property_ui_text(
-      prop, "Reflection Trace Options", "Eevee settings for the tracing reflections");
+      prop, "Refraction Trace Options", "EEVEE settings for tracing refractions");
 }
 
 static void rna_def_scene_gpencil(BlenderRNA *brna)
@@ -8741,7 +8741,7 @@ void RNA_def_scene(BlenderRNA *brna)
   /* EEVEE */
   prop = RNA_def_property(srna, "eevee", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "SceneEEVEE");
-  RNA_def_property_ui_text(prop, "Eevee", "Eevee settings for the scene");
+  RNA_def_property_ui_text(prop, "EEVEE", "EEVEE settings for the scene");
 
   /* Grease Pencil */
   prop = RNA_def_property(srna, "grease_pencil_settings", PROP_POINTER, PROP_NONE);

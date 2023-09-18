@@ -47,6 +47,10 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
       expand_bones(space_outliner);
     }
   }
+
+  if (!BLI_listbase_is_empty(&arm_.collections)) {
+    add_element(&legacy_te_.subtree, &arm_.id, nullptr, &legacy_te_, TSE_BONE_COLLECTION_BASE, 0);
+  }
 }
 
 void TreeElementIDArmature::expand_edit_bones() const

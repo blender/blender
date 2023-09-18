@@ -130,8 +130,9 @@ static bool xml_read_float3_array(vector<float3> &value, xml_node node, const ch
   vector<float> array;
 
   if (xml_read_float_array(array, node, name)) {
-    for (size_t i = 0; i < array.size(); i += 3)
+    for (size_t i = 0; i < array.size(); i += 3) {
       value.push_back(make_float3(array[i + 0], array[i + 1], array[i + 2]));
+    }
 
     return true;
   }
@@ -167,8 +168,9 @@ static bool xml_equal_string(xml_node node, const char *name, const char *value)
 {
   xml_attribute attr = node.attribute(name);
 
-  if (attr)
+  if (attr) {
     return string_iequals(attr.value(), value);
+  }
 
   return false;
 }
@@ -255,40 +257,48 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
           ShaderNode *fromnode = (ShaderNode *)graph_reader.node_map[from_node_name];
 
           foreach (ShaderOutput *out, fromnode->outputs)
-            if (string_iequals(out->socket_type.name.string(), from_socket_name.string()))
+            if (string_iequals(out->socket_type.name.string(), from_socket_name.string())) {
               output = out;
+            }
 
-          if (!output)
+          if (!output) {
             fprintf(stderr,
                     "Unknown output socket name \"%s\" on \"%s\".\n",
                     from_node_name.c_str(),
                     from_socket_name.c_str());
+          }
         }
-        else
+        else {
           fprintf(stderr, "Unknown shader node name \"%s\".\n", from_node_name.c_str());
+        }
 
         if (graph_reader.node_map.find(to_node_name) != graph_reader.node_map.end()) {
           ShaderNode *tonode = (ShaderNode *)graph_reader.node_map[to_node_name];
 
           foreach (ShaderInput *in, tonode->inputs)
-            if (string_iequals(in->socket_type.name.string(), to_socket_name.string()))
+            if (string_iequals(in->socket_type.name.string(), to_socket_name.string())) {
               input = in;
+            }
 
-          if (!input)
+          if (!input) {
             fprintf(stderr,
                     "Unknown input socket name \"%s\" on \"%s\".\n",
                     to_socket_name.c_str(),
                     to_node_name.c_str());
+          }
         }
-        else
+        else {
           fprintf(stderr, "Unknown shader node name \"%s\".\n", to_node_name.c_str());
+        }
 
         /* connect */
-        if (output && input)
+        if (output && input) {
           graph->connect(output, input);
+        }
       }
-      else
+      else {
         fprintf(stderr, "Invalid from or to value for connect node.\n");
+      }
 
       continue;
     }
@@ -328,8 +338,9 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
 #endif
     {
       /* exception for name collision */
-      if (node_name == "background")
+      if (node_name == "background") {
         node_name = "background_shader";
+      }
 
       const NodeType *node_type = NodeType::find(node_name);
 
@@ -446,8 +457,9 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
     mesh->set_verts(P_array);
 
     size_t num_triangles = 0;
-    for (size_t i = 0; i < nverts.size(); i++)
+    for (size_t i = 0; i < nverts.size(); i++) {
       num_triangles += nverts[i] - 2;
+    }
     mesh->reserve_mesh(mesh->get_verts().size(), num_triangles);
 
     /* create triangles */
@@ -615,17 +627,20 @@ static void xml_read_state(XMLReadState &state, xml_node node)
       }
     }
 
-    if (!found)
+    if (!found) {
       fprintf(stderr, "Unknown shader \"%s\".\n", shadername.c_str());
+    }
   }
 
   xml_read_float(&state.dicing_rate, node, "dicing_rate");
 
   /* read smooth/flat */
-  if (xml_equal_string(node, "interpolation", "smooth"))
+  if (xml_equal_string(node, "interpolation", "smooth")) {
     state.smooth = true;
-  else if (xml_equal_string(node, "interpolation", "flat"))
+  }
+  else if (xml_equal_string(node, "interpolation", "flat")) {
     state.smooth = false;
+  }
 }
 
 /* Scene */
@@ -671,16 +686,18 @@ static void xml_read_scene(XMLReadState &state, xml_node scene_node)
     else if (string_iequals(node.name(), "include")) {
       string src;
 
-      if (xml_read_string(&src, node, "src"))
+      if (xml_read_string(&src, node, "src")) {
         xml_read_include(state, src);
+      }
     }
 #ifdef WITH_ALEMBIC
     else if (string_iequals(node.name(), "alembic")) {
       xml_read_alembic(state, node);
     }
 #endif
-    else
+    else {
       fprintf(stderr, "Unknown node \"%s\".\n", node.name());
+    }
   }
 }
 

@@ -1,17 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2023-09-08 00:46+0200\n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
-"Last-Translator: Damien Picard (pioverfour) <dam.pic@free.fr>\n"
-"Language-Team: French https://wiki.blender.org/wiki/Process/Translate_Blender/French_Team\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"PO-Revision-Date: 2023-09-18 05:56+0000\n"
+"Last-Translator: Damien Picard <dam.pic@free.fr>\n"
+"Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: "
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.0.1"
 
 
 msgid "Shader AOV"
@@ -392,18 +393,6 @@ msgstr "Afficher le nœud de sortie de matériau glTF (glTF Material Output) dan
 
 msgid "Fribidi Library"
 msgstr "Bibliothèque FriBidi"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "La bibliothèque C FriBidi compilée (.so sous Linux, .dll sous Windows…), vous devrez probablement l’éditer si vous êtes sous Windows, par exemple en utilisant celle incluse dans le dépôt svn des bibliothèques"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Exécutable msgfmt de gettext"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "Le « compilateur » msgfmt de gettext (vous devrez probablement l’éditer si vous êtes sous Windows)"
 
 
 msgid "Translation Root"
@@ -1172,6 +1161,201 @@ msgstr "Représentation d’asset"
 
 msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
 msgstr "Informations sur une entité permettant au système d’assets de traiter l’entité comme un asset"
+
+
+msgctxt "ID"
+msgid "Data-block Type"
+msgstr "Type de bloc de données"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Action"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Armature"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Brosse"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Fichier de cache"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Caméra"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Collection"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Courbe"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Courbes"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Police"
+
+
+msgctxt "ID"
+msgid "Grease Pencil (legacy)"
+msgstr "Grease Pencil (obsolète)"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Image"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Clé"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Lattice"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Bibliothèque"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Éclairage"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Sonde lumière"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Style de ligne"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Masque"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Matériau"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Maillage"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Clip vidéo"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Arborescence de nœuds"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objet"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Courbe de peinture"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palette"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Particules"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Nuage de points"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scène"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Son"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Haut-parleur"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Texte"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Texture"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volume"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Gestionnaire de fenêtre"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Espace de travail"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Monde"
 
 
 msgid "Asset Shelf"
@@ -2083,19 +2267,19 @@ msgstr "Blocs de données polices vectorielles"
 
 
 msgid "Grease Pencil (legacy)"
-msgstr "Crayons gras (obsolète)"
+msgstr "Grease Pencil (obsolète)"
 
 
 msgid "Grease Pencil (legacy) data-blocks"
-msgstr "Bloc de données crayons gras (obsolète)"
+msgstr "Bloc de données Grease Pencil (obsolète)"
 
 
 msgid "Grease Pencil"
-msgstr "Crayon gras"
+msgstr "Grease Pencil"
 
 
 msgid "Grease Pencil data-blocks"
-msgstr "Blocs de données crayon gras"
+msgstr "Blocs de données Grease Pencil"
 
 
 msgid "Hair Curves"
@@ -2427,11 +2611,11 @@ msgstr "Collection de polices de caractères"
 
 
 msgid "Main Grease Pencils"
-msgstr "Crayons gras du Main"
+msgstr "Grease Pencils du Main"
 
 
 msgid "Collection of grease pencils"
-msgstr "Collection de crayons gras"
+msgstr "Collection de Grease Pencils"
 
 
 msgid "Main Hair Curves"
@@ -2924,10 +3108,6 @@ msgstr "Vitesse angulaire maximale dans l’air (relative à 180 degrés)"
 
 msgid "Air Personal Space"
 msgstr "Espace personnel dans l’air"
-
-
-msgid "Radius of boids personal space in air (% of particle size)"
-msgstr "Rayon de l’espace personnel des boids dans l’air (en % de la taille de la particule)"
 
 
 msgid "Max Air Speed"
@@ -3600,6 +3780,10 @@ msgid "Bones"
 msgstr "Os"
 
 
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronised when exiting edit mode"
+msgstr "Os assignés à cette collection d’os. En mode édition d’armature, retourne toujours une liste d’os vide, car les appartenances à une collection d’os ne sont synchronisées qu’en sortie du mode édition"
+
+
 msgid "Visible"
 msgstr "Visible"
 
@@ -3610,6 +3794,14 @@ msgstr "Les os dans cette collection seront visibles en mode pose/objet"
 
 msgid "Unique within the Armature"
 msgstr "Unique au sein de cette armature"
+
+
+msgid "Bone Collection Memberships"
+msgstr "Appartenances aux collections d’os"
+
+
+msgid "The Bone Collections that contain this Bone"
+msgstr "Collections d’os contenant cet os"
 
 
 msgid "Armature Bone Collections"
@@ -3909,11 +4101,11 @@ msgstr "Faire grandir ou rétrécir les courbes en modifiant la taille de maniè
 
 
 msgid "Grease Pencil Brush Settings"
-msgstr "Réglages de brosse du crayon gras"
+msgstr "Réglages de brosse du Grease Pencil"
 
 
 msgid "Settings for grease pencil brush"
-msgstr "Réglages de brosse du crayon gras"
+msgstr "Réglages de brosse du Grease Pencil"
 
 
 msgid "Active Smooth"
@@ -4236,7 +4428,7 @@ msgstr "Seuil pour considérer la couleur comme transparente, pour le remplissag
 
 
 msgid "Grease Pencil Icon"
-msgstr "Icône du crayon gras"
+msgstr "Icône du Grease Pencil"
 
 
 msgid "Pencil"
@@ -4289,7 +4481,7 @@ msgstr "Gomme trait"
 
 msgctxt "GPencil"
 msgid "Grease Pencil Icon"
-msgstr "Icône du crayon gras"
+msgstr "Icône du Grease Pencil"
 
 
 msgctxt "GPencil"
@@ -8997,7 +9189,7 @@ msgstr "Type de courbe à utiliser pour les nouveaux traits"
 
 
 msgid "Poly"
-msgstr "Poly"
+msgstr "Polygonale"
 
 
 msgid "Bezier"
@@ -9687,11 +9879,11 @@ msgstr "Replier le résumé quand il est montré, de façon que tous les autres 
 
 
 msgid "Display Grease Pencil"
-msgstr "Afficher les crayons gras"
+msgstr "Afficher les Grease Pencils"
 
 
 msgid "Include visualization of Grease Pencil related animation data and frames"
-msgstr "Inclure la visualisation des données d’animation et images relatives au crayon gras"
+msgstr "Inclure la visualisation des données d’animation et images relatives au Grease Pencil"
 
 
 msgid "Display Hair"
@@ -10049,196 +10241,6 @@ msgstr "Type d’ID"
 
 msgid "Type of ID-block that can be used"
 msgstr "Type de bloc ID pouvant être utilisé"
-
-
-msgctxt "ID"
-msgid "Action"
-msgstr "Action"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Armature"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Brosse"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Fichier de cache"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Caméra"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Collection"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Courbe"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Courbes"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Police"
-
-
-msgctxt "ID"
-msgid "Grease Pencil (legacy)"
-msgstr "Crayon gras (obsolète)"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Crayon gras"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Image"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Clé"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Lattice"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Bibliothèque"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Éclairage"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Sonde lumière"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Style de ligne"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Masque"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Matériau"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Maillage"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Métaballe"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Clip vidéo"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Arborescence de nœuds"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objet"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Courbe de peinture"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Palette"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Particules"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Nuage de points"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Scène"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Son"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Haut-parleur"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Texte"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Texture"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volume"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Gestionnaire de fenêtre"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Espace de travail"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Monde"
 
 
 msgid "Rotation Mode"
@@ -12849,7 +12851,7 @@ msgstr "Afficher les blocs de données police"
 
 
 msgid "Show Grease pencil data-blocks"
-msgstr "Afficher les blocs de données crayon gras"
+msgstr "Afficher les blocs de données Grease Pencil"
 
 
 msgid "Show Image data-blocks"
@@ -12996,11 +12998,6 @@ msgid "Asset data, valid if the file represents an asset"
 msgstr "Données d’asset, valide si le fichier représente un asset"
 
 
-msgctxt "ID"
-msgid "Data-block Type"
-msgstr "Type de bloc de données"
-
-
 msgid "The type of the data-block, if the file represents one ('NONE' otherwise)"
 msgstr "Le type du bloc de données, si le fichier en représente un ('NONE' autrement)"
 
@@ -13099,22 +13096,6 @@ msgstr "Taille d’affichage"
 
 msgid "Change the size of the display (width of columns or thumbnails size)"
 msgstr "Modifier la taille de l’affichage (largeur des colonnes ou taille des miniatures)"
-
-
-msgid "Tiny"
-msgstr "Minuscules"
-
-
-msgid "Small"
-msgstr "Petites"
-
-
-msgid "Medium"
-msgstr "Moyenne"
-
-
-msgid "Large"
-msgstr "Grandes"
 
 
 msgid "Display Mode"
@@ -14947,7 +14928,7 @@ msgstr "Contrôle l’émission de fluide depuis la surface du maillage (des val
 
 
 msgid "Temp. Diff."
-msgstr "Différence de température"
+msgstr "Diff. de temp."
 
 
 msgid "Temperature difference to ambient temperature"
@@ -15555,15 +15536,15 @@ msgstr "Indice du point"
 
 
 msgid "Index of the corresponding grease pencil stroke point"
-msgstr "Indice du point de la courbe de crayon gras correspondant"
+msgstr "Indice du point de la courbe de Grease Pencil correspondant"
 
 
 msgid "Pressure of the grease pencil stroke point"
-msgstr "Pression du point de la courbe de crayon gras"
+msgstr "Pression du point de la courbe de Grease Pencil"
 
 
 msgid "Color intensity (alpha factor) of the grease pencil stroke point"
-msgstr "Intensité de la couleur (facteur alpha) du point de la courbe de crayon gras"
+msgstr "Intensité de la couleur (facteur alpha) du point de la courbe de Grease Pencil"
 
 
 msgid "UV Factor"
@@ -15583,11 +15564,11 @@ msgstr "Facteur UV interne pour le mode pointillés"
 
 
 msgid "Vertex color of the grease pencil stroke point"
-msgstr "Couleur de sommet du point de la courbe de crayon gras"
+msgstr "Couleur de sommet du point de la courbe de Grease Pencil"
 
 
 msgid "Grease Pencil Frame"
-msgstr "Frame de crayon gras"
+msgstr "Frame de Grease Pencil"
 
 
 msgid "Collection of related sketches on a particular frame"
@@ -15667,19 +15648,19 @@ msgstr "Courbes à main levée définissant le dessin à cette frame"
 
 
 msgid "Grease Pencil Frames"
-msgstr "Frames du crayon gras"
+msgstr "Frames du Grease Pencil"
 
 
 msgid "Collection of grease pencil frames"
-msgstr "Collection de frames du crayon gras"
+msgstr "Collection de frames du Grease Pencil"
 
 
 msgid "Grease Pencil Interpolate Settings"
-msgstr "Réglages d’interpolation du crayon gras"
+msgstr "Réglages d’interpolation du Grease Pencil"
 
 
 msgid "Settings for Grease Pencil interpolation tools"
-msgstr "Réglages pour les outils d’interpolation du crayon gras"
+msgstr "Réglages pour les outils d’interpolation du Grease Pencil"
 
 
 msgid "Interpolation Curve"
@@ -15687,11 +15668,11 @@ msgstr "Courbe d’interpolation"
 
 
 msgid "Custom curve to control 'sequence' interpolation between Grease Pencil frames"
-msgstr "Courbe personnalisée pour contrôler l’interpolation en « séquence » entre les images clés du crayon gras"
+msgstr "Courbe personnalisée pour contrôler l’interpolation en « séquence » entre les images clés du Grease Pencil"
 
 
 msgid "Grease Pencil Layer"
-msgstr "Calque de crayon gras"
+msgstr "Calque de Grease Pencil"
 
 
 msgid "Collection of related sketches"
@@ -16015,7 +15996,7 @@ msgstr "N’inclure que le calque dans le rendu de ce calque de vue (laisser vid
 
 
 msgid "Grease Pencil Masking Layers"
-msgstr "Calques de masquage du crayon gras"
+msgstr "Calques de masquage du Grease Pencil"
 
 
 msgid "List of Mask Layers"
@@ -16039,7 +16020,7 @@ msgstr "Nom du calque de masquage"
 
 
 msgid "GPencil Sculpt Guide"
-msgstr "Guide de sculpture crayon gras"
+msgstr "Guide de sculpture Grease Pencil"
 
 
 msgid "Guides for drawing"
@@ -16143,11 +16124,11 @@ msgstr "Espacer les lignes uniformément, en distance ou en angle selon le type 
 
 
 msgid "GPencil Sculpt Settings"
-msgstr "Réglages de sculpture du crayon gras"
+msgstr "Réglages de sculpture du Grease Pencil"
 
 
 msgid "General properties for Grease Pencil stroke sculpting tools"
-msgstr "Propriétés générales pour les outils de sculpture des traits de crayon gras"
+msgstr "Propriétés générales pour les outils de sculpture des traits de Grease Pencil"
 
 
 msgid "Threshold for stroke intersections"
@@ -16191,7 +16172,7 @@ msgstr "Aligner les traits avec l’orientation actuelle du curseur 3D"
 
 
 msgid "Custom curve to control falloff of brush effect by Grease Pencil frames"
-msgstr "Courbe personnalisée pour contrôler l’atténuation de l’effet de la brosse par les frames du crayon gras"
+msgstr "Courbe personnalisée pour contrôler l’atténuation de l’effet de la brosse par les frames du Grease Pencil"
 
 
 msgid "Custom curve to control primitive thickness"
@@ -16247,7 +16228,7 @@ msgstr "Utiliser la courbe pour définir l’épaisseur des primitives de traits
 
 
 msgid "Grease Pencil Stroke"
-msgstr "Trait de crayon gras"
+msgstr "Trait de Grease Pencil"
 
 
 msgid "Freehand curve defining part of a sketch"
@@ -16418,7 +16399,7 @@ msgstr "Couleur mélangée avec la couleur de remplissage pour obtenir la couleu
 
 
 msgid "Grease Pencil Stroke Point"
-msgstr "Point de trait de crayon gras"
+msgstr "Point de trait de Grease Pencil"
 
 
 msgid "Data point for freehand stroke curve"
@@ -16458,15 +16439,15 @@ msgstr "Couleur mélangée avec la couleur de point pour obtenir la couleur fina
 
 
 msgid "Grease Pencil Stroke Points"
-msgstr "Points du trait de crayon gras"
+msgstr "Points du trait de Grease Pencil"
 
 
 msgid "Collection of grease pencil stroke points"
-msgstr "Collection de points de trait de crayon gras"
+msgstr "Collection de points de trait de Grease Pencil"
 
 
 msgid "Collection of grease pencil stroke"
-msgstr "Collection de traits du crayon gras"
+msgstr "Collection de traits du Grease Pencil"
 
 
 msgid "Triangle"
@@ -16474,7 +16455,7 @@ msgstr "Triangle"
 
 
 msgid "Triangulation data for Grease Pencil fills"
-msgstr "Données de triangulation pour le remplissage du crayon gras"
+msgstr "Données de triangulation pour le remplissage du Grease Pencil"
 
 
 msgid "First triangle vertex index"
@@ -16804,7 +16785,7 @@ msgstr "Propriétés d’entrée d’un gizmo"
 
 
 msgid "Modifier affecting the Grease Pencil object"
-msgstr "Modificateur affectant l’objet crayon gras"
+msgstr "Modificateur affectant l’objet Grease Pencil"
 
 
 msgid "Override Modifier"
@@ -17232,7 +17213,7 @@ msgstr "Frame de début (quand « Restreindre l’intervalle de frames » est 
 
 
 msgid "Maximum number of frames that the build effect can run for (unless another GP keyframe occurs before this time has elapsed)"
-msgstr "Nombre maximum de frames sur lesquelles l’effet de construction peut avoir lieu (à moins qu’une autre image clé de crayon gras ne survienne avant que ce délai ne soit écoulé)"
+msgstr "Nombre maximum de frames sur lesquelles l’effet de construction peut avoir lieu (à moins qu’une autre image clé de Grease Pencil ne survienne avant que ce délai ne soit écoulé)"
 
 
 msgid "How strokes are being built"
@@ -17288,7 +17269,7 @@ msgstr "Délai"
 
 
 msgid "Number of frames after each GP keyframe before the modifier has any effect"
-msgstr "Nombre de frames après chaque image clé de crayon gras avant que le modificateur ne commence à faire effet"
+msgstr "Nombre de frames après chaque image clé de Grease Pencil avant que le modificateur ne commence à faire effet"
 
 
 msgid "Output Vertex group"
@@ -17958,11 +17939,11 @@ msgstr "Déplacer légèrement les traits vers la caméra pour éviter le décou
 
 
 msgid "Grease Pencil layer to which assign the generated strokes"
-msgstr "Calque de crayon gras auquel assigner les traits générés"
+msgstr "Calque de Grease Pencil auquel assigner les traits générés"
 
 
 msgid "Grease Pencil material assigned to the generated strokes"
-msgstr "Matériau de crayon gras assigné aux traits générés"
+msgstr "Matériau de Grease Pencil assigné aux traits générés"
 
 
 msgid "The thickness for the generated strokes"
@@ -19102,11 +19083,11 @@ msgstr "Définir la visibilité du calque"
 
 
 msgid "Grease Pencil Layer Group"
-msgstr "Groupe de calques de crayon gras"
+msgstr "Groupe de calques de Grease Pencil"
 
 
 msgid "Group of Grease Pencil layers"
-msgstr "Groupe de calques de crayon gras"
+msgstr "Groupe de calques de Grease Pencil"
 
 
 msgid "Set layer group visibility"
@@ -19122,15 +19103,15 @@ msgstr "Nom du groupe"
 
 
 msgid "Grease Pencil Layers"
-msgstr "Calques de crayon gras"
+msgstr "Calques de Grease Pencil"
 
 
 msgid "Collection of grease pencil layers"
-msgstr "Collection de calques de crayon gras"
+msgstr "Collection de calques de Grease Pencil"
 
 
 msgid "Active grease pencil layer"
-msgstr "Calque de crayon gras actif"
+msgstr "Calque de Grease Pencil actif"
 
 
 msgid "Active Layer Index"
@@ -19138,7 +19119,7 @@ msgstr "Indice du calque actif"
 
 
 msgid "Index of active grease pencil layer"
-msgstr "Indice du calque de crayon gras actif"
+msgstr "Indice du calque de Grease Pencil actif"
 
 
 msgid "Active Note"
@@ -19150,11 +19131,11 @@ msgstr "Note/calque auquel ajouter les traits d’annotation"
 
 
 msgid "Grease Pencil Mask Layers"
-msgstr "Calques de masque de crayon gras"
+msgstr "Calques de masque de Grease Pencil"
 
 
 msgid "Collection of grease pencil masking layers"
-msgstr "Collection de calques de masque de crayon gras"
+msgstr "Collection de calques de masque de Grease Pencil"
 
 
 msgid "Active Layer Mask Index"
@@ -19166,11 +19147,11 @@ msgstr "Indice actif dans le tableau des calques de masque"
 
 
 msgid "Collection of Grease Pencil layers"
-msgstr "Collection de calques de crayon gras"
+msgstr "Collection de calques de Grease Pencil"
 
 
 msgid "Active Grease Pencil layer"
-msgstr "Calque de crayon gras actif"
+msgstr "Calque de Grease Pencil actif"
 
 
 msgid "Editor header containing UI elements"
@@ -19544,6 +19525,14 @@ msgstr "Afficher les axes"
 
 msgid "Display bone axes"
 msgstr "Afficher les axes des os"
+
+
+msgid "Display Bone Colors"
+msgstr "Afficher les couleurs des os"
+
+
+msgid "Display bone colors"
+msgstr "Afficher les couleurs des os"
 
 
 msgid "Display Custom Bone Shapes"
@@ -20259,7 +20248,7 @@ msgstr "Quantité de peinture appliquée par échantillon de coup de brosse"
 
 msgctxt "GPencil"
 msgid "Grease Pencil Sculpt Paint Tool"
-msgstr "Outil de sculpture-peinture de crayon gras"
+msgstr "Outil de sculpture-peinture de Grease Pencil"
 
 
 msgid "Smooth stroke points"
@@ -20299,12 +20288,12 @@ msgstr "Coller les copies de traits stockées dans le presse-papier interne"
 
 
 msgid "Gpencil Settings"
-msgstr "Réglages de crayon gras"
+msgstr "Réglages du Grease Pencil"
 
 
 msgctxt "Brush"
 msgid "Grease Pencil Draw Tool"
-msgstr "Outil dessin de crayon gras"
+msgstr "Outil dessin du Grease Pencil"
 
 
 msgctxt "Brush"
@@ -20344,7 +20333,7 @@ msgstr "La brosse est du type utilisé pour teinter des traits"
 
 
 msgid "Grease Pencil Vertex Paint Tool"
-msgstr "Outil peinture de sommets crayon gras"
+msgstr "Outil peinture de sommets Grease Pencil"
 
 
 msgid "Paint a color on stroke points"
@@ -20368,7 +20357,7 @@ msgstr "Remplacer la couleur des points de traits auxquels une couleur est déj�
 
 
 msgid "Grease Pencil Weight Paint Tool"
-msgstr "Outil peinture de poids crayon gras"
+msgstr "Outil peinture de poids Grease Pencil"
 
 
 msgid "Paint weight in active vertex group"
@@ -21350,7 +21339,7 @@ msgstr "Utiliser pour peinture"
 
 
 msgid "Use this brush in grease pencil drawing mode"
-msgstr "Utiliser cette brosse en mode peinture crayon gras"
+msgstr "Utiliser cette brosse en mode peinture Grease Pencil"
 
 
 msgid "Use this brush in texture paint mode"
@@ -21526,7 +21515,7 @@ msgstr "Ajuster automatiquement la force pour donner des résultats cohérents a
 
 
 msgid "Use this brush in grease pencil vertex color mode"
-msgstr "Utiliser cette brosse en mode couleurs de sommets de crayon gras"
+msgstr "Utiliser cette brosse en mode couleurs de sommets de Grease Pencil"
 
 
 msgid "Use Pressure for Wet Mix"
@@ -23689,7 +23678,7 @@ msgstr "Mode peinture de traits"
 
 
 msgid "Draw Grease Pencil strokes on click/drag"
-msgstr "Dessiner les traits de crayon gras en cliquant et en glissant"
+msgstr "Dessiner les traits de Grease Pencil en cliquant et en glissant"
 
 
 msgid "Stroke Sculpt Mode"
@@ -23697,7 +23686,7 @@ msgstr "Mode sculpture de traits"
 
 
 msgid "Sculpt Grease Pencil strokes instead of viewport data"
-msgstr "Sculpter les traits de crayon gras au lieu des données de la vue 3D"
+msgstr "Sculpter les traits de Grease Pencil au lieu des données de la vue 3D"
 
 
 msgid "Stroke Vertex Paint Mode"
@@ -23705,7 +23694,7 @@ msgstr "Mode peinture de sommets de traits"
 
 
 msgid "Grease Pencil vertex paint"
-msgstr "Peinture de sommets de crayon gras"
+msgstr "Peinture de sommets de Grease Pencil"
 
 
 msgid "Stroke Weight Paint Mode"
@@ -23713,7 +23702,7 @@ msgstr "Mode peinture de poids"
 
 
 msgid "Grease Pencil weight paint"
-msgstr "Peinture de poids de crayon gras"
+msgstr "Peinture de poids de Grease Pencil"
 
 
 msgid "Layers"
@@ -23749,7 +23738,7 @@ msgstr "Frames dans l’intervalle absolu de la scène"
 
 
 msgid "Frames in relative range of the Grease Pencil keyframes"
-msgstr "Frames dans l’intervalle relatif des images clés du crayon gras"
+msgstr "Frames dans l’intervalle relatif des images clés du Grease Pencil"
 
 
 msgid "Selected"
@@ -23777,7 +23766,7 @@ msgstr "Calques 2D"
 
 
 msgid "Display strokes using grease pencil layers to define order"
-msgstr "Afficher les traits en utilisant les calques de crayon gras pour définir l’ordre"
+msgstr "Afficher les traits en utilisant les calques de Grease Pencil pour définir l’ordre"
 
 
 msgid "3D Location"
@@ -23853,7 +23842,7 @@ msgstr "Multiframes"
 
 
 msgid "Edit strokes from multiple grease pencil keyframes at the same time (keyframes must be selected to be included)"
-msgstr "Éditer les traits de plusieurs images clés de crayon gras en même temps (les images clés doivent être sélectionnées pour être incluses)"
+msgstr "Éditer les traits de plusieurs images clés de Grease Pencil en même temps (les images clés doivent être sélectionnées pour être incluses)"
 
 
 msgid "Display onion keyframes with a fade in color transparency"
@@ -23881,7 +23870,7 @@ msgstr "Mode édition de trait"
 
 
 msgid "Edit Grease Pencil strokes instead of viewport data"
-msgstr "Éditer les traits de crayon gras au lieu des données de la vue 3D"
+msgstr "Éditer les traits de Grease Pencil au lieu des données de la vue 3D"
 
 
 msgid "Surface Offset"
@@ -23893,7 +23882,7 @@ msgstr "Quantité de décalage lors de l’affichage en mode surface"
 
 
 msgid "Grease Pencil data-block"
-msgstr "Bloc de données crayon gras"
+msgstr "Bloc de données Grease Pencil"
 
 
 msgid "Layer Groups"
@@ -23901,11 +23890,11 @@ msgstr "Groupes de calques"
 
 
 msgid "Grease Pencil layer groups"
-msgstr "Groupes de calques de crayon gras"
+msgstr "Groupes de calques de Grease Pencil"
 
 
 msgid "Grease Pencil layers"
-msgstr "Calques de crayon gras"
+msgstr "Calques de Grease Pencil"
 
 
 msgid "Image data-block referencing an external or packed image"
@@ -24500,6 +24489,14 @@ msgid "Path to the library .blend file"
 msgstr "Chemin du fichier .blend bibliothèque"
 
 
+msgid "Library Overrides Need resync"
+msgstr "Resynchro nécessaire pour les redéfinitions de bibliothèques"
+
+
+msgid "True if this library contains library overrides that are linked in current blendfile, and that had to be recursively resynced on load (it is recommended to open and re-save that library blendfile then)"
+msgstr "Vrai si cette bibliothèque contient des redéfinitions de bibliothèques liées dans le fichier .blend actuel, et qui ont dû être resynchronisées récursivement au chargement (il est recommandé d’ouvrir et de réenregistrer ce fichier de bibliothèque dans ce cas)"
+
+
 msgid "Version of Blender the library .blend was saved with"
 msgstr "Version de Blender avec laquelle le .blend bibliothèque a été enregistré"
 
@@ -24879,8 +24876,16 @@ msgid "Clamp Direct"
 msgstr "Limiter direct"
 
 
+msgid "Clamp the direct lighting intensity to reduce noise (0 to disable)"
+msgstr "Limiter l’intensité de l’éclairage direct pour diminuer le bruit (0 pour désactiver)"
+
+
 msgid "Clamp Indirect"
 msgstr "Limiter indirect"
+
+
+msgid "Clamp the indirect lighting intensity to reduce noise (0 to disable)"
+msgstr "Limiter l’intensité de l’éclairage indirect pour diminuer le bruit (0 pour désactiver)"
 
 
 msgid "Dilation Radius"
@@ -25205,19 +25210,19 @@ msgstr "Couleur diffuse du matériau"
 
 
 msgid "Grease Pencil Settings"
-msgstr "Réglages de crayon gras"
+msgstr "Réglages de Grease Pencil"
 
 
 msgid "Grease pencil color settings for material"
-msgstr "Réglages de couleur de crayon gras pour le matériau"
+msgstr "Réglages de couleur de Grease Pencil pour le matériau"
 
 
 msgid "Is Grease Pencil"
-msgstr "Est crayon gras"
+msgstr "Est Grease Pencil"
 
 
 msgid "True if this material has grease pencil data"
-msgstr "Vrai si ce matériau a des données de crayon gras"
+msgstr "Vrai si ce matériau a des données de Grease Pencil"
 
 
 msgid "Line Color"
@@ -25633,7 +25638,7 @@ msgstr "Lissage auto"
 
 
 msgid "Auto smooth (based on smooth/sharp faces/edges and angle between faces), or use custom split normals data if available"
-msgstr "Lissage auto (basé sur les faces/arêtes douces/dures et sur l’ange entre les faces), ou utiliser les données de normales divisées personnalisées si disponibles"
+msgstr "Lissage auto (basé sur les faces/arêtes douces/dures et sur l’angle entre les faces), ou utiliser les données de normales divisées personnalisées si disponibles"
 
 
 msgid "Topology Mirror"
@@ -25869,7 +25874,7 @@ msgstr "Numéro de frame au niveau de la scène globale auquel la vidéo démarr
 
 
 msgid "Grease pencil data for this movie clip"
-msgstr "Données de crayon gras pour ce clip vidéo"
+msgstr "Données de Grease Pencil pour ce clip vidéo"
 
 
 msgid "Width and height in pixels, zero when image data can't be loaded"
@@ -25913,7 +25918,7 @@ msgstr "Le libellé de l’arborescence de nœuds"
 
 
 msgid "Grease Pencil Data"
-msgstr "Données de crayon gras"
+msgstr "Données de Grease Pencil"
 
 
 msgid "Interface"
@@ -26052,6 +26057,10 @@ msgid "High quality"
 msgstr "Haute qualité"
 
 
+msgid "Medium"
+msgstr "Moyenne"
+
+
 msgid "Medium quality"
 msgstr "Qualité moyenne"
 
@@ -26162,6 +26171,10 @@ msgstr "Le groupe de nœuds est utilisé en mode sculpture"
 
 msgid "Modifier"
 msgstr "Modificateur"
+
+
+msgid "The node group is used as a geometry modifier"
+msgstr "Le groupe de nœuds est utilisé comme modificateur de géométrie"
 
 
 msgid "Tool"
@@ -26489,11 +26502,11 @@ msgstr "Réglages pour utiliser l’objet comme un champ de force dans une simul
 
 
 msgid "Grease Pencil Modifiers"
-msgstr "Modificateurs de crayon gras"
+msgstr "Modificateurs de Grease Pencil"
 
 
 msgid "Modifiers affecting the data of the grease pencil object"
-msgstr "Modificateurs affectant les données de l’objet crayon gras"
+msgstr "Modificateurs affectant les données de l’objet Grease Pencil"
 
 
 msgid "Instance Collection"
@@ -26705,11 +26718,11 @@ msgstr "Édition de particules"
 
 
 msgid "Edit Grease Pencil Strokes"
-msgstr "Éditer les traits de crayon gras"
+msgstr "Éditer les traits de Grease Pencil"
 
 
 msgid "Sculpt Grease Pencil Strokes"
-msgstr "Sculpter les traits de crayon gras"
+msgstr "Sculpter les traits de Grease Pencil"
 
 
 msgid "Draw Mode"
@@ -26717,15 +26730,15 @@ msgstr "Mode dessin"
 
 
 msgid "Paint Grease Pencil Strokes"
-msgstr "Dessiner des traits de crayon gras"
+msgstr "Dessiner des traits de Grease Pencil"
 
 
 msgid "Grease Pencil Weight Paint Strokes"
-msgstr "Peindre des poids sur les traits de crayon gras"
+msgstr "Peindre des poids sur les traits de Grease Pencil"
 
 
 msgid "Grease Pencil Vertex Paint Strokes"
-msgstr "Peindre les sommets de crayon gras"
+msgstr "Peindre les sommets de Grease Pencil"
 
 
 msgid "Modifiers affecting the geometric data of the object"
@@ -27033,7 +27046,7 @@ msgstr "Utiliser le mélange alpha au lieu du test alpha (peut générer des art
 
 
 msgid "Lights affect grease pencil object"
-msgstr "Éclairages affectant l’objet crayon gras"
+msgstr "Éclairages affectant l’objet Grease Pencil"
 
 
 msgid "Scale to Face Sizes"
@@ -28436,11 +28449,11 @@ msgstr "Réglages du périphérique sur lequel l’image enregistrée sera affic
 
 
 msgid "Eevee"
-msgstr "Eevee"
+msgstr "EEVEE"
 
 
 msgid "Eevee settings for the scene"
-msgstr "Réglages d’Eevee pour la scène"
+msgstr "Réglages d’EEVEE pour la scène"
 
 
 msgid "Current Frame"
@@ -28500,11 +28513,11 @@ msgstr "Annotations"
 
 
 msgid "Grease Pencil data-block used for annotations in the 3D view"
-msgstr "Bloc de données de crayon gras utilisé pour les annotations dans la vue 3D"
+msgstr "Bloc de données de Grease Pencil utilisé pour les annotations dans la vue 3D"
 
 
 msgid "Grease Pencil settings for the scene"
-msgstr "Réglages de crayon gras pour la scène"
+msgstr "Réglages de Grease Pencil pour la scène"
 
 
 msgid "Hydra"
@@ -29922,7 +29935,7 @@ msgstr "Position, contour et intensité"
 
 
 msgid "Multiply position and outline by intensity"
-msgstr "Multiplier la position et et contour par l’intensité"
+msgstr "Multiplier la position et le contour par l’intensité"
 
 
 msgid "Distance Metric"
@@ -30314,23 +30327,23 @@ msgstr "Basculer vers ce mode objet à l’activation de l’espace de travail"
 
 
 msgid "Grease Pencil Edit Mode"
-msgstr "Édition de crayon gras"
+msgstr "Édition de Grease Pencil"
 
 
 msgid "Grease Pencil Sculpt Mode"
-msgstr "Sculpture de crayon gras"
+msgstr "Sculpture de Grease Pencil"
 
 
 msgid "Grease Pencil Draw"
-msgstr "Dessin de crayon gras"
+msgstr "Dessin de Grease Pencil"
 
 
 msgid "Grease Pencil Vertex Paint"
-msgstr "Peinture de sommets de crayon gras"
+msgstr "Peinture de sommets de Grease Pencil"
 
 
 msgid "Grease Pencil Weight Paint"
-msgstr "Peinture de poids de crayon gras"
+msgstr "Peinture de poids de Grease Pencil"
 
 
 msgid "UI Tags"
@@ -31382,7 +31395,7 @@ msgstr "Identificateur de l’opérateur appelé par le périphérique"
 
 
 msgid "Is this keymap item user defined (doesn't just replace a builtin item)"
-msgstr "Ce raccourci est-il défini par l’utilisateur (ne se contente pas de remplacer un raccourci prédéfini) ?"
+msgstr "Est-ce que raccourci est défini par l’utilisateur (ne se contente pas de remplacer un raccourci prédéfini)"
 
 
 msgid "User Modified"
@@ -33846,7 +33859,7 @@ msgstr "Courbe de Bézier"
 
 
 msgid "Blueprint"
-msgstr "Blueprint"
+msgstr "Bleu"
 
 
 msgid "Guiding Lines"
@@ -34619,7 +34632,7 @@ msgstr "Point actif du calque de masque"
 
 
 msgid "Grease Pencil Color"
-msgstr "Couleur de crayon gras"
+msgstr "Couleur de Grease Pencil"
 
 
 msgid "Alignment"
@@ -35027,7 +35040,7 @@ msgstr "Menu contextuel des fichiers"
 
 
 msgid "Grease Pencil Vertex Groups"
-msgstr "Groupes de sommets du crayon gras"
+msgstr "Groupes de sommets du Grease Pencil"
 
 
 msgid "Change Active Layer"
@@ -36793,7 +36806,7 @@ msgstr "Modificateur de biseautage pour rendre les arêtes et sommets plus arron
 
 
 msgid "Affect"
-msgstr "Affecte"
+msgstr "Affecter"
 
 
 msgid "Affect edges or vertices"
@@ -38745,6 +38758,10 @@ msgstr "Groupe de nœuds"
 
 msgid "Node group that controls what this modifier does"
 msgstr "Groupe de nœuds contrôlant l’action de ce modificateur"
+
+
+msgid "Show Node Group"
+msgstr "Afficher le groupe de nœuds"
 
 
 msgid "Simulation Bake Directory"
@@ -41722,7 +41739,7 @@ msgstr "Utiliser le canal vert du métrage pour le tracking"
 
 
 msgid "Use a grease pencil data-block as a mask to use only specified areas of pattern when tracking"
-msgstr "Utiliser un bloc de données crayon gras comme masque pour n’utiliser que les zones spécifiées du motif lors du tracking"
+msgstr "Utiliser un bloc de données Grease Pencil comme masque pour n’utiliser que les zones spécifiées du motif lors du tracking"
 
 
 msgid "Normalize"
@@ -41954,7 +41971,7 @@ msgstr "Valeur de corrélation minimale entre le motif trouvé et la référence
 
 
 msgid "Grease pencil data for this track"
-msgstr "Données de crayon gras pour cette piste"
+msgstr "Données de Grease Pencil pour cette piste"
 
 
 msgid "Has Bundle"
@@ -45827,6 +45844,14 @@ msgid "Retrieve the angle at each control point used to twist the curve's normal
 msgstr "Obtenir l’angle utilisé pour incliner la normale de la courbe autour de sa tangente à chaque point de contrôle"
 
 
+msgid "Is Edge Smooth"
+msgstr "Est arête douce"
+
+
+msgid "Retrieve whether each edge is marked for smooth or split normals"
+msgstr "Savoir si chaque arête est marquée comme ayant ses normales douces ou divisées"
+
+
 msgid "Retrieve a stable random identifier value from the \"id\" attribute on the point domain, or the index if the attribute does not exist"
 msgstr "Obtenir un identifiant aléatoire et stable de l’attribut « id » sur le domaine point, ou l’indice si l’attribut n’existe pas"
 
@@ -45949,6 +45974,14 @@ msgstr "Obtenir le rayon de chaque point de la géométrie de courbe ou de nuage
 
 msgid "Retrieve the current time in the scene's animation in units of seconds or frames"
 msgstr "Obtenir le temps actuel dans l’animation de la scène, avec des unités en secondes ou en frames"
+
+
+msgid "Is Face Smooth"
+msgstr "Est face adoucie"
+
+
+msgid "Retrieve whether each face is marked for smooth or sharp normals"
+msgstr "Savoir si chaque face est marquée comme ayant des normales douces ou dures"
 
 
 msgid "Shortest Edge Paths"
@@ -47829,7 +47862,7 @@ msgstr "Utiliser les shaders pour tous les moteurs de rendu et vues 3D, sauf s�
 
 
 msgid "Use shaders for Eevee renderer"
-msgstr "Utiliser les shaders dans le rendu Eevee"
+msgstr "Utiliser les shaders dans le rendu EEVEE"
 
 
 msgid "Cycles"
@@ -49738,11 +49771,11 @@ msgstr "Afficher les ombres projetées par les objets dans la vue 3D"
 
 
 msgid "Object Grease Pencil Modifiers"
-msgstr "Modificateurs d’objet crayon gras"
+msgstr "Modificateurs d’objet Grease Pencil"
 
 
 msgid "Collection of object grease pencil modifiers"
-msgstr "Collection de modificateurs d’objet crayon gras"
+msgstr "Collection de modificateurs d’objet Grease Pencil"
 
 
 msgid "Object Light Linking"
@@ -49879,6 +49912,10 @@ msgstr "Propriétés d’opérateur"
 
 msgid "Input properties of an operator"
 msgstr "Propriétés d’entrée d’un opérateur"
+
+
+msgid "Add keyframes on every frame between the selected keyframes"
+msgstr "Ajouter des images clés à chaque frame comprise entre les images clés sélectionnées"
 
 
 msgctxt "Operator"
@@ -50268,15 +50305,6 @@ msgstr "Ajouter l’action"
 
 msgid "Push action down on to the NLA stack as a new strip"
 msgstr "Ajouter l’action au sommet de la pile NLA, comme une nouvelle bande"
-
-
-msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Échantillonner les images clés"
-
-
-msgid "Add keyframes on every frame between the selected keyframes"
-msgstr "Ajouter des images clés à chaque frame comprise entre les images clés sélectionnées"
 
 
 msgctxt "Operator"
@@ -52125,7 +52153,7 @@ msgstr "Ajouter une brosse de dessin"
 
 
 msgid "Add brush for Grease Pencil"
-msgstr "Ajouter une brosse pour le crayon gras"
+msgstr "Ajouter une brosse pour le Grease Pencil"
 
 
 msgctxt "Operator"
@@ -54326,7 +54354,7 @@ msgstr "Compresser/dilater le masque"
 
 
 msgid "Grease Pencil Shrink/Fatten"
-msgstr "Compresser/dilater le crayon gras"
+msgstr "Compresser/dilater le Grease Pencil"
 
 
 msgid "Time Translate"
@@ -54354,7 +54382,7 @@ msgstr "Glisser la séquence"
 
 
 msgid "Grease Pencil Opacity"
-msgstr "Opacité du crayon gras"
+msgstr "Opacité du Grease Pencil"
 
 
 msgctxt "Operator"
@@ -57479,7 +57507,7 @@ msgstr "Supprimer la frame active"
 
 
 msgid "Delete the active frame for the active Grease Pencil Layer"
-msgstr "Supprimer la frame active du calque crayon gras actif"
+msgstr "Supprimer la frame active du calque Grease Pencil actif"
 
 
 msgctxt "Operator"
@@ -57488,7 +57516,7 @@ msgstr "Supprimer toutes les frames actives"
 
 
 msgid "Delete the active frame(s) of all editable Grease Pencil layers"
-msgstr "Supprimer la ou les frame(s) active(s) de tous les calques de crayon gras éditables"
+msgstr "Supprimer la ou les frame(s) active(s) de tous les calques de Grease Pencil éditables"
 
 
 msgctxt "Operator"
@@ -57623,11 +57651,11 @@ msgstr "Ajouter un nouveau bloc de données d’annotation"
 
 msgctxt "Operator"
 msgid "Bake Object Transform to Grease Pencil"
-msgstr "Précalculer la transformation d’objet en crayon gras"
+msgstr "Précalculer la transformation d’objet en Grease Pencil"
 
 
 msgid "Bake grease pencil object transform to grease pencil keyframes"
-msgstr "Précalculer les transformations de l’objet de crayon gras vers des images clés de crayon gras"
+msgstr "Précalculer les transformations de l’objet de Grease Pencil vers des images clés de Grease Pencil"
 
 
 msgid "The end frame of animation"
@@ -57692,11 +57720,11 @@ msgstr "Espace entre les frames générées"
 
 msgctxt "Operator"
 msgid "Bake Mesh Animation to Grease Pencil"
-msgstr "Précalculer l’animation du maillage en crayon gras"
+msgstr "Précalculer l’animation du maillage en Grease Pencil"
 
 
 msgid "Bake mesh animation to grease pencil strokes"
-msgstr "Précalculer l’animation du maillage vers des traits de crayon gras"
+msgstr "Précalculer l’animation du maillage vers des traits de Grease Pencil"
 
 
 msgid "Threshold Angle"
@@ -57732,7 +57760,7 @@ msgstr "Ne convertir que les arêtes de couture"
 
 
 msgid "Target grease pencil"
-msgstr "Crayon gras cible"
+msgstr "Grease Pencil cible"
 
 
 msgid "New Object"
@@ -57771,11 +57799,11 @@ msgstr "Supprimer toutes les brosses du mode et en recréer un ensemble par déf
 
 msgctxt "Operator"
 msgid "Convert Grease Pencil"
-msgstr "Convertir le crayon gras"
+msgstr "Convertir le Grease Pencil"
 
 
 msgid "Convert the active Grease Pencil layer to a new Curve Object"
-msgstr "Convertir le calque actif de crayon gras en un nouvel objet Courbe"
+msgstr "Convertir le calque actif de Grease Pencil en un nouvel objet Courbe"
 
 
 msgid "Bevel resolution when depth is non-zero"
@@ -57899,11 +57927,11 @@ msgstr "Le minutage est valide"
 
 
 msgid "Whether the converted Grease Pencil layer has valid timing data (internal use)"
-msgstr "Si le calque de crayon gras converti a des données de minutage valides (usage interne)"
+msgstr "Si le calque de Grease Pencil converti a des données de minutage valides (usage interne)"
 
 
 msgid "Convert 2.7x grease pencil files to 2.80"
-msgstr "Convertir les fichiers de crayon gras 2.7x vers 2.80"
+msgstr "Convertir les fichiers de Grease Pencil 2.7x vers 2.80"
 
 
 msgid "Convert to Annotations"
@@ -57916,7 +57944,7 @@ msgstr "Copier le trait"
 
 
 msgid "Copy selected Grease Pencil points and strokes"
-msgstr "Copier les points et traits de crayon gras sélectionnés"
+msgstr "Copier les points et traits de Grease Pencil sélectionnés"
 
 
 msgctxt "Operator"
@@ -57929,11 +57957,11 @@ msgstr "Dé-lier le bloc de données d’annotation actif"
 
 
 msgid "Delete selected Grease Pencil strokes, vertices, or frames"
-msgstr "Supprimer les traits, sommets ou frames de crayon gras sélectionnés"
+msgstr "Supprimer les traits, sommets ou frames de Grease Pencil sélectionnés"
 
 
 msgid "Method used for deleting Grease Pencil data"
-msgstr "Méthode utilisée pour supprimer des données de crayon gras"
+msgstr "Méthode utilisée pour supprimer des données de Grease Pencil"
 
 
 msgid "Delete selected points and split strokes into segments"
@@ -57983,11 +58011,11 @@ msgstr "Dissoudre tous les points désélectionnés"
 
 msgctxt "Operator"
 msgid "Grease Pencil Draw"
-msgstr "Dessiner au crayon gras"
+msgstr "Dessiner au Grease Pencil"
 
 
 msgid "Draw a new stroke in the active Grease Pencil object"
-msgstr "Dessiner un nouveau trait dans l’objet crayon gras sélectionné"
+msgstr "Dessiner un nouveau trait dans l’objet Grease Pencil sélectionné"
 
 
 msgid "No Fill Areas"
@@ -58015,7 +58043,7 @@ msgstr "Angle du guide rapide"
 
 
 msgid "Erase Grease Pencil strokes"
-msgstr "Effacer des traits de crayon gras"
+msgstr "Effacer des traits de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -58024,11 +58052,11 @@ msgstr "Dupliquer les traits"
 
 
 msgid "Duplicate the selected Grease Pencil strokes"
-msgstr "Dupliquer les traits de crayon gras sélectionnés"
+msgstr "Dupliquer les traits de Grease Pencil sélectionnés"
 
 
 msgid "Make copies of the selected Grease Pencil strokes and move them"
-msgstr "Copier et déplacer les traits de crayon gras sélectionnés"
+msgstr "Copier et déplacer les traits de Grease Pencil sélectionnés"
 
 
 msgid "Duplicate Strokes"
@@ -58041,7 +58069,7 @@ msgstr "(Dés)activer mode édition de trait"
 
 
 msgid "Enter/Exit edit mode for Grease Pencil strokes"
-msgstr "Entrer/sortir du mode édition des traits de crayon gras"
+msgstr "Entrer/sortir du mode édition des traits de Grease Pencil"
 
 
 msgid "Return to Previous Mode"
@@ -58058,7 +58086,7 @@ msgstr "Extraire palette depuis couleur de sommets"
 
 
 msgid "Extract all colors used in Grease Pencil Vertex and create a Palette"
-msgstr "Extraire toutes les couleurs utilisées dans les sommets du crayon gras et créer une palette"
+msgstr "Extraire toutes les couleurs utilisées dans les sommets du Grease Pencil et créer une palette"
 
 
 msgid "Convert only selected strokes"
@@ -58071,7 +58099,7 @@ msgstr "Extruder points de trait"
 
 
 msgid "Extrude the selected Grease Pencil points"
-msgstr "Extruder les points de crayon gras sélectionnés"
+msgstr "Extruder les points de Grease Pencil sélectionnés"
 
 
 msgid "Extrude selected points and move them"
@@ -58084,7 +58112,7 @@ msgstr "Extruder les points de traits"
 
 msgctxt "Operator"
 msgid "Grease Pencil Fill"
-msgstr "Remplir au crayon gras"
+msgstr "Remplir au Grease Pencil"
 
 
 msgid "Fill with color the shape formed by strokes"
@@ -58160,7 +58188,7 @@ msgstr "Dupliquer la frame"
 
 
 msgid "Make a copy of the active Grease Pencil Frame"
-msgstr "Faire une copie de la frame de crayon gras active"
+msgstr "Faire une copie de la frame de Grease Pencil active"
 
 
 msgid "Duplicate frame in active layer only"
@@ -58227,7 +58255,7 @@ msgstr "Cacher les calques"
 
 
 msgid "Hide selected/unselected Grease Pencil layers"
-msgstr "Cacher les calques de crayon gras désélectionnés"
+msgstr "Cacher les calques de Grease Pencil désélectionnés"
 
 
 msgid "Hide unselected rather than selected layers"
@@ -58236,11 +58264,11 @@ msgstr "Cacher les calques non-sélectionnés au lieu des sélectionnés"
 
 msgctxt "Operator"
 msgid "Generate Grease Pencil Object using image as source"
-msgstr "Générer un objet crayon gras en utilisant l’image comme source"
+msgstr "Générer un objet Grease Pencil en utilisant l’image comme source"
 
 
 msgid "Generate a Grease Pencil Object using Image as source"
-msgstr "Générer un objet crayon gras en utilisant l’image comme source"
+msgstr "Générer un objet Grease Pencil en utilisant l’image comme source"
 
 
 msgid "Generate Mask"
@@ -58256,16 +58284,16 @@ msgstr "Taille des points"
 
 
 msgid "Size used for grease pencil points"
-msgstr "Taille utilisée pour les points de crayon gras"
+msgstr "Taille utilisée pour les points de Grease Pencil"
 
 
 msgctxt "Operator"
 msgid "Grease Pencil Interpolation"
-msgstr "Interpoler le crayon gras"
+msgstr "Interpoler le Grease Pencil"
 
 
 msgid "Interpolate grease pencil strokes between frames"
-msgstr "Interpoler les traits de crayon gras entre les frames"
+msgstr "Interpoler les traits de Grease Pencil entre les frames"
 
 
 msgid "Exclude Breakdowns"
@@ -58314,7 +58342,7 @@ msgstr "Supprimer les intervalles principaux"
 
 
 msgid "Remove breakdown frames generated by interpolating between two Grease Pencil frames"
-msgstr "Supprimer les intervalles principaux générés par l’interpolation entre deux images clés de crayon gras"
+msgstr "Supprimer les intervalles principaux générés par l’interpolation entre deux images clés de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -58323,7 +58351,7 @@ msgstr "Interpoler la séquence"
 
 
 msgid "Generate 'in-betweens' to smoothly interpolate between Grease Pencil frames"
-msgstr "Générer des intervalles pour interpoler en douceur entre les images clés de crayon gras"
+msgstr "Générer des intervalles pour interpoler en douceur entre les images clés de Grease Pencil"
 
 
 msgctxt "GPencil"
@@ -58332,7 +58360,7 @@ msgstr "Amorti"
 
 
 msgid "Which ends of the segment between the preceding and following grease pencil frames easing interpolation is applied to"
-msgstr "À quelles extrémités du segment entre cette image clé de crayon gras et la suivante l’interpolation d’amorti est appliquée"
+msgstr "À quelles extrémités du segment entre cette image clé de Grease Pencil et la suivante l’interpolation d’amorti est appliquée"
 
 
 msgctxt "GPencil"
@@ -58487,7 +58515,7 @@ msgstr "Changer de calque"
 
 
 msgid "Change active Grease Pencil layer"
-msgstr "Modifier le calque de crayon gras actif"
+msgstr "Modifier le calque de Grease Pencil actif"
 
 
 msgctxt "Operator"
@@ -58496,7 +58524,7 @@ msgstr "Dupliquer le calque"
 
 
 msgid "Make a copy of the active Grease Pencil layer"
-msgstr "Faire une copie du calque de crayon gras actif"
+msgstr "Faire une copie du calque de Grease Pencil actif"
 
 
 msgid "All Data"
@@ -58513,7 +58541,7 @@ msgstr "Dupliquer le calque vers un nouvel objet"
 
 
 msgid "Make a copy of the active Grease Pencil layer to selected object"
-msgstr "Faire une copie du calque de crayon gras actif dans un nouvel objet"
+msgstr "Faire une copie du calque de Grease Pencil actif dans un nouvel objet"
 
 
 msgctxt "GPencil"
@@ -58557,11 +58585,11 @@ msgstr "Nom du calque"
 
 msgctxt "Operator"
 msgid "Move Grease Pencil Layer Mask"
-msgstr "Déplacer le calque de masquage du crayon gras"
+msgstr "Déplacer le calque de masquage du Grease Pencil"
 
 
 msgid "Move the active Grease Pencil mask layer up/down in the list"
-msgstr "Déplacer le calque de masquage actif du crayon gras vers le haut/le bas de la liste"
+msgstr "Déplacer le calque de masquage actif du Grease Pencil vers le haut/le bas de la liste"
 
 
 msgctxt "Operator"
@@ -58592,11 +58620,11 @@ msgstr "Combiner tous les calques dans le calque actif"
 
 msgctxt "Operator"
 msgid "Move Grease Pencil Layer"
-msgstr "Déplacer le calque de crayon gras"
+msgstr "Déplacer le calque de Grease Pencil"
 
 
 msgid "Move the active Grease Pencil layer up/down in the list"
-msgstr "Déplacer le calque de crayon gras actif vers le haut ou le bas de la liste"
+msgstr "Déplacer le calque de Grease Pencil actif vers le haut ou le bas de la liste"
 
 
 msgctxt "Operator"
@@ -58605,7 +58633,7 @@ msgstr "Supprimer le calque"
 
 
 msgid "Remove active Grease Pencil layer"
-msgstr "Supprimer le calque de crayon gras actif"
+msgstr "Supprimer le calque de Grease Pencil actif"
 
 
 msgctxt "Operator"
@@ -58614,7 +58642,7 @@ msgstr "Verrouiller tous les calques"
 
 
 msgid "Lock all Grease Pencil layers to prevent them from being accidentally modified"
-msgstr "Verrouiller tous les calques de crayon gras pour empêcher leur modification accidentelle"
+msgstr "Verrouiller tous les calques de Grease Pencil pour empêcher leur modification accidentelle"
 
 
 msgctxt "Operator"
@@ -58632,7 +58660,7 @@ msgstr "Cacher les matériaux"
 
 
 msgid "Hide selected/unselected Grease Pencil materials"
-msgstr "Cacher les matériaux de crayon gras désélectionnés"
+msgstr "Cacher les matériaux de Grease Pencil désélectionnés"
 
 
 msgid "Hide unselected rather than selected colors"
@@ -58654,7 +58682,7 @@ msgstr "Verrouiller tous les matériaux"
 
 
 msgid "Lock all Grease Pencil materials to prevent them from being accidentally modified"
-msgstr "Verrouiller tous les matériaux de crayon gras pour empêcher leur modification accidentelle"
+msgstr "Verrouiller tous les matériaux de Grease Pencil pour empêcher leur modification accidentelle"
 
 
 msgctxt "Operator"
@@ -58672,7 +58700,7 @@ msgstr "Afficher tous les matériaux"
 
 
 msgid "Unhide all hidden Grease Pencil materials"
-msgstr "Révéler tous les matériaux de crayon gras cachés"
+msgstr "Révéler tous les matériaux de Grease Pencil cachés"
 
 
 msgctxt "Operator"
@@ -58681,7 +58709,7 @@ msgstr "Sélectionner le matériau"
 
 
 msgid "Select/Deselect all Grease Pencil strokes using current material"
-msgstr "(Dé)sélectionner tous les traits de crayon gras utilisant le matériau actuel"
+msgstr "(Dé)sélectionner tous les traits de Grease Pencil utilisant le matériau actuel"
 
 
 msgid "Unselect strokes"
@@ -58728,7 +58756,7 @@ msgstr "Déverrouiller tous les matériaux"
 
 
 msgid "Unlock all Grease Pencil materials so that they can be edited"
-msgstr "Déverrouiller tous les matériaux de crayon gras afin qu’ils soient éditables"
+msgstr "Déverrouiller tous les matériaux de Grease Pencil afin qu’ils soient éditables"
 
 
 msgctxt "Operator"
@@ -58737,7 +58765,7 @@ msgstr "Copier les matériaux vers l’objet sélectionné"
 
 
 msgid "Append Materials of the active Grease Pencil to other object"
-msgstr "Ajouter les matériaux du crayon gras actif à un autre objet"
+msgstr "Ajouter les matériaux du Grease Pencil actif à un autre objet"
 
 
 msgid "Append only active material, uncheck to append all materials"
@@ -58759,7 +58787,7 @@ msgstr "Alterner le mode de peinture de traits"
 
 
 msgid "Enter/Exit paint mode for Grease Pencil strokes"
-msgstr "Entrer ou sortir du mode de peinture pour les traits de crayon gras"
+msgstr "Entrer ou sortir du mode de peinture pour les traits de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -58789,11 +58817,11 @@ msgstr "Coller par calque"
 
 msgctxt "Operator"
 msgid "Grease Pencil Box Shape"
-msgstr "Forme carrée de crayon gras"
+msgstr "Forme carrée de Grease Pencil"
 
 
 msgid "Create predefined grease pencil stroke box shapes"
-msgstr "Créer des traits de crayon gras de forme carrée"
+msgstr "Créer des traits de Grease Pencil de forme carrée"
 
 
 msgid "Number of points per segment"
@@ -58814,38 +58842,38 @@ msgstr "Polyligne"
 
 msgctxt "Operator"
 msgid "Grease Pencil Circle Shape"
-msgstr "Forme cercle de crayon gras"
+msgstr "Forme cercle de Grease Pencil"
 
 
 msgid "Create predefined grease pencil stroke circle shapes"
-msgstr "Créer des traits de crayon gras de forme circulaire"
+msgstr "Créer des traits de Grease Pencil de forme circulaire"
 
 
 msgctxt "Operator"
 msgid "Grease Pencil Curve Shape"
-msgstr "Forme courbe de crayon gras"
+msgstr "Forme courbe de Grease Pencil"
 
 
 msgid "Create predefined grease pencil stroke curve shapes"
-msgstr "Créer des traits de crayon gras de forme courbe"
+msgstr "Créer des traits de Grease Pencil de forme courbe"
 
 
 msgctxt "Operator"
 msgid "Grease Pencil Line Shape"
-msgstr "Forme ligne de crayon gras"
+msgstr "Forme ligne de Grease Pencil"
 
 
 msgid "Create predefined grease pencil stroke lines"
-msgstr "Créer des traits de crayon gras en lignes"
+msgstr "Créer des traits de Grease Pencil en lignes"
 
 
 msgctxt "Operator"
 msgid "Grease Pencil Polyline Shape"
-msgstr "Forme polyligne de crayon gras"
+msgstr "Forme polyligne de Grease Pencil"
 
 
 msgid "Create predefined grease pencil stroke polylines"
-msgstr "Créer des traits de crayon gras en polylignes"
+msgstr "Créer des traits de Grease Pencil en polylignes"
 
 
 msgctxt "Operator"
@@ -58884,7 +58912,7 @@ msgstr "Réinitialiser toutes les transformations d’UV"
 
 
 msgid "Show all Grease Pencil layers"
-msgstr "Afficher tous les calques de crayon gras"
+msgstr "Afficher tous les calques de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -58906,7 +58934,7 @@ msgstr "Alterner le mode de sculpture de trait"
 
 
 msgid "Enter/Exit sculpt mode for Grease Pencil strokes"
-msgstr "Entrer ou sortir du mode de sculpture pour les traits de crayon gras"
+msgstr "Entrer ou sortir du mode de sculpture pour les traits de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -58945,7 +58973,7 @@ msgstr "Indice du segment à supprimer"
 
 
 msgid "Select Grease Pencil strokes and/or stroke points"
-msgstr "Sélectionner des traits de crayon gras et/ou des points de traits"
+msgstr "Sélectionner des traits de Grease Pencil et/ou des points de traits"
 
 
 msgid "Entire Strokes"
@@ -58966,7 +58994,7 @@ msgstr "(Dé)sélectionner tous les traits"
 
 
 msgid "Change selection of all Grease Pencil strokes currently visible"
-msgstr "Modifier la sélection de tous les traits de crayon gras actuellement visibles"
+msgstr "Modifier la sélection de tous les traits de Grease Pencil actuellement visibles"
 
 
 msgctxt "Operator"
@@ -58987,7 +59015,7 @@ msgstr "Ne pas sélectionner le premier ni le dernier point du trait"
 
 
 msgid "Select Grease Pencil strokes within a rectangular region"
-msgstr "Sélectionner les traits de crayon gras dans une région rectangulaire"
+msgstr "Sélectionner les traits de Grease Pencil dans une région rectangulaire"
 
 
 msgid "Invert existing selection"
@@ -58999,7 +59027,7 @@ msgstr "Intersecter avec la sélection existante"
 
 
 msgid "Select Grease Pencil strokes using brush selection"
-msgstr "Sélectionner les traits de crayon gras avec un pinceau"
+msgstr "Sélectionner les traits de Grease Pencil avec un pinceau"
 
 
 msgctxt "Operator"
@@ -59008,7 +59036,7 @@ msgstr "Sélectionner le premier"
 
 
 msgid "Select first point in Grease Pencil strokes"
-msgstr "Sélectionner le premier point dans les traits de crayon gras"
+msgstr "Sélectionner le premier point dans les traits de Grease Pencil"
 
 
 msgid "Extend selection instead of deselecting all other selected points"
@@ -59041,7 +59069,7 @@ msgstr "Sélectionner les traits par lasso"
 
 
 msgid "Select Grease Pencil strokes using lasso selection"
-msgstr "Sélectionner les traits de crayon gras au lasso"
+msgstr "Sélectionner les traits de Grease Pencil au lasso"
 
 
 msgctxt "Operator"
@@ -59050,7 +59078,7 @@ msgstr "Sélectionner le dernier"
 
 
 msgid "Select last point in Grease Pencil strokes"
-msgstr "Sélectionner le dernier point dans les traits de crayon gras"
+msgstr "Sélectionner le dernier point dans les traits de Grease Pencil"
 
 
 msgid "Only select the last point of strokes that already have points selected"
@@ -59058,7 +59086,7 @@ msgstr "Ne sélectionner que le dernier point des traits qui ont déjà des poin
 
 
 msgid "Shrink sets of selected Grease Pencil points"
-msgstr "Réduire l’ensemble de points de crayon gras sélectionnés"
+msgstr "Réduire l’ensemble de points de Grease Pencil sélectionnés"
 
 
 msgid "Select all points in same strokes as already selected points"
@@ -59066,7 +59094,7 @@ msgstr "Sélectionner tous les points dans les mêmes traits que ceux déjà sé
 
 
 msgid "Grow sets of selected Grease Pencil points"
-msgstr "Agrandir l’ensemble de points de crayon gras sélectionnés"
+msgstr "Agrandir l’ensemble de points de Grease Pencil sélectionnés"
 
 
 msgctxt "Operator"
@@ -59092,7 +59120,7 @@ msgstr "Tolérance de la sélection. Des valeurs plus hautes sélectionnent une 
 
 
 msgid "Hide/Unhide selected points for Grease Pencil strokes setting alpha factor"
-msgstr "Cacher/révéler les points sélectionnés des traits de crayon gras, en définissant leur facteur alpha"
+msgstr "Cacher/révéler les points sélectionnés des traits de Grease Pencil, en définissant leur facteur alpha"
 
 
 msgctxt "Operator"
@@ -59101,7 +59129,7 @@ msgstr "Alterner le mode de sélection"
 
 
 msgid "Set selection mode for Grease Pencil strokes"
-msgstr "Définir le mode de sélection pour les traits de crayon gras"
+msgstr "Définir le mode de sélection pour les traits de Grease Pencil"
 
 
 msgid "Select Mode"
@@ -59370,7 +59398,7 @@ msgstr "Utiliser tout le trait, pas seulement les points sélectionnés"
 
 msgctxt "Operator"
 msgid "Merge Grease Pencil Materials"
-msgstr "Fusionner les matériaux de crayon gras"
+msgstr "Fusionner les matériaux de Grease Pencil"
 
 
 msgid "Replace materials in strokes merging similar"
@@ -59496,7 +59524,7 @@ msgstr "Séparer les traits"
 
 
 msgid "Separate the selected strokes or layer in a new grease pencil object"
-msgstr "Séparer les traits ou calque sélectionnés vers un nouvel objet de crayon gras"
+msgstr "Séparer les traits ou calque sélectionnés vers un nouvel objet de Grease Pencil"
 
 
 msgid "Selected Points"
@@ -59623,11 +59651,11 @@ msgstr "Inverser les couleurs de dessin"
 
 msgctxt "Operator"
 msgid "Trace Image to Grease Pencil"
-msgstr "Tracer l’image au crayon gras"
+msgstr "Tracer l’image au Grease Pencil"
 
 
 msgid "Extract Grease Pencil strokes from image"
-msgstr "Extraire les traits de crayon gras depuis une image"
+msgstr "Extraire les traits de Grease Pencil depuis une image"
 
 
 msgid "Trace Frame"
@@ -59728,7 +59756,7 @@ msgstr "Transformer le remplissage de trait"
 
 
 msgid "Transform grease pencil stroke fill"
-msgstr "Transformer le remplissage des traits de crayon gras"
+msgstr "Transformer le remplissage des traits de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -59737,7 +59765,7 @@ msgstr "Déverrouiller tous les calques"
 
 
 msgid "Unlock all Grease Pencil layers so that they can be edited"
-msgstr "Déverrouiller tous les calques de crayon gras afin qu’ils soient éditables"
+msgstr "Déverrouiller tous les calques de Grease Pencil afin qu’ils soient éditables"
 
 
 msgctxt "Operator"
@@ -59888,7 +59916,7 @@ msgstr "Alterner le mode de sommets des traits"
 
 
 msgid "Enter/Exit vertex paint mode for Grease Pencil strokes"
-msgstr "Entrer/sortir du mode de peinture de sommets pour les traits de crayon gras"
+msgstr "Entrer/sortir du mode de peinture de sommets pour les traits de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -59924,7 +59952,7 @@ msgstr "Alterner le mode de pondération des traits"
 
 
 msgid "Enter/Exit weight paint mode for Grease Pencil strokes"
-msgstr "Entrer/sortir du mode de peinture de poids pour les traits de crayon gras"
+msgstr "Entrer/sortir du mode de peinture de poids pour les traits de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -60359,6 +60387,15 @@ msgstr "Image clé suivante"
 
 
 msgctxt "Operator"
+msgid "Keys to Samples"
+msgstr "Clés à échantillonner"
+
+
+msgid "Convert selected channels to an uneditable set of samples to save storage space"
+msgstr "Convertir les canaux sélectionnés en un ensemble d’échantillons non-éditables, pour gagner de l’espace de stockage"
+
+
+msgctxt "Operator"
 msgid "Match Slope"
 msgstr "Faire correspondre la pente"
 
@@ -60438,6 +60475,34 @@ msgstr "Révéler les courbes"
 
 msgid "Make previously hidden curves visible again in Graph Editor view"
 msgstr "Rendre les courbes précédemment cachées à nouveau visibles dans l’éditeur de graphes"
+
+
+msgctxt "Operator"
+msgid "Samples to Keys"
+msgstr "Échantillons vers clés"
+
+
+msgid "Convert selected channels from samples to keyframes"
+msgstr "Convertir les canaux sélectionnés depuis des échantillons vers des images clés"
+
+
+msgctxt "Operator"
+msgid "Scale Average Keyframes"
+msgstr "Fondre vers la moyenne des clés"
+
+
+msgid ""
+"Increase or decrease the value of selected keys \n"
+"  in relationship to their average"
+msgstr "Augmenter ou diminuer la valeur des clés sélectionnées par rapport à leur moyenne"
+
+
+msgid "Scale Factor"
+msgstr "Facteur de fondu"
+
+
+msgid "The scale factor applied to the curve segments"
+msgstr "Facteur de fondu appliqué aux segments de courbe"
 
 
 msgid "Are handles tested individually against the selection criteria"
@@ -60529,6 +60594,15 @@ msgid "Place the cursor value on the average value of selected keyframes"
 msgstr "Placer la valeur du curseur sur la valeur moyenne des images clés sélectionnées"
 
 
+msgctxt "Operator"
+msgid "Sound to Samples"
+msgstr "Audio vers échantillons"
+
+
+msgid "Bakes a sound wave to samples on selected channels"
+msgstr "Précalculer un son vers des échantillons dans les canaux sélectionnés"
+
+
 msgid "Attack Time"
 msgstr "Durée d’attaque"
 
@@ -60610,12 +60684,37 @@ msgstr "Passer la brosse en mode doux pour la durée du trait"
 
 
 msgctxt "Operator"
+msgid "Delete Frame"
+msgstr "Supprimer les frames"
+
+
+msgid "Delete Grease Pencil Frame(s)"
+msgstr "Supprimer des frames de Grease Pencil"
+
+
+msgid "Method used for deleting Grease Pencil frames"
+msgstr "Méthode utilisée pour supprimer des frames de Grease Pencil"
+
+
+msgid "Deletes current frame in the active layer"
+msgstr "Supprimer la frame actuelle dans le calque actif"
+
+
+msgid "All Active Frames"
+msgstr "Toutes les frames actives"
+
+
+msgid "Delete active frames for all layers"
+msgstr "Supprimer les frames actives de tous les calques"
+
+
+msgctxt "Operator"
 msgid "Grease Pencil Draw Mode Toggle"
-msgstr "(Dés)activer l’outil dessin de crayon gras"
+msgstr "(Dés)activer l’outil dessin de Grease Pencil"
 
 
 msgid "Enter/Exit draw mode for grease pencil"
-msgstr "Entrer/sortir du mode dessin de crayon gras"
+msgstr "Entrer/sortir du mode dessin de Grease Pencil"
 
 
 msgid "Insert a blank frame on the current scene frame"
@@ -60627,7 +60726,7 @@ msgstr "Insérer une frame vide dans tous les calques éditables"
 
 
 msgid "Add a new Grease Pencil layer in the active object"
-msgstr "Ajouter un nouveau calque de crayon gras à l’objet actif"
+msgstr "Ajouter un nouveau calque de Grease Pencil à l’objet actif"
 
 
 msgid "Name of the new layer"
@@ -60648,7 +60747,7 @@ msgstr "Nom du nouveau groupe de calques"
 
 
 msgid "Remove the active Grease Pencil layer"
-msgstr "Supprimer le calque de crayon gras actif"
+msgstr "Supprimer le calque de Grease Pencil actif"
 
 
 msgctxt "Operator"
@@ -60657,7 +60756,7 @@ msgstr "Réordonner le calque"
 
 
 msgid "Reorder the active Grease Pencil layer"
-msgstr "Réordonner le calque de crayon gras actif"
+msgstr "Réordonner le calque de Grease Pencil actif"
 
 
 msgid "Above"
@@ -60727,7 +60826,7 @@ msgstr "Mode de sélection"
 
 
 msgid "Change the selection mode for Grease Pencil strokes"
-msgstr "Changer de mode de sélection pour les traits de crayon gras"
+msgstr "Changer de mode de sélection pour les traits de Grease Pencil"
 
 
 msgid "Select only points"
@@ -66079,19 +66178,6 @@ msgstr "Ajouter un nœud de reroutage"
 
 
 msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Chercher et ajouter un nœud"
-
-
-msgid "Search for nodes and add one to the active tree"
-msgstr "Chercher dans les nœuds et en ajouter un à l’arborescence active"
-
-
-msgid "Start moving the node after adding it"
-msgstr "Commencer à déplacer le nœuds après l’avoir ajouté"
-
-
-msgctxt "Operator"
 msgid "Add Simulation Zone"
 msgstr "Ajouter une zone de simulation"
 
@@ -67226,7 +67312,7 @@ msgstr "Maillage depuis les objets courbes, surfaces, métaballes, textes, ou nu
 
 
 msgid "Grease Pencil (legacy) from Curve or Mesh objects"
-msgstr "Crayon gras (obsolète) depuis les objets courbes ou maillages"
+msgstr "Grease Pencil (obsolète) depuis les objets courbes ou maillages"
 
 
 msgid "Point Cloud from Mesh objects"
@@ -67238,7 +67324,7 @@ msgstr "Courbes depuis les données évaluées"
 
 
 msgid "Grease Pencil from Grease Pencil (legacy)"
-msgstr "Crayon gras depuis les crayons gras (obsolètes)"
+msgstr "grease pencil depuis les Grease Pencils (obsolètes)"
 
 
 msgctxt "Operator"
@@ -67393,6 +67479,10 @@ msgid "Session UUID of the geometry node group being dropped"
 msgstr "UUID de session du groupe de nœuds de géométrie à déposer"
 
 
+msgid "Show the datablock selector in the modifier"
+msgstr "Afficher le sélecteur de bloc de données dans le modificateur"
+
+
 msgctxt "Operator"
 msgid "Add Empty Image/Drop Image to Empty"
 msgstr "Ajouter un objet vide image ou déposer l’image vers l’objet vide"
@@ -67535,11 +67625,11 @@ msgstr "Déplacer les entrées et sorties à l’intérieur du modificateur vers
 
 msgctxt "Operator"
 msgid "Add Grease Pencil (legacy)"
-msgstr "Ajouter un crayon gras (obsolète)"
+msgstr "Ajouter un Grease Pencil (obsolète)"
 
 
 msgid "Add a Grease Pencil (legacy) object to the scene"
-msgstr "Ajouter un objet crayon gras (obsolète) à la scène"
+msgstr "Ajouter un objet Grease Pencil (obsolète) à la scène"
 
 
 msgid "Stroke offset for the line art modifier"
@@ -67547,7 +67637,7 @@ msgstr "Décalage du tracé pour le modificateur de Line Art"
 
 
 msgid "Create an empty grease pencil object"
-msgstr "Créer un objet crayon gras vide"
+msgstr "Créer un objet Grease Pencil vide"
 
 
 msgid "Create a simple stroke with basic colors"
@@ -67559,7 +67649,7 @@ msgstr "Singe"
 
 
 msgid "Construct a Suzanne grease pencil object"
-msgstr "Créer un objet crayon gras avec Suzanne"
+msgstr "Créer un objet Grease Pencil avec Suzanne"
 
 
 msgid "Scene Line Art"
@@ -67587,15 +67677,15 @@ msgstr "Afficher en avant"
 
 
 msgid "Show line art grease pencil in front of everything"
-msgstr "Afficher les crayons gras en Line Art devant tout le reste"
+msgstr "Afficher les Grease Pencils en Line Art devant tout le reste"
 
 
 msgid "Use lights for this grease pencil object"
-msgstr "Utiliser les éclairages pour cet objet crayon gras"
+msgstr "Utiliser les éclairages pour cet objet Grease Pencil"
 
 
 msgid "Add a procedural operation/effect to the active grease pencil object"
-msgstr "Ajouter une opération/effet procédural à l’objet crayon gras actif"
+msgstr "Ajouter une opération/effet procédural à l’objet Grease Pencil actif"
 
 
 msgctxt "Operator"
@@ -67682,20 +67772,20 @@ msgstr "Déplacer un modificateur vers le haut de la pile"
 
 msgctxt "Operator"
 msgid "Remove Grease Pencil Modifier"
-msgstr "Supprimer le modificateur de crayon gras"
+msgstr "Supprimer le modificateur de Grease Pencil"
 
 
 msgid "Remove a modifier from the active grease pencil object"
-msgstr "Retirer un modificateur de l’objet crayon gras actif"
+msgstr "Retirer un modificateur de l’objet Grease Pencil actif"
 
 
 msgctxt "Operator"
 msgid "Add Grease Pencil"
-msgstr "Ajouter un crayon gras"
+msgstr "Ajouter un Grease Pencil"
 
 
 msgid "Add a Grease Pencil object to the scene"
-msgstr "Ajouter un objet crayon gras à la scène"
+msgstr "Ajouter un objet Grease Pencil à la scène"
 
 
 msgctxt "Operator"
@@ -68085,7 +68175,7 @@ msgstr "Précalculer Line Art"
 
 
 msgid "Bake Line Art for current GPencil object"
-msgstr "Précalculer Line Art pour l’objet crayon gras actuel"
+msgstr "Précalculer Line Art pour l’objet Grease Pencil actuel"
 
 
 msgctxt "Operator"
@@ -68094,7 +68184,7 @@ msgstr "Précalculer les Line Arts (tous)"
 
 
 msgid "Bake all Grease Pencil objects that have a line art modifier"
-msgstr "Précalculer les objets crayon gras qui ont un modificateur Line Art"
+msgstr "Précalculer les objets Grease Pencil qui ont un modificateur Line Art"
 
 
 msgctxt "Operator"
@@ -68103,7 +68193,7 @@ msgstr "Effacer les Line Arts précalculés"
 
 
 msgid "Clear all strokes in current GPencil object"
-msgstr "Effacer tous les traits dans l’objet crayon gras actuel"
+msgstr "Effacer tous les traits dans l’objet Grease Pencil actuel"
 
 
 msgctxt "Operator"
@@ -68112,7 +68202,7 @@ msgstr "Effacer les Line Arts précalculés (tous)"
 
 
 msgid "Clear all strokes in all Grease Pencil objects that have a line art modifier"
-msgstr "Effacer tous les traits dans tous les objets crayon gras qui ont un modificateur Line Art"
+msgstr "Effacer tous les traits dans tous les objets Grease Pencil qui ont un modificateur Line Art"
 
 
 msgid "Link objects to a collection"
@@ -68245,11 +68335,11 @@ msgstr "Remplacer les modificateurs"
 
 
 msgid "Copy Grease Pencil Effects"
-msgstr "Copier les effets de crayon gras"
+msgstr "Copier les effets de Grease Pencil"
 
 
 msgid "Replace Grease Pencil Effects"
-msgstr "Remplacer les effets de crayon gras"
+msgstr "Remplacer les effets de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -69489,11 +69579,11 @@ msgstr "Déplacer l’effet de shader vers le haut de la pile"
 
 msgctxt "Operator"
 msgid "Remove Grease Pencil Effect"
-msgstr "Supprimer l’effet de crayon gras"
+msgstr "Supprimer l’effet de Grease Pencil"
 
 
 msgid "Remove a effect from the active grease pencil object"
-msgstr "Retirer un effet de l’objet crayon gras actif"
+msgstr "Retirer un effet de l’objet Grease Pencil actif"
 
 
 msgctxt "Operator"
@@ -73956,20 +74046,20 @@ msgstr "Ajouter un modificateur d’épaisseur de ligne au style de ligne associ
 
 msgctxt "Operator"
 msgid "Add Grease Pencil Brush Preset"
-msgstr "Ajouter un préréglage de brosse de crayon gras"
+msgstr "Ajouter un préréglage de brosse de Grease Pencil"
 
 
 msgid "Add or remove grease pencil brush preset"
-msgstr "Ajouter ou supprimer un préréglage de brosse de crayon gras"
+msgstr "Ajouter ou supprimer un préréglage de brosse de Grease Pencil"
 
 
 msgctxt "Operator"
 msgid "Add Grease Pencil Material Preset"
-msgstr "Ajouter un préréglage de matériau de crayon gras"
+msgstr "Ajouter un préréglage de matériau de Grease Pencil"
 
 
 msgid "Add or remove grease pencil material preset"
-msgstr "Ajouter ou supprimer un préréglage de matériau de crayon gras"
+msgstr "Ajouter ou supprimer un préréglage de matériau de Grease Pencil"
 
 
 msgid "Bake the active view layer lighting"
@@ -77823,11 +77913,11 @@ msgstr "Forcer l’usage de cette valeur de centre (si définie)"
 
 
 msgid "Edit Grease Pencil"
-msgstr "Éditer le crayon gras"
+msgstr "Éditer le Grease Pencil"
 
 
 msgid "Edit selected Grease Pencil strokes"
-msgstr "Éditer les traits de crayon gras sélectionnés"
+msgstr "Éditer les traits de Grease Pencil sélectionnés"
 
 
 msgid "Use Snapping Options"
@@ -78648,11 +78738,11 @@ msgstr "Créer un contrôleur pour cette propriété uniquement et sans assigner
 
 msgctxt "Operator"
 msgid "Grease Pencil Eyedropper"
-msgstr "Pipette crayon gras"
+msgstr "Pipette Grease Pencil"
 
 
 msgid "Sample a color from the Blender Window and create Grease Pencil material"
-msgstr "Échantillonner une couleur dans la fenêtre Blender et créer un matériau de crayon gras avec"
+msgstr "Échantillonner une couleur dans la fenêtre Blender et créer un matériau de Grease Pencil avec"
 
 
 msgctxt "Operator"
@@ -78724,15 +78814,6 @@ msgstr "Mettre à jour les données de traduction de l’add-on donné (sous for
 
 
 msgctxt "Operator"
-msgid "Clean up I18n Branches"
-msgstr "Nettoyer les branches d’i18n"
-
-
-msgid "Clean up i18n svn's branches (po files)"
-msgstr "Nettoyer les branches du SVN d’i18n (fichiers po)"
-
-
-msgctxt "Operator"
 msgid "Edit Translation Update Mo"
 msgstr "Éditer la traduction, MÀJ mo"
 
@@ -78764,38 +78845,13 @@ msgstr "Enregistrer les réglages de traduction dans un fichier JSON persistant"
 
 
 msgctxt "Operator"
-msgid "Update I18n Branches"
-msgstr "Mettre à jour les branches d’i18n"
-
-
-msgid "Update i18n svn's branches (po files)"
-msgstr "Mettre à jour les branches du svn i18n (fichiers po)"
-
-
-msgid "Skip POT"
-msgstr "Ignorer POT"
-
-
-msgid "Skip POT file generation"
-msgstr "Ignorer la génération du fichier POT"
-
-
-msgctxt "Operator"
 msgid "Init I18n Update Settings"
 msgstr "Initialiser les réglages de màj i18n"
-
-
-msgid "Init settings for i18n svn's update operators"
-msgstr "Initialiser les réglages pour les opérateurs de mise à jour du SVN d’i18n"
 
 
 msgctxt "Operator"
 msgid "Init I18n Update Select Languages"
 msgstr "Initialiser la màj d’i18n, sélectionner les langues"
-
-
-msgid "(De)select (or invert selection of) all languages for i18n svn's update operators"
-msgstr "(Dé)sélectionner (ou inverser la sélection de) toutes les langues pour les opérateur de mise-à-jour du svn i18n"
 
 
 msgid "Invert Selection"
@@ -78823,25 +78879,12 @@ msgid "Create or extend a 'i18n_info.txt' Text datablock"
 msgstr "Créer ou étendre un bloc de données texte « i18n_info.txt »"
 
 
-msgid "Check Branches"
-msgstr "Vérifier les branches"
+msgid "Skip POT"
+msgstr "Ignorer POT"
 
 
-msgid "Check po files in branches"
-msgstr "Vérifier les fichiers po des branches"
-
-
-msgid "Check Trunk"
-msgstr "Vérifier le tronc"
-
-
-msgid "Check po files in trunk"
-msgstr "Vérifier les fichiers po du tronc"
-
-
-msgctxt "Operator"
-msgid "Update I18n Trunk"
-msgstr "Mettre à jour le tronc d’i18n"
+msgid "Skip POT file generation"
+msgstr "Ignorer la génération du fichier POT"
 
 
 msgctxt "Operator"
@@ -81286,7 +81329,7 @@ msgstr "Type de données à renommer"
 
 
 msgid "Grease Pencils"
-msgstr "Crayons gras"
+msgstr "Grease Pencils"
 
 
 msgid "Sequence Strips"
@@ -82076,7 +82119,7 @@ msgstr "Exporter vers PDF"
 
 
 msgid "Export grease pencil to PDF"
-msgstr "Exporter le crayon gras en PDF"
+msgstr "Exporter le Grease Pencil en PDF"
 
 
 msgid "Which frames to include in the export"
@@ -82129,7 +82172,7 @@ msgstr "Exporter en SVG"
 
 
 msgid "Export grease pencil to SVG"
-msgstr "Exporter le crayon gras en SVG"
+msgstr "Exporter le Grease Pencil en SVG"
 
 
 msgid "Clip Camera"
@@ -82141,7 +82184,7 @@ msgstr "Recadrer les dessins à la taille de la caméra lors de l’export en vu
 
 
 msgid "Import SVG into grease pencil"
-msgstr "Importer le SVG en crayon gras"
+msgstr "Importer le SVG en Grease Pencil"
 
 
 msgid "Resolution of the generated strokes"
@@ -82300,10 +82343,6 @@ msgstr "Ajouter le nom du maillage au nom de l’objet, séparés par un « _ 
 
 msgid "Export Materials with PBR Extensions"
 msgstr "Exporter les matériaux avec des extensions PBR"
-
-
-msgid "Export MTL library using PBR extensions (roughness, metallic, sheen, clearcoat, anisotropy, transmission)"
-msgstr "Exporter la bibliothèque MTL en utilisant des extensions PBR (rugosité, metallique, lustre, vernis, anisotropie, transmission)"
 
 
 msgid "Export Selected Objects"
@@ -83203,6 +83242,31 @@ msgstr "Afficher une recherche de tous les opérateurs disponibles dans le conte
 
 
 msgctxt "Operator"
+msgid "Search Single Menu"
+msgstr "Chercher un seul menu"
+
+
+msgid "Pop-up a search for a menu in current context"
+msgstr "Afficher une recherche de menu dans le contexte actuel"
+
+
+msgid "Initial Query"
+msgstr "Requête initiale"
+
+
+msgid "Query to insert into the search box"
+msgstr "Requête à insérer dans le champ de recherche"
+
+
+msgid "Menu Name"
+msgstr "Nom du menu"
+
+
+msgid "Menu to search in"
+msgstr "Menu dans lequel rechercher"
+
+
+msgctxt "Operator"
 msgid "Set Stereo 3D"
 msgstr "(Dés)activer la 3D stéréo"
 
@@ -83343,6 +83407,10 @@ msgid "Set Tool by Name"
 msgstr "Choisir un outil par nom"
 
 
+msgid "Set the tool by name (for key-maps)"
+msgstr "Choisir l’outil par son nom (pour les ensembles de raccourcis)"
+
+
 msgid "Set Fallback"
 msgstr "Définir secondaire"
 
@@ -83366,6 +83434,10 @@ msgstr "Identifiant de l’outil"
 msgctxt "Operator"
 msgid "Set Tool by Index"
 msgstr "Choisir l’outil par indice"
+
+
+msgid "Set the tool by index (for key-maps)"
+msgstr "Choisir l’outil par son indice (pour les ensembles de raccourcis)"
 
 
 msgid "Set the fallback tool instead of the primary"
@@ -84228,7 +84300,7 @@ msgstr "Sculpture-peinture de courbes"
 
 
 msgid "Grease Pencil Paint"
-msgstr "Peinture de crayon gras"
+msgstr "Peinture de Grease Pencil"
 
 
 msgid "Paint Mode"
@@ -84244,7 +84316,7 @@ msgstr "Peindre le matériau avec un attribut de couleur"
 
 
 msgid "Grease Pencil Sculpt Paint"
-msgstr "Sculpture-peinture de crayon gras"
+msgstr "Sculpture-peinture de Grease Pencil"
 
 
 msgid "Image Paint"
@@ -85248,7 +85320,7 @@ msgstr "Préréglages de matériau"
 
 
 msgid "Grease Pencil Material Slots"
-msgstr "Emplacements de matériaux crayon gras"
+msgstr "Emplacements de matériaux Grease Pencil"
 
 
 msgid "Math Vis"
@@ -87926,7 +87998,7 @@ msgstr "Couleur des nouveaux calques d’annotation"
 
 
 msgid "Grease Pencil Eraser Radius"
-msgstr "Rayon de la gomme pour crayon gras"
+msgstr "Rayon de la gomme pour Grease Pencil"
 
 
 msgid "Radius of eraser 'brush'"
@@ -87934,7 +88006,7 @@ msgstr "Rayon de la « brosse » gomme"
 
 
 msgid "Grease Pencil Euclidean Distance"
-msgstr "Distance euclidienne pour le crayon gras"
+msgstr "Distance euclidienne pour le Grease Pencil"
 
 
 msgid "Distance moved by mouse when drawing stroke to include"
@@ -87942,7 +88014,7 @@ msgstr "Distance parcourue par la souris lors du tracé d’un trait, pour être
 
 
 msgid "Grease Pencil Manhattan Distance"
-msgstr "Distance Manhattan pour le crayon gras"
+msgstr "Distance Manhattan pour le Grease Pencil"
 
 
 msgid "Pixels moved by mouse per axis when drawing stroke"
@@ -88119,11 +88191,11 @@ msgstr "Les données de courbes seront dupliquées avec l’objet"
 
 
 msgid "Duplicate GPencil"
-msgstr "Dupliquer le crayon gras"
+msgstr "Dupliquer le Grease Pencil"
 
 
 msgid "Causes grease pencil data to be duplicated with the object"
-msgstr "Les données de crayon gras seront dupliquées avec l’objet"
+msgstr "Les données de Grease Pencil seront dupliquées avec l’objet"
 
 
 msgid "Duplicate Lattice"
@@ -88307,11 +88379,11 @@ msgstr "Fonctionnalités expérimentales"
 
 
 msgid "EEVEE Next"
-msgstr "Eevee Next"
+msgstr "EEVEE Next"
 
 
 msgid "Enable the new EEVEE codebase, requires restart"
-msgstr "Activer le nouveau code base d’Eevee, nécessite un redémarrage"
+msgstr "Activer le nouveau code base d’EEVEE, nécessite un redémarrage"
 
 
 msgid "Overlay Next"
@@ -88363,11 +88435,11 @@ msgstr "Activer les options de débugage pour les développeurs"
 
 
 msgid "EEVEE Debug"
-msgstr "Débug Eevee"
+msgstr "Débug EEVEE"
 
 
 msgid "Enable EEVEE debugging options for developers"
-msgstr "Activer les options de débugage Eevee pour les développeurs"
+msgstr "Activer les options de débugage EEVEE pour les développeurs"
 
 
 msgid "Experimental Compositors"
@@ -88391,11 +88463,11 @@ msgstr "Activer les dépôts d’extensions, accessibles depuis le panneau « D
 
 
 msgid "Grease Pencil 3.0"
-msgstr "Crayon gras 3.0"
+msgstr "Grease Pencil 3.0"
 
 
 msgid "Enable the new grease pencil 3.0 codebase"
-msgstr "Activer le nouveau code base du crayon gras"
+msgstr "Activer le nouveau code base du Grease Pencil"
 
 
 msgid "New Curves Tools"
@@ -92258,14 +92330,6 @@ msgid "Settings/info about a language"
 msgstr "Réglages/infos à propos d’une langue"
 
 
-msgid "MO File Path"
-msgstr "Chemin de fichier"
-
-
-msgid "Path to the relevant mo file"
-msgstr "Chemin vers le fichier mo correspondant"
-
-
 msgid "Language Name"
 msgstr "Langue"
 
@@ -92280,30 +92344,6 @@ msgstr "ID numérique"
 
 msgid "Numeric ID (read only!)"
 msgstr "ID numérique (lecture seule !)"
-
-
-msgid "PO File Path"
-msgstr "Chemin de fichier"
-
-
-msgid "Path to the relevant po file in branches"
-msgstr "Chemin vers le fichier po correspondant dans les branches"
-
-
-msgid "PO Git Master File Path"
-msgstr "Chemin du fichier PO git master"
-
-
-msgid "Path to the relevant po file in Blender's translations git repository"
-msgstr "Chemin vers le fichier po correspondant dans le dépôt git des traductions de Blender"
-
-
-msgid "PO Trunk File Path"
-msgstr "Chemin de fichier PO tronc"
-
-
-msgid "Path to the relevant po file in trunk"
-msgstr "Chemin vers le fichier po correspondant dans le tronc"
 
 
 msgid "Language ID"
@@ -92332,10 +92372,6 @@ msgstr "Ces réglages ont-ils déjà été initialisés automatiquement ou non"
 
 msgid "Languages"
 msgstr "Langues"
-
-
-msgid "Languages to update in branches"
-msgstr "Langues à mettre à jour dans les branches"
 
 
 msgid "POT File Path"
@@ -93463,7 +93499,7 @@ msgstr "Pourcentage global de particules enfants lors du rendu"
 
 
 msgid "Simplify Grease Pencil drawing"
-msgstr "Simplifier le dessin du crayon gras"
+msgstr "Simplifier le dessin du Grease Pencil"
 
 
 msgid "Antialiasing"
@@ -93483,7 +93519,7 @@ msgstr "Lecture uniquement"
 
 
 msgid "Simplify Grease Pencil only during animation playback"
-msgstr "Ne simplifier le crayon gras que pendant la lecture"
+msgstr "Ne simplifier le Grease Pencil que pendant la lecture"
 
 
 msgid "Display Shader Effects"
@@ -95059,7 +95095,7 @@ msgstr "Options du lancer de réflexion"
 
 
 msgid "Eevee settings for the tracing reflections"
-msgstr "Réglages Eevee pour le lancer des réflexions"
+msgstr "Réglages EEVEE pour le lancer des réflexions"
 
 
 msgid "Directional Shadows Resolution"
@@ -95283,7 +95319,7 @@ msgstr "4 px"
 
 
 msgid "Grease Pencil Render"
-msgstr "Rendu du crayon gras"
+msgstr "Rendu du Grease Pencil"
 
 
 msgid "Render settings"
@@ -97005,7 +97041,7 @@ msgstr "Collection de séquences"
 
 
 msgid "Effect affecting the grease pencil object"
-msgstr "Effet affectant l’objet grease pencil"
+msgstr "Effet affectant l’objet Grease Pencil"
 
 
 msgid "Effect name"
@@ -98179,7 +98215,7 @@ msgstr "Éditer les images clés dans l’action de clés de forme de l’objet 
 
 
 msgid "Edit timings for all Grease Pencil sketches in file"
-msgstr "Éditer les minutages de tous les dessins de crayon gras du fichier"
+msgstr "Éditer les minutages de tous les dessins de Grease Pencil du fichier"
 
 
 msgid "Edit timings for Mask Editor splines"
@@ -98475,7 +98511,7 @@ msgstr "Afficher le tampon Z associé à l’image (converti depuis les valeurs 
 
 
 msgid "Grease pencil data for this space"
-msgstr "Données de crayon gras pour cet espace"
+msgstr "Données de Grease Pencil pour cet espace"
 
 
 msgid "View the image"
@@ -99057,11 +99093,11 @@ msgstr "Afficher les objets vides"
 
 
 msgid "Show Grease Pencil"
-msgstr "Afficher les crayons gras"
+msgstr "Afficher les Grease Pencils"
 
 
 msgid "Show grease pencil objects"
-msgstr "Afficher les objets crayons gras"
+msgstr "Afficher les objets Grease Pencils"
 
 
 msgid "Show Lights"
@@ -99332,7 +99368,7 @@ msgstr "Vectorscope chroma"
 
 
 msgid "Grease Pencil data for this Preview region"
-msgstr "Données de crayon gras pour cette région de prévisualisation"
+msgstr "Données de Grease Pencil pour cette région de prévisualisation"
 
 
 msgid "Overlay Type"
@@ -99472,7 +99508,7 @@ msgstr "Type de vue"
 
 
 msgid "Type of the Sequencer view (sequencer, preview or both)"
-msgstr "Type de vue du séquenceur (séquenceur, prévisualisation ou les deux)"
+msgstr "Type de vue du séquenceur (séquenceur, prévisualisation, ou les deux)"
 
 
 msgid "Sequencer & Preview"
@@ -99912,7 +99948,7 @@ msgstr "Permettre la sélection des objets textes"
 
 
 msgid "Allow selection of grease pencil objects"
-msgstr "Permettre la sélection des objets crayons gras"
+msgstr "Permettre la sélection des objets Grease Pencils"
 
 
 msgid "Allow selection of lattices"
@@ -102708,15 +102744,15 @@ msgstr "Texte de surface des faces"
 
 
 msgid "Grease Pencil Vertex"
-msgstr "Sommet de crayon gras"
+msgstr "Sommet de Grease Pencil"
 
 
 msgid "Grease Pencil Vertex Select"
-msgstr "Sommet sélectionné de crayon gras"
+msgstr "Sommet sélectionné de Grease Pencil"
 
 
 msgid "Grease Pencil Vertex Size"
-msgstr "Taille de sommet de crayon gras"
+msgstr "Taille de sommet de Grease Pencil"
 
 
 msgid "Face Normal"
@@ -102764,11 +102800,11 @@ msgstr "Normales divisées"
 
 
 msgid "Grease Pencil Keyframe"
-msgstr "Image clé de crayon gras"
+msgstr "Image clé de Grease Pencil"
 
 
 msgid "Color for indicating Grease Pencil keyframes"
-msgstr "Couleur des images clés de crayon gras"
+msgstr "Couleur des images clés de Grease Pencil"
 
 
 msgid "Object Keyframe"
@@ -102904,7 +102940,7 @@ msgstr "Temps en secondes depuis la dernière étape"
 
 
 msgid "Time since the timer started seconds"
-msgstr "Temps en secondes depuis depuis le démarrage du timer"
+msgstr "Temps en secondes depuis le démarrage du timer"
 
 
 msgid "Time Step"
@@ -102972,15 +103008,15 @@ msgstr "Seuil de distance pour la fusion auto"
 
 
 msgid "Grease Pencil Interpolate"
-msgstr "Interpolation de crayon gras"
+msgstr "Interpolation de Grease Pencil"
 
 
 msgid "Settings for Grease Pencil Interpolation tools"
-msgstr "Réglages pour les outils d’interpolation de crayon gras"
+msgstr "Réglages pour les outils d’interpolation de Grease Pencil"
 
 
 msgid "Grease Pencil Sculpt"
-msgstr "Sculpture de crayon gras"
+msgstr "Sculpture de Grease Pencil"
 
 
 msgid "Settings for stroke sculpting tools and brushes"
@@ -103128,12 +103164,24 @@ msgid "Display only faces with the currently displayed image assigned"
 msgstr "N’afficher que les faces auxquelles l’image actuellement affichée est assignée"
 
 
+msgid "Snap Anim Element"
+msgstr "Élément d’aimantation d’anim"
+
+
 msgid "Type of element to snap to"
 msgstr "Type d’élément auquel aimanter"
 
 
+msgid "Snap to frame"
+msgstr "Aimanter à la frame"
+
+
 msgid "Second"
 msgstr "Seconde"
+
+
+msgid "Snap to seconds"
+msgstr "Aimanter aux secondes"
 
 
 msgid "Nearest Marker"
@@ -103185,7 +103233,7 @@ msgstr "Décomposer la transformation en ce nombre d’étapes, pour l’aimanta
 
 
 msgid "Snap Node Element"
-msgstr "Aimanter le nœud à"
+msgstr "Élément d’aimantation de nœud"
 
 
 msgid "Snap to grid"
@@ -103225,7 +103273,7 @@ msgstr "Quelle partie aimanter à la cible"
 
 
 msgid "Snap UV Element"
-msgstr "Aimanter les éléments UV"
+msgstr "Élément d’aimantation d’UV"
 
 
 msgid "Snap to increments of grid"
@@ -103452,6 +103500,10 @@ msgid "Align rotation with the snapping target"
 msgstr "Aligner la rotation sur la cible de l’aimantation"
 
 
+msgid "Enable snapping when transforming keyframes"
+msgstr "Activer l’aimantation lors de la transformation des images clés"
+
+
 msgid "Exclude back facing geometry from snapping"
 msgstr "Exclure de l’aimantation la géométrie tournée de l’autre côté"
 
@@ -103526,6 +103578,14 @@ msgstr "N’aimanter à soi-même que si activé (mode édition seulement)"
 
 msgid "Snap to strip edges or current frame"
 msgstr "Aimanter aux bords de la bande ou à la frame actuelle"
+
+
+msgid "Absolute Time Snap"
+msgstr "Aimantation au temps absolu"
+
+
+msgid "Absolute time alignment while translating"
+msgstr "Aligner au temps absolu lors de la transformation"
 
 
 msgid "Snap to Same Target"
@@ -104222,7 +104282,7 @@ msgstr "Force de l’effet d’atténuation"
 
 
 msgid "Fade layer opacity for Grease Pencil layers except the active one"
-msgstr "Atténuer l’opacité des calques de crayon gras, sauf le calque actif"
+msgstr "Atténuer l’opacité des calques de Grease Pencil, sauf le calque actif"
 
 
 msgid "Fade factor"
@@ -104682,11 +104742,11 @@ msgstr "Afficher des lignes d’édition lors de l’édition de traits"
 
 
 msgid "Fade Grease Pencil Objects"
-msgstr "Atténuer les objets crayons gras"
+msgstr "Atténuer les objets Grease Pencils"
 
 
 msgid "Fade Grease Pencil Objects, except the active one"
-msgstr "Atténuer les objets crayons gras, sauf l’actif"
+msgstr "Atténuer les objets Grease Pencils, sauf l’actif"
 
 
 msgid "Fade Layers"
@@ -104694,7 +104754,7 @@ msgstr "Atténuer les calques"
 
 
 msgid "Toggle fading of Grease Pencil layers except the active one"
-msgstr "(Dés)activer l’atténuation des objets crayon gras, sauf de l’actif"
+msgstr "(Dés)activer l’atténuation des objets Grease Pencil, sauf de l’actif"
 
 
 msgid "Fade Objects"
@@ -104710,7 +104770,7 @@ msgstr "Afficher la grille"
 
 
 msgid "Display a grid over grease pencil paper"
-msgstr "Afficher une grille par-dessus le papier du crayon gras"
+msgstr "Afficher une grille par-dessus le papier du Grease Pencil"
 
 
 msgid "Lines Only"
@@ -105213,11 +105273,11 @@ msgstr "Dépendances dans les données de scène"
 
 
 msgid "Eevee Settings"
-msgstr "Paramètres Eevee"
+msgstr "Paramètres EEVEE"
 
 
 msgid "View layer settings for Eevee"
-msgstr "Réglages du calque de rendu pour Eevee"
+msgstr "Réglages du calque de rendu pour EEVEE"
 
 
 msgid "Root of collections hierarchy of this view layer, its 'collection' pointer property is the same as the scene's master collection"
@@ -106916,7 +106976,7 @@ msgstr "Police"
 
 msgctxt "WindowManager"
 msgid "Grease Pencil"
-msgstr "Crayon gras"
+msgstr "Grease Pencil"
 
 
 msgctxt "WindowManager"
@@ -108029,142 +108089,142 @@ msgstr "Clip, éditeur feuille d’exposition"
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Curve Edit Mode"
-msgstr "Mode édition des courbes de traits de crayon gras"
+msgstr "Mode édition des courbes de traits de Grease Pencil"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Edit Mode"
-msgstr "Mode édition des traits de crayon gras"
+msgstr "Mode édition des traits de Grease Pencil"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Paint (Draw brush)"
-msgstr "Peinture des traits de crayon gras (brosse de dessin)"
+msgstr "Peinture des traits de Grease Pencil (brosse de dessin)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Paint (Fill)"
-msgstr "Peinture des traits de crayon gras (remplir)"
+msgstr "Peinture des traits de Grease Pencil (remplir)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Paint (Erase)"
-msgstr "Peinture des traits de crayon gras (effacer)"
+msgstr "Peinture des traits de Grease Pencil (effacer)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Paint (Tint)"
-msgstr "Peinture des traits de crayon gras (teinter)"
+msgstr "Peinture des traits de Grease Pencil (teinter)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Paint Mode"
-msgstr "Mode peinture des traits de crayon gras"
+msgstr "Mode peinture des traits de Grease Pencil"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Sculpt Mode"
-msgstr "Mode sculpture des traits de crayon gras"
+msgstr "Mode sculpture des traits de Grease Pencil"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Sculpt (Smooth)"
-msgstr "Sculpture des traits de crayon gras (douceur)"
+msgstr "Sculpture des traits de Grease Pencil (douceur)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Sculpt (Thickness)"
-msgstr "Sculpture des traits de crayon gras (épaisseur)"
+msgstr "Sculpture des traits de Grease Pencil (épaisseur)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Sculpt (Strength)"
-msgstr "Sculpture des traits de crayon gras (force)"
+msgstr "Sculpture des traits de Grease Pencil (force)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Sculpt (Grab)"
-msgstr "Sculpture des traits de crayon gras (saisir)"
+msgstr "Sculpture des traits de Grease Pencil (saisir)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Sculpt (Push)"
-msgstr "Sculpture des traits de crayon gras (pousser)"
+msgstr "Sculpture des traits de Grease Pencil (pousser)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Sculpt (Twist)"
-msgstr "Sculpture des traits de crayon gras (tordre)"
+msgstr "Sculpture des traits de Grease Pencil (tordre)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Sculpt (Pinch)"
-msgstr "Sculpture des traits de crayon gras (pincer)"
+msgstr "Sculpture des traits de Grease Pencil (pincer)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Sculpt (Randomize)"
-msgstr "Sculpture des traits de crayon gras (aléatoire)"
+msgstr "Sculpture des traits de Grease Pencil (aléatoire)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Sculpt (Clone)"
-msgstr "Sculpture des traits de crayon gras (cloner)"
+msgstr "Sculpture des traits de Grease Pencil (cloner)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Weight Mode"
-msgstr "Mode poids des traits de crayon gras"
+msgstr "Mode poids des traits de Grease Pencil"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Weight (Draw)"
-msgstr "Poids des traits de crayon gras (dessiner)"
+msgstr "Poids des traits de Grease Pencil (dessiner)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Weight (Blur)"
-msgstr "Poids des traits de crayon gras (flouter)"
+msgstr "Poids des traits de Grease Pencil (flouter)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Weight (Average)"
-msgstr "Poids des traits de crayon gras (moyenner)"
+msgstr "Poids des traits de Grease Pencil (moyenner)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Weight (Smear)"
-msgstr "Poids des traits de crayon gras (étaler)"
+msgstr "Poids des traits de Grease Pencil (étaler)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Vertex Mode"
-msgstr "Mode sommets des traits de crayon gras"
+msgstr "Mode sommets des traits de Grease Pencil"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Vertex (Draw)"
-msgstr "Sommets des traits de crayon gras (dessiner)"
+msgstr "Sommets des traits de Grease Pencil (dessiner)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Vertex (Blur)"
-msgstr "Sommets des traits de crayon gras (flouter)"
+msgstr "Sommets des traits de Grease Pencil (flouter)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Vertex (Average)"
-msgstr "Sommets des traits de crayon gras (moyenne)"
+msgstr "Sommets des traits de Grease Pencil (moyenne)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Vertex (Smear)"
-msgstr "Sommets des traits de crayon gras (étaler)"
+msgstr "Sommets des traits de Grease Pencil (étaler)"
 
 
 msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Vertex (Replace)"
-msgstr "Sommets des traits de crayon gras (remplacer)"
+msgstr "Sommets des traits de Grease Pencil (remplacer)"
 
 
 msgctxt "WindowManager"
@@ -108976,7 +109036,7 @@ msgstr "Impossible de générer des matériaux pour le moteur de rendu inconnu %
 
 
 msgid "Generating Cycles/EEVEE compatible material, but won't be visible with %s engine"
-msgstr "Génération d’un matériau compatible Cycles et Eevee, mais ne sera pas visible avec le moteur de rendu %s"
+msgstr "Génération d’un matériau compatible Cycles et EEVEE, mais ne sera pas visible avec le moteur de rendu %s"
 
 
 msgctxt "Operator"
@@ -109544,12 +109604,12 @@ msgid "Add-on '{}' not found!"
 msgstr "L’add-on « {} » est introuvable !"
 
 
-msgid "Info written to {} text datablock!"
-msgstr "Infos écrites dans le bloc de données texte {} !"
-
-
 msgid "Message extraction process failed!"
 msgstr "Le processus d’extraction des messages a échoué !"
+
+
+msgid "Info written to {} text datablock!"
+msgstr "Infos écrites dans le bloc de données texte {} !"
 
 
 msgid "Could not init languages data!"
@@ -109573,21 +109633,6 @@ msgstr "Réinitialiser les réglages"
 msgctxt "Operator"
 msgid "Deselect All"
 msgstr "Tout désélectionner"
-
-
-msgctxt "Operator"
-msgid "Update Branches"
-msgstr "MÀJ les branches"
-
-
-msgctxt "Operator"
-msgid "Update Trunk"
-msgstr "MÀJ le tronc"
-
-
-msgctxt "Operator"
-msgid "Clean up Branches"
-msgstr "Nettoyer les branches"
 
 
 msgctxt "Operator"
@@ -110682,6 +110727,10 @@ msgid "Weight Position"
 msgstr "Poids de position"
 
 
+msgid "Bone Colors"
+msgstr "Couleurs des os"
+
+
 msgid "Axes"
 msgstr "Axes"
 
@@ -111121,31 +111170,6 @@ msgid "Update on Edit"
 msgstr "Mettre à jour à l’édition"
 
 
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "Remailler"
-
-
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Armature"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Lattice"
-
-
-msgctxt "Operator"
-msgid "Smooth Laplacian"
-msgstr "Adoucir les sommets (laplacien)"
-
-
-msgctxt "Operator"
-msgid "Particle System"
-msgstr "Système de particules"
-
-
 msgid "Distance Reference"
 msgstr "Distance de référence"
 
@@ -111269,7 +111293,7 @@ msgstr "Ne montrer qu’avec image clé"
 
 msgctxt "Operator"
 msgid "Poly"
-msgstr "Poly"
+msgstr "Polygone"
 
 
 msgid "Display Cursor"
@@ -112956,7 +112980,7 @@ msgstr "Filtre de discontinuité (Euler)"
 
 
 msgid "Grease Pencil Objects"
-msgstr "Objets de crayon gras"
+msgstr "Objets de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -112967,6 +112991,10 @@ msgstr "Empiler"
 msgctxt "Operator"
 msgid "Stash"
 msgstr "Réserver"
+
+
+msgid "Modes"
+msgstr "Modes"
 
 
 msgctxt "Operator"
@@ -113197,6 +113225,11 @@ msgstr "Cisailler les clés"
 
 
 msgctxt "Operator"
+msgid "Scale Average"
+msgstr "Fondre vers la moyenne"
+
+
+msgctxt "Operator"
 msgid "Smooth (Gaussian)"
 msgstr "Adoucir (gaussien)"
 
@@ -113341,7 +113374,7 @@ msgstr "Extraire la palette"
 
 msgctxt "Operator"
 msgid "Generate Grease Pencil"
-msgstr "Générer un crayon gras"
+msgstr "Générer un Grease Pencil"
 
 
 msgctxt "Operator"
@@ -114793,7 +114826,7 @@ msgstr "Universal Scene Description (.usd*)"
 
 msgctxt "Operator"
 msgid "SVG as Grease Pencil"
-msgstr "SVG en crayon gras"
+msgstr "SVG en Grease Pencil"
 
 
 msgctxt "Operator"
@@ -114855,12 +114888,12 @@ msgstr "Aucun marqueur active"
 
 msgctxt "Operator"
 msgid "Grease Pencil as SVG"
-msgstr "Crayon gras en SVG"
+msgstr "Grease Pencil en SVG"
 
 
 msgctxt "Operator"
 msgid "Grease Pencil as PDF"
-msgstr "Crayon gras en PDF"
+msgstr "Grease Pencil en PDF"
 
 
 msgctxt "Operator"
@@ -115703,12 +115736,12 @@ msgstr "Précalculer l’action…"
 
 msgctxt "Operator"
 msgid "Bake Mesh to Grease Pencil..."
-msgstr "Précalculer le maillage vers crayon gras…"
+msgstr "Précalculer le maillage vers Grease Pencil…"
 
 
 msgctxt "Operator"
 msgid "Bake Object Transform to Grease Pencil..."
-msgstr "Précalculer la transformation d’objet vers crayon gras…"
+msgstr "Précalculer la transformation d’objet vers Grease Pencil…"
 
 
 msgctxt "Operator"
@@ -116602,7 +116635,17 @@ msgstr "Nuage de points"
 
 msgctxt "Operator"
 msgid "Grease Pencil"
-msgstr "Crayon gras"
+msgstr "Grease Pencil"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Armature"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Lattice"
 
 
 msgctxt "Operator"
@@ -116668,6 +116711,11 @@ msgstr "Parenter sans inverse (conserver la transformation)"
 msgctxt "Operator"
 msgid "Limit Total Vertex Groups"
 msgstr "Limiter le total des groupes de sommets"
+
+
+msgctxt "Operator"
+msgid "Particle System"
+msgstr "Système de particules"
 
 
 msgctxt "Operator"
@@ -116752,6 +116800,11 @@ msgstr "Coller les poses inversées en X"
 
 msgid "Vertex Context Menu"
 msgstr "Menu contextuel de sommets"
+
+
+msgctxt "Operator"
+msgid "Smooth Laplacian"
+msgstr "Adoucir les sommets (laplacien)"
 
 
 msgid "Mirror Vertices"
@@ -117332,19 +117385,19 @@ msgstr "Aucun objet sélectionné, curseur utilisé"
 
 
 msgid "Draw Grease Pencil"
-msgstr "Dessiner au crayon gras"
+msgstr "Dessiner au Grease Pencil"
 
 
 msgid "Sculpt Grease Pencil"
-msgstr "Sculpter le crayon gras"
+msgstr "Sculpter le Grease Pencil"
 
 
 msgid "Weight Grease Pencil"
-msgstr "Éditer les poids de crayon gras"
+msgstr "Éditer les poids de Grease Pencil"
 
 
 msgid "Vertex Grease Pencil"
-msgstr "Poids de crayon gras"
+msgstr "Poids de Grease Pencil"
 
 
 msgctxt "Operator"
@@ -117449,6 +117502,11 @@ msgstr "Méthode de raffinement"
 
 msgid "Detailing"
 msgstr "Détails"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "Remailler"
 
 
 msgid "Tile Offset"
@@ -117923,7 +117981,7 @@ msgstr "EnsembleDeLignes %i"
 
 
 msgid "LineSet"
-msgstr "EnsembleDeLignes %i"
+msgstr "EnsembleDeLignes"
 
 
 msgid "Spline Length node"
@@ -118063,7 +118121,7 @@ msgstr "NuagePoints"
 
 
 msgid "GPencil"
-msgstr "CrayonG"
+msgstr "GPencil"
 
 
 msgid "LightProbe"
@@ -118712,7 +118770,7 @@ msgstr "%d caché"
 
 
 msgid "Eevee material conversion problem. Error in console"
-msgstr "Problème de conversion de matériau Eevee. Voir l’erreur dans la console"
+msgstr "Problème de conversion de matériau EEVEE. Voir l’erreur dans la console"
 
 
 msgid "Proxy lost from object %s lib %s"
@@ -118888,15 +118946,15 @@ msgstr "Aucun cache d’éclairage dans cette scène"
 
 
 msgid "Eevee Next"
-msgstr "Eevee Next"
+msgstr "EEVEE Next"
 
 
 msgid "Gpencil"
-msgstr "CrayonG"
+msgstr "GPencil"
 
 
 msgid "GpencilMode"
-msgstr "ModeCrayonGras"
+msgstr "ModeGPencil"
 
 
 msgid "UV/Image"
@@ -118928,7 +118986,7 @@ msgstr "Visibilité F-courbes dans l’éditeur de graphes"
 
 
 msgid "Grease Pencil layer is visible in the viewport"
-msgstr "Le calque de crayon gras est visible dans la vue 3D"
+msgstr "Le calque de Grease Pencil est visible dans la vue 3D"
 
 
 msgid "Toggle visibility of Channels in Graph Editor for editing"
@@ -119359,10 +119417,6 @@ msgstr "Os séparés"
 
 msgid "Unselectable bone in chain"
 msgstr "Os non-sélectionnable dans la chaîne"
-
-
-msgid "Cannot edit bone collections for library overrides"
-msgstr "Impossible d’éditer les collections d’os pour des redéfinitions de bibliothèque"
 
 
 msgid "Bone collections can only be edited on an Armature"
@@ -119951,7 +120005,7 @@ msgstr "Le modificateur Armature existant utilise déjà un autre objet armature
 
 
 msgid "The grease pencil object needs an Armature modifier"
-msgstr "L’objet crayon gras doit avoir un modificateur Armature"
+msgstr "L’objet Grease Pencil doit avoir un modificateur Armature"
 
 
 msgid "The Armature modifier is invalid"
@@ -119963,11 +120017,11 @@ msgstr "Aucun objet armature dans le calque de vue"
 
 
 msgid "No Grease Pencil data to work on"
-msgstr "Aucune donnée de crayon gras sur laquelle travailler"
+msgstr "Aucune donnée de Grease Pencil sur laquelle travailler"
 
 
 msgid "Current Grease Pencil strokes have no valid timing data, most timing options will be hidden!"
-msgstr "Les traits de crayons gras actuels n’ont pas de données de timing valides, la plupart des options de minutage seront désactivées !"
+msgstr "Les traits de Grease Pencils actuels n’ont pas de données de timing valides, la plupart des options de minutage seront désactivées !"
 
 
 msgid "Object created"
@@ -119975,7 +120029,7 @@ msgstr "Objet créé"
 
 
 msgid "Nowhere for grease pencil data to go"
-msgstr "Les données de crayon gras n’ont nulle part où aller"
+msgstr "Les données de Grease Pencil n’ont nulle part où aller"
 
 
 msgid "Cannot delete locked layers"
@@ -120003,7 +120057,7 @@ msgstr "Appliquer toutes les rotations avant de fusionner les objets"
 
 
 msgid "Active object is not a selected grease pencil"
-msgstr "L’objet actif n’est pas un crayon gras sélectionné"
+msgstr "L’objet actif n’est pas un Grease Pencil sélectionné"
 
 
 msgid "No active color to isolate"
@@ -120011,7 +120065,7 @@ msgstr "Aucune couleur active à isoler"
 
 
 msgid "No Grease Pencil data"
-msgstr "Pas de données de crayon gras"
+msgstr "Pas de données de Grease Pencil"
 
 
 msgid "Unable to add a new Lattice modifier to object"
@@ -120047,7 +120101,7 @@ msgstr "Impossible de basculer vers un matériau inexistant (indice = %d)"
 
 
 msgid "No active GP data"
-msgstr "Pas de données de crayon gras actives"
+msgstr "Pas de données de Grease Pencil actives"
 
 
 msgid "Not implemented!"
@@ -120063,7 +120117,7 @@ msgstr "Impossible de coller des traits quand le calque actif est caché ou verr
 
 
 msgid "No grease pencil data"
-msgstr "Pas de données de crayon gras"
+msgstr "Pas de données de Grease Pencil"
 
 
 msgid "No active frame to delete"
@@ -120127,7 +120181,7 @@ msgstr "Région active invalide pour l’opérateur de remplissage"
 
 
 msgid "GPencil Interpolation: "
-msgstr "Interpolation crayon gras : "
+msgstr "Interpolation Grease Pencil : "
 
 
 msgid "ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/MOVE to adjust factor"
@@ -120190,7 +120244,7 @@ msgstr "Aucun objet valide sélectionné"
 
 
 msgid "Target object not a grease pencil, ignoring!"
-msgstr "L’objet cible n’est pas un crayon gras, opération impossible !"
+msgstr "L’objet cible n’est pas un Grease Pencil, opération impossible !"
 
 
 msgid "Target object library-data, ignoring!"
@@ -120198,27 +120252,27 @@ msgstr "L’objet cible vient d’un autre fichier, opération impossible !"
 
 
 msgid "Grease Pencil Erase Session: Hold and drag LMB or RMB to erase | ESC/Enter to end  (or click outside this area)"
-msgstr "Session effacement de crayon gras : Cliquer-glisser ClicG ou ClicD pour effacer | Échap/Entrée pour finaliser (ou cliquer en dehors de cette zone)"
+msgstr "Session effacement de Grease Pencil : Cliquer-glisser ClicG ou ClicD pour effacer | Échap/Entrée pour finaliser (ou cliquer en dehors de cette zone)"
 
 
 msgid "Grease Pencil Line Session: Hold and drag LMB to draw | ESC/Enter to end  (or click outside this area)"
-msgstr "Session segments de crayon gras : Cliquer-glisser ClicG pour dessiner | Échap/Entrée pour finaliser (ou cliquer en dehors de cette zone)"
+msgstr "Session segments de Grease Pencil : Cliquer-glisser ClicG pour dessiner | Échap/Entrée pour finaliser (ou cliquer en dehors de cette zone)"
 
 
 msgid "Grease Pencil Guides: LMB click and release to place reference point | Esc/RMB to cancel"
-msgstr "Guides crayon gras : ClicG et relâcher pour placer point de référence | Échap/ClicD pour annuler"
+msgstr "Guides Grease Pencil : ClicG et relâcher pour placer point de référence | Échap/ClicD pour annuler"
 
 
 msgid "Grease Pencil Freehand Session: Hold and drag LMB to draw | M key to flip guide | O key to move reference point"
-msgstr "Session main levée crayon gras : ClicG-glisser : dessiner | M : inverser guide | O : déplacer point de référence"
+msgstr "Session main levée Grease Pencil : ClicG-glisser : dessiner | M : inverser guide | O : déplacer point de référence"
 
 
 msgid "Grease Pencil Freehand Session: Hold and drag LMB to draw"
-msgstr "Session main levée crayon gras : Cliquer-glisser ClicG : dessiner"
+msgstr "Session main levée Grease Pencil : Cliquer-glisser ClicG : dessiner"
 
 
 msgid "Grease Pencil Session: ESC/Enter to end (or click outside this area)"
-msgstr "Session de crayon gras : Échap/Entrée pour finaliser (ou cliquer en dehors de cette zone)"
+msgstr "Session de Grease Pencil : Échap/Entrée pour finaliser (ou cliquer en dehors de cette zone)"
 
 
 msgid "Active layer is locked or hidden"
@@ -120230,11 +120284,11 @@ msgstr "Rien à effacer ou tous les calques sont verrouillés"
 
 
 msgid "Grease Pencil operator is already active"
-msgstr "L’opérateur de crayon gras est déjà actif"
+msgstr "L’opérateur de Grease Pencil est déjà actif"
 
 
 msgid "Grease Pencil has no active paint tool"
-msgstr "Aucun outil de peinture actif pour le crayon gras"
+msgstr "Aucun outil de peinture actif pour le Grease Pencil"
 
 
 msgid "Line: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align, Alt to center, E: extrude, G: grab"
@@ -120254,11 +120308,11 @@ msgstr "Cercle : Échap : annuler, ClicG : placer origine, Entrée/ClicM : c
 
 
 msgid "Arc: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, M: Flip, E: extrude, G: grab"
-msgstr "Arc : Échap : annuler, ClicG : placer origine, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, M : inverser, E: extruder, G : déplacer"
+msgstr "Arc : Échap : annuler, ClicG : placer origine, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, M : inverser, E : extruder, G : déplacer"
 
 
 msgid "Curve: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, E: extrude, G: grab"
-msgstr "Courbe : Échap : annuler, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, E: extruder, G : déplacer"
+msgstr "Courbe : Échap : annuler, Entrée/ClicM : confirmer, Molette/+- : ajuster nombre subdivs, Maj : carré, Alt : centrer, E : extruder, G : déplacer"
 
 
 msgid "Primitives can only be added in Draw or Edit modes"
@@ -120270,7 +120324,7 @@ msgstr "Les primitives ne peuvent pas être ajoutées car le calque actif est ve
 
 
 msgid "GPencil Sculpt: %s Stroke  | LMB to paint | RMB/Escape to Exit | Ctrl to Invert Action | Wheel Up/Down for Size  | Shift-Wheel Up/Down for Strength"
-msgstr "Sculpture de crayon gras : %s trait | ClicG pour peindre | ClicD/Échap pour finir | Ctrl pour inverser action | molette haut/bas pour taille | Maj-molette haut/bas pour force"
+msgstr "Sculpture de Grease Pencil : %s trait | ClicG pour peindre | ClicD/Échap pour finir | Ctrl pour inverser action | molette haut/bas pour taille | Maj-molette haut/bas pour force"
 
 
 msgid "Copy some strokes to the clipboard before using the Clone brush to paste copies of them"
@@ -120310,7 +120364,7 @@ msgstr "Impossible de trouver les informations de sommet pour créer la palette"
 
 
 msgid "GPencil Vertex Paint: LMB to paint | RMB/Escape to Exit | Ctrl to Invert Action"
-msgstr "Peinture de sommet crayon gras : ClicG : peindre | ClicD/Échap : annuler | Ctrl : inverser action"
+msgstr "Peinture de sommet Grease Pencil : ClicG : peindre | ClicD/Échap : annuler | Ctrl : inverser action"
 
 
 msgid "Cannot Paint while play animation"
@@ -120318,19 +120372,19 @@ msgstr "Peinture impossible pendant la lecture de l’animation"
 
 
 msgid "GPencil Weight Paint: LMB to paint | RMB/Escape to Exit"
-msgstr "Peinture de poids crayon gras : ClicG : peindre | ClicD/Échap : annuler"
+msgstr "Peinture de poids Grease Pencil : ClicG : peindre | ClicD/Échap : annuler"
 
 
 msgid "GPencil Weight Blur: LMB to blur | RMB/Escape to Exit"
-msgstr "Floutage des poids crayon gras : ClicG : flouter | ClicD/Échap : annuler"
+msgstr "Floutage des poids Grease Pencil : ClicG : flouter | ClicD/Échap : annuler"
 
 
 msgid "GPencil Weight Average: LMB to set average | RMB/Escape to Exit"
-msgstr "Moyenne des poids crayon gras : ClicG : définir moyenne | ClicD/Échap : annuler"
+msgstr "Moyenne des poids Grease Pencil : ClicG : définir moyenne | ClicD/Échap : annuler"
 
 
 msgid "GPencil Weight Smear: LMB to smear | RMB/Escape to Exit"
-msgstr "Étalement de poids crayon gras : ClicG : étaler | ClicD/Échap : annuler"
+msgstr "Étalement de poids Grease Pencil : ClicG : étaler | ClicD/Échap : annuler"
 
 
 msgid "Skin_light"
@@ -120680,6 +120734,10 @@ msgstr "Valeur"
 
 msgid "Redo"
 msgstr "Refaire"
+
+
+msgid "Type to search..."
+msgstr "Taper pour chercher…"
 
 
 msgid "Menu \"%s\" not found"
@@ -121109,7 +121167,7 @@ msgstr "Parcourir les réglages de particules à lier"
 
 
 msgid "Browse Grease Pencil (legacy) Data to be linked"
-msgstr "Parcourir les données crayon gras (obsolète) à lier"
+msgstr "Parcourir les données Grease Pencil (obsolète) à lier"
 
 
 msgid "Browse Movie Clip to be linked"
@@ -121153,7 +121211,7 @@ msgstr "Parcourir les données volume à lier"
 
 
 msgid "Browse Grease Pencil Data to be linked"
-msgstr "Parcourir les données crayon gras à lier"
+msgstr "Parcourir les données Grease Pencil à lier"
 
 
 msgid "Browse ID data to be linked"
@@ -121975,7 +122033,7 @@ msgstr "Conversion de certains objets ou données d’objet liés non-éditables
 
 
 msgid "Convert Surfaces to Grease Pencil is not supported"
-msgstr "La conversion de surfaces en crayon gras n’est pas prise en charge"
+msgstr "La conversion de surfaces en Grease Pencil n’est pas prise en charge"
 
 
 msgid "Object not found"
@@ -122439,11 +122497,11 @@ msgstr "Modificateur appliqué : %s"
 
 
 msgid "Source object '%s' is not a grease pencil object"
-msgstr "L’objet source « %s » n’est pas un objet crayon gras"
+msgstr "L’objet source « %s » n’est pas un objet Grease Pencil"
 
 
 msgid "Destination object '%s' is not a grease pencil object"
-msgstr "L’objet de destination « %s » n’est pas un objet crayon gras"
+msgstr "L’objet de destination « %s » n’est pas un objet Grease Pencil"
 
 
 msgid "Cannot edit modifiers coming from linked data in a library override"
@@ -122835,7 +122893,7 @@ msgstr "Impossible d’appliquer à une armature multiutilisateurs"
 
 
 msgid "Grease Pencil Object does not support this set origin option"
-msgstr "L’objet crayon gras ne prend pas en charge cette option pour définir l’origine"
+msgstr "L’objet Grease Pencil ne prend pas en charge cette option pour définir l’origine"
 
 
 msgid "Curves Object does not support this set origin operation"
@@ -122851,7 +122909,7 @@ msgstr "Seule l’échelle peut être appliquée aux textes : « %s »"
 
 
 msgid "Can't apply to a GP data-block where all layers are parented: Object \"%s\", %s \"%s\", aborting"
-msgstr "Non-applicable à un bloc de données crayon gras dont tous les calques sont parentés : objet « %s », %s « %s », annulation"
+msgstr "Non-applicable à un bloc de données Grease Pencil dont tous les calques sont parentés : objet « %s », %s « %s », annulation"
 
 
 msgid "Area Lights can only have scale applied: \"%s\""
@@ -123904,7 +123962,7 @@ msgstr "Aucune donnée à coller depuis le presse-papier"
 
 
 msgid "Keyframe pasting is not available for grease pencil or mask mode"
-msgstr "Le collage d’images clés n’est pas disponible en mode crayon gras ou masque"
+msgstr "Le collage d’images clés n’est pas disponible en mode Grease Pencil ou masque"
 
 
 msgid "No selected F-Curves to paste into"
@@ -124844,6 +124902,10 @@ msgid "Verts:%s | Tris:%s"
 msgstr "Sommets:%s | Tris:%s"
 
 
+msgid "Verts:%s | Faces:%s"
+msgstr "Sommets:%s | Faces:%s"
+
+
 msgid "Verts:%s | Faces:%s | Tris:%s"
 msgstr "Sommets:%s | Faces:%s | Tris:%s"
 
@@ -125157,7 +125219,7 @@ msgstr "• Courbes : %s points, %s splines"
 
 
 msgid "• Instances: %s"
-msgstr "• Instances: %s"
+msgstr "• Instances : %s"
 
 
 msgid "• Volume"
@@ -125201,7 +125263,7 @@ msgstr "Accès attribut nommé :"
 
 
 msgid "  • \"{}\": "
-msgstr "  • « {} »: "
+msgstr "  • « {} » : "
 
 
 msgid "read"
@@ -125252,7 +125314,7 @@ msgid ""
 "Can not add node '%s' in a group:\n"
 "  %s"
 msgstr ""
-" Impossible d’ajouter le nœud %s dans un groupe :\n"
+"Impossible d’ajouter le nœud %s dans un groupe :\n"
 "  %s"
 
 
@@ -126821,10 +126883,6 @@ msgid "left"
 msgstr "gauche"
 
 
-msgid "%s: Toggle auto-offset direction (%s)"
-msgstr "%s : changer la direction du décalage auto (%s)"
-
-
 msgid "Use 'Time_Translate' transform mode instead of 'Translation' mode for translating keyframes in Dope Sheet Editor"
 msgstr "Utiliser le mode de transformation 'Déplacer dans le temps' au lieu du mode 'Translation' pour déplacer les images clés dans l’éditeur Feuille d’exposition"
 
@@ -127285,7 +127343,7 @@ msgstr "Tous les objets Line Art ont été effacés"
 
 
 msgid "No active object or active object isn't a GPencil object"
-msgstr "Aucun object actif, ou l’objet actif n’est pas un crayon gras"
+msgstr "Aucun object actif, ou l’objet actif n’est pas un Grease Pencil"
 
 
 msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more"
@@ -127880,6 +127938,10 @@ msgid "Cannot move collection from index '%d' to '%d'"
 msgstr "Impossible de déplacer la collection de l’indice %d vers %d"
 
 
+msgid "collection.bones is not available in armature edit mode"
+msgstr "collection.bones n’est pas disponible en mode édition d’armature"
+
+
 msgid "Invalid color palette index: %d"
 msgstr "Indice de palette de couleur invalide : %d"
 
@@ -128235,15 +128297,15 @@ msgstr "GPencilStrokePoints : indice hors de l’intervalle"
 
 
 msgid "Stroke not found in grease pencil frame"
-msgstr "Le trait est introuvable dans la frame de crayon gras"
+msgstr "Le trait est introuvable dans la frame de Grease Pencil"
 
 
 msgid "Frame not found in grease pencil layer"
-msgstr "La frame est introuvable dans le calque de crayon gras"
+msgstr "La frame est introuvable dans le calque de Grease Pencil"
 
 
 msgid "Layer not found in grease pencil data"
-msgstr "Le calque est introuvable dans les données de crayon gras"
+msgstr "Le calque est introuvable dans les données de Grease Pencil"
 
 
 msgid "Mask not found in mask list"
@@ -128259,7 +128321,7 @@ msgstr "Modifier"
 
 
 msgid "Cannot assign material '%s', it has to be used by the grease pencil object already"
-msgstr "Impossible d’assigner le matériau « %s », il doit déjà être utilisé par l’objet crayon gras"
+msgstr "Impossible d’assigner le matériau « %s », il doit déjà être utilisé par l’objet Grease Pencil"
 
 
 msgid "Image not packed"
@@ -128697,7 +128759,7 @@ msgstr "L’objet « %s » n’a pas pu créer les données internes nécessai
 
 
 msgid "Object '%s' is not valid for this operation! Only curves are supported"
-msgstr "L’objet « %s » n’est pas valide pour pour cette opération ! Seules les courbes sont prises en charge"
+msgstr "L’objet « %s » n’est pas valide pour cette opération ! Seules les courbes sont prises en charge"
 
 
 msgid "Palette '%s' does not contain color given"
@@ -128954,10 +129016,6 @@ msgstr "Le type de groupe de gizmo « %s » est introuvable !"
 
 msgid "Gizmo group '%s' has 'PERSISTENT' option set!"
 msgstr "Groupe de gizmo : l’option 'PERSISTENT' est activée pour « %s » !"
-
-
-msgid "KeyMapItem '%s' cannot be removed from '%s'"
-msgstr "Impossible d’enlever le raccourci « %s » de « %s »"
 
 
 msgid "Modal key-maps not supported for add-on key-config"
@@ -131319,10 +131377,6 @@ msgid "Cannot delete built-in attribute: \"{}\""
 msgstr "Impossible de supprimer l’attribut prédéfini « {} »"
 
 
-msgid "Add new repeat input and output nodes to the node tree"
-msgstr "Ajouter de nouveaux nœuds d’entrée et de sortie de répétition à l’arborescence de nœuds"
-
-
 msgid "Which element to retrieve a value from on the geometry"
 msgstr "Depuis quel élément obtenir une valeur sur la géométrie"
 
@@ -131431,8 +131485,8 @@ msgid "Delta Time"
 msgstr "Delta temps"
 
 
-msgid "Add a new simulation input and output nodes to the node tree"
-msgstr "Ajouter de nouveaux nœuds d’entrée et de sortie de simulation à l’arborescence de nœuds"
+msgid "Forward the output of the simulation input node directly to the output node and ignore the nodes in the simulation zone"
+msgstr "Transmettre directement la sortie du nœud entrée de simulation au nœud de sortie et ignorer les nœuds dans la zone de simulation"
 
 
 msgid "Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\""
@@ -131563,10 +131617,6 @@ msgid "Group '{}' ({})"
 msgstr "Groupe « {} » ({})"
 
 
-msgid "'{}' input is used"
-msgstr "L’entrée « {} » est utilisée"
-
-
 msgid "Missing Data-Block"
 msgstr "Bloc de données manquant"
 
@@ -131683,6 +131733,10 @@ msgid "Specifies energy absorption per unit length as light passes through the h
 msgstr "Spécifier l’absorption d’énergie par longueur unitaire quand la lumière traverse le poil. Des valeurs élevées donnent des couleurs plus sombres"
 
 
+msgid "The ratio of the minor axis to the major axis of an elliptical cross-section. Recommended values are 0.8~1 for Asian hair, 0.65~0.9 for Caucasian hair, 0.5~0.65 for African hair. The major axis is aligned with the curve normal, which is not supported in particle hair"
+msgstr "Rapport entre le petit axe et le grand axe d’une section de poil elliptique. Les valeurs recommandées sont de 0.8~1 pour les poils asiatiques, 0.65~0.9 pour les poils caucasiens, 0.5~0.65 pour les poils africains. Le grand axe est aligné à la normale de la courbe, qui n’est pas prise en charge pour les poils par particules"
+
+
 msgid "Hair roughness. A low value leads to a metallic look"
 msgstr "Rugosité du poil. Une valeur faible donne un aspect métallique"
 
@@ -131755,20 +131809,8 @@ msgid "Sheen Tint"
 msgstr "Teinte du lustre"
 
 
-msgid "Clearcoat"
-msgstr "Vernis"
-
-
-msgid "Clearcoat Roughness"
-msgstr "Rugosité du vernis"
-
-
 msgid "Emission Strength"
 msgstr "Force d’émission"
-
-
-msgid "Clearcoat Normal"
-msgstr "Normale du vernis"
 
 
 msgid "View Vector"
@@ -131948,7 +131990,7 @@ msgstr "Échelle d’une octave de bruit de Perlin, relativement à celle de l�
 
 
 msgid "Sun disc not available in Eevee"
-msgstr "Disque solaire indisponible dans Eevee"
+msgstr "Disque solaire indisponible dans EEVEE"
 
 
 msgid "The number of Voronoi layers to sum"
@@ -133425,6 +133467,10 @@ msgid "Catalan (Català)"
 msgstr "Catalan (Català)"
 
 
+msgid "Czech (Čeština)"
+msgstr "Tchèque (Čeština)"
+
+
 msgid "Portuguese (Português)"
 msgstr "Portugais (Português)"
 
@@ -133519,10 +133565,6 @@ msgstr "Estonien (Eesti keel)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Espéranto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Espagnol d’Espagne (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

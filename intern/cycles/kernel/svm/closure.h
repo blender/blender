@@ -301,7 +301,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
           fresnel->reflection_tint = mix(
               one_spectrum(), rgb_to_spectrum(base_color), specular_tint);
-          fresnel->transmission_tint = rgb_to_spectrum(base_color);
+          fresnel->transmission_tint = sqrt(rgb_to_spectrum(base_color));
 
           /* setup bsdf */
           sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
@@ -706,13 +706,6 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
         ccl_private ChiangHairBSDF *bsdf = (ccl_private ChiangHairBSDF *)bsdf_alloc(
             sd, sizeof(ChiangHairBSDF), weight);
         if (bsdf) {
-          ccl_private ChiangHairExtra *extra = (ccl_private ChiangHairExtra *)closure_alloc_extra(
-              sd, sizeof(ChiangHairExtra));
-
-          if (!extra) {
-            break;
-          }
-
           /* Remap Coat value to [0, 100]% of Roughness. */
           float coat = stack_load_float_default(stack, shared_ofs1, data_node3.w);
           float m0_roughness = 1.0f - clamp(coat, 0.0f, 1.0f);
@@ -722,7 +715,6 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
           bsdf->m0_roughness = m0_roughness;
           bsdf->alpha = alpha;
           bsdf->eta = ior;
-          bsdf->extra = extra;
           bsdf->sigma = sigma;
 
           sd->flag |= bsdf_hair_chiang_setup(sd, bsdf);

@@ -19,33 +19,33 @@ float principled_sheen(float NV, float rough)
 }
 
 void node_bsdf_principled(vec4 base_color,
+                          float metallic,
+                          float roughness,
+                          float ior,
+                          float transmission,
+                          float alpha,
+                          vec3 N,
+                          float weight,
                           float subsurface,
                           float subsurface_scale,
                           vec3 subsurface_radius,
                           float subsurface_ior,
                           float subsurface_anisotropy,
-                          float metallic,
                           float specular,
                           float specular_tint,
-                          float roughness,
                           float anisotropic,
                           float anisotropic_rotation,
-                          float sheen,
-                          float sheen_roughness,
-                          vec4 sheen_tint,
+                          vec3 T,
                           float coat,
                           float coat_roughness,
                           float coat_ior,
                           vec4 coat_tint,
-                          float ior,
-                          float transmission,
+                          vec3 CN,
+                          float sheen,
+                          float sheen_roughness,
+                          vec4 sheen_tint,
                           vec4 emission,
                           float emission_strength,
-                          float alpha,
-                          vec3 N,
-                          vec3 CN,
-                          vec3 T,
-                          float weight,
                           const float do_diffuse,
                           const float do_coat,
                           const float do_refraction,
@@ -84,7 +84,7 @@ void node_bsdf_principled(vec4 base_color,
   coat_data.N = CN;
   coat_data.roughness = coat_roughness;
   float coat_NV = dot(coat_data.N, V);
-  float reflectance = bsdf_lut(coat_NV, coat_data.roughness, coat_ior, 0.0).y;
+  float reflectance = bsdf_lut(coat_NV, coat_data.roughness, coat_ior, 0.0).x;
   coat_data.weight = weight * coat * reflectance;
   coat_data.color = vec3(1.0);
   /* Attenuate lower layers */
@@ -127,9 +127,9 @@ void node_bsdf_principled(vec4 base_color,
   if (true) {
     vec2 bsdf = bsdf_lut(NV, roughness, ior, do_multiscatter);
 
-    reflection_data.color += weight * transmission * bsdf.y * reflection_tint;
+    reflection_data.color += weight * transmission * bsdf.x * reflection_tint;
 
-    refraction_data.weight = weight * transmission * bsdf.x;
+    refraction_data.weight = weight * transmission * bsdf.y;
     refraction_data.color = base_color.rgb * coat_tint.rgb;
     refraction_data.N = N;
     refraction_data.roughness = roughness;

@@ -220,32 +220,39 @@ void DetectMORAVEC(const FloatImage& grayscale_image,
           SAD(s, s+r*stride-r, stride, stride)+SAD(s, s+r*stride, stride, stride)+SAD(s, s+r*stride+r, stride, stride);
       // clang-format on
 
-      score /= 256;  // normalize
-      if (pattern)   // find only features similar to pattern
+      score /= 256;   // normalize
+      if (pattern) {  // find only features similar to pattern
         score -= SAD(s, pattern, stride, 16);
-      if (score <= 16)
-        continue;   // filter very self-similar features
+      }
+      if (score <= 16) {
+        continue;  // filter very self-similar features
+      }
       score -= 16;  // translate to score/histogram values
-      if (score > 255)
+      if (score > 255) {
         score = 255;  // clip
+      }
       ubyte* c = &scores[y * width + x];
       for (int i = -distance; i < 0; i++) {
         for (int j = -distance; j < distance; j++) {
           int s = c[i * width + j];
-          if (s == 0)
+          if (s == 0) {
             continue;
-          if (s >= score)
+          }
+          if (s >= score) {
             goto nonmax;
+          }
           c[i * width + j] = 0;
           histogram[s]--;
         }
       }
       for (int i = 0, j = -distance; j < 0; j++) {
         int s = c[i * width + j];
-        if (s == 0)
+        if (s == 0) {
           continue;
-        if (s >= score)
+        }
+        if (s >= score) {
           goto nonmax;
+        }
         c[i * width + j] = 0;
         histogram[s]--;
       }

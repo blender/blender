@@ -373,7 +373,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   /* Clear ID properties so Cycles gets defaults. */
-  IDProperty *idprop = IDP_GetProperties(&scene->id, false);
+  IDProperty *idprop = IDP_GetProperties(&scene->id);
   if (idprop) {
     IDP_ClearProperty(idprop);
   }

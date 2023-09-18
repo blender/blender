@@ -28,6 +28,7 @@ void VKDevice::deinit()
 
   dummy_buffer_.free();
   sampler_.free();
+  destroy_discarded_resources();
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
   debugging_tools_.deinit(vk_instance_);
@@ -247,6 +248,60 @@ const Vector<std::reference_wrapper<VKContext>> &VKDevice::contexts_get() const
 {
   return contexts_;
 };
+
+void VKDevice::discard_image(VkImage vk_image, VmaAllocation vma_allocation)
+{
+  discarded_images_.append(std::pair(vk_image, vma_allocation));
+}
+
+void VKDevice::discard_image_view(VkImageView vk_image_view)
+{
+  discarded_image_views_.append(vk_image_view);
+}
+
+void VKDevice::discard_buffer(VkBuffer vk_buffer, VmaAllocation vma_allocation)
+{
+  discarded_buffers_.append(std::pair(vk_buffer, vma_allocation));
+}
+
+void VKDevice::discard_render_pass(VkRenderPass vk_render_pass)
+{
+  discarded_render_passes_.append(vk_render_pass);
+}
+void VKDevice::discard_frame_buffer(VkFramebuffer vk_frame_buffer)
+{
+  discarded_frame_buffers_.append(vk_frame_buffer);
+}
+
+void VKDevice::destroy_discarded_resources()
+{
+  VK_ALLOCATION_CALLBACKS
+
+  while (!discarded_image_views_.is_empty()) {
+    VkImageView vk_image_view = discarded_image_views_.pop_last();
+    vkDestroyImageView(vk_device_, vk_image_view, vk_allocation_callbacks);
+  }
+
+  while (!discarded_images_.is_empty()) {
+    std::pair<VkImage, VmaAllocation> image_allocation = discarded_images_.pop_last();
+    vmaDestroyImage(mem_allocator_get(), image_allocation.first, image_allocation.second);
+  }
+
+  while (!discarded_buffers_.is_empty()) {
+    std::pair<VkBuffer, VmaAllocation> buffer_allocation = discarded_buffers_.pop_last();
+    vmaDestroyBuffer(mem_allocator_get(), buffer_allocation.first, buffer_allocation.second);
+  }
+
+  while (!discarded_render_passes_.is_empty()) {
+    VkRenderPass vk_render_pass = discarded_render_passes_.pop_last();
+    vkDestroyRenderPass(vk_device_, vk_render_pass, vk_allocation_callbacks);
+  }
+
+  while (!discarded_frame_buffers_.is_empty()) {
+    VkFramebuffer vk_frame_buffer = discarded_frame_buffers_.pop_last();
+    vkDestroyFramebuffer(vk_device_, vk_frame_buffer, vk_allocation_callbacks);
+  }
+}
 
 /** \} */
 

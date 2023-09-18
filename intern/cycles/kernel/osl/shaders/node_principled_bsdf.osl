@@ -89,7 +89,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
     eta = backfacing() ? 1.0 / eta : eta;
 
     TransmissionBSDF = dielectric_bsdf(
-        Normal, vector(0.0), reflectTint, BaseColor, r2, r2, eta, distribution);
+        Normal, vector(0.0), reflectTint, sqrt(BaseColor), r2, r2, eta, distribution);
     BSDF = mix(BSDF, TransmissionBSDF, clamp(Transmission, 0.0, 1.0));
   }
 

@@ -3973,30 +3973,54 @@ class VIEW3D_MT_bone_collections(Menu):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object and context.active_object.type == 'ARMATURE'
+        if not context.object or context.object.type != 'ARMATURE':
+            return False
+        if context.object.data.library:
+            return False
+        return True
 
     def draw(self, context):
         layout = self.layout
 
+        if not context.selected_pose_bones and not context.selected_bones:
+            # If there are no bones to assign to any collection, there's no need
+            # to go over all the bone collections & try to build up the menu.
+            #
+            # The poll function shouldn't test for this, because returning False
+            # there will hide this menu completely from the Pose menu, and
+            # that's going too far.
+            layout.enabled = False
+            layout.label(text="- select bones to operate on first -")
+            return
+
+        arm = context.object.data
+        bone = context.active_bone
+        found_editable_bcoll = False
+        for bcoll in arm.collections:
+            if not bcoll.is_editable:
+                continue
+            found_editable_bcoll = True
+
+            if bcoll.name in bone.collections:
+                props = layout.operator("armature.collection_unassign",
+                                        text=bcoll.name,
+                                        icon='REMOVE')
+            else:
+                props = layout.operator("armature.collection_assign",
+                                        text=bcoll.name,
+                                        icon='ADD')
+            props.name = bcoll.name
+
+        if arm.collections and not found_editable_bcoll:
+            row = layout.row()
+            row.enabled = False
+            row.label(text="All bone collections are read-only")
+
+        layout.separator()
+
         props = layout.operator("armature.collection_assign",
                                 text="Assign to New Collection")
         props.name = "New Collection"
-
-        arm = context.active_object.data
-        if not arm.collections.active:
-            return
-
-        layout.separator()
-
-        layout.operator("armature.collection_assign",
-                        text="Assign to '%s'" % arm.collections.active.name)
-        layout.operator("armature.collection_unassign",
-                        text="Unassign from '%s'" % arm.collections.active.name)
-
-        layout.separator()
-
-        layout.operator("armature.collection_remove",
-                        text="Remove Collection '%s'" % arm.collections.active.name)
 
 
 class VIEW3D_MT_pose_ik(Menu):

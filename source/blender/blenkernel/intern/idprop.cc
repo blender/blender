@@ -783,13 +783,14 @@ void IDP_CopyPropertyContent(IDProperty *dst, const IDProperty *src)
   IDP_FreeProperty(idprop_tmp);
 }
 
-IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
+IDProperty *IDP_GetProperties(ID *id)
 {
-  if (id->properties) {
-    return id->properties;
-  }
+  return id->properties;
+}
 
-  if (create_if_needed) {
+IDProperty *IDP_EnsureProperties(ID *id)
+{
+  if (id->properties == nullptr) {
     id->properties = static_cast<IDProperty *>(MEM_callocN(sizeof(IDProperty), "IDProperty"));
     id->properties->type = IDP_GROUP;
     /* NOTE(@ideasman42): Don't overwrite the data's name and type

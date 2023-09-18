@@ -181,7 +181,7 @@ class AbstractNodeGroupInterfaceTest(unittest.TestCase):
     # Test node group items and associated node sockets with spec data.
     def compare_group_to_specs(self, group, node, specs, test_links=True):
         for index, spec in enumerate(specs):
-            self.compare_group_socket_to_spec(group.interface.ui_items[index], node, spec, test_links=test_links)
+            self.compare_group_socket_to_spec(group.interface.items_tree[index], node, spec, test_links=test_links)
 
 
 class NodeGroupVersioning36Test(AbstractNodeGroupInterfaceTest):

@@ -666,7 +666,7 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   /* TODO: validate NDOF. */
 
   if (unicode != nullptr) {
-    int len = BLI_str_utf8_size(unicode);
+    int len = BLI_str_utf8_size_or_error(unicode);
     if (len == -1 || unicode[len] != '\0') {
       BKE_report(reports, RPT_ERROR, "Only a single character supported");
       return nullptr;

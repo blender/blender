@@ -102,7 +102,7 @@ static bool vklayer_config_exist(const char *vk_extension_config)
 {
   const char *ev_val = getenv("VK_LAYER_PATH");
   if (ev_val == nullptr) {
-    return false;
+    return true;
   }
   std::stringstream filename;
   filename << ev_val;
@@ -229,9 +229,16 @@ class GHOST_DeviceVK {
     device_features.multiViewport = VK_TRUE;
 #endif
     device_features.drawIndirectFirstInstance = VK_TRUE;
+    device_features.fragmentStoresAndAtomics = VK_TRUE;
+
+    VkPhysicalDeviceVulkan12Features device_12_features = {};
+    device_12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    device_12_features.shaderOutputLayer = VK_TRUE;
+    device_12_features.shaderOutputViewportIndex = VK_TRUE;
 
     VkPhysicalDeviceMaintenance4FeaturesKHR maintenance_4 = {};
     maintenance_4.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR;
+    maintenance_4.pNext = &device_12_features;
     maintenance_4.maintenance4 = VK_TRUE;
 
     /* Enable shader draw parameters on logical device when supported on physical device. */

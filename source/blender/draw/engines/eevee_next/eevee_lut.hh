@@ -20,8 +20,10 @@ extern const float ltc_mag_ggx[64][64][2];
 extern const float ltc_disk_integral[64][64][1];
 /* Precomputed integrated split fresnel term of the GGX BRDF. */
 extern const float brdf_ggx[64][64][2];
-/* Precomputed reflectance and transmittance of glass material with IOR < 1. */
-extern const float bsdf_ggx[16][64][64][2];
+/* Precomputed Schlick reflectance and transmittance factor of glass material with IOR < 1. */
+extern const float bsdf_ggx[16][64][64][3];
+/* Precomputed Schlick transmittance factor of glass material with IOR > 1. */
+extern const float btdf_ggx[16][64][64][1];
 /* 4 different blue noise, one per channel. */
 extern const float blue_noise[64][64][4];
 

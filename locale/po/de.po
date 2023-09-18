@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -324,18 +324,6 @@ msgstr "Erschaffe mehr Raum für große Szenen, indem der Speicher über verbund
 
 msgid "Fribidi Library"
 msgstr "Fribidi Bibliothek"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "Die FriBidi C kompilierte Bibliothek (.so unter Linux, .dll unter Windows...), wahrscheinlich muss die Bibliothek unter Windows bearbeitet werden. z.B. verwende die inkludierte Bibliothek im SVN Bibliothekrepository"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Gettext 'msgfmt' ausführbar"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "Der gettext msgfmt 'kompiler'. wahrscheinlich muss dies unter Windows bearbeitet werden"
 
 
 msgid "Translation Root"
@@ -1016,6 +1004,191 @@ msgstr "Schilder"
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Benutzerdefiniertes Schild (Namenskürzel) für das Vermögen, verwendet für das Filtern und das generelle Vermögensmanagement"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Aktion"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Armature"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Pinsel"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Puffer Datei"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Sammlung"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Kurve"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Kurven"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Schrift"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Wachsstift"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Bild"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Taste"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Gitter"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Bibliothek"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Leicht"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Linienstil"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maske"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Material"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Masche"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Filmclip"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Knotenbaum"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objekt"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Mal-Kurve"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palette"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Partikel"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Punkt Wolke"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Szene"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Klang"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Lautsprecher"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Text"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Textur"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volumen"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Fensterverwaltung"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Arbeitsbereich"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Welt"
 
 
 msgid "ID Name"
@@ -7788,191 +7961,6 @@ msgid "Type of ID-block that can be used"
 msgstr "ID-Block-Typ, der benützt werden kann"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Aktion"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Armature"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Pinsel"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Puffer Datei"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Sammlung"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Kurve"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Kurven"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Schrift"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Wachsstift"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Bild"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Taste"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Gitter"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Bibliothek"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Leicht"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Linienstil"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Maske"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Material"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Masche"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Filmclip"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Knotenbaum"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objekt"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Mal-Kurve"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Palette"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Partikel"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Punkt Wolke"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Szene"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Klang"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Lautsprecher"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Text"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Textur"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volumen"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Fensterverwaltung"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Arbeitsbereich"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Welt"
-
-
 msgid "Rotation Mode"
 msgstr "Rotationsmodus"
 
@@ -9821,22 +9809,6 @@ msgstr "Größe anzeigen"
 
 msgid "Change the size of the display (width of columns or thumbnails size)"
 msgstr "Ändern der Größe der Anzeige (Breite der Spalten oder Größe der Miniaturansichten)"
-
-
-msgid "Tiny"
-msgstr "Winzig"
-
-
-msgid "Small"
-msgstr "Klein"
-
-
-msgid "Medium"
-msgstr "Mittel"
-
-
-msgid "Large"
-msgstr "Groß"
 
 
 msgid "Display Mode"
@@ -15477,6 +15449,10 @@ msgstr "Hoch"
 
 msgid "High quality"
 msgstr "Hohe Qualität"
+
+
+msgid "Medium"
+msgstr "Mittel"
 
 
 msgid "Medium quality"
@@ -27036,11 +27012,6 @@ msgstr "Fügt einen Schlüssel von der Ursprünglichen Zeit ein"
 
 
 msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Einfache Schlüsselbilder"
-
-
-msgctxt "Operator"
 msgid "Select All"
 msgstr "Alle auswählen"
 
@@ -34554,11 +34525,6 @@ msgstr "Umleiten"
 
 
 msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Knoten suchen und hinzufügen"
-
-
-msgctxt "Operator"
 msgid "Attach Nodes"
 msgstr "Knoten anhängen"
 
@@ -40197,15 +40163,6 @@ msgstr "I18n lade Einstellungen"
 msgctxt "Operator"
 msgid "I18n Save Settings"
 msgstr "I18n speichere Einstellungen"
-
-
-msgctxt "Operator"
-msgid "Update I18n Branches"
-msgstr "Update I18n Branches"
-
-
-msgid "Update i18n svn's branches (po files)"
-msgstr "Aktualisieren Sie die Branches von i18n svn (PO-Dateien)"
 
 
 msgid "Invert Selection"
@@ -46298,14 +46255,6 @@ msgid "Settings/info about a language"
 msgstr "Einstellungen/Informationen zu einer Sprache"
 
 
-msgid "MO File Path"
-msgstr "MO-Dateipfad"
-
-
-msgid "Path to the relevant mo file"
-msgstr "Pfad zur relevanten mo Datei"
-
-
 msgid "Language Name"
 msgstr "Sprache"
 
@@ -46320,30 +46269,6 @@ msgstr "Numerische ID"
 
 msgid "Numeric ID (read only!)"
 msgstr "Numerische ID (nur lesezugriff!)"
-
-
-msgid "PO File Path"
-msgstr "PO-Dateipfad"
-
-
-msgid "Path to the relevant po file in branches"
-msgstr "Pfad zur entsprechenden po Datei in Branches"
-
-
-msgid "PO Git Master File Path"
-msgstr "PO Git Master Dateipfad"
-
-
-msgid "Path to the relevant po file in Blender's translations git repository"
-msgstr "Pfad zur entsprechenden po Datei im Blender Übersetzungs Git-Repository"
-
-
-msgid "PO Trunk File Path"
-msgstr "PO Trunk Dateipfad"
-
-
-msgid "Path to the relevant po file in trunk"
-msgstr "Pfad zur entsprechenden po Datei in Trunk"
 
 
 msgid "Language ID"
@@ -46372,10 +46297,6 @@ msgstr "Ob diese Einstellungen bereits automatisch eingestellt wurden oder nicht
 
 msgid "Languages"
 msgstr "Sprache"
-
-
-msgid "Languages to update in branches"
-msgstr "Sprachen, die in Branches aktualisiert werden sollen"
 
 
 msgid "POT File Path"
@@ -53578,21 +53499,6 @@ msgstr "Alles abwählen"
 
 
 msgctxt "Operator"
-msgid "Update Branches"
-msgstr "Branches aktualisieren"
-
-
-msgctxt "Operator"
-msgid "Update Trunk"
-msgstr "Trunk aktualisieren"
-
-
-msgctxt "Operator"
-msgid "Clean up Branches"
-msgstr "Branches bereinigen"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "Statiken"
 
@@ -54541,21 +54447,6 @@ msgstr "Auflösung Viewport"
 
 msgid "Update on Edit"
 msgstr "Update beim bearbeiten"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "Neu vermaschen"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Gitter"
-
-
-msgctxt "Operator"
-msgid "Particle System"
-msgstr "Partikelsystem"
 
 
 msgid "Distance Reference"
@@ -58479,6 +58370,11 @@ msgstr "Wachsstift"
 
 
 msgctxt "Operator"
+msgid "Lattice"
+msgstr "Gitter"
+
+
+msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "Sammlungsinstanz..."
 
@@ -58506,6 +58402,11 @@ msgstr "Aktiven hinzufügen"
 msgctxt "Operator"
 msgid "Add Passive"
 msgstr "Passiven hinzufügen"
+
+
+msgctxt "Operator"
+msgid "Particle System"
+msgstr "Partikelsystem"
 
 
 msgctxt "Operator"
@@ -58974,6 +58875,11 @@ msgstr "Elternteil"
 
 msgid "Detailing"
 msgstr "Detaillierung"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "Neu vermaschen"
 
 
 msgid "Tile Offset"
@@ -63623,20 +63529,8 @@ msgid "Sheen Tint"
 msgstr "Schimmer-Färbung"
 
 
-msgid "Clearcoat"
-msgstr "Klarlack"
-
-
-msgid "Clearcoat Roughness"
-msgstr "Klarlack-Rauheit"
-
-
 msgid "Emission Strength"
 msgstr "Emissionsstärke"
-
-
-msgid "Clearcoat Normal"
-msgstr "Klarlack-Normale"
 
 
 msgid "View Vector"
@@ -64372,10 +64266,6 @@ msgstr "Hebräisch (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Spanish from Spain (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

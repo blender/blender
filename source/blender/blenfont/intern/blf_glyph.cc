@@ -911,14 +911,15 @@ static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool mo
 /**
  * Adjust the glyphs slant by a factor (making it oblique).
  *
- * \param factor: -1 (max negative) <= 0 (no slant) => 1 (max positive).
+ * \param factor: -1 (max right-leaning) <= 0 (no slant) => 1 (max left-leaning).
  *
  * \note that left-leaning italics are possible in some RTL writing systems.
  */
 static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
-    FT_Matrix transform = {to_16dot16(1), to_16dot16(factor / 2.0f), 0, to_16dot16(1)};
+    /* Slant angle is counter-clockwise as per OTF specs. */
+    FT_Matrix transform = {to_16dot16(1), to_16dot16(-factor / 4.0f), 0, to_16dot16(1)};
     FT_Outline_Transform(&glyph->outline, &transform);
     return true;
   }
@@ -1016,11 +1017,9 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
    * Worth reevaluating if we change default font. */
   float weight = (settings_font->flags & BLF_BOLD) ? 0.7f : settings_font->char_weight;
 
-  /* 37.5% of maximum rightward slant results in 6 degree slope, matching italic
-   * version `DejaVuSans-Oblique.ttf` of our current font. But a nice median when
-   * checking others. Worth reevaluating if we change default font. We could also
-   * narrow the glyph slightly as most italics do, but this one does not. */
-  float slant = (settings_font->flags & BLF_ITALIC) ? 0.375f : settings_font->char_slant;
+  /* Treat italics as 75% of maximum rightward slant. Note that slant angle is in
+   * counter-clockwise degrees per OTF spec, so negative. */
+  float slant = (settings_font->flags & BLF_ITALIC) ? -0.75f : settings_font->char_slant;
 
   float width = settings_font->char_width;
   float spacing = settings_font->char_spacing;
@@ -1053,7 +1052,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   }
 
   if ((settings_font->flags & BLF_MONOSPACED) && (settings_font != glyph_font)) {
-    const int col = BLI_wcwidth(char32_t(charcode));
+    const int col = BLI_wcwidth_or_error(char32_t(charcode));
     if (col > 0) {
       blf_glyph_transform_monospace(glyph, col * fixed_width);
     }

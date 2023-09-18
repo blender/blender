@@ -21,6 +21,7 @@
 #include "tree_display.hh"
 #include "tree_element_anim_data.hh"
 #include "tree_element_bone.hh"
+#include "tree_element_bone_collection.hh"
 #include "tree_element_collection.hh"
 #include "tree_element_constraint.hh"
 #include "tree_element_defgroup.hh"
@@ -38,7 +39,6 @@
 #include "tree_element_overrides.hh"
 #include "tree_element_particle_system.hh"
 #include "tree_element_pose.hh"
-#include "tree_element_pose_group.hh"
 #include "tree_element_rna.hh"
 #include "tree_element_scene_objects.hh"
 #include "tree_element_seq.hh"
@@ -176,13 +176,6 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
       return std::make_unique<TreeElementPoseChannel>(legacy_te,
                                                       *reinterpret_cast<Object *>(owner_id),
                                                       *static_cast<bPoseChannel *>(create_data));
-    case TSE_POSEGRP_BASE:
-      return std::make_unique<TreeElementPoseGroupBase>(legacy_te,
-                                                        *reinterpret_cast<Object *>(owner_id));
-    case TSE_POSEGRP:
-      return std::make_unique<TreeElementPoseGroup>(legacy_te,
-                                                    *reinterpret_cast<Object *>(owner_id),
-                                                    *static_cast<bActionGroup *>(create_data));
     case TSE_MODIFIER_BASE:
       return std::make_unique<TreeElementModifierBase>(legacy_te,
                                                        *reinterpret_cast<Object *>(owner_id));
@@ -199,6 +192,14 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
     case TSE_LAYER_COLLECTION:
       return std::make_unique<TreeElementLayerCollection>(
           legacy_te, *static_cast<LayerCollection *>(create_data));
+
+    case TSE_BONE_COLLECTION_BASE:
+      return std::make_unique<TreeElementBoneCollectionBase>(
+          legacy_te, *reinterpret_cast<bArmature *>(owner_id));
+    case TSE_BONE_COLLECTION:
+      return std::make_unique<TreeElementBoneCollection>(
+          legacy_te, *static_cast<BoneCollection *>(create_data));
+
     default:
       break;
   }

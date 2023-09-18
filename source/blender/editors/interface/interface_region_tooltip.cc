@@ -74,14 +74,16 @@
 #define UI_TIP_STR_MAX 1024
 
 struct uiTooltipFormat {
-  UiTooltipStyle style;
-  UiTooltipColor color_id;
+  uiTooltipStyle style;
+  uiTooltipColorID color_id;
   bool is_pad;
 };
 
 struct uiTooltipField {
-  char *text;
-  char *text_suffix;
+  /** Allocated text (owned by this structure), may be null. */
+  const char *text;
+  /** Allocated text (owned by this structure), may be null. */
+  const char *text_suffix;
   struct {
     /** X cursor position at the end of the last line. */
     uint x_pos;
@@ -90,8 +92,7 @@ struct uiTooltipField {
   } geom;
   uiTooltipFormat format;
   ImBuf *image;
-  short image_width;
-  short image_height;
+  short image_size[2];
 };
 
 struct uiTooltipData {
@@ -116,30 +117,29 @@ static uiTooltipField *text_field_add_only(uiTooltipData *data)
 void UI_tooltip_text_field_add(uiTooltipData *data,
                                char *text,
                                char *suffix,
-                               const UiTooltipStyle style,
-                               const UiTooltipColor color,
+                               const uiTooltipStyle style,
+                               const uiTooltipColorID color_id,
                                const bool is_pad)
 {
   uiTooltipField *field = text_field_add_only(data);
   field->format = {};
   field->format.style = style;
-  field->format.color_id = color;
+  field->format.color_id = color_id;
   field->format.is_pad = is_pad;
-  field->text = text ? text : nullptr;
-  field->text_suffix = suffix ? suffix : nullptr;
+  field->text = text;
+  field->text_suffix = suffix;
 }
 
 void UI_tooltip_image_field_add(uiTooltipData *data,
-                                struct ImBuf *image,
-                                short width,
-                                short height)
+                                const struct ImBuf *image,
+                                const short image_size[2])
 {
   uiTooltipField *field = text_field_add_only(data);
   field->format = {};
   field->format.style = UI_TIP_STYLE_IMAGE;
   field->image = IMB_dupImBuf(image);
-  field->image_width = MIN2(width, UI_TIP_MAXIMAGEWIDTH * UI_SCALE_FAC);
-  field->image_height = MIN2(height, UI_TIP_MAXIMAGEHEIGHT * UI_SCALE_FAC);
+  field->image_size[0] = MIN2(image_size[0], UI_TIP_MAXIMAGEWIDTH * UI_SCALE_FAC);
+  field->image_size[1] = MIN2(image_size[1], UI_TIP_MAXIMAGEHEIGHT * UI_SCALE_FAC);
   field->text = nullptr;
 }
 
@@ -262,8 +262,8 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
     }
     else if (field->format.style == UI_TIP_STYLE_IMAGE) {
 
-      bbox.ymax -= field->image_height;
-      bbox.ymin -= field->image_height;
+      bbox.ymax -= field->image_size[0];
+      bbox.ymin -= field->image_size[0];
 
       GPU_blend(GPU_BLEND_ALPHA_PREMULT);
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
@@ -277,9 +277,9 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
                                      field->image->byte_buffer.data,
                                      1.0f,
                                      1.0f,
-                                     (float)field->image_width / (float)field->image->x,
-                                     (float)field->image_height / (float)field->image->y,
-                                     NULL);
+                                     float(field->image_size[0]) / float(field->image->x),
+                                     float(field->image_size[1]) / float(field->image->y),
+                                     nullptr);
 
       GPU_blend(GPU_BLEND_ALPHA);
     }
@@ -313,10 +313,10 @@ static void ui_tooltip_region_free_cb(ARegion *region)
   for (int i = 0; i < data->fields_len; i++) {
     const uiTooltipField *field = &data->fields[i];
     if (field->text) {
-      MEM_freeN(field->text);
+      MEM_freeN((void *)field->text);
     }
     if (field->text_suffix) {
-      MEM_freeN(field->text_suffix);
+      MEM_freeN((void *)field->text_suffix);
     }
     if (field->image) {
       IMB_freeImBuf(field->image);
@@ -849,7 +849,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       !but->tip_func)
   {
     UI_tooltip_text_field_add(
-        data, BLI_strdup(but_label.strinfo), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+        data, BLI_strdup(but_tip_label.strinfo), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
   }
 
   /* Tip */
@@ -1245,8 +1245,8 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     }
 
     if (field->format.style == UI_TIP_STYLE_IMAGE) {
-      fonth += field->image_height;
-      w = field->image_width;
+      fonth += field->image_size[1];
+      w = field->image_size[0];
     }
 
     fontw = max_ii(fontw, w);

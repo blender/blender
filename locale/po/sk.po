@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2023-09-05 08:58+0200\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Jozef Matta\n"
@@ -393,18 +393,6 @@ msgstr "Zobrazí uzol Výstup materiálu glTF v editore tieňovačov (ponuka Pri
 
 msgid "Fribidi Library"
 msgstr "Knižnica Fribidi"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "Skompilovaná knižnica FriBidi C (.so pod Linuxom, .dll pod Windows), budete pravdepodobne musieť upraviť, ak ste pod Windows, napríklad použitím jednou so zahrnutých SVN knižníc úložiska"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Spustiteľný súbor gettext 'msgfmt'"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "Súbor gettext msgfmt \"kompilátor\". Budete pravdepodobne musieť upraviť, ak ste pod Windows"
 
 
 msgid "Translation Root"
@@ -1173,6 +1161,201 @@ msgstr "Zastúpenie aktív"
 
 msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
 msgstr "Informácie o entite, ktoré umožňujú systému aktív pracovať s entitou ako s aktívom"
+
+
+msgctxt "ID"
+msgid "Data-block Type"
+msgstr "Typ bloku údajov"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Akcia"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Armatúra"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Štetec"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Súbor zásobníka"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Kolekcia"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Krivka"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Krivky"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Písmo"
+
+
+msgctxt "ID"
+msgid "Grease Pencil (legacy)"
+msgstr "Pastelka (staršia verzia)"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Pastelka"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Obrázok"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Klávesa"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Mriežka"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Knižnica"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Svetlo"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Snímač svetla"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Štýl čiary"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maska"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Materiál"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Povrchová sieť"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Meta guľa"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Filmový klip"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Uzol stromu"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objekt"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Maľovanie krivky"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Paleta"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Častica"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Mračno bodov"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scéna"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Zvuk"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Reproduktor"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Text"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Textúra"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Objem"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Manažér okna"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Pracovný priestor"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Svet"
 
 
 msgid "Asset Shelf"
@@ -10052,196 +10235,6 @@ msgid "Type of ID-block that can be used"
 msgstr "Typ bloku ID, ktorý možno použiť"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Akcia"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Armatúra"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Štetec"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Súbor zásobníka"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Kolekcia"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Krivka"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Krivky"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Písmo"
-
-
-msgctxt "ID"
-msgid "Grease Pencil (legacy)"
-msgstr "Pastelka (staršia verzia)"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Pastelka"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Obrázok"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Klávesa"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Mriežka"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Knižnica"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Svetlo"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Snímač svetla"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Štýl čiary"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Maska"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Materiál"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Povrchová sieť"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Meta guľa"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Filmový klip"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Uzol stromu"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objekt"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Maľovanie krivky"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Paleta"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Častica"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Mračno bodov"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Scéna"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Zvuk"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Reproduktor"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Text"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Textúra"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Objem"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Manažér okna"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Pracovný priestor"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Svet"
-
-
 msgid "Rotation Mode"
 msgstr "Režim rotácie"
 
@@ -12997,11 +12990,6 @@ msgid "Asset data, valid if the file represents an asset"
 msgstr "Platné údaje o aktívach, ak súbor predstavuje aktíva"
 
 
-msgctxt "ID"
-msgid "Data-block Type"
-msgstr "Typ bloku údajov"
-
-
 msgid "The type of the data-block, if the file represents one ('NONE' otherwise)"
 msgstr "Typ bloku údajov, ak ho súbor predstavuje (\"NONE\" v opačnom prípade)"
 
@@ -13100,22 +13088,6 @@ msgstr "Veľkosť zobrazenia"
 
 msgid "Change the size of the display (width of columns or thumbnails size)"
 msgstr "Zmení veľkosť zobrazenia (šírka stĺpcov alebo veľkosť miniatúr)"
-
-
-msgid "Tiny"
-msgstr "Maličké"
-
-
-msgid "Small"
-msgstr "Malé"
-
-
-msgid "Medium"
-msgstr "Stredná"
-
-
-msgid "Large"
-msgstr "Veľké"
 
 
 msgid "Display Mode"
@@ -26051,6 +26023,10 @@ msgstr "Vysoká"
 
 msgid "High quality"
 msgstr "Vysoká kvalita"
+
+
+msgid "Medium"
+msgstr "Stredná"
 
 
 msgid "Medium quality"
@@ -49881,6 +49857,10 @@ msgid "Input properties of an operator"
 msgstr "Vstupné vlastnosti operátora"
 
 
+msgid "Add keyframes on every frame between the selected keyframes"
+msgstr "Pridá kľúčové snímky na každú snímku medzi vybranými kľúčovými snímkami"
+
+
 msgctxt "Operator"
 msgid "Clean Keyframes"
 msgstr "Zmazať kľúčové snímky"
@@ -50268,15 +50248,6 @@ msgstr "Stlačiť akciu dole"
 
 msgid "Push action down on to the NLA stack as a new strip"
 msgstr "Posunie akcie nadol na zásobník NLA ako nový pás"
-
-
-msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Snímka kľúčových snímok"
-
-
-msgid "Add keyframes on every frame between the selected keyframes"
-msgstr "Pridá kľúčové snímky na každú snímku medzi vybranými kľúčovými snímkami"
 
 
 msgctxt "Operator"
@@ -66081,19 +66052,6 @@ msgstr "Pridá uzol presmerovania"
 
 
 msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Vyhľadať a pridať uzol"
-
-
-msgid "Search for nodes and add one to the active tree"
-msgstr "Vyhľadá uzly a pridá jeden do aktívneho stromu"
-
-
-msgid "Start moving the node after adding it"
-msgstr "Po pridaní začne posúvať uzol"
-
-
-msgctxt "Operator"
 msgid "Add Simulation Zone"
 msgstr "Pridať oblasť simulácie"
 
@@ -78726,15 +78684,6 @@ msgstr "Aktualizuje údaje prekladu doplnku (nájdené ako zdrojový kód doplnk
 
 
 msgctxt "Operator"
-msgid "Clean up I18n Branches"
-msgstr "Zmazať vetvy i18n"
-
-
-msgid "Clean up i18n svn's branches (po files)"
-msgstr "Zmaže SVN vetvy i18n (.po súbory)"
-
-
-msgctxt "Operator"
 msgid "Edit Translation Update Mo"
 msgstr "Upraviť aktualizáciu prekladu .mo"
 
@@ -78766,38 +78715,13 @@ msgstr "Uloží nastavenia prekladov do trvalého .json súboru"
 
 
 msgctxt "Operator"
-msgid "Update I18n Branches"
-msgstr "Aktualizovať vetvy i18n"
-
-
-msgid "Update i18n svn's branches (po files)"
-msgstr "Aktualizuje SVN vetvy i18n (.po súbory)"
-
-
-msgid "Skip POT"
-msgstr "Preskočiť POT"
-
-
-msgid "Skip POT file generation"
-msgstr "Preskočí generovanie .pot súborov"
-
-
-msgctxt "Operator"
 msgid "Init I18n Update Settings"
 msgstr "Inicializovať nastavenie aktualizácie i18n"
-
-
-msgid "Init settings for i18n svn's update operators"
-msgstr "Inicializačné nastavenie aktualizácie operátorov i18n SVN"
 
 
 msgctxt "Operator"
 msgid "Init I18n Update Select Languages"
 msgstr "Inicializácia aktualizácie vybraných jazykov i18n"
-
-
-msgid "(De)select (or invert selection of) all languages for i18n svn's update operators"
-msgstr "Zruší výber/vyberie (alebo invertuje výber) aktualizácie operátorov všetkých jazykov pre i18n SVN"
 
 
 msgid "Invert Selection"
@@ -78825,25 +78749,12 @@ msgid "Create or extend a 'i18n_info.txt' Text datablock"
 msgstr "Vytvorí alebo rozšíri blok údajov textu \"i18n_info.txt\""
 
 
-msgid "Check Branches"
-msgstr "Skontrolovať vetvy"
+msgid "Skip POT"
+msgstr "Preskočiť POT"
 
 
-msgid "Check po files in branches"
-msgstr "Skontroluj .po súbory vo vetvách"
-
-
-msgid "Check Trunk"
-msgstr "Skontrolovať kmeň"
-
-
-msgid "Check po files in trunk"
-msgstr "Skontroluje .po súbory v kmeni"
-
-
-msgctxt "Operator"
-msgid "Update I18n Trunk"
-msgstr "Aktualizovať kmeň i18n"
+msgid "Skip POT file generation"
+msgstr "Preskočí generovanie .pot súborov"
 
 
 msgctxt "Operator"
@@ -82302,10 +82213,6 @@ msgstr "Pridá názov povrchovej siete k názvu objektu, oddeleného znakom '_'"
 
 msgid "Export Materials with PBR Extensions"
 msgstr "Exportuje materiály pooužitím rozšírení PBR"
-
-
-msgid "Export MTL library using PBR extensions (roughness, metallic, sheen, clearcoat, anisotropy, transmission)"
-msgstr "Exportuje MTL knižnicu použitím rozšírení PBR (drsnosť, metalíza, lesk, čistý obal, anizotropia, prenos)"
 
 
 msgid "Export Selected Objects"
@@ -92260,14 +92167,6 @@ msgid "Settings/info about a language"
 msgstr "Nastavenia/informácie o jazyku"
 
 
-msgid "MO File Path"
-msgstr "Cesta MO súboru"
-
-
-msgid "Path to the relevant mo file"
-msgstr "Cesta k príslušnému .mo súboru"
-
-
 msgid "Language Name"
 msgstr "Názov jazyka"
 
@@ -92282,30 +92181,6 @@ msgstr "Číselný ID"
 
 msgid "Numeric ID (read only!)"
 msgstr "Číselný identifikátor (iba na čítanie!)"
-
-
-msgid "PO File Path"
-msgstr "Cesta PO súboru"
-
-
-msgid "Path to the relevant po file in branches"
-msgstr "Cesta k príslušnému .po súboru vo vetvách"
-
-
-msgid "PO Git Master File Path"
-msgstr "Hlavná cesta Git súboru PO"
-
-
-msgid "Path to the relevant po file in Blender's translations git repository"
-msgstr "Cesta k príslušnému .po súboru prekladu Blendera Git úložiska"
-
-
-msgid "PO Trunk File Path"
-msgstr "Cesta kmeňového PO súboru"
-
-
-msgid "Path to the relevant po file in trunk"
-msgstr "Cesta k príslušnému kmeňovému .po súboru"
 
 
 msgid "Language ID"
@@ -92334,10 +92209,6 @@ msgstr "Určenie týchto nastavení, či už boli automaticky nastavené alebo n
 
 msgid "Languages"
 msgstr "Jazyky"
-
-
-msgid "Languages to update in branches"
-msgstr "Jazyky na aktualizáciu vo vetvách"
 
 
 msgid "POT File Path"
@@ -109548,12 +109419,12 @@ msgid "Add-on '{}' not found!"
 msgstr "Doplnok '{}' sa nenašiel!"
 
 
-msgid "Info written to {} text datablock!"
-msgstr "Informácie napísané do bloku údajov {} textu!"
-
-
 msgid "Message extraction process failed!"
 msgstr "Proces rozbalenia správ zlyhal!"
+
+
+msgid "Info written to {} text datablock!"
+msgstr "Informácie napísané do bloku údajov {} textu!"
 
 
 msgid "Could not init languages data!"
@@ -109577,21 +109448,6 @@ msgstr "Resetovať nastavenia"
 msgctxt "Operator"
 msgid "Deselect All"
 msgstr "Odznačiť všetko"
-
-
-msgctxt "Operator"
-msgid "Update Branches"
-msgstr "Aktualizovať vetvy"
-
-
-msgctxt "Operator"
-msgid "Update Trunk"
-msgstr "Aktualizovať kmeň"
-
-
-msgctxt "Operator"
-msgid "Clean up Branches"
-msgstr "Zmazať vetvy"
 
 
 msgctxt "Operator"
@@ -111123,31 +110979,6 @@ msgstr "Prah vplyvu"
 
 msgid "Update on Edit"
 msgstr "Aktualizácia pri úprave"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "Pretvoriť povrchovú sieť"
-
-
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Armatúra"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Mriežka"
-
-
-msgctxt "Operator"
-msgid "Smooth Laplacian"
-msgstr "Laplacianovo vyhladenie"
-
-
-msgctxt "Operator"
-msgid "Particle System"
-msgstr "Časticový systém"
 
 
 msgid "Distance Reference"
@@ -116610,6 +116441,16 @@ msgstr "Pastelka"
 
 
 msgctxt "Operator"
+msgid "Armature"
+msgstr "Armatúra"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Mriežka"
+
+
+msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "Inštancie kolekcií..."
 
@@ -116672,6 +116513,11 @@ msgstr "Vytvoriť rodiča bez inverzie (zachovať transformáciu)"
 msgctxt "Operator"
 msgid "Limit Total Vertex Groups"
 msgstr "Celkový limit skupín vrcholov"
+
+
+msgctxt "Operator"
+msgid "Particle System"
+msgstr "Časticový systém"
 
 
 msgctxt "Operator"
@@ -116756,6 +116602,11 @@ msgstr "Prilepiť pózu prevráteného X"
 
 msgid "Vertex Context Menu"
 msgstr "Kontextová ponuka vrcholu"
+
+
+msgctxt "Operator"
+msgid "Smooth Laplacian"
+msgstr "Laplacianovo vyhladenie"
 
 
 msgid "Mirror Vertices"
@@ -117453,6 +117304,11 @@ msgstr "Metóda spresnenia"
 
 msgid "Detailing"
 msgstr "Podrobnosti"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "Pretvoriť povrchovú sieť"
 
 
 msgid "Tile Offset"
@@ -119363,10 +119219,6 @@ msgstr "Oddelené kosti"
 
 msgid "Unselectable bone in chain"
 msgstr "Nevybrateľná kosť reťaze"
-
-
-msgid "Cannot edit bone collections for library overrides"
-msgstr "Nemožno upravovať kolekcie kostí pre prepis knižníc"
 
 
 msgid "Bone collections can only be edited on an Armature"
@@ -126821,14 +126673,6 @@ msgid "left"
 msgstr "vľavo"
 
 
-msgid "%s: Toggle auto-offset direction (%s)"
-msgstr "%s: Prepnúť smer automatického posuvu (%s)"
-
-
-msgid ", %s: Toggle auto-attach (%s)"
-msgstr ", %s: Prepnúť automatické pripojenie (%s)"
-
-
 msgid "Use 'Time_Translate' transform mode instead of 'Translation' mode for translating keyframes in Dope Sheet Editor"
 msgstr "Použije 'časový posuv' namiesto režimu transformácie 'zmeny polohy' režime zmeny polohy kľúčovej snímky v editore expozičného hárku"
 
@@ -128958,10 +128802,6 @@ msgstr "Typ skupiny manipulačného prvku '%s ' nebol nájdený!"
 
 msgid "Gizmo group '%s' has 'PERSISTENT' option set!"
 msgstr "Skupina manipulačného prvku '%s' má 'TRVALÚ' voľbu nastavenia!"
-
-
-msgid "KeyMapItem '%s' cannot be removed from '%s'"
-msgstr "Položku mapy kláves '%s' nemožno odstrániť z '%s'"
 
 
 msgid "Modal key-maps not supported for add-on key-config"
@@ -131323,10 +131163,6 @@ msgid "Cannot delete built-in attribute: \"{}\""
 msgstr "Nemožno odstrániť zabudovaný atribút: \"{}\""
 
 
-msgid "Add new repeat input and output nodes to the node tree"
-msgstr "Pridá nové opakované vstupné a výstupné uzly do stromu uzlov"
-
-
 msgid "Which element to retrieve a value from on the geometry"
 msgstr "Určuje, ktorý prvok na načítanie hodnoty v geometrii"
 
@@ -131433,10 +131269,6 @@ msgstr "Vyhladiť tieň"
 
 msgid "Delta Time"
 msgstr "Čas delta"
-
-
-msgid "Add a new simulation input and output nodes to the node tree"
-msgstr "Pridá nové vstupné a výstupné uzly simulácie do stromu uzlov"
 
 
 msgid "Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\""
@@ -131565,10 +131397,6 @@ msgstr "{} uzol"
 
 msgid "Group '{}' ({})"
 msgstr "Skupina '{}' ({})"
-
-
-msgid "'{}' input is used"
-msgstr "Používa sa vstup '{}'"
 
 
 msgid "Missing Data-Block"
@@ -131759,20 +131587,8 @@ msgid "Sheen Tint"
 msgstr "Sfarbenie lesku"
 
 
-msgid "Clearcoat"
-msgstr "Bezfarebný lak"
-
-
-msgid "Clearcoat Roughness"
-msgstr "Zdrsnenie bezfarebného laku"
-
-
 msgid "Emission Strength"
 msgstr "Intenzita emisie"
-
-
-msgid "Clearcoat Normal"
-msgstr "Normály bezfarebného laku"
 
 
 msgid "View Vector"
@@ -133519,10 +133335,6 @@ msgstr "Estónsky (Eesti keel)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Španielsky zo Španielska (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

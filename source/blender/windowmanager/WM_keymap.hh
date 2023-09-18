@@ -31,6 +31,9 @@ void WM_keyconfig_update(wmWindowManager *wm);
 void WM_keyconfig_update_tag(wmKeyMap *keymap, wmKeyMapItem *kmi);
 void WM_keyconfig_update_operatortype();
 
+void WM_keyconfig_update_suppress_begin();
+void WM_keyconfig_update_suppress_end();
+
 /* Keymap */
 
 /** Parameters for matching events, passed into functions that create key-map items. */

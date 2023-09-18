@@ -25,8 +25,8 @@ class BlenderSmokeLoader : public ImageLoader {
   BlenderSmokeLoader(BL::Object &b_ob, AttributeStandard attribute)
       : b_domain(object_fluid_gas_domain_find(b_ob)), attribute(attribute)
   {
-    BL::Mesh b_mesh(b_ob.data());
-    mesh_texture_space(b_mesh, texspace_loc, texspace_size);
+    mesh_texture_space(
+        *static_cast<const ::Mesh *>(b_ob.data().ptr.data), texspace_loc, texspace_size);
   }
 
   bool load_metadata(const ImageDeviceFeatures &, ImageMetaData &metadata) override

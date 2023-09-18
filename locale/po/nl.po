@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -276,6 +276,61 @@ msgstr "Auteur"
 
 msgid "Description"
 msgstr "Beschrijving"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Collectie"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Object"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palet"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Deeltje"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scene"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Geluid"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Luidspreker"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Tekst"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volume"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Werkomgeving"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Wereld"
 
 
 msgid "Options"
@@ -1031,61 +1086,6 @@ msgid "Invalid"
 msgstr "Ongeldig"
 
 
-msgctxt "ID"
-msgid "Collection"
-msgstr "Collectie"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Object"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Palet"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Deeltje"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Scene"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Geluid"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Luidspreker"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Tekst"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volume"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Werkomgeving"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Wereld"
-
-
 msgid "Rotation Mode"
 msgstr "Rotatiemodus"
 
@@ -1372,18 +1372,6 @@ msgstr "Animaties"
 
 msgid "Environment"
 msgstr "Omgeving"
-
-
-msgid "Tiny"
-msgstr "Miniscuul"
-
-
-msgid "Small"
-msgstr "Klein"
-
-
-msgid "Large"
-msgstr "Groot"
 
 
 msgid "Thumbnails"
@@ -3229,11 +3217,6 @@ msgstr "Sleutelframes Plakken"
 msgctxt "Operator"
 msgid "Push Down Action"
 msgstr "Duw Actie naar Beneden"
-
-
-msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Voorbeeld Sleutelframe"
 
 
 msgctxt "Operator"
@@ -7467,11 +7450,6 @@ msgid "Preserve"
 msgstr "Behouden"
 
 
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Skelet"
-
-
 msgid "Detail"
 msgstr "Detail"
 
@@ -8557,6 +8535,11 @@ msgstr "Rol Links"
 msgctxt "Operator"
 msgid "Roll Right"
 msgstr "Rol Rechts"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Skelet"
 
 
 msgctxt "Operator"

@@ -24,14 +24,16 @@ static bool projection_matrix4_inverse(float R[][4], float M[][4])
     int pivot = i;
     float pivotsize = M[i][i];
 
-    if (pivotsize < 0)
+    if (pivotsize < 0) {
       pivotsize = -pivotsize;
+    }
 
     for (int j = i + 1; j < 4; j++) {
       float tmp = M[j][i];
 
-      if (tmp < 0)
+      if (tmp < 0) {
         tmp = -tmp;
+      }
 
       if (tmp > pivotsize) {
         pivot = j;
@@ -39,8 +41,9 @@ static bool projection_matrix4_inverse(float R[][4], float M[][4])
       }
     }
 
-    if (UNLIKELY(pivotsize == 0.0f))
+    if (UNLIKELY(pivotsize == 0.0f)) {
       return false;
+    }
 
     if (pivot != i) {
       for (int j = 0; j < 4; j++) {
@@ -70,8 +73,9 @@ static bool projection_matrix4_inverse(float R[][4], float M[][4])
   for (int i = 3; i >= 0; --i) {
     float f;
 
-    if (UNLIKELY((f = M[i][i]) == 0.0f))
+    if (UNLIKELY((f = M[i][i]) == 0.0f)) {
       return false;
+    }
 
     for (int j = 0; j < 4; j++) {
       M[i][j] /= f;
@@ -134,10 +138,12 @@ float4 transform_to_quat(const Transform &tfm)
   else {
     int i = 0;
 
-    if (tfm[1][1] > tfm[i][i])
+    if (tfm[1][1] > tfm[i][i]) {
       i = 1;
-    if (tfm[2][2] > tfm[i][i])
+    }
+    if (tfm[2][2] > tfm[i][i]) {
       i = 2;
+    }
 
     int j = (i + 1) % 3;
     int k = (j + 1) % 3;
@@ -146,8 +152,9 @@ float4 transform_to_quat(const Transform &tfm)
 
     double q[3];
     q[i] = s * 0.5;
-    if (s != 0.0)
+    if (s != 0.0) {
       s = 0.5 / s;
+    }
 
     double w = (double)(tfm[k][j] - tfm[j][k]) * s;
     q[j] = (double)(tfm[j][i] + tfm[i][j]) * s;
@@ -253,8 +260,9 @@ void transform_motion_decompose(DecomposedTransform *decomp, const Transform *mo
     if (i > 0) {
       /* Ensure rotation around shortest angle, negated quaternions are the same
        * but this means we don't have to do the check in quat_interpolate */
-      if (dot(decomp[i - 1].x, decomp[i].x) < 0.0f)
+      if (dot(decomp[i - 1].x, decomp[i].x) < 0.0f) {
         decomp[i].x = -decomp[i].x;
+      }
     }
   }
 

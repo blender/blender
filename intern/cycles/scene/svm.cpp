@@ -54,8 +54,9 @@ void SVMShaderManager::device_update_specific(Device *device,
                                               Scene *scene,
                                               Progress &progress)
 {
-  if (!need_update())
+  if (!need_update()) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
@@ -200,17 +201,20 @@ int SVMCompiler::stack_find_offset(int size)
 
   /* find free space in stack & mark as used */
   for (int i = 0, num_unused = 0; i < SVM_STACK_SIZE; i++) {
-    if (active_stack.users[i])
+    if (active_stack.users[i]) {
       num_unused = 0;
-    else
+    }
+    else {
       num_unused++;
+    }
 
     if (num_unused == size) {
       offset = i + 1 - size;
       max_stack_use = max(i + 1, max_stack_use);
 
-      while (i >= offset)
+      while (i >= offset) {
         active_stack.users[i--] = 1;
+      }
 
       return offset;
     }
@@ -235,8 +239,9 @@ void SVMCompiler::stack_clear_offset(SocketType::Type type, int offset)
 {
   int size = stack_size(type);
 
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < size; i++) {
     active_stack.users[offset + i]--;
+  }
 }
 
 int SVMCompiler::stack_assign(ShaderInput *input)
@@ -269,8 +274,9 @@ int SVMCompiler::stack_assign(ShaderInput *input)
         add_node(NODE_VALUE_V, input->stack_offset);
         add_node(NODE_VALUE_V, node->get_float3(input->socket_type));
       }
-      else /* should not get called for closure */
+      else { /* should not get called for closure */
         assert(0);
+      }
     }
   }
 
@@ -280,24 +286,27 @@ int SVMCompiler::stack_assign(ShaderInput *input)
 int SVMCompiler::stack_assign(ShaderOutput *output)
 {
   /* if no stack offset assigned yet, find one */
-  if (output->stack_offset == SVM_STACK_INVALID)
+  if (output->stack_offset == SVM_STACK_INVALID) {
     output->stack_offset = stack_find_offset(output->type());
+  }
 
   return output->stack_offset;
 }
 
 int SVMCompiler::stack_assign_if_linked(ShaderInput *input)
 {
-  if (input->link || input->constant_folded_in)
+  if (input->link || input->constant_folded_in) {
     return stack_assign(input);
+  }
 
   return SVM_STACK_INVALID;
 }
 
 int SVMCompiler::stack_assign_if_linked(ShaderOutput *output)
 {
-  if (!output->links.empty())
+  if (!output->links.empty()) {
     return stack_assign(output);
+  }
 
   return SVM_STACK_INVALID;
 }
@@ -312,8 +321,9 @@ void SVMCompiler::stack_link(ShaderInput *input, ShaderOutput *output)
 
     int size = stack_size(output->type());
 
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < size; i++) {
       active_stack.users[output->stack_offset + i]++;
+    }
   }
 }
 
@@ -334,8 +344,9 @@ void SVMCompiler::stack_clear_users(ShaderNode *node, ShaderNodeSet &done)
 
       /* optimization we should add: verify if in->parent is actually used */
       foreach (ShaderInput *in, output->links)
-        if (in->parent != node && done.find(in->parent) == done.end())
+        if (in->parent != node && done.find(in->parent) == done.end()) {
           all_done = false;
+        }
 
       if (all_done) {
         stack_clear_offset(output->type(), output->stack_offset);
@@ -431,16 +442,20 @@ void SVMCompiler::generate_node(ShaderNode *node, ShaderNodeSet &done)
   stack_clear_temporary(node);
 
   if (current_type == SHADER_TYPE_SURFACE) {
-    if (node->has_spatial_varying())
+    if (node->has_spatial_varying()) {
       current_shader->has_surface_spatial_varying = true;
-    if (node->get_feature() & KERNEL_FEATURE_NODE_RAYTRACE)
+    }
+    if (node->get_feature() & KERNEL_FEATURE_NODE_RAYTRACE) {
       current_shader->has_surface_raytrace = true;
+    }
   }
   else if (current_type == SHADER_TYPE_VOLUME) {
-    if (node->has_spatial_varying())
+    if (node->has_spatial_varying()) {
       current_shader->has_volume_spatial_varying = true;
-    if (node->has_attribute_dependency())
+    }
+    if (node->has_attribute_dependency()) {
       current_shader->has_volume_attribute_dependency = true;
+    }
   }
 }
 
@@ -498,10 +513,12 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, CompilerState *state)
                                                                    "SurfaceMixWeight";
   ShaderInput *weight_in = node->input(weight_name);
 
-  if (weight_in && (weight_in->link || node->get_float(weight_in->socket_type) != 1.0f))
+  if (weight_in && (weight_in->link || node->get_float(weight_in->socket_type) != 1.0f)) {
     mix_weight_offset = stack_assign(weight_in);
-  else
+  }
+  else {
     mix_weight_offset = SVM_STACK_INVALID;
+  }
 
   /* compile closure itself */
   generate_node(node, state->nodes_done);
@@ -509,12 +526,14 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, CompilerState *state)
   mix_weight_offset = SVM_STACK_INVALID;
 
   if (current_type == SHADER_TYPE_SURFACE) {
-    if (node->has_surface_transparent())
+    if (node->has_surface_transparent()) {
       current_shader->has_surface_transparent = true;
+    }
     if (node->has_surface_bssrdf()) {
       current_shader->has_surface_bssrdf = true;
-      if (node->has_bssrdf_bump())
+      if (node->has_bssrdf_bump()) {
         current_shader->has_bssrdf_bump = true;
+      }
     }
     if (node->has_bump()) {
       current_shader->has_bump = true;
@@ -532,8 +551,9 @@ void SVMCompiler::generated_shared_closure_nodes(ShaderNode *root_node,
   }
   else {
     foreach (ShaderInput *in, node->inputs) {
-      if (in->type() == SocketType::CLOSURE && in->link)
+      if (in->type() == SocketType::CLOSURE && in->link) {
         generated_shared_closure_nodes(root_node, in->link->parent, state, shared);
+      }
     }
   }
 }
@@ -562,8 +582,9 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
                                          CompilerState *state)
 {
   /* only generate once */
-  if (state->closure_done.find(node) != state->closure_done.end())
+  if (state->closure_done.find(node) != state->closure_done.end()) {
     return;
+  }
 
   state->closure_done.insert(node);
 
@@ -574,8 +595,9 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
     ShaderInput *facin = node->input("Fac");
 
     /* skip empty mix/add closure nodes */
-    if (!cl1in->link && !cl2in->link)
+    if (!cl1in->link && !cl2in->link) {
       return;
+    }
 
     if (facin && facin->link) {
       /* mix closure: generate instructions to compute mix weight */
@@ -691,10 +713,12 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
       /* execute closures and their dependencies, no runtime checks
        * to skip closures here because was already optimized due to
        * fixed weight or add closure that always needs both */
-      if (cl1in->link)
+      if (cl1in->link) {
         generate_multi_closure(root_node, cl1in->link->parent, state);
-      if (cl2in->link)
+      }
+      if (cl2in->link) {
         generate_multi_closure(root_node, cl2in->link->parent, state);
+      }
     }
   }
   else {

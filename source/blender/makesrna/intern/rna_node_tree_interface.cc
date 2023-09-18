@@ -88,7 +88,7 @@ static char *rna_NodeTreeInterfaceItem_path(const PointerRNA *ptr)
   ntree->ensure_interface_cache();
   for (const int index : ntree->interface_items().index_range()) {
     if (ntree->interface_items()[index] == item) {
-      return BLI_sprintfN("interface.ui_items[%d]", index);
+      return BLI_sprintfN("interface.items_tree[%d]", index);
     }
   }
   return nullptr;
@@ -1033,12 +1033,12 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
   parm = RNA_def_string(func, "name", nullptr, 0, "Name", "Name of the socket");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_string(func, "description", nullptr, 0, "Description", "Description of the socket");
-  RNA_def_enum_flag(func,
-                    "in_out",
-                    node_tree_interface_socket_in_out_items,
-                    NODE_INTERFACE_SOCKET_INPUT,
-                    "Input/Output Type",
-                    "Create an input or output socket");
+  RNA_def_enum(func,
+               "in_out",
+               node_tree_interface_socket_in_out_items,
+               NODE_INTERFACE_SOCKET_INPUT,
+               "Input/Output Type",
+               "Create an input or output socket");
   parm = RNA_def_enum(func,
                       "socket_type",
                       rna_enum_dummy_DEFAULT_items,
@@ -1143,7 +1143,7 @@ static void rna_def_node_tree_interface(BlenderRNA *brna)
       srna, "Node Tree Interface", "Declaration of sockets and ui panels of a node group");
   RNA_def_struct_sdna(srna, "bNodeTreeInterface");
 
-  prop = RNA_def_property(srna, "ui_items", PROP_COLLECTION, PROP_NONE);
+  prop = RNA_def_property(srna, "items_tree", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_NodeTreeInterface_items_begin",
                                     "rna_iterator_array_next",
