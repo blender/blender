@@ -300,10 +300,7 @@ static size_t utf8_as_char32(const char *str, const char str_len, char32_t *r_re
 {
   size_t i = 0, result_len = 0;
   while ((i < str_len) && (str[i] != '\0')) {
-    char32_t c = BLI_str_utf8_as_unicode_step_safe(str, str_len, &i);
-    if (c != BLI_UTF8_ERR) {
-      r_result[result_len++] = c;
-    }
+    r_result[result_len++] = BLI_str_utf8_as_unicode_step_safe(str, str_len, &i);
   }
   return i;
 }
