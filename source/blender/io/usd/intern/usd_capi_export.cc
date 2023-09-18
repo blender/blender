@@ -11,7 +11,6 @@
 #include "usd_light_convert.h"
 #include "usd_umm.h"
 #include "usd_writer_material.h"
-#include "usd_writer_skel_root.h"
 
 #include <pxr/base/plug/registry.h>
 #include <pxr/pxr.h>
@@ -541,10 +540,6 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
   iter.release_writers();
 
-  if (params.export_armatures) {
-    validate_skel_roots(usd_stage, params);
-  }
-
   /* Set Stage Default Prim Path. */
   if (strlen(params.default_prim_path) > 0) {
     std::string valid_default_prim_path = pxr::TfMakeValidIdentifier(params.default_prim_path);
@@ -561,6 +556,10 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     if (defaultPrim.IsValid()) {
       usd_stage->SetDefaultPrim(defaultPrim);
     }
+  }
+
+  if (params.export_shapekeys || params.export_armatures) {
+    iter.process_usd_skel();
   }
 
   /* Set the default prim if it doesn't exist */
@@ -623,6 +622,7 @@ static void export_startjob(void *customdata,
   else {
     DEG_graph_build_for_all_objects(data->depsgraph);
   }
+
   BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
 
   validate_unique_root_prim_path(data->params, data->depsgraph);

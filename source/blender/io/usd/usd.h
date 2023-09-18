@@ -152,7 +152,7 @@ struct USDExportParams {
   eUSDXformOpMode xform_op_mode;
   bool fix_skel_root;
   bool overwrite_textures;
-  bool export_blendshapes;
+  bool export_shapekeys;
   eUSDZTextureDownscaleSize usdz_downscale_size;
   int usdz_downscale_custom_size;
   bool usdz_is_arkit;

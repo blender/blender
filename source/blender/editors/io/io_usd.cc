@@ -304,6 +304,9 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const double shutter_open = (double)RNA_float_get(op->ptr, "shutter_open");
   const double shutter_close = (double)RNA_float_get(op->ptr, "shutter_close");
 
+  const bool export_armatures = RNA_boolean_get(op->ptr, "export_armatures");
+  const bool export_shapekeys = RNA_boolean_get(op->ptr, "export_shapekeys");
+
   char root_prim_path[FILE_MAX];
   RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
   process_prim_path(root_prim_path);
@@ -338,8 +341,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const bool generate_cycles_shaders = RNA_boolean_get(op->ptr, "generate_cycles_shaders");
 
-  const bool export_armatures = RNA_boolean_get(op->ptr, "export_armatures");
-
   const eUSDXformOpMode xform_op_mode = eUSDXformOpMode(RNA_enum_get(op->ptr, "xform_op_mode"));
 
   const bool fix_skel_root = RNA_boolean_get(op->ptr, "fix_skel_root");
@@ -347,8 +348,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
 
   const bool relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
-
-  const bool export_blendshapes = RNA_boolean_get(op->ptr, "export_blendshapes");
 
   const eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize(
       RNA_enum_get(op->ptr, "usdz_downscale_size"));
@@ -426,7 +425,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    xform_op_mode,
                                    fix_skel_root,
                                    overwrite_textures,
-                                   export_blendshapes,
+                                   export_shapekeys,
                                    usdz_downscale_size,
                                    usdz_downscale_custom_size,
                                    usdz_is_arkit,
@@ -648,14 +647,15 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   "Particles",
                   "When checked, all particle systems will be exported");
 
-  RNA_def_boolean(
-      ot->srna, "export_armatures", false, "Armatures", "Export armatures and skinned meshes");
-
   RNA_def_boolean(ot->srna,
-                  "export_blendshapes",
-                  false,
-                  "Blend Shapes",
-                  "Export shape keys as USD blend shapes");
+                  "export_armatures",
+                  true,
+                  "Armatures",
+                  "Export armatures and meshes with armature modifiers as USD skeletons and "
+                  "skinned meshes");
+
+  RNA_def_boolean(
+      ot->srna, "export_shapekeys", true, "Shape Keys", "Export shape keys as USD blend shapes");
 
   RNA_def_boolean(ot->srna,
                   "use_instancing",
@@ -1664,7 +1664,7 @@ static void usd_export_panel_rigging_draw(const bContext *C, Panel *panel)
 
   col = uiLayoutColumnWithHeading(panel->layout, true, IFACE_("Shapes: "));
   uiLayoutSetPropSep(col, true);
-  uiItemR(col, ptr, "export_blendshapes", UI_ITEM_NONE, "Export Shape Keys", ICON_NONE);
+  uiItemR(col, ptr, "export_shapekeys", UI_ITEM_NONE, "Export Shape Keys", ICON_NONE);
 }
 
 void usd_panel_register(const char *idname,

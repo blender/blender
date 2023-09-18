@@ -3,15 +3,20 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include "BLI_map.hh"
+#include "BLI_vector.hh"
+
 #include <map>
 #include <pxr/usd/usd/prim.h>
+#include <pxr/usd/usdGeom/xformCache.h>
+#include <pxr/usd/usdSkel/bindingAPI.h>
 #include <pxr/usd/usdSkel/skeletonQuery.h>
 
+struct Depsgraph;
+struct Key;
 struct Main;
+struct Mesh;
 struct Object;
-struct Scene;
-struct USDExportParams;
-struct USDImportParams;
 
 namespace blender::io::usd {
 
@@ -68,5 +73,64 @@ void import_skeleton(Main *bmain,
  * \param prim: The USD primitive from which skinning data will be imported
  */
 void import_mesh_skel_bindings(Main *bmain, Object *mesh_obj, const pxr::UsdPrim &prim);
+
+/**
+ * Map an object to its USD prim export path.
+ */
+using ObjExportMap = Map<const Object *, pxr::SdfPath>;
+
+/**
+ * This function is called after the USD writers are invoked, to
+ * complete the UsdSkel export process, for example, to bind skinned
+ * meshes to skeletons or to set blend shape animation data.
+ *
+ * \param stage: The stage
+ * \param armature_export_map: Map armature objects to USD skeletons
+ * \param skinned_mesh_export_map: Map mesh objects to USD skinned meshes
+ * \param shape_key_export_map: Map mesh objects with shape keye to USD meshes
+ *                              with blend shape targets
+ * \param depsgraph: The dependency graph in which objects were evaluated
+ */
+void skel_export_chaser(pxr::UsdStageRefPtr stage,
+                        const ObjExportMap &armature_export_map,
+                        const ObjExportMap &skinned_mesh_export_map,
+                        const ObjExportMap &shape_key_mesh_export_map,
+                        const Depsgraph *depsgraph);
+
+/**
+ * Complete the export process for skinned meshes.
+ *
+ * \param stage: The stage
+ * \param armature_export_map: Map armature objects to USD skeleton paths
+ * \param skinned_mesh_export_map: Map mesh objects to USD skinned meshes
+ * \param xf_cache: Cache to speed up USD prim transform computations
+ * \param depsgraph: The dependency graph in which objects were evaluated
+ */
+void skinned_mesh_export_chaser(pxr::UsdStageRefPtr stage,
+                                const ObjExportMap &armature_export_map,
+                                const ObjExportMap &skinned_mesh_export_map,
+                                pxr::UsdGeomXformCache &xf_cache,
+                                const Depsgraph *depsgraph);
+
+/**
+ * Complete the export process for shape keys.
+ *
+ * \param stage: The stage
+ * \param shape_key_export_map: Map mesh objects with shape keye to USD meshes
+ *                              with blend shape targets
+ */
+void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
+                             const ObjExportMap &shape_key_mesh_export_map);
+
+/**
+ * Convert deform groups on the given mesh to USD joint index and weight attributes.
+ *
+ * \param stage: The source mesh with deform groups to export
+ * \param skel_api:  API for setting the attributes on the USD prim
+ * \param bone_names:  List of armature bone names corresponding to the deform groups
+ */
+void export_deform_verts(const Mesh *mesh,
+                         const pxr::UsdSkelBindingAPI &skel_api,
+                         const Vector<std::string> &bone_names);
 
 }  // namespace blender::io::usd

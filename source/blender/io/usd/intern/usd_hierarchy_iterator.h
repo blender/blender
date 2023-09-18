@@ -6,7 +6,9 @@
 #include "IO_abstract_hierarchy_iterator.h"
 #include "usd.h"
 #include "usd_exporter_context.h"
+#include "usd_skel_convert.h"
 
+#include <map>
 #include <string>
 
 #include <pxr/usd/usd/common.h>
@@ -28,6 +30,10 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   pxr::UsdTimeCode export_time_;
   const USDExportParams &params_;
 
+  ObjExportMap armature_export_map_;
+  ObjExportMap skinned_mesh_export_map_;
+  ObjExportMap shape_key_mesh_export_map_;
+
  public:
   USDHierarchyIterator(Main *bmain,
                        Depsgraph *depsgraph,
@@ -37,6 +43,8 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   void set_export_frame(float frame_nr);
 
   virtual std::string make_valid_name(const std::string &name) const override;
+
+  void process_usd_skel() const;
 
  protected:
   virtual bool mark_as_weak_export(const Object *object) const override;
@@ -55,6 +63,8 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
  private:
   USDExporterContext create_usd_export_context(const HierarchyContext *context);
+
+  void add_usd_skel_export_mapping(const Object *obj, const pxr::SdfPath &usd_path);
 };
 
 }  // namespace blender::io::usd

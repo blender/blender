@@ -2,12 +2,20 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_mesh.h"
+
+#include "usd_armature_utils.h"
+#include "usd_blend_shape_utils.h"
 #include "usd_hierarchy_iterator.h"
+#include "usd_skel_convert.h"
+#include "usd_writer_armature.h"
 
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
+#include <pxr/usd/usdSkel/animation.h>
+#include <pxr/usd/usdSkel/bindingAPI.h>
+#include <pxr/usd/usdSkel/blendShape.h>
 
 #include "BLI_assert.h"
 #include "BLI_math_color.hh"
@@ -15,8 +23,11 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
+#include "BKE_armature.h"
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
+#include "BKE_deform.h"
+#include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
@@ -30,6 +41,9 @@
 #include "bmesh_tools.h"
 
 #include "DEG_depsgraph.h"
+
+#include "DNA_armature_types.h"
+#include "DNA_key_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -53,6 +67,7 @@ static const pxr::TfToken blenderObject("object", pxr::TfToken::Immortal);
 static const pxr::TfToken blenderObjectNS("object:", pxr::TfToken::Immortal);
 static const pxr::TfToken blenderData("data", pxr::TfToken::Immortal);
 static const pxr::TfToken blenderDataNS("data:", pxr::TfToken::Immortal);
+static const pxr::TfToken Anim("Anim", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
 /* check if the mesh is a subsurf, ignoring disabled modifiers and
@@ -197,7 +212,9 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
   }
 }
 
-void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
+void USDGenericMeshWriter::write_custom_data(const Object *obj,
+                                             const Mesh *mesh,
+                                             pxr::UsdGeomMesh usd_mesh)
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
 
@@ -218,6 +235,28 @@ void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh 
             meta_data.domain == ATTR_DOMAIN_EDGE ||
             ELEM(attribute_id.name(), "position", "material_index"))
         {
+          return true;
+        }
+
+        if ((usd_export_context_.export_params.export_armatures ||
+             usd_export_context_.export_params.export_shapekeys) &&
+            attribute_id.name().rfind("skel:") == 0)
+        {
+          /* If we're exporting armatures ot shape keys to UsdSkel, we skip any
+           * attributes that have names with the "skel:" namespace, to avoid possible
+           * conflicts. Such attribute might have been previously imported into Blender
+           * from USD, but can no longer be considered valid. */
+          return true;
+        }
+
+        if (usd_export_context_.export_params.export_armatures &&
+            is_armature_modifier_bone_name(
+                obj, attribute_id.name().data(), usd_export_context_.depsgraph))
+        {
+          /* This attribute is likely a vertex group for the armature modifier,
+           * and it may conflict with skinning data that will be written to
+           * the USD mesh, so we skip it.  Such vertex groups will instead be
+           * handled in #export_deform_verts(). */
           return true;
         }
 
@@ -533,9 +572,14 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
     pxr::UsdAttribute attr_face_vertex_indices = usd_mesh.CreateFaceVertexIndicesAttr(
         pxr::VtValue(), true);
 
-    // NOTE (Marcelo Sercheli): Code to set values at default time was removed since
-    // `timecode` will be default time in case of non-animation exports. For animated
-    // exports, USD will inter/extrapolate values linearly.
+    if (!attr_points.HasValue()) {
+      /* Provide the initial value as default. This makes USD write the value as constant if they
+       * don't change over time. */
+      attr_points.Set(usd_mesh_data.points, defaultTime);
+      attr_face_vertex_counts.Set(usd_mesh_data.face_vertex_counts, defaultTime);
+      attr_face_vertex_indices.Set(usd_mesh_data.face_indices, defaultTime);
+    }
+
     usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(usd_mesh_data.points), timecode);
     usd_value_writer_.SetAttribute(
         attr_face_vertex_counts, pxr::VtValue(usd_mesh_data.face_vertex_counts), timecode);
@@ -550,9 +594,12 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
       pxr::UsdAttribute attr_crease_sharpness = usd_mesh.CreateCreaseSharpnessesAttr(
           pxr::VtValue(), true);
 
-      // NOTE (Marcelo Sercheli): Code to set values at default time was removed since
-      // `timecode` will be default time in case of non-animation exports. For animated
-      // exports, USD will inter/extrapolate values linearly.
+      if (!attr_crease_lengths.HasValue()) {
+        attr_crease_lengths.Set(usd_mesh_data.crease_lengths, defaultTime);
+        attr_crease_indices.Set(usd_mesh_data.crease_vertex_indices, defaultTime);
+        attr_crease_sharpness.Set(usd_mesh_data.crease_sharpnesses, defaultTime);
+      }
+ 
       usd_value_writer_.SetAttribute(
           attr_crease_lengths, pxr::VtValue(usd_mesh_data.crease_lengths), timecode);
       usd_value_writer_.SetAttribute(
@@ -562,8 +609,6 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
     }
   }
 
-  write_custom_data(mesh, usd_mesh);
-
   if (!usd_mesh_data.corner_indices.empty() &&
       usd_mesh_data.corner_indices.size() == usd_mesh_data.corner_sharpnesses.size())
   {
@@ -572,8 +617,8 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
         pxr::VtValue(), true);
 
     if (!attr_corner_indices.HasValue()) {
-      attr_corner_indices.Set(usd_mesh_data.corner_indices, timecode);
-      attr_corner_sharpnesses.Set(usd_mesh_data.corner_sharpnesses, timecode);
+      attr_corner_indices.Set(usd_mesh_data.corner_indices, defaultTime);
+      attr_corner_sharpnesses.Set(usd_mesh_data.corner_sharpnesses, defaultTime);
     }
 
     usd_value_writer_.SetAttribute(
@@ -582,7 +627,7 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
         attr_corner_sharpnesses, pxr::VtValue(usd_mesh_data.crease_sharpnesses), timecode);
   }
 
-  write_custom_data(mesh, usd_mesh);
+  write_custom_data(context.object, mesh, usd_mesh);
 
   if (usd_export_context_.export_params.export_normals) {
     write_normals(mesh, usd_mesh);
@@ -842,15 +887,204 @@ void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh, pxr::UsdGeom
   usd_mesh.CreateVelocitiesAttr().Set(usd_velocities, timecode);
 }
 
-USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx) : USDGenericMeshWriter(ctx) {}
-
-Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool & /*r_needsfree*/)
+USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx)
+    : USDGenericMeshWriter(ctx), write_skinned_mesh_(false), write_blend_shapes_(false)
 {
-  // Assumed safe because the original depsgraph was nonconst in usd_capi...
-  Depsgraph *dg = const_cast<Depsgraph *>(usd_export_context_.depsgraph);
+}
 
-  const Object *ob_src_eval = DEG_get_evaluated_object(dg, object_eval);
-  return BKE_object_get_evaluated_mesh(ob_src_eval);
+void USDMeshWriter::set_skel_export_flags(const HierarchyContext &context)
+{
+  write_skinned_mesh_ = false;
+  write_blend_shapes_ = false;
+
+  Vector<ModifierData *> mods = get_enabled_modifiers(context.object,
+                                                      usd_export_context_.depsgraph);
+
+  const USDExportParams &params = usd_export_context_.export_params;
+
+  /* We can write a skinned mesh if exporting armatures is enabled and the object has an armature
+   * modifier and no other modifiers of any type. */
+  write_skinned_mesh_ = params.export_armatures && mods.size() == 1 &&
+                        mods.first()->type == eModifierType_Armature;
+
+  /* We can write blend shapes if exporting shape keys is enabled and the object has shape keys
+   * and we are either writing a skinned mesh or the object has no modifiers. */
+  write_blend_shapes_ = params.export_shapekeys && is_mesh_with_shape_keys(context.object) &&
+                        (write_skinned_mesh_ || mods.is_empty());
+}
+
+void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)
+{
+  pxr::UsdStageRefPtr stage = usd_export_context_.stage;
+
+  pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(usd_export_context_.usd_path);
+
+  if (!mesh_prim.IsValid()) {
+    WM_reportf(RPT_WARNING,
+               "%s: couldn't get valid mesh prim for mesh %s\n",
+               __func__,
+               usd_export_context_.usd_path.GetAsString().c_str());
+    return;
+  }
+
+  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
+
+  if (!skel_api) {
+    WM_reportf(RPT_WARNING,
+               "%s: couldn't apply UsdSkelBindingAPI to mesh prim %s\n",
+               __func__,
+               usd_export_context_.usd_path.GetAsString().c_str());
+    return;
+  }
+
+  const Object *arm_obj = get_armature_modifier_obj(context.object, usd_export_context_.depsgraph);
+
+  if (!arm_obj) {
+    WM_reportf(RPT_WARNING,
+               "%s: couldn't get armature modifier object for skinned mesh %s\n",
+               __func__,
+               usd_export_context_.usd_path.GetAsString().c_str());
+    return;
+  }
+
+  Vector<std::string> bone_names;
+  get_armature_bone_names(arm_obj, bone_names);
+
+  if (bone_names.is_empty()) {
+    WM_reportf(RPT_WARNING,
+               "%s: no armature bones for skinned mesh %s\n",
+               __func__,
+               usd_export_context_.usd_path.GetAsString().c_str());
+    return;
+  }
+
+  bool needsfree = false;
+  Mesh *mesh = get_export_mesh(context.object, needsfree);
+
+  if (mesh == nullptr) {
+    return;
+  }
+
+  try {
+    export_deform_verts(mesh, skel_api, bone_names);
+
+    if (needsfree) {
+      free_export_mesh(mesh);
+    }
+  }
+  catch (...) {
+    if (needsfree) {
+      free_export_mesh(mesh);
+    }
+    throw;
+  }
+}
+
+void USDMeshWriter::init_blend_shapes(const HierarchyContext &context)
+{
+  pxr::UsdStageRefPtr stage = usd_export_context_.stage;
+
+  pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(usd_export_context_.usd_path);
+
+  if (!mesh_prim.IsValid()) {
+    WM_reportf(RPT_WARNING,
+               "%s: couldn't get valid mesh prim for mesh %s\n",
+               __func__,
+               mesh_prim.GetPath().GetAsString().c_str());
+    return;
+  }
+
+  create_blend_shapes(this->usd_export_context_.stage, context.object, mesh_prim);
+}
+
+void USDMeshWriter::do_write(HierarchyContext &context)
+{
+  set_skel_export_flags(context);
+
+  if (frame_has_been_written_ && (write_skinned_mesh_ || write_blend_shapes_)) {
+    /* When writing skinned meshes or blend shapes, we only write the rest mesh once,
+     * so we return early after the first frame has been written. However, we still
+     * update blend shape weights if needed. */
+    if (write_blend_shapes_) {
+      add_shape_key_weights_sample(context.object);
+    }
+    return;
+  }
+
+  USDGenericMeshWriter::do_write(context);
+
+  if (write_skinned_mesh_) {
+    init_skinned_mesh(context);
+  }
+
+  if (write_blend_shapes_) {
+    init_blend_shapes(context);
+    add_shape_key_weights_sample(context.object);
+  }
+}
+
+Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
+{
+  if (write_blend_shapes_) {
+    r_needsfree = true;
+    /* We return the pre-modified mesh with the verts in the shape key
+     * basis positions. */
+    return get_shape_key_basis_mesh(object_eval);
+  }
+
+  if (write_skinned_mesh_) {
+    r_needsfree = false;
+    /* We must export the skinned mesh in its rest pose.  We therefore
+     * return the pre-modified mesh, so that the armature modifier isn't
+     * applied. */
+    return BKE_object_get_pre_modified_mesh(object_eval);
+  }
+
+  /* Return the fully evaluated mesh. */
+  r_needsfree = false;
+  return BKE_object_get_evaluated_mesh(object_eval);
+}
+
+void USDMeshWriter::add_shape_key_weights_sample(const Object *obj)
+{
+  if (!obj) {
+    return;
+  }
+
+  const Key *key = get_mesh_shape_key(obj);
+  if (!key) {
+    return;
+  }
+
+  pxr::UsdStageRefPtr stage = usd_export_context_.stage;
+
+  pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(usd_export_context_.usd_path);
+
+  if (!mesh_prim.IsValid()) {
+    WM_reportf(RPT_WARNING,
+               "%s: couldn't get valid mesh prim for mesh %s\n",
+               __func__,
+               usd_export_context_.usd_path.GetAsString().c_str());
+    return;
+  }
+
+  pxr::VtFloatArray weights = get_blendshape_weights(key);
+  pxr::UsdTimeCode timecode = get_export_time_code();
+
+  /* Save the weights samples to a temporary privar which will be copied to
+   * a skeleton animation later. */
+  pxr::UsdAttribute temp_weights_attr = pxr::UsdGeomPrimvarsAPI(mesh_prim).CreatePrimvar(
+      TempBlendShapeWeightsPrimvarName, pxr::SdfValueTypeNames->FloatArray);
+
+  if (!temp_weights_attr) {
+    WM_reportf(RPT_WARNING,
+               "%s: couldn't create primvar %s on prim %s\n",
+               __func__,
+               mesh_prim.GetPath().GetAsString().c_str());
+    return;
+  }
+
+  temp_weights_attr.Set(weights, timecode);
 }
 
 }  // namespace blender::io::usd

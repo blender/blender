@@ -136,8 +136,9 @@ void USDTransformWriter::do_write(HierarchyContext &context)
 
       mul_m4_m4m4(parent_relative_matrix, context.parent_matrix_inv_world, matrix_world);
     }
-    else
+    else {
       mul_m4_m4m4(parent_relative_matrix, context.parent_matrix_inv_world, context.matrix_world);
+    }
 
     // USD Xforms are by default set with an identity transform.
     // This check ensures transforms of non-identity are authored
@@ -221,8 +222,11 @@ void USDTransformWriter::set_xform_ops(float xf_matrix[4][4], pxr::UsdGeomXforma
     return;
   }
 
+  pxr::UsdTimeCode time_code = get_export_time_code();
+
   if (xformOps_.size() == 1) {
-    xformOps_[0].Set(pxr::GfMatrix4d(xf_matrix), get_export_time_code());
+    pxr::GfMatrix4d mat_val(xf_matrix);
+    usd_value_writer_.SetAttribute(xformOps_[0].GetAttr(), mat_val, time_code);
   }
   else if (xformOps_.size() == 3) {
 
@@ -238,14 +242,25 @@ void USDTransformWriter::set_xform_ops(float xf_matrix[4][4], pxr::UsdGeomXforma
       rot[0] *= 180.0 / M_PI;
       rot[1] *= 180.0 / M_PI;
       rot[2] *= 180.0 / M_PI;
-      xformOps_[0].Set(pxr::GfVec3d(loc), get_export_time_code());
-      xformOps_[1].Set(pxr::GfVec3f(rot), get_export_time_code());
-      xformOps_[2].Set(pxr::GfVec3f(scale), get_export_time_code());
+
+      pxr::GfVec3d loc_val(loc);
+      usd_value_writer_.SetAttribute(xformOps_[0].GetAttr(), loc_val, time_code);
+
+      pxr::GfVec3f rot_val(rot);
+      usd_value_writer_.SetAttribute(xformOps_[1].GetAttr(), rot_val, time_code);
+
+      pxr::GfVec3f scale_val(scale);
+      usd_value_writer_.SetAttribute(xformOps_[2].GetAttr(), scale_val, time_code);
     }
     else if (xfOpMode == USD_XFORM_OP_SOT) {
-      xformOps_[0].Set(pxr::GfVec3d(loc), get_export_time_code());
-      xformOps_[1].Set(pxr::GfQuatf(quat[0], quat[1], quat[2], quat[3]), get_export_time_code());
-      xformOps_[2].Set(pxr::GfVec3f(scale), get_export_time_code());
+      pxr::GfVec3d loc_val(loc);
+      usd_value_writer_.SetAttribute(xformOps_[0].GetAttr(), loc_val, time_code);
+
+      pxr::GfQuatf quat_val(quat[0], quat[1], quat[2], quat[3]);
+      usd_value_writer_.SetAttribute(xformOps_[1].GetAttr(), quat_val, time_code);
+
+      pxr::GfVec3f scale_val(scale);
+      usd_value_writer_.SetAttribute(xformOps_[2].GetAttr(), scale_val, time_code);
     }
   }
 }
