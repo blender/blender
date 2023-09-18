@@ -776,9 +776,11 @@ void txt_move_up(Text *text, const bool sel)
   }
 
   if ((*linep)->prev) {
-    int column = BLI_str_utf8_offset_to_column((*linep)->line, (*linep)->len, *charp);
+    int column = BLI_str_utf8_offset_to_column_with_tabs(
+        (*linep)->line, (*linep)->len, *charp, TXT_TABSIZE);
     *linep = (*linep)->prev;
-    *charp = BLI_str_utf8_offset_from_column((*linep)->line, (*linep)->len, column);
+    *charp = BLI_str_utf8_offset_from_column_with_tabs(
+        (*linep)->line, (*linep)->len, column, TXT_TABSIZE);
   }
   else {
     txt_move_bol(text, sel);
@@ -806,9 +808,11 @@ void txt_move_down(Text *text, const bool sel)
   }
 
   if ((*linep)->next) {
-    int column = BLI_str_utf8_offset_to_column((*linep)->line, (*linep)->len, *charp);
+    int column = BLI_str_utf8_offset_to_column_with_tabs(
+        (*linep)->line, (*linep)->len, *charp, TXT_TABSIZE);
     *linep = (*linep)->next;
-    *charp = BLI_str_utf8_offset_from_column((*linep)->line, (*linep)->len, column);
+    *charp = BLI_str_utf8_offset_from_column_with_tabs(
+        (*linep)->line, (*linep)->len, column, TXT_TABSIZE);
   }
   else {
     txt_move_eol(text, sel);
