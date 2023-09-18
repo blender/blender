@@ -218,8 +218,6 @@ bool python_script_error_jump(
     }
   }
   else {
-    BLI_assert((tb == PySys_GetObject("last_traceback")) ||
-               (tb == nullptr && PySys_GetObject("last_traceback") == Py_None));
     for (PyTracebackObject *tb_iter = (PyTracebackObject *)tb;
          tb_iter && (PyObject *)tb_iter != Py_None;
          tb_iter = tb_iter->tb_next)
