@@ -502,8 +502,9 @@ static bool armature_bone_select_poll(bContext *C)
 
   /* For bone selection, at least the pose should be editable to actually store
    * the selection state. */
-  if (ID_IS_LINKED(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot (de)select bones on linked Armature");
+  if (ID_IS_LINKED(ob) && !ID_IS_OVERRIDE_LIBRARY(ob)) {
+    CTX_wm_operator_poll_msg_set(
+        C, "Cannot (de)select bones on linked object, that would need an override");
     return false;
   }
 
