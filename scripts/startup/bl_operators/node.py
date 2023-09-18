@@ -361,7 +361,7 @@ class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
 
         if item:
             interface.remove(item)
-            interface.active_index = min(interface.active_index, len(interface.ui_items) - 1)
+            interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
 
         return {'FINISHED'}
 
