@@ -56,12 +56,12 @@ int damerau_levenshtein_distance(StringRef a, StringRef b)
   for (const int i : IndexRange(size_a)) {
     v2[0] = (i + 1) * deletion_cost;
 
-    const uint32_t unicode_a = BLI_str_utf8_as_unicode_step(a.data(), a.size(), &offset_a);
+    const uint32_t unicode_a = BLI_str_utf8_as_unicode_step_safe(a.data(), a.size(), &offset_a);
 
     uint32_t prev_unicode_b;
     size_t offset_b = 0;
     for (const int j : IndexRange(size_b)) {
-      const uint32_t unicode_b = BLI_str_utf8_as_unicode_step(b.data(), b.size(), &offset_b);
+      const uint32_t unicode_b = BLI_str_utf8_as_unicode_step_safe(b.data(), b.size(), &offset_b);
 
       /* Check how costly the different operations would be and pick the cheapest - the one with
        * minimal cost. */
@@ -185,7 +185,7 @@ static bool match_word_initials(StringRef query,
   int first_found_word_index = -1;
 
   while (query_index < query.size()) {
-    const uint query_unicode = BLI_str_utf8_as_unicode_step(
+    const uint query_unicode = BLI_str_utf8_as_unicode_step_safe(
         query.data(), query.size(), &query_index);
     while (true) {
       /* We are at the end of words, no complete match has been found yet. */
@@ -209,7 +209,7 @@ static bool match_word_initials(StringRef query,
       StringRef word = words[word_index];
       /* Try to match the current character with the current word. */
       if (int(char_index) < word.size()) {
-        const uint32_t char_unicode = BLI_str_utf8_as_unicode_step(
+        const uint32_t char_unicode = BLI_str_utf8_as_unicode_step_safe(
             word.data(), word.size(), &char_index);
         if (query_unicode == char_unicode) {
           r_word_is_matched[word_index] = true;
@@ -372,7 +372,7 @@ void extract_normalized_words(StringRef str,
   size_t offset = 0;
   while (offset < str_size_in_bytes) {
     size_t size = offset;
-    uint32_t unicode = BLI_str_utf8_as_unicode_step(str.data(), str.size(), &size);
+    uint32_t unicode = BLI_str_utf8_as_unicode_step_safe(str.data(), str.size(), &size);
     size -= offset;
     if (is_separator(unicode)) {
       if (is_in_word) {

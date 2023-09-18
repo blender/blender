@@ -57,18 +57,17 @@ unsigned int BLI_str_utf8_as_unicode_or_error(const char *p) ATTR_WARN_UNUSED_RE
     ATTR_NONNULL(1);
 unsigned int BLI_str_utf8_as_unicode_safe(const char *p) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
- * UTF8 decoding that steps over the index (unless an error is encountered).
+ * UTF8 decoding that steps over the index.
+ * When an error is encountered fall back to `LATIN1`, stepping over a single byte.
  *
  * \param p: The text to step over.
  * \param p_len: The length of `p`.
  * \param index: Index of `p` to step over.
  * \return the code-point `(p + *index)` if there is a decoding error.
- *
- * \note Falls back to `LATIN1` for text drawing.
  */
-unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p,
-                                          size_t p_len,
-                                          size_t *__restrict index) ATTR_WARN_UNUSED_RESULT
+unsigned int BLI_str_utf8_as_unicode_step_safe(const char *__restrict p,
+                                               size_t p_len,
+                                               size_t *__restrict index) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 3);
 /**
  * UTF8 decoding that steps over the index (unless an error is encountered).

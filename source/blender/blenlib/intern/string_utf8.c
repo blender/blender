@@ -780,9 +780,9 @@ uint BLI_str_utf8_as_unicode_step_or_error(const char *__restrict p,
   return result;
 }
 
-uint BLI_str_utf8_as_unicode_step(const char *__restrict p,
-                                  const size_t p_len,
-                                  size_t *__restrict index)
+uint BLI_str_utf8_as_unicode_step_safe(const char *__restrict p,
+                                       const size_t p_len,
+                                       size_t *__restrict index)
 {
   uint result = BLI_str_utf8_as_unicode_step_or_error(p, p_len, index);
   if (UNLIKELY(result == BLI_UTF8_ERR)) {
@@ -1042,7 +1042,7 @@ int BLI_str_utf8_offset_to_index(const char *str, const size_t str_len, const in
   /* Note that `offset != offset_target_as_size` works for valid utf8 strings. */
   while ((offset < str_len) && (offset < offset_target_as_size)) {
     /* Use instead of #BLI_str_utf8_size_safe to match behavior when limiting the string length. */
-    const uint code = BLI_str_utf8_as_unicode_step(str, str_len, &offset);
+    const uint code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &offset);
     UNUSED_VARS(code);
     index++;
     BLI_assert(offset <= offset_target_as_size); /* See DOXY section comment. */
@@ -1057,7 +1057,7 @@ int BLI_str_utf8_offset_from_index(const char *str, const size_t str_len, const 
   int index = 0;
   while ((offset < str_len) && (index < index_target)) {
     /* Use instead of #BLI_str_utf8_size_safe to match behavior when limiting the string length. */
-    const uint code = BLI_str_utf8_as_unicode_step(str, str_len, &offset);
+    const uint code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &offset);
     UNUSED_VARS(code);
     index++;
   }
@@ -1071,7 +1071,7 @@ int BLI_str_utf8_offset_to_column(const char *str, const size_t str_len, const i
   size_t offset = 0;
   int column = 0;
   while (offset < offset_target_clamp) {
-    const uint code = BLI_str_utf8_as_unicode_step(str, str_len, &offset);
+    const uint code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &offset);
     column += BLI_wcwidth_safe(code);
     BLI_assert(offset <= (size_t)offset_target); /* See DOXY section comment. */
   }
@@ -1083,7 +1083,7 @@ int BLI_str_utf8_offset_from_column(const char *str, const size_t str_len, const
   size_t offset = 0, offset_next = 0;
   int column = 0;
   while ((offset < str_len) && (column < column_target)) {
-    const uint code = BLI_str_utf8_as_unicode_step(str, str_len, &offset_next);
+    const uint code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &offset_next);
     column += BLI_wcwidth_safe(code);
     if (column > column_target) {
       break;
@@ -1103,7 +1103,7 @@ int BLI_str_utf8_offset_to_column_with_tabs(const char *str,
   size_t offset = 0;
   int column = 0;
   while (offset < offset_target_clamp) {
-    const uint code = BLI_str_utf8_as_unicode_step(str, str_len, &offset);
+    const uint code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &offset);
     /* The following line is the only change compared with #BLI_str_utf8_offset_to_column. */
     column += (code == '\t') ? (tab_width - (column % tab_width)) : BLI_wcwidth_safe(code);
     BLI_assert(offset <= (size_t)offset_target); /* See DOXY section comment. */
@@ -1119,7 +1119,7 @@ int BLI_str_utf8_offset_from_column_with_tabs(const char *str,
   size_t offset = 0, offset_next = 0;
   int column = 0;
   while ((offset < str_len) && (column < column_target)) {
-    const uint code = BLI_str_utf8_as_unicode_step(str, str_len, &offset_next);
+    const uint code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &offset_next);
     /* The following line is the only change compared with #BLI_str_utf8_offset_from_column. */
     column += (code == '\t') ? (tab_width - (column % tab_width)) : BLI_wcwidth_safe(code);
     if (column > column_target) {

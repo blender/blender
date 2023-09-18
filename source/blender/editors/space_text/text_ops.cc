@@ -3567,13 +3567,13 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 
   if (st && st->overwrite) {
     while (str[i]) {
-      code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
+      code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &i);
       done |= txt_replace_char(text, code);
     }
   }
   else {
     while (str[i]) {
-      code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
+      code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &i);
       done |= txt_add_char(text, code);
     }
   }

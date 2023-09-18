@@ -364,7 +364,7 @@ static void blf_batch_draw_end()
 BLI_INLINE GlyphBLF *blf_glyph_from_utf8_and_step(
     FontBLF *font, GlyphCacheBLF *gc, const char *str, size_t str_len, size_t *i_p)
 {
-  uint charcode = BLI_str_utf8_as_unicode_step(str, str_len, i_p);
+  uint charcode = BLI_str_utf8_as_unicode_step_safe(str, str_len, i_p);
   /* Invalid unicode sequences return the byte value, stepping forward one.
    * This allows `latin1` to display (which is sometimes used for file-paths). */
   BLI_assert(charcode != BLI_UTF8_ERR);
