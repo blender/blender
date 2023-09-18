@@ -17,6 +17,7 @@
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_cursor_utf8.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.h"
 
@@ -1428,6 +1429,15 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
   size_t a, j, max_len = 0;
   int type = RNA_enum_get(op->ptr, "type");
 
+  const int curc_column = text->curl ?
+                              BLI_str_utf8_offset_to_column_with_tabs(
+                                  text->curl->line, text->curl->len, text->curc, TXT_TABSIZE) :
+                              -1;
+  const int selc_column = text->sell ?
+                              BLI_str_utf8_offset_to_column_with_tabs(
+                                  text->sell->line, text->sell->len, text->selc, TXT_TABSIZE) :
+                              -1;
+
   /* first convert to all space, this make it a lot easier to convert to tabs
    * because there is no mixtures of ' ' && '\t' */
   LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
@@ -1519,8 +1529,7 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
           MEM_freeN(tmp->format);
         }
 
-        /* Put new_line in the tmp->line spot
-         * still need to try and set the curc correctly. */
+        /* Put new_line in the `tmp->line` spot. */
         tmp->line = BLI_strdup(tmp_line);
         tmp->len = strlen(tmp_line);
         tmp->format = nullptr;
@@ -1528,6 +1537,15 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
     }
 
     MEM_freeN(tmp_line);
+  }
+
+  if (curc_column != -1) {
+    text->curc = BLI_str_utf8_offset_from_column_with_tabs(
+        text->curl->line, text->curl->len, curc_column, TXT_TABSIZE);
+  }
+  if (selc_column != -1) {
+    text->selc = BLI_str_utf8_offset_from_column_with_tabs(
+        text->sell->line, text->sell->len, selc_column, TXT_TABSIZE);
   }
 
   text_update_edited(text);
