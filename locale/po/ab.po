@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
 "\"POT-Creation-Date: 2019-02-25 20:41:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -27,6 +27,46 @@ msgstr "Ацхра"
 
 msgid "Empty"
 msgstr "Аҭацәы"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Абаҩ"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Акамера"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Асахьанҵа"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Ашәҟәыԥхьарҭа"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Алашара"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Метампыл"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Абжьы Ахыҵхырҭа"
 
 
 msgid "Edge"
@@ -115,46 +155,6 @@ msgstr "Архиара"
 
 msgid "Shading"
 msgstr "Аршәшьра"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Абаҩ"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Акамера"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Асахьанҵа"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Аҭыџьеихац"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Ашәҟәыԥхьарҭа"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Алашара"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Метампыл"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Абжьы Ахыҵхырҭа"
 
 
 msgid "Vertex"
@@ -436,16 +436,6 @@ msgstr "Аҳәоу"
 
 
 msgctxt "Operator"
-msgid "Armature"
-msgstr "Абаҩ"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Аҭыџьеихац"
-
-
-msgctxt "Operator"
 msgid "Location"
 msgstr "Аҭыԥ"
 
@@ -517,6 +507,16 @@ msgstr "Акамера"
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "Абжьы Ахыҵхырҭа"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Абаҩ"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
 
 
 msgctxt "Object"

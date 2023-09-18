@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2022-03-21 19:03-0300\n"
 "Last-Translator: Leandro Paganelli <leandrobp@fastmail.com>\n"
 "Language-Team: Leandro Paganelli, Ivan Paulos Tomé, Dalai Felinto, Bruno Gonçalves Pirajá, Samuel Arataca, Daniel Tavares, Moraes Junior <ivan.paulos.tome@yandex.com>\n"
@@ -281,18 +281,6 @@ msgstr "Completo"
 
 msgid "Fribidi Library"
 msgstr "Biblioteca FriBidi"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "A biblioteca Fribidi C compilada (.so em sistemas Linux, .dll em sistemas Windows...), você provavelmente precisará editá-la se estiver no Windows, ex: usando a inclusa dentro das bibliotecas no repositório svn"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "O executável para catálogos do tipo Gettext"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "O compilador para catálogos de mensagem tipo gettext. Você provavelmente terá de editá-lo se estiver usando Windows"
 
 
 msgid "Translation Root"
@@ -893,6 +881,186 @@ msgstr "Descrição"
 
 msgid "Tags"
 msgstr "Tags"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Ação"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Armação"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Pincel"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Arquivo(s) de cache"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Câmera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Coleção"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Curva"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Fonte"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Lápis de cera"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Imagem"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Chave"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Treliça"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Biblioteca"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Luz"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Estilo de linha"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Máscara"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Materiais"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Malha"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Clipe de filme"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Árvore de nós"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objeto"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Curva de pintura"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Paleta"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Partículas"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Nuvem de Pontos"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Cena"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Som"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Alto-falante"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Texto"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Texturas"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volume"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Gerenciador de janelas"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Espaço de Trabalho"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Ambiente"
 
 
 msgid "ID Name"
@@ -6757,186 +6925,6 @@ msgid "Type of ID-block that can be used"
 msgstr "O tipo de identificador de bloco que pode ser usado."
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Ação"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Armação"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Pincel"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Arquivo(s) de cache"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Câmera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Coleção"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Curva"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Fonte"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Lápis de cera"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Imagem"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Chave"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Treliça"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Biblioteca"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Luz"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Estilo de linha"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Máscara"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Materiais"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Malha"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Clipe de filme"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Árvore de nós"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objeto"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Curva de pintura"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Paleta"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Partículas"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Nuvem de Pontos"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Cena"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Som"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Alto-falante"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Texto"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Texturas"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volume"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Gerenciador de janelas"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Espaço de Trabalho"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Ambiente"
-
-
 msgid "Rotation Mode"
 msgstr "Modo de rotação"
 
@@ -9225,22 +9213,6 @@ msgstr "Tamanho para mostrar"
 
 msgid "Change the size of the display (width of columns or thumbnails size)"
 msgstr "Permite alterar o tamanho da amostragem (pelo comprimento das colunas ou pelo tamanho das miniaturas)."
-
-
-msgid "Tiny"
-msgstr "Minúsculas"
-
-
-msgid "Small"
-msgstr "Pequenas"
-
-
-msgid "Medium"
-msgstr "Médio(a)"
-
-
-msgid "Large"
-msgstr "Grandes"
 
 
 msgid "Display Mode"
@@ -15107,6 +15079,10 @@ msgstr "Alto(a)"
 
 msgid "High quality"
 msgstr "Alta qualidade."
+
+
+msgid "Medium"
+msgstr "Médio(a)"
 
 
 msgid "Medium quality"
@@ -30088,6 +30064,10 @@ msgid "Operator Properties"
 msgstr "Propriedades de operador"
 
 
+msgid "Add keyframes on every frame between the selected keyframes"
+msgstr "Adiciona quadros-chave em cada quadro entre os quadros-chave selecionados."
+
+
 msgctxt "Operator"
 msgid "Clean Keyframes"
 msgstr "Limpar quadros-chave"
@@ -30426,15 +30406,6 @@ msgstr "Empurrar ação para baixo"
 
 msgid "Push action down on to the NLA stack as a new strip"
 msgstr "Empurra a ação para baixo na pilha de animação não linear como uma nova faixa."
-
-
-msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Quadros-chave de amostra"
-
-
-msgid "Add keyframes on every frame between the selected keyframes"
-msgstr "Adiciona quadros-chave em cada quadro entre os quadros-chave selecionados."
 
 
 msgctxt "Operator"
@@ -40725,11 +40696,6 @@ msgstr "Adiciona um nó de re-roteamento."
 
 
 msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Pesquisar e adicionar nó"
-
-
-msgctxt "Operator"
 msgid "Attach Nodes"
 msgstr "Conectar nós"
 
@@ -48765,38 +48731,13 @@ msgstr "Salva as configurações de tradução dentro de um arquivo persistente 
 
 
 msgctxt "Operator"
-msgid "Update I18n Branches"
-msgstr "Atualizar Vertentes I18n"
-
-
-msgid "Update i18n svn's branches (po files)"
-msgstr "Atualiza as ramificações svn i18n (arquivos po)."
-
-
-msgid "Skip POT"
-msgstr "Pular a geração de POT"
-
-
-msgid "Skip POT file generation"
-msgstr "Pula a etapa geração de arquivo POT."
-
-
-msgctxt "Operator"
 msgid "Init I18n Update Settings"
 msgstr "Configurações de inicialização de atualização I18n"
-
-
-msgid "Init settings for i18n svn's update operators"
-msgstr "Configurações de inicialização para operadores de atualização de i18n."
 
 
 msgctxt "Operator"
 msgid "Init I18n Update Select Languages"
 msgstr "Inicia a atualização de seleção de línguas I18N"
-
-
-msgid "(De)select (or invert selection of) all languages for i18n svn's update operators"
-msgstr "(De)selecionar (ou inverter a seleção de) todas as traduções para os operadores de atualização svn i18n."
 
 
 msgid "Invert Selection"
@@ -48820,25 +48761,12 @@ msgid "Update I18n Statistics"
 msgstr "Atualizar as estatísticas l18n"
 
 
-msgid "Check Branches"
-msgstr "Verificar Vertentes"
+msgid "Skip POT"
+msgstr "Pular a geração de POT"
 
 
-msgid "Check po files in branches"
-msgstr "Verifica os arquivos po dentro das vertentes"
-
-
-msgid "Check Trunk"
-msgstr "Verificar tronco"
-
-
-msgid "Check po files in trunk"
-msgstr "Verifica os arquivos po dentro do tronco"
-
-
-msgctxt "Operator"
-msgid "Update I18n Trunk"
-msgstr "Atualizar tronco de I18n"
+msgid "Skip POT file generation"
+msgstr "Pula a etapa geração de arquivo POT."
 
 
 msgctxt "Operator"
@@ -56385,44 +56313,12 @@ msgid "Settings/info about a language"
 msgstr "Configurações e informações sobre uma tradução."
 
 
-msgid "MO File Path"
-msgstr "Caminho de arquivo MO"
-
-
-msgid "Path to the relevant mo file"
-msgstr "Caminho para o arquivo mo relevante."
-
-
 msgid "Language Name"
 msgstr "Nome da língua"
 
 
 msgid "Numeric ID"
 msgstr "Identificador numérico"
-
-
-msgid "PO File Path"
-msgstr "Caminho de arquivo PO"
-
-
-msgid "Path to the relevant po file in branches"
-msgstr "Caminho para o arquivo po relevante dentro das ramificações."
-
-
-msgid "PO Git Master File Path"
-msgstr "Caminho dos arquivos PO mestres no Git"
-
-
-msgid "Path to the relevant po file in Blender's translations git repository"
-msgstr "O caminho para os arquivos de catálogos .po relevantes no repositório Git de traduções do Blender."
-
-
-msgid "PO Trunk File Path"
-msgstr "Caminho tronco dos arquivos PO"
-
-
-msgid "Path to the relevant po file in trunk"
-msgstr "Caminho para o arquivo .po relevante dentro do tronco."
 
 
 msgid "Language ID"
@@ -56443,10 +56339,6 @@ msgstr "Caso estes ajustes já tenham sido configurados automaticamente ou não.
 
 msgid "Languages"
 msgstr "Línguas para tradução"
-
-
-msgid "Languages to update in branches"
-msgstr "Traduções para atualizar nas ramificações."
 
 
 msgid "POT File Path"
@@ -64608,12 +64500,12 @@ msgid "Add-on '{}' not found!"
 msgstr "Complemento '{}' não encontrado!"
 
 
-msgid "Info written to {} text datablock!"
-msgstr "Informação escrita para o bloco de textos {} !"
-
-
 msgid "Message extraction process failed!"
 msgstr "Processo de extração de mensagem falhou !"
+
+
+msgid "Info written to {} text datablock!"
+msgstr "Informação escrita para o bloco de textos {} !"
 
 
 msgid "Could not init languages data!"
@@ -64632,16 +64524,6 @@ msgstr "Redefinir configurações"
 msgctxt "Operator"
 msgid "Deselect All"
 msgstr "(De)selecionar tudo"
-
-
-msgctxt "Operator"
-msgid "Update Branches"
-msgstr "Atualizar ramificações"
-
-
-msgctxt "Operator"
-msgid "Update Trunk"
-msgstr "Atualizar tronco"
 
 
 msgctxt "Operator"
@@ -65015,21 +64897,6 @@ msgstr "Mover para o topo"
 msgctxt "Operator"
 msgid "Move to Bottom"
 msgstr "Mover para a base"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "Reestruturar malha"
-
-
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Armação"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Treliça"
 
 
 msgid "Detail"
@@ -67769,6 +67636,16 @@ msgstr "Lápis de cera"
 
 
 msgctxt "Operator"
+msgid "Armature"
+msgstr "Armação"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Treliça"
+
+
+msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "Instância de Coleção..."
 
@@ -68215,6 +68092,11 @@ msgstr "Localizações"
 
 msgid "Parents"
 msgstr "Parentes"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "Reestruturar malha"
 
 
 msgid "Tile Offset"
@@ -73461,10 +73343,6 @@ msgid "Only a single character supported"
 msgstr "Apenas um único caractere suportado "
 
 
-msgid "KeyMapItem '%s' cannot be removed from '%s'"
-msgstr "Item de mapa de tecla '%s' não pode ser removido a partir de '%s'."
-
-
 msgid "KeyConfig '%s' cannot be removed"
 msgstr "Configuração de tecla '%s' não pode ser removida."
 
@@ -73696,18 +73574,6 @@ msgstr "Lustro"
 
 msgid "Sheen Tint"
 msgstr "Tingimento de lustro"
-
-
-msgid "Clearcoat"
-msgstr "Tinta protetiva"
-
-
-msgid "Clearcoat Roughness"
-msgstr "Rugosidade da tinta protetiva"
-
-
-msgid "Clearcoat Normal"
-msgstr "Tinta protetiva normal"
 
 
 msgid "View Vector"
@@ -74382,10 +74248,6 @@ msgstr "Português do Brasil (Português do Brasil)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Espanhol da Espanha (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

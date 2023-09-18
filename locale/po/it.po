@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -276,18 +276,6 @@ msgstr "Completo"
 
 msgid "Fribidi Library"
 msgstr "Libreria FriBidi"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "La libreria compilata C FriBidi (.so in Linux, .dll in Windows). Probabilmente devi specificarla se sei sotto Windows, x es. usando quella inclusa nel repository delle librerie di svn"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Eseguibile 'msgfmt' di Gettext"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "Il 'compilatore' msgfmt di gettext. Probabilmente devi indicare il percorso se sei sotto Windows"
 
 
 msgid "Translation Root"
@@ -848,6 +836,171 @@ msgstr "Autore"
 
 msgid "Description"
 msgstr "Descrizione"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Azione"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Armatura"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Pennello"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Cache File"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Camera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Raccolta"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Curva"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Carattere"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Matita"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Immagine"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Chiave"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Lattice"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Libreria"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Luce"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Stile Linea"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maschera"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Materiale"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Mesh"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Filmato"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Albero Nodi"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Oggetto"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Pittura Curva"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Tavolozza"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Particella"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scena"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Suono"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Altoparlante"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Testo"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Texture"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volume"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Gestore Finestra"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Mondo"
 
 
 msgid "ID Name"
@@ -6260,171 +6413,6 @@ msgid "Type of ID-block that can be used"
 msgstr "Tipo di blocco ID che può essere usato"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Azione"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Armatura"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Pennello"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Cache File"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Camera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Raccolta"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Curva"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Carattere"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Matita"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Immagine"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Chiave"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Lattice"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Libreria"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Luce"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Stile Linea"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Maschera"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Materiale"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Mesh"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Filmato"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Albero Nodi"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Oggetto"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Pittura Curva"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Tavolozza"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Particella"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Scena"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Suono"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Altoparlante"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Testo"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Texture"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volume"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Gestore Finestra"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Mondo"
-
-
 msgid "Rotation Mode"
 msgstr "Modalità Rotazione"
 
@@ -8383,22 +8371,6 @@ msgstr "Dimensione Visualizzazione"
 
 msgid "Change the size of the display (width of columns or thumbnails size)"
 msgstr "Cambia la dimensione delle anteprime (larghezza colonne o dimensione anteprime)"
-
-
-msgid "Tiny"
-msgstr "Minime"
-
-
-msgid "Small"
-msgstr "Piccole"
-
-
-msgid "Medium"
-msgstr "Medio"
-
-
-msgid "Large"
-msgstr "Grandi"
 
 
 msgid "Display Mode"
@@ -12936,6 +12908,10 @@ msgstr "Alto"
 
 msgid "High quality"
 msgstr "Alta qualità"
+
+
+msgid "Medium"
+msgstr "Medio"
 
 
 msgid "Medium quality"
@@ -24453,6 +24429,10 @@ msgid "Operator Properties"
 msgstr "Proprietà Operatore"
 
 
+msgid "Add keyframes on every frame between the selected keyframes"
+msgstr "Aggiunge un keyframes su ogni fotogramma tra i keyframes selezionati"
+
+
 msgctxt "Operator"
 msgid "Clean Keyframes"
 msgstr "Ripulisci Fotogrammi Chiave"
@@ -24765,15 +24745,6 @@ msgstr "Sposta Giù l'Azione"
 
 msgid "Push action down on to the NLA stack as a new strip"
 msgstr "Spingi giù l'azione nello stack NLA come nuovo spezzone"
-
-
-msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Campiona Fotogrammi Chiave"
-
-
-msgid "Add keyframes on every frame between the selected keyframes"
-msgstr "Aggiunge un keyframes su ogni fotogramma tra i keyframes selezionati"
 
 
 msgctxt "Operator"
@@ -32714,11 +32685,6 @@ msgstr "Aggiungi Biforcazione"
 
 msgid "Add a reroute node"
 msgstr "Aggiungi un nodo biforcazione"
-
-
-msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Cerca e Aggiungi Nodo"
 
 
 msgctxt "Operator"
@@ -45129,20 +45095,12 @@ msgid "Interpolation method to use for volumes"
 msgstr "Metodo di interpolazione usato per i volumi"
 
 
-msgid "MO File Path"
-msgstr "Percorso File MO"
-
-
 msgid "Language Name"
 msgstr "Nome Lingua"
 
 
 msgid "Numeric ID"
 msgstr "ID Numerico"
-
-
-msgid "PO File Path"
-msgstr "Percorso File PO"
 
 
 msgid "Language ID"
@@ -51209,16 +51167,6 @@ msgstr "Deseleziona Tutto"
 
 
 msgctxt "Operator"
-msgid "Update Branches"
-msgstr "Aggiorna Branches"
-
-
-msgctxt "Operator"
-msgid "Update Trunk"
-msgstr "Aggiorna Trunk"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "Statistiche"
 
@@ -51477,16 +51425,6 @@ msgstr "Cancella Tutti i Gruppi"
 msgctxt "Operator"
 msgid "Mirror Shape Key (Topology)"
 msgstr "Specchia Chiave Forma (Topologia)"
-
-
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Armatura"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Lattice"
 
 
 msgid "Detail"
@@ -53926,6 +53864,16 @@ msgstr "Profili Aperti (non-manifold)"
 msgctxt "Operator"
 msgid "Edge Rings"
 msgstr "Fascia di Spigoli (ring)"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Armatura"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Lattice"
 
 
 msgctxt "Operator"
@@ -58557,18 +58505,6 @@ msgid "Sheen Tint"
 msgstr "Tinta Lucentezza"
 
 
-msgid "Clearcoat"
-msgstr "Rivestimento Trasparente"
-
-
-msgid "Clearcoat Roughness"
-msgstr "Rugosità Riv. Trasparente"
-
-
-msgid "Clearcoat Normal"
-msgstr "Normale Rivest. Traspar."
-
-
 msgid "View Vector"
 msgstr "Vettore Vista"
 
@@ -59129,10 +59065,6 @@ msgstr "Ebraico (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Spagnolo della Spagna (Español)"
 
 
 msgid "Amharic (አማርኛ)"

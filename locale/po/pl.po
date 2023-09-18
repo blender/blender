@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -200,18 +200,6 @@ msgstr "Komunikat"
 
 msgid "Fribidi Library"
 msgstr "Biblioteka fribidi"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "Skompilowana biblioteka FriBidi dla C (.so pod Linuxem, .dll pod Windows), prawdopodobnie potrzebujesz ustawić ją gdy jesteś pod Windows, np. wykorzystując dołączone repozytorium bibliotek z SVN."
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Położenie 'msgfmt' dla Gettext"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "Kompilator gettext 'msgfmt'. Zazwyczaj trzeba określić to pole jeżeli jesteś pod Windows"
 
 
 msgid "Translation Root"
@@ -10769,10 +10757,6 @@ msgid "Property value not in enumeration"
 msgstr "Wartość właściwości nieobecna w wymienionych"
 
 
-msgid "KeyMapItem '%s' cannot be removed from '%s'"
-msgstr "KeyMapItem '%s' nie może być usunięte z '%s'"
-
-
 msgid "KeyConfig '%s' cannot be removed"
 msgstr "KeyConfig '%s' niemożlwe do usunięcia"
 
@@ -11283,10 +11267,6 @@ msgstr "Hebrajski (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Hiszpański Hiszpania (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

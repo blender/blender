@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -372,18 +372,6 @@ msgstr "Отобразить ноду вывода материала glTF в р
 
 msgid "Fribidi Library"
 msgstr "Библиотека FriBidi"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "Скомпилированная библиотека FriBidi на языке Си (.so в Linux, .dll в windows…). Для работы в Windows необходимо вручную указать правильный путь, например, на файл из svn-репозитария библиотек"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Исполняемый файл gettext «msgfmt»"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "Компилятор msgfmt для файлов gettext. Для работы в Windows необходимо вручную указать правильный путь"
 
 
 msgid "Translation Root"
@@ -1128,6 +1116,191 @@ msgstr "Теги"
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Пользовательские теги (метки) для ассета, используемые для фильтрации и управления ассетами"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Действие"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Арматура"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Кисть"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Файл кэша"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Камера"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Коллекция"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Кривая"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Кривые"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Шрифт"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Изображение"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Ключ"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Решётка"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Библиотека"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Свет"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Зонд освещения"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Стиль линий"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Маска"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Материал"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Меш"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Метасфера"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Видеофрагмент"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Система нодов"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Объект"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Кривая рисования"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Палитра"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Частица"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Облако точек"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Сцена"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Звук"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Источник звука"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Текст"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Текстура"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Объём"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Менеджер окон"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Рабочее пространство"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Мир"
 
 
 msgid "ID Name"
@@ -9044,191 +9217,6 @@ msgid "Type of ID-block that can be used"
 msgstr "Тип ID-блока, который может быть использован"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Действие"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Арматура"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Кисть"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Файл кэша"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Камера"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Коллекция"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Кривая"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Кривые"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Шрифт"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Изображение"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Ключ"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Решётка"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Библиотека"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Свет"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Зонд освещения"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Стиль линий"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Маска"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Материал"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Меш"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Метасфера"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Видеофрагмент"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Система нодов"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Объект"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Кривая рисования"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Палитра"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Частица"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Облако точек"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Сцена"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Звук"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Источник звука"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Текст"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Текстура"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Объём"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Менеджер окон"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Рабочее пространство"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Мир"
-
-
 msgid "Rotation Mode"
 msgstr "Режим вращения"
 
@@ -11893,22 +11881,6 @@ msgstr "Размер отображения"
 
 msgid "Change the size of the display (width of columns or thumbnails size)"
 msgstr "Размер отображения (ширина колонок или миниатюр)"
-
-
-msgid "Tiny"
-msgstr "Крошечные"
-
-
-msgid "Small"
-msgstr "Маленькие"
-
-
-msgid "Medium"
-msgstr "Средне"
-
-
-msgid "Large"
-msgstr "Большие"
 
 
 msgid "Display Mode"
@@ -21797,6 +21769,10 @@ msgstr "Высоко"
 
 msgid "High quality"
 msgstr "Высокое качество"
+
+
+msgid "Medium"
+msgstr "Средне"
 
 
 msgid "Medium quality"
@@ -38421,6 +38397,10 @@ msgid "Operator Properties"
 msgstr "Свойства оператора"
 
 
+msgid "Add keyframes on every frame between the selected keyframes"
+msgstr "Добавить ключевые кадры для каждого кадра между выделенными ключевыми кадрами"
+
+
 msgctxt "Operator"
 msgid "Clean Keyframes"
 msgstr "Упростить ключевые кадры"
@@ -38782,15 +38762,6 @@ msgstr "Выдвинуть действие"
 
 msgid "Push action down on to the NLA stack as a new strip"
 msgstr "Переместить действие вниз по стеку НЛА в виде нового клипа"
-
-
-msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Сэмплировать ключевые кадры"
-
-
-msgid "Add keyframes on every frame between the selected keyframes"
-msgstr "Добавить ключевые кадры для каждого кадра между выделенными ключевыми кадрами"
 
 
 msgctxt "Operator"
@@ -50353,11 +50324,6 @@ msgstr "Добавить перенаправляющую ноду"
 
 
 msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Найти и добавить ноду"
-
-
-msgctxt "Operator"
 msgid "Attach Nodes"
 msgstr "Присоединить ноды"
 
@@ -59105,15 +59071,6 @@ msgstr "Обновить данные перевода этого аддона (
 
 
 msgctxt "Operator"
-msgid "Clean up I18n Branches"
-msgstr "Очистить ветви переводов"
-
-
-msgid "Clean up i18n svn's branches (po files)"
-msgstr "Очистить ветви переводов svn (файлы po)"
-
-
-msgctxt "Operator"
 msgid "Edit Translation Update Mo"
 msgstr "Редактировать перевод с обновлением .mo"
 
@@ -59145,38 +59102,13 @@ msgstr "Сохранить настройки переводов в постоя
 
 
 msgctxt "Operator"
-msgid "Update I18n Branches"
-msgstr "Обновить ветви переводов"
-
-
-msgid "Update i18n svn's branches (po files)"
-msgstr "Обновить ветви переводов svn (файлы po)"
-
-
-msgid "Skip POT"
-msgstr "Пропустить .pot"
-
-
-msgid "Skip POT file generation"
-msgstr "Пропустить создание файла .pot"
-
-
-msgctxt "Operator"
 msgid "Init I18n Update Settings"
 msgstr "Инициализировать настройки обновления переводов"
-
-
-msgid "Init settings for i18n svn's update operators"
-msgstr "Инициализировать настройки для операторов обновления переводов из svn"
 
 
 msgctxt "Operator"
 msgid "Init I18n Update Select Languages"
 msgstr "Инициализировать настройки обновления переводов с выделением"
-
-
-msgid "(De)select (or invert selection of) all languages for i18n svn's update operators"
-msgstr "Переключить или инвертировать всех языков для операторов обновления переводов"
 
 
 msgid "Invert Selection"
@@ -59204,25 +59136,12 @@ msgid "Create or extend a 'i18n_info.txt' Text datablock"
 msgstr "Создать или дополнить текстовой блок данных «i18n_info.txt»"
 
 
-msgid "Check Branches"
-msgstr "Проверять ветви"
+msgid "Skip POT"
+msgstr "Пропустить .pot"
 
 
-msgid "Check po files in branches"
-msgstr "Проверять файлы .po в ветвях"
-
-
-msgid "Check Trunk"
-msgstr "Проверять trunk"
-
-
-msgid "Check po files in trunk"
-msgstr "Проверять файлы .po в trunk"
-
-
-msgctxt "Operator"
-msgid "Update I18n Trunk"
-msgstr "Обновить trunk-ветвь переводов"
+msgid "Skip POT file generation"
+msgstr "Пропустить создание файла .pot"
 
 
 msgctxt "Operator"
@@ -68187,14 +68106,6 @@ msgid "Settings/info about a language"
 msgstr "Настройки/информация о языке"
 
 
-msgid "MO File Path"
-msgstr "Путь в файлу .mo"
-
-
-msgid "Path to the relevant mo file"
-msgstr "Путь к соответствующему файлу .mo"
-
-
 msgid "Language Name"
 msgstr "Название языка"
 
@@ -68209,30 +68120,6 @@ msgstr "Числовой ID"
 
 msgid "Numeric ID (read only!)"
 msgstr "Числовой идентификатор (только для чтения!)"
-
-
-msgid "PO File Path"
-msgstr "Путь в файлу .po"
-
-
-msgid "Path to the relevant po file in branches"
-msgstr "Путь к соответствующему файлу .po в ветвях"
-
-
-msgid "PO Git Master File Path"
-msgstr "Путь к файлу PO Git Master"
-
-
-msgid "Path to the relevant po file in Blender's translations git repository"
-msgstr "Путь к соответствующему файлу po в репозитории переводов Git Blender"
-
-
-msgid "PO Trunk File Path"
-msgstr "Путь к файлу .po в trunk"
-
-
-msgid "Path to the relevant po file in trunk"
-msgstr "Путь к соответствующему файлу .po в ветке trunk"
 
 
 msgid "Language ID"
@@ -68261,10 +68148,6 @@ msgstr "Использовать автоустановленные значен
 
 msgid "Languages"
 msgstr "Языки"
-
-
-msgid "Languages to update in branches"
-msgstr "Обновляемые языки в ветвях"
 
 
 msgid "POT File Path"
@@ -79279,12 +79162,12 @@ msgid "Add-on '{}' not found!"
 msgstr "Аддон «{}» не найден!"
 
 
-msgid "Info written to {} text datablock!"
-msgstr "Информация записана в текстовой датаблок {}!"
-
-
 msgid "Message extraction process failed!"
 msgstr "Ошибка в процессе извлечения сообщений!"
+
+
+msgid "Info written to {} text datablock!"
+msgstr "Информация записана в текстовой датаблок {}!"
 
 
 msgid "Could not init languages data!"
@@ -79303,21 +79186,6 @@ msgstr "Сбросить настройки"
 msgctxt "Operator"
 msgid "Deselect All"
 msgstr "Снять выделение со всего"
-
-
-msgctxt "Operator"
-msgid "Update Branches"
-msgstr "Обновить ветви"
-
-
-msgctxt "Operator"
-msgid "Update Trunk"
-msgstr "Обновить trunk"
-
-
-msgctxt "Operator"
-msgid "Clean up Branches"
-msgstr "Очистить ветви"
 
 
 msgctxt "Operator"
@@ -79866,26 +79734,6 @@ msgstr "Порог влияния"
 
 msgid "Update on Edit"
 msgstr "Обновлять при редактировании"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "Ремеш"
-
-
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Арматура"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Решётка"
-
-
-msgctxt "Operator"
-msgid "Smooth Laplacian"
-msgstr "Лапласово сглаживание"
 
 
 msgid "Distance Reference"
@@ -83681,6 +83529,16 @@ msgstr "Grease Pencil"
 
 
 msgctxt "Operator"
+msgid "Armature"
+msgstr "Арматура"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Решётка"
+
+
+msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "Экземпляр коллекции…"
 
@@ -83787,6 +83645,11 @@ msgstr "Вставить позу с отражением по X"
 
 msgid "Vertex Context Menu"
 msgstr "Контекстное меню вершин"
+
+
+msgctxt "Operator"
+msgid "Smooth Laplacian"
+msgstr "Лапласово сглаживание"
 
 
 msgid "Mirror Vertices"
@@ -84245,6 +84108,11 @@ msgstr "Метод уточнения"
 
 msgid "Detailing"
 msgstr "Детализация"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "Ремеш"
 
 
 msgid "Tile Offset"
@@ -90587,10 +90455,6 @@ msgid "Gizmo group '%s' has 'PERSISTENT' option set!"
 msgstr "В группе манипуляторов '%s' установлена опция 'PERSISTENT'!"
 
 
-msgid "KeyMapItem '%s' cannot be removed from '%s'"
-msgstr "Элемент клавиатурной раскладки «%s» не может быть удалён из «%s»"
-
-
 msgid "KeyConfig '%s' cannot be removed"
 msgstr "Клавиатурная конфигурация «%s» не может быть удалена"
 
@@ -90908,20 +90772,8 @@ msgid "Sheen Tint"
 msgstr "Оттенок блеска ткани"
 
 
-msgid "Clearcoat"
-msgstr "Лак"
-
-
-msgid "Clearcoat Roughness"
-msgstr "Шероховатость лака"
-
-
 msgid "Emission Strength"
 msgstr "Интенсивность свечения"
-
-
-msgid "Clearcoat Normal"
-msgstr "Нормаль лака"
 
 
 msgid "View Vector"
@@ -91796,10 +91648,6 @@ msgstr "Иврит (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Эсперанто (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Испанский в Испании (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

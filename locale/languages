@@ -60,5 +60,5 @@
 7:Swedish (Svenska):sv_SE
 46:Thai (ภาษาไทย):th_TH
 30:Turkish (Türkçe):tr_TR
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #38:Uzbek (Oʻzbek):uz_UZ@latin
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #39:Uzbek Cyrillic (Ўзбек):uz_UZ@cyrillic
+# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #38:Uzbek (Oʻzbek):uz_UZ@latin

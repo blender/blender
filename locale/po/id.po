@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -907,6 +907,176 @@ msgstr "Tags"
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Tag kustom (token nama) untuk aset, digunakan untuk pemfilteran dan manajemen aset umum"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Aksi"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Armatur"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Kuas"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Dokumen Cache"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Koleksi"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Kurva"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Font"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Pensil Grease"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Gambar"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Kunci"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Perpustakaan"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Gaya Garis"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Masker"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Material"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Mesh"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Klip Film"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Pohon Node"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objek"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Kurva Cat"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palet"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Partikel"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Titik Awan"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Adegan"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Suara"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Pengeras Suara"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Teks"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Tekstur"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volume"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Pengelola Jendela"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Spasi Kerja"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Dunia"
 
 
 msgid "ID Name"
@@ -6383,176 +6553,6 @@ msgid "Type of ID-block that can be used"
 msgstr "Tipe ID-blok yang dapat digunakan"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Aksi"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Armatur"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Kuas"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Dokumen Cache"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Koleksi"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Kurva"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Font"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Pensil Grease"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Gambar"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Kunci"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Perpustakaan"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Cahaya"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Gaya Garis"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Masker"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Material"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Mesh"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Klip Film"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Pohon Node"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objek"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Kurva Cat"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Palet"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Partikel"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Titik Awan"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Adegan"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Suara"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Pengeras Suara"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Teks"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Tekstur"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volume"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Pengelola Jendela"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Spasi Kerja"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Dunia"
-
-
 msgid "Rotation Mode"
 msgstr "Mode Rotasi"
 
@@ -7431,18 +7431,6 @@ msgstr "Ukuran Layar"
 
 msgid "Change the size of the display (width of columns or thumbnails size)"
 msgstr "Ubah ukuran tampilan (lebar kolom atau ukuran thumbnail)"
-
-
-msgid "Tiny"
-msgstr "Mungil"
-
-
-msgid "Small"
-msgstr "Kecil"
-
-
-msgid "Large"
-msgstr "Besar"
 
 
 msgid "Display Mode"
@@ -14464,11 +14452,6 @@ msgstr "Tekstur"
 
 
 msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Tekstur"
-
-
-msgctxt "Operator"
 msgid "Select All"
 msgstr "Seleksi"
 
@@ -16699,11 +16682,6 @@ msgstr "Tambah Objek Node"
 
 msgid "Add an object info node to the current node editor"
 msgstr "Tambah node info objek ke editor node sekarang"
-
-
-msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Cari dan Tambah Node"
 
 
 msgctxt "Operator"
@@ -18975,14 +18953,6 @@ msgstr "Balikkan Seleksi"
 
 msgid "Select All"
 msgstr "Pilih Semua"
-
-
-msgid "Check Branches"
-msgstr "Cek Cabang"
-
-
-msgid "Check po files in branches"
-msgstr "Cek dokumen po di cabang"
 
 
 msgctxt "Operator"
@@ -22143,12 +22113,12 @@ msgid "Add-on '{}' not found!"
 msgstr "Tambahan '{}' tidak ditemukan!"
 
 
-msgid "Info written to {} text datablock!"
-msgstr "Info tertulis ke {} teks datablok!"
-
-
 msgid "Message extraction process failed!"
 msgstr "Proses ekstraksi pesan gagal!"
+
+
+msgid "Info written to {} text datablock!"
+msgstr "Info tertulis ke {} teks datablok!"
 
 
 msgctxt "Operator"
@@ -22159,16 +22129,6 @@ msgstr "Pengaturan Reset"
 msgctxt "Operator"
 msgid "Deselect All"
 msgstr "Tidak Seleksi Semuanya"
-
-
-msgctxt "Operator"
-msgid "Update Branches"
-msgstr "Memperbarui Cabang"
-
-
-msgctxt "Operator"
-msgid "Clean up Branches"
-msgstr "Membersihkan Cabang"
 
 
 msgctxt "Operator"
@@ -26481,10 +26441,6 @@ msgstr "Yahudi (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Spanyol Espana (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"
