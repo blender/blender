@@ -20,10 +20,10 @@ from bpy_extras.asset_utils import (
 class AssetBrowserMetadataOperator:
     @classmethod
     def poll(cls, context):
-        if not SpaceAssetInfo.is_asset_browser_poll(context) or not context.asset_file_handle:
+        if not SpaceAssetInfo.is_asset_browser_poll(context) or not context.asset:
             return False
 
-        if not context.asset_file_handle.local_id:
+        if not context.asset.local_id:
             Operator.poll_message_set(
                 "Asset metadata from external asset libraries can't be "
                 "edited, only assets stored in the current file can"
@@ -58,13 +58,13 @@ class ASSET_OT_tag_remove(AssetBrowserMetadataOperator, Operator):
         if not super().poll(context):
             return False
 
-        active_asset_file = context.asset_file_handle
-        asset_metadata = active_asset_file.asset_data
+        active_asset = context.asset
+        asset_metadata = active_asset.metadata
         return asset_metadata.active_tag in range(len(asset_metadata.tags))
 
     def execute(self, context):
-        active_asset_file = context.asset_file_handle
-        asset_metadata = active_asset_file.asset_data
+        active_asset = context.asset
+        asset_metadata = active_asset.metadata
         tag = asset_metadata.tags[asset_metadata.active_tag]
 
         asset_metadata.tags.remove(tag)
@@ -84,24 +84,24 @@ class ASSET_OT_open_containing_blend_file(Operator):
 
     @classmethod
     def poll(cls, context):
-        asset_file_handle = getattr(context, "asset_file_handle", None)
+        asset = getattr(context, "asset", None)
 
-        if not asset_file_handle:
+        if not asset:
             cls.poll_message_set("No asset selected")
             return False
-        if asset_file_handle.local_id:
+        if asset.local_id:
             cls.poll_message_set("Selected asset is contained in the current file")
             return False
         return True
 
     def execute(self, context):
-        asset_file_handle = context.asset_file_handle
+        asset = context.asset
 
-        if asset_file_handle.local_id:
+        if asset.local_id:
             self.report({'WARNING'}, "This asset is stored in the current blend file")
             return {'CANCELLED'}
 
-        asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset_file_handle)
+        asset_lib_path = asset.full_library_path
         self.open_in_new_blender(asset_lib_path)
 
         wm = context.window_manager
