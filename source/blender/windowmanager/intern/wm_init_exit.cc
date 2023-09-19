@@ -663,7 +663,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   //  free_txt_data();
 
 #ifdef WITH_PYTHON
-  /* Option not to exit Python so this function can called from 'atexit'. */
+  /* Option not to exit Python so this function can be called from 'atexit'. */
   if ((C == nullptr) || CTX_py_init_get(C)) {
     /* NOTE: (old note)
      * before BKE_blender_free so Python's garbage-collection happens while library still exists.
@@ -675,7 +675,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
     BPY_python_end(do_python_exit);
   }
 #else
-  (void)do_python;
+  (void)do_python_exit;
 #endif
 
   ED_file_exit(); /* For file-selector menu data. */

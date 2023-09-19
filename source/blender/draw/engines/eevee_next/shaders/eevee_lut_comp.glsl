@@ -125,7 +125,7 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
 /* Generate BTDF LUT for `IOR > 1` using Schlick's approximation. Only the transmittance is needed
  * because the scale and bias does not depend on the IOR and can be obtained from the BRDF LUT.
  *
- * Parametrize with `x = sqrt((ior - 1) / (ior + 1))` for higher precision in 1 < IOR < 2,
+ * Parameterize with `x = sqrt((ior - 1) / (ior + 1))` for higher precision in 1 < IOR < 2,
  * and `y = sqrt(1.0 - cos(theta))`, `z = roughness` similar to BRDF LUT.
  *
  * The result is interpreted as:
