@@ -466,6 +466,12 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
       upAxis = pxr::VtValue(pxr::UsdGeomTokens->y);
   }
 
+  /* Set unit scale.
+   * TODO(makowalsk): Add an option to use scene->unit.scale_length as well? */
+  double meters_per_unit = params.convert_to_cm ? pxr::UsdGeomLinearUnits::centimeters :
+                                                  pxr::UsdGeomLinearUnits::meters;
+  pxr::UsdGeomSetStageMetersPerUnit(usd_stage, meters_per_unit);
+
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, upAxis);
 
   usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
@@ -540,6 +546,10 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
   iter.release_writers();
 
+  if (params.export_shapekeys || params.export_armatures) {
+    iter.process_usd_skel();
+  }
+
   /* Set Stage Default Prim Path. */
   if (strlen(params.default_prim_path) > 0) {
     std::string valid_default_prim_path = pxr::TfMakeValidIdentifier(params.default_prim_path);
@@ -558,10 +568,6 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     }
   }
 
-  if (params.export_shapekeys || params.export_armatures) {
-    iter.process_usd_skel();
-  }
-
   /* Set the default prim if it doesn't exist */
   if (!usd_stage->GetDefaultPrim()) {
     /* Use TraverseAll since it's guaranteed to be depth first and will get the first top level
@@ -572,13 +578,6 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     }
   }
 
-  /* Set unit scale.
-   * TODO(makowalsk): Add an option to use scene->unit.scale_length as well? */
-  double meters_per_unit = params.convert_to_cm ? pxr::UsdGeomLinearUnits::centimeters :
-                                                  pxr::UsdGeomLinearUnits::meters;
-  pxr::UsdGeomSetStageMetersPerUnit(usd_stage, meters_per_unit);
-
-  usd_stage->GetRootLayer()->Save();
 
   call_export_hooks(usd_stage, depsgraph);
 
