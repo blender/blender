@@ -1514,8 +1514,20 @@ AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
 
 blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C)
 {
-  return static_cast<blender::asset_system::AssetRepresentation *>(
-      ctx_data_pointer_get(C, "asset"));
+  if (auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(
+          ctx_data_pointer_get(C, "asset")))
+  {
+    return asset;
+  }
+
+  /* Expose the asset representation from the asset-handle.
+   * TODO(Julian): #AssetHandle should be properly replaced by #AssetRepresentation. */
+  bool is_valid;
+  if (AssetHandle handle = CTX_wm_asset_handle(C, &is_valid); is_valid) {
+    return handle.file_data->asset;
+  }
+
+  return nullptr;
 }
 
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)

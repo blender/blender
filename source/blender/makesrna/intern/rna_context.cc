@@ -125,6 +125,12 @@ static PointerRNA rna_Context_gizmo_group_get(PointerRNA *ptr)
   return newptr;
 }
 
+static PointerRNA rna_Context_asset_get(PointerRNA *ptr)
+{
+  bContext *C = (bContext *)ptr->data;
+  return RNA_pointer_create(nullptr, &RNA_AssetRepresentation, CTX_wm_asset(C));
+}
+
 static PointerRNA rna_Context_asset_file_handle_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
@@ -289,6 +295,11 @@ void RNA_def_context(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "GizmoGroup");
   RNA_def_property_pointer_funcs(prop, "rna_Context_gizmo_group_get", nullptr, nullptr, nullptr);
+
+  prop = RNA_def_property(srna, "asset", PROP_POINTER, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_struct_type(prop, "AssetRepresentation");
+  RNA_def_property_pointer_funcs(prop, "rna_Context_asset_get", nullptr, nullptr, nullptr);
 
   /* TODO can't expose AssetHandle, since there is no permanent storage to it (so we can't
    * return a pointer). Instead provide the FileDirEntry pointer it wraps. */
