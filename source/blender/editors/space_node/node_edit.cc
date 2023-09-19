@@ -1191,7 +1191,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 
     if (in_out & SOCK_IN) {
       for (bNodeSocket *sock : node.input_sockets()) {
-        if (sock->is_visible()) {
+        if (node.is_socket_icon_drawn(*sock)) {
           const float2 location = sock->runtime->location;
           if (sock->flag & SOCK_MULTI_INPUT && !(node.flag & NODE_HIDDEN)) {
             if (cursor_isect_multi_input_socket(cursor, *sock)) {
@@ -1210,7 +1210,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
     }
     if (in_out & SOCK_OUT) {
       for (bNodeSocket *sock : node.output_sockets()) {
-        if (sock->is_visible()) {
+        if (node.is_socket_icon_drawn(*sock)) {
           const float2 location = sock->runtime->location;
           if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
             if (!socket_is_occluded(location, node, snode)) {

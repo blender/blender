@@ -704,6 +704,16 @@ inline blender::Span<bNodeLink> bNode::internal_links() const
   return this->runtime->internal_links;
 }
 
+inline bool bNode::is_socket_drawn(const bNodeSocket &socket) const
+{
+  return socket.is_visible();
+}
+
+inline bool bNode::is_socket_icon_drawn(const bNodeSocket &socket) const
+{
+  return socket.is_visible() && (this->flag & NODE_HIDDEN || !socket.is_panel_collapsed());
+}
+
 inline blender::Span<bNode *> bNode::direct_children_in_frame() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
@@ -794,14 +804,9 @@ inline bool bNodeSocket::is_panel_collapsed() const
   return (this->flag & SOCK_PANEL_COLLAPSED) != 0;
 }
 
-inline bool bNodeSocket::is_visible_or_panel_collapsed() const
-{
-  return !this->is_hidden() && this->is_available();
-}
-
 inline bool bNodeSocket::is_visible() const
 {
-  return this->is_visible_or_panel_collapsed() && !this->is_panel_collapsed();
+  return !this->is_hidden() && this->is_available();
 }
 
 inline bNode &bNodeSocket::owner_node()

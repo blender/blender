@@ -2756,8 +2756,7 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 
 bool nodeLinkIsHidden(const bNodeLink *link)
 {
-  return !(link->fromsock->is_visible_or_panel_collapsed() &&
-           link->tosock->is_visible_or_panel_collapsed());
+  return !(link->fromsock->is_visible() && link->tosock->is_visible());
 }
 
 namespace blender::bke {
