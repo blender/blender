@@ -172,15 +172,15 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         }
       }
     }
-    else if (prim_.IsA<pxr::UsdLuxDistantLight>()) {
-      blight->type = LA_SUN;
+  }
+  else if (prim_.IsA<pxr::UsdLuxDistantLight>()) {
+    blight->type = LA_SUN;
 
-      pxr::UsdLuxDistantLight distant_light(prim_);
-      if (distant_light) {
-        float angle;
-        if (get_authored_value(light_api.GetAngleAttr(), motionSampleTime, &angle)) {
-          blight->sun_angle = angle * float(M_PI) / 180.0f;
-        }
+    pxr::UsdLuxDistantLight distant_light(prim_);
+    if (distant_light) {
+      float angle;
+      if (get_authored_value(light_api.GetAngleAttr(), motionSampleTime, &angle)) {
+        blight->sun_angle = angle * float(M_PI) / 180.0f;
       }
     }
   }
