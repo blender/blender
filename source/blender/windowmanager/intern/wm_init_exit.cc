@@ -490,7 +490,7 @@ void wm_exit_schedule_delayed(const bContext *C)
 
 void UV_clipboard_free();
 
-void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actions)
+void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_actions)
 {
   wmWindowManager *wm = C ? CTX_wm_manager(C) : nullptr;
 
@@ -663,8 +663,8 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
   //  free_txt_data();
 
 #ifdef WITH_PYTHON
-  /* option not to close python so we can use 'atexit' */
-  if (do_python && ((C == nullptr) || CTX_py_init_get(C))) {
+  /* Option not to exit Python so this function can called from 'atexit'. */
+  if ((C == nullptr) || CTX_py_init_get(C)) {
     /* NOTE: (old note)
      * before BKE_blender_free so Python's garbage-collection happens while library still exists.
      * Needed at least for a rare crash that can happen in python-drivers.
@@ -672,7 +672,7 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
      * Update for Blender 2.5, move after #BKE_blender_free because Blender now holds references
      * to #PyObject's so #Py_DECREF'ing them after Python ends causes bad problems every time
      * the python-driver bug can be fixed if it happens again we can deal with it then. */
-    BPY_python_end();
+    BPY_python_end(do_python_exit);
   }
 #else
   (void)do_python;

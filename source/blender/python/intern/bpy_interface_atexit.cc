@@ -34,13 +34,13 @@ static PyObject *bpy_atexit(PyObject * /*self*/, PyObject * /*args*/, PyObject *
 
   bContext *C = BPY_context_get();
   /* As Python requested the exit, it handles shutting it's self down. */
-  const bool do_python = false;
+  const bool do_python_exit = false;
   /* User actions such as saving the session, preferences, recent-files for e.g.
    * should be skipped because an explicit call to exit is more likely to be used as part of
    * automated processes shouldn't impact the users session in the future. */
   const bool do_user_exit_actions = false;
 
-  WM_exit_ex(C, do_python, do_user_exit_actions);
+  WM_exit_ex(C, do_python_exit, do_user_exit_actions);
 
   Py_RETURN_NONE;
 }

@@ -535,7 +535,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 #endif
 }
 
-void BPY_python_end()
+void BPY_python_end(const bool do_python_exit)
 {
   PyGILState_STATE gilstate;
 
@@ -564,14 +564,16 @@ void BPY_python_end()
   BPY_app_translations_end();
 
 #ifndef WITH_PYTHON_MODULE
-  /* Without this we get recursive calls to #WM_exit. */
+  /* Without this we get recursive calls to #WM_exit_ex. */
   BPY_atexit_unregister();
 
-  Py_Finalize();
-
+  if (do_python_exit) {
+    Py_Finalize();
+  }
   (void)gilstate;
 #else
   PyGILState_Release(gilstate);
+  (void)do_python_exit;
 #endif
 
 #ifdef TIME_PY_RUN
