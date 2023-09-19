@@ -71,7 +71,6 @@ void ARMATURE_OT_autoside_names(struct wmOperatorType *ot);
 void ARMATURE_OT_flip_names(struct wmOperatorType *ot);
 
 void ARMATURE_OT_layers_show_all(struct wmOperatorType *ot);
-void ARMATURE_OT_armature_layers(struct wmOperatorType *ot);
 
 void ARMATURE_OT_collection_add(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_remove(struct wmOperatorType *ot);

@@ -5710,7 +5710,7 @@ def km_edit_armature(params):
         op_menu("VIEW3D_MT_bone_options_disable", {"type": 'W', "value": 'PRESS', "alt": True}),
         # Armature/bone layers.
         ("armature.layers_show_all", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True}, None),
-        ("armature.armature_layers", {"type": 'M', "value": 'PRESS', "shift": True}, None),
+        op_menu("VIEW3D_MT_bone_collections", {"type": 'M', "value": 'PRESS', "shift": True}),
         ("armature.move_to_collection", {"type": 'M', "value": 'PRESS'}, None),
         # Special transforms.
         op_tool_optional(
