@@ -203,17 +203,16 @@ enum {
                                              * assigned to ID datablocks */
   G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_EVAL | G_DEBUG_DEPSGRAPH_TAG |
                        G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UUID),
-  G_DEBUG_SIMDATA = (1 << 15),                /* sim debug data display */
-  G_DEBUG_GPU = (1 << 16),                    /* gpu debug */
-  G_DEBUG_IO = (1 << 17),                     /* IO Debugging (for Collada, ...). */
-  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18),  /* force gpu workarounds bypassing detections. */
-  G_DEBUG_GPU_FORCE_DISABLE_SSBO = (1 << 19), /* force disabling usage of SSBO's */
-  G_DEBUG_GPU_RENDERDOC = (1 << 20),          /* Enable RenderDoc integration. */
-  G_DEBUG_XR = (1 << 21),                     /* XR/OpenXR messages */
-  G_DEBUG_XR_TIME = (1 << 22),                /* XR/OpenXR timing messages */
+  G_DEBUG_SIMDATA = (1 << 15),               /* sim debug data display */
+  G_DEBUG_GPU = (1 << 16),                   /* gpu debug */
+  G_DEBUG_IO = (1 << 17),                    /* IO Debugging (for Collada, ...). */
+  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18), /* force gpu workarounds bypassing detections. */
+  G_DEBUG_GPU_RENDERDOC = (1 << 19),         /* Enable RenderDoc integration. */
+  G_DEBUG_XR = (1 << 20),                    /* XR/OpenXR messages */
+  G_DEBUG_XR_TIME = (1 << 21),               /* XR/OpenXR timing messages */
 
-  G_DEBUG_GHOST = (1 << 23),  /* Debug GHOST module. */
-  G_DEBUG_WINTAB = (1 << 24), /* Debug Wintab. */
+  G_DEBUG_GHOST = (1 << 22),  /* Debug GHOST module. */
+  G_DEBUG_WINTAB = (1 << 23), /* Debug Wintab. */
 };
 
 #define G_DEBUG_ALL \

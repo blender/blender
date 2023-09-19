@@ -457,13 +457,6 @@ static void detect_workarounds()
 
   /* Minimum Per-Vertex stride is 1 byte for OpenGL. */
   GCaps.minimum_per_vertex_stride = 1;
-
-  /* Force disable per feature. */
-  if (G.debug & G_DEBUG_GPU_FORCE_DISABLE_SSBO) {
-    printf("\n");
-    printf("GL: Force disabling SSBO support from commandline arguments.\n");
-    GCaps.shader_storage_buffer_objects_support = false;
-  }
 }  // namespace blender::gpu
 
 /** Internal capabilities. */
