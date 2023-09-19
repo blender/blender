@@ -701,7 +701,7 @@ AviError AVI_close(AviMovie *movie)
   return AVI_ERROR_NONE;
 }
 
-AviError AVI_open_compress(char *filepath, AviMovie *movie, int streams, ...)
+AviError AVI_open_compress(const char *filepath, AviMovie *movie, int streams, ...)
 {
   va_list ap;
   AviList list;

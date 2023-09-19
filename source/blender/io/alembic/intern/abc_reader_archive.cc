@@ -63,7 +63,7 @@ static IArchive open_archive(const std::string &filename,
   return IArchive();
 }
 
-ArchiveReader *ArchiveReader::get(Main *bmain, const std::vector<const char *> &filenames)
+ArchiveReader *ArchiveReader::get(const Main *bmain, const std::vector<const char *> &filenames)
 {
   std::vector<ArchiveReader *> readers;
 
@@ -103,7 +103,7 @@ ArchiveReader::ArchiveReader(const std::vector<ArchiveReader *> &readers) : m_re
   m_archive = IArchive(arPtr, kWrapExisting, ErrorHandler::kThrowPolicy);
 }
 
-ArchiveReader::ArchiveReader(Main *bmain, const char *filename)
+ArchiveReader::ArchiveReader(const Main *bmain, const char *filename)
 {
   char abs_filepath[FILE_MAX];
   STRNCPY(abs_filepath, filename);

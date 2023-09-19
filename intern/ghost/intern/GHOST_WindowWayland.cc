@@ -1122,7 +1122,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
 #  ifdef USE_EVENT_BACKGROUND_THREAD
-    GHOST_SystemWayland *system = win->ghost_system;
+    const GHOST_SystemWayland *system = win->ghost_system;
     const bool is_main_thread = system->main_thread_id == std::this_thread::get_id();
     if (!is_main_thread) {
       gwl_window_pending_actions_tag(win, PENDING_WINDOW_FRAME_CONFIGURE);
@@ -1220,7 +1220,7 @@ static void xdg_surface_handle_configure(void *data,
   win->xdg_decor->pending.ack_configure_serial = serial;
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
-  GHOST_SystemWayland *system = win->ghost_system;
+  const GHOST_SystemWayland *system = win->ghost_system;
   const bool is_main_thread = system->main_thread_id == std::this_thread::get_id();
   if (!is_main_thread) {
     /* NOTE(@ideasman42): this only gets one redraw,

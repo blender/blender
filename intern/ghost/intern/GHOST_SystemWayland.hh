@@ -191,8 +191,8 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TSuccess cursor_shape_check(GHOST_TStandardCursor cursorShape);
 
-  GHOST_TSuccess cursor_shape_custom_set(uint8_t *bitmap,
-                                         uint8_t *mask,
+  GHOST_TSuccess cursor_shape_custom_set(const uint8_t *bitmap,
+                                         const uint8_t *mask,
                                          int sizex,
                                          int sizey,
                                          int hotX,

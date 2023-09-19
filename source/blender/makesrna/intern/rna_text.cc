@@ -29,7 +29,7 @@
 
 static void rna_Text_filepath_get(PointerRNA *ptr, char *value)
 {
-  Text *text = (Text *)ptr->data;
+  const Text *text = (const Text *)ptr->data;
 
   if (text->filepath) {
     strcpy(value, text->filepath);
@@ -41,7 +41,7 @@ static void rna_Text_filepath_get(PointerRNA *ptr, char *value)
 
 static int rna_Text_filepath_length(PointerRNA *ptr)
 {
-  Text *text = (Text *)ptr->data;
+  const Text *text = (const Text *)ptr->data;
   return (text->filepath) ? strlen(text->filepath) : 0;
 }
 
@@ -63,13 +63,13 @@ static void rna_Text_filepath_set(PointerRNA *ptr, const char *value)
 
 static bool rna_Text_modified_get(PointerRNA *ptr)
 {
-  Text *text = (Text *)ptr->data;
+  const Text *text = (const Text *)ptr->data;
   return BKE_text_file_modified_check(text) != 0;
 }
 
 static int rna_Text_current_line_index_get(PointerRNA *ptr)
 {
-  Text *text = (Text *)ptr->data;
+  const Text *text = (const Text *)ptr->data;
   return BLI_findindex(&text->lines, text->curl);
 }
 
@@ -86,7 +86,7 @@ static void rna_Text_current_line_index_set(PointerRNA *ptr, int value)
 
 static int rna_Text_select_end_line_index_get(PointerRNA *ptr)
 {
-  Text *text = static_cast<Text *>(ptr->data);
+  const Text *text = static_cast<Text *>(ptr->data);
   return BLI_findindex(&text->lines, text->sell);
 }
 
@@ -103,7 +103,7 @@ static void rna_Text_select_end_line_index_set(PointerRNA *ptr, int value)
 
 static int rna_Text_current_character_get(PointerRNA *ptr)
 {
-  Text *text = static_cast<Text *>(ptr->data);
+  const Text *text = static_cast<const Text *>(ptr->data);
   const TextLine *line = text->curl;
   return BLI_str_utf8_offset_to_index(line->line, line->len, text->curc);
 }
@@ -135,7 +135,7 @@ static void rna_Text_select_end_character_set(PointerRNA *ptr, int index)
 
 static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
 {
-  TextLine *line = (TextLine *)ptr->data;
+  const TextLine *line = (const TextLine *)ptr->data;
 
   if (line->line) {
     strcpy(value, line->line);
@@ -147,7 +147,7 @@ static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
 
 static int rna_TextLine_body_length(PointerRNA *ptr)
 {
-  TextLine *line = (TextLine *)ptr->data;
+  const TextLine *line = (const TextLine *)ptr->data;
   return line->len;
 }
 

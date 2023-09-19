@@ -525,7 +525,7 @@ void BKE_text_write(Text *text, const char *str, int str_len) /* called directly
   txt_make_dirty(text);
 }
 
-int BKE_text_file_modified_check(Text *text)
+int BKE_text_file_modified_check(const Text *text)
 {
   BLI_stat_t st;
   int result;

@@ -227,7 +227,7 @@ bool AVI_is_avi(const char *filepath);
 /**
  * Open a compressed file, decompress it into memory.
  */
-AviError AVI_open_compress(char *filepath, AviMovie *movie, int streams, ...);
+AviError AVI_open_compress(const char *filepath, AviMovie *movie, int streams, ...);
 
 /**
  * Finalize a compressed output stream.
