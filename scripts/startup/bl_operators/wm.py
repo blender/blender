@@ -1027,7 +1027,7 @@ class WM_OT_url_open(Operator):
 
     @staticmethod
     def _add_utm_param_to_url(url, utm_source):
-        import urllib
+        import urllib.parse
 
         # Make sure we have a scheme otherwise we can't parse the url.
         if not url.startswith(("http://", "https://")):
