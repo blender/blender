@@ -890,6 +890,10 @@ PyObject *PyC_ExceptionBuffer()
   PyObject *error_type, *error_value, *error_traceback;
   PyErr_Fetch(&error_type, &error_value, &error_traceback);
 
+  /* Normalizing is needed because it's possible the error value is a string which
+   * #PyErr_Display will fail to print. */
+  PyErr_NormalizeException(&error_type, &error_value, &error_traceback);
+
   /* `io.StringIO()`. */
   PyObject *string_io = nullptr;
   PyObject *string_io_mod = nullptr;

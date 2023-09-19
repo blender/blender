@@ -32,7 +32,8 @@ void PyC_StackSpit(void);
  * Return a string containing the full stack trace.
  *
  * - Only call when `PyErr_Occurred() != 0` .
- * - The exception is left in place (without being modified or cleared).
+ * - The exception is left in place without being manipulated,
+ *   although they will be normalized in order to display them (`PyErr_Print` also does this).
  * - `SystemExit` exceptions will exit (so `sys.exit(..)` works, matching `PyErr_Print` behavior).
  * - The always returns a Python string (unless exiting where the function doesn't return).
  */
