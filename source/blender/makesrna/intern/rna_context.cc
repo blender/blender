@@ -131,21 +131,6 @@ static PointerRNA rna_Context_asset_get(PointerRNA *ptr)
   return RNA_pointer_create(nullptr, &RNA_AssetRepresentation, CTX_wm_asset(C));
 }
 
-static PointerRNA rna_Context_asset_file_handle_get(PointerRNA *ptr)
-{
-  bContext *C = (bContext *)ptr->data;
-  bool is_handle_valid;
-  AssetHandle asset_handle = CTX_wm_asset_handle(C, &is_handle_valid);
-  if (!is_handle_valid) {
-    return PointerRNA_NULL;
-  }
-
-  /* Have to cast away const, but the file entry API doesn't allow modifications anyway. */
-  PointerRNA newptr = RNA_pointer_create(
-      nullptr, &RNA_FileSelectEntry, (FileDirEntry *)asset_handle.file_data);
-  return newptr;
-}
-
 static PointerRNA rna_Context_main_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
@@ -300,18 +285,6 @@ void RNA_def_context(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "AssetRepresentation");
   RNA_def_property_pointer_funcs(prop, "rna_Context_asset_get", nullptr, nullptr, nullptr);
-
-  /* TODO can't expose AssetHandle, since there is no permanent storage to it (so we can't
-   * return a pointer). Instead provide the FileDirEntry pointer it wraps. */
-  prop = RNA_def_property(srna, "asset_file_handle", PROP_POINTER, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_struct_type(prop, "FileSelectEntry");
-  RNA_def_property_pointer_funcs(
-      prop, "rna_Context_asset_file_handle_get", nullptr, nullptr, nullptr);
-  RNA_def_property_ui_text(prop,
-                           "",
-                           "The file of an active asset. Avoid using this, it will be replaced by "
-                           "a proper AssetHandle design");
 
   /* Data */
   prop = RNA_def_property(srna, "blend_data", PROP_POINTER, PROP_NONE);
