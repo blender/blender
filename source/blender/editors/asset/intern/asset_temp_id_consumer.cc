@@ -14,10 +14,6 @@
 
 #include "AS_asset_representation.hh"
 
-#include "DNA_space_types.h"
-
-#include "ED_asset.hh"
-
 #include "BKE_report.h"
 
 #include "BLI_utility_mixins.hh"
@@ -68,16 +64,6 @@ class AssetTemporaryIDConsumer : NonCopyable, NonMovable {
     return temp_lib_context_->temp_id;
   }
 };
-
-AssetTempIDConsumer *ED_asset_temp_id_consumer_create(const AssetHandle *handle)
-{
-  if (!handle) {
-    return nullptr;
-  }
-  BLI_assert(handle->file_data->asset != nullptr);
-  return reinterpret_cast<AssetTempIDConsumer *>(
-      MEM_new<AssetTemporaryIDConsumer>(__func__, ED_asset_handle_get_representation(handle)));
-}
 
 AssetTempIDConsumer *ED_asset_temp_id_consumer_create(
     const asset_system::AssetRepresentation *asset)

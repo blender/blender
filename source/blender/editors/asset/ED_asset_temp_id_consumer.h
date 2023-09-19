@@ -31,7 +31,6 @@ struct AssetHandle;
 struct Main;
 struct ReportList;
 
-AssetTempIDConsumer *ED_asset_temp_id_consumer_create(const struct AssetHandle *handle);
 #ifdef __cplusplus
 extern "C++" AssetTempIDConsumer *ED_asset_temp_id_consumer_create(
     const blender::asset_system::AssetRepresentation *asset);
