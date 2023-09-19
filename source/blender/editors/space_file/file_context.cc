@@ -20,7 +20,7 @@ const char *file_context_dir[] = {
     "active_file",
     "selected_files",
     "asset_library_ref",
-    "selected_asset_files",
+    "selected_assets",
     "id",
     "selected_ids",
     nullptr,
@@ -79,17 +79,14 @@ int /*eContextResult*/ file_context(const bContext *C,
         result, &screen->id, &RNA_AssetLibraryReference, &asset_params->asset_library_ref);
     return CTX_RESULT_OK;
   }
-  /** TODO temporary AssetHandle design: For now this returns the file entry. Would be better if it
-   * was `"selected_assets"` and returned the assets (e.g. as `AssetHandle`) directly. See comment
-   * for #AssetHandle for more info. */
-  if (CTX_data_equals(member, "selected_asset_files")) {
+  if (CTX_data_equals(member, "selected_assets")) {
     const int num_files_filtered = filelist_files_ensure(sfile->files);
 
     for (int file_index = 0; file_index < num_files_filtered; file_index++) {
       if (filelist_entry_is_selected(sfile->files, file_index)) {
         FileDirEntry *entry = filelist_file(sfile->files, file_index);
         if (entry->asset) {
-          CTX_data_list_add(result, &screen->id, &RNA_FileSelectEntry, entry);
+          CTX_data_list_add(result, nullptr, &RNA_AssetRepresentation, entry->asset);
         }
       }
     }
