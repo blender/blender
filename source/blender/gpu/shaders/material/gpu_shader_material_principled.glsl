@@ -18,6 +18,12 @@ float principled_sheen(float NV, float rough)
   return saturate(den / num);
 }
 
+float ior_from_F0(float F0)
+{
+  float f = sqrt(clamp(F0, 0.0, 0.99));
+  return (-f - 1.0) / (f - 1.0);
+}
+
 void node_bsdf_principled(vec4 base_color,
                           float metallic,
                           float roughness,
@@ -111,11 +117,11 @@ void node_bsdf_principled(vec4 base_color,
   reflection_data.roughness = roughness;
 
   if (true) {
-    vec3 f0 = base_color.rgb;
-    vec3 f90 = vec3(1.0);
+    vec3 F0 = base_color.rgb;
+    vec3 F90 = vec3(1.0);
     vec2 split_sum = brdf_lut(NV, roughness);
-    vec3 metallic_brdf = (do_multiscatter != 0.0) ? F_brdf_multi_scatter(f0, f90, split_sum) :
-                                                    F_brdf_single_scatter(f0, f90, split_sum);
+    vec3 metallic_brdf = (do_multiscatter != 0.0) ? F_brdf_multi_scatter(F0, F90, split_sum) :
+                                                    F_brdf_single_scatter(F0, F90, split_sum);
     reflection_data.color = weight * metallic * metallic_brdf;
     /* Attenuate lower layers */
     weight *= (1.0 - metallic);
@@ -144,11 +150,21 @@ void node_bsdf_principled(vec4 base_color,
 
   /* Specular component */
   if (true) {
-    vec3 F0 = vec3(F0_from_ior(ior)) * 2.0 * specular * reflection_tint;
+    float eta = ior;
+    float f0 = F0_from_ior(eta);
+    if (specular != 0.5) {
+      f0 *= 2.0 * specular;
+      eta = ior_from_F0(f0);
+      if (ior < 1.0) {
+        eta = 1.0 / eta;
+      }
+    }
+
+    vec3 F0 = vec3(f0) * reflection_tint;
     F0 = clamp(F0, vec3(0.0), vec3(1.0));
     vec3 F90 = vec3(1.0);
     vec3 reflectance, unused;
-    bsdf_lut(F0, F90, vec3(0.0), NV, roughness, ior, do_multiscatter, reflectance, unused);
+    bsdf_lut(F0, F90, vec3(0.0), NV, roughness, eta, do_multiscatter, reflectance, unused);
 
     reflection_data.color += weight * reflectance;
     /* Attenuate lower layers */

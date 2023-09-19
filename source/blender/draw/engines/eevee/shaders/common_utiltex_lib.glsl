@@ -162,8 +162,15 @@ vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter
   float F0 = F0_from_ior(ior);
   vec3 color = vec3(1.0);
   vec3 reflectance, transmittance;
-  bsdf_lut(
-      F0, color, color, cos_theta, roughness, ior, do_multiscatter, reflectance, transmittance);
+  bsdf_lut(vec3(F0),
+           color,
+           color,
+           cos_theta,
+           roughness,
+           ior,
+           do_multiscatter,
+           reflectance,
+           transmittance);
   return vec2(reflectance.r, transmittance.r);
 }
 

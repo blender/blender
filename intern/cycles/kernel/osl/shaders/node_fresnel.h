@@ -42,3 +42,9 @@ float F0_from_ior(float eta)
   float f0 = (eta - 1.0) / (eta + 1.0);
   return f0 * f0;
 }
+
+float ior_from_F0(float f0)
+{
+  float sqrt_f0 = sqrt(clamp(f0, 0.0, 0.99));
+  return (1.0 + sqrt_f0) / (1.0 - sqrt_f0);
+}
