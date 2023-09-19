@@ -508,7 +508,7 @@ int ED_asset_shelf_context(const bContext *C, const char *member, bContextDataRe
 {
   static const char *context_dir[] = {
       "asset_shelf",
-      "asset_library_ref",
+      "asset_library_reference",
       "active_file", /* XXX yuk... */
       nullptr,
   };
@@ -544,7 +544,7 @@ int ED_asset_shelf_context(const bContext *C, const char *member, bContextDataRe
     return CTX_RESULT_OK;
   }
 
-  if (CTX_data_equals(member, "asset_library_ref")) {
+  if (CTX_data_equals(member, "asset_library_reference")) {
     CTX_data_pointer_set(result,
                          &screen->id,
                          &RNA_AssetLibraryReference,

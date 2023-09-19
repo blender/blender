@@ -19,7 +19,7 @@
 const char *file_context_dir[] = {
     "active_file",
     "selected_files",
-    "asset_library_ref",
+    "asset_library_reference",
     "selected_assets",
     "id",
     "selected_ids",
@@ -69,7 +69,7 @@ int /*eContextResult*/ file_context(const bContext *C,
     return CTX_RESULT_OK;
   }
 
-  if (CTX_data_equals(member, "asset_library_ref")) {
+  if (CTX_data_equals(member, "asset_library_reference")) {
     FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
     if (!asset_params) {
       return CTX_RESULT_NO_DATA;

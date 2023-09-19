@@ -1484,7 +1484,7 @@ bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
 
 const AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C)
 {
-  return static_cast<AssetLibraryReference *>(ctx_data_pointer_get(C, "asset_library_ref"));
+  return static_cast<AssetLibraryReference *>(ctx_data_pointer_get(C, "asset_library_reference"));
 }
 
 static AssetHandle ctx_wm_asset_handle(const bContext *C, bool *r_is_valid)

@@ -817,7 +817,7 @@ static void ASSET_OT_bundle_install(wmOperatorType *ot)
   ot->invoke = asset_bundle_install_invoke;
   ot->poll = asset_bundle_install_poll;
 
-  ot->prop = RNA_def_property(ot->srna, "asset_library_ref", PROP_ENUM, PROP_NONE);
+  ot->prop = RNA_def_property(ot->srna, "asset_library_reference", PROP_ENUM, PROP_NONE);
   RNA_def_property_flag(ot->prop, PROP_HIDDEN);
   RNA_def_enum_funcs(ot->prop, rna_asset_library_reference_itemf);
 
@@ -840,7 +840,7 @@ static bool could_be_asset_bundle(const Main *bmain)
 
 static const bUserAssetLibrary *selected_asset_library(wmOperator *op)
 {
-  const int enum_value = RNA_enum_get(op->ptr, "asset_library_ref");
+  const int enum_value = RNA_enum_get(op->ptr, "asset_library_reference");
   const AssetLibraryReference lib_ref = ED_asset_library_reference_from_enum_value(enum_value);
   const bUserAssetLibrary *lib = BKE_preferences_asset_library_find_index(
       &U, lib_ref.custom_library_index);
@@ -857,7 +857,7 @@ static bool is_contained_in_selected_asset_library(wmOperator *op, const char *f
 }
 
 /**
- * Set the "filepath" RNA property based on selected "asset_library_ref".
+ * Set the "filepath" RNA property based on selected "asset_library_reference".
  * \return true if ok, false if error.
  */
 static bool set_filepath_for_asset_lib(const Main *bmain, wmOperator *op)
