@@ -30,12 +30,18 @@ void PyC_StackSpit(void);
 
 /**
  * Return a string containing the full stack trace.
+ *
  * - Only call when `PyErr_Occurred() != 0` .
- * - The always returns a Python string.
+ * - The exception is left in place (without being modified or cleared).
+ * - `SystemExit` exceptions will exit (so `sys.exit(..)` works, matching `PyErr_Print` behavior).
+ * - The always returns a Python string (unless exiting where the function doesn't return).
  */
 PyObject *PyC_ExceptionBuffer(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * A version of #PyC_ExceptionBuffer that returns the last exception only.
+ *
+ * Useful for error messages from evaluating numeric expressions for e.g.
+ * where a full multi-line stack-trace isn't needed and doesn't format well in the status-bar.
  */
 PyObject *PyC_ExceptionBuffer_Simple(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 

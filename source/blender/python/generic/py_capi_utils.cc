@@ -836,6 +836,22 @@ void PyC_Err_PrintWithFunc(PyObject *py_func)
 /** \name Exception Buffer Access
  * \{ */
 
+/**
+ * When a script calls `sys.exit(..)` it is expected that Blender quits,
+ * internally this raises as `SystemExit` exception which this function detects.
+ *
+ * Historically Blender would call `PyErr_Print` when encountering an error.
+ * In some cases `PyErr_Print` is still called, but not all.
+ * When only #PyC_ExceptionBuffer is used to access the error, it's not desirable
+ * that `sys.exit()` fails to exit, causing `sys.exit(..)` to arbitrarily work depending
+ * on the internals of Blender's error handling.
+ * To avoid this discrepancy, detect when `PyErr_Print` *would* exit and call it in that case.
+ * It's important to call `PyErr_Print` (instead of simply exiting), because the exception
+ * may contain a message which the user should see.
+ *
+ * \note No need to handle freeing resources here, Python's `atexit` is used to cleanup
+ * Blender's state when Python requests an exit (via `bpy_atexit` callback).
+ */
 static void pyc_exception_buffer_handle_system_exit()
 {
   if (!PyErr_ExceptionMatches(PyExc_SystemExit)) {
@@ -847,10 +863,9 @@ static void pyc_exception_buffer_handle_system_exit()
   }
 
   /* NOTE(@ideasman42): A `SystemExit` exception will exit immediately (unless inspecting).
-   * So print the error and exit now. This is necessary as the call to #PyErr_Print exits,
-   * the temporary `sys.stderr` assignment causes the output to be suppressed, failing silently.
-   * Instead, restore the error and print it. If Python changes it's behavior and doesn't exit in
-   * the future - continue to create the exception buffer, see: #99966.
+   * So print the error and exit now. Without this #PyErr_Display shows the error stack-trace
+   * as a regular exception (as if something went wrong) and fail to exit.
+   * see: #99966 for additional context.
    *
    * Arguably accessing a `SystemExit` exception as a buffer should be supported without exiting.
    * (by temporarily enabling inspection for example) however - it's not obvious exactly when this
