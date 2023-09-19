@@ -2838,32 +2838,6 @@ static int rna_FileBrowser_FileSelectEntry_relative_path_length(PointerRNA *ptr)
   return int(strlen(entry->relpath));
 }
 
-static const EnumPropertyItem *rna_FileBrowser_FileSelectEntry_id_type_itemf(
-    bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool * /*r_free*/)
-{
-  const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
-  if (entry->blentype == 0) {
-    static const EnumPropertyItem none_items[] = {
-        {0, "NONE", 0, "None", ""},
-    };
-    return none_items;
-  }
-
-  return rna_enum_id_type_items;
-}
-
-static int rna_FileBrowser_FileSelectEntry_id_type_get(PointerRNA *ptr)
-{
-  const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
-  return entry->blentype;
-}
-
-static PointerRNA rna_FileBrowser_FileSelectEntry_local_id_get(PointerRNA *ptr)
-{
-  const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
-  return rna_pointer_inherit_refine(ptr, &RNA_ID, entry->id);
-}
-
 static int rna_FileBrowser_FileSelectEntry_preview_icon_id_get(PointerRNA *ptr)
 {
   const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
@@ -6673,29 +6647,6 @@ static void rna_def_fileselect_entry(BlenderRNA *brna)
                            "Path relative to the directory currently displayed in the File "
                            "Browser (includes the file name)");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-  prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_enum_id_type_items);
-  RNA_def_property_enum_funcs(prop,
-                              "rna_FileBrowser_FileSelectEntry_id_type_get",
-                              nullptr,
-                              "rna_FileBrowser_FileSelectEntry_id_type_itemf");
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop,
-      "Data-block Type",
-      "The type of the data-block, if the file represents one ('NONE' otherwise)");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
-
-  prop = RNA_def_property(srna, "local_id", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "ID");
-  RNA_def_property_pointer_funcs(
-      prop, "rna_FileBrowser_FileSelectEntry_local_id_get", nullptr, nullptr, nullptr);
-  RNA_def_property_ui_text(prop,
-                           "",
-                           "The local data-block this file represents; only valid if that is a "
-                           "data-block in this file");
-  RNA_def_property_flag(prop, PROP_HIDDEN);
 
   prop = RNA_def_int(
       srna,

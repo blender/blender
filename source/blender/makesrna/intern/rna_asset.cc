@@ -367,23 +367,6 @@ static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
   asset_handle->file_data = static_cast<const FileDirEntry *>(value.data);
 }
 
-static void rna_AssetHandle_get_full_library_path(
-    // AssetHandle *asset,
-    FileDirEntry *asset_file,
-    char r_result[/*FILE_MAX_LIBEXTRA*/])
-{
-  AssetHandle asset{};
-  asset.file_data = asset_file;
-  ED_asset_handle_get_full_library_path(&asset, r_result);
-}
-
-static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
-{
-  const AssetHandle *asset = static_cast<const AssetHandle *>(ptr->data);
-  ID *id = ED_asset_handle_get_representation(asset)->local_id();
-  return rna_pointer_inherit_refine(ptr, &RNA_ID, id);
-}
-
 static void rna_AssetRepresentation_name_get(PointerRNA *ptr, char *value)
 {
   const AssetRepresentation *asset = static_cast<const AssetRepresentation *>(ptr->data);
@@ -597,22 +580,6 @@ static void rna_def_asset_data(BlenderRNA *brna)
                            "data recovery purposes");
 }
 
-static void rna_def_asset_handle_api(StructRNA *srna)
-{
-  FunctionRNA *func;
-  PropertyRNA *parm;
-
-  func = RNA_def_function(srna, "get_full_library_path", "rna_AssetHandle_get_full_library_path");
-  /* TODO temporarily static function, for until .py can receive the asset handle from context
-   * properly. `asset_file_handle` should go away too then. */
-  RNA_def_function_flag(func, FUNC_NO_SELF);
-  parm = RNA_def_pointer(func, "asset_file_handle", "FileSelectEntry", "", "");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_string(func, "result", nullptr, FILE_MAX_LIBEXTRA, "result", "");
-  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
-  RNA_def_function_output(func, parm);
-}
-
 static void rna_def_asset_handle(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -631,17 +598,6 @@ static void rna_def_asset_handle(BlenderRNA *brna)
       prop, "rna_AssetHandle_file_data_get", "rna_AssetHandle_file_data_set", nullptr, nullptr);
   RNA_def_property_ui_text(
       prop, "File Entry", "TEMPORARY, DO NOT USE - File data used to refer to the asset");
-
-  prop = RNA_def_property(srna, "local_id", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "ID");
-  RNA_def_property_pointer_funcs(prop, "rna_AssetHandle_local_id_get", nullptr, nullptr, nullptr);
-  RNA_def_property_ui_text(prop,
-                           "",
-                           "The local data-block this asset represents; only valid if that is a "
-                           "data-block in this file");
-  RNA_def_property_flag(prop, PROP_HIDDEN);
-
-  rna_def_asset_handle_api(srna);
 }
 
 static void rna_def_asset_representation(BlenderRNA *brna)
