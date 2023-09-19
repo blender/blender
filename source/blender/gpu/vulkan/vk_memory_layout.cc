@@ -60,6 +60,7 @@ uint32_t Std430::element_components_len(const shader::Type type)
     case shader::Type::VEC3:
     case shader::Type::UVEC3:
     case shader::Type::IVEC3:
+      return 3;
     case shader::Type::VEC4:
     case shader::Type::UVEC4:
     case shader::Type::IVEC4:
@@ -76,7 +77,31 @@ uint32_t Std430::element_components_len(const shader::Type type)
 
 uint32_t Std430::array_components_len(const shader::Type type)
 {
-  return Std430::element_components_len(type);
+  switch (type) {
+    case shader::Type::FLOAT:
+    case shader::Type::UINT:
+    case shader::Type::INT:
+    case shader::Type::BOOL:
+      return 1;
+    case shader::Type::VEC2:
+    case shader::Type::UVEC2:
+    case shader::Type::IVEC2:
+      return 2;
+    case shader::Type::VEC3:
+    case shader::Type::UVEC3:
+    case shader::Type::IVEC3:
+    case shader::Type::VEC4:
+    case shader::Type::UVEC4:
+    case shader::Type::IVEC4:
+      return 4;
+    case shader::Type::MAT3:
+      return 12;
+    case shader::Type::MAT4:
+      return 16;
+    default:
+      BLI_assert_msg(false, "Type not supported in dynamic structs.");
+  }
+  return 0;
 }
 
 uint32_t Std140::component_mem_size(const shader::Type /*type*/)

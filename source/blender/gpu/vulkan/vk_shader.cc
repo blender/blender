@@ -1006,7 +1006,7 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
   if (push_constants_storage != VKPushConstants::StorageType::NONE) {
     ss << "\n/* Push Constants. */\n";
     if (push_constants_storage == VKPushConstants::StorageType::PUSH_CONSTANTS) {
-      ss << "layout(push_constant) uniform constants\n";
+      ss << "layout(push_constant, std430) uniform constants\n";
     }
     else if (push_constants_storage == VKPushConstants::StorageType::UNIFORM_BUFFER) {
       ss << "layout(binding = " << push_constants_layout.descriptor_set_location_get()
