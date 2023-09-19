@@ -748,11 +748,11 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
     case SPACE_SEQ: {
       switch (tkey->mode) {
         case SEQ_VIEW_SEQUENCE:
-          return "builtin.select";
+          return "builtin.select_box";
         case SEQ_VIEW_PREVIEW:
           return "builtin.sample";
         case SEQ_VIEW_SEQUENCE_PREVIEW:
-          return "builtin.select";
+          return "builtin.select_box";
       }
       return "builtin.select_box";
     }
