@@ -143,10 +143,13 @@ void ANIM_bonecoll_hide(struct BoneCollection *bcoll);
 bool ANIM_armature_bonecoll_assign(struct BoneCollection *bcoll, struct Bone *bone);
 bool ANIM_armature_bonecoll_assign_editbone(struct BoneCollection *bcoll, struct EditBone *ebone);
 bool ANIM_armature_bonecoll_assign_and_move(struct BoneCollection *bcoll, struct Bone *bone);
+bool ANIM_armature_bonecoll_assign_and_move_editbone(struct BoneCollection *bcoll,
+                                                     struct EditBone *ebone);
 bool ANIM_armature_bonecoll_unassign(struct BoneCollection *bcoll, struct Bone *bone);
-void ANIM_armature_bonecoll_unassign_all(struct Bone *bone);
 bool ANIM_armature_bonecoll_unassign_editbone(struct BoneCollection *bcoll,
                                               struct EditBone *ebone);
+void ANIM_armature_bonecoll_unassign_all(struct Bone *bone);
+void ANIM_armature_bonecoll_unassign_all_editbone(struct EditBone *ebone);
 
 /* Assign the edit bone to the armature's active collection. */
 void ANIM_armature_bonecoll_assign_active(const struct bArmature *armature,

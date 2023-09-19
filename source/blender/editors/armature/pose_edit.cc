@@ -906,64 +906,6 @@ void POSE_OT_bone_layers(wmOperatorType *ot)
       ot->srna, "layers", 32, nullptr, "Layer", "Armature layers that bone belongs to");
 }
 
-/* ------------------- */
-
-/* Present a popup to get the layers that should be used */
-static int armature_bone_layers_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
-  bool layers[32] = {false};
-
-  /* get layers that are active already */
-  CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
-    short bit;
-
-    /* loop over the bits for this pchan's layers, adding layers where they're needed */
-    for (bit = 0; bit < 32; bit++) {
-      if (ebone->layer & (1u << bit)) {
-        layers[bit] = true;
-      }
-    }
-  }
-  CTX_DATA_END;
-
-  /* copy layers to operator */
-  RNA_boolean_set_array(op->ptr, "layers", layers);
-
-  /* part to sync with other similar operators... */
-  return WM_operator_props_popup(C, op, event);
-}
-
-/* Set the visible layers for the active armature (edit and pose modes) */
-static int armature_bone_layers_exec(bContext * /*C*/, wmOperator * /*op*/)
-{
-  // TODO: remove this entire operator, replacing it with a similar one for bone collections.
-  WM_report(
-      RPT_ERROR,
-      "Bone Layers have been converted to Bone Collections. This operator will be removed soon.");
-  return OPERATOR_CANCELLED;
-}
-
-void ARMATURE_OT_bone_layers(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Change Bone Layers";
-  ot->idname = "ARMATURE_OT_bone_layers";
-  ot->description = "Change the layers that the selected bones belong to";
-
-  /* callbacks */
-  ot->invoke = armature_bone_layers_invoke;
-  ot->exec = armature_bone_layers_exec;
-  ot->poll = ED_operator_editarmature;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  /* properties */
-  RNA_def_boolean_layer_member(
-      ot->srna, "layers", 32, nullptr, "Layer", "Armature layers that bone belongs to");
-}
-
 /* ********************************************** */
 /* Show/Hide Bones */
 

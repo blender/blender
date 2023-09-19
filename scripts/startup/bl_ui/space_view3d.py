@@ -5332,7 +5332,7 @@ class VIEW3D_MT_edit_armature(Menu):
 
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("armature.armature_layers")
-        layout.operator("armature.bone_layers")
+        layout.operator("armature.move_to_collection", text="Move to Bone Collection")
 
         layout.separator()
 

@@ -16,6 +16,7 @@
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 
@@ -631,18 +632,13 @@ void ARMATURE_OT_collection_deselect(wmOperatorType *ot)
 
 /* -------------------------- */
 
-using assign_func = bool (*)(BoneCollection *, Bone *);
-
-static int add_or_move_to_collection_exec(bContext *C,
-                                          wmOperator *op,
-                                          const assign_func assign_func)
+static BoneCollection *add_or_move_to_collection_bcoll(wmOperator *op, bArmature *arm)
 {
-  Object *obpose = ED_pose_object_from_context(C);
-  bArmature *arm = static_cast<bArmature *>(obpose->data);
   const int collection_index = RNA_enum_get(op->ptr, "collection");
   BoneCollection *target_bcoll;
 
   if (collection_index < 0) {
+    /* TODO: check this with linked, non-overridden armatures. */
     char new_collection_name[MAX_NAME];
     RNA_string_get(op->ptr, "new_collection_name", new_collection_name);
     target_bcoll = ANIM_armature_bonecoll_new(arm, new_collection_name);
@@ -654,41 +650,85 @@ static int add_or_move_to_collection_exec(bContext *C,
     target_bcoll = static_cast<BoneCollection *>(
         BLI_findlink(&arm->collections, collection_index));
     if (target_bcoll == nullptr) {
-      WM_reportf(RPT_ERROR,
-                 "Bone collection with index %d not found on Armature %s",
-                 collection_index,
-                 arm->id.name + 2);
-      return OPERATOR_CANCELLED;
+      BKE_reportf(op->reports,
+                  RPT_ERROR,
+                  "Bone collection with index %d not found on Armature %s",
+                  collection_index,
+                  arm->id.name + 2);
+      return nullptr;
     }
   }
 
   if (!ANIM_armature_bonecoll_is_editable(arm, target_bcoll)) {
-    WM_reportf(RPT_ERROR,
-               "Bone collection %s is not editable, maybe add an override on the armature?",
-               target_bcoll->name);
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Bone collection %s is not editable, maybe add an override on the armature?",
+                target_bcoll->name);
+    return nullptr;
+  }
+
+  return target_bcoll;
+}
+
+static int add_or_move_to_collection_exec(bContext *C,
+                                          wmOperator *op,
+                                          const assign_bone_func assign_func_bone,
+                                          const assign_ebone_func assign_func_ebone)
+{
+  Object *ob = ED_object_context(C);
+  if (ob->mode == OB_MODE_POSE) {
+    ob = ED_pose_object_from_context(C);
+  }
+  if (!ob) {
+    BKE_reportf(op->reports, RPT_ERROR, "No object found to operate on");
     return OPERATOR_CANCELLED;
   }
 
-  FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (obpose, pchan) {
-    assign_func(target_bcoll, pchan->bone);
+  bArmature *arm = static_cast<bArmature *>(ob->data);
+  BoneCollection *target_bcoll = add_or_move_to_collection_bcoll(op, arm);
+
+  bool made_any_changes = false;
+  bool had_bones_to_assign = false;
+  const bool mode_is_supported = bone_collection_assign_mode_specific(C,
+                                                                      ob,
+                                                                      target_bcoll,
+                                                                      assign_func_bone,
+                                                                      assign_func_ebone,
+                                                                      &made_any_changes,
+                                                                      &had_bones_to_assign);
+
+  if (!mode_is_supported) {
+    WM_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
+    return OPERATOR_CANCELLED;
   }
-  FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
+  if (!had_bones_to_assign) {
+    WM_report(RPT_WARNING, "No bones selected, nothing to assign to bone collection");
+    return OPERATOR_CANCELLED;
+  }
+  if (!made_any_changes) {
+    WM_report(RPT_WARNING, "All selected bones were already part of this collection");
+    return OPERATOR_CANCELLED;
+  }
 
   DEG_id_tag_update(&arm->id, ID_RECALC_SELECT); /* Recreate the draw buffers. */
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_DATA, obpose);
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obpose);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
   return OPERATOR_FINISHED;
 }
 
 static int move_to_collection_exec(bContext *C, wmOperator *op)
 {
-  return add_or_move_to_collection_exec(C, op, ANIM_armature_bonecoll_assign_and_move);
+  return add_or_move_to_collection_exec(C,
+                                        op,
+                                        ANIM_armature_bonecoll_assign_and_move,
+                                        ANIM_armature_bonecoll_assign_and_move_editbone);
 }
 
 static int assign_to_collection_exec(bContext *C, wmOperator *op)
 {
-  return add_or_move_to_collection_exec(C, op, ANIM_armature_bonecoll_assign);
+  return add_or_move_to_collection_exec(
+      C, op, ANIM_armature_bonecoll_assign, ANIM_armature_bonecoll_assign_editbone);
 }
 
 static bool move_to_collection_poll(bContext *C)
@@ -714,37 +754,67 @@ static bool move_to_collection_poll(bContext *C)
   return true;
 }
 
+static bool bone_collection_enum_itemf_for_object(Object *ob,
+                                                  EnumPropertyItem **item,
+                                                  int *totitem)
+{
+  EnumPropertyItem item_tmp = {0};
+  bArmature *arm = static_cast<bArmature *>(ob->data);
+
+  int bcoll_index = 0;
+  LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections, bcoll_index) {
+    if (!ANIM_armature_bonecoll_is_editable(arm, bcoll)) {
+      /* Skip bone collections that cannot be assigned to because they're
+       * linked and thus uneditable. If there is a way to still show these, but in a disabled
+       * state, that would be preferred. */
+      continue;
+    }
+    item_tmp.identifier = bcoll->name;
+    item_tmp.name = bcoll->name;
+    item_tmp.value = bcoll_index;
+    RNA_enum_item_add(item, totitem, &item_tmp);
+  }
+
+  return true;
+}
+
 static const EnumPropertyItem *bone_collection_enum_itemf(bContext *C,
                                                           PointerRNA * /*ptr*/,
                                                           PropertyRNA * /*prop*/,
                                                           bool *r_free)
 {
-  EnumPropertyItem *item = nullptr, item_tmp = {0};
+  *r_free = false;
+
+  if (!C) {
+    /* This happens when operators are being tested, and not during normal invocation. */
+    return nullptr;
+  }
+
+  Object *ob = ED_object_context(C);
+  if (!ob || ob->type != OB_ARMATURE) {
+    return nullptr;
+  }
+
+  EnumPropertyItem *item = nullptr;
   int totitem = 0;
-
-  if (C) {
-    if (Object *obpose = ED_pose_object_from_context(C)) {
-      bArmature *arm = static_cast<bArmature *>(obpose->data);
-
-      int bcoll_index = 0;
-      LISTBASE_FOREACH_INDEX (BoneCollection *, bcoll, &arm->collections, bcoll_index) {
-        if (!ANIM_armature_bonecoll_is_editable(arm, bcoll)) {
-          /* Skip bone collections that cannot be assigned to because they're
-           * linked and thus uneditable. If there is a way to still show these, but in a disabled
-           * state, that would be preferred. */
-          continue;
-        }
-        item_tmp.identifier = bcoll->name;
-        item_tmp.name = bcoll->name;
-        item_tmp.value = bcoll_index;
-        RNA_enum_item_add(&item, &totitem, &item_tmp);
+  switch (ob->mode) {
+    case OB_MODE_POSE: {
+      Object *obpose = ED_pose_object_from_context(C);
+      if (!obpose) {
+        return nullptr;
       }
-
-      RNA_enum_item_add_separator(&item, &totitem);
+      bone_collection_enum_itemf_for_object(obpose, &item, &totitem);
+      break;
     }
+    case OB_MODE_EDIT:
+      bone_collection_enum_itemf_for_object(ob, &item, &totitem);
+      break;
+    default:
+      return nullptr;
   }
 
   /* New Collection. */
+  EnumPropertyItem item_tmp = {0};
   item_tmp.identifier = "__NEW__";
   item_tmp.name = "New Collection";
   item_tmp.value = -1;

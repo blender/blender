@@ -61,7 +61,6 @@ void ED_operatortypes_armature()
 
   WM_operatortype_append(ARMATURE_OT_layers_show_all);
   WM_operatortype_append(ARMATURE_OT_armature_layers);
-  WM_operatortype_append(ARMATURE_OT_bone_layers);
 
   WM_operatortype_append(ARMATURE_OT_collection_add);
   WM_operatortype_append(ARMATURE_OT_collection_remove);
