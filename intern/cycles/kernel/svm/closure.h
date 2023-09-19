@@ -113,7 +113,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       float3 coat_tint = stack_load_float3(stack, coat_tint_offset);
       float transmission = saturatef(stack_load_float(stack, transmission_offset));
       float anisotropic_rotation = stack_load_float(stack, anisotropic_rotation_offset);
-      float eta = fmaxf(stack_load_float(stack, eta_offset), 1e-5f);
+      float ior = fmaxf(stack_load_float(stack, eta_offset), 1e-5f);
 
       ClosureType distribution = (ClosureType)data_node2.y;
       ClosureType subsurface_method = (ClosureType)data_node2.z;
@@ -294,11 +294,11 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
           bsdf->T = zero_float3();
 
           bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
-          bsdf->ior = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
+          bsdf->ior = (sd->flag & SD_BACKFACING) ? 1.0f / ior : ior;
 
-          fresnel->f0 = F0_from_ior(eta) * specular_tint;
+          fresnel->f0 = make_float3(F0_from_ior(ior));
           fresnel->f90 = one_spectrum();
-          fresnel->exponent = -eta;
+          fresnel->exponent = -ior;
           fresnel->reflection_tint = one_spectrum();
           fresnel->transmission_tint = sqrt(rgb_to_spectrum(base_color));
 
@@ -322,13 +322,24 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
                              NULL;
 
         if (bsdf && fresnel) {
+          /* Apply IOR adjustment */
+          float eta = ior;
+          float f0 = F0_from_ior(eta);
+          if (specular != 0.5f) {
+            f0 *= 2.0f * specular;
+            eta = ior_from_F0(f0);
+            if (ior < 1.0f) {
+              eta = 1.0f / eta;
+            }
+          }
+
           bsdf->N = valid_reflection_N;
           bsdf->ior = eta;
           bsdf->T = T;
           bsdf->alpha_x = alpha_x;
           bsdf->alpha_y = alpha_y;
 
-          fresnel->f0 = F0_from_ior(eta) * 2.0f * specular * specular_tint;
+          fresnel->f0 = f0 * specular_tint;
           fresnel->f90 = one_spectrum();
           fresnel->exponent = -eta;
           fresnel->reflection_tint = one_spectrum();
@@ -357,7 +368,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
         bssrdf->albedo = rgb_to_spectrum(base_color);
         bssrdf->N = N;
         bssrdf->alpha = sqr(roughness);
-        bssrdf->ior = eta;
+        bssrdf->ior = ior;
         bssrdf->anisotropy = stack_load_float(stack, data_subsurf.w);
         if (subsurface_method == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
           bssrdf->ior = stack_load_float(stack, data_subsurf.x);

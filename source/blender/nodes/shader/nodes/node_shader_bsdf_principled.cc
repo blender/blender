@@ -108,7 +108,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
-      .subtype(PROP_FACTOR);
+      .subtype(PROP_FACTOR)
+      .description(
+          "Adjustment to the IOR to increase or decrease specular intensity "
+          "(0.5 means no adjustment, 0 removes all reflections, 1 doubles them at normal "
+          "incidence)");
 #define SOCK_SPECULAR_ID 13
   spec.add_input<decl::Color>("Specular Tint")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})

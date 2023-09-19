@@ -50,10 +50,20 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
   }
 
   if (Metallic < 1.0 && Transmission < 1.0) {
+    float eta = IOR;
+    float f0 = F0_from_ior(eta);
+    if (Specular != 0.5) {
+      f0 *= 2.0 * Specular;
+      eta = ior_from_F0(f0);
+      if (IOR < 1.0) {
+        eta = 1.0 / eta;
+      }
+    }
+
     BSDF = BaseColor * diffuse(Normal);
     if (Subsurface > 1e-5) {
       vector radius = SubsurfaceScale * SubsurfaceRadius;
-      float subsurface_ior = (subsurface_method == "random_walk_skin") ? SubsurfaceIOR : IOR;
+      float subsurface_ior = (subsurface_method == "random_walk_skin") ? SubsurfaceIOR : eta;
       closure color SubsurfBSDF = bssrdf(subsurface_method,
                                          Normal,
                                          SubsurfaceScale * SubsurfaceRadius,
@@ -68,12 +78,12 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
     }
 
     /* Apply specular tint */
-    color f0 = F0_from_ior(IOR) * SpecularTint * 2.0 * Specular;
-    color f90 = color(1.0);
+    color F0 = f0 * SpecularTint;
+    color F90 = color(1.0);
 
     BSDF = layer(
         generalized_schlick_bsdf(
-            Normal, T, color(1.0), color(0.0), alpha_x, alpha_y, f0, f90, -IOR, distribution),
+            Normal, T, color(1.0), color(0.0), alpha_x, alpha_y, F0, F90, -eta, distribution),
         BSDF);
   }
 
@@ -82,20 +92,19 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
     float eta = max(IOR, 1e-5);
     eta = backfacing() ? 1.0 / eta : eta;
 
-    color f0 = F0_from_ior(eta) * SpecularTint;
-    color f90 = color(1.0);
+    color F0 = F0_from_ior(eta) * SpecularTint;
+    color F90 = color(1.0);
 
     TransmissionBSDF = generalized_schlick_bsdf(
-        Normal, vector(0.0), color(1.0), sqrt(BaseColor), r2, r2, f0, f90, -eta, distribution),
+        Normal, vector(0.0), color(1.0), sqrt(BaseColor), r2, r2, F0, F90, -eta, distribution),
     BSDF = mix(BSDF, TransmissionBSDF, clamp(Transmission, 0.0, 1.0));
   }
 
   closure color MetallicBSDF = 0;
   if (Metallic > 0.0) {
-    color f0 = BaseColor;
-    color f90 = color(1.0);
-    MetallicBSDF = microfacet_f82_tint(
-        distribution, Normal, T, alpha_x, alpha_y, f0, SpecularTint);
+    color F0 = BaseColor;
+    color F82 = SpecularTint;
+    MetallicBSDF = microfacet_f82_tint(distribution, Normal, T, alpha_x, alpha_y, F0, F82);
     BSDF = mix(BSDF, MetallicBSDF, clamp(Metallic, 0.0, 1.0));
   }
 

@@ -17,12 +17,6 @@ vec3 specular_dominant_dir(vec3 N, vec3 V, float roughness)
   return normalize(mix(N, R, fac));
 }
 
-float ior_from_f0(float f0)
-{
-  float f = sqrt(f0);
-  return (-f - 1.0) / (f - 1.0);
-}
-
 /* Simplified form of F_eta(eta, 1.0). */
 float F0_from_ior(float eta)
 {
@@ -67,29 +61,29 @@ float F_eta(float eta, float cos_theta)
 }
 
 /* Fresnel color blend base on fresnel factor */
-vec3 F_color_blend(float eta, float fresnel, vec3 f0_color)
+vec3 F_color_blend(float eta, float fresnel, vec3 F0_color)
 {
-  float f0 = F0_from_ior(eta);
-  float fac = saturate((fresnel - f0) / (1.0 - f0));
-  return mix(f0_color, vec3(1.0), fac);
+  float F0 = F0_from_ior(eta);
+  float fac = saturate((fresnel - F0) / (1.0 - F0));
+  return mix(F0_color, vec3(1.0), fac);
 }
 
 /* Fresnel split-sum approximation. */
-vec3 F_brdf_single_scatter(vec3 f0, vec3 f90, vec2 lut)
+vec3 F_brdf_single_scatter(vec3 F0, vec3 F90, vec2 lut)
 {
-  return f0 * lut.x + f90 * lut.y;
+  return F0 * lut.x + F90 * lut.y;
 }
 
 /* Multi-scattering brdf approximation from
  * "A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting"
  * https://jcgt.org/published/0008/01/03/paper.pdf by Carmelo J. Fdez-Agüera. */
-vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
+vec3 F_brdf_multi_scatter(vec3 F0, vec3 F90, vec2 lut)
 {
-  vec3 FssEss = F_brdf_single_scatter(f0, f90, lut);
+  vec3 FssEss = F_brdf_single_scatter(F0, F90, lut);
 
   float Ess = lut.x + lut.y;
   float Ems = 1.0 - Ess;
-  vec3 Favg = f0 + (f90 - f0) / 21.0;
+  vec3 Favg = F0 + (F90 - F0) / 21.0;
 
   /* The original paper uses `FssEss * radiance + Fms*Ems * irradiance`, but
    * "A Journey Through Implementing Multiscattering BRDFs and Area Lights" by Steve McAuley
