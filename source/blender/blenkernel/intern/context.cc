@@ -1487,7 +1487,7 @@ const AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C)
   return static_cast<AssetLibraryReference *>(ctx_data_pointer_get(C, "asset_library_ref"));
 }
 
-AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
+static AssetHandle ctx_wm_asset_handle(const bContext *C, bool *r_is_valid)
 {
   AssetHandle *asset_handle_p =
       (AssetHandle *)CTX_data_pointer_get_type(C, "asset_handle", &RNA_AssetHandle).data;
@@ -1523,7 +1523,7 @@ blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C)
   /* Expose the asset representation from the asset-handle.
    * TODO(Julian): #AssetHandle should be properly replaced by #AssetRepresentation. */
   bool is_valid;
-  if (AssetHandle handle = CTX_wm_asset_handle(C, &is_valid); is_valid) {
+  if (AssetHandle handle = ctx_wm_asset_handle(C, &is_valid); is_valid) {
     return handle.file_data->asset;
   }
 

@@ -287,12 +287,9 @@ void AssetClearHelper::operator()(PointerRNAVec &ids)
 void AssetClearHelper::reportResults(const bContext *C, ReportList &reports) const
 {
   if (!wasSuccessful()) {
-    bool is_valid;
     /* Dedicated error message for when there is an active asset detected, but it's not an ID local
      * to this file. Helps users better understanding what's going on. */
-    if (AssetHandle active_asset = CTX_wm_asset_handle(C, &is_valid);
-        is_valid && !ED_asset_handle_get_representation(&active_asset)->local_id())
-    {
+    if (AssetRepresentationHandle *active_asset = CTX_wm_asset(C); !active_asset->is_local_id()) {
       BKE_report(&reports,
                  RPT_ERROR,
                  "No asset data-blocks from the current file selected (assets must be stored in "
