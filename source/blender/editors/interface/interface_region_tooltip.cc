@@ -407,6 +407,11 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
   if (but->optype == nullptr) {
     return nullptr;
   }
+  /* While this should always be set for buttons as they are shown in the UI,
+   * the operator search popup can create a button that has no properties, see: #112541. */
+  if (but->opptr == nullptr) {
+    return nullptr;
+  }
 
   if (!STREQ(but->optype->idname, "WM_OT_tool_set_by_id")) {
     return nullptr;
