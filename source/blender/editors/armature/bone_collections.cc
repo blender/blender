@@ -787,12 +787,12 @@ static const EnumPropertyItem *bone_collection_enum_itemf(bContext *C,
 
   if (!C) {
     /* This happens when operators are being tested, and not during normal invocation. */
-    return nullptr;
+    return rna_enum_dummy_NULL_items;
   }
 
   Object *ob = ED_object_context(C);
   if (!ob || ob->type != OB_ARMATURE) {
-    return nullptr;
+    return rna_enum_dummy_NULL_items;
   }
 
   EnumPropertyItem *item = nullptr;
@@ -810,7 +810,7 @@ static const EnumPropertyItem *bone_collection_enum_itemf(bContext *C,
       bone_collection_enum_itemf_for_object(ob, &item, &totitem);
       break;
     default:
-      return nullptr;
+      return rna_enum_dummy_NULL_items;
   }
 
   /* New Collection. */
