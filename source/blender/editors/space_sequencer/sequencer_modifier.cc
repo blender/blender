@@ -49,19 +49,23 @@ static int strip_modifier_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static const EnumPropertyItem *filter_modifiers_by_sequence_type(bContext *C,
-                                                                 PointerRNA * /* ptr */,
-                                                                 PropertyRNA * /* prop */,
-                                                                 bool * /* r_free */)
+static const EnumPropertyItem *filter_modifiers_by_sequence_type_itemf(bContext *C,
+                                                                       PointerRNA * /*ptr*/,
+                                                                       PropertyRNA * /*prop*/,
+                                                                       bool * /*r_free*/)
 {
+  if (C == nullptr) {
+    return rna_enum_sequence_modifier_type_items;
+  }
+
   Scene *scene = CTX_data_scene(C);
   Sequence *seq = SEQ_select_active_get(scene);
-  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM)) {
-    return rna_enum_sequence_sound_modifier_type_items;
+  if (seq) {
+    if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM)) {
+      return rna_enum_sequence_sound_modifier_type_items;
+    }
   }
-  else {
-    return rna_enum_sequence_video_modifier_type_items;
-  }
+  return rna_enum_sequence_video_modifier_type_items;
 }
 
 void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
@@ -85,7 +89,7 @@ void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_enum(ot->srna, "type", rna_enum_dummy_NULL_items, 0, "Type", "");
-  RNA_def_enum_funcs(prop, filter_modifiers_by_sequence_type);
+  RNA_def_enum_funcs(prop, filter_modifiers_by_sequence_type_itemf);
   ot->prop = prop;
 }
 
