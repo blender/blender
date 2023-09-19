@@ -903,14 +903,12 @@ void USDMeshWriter::set_skel_export_flags(const HierarchyContext &context)
   const USDExportParams &params = usd_export_context_.export_params;
 
   /* We can write a skinned mesh if exporting armatures is enabled and the object has an armature
-   * modifier and no other modifiers of any type. */
-  write_skinned_mesh_ = params.export_armatures && mods.size() == 1 &&
-                        mods.first()->type == eModifierType_Armature;
+   * modifier. */
+  write_skinned_mesh_ = params.export_armatures &&
+                        can_export_skinned_mesh(context.object, usd_export_context_.depsgraph);
 
-  /* We can write blend shapes if exporting shape keys is enabled and the object has shape keys
-   * and we are either writing a skinned mesh or the object has no modifiers. */
-  write_blend_shapes_ = params.export_shapekeys && is_mesh_with_shape_keys(context.object) &&
-                        (write_skinned_mesh_ || mods.is_empty());
+  /* We can write blend shapes if exporting shape keys is enabled and the object has shape keys. */
+  write_blend_shapes_ = params.export_shapekeys && is_mesh_with_shape_keys(context.object);
 }
 
 void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)

@@ -33,9 +33,9 @@ static void visit_bones(const Bone *bone, blender::FunctionRef<void(const Bone *
  * Return the modifier of the given type enabled for the given dependency graph's
  * evaluation mode (viewport or render).
  */
-static const ModifierData *get_enabled_modifier(const Object *obj,
-                                                ModifierType type,
-                                                const Depsgraph *depsgraph)
+const ModifierData *get_enabled_modifier(const Object *obj,
+                                         ModifierType type,
+                                         const Depsgraph *depsgraph)
 {
   BLI_assert(obj);
   BLI_assert(depsgraph);
@@ -146,11 +146,7 @@ bool is_armature_modifier_bone_name(const Object *obj,
 
 bool can_export_skinned_mesh(const Object *obj, const Depsgraph *depsgraph)
 {
-  Vector<ModifierData *> mods = get_enabled_modifiers(obj, depsgraph);
-
-  /* We can export a skinned mesh if the object has an enabled
-   * armature modifier and no other enabled modifiers. */
-  return mods.size() == 1 && mods.first()->type == eModifierType_Armature;
+  return get_enabled_modifier(obj, eModifierType_Armature, depsgraph) != nullptr;
 }
 
 Vector<ModifierData *> get_enabled_modifiers(const Object *obj, const Depsgraph *depsgraph)
