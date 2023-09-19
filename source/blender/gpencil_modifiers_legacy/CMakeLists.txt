@@ -14,6 +14,7 @@ set(INC
   ../makesdna
   ../makesrna
   ../render
+  ../render/intern
   ../windowmanager
   ../../../intern/eigen
   ../../../intern/guardedalloc
