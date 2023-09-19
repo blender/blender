@@ -27,7 +27,6 @@ extern "C" {
 
 typedef struct AssetTempIDConsumer AssetTempIDConsumer;
 
-struct AssetHandle;
 struct Main;
 struct ReportList;
 
