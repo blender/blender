@@ -494,7 +494,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
              "%s %s%s%s%.*s%s - Blender %s",
              wm->file_saved ? "" : "*",
              has_filepath ? filename : IFACE_("(Unsaved)"),
-             G_MAIN->recovered ? " (Recovered)" : "",
+             G_MAIN->recovered ? IFACE_(" (Recovered)") : "",
              has_directory ? " [" : "",
              has_directory ? int(filename - filepath) : 0,
              has_directory ? filepath : "",

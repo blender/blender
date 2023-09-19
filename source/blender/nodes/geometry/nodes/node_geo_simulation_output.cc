@@ -789,7 +789,7 @@ static void node_declare_dynamic(const bNodeTree & /*node_tree*/,
   const NodeGeometrySimulationOutput &storage = node_storage(node);
   {
     SocketDeclarationPtr skip_decl = std::make_unique<decl::Bool>();
-    skip_decl->name = "Skip";
+    skip_decl->name = N_("Skip");
     skip_decl->identifier = skip_decl->name;
     skip_decl->description = N_(
         "Forward the output of the simulation input node directly to the output node and ignore "
