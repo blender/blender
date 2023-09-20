@@ -430,9 +430,9 @@ typedef struct GreasePencil {
   blender::bke::greasepencil::LayerGroup &root_group();
 
   /* Drawings read/write access. */
-  blender::Span<GreasePencilDrawingBase *> drawings() const;
+  blender::Span<const GreasePencilDrawingBase *> drawings() const;
   blender::MutableSpan<GreasePencilDrawingBase *> drawings();
-  GreasePencilDrawingBase *drawings(int64_t index) const;
+  const GreasePencilDrawingBase *drawings(int64_t index) const;
   GreasePencilDrawingBase *drawings(int64_t index);
 
   blender::Span<const blender::bke::greasepencil::TreeNode *> nodes() const;
@@ -538,7 +538,7 @@ typedef struct GreasePencil {
    * drawing exists.
    */
   blender::bke::greasepencil::Drawing *get_editable_drawing_at(
-      const blender::bke::greasepencil::Layer *layer, int frame_number) const;
+      const blender::bke::greasepencil::Layer *layer, int frame_number);
 
   void foreach_visible_drawing(
       const int frame,
