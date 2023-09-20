@@ -285,26 +285,10 @@ struct ToposortNodeState {
 static Vector<const bNode *> get_implicit_origin_nodes(const bNodeTree &ntree, bNode &node)
 {
   Vector<const bNode *> origin_nodes;
-  if (node.type == GEO_NODE_SIMULATION_OUTPUT) {
-    for (const bNode *sim_input_node :
-         ntree.runtime->nodes_by_type.lookup(nodeTypeFind("GeometryNodeSimulationInput")))
-    {
-      const auto &storage = *static_cast<const NodeGeometrySimulationInput *>(
-          sim_input_node->storage);
-      if (storage.output_node_id == node.identifier) {
-        origin_nodes.append(sim_input_node);
-      }
-    }
-  }
-  if (node.type == GEO_NODE_REPEAT_OUTPUT) {
-    for (const bNode *repeat_input_node :
-         ntree.runtime->nodes_by_type.lookup(nodeTypeFind("GeometryNodeRepeatInput")))
-    {
-      const auto &storage = *static_cast<const NodeGeometryRepeatInput *>(
-          repeat_input_node->storage);
-      if (storage.output_node_id == node.identifier) {
-        origin_nodes.append(repeat_input_node);
-      }
+  if (all_zone_output_node_types().contains(node.type)) {
+    const bNodeZoneType &zone_type = *zone_type_by_node_type(node.type);
+    if (const bNode *input_node = zone_type.get_corresponding_input(ntree, node)) {
+      origin_nodes.append(input_node);
     }
   }
   return origin_nodes;
@@ -313,16 +297,10 @@ static Vector<const bNode *> get_implicit_origin_nodes(const bNodeTree &ntree, b
 static Vector<const bNode *> get_implicit_target_nodes(const bNodeTree &ntree, bNode &node)
 {
   Vector<const bNode *> target_nodes;
-  if (node.type == GEO_NODE_SIMULATION_INPUT) {
-    const auto &storage = *static_cast<const NodeGeometrySimulationInput *>(node.storage);
-    if (const bNode *sim_output_node = ntree.node_by_id(storage.output_node_id)) {
-      target_nodes.append(sim_output_node);
-    }
-  }
-  if (node.type == GEO_NODE_REPEAT_INPUT) {
-    const auto &storage = *static_cast<const NodeGeometryRepeatInput *>(node.storage);
-    if (const bNode *repeat_output_node = ntree.node_by_id(storage.output_node_id)) {
-      target_nodes.append(repeat_output_node);
+  if (all_zone_input_node_types().contains(node.type)) {
+    const bNodeZoneType &zone_type = *zone_type_by_node_type(node.type);
+    if (const bNode *output_node = zone_type.get_corresponding_output(ntree, node)) {
+      target_nodes.append(output_node);
     }
   }
   return target_nodes;

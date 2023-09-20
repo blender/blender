@@ -148,31 +148,15 @@ static void remap_pairing(bNodeTree &dst_tree,
                           const Map<int32_t, int32_t> &identifier_map)
 {
   for (bNode *dst_node : nodes) {
-    switch (dst_node->type) {
-      case GEO_NODE_SIMULATION_INPUT: {
-        NodeGeometrySimulationInput *data = static_cast<NodeGeometrySimulationInput *>(
-            dst_node->storage);
-        if (data->output_node_id == 0) {
-          continue;
-        }
-
-        data->output_node_id = identifier_map.lookup_default(data->output_node_id, 0);
-        if (data->output_node_id == 0) {
-          blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
-        }
-        break;
+    if (bke::all_zone_input_node_types().contains(dst_node->type)) {
+      const bke::bNodeZoneType &zone_type = *bke::zone_type_by_node_type(dst_node->type);
+      int &output_node_id = zone_type.get_corresponding_output_id(*dst_node);
+      if (output_node_id == 0) {
+        continue;
       }
-      case GEO_NODE_REPEAT_INPUT: {
-        NodeGeometryRepeatInput *data = static_cast<NodeGeometryRepeatInput *>(dst_node->storage);
-        if (data->output_node_id == 0) {
-          continue;
-        }
-
-        data->output_node_id = identifier_map.lookup_default(data->output_node_id, 0);
-        if (data->output_node_id == 0) {
-          blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
-        }
-        break;
+      output_node_id = identifier_map.lookup_default(output_node_id, 0);
+      if (output_node_id == 0) {
+        blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
       }
     }
   }
