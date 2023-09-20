@@ -353,11 +353,15 @@ static bool is_node_panels_supported(const bNode &node)
 }
 
 /* Draw UI for options, buttons, and previews. */
-static bool node_update_basis_buttons(
-    const bContext &C, bNodeTree &ntree, bNode &node, uiBlock &block, int &dy)
+static bool node_update_basis_buttons(const bContext &C,
+                                      bNodeTree &ntree,
+                                      bNode &node,
+                                      nodes::PanelDrawButtonsFunction draw_buttons,
+                                      uiBlock &block,
+                                      int &dy)
 {
   /* Buttons rect? */
-  const bool node_options = node.typeinfo->draw_buttons && (node.flag & NODE_OPTIONS);
+  const bool node_options = draw_buttons && (node.flag & NODE_OPTIONS);
   if (!node_options) {
     return false;
   }
@@ -388,7 +392,7 @@ static bool node_update_basis_buttons(
 
   uiLayoutSetContextPointer(layout, "node", &nodeptr);
 
-  node.typeinfo->draw_buttons(layout, (bContext *)&C, &nodeptr);
+  draw_buttons(layout, (bContext *)&C, &nodeptr);
 
   UI_block_align_end(&block);
   int buty;
@@ -686,7 +690,8 @@ static void node_update_basis_from_declaration(
       /* Draw buttons before the first panel. */
       if (!buttons_drawn) {
         buttons_drawn = true;
-        need_spacer_after_item = node_update_basis_buttons(C, ntree, node, block, locy);
+        need_spacer_after_item = node_update_basis_buttons(
+            C, ntree, node, node.typeinfo->draw_buttons, block, locy);
       }
 
       if (!is_parent_collapsed) {
@@ -710,6 +715,7 @@ static void node_update_basis_from_declaration(
       item.runtime->max_content_y = item.runtime->min_content_y = round(locy);
       if (!is_collapsed) {
         locy -= NODE_ITEM_SPACING_Y; /* Space at top of panel contents. */
+        node_update_basis_buttons(C, ntree, node, item.panel_decl->draw_buttons, block, locy);
       }
     }
     else if (item.is_valid_socket()) {
@@ -718,7 +724,8 @@ static void node_update_basis_from_declaration(
         /* Draw buttons before the first input, unless it's inline with an output. */
         if (!item.socket_decl->inline_with_next && !buttons_drawn) {
           buttons_drawn = true;
-          need_spacer_after_item = node_update_basis_buttons(C, ntree, node, block, locy);
+          need_spacer_after_item = node_update_basis_buttons(
+              C, ntree, node, node.typeinfo->draw_buttons, block, locy);
         }
 
         if (is_parent_collapsed) {
@@ -782,7 +789,8 @@ static void node_update_basis_from_declaration(
 
   /* Draw buttons at the bottom if no inputs exist. */
   if (!buttons_drawn) {
-    need_spacer_after_item = node_update_basis_buttons(C, ntree, node, block, locy);
+    need_spacer_after_item = node_update_basis_buttons(
+        C, ntree, node, node.typeinfo->draw_buttons, block, locy);
   }
 
   if (need_spacer_after_item) {
@@ -821,7 +829,7 @@ static void node_update_basis_from_socket_lists(
     locy -= NODE_DY / 4;
   }
 
-  node_update_basis_buttons(C, ntree, node, block, locy);
+  node_update_basis_buttons(C, ntree, node, node.typeinfo->draw_buttons, block, locy);
 
   /* Input sockets. */
   for (bNodeSocket *socket : node.input_sockets()) {

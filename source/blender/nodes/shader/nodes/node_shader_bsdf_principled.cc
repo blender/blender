@@ -54,7 +54,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 #define SOCK_WEIGHT_ID 7
 
   /* Panel for Subsurface scattering settings. */
-  PanelDeclarationBuilder &sss = b.add_panel("Subsurface").default_closed(true);
+  PanelDeclarationBuilder &sss =
+      b.add_panel("Subsurface")
+          .default_closed(true)
+          .draw_buttons([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
+            uiItemR(layout, ptr, "subsurface_method", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+          });
   sss.add_input<decl::Float>("Subsurface")
       .default_value(0.0f)
       .min(0.0f)
@@ -93,7 +98,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 #define SOCK_SUBSURFACE_ANISOTROPY_ID 12
 
   /* Panel for Specular settings. */
-  PanelDeclarationBuilder &spec = b.add_panel("Specular").default_closed(true);
+  PanelDeclarationBuilder &spec =
+      b.add_panel("Specular")
+          .default_closed(true)
+          .draw_buttons([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
+            uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+          });
   spec.add_input<decl::Float>("Specular")
       .default_value(0.5f)
       .min(0.0f)
@@ -177,12 +187,6 @@ static void node_declare(NodeDeclarationBuilder &b)
 #define SOCK_EMISSION_ID 26
   emis.add_input<decl::Float>("Emission Strength").default_value(0.0).min(0.0f).max(1000000.0f);
 #define SOCK_EMISSION_STRENGTH_ID 27
-}
-
-static void node_shader_buts_principled(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "subsurface_method", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_principled(bNodeTree * /*ntree*/, bNode *node)
@@ -314,7 +318,6 @@ void register_node_type_sh_bsdf_principled()
   sh_node_type_base(&ntype, SH_NODE_BSDF_PRINCIPLED, "Principled BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
-  ntype.draw_buttons = file_ns::node_shader_buts_principled;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   ntype.initfunc = file_ns::node_shader_init_principled;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_principled;

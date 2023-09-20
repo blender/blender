@@ -781,7 +781,8 @@ static void ui_node_draw_panel(uiLayout &layout,
                                bContext &C,
                                bNodeTree &ntree,
                                const nodes::PanelDeclaration &panel_decl,
-                               bNodePanelState &panel_state)
+                               bNodePanelState &panel_state,
+                               PointerRNA nodeptr)
 {
   uiLayout *row = uiLayoutRow(&layout, true);
   uiLayoutSetPropDecorate(row, false);
@@ -808,6 +809,12 @@ static void ui_node_draw_panel(uiLayout &layout,
   UI_but_drawflag_enable(but, UI_BUT_TEXT_LEFT | UI_BUT_NO_TOOLTIP);
   UI_but_func_set(but, node_panel_toggle_button_cb, &panel_state, &ntree);
   UI_block_emboss_set(block, UI_EMBOSS);
+
+  /* Panel buttons. */
+  if (!panel_state.is_collapsed() && panel_decl.draw_buttons) {
+    uiLayoutSetPropSep(&layout, true);
+    panel_decl.draw_buttons(&layout, &C, &nodeptr);
+  }
 }
 
 static void ui_node_draw_node(
@@ -853,7 +860,7 @@ static void ui_node_draw_node(
       {
         panel_collapsed = panel_state->is_collapsed();
         panel_label = panel_decl->name.c_str();
-        ui_node_draw_panel(layout, C, ntree, *panel_decl, *panel_state);
+        ui_node_draw_panel(layout, C, ntree, *panel_decl, *panel_state, nodeptr);
         ++panel_state;
       }
     }
