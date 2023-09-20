@@ -173,10 +173,6 @@ void USDTransformWriter::do_write(HierarchyContext &context)
       /* Explicitly set visibility, since the prototype might be invisible. */
       xform.GetVisibilityAttr().Set(pxr::UsdGeomTokens->inherited);
     }
-    else if (this->is_prototype(context.object)) {
-      /* TODO(makowalski): perhaps making prototypes invisible should be optional. */
-      xform.GetVisibilityAttr().Set(pxr::UsdGeomTokens->invisible);
-    }
   }
 }
 
