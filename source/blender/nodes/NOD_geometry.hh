@@ -12,12 +12,6 @@ void register_node_tree_type_geo();
 void register_node_type_geo_custom_group(bNodeType *ntype);
 
 /* -------------------------------------------------------------------- */
-/** \name Simulation Input Node
- * \{ */
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Simulation Output Node
  * \{ */
 
