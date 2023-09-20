@@ -44,4 +44,4 @@
 #  define BIG_LONG SWAP_LONG
 #endif
 
-#define IMB_DPI_DEFAULT 72.0f
+#define IMB_DPI_DEFAULT 72.0

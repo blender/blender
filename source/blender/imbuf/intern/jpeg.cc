@@ -421,12 +421,12 @@ static ImBuf *ibJpegImageFromCinfo(
       /* Density_unit may be 0 for unknown, 1 for dots/inch, or 2 for dots/cm. */
       if (cinfo->density_unit == 1) {
         /* Convert inches to meters. */
-        ibuf->ppm[0] = cinfo->X_density / 0.0254f;
-        ibuf->ppm[1] = cinfo->Y_density / 0.0254f;
+        ibuf->ppm[0] = double(cinfo->X_density) / 0.0254;
+        ibuf->ppm[1] = double(cinfo->Y_density) / 0.0254;
       }
       else if (cinfo->density_unit == 2) {
-        ibuf->ppm[0] = cinfo->X_density * 100.0f;
-        ibuf->ppm[1] = cinfo->Y_density * 100.0f;
+        ibuf->ppm[0] = double(cinfo->X_density) * 100.0;
+        ibuf->ppm[1] = double(cinfo->Y_density) * 100.0;
       }
 
       ibuf->ftype = IMB_FTYPE_JPG;
