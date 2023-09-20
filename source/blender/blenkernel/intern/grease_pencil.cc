@@ -1412,7 +1412,7 @@ bool GreasePencil::insert_duplicate_frame(blender::bke::greasepencil::Layer &lay
 
   dst_frame->type = src_frame.type;
 
-  const GreasePencilDrawingBase *src_drawing_base = this->drawings(src_frame.drawing_index);
+  const GreasePencilDrawingBase *src_drawing_base = this->drawing(src_frame.drawing_index);
   switch (src_drawing_base->type) {
     case GP_DRAWING: {
       const Drawing &src_drawing =
@@ -1458,7 +1458,7 @@ bool GreasePencil::remove_frames(blender::bke::greasepencil::Layer &layer,
       /* Null frames don't reference a drawing, continue. */
       continue;
     }
-    GreasePencilDrawingBase *drawing_base = this->drawings(drawing_index_to_remove);
+    GreasePencilDrawingBase *drawing_base = this->drawing(drawing_index_to_remove);
     if (drawing_base->type != GP_DRAWING) {
       /* If the drawing is referenced from another object, we don't track it's users because we
        * cannot delete drawings from another object. */
@@ -1522,7 +1522,7 @@ static void remove_drawings_unchecked(GreasePencil &grease_pencil,
 
   /* Free the last drawings. */
   for (const int64_t drawing_index : last_drawings_range) {
-    GreasePencilDrawingBase *drawing_base_to_remove = grease_pencil.drawings(drawing_index);
+    GreasePencilDrawingBase *drawing_base_to_remove = grease_pencil.drawing(drawing_index);
     switch (drawing_base_to_remove->type) {
       case GP_DRAWING: {
         GreasePencilDrawing *drawing_to_remove = reinterpret_cast<GreasePencilDrawing *>(
@@ -1549,7 +1549,7 @@ void GreasePencil::remove_drawings_with_no_users()
   using namespace blender;
   Vector<int64_t> drawings_to_be_removed;
   for (const int64_t drawing_i : this->drawings().index_range()) {
-    GreasePencilDrawingBase *drawing_base = this->drawings(drawing_i);
+    GreasePencilDrawingBase *drawing_base = this->drawing(drawing_i);
     if (drawing_base->type != GP_DRAWING) {
       continue;
     }
@@ -1605,7 +1605,7 @@ void GreasePencil::move_duplicate_frames(
     /* Add and overwrite the frame at the destination number. */
     if (layer.frames().contains(dst_frame_number)) {
       GreasePencilFrame frame_to_overwrite = layer.frames().lookup(dst_frame_number);
-      GreasePencilDrawingBase *drawing_base = this->drawings(frame_to_overwrite.drawing_index);
+      GreasePencilDrawingBase *drawing_base = this->drawing(frame_to_overwrite.drawing_index);
       if (drawing_base->type == GP_DRAWING) {
         reinterpret_cast<GreasePencilDrawing *>(drawing_base)->wrap().remove_user();
       }
@@ -1631,7 +1631,7 @@ blender::bke::greasepencil::Drawing *GreasePencil::get_editable_drawing_at(
     /* No drawing found. */
     return nullptr;
   }
-  GreasePencilDrawingBase *drawing_base = this->drawings(drawing_index);
+  GreasePencilDrawingBase *drawing_base = this->drawing(drawing_index);
   if (drawing_base->type != GP_DRAWING) {
     /* Drawing references are not editable. */
     return nullptr;
@@ -1997,7 +1997,7 @@ void GreasePencil::remove_layer(blender::bke::greasepencil::Layer &layer)
 
   /* Remove drawings. */
   for (GreasePencilFrame frame : layer.frames_for_write().values()) {
-    GreasePencilDrawingBase *drawing_base = this->drawings(frame.drawing_index);
+    GreasePencilDrawingBase *drawing_base = this->drawing(frame.drawing_index);
     if (drawing_base->type != GP_DRAWING) {
       continue;
     }

@@ -432,8 +432,8 @@ typedef struct GreasePencil {
   /* Drawings read/write access. */
   blender::Span<const GreasePencilDrawingBase *> drawings() const;
   blender::MutableSpan<GreasePencilDrawingBase *> drawings();
-  const GreasePencilDrawingBase *drawings(int64_t index) const;
-  GreasePencilDrawingBase *drawings(int64_t index);
+  const GreasePencilDrawingBase *drawing(int64_t index) const;
+  GreasePencilDrawingBase *drawing(int64_t index);
 
   blender::Span<const blender::bke::greasepencil::TreeNode *> nodes() const;
 

@@ -177,8 +177,7 @@ static bool grease_pencil_layer_apply_trans_data(GreasePencil &grease_pencil,
   if (canceled && duplicate) {
     /* Duplicates were done, so we need to delete the corresponding duplicate drawings. */
     for (const GreasePencilFrame &duplicate_frame : trans_data.temp_frames_buffer.values()) {
-      GreasePencilDrawingBase *drawing_base = grease_pencil.drawings(
-          duplicate_frame.drawing_index);
+      GreasePencilDrawingBase *drawing_base = grease_pencil.drawing(duplicate_frame.drawing_index);
       if (drawing_base->type == GP_DRAWING) {
         reinterpret_cast<GreasePencilDrawing *>(drawing_base)->wrap().remove_user();
       }

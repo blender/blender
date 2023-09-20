@@ -675,7 +675,7 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
   BLI_assert(ob_orig.type == OB_GREASE_PENCIL);
   const GreasePencil &grease_pencil_orig = *static_cast<const GreasePencil *>(ob_orig.data);
 
-  const GreasePencilDrawingBase *drawing_base = grease_pencil_orig.drawings(drawing_index);
+  const GreasePencilDrawingBase *drawing_base = grease_pencil_orig.drawing(drawing_index);
 
   GeometryDeformation deformation;
   if (drawing_base->type == GP_DRAWING) {
