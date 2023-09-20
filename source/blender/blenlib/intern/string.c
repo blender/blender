@@ -20,9 +20,7 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef __GNUC__
-#  pragma GCC diagnostic error "-Wsign-conversion"
-#endif
+#include "BLI_strict_flags.h"
 
 /* -------------------------------------------------------------------- */
 /** \name String Duplicate/Copy
@@ -165,7 +163,7 @@ size_t BLI_vsnprintf(char *__restrict dst,
 
   n = (size_t)vsnprintf(dst, dst_maxncpy, format, arg);
 
-  if (n != -1 && n < dst_maxncpy) {
+  if (n != (size_t)-1 && n < dst_maxncpy) {
     dst[n] = '\0';
   }
   else {
@@ -190,7 +188,7 @@ size_t BLI_vsnprintf_rlen(char *__restrict dst,
 
   n = (size_t)vsnprintf(dst, dst_maxncpy, format, arg);
 
-  if (n != -1 && n < dst_maxncpy) {
+  if (n != (size_t)-1 && n < dst_maxncpy) {
     /* pass */
   }
   else {
@@ -249,7 +247,7 @@ char *BLI_sprintfN_with_buffer(
     return fixed_buf;
   }
   *result_len = (size_t)retval;
-  if (retval < fixed_buf_size) {
+  if ((size_t)retval < fixed_buf_size) {
     return fixed_buf;
   }
 
@@ -259,7 +257,7 @@ char *BLI_sprintfN_with_buffer(
   va_start(args, format);
   retval = vsnprintf(result, size, format, args);
   va_end(args);
-  BLI_assert(retval + 1 == size);
+  BLI_assert((size_t)(retval + 1) == size);
   return result;
 }
 
@@ -283,7 +281,7 @@ char *BLI_vsprintfN_with_buffer(char *fixed_buf,
     return fixed_buf;
   }
   *result_len = (size_t)retval;
-  if (retval < fixed_buf_size) {
+  if ((size_t)retval < fixed_buf_size) {
     return fixed_buf;
   }
 
@@ -291,7 +289,7 @@ char *BLI_vsprintfN_with_buffer(char *fixed_buf,
   const size_t size = (size_t)retval + 1;
   char *result = MEM_mallocN(sizeof(char) * size, __func__);
   retval = vsnprintf(result, size, format, args);
-  BLI_assert(retval + 1 == size);
+  BLI_assert((size_t)(retval + 1) == size);
   return result;
 }
 
@@ -549,14 +547,14 @@ char *BLI_strcasestr(const char *s, const char *find)
   size_t len;
 
   if ((c = *find++) != 0) {
-    c = tolower(c);
+    c = (char)tolower(c);
     len = strlen(find);
     do {
       do {
         if ((sc = *s++) == 0) {
           return NULL;
         }
-        sc = tolower(sc);
+        sc = (char)tolower(sc);
       } while (sc != c);
     } while (BLI_strncasecmp(s, find, len) != 0);
     s--;
@@ -602,14 +600,14 @@ char *BLI_strncasestr(const char *s, const char *find, size_t len)
   char c, sc;
 
   if ((c = *find++) != 0) {
-    c = tolower(c);
+    c = (char)tolower(c);
     if (len > 1) {
       do {
         do {
           if ((sc = *s++) == 0) {
             return NULL;
           }
-          sc = tolower(sc);
+          sc = (char)tolower(sc);
         } while (sc != c);
       } while (BLI_strncasecmp(s, find, len - 1) != 0);
     }
@@ -619,7 +617,7 @@ char *BLI_strncasestr(const char *s, const char *find, size_t len)
           if ((sc = *s++) == 0) {
             return NULL;
           }
-          sc = tolower(sc);
+          sc = (char)tolower(sc);
         } while (sc != c);
       }
     }
@@ -634,8 +632,8 @@ int BLI_strcasecmp(const char *s1, const char *s2)
   char c1, c2;
 
   for (i = 0;; i++) {
-    c1 = tolower(s1[i]);
-    c2 = tolower(s2[i]);
+    c1 = (char)tolower(s1[i]);
+    c2 = (char)tolower(s2[i]);
 
     if (c1 < c2) {
       return -1;
@@ -657,8 +655,8 @@ int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
   char c1, c2;
 
   for (i = 0; i < len; i++) {
-    c1 = tolower(s1[i]);
-    c2 = tolower(s2[i]);
+    c1 = (char)tolower(s1[i]);
+    c2 = (char)tolower(s2[i]);
 
     if (c1 < c2) {
       return -1;
@@ -758,8 +756,8 @@ int BLI_strcasecmp_natural(const char *s1, const char *s2)
       break;
     }
 
-    c1 = tolower(s1[d1]);
-    c2 = tolower(s2[d2]);
+    c1 = (char)tolower(s1[d1]);
+    c2 = (char)tolower(s2[d2]);
 
     if (c1 == c2) {
       /* Continue iteration */
@@ -1006,7 +1004,7 @@ int BLI_str_rstrip_float_zero(char *str, const char pad)
 int BLI_str_rstrip_digits(char *str)
 {
   int totstrip = 0;
-  int str_len = strlen(str);
+  int str_len = (int)strlen(str);
   while (str_len > 0 && isdigit(str[--str_len])) {
     str[str_len] = '\0';
     totstrip++;
@@ -1087,13 +1085,13 @@ int BLI_string_find_split_words(
   bool charsearch = true;
 
   /* Skip leading spaces */
-  for (i = 0; (i < str_maxlen) && (str[i] != '\0'); i++) {
+  for (i = 0; (i < (int)str_maxlen) && (str[i] != '\0'); i++) {
     if (str[i] != delim) {
       break;
     }
   }
 
-  for (; (i < str_maxlen) && (str[i] != '\0') && (n < words_max); i++) {
+  for (; (i < (int)str_maxlen) && (str[i] != '\0') && (n < words_max); i++) {
     if ((str[i] != delim) && (charsearch == true)) {
       r_words[n][0] = i;
       charsearch = false;
@@ -1152,7 +1150,7 @@ size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], i
   UNUSED_VARS_NDEBUG(dst_maxncpy);
 
   char src[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
-  const int num_len = SNPRINTF(src, "%d", num);
+  const int num_len = (int)SNPRINTF(src, "%d", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
@@ -1164,7 +1162,7 @@ size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE
   UNUSED_VARS_NDEBUG(dst_maxncpy);
 
   char src[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
-  const int num_len = SNPRINTF(src, "%" PRIu64 "", num);
+  const int num_len = (int)SNPRINTF(src, "%" PRIu64 "", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
@@ -1176,7 +1174,7 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
   const size_t dst_maxncpy = BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE;
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  double bytes_converted = bytes;
+  double bytes_converted = (double)bytes;
   int order = 0;
   int decimals;
   const int base = base_10 ? 1000 : 1024;
@@ -1204,7 +1202,7 @@ void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE
 {
   BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE);
 
-  float number_to_format_converted = number_to_format;
+  float number_to_format_converted = (float)number_to_format;
   int order = 0;
   const float base = 1000;
   const char *units[] = {"", "K", "M", "B"};
@@ -1229,7 +1227,7 @@ void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE
   const size_t dst_maxncpy = BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE;
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  float number_to_format_converted = number_to_format;
+  float number_to_format_converted = (float)number_to_format;
   int order = 0;
   const float base = 1000;
   const char *units[] = {"", "K", "M", "B"};

@@ -28,6 +28,8 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
+#include "BLI_strict_flags.h"
+
 /* -------------------------------------------------------------------- */
 /** \name UTF8 Character Decoding (Skip & Mask Lookup)
  *
@@ -178,7 +180,7 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
      * we only add/subtract extra utf8 bytes in code below
      * (ab number, aka number of bytes remaining in the utf8 sequence after the initial one). */
     ab = utf8_char_compute_skip(c) - 1;
-    if (length <= ab) {
+    if (length <= (size_t)ab) {
       goto utf8_error;
     }
 
@@ -855,7 +857,7 @@ size_t BLI_str_utf8_from_unicode(uint c, char *dst, const size_t dst_maxncpy)
     dst[i] = (c & 0x3f) | 0x80;
     c >>= 6;
   }
-  dst[0] = c | first;
+  dst[0] = (char)(c | first);
 
   return len;
 }
@@ -1061,7 +1063,7 @@ int BLI_str_utf8_offset_from_index(const char *str, const size_t str_len, const 
     UNUSED_VARS(code);
     index++;
   }
-  return offset;
+  return (int)offset;
 }
 
 int BLI_str_utf8_offset_to_column(const char *str, const size_t str_len, const int offset_target)
