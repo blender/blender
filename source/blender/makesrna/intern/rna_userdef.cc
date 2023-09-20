@@ -56,6 +56,7 @@ const EnumPropertyItem rna_enum_preference_section_items[] = {
     {USER_SECTION_EDITING, "EDITING", 0, "Editing", ""},
     {USER_SECTION_ANIMATION, "ANIMATION", 0, "Animation", ""},
     RNA_ENUM_ITEM_SEPR,
+    {USER_SECTION_EXTENSIONS, "EXTENSIONS", 0, "Extensions", ""},
     {USER_SECTION_ADDONS, "ADDONS", 0, "Add-ons", ""},
 #if 0 /* def WITH_USERDEF_WORKSPACES */
     RNA_ENUM_ITEM_SEPR,
@@ -302,6 +303,9 @@ static void rna_PreferencesExperimental_use_extension_repos_set(PointerRNA * /*p
     U.experimental.use_extension_repos = value;
     BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
   }
+
+  /* Needed to redraw the preferences window. */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 }
 
 static void rna_userdef_font_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
@@ -601,7 +605,10 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext * /*C*/,
 {
   UserDef *userdef = static_cast<UserDef *>(ptr->data);
 
-  if ((userdef->flag & USER_DEVELOPER_UI) != 0) {
+  const bool use_developer_ui = (userdef->flag & USER_DEVELOPER_UI) != 0;
+  const bool use_extension_repos = use_developer_ui && U.experimental.use_extension_repos;
+
+  if (use_developer_ui && use_extension_repos) {
     *r_free = false;
     return rna_enum_preference_section_items;
   }
@@ -613,7 +620,14 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext * /*C*/,
        it++)
   {
     if (it->value == USER_SECTION_EXPERIMENTAL) {
-      continue;
+      if (use_developer_ui == false) {
+        continue;
+      }
+    }
+    else if (it->value == USER_SECTION_EXTENSIONS) {
+      if (use_extension_repos == false) {
+        continue;
+      }
     }
     RNA_enum_item_add(&items, &totitem, it);
   }
