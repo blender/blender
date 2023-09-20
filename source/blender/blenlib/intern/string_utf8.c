@@ -854,7 +854,7 @@ size_t BLI_str_utf8_from_unicode(uint c, char *dst, const size_t dst_maxncpy)
   }
 
   for (uint i = len - 1; i > 0; i--) {
-    dst[i] = (char)(c & 0x3f) | 0x80;
+    dst[i] = (char)((c & 0x3f) | 0x80);
     c >>= 6;
   }
   dst[0] = (char)(c | first);
