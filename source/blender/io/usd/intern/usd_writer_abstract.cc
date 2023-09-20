@@ -148,7 +148,10 @@ static void create_vector_attrib(const pxr::UsdPrim &prim,
 }
 
 USDAbstractWriter::USDAbstractWriter(const USDExporterContext &usd_export_context)
-    : usd_export_context_(usd_export_context), frame_has_been_written_(false), is_animated_(false)
+    : usd_export_context_(usd_export_context),
+      frame_has_been_written_(false),
+      is_animated_(false),
+      hierarchy_iterator_(nullptr)
 {
 }
 

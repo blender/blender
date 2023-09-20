@@ -122,7 +122,9 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
 AbstractHierarchyWriter *USDHierarchyIterator::create_transform_writer(
     const HierarchyContext *context)
 {
-  return new USDTransformWriter(create_usd_export_context(context));
+  USDTransformWriter *ret = new USDTransformWriter(create_usd_export_context(context));
+  ret->set_iterator(this);
+  return ret;
 }
 
 AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const HierarchyContext *context)
@@ -218,7 +220,9 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_hair_writer(const Hierarch
   if (!params_.export_hair) {
     return nullptr;
   }
-  return new USDHairWriter(create_usd_export_context(context));
+  USDHairWriter *ret = new USDHairWriter(create_usd_export_context(context));
+  ret->set_iterator(this);
+  return ret;
 }
 
 AbstractHierarchyWriter *USDHierarchyIterator::create_particle_writer(
@@ -231,7 +235,10 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_particle_writer(
   if (!params_.export_particles) {
     return nullptr;
   }
-  return new USDParticleWriter(create_usd_export_context(context));
+
+  USDParticleWriter *ret = new USDParticleWriter(create_usd_export_context(context));
+  ret->set_iterator(this);
+  return ret;
 }
 
 /* Don't generate data writers for instances. */
