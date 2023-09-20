@@ -1093,9 +1093,14 @@ static bool delete_action_keys(bAnimContext *ac)
       changed = ED_gpencil_layer_frames_delete((bGPDlayer *)ale->data);
     }
     else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
       changed = blender::ed::greasepencil::remove_all_selected_frames(
-          *reinterpret_cast<GreasePencil *>(ale->id),
+          *grease_pencil,
           static_cast<GreasePencilLayer *>(ale->data)->wrap());
+
+      if (changed) {
+        DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+      }
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       changed = ED_masklayer_frames_delete((MaskLayer *)ale->data);
