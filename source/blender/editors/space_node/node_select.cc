@@ -315,25 +315,15 @@ void node_deselect_all_output_sockets(bNodeTree &node_tree, const bool deselect_
 
 void node_select_paired(bNodeTree &node_tree)
 {
-  for (bNode *input_node : node_tree.nodes_by_type("GeometryNodeSimulationInput")) {
-    const auto *storage = static_cast<const NodeGeometrySimulationInput *>(input_node->storage);
-    if (bNode *output_node = node_tree.node_by_id(storage->output_node_id)) {
-      if (input_node->flag & NODE_SELECT) {
-        output_node->flag |= NODE_SELECT;
-      }
-      if (output_node->flag & NODE_SELECT) {
-        input_node->flag |= NODE_SELECT;
-      }
-    }
-  }
-  for (bNode *input_node : node_tree.nodes_by_type("GeometryNodeRepeatInput")) {
-    const auto *storage = static_cast<const NodeGeometryRepeatInput *>(input_node->storage);
-    if (bNode *output_node = node_tree.node_by_id(storage->output_node_id)) {
-      if (input_node->flag & NODE_SELECT) {
-        output_node->flag |= NODE_SELECT;
-      }
-      if (output_node->flag & NODE_SELECT) {
-        input_node->flag |= NODE_SELECT;
+  for (const bke::bNodeZoneType *zone_type : bke::all_zone_types()) {
+    for (bNode *input_node : node_tree.nodes_by_type(zone_type->input_idname)) {
+      if (bNode *output_node = zone_type->get_corresponding_output(node_tree, *input_node)) {
+        if (input_node->flag & NODE_SELECT) {
+          output_node->flag |= NODE_SELECT;
+        }
+        if (output_node->flag & NODE_SELECT) {
+          input_node->flag |= NODE_SELECT;
+        }
       }
     }
   }

@@ -772,58 +772,29 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
       return false;
     }
   }
-  /* Check if simulation zone pairs are fully selected.
-   * Simulation input or output nodes can only be grouped together with the paired node.
-   */
-  for (bNode *input_node : ntree.nodes_by_type("GeometryNodeSimulationInput")) {
-    const NodeGeometrySimulationInput &input_data =
-        *static_cast<const NodeGeometrySimulationInput *>(input_node->storage);
-
-    if (bNode *output_node = ntree.node_by_id(input_data.output_node_id)) {
-      const bool input_selected = nodes_to_group.contains(input_node);
-      const bool output_selected = nodes_to_group.contains(output_node);
-      if (input_selected && !output_selected) {
-        BKE_reportf(
-            &reports,
-            RPT_WARNING,
-            "Can not add simulation input node '%s' to a group without its paired output '%s'",
-            input_node->name,
-            output_node->name);
-        return false;
-      }
-      if (output_selected && !input_selected) {
-        BKE_reportf(
-            &reports,
-            RPT_WARNING,
-            "Can not add simulation output node '%s' to a group without its paired input '%s'",
-            output_node->name,
-            input_node->name);
-        return false;
-      }
-    }
-  }
-  for (bNode *input_node : ntree.nodes_by_type("GeometryNodeRepeatInput")) {
-    const NodeGeometryRepeatInput &input_data = *static_cast<const NodeGeometryRepeatInput *>(
-        input_node->storage);
-
-    if (bNode *output_node = ntree.node_by_id(input_data.output_node_id)) {
-      const bool input_selected = nodes_to_group.contains(input_node);
-      const bool output_selected = nodes_to_group.contains(output_node);
-      if (input_selected && !output_selected) {
-        BKE_reportf(&reports,
-                    RPT_WARNING,
-                    "Can not add repeat input node '%s' to a group without its paired output '%s'",
-                    input_node->name,
-                    output_node->name);
-        return false;
-      }
-      if (output_selected && !input_selected) {
-        BKE_reportf(&reports,
-                    RPT_WARNING,
-                    "Can not add repeat output node '%s' to a group without its paired input '%s'",
-                    output_node->name,
-                    input_node->name);
-        return false;
+  /* Check if zone pairs are fully selected.
+   * Zone input or output nodes can only be grouped together with the paired node. */
+  for (const bke::bNodeZoneType *zone_type : bke::all_zone_types()) {
+    for (bNode *input_node : ntree.nodes_by_type(zone_type->input_idname)) {
+      if (bNode *output_node = zone_type->get_corresponding_output(ntree, *input_node)) {
+        const bool input_selected = nodes_to_group.contains(input_node);
+        const bool output_selected = nodes_to_group.contains(output_node);
+        if (input_selected && !output_selected) {
+          BKE_reportf(&reports,
+                      RPT_WARNING,
+                      "Can not add zone input node '%s' to a group without its paired output '%s'",
+                      input_node->name,
+                      output_node->name);
+          return false;
+        }
+        if (output_selected && !input_selected) {
+          BKE_reportf(&reports,
+                      RPT_WARNING,
+                      "Can not add zone output node '%s' to a group without its paired input '%s'",
+                      output_node->name,
+                      input_node->name);
+          return false;
+        }
       }
     }
   }
