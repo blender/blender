@@ -507,14 +507,21 @@ static void reassign_loose_edge_verts(const int orig_verts_num,
       }
       const VertLooseEdges vert_info = calc_vert_loose_edges(
           vert_to_edge_map, loose_edges, split_edges, vert);
+
+      bool finished = false;
       for (const int edge : vert_info.selected) {
         const int new_vert = orig_verts_num + new_verts[new_vert_i];
         swap_edge_vert(edges[edge], vert, new_vert);
         new_vert_i++;
         if (new_vert_i == new_verts.size()) {
-          continue;
+          finished = true;
+          break;
         }
       }
+      if (finished) {
+        continue;
+      }
+
       const int new_vert = orig_verts_num + new_verts[new_vert_i];
       for (const int orig_edge : vert_info.unselected) {
         swap_edge_vert(edges[orig_edge], vert, new_vert);
