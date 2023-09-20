@@ -4026,10 +4026,16 @@ static void ui_litem_layout_radial(uiLayout *litem)
           bitem->but->emboss = UI_EMBOSS_RADIAL;
           bitem->but->drawflag |= UI_BUT_ICON_LEFT;
         }
+      }
 
-        if (!ELEM(bitem->but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
-          litem->root->block->pie_data.pie_dir_mask |= 1 << int(dir);
-        }
+      /* Needed for non-buttons because a direction may reference a layout, see: #112610. */
+      if ((item->type == ITEM_BUTTON) &&
+          ELEM(((uiButtonItem *)item)->but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE))
+      {
+        /* Skip separators. */
+      }
+      else {
+        litem->root->block->pie_data.pie_dir_mask |= 1 << int(dir);
       }
 
       ui_item_size(item, &itemw, &itemh);
