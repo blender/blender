@@ -4308,6 +4308,10 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.menu("VIEW3D_MT_snap", text="Snap Vertices")
 
             col.separator()
+            
+            col.operator("transform.vert_crease")
+            
+            col.separator()
 
             # Removal Operators
             if selected_verts_len > 1:
