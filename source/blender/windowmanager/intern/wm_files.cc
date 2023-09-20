@@ -789,7 +789,7 @@ static void wm_file_read_post(bContext *C,
 
 #ifndef WITH_HEADLESS
   if (!G.background) {
-      WM_redraw_windows(C);
+    WM_redraw_windows(C);
   }
 #endif /* WITH_HEADLESS */
 
