@@ -685,7 +685,13 @@ static void node_update_basis_from_declaration(
 
       /* Round the socket location to stop it from jiggling. */
       item.runtime->location_y = round(locy + NODE_DYS);
+      if (!is_collapsed) {
+        locy -= NODE_ITEM_SPACING_Y / 2; /* Space at bottom of panel header. */
+      }
       item.runtime->max_content_y = item.runtime->min_content_y = round(locy);
+      if (!is_collapsed) {
+        locy -= NODE_ITEM_SPACING_Y; /* Space at top of panel contents. */
+      }
     }
     else if (item.is_valid_socket()) {
       if (item.input) {
@@ -702,7 +708,7 @@ static void node_update_basis_from_declaration(
         else {
           /* Space between items. */
           if (!is_first && item.input->is_visible()) {
-            locy -= NODE_SOCKDY;
+            locy -= NODE_ITEM_SPACING_Y;
           }
         }
       }
@@ -715,7 +721,7 @@ static void node_update_basis_from_declaration(
         else {
           /* Space between items. */
           if (!is_first && item.output->is_visible()) {
-            locy -= NODE_SOCKDY;
+            locy -= NODE_ITEM_SPACING_Y;
           }
         }
       }
@@ -739,8 +745,14 @@ static void node_update_basis_from_declaration(
         /* Incomplete panel, continue adding items. */
         break;
       }
-      /* Finalize the vertical extent of the content. */
-      top_panel.runtime->min_content_y = round(locy - NODE_DYS / 4);
+
+      if (!top_panel.is_collapsed) {
+        /* Finalize the vertical extent of the content. */
+        locy -= 2 * NODE_ITEM_SPACING_Y; /* Space at bottom of panel contents. */
+        top_panel.runtime->min_content_y = round(locy);
+        locy -= NODE_ITEM_SPACING_Y / 2; /* Space at top of next panel header. */
+      }
+
       /* Close panel and continue checking parent. */
       panel_updates.pop();
     }
@@ -779,7 +791,7 @@ static void node_update_basis_from_socket_lists(
 
     if (node_update_basis_socket(C, ntree, node, nullptr, socket, block, locx, locy)) {
       if (socket->next) {
-        locy -= NODE_SOCKDY;
+        locy -= NODE_ITEM_SPACING_Y;
       }
       add_output_space = true;
     }
@@ -798,7 +810,7 @@ static void node_update_basis_from_socket_lists(
 
     if (node_update_basis_socket(C, ntree, node, socket, nullptr, block, locx, locy)) {
       if (socket->next) {
-        locy -= NODE_SOCKDY;
+        locy -= NODE_ITEM_SPACING_Y;
       }
     }
   }
