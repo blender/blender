@@ -398,7 +398,7 @@ static bool node_update_basis_buttons(
   return true;
 }
 
-static const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_label)
+const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_label)
 {
   const char *socket_label = bke::nodeSocketLabel(socket);
   const char *socket_translation_context = node_socket_get_translation_context(*socket);

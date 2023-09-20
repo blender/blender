@@ -758,8 +758,57 @@ namespace blender::ed::space_node {
 
 /**************************** Node Tree Layout *******************************/
 
-static void ui_node_draw_input(
-    uiLayout &layout, bContext &C, bNodeTree &ntree, bNode &node, bNodeSocket &input, int depth);
+static void ui_node_draw_input(uiLayout &layout,
+                               bContext &C,
+                               bNodeTree &ntree,
+                               bNode &node,
+                               bNodeSocket &input,
+                               int depth,
+                               const char *panel_label);
+
+static void node_panel_toggle_button_cb(bContext *C, void *panel_state_argv, void *ntree_argv)
+{
+  Main *bmain = CTX_data_main(C);
+  bNodePanelState *panel_state = static_cast<bNodePanelState *>(panel_state_argv);
+  bNodeTree *ntree = static_cast<bNodeTree *>(ntree_argv);
+
+  panel_state->flag ^= NODE_PANEL_COLLAPSED;
+
+  ED_node_tree_propagate_change(C, bmain, ntree);
+}
+
+static void ui_node_draw_panel(uiLayout &layout,
+                               bContext &C,
+                               bNodeTree &ntree,
+                               const nodes::PanelDeclaration &panel_decl,
+                               bNodePanelState &panel_state)
+{
+  uiLayout *row = uiLayoutRow(&layout, true);
+  uiLayoutSetPropDecorate(row, false);
+
+  /* Panel header with collapse icon */
+  uiBlock *block = uiLayoutGetBlock(row);
+  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  uiBut *but = uiDefIconTextBut(block,
+                                UI_BTYPE_BUT,
+                                0,
+                                panel_state.is_collapsed() ? ICON_DISCLOSURE_TRI_RIGHT :
+                                                             ICON_DISCLOSURE_TRI_DOWN,
+                                panel_decl.name.c_str(),
+                                0,
+                                0,
+                                UI_UNIT_X * 4,
+                                UI_UNIT_Y,
+                                nullptr,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                "");
+  UI_but_drawflag_enable(but, UI_BUT_TEXT_LEFT | UI_BUT_NO_TOOLTIP);
+  UI_but_func_set(but, node_panel_toggle_button_cb, &panel_state, &ntree);
+  UI_block_emboss_set(block, UI_EMBOSS);
+}
 
 static void ui_node_draw_node(
     uiLayout &layout, bContext &C, bNodeTree &ntree, bNode &node, int depth)
@@ -773,13 +822,57 @@ static void ui_node_draw_node(
     }
   }
 
-  LISTBASE_FOREACH (bNodeSocket *, input, &node.inputs) {
-    ui_node_draw_input(layout, C, ntree, node, *input, depth + 1);
+  if (node.declaration() && node.declaration()->use_custom_socket_order) {
+    /* Node with panels. */
+    namespace nodes = blender::nodes;
+    using ItemDeclIterator = blender::Span<nodes::ItemDeclarationPtr>::iterator;
+    using SocketIterator = blender::Span<bNodeSocket *>::iterator;
+    using PanelStateIterator = blender::MutableSpan<bNodePanelState>::iterator;
+
+    ItemDeclIterator item_decl = node.declaration()->items.begin();
+    SocketIterator input = node.input_sockets().begin();
+    PanelStateIterator panel_state = node.panel_states().begin();
+    const ItemDeclIterator item_decl_end = node.declaration()->items.end();
+
+    bool panel_collapsed = false;
+    const char *panel_label = nullptr;
+
+    for (; item_decl != item_decl_end; ++item_decl) {
+      if (const nodes::SocketDeclaration *socket_decl =
+              dynamic_cast<const nodes::SocketDeclaration *>(item_decl->get()))
+      {
+        if (socket_decl->in_out == SOCK_IN) {
+          if (!panel_collapsed) {
+            ui_node_draw_input(layout, C, ntree, node, **input, depth + 1, panel_label);
+          }
+          ++input;
+        }
+      }
+      else if (const nodes::PanelDeclaration *panel_decl =
+                   dynamic_cast<const nodes::PanelDeclaration *>(item_decl->get()))
+      {
+        panel_collapsed = panel_state->is_collapsed();
+        panel_label = panel_decl->name.c_str();
+        ui_node_draw_panel(layout, C, ntree, *panel_decl, *panel_state);
+        ++panel_state;
+      }
+    }
+  }
+  else {
+    /* Node without panels. */
+    LISTBASE_FOREACH (bNodeSocket *, input, &node.inputs) {
+      ui_node_draw_input(layout, C, ntree, node, *input, depth + 1, nullptr);
+    }
   }
 }
 
-static void ui_node_draw_input(
-    uiLayout &layout, bContext &C, bNodeTree &ntree, bNode &node, bNodeSocket &input, int depth)
+static void ui_node_draw_input(uiLayout &layout,
+                               bContext &C,
+                               bNodeTree &ntree,
+                               bNode &node,
+                               bNodeSocket &input,
+                               int depth,
+                               const char *panel_label)
 {
   uiBlock *block = uiLayoutGetBlock(&layout);
   uiLayout *row = nullptr;
@@ -828,7 +921,7 @@ static void ui_node_draw_input(
 
     sub = uiLayoutRow(sub, true);
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
-    uiItemL(sub, IFACE_(bke::nodeSocketLabel(&input)), ICON_NONE);
+    uiItemL(sub, node_socket_get_label(&input, panel_label), ICON_NONE);
   }
 
   if (dependency_loop) {
@@ -923,7 +1016,7 @@ void uiTemplateNodeView(
   }
 
   if (input) {
-    ui_node_draw_input(*layout, *C, *ntree, *node, *input, 0);
+    ui_node_draw_input(*layout, *C, *ntree, *node, *input, 0, nullptr);
   }
   else {
     ui_node_draw_node(*layout, *C, *ntree, *node, 0);

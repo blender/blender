@@ -158,13 +158,16 @@ ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
 float2 space_node_group_offset(const SpaceNode &snode);
 
 int node_get_resize_cursor(NodeResizeDirection directions);
+
+/* `node_draw.cc` */
+
 /**
  * Usual convention here would be #node_socket_get_color(),
  * but that's already used (for setting a color property socket).
  */
 void node_socket_color_get(const bNodeSocketType &type, float r_color[4]);
 
-/* `node_draw.cc` */
+const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_label);
 
 void node_draw_space(const bContext &C, ARegion &region);
 
