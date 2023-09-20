@@ -392,6 +392,7 @@ void DeferredLayer::begin_sync()
       /* G-buffer. */
       gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_tx);
       gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_tx);
+      gbuffer_ps_.bind_image(GBUF_HEADER_SLOT, &inst_.gbuffer.header_tx);
       /* RenderPasses & AOVs. */
       gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
       gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
@@ -424,44 +425,48 @@ void DeferredLayer::end_sync()
 {
   eClosureBits evaluated_closures = CLOSURE_DIFFUSE | CLOSURE_REFLECTION | CLOSURE_REFRACTION;
   if (closure_bits_ & evaluated_closures) {
-    eval_light_ps_.init();
-    /* Use stencil test to reject pixel not written by this layer. */
-    eval_light_ps_.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
-    eval_light_ps_.state_stencil(0x00u, 0x00u, evaluated_closures);
-    eval_light_ps_.shader_set(inst_.shaders.static_shader_get(DEFERRED_LIGHT));
-    eval_light_ps_.bind_image("direct_diffuse_img", &direct_diffuse_tx_);
-    eval_light_ps_.bind_image("direct_reflect_img", &direct_reflect_tx_);
-    eval_light_ps_.bind_image("direct_refract_img", &direct_refract_tx_);
-    eval_light_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-    eval_light_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    eval_light_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-    eval_light_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-    inst_.bind_uniform_data(&eval_light_ps_);
-    inst_.lights.bind_resources(&eval_light_ps_);
-    inst_.shadows.bind_resources(&eval_light_ps_);
-    inst_.sampling.bind_resources(&eval_light_ps_);
-    inst_.hiz_buffer.bind_resources(&eval_light_ps_);
-    eval_light_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
-    eval_light_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
-
-    combine_ps_.init();
-    /* Use stencil test to reject pixel not written by this layer. */
-    combine_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL | DRW_STATE_BLEND_ADD);
-    combine_ps_.state_stencil(0x00u, 0x00u, evaluated_closures);
-    combine_ps_.shader_set(inst_.shaders.static_shader_get(DEFERRED_COMBINE));
-    combine_ps_.bind_image("direct_diffuse_img", &direct_diffuse_tx_);
-    combine_ps_.bind_image("direct_reflect_img", &direct_reflect_tx_);
-    combine_ps_.bind_image("direct_refract_img", &direct_refract_tx_);
-    combine_ps_.bind_image("indirect_diffuse_img", &indirect_diffuse_tx_);
-    combine_ps_.bind_image("indirect_reflect_img", &indirect_reflect_tx_);
-    combine_ps_.bind_image("indirect_refract_img", &indirect_refract_tx_);
-    combine_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-    combine_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
-    combine_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-    combine_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-    inst_.bind_uniform_data(&combine_ps_);
-    combine_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
-    combine_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    {
+      PassSimple &pass = eval_light_ps_;
+      pass.init();
+      /* Use stencil test to reject pixel not written by this layer. */
+      pass.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
+      pass.state_stencil(0x00u, 0x00u, evaluated_closures);
+      pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_LIGHT));
+      pass.bind_image("direct_diffuse_img", &direct_diffuse_tx_);
+      pass.bind_image("direct_reflect_img", &direct_reflect_tx_);
+      pass.bind_image("direct_refract_img", &direct_refract_tx_);
+      pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+      pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+      pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+      inst_.bind_uniform_data(&pass);
+      inst_.gbuffer.bind_resources(&pass);
+      inst_.lights.bind_resources(&pass);
+      inst_.shadows.bind_resources(&pass);
+      inst_.sampling.bind_resources(&pass);
+      inst_.hiz_buffer.bind_resources(&pass);
+      pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+      pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    }
+    {
+      PassSimple &pass = combine_ps_;
+      pass.init();
+      /* Use stencil test to reject pixel not written by this layer. */
+      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL | DRW_STATE_BLEND_ADD_FULL);
+      pass.state_stencil(0x00u, 0x00u, evaluated_closures);
+      pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_COMBINE));
+      pass.bind_image("direct_diffuse_img", &direct_diffuse_tx_);
+      pass.bind_image("direct_reflect_img", &direct_reflect_tx_);
+      pass.bind_image("direct_refract_img", &direct_refract_tx_);
+      pass.bind_image("indirect_diffuse_img", &indirect_diffuse_tx_);
+      pass.bind_image("indirect_reflect_img", &indirect_reflect_tx_);
+      pass.bind_image("indirect_refract_img", &indirect_refract_tx_);
+      pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+      pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+      inst_.gbuffer.bind_resources(&pass);
+      inst_.bind_uniform_data(&pass);
+      pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+      pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    }
   }
 }
 
@@ -549,6 +554,9 @@ void DeferredLayer::render(View &main_view,
       inst_.hiz_buffer.update();
     }
   }
+
+  /* TODO(fclem): Clear in pass when Gbuffer will render with framebuffer. */
+  inst_.gbuffer.header_tx.clear(uint4(0));
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(gbuffer_ps_, render_view);
@@ -748,6 +756,7 @@ void DeferredProbeLayer::begin_sync()
       /* G-buffer. */
       gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_tx);
       gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_tx);
+      gbuffer_ps_.bind_image(GBUF_HEADER_SLOT, &inst_.gbuffer.header_tx);
       /* RenderPasses & AOVs. */
       gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
       gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
@@ -783,31 +792,25 @@ void DeferredProbeLayer::begin_sync()
 void DeferredProbeLayer::end_sync()
 {
   if (closure_bits_ & (CLOSURE_DIFFUSE | CLOSURE_REFLECTION)) {
-    const bool is_last_eval_pass = !(closure_bits_ & CLOSURE_SSS);
-
-    eval_light_ps_.init();
+    PassSimple &pass = eval_light_ps_;
+    pass.init();
     /* Use stencil test to reject pixel not written by this layer. */
-    eval_light_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL |
-                             DRW_STATE_BLEND_CUSTOM);
-    eval_light_ps_.state_stencil(0x00u, 0x00u, (CLOSURE_DIFFUSE | CLOSURE_REFLECTION));
-    eval_light_ps_.shader_set(inst_.shaders.static_shader_get(DEFERRED_CAPTURE_EVAL));
-    eval_light_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-    eval_light_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
-    eval_light_ps_.push_constant("is_last_eval_pass", is_last_eval_pass);
-    eval_light_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-    eval_light_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-    eval_light_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-
-    inst_.bind_uniform_data(&eval_light_ps_);
-    inst_.lights.bind_resources(&eval_light_ps_);
-    inst_.shadows.bind_resources(&eval_light_ps_);
-    inst_.sampling.bind_resources(&eval_light_ps_);
-    inst_.hiz_buffer.bind_resources(&eval_light_ps_);
-    inst_.reflection_probes.bind_resources(&eval_light_ps_);
-    inst_.irradiance_cache.bind_resources(&eval_light_ps_);
-
-    eval_light_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
-    eval_light_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL);
+    pass.state_stencil(0x00u, 0x00u, (CLOSURE_DIFFUSE | CLOSURE_REFLECTION));
+    pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_CAPTURE_EVAL));
+    pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+    pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+    pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    inst_.bind_uniform_data(&pass);
+    inst_.gbuffer.bind_resources(&pass);
+    inst_.lights.bind_resources(&pass);
+    inst_.shadows.bind_resources(&pass);
+    inst_.sampling.bind_resources(&pass);
+    inst_.hiz_buffer.bind_resources(&pass);
+    inst_.reflection_probes.bind_resources(&pass);
+    inst_.irradiance_cache.bind_resources(&pass);
+    pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 }
 

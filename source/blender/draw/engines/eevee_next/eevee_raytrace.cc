@@ -46,12 +46,11 @@ void RayTraceModule::sync()
     PassSimple &pass = tile_classify_ps_;
     pass.init();
     pass.shader_set(inst_.shaders.static_shader_get(RAY_TILE_CLASSIFY));
-    pass.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-    pass.bind_texture("stencil_tx", &renderbuf_stencil_view_);
     pass.bind_image("tile_mask_img", &tile_mask_tx_);
     pass.bind_ssbo("ray_dispatch_buf", &ray_dispatch_buf_);
     pass.bind_ssbo("denoise_dispatch_buf", &denoise_dispatch_buf_);
     inst_.bind_uniform_data(&pass);
+    inst_.gbuffer.bind_resources(&pass);
     pass.dispatch(&tile_classify_dispatch_size_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_SHADER_STORAGE);
   }
@@ -74,12 +73,10 @@ void RayTraceModule::sync()
     pass.shader_set(inst_.shaders.static_shader_get((type == 0) ? RAY_GENERATE_REFLECT :
                                                                   RAY_GENERATE_REFRACT));
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    pass.bind_texture("stencil_tx", &renderbuf_stencil_view_);
-    pass.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-    pass.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
     pass.bind_image("out_ray_data_img", &ray_data_tx_);
     pass.bind_ssbo("tiles_coord_buf", &ray_tiles_buf_);
     inst_.sampling.bind_resources(&pass);
+    inst_.gbuffer.bind_resources(&pass);
     pass.dispatch(ray_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_TEXTURE_FETCH |
                  GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -125,8 +122,6 @@ void RayTraceModule::sync()
                                                                   RAY_DENOISE_SPATIAL_REFRACT));
     pass.bind_ssbo("tiles_coord_buf", &denoise_tiles_buf_);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    pass.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-    pass.bind_texture("stencil_tx", &renderbuf_stencil_view_);
     pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_image("ray_data_img", &ray_data_tx_);
     pass.bind_image("ray_time_img", &ray_time_tx_);
@@ -137,6 +132,7 @@ void RayTraceModule::sync()
     pass.bind_image("tile_mask_img", &tile_mask_tx_);
     inst_.bind_uniform_data(&pass);
     inst_.sampling.bind_resources(&pass);
+    inst_.gbuffer.bind_resources(&pass);
     pass.dispatch(denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
@@ -164,7 +160,6 @@ void RayTraceModule::sync()
     pass.init();
     pass.shader_set(inst_.shaders.static_shader_get((type == 0) ? RAY_DENOISE_BILATERAL_REFLECT :
                                                                   RAY_DENOISE_BILATERAL_REFRACT));
-    pass.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
     pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_image("in_radiance_img", &denoised_temporal_tx_);
     pass.bind_image("out_radiance_img", &denoised_bilateral_tx_);
@@ -173,6 +168,7 @@ void RayTraceModule::sync()
     pass.bind_ssbo("tiles_coord_buf", &denoise_tiles_buf_);
     inst_.bind_uniform_data(&pass);
     inst_.sampling.bind_resources(&pass);
+    inst_.gbuffer.bind_resources(&pass);
     pass.dispatch(denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }

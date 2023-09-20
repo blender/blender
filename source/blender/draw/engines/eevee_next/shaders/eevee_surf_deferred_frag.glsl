@@ -16,6 +16,7 @@
 #pragma BLENDER_REQUIRE(eevee_ambient_occlusion_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 
 vec4 closure_to_rgba(Closure cl)
@@ -86,56 +87,62 @@ void main()
 
   /* ----- GBuffer output ----- */
 
-  if (true) {
+  uint header = 0u;
+
+  if (g_reflection_data.weight > 0.0) {
     /* Reflection. */
-    vec4 out_reflect = vec4(gbuffer_normal_pack(g_reflection_data.N),
-                            g_reflection_data.roughness,
-                            g_reflection_data.roughness);
-    imageStore(out_gbuff_closure_img, ivec3(out_texel, 0), out_reflect);
+    vec4 closure;
+    closure.xy = gbuffer_normal_pack(g_reflection_data.N);
+    closure.z = g_reflection_data.roughness;
+    closure.w = 0.0;
+    imageStore(out_gbuf_closure_img, ivec3(out_texel, 0), closure);
 
     vec4 color = gbuffer_color_pack(g_reflection_data.color);
-    imageStore(out_gbuff_color_img, ivec3(out_texel, 0), color);
+    imageStore(out_gbuf_color_img, ivec3(out_texel, 0), color);
+    header |= CLOSURE_REFLECTION;
   }
 
-  /* TODO(fclem) other RNG. */
-  float refract_rand = fract(g_closure_rand * 6.1803398875);
   float combined_weight = g_refraction_data.weight + g_diffuse_data.weight;
-  bool output_refraction = combined_weight > 0.0 &&
-                           (refract_rand * combined_weight) < g_refraction_data.weight;
-  if (output_refraction) {
-    /* Refraction. */
-    vec4 closure;
-    closure.xy = gbuffer_normal_pack(g_refraction_data.N);
-    closure.z = g_refraction_data.roughness;
-    closure.w = gbuffer_ior_pack(g_refraction_data.ior);
-    /* Clamp to just bellow 1 to be able to distinguish between refraction and diffuse.
-     * Ceiling value is chosen by the storage format (16bit UNORM). */
-    closure.w = min(closure.w, float(0xFFFFu - 1u) / float(0xFFFFu));
-    imageStore(out_gbuff_closure_img, ivec3(out_texel, 1), closure);
+  if (combined_weight > 0.0) {
+    /* TODO(fclem) other RNG. */
+    float refract_rand = fract(g_closure_rand * 6.1803398875);
+    bool output_refraction = (refract_rand * combined_weight) < g_refraction_data.weight;
+    if (output_refraction) {
+      /* Refraction. */
+      vec4 closure;
+      closure.xy = gbuffer_normal_pack(g_refraction_data.N);
+      closure.z = g_refraction_data.roughness;
+      closure.w = gbuffer_ior_pack(g_refraction_data.ior);
+      imageStore(out_gbuf_closure_img, ivec3(out_texel, 1), closure);
 
-    vec4 color = gbuffer_color_pack(g_refraction_data.color);
-    imageStore(out_gbuff_color_img, ivec3(out_texel, 1), color);
-  }
-  else {
-    /* Diffuse. */
-    vec4 closure;
-    closure.xy = gbuffer_normal_pack(g_diffuse_data.N);
-    closure.z = gbuffer_thickness_pack(thickness);
-    /* Used to detect the refraction case. Could be used for roughness. */
-    closure.w = 1.0;
-    imageStore(out_gbuff_closure_img, ivec3(out_texel, 1), closure);
+      vec4 color = gbuffer_color_pack(g_refraction_data.color);
+      imageStore(out_gbuf_color_img, ivec3(out_texel, 1), color);
+      header |= CLOSURE_REFRACTION;
+    }
+    else {
+      /* Diffuse. */
+      vec4 closure;
+      closure.xy = gbuffer_normal_pack(g_diffuse_data.N);
+      closure.z = gbuffer_thickness_pack(thickness);
+      closure.w = 0.0; /* Unused. */
+      imageStore(out_gbuf_closure_img, ivec3(out_texel, 1), closure);
 
-    vec4 color = gbuffer_color_pack(g_diffuse_data.color);
-    imageStore(out_gbuff_color_img, ivec3(out_texel, 1), color);
+      vec4 color = gbuffer_color_pack(g_diffuse_data.color);
+      imageStore(out_gbuf_color_img, ivec3(out_texel, 1), color);
+      header |= CLOSURE_DIFFUSE;
+    }
+
+    if (g_diffuse_data.sss_id > 0) {
+      /* SubSurface Scattering. */
+      vec4 closure;
+      closure.xyz = gbuffer_sss_radii_pack(g_diffuse_data.sss_radius);
+      closure.w = gbuffer_object_id_unorm16_pack(uint(resource_id));
+      imageStore(out_gbuf_closure_img, ivec3(out_texel, 2), closure);
+      header |= CLOSURE_SSS;
+    }
   }
 
-  if (true) {
-    /* SubSurface Scattering. */
-    vec4 closure;
-    closure.xyz = gbuffer_sss_radii_pack(g_diffuse_data.sss_radius);
-    closure.w = gbuffer_object_id_unorm16_pack(g_diffuse_data.sss_id > 0 ? uint(resource_id) : 0);
-    imageStore(out_gbuff_closure_img, ivec3(out_texel, 2), closure);
-  }
+  imageStore(out_gbuf_header_img, out_texel, uvec4(header));
 
   /* ----- Radiance output ----- */
 

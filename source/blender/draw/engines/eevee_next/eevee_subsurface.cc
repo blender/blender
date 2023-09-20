@@ -36,9 +36,8 @@ void SubsurfaceModule::end_sync()
   subsurface_ps_.shader_set(inst_.shaders.static_shader_get(SUBSURFACE_EVAL));
   inst_.bind_uniform_data(&subsurface_ps_);
   inst_.hiz_buffer.bind_resources(&subsurface_ps_);
+  inst_.gbuffer.bind_resources(&subsurface_ps_);
   subsurface_ps_.bind_texture("radiance_tx", &diffuse_light_tx_);
-  subsurface_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-  subsurface_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
   subsurface_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
   /** NOTE: Not used in the shader, but we bind it to avoid debug warnings. */
   subsurface_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);

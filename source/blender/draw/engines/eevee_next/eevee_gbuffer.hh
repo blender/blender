@@ -68,7 +68,8 @@ class Instance;
  * Color degradation is expected to happen in this case.
  */
 struct GBuffer {
-  /* TODO(fclem): Use texture from pool once they support texture array. */
+  /* TODO(fclem): Use texture from pool once they support texture array and layer views. */
+  Texture header_tx = {"GbufferHeader"};
   Texture closure_tx = {"GbufferClosure"};
   Texture color_tx = {"GbufferColor"};
 
@@ -76,6 +77,7 @@ struct GBuffer {
   {
     const bool use_sss = (closure_bits_ & CLOSURE_SSS) != 0;
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
+    header_tx.ensure_2d(GPU_R8UI, extent, usage);
     closure_tx.ensure_2d_array(GPU_RGBA16, extent, use_sss ? 3 : 2, usage);
     color_tx.ensure_2d_array(GPU_RGB10_A2, extent, 2, usage);
   }
@@ -83,8 +85,16 @@ struct GBuffer {
   void release()
   {
     /* TODO(fclem): Use texture from pool once they support texture array. */
+    // header_tx.release();
     // closure_tx.release();
     // color_tx.release();
+  }
+
+  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  {
+    pass->bind_texture("gbuf_header_tx", &header_tx);
+    pass->bind_texture("gbuf_closure_tx", &closure_tx);
+    pass->bind_texture("gbuf_color_tx", &color_tx);
   }
 };
 

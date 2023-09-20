@@ -22,57 +22,31 @@ void main()
   ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
                         uniform_buf.raytrace.resolution_bias;
 
-  bool valid_texel = in_texture_range(texel_fullres, stencil_tx);
-  uint closure_bits = (!valid_texel) ? 0u : texelFetch(stencil_tx, texel_fullres, 0).r;
+  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel_fullres);
 
 #if defined(RAYTRACE_REFLECT)
-  ClosureReflection closure;
-  eClosureBits closure_active = CLOSURE_REFLECTION;
-  const int gbuf_layer = 0;
+  bool valid_pixel = gbuf.has_reflection;
 #elif defined(RAYTRACE_REFRACT)
-  ClosureRefraction closure;
-  eClosureBits closure_active = CLOSURE_REFRACTION;
-  const int gbuf_layer = 1;
+  bool valid_pixel = gbuf.has_refraction;
 #endif
 
-  if (!flag_test(closure_bits, closure_active)) {
+  if (!valid_pixel) {
     imageStore(out_ray_data_img, texel, vec4(0.0));
     return;
   }
 
-  vec2 uv = (vec2(texel_fullres) + 0.5) / vec2(textureSize(stencil_tx, 0).xy);
+  vec2 uv = (vec2(texel_fullres) + 0.5) / vec2(textureSize(gbuf_header_tx, 0).xy);
   vec3 V = transform_direction(ViewMatrixInverse, get_view_vector_from_screen_uv(uv));
   vec2 noise = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER).rg;
 
-  /* Load GBuffer data. */
-  vec4 gbuffer_packed = texelFetch(gbuffer_closure_tx, ivec3(texel_fullres, gbuf_layer), 0);
-
-  closure.N = gbuffer_normal_unpack(gbuffer_packed.xy);
-
 #if defined(RAYTRACE_REFLECT)
-  closure.roughness = gbuffer_packed.z;
-
+  ClosureReflection closure = gbuf.reflection;
 #elif defined(RAYTRACE_REFRACT)
-  if (gbuffer_is_refraction(gbuffer_packed)) {
-    closure.roughness = gbuffer_packed.z;
-    closure.ior = gbuffer_ior_unpack(gbuffer_packed.w);
-  }
-  else {
-    /* Avoid producing incorrect ray directions. */
-    closure.ior = 1.1;
-    closure.roughness = 0.0;
-  }
+  ClosureRefraction closure = gbuf.refraction;
 #endif
 
   float pdf;
   vec3 ray_direction = ray_generate_direction(noise.xy, closure, V, pdf);
-
-#if defined(RAYTRACE_REFRACT)
-  if (gbuffer_is_refraction(gbuffer_packed) && closure_active != CLOSURE_REFRACTION) {
-    /* Discard incorrect rays. */
-    pdf = 0.0;
-  }
-#endif
 
   /* Store inverse pdf to speedup denoising.
    * Limit to the smallest non-0 value that the format can encode.

@@ -61,20 +61,20 @@ vec3 from_accumulation_space(vec3 color)
   return color / (1.0 - dot(color, vec3(1.0)));
 }
 
-void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
+void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
                                ivec2 texel,
                                out ClosureDiffuse closure)
 {
-  vec4 data_in = texelFetch(gbuffer_closure_tx, ivec3(texel, 1), 0);
+  vec4 data_in = texelFetch(gbuf_closure_tx, ivec3(texel, 1), 0);
 
   closure.N = gbuffer_normal_unpack(data_in.xy);
 }
 
-void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
+void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
                                ivec2 texel,
                                out ClosureRefraction closure)
 {
-  vec4 data_in = texelFetch(gbuffer_closure_tx, ivec3(texel, 1), 0);
+  vec4 data_in = texelFetch(gbuf_closure_tx, ivec3(texel, 1), 0);
 
   closure.N = gbuffer_normal_unpack(data_in.xy);
   if (gbuffer_is_refraction(data_in)) {
@@ -87,11 +87,11 @@ void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
   }
 }
 
-void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
+void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
                                ivec2 texel,
                                out ClosureReflection closure)
 {
-  vec4 data_in = texelFetch(gbuffer_closure_tx, ivec3(texel, 0), 0);
+  vec4 data_in = texelFetch(gbuf_closure_tx, ivec3(texel, 0), 0);
 
   closure.N = gbuffer_normal_unpack(data_in.xy);
   closure.roughness = data_in.z;
@@ -116,7 +116,7 @@ void main()
 #else
 #  error
 #endif
-  gbuffer_load_closure_data(gbuffer_closure_tx, texel_fullres, center_closure);
+  gbuffer_load_closure_data(gbuf_closure_tx, texel_fullres, center_closure);
 
   float roughness = center_closure.roughness;
 
@@ -168,7 +168,7 @@ void main()
       continue;
     }
 
-    gbuffer_load_closure_data(gbuffer_closure_tx, sample_texel, sample_closure);
+    gbuffer_load_closure_data(gbuf_closure_tx, sample_texel, sample_closure);
 
     float depth_weight = bilateral_depth_weight(center_closure.N, center_P, sample_P);
     float spatial_weight = bilateral_spatial_weight(filter_size, vec2(offset));
