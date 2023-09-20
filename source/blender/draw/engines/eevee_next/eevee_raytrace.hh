@@ -54,7 +54,7 @@ struct RayTraceBuffer {
    * One for each closure type. Not to be mistaken with deferred layer type.
    * For instance the opaque deferred layer will only used the reflection history buffer.
    */
-  DenoiseBuffer reflection, refraction;
+  DenoiseBuffer reflection, refraction, diffuse;
 };
 
 /**
@@ -103,14 +103,18 @@ class RayTraceModule {
 
   draw::PassSimple tile_classify_ps_ = {"TileClassify"};
   draw::PassSimple tile_compact_ps_ = {"TileCompact"};
+  draw::PassSimple generate_diffuse_ps_ = {"RayGenerate.Diffuse"};
   draw::PassSimple generate_reflect_ps_ = {"RayGenerate.Reflection"};
   draw::PassSimple generate_refract_ps_ = {"RayGenerate.Refraction"};
+  draw::PassSimple trace_diffuse_ps_ = {"Trace.Diffuse"};
   draw::PassSimple trace_reflect_ps_ = {"Trace.Reflection"};
   draw::PassSimple trace_refract_ps_ = {"Trace.Refraction"};
   draw::PassSimple trace_fallback_ps_ = {"Trace.Fallback"};
+  draw::PassSimple denoise_spatial_diffuse_ps_ = {"DenoiseSpatial.Diffuse"};
   draw::PassSimple denoise_spatial_reflect_ps_ = {"DenoiseSpatial.Reflection"};
   draw::PassSimple denoise_spatial_refract_ps_ = {"DenoiseSpatial.Refraction"};
   draw::PassSimple denoise_temporal_ps_ = {"DenoiseTemporal"};
+  draw::PassSimple denoise_bilateral_diffuse_ps_ = {"DenoiseBilateral.Diffuse"};
   draw::PassSimple denoise_bilateral_reflect_ps_ = {"DenoiseBilateral.Reflection"};
   draw::PassSimple denoise_bilateral_refract_ps_ = {"DenoiseBilateral.Refraction"};
 

@@ -118,7 +118,11 @@ void main()
 #endif
   gbuffer_load_closure_data(gbuf_closure_tx, texel_fullres, center_closure);
 
+#if defined(RAYTRACE_DIFFUSE)
+  float roughness = 1.0;
+#else
   float roughness = center_closure.roughness;
+#endif
 
   float variance = imageLoad(in_variance_img, texel_fullres).r;
   vec3 in_radiance = imageLoad(in_radiance_img, texel_fullres).rgb;

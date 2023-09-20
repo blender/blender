@@ -5,8 +5,7 @@
 /**
  * Compute light objects lighting contribution using Gbuffer data.
  *
- * Output light either directly to the radiance buffers or to temporary radiance accumulation
- * buffer that will be processed by other deferred lighting passes.
+ * Output light .
  */
 
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
@@ -42,6 +41,8 @@ void main()
              gbuf.thickness,
              diffuse_light,
              reflection_light,
+             /* TODO(fclem): Implement refraction light. */
+             //  refraction_light,
              shadow);
 
   output_renderpass_value(uniform_buf.render_pass.shadow_id, shadow);

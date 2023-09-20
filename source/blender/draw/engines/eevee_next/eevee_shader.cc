@@ -156,22 +156,30 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_light_culling_tile";
     case LIGHT_CULLING_ZBIN:
       return "eevee_light_culling_zbin";
+    case RAY_DENOISE_SPATIAL_DIFFUSE:
+      return "eevee_ray_denoise_spatial_diffuse";
     case RAY_DENOISE_SPATIAL_REFLECT:
       return "eevee_ray_denoise_spatial_reflect";
     case RAY_DENOISE_SPATIAL_REFRACT:
       return "eevee_ray_denoise_spatial_refract";
     case RAY_DENOISE_TEMPORAL:
       return "eevee_ray_denoise_temporal";
+    case RAY_DENOISE_BILATERAL_DIFFUSE:
+      return "eevee_ray_denoise_bilateral_diffuse";
     case RAY_DENOISE_BILATERAL_REFLECT:
       return "eevee_ray_denoise_bilateral_reflect";
     case RAY_DENOISE_BILATERAL_REFRACT:
       return "eevee_ray_denoise_bilateral_refract";
+    case RAY_GENERATE_DIFFUSE:
+      return "eevee_ray_generate_diffuse";
     case RAY_GENERATE_REFLECT:
       return "eevee_ray_generate_reflect";
     case RAY_GENERATE_REFRACT:
       return "eevee_ray_generate_refract";
     case RAY_TRACE_FALLBACK:
       return "eevee_ray_trace_fallback";
+    case RAY_TRACE_SCREEN_DIFFUSE:
+      return "eevee_ray_trace_screen_diffuse";
     case RAY_TRACE_SCREEN_REFLECT:
       return "eevee_ray_trace_screen_reflect";
     case RAY_TRACE_SCREEN_REFRACT:

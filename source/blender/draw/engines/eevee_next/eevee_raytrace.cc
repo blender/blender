@@ -41,6 +41,16 @@ void RayTraceModule::sync()
 {
   Texture &depth_tx = inst_.render_buffers.depth_tx;
 
+#define SHADER_VARIATION(_shader_name, _index) \
+  ((_index == 0) ? _shader_name##REFLECT : \
+   (_index == 1) ? _shader_name##REFRACT : \
+                   _shader_name##DIFFUSE)
+
+#define PASS_VARIATION(_pass_name, _index, _suffix) \
+  ((_index == 0) ? _pass_name##reflect##_suffix : \
+   (_index == 1) ? _pass_name##refract##_suffix : \
+                   _pass_name##diffuse##_suffix)
+
   /* Setup. */
   {
     PassSimple &pass = tile_classify_ps_;
@@ -67,11 +77,10 @@ void RayTraceModule::sync()
     pass.dispatch(&tile_compact_dispatch_size_);
     pass.barrier(GPU_BARRIER_SHADER_STORAGE);
   }
-  for (auto type : IndexRange(2)) {
-    PassSimple &pass = (type == 0) ? generate_reflect_ps_ : generate_refract_ps_;
+  for (auto type : IndexRange(3)) {
+    PassSimple &pass = PASS_VARIATION(generate_, type, _ps_);
     pass.init();
-    pass.shader_set(inst_.shaders.static_shader_get((type == 0) ? RAY_GENERATE_REFLECT :
-                                                                  RAY_GENERATE_REFRACT));
+    pass.shader_set(inst_.shaders.static_shader_get(SHADER_VARIATION(RAY_GENERATE_, type)));
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     pass.bind_image("out_ray_data_img", &ray_data_tx_);
     pass.bind_ssbo("tiles_coord_buf", &ray_tiles_buf_);
@@ -82,11 +91,10 @@ void RayTraceModule::sync()
                  GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
   /* Tracing. */
-  for (auto type : IndexRange(2)) {
-    PassSimple &pass = (type == 0) ? trace_reflect_ps_ : trace_refract_ps_;
+  for (auto type : IndexRange(3)) {
+    PassSimple &pass = PASS_VARIATION(trace_, type, _ps_);
     pass.init();
-    pass.shader_set(inst_.shaders.static_shader_get((type == 0) ? RAY_TRACE_SCREEN_REFLECT :
-                                                                  RAY_TRACE_SCREEN_REFRACT));
+    pass.shader_set(inst_.shaders.static_shader_get(SHADER_VARIATION(RAY_TRACE_SCREEN_, type)));
     pass.bind_ssbo("tiles_coord_buf", &ray_tiles_buf_);
     pass.bind_image("ray_data_img", &ray_data_tx_);
     pass.bind_image("ray_time_img", &ray_time_tx_);
@@ -115,11 +123,10 @@ void RayTraceModule::sync()
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
   /* Denoise. */
-  for (auto type : IndexRange(2)) {
-    PassSimple &pass = (type == 0) ? denoise_spatial_reflect_ps_ : denoise_spatial_refract_ps_;
+  for (auto type : IndexRange(3)) {
+    PassSimple &pass = PASS_VARIATION(denoise_spatial_, type, _ps_);
     pass.init();
-    pass.shader_set(inst_.shaders.static_shader_get((type == 0) ? RAY_DENOISE_SPATIAL_REFLECT :
-                                                                  RAY_DENOISE_SPATIAL_REFRACT));
+    pass.shader_set(inst_.shaders.static_shader_get(SHADER_VARIATION(RAY_DENOISE_SPATIAL_, type)));
     pass.bind_ssbo("tiles_coord_buf", &denoise_tiles_buf_);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     pass.bind_texture("depth_tx", &depth_tx);
@@ -155,11 +162,11 @@ void RayTraceModule::sync()
     pass.dispatch(denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
-  for (auto type : IndexRange(2)) {
-    PassSimple &pass = (type == 0) ? denoise_bilateral_reflect_ps_ : denoise_bilateral_refract_ps_;
+  for (auto type : IndexRange(3)) {
+    PassSimple &pass = PASS_VARIATION(denoise_bilateral_, type, _ps_);
     pass.init();
-    pass.shader_set(inst_.shaders.static_shader_get((type == 0) ? RAY_DENOISE_BILATERAL_REFLECT :
-                                                                  RAY_DENOISE_BILATERAL_REFRACT));
+    pass.shader_set(
+        inst_.shaders.static_shader_get(SHADER_VARIATION(RAY_DENOISE_BILATERAL_, type)));
     pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_image("in_radiance_img", &denoised_temporal_tx_);
     pass.bind_image("out_radiance_img", &denoised_bilateral_tx_);
@@ -172,6 +179,9 @@ void RayTraceModule::sync()
     pass.dispatch(denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
+
+#undef SHADER_VARIATION
+#undef PASS_VARIATION
 }
 
 void RayTraceModule::debug_pass_sync() {}
@@ -190,8 +200,8 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
 {
   BLI_assert_msg(count_bits_i(raytrace_closure) == 1,
                  "Only one closure type can be raytraced at a time.");
-  BLI_assert_msg(raytrace_closure ==
-                     (raytrace_closure & (CLOSURE_REFLECTION | CLOSURE_REFRACTION)),
+  BLI_assert_msg(raytrace_closure == (raytrace_closure &
+                                      (CLOSURE_REFLECTION | CLOSURE_REFRACTION | CLOSURE_DIFFUSE)),
                  "Only reflection and refraction are implemented.");
 
   if (tracing_method_ == RAYTRACE_EEVEE_METHOD_NONE) {
@@ -207,7 +217,15 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   PassSimple *denoise_bilateral_ps = nullptr;
   RayTraceBuffer::DenoiseBuffer *denoise_buf = nullptr;
 
-  if (raytrace_closure == CLOSURE_REFLECTION) {
+  if (raytrace_closure == CLOSURE_DIFFUSE) {
+    options = reflection_options_;
+    generate_ray_ps = &generate_diffuse_ps_;
+    trace_ray_ps = force_no_tracing ? &trace_diffuse_ps_ : &trace_diffuse_ps_;
+    denoise_spatial_ps = &denoise_spatial_diffuse_ps_;
+    denoise_bilateral_ps = &denoise_bilateral_diffuse_ps_;
+    denoise_buf = &rt_buffer.diffuse;
+  }
+  else if (raytrace_closure == CLOSURE_REFLECTION) {
     options = reflection_options_;
     generate_ray_ps = &generate_reflect_ps_;
     trace_ray_ps = force_no_tracing ? &trace_fallback_ps_ : &trace_reflect_ps_;
@@ -286,7 +304,7 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
   {
     /* Tracing rays. */
     ray_data_tx_.acquire(tracing_res, GPU_RGBA16F);
-    ray_time_tx_.acquire(tracing_res, GPU_R32F);
+    ray_time_tx_.acquire(tracing_res, RAYTRACE_RAYTIME_FORMAT);
     ray_radiance_tx_.acquire(tracing_res, RAYTRACE_RADIANCE_FORMAT);
 
     inst_.manager->submit(*generate_ray_ps, render_view);

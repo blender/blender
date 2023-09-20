@@ -24,7 +24,9 @@ void main()
 
   GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel_fullres);
 
-#if defined(RAYTRACE_REFLECT)
+#if defined(RAYTRACE_DIFFUSE)
+  bool valid_pixel = gbuf.has_diffuse;
+#elif defined(RAYTRACE_REFLECT)
   bool valid_pixel = gbuf.has_reflection;
 #elif defined(RAYTRACE_REFRACT)
   bool valid_pixel = gbuf.has_refraction;
@@ -39,7 +41,9 @@ void main()
   vec3 V = transform_direction(ViewMatrixInverse, get_view_vector_from_screen_uv(uv));
   vec2 noise = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER).rg;
 
-#if defined(RAYTRACE_REFLECT)
+#if defined(RAYTRACE_DIFFUSE)
+  ClosureDiffuse closure = gbuf.diffuse;
+#elif defined(RAYTRACE_REFLECT)
   ClosureReflection closure = gbuf.reflection;
 #elif defined(RAYTRACE_REFRACT)
   ClosureRefraction closure = gbuf.refraction;

@@ -593,10 +593,13 @@ void DeferredLayer::render(View &main_view,
     inst_.subsurface.render(render_view, combined_fb, direct_diffuse_tx_);
   }
 
-  TextureFromPool dummy_diffuse_indirect;
-  dummy_diffuse_indirect.acquire(int2(1), RAYTRACE_RADIANCE_FORMAT);
-  dummy_diffuse_indirect.clear(float4(0));
-  RayTraceResult diffuse_result = {dummy_diffuse_indirect};
+  RayTraceResult diffuse_result = inst_.raytracing.trace(rt_buffer,
+                                                         radiance_feedback_tx_,
+                                                         radiance_feedback_persmat_,
+                                                         closure_bits_,
+                                                         CLOSURE_DIFFUSE,
+                                                         main_view,
+                                                         render_view);
 
   RayTraceResult reflect_result = inst_.raytracing.trace(rt_buffer,
                                                          radiance_feedback_tx_,

@@ -6,6 +6,11 @@
 #include "gpu_shader_create_info.hh"
 
 #define EEVEE_RAYTRACE_CLOSURE_VARIATION(name, ...) \
+  GPU_SHADER_CREATE_INFO(name##_diffuse) \
+      .do_static_compilation(true) \
+      .define("RAYTRACE_DIFFUSE") \
+      .define("CLOSURE_ACTIVE", "eClosureBits(CLOSURE_DIFFUSE)") \
+      .additional_info(#name); \
   GPU_SHADER_CREATE_INFO(name##_reflect) \
       .do_static_compilation(true) \
       .define("RAYTRACE_REFLECT") \
@@ -65,7 +70,7 @@ GPU_SHADER_CREATE_INFO(eevee_ray_trace_fallback)
                      "draw_view",
                      "eevee_reflection_probe_data")
     .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D, "ray_data_img")
-    .image(1, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_time_img")
+    .image(1, RAYTRACE_RAYTIME_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_time_img")
     .image(2, RAYTRACE_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_radiance_img")
     .sampler(1, ImageType::DEPTH_2D, "depth_tx")
     .storage_buf(4, Qualifier::READ, "uint", "tiles_coord_buf[]")
@@ -80,7 +85,7 @@ GPU_SHADER_CREATE_INFO(eevee_ray_trace_screen)
                      "eevee_hiz_data",
                      "eevee_reflection_probe_data")
     .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D, "ray_data_img")
-    .image(1, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_time_img")
+    .image(1, RAYTRACE_RAYTIME_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_time_img")
     .image(2, RAYTRACE_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_radiance_img")
     .sampler(0, ImageType::FLOAT_2D, "screen_radiance_tx")
     .sampler(1, ImageType::DEPTH_2D, "depth_tx")
@@ -99,7 +104,7 @@ GPU_SHADER_CREATE_INFO(eevee_ray_denoise_spatial)
                      "eevee_utility_texture")
     .sampler(3, ImageType::DEPTH_2D, "depth_tx")
     .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D, "ray_data_img")
-    .image(1, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D, "ray_time_img")
+    .image(1, RAYTRACE_RAYTIME_FORMAT, Qualifier::READ, ImageType::FLOAT_2D, "ray_time_img")
     .image(2, RAYTRACE_RADIANCE_FORMAT, Qualifier::READ, ImageType::FLOAT_2D, "ray_radiance_img")
     .image(3, RAYTRACE_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "out_radiance_img")
     .image(4, RAYTRACE_VARIANCE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "out_variance_img")
