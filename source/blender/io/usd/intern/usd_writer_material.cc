@@ -152,7 +152,7 @@ static InputSpecMap &preview_surface_input_map();
 static bNodeLink *traverse_channel(bNodeSocket *input, short target_type);
 
 template<typename T1, typename T2>
-void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value);
+void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value, float scale);
 
 void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &input_spec);
 static void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
@@ -246,18 +246,29 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
     }
     else if (input_spec.set_default_value) {
       /* Set hardcoded value. */
+
+      float scale = 1.0;
+
+      /* We must scale emissive color by emission strength. */
+      if (input_spec.input_name == usdtokens::emissiveColor) {
+        if (bNodeSocket *emission_sock = nodeFindSocket(node, SOCK_IN, "Emission Strength")) {
+          bNodeSocketValueFloat *sock_val = (bNodeSocketValueFloat *)emission_sock->default_value;
+          scale = sock_val->value;
+        }
+      }
+
       switch (sock->type) {
         case SOCK_FLOAT: {
           create_input<bNodeSocketValueFloat, float>(
-              preview_surface, input_spec, sock->default_value);
+              preview_surface, input_spec, sock->default_value, scale);
         } break;
         case SOCK_VECTOR: {
           create_input<bNodeSocketValueVector, pxr::GfVec3f>(
-              preview_surface, input_spec, sock->default_value);
+              preview_surface, input_spec, sock->default_value, scale);
         } break;
         case SOCK_RGBA: {
           create_input<bNodeSocketValueRGBA, pxr::GfVec3f>(
-              preview_surface, input_spec, sock->default_value);
+              preview_surface, input_spec, sock->default_value, scale);
         } break;
         default:
           break;
@@ -351,10 +362,10 @@ static InputSpecMap &preview_surface_input_map()
  * input.  Parameters T1 and T2 indicate the Blender and USD
  * value types, respectively. */
 template<typename T1, typename T2>
-void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value)
+void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value, float scale)
 {
   const T1 *cast_value = static_cast<const T1 *>(value);
-  shader.CreateInput(spec.input_name, spec.input_type).Set(T2(cast_value->value));
+  shader.CreateInput(spec.input_name, spec.input_type).Set(scale * T2(cast_value->value));
 }
 
 static void create_uvmap_shader(const USDExporterContext &usd_export_context,

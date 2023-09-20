@@ -578,12 +578,8 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
 
   if (pxr::UsdShadeInput emissive_input = usd_shader.GetInput(usdtokens::emissiveColor)) {
     set_node_input(emissive_input, principled, "Emission", ntree, column, &context);
-  }
-  else {
-    /* Emission is now (1,1,1) by default, so we set it to black if there is no input. */
-    if (bNodeSocket *sock = nodeFindSocket(principled, SOCK_IN, "Emission")) {
-      float black[3] = {0.0f, 0.0f, 0.0f};
-      copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, black);
+    if (bNodeSocket *sock = nodeFindSocket(principled, SOCK_IN, "Emission Strength")) {
+      ((bNodeSocketValueFloat *)sock->default_value)->value = 1.0f;
     }
   }
 
