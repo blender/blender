@@ -243,14 +243,15 @@ static ConsoleLine *console_lb_add_str__internal(ListBase *lb, char *str, bool o
 {
   ConsoleLine *ci = static_cast<ConsoleLine *>(
       MEM_callocN(sizeof(ConsoleLine), "ConsoleLine Add"));
+  const int str_len = strlen(str);
   if (own) {
     ci->line = str;
   }
   else {
-    ci->line = BLI_strdup(str);
+    ci->line = BLI_strdupn(str, str_len);
   }
 
-  ci->len = ci->len_alloc = strlen(str);
+  ci->len = ci->len_alloc = str_len;
 
   BLI_addtail(lb, ci);
   return ci;

@@ -127,9 +127,9 @@ static void text_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const
   LISTBASE_FOREACH (TextLine *, line_src, &text_src->lines) {
     TextLine *line_dst = static_cast<TextLine *>(MEM_mallocN(sizeof(*line_dst), __func__));
 
-    line_dst->line = BLI_strdup(line_src->line);
-    line_dst->format = nullptr;
+    line_dst->line = BLI_strdupn(line_src->line, line_src->len);
     line_dst->len = line_src->len;
+    line_dst->format = nullptr;
 
     BLI_addtail(&text_dst->lines, line_dst);
   }

@@ -446,13 +446,13 @@ bool BLI_path_make_safe_filename_ex(char *filename, bool allow_tokens)
 
 #ifdef WIN32
   {
-    const size_t len = strlen(filename);
     const char *invalid_names[] = {
         "con",  "prn",  "aux",  "null", "com1", "com2", "com3", "com4",
         "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2", "lpt3",
         "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", NULL,
     };
-    char *filename_lower = BLI_strdup(filename);
+    const size_t len = strlen(filename);
+    char *filename_lower = BLI_strdupn(filename, len);
     const char **iname;
 
     /* Forbid trailing dot (trailing space has already been replaced above). */

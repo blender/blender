@@ -607,7 +607,7 @@ std::string WM_operatortype_description_or_name(bContext *C,
   if (text.empty()) {
     const std::string text_orig = WM_operatortype_name(ot, properties);
     if (!text_orig.empty()) {
-      text = BLI_strdup(text_orig.c_str());
+      text = BLI_strdupn(text_orig.c_str(), text_orig.size());
     }
   }
   return text;

@@ -1530,8 +1530,8 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
         }
 
         /* Put new_line in the `tmp->line` spot. */
-        tmp->line = BLI_strdup(tmp_line);
         tmp->len = strlen(tmp_line);
+        tmp->line = BLI_strdupn(tmp_line, tmp->len);
         tmp->format = nullptr;
       }
     }
