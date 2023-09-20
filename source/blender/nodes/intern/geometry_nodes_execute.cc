@@ -193,8 +193,8 @@ bool id_property_type_matches_socket(const bNodeTreeInterfaceSocket &socket,
       return property.type == IDP_INT;
     case SOCK_VECTOR:
     case SOCK_ROTATION:
-      return property.type == IDP_ARRAY && ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_FLOAT) &&
-             property.len == 3;
+      return property.type == IDP_ARRAY &&
+             ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE) && property.len == 3;
     case SOCK_RGBA:
       return property.type == IDP_ARRAY &&
              ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE) && property.len == 4;
