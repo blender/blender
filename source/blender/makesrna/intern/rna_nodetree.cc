@@ -3228,64 +3228,48 @@ static void rna_RepeatItem_color_get(PointerRNA *ptr, float *values)
   ED_node_type_draw_color(socket_type_idname, values);
 }
 
-static PointerRNA rna_NodeGeometrySimulationInput_paired_output_get(PointerRNA *ptr)
+static PointerRNA rna_Node_paired_output_get(PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode *node = static_cast<bNode *>(ptr->data);
-  bNode *output_node = NOD_geometry_simulation_input_get_paired_output(ntree, node);
+  const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(node->type);
+  bNode *output_node = zone_type.get_corresponding_output(*ntree, *node);
   PointerRNA r_ptr = RNA_pointer_create(&ntree->id, &RNA_Node, output_node);
   return r_ptr;
 }
 
-static PointerRNA rna_NodeGeometryRepeatInput_paired_output_get(PointerRNA *ptr)
-{
-  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  bNode *node = static_cast<bNode *>(ptr->data);
-  NodeGeometryRepeatInput *storage = static_cast<NodeGeometryRepeatInput *>(node->storage);
-  bNode *output_node = ntree->node_by_id(storage->output_node_id);
-  PointerRNA r_ptr = RNA_pointer_create(&ntree->id, &RNA_Node, output_node);
-  return r_ptr;
-}
-
-static bool rna_GeometryNodeSimulationInput_pair_with_output(
+static bool rna_Node_pair_with_output(
     ID *id, bNode *node, bContext *C, ReportList *reports, bNode *output_node)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-
-  if (!NOD_geometry_simulation_input_pair_with_output(ntree, node, output_node)) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Failed to pair simulation input node %s with output node %s",
-                node->name,
-                output_node->name);
+  const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(node->type);
+  if (output_node->type != zone_type.output_type) {
+    BKE_reportf(
+        reports,
+        RPT_ERROR,
+        "Can't pair zone input node %s with %s because it does not have the same zone type",
+        node->name,
+        output_node->name);
     return false;
   }
+  for (const bNode *other_input_node : ntree->nodes_by_type(zone_type.input_idname)) {
+    if (other_input_node != node) {
+      if (zone_type.get_corresponding_output(*ntree, *other_input_node) == output_node) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "The output node %s is already paired with %s",
+                    output_node->name,
+                    other_input_node->name);
+        return false;
+      }
+    }
+  }
+  int &output_node_id = zone_type.get_corresponding_output_id(*node);
+  output_node_id = output_node->identifier;
 
   BKE_ntree_update_tag_node_property(ntree, node);
   ED_node_tree_propagate_change(C, CTX_data_main(C), ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
-
-  return true;
-}
-
-static bool rna_GeometryNodeRepeatInput_pair_with_output(
-    ID *id, bNode *node, bContext *C, ReportList *reports, bNode *output_node)
-{
-  bNodeTree *ntree = (bNodeTree *)id;
-
-  if (!NOD_geometry_repeat_input_pair_with_output(ntree, node, output_node)) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Failed to pair repeat input node %s with output node %s",
-                node->name,
-                output_node->name);
-    return false;
-  }
-
-  BKE_ntree_update_tag_node_property(ntree, node);
-  ED_node_tree_propagate_change(C, CTX_data_main(C), ntree);
-  WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
-
   return true;
 }
 
@@ -8858,13 +8842,11 @@ static void def_geo_simulation_input(StructRNA *srna)
   prop = RNA_def_property(srna, "paired_output", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Node");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_pointer_funcs(
-      prop, "rna_NodeGeometrySimulationInput_paired_output_get", nullptr, nullptr, nullptr);
+  RNA_def_property_pointer_funcs(prop, "rna_Node_paired_output_get", nullptr, nullptr, nullptr);
   RNA_def_property_ui_text(
       prop, "Paired Output", "Simulation output node that this input node is paired with");
 
-  func = RNA_def_function(
-      srna, "pair_with_output", "rna_GeometryNodeSimulationInput_pair_with_output");
+  func = RNA_def_function(srna, "pair_with_output", "rna_Node_pair_with_output");
   RNA_def_function_ui_description(func, "Pair a simulation input node with an output node.");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(
@@ -8887,13 +8869,11 @@ static void def_geo_repeat_input(StructRNA *srna)
   prop = RNA_def_property(srna, "paired_output", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Node");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_pointer_funcs(
-      prop, "rna_NodeGeometryRepeatInput_paired_output_get", nullptr, nullptr, nullptr);
+  RNA_def_property_pointer_funcs(prop, "rna_Node_paired_output_get", nullptr, nullptr, nullptr);
   RNA_def_property_ui_text(
       prop, "Paired Output", "Repeat output node that this input node is paired with");
 
-  func = RNA_def_function(
-      srna, "pair_with_output", "rna_GeometryNodeRepeatInput_pair_with_output");
+  func = RNA_def_function(srna, "pair_with_output", "rna_Node_pair_with_output");
   RNA_def_function_ui_description(func, "Pair a repeat input node with an output node.");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(

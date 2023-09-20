@@ -268,38 +268,3 @@ static void node_register()
 NOD_REGISTER_NODE(node_register)
 
 }  // namespace blender::nodes::node_geo_simulation_input_cc
-
-bNode *NOD_geometry_simulation_input_get_paired_output(bNodeTree *node_tree,
-                                                       const bNode *simulation_input_node)
-{
-  namespace file_ns = blender::nodes::node_geo_simulation_input_cc;
-
-  const NodeGeometrySimulationInput &data = file_ns::node_storage(*simulation_input_node);
-  return node_tree->node_by_id(data.output_node_id);
-}
-
-bool NOD_geometry_simulation_input_pair_with_output(const bNodeTree *node_tree,
-                                                    bNode *sim_input_node,
-                                                    const bNode *sim_output_node)
-{
-  namespace file_ns = blender::nodes::node_geo_simulation_input_cc;
-
-  BLI_assert(sim_input_node->type == GEO_NODE_SIMULATION_INPUT);
-  if (sim_output_node->type != GEO_NODE_SIMULATION_OUTPUT) {
-    return false;
-  }
-
-  /* Allow only one input paired to an output. */
-  for (const bNode *other_input_node : node_tree->nodes_by_type("GeometryNodeSimulationInput")) {
-    if (other_input_node != sim_input_node) {
-      const NodeGeometrySimulationInput &other_storage = file_ns::node_storage(*other_input_node);
-      if (other_storage.output_node_id == sim_output_node->identifier) {
-        return false;
-      }
-    }
-  }
-
-  NodeGeometrySimulationInput &storage = file_ns::node_storage(*sim_input_node);
-  storage.output_node_id = sim_output_node->identifier;
-  return true;
-}
