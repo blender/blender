@@ -287,8 +287,14 @@ static Vector<const bNode *> get_implicit_origin_nodes(const bNodeTree &ntree, b
   Vector<const bNode *> origin_nodes;
   if (all_zone_output_node_types().contains(node.type)) {
     const bNodeZoneType &zone_type = *zone_type_by_node_type(node.type);
-    if (const bNode *input_node = zone_type.get_corresponding_input(ntree, node)) {
-      origin_nodes.append(input_node);
+    /* Can't use #zone_type.get_corresponding_input because that expects the topology cache to be
+     * build already, but we are still building it here. */
+    for (const bNode *input_node :
+         ntree.runtime->nodes_by_type.lookup(nodeTypeFind(zone_type.input_idname.c_str())))
+    {
+      if (zone_type.get_corresponding_output_id(*input_node) == node.identifier) {
+        origin_nodes.append(input_node);
+      }
     }
   }
   return origin_nodes;
