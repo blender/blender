@@ -495,9 +495,7 @@ static void rna_KeyMaps_remove(wmKeyConfig *keyconfig, ReportList *reports, Poin
 
 static void rna_KeyMaps_clear(wmKeyConfig *keyconfig)
 {
-  while (wmKeyMap *keymap = static_cast<wmKeyMap *>(keyconfig->keymaps.first)) {
-    WM_keymap_remove(keyconfig, keymap);
-  }
+  WM_keyconfig_clear(keyconfig);
 }
 
 wmKeyConfig *rna_KeyConfig_new(wmWindowManager *wm, const char *idname)

@@ -324,11 +324,12 @@ void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 
 void WM_keyconfig_clear(wmKeyConfig *keyconf)
 {
-  LISTBASE_FOREACH (wmKeyMap *, km, &keyconf->keymaps) {
+  LISTBASE_FOREACH_MUTABLE (wmKeyMap *, km, &keyconf->keymaps) {
     WM_keymap_clear(km);
+    MEM_freeN(km);
   }
 
-  BLI_freelistN(&keyconf->keymaps);
+  BLI_listbase_clear(&keyconf->keymaps);
 }
 
 void WM_keyconfig_free(wmKeyConfig *keyconf)
@@ -418,16 +419,18 @@ static wmKeyMap *wm_keymap_copy(wmKeyMap *keymap)
 
 void WM_keymap_clear(wmKeyMap *keymap)
 {
-  LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &keymap->diff_items) {
+  LISTBASE_FOREACH_MUTABLE (wmKeyMapDiffItem *, kmdi, &keymap->diff_items) {
     wm_keymap_diff_item_free(kmdi);
+    MEM_freeN(kmdi);
   }
 
-  LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
+  LISTBASE_FOREACH_MUTABLE (wmKeyMapItem *, kmi, &keymap->items) {
     wm_keymap_item_free(kmi);
+    MEM_freeN(kmi);
   }
 
-  BLI_freelistN(&keymap->diff_items);
-  BLI_freelistN(&keymap->items);
+  BLI_listbase_clear(&keymap->diff_items);
+  BLI_listbase_clear(&keymap->items);
 }
 
 void WM_keymap_remove(wmKeyConfig *keyconf, wmKeyMap *keymap)
