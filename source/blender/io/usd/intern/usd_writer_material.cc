@@ -2211,6 +2211,10 @@ static bNodeLink *traverse_channel(bNodeSocket *input, const short target_type)
 
   /* Recursively traverse the linked node's sockets. */
   LISTBASE_FOREACH (bNodeSocket *, sock, &linked_node->inputs) {
+    /* Apply heuristics to skip certain inputs. */
+    if (strcmp(sock->name, "Factor") == 0) {
+      continue;
+    }
     if (bNodeLink *found_link = traverse_channel(sock, target_type)) {
       return found_link;
     }
