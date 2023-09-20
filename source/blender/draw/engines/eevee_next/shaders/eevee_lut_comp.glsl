@@ -170,6 +170,53 @@ vec4 ggx_btdf_gt_one(vec3 lut_coord)
   return vec4(transmission_factor, 0.0, 0.0, 0.0);
 }
 
+/* Generate SSS translucency profile.
+ * We precompute the exit radiance for a slab of homogenous material backface-lit by a directional
+ * light. We only integrate for a single color primary since the profile will be applied to each
+ * primary independantly.
+ * For each distance `d` we compute the radiance incoming from an hypothetical parallel plane. */
+vec4 burley_sss_translucency(vec3 lut_coord)
+{
+  /* Note that we only store the 1st (radius == 1) component.
+   * The others are here for debugging overall appearance. */
+  vec3 radii = vec3(1.0, 0.2, 0.1);
+  float thickness = lut_coord.x * SSS_TRANSMIT_LUT_RADIUS;
+  vec3 r = thickness / radii;
+  /* Manual fit based on cycles render of a backlit slab of varying thickness.
+   * Mean Error: 0.003
+   * Max Error: 0.015 */
+  vec3 exponential = exp(-3.6 * pow(r, vec3(1.11)));
+  vec3 gaussian = exp(-pow(3.4 * r, vec3(1.6)));
+  vec3 fac = square(saturate(0.5 + r / 0.6));
+  vec3 profile = saturate(mix(gaussian, exponential, fac));
+  /* Mask off the end progressively to 0. */
+  profile *= saturate(1.0 - pow5f(lut_coord.x));
+
+  return vec4(profile, 0.0);
+}
+
+vec4 random_walk_sss_translucency(vec3 lut_coord)
+{
+  /* Note that we only store the 1st (radius == 1) component.
+   * The others are here for debugging overall appearance. */
+  vec3 radii = vec3(1.0, 0.2, 0.1);
+  float thickness = lut_coord.x * SSS_TRANSMIT_LUT_RADIUS;
+  vec3 r = thickness / radii;
+  /* Manual fit based on cycles render of a backlit slab of varying thickness.
+   * Mean Error: 0.003
+   * Max Error: 0.016 */
+  vec3 scale = vec3(0.31, 0.47, 0.32);
+  vec3 exponent = vec3(-22.0, -5.8, -0.5);
+  vec3 profile = vec3(dot(scale, exp(exponent * r.r)),
+                      dot(scale, exp(exponent * r.g)),
+                      dot(scale, exp(exponent * r.b)));
+  profile = saturate(profile - 0.1);
+  /* Mask off the end progressively to 0. */
+  profile *= saturate(1.0 - pow5f(lut_coord.x));
+
+  return vec4(profile, 0.0);
+}
+
 void main()
 {
   /* Make sure coordinates are covering the whole [0..1] range at texel center. */
@@ -185,6 +232,12 @@ void main()
       break;
     case LUT_GGX_BSDF_SPLIT_SUM:
       result = ggx_bsdf_split_sum(lut_normalized_coordinate);
+      break;
+    case LUT_BURLEY_SSS_PROFILE:
+      result = burley_sss_translucency(lut_normalized_coordinate);
+      break;
+    case LUT_RANDOM_WALK_SSS_PROFILE:
+      result = random_walk_sss_translucency(lut_normalized_coordinate);
       break;
   }
   imageStore(table_img, ivec3(gl_GlobalInvocationID), result);

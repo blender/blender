@@ -124,10 +124,21 @@ vec3 sample_cylinder(vec2 rand)
 
 vec3 sample_sphere(vec2 rand)
 {
-  float omega = rand.y * 2.0 * M_PI;
   float cos_theta = rand.x * 2.0 - 1.0;
   float sin_theta = safe_sqrt(1.0 - cos_theta * cos_theta);
-  return vec3(sin_theta * vec2(cos(omega), sin(omega)), cos_theta);
+  return vec3(sin_theta * sample_circle(rand.y), cos_theta);
+}
+
+/**
+ * Uniform hemisphere distribution.
+ * \a rand is 2 random float in the [0..1] range.
+ * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
+ */
+vec3 sample_hemisphere(vec2 rand)
+{
+  float cos_theta = rand.x;
+  float sin_theta = safe_sqrt(1.0 - sqr(cos_theta));
+  return vec3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
 /** \} */

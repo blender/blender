@@ -49,9 +49,6 @@ struct SubsurfaceModule {
 
   ~SubsurfaceModule(){};
 
-  /** Contains translucence profile for a single color channel. */
-  static const Vector<float> &transmittance_profile();
-
   void end_sync();
 
   void render(View &view, Framebuffer &fb, Texture &diffuse_light_tx);
@@ -60,7 +57,6 @@ struct SubsurfaceModule {
   void precompute_samples_location();
 
   /** Christensen-Burley implementation. */
-  static float burley_setup(float radius, float albedo);
   static float burley_sample(float d, float x_rand);
   static float burley_eval(float d, float r);
   static float burley_pdf(float d, float r);

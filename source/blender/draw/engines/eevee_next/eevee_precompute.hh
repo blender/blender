@@ -105,7 +105,7 @@ class Precompute {
     std::ofstream file;
 
     file.open(std::string(name) + ".hh");
-    file << "const VecBase<float, " << VecT::type_length << "> " << name;
+    file << "const float " << name;
     if (n_w > 1) {
       file << "[" << n_w << "]";
     }
@@ -118,6 +118,7 @@ class Precompute {
     if (n_x > 1) {
       file << "[" << n_x << "]";
     }
+    file << "[" << VecT::type_length << "]";
     file << " = {\n";
     /* Print data formatted as C++ array. */
     for (auto w : IndexRange(n_w)) {
