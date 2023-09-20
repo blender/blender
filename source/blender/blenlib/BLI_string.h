@@ -381,6 +381,10 @@ int BLI_strcmp_ignore_pad(const char *str1, const char *str2, char pad) ATTR_WAR
 
 /**
  * Determine the length of a fixed-size string.
+ *
+ * \return The string length that doesn't exceed `maxlen`.
+ * The equivalent of `min(strlen(str), maxlen)` that prevents a buffer overflow
+ * when `str` isn't null terminated before `maxlen`.
  */
 size_t BLI_strnlen(const char *str, size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 

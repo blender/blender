@@ -28,6 +28,8 @@
 
 char *BLI_strdupn(const char *str, const size_t len)
 {
+  BLI_assert_msg(BLI_strnlen(str, len) == len, "strlen(str) must be greater or equal to 'len'!");
+
   char *n = MEM_mallocN(len + 1, "strdup");
   memcpy(n, str, len);
   n[len] = '\0';

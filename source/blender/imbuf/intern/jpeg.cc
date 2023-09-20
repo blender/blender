@@ -352,10 +352,13 @@ static ImBuf *ibJpegImageFromCinfo(
         }
 
         /*
-         * JPEG marker strings are not null-terminated,
-         * create a null-terminated copy before going further
-         */
-        str = BLI_strdupn((char *)marker->data, marker->data_length);
+         * JPEG marker strings are not meant to be null-terminated,
+         * create a null-terminated copy before going further.
+         *
+         * Files saved from Blender pre v4.0 were null terminated,
+         * use `BLI_strnlen` to prevent assertion on passing in too short a string. */
+        str = BLI_strdupn((const char *)marker->data,
+                          BLI_strnlen((const char *)marker->data, marker->data_length));
 
         /*
          * Because JPEG format don't support the
