@@ -77,6 +77,8 @@ struct ExportJobData {
   bool export_ok;
   timeit::TimePoint start_time;
 
+  wmJob *wm_job;
+
   bool targets_usdz() const
   {
     return usdz_filepath[0] != '\0';
@@ -88,6 +90,20 @@ struct ExportJobData {
       return usdz_filepath;
     }
     return unarchived_filepath;
+  }
+
+  void main_thread_lock_acquire() const
+  {
+    if (wm_job) {
+      WM_job_main_thread_lock_acquire(wm_job);
+    }
+  }
+
+  void main_thread_lock_release() const
+  {
+    if (wm_job) {
+      WM_job_main_thread_lock_release(wm_job);
+    }
   }
 };
 
@@ -614,6 +630,8 @@ static void export_startjob(void *customdata,
   }
   G.is_break = false;
 
+  data->main_thread_lock_acquire();
+
   /* Construct the depsgraph for exporting. */
   if (data->params.visible_objects_only) {
     DEG_graph_build_from_view_layer(data->depsgraph);
@@ -623,6 +641,8 @@ static void export_startjob(void *customdata,
   }
 
   BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
+
+  data->main_thread_lock_release();
 
   validate_unique_root_prim_path(data->params, data->depsgraph);
 
@@ -765,10 +785,14 @@ bool USD_export(bContext *C,
   job->depsgraph = DEG_graph_new(job->bmain, scene, view_layer, params->evaluation_mode);
   job->params = *params;
 
+  job->wm_job = nullptr;
+
   bool export_ok = false;
   if (as_background_job) {
     wmJob *wm_job = WM_jobs_get(
         job->wm, CTX_wm_window(C), scene, "USD Export", WM_JOB_PROGRESS, WM_JOB_TYPE_ALEMBIC);
+
+    job->wm_job = wm_job;
 
     /* setup job */
     WM_jobs_customdata_set(wm_job, job, MEM_freeN);
