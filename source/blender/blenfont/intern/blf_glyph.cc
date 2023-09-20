@@ -793,11 +793,11 @@ static bool blf_glyph_render_bitmap(FontBLF *font, FT_GlyphSlot glyph)
  * Return a design axis that matches an identifying tag.
  *
  * \param variations: Variation descriptors from `FT_Get_MM_Var`.
- * \param tag: Axis tag (4-character string as uint), like 'wght'
+ * \param tag: Axis tag, e.g. #BLF_VARIATION_AXIS_WEIGHT.
  * \param r_axis_index: returns index of axis in variations array.
  */
 static const FT_Var_Axis *blf_var_axis_by_tag(const FT_MM_Var *variations,
-                                              const uint tag,
+                                              const uint32_t tag,
                                               int *r_axis_index)
 {
   *r_axis_index = -1;
@@ -838,12 +838,12 @@ static FT_Fixed blf_factor_to_coordinate(const FT_Var_Axis *axis, const float fa
  * Alter a face variation axis by a factor
  *
  * \param coords: array of design coordinates, per axis.
- * \param tag: Axis tag (4-character string as uint), like 'wght'
+ * \param tag: Axis tag, e.g. #BLF_VARIATION_AXIS_WEIGHT.
  * \param factor: -1 to 1 with 0 meaning "default"
  */
 static bool blf_glyph_set_variation_normalized(const FontBLF *font,
                                                FT_Fixed coords[],
-                                               const uint tag,
+                                               const uint32_t tag,
                                                const float factor)
 {
   int axis_index;
@@ -858,11 +858,14 @@ static bool blf_glyph_set_variation_normalized(const FontBLF *font,
 /**
  * Set a face variation axis to an exact float value
  *
- * \param coords: array of design coordinates, per axis.
- * \param tag: Axis tag (4-character string as uint), like 'opsz'
+ * \param coords: Array of design coordinates, per axis.
+ * \param tag: Axis tag, e.g. #BLF_VARIATION_AXIS_OPTSIZE.
  * \param value: New float value. Converted to 16.16 and clamped within allowed range.
  */
-static bool blf_glyph_set_variation_float(FontBLF *font, FT_Fixed coords[], uint tag, float value)
+static bool blf_glyph_set_variation_float(FontBLF *font,
+                                          FT_Fixed coords[],
+                                          uint32_t tag,
+                                          float value)
 {
   int axis_index;
   const FT_Var_Axis *axis = blf_var_axis_by_tag(font->variations, tag, &axis_index);
@@ -882,7 +885,8 @@ static bool blf_glyph_set_variation_float(FontBLF *font, FT_Fixed coords[], uint
  * \{ */
 
 /**
- * Adjust the glyph's weight by a factor. Used for fonts without "wght" variable axis.
+ * Adjust the glyph's weight by a factor.
+ * Used for fonts without #BLF_VARIATION_AXIS_WEIGHT variable axis.
  *
  * \param factor: -1 (min stroke width) <= 0 (normal) => 1 (max boldness).
  */
@@ -907,7 +911,8 @@ static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool mo
 }
 
 /**
- * Adjust the glyph's slant by a factor. Used for fonts without "slnt" variable axis.
+ * Adjust the glyph's slant by a factor.
+ * Used for fonts without #BLF_VARIATION_AXIS_SLANT variable axis.
  *
  * \param factor: -1 (max right-leaning) <= 0 (no slant) => 1 (max left-leaning).
  *
@@ -925,7 +930,8 @@ static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float factor)
 }
 
 /**
- * Adjust the glyph width by factor. Used for fonts without "wdth" variable axis.
+ * Adjust the glyph width by factor.
+ * Used for fonts without #BLF_VARIATION_AXIS_WIDTH variable axis.
  *
  * \param factor: -1 (min width) <= 0 (normal) => 1 (max width).
  */
@@ -942,7 +948,8 @@ static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
 }
 
 /**
- * Adjust the glyph spacing by factor. Used for fonts without "spac" variable axis.
+ * Adjust the glyph spacing by factor.
+ * Used for fonts without #BLF_VARIATION_AXIS_SPACING variable axis.
  *
  * \param factor: -1 (min tightness) <= 0 (normal) => 1 (max looseness).
  */
