@@ -33,9 +33,9 @@ void ArmatureExporter::add_bone_collections(Object *ob_arm, COLLADASW::Node &nod
 {
   bArmature *armature = (bArmature *)ob_arm->data;
 
-  /* Because our importer assumes that "extras" tags have a unique name, it's not posisble to
-   * export a <bonecollection> element per bone collection. This is why all the names are stored in
-   * one element, newline-separated. */
+  /* Because our importer assumes that "extras" tags have a unique name, it's not possible to
+   * export a `<bonecollection>` element per bone collection. This is why all the names are stored
+   * in one element, newline-separated. */
 
   std::stringstream collection_stream;
   std::stringstream visible_stream;

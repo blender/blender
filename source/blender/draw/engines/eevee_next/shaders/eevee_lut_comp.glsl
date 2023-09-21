@@ -173,7 +173,7 @@ vec4 ggx_btdf_gt_one(vec3 lut_coord)
 /* Generate SSS translucency profile.
  * We precompute the exit radiance for a slab of homogenous material backface-lit by a directional
  * light. We only integrate for a single color primary since the profile will be applied to each
- * primary independantly.
+ * primary independently.
  * For each distance `d` we compute the radiance incoming from an hypothetical parallel plane. */
 vec4 burley_sss_translucency(vec3 lut_coord)
 {

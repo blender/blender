@@ -143,7 +143,7 @@ typedef struct SB_thread_context {
 #define BFF_INTERSECT 1 /* collider edge   intrudes face. */
 #define BFF_CLOSEVERT 2 /* collider vertex repulses face. */
 
-/* humm .. this should be calculated from sb parameters and sizes. */
+/* Hum .. this should be calculated from sb parameters and sizes. */
 static float SoftHeunTol = 1.0f;
 
 /* local prototypes */
@@ -179,7 +179,7 @@ static float sb_time_scale(Object *ob)
   SoftBody *sb = ob->soft; /* is supposed to be there */
   if (sb) {
     return (sb->physics_speed);
-    /* hrms .. this could be IPO as well :)
+    /* Hum .. this could be IPO as well :)
      * estimated range [0.001 sluggish slug - 100.0 very fast (i hope ODE solver can handle that)]
      * 1 approx = a unit 1 pendulum at g = 9.8 [earth conditions]  has period 65 frames
      * theory would give a 50 frames period .. so there must be something inaccurate ..
@@ -236,7 +236,7 @@ static float _final_mass(Object *ob, BodyPoint *bp)
   CLOG_ERROR(&LOG, "sb or bp == NULL");
   return 1.0f;
 }
-/* Helper functions for everything is animateble jow_go_for2_5. */
+/* Helper functions for everything is animatable jow_go_for2_5. */
 
 /* +++ collider caching and dicing +++ */
 
@@ -247,8 +247,8 @@ static float _final_mass(Object *ob, BodyPoint *bp)
  * float operations still
  */
 
-/* just an ID here to reduce the prob for killing objects
- * ob->sumohandle points to we should not kill :)
+/* Just an ID here to reduce the prob for killing objects
+ * `ob->sumohandle` points to we should not kill :)
  */
 static const int CCD_SAFETY = 190561;
 
@@ -956,7 +956,7 @@ static void free_softbody_intern(SoftBody *sb)
  * A: because our particles are not alone here
  *    and need to tell their neighbors exactly what happens via spring forces
  * unless sbObjectStep( .. ) is called on sub frame timing level
- * BTW that also questions the use of a 'implicit' solvers on softbodies
+ * BTW that also questions the use of a 'implicit' solvers on soft-bodies
  * since that would only valid for 'slow' moving collision targets and ditto particles.
  */
 
@@ -1709,7 +1709,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
 
             if (vert_positions_prev) {
               /* Grab the average speed of the collider vertices before we spoil nvX
-               * humm could be done once a SB steps but then we' need to store that too
+               * hum could be done once a SB steps but then we' need to store that too
                * since the AABB reduced probability to get here drastically
                * it might be a nice tradeoff CPU <--> memory.
                */
@@ -2405,7 +2405,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
         add_v3_v3(bp->vec, bp->force);
       }
 
-      /* this makes t~ = t+dt */
+      /* This makes `t~ = t+dt`. */
       if (!(mid_flags & MID_PRESERVE)) {
         copy_v3_v3(dx, bp->vec);
       }
@@ -3400,7 +3400,7 @@ static void softbody_step(
     /* Loops = counter for emergency brake we don't want to lock up the system if physics fail. */
     int loops = 0;
 
-    SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
+    SoftHeunTol = sb->rklimit; /* Hum .. this should be calculated from sb parameters and sizes */
     /* adjust loop limits */
     if (sb->minloops > 0) {
       forcetimemax = dtime / sb->minloops;
