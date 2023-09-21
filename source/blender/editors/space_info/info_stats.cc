@@ -15,6 +15,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -30,6 +31,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
+#include "BLI_span.hh"
 
 #include "BLT_translation.h"
 
@@ -38,9 +40,11 @@
 #include "BKE_blender_version.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_curves.hh"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -190,10 +194,31 @@ static void stats_object(Object *ob,
       }
       break;
     }
+    case OB_GREASE_PENCIL: {
+      if (!is_selected) {
+        break;
+      }
+
+      const GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+
+      for (const GreasePencilDrawingBase *drawing_base : grease_pencil->drawings()) {
+        const GreasePencilDrawing *drawing = reinterpret_cast<const GreasePencilDrawing *>(drawing_base);
+        const blender::bke::CurvesGeometry &curves = drawing->wrap().strokes();
+
+        stats->totgppoint += curves.points_num();
+        stats->totgpstroke += curves.curves_num();
+      }
+
+      for (const blender::bke::greasepencil::Layer *layer : grease_pencil->layers()) {
+        stats->totgpframe += layer->frames().size();
+      }
+
+      stats->totgplayer += grease_pencil->layers().size();
+      break;
+    }
     case OB_CURVES:
     case OB_POINTCLOUD:
-    case OB_VOLUME:
-    case OB_GREASE_PENCIL: {
+    case OB_VOLUME: {
       break;
     }
   }
@@ -835,7 +860,7 @@ void ED_info_draw_stats(
   else if (ob && (object_mode & OB_MODE_POSE)) {
     stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
   }
-  else if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
+  else if ((ob) && ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
     stats_row(col1, labels[LAYERS], col2, stats_fmt.totgplayer, nullptr, y, height);
     stats_row(col1, labels[FRAMES], col2, stats_fmt.totgpframe, nullptr, y, height);
     stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, nullptr, y, height);
