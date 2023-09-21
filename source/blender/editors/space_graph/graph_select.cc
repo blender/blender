@@ -30,6 +30,8 @@
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 
+#include "UI_interface_c.hh"
+#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "ED_anim_api.hh"
@@ -2064,3 +2066,164 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
 }
 
 /** \} */
+/* Key/handles selection */
+
+/* Defines for key/handles select tool. */
+static const EnumPropertyItem prop_graphkeys_select_key_handles_actions[] = {
+    {GRAPHKEYS_KEYHANDLESSEL_SELECT, "SELECT", 0, "Select", ""},
+    {GRAPHKEYS_KEYHANDLESSEL_DESELECT, "DESELECT", 0, "Deselect", ""},
+    {GRAPHKEYS_KEYHANDLESSEL_KEEP, "KEEP", 0, "Keep", "Leave as is"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+/**
+ * Select/deselect different parts (e.g. left/right handles) of already-selected keys.
+ *
+ * The *_action parameters determine what action to take on each part of
+ * a key: select, deselect, or keep (do nothing).
+ *
+ * \param left_handle_action: selection action to perform on left handles.
+ * \param key_action: selection action to perform on the keys themselves.
+ * \param right_handle_action: selection action to perform on right handles.
+ */
+static void graphkeys_select_key_handles(
+    bAnimContext *ac,
+    const enum eGraphKey_SelectKeyHandles_Action left_handle_action,
+    const enum eGraphKey_SelectKeyHandles_Action key_action,
+    const enum eGraphKey_SelectKeyHandles_Action right_handle_action)
+{
+  ListBase anim_data = {NULL, NULL};
+
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE |
+                                    ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
+  ANIM_animdata_filter(
+      ac, &anim_data, filter, ac->data, static_cast<eAnimCont_Types>(ac->datatype));
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    BLI_assert(ale->type & ANIMTYPE_FCURVE);
+    FCurve *fcu = (FCurve *)ale->key_data;
+
+    /* Only continue if F-Curve has keyframes. */
+    if (fcu->bezt == NULL) {
+      continue;
+    }
+
+    for (int i = 0; i < fcu->totvert; i++) {
+      BezTriple *bezt = &fcu->bezt[i];
+
+      if (!BEZT_ISSEL_ANY(bezt)) {
+        continue;
+      }
+
+      switch (left_handle_action) {
+        case GRAPHKEYS_KEYHANDLESSEL_SELECT:
+          BEZT_SEL_IDX(bezt, 0);
+          break;
+        case GRAPHKEYS_KEYHANDLESSEL_DESELECT:
+          BEZT_DESEL_IDX(bezt, 0);
+          break;
+        case GRAPHKEYS_KEYHANDLESSEL_KEEP:
+          /* Do nothing. */
+          break;
+      }
+
+      switch (key_action) {
+        case GRAPHKEYS_KEYHANDLESSEL_SELECT:
+          BEZT_SEL_IDX(bezt, 1);
+          break;
+        case GRAPHKEYS_KEYHANDLESSEL_DESELECT:
+          BEZT_DESEL_IDX(bezt, 1);
+          break;
+        case GRAPHKEYS_KEYHANDLESSEL_KEEP:
+          /* Do nothing. */
+          break;
+      }
+
+      switch (right_handle_action) {
+        case GRAPHKEYS_KEYHANDLESSEL_SELECT:
+          BEZT_SEL_IDX(bezt, 2);
+          break;
+        case GRAPHKEYS_KEYHANDLESSEL_DESELECT:
+          BEZT_DESEL_IDX(bezt, 2);
+          break;
+        case GRAPHKEYS_KEYHANDLESSEL_KEEP:
+          /* Do nothing. */
+          break;
+      }
+    }
+  }
+
+  /* Cleanup */
+  ANIM_animdata_freelist(&anim_data);
+}
+
+static int graphkeys_select_key_handles_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const eGraphKey_SelectKeyHandles_Action left_handle_action =
+      static_cast<eGraphKey_SelectKeyHandles_Action>(RNA_enum_get(op->ptr, "left_handle_action"));
+  const eGraphKey_SelectKeyHandles_Action key_action =
+      static_cast<eGraphKey_SelectKeyHandles_Action>(RNA_enum_get(op->ptr, "key_action"));
+  const eGraphKey_SelectKeyHandles_Action right_handle_action =
+      static_cast<eGraphKey_SelectKeyHandles_Action>(RNA_enum_get(op->ptr, "right_handle_action"));
+
+  graphkeys_select_key_handles(&ac, left_handle_action, key_action, right_handle_action);
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static void graphkeys_select_key_handles_ui(bContext * /* C */, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  uiLayout *row;
+
+  row = uiLayoutRow(layout, false);
+  uiItemR(row, op->ptr, "left_handle_action", UI_ITEM_NONE, NULL, ICON_NONE);
+  row = uiLayoutRow(layout, false);
+  uiItemR(row, op->ptr, "right_handle_action", UI_ITEM_NONE, NULL, ICON_NONE);
+  row = uiLayoutRow(layout, false);
+  uiItemR(row, op->ptr, "key_action", UI_ITEM_NONE, NULL, ICON_NONE);
+}
+
+void GRAPH_OT_select_key_handles(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select Key / Handles";
+  ot->idname = "GRAPH_OT_select_key_handles";
+  ot->description =
+      "For selected keyframes, select/deselect any combination of the key itself and its handles";
+
+  /* callbacks */
+  ot->poll = graphop_visible_keyframes_poll;
+  ot->exec = graphkeys_select_key_handles_exec;
+  ot->ui = graphkeys_select_key_handles_ui;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
+
+  RNA_def_enum(ot->srna,
+               "left_handle_action",
+               prop_graphkeys_select_key_handles_actions,
+               GRAPHKEYS_KEYHANDLESSEL_SELECT,
+               "Left Handle",
+               "Effect on the left handle");
+  RNA_def_enum(ot->srna,
+               "right_handle_action",
+               prop_graphkeys_select_key_handles_actions,
+               GRAPHKEYS_KEYHANDLESSEL_SELECT,
+               "Right Handle",
+               "Effect on the right handle");
+  RNA_def_enum(ot->srna,
+               "key_action",
+               prop_graphkeys_select_key_handles_actions,
+               GRAPHKEYS_KEYHANDLESSEL_KEEP,
+               "Key",
+               "Effect on the key itself");
+}

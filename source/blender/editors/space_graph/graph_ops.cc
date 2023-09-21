@@ -447,6 +447,7 @@ void graphedit_operatortypes()
   WM_operatortype_append(GRAPH_OT_select_more);
   WM_operatortype_append(GRAPH_OT_select_less);
   WM_operatortype_append(GRAPH_OT_select_leftright);
+  WM_operatortype_append(GRAPH_OT_select_key_handles);
 
   /* editing */
   WM_operatortype_append(GRAPH_OT_snap);
