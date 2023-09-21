@@ -50,8 +50,8 @@ void asset_browser_main_region_draw(const bContext *C, ARegion *region)
       0,
       style);
 
-  PointerRNA asset_space_ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceAssetBrowser, asset_space, &asset_space_ptr);
+  PointerRNA asset_space_ptr = RNA_pointer_create(
+      &screen->id, &RNA_SpaceAssetBrowser, asset_space);
   PropertyRNA *active_asset_idx_prop = RNA_struct_find_property(&asset_space_ptr,
                                                                 "active_asset_idx");
 

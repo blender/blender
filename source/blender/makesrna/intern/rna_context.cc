@@ -134,8 +134,7 @@ static PointerRNA rna_Context_asset_get(PointerRNA *ptr)
 static PointerRNA rna_Context_asset_handle_get(PointerRNA *ptr)
 {
   bContext *C = (bContext *)ptr->data;
-  PointerRNA newptr;
-  RNA_pointer_create(NULL, &RNA_AssetHandle, CTX_wm_asset_handle_ptr(C), &newptr);
+  PointerRNA newptr = RNA_pointer_create(NULL, &RNA_AssetHandle, CTX_wm_asset_handle_ptr(C));
   return newptr;
 }
 
@@ -297,7 +296,7 @@ void RNA_def_context(BlenderRNA *brna)
   prop = RNA_def_property(srna, "asset_handle", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "AssetHandle");
-  RNA_def_property_pointer_funcs(prop, "rna_Context_asset_handle_get", NULL, NULL, NULL);
+  RNA_def_property_pointer_funcs(prop, "rna_Context_asset_handle_get", nullptr, nullptr, nullptr);
 
   /* Data */
   prop = RNA_def_property(srna, "blend_data", PROP_POINTER, PROP_NONE);

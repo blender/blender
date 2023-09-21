@@ -106,7 +106,7 @@ static void asset_browser_keymap(wmKeyConfig *keyconf)
 
 const char *asset_browser_context_dir[] = {
     "asset_handle",
-    "asset_library_ref",
+    "asset_library_reference",
     NULL,
 };
 
@@ -122,7 +122,7 @@ static int /*eContextResult*/ asset_browser_context(const bContext *C,
   bScreen *screen = CTX_wm_screen(C);
   SpaceAssets *assets_space = CTX_wm_space_assets(C);
 
-  if (CTX_data_equals(member, "asset_library_ref")) {
+  if (CTX_data_equals(member, "asset_library_reference")) {
     CTX_data_pointer_set(
         result, &screen->id, &RNA_AssetLibraryReference, &assets_space->asset_library_ref);
     return CTX_RESULT_OK;

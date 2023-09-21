@@ -37,10 +37,10 @@ static void assets_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pa
   uiLayout *col = uiLayoutColumn(panel->layout, false);
   uiLayout *row = uiLayoutRow(col, true);
 
-  PointerRNA assets_space_ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceAssetBrowser, assets_space, &assets_space_ptr);
+  PointerRNA assets_space_ptr = RNA_pointer_create(
+      &screen->id, &RNA_SpaceAssetBrowser, assets_space);
 
-  uiItemR(row, &assets_space_ptr, "asset_library_ref", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(row, &assets_space_ptr, "asset_library_reference", UI_ITEM_NONE, "", ICON_NONE);
   if (assets_space->asset_library_ref.type == ASSET_LIBRARY_LOCAL) {
     bContext *mutable_ctx = CTX_copy(C);
     if (WM_operator_name_poll(mutable_ctx, "asset.bundle_install")) {
@@ -48,7 +48,7 @@ static void assets_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pa
       uiItemMenuEnumO(col,
                       mutable_ctx,
                       "asset.bundle_install",
-                      "asset_library_ref",
+                      "asset_library_reference",
                       "Copy Bundle to Asset Library...",
                       ICON_IMPORT);
     }

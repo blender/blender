@@ -19,6 +19,7 @@
 #include "AS_asset_representation.hh"
 
 #include "BKE_context.h"
+#include "BKE_preview_image.hh"
 #include "BKE_screen.h"
 
 #include "BLI_map.hh"

@@ -128,7 +128,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 
     /* TODO version bump. */
     btheme->space_assets = btheme->space_file;
-    btheme->tui.wcol_view_item = U_theme_default.tui.wcol_view_item;
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
