@@ -40,8 +40,6 @@ class AbstractGridViewItem : public AbstractViewItem {
  protected:
   /** Reference to a string that uniquely identifies this item in the view. */
   StringRef identifier_{};
-  /** Every visible item gets a button of type #UI_BTYPE_VIEW_ITEM during the layout building. */
-  uiButViewItem *view_item_but_ = nullptr;
 
  public:
   /* virtual */ ~AbstractGridViewItem() override = default;
