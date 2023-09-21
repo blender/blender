@@ -106,6 +106,14 @@ void ANIM_armature_bonecoll_active_index_set(struct bArmature *armature,
                                              int bone_collection_index);
 
 /**
+ * Set the bone collection with the given name as the active one.
+ *
+ * Pass an empty name to clear the active bone collection. A non-existent name will also cause the
+ * active bone collection to be cleared.
+ */
+void ANIM_armature_bonecoll_active_name_set(struct bArmature *armature, const char *name);
+
+/**
  * Determine whether the given bone collection is editable.
  *
  * Bone collections are editable when they are local, so either on a local Armature or added to a

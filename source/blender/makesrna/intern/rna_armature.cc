@@ -222,8 +222,7 @@ static void rna_BoneCollections_active_index_range(
 static void rna_BoneCollections_active_name_set(PointerRNA *ptr, const char *name)
 {
   bArmature *arm = (bArmature *)ptr->data;
-  BoneCollection *bcoll = ANIM_armature_bonecoll_get_by_name(arm, name);
-  ANIM_armature_bonecoll_active_set(arm, bcoll);
+  ANIM_armature_bonecoll_active_name_set(arm, name);
   WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, ptr->data);
 }
 

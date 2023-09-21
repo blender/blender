@@ -204,6 +204,12 @@ void ANIM_armature_bonecoll_active_index_set(bArmature *armature, const int bone
   armature->runtime.active_collection = bcoll;
 }
 
+void ANIM_armature_bonecoll_active_name_set(bArmature *armature, const char *name)
+{
+  BoneCollection *bcoll = ANIM_armature_bonecoll_get_by_name(armature, name);
+  ANIM_armature_bonecoll_active_set(armature, bcoll);
+}
+
 bool ANIM_armature_bonecoll_is_editable(const bArmature *armature, const BoneCollection *bcoll)
 {
   const bool is_override = ID_IS_OVERRIDE_LIBRARY(armature);
