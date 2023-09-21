@@ -288,6 +288,11 @@ BoneCollection *ANIM_armature_bonecoll_get_by_name(bArmature *armature, const ch
   return nullptr;
 }
 
+void ANIM_bonecoll_show(BoneCollection *bcoll)
+{
+  bcoll->flags |= BONE_COLLECTION_VISIBLE;
+}
+
 void ANIM_bonecoll_hide(BoneCollection *bcoll)
 {
   bcoll->flags &= ~BONE_COLLECTION_VISIBLE;
@@ -458,14 +463,14 @@ bool ANIM_bonecoll_is_visible_editbone(const bArmature * /*armature*/, const Edi
 void ANIM_armature_bonecoll_show_all(bArmature *armature)
 {
   LISTBASE_FOREACH (BoneCollection *, bcoll, &armature->collections) {
-    bcoll->flags |= BONE_COLLECTION_VISIBLE;
+    ANIM_bonecoll_show(bcoll);
   }
 }
 
 void ANIM_armature_bonecoll_hide_all(bArmature *armature)
 {
   LISTBASE_FOREACH (BoneCollection *, bcoll, &armature->collections) {
-    bcoll->flags &= ~BONE_COLLECTION_VISIBLE;
+    ANIM_bonecoll_hide(bcoll);
   }
 }
 
