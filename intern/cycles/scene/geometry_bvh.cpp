@@ -40,8 +40,9 @@ void Geometry::compute_bvh(Device *device,
                            size_t n,
                            size_t total)
 {
-  if (progress->get_cancel())
+  if (progress->get_cancel()) {
     return;
+  }
 
   compute_bounds();
 
@@ -49,10 +50,12 @@ void Geometry::compute_bvh(Device *device,
       params->bvh_layout, device->get_bvh_layout_mask(dscene->data.kernel_features));
   if (need_build_bvh(bvh_layout)) {
     string msg = "Updating Geometry BVH ";
-    if (name.empty())
+    if (name.empty()) {
       msg += string_printf("%u/%u", (uint)(n + 1), (uint)total);
-    else
+    }
+    else {
       msg += string_printf("%s %u/%u", name.c_str(), (uint)(n + 1), (uint)total);
+    }
 
     Object object;
 

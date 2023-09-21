@@ -185,6 +185,15 @@ static void rna_Armature_edit_bone_remove(bArmature *arm,
   RNA_POINTER_INVALIDATE(ebone_ptr);
 }
 
+static void rna_BoneCollections_active_set(PointerRNA *ptr,
+                                           PointerRNA value,
+                                           struct ReportList * /*reports*/)
+{
+  bArmature *arm = (bArmature *)ptr->data;
+  BoneCollection *bcoll = (BoneCollection *)value.data;
+  ANIM_armature_bonecoll_active_set(arm, bcoll);
+}
+
 static int rna_BoneCollections_active_index_get(PointerRNA *ptr)
 {
   bArmature *arm = (bArmature *)ptr->data;
@@ -208,6 +217,14 @@ static void rna_BoneCollections_active_index_range(
   // collection (i.e. the default collection that should remain first).
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&arm->collections) - 1);
+}
+
+static void rna_BoneCollections_active_name_set(PointerRNA *ptr, const char *name)
+{
+  bArmature *arm = (bArmature *)ptr->data;
+  BoneCollection *bcoll = ANIM_armature_bonecoll_get_by_name(arm, name);
+  ANIM_armature_bonecoll_active_set(arm, bcoll);
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, ptr->data);
 }
 
 static void rna_BoneCollections_move(bArmature *arm, ReportList *reports, int from, int to)
@@ -250,6 +267,13 @@ static void rna_BoneCollectionMemberships_clear(Bone *bone)
 {
   ANIM_armature_bonecoll_unassign_all(bone);
   WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, nullptr);
+}
+
+static bool rna_BoneCollection_is_editable_get(PointerRNA *ptr)
+{
+  bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
+  BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
+  return ANIM_armature_bonecoll_is_editable(arm, bcoll);
 }
 
 /* BoneCollection.bones iterator functions. */
@@ -297,6 +321,36 @@ static void rna_EditBone_collections_begin(CollectionPropertyIterator *iter, Poi
   EditBone *ebone = (EditBone *)ptr->data;
   ListBase /*BoneCollectionReference*/ bone_collection_refs = ebone->bone_collections;
   rna_iterator_listbase_begin(iter, &bone_collection_refs, nullptr);
+}
+
+/* Armature.collections library override support. */
+static bool rna_Armature_collections_override_apply(Main *bmain,
+                                                    RNAPropertyOverrideApplyContext &rnaapply_ctx)
+{
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PointerRNA *ptr_item_dst = &rnaapply_ctx.ptr_item_dst;
+  PointerRNA *ptr_item_src = &rnaapply_ctx.ptr_item_src;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
+  if (opop->operation != LIBOVERRIDE_OP_INSERT_AFTER) {
+    printf("Unsupported RNA override operation on armature collections, ignoring\n");
+    return false;
+  }
+
+  bArmature *arm_dst = (bArmature *)ptr_dst->owner_id;
+  BoneCollection *bcoll_anchor = static_cast<BoneCollection *>(ptr_item_dst->data);
+  BoneCollection *bcoll_src = static_cast<BoneCollection *>(ptr_item_src->data);
+  BoneCollection *bcoll = ANIM_armature_bonecoll_insert_copy_after(
+      arm_dst, bcoll_anchor, bcoll_src);
+
+  if (!ID_IS_LINKED(&arm_dst->id)) {
+    /* Mark this bone collection as local override, so that certain operations can be allowed. */
+    bcoll->flags |= BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL;
+  }
+
+  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  return true;
 }
 
 static char *rna_BoneColor_path_posebone(const PointerRNA *ptr)
@@ -1766,13 +1820,17 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
 
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoneCollection");
-  RNA_def_property_pointer_sdna(prop, nullptr, "active_collection");
+  RNA_def_property_pointer_sdna(prop, nullptr, "runtime.active_collection");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_BoneCollections_active_set", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Active Collection", "Armature's active bone collection");
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "runtime.active_collection_index");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
   RNA_def_property_ui_text(prop,
                            "Active Collection Index",
                            "The index of the Armature's active bone collection; -1 when there "
@@ -1781,6 +1839,17 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
                              "rna_BoneCollections_active_index_get",
                              "rna_BoneCollections_active_index_set",
                              "rna_BoneCollections_active_index_range");
+
+  prop = RNA_def_property(srna, "active_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "active_collection_name");
+  /* TODO: For some reason the overrides system doesn't register a new operation when this property
+   * changes. Needs further investigation to figure out why & fix it. */
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop,
+                           "Active Collection Name",
+                           "The name of the Armature's active bone collection; empty when there "
+                           "is no active collection");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_BoneCollections_active_name_set");
 
   /* Armature.collections.new(...) */
   func = RNA_def_function(srna, "new", "ANIM_armature_bonecoll_new");
@@ -1907,6 +1976,10 @@ static void rna_def_armature(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "collections", nullptr);
   RNA_def_property_struct_type(prop, "BoneCollection");
   RNA_def_property_ui_text(prop, "Bone Collections", "");
+  RNA_def_property_override_funcs(
+      prop, nullptr, nullptr, "rna_Armature_collections_override_apply");
+  RNA_def_property_override_flag(
+      prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY | PROPOVERRIDE_LIBRARY_INSERTION);
   rna_def_armature_collections(brna, prop);
 
   /* Enum values */
@@ -1953,7 +2026,7 @@ static void rna_def_armature(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop,
                               "rna_Armature_relation_line_position_get",
                               "rna_Armature_relation_line_position_set",
-                              /*item function*/ nullptr);
+                              nullptr);
   RNA_define_verify_sdna(true); /* Restore default. */
 
   prop = RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
@@ -2003,7 +2076,6 @@ static void rna_def_bonecollection(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Name", "Unique within the Armature");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_BoneCollection_name_set");
-  // RNA_def_property_update(prop, 0, "rna_Bone_update_renamed");
 
   prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_VISIBLE);
@@ -2013,6 +2085,22 @@ static void rna_def_bonecollection(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, nullptr);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "is_local_override", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL);
+  RNA_def_property_ui_text(
+      prop,
+      "Is Local Override",
+      "This collection was added via a library override in the current blend file");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_BoneCollection_is_editable_get", nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Is Editable",
+                           "This collection is owned by a local Armature, or was added via a "
+                           "library override in the current blend file");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Bone");

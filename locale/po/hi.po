@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -189,18 +189,6 @@ msgstr "पूर्ण"
 
 msgid "Fribidi Library"
 msgstr "Fribidi पुस्तकालय"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "FriBidi C लाइब्रेरी (Linux, windows.. अंतर्गत. dll के तहत .so) संकलित, आप की संभावना अगर आप उदाहरण के लिए एक svn के पुस्तकालयों भंडार में अंतर्गत का उपयोग कर Windows, के तहत कर रहे हैं इसे संपादित करने के लिए होगा"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Gettext 'msgfmt' निष्पादन योग्य"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "Gettext msgfmt 'कम्पाइलर'। आप की संभावना संपादित करें यदि आप Windows के तहत कर रहे हैं करने के लिए होगा"
 
 
 msgid "The bf-translation repository"
@@ -4407,17 +4395,9 @@ msgid "Save translations' settings in a persistent JSon file"
 msgstr "एक लगातार JSon संचिका में अनुवाद सेटिंग्स सहेजें"
 
 
-msgid "Update i18n svn's branches (po files)"
-msgstr "I18n svn शाखाओं (po संचिकाें) अद्यतन करें"
-
-
 msgctxt "Operator"
 msgid "Init I18n Update Settings"
 msgstr "Init I18n अद्यतन सेटिंग्स"
-
-
-msgid "Init settings for i18n svn's update operators"
-msgstr "Init i18n svn अद्यतन ऑपरेटरों के लिए सेटिंग्स"
 
 
 msgctxt "Operator"
@@ -4427,11 +4407,6 @@ msgstr "Init I18n अद्यतन भाषाओं का चयन कर�
 
 msgid "Select all if True, else deselect all"
 msgstr "सभी का चयन करें अगर यह सच है, और सभी का चयन हटाएँ"
-
-
-msgctxt "Operator"
-msgid "Update I18n Trunk"
-msgstr "अद्यतन I18n ट्रंक"
 
 
 msgctxt "Operator"
@@ -4851,24 +4826,8 @@ msgid "Settings/info about a language"
 msgstr "एक भाषा के बारे में सेटिंग्स/जानकारी"
 
 
-msgid "Path to the relevant mo file"
-msgstr "प्रासंगिक एमओ संचिका का पथ"
-
-
 msgid "Numeric ID"
 msgstr "सांख्यिक ID"
-
-
-msgid "Path to the relevant po file in branches"
-msgstr "शाखाओं में प्रासंगिक po संचिका का पथ"
-
-
-msgid "PO Trunk File Path"
-msgstr "महत्व मानचित्र आकार है बिंदू विसबिंदू विस्तार संकल्प; उच्च संभावित मान कम खुरदुरा, स्मृति और गति की कीमत पर उत्पादन"
-
-
-msgid "Path to the relevant po file in trunk"
-msgstr "ट्रंक में प्रासंगिक po संचिका का पथ"
 
 
 msgid "Active Language"
@@ -4881,10 +4840,6 @@ msgstr "Langs संग्रह में सक्रिय भाषा क�
 
 msgid "Whether these settings have already been auto-set or not"
 msgstr "यह है कि क्या इन सेटिंग पहले से ही या नहीं ऑटो-सेट गया है"
-
-
-msgid "Languages to update in branches"
-msgstr "भाषाओं में शाखाओं को अद्यतन करने के लिए"
 
 
 msgid "Path to the pot template file"
@@ -5446,16 +5401,6 @@ msgstr "संदेश निष्कर्षण प्रक्रिया 
 
 msgid "Could not init languages data!"
 msgstr "नहीं init भाषाओं डेटा सकता है!"
-
-
-msgctxt "Operator"
-msgid "Update Branches"
-msgstr "शाखाओं को अद्यतन"
-
-
-msgctxt "Operator"
-msgid "Update Trunk"
-msgstr "अद्यतन ट्रंक"
 
 
 msgctxt "Operator"
@@ -7130,10 +7075,6 @@ msgstr "हंगेरियन (Magyar)"
 
 msgid "Hebrew (תירִבְעִ)"
 msgstr "हिब्रू (תירִבְעִ)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "स्पेनिश स्पेन से (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

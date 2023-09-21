@@ -121,7 +121,7 @@ static void preview_startjob(void *data, bool *stop, bool *do_update, float *pro
 
   while (true) {
     /* Wait until there's either a new audio job to process or one of the previously submitted jobs
-     * is done.*/
+     * is done. */
     BLI_mutex_lock(pj->mutex);
 
     while (BLI_listbase_is_empty(&pj->previews) && pj->processed != pj->total) {

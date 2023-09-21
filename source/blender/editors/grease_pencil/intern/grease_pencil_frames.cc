@@ -38,6 +38,52 @@ void set_selected_frames_type(bke::greasepencil::Layer &layer,
   }
 }
 
+static float get_snapped_frame_number(const float frame_number,
+                                      Scene &scene,
+                                      const eEditKeyframes_Snap mode)
+{
+  switch (mode) {
+    case SNAP_KEYS_CURFRAME: /* Snap to current frame. */
+      return scene.r.cfra;
+    case SNAP_KEYS_NEARSEC: /* Snap to nearest second. */
+    {
+      float secf = (scene.r.frs_sec / scene.r.frs_sec_base);
+      return floorf(frame_number / secf + 0.5f) * secf;
+    }
+    case SNAP_KEYS_NEARMARKER: /* Snap to nearest marker. */
+      return ED_markers_find_nearest_marker_time(&scene.markers, frame_number);
+    default:
+      break;
+  }
+  return frame_number;
+}
+
+bool snap_selected_frames(GreasePencil &grease_pencil,
+                          bke::greasepencil::Layer &layer,
+                          Scene &scene,
+                          const eEditKeyframes_Snap mode)
+{
+  bool changed = false;
+  blender::Map<int, int> frame_number_destinations;
+  for (auto [frame_number, frame] : layer.frames().items()) {
+    if (!frame.is_selected()) {
+      continue;
+    }
+    const int snapped = round_fl_to_int(
+        get_snapped_frame_number(float(frame_number), scene, mode));
+    if (snapped != frame_number) {
+      frame_number_destinations.add(frame_number, snapped);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    grease_pencil.move_frames(layer, frame_number_destinations);
+  }
+
+  return changed;
+}
+
 static int get_mirrored_frame_number(const int frame_number,
                                      const Scene &scene,
                                      const eEditKeyframes_Mirror mode,

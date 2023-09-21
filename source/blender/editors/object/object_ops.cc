@@ -10,6 +10,7 @@
 #include <cstdlib>
 
 #include "DNA_object_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_context.h"
 
@@ -332,10 +333,10 @@ void ED_keymap_object(wmKeyConfig *keyconf)
   wmKeyMap *keymap;
 
   /* Objects, Regardless of Mode -------------------------------------------------- */
-  keymap = WM_keymap_ensure(keyconf, "Object Non-modal", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Object Non-modal", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   /* Object Mode ---------------------------------------------------------------- */
   /* NOTE: this keymap gets disabled in non-object-mode. */
-  keymap = WM_keymap_ensure(keyconf, "Object Mode", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Object Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = object_mode_poll;
 }

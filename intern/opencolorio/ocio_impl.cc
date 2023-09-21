@@ -56,8 +56,9 @@ OCIO_ConstConfigRcPtr *OCIOImpl::getCurrentConfig(void)
   try {
     *config = GetCurrentConfig();
 
-    if (*config)
+    if (*config) {
       return (OCIO_ConstConfigRcPtr *)config;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -85,8 +86,9 @@ OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromEnv(void)
   try {
     *config = Config::CreateFromEnv();
 
-    if (*config)
+    if (*config) {
       return (OCIO_ConstConfigRcPtr *)config;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -104,8 +106,9 @@ OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromFile(const char *filename)
   try {
     *config = Config::CreateFromFile(filename);
 
-    if (*config)
+    if (*config) {
       return (OCIO_ConstConfigRcPtr *)config;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -153,8 +156,9 @@ OCIO_ConstColorSpaceRcPtr *OCIOImpl::configGetColorSpace(OCIO_ConstConfigRcPtr *
   try {
     *cs = (*(ConstConfigRcPtr *)config)->getColorSpace(name);
 
-    if (*cs)
+    if (*cs) {
       return (OCIO_ConstColorSpaceRcPtr *)cs;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -372,8 +376,9 @@ OCIO_ConstLookRcPtr *OCIOImpl::configGetLook(OCIO_ConstConfigRcPtr *config, cons
   try {
     *look = (*(ConstConfigRcPtr *)config)->getLook(name);
 
-    if (*look)
+    if (*look) {
       return (OCIO_ConstLookRcPtr *)look;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -522,8 +527,9 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::configGetProcessorWithNames(OCIO_ConstConfig
   try {
     *processor = (*(ConstConfigRcPtr *)config)->getProcessor(srcName, dstName);
 
-    if (*processor)
+    if (*processor) {
       return (OCIO_ConstProcessorRcPtr *)processor;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -738,8 +744,9 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr
   try {
     *p = config->getProcessor(group);
 
-    if (*p)
+    if (*p) {
       return (OCIO_ConstProcessorRcPtr *)p;
+    }
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);

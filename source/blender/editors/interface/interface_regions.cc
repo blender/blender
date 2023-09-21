@@ -48,4 +48,11 @@ void ui_region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
   ED_region_exit(C, region);
   BKE_area_region_free(nullptr, region); /* nullptr: no space-type. */
   BLI_freelinkN(&screen->regionbase, region);
+
+  if (CTX_wm_region(C) == region) {
+    CTX_wm_region_set(C, nullptr);
+  }
+  if (CTX_wm_menu(C) == region) {
+    CTX_wm_menu_set(C, nullptr);
+  }
 }

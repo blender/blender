@@ -149,11 +149,11 @@ void ED_operatormacros_curve()
 void ED_keymap_curve(wmKeyConfig *keyconf)
 {
   /* only set in editmode font, by space_view3d listener */
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Font", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Font", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_editfont;
 
   /* only set in editmode curve, by space_view3d listener */
-  keymap = WM_keymap_ensure(keyconf, "Curve", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Curve", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_editsurfcurve;
 
   curve_pen_modal_keymap(keyconf);

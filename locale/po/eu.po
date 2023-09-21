@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -2488,10 +2488,6 @@ msgstr "Hebreera (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperantoa (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Espainiako gaztelera (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

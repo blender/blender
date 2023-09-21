@@ -786,7 +786,7 @@ static void bpy_module_free(void *mod);
 
 /* Defined in 'creator.c' when building as a Python module. */
 extern int main_python_enter(int argc, const char **argv);
-extern void main_python_exit(void);
+extern void main_python_exit();
 
 static struct PyModuleDef bpy_proxy_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
@@ -837,7 +837,7 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
  * Raise an error and return false if the Python version used to compile Blender
  * isn't compatible with the interpreter loading the `bpy` module.
  */
-static bool bpy_module_ensure_compatible_version(void)
+static bool bpy_module_ensure_compatible_version()
 {
 /* First check the Python version used matches the major version that Blender was built with.
  * While this isn't essential, the error message in this case may be cryptic and misleading.
@@ -891,9 +891,9 @@ static void dealloc_obj_dealloc(PyObject *self)
   dealloc_obj_Type.tp_free(self);
 }
 
-PyMODINIT_FUNC PyInit_bpy(void);
+PyMODINIT_FUNC PyInit_bpy();
 
-PyMODINIT_FUNC PyInit_bpy(void)
+PyMODINIT_FUNC PyInit_bpy()
 {
   if (!bpy_module_ensure_compatible_version()) {
     return nullptr; /* The error has been set. */

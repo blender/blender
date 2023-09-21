@@ -223,7 +223,7 @@ struct MSLBufferBlock {
   std::string name;
   ShaderStage stage;
   bool is_array;
-  /* Resource index in buffer*/
+  /* Resource index in buffer. */
   uint slot;
   uint location;
   shader::Qualifier qualifiers;

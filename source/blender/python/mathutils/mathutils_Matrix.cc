@@ -2060,7 +2060,9 @@ static PyObject *Matrix_transposed(MatrixObject *self)
 PyDoc_STRVAR(Matrix_normalize_doc,
              ".. method:: normalize()\n"
              "\n"
-             "   Normalize each of the matrix columns.\n");
+             "   Normalize each of the matrix columns.\n"
+             "\n"
+             "   .. note:: for 4x4 matrices, the 4th column (translation) is left untouched.\n");
 static PyObject *Matrix_normalize(MatrixObject *self)
 {
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
@@ -2096,7 +2098,9 @@ PyDoc_STRVAR(Matrix_normalized_doc,
              "   Return a column normalized matrix\n"
              "\n"
              "   :return: a column normalized matrix\n"
-             "   :rtype: :class:`Matrix`\n");
+             "   :rtype: :class:`Matrix`\n"
+             "\n"
+             "   .. note:: for 4x4 matrices, the 4th column (translation) is left untouched.\n");
 static PyObject *Matrix_normalized(MatrixObject *self)
 {
   return matrix__apply_to_copy(Matrix_normalize, self);

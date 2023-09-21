@@ -345,15 +345,15 @@ def load_scripts_extensions(*, reload_scripts=False):
         bl_app_template_utils.reset(reload_scripts=reload_scripts)
         del bl_app_template_utils
 
-    # deal with addons separately
-    _initialize = getattr(_addon_utils, "_initialize", None)
-    if _initialize is not None:
+    # Deal with add-ons separately.
+    _initialize_once = getattr(_addon_utils, "_initialize_once", None)
+    if _initialize_once is not None:
         # first time, use fast-path
-        _initialize()
-        del _addon_utils._initialize
+        _initialize_once()
+        del _addon_utils._initialize_once
     else:
         _addon_utils.reset_all(reload_scripts=reload_scripts)
-    del _initialize
+    del _initialize_once
 
 
 def script_path_user():

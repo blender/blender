@@ -77,8 +77,9 @@ vector<Marker> Tracks::MarkersInBothImages(int image1, int image2) const {
   vector<Marker> markers;
   for (int i = 0; i < markers_.size(); ++i) {
     int image = markers_[i].image;
-    if (image == image1 || image == image2)
+    if (image == image1 || image == image2) {
       markers.push_back(markers_[i]);
+    }
   }
   return markers;
 }

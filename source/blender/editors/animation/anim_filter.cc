@@ -138,7 +138,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
   switch (saction->mode) {
     case SACTCONT_ACTION: /* 'Action Editor' */
       /* if not pinned, sync with active object */
-      if (/*saction->pin == 0*/ true) {
+      if (/* `saction->pin == 0` */ true) {
         if (ac->obact && ac->obact->adt) {
           saction->action = ac->obact->adt->action;
         }
@@ -158,7 +158,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
       ac->data = actedit_get_shapekeys(ac);
 
       /* if not pinned, sync with active object */
-      if (/*saction->pin == 0*/ true) {
+      if (/* `saction->pin == 0` */ true) {
         Key *key = (Key *)ac->data;
 
         if (key && key->adt) {

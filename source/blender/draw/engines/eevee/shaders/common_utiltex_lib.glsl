@@ -25,7 +25,7 @@ uniform sampler2DArray utilTex;
 #define NOISE_LAYER 2
 #define LTC_DISK_LAYER 3 /* UNUSED */
 
-/* Layers 4 to 20 are for BTDF Lut. */
+/* Layers 4 to 20 are for BTDF LUT. */
 #define lut_btdf_layer_first 4.0
 #define lut_btdf_layer_count 16.0
 
@@ -51,8 +51,35 @@ vec2 brdf_lut(float cos_theta, float roughness)
   return textureLod(utilTex, vec3(lut_coords(cos_theta, roughness), BRDF_LUT_LAYER), 0.0).rg;
 }
 
+vec4 sample_3D_texture(sampler2DArray tex, vec3 coords)
+{
+  float layer_floored;
+  float interp = modf(coords.z, layer_floored);
+
+  coords.z = layer_floored;
+  vec4 tex_low = textureLod(tex, coords, 0.0);
+
+  coords.z += 1.0;
+  vec4 tex_high = textureLod(tex, coords, 0.0);
+
+  /* Manual trilinear interpolation. */
+  return mix(tex_low, tex_high, interp);
+}
+
 /* Return texture coordinates to sample Surface LUT. */
 vec3 lut_coords_btdf(float cos_theta, float roughness, float ior)
+{
+  vec3 coords = vec3(sqrt((ior - 1.0) / (ior + 1.0)), sqrt(1.0 - cos_theta), roughness);
+
+  /* scale and bias coordinates, for correct filtered lookup */
+  coords.xy = coords.xy * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
+  coords.z = coords.z * lut_btdf_layer_count + lut_btdf_layer_first;
+
+  return coords;
+}
+
+/* Return texture coordinates to sample BSDF LUT. */
+vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
 {
   /* ior is sin of critical angle. */
   float critical_cos = sqrt(1.0 - ior * ior);
@@ -69,53 +96,50 @@ vec3 lut_coords_btdf(float cos_theta, float roughness, float ior)
 
   /* scale and bias coordinates, for correct filtered lookup */
   coords.xy = coords.xy * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
+  coords.z = coords.z * lut_btdf_layer_count + lut_btdf_layer_first;
 
   return coords;
 }
 
-/* Returns GGX BTDF in first component and fresnel in second. */
-vec2 btdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
+/* Computes the reflectance and transmittance based on the BSDF LUT. */
+vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
 {
-  if (ior <= 1e-5) {
-    return vec2(0.0);
+  if (ior == 1.0) {
+    return vec2(0.0, 1.0);
   }
+
+  vec2 split_sum;
+  float transmission_factor;
+  float F0 = F0_from_ior(ior);
+  float F90 = 1.0;
 
   if (ior >= 1.0) {
-    vec2 split_sum = brdf_lut(cos_theta, roughness);
-    float f0 = F0_from_ior(ior);
+    split_sum = brdf_lut(cos_theta, roughness);
+    transmission_factor = sample_3D_texture(utilTex, lut_coords_btdf(cos_theta, roughness, ior)).a;
     /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0, 1.33], to avoid harsh
      * transition at `IOR == 1`. */
-    float f90 = fast_sqrt(saturate(f0 / 0.02));
-
-    float brdf = F_brdf_multi_scatter(vec3(f0), vec3(f90), split_sum).r;
-    /* Energy conservation. */
-    float btdf = 1.0 - brdf;
-    /* Assuming the energy loss caused by single-scattering is distributed proportionally in the
-     * reflection and refraction lobes. */
-    return vec2(btdf, brdf) * ((do_multiscatter == 0.0) ? sum(split_sum) : 1.0);
+    F90 = saturate(2.33 / 0.33 * (ior - 1.0) / (ior + 1.0));
+  }
+  else {
+    vec3 bsdf = sample_3D_texture(utilTex, lut_coords_bsdf(cos_theta, roughness, ior)).rgb;
+    split_sum = bsdf.rg;
+    transmission_factor = bsdf.b;
   }
 
-  vec3 coords = lut_coords_btdf(cos_theta, roughness, ior);
-
-  float layer = coords.z * lut_btdf_layer_count;
-  float layer_floored = floor(layer);
-
-  coords.z = lut_btdf_layer_first + layer_floored;
-  vec2 btdf_brdf_low = textureLod(utilTex, coords, 0.0).rg;
-
-  coords.z += 1.0;
-  vec2 btdf_brdf_high = textureLod(utilTex, coords, 0.0).rg;
-
-  /* Manual trilinear interpolation. */
-  vec2 btdf_brdf = mix(btdf_brdf_low, btdf_brdf_high, layer - layer_floored);
+  float reflectance = F_brdf_single_scatter(vec3(F0), vec3(F90), split_sum).r;
+  float transmittance = (1.0 - F0) * transmission_factor;
 
   if (do_multiscatter != 0.0) {
-    /* For energy-conserving BSDF the reflection and refraction lobes should sum to one. Assuming
-     * the energy loss of single-scattering is distributed proportionally in the two lobes. */
-    btdf_brdf /= (btdf_brdf.x + btdf_brdf.y);
+    float Ess = F0 * split_sum.x + split_sum.y + (1.0 - F0) * transmission_factor;
+    /* TODO: maybe add saturation for higher roughness similar as in `F_brdf_multi_scatter()`.
+     * However, it is not necessarily desirable that the users see a different color than they
+     * picked. */
+    float scale = 1.0 / Ess;
+    reflectance *= scale;
+    transmittance *= scale;
   }
 
-  return btdf_brdf;
+  return vec2(reflectance, transmittance);
 }
 
 /** \} */

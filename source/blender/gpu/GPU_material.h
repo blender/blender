@@ -78,7 +78,7 @@ typedef enum eGPUMaterialFlag {
   GPU_MATFLAG_HOLDOUT = (1 << 6),
   GPU_MATFLAG_SHADER_TO_RGBA = (1 << 7),
   GPU_MATFLAG_AO = (1 << 8),
-  GPU_MATFLAG_CLEARCOAT = (1 << 9),
+  GPU_MATFLAG_COAT = (1 << 9),
 
   GPU_MATFLAG_OBJECT_INFO = (1 << 10),
   GPU_MATFLAG_AOV = (1 << 11),
@@ -86,7 +86,7 @@ typedef enum eGPUMaterialFlag {
   GPU_MATFLAG_BARYCENTRIC = (1 << 20),
 
   /* Optimization to only add the branches of the principled shader that are necessary. */
-  GPU_MATFLAG_PRINCIPLED_CLEARCOAT = (1 << 21),
+  GPU_MATFLAG_PRINCIPLED_COAT = (1 << 21),
   GPU_MATFLAG_PRINCIPLED_METALLIC = (1 << 22),
   GPU_MATFLAG_PRINCIPLED_DIELECTRIC = (1 << 23),
   GPU_MATFLAG_PRINCIPLED_GLASS = (1 << 24),

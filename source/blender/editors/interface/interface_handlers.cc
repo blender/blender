@@ -279,10 +279,10 @@ static void ui_selectcontext_apply(bContext *C,
 
 /**
  * Ideally we would only respond to events which are expected to be used for multi button editing
- * (additionally checking if this is a mouse[wheel] or returnkey event to avoid the ALT conflict
+ * (additionally checking if this is a mouse[wheel] or return-key event to avoid the ALT conflict
  * with button array pasting, see #108096, but unfortunately wheel events are not part of
- * win->eventstate with modifiers held down. Instead, the conflict is avoided by specifically
- * filtering out CTRL ALT V in ui_apply_but(). */
+ * `win->eventstate` with modifiers held down. Instead, the conflict is avoided by specifically
+ * filtering out CTRL ALT V in #ui_apply_but(). */
 #  define IS_ALLSELECT_EVENT(event) (((event)->modifier & KM_ALT) != 0)
 
 /** just show a tinted color so users know its activated */
@@ -2268,9 +2268,9 @@ static void ui_apply_but(
     {
       wmWindow *win = CTX_wm_window(C);
       wmEvent *event = win->eventstate;
-      /* May have been enabled before activating, dont do for array pasting. */
+      /* May have been enabled before activating, don't do for array pasting. */
       if (data->select_others.is_enabled || IS_ALLSELECT_EVENT(event)) {
-        /* See comment for IS_ALLSELECT_EVENT why this needs to be filtered here. */
+        /* See comment for #IS_ALLSELECT_EVENT why this needs to be filtered here. */
         const bool is_array_paste = (event->val == KM_PRESS) &&
                                     (event->modifier & (KM_CTRL | KM_OSKEY)) &&
                                     (event->modifier & KM_SHIFT) == 0 && (event->type == EVT_VKEY);
@@ -3983,7 +3983,7 @@ static void ui_do_but_textedit(
       }
 
       if (utf8_buf[0]) {
-        const int utf8_buf_len = BLI_str_utf8_size(utf8_buf);
+        const int utf8_buf_len = BLI_str_utf8_size_or_error(utf8_buf);
         BLI_assert(utf8_buf_len != -1);
         changed = ui_textedit_insert_buf(but, data, utf8_buf, utf8_buf_len);
       }

@@ -44,8 +44,9 @@ bool debug_flags_set = false;
 
 void *pylong_as_voidptr_typesafe(PyObject *object)
 {
-  if (object == Py_None)
+  if (object == Py_None) {
     return NULL;
+  }
   return PyLong_AsVoidPtr(object);
 }
 
@@ -224,8 +225,9 @@ static PyObject *render_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession, *pydepsgraph;
 
-  if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph))
+  if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph)) {
     return NULL;
+  }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
@@ -300,7 +302,9 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
                         &pass_filter,
                         &width,
                         &height))
+  {
     return NULL;
+  }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
@@ -324,8 +328,9 @@ static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession, *pygraph, *pyv3d, *pyrv3d;
 
-  if (!PyArg_ParseTuple(args, "OOOO", &pysession, &pygraph, &pyv3d, &pyrv3d))
+  if (!PyArg_ParseTuple(args, "OOOO", &pysession, &pygraph, &pyv3d, &pyrv3d)) {
     return NULL;
+  }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
@@ -344,8 +349,9 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession, *pydata, *pydepsgraph;
 
-  if (!PyArg_ParseTuple(args, "OOO", &pysession, &pydata, &pydepsgraph))
+  if (!PyArg_ParseTuple(args, "OOO", &pysession, &pydata, &pydepsgraph)) {
     return NULL;
+  }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
@@ -369,8 +375,9 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pysession, *pydepsgraph;
 
-  if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph))
+  if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph)) {
     return NULL;
+  }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
@@ -410,11 +417,12 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
   for (size_t i = 0; i < devices.size(); i++) {
     DeviceInfo &device = devices[i];
     string type_name = Device::string_from_type(device.type);
-    PyObject *device_tuple = PyTuple_New(4);
+    PyObject *device_tuple = PyTuple_New(5);
     PyTuple_SET_ITEM(device_tuple, 0, pyunicode_from_string(device.description.c_str()));
     PyTuple_SET_ITEM(device_tuple, 1, pyunicode_from_string(type_name.c_str()));
     PyTuple_SET_ITEM(device_tuple, 2, pyunicode_from_string(device.id.c_str()));
     PyTuple_SET_ITEM(device_tuple, 3, PyBool_FromLong(device.has_peer_memory));
+    PyTuple_SET_ITEM(device_tuple, 4, PyBool_FromLong(device.use_hardware_raytracing));
     PyTuple_SET_ITEM(ret, i, device_tuple);
   }
 

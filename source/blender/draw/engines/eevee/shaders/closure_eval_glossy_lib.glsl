@@ -150,7 +150,7 @@ void closure_Glossy_indirect_end(ClosureInputGlossy cl_in,
 #endif
   /* Apply Ray-trace reflections after occlusion since they are direct, local reflections. */
 #if defined(RESOLVE_PROBE)
-  /* NO OP - output base radiance*/
+  /* NO OP - output base radiance. */
 #elif defined(RESOLVE_SSR)
   /* Output only ray-trace radiance. */
   cl_out.radiance = cl_eval.raytrace_radiance;

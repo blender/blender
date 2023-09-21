@@ -434,7 +434,7 @@ typedef struct bNodeTreeType {
   void (*localize)(struct bNodeTree *localtree, struct bNodeTree *ntree);
   void (*local_merge)(struct Main *bmain, struct bNodeTree *localtree, struct bNodeTree *ntree);
 
-  /* Tree update. Overrides `nodetype->updatetreefunc` ! */
+  /* Tree update. Overrides `nodetype->updatetreefunc`. */
   void (*update)(struct bNodeTree *ntree);
 
   bool (*validate_link)(eNodeSocketDatatype from, eNodeSocketDatatype to);

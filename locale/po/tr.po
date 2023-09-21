@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2023-07-02 21:35+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
@@ -393,18 +393,6 @@ msgstr "Gölgelendirici Düzenleyicisinde glTF Malzeme Çıktısı düğümünü
 
 msgid "Fribidi Library"
 msgstr "Fribidi Kitaplığı"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "FriBidi C derlenmiş kitaplığı (Linux altında .so, Windows altında .dll...); Windows kullanıyorsanız büyük olasılıkla onu düzenlemeniz gerekecektir; örn. svn'nin kitaplıklar deposundaki kullanarak)"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Gettext 'msgfmt' yürütülebiliri"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "gettext msgfmt 'derleyicisi'. Windows kullanıyorsanız onu büyük olasılıkla düzenlemeniz gerekecektir"
 
 
 msgid "Translation Root"
@@ -1173,6 +1161,76 @@ msgstr "Varlık Temsili"
 
 msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
 msgstr "Varlık sisteminin bu mülkü bir varlık olarak ele almasını olanaklı kılan varlık bilgisi"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Önbellek Dosyası"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Koleksiyon"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Eğri"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Eğriler"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Yazıtipi"
+
+
+msgctxt "ID"
+msgid "Grease Pencil (legacy)"
+msgstr "Gres Kalemi (eski)"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Gres Kalemi"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Görsel"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Anahtar"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Işık"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Nokta Bulutu"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Sahne"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Çalışma Alanı"
 
 
 msgid "Options"
@@ -5095,76 +5153,6 @@ msgstr "Kemik Adı"
 
 msgid "Data Path"
 msgstr "Veri Yolu"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Önbellek Dosyası"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Koleksiyon"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Eğri"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Eğriler"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Yazıtipi"
-
-
-msgctxt "ID"
-msgid "Grease Pencil (legacy)"
-msgstr "Gres Kalemi (eski)"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Gres Kalemi"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Görsel"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Anahtar"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Işık"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Nokta Bulutu"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Sahne"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Çalışma Alanı"
 
 
 msgctxt "Brush"
@@ -11962,10 +11950,6 @@ msgstr "Estonca (Eesti keel)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "İspanya İspanyolcası (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

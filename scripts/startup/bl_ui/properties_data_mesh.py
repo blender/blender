@@ -574,8 +574,8 @@ class ColorAttributesListBase():
 
         for idx, item in enumerate(attributes):
             skip = (
-                (item.domain not in {"POINT", "CORNER"}) or
-                (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"}) or
+                (item.domain not in {'POINT', 'CORNER'}) or
+                (item.data_type not in {'FLOAT_COLOR', 'BYTE_COLOR'}) or
                 item.is_internal
             )
             flags[idx] = 0 if skip else flags[idx]

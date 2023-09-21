@@ -56,9 +56,9 @@ VKImageView::VKImageView(VKImageView &&other)
 VKImageView::~VKImageView()
 {
   if (vk_image_view_ != VK_NULL_HANDLE) {
-    VK_ALLOCATION_CALLBACKS
-    const VKDevice &device = VKBackend::get().device_get();
-    vkDestroyImageView(device.device_get(), vk_image_view_, vk_allocation_callbacks);
+    VKDevice &device = VKBackend::get().device_get();
+    device.discard_image_view(vk_image_view_);
+    vk_image_view_ = VK_NULL_HANDLE;
   }
 }
 

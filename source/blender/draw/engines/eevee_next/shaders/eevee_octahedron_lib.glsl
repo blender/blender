@@ -45,7 +45,7 @@ vec2 octahedral_uv_to_layer_texture_coords(vec2 octahedral_uv,
                                            ReflectionProbeData probe_data,
                                            vec2 texel_size)
 {
-  /* Fix artifacts near edges. Proved one texel  on each side.*/
+  /* Fix artifacts near edges. Proved one texel  on each side. */
   octahedral_uv = octahedral_uv * (1.0 - 2.0 * REFLECTION_PROBE_BORDER_SIZE * texel_size) +
                   REFLECTION_PROBE_BORDER_SIZE * texel_size + 0.5 * texel_size;
 

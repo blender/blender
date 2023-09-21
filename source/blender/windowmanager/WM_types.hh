@@ -468,6 +468,9 @@ struct wmNotifier {
 
 /* NC_NODE Nodes */
 
+/* Influences which menus node assets are included in. */
+#define ND_NODE_ASSET_DATA (1 << 16)
+
 /* NC_SPACE */
 #define ND_SPACE_CONSOLE (1 << 16)     /* general redraw */
 #define ND_SPACE_INFO_REPORT (2 << 16) /* update for reports, could specify type */
@@ -705,8 +708,10 @@ struct wmEvent {
   int mval[2];
   /**
    * A single UTF8 encoded character.
-   * #BLI_str_utf8_size() must _always_ return a valid value,
-   * check when assigning so we don't need to check on every access after.
+   *
+   * - Not null terminated although it may not be set `(utf8_buf[0] == '\0')`.
+   * - #BLI_str_utf8_size_or_error() must _always_ return a valid value,
+   *   check when assigning so we don't need to check on every access after.
    */
   char utf8_buf[6];
 

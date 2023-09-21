@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -4241,22 +4241,6 @@ msgid "Directory"
 msgstr "Директоријум"
 
 
-msgid "Tiny"
-msgstr "Сићушно"
-
-
-msgid "Small"
-msgstr "Мало"
-
-
-msgid "Medium"
-msgstr "Средњи"
-
-
-msgid "Large"
-msgstr "Велико"
-
-
 msgid "Thumbnails"
 msgstr "Умањени прикази"
 
@@ -6740,6 +6724,10 @@ msgstr "Висок"
 
 msgid "High quality"
 msgstr "Висок квалитет"
+
+
+msgid "Medium"
+msgstr "Средњи"
 
 
 msgid "Medium quality"
@@ -12179,11 +12167,6 @@ msgstr "Релативни кадар"
 
 
 msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Угледни кључни кадар"
-
-
-msgctxt "Operator"
 msgid "Select All"
 msgstr "Изабери све"
 
@@ -16407,11 +16390,6 @@ msgstr "Додај промену руте"
 
 msgid "Add a reroute node"
 msgstr "Додаје чвор промене руте"
-
-
-msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Претражи и додај чвор"
 
 
 msgctxt "Operator"
@@ -22078,16 +22056,8 @@ msgid "Map Resolution"
 msgstr "Резолуција"
 
 
-msgid "MO File Path"
-msgstr "Путања до датотека"
-
-
 msgid "Language Name"
 msgstr "Језик"
-
-
-msgid "PO File Path"
-msgstr "Путања до датотека"
 
 
 msgid "Language ID"
@@ -24837,11 +24807,6 @@ msgid "Lock Invert All"
 msgstr "Закључај све обрнуто"
 
 
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Кавез"
-
-
 msgid "Detail"
 msgstr "Детаљност"
 
@@ -25895,6 +25860,11 @@ msgstr "Пројектуј из погледа"
 msgctxt "Operator"
 msgid "Non Manifold"
 msgstr "Неповезани"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Кавез"
 
 
 msgctxt "Operator"
@@ -27821,10 +27791,6 @@ msgstr "Хебрејски (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Есперанто (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Шпански (Español)"
 
 
 msgid "Amharic (አማርኛ)"

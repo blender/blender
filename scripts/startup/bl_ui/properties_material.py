@@ -266,6 +266,7 @@ class EEVEE_NEXT_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
         if mat.blend_method not in {'OPAQUE', 'CLIP', 'HASHED'}:
             layout.prop(mat, "show_transparent_back")
 
+        layout.prop(mat, "use_screen_refraction")
         layout.prop(mat, "pass_index")
 
 

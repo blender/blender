@@ -171,7 +171,6 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   bool has_undefined_nodes_or_sockets = false;
   bNode *group_output_node = nullptr;
   Vector<bNode *> root_frames;
-  bNodeTreeInterfaceCache interface_cache;
 };
 
 /**
@@ -546,22 +545,27 @@ inline blender::Span<bNestedNodeRef> bNodeTree::nested_node_refs_span() const
   return {this->nested_node_refs, this->nested_node_refs_num};
 }
 
+inline void bNodeTree::ensure_interface_cache() const
+{
+  this->tree_interface.ensure_items_cache();
+}
+
 inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_inputs() const
 {
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->interface_cache.inputs;
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->inputs_;
 }
 
 inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_outputs() const
 {
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->interface_cache.outputs;
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->outputs_;
 }
 
 inline blender::Span<bNodeTreeInterfaceItem *> bNodeTree::interface_items() const
 {
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->interface_cache.items;
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->items_;
 }
 
 /** \} */
@@ -790,9 +794,14 @@ inline bool bNodeSocket::is_panel_collapsed() const
   return (this->flag & SOCK_PANEL_COLLAPSED) != 0;
 }
 
+inline bool bNodeSocket::is_visible_or_panel_collapsed() const
+{
+  return !this->is_hidden() && this->is_available();
+}
+
 inline bool bNodeSocket::is_visible() const
 {
-  return !this->is_hidden() && this->is_available() && !this->is_panel_collapsed();
+  return this->is_visible_or_panel_collapsed() && !this->is_panel_collapsed();
 }
 
 inline bNode &bNodeSocket::owner_node()

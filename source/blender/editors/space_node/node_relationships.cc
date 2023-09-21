@@ -170,7 +170,7 @@ static void pick_input_link_by_link_intersect(const bContext &C,
 
 static bool socket_is_available(bNodeTree * /*ntree*/, bNodeSocket *sock, const bool allow_used)
 {
-  if (!sock->is_visible()) {
+  if (!sock->is_visible_or_panel_collapsed()) {
     return false;
   }
 
@@ -2264,7 +2264,7 @@ bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_
     int index;
     LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, index) {
       const nodes::SocketDeclaration &socket_decl = *socket_decls[index];
-      if (!socket->is_visible()) {
+      if (!socket->is_visible_or_panel_collapsed()) {
         continue;
       }
       if (socket_decl.is_default_link_socket) {
@@ -2285,7 +2285,7 @@ bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_
   /* Try all priorities, starting from 'highest'. */
   for (int priority = maxpriority; priority >= 0; priority--) {
     LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-      if (!!sock->is_visible() && priority == get_main_socket_priority(sock)) {
+      if (!!sock->is_visible_or_panel_collapsed() && priority == get_main_socket_priority(sock)) {
         return sock;
       }
     }

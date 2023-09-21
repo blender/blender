@@ -181,6 +181,7 @@ void VKDescriptorSetTracker::update(VKContext &context)
     }
     /* TODO: Based on the actual usage we should use
      * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL/VK_IMAGE_LAYOUT_GENERAL. */
+    binding.texture->ensure_allocated();
     binding.texture->layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
     VkDescriptorImageInfo image_info = {};
     image_info.sampler = binding.vk_sampler;
@@ -209,6 +210,19 @@ std::unique_ptr<VKDescriptorSet> VKDescriptorSetTracker::create_resource(VKConte
 {
   VKDevice &device = VKBackend::get().device_;
   return device.descriptor_pools_get().allocate(layout_);
+}
+
+void VKDescriptorSetTracker::debug_print() const
+{
+  for (const Binding &binding : bindings_) {
+    binding.debug_print();
+  }
+}
+
+void VKDescriptorSetTracker::Binding::debug_print() const
+{
+  std::cout << "VkDescriptorSetTrackker::Binding(type: " << type
+            << ", location:" << location.binding << ")\n";
 }
 
 }  // namespace blender::gpu

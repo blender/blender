@@ -113,6 +113,33 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
   });
 }
 
+static void node_add_unassigned_assets_draw(const bContext *C, Menu *menu)
+{
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  const bNodeTree *edit_tree = snode.edittree;
+  if (!edit_tree) {
+    return;
+  }
+  if (!snode.runtime->assets_for_menu) {
+    snode.runtime->assets_for_menu = std::make_shared<asset::AssetItemTree>(
+        build_catalog_tree(*C, *edit_tree));
+    return;
+  }
+  asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
+  for (const asset_system::AssetRepresentation *asset : tree.unassigned_assets) {
+    PointerRNA op_ptr;
+    uiItemFullO(menu->layout,
+                "NODE_OT_add_group_asset",
+                IFACE_(asset->get_name().c_str()),
+                ICON_NONE,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &op_ptr);
+    asset::operator_asset_reference_props_set(*asset, op_ptr);
+  }
+}
+
 static void add_root_catalogs_draw(const bContext *C, Menu *menu)
 {
   bScreen &screen = *CTX_wm_screen(C);
@@ -186,6 +213,11 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
           screen, *all_library, item, "NODE_MT_node_add_catalog_assets", *layout);
     }
   });
+
+  if (!tree.unassigned_assets.is_empty()) {
+    uiItemS(layout);
+    uiItemM(layout, "NODE_MT_node_add_unassigned_assets", IFACE_("No Catalog"), ICON_NONE);
+  }
 }
 
 MenuType add_catalog_assets_menu_type()
@@ -196,6 +228,20 @@ MenuType add_catalog_assets_menu_type()
   type.draw = node_add_catalog_assets_draw;
   type.listener = asset::asset_reading_region_listen_fn;
   type.flag = MenuTypeFlag::ContextDependent;
+  return type;
+}
+
+MenuType add_unassigned_assets_menu_type()
+{
+  MenuType type{};
+  STRNCPY(type.idname, "NODE_MT_node_add_unassigned_assets");
+  type.poll = node_add_menu_poll;
+  type.draw = node_add_unassigned_assets_draw;
+  type.listener = asset::asset_reading_region_listen_fn;
+  type.flag = MenuTypeFlag::ContextDependent;
+  type.description = N_(
+      "Node group assets not assigned to a catalog.\n"
+      "Catalogs can be assigned in the Asset Browser.");
   return type;
 }
 

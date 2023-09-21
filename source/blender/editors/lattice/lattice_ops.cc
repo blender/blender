@@ -29,6 +29,6 @@ void ED_operatortypes_lattice()
 
 void ED_keymap_lattice(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Lattice", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Lattice", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_editlattice;
 }

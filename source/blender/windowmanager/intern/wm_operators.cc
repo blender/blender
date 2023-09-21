@@ -4102,7 +4102,7 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 
 void wm_window_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Window", 0, 0);
+  WM_keymap_ensure(keyconf, "Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   wm_gizmos_keymap(keyconf);
   gesture_circle_modal_keymap(keyconf);

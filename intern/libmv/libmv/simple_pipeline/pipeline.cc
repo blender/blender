@@ -130,17 +130,18 @@ static void CompleteReconstructionLogProgress(
   if (update_callback) {
     char message[256];
 
-    if (step)
+    if (step) {
       snprintf(message,
                sizeof(message),
                "Completing solution %d%% | %s",
                (int)(progress * 100),
                step);
-    else
+    } else {
       snprintf(message,
                sizeof(message),
                "Completing solution %d%%",
                (int)(progress * 100));
+    }
 
     update_callback->invoke(progress, message);
   }

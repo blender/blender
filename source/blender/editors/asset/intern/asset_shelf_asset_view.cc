@@ -104,12 +104,13 @@ void AssetView::build_items()
   }
 
   ED_assetlist_iterate(library_ref_, [&](AssetHandle asset_handle) {
-    if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, &asset_handle)) {
+    const asset_system::AssetRepresentation *asset = ED_asset_handle_get_representation(
+        &asset_handle);
+
+    if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, asset)) {
       return true;
     }
 
-    const asset_system::AssetRepresentation *asset = ED_asset_handle_get_representation(
-        &asset_handle);
     const AssetMetaData &asset_data = asset->get_metadata();
 
     if (catalog_filter_ && !catalog_filter_->contains(asset_data.catalog_id)) {
@@ -213,7 +214,8 @@ void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
   const AssetView &asset_view = dynamic_cast<const AssetView &>(get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
   if (shelf_type.draw_context_menu) {
-    shelf_type.draw_context_menu(&C, &shelf_type, &asset_, &column);
+    asset_system::AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_);
+    shelf_type.draw_context_menu(&C, &shelf_type, asset, &column);
   }
 }
 

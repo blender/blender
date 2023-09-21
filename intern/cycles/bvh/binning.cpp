@@ -41,12 +41,15 @@ __forceinline int get_best_dimension(const float4 &bestSAH)
 
   float minSAH = min(bestSAH.x, min(bestSAH.y, bestSAH.z));
 
-  if (bestSAH.x == minSAH)
+  if (bestSAH.x == minSAH) {
     return 0;
-  else if (bestSAH.y == minSAH)
+  }
+  else if (bestSAH.y == minSAH) {
     return 1;
-  else
+  }
+  else {
     return 2;
+  }
 }
 
 /* BVH Object Binning */

@@ -464,6 +464,7 @@ dict_custom = {
     "unselected",
     "unsetting",
     "unshadowed",
+    "unshared",
     "unsharp",
     "unsqueezed",
     "unstretch",

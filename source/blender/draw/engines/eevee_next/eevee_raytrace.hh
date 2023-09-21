@@ -107,6 +107,7 @@ class RayTraceModule {
   draw::PassSimple generate_refract_ps_ = {"RayGenerate.Refraction"};
   draw::PassSimple trace_reflect_ps_ = {"Trace.Reflection"};
   draw::PassSimple trace_refract_ps_ = {"Trace.Refraction"};
+  draw::PassSimple trace_fallback_ps_ = {"Trace.Fallback"};
   draw::PassSimple denoise_spatial_reflect_ps_ = {"DenoiseSpatial.Reflection"};
   draw::PassSimple denoise_spatial_refract_ps_ = {"DenoiseSpatial.Refraction"};
   draw::PassSimple denoise_temporal_ps_ = {"DenoiseTemporal"};
@@ -119,8 +120,7 @@ class RayTraceModule {
   int3 tile_compact_dispatch_size_ = int3(1);
   /** 2D tile mask to check which unused adjacent tile we need to clear. */
   TextureFromPool tile_mask_tx_ = {"tile_mask_tx"};
-  /** Indirect dispatch rays. Avoid dispatching work-groups that ultimately won't do any tracing.
-   */
+  /** Indirect dispatch rays. Avoid dispatching work-groups that will not trace anything.*/
   DispatchIndirectBuf ray_dispatch_buf_ = {"ray_dispatch_buf_"};
   /** Indirect dispatch denoise full-resolution tiles. */
   DispatchIndirectBuf denoise_dispatch_buf_ = {"denoise_dispatch_buf_"};
@@ -147,6 +147,8 @@ class RayTraceModule {
   GPUTexture *radiance_history_tx_ = nullptr;
   GPUTexture *variance_history_tx_ = nullptr;
   GPUTexture *tilemask_history_tx_ = nullptr;
+  /** Radiance input for screen space tracing. */
+  GPUTexture *screen_radiance_tx_ = nullptr;
 
   /** Dummy texture when the tracing is disabled. */
   TextureFromPool dummy_result_tx_ = {"dummy_result_tx"};
@@ -158,6 +160,8 @@ class RayTraceModule {
   /** Copy of the scene options to avoid changing parameters during motion blur. */
   RaytraceEEVEE reflection_options_;
   RaytraceEEVEE refraction_options_;
+
+  RaytraceEEVEE_Method tracing_method_ = RAYTRACE_EEVEE_METHOD_NONE;
 
   RayTraceData &data_;
 
@@ -172,18 +176,25 @@ class RayTraceModule {
    * RayTrace the scene and resolve a radiance buffer for the corresponding `closure_bit` into the
    * given `out_radiance_tx`.
    *
-   * Should not be conditionally executed as it manages the RayTraceResult.
+   * IMPORTANT: Should not be conditionally executed as it manages the RayTraceResult.
+   * IMPORTANT: The screen tracing will use the Hierarchical-Z Buffer in its current state.
    *
+   * \arg screen_radiance_tx is the texture used for screen space rays.
+   * \arg screen_radiance_persmat is the view projection matrix used to render screen_radiance_tx.
    * \arg active_closures is a mask of all active closures in a deferred layer.
    * \arg raytrace_closure is type of closure the rays are to be casted for.
    * \arg main_view is the un-jittered view.
    * \arg render_view is the TAA jittered view.
+   * \arg force_no_tracing will run the pipeline without any tracing, relying only on local probes.
    */
   RayTraceResult trace(RayTraceBuffer &rt_buffer,
+                       GPUTexture *screen_radiance_tx,
+                       const float4x4 &screen_radiance_persmat,
                        eClosureBits active_closures,
                        eClosureBits raytrace_closure,
                        View &main_view,
-                       View &render_view);
+                       View &render_view,
+                       bool force_no_tracing = false);
 
   void debug_pass_sync();
   void debug_draw(View &view, GPUFrameBuffer *view_fb);

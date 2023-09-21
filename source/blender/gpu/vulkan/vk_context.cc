@@ -112,7 +112,11 @@ void VKContext::deactivate()
 
 void VKContext::begin_frame() {}
 
-void VKContext::end_frame() {}
+void VKContext::end_frame()
+{
+  VKDevice &device = VKBackend::get().device_get();
+  device.destroy_discarded_resources();
+}
 
 void VKContext::flush()
 {

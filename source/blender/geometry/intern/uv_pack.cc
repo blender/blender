@@ -107,11 +107,31 @@ static float get_aspect_scaled_extent(const rctf &extent, const UVPackIsland_Par
 }
 
 /**
+ * \return the area of `extent`, factoring in the target aspect ratio.
+ */
+static float get_aspect_scaled_area(const rctf &extent, const UVPackIsland_Params &params)
+{
+  const float width = BLI_rctf_size_x(&extent);
+  const float height = BLI_rctf_size_y(&extent);
+  return (width / params.target_aspect_y) * height;
+}
+
+/**
  * \return true if `b` is a preferred layout over `a`, given the packing parameters supplied.
  */
 static bool is_larger(const rctf &a, const rctf &b, const UVPackIsland_Params &params)
 {
-  return get_aspect_scaled_extent(b, params) < get_aspect_scaled_extent(a, params);
+  const float extent_a = get_aspect_scaled_extent(a, params);
+  const float extent_b = get_aspect_scaled_extent(b, params);
+
+  /* Equal extent, use smaller area. */
+  if (compare_ff_relative(extent_a, extent_b, FLT_EPSILON, 64)) {
+    const float area_a = get_aspect_scaled_area(a, params);
+    const float area_b = get_aspect_scaled_area(b, params);
+    return area_b < area_a;
+  }
+
+  return extent_b < extent_a;
 }
 
 PackIsland::PackIsland()
@@ -1919,8 +1939,10 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 
   /* At this stage, `extent` contains the fast/optimal/box_pack/xatlas UVs. */
 
-  if (all_can_rotate) {
-    /* Attempt to improve the layout even further by finding the minimal-bounding-square. */
+  /* If more islands remain to be packed, attempt to improve the layout further by finding the
+   * minimal-bounding-square. Disabled for other cases as users often prefer to avoid diagonal
+   * islands. */
+  if (all_can_rotate && aabbs.size() > slow_aabbs.size()) {
     rotate_inside_square(slow_aabbs, islands, params, scale, margin, r_phis, &extent);
   }
 

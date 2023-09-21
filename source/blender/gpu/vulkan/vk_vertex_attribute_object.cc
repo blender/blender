@@ -211,7 +211,7 @@ void VKVertexAttributeObject::fill_unused_bindings(const VKShaderInterface &inte
       continue;
     }
 
-    /* Use dummy binding...*/
+    /* Use dummy binding. */
     shader::Type attribute_type = interface.get_attribute_type(location);
     const uint32_t num_locations = to_binding_location_len(attribute_type);
     for (const uint32_t location_offset : IndexRange(num_locations)) {

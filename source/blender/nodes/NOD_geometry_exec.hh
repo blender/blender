@@ -181,7 +181,7 @@ class GeoNodeExecParams {
 
   geo_eval_log::GeoTreeLogger *get_local_tree_logger() const
   {
-    return this->local_user_data()->tree_logger;
+    return this->local_user_data()->try_get_tree_logger();
   }
 
   /**

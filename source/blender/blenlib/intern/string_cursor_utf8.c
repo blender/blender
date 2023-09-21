@@ -121,7 +121,8 @@ bool BLI_str_cursor_step_next_utf8(const char *str, size_t str_maxlen, int *pos)
   const char *str_next = str_pos;
   do {
     str_next = BLI_str_find_next_char_utf8(str_next, str_end);
-  } while (str_next < str_end && str_next[0] != 0 && BLI_str_utf8_char_width(str_next) < 1);
+  } while (str_next < str_end && str_next[0] != 0 &&
+           BLI_str_utf8_char_width_or_error(str_next) == 0);
   (*pos) += (str_next - str_pos);
   if ((*pos) > (int)str_maxlen) {
     (*pos) = (int)str_maxlen;
@@ -139,7 +140,7 @@ bool BLI_str_cursor_step_prev_utf8(const char *str, size_t str_maxlen, int *pos)
     const char *str_prev = str_pos;
     do {
       str_prev = BLI_str_find_prev_char_utf8(str_prev, str);
-    } while (str_prev > str && BLI_str_utf8_char_width(str_prev) == 0);
+    } while (str_prev > str && BLI_str_utf8_char_width_or_error(str_prev) == 0);
     (*pos) -= (str_pos - str_prev);
     return true;
   }
@@ -234,7 +235,7 @@ bool BLI_str_cursor_step_next_utf32(const char32_t *str, size_t str_maxlen, int 
   }
   do {
     (*pos)++;
-  } while (*pos < (int)str_maxlen && str[*pos] != 0 && BLI_wcwidth(str[*pos]) == 0);
+  } while (*pos < (int)str_maxlen && str[*pos] != 0 && BLI_wcwidth_or_error(str[*pos]) == 0);
 
   return true;
 }
@@ -248,7 +249,7 @@ bool BLI_str_cursor_step_prev_utf32(const char32_t *str, size_t UNUSED(str_maxle
   }
   do {
     (*pos)--;
-  } while (*pos > 0 && BLI_wcwidth(str[*pos]) == 0);
+  } while (*pos > 0 && BLI_wcwidth_or_error(str[*pos]) == 0);
 
   return true;
 }

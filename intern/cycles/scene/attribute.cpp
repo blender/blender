@@ -70,8 +70,9 @@ void Attribute::add(const float &f)
   char *data = (char *)&f;
   size_t size = sizeof(f);
 
-  for (size_t i = 0; i < size; i++)
+  for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
+  }
 
   modified = true;
 }
@@ -83,8 +84,9 @@ void Attribute::add(const uchar4 &f)
   char *data = (char *)&f;
   size_t size = sizeof(f);
 
-  for (size_t i = 0; i < size; i++)
+  for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
+  }
 
   modified = true;
 }
@@ -96,8 +98,9 @@ void Attribute::add(const float2 &f)
   char *data = (char *)&f;
   size_t size = sizeof(f);
 
-  for (size_t i = 0; i < size; i++)
+  for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
+  }
 
   modified = true;
 }
@@ -109,8 +112,9 @@ void Attribute::add(const float3 &f)
   char *data = (char *)&f;
   size_t size = sizeof(f);
 
-  for (size_t i = 0; i < size; i++)
+  for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
+  }
 
   modified = true;
 }
@@ -122,8 +126,9 @@ void Attribute::add(const Transform &f)
   char *data = (char *)&f;
   size_t size = sizeof(f);
 
-  for (size_t i = 0; i < size; i++)
+  for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
+  }
 
   modified = true;
 }
@@ -132,8 +137,9 @@ void Attribute::add(const char *data)
 {
   size_t size = data_sizeof();
 
-  for (size_t i = 0; i < size; i++)
+  for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
+  }
 
   modified = true;
 }
@@ -158,24 +164,32 @@ void Attribute::set_data_from(Attribute &&other)
 
 size_t Attribute::data_sizeof() const
 {
-  if (element == ATTR_ELEMENT_VOXEL)
+  if (element == ATTR_ELEMENT_VOXEL) {
     return sizeof(ImageHandle);
-  else if (element == ATTR_ELEMENT_CORNER_BYTE)
+  }
+  else if (element == ATTR_ELEMENT_CORNER_BYTE) {
     return sizeof(uchar4);
-  else if (type == TypeDesc::TypeFloat)
+  }
+  else if (type == TypeDesc::TypeFloat) {
     return sizeof(float);
-  else if (type == TypeFloat2)
+  }
+  else if (type == TypeFloat2) {
     return sizeof(float2);
-  else if (type == TypeDesc::TypeMatrix)
+  }
+  else if (type == TypeDesc::TypeMatrix) {
     return sizeof(Transform);
-  // The float3 type is not interchangeable with float4
-  // as it is now a packed type.
-  else if (type == TypeDesc::TypeFloat4)
+    // The float3 type is not interchangeable with float4
+    // as it is now a packed type.
+  }
+  else if (type == TypeDesc::TypeFloat4) {
     return sizeof(float4);
-  else if (type == TypeRGBA)
+  }
+  else if (type == TypeRGBA) {
     return sizeof(float4);
-  else
+  }
+  else {
     return sizeof(float3);
+  }
 }
 
 size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
@@ -275,8 +289,9 @@ size_t Attribute::buffer_size(Geometry *geom, AttributePrimitive prim) const
 
 bool Attribute::same_storage(TypeDesc a, TypeDesc b)
 {
-  if (a == b)
+  if (a == b) {
     return true;
+  }
 
   if (a == TypeDesc::TypeColor || a == TypeDesc::TypePoint || a == TypeDesc::TypeVector ||
       a == TypeDesc::TypeNormal)
@@ -471,8 +486,9 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
 
   if (attr) {
     /* return if same already exists */
-    if (attr->type == type && attr->element == element)
+    if (attr->type == type && attr->element == element) {
       return attr;
+    }
 
     /* overwrite attribute with same name but different type/element */
     remove(name);
@@ -487,8 +503,9 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
 Attribute *AttributeSet::find(ustring name) const
 {
   foreach (const Attribute &attr, attributes)
-    if (attr.name == name)
+    if (attr.name == name) {
       return (Attribute *)&attr;
+    }
 
   return NULL;
 }
@@ -513,8 +530,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 {
   Attribute *attr = NULL;
 
-  if (name == ustring())
+  if (name == ustring()) {
     name = Attribute::standard_name(std);
+  }
 
   if (geometry->geometry_type == Geometry::MESH) {
     switch (std) {
@@ -666,8 +684,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 Attribute *AttributeSet::find(AttributeStandard std) const
 {
   foreach (const Attribute &attr, attributes)
-    if (attr.std == std)
+    if (attr.std == std) {
       return (Attribute *)&attr;
+    }
 
   return NULL;
 }
@@ -710,10 +729,12 @@ void AttributeSet::remove(AttributeStandard std)
 
 Attribute *AttributeSet::find(AttributeRequest &req)
 {
-  if (req.std == ATTR_STD_NONE)
+  if (req.std == ATTR_STD_NONE) {
     return find(req.name);
-  else
+  }
+  else {
     return find(req.std);
+  }
 }
 
 void AttributeSet::remove(Attribute *attribute)
@@ -852,16 +873,18 @@ AttributeRequestSet::~AttributeRequestSet() {}
 
 bool AttributeRequestSet::modified(const AttributeRequestSet &other)
 {
-  if (requests.size() != other.requests.size())
+  if (requests.size() != other.requests.size()) {
     return true;
+  }
 
   for (size_t i = 0; i < requests.size(); i++) {
     bool found = false;
 
-    for (size_t j = 0; j < requests.size() && !found; j++)
+    for (size_t j = 0; j < requests.size() && !found; j++) {
       if (requests[i].name == other.requests[j].name && requests[i].std == other.requests[j].std) {
         found = true;
       }
+    }
 
     if (!found) {
       return true;
@@ -885,8 +908,9 @@ void AttributeRequestSet::add(ustring name)
 void AttributeRequestSet::add(AttributeStandard std)
 {
   foreach (AttributeRequest &req, requests)
-    if (req.std == std)
+    if (req.std == std) {
       return;
+    }
 
   requests.push_back(AttributeRequest(std));
 }
@@ -894,10 +918,12 @@ void AttributeRequestSet::add(AttributeStandard std)
 void AttributeRequestSet::add(AttributeRequestSet &reqs)
 {
   foreach (AttributeRequest &req, reqs.requests) {
-    if (req.std == ATTR_STD_NONE)
+    if (req.std == ATTR_STD_NONE) {
       add(req.name);
-    else
+    }
+    else {
       add(req.std);
+    }
   }
 }
 
@@ -920,8 +946,9 @@ void AttributeRequestSet::add_standard(ustring name)
 bool AttributeRequestSet::find(ustring name)
 {
   foreach (AttributeRequest &req, requests)
-    if (req.name == name)
+    if (req.name == name) {
       return true;
+    }
 
   return false;
 }
@@ -929,8 +956,9 @@ bool AttributeRequestSet::find(ustring name)
 bool AttributeRequestSet::find(AttributeStandard std)
 {
   foreach (AttributeRequest &req, requests)
-    if (req.std == std)
+    if (req.std == std) {
       return true;
+    }
 
   return false;
 }

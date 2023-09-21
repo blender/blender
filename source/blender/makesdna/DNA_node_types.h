@@ -189,6 +189,7 @@ typedef struct bNodeSocket {
   bool is_hidden() const;
   bool is_available() const;
   bool is_panel_collapsed() const;
+  bool is_visible_or_panel_collapsed() const;
   bool is_visible() const;
   bool is_multi_input() const;
   bool is_input() const;
@@ -368,7 +369,7 @@ typedef struct bNode {
 
   char _pad1[2];
 
-  /** Used for some builtin nodes that store properties but don't have a storage struct . */
+  /** Used for some builtin nodes that store properties but don't have a storage struct. */
   int16_t custom1, custom2;
   float custom3, custom4;
 
@@ -766,6 +767,12 @@ typedef struct bNodeTree {
 
   /** Zones in the node tree. Currently there are only simulation zones in geometry nodes. */
   const blender::bke::bNodeTreeZones *zones() const;
+
+  /**
+   * Update a run-time cache for the node tree interface based on it's current state.
+   * This should be done before accessing interface item spans below.
+   */
+  void ensure_interface_cache() const;
 
   /* Cached interface item lists. */
   blender::Span<bNodeTreeInterfaceSocket *> interface_inputs() const;
