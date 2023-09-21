@@ -29,6 +29,42 @@
 #include "GeometryExporter.h"
 #include "SceneExporter.h"
 
+void ArmatureExporter::add_bone_collections(Object *ob_arm, COLLADASW::Node &node)
+{
+  bArmature *armature = (bArmature *)ob_arm->data;
+
+  /* Because our importer assumes that "extras" tags have a unique name, it's not posisble to
+   * export a <bonecollection> element per bone collection. This is why all the names are stored in
+   * one element, newline-separated. */
+
+  std::stringstream collection_stream;
+  std::stringstream visible_stream;
+  LISTBASE_FOREACH (const BoneCollection *, bcoll, &armature->collections) {
+    collection_stream << bcoll->name << "\n";
+
+    if (bcoll->flags & BONE_COLLECTION_VISIBLE) {
+      visible_stream << bcoll->name << "\n";
+    }
+  }
+
+  std::string collection_names = collection_stream.str();
+  if (collection_names.length() > 1) {
+    collection_names.pop_back();  // Pop off the last \n.
+    node.addExtraTechniqueParameter("blender", "collections", collection_names);
+  }
+
+  std::string visible_names = visible_stream.str();
+  if (visible_names.length() > 1) {
+    visible_names.pop_back();  // Pop off the last \n.
+    node.addExtraTechniqueParameter("blender", "visible_collections", visible_names);
+  }
+
+  if (armature->runtime.active_collection) {
+    node.addExtraTechniqueParameter(
+        "blender", "active_collection", std::string(armature->active_collection_name));
+  }
+}
+
 void ArmatureExporter::add_armature_bones(Object *ob_arm,
                                           ViewLayer *view_layer,
                                           SceneExporter *se,
@@ -154,8 +190,15 @@ void ArmatureExporter::add_bone_node(Bone *bone,
           node.addExtraTechniqueParameter("blender", "connect", true);
         }
       }
-      std::string layers = BoneExtended::get_bone_layers(bone->layer);
-      node.addExtraTechniqueParameter("blender", "layer", layers);
+
+      std::string collection_names = "";
+      LISTBASE_FOREACH (const BoneCollectionReference *, bcoll_ref, &bone->runtime.collections) {
+        collection_names += std::string(bcoll_ref->bcoll->name) + "\n";
+      }
+      if (collection_names.length() > 1) {
+        collection_names.pop_back();  // Pop off the last \n.
+        node.addExtraTechniqueParameter("blender", "", collection_names, "", "collections");
+      }
 
       bArmature *armature = (bArmature *)ob_arm->data;
       EditBone *ebone = bc_get_edit_bone(armature, bone->name);

@@ -138,6 +138,7 @@ void ANIM_armature_bonecoll_name_set(struct bArmature *armature,
                                      struct BoneCollection *bcoll,
                                      const char *name);
 
+void ANIM_bonecoll_show(struct BoneCollection *bcoll);
 void ANIM_bonecoll_hide(struct BoneCollection *bcoll);
 
 /**
@@ -213,10 +214,6 @@ inline bool ANIM_bonecoll_is_visible_actbone(const struct bArmature *armature)
 
 void ANIM_armature_bonecoll_show_all(struct bArmature *armature);
 void ANIM_armature_bonecoll_hide_all(struct bArmature *armature);
-
-/* Only used by the Collada I/O code: */
-void ANIM_armature_enable_layers(struct bArmature *armature, const int layers);
-void ANIM_bone_set_layer_ebone(struct EditBone *ebone, int layer);
 
 void ANIM_armature_bonecoll_show_from_bone(struct bArmature *armature, const struct Bone *bone);
 void ANIM_armature_bonecoll_show_from_ebone(struct bArmature *armature,

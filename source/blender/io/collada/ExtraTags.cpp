@@ -11,6 +11,7 @@
 #include <cstdlib>
 
 #include <iostream>
+#include <regex>
 
 #include "ExtraTags.h"
 
@@ -109,4 +110,24 @@ std::string ExtraTags::setData(std::string tag, std::string &data)
   bool ok = false;
   std::string tmp = asString(tag, &ok);
   return (ok) ? tmp : data;
+}
+
+std::vector<std::string> ExtraTags::dataSplitString(const std::string &tag)
+{
+  bool ok = false;
+  const std::string value = asString(tag, &ok);
+  if (!ok) {
+    return std::vector<std::string>();
+  }
+
+  std::vector<std::string> values;
+
+  const std::regex newline_re("[^\\s][^\\r\\n]+");
+  const std::sregex_token_iterator end;
+  std::sregex_token_iterator iter(value.begin(), value.end(), newline_re);
+  for (; iter != end; iter++) {
+    values.push_back(*iter);
+  }
+
+  return values;
 }

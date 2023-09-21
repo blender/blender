@@ -477,19 +477,6 @@ void ANIM_armature_bonecoll_hide_all(bArmature *armature)
 /* ********************************* */
 /* Armature Layers transitional API. */
 
-void ANIM_armature_enable_layers(bArmature *armature, const int /*layers*/)
-{
-  // TODO: reimplement properly.
-  // armature->layer |= layers;
-  ANIM_armature_bonecoll_show_all(armature);
-}
-
-void ANIM_bone_set_layer_ebone(EditBone *ebone, const int layer)
-{
-  // TODO: reimplement for bone collections.
-  ebone->layer = layer;
-}
-
 void ANIM_armature_bonecoll_assign_active(const bArmature *armature, EditBone *ebone)
 {
   if (armature->runtime.active_collection == nullptr) {

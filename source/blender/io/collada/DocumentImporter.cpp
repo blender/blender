@@ -622,7 +622,8 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
     if ((geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
       /* Check if Object is armature, by checking if immediate child is a JOINT node. */
       if (is_armature(node)) {
-        ob = bc_add_object(bmain, sce, view_layer, OB_ARMATURE, name.c_str());
+        ExtraTags *et = getExtraTags(node->getUniqueId());
+        ob = bc_add_armature(node, et, bmain, sce, view_layer, OB_ARMATURE, name.c_str());
       }
       else {
         ob = bc_add_object(bmain, sce, view_layer, OB_EMPTY, nullptr);

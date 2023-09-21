@@ -12,6 +12,7 @@
 #include "COLLADAFWGeometry.h"
 #include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWMeshVertexData.h"
+#include "COLLADAFWNode.h"
 
 #include <set>
 #include <string>
@@ -48,6 +49,8 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "ED_node.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
@@ -66,6 +69,7 @@
 
 #include "BlenderContext.h"
 #include "ExportSettings.h"
+#include "ExtraTags.h"
 #include "collada_utils.h"
 
 float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, uint index)
@@ -204,6 +208,41 @@ Object *bc_add_object(Main *bmain, Scene *scene, ViewLayer *view_layer, int type
   /* TODO: is setting active needed? */
   BKE_view_layer_base_select_and_set_active(view_layer, base);
 
+  return ob;
+}
+
+static void bc_add_armature_collections(COLLADAFW::Node *node,
+                                        ExtraTags *node_extra_tags,
+                                        bArmature *arm)
+{
+  std::vector<std::string> collection_names = node_extra_tags->dataSplitString("collections");
+  std::vector<std::string> visible_names = node_extra_tags->dataSplitString("visible_collections");
+  std::set<std::string> visible_names_set(visible_names.begin(), visible_names.end());
+  for (const std::string &name : collection_names) {
+    BoneCollection *bcoll = ANIM_armature_bonecoll_new(arm, name.c_str());
+    if (visible_names_set.find(name) == visible_names_set.end()) {
+      ANIM_bonecoll_hide(bcoll);
+    }
+    else {
+      ANIM_bonecoll_show(bcoll);
+    }
+  }
+
+  std::string active_name;
+  active_name = node_extra_tags->setData("active_collection", active_name);
+  ANIM_armature_bonecoll_active_name_set(arm, active_name.c_str());
+}
+
+Object *bc_add_armature(COLLADAFW::Node *node,
+                        ExtraTags *node_extra_tags,
+                        Main *bmain,
+                        Scene *scene,
+                        ViewLayer *view_layer,
+                        int type,
+                        const char *name)
+{
+  Object *ob = bc_add_object(bmain, scene, view_layer, type, name);
+  bc_add_armature_collections(node, node_extra_tags, reinterpret_cast<bArmature *>(ob->data));
   return ob;
 }
 
@@ -500,7 +539,6 @@ BoneExtended::BoneExtended(EditBone *aBone)
   this->tail[2] = 0.0f;
   this->use_connect = -1;
   this->roll = 0;
-  this->bone_layers = 0;
 
   this->has_custom_tail = false;
   this->has_custom_roll = false;
@@ -582,62 +620,13 @@ inline bool isInteger(const std::string &s)
   return (*p == 0);
 }
 
-void BoneExtended::set_bone_layers(std::string layerString, std::vector<std::string> &layer_labels)
+void BoneExtended::set_bone_collections(std::vector<std::string> bone_collections)
 {
-  std::stringstream ss(layerString);
-  std::string layer;
-  int pos;
-
-  while (ss >> layer) {
-
-    /* Blender uses numbers to specify layers. */
-    if (isInteger(layer)) {
-      pos = atoi(layer.c_str());
-      if (pos >= 0 && pos < 32) {
-        this->bone_layers = bc_set_layer(this->bone_layers, pos);
-        continue;
-      }
-    }
-
-    /* Layer uses labels (not supported by blender). Map to layer numbers: */
-    pos = find(layer_labels.begin(), layer_labels.end(), layer) - layer_labels.begin();
-    if (pos >= layer_labels.size()) {
-      layer_labels.push_back(layer); /* Remember layer number for future usage. */
-    }
-
-    if (pos > 31) {
-      fprintf(stderr,
-              "Too many layers in Import. Layer %s mapped to Blender layer 31\n",
-              layer.c_str());
-      pos = 31;
-    }
-
-    /* If numeric layers and labeled layers are used in parallel (unlikely),
-     * we get a potential mix-up. Just leave as is for now. */
-    this->bone_layers = bc_set_layer(this->bone_layers, pos);
-  }
+  this->bone_collections = bone_collections;
 }
-
-std::string BoneExtended::get_bone_layers(int bitfield)
+const std::vector<std::string> &BoneExtended::get_bone_collections()
 {
-  std::string sep;
-  int bit = 1u;
-
-  std::ostringstream ss;
-  for (int i = 0; i < 32; i++) {
-    if (bit & bitfield) {
-      ss << sep << i;
-      sep = " ";
-    }
-    bit = bit << 1;
-  }
-  return ss.str();
-}
-
-int BoneExtended::get_bone_layers()
-{
-  /* ensure that the bone is in at least one bone layer! */
-  return (bone_layers == 0) ? 1 : bone_layers;
+  return this->bone_collections;
 }
 
 void BoneExtended::set_use_connect(int use_connect)
