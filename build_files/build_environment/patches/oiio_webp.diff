@@ -1,0 +1,59 @@
+diff --git a/src/cmake/modules/FindWebP.cmake b/src/cmake/modules/FindWebP.cmake
+index 87b880a..0e9850f 100644
+--- a/src/cmake/modules/FindWebP.cmake
++++ b/src/cmake/modules/FindWebP.cmake
+@@ -29,6 +29,12 @@ find_library (WEBPDEMUX_LIBRARY webpdemux
+               HINTS
+                   ${WEBP_LIBRARY_PATH}
+                   ENV WEBP_LIBRARY_PATH)
++# New in WebP 1.3
++find_library (WEBP_SHARPYUV_LIBRARY sharpyuv
++              HINTS
++                  ${WEBP_LIBRARY_PATH}
++                  ENV WEBP_LIBRARY_PATH)
++
+ 
+ include (FindPackageHandleStandardArgs)
+ find_package_handle_standard_args (WebP
+@@ -38,7 +44,7 @@ find_package_handle_standard_args (WebP
+ 
+ if (WebP_FOUND)
+     set (WEBP_INCLUDES "${WEBP_INCLUDE_DIR}")
+-    set (WEBP_LIBRARIES ${WEBP_LIBRARY} ${WEBPDEMUX_LIBRARY})
++    set (WEBP_LIBRARIES ${WEBP_LIBRARY} ${WEBPDEMUX_LIBRARY} ${WEBP_SHARPYUV_LIBRARY})
+ 
+     if (NOT TARGET WebP::WebP)
+         add_library(WebP::WebP UNKNOWN IMPORTED)
+@@ -54,10 +60,18 @@ if (WebP_FOUND)
+         set_property(TARGET WebP::WebPDemux APPEND PROPERTY
+             IMPORTED_LOCATION ${WEBPDEMUX_LIBRARY})
+     endif ()
++    if (WEBP_SHARPYUV_LIBRARY AND NOT TARGET WebP::sharpyuv)
++        add_library(WebP::sharpyuv UNKNOWN IMPORTED)
++        set_target_properties(WebP::sharpyuv PROPERTIES
++            INTERFACE_INCLUDE_DIRECTORIES ${WEBP_INCLUDES})
++        set_property(TARGET WebP::sharpyuv APPEND PROPERTY
++            IMPORTED_LOCATION ${WEBP_SHARPYUV_LIBRARY})
++    endif ()
+ endif ()
+ 
+ mark_as_advanced (
+     WEBP_INCLUDE_DIR
+     WEBP_LIBRARY
+     WEBPDEMUX_LIBRARY
++    WEBP_SHARPYUV_LIBRARY
+     )
+
+diff --git a/src/webp.imageio/CMakeLists.txt b/src/webp.imageio/CMakeLists.txt
+index ccf1146..c646e99 100644
+--- a/src/webp.imageio/CMakeLists.txt
++++ b/src/webp.imageio/CMakeLists.txt
+@@ -4,7 +4,7 @@
+
+ if (WebP_FOUND)
+     add_oiio_plugin (webpinput.cpp webpoutput.cpp
+-                     LINK_LIBRARIES WebP::webp WebP::webpdemux
++                     LINK_LIBRARIES WebP::webp WebP::webpdemux WebP::sharpyuv
+                      DEFINITIONS "-DUSE_WEBP=1")
+ else ()
+     message (STATUS "WebP plugin will not be built")
