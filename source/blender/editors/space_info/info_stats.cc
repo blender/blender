@@ -27,11 +27,11 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
-#include "BLI_span.hh"
 
 #include "BLT_translation.h"
 
@@ -202,7 +202,8 @@ static void stats_object(Object *ob,
       const GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
 
       for (const GreasePencilDrawingBase *drawing_base : grease_pencil->drawings()) {
-        const GreasePencilDrawing *drawing = reinterpret_cast<const GreasePencilDrawing *>(drawing_base);
+        const GreasePencilDrawing *drawing = reinterpret_cast<const GreasePencilDrawing *>(
+            drawing_base);
         const blender::bke::CurvesGeometry &curves = drawing->wrap().strokes();
 
         stats->totgppoint += curves.points_num();
