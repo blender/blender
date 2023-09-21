@@ -89,83 +89,49 @@ static void mask_flood_fill_set_elem(float *elem, PaintMaskFloodMode mode, float
   }
 }
 
-struct MaskTaskData {
-  Object *ob;
-  PBVH *pbvh;
-  Span<PBVHNode *> nodes;
-  bool multires;
-
-  PaintMaskFloodMode mode;
-  float value;
-  float (*clip_planes_final)[4];
-
-  bool front_faces_only;
-  float view_normal[3];
-};
-
-static void mask_flood_fill_task(MaskTaskData &data, const int i)
-{
-  PBVHNode *node = data.nodes[i];
-
-  const PaintMaskFloodMode mode = data.mode;
-  const float value = data.value;
-  bool redraw = false;
-
-  PBVHVertexIter vi;
-
-  SCULPT_undo_push_node(data.ob, node, SCULPT_UNDO_MASK);
-
-  BKE_pbvh_vertex_iter_begin (data.pbvh, node, vi, PBVH_ITER_UNIQUE) {
-    float prevmask = *vi.mask;
-    mask_flood_fill_set_elem(vi.mask, mode, value);
-    if (prevmask != *vi.mask) {
-      redraw = true;
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  if (redraw) {
-    BKE_pbvh_node_mark_update_mask(node);
-    if (data.multires) {
-      BKE_pbvh_node_mark_normals_update(node);
-    }
-  }
-}
-
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  PBVH *pbvh;
-  bool multires;
 
   PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
-  float value = RNA_float_get(op->ptr, "value");
+  const float value = RNA_float_get(op->ptr, "value");
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
-  pbvh = ob->sculpt->pbvh;
-  multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
+  PBVH *pbvh = ob->sculpt->pbvh;
+  const bool multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
 
   SCULPT_undo_push_begin(ob, op);
 
-  MaskTaskData data{};
-  data.ob = ob;
-  data.pbvh = pbvh;
-  data.nodes = nodes;
-  data.multires = multires;
-  data.mode = mode;
-  data.value = value;
-
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      mask_flood_fill_task(data, i);
+      PBVHNode *node = nodes[i];
+      SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+
+      bool redraw = false;
+      PBVHVertexIter vi;
+      BKE_pbvh_vertex_iter_begin (pbvh, node, vi, PBVH_ITER_UNIQUE) {
+        float prevmask = *vi.mask;
+        mask_flood_fill_set_elem(vi.mask, mode, value);
+        if (prevmask != *vi.mask) {
+          redraw = true;
+        }
+      }
+      BKE_pbvh_vertex_iter_end;
+
+      if (redraw) {
+        BKE_pbvh_node_mark_update_mask(node);
+        if (multires) {
+          BKE_pbvh_node_mark_normals_update(node);
+        }
+      }
     }
   });
 
