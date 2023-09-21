@@ -407,13 +407,15 @@ const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_l
   const char *socket_label = bke::nodeSocketLabel(socket);
   const char *socket_translation_context = node_socket_get_translation_context(*socket);
   const char *translated_socket_label = CTX_IFACE_(socket_translation_context, socket_label);
-  const int len_prefix = strlen(panel_label);
 
   /* Shorten socket label if it begins with the panel label. */
-  if (panel_label && STREQLEN(translated_socket_label, panel_label, len_prefix) &&
-      translated_socket_label[len_prefix] == ' ')
-  {
-    return translated_socket_label + len_prefix + 1;
+  if (panel_label) {
+    const int len_prefix = strlen(panel_label);
+    if (STREQLEN(translated_socket_label, panel_label, len_prefix) &&
+        translated_socket_label[len_prefix] == ' ')
+    {
+      return translated_socket_label + len_prefix + 1;
+    }
   }
 
   /* Full label. */
