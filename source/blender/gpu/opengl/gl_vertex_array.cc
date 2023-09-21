@@ -125,7 +125,7 @@ void GLVertArray::update_bindings(const GLuint vao,
     int component_len = 1;
     if (input == nullptr) {
       /* Uses Custom IDs */
-      input = interface->attr_get("vertex_in_drw_ResourceID_");
+      input = interface->attr_get("vertex_in_drw_ResourceID");
       component_len = 2;
     }
     if (input) {
