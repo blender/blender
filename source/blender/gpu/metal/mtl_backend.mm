@@ -418,7 +418,6 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
                                            MTLBackend::capabilities.supports_family_mac1 ||
                                            MTLBackend::capabilities.supports_family_mac2);
   GCaps.compute_shader_support = true;
-  GCaps.shader_storage_buffer_objects_support = true;
   GCaps.shader_draw_parameters_support = true;
   GCaps.hdr_viewport_support = true;
 

@@ -222,7 +222,6 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps = {};
   GCaps.compute_shader_support = true;
   GCaps.geometry_shader_support = true;
-  GCaps.shader_storage_buffer_objects_support = true;
   GCaps.shader_image_load_store_support = true;
   GCaps.shader_draw_parameters_support =
       device.physical_device_vulkan_11_features_get().shaderDrawParameters;

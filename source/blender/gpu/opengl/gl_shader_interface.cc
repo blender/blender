@@ -221,11 +221,9 @@ GLShaderInterface::GLShaderInterface(GLuint program)
   uniform_len = active_uniform_len;
 
   GLint max_ssbo_name_len = 0, ssbo_len = 0;
-  if (GPU_shader_storage_buffer_objects_support()) {
-    glGetProgramInterfaceiv(program, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &ssbo_len);
-    glGetProgramInterfaceiv(
-        program, GL_SHADER_STORAGE_BLOCK, GL_MAX_NAME_LENGTH, &max_ssbo_name_len);
-  }
+  glGetProgramInterfaceiv(program, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &ssbo_len);
+  glGetProgramInterfaceiv(
+      program, GL_SHADER_STORAGE_BLOCK, GL_MAX_NAME_LENGTH, &max_ssbo_name_len);
 
   BLI_assert_msg(ubo_len <= 16, "enabled_ubo_mask_ is uint16_t");
 

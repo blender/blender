@@ -206,17 +206,6 @@ static PyObject *pygpu_compute_shader_support_get(PyObject * /*self*/)
   return PyBool_FromLong(GPU_compute_shader_support());
 }
 
-PyDoc_STRVAR(pygpu_shader_storage_buffer_objects_support_get_doc,
-             ".. function:: shader_storage_buffer_objects_support_get()\n"
-             "\n"
-             "   Are SSBO's supported.\n"
-             "\n"
-             "   :return: True when supported, False when not supported.\n"
-             "   :rtype: bool\n");
-static PyObject *pygpu_shader_storage_buffer_objects_support_get(PyObject * /*self*/)
-{
-  return PyBool_FromLong(GPU_shader_storage_buffer_objects_support());
-}
 PyDoc_STRVAR(pygpu_shader_image_load_store_support_get_doc,
              ".. function:: shader_image_load_store_support_get()\n"
              "\n"
@@ -307,10 +296,6 @@ static PyMethodDef pygpu_capabilities__tp_methods[] = {
      (PyCFunction)pygpu_compute_shader_support_get,
      METH_NOARGS,
      pygpu_compute_shader_support_get_doc},
-    {"shader_storage_buffer_objects_support_get",
-     (PyCFunction)pygpu_shader_storage_buffer_objects_support_get,
-     METH_NOARGS,
-     pygpu_shader_storage_buffer_objects_support_get_doc},
     {"shader_image_load_store_support_get",
      (PyCFunction)pygpu_shader_image_load_store_support_get,
      METH_NOARGS,

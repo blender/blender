@@ -214,11 +214,6 @@ struct GPENCIL_NEXT_Data {
 
 static void gpencil_engine_init(void *vedata)
 {
-  /* TODO(fclem): Remove once it is minimum required. */
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
-
   GPENCIL_NEXT_Data *ved = reinterpret_cast<GPENCIL_NEXT_Data *>(vedata);
   if (ved->instance == nullptr) {
     ved->instance = new draw::greasepencil::Instance();
@@ -232,10 +227,6 @@ static void gpencil_engine_init(void *vedata)
 static void gpencil_draw_scene(void *vedata)
 {
   GPENCIL_NEXT_Data *ved = reinterpret_cast<GPENCIL_NEXT_Data *>(vedata);
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    STRNCPY(ved->info, "Error: No shader storage buffer support");
-    return;
-  }
   if (DRW_state_is_select() || DRW_state_is_depth()) {
     return;
   }
@@ -248,18 +239,12 @@ static void gpencil_draw_scene(void *vedata)
 
 static void gpencil_cache_init(void *vedata)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   draw::Manager *manager = DRW_manager_get();
   reinterpret_cast<GPENCIL_NEXT_Data *>(vedata)->instance->begin_sync(*manager);
 }
 
 static void gpencil_cache_populate(void *vedata, Object *object)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   draw::Manager *manager = DRW_manager_get();
 
   draw::ObjectRef ref;
@@ -272,18 +257,12 @@ static void gpencil_cache_populate(void *vedata, Object *object)
 
 static void gpencil_cache_finish(void *vedata)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   draw::Manager *manager = DRW_manager_get();
   reinterpret_cast<GPENCIL_NEXT_Data *>(vedata)->instance->end_sync(*manager);
 }
 
 static void gpencil_instance_free(void *instance)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   delete reinterpret_cast<draw::greasepencil::Instance *>(instance);
 }
 

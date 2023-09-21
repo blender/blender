@@ -41,9 +41,7 @@ BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get()
    * and Apple Silicon GPUs. This is also because vertex work can more easily be executed in
    * parallel with fragment work, whereas compute inserts an explicit dependency,
    * due to switching of command encoder types. */
-  if (GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support() &&
-      (GPU_backend_get_type() != GPU_BACKEND_METAL))
-  {
+  if (GPU_compute_shader_support() && (GPU_backend_get_type() != GPU_BACKEND_METAL)) {
     return PART_REFINE_SHADER_COMPUTE;
   }
   if (GPU_transform_feedback_support()) {
@@ -390,7 +388,7 @@ void DRW_hair_update()
     GPUFrameBuffer *temp_fb = nullptr;
     GPUFrameBuffer *prev_fb = nullptr;
     if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
-      if (!(GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support())) {
+      if (!GPU_compute_shader_support()) {
         prev_fb = GPU_framebuffer_active_get();
         char errorOut[256];
         /* if the frame-buffer is invalid we need a dummy frame-buffer to be bound. */

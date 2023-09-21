@@ -146,6 +146,21 @@ void GLBackend::platform_init()
         support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
+
+    /* Check SSBO bindings requirement. */
+    GLint max_ssbo_binds_vertex;
+    GLint max_ssbo_binds_fragment;
+    GLint max_ssbo_binds_compute;
+    glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &max_ssbo_binds_vertex);
+    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &max_ssbo_binds_fragment);
+    glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds_compute);
+    GLint max_ssbo_binds = min_iii(
+        max_ssbo_binds_vertex, max_ssbo_binds_fragment, max_ssbo_binds_compute);
+    if (max_ssbo_binds < 8) {
+      std::cout << "Warning: Unsupported platform as it supports max " << max_ssbo_binds
+                << " SSBO binding locations\n";
+      support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
+    }
   }
 
   GPG.init(device, os, driver, support_level, GPU_BACKEND_OPENGL, vendor, renderer, version);
@@ -230,29 +245,41 @@ static void detect_workarounds()
     GCaps.mip_render_workaround = true;
     GLContext::debug_layer_workaround = true;
     GLContext::unused_fb_slot_workaround = true;
-    /* Turn off extensions. */
-    GCaps.shader_image_load_store_support = false;
-    GCaps.shader_draw_parameters_support = false;
-    GCaps.shader_storage_buffer_objects_support = false;
+    /* Turn off Blender features. */
     GCaps.hdr_viewport_support = false;
-    GLContext::base_instance_support = false;
+    /* Turn off OpenGL 4.4 features. */
     GLContext::clear_texture_support = false;
+    GLContext::multi_bind_support = false;
+    GLContext::multi_bind_image_support = false;
+    /* Turn off OpenGL 4.5 features. */
+    GLContext::direct_state_access_support = false;
+    /* Turn off OpenGL 4.6 features. */
+    GLContext::texture_filter_anisotropic_support = false;
+    GCaps.shader_draw_parameters_support = false;
+    GLContext::shader_draw_parameters_support = false;
+    /* Although an OpenGL 4.3 feature, our implementation requires shader_draw_parameters_support.
+     * NOTE: we should untangle this by checking both features for clarity. */
+    GLContext::multi_draw_indirect_support = false;
+
+    /* Turn off vendor specific extensions. */
+    GLContext::native_barycentric_support = false;
+
+    /* Do not alter OpenGL 4.3 features.
+     * These code paths should be removed. */
+    /*
+    GCaps.shader_image_load_store_support = false;
+    GLContext::base_instance_support = false;
     GLContext::copy_image_support = false;
     GLContext::debug_layer_support = false;
-    GLContext::direct_state_access_support = false;
     GLContext::fixed_restart_index_support = false;
     GLContext::geometry_shader_invocations = false;
     GLContext::layered_rendering_support = false;
-    GLContext::native_barycentric_support = false;
-    GLContext::multi_bind_support = false;
-    GLContext::multi_bind_image_support = false;
-    GLContext::multi_draw_indirect_support = false;
-    GLContext::shader_draw_parameters_support = false;
     GLContext::texture_cube_map_array_support = false;
-    GLContext::texture_filter_anisotropic_support = false;
     GLContext::texture_gather_support = false;
     GLContext::texture_storage_support = false;
     GLContext::vertex_attrib_binding_support = false;
+    */
+
     return;
   }
 
@@ -457,7 +484,7 @@ static void detect_workarounds()
 
   /* Minimum Per-Vertex stride is 1 byte for OpenGL. */
   GCaps.minimum_per_vertex_stride = 1;
-}  // namespace blender::gpu
+}
 
 /** Internal capabilities. */
 
@@ -546,8 +573,6 @@ void GLBackend::capabilities_init()
                   &GCaps.max_shader_storage_buffer_bindings);
     glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &GCaps.max_compute_shader_storage_blocks);
   }
-  GCaps.shader_storage_buffer_objects_support = epoxy_has_gl_extension(
-      "GL_ARB_shader_storage_buffer_object");
   GCaps.transform_feedback_support = true;
   GCaps.texture_view_support = epoxy_gl_version() >= 43 ||
                                epoxy_has_gl_extension("GL_ARB_texture_view");
@@ -557,21 +582,15 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GLContext::max_cubemap_size);
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GLContext::max_ubo_binds);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
-  if (GCaps.shader_storage_buffer_objects_support) {
-    GLint max_ssbo_binds;
-    GLContext::max_ssbo_binds = 999999;
-    glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
-    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
-    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
-    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
-    glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
-    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
-    if (GLContext::max_ssbo_binds < 8) {
-      /* Does not meet our minimum requirements. */
-      GCaps.shader_storage_buffer_objects_support = false;
-    }
-    glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &GLContext::max_ssbo_size);
-  }
+  GLint max_ssbo_binds;
+  GLContext::max_ssbo_binds = 999999;
+  glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+  GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+  glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+  GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+  glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+  GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+  glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &GLContext::max_ssbo_size);
   GLContext::base_instance_support = epoxy_has_gl_extension("GL_ARB_base_instance");
   GLContext::clear_texture_support = epoxy_has_gl_extension("GL_ARB_clear_texture");
   GLContext::copy_image_support = epoxy_has_gl_extension("GL_ARB_copy_image");

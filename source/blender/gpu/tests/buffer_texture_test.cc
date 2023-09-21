@@ -18,7 +18,7 @@ namespace blender::gpu::tests {
 
 static void test_buffer_texture()
 {
-  if (!GPU_compute_shader_support() && !GPU_shader_storage_buffer_objects_support()) {
+  if (!GPU_compute_shader_support()) {
     /* We can't test as a the platform does not support compute shaders. */
     std::cout << "Skipping compute shader test: platform not supported";
     GTEST_SKIP();

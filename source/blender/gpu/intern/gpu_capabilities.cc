@@ -167,11 +167,6 @@ bool GPU_geometry_shader_support()
   return GCaps.geometry_shader_support;
 }
 
-bool GPU_shader_storage_buffer_objects_support()
-{
-  return GCaps.shader_storage_buffer_objects_support;
-}
-
 bool GPU_shader_image_load_store_support()
 {
   return GCaps.shader_image_load_store_support;
