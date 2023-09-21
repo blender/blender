@@ -6556,10 +6556,6 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
         const std::string tooltip_label = but->tip_label_func(but);
         tmp = BLI_strdupn(tooltip_label.c_str(), tooltip_label.size());
       }
-      /* Fallback to the regular label. */
-      else {
-        type = BUT_GET_LABEL;
-      }
     }
 
     if (type == BUT_GET_LABEL) {

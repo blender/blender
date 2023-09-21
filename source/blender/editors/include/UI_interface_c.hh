@@ -1385,9 +1385,8 @@ enum uiStringInfoType {
   BUT_GET_RNASTRUCT_IDENTIFIER,
   BUT_GET_RNAENUM_IDENTIFIER,
   BUT_GET_LABEL,
-  /** Sometimes the button doesn't have a label itself, but provides one for the tooltip. This can
-   * be displayed in a quick tooltip, appearing after a smaller timeout and expanding to the full
-   * tooltip after the regular timeout. */
+  /** Query the result of #uiBut::tip_label_func(). Meant to allow overriding the label to be
+   * displayed in the tooltip. */
   BUT_GET_TIP_LABEL,
   BUT_GET_RNA_LABEL,
   BUT_GET_RNAENUM_LABEL,
@@ -1750,6 +1749,11 @@ void UI_but_func_drawextra_set(uiBlock *block,
 void UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func);
 
 void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFreeArgFunc free_arg);
+/**
+ * Enable a custom quick tooltip label. That is, a short tooltip that appears faster than the full
+ * one and only shows the label string returned by \a func. After a short delay the full tooltip is
+ * shown, including the same label.
+ */
 void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func);
 
 typedef enum uiTooltipStyle {
