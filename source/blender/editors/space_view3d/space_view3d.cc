@@ -2286,6 +2286,7 @@ void ED_spacetype_view3d()
   art->listener = ED_asset_shelf_region_listen;
   art->poll = ED_asset_shelf_regions_poll;
   art->snap_size = ED_asset_shelf_region_snap;
+  art->on_user_resize = ED_asset_shelf_region_on_user_resize;
   art->context = ED_asset_shelf_context;
   art->init = view3d_asset_shelf_region_init;
   art->layout = ED_asset_shelf_region_layout;

@@ -2851,6 +2851,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
       const float aspect = BLI_rctf_size_x(&rmd->region->v2d.cur) /
                            (BLI_rcti_size_x(&rmd->region->v2d.mask) + 1);
       const int snap_size_threshold = (U.widget_unit * 2) / aspect;
+      bool size_changed = false;
+
       if (ELEM(rmd->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT)) {
         delta = event->xy[0] - rmd->orig_xy[0];
         if (rmd->edge == AE_LEFT_TO_TOPRIGHT) {
@@ -2890,6 +2892,10 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* Hiding/unhiding is handled above, but still fix the size as requested. */
         if (rmd->region->flag & RGN_FLAG_NO_USER_RESIZE) {
           rmd->region->sizex = rmd->origval;
+        }
+
+        if (rmd->region->sizex != rmd->origval) {
+          size_changed = true;
         }
       }
       else {
@@ -2935,6 +2941,13 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if (rmd->region->flag & RGN_FLAG_NO_USER_RESIZE) {
           rmd->region->sizey = rmd->origval;
         }
+
+        if (rmd->region->sizey != rmd->origval) {
+          size_changed = true;
+        }
+      }
+      if (size_changed && rmd->region->type->on_user_resize) {
+        rmd->region->type->on_user_resize(rmd->region);
       }
       ED_area_tag_redraw(rmd->area);
       WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
