@@ -53,7 +53,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RE_pipeline.h"
-#include "render_types.h"
+#include "intern/render_types.h"
 
 #include "lineart_intern.h"
 
