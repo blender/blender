@@ -910,6 +910,41 @@ void push_pull_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float f
 
 /* ---------------- */
 
+void time_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float frame_offset)
+{
+  /* Two bookend keys of the fcurve are needed to be able to cycle the values. */
+  const BezTriple *last_key = &fcu->bezt[fcu->totvert - 1];
+  const BezTriple *first_key = &fcu->bezt[0];
+
+  const float fcu_x_range = last_key->vec[1][0] - first_key->vec[1][0];
+  const float fcu_y_range = last_key->vec[1][1] - first_key->vec[1][1];
+
+  const float first_key_x = first_key->vec[1][0];
+
+  /* If we operate directly on the fcurve there will be a feedback loop
+   * so we need to capture the "y" values on an array to then apply them on a second loop. */
+  float *y_values = static_cast<float *>(
+      MEM_callocN(sizeof(float) * segment->length, "Time Offset Samples"));
+
+  for (int i = 0; i < segment->length; i++) {
+    /* This simulates the fcu curve moving in time. */
+    const float time = fcu->bezt[segment->start_index + i].vec[1][0] + frame_offset;
+    /* Need to normalize time to first_key to specify that as the wrapping point. */
+    const float wrapped_time = mod_f_positive(time - first_key_x, fcu_x_range) + first_key_x;
+    const float delta_y = fcu_y_range * floorf((time - first_key_x) / fcu_x_range);
+
+    const float key_y_value = evaluate_fcurve(fcu, wrapped_time) + delta_y;
+    y_values[i] = key_y_value;
+  }
+
+  for (int i = 0; i < segment->length; i++) {
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[segment->start_index + i], y_values[i]);
+  }
+  MEM_freeN(y_values);
+}
+
+/* ---------------- */
+
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
 {
   const BezTriple *left_bezt = fcurve_segment_start_get(fcu, segment->start_index);
