@@ -262,8 +262,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
     }
     else if (field->format.style == UI_TIP_STYLE_IMAGE) {
 
-      bbox.ymax -= field->image_size[0];
-      bbox.ymin -= field->image_size[0];
+      bbox.ymax -= field->image_size[1];
 
       GPU_blend(GPU_BLEND_ALPHA_PREMULT);
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
@@ -1251,7 +1250,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 
     if (field->format.style == UI_TIP_STYLE_IMAGE) {
       fonth += field->image_size[1];
-      w = field->image_size[0];
+      w = max_ii(w, field->image_size[0]);
     }
 
     fontw = max_ii(fontw, w);
