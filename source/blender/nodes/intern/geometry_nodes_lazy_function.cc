@@ -328,7 +328,8 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     node_.typeinfo->geometry_node_execute(geo_params);
     geo_eval_log::TimePoint end_time = geo_eval_log::Clock::now();
 
-    if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger()) {
+    if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(*user_data))
+    {
       tree_logger->node_execution_times.append({node_.identifier, start_time, end_time});
     }
   }
@@ -777,8 +778,9 @@ class LazyFunctionForViewerNode : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
+    const auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
     const auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
-    geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger();
+    geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data);
     if (tree_logger == nullptr) {
       return;
     }
@@ -1686,7 +1688,7 @@ class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
       return;
     }
     auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
-    geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger();
+    geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data);
     if (tree_logger == nullptr) {
       return;
     }
@@ -1759,8 +1761,9 @@ class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
     static thread_local const int thread_id = thread_id_source.fetch_add(1);
     static thread_local const std::string thread_id_str = "Thread: " + std::to_string(thread_id);
 
+    const auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
     const auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
-    geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger();
+    geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data);
     if (tree_logger == nullptr) {
       return;
     }
@@ -3938,15 +3941,15 @@ destruct_ptr<lf::LocalUserData> GeoNodesLFUserData::get_local(LinearAllocator<> 
   return allocator.construct<GeoNodesLFLocalUserData>(*this);
 }
 
-void GeoNodesLFLocalUserData::ensure_tree_logger() const
+void GeoNodesLFLocalUserData::ensure_tree_logger(const GeoNodesLFUserData &user_data) const
 {
-  if (user_data_.modifier_data == nullptr) {
+  if (user_data.modifier_data == nullptr) {
     tree_logger_.emplace(nullptr);
     return;
   }
-  if (user_data_.modifier_data->eval_log != nullptr) {
+  if (user_data.modifier_data->eval_log != nullptr) {
     tree_logger_.emplace(
-        &user_data_.modifier_data->eval_log->get_local_tree_logger(*user_data_.compute_context));
+        &user_data.modifier_data->eval_log->get_local_tree_logger(*user_data.compute_context));
     return;
   }
   this->tree_logger_.emplace(nullptr);
