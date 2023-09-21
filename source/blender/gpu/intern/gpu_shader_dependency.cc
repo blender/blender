@@ -17,6 +17,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_map.hh"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
 #include "gpu_material_library.h"
@@ -108,6 +109,7 @@ struct GPUSource {
       if (source.find("'") != StringRef::not_found) {
         char_literals_preprocess();
       }
+#ifdef DEBUG
       if (source.find("drw_print") != StringRef::not_found) {
         string_preprocess();
       }
@@ -119,6 +121,7 @@ struct GPUSource {
       {
         builtins |= shader::BuiltinBits::USE_DEBUG_DRAW;
       }
+#endif
       check_no_quotes();
     }
 

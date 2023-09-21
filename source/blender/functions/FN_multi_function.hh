@@ -39,7 +39,7 @@
 
 namespace blender::fn::multi_function {
 
-class MultiFunction {
+class MultiFunction : NonCopyable, NonMovable {
  private:
   const Signature *signature_ref_ = nullptr;
 

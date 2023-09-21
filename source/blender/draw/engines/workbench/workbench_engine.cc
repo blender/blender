@@ -104,8 +104,10 @@ class Instance {
         return scene_state.material_override;
       case V3D_SHADING_VERTEX_COLOR:
         return scene_state.material_attribute_color;
+      case V3D_SHADING_TEXTURE_COLOR:
+        ATTR_FALLTHROUGH;
       case V3D_SHADING_MATERIAL_COLOR:
-        if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot)) {
+        if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot + 1)) {
           return Material(*_mat);
         }
         ATTR_FALLTHROUGH;
@@ -269,8 +271,7 @@ class Instance {
             continue;
           }
 
-          /* Material slots start from 1. */
-          int material_slot = i + 1;
+          int material_slot = i;
           Material mat = get_material(ob_ref, object_state.color_type, material_slot);
           has_transparent_material = has_transparent_material || mat.is_transparent();
 
@@ -322,35 +323,34 @@ class Instance {
 
   void sculpt_sync(ObjectRef &ob_ref, ResourceHandle handle, const ObjectState &object_state)
   {
+    SculptBatchFeature features = SCULPT_BATCH_DEFAULT;
+    if (object_state.color_type == V3D_SHADING_VERTEX_COLOR) {
+      features = SCULPT_BATCH_VERTEX_COLOR;
+    }
+    else if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+      features = SCULPT_BATCH_UV;
+    }
+
     if (object_state.use_per_material_batches) {
-      const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
-      for (SculptBatch &batch : sculpt_batches_per_material_get(
-               ob_ref.object, {get_dummy_gpu_materials(material_count), material_count}))
-      {
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, true, features)) {
         Material mat = get_material(ob_ref, object_state.color_type, batch.material_slot);
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
         }
 
-        draw_mesh(ob_ref,
-                  mat,
-                  batch.batch,
-                  handle,
-                  object_state.image_paint_override,
-                  object_state.override_sampler_state);
+        ::Image *image = nullptr;
+        ImageUser *iuser = nullptr;
+        GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
+        if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+          get_material_image(ob_ref.object, batch.material_slot, image, iuser, sampler_state);
+        }
+
+        draw_mesh(ob_ref, mat, batch.batch, handle, image, sampler_state);
       }
     }
     else {
       Material mat = get_material(ob_ref, object_state.color_type);
-      SculptBatchFeature features = SCULPT_BATCH_DEFAULT;
-      if (object_state.color_type == V3D_SHADING_VERTEX_COLOR) {
-        features = SCULPT_BATCH_VERTEX_COLOR;
-      }
-      else if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-        features = SCULPT_BATCH_UV;
-      }
-
-      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, false, features)) {
         if (SCULPT_DEBUG_DRAW) {
           mat.base_color = batch.debug_color();
         }
@@ -391,12 +391,12 @@ class Instance {
     /* Skip frustum culling. */
     ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
 
-    Material mat = get_material(ob_ref, object_state.color_type, psys->part->omat);
+    Material mat = get_material(ob_ref, object_state.color_type, psys->part->omat - 1);
     ::Image *image = nullptr;
     ImageUser *iuser = nullptr;
     GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
     if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-      get_material_image(ob_ref.object, psys->part->omat, image, iuser, sampler_state);
+      get_material_image(ob_ref.object, psys->part->omat - 1, image, iuser, sampler_state);
     }
     resources.material_buf.append(mat);
     int material_index = resources.material_buf.size() - 1;
@@ -466,6 +466,10 @@ class Instance {
                                           GPU_DEPTH24_STENCIL8,
                                           GPU_TEXTURE_USAGE_SHADER_READ |
                                               GPU_TEXTURE_USAGE_ATTACHMENT);
+
+      fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_in_front_tx));
+      fb.bind();
+      GPU_framebuffer_clear_depth_stencil(fb, 1.0f, 0x00);
     }
 
     opaque_ps.draw(
@@ -493,6 +497,25 @@ class Instance {
 
     if (scene_state.sample + 1 < scene_state.samples_len) {
       DRW_viewport_request_redraw();
+    }
+  }
+
+  void draw_viewport_image_render(Manager &manager,
+                                  GPUTexture *depth_tx,
+                                  GPUTexture *depth_in_front_tx,
+                                  GPUTexture *color_tx)
+  {
+    BLI_assert(scene_state.sample == 0);
+    for (auto i : IndexRange(scene_state.samples_len)) {
+      if (i != 0) {
+        scene_state.sample = i;
+        /* Re-sync anything dependent on scene_state.sample. */
+        resources.init(scene_state);
+        dof_ps.init(scene_state);
+        anti_aliasing_ps.init(scene_state);
+        anti_aliasing_ps.sync(resources, scene_state.resolution);
+      }
+      this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
     }
   }
 };
@@ -571,7 +594,13 @@ static void workbench_draw_scene(void *vedata)
   }
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   draw::Manager *manager = DRW_manager_get();
-  ved->instance->draw_viewport(*manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
+  if (DRW_state_is_viewport_image_render()) {
+    ved->instance->draw_viewport_image_render(
+        *manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
+  }
+  else {
+    ved->instance->draw_viewport(*manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
+  }
 }
 
 static void workbench_instance_free(void *instance)
@@ -807,7 +836,7 @@ extern "C" {
 
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
 
-DrawEngineType draw_engine_workbench_next = {
+DrawEngineType draw_engine_workbench = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ N_("Workbench"),
@@ -825,10 +854,10 @@ DrawEngineType draw_engine_workbench_next = {
     /*store_metadata*/ nullptr,
 };
 
-RenderEngineType DRW_engine_viewport_workbench_next_type = {
+RenderEngineType DRW_engine_viewport_workbench_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
-    /*idname*/ "BLENDER_WORKBENCH_NEXT",
+    /*idname*/ "BLENDER_WORKBENCH",
     /*name*/ N_("Workbench"),
     /*flag*/ RE_INTERNAL | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
     /*update*/ nullptr,
@@ -840,7 +869,7 @@ RenderEngineType DRW_engine_viewport_workbench_next_type = {
     /*view_draw*/ nullptr,
     /*update_script_node*/ nullptr,
     /*update_render_passes*/ &workbench_render_update_passes,
-    /*draw_engine*/ &draw_engine_workbench_next,
+    /*draw_engine*/ &draw_engine_workbench,
     /*rna_ext*/
     {
         /*data*/ nullptr,

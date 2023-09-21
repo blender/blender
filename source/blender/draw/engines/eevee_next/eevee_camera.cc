@@ -180,7 +180,6 @@ void Camera::sync()
   }
 
   data_.initialized = true;
-  data_.push_update();
 
   update_bounds();
 }

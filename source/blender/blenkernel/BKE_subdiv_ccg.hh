@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_bitmap.h"
 #include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"
@@ -115,66 +116,66 @@ struct SubdivCCG {
    *
    * TODO(sergey): Make sure the whole descriptor is valid, including all the
    * displacement attached to the surface. */
-  Subdiv *subdiv;
+  Subdiv *subdiv = nullptr;
   /* A level at which geometry was subdivided. This is what defines grid
    * resolution. It is NOT the topology refinement level. */
-  int level;
+  int level = -1;
   /* Resolution of grid. All grids have matching resolution, and resolution
    * is same as ptex created for non-quad faces. */
-  int grid_size;
+  int grid_size = -1;
   /* Size of a single element of a grid (including coordinate and all the other layers).
    * Measured in bytes. */
-  int grid_element_size;
+  int grid_element_size = -1;
   /* Grids represent limit surface, with displacement applied. Grids are
    * corresponding to face-corners of coarse mesh, each grid has
    * grid_size^2 elements.
    */
   /* Indexed by a grid index, points to a grid data which is stored in
    * grids_storage. */
-  CCGElem **grids;
+  CCGElem **grids = nullptr;
   /* Flat array of all grids' data. */
-  unsigned char *grids_storage;
-  int num_grids;
+  unsigned char *grids_storage = nullptr;
+  int num_grids = -1;
   /* Loose edges, each array element contains grid_size elements
    * corresponding to vertices created by subdividing coarse edges. */
-  CCGElem **edges;
-  int num_edges;
+  CCGElem **edges = nullptr;
+  int num_edges = -1;
   /* Loose vertices. Every element corresponds to a loose vertex from a coarse
    * mesh, every coarse loose vertex corresponds to a single subdivided
    * element. */
-  CCGElem *vertices;
-  int num_vertices;
+  CCGElem *vertices = nullptr;
+  int num_vertices = -1;
   /* Denotes which layers present in the elements.
    *
    * Grids always has coordinates, followed by extra layers which are set to
    * truth here.
    */
-  bool has_normal;
-  bool has_mask;
+  bool has_normal = false;
+  bool has_mask = false;
   /* Offsets of corresponding data layers in the elements. */
-  int normal_offset;
-  int mask_offset;
+  int normal_offset = -1;
+  int mask_offset = -1;
 
   /* Faces from which grids are emitted. */
-  int num_faces;
-  SubdivCCGFace *faces;
+  int num_faces = -1;
+  SubdivCCGFace *faces = nullptr;
   /* Indexed by grid index, points to corresponding face from `faces`. */
-  SubdivCCGFace **grid_faces;
+  blender::Array<int> grid_to_face_map;
 
   /* Edges which are adjacent to faces.
    * Used for faster grid stitching, in the cost of extra memory.
    */
-  int num_adjacent_edges;
-  SubdivCCGAdjacentEdge *adjacent_edges;
+  int num_adjacent_edges = -1;
+  SubdivCCGAdjacentEdge *adjacent_edges = nullptr;
 
   /* Vertices which are adjacent to faces
    * Used for faster grid stitching, in the cost of extra memory.
    */
-  int num_adjacent_vertices;
-  SubdivCCGAdjacentVertex *adjacent_vertices;
+  int num_adjacent_vertices = -1;
+  SubdivCCGAdjacentVertex *adjacent_vertices = nullptr;
 
-  DMFlagMat *grid_flag_mats;
-  BLI_bitmap **grid_hidden;
+  DMFlagMat *grid_flag_mats = nullptr;
+  BLI_bitmap **grid_hidden = nullptr;
 
   /* TODO(sergey): Consider adding some accessors to a "decoded" geometry,
    * to make integration with draw manager and such easy.
@@ -189,15 +190,15 @@ struct SubdivCCG {
    * such use-related flags in a more or less generic structure. */
   struct {
     /* Corresponds to MULTIRES_COORDS_MODIFIED. */
-    bool coords;
+    bool coords = false;
     /* Corresponds to MULTIRES_HIDDEN_MODIFIED. */
-    bool hidden;
+    bool hidden = false;
   } dirty;
 
   /* Cached values, are not supposed to be accessed directly. */
   struct {
     /* Indexed by face, indicates index of the first grid which corresponds to the face. */
-    int *start_face_grid_index;
+    int *start_face_grid_index = nullptr;
   } cache_;
 };
 

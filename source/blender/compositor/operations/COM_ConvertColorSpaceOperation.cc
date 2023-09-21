@@ -4,6 +4,8 @@
 
 #include "COM_ConvertColorSpaceOperation.h"
 
+#include "BLI_string.h"
+
 namespace blender::compositor {
 
 ConvertColorSpaceOperation::ConvertColorSpaceOperation()

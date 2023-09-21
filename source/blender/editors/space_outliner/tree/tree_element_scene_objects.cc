@@ -28,10 +28,11 @@ TreeElementSceneObjectsBase::TreeElementSceneObjectsBase(TreeElement &legacy_te,
   legacy_te.name = IFACE_("Objects");
 }
 
-void TreeElementSceneObjectsBase::expand(SpaceOutliner &space_outliner) const
+void TreeElementSceneObjectsBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   FOREACH_SCENE_OBJECT_BEGIN (&scene_, ob) {
-    outliner_add_element(&space_outliner, &legacy_te_.subtree, ob, &legacy_te_, TSE_SOME_ID, 0);
+    add_element(
+        &legacy_te_.subtree, reinterpret_cast<ID *>(ob), nullptr, &legacy_te_, TSE_SOME_ID, 0);
   }
   FOREACH_SCENE_OBJECT_END;
   outliner_make_object_parent_hierarchy(&legacy_te_.subtree);

@@ -12,10 +12,6 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct BoundBox;
 struct Ipo;
@@ -134,7 +130,3 @@ enum {
   MB_HIDE = 1 << 3,
   MB_SCALE_RAD = 1 << 4,
 };
-
-#ifdef __cplusplus
-}
-#endif

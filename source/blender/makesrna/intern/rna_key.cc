@@ -286,14 +286,12 @@ PointerRNA rna_object_shapekey_index_get(ID *id, int value)
 {
   Key *key = rna_ShapeKey_find_key(id);
   KeyBlock *kb = nullptr;
-  PointerRNA ptr;
 
   if (key && value < key->totkey) {
     kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, value));
   }
 
-  RNA_pointer_create(id, &RNA_ShapeKey, kb, &ptr);
-
+  PointerRNA ptr = RNA_pointer_create(id, &RNA_ShapeKey, kb);
   return ptr;
 }
 

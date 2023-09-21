@@ -58,6 +58,7 @@
 #include "BKE_main.h"
 #include "BKE_main_idmap.h"
 #include "BKE_preferences.h"
+#include "BKE_preview_image.hh"
 
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
@@ -183,7 +184,6 @@ struct FileListEntryPreview {
   char filepath[FILE_MAX_LIBEXTRA];
   uint flags;
   int index;
-  int attributes; /* from FileDirEntry. */
   int icon_id;
 };
 
@@ -1535,10 +1535,8 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
 
   IMB_thumb_path_lock(preview->filepath);
   /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate
-   * in case user switch to a bigger preview size. Do not create preview when file is offline. */
-  ImBuf *imbuf = (preview->attributes & FILE_ATTR_OFFLINE) ?
-                     IMB_thumb_read(preview->filepath, THB_LARGE) :
-                     IMB_thumb_manage(preview->filepath, THB_LARGE, source);
+   * in case user switch to a bigger preview size. */
+  ImBuf *imbuf = IMB_thumb_manage(preview->filepath, THB_LARGE, source);
   IMB_thumb_path_unlock(preview->filepath);
   if (imbuf) {
     preview->icon_id = BKE_icon_imbuf_create(imbuf);
@@ -1668,7 +1666,6 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   FileListEntryPreview *preview = MEM_new<FileListEntryPreview>(__func__);
   preview->index = index;
   preview->flags = entry->typeflag;
-  preview->attributes = entry->attributes;
   preview->icon_id = 0;
 
   if (preview_in_memory) {

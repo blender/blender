@@ -256,8 +256,7 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
      * common types too above (e.g. modifiers) */
     char *path = RNA_path_from_ID_to_struct(ptr);
     if (path) {
-      PointerRNA cow_id_ptr;
-      RNA_id_pointer_create(cow_id, &cow_id_ptr);
+      PointerRNA cow_id_ptr = RNA_id_pointer_create(cow_id);
       if (!RNA_path_resolve(&cow_id_ptr, path, r_ptr_eval, nullptr)) {
         /* Couldn't find COW copy of data */
         fprintf(stderr,

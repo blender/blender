@@ -172,10 +172,10 @@ void OpaquePass::draw(Manager &manager,
     opaque_fb.bind();
 
     manager.submit(gbuffer_in_front_ps_, view);
-  }
 
-  if (resources.depth_in_front_tx.is_valid()) {
-    GPU_texture_copy(resources.depth_in_front_tx, resources.depth_tx);
+    if (resources.depth_in_front_tx.is_valid()) {
+      GPU_texture_copy(resources.depth_in_front_tx, resources.depth_tx);
+    }
   }
 
   if (!gbuffer_ps_.is_empty()) {
@@ -346,7 +346,7 @@ void TransparentDepthPass::sync(const SceneState &scene_state, SceneResources &r
       ePipelineType::OPAQUE, eLightingType::FLAT, clip, resources.shader_cache);
 
   if (merge_sh_ == nullptr) {
-    merge_sh_ = GPU_shader_create_from_info_name("workbench_next_merge_depth");
+    merge_sh_ = GPU_shader_create_from_info_name("workbench_merge_depth");
   }
   merge_ps_.init();
   merge_ps_.shader_set(merge_sh_);

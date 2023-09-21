@@ -8,7 +8,7 @@ void main()
 {
   vec4 color;
 
-  /* Remember, this is associated alpha (aka. premult). */
+  /* Remember, this is associated alpha (aka. pre-multiply). */
   color.rgb = textureLod(colorBuf, uvcoordsvar.xy, 0).rgb;
   /* Stroke only render mono-chromatic revealage. We convert to alpha. */
   color.a = 1.0 - textureLod(revealBuf, uvcoordsvar.xy, 0).r;

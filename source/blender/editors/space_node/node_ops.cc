@@ -77,7 +77,6 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_backimage_fit);
   WM_operatortype_append(NODE_OT_backimage_sample);
 
-  WM_operatortype_append(NODE_OT_add_search);
   WM_operatortype_append(NODE_OT_add_group);
   WM_operatortype_append(NODE_OT_add_group_asset);
   WM_operatortype_append(NODE_OT_add_object);
@@ -114,10 +113,10 @@ void node_operatortypes()
 void node_keymap(wmKeyConfig *keyconf)
 {
   /* Entire Editor only ----------------- */
-  WM_keymap_ensure(keyconf, "Node Generic", SPACE_NODE, 0);
+  WM_keymap_ensure(keyconf, "Node Generic", SPACE_NODE, RGN_TYPE_WINDOW);
 
   /* Main Region only ----------------- */
-  WM_keymap_ensure(keyconf, "Node Editor", SPACE_NODE, 0);
+  WM_keymap_ensure(keyconf, "Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
 
   node_link_modal_keymap(keyconf);
 }

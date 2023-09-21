@@ -8,6 +8,7 @@
 #include "AS_asset_representation.hh"
 
 #include "BLI_multi_value_map.hh"
+#include "BLI_string.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -21,6 +22,7 @@
 #include "RNA_access.hh"
 
 #include "ED_asset.hh"
+#include "ED_asset_menu_utils.hh"
 #include "ED_screen.hh"
 
 #include "node_intern.hh"
@@ -56,16 +58,17 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C, const bNodeTre
 static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
 {
   bScreen &screen = *CTX_wm_screen(C);
-  const SpaceNode &snode = *CTX_wm_space_node(C);
-  if (!snode.runtime->assets_for_menu) {
-    BLI_assert_unreachable();
-    return;
-  }
-  asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
+  SpaceNode &snode = *CTX_wm_space_node(C);
   const bNodeTree *edit_tree = snode.edittree;
   if (!edit_tree) {
     return;
   }
+  if (!snode.runtime->assets_for_menu) {
+    snode.runtime->assets_for_menu = std::make_shared<asset::AssetItemTree>(
+        build_catalog_tree(*C, *edit_tree));
+    return;
+  }
+  asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
 
   const PointerRNA menu_path_ptr = CTX_data_pointer_get(C, "asset_catalog_path");
   if (RNA_pointer_is_null(&menu_path_ptr)) {
@@ -86,10 +89,16 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
   uiItemS(layout);
 
   for (const asset_system::AssetRepresentation *asset : assets) {
-    uiLayout *col = uiLayoutColumn(layout, false);
-    PointerRNA asset_ptr = asset::create_asset_rna_ptr(asset);
-    uiLayoutSetContextPointer(col, "asset", &asset_ptr);
-    uiItemO(col, IFACE_(asset->get_name().c_str()), ICON_NONE, "NODE_OT_add_group_asset");
+    PointerRNA op_ptr;
+    uiItemFullO(layout,
+                "NODE_OT_add_group_asset",
+                IFACE_(asset->get_name().c_str()),
+                ICON_NONE,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &op_ptr);
+    asset::operator_asset_reference_props_set(*asset, op_ptr);
   }
 
   asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
@@ -98,18 +107,37 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &child_item) {
-    PointerRNA path_ptr = asset::persistent_catalog_path_rna_pointer(
-        screen, *all_library, child_item);
-    if (path_ptr.data == nullptr) {
-      return;
-    }
-
-    uiLayout *col = uiLayoutColumn(layout, false);
-    uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
-    uiItemM(
-        col, "NODE_MT_node_add_catalog_assets", IFACE_(child_item.get_name().c_str()), ICON_NONE);
+  catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &item) {
+    asset::draw_menu_for_catalog(
+        screen, *all_library, item, "NODE_MT_node_add_catalog_assets", *layout);
   });
+}
+
+static void node_add_unassigned_assets_draw(const bContext *C, Menu *menu)
+{
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  const bNodeTree *edit_tree = snode.edittree;
+  if (!edit_tree) {
+    return;
+  }
+  if (!snode.runtime->assets_for_menu) {
+    snode.runtime->assets_for_menu = std::make_shared<asset::AssetItemTree>(
+        build_catalog_tree(*C, *edit_tree));
+    return;
+  }
+  asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
+  for (const asset_system::AssetRepresentation *asset : tree.unassigned_assets) {
+    PointerRNA op_ptr;
+    uiItemFullO(menu->layout,
+                "NODE_OT_add_group_asset",
+                IFACE_(asset->get_name().c_str()),
+                ICON_NONE,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &op_ptr);
+    asset::operator_asset_reference_props_set(*asset, op_ptr);
+  }
 }
 
 static void add_root_catalogs_draw(const bContext *C, Menu *menu)
@@ -180,17 +208,16 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
   }
 
   tree.catalogs.foreach_root_item([&](asset_system::AssetCatalogTreeItem &item) {
-    if (all_builtin_menus.contains(item.get_name())) {
-      return;
+    if (!all_builtin_menus.contains(item.get_name())) {
+      asset::draw_menu_for_catalog(
+          screen, *all_library, item, "NODE_MT_node_add_catalog_assets", *layout);
     }
-    PointerRNA path_ptr = asset::persistent_catalog_path_rna_pointer(screen, *all_library, item);
-    if (path_ptr.data == nullptr) {
-      return;
-    }
-    uiLayout *col = uiLayoutColumn(layout, false);
-    uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
-    uiItemM(col, "NODE_MT_node_add_catalog_assets", IFACE_(item.get_name().c_str()), ICON_NONE);
   });
+
+  if (!tree.unassigned_assets.is_empty()) {
+    uiItemS(layout);
+    uiItemM(layout, "NODE_MT_node_add_unassigned_assets", IFACE_("No Catalog"), ICON_NONE);
+  }
 }
 
 MenuType add_catalog_assets_menu_type()
@@ -200,6 +227,21 @@ MenuType add_catalog_assets_menu_type()
   type.poll = node_add_menu_poll;
   type.draw = node_add_catalog_assets_draw;
   type.listener = asset::asset_reading_region_listen_fn;
+  type.flag = MenuTypeFlag::ContextDependent;
+  return type;
+}
+
+MenuType add_unassigned_assets_menu_type()
+{
+  MenuType type{};
+  STRNCPY(type.idname, "NODE_MT_node_add_unassigned_assets");
+  type.poll = node_add_menu_poll;
+  type.draw = node_add_unassigned_assets_draw;
+  type.listener = asset::asset_reading_region_listen_fn;
+  type.flag = MenuTypeFlag::ContextDependent;
+  type.description = N_(
+      "Node group assets not assigned to a catalog.\n"
+      "Catalogs can be assigned in the Asset Browser.");
   return type;
 }
 

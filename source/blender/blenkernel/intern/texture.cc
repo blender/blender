@@ -52,6 +52,7 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_preview_image.hh"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 

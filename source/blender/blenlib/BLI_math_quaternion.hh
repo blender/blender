@@ -88,7 +88,7 @@ template<typename T>
  * \{ */
 
 /**
- * Transform \a v by rotation using the quaternion \a q .
+ * Transform \a v by rotation using the quaternion \a q.
  */
 template<typename T>
 [[nodiscard]] inline VecBase<T, 3> transform_point(const QuaternionBase<T> &q,

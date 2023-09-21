@@ -13,7 +13,6 @@ extern "C" {
 #endif
 
 extern RenderEngineType DRW_engine_viewport_workbench_type;
-extern RenderEngineType DRW_engine_viewport_workbench_next_type;
 
 #ifdef __cplusplus
 };

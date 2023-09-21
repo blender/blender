@@ -108,7 +108,7 @@ class OUTLINER_MT_context_menu(Menu):
 
         layout.separator()
 
-        layout.menu("OUTLINER_MT_liboverride")
+        layout.menu("OUTLINER_MT_liboverride", icon="LIBRARY_DATA_OVERRIDE")
 
         layout.separator()
 
@@ -344,7 +344,7 @@ class OUTLINER_MT_asset(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("asset.mark")
+        layout.operator("asset.mark", icon='ASSET_MANAGER')
         layout.operator("asset.clear", text="Clear Asset").set_fake_user = False
         layout.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
 

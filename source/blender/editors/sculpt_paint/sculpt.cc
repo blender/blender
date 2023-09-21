@@ -25,7 +25,6 @@
 #include "BLI_set.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
-#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -120,7 +119,7 @@ void SCULPT_vertex_random_access_ensure(SculptSession *ss)
   }
 }
 
-int SCULPT_vertex_count_get(SculptSession *ss)
+int SCULPT_vertex_count_get(const SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -134,7 +133,7 @@ int SCULPT_vertex_count_get(SculptSession *ss)
   return 0;
 }
 
-const float *SCULPT_vertex_co_get(SculptSession *ss, PBVHVertRef vertex)
+const float *SCULPT_vertex_co_get(const SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -190,7 +189,7 @@ void SCULPT_vertex_color_set(SculptSession *ss, PBVHVertRef vertex, const float 
   BKE_pbvh_vertex_color_set(ss->pbvh, vertex, color);
 }
 
-void SCULPT_vertex_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3])
+void SCULPT_vertex_normal_get(const SculptSession *ss, PBVHVertRef vertex, float no[3])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -377,7 +376,7 @@ int SCULPT_active_face_set_get(SculptSession *ss)
   return SCULPT_FACE_SET_NONE;
 }
 
-bool SCULPT_vertex_visible_get(SculptSession *ss, PBVHVertRef vertex)
+bool SCULPT_vertex_visible_get(const SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -3872,25 +3871,17 @@ void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob)
 static void sculpt_update_keyblock(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
-  float(*vertCos)[3];
 
   /* Key-block update happens after handling deformation caused by modifiers,
    * so ss->orig_cos would be updated with new stroke. */
   if (ss->orig_cos) {
-    vertCos = ss->orig_cos;
+    SCULPT_vertcos_to_key(ob, ss->shapekey_active, ss->orig_cos);
   }
   else {
-    vertCos = BKE_pbvh_vert_coords_alloc(ss->pbvh);
-  }
-
-  if (!vertCos) {
-    return;
-  }
-
-  SCULPT_vertcos_to_key(ob, ss->shapekey_active, vertCos);
-
-  if (vertCos != ss->orig_cos) {
-    MEM_freeN(vertCos);
+    const float(*positions)[3] = BKE_pbvh_get_vert_positions(ss->pbvh);
+    if (positions != nullptr) {
+      SCULPT_vertcos_to_key(ob, ss->shapekey_active, positions);
+    }
   }
 }
 
@@ -4308,12 +4299,14 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
   if (cur_brush->sculpt_tool == SCULPT_TOOL_MASK) {
     cache->saved_mask_brush_tool = cur_brush->mask_tool;
     cur_brush->mask_tool = BRUSH_MASK_SMOOTH;
+    return;
   }
-  else if (ELEM(cur_brush->sculpt_tool,
-                SCULPT_TOOL_SLIDE_RELAX,
-                SCULPT_TOOL_DRAW_FACE_SETS,
-                SCULPT_TOOL_PAINT,
-                SCULPT_TOOL_SMEAR))
+
+  if (ELEM(cur_brush->sculpt_tool,
+           SCULPT_TOOL_SLIDE_RELAX,
+           SCULPT_TOOL_DRAW_FACE_SETS,
+           SCULPT_TOOL_PAINT,
+           SCULPT_TOOL_SMEAR))
   {
     /* Do nothing, this tool has its own smooth mode. */
     return;
@@ -4344,14 +4337,17 @@ static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache
 
   if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
     brush->mask_tool = cache->saved_mask_brush_tool;
+    return;
   }
-  else if (ELEM(brush->sculpt_tool,
-                SCULPT_TOOL_SLIDE_RELAX,
-                SCULPT_TOOL_DRAW_FACE_SETS,
-                SCULPT_TOOL_PAINT,
-                SCULPT_TOOL_SMEAR))
+
+  if (ELEM(brush->sculpt_tool,
+           SCULPT_TOOL_SLIDE_RELAX,
+           SCULPT_TOOL_DRAW_FACE_SETS,
+           SCULPT_TOOL_PAINT,
+           SCULPT_TOOL_SMEAR))
   {
     /* Do nothing. */
+    return;
   }
 
   /* If saved_active_brush_name is not set, brush was not switched/affected in
@@ -6265,7 +6261,7 @@ void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
   }
 }
 
-int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex)
+int SCULPT_vertex_island_get(const SculptSession *ss, PBVHVertRef vertex)
 {
   if (ss->attrs.topology_island_key) {
     return *static_cast<uint8_t *>(SCULPT_vertex_attr_get(vertex, ss->attrs.topology_island_key));

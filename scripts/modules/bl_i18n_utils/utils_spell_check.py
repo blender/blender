@@ -608,7 +608,7 @@ class SpellChecker:
         "freestyle",
         "enum", "enums",
         "gizmogroup",
-        "gon", "gons",  # N-Gon(s)
+        "gon", "gons",  # N-GON(s)
         "gpencil",
         "idcol",
         "keyframe", "keyframes", "keyframing", "keyframed",
@@ -756,7 +756,7 @@ class SpellChecker:
         "hc",
         "hdc",
         "hdr", "hdri", "hdris",
-        "hh", "mm", "ss", "ff",  # hh:mm:ss:ff timecode
+        "hh", "mm", "ss", "ff",  # `hh:mm:ss:ff` time-code.
         "hpg",  # Intel Xe-HPG architecture
         "hsv", "hsva", "hsl",
         "id",
@@ -786,7 +786,7 @@ class SpellChecker:
         "rgb", "rgba",
         "ris",
         "rhs",
-        "rpp",  # Eevee ray-tracing?
+        "rpp",  # EEVEE ray-tracing?
         "rv",
         "sdf",
         "sdl",
@@ -816,7 +816,7 @@ class SpellChecker:
         "bpy",
         "bvh",
         "dbvt",
-        "dop",  # BLI K-Dop BVH
+        "dop",  # BLI K-DOP BVH
         "ik",
         "nla",
         "py",

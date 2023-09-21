@@ -129,6 +129,11 @@ void GLVaoCache::remove(const GLShaderInterface *interface)
       break; /* cannot have duplicates */
     }
   }
+
+  if (interface_ == interface) {
+    interface_ = nullptr;
+    vao_id_ = 0;
+  }
 }
 
 void GLVaoCache::clear()

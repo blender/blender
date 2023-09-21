@@ -121,8 +121,8 @@ bool VelocityModule::step_object_sync(Object *ob,
                                       ObjectKey &object_key,
                                       ResourceHandle resource_handle,
                                       int /*IDRecalcFlag*/ recalc,
-                                      ModifierData *modifier_data /*= nullptr*/,
-                                      ParticleSystem *particle_sys /*= nullptr*/)
+                                      ModifierData *modifier_data /*=nullptr*/,
+                                      ParticleSystem *particle_sys /*=nullptr*/)
 {
   bool has_motion = object_has_velocity(ob) || (recalc & ID_RECALC_TRANSFORM);
   /* NOTE: Fragile. This will only work with 1 frame of lag since we can't record every geometry
@@ -344,8 +344,9 @@ void VelocityModule::end_sync()
                           (vel.geo.len[STEP_PREVIOUS] == GPU_vertbuf_get_vertex_len(pos_buf));
     }
     else {
-      vel.geo.do_deform = (vel.geo.len[STEP_PREVIOUS] == vel.geo.len[STEP_CURRENT]) &&
-                          (vel.geo.len[STEP_NEXT] == vel.geo.len[STEP_CURRENT]);
+      vel.geo.do_deform = (vel.geo.len[STEP_CURRENT] != 0) &&
+                          (vel.geo.len[STEP_CURRENT] == vel.geo.len[STEP_PREVIOUS]) &&
+                          (vel.geo.len[STEP_CURRENT] == vel.geo.len[STEP_NEXT]);
     }
     indirection_buf[vel.obj.resource_id] = vel;
     /* Reset for next sync. */

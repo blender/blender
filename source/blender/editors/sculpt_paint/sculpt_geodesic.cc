@@ -76,9 +76,7 @@ static bool sculpt_geodesic_mesh_test_dist_add(const float (*vert_positions)[3],
   return false;
 }
 
-static float *SCULPT_geodesic_mesh_create(Object *ob,
-                                          GSet *initial_verts,
-                                          const float limit_radius)
+static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -232,7 +230,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 /* For sculpt mesh data that does not support a geodesic distances algorithm, fallback to the
  * distance to each vertex. In this case, only one of the initial vertices will be used to
  * calculate the distance. */
-static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_verts)
+static float *geodesic_fallback_create(Object *ob, GSet *initial_verts)
 {
 
   SculptSession *ss = ob->sculpt;
@@ -269,12 +267,12 @@ float *SCULPT_geodesic_distances_create(Object *ob, GSet *initial_verts, const f
   SculptSession *ss = ob->sculpt;
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return SCULPT_geodesic_mesh_create(ob, initial_verts, limit_radius);
+      return geodesic_mesh_create(ob, initial_verts, limit_radius);
     case PBVH_BMESH:
     case PBVH_GRIDS:
-      return SCULPT_geodesic_fallback_create(ob, initial_verts);
+      return geodesic_fallback_create(ob, initial_verts);
   }
-  BLI_assert(false);
+  BLI_assert_unreachable();
   return nullptr;
 }
 

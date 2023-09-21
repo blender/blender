@@ -28,16 +28,16 @@ class TreeElementRNACommon : public AbstractTreeElement {
 
  public:
   TreeElementRNACommon(TreeElement &legacy_te, PointerRNA &rna_ptr);
-  bool expandPoll(const SpaceOutliner &) const override;
+  bool expand_poll(const SpaceOutliner &) const override;
 
-  const PointerRNA &getPointerRNA() const;
+  const PointerRNA &get_pointer_rna() const;
   /**
    * If this element represents a property or is part of a property (array element), this returns
    * the property. Otherwise nullptr.
    */
-  virtual PropertyRNA *getPropertyRNA() const;
+  virtual PropertyRNA *get_property_rna() const;
 
-  bool isRNAValid() const;
+  bool is_rna_valid() const;
 };
 
 /* -------------------------------------------------------------------- */
@@ -58,7 +58,7 @@ class TreeElementRNAProperty : public TreeElementRNACommon {
   TreeElementRNAProperty(TreeElement &legacy_te, PointerRNA &rna_ptr, int index);
   void expand(SpaceOutliner &space_outliner) const override;
 
-  PropertyRNA *getPropertyRNA() const override;
+  PropertyRNA *get_property_rna() const override;
 };
 
 /* -------------------------------------------------------------------- */
@@ -67,7 +67,7 @@ class TreeElementRNAArrayElement : public TreeElementRNACommon {
  public:
   TreeElementRNAArrayElement(TreeElement &legacy_te, PointerRNA &rna_ptr, int index);
 
-  PropertyRNA *getPropertyRNA() const override;
+  PropertyRNA *get_property_rna() const override;
 };
 
 }  // namespace blender::ed::outliner

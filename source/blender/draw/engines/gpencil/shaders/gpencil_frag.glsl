@@ -79,7 +79,7 @@ void main()
   col.rgb *= col.a;
 
   /* Composite all other colors on top of texture color.
-   * Everything is premult by col.a to have the stencil effect. */
+   * Everything is pre-multiply by `col.a` to have the stencil effect. */
   fragColor = col * gp_interp.color_mul + col.a * gp_interp.color_add;
 
   fragColor.rgb *= gpencil_lighting();

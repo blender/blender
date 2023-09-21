@@ -212,6 +212,8 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BLI_listbase.h"
 #  include "BLI_math_base.h"
 
+#  include "BLO_readfile.h"
+
 #  include "BKE_anim_data.h"
 #  include "BKE_global.h" /* XXX, remove me */
 #  include "BKE_idprop.h"
@@ -221,6 +223,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_lib_remap.h"
 #  include "BKE_library.h"
 #  include "BKE_material.h"
+#  include "BKE_preview_image.hh"
 #  include "BKE_vfont.h"
 
 #  include "DEG_depsgraph.h"
@@ -639,10 +642,8 @@ StructRNA *rna_PropertyGroup_register(Main * /*bmain*/,
                                       StructCallbackFunc /*call*/,
                                       StructFreeFunc /*free*/)
 {
-  PointerRNA dummy_ptr;
-
   /* create dummy pointer */
-  RNA_pointer_create(nullptr, &RNA_PropertyGroup, nullptr, &dummy_ptr);
+  PointerRNA dummy_ptr = RNA_pointer_create(nullptr, &RNA_PropertyGroup, nullptr);
 
   /* validate the python class */
   if (validate(&dummy_ptr, data, nullptr) != 0) {
@@ -896,6 +897,44 @@ static void rna_ID_override_library_destroy(ID *id,
   }
 
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
+}
+
+static bool rna_ID_override_library_resync(ID *id,
+                                           IDOverrideLibrary *override_library,
+                                           Main *bmain,
+                                           ReportList *reports,
+                                           Scene *scene,
+                                           ViewLayer *view_layer,
+                                           Collection *override_resync_residual_storage,
+                                           bool do_hierarchy_enforce,
+                                           bool do_whole_hierarchy)
+{
+  BLI_assert(id->override_library == override_library);
+
+  if (!override_library->hierarchy_root ||
+      (override_library->flag & LIBOVERRIDE_FLAG_NO_HIERARCHY) != 0)
+  {
+    BKE_reportf(reports,
+                RPT_ERROR_INVALID_INPUT,
+                "Data-block '%s' is not a liboverride, or not part of a liboverride hierarchy",
+                id->name);
+    return false;
+  }
+
+  ID *id_root = do_whole_hierarchy ? override_library->hierarchy_root : id;
+  BlendFileReadReport bf_reports = {};
+  bf_reports.reports = reports;
+
+  const bool success = BKE_lib_override_library_resync(bmain,
+                                                       scene,
+                                                       view_layer,
+                                                       id_root,
+                                                       override_resync_residual_storage,
+                                                       do_hierarchy_enforce,
+                                                       &bf_reports);
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
+  return success;
 }
 
 static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
@@ -1985,6 +2024,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
   FunctionRNA *func;
+  PropertyRNA *parm;
 
   srna = RNA_def_struct(brna, "IDOverrideLibrary", nullptr);
   RNA_def_struct_ui_text(
@@ -2062,6 +2102,48 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                   "",
                   "Also delete all the dependencies of this override and remap their usages to "
                   "their reference linked IDs");
+
+  func = RNA_def_function(srna, "resync", "rna_ID_override_library_resync");
+  RNA_def_function_ui_description(
+      func, "Resync the data-block and its sub-hierarchy, or the whole hierarchy if requested");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  parm = RNA_def_boolean(
+      func, "success", false, "Success", "Whether the resync process was successful or not");
+  RNA_def_function_return(func, parm);
+  parm = RNA_def_pointer(
+      func,
+      "scene",
+      "Scene",
+      "",
+      "The scene to operate in (for contextual things like keeping active object active, ensuring "
+      "all overridden objects remain instantiated, etc.)");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_pointer(func,
+                         "view_layer",
+                         "ViewLayer",
+                         "",
+                         "The view layer to operate in (same usage as the `scene` data, in case "
+                         "it is not provided the scene's collection will be used instead)");
+  parm = RNA_def_pointer(
+      func,
+      "residual_storage",
+      "Collection",
+      "",
+      "Collection where to store objects that are instantiated in any other collection anymore "
+      "(garbage collection, will be created if needed and none is provided)");
+  RNA_def_boolean(func,
+                  "do_hierarchy_enforce",
+                  false,
+                  "",
+                  "Enforce restoring the dependency hierarchy between data-blocks to match the "
+                  "one from the reference linked hierarchy (WARNING: if some ID pointers have "
+                  "been purposedly overridden, these will be reset to their default value)");
+  RNA_def_boolean(
+      func,
+      "do_whole_hierarchy",
+      false,
+      "",
+      "Resync the whole hierarchy this data-block belongs to, not only its own sub-hierarchy");
 
   rna_def_ID_override_library_property(brna);
 }
@@ -2410,6 +2492,14 @@ static void rna_def_library(BlenderRNA *brna)
   RNA_def_property_int_funcs(prop, "rna_Library_version_get", nullptr, nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_THICK_WRAP);
+
+  prop = RNA_def_property(srna, "needs_liboverride_resync", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "tag", LIBRARY_TAG_RESYNC_REQUIRED);
+  RNA_def_property_ui_text(prop,
+                           "Library Overrides Need resync",
+                           "True if this library contains library overrides that are linked in "
+                           "current blendfile, and that had to be recursively resynced on load "
+                           "(it is recommended to open and re-save that library blendfile then)");
 
   func = RNA_def_function(srna, "reload", "rna_Library_reload");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);

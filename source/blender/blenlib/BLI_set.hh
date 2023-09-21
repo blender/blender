@@ -511,7 +511,7 @@ class Set {
   /**
    * Print common statistics like size and collision count. This is useful for debugging purposes.
    */
-  void print_stats(StringRef name = "") const
+  void print_stats(const char *name) const
   {
     HashTableStats stats(*this, *this);
     stats.print(name);

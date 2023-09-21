@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include "BLI_assert.h"
 #include "BLI_math_base.h"
 
@@ -84,11 +86,6 @@ struct SubFrame {
   friend bool operator>=(const SubFrame &a, const SubFrame &b)
   {
     return a.frame_ >= b.frame_ || (a.frame_ == b.frame_ && a.subframe_ >= b.subframe_);
-  }
-
-  friend std::ostream &operator<<(std::ostream &stream, const SubFrame &a)
-  {
-    return stream << float(a);
   }
 };
 

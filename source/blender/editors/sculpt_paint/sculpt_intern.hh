@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "DNA_brush_types.h"
 #include "DNA_key_types.h"
 #include "DNA_listBase.h"
@@ -24,6 +26,7 @@
 #include "BLI_generic_array.hh"
 #include "BLI_gsqueue.h"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_threads.h"
 #include "BLI_vector.hh"
@@ -657,8 +660,8 @@ struct ExpandCache {
   int active_connected_islands[EXPAND_SYMM_AREAS];
 
   /* Snapping. */
-  /* GSet containing all Face Sets IDs that Expand will use to snap the new data. */
-  GSet *snap_enabled_face_sets;
+  /* Set containing all Face Sets IDs that Expand will use to snap the new data. */
+  std::unique_ptr<blender::Set<int>> snap_enabled_face_sets;
 
   /* Texture distortion data. */
   Brush *brush;
@@ -851,11 +854,11 @@ bool SCULPT_stroke_is_first_brush_step_of_symmetry_pass(StrokeCache *cache);
 /** Ensure random access; required for PBVH_BMESH */
 void SCULPT_vertex_random_access_ensure(SculptSession *ss);
 
-int SCULPT_vertex_count_get(SculptSession *ss);
-const float *SCULPT_vertex_co_get(SculptSession *ss, PBVHVertRef vertex);
+int SCULPT_vertex_count_get(const SculptSession *ss);
+const float *SCULPT_vertex_co_get(const SculptSession *ss, PBVHVertRef vertex);
 
 /** Get the normal for a given sculpt vertex; do not modify the result */
-void SCULPT_vertex_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3]);
+void SCULPT_vertex_normal_get(const SculptSession *ss, PBVHVertRef vertex, float no[3]);
 
 float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_color_get(const SculptSession *ss, PBVHVertRef vertex, float r_color[4]);
@@ -951,7 +954,7 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, PBVHVertRef vertex);
 /** \name Sculpt Visibility API
  * \{ */
 
-bool SCULPT_vertex_visible_get(SculptSession *ss, PBVHVertRef vertex);
+bool SCULPT_vertex_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
@@ -1790,7 +1793,7 @@ void SCULPT_topology_islands_ensure(Object *ob);
 void SCULPT_topology_islands_invalidate(SculptSession *ss);
 
 /** Get vertex island key. */
-int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
+int SCULPT_vertex_island_get(const SculptSession *ss, PBVHVertRef vertex);
 
 /** \} */
 

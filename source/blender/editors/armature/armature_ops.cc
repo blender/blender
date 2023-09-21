@@ -60,8 +60,6 @@ void ED_operatortypes_armature()
   WM_operatortype_append(ARMATURE_OT_flip_names);
 
   WM_operatortype_append(ARMATURE_OT_layers_show_all);
-  WM_operatortype_append(ARMATURE_OT_armature_layers);
-  WM_operatortype_append(ARMATURE_OT_bone_layers);
 
   WM_operatortype_append(ARMATURE_OT_collection_add);
   WM_operatortype_append(ARMATURE_OT_collection_remove);
@@ -179,11 +177,11 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
   /* Armature ------------------------ */
   /* only set in editmode armature, by space_view3d listener */
-  keymap = WM_keymap_ensure(keyconf, "Armature", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Armature", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_editarmature;
 
   /* Pose ------------------------ */
   /* only set in posemode, by space_view3d listener */
-  keymap = WM_keymap_ensure(keyconf, "Pose", 0, 0);
+  keymap = WM_keymap_ensure(keyconf, "Pose", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_posemode;
 }

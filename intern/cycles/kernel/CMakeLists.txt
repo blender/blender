@@ -857,8 +857,13 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
     -shared
     -DWITH_ONEAPI
-    -ffast-math
     -O2
+    -fno-fast-math
+    -ffp-contract=fast
+    -fassociative-math
+    -freciprocal-math
+    -fno-signed-zeros
+    -ffinite-math-only
     -D__KERNEL_LOCAL_ATOMIC_SORT__
     -o"${cycles_kernel_oneapi_lib}"
     -I"${CMAKE_CURRENT_SOURCE_DIR}/.."
@@ -995,6 +1000,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
                 -L"${WINDOWS_KIT_DIR}/ucrt/x64")
   else() # Add Linux specific compiler flags.
     list(APPEND sycl_compiler_flags -fPIC)
+    list(APPEND sycl_compiler_flags -fvisibility=hidden)
 
     # We avoid getting __FAST_MATH__ to be defined when building on CentOS-7 and Rocky-8
     # until the compilation issues it triggers at either AoT or JIT stages gets fixed.

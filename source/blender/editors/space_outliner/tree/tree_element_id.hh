@@ -24,9 +24,9 @@ class TreeElementID : public AbstractTreeElement {
  public:
   TreeElementID(TreeElement &legacy_te, ID &id);
 
-  static std::unique_ptr<TreeElementID> createFromID(TreeElement &legacy_te, ID &id);
+  static std::unique_ptr<TreeElementID> create_from_id(TreeElement &legacy_te, ID &id);
 
-  bool expandPoll(const SpaceOutliner &) const override;
+  bool expand_poll(const SpaceOutliner &) const override;
 
   void expand(SpaceOutliner &) const override;
 
@@ -37,7 +37,7 @@ class TreeElementID : public AbstractTreeElement {
 
  protected:
   /* ID types with animation data can use this. */
-  void expand_animation_data(SpaceOutliner &, const AnimData *) const;
+  void expand_animation_data(AnimData *) const;
 };
 
 }  // namespace blender::ed::outliner

@@ -14,10 +14,6 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Collection;
 struct Object;
 struct GHash;
@@ -193,7 +189,3 @@ typedef enum CollectionColorTag {
 
   COLLECTION_COLOR_TOT,
 } CollectionColorTag;
-
-#ifdef __cplusplus
-}
-#endif

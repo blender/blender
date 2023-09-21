@@ -98,6 +98,20 @@ enum RadialDirection {
   UI_RADIAL_NW = 7,
 };
 
+/** Next direction (clockwise). */
+#define UI_RADIAL_DIRECTION_NEXT(dir) RadialDirection((int(dir) + 1) % (int(UI_RADIAL_NW) + 1))
+/** Previous direction (counter-clockwise). */
+#define UI_RADIAL_DIRECTION_PREV(dir) \
+  RadialDirection(((int(dir) + int(UI_RADIAL_NW))) % (int(UI_RADIAL_NW) + 1))
+
+/** Store a mask for diagonal directions. */
+#define UI_RADIAL_MASK_ALL_DIAGONAL \
+  ((1 << int(UI_RADIAL_NE)) | (1 << int(UI_RADIAL_SE)) | (1 << int(UI_RADIAL_SW)) | \
+   (1 << int(UI_RADIAL_NW)))
+#define UI_RADIAL_MASK_ALL_AXIS_ALIGNED \
+  ((1 << int(UI_RADIAL_N)) | (1 << int(UI_RADIAL_S)) | (1 << int(UI_RADIAL_E)) | \
+   (1 << int(UI_RADIAL_W)))
+
 extern const char ui_radial_dir_order[8];
 extern const char ui_radial_dir_to_numpad[8];
 extern const short ui_radial_dir_to_angle[8];
@@ -124,8 +138,6 @@ extern const short ui_radial_dir_to_angle[8];
 
 /** #PieMenuData.flags */
 enum {
-  /** Pie menu item collision is detected at 90 degrees. */
-  UI_PIE_DEGREES_RANGE_LARGE = (1 << 0),
   /** Use initial center of pie menu to calculate direction. */
   UI_PIE_INITIAL_DIRECTION = (1 << 1),
   /** Pie menu is drag style. */
@@ -151,6 +163,7 @@ struct uiBut {
   /** Pointer back to the layout item holding this button. */
   uiLayout *layout = nullptr;
   int flag = 0;
+  int flag2 = 0;
   int drawflag = 0;
   eButType type = eButType(0);
   eButPointerType pointype = UI_BUT_POIN_NONE;
@@ -202,7 +215,7 @@ struct uiBut {
   uiButHandleNFunc funcN = nullptr;
   void *func_argN = nullptr;
 
-  bContextStore *context = nullptr;
+  const bContextStore *context = nullptr;
 
   uiButCompleteFunc autocomplete_func = nullptr;
   void *autofunc_arg = nullptr;
@@ -222,6 +235,8 @@ struct uiBut {
   /** Function to get a custom tooltip label, see #UI_BUT_HAS_TOOLTIP_LABEL. Requires
    * #UI_BUT_HAS_TOOLTIP_LABEL drawflag. */
   std::function<std::string(const uiBut *)> tip_label_func;
+
+  uiButToolTipCustomFunc tip_custom_func = nullptr;
 
   /** info on why button is disabled, displayed in tooltip */
   const char *disabled_info = nullptr;
@@ -428,6 +443,8 @@ struct PieMenuData {
   const char *title;
   int icon;
 
+  /** A mask combining the directions of all buttons in the pie menu (excluding separators). */
+  int pie_dir_mask;
   float pie_dir[2];
   float pie_center_init[2];
   float pie_center_spawned[2];
@@ -487,7 +504,7 @@ struct uiBlock {
   ListBase layouts;
   uiLayout *curlayout;
 
-  ListBase contexts;
+  blender::Vector<std::unique_ptr<bContextStore>> contexts;
 
   /** A block can store "views" on data-sets. Currently tree-views (#AbstractTreeView) only.
    * Others are imaginable, e.g. table-views, grid-views, etc. These are stored here to support
@@ -848,6 +865,8 @@ struct uiPopupBlockHandle {
   bool is_grab;
   int grab_xy_prev[2];
   /* #endif */
+
+  char menu_idname[64];
 };
 
 /* -------------------------------------------------------------------- */

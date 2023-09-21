@@ -368,7 +368,7 @@ typedef struct bNode {
 
   char _pad1[2];
 
-  /** Used for some builtin nodes that store properties but don't have a storage struct . */
+  /** Used for some builtin nodes that store properties but don't have a storage struct. */
   int16_t custom1, custom2;
   float custom3, custom4;
 
@@ -426,6 +426,11 @@ typedef struct bNode {
   const blender::nodes::NodeDeclaration *declaration() const;
   /** A span containing all internal links when the node is muted. */
   blender::Span<bNodeLink> internal_links() const;
+
+  /* True if the socket is visible and has a valid location. The icon may not be visible. */
+  bool is_socket_drawn(const bNodeSocket &socket) const;
+  /* True if the socket is drawn and the icon is visible. */
+  bool is_socket_icon_drawn(const bNodeSocket &socket) const;
 
   /* The following methods are only available when #bNodeTree.ensure_topology_cache has been
    * called. */
@@ -767,6 +772,12 @@ typedef struct bNodeTree {
   /** Zones in the node tree. Currently there are only simulation zones in geometry nodes. */
   const blender::bke::bNodeTreeZones *zones() const;
 
+  /**
+   * Update a run-time cache for the node tree interface based on it's current state.
+   * This should be done before accessing interface item spans below.
+   */
+  void ensure_interface_cache() const;
+
   /* Cached interface item lists. */
   blender::Span<bNodeTreeInterfaceSocket *> interface_inputs() const;
   blender::Span<bNodeTreeInterfaceSocket *> interface_outputs() const;
@@ -897,6 +908,7 @@ typedef enum GeometryNodeAssetTraitFlag {
   GEO_NODE_ASSET_MESH = (1 << 3),
   GEO_NODE_ASSET_CURVE = (1 << 4),
   GEO_NODE_ASSET_POINT_CLOUD = (1 << 5),
+  GEO_NODE_ASSET_MODIFIER = (1 << 6),
 } GeometryNodeAssetTraitFlag;
 ENUM_OPERATORS(GeometryNodeAssetTraitFlag, GEO_NODE_ASSET_POINT_CLOUD);
 

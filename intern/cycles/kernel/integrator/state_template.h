@@ -95,7 +95,7 @@ KERNEL_STRUCT_BEGIN(subsurface)
 KERNEL_STRUCT_MEMBER(subsurface, PackedSpectrum, albedo, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_MEMBER(subsurface, PackedSpectrum, radius, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_MEMBER(subsurface, float, anisotropy, KERNEL_FEATURE_SUBSURFACE)
-KERNEL_STRUCT_MEMBER(subsurface, packed_float3, Ng, KERNEL_FEATURE_SUBSURFACE)
+KERNEL_STRUCT_MEMBER(subsurface, packed_float3, N, KERNEL_FEATURE_SUBSURFACE)
 KERNEL_STRUCT_END(subsurface)
 
 /********************************** Volume Stack ******************************/

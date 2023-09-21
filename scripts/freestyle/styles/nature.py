@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : nature.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Uses the NatureUP1D predicate to select the lines

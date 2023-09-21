@@ -360,6 +360,7 @@ class NODE_MT_geometry_node_GEO_MESH_READ(Menu):
             node_add_menu.add_node_type(layout, "GeometryNodeToolFaceSet")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceIsPlanar")
         node_add_menu.add_node_type(layout, "GeometryNodeInputShadeSmooth")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputEdgeSmooth")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshIsland")
         node_add_menu.add_node_type(layout, "GeometryNodeInputShortestEdgePaths")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshVertexNeighbors")
@@ -653,17 +654,6 @@ class NODE_MT_category_GEO_GROUP(Menu):
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_GEO_LAYOUT(Menu):
-    bl_idname = "NODE_MT_category_GEO_LAYOUT"
-    bl_label = "Layout"
-
-    def draw(self, _context):
-        layout = self.layout
-        node_add_menu.add_node_type(layout, "NodeFrame")
-        node_add_menu.add_node_type(layout, "NodeReroute")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
-
-
 class NODE_MT_geometry_node_add_all(Menu):
     bl_idname = "NODE_MT_geometry_node_add_all"
     bl_label = ""
@@ -690,7 +680,7 @@ class NODE_MT_geometry_node_add_all(Menu):
         layout.menu("NODE_MT_category_GEO_UTILITIES")
         layout.separator()
         layout.menu("NODE_MT_category_GEO_GROUP")
-        layout.menu("NODE_MT_category_GEO_LAYOUT")
+        layout.menu("NODE_MT_category_layout")
         node_add_menu.draw_root_assets(layout)
 
 
@@ -736,7 +726,6 @@ classes = (
     NODE_MT_category_GEO_UTILITIES_MATH,
     NODE_MT_category_GEO_UTILITIES_ROTATION,
     NODE_MT_category_GEO_GROUP,
-    NODE_MT_category_GEO_LAYOUT,
 )
 
 if __name__ == "__main__":  # only for live edit.

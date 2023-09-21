@@ -8,6 +8,8 @@
 
 #include "RNA_access.hh"
 
+#include "BLI_string.h"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 

@@ -70,7 +70,7 @@
 #include "DEG_depsgraph_build.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 struct SequencerAddData {
   ImageFormatData im_format;
@@ -1023,7 +1023,6 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
   ImageFormatData *imf = &sad->im_format;
-  PointerRNA imf_ptr;
 
   /* Main draw call. */
   uiDefAutoButsRNA(layout,
@@ -1035,7 +1034,7 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
                    false);
 
   /* Image template. */
-  RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, imf, &imf_ptr);
+  PointerRNA imf_ptr = RNA_pointer_create(nullptr, &RNA_ImageFormatSettings, imf);
 
   /* Multiview template. */
   if (RNA_boolean_get(op->ptr, "show_multiview")) {
@@ -1552,12 +1551,13 @@ void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(ot->srna,
-               "type",
-               sequencer_prop_effect_types,
-               SEQ_TYPE_CROSS,
-               "Type",
-               "Sequencer effect type");
+  prop = RNA_def_enum(ot->srna,
+                      "type",
+                      sequencer_prop_effect_types,
+                      SEQ_TYPE_CROSS,
+                      "Type",
+                      "Sequencer effect type");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME);
   /* Only used when strip is of the Color type. */
   prop = RNA_def_float_color(ot->srna,

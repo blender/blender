@@ -54,8 +54,6 @@ void BKE_ntree_update_tag_link_mute(struct bNodeTree *ntree, struct bNodeLink *l
 void BKE_ntree_update_tag_active_output_changed(struct bNodeTree *ntree);
 /** Used after file loading when run-time data on the tree has not been initialized yet. */
 void BKE_ntree_update_tag_missing_runtime_data(struct bNodeTree *ntree);
-/** Used when the interface sockets/values have changed. */
-void BKE_ntree_update_tag_interface(struct bNodeTree *ntree);
 /** Used when change parent node. */
 void BKE_ntree_update_tag_parent_change(struct bNodeTree *ntree, struct bNode *node);
 /** Used when an id data block changed that might be used by nodes that need to be updated. */

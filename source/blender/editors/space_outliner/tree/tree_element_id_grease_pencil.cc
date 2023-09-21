@@ -6,6 +6,8 @@
  * \ingroup spoutliner
  */
 
+#include "BLI_listbase.h"
+
 #include "BKE_grease_pencil.hh"
 
 #include "DNA_outliner_types.h"
@@ -22,20 +24,20 @@ TreeElementIDGreasePencil::TreeElementIDGreasePencil(TreeElement &legacy_te,
 {
 }
 
-void TreeElementIDGreasePencil::expand(SpaceOutliner &space_outliner) const
+void TreeElementIDGreasePencil::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  expand_animation_data(space_outliner, grease_pencil_.adt);
+  expand_animation_data(grease_pencil_.adt);
 
-  expand_layer_tree(space_outliner);
+  expand_layer_tree();
 }
 
-void TreeElementIDGreasePencil::expand_layer_tree(SpaceOutliner &space_outliner) const
+void TreeElementIDGreasePencil::expand_layer_tree() const
 {
   LISTBASE_FOREACH_BACKWARD (
       GreasePencilLayerTreeNode *, child, &grease_pencil_.root_group().children)
   {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, child, &legacy_te_, TSE_GREASE_PENCIL_NODE, 0);
+    add_element(
+        &legacy_te_.subtree, &grease_pencil_.id, child, &legacy_te_, TSE_GREASE_PENCIL_NODE, 0);
   }
 }
 

@@ -47,7 +47,7 @@ class VolumeModule {
 
   bool enabled_;
 
-  VolumesInfoDataBuf data_;
+  VolumesInfoData &data_;
 
   /* Material Parameters */
   Texture prop_scattering_tx_;
@@ -82,7 +82,7 @@ class VolumeModule {
     int3 min, max;
 
     /* Returns true if visible. */
-    bool init(Object *ob, const Camera &camera, const VolumesInfoDataBuf &data);
+    bool init(Object *ob, const Camera &camera, const VolumesInfoData &data);
 
     bool overlaps(const GridAABB &aabb);
   };
@@ -92,7 +92,7 @@ class VolumeModule {
   Map<GPUShader *, Vector<GridAABB>> subpass_aabbs_;
 
  public:
-  VolumeModule(Instance &inst) : inst_(inst)
+  VolumeModule(Instance &inst, VolumesInfoData &data) : inst_(inst), data_(data)
   {
     dummy_scatter_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(0.0f));
     dummy_transmit_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(1.0f));
@@ -103,7 +103,6 @@ class VolumeModule {
   /* Bind resources needed by external passes to perform their own resolve. */
   template<typename PassType> void bind_resources(PassType &ps)
   {
-    ps.bind_ubo(VOLUMES_INFO_BUF_SLOT, data_);
     ps.bind_texture(VOLUME_SCATTERING_TEX_SLOT, &transparent_pass_scatter_tx_);
     ps.bind_texture(VOLUME_TRANSMITTANCE_TEX_SLOT, &transparent_pass_transmit_tx_);
   }
@@ -111,11 +110,15 @@ class VolumeModule {
   /* Bind the common resources needed by all volumetric passes. */
   template<typename PassType> void bind_properties_buffers(PassType &ps)
   {
-    ps.bind_ubo(VOLUMES_INFO_BUF_SLOT, &data_);
     ps.bind_image(VOLUME_PROP_SCATTERING_IMG_SLOT, &prop_scattering_tx_);
     ps.bind_image(VOLUME_PROP_EXTINCTION_IMG_SLOT, &prop_extinction_tx_);
     ps.bind_image(VOLUME_PROP_EMISSION_IMG_SLOT, &prop_emission_tx_);
     ps.bind_image(VOLUME_PROP_PHASE_IMG_SLOT, &prop_phase_tx_);
+  }
+
+  bool needs_shadow_tagging()
+  {
+    return enabled_ && data_.use_lights;
   }
 
   int3 grid_size()
@@ -135,8 +138,11 @@ class VolumeModule {
 
   void end_sync();
 
+  /* Render material properties. */
+  void draw_prepass(View &view);
+  /* Compute scattering and integration. */
   void draw_compute(View &view);
-
+  /* Final image compositing. */
   void draw_resolve(View &view);
 };
 }  // namespace blender::eevee

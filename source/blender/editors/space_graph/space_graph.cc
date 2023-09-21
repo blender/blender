@@ -62,8 +62,6 @@ static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
   sipo = static_cast<SpaceGraph *>(MEM_callocN(sizeof(SpaceGraph), "init graphedit"));
   sipo->spacetype = SPACE_GRAPH;
 
-  sipo->autosnap = SACTSNAP_FRAME;
-
   /* allocate DopeSheet data for Graph Editor */
   sipo->ads = static_cast<bDopeSheet *>(MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet"));
   sipo->ads->source = (ID *)scene;
@@ -178,9 +176,9 @@ static void graph_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor", SPACE_GRAPH, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor", SPACE_GRAPH, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
-  keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -363,9 +361,9 @@ static void graph_channel_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
-  keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -412,7 +410,7 @@ static void graph_buttons_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Graph Editor Generic", SPACE_GRAPH, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -491,12 +489,7 @@ static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams 
 {
   wmMsgBus *mbus = params->message_bus;
   Scene *scene = params->scene;
-  bScreen *screen = params->screen;
-  ScrArea *area = params->area;
   ARegion *region = params->region;
-
-  PointerRNA ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceGraphEditor, area->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};
   msg_sub_value_region_tag_redraw.owner = region;
@@ -513,8 +506,7 @@ static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams 
         &rna_Scene_frame_current,
     };
 
-    PointerRNA idptr;
-    RNA_id_pointer_create(&scene->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&scene->id);
 
     for (int i = 0; i < ARRAY_SIZE(props); i++) {
       WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_region_tag_redraw, __func__);

@@ -63,7 +63,15 @@ enum class Type {
   CHAR,
   CHAR2,
   CHAR3,
-  CHAR4
+  CHAR4,
+  USHORT,
+  USHORT2,
+  USHORT3,
+  USHORT4,
+  SHORT,
+  SHORT2,
+  SHORT3,
+  SHORT4
 };
 
 /* All of these functions is a bit out of place */
@@ -137,6 +145,22 @@ static inline std::ostream &operator<<(std::ostream &stream, const Type type)
       return stream << "uvec3";
     case Type::UVEC4:
       return stream << "uvec4";
+    case Type::USHORT:
+      return stream << "ushort";
+    case Type::USHORT2:
+      return stream << "ushort2";
+    case Type::USHORT3:
+      return stream << "ushort3";
+    case Type::USHORT4:
+      return stream << "ushort4";
+    case Type::SHORT:
+      return stream << "short";
+    case Type::SHORT2:
+      return stream << "short2";
+    case Type::SHORT3:
+      return stream << "short3";
+    case Type::SHORT4:
+      return stream << "short4";
     default:
       BLI_assert(0);
       return stream;
@@ -436,6 +460,8 @@ struct ShaderCreateInfo {
     Type type;
     DualBlend blend;
     StringRefNull name;
+    /* Note: Currently only supported by Metal. */
+    int raster_order_group;
 
     bool operator==(const FragOut &b) const
     {
@@ -443,10 +469,14 @@ struct ShaderCreateInfo {
       TEST_EQUAL(*this, b, type);
       TEST_EQUAL(*this, b, blend);
       TEST_EQUAL(*this, b, name);
+      TEST_EQUAL(*this, b, raster_order_group);
       return true;
     }
   };
   Vector<FragOut> fragment_outputs_;
+
+  using SubpassIn = FragOut;
+  Vector<SubpassIn> subpass_inputs_;
 
   struct Sampler {
     ImageType type;
@@ -634,9 +664,33 @@ struct ShaderCreateInfo {
     return *(Self *)this;
   }
 
-  Self &fragment_out(int slot, Type type, StringRefNull name, DualBlend blend = DualBlend::NONE)
+  Self &fragment_out(int slot,
+                     Type type,
+                     StringRefNull name,
+                     DualBlend blend = DualBlend::NONE,
+                     int raster_order_group = -1)
   {
-    fragment_outputs_.append({slot, type, blend, name});
+    fragment_outputs_.append({slot, type, blend, name, raster_order_group});
+    return *(Self *)this;
+  }
+
+  /**
+   * Allows to fetch frame-buffer values from previous render sub-pass.
+   *
+   * On Apple Silicon, the additional `raster_order_group` is there to set the sub-pass
+   * dependencies. Any sub-pass input need to have the same `raster_order_group` defined in the
+   * shader writing them.
+   *
+   * IMPORTANT: Currently emulated on all backend except Metal. This is only for debugging purpose
+   * as it is too slow to be viable.
+   *
+   * TODO(fclem): Vulkan can implement that using `subpassInput`. However sub-pass boundaries might
+   * be difficult to inject implicitly and will require more high level changes.
+   * TODO(fclem): OpenGL can emulate that using `GL_EXT_shader_framebuffer_fetch`.
+   */
+  Self &subpass_in(int slot, Type type, StringRefNull name, int raster_order_group = -1)
+  {
+    subpass_inputs_.append({slot, type, DualBlend::NONE, name, raster_order_group});
     return *(Self *)this;
   }
 
@@ -895,8 +949,8 @@ struct ShaderCreateInfo {
    *
    * \{ */
 
-  /* Comparison operator for GPUPass cache. We only compare if it will create the same shader code.
-   * So we do not compare name and some other internal stuff. */
+  /* Comparison operator for GPUPass cache. We only compare if it will create the same shader
+   * code. So we do not compare name and some other internal stuff. */
   bool operator==(const ShaderCreateInfo &b)
   {
     TEST_EQUAL(*this, b, builtins_);
@@ -914,6 +968,7 @@ struct ShaderCreateInfo {
     TEST_VECTOR_EQUAL(*this, b, geometry_out_interfaces_);
     TEST_VECTOR_EQUAL(*this, b, push_constants_);
     TEST_VECTOR_EQUAL(*this, b, typedef_sources_);
+    TEST_VECTOR_EQUAL(*this, b, subpass_inputs_);
     TEST_EQUAL(*this, b, vertex_source_);
     TEST_EQUAL(*this, b, geometry_source_);
     TEST_EQUAL(*this, b, fragment_source_);

@@ -36,7 +36,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 /* Own define. */
 #include "ED_util_imbuf.hh"

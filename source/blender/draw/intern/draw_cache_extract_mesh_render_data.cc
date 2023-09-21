@@ -201,14 +201,14 @@ static void accumululate_material_counts_mesh(
       for (const int i : range) {
         if (!mr.hide_poly[i]) {
           const int mat = std::clamp(material_indices[i], 0, last_index);
-          tri_counts[mat] += ME_FACE_TRI_TOT(faces[i].size());
+          tri_counts[mat] += bke::mesh::face_triangles_num(faces[i].size());
         }
       }
     }
     else {
       for (const int i : range) {
         const int mat = std::clamp(material_indices[i], 0, last_index);
-        tri_counts[mat] += ME_FACE_TRI_TOT(faces[i].size());
+        tri_counts[mat] += bke::mesh::face_triangles_num(faces[i].size());
       }
     }
   });
@@ -357,7 +357,7 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
                                             mr.faces,
                                             mr.corner_verts,
                                             mr.corner_edges,
-                                            {},
+                                            mr.me->corner_to_face_map(),
                                             mr.vert_normals,
                                             mr.face_normals,
                                             sharp_edges,

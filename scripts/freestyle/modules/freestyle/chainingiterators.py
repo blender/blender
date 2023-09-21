@@ -224,7 +224,7 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
     # keeping this local saves passing a reference to 'self' around
     def make_sketchy(self, ve):
         """
-        Creates the skeychy effect by causing the chain to run from
+        Creates the sketchy effect by causing the chain to run from
         the start again. (loop over itself again)
         """
         if ve is None:
@@ -459,9 +459,8 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
         self._percent = float(percent)
 
     def init(self):
-        # each time we're evaluating a chain length
-        # we try to do it once. Thus we reinit
-        # the chain length here:
+        # Each time we're evaluating a chain length we try to do it once.
+        # Thus we reinitialize the chain length here:
         self._length = 0.0
 
     def traverse(self, iter):
@@ -531,7 +530,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
         self._percent = percent
 
     def init(self):
-        # A chain's length should preverably be evaluated only once.
+        # A chain's length should preferably be evaluated only once.
         # Therefore, the chain length is reset here.
         self._length = 0.0
 

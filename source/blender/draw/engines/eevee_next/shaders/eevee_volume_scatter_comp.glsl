@@ -8,6 +8,14 @@
 /* Step 2 : Evaluate all light scattering for each froxels.
  * Also do the temporal reprojection to fight aliasing artifacts. */
 
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+
+/* Included here to avoid requiring lightprobe resources for all volume lib users. */
+#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+
 #pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 
@@ -25,19 +33,22 @@ vec3 volume_scatter_light_eval(vec3 P, vec3 V, uint l_idx, float s_anisotropy)
   float l_dist;
   light_shape_vector_get(ld, P, L, l_dist);
 
-#  if 0
-  /* TODO(Miguel Pozo): Shadows */
-  float vis = light_visibility(ld, P, l_vector);
-#  else
-  float vis = light_attenuation(ld, L, l_dist);
-#  endif
+  float visibility = light_attenuation(ld, L, l_dist);
+  LightData light = light_buf[l_idx];
+  if (light.tilemap_index != LIGHT_NO_SHADOW && (visibility > 0.0)) {
+    vec3 lL = light_world_to_local(light, -L) * l_dist;
+    vec3 lNg = vec3(0);
+    ShadowSample samp = shadow_sample(
+        is_sun_light(light.type), shadow_atlas_tx, shadow_tilemaps_tx, light, lL, lNg, P);
+    visibility *= float(samp.occluder_delta + samp.bias >= 0.0);
+  }
 
-  if (vis < 1e-4) {
+  if (visibility < 1e-4) {
     return vec3(0);
   }
 
-  vec3 Li = volume_light(ld, L, l_dist) * volume_shadow(ld, P, L, l_dist);
-  return Li * vis * volume_phase_function(-V, L, s_anisotropy);
+  vec3 Li = volume_light(ld, L, l_dist) * volume_shadow(ld, P, L, l_dist, extinction_tx);
+  return Li * visibility * volume_phase_function(-V, L, s_anisotropy);
 }
 
 #endif
@@ -46,7 +57,7 @@ void main()
 {
   ivec3 froxel = ivec3(gl_GlobalInvocationID);
 
-  if (any(greaterThanEqual(froxel, volumes_info_buf.tex_size))) {
+  if (any(greaterThanEqual(froxel, uniform_buf.volumes.tex_size))) {
     return;
   }
 
@@ -56,7 +67,7 @@ void main()
   vec3 s_scattering = imageLoad(in_scattering_img, froxel).rgb;
 
   vec3 jitter = sampling_rng_3D_get(SAMPLING_VOLUME_U);
-  vec3 volume_ndc = volume_to_ndc((vec3(froxel) + jitter) * volumes_info_buf.inv_tex_size);
+  vec3 volume_ndc = volume_to_ndc((vec3(froxel) + jitter) * uniform_buf.volumes.inv_tex_size);
   vec3 vP = get_view_space_from_depth(volume_ndc.xy, volume_ndc.z);
   vec3 P = point_view_to_world(vP);
   vec3 V = cameraVec(P);
@@ -74,8 +85,8 @@ void main()
   }
   LIGHT_FOREACH_END
 
-  vec2 pixel = (vec2(froxel.xy) + vec2(0.5)) / vec2(volumes_info_buf.tex_size.xy) /
-               volumes_info_buf.viewport_size_inv;
+  vec2 pixel = (vec2(froxel.xy) + vec2(0.5)) / vec2(uniform_buf.volumes.tex_size.xy) /
+               uniform_buf.volumes.viewport_size_inv;
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vP.z, l_idx) {
     scattering += volume_scatter_light_eval(P, V, l_idx, s_anisotropy) * s_scattering;

@@ -153,17 +153,16 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       *eta = 1.0f;
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
       label = bsdf_microfacet_ggx_sample(
-          sc, path_flag, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
+          sc, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
       break;
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID:
       label = bsdf_microfacet_beckmann_sample(
-          sc, path_flag, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
+          sc, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
       label = bsdf_ashikhmin_shirley_sample(
@@ -197,10 +196,12 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       *eta = 1.0f;
       break;
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
-      label = bsdf_hair_chiang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness, eta);
+      label = bsdf_hair_chiang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness);
+      *eta = 1.0f;
       break;
     case CLOSURE_BSDF_HAIR_HUANG_ID:
-      label = bsdf_hair_huang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness, eta);
+      label = bsdf_hair_huang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness);
+      *eta = 1.0f;
       break;
     case CLOSURE_BSDF_SHEEN_ID:
       label = bsdf_sheen_sample(sc, Ng, sd->wi, rand_xy, eval, wo, pdf);
@@ -248,6 +249,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
 
 ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
                                           ccl_private const ShaderClosure *sc,
+                                          const float3 wo,
                                           ccl_private float2 *roughness,
                                           ccl_private float *eta)
 {
@@ -284,7 +286,6 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
       *eta = 1.0f;
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
@@ -292,12 +293,7 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID: {
       ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
       *roughness = make_float2(bsdf->alpha_x, bsdf->alpha_y);
-      if (CLOSURE_IS_REFRACTION(bsdf->type) || CLOSURE_IS_GLASS(bsdf->type)) {
-        *eta = 1.0f / bsdf->ior;
-      }
-      else {
-        *eta = bsdf->ior;
-      }
+      *eta = (bsdf_is_transmission(sc, wo)) ? bsdf->ior : 1.0f;
       break;
     }
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID: {
@@ -332,12 +328,12 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
       alpha = ((ccl_private ChiangHairBSDF *)sc)->m0_roughness;
       *roughness = make_float2(alpha, alpha);
-      *eta = ((ccl_private ChiangHairBSDF *)sc)->eta;
+      *eta = 1.0f;
       break;
     case CLOSURE_BSDF_HAIR_HUANG_ID:
       alpha = ((ccl_private HuangHairBSDF *)sc)->roughness;
       *roughness = make_float2(alpha, alpha);
-      *eta = ((ccl_private HuangHairBSDF *)sc)->eta;
+      *eta = 1.0f;
       break;
     case CLOSURE_BSDF_SHEEN_ID:
       alpha = ((ccl_private SheenBsdf *)sc)->roughness;
@@ -385,7 +381,6 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
       label = LABEL_TRANSMIT | LABEL_TRANSPARENT;
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
@@ -459,6 +454,7 @@ ccl_device_inline
 {
   Spectrum eval = zero_spectrum();
   *pdf = 0.f;
+  const float3 Ng = (sd->type & PRIMITIVE_CURVE) ? sc->N : sd->Ng;
 
   switch (sc->type) {
     case CLOSURE_BSDF_DIFFUSE_ID:
@@ -483,18 +479,17 @@ ccl_device_inline
       eval = bsdf_transparent_eval(sc, sd->wi, wo, pdf);
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
-      eval = bsdf_microfacet_ggx_eval(sc, sd->N, sd->wi, wo, pdf);
+      eval = bsdf_microfacet_ggx_eval(sc, Ng, sd->wi, wo, pdf);
       break;
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID:
-      eval = bsdf_microfacet_beckmann_eval(sc, sd->N, sd->wi, wo, pdf);
+      eval = bsdf_microfacet_beckmann_eval(sc, Ng, sd->wi, wo, pdf);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
-      eval = bsdf_ashikhmin_shirley_eval(sc, sd->N, sd->wi, wo, pdf);
+      eval = bsdf_ashikhmin_shirley_eval(sc, Ng, sd->wi, wo, pdf);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
       eval = bsdf_ashikhmin_velvet_eval(sc, sd->wi, wo, pdf);
@@ -554,7 +549,6 @@ ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, float
 #if defined(__SVM__) || defined(__OSL__)
   switch (sc->type) {
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:

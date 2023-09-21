@@ -327,7 +327,7 @@ void MTLBufferPool::update_memory_pools()
       {
         deletion_time_threshold_s = 4;
       }
-      /* Spare pool memory >= 512MB.*/
+      /* Spare pool memory >= 512MB. */
       else if (allocations_in_pool_ >= MEMORY_SIZE_512MB) {
         deletion_time_threshold_s = 15;
       }

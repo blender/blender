@@ -155,8 +155,7 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
   if (num_faces) {
     subdiv_ccg->faces = static_cast<SubdivCCGFace *>(
         MEM_calloc_arrayN(num_faces, sizeof(SubdivCCGFace), "Subdiv CCG faces"));
-    subdiv_ccg->grid_faces = static_cast<SubdivCCGFace **>(
-        MEM_calloc_arrayN(num_grids, sizeof(SubdivCCGFace *), "Subdiv CCG grid faces"));
+    subdiv_ccg->grid_to_face_map.reinitialize(num_grids);
   }
 }
 
@@ -235,7 +234,7 @@ static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data, const int face_
   const float grid_size_1_inv = 1.0f / (grid_size - 1);
   const int element_size = element_size_bytes_get(subdiv_ccg);
   SubdivCCGFace *faces = subdiv_ccg->faces;
-  SubdivCCGFace **grid_faces = subdiv_ccg->grid_faces;
+  blender::MutableSpan<int> grid_to_face_map = subdiv_ccg->grid_to_face_map;
   const SubdivCCGFace *face = &faces[face_index];
   for (int corner = 0; corner < face->num_grids; corner++) {
     const int grid_index = face->start_grid_index + corner;
@@ -252,7 +251,7 @@ static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data, const int face_
       }
     }
     /* Assign grid's face. */
-    grid_faces[grid_index] = &faces[face_index];
+    grid_to_face_map[grid_index] = face_index;
     /* Assign material flags. */
     subdiv_ccg->grid_flag_mats[grid_index] = data->material_flags_evaluator->eval_material_flags(
         data->material_flags_evaluator, face_index);
@@ -266,7 +265,7 @@ static void subdiv_ccg_eval_special_grid(CCGEvalGridsData *data, const int face_
   const float grid_size_1_inv = 1.0f / (grid_size - 1);
   const int element_size = element_size_bytes_get(subdiv_ccg);
   SubdivCCGFace *faces = subdiv_ccg->faces;
-  SubdivCCGFace **grid_faces = subdiv_ccg->grid_faces;
+  blender::MutableSpan<int> grid_to_face_map = subdiv_ccg->grid_to_face_map;
   const SubdivCCGFace *face = &faces[face_index];
   for (int corner = 0; corner < face->num_grids; corner++) {
     const int grid_index = face->start_grid_index + corner;
@@ -282,7 +281,7 @@ static void subdiv_ccg_eval_special_grid(CCGEvalGridsData *data, const int face_
       }
     }
     /* Assign grid's face. */
-    grid_faces[grid_index] = &faces[face_index];
+    grid_to_face_map[grid_index] = face_index;
     /* Assign material flags. */
     subdiv_ccg->grid_flag_mats[grid_index] = data->material_flags_evaluator->eval_material_flags(
         data->material_flags_evaluator, face_index);
@@ -529,7 +528,7 @@ SubdivCCG *BKE_subdiv_to_ccg(Subdiv *subdiv,
                              SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator)
 {
   BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
-  SubdivCCG *subdiv_ccg = MEM_cnew<SubdivCCG>(__func__);
+  SubdivCCG *subdiv_ccg = MEM_new<SubdivCCG>(__func__);
   subdiv_ccg->subdiv = subdiv;
   subdiv_ccg->level = bitscan_forward_i(settings->resolution - 1);
   subdiv_ccg->grid_size = BKE_subdiv_grid_size_from_level(subdiv_ccg->level);
@@ -596,7 +595,6 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
     BKE_subdiv_free(subdiv_ccg->subdiv);
   }
   MEM_SAFE_FREE(subdiv_ccg->faces);
-  MEM_SAFE_FREE(subdiv_ccg->grid_faces);
   /* Free map of adjacent edges. */
   for (int i = 0; i < subdiv_ccg->num_adjacent_edges; i++) {
     SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[i];
@@ -613,7 +611,7 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
   }
   MEM_SAFE_FREE(subdiv_ccg->adjacent_vertices);
   MEM_SAFE_FREE(subdiv_ccg->cache_.start_face_grid_index);
-  MEM_freeN(subdiv_ccg);
+  MEM_delete(subdiv_ccg);
 }
 
 void BKE_subdiv_ccg_key(CCGKey *key, const SubdivCCG *subdiv_ccg, int level)
@@ -1452,7 +1450,7 @@ static SubdivCCGCoord coord_step_inside_from_boundary(const SubdivCCG *subdiv_cc
 BLI_INLINE
 int next_grid_index_from_coord(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord)
 {
-  SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+  const SubdivCCGFace *face = &subdiv_ccg->faces[subdiv_ccg->grid_to_face_map[coord->grid_index]];
   const int face_grid_index = coord->grid_index;
   int next_face_grid_index = face_grid_index + 1 - face->start_grid_index;
   if (next_face_grid_index == face->num_grids) {
@@ -1462,7 +1460,7 @@ int next_grid_index_from_coord(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord
 }
 BLI_INLINE int prev_grid_index_from_coord(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord)
 {
-  SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+  const SubdivCCGFace *face = &subdiv_ccg->faces[subdiv_ccg->grid_to_face_map[coord->grid_index]];
   const int face_grid_index = coord->grid_index;
   int prev_face_grid_index = face_grid_index - 1 - face->start_grid_index;
   if (prev_face_grid_index < 0) {
@@ -1478,7 +1476,7 @@ static void neighbor_coords_corner_center_get(const SubdivCCG *subdiv_ccg,
                                               const bool include_duplicates,
                                               SubdivCCGNeighbors *r_neighbors)
 {
-  SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+  const SubdivCCGFace *face = &subdiv_ccg->faces[subdiv_ccg->grid_to_face_map[coord->grid_index]];
   const int num_adjacent_grids = face->num_grids;
 
   subdiv_ccg_neighbors_init(
@@ -1506,7 +1504,7 @@ static int adjacent_vertex_index_from_coord(const SubdivCCG *subdiv_ccg,
   Subdiv *subdiv = subdiv_ccg->subdiv;
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
 
-  const SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+  const SubdivCCGFace *face = &subdiv_ccg->faces[subdiv_ccg->grid_to_face_map[coord->grid_index]];
   const int face_index = face - subdiv_ccg->faces;
   const int face_grid_index = coord->grid_index - face->start_grid_index;
   const int num_face_grids = face->num_grids;
@@ -1583,7 +1581,7 @@ static int adjacent_edge_index_from_coord(const SubdivCCG *subdiv_ccg, const Sub
 {
   Subdiv *subdiv = subdiv_ccg->subdiv;
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
-  SubdivCCGFace *face = subdiv_ccg->grid_faces[coord->grid_index];
+  const SubdivCCGFace *face = &subdiv_ccg->faces[subdiv_ccg->grid_to_face_map[coord->grid_index]];
 
   const int face_grid_index = coord->grid_index - face->start_grid_index;
   const int face_index = face - subdiv_ccg->faces;
@@ -1876,9 +1874,7 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
 
 int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG *subdiv_ccg, const int grid_index)
 {
-  const SubdivCCGFace *face = subdiv_ccg->grid_faces[grid_index];
-  const int face_index = face - subdiv_ccg->faces;
-  return face_index;
+  return subdiv_ccg->grid_to_face_map[grid_index];
 }
 
 const int *BKE_subdiv_ccg_start_face_grid_index_ensure(SubdivCCG *subdiv_ccg)

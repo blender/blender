@@ -1252,7 +1252,7 @@ struct FallbackIndexBuilderContext {
 };
 
 static AviMovie *alloc_proxy_output_avi(
-    anim *anim, char *filepath, int width, int height, int quality)
+    anim *anim, const char *filepath, int width, int height, int quality)
 {
   int x, y;
   AviFormat format;

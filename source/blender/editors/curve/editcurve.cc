@@ -3720,7 +3720,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
           }
         }
 
-        if (sel) { /* V ! */
+        if (sel) { /* V direction. */
           bpn = bpnew = static_cast<BPoint *>(
               MEM_mallocN((sel + nu->pntsv) * nu->pntsu * sizeof(BPoint), "subdivideNurb4"));
           bp = nu->bp;
@@ -3768,7 +3768,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
             }
           }
 
-          if (sel) { /* U ! */
+          if (sel) { /* U direction. */
             /* Inserting U points is sort of 'default' Flat curves only get
              * U points inserted in them. */
             bpn = bpnew = static_cast<BPoint *>(
@@ -3974,6 +3974,9 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
   const int handle_type = RNA_enum_get(op->ptr, "type");
+  const bool hide_handles = (v3d && (v3d->overlay.handle_display == CURVE_HANDLE_NONE));
+  const eNurbHandleTest_Mode handle_mode = hide_handles ? NURB_HANDLE_TEST_KNOT_ONLY :
+                                                          NURB_HANDLE_TEST_KNOT_OR_EACH;
 
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -3987,7 +3990,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
     }
 
     ListBase *editnurb = object_editcurve_get(obedit);
-    BKE_nurbList_handles_set(editnurb, handle_type);
+    BKE_nurbList_handles_set(editnurb, handle_mode, handle_type);
 
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
@@ -4786,7 +4789,6 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 bool ED_curve_editnurb_select_pick(bContext *C,
                                    const int mval[2],
                                    const int dist_px,
-                                   const bool vert_without_handles,
                                    const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -4802,8 +4804,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 
-  const bool use_handle_select = vert_without_handles &&
-                                 (vc.v3d->overlay.handle_display != CURVE_HANDLE_NONE);
+  const bool use_handle_select = (vc.v3d->overlay.handle_display != CURVE_HANDLE_NONE);
 
   bool found = ED_curve_pick_vert_ex(&vc, true, dist_px, &nu, &bezt, &bp, &hand, &basact);
 

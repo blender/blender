@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : sequentialsplit_sketchy.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Use the sequential split with two different

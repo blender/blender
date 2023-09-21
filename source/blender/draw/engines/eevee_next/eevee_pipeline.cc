@@ -43,8 +43,7 @@ void BackgroundPipeline::sync(GPUMaterial *gpumat, const float background_opacit
   /* Required by validation layers. */
   inst_.cryptomatte.bind_resources(&world_ps_);
 
-  world_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
-  world_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
+  inst_.bind_uniform_data(&world_ps_);
 
   world_ps_.draw(DRW_cache_fullscreen_quad_get(), handle);
   /* To allow opaque pass rendering over it. */
@@ -82,8 +81,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   pass.push_constant("world_opacity_fade", 1.0f);
 
   pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-  pass.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
-  pass.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
+  inst_.bind_uniform_data(&pass);
   pass.bind_image("rp_normal_img", dummy_renderpass_tx_);
   pass.bind_image("rp_light_img", dummy_renderpass_tx_);
   pass.bind_image("rp_diffuse_color_img", dummy_renderpass_tx_);
@@ -118,6 +116,7 @@ void WorldVolumePipeline::sync(GPUMaterial *gpumat)
 {
   world_ps_.init();
   world_ps_.state_set(DRW_STATE_WRITE_COLOR);
+  inst_.bind_uniform_data(&world_ps_);
   inst_.volume.bind_properties_buffers(world_ps_);
   inst_.sampling.bind_resources(&world_ps_);
 
@@ -152,10 +151,10 @@ void ShadowPipeline::sync()
   surface_ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
   surface_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
   surface_ps_.bind_image(SHADOW_ATLAS_IMG_SLOT, inst_.shadows.atlas_tx_);
-  surface_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
   surface_ps_.bind_ssbo(SHADOW_RENDER_MAP_BUF_SLOT, &inst_.shadows.render_map_buf_);
   surface_ps_.bind_ssbo(SHADOW_VIEWPORT_INDEX_BUF_SLOT, &inst_.shadows.viewport_index_buf_);
   surface_ps_.bind_ssbo(SHADOW_PAGE_INFO_SLOT, &inst_.shadows.pages_infos_data_);
+  inst_.bind_uniform_data(&surface_ps_);
   inst_.sampling.bind_resources(&surface_ps_);
 }
 
@@ -192,9 +191,8 @@ void ForwardPipeline::sync()
 
       /* Textures. */
       prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      /* Uniform Buffer. */
-      prepass_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
+      inst_.bind_uniform_data(&prepass_ps_);
       inst_.velocity.bind_resources(&prepass_ps_);
       inst_.sampling.bind_resources(&prepass_ps_);
     }
@@ -224,16 +222,11 @@ void ForwardPipeline::sync()
       /* Textures. */
       opaque_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
-      /* Uniform Buffer. */
-      opaque_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
-      opaque_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
-
+      inst_.bind_uniform_data(&opaque_ps_);
       inst_.lights.bind_resources(&opaque_ps_);
       inst_.shadows.bind_resources(&opaque_ps_);
       inst_.sampling.bind_resources(&opaque_ps_);
       inst_.hiz_buffer.bind_resources(&opaque_ps_);
-      inst_.ambient_occlusion.bind_resources(&opaque_ps_);
-      inst_.cryptomatte.bind_resources(&opaque_ps_);
     }
 
     opaque_single_sided_ps_ = &opaque_ps_.sub("SingleSided");
@@ -253,15 +246,13 @@ void ForwardPipeline::sync()
 
     /* Textures. */
     sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    /* Uniform Buffer. */
-    sub.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
+    inst_.bind_uniform_data(&sub);
     inst_.lights.bind_resources(&sub);
     inst_.shadows.bind_resources(&sub);
     inst_.volume.bind_resources(sub);
     inst_.sampling.bind_resources(&sub);
     inst_.hiz_buffer.bind_resources(&sub);
-    inst_.ambient_occlusion.bind_resources(&sub);
   }
 }
 
@@ -368,9 +359,8 @@ void DeferredLayer::begin_sync()
 
       /* Textures. */
       prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      /* Uniform Buffer. */
-      prepass_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
+      inst_.bind_uniform_data(&prepass_ps_);
       inst_.velocity.bind_resources(&prepass_ps_);
       inst_.sampling.bind_resources(&prepass_ps_);
     }
@@ -402,6 +392,7 @@ void DeferredLayer::begin_sync()
       /* G-buffer. */
       gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_tx);
       gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_tx);
+      gbuffer_ps_.bind_image(GBUF_HEADER_SLOT, &inst_.gbuffer.header_tx);
       /* RenderPasses & AOVs. */
       gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
       gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
@@ -410,13 +401,10 @@ void DeferredLayer::begin_sync()
       /* Storage Buffer. */
       /* Textures. */
       gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      /* Uniform Buffer. */
-      gbuffer_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
-      gbuffer_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
 
+      inst_.bind_uniform_data(&gbuffer_ps_);
       inst_.sampling.bind_resources(&gbuffer_ps_);
       inst_.hiz_buffer.bind_resources(&gbuffer_ps_);
-      inst_.ambient_occlusion.bind_resources(&gbuffer_ps_);
       inst_.cryptomatte.bind_resources(&gbuffer_ps_);
     }
 
@@ -437,36 +425,48 @@ void DeferredLayer::end_sync()
 {
   eClosureBits evaluated_closures = CLOSURE_DIFFUSE | CLOSURE_REFLECTION | CLOSURE_REFRACTION;
   if (closure_bits_ & evaluated_closures) {
-    const bool is_last_eval_pass = !(closure_bits_ & CLOSURE_SSS);
-
-    eval_light_ps_.init();
-    /* Use stencil test to reject pixel not written by this layer. */
-    eval_light_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL |
-                             DRW_STATE_BLEND_CUSTOM);
-    eval_light_ps_.state_stencil(0x00u, 0x00u, evaluated_closures);
-    eval_light_ps_.shader_set(inst_.shaders.static_shader_get(DEFERRED_LIGHT));
-    eval_light_ps_.bind_image("out_diffuse_light_img", &diffuse_light_tx_);
-    eval_light_ps_.bind_image("out_specular_light_img", &specular_light_tx_);
-    eval_light_ps_.bind_image("indirect_refraction_img", &indirect_refraction_tx_);
-    eval_light_ps_.bind_image("indirect_reflection_img", &indirect_reflection_tx_);
-    eval_light_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-    eval_light_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
-    eval_light_ps_.push_constant("is_last_eval_pass", is_last_eval_pass);
-    eval_light_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-    eval_light_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-    eval_light_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    eval_light_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
-
-    inst_.lights.bind_resources(&eval_light_ps_);
-    inst_.shadows.bind_resources(&eval_light_ps_);
-    inst_.sampling.bind_resources(&eval_light_ps_);
-    inst_.hiz_buffer.bind_resources(&eval_light_ps_);
-    inst_.ambient_occlusion.bind_resources(&eval_light_ps_);
-    inst_.reflection_probes.bind_resources(&eval_light_ps_);
-    inst_.irradiance_cache.bind_resources(&eval_light_ps_);
-
-    eval_light_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
-    eval_light_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    {
+      PassSimple &pass = eval_light_ps_;
+      pass.init();
+      /* Use stencil test to reject pixel not written by this layer. */
+      pass.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
+      pass.state_stencil(0x00u, 0x00u, evaluated_closures);
+      pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_LIGHT));
+      pass.bind_image("direct_diffuse_img", &direct_diffuse_tx_);
+      pass.bind_image("direct_reflect_img", &direct_reflect_tx_);
+      pass.bind_image("direct_refract_img", &direct_refract_tx_);
+      pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+      pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+      pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+      inst_.bind_uniform_data(&pass);
+      inst_.gbuffer.bind_resources(&pass);
+      inst_.lights.bind_resources(&pass);
+      inst_.shadows.bind_resources(&pass);
+      inst_.sampling.bind_resources(&pass);
+      inst_.hiz_buffer.bind_resources(&pass);
+      pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+      pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    }
+    {
+      PassSimple &pass = combine_ps_;
+      pass.init();
+      /* Use stencil test to reject pixel not written by this layer. */
+      pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL | DRW_STATE_BLEND_ADD_FULL);
+      pass.state_stencil(0x00u, 0x00u, evaluated_closures);
+      pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_COMBINE));
+      pass.bind_image("direct_diffuse_img", &direct_diffuse_tx_);
+      pass.bind_image("direct_reflect_img", &direct_reflect_tx_);
+      pass.bind_image("direct_refract_img", &direct_refract_tx_);
+      pass.bind_image("indirect_diffuse_img", &indirect_diffuse_tx_);
+      pass.bind_image("indirect_reflect_img", &indirect_reflect_tx_);
+      pass.bind_image("indirect_refract_img", &indirect_refract_tx_);
+      pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+      pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+      inst_.gbuffer.bind_resources(&pass);
+      inst_.bind_uniform_data(&pass);
+      pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+      pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    }
   }
 }
 
@@ -501,46 +501,133 @@ void DeferredLayer::render(View &main_view,
                            Framebuffer &prepass_fb,
                            Framebuffer &combined_fb,
                            int2 extent,
-                           RayTraceBuffer &rt_buffer)
+                           RayTraceBuffer &rt_buffer,
+                           bool is_first_pass)
 {
+  RenderBuffers &rb = inst_.render_buffers;
+
+  /* The first pass will never have any surfaces behind it. Nothing is refracted except the
+   * environment. So in this case, disable tracing and fallback to probe. */
+  bool do_screen_space_refraction = !is_first_pass && (closure_bits_ & CLOSURE_REFRACTION);
+  bool do_screen_space_reflection = (closure_bits_ & CLOSURE_REFLECTION);
+
+  if (do_screen_space_reflection) {
+    /* TODO(fclem): Verify if GPU_TEXTURE_USAGE_ATTACHMENT is needed for the copy and the clear. */
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+    if (radiance_feedback_tx_.ensure_2d(rb.color_format, extent, usage)) {
+      radiance_feedback_tx_.clear(float4(0.0));
+      radiance_feedback_persmat_ = render_view.persmat();
+    }
+  }
+  else {
+    /* Dummy texture. Will not be used. */
+    radiance_feedback_tx_.ensure_2d(rb.color_format, int2(1), GPU_TEXTURE_USAGE_SHADER_READ);
+  }
+
+  if (do_screen_space_refraction) {
+    /* Update for refraction. */
+    inst_.hiz_buffer.update();
+    /* TODO(fclem): Verify if GPU_TEXTURE_USAGE_ATTACHMENT is needed for the copy. */
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+    radiance_behind_tx_.ensure_2d(rb.color_format, extent, usage);
+    GPU_texture_copy(radiance_behind_tx_, rb.combined_tx);
+  }
+  else {
+    /* Dummy texture. Will not be used. */
+    radiance_behind_tx_.ensure_2d(rb.color_format, int2(1), GPU_TEXTURE_USAGE_SHADER_READ);
+  }
+
   GPU_framebuffer_bind(prepass_fb);
   inst_.manager->submit(prepass_ps_, render_view);
 
-  inst_.hiz_buffer.set_dirty();
-  inst_.shadows.set_view(render_view);
-  inst_.irradiance_cache.set_view(render_view);
-
   inst_.gbuffer.acquire(extent, closure_bits_);
+
+  if (closure_bits_ & CLOSURE_AMBIENT_OCCLUSION) {
+    /* If the shader needs Ambient Occlusion, we need to update the HiZ here. */
+    if (do_screen_space_refraction) {
+      /* TODO(fclem): This update conflicts with the refraction screen tracing which need the depth
+       * behind the refractive surface. In this case, we do not update the Hi-Z and only consider
+       * surfaces already in the Hi-Z buffer for the ambient occlusion computation. This might be
+       * solved (if really problematic) by having another copy of the Hi-Z buffer. */
+    }
+    else {
+      inst_.hiz_buffer.update();
+    }
+  }
+
+  /* TODO(fclem): Clear in pass when Gbuffer will render with framebuffer. */
+  inst_.gbuffer.header_tx.clear(uint4(0));
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(gbuffer_ps_, render_view);
 
-  RayTraceResult refract_result = inst_.raytracing.trace(
-      rt_buffer, closure_bits_, CLOSURE_REFRACTION, main_view, render_view);
-  indirect_refraction_tx_ = refract_result.get();
+  inst_.hiz_buffer.set_dirty();
 
-  RayTraceResult reflect_result = inst_.raytracing.trace(
-      rt_buffer, closure_bits_, CLOSURE_REFLECTION, main_view, render_view);
-  indirect_reflection_tx_ = reflect_result.get();
+  inst_.irradiance_cache.set_view(render_view);
 
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
-                           GPU_TEXTURE_USAGE_ATTACHMENT;
-  diffuse_light_tx_.acquire(extent, GPU_RGBA16F, usage);
-  diffuse_light_tx_.clear(float4(0.0f));
-  specular_light_tx_.acquire(extent, GPU_RGBA16F, usage);
-  specular_light_tx_.clear(float4(0.0f));
+  RayTraceResult refract_result = inst_.raytracing.trace(rt_buffer,
+                                                         radiance_behind_tx_,
+                                                         render_view.persmat(),
+                                                         closure_bits_,
+                                                         CLOSURE_REFRACTION,
+                                                         main_view,
+                                                         render_view,
+                                                         !do_screen_space_refraction);
+
+  /* Only update the HiZ after refraction tracing. */
+  inst_.hiz_buffer.update();
+
+  inst_.shadows.set_view(render_view);
+
+  {
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
+                             GPU_TEXTURE_USAGE_ATTACHMENT;
+    direct_diffuse_tx_.acquire(extent, GPU_RGBA16F, usage);
+    direct_reflect_tx_.acquire(extent, GPU_RGBA16F, usage);
+    direct_refract_tx_.acquire(extent, GPU_RGBA16F, usage);
+  }
 
   inst_.manager->submit(eval_light_ps_, render_view);
 
+  if (closure_bits_ & CLOSURE_SSS) {
+    inst_.subsurface.render(render_view, combined_fb, direct_diffuse_tx_);
+  }
+
+  RayTraceResult diffuse_result = inst_.raytracing.trace(rt_buffer,
+                                                         radiance_feedback_tx_,
+                                                         radiance_feedback_persmat_,
+                                                         closure_bits_,
+                                                         CLOSURE_DIFFUSE,
+                                                         main_view,
+                                                         render_view);
+
+  RayTraceResult reflect_result = inst_.raytracing.trace(rt_buffer,
+                                                         radiance_feedback_tx_,
+                                                         radiance_feedback_persmat_,
+                                                         closure_bits_,
+                                                         CLOSURE_REFLECTION,
+                                                         main_view,
+                                                         render_view);
+
+  indirect_diffuse_tx_ = diffuse_result.get();
+  indirect_reflect_tx_ = reflect_result.get();
+  indirect_refract_tx_ = refract_result.get();
+
+  GPU_framebuffer_bind(combined_fb);
+  inst_.manager->submit(combine_ps_);
+
+  diffuse_result.release();
   refract_result.release();
   reflect_result.release();
 
-  if (closure_bits_ & CLOSURE_SSS) {
-    inst_.subsurface.render(render_view, combined_fb, diffuse_light_tx_);
-  }
+  direct_diffuse_tx_.release();
+  direct_reflect_tx_.release();
+  direct_refract_tx_.release();
 
-  diffuse_light_tx_.release();
-  specular_light_tx_.release();
+  if (do_screen_space_reflection) {
+    GPU_texture_copy(radiance_feedback_tx_, rb.combined_tx);
+    radiance_feedback_persmat_ = render_view.persmat();
+  }
 
   inst_.gbuffer.release();
 }
@@ -597,12 +684,12 @@ void DeferredPipeline::render(View &main_view,
 {
   DRW_stats_group_start("Deferred.Opaque");
   opaque_layer_.render(
-      main_view, render_view, prepass_fb, combined_fb, extent, rt_buffer_opaque_layer);
+      main_view, render_view, prepass_fb, combined_fb, extent, rt_buffer_opaque_layer, true);
   DRW_stats_group_end();
 
   DRW_stats_group_start("Deferred.Refract");
   refraction_layer_.render(
-      main_view, render_view, prepass_fb, combined_fb, extent, rt_buffer_refract_layer);
+      main_view, render_view, prepass_fb, combined_fb, extent, rt_buffer_refract_layer, false);
   DRW_stats_group_end();
 }
 
@@ -617,6 +704,7 @@ void VolumePipeline::sync()
 {
   volume_ps_.init();
   volume_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+  inst_.bind_uniform_data(&volume_ps_);
   inst_.volume.bind_properties_buffers(volume_ps_);
   inst_.sampling.bind_resources(&volume_ps_);
 }
@@ -646,9 +734,8 @@ void DeferredProbeLayer::begin_sync()
 
       /* Textures. */
       prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      /* Uniform Buffer. */
-      prepass_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
+      inst_.bind_uniform_data(&prepass_ps_);
       inst_.velocity.bind_resources(&prepass_ps_);
       inst_.sampling.bind_resources(&prepass_ps_);
     }
@@ -672,6 +759,7 @@ void DeferredProbeLayer::begin_sync()
       /* G-buffer. */
       gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_tx);
       gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_tx);
+      gbuffer_ps_.bind_image(GBUF_HEADER_SLOT, &inst_.gbuffer.header_tx);
       /* RenderPasses & AOVs. */
       gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
       gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
@@ -680,13 +768,10 @@ void DeferredProbeLayer::begin_sync()
       /* Storage Buffer. */
       /* Textures. */
       gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      /* Uniform Buffer. */
-      gbuffer_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
-      gbuffer_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
 
+      inst_.bind_uniform_data(&gbuffer_ps_);
       inst_.sampling.bind_resources(&gbuffer_ps_);
       inst_.hiz_buffer.bind_resources(&gbuffer_ps_);
-      inst_.ambient_occlusion.bind_resources(&gbuffer_ps_);
       inst_.cryptomatte.bind_resources(&gbuffer_ps_);
     }
 
@@ -700,7 +785,7 @@ void DeferredProbeLayer::begin_sync()
     gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
   }
 
-  /* Light eval resources.*/
+  /* Light evaluate resources. */
   {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
     dummy_light_tx_.ensure_2d(GPU_RGBA16F, int2(1), usage);
@@ -710,36 +795,25 @@ void DeferredProbeLayer::begin_sync()
 void DeferredProbeLayer::end_sync()
 {
   if (closure_bits_ & (CLOSURE_DIFFUSE | CLOSURE_REFLECTION)) {
-    const bool is_last_eval_pass = !(closure_bits_ & CLOSURE_SSS);
-
-    eval_light_ps_.init();
+    PassSimple &pass = eval_light_ps_;
+    pass.init();
     /* Use stencil test to reject pixel not written by this layer. */
-    eval_light_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL |
-                             DRW_STATE_BLEND_CUSTOM);
-    eval_light_ps_.state_stencil(0x00u, 0x00u, (CLOSURE_DIFFUSE | CLOSURE_REFLECTION));
-    eval_light_ps_.shader_set(inst_.shaders.static_shader_get(DEFERRED_LIGHT_DIFFUSE_ONLY));
-    eval_light_ps_.bind_image("out_diffuse_light_img", dummy_light_tx_);
-    eval_light_ps_.bind_image("out_specular_light_img", dummy_light_tx_);
-    eval_light_ps_.bind_image("indirect_refraction_img", dummy_light_tx_);
-    eval_light_ps_.bind_image("indirect_reflection_img", dummy_light_tx_);
-    eval_light_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-    eval_light_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
-    eval_light_ps_.push_constant("is_last_eval_pass", is_last_eval_pass);
-    eval_light_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
-    eval_light_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
-    eval_light_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    eval_light_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
-
-    inst_.lights.bind_resources(&eval_light_ps_);
-    inst_.shadows.bind_resources(&eval_light_ps_);
-    inst_.sampling.bind_resources(&eval_light_ps_);
-    inst_.hiz_buffer.bind_resources(&eval_light_ps_);
-    inst_.ambient_occlusion.bind_resources(&eval_light_ps_);
-    inst_.reflection_probes.bind_resources(&eval_light_ps_);
-    inst_.irradiance_cache.bind_resources(&eval_light_ps_);
-
-    eval_light_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
-    eval_light_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL);
+    pass.state_stencil(0x00u, 0x00u, (CLOSURE_DIFFUSE | CLOSURE_REFLECTION));
+    pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_CAPTURE_EVAL));
+    pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+    pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+    pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    inst_.bind_uniform_data(&pass);
+    inst_.gbuffer.bind_resources(&pass);
+    inst_.lights.bind_resources(&pass);
+    inst_.shadows.bind_resources(&pass);
+    inst_.sampling.bind_resources(&pass);
+    inst_.hiz_buffer.bind_resources(&pass);
+    inst_.reflection_probes.bind_resources(&pass);
+    inst_.irradiance_cache.bind_resources(&pass);
+    pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 }
 
@@ -845,8 +919,9 @@ void CapturePipeline::sync()
   surface_ps_.bind_ssbo(CAPTURE_BUF_SLOT, &inst_.irradiance_cache.bake.capture_info_buf_);
 
   surface_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-  /* TODO(fclem): Remove. There should be no view dependent behavior during capture. */
-  surface_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
+  /* TODO(fclem): Remove. Bind to get the camera data,
+   * but there should be no view dependent behavior during capture. */
+  inst_.bind_uniform_data(&surface_ps_);
 }
 
 PassMain::Sub *CapturePipeline::surface_material_add(GPUMaterial *gpumat)

@@ -310,7 +310,8 @@ static const uiTextIconPadFactor ui_text_pad_none = {0.25f, 1.50f, 0.0f};
 static int ui_text_icon_width_ex(uiLayout *layout,
                                  const char *name,
                                  int icon,
-                                 const uiTextIconPadFactor *pad_factor)
+                                 const uiTextIconPadFactor *pad_factor,
+                                 const uiFontStyle *fstyle)
 {
   const int unit_x = UI_UNIT_X * (layout->scale[0] ? layout->scale[0] : 1.0f);
 
@@ -335,7 +336,6 @@ static int ui_text_icon_width_ex(uiLayout *layout,
     }
 
     const float aspect = layout->root->block->aspect;
-    const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
     return UI_fontstyle_string_width_with_block_aspect(fstyle, name, aspect) +
            int(ceilf(unit_x * margin));
   }
@@ -345,7 +345,7 @@ static int ui_text_icon_width_ex(uiLayout *layout,
 static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool compact)
 {
   return ui_text_icon_width_ex(
-      layout, name, icon, compact ? &ui_text_pad_compact : &ui_text_pad_default);
+      layout, name, icon, compact ? &ui_text_pad_compact : &ui_text_pad_default, UI_FSTYLE_WIDGET);
 }
 
 static void ui_item_size(uiItem *item, int *r_w, int *r_h)
@@ -1019,7 +1019,8 @@ static uiBut *ui_item_with_label(uiLayout *layout,
         /* In this case, a pure label without additional padding.
          * Use a default width for property button(s). */
         prop_but_width = UI_UNIT_X * 5;
-        w_label = ui_text_icon_width_ex(layout, name, ICON_NONE, &ui_text_pad_none);
+        w_label = ui_text_icon_width_ex(
+            layout, name, ICON_NONE, &ui_text_pad_none, UI_FSTYLE_WIDGET_LABEL);
       }
       else {
         w_label = w_hint / 3;
@@ -1290,7 +1291,6 @@ static void ui_item_menu_hold(bContext *C, ARegion *butregion, uiBut *but)
   UI_popup_menu_but_set(pup, butregion, but);
 
   block->flag |= UI_BLOCK_POPUP_HOLD;
-  block->flag |= UI_BLOCK_IS_FLIP;
 
   char direction = UI_DIR_DOWN;
   if (!but->drawstr[0]) {
@@ -1554,9 +1554,6 @@ void uiItemsFullEnumO_items(uiLayout *layout,
       if (item->name) {
         if (item != item_array && !radial && split != nullptr) {
           target = uiLayoutColumn(split, layout->align);
-
-          /* inconsistent, but menus with labels do not look good flipped */
-          block->flag |= UI_BLOCK_NO_FLIP;
         }
 
         uiBut *but;
@@ -1647,7 +1644,7 @@ void uiItemsFullEnumO(uiLayout *layout,
     }
     else {
       bContext *C = static_cast<bContext *>(block->evil_C);
-      bContextStore *previous_ctx = CTX_store_get(C);
+      const bContextStore *previous_ctx = CTX_store_get(C);
       CTX_store_set(C, layout->context);
       RNA_property_enum_items_gettexted(C, &ptr, prop, &item_array, &totitem, &free);
       CTX_store_set(C, previous_ctx);
@@ -1659,9 +1656,6 @@ void uiItemsFullEnumO(uiLayout *layout,
     if (free) {
       MEM_freeN((void *)item_array);
     }
-
-    /* intentionally don't touch UI_BLOCK_IS_FLIP here,
-     * we don't know the context this is called in */
   }
   else if (prop && RNA_property_type(prop) != PROP_ENUM) {
     RNA_warning("%s.%s, not an enum type", RNA_struct_identifier(ptr.type), propname);
@@ -2179,7 +2173,8 @@ void uiItemFullR(uiLayout *layout,
             icon = (enum_value & value) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
           }
           else {
-            icon = (enum_value == value) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
+            /* Only a single value can be chosen, so display as radio buttons. */
+            icon = (enum_value == value) ? ICON_RADIOBUT_ON : ICON_RADIOBUT_OFF;
           }
         }
       }
@@ -2723,8 +2718,6 @@ void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, const char *propname)
       if (item[i].name) {
         if (i != 0) {
           column = uiLayoutColumn(split, false);
-          /* inconsistent, but menus with labels do not look good flipped */
-          block->flag |= UI_BLOCK_NO_FLIP;
         }
 
         uiItemL(column, item[i].name, ICON_NONE);
@@ -2742,9 +2735,6 @@ void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, const char *propname)
   if (free) {
     MEM_freeN((void *)item);
   }
-
-  /* intentionally don't touch UI_BLOCK_IS_FLIP here,
-   * we don't know the context this is called in */
 }
 
 /* Pointer RNA button with search */
@@ -2753,7 +2743,7 @@ static void search_id_collection(StructRNA *ptype, PointerRNA *r_ptr, PropertyRN
 {
   /* look for collection property in Main */
   /* NOTE: using global Main is OK-ish here, UI shall not access other Mains anyway. */
-  RNA_main_pointer_create(G_MAIN, r_ptr);
+  *r_ptr = RNA_main_pointer_create(G_MAIN);
 
   *r_prop = nullptr;
 
@@ -2955,20 +2945,13 @@ void uiItemPointerR(uiLayout *layout,
 void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 {
   MenuType *mt = (MenuType *)arg_mt;
-
   UI_menutype_draw(C, mt, layout);
-
-  /* Menus are created flipped (from event handling point of view). */
-  layout->root->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
 void ui_item_paneltype_func(bContext *C, uiLayout *layout, void *arg_pt)
 {
   PanelType *pt = (PanelType *)arg_pt;
   UI_paneltype_draw(C, pt, layout);
-
-  /* Panels are created flipped (from event handling POV). */
-  layout->root->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
 static uiBut *ui_item_menu(uiLayout *layout,
@@ -3007,7 +2990,7 @@ static uiBut *ui_item_menu(uiLayout *layout,
     }
   }
 
-  const int w = ui_text_icon_width_ex(layout, name, icon, &pad_factor);
+  const int w = ui_text_icon_width_ex(layout, name, icon, &pad_factor, UI_FSTYLE_WIDGET);
   const int h = UI_UNIT_Y;
 
   if (heading_layout) {
@@ -3096,7 +3079,7 @@ void uiItemMContents(uiLayout *layout, const char *menuname)
     return;
   }
 
-  bContextStore *previous_ctx = CTX_store_get(C);
+  const bContextStore *previous_ctx = CTX_store_get(C);
   UI_menutype_draw(C, mt, layout);
 
   /* Restore context that was cleared by `UI_menutype_draw`. */
@@ -3267,7 +3250,8 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
     icon = ICON_BLANK1;
   }
 
-  const int w = ui_text_icon_width_ex(layout, name, icon, &ui_text_pad_none);
+  const int w = ui_text_icon_width_ex(
+      layout, name, icon, &ui_text_pad_none, UI_FSTYLE_WIDGET_LABEL);
   uiBut *but;
   if (icon && name[0]) {
     but = uiDefIconTextBut(block,
@@ -3436,7 +3420,7 @@ void uiItemS_ex(uiLayout *layout, float factor)
   if (is_menu && !UI_block_can_add_separator(block)) {
     return;
   }
-  int space = (is_menu) ? 0.45f * UI_UNIT_X : 0.3f * UI_UNIT_X;
+  int space = (is_menu) ? int(0.35f * UI_UNIT_X) : int(0.3f * UI_UNIT_X);
   space *= factor;
 
   UI_block_layout_set_current(block, layout);
@@ -3576,8 +3560,6 @@ static void menu_item_enum_opname_menu(bContext * /*C*/, uiLayout *layout, void 
   uiLayoutSetOperatorContext(layout, lvl->opcontext);
   uiItemsFullEnumO(layout, lvl->opname, lvl->propname, op_props, lvl->opcontext, UI_ITEM_NONE);
 
-  layout->root->block->flag |= UI_BLOCK_IS_FLIP;
-
   /* override default, needed since this was assumed pre 2.70 */
   UI_block_direction_set(layout->root->block, UI_DIR_DOWN);
 }
@@ -3668,7 +3650,6 @@ static void menu_item_enum_rna_menu(bContext * /*C*/, uiLayout *layout, void *ar
 
   uiLayoutSetOperatorContext(layout, lvl->opcontext);
   uiItemsEnumR(layout, &lvl->rnapoin, lvl->propname);
-  layout->root->block->flag |= UI_BLOCK_IS_FLIP;
 }
 
 void uiItemMenuEnumR_prop(
@@ -4005,7 +3986,6 @@ static void ui_litem_layout_radial(uiLayout *litem)
 {
   int itemh, itemw;
   int itemnum = 0;
-  int totitems = 0;
 
   /* For the radial layout we will use Matt Ebb's design
    * for radiation, see http://mattebb.com/weblog/radiation/
@@ -4018,56 +3998,60 @@ static void ui_litem_layout_radial(uiLayout *litem)
 
   int minx = x, miny = y, maxx = x, maxy = y;
 
-  /* first count total items */
-  LISTBASE_FOREACH (uiItem *, item, &litem->items) {
-    totitems++;
-  }
-
-  if (totitems < 5) {
-    litem->root->block->pie_data.flags |= UI_PIE_DEGREES_RANGE_LARGE;
-  }
+  litem->root->block->pie_data.pie_dir_mask = 0;
 
   LISTBASE_FOREACH (uiItem *, item, &litem->items) {
-    /* not all button types are drawn in a radial menu, do filtering here */
-    if (ui_item_is_radial_displayable(item)) {
-      RadialDirection dir;
-      float vec[2];
-      float factor[2];
+    /* Not all button types are drawn in a radial menu, do filtering here. */
+    if (!ui_item_is_radial_displayable(item)) {
+      continue;
+    }
 
-      dir = ui_get_radialbut_vec(vec, itemnum);
-      factor[0] = (vec[0] > 0.01f) ? 0.0f : ((vec[0] < -0.01f) ? -1.0f : -0.5f);
-      factor[1] = (vec[1] > 0.99f) ? 0.0f : ((vec[1] < -0.99f) ? -1.0f : -0.5f);
+    float vec[2];
+    const RadialDirection dir = ui_get_radialbut_vec(vec, itemnum);
+    const float factor[2] = {
+        (vec[0] > 0.01f) ? 0.0f : ((vec[0] < -0.01f) ? -1.0f : -0.5f),
+        (vec[1] > 0.99f) ? 0.0f : ((vec[1] < -0.99f) ? -1.0f : -0.5f),
+    };
+    itemnum++;
 
-      itemnum++;
+    /* Enable for non-buttons because a direction may reference a layout, see: #112610. */
+    bool use_dir = true;
 
-      if (item->type == ITEM_BUTTON) {
-        uiButtonItem *bitem = (uiButtonItem *)item;
+    if (item->type == ITEM_BUTTON) {
+      uiButtonItem *bitem = (uiButtonItem *)item;
 
-        bitem->but->pie_dir = dir;
-        /* scale the buttons */
-        bitem->but->rect.ymax *= 1.5f;
-        /* add a little bit more here to include number */
-        bitem->but->rect.xmax += 1.5f * UI_UNIT_X;
-        /* enable drawing as pie item if supported by widget */
-        if (ui_item_is_radial_drawable(bitem)) {
-          bitem->but->emboss = UI_EMBOSS_RADIAL;
-          bitem->but->drawflag |= UI_BUT_ICON_LEFT;
-        }
+      bitem->but->pie_dir = dir;
+      /* Scale the buttons. */
+      bitem->but->rect.ymax *= 1.5f;
+      /* Add a little bit more here to include number. */
+      bitem->but->rect.xmax += 1.5f * UI_UNIT_X;
+      /* Enable drawing as pie item if supported by widget. */
+      if (ui_item_is_radial_drawable(bitem)) {
+        bitem->but->emboss = UI_EMBOSS_RADIAL;
+        bitem->but->drawflag |= UI_BUT_ICON_LEFT;
       }
 
-      ui_item_size(item, &itemw, &itemh);
-
-      ui_item_position(item,
-                       x + vec[0] * pie_radius + factor[0] * itemw,
-                       y + vec[1] * pie_radius + factor[1] * itemh,
-                       itemw,
-                       itemh);
-
-      minx = min_ii(minx, x + vec[0] * pie_radius - itemw / 2);
-      maxx = max_ii(maxx, x + vec[0] * pie_radius + itemw / 2);
-      miny = min_ii(miny, y + vec[1] * pie_radius - itemh / 2);
-      maxy = max_ii(maxy, y + vec[1] * pie_radius + itemh / 2);
+      if (ELEM(bitem->but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
+        use_dir = false;
+      }
     }
+
+    if (use_dir) {
+      litem->root->block->pie_data.pie_dir_mask |= 1 << int(dir);
+    }
+
+    ui_item_size(item, &itemw, &itemh);
+
+    ui_item_position(item,
+                     x + (vec[0] * pie_radius) + (factor[0] * itemw),
+                     y + (vec[1] * pie_radius) + (factor[1] * itemh),
+                     itemw,
+                     itemh);
+
+    minx = min_ii(minx, x + (vec[0] * pie_radius) - (itemw / 2));
+    maxx = max_ii(maxx, x + (vec[0] * pie_radius) + (itemw / 2));
+    miny = min_ii(miny, y + (vec[1] * pie_radius) - (itemh / 2));
+    maxy = max_ii(maxy, y + (vec[1] * pie_radius) + (itemh / 2));
   }
 
   litem->x = minx;
@@ -5703,7 +5687,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
 
   if (layout->context) {
     but->context = layout->context;
-    but->context->used = true;
+    layout->context->used = true;
   }
 
   if (layout->emboss != UI_EMBOSS_UNDEFINED) {
@@ -5832,7 +5816,7 @@ bool UI_block_layout_needs_resolving(const uiBlock *block)
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, PointerRNA *ptr)
 {
   uiBlock *block = layout->root->block;
-  layout->context = CTX_store_add(&block->contexts, name, ptr);
+  layout->context = CTX_store_add(block->contexts, name, ptr);
 }
 
 bContextStore *uiLayoutGetContextStore(uiLayout *layout)
@@ -5840,10 +5824,10 @@ bContextStore *uiLayoutGetContextStore(uiLayout *layout)
   return layout->context;
 }
 
-void uiLayoutContextCopy(uiLayout *layout, bContextStore *context)
+void uiLayoutContextCopy(uiLayout *layout, const bContextStore *context)
 {
   uiBlock *block = layout->root->block;
-  layout->context = CTX_store_add_all(&block->contexts, context);
+  layout->context = CTX_store_add_all(block->contexts, context);
 }
 
 void uiLayoutSetTooltipFunc(uiLayout *layout,
@@ -5889,8 +5873,7 @@ void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but)
 
   if (but->rnapoin.data && but->rnaprop) {
     /* TODO: index could be supported as well */
-    PointerRNA ptr_prop;
-    RNA_pointer_create(nullptr, &RNA_Property, but->rnaprop, &ptr_prop);
+    PointerRNA ptr_prop = RNA_pointer_create(nullptr, &RNA_Property, but->rnaprop);
     uiLayoutSetContextPointer(layout, "button_prop", &ptr_prop);
     uiLayoutSetContextPointer(layout, "button_pointer", &but->rnapoin);
   }
@@ -5939,9 +5922,12 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout)
     printf("%s: opening menu \"%s\"\n", __func__, mt->idname);
   }
 
+  uiBlock *block = uiLayoutGetBlock(layout);
+  if (bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) {
+    UI_block_flag_enable(block, UI_BLOCK_NO_ACCELERATOR_KEYS);
+  }
   if (mt->listener) {
     /* Forward the menu type listener to the block we're drawing in. */
-    uiBlock *block = uiLayoutGetBlock(layout);
     uiBlockDynamicListener *listener = static_cast<uiBlockDynamicListener *>(
         MEM_mallocN(sizeof(*listener), __func__));
     listener->listener_func = mt->listener;

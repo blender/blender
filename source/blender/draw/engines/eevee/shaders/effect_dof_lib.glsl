@@ -129,7 +129,7 @@ vec4 dof_load_scatter_color(sampler2D scatter_input_color_buffer, vec2 uv, float
 float dof_load_gather_coc(sampler2D gather_input_coc_buffer, vec2 uv, float lod)
 {
   float coc = textureLod(gather_input_coc_buffer, uv, lod).r;
-  /* We gather at halfres. CoC must be divided by 2 to be compared against radii. */
+  /* We gather at half-resolution. CoC must be divided by 2 to be compared against radii. */
   return coc * 0.5;
 }
 
@@ -144,7 +144,7 @@ float dof_load_gather_coc(sampler2D gather_input_coc_buffer, vec2 uv, float lod)
 
 float dof_layer_weight(float coc, const bool is_foreground)
 {
-/* NOTE: These are fullres pixel CoC value. */
+/* NOTE: These are full-resolution pixel CoC value. */
 #ifdef DOF_RESOLVE_PASS
   return saturate(-abs(coc) + layer_threshold + layer_offset) *
          float(is_foreground ? (coc <= 0.5) : (coc > -0.5));
@@ -161,7 +161,7 @@ vec4 dof_layer_weight(vec4 coc)
   return saturate(coc - layer_threshold + layer_offset);
 }
 
-/* NOTE: This is halfres CoC radius. */
+/* NOTE: This is half-resolution CoC radius. */
 float dof_sample_weight(float coc)
 {
   /* Full intensity if CoC radius is below the pixel footprint. */

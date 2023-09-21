@@ -252,6 +252,7 @@ set(INC
   ../../sequencer
   ../../simulation
   ../../windowmanager
+  ../../editors/asset
   ../../editors/include
   ../../render
   ../../../../intern/clog

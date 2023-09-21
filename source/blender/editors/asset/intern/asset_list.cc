@@ -22,6 +22,7 @@
 #include "BKE_screen.h"
 
 #include "BLI_map.hh"
+#include "BLI_string.h"
 #include "BLI_utility_mixins.hh"
 
 #include "DNA_space_types.h"

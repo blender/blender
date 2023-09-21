@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : near_lines.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Draws the lines that are "closer" than a threshold

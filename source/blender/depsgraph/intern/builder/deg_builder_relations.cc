@@ -1576,8 +1576,7 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id,
                                                              ListBase *curves)
 {
   /* Iterate over all curves and build relations. */
-  PointerRNA id_ptr;
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
   LISTBASE_FOREACH (FCurve *, fcu, curves) {
     PointerRNA ptr;
     PropertyRNA *prop;
@@ -1833,9 +1832,8 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
      * data-block, which means driver execution should wait for that
      * data-block to be copied. */
     {
-      PointerRNA id_ptr;
+      PointerRNA id_ptr = RNA_id_pointer_create(id);
       PointerRNA ptr;
-      RNA_id_pointer_create(id, &id_ptr);
       if (RNA_path_resolve_full(&id_ptr, fcu->rna_path, &ptr, nullptr, nullptr)) {
         if (id_ptr.owner_id != ptr.owner_id) {
           ComponentKey cow_key(ptr.owner_id, NodeType::COPY_ON_WRITE);
@@ -1977,8 +1975,7 @@ void DepsgraphRelationBuilder::build_driver_scene_camera_variable(const Operatio
 
   LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
     if (!ELEM(marker->camera, nullptr, scene->camera)) {
-      PointerRNA camera_ptr;
-      RNA_id_pointer_create(&marker->camera->id, &camera_ptr);
+      PointerRNA camera_ptr = RNA_id_pointer_create(&marker->camera->id);
       build_driver_id_property(camera_ptr, rna_path);
       build_driver_rna_path_variable(driver_key, self_key, &scene->id, camera_ptr, rna_path);
       animated = true;
@@ -2938,6 +2935,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     }
   }
 
+  ntree->ensure_interface_cache();
   for (bNodeTreeInterfaceSocket *socket : ntree->interface_inputs()) {
     build_idproperties(socket->properties);
   }

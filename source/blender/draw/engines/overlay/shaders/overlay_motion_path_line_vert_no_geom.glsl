@@ -37,7 +37,7 @@ void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_
   float intensity; /* how faint */
   vec3 blend_base = (abs(frame - frameCurrent) == 0) ?
                         colorCurrentFrame.rgb :
-                        colorBackground.rgb; /* "bleed" cframe color to ease color blending */
+                        colorBackground.rgb; /* "bleed" CFRAME color to ease color blending. */
   bool use_custom_color = customColor.x >= 0.0;
   /* TODO: We might want something more consistent with custom color and standard colors. */
   if (frame < frameCurrent) {

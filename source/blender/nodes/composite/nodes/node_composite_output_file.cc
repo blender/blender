@@ -8,6 +8,7 @@
 
 #include <cstring>
 
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -256,8 +257,6 @@ static void copy_output_file(bNodeTree * /*dst_ntree*/, bNode *dest_node, const 
 
 static void update_output_file(bNodeTree *ntree, bNode *node)
 {
-  PointerRNA ptr;
-
   /* XXX fix for #36706: remove invalid sockets added with bpy API.
    * This is not ideal, but prevents crashes from missing storage.
    * FileOutput node needs a redesign to support this properly.
@@ -276,7 +275,7 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
   /* automatically update the socket type based on linked input */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (sock->link) {
-      RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
+      PointerRNA ptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock);
       RNA_enum_set(&ptr, "type", sock->link->fromsock->type);
     }
   }

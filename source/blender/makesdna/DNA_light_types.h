@@ -11,10 +11,6 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef MAX_MTEX
 #  define MAX_MTEX 18
 #endif
@@ -117,7 +113,7 @@ enum {
 /** #Light::mode */
 enum {
   LA_SHADOW = 1 << 0,
-  // LA_HALO = 1 << 1, /* Deprecated. .*/
+  // LA_HALO = 1 << 1, /* Deprecated. */
   // LA_LAYER = 1 << 2, /* Deprecated. */
   // LA_QUAD = 1 << 3, /* Deprecated. */
   // LA_NEG = 1 << 4, /* Deprecated. */
@@ -162,7 +158,3 @@ enum {
   LA_AREA_DISK = 4,
   LA_AREA_ELLIPSE = 5,
 };
-
-#ifdef __cplusplus
-}
-#endif

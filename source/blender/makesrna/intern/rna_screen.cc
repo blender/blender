@@ -282,8 +282,7 @@ static PointerRNA rna_Region_data_get(PointerRNA *ptr)
       /* We could make this static, it won't change at run-time. */
       SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
       if (region->type == BKE_regiontype_from_id(st, region->regiontype)) {
-        PointerRNA newptr;
-        RNA_pointer_create(&screen->id, &RNA_RegionView3D, region->regiondata, &newptr);
+        PointerRNA newptr = RNA_pointer_create(&screen->id, &RNA_RegionView3D, region->regiondata);
         return newptr;
       }
     }

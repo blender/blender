@@ -47,12 +47,12 @@ void main()
   froxel += grid_coords_min;
 #endif
 
-  if (any(greaterThanEqual(froxel, volumes_info_buf.tex_size))) {
+  if (any(greaterThanEqual(froxel, uniform_buf.volumes.tex_size))) {
     return;
   }
 
   vec3 jitter = sampling_rng_3D_get(SAMPLING_VOLUME_U);
-  vec3 ndc_cell = volume_to_ndc((vec3(froxel) + jitter) * volumes_info_buf.inv_tex_size);
+  vec3 ndc_cell = volume_to_ndc((vec3(froxel) + jitter) * uniform_buf.volumes.inv_tex_size);
 
   vec3 vP = get_view_space_from_depth(ndc_cell.xy, ndc_cell.z);
   vec3 wP = point_view_to_world(vP);

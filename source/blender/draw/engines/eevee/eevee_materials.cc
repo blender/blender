@@ -29,8 +29,8 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "../eevee_next/eevee_lut.hh"
 #include "eevee_engine.h"
-#include "eevee_lut.h"
 #include "eevee_private.h"
 
 /* *********** STATIC *********** */
@@ -138,7 +138,7 @@ void EEVEE_material_bind_resources(DRWShadingGroup *shgrp,
 static void eevee_init_noise_texture()
 {
   e_data.noise_tex = DRW_texture_create_2d(
-      64, 64, GPU_RGBA16F, DRWTextureFlag(0), (float *)blue_noise);
+      64, 64, GPU_RGBA16F, DRWTextureFlag(0), (float *)blender::eevee::lut::blue_noise);
 }
 
 #define RUNTIME_LUT_CREATION 0
@@ -149,53 +149,57 @@ static void eevee_init_util_texture()
   float(*texels)[4] = static_cast<float(*)[4]>(
       MEM_mallocN(sizeof(float[4]) * 64 * 64 * layers, "utils texels"));
   float(*texels_layer)[4] = texels;
-#if RUNTIME_LUT_CREATION
-  float *bsdf_ggx_lut = EEVEE_lut_update_ggx_brdf(64);
-  float(*btdf_ggx_lut)[64 * 64 * 2] = (float(*)[64 * 64 * 2]) EEVEE_lut_update_ggx_btdf(64, 16);
-#else
-  const float *bsdf_ggx_lut = bsdf_split_sum_ggx;
-  const float(*btdf_ggx_lut)[64 * 64 * 2] = btdf_split_sum_ggx;
-#endif
 
   /* Copy ltc_mat_ggx into 1st layer */
-  memcpy(texels_layer, ltc_mat_ggx, sizeof(float[4]) * 64 * 64);
+  memcpy(texels_layer, blender::eevee::lut::ltc_mat_ggx, sizeof(float[4]) * 64 * 64);
   texels_layer += 64 * 64;
 
-  /* Copy bsdf_split_sum_ggx into 2nd layer red and green channels.
+  /* Copy brdf_ggx into 2nd layer red and green channels.
    * Copy ltc_mag_ggx into 2nd layer blue and alpha channel. */
-  for (int i = 0; i < 64 * 64; i++) {
-    texels_layer[i][0] = bsdf_ggx_lut[i * 2 + 0];
-    texels_layer[i][1] = bsdf_ggx_lut[i * 2 + 1];
-    texels_layer[i][2] = ltc_mag_ggx[i * 2 + 0];
-    texels_layer[i][3] = ltc_mag_ggx[i * 2 + 1];
+  for (int x = 0; x < 64; x++) {
+    for (int y = 0; y < 64; y++) {
+      texels_layer[y * 64 + x][0] = blender::eevee::lut::brdf_ggx[y][x][0];
+      texels_layer[y * 64 + x][1] = blender::eevee::lut::brdf_ggx[y][x][1];
+      texels_layer[y * 64 + x][2] = blender::eevee::lut::ltc_mag_ggx[y][x][0];
+      texels_layer[y * 64 + x][3] = blender::eevee::lut::ltc_mag_ggx[y][x][1];
+    }
   }
   texels_layer += 64 * 64;
 
   /* Copy blue noise in 3rd layer. */
-  for (int i = 0; i < 64 * 64; i++) {
-    texels_layer[i][0] = blue_noise[i][0];
-    texels_layer[i][1] = blue_noise[i][2];
-    texels_layer[i][2] = cosf(blue_noise[i][1] * 2.0f * M_PI);
-    texels_layer[i][3] = sinf(blue_noise[i][1] * 2.0f * M_PI);
+  for (int x = 0; x < 64; x++) {
+    for (int y = 0; y < 64; y++) {
+      texels_layer[y * 64 + x][0] = blender::eevee::lut::blue_noise[y][x][0];
+      texels_layer[y * 64 + x][1] = blender::eevee::lut::blue_noise[y][x][2];
+      texels_layer[y * 64 + x][2] = cosf(blender::eevee::lut::blue_noise[y][x][1] * 2.0f * M_PI);
+      texels_layer[y * 64 + x][3] = sinf(blender::eevee::lut::blue_noise[y][x][1] * 2.0f * M_PI);
+    }
   }
   texels_layer += 64 * 64;
 
   /* Copy ltc_disk_integral in 4th layer. */
-  for (int i = 0; i < 64 * 64; i++) {
-    texels_layer[i][0] = ltc_disk_integral[i];
-    texels_layer[i][1] = 0.0; /* UNUSED */
-    texels_layer[i][2] = 0.0; /* UNUSED */
-    texels_layer[i][3] = 0.0; /* UNUSED */
+  for (int x = 0; x < 64; x++) {
+    for (int y = 0; y < 64; y++) {
+      texels_layer[y * 64 + x][0] = blender::eevee::lut::ltc_disk_integral[y][x][0];
+      texels_layer[y * 64 + x][1] = 0.0; /* UNUSED */
+      texels_layer[y * 64 + x][2] = 0.0; /* UNUSED */
+      texels_layer[y * 64 + x][3] = 0.0; /* UNUSED */
+    }
   }
   texels_layer += 64 * 64;
 
-  /* Copy Refraction GGX LUT in layer 5 - 21 */
+  /* Copy BSDF GGX LUT in layer 5 - 21 */
   for (int j = 0; j < 16; j++) {
-    for (int i = 0; i < 64 * 64; i++) {
-      texels_layer[i][0] = btdf_ggx_lut[j][i * 2 + 0];
-      texels_layer[i][1] = btdf_ggx_lut[j][i * 2 + 1];
-      texels_layer[i][2] = 0.0; /* UNUSED */
-      texels_layer[i][3] = 0.0; /* UNUSED */
+    for (int x = 0; x < 64; x++) {
+      for (int y = 0; y < 64; y++) {
+        /* BSDF LUT for `IOR < 1`. */
+        texels_layer[y * 64 + x][0] = blender::eevee::lut::bsdf_ggx[j][y][x][0];
+        texels_layer[y * 64 + x][1] = blender::eevee::lut::bsdf_ggx[j][y][x][1];
+        texels_layer[y * 64 + x][2] = blender::eevee::lut::bsdf_ggx[j][y][x][2];
+        /* BTDF LUT for `IOR > 1`, parameterized differently as above.
+         * See `eevee_lut_comp.glsl`. */
+        texels_layer[y * 64 + x][3] = blender::eevee::lut::btdf_ggx[j][y][x][0];
+      }
     }
     texels_layer += 64 * 64;
   }
@@ -210,10 +214,6 @@ static void eevee_init_util_texture()
                                                    (float *)texels);
 
   MEM_freeN(texels);
-#if RUNTIME_LUT_CREATION
-  MEM_freeN(bsdf_ggx_lut);
-  MEM_freeN(btdf_ggx_lut);
-#endif
 }
 
 void EEVEE_update_noise(EEVEE_PassList *psl, EEVEE_FramebufferList *fbl, const double offsets[3])

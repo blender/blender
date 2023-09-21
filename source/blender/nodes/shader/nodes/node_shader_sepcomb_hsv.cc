@@ -41,7 +41,6 @@ void register_node_type_sh_sephsv()
   ntype.declare = file_ns::node_declare_sephsv;
   ntype.gpu_fn = file_ns::gpu_shader_sephsv;
   ntype.gather_link_search_ops = nullptr;
-  ntype.gather_add_node_search_ops = nullptr;
 
   nodeRegisterType(&ntype);
 }
@@ -79,7 +78,6 @@ void register_node_type_sh_combhsv()
   ntype.declare = file_ns::node_declare_combhsv;
   ntype.gpu_fn = file_ns::gpu_shader_combhsv;
   ntype.gather_link_search_ops = nullptr;
-  ntype.gather_add_node_search_ops = nullptr;
 
   nodeRegisterType(&ntype);
 }

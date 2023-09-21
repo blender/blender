@@ -1,204 +1,35 @@
-/* SPDX-FileCopyrightText: 2018 Blender Authors
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup draw_engine
- */
+#include "workbench_private.hh"
 
-#include "workbench_private.h"
-
-#include "DNA_fluid_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_force_types.h"
-#include "DNA_volume_types.h"
-
-#include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_rand.h"
-#include "BLI_string_utils.h"
-
-#include "BKE_fluid.h"
-#include "BKE_global.h"
-#include "BKE_object.h"
 #include "BKE_volume.h"
 #include "BKE_volume_render.h"
+#include "BLI_rand.h"
+#include "DNA_fluid_types.h"
+#include "DNA_modifier_types.h"
 
-void workbench_volume_engine_init(WORKBENCH_Data *vedata)
+namespace blender::workbench {
+
+void VolumePass::sync(SceneResources &resources)
 {
-  WORKBENCH_TextureList *txl = vedata->txl;
+  active_ = false;
+  ps_.init();
+  ps_.bind_ubo(WB_WORLD_SLOT, resources.world_buf);
 
-  if (txl->dummy_volume_tx == nullptr) {
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
-
-    const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    const float one[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    txl->dummy_volume_tx = GPU_texture_create_3d(
-        "dummy_volume", 1, 1, 1, 1, GPU_RGBA8, usage, zero);
-    txl->dummy_shadow_tx = GPU_texture_create_3d(
-        "dummy_shadow", 1, 1, 1, 1, GPU_RGBA8, usage, one);
-    txl->dummy_coba_tx = GPU_texture_create_1d("dummy_coba", 1, 1, GPU_RGBA8, usage, zero);
-  }
+  dummy_shadow_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(1));
+  dummy_volume_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(0));
+  dummy_coba_tx_.ensure_1d(GPU_RGBA8, 1, GPU_TEXTURE_USAGE_SHADER_READ, float4(0));
 }
 
-void workbench_volume_cache_init(WORKBENCH_Data *vedata)
+void VolumePass::object_sync_volume(Manager &manager,
+                                    SceneResources &resources,
+                                    const SceneState &scene_state,
+                                    ObjectRef &ob_ref,
+                                    float3 color)
 {
-  vedata->psl->volume_ps = DRW_pass_create(
-      "Volumes", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL | DRW_STATE_CULL_FRONT);
-
-  vedata->stl->wpd->volumes_do = false;
-}
-
-static void workbench_volume_modifier_cache_populate(WORKBENCH_Data *vedata,
-                                                     Object *ob,
-                                                     ModifierData *md)
-{
-  FluidModifierData *fmd = (FluidModifierData *)md;
-  FluidDomainSettings *fds = fmd->domain;
-  WORKBENCH_PrivateData *wpd = vedata->stl->wpd;
-  WORKBENCH_TextureList *txl = vedata->txl;
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  DRWShadingGroup *grp = nullptr;
-
-  if (!fds->fluid) {
-    return;
-  }
-
-  wpd->volumes_do = true;
-  if (fds->use_coba) {
-    DRW_smoke_ensure_coba_field(fmd);
-  }
-  else if (fds->type == FLUID_DOMAIN_TYPE_GAS) {
-    DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
-  }
-  else {
-    return;
-  }
-
-  if ((!fds->use_coba && (fds->tex_density == nullptr && fds->tex_color == nullptr)) ||
-      (fds->use_coba && fds->tex_field == nullptr))
-  {
-    return;
-  }
-
-  const bool use_slice = (fds->axis_slice_method == AXIS_SLICE_SINGLE);
-  const bool show_phi = ELEM(fds->coba_field,
-                             FLUID_DOMAIN_FIELD_PHI,
-                             FLUID_DOMAIN_FIELD_PHI_IN,
-                             FLUID_DOMAIN_FIELD_PHI_OUT,
-                             FLUID_DOMAIN_FIELD_PHI_OBSTACLE);
-  const bool show_flags = (fds->coba_field == FLUID_DOMAIN_FIELD_FLAGS);
-  const bool show_pressure = (fds->coba_field == FLUID_DOMAIN_FIELD_PRESSURE);
-  eWORKBENCH_VolumeInterpType interp_type = WORKBENCH_VOLUME_INTERP_LINEAR;
-
-  switch ((FLUID_DisplayInterpolationMethod)fds->interp_method) {
-    case FLUID_DISPLAY_INTERP_LINEAR:
-      interp_type = WORKBENCH_VOLUME_INTERP_LINEAR;
-      break;
-    case FLUID_DISPLAY_INTERP_CUBIC:
-      interp_type = WORKBENCH_VOLUME_INTERP_CUBIC;
-      break;
-    case FLUID_DISPLAY_INTERP_CLOSEST:
-      interp_type = WORKBENCH_VOLUME_INTERP_CLOSEST;
-      break;
-  }
-
-  GPUShader *sh = workbench_shader_volume_get(use_slice, fds->use_coba, interp_type, true);
-
-  if (use_slice) {
-    float invviewmat[4][4];
-    DRW_view_viewmat_get(nullptr, invviewmat, true);
-
-    const int axis = (fds->slice_axis == SLICE_AXIS_AUTO) ?
-                         axis_dominant_v3_single(invviewmat[2]) :
-                         fds->slice_axis - 1;
-    float dim[3];
-    BKE_object_dimensions_get(ob, dim);
-    /* 0.05f to achieve somewhat the same opacity as the full view. */
-    float step_length = max_ff(1e-16f, dim[axis] * 0.05f);
-
-    grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);
-    DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
-    DRW_shgroup_uniform_float_copy(grp, "slicePosition", fds->slice_depth);
-    DRW_shgroup_uniform_int_copy(grp, "sliceAxis", axis);
-    DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
-    DRW_shgroup_state_disable(grp, DRW_STATE_CULL_FRONT);
-  }
-  else {
-    double noise_ofs;
-    BLI_halton_1d(3, 0.0, wpd->taa_sample, &noise_ofs);
-    float dim[3], step_length, max_slice;
-    float slice_count[3] = {float(fds->res[0]), float(fds->res[1]), float(fds->res[2])};
-    mul_v3_fl(slice_count, max_ff(0.001f, fds->slice_per_voxel));
-    max_slice = max_fff(slice_count[0], slice_count[1], slice_count[2]);
-    BKE_object_dimensions_get(ob, dim);
-    invert_v3(slice_count);
-    mul_v3_v3(dim, slice_count);
-    step_length = len_v3(dim);
-
-    grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);
-    DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
-    DRW_shgroup_uniform_int_copy(grp, "samplesLen", max_slice);
-    DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
-    DRW_shgroup_uniform_float_copy(grp, "noiseOfs", noise_ofs);
-    DRW_shgroup_state_enable(grp, DRW_STATE_CULL_FRONT);
-  }
-
-  if (fds->use_coba) {
-    if (show_flags) {
-      DRW_shgroup_uniform_texture(grp, "flagTexture", fds->tex_field);
-    }
-    else {
-      DRW_shgroup_uniform_texture(grp, "densityTexture", fds->tex_field);
-    }
-    if (!show_phi && !show_flags && !show_pressure) {
-      DRW_shgroup_uniform_texture(grp, "transferTexture", fds->tex_coba);
-    }
-    DRW_shgroup_uniform_float_copy(grp, "gridScale", fds->grid_scale);
-    DRW_shgroup_uniform_bool_copy(grp, "showPhi", show_phi);
-    DRW_shgroup_uniform_bool_copy(grp, "showFlags", show_flags);
-    DRW_shgroup_uniform_bool_copy(grp, "showPressure", show_pressure);
-  }
-  else {
-    static float white[3] = {1.0f, 1.0f, 1.0f};
-    bool use_constant_color = ((fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
-                               (fds->active_fields & FLUID_DOMAIN_ACTIVE_COLOR_SET) != 0);
-    DRW_shgroup_uniform_texture(
-        grp, "densityTexture", (fds->tex_color) ? fds->tex_color : fds->tex_density);
-    DRW_shgroup_uniform_texture(grp, "shadowTexture", fds->tex_shadow);
-    DRW_shgroup_uniform_texture(
-        grp, "flameTexture", (fds->tex_flame) ? fds->tex_flame : txl->dummy_volume_tx);
-    DRW_shgroup_uniform_texture(
-        grp, "flameColorTexture", (fds->tex_flame) ? fds->tex_flame_coba : txl->dummy_coba_tx);
-    DRW_shgroup_uniform_vec3(
-        grp, "activeColor", (use_constant_color) ? fds->active_color : white, 1);
-  }
-  DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
-  DRW_shgroup_uniform_float_copy(grp, "densityScale", 10.0f * fds->display_thickness);
-
-  if (use_slice) {
-    DRW_shgroup_call(grp, DRW_cache_quad_get(), ob);
-  }
-  else {
-    DRW_shgroup_call(grp, DRW_cache_cube_get(), ob);
-  }
-}
-
-static void workbench_volume_material_color(WORKBENCH_PrivateData *wpd,
-                                            Object *ob,
-                                            eV3DShadingColorType color_type,
-                                            float color[3])
-{
-  Material *ma = BKE_object_material_get_eval(ob, VOLUME_MATERIAL_NR);
-  WORKBENCH_UBO_Material ubo_data;
-  workbench_material_ubo_data(wpd, ob, ma, &ubo_data, color_type);
-  copy_v3_v3(color, ubo_data.base_color);
-}
-
-static void workbench_volume_object_cache_populate(WORKBENCH_Data *vedata,
-                                                   Object *ob,
-                                                   eV3DShadingColorType color_type)
-{
+  Object *ob = ob_ref.object;
   /* Create 3D textures. */
   Volume *volume = static_cast<Volume *>(ob->data);
   BKE_volume_load(volume, G.main);
@@ -206,133 +37,226 @@ static void workbench_volume_object_cache_populate(WORKBENCH_Data *vedata,
   if (volume_grid == nullptr) {
     return;
   }
+
   DRWVolumeGrid *grid = DRW_volume_batch_cache_get_grid(volume, volume_grid);
   if (grid == nullptr) {
     return;
   }
 
-  WORKBENCH_PrivateData *wpd = vedata->stl->wpd;
-  WORKBENCH_TextureList *txl = vedata->txl;
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  DRWShadingGroup *grp = nullptr;
+  active_ = true;
 
-  wpd->volumes_do = true;
+  PassMain::Sub &sub_ps = ps_.sub("Volume Object SubPass");
+
   const bool use_slice = (volume->display.axis_slice_method == AXIS_SLICE_SINGLE);
-  eWORKBENCH_VolumeInterpType interp_type = WORKBENCH_VOLUME_INTERP_LINEAR;
 
-  switch ((VolumeDisplayInterpMethod)volume->display.interpolation_method) {
-    case VOLUME_DISPLAY_INTERP_LINEAR:
-      interp_type = WORKBENCH_VOLUME_INTERP_LINEAR;
-      break;
-    case VOLUME_DISPLAY_INTERP_CUBIC:
-      interp_type = WORKBENCH_VOLUME_INTERP_CUBIC;
-      break;
-    case VOLUME_DISPLAY_INTERP_CLOSEST:
-      interp_type = WORKBENCH_VOLUME_INTERP_CLOSEST;
-      break;
-  }
+  sub_ps.shader_set(get_shader(use_slice, false, volume->display.interpolation_method, false));
 
-  /* Create shader. */
-  GPUShader *sh = workbench_shader_volume_get(use_slice, false, interp_type, false);
-
-  /* Compute color. */
-  float color[3];
-  workbench_volume_material_color(wpd, ob, color_type, color);
-
-  /* Combined texture to object, and object to world transform. */
-  float texture_to_world[4][4];
-  mul_m4_m4m4(texture_to_world, ob->object_to_world, grid->texture_to_object);
-
-  if (use_slice) {
-    float invviewmat[4][4];
-    DRW_view_viewmat_get(nullptr, invviewmat, true);
-
-    const int axis = (volume->display.slice_axis == SLICE_AXIS_AUTO) ?
-                         axis_dominant_v3_single(invviewmat[2]) :
-                         volume->display.slice_axis - 1;
-
-    float dim[3];
-    BKE_object_dimensions_get(ob, dim);
-    /* 0.05f to achieve somewhat the same opacity as the full view. */
-    float step_length = max_ff(1e-16f, dim[axis] * 0.05f);
-
-    const float slice_position = volume->display.slice_depth;
-
-    grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);
-    DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
-    DRW_shgroup_uniform_float_copy(grp, "slicePosition", slice_position);
-    DRW_shgroup_uniform_int_copy(grp, "sliceAxis", axis);
-    DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
-    DRW_shgroup_state_disable(grp, DRW_STATE_CULL_FRONT);
-  }
-  else {
-    /* Compute world space dimensions for step size. */
-    float world_size[3];
-    mat4_to_size(world_size, texture_to_world);
-    abs_v3(world_size);
-
-    /* Compute step parameters. */
-    double noise_ofs;
-    BLI_halton_1d(3, 0.0, wpd->taa_sample, &noise_ofs);
-    float step_length, max_slice;
-    int resolution[3];
-    GPU_texture_get_mipmap_size(grid->texture, 0, resolution);
-    float slice_count[3] = {float(resolution[0]), float(resolution[1]), float(resolution[2])};
-    mul_v3_fl(slice_count, max_ff(0.001f, 5.0f));
-    max_slice = max_fff(slice_count[0], slice_count[1], slice_count[2]);
-    invert_v3(slice_count);
-    mul_v3_v3(slice_count, world_size);
-    step_length = len_v3(slice_count);
-
-    /* Set uniforms. */
-    grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);
-    DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
-    DRW_shgroup_uniform_int_copy(grp, "samplesLen", max_slice);
-    DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
-    DRW_shgroup_uniform_float_copy(grp, "noiseOfs", noise_ofs);
-    DRW_shgroup_state_enable(grp, DRW_STATE_CULL_FRONT);
-  }
-
-  /* Compute density scale. */
   const float density_scale = volume->display.density *
                               BKE_volume_density_scale(volume, ob->object_to_world);
 
-  DRW_shgroup_uniform_texture(grp, "densityTexture", grid->texture);
+  sub_ps.bind_texture("depthBuffer", &resources.depth_tx);
+  sub_ps.bind_texture("stencil_tx", &stencil_tx_);
+  sub_ps.bind_texture("densityTexture", grid->texture);
   /* TODO: implement shadow texture, see manta_smoke_calc_transparency. */
-  DRW_shgroup_uniform_texture(grp, "shadowTexture", txl->dummy_shadow_tx);
-  DRW_shgroup_uniform_vec3_copy(grp, "activeColor", color);
+  sub_ps.bind_texture("shadowTexture", dummy_shadow_tx_);
+  sub_ps.push_constant("activeColor", color);
+  sub_ps.push_constant("densityScale", density_scale);
+  sub_ps.push_constant("volumeObjectToTexture", float4x4(grid->object_to_texture));
+  sub_ps.push_constant("volumeTextureToObject", float4x4(grid->texture_to_object));
 
-  DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
-  DRW_shgroup_uniform_float_copy(grp, "densityScale", density_scale);
-
-  DRW_shgroup_uniform_mat4(grp, "volumeObjectToTexture", grid->object_to_texture);
-  DRW_shgroup_uniform_mat4(grp, "volumeTextureToObject", grid->texture_to_object);
-
-  DRW_shgroup_call(grp, DRW_cache_cube_get(), ob);
-}
-
-void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
-                                     Scene * /*scene*/,
-                                     Object *ob,
-                                     ModifierData *md,
-                                     eV3DShadingColorType color_type)
-{
-  if (md == nullptr) {
-    workbench_volume_object_cache_populate(vedata, ob, color_type);
+  if (use_slice) {
+    draw_slice_ps(
+        manager, sub_ps, ob_ref, volume->display.slice_axis, volume->display.slice_depth);
   }
   else {
-    workbench_volume_modifier_cache_populate(vedata, ob, md);
+    float4x4 texture_to_world = float4x4(ob->object_to_world) * float4x4(grid->texture_to_object);
+    float3 world_size = math::to_scale(texture_to_world);
+
+    int3 resolution;
+    GPU_texture_get_mipmap_size(grid->texture, 0, resolution);
+    float3 slice_count = float3(resolution) * 5.0f;
+
+    draw_volume_ps(manager, sub_ps, ob_ref, scene_state.sample, slice_count, world_size);
   }
 }
 
-void workbench_volume_draw_pass(WORKBENCH_Data *vedata)
+void VolumePass::object_sync_modifier(Manager &manager,
+                                      SceneResources &resources,
+                                      const SceneState &scene_state,
+                                      ObjectRef &ob_ref,
+                                      ModifierData *md)
 {
-  WORKBENCH_PassList *psl = vedata->psl;
-  WORKBENCH_PrivateData *wpd = vedata->stl->wpd;
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  Object *ob = ob_ref.object;
 
-  if (wpd->volumes_do) {
-    GPU_framebuffer_bind(dfbl->color_only_fb);
-    DRW_draw_pass(psl->volume_ps);
+  FluidModifierData *modifier = reinterpret_cast<FluidModifierData *>(md);
+  FluidDomainSettings &settings = *modifier->domain;
+
+  if (!settings.fluid) {
+    return;
+  }
+
+  bool can_load = false;
+  if (settings.use_coba) {
+    DRW_smoke_ensure_coba_field(modifier);
+    can_load = settings.tex_field != nullptr;
+  }
+  else if (settings.type == FLUID_DOMAIN_TYPE_GAS) {
+    DRW_smoke_ensure(modifier, settings.flags & FLUID_DOMAIN_USE_NOISE);
+    can_load = settings.tex_density != nullptr || settings.tex_color != nullptr;
+  }
+
+  if (!can_load) {
+    return;
+  }
+
+  active_ = true;
+
+  PassMain::Sub &sub_ps = ps_.sub("Volume Modifier SubPass");
+
+  const bool use_slice = settings.axis_slice_method == AXIS_SLICE_SINGLE;
+
+  sub_ps.shader_set(get_shader(use_slice, settings.use_coba, settings.interp_method, true));
+
+  if (settings.use_coba) {
+    const bool show_flags = settings.coba_field == FLUID_DOMAIN_FIELD_FLAGS;
+    const bool show_pressure = settings.coba_field == FLUID_DOMAIN_FIELD_PRESSURE;
+    const bool show_phi = ELEM(settings.coba_field,
+                               FLUID_DOMAIN_FIELD_PHI,
+                               FLUID_DOMAIN_FIELD_PHI_IN,
+                               FLUID_DOMAIN_FIELD_PHI_OUT,
+                               FLUID_DOMAIN_FIELD_PHI_OBSTACLE);
+
+    sub_ps.push_constant("showFlags", show_flags);
+    sub_ps.push_constant("showPressure", show_pressure);
+    sub_ps.push_constant("showPhi", show_phi);
+    sub_ps.push_constant("gridScale", settings.grid_scale);
+
+    if (show_flags) {
+      sub_ps.bind_texture("flagTexture", settings.tex_field);
+    }
+    else {
+      sub_ps.bind_texture("densityTexture", settings.tex_field);
+    }
+
+    if (!show_flags && !show_pressure && !show_phi) {
+      sub_ps.bind_texture("transferTexture", settings.tex_coba);
+    }
+  }
+  else {
+    bool use_constant_color = ((settings.active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
+                               (settings.active_fields & FLUID_DOMAIN_ACTIVE_COLOR_SET) != 0);
+
+    sub_ps.push_constant("activeColor",
+                         use_constant_color ? float3(settings.active_color) : float3(1));
+
+    sub_ps.bind_texture("densityTexture",
+                        settings.tex_color ? settings.tex_color : settings.tex_density);
+    sub_ps.bind_texture("flameTexture",
+                        settings.tex_flame ? settings.tex_flame : dummy_volume_tx_);
+    sub_ps.bind_texture("flameColorTexture",
+                        settings.tex_flame ? settings.tex_flame_coba : dummy_coba_tx_);
+    sub_ps.bind_texture("shadowTexture", settings.tex_shadow);
+  }
+
+  sub_ps.push_constant("densityScale", 10.0f * settings.display_thickness);
+  sub_ps.bind_texture("depthBuffer", &resources.depth_tx);
+  sub_ps.bind_texture("stencil_tx", &stencil_tx_);
+
+  if (use_slice) {
+    draw_slice_ps(manager, sub_ps, ob_ref, settings.slice_axis, settings.slice_depth);
+  }
+  else {
+    float3 world_size;
+    BKE_object_dimensions_get(ob, world_size);
+
+    float3 slice_count = float3(settings.res) * std::max(0.001f, settings.slice_per_voxel);
+
+    draw_volume_ps(manager, sub_ps, ob_ref, scene_state.sample, slice_count, world_size);
   }
 }
+
+void VolumePass::draw(Manager &manager, View &view, SceneResources &resources)
+{
+  if (!active_) {
+    return;
+  }
+
+  stencil_tx_ = resources.stencil_view.extract(manager, resources.depth_tx);
+
+  fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
+  fb_.bind();
+  manager.submit(ps_, view);
+}
+
+GPUShader *VolumePass::get_shader(bool slice, bool coba, int interpolation, bool smoke)
+{
+  GPUShader *&shader = shaders_[slice][coba][interpolation][smoke];
+
+  if (shader == nullptr) {
+    std::string create_info_name = "workbench_volume";
+    create_info_name += (smoke) ? "_smoke" : "_object";
+    switch (interpolation) {
+      case VOLUME_DISPLAY_INTERP_LINEAR:
+        create_info_name += "_linear";
+        break;
+      case VOLUME_DISPLAY_INTERP_CUBIC:
+        create_info_name += "_cubic";
+        break;
+      case VOLUME_DISPLAY_INTERP_CLOSEST:
+        create_info_name += "_closest";
+        break;
+      default:
+        BLI_assert_unreachable();
+    }
+    create_info_name += (coba) ? "_coba" : "_no_coba";
+    create_info_name += (slice) ? "_slice" : "_no_slice";
+    shader = GPU_shader_create_from_info_name(create_info_name.c_str());
+  }
+  return shader;
+}
+
+void VolumePass::draw_slice_ps(
+    Manager &manager, PassMain::Sub &ps, ObjectRef &ob_ref, int slice_axis_enum, float slice_depth)
+{
+  float4x4 view_mat_inv;
+  DRW_view_viewmat_get(nullptr, view_mat_inv.ptr(), true);
+
+  const int axis = (slice_axis_enum == SLICE_AXIS_AUTO) ?
+                       axis_dominant_v3_single(view_mat_inv[2]) :
+                       slice_axis_enum - 1;
+
+  float3 dimensions;
+  BKE_object_dimensions_get(ob_ref.object, dimensions);
+  /* 0.05f to achieve somewhat the same opacity as the full view. */
+  float step_length = std::max(1e-16f, dimensions[axis] * 0.05f);
+
+  ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL);
+  ps.push_constant("slicePosition", slice_depth);
+  ps.push_constant("sliceAxis", axis);
+  ps.push_constant("stepLength", step_length);
+
+  ps.draw(DRW_cache_quad_get(), manager.resource_handle(ob_ref));
+}
+
+void VolumePass::draw_volume_ps(Manager &manager,
+                                PassMain::Sub &ps,
+                                ObjectRef &ob_ref,
+                                int taa_sample,
+                                float3 slice_count,
+                                float3 world_size)
+{
+  double noise_offset;
+  BLI_halton_1d(3, 0.0, taa_sample, &noise_offset);
+
+  int max_slice = std::max({UNPACK3(slice_count)});
+  float step_length = math::length((1.0f / slice_count) * world_size);
+
+  ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL | DRW_STATE_CULL_FRONT);
+  ps.push_constant("samplesLen", max_slice);
+  ps.push_constant("stepLength", step_length);
+  ps.push_constant("noiseOfs", float(noise_offset));
+
+  ps.draw(DRW_cache_cube_get(), manager.resource_handle(ob_ref));
+}
+
+}  // namespace blender::workbench

@@ -182,12 +182,12 @@ void DocumentImporter::finish()
   /** TODO: Break up and put into 2-pass parsing of DAE. */
   std::vector<const COLLADAFW::VisualScene *>::iterator sit;
   for (sit = vscenes.begin(); sit != vscenes.end(); sit++) {
-    PointerRNA sceneptr, unit_settings;
+    PointerRNA unit_settings;
     PropertyRNA *system, *scale;
 
     /* for scene unit settings: system, scale_length */
 
-    RNA_id_pointer_create(&sce->id, &sceneptr);
+    PointerRNA sceneptr = RNA_id_pointer_create(&sce->id);
     unit_settings = RNA_pointer_get(&sceneptr, "unit_settings");
     system = RNA_struct_find_property(&unit_settings, "system");
     scale = RNA_struct_find_property(&unit_settings, "scale_length");

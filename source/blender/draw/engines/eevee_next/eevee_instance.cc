@@ -109,6 +109,7 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   /* Irradiance Cache needs reflection probes to be initialized. */
   reflection_probes.init();
   irradiance_cache.init();
+  volume.init();
 }
 
 void Instance::set_time(float time)
@@ -279,6 +280,8 @@ void Instance::end_sync()
   light_probes.end_sync();
   reflection_probes.end_sync();
   volume.end_sync();
+
+  global_ubo_.push_update();
 }
 
 void Instance::render_sync()
@@ -347,7 +350,8 @@ void Instance::render_sample()
 void Instance::render_read_result(RenderLayer *render_layer, const char *view_name)
 {
   eViewLayerEEVEEPassType pass_bits = film.enabled_passes_get();
-  for (auto i : IndexRange(EEVEE_RENDER_PASS_MAX_BIT)) {
+
+  for (auto i : IndexRange(EEVEE_RENDER_PASS_MAX_BIT + 1)) {
     eViewLayerEEVEEPassType pass_type = eViewLayerEEVEEPassType(pass_bits & (1 << i));
     if (pass_type == 0) {
       continue;
@@ -495,6 +499,8 @@ void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view
   CHECK_PASS_LEGACY(Z, SOCK_FLOAT, 1, "Z");
   CHECK_PASS_LEGACY(MIST, SOCK_FLOAT, 1, "Z");
   CHECK_PASS_LEGACY(NORMAL, SOCK_VECTOR, 3, "XYZ");
+  CHECK_PASS_LEGACY(POSITION, SOCK_VECTOR, 3, "XYZ");
+  CHECK_PASS_LEGACY(VECTOR, SOCK_VECTOR, 4, "XYZW");
   CHECK_PASS_LEGACY(DIFFUSE_DIRECT, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(DIFFUSE_COLOR, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(GLOSSY_DIRECT, SOCK_RGBA, 3, "RGB");

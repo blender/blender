@@ -43,7 +43,7 @@ void main()
 
     int clip_index = tilemap.clip_data_index;
     if (clip_index == -1) {
-      /* Noop. This is the case for unused tile-maps that are getting pushed to the free heap. */
+      /* NOP. This is the case for unused tile-maps that are getting pushed to the free heap. */
     }
     else if (tilemap.projection_type != SHADOW_PROJECTION_CUBEFACE) {
       ShadowTileMapClip clip_data = tilemaps_clip_buf[clip_index];
@@ -69,8 +69,9 @@ void main()
   barrier();
 
   ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 tile_shifted = tile_co + tilemap.grid_shift;
-  /* Ensure value is shifted into positive range to avoid modulo on negative. */
+  ivec2 tile_shifted = tile_co + clamp(tilemap.grid_shift,
+                                       ivec2(-SHADOW_TILEMAP_RES),
+                                       ivec2(SHADOW_TILEMAP_RES));
   ivec2 tile_wrapped = ivec2((ivec2(SHADOW_TILEMAP_RES) + tile_shifted) % SHADOW_TILEMAP_RES);
 
   /* If this tile was shifted in and contains old information, update it.

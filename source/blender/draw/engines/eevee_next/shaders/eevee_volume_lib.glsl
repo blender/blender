@@ -4,7 +4,7 @@
 
 /**
  * The resources expected to be defined are:
- * - volumes_info_buf
+ * - uniform_buf.volumes
  */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
@@ -17,9 +17,9 @@
 /* Volume slice to view space depth. */
 float volume_z_to_view_z(float z)
 {
-  float near = volumes_info_buf.depth_near;
-  float far = volumes_info_buf.depth_far;
-  float distribution = volumes_info_buf.depth_distribution;
+  float near = uniform_buf.volumes.depth_near;
+  float far = uniform_buf.volumes.depth_far;
+  float distribution = uniform_buf.volumes.depth_distribution;
   bool is_persp = ProjectionMatrix[3][3] == 0.0;
   /* Implemented in eevee_shader_shared.cc */
   return volume_z_to_view_z(near, far, distribution, is_persp, z);
@@ -27,9 +27,9 @@ float volume_z_to_view_z(float z)
 
 float view_z_to_volume_z(float depth)
 {
-  float near = volumes_info_buf.depth_near;
-  float far = volumes_info_buf.depth_far;
-  float distribution = volumes_info_buf.depth_distribution;
+  float near = uniform_buf.volumes.depth_near;
+  float far = uniform_buf.volumes.depth_far;
+  float distribution = uniform_buf.volumes.depth_distribution;
   bool is_persp = ProjectionMatrix[3][3] == 0.0;
   /* Implemented in eevee_shader_shared.cc */
   return view_z_to_volume_z(near, far, distribution, is_persp, depth);
@@ -40,16 +40,16 @@ vec3 volume_to_ndc(vec3 coord)
 {
   coord.z = volume_z_to_view_z(coord.z);
   coord.z = get_depth_from_view_z(coord.z);
-  coord.xy /= volumes_info_buf.coord_scale;
+  coord.xy /= uniform_buf.volumes.coord_scale;
   return coord;
 }
 
 vec3 ndc_to_volume(vec3 coord)
 {
-  float near = volumes_info_buf.depth_near;
-  float far = volumes_info_buf.depth_far;
-  float distribution = volumes_info_buf.depth_distribution;
-  vec2 coord_scale = volumes_info_buf.coord_scale;
+  float near = uniform_buf.volumes.depth_near;
+  float far = uniform_buf.volumes.depth_far;
+  float distribution = uniform_buf.volumes.depth_distribution;
+  vec2 coord_scale = uniform_buf.volumes.coord_scale;
   /* Implemented in eevee_shader_shared.cc */
   return ndc_to_volume(ProjectionMatrix, near, far, distribution, coord_scale, coord);
 }
@@ -74,7 +74,7 @@ vec3 volume_light(LightData ld, vec3 L, float l_dist)
   if (ld.type != LIGHT_SUN) {
 
     float volume_radius_squared = ld.radius_squared;
-    float light_clamp = volumes_info_buf.light_clamp;
+    float light_clamp = uniform_buf.volumes.light_clamp;
     if (light_clamp != 0.0) {
       /* 0.0 light clamp means it's disabled. */
       float max_power = max_v3(ld.color) * ld.volume_power;
@@ -110,24 +110,19 @@ vec3 volume_light(LightData ld, vec3 L, float l_dist)
 
 #define VOLUMETRIC_SHADOW_MAX_STEP 128.0
 
-vec3 volume_participating_media_extinction(vec3 wpos, sampler3D volume_extinction)
+vec3 volume_shadow(LightData ld, vec3 ray_wpos, vec3 L, float l_dist, sampler3D extinction_tx)
 {
-  /* Waiting for proper volume shadow-maps and out of frustum shadow map. */
-  vec3 ndc = project_point(ProjectionMatrix, transform_point(ViewMatrix, wpos));
-  vec3 volume_co = ndc_to_volume(ndc * 0.5 + 0.5);
+#if defined(VOLUME_SHADOW)
+  if (uniform_buf.volumes.shadow_steps == 0) {
+    return vec3(1.0);
+  }
 
-  /* Let the texture be clamped to edge. This reduce visual glitches. */
-  return texture(volume_extinction, volume_co).rgb;
-}
-
-vec3 volume_shadow(LightData ld, vec3 ray_wpos, vec3 L, float l_dist)
-{
-  /* TODO (Miguel Pozo) */
-#if 0 && defined(VOLUME_SHADOW)
   vec4 l_vector = vec4(L * l_dist, l_dist);
 
+/* TODO(Miguel Pozo): Soft shadows support. */
+#  if 0
   /* If light is shadowed, use the shadow vector, if not, reuse the light vector. */
-  if (volumes_info_buf.use_soft_shadows && ld.shadowid >= 0.0) {
+  if (uniform_buf.volumes.use_soft_shadows && ld.shadowid >= 0.0) {
     ShadowData sd = shadows_data[int(ld.shadowid)];
 
     if (ld.type == LIGHT_SUN) {
@@ -139,12 +134,13 @@ vec3 volume_shadow(LightData ld, vec3 ray_wpos, vec3 L, float l_dist)
       l_vector.w = length(l_vector.xyz);
     }
   }
+#  endif
 
   /* Heterogeneous volume shadows. */
-  float dd = l_vector.w / volumes_info_buf.shadow_steps;
-  vec3 L = l_vector.xyz / volumes_info_buf.shadow_steps;
+  float dd = l_vector.w / uniform_buf.volumes.shadow_steps;
+  L = l_vector.xyz / uniform_buf.volumes.shadow_steps;
 
-  if (ld.type == LIGHT_SUN) {
+  if (is_sun_light(ld.type)) {
     /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
     vec3 ndcP = project_point(ProjectionMatrix, transform_point(ViewMatrix, ray_wpos));
     vec3 ndcL = project_point(ProjectionMatrix,
@@ -155,34 +151,35 @@ vec3 volume_shadow(LightData ld, vec3 ray_wpos, vec3 L, float l_dist)
 
     vec4 L_hom = ViewMatrixInverse * (ProjectionMatrixInverse * vec4(frustum_isect, 1.0));
     L = (L_hom.xyz / L_hom.w) - ray_wpos;
-    L /= volumes_info_buf.shadow_steps;
+    L /= uniform_buf.volumes.shadow_steps;
     dd = length(L);
   }
 
-#  if 0 /* TODO use shadow maps instead. */
+  /* TODO use shadow maps instead. */
   vec3 shadow = vec3(1.0);
-  for (float s = 1.0; s < VOLUMETRIC_SHADOW_MAX_STEP && s <= volumes_info_buf.shadow_steps;
-       s += 1.0) {
+  for (float s = 1.0; s < VOLUMETRIC_SHADOW_MAX_STEP && s <= uniform_buf.volumes.shadow_steps;
+       s += 1.0)
+  {
     vec3 pos = ray_wpos + L * s;
-    vec3 s_extinction = volume_participating_media_extinction(pos, volume_extinction);
+
+    vec3 ndc = project_point(ProjectionMatrix, transform_point(ViewMatrix, pos));
+    vec3 volume_co = ndc_to_volume(ndc * 0.5 + 0.5);
+    /* Let the texture be clamped to edge. This reduce visual glitches. */
+    vec3 s_extinction = texture(extinction_tx, volume_co).rgb;
+
     shadow *= exp(-s_extinction * dd);
   }
   return shadow;
-#  endif
 #else
   return vec3(1.0);
 #endif /* VOLUME_SHADOW */
 }
 
-vec3 volume_irradiance(vec3 wpos)
+vec3 volume_irradiance(vec3 P)
 {
-#ifdef IRRADIANCE_HL2
-  IrradianceData ir_data = load_irradiance_cell(0, vec3(1.0));
-  vec3 irradiance = ir_data.cubesides[0] + ir_data.cubesides[1] + ir_data.cubesides[2];
-  ir_data = load_irradiance_cell(0, vec3(-1.0));
-  irradiance += ir_data.cubesides[0] + ir_data.cubesides[1] + ir_data.cubesides[2];
-  irradiance *= 0.16666666; /* 1/6 */
-  return irradiance;
+#ifdef VOLUME_IRRADIANCE
+  SphericalHarmonicL1 irradiance = lightprobe_irradiance_sample(P);
+  return irradiance.L0.M0.rgb * M_PI;
 #else
   return vec3(0.0);
 #endif

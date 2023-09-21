@@ -23,7 +23,7 @@
 GHOST_SystemSDL::GHOST_SystemSDL() : GHOST_System()
 {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
-    throw std::runtime_error("Error initializing SDL: " + std::string(SDL_GetError()));
+    throw std::runtime_error(SDL_GetError());
   }
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -276,7 +276,7 @@ static GHOST_TKey convertSDLKey(SDL_Scancode key)
       GXMAP(type, SDL_SCANCODE_KP_MULTIPLY, GHOST_kKeyNumpadAsterisk);
       GXMAP(type, SDL_SCANCODE_KP_DIVIDE, GHOST_kKeyNumpadSlash);
 
-      /* Media keys in some keyboards and laptops with XFree86/Xorg */
+      /* Media keys in some keyboards and laptops with XFree86/XORG. */
       GXMAP(type, SDL_SCANCODE_AUDIOPLAY, GHOST_kKeyMediaPlay);
       GXMAP(type, SDL_SCANCODE_AUDIOSTOP, GHOST_kKeyMediaStop);
       GXMAP(type, SDL_SCANCODE_AUDIOPREV, GHOST_kKeyMediaFirst);

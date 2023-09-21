@@ -107,55 +107,55 @@ static const char *give_seqname_by_type(int type)
 {
   switch (type) {
     case SEQ_TYPE_META:
-      return DATA_("Meta");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Meta");
     case SEQ_TYPE_IMAGE:
-      return DATA_("Image");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Image");
     case SEQ_TYPE_SCENE:
-      return DATA_("Scene");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Scene");
     case SEQ_TYPE_MOVIE:
-      return DATA_("Movie");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Movie");
     case SEQ_TYPE_MOVIECLIP:
-      return DATA_("Clip");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Clip");
     case SEQ_TYPE_MASK:
-      return DATA_("Mask");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Mask");
     case SEQ_TYPE_SOUND_RAM:
-      return DATA_("Audio");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Audio");
     case SEQ_TYPE_CROSS:
-      return DATA_("Cross");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Cross");
     case SEQ_TYPE_GAMCROSS:
-      return DATA_("Gamma Cross");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Gamma Cross");
     case SEQ_TYPE_ADD:
-      return DATA_("Add");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Add");
     case SEQ_TYPE_SUB:
-      return DATA_("Sub");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Sub");
     case SEQ_TYPE_MUL:
-      return DATA_("Mul");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Mul");
     case SEQ_TYPE_ALPHAOVER:
-      return DATA_("Alpha Over");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Alpha Over");
     case SEQ_TYPE_ALPHAUNDER:
-      return DATA_("Alpha Under");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Alpha Under");
     case SEQ_TYPE_OVERDROP:
-      return DATA_("Over Drop");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Over Drop");
     case SEQ_TYPE_COLORMIX:
-      return DATA_("Color Mix");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Color Mix");
     case SEQ_TYPE_WIPE:
-      return DATA_("Wipe");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Wipe");
     case SEQ_TYPE_GLOW:
-      return DATA_("Glow");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Glow");
     case SEQ_TYPE_TRANSFORM:
-      return DATA_("Transform");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Transform");
     case SEQ_TYPE_COLOR:
-      return DATA_("Color");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Color");
     case SEQ_TYPE_MULTICAM:
-      return DATA_("Multicam");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Multicam");
     case SEQ_TYPE_ADJUSTMENT:
-      return DATA_("Adjustment");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Adjustment");
     case SEQ_TYPE_SPEED:
-      return DATA_("Speed");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Speed");
     case SEQ_TYPE_GAUSSIAN_BLUR:
-      return DATA_("Gaussian Blur");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Gaussian Blur");
     case SEQ_TYPE_TEXT:
-      return DATA_("Text");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Text");
     default:
       return nullptr;
   }

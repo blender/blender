@@ -20,10 +20,6 @@
 #include "DNA_vec_types.h"
 #include "DNA_view2d_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Collection;
 struct GHash;
 struct Object;
@@ -35,7 +31,7 @@ struct SpaceLink;
 /* Motion Paths ------------------------------------ */
 /* (used for Pose Channels and Objects) */
 
-/* Data point for motion path (mpv) */
+/** Data point for motion path (`mpv`). */
 typedef struct bMotionPathVert {
   /** Coordinates of point in 3D-space. */
   float co[3];
@@ -43,7 +39,7 @@ typedef struct bMotionPathVert {
   int flag;
 } bMotionPathVert;
 
-/* bMotionPathVert->flag */
+/** #bMotionPathVert::flag */
 typedef enum eMotionPathVert_Flag {
   /* vert is selected */
   MOTIONPATH_VERT_SEL = (1 << 0),
@@ -395,10 +391,10 @@ typedef enum ePchan_Flag {
 typedef enum ePchan_ConstFlag {
   PCHAN_HAS_IK = (1 << 0),
   PCHAN_HAS_CONST = (1 << 1),
-  /* only used for drawing Posemode, not stored in channel */
+  /* Only used for drawing pose-mode, not stored in channel. */
   /* PCHAN_HAS_ACTION = (1 << 2), */ /* UNUSED */
   PCHAN_HAS_TARGET = (1 << 3),
-  /* only for drawing Posemode too */
+  /* Only for drawing pose-mode too. */
   /* PCHAN_HAS_STRIDE = (1 << 4), */ /* UNUSED */
   /* spline IK */
   PCHAN_HAS_SPLINEIK = (1 << 5),
@@ -857,8 +853,8 @@ typedef struct SpaceAction {
   char mode;
   /* Storage for sub-space types. */
   char mode_prev;
-  /** Automatic keyframe snapping mode. */
-  char autosnap;
+  /* Snapping now lives on the Scene. */
+  char autosnap DNA_DEPRECATED;
   /** (eTimeline_Cache_Flag). */
   char cache_display;
   char _pad1[6];
@@ -921,10 +917,8 @@ typedef enum eAnimEdit_Context {
   SACTCONT_TIMELINE = 6,
 } eAnimEdit_Context;
 
-/* SpaceAction AutoSnap Settings (also used by other Animation Editors) */
+/* Old snapping enum that is only needed because of the versioning code. */
 typedef enum eAnimEdit_AutoSnap {
-  /* no auto-snap */
-  SACTSNAP_OFF = 0,
   /* snap to 1.0 frame/second intervals */
   SACTSNAP_STEP = 1,
   /* snap to actual frames/seconds (nla-action time) */
@@ -935,7 +929,7 @@ typedef enum eAnimEdit_AutoSnap {
   SACTSNAP_SECOND = 4,
   /* snap to 1.0 second increments */
   SACTSNAP_TSTEP = 5,
-} eAnimEdit_AutoSnap;
+} eAnimEdit_AutoSnap DNA_DEPRECATED;
 
 /* SAction->cache_display */
 typedef enum eTimeline_Cache_Flag {
@@ -980,7 +974,3 @@ typedef struct bActionChannel {
   /** Temporary setting - may be used to indicate group that channel belongs to during syncing. */
   int temp;
 } bActionChannel;
-
-#ifdef __cplusplus
-}
-#endif

@@ -161,7 +161,6 @@ using IndexMaskSegment = OffsetSpan<int64_t, int16_t>;
  *
  * Extraction:
  *   An #IndexMask can be converted into various other forms using the `to_*` methods.
- *
  */
 class IndexMask : private IndexMaskData {
  public:

@@ -675,11 +675,11 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
   BLI_assert(ob_orig.type == OB_GREASE_PENCIL);
   const GreasePencil &grease_pencil_orig = *static_cast<const GreasePencil *>(ob_orig.data);
 
-  GreasePencilDrawingBase *drawing_base = grease_pencil_orig.drawings(drawing_index);
+  const GreasePencilDrawingBase *drawing_base = grease_pencil_orig.drawing(drawing_index);
 
   GeometryDeformation deformation;
   if (drawing_base->type == GP_DRAWING) {
-    GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+    const auto *drawing = reinterpret_cast<const GreasePencilDrawing *>(drawing_base);
     /* Use the undeformed positions by default. */
     deformation.positions = drawing->wrap().strokes().positions();
   }

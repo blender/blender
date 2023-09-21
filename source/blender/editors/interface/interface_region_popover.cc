@@ -107,8 +107,6 @@ static void ui_popover_create_block(bContext *C,
       uiLayoutContextCopy(pup->layout, pup->but->context);
     }
   }
-
-  pup->block->flag |= UI_BLOCK_NO_FLIP;
 }
 
 static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
@@ -415,9 +413,6 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
    * The begin/end stype of calling popups doesn't allow 'can_refresh' to be set.
    * For now close this style of popovers when accessed. */
   UI_block_flag_disable(pup->block, UI_BLOCK_KEEP_OPEN);
-
-  /* Panels are created flipped (from event handling POV). */
-  pup->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
 uiLayout *UI_popover_layout(uiPopover *pup)

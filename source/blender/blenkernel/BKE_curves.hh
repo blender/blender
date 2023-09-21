@@ -393,9 +393,22 @@ class CurvesGeometry : public ::CurvesGeometry {
   /* --------------------------------------------------------------------
    * File Read/Write.
    */
-
   void blend_read(BlendDataReader &reader);
-  void blend_write(BlendWriter &writer, ID &id);
+  /**
+   * Helper struct for `CurvesGeometry::blend_write_*` functions.
+   */
+  struct BlendWriteData {
+    /* The point custom data layers to be written. */
+    Vector<CustomDataLayer, 16> point_layers;
+    /* The curve custom data layers to be written. */
+    Vector<CustomDataLayer, 16> curve_layers;
+  };
+  /**
+   * This function needs to be called before `blend_write` and before the `CurvesGeometry` struct
+   * is written because it can mutate the `CustomData` struct.
+   */
+  BlendWriteData blend_write_prepare();
+  void blend_write(BlendWriter &writer, ID &id, const BlendWriteData &write_data);
 };
 
 static_assert(sizeof(blender::bke::CurvesGeometry) == sizeof(::CurvesGeometry));
@@ -429,6 +442,8 @@ class CurvesEditHints {
    */
   bool is_valid() const;
 };
+
+void curves_normals_point_domain_calc(const CurvesGeometry &curves, MutableSpan<float3> normals);
 
 namespace curves {
 

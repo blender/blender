@@ -29,7 +29,7 @@ if sys.platform == "win32":
 
     # OIIO will by default add all paths from the path variable to add_dll_directory
     # problem there is that those folders will be searched before ours and versions of
-    # some dlls may be found that are not blenders and may not even be the right version
+    # some DLL files may be found that are not blenders and may not even be the right version
     # causing compatibility issues.
     os.environ["OIIO_LOAD_DLLS_FROM_PATH"] = "0"
 

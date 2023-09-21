@@ -156,8 +156,9 @@ def main():
         arg_split += ["-ftree-vectorizer-verbose=1"]
 
         arg_split += ["-S"]
-        # arg_split += ["-masm=intel"]  # optional
-        # arg_split += ["-fverbose-asm"]  # optional but handy
+        if False:
+            arg_split += ["-masm=intel"]  # Optional.
+            arg_split += ["-fverbose-asm"]  # Optional but handy.
     else:
         sys.stderr.write(f"Compiler {COMPILER_ID!r} not supported")
         return

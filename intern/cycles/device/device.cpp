@@ -79,8 +79,9 @@ Device *Device::create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
       break;
 #ifdef WITH_CUDA
     case DEVICE_CUDA:
-      if (device_cuda_init())
+      if (device_cuda_init()) {
         device = device_cuda_create(info, stats, profiler);
+      }
       break;
 #endif
 #ifdef WITH_OPTIX
@@ -123,44 +124,60 @@ Device *Device::create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
 
 DeviceType Device::type_from_string(const char *name)
 {
-  if (strcmp(name, "CPU") == 0)
+  if (strcmp(name, "CPU") == 0) {
     return DEVICE_CPU;
-  else if (strcmp(name, "CUDA") == 0)
+  }
+  else if (strcmp(name, "CUDA") == 0) {
     return DEVICE_CUDA;
-  else if (strcmp(name, "OPTIX") == 0)
+  }
+  else if (strcmp(name, "OPTIX") == 0) {
     return DEVICE_OPTIX;
-  else if (strcmp(name, "MULTI") == 0)
+  }
+  else if (strcmp(name, "MULTI") == 0) {
     return DEVICE_MULTI;
-  else if (strcmp(name, "HIP") == 0)
+  }
+  else if (strcmp(name, "HIP") == 0) {
     return DEVICE_HIP;
-  else if (strcmp(name, "METAL") == 0)
+  }
+  else if (strcmp(name, "METAL") == 0) {
     return DEVICE_METAL;
-  else if (strcmp(name, "ONEAPI") == 0)
+  }
+  else if (strcmp(name, "ONEAPI") == 0) {
     return DEVICE_ONEAPI;
-  else if (strcmp(name, "HIPRT") == 0)
+  }
+  else if (strcmp(name, "HIPRT") == 0) {
     return DEVICE_HIPRT;
+  }
 
   return DEVICE_NONE;
 }
 
 string Device::string_from_type(DeviceType type)
 {
-  if (type == DEVICE_CPU)
+  if (type == DEVICE_CPU) {
     return "CPU";
-  else if (type == DEVICE_CUDA)
+  }
+  else if (type == DEVICE_CUDA) {
     return "CUDA";
-  else if (type == DEVICE_OPTIX)
+  }
+  else if (type == DEVICE_OPTIX) {
     return "OPTIX";
-  else if (type == DEVICE_MULTI)
+  }
+  else if (type == DEVICE_MULTI) {
     return "MULTI";
-  else if (type == DEVICE_HIP)
+  }
+  else if (type == DEVICE_HIP) {
     return "HIP";
-  else if (type == DEVICE_METAL)
+  }
+  else if (type == DEVICE_METAL) {
     return "METAL";
-  else if (type == DEVICE_ONEAPI)
+  }
+  else if (type == DEVICE_ONEAPI) {
     return "ONEAPI";
-  else if (type == DEVICE_HIPRT)
+  }
+  else if (type == DEVICE_HIPRT) {
     return "HIPRT";
+  }
 
   return "";
 }

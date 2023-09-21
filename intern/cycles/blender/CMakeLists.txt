@@ -41,6 +41,7 @@ set(SRC
   viewport.cpp
   volume.cpp
 
+  attribute_convert.h
   CCL_api.h
   device.h
   display_driver.h

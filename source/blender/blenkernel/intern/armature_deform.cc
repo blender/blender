@@ -54,10 +54,11 @@ static CLG_LogRef LOG = {"bke.armature_deform"};
 static void pchan_deform_accumulate(const DualQuat *deform_dq,
                                     const float deform_mat[4][4],
                                     const float co_in[3],
-                                    float weight,
+                                    const float weight,
                                     float co_accum[3],
                                     DualQuat *dq_accum,
-                                    float mat_accum[3][3])
+                                    float mat_accum[3][3],
+                                    const bool full_deform)
 {
   if (weight == 0.0f) {
     return;
@@ -66,22 +67,7 @@ static void pchan_deform_accumulate(const DualQuat *deform_dq,
   if (dq_accum) {
     BLI_assert(!co_accum);
 
-    if (deform_dq->scale_weight) {
-      /* FIX #32022. */
-      DualQuat mdq = *deform_dq;
-      float dst[3];
-      mul_v3_m4v3(dst, mdq.scale, co_in);
-      sub_v3_v3(dst, co_in);
-      mdq.trans[0] -= .5f * (mdq.quat[1] * dst[0] + mdq.quat[2] * dst[1] + mdq.quat[3] * dst[2]);
-      mdq.trans[1] += .5f * (mdq.quat[0] * dst[0] + mdq.quat[2] * dst[2] - mdq.quat[3] * dst[1]);
-      mdq.trans[2] += .5f * (mdq.quat[0] * dst[1] + mdq.quat[3] * dst[0] - mdq.quat[1] * dst[2]);
-      mdq.trans[3] += .5f * (mdq.quat[0] * dst[2] + mdq.quat[1] * dst[1] - mdq.quat[2] * dst[0]);
-      mdq.scale_weight = 0.0f;
-      add_weighted_dq_dq(dq_accum, &mdq, weight);
-    }
-    else {
-      add_weighted_dq_dq(dq_accum, deform_dq, weight);
-    }
+    add_weighted_dq_dq_pivot(dq_accum, deform_dq, co_in, weight, full_deform);
   }
   else {
     float tmp[3];
@@ -90,7 +76,7 @@ static void pchan_deform_accumulate(const DualQuat *deform_dq,
     sub_v3_v3(tmp, co_in);
     madd_v3_v3fl(co_accum, tmp, weight);
 
-    if (mat_accum) {
+    if (full_deform) {
       float tmpmat[3][3];
       copy_m3_m4(tmpmat, deform_mat);
 
@@ -101,10 +87,11 @@ static void pchan_deform_accumulate(const DualQuat *deform_dq,
 
 static void b_bone_deform(const bPoseChannel *pchan,
                           const float co[3],
-                          float weight,
+                          const float weight,
                           float vec[3],
                           DualQuat *dq,
-                          float defmat[3][3])
+                          float defmat[3][3],
+                          const bool full_deform)
 {
   const DualQuat *quats = pchan->runtime.bbone_dual_quats;
   const Mat4 *mats = pchan->runtime.bbone_deform_mats;
@@ -114,10 +101,16 @@ static void b_bone_deform(const bPoseChannel *pchan,
   /* Calculate the indices of the 2 affecting b_bone segments. */
   BKE_pchan_bbone_deform_segment_index(pchan, co, &index, &blend);
 
+  pchan_deform_accumulate(&quats[index],
+                          mats[index + 1].mat,
+                          co,
+                          weight * (1.0f - blend),
+                          vec,
+                          dq,
+                          defmat,
+                          full_deform);
   pchan_deform_accumulate(
-      &quats[index], mats[index + 1].mat, co, weight * (1.0f - blend), vec, dq, defmat);
-  pchan_deform_accumulate(
-      &quats[index + 1], mats[index + 2].mat, co, weight * blend, vec, dq, defmat);
+      &quats[index + 1], mats[index + 2].mat, co, weight * blend, vec, dq, defmat, full_deform);
 }
 
 float distfactor_to_bone(
@@ -173,8 +166,12 @@ float distfactor_to_bone(
   return 1.0f - (a * a) / (rdist * rdist);
 }
 
-static float dist_bone_deform(
-    const bPoseChannel *pchan, float vec[3], DualQuat *dq, float mat[3][3], const float co[3])
+static float dist_bone_deform(const bPoseChannel *pchan,
+                              float vec[3],
+                              DualQuat *dq,
+                              float mat[3][3],
+                              const float co[3],
+                              const bool full_deform)
 {
   const Bone *bone = pchan->bone;
   float fac, contrib = 0.0;
@@ -191,11 +188,11 @@ static float dist_bone_deform(
     contrib = fac;
     if (contrib > 0.0f) {
       if (bone->segments > 1 && pchan->runtime.bbone_segments == bone->segments) {
-        b_bone_deform(pchan, co, fac, vec, dq, mat);
+        b_bone_deform(pchan, co, fac, vec, dq, mat, full_deform);
       }
       else {
         pchan_deform_accumulate(
-            &pchan->runtime.deform_dual_quat, pchan->chan_mat, co, fac, vec, dq, mat);
+            &pchan->runtime.deform_dual_quat, pchan->chan_mat, co, fac, vec, dq, mat, full_deform);
       }
     }
   }
@@ -204,11 +201,12 @@ static float dist_bone_deform(
 }
 
 static void pchan_bone_deform(const bPoseChannel *pchan,
-                              float weight,
+                              const float weight,
                               float vec[3],
                               DualQuat *dq,
                               float mat[3][3],
                               const float co[3],
+                              const bool full_deform,
                               float *contrib)
 {
   const Bone *bone = pchan->bone;
@@ -218,11 +216,11 @@ static void pchan_bone_deform(const bPoseChannel *pchan,
   }
 
   if (bone->segments > 1 && pchan->runtime.bbone_segments == bone->segments) {
-    b_bone_deform(pchan, co, weight, vec, dq, mat);
+    b_bone_deform(pchan, co, weight, vec, dq, mat, full_deform);
   }
   else {
     pchan_deform_accumulate(
-        &pchan->runtime.deform_dual_quat, pchan->chan_mat, co, weight, vec, dq, mat);
+        &pchan->runtime.deform_dual_quat, pchan->chan_mat, co, weight, vec, dq, mat, full_deform);
   }
 
   (*contrib) += weight;
@@ -286,6 +284,8 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
   float armature_weight = 1.0f; /* default to 1 if no overall def group */
   float prevco_weight = 0.0f;   /* weight for optional cached vertexcos */
 
+  const bool full_deform = vert_deform_mats != nullptr;
+
   if (use_quaternion) {
     memset(&sumdq, 0, sizeof(DualQuat));
     dq = &sumdq;
@@ -294,7 +294,7 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
     zero_v3(sumvec);
     vec = sumvec;
 
-    if (vert_deform_mats) {
+    if (full_deform) {
       zero_m3(summat);
       smat = summat;
     }
@@ -354,7 +354,7 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
               co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
         }
 
-        pchan_bone_deform(pchan, weight, vec, dq, smat, co, &contrib);
+        pchan_bone_deform(pchan, weight, vec, dq, smat, co, full_deform, &contrib);
       }
     }
     /* If there are vertex-groups but not groups with bones (like for soft-body groups). */
@@ -363,7 +363,7 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
            pchan = pchan->next)
       {
         if (!(pchan->bone->flag & BONE_NO_DEFORM)) {
-          contrib += dist_bone_deform(pchan, vec, dq, smat, co);
+          contrib += dist_bone_deform(pchan, vec, dq, smat, co, full_deform);
         }
       }
     }
@@ -373,7 +373,7 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
          pchan = pchan->next)
     {
       if (!(pchan->bone->flag & BONE_NO_DEFORM)) {
-        contrib += dist_bone_deform(pchan, vec, dq, smat, co);
+        contrib += dist_bone_deform(pchan, vec, dq, smat, co, full_deform);
       }
     }
   }
@@ -385,13 +385,13 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
 
       if (armature_weight != 1.0f) {
         copy_v3_v3(dco, co);
-        mul_v3m3_dq(dco, (vert_deform_mats) ? summat : nullptr, dq);
+        mul_v3m3_dq(dco, full_deform ? summat : nullptr, dq);
         sub_v3_v3(dco, co);
         mul_v3_fl(dco, armature_weight);
         add_v3_v3(co, dco);
       }
       else {
-        mul_v3m3_dq(co, (vert_deform_mats) ? summat : nullptr, dq);
+        mul_v3m3_dq(co, full_deform ? summat : nullptr, dq);
       }
 
       smat = summat;
@@ -401,7 +401,7 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
       add_v3_v3v3(co, vec, co);
     }
 
-    if (vert_deform_mats) {
+    if (full_deform) {
       float pre[3][3], post[3][3], tmpmat[3][3];
 
       copy_m3_m4(pre, data->premat);

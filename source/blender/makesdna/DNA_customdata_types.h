@@ -14,10 +14,6 @@
 
 #include "BLI_implicit_sharing.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 namespace blender::bke {
@@ -269,7 +265,3 @@ enum {
 #define MAX_MTFACE 8
 
 #define DYNTOPO_NODE_NONE -1
-
-#ifdef __cplusplus
-}
-#endif

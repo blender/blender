@@ -337,19 +337,22 @@ void path_init(const string &path, const string &user_path)
 string path_get(const string &sub)
 {
   char *special = path_specials(sub);
-  if (special != NULL)
+  if (special != NULL) {
     return special;
+  }
 
-  if (cached_path == "")
+  if (cached_path == "") {
     cached_path = path_dirname(Sysutil::this_program_path());
+  }
 
   return path_join(cached_path, sub);
 }
 
 string path_user_get(const string &sub)
 {
-  if (cached_user_path == "")
+  if (cached_user_path == "") {
     cached_user_path = path_dirname(Sysutil::this_program_path());
+  }
 
   return path_join(cached_user_path, sub);
 }
@@ -653,11 +656,13 @@ bool path_write_binary(const string &path, const vector<uint8_t> &binary)
   /* write binary file from memory */
   FILE *f = path_fopen(path, "wb");
 
-  if (!f)
+  if (!f) {
     return false;
+  }
 
-  if (binary.size() > 0)
+  if (binary.size() > 0) {
     fwrite(&binary[0], sizeof(uint8_t), binary.size(), f);
+  }
 
   fclose(f);
 
@@ -703,8 +708,9 @@ bool path_read_text(const string &path, string &text)
 {
   vector<uint8_t> binary;
 
-  if (!path_exists(path) || !path_read_binary(path, binary))
+  if (!path_exists(path) || !path_read_binary(path, binary)) {
     return false;
+  }
 
   const char *str = (const char *)&binary[0];
   size_t size = binary.size();
@@ -741,8 +747,34 @@ static string path_source_replace_includes_recursive(const string &source,
                                                      const string &source_filepath,
                                                      SourceReplaceState *state);
 
+static string line_directive(const SourceReplaceState &state,
+                             const string &path,
+                             const size_t line_number)
+{
+  string unescaped_path = path;
+  /* First we make path relative. */
+  if (string_startswith(unescaped_path, state.base.c_str())) {
+    const string base_file = path_filename(state.base);
+    const size_t base_len = state.base.length();
+    unescaped_path = base_file +
+                     unescaped_path.substr(base_len, unescaped_path.length() - base_len);
+  }
+  /* Second, we replace all unsafe characters. */
+  const size_t length = unescaped_path.length();
+  string escaped_path = "";
+  for (size_t i = 0; i < length; ++i) {
+    const char ch = unescaped_path[i];
+    if (strchr("\"\'\?\\", ch) != nullptr) {
+      escaped_path += "\\";
+    }
+    escaped_path += ch;
+  }
+  return "#line " + std::to_string(line_number) + '"' + escaped_path + '"';
+}
+
 static string path_source_handle_preprocessor(const string &preprocessor_line,
                                               const string &source_filepath,
+                                              const size_t line_number,
                                               SourceReplaceState *state)
 {
   string result = preprocessor_line;
@@ -764,7 +796,8 @@ static string path_source_handle_preprocessor(const string &preprocessor_line,
       if (path_read_text(filepath, text)) {
         text = path_source_replace_includes_recursive(text, filepath, state);
         /* Use line directives for better error messages. */
-        return "\n" + text + "\n";
+        result = line_directive(*state, filepath, 1) + "\n" + text + "\n" +
+                 line_directive(*state, source_filepath, line_number + 1);
       }
     }
   }
@@ -813,7 +846,7 @@ static string path_source_replace_includes_recursive(const string &_source,
   const size_t source_length = source.length();
   size_t index = 0;
   /* Information about where we are in the source. */
-  size_t column_number = 1;
+  size_t line_number = 0, column_number = 1;
   /* Currently gathered non-preprocessor token.
    * Store as start/length rather than token itself to avoid overhead of
    * memory re-allocations on each character concatenation.
@@ -833,7 +866,8 @@ static string path_source_replace_includes_recursive(const string &_source,
 
     if (ch == '\n') {
       if (inside_preprocessor) {
-        string block = path_source_handle_preprocessor(preprocessor_line, source_filepath, state);
+        string block = path_source_handle_preprocessor(
+            preprocessor_line, source_filepath, line_number, state);
 
         if (!block.empty()) {
           result += block;
@@ -846,6 +880,7 @@ static string path_source_replace_includes_recursive(const string &_source,
         preprocessor_line = "";
       }
       column_number = 0;
+      ++line_number;
     }
     else if (ch == '#' && column_number == 1 && !inside_preprocessor) {
       /* Append all possible non-preprocessor token to the result. */
@@ -873,7 +908,8 @@ static string path_source_replace_includes_recursive(const string &_source,
     result.append(source, token_start, token_length);
   }
   if (inside_preprocessor) {
-    result += path_source_handle_preprocessor(preprocessor_line, source_filepath, state);
+    result += path_source_handle_preprocessor(
+        preprocessor_line, source_filepath, line_number, state);
   }
   /* Store result for further reuse. */
   state->processed_files[source_filepath] = result;

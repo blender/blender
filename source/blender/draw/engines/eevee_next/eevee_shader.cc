@@ -88,10 +88,12 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_film_comp";
     case FILM_CRYPTOMATTE_POST:
       return "eevee_film_cryptomatte_post";
+    case DEFERRED_COMBINE:
+      return "eevee_deferred_combine";
     case DEFERRED_LIGHT:
       return "eevee_deferred_light";
-    case DEFERRED_LIGHT_DIFFUSE_ONLY:
-      return "eevee_deferred_light_diffuse";
+    case DEFERRED_CAPTURE_EVAL:
+      return "eevee_deferred_capture_eval";
     case HIZ_DEBUG:
       return "eevee_hiz_debug";
     case HIZ_UPDATE:
@@ -154,20 +156,30 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_light_culling_tile";
     case LIGHT_CULLING_ZBIN:
       return "eevee_light_culling_zbin";
+    case RAY_DENOISE_SPATIAL_DIFFUSE:
+      return "eevee_ray_denoise_spatial_diffuse";
     case RAY_DENOISE_SPATIAL_REFLECT:
       return "eevee_ray_denoise_spatial_reflect";
     case RAY_DENOISE_SPATIAL_REFRACT:
       return "eevee_ray_denoise_spatial_refract";
     case RAY_DENOISE_TEMPORAL:
       return "eevee_ray_denoise_temporal";
+    case RAY_DENOISE_BILATERAL_DIFFUSE:
+      return "eevee_ray_denoise_bilateral_diffuse";
     case RAY_DENOISE_BILATERAL_REFLECT:
       return "eevee_ray_denoise_bilateral_reflect";
     case RAY_DENOISE_BILATERAL_REFRACT:
       return "eevee_ray_denoise_bilateral_refract";
+    case RAY_GENERATE_DIFFUSE:
+      return "eevee_ray_generate_diffuse";
     case RAY_GENERATE_REFLECT:
       return "eevee_ray_generate_reflect";
     case RAY_GENERATE_REFRACT:
       return "eevee_ray_generate_refract";
+    case RAY_TRACE_FALLBACK:
+      return "eevee_ray_trace_fallback";
+    case RAY_TRACE_SCREEN_DIFFUSE:
+      return "eevee_ray_trace_screen_diffuse";
     case RAY_TRACE_SCREEN_REFLECT:
       return "eevee_ray_trace_screen_reflect";
     case RAY_TRACE_SCREEN_REFRACT:
@@ -216,6 +228,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_shadow_tag_usage_surfels";
     case SHADOW_TILEMAP_TAG_USAGE_TRANSPARENT:
       return "eevee_shadow_tag_usage_transparent";
+    case SHADOW_TILEMAP_TAG_USAGE_VOLUME:
+      return "eevee_shadow_tag_usage_volume";
     case SUBSURFACE_EVAL:
       return "eevee_subsurface_eval";
     case SURFEL_CLUSTER_BUILD:

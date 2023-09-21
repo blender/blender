@@ -13,6 +13,7 @@
 #include "BKE_scene.h"
 
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 

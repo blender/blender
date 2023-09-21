@@ -542,11 +542,11 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
 
   /* sanity checks */
   if (id && fcu && fcu->rna_path) {
-    PointerRNA ptr, id_ptr;
+    PointerRNA ptr;
     PropertyRNA *prop;
 
     /* get RNA property that F-Curve affects */
-    RNA_id_pointer_create(id, &id_ptr);
+    PointerRNA id_ptr = RNA_id_pointer_create(id);
     if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
       /* rotations: radians <-> degrees? */
       if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {

@@ -153,6 +153,18 @@ inline void EXPECT_EQ_ARRAY_ND(const T *expected, const T *actual, const size_t 
   }
 }
 
+template<typename T, typename U>
+inline void EXPECT_NEAR_ARRAY_ND(
+    const T *expected, const T *actual, const size_t N, const size_t D, const U tolerance)
+{
+  for (size_t i = 0; i < N; ++i) {
+    for (size_t j = 0; j < D; ++j) {
+      EXPECT_NEAR(expected[i][j], actual[i][j], tolerance)
+          << "Element mismatch at index " << i << ", component index " << j;
+    }
+  }
+}
+
 #ifdef _WIN32
 #  define ABORT_PREDICATE ::testing::ExitedWithCode(3)
 #else

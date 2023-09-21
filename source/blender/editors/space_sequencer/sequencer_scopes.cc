@@ -16,7 +16,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 /* XXX(@ideasman42): why is this function better than BLI_math version?
  * only difference is it does some normalize after, need to double check on this. */
@@ -319,10 +319,10 @@ ImBuf *make_sep_waveform_view_from_ibuf(ImBuf *ibuf)
   return make_sep_waveform_view_from_ibuf_byte(ibuf);
 }
 
-static void draw_zebra_byte(ImBuf *src, ImBuf *ibuf, float perc)
+static void draw_zebra_byte(const ImBuf *src, ImBuf *ibuf, float perc)
 {
   uint limit = 255.0f * perc / 100.0f;
-  uchar *p = src->byte_buffer.data;
+  const uchar *p = src->byte_buffer.data;
   uchar *o = ibuf->byte_buffer.data;
   int x;
   int y;

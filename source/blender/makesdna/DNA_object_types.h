@@ -33,10 +33,6 @@ using GeometrySetHandle = blender::bke::GeometrySet;
 typedef struct GeometrySetHandle GeometrySetHandle;
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct BoundBox;
 struct Collection;
@@ -879,7 +875,3 @@ typedef enum ObjectModifierFlag {
 } ObjectModifierFlag;
 
 #define MAX_DUPLI_RECUR 8
-
-#ifdef __cplusplus
-}
-#endif

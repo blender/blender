@@ -260,6 +260,10 @@ struct LayerTransformData {
    * i.e. each frame that is not an implicit hold. */
   Map<int, int> frames_duration;
 
+  /* Temporary copy of duplicated frames before we decide on a place to insert them.
+   * Used in the move+duplicate operator. */
+  Map<int, GreasePencilFrame> temp_frames_buffer;
+
   FrameTransformationStatus status{TRANS_CLEAR};
 };
 
@@ -485,6 +489,17 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
    */
   Layer &add_layer_after(Layer *layer, TreeNode *link);
   Layer &add_layer_after(StringRefNull name, TreeNode *link);
+
+  /**
+   * Move child \a node up/down by \a step.
+   */
+  void move_node_up(TreeNode *node, int step = 1);
+  void move_node_down(TreeNode *node, int step = 1);
+  /**
+   * Move child \a node to the top/bottom.
+   */
+  void move_node_top(TreeNode *node);
+  void move_node_bottom(TreeNode *node);
 
   /**
    * Returns the number of direct nodes in this group.
@@ -726,11 +741,11 @@ inline const blender::bke::greasepencil::LayerGroup &GreasePencilLayerTreeGroup:
   return *reinterpret_cast<const blender::bke::greasepencil::LayerGroup *>(this);
 }
 
-inline GreasePencilDrawingBase *GreasePencil::drawings(int64_t index) const
+inline const GreasePencilDrawingBase *GreasePencil::drawing(int64_t index) const
 {
   return this->drawings()[index];
 }
-inline GreasePencilDrawingBase *GreasePencil::drawings(int64_t index)
+inline GreasePencilDrawingBase *GreasePencil::drawing(int64_t index)
 {
   return this->drawings()[index];
 }

@@ -473,8 +473,6 @@ static void workspace_add_menu(bContext * /*C*/, uiLayout *layout, void *templat
   WorkspaceConfigFileData *startup_config = workspace_config_file_read(app_template);
   WorkspaceConfigFileData *builtin_config = workspace_system_file_read(app_template);
 
-  UI_block_flag_enable(uiLayoutGetBlock(layout), UI_BLOCK_IS_FLIP);
-
   if (startup_config) {
     LISTBASE_FOREACH (WorkSpace *, workspace, &startup_config->workspaces) {
       uiLayout *row = uiLayoutRow(layout, false);

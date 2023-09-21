@@ -56,6 +56,7 @@ const EnumPropertyItem rna_enum_preference_section_items[] = {
     {USER_SECTION_EDITING, "EDITING", 0, "Editing", ""},
     {USER_SECTION_ANIMATION, "ANIMATION", 0, "Animation", ""},
     RNA_ENUM_ITEM_SEPR,
+    {USER_SECTION_EXTENSIONS, "EXTENSIONS", 0, "Extensions", ""},
     {USER_SECTION_ADDONS, "ADDONS", 0, "Add-ons", ""},
 #if 0 /* def WITH_USERDEF_WORKSPACES */
     RNA_ENUM_ITEM_SEPR,
@@ -302,6 +303,9 @@ static void rna_PreferencesExperimental_use_extension_repos_set(PointerRNA * /*p
     U.experimental.use_extension_repos = value;
     BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
   }
+
+  /* Needed to redraw the preferences window. */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 }
 
 static void rna_userdef_font_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
@@ -601,7 +605,10 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext * /*C*/,
 {
   UserDef *userdef = static_cast<UserDef *>(ptr->data);
 
-  if ((userdef->flag & USER_DEVELOPER_UI) != 0) {
+  const bool use_developer_ui = (userdef->flag & USER_DEVELOPER_UI) != 0;
+  const bool use_extension_repos = use_developer_ui && U.experimental.use_extension_repos;
+
+  if (use_developer_ui && use_extension_repos) {
     *r_free = false;
     return rna_enum_preference_section_items;
   }
@@ -613,7 +620,14 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext * /*C*/,
        it++)
   {
     if (it->value == USER_SECTION_EXPERIMENTAL) {
-      continue;
+      if (use_developer_ui == false) {
+        continue;
+      }
+    }
+    else if (it->value == USER_SECTION_EXTENSIONS) {
+      if (use_extension_repos == false) {
+        continue;
+      }
     }
     RNA_enum_item_add(&items, &totitem, it);
   }
@@ -966,11 +980,10 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
   const char *error_prefix = "Registering add-on preferences class:";
   bAddonPrefType *apt, dummy_apt = {{'\0'}};
   bAddon dummy_addon = {nullptr};
-  PointerRNA dummy_addon_ptr;
   // bool have_function[1];
 
   /* Setup dummy add-on preference and it's type to store static properties in. */
-  RNA_pointer_create(nullptr, &RNA_AddonPreferences, &dummy_addon, &dummy_addon_ptr);
+  PointerRNA dummy_addon_ptr = RNA_pointer_create(nullptr, &RNA_AddonPreferences, &dummy_addon);
 
   /* validate the python class */
   if (validate(&dummy_addon_ptr, data, nullptr /* have_function */) != 0) {
@@ -1655,11 +1668,6 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
   prop = RNA_def_property(srna, "wcol_list_item", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_ui_text(prop, "List Item Colors", "");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  prop = RNA_def_property(srna, "wcol_view_item", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_NEVER_NULL);
-  RNA_def_property_ui_text(prop, "Data-View Item Colors", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "wcol_state", PROP_POINTER, PROP_NONE);
@@ -4143,26 +4151,26 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
   static const EnumPropertyItem active_theme_area[] = {
       {0, "USER_INTERFACE", ICON_WORKSPACE, "User Interface", ""},
       {19, "STYLE", ICON_FONTPREVIEW, "Text Style", ""},
-      {18, "BONE_COLOR_SETS", ICON_COLOR, "Bone Color Sets", ""},
       {1, "VIEW_3D", ICON_VIEW3D, "3D Viewport", ""},
-      {3, "GRAPH_EDITOR", ICON_GRAPH, "Graph Editor", ""},
-      {4, "DOPESHEET_EDITOR", ICON_ACTION, "Dope Sheet", ""},
-      {5, "NLA_EDITOR", ICON_NLA, "Nonlinear Animation", ""},
-      {6, "IMAGE_EDITOR", ICON_IMAGE, "UV/Image Editor", ""},
-      {7, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Video Sequencer", ""},
-      {8, "TEXT_EDITOR", ICON_TEXT, "Text Editor", ""},
+      {4, "DOPESHEET_EDITOR", ICON_ACTION, "Dope Sheet/Timeline", ""},
+      {16, "FILE_BROWSER", ICON_FILEBROWSER, "File/Asset Browser", ""},
+      {24, "ASSET_BROWSER", ICON_ASSET_MANAGER, "Asset Browser", ""},
+      {3, "GRAPH_EDITOR", ICON_GRAPH, "Graph Editor/Drivers", ""},
+      {6, "IMAGE_EDITOR", ICON_IMAGE, "Image/UV Editor", ""},
+      {15, "INFO", ICON_INFO, "Info", ""},
+      {20, "CLIP_EDITOR", ICON_TRACKER, "Movie Clip Editor", ""},
       {9, "NODE_EDITOR", ICON_NODETREE, "Node Editor", ""},
-      {11, "PROPERTIES", ICON_PROPERTIES, "Properties", ""},
+      {5, "NLA_EDITOR", ICON_NLA, "Nonlinear Animation", ""},
       {12, "OUTLINER", ICON_OUTLINER, "Outliner", ""},
       {14, "PREFERENCES", ICON_PREFERENCES, "Preferences", ""},
-      {15, "INFO", ICON_INFO, "Info", ""},
-      {24, "ASSET_BROWSER", ICON_ASSET_MANAGER, "Asset Browser", ""},
-      {16, "FILE_BROWSER", ICON_FILEBROWSER, "File Browser", ""},
+      {11, "PROPERTIES", ICON_PROPERTIES, "Properties", ""},
       {17, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
-      {20, "CLIP_EDITOR", ICON_TRACKER, "Movie Clip Editor", ""},
-      {21, "TOPBAR", ICON_TOPBAR, "Top Bar", ""},
-      {22, "STATUSBAR", ICON_STATUSBAR, "Status Bar", ""},
       {23, "SPREADSHEET", ICON_SPREADSHEET, "Spreadsheet"},
+      {22, "STATUSBAR", ICON_STATUSBAR, "Status Bar", ""},
+      {8, "TEXT_EDITOR", ICON_TEXT, "Text Editor", ""},
+      {21, "TOPBAR", ICON_TOPBAR, "Top Bar", ""},
+      {7, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Video Sequencer", ""},
+      {18, "BONE_COLOR_SETS", ICON_COLOR, "Bone Color Sets", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -5008,13 +5016,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_column_layout", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "uiflag", USER_PLAINMENUS);
   RNA_def_property_ui_text(prop, "Toolbox Column Layout", "Use a column layout for toolbox");
-
-  prop = RNA_def_property(srna, "use_directional_menus", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, nullptr, "uiflag", USER_MENUFIXEDORDER);
-  RNA_def_property_ui_text(prop,
-                           "Contents Follow Opening Direction",
-                           "Otherwise menus, etc will always be top to bottom, left to right, "
-                           "no matter opening direction");
 
   static const EnumPropertyItem header_align_items[] = {
       {0, "NONE", 0, "Keep Existing", "Keep existing header alignment"},
@@ -7019,6 +7020,9 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_grease_pencil_version3", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "use_grease_pencil_version3", 1);
   RNA_def_property_ui_text(prop, "Grease Pencil 3.0", "Enable the new grease pencil 3.0 codebase");
+  /* The key-map depends on this setting, it needs to be reloaded. */
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_userdef_keyconfig_reload_update");
 
   prop = RNA_def_property(srna, "use_viewport_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "use_viewport_debug", 1);

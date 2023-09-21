@@ -459,16 +459,18 @@ void graphedit_operatortypes()
   WM_operatortype_append(GRAPH_OT_interpolation_type);
   WM_operatortype_append(GRAPH_OT_extrapolation_type);
   WM_operatortype_append(GRAPH_OT_easing_type);
-  WM_operatortype_append(GRAPH_OT_sample);
-  WM_operatortype_append(GRAPH_OT_bake);
-  WM_operatortype_append(GRAPH_OT_unbake);
-  WM_operatortype_append(GRAPH_OT_sound_bake);
+  WM_operatortype_append(GRAPH_OT_bake_keys);
+  WM_operatortype_append(GRAPH_OT_keys_to_samples);
+  WM_operatortype_append(GRAPH_OT_samples_to_keys);
+  WM_operatortype_append(GRAPH_OT_sound_to_samples);
   WM_operatortype_append(GRAPH_OT_smooth);
   WM_operatortype_append(GRAPH_OT_clean);
   WM_operatortype_append(GRAPH_OT_decimate);
   WM_operatortype_append(GRAPH_OT_blend_to_neighbor);
   WM_operatortype_append(GRAPH_OT_breakdown);
   WM_operatortype_append(GRAPH_OT_ease);
+  WM_operatortype_append(GRAPH_OT_shear);
+  WM_operatortype_append(GRAPH_OT_scale_average);
   WM_operatortype_append(GRAPH_OT_blend_offset);
   WM_operatortype_append(GRAPH_OT_blend_to_ease);
   WM_operatortype_append(GRAPH_OT_match_slope);
@@ -507,7 +509,7 @@ void ED_operatormacros_graph()
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  RNA_boolean_set(otmacro->ptr, "use_automerge_and_split", true);
+  RNA_boolean_set(otmacro->ptr, "use_duplicated_keyframes", true);
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 }
 
@@ -520,7 +522,7 @@ void ED_operatormacros_graph()
 void graphedit_keymap(wmKeyConfig *keyconf)
 {
   /* keymap for all regions */
-  WM_keymap_ensure(keyconf, "Graph Editor Generic", SPACE_GRAPH, 0);
+  WM_keymap_ensure(keyconf, "Graph Editor Generic", SPACE_GRAPH, RGN_TYPE_WINDOW);
 
   /* channels */
   /* Channels are not directly handled by the Graph Editor module,
@@ -531,7 +533,7 @@ void graphedit_keymap(wmKeyConfig *keyconf)
    */
 
   /* keyframes */
-  WM_keymap_ensure(keyconf, "Graph Editor", SPACE_GRAPH, 0);
+  WM_keymap_ensure(keyconf, "Graph Editor", SPACE_GRAPH, RGN_TYPE_WINDOW);
 }
 
 /** \} */

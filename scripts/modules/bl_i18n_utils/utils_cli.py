@@ -60,19 +60,19 @@ def language_menu(args, settings):
     stats = {"DEFAULT": 1.0, "en_US": 1.0}
 
     po_to_uid = {
-        os.path.basename(po_path_branch): uid
-        for can_use, uid, _num_id, _name, _isocode, po_path_branch
-        in utils_i18n.list_po_dir(settings.BRANCHES_DIR, settings)
+        os.path.basename(po_path_work): uid
+        for can_use, uid, _num_id, _name, _isocode, po_path_work
+        in utils_i18n.list_po_dir(settings.WORK_DIR, settings)
         if can_use
     }
-    for po_dir in os.listdir(settings.BRANCHES_DIR):
-        po_dir = os.path.join(settings.BRANCHES_DIR, po_dir)
+    for po_dir in os.listdir(settings.WORK_DIR):
+        po_dir = os.path.join(settings.WORK_DIR, po_dir)
         if not os.path.isdir(po_dir):
             continue
         for po_path in os.listdir(po_dir):
             uid = po_to_uid.get(po_path, None)
             # print("Checking %s, found uid %s" % (po_path, uid))
-            po_path = os.path.join(settings.TRUNK_PO_DIR, po_path)
+            po_path = os.path.join(po_dir, po_path)
             if uid is not None:
                 po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=po_path, settings=settings)
                 stats[uid] = po.nbr_trans_msgs / po.nbr_msgs if po.nbr_msgs > 0 else 0

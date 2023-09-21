@@ -448,12 +448,12 @@ static PlayAnimPict *playanim_step(PlayAnimPict *playanim, int step)
 
 static int pupdate_time()
 {
-  static double ltime;
+  static double time_last;
 
   double time = PIL_check_seconds_timer();
 
-  ptottime += (time - ltime);
-  ltime = time;
+  ptottime += (time - time_last);
+  time_last = time;
   return (ptottime < 0);
 }
 
@@ -1324,7 +1324,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     }
     case GHOST_kEventButtonDown:
     case GHOST_kEventButtonUp: {
-      GHOST_TEventButtonData *bd = reinterpret_cast<GHOST_TEventButtonData *>(evt);
+      GHOST_TEventButtonData *bd = reinterpret_cast<GHOST_TEventButtonData *>(
+          GHOST_GetEventData(evt));
       int cx, cy, sizex, sizey, inside_window;
 
       GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy);
@@ -1367,7 +1368,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     }
     case GHOST_kEventCursorMove: {
       if (ps->ghost_data.qual & WS_QUAL_LMOUSE) {
-        GHOST_TEventCursorData *cd = reinterpret_cast<GHOST_TEventCursorData *>(evt);
+        GHOST_TEventCursorData *cd = reinterpret_cast<GHOST_TEventCursorData *>(
+            GHOST_GetEventData(evt));
         int cx, cy;
 
         /* Ignore 'in-between' events, since they can make scrubbing lag.
@@ -1429,7 +1431,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       break;
     }
     case GHOST_kEventDraggingDropDone: {
-      GHOST_TEventDragnDropData *ddd = reinterpret_cast<GHOST_TEventDragnDropData *>(evt);
+      GHOST_TEventDragnDropData *ddd = reinterpret_cast<GHOST_TEventDragnDropData *>(
+          GHOST_GetEventData(evt));
 
       if (ddd->dataType == GHOST_kDragnDropTypeFilenames) {
         GHOST_TStringArray *stra = reinterpret_cast<GHOST_TStringArray *>(ddd->data);

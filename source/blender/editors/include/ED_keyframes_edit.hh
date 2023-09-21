@@ -430,6 +430,7 @@ ListBase find_fcurve_segments(FCurve *fcu);
 void clean_fcurve(bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault);
 void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
+void scale_average_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment, float factor);
 
 /**
  * Get a 1D gauss kernel. Since the kernel is symmetrical, only calculates the positive side.
@@ -458,11 +459,19 @@ void smooth_fcurve_segment(FCurve *fcu,
                            int kernel_size,
                            double *kernel);
 void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
+enum tShearDirection {
+  SHEAR_FROM_LEFT = 1,
+  SHEAR_FROM_RIGHT,
+};
+void shear_fcurve_segment(struct FCurve *fcu,
+                          struct FCurveSegment *segment,
+                          float factor,
+                          tShearDirection direction);
 /**
  * Shift the FCurve segment up/down so that it aligns with the key before/after
  * the segment.
  *
- * \param factor blend factor from -1.0 to 1.0. The sign determines whether the
+ * \param factor: blend factor from -1.0 to 1.0. The sign determines whether the
  * segment is aligned with the key before or after the segment.
  */
 void blend_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
@@ -478,7 +487,7 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, float factor);
  * Use a weighted moving-means method to reduce intensity of fluctuations.
  */
 void smooth_fcurve(FCurve *fcu);
-void sample_fcurve(FCurve *fcu);
+void bake_fcurve_segments(FCurve *fcu);
 /**
  * \param sample_rate: indicates how many samples per frame should be generated.
  */

@@ -807,8 +807,7 @@ static void blend_to_default_graph_keys(bAnimContext *ac, const float factor)
       continue;
     }
 
-    PointerRNA id_ptr;
-    RNA_id_pointer_create(ale->id, &id_ptr);
+    PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
 
     blend_to_default_fcurve(&id_ptr, fcu, factor);
     ale->update |= ANIM_UPDATE_DEFAULT;
@@ -1061,7 +1060,7 @@ void GRAPH_OT_blend_offset(wmOperatorType *ot)
   ot->poll = graphop_editable_keyframes_poll;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   RNA_def_float_factor(ot->srna,
                        "factor",
@@ -1162,8 +1161,8 @@ void GRAPH_OT_blend_to_ease(wmOperatorType *ot)
                        0.0f,
                        -FLT_MAX,
                        FLT_MAX,
-                       "Curve Bend",
-                       "Control the bend of the curve",
+                       "Blend",
+                       "Favor either original data or ease curve",
                        -1.0f,
                        1.0f);
 }
@@ -1291,6 +1290,265 @@ void GRAPH_OT_match_slope(wmOperatorType *ot)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shear Operator
+ * \{ */
+
+static const EnumPropertyItem shear_direction_items[] = {
+    {SHEAR_FROM_LEFT, "FROM_LEFT", 0, "From Left", "foo"},
+    {SHEAR_FROM_RIGHT, "FROM_RIGHT", 0, "From Right", "foo"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static void shear_graph_keys(bAnimContext *ac, const float factor, tShearDirection direction)
+{
+  ListBase anim_data = {nullptr, nullptr};
+
+  ANIM_animdata_filter(
+      ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, eAnimCont_Types(ac->datatype));
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    ListBase segments = find_fcurve_segments(fcu);
+
+    LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
+      shear_fcurve_segment(fcu, segment, factor, direction);
+    }
+
+    ale->update |= ANIM_UPDATE_DEFAULT;
+    BLI_freelistN(&segments);
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
+static void shear_draw_status_header(bContext *C, tGraphSliderOp *gso)
+{
+  char status_str[UI_MAX_DRAW_STR];
+  char mode_str[32];
+  char slider_string[UI_MAX_DRAW_STR];
+  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
+
+  STRNCPY(mode_str, TIP_("Shear Keys"));
+
+  if (hasNumInput(&gso->num)) {
+    char str_ofs[NUM_STR_REP_LEN];
+
+    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+
+    SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
+  }
+  else {
+    const char *operator_string = "D - Toggle Direction";
+    SNPRINTF(status_str, "%s: %s | %s", mode_str, slider_string, operator_string);
+  }
+
+  ED_workspace_status_text(C, status_str);
+}
+
+static void shear_modal_update(bContext *C, wmOperator *op)
+{
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+
+  shear_draw_status_header(C, gso);
+
+  /* Reset keyframes to the state at invoke. */
+  reset_bezts(gso);
+  const float factor = slider_factor_get_and_remember(op);
+  const tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
+
+  shear_graph_keys(&gso->ac, factor, direction);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+}
+
+static int shear_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (event->val != KM_PRESS) {
+    return graph_slider_modal(C, op, event);
+  }
+
+  switch (event->type) {
+    case EVT_DKEY: {
+      tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
+      RNA_enum_set(op->ptr,
+                   "direction",
+                   (direction == SHEAR_FROM_LEFT) ? SHEAR_FROM_RIGHT : SHEAR_FROM_LEFT);
+      shear_modal_update(C, op);
+      break;
+    }
+
+    default:
+      return graph_slider_modal(C, op, event);
+      break;
+  }
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int shear_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int invoke_result = graph_slider_invoke(C, op, event);
+
+  if (invoke_result == OPERATOR_CANCELLED) {
+    return invoke_result;
+  }
+
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+  gso->modal_update = shear_modal_update;
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
+  shear_draw_status_header(C, gso);
+  ED_slider_factor_bounds_set(gso->slider, -1, 1);
+  ED_slider_factor_set(gso->slider, 0.0f);
+
+  return invoke_result;
+}
+
+static int shear_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const float factor = RNA_float_get(op->ptr, "factor");
+  const tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
+
+  shear_graph_keys(&ac, factor, direction);
+
+  /* Set notifier that keyframes have changed. */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_shear(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Shear Keyframes";
+  ot->idname = "GRAPH_OT_shear";
+  ot->description =
+      "Affects the value of the keys linearly keeping the same \n\
+  relationship between them using either the left or the right key as reference";
+
+  /* API callbacks. */
+  ot->invoke = shear_invoke;
+  ot->modal = shear_modal;
+  ot->exec = shear_exec;
+  ot->poll = graphop_editable_keyframes_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
+
+  RNA_def_float_factor(ot->srna,
+                       "factor",
+                       0.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Shear Factor",
+                       "The amount of shear to apply",
+                       -1.0f,
+                       1.0f);
+
+  RNA_def_enum(ot->srna,
+               "direction",
+               shear_direction_items,
+               SHEAR_FROM_LEFT,
+               "Direction",
+               "Which end of the segment to use as a reference to shear from");
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Scale Average Operator
+ * \{ */
+
+static void scale_average_graph_keys(bAnimContext *ac, const float factor)
+{
+  apply_fcu_segment_function(ac, factor, scale_average_fcurve_segment);
+}
+
+static void scale_average_modal_update(bContext *C, wmOperator *op)
+{
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+
+  common_draw_status_header(C, gso, "Scale to Average");
+
+  /* Reset keyframes to the state at invoke. */
+  reset_bezts(gso);
+  const float factor = slider_factor_get_and_remember(op);
+  scale_average_graph_keys(&gso->ac, factor);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+}
+
+static int scale_average_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int invoke_result = graph_slider_invoke(C, op, event);
+
+  if (invoke_result == OPERATOR_CANCELLED) {
+    return invoke_result;
+  }
+
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+  gso->modal_update = scale_average_modal_update;
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
+  common_draw_status_header(C, gso, "Scale to Average");
+  ED_slider_factor_bounds_set(gso->slider, 0, 2);
+  ED_slider_factor_set(gso->slider, 1.0f);
+
+  return invoke_result;
+}
+
+static int scale_average_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const float factor = RNA_float_get(op->ptr, "factor");
+
+  scale_average_graph_keys(&ac, factor);
+
+  /* Set notifier that keyframes have changed. */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_scale_average(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Scale Average Keyframes";
+  ot->idname = "GRAPH_OT_scale_average";
+  ot->description =
+      "Increase or decrease the value of selected keys \n\
+  in relationship to their average";
+
+  /* API callbacks. */
+  ot->invoke = scale_average_invoke;
+  ot->modal = graph_slider_modal;
+  ot->exec = scale_average_exec;
+  ot->poll = graphop_editable_keyframes_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
+
+  RNA_def_float_factor(ot->srna,
+                       "factor",
+                       1.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Scale Factor",
+                       "The scale factor applied to the curve segments",
+                       0.0f,
+                       2.0f);
+}
+
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Gauss Smooth Operator
  * \{ */

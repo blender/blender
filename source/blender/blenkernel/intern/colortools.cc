@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdlib>
@@ -34,8 +35,13 @@
 
 /* ***************** operations on full struct ************* */
 
-void BKE_curvemapping_set_defaults(
-    CurveMapping *cumap, int tot, float minx, float miny, float maxx, float maxy)
+void BKE_curvemapping_set_defaults(CurveMapping *cumap,
+                                   int tot,
+                                   float minx,
+                                   float miny,
+                                   float maxx,
+                                   float maxy,
+                                   short default_handle_type)
 {
   int a;
   float clipminx, clipminy, clipmaxx, clipmaxy;
@@ -57,14 +63,23 @@ void BKE_curvemapping_set_defaults(
   cumap->bwmul[0] = cumap->bwmul[1] = cumap->bwmul[2] = 1.0f;
 
   for (a = 0; a < tot; a++) {
+    if (default_handle_type == HD_VECT) {
+      cumap->cm[a].default_handle_type = CUMA_HANDLE_VECTOR;
+    }
+    else if (default_handle_type == HD_AUTO_ANIM) {
+      cumap->cm[a].default_handle_type = CUMA_HANDLE_AUTO_ANIM;
+    }
+
     cumap->cm[a].totpoint = 2;
     cumap->cm[a].curve = static_cast<CurveMapPoint *>(
         MEM_callocN(2 * sizeof(CurveMapPoint), "curve points"));
 
     cumap->cm[a].curve[0].x = minx;
     cumap->cm[a].curve[0].y = miny;
+    cumap->cm[a].curve[0].flag |= default_handle_type;
     cumap->cm[a].curve[1].x = maxx;
     cumap->cm[a].curve[1].y = maxy;
+    cumap->cm[a].curve[1].flag |= default_handle_type;
   }
 
   cumap->changed_timestamp = 0;
@@ -76,7 +91,7 @@ CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, 
 
   cumap = static_cast<CurveMapping *>(MEM_callocN(sizeof(CurveMapping), "new curvemap"));
 
-  BKE_curvemapping_set_defaults(cumap, tot, minx, miny, maxx, maxy);
+  BKE_curvemapping_set_defaults(cumap, tot, minx, miny, maxx, maxy, HD_AUTO);
 
   return cumap;
 }
@@ -238,6 +253,7 @@ CurveMapPoint *BKE_curvemap_insert(CurveMap *cuma, float x, float y)
       cmp[a].x = x;
       cmp[a].y = y;
       cmp[a].flag = CUMA_SELECT;
+      cmp[a].flag |= cuma->default_handle_type;
       foundloc = true;
       newcmp = &cmp[a];
     }
@@ -266,6 +282,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
 
   switch (preset) {
     case CURVE_PRESET_LINE:
+    case CURVE_PRESET_CONSTANT_MEDIAN:
       cuma->totpoint = 2;
       break;
     case CURVE_PRESET_SHARP:
@@ -297,6 +314,10 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
   cuma->curve = static_cast<CurveMapPoint *>(
       MEM_callocN(cuma->totpoint * sizeof(CurveMapPoint), "curve points"));
 
+  for (int i = 0; i < cuma->totpoint; i++) {
+    cuma->curve[i].flag = cuma->default_handle_type;
+  }
+
   switch (preset) {
     case CURVE_PRESET_LINE:
       cuma->curve[0].x = clipr->xmin;
@@ -304,9 +325,17 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
       cuma->curve[1].x = clipr->xmax;
       cuma->curve[1].y = clipr->ymin;
       if (slope == CURVEMAP_SLOPE_POS_NEG) {
+        cuma->curve[0].flag &= ~CUMA_HANDLE_AUTO_ANIM;
+        cuma->curve[1].flag &= ~CUMA_HANDLE_AUTO_ANIM;
         cuma->curve[0].flag |= CUMA_HANDLE_VECTOR;
         cuma->curve[1].flag |= CUMA_HANDLE_VECTOR;
       }
+      break;
+    case CURVE_PRESET_CONSTANT_MEDIAN:
+      cuma->curve[0].x = clipr->xmin;
+      cuma->curve[0].y = (clipr->ymin + clipr->ymax) / 2.0f;
+      cuma->curve[1].x = clipr->xmax;
+      cuma->curve[1].y = (clipr->ymin + clipr->ymax) / 2.0f;
       break;
     case CURVE_PRESET_SHARP:
       cuma->curve[0].x = 0;
@@ -845,20 +874,6 @@ void BKE_curvemapping_premultiply(CurveMapping *cumap, bool restore)
   }
 }
 
-static int sort_curvepoints(const void *a1, const void *a2)
-{
-  const CurveMapPoint *x1 = static_cast<const CurveMapPoint *>(a1),
-                      *x2 = static_cast<const CurveMapPoint *>(a2);
-
-  if (x1->x > x2->x) {
-    return 1;
-  }
-  if (x1->x < x2->x) {
-    return -1;
-  }
-  return 0;
-}
-
 /* ************************ more CurveMapping calls *************** */
 
 void BKE_curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
@@ -908,7 +923,9 @@ void BKE_curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
     }
   }
 
-  qsort(cmp, cuma->totpoint, sizeof(CurveMapPoint), sort_curvepoints);
+  std::stable_sort(cuma->curve,
+                   cuma->curve + cuma->totpoint,
+                   [](const CurveMapPoint &a, const CurveMapPoint &b) { return a.x < b.x; });
 
   /* remove doubles, threshold set on 1% of default range */
   if (rem_doubles && cuma->totpoint > 2) {

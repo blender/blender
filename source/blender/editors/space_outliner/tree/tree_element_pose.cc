@@ -28,7 +28,7 @@ TreeElementPoseBase::TreeElementPoseBase(TreeElement &legacy_te, Object &object)
   legacy_te.name = IFACE_("Pose");
 }
 
-void TreeElementPoseBase::expand(SpaceOutliner &space_outliner) const
+void TreeElementPoseBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   bArmature *arm = static_cast<bArmature *>(object_.data);
 
@@ -37,23 +37,18 @@ void TreeElementPoseBase::expand(SpaceOutliner &space_outliner) const
     int const_index = 1000; /* ensure unique id for bone constraints */
     int a;
     LISTBASE_FOREACH_INDEX (bPoseChannel *, pchan, &object_.pose->chanbase, a) {
-      PoseChannelElementCreateData pchan_data = {&object_, pchan};
-
-      TreeElement *ten = outliner_add_element(
-          &space_outliner, &legacy_te_.subtree, &pchan_data, &legacy_te_, TSE_POSE_CHANNEL, a);
+      TreeElement *ten = add_element(
+          &legacy_te_.subtree, &object_.id, pchan, &legacy_te_, TSE_POSE_CHANNEL, a);
       pchan->temp = (void *)ten;
 
       if (!BLI_listbase_is_empty(&pchan->constraints)) {
         /* Object *target; */
-        TreeElement *tenla1 = outliner_add_element(
-            &space_outliner, &ten->subtree, &object_, ten, TSE_CONSTRAINT_BASE, 0);
+        TreeElement *tenla1 = add_element(
+            &ten->subtree, &object_.id, nullptr, ten, TSE_CONSTRAINT_BASE, 0);
         /* char *str; */
 
         LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-          ConstraintElementCreateData con_data = {&object_, con};
-
-          outliner_add_element(
-              &space_outliner, &tenla1->subtree, &con_data, tenla1, TSE_CONSTRAINT, const_index);
+          add_element(&tenla1->subtree, &object_.id, con, tenla1, TSE_CONSTRAINT, const_index);
           /* possible add all other types links? */
         }
         const_index++;

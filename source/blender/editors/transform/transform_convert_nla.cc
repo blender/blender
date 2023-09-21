@@ -271,8 +271,8 @@ static void nlatrack_truncate_temporary_tracks(bAnimContext *ac)
 
     /** Remove bottom tracks that weren't necessary. */
     LISTBASE_FOREACH_MUTABLE (NlaTrack *, track, nla_tracks) {
-      /** Library override tracks are the first N tracks. They're never temporary and determine
-       * where we start removing temporaries.*/
+      /* Library override tracks are the first N tracks. They're never temporary and determine
+       * where we start removing temporaries. */
       if ((track->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0) {
         continue;
       }
@@ -368,8 +368,6 @@ static void nlastrip_fix_overlapping(TransInfo *t, TransDataNla *tdn, NlaStrip *
   NlaStrip *prev = BKE_nlastrip_prev_in_track(strip, true);
   NlaStrip *next = BKE_nlastrip_next_in_track(strip, true);
 
-  PointerRNA strip_ptr;
-
   for (short iter = 0; iter <= iter_max; iter++) {
     const bool p_exceeded = (prev != nullptr) && (tdn->h1[0] < prev->end);
     const bool n_exceeded = (next != nullptr) && (tdn->h2[0] > next->start);
@@ -410,7 +408,7 @@ static void nlastrip_fix_overlapping(TransInfo *t, TransDataNla *tdn, NlaStrip *
 
   /* Use RNA to write the values to ensure that constraints on these are obeyed
    * (e.g. for transition strips, the values are taken from the neighbors). */
-  RNA_pointer_create(nullptr, &RNA_NlaStrip, strip, &strip_ptr);
+  PointerRNA strip_ptr = RNA_pointer_create(nullptr, &RNA_NlaStrip, strip);
 
   switch (t->mode) {
     case TFM_TIME_EXTEND:
@@ -485,15 +483,17 @@ static void createTransNlaData(bContext *C, TransInfo *t)
     LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       /* TODO: we can make strips have handles later on. */
       /* transition strips can't get directly transformed */
-      if (strip->type != NLASTRIP_TYPE_TRANSITION) {
-        if (strip->flag & NLASTRIP_FLAG_SELECT) {
-          if (FrameOnMouseSide(t->frame_side, strip->start, float(scene->r.cfra))) {
-            count++;
-          }
-          if (FrameOnMouseSide(t->frame_side, strip->end, float(scene->r.cfra))) {
-            count++;
-          }
-        }
+      if (strip->type == NLASTRIP_TYPE_TRANSITION) {
+        continue;
+      }
+      if ((strip->flag & NLASTRIP_FLAG_SELECT) == 0) {
+        continue;
+      }
+      if (FrameOnMouseSide(t->frame_side, strip->start, float(scene->r.cfra))) {
+        count++;
+      }
+      if (FrameOnMouseSide(t->frame_side, strip->end, float(scene->r.cfra))) {
+        count++;
       }
     }
   }
@@ -534,92 +534,95 @@ static void createTransNlaData(bContext *C, TransInfo *t)
       LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
         /* TODO: we can make strips have handles later on. */
         /* transition strips can't get directly transformed */
-        if (strip->type != NLASTRIP_TYPE_TRANSITION) {
-          if (strip->flag & NLASTRIP_FLAG_SELECT) {
-            /* Our transform data is constructed as follows:
-             * - Only the handles on the right side of the current-frame get included.
-             * - `td` structs are transform-elements operated on by the transform system and
-             *   represent a single handle. The storage/pointer used (`val` or `loc`) depends
-             *   on whether we're scaling or transforming. Ultimately though, the handles the `td`
-             *   writes to will simply be a dummy in `tdn`.
-             * - For each strip being transformed, a single `tdn` struct is used, so in some
-             *   cases, there will need to be 1 of these `tdn` elements in the array skipped.
-             */
-            float center[3], yval;
+        if (strip->type == NLASTRIP_TYPE_TRANSITION) {
+          continue;
+        }
+        if ((strip->flag & NLASTRIP_FLAG_SELECT) == 0) {
+          continue;
+        }
 
-            /* Firstly, initialize `tdn` settings. */
-            tdn->id = ale->id;
-            tdn->oldTrack = tdn->nlt = nlt;
-            tdn->strip = strip;
-            tdn->trackIndex = BLI_findindex(&adt->nla_tracks, nlt);
-            tdn->signed_track_index = tdn->trackIndex;
+        /* Our transform data is constructed as follows:
+         * - Only the handles on the right side of the current-frame get included.
+         * - `td` structs are transform-elements operated on by the transform system and
+         *   represent a single handle. The storage/pointer used (`val` or `loc`) depends
+         *   on whether we're scaling or transforming. Ultimately though, the handles the `td`
+         *   writes to will simply be a dummy in `tdn`.
+         * - For each strip being transformed, a single `tdn` struct is used, so in some
+         *   cases, there will need to be 1 of these `tdn` elements in the array skipped.
+         */
+        float center[3], yval;
 
-            yval = float(tdn->trackIndex * NLACHANNEL_STEP(snla));
+        /* Firstly, initialize `tdn` settings. */
+        tdn->id = ale->id;
+        tdn->oldTrack = tdn->nlt = nlt;
+        tdn->strip = strip;
+        tdn->trackIndex = BLI_findindex(&adt->nla_tracks, nlt);
+        tdn->signed_track_index = tdn->trackIndex;
 
-            tdn->h1[0] = strip->start;
-            tdn->h1[1] = yval;
-            tdn->h2[0] = strip->end;
-            tdn->h2[1] = yval;
-            tdn->h1[2] = tdn->h2[2] = strip->scale;
+        yval = float(tdn->trackIndex * NLACHANNEL_STEP(snla));
 
-            center[0] = float(scene->r.cfra);
-            center[1] = yval;
-            center[2] = 0.0f;
+        tdn->h1[0] = strip->start;
+        tdn->h1[1] = yval;
+        tdn->h2[0] = strip->end;
+        tdn->h2[1] = yval;
+        tdn->h1[2] = tdn->h2[2] = strip->scale;
 
-            /* set td's based on which handles are applicable */
-            if (FrameOnMouseSide(t->frame_side, strip->start, float(scene->r.cfra))) {
-              /* just set tdn to assume that it only has one handle for now */
-              tdn->handle = -1;
+        center[0] = float(scene->r.cfra);
+        center[1] = yval;
+        center[2] = 0.0f;
 
-              /* Now, link the transform data up to this data. */
-              td->loc = tdn->h1;
-              copy_v3_v3(td->iloc, tdn->h1);
+        /* set td's based on which handles are applicable */
+        if (FrameOnMouseSide(t->frame_side, strip->start, float(scene->r.cfra))) {
+          /* just set tdn to assume that it only has one handle for now */
+          tdn->handle = -1;
 
-              if (ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_EXTEND)) {
-                /* Store all the other gunk that is required by transform. */
-                copy_v3_v3(td->center, center);
-                td->axismtx[2][2] = 1.0f;
-                td->flag |= TD_SELECTED;
-                unit_m3(td->mtx);
-                unit_m3(td->smtx);
-              }
+          /* Now, link the transform data up to this data. */
+          td->loc = tdn->h1;
+          copy_v3_v3(td->iloc, tdn->h1);
 
-              td->extra = tdn;
-              td++;
-            }
-            if (FrameOnMouseSide(t->frame_side, strip->end, float(scene->r.cfra))) {
-              /* if tdn is already holding the start handle,
-               * then we're doing both, otherwise, only end */
-              tdn->handle = (tdn->handle) ? 2 : 1;
-
-              /* Now, link the transform data up to this data. */
-              td->loc = tdn->h2;
-              copy_v3_v3(td->iloc, tdn->h2);
-
-              if (ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_EXTEND)) {
-                /* Store all the other gunk that is required by transform. */
-                copy_v3_v3(td->center, center);
-                td->axismtx[2][2] = 1.0f;
-                td->flag |= TD_SELECTED;
-                unit_m3(td->mtx);
-                unit_m3(td->smtx);
-              }
-
-              td->extra = tdn;
-              td++;
-            }
-
-            /* If both handles were used, skip the next tdn (i.e. leave it blank)
-             * since the counting code is dumb.
-             * Otherwise, just advance to the next one.
-             */
-            if (tdn->handle == 2) {
-              tdn += 2;
-            }
-            else {
-              tdn++;
-            }
+          if (ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_EXTEND)) {
+            /* Store all the other gunk that is required by transform. */
+            copy_v3_v3(td->center, center);
+            td->axismtx[2][2] = 1.0f;
+            td->flag |= TD_SELECTED;
+            unit_m3(td->mtx);
+            unit_m3(td->smtx);
           }
+
+          td->extra = tdn;
+          td++;
+        }
+        if (FrameOnMouseSide(t->frame_side, strip->end, float(scene->r.cfra))) {
+          /* if tdn is already holding the start handle,
+           * then we're doing both, otherwise, only end */
+          tdn->handle = (tdn->handle) ? 2 : 1;
+
+          /* Now, link the transform data up to this data. */
+          td->loc = tdn->h2;
+          copy_v3_v3(td->iloc, tdn->h2);
+
+          if (ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_EXTEND)) {
+            /* Store all the other gunk that is required by transform. */
+            copy_v3_v3(td->center, center);
+            td->axismtx[2][2] = 1.0f;
+            td->flag |= TD_SELECTED;
+            unit_m3(td->mtx);
+            unit_m3(td->smtx);
+          }
+
+          td->extra = tdn;
+          td++;
+        }
+
+        /* If both handles were used, skip the next tdn (i.e. leave it blank)
+         * since the counting code is dumb.
+         * Otherwise, just advance to the next one.
+         */
+        if (tdn->handle == 2) {
+          tdn += 2;
+        }
+        else {
+          tdn++;
         }
       }
     }
@@ -629,24 +632,66 @@ static void createTransNlaData(bContext *C, TransInfo *t)
   ANIM_animdata_freelist(&anim_data);
 }
 
+static void invert_snap(eSnapMode &snap_mode)
+{
+  if (snap_mode & SCE_SNAP_TO_FRAME) {
+    snap_mode &= ~SCE_SNAP_TO_FRAME;
+    snap_mode |= SCE_SNAP_TO_SECOND;
+  }
+  else if (snap_mode & SCE_SNAP_TO_SECOND) {
+    snap_mode &= ~SCE_SNAP_TO_SECOND;
+    snap_mode |= SCE_SNAP_TO_FRAME;
+  }
+}
+
+static void snap_transform_data(TransInfo *t, TransDataContainer *tc)
+{
+  /* handle auto-snapping
+   * NOTE: only do this when transform is still running, or we can't restore
+   */
+  if (t->state == TRANS_CANCEL) {
+    return;
+  }
+  if ((t->tsnap.flag & SCE_SNAP) == 0) {
+    return;
+  }
+
+  eSnapMode snap_mode = t->tsnap.mode;
+  if (t->modifiers & MOD_SNAP_INVERT) {
+    invert_snap(snap_mode);
+  }
+
+  float offset = 0;
+  float smallest_snap_delta = FLT_MAX;
+
+  /* In order to move the strip in a block and not each end individually,
+   * find the minimal snap offset first and then shift the whole strip by that amount. */
+  for (int i = 0; i < tc->data_len; i++) {
+    TransData td = tc->data[i];
+    float snap_value;
+    transform_snap_anim_flush_data(t, &td, snap_mode, &snap_value);
+
+    /* The snap_delta measures how far from the unsnapped position the value has moved. */
+    const float snap_delta = *td.loc - snap_value;
+    if (fabs(snap_delta) < fabs(smallest_snap_delta)) {
+      offset = snap_value - td.iloc[0];
+      smallest_snap_delta = snap_delta;
+    }
+  }
+
+  for (int i = 0; i < tc->data_len; i++) {
+    TransData td = tc->data[i];
+    *td.loc = td.iloc[0] + offset;
+  }
+}
+
 static void recalcData_nla(TransInfo *t)
 {
   SpaceNla *snla = (SpaceNla *)t->area->spacedata.first;
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
-  /* handle auto-snapping
-   * NOTE: only do this when transform is still running, or we can't restore
-   */
-  if (t->state != TRANS_CANCEL) {
-    const short autosnap = getAnimEdit_SnapMode(t);
-    if (autosnap != SACTSNAP_OFF) {
-      TransData *td = tc->data;
-      for (int i = 0; i < tc->data_len; i++, td++) {
-        transform_snap_anim_flush_data(t, td, eAnimEdit_AutoSnap(autosnap), td->loc);
-      }
-    }
-  }
+  snap_transform_data(t, tc);
 
   /* For each strip we've got, perform some additional validation of the values
    * that got set before using RNA to set the value (which does some special

@@ -3276,7 +3276,6 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   SelectPick_Params params{};
   ED_select_pick_params_from_operator(op->ptr, &params);
 
-  const bool vert_without_handles = RNA_boolean_get(op->ptr, "vert_without_handles");
   bool center = RNA_boolean_get(op->ptr, "center");
   bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
   /* Only force object select for edit-mode to support vertex parenting,
@@ -3336,8 +3335,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
       changed = ED_lattice_select_pick(C, mval, &params);
     }
     else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-      changed = ED_curve_editnurb_select_pick(
-          C, mval, ED_view3d_select_dist_px(), vert_without_handles, &params);
+      changed = ED_curve_editnurb_select_pick(C, mval, ED_view3d_select_dist_px(), &params);
     }
     else if (obedit->type == OB_MBALL) {
       changed = ED_mball_select_pick(C, mval, &params);
@@ -3422,15 +3420,6 @@ void VIEW3D_OT_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "object", false, "Object", "Use object selection (edit mode only)");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
-  /* Needed for select-through to usefully drag handles, see: #98254.
-   * NOTE: this option may be removed and become default behavior, see design task: #98552. */
-  prop = RNA_def_boolean(ot->srna,
-                         "vert_without_handles",
-                         false,
-                         "Control Point Without Handles",
-                         "Only select the curve control point, not its handles");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_int_vector(ot->srna,

@@ -11,6 +11,7 @@
 #include "FN_lazy_function.hh"
 #include "FN_multi_function_builder.hh"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 
@@ -158,6 +159,13 @@ class GeoNodeExecParams {
       using BaseType = typename StoredT::base_type;
       this->set_output(identifier, ValueOrField<BaseType>(std::forward<T>(value)));
     }
+    else if constexpr (std::is_same_v<std::decay_t<StoredT>, GField>) {
+      bke::attribute_math::convert_to_static_type(value.cpp_type(), [&](auto dummy) {
+        using ValueT = decltype(dummy);
+        Field<ValueT> value_typed(std::forward<T>(value));
+        this->set_output(identifier, ValueOrField<ValueT>(std::move(value_typed)));
+      });
+    }
     else {
 #ifdef DEBUG
       const CPPType &type = CPPType::get<StoredT>();
@@ -173,7 +181,7 @@ class GeoNodeExecParams {
 
   geo_eval_log::GeoTreeLogger *get_local_tree_logger() const
   {
-    return this->local_user_data()->tree_logger;
+    return this->local_user_data()->try_get_tree_logger();
   }
 
   /**

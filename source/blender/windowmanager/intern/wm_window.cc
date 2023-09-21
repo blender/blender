@@ -30,6 +30,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_blender_version.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -481,20 +482,22 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
      * because #WM_window_open always sets window title. */
   }
   else if (win->ghostwin) {
-    /* this is set to 1 if you don't have startup.blend open */
-    const char *blendfile_path = BKE_main_blendfile_path_from_global();
-    if (blendfile_path[0] != '\0') {
-      char str[sizeof(Main::filepath) + 24];
-      SNPRINTF(str,
-               "Blender%s [%s%s]",
-               wm->file_saved ? "" : "*",
-               blendfile_path,
-               G_MAIN->recovered ? " (Recovered)" : "");
-      GHOST_SetTitle(static_cast<GHOST_WindowHandle>(win->ghostwin), str);
-    }
-    else {
-      GHOST_SetTitle(static_cast<GHOST_WindowHandle>(win->ghostwin), "Blender");
-    }
+    char str[sizeof(Main::filepath) + 24];
+    const char *filepath = BKE_main_blendfile_path_from_global();
+    const char *filename = BLI_path_basename(filepath);
+    const bool has_filepath = filepath[0] != '\0';
+    const bool has_directory = has_filepath && (filepath != filename);
+    SNPRINTF(str,
+             "%s %s%s%s%.*s%s - Blender %s",
+             wm->file_saved ? "" : "*",
+             has_filepath ? filename : IFACE_("(Unsaved)"),
+             G_MAIN->recovered ? " (Recovered)" : "",
+             has_directory ? " [" : "",
+             has_directory ? int(filename - filepath) : 0,
+             has_directory ? filepath : "",
+             has_directory ? "]" : "",
+             BKE_blender_version_string_compact());
+    GHOST_SetTitle(static_cast<GHOST_WindowHandle>(win->ghostwin), str);
 
     /* Informs GHOST of unsaved changes, to set window modified visual indicator (macOS)
      * and to give hint of unsaved changes for a user warning mechanism in case of OS application
@@ -798,18 +801,18 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
   }
 
   /* add keymap handlers (1 handler for all keys in map!) */
-  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Window", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Screen", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Screen", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&win->modalhandlers, keymap);
 
   /* Add drop boxes. */
   {
-    ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
+    ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
     WM_event_add_dropbox_handler(&win->handlers, lb);
   }
   wm_window_title(wm, win);
@@ -1614,23 +1617,23 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
     }
 
     /* Future timer, update nearest time & skip. */
-    if (wt->ntime >= time) {
+    if (wt->time_next >= time) {
       if ((has_event == false) && (sleep_us != 0)) {
         /* The timer is not ready to run but may run shortly. */
-        if (wt->ntime < ntime_min) {
-          ntime_min = wt->ntime;
+        if (wt->time_next < ntime_min) {
+          ntime_min = wt->time_next;
         }
       }
       continue;
     }
 
-    wt->delta = time - wt->ltime;
-    wt->duration += wt->delta;
-    wt->ltime = time;
+    wt->time_delta = time - wt->time_last;
+    wt->time_duration += wt->time_delta;
+    wt->time_last = time;
 
-    wt->ntime = wt->stime;
-    if (wt->timestep != 0.0f) {
-      wt->ntime += wt->timestep * ceil(wt->duration / wt->timestep);
+    wt->time_next = wt->time_start;
+    if (wt->time_step != 0.0f) {
+      wt->time_next += wt->time_step * ceil(wt->time_duration / wt->time_step);
     }
 
     if (wt->event_type == TIMERJOBS) {
@@ -1961,16 +1964,16 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *time
   timer->sleep = do_sleep;
 }
 
-wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double timestep)
+wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double time_step)
 {
   wmTimer *wt = static_cast<wmTimer *>(MEM_callocN(sizeof(wmTimer), "window timer"));
-  BLI_assert(timestep >= 0.0f);
+  BLI_assert(time_step >= 0.0f);
 
   wt->event_type = event_type;
-  wt->ltime = PIL_check_seconds_timer();
-  wt->ntime = wt->ltime + timestep;
-  wt->stime = wt->ltime;
-  wt->timestep = timestep;
+  wt->time_last = PIL_check_seconds_timer();
+  wt->time_next = wt->time_last + time_step;
+  wt->time_start = wt->time_last;
+  wt->time_step = time_step;
   wt->win = win;
 
   BLI_addtail(&wm->timers, wt);
@@ -1981,16 +1984,16 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, 
 wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
                                      wmWindow *win,
                                      uint type,
-                                     double timestep)
+                                     double time_step)
 {
   wmTimer *wt = static_cast<wmTimer *>(MEM_callocN(sizeof(wmTimer), "window timer"));
-  BLI_assert(timestep >= 0.0f);
+  BLI_assert(time_step >= 0.0f);
 
   wt->event_type = TIMERNOTIFIER;
-  wt->ltime = PIL_check_seconds_timer();
-  wt->ntime = wt->ltime + timestep;
-  wt->stime = wt->ltime;
-  wt->timestep = timestep;
+  wt->time_last = PIL_check_seconds_timer();
+  wt->time_next = wt->time_last + time_step;
+  wt->time_start = wt->time_last;
+  wt->time_step = time_step;
   wt->win = win;
   wt->customdata = POINTER_FROM_UINT(type);
   wt->flags |= WM_TIMER_NO_FREE_CUSTOM_DATA;

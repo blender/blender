@@ -17,6 +17,7 @@
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_cursor_utf8.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.h"
 
@@ -93,6 +94,52 @@ static char text_closing_character_pair_get(const char character)
     default:
       return 0;
   }
+}
+
+/**
+ * This function receives a range and returns true if the range is blank.
+ * \param line1: The first TextLine argument.
+ * \param line1_char: The character number of line1.
+ * \param line2: The second TextLine argument.
+ * \param line2_char: The character number of line2.
+ * \return True if the span is blank.
+ */
+static bool text_span_is_blank(TextLine *line1,
+                               const int line1_char,
+                               TextLine *line2,
+                               const int line2_char)
+{
+  const TextLine *start_line;
+  const TextLine *end_line;
+  int start_char;
+  int end_char;
+
+  /* Get the start and end lines. */
+  if (txt_get_span(line1, line2) > 0 || (line1 == line2 && line1_char <= line2_char)) {
+    start_line = line1;
+    end_line = line2;
+    start_char = line1_char;
+    end_char = line2_char;
+  }
+  else {
+    start_line = line2;
+    end_line = line1;
+    start_char = line2_char;
+    end_char = line1_char;
+  }
+
+  for (const TextLine *line = start_line; line != end_line->next; line = line->next) {
+    const int start = (line == start_line) ? start_char : 0;
+    const int end = (line == end_line) ? end_char : line->len;
+
+    for (int i = start; i < end; i++) {
+      if (!ELEM(line->line[i], ' ', '\t', '\n')) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -286,7 +333,7 @@ static int text_new_exec(bContext *C, wmOperator * /*op*/)
   SpaceText *st = CTX_wm_space_text(C);
   Main *bmain = CTX_data_main(C);
   Text *text;
-  PointerRNA ptr, idptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
 
   text = BKE_text_add(bmain, DATA_("Text"));
@@ -295,7 +342,7 @@ static int text_new_exec(bContext *C, wmOperator * /*op*/)
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
-    RNA_id_pointer_create(&text->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&text->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
@@ -354,7 +401,6 @@ static int text_open_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Text *text;
   PropertyPointerRNA *pprop;
-  PointerRNA idptr;
   char filepath[FILE_MAX];
   const bool internal = RNA_boolean_get(op->ptr, "internal");
 
@@ -377,7 +423,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
   pprop = static_cast<PropertyPointerRNA *>(op->customdata);
 
   if (pprop->prop) {
-    RNA_id_pointer_create(&text->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&text->id);
     RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, nullptr);
     RNA_property_update(C, &pprop->ptr, pprop->prop);
   }
@@ -863,11 +909,11 @@ static int text_refresh_pyconstraints_exec(bContext * /*C*/, wmOperator * /*op*/
   Text *text = CTX_data_edit_text(C);
   Object *ob;
   bConstraint *con;
-  short update;
+  bool update;
 
   /* check all pyconstraints */
   for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-    update = 0;
+    update = false;
     if (ob->type == OB_ARMATURE && ob->pose) {
       bPoseChannel *pchan;
       for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -877,7 +923,7 @@ static int text_refresh_pyconstraints_exec(bContext * /*C*/, wmOperator * /*op*/
             if (data->text == text) {
               BPY_pyconstraint_update(ob, con);
             }
-            update = 1;
+            update = true;
           }
         }
       }
@@ -888,7 +934,7 @@ static int text_refresh_pyconstraints_exec(bContext * /*C*/, wmOperator * /*op*/
         if (data->text == text) {
           BPY_pyconstraint_update(ob, con);
         }
-        update = 1;
+        update = true;
       }
     }
 
@@ -1383,6 +1429,15 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
   size_t a, j, max_len = 0;
   int type = RNA_enum_get(op->ptr, "type");
 
+  const int curc_column = text->curl ?
+                              BLI_str_utf8_offset_to_column_with_tabs(
+                                  text->curl->line, text->curl->len, text->curc, TXT_TABSIZE) :
+                              -1;
+  const int selc_column = text->sell ?
+                              BLI_str_utf8_offset_to_column_with_tabs(
+                                  text->sell->line, text->sell->len, text->selc, TXT_TABSIZE) :
+                              -1;
+
   /* first convert to all space, this make it a lot easier to convert to tabs
    * because there is no mixtures of ' ' && '\t' */
   LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
@@ -1474,15 +1529,23 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
           MEM_freeN(tmp->format);
         }
 
-        /* Put new_line in the tmp->line spot
-         * still need to try and set the curc correctly. */
-        tmp->line = BLI_strdup(tmp_line);
+        /* Put new_line in the `tmp->line` spot. */
         tmp->len = strlen(tmp_line);
+        tmp->line = BLI_strdupn(tmp_line, tmp->len);
         tmp->format = nullptr;
       }
     }
 
     MEM_freeN(tmp_line);
+  }
+
+  if (curc_column != -1) {
+    text->curc = BLI_str_utf8_offset_from_column_with_tabs(
+        text->curl->line, text->curl->len, curc_column, TXT_TABSIZE);
+  }
+  if (selc_column != -1) {
+    text->selc = BLI_str_utf8_offset_from_column_with_tabs(
+        text->sell->line, text->sell->len, selc_column, TXT_TABSIZE);
   }
 
   text_update_edited(text);
@@ -1689,14 +1752,15 @@ static const EnumPropertyItem move_type_items[] = {
 static int text_get_cursor_rel(
     SpaceText *st, ARegion *region, TextLine *linein, int rell, int relc)
 {
-  int i, j, start, end, max, chop, curs, loop, endj, found, selc;
+  int i, j, start, end, max, curs, endj, selc;
+  bool chop, loop, found;
   char ch;
 
   max = wrap_width(st, region);
 
-  selc = start = endj = curs = found = 0;
+  selc = start = endj = curs = found = false;
   end = max;
-  chop = loop = 1;
+  chop = loop = true;
 
   for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe(linein->line + j)) {
     int chars;
@@ -1717,7 +1781,7 @@ static int text_get_cursor_rel(
         /* current position could be wrapped to next line */
         /* this should be checked when end of current line would be reached */
         selc = j;
-        found = 1;
+        found = true;
       }
       else if (i - end <= relc && i + columns - end > relc) {
         curs = j;
@@ -1731,7 +1795,7 @@ static int text_get_cursor_rel(
           if (selc > endj && !chop) {
             selc = endj;
           }
-          loop = 0;
+          loop = false;
           break;
         }
 
@@ -1741,12 +1805,12 @@ static int text_get_cursor_rel(
 
         start = end;
         end += max;
-        chop = 1;
+        chop = true;
         rell--;
 
         if (rell == 0 && i + columns - start > relc) {
           selc = curs;
-          loop = 0;
+          loop = false;
           break;
         }
       }
@@ -1754,23 +1818,23 @@ static int text_get_cursor_rel(
         if (!found) {
           selc = linein->len;
         }
-        loop = 0;
+        loop = false;
         break;
       }
       else if (ELEM(ch, ' ', '-')) {
         if (found) {
-          loop = 0;
+          loop = false;
           break;
         }
 
         if (rell == 0 && i + columns - start > relc) {
           selc = curs;
-          loop = 0;
+          loop = false;
           break;
         }
         end = i + 1;
         endj = j;
-        chop = 0;
+        chop = false;
       }
       i += columns;
     }
@@ -1873,7 +1937,8 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
   Text *text = st->text;
   TextLine **linep;
   int *charp;
-  int oldc, i, j, max, start, end, endj, chop, loop;
+  int oldc, i, j, max, start, end, endj;
+  bool chop, loop;
   char ch;
 
   text_update_character_width(st);
@@ -1893,7 +1958,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
 
   start = endj = 0;
   end = max;
-  chop = loop = 1;
+  chop = loop = true;
   *charp = 0;
 
   for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe((*linep)->line + j)) {
@@ -1918,9 +1983,10 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
 
         if (j >= oldc) {
           if (ch == '\0') {
-            *charp = BLI_str_utf8_offset_from_column((*linep)->line, start);
+            *charp = BLI_str_utf8_offset_from_column_with_tabs(
+                (*linep)->line, (*linep)->len, start, TXT_TABSIZE);
           }
-          loop = 0;
+          loop = false;
           break;
         }
 
@@ -1930,18 +1996,19 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
 
         start = end;
         end += max;
-        chop = 1;
+        chop = true;
       }
       else if (ELEM(ch, ' ', '-', '\0')) {
         if (j >= oldc) {
-          *charp = BLI_str_utf8_offset_from_column((*linep)->line, start);
-          loop = 0;
+          *charp = BLI_str_utf8_offset_from_column_with_tabs(
+              (*linep)->line, (*linep)->len, start, TXT_TABSIZE);
+          loop = false;
           break;
         }
 
         end = i + 1;
         endj = j + 1;
-        chop = 0;
+        chop = false;
       }
       i += columns;
     }
@@ -1957,7 +2024,8 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
   Text *text = st->text;
   TextLine **linep;
   int *charp;
-  int oldc, i, j, max, start, end, endj, chop, loop;
+  int oldc, i, j, max, start, end, endj;
+  bool chop, loop;
   char ch;
 
   text_update_character_width(st);
@@ -1977,7 +2045,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
 
   start = endj = 0;
   end = max;
-  chop = loop = 1;
+  chop = loop = true;
   *charp = 0;
 
   for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe((*linep)->line + j)) {
@@ -2009,23 +2077,23 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
           else {
             *charp = endj;
           }
-          loop = 0;
+          loop = false;
           break;
         }
 
         start = end;
         end += max;
-        chop = 1;
+        chop = true;
       }
       else if (ch == '\0') {
         *charp = (*linep)->len;
-        loop = 0;
+        loop = false;
         break;
       }
       else if (ELEM(ch, ' ', '-')) {
         end = i + 1;
         endj = j;
-        chop = 0;
+        chop = false;
       }
       i += columns;
     }
@@ -3499,13 +3567,13 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 
   if (st && st->overwrite) {
     while (str[i]) {
-      code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
+      code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &i);
       done |= txt_replace_char(text, code);
     }
   }
   else {
     while (str[i]) {
-      code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
+      code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &i);
       done |= txt_add_char(text, code);
     }
   }
@@ -3527,8 +3595,21 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceText *st = CTX_wm_space_text(C);
-  uint auto_close_char = 0;
   int ret;
+
+  /* Auto-close variables. */
+  bool do_auto_close = false;
+  bool do_auto_close_select = false;
+
+  uint auto_close_char_input = 0;
+  uint auto_close_char_match = 0;
+  /* Variables needed to restore the selection when auto-closing around an existing selection. */
+  struct {
+    TextLine *sell;
+    TextLine *curl;
+    int selc;
+    int curc;
+  } auto_close_select = {nullptr}, auto_close_select_backup = {nullptr};
 
   /* NOTE: the "text" property is always set from key-map,
    * so we can't use #RNA_struct_property_is_set, check the length instead. */
@@ -3548,18 +3629,81 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     RNA_string_set(op->ptr, "text", str);
 
     if (U.text_flag & USER_TEXT_EDIT_AUTO_CLOSE) {
-      auto_close_char = BLI_str_utf8_as_unicode(str);
+      auto_close_char_input = BLI_str_utf8_as_unicode_or_error(str);
+      if (isascii(auto_close_char_input)) {
+        auto_close_char_match = text_closing_character_pair_get(auto_close_char_input);
+        if (auto_close_char_match != 0) {
+          do_auto_close = true;
+
+          if (txt_has_sel(st->text) &&
+              !text_span_is_blank(st->text->sell, st->text->selc, st->text->curl, st->text->curc))
+          {
+            do_auto_close_select = true;
+
+            auto_close_select_backup.curl = st->text->curl;
+            auto_close_select_backup.curc = st->text->curc;
+            auto_close_select_backup.sell = st->text->sell;
+            auto_close_select_backup.selc = st->text->selc;
+
+            /* Movers the cursor to the start of the selection. */
+            txt_order_cursors(st->text, false);
+
+            auto_close_select.curl = st->text->curl;
+            auto_close_select.curc = st->text->curc;
+            auto_close_select.sell = st->text->sell;
+            auto_close_select.selc = st->text->selc;
+
+            txt_pop_sel(st->text);
+          }
+        }
+      }
     }
   }
 
   ret = text_insert_exec(C, op);
 
-  if ((ret == OPERATOR_FINISHED) && (auto_close_char != 0)) {
-    const uint auto_close_match = text_closing_character_pair_get(auto_close_char);
-    if (auto_close_match != 0) {
-      Text *text = CTX_data_edit_text(C);
-      txt_add_char(text, auto_close_match);
-      txt_move_left(text, false);
+  if (do_auto_close) {
+    if (ret == OPERATOR_FINISHED) {
+      const int auto_close_char_len = BLI_str_utf8_from_unicode_len(auto_close_char_input);
+      /* If there was a selection, move cursor to the end of it. */
+      if (do_auto_close_select) {
+        /* Update the value in-place as needed. */
+        if (auto_close_select.curl == auto_close_select.sell) {
+          auto_close_select.selc += auto_close_char_len;
+        }
+        /* Move the cursor to the end of the selection. */
+        st->text->curl = auto_close_select.sell;
+        st->text->curc = auto_close_select.selc;
+        txt_pop_sel(st->text);
+      }
+
+      txt_add_char(st->text, auto_close_char_match);
+      txt_move_left(st->text, false);
+
+      /* If there was a selection, restore it. */
+      if (do_auto_close_select) {
+        /* Mark the selection as edited. */
+        if (auto_close_select.curl != auto_close_select.sell) {
+          TextLine *line = auto_close_select.curl;
+          do {
+            line = line->next;
+            text_update_line_edited(line);
+          } while (line != auto_close_select.sell);
+        }
+        st->text->curl = auto_close_select.curl;
+        st->text->curc = auto_close_select.curc + auto_close_char_len;
+        st->text->sell = auto_close_select.sell;
+        st->text->selc = auto_close_select.selc;
+      }
+    }
+    else {
+      /* If nothing was done & the selection was removed, restore the selection. */
+      if (do_auto_close_select) {
+        st->text->curl = auto_close_select_backup.curl;
+        st->text->curc = auto_close_select_backup.curc;
+        st->text->sell = auto_close_select_backup.sell;
+        st->text->selc = auto_close_select_backup.selc;
+      }
     }
   }
 

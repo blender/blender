@@ -182,6 +182,7 @@ class SocketDeclaration : public ItemDeclaration {
   bool is_unavailable = false;
   bool is_attribute_name = false;
   bool is_default_link_socket = false;
+  bool inline_with_next = false;
 
   InputSocketFieldType input_field_type = InputSocketFieldType::None;
   OutputFieldDependency output_field_dependency;
@@ -246,7 +247,10 @@ class NodeDeclarationBuilder;
 
 class BaseSocketDeclarationBuilder {
  protected:
-  int index_ = -1;
+  /* Socket builder can hold both an input and an output declaration.
+   * Each socket declaration has its own index for dependencies. */
+  int index_in_ = -1;
+  int index_out_ = -1;
   bool reference_pass_all_ = false;
   bool field_on_all_ = false;
   bool propagate_from_all_ = false;
@@ -258,7 +262,8 @@ class BaseSocketDeclarationBuilder {
   virtual ~BaseSocketDeclarationBuilder() = default;
 
  protected:
-  virtual SocketDeclaration *declaration() = 0;
+  virtual SocketDeclaration *input_declaration() = 0;
+  virtual SocketDeclaration *output_declaration() = 0;
 };
 
 /**
@@ -271,44 +276,72 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
  protected:
   using Self = typename SocketDecl::Builder;
   static_assert(std::is_base_of_v<SocketDeclaration, SocketDecl>);
-  SocketDecl *decl_;
+  SocketDecl *decl_in_;
+  SocketDecl *decl_out_;
 
   friend class NodeDeclarationBuilder;
 
  public:
   Self &hide_label(bool value = true)
   {
-    decl_->hide_label = value;
+    if (decl_in_) {
+      decl_in_->hide_label = value;
+    }
+    if (decl_out_) {
+      decl_out_->hide_label = value;
+    }
     return *(Self *)this;
   }
 
   Self &hide_value(bool value = true)
   {
-    decl_->hide_value = value;
+    if (decl_in_) {
+      decl_in_->hide_value = value;
+    }
+    if (decl_out_) {
+      decl_out_->hide_value = value;
+    }
     return *(Self *)this;
   }
 
   Self &multi_input(bool value = true)
   {
-    decl_->is_multi_input = value;
+    if (decl_in_) {
+      decl_in_->is_multi_input = value;
+    }
     return *(Self *)this;
   }
 
   Self &description(std::string value = "")
   {
-    decl_->description = std::move(value);
+    if (decl_in_) {
+      decl_in_->description = std::move(value);
+    }
+    if (decl_out_) {
+      decl_out_->description = std::move(value);
+    }
     return *(Self *)this;
   }
 
   Self &translation_context(std::string value = BLT_I18NCONTEXT_DEFAULT)
   {
-    decl_->translation_context = std::move(value);
+    if (decl_in_) {
+      decl_in_->translation_context = std::move(value);
+    }
+    if (decl_out_) {
+      decl_out_->translation_context = std::move(value);
+    }
     return *(Self *)this;
   }
 
   Self &no_muted_links(bool value = true)
   {
-    decl_->no_mute_links = value;
+    if (decl_in_) {
+      decl_in_->no_mute_links = value;
+    }
+    if (decl_out_) {
+      decl_out_->no_mute_links = value;
+    }
     return *(Self *)this;
   }
 
@@ -318,26 +351,43 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
    */
   Self &unavailable(bool value = true)
   {
-    decl_->is_unavailable = value;
+    if (decl_in_) {
+      decl_in_->is_unavailable = value;
+    }
+    if (decl_out_) {
+      decl_out_->is_unavailable = value;
+    }
     return *(Self *)this;
   }
 
   Self &is_attribute_name(bool value = true)
   {
-    decl_->is_attribute_name = value;
+    if (decl_in_) {
+      decl_in_->is_attribute_name = value;
+    }
+    if (decl_out_) {
+      decl_out_->is_attribute_name = value;
+    }
     return *(Self *)this;
   }
 
   Self &is_default_link_socket(bool value = true)
   {
-    decl_->is_default_link_socket = value;
+    if (decl_in_) {
+      decl_in_->is_default_link_socket = value;
+    }
+    if (decl_out_) {
+      decl_out_->is_default_link_socket = value;
+    }
     return *(Self *)this;
   }
 
   /** The input socket allows passing in a field. */
   Self &supports_field()
   {
-    decl_->input_field_type = InputSocketFieldType::IsSupported;
+    if (decl_in_) {
+      decl_in_->input_field_type = InputSocketFieldType::IsSupported;
+    }
     return *(Self *)this;
   }
 
@@ -350,10 +400,10 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
    */
   Self &field_on_all()
   {
-    if (decl_->in_out == SOCK_IN) {
+    if (decl_in_) {
       this->supports_field();
     }
-    else {
+    if (decl_out_) {
       this->field_source();
     }
     field_on_all_ = true;
@@ -367,8 +417,10 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   Self &implicit_field(ImplicitInputValueFn fn)
   {
     this->hide_value();
-    decl_->input_field_type = InputSocketFieldType::Implicit;
-    decl_->implicit_input_fn_ = std::make_unique<ImplicitInputValueFn>(std::move(fn));
+    if (decl_in_) {
+      decl_in_->input_field_type = InputSocketFieldType::Implicit;
+      decl_in_->implicit_input_fn_ = std::make_unique<ImplicitInputValueFn>(std::move(fn));
+    }
     return *(Self *)this;
   }
 
@@ -391,14 +443,18 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   /** The output is always a field, regardless of any inputs. */
   Self &field_source()
   {
-    decl_->output_field_dependency = OutputFieldDependency::ForFieldSource();
+    if (decl_out_) {
+      decl_out_->output_field_dependency = OutputFieldDependency::ForFieldSource();
+    }
     return *(Self *)this;
   }
 
   /** The output is a field if any of the inputs are a field. */
   Self &dependent_field()
   {
-    decl_->output_field_dependency = OutputFieldDependency::ForDependentField();
+    if (decl_out_) {
+      decl_out_->output_field_dependency = OutputFieldDependency::ForDependentField();
+    }
     this->reference_pass_all();
     return *(Self *)this;
   }
@@ -407,8 +463,10 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   Self &dependent_field(Vector<int> input_dependencies)
   {
     this->reference_pass(input_dependencies);
-    decl_->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
-        std::move(input_dependencies));
+    if (decl_out_) {
+      decl_out_->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
+          std::move(input_dependencies));
+    }
     return *(Self *)this;
   }
 
@@ -446,7 +504,12 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
 
   Self &compositor_realization_options(CompositorInputRealizationOptions value)
   {
-    decl_->compositor_realization_options_ = value;
+    if (decl_in_) {
+      decl_in_->compositor_realization_options_ = value;
+    }
+    if (decl_out_) {
+      decl_out_->compositor_realization_options_ = value;
+    }
     return *(Self *)this;
   }
 
@@ -454,7 +517,12 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
    * realtime_compositor::InputDescriptor for more information. */
   Self &compositor_domain_priority(int priority)
   {
-    decl_->compositor_domain_priority_ = priority;
+    if (decl_in_) {
+      decl_in_->compositor_domain_priority_ = priority;
+    }
+    if (decl_out_) {
+      decl_out_->compositor_domain_priority_ = priority;
+    }
     return *(Self *)this;
   }
 
@@ -462,7 +530,12 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
    * realtime_compositor::InputDescriptor for more information. */
   Self &compositor_expects_single_value(bool value = true)
   {
-    decl_->compositor_expects_single_value_ = value;
+    if (decl_in_) {
+      decl_in_->compositor_expects_single_value_ = value;
+    }
+    if (decl_out_) {
+      decl_out_->compositor_expects_single_value_ = value;
+    }
     return *(Self *)this;
   }
 
@@ -474,14 +547,23 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
    */
   Self &make_available(std::function<void(bNode &)> fn)
   {
-    decl_->make_available_fn_ = std::move(fn);
+    if (decl_in_) {
+      decl_in_->make_available_fn_ = std::move(fn);
+    }
+    if (decl_out_) {
+      decl_out_->make_available_fn_ = std::move(fn);
+    }
     return *(Self *)this;
   }
 
  protected:
-  SocketDeclaration *declaration() override
+  SocketDeclaration *input_declaration() override
   {
-    return decl_;
+    return decl_in_;
+  }
+  SocketDeclaration *output_declaration() override
+  {
+    return decl_out_;
   }
 };
 
@@ -497,7 +579,7 @@ class PanelDeclaration : public ItemDeclaration {
   std::string description;
   std::string translation_context;
   bool default_collapsed = false;
-  int num_items = 0;
+  int num_child_decls = 0;
 
  private:
   friend NodeDeclarationBuilder;
@@ -513,17 +595,38 @@ class PanelDeclaration : public ItemDeclaration {
 
 class PanelDeclarationBuilder {
  protected:
+  using Self = PanelDeclarationBuilder;
   NodeDeclarationBuilder *node_decl_builder_ = nullptr;
   PanelDeclaration *decl_;
+  /**
+   * Panel is complete once items are added after it.
+   * Completed panels are locked and no more items can be added.
+   */
+  bool is_complete_ = false;
 
   friend class NodeDeclarationBuilder;
 
  public:
-  PanelDeclarationBuilder &default_closed(bool collapsed)
+  Self &description(std::string value = "")
   {
-    decl_->default_collapsed = collapsed;
+    decl_->description = std::move(value);
     return *this;
   }
+
+  Self &default_closed(bool closed)
+  {
+    decl_->default_collapsed = closed;
+    return *this;
+  }
+
+  template<typename DeclType>
+  typename DeclType::Builder &add_input(StringRef name, StringRef identifier = "");
+  template<typename DeclType>
+  typename DeclType::Builder &add_output(StringRef name, StringRef identifier = "");
+  template<typename DeclType>
+  typename DeclType::Builder &add_input_output(StringRef name,
+                                               StringRef identifier_in = "",
+                                               StringRef identifier_out = "");
 };
 
 using PanelDeclarationPtr = std::unique_ptr<PanelDeclaration>;
@@ -549,6 +652,9 @@ class NodeDeclaration {
 
   friend NodeDeclarationBuilder;
 
+  /** Returns true if the declaration is considered valid. */
+  bool is_valid() const;
+
   bool matches(const bNode &node) const;
   Span<SocketDeclaration *> sockets(eNodeSocketInOut in_out) const;
 
@@ -563,9 +669,12 @@ class NodeDeclaration {
 class NodeDeclarationBuilder {
  private:
   NodeDeclaration &declaration_;
-  Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> input_builders_;
-  Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> output_builders_;
+  Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> socket_builders_;
+  Vector<std::unique_ptr<PanelDeclarationBuilder>> panel_builders_;
   bool is_function_node_ = false;
+
+ private:
+  friend PanelDeclarationBuilder;
 
  public:
   NodeDeclarationBuilder(NodeDeclaration &declaration);
@@ -581,10 +690,17 @@ class NodeDeclarationBuilder {
 
   void finalize();
 
+  void use_custom_socket_order(bool enable = true);
+
   template<typename DeclType>
   typename DeclType::Builder &add_input(StringRef name, StringRef identifier = "");
   template<typename DeclType>
   typename DeclType::Builder &add_output(StringRef name, StringRef identifier = "");
+  template<typename DeclType>
+  typename DeclType::Builder &add_input_output(StringRef name,
+                                               StringRef identifier_in = "",
+                                               StringRef identifier_out = "");
+  PanelDeclarationBuilder &add_panel(StringRef name, int identifier = -1);
 
   aal::RelationsInNode &get_anonymous_attribute_relations()
   {
@@ -595,10 +711,17 @@ class NodeDeclarationBuilder {
   }
 
  private:
+  /* Note: in_out can be a combination of SOCK_IN and SOCK_OUT.
+   * The generated socket declarations only have a single flag set. */
   template<typename DeclType>
   typename DeclType::Builder &add_socket(StringRef name,
-                                         StringRef identifier,
+                                         StringRef identifier_in,
+                                         StringRef identifier_out,
                                          eNodeSocketInOut in_out);
+
+  /* Mark the most recent builder as 'complete' when changing builders
+   * so no more items can be added. */
+  void set_active_panel_builder(const PanelDeclarationBuilder *panel_builder);
 };
 
 namespace implicit_field_inputs {
@@ -621,7 +744,7 @@ typename SocketDeclarationBuilder<SocketDecl>::Self &SocketDeclarationBuilder<
   for (const int from_input : input_indices) {
     aal::ReferenceRelation relation;
     relation.from_field_input = from_input;
-    relation.to_field_output = index_;
+    relation.to_field_output = index_out_;
     relations.reference_relations.append(relation);
   }
   return *(Self *)this;
@@ -632,20 +755,20 @@ typename SocketDeclarationBuilder<SocketDecl>::Self &SocketDeclarationBuilder<
     SocketDecl>::field_on(const Span<int> indices)
 {
   aal::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
-  if (decl_->in_out == SOCK_IN) {
+  if (decl_in_) {
     this->supports_field();
     for (const int input_index : indices) {
       aal::EvalRelation relation;
-      relation.field_input = index_;
+      relation.field_input = index_in_;
       relation.geometry_input = input_index;
       relations.eval_relations.append(relation);
     }
   }
-  else {
+  if (decl_out_) {
     this->field_source();
     for (const int output_index : indices) {
       aal::AvailableRelation relation;
-      relation.field_output = index_;
+      relation.field_output = index_out_;
       relation.geometry_output = output_index;
       relations.available_relations.append(relation);
     }
@@ -759,6 +882,53 @@ inline void SocketDeclaration::make_available(bNode &node) const
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name #PanelDeclarationBuilder Inline Methods
+ * \{ */
+
+template<typename DeclType>
+typename DeclType::Builder &PanelDeclarationBuilder::add_input(StringRef name,
+                                                               StringRef identifier)
+{
+  if (is_complete_) {
+    static typename DeclType::Builder dummy_builder = {};
+    BLI_assert_unreachable();
+    return dummy_builder;
+  }
+  ++this->decl_->num_child_decls;
+  return node_decl_builder_->add_socket<DeclType>(name, identifier, "", SOCK_IN);
+}
+
+template<typename DeclType>
+typename DeclType::Builder &PanelDeclarationBuilder::add_output(StringRef name,
+                                                                StringRef identifier)
+{
+  if (is_complete_) {
+    static typename DeclType::Builder dummy_builder = {};
+    BLI_assert_unreachable();
+    return dummy_builder;
+  }
+  ++this->decl_->num_child_decls;
+  return node_decl_builder_->add_socket<DeclType>(name, "", identifier, SOCK_OUT);
+}
+
+template<typename DeclType>
+typename DeclType::Builder &PanelDeclarationBuilder::add_input_output(StringRef name,
+                                                                      StringRef identifier_in,
+                                                                      StringRef identifier_out)
+{
+  if (is_complete_) {
+    static typename DeclType::Builder dummy_builder = {};
+    BLI_assert_unreachable();
+    return dummy_builder;
+  }
+  ++this->decl_->num_child_decls;
+  return node_decl_builder_->add_socket<DeclType>(
+      name, identifier_in, identifier_out, SOCK_IN | SOCK_OUT);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name #NodeDeclarationBuilder Inline Methods
  * \{ */
 
@@ -767,44 +937,69 @@ inline NodeDeclarationBuilder::NodeDeclarationBuilder(NodeDeclaration &declarati
 {
 }
 
+inline void NodeDeclarationBuilder::use_custom_socket_order(bool enable)
+{
+  declaration_.use_custom_socket_order = enable;
+}
+
 template<typename DeclType>
 inline typename DeclType::Builder &NodeDeclarationBuilder::add_input(StringRef name,
                                                                      StringRef identifier)
 {
-  return this->add_socket<DeclType>(name, identifier, SOCK_IN);
+  set_active_panel_builder(nullptr);
+  return this->add_socket<DeclType>(name, identifier, "", SOCK_IN);
 }
 
 template<typename DeclType>
 inline typename DeclType::Builder &NodeDeclarationBuilder::add_output(StringRef name,
                                                                       StringRef identifier)
 {
-  return this->add_socket<DeclType>(name, identifier, SOCK_OUT);
+  set_active_panel_builder(nullptr);
+  return this->add_socket<DeclType>(name, "", identifier, SOCK_OUT);
+}
+
+template<typename DeclType>
+inline typename DeclType::Builder &NodeDeclarationBuilder::add_input_output(
+    StringRef name, StringRef identifier_in, StringRef identifier_out)
+{
+  set_active_panel_builder(nullptr);
+  return this->add_socket<DeclType>(name, identifier_in, identifier_out, SOCK_IN | SOCK_OUT);
 }
 
 template<typename DeclType>
 inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(StringRef name,
-                                                                      StringRef identifier,
+                                                                      StringRef identifier_in,
+                                                                      StringRef identifier_out,
                                                                       eNodeSocketInOut in_out)
 {
   static_assert(std::is_base_of_v<SocketDeclaration, DeclType>);
   using Builder = typename DeclType::Builder;
 
-  Vector<SocketDeclaration *> &declarations = in_out == SOCK_IN ? declaration_.inputs :
-                                                                  declaration_.outputs;
-
-  std::unique_ptr<DeclType> socket_decl = std::make_unique<DeclType>();
   std::unique_ptr<Builder> socket_decl_builder = std::make_unique<Builder>();
-  socket_decl_builder->decl_ = &*socket_decl;
-
   socket_decl_builder->node_decl_builder_ = this;
-  socket_decl->name = name;
-  socket_decl->identifier = identifier.is_empty() ? name : identifier;
-  socket_decl->in_out = in_out;
-  socket_decl_builder->index_ = declarations.append_and_get_index(socket_decl.get());
-  declaration_.items.append(std::move(socket_decl));
+
+  if (in_out & SOCK_IN) {
+    std::unique_ptr<DeclType> socket_decl = std::make_unique<DeclType>();
+    socket_decl_builder->decl_in_ = &*socket_decl;
+    socket_decl->name = name;
+    socket_decl->identifier = identifier_in.is_empty() ? name : identifier_in;
+    socket_decl->in_out = SOCK_IN;
+    socket_decl_builder->index_in_ = declaration_.inputs.append_and_get_index(socket_decl.get());
+    declaration_.items.append(std::move(socket_decl));
+  }
+  if (in_out & SOCK_OUT) {
+    std::unique_ptr<DeclType> socket_decl = std::make_unique<DeclType>();
+    socket_decl_builder->decl_out_ = &*socket_decl;
+    socket_decl->name = name;
+    socket_decl->identifier = identifier_out.is_empty() ? name : identifier_out;
+    socket_decl->in_out = SOCK_OUT;
+    socket_decl_builder->index_out_ = declaration_.outputs.append_and_get_index(socket_decl.get());
+    declaration_.items.append(std::move(socket_decl));
+  }
+
   Builder &socket_decl_builder_ref = *socket_decl_builder;
-  ((in_out == SOCK_IN) ? input_builders_ : output_builders_)
-      .append(std::move(socket_decl_builder));
+  socket_builders_.append(std::move(socket_decl_builder));
+
   return socket_decl_builder_ref;
 }
 

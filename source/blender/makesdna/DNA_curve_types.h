@@ -13,10 +13,6 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** Used in `readfile.cc` and `editfont.cc`. */
 #define MAXTEXTBOX 256
 
@@ -613,7 +609,3 @@ enum {
 
 /* indicates point has been seen during surface duplication */
 #define SURF_SEEN (1 << 2)
-
-#ifdef __cplusplus
-}
-#endif

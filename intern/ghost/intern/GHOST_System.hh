@@ -327,7 +327,6 @@ class GHOST_System : public GHOST_ISystem {
    * Returns the selection buffer
    * \param selection: Only used on X11.
    * \return Returns the clipboard data
-   *
    */
   virtual char *getClipboard(bool selection) const = 0;
 

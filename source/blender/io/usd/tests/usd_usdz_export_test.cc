@@ -30,7 +30,7 @@ char output_filepath[FILE_MAX];
 
 class UsdUsdzExportTest : public BlendfileLoadingBaseTest {
  protected:
-  struct bContext *context = nullptr;
+  bContext *context = nullptr;
 
  public:
   bool load_file_and_depsgraph(const StringRefNull &filepath,

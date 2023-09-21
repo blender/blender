@@ -369,3 +369,13 @@ void OBJECT_OT_datalayout_transfer(struct wmOperatorType *ot);
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+
+namespace blender::ed::object {
+
+void object_modifier_add_asset_register();
+
+}
+
+#endif

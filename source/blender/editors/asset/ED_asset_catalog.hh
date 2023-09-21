@@ -26,10 +26,6 @@
 struct AssetLibrary;
 struct bScreen;
 
-namespace blender::asset_system {
-class AssetCatalogTreeItem;
-}
-
 /**
  * Returns if the catalogs of \a library are allowed to be editable, or if the UI should forbid
  * edits.
@@ -59,16 +55,3 @@ void ED_asset_catalog_move(
     AssetLibrary *library,
     blender::asset_system::CatalogID src_catalog_id,
     std::optional<blender::asset_system::CatalogID> dst_parent_catalog_id = std::nullopt);
-
-namespace blender::ed::asset {
-
-/**
- * Some code needs to pass catalog paths to context and for this they need persistent pointers to
- * the paths. Rather than keeping some local path storage, get a pointer into the asset system
- * directly, which is persistent until the library is reloaded and can safely be held by context.
- */
-PointerRNA persistent_catalog_path_rna_pointer(const bScreen &owner_screen,
-                                               const asset_system::AssetLibrary &library,
-                                               const asset_system::AssetCatalogTreeItem &item);
-
-}  // namespace blender::ed::asset

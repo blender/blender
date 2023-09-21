@@ -8,6 +8,7 @@
 
 #include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
 
 #include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
@@ -83,19 +84,16 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
     MovieTracking *tracking = &clip->tracking;
     MovieTrackingObject *tracking_object;
     uiLayout *col;
-    PointerRNA tracking_ptr;
     NodeTrackPosData *data = (NodeTrackPosData *)node->storage;
-
-    RNA_pointer_create(&clip->id, &RNA_MovieTracking, tracking, &tracking_ptr);
+    PointerRNA tracking_ptr = RNA_pointer_create(&clip->id, &RNA_MovieTracking, tracking);
 
     col = uiLayoutColumn(layout, false);
     uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
 
     tracking_object = BKE_tracking_object_get_named(tracking, data->tracking_object);
     if (tracking_object) {
-      PointerRNA object_ptr;
-
-      RNA_pointer_create(&clip->id, &RNA_MovieTrackingObject, tracking_object, &object_ptr);
+      PointerRNA object_ptr = RNA_pointer_create(
+          &clip->id, &RNA_MovieTrackingObject, tracking_object);
 
       uiItemPointerR(col, ptr, "track_name", &object_ptr, "tracks", "", ICON_ANIM_DATA);
     }

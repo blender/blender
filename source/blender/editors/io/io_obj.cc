@@ -36,9 +36,9 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "IO_orientation.h"
-#  include "IO_path_util_types.h"
-#  include "IO_wavefront_obj.h"
+#  include "IO_orientation.hh"
+#  include "IO_path_util_types.hh"
+#  include "IO_wavefront_obj.hh"
 
 #  include "io_obj.hh"
 
@@ -193,8 +193,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
 static void wm_obj_export_draw(bContext * /*C*/, wmOperator *op)
 {
-  PointerRNA ptr;
-  RNA_pointer_create(nullptr, op->type->srna, op->properties, &ptr);
+  PointerRNA ptr = RNA_pointer_create(nullptr, op->type->srna, op->properties);
   ui_obj_export_settings(op->layout, &ptr);
 }
 
@@ -335,7 +334,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
                   false,
                   "Export Materials with PBR Extensions",
                   "Export MTL library using PBR extensions (roughness, metallic, sheen, "
-                  "clearcoat, anisotropy, transmission)");
+                  "coat, anisotropy, transmission)");
   RNA_def_enum(ot->srna,
                "path_mode",
                io_obj_path_mode,
@@ -470,9 +469,8 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
 
 static void wm_obj_import_draw(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr;
   wmWindowManager *wm = CTX_wm_manager(C);
-  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&wm->id, op->type->srna, op->properties);
   ui_obj_import_settings(op->layout, &ptr);
 }
 

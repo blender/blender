@@ -9,7 +9,7 @@
 #include "BLI_timeit.hh"
 
 #include "DNA_windowmanager_types.h"
-#include "IO_ply.h"
+#include "IO_ply.hh"
 #include "ply_export.hh"
 #include "ply_import.hh"
 

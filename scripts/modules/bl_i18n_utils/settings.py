@@ -26,13 +26,13 @@ except ModuleNotFoundError:
 
 # The languages defined in Blender.
 LANGUAGES_CATEGORIES = (
-    # Min completeness level, UI english label.
+    # Min completeness level, UI English label.
     (0.95, "Complete"),
     (0.33, "In Progress"),
     (-1.0, "Starting"),
 )
 LANGUAGES = (
-    # ID, UI english label, ISO code.
+    # ID, UI English label, ISO code.
     (0, "Automatic (Automatic)", "DEFAULT"),
     (1, "English (English)", "en_US"),
     (2, "Japanese (日本語)", "ja_JP"),
@@ -44,10 +44,10 @@ LANGUAGES = (
     (8, "French (Français)", "fr_FR"),
     (9, "Spanish (Español)", "es"),
     (10, "Catalan (Català)", "ca_AD"),
-    (11, "Czech (Český)", "cs_CZ"),
+    (11, "Czech (Čeština)", "cs_CZ"),
     (12, "Portuguese (Português)", "pt_PT"),
-    (13, "Simplified Chinese (简体中文)", "zh_CN"),
-    (14, "Traditional Chinese (繁體中文)", "zh_TW"),
+    (13, "Simplified Chinese (简体中文)", "zh_HANS"),
+    (14, "Traditional Chinese (繁體中文)", "zh_HANT"),
     (15, "Russian (Русский)", "ru_RU"),
     (16, "Croatian (Hrvatski)", "hr_HR"),
     (17, "Serbian (Српски)", "sr_RS"),
@@ -72,9 +72,9 @@ LANGUAGES = (
     (33, "Hebrew (תירִבְעִ)", "he_IL"),
     (34, "Estonian (Eesti keel)", "et_EE"),
     (35, "Esperanto (Esperanto)", "eo"),
-    (36, "Spanish from Spain (Español de España)", "es_ES"),
+    # 36 is free, used to be 'Spanish from Spain' (`es_ES`).
     (37, "Amharic (አማርኛ)", "am_ET"),
-    (38, "Uzbek (Oʻzbek)", "uz_UZ"),
+    (38, "Uzbek (Oʻzbek)", "uz_UZ@latin"),
     (39, "Uzbek Cyrillic (Ўзбек)", "uz_UZ@cyrillic"),
     (40, "Hindi (हिन्दी)", "hi_IN"),
     (41, "Vietnamese (Tiếng Việt)", "vi_VN"),
@@ -95,12 +95,13 @@ DEFAULT_CONTEXT = "*"
 # Name of language file used by Blender to generate translations' menu.
 LANGUAGES_FILE = "languages"
 
-# The min level of completeness for a po file to be imported from /branches into /trunk, as a percentage.
+# The minimum level of completeness for a po file to be imported from
+# the working repository to the Blender one, as a percentage.
 IMPORT_MIN_LEVEL = 0.0
 
-# Languages in /branches we do not want to import in /trunk currently...
+# Languages in the working repository that should not be imported in the Blender one currently...
 IMPORT_LANGUAGES_SKIP = {
-    'am_ET', 'bg_BG', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ', 'uz_UZ@cyrillic', 'kk_KZ', 'es_ES',
+    'am_ET', 'bg_BG', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ@latin', 'uz_UZ@cyrillic', 'kk_KZ',
 }
 
 # Languages that need RTL pre-processing.
@@ -108,10 +109,10 @@ IMPORT_LANGUAGES_RTL = {
     'ar_EG', 'fa_IR', 'he_IL',
 }
 
-# The comment prefix used in generated messages.txt file.
+# The comment prefix used in generated `messages.txt` file.
 MSG_COMMENT_PREFIX = "#~ "
 
-# The comment prefix used in generated messages.txt file.
+# The comment prefix used in generated `messages.txt` file.
 MSG_CONTEXT_PREFIX = "MSGCTXT:"
 
 # The default comment prefix used in po's.
@@ -195,8 +196,8 @@ PYGETTEXT_CONTEXTS = "#define\\s+(BLT_I18NCONTEXT_[A-Z_0-9]+)\\s+\"([^\"]*)\""
 # autopep8: off
 
 # Keywords' regex.
-# XXX Most unfortunately, we can't use named backreferences inside character sets,
-#     which makes the regexes even more twisty... :/
+# XXX Most unfortunately, we can't use named back-references inside character sets,
+#     which makes the REGEXES even more twisty... :/
 _str_base = (
     # Match void string
     "(?P<{_}1>[\"'])(?P={_}1)"  # Get opening quote (' or "), and closing immediately.
@@ -258,7 +259,7 @@ PYGETTEXT_KEYWORDS = (() +
     tuple(("{}\\((?:[^,]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")) +
 
-    # Node socket declarations: contextless names
+    # Node socket declarations: context-less names.
     tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"(?:,[^),]+)*\s*\)"
            r"(?![^;]*\.translation_context\()").format(it)
           for it in ("add_input", "add_output")) +
@@ -514,12 +515,12 @@ if not os.path.exists(BLENDER_EXEC):
 # The gettext msgfmt "compiler". You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 GETTEXT_MSGFMT_EXECUTABLE = "msgfmt"
 
-# The FriBidi C compiled library (.so under Linux, .dll under windows...).
-# You’ll likely have to edit it in your user_settings.py if you’re under Windows., e.g. using the included one:
-#     FRIBIDI_LIB = os.path.join(TOOLS_DIR, "libfribidi.dll")
+# The FriBidi C compiled library (.so under Linux, `.dll` under windows...).
+# You’ll likely have to edit it in your `user_settings.py` if you’re under Windows., e.g. using the included one:
+# `FRIBIDI_LIB = os.path.join(TOOLS_DIR, "libfribidi.dll")`
 FRIBIDI_LIB = "libfribidi.so.0"
 
-# The name of the (currently empty) file that must be present in a po's directory to enable rtl-preprocess.
+# The name of the (currently empty) file that must be present in a po's directory to enable RTL-preprocess.
 RTL_PREPROCESS_FILE = "is_rtl"
 
 # The Blender source root path.
@@ -529,25 +530,15 @@ SOURCE_DIR = os.path.abspath(os.path.join("blender"))
 # The bf-translation repository (you'll have to override this in your user_settings.py).
 I18N_DIR = os.path.abspath(os.path.join("i18n"))
 
-# The /branches path (relative to I18N_DIR).
-REL_BRANCHES_DIR = os.path.join("branches")
-
-# The /trunk path (relative to I18N_DIR).
-REL_TRUNK_DIR = os.path.join("trunk")
-
-# The /trunk/po path (relative to I18N_DIR).
-REL_TRUNK_PO_DIR = os.path.join(REL_TRUNK_DIR, "po")
-
-# The /trunk/mo path (relative to I18N_DIR).
-REL_TRUNK_MO_DIR = os.path.join(REL_TRUNK_DIR, "locale")
+# The 'work' path to PO files (relative to I18N_DIR).
+REL_WORK_DIR = os.path.join("")
 
 
-# The path to the *git* translation repository (relative to SOURCE_DIR).
-REL_GIT_I18N_DIR = os.path.join("locale")
+# The path to the Blender translation directory (relative to SOURCE_DIR).
+REL_BLENDER_I18N_DIR = os.path.join("locale")
 
-
-# The /po path of the *git* translation repository (relative to REL_GIT_I18N_DIR).
-REL_GIT_I18N_PO_DIR = os.path.join("po")
+# The /po path of the Blender translation directory (relative to REL_BLENDER_I18N_DIR).
+REL_BLENDER_I18N_PO_DIR = os.path.join("po")
 
 
 # The Blender source path to check for i18n macros (relative to SOURCE_DIR).
@@ -563,13 +554,8 @@ REL_TEMPLATES_DIR = os.path.join("scripts", "startup", "bl_app_templates_system"
 ASSET_CATALOG_FILE = "blender_assets.cats.txt"
 
 # The template messages file (relative to I18N_DIR).
-REL_FILE_NAME_POT = os.path.join(REL_BRANCHES_DIR, DOMAIN + ".pot")
+REL_FILE_NAME_POT = os.path.join(REL_WORK_DIR, DOMAIN + ".pot")
 
-# Mo root datapath.
-REL_MO_PATH_ROOT = os.path.join(REL_TRUNK_DIR, "locale")
-
-# Mo path generator for a given language.
-REL_MO_PATH_TEMPLATE = os.path.join(REL_MO_PATH_ROOT, "{}", "LC_MESSAGES")
 
 # Mo path generator for a given language (relative to any "locale" dir).
 MO_PATH_ROOT_RELATIVE = os.path.join("locale")
@@ -716,18 +702,13 @@ class I18nSettings:
         else:
             fname.write(self.to_json())
 
-    BRANCHES_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_BRANCHES_DIR")))
-    TRUNK_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_TRUNK_DIR")))
-    TRUNK_PO_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_TRUNK_PO_DIR")))
-    TRUNK_MO_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_TRUNK_MO_DIR")))
-    GIT_I18N_ROOT = property(*(_gen_get_set_path("SOURCE_DIR", "REL_GIT_I18N_DIR")))
-    GIT_I18N_PO_DIR = property(*(_gen_get_set_path("GIT_I18N_ROOT", "REL_GIT_I18N_PO_DIR")))
+    WORK_DIR = property(*(_gen_get_set_path("I18N_DIR", "REL_WORK_DIR")))
+    BLENDER_I18N_ROOT = property(*(_gen_get_set_path("SOURCE_DIR", "REL_BLENDER_I18N_DIR")))
+    BLENDER_I18N_PO_DIR = property(*(_gen_get_set_path("BLENDER_I18N_ROOT", "REL_BLENDER_I18N_PO_DIR")))
     POTFILES_SOURCE_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_POTFILES_SOURCE_DIR")))
     PRESETS_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_PRESETS_DIR")))
     TEMPLATES_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_TEMPLATES_DIR")))
     FILE_NAME_POT = property(*(_gen_get_set_path("I18N_DIR", "REL_FILE_NAME_POT")))
-    MO_PATH_ROOT = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_ROOT")))
-    MO_PATH_TEMPLATE = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_TEMPLATE")))
 
     def _get_py_sys_paths(self):
         return self.INTERN_PY_SYS_PATHS

@@ -46,7 +46,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
     }
   }
 
-  nearest2d.clip_planes_enable(sctx);
+  nearest2d.clip_planes_enable(sctx, ob_eval);
 
   const float *head_vec = nullptr, *tail_vec = nullptr;
 

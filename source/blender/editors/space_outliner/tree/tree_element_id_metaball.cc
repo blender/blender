@@ -21,18 +21,22 @@ TreeElementIDMetaBall::TreeElementIDMetaBall(TreeElement &legacy_te, MetaBall &m
 {
 }
 
-void TreeElementIDMetaBall::expand(SpaceOutliner &space_outliner) const
+void TreeElementIDMetaBall::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  expand_animation_data(space_outliner, metaball_.adt);
+  expand_animation_data(metaball_.adt);
 
-  expand_materials(space_outliner);
+  expand_materials();
 }
 
-void TreeElementIDMetaBall::expand_materials(SpaceOutliner &space_outliner) const
+void TreeElementIDMetaBall::expand_materials() const
 {
   for (int a = 0; a < metaball_.totcol; a++) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, metaball_.mat[a], &legacy_te_, TSE_SOME_ID, a);
+    add_element(&legacy_te_.subtree,
+                reinterpret_cast<ID *>(metaball_.mat[a]),
+                nullptr,
+                &legacy_te_,
+                TSE_SOME_ID,
+                a);
   }
 }
 

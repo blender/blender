@@ -357,11 +357,11 @@ int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*
 void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
 {
   Stereo3dData *s3dd = static_cast<Stereo3dData *>(op->customdata);
-  PointerRNA stereo3d_format_ptr;
   uiLayout *layout = op->layout;
   uiLayout *col;
 
-  RNA_pointer_create(nullptr, &RNA_Stereo3dDisplay, &s3dd->stereo3d_format, &stereo3d_format_ptr);
+  PointerRNA stereo3d_format_ptr = RNA_pointer_create(
+      nullptr, &RNA_Stereo3dDisplay, &s3dd->stereo3d_format);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);

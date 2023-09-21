@@ -458,6 +458,13 @@ MINLINE void add_v4_v4v4(float r[4], const float a[4], const float b[4])
   r[3] = a[3] + b[3];
 }
 
+MINLINE void add_v3_uchar_clamped(uchar r[3], int i)
+{
+  r[0] = (uchar)clamp_i(r[0] + i, 0, 255);
+  r[1] = (uchar)clamp_i(r[1] + i, 0, 255);
+  r[2] = (uchar)clamp_i(r[2] + i, 0, 255);
+}
+
 MINLINE void sub_v2_v2(float r[2], const float a[2])
 {
   r[0] -= a[0];

@@ -101,7 +101,7 @@ static void info_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Info", SPACE_INFO, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Info", SPACE_INFO, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -169,8 +169,8 @@ static void info_operatortypes()
 
 static void info_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Window", 0, 0);
-  WM_keymap_ensure(keyconf, "Info", SPACE_INFO, 0);
+  WM_keymap_ensure(keyconf, "Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  WM_keymap_ensure(keyconf, "Info", SPACE_INFO, RGN_TYPE_WINDOW);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

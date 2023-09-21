@@ -50,22 +50,22 @@ void BCAnimationCurve::init_pointer_rna(Object *ob)
   switch (this->curve_key.get_animation_type()) {
     case BC_ANIMATION_TYPE_BONE: {
       bArmature *arm = (bArmature *)ob->data;
-      RNA_id_pointer_create(&arm->id, &id_ptr);
+      id_ptr = RNA_id_pointer_create(&arm->id);
     } break;
     case BC_ANIMATION_TYPE_OBJECT: {
-      RNA_id_pointer_create(&ob->id, &id_ptr);
+      id_ptr = RNA_id_pointer_create(&ob->id);
     } break;
     case BC_ANIMATION_TYPE_MATERIAL: {
       Material *ma = BKE_object_material_get(ob, curve_key.get_subindex() + 1);
-      RNA_id_pointer_create(&ma->id, &id_ptr);
+      id_ptr = RNA_id_pointer_create(&ma->id);
     } break;
     case BC_ANIMATION_TYPE_CAMERA: {
       Camera *camera = (Camera *)ob->data;
-      RNA_id_pointer_create(&camera->id, &id_ptr);
+      id_ptr = RNA_id_pointer_create(&camera->id);
     } break;
     case BC_ANIMATION_TYPE_LIGHT: {
       Light *lamp = (Light *)ob->data;
-      RNA_id_pointer_create(&lamp->id, &id_ptr);
+      id_ptr = RNA_id_pointer_create(&lamp->id);
     } break;
     default:
       fprintf(

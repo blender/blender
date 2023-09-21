@@ -69,8 +69,8 @@ static void textview_draw_sel(const char *str,
   const int lheight = tds->lheight;
 
   if (sel[0] <= str_len_draw && sel[1] >= 0) {
-    const int sta = BLI_str_utf8_offset_to_column(str, max_ii(sel[0], 0));
-    const int end = BLI_str_utf8_offset_to_column(str, min_ii(sel[1], str_len_draw));
+    const int sta = BLI_str_utf8_offset_to_column(str, str_len_draw, max_ii(sel[0], 0));
+    const int end = BLI_str_utf8_offset_to_column(str, str_len_draw, min_ii(sel[1], str_len_draw));
 
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -157,8 +157,8 @@ static bool textview_draw_string(TextViewDrawState *tds,
         }
 
         /* Last part. */
-        ofs += BLI_str_utf8_offset_from_column(str + ofs,
-                                               int(floor(float(tds->mval[0]) / tds->cwidth)));
+        ofs += BLI_str_utf8_offset_from_column(
+            str + ofs, str_len - ofs, int(floor(float(tds->mval[0]) / tds->cwidth)));
 
         CLAMP(ofs, 0, str_len);
         *tds->mval_pick_offset += str_len - ofs;

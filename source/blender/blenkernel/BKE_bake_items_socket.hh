@@ -11,7 +11,7 @@
 #include "BKE_bake_items.hh"
 #include "BKE_geometry_fields.hh"
 
-namespace blender::bke {
+namespace blender::bke::bake {
 
 /**
  * Describes how bake items should be mapped to sockets.
@@ -67,4 +67,4 @@ void copy_bake_items_to_socket_values(
         make_attribute_field,
     Span<void *> r_socket_values);
 
-}  // namespace blender::bke
+}  // namespace blender::bke::bake

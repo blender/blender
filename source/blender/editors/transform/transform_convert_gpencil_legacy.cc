@@ -52,7 +52,7 @@ static void createTransGPencil_center_get(bGPDstroke *gps, float r_center[3])
   }
 }
 
-static short get_bezt_sel_triple_flag(BezTriple *bezt, const bool handles_visible)
+static short get_bezt_sel_triple_flag(BezTriple *bezt, const bool hide_handles)
 {
 #define SEL_F1 (1 << 0)
 #define SEL_F2 (1 << 1)
@@ -61,15 +61,17 @@ static short get_bezt_sel_triple_flag(BezTriple *bezt, const bool handles_visibl
 
   short flag = 0;
 
-  if (handles_visible) {
+  if (hide_handles) {
+    if (bezt->f2 & SELECT) {
+      flag = SEL_ALL;
+    }
+  }
+  else {
     flag = ((bezt->f1 & SELECT) ? SEL_F1 : 0) | ((bezt->f2 & SELECT) ? SEL_F2 : 0) |
            ((bezt->f3 & SELECT) ? SEL_F3 : 0);
   }
-  else if (bezt->f2 & SELECT) {
-    flag = SEL_ALL;
-  }
 
-  /* Special case for auto & aligned handles */
+  /* Special case for auto & aligned handles. */
   if ((flag != SEL_ALL) && (flag & SEL_F2)) {
     if (ELEM(bezt->h1, HD_AUTO, HD_ALIGN) && ELEM(bezt->h2, HD_AUTO, HD_ALIGN)) {
       flag = SEL_ALL;
@@ -138,11 +140,11 @@ static void createTransGPencil_curves(bContext *C,
                 continue;
               }
 
-              const bool handles_visible = (handle_all_visible ||
-                                            (handle_only_selected_visible &&
-                                             (gpc_pt->flag & GP_CURVE_POINT_SELECT)));
+              const bool hide_handles = !(
+                  handle_all_visible ||
+                  (handle_only_selected_visible && (gpc_pt->flag & GP_CURVE_POINT_SELECT)));
 
-              const short sel_flag = get_bezt_sel_triple_flag(bezt, handles_visible);
+              const short sel_flag = get_bezt_sel_triple_flag(bezt, hide_handles);
               if (sel_flag & (SEL_F1 | SEL_F2 | SEL_F3)) {
                 if (sel_flag & SEL_F1) {
                   tot_sel_points++;
@@ -277,10 +279,10 @@ static void createTransGPencil_curves(bContext *C,
 
               TransDataCurveHandleFlags *hdata = nullptr;
               bool bezt_use = false;
-              const bool handles_visible = (handle_all_visible ||
-                                            (handle_only_selected_visible &&
-                                             (gpc_pt->flag & GP_CURVE_POINT_SELECT)));
-              const short sel_flag = get_bezt_sel_triple_flag(bezt, handles_visible);
+              const bool hide_handles = !(
+                  handle_all_visible ||
+                  (handle_only_selected_visible && (gpc_pt->flag & GP_CURVE_POINT_SELECT)));
+              const short sel_flag = get_bezt_sel_triple_flag(bezt, hide_handles);
               /* Iterate over bezier triple */
               for (int j = 0; j < 3; j++) {
                 bool is_ctrl_point = (j == 1);
@@ -289,12 +291,12 @@ static void createTransGPencil_curves(bContext *C,
                 if (is_prop_edit || sel) {
                   copy_v3_v3(td->iloc, bezt->vec[j]);
                   td->loc = bezt->vec[j];
-                  bool rotate_around_ctrl = !handles_visible ||
+                  bool rotate_around_ctrl = hide_handles ||
                                             (t->around == V3D_AROUND_LOCAL_ORIGINS) ||
                                             (bezt->f2 & SELECT);
                   copy_v3_v3(td->center, bezt->vec[rotate_around_ctrl ? 1 : j]);
 
-                  if (!handles_visible || is_ctrl_point) {
+                  if (hide_handles || is_ctrl_point) {
                     if (bezt->f2 & SELECT) {
                       td->flag = TD_SELECTED;
                     }
@@ -302,7 +304,7 @@ static void createTransGPencil_curves(bContext *C,
                       td->flag = 0;
                     }
                   }
-                  else if (handles_visible) {
+                  else if (!hide_handles) {
                     if (sel) {
                       td->flag = TD_SELECTED;
                     }
@@ -355,8 +357,11 @@ static void createTransGPencil_curves(bContext *C,
 
               /* Update the handle types so transformation is possible */
               if (bezt_use && !ELEM(t->mode, TFM_GPENCIL_OPACITY, TFM_GPENCIL_SHRINKFATTEN)) {
-                BKE_nurb_bezt_handle_test(
-                    bezt, SELECT, handles_visible, use_around_origins_for_handles_test);
+                BKE_nurb_bezt_handle_test(bezt,
+                                          SELECT,
+                                          hide_handles ? NURB_HANDLE_TEST_KNOT_ONLY :
+                                                         NURB_HANDLE_TEST_KNOT_OR_EACH,
+                                          use_around_origins_for_handles_test);
                 need_handle_recalc = true;
               }
             }

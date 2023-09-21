@@ -55,7 +55,7 @@
 #include "DRW_engine.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 /**************************** common state *****************************/
 
@@ -458,15 +458,15 @@ static void sequencer_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
 #if 0
-  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 #endif
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Own keymap. */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Add drop boxes. */
@@ -643,8 +643,7 @@ static void sequencer_main_region_message_subscribe(const wmRegionMessageSubscri
         &rna_Scene_frame_current,
     };
 
-    PointerRNA idptr;
-    RNA_id_pointer_create(&scene->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&scene->id);
 
     for (int i = 0; i < ARRAY_SIZE(props); i++) {
       WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_region_tag_redraw, __func__);
@@ -692,7 +691,7 @@ static void sequencer_tools_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -715,15 +714,15 @@ static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
 #if 0
-  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 #endif
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Own keymap. */
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerPreview", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerPreview", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
@@ -876,7 +875,7 @@ static void sequencer_buttons_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   UI_panel_category_active_set_default(region, "Strip");
@@ -950,7 +949,7 @@ static void sequencer_channel_region_init(wmWindowManager *wm, ARegion *region)
 
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer Channels", SPACE_SEQ, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer Channels", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 

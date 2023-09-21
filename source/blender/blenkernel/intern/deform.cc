@@ -833,33 +833,34 @@ void BKE_defvert_add_index_notest(MDeformVert *dvert, const int defgroup, const 
 
 void BKE_defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 {
-  if (dvert && dw) {
-    int i = dw - dvert->dw;
+  if (UNLIKELY(!dvert || !dw)) {
+    return;
+  }
+  /* Ensure `dw` is part of `dvert` (security check). */
+  if (UNLIKELY(uintptr_t(dw - dvert->dw) >= uintptr_t(dvert->totweight))) {
+    /* Assert as an invalid `dw` (while supported) isn't likely to do what the caller expected. */
+    BLI_assert_unreachable();
+    return;
+  }
 
-    /* Security check! */
-    if (i < 0 || i >= dvert->totweight) {
-      return;
+  const int i = dw - dvert->dw;
+  dvert->totweight--;
+  /* If there are still other deform weights attached to this vert then remove
+   * this deform weight, and reshuffle the others. */
+  if (dvert->totweight) {
+    BLI_assert(dvert->dw != nullptr);
+
+    if (i != dvert->totweight) {
+      dvert->dw[i] = dvert->dw[dvert->totweight];
     }
 
-    dvert->totweight--;
-    /* If there are still other deform weights attached to this vert then remove
-     * this deform weight, and reshuffle the others.
-     */
-    if (dvert->totweight) {
-      BLI_assert(dvert->dw != nullptr);
-
-      if (i != dvert->totweight) {
-        dvert->dw[i] = dvert->dw[dvert->totweight];
-      }
-
-      dvert->dw = static_cast<MDeformWeight *>(
-          MEM_reallocN(dvert->dw, sizeof(MDeformWeight) * dvert->totweight));
-    }
-    else {
-      /* If there are no other deform weights left then just remove this one. */
-      MEM_freeN(dvert->dw);
-      dvert->dw = nullptr;
-    }
+    dvert->dw = static_cast<MDeformWeight *>(
+        MEM_reallocN(dvert->dw, sizeof(MDeformWeight) * dvert->totweight));
+  }
+  else {
+    /* If there are no other deform weights left then just remove this one. */
+    MEM_freeN(dvert->dw);
+    dvert->dw = nullptr;
   }
 }
 
@@ -1067,25 +1068,25 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
-  if (dvert && defgroup != -1) {
-    int i = edges_num;
-    float *tmp_weights = static_cast<float *>(
-        MEM_mallocN(sizeof(*tmp_weights) * size_t(verts_num), __func__));
-
-    BKE_defvert_extract_vgroup_to_vertweights(
-        dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
-
-    while (i--) {
-      const blender::int2 &edge = edges[i];
-
-      r_weights[i] = (tmp_weights[edge[0]] + tmp_weights[edge[1]]) * 0.5f;
-    }
-
-    MEM_freeN(tmp_weights);
-  }
-  else {
+  if (UNLIKELY(!dvert || defgroup == -1)) {
     copy_vn_fl(r_weights, edges_num, 0.0f);
+    return;
   }
+
+  int i = edges_num;
+  float *tmp_weights = static_cast<float *>(
+      MEM_mallocN(sizeof(*tmp_weights) * size_t(verts_num), __func__));
+
+  BKE_defvert_extract_vgroup_to_vertweights(
+      dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
+
+  while (i--) {
+    const blender::int2 &edge = edges[i];
+
+    r_weights[i] = (tmp_weights[edge[0]] + tmp_weights[edge[1]]) * 0.5f;
+  }
+
+  MEM_freeN(tmp_weights);
 }
 
 void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
@@ -1096,23 +1097,23 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
-  if (dvert && defgroup != -1) {
-    int i = loops_num;
-    float *tmp_weights = static_cast<float *>(
-        MEM_mallocN(sizeof(*tmp_weights) * size_t(verts_num), __func__));
-
-    BKE_defvert_extract_vgroup_to_vertweights(
-        dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
-
-    while (i--) {
-      r_weights[i] = tmp_weights[corner_verts[i]];
-    }
-
-    MEM_freeN(tmp_weights);
-  }
-  else {
+  if (UNLIKELY(!dvert || defgroup == -1)) {
     copy_vn_fl(r_weights, loops_num, 0.0f);
+    return;
   }
+
+  int i = loops_num;
+  float *tmp_weights = static_cast<float *>(
+      MEM_mallocN(sizeof(*tmp_weights) * size_t(verts_num), __func__));
+
+  BKE_defvert_extract_vgroup_to_vertweights(
+      dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
+
+  while (i--) {
+    r_weights[i] = tmp_weights[corner_verts[i]];
+  }
+
+  MEM_freeN(tmp_weights);
 }
 
 void BKE_defvert_extract_vgroup_to_faceweights(const MDeformVert *dvert,
@@ -1124,31 +1125,31 @@ void BKE_defvert_extract_vgroup_to_faceweights(const MDeformVert *dvert,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
-  if (dvert && defgroup != -1) {
-    int i = faces.size();
-    float *tmp_weights = static_cast<float *>(
-        MEM_mallocN(sizeof(*tmp_weights) * size_t(verts_num), __func__));
-
-    BKE_defvert_extract_vgroup_to_vertweights(
-        dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
-
-    while (i--) {
-      const blender::IndexRange face = faces[i];
-      const int *corner_vert = &corner_verts[face.start()];
-      int j = face.size();
-      float w = 0.0f;
-
-      for (; j--; corner_vert++) {
-        w += tmp_weights[*corner_vert];
-      }
-      r_weights[i] = w / float(face.size());
-    }
-
-    MEM_freeN(tmp_weights);
-  }
-  else {
+  if (UNLIKELY(!dvert || defgroup == -1)) {
     copy_vn_fl(r_weights, faces.size(), 0.0f);
+    return;
   }
+
+  int i = faces.size();
+  float *tmp_weights = static_cast<float *>(
+      MEM_mallocN(sizeof(*tmp_weights) * size_t(verts_num), __func__));
+
+  BKE_defvert_extract_vgroup_to_vertweights(
+      dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
+
+  while (i--) {
+    const blender::IndexRange face = faces[i];
+    const int *corner_vert = &corner_verts[face.start()];
+    int j = face.size();
+    float w = 0.0f;
+
+    for (; j--; corner_vert++) {
+      w += tmp_weights[*corner_vert];
+    }
+    r_weights[i] = w / float(face.size());
+  }
+
+  MEM_freeN(tmp_weights);
 }
 
 /** \} */

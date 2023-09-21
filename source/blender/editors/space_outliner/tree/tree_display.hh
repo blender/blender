@@ -11,7 +11,7 @@
  * tree-display class with the #AbstractTreeDisplay interface.
  *
  * Their main responsibility is building the Outliner tree for a display mode. For that, they
- * implement the #buildTree() function, which based on Blender data (#TreeSourceData), builds a
+ * implement the #build_tree() function, which based on Blender data (#TreeSourceData), builds a
  * custom tree of whatever data it wants to visualize.
  * Further, they can implement display mode dependent queries and general operations using the
  * #AbstractTreeDisplay abstraction as common interface.
@@ -66,14 +66,26 @@ class AbstractTreeDisplay {
   AbstractTreeDisplay(SpaceOutliner &space_outliner) : space_outliner_(space_outliner) {}
   virtual ~AbstractTreeDisplay() = default;
 
-  static std::unique_ptr<AbstractTreeDisplay> createFromDisplayMode(
+  static std::unique_ptr<AbstractTreeDisplay> create_from_display_mode(
       int /*eSpaceOutliner_Mode*/ mode, SpaceOutliner &space_outliner);
+
+  /** Static version of the function below, which can be called by helper functions/classes that
+   * have access to the #SpaceOutliner instance but not the tree-display directly. Should be
+   * avoided and instead use the tree-display. */
+  static TreeElement *add_element(SpaceOutliner *space_outliner,
+                                  ListBase *lb,
+                                  ID *owner_id,
+                                  void *create_data,
+                                  TreeElement *parent,
+                                  short type,
+                                  short index,
+                                  const bool expand = true);
 
   /**
    * Build a tree for this display mode with the Blender context data given in \a source_data and
    * the view settings in \a space_outliner.
    */
-  virtual ListBase buildTree(const TreeSourceData &source_data) = 0;
+  virtual ListBase build_tree(const TreeSourceData &source_data) = 0;
 
   /**
    * Define if the display mode should be allowed to show a mode column on the left. This column
@@ -82,7 +94,7 @@ class AbstractTreeDisplay {
    *
    * Returns false by default.
    */
-  virtual bool supportsModeColumn() const;
+  virtual bool supports_mode_column() const;
 
   /**
    * Some trees may want to skip building children of collapsed parents. This should be done if the
@@ -92,6 +104,33 @@ class AbstractTreeDisplay {
    * state of any element.
    */
   virtual bool is_lazy_built() const;
+
+  /**
+   * \note If child items are only added to the tree if the item is open, the `TSE_` type _must_ be
+   *       added to #outliner_element_needs_rebuild_on_open_change().
+   *
+   * \param owner_id: The ID owning the represented data (or the ID itself if the element
+   *                  represents an ID directly). This is crucial to recognize tree elements over
+   *                  rebuilds, so that state like opened and selected is preserved. If this is not
+   *                  null, the \a create_data pointer will be used instead, refer to its
+   *                  description.
+   * \param create_data: Data passed to the constructor of the corresponding #AbstractTreeElement
+   *                     sub-type. If \a owner_id is not set, this pointer will be stored in an
+   *                     attempt to identify the element over rebuilds, so that state like opened
+   *                     and selected is preserved. Of course that won't work for volatile data
+   *                     (like stack variables).
+   * \param expand: If true, the element may add its own sub-tree. E.g. objects will list their
+   *                animation data, object data, constraints, modifiers, ... This often adds visual
+   *                noise, and can be expensive to add in big scenes. So prefer setting this to
+   *                false.
+   */
+  TreeElement *add_element(ListBase *lb,
+                           ID *owner_id,
+                           void *create_data,
+                           TreeElement *parent,
+                           short type,
+                           short index,
+                           const bool expand = true);
 
  protected:
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
@@ -112,9 +151,9 @@ class TreeDisplayViewLayer final : public AbstractTreeDisplay {
  public:
   TreeDisplayViewLayer(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
-  bool supportsModeColumn() const override;
+  bool supports_mode_column() const override;
 
  private:
   void add_view_layer(Scene &, ListBase &, TreeElement *);
@@ -133,7 +172,7 @@ class TreeDisplayLibraries final : public AbstractTreeDisplay {
  public:
   TreeDisplayLibraries(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
  private:
   TreeElement *add_library_contents(Main &, ListBase &, Library *);
@@ -151,7 +190,7 @@ class TreeDisplayOverrideLibraryProperties final : public AbstractTreeDisplay {
  public:
   TreeDisplayOverrideLibraryProperties(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
  private:
   ListBase add_library_contents(Main &);
@@ -165,7 +204,7 @@ class TreeDisplayOverrideLibraryHierarchies final : public AbstractTreeDisplay {
  public:
   TreeDisplayOverrideLibraryHierarchies(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
   bool is_lazy_built() const override;
 
@@ -191,7 +230,7 @@ class TreeDisplaySequencer final : public AbstractTreeDisplay {
  public:
   TreeDisplaySequencer(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
  private:
   TreeElement *add_sequencer_contents() const;
@@ -199,7 +238,7 @@ class TreeDisplaySequencer final : public AbstractTreeDisplay {
    * Helped function to put duplicate sequence in the same tree.
    */
   SequenceAddOp need_add_seq_dup(Sequence *seq) const;
-  void add_seq_dup(Sequence *seq, TreeElement *te, short index) const;
+  void add_seq_dup(Sequence *seq, TreeElement *te, short index);
 };
 
 /* -------------------------------------------------------------------- */
@@ -212,7 +251,7 @@ class TreeDisplayIDOrphans final : public AbstractTreeDisplay {
  public:
   TreeDisplayIDOrphans(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
  private:
   bool datablock_has_orphans(ListBase &) const;
@@ -228,9 +267,9 @@ class TreeDisplayScenes final : public AbstractTreeDisplay {
  public:
   TreeDisplayScenes(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
-  bool supportsModeColumn() const override;
+  bool supports_mode_column() const override;
 };
 
 /* -------------------------------------------------------------------- */
@@ -243,7 +282,7 @@ class TreeDisplayDataAPI final : public AbstractTreeDisplay {
  public:
   TreeDisplayDataAPI(SpaceOutliner &space_outliner);
 
-  ListBase buildTree(const TreeSourceData &source_data) override;
+  ListBase build_tree(const TreeSourceData &source_data) override;
 
   bool is_lazy_built() const override;
 };

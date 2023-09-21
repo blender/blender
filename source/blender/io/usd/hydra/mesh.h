@@ -27,8 +27,7 @@ class MeshData : public ObjectData {
     MaterialData *mat_data = nullptr;
   };
 
- private:
-  std::vector<SubMesh> submeshes_;
+  Vector<SubMesh> submeshes_;
   int submeshes_count_ = 0;
 
  public:

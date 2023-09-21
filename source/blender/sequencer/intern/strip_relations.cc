@@ -118,7 +118,7 @@ static void sequence_invalidate_cache(Scene *scene,
   SEQ_prefetch_stop(scene);
 }
 
-/* Find metastrips that contain invalidated_seq and invalidate them. */
+/* Find meta-strips that contain invalidated_seq and invalidate them. */
 static bool seq_relations_find_and_invalidate_metas(Scene *scene,
                                                     Sequence *invalidated_seq,
                                                     Sequence *meta_seq)

@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Temporal Reprojection and accumulation of denoised raytraced radiance.
+ * Temporal Reprojection and accumulation of denoised ray-traced radiance.
  *
- * Dispatched at fullres using a tile list.
+ * Dispatched at full-resolution using a tile list.
  *
  * Input: Spatially denoised radiance, Variance, Hit depth
  * Output: Stabilized Radiance, Stabilized Variance
@@ -111,7 +111,7 @@ vec4 radiance_history_fetch(ivec2 texel, float bilinear_weight)
 
 vec4 radiance_history_sample(vec3 P, LocalStatistics local)
 {
-  vec2 uv = project_point(raytrace_buf.history_persmat, P).xy * 0.5 + 0.5;
+  vec2 uv = project_point(uniform_buf.raytrace.history_persmat, P).xy * 0.5 + 0.5;
 
   /* FIXME(fclem): Find why we need this half pixel offset. */
   vec2 texel_co = uv * vec2(textureSize(radiance_history_tx, 0).xy) - 0.5;
@@ -139,7 +139,7 @@ vec4 radiance_history_sample(vec3 P, LocalStatistics local)
 
 vec2 variance_history_sample(vec3 P)
 {
-  vec2 uv = project_point(raytrace_buf.history_persmat, P).xy * 0.5 + 0.5;
+  vec2 uv = project_point(uniform_buf.raytrace.history_persmat, P).xy * 0.5 + 0.5;
 
   if (!in_range_exclusive(uv, vec2(0.0), vec2(1.0))) {
     /* Out of history view. Return sample without weight. */
@@ -164,7 +164,7 @@ void main()
   const uint tile_size = RAYTRACE_GROUP_SIZE;
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel_fullres = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
-  vec2 uv = (vec2(texel_fullres) + 0.5) * raytrace_buf.full_resolution_inv;
+  vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
 
   float in_variance = imageLoad(in_variance_img, texel_fullres).r;
   vec3 in_radiance = imageLoad(in_radiance_img, texel_fullres).rgb;
@@ -182,7 +182,7 @@ void main()
 
   /* Surface reprojection. */
   /* TODO(fclem): Use per pixel velocity. Is this worth it? */
-  float scene_depth = texelFetch(hiz_tx, texel_fullres, 0).r;
+  float scene_depth = texelFetch(depth_tx, texel_fullres, 0).r;
   vec3 P = get_world_space_from_depth(uv, scene_depth);
   vec4 history_radiance = radiance_history_sample(P, local);
   /* Reflection reprojection. */

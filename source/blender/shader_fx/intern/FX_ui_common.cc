@@ -98,7 +98,7 @@ PointerRNA *shaderfx_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
   BLI_assert(RNA_struct_is_a(ptr->type, &RNA_ShaderFx));
 
   if (r_ob_ptr != nullptr) {
-    RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id, r_ob_ptr);
+    *r_ob_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id);
   }
 
   UI_panel_context_pointer_set(panel, "shaderfx", ptr);
@@ -114,15 +114,12 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
   uiLayout *row;
   ShaderFxData *fx = (ShaderFxData *)fx_v;
 
-  PointerRNA ptr;
   Object *ob = ED_object_active_context(C);
-  RNA_pointer_create(&ob->id, &RNA_ShaderFx, fx, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_ShaderFx, fx);
   uiLayoutSetContextPointer(layout, "shaderfx", &ptr);
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
   uiLayoutSetUnitsX(layout, 4.0f);
-
-  UI_block_flag_enable(uiLayoutGetBlock(layout), UI_BLOCK_IS_FLIP);
 
   /* Duplicate. */
   uiItemO(layout,

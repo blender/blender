@@ -171,7 +171,6 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   bool has_undefined_nodes_or_sockets = false;
   bNode *group_output_node = nullptr;
   Vector<bNode *> root_frames;
-  bNodeTreeInterfaceCache interface_cache;
 };
 
 /**
@@ -288,9 +287,7 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** Update flags. */
   int update = 0;
 
-  /** Initial locx for insert offset animation. */
-  float anim_init_locx;
-  /** Offset that will be added to locx for insert offset animation. */
+  /** Offset that will be added to #bNote::locx for insert offset animation. */
   float anim_ofsx;
 
   /** List of cached internal links (input to output), for muted nodes and operators. */
@@ -548,22 +545,27 @@ inline blender::Span<bNestedNodeRef> bNodeTree::nested_node_refs_span() const
   return {this->nested_node_refs, this->nested_node_refs_num};
 }
 
+inline void bNodeTree::ensure_interface_cache() const
+{
+  this->tree_interface.ensure_items_cache();
+}
+
 inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_inputs() const
 {
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->interface_cache.inputs;
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->inputs_;
 }
 
 inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_outputs() const
 {
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->interface_cache.outputs;
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->outputs_;
 }
 
 inline blender::Span<bNodeTreeInterfaceItem *> bNodeTree::interface_items() const
 {
-  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return this->runtime->interface_cache.items;
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->items_;
 }
 
 /** \} */
@@ -700,6 +702,16 @@ inline bool bNode::is_group_output() const
 inline blender::Span<bNodeLink> bNode::internal_links() const
 {
   return this->runtime->internal_links;
+}
+
+inline bool bNode::is_socket_drawn(const bNodeSocket &socket) const
+{
+  return socket.is_visible();
+}
+
+inline bool bNode::is_socket_icon_drawn(const bNodeSocket &socket) const
+{
+  return socket.is_visible() && (this->flag & NODE_HIDDEN || !socket.is_panel_collapsed());
 }
 
 inline blender::Span<bNode *> bNode::direct_children_in_frame() const

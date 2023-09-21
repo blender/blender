@@ -11,6 +11,7 @@
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_noise.hh"
 #include "BLI_task.hh"

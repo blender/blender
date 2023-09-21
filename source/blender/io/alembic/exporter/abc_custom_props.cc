@@ -18,6 +18,8 @@
 #include <Alembic/Abc/OTypedArrayProperty.h>
 #include <Alembic/Abc/OTypedScalarProperty.h>
 
+#include "BLI_listbase.h"
+
 #include "BKE_idprop.h"
 #include "DNA_ID.h"
 

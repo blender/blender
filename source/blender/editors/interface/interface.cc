@@ -2001,7 +2001,9 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
     UI_block_layout_resolve(block, nullptr, nullptr);
   }
   ui_block_align_calc(block, CTX_wm_region(C));
-  if ((block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_NUMSELECT)) {
+  if ((block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_NUMSELECT) &&
+      (block->flag & UI_BLOCK_NO_ACCELERATOR_KEYS) == 0)
+  {
     ui_menu_block_set_keyaccels(block); /* could use a different flag to check */
   }
 
@@ -2857,11 +2859,10 @@ void ui_but_string_get_ex(uiBut *but,
     const char *buf = nullptr;
     if ((but->type == UI_BTYPE_TAB) && (but->custom_data)) {
       StructRNA *ptr_type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
-      PointerRNA ptr;
 
       /* uiBut.custom_data points to data this tab represents (e.g. workspace).
        * uiBut.rnapoin/prop store an active value (e.g. active workspace). */
-      RNA_pointer_create(but->rnapoin.owner_id, ptr_type, but->custom_data, &ptr);
+      PointerRNA ptr = RNA_pointer_create(but->rnapoin.owner_id, ptr_type, but->custom_data);
       buf = RNA_struct_name_get_alloc(&ptr, str, str_maxncpy, &buf_len);
     }
     else if (type == PROP_STRING) {
@@ -3194,10 +3195,9 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
           RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, nullptr);
         }
         else if (search_but->item_active != nullptr) {
-          RNA_pointer_create(nullptr,
-                             RNA_property_pointer_type(&but->rnapoin, but->rnaprop),
-                             search_but->item_active,
-                             &rptr);
+          rptr = RNA_pointer_create(nullptr,
+                                    RNA_property_pointer_type(&but->rnapoin, but->rnaprop),
+                                    search_but->item_active);
           RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, nullptr);
         }
 
@@ -3223,12 +3223,11 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
   else if (but->type == UI_BTYPE_TAB) {
     if (but->rnaprop && but->custom_data) {
       StructRNA *ptr_type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
-      PointerRNA ptr;
       PropertyRNA *prop;
 
       /* uiBut.custom_data points to data this tab represents (e.g. workspace).
        * uiBut.rnapoin/prop store an active value (e.g. active workspace). */
-      RNA_pointer_create(but->rnapoin.owner_id, ptr_type, but->custom_data, &ptr);
+      PointerRNA ptr = RNA_pointer_create(but->rnapoin.owner_id, ptr_type, but->custom_data);
       prop = RNA_struct_name_property(ptr_type);
       if (RNA_property_editable(&ptr, prop)) {
         RNA_property_string_set(&ptr, prop, str);
@@ -3353,7 +3352,8 @@ void ui_but_range_set_soft(uiBut *but)
   if (but->rnaprop) {
     const PropertyType type = RNA_property_type(but->rnaprop);
     const PropertySubType subtype = RNA_property_subtype(but->rnaprop);
-    double softmin, softmax /*, step, precision*/;
+    double softmin, softmax;
+    // double step, precision; /* UNUSED. */
     double value_min;
     double value_max;
 
@@ -3532,10 +3532,6 @@ void UI_block_free(const bContext *C, uiBlock *block)
 
   if (block->func_argN) {
     MEM_freeN(block->func_argN);
-  }
-
-  LISTBASE_FOREACH_MUTABLE (bContextStore *, store, &block->contexts) {
-    CTX_store_free(store);
   }
 
   BLI_freelistN(&block->saferct);
@@ -4301,6 +4297,7 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
   uiBlock *block = uiLayoutGetBlock(layout);
   uiPopupBlockHandle *handle = block->handle;
   uiBut *but = (uiBut *)but_p;
+  const int current_value = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
 
   /* see comment in ui_item_enum_expand, re: `uiname`. */
   const EnumPropertyItem *item_array;
@@ -4326,7 +4323,6 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
     if (!item->identifier[0]) {
       /* inconsistent, but menus with categories do not look good flipped */
       if (item->name) {
-        block->flag |= UI_BLOCK_NO_FLIP;
         categories++;
         entries_nosepr_count++;
       }
@@ -4358,8 +4354,12 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
 
   const char *title = RNA_property_ui_name(but->rnaprop);
 
-  if (title[0] && (categories == 0) && (block->flag & UI_BLOCK_NO_FLIP)) {
-    /* Title at the top for menus with categories. */
+  /* Is there a non-blank label before this button on the same row? */
+  const bool prior_label = but->prev && but->prev->type == UI_BTYPE_LABEL && but->prev->str[0] &&
+                           but->prev->alignnr == but->alignnr;
+
+  if (title[0] && (categories == 0) && (!but->str[0] || !prior_label)) {
+    /* Show title when no categories and calling button has no text or prior label. */
     uiDefBut(block,
              UI_BTYPE_LABEL,
              0,
@@ -4447,59 +4447,44 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
         icon = ICON_BLANK1;
       }
 
+      uiBut *item_but;
       if (icon) {
-        uiDefIconTextButI(block,
-                          UI_BTYPE_BUT_MENU,
-                          B_NOP,
-                          icon,
-                          item->name,
-                          0,
-                          0,
-                          UI_UNIT_X * 5,
-                          UI_UNIT_Y,
-                          &handle->retvalue,
-                          item->value,
-                          0.0,
-                          0,
-                          -1,
-                          item->description);
+        item_but = uiDefIconTextButI(block,
+                                     UI_BTYPE_BUT_MENU,
+                                     B_NOP,
+                                     icon,
+                                     item->name,
+                                     0,
+                                     0,
+                                     UI_UNIT_X * 5,
+                                     UI_UNIT_Y,
+                                     &handle->retvalue,
+                                     item->value,
+                                     0.0,
+                                     0,
+                                     -1,
+                                     item->description);
       }
       else {
-        uiDefButI(block,
-                  UI_BTYPE_BUT_MENU,
-                  B_NOP,
-                  item->name,
-                  0,
-                  0,
-                  UI_UNIT_X * 5,
-                  UI_UNIT_X,
-                  &handle->retvalue,
-                  item->value,
-                  0.0,
-                  0,
-                  -1,
-                  item->description);
+        item_but = uiDefButI(block,
+                             UI_BTYPE_BUT_MENU,
+                             B_NOP,
+                             item->name,
+                             0,
+                             0,
+                             UI_UNIT_X * 5,
+                             UI_UNIT_X,
+                             &handle->retvalue,
+                             item->value,
+                             0.0,
+                             0,
+                             -1,
+                             item->description);
+      }
+      if (item->value == current_value) {
+        item_but->flag |= UI_SELECT_DRAW;
       }
     }
-  }
-
-  if (title[0] && (categories == 0) && !(block->flag & UI_BLOCK_NO_FLIP)) {
-    /* Title at the bottom for menus without categories. */
-    uiItemS(layout);
-    uiDefBut(block,
-             UI_BTYPE_LABEL,
-             0,
-             title,
-             0,
-             0,
-             UI_UNIT_X * 5,
-             UI_UNIT_Y,
-             nullptr,
-             0.0,
-             0.0,
-             0,
-             0,
-             "");
   }
 
   UI_block_layout_set_current(block, layout);
@@ -4507,8 +4492,6 @@ static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p
   if (free) {
     MEM_freeN((void *)item_array);
   }
-  BLI_assert((block->flag & UI_BLOCK_IS_FLIP) == 0);
-  block->flag |= UI_BLOCK_IS_FLIP;
 }
 
 static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_p)
@@ -4750,7 +4733,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
      * access it. */
     const PointerRNA pptr = RNA_property_pointer_get(ptr, prop);
     if (pptr.data && RNA_struct_is_ID(pptr.type)) {
-      but->context = CTX_store_add(&block->contexts, "id", &pptr);
+      but->context = CTX_store_add(block->contexts, "id", &pptr);
     }
   }
 
@@ -5030,8 +5013,7 @@ int UI_preview_tile_size_x(const int size_px)
 
 int UI_preview_tile_size_y(const int size_px)
 {
-  const uiStyle *style = UI_style_get();
-  const float font_height = style->widget.points * UI_SCALE_FAC;
+  const float font_height = UI_UNIT_Y;
   /* Add some extra padding to make things less tight vertically. */
   const float pad = PREVIEW_TILE_PAD;
 
@@ -5863,39 +5845,6 @@ void UI_block_direction_set(uiBlock *block, char direction)
   block->direction = direction;
 }
 
-void UI_block_order_flip(uiBlock *block)
-{
-  float centy, miny = 10000, maxy = -10000;
-
-  if (U.uiflag & USER_MENUFIXEDORDER) {
-    return;
-  }
-  if (block->flag & UI_BLOCK_NO_FLIP) {
-    return;
-  }
-
-  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    if (but->drawflag & UI_BUT_ALIGN) {
-      return;
-    }
-    if (but->rect.ymin < miny) {
-      miny = but->rect.ymin;
-    }
-    if (but->rect.ymax > maxy) {
-      maxy = but->rect.ymax;
-    }
-  }
-  /* mirror trick */
-  centy = (miny + maxy) / 2.0f;
-  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    but->rect.ymin = centy - (but->rect.ymin - centy);
-    but->rect.ymax = centy - (but->rect.ymax - centy);
-    std::swap(but->rect.ymin, but->rect.ymax);
-  }
-
-  block->flag ^= UI_BLOCK_IS_FLIP;
-}
-
 void UI_block_flag_enable(uiBlock *block, int flag)
 {
   block->flag |= flag;
@@ -5909,6 +5858,11 @@ void UI_block_flag_disable(uiBlock *block, int flag)
 void UI_but_flag_enable(uiBut *but, int flag)
 {
   but->flag |= flag;
+}
+
+void UI_but_flag2_enable(uiBut *but, int flag)
+{
+  but->flag2 |= flag;
 }
 
 void UI_but_flag_disable(uiBut *but, int flag)
@@ -5978,8 +5932,9 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but)
 
 void UI_but_context_ptr_set(uiBlock *block, uiBut *but, const char *name, const PointerRNA *ptr)
 {
-  but->context = CTX_store_add(&block->contexts, name, ptr);
-  but->context->used = true;
+  bContextStore *ctx = CTX_store_add(block->contexts, name, ptr);
+  ctx->used = true;
+  but->context = ctx;
 }
 
 const PointerRNA *UI_but_context_ptr_get(const uiBut *but, const char *name, const StructRNA *type)
@@ -5987,7 +5942,7 @@ const PointerRNA *UI_but_context_ptr_get(const uiBut *but, const char *name, con
   return CTX_store_ptr_lookup(but->context, name, type);
 }
 
-bContextStore *UI_but_context_get(const uiBut *but)
+const bContextStore *UI_but_context_get(const uiBut *but)
 {
   return but->context;
 }
@@ -6101,6 +6056,19 @@ void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const u
 void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFreeArgFunc free_arg)
 {
   but->tip_func = func;
+  if (but->tip_arg_free) {
+    but->tip_arg_free(but->tip_arg);
+  }
+  but->tip_arg = arg;
+  but->tip_arg_free = free_arg;
+}
+
+void UI_but_func_tooltip_custom_set(uiBut *but,
+                                    uiButToolTipCustomFunc func,
+                                    void *arg,
+                                    uiFreeArgFunc free_arg)
+{
+  but->tip_custom_func = func;
   if (but->tip_arg_free) {
     but->tip_arg_free(but->tip_arg);
   }
@@ -6677,7 +6645,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           tmp = BLI_strdup(WM_operatortype_name(but->optype, opptr).c_str());
         }
         else {
-          bContextStore *previous_ctx = CTX_store_get(C);
+          const bContextStore *previous_ctx = CTX_store_get(C);
           CTX_store_set(C, but->context);
           tmp = BLI_strdup(WM_operatortype_description(C, but->optype, opptr).c_str());
           CTX_store_set(C, previous_ctx);

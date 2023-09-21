@@ -56,12 +56,12 @@ int damerau_levenshtein_distance(StringRef a, StringRef b)
   for (const int i : IndexRange(size_a)) {
     v2[0] = (i + 1) * deletion_cost;
 
-    const uint32_t unicode_a = BLI_str_utf8_as_unicode_step(a.data(), a.size(), &offset_a);
+    const uint32_t unicode_a = BLI_str_utf8_as_unicode_step_safe(a.data(), a.size(), &offset_a);
 
     uint32_t prev_unicode_b;
     size_t offset_b = 0;
     for (const int j : IndexRange(size_b)) {
-      const uint32_t unicode_b = BLI_str_utf8_as_unicode_step(b.data(), b.size(), &offset_b);
+      const uint32_t unicode_b = BLI_str_utf8_as_unicode_step_safe(b.data(), b.size(), &offset_b);
 
       /* Check how costly the different operations would be and pick the cheapest - the one with
        * minimal cost. */
@@ -111,9 +111,9 @@ int get_fuzzy_match_errors(StringRef query, StringRef full)
     return -1;
   }
 
-  const uint32_t query_first_unicode = BLI_str_utf8_as_unicode(query.data());
-  const uint32_t query_second_unicode = BLI_str_utf8_as_unicode(query.data() +
-                                                                BLI_str_utf8_size(query.data()));
+  const uint32_t query_first_unicode = BLI_str_utf8_as_unicode_safe(query.data());
+  const uint32_t query_second_unicode = BLI_str_utf8_as_unicode_safe(
+      query.data() + BLI_str_utf8_size_safe(query.data()));
 
   const char *full_begin = full.begin();
   const char *full_end = full.end();
@@ -125,12 +125,12 @@ int get_fuzzy_match_errors(StringRef query, StringRef full)
   const int max_acceptable_distance = max_errors + extra_chars;
 
   for (int i = 0; i < window_size; i++) {
-    window_end += BLI_str_utf8_size(window_end);
+    window_end += BLI_str_utf8_size_safe(window_end);
   }
 
   while (true) {
     StringRef window{window_begin, window_end};
-    const uint32_t window_begin_unicode = BLI_str_utf8_as_unicode(window_begin);
+    const uint32_t window_begin_unicode = BLI_str_utf8_as_unicode_safe(window_begin);
     int distance = 0;
     /* Expect that the first or second character of the query is correct. This helps to avoid
      * computing the more expensive distance function. */
@@ -148,8 +148,8 @@ int get_fuzzy_match_errors(StringRef query, StringRef full)
      * distance can't possibly become as short as required. */
     const int window_offset = std::max(1, distance / 2);
     for (int i = 0; i < window_offset && window_end < full_end; i++) {
-      window_begin += BLI_str_utf8_size(window_begin);
-      window_end += BLI_str_utf8_size(window_end);
+      window_begin += BLI_str_utf8_size_safe(window_begin);
+      window_end += BLI_str_utf8_size_safe(window_end);
     }
   }
 }
@@ -185,7 +185,7 @@ static bool match_word_initials(StringRef query,
   int first_found_word_index = -1;
 
   while (query_index < query.size()) {
-    const uint query_unicode = BLI_str_utf8_as_unicode_step(
+    const uint query_unicode = BLI_str_utf8_as_unicode_step_safe(
         query.data(), query.size(), &query_index);
     while (true) {
       /* We are at the end of words, no complete match has been found yet. */
@@ -209,7 +209,7 @@ static bool match_word_initials(StringRef query,
       StringRef word = words[word_index];
       /* Try to match the current character with the current word. */
       if (int(char_index) < word.size()) {
-        const uint32_t char_unicode = BLI_str_utf8_as_unicode_step(
+        const uint32_t char_unicode = BLI_str_utf8_as_unicode_step_safe(
             word.data(), word.size(), &char_index);
         if (query_unicode == char_unicode) {
           r_word_is_matched[word_index] = true;
@@ -352,9 +352,9 @@ void extract_normalized_words(StringRef str,
   const uint32_t unicode_slash = uint32_t('/');
   const uint32_t unicode_right_triangle = UI_MENU_ARROW_SEP_UNICODE;
 
-  BLI_assert(unicode_space == BLI_str_utf8_as_unicode(" "));
-  BLI_assert(unicode_slash == BLI_str_utf8_as_unicode("/"));
-  BLI_assert(unicode_right_triangle == BLI_str_utf8_as_unicode(UI_MENU_ARROW_SEP));
+  BLI_assert(unicode_space == BLI_str_utf8_as_unicode_safe(" "));
+  BLI_assert(unicode_slash == BLI_str_utf8_as_unicode_safe("/"));
+  BLI_assert(unicode_right_triangle == BLI_str_utf8_as_unicode_safe(UI_MENU_ARROW_SEP));
 
   auto is_separator = [&](uint32_t unicode) {
     return ELEM(unicode, unicode_space, unicode_slash, unicode_right_triangle);
@@ -372,7 +372,7 @@ void extract_normalized_words(StringRef str,
   size_t offset = 0;
   while (offset < str_size_in_bytes) {
     size_t size = offset;
-    uint32_t unicode = BLI_str_utf8_as_unicode_step(str.data(), str.size(), &size);
+    uint32_t unicode = BLI_str_utf8_as_unicode_step_safe(str.data(), str.size(), &size);
     size -= offset;
     if (is_separator(unicode)) {
       if (is_in_word) {

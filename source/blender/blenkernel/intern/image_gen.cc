@@ -141,7 +141,7 @@ static void image_buf_fill_checker_slice(
   rect = rect_orig;
   rect_float = rect_float_orig;
 
-  /* 2nd pass, colored + */
+  /* 2nd pass, colored `+`. */
   for (y = offset; y < height + offset; y++) {
     float hoffs = 0.125f * floorf(y / checkerwidth);
 

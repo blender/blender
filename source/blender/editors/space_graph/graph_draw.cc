@@ -56,6 +56,20 @@ static float fcurve_display_alpha(FCurve *fcu)
   return (fcu->flag & FCURVE_SELECTED) ? 1.0f : U.fcu_inactive_alpha;
 }
 
+/** Get the first and last index to the bezt array that are just outside min and max. */
+static blender::int2 get_bounding_bezt_indices(FCurve *fcu, const float min, const float max)
+{
+  bool replace;
+  int first, last;
+  first = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, min, fcu->totvert, &replace);
+  first = clamp_i(first - 1, 0, fcu->totvert - 1);
+
+  last = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, max, fcu->totvert, &replace);
+  last = replace ? last + 1 : last;
+  last = clamp_i(last, 0, fcu->totvert - 1);
+  return {first, last};
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -156,7 +170,7 @@ static void set_fcurve_vertex_color(FCurve *fcu, bool sel)
   }
   else {
     /* Curve's points CANNOT BE edited */
-    UI_GetThemeColor3fv(TH_VERTEX, color);
+    UI_GetThemeColorShade4fv(TH_HEADER, 50, color);
   }
 
   /* Fade the 'intensity' of the vertices based on the selection of the curves too
@@ -221,37 +235,6 @@ static void draw_fcurve_selected_keyframe_vertices(FCurve *fcu, View2D *v2d, boo
   immEnd();
 }
 
-static void draw_locked_keyframe_vertices(FCurve *fcu,
-                                          View2D *v2d,
-                                          const uint attr_id,
-                                          const float unit_scale)
-{
-  const float correction_factor = 0.05f * BLI_rctf_size_x(&v2d->cur);
-
-  /* get view settings */
-  const float vertex_size = UI_GetThemeValuef(TH_VERTEX_SIZE);
-  float scale[2];
-  UI_view2d_scale_get(v2d, &scale[0], &scale[1]);
-  scale[0] /= vertex_size;
-  /* Dividing by the unit scale is needed to display euler correctly (internally they are radians
-   * but displayed as degrees) and all curves when normalization is turned on. */
-  scale[1] = scale[1] / vertex_size * unit_scale;
-
-  set_fcurve_vertex_color(fcu, false);
-
-  for (int i = 0; i < fcu->totvert; i++) {
-    BezTriple *bezt = &fcu->bezt[i];
-    if (!IN_RANGE(bezt->vec[1][0],
-                  (v2d->cur.xmin - correction_factor),
-                  (v2d->cur.xmax + correction_factor)))
-    {
-      continue;
-    }
-    float position[2] = {bezt->vec[1][0], bezt->vec[1][1]};
-    draw_cross(position, scale, attr_id);
-  }
-}
-
 /**
  * Draw the extra indicator for the active point.
  */
@@ -279,42 +262,31 @@ static void draw_fcurve_active_vertex(const FCurve *fcu, const View2D *v2d, cons
 }
 
 /* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_keyframe_vertices(
-    FCurve *fcu, View2D *v2d, bool edit, const uint pos, const float unit_scale)
+static void draw_fcurve_keyframe_vertices(FCurve *fcu, View2D *v2d, const uint pos)
 {
-  if (edit) {
-    immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
+  immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
+  if ((fcu->flag & FCURVE_PROTECTED) == 0) {
     immUniform1f("size", UI_GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC);
-
-    draw_fcurve_selected_keyframe_vertices(fcu, v2d, false, pos);
-    draw_fcurve_selected_keyframe_vertices(fcu, v2d, true, pos);
-    draw_fcurve_active_vertex(fcu, v2d, pos);
-
-    immUnbindProgram();
   }
   else {
-    if (U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING) {
-      GPU_line_smooth(true);
-    }
-    GPU_blend(GPU_BLEND_ALPHA);
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-    draw_locked_keyframe_vertices(fcu, v2d, pos, unit_scale);
-
-    immUnbindProgram();
-    GPU_blend(GPU_BLEND_NONE);
-    if (U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING) {
-      GPU_line_smooth(false);
-    }
+    /* Draw keyframes on locked curves slightly smaller to give them less visual weight. */
+    immUniform1f("size", (UI_GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC) * 0.8f);
   }
+
+  draw_fcurve_selected_keyframe_vertices(fcu, v2d, false, pos);
+  draw_fcurve_selected_keyframe_vertices(fcu, v2d, true, pos);
+  draw_fcurve_active_vertex(fcu, v2d, pos);
+
+  immUnbindProgram();
 }
 
 /* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
 static void draw_fcurve_selected_handle_vertices(
     FCurve *fcu, View2D *v2d, bool sel, bool sel_handle_only, uint pos)
 {
-  (void)v2d; /* TODO: use this to draw only points in view */
+  const blender::int2 bounding_indices = get_bounding_bezt_indices(
+      fcu, v2d->cur.xmin, v2d->cur.xmax);
 
   /* set handle color */
   float hcolor[3];
@@ -324,9 +296,9 @@ static void draw_fcurve_selected_handle_vertices(
 
   immBeginAtMost(GPU_PRIM_POINTS, fcu->totvert * 2);
 
-  BezTriple *bezt = fcu->bezt;
   BezTriple *prevbezt = nullptr;
-  for (int i = 0; i < fcu->totvert; i++, prevbezt = bezt, bezt++) {
+  for (int i = bounding_indices[0]; i <= bounding_indices[1]; i++) {
+    BezTriple *bezt = &fcu->bezt[i];
     /* Draw the editmode handles for a bezier curve (others don't have handles)
      * if their selection status matches the selection status we're drawing for
      * - first handle only if previous beztriple was bezier-mode
@@ -353,6 +325,7 @@ static void draw_fcurve_selected_handle_vertices(
         }
       }
     }
+    prevbezt = bezt;
   }
 
   immEnd();
@@ -410,8 +383,10 @@ static void draw_fcurve_handle_vertices(FCurve *fcu, View2D *v2d, bool sel_handl
   immUnbindProgram();
 }
 
-static void draw_fcurve_vertices(
-    ARegion *region, FCurve *fcu, bool do_handles, bool sel_handle_only, const float unit_scale)
+static void draw_fcurve_vertices(ARegion *region,
+                                 FCurve *fcu,
+                                 bool do_handles,
+                                 bool sel_handle_only)
 {
   View2D *v2d = &region->v2d;
 
@@ -434,7 +409,7 @@ static void draw_fcurve_vertices(
   }
 
   /* draw keyframes over the handles */
-  draw_fcurve_keyframe_vertices(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), pos, unit_scale);
+  draw_fcurve_keyframe_vertices(fcu, v2d, pos);
 
   GPU_program_point_size(false);
   GPU_blend(GPU_BLEND_NONE);
@@ -464,9 +439,9 @@ static bool draw_fcurve_handles_check(SpaceGraph *sipo, FCurve *fcu)
 
 /* draw lines for F-Curve handles only (this is only done in EditMode)
  * NOTE: draw_fcurve_handles_check must be checked before running this. */
-static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
+static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
 {
-  int sel, b;
+  using namespace blender;
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -480,20 +455,25 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
 
   immBeginAtMost(GPU_PRIM_LINES, 4 * 2 * fcu->totvert);
 
+  const int2 bounding_indices = get_bounding_bezt_indices(
+      fcu, region->v2d.cur.xmin, region->v2d.cur.xmax);
+
   /* slightly hacky, but we want to draw unselected points before selected ones
    * so that selected points are clearly visible
    */
-  for (sel = 0; sel < 2; sel++) {
-    BezTriple *bezt = fcu->bezt, *prevbezt = nullptr;
+  for (int sel = 0; sel < 2; sel++) {
     int basecol = (sel) ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
     uchar col[4];
 
-    for (b = 0; b < fcu->totvert; b++, prevbezt = bezt, bezt++) {
+    BezTriple *prevbezt = nullptr;
+    for (int i = bounding_indices[0]; i <= bounding_indices[1]; i++) {
+      BezTriple *bezt = &fcu->bezt[i];
       /* if only selected keyframes can get their handles shown,
        * check that keyframe is selected
        */
       if (sipo->flag & SIPO_SELVHANDLESONLY) {
         if (BEZT_ISSEL_ANY(bezt) == 0) {
+          prevbezt = bezt;
           continue;
         }
       }
@@ -539,11 +519,12 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
           UI_GetThemeColor3ubv(basecol + bezt->h2, col);
           col[3] = fcurve_display_alpha(fcu) * 255;
           immAttr4ubv(color, col);
-          immVertex2fv(pos, bezt->vec[0]);
-          immAttr4ubv(color, col);
           immVertex2fv(pos, bezt->vec[1]);
+          immAttr4ubv(color, col);
+          immVertex2fv(pos, bezt->vec[2]);
         }
       }
+      prevbezt = bezt;
     }
   }
 
@@ -865,8 +846,8 @@ static int calculate_bezt_draw_resolution(BezTriple *bezt,
 }
 
 /**
- * Add points on the bezier between \param prevbezt and \param bezt to \param curve_vertices. The
- * amount of points added is based on the given \param resolution.
+ * Add points on the bezier between `prevbezt` and `bezt` to `curve_vertices`.
+ * The amount of points added is based on the given `resolution`.
  */
 static void add_bezt_vertices(BezTriple *bezt,
                               BezTriple *prevbezt,
@@ -921,20 +902,6 @@ static void add_bezt_vertices(BezTriple *bezt,
     curve_vertices.append({x, y});
   }
   MEM_freeN(bezier_diff_points);
-}
-
-/** Get the first and last index to the bezt array that are just outside min and max. */
-static blender::int2 get_bounding_bezt_indices(FCurve *fcu, const float min, const float max)
-{
-  bool replace;
-  int first, last;
-  first = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, min, fcu->totvert, &replace);
-  first = clamp_i(first - 1, 0, fcu->totvert - 1);
-
-  last = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, max, fcu->totvert, &replace);
-  last = replace ? last + 1 : last;
-  last = clamp_i(last, 0, fcu->totvert - 1);
-  return {first, last};
 }
 
 static void add_extrapolation_point_left(FCurve *fcu,
@@ -1022,6 +989,28 @@ static blender::float2 calculate_pixels_per_unit(View2D *v2d)
   return pixels_per_unit;
 }
 
+static float calculate_pixel_distance(const rctf &bounds, const blender::float2 pixels_per_unit)
+{
+  return BLI_rctf_size_x(&bounds) * pixels_per_unit[0] +
+         BLI_rctf_size_y(&bounds) * pixels_per_unit[1];
+}
+
+static void expand_key_bounds(const BezTriple *left_key, const BezTriple *right_key, rctf &bounds)
+{
+  bounds.xmax = right_key->vec[1][0];
+  if (left_key->ipo == BEZT_IPO_BEZ) {
+    /* Respect handles of bezier keys. */
+    bounds.ymin = min_ffff(
+        bounds.ymin, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]);
+    bounds.ymax = max_ffff(
+        bounds.ymax, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]);
+  }
+  else {
+    bounds.ymax = max_ff(bounds.ymax, right_key->vec[1][1]);
+    bounds.ymin = min_ff(bounds.ymin, right_key->vec[1][1]);
+  }
+}
+
 /* Helper function - draw one repeat of an F-Curve (using Bezier curve approximations). */
 static void draw_fcurve_curve_keys(
     bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, uint pos, const bool draw_extrapolation)
@@ -1048,12 +1037,9 @@ static void draw_fcurve_curve_keys(
 
   const int2 bounding_indices = get_bounding_bezt_indices(fcu, v2d->cur.xmin, v2d->cur.xmax);
 
-  /* This happens if there is only 1 frame in the curve or the view is only showing the
-   * extrapolation zone of the curve. */
-  if (bounding_indices[0] == bounding_indices[1]) {
-    BezTriple *bezt = &fcu->bezt[bounding_indices[0]];
-    curve_vertices.append({bezt->vec[1][0], bezt->vec[1][1]});
-  }
+  /* Always add the first point so the extrapolation line doesn't jump. */
+  curve_vertices.append(
+      {fcu->bezt[bounding_indices[0]].vec[1][0], fcu->bezt[bounding_indices[0]].vec[1][1]});
 
   const blender::float2 pixels_per_unit = calculate_pixels_per_unit(v2d);
   const int window_width = BLI_rcti_size_x(&v2d->mask);
@@ -1062,10 +1048,39 @@ static void draw_fcurve_curve_keys(
   const float samples_per_pixel = 0.66f;
   const float evaluation_step = pixel_width / samples_per_pixel;
 
+  BezTriple *first_key = &fcu->bezt[bounding_indices[0]];
+  rctf key_bounds = {
+      first_key->vec[1][0], first_key->vec[1][1], first_key->vec[1][0], first_key->vec[1][1]};
+  /* Used when skipping keys. */
+  bool has_skipped_keys = false;
+  const float min_pixel_distance = 3.0f;
+
   /* Draw curve between first and last keyframe (if there are enough to do so). */
   for (int i = bounding_indices[0] + 1; i <= bounding_indices[1]; i++) {
     BezTriple *prevbezt = &fcu->bezt[i - 1];
     BezTriple *bezt = &fcu->bezt[i];
+    expand_key_bounds(prevbezt, bezt, key_bounds);
+    float pixel_distance = calculate_pixel_distance(key_bounds, pixels_per_unit);
+
+    if (pixel_distance >= min_pixel_distance && has_skipped_keys) {
+      /* When the pixel distance is greater than the threshold, and we've skipped at least one, add
+       * a point. The point position is the average of all keys from INCLUDING prevbezt to
+       * EXCLUDING bezt. prevbezt then gets reset to the key before bezt because the distance
+       * between those is potentially below the threshold. */
+      curve_vertices.append({BLI_rctf_cent_x(&key_bounds), BLI_rctf_cent_y(&key_bounds)});
+      has_skipped_keys = false;
+      key_bounds = {
+          prevbezt->vec[1][0], prevbezt->vec[1][1], prevbezt->vec[1][0], prevbezt->vec[1][1]};
+      expand_key_bounds(prevbezt, bezt, key_bounds);
+      /* Calculate again based on the new prevbezt. */
+      pixel_distance = calculate_pixel_distance(key_bounds, pixels_per_unit);
+    }
+
+    if (pixel_distance < min_pixel_distance) {
+      /* Skip any keys that are too close to each other in screen space. */
+      has_skipped_keys = true;
+      continue;
+    }
 
     switch (prevbezt->ipo) {
 
@@ -1099,11 +1114,12 @@ static void draw_fcurve_curve_keys(
       }
     }
 
-    /* Last point? */
-    if (i == bounding_indices[1]) {
-      curve_vertices.append({bezt->vec[1][0], bezt->vec[1][1]});
-    }
+    prevbezt = bezt;
   }
+
+  /* Always add the last point so the extrapolation line doesn't jump. */
+  curve_vertices.append(
+      {fcu->bezt[bounding_indices[1]].vec[1][0], fcu->bezt[bounding_indices[1]].vec[1][1]});
 
   /* Extrapolate to the right? (see code for left-extrapolation above too) */
   if (draw_extrapolation && fcu->bezt[fcu->totvert - 1].vec[1][0] < v2d->cur.xmax) {
@@ -1267,11 +1283,10 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
 
         if (do_handles) {
           /* only draw handles/vertices on keyframes */
-          draw_fcurve_handles(sipo, fcu);
+          draw_fcurve_handles(sipo, region, fcu);
         }
 
-        draw_fcurve_vertices(
-            region, fcu, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY), unit_scale);
+        draw_fcurve_vertices(region, fcu, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY));
       }
       else {
         /* samples: only draw two indicators at either end as indicators */

@@ -174,7 +174,6 @@ typedef enum GPUSamplerStateType {
  * GPU_texture_compare_mode(texture, true);
  * // Use the texture ...
  * GPU_texture_compare_mode(texture, false);
- *
  */
 typedef struct GPUSamplerState {
   /** Specifies the enabled filtering options for the sampler. */
@@ -546,9 +545,12 @@ typedef enum eGPUTextureUsage {
   GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW = (1 << 3),
   /* Whether the texture needs to be read from by the CPU. */
   GPU_TEXTURE_USAGE_HOST_READ = (1 << 4),
+  /* When used, the texture will not have any backing storage and can solely exist as a virtual
+   * frame-buffer attachment. */
+  GPU_TEXTURE_USAGE_MEMORYLESS = (1 << 5),
   /* Create a texture whose usage cannot be defined prematurely.
    * This is unoptimized and should not be used. */
-  GPU_TEXTURE_USAGE_GENERAL = 0xFF,
+  GPU_TEXTURE_USAGE_GENERAL = (0xFF & (~GPU_TEXTURE_USAGE_MEMORYLESS)),
 } eGPUTextureUsage;
 
 ENUM_OPERATORS(eGPUTextureUsage, GPU_TEXTURE_USAGE_GENERAL);
@@ -765,7 +767,7 @@ void GPU_texture_update_sub(GPUTexture *texture,
  * Update the content of a texture's specific mip-map level.
  * \a data_format is the format of the \a pixels . It needs to be compatible with the internal
  * texture storage.
- * The \a data should be the size of the entire \a mip_level .
+ * The \a data should be the size of the entire \a mip_level.
  */
 void GPU_texture_update_mipmap(GPUTexture *texture,
                                int mip_level,
@@ -925,12 +927,12 @@ void GPU_texture_swizzle_set(GPUTexture *texture, const char swizzle[4]);
 int GPU_texture_dimensions(const GPUTexture *texture);
 
 /**
- * Return the width of \a tex .
+ * Return the width of \a tex.
  */
 int GPU_texture_width(const GPUTexture *texture);
 
 /**
- * Return the height of \a tex . Correspond to number of layers for 1D array texture.
+ * Return the height of \a tex. Correspond to number of layers for 1D array texture.
  */
 int GPU_texture_height(const GPUTexture *texture);
 
@@ -941,7 +943,7 @@ int GPU_texture_height(const GPUTexture *texture);
 int GPU_texture_depth(const GPUTexture *texture);
 
 /**
- * Return the number of layers of \a tex . Return 1 if the texture is not layered.
+ * Return the number of layers of \a tex. Return 1 if the texture is not layered.
  */
 int GPU_texture_layer_count(const GPUTexture *texture);
 
@@ -951,12 +953,12 @@ int GPU_texture_layer_count(const GPUTexture *texture);
 int GPU_texture_mip_count(const GPUTexture *texture);
 
 /**
- * Return the texture format of \a tex .
+ * Return the texture format of \a tex.
  */
 eGPUTextureFormat GPU_texture_format(const GPUTexture *texture);
 
 /**
- * Return the usage flags of \a tex .
+ * Return the usage flags of \a tex.
  */
 eGPUTextureUsage GPU_texture_usage(const GPUTexture *texture);
 
@@ -1098,7 +1100,7 @@ void *GPU_pixel_buffer_map(GPUPixelBuffer *pixel_buf);
 void GPU_pixel_buffer_unmap(GPUPixelBuffer *pixel_buf);
 
 /**
- * Return size in bytes of the \a pix_buf .
+ * Return size in bytes of the \a pix_buf.
  */
 size_t GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf);
 

@@ -93,6 +93,9 @@ void BKE_blender_free()
 
 static char blender_version_string[48] = "";
 
+/* Only includes patch if non-zero. */
+static char blender_version_string_compact[48] = "";
+
 static void blender_version_init()
 {
   const char *version_cycle = "";
@@ -118,11 +121,22 @@ static void blender_version_init()
            BLENDER_VERSION % 100,
            BLENDER_VERSION_PATCH,
            version_cycle);
+
+  SNPRINTF(blender_version_string_compact,
+           "%d.%01d%s",
+           BLENDER_VERSION / 100,
+           BLENDER_VERSION % 100,
+           version_cycle);
 }
 
 const char *BKE_blender_version_string()
 {
   return blender_version_string;
+}
+
+const char *BKE_blender_version_string_compact()
+{
+  return blender_version_string_compact;
 }
 
 void BKE_blender_version_blendfile_string_from_values(char *str_buff,

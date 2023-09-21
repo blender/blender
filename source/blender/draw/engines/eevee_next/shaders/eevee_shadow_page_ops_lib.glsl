@@ -70,7 +70,7 @@ void shadow_page_cache_append(inout ShadowTileData tile, uint tile_index)
 {
   assert(tile.is_allocated);
 
-  /* The page_cached_next is also wrapped in the defrag phase to avoid unsigned overflow. */
+  /* The page_cached_next is also wrapped in the defragment phase to avoid unsigned overflow. */
   uint index = atomicAdd(pages_infos_buf.page_cached_next, 1u) % uint(SHADOW_MAX_PAGE);
   /* Insert in heap. */
   pages_cached_buf[index] = uvec2(shadow_page_pack(tile.page), tile_index);
@@ -93,7 +93,7 @@ void shadow_page_cache_remove(inout ShadowTileData tile)
   tile.cache_index = uint(-1);
   tile.is_cached = false;
   tile.is_allocated = true;
-  /* Remove from heap. Leaves hole in the buffer. This is handled by the defrag phase. */
+  /* Remove from heap. Leaves hole in the buffer. This is handled by the defragment phase. */
   pages_cached_buf[index] = uvec2(-1);
 }
 

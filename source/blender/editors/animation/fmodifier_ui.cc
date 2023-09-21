@@ -705,8 +705,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
 
   FCM_EnvelopeData *fed = env->data;
   for (int i = 0; i < env->totvert; i++, fed++) {
-    PointerRNA ctrl_ptr;
-    RNA_pointer_create(owner_id, &RNA_FModifierEnvelopeControlPoint, fed, &ctrl_ptr);
+    PointerRNA ctrl_ptr = RNA_pointer_create(owner_id, &RNA_FModifierEnvelopeControlPoint, fed);
 
     /* get a new row to operate on */
     row = uiLayoutRow(col, true);
@@ -890,7 +889,7 @@ void ANIM_fmodifier_panels(const bContext *C,
 
       PointerRNA *fcm_ptr = static_cast<PointerRNA *>(
           MEM_mallocN(sizeof(PointerRNA), "panel customdata"));
-      RNA_pointer_create(owner_id, &RNA_FModifier, fcm, fcm_ptr);
+      *fcm_ptr = RNA_pointer_create(owner_id, &RNA_FModifier, fcm);
 
       UI_panel_add_instanced(C, region, &region->panels, panel_idname, fcm_ptr);
     }
@@ -909,7 +908,7 @@ void ANIM_fmodifier_panels(const bContext *C,
 
       PointerRNA *fcm_ptr = static_cast<PointerRNA *>(
           MEM_mallocN(sizeof(PointerRNA), "panel customdata"));
-      RNA_pointer_create(owner_id, &RNA_FModifier, fcm, fcm_ptr);
+      *fcm_ptr = RNA_pointer_create(owner_id, &RNA_FModifier, fcm);
       UI_panel_custom_data_set(panel, fcm_ptr);
 
       panel = panel->next;

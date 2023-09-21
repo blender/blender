@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2023-07-02 21:35+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
@@ -393,18 +393,6 @@ msgstr "Gölgelendirici Düzenleyicisinde glTF Malzeme Çıktısı düğümünü
 
 msgid "Fribidi Library"
 msgstr "Fribidi Kitaplığı"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "FriBidi C derlenmiş kitaplığı (Linux altında .so, Windows altında .dll...); Windows kullanıyorsanız büyük olasılıkla onu düzenlemeniz gerekecektir; örn. svn'nin kitaplıklar deposundaki kullanarak)"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Gettext 'msgfmt' yürütülebiliri"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "gettext msgfmt 'derleyicisi'. Windows kullanıyorsanız onu büyük olasılıkla düzenlemeniz gerekecektir"
 
 
 msgid "Translation Root"
@@ -1175,6 +1163,76 @@ msgid "Information about an entity that makes it possible for the asset system t
 msgstr "Varlık sisteminin bu mülkü bir varlık olarak ele almasını olanaklı kılan varlık bilgisi"
 
 
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Önbellek Dosyası"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Koleksiyon"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Eğri"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Eğriler"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Yazıtipi"
+
+
+msgctxt "ID"
+msgid "Grease Pencil (legacy)"
+msgstr "Gres Kalemi (eski)"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Gres Kalemi"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Görsel"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Anahtar"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Işık"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Nokta Bulutu"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Sahne"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Çalışma Alanı"
+
+
 msgid "Options"
 msgstr "Seçenekler"
 
@@ -1429,6 +1487,14 @@ msgstr "Tamsayı Öznitelik"
 
 msgid "Geometry attribute that stores integer values"
 msgstr "Tamsayı değerler depolayan geometri özniteliği"
+
+
+msgid "Quaternion Attribute"
+msgstr "Dördey Öznitelik"
+
+
+msgid "Geometry attribute that stores rotation"
+msgstr "Döndürme depolayan geometri özniteliği"
 
 
 msgid "String Attribute"
@@ -2021,6 +2087,10 @@ msgstr "Gres Kalemi (eski) veri blokları"
 
 msgid "Grease Pencil"
 msgstr "Gres Kalemi"
+
+
+msgid "Grease Pencil data-blocks"
+msgstr "Gres Kalemi veri blokları"
 
 
 msgid "Hair Curves"
@@ -3365,14 +3435,6 @@ msgid "Ignore parent scaling without compensating for parent shear. Replicates t
 msgstr "Üst öge yamulmasını tazmin etmeden üst öge ölçeklemesini yok say. Özgün 'Ölçeği Devral' onay kutusunun vereceği efekti yineler"
 
 
-msgid "Layers"
-msgstr "Katmanlar"
-
-
-msgid "Layers bone exists in"
-msgstr "Kemiğin var olduğu katmanlar"
-
-
 msgid "Length"
 msgstr "Uzunluk"
 
@@ -3385,8 +3447,16 @@ msgid "Bone Matrix"
 msgstr "Kemik Matrisi"
 
 
+msgid "3×3 bone matrix"
+msgstr "3 x 3 kemik matrisi"
+
+
 msgid "Bone Armature-Relative Matrix"
 msgstr "Kemik Armatüre Göreceli Matris"
+
+
+msgid "4×4 bone matrix relative to armature"
+msgstr "Armatüre göreceli olan 4 x 4 kemik matrisi"
 
 
 msgid "Parent"
@@ -3513,36 +3583,28 @@ msgid "Multiply the final easing values by the Scale In/Out Y factors"
 msgstr "Son yavaşlatma değerlerini İçe/Dışa Ölçekle Y çarpanlarıyla çarp"
 
 
-msgid "Bone Group"
-msgstr "Kemik Grubu"
+msgid "Bone collection in an Armature data-block"
+msgstr "Bir armatür veri blokundaki kemik koleksiyonu"
 
 
-msgid "Groups of Pose Channels (Bones)"
-msgstr "Poz Kanallarının Grupları (Kemikler)"
+msgid "Visible"
+msgstr "Görünür"
 
 
-msgid "Bone Groups"
-msgstr "Kemik Grupları"
+msgid "Armature's active bone collection"
+msgstr "Armatürün etkin kemik koleksiyonu"
 
 
-msgid "Collection of bone groups"
-msgstr "Kemik grupları koleksiyonu"
+msgid "Active Collection Index"
+msgstr "Etkin Koleksiyon İndeksi"
 
 
-msgid "Active Bone Group"
-msgstr "Etkin Kemik Grubu"
+msgid "Custom"
+msgstr "Özel"
 
 
-msgid "Active bone group for this pose"
-msgstr "Bu poz için olan etkin kemik grubu"
-
-
-msgid "Active Bone Group Index"
-msgstr "Etkin Kemik Grubu İndeksi"
-
-
-msgid "Active index in bone groups array"
-msgstr "Kemik grupları dizilimindeki etkin indeks"
+msgid "Use Custom Color"
+msgstr "Özel Renk Kullan"
 
 
 msgid "Bool Attribute Value"
@@ -3861,6 +3923,7 @@ msgid "Use always Vertex Color mode"
 msgstr "Her zaman Tepecik Rengi kipini kullan"
 
 
+msgctxt "GPencil"
 msgid "Caps Type"
 msgstr "Başlık Türü"
 
@@ -3869,10 +3932,12 @@ msgid "The shape of the start and end of the stroke"
 msgstr "Vuruşun başlangıç ve bitiş ucu şekli"
 
 
+msgctxt "GPencil"
 msgid "Round"
 msgstr "Yuvarlak"
 
 
+msgctxt "GPencil"
 msgid "Flat"
 msgstr "Düz"
 
@@ -4059,10 +4124,6 @@ msgstr "Katman Kipi"
 
 msgid "Layers used as boundaries"
 msgstr "Hadler olarak kullanılan katmanlar"
-
-
-msgid "Visible"
-msgstr "Görünür"
 
 
 msgid "Visible layers"
@@ -4276,6 +4337,7 @@ msgid "Jitter factor for new strokes"
 msgstr "Yeni vuruşlar için seğirtme çarpanı"
 
 
+msgctxt "Amount"
 msgid "Smooth"
 msgstr "Pürüzsüz"
 
@@ -4640,6 +4702,11 @@ msgid "Path of an object inside of an Alembic archive"
 msgstr "Bir Alembic arşivinin içindeki nesnenin yolu"
 
 
+msgctxt "File browser"
+msgid "Path"
+msgstr "Yol"
+
+
 msgid "Object path"
 msgstr "Nesne yolu"
 
@@ -4863,6 +4930,14 @@ msgid "Goal Default"
 msgstr "Hedef Saptanmışı"
 
 
+msgid "Collection Child"
+msgstr "Koleksiyon Alt Ögesi"
+
+
+msgid "Collection Object"
+msgstr "Koleksiyon Nesnesi"
+
+
 msgid "Curve"
 msgstr "Eğri"
 
@@ -5080,69 +5155,14 @@ msgid "Data Path"
 msgstr "Veri Yolu"
 
 
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Önbellek Dosyası"
+msgctxt "Brush"
+msgid "Falloff"
+msgstr "Düşüş"
 
 
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Koleksiyon"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Eğri"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Eğriler"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Yazıtipi"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Gres Kalemi"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Görsel"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Anahtar"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Işık"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Nokta Bulutu"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Sahne"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Çalışma Alanı"
+msgctxt "Brush"
+msgid "Smooth"
+msgstr "Pürüzsüz"
 
 
 msgid "Factor"
@@ -5227,6 +5247,31 @@ msgstr "Tüp"
 
 msgid "Axis"
 msgstr "Eksen"
+
+
+msgctxt "ParticleSettings"
+msgid "Kink"
+msgstr "Dolaşma"
+
+
+msgctxt "ParticleSettings"
+msgid "None"
+msgstr "Yok"
+
+
+msgctxt "ParticleSettings"
+msgid "Radial"
+msgstr "Radyan"
+
+
+msgctxt "ParticleSettings"
+msgid "Rotation"
+msgstr "Döndürme"
+
+
+msgctxt "ParticleSettings"
+msgid "Wave"
+msgstr "Dalga"
 
 
 msgid "Noise"
@@ -5373,16 +5418,17 @@ msgid "GPencil Sculpt Guide"
 msgstr "Gres Kalemiyle Yontma Kılavuzu"
 
 
-msgid "Custom"
-msgstr "Özel"
-
-
 msgid "GPencil Sculpt Settings"
 msgstr "Gres Kalemiyle Yontma Ayarları"
 
 
 msgid "2D Image"
 msgstr "2B Görsel"
+
+
+msgctxt "GPencil"
+msgid "Rounded"
+msgstr "Yuvarlatılmış"
 
 
 msgid "UV Scale"
@@ -5413,6 +5459,10 @@ msgid "Lattice"
 msgstr "Çapraz Örgü"
 
 
+msgid "Smooth"
+msgstr "Pürüzsüz"
+
+
 msgid "Steps"
 msgstr "Adımlar"
 
@@ -5423,6 +5473,22 @@ msgstr "Pin Pon"
 
 msgid "Space"
 msgstr "Boşluk"
+
+
+msgid "Collection of related drawings"
+msgstr "İlgili çizimler koleksiyonu"
+
+
+msgid "Grease Pencil Layer Group"
+msgstr "Gres Kalemi Katmanı Grubu"
+
+
+msgid "Group of Grease Pencil layers"
+msgstr "Gres kalemi katmanları grubu"
+
+
+msgid "Collection of Grease Pencil layers"
+msgstr "Gres kalemi katmanları koleksiyonu"
 
 
 msgid "R"
@@ -5449,6 +5515,10 @@ msgid "Save this data-block even if it has no users"
 msgstr "Kullanıcısı olmasa bile bu veri blokunu kaydet"
 
 
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
+
+
 msgid "Box"
 msgstr "Kutu"
 
@@ -5471,11 +5541,6 @@ msgstr "Tut"
 msgctxt "Brush"
 msgid "Twist"
 msgstr "Bük"
-
-
-msgctxt "Brush"
-msgid "Smooth"
-msgstr "Pürüzsüz"
 
 
 msgid "Push"
@@ -5538,14 +5603,37 @@ msgid "Curves Sculpt Settings"
 msgstr "Eğriler Yontma Ayarları"
 
 
+msgctxt "Curves"
 msgid "Curves Sculpt Tool"
 msgstr "Eğriler Yontma Aracı"
 
 
+msgctxt "Curves"
+msgid "Paint Selection"
+msgstr "Seçimi Boya"
+
+
+msgctxt "Curves"
+msgid "Add"
+msgstr "Ekle"
+
+
+msgctxt "Curves"
+msgid "Delete"
+msgstr "Sil"
+
+
+msgctxt "Curves"
+msgid "Density"
+msgstr "Yoğunluk"
+
+
+msgctxt "Curves"
 msgid "Pinch"
 msgstr "Çimdikle"
 
 
+msgctxt "Curves"
 msgid "Slide"
 msgstr "Kaydır"
 
@@ -5560,8 +5648,53 @@ msgid "Grease Pencil Sculpt Paint Tool"
 msgstr "Gres Kalemi Yontma Boyama Aracı"
 
 
+msgctxt "Brush"
+msgid "Draw"
+msgstr "Çiz"
+
+
+msgctxt "Brush"
+msgid "Fill"
+msgstr "Doldur"
+
+
+msgctxt "Brush"
+msgid "Erase"
+msgstr "Sil"
+
+
 msgid "The brush is used for erasing strokes"
 msgstr "Fırça, vuruşları silmek için kullanılır"
+
+
+msgctxt "Brush"
+msgid "Tint"
+msgstr "Yana Yatır"
+
+
+msgctxt "Brush"
+msgid "Smear"
+msgstr "Bulaştır"
+
+
+msgctxt "Brush"
+msgid "Clone"
+msgstr "Klonla"
+
+
+msgctxt "Brush"
+msgid "Mask"
+msgstr "Maske"
+
+
+msgctxt "Mask"
+msgid "Draw"
+msgstr "Çiz"
+
+
+msgctxt "Mask"
+msgid "Smooth"
+msgstr "Pürüzsüz"
 
 
 msgid "Sculpt Plane"
@@ -5583,6 +5716,50 @@ msgstr "Z Düzlemi"
 msgctxt "Brush"
 msgid "Sculpt Tool"
 msgstr "Yontma Aracı"
+
+
+msgctxt "Brush"
+msgid "Clay"
+msgstr "Kil"
+
+
+msgctxt "Brush"
+msgid "Clay Strips"
+msgstr "Kil Şeritleri"
+
+
+msgctxt "Brush"
+msgid "Layer"
+msgstr "Katman"
+
+
+msgctxt "Brush"
+msgid "Crease"
+msgstr "Kırışıklık"
+
+
+msgctxt "Brush"
+msgid "Pinch"
+msgstr "Çimdikle"
+
+
+msgctxt "Brush"
+msgid "Rotate"
+msgstr "Döndür"
+
+
+msgctxt "Brush"
+msgid "Simplify"
+msgstr "Yalınlaştır"
+
+
+msgctxt "Brush"
+msgid "Paint"
+msgstr "Boya"
+
+
+msgid "Pinch"
+msgstr "Çimdikle"
 
 
 msgid "Use Sculpt"
@@ -5654,6 +5831,10 @@ msgid "Orthographic"
 msgstr "Dikçizgisel"
 
 
+msgid "Round"
+msgstr "Yuvarlak"
+
+
 msgid "Dimensions"
 msgstr "Boyutlar"
 
@@ -5714,6 +5895,10 @@ msgid "Stroke Sculpt Mode"
 msgstr "Vuruş Yontma Kipi"
 
 
+msgid "Layers"
+msgstr "Katmanlar"
+
+
 msgid "2D Layers"
 msgstr "2B Katmanlar"
 
@@ -5736,6 +5921,14 @@ msgstr "Vuruş Düzenleme Kipi"
 
 msgid "Edit Grease Pencil strokes instead of viewport data"
 msgstr "Görüş alanı verisi yerine Gres Kalemi vuruşlarını düzenle"
+
+
+msgid "Grease Pencil layer groups"
+msgstr "Gres Kalemi katmanı grupları"
+
+
+msgid "Grease Pencil layers"
+msgstr "Gres Kalemi katmanları"
 
 
 msgid "Blank"
@@ -5775,8 +5968,24 @@ msgid "Intensity"
 msgstr "Yoğunluk"
 
 
+msgctxt "Material"
 msgid "Preview Render Type"
 msgstr "Sunum Türünü Önizle"
+
+
+msgctxt "Material"
+msgid "Flat"
+msgstr "Düz"
+
+
+msgctxt "Material"
+msgid "Sphere"
+msgstr "Küre"
+
+
+msgctxt "Material"
+msgid "Cube"
+msgstr "Küp"
 
 
 msgid "Cube"
@@ -5789,6 +5998,10 @@ msgstr "Aynasal"
 
 msgid "Viewport Size"
 msgstr "Görüş Alanı Boyutu"
+
+
+msgid "Interface"
+msgstr "Arayüz"
 
 
 msgid "Links"
@@ -5869,6 +6082,21 @@ msgstr "Boş Görüntü Boyutu"
 
 msgid "Size of display for empties in the viewport"
 msgstr "Görüş alanındaki boşlar için görüntü boyutu"
+
+
+msgctxt "Image"
+msgid "Both"
+msgstr "İkisi de"
+
+
+msgctxt "Image"
+msgid "Front"
+msgstr "Ön"
+
+
+msgctxt "Image"
+msgid "Back"
+msgstr "Arka"
 
 
 msgid "Object Mode"
@@ -5977,6 +6205,11 @@ msgstr "Global Y"
 
 msgid "Global Z"
 msgstr "Global Z"
+
+
+msgctxt "ParticleSettings"
+msgid "Nothing"
+msgstr "Hiçbir Şey"
 
 
 msgid "Mass"
@@ -6123,6 +6356,10 @@ msgstr "Destek"
 
 msgid "Maintained by community developers"
 msgstr "Topluluk geliştiricileri tarafından bakımı yapılır"
+
+
+msgid "Testing"
+msgstr "Sınama"
 
 
 msgid "XR Session Settings"
@@ -6285,8 +6522,18 @@ msgid "2D Offset"
 msgstr "2B Ofset"
 
 
+msgctxt "FreestyleLineStyle"
+msgid "Smooth"
+msgstr "Pürüzsüz"
+
+
 msgid "ID Type"
 msgstr "Kimlik Türü"
+
+
+msgctxt "Mask"
+msgid "Fill"
+msgstr "Doldur"
 
 
 msgctxt "GPencil"
@@ -6344,16 +6591,24 @@ msgid "Add"
 msgstr "Ekle"
 
 
-msgid "Distort"
-msgstr "Çarpıt"
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
+msgid "Tracking"
+msgstr "Takip"
 
 
 msgid "Layout"
 msgstr "Yerleşim"
 
 
-msgid "Text"
-msgstr "Metin"
+msgid "Distort"
+msgstr "Çarpıt"
 
 
 msgid "Node Context Menu"
@@ -6362,6 +6617,14 @@ msgstr "Düğüm Bağlam Menüsü"
 
 msgid "Instances"
 msgstr "Örnekler"
+
+
+msgid "Add Modifier"
+msgstr "Değiştirici Ekle"
+
+
+msgid "Physics"
+msgstr "Fizik"
 
 
 msgctxt "Operator"
@@ -6557,6 +6820,16 @@ msgid "Origin"
 msgstr "Merkez"
 
 
+msgctxt "Mesh"
+msgid "Round"
+msgstr "Yuvarlak"
+
+
+msgctxt "Mesh"
+msgid "Flat"
+msgstr "Düz"
+
+
 msgid "Thickness Mode"
 msgstr "Kalınlık Kipi"
 
@@ -6577,6 +6850,21 @@ msgid "Collection of NLA Strips"
 msgstr "DOC Şeritleri Koleksiyonu"
 
 
+msgctxt "NodeTree"
+msgid "Flat"
+msgstr "Düz"
+
+
+msgctxt "NodeTree"
+msgid "Tent"
+msgstr "Çadır"
+
+
+msgctxt "NodeTree"
+msgid "Mitch"
+msgstr "Mitch"
+
+
 msgid "H"
 msgstr "H"
 
@@ -6587,6 +6875,11 @@ msgstr "S"
 
 msgid "Auto-Refresh"
 msgstr "Otomatik Yenile"
+
+
+msgctxt "Image"
+msgid "Edge"
+msgstr "Kenar"
 
 
 msgid "Feather"
@@ -6603,10 +6896,6 @@ msgstr "Renk Modülasyonu"
 
 msgid "Invert Color"
 msgstr "Rengi Tersine Çevir"
-
-
-msgid "Keying"
-msgstr "Anahtarlama"
 
 
 msgid "Keying Screen"
@@ -6654,6 +6943,18 @@ msgid "Greater Than"
 msgstr "Büyüktür"
 
 
+msgid "Invert Rotation"
+msgstr "Döndürmeyi Ters Çevir"
+
+
+msgid "Quaternion to Rotation"
+msgstr "Dördeyden Döndürmeye"
+
+
+msgid "Rotation to Quaternion"
+msgstr "Döndürmeden Dördeye"
+
+
 msgid "Original"
 msgstr "Özgün"
 
@@ -6683,8 +6984,16 @@ msgid "Object Info"
 msgstr "Nesne Bilgisi"
 
 
+msgid "Points to Curves"
+msgstr "Noktalardan Eğriye"
+
+
 msgid "Active Item Index"
 msgstr "Etkin Öge İndeksi"
+
+
+msgid "Set Selection"
+msgstr "Seçimi Ayarla"
 
 
 msgid "Reflection"
@@ -6705,6 +7014,31 @@ msgstr "Yüzeyaltı Saçılımı"
 
 msgid "X axis"
 msgstr "X Eks"
+
+
+msgctxt "Image"
+msgid "Projection"
+msgstr "Projeksiyon"
+
+
+msgctxt "Image"
+msgid "Flat"
+msgstr "Düz"
+
+
+msgctxt "Image"
+msgid "Box"
+msgstr "Kutu"
+
+
+msgctxt "Image"
+msgid "Sphere"
+msgstr "Küre"
+
+
+msgctxt "Image"
+msgid "Tube"
+msgstr "Tüp"
 
 
 msgid "Point Source"
@@ -6749,6 +7083,10 @@ msgid "Z Axis"
 msgstr "Z Eks"
 
 
+msgid "Collection of repeat items"
+msgstr "Yinelenen ögeler koleksiyonu"
+
+
 msgid "Collection of simulation items"
 msgstr "Benzetim ögeleri koleksiyonu"
 
@@ -6761,8 +7099,36 @@ msgid "Tooltip"
 msgstr "Araç İpucu"
 
 
+msgid "Active item"
+msgstr "Etkin öge"
+
+
+msgid "Active Index"
+msgstr "Etkin İndeks"
+
+
+msgid "Item Type"
+msgstr "Öge Türü"
+
+
+msgid "Default Closed"
+msgstr "Saptanmış Kapalı"
+
+
+msgid "Both"
+msgstr "İkisi de"
+
+
 msgid "Object Constraints"
 msgstr "Nesne Kısıtlamaları"
+
+
+msgid "Blocker Collection"
+msgstr "Engelleyen Koleksiyonu"
+
+
+msgid "Receiver Collection"
+msgstr "Alıcı Koleksiyonu"
 
 
 msgid "Object Modifiers"
@@ -6816,6 +7182,20 @@ msgstr "Bitiş Karesi Ayarla"
 msgctxt "Operator"
 msgid "Set Start Frame"
 msgstr "Başlangıç Karesi Ayarla"
+
+
+msgctxt "Operator"
+msgid "Add Bone Collection"
+msgstr "Kemik Koleksiyonu Ekle"
+
+
+msgid "Bone Collection"
+msgstr "Kemik Koleksiyonu"
+
+
+msgctxt "Operator"
+msgid "Move Bone Collection"
+msgstr "Kemik Koleksiyonunu Taşı"
 
 
 msgid "Flip Names"
@@ -6941,6 +7321,7 @@ msgid "Insert"
 msgstr "Ekle"
 
 
+msgctxt "Python console"
 msgid "Language"
 msgstr "Dil"
 
@@ -7024,6 +7405,10 @@ msgstr "Canlandırma kipi"
 
 msgid "Negative Frames"
 msgstr "Negatif Kareler"
+
+
+msgid "Slide"
+msgstr "Kaydır"
 
 
 msgid "General"
@@ -7137,6 +7522,15 @@ msgid "Open Font"
 msgstr "Yazıtipi Aç"
 
 
+msgctxt "Operator"
+msgid "Run Node Group"
+msgstr "Düğüm Grubunu Çalıştır"
+
+
+msgid "Asset Library Identifier"
+msgstr "Varlık Kitaplığı Tanımlayıcısı"
+
+
 msgid "Open Arrow"
 msgstr "Ok Aç"
 
@@ -7164,10 +7558,6 @@ msgid "Add New Mask Layer"
 msgstr "Yeni Maske Katmanı Ekle"
 
 
-msgid "Both"
-msgstr "İkisi de"
-
-
 msgid "Open All"
 msgstr "Tümünü Aç"
 
@@ -7177,12 +7567,31 @@ msgstr "Yeni Malzeme"
 
 
 msgctxt "View3D"
+msgid "Side"
+msgstr "Yan"
+
+
+msgctxt "View3D"
 msgid "Camera"
 msgstr "Kamera"
 
 
 msgid "Active Channels at Cursor"
 msgstr "Etkin Kanallar İmleçte"
+
+
+msgctxt "Operator"
+msgid "Shear Keyframes"
+msgstr "Anahtar Kareleri Kırk"
+
+
+msgid "Shear Factor"
+msgstr "Kırkma Etmeni"
+
+
+msgctxt "Operator"
+msgid "Add New Layer Group"
+msgstr "Yeni Grup Katmanı Ekle"
 
 
 msgctxt "Operator"
@@ -7338,6 +7747,11 @@ msgid "Add Cube"
 msgstr "Küp Ekle"
 
 
+msgctxt "Mesh"
+msgid "Fill"
+msgstr "Doldur"
+
+
 msgid "Gimbal"
 msgstr "Yalpa"
 
@@ -7348,6 +7762,11 @@ msgstr "Oturum UUID'si"
 
 msgid "Session UUID of the data-block to use by the operator"
 msgstr "İşleç tarafından kullanılacak veri blokunun oturum UUID'si"
+
+
+msgctxt "Operator"
+msgid "Add Material"
+msgstr "Malzeme Ekle"
 
 
 msgctxt "Operator"
@@ -7379,6 +7798,11 @@ msgid "New Node Tree"
 msgstr "Yeni Düğüm Ağacı"
 
 
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Değiştirici Ekle"
+
+
 msgid "Scene Origin"
 msgstr "Sahne Orijini"
 
@@ -7397,13 +7821,22 @@ msgid "Duplicate Objects"
 msgstr "Nesneleri Çoğalt"
 
 
-msgid "Scene Line Art"
-msgstr "Sahne Çizgi Sanatı"
+msgid "Input Name"
+msgstr "Girdi Adı"
 
 
 msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Değiştirici Ekle"
+msgid "Move to Nodes"
+msgstr "Düğümlere Taşı"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil (legacy)"
+msgstr "Gres Kalemi Ekle (eski)"
+
+
+msgid "Scene Line Art"
+msgstr "Sahne Çizgi Sanatı"
 
 
 msgid "Object Data"
@@ -7539,6 +7972,11 @@ msgstr "Bir sayfa yukarı sar"
 
 msgid "Clone"
 msgstr "Klonla"
+
+
+msgctxt "Operator"
+msgid "Select Loop"
+msgstr "Döngü Seç"
 
 
 msgid "Front Faces Only"
@@ -7771,10 +8209,6 @@ msgid "Open Preferences..."
 msgstr "Tercihleri Aç..."
 
 
-msgid "Interface"
-msgstr "Arayüz"
-
-
 msgid "Themes"
 msgstr "Temalar"
 
@@ -7811,6 +8245,11 @@ msgstr "Operatör"
 
 msgid "Sharpen"
 msgstr "Keskinlik"
+
+
+msgctxt "Sequence"
+msgid "Add"
+msgstr "Ekle"
 
 
 msgctxt "Operator"
@@ -7944,6 +8383,14 @@ msgid "Copy as New Driver"
 msgstr "Yeni Sürücü Olarak Kopyala"
 
 
+msgid "Message is marked as fuzzy in po file"
+msgstr "İleti, po dosyasında bulanık olarak imlenmiş"
+
+
+msgid "Some error occurred with this message"
+msgstr "Bu ileti ile ilgili bir hata oluştu"
+
+
 msgctxt "Operator"
 msgid "Update I18n Statistics"
 msgstr "I18n İstatistiklerini Güncelle"
@@ -7985,12 +8432,24 @@ msgid "Just add the margin, ignoring any UV scale"
 msgstr "Herhangi bir UV ölçeğini yok sayarak yalnızca kenar boşluğunu ekle"
 
 
+msgid "Rotation and Scale"
+msgstr "Döndürme ve Ölçek"
+
+
 msgid "Rotation Method"
 msgstr "Döndürme Yöntemi"
 
 
 msgid "Pinned"
 msgstr "Sabitlendi"
+
+
+msgid "Length 3D"
+msgstr "3B Uzunluk"
+
+
+msgid "Area 3D"
+msgstr "3B Alan"
 
 
 msgctxt "Operator"
@@ -8184,6 +8643,10 @@ msgid "Refresh Data-Block Previews"
 msgstr "Veri Bloku Önizlemelerini Yenile"
 
 
+msgid "Data-Block"
+msgstr "Veri Bloku"
+
+
 msgctxt "Operator"
 msgid "Quit Blender"
 msgstr "Blender'dan Çık"
@@ -8235,6 +8698,10 @@ msgstr "Geçmişi ve yer imlerini yeniden yükle"
 msgctxt "Operator"
 msgid "Reload Start-Up File"
 msgstr "Başlangıç Dosyasını Yeniden Yükle"
+
+
+msgid "Open the default file"
+msgstr "Saptanmış dosyayı aç"
 
 
 msgid "Factory Startup"
@@ -8381,6 +8848,10 @@ msgstr "Bir USDZ arşivinden dokuları içe aktarırken oluşan davranış"
 
 msgid "Don't import textures"
 msgstr "Dokuları içe aktarma"
+
+
+msgid "Mesh Attributes"
+msgstr "Örgü Öznitelikleri"
 
 
 msgctxt "Operator"
@@ -8560,10 +9031,6 @@ msgid "Cursor"
 msgstr "İmleç"
 
 
-msgid "Physics"
-msgstr "Fizik"
-
-
 msgid "Simulation Nodes"
 msgstr "Benzetim Düğümleri"
 
@@ -8627,6 +9094,18 @@ msgstr "Otomatik Kaydet"
 
 msgid "Editor"
 msgstr "Düzenleyici"
+
+
+msgid "File/Asset Browser"
+msgstr "Dosya/Varlık Tarayıcısı"
+
+
+msgid "Graph Editor/Drivers"
+msgstr "Grafik Düzenleyicisi/Sürücüleri"
+
+
+msgid "Image/UV Editor"
+msgstr "Görsel/UV Düzenleyicisi"
 
 
 msgid "Scroll Bar"
@@ -8735,6 +9214,10 @@ msgid "Asset Debug Info"
 msgstr "Varlık Hata Ayıklama Bilgisi"
 
 
+msgid "Grease Pencil 3.0"
+msgstr "Gres Kalemi 3.0"
+
+
 msgid "New Curves Tools"
 msgstr "Yeni Eğriler Araçları"
 
@@ -8765,6 +9248,10 @@ msgstr "Otomatik Kayıt Zamanı"
 
 msgid "Save Versions"
 msgstr "Sürümleri Kaydet"
+
+
+msgid "Text Editor Args"
+msgstr "Metin Düzenleyicisi Argümanları"
 
 
 msgid "Auto Save Temporary Files"
@@ -8805,6 +9292,10 @@ msgstr "Yeni Pencere"
 
 msgid "Open the temporary editor in a new window"
 msgstr "Geçici düzenleyiciyi yeni bir pencerede aç"
+
+
+msgid "Language"
+msgstr "Dil"
 
 
 msgid "Sub Level Menu Open Delay"
@@ -8867,10 +9358,6 @@ msgid "Only Seconds"
 msgstr "Sadece Saniyeler"
 
 
-msgid "Contents Follow Opening Direction"
-msgstr "İçerik Açılma Yönünü İzler"
-
-
 msgid "Save Prompt"
 msgstr "İstemi Kaydet"
 
@@ -8915,6 +9402,26 @@ msgid "Regular Expression Find"
 msgstr "Düzenli İfade Bul"
 
 
+msgctxt "Light"
+msgid "None"
+msgstr "Yok"
+
+
+msgctxt "Light"
+msgid "Auto"
+msgstr "Otomatik"
+
+
+msgctxt "Light"
+msgid "Front"
+msgstr "Ön"
+
+
+msgctxt "Light"
+msgid "Back"
+msgstr "Arka"
+
+
 msgid "Debug Sample Count"
 msgstr "Hata Ayıklama Örnek Sayısı"
 
@@ -8927,12 +9434,28 @@ msgid "OptiX Module Debug"
 msgstr "OptiX Modülü Hata Ayıklaması"
 
 
+msgid "Max Lights"
+msgstr "En Çok Işık"
+
+
+msgid "Limit maximum number of lights"
+msgstr "Olabilecek en çok ışık sayısı sınırı"
+
+
 msgid "Scene Camera"
 msgstr "Sahne Kamerası"
 
 
+msgid "Rotation value in geometry attribute"
+msgstr "Geometri özniteliğindeki döndürme değeri"
+
+
 msgid "Rotation in quaternions (keep normalized)"
 msgstr "Dördeylerdeki döndürmeler (olağanlaştırılmış tut)"
+
+
+msgid "Hydra Render Engine"
+msgstr "Hidra Sunum İşletkesi"
 
 
 msgid "Strand"
@@ -8950,6 +9473,10 @@ msgstr "Arayüzü Kilitle"
 
 msgid "Lock interface during rendering in favor of giving more memory to the renderer"
 msgstr "Sundurucuya daha çok bellek vermek için sunum sırasında arabirimi kilitle"
+
+
+msgid "Collection of RetimingHandle"
+msgstr "Yeniden zamanlama tutacı koleksiyonu"
 
 
 msgid "Shading Settings"
@@ -8977,11 +9504,6 @@ msgid "Scene"
 msgstr "Sahne"
 
 
-msgctxt "Sequence"
-msgid "Add"
-msgstr "Ekle"
-
-
 msgid "Animation End Offset"
 msgstr "Canlandırma Bitiş Ofseti"
 
@@ -9001,6 +9523,15 @@ msgstr "Sahne Sekansı"
 
 msgid "Sepia"
 msgstr "Sepya"
+
+
+msgctxt "GPencil"
+msgid "Wave"
+msgstr "Dalga"
+
+
+msgid "Use wave effect"
+msgstr "Dalga efekti kullan"
 
 
 msgid "Simulation Item"
@@ -9064,6 +9595,16 @@ msgstr "Genel bilgiyi görüntüle"
 
 
 msgctxt "ID"
+msgid "Geometry Nodes Type"
+msgstr "Geometri Düğümleri Türü"
+
+
+msgctxt "ID"
+msgid "Modifier"
+msgstr "Değiştirici"
+
+
+msgctxt "ID"
 msgid "Tool"
 msgstr "Araç"
 
@@ -9092,8 +9633,141 @@ msgid "Syntax highlight for scripting"
 msgstr "Betik yazımı için sözdizim vurgulaması"
 
 
+msgid "Allow selection of armatures"
+msgstr "Armatürlerin seçimine izin ver"
+
+
+msgid "Allow selection of cameras"
+msgstr "Kameraların seçimine izin ver"
+
+
+msgid "Allow selection of curves"
+msgstr "Eğrilerin seçimine izin ver"
+
+
+msgid "Allow selection of hair curves"
+msgstr "Kıl eğrilerinin seçimine izin ver"
+
+
+msgid "Allow selection of empties"
+msgstr "Boşların seçimine izin ver"
+
+
+msgid "Allow selection of text objects"
+msgstr "Metin nesnelerinin seçimine izin ver"
+
+
+msgid "Allow selection of grease pencil objects"
+msgstr "Gres kalemi nesnelerinin seçimine izin ver"
+
+
+msgid "Allow selection of lattices"
+msgstr "Çapraz örgülerin seçimine izin ver"
+
+
+msgid "Allow selection of lights"
+msgstr "Işıkların seçimine izin ver"
+
+
+msgid "Allow selection of light probes"
+msgstr "Işık sondalarının seçimine izin ver"
+
+
+msgid "Allow selection of mesh objects"
+msgstr "Örgü nesnelerinin seçimine izin ver"
+
+
+msgid "Allow selection of metaballs"
+msgstr "Üst topların seçimine izin ver"
+
+
+msgid "Allow selection of point clouds"
+msgstr "Nokta bulutlarının seçimine izin ver"
+
+
+msgid "Allow selection of speakers"
+msgstr "Konuşmacıların seçimine izin ver"
+
+
+msgid "Allow selection of surfaces"
+msgstr "Yüzeylerin seçimine izin ver"
+
+
+msgid "Allow selection of volumes"
+msgstr "Hacimlerin seçimine izin ver"
+
+
+msgid "Show armatures"
+msgstr "Armatürleri göster"
+
+
+msgid "Show cameras"
+msgstr "Kameraları göster"
+
+
+msgid "Show curves"
+msgstr "Eğrileri göster"
+
+
+msgid "Show hair curves"
+msgstr "Kıl eğrilerini göster"
+
+
+msgid "Show empties"
+msgstr "Boşları göster"
+
+
+msgid "Show text objects"
+msgstr "Metin nesnelerini göster"
+
+
+msgid "Show lattices"
+msgstr "Çapraz örgüleri Göster"
+
+
+msgid "Show lights"
+msgstr "Işıkları göster"
+
+
+msgid "Show light probes"
+msgstr "Işık sondalarını göster"
+
+
+msgid "Show metaballs"
+msgstr "Üst topları göster"
+
+
+msgid "Show point clouds"
+msgstr "Nokta bulutları göster"
+
+
+msgid "Show speakers"
+msgstr "Konuşmacıları göster"
+
+
+msgid "Show surfaces"
+msgstr "Yüzeyleri göster"
+
+
+msgid "Show volumes"
+msgstr "Hacimleri göster"
+
+
+msgid "Show Reconstruction"
+msgstr "Yeniden Yapımı Göster"
+
+
+msgid "Flat"
+msgstr "Düz"
+
+
 msgid "Live Unwrap"
 msgstr "Anlık Açılım"
+
+
+msgctxt "Image"
+msgid "Cube"
+msgstr "Küp"
 
 
 msgid "Clip Editor"
@@ -9184,6 +9858,10 @@ msgid "Lock Object Modes"
 msgstr "Nesne Kiplerini Kilitle"
 
 
+msgid "Project Mode"
+msgstr "Proje Kipi"
+
+
 msgid "Mesh Statistics Visualization"
 msgstr "Örgü İstatistikleri Görselleştirmesi"
 
@@ -9247,6 +9925,10 @@ msgstr "Sahne Işıkları"
 
 msgid "Scene World"
 msgstr "Sahne Dünyası"
+
+
+msgid "Node ID"
+msgstr "Düğüm Kimliği"
 
 
 msgctxt "Volume"
@@ -9412,10 +10094,6 @@ msgid "Refresh I18n Data..."
 msgstr "I18n Verisini Yenile..."
 
 
-msgid "Tracking"
-msgstr "Takip"
-
-
 msgctxt "Operator"
 msgid "Import..."
 msgstr "İçe Aktar..."
@@ -9541,6 +10219,10 @@ msgid "After"
 msgstr "Sonra"
 
 
+msgid "Edit Bone Color"
+msgstr "Kemik Rengini Düzenle"
+
+
 msgid "Not Set"
 msgstr "Ayarlı Değil"
 
@@ -9557,6 +10239,11 @@ msgstr "Önce"
 msgctxt "Operator"
 msgid "New Layer"
 msgstr "Yeni Katman"
+
+
+msgctxt "Operator"
+msgid "Add Group"
+msgstr "Grup Ekle"
 
 
 msgctxt "Operator"
@@ -9579,6 +10266,10 @@ msgstr "Yeni"
 
 msgid "Date"
 msgstr "Tarih"
+
+
+msgid "Caps Type"
+msgstr "Başlık Türü"
 
 
 msgid "Render Engine"
@@ -9626,6 +10317,11 @@ msgid "Ease"
 msgstr "Kolaylaştır"
 
 
+msgctxt "Operator"
+msgid "Shear Keys"
+msgstr "Anahtarları Kırk"
+
+
 msgctxt "Image"
 msgid "New"
 msgstr "Yeni"
@@ -9665,9 +10361,8 @@ msgid "Find..."
 msgstr "Bul..."
 
 
-msgctxt "Operator"
-msgid "Edit"
-msgstr "Düzenle"
+msgid "Previews"
+msgstr "Önizlemeler"
 
 
 msgctxt "Operator"
@@ -9863,16 +10558,6 @@ msgstr "Kullanıcı Toplulukları"
 
 
 msgctxt "Operator"
-msgid "Developer Community"
-msgstr "Geliştirici Topluluğu"
-
-
-msgctxt "Operator"
-msgid "Python API Reference"
-msgstr "Python API Başvurusu"
-
-
-msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Bir Hata Bildir"
 
@@ -9880,6 +10565,16 @@ msgstr "Bir Hata Bildir"
 msgctxt "Operator"
 msgid "Developer Documentation"
 msgstr "Geliştirici Belgelendirmesi"
+
+
+msgctxt "Operator"
+msgid "Developer Community"
+msgstr "Geliştirici Topluluğu"
+
+
+msgctxt "Operator"
+msgid "Python API Reference"
+msgstr "Python API Başvurusu"
 
 
 msgctxt "Operator"
@@ -9922,6 +10617,10 @@ msgstr "Alt Seviye"
 
 msgid "Eraser Radius"
 msgstr "Silgi Yarıçapı"
+
+
+msgid "Preview Resolution"
+msgstr "Önizleme Çözünürlüğü"
 
 
 msgid "Minimum Grid Spacing"
@@ -9978,28 +10677,81 @@ msgid "Load Factory %s Preferences"
 msgstr "%s Fabrika Tercihlerini Yükle"
 
 
+msgid "Color %d"
+msgstr "Renk %d"
+
+
+msgid "Description:"
+msgstr "Açıklama:"
+
+
 msgid "Location:"
-msgstr "Lokasyon:"
+msgstr "Konum:"
 
 
 msgid "File:"
 msgstr "Dosya:"
 
 
+msgid "Author:"
+msgstr "Yazar:"
+
+
 msgid "Version:"
-msgstr "Versiyon:"
+msgstr "Sürüm:"
+
+
+msgid "Warning:"
+msgstr "Uyarı:"
+
+
+msgid "Internet:"
+msgstr "İnternet:"
 
 
 msgid "User:"
 msgstr "Kullanıcı:"
 
 
+msgid "description"
+msgstr "açıklama"
+
+
 msgid "location"
-msgstr "lokasyon"
+msgstr "konum"
+
+
+msgctxt "Operator"
+msgid "Documentation"
+msgstr "Belgelendirme"
 
 
 msgid "Preferences:"
-msgstr "Tercihler"
+msgstr "Tercihler:"
+
+
+msgid "Error (see console)"
+msgstr "Hata (konsola bakın)"
+
+
+msgctxt "Operator"
+msgid "Interactive Mirror"
+msgstr "Etkileşimli Ayna"
+
+
+msgctxt "Operator"
+msgid "Similar"
+msgstr "Benzer"
+
+
+msgctxt "Operator"
+msgid "First"
+msgstr "İlk"
+
+
+msgctxt "Operator"
+msgid "Last"
+msgstr "Son"
 
 
 msgctxt "Operator"
@@ -10045,9 +10797,24 @@ msgid "Rename Active Bone..."
 msgstr "Etkin Kemiği Yeniden Adlandır..."
 
 
+msgctxt "GPencil"
+msgid "Join"
+msgstr "Birleştir"
+
+
 msgctxt "Operator"
 msgid "Viewport Render Animation"
 msgstr "Görüş Alanı Sunumu Canlandırması"
+
+
+msgctxt "Operator"
+msgid "Empty"
+msgstr "Boş"
+
+
+msgctxt "Operator"
+msgid "Stroke"
+msgstr "Vuruş"
 
 
 msgctxt "Operator"
@@ -10112,8 +10879,28 @@ msgid "Collection %d"
 msgstr "Koleksiyon %d"
 
 
+msgid "LineStyle"
+msgstr "Çizgi Biçemi"
+
+
 msgid "Key %d"
 msgstr "Anahtar %d"
+
+
+msgid "GreasePencil"
+msgstr "Gres Kalemi"
+
+
+msgid "Stones"
+msgstr "Taş"
+
+
+msgid "Pounds"
+msgstr "Libre"
+
+
+msgid "Ounces"
+msgstr "Ons"
 
 
 msgid "2D_Animation"
@@ -10126,6 +10913,18 @@ msgstr "Yontma"
 
 msgid "VFX"
 msgstr "Görsel Efektler"
+
+
+msgid "Gpencil"
+msgstr "Gres Kalemi"
+
+
+msgid "GpencilMode"
+msgstr "Gres Kalemi Kipi"
+
+
+msgid "UV/Image"
+msgstr "UV/Görsel"
 
 
 msgid "Out"
@@ -10378,6 +11177,10 @@ msgid "Browse Brush to be linked"
 msgstr "Bağlantılanacak fırçaya göz at"
 
 
+msgid "Browse Grease Pencil (legacy) Data to be linked"
+msgstr "Bağlantılanacak gres kalemi (eski) verisine göz at"
+
+
 msgid "Browse Cache Files to be linked"
 msgstr "Bağlantılanacak önbellek dosyalarına göz at"
 
@@ -10549,6 +11352,14 @@ msgid "Add modifier with node group \"%s\" on object \"%s\""
 msgstr "Şu nesnede \"%s\" düğüm grubu olan değiştirici ekle: \"%s\""
 
 
+msgid "Frame:"
+msgstr "Kare:"
+
+
+msgid "Time:"
+msgstr "Zaman:"
+
+
 msgid "Blender Render"
 msgstr "Blender Sunumu"
 
@@ -10602,8 +11413,32 @@ msgid "Value:"
 msgstr "Değer:"
 
 
-msgid "Add Modifier"
-msgstr "Değiştirici Ekle"
+msgid "Shear Keys"
+msgstr "Anahtarları Kırk"
+
+
+msgid "{} (String)"
+msgstr "{} (Dizi)"
+
+
+msgid "{} (Integer)"
+msgstr "{} (Tamsayı)"
+
+
+msgid "{} (Float)"
+msgstr "{} (Kayan Noktalı)"
+
+
+msgid "({}, {}, {}) (Vector)"
+msgstr "({}, {}, {}) (Vektör)"
+
+
+msgid "({}, {}, {}, {}) (Color)"
+msgstr "({}, {}, {}, {}) (Renk)"
+
+
+msgid "{} (Boolean)"
+msgstr "{} (Boole)"
 
 
 msgid "Geometry:"
@@ -10620,6 +11455,14 @@ msgstr " Adlı Öznitelik"
 
 msgid "Cannot delete currently visible workspace id '%s'"
 msgstr "Şu anda görünür çalışma alanı kimliği '%s' silinemiyor"
+
+
+msgid "Bone Groups"
+msgstr "Kemik Grupları"
+
+
+msgid "Unsupported column type"
+msgstr "Desteklenmeyen sütun türü"
 
 
 msgid "Reload from disk (ignore local changes)"
@@ -10790,6 +11633,11 @@ msgid "Face Corner Count"
 msgstr "Yüz Köşesi Sayımı"
 
 
+msgctxt "NodeTree"
+msgid "Rotations"
+msgstr "Döndürmeler"
+
+
 msgid "Curve Length node"
 msgstr "Eğri Uzunluğu düğümü"
 
@@ -10801,6 +11649,10 @@ msgstr "Eğrinin Noktası"
 msgctxt "Amount"
 msgid "Area"
 msgstr "Alan"
+
+
+msgid "Edge Corner Count"
+msgstr "Kenar Köşesi Sayımı"
 
 
 msgid "Vertex Corner Count"
@@ -10825,6 +11677,10 @@ msgstr "Desenler"
 
 msgid "Camera \"%s\" is not a multi-view camera"
 msgstr "Kamera \"%s\", bir çoklu görünüm kamerası değil"
+
+
+msgid "Save As..."
+msgstr "Farklı Kaydet..."
 
 
 msgid "Don't Save"
@@ -11000,10 +11856,6 @@ msgid "Catalan (Català)"
 msgstr "Katalanca (Català)"
 
 
-msgid "Czech (Český)"
-msgstr "Çekçe (Český)"
-
-
 msgid "Portuguese (Português)"
 msgstr "Portekizce (Português)"
 
@@ -11098,10 +11950,6 @@ msgstr "Estonca (Eesti keel)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "İspanya İspanyolcası (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

@@ -4,7 +4,6 @@
 
 /** \file
  * \ingroup eevee
- *
  */
 
 #include "BLI_vector.hh"
@@ -18,7 +17,6 @@ namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
 /** \name Subsurface
- *
  * \{ */
 
 void SubsurfaceModule::end_sync()
@@ -31,21 +29,15 @@ void SubsurfaceModule::end_sync()
     data_.sample_len = 55;
   }
 
-  precompute_samples_location();
-
-  data_.push_update();
-
   subsurface_ps_.init();
   subsurface_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL |
                            DRW_STATE_BLEND_ADD_FULL);
   subsurface_ps_.state_stencil(0x00u, 0xFFu, CLOSURE_SSS);
   subsurface_ps_.shader_set(inst_.shaders.static_shader_get(SUBSURFACE_EVAL));
-  inst_.subsurface.bind_resources(&subsurface_ps_);
+  inst_.bind_uniform_data(&subsurface_ps_);
   inst_.hiz_buffer.bind_resources(&subsurface_ps_);
+  inst_.gbuffer.bind_resources(&subsurface_ps_);
   subsurface_ps_.bind_texture("radiance_tx", &diffuse_light_tx_);
-  subsurface_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
-  subsurface_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
-  subsurface_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
   subsurface_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
   /** NOTE: Not used in the shader, but we bind it to avoid debug warnings. */
   subsurface_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
@@ -56,6 +48,8 @@ void SubsurfaceModule::end_sync()
 
 void SubsurfaceModule::render(View &view, Framebuffer &fb, Texture &diffuse_light_tx)
 {
+  precompute_samples_location();
+
   fb.bind();
   diffuse_light_tx_ = *&diffuse_light_tx;
   inst_.manager->submit(subsurface_ps_, view);
@@ -64,7 +58,7 @@ void SubsurfaceModule::render(View &view, Framebuffer &fb, Texture &diffuse_ligh
 void SubsurfaceModule::precompute_samples_location()
 {
   /* Precompute sample position with white albedo. */
-  float d = burley_setup(1.0f, 1.0f);
+  float d = burley_setup(float3(1.0f), float3(1.0f)).x;
 
   float rand_u = inst_.sampling.rng_get(SAMPLING_SSS_U);
   float rand_v = inst_.sampling.rng_get(SAMPLING_SSS_V);
@@ -74,70 +68,13 @@ void SubsurfaceModule::precompute_samples_location()
     float theta = golden_angle * i + M_PI * 2.0f * rand_u;
     /* Scale using rand_v in order to keep first sample always at center. */
     float x = (1.0f + (rand_v / data_.sample_len)) * (i / float(data_.sample_len));
-    float r = burley_sample(d, x);
+    float r = SubsurfaceModule::burley_sample(d, x);
     data_.samples[i].x = cosf(theta) * r;
     data_.samples[i].y = sinf(theta) * r;
     data_.samples[i].z = 1.0f / burley_pdf(d, r);
   }
-}
 
-const Vector<float> &SubsurfaceModule::transmittance_profile()
-{
-  static Vector<float> profile;
-  if (!profile.is_empty()) {
-    return profile;
-  }
-  profile.resize(SSS_TRANSMIT_LUT_SIZE);
-
-  /* Precompute sample position with white albedo. */
-  float radius = 1.0f;
-  float d = burley_setup(radius, 1.0f);
-
-  /* For each distance d we compute the radiance incoming from an hypothetical parallel plane. */
-  for (auto i : IndexRange(SSS_TRANSMIT_LUT_SIZE)) {
-    /* Distance from the lit surface plane.
-     * Compute to a larger maximum distance to have a smoother falloff for all channels. */
-    float lut_radius = SSS_TRANSMIT_LUT_RADIUS * radius;
-    float distance = lut_radius * (i + 1e-5f) / profile.size();
-    /* Compute radius of the footprint on the hypothetical plane. */
-    float r_fp = sqrtf(square_f(lut_radius) - square_f(distance));
-
-    profile[i] = 0.0f;
-    float area_accum = 0.0f;
-    for (auto j : IndexRange(SSS_TRANSMIT_LUT_STEP_RES)) {
-      /* Compute distance to the "shading" point through the medium. */
-      float r = (r_fp * (j + 0.5f)) / SSS_TRANSMIT_LUT_STEP_RES;
-      float r_prev = (r_fp * (j + 0.0f)) / SSS_TRANSMIT_LUT_STEP_RES;
-      float r_next = (r_fp * (j + 1.0f)) / SSS_TRANSMIT_LUT_STEP_RES;
-      r = hypotf(r, distance);
-      float R = burley_eval(d, r);
-      /* Since the profile and configuration are radially symmetrical we
-       * can just evaluate it once and weight it accordingly */
-      float disk_area = square_f(r_next) - square_f(r_prev);
-
-      profile[i] += R * disk_area;
-      area_accum += disk_area;
-    }
-    /* Normalize over the disk. */
-    profile[i] /= area_accum;
-  }
-
-  /** NOTE: There's something very wrong here.
-   * This should be a small remap,
-   * but current profile range goes from 0.0399098 to 0.0026898. */
-
-  /* Make a smooth gradient from 1 to 0. */
-  float range = profile.first() - profile.last();
-  float offset = profile.last();
-  for (float &value : profile) {
-    value = (value - offset) / range;
-    /** HACK: Remap the curve to better fit Cycles values. */
-    value = std::pow(value, 1.6f);
-  }
-  profile.first() = 1;
-  profile.last() = 0;
-
-  return profile;
+  inst_.push_uniform_data();
 }
 
 /** \} */
@@ -149,17 +86,6 @@ const Vector<float> &SubsurfaceModule::transmittance_profile()
  * by Per Christensen
  * https://graphics.pixar.com/library/ApproxBSSRDF/approxbssrdfslides.pdf
  * \{ */
-
-float SubsurfaceModule::burley_setup(float radius, float albedo)
-{
-  float A = albedo;
-  /* Diffuse surface transmission, equation (6). */
-  float s = 1.9f - A + 3.5f * square_f(A - 0.8f);
-  /* Mean free path length adapted to fit ancient Cubic and Gaussian models. */
-  float l = 0.25 * M_1_PI * radius;
-
-  return l / s;
-}
 
 float SubsurfaceModule::burley_sample(float d, float x_rand)
 {

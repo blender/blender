@@ -35,7 +35,7 @@ VertexData vData[4];
 
 void extrude_edge(bool invert, int output_vertex_id)
 {
-  /* Reverse order if backfacing the light. */
+  /* Reverse order if back-facing the light. */
   ivec2 idx = (invert) ? ivec2(1, 2) : ivec2(2, 1);
 
   /* Either outputs first or second quad, depending on double manifold status. */
@@ -64,7 +64,6 @@ void extrude_edge(bool invert, int output_vertex_id)
 
 vec3 extrude_offset(vec3 ls_P)
 {
-#ifdef WORKBENCH_NEXT
   vec3 ws_P = point_object_to_world(ls_P);
   float extrude_distance = 1e5f;
   float L_dot_FP = dot(pass_data.light_direction_ws, pass_data.far_plane.xyz);
@@ -74,9 +73,6 @@ vec3 extrude_offset(vec3 ls_P)
   }
   vec3 ls_light_direction = normal_world_to_object(vec3(pass_data.light_direction_ws));
   return ls_light_direction * extrude_distance;
-#else
-  return lightDirection * lightDistance;
-#endif
 }
 
 void main()
@@ -133,9 +129,8 @@ void main()
   }
 #endif
 
-#ifdef WORKBENCH_NEXT
   vec3 lightDirection = normal_world_to_object(vec3(pass_data.light_direction_ws));
-#endif
+
   vec2 facing = vec2(dot(n1, lightDirection), dot(n2, lightDirection));
 
   /* WATCH: maybe unpredictable in some cases. */

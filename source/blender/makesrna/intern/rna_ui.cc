@@ -65,6 +65,8 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 #  include "BKE_report.h"
 #  include "BKE_screen.h"
 
+#  include "ED_asset_shelf.h"
+
 #  include "WM_api.hh"
 
 static ARegionType *region_type_find(ReportList *reports, int space_type, int region_type)
@@ -97,13 +99,12 @@ static bool panel_poll(const bContext *C, PanelType *pt)
 {
   extern FunctionRNA rna_Panel_poll_func;
 
-  PointerRNA ptr;
   ParameterList list;
   FunctionRNA *func;
   void *ret;
   bool visible;
 
-  RNA_pointer_create(nullptr, pt->rna_ext.srna, nullptr, &ptr); /* dummy */
+  PointerRNA ptr = RNA_pointer_create(nullptr, pt->rna_ext.srna, nullptr); /* dummy */
   func = &rna_Panel_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -122,11 +123,10 @@ static void panel_draw(const bContext *C, Panel *panel)
 {
   extern FunctionRNA rna_Panel_draw_func;
 
-  PointerRNA ptr;
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create(&CTX_wm_screen(C)->id, panel->type->rna_ext.srna, panel, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&CTX_wm_screen(C)->id, panel->type->rna_ext.srna, panel);
   func = &rna_Panel_draw_func; /* RNA_struct_find_function(&ptr, "draw"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -140,11 +140,10 @@ static void panel_draw_header(const bContext *C, Panel *panel)
 {
   extern FunctionRNA rna_Panel_draw_header_func;
 
-  PointerRNA ptr;
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create(&CTX_wm_screen(C)->id, panel->type->rna_ext.srna, panel, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&CTX_wm_screen(C)->id, panel->type->rna_ext.srna, panel);
   func = &rna_Panel_draw_header_func; /* RNA_struct_find_function(&ptr, "draw_header"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -158,11 +157,10 @@ static void panel_draw_header_preset(const bContext *C, Panel *panel)
 {
   extern FunctionRNA rna_Panel_draw_header_preset_func;
 
-  PointerRNA ptr;
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create(&CTX_wm_screen(C)->id, panel->type->rna_ext.srna, panel, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&CTX_wm_screen(C)->id, panel->type->rna_ext.srna, panel);
   func = &rna_Panel_draw_header_preset_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -249,11 +247,10 @@ static StructRNA *rna_Panel_register(Main *bmain,
                                      StructCallbackFunc call,
                                      StructFreeFunc free)
 {
-  const char *error_prefix = "Registering panel class:";
+  const char *error_prefix = TIP_("Registering panel class:");
   ARegionType *art;
   PanelType *pt, *parent = nullptr, dummy_pt = {nullptr};
   Panel dummy_panel = {nullptr};
-  PointerRNA dummy_panel_ptr;
   bool have_function[4];
   size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
   char _panel_descr[RNA_DYN_DESCR_MAX];
@@ -263,7 +260,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
   dummy_panel.type = &dummy_pt;
   _panel_descr[0] = '\0';
   dummy_panel.type->description = _panel_descr;
-  RNA_pointer_create(nullptr, &RNA_Panel, &dummy_panel, &dummy_panel_ptr);
+  PointerRNA dummy_panel_ptr = RNA_pointer_create(nullptr, &RNA_Panel, &dummy_panel);
 
   /* We have to set default context! Else we get a void string... */
   STRNCPY(dummy_pt.translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -504,11 +501,11 @@ static void uilist_draw_item(uiList *ui_list,
 {
   extern FunctionRNA rna_UIList_draw_item_func;
 
-  PointerRNA ul_ptr;
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create(&CTX_wm_screen(C)->id, ui_list->type->rna_ext.srna, ui_list, &ul_ptr);
+  PointerRNA ul_ptr = RNA_pointer_create(
+      &CTX_wm_screen(C)->id, ui_list->type->rna_ext.srna, ui_list);
   func = &rna_UIList_draw_item_func; /* RNA_struct_find_function(&ul_ptr, "draw_item"); */
 
   RNA_parameter_list_create(&list, &ul_ptr, func);
@@ -530,11 +527,11 @@ static void uilist_draw_filter(uiList *ui_list, const bContext *C, uiLayout *lay
 {
   extern FunctionRNA rna_UIList_draw_filter_func;
 
-  PointerRNA ul_ptr;
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create(&CTX_wm_screen(C)->id, ui_list->type->rna_ext.srna, ui_list, &ul_ptr);
+  PointerRNA ul_ptr = RNA_pointer_create(
+      &CTX_wm_screen(C)->id, ui_list->type->rna_ext.srna, ui_list);
   func = &rna_UIList_draw_filter_func; /* RNA_struct_find_function(&ul_ptr, "draw_filter"); */
 
   RNA_parameter_list_create(&list, &ul_ptr, func);
@@ -552,7 +549,6 @@ static void uilist_filter_items(uiList *ui_list,
 {
   extern FunctionRNA rna_UIList_filter_items_func;
 
-  PointerRNA ul_ptr;
   ParameterList list;
   FunctionRNA *func;
   PropertyRNA *parm;
@@ -563,7 +559,8 @@ static void uilist_filter_items(uiList *ui_list,
   int ret_len;
   int len = flt_data->items_len = RNA_collection_length(dataptr, propname);
 
-  RNA_pointer_create(&CTX_wm_screen(C)->id, ui_list->type->rna_ext.srna, ui_list, &ul_ptr);
+  PointerRNA ul_ptr = RNA_pointer_create(
+      &CTX_wm_screen(C)->id, ui_list->type->rna_ext.srna, ui_list);
   func = &rna_UIList_filter_items_func; /* RNA_struct_find_function(&ul_ptr, "filter_items"); */
 
   RNA_parameter_list_create(&list, &ul_ptr, func);
@@ -697,13 +694,12 @@ static StructRNA *rna_UIList_register(Main *bmain,
   const char *error_prefix = "Registering uilist class:";
   uiListType *ult, dummy_ult = {nullptr};
   uiList dummy_uilist = {nullptr};
-  PointerRNA dummy_ul_ptr;
   bool have_function[3];
   size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
 
   /* setup dummy menu & menu type to store static properties in */
   dummy_uilist.type = &dummy_ult;
-  RNA_pointer_create(nullptr, &RNA_UIList, &dummy_uilist, &dummy_ul_ptr);
+  PointerRNA dummy_ul_ptr = RNA_pointer_create(nullptr, &RNA_UIList, &dummy_uilist);
 
   /* validate the python class */
   if (validate(&dummy_ul_ptr, data, have_function) != 0) {
@@ -777,11 +773,10 @@ static void header_draw(const bContext *C, Header *hdr)
 {
   extern FunctionRNA rna_Header_draw_func;
 
-  PointerRNA htr;
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->rna_ext.srna, hdr, &htr);
+  PointerRNA htr = RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->rna_ext.srna, hdr);
   func = &rna_Header_draw_func; /* RNA_struct_find_function(&htr, "draw"); */
 
   RNA_parameter_list_create(&list, &htr, func);
@@ -825,13 +820,12 @@ static StructRNA *rna_Header_register(Main *bmain,
   ARegionType *art;
   HeaderType *ht, dummy_ht = {nullptr};
   Header dummy_header = {nullptr};
-  PointerRNA dummy_header_ptr;
   bool have_function[1];
 
   /* setup dummy header & header type to store static properties in */
   dummy_header.type = &dummy_ht;
   dummy_ht.region_type = RGN_TYPE_HEADER; /* RGN_TYPE_HEADER by default, may be overridden */
-  RNA_pointer_create(nullptr, &RNA_Header, &dummy_header, &dummy_header_ptr);
+  PointerRNA dummy_header_ptr = RNA_pointer_create(nullptr, &RNA_Header, &dummy_header);
 
   /* validate the python class */
   if (validate(&dummy_header_ptr, data, have_function) != 0) {
@@ -908,13 +902,12 @@ static bool menu_poll(const bContext *C, MenuType *pt)
 {
   extern FunctionRNA rna_Menu_poll_func;
 
-  PointerRNA ptr;
   ParameterList list;
   FunctionRNA *func;
   void *ret;
   bool visible;
 
-  RNA_pointer_create(nullptr, pt->rna_ext.srna, nullptr, &ptr); /* dummy */
+  PointerRNA ptr = RNA_pointer_create(nullptr, pt->rna_ext.srna, nullptr); /* dummy */
   func = &rna_Menu_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -933,11 +926,10 @@ static void menu_draw(const bContext *C, Menu *menu)
 {
   extern FunctionRNA rna_Menu_draw_func;
 
-  PointerRNA mtr;
   ParameterList list;
   FunctionRNA *func;
 
-  RNA_pointer_create(&CTX_wm_screen(C)->id, menu->type->rna_ext.srna, menu, &mtr);
+  PointerRNA mtr = RNA_pointer_create(&CTX_wm_screen(C)->id, menu->type->rna_ext.srna, menu);
   func = &rna_Menu_draw_func; /* RNA_struct_find_function(&mtr, "draw"); */
 
   RNA_parameter_list_create(&list, &mtr, func);
@@ -976,7 +968,6 @@ static StructRNA *rna_Menu_register(Main *bmain,
   const char *error_prefix = "Registering menu class:";
   MenuType *mt, dummy_mt = {nullptr};
   Menu dummy_menu = {nullptr};
-  PointerRNA dummy_menu_ptr;
   bool have_function[2];
   size_t over_alloc = 0; /* Warning, if this becomes a mess, we better do another allocation. */
   size_t description_size = 0;
@@ -986,7 +977,7 @@ static StructRNA *rna_Menu_register(Main *bmain,
   dummy_menu.type = &dummy_mt;
   _menu_descr[0] = '\0';
   dummy_menu.type->description = _menu_descr;
-  RNA_pointer_create(nullptr, &RNA_Menu, &dummy_menu, &dummy_menu_ptr);
+  PointerRNA dummy_menu_ptr = RNA_pointer_create(nullptr, &RNA_Menu, &dummy_menu);
 
   /* We have to set default context! Else we get a void string... */
   STRNCPY(dummy_mt.translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -1080,17 +1071,17 @@ static StructRNA *rna_Menu_refine(PointerRNA *mtr)
 
 /* Asset Shelf */
 
-static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type, const AssetHandle *asset)
+static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type,
+                                   const AssetRepresentationHandle *asset)
 {
   extern FunctionRNA rna_AssetShelf_asset_poll_func;
 
-  PointerRNA ptr;
-  RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
+  PointerRNA ptr = RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr); /* dummy */
   FunctionRNA *func = &rna_AssetShelf_asset_poll_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
-  RNA_parameter_set_lookup(&list, "asset_handle", &asset);
+  RNA_parameter_set_lookup(&list, "asset", &asset);
   shelf_type->rna_ext.call(nullptr, &ptr, func, &list);
 
   void *ret;
@@ -1107,8 +1098,7 @@ static bool asset_shelf_poll(const bContext *C, const AssetShelfType *shelf_type
 {
   extern FunctionRNA rna_AssetShelf_poll_func;
 
-  PointerRNA ptr;
-  RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
+  PointerRNA ptr = RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr); /* dummy */
   FunctionRNA *func = &rna_AssetShelf_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   ParameterList list;
@@ -1128,13 +1118,12 @@ static bool asset_shelf_poll(const bContext *C, const AssetShelfType *shelf_type
 
 static void asset_shelf_draw_context_menu(const bContext *C,
                                           const AssetShelfType *shelf_type,
-                                          const AssetHandle *asset,
+                                          const AssetRepresentationHandle *asset,
                                           uiLayout *layout)
 {
   extern FunctionRNA rna_AssetShelf_draw_context_menu_func;
 
-  PointerRNA ptr;
-  RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
+  PointerRNA ptr = RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr); /* dummy */
 
   FunctionRNA *func = &rna_AssetShelf_draw_context_menu_func;
   // RNA_struct_find_function(&ptr, "draw_context_menu");
@@ -1142,14 +1131,14 @@ static void asset_shelf_draw_context_menu(const bContext *C,
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
-  RNA_parameter_set_lookup(&list, "asset_handle", &asset);
+  RNA_parameter_set_lookup(&list, "asset", &asset);
   RNA_parameter_set_lookup(&list, "layout", &layout);
   shelf_type->rna_ext.call((bContext *)C, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_AssetShelf_unregister(Main * /*bmain*/, StructRNA *type)
+static bool rna_AssetShelf_unregister(Main *bmain, StructRNA *type)
 {
   AssetShelfType *shelf_type = static_cast<AssetShelfType *>(RNA_struct_blender_type_get(type));
 
@@ -1161,6 +1150,8 @@ static bool rna_AssetShelf_unregister(Main * /*bmain*/, StructRNA *type)
   if (!space_type) {
     return false;
   }
+
+  ED_asset_shelf_type_unlink(*bmain, *shelf_type);
 
   RNA_struct_free_extension(type, &shelf_type->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
@@ -1183,11 +1174,10 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
 {
   AssetShelfType dummy_shelf_type = {};
   AssetShelf dummy_shelf = {};
-  PointerRNA dummy_shelf_ptr;
 
   /* setup dummy shelf & shelf type to store static properties in */
   dummy_shelf.type = &dummy_shelf_type;
-  RNA_pointer_create(nullptr, &RNA_AssetShelf, &dummy_shelf, &dummy_shelf_ptr);
+  PointerRNA dummy_shelf_ptr = RNA_pointer_create(nullptr, &RNA_AssetShelf, &dummy_shelf);
 
   bool have_function[3];
 
@@ -2006,6 +1996,15 @@ static void rna_def_menu(BlenderRNA *brna)
   PropertyRNA *parm;
   FunctionRNA *func;
 
+  static const EnumPropertyItem menu_flag_items[] = {
+      {int(MenuTypeFlag::SearchOnKeyPress),
+       "SEARCH_ON_KEY_PRESS",
+       0,
+       "Search on Key Press",
+       "Open a menu search when a key pressed while the menu is open"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   srna = RNA_def_struct(brna, "Menu", nullptr);
   RNA_def_struct_ui_text(srna, "Menu", "Editor menu containing buttons");
   RNA_def_struct_sdna(srna, "Menu");
@@ -2069,6 +2068,12 @@ static void rna_def_menu(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bl_owner_id", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "type->owner_id");
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+  prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "type->flag");
+  RNA_def_property_enum_items(prop, menu_flag_items);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
+  RNA_def_property_ui_text(prop, "Options", "Options for this menu type");
 
   RNA_define_verify_sdna(true);
 }
@@ -2139,7 +2144,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
       "non-null output, the asset will be visible");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
-  parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
+  parm = RNA_def_pointer(func, "asset", "AssetRepresentation", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "draw_context_menu", nullptr);
@@ -2148,7 +2153,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
+  parm = RNA_def_pointer(func, "asset", "AssetRepresentation", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);

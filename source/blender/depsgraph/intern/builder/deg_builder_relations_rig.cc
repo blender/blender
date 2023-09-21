@@ -77,8 +77,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
    * one Init IK node per armature, this link has quite high risk of spurious dependency cycles.
    */
   const bool is_itasc = (object->pose->iksolver == IKSOLVER_ITASC);
-  PointerRNA con_ptr;
-  RNA_pointer_create(&object->id, &RNA_Constraint, con, &con_ptr);
+  PointerRNA con_ptr = RNA_pointer_create(&object->id, &RNA_Constraint, con);
   if (is_itasc || cache_->isAnyPropertyAnimated(&con_ptr)) {
     add_relation(pchan_local_key, init_ik_key, "IK Constraint -> Init IK Tree");
   }

@@ -12,10 +12,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** Generic - all structs which are put into linked lists begin with this. */
 typedef struct Link {
   struct Link *next, *prev;
@@ -33,7 +29,3 @@ typedef struct ListBase {
 } ListBase;
 
 /* 8 byte alignment! */
-
-#ifdef __cplusplus
-}
-#endif

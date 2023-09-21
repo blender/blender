@@ -154,13 +154,6 @@ static void color_blend_v4_v4v4(uchar r_col[4],
   r_col[3] = (faci * col1[3] + facm * col2[3]) / 256;
 }
 
-static void color_add_v3_i(uchar cp[3], int tint)
-{
-  cp[0] = clamp_i(cp[0] + tint, 0, 255);
-  cp[1] = clamp_i(cp[1] + tint, 0, 255);
-  cp[2] = clamp_i(cp[2] + tint, 0, 255);
-}
-
 static void color_ensure_contrast_v3(uchar cp[3], const uchar cp_other[3], int contrast)
 {
   BLI_assert(contrast > 0);
@@ -169,12 +162,12 @@ static void color_ensure_contrast_v3(uchar cp[3], const uchar cp_other[3], int c
   const int delta = item_value - inner_value;
   if (delta >= 0) {
     if (contrast > delta) {
-      color_add_v3_i(cp, contrast - delta);
+      add_v3_uchar_clamped(cp, contrast - delta);
     }
   }
   else {
     if (contrast > -delta) {
-      color_add_v3_i(cp, -contrast - delta);
+      add_v3_uchar_clamped(cp, -contrast - delta);
     }
   }
 }
@@ -1269,8 +1262,8 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
     outline_col[2] = wcol->outline[2];
     outline_col[3] = wcol->outline[3];
 
-    /* emboss bottom shadow */
-    if (wtb->draw_emboss) {
+    /* Emboss shadow if enabled, and inner and outline colors are not fully transparent. */
+    if ((wtb->draw_emboss) && (wcol->inner[3] != 0.0f || wcol->outline[3] != 0.0f)) {
       UI_GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss_col);
     }
   }
@@ -1747,16 +1740,12 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
         ui_text_clip_give_next_off(but, but->editstr, but->editstr + editstr_len);
       }
       else {
-        int bytes;
         /* shift string to the left */
         if (width < 20 && but->ofs > 0) {
           ui_text_clip_give_prev_off(but, but->editstr);
         }
-        bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->editstr + len, but->editstr));
-        if (bytes == -1) {
-          bytes = 1;
-        }
-        len -= bytes;
+        len -= BLI_str_utf8_size_safe(
+            BLI_str_find_prev_char_utf8(but->editstr + len, but->editstr));
       }
 
       but->strwidth = BLF_width(fstyle->uifont_id, but->editstr + but->ofs, len - but->ofs);
@@ -1964,7 +1953,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     }
   }
 
-  /* If not editing and indeterminate, show dash.*/
+  /* If not editing and indeterminate, show dash. */
   if (but->drawflag & UI_BUT_INDETERMINATE && !but->editstr &&
       ELEM(but->type,
            UI_BTYPE_MENU,
@@ -1995,7 +1984,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         /* We are drawing on top of widget bases. Flush cache. */
         GPU_blend(GPU_BLEND_ALPHA);
         UI_widgetbase_draw_cache_flush();
-        GPU_blend(GPU_BLEND_NONE);
 
         if (but->selsta >= but->ofs) {
           selsta_draw = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but->selsta - but->ofs);
@@ -2023,6 +2011,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                  selection_shape.ymax);
 
         immUnbindProgram();
+        GPU_blend(GPU_BLEND_NONE);
 
 #ifdef WITH_INPUT_IME
         /* IME candidate window uses selection position. */
@@ -2727,27 +2716,42 @@ static void widget_state_menu_item(uiWidgetType *wt,
 {
   wt->wcol = *(wt->wcol_theme);
 
-  /* active and disabled (not so common) */
   if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_ACTIVE)) {
-    /* draw the backdrop at low alpha, helps navigating with keys
-     * when disabled items are active */
+    /* Hovering over disabled item. */
     wt->wcol.text[3] = 128;
     color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.5f);
     wt->wcol.inner[3] = 64;
   }
-  else {
-    /* regular active */
+  else if (state->but_flag & UI_BUT_DISABLED) {
+    /* Regular disabled. */
+    color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
+  }
+  else if (state->but_flag & UI_BUT_INACTIVE) {
+    /* Inactive. */
     if (state->but_flag & UI_ACTIVE) {
-      copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
+      color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.2f);
+      wt->wcol.inner[3] = 255;
     }
-    else if (state->but_flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
-      /* regular disabled */
-      color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
-    }
-
-    if (state->but_flag & UI_ACTIVE) {
-      copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
-    }
+    color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
+  }
+  else if (state->but_flag & (UI_BUT_ACTIVE_DEFAULT | UI_SELECT_DRAW)) {
+    /* Currently-selected item. */
+    copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
+    copy_v4_v4_uchar(wt->wcol.text, wt->wcol.text_sel);
+  }
+  else if ((state->but_flag & (UI_SELECT | UI_BUT_ICON_PREVIEW)) ==
+           (UI_SELECT | UI_BUT_ICON_PREVIEW))
+  {
+    /* Currently-selected list or menu item that is large icon preview. */
+    copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
+    copy_v4_v4_uchar(wt->wcol.text, wt->wcol.text_sel);
+  }
+  else if (state->but_flag & UI_ACTIVE) {
+    /* Regular hover. */
+    color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.2f);
+    copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
+    wt->wcol.inner[3] = 255;
+    wt->wcol.text[3] = 255;
   }
 }
 
@@ -2825,11 +2829,9 @@ static void widget_menu_back(
   }
   else if (direction == UI_DIR_DOWN) {
     roundboxalign = (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
-    rect->ymin -= 0.1f * U.widget_unit;
   }
   else if (direction == UI_DIR_UP) {
     roundboxalign = UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT;
-    rect->ymax += 0.1f * U.widget_unit;
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -3316,7 +3318,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 /** Separator for menus. */
 static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 {
-  const int y = rect->ymin + BLI_rcti_size_y(rect) / 2 - 1;
+  const int y = rect->ymin + BLI_rcti_size_y(rect) / 2;
   const uchar col[4] = {
       wcol->text[0],
       wcol->text[1],
@@ -3742,25 +3744,6 @@ static void widget_progress_indicator(uiBut *but,
       widget_progress_type_ring(but_progress, wcol, rect);
       break;
     }
-  }
-}
-
-static void widget_view_item(uiWidgetColors *wcol,
-                             rcti *rect,
-                             const uiWidgetStateInfo *state,
-                             int /*roundboxalign*/,
-                             const float zoom)
-{
-  uiWidgetBase wtb;
-  widget_init(&wtb);
-
-  /* no outline */
-  wtb.draw_outline = false;
-  const float rad = widget_radius_from_zoom(zoom, wcol);
-  round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
-
-  if ((state->but_flag & UI_ACTIVE) || (state->but_flag & UI_SELECT)) {
-    widgetbase_draw(&wtb, wcol);
   }
 }
 
@@ -4681,6 +4664,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       break;
 
     case UI_WTYPE_LISTITEM:
+    case UI_WTYPE_VIEW_ITEM:
       wt.wcol_theme = &btheme->tui.wcol_list_item;
       wt.draw = widget_list_itembut;
       break;
@@ -4688,11 +4672,6 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
     case UI_WTYPE_PROGRESS:
       wt.wcol_theme = &btheme->tui.wcol_progress;
       wt.custom = widget_progress_indicator;
-      break;
-
-    case UI_WTYPE_VIEW_ITEM:
-      wt.wcol_theme = &btheme->tui.wcol_view_item;
-      wt.draw = widget_view_item;
       break;
 
     case UI_WTYPE_NODESOCKET:
@@ -4990,12 +4969,14 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         ui_draw_but_HSVCIRCLE(but, &tui->wcol_regular, rect);
         break;
 
-      case UI_BTYPE_COLORBAND:
-        /* do not draw right to edge of rect */
-        rect->xmin += (0.25f * UI_UNIT_X);
-        rect->xmax -= (0.3f * UI_UNIT_X);
+      case UI_BTYPE_COLORBAND: {
+        /* Horizontal padding to make room for handles at edges. */
+        const int padding = BLI_rcti_size_y(rect) / 6;
+        rect->xmin += padding;
+        rect->xmax -= padding;
         ui_draw_but_COLORBAND(but, &tui->wcol_regular, rect);
         break;
+      }
 
       case UI_BTYPE_UNITVEC:
         wt = widget_type(UI_WTYPE_UNITVEC);
@@ -5324,7 +5305,10 @@ void ui_draw_pie_center(uiBlock *block)
   const int subd = 40;
 
   const float angle = atan2f(pie_dir[1], pie_dir[0]);
-  const float range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? M_PI_2 : M_PI_4;
+  /* Use a smaller range if there are both axis aligned & diagonal buttons. */
+  const bool has_aligned = (block->pie_data.pie_dir_mask & UI_RADIAL_MASK_ALL_AXIS_ALIGNED) != 0;
+  const bool has_diagonal = (block->pie_data.pie_dir_mask & UI_RADIAL_MASK_ALL_DIAGONAL) != 0;
+  const float range = (has_aligned && has_diagonal) ? M_PI_4 : M_PI_2;
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(cx, cy);

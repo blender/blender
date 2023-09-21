@@ -10,7 +10,7 @@
 
 #include "BLI_math_geom.h"
 
-#define MAX_CLIPPLANE_LEN 7
+#define MAX_CLIPPLANE_LEN 6
 
 #define SNAP_TO_EDGE_ELEMENTS \
   (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_ENDPOINT | SCE_SNAP_TO_EDGE_MIDPOINT | \
@@ -52,11 +52,14 @@ struct SnapObjectContext {
     blender::float2 mval;
 
     blender::Vector<blender::float4, MAX_CLIPPLANE_LEN> clip_planes;
+    blender::float4 occlusion_plane;
+    blender::float4 occlusion_plane_in_front;
 
     /* read/write */
     uint object_index;
 
-    bool has_occlusion_plane; /* Ignore plane of occlusion in curves. */
+    bool has_occlusion_plane;
+    bool has_occlusion_plane_in_front;
     bool use_occlusion_test_edit;
   } runtime;
 
@@ -78,6 +81,7 @@ struct SnapObjectContext {
     const ID *data;
 
     float ray_depth_max;
+    float ray_depth_max_in_front;
     float dist_px_sq;
   } ret;
 };
@@ -103,7 +107,7 @@ class SnapData {
  public:
   /* Read-only. */
   DistProjectedAABBPrecalc nearest_precalc;
-  blender::Vector<blender::float4, MAX_CLIPPLANE_LEN> clip_planes;
+  blender::Vector<blender::float4, MAX_CLIPPLANE_LEN + 1> clip_planes;
   blender::float4x4 pmat_local;
   blender::float4x4 obmat_;
   const bool is_persp;
@@ -117,7 +121,9 @@ class SnapData {
   SnapData(SnapObjectContext *sctx,
            const blender::float4x4 &obmat = blender::float4x4::identity());
 
-  void clip_planes_enable(SnapObjectContext *sctx, bool skip_occlusion_plane = false);
+  void clip_planes_enable(SnapObjectContext *sctx,
+                          const Object *ob_eval,
+                          bool skip_occlusion_plane = false);
   bool snap_boundbox(const blender::float3 &min, const blender::float3 &max);
   bool snap_point(const blender::float3 &co, int index = -1);
   bool snap_edge(const blender::float3 &va, const blender::float3 &vb, int edge_index = -1);
@@ -128,6 +134,12 @@ class SnapData {
                               const blender::float4x4 &obmat,
                               BVHTreeNearest *r_nearest);
   void register_result(SnapObjectContext *sctx, Object *ob_eval, const ID *id_eval);
+  static void register_result_raycast(SnapObjectContext *sctx,
+                                      Object *ob_eval,
+                                      const ID *id_eval,
+                                      const blender::float4x4 &obmat,
+                                      const BVHTreeRayHit *hit,
+                                      const bool is_in_front);
 
   virtual void get_vert_co(const int /*index*/, const float ** /*r_co*/){};
   virtual void get_edge_verts_index(const int /*index*/, int /*r_v_index*/[2]){};

@@ -10,10 +10,6 @@
 
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Point cache file data types:
  * - Used as `(1 << flag)` so poke jahka if you reach the limit of 15.
@@ -158,7 +154,3 @@ enum {
   PTCACHE_COMPRESS_LZO = 1,
   PTCACHE_COMPRESS_LZMA = 2,
 };
-
-#ifdef __cplusplus
-}
-#endif

@@ -33,7 +33,7 @@
 
 #include "armature_intern.h"
 
-#include <string.h>
+#include <cstring>
 
 /* -------------------------------------------------------------------- */
 /** \name Validation
@@ -836,6 +836,8 @@ void ED_armature_ebone_listbase_free(ListBase *lb, const bool do_id_user)
       IDP_FreeProperty_ex(ebone->prop, do_id_user);
     }
 
+    BLI_freelistN(&ebone->bone_collections);
+
     MEM_freeN(ebone);
   }
 
@@ -868,17 +870,7 @@ void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src, const b
       ebone_dst->bbone_prev = ebone_dst->bbone_prev->temp.ebone;
     }
 
-    /* TODO: WORKAROUND: this is a temporary hack to avoid segfaults when
-     * undoing, because bone collections are not handled properly by the
-     * armature undo code yet.  This just discards all collection membership
-     * data to avoid dangling references.  This MUST be addressed properly
-     * before release.
-     * See: https://projects.blender.org/blender/blender/pulls/109976#issuecomment-1008429
-     */
-    BoneCollectionReference *bcoll_ref = (BoneCollectionReference *)(&ebone_dst->bone_collections);
-    bcoll_ref->next = nullptr;
-    bcoll_ref->prev = nullptr;
-    bcoll_ref->bcoll = nullptr;
+    BLI_duplicatelist(&ebone_dst->bone_collections, &ebone_dst->bone_collections);
   }
 }
 

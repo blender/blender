@@ -517,7 +517,7 @@ class GreasePencilMaterialsPanel:
 
             row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 
-            # if topbar popover and brush pinned, disable
+            # if top-bar popover and brush pinned, disable.
             if is_view3d and brush is not None:
                 gp_settings = brush.gpencil_settings
                 if gp_settings.use_material_pin:

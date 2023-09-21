@@ -30,7 +30,7 @@ TreeDisplaySequencer::TreeDisplaySequencer(SpaceOutliner &space_outliner)
 {
 }
 
-ListBase TreeDisplaySequencer::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplaySequencer::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 
@@ -42,11 +42,10 @@ ListBase TreeDisplaySequencer::buildTree(const TreeSourceData &source_data)
   for (Sequence *seq : List<Sequence>(ed->seqbasep)) {
     SequenceAddOp op = need_add_seq_dup(seq);
     if (op == SEQUENCE_DUPLICATE_NONE) {
-      outliner_add_element(&space_outliner_, &tree, seq, nullptr, TSE_SEQUENCE, 0);
+      add_element(&tree, nullptr, seq, nullptr, TSE_SEQUENCE, 0);
     }
     else if (op == SEQUENCE_DUPLICATE_ADD) {
-      TreeElement *te = outliner_add_element(
-          &space_outliner_, &tree, seq, nullptr, TSE_SEQUENCE_DUP, 0);
+      TreeElement *te = add_element(&tree, nullptr, seq, nullptr, TSE_SEQUENCE_DUP, 0);
       add_seq_dup(seq, te, 0);
     }
   }
@@ -93,7 +92,7 @@ SequenceAddOp TreeDisplaySequencer::need_add_seq_dup(Sequence *seq) const
   return SEQUENCE_DUPLICATE_NONE;
 }
 
-void TreeDisplaySequencer::add_seq_dup(Sequence *seq, TreeElement *te, short index) const
+void TreeDisplaySequencer::add_seq_dup(Sequence *seq, TreeElement *te, short index)
 {
   Sequence *p = seq;
   while (p) {
@@ -103,7 +102,7 @@ void TreeDisplaySequencer::add_seq_dup(Sequence *seq, TreeElement *te, short ind
     }
 
     if (STREQ(p->strip->stripdata->filename, seq->strip->stripdata->filename)) {
-      outliner_add_element(&space_outliner_, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);
+      add_element(&te->subtree, nullptr, (void *)p, te, TSE_SEQUENCE, index);
     }
     p = p->next;
   }

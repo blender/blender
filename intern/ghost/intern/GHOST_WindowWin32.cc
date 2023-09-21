@@ -128,12 +128,12 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   if (!setDrawingContextType(type)) {
     const char *title = "Blender - Unsupported Graphics Card Configuration";
     const char *text =
-        "A graphics card and driver with support for OpenGL 3.3 or higher is "
+        "A graphics card and driver with support for OpenGL 4.3 or higher is "
         "required.\n\nInstalling the latest driver for your graphics card might resolve the "
         "issue.";
     if (GetSystemMetrics(SM_CMONITORS) > 1) {
       text =
-          "A graphics card and driver with support for OpenGL 3.3 or higher is "
+          "A graphics card and driver with support for OpenGL 4.3 or higher is "
           "required.\n\nPlugging all monitors into your primary graphics card might resolve "
           "this issue. Installing the latest driver for your graphics card could also help.";
     }
@@ -671,8 +671,9 @@ void GHOST_WindowWin32::updateMouseCapture(GHOST_MouseCaptureEventWin32 event)
       m_nPressedButtons++;
       break;
     case MouseReleased:
-      if (m_nPressedButtons)
+      if (m_nPressedButtons) {
         m_nPressedButtons--;
+      }
       break;
     case OperatorGrab:
       m_hasGrabMouse = true;
@@ -821,12 +822,14 @@ HCURSOR GHOST_WindowWin32::getStandardCursor(GHOST_TStandardCursor shape) const
 void GHOST_WindowWin32::loadCursor(bool visible, GHOST_TStandardCursor shape) const
 {
   if (!visible) {
-    while (::ShowCursor(FALSE) >= 0)
-      ;
+    while (::ShowCursor(FALSE) >= 0) {
+      /* Pass. */
+    }
   }
   else {
-    while (::ShowCursor(TRUE) < 0)
-      ;
+    while (::ShowCursor(TRUE) < 0) {
+      /* Pass. */
+    }
   }
 
   HCURSOR cursor = getStandardCursor(shape);

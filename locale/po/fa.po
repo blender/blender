@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -568,16 +568,20 @@ msgid "Children"
 msgstr "ﻥﺍﺪﻧﺯﺮﻓ"
 
 
-msgid "Layers"
-msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
-
-
 msgid "Parent"
 msgstr "ﻊﺒﻨﻣ"
 
 
 msgid "Deform"
 msgstr "ﻩﺪﻨﻫ ﺮﯿﯿﻐﺗ"
+
+
+msgid "Bones"
+msgstr "ﺎﻫ‌ﻥﺍﻮﺨﺘﺳﺍ"
+
+
+msgid "Visible"
+msgstr "ﯽﺋﺮﻣ"
 
 
 msgid "Remove"
@@ -596,16 +600,8 @@ msgid "Material"
 msgstr "ﻩﺩﺎﻣ"
 
 
-msgid "Flat"
-msgstr "ﺖﺨﺗ"
-
-
 msgid "Direction"
 msgstr "ﺎﺘﺳﺍﺭ"
-
-
-msgid "Visible"
-msgstr "ﯽﺋﺮﻣ"
 
 
 msgid "Marker"
@@ -618,10 +614,6 @@ msgstr "ﺩﺍﺯﺁ ﯽﺷﺎﻘﻧ"
 
 msgid "Blur"
 msgstr "ﯽﮔﺮﯿﺗ"
-
-
-msgid "Smooth"
-msgstr "ﻑﺎﺻ"
 
 
 msgid "Hue"
@@ -1580,6 +1572,10 @@ msgid "Lattice"
 msgstr "ﻪﮑﺒﺷ"
 
 
+msgid "Smooth"
+msgstr "ﻑﺎﺻ"
+
+
 msgid "Matrix"
 msgstr "ﺲﯾﺮﺗﺎﻣ"
 
@@ -1622,10 +1618,6 @@ msgstr "ﯽﺑﺁ"
 
 msgid "Library"
 msgstr "ﻪﻧﺎﺨﺑﺎﺘﮐ"
-
-
-msgid "Bones"
-msgstr "ﺎﻫ‌ﻥﺍﻮﺨﺘﺳﺍ"
 
 
 msgid "Edit Bones"
@@ -1708,6 +1700,10 @@ msgid "Max"
 msgstr "ﻪﻨﯿﺸﯿﺑ"
 
 
+msgid "Layers"
+msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
+
+
 msgid "U"
 msgstr "U"
 
@@ -1726,6 +1722,10 @@ msgstr "ﻪﻄﻘﻧ ﻩﺯﺍﺪﻧﺍ"
 
 msgid "Cube"
 msgstr "ﺐﻌﮑﻣ"
+
+
+msgid "Interface"
+msgstr "ﻂﺳﺍﻭ"
 
 
 msgid "Nodes"
@@ -2004,20 +2004,32 @@ msgid "Key"
 msgstr "ﺪﯿﻠﮐ"
 
 
-msgid "Distort"
-msgstr "ﻥﺩﺮﮐ‌ﺞﮐ"
-
-
-msgid "Layout"
-msgstr "ﺡﺮﻃ"
-
-
 msgid "Text"
 msgstr "ﻦﺘﻣ"
 
 
 msgid "Math"
 msgstr "ﯽﺿﺎﯾﺭ"
+
+
+msgid "Tracking"
+msgstr "ﯽﺑﺎﯾﺩﺭ"
+
+
+msgid "Layout"
+msgstr "ﺡﺮﻃ"
+
+
+msgid "Distort"
+msgstr "ﻥﺩﺮﮐ‌ﺞﮐ"
+
+
+msgid "Add Modifier"
+msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
+msgid "Physics"
+msgstr "ﮏﯾﺰﯿﻓ"
 
 
 msgid "Apply"
@@ -2248,10 +2260,6 @@ msgid "Space Sigma"
 msgstr "ﺎﻤﮕﯿﺳ ﯼﺎﻀﻓ"
 
 
-msgid "Filter Type"
-msgstr "ﺮﺘﻠﯿﻓ ﻉﻮﻧ"
-
-
 msgid "Single"
 msgstr "ﯽﮑﺗ"
 
@@ -2282,6 +2290,10 @@ msgstr "ﺮﭘ"
 
 msgid "Double Edge Mask"
 msgstr "ﻪﺒﻟ ﻭﺩ ﮏﺳﺎﻣ"
+
+
+msgid "Filter Type"
+msgstr "ﺮﺘﻠﯿﻓ ﻉﻮﻧ"
 
 
 msgid "Flip X"
@@ -2474,6 +2486,10 @@ msgstr "ﯼﺩﺎﻋ ﺖﻟﺎﺣ ﻪﺑ ﺭﺍﺪﻘﻣ"
 
 msgid "Linked"
 msgstr "ﻂﺒﺗﺮﻣ"
+
+
+msgid "Both"
+msgstr "ﻭﺩ ﺮﻫ"
 
 
 msgid "Object Constraints"
@@ -2794,10 +2810,6 @@ msgid "Mouse location"
 msgstr "ﺱﻭﺎﻣ ﻥﺎﮑﻣ"
 
 
-msgid "Both"
-msgstr "ﻭﺩ ﺮﻫ"
-
-
 msgid "Join"
 msgstr "ﻦﺘﺳﻮﯿﭘ"
 
@@ -2875,6 +2887,11 @@ msgstr "ءﯽﺷ ﻥﺩﻭﺰﻓﺍ"
 
 
 msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
+msgctxt "Operator"
 msgid "Bake"
 msgstr "ﻦﺘﺨﭘ"
 
@@ -2907,11 +2924,6 @@ msgstr "ﻩﺪﺷ ﺏﺎﺨﺘﻧﺍ ءﺎﯿﺷﺍ ﺮﯿﺜﮑﺗ"
 
 msgid "Duplicate Objects"
 msgstr "ءﺎﯿﺷﺍ ﺮﯿﺜﮑﺗ"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
 
 
 msgid "Object Data"
@@ -3021,10 +3033,6 @@ msgstr "ﻦﯾﺮﺧﺁ ﺭﺍﺮﮑﺗ"
 
 msgid "Repeat last action"
 msgstr "ﺖﯿﻟﺎﻌﻓ ﻦﯾﺮﺧﺁ ﺭﺍﺮﮑﺗ"
-
-
-msgid "Interface"
-msgstr "ﻂﺳﺍﻭ"
 
 
 msgid "Themes"
@@ -3320,10 +3328,6 @@ msgid "Force Field Settings"
 msgstr "ﻥﺍﺪﯿﻣ ﯼﻭﺮﯿﻧ ﺕﺎﻤﯿﻈﻨﺗ"
 
 
-msgid "Physics"
-msgstr "ﮏﯾﺰﯿﻓ"
-
-
 msgid "Sensitivity"
 msgstr "ﺖﯿﺳﺎﺴﺣ"
 
@@ -3544,6 +3548,10 @@ msgid "3D"
 msgstr "3D"
 
 
+msgid "Flat"
+msgstr "ﺖﺨﺗ"
+
+
 msgid "X Mapping"
 msgstr "X ﺖﺷﺎﮕﻧ"
 
@@ -3658,10 +3666,6 @@ msgstr "ﯽﻄﺧ ﺖﻓﺮﺸﯿﭘ ﺯﺍ ﻩﺩﺎﻔﺘﺳﺍ"
 
 msgid "Search"
 msgstr "ﻮﺠﺘﺴﺟ"
-
-
-msgid "Tracking"
-msgstr "ﯽﺑﺎﯾﺩﺭ"
 
 
 msgid "3D View"
@@ -4099,10 +4103,6 @@ msgid "Update Dependencies"
 msgstr "ﺎﻫ‌ﯽﮕﺘﺴﺑﺍﻭ ﯽﻧﺎﺳﺭ ﺯﻭﺭ‌ﻪﺑ"
 
 
-msgid "Add Modifier"
-msgstr "ﺮﮕﺣﻼ﻿ﺻﺍ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
-
-
 msgid "Unsupported audio format"
 msgstr "ﻩﺪﺸﻧ ﯽﻧﺎﺒﯿﺘﺸﭘ ﯽﺗﻮﺻ ﺖﻣﺮﻓ"
 
@@ -4217,10 +4217,6 @@ msgstr "(Español) ﯽﯾﺎﯿﻧﺎﭙﺳﺍ"
 
 msgid "Catalan (Català)"
 msgstr "(Català) ﯽﻧﻻ﻿ﺎﺗﺎﮐ"
-
-
-msgid "Czech (Český)"
-msgstr "(Český) ﮏﭼ"
 
 
 msgid "Portuguese (Português)"

@@ -25,7 +25,7 @@ class TreeElementIDArmature final : public TreeElementID {
   void expand(SpaceOutliner &) const override;
 
  private:
-  void expand_edit_bones(SpaceOutliner &) const;
+  void expand_edit_bones() const;
   void expand_bones(SpaceOutliner &) const;
 };
 

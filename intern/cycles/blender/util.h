@@ -17,6 +17,8 @@
 #include "util/types.h"
 #include "util/vector.h"
 
+#include "BKE_mesh.hh"
+
 /* Hacks to hook into Blender API
  * todo: clean this up ... */
 
@@ -147,13 +149,14 @@ static inline void colorramp_to_array(BL::ColorRamp &ramp,
                                       array<float> &ramp_alpha,
                                       int size)
 {
-  ramp_color.resize(size);
-  ramp_alpha.resize(size);
+  const int full_size = size + 1;
+  ramp_color.resize(full_size);
+  ramp_alpha.resize(full_size);
 
-  for (int i = 0; i < size; i++) {
+  for (int i = 0; i < full_size; i++) {
     float color[4];
 
-    ramp.evaluate((float)i / (float)(size - 1), color);
+    ramp.evaluate(float(i) / float(size), color);
     ramp_color[i] = make_float3(color[0], color[1], color[2]);
     ramp_alpha[i] = color[3];
   }
@@ -183,9 +186,10 @@ static inline void curvemapping_to_array(BL::CurveMapping &cumap, array<float> &
 {
   cumap.update();
   BL::CurveMap curve = cumap.curves[0];
-  data.resize(size);
-  for (int i = 0; i < size; i++) {
-    float t = (float)i / (float)(size - 1);
+  const int full_size = size + 1;
+  data.resize(full_size);
+  for (int i = 0; i < full_size; i++) {
+    float t = float(i) / float(size);
     data[i] = cumap.evaluate(curve, t);
   }
 }
@@ -204,10 +208,11 @@ static inline void curvemapping_float_to_array(BL::CurveMapping &cumap,
 
   BL::CurveMap map = cumap.curves[0];
 
-  data.resize(size);
+  const int full_size = size + 1;
+  data.resize(full_size);
 
-  for (int i = 0; i < size; i++) {
-    float t = min + (float)i / (float)(size - 1) * range;
+  for (int i = 0; i < full_size; i++) {
+    float t = min + float(i) / float(size) * range;
     data[i] = cumap.evaluate(map, t);
   }
 }
@@ -241,20 +246,21 @@ static inline void curvemapping_color_to_array(BL::CurveMapping &cumap,
   BL::CurveMap mapG = cumap.curves[1];
   BL::CurveMap mapB = cumap.curves[2];
 
-  data.resize(size);
+  const int full_size = size + 1;
+  data.resize(full_size);
 
   if (rgb_curve) {
     BL::CurveMap mapI = cumap.curves[3];
-    for (int i = 0; i < size; i++) {
-      const float t = min_x + (float)i / (float)(size - 1) * range_x;
+    for (int i = 0; i < full_size; i++) {
+      const float t = min_x + float(i) / float(size) * range_x;
       data[i] = make_float3(cumap.evaluate(mapR, cumap.evaluate(mapI, t)),
                             cumap.evaluate(mapG, cumap.evaluate(mapI, t)),
                             cumap.evaluate(mapB, cumap.evaluate(mapI, t)));
     }
   }
   else {
-    for (int i = 0; i < size; i++) {
-      float t = min_x + (float)i / (float)(size - 1) * range_x;
+    for (int i = 0; i < full_size; i++) {
+      float t = min_x + float(i) / float(size) * range_x;
       data[i] = make_float3(
           cumap.evaluate(mapR, t), cumap.evaluate(mapG, t), cumap.evaluate(mapB, t));
     }
@@ -520,10 +526,13 @@ static inline string get_text_datablock_content(const PointerRNA &ptr)
 
 /* Texture Space */
 
-static inline void mesh_texture_space(BL::Mesh &b_mesh, float3 &loc, float3 &size)
+static inline void mesh_texture_space(const ::Mesh &b_mesh, float3 &loc, float3 &size)
 {
-  loc = get_float3(b_mesh.texspace_location());
-  size = get_float3(b_mesh.texspace_size());
+  float texspace_location[3], texspace_size[3];
+  BKE_mesh_texspace_get(const_cast<::Mesh *>(&b_mesh), texspace_location, texspace_size);
+
+  loc = make_float3(texspace_location[0], texspace_location[1], texspace_location[2]);
+  size = make_float3(texspace_size[0], texspace_size[1], texspace_size[2]);
 
   if (size.x != 0.0f)
     size.x = 0.5f / size.x;

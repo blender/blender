@@ -10,10 +10,6 @@
 
 #include "DNA_vec_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Each control point that makes up the profile.
  * \note The flags use the same enum as Bezier curves, but they aren't guaranteed
@@ -80,7 +76,3 @@ typedef enum eCurveProfilePresets {
   PROF_PRESET_CROWN = 3,    /* Second molding example. */
   PROF_PRESET_STEPS = 4,    /* Dynamic number of steps defined by segments_len. */
 } eCurveProfilePresets;
-
-#ifdef __cplusplus
-}
-#endif

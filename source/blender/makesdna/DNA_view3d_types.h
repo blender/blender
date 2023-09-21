@@ -24,10 +24,6 @@ struct wmTimer;
 #include "DNA_view3d_enums.h"
 #include "DNA_viewer_path_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct RegionView3D {
 
   /** GL_PROJECTION matrix. */
@@ -722,7 +718,3 @@ typedef enum {
 /** #BKE_screen_view3d_zoom_to_fac() values above */
 #define RV3D_CAMZOOM_MIN_FACTOR 0.1657359312880714853f
 #define RV3D_CAMZOOM_MAX_FACTOR 44.9852813742385702928f
-
-#ifdef __cplusplus
-}
-#endif

@@ -437,10 +437,10 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymaps */
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Main", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Main", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -488,8 +488,7 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
 
   /* SpaceFile itself. */
   {
-    PointerRNA ptr;
-    RNA_pointer_create(&screen->id, &RNA_SpaceFileBrowser, sfile, &ptr);
+    PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_SpaceFileBrowser, sfile);
 
     /* All properties for this space type. */
     WM_msg_subscribe_rna(mbus, &ptr, nullptr, &msg_sub_value_area_tag_refresh, __func__);
@@ -497,8 +496,7 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
 
   /* FileSelectParams */
   {
-    PointerRNA ptr;
-    RNA_pointer_create(&screen->id, &RNA_FileSelectParams, file_params, &ptr);
+    PointerRNA ptr = RNA_pointer_create(&screen->id, &RNA_FileSelectParams, file_params);
 
     /* All properties for this space type. */
     WM_msg_subscribe_rna(mbus, &ptr, nullptr, &msg_sub_value_area_tag_refresh, __func__);
@@ -506,8 +504,7 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
 
   /* Experimental Asset Browser features option. */
   {
-    PointerRNA ptr;
-    RNA_pointer_create(nullptr, &RNA_PreferencesExperimental, &U.experimental, &ptr);
+    PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_PreferencesExperimental, &U.experimental);
     PropertyRNA *prop = RNA_struct_find_property(&ptr, "use_extended_asset_browser");
 
     /* All properties for this space type. */
@@ -637,13 +634,13 @@ static void file_operatortypes()
 static void file_keymap(wmKeyConfig *keyconf)
 {
   /* keys for all regions */
-  WM_keymap_ensure(keyconf, "File Browser", SPACE_FILE, 0);
+  WM_keymap_ensure(keyconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
 
   /* keys for main region */
-  WM_keymap_ensure(keyconf, "File Browser Main", SPACE_FILE, 0);
+  WM_keymap_ensure(keyconf, "File Browser Main", SPACE_FILE, RGN_TYPE_WINDOW);
 
   /* keys for button region (top) */
-  WM_keymap_ensure(keyconf, "File Browser Buttons", SPACE_FILE, 0);
+  WM_keymap_ensure(keyconf, "File Browser Buttons", SPACE_FILE, RGN_TYPE_WINDOW);
 }
 
 static bool file_ui_region_poll(const RegionPollParams *params)
@@ -673,7 +670,7 @@ static void file_tools_region_init(wmWindowManager *wm, ARegion *region)
   ED_region_panels_init(wm, region);
 
   /* own keymaps */
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -723,7 +720,7 @@ static void file_header_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_header_init(region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -741,10 +738,10 @@ static void file_ui_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Buttons", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser Buttons", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -761,7 +758,7 @@ static void file_execution_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "File Browser", SPACE_FILE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 

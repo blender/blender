@@ -136,12 +136,17 @@ void GPU_framebuffer_restore(void);
 typedef struct GPULoadStore {
   eGPULoadOp load_action;
   eGPUStoreOp store_action;
+  float clear_value[4];
 } GPULoadStore;
 
 /* Empty bind point. */
+#define NULL_ATTACHMENT_COLOR \
+  { \
+    0.0, 0.0, 0.0, 0.0 \
+  }
 #define NULL_LOAD_STORE \
   { \
-    GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_DONT_CARE \
+    GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_DONT_CARE, NULL_ATTACHMENT_COLOR \
   }
 
 /**
@@ -639,7 +644,7 @@ void GPU_offscreen_unbind(GPUOffScreen *offscreen, bool restore);
  * Read the whole color texture of the a #GPUOffScreen.
  * The pixel data will be converted to \a data_format but it needs to be compatible with the
  * attachment type.
- * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format .
+ * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format.
  */
 void GPU_offscreen_read_color(GPUOffScreen *offscreen, eGPUDataFormat data_format, void *r_data);
 /**

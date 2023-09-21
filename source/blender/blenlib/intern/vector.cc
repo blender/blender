@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-void blender::internal::vector_print_stats(StringRef name,
+void blender::internal::vector_print_stats(const char *name,
                                            void *address,
                                            int64_t size,
                                            int64_t capacity,

@@ -306,11 +306,10 @@ char *rna_TextureSlot_path(const PointerRNA *ptr)
       return BLI_strdup("texture_slot");
     }
     else {
-      PointerRNA id_ptr;
       PropertyRNA *prop;
 
       /* find the 'textures' property of the ID-struct */
-      RNA_id_pointer_create(ptr->owner_id, &id_ptr);
+      PointerRNA id_ptr = RNA_id_pointer_create(ptr->owner_id);
       prop = RNA_struct_find_property(&id_ptr, "texture_slots");
 
       /* get an iterator for this property, and try to find the relevant index */
@@ -556,6 +555,7 @@ static void rna_def_texmapping(BlenderRNA *brna)
   prop = RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_mapping_items);
   RNA_def_property_ui_text(prop, "Mapping", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, 0, "rna_Texture_mapping_update");
 }
 

@@ -12,6 +12,7 @@
 #include "COM_defines.h"
 
 #include "BLI_rand.hh"
+#include "BLI_string.h"
 
 #include "BLT_translation.h"
 

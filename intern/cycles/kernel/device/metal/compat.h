@@ -27,6 +27,8 @@ using namespace metal::raytracing;
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wsign-compare"
 #pragma clang diagnostic ignored "-Wuninitialized"
+#pragma clang diagnostic ignored "-Wc++17-extensions"
+#pragma clang diagnostic ignored "-Wmacro-redefined"
 
 /* Qualifiers */
 
@@ -48,6 +50,11 @@ using namespace metal::raytracing;
 #define ccl_constant constant
 #define ccl_gpu_shared threadgroup
 #define ccl_private thread
+#ifdef __METALRT__
+#  define ccl_ray_data ray_data
+#else
+#  define ccl_ray_data ccl_private
+#endif
 #define ccl_may_alias
 #define ccl_restrict __restrict
 #define ccl_loop_no_unroll
@@ -275,17 +282,23 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 #  endif /* __METALRT_MOTION__ */
 
 typedef acceleration_structure<METALRT_TAGS> metalrt_as_type;
-typedef intersection_function_table<triangle_data, METALRT_TAGS> metalrt_ift_type;
-typedef metal::raytracing::intersector<triangle_data, METALRT_TAGS> metalrt_intersector_type;
+typedef intersection_function_table<triangle_data, curve_data, METALRT_TAGS, extended_limits>
+    metalrt_ift_type;
+typedef metal::raytracing::intersector<triangle_data, curve_data, METALRT_TAGS, extended_limits>
+    metalrt_intersector_type;
 #  if defined(__METALRT_MOTION__)
 typedef acceleration_structure<primitive_motion> metalrt_blas_as_type;
-typedef intersection_function_table<triangle_data, primitive_motion> metalrt_blas_ift_type;
-typedef metal::raytracing::intersector<triangle_data, primitive_motion>
-    metalrt_blas_intersector_type;
+typedef intersection_function_table<triangle_data, curve_data, primitive_motion, extended_limits>
+    metalrt_blas_ift_type;
+typedef metal::raytracing::
+    intersector<triangle_data, curve_data, primitive_motion, extended_limits>
+        metalrt_blas_intersector_type;
 #  else
 typedef acceleration_structure<> metalrt_blas_as_type;
-typedef intersection_function_table<triangle_data> metalrt_blas_ift_type;
-typedef metal::raytracing::intersector<triangle_data> metalrt_blas_intersector_type;
+typedef intersection_function_table<triangle_data, curve_data, extended_limits>
+    metalrt_blas_ift_type;
+typedef metal::raytracing::intersector<triangle_data, curve_data, extended_limits>
+    metalrt_blas_intersector_type;
 #  endif
 
 #endif /* __METALRT__ */
@@ -321,7 +334,6 @@ struct MetalAncillaries {
   metalrt_ift_type ift_local;
   metalrt_blas_ift_type ift_local_prim;
   constant MetalRTBlasWrapper *blas_accel_structs;
-  constant int *blas_userID_to_index_lookUp;
 #endif
 };
 

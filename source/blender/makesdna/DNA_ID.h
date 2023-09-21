@@ -606,6 +606,10 @@ enum {
   PRV_TAG_LOADING_FAILED = (1 << 3),
 };
 
+/**
+ * This type allows shallow copies. Use #BKE_previewimg_free() to release contained resources.
+ * Don't call this for shallow copies (or the original instance will have dangling pointers).
+ */
 typedef struct PreviewImage {
   /* All values of 2 are really NUM_ICON_SIZES */
   unsigned int w[2];
@@ -622,12 +626,17 @@ typedef struct PreviewImage {
   /** Runtime data. */
   short tag;
   char _pad[2];
-} PreviewImage;
 
-#define PRV_DEFERRED_DATA(prv) \
-  (CHECK_TYPE_INLINE(prv, PreviewImage *), \
-   BLI_assert((prv)->tag & PRV_TAG_DEFFERED), \
-   (void *)((prv) + 1))
+#ifdef __cplusplus
+  PreviewImage();
+  /* Shallow copy! Contained data is not copied. */
+  PreviewImage(const PreviewImage &) = default;
+  /* Don't free contained data to allow shallow copies. */
+  ~PreviewImage() = default;
+  /* Shallow copy! Contained data is not copied. */
+  PreviewImage &operator=(const PreviewImage &) = default;
+#endif
+} PreviewImage;
 
 #define ID_FAKE_USERS(id) ((((const ID *)id)->flag & LIB_FAKEUSER) ? 1 : 0)
 #define ID_REAL_USERS(id) (((const ID *)id)->us - ID_FAKE_USERS(id))
@@ -1032,7 +1041,7 @@ typedef enum IDRecalcFlag {
   ID_RECALC_ANIMATION = (1 << 2),
 
   /* ** Particle system changed. ** */
-  /* Only do pathcache etc. */
+  /* Only do path-cache etc. */
   ID_RECALC_PSYS_REDO = (1 << 3),
   /* Reset everything including point-cache. */
   ID_RECALC_PSYS_RESET = (1 << 4),

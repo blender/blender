@@ -53,9 +53,6 @@ class MTLStorageBuf;
 /* Structs containing information on current binding state for textures and samplers. */
 struct MTLTextureBinding {
   bool used;
-
-  /* Same value as index in bindings array. */
-  uint slot_index;
   gpu::MTLTexture *texture_resource;
 };
 

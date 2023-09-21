@@ -23,7 +23,7 @@ _app_template = {
     "id": "",
 }
 
-# instead of sys.modules
+# Instead of `sys.modules`
 # note that we only ever have one template enabled at a time
 # so it may not seem necessary to use this.
 #

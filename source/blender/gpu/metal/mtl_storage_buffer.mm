@@ -247,13 +247,34 @@ void MTLStorageBuf::clear(uint32_t clear_value)
   }
 }
 
-void MTLStorageBuf::copy_sub(VertBuf * /*src_*/,
-                             uint /*dst_offset*/,
-                             uint /*src_offset*/,
-                             uint /*copy_size*/)
+void MTLStorageBuf::copy_sub(VertBuf *src_, uint dst_offset, uint src_offset, uint copy_size)
 {
-  /* TODO(Metal): Support Copy sub operation. */
-  MTL_LOG_WARNING("MTLStorageBuf::copy_sub not yet supported.");
+  MTLVertBuf *src = static_cast<MTLVertBuf *>(src_);
+  MTLStorageBuf *dst = this;
+
+  if (dst->metal_buffer_ == nullptr) {
+    dst->init();
+  }
+  if (src->vbo_ == nullptr) {
+    src->bind();
+  }
+
+  /* Fetch active context. */
+  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  BLI_assert(ctx);
+
+  /* Fetch Metal buffers. */
+  id<MTLBuffer> src_buf = src->vbo_->get_metal_buffer();
+  id<MTLBuffer> dst_buf = dst->metal_buffer_->get_metal_buffer();
+  BLI_assert(src_buf != nil);
+  BLI_assert(dst_buf != nil);
+
+  id<MTLBlitCommandEncoder> blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
+  [blit_encoder copyFromBuffer:src_buf
+                  sourceOffset:src_offset
+                      toBuffer:dst_buf
+             destinationOffset:dst_offset
+                          size:copy_size];
 }
 
 void MTLStorageBuf::read(void *data)

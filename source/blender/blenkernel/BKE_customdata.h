@@ -34,11 +34,11 @@ struct ID;
 typedef uint64_t eCustomDataMask;
 
 /* These names are used as prefixes for UV layer names to find the associated boolean
- * layers. They should never be longer than 2 chars, as MAX_CUSTOMDATA_LAYER_NAME
+ * layers. They should never be longer than 2 chars, as #MAX_CUSTOMDATA_LAYER_NAME
  * has 4 extra bytes above what can be used for the base layer name, and these
  * prefixes are placed between 2 '.'s at the start of the layer name.
- * For example The uv vert selection layer of a layer named 'UVMap.001'
- * will be called '.vs.UVMap.001' . */
+ * For example The uv vert selection layer of a layer named `UVMap.001`
+ * will be called `.vs.UVMap.001`. */
 #define UV_VERTSEL_NAME "vs"
 #define UV_EDGESEL_NAME "es"
 #define UV_PINNED_NAME "pn"
@@ -428,6 +428,12 @@ void CustomData_bmesh_interp(struct CustomData *data,
  * \param corner_indices: A mapping 'new_index -> old_index' of sub-item data.
  */
 void CustomData_swap_corners(struct CustomData *data, int index, const int *corner_indices);
+
+/**
+ * Custom data layers can be shared through implicit sharing (`BLI_implicit_sharing.h`). This
+ * function makes sure that the layer is unshared if it was shared, which makes it mutable.
+ */
+void CustomData_ensure_data_is_mutable(struct CustomDataLayer *layer, int totelem);
 
 /**
  * Retrieve a pointer to an element of the active layer of the given \a type, chosen by the

@@ -26,6 +26,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -755,7 +756,7 @@ static int new_material_exec(bContext *C, wmOperator * /*op*/)
   Material *ma = static_cast<Material *>(
       CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
   Main *bmain = CTX_data_main(C);
-  PointerRNA ptr, idptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
 
   /* hook into UI */
@@ -795,7 +796,7 @@ static int new_material_exec(bContext *C, wmOperator * /*op*/)
      * pointer use also increases user, so this compensates it */
     id_us_min(&ma->id);
 
-    RNA_id_pointer_create(&ma->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&ma->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
@@ -830,7 +831,7 @@ static int new_texture_exec(bContext *C, wmOperator * /*op*/)
 {
   Tex *tex = static_cast<Tex *>(CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data);
   Main *bmain = CTX_data_main(C);
-  PointerRNA ptr, idptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
 
   /* add or copy texture */
@@ -849,7 +850,7 @@ static int new_texture_exec(bContext *C, wmOperator * /*op*/)
      * pointer use also increases user, so this compensates it */
     id_us_min(&tex->id);
 
-    RNA_id_pointer_create(&tex->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&tex->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
@@ -883,7 +884,7 @@ static int new_world_exec(bContext *C, wmOperator * /*op*/)
 {
   World *wo = static_cast<World *>(CTX_data_pointer_get_type(C, "world", &RNA_World).data);
   Main *bmain = CTX_data_main(C);
-  PointerRNA ptr, idptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
 
   /* add or copy world */
@@ -906,7 +907,7 @@ static int new_world_exec(bContext *C, wmOperator * /*op*/)
      * pointer use also increases user, so this compensates it */
     id_us_min(&wo->id);
 
-    RNA_id_pointer_create(&wo->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&wo->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
@@ -2256,7 +2257,7 @@ static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
     lineset->linestyle = (FreestyleLineStyle *)BKE_id_copy(bmain, &lineset->linestyle->id);
   }
   else {
-    lineset->linestyle = BKE_linestyle_new(bmain, "LineStyle");
+    lineset->linestyle = BKE_linestyle_new(bmain, DATA_("LineStyle"));
   }
   DEG_id_tag_update(&lineset->linestyle->id, 0);
   WM_event_add_notifier(C, NC_LINESTYLE, lineset->linestyle);

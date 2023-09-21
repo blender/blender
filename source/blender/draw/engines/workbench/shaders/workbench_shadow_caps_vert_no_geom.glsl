@@ -33,7 +33,6 @@ vec4 get_pos(int v, bool backface)
 
 vec3 extrude_offset(vec3 ls_P)
 {
-#ifdef WORKBENCH_NEXT
   vec3 ws_P = point_object_to_world(ls_P);
   float extrude_distance = 1e5f;
   float L_dot_FP = dot(pass_data.light_direction_ws, pass_data.far_plane.xyz);
@@ -43,9 +42,6 @@ vec3 extrude_offset(vec3 ls_P)
   }
   vec3 ls_light_direction = normal_world_to_object(vec3(pass_data.light_direction_ws));
   return ls_light_direction * extrude_distance;
-#else
-  return lightDirection * lightDistance;
-#endif
 }
 
 void emit_cap(const bool front, bool reversed, int triangle_vertex_id)
@@ -102,9 +98,7 @@ void main()
   vec3 v10 = vData[0].pos - vData[1].pos;
   vec3 v12 = vData[2].pos - vData[1].pos;
 
-#ifdef WORKBENCH_NEXT
   vec3 lightDirection = normal_world_to_object(vec3(pass_data.light_direction_ws));
-#endif
 
   vec3 n = cross(v12, v10);
   float facing = dot(n, lightDirection);

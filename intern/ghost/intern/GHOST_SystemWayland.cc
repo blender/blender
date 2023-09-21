@@ -7,6 +7,7 @@
  */
 
 #include "GHOST_SystemWayland.hh"
+#include "GHOST_Context.hh"
 #include "GHOST_Event.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
@@ -1946,7 +1947,7 @@ static void keyboard_depressed_state_push_events_from_change(
     GWL_Seat *seat, const GWL_KeyboardDepressedState &key_depressed_prev)
 {
   GHOST_IWindow *win = ghost_wl_surface_user_data(seat->keyboard.wl.surface_window);
-  GHOST_SystemWayland *system = seat->system;
+  const GHOST_SystemWayland *system = seat->system;
 
   /* Separate key up and down into separate passes so key down events always come after key up.
    * Do this so users of GHOST can use the last pressed or released modifier to check
@@ -3735,7 +3736,8 @@ static void keyboard_handle_keymap(void *data,
   char *map_str = static_cast<char *>(mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0));
   if (map_str == MAP_FAILED) {
     close(fd);
-    throw std::runtime_error("keymap mmap failed: " + std::string(std::strerror(errno)));
+    CLOG_INFO(LOG, 2, "keymap mmap failed: %s", std::strerror(errno));
+    return;
   }
 
   xkb_keymap *keymap = xkb_keymap_new_from_string(
@@ -5595,7 +5597,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   display_->wl.display = wl_display_connect(nullptr);
   if (!display_->wl.display) {
     display_destroy_and_free_all();
-    throw std::runtime_error("Wayland: unable to connect to display!");
+    throw std::runtime_error("unable to connect to display!");
   }
 
   /* This may be removed later if decorations are required, needed as part of registration. */
@@ -5623,7 +5625,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     /* Ignore windowing requirements when running in background mode,
      * as it doesn't make sense to fall back to X11 because of windowing functionality
      * in background mode, also LIBDECOR is crashing in background mode `blender -b -f 1`
-     * for e.g. while it could be fixed, requiring the library at all makes no sense . */
+     * for e.g. while it could be fixed, requiring the library at all makes no sense. */
     if (background) {
       display_->libdecor_required = false;
     }
@@ -5648,7 +5650,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
               "falling back to X11\n");
 #  endif
       display_destroy_and_free_all();
-      throw std::runtime_error("Wayland: unable to find libdecor!");
+      throw std::runtime_error("unable to find libdecor!");
     }
   }
   else {
@@ -5663,7 +5665,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     decor.context = libdecor_new(display_->wl.display, &libdecor_interface);
     if (!decor.context) {
       display_destroy_and_free_all();
-      throw std::runtime_error("Wayland: unable to create window decorations!");
+      throw std::runtime_error("unable to create window decorations!");
     }
   }
   else
@@ -5674,7 +5676,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     const GWL_XDG_Decor_System &decor = *display_->xdg_decor;
     if (!decor.shell) {
       display_destroy_and_free_all();
-      throw std::runtime_error("Wayland: unable to access xdg_shell!");
+      throw std::runtime_error("unable to access xdg_shell!");
     }
   }
 
@@ -6260,7 +6262,7 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) co
   }
 
   if (wl_surface *wl_surface_focus = seat_state_pointer->wl.surface_window) {
-    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
+    const GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
     return getCursorPositionClientRelative_impl(seat_state_pointer, win, x, y);
   }
   return GHOST_kFailure;
@@ -6711,8 +6713,8 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_check(const GHOST_TStandardCurs
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(uint8_t *bitmap,
-                                                            uint8_t *mask,
+GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const uint8_t *bitmap,
+                                                            const uint8_t *mask,
                                                             const int sizex,
                                                             const int sizey,
                                                             const int hotX,
@@ -7153,7 +7155,7 @@ bool GHOST_SystemWayland::output_unref(wl_output *wl_output)
 
   /* NOTE: keep in sync with `output_scale_update`. */
   GWL_Output *output = ghost_wl_output_user_data(wl_output);
-  GHOST_WindowManager *window_manager = getWindowManager();
+  const GHOST_WindowManager *window_manager = getWindowManager();
   if (window_manager) {
     for (GHOST_IWindow *iwin : window_manager->getWindows()) {
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);

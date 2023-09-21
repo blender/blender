@@ -12,10 +12,6 @@
 #include "DNA_brush_types.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimData;
 struct Curve;
 struct Curve;
@@ -912,7 +908,3 @@ typedef enum eGP_DrawMode {
             GP_VERTEX_MASK_SELECTMODE_SEGMENT)))
 
 #define GPENCIL_PLAY_ON(gpd) ((gpd) && ((gpd)->runtime.playing == 1))
-
-#ifdef __cplusplus
-}
-#endif

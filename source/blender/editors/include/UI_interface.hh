@@ -124,7 +124,6 @@ struct DragInfo {
  * #wmDropBox is needed to request instances of it from a UI element and call its functions. For
  * example the drop box using "UI_OT_view_drop" implements dropping for views and view items via
  * this interface. To support other kinds of UI elements, similar drop boxes would be necessary.
- *
  */
 class DropTargetInterface {
  public:

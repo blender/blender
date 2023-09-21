@@ -1173,7 +1173,7 @@ static void drw_engines_enable_from_engine(const RenderEngineType *engine_type, 
   switch (drawtype) {
     case OB_WIRE:
     case OB_SOLID:
-      use_drw_engine(DRW_engine_viewport_workbench_next_type.draw_engine);
+      use_drw_engine(DRW_engine_viewport_workbench_type.draw_engine);
       break;
     case OB_MATERIAL:
     case OB_RENDER:
@@ -3050,7 +3050,7 @@ void DRW_engines_register_experimental()
 void DRW_engines_register()
 {
   RE_engines_register(&DRW_engine_viewport_eevee_type);
-  RE_engines_register(&DRW_engine_viewport_workbench_next_type);
+  RE_engines_register(&DRW_engine_viewport_workbench_type);
 
   DRW_engine_register(&draw_engine_gpencil_type);
   DRW_engine_register(&draw_engine_gpencil_next_type);

@@ -424,14 +424,6 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
   float u = hit.uv.x;
   float v = hit.uv.y;
   int type = kernel_data_fetch(objects, object).primitive_type;
-#  ifdef __HAIR__
-  if (type & (PRIMITIVE_CURVE_THICK | PRIMITIVE_CURVE_RIBBON)) {
-
-    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
-    type = segment.type;
-    prim = segment.prim;
-  }
-#  endif
 
 #  ifndef __TRANSPARENT_SHADOWS__
 
@@ -443,20 +435,6 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
       !(intersection_get_shader_flags(NULL, prim, type) & SD_HAS_TRANSPARENT_SHADOW))
   {
     return false;
-  }
-
-  if (type & PRIMITIVE_CURVE) {
-    float throughput = *payload->r_throughput;
-    throughput *= intersection_curve_shadow_transparency(kg, object, prim, type, u);
-    *payload->r_throughput = throughput;
-    payload->num_hits += 1;
-
-    if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
-      return false;
-    }
-    else {
-      return true;
-    }
   }
 
   uint record_index = num_recorded_hits;
@@ -493,6 +471,72 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, prim) = prim;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, object) = object;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, type) = type;
+  return true;
+
+#  endif /* __TRANSPARENT_SHADOWS__ */
+}
+
+ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
+                                                         const void *data,
+                                                         void *user_data,
+                                                         const hiprtHit &hit)
+
+{
+  ShadowPayload *payload = (ShadowPayload *)user_data;
+
+  uint num_hits = payload->num_hits;
+  uint num_recorded_hits = *(payload->r_num_recorded_hits);
+  uint max_hits = payload->max_hits;
+  KernelGlobals kg = payload->kg;
+  RaySelfPrimitives self = payload->self;
+
+  int object = kernel_data_fetch(user_instance_id, hit.instanceID);
+  int prim = hit.primID;
+
+  float ray_tmax = hit.t;
+
+#  ifdef __VISIBILITY_FLAG__
+
+  if ((kernel_data_fetch(objects, object).visibility & payload->visibility) == 0) {
+    return true;  // no hit - continue traversal
+  }
+#  endif
+
+  if (intersection_skip_self_shadow(self, object, prim)) {
+    return true;  // no hit -continue traversal
+  }
+
+  float u = hit.uv.x;
+  float v = hit.uv.y;
+
+  if (u == 0.0f || u == 1.0f) {
+    // continue traversal
+    return true;
+  }
+
+  int type = payload->prim_type;
+
+#  ifndef __TRANSPARENT_SHADOWS__
+
+  return false;
+
+#  else
+
+  if (num_hits >= max_hits ||
+      !(intersection_get_shader_flags(NULL, prim, type) & SD_HAS_TRANSPARENT_SHADOW))
+  {
+    return false;
+  }
+
+  float throughput = *payload->r_throughput;
+  throughput *= intersection_curve_shadow_transparency(kg, object, prim, type, u);
+  *payload->r_throughput = throughput;
+  payload->num_hits += 1;
+
+  if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
+    return false;
+  }
+
   return true;
 
 #  endif /* __TRANSPARENT_SHADOWS__ */
@@ -615,8 +659,9 @@ HIPRT_DEVICE bool filterFunc(u32 geomType,
   switch (index) {
     case Triangle_Filter_Closest:
       return closest_intersection_filter(ray, data, payload, hit);
-    case Triangle_Filter_Shadow:
     case Curve_Filter_Shadow:
+      return shadow_intersection_filter_curves(ray, data, payload, hit);
+    case Triangle_Filter_Shadow:
     case Motion_Triangle_Filter_Shadow:
     case Point_Filter_Shadow:
       return shadow_intersection_filter(ray, data, payload, hit);

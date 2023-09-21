@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : qi1.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Draws lines hidden by one surface.

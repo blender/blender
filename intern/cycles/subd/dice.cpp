@@ -77,8 +77,9 @@ void EdgeDice::stitch_triangles(Subpatch &sub, int edge)
   int outer_T = sub.edges[edge].T;
   int inner_T = ((edge % 2) == 0) ? Mv - 2 : Mu - 2;
 
-  if (inner_T < 0 || outer_T < 0)
+  if (inner_T < 0 || outer_T < 0) {
     return;  // XXX avoid crashes for Mu or Mv == 1, missing polygons
+  }
 
   /* stitch together two arrays of verts with triangles. at each step,
    * we compare using the next verts on both sides, to find the split
@@ -104,10 +105,12 @@ void EdgeDice::stitch_triangles(Subpatch &sub, int edge)
                                mesh_P[sub.get_vert_along_grid_edge(edge, i + 1)]);
 
       /* use smallest diagonal */
-      if (len1 < len2)
+      if (len1 < len2) {
         v2 = sub.get_vert_along_edge(edge, ++j);
-      else
+      }
+      else {
         v2 = sub.get_vert_along_grid_edge(edge, ++i);
+      }
     }
 
     add_triangle(sub.patch, v1, v0, v2);
@@ -132,8 +135,9 @@ float3 QuadDice::eval_projected(Subpatch &sub, float u, float v)
   float3 P;
 
   sub.patch->eval(&P, NULL, NULL, NULL, uv.x, uv.y);
-  if (params.camera)
+  if (params.camera) {
     P = transform_perspective(&params.camera->worldtoraster, P);
+  }
 
   return P;
 }
@@ -186,9 +190,11 @@ float QuadDice::scale_factor(Subpatch &sub, int Mu, int Mv)
   /* estimate area as 4x largest of 4 quads */
   float3 P[3][3];
 
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
       P[i][j] = eval_projected(sub, i * 0.5f, j * 0.5f);
+    }
+  }
 
   float A1 = quad_area(P[0][0], P[1][0], P[0][1], P[1][1]);
   float A2 = quad_area(P[1][0], P[2][0], P[1][1], P[2][1]);

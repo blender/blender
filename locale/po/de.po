@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -324,18 +324,6 @@ msgstr "Erschaffe mehr Raum für große Szenen, indem der Speicher über verbund
 
 msgid "Fribidi Library"
 msgstr "Fribidi Bibliothek"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "Die FriBidi C kompilierte Bibliothek (.so unter Linux, .dll unter Windows...), wahrscheinlich muss die Bibliothek unter Windows bearbeitet werden. z.B. verwende die inkludierte Bibliothek im SVN Bibliothekrepository"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Gettext 'msgfmt' ausführbar"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "Der gettext msgfmt 'kompiler'. wahrscheinlich muss dies unter Windows bearbeitet werden"
 
 
 msgid "Translation Root"
@@ -1016,6 +1004,191 @@ msgstr "Schilder"
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Benutzerdefiniertes Schild (Namenskürzel) für das Vermögen, verwendet für das Filtern und das generelle Vermögensmanagement"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Aktion"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Armature"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Pinsel"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Puffer Datei"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Sammlung"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Kurve"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Kurven"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Schrift"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Wachsstift"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Bild"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Taste"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Gitter"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Bibliothek"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Leicht"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Linienstil"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maske"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Material"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Masche"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Filmclip"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Knotenbaum"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objekt"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Mal-Kurve"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palette"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Partikel"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Punkt Wolke"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Szene"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Klang"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Lautsprecher"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Text"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Textur"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volumen"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Fensterverwaltung"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Arbeitsbereich"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Welt"
 
 
 msgid "ID Name"
@@ -3006,14 +3179,6 @@ msgid "Ignore parent scaling without compensating for parent shear. Replicates t
 msgstr "Ignoriere die Elternteilskalierung ohne die Elternteilscherung zu kompensieren. Repliziere den Effekt vom deaktivieren auf die originale geerbte Skalierungsbox"
 
 
-msgid "Layers"
-msgstr "Ebenen"
-
-
-msgid "Layers bone exists in"
-msgstr "Ebenen in denen Knochen existieren"
-
-
 msgid "Length"
 msgstr "Länge"
 
@@ -3146,36 +3311,20 @@ msgid "Object children will use relative transform, like deform"
 msgstr "Kindobjekt wird relative Transformation verwenden, ähnlich der Deformation"
 
 
-msgid "Bone Group"
-msgstr "Knochengruppe"
+msgid "Bones"
+msgstr "Knochen"
 
 
-msgid "Groups of Pose Channels (Bones)"
-msgstr "Gruppen von Posenkanälen (Knochen)"
+msgid "Visible"
+msgstr "Sichtbar"
 
 
-msgid "Bone Groups"
-msgstr "Knochengruppen"
+msgid "Active Collection"
+msgstr "Aktive Sammlung"
 
 
-msgid "Collection of bone groups"
-msgstr "Sammlung von Knochengruppen"
-
-
-msgid "Active Bone Group"
-msgstr "Aktive Knochengruppe"
-
-
-msgid "Active bone group for this pose"
-msgstr "Aktive Knochengruppe für diese Pose"
-
-
-msgid "Active Bone Group Index"
-msgstr "Aktive Knochengruppenindex"
-
-
-msgid "Active index in bone groups array"
-msgstr "Aktiver Index im Knochengruppenarray"
+msgid "Custom"
+msgstr "Benutzerdefiniert"
 
 
 msgid "Bool Attribute Value"
@@ -3410,14 +3559,6 @@ msgid "Use always Vertex Color mode"
 msgstr "Punktfarbmodus immer verwenden"
 
 
-msgid "Round"
-msgstr "Rund/Runden"
-
-
-msgid "Flat"
-msgstr "Flach"
-
-
 msgid "Curve Jitter"
 msgstr "Kurvenflackern"
 
@@ -3574,10 +3715,6 @@ msgid "Layers used as boundaries"
 msgstr "Ebene werden als Grenzen verwendet"
 
 
-msgid "Visible"
-msgstr "Sichtbar"
-
-
 msgid "Visible layers"
 msgstr "Sichtbare Ebenen"
 
@@ -3724,10 +3861,6 @@ msgstr "Dicke"
 
 msgid "Jitter factor for new strokes"
 msgstr "Flimmerfaktor für neue Striche"
-
-
-msgid "Smooth"
-msgstr "Weich"
 
 
 msgid "Amount of smoothing to apply after finish newly created strokes, to reduce jitter/noise"
@@ -7828,191 +7961,6 @@ msgid "Type of ID-block that can be used"
 msgstr "ID-Block-Typ, der benützt werden kann"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Aktion"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Armature"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Pinsel"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Puffer Datei"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Sammlung"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Kurve"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Kurven"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Schrift"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Wachsstift"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Bild"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Taste"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Gitter"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Bibliothek"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Leicht"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Linienstil"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Maske"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Material"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Masche"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Filmclip"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Knotenbaum"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objekt"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Mal-Kurve"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Palette"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Partikel"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Punkt Wolke"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Szene"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Klang"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Lautsprecher"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Text"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Textur"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volumen"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Fensterverwaltung"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Arbeitsbereich"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Welt"
-
-
 msgid "Rotation Mode"
 msgstr "Rotationsmodus"
 
@@ -8495,6 +8443,10 @@ msgstr "Aktive Oberfläche"
 
 msgid "Active Point Cache Index"
 msgstr "Aktiver Punktcacheindex"
+
+
+msgid "Curve Mapping"
+msgstr "Textur-Mapping"
 
 
 msgid "Edit Bone"
@@ -9857,22 +9809,6 @@ msgstr "Größe anzeigen"
 
 msgid "Change the size of the display (width of columns or thumbnails size)"
 msgstr "Ändern der Größe der Anzeige (Breite der Spalten oder Größe der Miniaturansichten)"
-
-
-msgid "Tiny"
-msgstr "Winzig"
-
-
-msgid "Small"
-msgstr "Klein"
-
-
-msgid "Medium"
-msgstr "Mittel"
-
-
-msgid "Large"
-msgstr "Groß"
 
 
 msgid "Display Mode"
@@ -11367,10 +11303,6 @@ msgid "GPencil Sculpt Guide"
 msgstr "Wachsstift-Skulptur Anleitung"
 
 
-msgid "Custom"
-msgstr "Benutzerdefiniert"
-
-
 msgid "Circular"
 msgstr "Kreisähnlich"
 
@@ -11449,10 +11381,6 @@ msgstr "Bild hinzufügen"
 
 msgid "Stroke is in 2D-space (but with special 'image' scaling)"
 msgstr "Strich ist im 2D-Raum (aber mit spezieller 'Bild'-Skalierung)"
-
-
-msgid "Rounded"
-msgstr "Abgerundet"
 
 
 msgid "Thickness of stroke (in pixels)"
@@ -11719,6 +11647,10 @@ msgstr "Gitter"
 
 msgid "Add noise to strokes"
 msgstr "Hinzufügen von Rauschen zu Strichen"
+
+
+msgid "Smooth"
+msgstr "Weich"
 
 
 msgid "Smooth stroke"
@@ -12612,10 +12544,6 @@ msgid "Axes Position"
 msgstr "Axenposition"
 
 
-msgid "Bones"
-msgstr "Knochen"
-
-
 msgid "Octahedral"
 msgstr "Achteckig"
 
@@ -12652,14 +12580,6 @@ msgid "Is Editmode"
 msgstr "Ist Bearbeitungsmodus"
 
 
-msgid "Visible Layers"
-msgstr "Sichtbare Ebenen"
-
-
-msgid "Armature layer visibility"
-msgstr "Skelettebene-Sichtbarkeit"
-
-
 msgid "Pose Position"
 msgstr "Posenposition"
 
@@ -12686,14 +12606,6 @@ msgstr "Benutzerdefinierte Knochenformen anzeigen"
 
 msgid "Display bones with their custom shapes"
 msgstr "Knochen mit ihren benutzerdefinierten Formen anzeigen"
-
-
-msgid "Display Bone Group Colors"
-msgstr "Knochengruppenfarben anzeigen"
-
-
-msgid "Display bone group colors"
-msgstr "Knochengruppenfarbe anzeigen"
 
 
 msgid "Display Names"
@@ -12968,18 +12880,6 @@ msgid "Mask Texture Overlay Alpha"
 msgstr "Maskentextur überlagert Alpha"
 
 
-msgid "Paint Selection"
-msgstr "Mal Auswahl"
-
-
-msgid "Pinch"
-msgstr "Ausdünnen"
-
-
-msgid "Puff"
-msgstr "Bauschen"
-
-
 msgid "Dash Length"
 msgstr "Strichlänge"
 
@@ -13092,10 +12992,6 @@ msgid "Mask Texture Slot"
 msgstr "Maskentextursteckplatz"
 
 
-msgid "Mask Tool"
-msgstr "Masken Werkzeug"
-
-
 msgid "Normal Radius"
 msgstr "Normalenradius"
 
@@ -13186,6 +13082,10 @@ msgstr "Cursorvorschau anzeigen"
 
 msgid "Radius of the brush in pixels"
 msgstr "Pinselradius in Pixeln"
+
+
+msgid "Pinch"
+msgstr "Ausdünnen"
 
 
 msgid "Laplacian"
@@ -13734,6 +13634,10 @@ msgstr "Fasentiefe"
 
 msgid "Bevel Mode"
 msgstr "Anfasmodus"
+
+
+msgid "Round"
+msgstr "Rund/Runden"
 
 
 msgid "Bevel Object"
@@ -14430,6 +14334,10 @@ msgstr "Strichmaleinfluss Modus"
 
 msgid "Grease Pencil weight paint"
 msgstr "Wachsstift Malereieinfluss"
+
+
+msgid "Layers"
+msgstr "Ebenen"
 
 
 msgid "Filter by Type"
@@ -15207,10 +15115,6 @@ msgid "Index number for the \"Material Index\" render pass"
 msgstr "Indexnummer für den \"Materialindex\" Renderpass"
 
 
-msgid "Preview Render Type"
-msgstr "Vorschau-Rendertyp"
-
-
 msgid "Type of preview render"
 msgstr "Typ der Rendervorschau"
 
@@ -15221,10 +15125,6 @@ msgstr "Fläche"
 
 msgid "Cube"
 msgstr "Würfel"
-
-
-msgid "Hair"
-msgstr "Haar"
 
 
 msgid "Hair strands"
@@ -15487,18 +15387,6 @@ msgid "Node tree consisting of linked nodes used for shading, textures and compo
 msgstr "Knotenbaum beinhaltet verknüpfte Knoten, die für Shading, Texturen und Kompositionen verwendet wurden"
 
 
-msgid "Active Input"
-msgstr "Aktive Eingabe"
-
-
-msgid "Active Output"
-msgstr "Aktive Ausgabe"
-
-
-msgid "Index of the active output"
-msgstr "Index, der aktiven Ausgabe"
-
-
 msgid "Label"
 msgstr "Beschriftung"
 
@@ -15507,8 +15395,8 @@ msgid "Grease Pencil Data"
 msgstr "Wachsstift-Daten"
 
 
-msgid "Inputs"
-msgstr "Eingaben"
+msgid "Interface"
+msgstr "Schnittstelle"
 
 
 msgid "Links"
@@ -15517,10 +15405,6 @@ msgstr "Verknüpfungen"
 
 msgid "Nodes"
 msgstr "Knoten"
-
-
-msgid "Outputs"
-msgstr "Ausgaben"
 
 
 msgid "Undefined"
@@ -15565,6 +15449,10 @@ msgstr "Hoch"
 
 msgid "High quality"
 msgstr "Hohe Qualität"
+
+
+msgid "Medium"
+msgstr "Mittel"
 
 
 msgid "Medium quality"
@@ -15621,6 +15509,10 @@ msgstr "Bearbeiten"
 
 msgid "Sculpt"
 msgstr "Skulptur"
+
+
+msgid "Modifier"
+msgstr "Modifikator"
 
 
 msgid "Tool"
@@ -16628,6 +16520,10 @@ msgstr "Kurve verdrehen"
 
 msgid "Particle type"
 msgstr "Partikeltyp"
+
+
+msgid "Hair"
+msgstr "Haar"
 
 
 msgid "Absolute Path Time"
@@ -20533,22 +20429,6 @@ msgid "NLA Context Menu"
 msgstr "NLA-Kontextmenü"
 
 
-msgid "Converter"
-msgstr "Konverter"
-
-
-msgid "Distort"
-msgstr "Verzerren"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Matte"
-msgstr "Maske"
-
-
 msgid "Text"
 msgstr "Text"
 
@@ -20559,6 +20439,26 @@ msgstr "Mathematisch"
 
 msgid "Primitives"
 msgstr "Grundkörper"
+
+
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Converter"
+msgstr "Konverter"
+
+
+msgid "Distort"
+msgstr "Verzerren"
 
 
 msgid "Attribute"
@@ -20583,6 +20483,18 @@ msgstr "Knoten"
 
 msgid "Node Color Specials"
 msgstr "Knoten-Farb-Specials"
+
+
+msgid "Add Modifier"
+msgstr "Modifikator hinzufügen"
+
+
+msgid "Generate"
+msgstr "Erzeugen"
+
+
+msgid "Physics"
+msgstr "Physik"
 
 
 msgid "Assets"
@@ -20636,6 +20548,10 @@ msgstr "Griff auswählen"
 
 msgid "Strip"
 msgstr "Streifen"
+
+
+msgid "Inputs"
+msgstr "Eingaben"
 
 
 msgid "Lock/Mute"
@@ -22240,10 +22156,6 @@ msgstr "Backe Start"
 
 msgid "Start frame of the ocean baking"
 msgstr "Startbild für die Animation"
-
-
-msgid "Generate"
-msgstr "Erzeugen"
 
 
 msgid "Invert Spray"
@@ -24072,6 +23984,10 @@ msgid "Unique node identifier"
 msgstr "Eindeutiger Knotenbezeichnung"
 
 
+msgid "Outputs"
+msgstr "Ausgaben"
+
+
 msgid "Parent this node is attached to"
 msgstr "Elternteil, dem dieser Knoten zugehörig ist"
 
@@ -24134,26 +24050,6 @@ msgstr "Relative X Größe"
 
 msgid "Relative Size Y"
 msgstr "Relative Y Größe"
-
-
-msgid "Filter Type"
-msgstr "Filtertyp"
-
-
-msgid "Tent"
-msgstr "Tent"
-
-
-msgid "Fast Gaussian"
-msgstr "Schneller Gauß'sche"
-
-
-msgid "Catrom"
-msgstr "Catrom"
-
-
-msgid "Mitch"
-msgstr "Mitchell"
 
 
 msgid "Bokeh"
@@ -24912,6 +24808,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "Y-Position vom Zentrum der Ellipse"
 
 
+msgid "Filter Type"
+msgstr "Filtertyp"
+
+
 msgid "Soften"
 msgstr "Weichzeichnen"
 
@@ -24998,10 +24898,6 @@ msgstr "Malen"
 
 msgid "Distance to inpaint (number of iterations)"
 msgstr "Abstand zu Inpaint (Anzahl der Wiederholungen)"
-
-
-msgid "Keying"
-msgstr "Schlüsselbilder"
 
 
 msgid "Post Blur"
@@ -25801,10 +25697,6 @@ msgid "Named Attribute"
 msgstr "Benanntes Attribut"
 
 
-msgid "Is Shade Smooth"
-msgstr "Ist weich schattiert"
-
-
 msgid "Spline Resolution"
 msgstr "Spline-Auflösung"
 
@@ -25992,6 +25884,10 @@ msgstr "Gruppeneingabe"
 
 msgid "Group Output"
 msgstr "Gruppenausgabe"
+
+
+msgid "Active Output"
+msgstr "Aktive Ausgabe"
 
 
 msgid "Reroute"
@@ -26843,24 +26739,20 @@ msgid "Default Attribute"
 msgstr "Standardattribut"
 
 
-msgid "Maximum value"
-msgstr "Maximalwert"
-
-
-msgid "Minimum value"
-msgstr "Minimalwert"
-
-
-msgid "Node Tree Inputs"
-msgstr "Knotenbaumeingaben"
+msgid "Both"
+msgstr "Beides"
 
 
 msgid "Socket Type"
 msgstr "Buchsentype"
 
 
-msgid "Node Tree Outputs"
-msgstr "Knotenbaumausgaben"
+msgid "Maximum value"
+msgstr "Maximalwert"
+
+
+msgid "Minimum value"
+msgstr "Minimalwert"
 
 
 msgid "Node Tree Path"
@@ -27117,11 +27009,6 @@ msgstr "Kein Versatz"
 
 msgid "Paste keys from original time"
 msgstr "Fügt einen Schlüssel von der Ursprünglichen Zeit ein"
-
-
-msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Einfache Schlüsselbilder"
 
 
 msgctxt "Operator"
@@ -27773,6 +27660,11 @@ msgstr "Unausgewählt"
 msgctxt "Operator"
 msgid "Show All Layers"
 msgstr "Alle Ebenen zeigen"
+
+
+msgctxt "Operator"
+msgid "Move to Collection"
+msgstr "Verschiebe zur Sammlung"
 
 
 msgctxt "Operator"
@@ -29181,10 +29073,6 @@ msgid "Set the current language for this console"
 msgstr "Aktuelle Sprache für diese Konsole festlegen"
 
 
-msgid "Language"
-msgstr "Sprache"
-
-
 msgctxt "Operator"
 msgid "Move Cursor"
 msgstr "Cursor bewegen"
@@ -30222,10 +30110,6 @@ msgstr "-Y Achse"
 
 msgid "-Z Axis"
 msgstr "-Z Achse"
-
-
-msgid "Active Collection"
-msgstr "Aktive Sammlung"
 
 
 msgid "Only Deform Bones"
@@ -31544,10 +31428,6 @@ msgid "Add Segment"
 msgstr "Segment hinzufügen"
 
 
-msgid "Modifier"
-msgstr "Modifikator"
-
-
 msgid "Name of the modifier to edit"
 msgstr "Name des zu bearbeitenden Modifikators"
 
@@ -31681,10 +31561,6 @@ msgstr "Auswahl an Raster einrasten"
 
 msgid "Snap selected points to the nearest grid points"
 msgstr "Ausgewählte Punkte an den nächstgelegenen Rasterpunkten ausrichten"
-
-
-msgid "Both"
-msgstr "Beides"
 
 
 msgid "Move selected strokes to active material"
@@ -31963,11 +31839,6 @@ msgstr "Anfangen/Beenden vom Malereieinflussmodus für Wachsstiftstriche"
 
 
 msgctxt "Operator"
-msgid "Bake Curve"
-msgstr "Kurve backen"
-
-
-msgctxt "Operator"
 msgid "Blend to Default Value"
 msgstr "Mit Standardwert verschmelzen"
 
@@ -32120,18 +31991,8 @@ msgid "Snap Cursor Value to Selected"
 msgstr "Cursorwert auf Ausgewähltes fangen"
 
 
-msgctxt "Operator"
-msgid "Bake Sound to F-Curves"
-msgstr "Klang zu F-Kurven backen"
-
-
 msgid "Highest Frequency"
 msgstr "Höchste Frequenz"
-
-
-msgctxt "Operator"
-msgid "Un-Bake Curve"
-msgstr "Kurve nicht backen"
 
 
 msgid "Stroke Mode"
@@ -34664,11 +34525,6 @@ msgstr "Umleiten"
 
 
 msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Knoten suchen und hinzufügen"
-
-
-msgctxt "Operator"
 msgid "Attach Nodes"
 msgstr "Knoten anhängen"
 
@@ -35072,21 +34928,6 @@ msgid "Go to parent node tree"
 msgstr "Zum Elternknoten springen"
 
 
-msgctxt "Operator"
-msgid "Add Node Tree Interface Socket"
-msgstr "Knotenbaum-Schnittstellenbuchse hinzufügen"
-
-
-msgctxt "Operator"
-msgid "Move Node Tree Socket"
-msgstr "Knotenbaum-Buchse bewegen"
-
-
-msgctxt "Operator"
-msgid "Remove Node Tree Interface Socket"
-msgstr "Knotenbaum-Schnittstellenbuchse entfernen"
-
-
 msgid "Resize view so you can see all nodes"
 msgstr "Ansicht auf alle Knoten anpassen"
 
@@ -35107,6 +34948,11 @@ msgstr "Objekt hinzufügen"
 
 msgid "Add an object to the scene"
 msgstr "Ein Objekt zur Szene hinzufügen"
+
+
+msgctxt "Operator"
+msgid "Add Modifier"
+msgstr "Modifikator hinzufügen"
 
 
 msgid "Add named object"
@@ -35372,11 +35218,6 @@ msgstr "Affe"
 
 msgid "Show In Front"
 msgstr "Im Vordergrund anzeigen"
-
-
-msgctxt "Operator"
-msgid "Add Modifier"
-msgstr "Modifikator hinzufügen"
 
 
 msgctxt "Operator"
@@ -35796,11 +35637,6 @@ msgstr "Einen Modifikator vom aktiven Objekt entfernen"
 msgctxt "Operator"
 msgid "Set Active Modifier"
 msgstr "Festlegen von Active Modifier"
-
-
-msgctxt "Operator"
-msgid "Move to Collection"
-msgstr "Verschiebe zur Sammlung"
 
 
 msgid "Move objects to a collection"
@@ -37056,6 +36892,14 @@ msgstr "Wählt den Pinsel eines Malmodus nach Werkzeugtyp aus"
 
 msgid "Create Missing"
 msgstr "Fehlendes erstellen"
+
+
+msgid "Paint Selection"
+msgstr "Mal Auswahl"
+
+
+msgid "Puff"
+msgstr "Bauschen"
 
 
 msgid "Clone"
@@ -38596,10 +38440,6 @@ msgid "Open Preferences..."
 msgstr "Einstellungen öffnen..."
 
 
-msgid "Interface"
-msgstr "Schnittstelle"
-
-
 msgid "Themes"
 msgstr "Themen"
 
@@ -38938,18 +38778,50 @@ msgid "Change Effect Type"
 msgstr "Selbe Typen"
 
 
+msgctxt "Sequence"
+msgid "Type"
+msgstr "Typ"
+
+
 msgid "Sequencer effect type"
 msgstr "Sequenzer-Effekttyp"
 
 
-msgid "Crossfade"
-msgstr "Überblendung"
+msgctxt "Sequence"
+msgid "Add"
+msgstr "Addieren"
+
+
+msgctxt "Sequence"
+msgid "Subtract"
+msgstr "Subtrahieren"
+
+
+msgctxt "Sequence"
+msgid "Alpha Over"
+msgstr "Alpha über"
 
 
 msgid "Alpha Over effect strip type"
 msgstr "Alpha über Effektstreifen-Typ"
 
 
+msgctxt "Sequence"
+msgid "Alpha Under"
+msgstr "Alpha unter"
+
+
+msgctxt "Sequence"
+msgid "Multiply"
+msgstr "Multiplizieren"
+
+
+msgctxt "Sequence"
+msgid "Wipe"
+msgstr "Blende"
+
+
+msgctxt "Sequence"
 msgid "Glow"
 msgstr "Glühen"
 
@@ -38958,18 +38830,41 @@ msgid "Glow effect strip type"
 msgstr "Glüheffekt-Streifentyp"
 
 
+msgctxt "Sequence"
+msgid "Transform"
+msgstr "Transformieren"
+
+
+msgctxt "Sequence"
+msgid "Color"
+msgstr "Farbe"
+
+
 msgid "Color effect strip type"
 msgstr "Farb-Effektstreifentyp"
 
 
+msgctxt "Sequence"
+msgid "Speed"
+msgstr "Geschwindigkeit"
+
+
+msgctxt "Sequence"
 msgid "Adjustment Layer"
-msgstr "Ebene Ausrichten"
+msgstr "Ebene ausrichten"
 
 
+msgctxt "Sequence"
 msgid "Gaussian Blur"
-msgstr "Weichzeichnen"
+msgstr "Gaußscher Filter"
 
 
+msgctxt "Sequence"
+msgid "Text"
+msgstr "Text"
+
+
+msgctxt "Sequence"
 msgid "Color Mix"
 msgstr "Farbmix"
 
@@ -40268,15 +40163,6 @@ msgstr "I18n lade Einstellungen"
 msgctxt "Operator"
 msgid "I18n Save Settings"
 msgstr "I18n speichere Einstellungen"
-
-
-msgctxt "Operator"
-msgid "Update I18n Branches"
-msgstr "Update I18n Branches"
-
-
-msgid "Update i18n svn's branches (po files)"
-msgstr "Aktualisieren Sie die Branches von i18n svn (PO-Dateien)"
 
 
 msgid "Invert Selection"
@@ -42712,6 +42598,10 @@ msgid "Filters"
 msgstr "Filter"
 
 
+msgid "Snapping"
+msgstr "Einrasten"
+
+
 msgid "Bake Animation"
 msgstr "Animation backen"
 
@@ -42774,10 +42664,6 @@ msgstr "Diagramme"
 
 msgid "Sample Line"
 msgstr "Linie abtasten"
-
-
-msgid "Snapping"
-msgstr "Einrasten"
 
 
 msgctxt "Operator"
@@ -42965,10 +42851,6 @@ msgstr "Haardynamikenvoreinstellung"
 
 msgid "Structure"
 msgstr "Struktur"
-
-
-msgid "Physics"
-msgstr "Physik"
 
 
 msgid "Misc"
@@ -43282,10 +43164,6 @@ msgstr "Stile"
 
 msgid "Menu"
 msgstr "Menü"
-
-
-msgid "Menu Back"
-msgstr "Menü zurück"
 
 
 msgid "Menu Item"
@@ -45621,6 +45499,10 @@ msgid "Keep Existing"
 msgstr "Existierendes beibehalten"
 
 
+msgid "Language"
+msgstr "Sprache"
+
+
 msgid "Language used for translation"
 msgstr "Für Übersetzung benutzte Sprache"
 
@@ -46373,14 +46255,6 @@ msgid "Settings/info about a language"
 msgstr "Einstellungen/Informationen zu einer Sprache"
 
 
-msgid "MO File Path"
-msgstr "MO-Dateipfad"
-
-
-msgid "Path to the relevant mo file"
-msgstr "Pfad zur relevanten mo Datei"
-
-
 msgid "Language Name"
 msgstr "Sprache"
 
@@ -46395,30 +46269,6 @@ msgstr "Numerische ID"
 
 msgid "Numeric ID (read only!)"
 msgstr "Numerische ID (nur lesezugriff!)"
-
-
-msgid "PO File Path"
-msgstr "PO-Dateipfad"
-
-
-msgid "Path to the relevant po file in branches"
-msgstr "Pfad zur entsprechenden po Datei in Branches"
-
-
-msgid "PO Git Master File Path"
-msgstr "PO Git Master Dateipfad"
-
-
-msgid "Path to the relevant po file in Blender's translations git repository"
-msgstr "Pfad zur entsprechenden po Datei im Blender Übersetzungs Git-Repository"
-
-
-msgid "PO Trunk File Path"
-msgstr "PO Trunk Dateipfad"
-
-
-msgid "Path to the relevant po file in trunk"
-msgstr "Pfad zur entsprechenden po Datei in Trunk"
 
 
 msgid "Language ID"
@@ -46447,10 +46297,6 @@ msgstr "Ob diese Einstellungen bereits automatisch eingestellt wurden oder nicht
 
 msgid "Languages"
 msgstr "Sprache"
-
-
-msgid "Languages to update in branches"
-msgstr "Sprachen, die in Branches aktualisiert werden sollen"
 
 
 msgid "POT File Path"
@@ -48070,11 +47916,6 @@ msgstr "Rechter Griff selektiert"
 
 
 msgctxt "Sequence"
-msgid "Type"
-msgstr "Typ"
-
-
-msgctxt "Sequence"
 msgid "Image"
 msgstr "Bild"
 
@@ -48112,76 +47953,6 @@ msgstr "Klang"
 msgctxt "Sequence"
 msgid "Cross"
 msgstr "Kreuz"
-
-
-msgctxt "Sequence"
-msgid "Add"
-msgstr "Addieren"
-
-
-msgctxt "Sequence"
-msgid "Subtract"
-msgstr "Subtrahieren"
-
-
-msgctxt "Sequence"
-msgid "Alpha Over"
-msgstr "Alpha über"
-
-
-msgctxt "Sequence"
-msgid "Alpha Under"
-msgstr "Alpha unter"
-
-
-msgctxt "Sequence"
-msgid "Multiply"
-msgstr "Multiplizieren"
-
-
-msgctxt "Sequence"
-msgid "Wipe"
-msgstr "Blende"
-
-
-msgctxt "Sequence"
-msgid "Glow"
-msgstr "Glühen"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "Transformieren"
-
-
-msgctxt "Sequence"
-msgid "Color"
-msgstr "Farbe"
-
-
-msgctxt "Sequence"
-msgid "Speed"
-msgstr "Geschwindigkeit"
-
-
-msgctxt "Sequence"
-msgid "Adjustment Layer"
-msgstr "Ebene ausrichten"
-
-
-msgctxt "Sequence"
-msgid "Gaussian Blur"
-msgstr "Gaußscher Filter"
-
-
-msgctxt "Sequence"
-msgid "Text"
-msgstr "Text"
-
-
-msgctxt "Sequence"
-msgid "Color Mix"
-msgstr "Farbmix"
 
 
 msgid "Use Default Fade"
@@ -48555,10 +48326,6 @@ msgstr "Farbbalance-Modifikator für Sequenzstreifen"
 
 msgid "RGB curves modifier for sequence strip"
 msgstr "RGB-Kurven-Modifikator für Sequenzstreifen"
-
-
-msgid "Curve Mapping"
-msgstr "Textur-Mapping"
 
 
 msgid "Hue correction modifier for sequence strip"
@@ -49262,50 +49029,6 @@ msgstr "Zu verwendende Schriftgröße zur Textanzeige"
 
 msgid "Command line prompt"
 msgstr "Komandozeilen Eingabeaufforderung"
-
-
-msgid "Auto Snap"
-msgstr "Automatisch einrasten"
-
-
-msgid "Automatic time snapping settings for transformations"
-msgstr "Automatische Zeiteinrastungseinstellungen für Transformationen"
-
-
-msgid "No Auto-Snap"
-msgstr "Nicht automatisch einrasten"
-
-
-msgid "Snap to 1.0 frame intervals"
-msgstr "In 1.0 Einzelbild-Intervallen einrasten"
-
-
-msgid "Snap to 1.0 second intervals"
-msgstr "In 1.0 Sekunden-Intervallen einrasten"
-
-
-msgid "Nearest Frame"
-msgstr "Nächstes Einzelbild"
-
-
-msgid "Snap to actual frames (nla-action time)"
-msgstr "An tatsächlichen Frames ausrichten (nla-Aktionszeit)"
-
-
-msgid "Nearest Second"
-msgstr "Nächste Sekunde"
-
-
-msgid "Snap to actual seconds (nla-action time)"
-msgstr "Auf tatsächliche Sekunden ausrichten (nla-Aktionszeit)"
-
-
-msgid "Nearest Marker"
-msgstr "Nächster Marker"
-
-
-msgid "Snap to nearest marker"
-msgstr "An nächsten Marker einrasten"
 
 
 msgid "Show the active object's cloth point cache"
@@ -50167,6 +49890,10 @@ msgstr "In diesem Ansichtsfenster werden andere Sammlungen angezeigt"
 
 msgid "Display Background"
 msgstr "Hintergrund anzeigen"
+
+
+msgid "Flat"
+msgstr "Flach"
 
 
 msgid "Show Named Attributes"
@@ -51618,12 +51345,24 @@ msgid "Proportional Editing Falloff"
 msgstr "Proportionaler Bearbeitungsabfall"
 
 
-msgid "Snap Element"
-msgstr "Einrastelement"
-
-
 msgid "Type of element to snap to"
 msgstr "Typ an dem eingerastet werden soll"
+
+
+msgid "Second"
+msgstr "Sekunde"
+
+
+msgid "Nearest Marker"
+msgstr "Nächster Marker"
+
+
+msgid "Snap to nearest marker"
+msgstr "An nächsten Marker einrasten"
+
+
+msgid "Snap Element"
+msgstr "Einrastelement"
 
 
 msgid "Snap to"
@@ -53760,21 +53499,6 @@ msgstr "Alles abwählen"
 
 
 msgctxt "Operator"
-msgid "Update Branches"
-msgstr "Branches aktualisieren"
-
-
-msgctxt "Operator"
-msgid "Update Trunk"
-msgstr "Trunk aktualisieren"
-
-
-msgctxt "Operator"
-msgid "Clean up Branches"
-msgstr "Branches bereinigen"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "Statiken"
 
@@ -53801,10 +53525,6 @@ msgstr "PO importieren..."
 msgctxt "Operator"
 msgid "Invert Selection"
 msgstr "Auswahl umkehren"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
 
 
 msgid "Positional"
@@ -54415,18 +54135,6 @@ msgstr "Drehpunktversatz"
 
 msgid "No target bones added"
 msgstr "Keine Zielknochen hinzugefügt"
-
-
-msgid "Layers:"
-msgstr "Ebenen:"
-
-
-msgid "Protected Layers:"
-msgstr "Geschützte Ebenen:"
-
-
-msgid "Group Colors"
-msgstr "Gruppenfarben"
 
 
 msgid "Axes"
@@ -55512,10 +55220,6 @@ msgid "Velocity Linear"
 msgstr "Lineare Geschwindigkeit"
 
 
-msgid "Second"
-msgstr "Sekunde"
-
-
 msgid "X Stiffness"
 msgstr "X Steifheit"
 
@@ -55978,6 +55682,10 @@ msgstr "Filtern nach Typ:"
 
 msgid "Options:"
 msgstr "Optionen:"
+
+
+msgid "Snap To"
+msgstr "Einrasten auf"
 
 
 msgid "Multi-Word Match Search"
@@ -56551,11 +56259,6 @@ msgstr "Drahtfarbe"
 
 
 msgctxt "Operator"
-msgid "Search..."
-msgstr "Suchen..."
-
-
-msgctxt "Operator"
 msgid "Backdrop Move"
 msgstr "Hintergrund bewegen"
 
@@ -56950,31 +56653,6 @@ msgstr "Draht"
 
 
 msgctxt "Operator"
-msgid "Subtract"
-msgstr "Subtrahieren"
-
-
-msgctxt "Operator"
-msgid "Multiply"
-msgstr "Multiplizieren"
-
-
-msgctxt "Operator"
-msgid "Alpha Over"
-msgstr "Alpha über"
-
-
-msgctxt "Operator"
-msgid "Alpha Under"
-msgstr "Alpha unter"
-
-
-msgctxt "Operator"
-msgid "Color Mix"
-msgstr "Farbmix"
-
-
-msgctxt "Operator"
 msgid "Speed Control"
 msgstr "Geschwindigkeitskontrolle"
 
@@ -57019,6 +56697,11 @@ msgid "Stretch To Fill"
 msgstr "Strecken zum füllen"
 
 
+msgctxt "Operator"
+msgid "Copy Modifiers to Selection"
+msgstr "Kopiere Modifikator zur Selektrion"
+
+
 msgid "Tracker"
 msgstr "Verfolger"
 
@@ -57035,11 +56718,6 @@ msgstr "Clip"
 msgctxt "Operator"
 msgid "Move/Extend from Current Frame"
 msgstr "Bewege/Strecke von aktuellem Einzelbild"
-
-
-msgctxt "Operator"
-msgid "Copy Modifiers to Selection"
-msgstr "Kopiere Modifikator zur Selektrion"
 
 
 msgctxt "Operator"
@@ -57169,13 +56847,23 @@ msgstr "Datei: %s"
 
 
 msgctxt "Operator"
+msgid "Move Marker"
+msgstr "Marker bewegen"
+
+
+msgctxt "Operator"
 msgid "Duplicate Marker"
 msgstr "Marker duplizieren"
 
 
 msgctxt "Operator"
-msgid "Move Marker"
-msgstr "Marker bewegen"
+msgid "Jump to Previous Marker"
+msgstr "Springe zum vorherigen Marker"
+
+
+msgctxt "Operator"
+msgid "Jump to Next Marker"
+msgstr "Springe zum nächsten Marker"
 
 
 msgctxt "Operator"
@@ -57186,16 +56874,6 @@ msgstr "Marker der Szene duplizieren..."
 msgctxt "Operator"
 msgid "Duplicate Marker to Scene"
 msgstr "Marker der Szene duplizieren"
-
-
-msgctxt "Operator"
-msgid "Jump to Next Marker"
-msgstr "Springe zum nächsten Marker"
-
-
-msgctxt "Operator"
-msgid "Jump to Previous Marker"
-msgstr "Springe zum vorherigen Marker"
 
 
 msgid "Scrubbing"
@@ -57311,13 +56989,13 @@ msgstr "Animation anzeigen"
 
 
 msgctxt "Operator"
-msgid "Repeat History..."
-msgstr "Wiederholungsverlauf..."
+msgid "Adjust Last Operation..."
+msgstr "Einstellen der letzten Operation...."
 
 
 msgctxt "Operator"
-msgid "Adjust Last Operation..."
-msgstr "Einstellen der letzten Operation...."
+msgid "Repeat History..."
+msgstr "Wiederholungsverlauf..."
 
 
 msgctxt "Operator"
@@ -57406,16 +57084,6 @@ msgstr "Benutzergemeinden"
 
 
 msgctxt "Operator"
-msgid "Developer Community"
-msgstr "Entwicklergemeinde"
-
-
-msgctxt "Operator"
-msgid "Python API Reference"
-msgstr "Python-API-Referenz"
-
-
-msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Fehler melden"
 
@@ -57437,6 +57105,16 @@ msgstr "Wachsstift als PDF"
 msgctxt "Operator"
 msgid "Developer Documentation"
 msgstr "Entwicklerdokumentation"
+
+
+msgctxt "Operator"
+msgid "Developer Community"
+msgstr "Entwicklergemeinde"
+
+
+msgctxt "Operator"
+msgid "Python API Reference"
+msgstr "Python-API-Referenz"
 
 
 msgid "NLA Strip Name"
@@ -58616,10 +58294,6 @@ msgid "Zero Weights"
 msgstr "Null-Gewichtungen"
 
 
-msgid "Snap To"
-msgstr "Einrasten auf"
-
-
 msgctxt "Operator"
 msgid "Move Texture Space"
 msgstr "Texturraum verschieben"
@@ -59077,11 +58751,6 @@ msgstr "Zurückprojektieren"
 msgctxt "Operator"
 msgid "Set Active Camera"
 msgstr "Aktive Kamera einstellen"
-
-
-msgctxt "Operator"
-msgid "Assign to Group"
-msgstr "Zur Gruppe übertragen"
 
 
 msgctxt "Operator"
@@ -62028,10 +61697,6 @@ msgid "Driven Property:"
 msgstr "Steuerungs Einstellungen:"
 
 
-msgid "Add Modifier"
-msgstr "Modifikator hinzufügen"
-
-
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-Kurve die nur F-Modifikatoren haben"
 
@@ -62345,10 +62010,6 @@ msgid "). Click here to proceed..."
 msgstr "). Klicke hier um fortzufahren..."
 
 
-msgid "Cannot edit the path of an indirectly linked library"
-msgstr "Pfad der indirekt verknüpften Bibliothek kann nicht bearbeitet werden"
-
-
 msgid "No active item to rename"
 msgstr "Kein Aktives Element zum umbenennen"
 
@@ -62383,6 +62044,10 @@ msgstr "Aktuelle Datei"
 
 msgid "No Library Overrides"
 msgstr "Keine Bibliotheksüberschreibungen"
+
+
+msgid "Bone Groups"
+msgstr "Knochengruppen"
 
 
 msgid "(empty)"
@@ -63231,11 +62896,6 @@ msgid "Mesh has no VCol data"
 msgstr "Masche hat keine VCol Daten"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "Gruppe"
-
-
 msgid "Keying set could not be added"
 msgstr "Keying set konnte nicht hinzugefügt werden"
 
@@ -63447,6 +63107,10 @@ msgstr "Original ersetzten"
 
 msgid "Crease Edges"
 msgstr "Faltenkanten"
+
+
+msgid "Matte"
+msgstr "Maske"
 
 
 msgid "Fac"
@@ -63865,20 +63529,8 @@ msgid "Sheen Tint"
 msgstr "Schimmer-Färbung"
 
 
-msgid "Clearcoat"
-msgstr "Klarlack"
-
-
-msgid "Clearcoat Roughness"
-msgstr "Klarlack-Rauheit"
-
-
 msgid "Emission Strength"
 msgstr "Emissionsstärke"
-
-
-msgid "Clearcoat Normal"
-msgstr "Klarlack-Normale"
 
 
 msgid "View Vector"
@@ -64190,6 +63842,10 @@ msgstr "Streifen muss die selbe Länge haben"
 
 msgid "Strips were not compatible"
 msgstr "Streifen waren nicht kompatibel"
+
+
+msgid "Glow"
+msgstr "Glühen"
 
 
 msgid "Blur X"
@@ -64524,10 +64180,6 @@ msgid "Catalan (Català)"
 msgstr "Katalanisch (Català)"
 
 
-msgid "Czech (Český)"
-msgstr "Tschechisch (Český)"
-
-
 msgid "Portuguese (Português)"
 msgstr "Portugiesisch (Português)"
 
@@ -64614,10 +64266,6 @@ msgstr "Hebräisch (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Spanish from Spain (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

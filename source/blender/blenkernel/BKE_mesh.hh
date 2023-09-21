@@ -146,7 +146,6 @@ short2 lnor_space_custom_normal_to_data(const CornerNormalSpace &lnor_space,
  * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry
  * (splitting edges).
  *
- * \param loop_to_face_map: Optional pre-created map from corners to their face.
  * \param sharp_edges: Optional array of sharp edge tags, used to split the evaluated normals on
  * each side of the edge.
  * \param r_lnors_spacearr: Optional return data filled with information about the custom
@@ -204,6 +203,7 @@ void edges_sharp_from_angle_set(OffsetIndices<int> faces,
                                 Span<int> corner_verts,
                                 Span<int> corner_edges,
                                 Span<float3> face_normals,
+                                Span<int> loop_to_face,
                                 const bool *sharp_faces,
                                 const float split_angle,
                                 MutableSpan<bool> sharp_edges);
@@ -257,6 +257,15 @@ inline int2 face_find_adjecent_verts(const IndexRange face,
   const int corner = face_find_corner_from_vert(face, corner_verts, vert);
   return {corner_verts[face_corner_prev(face, corner)],
           corner_verts[face_corner_next(face, corner)]};
+}
+
+/**
+ * Return the number of triangles needed to tessellate a face with \a face_size corners.
+ */
+inline int face_triangles_num(const int face_size)
+{
+  BLI_assert(face_size > 2);
+  return face_size - 2;
 }
 
 /**

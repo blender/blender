@@ -14,7 +14,7 @@
 void main()
 {
   vec2 halfres_texel_size = 1.0 / vec2(textureSize(color_tx, 0).xy);
-  /* Center uv around the 4 halfres pixels. */
+  /* Center uv around the 4 half-resolution pixels. */
   vec2 quad_center = vec2(gl_GlobalInvocationID.xy * 2 + 1) * halfres_texel_size;
 
   vec4 colors[4];

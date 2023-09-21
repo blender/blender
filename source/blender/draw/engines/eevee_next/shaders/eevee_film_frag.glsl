@@ -7,25 +7,26 @@
 
 void main()
 {
-  ivec2 texel_film = ivec2(gl_FragCoord.xy);
+  ivec2 texel_film = ivec2(gl_FragCoord.xy) - uniform_buf.film.offset;
   float out_depth;
 
-  if (film_buf.display_only) {
+  if (uniform_buf.film.display_only) {
     out_depth = imageLoad(depth_img, texel_film).r;
 
-    if (film_buf.display_id == -1) {
+    if (uniform_buf.film.display_id == -1) {
       out_color = texelFetch(in_combined_tx, texel_film, 0);
     }
-    else if (film_buf.display_storage_type == PASS_STORAGE_VALUE) {
-      out_color.rgb = imageLoad(value_accum_img, ivec3(texel_film, film_buf.display_id)).rrr;
+    else if (uniform_buf.film.display_storage_type == PASS_STORAGE_VALUE) {
+      out_color.rgb =
+          imageLoad(value_accum_img, ivec3(texel_film, uniform_buf.film.display_id)).rrr;
       out_color.a = 1.0;
     }
-    else if (film_buf.display_storage_type == PASS_STORAGE_COLOR) {
-      out_color = imageLoad(color_accum_img, ivec3(texel_film, film_buf.display_id));
+    else if (uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {
+      out_color = imageLoad(color_accum_img, ivec3(texel_film, uniform_buf.film.display_id));
     }
     else /* PASS_STORAGE_CRYPTOMATTE */ {
       out_color = cryptomatte_false_color(
-          imageLoad(cryptomatte_img, ivec3(texel_film, film_buf.display_id)).r);
+          imageLoad(cryptomatte_img, ivec3(texel_film, uniform_buf.film.display_id)).r);
     }
   }
   else {

@@ -14,15 +14,15 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
+
 #include "PIL_time.h"
 
 #include "BKE_global.h"
 #include "BKE_image_wrappers.hh"
-
-#include "bmesh.h"
 
 #include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"

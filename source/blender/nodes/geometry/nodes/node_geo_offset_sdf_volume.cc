@@ -14,7 +14,6 @@
 
 #include "DNA_node_types.h"
 
-#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "UI_interface.hh"
@@ -29,13 +28,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       .translation_context(BLT_I18NCONTEXT_ID_ID);
   b.add_input<decl::Float>("Distance").default_value(0.1f).subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
-}
-
-static void search_node_add_ops(GatherAddNodeSearchParams &params)
-{
-  if (U.experimental.use_new_volume_nodes) {
-    blender::nodes::search_node_add_ops_for_basic_node(params);
-  }
 }
 
 static void search_link_ops(GatherLinkSearchOpParams &params)
@@ -94,7 +86,6 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_OFFSET_SDF_VOLUME, "Offset SDF Volume", NODE_CLASS_GEOMETRY);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.gather_add_node_search_ops = search_node_add_ops;
   ntype.gather_link_search_ops = search_link_ops;
   nodeRegisterType(&ntype);
 }

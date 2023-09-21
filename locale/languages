@@ -19,7 +19,7 @@
 47:Slovak (Slovenčina):sk_SK
 #
 0:In Progress:
-11:Czech (Český):cs_CZ
+11:Czech (Čeština):cs_CZ
 5:German (Deutsch):de_DE
 4:Italian (Italiano):it_IT
 48:Georgian (ქართული):ka
@@ -29,8 +29,8 @@
 15:Russian (Русский):ru_RU
 18:Ukrainian (Українська):uk_UA
 41:Vietnamese (Tiếng Việt):vi_VN
-13:Simplified Chinese (简体中文):zh_CN
-14:Traditional Chinese (繁體中文):zh_TW
+13:Simplified Chinese (简体中文):zh_HANS
+14:Traditional Chinese (繁體中文):zh_HANT
 #
 0:Starting:
 45:Abkhaz (Аԥсуа бызшәа):ab
@@ -39,7 +39,6 @@
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #22:Bulgarian (Български):bg_BG
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #23:Greek (Ελληνικά):el_GR
 35:Esperanto (Esperanto):eo
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #36:Spanish from Spain (Español de España):es_ES
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #34:Estonian (Eesti keel):et_EE
 42:Basque (Euskara):eu_EU
 26:Persian (ﯽﺳﺭﺎﻓ):fa_IR
@@ -61,5 +60,5 @@
 7:Swedish (Svenska):sv_SE
 46:Thai (ภาษาไทย):th_TH
 30:Turkish (Türkçe):tr_TR
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #38:Uzbek (Oʻzbek):uz_UZ
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #39:Uzbek Cyrillic (Ўзбек):uz_UZ@cyrillic
+# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #38:Uzbek (Oʻzbek):uz_UZ@latin

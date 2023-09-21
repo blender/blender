@@ -1907,7 +1907,7 @@ void ED_operatortypes_marker()
 
 void ED_keymap_marker(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Markers", 0, 0);
+  WM_keymap_ensure(keyconf, "Markers", SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
 
 /** \} */

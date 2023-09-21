@@ -41,7 +41,7 @@
 #include "WM_api.hh"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 static float draw_offset_get(const View2D *timeline_region_v2d)
 {
@@ -109,8 +109,7 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
   SeqTimelineChannel *channel = SEQ_channel_get_by_index(context->channels, channel_index);
   const int icon = SEQ_channel_is_muted(channel) ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT;
 
-  PointerRNA ptr;
-  RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel);
   PropertyRNA *hide_prop = RNA_struct_type_find_property(&RNA_SequenceTimelineChannel, "mute");
 
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
@@ -150,8 +149,7 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
   SeqTimelineChannel *channel = SEQ_channel_get_by_index(context->channels, channel_index);
   const int icon = SEQ_channel_is_locked(channel) ? ICON_LOCKED : ICON_UNLOCKED;
 
-  PointerRNA ptr;
-  RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel, &ptr);
+  PointerRNA ptr = RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel);
   PropertyRNA *hide_prop = RNA_struct_type_find_property(&RNA_SequenceTimelineChannel, "lock");
 
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
@@ -228,8 +226,8 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
 
   if (channel_is_being_renamed(sseq, channel_index)) {
     SeqTimelineChannel *channel = SEQ_channel_get_by_index(context->channels, channel_index);
-    PointerRNA ptr = {nullptr};
-    RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel, &ptr);
+    PointerRNA ptr = RNA_pointer_create(
+        &context->scene->id, &RNA_SequenceTimelineChannel, channel);
     PropertyRNA *prop = RNA_struct_name_property(ptr.type);
 
     UI_block_emboss_set(block, UI_EMBOSS);

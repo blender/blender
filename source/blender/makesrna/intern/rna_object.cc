@@ -861,6 +861,13 @@ static void rna_Object_dup_collection_set(PointerRNA *ptr,
   }
 }
 
+static void rna_Object_vertex_groups_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+{
+  Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
+  WM_main_add_notifier(NC_GEOM | ND_VERTEX_GROUP, ob->data);
+  rna_Object_internal_update_data_impl(ptr);
+}
+
 static void rna_Object_vertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Object *ob = static_cast<Object *>(ptr->data);
@@ -1485,13 +1492,12 @@ static void rna_Object_material_slots_next(CollectionPropertyIterator *iter)
 
 static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter)
 {
-  PointerRNA ptr;
   ID *id = static_cast<ID *>(iter->internal.count.ptr);
-  RNA_pointer_create(id,
-                     &RNA_MaterialSlot,
-                     /* Add offset, so that `ptr->data` is not null and unique across IDs. */
-                     (void *)(iter->internal.count.item + uintptr_t(id)),
-                     &ptr);
+  PointerRNA ptr = RNA_pointer_create(
+      id,
+      &RNA_MaterialSlot,
+      /* Add offset, so that `ptr->data` is not null and unique across IDs. */
+      (void *)(iter->internal.count.item + uintptr_t(id)));
   return ptr;
 }
 
@@ -1551,14 +1557,13 @@ static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   Key *key = BKE_key_from_object(ob);
   KeyBlock *kb;
-  PointerRNA keyptr;
 
   if (key == nullptr) {
     return PointerRNA_NULL;
   }
 
   kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1));
-  RNA_pointer_create(reinterpret_cast<ID *>(key), &RNA_ShapeKey, kb, &keyptr);
+  PointerRNA keyptr = RNA_pointer_create(reinterpret_cast<ID *>(key), &RNA_ShapeKey, kb);
   return keyptr;
 }
 
@@ -2236,7 +2241,7 @@ static int rna_Object_mesh_symmetry_yz_editable(PointerRNA *ptr, const char ** /
 
   const Mesh *mesh = static_cast<Mesh *>(ob->data);
   if (ob->mode == OB_MODE_WEIGHT_PAINT && mesh->editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) {
-    /* Only X symmetry is available in weightpaint mode. */
+    /* Only X symmetry is available in weight-paint mode. */
     return 0;
   }
 
@@ -2275,10 +2280,8 @@ static char *rna_ObjectLightLinking_path(const PointerRNA * /*ptr*/)
 static PointerRNA rna_LightLinking_receiver_collection_get(PointerRNA *ptr)
 {
   Object *object = reinterpret_cast<Object *>(ptr->owner_id);
-  PointerRNA collection_ptr;
-  RNA_id_pointer_create(
-      reinterpret_cast<ID *>(BKE_light_linking_collection_get(object, LIGHT_LINKING_RECEIVER)),
-      &collection_ptr);
+  PointerRNA collection_ptr = RNA_id_pointer_create(
+      reinterpret_cast<ID *>(BKE_light_linking_collection_get(object, LIGHT_LINKING_RECEIVER)));
   return collection_ptr;
 }
 
@@ -2295,10 +2298,8 @@ static void rna_LightLinking_receiver_collection_set(PointerRNA *ptr,
 static PointerRNA rna_LightLinking_blocker_collection_get(PointerRNA *ptr)
 {
   Object *object = reinterpret_cast<Object *>(ptr->owner_id);
-  PointerRNA collection_ptr;
-  RNA_id_pointer_create(
-      reinterpret_cast<ID *>(BKE_light_linking_collection_get(object, LIGHT_LINKING_BLOCKER)),
-      &collection_ptr);
+  PointerRNA collection_ptr = RNA_id_pointer_create(
+      reinterpret_cast<ID *>(BKE_light_linking_collection_get(object, LIGHT_LINKING_BLOCKER)));
   return collection_ptr;
 }
 
@@ -2750,7 +2751,7 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
                                  nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Active Vertex Group", "Vertex groups of the object");
-  RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_Object_internal_update_data");
+  RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_Object_vertex_groups_update");
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -2760,7 +2761,7 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
                              "rna_Object_active_vertex_group_index_range");
   RNA_def_property_ui_text(
       prop, "Active Vertex Group Index", "Active index in vertex group array");
-  RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_Object_internal_update_data");
+  RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_Object_vertex_groups_update");
 
   /* vertex groups */ /* add_vertex_group */
   func = RNA_def_function(srna, "new", "rna_Object_vgroup_new");

@@ -46,13 +46,12 @@ enum eNodeTreeChangedFlag {
   NTREE_CHANGED_ANY = (1 << 1),
   NTREE_CHANGED_NODE_PROPERTY = (1 << 2),
   NTREE_CHANGED_NODE_OUTPUT = (1 << 3),
-  NTREE_CHANGED_INTERFACE = (1 << 4),
-  NTREE_CHANGED_LINK = (1 << 5),
-  NTREE_CHANGED_REMOVED_NODE = (1 << 6),
-  NTREE_CHANGED_REMOVED_SOCKET = (1 << 7),
-  NTREE_CHANGED_SOCKET_PROPERTY = (1 << 8),
-  NTREE_CHANGED_INTERNAL_LINK = (1 << 9),
-  NTREE_CHANGED_PARENT = (1 << 10),
+  NTREE_CHANGED_LINK = (1 << 4),
+  NTREE_CHANGED_REMOVED_NODE = (1 << 5),
+  NTREE_CHANGED_REMOVED_SOCKET = (1 << 6),
+  NTREE_CHANGED_SOCKET_PROPERTY = (1 << 7),
+  NTREE_CHANGED_INTERNAL_LINK = (1 << 8),
+  NTREE_CHANGED_PARENT = (1 << 9),
   NTREE_CHANGED_ALL = -1,
 };
 
@@ -161,6 +160,12 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
   }
 
   return -1;
+}
+
+/* Check both the tree's own tags and the interface tags. */
+static bool is_tree_changed(const bNodeTree &tree)
+{
+  return tree.runtime->changed_flag != NTREE_CHANGED_NOTHING || tree.tree_interface.is_changed();
 }
 
 using TreeNodePair = std::pair<bNodeTree *, bNode *>;
@@ -296,7 +301,7 @@ class NodeTreeMainUpdater {
   {
     Vector<bNodeTree *> changed_ntrees;
     FOREACH_NODETREE_BEGIN (bmain_, ntree, id) {
-      if (ntree->runtime->changed_flag != NTREE_CHANGED_NOTHING) {
+      if (is_tree_changed(*ntree)) {
         changed_ntrees.append(ntree);
       }
     }
@@ -314,7 +319,7 @@ class NodeTreeMainUpdater {
 
     if (root_ntrees.size() == 1) {
       bNodeTree *ntree = root_ntrees[0];
-      if (ntree->runtime->changed_flag == NTREE_CHANGED_NOTHING) {
+      if (!is_tree_changed(*ntree)) {
         return;
       }
       const TreeUpdateResult result = this->update_tree(*ntree);
@@ -327,7 +332,7 @@ class NodeTreeMainUpdater {
     if (!is_single_tree_update) {
       Vector<bNodeTree *> ntrees_in_order = this->get_tree_update_order(root_ntrees);
       for (bNodeTree *ntree : ntrees_in_order) {
-        if (ntree->runtime->changed_flag == NTREE_CHANGED_NOTHING) {
+        if (!is_tree_changed(*ntree)) {
           continue;
         }
         if (!update_result_by_tree_.contains(ntree)) {
@@ -503,9 +508,7 @@ class NodeTreeMainUpdater {
       ntreeTexCheckCyclics(&ntree);
     }
 
-    if (ntree.runtime->changed_flag & NTREE_CHANGED_INTERFACE ||
-        ntree.runtime->changed_flag & NTREE_CHANGED_ANY)
-    {
+    if (ntree.tree_interface.is_changed()) {
       result.interface_changed = true;
     }
 
@@ -579,25 +582,15 @@ class NodeTreeMainUpdater {
       /* Currently we have no way to tell if a node needs to be updated when a link changed. */
       return true;
     }
-    if (ntree.runtime->changed_flag & NTREE_CHANGED_INTERFACE) {
+    if (ntree.tree_interface.is_changed()) {
       if (ELEM(node.type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
         return true;
       }
     }
     /* Check paired simulation zone nodes. */
-    if (node.type == GEO_NODE_SIMULATION_INPUT) {
-      const NodeGeometrySimulationInput *data = static_cast<const NodeGeometrySimulationInput *>(
-          node.storage);
-      if (const bNode *output_node = ntree.node_by_id(data->output_node_id)) {
-        if (output_node->runtime->changed_flag & NTREE_CHANGED_NODE_PROPERTY) {
-          return true;
-        }
-      }
-    }
-    if (node.type == GEO_NODE_REPEAT_INPUT) {
-      const NodeGeometryRepeatInput *data = static_cast<const NodeGeometryRepeatInput *>(
-          node.storage);
-      if (const bNode *output_node = ntree.node_by_id(data->output_node_id)) {
+    if (all_zone_input_node_types().contains(node.type)) {
+      const bNodeZoneType &zone_type = *zone_type_by_node_type(node.type);
+      if (const bNode *output_node = zone_type.get_corresponding_output(ntree, node)) {
         if (output_node->runtime->changed_flag & NTREE_CHANGED_NODE_PROPERTY) {
           return true;
         }
@@ -716,8 +709,7 @@ class NodeTreeMainUpdater {
   {
     /* Don't trigger preview removal when only those flags are set. */
     const uint32_t allowed_flags = NTREE_CHANGED_LINK | NTREE_CHANGED_SOCKET_PROPERTY |
-                                   NTREE_CHANGED_NODE_PROPERTY | NTREE_CHANGED_NODE_OUTPUT |
-                                   NTREE_CHANGED_INTERFACE;
+                                   NTREE_CHANGED_NODE_PROPERTY | NTREE_CHANGED_NODE_OUTPUT;
     if ((ntree.runtime->changed_flag & allowed_flags) == ntree.runtime->changed_flag) {
       return;
     }
@@ -1243,6 +1235,8 @@ class NodeTreeMainUpdater {
         socket->runtime->changed_flag = NTREE_CHANGED_NOTHING;
       }
     }
+
+    ntree.tree_interface.reset_changed_flags();
   }
 };
 
@@ -1340,11 +1334,6 @@ void BKE_ntree_update_tag_active_output_changed(bNodeTree *ntree)
 void BKE_ntree_update_tag_missing_runtime_data(bNodeTree *ntree)
 {
   add_tree_tag(ntree, NTREE_CHANGED_ALL);
-}
-
-void BKE_ntree_update_tag_interface(bNodeTree *ntree)
-{
-  add_tree_tag(ntree, NTREE_CHANGED_INTERFACE);
 }
 
 void BKE_ntree_update_tag_parent_change(bNodeTree *ntree, bNode *node)

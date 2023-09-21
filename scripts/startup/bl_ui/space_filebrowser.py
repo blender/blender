@@ -24,7 +24,7 @@ class FILEBROWSER_HT_header(Header):
 
         layout.separator_spacer()
 
-        if params.asset_library_ref not in {'LOCAL', 'ESSENTIALS'}:
+        if params.asset_library_reference not in {'LOCAL', 'ESSENTIALS'}:
             layout.prop(params, "import_type", text="")
 
         layout.separator_spacer()
@@ -709,58 +709,58 @@ class ASSETBROWSEROLD_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
     bl_options = {'HIDE_HEADER'}
 
     @staticmethod
-    def metadata_prop(layout, asset_data, propname):
+    def metadata_prop(layout, asset_metadata, propname):
         """
         Only display properties that are either set or can be modified (i.e. the
         asset is in the current file). Empty, non-editable fields are not really useful.
         """
-        if getattr(asset_data, propname) or not asset_data.is_property_readonly(propname):
-            layout.prop(asset_data, propname)
+        if getattr(asset_metadata, propname) or not asset_metadata.is_property_readonly(propname):
+            layout.prop(asset_metadata, propname)
 
     def draw(self, context):
         layout = self.layout
         wm = context.window_manager
-        asset_file_handle = context.asset_file_handle
+        asset = context.asset
 
-        if asset_file_handle is None:
+        if asset is None:
             layout.label(text="No active asset", icon='INFO')
             return
 
         prefs = context.preferences
         show_asset_debug_info = prefs.view.show_developer_ui and prefs.experimental.show_asset_debug_info
-        is_local_asset = bool(asset_file_handle.local_id)
+        is_local_asset = bool(asset.local_id)
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
         if is_local_asset:
             # If the active file is an ID, use its name directly so renaming is possible from right here.
-            layout.prop(asset_file_handle.local_id, "name")
+            layout.prop(asset.local_id, "name")
 
             if show_asset_debug_info:
                 col = layout.column(align=True)
                 col.label(text="Asset Catalog:")
-                col.prop(asset_file_handle.local_id.asset_data, "catalog_id", text="UUID")
-                col.prop(asset_file_handle.local_id.asset_data, "catalog_simple_name", text="Simple Name")
+                col.prop(asset.local_id.asset_data, "catalog_id", text="UUID")
+                col.prop(asset.local_id.asset_data, "catalog_simple_name", text="Simple Name")
         else:
-            layout.prop(asset_file_handle, "name")
+            layout.prop(asset, "name")
 
             if show_asset_debug_info:
                 col = layout.column(align=True)
                 col.enabled = False
                 col.label(text="Asset Catalog:")
-                col.prop(asset_file_handle.asset_data, "catalog_id", text="UUID")
-                col.prop(asset_file_handle.asset_data, "catalog_simple_name", text="Simple Name")
+                col.prop(asset.metadata, "catalog_id", text="UUID")
+                col.prop(asset.metadata, "catalog_simple_name", text="Simple Name")
 
         row = layout.row(align=True)
         row.prop(wm, "asset_path_dummy", text="Source", icon='CURRENT_FILE' if is_local_asset else 'NONE')
         row.operator("asset.open_containing_blend_file", text="", icon='TOOL_SETTINGS')
 
-        asset_data = asset_file_handle.asset_data
-        self.metadata_prop(layout, asset_data, "description")
-        self.metadata_prop(layout, asset_data, "license")
-        self.metadata_prop(layout, asset_data, "copyright")
-        self.metadata_prop(layout, asset_data, "author")
+        metadata = asset.metadata
+        self.metadata_prop(layout, metadata, "description")
+        self.metadata_prop(layout, metadata, "license")
+        self.metadata_prop(layout, metadata, "copyright")
+        self.metadata_prop(layout, metadata, "author")
 
 
 class ASSETBROWSEROLD_PT_metadata_preview(asset_utils.AssetMetaDataPanelOLD, Panel):
@@ -849,10 +849,10 @@ classes = (
     FILEBROWSER_PT_display,
     FILEBROWSER_PT_filter,
     FILEBROWSER_UL_dir,
-    FILEBROWSER_PT_bookmarks_volumes,
-    FILEBROWSER_PT_bookmarks_system,
     FILEBROWSER_MT_bookmarks_context_menu,
     FILEBROWSER_PT_bookmarks_favorites,
+    FILEBROWSER_PT_bookmarks_system,
+    FILEBROWSER_PT_bookmarks_volumes,
     FILEBROWSER_PT_bookmarks_recents,
     FILEBROWSER_PT_advanced_filter,
     FILEBROWSER_PT_directory_path,
@@ -877,14 +877,14 @@ classes = (
 
 
 def asset_path_str_get(_self):
-    asset_file_handle = bpy.context.asset_file_handle
-    if asset_file_handle is None:
+    asset = bpy.context.asset
+    if asset is None:
         return ""
 
-    if asset_file_handle.local_id:
+    if asset.local_id:
         return "Current File"
 
-    return bpy.types.AssetHandle.get_full_library_path(asset_file_handle)
+    return asset.full_library_path
 
 
 def register_props():

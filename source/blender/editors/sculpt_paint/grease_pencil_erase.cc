@@ -118,11 +118,11 @@ struct EraseOperationExecutor {
     float factor = -1.0f;
 
     /* True if the intersection corresponds to an inside/outside transition with respect to the
-     * circle, false if it corresponds to an outside/inside transition . */
+     * circle, false if it corresponds to an outside/inside transition. */
     bool inside_outside_intersection = false;
 
-    /* An intersection is considered valid if it lies inside of the segment, i.e. if its factor is
-     * in (0,1)*/
+    /* An intersection is considered valid if it lies inside of the segment, i.e.
+     * if its factor is in (0,1). */
     bool is_valid() const
     {
       return IN_RANGE(factor, 0.0f, 1.0f);
@@ -376,7 +376,6 @@ struct EraseOperationExecutor {
    * source geometry, with the given \a factor.
    * A point in the destination is a \a cut if it splits the source curves geometry, meaning it is
    * the first point of a new curve in the destination.
-   *
    */
   struct PointTransferData {
     int src_point;

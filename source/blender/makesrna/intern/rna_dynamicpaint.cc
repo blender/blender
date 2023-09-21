@@ -909,6 +909,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "proximity_falloff");
   RNA_def_property_enum_items(prop, prop_dynamicpaint_prox_falloff);
   RNA_def_property_ui_text(prop, "Falloff", "Proximity falloff type");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 
   prop = RNA_def_property(srna, "use_proximity_project", PROP_BOOLEAN, PROP_NONE);

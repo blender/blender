@@ -294,15 +294,15 @@ int ANIM_add_driver_with_target(ReportList *reports,
                                 int driver_type,
                                 short mapping_type)
 {
-  PointerRNA id_ptr, ptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
 
-  PointerRNA id_ptr2, ptr2;
+  PointerRNA ptr2;
   PropertyRNA *prop2;
   int done_tot = 0;
 
   /* validate pointers first - exit if failure */
-  RNA_id_pointer_create(dst_id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(dst_id);
   if (RNA_path_resolve_property(&id_ptr, dst_path, &ptr, &prop) == false) {
     BKE_reportf(
         reports,
@@ -313,7 +313,7 @@ int ANIM_add_driver_with_target(ReportList *reports,
     return 0;
   }
 
-  RNA_id_pointer_create(src_id, &id_ptr2);
+  PointerRNA id_ptr2 = RNA_id_pointer_create(src_id);
   if ((RNA_path_resolve_property(&id_ptr2, src_path, &ptr2, &prop2) == false) ||
       (mapping_type == CREATEDRIVER_MAPPING_NONE))
   {
@@ -400,14 +400,14 @@ int ANIM_add_driver_with_target(ReportList *reports,
 int ANIM_add_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short flag, int type)
 {
-  PointerRNA id_ptr, ptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
   FCurve *fcu;
   int array_index_max;
   int done_tot = 0;
 
   /* validate pointer first - exit if failure */
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
     BKE_reportf(
         reports,
@@ -591,12 +591,12 @@ bool ANIM_driver_can_paste()
 bool ANIM_copy_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short /*flag*/)
 {
-  PointerRNA id_ptr, ptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
   FCurve *fcu;
 
   /* validate pointer first - exit if failure */
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -639,12 +639,12 @@ bool ANIM_copy_driver(
 bool ANIM_paste_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short /*flag*/)
 {
-  PointerRNA id_ptr, ptr;
+  PointerRNA ptr;
   PropertyRNA *prop;
   FCurve *fcu;
 
   /* validate pointer first - exit if failure */
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
     BKE_reportf(
         reports,

@@ -8,7 +8,7 @@
 
 #include "BLI_timeit.hh"
 
-#include "IO_stl.h"
+#include "IO_stl.hh"
 #include "stl_import.hh"
 
 void STL_import(bContext *C, const STLImportParams *import_params)

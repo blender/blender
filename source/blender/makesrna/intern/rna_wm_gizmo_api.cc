@@ -11,6 +11,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_report.h"
 
 #include "RNA_define.hh"
@@ -151,8 +153,11 @@ static PointerRNA rna_gizmo_target_set_operator(wmGizmo *gz,
 
   ot = WM_operatortype_find(opname, false); /* print error next */
   if (!ot || !ot->srna) {
-    BKE_reportf(
-        reports, RPT_ERROR, "%s '%s'", ot ? "unknown operator" : "operator missing srna", opname);
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "%s '%s'",
+                ot ? TIP_("unknown operator") : TIP_("operator missing srna"),
+                opname);
     return PointerRNA_NULL;
   }
 

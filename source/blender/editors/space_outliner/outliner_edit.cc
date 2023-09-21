@@ -306,7 +306,10 @@ static void do_item_rename(ARegion *region,
 {
   bool add_textbut = false;
 
-  /* can't rename rna datablocks entries or listbases */
+  /* FIXME: These info messages are often useless, they should be either reworded to be more
+   * informative for the user, or purely removed? */
+
+  /* Can't rename rna datablocks entries or listbases. */
   if (ELEM(tselem->type,
            TSE_ANIM_DATA,
            TSE_NLA,
@@ -315,48 +318,40 @@ static void do_item_rename(ARegion *region,
            TSE_MODIFIER_BASE,
            TSE_DRIVER_BASE,
            TSE_POSE_BASE,
-           TSE_POSEGRP_BASE,
            TSE_R_LAYER_BASE,
            TSE_SCENE_COLLECTION_BASE,
            TSE_VIEW_COLLECTION_BASE,
            TSE_LIBRARY_OVERRIDE_BASE,
+           TSE_BONE_COLLECTION_BASE,
            TSE_RNA_STRUCT,
            TSE_RNA_PROPERTY,
            TSE_RNA_ARRAY_ELEM,
            TSE_ID_BASE) ||
       ELEM(tselem->type, TSE_SCENE_OBJECTS_BASE, TSE_GENERIC_LABEL))
   {
-    BKE_report(reports, RPT_WARNING, "Not an editable name");
+    BKE_report(reports, RPT_INFO, "Not an editable name");
   }
   else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
-    BKE_report(reports, RPT_WARNING, "Sequence names are not editable from the Outliner");
+    BKE_report(reports, RPT_INFO, "Sequence names are not editable from the Outliner");
   }
   else if (TSE_IS_REAL_ID(tselem) && ID_IS_LINKED(tselem->id)) {
-    BKE_report(reports, RPT_WARNING, "External library data is not editable");
+    BKE_report(reports, RPT_INFO, "External library data is not editable");
   }
   else if (TSE_IS_REAL_ID(tselem) && ID_IS_OVERRIDE_LIBRARY(tselem->id)) {
-    BKE_report(reports, RPT_WARNING, "Overridden data-blocks are not editable");
+    BKE_report(reports, RPT_INFO, "Overridden data-blocks names are not editable");
   }
   else if (outliner_is_collection_tree_element(te)) {
     Collection *collection = outliner_collection_from_tree_element(te);
 
     if (collection->flag & COLLECTION_IS_MASTER) {
-      BKE_report(reports, RPT_WARNING, "Not an editable name");
+      BKE_report(reports, RPT_INFO, "Not an editable name");
     }
     else {
       add_textbut = true;
     }
   }
   else if (te->idcode == ID_LI) {
-    if (reinterpret_cast<Library *>(tselem->id)->parent) {
-      BKE_report(reports, RPT_WARNING, "Cannot edit the path of an indirectly linked library");
-    }
-    else {
-      BKE_report(
-          reports,
-          RPT_WARNING,
-          "Library path is not editable from here anymore, use the Relocate operation instead");
-    }
+    BKE_report(reports, RPT_INFO, "Library path is not editable, use the Relocate operation");
   }
   else {
     add_textbut = true;
@@ -1656,7 +1651,7 @@ static void tree_element_to_path(TreeElement *te,
     /* get data */
     TreeElement *tem = (TreeElement *)ld->data;
     TreeElementRNACommon *tem_rna = tree_element_cast<TreeElementRNACommon>(tem);
-    PointerRNA ptr = tem_rna->getPointerRNA();
+    PointerRNA ptr = tem_rna->get_pointer_rna();
 
     /* check if we're looking for first ID, or appending to path */
     if (*id) {
@@ -1665,7 +1660,7 @@ static void tree_element_to_path(TreeElement *te,
        *   then free old path + swap them.
        */
       if (TreeElementRNAProperty *tem_rna_prop = tree_element_cast<TreeElementRNAProperty>(tem)) {
-        PropertyRNA *prop = tem_rna_prop->getPropertyRNA();
+        PropertyRNA *prop = tem_rna_prop->get_property_rna();
 
         if (RNA_property_type(prop) == PROP_POINTER) {
           /* for pointer we just append property name */
@@ -1675,7 +1670,7 @@ static void tree_element_to_path(TreeElement *te,
           char buf[128], *name;
 
           TreeElement *temnext = (TreeElement *)(ld->next->data);
-          PointerRNA nextptr = tree_element_cast<TreeElementRNACommon>(temnext)->getPointerRNA();
+          PointerRNA nextptr = tree_element_cast<TreeElementRNACommon>(temnext)->get_pointer_rna();
           name = RNA_struct_name_get_alloc(&nextptr, buf, sizeof(buf), nullptr);
 
           if (name) {
@@ -1733,7 +1728,7 @@ static void tree_element_to_path(TreeElement *te,
   /* step 3: if we've got an ID, add the current item to the path */
   if (*id) {
     /* add the active property to the path */
-    PropertyRNA *prop = tree_element_cast<TreeElementRNACommon>(te)->getPropertyRNA();
+    PropertyRNA *prop = tree_element_cast<TreeElementRNACommon>(te)->get_property_rna();
 
     /* array checks */
     if (tselem->type == TSE_RNA_ARRAY_ELEM) {
@@ -1794,8 +1789,8 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
     short groupmode = KSP_GROUP_KSNAME;
 
     TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
-    PointerRNA ptr = te_rna ? te_rna->getPointerRNA() : PointerRNA_NULL;
-    PropertyRNA *prop = te_rna ? te_rna->getPropertyRNA() : nullptr;
+    PointerRNA ptr = te_rna ? te_rna->get_pointer_rna() : PointerRNA_NULL;
+    PropertyRNA *prop = te_rna ? te_rna->get_property_rna() : nullptr;
 
     /* check if RNA-property described by this selected element is an animatable prop */
     if (prop && RNA_property_animateable(&ptr, prop)) {
@@ -1987,9 +1982,10 @@ static void do_outliner_keyingset_editop(SpaceOutliner *space_outliner,
 
     /* check if RNA-property described by this selected element is an animatable prop */
     const TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
-    PointerRNA ptr = te_rna->getPointerRNA();
-    if (te_rna && te_rna->getPropertyRNA() &&
-        RNA_property_animateable(&ptr, te_rna->getPropertyRNA())) {
+    PointerRNA ptr = te_rna->get_pointer_rna();
+    if (te_rna && te_rna->get_property_rna() &&
+        RNA_property_animateable(&ptr, te_rna->get_property_rna()))
+    {
       /* get id + path + index info from the selected element */
       tree_element_to_path(te, tselem, &id, &path, &array_index, &flag, &groupmode);
     }

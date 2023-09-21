@@ -8,7 +8,6 @@
  * Volumetric effects rendering using Frostbite's Physically-based & Unified Volumetric Rendering
  * approach.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite
- *
  */
 
 #include "DNA_volume_types.h"
@@ -23,7 +22,7 @@
 
 namespace blender::eevee {
 
-bool VolumeModule::GridAABB::init(Object *ob, const Camera &camera, const VolumesInfoDataBuf &data)
+bool VolumeModule::GridAABB::init(Object *ob, const Camera &camera, const VolumesInfoData &data)
 {
   /* Returns the unified volume grid cell index of a world space coordinate. */
   auto to_global_grid_coords = [&](float3 wP) -> int3 {
@@ -86,6 +85,9 @@ void VolumeModule::init()
   const float2 viewport_size = float2(inst_.film.render_extent_get());
   const int tile_size = scene_eval->eevee.volumetric_tile_size;
 
+  data_.tile_size = tile_size;
+  data_.tile_size_lod = int(log2(tile_size));
+
   /* Find Froxel Texture resolution. */
   int3 tex_size = int3(math::ceil(math::max(float2(1.0f), viewport_size / float(tile_size))), 0);
   tex_size.z = std::max(1, scene_eval->eevee.volumetric_samples);
@@ -147,15 +149,13 @@ void VolumeModule::begin_sync()
     data_.depth_distribution = 1.0f / (integration_end - integration_start);
   }
 
-  data_.push_update();
-
   enabled_ = inst_.world.has_volume();
 }
 
 void VolumeModule::sync_object(Object *ob,
                                ObjectHandle & /*ob_handle*/,
                                ResourceHandle res_handle,
-                               MaterialPass *material_pass /*= nullptr*/)
+                               MaterialPass *material_pass /*=nullptr*/)
 {
   float3 size = math::to_scale(float4x4(ob->object_to_world));
   /* Check if any of the axes have 0 length. (see #69070) */
@@ -254,21 +254,23 @@ void VolumeModule::end_sync()
   scatter_ps_.shader_set(inst_.shaders.static_shader_get(
       data_.use_lights ? VOLUME_SCATTER_WITH_LIGHTS : VOLUME_SCATTER));
   inst_.lights.bind_resources(&scatter_ps_);
+  inst_.irradiance_cache.bind_resources(&scatter_ps_);
   inst_.shadows.bind_resources(&scatter_ps_);
   inst_.sampling.bind_resources(&scatter_ps_);
   scatter_ps_.bind_image("in_scattering_img", &prop_scattering_tx_);
   scatter_ps_.bind_image("in_extinction_img", &prop_extinction_tx_);
+  scatter_ps_.bind_texture("extinction_tx", &prop_extinction_tx_);
   scatter_ps_.bind_image("in_emission_img", &prop_emission_tx_);
   scatter_ps_.bind_image("in_phase_img", &prop_phase_tx_);
   scatter_ps_.bind_image("out_scattering_img", &scatter_tx_);
   scatter_ps_.bind_image("out_extinction_img", &extinction_tx_);
   /* Sync with the property pass. */
-  scatter_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  scatter_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
   scatter_ps_.dispatch(math::divide_ceil(data_.tex_size, int3(VOLUME_GROUP_SIZE)));
 
   integration_ps_.init();
   integration_ps_.shader_set(inst_.shaders.static_shader_get(VOLUME_INTEGRATION));
-  integration_ps_.bind_ubo(VOLUMES_INFO_BUF_SLOT, data_);
+  inst_.bind_uniform_data(&integration_ps_);
   integration_ps_.bind_texture("in_scattering_tx", &scatter_tx_);
   integration_ps_.bind_texture("in_extinction_tx", &extinction_tx_);
   integration_ps_.bind_image("out_scattering_img", &integrated_scatter_tx_);
@@ -281,13 +283,23 @@ void VolumeModule::end_sync()
   resolve_ps_.init();
   resolve_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
   resolve_ps_.shader_set(inst_.shaders.static_shader_get(VOLUME_RESOLVE));
+  inst_.bind_uniform_data(&resolve_ps_);
   bind_resources(resolve_ps_);
   resolve_ps_.bind_texture("depth_tx", &inst_.render_buffers.depth_tx);
-  resolve_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
   resolve_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
   /* Sync with the integration pass. */
   resolve_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
   resolve_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+}
+
+void VolumeModule::draw_prepass(View &view)
+{
+  if (!enabled_) {
+    return;
+  }
+
+  inst_.pipelines.world_volume.render(view);
+  inst_.pipelines.volume.render(view);
 }
 
 void VolumeModule::draw_compute(View &view)
@@ -296,16 +308,8 @@ void VolumeModule::draw_compute(View &view)
     return;
   }
 
-  DRW_stats_group_start("Volumes");
-
-  inst_.pipelines.world_volume.render(view);
-  inst_.pipelines.volume.render(view);
-
   inst_.manager->submit(scatter_ps_, view);
-
   inst_.manager->submit(integration_ps_, view);
-
-  DRW_stats_group_end();
 }
 
 void VolumeModule::draw_resolve(View &view)

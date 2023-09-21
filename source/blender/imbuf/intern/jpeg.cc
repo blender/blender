@@ -352,10 +352,13 @@ static ImBuf *ibJpegImageFromCinfo(
         }
 
         /*
-         * JPEG marker strings are not null-terminated,
-         * create a null-terminated copy before going further
-         */
-        str = BLI_strdupn((char *)marker->data, marker->data_length);
+         * JPEG marker strings are not meant to be null-terminated,
+         * create a null-terminated copy before going further.
+         *
+         * Files saved from Blender pre v4.0 were null terminated,
+         * use `BLI_strnlen` to prevent assertion on passing in too short a string. */
+        str = BLI_strdupn((const char *)marker->data,
+                          BLI_strnlen((const char *)marker->data, marker->data_length));
 
         /*
          * Because JPEG format don't support the
@@ -418,12 +421,12 @@ static ImBuf *ibJpegImageFromCinfo(
       /* Density_unit may be 0 for unknown, 1 for dots/inch, or 2 for dots/cm. */
       if (cinfo->density_unit == 1) {
         /* Convert inches to meters. */
-        ibuf->ppm[0] = cinfo->X_density / 0.0254f;
-        ibuf->ppm[1] = cinfo->Y_density / 0.0254f;
+        ibuf->ppm[0] = double(cinfo->X_density) / 0.0254;
+        ibuf->ppm[1] = double(cinfo->Y_density) / 0.0254;
       }
       else if (cinfo->density_unit == 2) {
-        ibuf->ppm[0] = cinfo->X_density * 100.0f;
-        ibuf->ppm[1] = cinfo->Y_density * 100.0f;
+        ibuf->ppm[0] = double(cinfo->X_density) * 100.0;
+        ibuf->ppm[1] = double(cinfo->Y_density) * 100.0;
       }
 
       ibuf->ftype = IMB_FTYPE_JPG;
@@ -575,13 +578,14 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
       if (prop->type == IDP_STRING) {
         int text_len;
         if (STREQ(prop->name, "None")) {
-          jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)IDP_String(prop), prop->len + 1);
+          jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)IDP_String(prop), prop->len);
         }
 
         char *text = static_text;
         int text_size = static_text_size;
         /* 7 is for Blender, 2 colon separators, length of property
-         * name and property value, followed by the nullptr-terminator. */
+         * name and property value, followed by the nullptr-terminator
+         * which isn't needed by JPEG but #BLI_snprintf_rlen requires it. */
         const int text_length_required = 7 + 2 + strlen(prop->name) + strlen(IDP_String(prop)) + 1;
         if (text_length_required <= static_text_size) {
           text = static_cast<char *>(MEM_mallocN(text_length_required, "jpeg metadata field"));
@@ -599,7 +603,8 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
          */
         text_len = BLI_snprintf_rlen(
             text, text_size, "Blender:%s:%s", prop->name, IDP_String(prop));
-        jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)text, text_len + 1);
+        /* Don't write the null byte (not expected by the JPEG format). */
+        jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)text, text_len);
 
         /* TODO(sergey): Ideally we will try to re-use allocation as
          * much as possible. In practice, such long fields don't happen

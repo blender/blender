@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -318,6 +318,161 @@ msgid "Edit persistent configuration settings"
 msgstr "การตั้งค่าของผู้ใช้"
 
 
+msgctxt "ID"
+msgid "Action"
+msgstr "Action"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "โครงร่าง"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "แปรง"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "ไฟล์แคช"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "กล้อง"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "ชุด"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "เส้นโค้ง"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "ฟอนต์"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "ภาพ"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "คีย์"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "ช่องตาข่าย"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "คลัง"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "แสง"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "สไตล์เส้น"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "หน้ากากหน้ากาก"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "วัสดุ"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "เมช"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "เมต้าบอล"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "คลิปภาพยนตร์"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "แผนผังโนด"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "วัตถุ"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "จานสี"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "อนุภาค"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "ฉาก"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "เสียง"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "ลำโพง"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "ข้อความ"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "พื้นผิว"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "ตัวจัดการหน้าต่าง"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "พื้นที่ใช้งาน"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "โลก"
+
+
 msgid "ID Name"
 msgstr "ชื่อ ID"
 
@@ -482,10 +637,6 @@ msgid "Head"
 msgstr "หัว"
 
 
-msgid "Layers"
-msgstr "ชั้น"
-
-
 msgid "Length"
 msgstr "ความยาว"
 
@@ -500,6 +651,10 @@ msgstr "หาง"
 
 msgid "Connected"
 msgstr "เชื่อมต่อกัน"
+
+
+msgid "Custom"
+msgstr "กำหนดเอง"
 
 
 msgid "Remove"
@@ -522,14 +677,6 @@ msgid "Vertex Color"
 msgstr "สีจุดยอด"
 
 
-msgid "Round"
-msgstr "มน"
-
-
-msgid "Flat"
-msgstr "ราบแบน"
-
-
 msgid "Normal"
 msgstr "แนวฉาก"
 
@@ -548,10 +695,6 @@ msgstr "ปากกา"
 
 msgid "Marker"
 msgstr "เครื่องหมาย"
-
-
-msgid "Smooth"
-msgstr "ราบเรียบ"
 
 
 msgid "Opacity"
@@ -794,161 +937,6 @@ msgid "Invert"
 msgstr "กลับค่า"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Action"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "โครงร่าง"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "แปรง"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "ไฟล์แคช"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "กล้อง"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "ชุด"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "เส้นโค้ง"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "ฟอนต์"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "ภาพ"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "คีย์"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "ช่องตาข่าย"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "คลัง"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "แสง"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "สไตล์เส้น"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "หน้ากากหน้ากาก"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "วัสดุ"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "เมช"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "เมต้าบอล"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "คลิปภาพยนตร์"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "แผนผังโนด"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "วัตถุ"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "จานสี"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "อนุภาค"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "ฉาก"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "เสียง"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "ลำโพง"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "ข้อความ"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "พื้นผิว"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "ตัวจัดการหน้าต่าง"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "พื้นที่ใช้งาน"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "โลก"
-
-
 msgid "Rotation Mode"
 msgstr "โหมดหมุน"
 
@@ -1116,14 +1104,6 @@ msgid "Miscellaneous"
 msgstr "เบ็ดเตล็ด"
 
 
-msgid "Medium"
-msgstr "ปานกลาง"
-
-
-msgid "Large"
-msgstr "ใหญ่"
-
-
 msgid "Show .blend files"
 msgstr "แสดงไฟล์ .blend"
 
@@ -1208,10 +1188,6 @@ msgid "Frames"
 msgstr "เฟรม"
 
 
-msgid "Custom"
-msgstr "กำหนดเอง"
-
-
 msgid "Grid"
 msgstr "ตาราง"
 
@@ -1238,6 +1214,10 @@ msgstr "กระจกสะท้อน"
 
 msgid "Subdivide"
 msgstr "แบ่งย่อย"
+
+
+msgid "Smooth"
+msgstr "ราบเรียบ"
 
 
 msgid "Shift"
@@ -1407,6 +1387,10 @@ msgid "Shift Y"
 msgstr "เลื่อน Y"
 
 
+msgid "Round"
+msgstr "มน"
+
+
 msgid "Dimensions"
 msgstr "มิติ"
 
@@ -1477,6 +1461,10 @@ msgstr "เรียงตาม"
 
 msgid "Grid Settings"
 msgstr "การตั้งค่าตะแกรง"
+
+
+msgid "Layers"
+msgstr "ชั้น"
 
 
 msgid "Selected"
@@ -1609,8 +1597,8 @@ msgid "Label"
 msgstr "ข้อความ"
 
 
-msgid "Outputs"
-msgstr "ผลลัพธ์"
+msgid "Interface"
+msgstr "อินเตอร์เฟส"
 
 
 msgid "Shader"
@@ -1631,6 +1619,10 @@ msgstr "สูง"
 
 msgid "High quality"
 msgstr "คุณภาพสูง"
+
+
+msgid "Medium"
+msgstr "ปานกลาง"
 
 
 msgid "Medium quality"
@@ -2044,10 +2036,6 @@ msgid "Add"
 msgstr "เพิ่ม"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
-
-
 msgid "Text"
 msgstr "ช้อความ"
 
@@ -2056,8 +2044,20 @@ msgid "Math"
 msgstr "คณิตศาสตร์"
 
 
+msgid "Keying"
+msgstr "คีย์"
+
+
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
 msgid "Node"
 msgstr "โนด"
+
+
+msgid "Add Modifier"
+msgstr "เพิ่มการปรับแต่ง"
 
 
 msgctxt "Operator"
@@ -2342,6 +2342,10 @@ msgid "Total"
 msgstr "รวม"
 
 
+msgid "Outputs"
+msgstr "ผลลัพธ์"
+
+
 msgid "YCbCr"
 msgstr "YCbCr"
 
@@ -2368,10 +2372,6 @@ msgstr "-1 คือ ภาพต้นฉบับเท่านั้น, 0 �
 
 msgid "Rotate 45"
 msgstr "หมุน 45"
-
-
-msgid "Keying"
-msgstr "คีย์"
 
 
 msgid "Red Channel"
@@ -2549,10 +2549,6 @@ msgstr "ซูมออก"
 msgctxt "Operator"
 msgid "Delete"
 msgstr "ลบ"
-
-
-msgid "Language"
-msgstr "ภาษา"
 
 
 msgctxt "Operator"
@@ -3155,10 +3151,6 @@ msgid "Redo Last"
 msgstr "ทำอีกครั้งล่าสุด"
 
 
-msgid "Interface"
-msgstr "อินเตอร์เฟส"
-
-
 msgid "Themes"
 msgstr "ธีม"
 
@@ -3178,6 +3170,16 @@ msgstr "เส้นทางไฟล์"
 msgctxt "Operator"
 msgid "Mask Filter"
 msgstr "กรองหน้ากาก"
+
+
+msgctxt "Sequence"
+msgid "Add"
+msgstr "เพิ่ม"
+
+
+msgctxt "Sequence"
+msgid "Transform"
+msgstr "การปรับเปลี่ยน"
 
 
 msgctxt "Operator"
@@ -3602,6 +3604,10 @@ msgid "Path to interface font"
 msgstr "ตำแหน่งไปยังฟอนต์อินเตอร์เฟส"
 
 
+msgid "Language"
+msgstr "ภาษา"
+
+
 msgid "Developer Extras"
 msgstr "เครื่องมือพิเศษสำหรับผู้พัฒนา"
 
@@ -3717,16 +3723,6 @@ msgstr "หน้ากาก"
 msgctxt "Sequence"
 msgid "Sound"
 msgstr "เสียง"
-
-
-msgctxt "Sequence"
-msgid "Add"
-msgstr "เพิ่ม"
-
-
-msgctxt "Sequence"
-msgid "Transform"
-msgstr "การปรับเปลี่ยน"
 
 
 msgid "Text color"
@@ -3860,6 +3856,10 @@ msgid "3D"
 msgstr "สามมิติ"
 
 
+msgid "Flat"
+msgstr "ราบแบน"
+
+
 msgid "Selected Text"
 msgstr "ข้อความที่ถูกเลือก"
 
@@ -3884,12 +3884,12 @@ msgid "Type of keyframes to create when inserting keyframes"
 msgstr "ชนิดของคีย์เฟรมที่จะสร้างเมื่อแทรกคีย์เฟรม"
 
 
-msgid "Snap Element"
-msgstr "ยึดตามส่วนประกอบ"
-
-
 msgid "Type of element to snap to"
 msgstr "ชนิดของส่วนประกอบที่จะยึดติด"
+
+
+msgid "Snap Element"
+msgstr "ยึดตามส่วนประกอบ"
 
 
 msgid "Snap to grid"
@@ -4323,11 +4323,6 @@ msgstr "พอดี"
 
 
 msgctxt "Operator"
-msgid "Search..."
-msgstr "ค้นหา..."
-
-
-msgctxt "Operator"
 msgid "Show"
 msgstr "แสดง"
 
@@ -4394,21 +4389,6 @@ msgstr "ข้อความ"
 msgctxt "Operator"
 msgid "Scene..."
 msgstr "ฉาก..."
-
-
-msgctxt "Operator"
-msgid "Subtract"
-msgstr "แบ่ง"
-
-
-msgctxt "Operator"
-msgid "Multiply"
-msgstr "ทวีคูณ"
-
-
-msgctxt "Operator"
-msgid "Color Mix"
-msgstr "สีผสม"
 
 
 msgctxt "Operator"
@@ -4510,13 +4490,13 @@ msgstr "ดูอนิเมชัน"
 
 
 msgctxt "Operator"
-msgid "Repeat History..."
-msgstr "ประวัติการทำซ้ำ..."
+msgid "Adjust Last Operation..."
+msgstr "ปรับตัวดำเนินการล่าสุด..."
 
 
 msgctxt "Operator"
-msgid "Adjust Last Operation..."
-msgstr "ปรับตัวดำเนินการล่าสุด..."
+msgid "Repeat History..."
+msgstr "ประวัติการทำซ้ำ..."
 
 
 msgctxt "Operator"
@@ -4590,16 +4570,6 @@ msgstr "ชุมชนผู้ใช้"
 
 
 msgctxt "Operator"
-msgid "Developer Community"
-msgstr "ชุมชนผู้พัฒนา"
-
-
-msgctxt "Operator"
-msgid "Python API Reference"
-msgstr "อ้างอิง API Python"
-
-
-msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "รายงานข้อผิดพลาด"
 
@@ -4607,6 +4577,16 @@ msgstr "รายงานข้อผิดพลาด"
 msgctxt "Operator"
 msgid "Developer Documentation"
 msgstr "เอกสารผู้พัฒนา"
+
+
+msgctxt "Operator"
+msgid "Developer Community"
+msgstr "ชุมชนผู้พัฒนา"
+
+
+msgctxt "Operator"
+msgid "Python API Reference"
+msgstr "อ้างอิง API Python"
 
 
 msgid "Splash Screen"
@@ -5010,11 +4990,6 @@ msgstr "ลิขสิทธิ์"
 
 
 msgctxt "Operator"
-msgid "Assign to Group"
-msgstr "ตั้งให้เป็นกลุ่ม"
-
-
-msgctxt "Operator"
 msgid "Delete Vertices"
 msgstr "ลบจุดยอด"
 
@@ -5352,10 +5327,6 @@ msgid "Cancel"
 msgstr "ยกเลิก"
 
 
-msgid "Add Modifier"
-msgstr "เพิ่มการปรับแต่ง"
-
-
 msgid " RGBA float"
 msgstr " ทศนิยม RGBA"
 
@@ -5518,11 +5489,6 @@ msgid "Overwrite %s"
 msgstr "เขียนทับ %s"
 
 
-msgctxt "Armature"
-msgid "Group"
-msgstr "กลุ่ม"
-
-
 msgid "%s '%s'"
 msgstr "%s '%s'"
 
@@ -5655,10 +5621,6 @@ msgid "Catalan (Català)"
 msgstr "ภาษากาตาลา (Català)"
 
 
-msgid "Czech (Český)"
-msgstr "ภาษาเช็ก (Český)"
-
-
 msgid "Portuguese (Português)"
 msgstr "ภาษาโปรตุเกส (Português)"
 
@@ -5741,10 +5703,6 @@ msgstr "ภาษาฮิบรู (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "ภาษาเอสเปรันโต (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "ภาษาสเปนจากประเทศสเปน (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

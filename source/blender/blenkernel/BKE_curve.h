@@ -50,6 +50,21 @@ typedef struct CVKeyIndex {
   bool switched;
 } CVKeyIndex;
 
+typedef enum eNurbHandleTest_Mode {
+  /** Read the selection from each handle. */
+  NURB_HANDLE_TEST_EACH = 1,
+  /**
+   * When the knot (center point) is selected treat the handles as selected too.
+   * Otherwise use the same behavior as #NURB_HANDLE_TEST_EACH.
+   */
+  NURB_HANDLE_TEST_KNOT_OR_EACH = 2,
+  /**
+   * When the knot is selected, treat all handles as selected, otherwise none.
+   * \note Typically used when handles are hidden.
+   */
+  NURB_HANDLE_TEST_KNOT_ONLY = 3,
+} eNurbHandleTest_Mode;
+
 #define KNOTSU(nu) \
   ((nu)->orderu + (nu)->pntsu + (((nu)->flagu & CU_NURB_CYCLIC) ? ((nu)->orderu - 1) : 0))
 #define KNOTSV(nu) \
@@ -197,7 +212,9 @@ void BKE_nurbList_duplicate(struct ListBase *lb1, const struct ListBase *lb2);
  * - 5: Set align, like 3 but no toggle.
  * - 6: Clear align (setting #HD_FREE), like 3 but no toggle.
  */
-void BKE_nurbList_handles_set(struct ListBase *editnurb, char code);
+void BKE_nurbList_handles_set(struct ListBase *editnurb,
+                              eNurbHandleTest_Mode handle_mode,
+                              char code);
 void BKE_nurbList_handles_recalculate(struct ListBase *editnurb, bool calc_length, uint8_t flag);
 
 void BKE_nurbList_handles_autocalc(ListBase *editnurb, uint8_t flag);
@@ -340,6 +357,15 @@ void BKE_nurb_handle_smooth_fcurve(struct BezTriple *bezt, int total, bool cycli
 
 void BKE_nurb_handles_calc(struct Nurb *nu);
 void BKE_nurb_handles_autocalc(struct Nurb *nu, uint8_t flag);
+
+/**
+ * Return a flag for the handles to treat as "selected":
+ * `1 << 0`, `1 << 1`, `1 << 2` map to handles 1 2 & 3.
+ */
+short BKE_nurb_bezt_handle_test_calc_flag(const BezTriple *bezt,
+                                          const eBezTriple_Flag__Alias sel_flag,
+                                          const eNurbHandleTest_Mode handle_mode);
+
 /**
  * Update selected handle types to ensure valid state, e.g. deduce "Auto" types to concrete ones.
  * Thereby \a sel_flag defines what qualifies as selected.
@@ -349,14 +375,15 @@ void BKE_nurb_handles_autocalc(struct Nurb *nu, uint8_t flag);
  *
  * \param sel_flag: The flag (bezt.f1/2/3) value to use to determine selection. Usually `SELECT`,
  * but may want to use a different one at times (if caller does not operate on * selection).
- * \param use_handle: Check selection state of individual handles, otherwise always update both
- * handles if the key is selected.
+ * \param handle_mode: Interpret the selection base on modes in #eNurbHandleTest_Mode.
  */
 void BKE_nurb_bezt_handle_test(struct BezTriple *bezt,
                                eBezTriple_Flag__Alias sel_flag,
-                               bool use_handle,
+                               const eNurbHandleTest_Mode handle_mode,
                                bool use_around_local);
-void BKE_nurb_handles_test(struct Nurb *nu, bool use_handles, bool use_around_local);
+void BKE_nurb_handles_test(struct Nurb *nu,
+                           eNurbHandleTest_Mode handle_mode,
+                           bool use_around_local);
 
 /* **** Depsgraph evaluation **** */
 

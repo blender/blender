@@ -5,6 +5,7 @@
 #include "COM_OutputFileMultiViewOperation.h"
 
 #include "BLI_fileops.h"
+#include "BLI_string.h"
 
 #include "BKE_image.h"
 #include "BKE_image_format.h"

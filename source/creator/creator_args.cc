@@ -663,7 +663,6 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-wintab");
   BLI_args_print_arg_doc(ba, "--debug-gpu");
   BLI_args_print_arg_doc(ba, "--debug-gpu-force-workarounds");
-  BLI_args_print_arg_doc(ba, "--debug-gpu-disable-ssbo");
   if (defs.with_renderdoc) {
     BLI_args_print_arg_doc(ba, "--debug-gpu-renderdoc");
   }
@@ -1113,9 +1112,6 @@ static const char arg_handle_debug_mode_generic_set_doc_depsgraph_uuid[] =
 static const char arg_handle_debug_mode_generic_set_doc_gpu_force_workarounds[] =
     "\n\t"
     "Enable workarounds for typical GPU issues and disable all GPU extensions.";
-static const char arg_handle_debug_mode_generic_set_doc_gpu_disable_ssbo[] =
-    "\n\t"
-    "Disable usage of shader storage buffer objects.";
 
 static int arg_handle_debug_mode_generic_set(int /*argc*/, const char ** /*argv*/, void *data)
 {
@@ -2480,11 +2476,6 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                "--debug-gpu-force-workarounds",
                CB_EX(arg_handle_debug_mode_generic_set, gpu_force_workarounds),
                (void *)G_DEBUG_GPU_FORCE_WORKAROUNDS);
-  BLI_args_add(ba,
-               nullptr,
-               "--debug-gpu-disable-ssbo",
-               CB_EX(arg_handle_debug_mode_generic_set, gpu_disable_ssbo),
-               (void *)G_DEBUG_GPU_FORCE_DISABLE_SSBO);
   BLI_args_add(ba, nullptr, "--debug-exit-on-error", CB(arg_handle_debug_exit_on_error), nullptr);
 
   BLI_args_add(ba, nullptr, "--verbose", CB(arg_handle_verbosity_set), nullptr);

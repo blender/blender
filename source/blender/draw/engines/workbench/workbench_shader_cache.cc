@@ -42,7 +42,7 @@ GPUShader *ShaderCache::prepass_shader_get(ePipelineType pipeline_type,
   if (shader_ptr != nullptr) {
     return shader_ptr;
   }
-  std::string info_name = "workbench_next_prepass_";
+  std::string info_name = "workbench_prepass_";
   switch (geometry_type) {
     case eGeometryType::MESH:
       info_name += "mesh_";
@@ -100,7 +100,7 @@ GPUShader *ShaderCache::resolve_shader_get(ePipelineType pipeline_type,
   if (shader_ptr != nullptr) {
     return shader_ptr;
   }
-  std::string info_name = "workbench_next_resolve_";
+  std::string info_name = "workbench_resolve_";
   switch (pipeline_type) {
     case ePipelineType::OPAQUE:
       info_name += "opaque_";

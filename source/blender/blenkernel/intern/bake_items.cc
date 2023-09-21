@@ -20,7 +20,7 @@
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
-namespace blender::bke {
+namespace blender::bke::bake {
 
 using namespace io::serialize;
 using DictionaryValuePtr = std::shared_ptr<DictionaryValue>;
@@ -73,4 +73,12 @@ PrimitiveBakeItem::~PrimitiveBakeItem()
 
 StringBakeItem::StringBakeItem(std::string value) : value_(std::move(value)) {}
 
-}  // namespace blender::bke
+BakeStateRef::BakeStateRef(const BakeState &bake_state)
+{
+  this->items_by_id.reserve(bake_state.items_by_id.size());
+  for (auto item : bake_state.items_by_id.items()) {
+    this->items_by_id.add_new(item.key, item.value.get());
+  }
+}
+
+}  // namespace blender::bke::bake

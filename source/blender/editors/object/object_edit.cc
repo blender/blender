@@ -842,6 +842,15 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 
     arm->needs_flush_to_id = 0;
 
+    /* WORKAROUND / FIXME: this is a temporary workaround to ensure that
+     * full bone collection data gets restored when exiting edit mode
+     * via an undo step. The correct fix is to have a full edit-mode
+     * copy of bone collections so that edit-mode changes don't modify
+     * object-mode armature data until exiting edit mode. But that
+     * change is a bit of a project, and will be done later. This line
+     * should be removed when that is done. */
+    bmain->is_memfile_undo_written = false;
+
     /* XXX: should this be ID_RECALC_GEOMETRY? */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 
@@ -2061,8 +2070,6 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
 {
   MoveToCollectionData *menu = static_cast<MoveToCollectionData *>(menu_v);
   const char *name = BKE_collection_ui_name_get(menu->collection);
-
-  UI_block_flag_enable(uiLayoutGetBlock(layout), UI_BLOCK_IS_FLIP);
 
   WM_operator_properties_create_ptr(&menu->ptr, menu->ot);
   RNA_int_set(&menu->ptr, "collection_index", menu->index);

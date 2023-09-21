@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Screen-space raytracing routine.
+ * Screen-space ray-tracing routine.
  *
  * Based on "Efficient GPU Screen-Space Ray Tracing"
  * by Morgan McGuire & Michael Mara
@@ -18,36 +18,50 @@
 void raytrace_clip_ray_to_near_plane(inout Ray ray)
 {
   float near_dist = get_view_z_from_depth(0.0);
-  if ((ray.origin.z + ray.direction.z) > near_dist) {
-    ray.direction *= abs((near_dist - ray.origin.z) / ray.direction.z);
+  if ((ray.origin.z + ray.direction.z * ray.max_time) > near_dist) {
+    ray.max_time = abs((near_dist - ray.origin.z) / ray.direction.z);
   }
 }
 
+#ifdef METAL_AMD_RAYTRACE_WORKAROUND
+#  define METAL_ATTR __attribute__((noinline))
+#else
+#  define METAL_ATTR
+#endif
+
+struct ScreenTraceHitData {
+  /* Screen space hit position [0..1]. Last component is the ray depth, not the occluder depth. */
+  vec3 ss_hit_P;
+  /* View space hit position. */
+  vec3 v_hit_P;
+  /* Tracing time in world space. */
+  float time;
+  /* True if there was a valid intersection. False if went out of screen without intersection. */
+  bool valid;
+};
+
 /**
- * Raytrace against the given HIZ-buffer height-field.
+ * Ray-trace against the given HIZ-buffer height-field.
  *
  * \param stride_rand: Random number in [0..1] range. Offset along the ray to avoid banding
  *                     artifact when steps are too large.
  * \param roughness: Determine how lower depth mipmaps are used to make the tracing faster. Lower
  *                   roughness will use lower mipmaps.
- * \param discard_backface: If true, raytrace will return false  if we hit a surface from behind.
- * \param allow_self_intersection: If false, raytrace will return false if the ray is not covering
+ * \param discard_backface: If true, ray-trace will return false  if we hit a surface from behind.
+ * \param allow_self_intersection: If false, ray-trace will return false if the ray is not covering
  *                                 at least one pixel.
- * \param ray: View-space ray. Direction premultiplied by maximum length.
+ * \param ray: View-space ray. Direction pre-multiplied by maximum length.
  *
  * \return True if there is a valid intersection.
  */
-#ifdef METAL_AMD_RAYTRACE_WORKAROUND
-__attribute__((noinline))
-#endif
-bool raytrace_screen(RayTraceData rt_data,
-                     HiZData hiz_data,
-                     sampler2D hiz_tx,
-                     float stride_rand,
-                     float roughness,
-                     const bool discard_backface,
-                     const bool allow_self_intersection,
-                     inout Ray ray)
+METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
+                                              HiZData hiz_data,
+                                              sampler2D hiz_tx,
+                                              float stride_rand,
+                                              float roughness,
+                                              const bool discard_backface,
+                                              const bool allow_self_intersection,
+                                              Ray ray)
 {
   /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
   if (ProjectionMatrix[3][3] == 0.0) {
@@ -64,7 +78,11 @@ bool raytrace_screen(RayTraceData rt_data,
     vec3 hit_ssP = ssray.origin.xyz + ssray.direction.xyz * ssray.max_time;
     vec3 hit_P = get_world_space_from_depth(hit_ssP.xy, saturate(hit_ssP.z));
     ray.direction = hit_P - ray.origin;
-    return false;
+
+    ScreenTraceHitData no_hit;
+    no_hit.time = 0.0;
+    no_hit.valid = false;
+    return no_hit;
   }
 
   ssray.max_time = max(1.1, ssray.max_time);
@@ -102,7 +120,7 @@ bool raytrace_screen(RayTraceData rt_data,
     hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride * 2.0));
 
 #ifdef METAL_AMD_RAYTRACE_WORKAROUND
-    /* For workaround, perform discard backface and background check only within
+    /* For workaround, perform discard back-face and background check only within
      * the iteration where the first successful ray intersection is registered.
      * We flag failures to discard ray hits later. */
     bool hit_valid = !(discard_backface && prev_delta < 0.0) && (depth_sample != 1.0);
@@ -112,7 +130,7 @@ bool raytrace_screen(RayTraceData rt_data,
 #endif
   }
 #ifndef METAL_AMD_RAYTRACE_WORKAROUND
-  /* Discard backface hits. */
+  /* Discard back-face hits. */
   hit = hit && !(discard_backface && prev_delta < 0.0);
   /* Reject hit if background. */
   hit = hit && (depth_sample != 1.0);
@@ -121,16 +139,20 @@ bool raytrace_screen(RayTraceData rt_data,
    * This simplifies nicely to this single line. */
   time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
 
-  vec3 hit_ssP = ssray.origin.xyz + ssray.direction.xyz * time;
-  /* Set ray to where tracing ended. */
-  vec3 hit_P = get_world_space_from_depth(hit_ssP.xy, saturate(hit_ssP.z));
-  ray.direction = hit_P - ray.origin;
+  ScreenTraceHitData result;
+  result.valid = hit;
+  /* Convert to world space ray time. */
+  result.ss_hit_P = ssray.origin.xyz + ssray.direction.xyz * time;
+  result.v_hit_P = project_point(drw_view.wininv, result.ss_hit_P * 2.0 - 1.0);
+  result.time = length(result.v_hit_P - ray.origin) / length(ray.direction);
 
 #ifdef METAL_AMD_RAYTRACE_WORKAROUND
   /* Check failed ray flag to discard bad hits. */
   if (!hit_failsafe) {
-    return false;
+    result.valid = false;
   }
 #endif
-  return hit;
+  return result;
 }
+
+#undef METAL_ATTR

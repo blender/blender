@@ -24,7 +24,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   ssbo_len_ = 0;
   ubo_len_ = 0;
   image_offset_ = -1;
-
+  int image_max_binding = -1;
   Vector<ShaderCreateInfo::Resource> all_resources;
   all_resources.extend(info.pass_resources_);
   all_resources.extend(info.batch_resources_);
@@ -33,6 +33,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     switch (res.bind_type) {
       case ShaderCreateInfo::Resource::BindType::IMAGE:
         uniform_len_++;
+        image_max_binding = max_ii(image_max_binding, res.slot);
         break;
       case ShaderCreateInfo::Resource::BindType::SAMPLER:
         image_offset_ = max_ii(image_offset_, res.slot);
@@ -57,8 +58,11 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     names_size += PUSH_CONSTANTS_FALLBACK_NAME_LEN + 1;
   }
 
-  /* Make sure that the image slots don't overlap with the sampler slots. */
+  /* Make sure that the image slots don't overlap with other sampler or image slots. */
   image_offset_++;
+  if (image_offset_ != 0 && image_offset_ <= image_max_binding) {
+    image_offset_ = image_max_binding + 1;
+  }
 
   int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_;
   inputs_ = static_cast<ShaderInput *>(
@@ -150,9 +154,11 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   /* Note: input_tot_len is sometimes more than we need. */
   const uint32_t resources_len = input_tot_len;
   descriptor_set_locations_ = Array<VKDescriptorSet::Location>(resources_len);
+  descriptor_set_locations_.fill(-1);
   uint32_t descriptor_set_location = 0;
   for (ShaderCreateInfo::Resource &res : all_resources) {
     const ShaderInput *input = shader_input_get(res);
+    BLI_assert(input);
     descriptor_set_location_update(input, descriptor_set_location++);
   }
 
@@ -179,6 +185,7 @@ void VKShaderInterface::descriptor_set_location_update(const ShaderInput *shader
                                                        const VKDescriptorSet::Location location)
 {
   int32_t index = shader_input_index(inputs_, shader_input);
+  BLI_assert(descriptor_set_locations_[index].binding == -1);
   descriptor_set_locations_[index] = location;
 }
 
@@ -218,7 +225,10 @@ const ShaderInput *VKShaderInterface::shader_input_get(
 {
   switch (bind_type) {
     case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
-      return texture_get(binding + image_offset_);
+      /* Not really nice, but the binding namespace between OpenGL and Vulkan don't match. To fix
+       * this we need to check if one of both cases return a binding.
+       * TODO: we might want to introduce a different API to fix this.  */
+      return texture_get((binding >= image_offset_) ? binding : binding + image_offset_);
     case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
       return texture_get(binding);
     case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:

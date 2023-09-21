@@ -97,8 +97,7 @@ static int cachefile_open_exec(bContext *C, wmOperator *op)
        * pointer see also increases user, so this compensates it. */
       id_us_min(&cache_file->id);
 
-      PointerRNA idptr;
-      RNA_id_pointer_create(&cache_file->id, &idptr);
+      PointerRNA idptr = RNA_id_pointer_create(&cache_file->id);
       RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, nullptr);
       RNA_property_update(C, &pprop->ptr, pprop->prop);
     }

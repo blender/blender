@@ -245,7 +245,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   mix_rgb_color->locx = 200.0f;
   mix_rgb_color->locy = -200.0f;
   tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_color->inputs, 0);  // Fac
-  RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
+  toptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock);
   RNA_float_set(&toptr, "default_value", 0.0f);
 
   bNode *input_attr_alpha = nodeAddStaticNode(nullptr, ntree, SH_NODE_ATTRIBUTE);
@@ -259,7 +259,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   mix_rgb_alpha->locx = 600.0f;
   mix_rgb_alpha->locy = 300.0f;
   tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_alpha->inputs, 0);  // Fac
-  RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
+  toptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock);
   RNA_float_set(&toptr, "default_value", 0.0f);
 
   bNode *shader_emission = nodeAddStaticNode(nullptr, ntree, SH_NODE_EMISSION);
@@ -337,8 +337,8 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
     }
     else {
       float color[4];
-      RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock, &fromptr);
-      RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
+      fromptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock);
+      toptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock);
       RNA_float_get_array(&fromptr, "default_value", color);
       RNA_float_set_array(&toptr, "default_value", color);
     }
@@ -350,8 +350,8 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
       nodeAddLink(ntree, link->fromnode, link->fromsock, mix_rgb_color, tosock);
     }
     else {
-      RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock, &fromptr);
-      RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
+      fromptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock);
+      toptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock);
       RNA_float_set(&toptr, "default_value", RNA_float_get(&fromptr, "default_value"));
     }
 
@@ -363,8 +363,8 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
     }
     else {
       float color[4];
-      RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock, &fromptr);
-      RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
+      fromptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock);
+      toptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock);
       color[0] = color[1] = color[2] = RNA_float_get(&fromptr, "default_value");
       color[3] = 1.0f;
       RNA_float_set_array(&toptr, "default_value", color);
@@ -377,8 +377,8 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
       nodeAddLink(ntree, link->fromnode, link->fromsock, mix_rgb_alpha, tosock);
     }
     else {
-      RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock, &fromptr);
-      RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock, &toptr);
+      fromptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, outsock);
+      toptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock);
       RNA_float_set(&toptr, "default_value", RNA_float_get(&fromptr, "default_value"));
     }
 

@@ -38,7 +38,7 @@ void main()
 }
 
 /* Stubs */
-vec2 btdf_lut(float a, float b, float c)
+vec2 bsdf_lut(float a, float b, float c, float d)
 {
   return vec2(0.0);
 }

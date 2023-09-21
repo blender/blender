@@ -31,7 +31,7 @@ TreeDisplayLibraries::TreeDisplayLibraries(SpaceOutliner &space_outliner)
 {
 }
 
-ListBase TreeDisplayLibraries::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayLibraries::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 
@@ -137,10 +137,10 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar, ListBase 
       if (!tenlib) {
         /* Create library tree element on demand, depending if there are any data-blocks. */
         if (lib) {
-          tenlib = outliner_add_element(&space_outliner_, &lb, lib, nullptr, TSE_SOME_ID, 0);
+          tenlib = add_element(&lb, reinterpret_cast<ID *>(lib), nullptr, nullptr, TSE_SOME_ID, 0);
         }
         else {
-          tenlib = outliner_add_element(&space_outliner_, &lb, &mainvar, nullptr, TSE_ID_BASE, 0);
+          tenlib = add_element(&lb, nullptr, &mainvar, nullptr, TSE_ID_BASE, 0);
           tenlib->name = IFACE_("Current File");
         }
       }
@@ -153,15 +153,15 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar, ListBase 
           ten = tenlib;
         }
         else {
-          ten = outliner_add_element(
-              &space_outliner_, &tenlib->subtree, lib, nullptr, TSE_ID_BASE, a);
+          ten = add_element(
+              &tenlib->subtree, reinterpret_cast<ID *>(lib), nullptr, nullptr, TSE_ID_BASE, a);
           ten->directdata = lbarray[a];
           ten->name = outliner_idcode_to_plural(GS(id->name));
         }
 
         for (ID *id : List<ID>(lbarray[a])) {
           if (library_id_filter_poll(lib, id)) {
-            outliner_add_element(&space_outliner_, &ten->subtree, id, ten, TSE_SOME_ID, 0);
+            add_element(&ten->subtree, id, nullptr, ten, TSE_SOME_ID, 0);
           }
         }
       }

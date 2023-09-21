@@ -544,7 +544,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  float(PICKER_TYPE_RGB),
                  0,
                  0,
-                 "");
+                 TIP_("Red, Green, Blue"));
   UI_but_flag_disable(bt, UI_BUT_UNDO);
   UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
   UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, nullptr);
@@ -562,7 +562,8 @@ static void ui_block_colorpicker(uiBlock *block,
                  PICKER_TYPE_HSV,
                  0,
                  0,
-                 "");
+                 (U.color_picker_type == USER_CP_CIRCLE_HSL) ? TIP_("Hue, Saturation, Lightness") :
+                                                               TIP_("Hue, Saturation, Value"));
   UI_but_flag_disable(bt, UI_BUT_UNDO);
   UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
   UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, nullptr);
@@ -580,7 +581,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  PICKER_TYPE_HEX,
                  0,
                  0,
-                 "");
+                 TIP_("Color as hexadecimal values"));
   UI_but_flag_disable(bt, UI_BUT_UNDO);
   UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
   UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, nullptr);
@@ -804,7 +805,7 @@ static void ui_block_colorpicker(uiBlock *block,
   uiDefBut(block,
            UI_BTYPE_LABEL,
            0,
-           IFACE_("(Gamma Corrected)"),
+           IFACE_("(Gamma corrected)"),
            0,
            yco - UI_UNIT_Y,
            butwidth,

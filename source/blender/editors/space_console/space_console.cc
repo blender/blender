@@ -124,11 +124,11 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
   }
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Include after "Console" so cursor motion keys such as "Home" isn't overridden. */
-  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
   /* add drop boxes */
@@ -244,7 +244,7 @@ static void console_operatortypes()
 
 static void console_keymap(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Console", SPACE_CONSOLE, 0);
+  WM_keymap_ensure(keyconf, "Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
 }
 
 /****************** header region ******************/

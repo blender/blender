@@ -101,6 +101,10 @@ if(WITH_AUDASPACE)
     )
   endif()
   add_definitions(-DWITH_AUDASPACE)
+
+  if(WITH_FFTW3)
+    add_definitions(-DWITH_CONVOLUTION)
+  endif()
 endif()
 
 blender_add_lib(bf_sequencer "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

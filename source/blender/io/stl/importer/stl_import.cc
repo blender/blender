@@ -21,6 +21,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
+#include "BLI_string.h"
 
 #include "DNA_object_types.h"
 

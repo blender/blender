@@ -10,10 +10,6 @@
 
 #include "DNA_ID.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct GSet;
 
 /* CacheFile::type */
@@ -123,7 +119,3 @@ typedef struct CacheFile {
   char handle_filepath[1024];
   struct GSet *handle_readers;
 } CacheFile;
-
-#ifdef __cplusplus
-}
-#endif

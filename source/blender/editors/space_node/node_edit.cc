@@ -32,6 +32,7 @@
 #include "BKE_workspace.h"
 
 #include "BLI_set.hh"
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
 #include "BLT_translation.h"
@@ -1190,7 +1191,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 
     if (in_out & SOCK_IN) {
       for (bNodeSocket *sock : node.input_sockets()) {
-        if (sock->is_visible()) {
+        if (node.is_socket_icon_drawn(*sock)) {
           const float2 location = sock->runtime->location;
           if (sock->flag & SOCK_MULTI_INPUT && !(node.flag & NODE_HIDDEN)) {
             if (cursor_isect_multi_input_socket(cursor, *sock)) {
@@ -1209,7 +1210,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
     }
     if (in_out & SOCK_OUT) {
       for (bNodeSocket *sock : node.output_sockets()) {
-        if (sock->is_visible()) {
+        if (node.is_socket_icon_drawn(*sock)) {
           const float2 location = sock->runtime->location;
           if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
             if (!socket_is_occluded(location, node, snode)) {
@@ -1291,37 +1292,21 @@ void remap_node_pairing(bNodeTree &dst_tree, const Map<const bNode *, bNode *> &
    * so we have to build a map first to find copied output nodes in the new tree. */
   Map<int32_t, bNode *> dst_output_node_map;
   for (const auto &item : node_map.items()) {
-    if (ELEM(item.key->type, GEO_NODE_SIMULATION_OUTPUT, GEO_NODE_REPEAT_OUTPUT)) {
+    if (bke::all_zone_output_node_types().contains(item.key->type)) {
       dst_output_node_map.add_new(item.key->identifier, item.value);
     }
   }
 
   for (bNode *dst_node : node_map.values()) {
-    switch (dst_node->type) {
-      case GEO_NODE_SIMULATION_INPUT: {
-        NodeGeometrySimulationInput *data = static_cast<NodeGeometrySimulationInput *>(
-            dst_node->storage);
-        if (const bNode *output_node = dst_output_node_map.lookup_default(data->output_node_id,
-                                                                          nullptr)) {
-          data->output_node_id = output_node->identifier;
-        }
-        else {
-          data->output_node_id = 0;
-          blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
-        }
-        break;
+    if (bke::all_zone_input_node_types().contains(dst_node->type)) {
+      const bke::bNodeZoneType &zone_type = *bke::zone_type_by_node_type(dst_node->type);
+      int &output_node_id = zone_type.get_corresponding_output_id(*dst_node);
+      if (const bNode *output_node = dst_output_node_map.lookup_default(output_node_id, nullptr)) {
+        output_node_id = output_node->identifier;
       }
-      case GEO_NODE_REPEAT_INPUT: {
-        NodeGeometryRepeatInput *data = static_cast<NodeGeometryRepeatInput *>(dst_node->storage);
-        if (const bNode *output_node = dst_output_node_map.lookup_default(data->output_node_id,
-                                                                          nullptr)) {
-          data->output_node_id = output_node->identifier;
-        }
-        else {
-          data->output_node_id = 0;
-          blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
-        }
-        break;
+      else {
+        output_node_id = 0;
+        blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
       }
     }
   }
@@ -1795,6 +1780,8 @@ static int node_socket_toggle_exec(bContext *C, wmOperator * /*op*/)
   ED_node_tree_propagate_change(C, CTX_data_main(C), snode->edittree);
 
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
+  /* Hack to force update of the button state after drawing, see #112462. */
+  WM_event_add_mousemove(CTX_wm_window(C));
 
   return OPERATOR_FINISHED;
 }

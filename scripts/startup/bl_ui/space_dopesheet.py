@@ -39,7 +39,7 @@ def dopesheet_filter(layout, context):
         row.prop(dopesheet, "show_only_errors", text="")
 
 #######################################
-# Dopesheet Filtering Popovers
+# Dope-sheet Filtering Popovers
 
 # Generic Layout - Used as base for filtering popovers used in all animation editors
 # Used for DopeSheet, NLA, and Graph Editors
@@ -49,7 +49,7 @@ class DopesheetFilterPopoverBase:
     bl_region_type = 'HEADER'
     bl_label = "Filters"
 
-    # Generic = Affects all datatypes
+    # Generic = Affects all data-types.
     # XXX: Perhaps we want these to stay in the header instead, for easy/fast access
     @classmethod
     def draw_generic_filters(cls, context, layout):
@@ -62,7 +62,7 @@ class DopesheetFilterPopoverBase:
 
         if is_nla:
             col.prop(dopesheet, "show_missing_nla", icon='NONE')
-        else:  # graph and dopesheet editors - F-Curves and drivers only
+        else:  # Graph and dope-sheet editors - F-Curves and drivers only.
             col.prop(dopesheet, "show_only_errors", icon='NONE')
 
     # Name/Membership Filters
@@ -160,7 +160,7 @@ class DopesheetFilterPopoverBase:
         col.prop(dopesheet, "use_datablock_sort", icon='NONE')
 
 
-# Popover for Dopesheet Editor(s) - Dopesheet, Action, Shapekey, GPencil, Mask, etc.
+# Popover for Dope-sheet Editor(s) - Dope-sheet, Action, Shape-key, GPencil, Mask, etc.
 class DOPESHEET_PT_filters(DopesheetFilterPopoverBase, Panel):
     bl_space_type = 'DOPESHEET_EDITOR'
     bl_region_type = 'HEADER'
@@ -277,7 +277,14 @@ class DOPESHEET_HT_editor_buttons:
 
         # Grease Pencil mode doesn't need snapping, as it's frame-aligned only
         if st.mode != 'GPENCIL':
-            layout.prop(st, "auto_snap", text="")
+            row = layout.row(align=True)
+            row.prop(tool_settings, "use_snap_anim", text="")
+            sub = row.row(align=True)
+            sub.popover(
+                panel="DOPESHEET_PT_snapping",
+                icon='NONE',
+                text="Modes",
+            )
 
         row = layout.row(align=True)
         row.prop(tool_settings, "use_proportional_action", text="", icon_only=True)
@@ -290,6 +297,21 @@ class DOPESHEET_HT_editor_buttons:
             icon_only=True,
             panel="DOPESHEET_PT_proportional_edit",
         )
+
+
+class DOPESHEET_PT_snapping(Panel):
+    bl_space_type = 'DOPESHEET_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Snapping"
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        col.label(text="Snap To")
+        tool_settings = context.tool_settings
+        col.prop(tool_settings, "snap_anim_element", expand=True)
+        if tool_settings.snap_anim_element not in ('MARKER', ):
+            col.prop(tool_settings, "use_snap_time_absolute")
 
 
 class DOPESHEET_PT_proportional_edit(Panel):
@@ -535,7 +557,7 @@ class DOPESHEET_MT_key(Menu):
         layout.separator()
         layout.operator("action.clean").channels = False
         layout.operator("action.clean", text="Clean Channels").channels = True
-        layout.operator("action.sample")
+        layout.operator("action.bake_keys")
 
         layout.separator()
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
@@ -872,6 +894,7 @@ classes = (
     DOPESHEET_PT_gpencil_layer_relations,
     DOPESHEET_PT_gpencil_layer_display,
     DOPESHEET_PT_custom_props_action,
+    DOPESHEET_PT_snapping
 )
 
 if __name__ == "__main__":  # only for live edit.

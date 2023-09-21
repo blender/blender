@@ -14,11 +14,13 @@
 #include "BLI_string_ref.hh"
 #include "UI_resources.hh"
 
+struct ID;
 struct ListBase;
 struct SpaceOutliner;
 
 namespace blender::ed::outliner {
 
+class AbstractTreeDisplay;
 struct TreeElement;
 
 /* -------------------------------------------------------------------- */
@@ -32,23 +34,30 @@ class AbstractTreeElement {
    * replaced by AbstractTreeElement and derived types.
    */
   TreeElement &legacy_te_;
+  /**
+   * Reference back to the tree display used for building this tree.
+   */
+  AbstractTreeDisplay *display_;
+
+  friend class AbstractTreeDisplay;
 
  public:
   virtual ~AbstractTreeElement() = default;
 
-  static std::unique_ptr<AbstractTreeElement> createFromType(int type,
-                                                             TreeElement &legacy_te,
-                                                             void *idv);
+  static std::unique_ptr<AbstractTreeElement> create_from_type(int type,
+                                                               TreeElement &legacy_te,
+                                                               ID *owner_id,
+                                                               void *create_data);
 
   /**
    * Check if the type is expandable in current context.
    */
-  virtual bool expandPoll(const SpaceOutliner &) const
+  virtual bool expand_poll(const SpaceOutliner &) const
   {
     return true;
   }
 
-  TreeElement &getLegacyElement()
+  TreeElement &get_legacy_element()
   {
     return legacy_te_;
   }
@@ -57,7 +66,7 @@ class AbstractTreeElement {
    * By letting this return a warning message, the tree element will display a warning icon with
    * the message in the tooltip.
    */
-  virtual StringRefNull getWarning() const;
+  virtual StringRefNull get_warning() const;
 
   /**
    * Define the icon to be displayed for this element. If this returns an icon, this will be
@@ -66,7 +75,7 @@ class AbstractTreeElement {
    *
    * All elements should be ported to use this over #tree_element_get_icon().
    */
-  virtual std::optional<BIFIconID> getIcon() const;
+  virtual std::optional<BIFIconID> get_icon() const;
 
   /**
    * Debugging helper: Print effective path of this tree element, constructed out of the
@@ -97,27 +106,16 @@ class AbstractTreeElement {
    * Let the type add its own children.
    */
   virtual void expand(SpaceOutliner &) const {}
-};
 
-/**
- * TODO: this function needs to be split up! It's getting a bit too large...
- *
- * \note "ID" is not always a real ID.
- * \note If child items are only added to the tree if the item is open,
- * the `TSE_` type _must_ be added to #outliner_element_needs_rebuild_on_open_change().
- *
- * \param expand: If true, the element may add its own sub-tree. E.g. objects will list their
- *                animation data, object data, constraints, modifiers, ... This often adds visual
- *                noise, and can be expensive to add in big scenes. So prefer setting this to
- *                false.
- */
-TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
-                                  ListBase *lb,
-                                  void *idv,
-                                  TreeElement *parent,
-                                  short type,
-                                  short index,
-                                  const bool expand = true);
+  /** See #AbstractTreeDisplay::add_element() (which this forwards to). */
+  TreeElement *add_element(ListBase *lb,
+                           ID *owner_id,
+                           void *create_data,
+                           TreeElement *parent,
+                           short type,
+                           short index,
+                           const bool expand = true) const;
+};
 
 void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner);
 

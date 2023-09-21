@@ -8,6 +8,8 @@
 
 #include <memory>
 
+#include "BLI_string.h"
+
 #include "AS_asset_identifier.hh"
 #include "AS_asset_library.hh"
 

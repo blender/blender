@@ -29,6 +29,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.h"
+#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -105,12 +106,15 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 {
   Curves *curves = (Curves *)id;
 
+  blender::bke::CurvesGeometry::BlendWriteData write_data =
+      curves->geometry.wrap().blend_write_prepare();
+
   /* Write LibData */
   BLO_write_id_struct(writer, Curves, id_address, &curves->id);
   BKE_id_blend_write(writer, &curves->id);
 
   /* Direct data */
-  curves->geometry.wrap().blend_write(*writer, curves->id);
+  curves->geometry.wrap().blend_write(*writer, curves->id, write_data);
 
   BLO_write_string(writer, curves->surface_uv_map);
 
@@ -362,6 +366,15 @@ bool CurvesEditHints::is_valid() const
     }
   }
   return true;
+}
+
+void curves_normals_point_domain_calc(const CurvesGeometry &curves, MutableSpan<float3> normals)
+{
+  const bke::CurvesFieldContext context(curves, ATTR_DOMAIN_POINT);
+  fn::FieldEvaluator evaluator(context, curves.points_num());
+  fn::Field<float3> field(std::make_shared<bke::NormalFieldInput>());
+  evaluator.add_with_destination(std::move(field), normals);
+  evaluator.evaluate();
 }
 
 }  // namespace blender::bke

@@ -128,6 +128,10 @@ bool validSnap(const TransInfo *t)
 
 void transform_snap_flag_from_modifiers_set(TransInfo *t)
 {
+  if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) {
+    /* Those space-types define their own invert behavior instead of toggling it on/off. */
+    return;
+  }
   SET_FLAG_FROM_TEST(t->tsnap.flag,
                      (((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP) ||
                       ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT)),
@@ -151,7 +155,7 @@ bool transformModeUseSnap(const TransInfo *t)
   if (t->mode == TFM_RESIZE) {
     return (ts->snap_transform_mode_flag & SCE_SNAP_TRANSFORM_MODE_SCALE) != 0;
   }
-  if (ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE, TFM_SEQ_SLIDE)) {
+  if (ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE, TFM_SEQ_SLIDE, TFM_TIME_TRANSLATE)) {
     return true;
   }
 
@@ -160,12 +164,11 @@ bool transformModeUseSnap(const TransInfo *t)
 
 static bool doForceIncrementSnap(const TransInfo *t)
 {
-  if (t->modifiers & MOD_SNAP_FORCED) {
+  if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) {
+    /* These spaces don't support increment snapping. */
     return false;
   }
-
-  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
-    /* No incremental snapping. */
+  if (t->modifiers & MOD_SNAP_FORCED) {
     return false;
   }
 
@@ -205,7 +208,6 @@ void drawSnapping(TransInfo *t)
   if (t->spacetype == SPACE_VIEW3D) {
     const float *source_loc = nullptr;
     const float *target_loc = nullptr;
-    const float *target_normal = nullptr;
 
     GPU_depth_test(GPU_DEPTH_NONE);
 
@@ -237,11 +239,6 @@ void drawSnapping(TransInfo *t)
       immUnbindProgram();
     }
 
-    /* draw normal if needed */
-    if (usingSnappingNormal(t) && validSnappingNormal(t)) {
-      target_normal = t->tsnap.snapNormal;
-    }
-
     if (draw_source) {
       source_loc = t->tsnap.snap_source;
     }
@@ -251,7 +248,24 @@ void drawSnapping(TransInfo *t)
     }
 
     ED_view3d_cursor_snap_draw_util(
-        rv3d, source_loc, target_loc, target_normal, col, activeCol, t->tsnap.target_type);
+        rv3d, source_loc, target_loc, t->tsnap.snapNormal, col, activeCol, t->tsnap.target_type);
+
+    /* Draw normal if needed. */
+    if (usingSnappingNormal(t) && validSnappingNormal(t)) {
+      uint pos = GPU_vertformat_attr_add(
+          immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      immUniformColor4ubv(activeCol);
+      immBegin(GPU_PRIM_LINES, 2);
+      immVertex3fv(pos, target_loc);
+      immVertex3f(pos,
+                  target_loc[0] + t->tsnap.snapNormal[0],
+                  target_loc[1] + t->tsnap.snapNormal[1],
+                  target_loc[2] + t->tsnap.snapNormal[2]);
+      immEnd();
+      immUnbindProgram();
+    }
 
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
@@ -621,9 +635,7 @@ static eSnapFlag snap_flag_from_spacetype(TransInfo *t)
     case SPACE_GRAPH:
     case SPACE_ACTION:
     case SPACE_NLA:
-      /* These editors have their own "Auto-Snap" activation option.
-       * See #getAnimEdit_SnapMode. */
-      return eSnapFlag(0);
+      return eSnapFlag(ts->snap_flag_anim);
   }
   /* #SPACE_EMPTY.
    * It can happen when the operator is called via a handle in `bpy.app.handlers`. */
@@ -669,9 +681,8 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
     return snap_mode;
   }
 
-  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
-    /* No incremental snapping. */
-    return eSnapMode(0);
+  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH)) {
+    return eSnapMode(ts->snap_anim_mode);
   }
 
   return SCE_SNAP_TO_INCREMENT;

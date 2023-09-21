@@ -932,13 +932,15 @@ static void xdg_toplevel_handle_configure(void *data,
   std::lock_guard lock_frame_guard{win->frame_pending_mutex};
 #endif
 
-  if (win->frame.fractional_scale) {
-    win->frame_pending.size[0] = gwl_window_fractional_to_viewport_round(win->frame, width);
-    win->frame_pending.size[1] = gwl_window_fractional_to_viewport_round(win->frame, height);
-  }
-  else {
-    win->frame_pending.size[0] = width * win->frame.buffer_scale;
-    win->frame_pending.size[1] = height * win->frame.buffer_scale;
+  const int32_t size[2] = {width, height};
+  for (int i = 0; i < 2; i++) {
+    if (size[i] == 0) {
+      /* Values may be zero, in this case the client should choose. */
+      continue;
+    }
+    win->frame_pending.size[i] = win->frame.fractional_scale ?
+                                     gwl_window_fractional_to_viewport_round(win->frame, size[i]) :
+                                     (size[i] * win->frame.buffer_scale);
   }
 
   win->frame_pending.is_maximised = false;
@@ -1059,9 +1061,9 @@ static const wp_fractional_scale_v1_listener wp_fractional_scale_listener = {
 static CLG_LogRef LOG_WL_LIBDECOR_FRAME = {"ghost.wl.handle.libdecor_frame"};
 #  define LOG (&LOG_WL_LIBDECOR_FRAME)
 
-static void frame_handle_configure(libdecor_frame *frame,
-                                   libdecor_configuration *configuration,
-                                   void *data)
+static void libdecor_frame_handle_configure(libdecor_frame *frame,
+                                            libdecor_configuration *configuration,
+                                            void *data)
 {
   CLOG_INFO(LOG, 2, "configure");
 
@@ -1120,7 +1122,7 @@ static void frame_handle_configure(libdecor_frame *frame,
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
 #  ifdef USE_EVENT_BACKGROUND_THREAD
-    GHOST_SystemWayland *system = win->ghost_system;
+    const GHOST_SystemWayland *system = win->ghost_system;
     const bool is_main_thread = system->main_thread_id == std::this_thread::get_id();
     if (!is_main_thread) {
       gwl_window_pending_actions_tag(win, PENDING_WINDOW_FRAME_CONFIGURE);
@@ -1133,7 +1135,7 @@ static void frame_handle_configure(libdecor_frame *frame,
   }
 }
 
-static void frame_handle_close(libdecor_frame * /*frame*/, void *data)
+static void libdecor_frame_handle_close(libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "close");
 
@@ -1142,7 +1144,7 @@ static void frame_handle_close(libdecor_frame * /*frame*/, void *data)
   win->ghost_window->close();
 }
 
-static void frame_handle_commit(libdecor_frame * /*frame*/, void *data)
+static void libdecor_frame_handle_commit(libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "commit");
 
@@ -1156,9 +1158,9 @@ static void frame_handle_commit(libdecor_frame * /*frame*/, void *data)
 
 /* NOTE: cannot be `const` because of the LIBDECOR API. */
 static libdecor_frame_interface libdecor_frame_iface = {
-    frame_handle_configure,
-    frame_handle_close,
-    frame_handle_commit,
+    libdecor_frame_handle_configure,
+    libdecor_frame_handle_close,
+    libdecor_frame_handle_commit,
 };
 
 #  undef LOG
@@ -1218,7 +1220,7 @@ static void xdg_surface_handle_configure(void *data,
   win->xdg_decor->pending.ack_configure_serial = serial;
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
-  GHOST_SystemWayland *system = win->ghost_system;
+  const GHOST_SystemWayland *system = win->ghost_system;
   const bool is_main_thread = system->main_thread_id == std::this_thread::get_id();
   if (!is_main_thread) {
     /* NOTE(@ideasman42): this only gets one redraw,

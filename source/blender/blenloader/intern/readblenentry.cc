@@ -26,9 +26,9 @@
 #include "DNA_sdna_types.h"
 
 #include "BKE_asset.h"
-#include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
+#include "BKE_preview_image.hh"
 
 #include "BLO_blend_defs.hh"
 #include "BLO_readfile.h"
@@ -272,6 +272,7 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
         if (preview_from_file == nullptr) {
           break;
         }
+        BKE_previewimg_runtime_data_clear(preview_from_file);
 
         PreviewImage *result = static_cast<PreviewImage *>(MEM_dupallocN(preview_from_file));
         bhead = blo_blendhandle_read_preview_rects(fd, bhead, result, preview_from_file);
@@ -334,6 +335,8 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_
           prv = static_cast<PreviewImage *>(BLO_library_read_struct(fd, bhead, "PreviewImage"));
 
           if (prv) {
+            BKE_previewimg_runtime_data_clear(prv);
+
             memcpy(new_prv, prv, sizeof(PreviewImage));
             bhead = blo_blendhandle_read_preview_rects(fd, bhead, new_prv, prv);
             MEM_freeN(prv);

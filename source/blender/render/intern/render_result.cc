@@ -46,7 +46,9 @@
 #include "render_result.h"
 #include "render_types.h"
 
-/********************************** Free *************************************/
+/* -------------------------------------------------------------------- */
+/** \name Free
+ * \{ */
 
 static void render_result_views_free(RenderResult *rr)
 {
@@ -122,7 +124,11 @@ void render_result_free_gpu_texture_caches(RenderResult *rr)
   }
 }
 
-/********************************* multiview *************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Multi-View
+ * \{ */
 
 void render_result_views_shallowcopy(RenderResult *dst, RenderResult *src)
 {
@@ -155,7 +161,11 @@ void render_result_views_shallowdelete(RenderResult *rr)
   }
 }
 
-/********************************** New **************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New
+ * \{ */
 
 static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
 {
@@ -729,7 +739,11 @@ void render_result_views_new(RenderResult *rr, const RenderData *rd)
   }
 }
 
-/*********************************** Merge ***********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Merge
+ * \{ */
 
 static void do_merge_tile(
     RenderResult *rr, RenderResult *rrpart, float *target, float *tile, int pixsize)
@@ -792,7 +806,11 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
   }
 }
 
-/**************************** Single Layer Rendering *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Single Layer Rendering
+ * \{ */
 
 void render_result_single_layer_begin(Render *re)
 {
@@ -1019,7 +1037,11 @@ bool render_result_exr_file_cache_read(Render *re)
   return true;
 }
 
-/*************************** Combined Pixel Rect *****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Combined Pixel Rect
+ * \{ */
 
 ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
                                      const ImageFormatData *imf,
@@ -1115,7 +1137,7 @@ void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
   ImBuf *ibuf = RE_RenderViewEnsureImBuf(rr, rv);
 
   if (!ibuf->float_buffer.data && !ibuf->byte_buffer.data) {
-    uint8_t *data = MEM_cnew_array<uint8_t>(rr->rectx * rr->recty, "render_seq rect");
+    uint8_t *data = MEM_cnew_array<uint8_t>(4 * rr->rectx * rr->recty, "render_seq rect");
     IMB_assign_byte_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
     return;
   }
@@ -1159,7 +1181,11 @@ void render_result_rect_get_pixels(RenderResult *rr,
   }
 }
 
-/*************************** multiview functions *****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Multi-View Functions
+ * \{ */
 
 bool RE_HasCombinedLayer(const RenderResult *result)
 {
@@ -1289,3 +1315,5 @@ ImBuf *RE_RenderViewEnsureImBuf(const RenderResult *render_result, RenderView *r
 
   return render_view->ibuf;
 }
+
+/** \} */

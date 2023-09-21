@@ -504,7 +504,6 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator * /*op*/)
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
   ParticleSettings *part;
-  ParticleDupliWeight *dw;
 
   if (!psys) {
     return OPERATOR_CANCELLED;
@@ -518,8 +517,8 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator * /*op*/)
       break;
     }
   }
-  dw = static_cast<ParticleDupliWeight *>(part->instance_weights.last);
 
+  ParticleDupliWeight *dw = static_cast<ParticleDupliWeight *>(part->instance_weights.last);
   if (dw) {
     dw->flag |= PART_DUPLIW_CURRENT;
   }

@@ -56,11 +56,11 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
     }
   }
   else {
-    PointerRNA id_ptr, ptr;
+    PointerRNA ptr;
     PropertyRNA *prop;
 
     /* get RNA pointer, and resolve the path */
-    RNA_id_pointer_create(id, &id_ptr);
+    PointerRNA id_ptr = RNA_id_pointer_create(id);
 
     /* try to resolve the path */
     if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {

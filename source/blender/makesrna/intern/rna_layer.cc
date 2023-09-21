@@ -399,7 +399,7 @@ static bool rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, Poi
   if (!child) {
     return false;
   }
-  RNA_pointer_create(ptr->owner_id, &RNA_LayerCollection, child, r_ptr);
+  *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_LayerCollection, child);
   return true;
 }
 
@@ -414,7 +414,7 @@ static bool rna_LayerCollection_children_lookupstring(PointerRNA *ptr,
 
   LISTBASE_FOREACH (LayerCollection *, child, &lc->layer_collections) {
     if (STREQ(child->collection->id.name + 2, key)) {
-      RNA_pointer_create(ptr->owner_id, &RNA_LayerCollection, child, r_ptr);
+      *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_LayerCollection, child);
       return true;
     }
   }

@@ -87,14 +87,14 @@ void main()
     fragColor.a = 1.0;
   }
   else {
-    /* Premultiply here. */
+    /* Pre-multiply here. */
     fragColor = innerColor * vec4(innerColor.aaa, 1.0);
   }
   fragColor *= masks.y;
   fragColor += masks.x * borderColor;
   fragColor += masks.z * embossColor;
 
-  /* Un-premult because the blend equation is already doing the mult. */
+  /* Un-pre-multiply because the blend equation is already doing the multiplication. */
   if (fragColor.a > 0.0) {
     fragColor.rgb /= fragColor.a;
   }

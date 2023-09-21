@@ -10,10 +10,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Don't forget, new effects also in `writefile.cc` for DNA! */
 
 /** #PartEff::flag. */
@@ -142,7 +138,3 @@ typedef struct WaveEff {
   float timeoffs, lifetime;
 
 } WaveEff;
-
-#ifdef __cplusplus
-}
-#endif

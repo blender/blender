@@ -13,6 +13,9 @@
 #  pragma once
 #endif
 
+/* Look Up Tables. */
+#define LUT_WORKGROUP_SIZE 16
+
 /* Hierarchical Z down-sampling. */
 #define HIZ_MIP_COUNT 8
 /* NOTE: The shader is written to update 5 mipmaps using LDS. */
@@ -75,6 +78,8 @@
 #define RAYTRACE_GROUP_SIZE 8
 /* Keep this as a define to avoid shader variations. */
 #define RAYTRACE_RADIANCE_FORMAT GPU_R11F_G11F_B10F
+#define RAYTRACE_RAYTIME_FORMAT GPU_R32F
+#define RAYTRACE_HORIZON_FORMAT GPU_R32UI
 #define RAYTRACE_VARIANCE_FORMAT GPU_R16F
 #define RAYTRACE_TILEMASK_FORMAT GPU_R8UI
 
@@ -141,6 +146,7 @@
 #define RBUFS_CRYPTOMATTE_SLOT 2
 #define GBUF_CLOSURE_SLOT 3
 #define GBUF_COLOR_SLOT 4
+#define GBUF_HEADER_SLOT 5
 /* Volume properties pass do not write to `rbufs`. Reuse the same bind points. */
 #define VOLUME_PROP_SCATTERING_IMG_SLOT 0
 #define VOLUME_PROP_EXTINCTION_IMG_SLOT 1
@@ -151,21 +157,14 @@
 
 /* Uniform Buffers. */
 /* Slot 0 is GPU_NODE_TREE_UBO_SLOT. */
-#define CAMERA_BUF_SLOT 1
-#define RBUFS_BUF_SLOT 2
+#define UNIFORM_BUF_SLOT 1
 /* Only during surface shading (forward and deferred eval). */
-#define HIZ_BUF_SLOT 3
-#define IRRADIANCE_GRID_BUF_SLOT 4
-#define AO_BUF_SLOT 5
-#define VOLUMES_INFO_BUF_SLOT 6
-/* SLOT 6 is used by render shaders (Film, DoF and Motion Blur). Need to check if it should be
- * assigned a different slot. */
-/* TODO(fclem): This is above the limit of slot 6 for engines. Keep it lower by merging others. */
-#define REFLECTION_PROBE_BUF_SLOT 7
+#define IRRADIANCE_GRID_BUF_SLOT 2
+#define REFLECTION_PROBE_BUF_SLOT 3
 /* Only during pre-pass. */
-#define VELOCITY_CAMERA_PREV_BUF 3
-#define VELOCITY_CAMERA_CURR_BUF 4
-#define VELOCITY_CAMERA_NEXT_BUF 5
+#define VELOCITY_CAMERA_PREV_BUF 2
+#define VELOCITY_CAMERA_CURR_BUF 3
+#define VELOCITY_CAMERA_NEXT_BUF 4
 
 /* Storage Buffers. */
 #define LIGHT_CULL_BUF_SLOT 0

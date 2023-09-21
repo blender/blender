@@ -57,7 +57,6 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   snla->ads->source = (ID *)(scene);
 
   /* set auto-snapping settings */
-  snla->autosnap = SACTSNAP_FRAME;
   snla->flag = SNLA_SHOW_MARKERS;
 
   /* header */
@@ -163,13 +162,13 @@ static void nla_channel_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
   /* own channels map first to override some channel keymaps */
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Channels", SPACE_NLA, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Channels", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
   /* now generic channels map for everything else that can apply */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Animation Channels", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -207,9 +206,9 @@ static void nla_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Editor", SPACE_NLA, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Editor", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -296,7 +295,7 @@ static void nla_buttons_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "NLA Generic", SPACE_NLA, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -406,12 +405,7 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
 {
   wmMsgBus *mbus = params->message_bus;
   Scene *scene = params->scene;
-  bScreen *screen = params->screen;
-  ScrArea *area = params->area;
   ARegion *region = params->region;
-
-  PointerRNA ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceNLA, area->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {};
   msg_sub_value_region_tag_redraw.owner = region;
@@ -428,8 +422,7 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
         &rna_Scene_frame_current,
     };
 
-    PointerRNA idptr;
-    RNA_id_pointer_create(&scene->id, &idptr);
+    PointerRNA idptr = RNA_id_pointer_create(&scene->id);
 
     for (int i = 0; i < ARRAY_SIZE(props); i++) {
       WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_region_tag_redraw, __func__);
@@ -488,12 +481,7 @@ static void nla_channel_region_listener(const wmRegionListenerParams *params)
 static void nla_channel_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   wmMsgBus *mbus = params->message_bus;
-  bScreen *screen = params->screen;
-  ScrArea *area = params->area;
   ARegion *region = params->region;
-
-  PointerRNA ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceNLA, area->spacedata.first, &ptr);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {};
   msg_sub_value_region_tag_redraw.owner = region;

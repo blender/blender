@@ -853,7 +853,7 @@ def dump_src_messages(msgs, reports, settings):
                 elif l[0] != '#':
                     forced.add(l.rstrip('\n'))
     for root, dirs, files in os.walk(settings.POTFILES_SOURCE_DIR):
-        if "/.svn" in root:
+        if "/.git" in root:
             continue
         for fname in files:
             if os.path.splitext(fname)[1] not in settings.PYGETTEXT_ALLOWED_EXTS:
@@ -1105,7 +1105,7 @@ def dump_addon_messages(module_name, do_checks, settings):
     dump_rna_messages(msgs, reports, settings)
     print("C")
 
-    # Now disable our addon, and rescan RNA.
+    # Now disable our addon, and re-scan RNA.
     utils.enable_addons(addons={module_name}, disable=True)
     print("D")
     reports["check_ctxt"] = minus_check_ctxt

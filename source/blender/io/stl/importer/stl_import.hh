@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "IO_stl.h"
+#include "IO_stl.hh"
 
 namespace blender::io::stl {
 

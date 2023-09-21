@@ -87,7 +87,6 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_REPEAT_INPUT, "Repeat Input", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
   ntype.declare_dynamic = node_declare_dynamic;
-  ntype.gather_add_node_search_ops = nullptr;
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
   node_type_storage(
@@ -97,29 +96,3 @@ static void node_register()
 NOD_REGISTER_NODE(node_register)
 
 }  // namespace blender::nodes::node_geo_repeat_input_cc
-
-bool NOD_geometry_repeat_input_pair_with_output(const bNodeTree *node_tree,
-                                                bNode *repeat_input_node,
-                                                const bNode *repeat_output_node)
-{
-  namespace file_ns = blender::nodes::node_geo_repeat_input_cc;
-
-  BLI_assert(repeat_input_node->type == GEO_NODE_REPEAT_INPUT);
-  if (repeat_output_node->type != GEO_NODE_REPEAT_OUTPUT) {
-    return false;
-  }
-
-  /* Allow only one input paired to an output. */
-  for (const bNode *other_input_node : node_tree->nodes_by_type("GeometryNodeRepeatInput")) {
-    if (other_input_node != repeat_input_node) {
-      const NodeGeometryRepeatInput &other_storage = file_ns::node_storage(*other_input_node);
-      if (other_storage.output_node_id == repeat_output_node->identifier) {
-        return false;
-      }
-    }
-  }
-
-  NodeGeometryRepeatInput &storage = file_ns::node_storage(*repeat_input_node);
-  storage.output_node_id = repeat_output_node->identifier;
-  return true;
-}

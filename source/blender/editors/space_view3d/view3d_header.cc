@@ -130,9 +130,7 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, bContext *C)
   /* Gizmos aren't used in paint modes */
   if (!ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_PARTICLE_EDIT)) {
     /* masks aren't used for sculpt and particle painting */
-    PointerRNA meshptr;
-
-    RNA_pointer_create(static_cast<ID *>(ob->data), &RNA_Mesh, ob->data, &meshptr);
+    PointerRNA meshptr = RNA_pointer_create(static_cast<ID *>(ob->data), &RNA_Mesh, ob->data);
     if (ob->mode & OB_MODE_TEXTURE_PAINT) {
       uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
     }

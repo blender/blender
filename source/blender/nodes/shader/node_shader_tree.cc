@@ -21,6 +21,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"

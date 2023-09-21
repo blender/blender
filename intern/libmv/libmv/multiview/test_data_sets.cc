@@ -90,8 +90,9 @@ NViewDataSet NRealisticCamerasFull(int nviews,
   d.X *= 0.6;
 
   Vecu all_point_ids(npoints);
-  for (size_t j = 0; j < npoints; ++j)
+  for (size_t j = 0; j < npoints; ++j) {
     all_point_ids[j] = j;
+  }
 
   for (size_t i = 0; i < nviews; ++i) {
     Vec3 camera_center, t, jitter, lookdir;

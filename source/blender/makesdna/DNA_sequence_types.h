@@ -21,10 +21,6 @@
 #include "DNA_session_uuid_types.h" /* for #SessionUUID */
 #include "DNA_vec_types.h"          /* for #rctf */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Ipo;
 struct MovieClip;
 struct Scene;
@@ -220,7 +216,7 @@ typedef struct Sequence {
   /* pointers for effects: */
   struct Sequence *seq1, *seq2, *seq3;
 
-  /** List of strips for metastrips. */
+  /** List of strips for meta-strips. */
   ListBase seqbase;
   ListBase channels; /* SeqTimelineChannel */
 
@@ -527,6 +523,21 @@ enum {
 
 /** \} */
 
+/** \name Sound Modifiers
+ * \{ */
+
+typedef struct EQCurveMappingData {
+  struct EQCurveMappingData *next, *prev;
+  struct CurveMapping curve_mapping;
+} EQCurveMappingData;
+
+typedef struct SoundEqualizerModifierData {
+  SequenceModifierData modifier;
+  /* EQCurveMappingData */
+  ListBase graphics;
+} SoundEqualizerModifierData;
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Scopes
  * \{ */
@@ -760,6 +771,7 @@ enum {
   seqModifierType_Mask = 5,
   seqModifierType_WhiteBalance = 6,
   seqModifierType_Tonemap = 7,
+  seqModifierType_SoundEqualizer = 8,
   /* Keep last. */
   NUM_SEQUENCE_MODIFIER_TYPES,
 };
@@ -845,7 +857,3 @@ typedef enum eSeqChannelFlag {
 } eSeqChannelFlag;
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

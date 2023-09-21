@@ -41,8 +41,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw_header_preset(self, _context):
         CLOTH_PT_presets.draw_panel_header(self.layout)
@@ -71,8 +70,7 @@ class PHYSICS_PT_cloth_physical_properties(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -100,8 +98,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -136,8 +133,7 @@ class PHYSICS_PT_cloth_damping(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -172,8 +168,7 @@ class PHYSICS_PT_cloth_internal_springs(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         cloth = context.cloth.settings
@@ -219,8 +214,7 @@ class PHYSICS_PT_cloth_pressure(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         cloth = context.cloth.settings
@@ -268,8 +262,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         md = context.cloth
@@ -284,8 +277,7 @@ class PHYSICS_PT_cloth_shape(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -339,8 +331,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -364,8 +355,7 @@ class PHYSICS_PT_cloth_object_collision(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         cloth = context.cloth.collision_settings
@@ -405,8 +395,7 @@ class PHYSICS_PT_cloth_self_collision(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         cloth = context.cloth.collision_settings
@@ -447,8 +436,7 @@ class PHYSICS_PT_cloth_property_weights(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -506,8 +494,7 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         cloth = context.cloth.settings

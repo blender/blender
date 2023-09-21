@@ -23,7 +23,7 @@ TreeElementIDLibrary::TreeElementIDLibrary(TreeElement &legacy_te, Library &libr
   legacy_te.name = library.filepath;
 }
 
-StringRefNull TreeElementIDLibrary::getWarning() const
+StringRefNull TreeElementIDLibrary::get_warning() const
 {
   Library &library = reinterpret_cast<Library &>(id_);
 

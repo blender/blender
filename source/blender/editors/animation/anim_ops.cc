@@ -695,7 +695,7 @@ void ED_operatortypes_anim()
 
 void ED_keymap_anim(wmKeyConfig *keyconf)
 {
-  WM_keymap_ensure(keyconf, "Animation", 0, 0);
+  WM_keymap_ensure(keyconf, "Animation", SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
 
 /** \} */

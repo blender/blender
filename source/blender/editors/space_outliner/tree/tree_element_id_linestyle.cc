@@ -24,23 +24,23 @@ TreeElementIDLineStyle::TreeElementIDLineStyle(TreeElement &legacy_te,
 {
 }
 
-void TreeElementIDLineStyle::expand(SpaceOutliner &space_outliner) const
+void TreeElementIDLineStyle::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  expand_animation_data(space_outliner, linestyle_.adt);
+  expand_animation_data(linestyle_.adt);
 
-  expand_textures(space_outliner);
+  expand_textures();
 }
 
-void TreeElementIDLineStyle::expand_textures(SpaceOutliner &space_outliner) const
+void TreeElementIDLineStyle::expand_textures() const
 {
   for (int a = 0; a < MAX_MTEX; a++) {
     if (linestyle_.mtex[a]) {
-      outliner_add_element(&space_outliner,
-                           &legacy_te_.subtree,
-                           (linestyle_.mtex[a])->tex,
-                           &legacy_te_,
-                           TSE_SOME_ID,
-                           a);
+      add_element(&legacy_te_.subtree,
+                  reinterpret_cast<ID *>((linestyle_.mtex[a])->tex),
+                  nullptr,
+                  &legacy_te_,
+                  TSE_SOME_ID,
+                  a);
     }
   }
 }

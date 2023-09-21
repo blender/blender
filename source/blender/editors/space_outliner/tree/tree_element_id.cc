@@ -38,7 +38,7 @@
 
 namespace blender::ed::outliner {
 
-std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
+std::unique_ptr<TreeElementID> TreeElementID::create_from_id(TreeElement &legacy_te, ID &id)
 {
   if (ID_TYPE_IS_DEPRECATED(GS(id.name))) {
     BLI_assert_msg(0, "Outliner trying to build tree-element for deprecated ID type");
@@ -120,27 +120,25 @@ TreeElementID::TreeElementID(TreeElement &legacy_te, ID &id)
   legacy_te_.idcode = GS(id.name);
 }
 
-bool TreeElementID::expandPoll(const SpaceOutliner &space_outliner) const
+bool TreeElementID::expand_poll(const SpaceOutliner &space_outliner) const
 {
   const TreeStoreElem *tsepar = legacy_te_.parent ? TREESTORE(legacy_te_.parent) : nullptr;
   return (tsepar == nullptr || tsepar->type != TSE_ID_BASE || space_outliner.filter_id_type);
 }
 
-void TreeElementID::expand(SpaceOutliner &space_outliner) const
+void TreeElementID::expand(SpaceOutliner & /*space_outliner*/) const
 {
   /* Not all IDs support animation data. Will be null then. */
-  const AnimData *anim_data = BKE_animdata_from_id(&id_);
+  AnimData *anim_data = BKE_animdata_from_id(&id_);
   if (anim_data) {
-    expand_animation_data(space_outliner, anim_data);
+    expand_animation_data(anim_data);
   }
 }
 
-void TreeElementID::expand_animation_data(SpaceOutliner &space_outliner,
-                                          const AnimData *anim_data) const
+void TreeElementID::expand_animation_data(AnimData *anim_data) const
 {
   if (outliner_animdata_test(anim_data)) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &id_, &legacy_te_, TSE_ANIM_DATA, 0);
+    add_element(&legacy_te_.subtree, &id_, anim_data, &legacy_te_, TSE_ANIM_DATA, 0);
   }
 }
 

@@ -410,7 +410,11 @@ struct ViewOpsData_Utility : ViewOpsData {
   {
     this->init_context(C);
 
-    wmKeyMap *keymap = WM_keymap_find_all(CTX_wm_manager(C), "3D View", SPACE_VIEW3D, 0);
+    wmKeyMap *keymap = WM_keymap_find_all(
+        CTX_wm_manager(C), "3D View", SPACE_VIEW3D, RGN_TYPE_WINDOW);
+
+    WM_keyconfig_update_suppress_begin();
+
     wmKeyMap keymap_tmp = {};
 
     LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
@@ -432,14 +436,20 @@ struct ViewOpsData_Utility : ViewOpsData {
 
     /* Weak, but only the keymap items from the #wmKeyMap struct are needed here. */
     this->keymap_items = keymap_tmp.items;
+
+    WM_keyconfig_update_suppress_end();
   }
 
   ~ViewOpsData_Utility()
   {
     /* Weak, but rebuild the struct #wmKeyMap to clear the keymap items. */
+    WM_keyconfig_update_suppress_begin();
+
     wmKeyMap keymap_tmp = {};
     keymap_tmp.items = this->keymap_items;
     WM_keymap_clear(&keymap_tmp);
+
+    WM_keyconfig_update_suppress_end();
   }
 
 #ifdef WITH_CXX_GUARDEDALLOC

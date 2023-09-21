@@ -17,15 +17,15 @@ ccl_device float fresnel_dielectric(float cos_theta_i, float eta, ccl_private fl
 
   /* Using Snell's law, calculate the squared cosine of the angle between the surface normal and
    * the transmitted ray. */
-  const float cos_theta_t_sq = 1.0f - (1.0f - sqr(cos_theta_i)) / sqr(eta);
-  if (cos_theta_t_sq <= 0) {
+  const float eta_cos_theta_t_sq = sqr(eta) - (1.0f - sqr(cos_theta_i));
+  if (eta_cos_theta_t_sq <= 0) {
     /* Total internal reflection. */
     return 1.0f;
   }
 
   cos_theta_i = fabsf(cos_theta_i);
   /* Relative to the surface normal. */
-  const float cos_theta_t = -safe_sqrtf(cos_theta_t_sq);
+  const float cos_theta_t = -safe_sqrtf(eta_cos_theta_t_sq) / eta;
 
   if (r_cos_theta_t) {
     *r_cos_theta_t = cos_theta_t;
@@ -46,45 +46,6 @@ ccl_device_inline float3 refract_angle(const float3 incident,
                                        const float inv_eta)
 {
   return (inv_eta * dot(normal, incident) + cos_theta_t) * normal - inv_eta * incident;
-}
-
-ccl_device float fresnel_dielectric(
-    float eta, const float3 N, const float3 I, ccl_private float3 *T, ccl_private bool *is_inside)
-{
-  float cos = dot(N, I), neta;
-  float3 Nn;
-
-  // check which side of the surface we are on
-  if (cos > 0) {
-    // we are on the outside of the surface, going in
-    neta = 1 / eta;
-    Nn = N;
-    *is_inside = false;
-  }
-  else {
-    // we are inside the surface
-    cos = -cos;
-    neta = eta;
-    Nn = -N;
-    *is_inside = true;
-  }
-
-  float arg = 1 - (neta * neta * (1 - (cos * cos)));
-  if (arg < 0) {
-    *T = make_float3(0.0f, 0.0f, 0.0f);
-    return 1;  // total internal reflection
-  }
-  else {
-    float dnp = max(sqrtf(arg), 1e-7f);
-    float nK = (neta * cos) - dnp;
-    *T = -(neta * I) + (nK * Nn);
-    // compute Fresnel terms
-    float cosTheta1 = cos;  // N.R
-    float cosTheta2 = -dot(Nn, *T);
-    float pPara = (cosTheta1 - eta * cosTheta2) / (cosTheta1 + eta * cosTheta2);
-    float pPerp = (eta * cosTheta1 - cosTheta2) / (eta * cosTheta1 + cosTheta2);
-    return 0.5f * (pPara * pPara + pPerp * pPerp);
-  }
 }
 
 ccl_device float fresnel_dielectric_cos(float cosi, float eta)

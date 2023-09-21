@@ -14,8 +14,8 @@ from bpy.props import (
 
 def build_default_empty_geometry_node_group(name):
     group = bpy.data.node_groups.new(name, 'GeometryNodeTree')
-    group.interface.new_socket(data_("Geometry"), in_out={'OUTPUT'}, socket_type='NodeSocketGeometry')
-    group.interface.new_socket(data_("Geometry"), in_out={'INPUT'}, socket_type='NodeSocketGeometry')
+    group.interface.new_socket(data_("Geometry"), in_out='OUTPUT', socket_type='NodeSocketGeometry')
+    group.interface.new_socket(data_("Geometry"), in_out='INPUT', socket_type='NodeSocketGeometry')
     input_node = group.nodes.new('NodeGroupInput')
     output_node = group.nodes.new('NodeGroupOutput')
     output_node.is_active_output = True
@@ -32,6 +32,29 @@ def build_default_empty_geometry_node_group(name):
 def geometry_node_group_empty_new():
     group = build_default_empty_geometry_node_group(data_("Geometry Nodes"))
     group.links.new(group.nodes[data_("Group Input")].outputs[0], group.nodes[data_("Group Output")].inputs[0])
+    return group
+
+
+def geometry_node_group_empty_tool_new(context):
+    group = build_default_empty_geometry_node_group(data_("Tool"))
+    group.links.new(group.nodes[data_("Group Input")].outputs[0], group.nodes[data_("Group Output")].inputs[0])
+    group.asset_mark()
+    group.is_tool = True
+
+    ob_type = context.object.type if context.object else 'MESH'
+    if ob_type == 'CURVES':
+        group.is_type_curve = True
+    elif ob_type == 'POINTCLOUD':
+        group.is_type_point_cloud = True
+    else:
+        group.is_type_mesh = True
+
+    mode = context.object.mode if context.object else 'EDIT'
+    if mode in {'SCULPT', 'SCULPT_CURVES'}:
+        group.is_mode_sculpt = True
+    else:
+        group.is_mode_edit = True
+
     return group
 
 
@@ -64,17 +87,16 @@ def edit_geometry_nodes_modifier_poll(context):
 
 def socket_idname_to_attribute_type(idname):
     if idname.startswith("NodeSocketInt"):
-        return "INT"
+        return 'INT'
     elif idname.startswith("NodeSocketColor"):
-        return "FLOAT_COLOR"
+        return 'FLOAT_COLOR'
     elif idname.startswith("NodeSocketVector"):
-        return "FLOAT_VECTOR"
+        return 'FLOAT_VECTOR'
     elif idname.startswith("NodeSocketBool"):
-        return "BOOLEAN"
+        return 'BOOLEAN'
     elif idname.startswith("NodeSocketFloat"):
-        return "FLOAT"
+        return 'FLOAT'
     raise ValueError("Unsupported socket type")
-    return ""
 
 
 def modifier_attribute_name_get(modifier, identifier):
@@ -136,7 +158,9 @@ class MoveModifierToNodes(Operator):
         # Copy default values for inputs and create named attribute input nodes.
         input_nodes = []
         first_geometry_input = None
-        for input_socket in old_group.inputs:
+        for input_socket in old_group.interface.items_tree:
+            if input_socket.item_type != 'SOCKET' or (input_socket.in_out not in {'INPUT', 'BOTH'}):
+                continue
             identifier = input_socket.identifier
             group_node_input = get_socket_with_identifier(group_node.inputs, identifier)
             if modifier_input_use_attribute(modifier, identifier):
@@ -154,7 +178,7 @@ class MoveModifierToNodes(Operator):
                     first_geometry_input = group_node_input
 
         if not first_geometry_input:
-            self.report({"WARNING"}, "Node group must have a geometry input")
+            self.report({'WARNING'}, "Node group must have a geometry input")
             return {'CANCELLED'}
         group.links.new(group_input_node.outputs[0], first_geometry_input)
 
@@ -168,7 +192,9 @@ class MoveModifierToNodes(Operator):
         # Connect outputs to store named attribute nodes to replace modifier attribute outputs.
         store_nodes = []
         first_geometry_output = None
-        for output_socket in old_group.outputs:
+        for output_socket in old_group.interface.items_tree:
+            if output_socket.item_type != 'SOCKET' or (output_socket.in_out not in {'OUTPUT', 'BOTH'}):
+                continue
             identifier = output_socket.identifier
             group_node_output = get_socket_with_identifier(group_node.outputs, identifier)
             attribute_name = modifier_attribute_name_get(modifier, identifier)
@@ -199,8 +225,8 @@ class MoveModifierToNodes(Operator):
             group.links.new(store_nodes[-1].outputs["Geometry"], group_output_node.inputs[data_("Geometry")])
         else:
             if not first_geometry_output:
-                self.report({"WARNING"}, "Node group must have a geometry output")
-                return {"CANCELLED"}
+                self.report({'WARNING'}, "Node group must have a geometry output")
+                return {'CANCELLED'}
             group.links.new(first_geometry_output, group_output_node.inputs[data_("Geometry")])
 
         modifier.node_group = group
@@ -226,6 +252,7 @@ class NewGeometryNodesModifier(Operator):
             return {'CANCELLED'}
 
         group = geometry_node_group_empty_new()
+        group.is_modifier = True
         modifier.node_group = group
 
         return {'FINISHED'}
@@ -244,16 +271,12 @@ class NewGeometryNodeTreeAssign(Operator):
 
     def execute(self, context):
         space = context.space_data
-        if space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'TOOL':
-            group = geometry_node_group_empty_new()
-            space.node_tree = group
-            return {'FINISHED'}
-        else:
-            modifier = get_context_modifier(context)
-            if not modifier:
-                return {'CANCELLED'}
-            group = geometry_node_group_empty_new()
-            modifier.node_group = group
+        modifier = get_context_modifier(context)
+        if not modifier:
+            return {'CANCELLED'}
+        group = geometry_node_group_empty_new()
+        group.is_modifier = True
+        modifier.node_group = group
 
         return {'FINISHED'}
 
@@ -270,9 +293,7 @@ class NewGeometryNodeGroupTool(Operator):
         return space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'TOOL'
 
     def execute(self, context):
-        group = geometry_node_group_empty_new()
-        group.asset_mark()
-        group.is_tool = True
+        group = geometry_node_group_empty_tool_new(context)
         context.space_data.node_tree = group
         return {'FINISHED'}
 

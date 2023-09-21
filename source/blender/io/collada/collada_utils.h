@@ -193,7 +193,7 @@ extern std::string bc_replace_string(std::string data,
                                      const std::string &replacement);
 extern std::string bc_url_encode(std::string data);
 /**
- * Calculate a rescale factor such that the imported scene's scale
+ * Calculate a re-scale factor such that the imported scene's scale
  * is preserved. I.e. 1 meter in the import will also be
  * 1 meter in the current scene.
  */

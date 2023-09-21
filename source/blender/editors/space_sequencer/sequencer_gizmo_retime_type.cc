@@ -51,7 +51,7 @@
 #include "SEQ_time.h"
 
 /* Own include. */
-#include "sequencer_intern.h"
+#include "sequencer_intern.hh"
 
 using blender::MutableSpan;
 

@@ -203,7 +203,8 @@ void BLO_blendfiledata_free(BlendFileData *bfd);
  *
  * Called at the end of #setup_add_data from BKE's `blendfile.cc`.
  *
- * \param new_bmain the newly read Main data-base. */
+ * \param new_bmain: the newly read Main data-base.
+ */
 void BLO_read_do_version_after_setup(struct Main *new_bmain, struct BlendFileReadReport *reports);
 
 /** \} */

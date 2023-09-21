@@ -22,15 +22,17 @@ void AUD_destroySet(void *set)
 
 char AUD_removeSet(void *set, void *entry)
 {
-  if (set)
+  if (set) {
     return reinterpret_cast<std::set<void *> *>(set)->erase(entry);
+  }
   return 0;
 }
 
 void AUD_addSet(void *set, void *entry)
 {
-  if (entry)
+  if (entry) {
     reinterpret_cast<std::set<void *> *>(set)->insert(entry);
+  }
 }
 
 void *AUD_getSet(void *set)

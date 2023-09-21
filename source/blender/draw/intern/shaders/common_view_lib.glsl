@@ -89,7 +89,7 @@ uniform int drw_resourceChunk;
 
 #    if defined(UNIFORM_RESOURCE_ID)
 /* This is in the case we want to do a special instance drawcall for one object but still want to
- * have the right resourceId and all the correct ubo datas. */
+ * have the right resourceId and all the correct UBO datas. */
 uniform int drw_ResourceID;
 #      define resource_id drw_ResourceID
 #    else
@@ -294,7 +294,7 @@ float get_homogenous_z_offset(float vs_z, float hs_w, float vs_offset)
 #define DRW_BASE_FROM_SET (1 << 3)
 #define DRW_BASE_ACTIVE (1 << 4)
 
-/* Wire Color Types, matching eV3DShadingColorType.*/
+/* Wire Color Types, matching eV3DShadingColorType. */
 #define V3D_SHADING_SINGLE_COLOR 2
 #define V3D_SHADING_OBJECT_COLOR 4
 #define V3D_SHADING_RANDOM_COLOR 1

@@ -20,6 +20,8 @@
  * #lazy_function::Graph is build that can be used when evaluating the graph (e.g. for logging).
  */
 
+#include <variant>
+
 #include "FN_lazy_function_graph.hh"
 #include "FN_lazy_function_graph_executor.hh"
 
@@ -28,8 +30,8 @@
 
 #include "BLI_compute_context.hh"
 
+#include "BKE_bake_items.hh"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_simulation_state.hh"
 
 struct Object;
 struct Depsgraph;
@@ -39,6 +41,96 @@ namespace blender::nodes {
 
 using lf::LazyFunction;
 using mf::MultiFunction;
+
+/** The structs in here describe the different possible behaviors of a simulation input node. */
+namespace sim_input {
+
+/**
+ * The data is just passed through the node. Data that is incompatible with simulations (like
+ * anonymous attributes), is removed though.
+ */
+struct PassThrough {
+};
+
+/**
+ * The input is not evaluated, instead the values provided here are output by the node.
+ */
+struct OutputCopy {
+  float delta_time;
+  bke::bake::BakeStateRef state;
+};
+
+/**
+ * Same as above, but the values can be output by move, instead of copy. This can reduce the amount
+ * of unnecessary copies, when the old simulation state is not needed anymore.
+ */
+struct OutputMove {
+  float delta_time;
+  bke::bake::BakeState state;
+};
+
+using Behavior = std::variant<PassThrough, OutputCopy, OutputMove>;
+
+}  // namespace sim_input
+
+/** The structs in here describe the different possible behaviors of a simulation output node. */
+namespace sim_output {
+
+/**
+ * Output the data that comes from the corresponding simulation input node, ignoring the nodes in
+ * the zone.
+ */
+struct PassThrough {
+};
+
+/**
+ * Computes the simulation step and calls the given function to cache the new simulation state.
+ * The new simulation state is the output of the node.
+ */
+struct StoreNewState {
+  std::function<void(bke::bake::BakeState state)> store_fn;
+};
+
+/**
+ * The inputs are not evaluated, instead the given cached items are output directly.
+ */
+struct ReadSingle {
+  bke::bake::BakeStateRef state;
+};
+
+/**
+ * The inputs are not evaluated, instead of a mix of the two given states is output.
+ */
+struct ReadInterpolated {
+  /** Factor between 0 and 1 that determines the influence of the two simulation states. */
+  float mix_factor;
+  bke::bake::BakeStateRef prev_state;
+  bke::bake::BakeStateRef next_state;
+};
+
+using Behavior = std::variant<PassThrough, StoreNewState, ReadSingle, ReadInterpolated>;
+
+}  // namespace sim_output
+
+/** Controls the behavior of one simulation zone. */
+struct SimulationZoneBehavior {
+  sim_input::Behavior input;
+  sim_output::Behavior output;
+};
+
+class GeoNodesSimulationParams {
+ public:
+  /**
+   * Get the expected behavior for the simulation zone with the given id (see #bNestedNodeRef).
+   * It's possible that this method called multiple times for the same id. In this case, the same
+   * pointer should be returned in each call.
+   */
+  virtual SimulationZoneBehavior *get(const int zone_id) const = 0;
+};
+
+struct GeoNodesSideEffectNodes {
+  MultiValueMap<ComputeContextHash, const lf::FunctionNode *> nodes_by_context;
+};
 
 /**
  * Data that is passed into geometry nodes evaluation from the modifier.
@@ -51,26 +143,13 @@ struct GeoNodesModifierData {
   /** Optional logger. */
   geo_eval_log::GeoModifierLog *eval_log = nullptr;
 
-  /** Read-only simulation states around the current frame. */
-  const bke::sim::ModifierSimulationState *current_simulation_state = nullptr;
-  const bke::sim::ModifierSimulationState *prev_simulation_state = nullptr;
-  const bke::sim::ModifierSimulationState *next_simulation_state = nullptr;
-  float simulation_state_mix_factor = 0.0f;
-  /** Used when the evaluation should create a new simulation state. */
-  bke::sim::ModifierSimulationState *current_simulation_state_for_write = nullptr;
-  float simulation_time_delta = 0.0f;
-
-  /**
-   * The same as #prev_simulation_state, but the cached values can be moved from,
-   * to keep data managed by implicit sharing mutable.
-   */
-  bke::sim::ModifierSimulationState *prev_simulation_state_mutable = nullptr;
+  GeoNodesSimulationParams *simulation_params = nullptr;
 
   /**
    * Some nodes should be executed even when their output is not used (e.g. active viewer nodes and
    * the node groups they are contained in).
    */
-  const MultiValueMap<ComputeContextHash, const lf::FunctionNode *> *side_effect_nodes = nullptr;
+  const GeoNodesSideEffectNodes *side_effect_nodes = nullptr;
   /**
    * Controls in which compute contexts we want to log socket values. Logging them in all contexts
    * can result in slowdowns. In the majority of cases, the logged socket values are freed without
@@ -119,13 +198,31 @@ struct GeoNodesLFUserData : public lf::UserData {
 };
 
 struct GeoNodesLFLocalUserData : public lf::LocalUserData {
- public:
+ private:
+  GeoNodesLFUserData &user_data_;
   /**
-   * Thread-local logger for the current node tree in the current compute context.
+   * Thread-local logger for the current node tree in the current compute context. It is only
+   * instantiated when it is actually used and then cached for the current thread.
    */
-  geo_eval_log::GeoTreeLogger *tree_logger = nullptr;
+  mutable std::optional<geo_eval_log::GeoTreeLogger *> tree_logger_;
 
-  GeoNodesLFLocalUserData(GeoNodesLFUserData &user_data);
+ public:
+  GeoNodesLFLocalUserData(GeoNodesLFUserData &user_data) : user_data_(user_data) {}
+
+  /**
+   * Get the current tree logger. This method is not thread-safe, each thread is supposed to have
+   * a separate logger.
+   */
+  geo_eval_log::GeoTreeLogger *try_get_tree_logger() const
+  {
+    if (!tree_logger_.has_value()) {
+      this->ensure_tree_logger();
+    }
+    return *tree_logger_;
+  }
+
+ private:
+  void ensure_tree_logger() const;
 };
 
 /**
@@ -156,39 +253,10 @@ struct InputUsageHint {
  */
 struct GeometryNodeLazyFunctionGraphMapping {
   /**
-   * Contains mapping of sockets for special nodes like group input and group output.
-   */
-  Map<const bNodeSocket *, lf::Socket *> dummy_socket_map;
-  /**
-   * The inputs sockets in the graph. Multiple group input nodes are combined into one in the
-   * lazy-function graph.
-   */
-  Vector<const lf::OutputSocket *> group_input_sockets;
-  /**
-   * Dummy output sockets that correspond to the active group output node. If there is no such
-   * node, defaulted fallback outputs are created.
-   */
-  Vector<const lf::InputSocket *> standard_group_output_sockets;
-  /**
-   * Dummy boolean sockets that have to be passed in from the outside and indicate whether a
-   * specific output will be used.
-   */
-  Vector<const lf::OutputSocket *> group_output_used_sockets;
-  /**
-   * Dummy boolean sockets that can be used as group output that indicate whether a specific input
-   * will be used (this may depend on the used outputs as well as other inputs).
-   */
-  Vector<const lf::InputSocket *> group_input_usage_sockets;
-  /**
    * This is an optimization to avoid partially evaluating a node group just to figure out which
    * inputs are needed.
    */
   Vector<InputUsageHint> group_input_usage_hints;
-  /**
-   * If the node group propagates attributes from an input geometry to the output, it has to know
-   * which attributes should be propagated and which can be removed (for optimization purposes).
-   */
-  Map<int, const lf::OutputSocket *> attribute_set_by_geometry_output;
   /**
    * A mapping used for logging intermediate values.
    */
@@ -210,6 +278,52 @@ struct GeometryNodeLazyFunctionGraphMapping {
 };
 
 /**
+ * Contains the information that is necessary to execute a geometry node tree.
+ */
+struct GeometryNodesGroupFunction {
+  /**
+   * The lazy-function that does what the node group does. Its inputs and outputs are described
+   * below.
+   */
+  const LazyFunction *function = nullptr;
+
+  struct {
+    /**
+     * Main input values that come out of the Group Input node.
+     */
+    IndexRange main;
+    /**
+     * A boolean for every group output that indicates whether that output is needed. It's ok if
+     * those are set to true even when an output is not used, but the other way around will lead to
+     * bugs. The node group uses those values to compute the lifetimes of anonymous attributes.
+     */
+    IndexRange output_usages;
+    /**
+     * Some node groups can propagate attributes from a geometry input to a geometry output. In
+     * those cases, the caller of the node group has to decide which anonymous attributes have to
+     * be kept alive on the geometry because the caller requires them.
+     */
+    struct {
+      IndexRange range;
+      Vector<int> geometry_outputs;
+    } attributes_to_propagate;
+  } inputs;
+
+  struct {
+    /**
+     * Main output values that are passed into the Group Output node.
+     */
+    IndexRange main;
+    /**
+     * A boolean for every group input that indicates whether this input will be used. Oftentimes
+     * this can be determined without actually computing much. This is used to compute anonymous
+     * attribute lifetimes.
+     */
+    IndexRange input_usages;
+  } outputs;
+};
+
+/**
  * Data that is cached for every #bNodeTree.
  */
 struct GeometryNodesLazyFunctionGraphInfo {
@@ -217,6 +331,7 @@ struct GeometryNodesLazyFunctionGraphInfo {
    * Contains resources that need to be freed when the graph is not needed anymore.
    */
   ResourceScope scope;
+  GeometryNodesGroupFunction function;
   /**
    * The actual lazy-function graph.
    */
@@ -232,30 +347,6 @@ struct GeometryNodesLazyFunctionGraphInfo {
   int num_inline_nodes_approximate = 0;
 };
 
-/**
- * Logs intermediate values from the lazy-function graph evaluation into #GeoModifierLog based on
- * the mapping between the lazy-function graph and the corresponding #bNodeTree.
- */
-class GeometryNodesLazyFunctionLogger : public fn::lazy_function::GraphExecutor::Logger {
- private:
-  const GeometryNodesLazyFunctionGraphInfo &lf_graph_info_;
-
- public:
-  GeometryNodesLazyFunctionLogger(const GeometryNodesLazyFunctionGraphInfo &lf_graph_info);
-  void log_socket_value(const fn::lazy_function::Socket &lf_socket,
-                        GPointer value,
-                        const fn::lazy_function::Context &context) const override;
-  void dump_when_outputs_are_missing(const lf::FunctionNode &node,
-                                     Span<const lf::OutputSocket *> missing_sockets,
-                                     const lf::Context &context) const override;
-  void dump_when_input_is_set_twice(const lf::InputSocket &target_socket,
-                                    const lf::OutputSocket &from_socket,
-                                    const lf::Context &context) const override;
-  void log_before_node_execute(const lf::FunctionNode &node,
-                               const lf::Params &params,
-                               const lf::Context &context) const override;
-};
-
 std::unique_ptr<LazyFunction> get_simulation_output_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
@@ -264,8 +355,14 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
     GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node);
 
-std::optional<bke::sim::SimulationZoneID> get_simulation_zone_id(
-    const GeoNodesLFUserData &user_data, const int output_node_id);
+struct FoundNestedNodeID {
+  int id;
+  bool is_in_simulation = false;
+  bool is_in_loop = false;
+};
+
+std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesLFUserData &user_data,
+                                                     const int node_id);
 
 /**
  * An anonymous attribute created by a node.
@@ -282,18 +379,6 @@ class NodeAnonymousAttributeID : public bke::AnonymousAttributeID {
                            const StringRef name);
 
   std::string user_name() const override;
-};
-
-/**
- * Tells the lazy-function graph evaluator which nodes have side effects based on the current
- * context. For example, the same viewer node can have side effects in one context, but not in
- * another (depending on e.g. which tree path is currently viewed in the node editor).
- */
-class GeometryNodesLazyFunctionSideEffectProvider
-    : public fn::lazy_function::GraphExecutor::SideEffectProvider {
- public:
-  Vector<const lf::FunctionNode *> get_nodes_with_side_effects(
-      const lf::Context &context) const override;
 };
 
 /**

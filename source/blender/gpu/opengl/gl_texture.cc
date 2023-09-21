@@ -9,6 +9,7 @@
 #include <string>
 
 #include "BLI_assert.h"
+#include "BLI_string.h"
 
 #include "DNA_userdef_types.h"
 

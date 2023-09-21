@@ -162,7 +162,7 @@ static void fsmenu_xdg_insert_entry(GHash *xdg_map,
 
 #ifdef WIN32
 /* Add Windows Quick Access items to the System list. */
-static void fsmenu_add_windows_quick_access(struct FSMenu *fsmenu,
+static void fsmenu_add_windows_quick_access(FSMenu *fsmenu,
                                             FSMenuCategory category,
                                             FSMenuInsert flag)
 {

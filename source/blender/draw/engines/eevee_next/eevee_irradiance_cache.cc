@@ -342,6 +342,7 @@ void IrradianceCache::set_view(View & /*view*/)
     grid_upload_ps_.push_constant("grid_index", grid->grid_index);
     grid_upload_ps_.push_constant("grid_start_index", grid_start_index);
     grid_upload_ps_.push_constant("grid_local_to_world", grid->object_to_world);
+    grid_upload_ps_.push_constant("grid_intensity_factor", grid->intensity);
     grid_upload_ps_.bind_ubo("grids_infos_buf", &grids_infos_buf_);
     grid_upload_ps_.bind_ssbo("bricks_infos_buf", &bricks_infos_buf_);
     grid_upload_ps_.bind_texture("irradiance_a_tx", &irradiance_a_tx);
@@ -785,6 +786,12 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   float min_distance_between_grid_samples = min_fff(UNPACK3(scale));
   capture_info_buf_.min_distance_to_surface *= min_distance_between_grid_samples;
   capture_info_buf_.max_virtual_offset *= min_distance_between_grid_samples;
+  capture_info_buf_.clamp_direct = (lightprobe->grid_clamp_direct > 0.0) ?
+                                       lightprobe->grid_clamp_direct :
+                                       1e20f;
+  capture_info_buf_.clamp_indirect = (lightprobe->grid_clamp_indirect > 0.0) ?
+                                         lightprobe->grid_clamp_indirect :
+                                         1e20f;
 
   eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                                    GPU_TEXTURE_USAGE_HOST_READ;

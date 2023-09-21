@@ -429,8 +429,9 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
     size_t numverts = verts.size();
 
     memcpy(attr_mP->data_float3() + motion_step * numverts, P, sizeof(float3) * numverts);
-    if (attr_mN)
+    if (attr_mN) {
       memcpy(attr_mN->data_float3() + motion_step * numverts, N, sizeof(float3) * numverts);
+    }
   }
 }
 
@@ -461,31 +462,35 @@ void Mesh::compute_bounds()
   size_t verts_size = verts.size();
 
   if (verts_size > 0) {
-    for (size_t i = 0; i < verts_size; i++)
+    for (size_t i = 0; i < verts_size; i++) {
       bnds.grow(verts[i]);
+    }
 
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (use_motion_blur && attr) {
       size_t steps_size = verts.size() * (motion_steps - 1);
       float3 *vert_steps = attr->data_float3();
 
-      for (size_t i = 0; i < steps_size; i++)
+      for (size_t i = 0; i < steps_size; i++) {
         bnds.grow(vert_steps[i]);
+      }
     }
 
     if (!bnds.valid()) {
       bnds = BoundBox::empty;
 
       /* skip nan or inf coordinates */
-      for (size_t i = 0; i < verts_size; i++)
+      for (size_t i = 0; i < verts_size; i++) {
         bnds.grow_safe(verts[i]);
+      }
 
       if (use_motion_blur && attr) {
         size_t steps_size = verts.size() * (motion_steps - 1);
         float3 *vert_steps = attr->data_float3();
 
-        for (size_t i = 0; i < steps_size; i++)
+        for (size_t i = 0; i < steps_size; i++) {
           bnds.grow_safe(vert_steps[i]);
+        }
       }
     }
   }
@@ -503,8 +508,9 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
   transform_normal = transform_transposed_inverse(tfm);
 
   /* apply to mesh vertices */
-  for (size_t i = 0; i < verts.size(); i++)
+  for (size_t i = 0; i < verts.size(); i++) {
     verts[i] = transform_point(&tfm, verts[i]);
+  }
 
   tag_verts_modified();
 
@@ -515,8 +521,9 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
       size_t steps_size = verts.size() * (motion_steps - 1);
       float3 *vert_steps = attr->data_float3();
 
-      for (size_t i = 0; i < steps_size; i++)
+      for (size_t i = 0; i < steps_size; i++) {
         vert_steps[i] = transform_point(&tfm, vert_steps[i]);
+      }
     }
 
     Attribute *attr_N = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
@@ -526,8 +533,9 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
       size_t steps_size = verts.size() * (motion_steps - 1);
       float3 *normal_steps = attr_N->data_float3();
 
-      for (size_t i = 0; i < steps_size; i++)
+      for (size_t i = 0; i < steps_size; i++) {
         normal_steps[i] = normalize(transform_direction(&ntfm, normal_steps[i]));
+      }
     }
   }
 }
@@ -535,8 +543,9 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
 void Mesh::add_face_normals()
 {
   /* don't compute if already there */
-  if (attributes.find(ATTR_STD_FACE_NORMAL))
+  if (attributes.find(ATTR_STD_FACE_NORMAL)) {
     return;
+  }
 
   /* get attributes */
   Attribute *attr_fN = attributes.add(ATTR_STD_FACE_NORMAL);
@@ -557,8 +566,9 @@ void Mesh::add_face_normals()
   if (transform_applied) {
     Transform ntfm = transform_inverse(transform_normal);
 
-    for (size_t i = 0; i < triangles_size; i++)
+    for (size_t i = 0; i < triangles_size; i++) {
       fN[i] = normalize(transform_direction(&ntfm, fN[i]));
+    }
   }
 }
 

@@ -16,6 +16,7 @@
 struct Collection;
 struct ID;
 struct ImBuf;
+struct ListBase;
 struct PointerRNA;
 struct PreviewImage;
 struct Scene;

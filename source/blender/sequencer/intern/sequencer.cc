@@ -918,6 +918,15 @@ static bool seq_update_seq_cb(Sequence *seq, void *user_data)
       if (scene->id.recalc & ID_RECALC_AUDIO || seq->sound->id.recalc & ID_RECALC_AUDIO) {
         BKE_sound_update_scene_sound(seq->scene_sound, seq->sound);
       }
+
+      void *sound = seq->sound->playback_handle;
+
+      if (!BLI_listbase_is_empty(&seq->modifiers)) {
+        LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+          sound = SEQ_sound_modifier_recreator(seq, smd, sound);
+        }
+      }
+      BKE_sound_update_sequence_handle(seq->scene_sound, sound);
     }
     BKE_sound_set_scene_sound_volume(
         seq->scene_sound, seq->volume, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);

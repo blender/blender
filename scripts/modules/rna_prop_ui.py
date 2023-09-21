@@ -194,7 +194,7 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
         operator_row.alignment = 'RIGHT'
 
         # Do not allow editing of overridden properties (we cannot use a poll function
-        # of the operators here since they's have no access to the specific property).
+        # of the operators here since they have no access to the specific property).
         operator_row.enabled = not (is_lib_override and key in rna_item.id_data.override_library.reference)
 
         if use_edit:

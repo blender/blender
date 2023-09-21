@@ -85,6 +85,10 @@ mat4x4 shadow_load_normal_matrix(LightData light)
  * match the surface. */
 float shadow_slope_bias_get(vec2 atlas_size, LightData light, vec3 lNg, vec3 lP, vec2 uv, uint lod)
 {
+#ifdef VOLUME_LIGHTING
+  /* No bias for volumes. */
+  return 0.0;
+#endif
   /* Compute coordinate inside the pixel we are sampling. */
   vec2 uv_subpixel_coord = fract(uv * atlas_size);
   /* Compute delta to the texel center (where the sample is). */

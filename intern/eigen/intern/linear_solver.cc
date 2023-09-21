@@ -149,8 +149,9 @@ static void linear_solver_variables_to_vector(LinearSolver *solver)
   for (int i = 0; i < solver->num_variables; i++) {
     LinearSolver::Variable *v = &solver->variable[i];
     if (!v->locked) {
-      for (int j = 0; j < num_rhs; j++)
+      for (int j = 0; j < num_rhs; j++) {
         solver->x[j][v->index] = v->value[j];
+      }
     }
   }
 }
@@ -162,8 +163,9 @@ static void linear_solver_vector_to_variables(LinearSolver *solver)
   for (int i = 0; i < solver->num_variables; i++) {
     LinearSolver::Variable *v = &solver->variable[i];
     if (!v->locked) {
-      for (int j = 0; j < num_rhs; j++)
+      for (int j = 0; j < num_rhs; j++) {
         v->value[j] = solver->x[j][v->index];
+      }
     }
   }
 }
@@ -177,10 +179,12 @@ static void linear_solver_ensure_matrix_construct(LinearSolver *solver)
     int n = 0;
 
     for (int i = 0; i < solver->num_variables; i++) {
-      if (solver->variable[i].locked)
+      if (solver->variable[i].locked) {
         solver->variable[i].index = ~0;
-      else
+      }
+      else {
         solver->variable[i].index = n++;
+      }
     }
 
     int m = (solver->num_rows == 0) ? n : solver->num_rows;
@@ -210,16 +214,19 @@ static void linear_solver_ensure_matrix_construct(LinearSolver *solver)
 
 void EIG_linear_solver_matrix_add(LinearSolver *solver, int row, int col, double value)
 {
-  if (solver->state == LinearSolver::STATE_MATRIX_SOLVED)
+  if (solver->state == LinearSolver::STATE_MATRIX_SOLVED) {
     return;
+  }
 
   linear_solver_ensure_matrix_construct(solver);
 
-  if (!solver->least_squares && solver->variable[row].locked)
+  if (!solver->least_squares && solver->variable[row].locked) {
     ;
+  }
   else if (solver->variable[col].locked) {
-    if (!solver->least_squares)
+    if (!solver->least_squares) {
       row = solver->variable[row].index;
+    }
 
     LinearSolver::Coeff coeff;
     coeff.index = row;
@@ -227,8 +234,9 @@ void EIG_linear_solver_matrix_add(LinearSolver *solver, int row, int col, double
     solver->variable[col].a.push_back(coeff);
   }
   else {
-    if (!solver->least_squares)
+    if (!solver->least_squares) {
       row = solver->variable[row].index;
+    }
     col = solver->variable[col].index;
 
     /* direct insert into matrix is too slow, so use triplets */
@@ -257,8 +265,9 @@ void EIG_linear_solver_right_hand_side_add(LinearSolver *solver, int rhs, int in
 bool EIG_linear_solver_solve(LinearSolver *solver)
 {
   /* nothing to solve, perhaps all variables were locked */
-  if (solver->m == 0 || solver->n == 0)
+  if (solver->m == 0 || solver->n == 0) {
     return true;
+  }
 
   bool result = true;
 
@@ -271,8 +280,9 @@ bool EIG_linear_solver_solve(LinearSolver *solver)
     solver->Mtriplets.clear();
 
     /* create least squares matrix */
-    if (solver->least_squares)
+    if (solver->least_squares) {
       solver->MtM = solver->M.transpose() * solver->M;
+    }
 
     /* convert M to compressed column format */
     EigenSparseMatrix &M = (solver->least_squares) ? solver->MtM : solver->M;
@@ -300,8 +310,9 @@ bool EIG_linear_solver_solve(LinearSolver *solver)
         if (variable->locked) {
           std::vector<LinearSolver::Coeff> &a = variable->a;
 
-          for (int j = 0; j < a.size(); j++)
+          for (int j = 0; j < a.size(); j++) {
             b[a[j].index] -= a[j].value * variable->value[rhs];
+          }
         }
       }
 
@@ -315,17 +326,20 @@ bool EIG_linear_solver_solve(LinearSolver *solver)
         solver->x[rhs] = solver->sparseLU->solve(b);
       }
 
-      if (solver->sparseLU->info() != Eigen::Success)
+      if (solver->sparseLU->info() != Eigen::Success) {
         result = false;
+      }
     }
 
-    if (result)
+    if (result) {
       linear_solver_vector_to_variables(solver);
+    }
   }
 
   /* clear for next solve */
-  for (int rhs = 0; rhs < solver->num_rhs; rhs++)
+  for (int rhs = 0; rhs < solver->num_rhs; rhs++) {
     solver->b[rhs].setZero(solver->m);
+  }
 
   return result;
 }
@@ -336,9 +350,11 @@ void EIG_linear_solver_print_matrix(LinearSolver *solver)
 {
   std::cout << "A:" << solver->M << std::endl;
 
-  for (int rhs = 0; rhs < solver->num_rhs; rhs++)
+  for (int rhs = 0; rhs < solver->num_rhs; rhs++) {
     std::cout << "b " << rhs << ":" << solver->b[rhs] << std::endl;
+  }
 
-  if (solver->MtM.rows() && solver->MtM.cols())
+  if (solver->MtM.rows() && solver->MtM.cols()) {
     std::cout << "AtA:" << solver->MtM << std::endl;
+  }
 }

@@ -44,6 +44,7 @@
 #include "GPU_select.h"
 
 #include "ANIM_bone_collections.h"
+#include "ANIM_bonecolor.hh"
 
 #include "armature_intern.h"
 
@@ -1596,8 +1597,8 @@ enum {
   SIMEDBONE_DIRECTION,
   SIMEDBONE_PREFIX,
   SIMEDBONE_SUFFIX,
-  SIMEDBONE_LAYER,
-  SIMEDBONE_GROUP,
+  SIMEDBONE_COLLECTION,
+  SIMEDBONE_COLOR,
   SIMEDBONE_SHAPE,
 };
 
@@ -1609,8 +1610,8 @@ static const EnumPropertyItem prop_similar_types[] = {
     {SIMEDBONE_DIRECTION, "DIRECTION", 0, "Direction (Y Axis)", ""},
     {SIMEDBONE_PREFIX, "PREFIX", 0, "Prefix", ""},
     {SIMEDBONE_SUFFIX, "SUFFIX", 0, "Suffix", ""},
-    {SIMEDBONE_LAYER, "LAYER", 0, "Layer", ""},
-    {SIMEDBONE_GROUP, "GROUP", 0, "Group", ""},
+    {SIMEDBONE_COLLECTION, "BONE_COLLECTION", 0, "Bone Collection", ""},
+    {SIMEDBONE_COLOR, "COLOR", 0, "Color", ""},
     {SIMEDBONE_SHAPE, "SHAPE", 0, "Shape", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -1713,11 +1714,17 @@ static void select_similar_direction(bContext *C, const float thresh)
   MEM_freeN(objects);
 }
 
-static void select_similar_layer(bContext *C)
+static void select_similar_bone_collection(bContext *C)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   EditBone *ebone_act = CTX_data_active_bone(C);
+
+  /* Build a set of bone collection names, to allow cross-Armature selection. */
+  blender::Set<std::string> collection_names;
+  LISTBASE_FOREACH (BoneCollectionReference *, bcoll_ref, &ebone_act->bone_collections) {
+    collection_names.add(bcoll_ref->bcoll->name);
+  }
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -1728,12 +1735,56 @@ static void select_similar_layer(bContext *C)
     bool changed = false;
 
     LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (EBONE_SELECTABLE(arm, ebone)) {
-        if (ebone->layer & ebone_act->layer) {
-          ED_armature_ebone_select_set(ebone, true);
-          changed = true;
-        }
+      if (!EBONE_SELECTABLE(arm, ebone)) {
+        continue;
       }
+
+      LISTBASE_FOREACH (BoneCollectionReference *, bcoll_ref, &ebone->bone_collections) {
+        if (!collection_names.contains(bcoll_ref->bcoll->name)) {
+          continue;
+        }
+
+        ED_armature_ebone_select_set(ebone, true);
+        changed = true;
+        break;
+      }
+    }
+
+    if (changed) {
+      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+      DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+    }
+  }
+  MEM_freeN(objects);
+}
+static void select_similar_bone_color(bContext *C)
+{
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  EditBone *ebone_act = CTX_data_active_bone(C);
+
+  const blender::animrig::BoneColor &active_bone_color = ebone_act->color.wrap();
+
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
+    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bool changed = false;
+
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
+      if (!EBONE_SELECTABLE(arm, ebone)) {
+        continue;
+      }
+
+      const blender::animrig::BoneColor &bone_color = ebone->color.wrap();
+      if (bone_color != active_bone_color) {
+        continue;
+      }
+
+      ED_armature_ebone_select_set(ebone, true);
+      changed = true;
     }
 
     if (changed) {
@@ -1970,11 +2021,11 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
     case SIMEDBONE_SUFFIX:
       select_similar_suffix(C);
       break;
-    case SIMEDBONE_LAYER:
-      select_similar_layer(C);
+    case SIMEDBONE_COLLECTION:
+      select_similar_bone_collection(C);
       break;
-    case SIMEDBONE_GROUP:
-      select_similar_data_pchan(C, STRUCT_SIZE_AND_OFFSET(bPoseChannel, agrp_index));
+    case SIMEDBONE_COLOR:
+      select_similar_bone_color(C);
       break;
     case SIMEDBONE_SHAPE:
       select_similar_data_pchan(C, STRUCT_SIZE_AND_OFFSET(bPoseChannel, custom));

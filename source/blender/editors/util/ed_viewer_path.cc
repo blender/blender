@@ -12,6 +12,7 @@
 #include "BKE_workspace.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_vector.hh"
 
 #include "DNA_modifier_types.h"
@@ -85,7 +86,11 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
   modifier_elem->modifier_name = BLI_strdup(modifier->modifier.name);
   BLI_addtail(&r_dst.path, modifier_elem);
 
-  Vector<const bNodeTreePath *, 16> tree_path = snode.treepath;
+  Vector<const bNodeTreePath *, 16> tree_path;
+  LISTBASE_FOREACH (const bNodeTreePath *, item, &snode.treepath) {
+    tree_path.append(item);
+  }
+
   for (const int i : tree_path.index_range().drop_back(1)) {
     bNodeTree *tree = tree_path[i]->nodetree;
     /* The tree path contains the name of the node but not its ID. */
@@ -207,7 +212,11 @@ Object *parse_object_only(const ViewerPath &viewer_path)
 std::optional<ViewerPathForGeometryNodesViewer> parse_geometry_nodes_viewer(
     const ViewerPath &viewer_path)
 {
-  const Vector<const ViewerPathElem *, 16> elems_vec = viewer_path.path;
+  Vector<const ViewerPathElem *, 16> elems_vec;
+  LISTBASE_FOREACH (const ViewerPathElem *, item, &viewer_path.path) {
+    elems_vec.append(item);
+  }
+
   if (elems_vec.size() < 3) {
     /* Need at least the object, modifier and viewer node name. */
     return std::nullopt;

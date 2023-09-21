@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -612,6 +612,186 @@ msgstr "Katalogipolku"
 
 msgid "Description"
 msgstr "Kuvaus"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Toiminta"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Luuranko"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Sivellin"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Välimuistitiedosto"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Kokoelma"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Käyrä"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Käyrät"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Fontti"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Öljykynä"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Kuva"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Avain"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Säleikkö"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Kirjasto"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Valo"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Viivatyyli"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maski"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Materiaali"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Muoto"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metapallo"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Elokuvaklippi"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Noodipuu"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objekti"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Paletti"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Partikkeli"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Pistepilvi"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Kohtaus"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Ääni"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Kaiutin"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Teksti"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Tekstuuri"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volyymi"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Ikkunamanageri"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Työtila"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Maailma"
 
 
 msgid "Geometry attribute"
@@ -1838,14 +2018,6 @@ msgid "Selectable"
 msgstr "Valittavissa oleva"
 
 
-msgid "Layers"
-msgstr "Tasot"
-
-
-msgid "Layers bone exists in"
-msgstr "Tasot, joissa luut esiintyvät"
-
-
 msgid "Length"
 msgstr "Pituus"
 
@@ -1878,12 +2050,8 @@ msgid "Local Location"
 msgstr "Lokaali sijainti"
 
 
-msgid "Bone Group"
-msgstr "Luuryhmä"
-
-
-msgid "Bone Groups"
-msgstr "Luuryhmät"
+msgid "Visible"
+msgstr "Näkyvä"
 
 
 msgid "Has Color"
@@ -1946,14 +2114,6 @@ msgid "Material"
 msgstr "Materiaali"
 
 
-msgid "Round"
-msgstr "Pyöreä"
-
-
-msgid "Flat"
-msgstr "Tasainen"
-
-
 msgid "Random Curve"
 msgstr "Satunnainen käyrä"
 
@@ -2004,10 +2164,6 @@ msgstr "Tasotila"
 
 msgid "Layers used as boundaries"
 msgstr "Rajoina käytetyt tasot"
-
-
-msgid "Visible"
-msgstr "Näkyvä"
 
 
 msgid "Visible layers"
@@ -3589,186 +3745,6 @@ msgid "Data Path"
 msgstr "Datapolku"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Toiminta"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Luuranko"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Sivellin"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Välimuistitiedosto"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Kokoelma"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Käyrä"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Käyrät"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Fontti"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Öljykynä"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Kuva"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Avain"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Säleikkö"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Kirjasto"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Valo"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Viivatyyli"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Maski"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Materiaali"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Muoto"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Elokuvaklippi"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Noodipuu"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objekti"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Paletti"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Partikkeli"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Pistepilvi"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Kohtaus"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Ääni"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Kaiutin"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Teksti"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Tekstuuri"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volyymi"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Ikkunamanageri"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Työtila"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Maailma"
-
-
 msgid "Rotation Mode"
 msgstr "Kiertotila"
 
@@ -4569,10 +4545,6 @@ msgid "Show scenes"
 msgstr "Näytä kohtaukset"
 
 
-msgid "Large"
-msgstr "Suuri"
-
-
 msgid "Vertical List"
 msgstr "Vertikaalinen lista"
 
@@ -4697,6 +4669,10 @@ msgid "Push"
 msgstr "Työnnä"
 
 
+msgid "Round"
+msgstr "Pyöreä"
+
+
 msgid "Path"
 msgstr "Polku"
 
@@ -4705,8 +4681,16 @@ msgid "Normals"
 msgstr "Normaalit"
 
 
+msgid "Layers"
+msgstr "Tasot"
+
+
 msgid "Sculpt"
 msgstr "Veistä"
+
+
+msgid "Modifier"
+msgstr "Muunnin"
 
 
 msgid "Mesh"
@@ -4785,6 +4769,14 @@ msgstr "Instanssit"
 
 msgid "Node"
 msgstr "Noodi"
+
+
+msgid "Add Modifier"
+msgstr "Lisää muunnin"
+
+
+msgid "Generate"
+msgstr "Luo"
 
 
 msgctxt "Operator"
@@ -5104,10 +5096,6 @@ msgid "Ocean Modifier"
 msgstr "Valtamerimuunnin"
 
 
-msgid "Generate"
-msgstr "Luo"
-
-
 msgid "Ocean is Cached"
 msgstr "Valtameri on viety välimuistiin"
 
@@ -5171,10 +5159,6 @@ msgstr "Luo iho"
 
 msgid "Material Offset"
 msgstr "Materiaalisiirros"
-
-
-msgid "Boundary Shape"
-msgstr "Rajamuoto"
 
 
 msgid "Surface Modifier"
@@ -7191,10 +7175,6 @@ msgid "Add Segment"
 msgstr "Lisää segmentti"
 
 
-msgid "Modifier"
-msgstr "Muunnin"
-
-
 msgid "Mouse location"
 msgstr "Hiiren sijainti"
 
@@ -7449,6 +7429,10 @@ msgstr "Pikselin koko"
 
 msgid "3D"
 msgstr "3D"
+
+
+msgid "Flat"
+msgstr "Tasainen"
 
 
 msgid "Corner"
@@ -7878,10 +7862,6 @@ msgid "Z Min"
 msgstr "Z-minimi"
 
 
-msgid "Layers:"
-msgstr "Tasot:"
-
-
 msgid "Triangle A"
 msgstr "A-kolmio"
 
@@ -8084,6 +8064,10 @@ msgstr "Aseta X-akselit"
 msgctxt "Operator"
 msgid "Set Y Axis"
 msgstr "Aseta Y-akselit"
+
+
+msgid "Snap To"
+msgstr "Napsauta"
 
 
 msgctxt "Operator"
@@ -8323,16 +8307,6 @@ msgstr "Väri"
 msgctxt "Operator"
 msgid "Text"
 msgstr "Teksti"
-
-
-msgctxt "Operator"
-msgid "Subtract"
-msgstr "Vähennä"
-
-
-msgctxt "Operator"
-msgid "Multiply"
-msgstr "Kerro"
 
 
 msgid "Add Transition"
@@ -8632,10 +8606,6 @@ msgstr "Lokaalikamera"
 
 msgid "Seams"
 msgstr "Saumat"
-
-
-msgid "Snap To"
-msgstr "Napsauta"
 
 
 msgctxt "Operator"
@@ -9861,10 +9831,6 @@ msgid "Driver:"
 msgstr "Ajuri:"
 
 
-msgid "Add Modifier"
-msgstr "Lisää muunnin"
-
-
 msgid "Driven Property"
 msgstr "Ajettu ominaisuus"
 
@@ -10008,6 +9974,10 @@ msgstr "Nykyinen tiedosto"
 
 msgid "Missing library"
 msgstr "Kirjasto puuttuu"
+
+
+msgid "Bone Groups"
+msgstr "Luuryhmät"
 
 
 msgid "(empty)"
@@ -10286,11 +10256,6 @@ msgstr "Muotoavainta ei kyetty poistamaan"
 
 msgid "Mesh has no UV data"
 msgstr "Muodolla ei ole UV-dataa"
-
-
-msgctxt "Armature"
-msgid "Group"
-msgstr "Ryhmä"
 
 
 msgid "Scripting"
@@ -11754,10 +11719,6 @@ msgid "Catalan (Català)"
 msgstr "Katalaani (Català)"
 
 
-msgid "Czech (Český)"
-msgstr "Tsekki (Český)"
-
-
 msgid "Portuguese (Português)"
 msgstr "Portugalia (Português)"
 
@@ -11848,10 +11809,6 @@ msgstr "Heprea (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Espanjan espanja (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

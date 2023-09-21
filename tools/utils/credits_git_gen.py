@@ -335,7 +335,7 @@ def main() -> None:
     args = argparse_create().parse_args()
 
     # TODO, there are for sure more companies then are currently listed.
-    # 1 liners for in html syntax
+    # 1 liners for in HTML syntax.
     contrib_companies = (
         "<b>Unity Technologies</b> - FBX Exporter",
         "<b>BioSkill GmbH</b> - H3D compatibility for X3D Exporter, OBJ Nurbs Import/Export",

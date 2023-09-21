@@ -37,7 +37,7 @@ void main()
   }
 
   /* Display surfels as circles. */
-  if (distance(P, surfel.position) > surfel_radius) {
+  if (distance(P, surfel.position) > debug_surfel_radius) {
     discard;
     return;
   }

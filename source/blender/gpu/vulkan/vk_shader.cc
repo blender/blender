@@ -8,6 +8,8 @@
 
 #include <sstream>
 
+#include "GPU_capabilities.h"
+
 #include "vk_shader.hh"
 
 #include "vk_backend.hh"
@@ -334,7 +336,7 @@ static void print_resource(std::ostream &os,
                            const VKDescriptorSet::Location location,
                            const ShaderCreateInfo::Resource &res)
 {
-  os << "layout(binding = " << static_cast<uint32_t>(location);
+  os << "layout(binding = " << uint32_t(location);
   if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
     os << ", " << to_string(res.image.format);
   }
@@ -495,12 +497,17 @@ static char *glsl_patch_get()
   size_t slen = 0;
   /* Version need to go first. */
   STR_CONCAT(patch, slen, "#version 450\n");
+
+  if (GPU_shader_draw_parameters_support()) {
+    STR_CONCAT(patch, slen, "#extension GL_ARB_shader_draw_parameters : enable\n");
+    STR_CONCAT(patch, slen, "#define GPU_ARB_shader_draw_parameters\n");
+    STR_CONCAT(patch, slen, "#define gpu_BaseInstance (gl_BaseInstanceARB)\n");
+  }
+
   STR_CONCAT(patch, slen, "#define gl_VertexID gl_VertexIndex\n");
-  STR_CONCAT(patch, slen, "#define gpu_BaseInstance (0)\n");
   STR_CONCAT(patch, slen, "#define gpu_InstanceIndex (gl_InstanceIndex)\n");
   STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
-
-  STR_CONCAT(patch, slen, "#define gl_InstanceID gpu_InstanceIndex\n");
+  STR_CONCAT(patch, slen, "#define gl_InstanceID (gpu_InstanceIndex - gpu_BaseInstance)\n");
 
   /* TODO(fclem): This creates a validation error and should be already part of Vulkan 1.2. */
   STR_CONCAT(patch, slen, "#extension GL_ARB_shader_viewport_layer_array: enable\n");
@@ -999,7 +1006,7 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
   if (push_constants_storage != VKPushConstants::StorageType::NONE) {
     ss << "\n/* Push Constants. */\n";
     if (push_constants_storage == VKPushConstants::StorageType::PUSH_CONSTANTS) {
-      ss << "layout(push_constant) uniform constants\n";
+      ss << "layout(push_constant, std430) uniform constants\n";
     }
     else if (push_constants_storage == VKPushConstants::StorageType::UNIFORM_BUFFER) {
       ss << "layout(binding = " << push_constants_layout.descriptor_set_location_get()

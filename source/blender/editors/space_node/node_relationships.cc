@@ -414,9 +414,9 @@ namespace viewer_linking {
  * \{ */
 
 /* Depending on the node tree type, different socket types are supported by viewer nodes. */
-static bool socket_can_be_viewed(const bNodeSocket &socket)
+static bool socket_can_be_viewed(const bNode &node, const bNodeSocket &socket)
 {
-  if (!socket.is_visible()) {
+  if (!node.is_socket_icon_drawn(socket)) {
     return false;
   }
   if (STREQ(socket.idname, "NodeSocketVirtual")) {
@@ -530,7 +530,7 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
   int last_linked_data_socket_index = -1;
   bool has_linked_geometry_socket = false;
   for (bNodeSocket *socket : node_to_view.output_sockets()) {
-    if (!socket_can_be_viewed(*socket)) {
+    if (!socket_can_be_viewed(node_to_view, *socket)) {
       continue;
     }
     for (bNodeLink *link : socket->directly_linked_links()) {
@@ -554,7 +554,7 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
   if (last_linked_data_socket_index == -1 && !has_linked_geometry_socket) {
     /* Return the first socket that can be viewed. */
     for (bNodeSocket *socket : node_to_view.output_sockets()) {
-      if (socket_can_be_viewed(*socket)) {
+      if (socket_can_be_viewed(node_to_view, *socket)) {
         return socket;
       }
     }
@@ -566,7 +566,7 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
   for (const int offset : IndexRange(1, tot_outputs)) {
     const int index = (last_linked_data_socket_index + offset) % tot_outputs;
     bNodeSocket &output_socket = node_to_view.output_socket(index);
-    if (!socket_can_be_viewed(output_socket)) {
+    if (!socket_can_be_viewed(node_to_view, output_socket)) {
       continue;
     }
     if (has_linked_geometry_socket && output_socket.type == SOCK_GEOMETRY) {
@@ -2319,7 +2319,6 @@ static void node_offset_apply(bNode &node, const float offset_x)
 {
   /* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
   if ((node.flag & NODE_TEST) == 0) {
-    node.runtime->anim_init_locx = node.locx;
     node.runtime->anim_ofsx = (offset_x / UI_SCALE_FAC);
     node.flag |= NODE_TEST;
   }
@@ -2548,24 +2547,22 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_PASS_THROUGH;
   }
 
-  const float duration = float(iofsd->anim_timer->duration);
+  const float duration = float(iofsd->anim_timer->time_duration);
 
   /* handle animation - do this before possibly aborting due to duration, since
    * main thread might be so busy that node hasn't reached final position yet */
   for (bNode *node : snode->edittree->all_nodes()) {
     if (UNLIKELY(node->runtime->anim_ofsx)) {
-      const float endval = node->runtime->anim_init_locx + node->runtime->anim_ofsx;
-      if (IS_EQF(node->locx, endval) == false) {
-        node->locx = BLI_easing_cubic_ease_in_out(duration,
-                                                  node->runtime->anim_init_locx,
-                                                  node->runtime->anim_ofsx,
-                                                  NODE_INSOFS_ANIM_DURATION);
-        if (node->runtime->anim_ofsx < 0) {
-          CLAMP_MIN(node->locx, endval);
-        }
-        else {
-          CLAMP_MAX(node->locx, endval);
-        }
+      const float prev_duration = duration - float(iofsd->anim_timer->time_delta);
+      /* Clamp duration to not overshoot. */
+      const float clamped_duration = math::min(duration, NODE_INSOFS_ANIM_DURATION);
+      if (prev_duration < clamped_duration) {
+        const float offset_step = node->runtime->anim_ofsx *
+                                  (BLI_easing_cubic_ease_in_out(
+                                       clamped_duration, 0.0f, 1.0f, NODE_INSOFS_ANIM_DURATION) -
+                                   BLI_easing_cubic_ease_in_out(
+                                       prev_duration, 0.0f, 1.0f, NODE_INSOFS_ANIM_DURATION));
+        node->locx += offset_step;
         redraw = true;
       }
     }
@@ -2579,7 +2576,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
     WM_event_timer_remove(CTX_wm_manager(C), nullptr, iofsd->anim_timer);
 
     for (bNode *node : snode->edittree->all_nodes()) {
-      node->runtime->anim_init_locx = node->runtime->anim_ofsx = 0.0f;
+      node->runtime->anim_ofsx = 0.0f;
     }
 
     MEM_freeN(iofsd);

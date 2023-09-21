@@ -10,7 +10,7 @@
 
 #include "FN_field_cpp_type.hh"
 
-namespace blender::bke {
+namespace blender::bke::bake {
 
 static const CPPType &get_socket_cpp_type(const eNodeSocketDatatype socket_type)
 {
@@ -288,4 +288,4 @@ void copy_bake_items_to_socket_values(
   rename_attributes(geometries, attribute_map);
 }
 
-}  // namespace blender::bke
+}  // namespace blender::bke::bake

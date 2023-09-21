@@ -487,7 +487,7 @@ GHOST_IWindow *GHOST_SystemWin32::getWindowUnderCursor(int32_t /*x*/, int32_t /*
     return nullptr;
   }
 
-  return m_windowManager->getWindowAssociatedWithOSWindow((void *)win);
+  return m_windowManager->getWindowAssociatedWithOSWindow((const void *)win);
 }
 
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) const

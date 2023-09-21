@@ -47,12 +47,10 @@ void ED_curve_editnurb_free(Object *obedit);
 
 /**
  * \param dist_px: Maximum distance to pick (in pixels).
- * \param vert_without_handles: When true, selecting the knot doesn't select the handles.
  */
 bool ED_curve_editnurb_select_pick(bContext *C,
                                    const int mval[2],
                                    int dist_px,
-                                   bool vert_without_handles,
                                    const SelectPick_Params *params);
 
 Nurb *ED_curve_add_nurbs_primitive(

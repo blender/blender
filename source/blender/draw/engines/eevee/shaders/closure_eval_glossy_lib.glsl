@@ -29,7 +29,7 @@ struct ClosureEvalGlossy {
   float ltc_brdf_scale;    /** LTC BRDF scaling. */
   vec3 probe_sampling_dir; /** Direction to sample probes from. */
   float spec_occlusion;    /** Specular Occlusion. */
-  vec3 raytrace_radiance;  /** Raytrace reflection to be accumulated after occlusion. */
+  vec3 raytrace_radiance;  /** Ray-trace reflection to be accumulated after occlusion. */
 };
 
 /* Stubs. */
@@ -76,7 +76,7 @@ ClosureEvalGlossy closure_Glossy_eval_init(inout ClosureInputGlossy cl_in,
   raytrace_resolve(cl_in, cl_eval, cl_common, cl_out);
 #endif
 
-  /* The brdf split sum LUT is applied after the radiance accumulation.
+  /* The BRDF split sum LUT is applied after the radiance accumulation.
    * Correct the LTC so that its energy is constant. */
   /* TODO(@fclem): Optimize this so that only one scale factor is stored. */
   vec4 ltc_brdf = texture(utilTex, vec3(lut_uv, LTC_BRDF_LAYER)).barg;
@@ -148,11 +148,11 @@ void closure_Glossy_indirect_end(ClosureInputGlossy cl_in,
   /* Apply occlusion on distant lighting. */
   cl_out.radiance *= cl_eval.spec_occlusion;
 #endif
-  /* Apply Raytrace reflections after occlusion since they are direct, local reflections. */
+  /* Apply Ray-trace reflections after occlusion since they are direct, local reflections. */
 #if defined(RESOLVE_PROBE)
-  /* NO OP - output base radiance*/
+  /* NO OP - output base radiance. */
 #elif defined(RESOLVE_SSR)
-  /* Output only raytrace radiance */
+  /* Output only ray-trace radiance. */
   cl_out.radiance = cl_eval.raytrace_radiance;
 #else
   /* Standard resolve */

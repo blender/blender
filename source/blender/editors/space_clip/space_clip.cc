@@ -227,7 +227,7 @@ static void clip_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void clip_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
-  ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, 0);
+  ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
 
   /* add drop boxes */
   WM_event_add_dropbox_handler(&area->handlers, lb);
@@ -474,17 +474,17 @@ static void clip_operatortypes()
 static void clip_keymap(wmKeyConfig *keyconf)
 {
   /* ******** Global hotkeys available for all regions ******** */
-  WM_keymap_ensure(keyconf, "Clip", SPACE_CLIP, 0);
+  WM_keymap_ensure(keyconf, "Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
 
   /* ******** Hotkeys available for main region only ******** */
-  WM_keymap_ensure(keyconf, "Clip Editor", SPACE_CLIP, 0);
+  WM_keymap_ensure(keyconf, "Clip Editor", SPACE_CLIP, RGN_TYPE_WINDOW);
   //  keymap->poll = ED_space_clip_tracking_poll;
 
   /* ******** Hotkeys available for preview region only ******** */
-  WM_keymap_ensure(keyconf, "Clip Graph Editor", SPACE_CLIP, 0);
+  WM_keymap_ensure(keyconf, "Clip Graph Editor", SPACE_CLIP, RGN_TYPE_WINDOW);
 
   /* ******** Hotkeys available for channels region only ******** */
-  WM_keymap_ensure(keyconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);
+  WM_keymap_ensure(keyconf, "Clip Dopesheet Editor", SPACE_CLIP, RGN_TYPE_WINDOW);
 }
 
 /* DO NOT make this static, this hides the symbol and breaks API generation script. */
@@ -548,7 +548,7 @@ static void clip_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 /* area+region dropbox definition */
 static void clip_dropboxes()
 {
-  ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, 0);
+  ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
 
   WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy, nullptr, nullptr);
 }
@@ -661,14 +661,14 @@ static void clip_main_region_init(wmWindowManager *wm, ARegion *region)
    * since the space clip manages own v2d in #movieclip_main_area_set_view2d */
 
   /* mask polls mode */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Clip", SPACE_CLIP, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Editor", SPACE_CLIP, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Editor", SPACE_CLIP, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -826,16 +826,16 @@ static void clip_preview_region_init(wmWindowManager *wm, ARegion *region)
 
   /* own keymap */
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Clip", SPACE_CLIP, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   keymap = WM_keymap_ensure(wm->defaultconf, "Clip Time Scrub", SPACE_CLIP, RGN_TYPE_PREVIEW);
   WM_event_add_keymap_handler_poll(&region->handlers, keymap, ED_time_scrub_event_in_region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Graph Editor", SPACE_CLIP, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Graph Editor", SPACE_CLIP, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Dopesheet Editor", SPACE_CLIP, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -962,7 +962,7 @@ static void clip_channels_region_init(wmWindowManager *wm, ARegion *region)
 
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Clip Dopesheet Editor", SPACE_CLIP, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
@@ -1048,7 +1048,7 @@ static void clip_tools_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Clip", SPACE_CLIP, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
@@ -1112,7 +1112,7 @@ static void clip_properties_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "Clip", SPACE_CLIP, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Clip", SPACE_CLIP, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 

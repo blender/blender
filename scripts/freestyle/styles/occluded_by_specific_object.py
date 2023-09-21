@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#  Filename : occluded_by_specific_object.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Draws only the lines that are occluded by a given object

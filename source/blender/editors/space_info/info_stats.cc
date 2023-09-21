@@ -581,17 +581,15 @@ static void get_stats_string(char *info,
       *ofs += BLI_snprintf_rlen(info + *ofs,
                                 len - *ofs,
                                 TIP_("Verts:%s | Tris:%s"),
-                                stats_fmt->totvert,
+                                stats_fmt->totvertsculpt,
                                 stats_fmt->tottri);
     }
     else {
       *ofs += BLI_snprintf_rlen(info + *ofs,
                                 len - *ofs,
-                                TIP_("Verts:%s/%s | Faces:%s/%s"),
+                                TIP_("Verts:%s | Faces:%s"),
                                 stats_fmt->totvertsculpt,
-                                stats_fmt->totvert,
-                                stats_fmt->totfacesculpt,
-                                stats_fmt->totface);
+                                stats_fmt->totfacesculpt);
     }
   }
   else {
@@ -603,8 +601,13 @@ static void get_stats_string(char *info,
                               stats_fmt->tottri);
   }
 
-  *ofs += BLI_snprintf_rlen(
-      info + *ofs, len - *ofs, TIP_(" | Objects:%s/%s"), stats_fmt->totobjsel, stats_fmt->totobj);
+  if (!STREQ(&stats_fmt->totobj[0], "0")) {
+    *ofs += BLI_snprintf_rlen(info + *ofs,
+                              len - *ofs,
+                              TIP_(" | Objects:%s/%s"),
+                              stats_fmt->totobjsel,
+                              stats_fmt->totobj);
+  }
 }
 
 const char *ED_info_statusbar_string_ex(Main *bmain,
@@ -781,12 +784,13 @@ void ED_info_draw_stats(
   /* Add some extra margin above this section. */
   *y -= (0.6f * height);
 
-  bool anysel = !STREQ(&stats_fmt.totobjsel[0], "0");
+  bool any_objects = !STREQ(&stats_fmt.totobj[0], "0");
+  bool any_selected = !STREQ(&stats_fmt.totobjsel[0], "0");
 
-  if (anysel) {
+  if (any_selected) {
     stats_row(col1, labels[OBJ], col2, stats_fmt.totobjsel, stats_fmt.totobj, y, height);
   }
-  else {
+  else if (any_objects) {
     stats_row(col1, labels[OBJ], col2, stats_fmt.totobj, nullptr, y, height);
   }
 
@@ -805,22 +809,6 @@ void ED_info_draw_stats(
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
     }
   }
-  else if (!anysel) {
-    /* Show scene totals if nothing is selected. */
-    stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, nullptr, y, height);
-    stats_row(col1, labels[EDGES], col2, stats_fmt.totedge, nullptr, y, height);
-    stats_row(col1, labels[FACES], col2, stats_fmt.totface, nullptr, y, height);
-    stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
-  }
-  else if (ob && (object_mode & OB_MODE_POSE)) {
-    stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
-  }
-  else if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
-    stats_row(col1, labels[LAYERS], col2, stats_fmt.totgplayer, nullptr, y, height);
-    stats_row(col1, labels[FRAMES], col2, stats_fmt.totgpframe, nullptr, y, height);
-    stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, nullptr, y, height);
-    stats_row(col1, labels[POINTS], col2, stats_fmt.totgppoint, nullptr, y, height);
-  }
   else if (ob && (object_mode & OB_MODE_SCULPT)) {
     if (stats_is_object_dynamic_topology_sculpt(ob)) {
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, nullptr, y, height);
@@ -830,6 +818,28 @@ void ED_info_draw_stats(
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, nullptr, y, height);
       stats_row(col1, labels[FACES], col2, stats_fmt.totfacesculpt, nullptr, y, height);
     }
+  }
+  else if (!any_selected) {
+    if (any_objects) {
+      /* Show scene totals if nothing is selected. */
+      stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, nullptr, y, height);
+      stats_row(col1, labels[EDGES], col2, stats_fmt.totedge, nullptr, y, height);
+      stats_row(col1, labels[FACES], col2, stats_fmt.totface, nullptr, y, height);
+      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
+    }
+    else {
+      /* No objects in scene. */
+      stats_row(col1, labels[OBJ], col2, stats_fmt.totobj, nullptr, y, height);
+    }
+  }
+  else if (ob && (object_mode & OB_MODE_POSE)) {
+    stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
+  }
+  else if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
+    stats_row(col1, labels[LAYERS], col2, stats_fmt.totgplayer, nullptr, y, height);
+    stats_row(col1, labels[FRAMES], col2, stats_fmt.totgpframe, nullptr, y, height);
+    stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, nullptr, y, height);
+    stats_row(col1, labels[POINTS], col2, stats_fmt.totgppoint, nullptr, y, height);
   }
   else if ((ob) && (ob->type == OB_LAMP)) {
     stats_row(col1, labels[LIGHTS], col2, stats_fmt.totlampsel, stats_fmt.totlamp, y, height);

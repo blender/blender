@@ -224,12 +224,6 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
             bone = context.edit_bone
 
         col = layout.column()
-        col.use_property_split = False
-        col.prop(bone, "layers", text="")
-        col.use_property_split = True
-        col = layout.column()
-
-        col.separator()
 
         if context.bone:
             col.prop(bone, "parent")
@@ -238,7 +232,6 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
 
         if ob and pchan:
             col.prop(bone, "use_relative_parent")
-            col.prop_search(pchan, "bone_group", ob.pose, "bone_groups", text="Bone Group")
 
         sub = col.column()
         sub.active = (bone.parent is not None)
@@ -492,8 +485,7 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH',
-        'BLENDER_WORKBENCH_NEXT'}
+        'BLENDER_WORKBENCH'}
     _property_type = bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone
 
     @property

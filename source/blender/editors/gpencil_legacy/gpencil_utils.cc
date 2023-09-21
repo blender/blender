@@ -99,7 +99,7 @@ bGPdata **ED_gpencil_data_get_pointers_direct(ScrArea *area, Object *ob, Pointer
         if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
           /* GP Object. */
           if (r_ptr) {
-            RNA_id_pointer_create(&ob->id, r_ptr);
+            *r_ptr = RNA_id_pointer_create(&ob->id);
           }
           return (bGPdata **)&ob->data;
         }
@@ -134,7 +134,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
       case SPACE_VIEW3D: /* 3D-View */
       {
         if (r_ptr) {
-          RNA_id_pointer_create(&scene->id, r_ptr);
+          *r_ptr = RNA_id_pointer_create(&scene->id);
         }
         return &scene->gpd;
 
@@ -149,7 +149,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
           /* for now, as long as there's an active node tree,
            * default to using that in the Nodes Editor */
           if (r_ptr) {
-            RNA_id_pointer_create(&snode->nodetree->id, r_ptr);
+            *r_ptr = RNA_id_pointer_create(&snode->nodetree->id);
           }
           return &snode->nodetree->gpd;
         }
@@ -164,7 +164,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
         /* For now, Grease Pencil data is associated with the space
          * (actually preview region only). */
         if (r_ptr) {
-          RNA_pointer_create(screen_id, &RNA_SpaceSequenceEditor, sseq, r_ptr);
+          *r_ptr = RNA_pointer_create(screen_id, &RNA_SpaceSequenceEditor, sseq);
         }
         return &sseq->gpd;
       }
@@ -174,7 +174,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
 
         /* For now, Grease Pencil data is associated with the space... */
         if (r_ptr) {
-          RNA_pointer_create(screen_id, &RNA_SpaceImageEditor, sima, r_ptr);
+          *r_ptr = RNA_pointer_create(screen_id, &RNA_SpaceImageEditor, sima);
         }
         return &sima->gpd;
       }
@@ -194,12 +194,12 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
             }
 
             if (r_ptr) {
-              RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track, r_ptr);
+              *r_ptr = RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track);
             }
             return &track->gpd;
           }
           if (r_ptr) {
-            RNA_id_pointer_create(&clip->id, r_ptr);
+            *r_ptr = RNA_id_pointer_create(&clip->id);
           }
           return &clip->gpd;
         }

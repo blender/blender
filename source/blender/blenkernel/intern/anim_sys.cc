@@ -912,10 +912,9 @@ static void nlastrip_evaluate_controls(NlaStrip *strip,
 {
   /* now strip's evaluate F-Curves for these settings (if applicable) */
   if (strip->fcurves.first) {
-    PointerRNA strip_ptr;
 
     /* create RNA-pointer needed to set values */
-    RNA_pointer_create(nullptr, &RNA_NlaStrip, strip, &strip_ptr);
+    PointerRNA strip_ptr = RNA_pointer_create(nullptr, &RNA_NlaStrip, strip);
 
     /* execute these settings as per normal */
     animsys_evaluate_fcurves(&strip_ptr, &strip->fcurves, anim_eval_context, flush_to_original);
@@ -964,8 +963,23 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
   /* loop over strips, checking if they fall within the range */
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* Check if current time occurs within this strip. */
-    if (IN_RANGE_INCL(ctime, strip->start, strip->end) ||
-        (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP)) {
+
+    /* This block leads to the Action Track and non-time-remapped tweak strip evaluation to respect
+     * the extrapolation modes. If in_range, these two tracks will always output NES_TIME_WITHIN so
+     * fcurve extrapolation isn't clamped to the keyframe bounds. */
+    bool in_range = IN_RANGE_INCL(ctime, strip->start, strip->end);
+    if (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP) {
+      switch (strip->extendmode) {
+        case NLASTRIP_EXTEND_HOLD:
+          in_range = true;
+          break;
+        case NLASTRIP_EXTEND_HOLD_FORWARD:
+          in_range = ctime >= strip->start;
+          break;
+      }
+    }
+
+    if (in_range) {
       /* this strip is active, so try to use it */
       estrip = strip;
       side = NES_TIME_WITHIN;
@@ -1665,12 +1679,13 @@ static bool nla_combine_get_inverted_lower_value(const int mix_mode,
          * up interpolation for the animator, requiring further cleanup on their part.
          */
         if (IS_EQF(blended_value, 0.0f)) {
-          /* For blending, nla_combine_value(), when strip_value==0:
-           *
-           *        blended_value = lower_value * powf(strip_value / base_value, infl);
-           *        blended_value = lower_value * powf(0, infl);
-           *        blended_value = lower_value * 0;
-           *        blended_value = 0;
+          /* For blending, nla_combine_value(), when `strip_value == 0`:
+           * \code{.cc}
+           * blended_value = lower_value * powf(strip_value / base_value, infl);
+           * blended_value = lower_value * powf(0, infl);
+           * blended_value = lower_value * 0;
+           * blended_value = 0;
+           * \endcode
            *
            * Effectively, blended_value will equal 0 no matter what lower_value is. Put another
            * way, when (blended_value==0 and strip_value==0), then lower_value can be any value and
@@ -1753,9 +1768,9 @@ static float nla_blend_value(const int blendmode,
 
     default: /* TODO: Do we really want to blend by default? it seems more uses might prefer add...
               */
-      /* Do linear interpolation. The influence of the accumulated data (elsewhere, that is called
-       * dstweight) is 1 - influence, since the strip's influence is srcweight.
-       */
+      /* Do linear interpolation. The influence of the accumulated data
+       * (elsewhere, that is called `dstwegiht`) is 1 - influence,
+       * since the strip's influence is `srcweight`. */
       return lower_value * (1.0f - influence) + (strip_value * influence);
   }
 }
@@ -2879,7 +2894,7 @@ static void nlastrip_evaluate_meta(const int evaluation_mode,
   /* Assert currently supported modes. If new mode added, then assertion marks potentially missed
    * area.
    *
-   * NOTE: In the future if support is ever added to metastrips to support nested tracks, then
+   * NOTE: In the future if support is ever added to meta-strips to support nested tracks, then
    * STRIP_EVAL_BLEND and STRIP_EVAL_BLEND_GET_INVERTED_LOWER_SNAPSHOT cases are no longer
    * equivalent. The output of nlastrips_ctime_get_strip() may return a list of strips. The only
    * case difference should be the evaluation order.
@@ -3217,16 +3232,10 @@ static void animsys_create_action_track_strip(const AnimData *adt,
   r_action_strip->extendmode = adt->act_extendmode;
   r_action_strip->influence = adt->act_influence;
 
-  /* NOTE: must set this, or else the default setting overrides,
-   * and this setting doesn't work. */
-  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
-
-  /* Unless `extendmode` is Nothing (might be useful for flattening NLA evaluation), disable range.
-   * Extend-mode Nothing and Hold will behave as normal. Hold Forward will behave just like Hold.
+  /* Must set NLASTRIP_FLAG_USR_INFLUENCE, or else the default setting overrides, and influence
+   * doesn't work.
    */
-  if (r_action_strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
-    r_action_strip->flag |= NLASTRIP_FLAG_NO_TIME_MAP;
-  }
+  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
 
   const bool tweaking = (adt->flag & ADT_NLA_EDIT_ON) != 0;
   const bool soloing = (adt->flag & ADT_NLA_SOLO_TRACK) != 0;
@@ -3792,8 +3801,7 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
   BLI_bitmap_copy_all(blended_necs->remap_domain.ptr, remap_domain, count);
 
   /* Need to send id_ptr instead of prop_ptr so fcurve RNA paths resolve properly. */
-  PointerRNA id_ptr;
-  RNA_id_pointer_create(prop_ptr->owner_id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(prop_ptr->owner_id);
 
   /* Per iteration, remove effect of upper strip which gives output of nla stack below it. */
   LISTBASE_FOREACH_BACKWARD (NlaEvalStrip *, nes, &context->upper_estrips) {
@@ -3895,7 +3903,6 @@ void BKE_animsys_evaluate_animdata(ID *id,
                                    eAnimData_Recalc recalc,
                                    const bool flush_to_original)
 {
-  PointerRNA id_ptr;
 
   /* sanity checks */
   if (ELEM(nullptr, id, adt)) {
@@ -3903,7 +3910,7 @@ void BKE_animsys_evaluate_animdata(ID *id,
   }
 
   /* get pointer to ID-block for RNA to use */
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
 
   /* recalculate keyframe data:
    * - NLA before Active Action, as Active Action behaves as 'tweaking track'
@@ -4130,7 +4137,6 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
   BLI_assert(fcu_orig != nullptr);
 
   /* TODO(sergey): De-duplicate with BKE animsys. */
-  PointerRNA id_ptr;
   bool ok = false;
 
   /* Lookup driver, accelerated with driver array map. */
@@ -4147,7 +4153,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
   DEG_debug_print_eval_subdata_index(
       depsgraph, __func__, id->name, id, "fcu", fcu->rna_path, fcu, fcu->array_index);
 
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
 
   /* check if this driver's curve should be skipped */
   if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0) {

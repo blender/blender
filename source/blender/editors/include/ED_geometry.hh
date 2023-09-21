@@ -35,6 +35,9 @@ bool ED_geometry_attribute_convert(Mesh *mesh,
 namespace blender::ed::geometry {
 
 MenuType node_group_operator_assets_menu();
+MenuType node_group_operator_assets_menu_unassigned();
+
+void clear_operator_asset_trees();
 
 void ui_template_node_operator_asset_menu_items(uiLayout &layout,
                                                 bContext &C,

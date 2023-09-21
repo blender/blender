@@ -9,6 +9,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_path_util.h"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_layer_types.h"

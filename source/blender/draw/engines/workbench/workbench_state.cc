@@ -20,7 +20,7 @@
 
 namespace blender::workbench {
 
-void SceneState::init(Object *camera_ob /*= nullptr*/)
+void SceneState::init(Object *camera_ob /*=nullptr*/)
 {
   bool reset_taa = reset_taa_next_sample;
   reset_taa_next_sample = false;
@@ -70,22 +70,20 @@ void SceneState::init(Object *camera_ob /*= nullptr*/)
     }
   }
 
-  if (!is_render_mode) {
-    if (shading.type < OB_SOLID) {
-      shading.light = V3D_LIGHTING_FLAT;
-      shading.color_type = V3D_SHADING_OBJECT_COLOR;
-      shading.xray_alpha = 0.0f;
-    }
-    else if (SHADING_XRAY_ENABLED(shading)) {
-      shading.xray_alpha = SHADING_XRAY_ALPHA(shading);
-    }
-    else {
-      shading.xray_alpha = 1.0f;
-    }
+  if (shading.type < OB_SOLID) {
+    shading.light = V3D_LIGHTING_FLAT;
+    shading.color_type = V3D_SHADING_OBJECT_COLOR;
+    shading.xray_alpha = 0.0f;
   }
-  xray_mode = !is_render_mode && shading.xray_alpha != 1.0f;
+  else if (SHADING_XRAY_ENABLED(shading)) {
+    shading.xray_alpha = SHADING_XRAY_ALPHA(shading);
+  }
+  else {
+    shading.xray_alpha = 1.0f;
+  }
+  xray_mode = shading.xray_alpha != 1.0f;
 
-  if (SHADING_XRAY_FLAG_ENABLED(shading)) {
+  if (xray_mode) {
     /* Disable shading options that aren't supported in transparency mode. */
     shading.flag &= ~(V3D_SHADING_SHADOW | V3D_SHADING_CAVITY | V3D_SHADING_DEPTH_OF_FIELD);
   }
@@ -138,9 +136,8 @@ void SceneState::init(Object *camera_ob /*= nullptr*/)
   else if (DRW_state_is_scene_render()) {
     _samples_len = scene->display.render_aa;
   }
-  if (is_navigating || is_playback || DRW_state_is_viewport_image_render()) {
+  if (is_navigating || is_playback) {
     /* Only draw using SMAA or no AA when navigating. */
-    /* Same for viewport image render, since it's limited to a single sample. */
     _samples_len = min_ii(_samples_len, 1);
   }
   /* 0 samples means no AA */
@@ -200,32 +197,42 @@ static const CustomData *get_vert_custom_data(const Mesh *mesh)
 
 ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
 {
-  sculpt_pbvh = false;
-  texture_paint_mode = false;
-  image_paint_override = nullptr;
-  override_sampler_state = GPUSamplerState::default_sampler();
-  draw_shadow = false;
-
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_active = (ob == draw_ctx->obact);
-  /* TODO(@pragma37): Is the double check needed?
-   * If it is, wouldn't be needed for sculpt_pbvh too? */
-  const bool is_render = DRW_state_is_image_render() && (draw_ctx->v3d == nullptr);
 
-  color_type = (eV3DShadingColorType)scene_state.shading.color_type;
-  if (!(is_active && DRW_object_use_hide_faces(ob))) {
-    draw_shadow = (ob->dtx & OB_DRAW_NO_SHADOW_CAST) == 0 && scene_state.draw_shadows;
-  }
-
+  image_paint_override = nullptr;
+  override_sampler_state = GPUSamplerState::default_sampler();
   sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d) &&
                 !DRW_state_is_image_render();
+  draw_shadow = scene_state.draw_shadows && (ob->dtx & OB_DRAW_NO_SHADOW_CAST) == 0 &&
+                !is_active && !sculpt_pbvh && !DRW_object_use_hide_faces(ob);
+
+  color_type = (eV3DShadingColorType)scene_state.shading.color_type;
+
+  bool has_color = false;
+  bool has_uv = false;
+
+  if (ob->type == OB_MESH) {
+    const Mesh *me = static_cast<Mesh *>(ob->data);
+    const CustomData *cd_vdata = get_vert_custom_data(me);
+    const CustomData *cd_ldata = get_loop_custom_data(me);
+
+    has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
+                 CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
+                 CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
+                 CustomData_has_layer(cd_ldata, CD_PROP_BYTE_COLOR));
+
+    has_uv = CustomData_has_layer(cd_ldata, CD_PROP_FLOAT2);
+  }
+
+  if (color_type == V3D_SHADING_TEXTURE_COLOR && (!has_uv || ob->dt < OB_TEXTURE)) {
+    color_type = V3D_SHADING_MATERIAL_COLOR;
+  }
+  else if (color_type == V3D_SHADING_VERTEX_COLOR && !has_color) {
+    color_type = V3D_SHADING_OBJECT_COLOR;
+  }
 
   if (sculpt_pbvh) {
-    /* Shadows are unsupported in sculpt mode. We could revert to the slow
-     * method in this case but I'm not sure if it's a good idea given that
-     * sculpted meshes are heavy to begin with. */
-    draw_shadow = false;
-
     if (color_type == V3D_SHADING_TEXTURE_COLOR && BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_FACES) {
       /* Force use of material color for sculpt. */
       color_type = V3D_SHADING_MATERIAL_COLOR;
@@ -239,58 +246,24 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
           C, &scene_state.scene->toolsettings->paint_mode, ob, color_type);
     }
   }
-  else if (ob->type == OB_MESH) {
-    const Mesh *me = static_cast<Mesh *>(ob->data);
-    const CustomData *cd_vdata = get_vert_custom_data(me);
-    const CustomData *cd_ldata = get_loop_custom_data(me);
-
-    bool has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
-                      CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
-                      CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
-                      CustomData_has_layer(cd_ldata, CD_PROP_BYTE_COLOR));
-
-    bool has_uv = CustomData_has_layer(cd_ldata, CD_PROP_FLOAT2);
-
-    if (color_type == V3D_SHADING_TEXTURE_COLOR) {
-      if (ob->dt < OB_TEXTURE || !has_uv) {
-        color_type = V3D_SHADING_MATERIAL_COLOR;
+  else if (ob->type == OB_MESH && !DRW_state_is_scene_render()) {
+    /* Force texture or vertex mode if object is in paint mode. */
+    const bool is_vertpaint_mode = is_active && (scene_state.object_mode == CTX_MODE_PAINT_VERTEX);
+    const bool is_texpaint_mode = is_active && (scene_state.object_mode == CTX_MODE_PAINT_TEXTURE);
+    if (is_vertpaint_mode && has_color) {
+      color_type = V3D_SHADING_VERTEX_COLOR;
+    }
+    else if (is_texpaint_mode && has_uv) {
+      color_type = V3D_SHADING_TEXTURE_COLOR;
+      const ImagePaintSettings *imapaint = &scene_state.scene->toolsettings->imapaint;
+      if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
+        image_paint_override = imapaint->canvas;
+        override_sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+        override_sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+        const bool use_linear_filter = imapaint->interp == IMAGEPAINT_INTERP_LINEAR;
+        override_sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR,
+                                                            use_linear_filter);
       }
-    }
-    else if (color_type == V3D_SHADING_VERTEX_COLOR && !has_color) {
-      color_type = V3D_SHADING_OBJECT_COLOR;
-    }
-
-    if (!is_render) {
-      /* Force texture or vertex mode if object is in paint mode. */
-      const bool is_vertpaint_mode = is_active &&
-                                     (scene_state.object_mode == CTX_MODE_PAINT_VERTEX);
-      const bool is_texpaint_mode = is_active &&
-                                    (scene_state.object_mode == CTX_MODE_PAINT_TEXTURE);
-      if (is_vertpaint_mode && has_color) {
-        color_type = V3D_SHADING_VERTEX_COLOR;
-      }
-      else if (is_texpaint_mode && has_uv) {
-        color_type = V3D_SHADING_TEXTURE_COLOR;
-        texture_paint_mode = true;
-
-        const ImagePaintSettings *imapaint = &scene_state.scene->toolsettings->imapaint;
-        if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
-          image_paint_override = imapaint->canvas;
-          override_sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT;
-          override_sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT;
-          const bool use_linear_filter = imapaint->interp == IMAGEPAINT_INTERP_LINEAR;
-          override_sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR,
-                                                              use_linear_filter);
-        }
-      }
-    }
-  }
-  else {
-    if (color_type == V3D_SHADING_TEXTURE_COLOR) {
-      color_type = V3D_SHADING_MATERIAL_COLOR;
-    }
-    else if (color_type == V3D_SHADING_VERTEX_COLOR) {
-      color_type = V3D_SHADING_OBJECT_COLOR;
     }
   }
 

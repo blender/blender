@@ -104,6 +104,7 @@ struct wmEvent;
 struct wmOperator;
 struct wmWindowManager;
 
+#include <memory>
 #include <string>
 
 #include "BLI_compiler_attrs.h"
@@ -428,6 +429,7 @@ struct wmNotifier {
 #define ND_SHADERFX (32 << 16)
 /* For updating motion paths in 3dview. */
 #define ND_DRAW_ANIMVIZ (33 << 16)
+#define ND_BONE_COLLECTION (34 << 16)
 
 /* NC_MATERIAL Material */
 #define ND_SHADING (30 << 16)
@@ -465,6 +467,9 @@ struct wmNotifier {
 #define ND_VERTEX_GROUP (92 << 16)
 
 /* NC_NODE Nodes */
+
+/* Influences which menus node assets are included in. */
+#define ND_NODE_ASSET_DATA (1 << 16)
 
 /* NC_SPACE */
 #define ND_SPACE_CONSOLE (1 << 16)     /* general redraw */
@@ -702,8 +707,10 @@ struct wmEvent {
   int mval[2];
   /**
    * A single UTF8 encoded character.
-   * #BLI_str_utf8_size() must _always_ return a valid value,
-   * check when assigning so we don't need to check on every access after.
+   *
+   * - Not null terminated although it may not be set `(utf8_buf[0] == '\0')`.
+   * - #BLI_str_utf8_size_or_error() must _always_ return a valid value,
+   *   check when assigning so we don't need to check on every access after.
    */
   char utf8_buf[6];
 
@@ -890,7 +897,7 @@ struct wmTimer {
   wmWindow *win;
 
   /** Set by timer user. */
-  double timestep;
+  double time_step;
   /** Set by timer user, goes to event system. */
   int event_type;
   /** Various flags controlling timer options, see below. */
@@ -899,16 +906,16 @@ struct wmTimer {
   void *customdata;
 
   /** Total running time in seconds. */
-  double duration;
+  double time_duration;
   /** Time since previous step in seconds. */
-  double delta;
+  double time_delta;
 
   /** Internal, last time timer was activated. */
-  double ltime;
+  double time_last;
   /** Internal, next time we want to activate the timer. */
-  double ntime;
+  double time_next;
   /** Internal, when the timer started. */
-  double stime;
+  double time_start;
   /** Internal, put timers to sleep when needed. */
   bool sleep;
 };
@@ -920,7 +927,7 @@ struct wmOperatorType {
   const char *idname;
   /** Translation context (must not exceed #BKE_ST_MAXNAME) */
   const char *translation_context;
-  /** Use for tool-tips and Python docs. */
+  /** Use for tooltips and Python docs. */
   const char *description;
   /** Identifier to group operators together. */
   const char *undo_group;
@@ -942,8 +949,8 @@ struct wmOperatorType {
   bool (*check)(bContext *, wmOperator *);
 
   /**
-   * For modal temporary operators, initially invoke is called. then
-   * any further events are handled in modal. if the operation is
+   * For modal temporary operators, initially invoke is called, then
+   * any further events are handled in #modal. If the operation is
    * canceled due to some external reason, cancel is called
    * See defines below for return values.
    */
@@ -956,21 +963,21 @@ struct wmOperatorType {
   void (*cancel)(bContext *, wmOperator *);
 
   /**
-   * Modal is used for operators which continuously run, eg:
-   * fly mode, knife tool, circle select are all examples of modal operators.
-   * Modal operators can handle events which would normally access other operators,
-   * they keep running until they don't return `OPERATOR_RUNNING_MODAL`.
+   * Modal is used for operators which continuously run. Fly mode, knife tool, circle select are
+   * all examples of modal operators. Modal operators can handle events which would normally invoke
+   * or execute other operators. They keep running until they don't return
+   * `OPERATOR_RUNNING_MODAL`.
    */
   int (*modal)(bContext *, wmOperator *, const wmEvent *) ATTR_WARN_UNUSED_RESULT;
 
   /**
-   * Verify if the operator can be executed in the current context, note
-   * that the operator might still fail to execute even if this return true.
+   * Verify if the operator can be executed in the current context. Note
+   * that the operator may still fail to execute even if this returns true.
    */
   bool (*poll)(bContext *) ATTR_WARN_UNUSED_RESULT;
 
   /**
-   * Use to check if properties should be displayed in auto-generated UI.
+   * Used to check if properties should be displayed in auto-generated UI.
    * Use 'check' callback to enforce refreshing.
    */
   bool (*poll_property)(const bContext *C,
@@ -979,25 +986,32 @@ struct wmOperatorType {
 
   /** Optional panel for redo and repeat, auto-generated if not set. */
   void (*ui)(bContext *, wmOperator *);
+  /**
+   * Optional check for whether the #ui callback should be called (usually to create the redo
+   * panel interface).
+   */
+  bool (*ui_poll)(wmOperatorType *, PointerRNA *);
 
   /**
    * Return a different name to use in the user interface, based on property values.
-   * The returned string does not need to be freed.
    * The returned string is expected to be translated if needed.
+   *
+   * WARNING: This callback does not currently work as expected in most common usage cases (e.g.
+   * any definition of an operator button through the layout API will fail to execute it). See
+   * #112253 for details.
    */
   std::string (*get_name)(wmOperatorType *, PointerRNA *);
 
   /**
    * Return a different description to use in the user interface, based on property values.
-   * The returned string must be freed by the caller, unless NULL.
    * The returned string is expected to be translated if needed.
    */
   std::string (*get_description)(bContext *C, wmOperatorType *, PointerRNA *);
 
-  /** rna for properties */
+  /** RNA for properties */
   StructRNA *srna;
 
-  /** previous settings - for initializing on re-use */
+  /** Previous settings - for initializing on re-use. */
   IDProperty *last_properties;
 
   /**
@@ -1009,13 +1023,13 @@ struct wmOperatorType {
    */
   PropertyRNA *prop;
 
-  /**  wmOperatorTypeMacro */
+  /** wmOperatorTypeMacro */
   ListBase macro;
 
-  /** pointer to modal keymap, do not free! */
+  /** Pointer to modal keymap. Do not free! */
   wmKeyMap *modalkeymap;
 
-  /** python needs the operator type as well */
+  /** Python needs the operator type as well. */
   bool (*pyop_poll)(bContext *, wmOperatorType *ot) ATTR_WARN_UNUSED_RESULT;
 
   /** RNA integration */
@@ -1109,10 +1123,6 @@ struct wmDragAssetCatalog {
   bUUID drag_catalog_id;
 };
 
-typedef struct wmDragNodeTreeInterface {
-  struct bNodeTreeInterfaceItem *item;
-} wmDragNodeTreeInterface;
-
 /**
  * For some specific cases we support dragging multiple assets (#WM_DRAG_ASSET_LIST). There is no
  * proper support for dragging multiple items in the `wmDrag`/`wmDrop` API yet, so this is really
@@ -1168,7 +1178,7 @@ struct wmDragActiveDropState {
    * If `active_dropbox` is set, additional context provided by the active (i.e. hovered) button.
    * Activated before context sensitive operations (polling, drawing, dropping).
    */
-  bContextStore *ui_context;
+  std::unique_ptr<bContextStore> ui_context;
 
   /**
    * Text to show when a dropbox poll succeeds (so the dropbox itself is available) but the

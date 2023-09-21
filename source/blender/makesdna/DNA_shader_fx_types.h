@@ -11,10 +11,6 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct DRWShadingGroup;
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
@@ -243,7 +239,3 @@ typedef struct WaveShaderFxData {
   char _pad[4];
   ShaderFxData_Runtime runtime;
 } WaveShaderFxData;
-
-#ifdef __cplusplus
-}
-#endif

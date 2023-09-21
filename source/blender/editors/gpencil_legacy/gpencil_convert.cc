@@ -501,7 +501,6 @@ static void gpencil_stroke_path_animation(bContext *C,
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   bAction *act;
   FCurve *fcu;
-  PointerRNA ptr;
   PropertyRNA *prop = nullptr;
   int gaps_count = 0;
 
@@ -518,7 +517,7 @@ static void gpencil_stroke_path_animation(bContext *C,
   cu->pathlen = gtd->frame_range;
 
   /* Get RNA pointer to read/write path time values */
-  RNA_id_pointer_create((ID *)cu, &ptr);
+  PointerRNA ptr = RNA_id_pointer_create((ID *)cu);
   prop = RNA_struct_find_property(&ptr, "eval_time");
 
   /* Ensure we have an F-Curve to add keyframes to */

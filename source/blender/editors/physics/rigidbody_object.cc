@@ -303,10 +303,8 @@ static int rigidbody_objects_shape_change_exec(bContext *C, wmOperator *op)
   /* apply this to all selected objects... */
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     if (ob->rigidbody_object) {
-      PointerRNA ptr;
-
       /* use RNA-system to change the property and perform all necessary changes */
-      RNA_pointer_create(&ob->id, &RNA_RigidBodyObject, ob->rigidbody_object, &ptr);
+      PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_RigidBodyObject, ob->rigidbody_object);
       RNA_enum_set(&ptr, "collision_shape", shape);
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
@@ -481,8 +479,6 @@ static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
   /* Apply this to all selected objects (with rigid-bodies). */
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     if (ob->rigidbody_object) {
-      PointerRNA ptr;
-
       float volume; /* m^3 */
       float mass;   /* kg */
 
@@ -494,7 +490,7 @@ static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
       mass = volume * density;
 
       /* use RNA-system to change the property and perform all necessary changes */
-      RNA_pointer_create(&ob->id, &RNA_RigidBodyObject, ob->rigidbody_object, &ptr);
+      PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_RigidBodyObject, ob->rigidbody_object);
       RNA_float_set(&ptr, "mass", mass);
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);

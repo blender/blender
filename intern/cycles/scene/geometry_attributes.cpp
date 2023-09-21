@@ -35,16 +35,19 @@ CCL_NAMESPACE_BEGIN
 
 bool Geometry::need_attribute(Scene *scene, AttributeStandard std)
 {
-  if (std == ATTR_STD_NONE)
+  if (std == ATTR_STD_NONE) {
     return false;
+  }
 
-  if (scene->need_global_attribute(std))
+  if (scene->need_global_attribute(std)) {
     return true;
+  }
 
   foreach (Node *node, used_shaders) {
     Shader *shader = static_cast<Shader *>(node);
-    if (shader->attributes.find(std))
+    if (shader->attributes.find(std)) {
       return true;
+    }
   }
 
   return false;
@@ -52,13 +55,15 @@ bool Geometry::need_attribute(Scene *scene, AttributeStandard std)
 
 bool Geometry::need_attribute(Scene * /*scene*/, ustring name)
 {
-  if (name == ustring())
+  if (name == ustring()) {
     return false;
+  }
 
   foreach (Node *node, used_shaders) {
     Shader *shader = static_cast<Shader *>(node);
-    if (shader->attributes.find(name))
+    if (shader->attributes.find(name)) {
       return true;
+    }
   }
 
   return false;
@@ -98,18 +103,24 @@ static void emit_attribute_map_entry(AttributeMap *attr_map,
   attr_map[index].element = desc.element;
   attr_map[index].offset = as_uint(desc.offset);
 
-  if (type == TypeDesc::TypeFloat)
+  if (type == TypeDesc::TypeFloat) {
     attr_map[index].type = NODE_ATTR_FLOAT;
-  else if (type == TypeDesc::TypeMatrix)
+  }
+  else if (type == TypeDesc::TypeMatrix) {
     attr_map[index].type = NODE_ATTR_MATRIX;
-  else if (type == TypeFloat2)
+  }
+  else if (type == TypeFloat2) {
     attr_map[index].type = NODE_ATTR_FLOAT2;
-  else if (type == TypeFloat4)
+  }
+  else if (type == TypeFloat4) {
     attr_map[index].type = NODE_ATTR_FLOAT4;
-  else if (type == TypeRGBA)
+  }
+  else if (type == TypeRGBA) {
     attr_map[index].type = NODE_ATTR_RGBA;
-  else
+  }
+  else {
     attr_map[index].type = NODE_ATTR_FLOAT3;
+  }
 
   attr_map[index].flags = desc.flags;
 }
@@ -189,8 +200,9 @@ void GeometryManager::update_svm_attributes(Device *,
     }
   }
 
-  if (attr_map_size == 0)
+  if (attr_map_size == 0) {
     return;
+  }
 
   if (!dscene->attributes_map.need_realloc()) {
     return;
@@ -209,10 +221,12 @@ void GeometryManager::update_svm_attributes(Device *,
 
     foreach (AttributeRequest &req, attributes.requests) {
       uint64_t id;
-      if (req.std == ATTR_STD_NONE)
+      if (req.std == ATTR_STD_NONE) {
         id = scene->shader_manager->get_attribute_id(req.name);
-      else
+      }
+      else {
         id = scene->shader_manager->get_attribute_id(req.std);
+      }
 
       emit_attribute_mapping(attr_map, index, id, req, geom);
       index += ATTR_PRIM_TYPES;
@@ -240,10 +254,12 @@ void GeometryManager::update_svm_attributes(Device *,
 
       foreach (AttributeRequest &req, attributes.requests) {
         uint64_t id;
-        if (req.std == ATTR_STD_NONE)
+        if (req.std == ATTR_STD_NONE) {
           id = scene->shader_manager->get_attribute_id(req.name);
-        else
+        }
+        else {
           id = scene->shader_manager->get_attribute_id(req.std);
+        }
 
         emit_attribute_mapping(attr_map, index, id, req, object->geometry);
         index += ATTR_PRIM_TYPES;
@@ -378,37 +394,48 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         /* Indices for subdivided attributes are retrieved
          * from patch table so no need for correction here. */
       }
-      else if (element == ATTR_ELEMENT_VERTEX)
+      else if (element == ATTR_ELEMENT_VERTEX) {
         offset -= mesh->vert_offset;
-      else if (element == ATTR_ELEMENT_VERTEX_MOTION)
+      }
+      else if (element == ATTR_ELEMENT_VERTEX_MOTION) {
         offset -= mesh->vert_offset;
+      }
       else if (element == ATTR_ELEMENT_FACE) {
-        if (prim == ATTR_PRIM_GEOMETRY)
+        if (prim == ATTR_PRIM_GEOMETRY) {
           offset -= mesh->prim_offset;
-        else
+        }
+        else {
           offset -= mesh->face_offset;
+        }
       }
       else if (element == ATTR_ELEMENT_CORNER || element == ATTR_ELEMENT_CORNER_BYTE) {
-        if (prim == ATTR_PRIM_GEOMETRY)
+        if (prim == ATTR_PRIM_GEOMETRY) {
           offset -= 3 * mesh->prim_offset;
-        else
+        }
+        else {
           offset -= mesh->corner_offset;
+        }
       }
     }
     else if (geom->is_hair()) {
       Hair *hair = static_cast<Hair *>(geom);
-      if (element == ATTR_ELEMENT_CURVE)
+      if (element == ATTR_ELEMENT_CURVE) {
         offset -= hair->prim_offset;
-      else if (element == ATTR_ELEMENT_CURVE_KEY)
+      }
+      else if (element == ATTR_ELEMENT_CURVE_KEY) {
         offset -= hair->curve_key_offset;
-      else if (element == ATTR_ELEMENT_CURVE_KEY_MOTION)
+      }
+      else if (element == ATTR_ELEMENT_CURVE_KEY_MOTION) {
         offset -= hair->curve_key_offset;
+      }
     }
     else if (geom->is_pointcloud()) {
-      if (element == ATTR_ELEMENT_VERTEX)
+      if (element == ATTR_ELEMENT_VERTEX) {
         offset -= geom->prim_offset;
-      else if (element == ATTR_ELEMENT_VERTEX_MOTION)
+      }
+      else if (element == ATTR_ELEMENT_VERTEX_MOTION) {
         offset -= geom->prim_offset;
+      }
     }
   }
   else {
@@ -652,8 +679,9 @@ void GeometryManager::device_update_attributes(Device *device,
                                         req.subd_desc);
       }
 
-      if (progress.get_cancel())
+      if (progress.get_cancel()) {
         return;
+      }
     }
   }
 
@@ -689,19 +717,22 @@ void GeometryManager::device_update_attributes(Device *device,
       req.subd_type = req.type;
       req.subd_desc = req.desc;
 
-      if (progress.get_cancel())
+      if (progress.get_cancel()) {
         return;
+      }
     }
   }
 
   /* create attribute lookup maps */
-  if (scene->shader_manager->use_osl())
+  if (scene->shader_manager->use_osl()) {
     update_osl_globals(device, scene);
+  }
 
   update_svm_attributes(device, dscene, scene, geom_attributes, object_attributes);
 
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   /* copy to device */
   progress.set_status("Updating Mesh", "Copying Attributes to device");
@@ -712,8 +743,9 @@ void GeometryManager::device_update_attributes(Device *device,
   dscene->attributes_float4.copy_to_device_if_modified();
   dscene->attributes_uchar4.copy_to_device_if_modified();
 
-  if (progress.get_cancel())
+  if (progress.get_cancel()) {
     return;
+  }
 
   /* After mesh attributes and patch tables have been copied to device memory,
    * we need to update offsets in the objects. */

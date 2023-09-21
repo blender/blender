@@ -12,6 +12,7 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_scanfill.h"
 #include "BLI_sort_utils.h"

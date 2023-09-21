@@ -94,7 +94,7 @@ void main()
 
 #ifndef CUSTOM_DEPTH_BIAS
   float facing_ratio = clamp(1.0 - facing * facing, 0.0, 1.0);
-  float flip = sign(facing);           /* Flip when not facing the normal (i.e.: backfacing). */
+  float flip = sign(facing);           /* Flip when not facing the normal (i.e.: back-facing). */
   float curvature = (1.0 - wd * 0.75); /* Avoid making things worse for curvy areas. */
   vec3 wofs = wnor * (facing_ratio * curvature * flip);
   wofs = normal_world_to_view(wofs);

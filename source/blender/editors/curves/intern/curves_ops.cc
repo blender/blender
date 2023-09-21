@@ -14,6 +14,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
@@ -1253,6 +1254,6 @@ void ED_keymap_curves(wmKeyConfig *keyconf)
 {
   using namespace blender::ed::curves;
   /* Only set in editmode curves, by space_view3d listener. */
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Curves", 0, 0);
+  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = editable_curves_poll;
 }

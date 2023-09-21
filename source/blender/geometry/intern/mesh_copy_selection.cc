@@ -6,6 +6,7 @@
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_listbase.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_geometry_fields.hh"
@@ -493,7 +494,9 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
 
   /* Positions are not changed by the operation, so the bounds are the same. */
   dst_mesh->runtime->bounds_cache = src_mesh.runtime->bounds_cache;
-  copy_loose_vert_hint(src_mesh, *dst_mesh);
+  if (selection_domain == ATTR_DOMAIN_FACE) {
+    copy_loose_edge_hint(src_mesh, *dst_mesh);
+  }
   return dst_mesh;
 }
 

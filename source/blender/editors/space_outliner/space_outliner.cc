@@ -70,7 +70,7 @@ static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
-  keymap = WM_keymap_ensure(wm->defaultconf, "Outliner", SPACE_OUTLINER, 0);
+  keymap = WM_keymap_ensure(wm->defaultconf, "Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 
   /* Add dropboxes */
@@ -156,6 +156,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
           break;
         case ND_BONE_ACTIVE:
         case ND_BONE_SELECT:
+        case ND_BONE_COLLECTION:
         case ND_DRAW:
         case ND_PARENT:
         case ND_OB_SHADING:

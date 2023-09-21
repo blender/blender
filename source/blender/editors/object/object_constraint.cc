@@ -1084,12 +1084,11 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
   }
   else {
     /* animate constraint's "fixed offset" */
-    PointerRNA ptr;
     PropertyRNA *prop;
     char *path;
 
     /* get RNA pointer to constraint's "offset_factor" property - to build RNA path */
-    RNA_pointer_create(&ob->id, &RNA_FollowPathConstraint, con, &ptr);
+    PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_FollowPathConstraint, con);
     prop = RNA_struct_find_property(&ptr, "offset_factor");
 
     path = RNA_path_from_ID_to_property(&ptr, prop);
@@ -1450,7 +1449,7 @@ static int constraint_delete_exec(bContext *C, wmOperator *op)
 
   /* free the constraint */
   if (BKE_constraint_remove_ex(lb, ob, con, true)) {
-    /* needed to set the flags on posebones correctly */
+    /* Needed to set the flags on pose-bones correctly. */
     ED_object_constraint_update(bmain, ob);
 
     /* relations */
@@ -1540,7 +1539,7 @@ static int constraint_apply_exec(bContext *C, wmOperator *op)
   /* Update for any children that may get moved. */
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
-  /* Needed to set the flags on posebones correctly. */
+  /* Needed to set the flags on pose-bones correctly. */
   ED_object_constraint_update(bmain, ob);
 
   DEG_relations_tag_update(bmain);
@@ -1640,7 +1639,7 @@ static int constraint_copy_exec(bContext *C, wmOperator *op)
   BLI_assert(current_index >= 0);
   BLI_listbase_link_move(constraints, copy_con, new_index - current_index);
 
-  /* Needed to set the flags on posebones correctly. */
+  /* Needed to set the flags on pose-bones correctly. */
   ED_object_constraint_update(bmain, ob);
 
   DEG_relations_tag_update(bmain);

@@ -45,6 +45,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_material_volumetric_vert)
 #ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(eevee_legacy_material_volumetric_vert_no_geom)
     .additional_info("eevee_legacy_material_empty_base_volume")
+    .builtins(BuiltinBits::LAYER)
     .vertex_out(legacy_volume_vert_geom_iface)
     .vertex_out(legacy_volume_geom_frag_iface)
     .additional_info("draw_resource_id_varying");

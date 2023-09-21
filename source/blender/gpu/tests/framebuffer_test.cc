@@ -324,4 +324,78 @@ static void test_framebuffer_multi_viewport()
 }
 GPU_TEST(framebuffer_multi_viewport)
 
+/**
+ * Test sub-pass inputs on Vulkan and raster order groups on Metal and its emulation on other
+ * backend.
+ */
+static void test_framebuffer_subpass_input()
+{
+  using namespace gpu::shader;
+
+  GPU_render_begin();
+
+  const int2 size(1, 1);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  GPUTexture *texture = GPU_texture_create_2d(
+      __func__, UNPACK2(size), 1, GPU_R32I, usage, nullptr);
+
+  GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  GPU_framebuffer_ensure_config(&framebuffer,
+                                {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture)});
+  GPU_framebuffer_bind(framebuffer);
+
+  const float4 clear_color(0.0f);
+  GPU_framebuffer_clear_color(framebuffer, clear_color);
+
+  ShaderCreateInfo create_info_write("");
+  create_info_write.define("WRITE");
+  create_info_write.vertex_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_write.fragment_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_write.fragment_out(0, Type::INT, "out_value", DualBlend::NONE, 0);
+
+  GPUShader *shader_write = GPU_shader_create_from_info(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info_write));
+
+  ShaderCreateInfo create_info_read("");
+  create_info_read.define("READ");
+  create_info_read.vertex_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_read.fragment_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_read.subpass_in(0, Type::INT, "in_value", 0);
+  create_info_read.fragment_out(0, Type::INT, "out_value");
+
+  GPUShader *shader_read = GPU_shader_create_from_info(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info_read));
+
+  /* TODO(fclem): remove this boilerplate. */
+  GPUVertFormat format{};
+  GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  GPUVertBuf *verts = GPU_vertbuf_create_with_format(&format);
+  GPU_vertbuf_data_alloc(verts, 3);
+  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+
+  GPU_batch_set_shader(batch, shader_write);
+  GPU_batch_draw(batch);
+
+  /* TODO(fclem): Vulkan might want to introduce an explicit sync event here. */
+
+  GPU_batch_set_shader(batch, shader_read);
+  GPU_batch_draw(batch);
+
+  GPU_batch_discard(batch);
+
+  GPU_finish();
+
+  int *read_data = static_cast<int *>(GPU_texture_read(texture, GPU_DATA_INT, 0));
+  EXPECT_EQ(*read_data, 0xDEADC0DE);
+  MEM_freeN(read_data);
+
+  GPU_framebuffer_free(framebuffer);
+  GPU_texture_free(texture);
+  GPU_shader_free(shader_write);
+  GPU_shader_free(shader_read);
+
+  GPU_render_end();
+}
+GPU_TEST(framebuffer_subpass_input)
+
 }  // namespace blender::gpu::tests

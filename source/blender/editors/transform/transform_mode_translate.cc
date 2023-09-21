@@ -212,10 +212,10 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
       /* WORKAROUND:
        * Special case where snapping is done in #recalData.
        * Update the header based on the #center_local. */
-      const short autosnap = getAnimEdit_SnapMode(t);
+      eSnapMode autosnap = t->tsnap.mode;
       float ival = TRANS_DATA_CONTAINER_FIRST_OK(t)->center_local[0];
       float val = ival + dvec[0];
-      snapFrameTransform(t, eAnimEdit_AutoSnap(autosnap), ival, val, &val);
+      snapFrameTransform(t, autosnap, ival, val, &val);
       dvec[0] = val - ival;
     }
 
@@ -303,21 +303,8 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
         const char *str_dir = (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT) ?
                                   TIP_("right") :
                                   TIP_("left");
-        char str_dir_km[64];
-        WM_modalkeymap_items_to_string(
-            t->keymap, TFM_MODAL_INSERTOFS_TOGGLE_DIR, true, str_dir_km, sizeof(str_dir_km));
-        ofs += BLI_snprintf_rlen(str,
-                                 UI_MAX_DRAW_STR,
-                                 TIP_("%s: Toggle auto-offset direction (%s)"),
-                                 str_dir_km,
-                                 str_dir);
+        ofs += BLI_snprintf_rlen(str, UI_MAX_DRAW_STR, TIP_("Auto-offset direction: %s"), str_dir);
       }
-
-      char str_attach_km[64];
-      WM_modalkeymap_items_to_string(
-          t->keymap, TFM_MODAL_NODE_ATTACH_OFF, true, str_attach_km, sizeof(str_attach_km));
-      ofs += BLI_snprintf_rlen(
-          str + ofs, UI_MAX_DRAW_STR - ofs, TIP_(", %s: Toggle auto-attach"), str_attach_km);
     }
     else {
       if (t->flag & T_2D_EDIT) {

@@ -30,6 +30,7 @@
 
 #include "SEQ_modifier.h"
 #include "SEQ_render.h"
+#include "SEQ_sound.h"
 
 #include "BLO_read_write.hh"
 
@@ -741,7 +742,7 @@ static void curves_init_data(SequenceModifierData *smd)
 {
   CurvesModifierData *cmd = (CurvesModifierData *)smd;
 
-  BKE_curvemapping_set_defaults(&cmd->curve_mapping, 4, 0.0f, 0.0f, 1.0f, 1.0f);
+  BKE_curvemapping_set_defaults(&cmd->curve_mapping, 4, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
 }
 
 static void curves_free_data(SequenceModifierData *smd)
@@ -860,7 +861,7 @@ static void hue_correct_init_data(SequenceModifierData *smd)
   HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
   int c;
 
-  BKE_curvemapping_set_defaults(&hcmd->curve_mapping, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+  BKE_curvemapping_set_defaults(&hcmd->curve_mapping, 1, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
   hcmd->curve_mapping.preset = CURVE_PRESET_MID9;
 
   for (c = 0; c < 3; c++) {
@@ -1371,6 +1372,15 @@ static SequenceModifierTypeInfo seqModifier_Tonemap = {
     /*apply*/ tonemapmodifier_apply,
 };
 
+static SequenceModifierTypeInfo seqModifier_SoundEqualizer = {
+    CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Equalizer"), /* name */
+    "SoundEqualizerModifierData",                     /* struct_name */
+    sizeof(SoundEqualizerModifierData),               /* struct_size */
+    SEQ_sound_equalizermodifier_init_data,            /* init_data */
+    SEQ_sound_equalizermodifier_free,                 /* free_data */
+    SEQ_sound_equalizermodifier_copy_data,            /* copy_data */
+    nullptr,                                          /* apply */
+};
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1388,6 +1398,7 @@ static void sequence_modifier_type_info_init()
   INIT_TYPE(Mask);
   INIT_TYPE(WhiteBalance);
   INIT_TYPE(Tonemap);
+  INIT_TYPE(SoundEqualizer);
 
 #undef INIT_TYPE
 }
@@ -1551,7 +1562,6 @@ void SEQ_modifier_list_copy(Sequence *seqn, Sequence *seq)
       smti->copy_data(smdn, smd);
     }
 
-    smdn->next = smdn->prev = nullptr;
     BLI_addtail(&seqn->modifiers, smdn);
     BLI_uniquename(&seqn->modifiers,
                    smdn,
@@ -1591,6 +1601,13 @@ void SEQ_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
 
         BKE_curvemapping_blend_write(writer, &hcmd->curve_mapping);
       }
+      else if (smd->type == seqModifierType_SoundEqualizer) {
+        SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
+        LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
+          BLO_write_struct_by_name(writer, "EQCurveMappingData", eqcmd);
+          BKE_curvemapping_blend_write(writer, &eqcmd->curve_mapping);
+        }
+      }
     }
     else {
       BLO_write_struct(writer, SequenceModifierData, smd);
@@ -1616,6 +1633,13 @@ void SEQ_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
       HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
 
       BKE_curvemapping_blend_read(reader, &hcmd->curve_mapping);
+    }
+    else if (smd->type == seqModifierType_SoundEqualizer) {
+      SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
+      BLO_read_list(reader, &semd->graphics);
+      LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
+        BKE_curvemapping_blend_read(reader, &eqcmd->curve_mapping);
+      }
     }
   }
 }

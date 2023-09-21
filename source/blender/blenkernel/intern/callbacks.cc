@@ -44,8 +44,7 @@ void BKE_callback_exec_null(Main *bmain, eCbEvent evt)
 
 void BKE_callback_exec_id(Main *bmain, ID *id, eCbEvent evt)
 {
-  PointerRNA id_ptr;
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
 
   PointerRNA *pointers[1] = {&id_ptr};
 
@@ -54,11 +53,9 @@ void BKE_callback_exec_id(Main *bmain, ID *id, eCbEvent evt)
 
 void BKE_callback_exec_id_depsgraph(Main *bmain, ID *id, Depsgraph *depsgraph, eCbEvent evt)
 {
-  PointerRNA id_ptr;
-  RNA_id_pointer_create(id, &id_ptr);
+  PointerRNA id_ptr = RNA_id_pointer_create(id);
 
-  PointerRNA depsgraph_ptr;
-  RNA_pointer_create(nullptr, &RNA_Depsgraph, depsgraph, &depsgraph_ptr);
+  PointerRNA depsgraph_ptr = RNA_pointer_create(nullptr, &RNA_Depsgraph, depsgraph);
 
   PointerRNA *pointers[2] = {&id_ptr, &depsgraph_ptr};
 
@@ -67,10 +64,9 @@ void BKE_callback_exec_id_depsgraph(Main *bmain, ID *id, Depsgraph *depsgraph, e
 
 void BKE_callback_exec_string(Main *bmain, eCbEvent evt, const char *str)
 {
-  PointerRNA str_ptr;
   PrimitiveStringRNA data = {nullptr};
   data.value = str;
-  RNA_pointer_create(nullptr, &RNA_PrimitiveString, &data, &str_ptr);
+  PointerRNA str_ptr = RNA_pointer_create(nullptr, &RNA_PrimitiveString, &data);
 
   PointerRNA *pointers[1] = {&str_ptr};
 

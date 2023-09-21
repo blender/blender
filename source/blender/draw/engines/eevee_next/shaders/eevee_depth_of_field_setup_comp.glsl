@@ -21,7 +21,7 @@
 void main()
 {
   vec2 fullres_texel_size = 1.0 / vec2(textureSize(color_tx, 0).xy);
-  /* Center uv around the 4 fullres pixels. */
+  /* Center uv around the 4 full-resolution pixels. */
   vec2 quad_center = vec2(gl_GlobalInvocationID.xy * 2 + 1) * fullres_texel_size;
 
   vec4 colors[4];

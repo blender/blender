@@ -1673,12 +1673,14 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "caps[0]");
   RNA_def_property_enum_items(prop, rna_enum_gpencil_caps_modes_items);
   RNA_def_property_ui_text(prop, "Start Cap", "Stroke start extreme cap style");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "end_cap_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "caps[1]");
   RNA_def_property_enum_items(prop, rna_enum_gpencil_caps_modes_items);
   RNA_def_property_ui_text(prop, "End Cap", "Stroke end extreme cap style");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   /* No fill: The stroke never must fill area and must use fill color as stroke color

@@ -4,6 +4,8 @@
 
 #include "testing/testing.h"
 
+#include "BLI_string.h"
+
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idtype.h"
@@ -59,8 +61,7 @@ TEST(greasepencil, remove_drawings)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(BKE_id_new(ctx.bmain, ID_GP, "GP"));
   grease_pencil.add_empty_drawings(3);
 
-  GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawings(1));
+  GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(1));
   drawing->wrap().strokes_for_write().resize(0, 10);
 
   Layer &layer1 = grease_pencil.root_group().add_layer("Layer1");

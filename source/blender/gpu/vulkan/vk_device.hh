@@ -60,6 +60,9 @@ class VKDevice : public NonCopyable {
 
   /** Limits of the device linked to this context. */
   VkPhysicalDeviceProperties vk_physical_device_properties_ = {};
+  /** Features support. */
+  VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
+  VkPhysicalDeviceVulkan11Features vk_physical_device_vulkan_11_features_ = {};
 
   /** Functions of vk_ext_debugutils for this device/instance. */
   debug::VKDebuggingTools debugging_tools_;
@@ -70,6 +73,12 @@ class VKDevice : public NonCopyable {
   /** Buffer to bind to unbound resource locations. */
   VKBuffer dummy_buffer_;
 
+  Vector<std::pair<VkImage, VmaAllocation>> discarded_images_;
+  Vector<std::pair<VkBuffer, VmaAllocation>> discarded_buffers_;
+  Vector<VkRenderPass> discarded_render_passes_;
+  Vector<VkFramebuffer> discarded_frame_buffers_;
+  Vector<VkImageView> discarded_image_views_;
+
  public:
   VkPhysicalDevice physical_device_get() const
   {
@@ -79,6 +88,16 @@ class VKDevice : public NonCopyable {
   const VkPhysicalDeviceProperties &physical_device_properties_get() const
   {
     return vk_physical_device_properties_;
+  }
+
+  const VkPhysicalDeviceFeatures &physical_device_features_get() const
+  {
+    return vk_physical_device_features_;
+  }
+
+  const VkPhysicalDeviceVulkan11Features &physical_device_vulkan_11_features_get() const
+  {
+    return vk_physical_device_vulkan_11_features_;
   }
 
   VkInstance instance_get() const
@@ -164,10 +183,18 @@ class VKDevice : public NonCopyable {
     return dummy_buffer_;
   }
 
+  void discard_image(VkImage vk_image, VmaAllocation vma_allocation);
+  void discard_image_view(VkImageView vk_image_view);
+  void discard_buffer(VkBuffer vk_buffer, VmaAllocation vma_allocation);
+  void discard_render_pass(VkRenderPass vk_render_pass);
+  void discard_frame_buffer(VkFramebuffer vk_framebuffer);
+  void destroy_discarded_resources();
+
   /** \} */
 
  private:
   void init_physical_device_properties();
+  void init_physical_device_features();
   void init_debug_callbacks();
   void init_memory_allocator();
   void init_command_pools();

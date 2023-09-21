@@ -15,13 +15,7 @@ GPU_SHADER_INTERFACE_INFO(workbench_shadow_iface, "vData")
     .smooth(Type::VEC4, "frontPosition")
     .smooth(Type::VEC4, "backPosition");
 GPU_SHADER_INTERFACE_INFO(workbench_shadow_flat_iface, "vData_flat")
-    .flat(Type::VEC3, "light_direction_os"); /*Workbench Next*/
-
-GPU_SHADER_CREATE_INFO(workbench_shadow_common)
-    .vertex_in(0, Type::VEC3, "pos")
-    .push_constant(Type::FLOAT, "lightDistance")
-    .push_constant(Type::VEC3, "lightDirection")
-    .additional_info("draw_mesh");
+    .flat(Type::VEC3, "light_direction_os"); /* Workbench Next. */
 
 /* `workbench_shadow_vert.glsl` only used by geometry shader path.
  * Vertex output iface not needed by non-geometry shader variants,
@@ -31,16 +25,15 @@ GPU_SHADER_CREATE_INFO(workbench_shadow_common_geom)
     .vertex_out(workbench_shadow_flat_iface)
     .vertex_source("workbench_shadow_vert.glsl");
 
-GPU_SHADER_CREATE_INFO(workbench_next_shadow_common)
+GPU_SHADER_CREATE_INFO(workbench_shadow_common)
     .vertex_in(0, Type::VEC3, "pos")
-    .define("WORKBENCH_NEXT")
     .uniform_buf(1, "ShadowPassData", "pass_data")
     .typedef_source("workbench_shader_shared.h")
     .additional_info("draw_view")
     .additional_info("draw_modelmat_new")
     .additional_info("draw_resource_handle_new");
 
-GPU_SHADER_CREATE_INFO(workbench_next_shadow_visibility_compute_common)
+GPU_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_common)
     .local_group_size(DRW_VISIBILITY_GROUP_SIZE)
     .define("DRW_VIEW_LEN", "64")
     .storage_buf(0, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
@@ -54,15 +47,15 @@ GPU_SHADER_CREATE_INFO(workbench_next_shadow_visibility_compute_common)
     .compute_source("workbench_shadow_visibility_comp.glsl")
     .additional_info("draw_view", "draw_view_culling");
 
-GPU_SHADER_CREATE_INFO(workbench_next_shadow_visibility_compute_dynamic_pass_type)
-    .additional_info("workbench_next_shadow_visibility_compute_common")
+GPU_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_dynamic_pass_type)
+    .additional_info("workbench_shadow_visibility_compute_common")
     .define("DYNAMIC_PASS_SELECTION")
     .storage_buf(1, Qualifier::READ_WRITE, "uint", "pass_visibility_buf[]")
     .storage_buf(2, Qualifier::READ_WRITE, "uint", "fail_visibility_buf[]")
     .do_static_compilation(true);
 
-GPU_SHADER_CREATE_INFO(workbench_next_shadow_visibility_compute_static_pass_type)
-    .additional_info("workbench_next_shadow_visibility_compute_common")
+GPU_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_static_pass_type)
+    .additional_info("workbench_shadow_visibility_compute_common")
     .storage_buf(1, Qualifier::READ_WRITE, "uint", "visibility_buf[]")
     .do_static_compilation(true);
 
@@ -121,11 +114,6 @@ GPU_SHADER_CREATE_INFO(workbench_shadow_debug)
     .fragment_out(2, Type::UINT, "objectId")
     .fragment_source("workbench_shadow_debug_frag.glsl");
 
-GPU_SHADER_CREATE_INFO(workbench_next_shadow_no_debug)
-    .additional_info("workbench_shadow_no_debug");
-
-GPU_SHADER_CREATE_INFO(workbench_next_shadow_debug).additional_info("workbench_shadow_debug");
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -170,15 +158,5 @@ WORKBENCH_SHADOW_VARIATIONS("workbench_shadow_common",
                             workbench_shadow,
                             _debug,
                             "workbench_shadow_debug")
-
-WORKBENCH_SHADOW_VARIATIONS("workbench_next_shadow_common",
-                            workbench_next_shadow,
-                            ,
-                            "workbench_next_shadow_no_debug")
-
-WORKBENCH_SHADOW_VARIATIONS("workbench_next_shadow_common",
-                            workbench_next_shadow,
-                            _debug,
-                            "workbench_next_shadow_debug")
 
 /** \} */
