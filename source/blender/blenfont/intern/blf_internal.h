@@ -24,6 +24,16 @@ struct rcti;
  */
 #define BLF_MAX_FONT 64
 
+/**
+ * If enabled, glyphs positions are on 64ths of a pixel. Disabled, they are on whole pixels.
+ */
+#define BLF_SUBPIXEL_POSITION
+
+/**
+ * If enabled, glyphs are rendered at multiple horizontal subpixel positions.
+ */
+#define BLF_SUBPIXEL_AA
+
 /** Maximum number of opened FT_Face objects managed by cache. 0 is default of 2. */
 #define BLF_CACHE_MAX_FACES 4
 /** Maximum number of opened FT_Size objects managed by cache. 0 is default of 4 */
@@ -167,6 +177,13 @@ void blf_glyph_cache_clear(struct FontBLF *font);
  * Create (or load from cache) a fully-rendered bitmap glyph.
  */
 struct GlyphBLF *blf_glyph_ensure(struct FontBLF *font, struct GlyphCacheBLF *gc, uint charcode);
+
+#ifdef BLF_SUBPIXEL_AA
+struct GlyphBLF *blf_glyph_ensure_subpixel(struct FontBLF *font,
+                                           struct GlyphCacheBLF *gc,
+                                           struct GlyphBLF *g,
+                                           int32_t pen_x);
+#endif
 
 void blf_glyph_free(struct GlyphBLF *g);
 void blf_glyph_draw(

@@ -1656,7 +1656,7 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
     strwidth = BLF_width(fstyle->uifont_id, str, max_len);
   }
 
-  BLI_assert((strwidth <= okwidth) || (okwidth <= 0.0f));
+  BLI_assert((strwidth <= (okwidth + 1)) || (okwidth <= 0.0f));
 
   return strwidth;
 }

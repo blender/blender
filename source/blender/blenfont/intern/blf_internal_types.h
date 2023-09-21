@@ -44,31 +44,13 @@ typedef int32_t ft_pix;
 
 /* Macros copied from `include/freetype/internal/ftobjs.h`. */
 
-/**
- * FIXME(@ideasman42): Follow rounding from Blender 3.1x and older.
- * This is what users will expect and changing this creates wider spaced text.
- * Use this macro to communicate that rounding should be used, using floor is to avoid
- * user visible changes, which can be reviewed and handled separately.
- */
-#define USE_LEGACY_SPACING
-
 #define FT_PIX_FLOOR(x) ((x) & ~63)
 #define FT_PIX_ROUND(x) FT_PIX_FLOOR((x) + 32)
 #define FT_PIX_CEIL(x) ((x) + 63)
 
-#ifdef USE_LEGACY_SPACING
-#  define FT_PIX_DEFAULT_ROUNDING(x) FT_PIX_FLOOR(x)
-#else
-#  define FT_PIX_DEFAULT_ROUNDING(x) FT_PIX_ROUND(x)
-#endif
-
 BLI_INLINE int ft_pix_to_int(ft_pix v)
 {
-#ifdef USE_LEGACY_SPACING
   return (int)(v >> 6);
-#else
-  return (int)(FT_PIX_DEFAULT_ROUNDING(v) >> 6);
-#endif
 }
 
 BLI_INLINE int ft_pix_to_int_floor(ft_pix v)
@@ -91,22 +73,9 @@ BLI_INLINE ft_pix ft_pix_from_float(float v)
   return lroundf(v * 64.0f);
 }
 
-BLI_INLINE ft_pix ft_pix_round_advance(ft_pix v, ft_pix step)
-{
-  /** See #USE_LEGACY_SPACING, rounding logic could change here. */
-  return FT_PIX_DEFAULT_ROUNDING(v) + FT_PIX_DEFAULT_ROUNDING(step);
-}
-
-#undef FT_PIX_ROUND
-#undef FT_PIX_CEIL
-#undef FT_PIX_DEFAULT_ROUNDING
-
 /** \} */
 
 #define BLF_BATCH_DRAW_LEN_MAX 2048 /* in glyph */
-
-/** Number of characters in #GlyphCacheBLF.glyph_ascii_table. */
-#define GLYPH_ASCII_TABLE_SIZE 128
 
 /** Number of characters in #KerningCacheBLF.table. */
 #define KERNING_CACHE_TABLE_SIZE 128
@@ -161,9 +130,6 @@ typedef struct GlyphCacheBLF {
   /** The glyphs. */
   ListBase bucket[257];
 
-  /** Fast ascii lookup */
-  struct GlyphBLF *glyph_ascii_table[GLYPH_ASCII_TABLE_SIZE];
-
   /** Texture array, to draw the glyphs. */
   GPUTexture *texture;
   char *bitmap_result;
@@ -190,6 +156,7 @@ typedef struct GlyphBLF {
   ft_pix box_ymax;
 
   ft_pix advance_x;
+  uint8_t subpixel;
 
   /** The difference in bearings when hinting is active, zero otherwise. */
   ft_pix lsb_delta;

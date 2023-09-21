@@ -356,18 +356,6 @@ static void blf_batch_draw_end()
 /** \name Glyph Stepping Utilities (Internal)
  * \{ */
 
-/* Fast path for runs of ASCII characters. Given that common UTF-8
- * input will consist of an overwhelming majority of ASCII
- * characters.
- */
-
-BLI_INLINE GlyphBLF *blf_glyph_from_utf8_and_step(
-    FontBLF *font, GlyphCacheBLF *gc, const char *str, size_t str_len, size_t *i_p)
-{
-  uint charcode = BLI_str_utf8_as_unicode_step_safe(str, str_len, i_p);
-  return blf_glyph_ensure(font, gc, charcode);
-}
-
 BLI_INLINE ft_pix blf_kerning(FontBLF *font, const GlyphBLF *g_prev, const GlyphBLF *g)
 {
   ft_pix adjustment = 0;
@@ -403,6 +391,31 @@ BLI_INLINE ft_pix blf_kerning(FontBLF *font, const GlyphBLF *g_prev, const Glyph
   return adjustment;
 }
 
+BLI_INLINE GlyphBLF *blf_glyph_from_utf8_and_step(FontBLF *font,
+                                                  GlyphCacheBLF *gc,
+                                                  GlyphBLF *g_prev,
+                                                  const char *str,
+                                                  size_t str_len,
+                                                  size_t *i_p,
+                                                  int32_t *pen_x)
+{
+  uint charcode = BLI_str_utf8_as_unicode_step_safe(str, str_len, i_p);
+  /* Invalid unicode sequences return the byte value, stepping forward one.
+   * This allows `latin1` to display (which is sometimes used for file-paths). */
+  BLI_assert(charcode != BLI_UTF8_ERR);
+  GlyphBLF *g = blf_glyph_ensure(font, gc, charcode);
+  if (g && pen_x && !(font->flags & BLF_MONOSPACED)) {
+    *pen_x += blf_kerning(font, g_prev, g);
+#ifndef BLF_SUBPIXEL_POSITION
+    *pen_x = FT_PIX_ROUND(*pen_x);
+#endif
+#ifdef BLF_SUBPIXEL_AA
+    g = blf_glyph_ensure_subpixel(font, gc, g, *pen_x);
+#endif
+  }
+  return g;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -416,7 +429,7 @@ static void blf_font_draw_ex(FontBLF *font,
                              ResultBLF *r_info,
                              const ft_pix pen_y)
 {
-  GlyphBLF *g, *g_prev = nullptr;
+  GlyphBLF *g = nullptr;
   ft_pix pen_x = 0;
   size_t i = 0;
 
@@ -428,18 +441,13 @@ static void blf_font_draw_ex(FontBLF *font,
   blf_batch_draw_begin(font);
 
   while ((i < str_len) && str[i]) {
-    g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i);
-
+    g = blf_glyph_from_utf8_and_step(font, gc, g, str, str_len, &i, &pen_x);
     if (UNLIKELY(g == nullptr)) {
       continue;
     }
-    pen_x += blf_kerning(font, g_prev, g);
-
     /* do not return this loop if clipped, we want every character tested */
     blf_glyph_draw(font, gc, g, ft_pix_to_int_floor(pen_x), ft_pix_to_int_floor(pen_y));
-
-    pen_x = ft_pix_round_advance(pen_x, g->advance_x);
-    g_prev = g;
+    pen_x += g->advance_x;
   }
 
   blf_batch_draw_end();
@@ -470,7 +478,7 @@ int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int
   blf_batch_draw_begin(font);
 
   while ((i < str_len) && str[i]) {
-    g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i);
+    g = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i, nullptr);
 
     if (UNLIKELY(g == nullptr)) {
       continue;
@@ -613,7 +621,7 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
                                     ResultBLF *r_info,
                                     ft_pix pen_y)
 {
-  GlyphBLF *g, *g_prev = nullptr;
+  GlyphBLF *g = nullptr;
   ft_pix pen_x = ft_pix_from_int(font->pos[0]);
   ft_pix pen_y_basis = ft_pix_from_int(font->pos[1]) + pen_y;
   size_t i = 0;
@@ -624,17 +632,13 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
   /* another buffer specific call for color conversion */
 
   while ((i < str_len) && str[i]) {
-    g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i);
+    g = blf_glyph_from_utf8_and_step(font, gc, g, str, str_len, &i, &pen_x);
 
     if (UNLIKELY(g == nullptr)) {
       continue;
     }
-    pen_x += blf_kerning(font, g_prev, g);
-
     blf_glyph_draw_buffer(buf_info, g, pen_x, pen_y_basis);
-
-    pen_x = ft_pix_round_advance(pen_x, g->advance_x);
-    g_prev = g;
+    pen_x += g->advance_x;
   }
 
   if (r_info) {
@@ -666,8 +670,7 @@ static bool blf_font_width_to_strlen_glyph_process(
   if (UNLIKELY(g == nullptr)) {
     return false; /* continue the calling loop. */
   }
-  *pen_x += blf_kerning(font, g_prev, g);
-  *pen_x = ft_pix_round_advance(*pen_x, g->advance_x);
+  *pen_x += blf_kerning(font, g_prev, g) + g->advance_x;
 
   /* When true, break the calling loop. */
   return (ft_pix_to_int(*pen_x) >= width_i);
@@ -687,8 +690,7 @@ size_t blf_font_width_to_strlen(
   for (i_prev = i = 0, width_new = pen_x = 0, g_prev = nullptr; (i < str_len) && str[i];
        i_prev = i, width_new = pen_x, g_prev = g)
   {
-    g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i);
-
+    g = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i, nullptr);
     if (blf_font_width_to_strlen_glyph_process(font, g_prev, g, &pen_x, width_i)) {
       break;
     }
@@ -719,7 +721,7 @@ size_t blf_font_width_to_rstrlen(
   i_prev = size_t(s_prev - str);
 
   i_tmp = i;
-  g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i_tmp);
+  g = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i_tmp, nullptr);
   for (width_new = pen_x = 0; (s != nullptr);
        i = i_prev, s = s_prev, g = g_prev, g_prev = nullptr, width_new = pen_x)
   {
@@ -728,7 +730,7 @@ size_t blf_font_width_to_rstrlen(
 
     if (s_prev != nullptr) {
       i_tmp = i_prev;
-      g_prev = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i_tmp);
+      g_prev = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i_tmp, nullptr);
       BLI_assert(i_tmp == i);
     }
 
@@ -759,7 +761,7 @@ static void blf_font_boundbox_ex(FontBLF *font,
                                  ResultBLF *r_info,
                                  ft_pix pen_y)
 {
-  GlyphBLF *g, *g_prev = nullptr;
+  GlyphBLF *g = nullptr;
   ft_pix pen_x = 0;
   size_t i = 0;
 
@@ -769,13 +771,12 @@ static void blf_font_boundbox_ex(FontBLF *font,
   ft_pix box_ymax = ft_pix_from_int(-32000);
 
   while ((i < str_len) && str[i]) {
-    g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i);
+    g = blf_glyph_from_utf8_and_step(font, gc, g, str, str_len, &i, &pen_x);
 
     if (UNLIKELY(g == nullptr)) {
       continue;
     }
-    pen_x += blf_kerning(font, g_prev, g);
-    const ft_pix pen_x_next = ft_pix_round_advance(pen_x, g->advance_x);
+    const ft_pix pen_x_next = pen_x + g->advance_x;
 
     const ft_pix gbox_xmin = pen_x;
     const ft_pix gbox_xmax = pen_x_next;
@@ -797,7 +798,6 @@ static void blf_font_boundbox_ex(FontBLF *font,
     }
 
     pen_x = pen_x_next;
-    g_prev = g;
   }
 
   if (box_xmin > box_xmax) {
@@ -910,7 +910,7 @@ void blf_font_boundbox_foreach_glyph(FontBLF *font,
                                      BLF_GlyphBoundsFn user_fn,
                                      void *user_data)
 {
-  GlyphBLF *g, *g_prev = nullptr;
+  GlyphBLF *g = nullptr;
   ft_pix pen_x = 0;
   size_t i = 0, i_curr;
 
@@ -923,13 +923,11 @@ void blf_font_boundbox_foreach_glyph(FontBLF *font,
 
   while ((i < str_len) && str[i]) {
     i_curr = i;
-    g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i);
+    g = blf_glyph_from_utf8_and_step(font, gc, g, str, str_len, &i, &pen_x);
 
     if (UNLIKELY(g == nullptr)) {
       continue;
     }
-    pen_x += blf_kerning(font, g_prev, g);
-
     rcti bounds;
     bounds.xmin = ft_pix_to_int_floor(pen_x) + ft_pix_to_int_floor(g->box_xmin);
     bounds.xmax = ft_pix_to_int_floor(pen_x) + ft_pix_to_int_ceil(g->box_xmax);
@@ -939,8 +937,7 @@ void blf_font_boundbox_foreach_glyph(FontBLF *font,
     if (user_fn(str, i_curr, &bounds, user_data) == false) {
       break;
     }
-    pen_x = ft_pix_round_advance(pen_x, g->advance_x);
-    g_prev = g;
+    pen_x += g->advance_x;
   }
 
   blf_glyph_cache_release(font);
@@ -1050,7 +1047,8 @@ static void blf_font_wrap_apply(FontBLF *font,
                                                  void *userdata),
                                 void *userdata)
 {
-  GlyphBLF *g, *g_prev = nullptr;
+  GlyphBLF *g = nullptr;
+  GlyphBLF *g_prev = nullptr;
   ft_pix pen_x = 0;
   ft_pix pen_y = 0;
   size_t i = 0;
@@ -1073,12 +1071,11 @@ static void blf_font_wrap_apply(FontBLF *font,
     size_t i_curr = i;
     bool do_draw = false;
 
-    g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i);
+    g = blf_glyph_from_utf8_and_step(font, gc, g_prev, str, str_len, &i, &pen_x);
 
     if (UNLIKELY(g == nullptr)) {
       continue;
     }
-    pen_x += blf_kerning(font, g_prev, g);
 
     /**
      * Implementation Detail (utf8).
@@ -1088,7 +1085,7 @@ static void blf_font_wrap_apply(FontBLF *font,
      *
      * This is _only_ done when we know for sure the character is ascii (newline or a space).
      */
-    pen_x_next = ft_pix_round_advance(pen_x, g->advance_x);
+    pen_x_next = pen_x + g->advance_x;
     if (UNLIKELY((pen_x_next >= wrap.wrap_width) && (wrap.start != wrap.last[0]))) {
       do_draw = true;
     }
@@ -1421,16 +1418,6 @@ bool blf_ensure_face(FontBLF *font)
   }
 
   font->face_flags = font->face->face_flags;
-
-  /* XXX: Temporarily disable kerning in our main font. Kerning had been accidentally removed
-   * from our font in 3.1. In 3.4 we disable kerning here in the new version to keep spacing the
-   * same
-   * (#101506). Enable again later with change of font, placement, or rendering - Harley. */
-  if (font && font->filepath &&
-      (BLI_path_cmp(BLI_path_basename(font->filepath), BLF_DEFAULT_PROPORTIONAL_FONT) == 0))
-  {
-    font->face_flags &= ~FT_FACE_FLAG_KERNING;
-  }
 
   if (FT_HAS_MULTIPLE_MASTERS(font)) {
     FT_Get_MM_Var(font->face, &(font->variations));

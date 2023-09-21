@@ -94,7 +94,6 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   gc->char_width = font->char_width;
   gc->char_spacing = font->char_spacing;
 
-  memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
   memset(gc->bucket, 0, sizeof(gc->bucket));
 
   blf_ensure_size(font);
@@ -169,15 +168,13 @@ void blf_glyph_cache_clear(FontBLF *font)
  *
  * \return nullptr if not found.
  */
-static GlyphBLF *blf_glyph_cache_find_glyph(const GlyphCacheBLF *gc, uint charcode)
+static GlyphBLF *blf_glyph_cache_find_glyph(const GlyphCacheBLF *gc,
+                                            uint charcode,
+                                            uint8_t subpixel)
 {
-  if (charcode < GLYPH_ASCII_TABLE_SIZE) {
-    return gc->glyph_ascii_table[charcode];
-  }
-
-  GlyphBLF *g = static_cast<GlyphBLF *>(gc->bucket[blf_hash(charcode)].first);
+  GlyphBLF *g = static_cast<GlyphBLF *>(gc->bucket[blf_hash(charcode << 6 | subpixel)].first);
   while (g) {
-    if (g->c == charcode) {
+    if (g->c == charcode && g->subpixel == subpixel) {
       return g;
     }
     g = g->next;
@@ -225,8 +222,12 @@ static uchar blf_glyph_gamma(uchar c)
 /**
  * Add a rendered glyph to a cache.
  */
-static GlyphBLF *blf_glyph_cache_add_glyph(
-    FontBLF *font, GlyphCacheBLF *gc, FT_GlyphSlot glyph, uint charcode, FT_UInt glyph_index)
+static GlyphBLF *blf_glyph_cache_add_glyph(FontBLF *font,
+                                           GlyphCacheBLF *gc,
+                                           FT_GlyphSlot glyph,
+                                           uint charcode,
+                                           FT_UInt glyph_index,
+                                           uint8_t subpixel)
 {
   GlyphBLF *g = (GlyphBLF *)MEM_callocN(sizeof(GlyphBLF), "blf_glyph_get");
   g->c = charcode;
@@ -237,6 +238,7 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
   g->dims[0] = int(glyph->bitmap.width);
   g->dims[1] = int(glyph->bitmap.rows);
   g->pitch = glyph->bitmap.pitch;
+  g->subpixel = subpixel;
 
   FT_BBox bbox;
   FT_Outline_Get_CBox(&(glyph->outline), &bbox);
@@ -269,11 +271,7 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
     memcpy(g->bitmap, glyph->bitmap.buffer, size_t(buffer_size));
   }
 
-  const uint key = blf_hash(g->c);
-  BLI_addhead(&(gc->bucket[key]), g);
-  if (charcode < GLYPH_ASCII_TABLE_SIZE) {
-    gc->glyph_ascii_table[charcode] = g;
-  }
+  BLI_addhead(&(gc->bucket[blf_hash(g->c << 6 | subpixel)]), g);
 
   return g;
 }
@@ -731,9 +729,8 @@ static FT_GlyphSlot blf_glyph_load(FontBLF *font, FT_UInt glyph_index)
       load_flags |= FT_LOAD_TARGET_NORMAL;
     }
     else {
-      /* Default, hinting disabled until FreeType has been upgraded
-       * to give good results on all platforms. */
-      load_flags |= FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING;
+      /* Default "Auto" is Slight (vertical only) hinting. */
+      load_flags |= FT_LOAD_TARGET_LIGHT;
     }
   }
 
@@ -1005,6 +1002,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
                                      FontBLF *glyph_font,
                                      FT_UInt glyph_index,
                                      uint charcode,
+                                     uint8_t subpixel,
                                      int fixed_width)
 {
   if (glyph_font != settings_font) {
@@ -1078,15 +1076,20 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
     blf_glyph_transform_spacing(glyph, spacing);
   }
 
+  FT_Outline_Translate(&glyph->outline, (FT_Pos)subpixel, 0);
+
   if (blf_glyph_render_bitmap(glyph_font, glyph)) {
     return glyph;
   }
   return nullptr;
 }
 
-GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode)
+static GlyphBLF *blf_glyph_ensure_ex(FontBLF *font,
+                                     GlyphCacheBLF *gc,
+                                     const uint charcode,
+                                     uint8_t subpixel)
 {
-  GlyphBLF *g = blf_glyph_cache_find_glyph(gc, charcode);
+  GlyphBLF *g = blf_glyph_cache_find_glyph(gc, charcode, subpixel);
   if (g) {
     return g;
   }
@@ -1100,15 +1103,43 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode
   }
 
   FT_GlyphSlot glyph = blf_glyph_render(
-      font, font_with_glyph, glyph_index, charcode, gc->fixed_width);
+      font, font_with_glyph, glyph_index, charcode, subpixel, gc->fixed_width);
 
   if (glyph) {
     /* Save this glyph in the initial font's cache. */
-    g = blf_glyph_cache_add_glyph(font, gc, glyph, charcode, glyph_index);
+    g = blf_glyph_cache_add_glyph(font, gc, glyph, charcode, glyph_index, subpixel);
   }
 
   return g;
 }
+
+GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode)
+{
+  return blf_glyph_ensure_ex(font, gc, charcode, 0);
+}
+
+#ifdef BLF_SUBPIXEL_AA
+GlyphBLF *blf_glyph_ensure_subpixel(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int32_t pen_x)
+{
+  if (font->flags & BLF_HINTING_NONE) {
+    /* Not if we are not also hinting.*/
+    return g;
+  }
+
+  if (font->size > 35.0f || g->dims[0] == 0 || g->advance_x < 0) {
+    /* Single position for large sizes, spaces, and combining characters. */
+    return g;
+  }
+
+  /* Four sub-pixel positions up to 16 point, 2 until 35 points. */
+  const uint8_t subpixel = (uint8_t)(pen_x & ((font->size > 16.0f) ? 32L : 48L));
+
+  if (g->subpixel != subpixel) {
+    g = blf_glyph_ensure_ex(font, gc, g->c, subpixel);
+  }
+  return g;
+}
+#endif
 
 void blf_glyph_free(GlyphBLF *g)
 {
@@ -1137,8 +1168,8 @@ static void blf_glyph_calc_rect_test(rcti *rect, GlyphBLF *g, const int x, const
   /* Intentionally check with `g->advance`, because this is the
    * width used by BLF_width. This allows that the text slightly
    * overlaps the clipping border to achieve better alignment. */
-  rect->xmin = x;
-  rect->xmax = rect->xmin + MIN2(ft_pix_to_int(g->advance_x), g->dims[0]);
+  rect->xmin = x + g->pos[0] + 1;
+  rect->xmax = x + MIN2(ft_pix_to_int(g->advance_x), g->dims[0]);
   rect->ymin = y;
   rect->ymax = rect->ymin - g->dims[1];
 }
