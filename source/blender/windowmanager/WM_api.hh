@@ -1606,6 +1606,16 @@ void WM_progress_clear(wmWindow *win);
 
 void *WM_draw_cb_activate(wmWindow *win, void (*draw)(const wmWindow *, void *), void *customdata);
 void WM_draw_cb_exit(wmWindow *win, void *handle);
+/**
+ * High level function to redraw windows.
+ *
+ * \warning this should be avoided by operators and low-level IO functionality
+ * because drawing relies on the event system & depsgraph preparing data for display.
+ * An explicit call to draw is error prone since it may attempt to show stale data.
+ *
+ * With some rare exceptions which require a redraw (screen-shot & sample screen color for e.g.)
+ * explicitly redrawing should be avoided, see: #92704, #93950, #97627 & #98462.
+ */
 void WM_redraw_windows(bContext *C);
 
 void WM_draw_region_viewport_ensure(Scene *scene, ARegion *region, short space_type);
