@@ -622,15 +622,14 @@ bNodeSocketType *bNodeTreeInterfaceSocket::socket_typeinfo() const
 blender::ColorGeometry4f bNodeTreeInterfaceSocket::socket_color() const
 {
   bNodeSocketType *typeinfo = this->socket_typeinfo();
-  if (!typeinfo || !typeinfo->draw_color_simple) {
+  if (typeinfo && typeinfo->draw_color_simple) {
+    float color[4];
+    typeinfo->draw_color_simple(typeinfo, color);
+    return blender::ColorGeometry4f(color);
+  }
+  else {
     return blender::ColorGeometry4f(1.0f, 0.0f, 1.0f, 1.0f);
   }
-
-  float color[4];
-  if (typeinfo->draw_color_simple) {
-    typeinfo->draw_color_simple(typeinfo, color);
-  }
-  return blender::ColorGeometry4f(color);
 }
 
 bool bNodeTreeInterfaceSocket::set_socket_type(const char *new_socket_type)

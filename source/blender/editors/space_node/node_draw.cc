@@ -1089,7 +1089,13 @@ static void node_socket_outline_color_get(const bool selected,
 
 void node_socket_color_get(const bNodeSocketType &type, float r_color[4])
 {
-  type.draw_color_simple(&type, r_color);
+  if (type.draw_color_simple) {
+    float color[4];
+    type.draw_color_simple(&type, color);
+  }
+  else {
+    copy_v4_v4(r_color, float4(1.0f, 0.0f, 1.0f, 1.0f));
+  }
 }
 
 static void create_inspection_string_for_generic_value(const bNodeSocket &socket,
