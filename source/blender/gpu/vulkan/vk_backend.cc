@@ -98,7 +98,10 @@ void VKBackend::platform_exit()
 
 void VKBackend::delete_resources() {}
 
-void VKBackend::samplers_update() {}
+void VKBackend::samplers_update()
+{
+  NOT_YET_IMPLEMENTED
+}
 
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
 {

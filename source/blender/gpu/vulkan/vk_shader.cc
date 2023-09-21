@@ -659,7 +659,10 @@ void VKShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
   build_shader_module(sources, shaderc_compute_shader, &compute_module_);
 }
 
-void VKShader::warm_cache(int /*limit*/) {}
+void VKShader::warm_cache(int /*limit*/)
+{
+  NOT_YET_IMPLEMENTED
+}
 
 bool VKShader::finalize(const shader::ShaderCreateInfo *info)
 {
@@ -940,14 +943,19 @@ bool VKShader::finalize_descriptor_set_layouts(VkDevice vk_device,
 void VKShader::transform_feedback_names_set(Span<const char *> /*name_list*/,
                                             eGPUShaderTFBType /*geom_type*/)
 {
+  NOT_YET_IMPLEMENTED
 }
 
 bool VKShader::transform_feedback_enable(GPUVertBuf *)
 {
+  NOT_YET_IMPLEMENTED
   return false;
 }
 
-void VKShader::transform_feedback_disable() {}
+void VKShader::transform_feedback_disable()
+{
+  NOT_YET_IMPLEMENTED
+}
 
 void VKShader::update_graphics_pipeline(VKContext &context,
                                         const GPUPrimType prim_type,

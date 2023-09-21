@@ -7,11 +7,18 @@
  */
 
 #include "vk_fence.hh"
+#include "vk_common.hh"
 
 namespace blender::gpu {
 
-void VKFence::signal() {}
+void VKFence::signal()
+{
+  NOT_YET_IMPLEMENTED
+}
 
-void VKFence::wait() {}
+void VKFence::wait()
+{
+  NOT_YET_IMPLEMENTED
+}
 
 }  // namespace blender::gpu
