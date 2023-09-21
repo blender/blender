@@ -1388,8 +1388,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Custom motion paths */
     if (!DNA_struct_elem_find(fd->filesdna, "bMotionPath", "int", "line_thickness")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-        bMotionPath *mpath = ob->mpath;
-        if (mpath) {
+        if (bMotionPath *mpath = ob->mpath) {
           mpath->color[0] = 1.0f;
           mpath->color[1] = 0.0f;
           mpath->color[2] = 0.0f;
@@ -1399,8 +1398,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
         /* bones motion path */
         if (ob->pose) {
           LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-            bMotionPath *mpath = pchan->mpath;
-            if (mpath) {
+            if (bMotionPath *mpath = pchan->mpath) {
               mpath->color[0] = 1.0f;
               mpath->color[1] = 0.0f;
               mpath->color[2] = 0.0f;

@@ -789,7 +789,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       id_us_min(&brush->id);
       brush->sculpt_tool = SCULPT_TOOL_DISPLACEMENT_SMEAR;
     }
+  }
 
+  {
     /* Use the same tool icon color in the brush cursor */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->ob_mode & OB_MODE_SCULPT) {
