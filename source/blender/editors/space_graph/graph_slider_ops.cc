@@ -2075,3 +2075,90 @@ void GRAPH_OT_butterworth_smooth(wmOperatorType *ot)
               128);
 }
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Push-Pull Operator
+ * \{ */
+
+static void push_pull_graph_keys(bAnimContext *ac, const float factor)
+{
+  apply_fcu_segment_function(ac, factor, push_pull_fcurve_segment);
+}
+
+static void push_pull_modal_update(bContext *C, wmOperator *op)
+{
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+
+  common_draw_status_header(C, gso, "Push Pull Keys");
+
+  /* Reset keyframes to the state at invoke. */
+  reset_bezts(gso);
+  const float factor = slider_factor_get_and_remember(op);
+  push_pull_graph_keys(&gso->ac, factor);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+}
+
+static int push_pull_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int invoke_result = graph_slider_invoke(C, op, event);
+
+  if (invoke_result == OPERATOR_CANCELLED) {
+    return invoke_result;
+  }
+
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+  gso->modal_update = push_pull_modal_update;
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
+  ED_slider_factor_bounds_set(gso->slider, 0, 2);
+  ED_slider_factor_set(gso->slider, 1);
+  common_draw_status_header(C, gso, "Push Pull Keys");
+
+  return invoke_result;
+}
+
+static int push_pull_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const float factor = RNA_float_get(op->ptr, "factor");
+
+  push_pull_graph_keys(&ac, factor);
+
+  /* Set notifier that keyframes have changed. */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_push_pull(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Push Pull Keyframes";
+  ot->idname = "GRAPH_OT_push_pull";
+  ot->description = "Exaggerate or minimize the value of the selected keys";
+
+  /* API callbacks. */
+  ot->invoke = push_pull_invoke;
+  ot->modal = graph_slider_modal;
+  ot->exec = push_pull_exec;
+  ot->poll = graphop_editable_keyframes_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
+
+  RNA_def_float_factor(ot->srna,
+                       "factor",
+                       1.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Factor",
+                       "Control how far to push or pull the keys",
+                       0.0f,
+                       2.0f);
+}
+/** \} */
