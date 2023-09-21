@@ -770,7 +770,7 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "openimageio",
                                   },
             ),
-    Package(name="LLVM Library", is_mandatory=False, version="15.0.7", version_short="15.0", version_min="11.0", version_mex="16.0",
+    Package(name="LLVM Library", is_mandatory=False, version="12.0.0", version_short="12.0", version_min="11.0", version_mex="16.0",
             sub_packages=(
                 Package(name="Clang Compiler", is_mandatory=False,
                         distro_package_names={DISTRO_ID_DEBIAN: "clang",
