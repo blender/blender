@@ -2638,7 +2638,10 @@ void uiTemplateAssetView(uiLayout *layout,
                          const char *drag_opname,
                          PointerRNA *r_drag_op_properties);
 
-void uiTemplateLightLinkingCollection(uiLayout *layout, PointerRNA *ptr, const char *propname);
+void uiTemplateLightLinkingCollection(uiLayout *layout,
+                                      uiLayout *context_layout,
+                                      PointerRNA *ptr,
+                                      const char *propname);
 
 void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C);
 
