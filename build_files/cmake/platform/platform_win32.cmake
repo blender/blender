@@ -388,7 +388,20 @@ endif()
 if(WITH_IMAGE_WEBP)
   set(WEBP_INCLUDE_DIRS ${LIBDIR}/webp/include)
   set(WEBP_ROOT_DIR ${LIBDIR}/webp)
-  set(WEBP_LIBRARIES ${LIBDIR}/webp/lib/webp.lib ${LIBDIR}/webp/lib/webpdemux.lib ${LIBDIR}/webp/lib/webpmux.lib)
+  if(EXISTS ${LIBDIR}/webp/lib/libsharpyuv.lib) # webp 1.3.x+
+    set(WEBP_LIBRARIES
+      ${LIBDIR}/webp/lib/libwebp.lib
+      ${LIBDIR}/webp/lib/libwebpdemux.lib
+      ${LIBDIR}/webp/lib/libwebpmux.lib
+      ${LIBDIR}/webp/lib/libsharpyuv.lib
+    )
+  else()
+    set(WEBP_LIBRARIES
+      ${LIBDIR}/webp/lib/webp.lib
+      ${LIBDIR}/webp/lib/webpdemux.lib
+      ${LIBDIR}/webp/lib/webpmux.lib
+    )
+  endif()
   set(WEBP_FOUND ON)
 endif()
 
