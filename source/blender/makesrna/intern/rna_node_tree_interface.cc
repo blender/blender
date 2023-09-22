@@ -439,11 +439,8 @@ static bNodeTreeInterfaceSocket *rna_NodeTreeInterfaceItems_new_socket(
   }
   const char *socket_type = typeinfo->idname;
   NodeTreeInterfaceSocketFlag flag = NodeTreeInterfaceSocketFlag(in_out);
-  bNodeTreeInterfaceSocket *socket = interface->add_socket(name ? name : "",
-                                                           description ? description : "",
-                                                           socket_type ? socket_type : "",
-                                                           flag,
-                                                           parent);
+  bNodeTreeInterfaceSocket *socket = interface->add_socket(
+      name, description, socket_type, flag, parent);
 
   if (socket == nullptr) {
     BKE_report(reports, RPT_ERROR, "Unable to create socket");

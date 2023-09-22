@@ -303,9 +303,9 @@ typedef struct bNodeTreeInterface {
    * \param parent: Panel in which to add the socket. If parent is null the socket is added in the
    * root panel.
    */
-  bNodeTreeInterfaceSocket *add_socket(blender::StringRefNull name,
-                                       blender::StringRefNull description,
-                                       blender::StringRefNull socket_type,
+  bNodeTreeInterfaceSocket *add_socket(blender::StringRef name,
+                                       blender::StringRef description,
+                                       blender::StringRef socket_type,
                                        NodeTreeInterfaceSocketFlag flag,
                                        bNodeTreeInterfacePanel *parent);
   /**
@@ -314,9 +314,9 @@ typedef struct bNodeTreeInterface {
    * root panel.
    * \param position: Position of the socket within the parent panel.
    */
-  bNodeTreeInterfaceSocket *insert_socket(blender::StringRefNull name,
-                                          blender::StringRefNull description,
-                                          blender::StringRefNull socket_type,
+  bNodeTreeInterfaceSocket *insert_socket(blender::StringRef name,
+                                          blender::StringRef description,
+                                          blender::StringRef socket_type,
                                           NodeTreeInterfaceSocketFlag flag,
                                           bNodeTreeInterfacePanel *parent,
                                           int position);
@@ -326,8 +326,8 @@ typedef struct bNodeTreeInterface {
    * \param parent: Panel in which the new panel is added as a child. If parent is null the new
    * panel is made a child of the root panel.
    */
-  bNodeTreeInterfacePanel *add_panel(blender::StringRefNull name,
-                                     blender::StringRefNull description,
+  bNodeTreeInterfacePanel *add_panel(blender::StringRef name,
+                                     blender::StringRef description,
                                      NodeTreeInterfacePanelFlag flag,
                                      bNodeTreeInterfacePanel *parent);
   /**
@@ -336,8 +336,8 @@ typedef struct bNodeTreeInterface {
    * panel is made a child of the root panel.
    * \param position: Position of the child panel within the parent panel.
    */
-  bNodeTreeInterfacePanel *insert_panel(blender::StringRefNull name,
-                                        blender::StringRefNull description,
+  bNodeTreeInterfacePanel *insert_panel(blender::StringRef name,
+                                        blender::StringRef description,
                                         NodeTreeInterfacePanelFlag flag,
                                         bNodeTreeInterfacePanel *parent,
                                         int position);
