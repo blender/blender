@@ -1132,7 +1132,7 @@ GlyphBLF *blf_glyph_ensure_subpixel(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *
   }
 
   /* Four sub-pixel positions up to 16 point, 2 until 35 points. */
-  const uint8_t subpixel = (uint8_t)(pen_x & ((font->size > 16.0f) ? 32L : 48L));
+  const uint8_t subpixel = uint8_t(pen_x & ((font->size > 16.0f) ? 32L : 48L));
 
   if (g->subpixel != subpixel) {
     g = blf_glyph_ensure_ex(font, gc, g->c, subpixel);

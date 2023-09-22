@@ -2073,7 +2073,7 @@ static const EnumPropertyItem prop_graphkeys_select_key_handles_actions[] = {
     {GRAPHKEYS_KEYHANDLESSEL_SELECT, "SELECT", 0, "Select", ""},
     {GRAPHKEYS_KEYHANDLESSEL_DESELECT, "DESELECT", 0, "Deselect", ""},
     {GRAPHKEYS_KEYHANDLESSEL_KEEP, "KEEP", 0, "Keep", "Leave as is"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 /**
@@ -2092,7 +2092,7 @@ static void graphkeys_select_key_handles(
     const enum eGraphKey_SelectKeyHandles_Action key_action,
     const enum eGraphKey_SelectKeyHandles_Action right_handle_action)
 {
-  ListBase anim_data = {NULL, NULL};
+  ListBase anim_data = {nullptr, nullptr};
 
   const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE |
                                     ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
@@ -2103,7 +2103,7 @@ static void graphkeys_select_key_handles(
     FCurve *fcu = (FCurve *)ale->key_data;
 
     /* Only continue if F-Curve has keyframes. */
-    if (fcu->bezt == NULL) {
+    if (fcu->bezt == nullptr) {
       continue;
     }
 
@@ -2174,7 +2174,7 @@ static int graphkeys_select_key_handles_exec(bContext *C, wmOperator *op)
 
   graphkeys_select_key_handles(&ac, left_handle_action, key_action, right_handle_action);
 
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -2185,11 +2185,11 @@ static void graphkeys_select_key_handles_ui(bContext * /* C */, wmOperator *op)
   uiLayout *row;
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, op->ptr, "left_handle_action", UI_ITEM_NONE, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "left_handle_action", UI_ITEM_NONE, nullptr, ICON_NONE);
   row = uiLayoutRow(layout, false);
-  uiItemR(row, op->ptr, "right_handle_action", UI_ITEM_NONE, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "right_handle_action", UI_ITEM_NONE, nullptr, ICON_NONE);
   row = uiLayoutRow(layout, false);
-  uiItemR(row, op->ptr, "key_action", UI_ITEM_NONE, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "key_action", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void GRAPH_OT_select_key_handles(wmOperatorType *ot)

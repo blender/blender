@@ -391,7 +391,7 @@ void ED_object_parent_clear(Object *ob, const int type)
   if (ob->parent == nullptr) {
     return;
   }
-  unsigned int flags = ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION;
+  uint flags = ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION;
   switch (type) {
     case CLEAR_PARENT_ALL: {
       /* for deformers, remove corresponding modifiers to prevent

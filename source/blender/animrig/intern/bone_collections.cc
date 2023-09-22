@@ -353,8 +353,7 @@ bool ANIM_armature_bonecoll_assign_and_move(BoneCollection *bcoll, Bone *bone)
   return ANIM_armature_bonecoll_assign(bcoll, bone);
 }
 
-bool ANIM_armature_bonecoll_assign_and_move_editbone(struct BoneCollection *bcoll,
-                                                     struct EditBone *ebone)
+bool ANIM_armature_bonecoll_assign_and_move_editbone(BoneCollection *bcoll, EditBone *ebone)
 {
   ANIM_armature_bonecoll_unassign_all_editbone(ebone);
   return ANIM_armature_bonecoll_assign_editbone(bcoll, ebone);
@@ -395,7 +394,7 @@ void ANIM_armature_bonecoll_unassign_all(Bone *bone)
   }
 }
 
-void ANIM_armature_bonecoll_unassign_all_editbone(struct EditBone *ebone)
+void ANIM_armature_bonecoll_unassign_all_editbone(EditBone *ebone)
 {
   LISTBASE_FOREACH_MUTABLE (BoneCollectionReference *, ref, &ebone->bone_collections) {
     ANIM_armature_bonecoll_unassign_editbone(ref->bcoll, ebone);
