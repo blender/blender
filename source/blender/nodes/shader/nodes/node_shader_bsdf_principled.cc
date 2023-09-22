@@ -104,33 +104,32 @@ static void node_declare(NodeDeclarationBuilder &b)
           .draw_buttons([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
             uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
           });
-  spec.add_input<decl::Color>("Metallic Tint").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-#define SOCK_METALLIC_TINT_ID 13
   spec.add_input<decl::Float>("Specular")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-#define SOCK_SPECULAR_ID 14
+#define SOCK_SPECULAR_ID 13
   spec.add_input<decl::Color>("Specular Tint")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .description(
-          "Tint of the specular reflection at normal incidence. Affects dielectric materials");
-#define SOCK_SPECULAR_TINT_ID 15
+          "Tint dielectric reflection at normal incidence for artistic control, and metallic "
+          "reflection at near-grazing incidence to simulate complex index of refraction");
+#define SOCK_SPECULAR_TINT_ID 14
   spec.add_input<decl::Float>("Anisotropic")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-#define SOCK_ANISOTROPIC_ID 16
+#define SOCK_ANISOTROPIC_ID 15
   spec.add_input<decl::Float>("Anisotropic Rotation")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-#define SOCK_ANISOTROPIC_ROTATION_ID 17
+#define SOCK_ANISOTROPIC_ROTATION_ID 16
   spec.add_input<decl::Vector>("Tangent").hide_value();
-#define SOCK_TANGENT_ID 18
+#define SOCK_TANGENT_ID 17
 
   /* Panel for Coat settings. */
   PanelDeclarationBuilder &coat = b.add_panel("Coat").default_closed(true);
@@ -142,14 +141,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Controls the intensity of the coat layer, both the reflection and the tinting. "
           "Typically should be zero or one for physically-based materials");
-#define SOCK_COAT_ID 19
+#define SOCK_COAT_ID 18
   coat.add_input<decl::Float>("Coat Roughness")
       .default_value(0.03f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .description("The roughness of the coat layer");
-#define SOCK_COAT_ROUGHNESS_ID 20
+#define SOCK_COAT_ROUGHNESS_ID 19
   coat.add_input<decl::Float>("Coat IOR")
       .default_value(1.5f)
       .min(1.0f)
@@ -157,37 +156,37 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "The index of refraction of the coat layer "
           "(affects its reflectivity as well as the falloff of coat tinting)");
-#define SOCK_COAT_IOR_ID 21
+#define SOCK_COAT_IOR_ID 20
   coat.add_input<decl::Color>("Coat Tint")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .description(
           "Adds a colored tint to the coat layer by modeling absorption in the layer. "
           "Saturation increases at shallower angles, as the light travels farther "
           "through the medium (depending on the Coat IOR)");
-#define SOCK_COAT_TINT_ID 22
+#define SOCK_COAT_TINT_ID 21
   coat.add_input<decl::Vector>("Coat Normal").hide_value();
-#define SOCK_COAT_NORMAL_ID 23
+#define SOCK_COAT_NORMAL_ID 22
 
   /* Panel for Sheen settings. */
   PanelDeclarationBuilder &sheen = b.add_panel("Sheen").default_closed(true);
   sheen.add_input<decl::Float>("Sheen").default_value(0.0f).min(0.0f).max(1.0f).subtype(
       PROP_FACTOR);
-#define SOCK_SHEEN_ID 24
+#define SOCK_SHEEN_ID 23
   sheen.add_input<decl::Float>("Sheen Roughness")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-#define SOCK_SHEEN_ROUGHNESS_ID 25
+#define SOCK_SHEEN_ROUGHNESS_ID 24
   sheen.add_input<decl::Color>("Sheen Tint").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-#define SOCK_SHEEN_TINT_ID 26
+#define SOCK_SHEEN_TINT_ID 25
 
   /* Panel for Emission settings. */
   PanelDeclarationBuilder &emis = b.add_panel("Emission").default_closed(true);
   emis.add_input<decl::Color>("Emission Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-#define SOCK_EMISSION_ID 27
+#define SOCK_EMISSION_ID 26
   emis.add_input<decl::Float>("Emission Strength").default_value(0.0).min(0.0f).max(1000000.0f);
-#define SOCK_EMISSION_STRENGTH_ID 28
+#define SOCK_EMISSION_STRENGTH_ID 27
 }
 
 static void node_shader_init_principled(bNodeTree * /*ntree*/, bNode *node)

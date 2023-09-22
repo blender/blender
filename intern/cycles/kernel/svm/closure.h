@@ -78,7 +78,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
           sheen_offset, sheen_tint_offset, sheen_roughness_offset, coat_offset,
           coat_roughness_offset, coat_ior_offset, eta_offset, transmission_offset,
           anisotropic_rotation_offset, coat_tint_offset, coat_normal_offset, dummy, alpha_offset,
-          emission_strength_offset, emission_offset, metallic_tint_offset;
+          emission_strength_offset, emission_offset, unused;
       uint4 data_node2 = read_node(kg, &offset);
 
       float3 T = stack_load_float3(stack, data_node.y);
@@ -87,11 +87,8 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
                              &roughness_offset,
                              &specular_tint_offset,
                              &anisotropic_offset);
-      svm_unpack_node_uchar4(data_node.w,
-                             &sheen_offset,
-                             &sheen_tint_offset,
-                             &sheen_roughness_offset,
-                             &metallic_tint_offset);
+      svm_unpack_node_uchar4(
+          data_node.w, &sheen_offset, &sheen_tint_offset, &sheen_roughness_offset, &unused);
       svm_unpack_node_uchar4(data_node2.x,
                              &eta_offset,
                              &transmission_offset,
@@ -271,7 +268,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
           bsdf->alpha_y = alpha_y;
 
           fresnel->f0 = rgb_to_spectrum(base_color);
-          const Spectrum f82 = rgb_to_spectrum(stack_load_float3(stack, metallic_tint_offset));
+          const Spectrum f82 = specular_tint;
 
           /* setup bsdf */
           sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
