@@ -786,7 +786,7 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, bContext &C)
   if (!tree->unassigned_assets.is_empty()) {
     uiItemM(&layout,
             "GEO_MT_node_operator_catalog_assets_unassigned",
-            IFACE_("No Catalog"),
+            IFACE_("Unassigned"),
             ICON_NONE);
   }
 }
