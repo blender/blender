@@ -27,7 +27,7 @@
 
 /* Blender RNA */
 
-BlenderRNA *RNA_create(void);
+BlenderRNA *RNA_create();
 void RNA_define_free(BlenderRNA *brna);
 void RNA_free(BlenderRNA *brna);
 
@@ -53,8 +53,8 @@ void RNA_define_fallback_property_update(int noteflag, const char *updatefunc);
  */
 void RNA_define_lib_overridable(bool make_overridable);
 
-void RNA_init(void);
-void RNA_exit(void);
+void RNA_init();
+void RNA_exit();
 
 /* Struct */
 

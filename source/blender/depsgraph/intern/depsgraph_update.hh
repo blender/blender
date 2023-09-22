@@ -13,7 +13,7 @@ struct ID;
 
 namespace blender::deg {
 
-void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx, struct ID *id);
+void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx, ID *id);
 
 void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx, bool updated);
 
