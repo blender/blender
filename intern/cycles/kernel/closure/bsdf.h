@@ -359,7 +359,7 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
     case CLOSURE_BSDF_DIFFUSE_ID:
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSSRDF_RANDOM_WALK_ID:
-    case CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID:
+    case CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID:
       label = LABEL_REFLECT | LABEL_DIFFUSE;
       break;
 #ifdef __SVM__

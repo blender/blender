@@ -1070,7 +1070,7 @@ static void displacement_principled_nodes(bNode *node)
     }
   }
   else if (node->type == SH_NODE_BSDF_PRINCIPLED) {
-    if (node->custom2 != SHD_SUBSURFACE_RANDOM_WALK) {
+    if (node->custom2 != SHD_SUBSURFACE_RANDOM_WALK_SKIN) {
       node->custom2 = SHD_SUBSURFACE_BURLEY;
     }
   }

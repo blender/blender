@@ -300,7 +300,7 @@ static void node_shader_update_principled(bNodeTree *ntree, bNode *node)
 
   bke::nodeSetSocketAvailability(ntree,
                                  nodeFindSocket(node, SOCK_IN, "Subsurface IOR"),
-                                 sss_method == SHD_SUBSURFACE_RANDOM_WALK);
+                                 sss_method == SHD_SUBSURFACE_RANDOM_WALK_SKIN);
   bke::nodeSetSocketAvailability(ntree,
                                  nodeFindSocket(node, SOCK_IN, "Subsurface Anisotropy"),
                                  sss_method != SHD_SUBSURFACE_BURLEY);

@@ -2690,9 +2690,8 @@ NODE_DEFINE(PrincipledBsdfNode)
 
   static NodeEnum subsurface_method_enum;
   subsurface_method_enum.insert("burley", CLOSURE_BSSRDF_BURLEY_ID);
-  subsurface_method_enum.insert("random_walk_fixed_radius",
-                                CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
   subsurface_method_enum.insert("random_walk", CLOSURE_BSSRDF_RANDOM_WALK_ID);
+  subsurface_method_enum.insert("random_walk_skin", CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID);
   SOCKET_ENUM(subsurface_method,
               "Subsurface Method",
               subsurface_method_enum,
@@ -2952,8 +2951,8 @@ NODE_DEFINE(SubsurfaceScatteringNode)
 
   static NodeEnum method_enum;
   method_enum.insert("burley", CLOSURE_BSSRDF_BURLEY_ID);
-  method_enum.insert("random_walk_fixed_radius", CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
   method_enum.insert("random_walk", CLOSURE_BSSRDF_RANDOM_WALK_ID);
+  method_enum.insert("random_walk_skin", CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID);
   SOCKET_ENUM(method, "Method", method_enum, CLOSURE_BSSRDF_RANDOM_WALK_ID);
 
   SOCKET_IN_FLOAT(scale, "Scale", 0.01f);
