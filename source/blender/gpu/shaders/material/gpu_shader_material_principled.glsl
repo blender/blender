@@ -89,33 +89,43 @@ void node_bsdf_principled(vec4 base_color,
   weight *= alpha;
 
   /* First layer: Sheen */
-  /* TODO: Maybe sheen should be specular. */
-  vec3 sheen_color = sheen * sheen_tint.rgb * principled_sheen(NV, sheen_roughness);
   ClosureDiffuse diffuse_data;
-  diffuse_data.color = weight * sheen_color;
   diffuse_data.N = N;
-  /* Attenuate lower layers */
-  weight *= (1.0 - max_v3(sheen_color));
+
+  if (sheen > 0.0) {
+    /* TODO: Maybe sheen should be specular. */
+    vec3 sheen_color = sheen * sheen_tint.rgb * principled_sheen(NV, sheen_roughness);
+    diffuse_data.color = weight * sheen_color;
+    /* Attenuate lower layers */
+    weight *= (1.0 - max_v3(sheen_color));
+  }
+  else {
+    diffuse_data.color = vec3(0.0);
+  }
 
   /* Second layer: Coat */
   ClosureReflection coat_data;
   coat_data.N = CN;
   coat_data.roughness = coat_roughness;
-  float coat_NV = dot(coat_data.N, V);
-  float reflectance = bsdf_lut(coat_NV, coat_data.roughness, coat_ior, 0.0).x;
-  coat_data.weight = weight * coat * reflectance;
   coat_data.color = vec3(1.0);
-  /* Attenuate lower layers */
-  weight *= (1.0 - reflectance * coat);
 
-  if (coat == 0) {
-    coat_tint.rgb = vec3(1.0);
+  if (coat > 0.0) {
+    float coat_NV = dot(coat_data.N, V);
+    float reflectance = bsdf_lut(coat_NV, coat_data.roughness, coat_ior, 0.0).x;
+    coat_data.weight = weight * coat * reflectance;
+    /* Attenuate lower layers */
+    weight *= (1.0 - reflectance * coat);
+
+    if (!all(equal(coat_tint.rgb, vec3(1.0)))) {
+      float coat_neta = 1.0 / coat_ior;
+      float NT = fast_sqrt(1.0 - coat_neta * coat_neta * (1 - NV * NV));
+      /* Tint lower layers. */
+      coat_tint.rgb = pow(coat_tint.rgb, vec3(coat / NT));
+    }
   }
-  else if (!all(equal(coat_tint.rgb, vec3(1.0)))) {
-    float coat_neta = 1.0 / coat_ior;
-    float NT = fast_sqrt(1.0 - coat_neta * coat_neta * (1 - NV * NV));
-    /* Tint lower layers. */
-    coat_tint.rgb = pow(coat_tint.rgb, vec3(coat / NT));
+  else {
+    coat_tint.rgb = vec3(1.0);
+    coat_data.weight = 0.0;
   }
 
   /* Attenuated by sheen and coat. */
@@ -128,7 +138,7 @@ void node_bsdf_principled(vec4 base_color,
   reflection_data.N = N;
   reflection_data.roughness = roughness;
 
-  if (true) {
+  if (metallic > 0.0) {
     vec3 F0 = base_color.rgb;
     vec3 F90 = vec3(1.0);
     vec2 split_sum = brdf_lut(NV, roughness);
@@ -138,11 +148,17 @@ void node_bsdf_principled(vec4 base_color,
     /* Attenuate lower layers */
     weight *= (1.0 - metallic);
   }
+  else {
+    reflection_data.color = vec3(0.0);
+  }
 
   /* Transmission component */
   ClosureRefraction refraction_data;
+  refraction_data.N = N;
+  refraction_data.roughness = roughness;
+  refraction_data.ior = ior;
   vec3 reflection_tint = specular_tint.rgb;
-  if (true) {
+  if (transmission > 0.0) {
     vec3 F0 = vec3(F0_from_ior(ior)) * reflection_tint;
     vec3 F90 = vec3(1.0);
     vec3 reflectance, transmittance;
@@ -153,11 +169,12 @@ void node_bsdf_principled(vec4 base_color,
 
     refraction_data.weight = weight * transmission;
     refraction_data.color = transmittance * coat_tint.rgb;
-    refraction_data.N = N;
-    refraction_data.roughness = roughness;
-    refraction_data.ior = ior;
     /* Attenuate lower layers */
     weight *= (1.0 - transmission);
+  }
+  else {
+    refraction_data.weight = 0.0;
+    refraction_data.color = vec3(0.0);
   }
 
   /* Specular component */
