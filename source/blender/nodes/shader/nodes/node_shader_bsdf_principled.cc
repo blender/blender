@@ -69,20 +69,20 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Blend between diffuse surface and subsurface scattering. "
           "Typically should be zero or one (either fully diffuse or subsurface)");
 #define SOCK_SUBSURFACE_ID 8
-  sss.add_input<decl::Float>("Subsurface Scale")
-      .default_value(0.05f)
-      .min(0.0f)
-      .max(10.0f)
-      .subtype(PROP_DISTANCE)
-      .description("Scale of the subsurface scattering (multiplied with Radius)");
-#define SOCK_SUBSURFACE_SCALE_ID 9
   sss.add_input<decl::Vector>("Subsurface Radius")
       .default_value({1.0f, 0.2f, 0.1f})
       .min(0.0f)
       .max(100.0f)
       .compact()
       .description("Scattering radius to use for subsurface component (multiplied with Scale)");
-#define SOCK_SUBSURFACE_RADIUS_ID 10
+#define SOCK_SUBSURFACE_RADIUS_ID 9
+  sss.add_input<decl::Float>("Subsurface Scale")
+      .default_value(0.05f)
+      .min(0.0f)
+      .max(10.0f)
+      .subtype(PROP_DISTANCE)
+      .description("Scale of the subsurface scattering (multiplied with Radius)");
+#define SOCK_SUBSURFACE_SCALE_ID 10
   sss.add_input<decl::Float>("Subsurface IOR")
       .default_value(1.4f)
       .min(1.01f)
