@@ -254,7 +254,7 @@ typedef struct bNodeTreeInterface {
         const_cast<bNodeTreeInterfacePanel &>(root_panel).find_parent_recursive(item);
     if (parent == nullptr || parent == &root_panel) {
       /* Panel is the root panel. */
-      return 0;
+      return root_panel.item_position(item);
     }
     return parent->item_position(item);
   }
