@@ -51,6 +51,10 @@ class ModifierDisabler final {
    */
   static ModifierData *get_subsurf_modifier(Scene *scene, const Object *ob, ModifierMode mode);
 
+  /* Disallow copying. */
+  ModifierDisabler(const ModifierDisabler &) = delete;
+  ModifierDisabler &operator=(const ModifierDisabler &) = delete;
+
  private:
   /**
    * Disable the given modifier and add it to the disabled
