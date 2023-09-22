@@ -806,19 +806,17 @@ static void draw_columnheader_columns(const FileSelectParams *params,
 static const char *filelist_get_details_column_string(
     FileAttributeColumnType column,
     /* Generated string will be cached in the file, so non-const. */
-    FileDirEntry *file,
-    const bool small_size,
-    const bool update_stat_strings)
+    FileDirEntry *file)
 {
   switch (column) {
     case COLUMN_DATETIME:
       if (!(file->typeflag & FILE_TYPE_BLENDERLIB) && !FILENAME_IS_CURRPAR(file->relpath)) {
-        if ((file->draw_data.datetime_str[0] == '\0') || update_stat_strings) {
+        if (file->draw_data.datetime_str[0] == '\0') {
           char date[FILELIST_DIRENTRY_DATE_LEN], time[FILELIST_DIRENTRY_TIME_LEN];
           bool is_today, is_yesterday;
 
           BLI_filelist_entry_datetime_to_string(
-              nullptr, file->time, small_size, time, date, &is_today, &is_yesterday);
+              nullptr, file->time, false, time, date, &is_today, &is_yesterday);
 
           if (is_today || is_yesterday) {
             STRNCPY(date, is_today ? N_("Today") : N_("Yesterday"));
@@ -833,9 +831,8 @@ static const char *filelist_get_details_column_string(
       if ((file->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) ||
           !(file->typeflag & (FILE_TYPE_DIR | FILE_TYPE_BLENDERLIB)))
       {
-        if ((file->draw_data.size_str[0] == '\0') || update_stat_strings) {
-          BLI_filelist_entry_size_to_string(
-              nullptr, file->size, small_size, file->draw_data.size_str);
+        if (file->draw_data.size_str[0] == '\0') {
+          BLI_filelist_entry_size_to_string(nullptr, file->size, false, file->draw_data.size_str);
         }
 
         return file->draw_data.size_str;
@@ -854,8 +851,6 @@ static void draw_details_columns(const FileSelectParams *params,
                                  const rcti *tile_draw_rect,
                                  const uchar text_col[4])
 {
-  const bool small_size = SMALL_SIZE_CHECK(params->thumbnail_size);
-  const bool update_stat_strings = small_size != SMALL_SIZE_CHECK(layout->curr_size);
   int sx = tile_draw_rect->xmin - layout->tile_border_x - (UI_UNIT_X * 0.1f);
 
   for (int column_type = 0; column_type < ATTRIBUTE_COLUMN_MAX; column_type++) {
@@ -870,8 +865,8 @@ static void draw_details_columns(const FileSelectParams *params,
       continue;
     }
 
-    const char *str = filelist_get_details_column_string(
-        FileAttributeColumnType(column_type), file, small_size, update_stat_strings);
+    const char *str = filelist_get_details_column_string(FileAttributeColumnType(column_type),
+                                                         file);
 
     if (str) {
       file_draw_string(sx + ATTRIBUTE_COLUMN_PADDING,

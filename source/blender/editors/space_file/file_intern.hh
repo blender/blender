@@ -36,9 +36,6 @@ int /*eContextResult*/ file_context(const bContext *C,
 
 #define ATTRIBUTE_COLUMN_PADDING (0.5f * UI_UNIT_X)
 
-/** Related to #FileSelectParams.thumbnail_size. */
-#define SMALL_SIZE_CHECK(_size) ((_size) < 64)
-
 void file_calc_previews(const bContext *C, ARegion *region);
 void file_draw_list(const bContext *C, ARegion *region);
 /**
