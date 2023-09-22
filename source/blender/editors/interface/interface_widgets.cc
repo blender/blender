@@ -4774,6 +4774,8 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
       case UI_BTYPE_LABEL:
         widget_draw_text_icon(&style->widgetlabel, &tui->wcol_menu_back, but, rect);
         break;
+      case UI_BTYPE_SEPR:
+        break;
       case UI_BTYPE_SEPR_LINE:
         ui_draw_separator(rect, &tui->wcol_menu_item);
         break;
