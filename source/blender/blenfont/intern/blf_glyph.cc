@@ -1121,8 +1121,8 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode
 #ifdef BLF_SUBPIXEL_AA
 GlyphBLF *blf_glyph_ensure_subpixel(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int32_t pen_x)
 {
-  if (font->flags & BLF_HINTING_NONE) {
-    /* Not if we are not also hinting.*/
+  if ((font->flags & (BLF_HINTING_NONE | BLF_MONOCHROME)) != 0) {
+    /* Not if we are in mono mode (aliased) or if not hinting. */
     return g;
   }
 
