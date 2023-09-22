@@ -505,7 +505,7 @@ class FILEBROWSER_MT_view(FileBrowserMenu, Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(params, "display_size")
+        layout.prop_menu_enum(params, "display_size_discrete")
         layout.prop_menu_enum(params, "recursion_level")
 
         layout.separator()
@@ -567,7 +567,7 @@ class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
 
         layout.prop_menu_enum(params, "display_type")
         if params.display_type == 'THUMBNAIL':
-            layout.prop_menu_enum(params, "display_size")
+            layout.prop_menu_enum(params, "display_size_discrete")
         layout.prop_menu_enum(params, "recursion_level", text="Recursions")
         layout.prop_menu_enum(params, "sort_method")
 
@@ -667,7 +667,7 @@ class ASSETBROWSER_MT_view(AssetBrowserMenu, Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(params, "display_size")
+        layout.prop_menu_enum(params, "display_size_discrete")
 
         layout.separator()
 
@@ -841,7 +841,7 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         layout.separator()
 
         if params.display_type == 'THUMBNAIL':
-            layout.prop_menu_enum(params, "display_size")
+            layout.prop_menu_enum(params, "display_size_discrete")
 
 
 classes = (
