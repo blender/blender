@@ -369,6 +369,10 @@ struct uiButProgress : public uiBut {
 struct uiButViewItem : public uiBut {
   /* C-Handle to the view item this button was created for. */
   uiViewItemHandle *view_item = nullptr;
+  /* Some items want to have a fixed size for drawing, differing from the interaction rectangle
+   * (e.g. so highlights are drawn smaller). */
+  int draw_width = 0;
+  int draw_height = 0;
 };
 
 /** Derived struct for #UI_BTYPE_HSVCUBE. */
