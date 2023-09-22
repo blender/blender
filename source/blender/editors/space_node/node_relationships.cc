@@ -740,7 +740,17 @@ static bool node_active_link_viewer_poll(bContext *C)
     return false;
   }
   SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_node_is_compositor(snode) || ED_node_is_geometry(snode);
+  if (ED_node_is_compositor(snode)) {
+    return true;
+  }
+  if (ED_node_is_geometry(snode)) {
+    if (snode->geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+      /* The viewer node is not supported in the "Tool" context. */
+      return false;
+    }
+    return true;
+  }
+  return false;
 }
 
 void NODE_OT_link_viewer(wmOperatorType *ot)
