@@ -40,8 +40,8 @@ const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 #  include "BKE_context.h"
 #  include "BKE_particle.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 static char *rna_DynamicPaintCanvasSettings_path(const PointerRNA *ptr)
 {

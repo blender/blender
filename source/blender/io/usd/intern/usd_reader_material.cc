@@ -795,14 +795,13 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   }
 }
 
-void USDMaterialReader::convert_usd_primvar_reader_float2(
-    const pxr::UsdShadeShader &usd_shader,
-    const pxr::TfToken & /* usd_source_name */,
-    bNode *dest_node,
-    const char *dest_socket_name,
-    bNodeTree *ntree,
-    const int column,
-    NodePlacementContext *r_ctx) const
+void USDMaterialReader::convert_usd_primvar_reader_float2(const pxr::UsdShadeShader &usd_shader,
+                                                          const pxr::TfToken & /*usd_source_name*/,
+                                                          bNode *dest_node,
+                                                          const char *dest_socket_name,
+                                                          bNodeTree *ntree,
+                                                          const int column,
+                                                          NodePlacementContext *r_ctx) const
 {
   if (!usd_shader || !dest_node || !ntree || !dest_socket_name || !bmain_ || !r_ctx) {
     return;

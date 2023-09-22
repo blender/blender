@@ -24,6 +24,12 @@ struct Mesh;
 struct PointCloud;
 struct Volume;
 struct GreasePencil;
+namespace blender::bke {
+class ComponentAttributeProviders;
+class CurvesEditHints;
+class Instances;
+class GeometryComponent;
+}  // namespace blender::bke
 
 namespace blender::bke {
 
@@ -38,11 +44,6 @@ enum class GeometryOwnershipType {
   ReadOnly = 2,
 };
 
-class ComponentAttributeProviders;
-class CurvesEditHints;
-class Instances;
-
-class GeometryComponent;
 using GeometryComponentPtr = ImplicitSharingPtr<GeometryComponent>;
 
 /**

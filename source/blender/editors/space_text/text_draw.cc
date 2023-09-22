@@ -64,16 +64,19 @@ static void text_font_end(const TextDrawContext * /*tdc*/) {}
 
 static int text_font_draw(const TextDrawContext *tdc, int x, int y, const char *str)
 {
+  const char tab_columns = 1; /* Tab characters aren't used here. */
   BLF_position(tdc->font_id, x, y, 0);
-  const int columns = BLF_draw_mono(tdc->font_id, str, BLF_DRAW_STR_DUMMY_MAX, tdc->cwidth_px);
+  const int columns = BLF_draw_mono(
+      tdc->font_id, str, BLF_DRAW_STR_DUMMY_MAX, tdc->cwidth_px, tab_columns);
 
   return tdc->cwidth_px * columns;
 }
 
 static int text_font_draw_character(const TextDrawContext *tdc, int x, int y, char c)
 {
+  const char tab_columns = 1;
   BLF_position(tdc->font_id, x, y, 0);
-  BLF_draw_mono(tdc->font_id, &c, 1, tdc->cwidth_px);
+  BLF_draw_mono(tdc->font_id, &c, 1, tdc->cwidth_px, tab_columns);
 
   return tdc->cwidth_px;
 }
@@ -82,8 +85,9 @@ static int text_font_draw_character_utf8(
     const TextDrawContext *tdc, int x, int y, const char *c, const int c_len)
 {
   BLI_assert(c_len == BLI_str_utf8_size_safe(c));
+  const char tab_columns = 1; /* Tab characters aren't used here. */
   BLF_position(tdc->font_id, x, y, 0);
-  const int columns = BLF_draw_mono(tdc->font_id, c, c_len, tdc->cwidth_px);
+  const int columns = BLF_draw_mono(tdc->font_id, c, c_len, tdc->cwidth_px, tab_columns);
 
   return tdc->cwidth_px * columns;
 }

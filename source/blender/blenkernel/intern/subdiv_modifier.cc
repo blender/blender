@@ -102,7 +102,7 @@ static bool is_subdivision_evaluation_possible_on_gpu()
     return false;
   }
 
-  if (!(GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support())) {
+  if (!(GPU_compute_shader_support())) {
     return false;
   }
 

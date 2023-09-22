@@ -27,7 +27,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_undo_system.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_object.hh"
 #include "ED_particle.hh"

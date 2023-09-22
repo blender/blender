@@ -32,7 +32,7 @@
 #include "BKE_mball.h"
 #include "BKE_object.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "GPU_select.h"
 

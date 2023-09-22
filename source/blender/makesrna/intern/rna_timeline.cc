@@ -23,7 +23,7 @@
 #  include "BKE_screen.h"
 #  include "WM_api.hh"
 
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph_build.hh"
 
 static IDProperty **rna_TimelineMarker_idprops(PointerRNA *ptr)
 {

@@ -431,7 +431,7 @@ void clean_fcurve(bAnimContext *ac, bAnimListElem *ale, float thresh, bool clear
 void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void scale_average_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment, float factor);
-
+void push_pull_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment, float factor);
 /**
  * Get a 1D gauss kernel. Since the kernel is symmetrical, only calculates the positive side.
  * \param sigma: The shape of the gauss distribution.
@@ -476,6 +476,7 @@ void shear_fcurve_segment(struct FCurve *fcu,
  */
 void blend_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void blend_to_ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
+void time_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float frame_offset);
 bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max);
 bool match_slope_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 

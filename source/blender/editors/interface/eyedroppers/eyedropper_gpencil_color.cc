@@ -44,8 +44,8 @@
 #include "ED_screen.hh"
 #include "ED_undo.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "eyedropper_intern.hh"
 #include "interface_intern.hh"

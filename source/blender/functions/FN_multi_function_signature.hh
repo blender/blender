@@ -144,7 +144,7 @@ class SignatureBuilder {
   }
 
   template<ParamCategory Category, typename T>
-  void add(ParamTag<Category, T> /* tag */, const char *name)
+  void add(ParamTag<Category, T> /*tag*/, const char *name)
   {
     switch (Category) {
       case ParamCategory::SingleInput:

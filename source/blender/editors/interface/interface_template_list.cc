@@ -175,9 +175,9 @@ uiListNameFilter::~uiListNameFilter()
   MEM_SAFE_FREE(storage_.filter_dyn);
 }
 
-eUIListFilterResult uiListNameFilter::operator()(const PointerRNA & /* itemptr */,
+eUIListFilterResult uiListNameFilter::operator()(const PointerRNA & /*itemptr*/,
                                                  StringRefNull name,
-                                                 int /* index */)
+                                                 int /*index*/)
 {
   if (!filter_) {
     return UI_LIST_ITEM_FILTER_MATCHES;

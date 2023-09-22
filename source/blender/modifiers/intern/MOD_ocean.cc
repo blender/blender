@@ -38,7 +38,7 @@
 
 #include "WM_types.hh" /* For UI free bake operator. */
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"

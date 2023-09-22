@@ -125,7 +125,7 @@ GHOST_TSuccess GHOST_EventManager::removeConsumer(GHOST_IEventConsumer *consumer
   return success;
 }
 
-void GHOST_EventManager::removeWindowEvents(GHOST_IWindow *window)
+void GHOST_EventManager::removeWindowEvents(const GHOST_IWindow *window)
 {
   TEventStack::iterator iter;
   iter = m_events.begin();
@@ -147,7 +147,7 @@ void GHOST_EventManager::removeWindowEvents(GHOST_IWindow *window)
   }
 }
 
-void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *window)
+void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, const GHOST_IWindow *window)
 {
   TEventStack::iterator iter;
   iter = m_events.begin();

@@ -2386,7 +2386,6 @@ url_manual_mapping = (
     ("bpy.ops.anim.channels_expand*", "editors/graph_editor/channels/editing.html#bpy-ops-anim-channels-expand"),
     ("bpy.ops.anim.keyframe_delete*", "animation/keyframes/editing.html#bpy-ops-anim-keyframe-delete"),
     ("bpy.ops.anim.keyframe_insert*", "animation/keyframes/editing.html#bpy-ops-anim-keyframe-insert"),
-    ("bpy.ops.armature.bone_layers*", "animation/armatures/bones/editing/change_layers.html#bpy-ops-armature-bone-layers"),
     ("bpy.ops.armature.select_less*", "animation/armatures/bones/selecting.html#bpy-ops-armature-select-less"),
     ("bpy.ops.armature.select_more*", "animation/armatures/bones/selecting.html#bpy-ops-armature-select-more"),
     ("bpy.ops.asset.bundle_install*", "editors/asset_browser.html#bpy-ops-asset-bundle-install"),

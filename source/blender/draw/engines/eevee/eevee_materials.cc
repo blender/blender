@@ -27,7 +27,7 @@
 
 #include "GPU_material.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "../eevee_next/eevee_lut.hh"
 #include "eevee_engine.h"
@@ -196,7 +196,8 @@ static void eevee_init_util_texture()
         texels_layer[y * 64 + x][0] = blender::eevee::lut::bsdf_ggx[j][y][x][0];
         texels_layer[y * 64 + x][1] = blender::eevee::lut::bsdf_ggx[j][y][x][1];
         texels_layer[y * 64 + x][2] = blender::eevee::lut::bsdf_ggx[j][y][x][2];
-        /* BTDF LUT for `IOR > 1`, parametrized differently as above. See `eevee_lut_comp.glsl`. */
+        /* BTDF LUT for `IOR > 1`, parameterized differently as above.
+         * See `eevee_lut_comp.glsl`. */
         texels_layer[y * 64 + x][3] = blender::eevee::lut::btdf_ggx[j][y][x][0];
       }
     }

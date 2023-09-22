@@ -22,40 +22,22 @@
 #pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
+void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
                                ivec2 texel,
                                out ClosureDiffuse closure)
 {
-  vec4 data_in = texelFetch(gbuffer_closure_tx, ivec3(texel, 1), 0);
-
-  closure.N = gbuffer_normal_unpack(data_in.xy);
 }
 
-void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
+void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
                                ivec2 texel,
                                out ClosureRefraction closure)
 {
-  vec4 data_in = texelFetch(gbuffer_closure_tx, ivec3(texel, 1), 0);
-
-  closure.N = gbuffer_normal_unpack(data_in.xy);
-  if (gbuffer_is_refraction(data_in)) {
-    closure.roughness = data_in.z;
-    closure.ior = gbuffer_ior_unpack(data_in.w);
-  }
-  else {
-    closure.roughness = 1.0;
-    closure.ior = 1.1;
-  }
 }
 
-void gbuffer_load_closure_data(sampler2DArray gbuffer_closure_tx,
+void gbuffer_load_closure_data(sampler2DArray gbuf_closure_tx,
                                ivec2 texel,
                                out ClosureReflection closure)
 {
-  vec4 data_in = texelFetch(gbuffer_closure_tx, ivec3(texel, 0), 0);
-
-  closure.N = gbuffer_normal_unpack(data_in.xy);
-  closure.roughness = data_in.z;
 }
 
 float bxdf_eval(ClosureDiffuse closure, vec3 L, vec3 V)
@@ -87,19 +69,6 @@ bool neighbor_tile_mask_bit_get(uint tile_mask, ivec2 offset)
   uint shift = offset.x + (offset.y << 2u);
   return flag_test(tile_mask, 1u << shift);
 }
-
-#if defined(RAYTRACE_DIFFUSE)
-#  define ClosureT ClosureDiffuse
-#  define CLOSURE_ACTIVE eClosureBits(CLOSURE_DIFFUSE)
-#elif defined(RAYTRACE_REFRACT)
-#  define ClosureT ClosureRefraction
-#  define CLOSURE_ACTIVE eClosureBits(CLOSURE_REFRACTION)
-#elif defined(RAYTRACE_REFLECT)
-#  define ClosureT ClosureReflection
-#  define CLOSURE_ACTIVE eClosureBits(CLOSURE_REFLECTION)
-#else
-#  error
-#endif
 
 void main()
 {
@@ -143,8 +112,8 @@ void main()
     }
   }
 
-  bool valid_texel = in_texture_range(texel_fullres, stencil_tx);
-  uint closure_bits = (!valid_texel) ? 0u : texelFetch(stencil_tx, texel_fullres, 0).r;
+  bool valid_texel = in_texture_range(texel_fullres, gbuf_header_tx);
+  uint closure_bits = (!valid_texel) ? 0u : texelFetch(gbuf_header_tx, texel_fullres, 0).r;
   if (!flag_test(closure_bits, CLOSURE_ACTIVE)) {
     imageStore(out_radiance_img, texel_fullres, vec4(FLT_11_11_10_MAX, 0.0));
     imageStore(out_variance_img, texel_fullres, vec4(0.0));
@@ -155,8 +124,17 @@ void main()
   vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
   vec3 V = transform_direction(ViewMatrixInverse, get_view_vector_from_screen_uv(uv));
 
-  ClosureT closure;
-  gbuffer_load_closure_data(gbuffer_closure_tx, texel_fullres, closure);
+  GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel_fullres);
+
+#if defined(RAYTRACE_DIFFUSE)
+  ClosureDiffuse closure = gbuf.diffuse;
+#elif defined(RAYTRACE_REFRACT)
+  ClosureRefraction closure = gbuf.refraction;
+#elif defined(RAYTRACE_REFLECT)
+  ClosureReflection closure = gbuf.reflection;
+#else
+#  error
+#endif
 
   uint sample_count = 16u;
   float filter_size = 9.0;

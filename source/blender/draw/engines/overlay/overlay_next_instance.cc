@@ -6,8 +6,10 @@
  * \ingroup overlay
  */
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
+
 #include "ED_view3d.hh"
+
 #include "draw_debug.hh"
 
 #include "overlay_next_instance.hh"

@@ -13,7 +13,7 @@
 
 #include "DNA_gpencil_legacy_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "RE_pipeline.h"
 

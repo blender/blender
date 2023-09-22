@@ -43,8 +43,8 @@
 #  include "BKE_context.h"
 #  include "BKE_particle.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 #  include "manta_fluid_API.h"
 

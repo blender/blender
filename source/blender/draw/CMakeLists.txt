@@ -150,10 +150,10 @@ set(SRC
   engines/eevee_next/eevee_lightprobe.cc
   engines/eevee_next/eevee_lookdev.cc
   engines/eevee_next/eevee_lut.cc
-  engines/eevee_next/eevee_precompute.cc
   engines/eevee_next/eevee_material.cc
   engines/eevee_next/eevee_motion_blur.cc
   engines/eevee_next/eevee_pipeline.cc
+  engines/eevee_next/eevee_precompute.cc
   engines/eevee_next/eevee_raytrace.cc
   engines/eevee_next/eevee_reflection_probes.cc
   engines/eevee_next/eevee_renderbuffers.cc
@@ -286,10 +286,10 @@ set(SRC
   engines/eevee_next/eevee_lightprobe.hh
   engines/eevee_next/eevee_lookdev.hh
   engines/eevee_next/eevee_lut.hh
-  engines/eevee_next/eevee_precompute.hh
   engines/eevee_next/eevee_material.hh
   engines/eevee_next/eevee_motion_blur.hh
   engines/eevee_next/eevee_pipeline.hh
+  engines/eevee_next/eevee_precompute.hh
   engines/eevee_next/eevee_raytrace.hh
   engines/eevee_next/eevee_reflection_probes.hh
   engines/eevee_next/eevee_renderbuffers.hh
@@ -469,6 +469,8 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_debug_irradiance_grid_vert.glsl
   engines/eevee_next/shaders/eevee_debug_irradiance_grid_frag.glsl
   engines/eevee_next/shaders/eevee_deferred_light_frag.glsl
+  engines/eevee_next/shaders/eevee_deferred_capture_frag.glsl
+  engines/eevee_next/shaders/eevee_deferred_combine_frag.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_accumulator_lib.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_bokeh_lut_comp.glsl
   engines/eevee_next/shaders/eevee_depth_of_field_downsample_comp.glsl
@@ -519,6 +521,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_motion_blur_gather_comp.glsl
   engines/eevee_next/shaders/eevee_motion_blur_lib.glsl
   engines/eevee_next/shaders/eevee_nodetree_lib.glsl
+  engines/eevee_next/shaders/eevee_octahedron_lib.glsl
   engines/eevee_next/shaders/eevee_ray_denoise_bilateral_comp.glsl
   engines/eevee_next/shaders/eevee_ray_denoise_spatial_comp.glsl
   engines/eevee_next/shaders/eevee_ray_denoise_temporal_comp.glsl
@@ -529,12 +532,12 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_ray_trace_fallback_comp.glsl
   engines/eevee_next/shaders/eevee_ray_trace_screen_comp.glsl
   engines/eevee_next/shaders/eevee_ray_trace_screen_lib.glsl
-  engines/eevee_next/shaders/eevee_octahedron_lib.glsl
   engines/eevee_next/shaders/eevee_ray_types_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_eval_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_remap_comp.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_update_irradiance_comp.glsl
+  engines/eevee_next/shaders/eevee_renderpass_lib.glsl
   engines/eevee_next/shaders/eevee_sampling_lib.glsl
   engines/eevee_next/shaders/eevee_shadow_debug_frag.glsl
   engines/eevee_next/shaders/eevee_shadow_lib.glsl

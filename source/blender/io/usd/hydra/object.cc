@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "curves.h"
 #include "hydra_scene_delegate.h"
@@ -102,7 +102,7 @@ bool ObjectData::is_visible(HydraSceneDelegate *scene_delegate, const Object *ob
   return ret;
 }
 
-pxr::VtValue ObjectData::get_data(pxr::SdfPath const & /* id */, pxr::TfToken const &key) const
+pxr::VtValue ObjectData::get_data(pxr::SdfPath const & /*id*/, pxr::TfToken const &key) const
 {
   return get_data(key);
 }
@@ -112,12 +112,12 @@ pxr::SdfPath ObjectData::material_id() const
   return pxr::SdfPath();
 }
 
-pxr::SdfPath ObjectData::material_id(pxr::SdfPath const & /* id */) const
+pxr::SdfPath ObjectData::material_id(pxr::SdfPath const & /*id*/) const
 {
   return material_id();
 }
 
-void ObjectData::available_materials(Set<pxr::SdfPath> & /* paths */) const {}
+void ObjectData::available_materials(Set<pxr::SdfPath> & /*paths*/) const {}
 
 void ObjectData::write_transform()
 {

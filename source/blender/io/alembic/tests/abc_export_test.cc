@@ -14,7 +14,7 @@
 #include "BLI_utildefines.h"
 #include "DNA_scene_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 namespace blender::io::alembic {
 

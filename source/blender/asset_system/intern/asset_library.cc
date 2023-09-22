@@ -159,7 +159,7 @@ void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_re
   BLI_assert(!exploded->group_component.is_empty());
   BLI_assert(!exploded->name_component.is_empty());
 
-  BLI_strncpy(r_path_buffer, exploded->full_path->c_str(), 1090 /* FILE_MAX_LIBEXTRA */);
+  BLI_strncpy(r_path_buffer, exploded->full_path->c_str(), 1090 /* #FILE_MAX_LIBEXTRA. */);
 
   if (!exploded->dir_component.is_empty()) {
     r_path_buffer[exploded->dir_component.size()] = '\0';

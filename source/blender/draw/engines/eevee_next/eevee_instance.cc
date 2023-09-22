@@ -13,7 +13,7 @@
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BLI_rect.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_ID.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
@@ -470,6 +470,11 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
   if (materials.queued_shaders_count > 0) {
     std::stringstream ss;
     ss << "Compiling Shaders (" << materials.queued_shaders_count << " remaining)";
+    info = ss.str();
+  }
+  else if (materials.queued_optimize_shaders_count > 0) {
+    std::stringstream ss;
+    ss << "Optimizing Shaders (" << materials.queued_optimize_shaders_count << " remaining)";
     info = ss.str();
   }
 }

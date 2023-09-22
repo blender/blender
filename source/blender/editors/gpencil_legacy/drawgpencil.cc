@@ -42,7 +42,7 @@
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 

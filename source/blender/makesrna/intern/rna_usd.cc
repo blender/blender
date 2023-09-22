@@ -27,7 +27,7 @@ static StructRNA *rna_USDHook_refine(PointerRNA *ptr)
   return (hook->rna_ext.srna) ? hook->rna_ext.srna : &RNA_USDHook;
 }
 
-static bool rna_USDHook_unregister(Main * /* bmain */, StructRNA *type)
+static bool rna_USDHook_unregister(Main * /*bmain*/, StructRNA *type)
 {
   USDHook *hook = static_cast<USDHook *>(RNA_struct_blender_type_get(type));
 

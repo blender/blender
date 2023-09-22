@@ -33,7 +33,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 static void alloc_child_particles(ParticleSystem *psys, int tot)
 {

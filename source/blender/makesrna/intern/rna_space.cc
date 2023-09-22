@@ -559,8 +559,8 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "BKE_screen.h"
 #  include "BKE_workspace.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 #  include "ED_anim_api.hh"
 #  include "ED_asset.hh"
@@ -2509,13 +2509,63 @@ static void rna_SpaceNodeEditor_node_tree_set(PointerRNA *ptr,
   ED_node_tree_start(snode, (bNodeTree *)value.data, nullptr, nullptr);
 }
 
+static bool space_node_node_geometry_nodes_tool_poll(const SpaceNode &snode,
+                                                     const bNodeTree &ntree)
+{
+  if (snode.geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+    if (!ntree.id.asset_data) {
+      /* Only assets can be tools. */
+      return false;
+    }
+    if (!ntree.geometry_node_asset_traits ||
+        (ntree.geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL) == 0)
+    {
+      /* Only node groups specifically marked as tools can be tools. */
+      return false;
+    }
+  }
+  else {
+    if (ntree.geometry_node_asset_traits &&
+        ntree.geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL)
+    {
+      /* Tool node groups cannot be modifiers. */
+      return false;
+    }
+  }
+  return true;
+}
+
 static bool rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, const PointerRNA value)
 {
   SpaceNode *snode = (SpaceNode *)ptr->data;
   bNodeTree *ntree = (bNodeTree *)value.data;
 
   /* node tree type must match the selected type in node editor */
-  return (STREQ(snode->tree_idname, ntree->idname));
+  if (!STREQ(snode->tree_idname, ntree->idname)) {
+    return false;
+  }
+  if (ntree->type == NTREE_GEOMETRY) {
+    if (snode->geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+      if (!space_node_node_geometry_nodes_tool_poll(*snode, *ntree)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+static void rna_SpaceNodeEditor_geometry_nodes_type_update(Main * /*bmain*/,
+                                                           Scene * /*scene*/,
+                                                           PointerRNA *ptr)
+{
+  SpaceNode &snode = *static_cast<SpaceNode *>(ptr->data);
+  if (snode.nodetree) {
+    if (snode.nodetree->type == NTREE_GEOMETRY) {
+      if (!space_node_node_geometry_nodes_tool_poll(snode, *snode.nodetree)) {
+        snode.nodetree = nullptr;
+      }
+    }
+  }
 }
 
 static void rna_SpaceNodeEditor_node_tree_update(const bContext *C, PointerRNA * /*ptr*/)
@@ -2836,32 +2886,6 @@ static int rna_FileBrowser_FileSelectEntry_relative_path_length(PointerRNA *ptr)
 {
   const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
   return int(strlen(entry->relpath));
-}
-
-static const EnumPropertyItem *rna_FileBrowser_FileSelectEntry_id_type_itemf(
-    bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool * /*r_free*/)
-{
-  const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
-  if (entry->blentype == 0) {
-    static const EnumPropertyItem none_items[] = {
-        {0, "NONE", 0, "None", ""},
-    };
-    return none_items;
-  }
-
-  return rna_enum_id_type_items;
-}
-
-static int rna_FileBrowser_FileSelectEntry_id_type_get(PointerRNA *ptr)
-{
-  const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
-  return entry->blentype;
-}
-
-static PointerRNA rna_FileBrowser_FileSelectEntry_local_id_get(PointerRNA *ptr)
-{
-  const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
-  return rna_pointer_inherit_refine(ptr, &RNA_ID, entry->id);
 }
 
 static int rna_FileBrowser_FileSelectEntry_preview_icon_id_get(PointerRNA *ptr)
@@ -6674,29 +6698,6 @@ static void rna_def_fileselect_entry(BlenderRNA *brna)
                            "Browser (includes the file name)");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-  prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_enum_id_type_items);
-  RNA_def_property_enum_funcs(prop,
-                              "rna_FileBrowser_FileSelectEntry_id_type_get",
-                              nullptr,
-                              "rna_FileBrowser_FileSelectEntry_id_type_itemf");
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop,
-      "Data-block Type",
-      "The type of the data-block, if the file represents one ('NONE' otherwise)");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
-
-  prop = RNA_def_property(srna, "local_id", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "ID");
-  RNA_def_property_pointer_funcs(
-      prop, "rna_FileBrowser_FileSelectEntry_local_id_get", nullptr, nullptr, nullptr);
-  RNA_def_property_ui_text(prop,
-                           "",
-                           "The local data-block this file represents; only valid if that is a "
-                           "data-block in this file");
-  RNA_def_property_flag(prop, PROP_HIDDEN);
-
   prop = RNA_def_int(
       srna,
       "preview_icon_id",
@@ -6736,6 +6737,15 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
        "Horizontal List",
        "Display files as a horizontal list"},
       {FILE_IMGDISPLAY, "THUMBNAIL", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static const EnumPropertyItem display_size_items[] = {
+      {32, "TINY", 0, "Tiny", ""},
+      {64, "SMALL", 0, "Small", ""},
+      {96, "NORMAL", 0, "Medium", ""},
+      {128, "BIG", 0, "Big", ""},
+      {192, "LARGE", 0, "Large", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -6909,19 +6919,25 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "filter_search", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "filter_search");
-  RNA_def_property_ui_text(prop, "Name Filter", "Filter by name, supports '*' wildcard");
+  RNA_def_property_ui_text(
+      prop, "Name or Tag Filter", "Filter by name or tag, supports '*' wildcard");
   RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 
   prop = RNA_def_property(srna, "display_size", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "thumbnail_size");
-  RNA_def_property_ui_text(prop,
-                           "Display Size",
-                           "Change the size of the display (width of columns or thumbnails size)");
+  RNA_def_property_ui_text(prop, "Display Size", "Change the size of thumbnails");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
   RNA_def_property_int_default(prop, 96);
   RNA_def_property_range(prop, 16, 256);
-  RNA_def_property_ui_range(prop, 24, 256, 16, 0);
+  RNA_def_property_ui_range(prop, 24, 256, 1, 0);
+
+  prop = RNA_def_property(srna, "display_size_discrete", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "thumbnail_size");
+  RNA_def_property_enum_items(prop, display_size_items);
+  RNA_def_property_ui_text(
+      prop, "Display Size", "Change the size of thumbnails in discrete steps");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 }
 
 static void rna_def_fileselect_asset_params(BlenderRNA *brna)
@@ -7498,7 +7514,8 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, geometry_nodes_type_items);
   RNA_def_property_ui_text(prop, "Geometry Nodes Type", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, nullptr);
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_NODE, "rna_SpaceNodeEditor_geometry_nodes_type_update");
 
   prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -11,7 +11,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 namespace blender::io::hydra {
 

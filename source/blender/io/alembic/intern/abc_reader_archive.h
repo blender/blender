@@ -30,10 +30,10 @@ class ArchiveReader {
 
   ArchiveReader(const std::vector<ArchiveReader *> &readers);
 
-  ArchiveReader(struct Main *bmain, const char *filename);
+  ArchiveReader(const struct Main *bmain, const char *filename);
 
  public:
-  static ArchiveReader *get(struct Main *bmain, const std::vector<const char *> &filenames);
+  static ArchiveReader *get(const struct Main *bmain, const std::vector<const char *> &filenames);
 
   ~ArchiveReader();
 

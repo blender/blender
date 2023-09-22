@@ -17,7 +17,7 @@
 
 #include "GPU_context.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "RE_engine.h"
 

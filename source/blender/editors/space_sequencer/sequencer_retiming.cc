@@ -32,7 +32,7 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 /* Own include. */
 #include "sequencer_intern.hh"
@@ -73,7 +73,7 @@ static void retiming_handle_overlap(Scene *scene, Sequence *seq)
 /** \name Retiming Reset
  * \{ */
 
-static int sequencer_retiming_reset_exec(bContext *C, wmOperator * /* op */)
+static int sequencer_retiming_reset_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   const Editing *ed = SEQ_editing_get(scene);

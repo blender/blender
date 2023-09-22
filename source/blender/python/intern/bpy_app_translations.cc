@@ -242,7 +242,9 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
         /* Do not overwrite existing keys! */
         if (BPY_app_translations_py_pgettext(msgctxt, msgid) == msgid) {
           GHashKey *key = _ghashutil_keyalloc(msgctxt, msgid);
-          BLI_ghash_insert(_translations_cache, key, BLI_strdup(PyUnicode_AsUTF8(trans)));
+          Py_ssize_t trans_str_len;
+          const char *trans_str = PyUnicode_AsUTF8AndSize(trans, &trans_str_len);
+          BLI_ghash_insert(_translations_cache, key, BLI_strdupn(trans_str, trans_str_len));
         }
       }
     }

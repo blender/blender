@@ -19,8 +19,8 @@
 
 #include "GPU_select.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "DRW_engine.h"
 #include "DRW_select_buffer.h"

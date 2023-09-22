@@ -33,7 +33,7 @@
 
 #include "gpencil_engine.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_screen.hh"
 #include "ED_view3d.hh"

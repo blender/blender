@@ -4,7 +4,7 @@
 
 #include "DNA_modifier_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_type_conversions.hh"

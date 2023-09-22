@@ -108,7 +108,7 @@ class OUTLINER_MT_context_menu(Menu):
 
         layout.separator()
 
-        layout.menu("OUTLINER_MT_liboverride")
+        layout.menu("OUTLINER_MT_liboverride", icon="LIBRARY_DATA_OVERRIDE")
 
         layout.separator()
 

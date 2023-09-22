@@ -32,7 +32,7 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_build.hh"
 
 #include "ED_asset.hh"
 #include "ED_asset_menu_utils.hh"

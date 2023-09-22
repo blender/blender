@@ -76,7 +76,7 @@ void TreeElementPoseBase::expand(SpaceOutliner & /*space_outliner*/) const
 /* -------------------------------------------------------------------- */
 
 TreeElementPoseChannel::TreeElementPoseChannel(TreeElement &legacy_te,
-                                               Object & /* object */,
+                                               Object & /*object*/,
                                                bPoseChannel &pchan)
     : AbstractTreeElement(legacy_te), /* object_(object), */ pchan_(pchan)
 {

@@ -9,7 +9,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_node.hh"
 #include "BKE_world.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "NOD_shader.h"
 
 #include "eevee_instance.hh"

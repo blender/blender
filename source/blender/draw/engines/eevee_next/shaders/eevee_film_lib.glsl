@@ -16,7 +16,7 @@
 /* Return scene linear Z depth from the camera or radial depth for panoramic cameras. */
 float film_depth_convert_to_scene(float depth)
 {
-  if (false /* Panoramic */) {
+  if (false /* Panoramic. */) {
     /* TODO */
     return 1.0;
   }

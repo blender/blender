@@ -80,9 +80,9 @@
 #include "BKE_texture.h"
 #include "BKE_volume.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -391,7 +391,7 @@ void ED_object_parent_clear(Object *ob, const int type)
   if (ob->parent == nullptr) {
     return;
   }
-
+  uint flags = ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION;
   switch (type) {
     case CLEAR_PARENT_ALL: {
       /* for deformers, remove corresponding modifiers to prevent
@@ -409,6 +409,9 @@ void ED_object_parent_clear(Object *ob, const int type)
        * result as object's local transforms */
       ob->parent = nullptr;
       BKE_object_apply_mat4(ob, ob->object_to_world, true, false);
+      /* Don't recalculate the animation because it would change the transform
+       * instead of keeping it. */
+      flags &= ~ID_RECALC_ANIMATION;
       break;
     }
     case CLEAR_PARENT_INVERSE: {
@@ -422,7 +425,7 @@ void ED_object_parent_clear(Object *ob, const int type)
   /* Always clear parentinv matrix for sake of consistency, see #41950. */
   unit_m4(ob->parentinv);
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+  DEG_id_tag_update(&ob->id, flags);
 }
 
 /* NOTE: poll should check for editable scene. */

@@ -208,10 +208,10 @@ template<typename Fn> bool socket_data_to_static_type(const eNodeSocketDatatype 
   return false;
 }
 
-template<typename Fn> bool socket_data_to_static_type(const char *socket_type, const Fn &fn)
+template<typename Fn> bool socket_data_to_static_type(const StringRef socket_type, const Fn &fn)
 {
   for (const bNodeSocketStaticTypeInfo &info : node_socket_subtypes) {
-    if (STREQ(socket_type, info.socket_identifier)) {
+    if (socket_type == info.socket_identifier) {
       return socket_data_to_static_type(info.type, fn);
     }
   }
@@ -233,7 +233,8 @@ template<typename Fn> struct TypeTagExecutor {
 
 }  // namespace detail
 
-template<typename Fn> void socket_data_to_static_type_tag(const char *socket_type, const Fn &fn)
+template<typename Fn>
+void socket_data_to_static_type_tag(const StringRef socket_type, const Fn &fn)
 {
   detail::TypeTagExecutor executor{fn};
   socket_data_to_static_type(socket_type, executor);
@@ -263,33 +264,16 @@ template<typename T> const T &get_socket_data_as(const bNodeTreeInterfaceSocket 
   return *static_cast<const T *>(item.socket_data);
 }
 
-inline bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
-                                                                const bNode &from_node,
-                                                                const bNodeSocket &from_sock,
-                                                                const StringRefNull socket_type,
-                                                                const StringRefNull name)
-{
-  NodeTreeInterfaceSocketFlag flag = NodeTreeInterfaceSocketFlag(0);
-  SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_IN, NODE_INTERFACE_SOCKET_INPUT);
-  SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_OUT, NODE_INTERFACE_SOCKET_OUTPUT);
-
-  bNodeTreeInterfaceSocket *iosock = ntree.tree_interface.add_socket(
-      name.data(), from_sock.description, socket_type, flag, nullptr);
-  if (iosock == nullptr) {
-    return nullptr;
-  }
-  const bNodeSocketType *typeinfo = iosock->socket_typeinfo();
-  if (typeinfo->interface_from_socket) {
-    typeinfo->interface_from_socket(&ntree.id, iosock, &from_node, &from_sock);
-    UNUSED_VARS(from_sock);
-  }
-  return iosock;
-}
+bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
+                                                         const bNode &from_node,
+                                                         const bNodeSocket &from_sock,
+                                                         const StringRef socket_type,
+                                                         const StringRef name);
 
 inline bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
                                                                 const bNode &from_node,
                                                                 const bNodeSocket &from_sock,
-                                                                const StringRefNull socket_type)
+                                                                const StringRef socket_type)
 {
   return add_interface_socket_from_node(ntree, from_node, from_sock, socket_type, from_sock.name);
 }

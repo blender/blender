@@ -936,6 +936,6 @@ eRNAOverrideStatus RNA_property_override_library_status(struct Main *bmainm,
                                                         int index);
 
 void RNA_struct_state_owner_set(const char *name);
-const char *RNA_struct_state_owner_get(void);
+const char *RNA_struct_state_owner_get();
 
 #endif /* __RNA_ACCESS_H__ */

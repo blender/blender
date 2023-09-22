@@ -41,7 +41,7 @@
 
 #include "WM_types.hh"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_build.hh"
 
 #include "transform.hh"
 #include "transform_snap.hh"

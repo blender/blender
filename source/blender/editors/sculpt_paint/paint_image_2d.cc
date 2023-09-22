@@ -28,7 +28,7 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_paint.hh"
 #include "ED_screen.hh"

@@ -12,7 +12,7 @@
 
 #include "PIL_time.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BKE_brush.hh"
 #include "BKE_context.h"

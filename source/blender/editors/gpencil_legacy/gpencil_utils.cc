@@ -76,8 +76,8 @@
 #include "GPU_immediate_util.h"
 #include "GPU_state.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "gpencil_intern.h"
 

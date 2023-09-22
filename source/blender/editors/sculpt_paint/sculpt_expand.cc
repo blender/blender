@@ -34,7 +34,7 @@
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -684,7 +684,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
       const int v_next_i = BKE_pbvh_vertex_to_index(ss->pbvh, v_next);
 
       dists[ni.index] = dists[v_next_i] + 1.0f;
-      visited_verts[ni.index];
+      visited_verts[ni.index].set();
       BLI_gsqueue_push(queue, &ni.vertex);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);

@@ -1952,10 +1952,6 @@ void SCULPT_OT_color_filter(wmOperatorType *ot);
 
 void SCULPT_OT_mask_filter(wmOperatorType *ot);
 
-/* Mask and Face Sets Expand. */
-
-void SCULPT_OT_mask_expand(wmOperatorType *ot);
-
 /* Mask Init. */
 
 void SCULPT_OT_mask_init(wmOperatorType *ot);

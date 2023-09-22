@@ -34,9 +34,9 @@
 
 #include "BLT_translation.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
@@ -478,7 +478,7 @@ bool USD_import(bContext *C,
  * Object parameter, similar to the logic in get_abc_reader() in the
  * Alembic importer code. */
 static USDPrimReader *get_usd_reader(CacheReader *reader,
-                                     const Object * /* ob */,
+                                     const Object * /*ob*/,
                                      const char **err_str)
 {
   USDPrimReader *usd_reader = reinterpret_cast<USDPrimReader *>(reader);

@@ -21,7 +21,7 @@
 #include "RNA_prototypes.h"
 #include "RNA_types.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "bpy_rna.h"
 
@@ -123,7 +123,7 @@ void MaterialData::update()
   }
 }
 
-pxr::VtValue MaterialData::get_data(pxr::TfToken const & /* key */) const
+pxr::VtValue MaterialData::get_data(pxr::TfToken const & /*key*/) const
 {
   return pxr::VtValue();
 }

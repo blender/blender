@@ -679,9 +679,9 @@ const EnumPropertyItem rna_enum_subdivision_boundary_smooth_items[] = {
 
 #  include "BLI_sort_utils.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
+#  include "DEG_depsgraph_query.hh"
 
 #  ifdef WITH_ALEMBIC
 #    include "ABC_alembic.h"
@@ -1676,7 +1676,24 @@ static bool rna_Modifier_show_expanded_get(PointerRNA *ptr)
 static bool rna_NodesModifier_node_group_poll(PointerRNA * /*ptr*/, PointerRNA value)
 {
   bNodeTree *ntree = static_cast<bNodeTree *>(value.data);
-  return ntree->type == NTREE_GEOMETRY;
+  if (ntree->type != NTREE_GEOMETRY) {
+    return false;
+  }
+  if (ntree->id.asset_data) {
+    if (!ntree->geometry_node_asset_traits ||
+        (ntree->geometry_node_asset_traits->flag & GEO_NODE_ASSET_MODIFIER) == 0)
+    {
+      /* Only node group assets specically marked as modifiers can be modifiers. */
+      return false;
+    }
+  }
+  if (ntree->geometry_node_asset_traits &&
+      ntree->geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL)
+  {
+    /* Tool node groups cannot be modifiers. */
+    return false;
+  }
+  return true;
 }
 
 static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, PointerRNA *ptr)

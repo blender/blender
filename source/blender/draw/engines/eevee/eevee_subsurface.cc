@@ -12,7 +12,7 @@
 
 #include "BLI_string_utils.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "GPU_capabilities.h"
 #include "GPU_material.h"

@@ -132,18 +132,13 @@ class NodeGroupInterfaceTests:
         out1 = tree.interface.new_socket("Output 1", socket_type=socket_type, in_out='OUTPUT')
         self.assertIsNotNone(out1, f"Could not create socket of type {socket_type}")
 
-        inout0 = tree.interface.new_socket("Input/Output 0", socket_type=socket_type, in_out='BOTH')
-        self.assertIsNotNone(inout0, f"Could not create socket of type {socket_type}")
-
         self.assertSequenceEqual([(s.name, s.bl_idname) for s in group_node.inputs], [
             ("Input 0", socket_type),
             ("Input 1", socket_type),
-            ("Input/Output 0", socket_type),
         ])
         self.assertSequenceEqual([(s.name, s.bl_idname) for s in group_node.outputs], [
             ("Output 0", socket_type),
             ("Output 1", socket_type),
-            ("Input/Output 0", socket_type),
         ])
 
     def do_test_user_count(self, value, expected_users):

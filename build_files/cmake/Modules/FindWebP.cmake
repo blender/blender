@@ -41,6 +41,7 @@ set(_webp_FIND_COMPONENTS
   webp
   webpmux
   webpdemux
+  sharpyuv # New in 1.3
 )
 
 set(_webp_LIBRARIES)
@@ -56,7 +57,9 @@ foreach(COMPONENT ${_webp_FIND_COMPONENTS})
     PATH_SUFFIXES
       lib64 lib lib/static
     )
-  list(APPEND _webp_LIBRARIES "${WEBP_${UPPERCOMPONENT}_LIBRARY}")
+  if (WEBP_${UPPERCOMPONENT}_LIBRARY)
+    list(APPEND _webp_LIBRARIES "${WEBP_${UPPERCOMPONENT}_LIBRARY}")
+  endif()
 endforeach()
 
 if(NOT WEBP_WEBP_LIBRARY)
@@ -84,4 +87,5 @@ mark_as_advanced(
   WEBP_WEBPDEMUX_LIBRARY
   WEBP_WEBPMUX_LIBRARY
   WEBP_WEBP_LIBRARY
+  WEBP_SHARPYUV_LIBRARY
 )

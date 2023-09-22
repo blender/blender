@@ -232,8 +232,7 @@ struct uiBut {
   uiButToolTipFunc tip_func = nullptr;
   void *tip_arg = nullptr;
   uiFreeArgFunc tip_arg_free = nullptr;
-  /** Function to get a custom tooltip label, see #UI_BUT_HAS_TOOLTIP_LABEL. Requires
-   * #UI_BUT_HAS_TOOLTIP_LABEL drawflag. */
+  /** Function to override the label to be displayed in the tooltip. */
   std::function<std::string(const uiBut *)> tip_label_func;
 
   uiButToolTipCustomFunc tip_custom_func = nullptr;
@@ -370,6 +369,10 @@ struct uiButProgress : public uiBut {
 struct uiButViewItem : public uiBut {
   /* C-Handle to the view item this button was created for. */
   uiViewItemHandle *view_item = nullptr;
+  /* Some items want to have a fixed size for drawing, differing from the interaction rectangle
+   * (e.g. so highlights are drawn smaller). */
+  int draw_width = 0;
+  int draw_height = 0;
 };
 
 /** Derived struct for #UI_BTYPE_HSVCUBE. */

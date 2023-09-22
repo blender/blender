@@ -6,7 +6,7 @@
  * \ingroup depsgraph
  */
 
-#include "intern/node/deg_node_factory.h"
+#include "intern/node/deg_node_factory.hh"
 
 namespace blender::deg {
 

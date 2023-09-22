@@ -17,7 +17,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "GPU_vertex_buffer.h"
 

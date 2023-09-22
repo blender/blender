@@ -91,7 +91,7 @@
 
 #include "DRW_engine.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BLO_blend_defs.hh"
 #include "BLO_blend_validate.hh"
@@ -1443,10 +1443,7 @@ static void *newpackedadr(FileData *fd, const void *adr)
 }
 
 /* only lib data */
-static void *newlibadr(FileData *fd,
-                       ID * /* self_id */,
-                       const bool is_linked_only,
-                       const void *adr)
+static void *newlibadr(FileData *fd, ID * /*self_id*/, const bool is_linked_only, const void *adr)
 {
   return oldnewmap_liblookup(fd->libmap, adr, is_linked_only);
 }

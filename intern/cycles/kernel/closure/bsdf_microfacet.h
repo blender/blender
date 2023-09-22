@@ -629,22 +629,22 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
   /* Decide between refraction and reflection based on the energy. */
   const float pdf_reflect = average(reflectance) / average(reflectance + transmittance);
   const bool do_refract = (rand.z >= pdf_reflect);
+
+  /* Compute actual reflected or refracted direction. */
+  *wo = do_refract ? refract_angle(wi, H, cos_HO, m_inv_eta) : 2.0f * cos_HI * H - wi;
+  if ((dot(Ng, *wo) < 0) != do_refract) {
+    return LABEL_NONE;
+  }
+
   if (do_refract) {
-    *wo = refract_angle(wi, H, cos_HO, m_inv_eta);
     *eval = transmittance;
     *pdf = 1.0f - pdf_reflect;
     /* If the IOR is close enough to 1.0, just treat the interaction as specular. */
     m_singular = m_singular || (fabsf(m_eta - 1.0f) < 1e-4f);
   }
   else {
-    /* Eq. 39 - compute actual reflected direction */
-    *wo = 2 * cos_HI * H - wi;
     *eval = reflectance;
     *pdf = pdf_reflect;
-  }
-
-  if ((dot(Ng, *wo) < 0) != do_refract) {
-    return LABEL_NONE;
   }
 
   if (m_singular) {

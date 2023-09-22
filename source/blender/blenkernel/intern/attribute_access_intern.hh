@@ -345,7 +345,7 @@ inline bool contains(const void *owner, const blender::bke::AttributeIDRef &attr
   bool found = false;
   for_all<providers>(
       owner,
-      [&](const AttributeIDRef &other_attribute_id, const AttributeMetaData & /* meta_data */) {
+      [&](const AttributeIDRef &other_attribute_id, const AttributeMetaData & /*meta_data*/) {
         if (attribute_id == other_attribute_id) {
           found = true;
           return false;

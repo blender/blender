@@ -22,12 +22,12 @@
 
 #include "BLI_threads.h" /* for SpinLock */
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_physics.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_physics.hh"
 
 #include "intern/debug/deg_debug.h"
-#include "intern/depsgraph_light_linking.h"
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph_light_linking.hh"
+#include "intern/depsgraph_type.hh"
 
 struct ID;
 struct Scene;

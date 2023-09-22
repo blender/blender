@@ -29,7 +29,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -447,6 +447,7 @@ void graphedit_operatortypes()
   WM_operatortype_append(GRAPH_OT_select_more);
   WM_operatortype_append(GRAPH_OT_select_less);
   WM_operatortype_append(GRAPH_OT_select_leftright);
+  WM_operatortype_append(GRAPH_OT_select_key_handles);
 
   /* editing */
   WM_operatortype_append(GRAPH_OT_snap);
@@ -474,7 +475,9 @@ void graphedit_operatortypes()
   WM_operatortype_append(GRAPH_OT_blend_offset);
   WM_operatortype_append(GRAPH_OT_blend_to_ease);
   WM_operatortype_append(GRAPH_OT_match_slope);
+  WM_operatortype_append(GRAPH_OT_time_offset);
   WM_operatortype_append(GRAPH_OT_blend_to_default);
+  WM_operatortype_append(GRAPH_OT_push_pull);
   WM_operatortype_append(GRAPH_OT_gaussian_smooth);
   WM_operatortype_append(GRAPH_OT_butterworth_smooth);
   WM_operatortype_append(GRAPH_OT_euler_filter);

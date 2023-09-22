@@ -64,31 +64,34 @@ struct EffectInfo {
   int inputs;
 };
 
+/* These wrap strangely, disable formatting for fixed indentation and wrapping.  */
+/* clang-format off */
+#define RNA_ENUM_SEQUENCER_VIDEO_MODIFIER_TYPE_ITEMS \
+  {seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Bright/Contrast", ""}, \
+  {seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""}, \
+  {seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""}, \
+  {seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""}, \
+  {seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""}, \
+  {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""}, \
+  {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""}
+
+#define RNA_ENUM_SEQUENCER_AUDIO_MODIFIER_TYPE_ITEMS \
+  {seqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Equalizer", ""}
+/* clang-format on */
+
 const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
-    {seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Brightness/Contrast", ""},
-    {seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
-    {seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
-    {seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
-    {seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
-    {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
-    {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
-    {seqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Sound Equalizer", ""},
+    RNA_ENUM_SEQUENCER_VIDEO_MODIFIER_TYPE_ITEMS,
+    RNA_ENUM_SEQUENCER_AUDIO_MODIFIER_TYPE_ITEMS,
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_sequence_video_modifier_type_items[] = {
-    {seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Bright/Contrast", ""},
-    {seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
-    {seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
-    {seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
-    {seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
-    {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
-    {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
+    RNA_ENUM_SEQUENCER_VIDEO_MODIFIER_TYPE_ITEMS,
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_sequence_sound_modifier_type_items[] = {
-    {seqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Equalizer", ""},
+    RNA_ENUM_SEQUENCER_AUDIO_MODIFIER_TYPE_ITEMS,
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -115,8 +118,8 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #  include "WM_api.hh"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 #  include "IMB_imbuf.h"
 
@@ -1593,7 +1596,7 @@ static char *rna_SeqTimelineChannel_path(const PointerRNA *ptr)
 }
 
 static EQCurveMappingData *rna_Sequence_SoundEqualizer_Curve_add(SoundEqualizerModifierData *semd,
-                                                                 bContext * /* C */,
+                                                                 bContext * /*C*/,
                                                                  float min_freq,
                                                                  float max_freq)
 {
@@ -1603,7 +1606,7 @@ static EQCurveMappingData *rna_Sequence_SoundEqualizer_Curve_add(SoundEqualizerM
 }
 
 static void rna_Sequence_SoundEqualizer_Curve_clear(SoundEqualizerModifierData *semd,
-                                                    bContext * /* C */)
+                                                    bContext * /*C*/)
 {
   SEQ_sound_equalizermodifier_free((SequenceModifierData *)semd);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);

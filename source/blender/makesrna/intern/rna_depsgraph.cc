@@ -20,7 +20,7 @@
 
 #include "DNA_object_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #define STATS_MAX_SIZE 16384
 
@@ -38,9 +38,9 @@
 #  include "BKE_object.h"
 #  include "BKE_scene.h"
 
-#  include "DEG_depsgraph_build.h"
-#  include "DEG_depsgraph_debug.h"
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph_build.hh"
+#  include "DEG_depsgraph_debug.hh"
+#  include "DEG_depsgraph_query.hh"
 
 #  include "MEM_guardedalloc.h"
 

@@ -61,7 +61,7 @@
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"

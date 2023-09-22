@@ -40,7 +40,7 @@
 #include "BKE_screen.h"
 #include "BKE_studiolight.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RE_pipeline.h"
 #include "RE_texture.h"

@@ -245,7 +245,7 @@ static void polyedge_beauty_cost_update(const float (*coords)[2],
   }
 }
 
-static void polyedge_rotate(struct HalfEdge *edges, struct HalfEdge *e)
+static void polyedge_rotate(struct HalfEdge *edges, const struct HalfEdge *e)
 {
   /** CCW winding, rotate internal edge to new vertical state.
    *

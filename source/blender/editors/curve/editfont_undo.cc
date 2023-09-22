@@ -26,7 +26,7 @@
 #include "BKE_undo_system.h"
 #include "BKE_vfont.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_curve.hh"
 #include "ED_object.hh"

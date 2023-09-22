@@ -322,6 +322,44 @@ extern bNodeTreeType NodeTreeTypeUndefined;
 extern bNodeType NodeTypeUndefined;
 extern bNodeSocketType NodeSocketTypeUndefined;
 
+/**
+ * Contains information about a specific kind of zone (e.g. simulation or repeat zone in geometry
+ * nodes). This allows writing code that works for all kinds of zones automatically, reducing
+ * redundancy and the amount of boilerplate needed when adding a new zone type.
+ */
+class bNodeZoneType {
+ public:
+  std::string input_idname;
+  std::string output_idname;
+  int input_type;
+  int output_type;
+  int theme_id;
+
+  virtual ~bNodeZoneType() = default;
+
+  virtual const int &get_corresponding_output_id(const bNode &input_bnode) const = 0;
+
+  int &get_corresponding_output_id(bNode &input_bnode) const
+  {
+    return const_cast<int &>(
+        this->get_corresponding_output_id(const_cast<const bNode &>(input_bnode)));
+  }
+
+  const bNode *get_corresponding_input(const bNodeTree &tree, const bNode &output_bnode) const;
+  bNode *get_corresponding_input(bNodeTree &tree, const bNode &output_bnode) const;
+
+  const bNode *get_corresponding_output(const bNodeTree &tree, const bNode &input_bnode) const;
+  bNode *get_corresponding_output(bNodeTree &tree, const bNode &input_bnode) const;
+};
+
+void register_node_zone_type(const bNodeZoneType &zone_type);
+
+Span<const bNodeZoneType *> all_zone_types();
+Span<int> all_zone_node_types();
+Span<int> all_zone_input_node_types();
+Span<int> all_zone_output_node_types();
+const bNodeZoneType *zone_type_by_node_type(const int node_type);
+
 }  // namespace blender::bke
 
 #define NODE_STORAGE_FUNCS(StorageT) \

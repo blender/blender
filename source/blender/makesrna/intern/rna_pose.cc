@@ -75,8 +75,8 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 #  include "ED_armature.hh"
 #  include "ED_object.hh"

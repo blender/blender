@@ -97,7 +97,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BLT_translation.h"
 
@@ -662,7 +662,11 @@ static void do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree, cha
       continue;
     }
 
-    if (blend_method == 1 /* MA_BM_ADD */) {
+    enum {
+      MA_BM_ADD = 1,
+      MA_BM_MULTIPLY = 2,
+    };
+    if (blend_method == MA_BM_ADD) {
       nodeRemLink(ntree, link);
 
       bNode *add_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_ADD_SHADER);
@@ -686,7 +690,7 @@ static void do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree, cha
 
       need_update = true;
     }
-    else if (blend_method == 2 /* MA_BM_MULTIPLY */) {
+    else if (blend_method == MA_BM_MULTIPLY) {
       nodeRemLink(ntree, link);
 
       bNode *transp_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_TRANSPARENT);
@@ -1682,9 +1686,7 @@ struct MappingNodeFCurveCallbackData {
  * update if the rna path starts with the rna path of the mapping node and
  * doesn't end with "default_value", that is, not the Vector input.
  */
-static void update_mapping_node_fcurve_rna_path_callback(ID * /* id */,
-                                                         FCurve *fcurve,
-                                                         void *_data)
+static void update_mapping_node_fcurve_rna_path_callback(ID * /*id*/, FCurve *fcurve, void *_data)
 {
   MappingNodeFCurveCallbackData *data = (MappingNodeFCurveCallbackData *)_data;
   if (!STRPREFIX(fcurve->rna_path, data->nodePath) ||
@@ -2688,17 +2690,21 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
      * now that we use dual-source blending. */
     /* We take care of doing only node-trees that are always part of materials
      * with old blending modes. */
+    enum {
+      MA_BM_ADD = 1,
+      MA_BM_MULTIPLY = 2,
+    };
     LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
       bNodeTree *ntree = ma->nodetree;
-      if (ma->blend_method == 1 /* MA_BM_ADD */) {
+      if (ma->blend_method == MA_BM_ADD) {
         if (ma->use_nodes) {
-          do_versions_material_convert_legacy_blend_mode(ntree, 1 /* MA_BM_ADD */);
+          do_versions_material_convert_legacy_blend_mode(ntree, MA_BM_ADD);
         }
         ma->blend_method = MA_BM_BLEND;
       }
-      else if (ma->blend_method == 2 /* MA_BM_MULTIPLY */) {
+      else if (ma->blend_method == MA_BM_MULTIPLY) {
         if (ma->use_nodes) {
-          do_versions_material_convert_legacy_blend_mode(ntree, 2 /* MA_BM_MULTIPLY */);
+          do_versions_material_convert_legacy_blend_mode(ntree, MA_BM_MULTIPLY);
         }
         ma->blend_method = MA_BM_BLEND;
       }

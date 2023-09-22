@@ -34,7 +34,7 @@
 #  include "BKE_scene.h"
 #  include "BKE_writeavi.h"
 
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph_query.hh"
 
 #  include "ED_transform.hh"
 #  include "ED_transform_snap_object_context.hh"

@@ -1222,7 +1222,7 @@ static const SocketColorFn std_node_socket_color_funcs[] = {
     std_node_socket_color_fn<SOCK_RGBA>,
     std_node_socket_color_fn<SOCK_SHADER>,
     std_node_socket_color_fn<SOCK_BOOLEAN>,
-    nullptr /* UNUSED */,
+    nullptr /* UNUSED. */,
     std_node_socket_color_fn<SOCK_INT>,
     std_node_socket_color_fn<SOCK_STRING>,
     std_node_socket_color_fn<SOCK_OBJECT>,

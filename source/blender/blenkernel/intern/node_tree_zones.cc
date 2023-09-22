@@ -32,10 +32,13 @@ static Vector<std::unique_ptr<bNodeTreeZone>> find_zone_nodes(
     bNodeTreeZones &owner,
     Map<const bNode *, bNodeTreeZone *> &r_zone_by_inout_node)
 {
+  const Span<const bNodeZoneType *> zone_types = all_zone_types();
+
   Vector<std::unique_ptr<bNodeTreeZone>> zones;
   Vector<const bNode *> zone_output_nodes;
-  zone_output_nodes.extend(tree.nodes_by_type("GeometryNodeSimulationOutput"));
-  zone_output_nodes.extend(tree.nodes_by_type("GeometryNodeRepeatOutput"));
+  for (const bNodeZoneType *zone_type : zone_types) {
+    zone_output_nodes.extend(tree.nodes_by_type(zone_type->output_idname));
+  }
   for (const bNode *node : zone_output_nodes) {
     auto zone = std::make_unique<bNodeTreeZone>();
     zone->owner = &owner;
@@ -44,21 +47,13 @@ static Vector<std::unique_ptr<bNodeTreeZone>> find_zone_nodes(
     r_zone_by_inout_node.add(node, zone.get());
     zones.append_and_get_index(std::move(zone));
   }
-  for (const bNode *node : tree.nodes_by_type("GeometryNodeSimulationInput")) {
-    const auto &storage = *static_cast<NodeGeometrySimulationInput *>(node->storage);
-    if (const bNode *sim_output_node = tree.node_by_id(storage.output_node_id)) {
-      if (bNodeTreeZone *zone = r_zone_by_inout_node.lookup_default(sim_output_node, nullptr)) {
-        zone->input_node = node;
-        r_zone_by_inout_node.add(node, zone);
-      }
-    }
-  }
-  for (const bNode *node : tree.nodes_by_type("GeometryNodeRepeatInput")) {
-    const auto &storage = *static_cast<NodeGeometryRepeatInput *>(node->storage);
-    if (const bNode *repeat_output_node = tree.node_by_id(storage.output_node_id)) {
-      if (bNodeTreeZone *zone = r_zone_by_inout_node.lookup_default(repeat_output_node, nullptr)) {
-        zone->input_node = node;
-        r_zone_by_inout_node.add(node, zone);
+  for (const bNodeZoneType *zone_type : zone_types) {
+    for (const bNode *input_node : tree.nodes_by_type(zone_type->input_idname)) {
+      if (const bNode *output_node = zone_type->get_corresponding_output(tree, *input_node)) {
+        if (bNodeTreeZone *zone = r_zone_by_inout_node.lookup_default(output_node, nullptr)) {
+          zone->input_node = input_node;
+          r_zone_by_inout_node.add(input_node, zone);
+        }
       }
     }
   }
@@ -223,6 +218,9 @@ static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree
     return {};
   }
 
+  const Span<int> input_types = all_zone_input_node_types();
+  const Span<int> output_types = all_zone_output_node_types();
+
   std::unique_ptr<bNodeTreeZones> tree_zones = std::make_unique<bNodeTreeZones>();
 
   const Span<const bNode *> all_nodes = tree.all_nodes();
@@ -257,13 +255,13 @@ static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree
         depend_on_output_flags |= depend_on_output_flag_array[from_node_i];
       }
     }
-    if (ELEM(node->type, GEO_NODE_SIMULATION_INPUT, GEO_NODE_REPEAT_INPUT)) {
+    if (input_types.contains(node->type)) {
       if (const bNodeTreeZone *zone = zone_by_inout_node.lookup_default(node, nullptr)) {
         /* Now entering a zone, so set the corresponding bit. */
         depend_on_input_flags[zone->index].set();
       }
     }
-    else if (ELEM(node->type, GEO_NODE_SIMULATION_OUTPUT, GEO_NODE_REPEAT_OUTPUT)) {
+    else if (output_types.contains(node->type)) {
       if (const bNodeTreeZone *zone = zone_by_inout_node.lookup_default(node, nullptr)) {
         /* The output is implicitly linked to the input, so also propagate the bits from there. */
         if (const bNode *zone_input_node = zone->input_node) {
@@ -428,6 +426,98 @@ Vector<const bNodeTreeZone *> bNodeTreeZones::get_zone_stack_for_node(const int 
   }
   std::reverse(zone_stack.begin(), zone_stack.end());
   return zone_stack;
+}
+
+const bNode *bNodeZoneType::get_corresponding_input(const bNodeTree &tree,
+                                                    const bNode &output_bnode) const
+{
+  for (const bNode *node : tree.nodes_by_type(this->input_idname)) {
+    if (this->get_corresponding_output_id(*node) == output_bnode.identifier) {
+      return node;
+    }
+  }
+  return nullptr;
+}
+
+const bNode *bNodeZoneType::get_corresponding_output(const bNodeTree &tree,
+                                                     const bNode &input_bnode) const
+{
+  return tree.node_by_id(this->get_corresponding_output_id(input_bnode));
+}
+
+bNode *bNodeZoneType::get_corresponding_input(bNodeTree &tree, const bNode &output_bnode) const
+{
+  return const_cast<bNode *>(
+      this->get_corresponding_input(const_cast<const bNodeTree &>(tree), output_bnode));
+}
+
+bNode *bNodeZoneType::get_corresponding_output(bNodeTree &tree, const bNode &input_bnode) const
+{
+  return const_cast<bNode *>(
+      this->get_corresponding_output(const_cast<const bNodeTree &>(tree), input_bnode));
+}
+
+static Vector<const bNodeZoneType *> &get_zone_types_vector()
+{
+  static Vector<const bNodeZoneType *> zone_types;
+  return zone_types;
+};
+
+void register_node_zone_type(const bNodeZoneType &zone_type)
+{
+  get_zone_types_vector().append(&zone_type);
+}
+
+Span<const bNodeZoneType *> all_zone_types()
+{
+  return get_zone_types_vector();
+}
+
+Span<int> all_zone_node_types()
+{
+  static const Vector<int> node_types = []() {
+    Vector<int> node_types;
+    for (const bNodeZoneType *zone_type : all_zone_types()) {
+      node_types.append(zone_type->input_type);
+      node_types.append(zone_type->output_type);
+    }
+    return node_types;
+  }();
+  return node_types;
+}
+
+Span<int> all_zone_input_node_types()
+{
+  static const Vector<int> node_types = []() {
+    Vector<int> node_types;
+    for (const bNodeZoneType *zone_type : all_zone_types()) {
+      node_types.append(zone_type->input_type);
+    }
+    return node_types;
+  }();
+  return node_types;
+}
+
+Span<int> all_zone_output_node_types()
+{
+  static const Vector<int> node_types = []() {
+    Vector<int> node_types;
+    for (const bNodeZoneType *zone_type : all_zone_types()) {
+      node_types.append(zone_type->output_type);
+    }
+    return node_types;
+  }();
+  return node_types;
+}
+
+const bNodeZoneType *zone_type_by_node_type(const int node_type)
+{
+  for (const bNodeZoneType *zone_type : all_zone_types()) {
+    if (ELEM(node_type, zone_type->input_type, zone_type->output_type)) {
+      return zone_type;
+    }
+  }
+  return nullptr;
 }
 
 }  // namespace blender::bke

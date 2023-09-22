@@ -173,7 +173,7 @@ vec3 sample_uniform_hemisphere(vec3 rand, vec3 N, vec3 T, vec3 B, out float pdf)
 {
   vec3 tH = sample_uniform_hemisphere(rand);
   pdf = sample_pdf_uniform_hemisphere();
-  return tH * mat3(N, T, B);
+  return mat3(T, B, N) * tH;
 }
 
 /** \} */
@@ -200,7 +200,7 @@ vec3 sample_cosine_hemisphere(vec3 rand, vec3 N, vec3 T, vec3 B, out float pdf)
 {
   vec3 tH = sample_cosine_hemisphere(rand);
   pdf = sample_pdf_cosine_hemisphere(tH.z);
-  return tH * mat3(N, T, B);
+  return mat3(T, B, N) * tH;
 }
 
 /** \} */
