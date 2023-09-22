@@ -53,7 +53,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
     BSDF = BaseColor * diffuse(Normal);
     if (Subsurface > 1e-5) {
       vector radius = SubsurfaceScale * SubsurfaceRadius;
-      float subsurface_ior = (subsurface_method == "random_walk") ? SubsurfaceIOR : IOR;
+      float subsurface_ior = (subsurface_method == "random_walk_skin") ? SubsurfaceIOR : IOR;
       closure color SubsurfBSDF = bssrdf(subsurface_method,
                                          Normal,
                                          SubsurfaceScale * SubsurfaceRadius,

@@ -359,7 +359,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
         bssrdf->alpha = sqr(roughness);
         bssrdf->ior = eta;
         bssrdf->anisotropy = stack_load_float(stack, data_subsurf.w);
-        if (subsurface_method == CLOSURE_BSSRDF_RANDOM_WALK_ID) {
+        if (subsurface_method == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
           bssrdf->ior = stack_load_float(stack, data_subsurf.x);
         }
 
@@ -799,7 +799,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 #ifdef __SUBSURFACE__
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSSRDF_RANDOM_WALK_ID:
-    case CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID: {
+    case CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID: {
       Spectrum weight = closure_weight * mix_weight;
       ccl_private Bssrdf *bssrdf = bssrdf_alloc(sd, weight);
 

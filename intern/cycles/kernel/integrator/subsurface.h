@@ -31,8 +31,8 @@ ccl_device_inline bool subsurface_entry_bounce(KernelGlobals kg,
 {
   float2 rand_bsdf = path_state_rng_2D(kg, rng_state, PRNG_SUBSURFACE_BSDF);
 
-  if (bssrdf->type == CLOSURE_BSSRDF_RANDOM_WALK_ID) {
-    /* CLOSURE_BSSRDF_RANDOM_WALK_ID has a 50% chance to sample a diffuse entry bounce.
+  if (bssrdf->type == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
+    /* CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID has a 50% chance to sample a diffuse entry bounce.
      * Also, for the refractive entry, it uses a fixed roughness of 1.0. */
     if (rand_bsdf.x < 0.5f) {
       rand_bsdf.x *= 2.0f;
