@@ -123,7 +123,7 @@ void MaterialData::update()
   }
 }
 
-pxr::VtValue MaterialData::get_data(pxr::TfToken const & /* key */) const
+pxr::VtValue MaterialData::get_data(pxr::TfToken const & /*key*/) const
 {
   return pxr::VtValue();
 }

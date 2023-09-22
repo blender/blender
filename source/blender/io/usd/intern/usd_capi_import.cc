@@ -478,7 +478,7 @@ bool USD_import(bContext *C,
  * Object parameter, similar to the logic in get_abc_reader() in the
  * Alembic importer code. */
 static USDPrimReader *get_usd_reader(CacheReader *reader,
-                                     const Object * /* ob */,
+                                     const Object * /*ob*/,
                                      const char **err_str)
 {
   USDPrimReader *usd_reader = reinterpret_cast<USDPrimReader *>(reader);

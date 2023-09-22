@@ -986,7 +986,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
   PointerRNA dummy_addon_ptr = RNA_pointer_create(nullptr, &RNA_AddonPreferences, &dummy_addon);
 
   /* validate the python class */
-  if (validate(&dummy_addon_ptr, data, nullptr /* have_function */) != 0) {
+  if (validate(&dummy_addon_ptr, data, nullptr /*have_function*/) != 0) {
     return nullptr;
   }
 

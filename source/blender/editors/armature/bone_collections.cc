@@ -92,7 +92,7 @@ static bool active_bone_collection_poll(bContext *C)
   return true;
 }
 
-static int bone_collection_add_exec(bContext *C, wmOperator * /* op */)
+static int bone_collection_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
   if (ob == nullptr) {
@@ -122,7 +122,7 @@ void ARMATURE_OT_collection_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int bone_collection_remove_exec(bContext *C, wmOperator * /* op */)
+static int bone_collection_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_object_context(C);
   if (ob == nullptr) {

@@ -521,7 +521,7 @@ void GIZMO_GT_retime_handle(wmGizmoType *gzt)
 /** \name Retiming Remove Handle Gizmo
  * \{ */
 
-static void gizmo_retime_remove_draw(const bContext * /* C */, wmGizmo * /* gz */)
+static void gizmo_retime_remove_draw(const bContext * /*C*/, wmGizmo * /*gz*/)
 {
   /* Pass. */
 }
@@ -681,7 +681,7 @@ static void retime_speed_text_draw(const bContext *C,
       UI_view2d_fromcontext(C), label_rect.xmin, label_rect.ymin, label_str, label_len, col);
 }
 
-static void gizmo_retime_speed_set_draw(const bContext *C, wmGizmo * /* gz */)
+static void gizmo_retime_speed_set_draw(const bContext *C, wmGizmo * /*gz*/)
 {
   const View2D *v2d = UI_view2d_fromcontext(C);
 

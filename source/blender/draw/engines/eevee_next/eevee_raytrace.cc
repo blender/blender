@@ -186,7 +186,7 @@ void RayTraceModule::sync()
 
 void RayTraceModule::debug_pass_sync() {}
 
-void RayTraceModule::debug_draw(View & /* view */, GPUFrameBuffer * /* view_fb */) {}
+void RayTraceModule::debug_draw(View & /*view*/, GPUFrameBuffer * /*view_fb*/) {}
 
 RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
                                      GPUTexture *screen_radiance_tx,

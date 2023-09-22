@@ -108,7 +108,7 @@ class Instance {
     anti_aliasing.init(v3d, scene);
   }
 
-  void begin_sync(Manager & /* manager */)
+  void begin_sync(Manager & /*manager*/)
   {
     /* TODO(fclem): Remove global draw manager access. */
     View main_view("GPencil_MainView", DRW_view_default_get());
@@ -150,7 +150,7 @@ class Instance {
     }
   }
 
-  void end_sync(Manager & /* manager */)
+  void end_sync(Manager & /*manager*/)
   {
     objects.end_sync();
     layers.end_sync();

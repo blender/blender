@@ -434,7 +434,7 @@ void fragment_displacement()
 vec3 coordinate_camera(vec3 P)
 {
   vec3 vP;
-  if (false /* probe */) {
+  if (false /* Probe. */) {
     /* Unsupported. It would make the probe camera-dependent. */
     vP = P;
   }
@@ -452,7 +452,7 @@ vec3 coordinate_camera(vec3 P)
 vec3 coordinate_screen(vec3 P)
 {
   vec3 window = vec3(0.0);
-  if (false /* probe */) {
+  if (false /* Probe. */) {
     /* Unsupported. It would make the probe camera-dependent. */
     window.xy = vec2(0.5);
   }

@@ -26,7 +26,7 @@
 
 namespace blender::io::usd {
 
-void USDCurvesReader::create_object(Main *bmain, const double /* motionSampleTime */)
+void USDCurvesReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
   curve_ = BKE_curve_add(bmain, name_.c_str(), OB_CURVES_LEGACY);
 
@@ -165,7 +165,7 @@ void USDCurvesReader::read_curve_sample(Curve *cu, const double motionSampleTime
 
 Mesh *USDCurvesReader::read_mesh(Mesh *existing_mesh,
                                  const USDMeshReadParams params,
-                                 const char ** /* err_str */)
+                                 const char ** /*err_str*/)
 {
   if (!curve_prim_) {
     return existing_mesh;

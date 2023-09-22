@@ -22,7 +22,7 @@
 
 namespace blender::io::usd {
 
-void USDLightReader::create_object(Main *bmain, const double /* motionSampleTime */)
+void USDLightReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
   Light *blight = static_cast<Light *>(BKE_light_add(bmain, name_.c_str()));
 

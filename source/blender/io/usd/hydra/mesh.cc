@@ -85,7 +85,7 @@ void MeshData::update()
   }
 }
 
-pxr::VtValue MeshData::get_data(pxr::TfToken const & /* key */) const
+pxr::VtValue MeshData::get_data(pxr::TfToken const & /*key*/) const
 {
   return pxr::VtValue();
 }

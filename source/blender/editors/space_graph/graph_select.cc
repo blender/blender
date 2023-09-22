@@ -2066,7 +2066,10 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
 }
 
 /** \} */
-/* Key/handles selection */
+
+/* -------------------------------------------------------------------- */
+/** \name Key/handles Selection Operator
+ * \{ */
 
 /* Defines for key/handles select tool. */
 static const EnumPropertyItem prop_graphkeys_select_key_handles_actions[] = {
@@ -2179,7 +2182,7 @@ static int graphkeys_select_key_handles_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void graphkeys_select_key_handles_ui(bContext * /* C */, wmOperator *op)
+static void graphkeys_select_key_handles_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayout *row;
@@ -2227,3 +2230,5 @@ void GRAPH_OT_select_key_handles(wmOperatorType *ot)
                "Key",
                "Effect on the key itself");
 }
+
+/** \} */

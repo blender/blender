@@ -345,7 +345,7 @@ static void wm_file_read_setup_wm_keep_old(const bContext *C,
 }
 
 static void wm_file_read_setup_wm_use_new(bContext *C,
-                                          Main * /* bmain */,
+                                          Main * /*bmain*/,
                                           BlendFileReadWMSetupData *wm_setup_data,
                                           wmWindowManager *wm)
 {
