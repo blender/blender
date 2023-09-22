@@ -472,6 +472,11 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
     ss << "Compiling Shaders (" << materials.queued_shaders_count << " remaining)";
     info = ss.str();
   }
+  else if (materials.queued_optimize_shaders_count > 0) {
+    std::stringstream ss;
+    ss << "Optimizing Shaders (" << materials.queued_optimize_shaders_count << " remaining)";
+    info = ss.str();
+  }
 }
 
 void Instance::store_metadata(RenderResult *render_result)
