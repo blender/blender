@@ -62,7 +62,9 @@ static constexpr size_t base_dpi = 96;
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
 struct WGL_LibDecor_Window {
   libdecor_frame *frame = nullptr;
-  bool configured = false;
+
+  /** The window has been configured (see #xdg_surface_ack_configure). */
+  bool initial_configure_seen = false;
 };
 
 static void gwl_libdecor_window_destroy(WGL_LibDecor_Window *decor)
@@ -88,6 +90,9 @@ struct WGL_XDG_Decor_Window {
     /** The serial to pass to ACK configure. */
     uint32_t ack_configure_serial = 0;
   } pending;
+
+  /** The window has been configured (see #xdg_surface_ack_configure). */
+  bool initial_configure_seen = false;
 };
 
 static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
@@ -776,6 +781,8 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
 
       decor.pending.ack_configure = false;
       decor.pending.ack_configure_serial = 0;
+
+      decor.initial_configure_seen = true;
     }
   }
 
@@ -1111,11 +1118,11 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
   /* Commit the changes. */
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
+    WGL_LibDecor_Window &decor = *win->libdecor;
     libdecor_state *state = libdecor_state_new(UNPACK2(size_next));
     libdecor_frame_commit(frame, state, configuration);
     libdecor_state_free(state);
-
-    win->libdecor->configured = true;
+    decor.initial_configure_seen = true;
   }
 
   /* Apply the changes. */
@@ -1411,15 +1418,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     xdg_toplevel_set_min_size(decor.toplevel, UNPACK2(size_min));
     xdg_toplevel_set_app_id(decor.toplevel, xdg_app_id);
 
-    if (system_->xdg_decor_manager_get()) {
-      decor.toplevel_decor = zxdg_decoration_manager_v1_get_toplevel_decoration(
-          system_->xdg_decor_manager_get(), decor.toplevel);
-      zxdg_toplevel_decoration_v1_add_listener(
-          decor.toplevel_decor, &xdg_toplevel_decoration_v1_listener, window_);
-      zxdg_toplevel_decoration_v1_set_mode(decor.toplevel_decor,
-                                           ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
-    }
-
     xdg_surface_add_listener(decor.surface, &xdg_surface_listener, window_);
     xdg_toplevel_add_listener(decor.toplevel, &xdg_toplevel_listener, window_);
 
@@ -1436,11 +1434,13 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   /* Call top-level callbacks. */
   wl_surface_commit(window_->wl.surface);
-  wl_display_roundtrip(system_->wl_display_get());
 
 #ifdef GHOST_OPENGL_ALPHA
   setOpaque();
 #endif
+
+  /* NOTE: the method used for XDG & LIBDECOR initialization (using `initial_configure_seen`)
+   * follows the method used in SDL 3.16. */
 
   /* Causes a glitch with `libdecor` for some reason. */
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -1451,12 +1451,33 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     /* NOTE: LIBDECOR requires the window to be created & configured before the state can be set.
      * Workaround this by using the underlying `xdg_toplevel` */
     WGL_LibDecor_Window &decor = *window_->libdecor;
+    while (!decor.initial_configure_seen) {
+      wl_display_flush(system->wl_display_get());
+      wl_display_dispatch(system->wl_display_get());
+    }
+
     xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
     gwl_window_state_set_for_xdg(toplevel, state, GHOST_kWindowStateNormal);
   }
   else
-#endif
+#endif /* WITH_GHOST_WAYLAND_LIBDECOR */
   {
+    /* Call top-level callbacks. */
+    WGL_XDG_Decor_Window &decor = *window_->xdg_decor;
+    while (!decor.initial_configure_seen) {
+      wl_display_flush(system->wl_display_get());
+      wl_display_dispatch(system->wl_display_get());
+    }
+
+    if (system_->xdg_decor_manager_get()) {
+      decor.toplevel_decor = zxdg_decoration_manager_v1_get_toplevel_decoration(
+          system_->xdg_decor_manager_get(), decor.toplevel);
+      zxdg_toplevel_decoration_v1_add_listener(
+          decor.toplevel_decor, &xdg_toplevel_decoration_v1_listener, window_);
+      zxdg_toplevel_decoration_v1_set_mode(decor.toplevel_decor,
+                                           ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
+    }
+
     gwl_window_state_set(window_, state);
   }
 
