@@ -2517,13 +2517,17 @@ static bool space_node_node_geometry_nodes_tool_poll(const SpaceNode &snode,
       /* Only assets can be tools. */
       return false;
     }
-    if ((ntree.geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL) == 0) {
+    if (!ntree.geometry_node_asset_traits ||
+        (ntree.geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL) == 0)
+    {
       /* Only node groups specifically marked as tools can be tools. */
       return false;
     }
   }
   else {
-    if (ntree.geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL) {
+    if (ntree.geometry_node_asset_traits &&
+        ntree.geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL)
+    {
       /* Tool node groups cannot be modifiers. */
       return false;
     }
