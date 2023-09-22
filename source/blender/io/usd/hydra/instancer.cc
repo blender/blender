@@ -9,7 +9,7 @@
 
 #include "BLI_string.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "hydra_scene_delegate.h"
 

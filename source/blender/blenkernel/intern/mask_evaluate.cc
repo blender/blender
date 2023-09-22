@@ -25,8 +25,8 @@
 #include "BKE_curve.h"
 #include "BKE_mask.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 uint BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
 {

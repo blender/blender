@@ -24,7 +24,7 @@
 
 #  include "BLI_span.hh"
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 static GreasePencil *rna_grease_pencil(const PointerRNA *ptr)
 {

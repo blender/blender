@@ -18,8 +18,8 @@
 #include "BKE_modifier.h"
 #include "BKE_vfont.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 static Curve *curve_from_font_object(Object *object, Depsgraph *depsgraph)
 {

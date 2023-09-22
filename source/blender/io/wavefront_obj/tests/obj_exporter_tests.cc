@@ -23,7 +23,7 @@
 
 #include "BLO_readfile.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "obj_export_file_writer.hh"
 #include "obj_export_mesh.hh"

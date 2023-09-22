@@ -8,7 +8,7 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_scene_types.h"
 

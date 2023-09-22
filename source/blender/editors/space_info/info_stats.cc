@@ -57,7 +57,7 @@
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_modifier.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_info.hh"
 

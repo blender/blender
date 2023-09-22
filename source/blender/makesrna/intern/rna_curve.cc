@@ -157,8 +157,8 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 #  include "BKE_main.h"
 #  include "BKE_vfont.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 #  include "WM_api.hh"
 

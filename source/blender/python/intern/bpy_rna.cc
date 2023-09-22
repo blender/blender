@@ -60,7 +60,7 @@
 /* Only for types. */
 #include "BKE_node.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "../generic/idprop_py_api.h" /* For IDprop lookups. */
 #include "../generic/idprop_py_ui_api.h"

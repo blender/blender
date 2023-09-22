@@ -43,7 +43,7 @@
 #pragma once
 
 #include "BLI_map.hh"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "eevee_sampling.hh"
 #include "eevee_shader_shared.hh"

@@ -40,7 +40,7 @@
 /* for tool-tips */
 #include "UI_interface.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 /* own includes */
 #include "wm_gizmo_intern.h"

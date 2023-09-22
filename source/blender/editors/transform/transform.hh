@@ -18,7 +18,7 @@
 #include "DNA_object_enums.h"
 #include "DNA_scene_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "transform_data.hh"
 

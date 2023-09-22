@@ -28,10 +28,6 @@ struct bNodeTree;
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Graph Building -------------------------------- */
 
 /** Build depsgraph for the given scene layer, and dump results in given graph container. */
@@ -184,7 +180,3 @@ struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *node_handle);
 bool DEG_object_has_geometry_component(struct Object *object);
 
 /* ************************************************ */
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif

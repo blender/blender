@@ -61,8 +61,8 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 #if 0
 #  include "NOD_common.h"
 #endif

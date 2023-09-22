@@ -6,7 +6,7 @@
  * \ingroup depsgraph
  */
 
-#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_component.hh"
 
 #include <cstdio>
 #include <cstring> /* required for STREQ later on. */
@@ -19,9 +19,9 @@
 
 #include "BKE_action.h"
 
-#include "intern/node/deg_node_factory.h"
-#include "intern/node/deg_node_id.h"
-#include "intern/node/deg_node_operation.h"
+#include "intern/node/deg_node_factory.hh"
+#include "intern/node/deg_node_id.hh"
+#include "intern/node/deg_node_operation.hh"
 
 namespace blender::deg {
 

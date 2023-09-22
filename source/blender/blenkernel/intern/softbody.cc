@@ -62,8 +62,8 @@
 #include "BKE_scene.h"
 #include "BKE_softbody.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "PIL_time.h"
 

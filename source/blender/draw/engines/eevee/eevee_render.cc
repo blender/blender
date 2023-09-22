@@ -22,7 +22,7 @@
 #include "BLI_rand.h"
 #include "BLI_rect.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "GPU_capabilities.h"
 #include "GPU_context.h"

@@ -37,7 +37,7 @@
 
 #include "RNA_access.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 

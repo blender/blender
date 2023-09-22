@@ -10,8 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "intern/depsgraph_type.h"
-#include "intern/node/deg_node.h"
+#include "intern/depsgraph_type.hh"
+#include "intern/node/deg_node.hh"
 
 struct ID;
 
@@ -42,4 +42,4 @@ DepsNodeFactory *type_get_factory(NodeType type);
 
 }  // namespace blender::deg
 
-#include "intern/node/deg_node_factory_impl.h"
+#include "intern/node/deg_node_factory_impl.hh"

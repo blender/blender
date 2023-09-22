@@ -679,9 +679,9 @@ const EnumPropertyItem rna_enum_subdivision_boundary_smooth_items[] = {
 
 #  include "BLI_sort_utils.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
+#  include "DEG_depsgraph_query.hh"
 
 #  ifdef WITH_ALEMBIC
 #    include "ABC_alembic.h"

@@ -35,7 +35,7 @@ static const EnumPropertyItem rna_enum_audio_channels_items[] = {
 #  include "BKE_context.h"
 #  include "BKE_sound.h"
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 #  include "SEQ_sequencer.h"
 

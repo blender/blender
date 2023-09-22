@@ -282,8 +282,8 @@ static const EnumPropertyItem modifier_noise_random_mode_items[] = {
 #  include "BKE_gpencil_modifier_legacy.h"
 #  include "BKE_object.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 static StructRNA *rna_GpencilModifier_refine(PointerRNA *ptr)
 {

@@ -13,8 +13,8 @@
 #include "BLI_iterator.h"
 #include "BLI_utildefines.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 /* Needed for the instance iterator. */
 #include "DNA_object_types.h"
@@ -29,10 +29,6 @@ struct PointerRNA;
 struct Scene;
 struct ViewLayer;
 struct ViewerPath;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* -------------------------------------------------------------------- */
 /** \name DEG input data
@@ -294,7 +290,3 @@ void DEG_foreach_dependent_ID_component(const Depsgraph *depsgraph,
 void DEG_foreach_ID(const Depsgraph *depsgraph, DEGForeachIDCallback callback, void *user_data);
 
 /** \} */
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif

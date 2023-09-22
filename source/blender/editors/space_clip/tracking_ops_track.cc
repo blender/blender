@@ -30,7 +30,7 @@
 
 #include "PIL_time.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "clip_intern.h" /* own include */
 #include "tracking_ops_intern.h"

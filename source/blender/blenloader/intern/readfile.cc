@@ -91,7 +91,7 @@
 
 #include "DRW_engine.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BLO_blend_defs.hh"
 #include "BLO_blend_validate.hh"

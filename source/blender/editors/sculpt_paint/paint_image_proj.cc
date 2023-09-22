@@ -75,8 +75,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_image.hh"
 #include "ED_node.hh"

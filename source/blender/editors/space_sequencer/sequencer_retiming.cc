@@ -32,7 +32,7 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 /* Own include. */
 #include "sequencer_intern.hh"

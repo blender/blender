@@ -72,8 +72,8 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 
 #  include "ANIM_bone_collections.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 #  ifndef NDEBUG
 #    include "ANIM_armature_iter.hh"

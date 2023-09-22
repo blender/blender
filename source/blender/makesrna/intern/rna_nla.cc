@@ -83,8 +83,8 @@ const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
 
 #  include "ED_anim_api.hh"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 static void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
 {

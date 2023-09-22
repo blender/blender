@@ -26,7 +26,7 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 BMEditMesh *BKE_editmesh_create(BMesh *bm)
 {

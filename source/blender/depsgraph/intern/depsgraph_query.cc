@@ -27,12 +27,12 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
-#include "intern/depsgraph.h"
+#include "intern/depsgraph.hh"
 #include "intern/eval/deg_eval_copy_on_write.h"
-#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_id.hh"
 
 namespace blender::deg {
 

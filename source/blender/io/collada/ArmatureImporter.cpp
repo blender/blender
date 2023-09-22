@@ -23,7 +23,7 @@
 
 #include "ANIM_bone_collections.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ArmatureImporter.h"
 #include "collada_utils.h"

@@ -6,11 +6,11 @@
  * \ingroup depsgraph
  */
 
-#include "intern/depsgraph_update.h"
+#include "intern/depsgraph_update.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph_type.hh"
 
 namespace deg = blender::deg;
 

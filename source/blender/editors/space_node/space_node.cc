@@ -39,7 +39,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BLO_read_write.hh"
 

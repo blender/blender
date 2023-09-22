@@ -5,7 +5,7 @@
 #include "BKE_context.h"
 #include "BKE_grease_pencil.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_grease_pencil_types.h"

@@ -20,7 +20,7 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

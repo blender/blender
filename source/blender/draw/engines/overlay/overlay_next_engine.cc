@@ -11,7 +11,7 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_view3d.hh"
 

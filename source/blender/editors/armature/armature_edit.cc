@@ -45,7 +45,7 @@
 
 #include "ANIM_bone_collections.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "armature_intern.h"
 

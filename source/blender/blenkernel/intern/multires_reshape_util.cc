@@ -30,7 +30,7 @@
 #include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Construct/destruct reshape context

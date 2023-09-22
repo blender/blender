@@ -28,7 +28,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 

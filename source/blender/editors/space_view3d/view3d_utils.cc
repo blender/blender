@@ -36,8 +36,8 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "BIF_glutil.hh"
 

@@ -67,8 +67,8 @@
 #include "BKE_main.h"
 /* end */
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "MOD_modifiertypes.hh"
 

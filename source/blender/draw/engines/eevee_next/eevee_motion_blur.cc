@@ -7,7 +7,7 @@
  */
 
 // #include "BLI_map.hh"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "eevee_instance.hh"
 #include "eevee_motion_blur.hh"

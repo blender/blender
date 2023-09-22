@@ -58,10 +58,6 @@ enum {
   DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY = (1 << 1),
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* ************************************************ */
 /* Depsgraph API */
 
@@ -275,7 +271,3 @@ void DEG_debug_print_eval_time(struct Depsgraph *depsgraph,
                                float time);
 
 /** \} */
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif

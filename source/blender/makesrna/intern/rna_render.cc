@@ -19,7 +19,7 @@
 #  include "BPY_extern.h"
 #endif
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BKE_image.h"
 #include "BKE_scene.h"
@@ -95,7 +95,7 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 #  include "IMB_colormanagement.h"
 #  include "IMB_imbuf_types.h"
 
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph_query.hh"
 
 /* RenderEngine Callbacks */
 

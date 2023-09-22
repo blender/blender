@@ -12,7 +12,7 @@
 
 #include "GPU_texture.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "eevee_private.h"
 

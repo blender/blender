@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "intern/node/deg_node.h"
+#include "intern/node/deg_node.hh"
 
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph_type.hh"
 
 struct Depsgraph;
 

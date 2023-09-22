@@ -12,10 +12,6 @@
 
 #include <stdio.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Depsgraph;
 struct Scene;
 struct ViewLayer;
@@ -66,7 +62,3 @@ bool DEG_debug_graph_relations_validate(struct Depsgraph *graph,
 
 /** Perform consistency check on the graph. */
 bool DEG_debug_consistency_check(struct Depsgraph *graph);
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif

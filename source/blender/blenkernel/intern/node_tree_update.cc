@@ -32,7 +32,7 @@
 #include "NOD_socket.hh"
 #include "NOD_texture.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 using namespace blender::nodes;
 

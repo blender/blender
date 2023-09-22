@@ -53,7 +53,7 @@
 
 #include "BLI_math_color.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLO_read_write.hh"
 

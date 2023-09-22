@@ -18,7 +18,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 

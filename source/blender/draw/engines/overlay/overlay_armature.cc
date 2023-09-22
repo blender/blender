@@ -31,7 +31,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_armature.hh"
 #include "ED_view3d.hh"

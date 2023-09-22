@@ -42,7 +42,7 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 static void init_data(ModifierData *md)
 {

@@ -24,7 +24,7 @@
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_build.hh"
 
 /* Only for blend modes. */
 #include "IMB_imbuf.h"

@@ -22,8 +22,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "BKE_bvhutils.h"
 #include "BKE_cloth.hh"

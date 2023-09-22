@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "intern/node/deg_node_factory.h"
+#include "intern/node/deg_node_factory.hh"
 
 struct ID;
 

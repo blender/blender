@@ -10,17 +10,13 @@
 
 #pragma once
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 struct DepsNodeHandle;
 struct Depsgraph;
 struct EffectorWeights;
 struct ListBase;
 struct Object;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef enum ePhysicsRelationType {
   DEG_PHYSICS_EFFECTOR = 0,
@@ -54,7 +50,3 @@ void DEG_add_forcefield_relations(struct DepsNodeHandle *handle,
                                   bool add_absorption,
                                   int skip_forcefield,
                                   const char *name);
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif

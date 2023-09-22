@@ -175,7 +175,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "BKE_preferences.h"
 #  include "BKE_screen.h"
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 #  include "GPU_capabilities.h"
 #  include "GPU_select.h"

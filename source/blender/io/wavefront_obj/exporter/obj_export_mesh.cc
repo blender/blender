@@ -22,7 +22,7 @@
 #include "BLI_map.hh"
 #include "BLI_sort.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"

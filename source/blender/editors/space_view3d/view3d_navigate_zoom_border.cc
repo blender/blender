@@ -16,7 +16,7 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 

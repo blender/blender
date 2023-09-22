@@ -33,7 +33,7 @@
 #include "BKE_multires.hh"
 #include "BKE_subsurf.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RE_multires_bake.h"
 #include "RE_pipeline.h"

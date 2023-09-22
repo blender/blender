@@ -34,7 +34,7 @@
 #include "BKE_multires.hh"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 BLI_INLINE void tan_calc_quat_v3(float r_quat[4],
                                  const float co_1[3],

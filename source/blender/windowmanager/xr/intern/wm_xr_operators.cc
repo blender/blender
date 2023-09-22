@@ -22,7 +22,7 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"

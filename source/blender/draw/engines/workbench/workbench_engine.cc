@@ -9,7 +9,7 @@
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_fluid_types.h"
 #include "ED_paint.hh"
 #include "ED_view3d.hh"

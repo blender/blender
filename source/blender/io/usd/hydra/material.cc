@@ -21,7 +21,7 @@
 #include "RNA_prototypes.h"
 #include "RNA_types.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "bpy_rna.h"
 

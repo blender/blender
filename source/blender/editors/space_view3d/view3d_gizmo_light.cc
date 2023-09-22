@@ -15,7 +15,7 @@
 #include "BKE_layer.h"
 #include "BKE_object.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"

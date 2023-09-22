@@ -9,7 +9,7 @@
 
 #include "DNA_customdata_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 

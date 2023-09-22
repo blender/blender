@@ -10,7 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "intern/depsgraph_type.h"
+#include "intern/depsgraph_type.hh"
 
 #include "RNA_access.hh"
 

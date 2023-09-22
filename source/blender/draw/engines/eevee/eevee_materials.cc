@@ -27,7 +27,7 @@
 
 #include "GPU_material.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "../eevee_next/eevee_lut.hh"
 #include "eevee_engine.h"
