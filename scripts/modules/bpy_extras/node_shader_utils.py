@@ -468,14 +468,14 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def emission_color_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
             return Color((0.0, 0.0, 0.0))
-        return rgba_to_rgb(self.node_principled_bsdf.inputs["Emission"].default_value)
+        return rgba_to_rgb(self.node_principled_bsdf.inputs["Emission Color"].default_value)
 
     @_set_check
     def emission_color_set(self, color):
         if self.use_nodes and self.node_principled_bsdf is not None:
             color = values_clamp(color, 0.0, 1000000.0)
             color = rgb_to_rgba(color)
-            self.node_principled_bsdf.inputs["Emission"].default_value = color
+            self.node_principled_bsdf.inputs["Emission Color"].default_value = color
 
     emission_color = property(emission_color_get, emission_color_set)
 
@@ -484,7 +484,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
-            self.node_principled_bsdf.inputs["Emission"],
+            self.node_principled_bsdf.inputs["Emission Color"],
             grid_row_diff=1,
         )
 

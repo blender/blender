@@ -465,7 +465,7 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   }
 
   if (pxr::UsdShadeInput emissive_input = usd_shader.GetInput(usdtokens::emissiveColor)) {
-    set_node_input(emissive_input, principled, "Emission", ntree, column, &context);
+    set_node_input(emissive_input, principled, "Emission Color", ntree, column, &context);
   }
 
   if (pxr::UsdShadeInput specular_input = usd_shader.GetInput(usdtokens::specularColor)) {

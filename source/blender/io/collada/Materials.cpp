@@ -330,7 +330,7 @@ void MaterialNode::set_emission(COLLADAFW::ColorOrTexture &cot)
   int locy = -300 * (node_map.size() - 2);
   if (cot.isColor()) {
     COLLADAFW::Color col = cot.getColor();
-    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Emission");
+    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Emission Color");
     float *fcol = (float *)socket->default_value;
 
     fcol[0] = col.getRed();
@@ -340,9 +340,9 @@ void MaterialNode::set_emission(COLLADAFW::ColorOrTexture &cot)
   }
   // texture
   else if (cot.isTexture()) {
-    bNode *texture_node = add_texture_node(cot, -300, locy, "Emission");
+    bNode *texture_node = add_texture_node(cot, -300, locy, "Emission Color");
     if (texture_node != nullptr) {
-      add_link(texture_node, "Color", shader_node, "Emission");
+      add_link(texture_node, "Color", shader_node, "Emission Color");
     }
   }
 

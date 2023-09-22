@@ -2720,7 +2720,7 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(ior, "IOR", 0.0f);
   SOCKET_IN_FLOAT(transmission, "Transmission", 0.0f);
   SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
-  SOCKET_IN_COLOR(emission, "Emission", one_float3());
+  SOCKET_IN_COLOR(emission_color, "Emission Color", one_float3());
   SOCKET_IN_FLOAT(emission_strength, "Emission Strength", 0.0f);
   SOCKET_IN_FLOAT(alpha, "Alpha", 1.0f);
   SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
@@ -2743,7 +2743,7 @@ void PrincipledBsdfNode::simplify_settings(Scene * /* scene */)
 {
   if (!has_surface_emission()) {
     /* Emission will be zero, so optimize away any connected emission input. */
-    ShaderInput *emission_in = input("Emission");
+    ShaderInput *emission_in = input("Emission Color");
     ShaderInput *strength_in = input("Emission Strength");
     if (emission_in->link) {
       emission_in->disconnect();
@@ -2762,9 +2762,9 @@ bool PrincipledBsdfNode::has_surface_transparent()
 
 bool PrincipledBsdfNode::has_surface_emission()
 {
-  ShaderInput *emission_in = input("Emission");
+  ShaderInput *emission_color_in = input("Emission Color");
   ShaderInput *emission_strength_in = input("Emission Strength");
-  return (emission_in->link != NULL || reduce_max(emission) > CLOSURE_WEIGHT_CUTOFF) &&
+  return (emission_color_in->link != NULL || reduce_max(emission_color) > CLOSURE_WEIGHT_CUTOFF) &&
          (emission_strength_in->link != NULL || emission_strength > CLOSURE_WEIGHT_CUTOFF);
 }
 
@@ -2825,7 +2825,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
   int subsurface_anisotropy_offset = compiler.stack_assign(input("Subsurface Anisotropy"));
   int alpha_offset = compiler.stack_assign_if_linked(alpha_in);
   int emission_strength_offset = compiler.stack_assign_if_linked(emission_strength_in);
-  int emission_offset = compiler.stack_assign(input("Emission"));
+  int emission_color_offset = compiler.stack_assign(input("Emission Color"));
 
   compiler.add_node(NODE_CLOSURE_BSDF,
                     compiler.encode_uchar4(closure,
@@ -2866,7 +2866,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
 
   compiler.add_node(
       compiler.encode_uchar4(
-          alpha_offset, emission_strength_offset, emission_offset, SVM_STACK_INVALID),
+          alpha_offset, emission_strength_offset, emission_color_offset, SVM_STACK_INVALID),
       __float_as_int(get_float(alpha_in->socket_type)),
       __float_as_int(get_float(emission_strength_in->socket_type)),
       SVM_STACK_INVALID);
