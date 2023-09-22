@@ -720,7 +720,7 @@ MenuType node_group_operator_assets_menu_unassigned()
   type.flag = MenuTypeFlag::ContextDependent;
   type.description = N_(
       "Tool node group assets not assigned to a catalog.\n"
-      "Catalogs can be assigned in the Asset Browser.");
+      "Catalogs can be assigned in the Asset Browser");
   return type;
 }
 
