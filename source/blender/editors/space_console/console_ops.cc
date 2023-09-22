@@ -362,7 +362,7 @@ static bool console_line_column_from_index(
 
   for (cl = static_cast<ConsoleLine *>(sc->scrollback.last); cl; cl = cl->prev) {
     offset += cl->len + 1;
-    if (offset >= pos) {
+    if (offset > pos) {
       break;
     }
   }
