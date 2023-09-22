@@ -58,6 +58,37 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace {
+
+/* Resource handle to lock the main thread mutex on
+ * a given job. Allows for the case where the job is null. */
+class MainThreadLock {
+  /* May be null. */
+  wmJob *wm_job_;
+
+ public:
+  MainThreadLock(wmJob *job) : wm_job_(job)
+  {
+    if (wm_job_) {
+      WM_job_main_thread_lock_acquire(wm_job_);
+    }
+  }
+
+  ~MainThreadLock()
+  {
+    if (wm_job_) {
+      WM_job_main_thread_lock_release(wm_job_);
+    }
+  }
+
+  /* Disallow copying. */
+  MainThreadLock(const MainThreadLock &) = delete;
+  MainThreadLock &operator=(const MainThreadLock &) = delete;
+};
+
+} // End anonymous namespace
+
+
 namespace blender::io::usd {
 
 struct ExportJobData {
@@ -631,21 +662,21 @@ static void export_startjob(void *customdata,
   }
   G.is_break = false;
 
-  data->main_thread_lock_acquire();
+  {
+    MainThreadLock main_thread_lock(data->wm_job);
 
-  /* Construct the depsgraph for exporting. */
-  if (data->params.visible_objects_only) {
-    DEG_graph_build_from_view_layer(data->depsgraph);
+    /* Construct the depsgraph for exporting. */
+    if (data->params.visible_objects_only) {
+      DEG_graph_build_from_view_layer(data->depsgraph);
+    }
+    else {
+      DEG_graph_build_for_all_objects(data->depsgraph);
+    }
+
+    ModifierDisabler mod_disabler(data->depsgraph, data->params);
+    mod_disabler.disable_modifiers();
+    BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
   }
-  else {
-    DEG_graph_build_for_all_objects(data->depsgraph);
-  }
-
-  ModifierDisabler mod_disabler(data->depsgraph, data->params);
-  mod_disabler.disable_modifiers();
-  BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
-
-  data->main_thread_lock_release();
 
   validate_unique_root_prim_path(data->params, data->depsgraph);
 
