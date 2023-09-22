@@ -431,10 +431,7 @@ class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Pa
             row = col.row()
 
             row_checkbox = row.row()
-            if (hasattr(edit, prop)):
-                row_checkbox.prop(edit, prop, text="")
-            elif type_ctx:
-                row_checkbox.prop(edit, prop, text="", text_ctxt=type_ctx)
+            row_checkbox.prop(edit, prop, text="", text_ctxt=type_ctx)
 
             row_label = row.row()
             row_label.label(text=type_name, icon=type_icon)
