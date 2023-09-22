@@ -217,8 +217,15 @@ static int console_textview_main__internal(SpaceConsole *sc,
 
   console_textview_draw_rect_calc(region, &tvc.draw_rect, &tvc.draw_rect_outer);
 
+  /* Nudge right by half a column to break selection mid-character. */
+  int m_pos[2] = {mval[0], mval[1]};
+  /* Mouse position is initialized with max int. */
+  if (m_pos[0] != INT_MAX) {
+    m_pos[0] += tvc.lheight / 4;
+  }
+
   console_scrollback_prompt_begin(sc, &cl_dummy);
-  ret = textview_draw(&tvc, do_draw, mval, r_mval_pick_item, r_mval_pick_offset);
+  ret = textview_draw(&tvc, do_draw, m_pos, r_mval_pick_item, r_mval_pick_offset);
   console_scrollback_prompt_end(sc, &cl_dummy);
 
   return ret;
