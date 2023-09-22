@@ -33,7 +33,7 @@ void node_bsdf_principled(vec4 base_color,
                           float subsurface_anisotropy,
                           vec4 metallic_tint,
                           float specular,
-                          float specular_tint,
+                          vec4 specular_tint,
                           float anisotropic,
                           float anisotropic_rotation,
                           vec3 T,
@@ -110,10 +110,11 @@ void node_bsdf_principled(vec4 base_color,
   ClosureReflection reflection_data;
   reflection_data.N = N;
   reflection_data.roughness = roughness;
-  vec2 split_sum = brdf_lut(NV, roughness);
+
   if (true) {
     vec3 f0 = base_color.rgb;
     vec3 f90 = vec3(1.0);
+    vec2 split_sum = brdf_lut(NV, roughness);
     vec3 metallic_brdf = (do_multiscatter != 0.0) ? F_brdf_multi_scatter(f0, f90, split_sum) :
                                                     F_brdf_single_scatter(f0, f90, split_sum);
     reflection_data.color = weight * metallic * metallic_brdf;
@@ -123,15 +124,18 @@ void node_bsdf_principled(vec4 base_color,
 
   /* Transmission component */
   ClosureRefraction refraction_data;
-  /* TODO: change `specular_tint` to rgb. */
-  vec3 reflection_tint = mix(vec3(1.0), base_color.rgb, specular_tint);
+  vec3 reflection_tint = specular_tint.rgb;
   if (true) {
-    vec2 bsdf = bsdf_lut(NV, roughness, ior, do_multiscatter);
+    vec3 F0 = vec3(F0_from_ior(ior)) * reflection_tint;
+    vec3 F90 = vec3(1.0);
+    vec3 reflectance, transmittance;
+    bsdf_lut(
+        F0, F90, base_color.rgb, NV, roughness, ior, do_multiscatter, reflectance, transmittance);
 
-    reflection_data.color += weight * transmission * bsdf.x * reflection_tint;
+    reflection_data.color += weight * transmission * reflectance;
 
-    refraction_data.weight = weight * transmission * bsdf.y;
-    refraction_data.color = base_color.rgb * coat_tint.rgb;
+    refraction_data.weight = weight * transmission;
+    refraction_data.color = transmittance * coat_tint.rgb;
     refraction_data.N = N;
     refraction_data.roughness = roughness;
     refraction_data.ior = ior;
@@ -141,17 +145,15 @@ void node_bsdf_principled(vec4 base_color,
 
   /* Specular component */
   if (true) {
-    vec3 f0 = vec3(F0_from_ior(ior));
-    /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0, 1.33], to avoid harsh
-     * transition at `IOR == 1`. */
-    vec3 f90 = sqrt(saturate(f0 / 0.02));
-    f0 *= 2.0 * specular * reflection_tint;
+    vec3 F0 = vec3(F0_from_ior(ior)) * 2.0 * specular * reflection_tint;
+    F0 = clamp(F0, vec3(0.0), vec3(1.0));
+    vec3 F90 = vec3(1.0);
+    vec3 reflectance, unused;
+    bsdf_lut(F0, F90, vec3(0.0), NV, roughness, ior, do_multiscatter, reflectance, unused);
 
-    vec3 specular_brdf = (do_multiscatter != 0.0) ? F_brdf_multi_scatter(f0, f90, split_sum) :
-                                                    F_brdf_single_scatter(f0, f90, split_sum);
-    reflection_data.color += weight * specular_brdf;
+    reflection_data.color += weight * reflectance;
     /* Attenuate lower layers */
-    weight *= (1.0 - max_v3(specular_brdf));
+    weight *= (1.0 - max_v3(reflectance));
   }
 
   /* Diffuse component */

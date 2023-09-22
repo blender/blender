@@ -15,7 +15,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                             float SubsurfaceAnisotropy = 0.0,
                             float Metallic = 0.0,
                             float Specular = 0.5,
-                            float SpecularTint = 0.0,
+                            color SpecularTint = color(1.0),
                             color MetallicTint = 1.0,
                             float Roughness = 0.5,
                             float Anisotropic = 0.0,
@@ -68,14 +68,9 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
       BSDF = mix(BSDF, BaseColor * SubsurfBSDF, Subsurface);
     }
 
-    color f0 = color(F0_from_ior(IOR));
-    color f90 = color(1.0);
-
     /* Apply specular tint */
-    float m_cdlum = luminance(BaseColor);
-    color m_ctint = m_cdlum > 0.0 ? BaseColor / m_cdlum : color(1.0);
-    color specTint = mix(color(1.0), m_ctint, SpecularTint);
-    f0 *= (specTint * 2.0 * Specular);
+    color f0 = F0_from_ior(IOR) * SpecularTint * 2.0 * Specular;
+    color f90 = color(1.0);
 
     BSDF = layer(
         generalized_schlick_bsdf(
@@ -85,12 +80,14 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
 
   closure color TransmissionBSDF = 0;
   if (Metallic < 1.0 && Transmission > 0.0) {
-    color reflectTint = mix(color(1.0), BaseColor, SpecularTint);
     float eta = max(IOR, 1e-5);
     eta = backfacing() ? 1.0 / eta : eta;
 
-    TransmissionBSDF = dielectric_bsdf(
-        Normal, vector(0.0), reflectTint, sqrt(BaseColor), r2, r2, eta, distribution);
+    color f0 = F0_from_ior(eta) * SpecularTint;
+    color f90 = color(1.0);
+
+    TransmissionBSDF = generalized_schlick_bsdf(
+        Normal, vector(0.0), color(1.0), sqrt(BaseColor), r2, r2, f0, f90, -eta, distribution),
     BSDF = mix(BSDF, TransmissionBSDF, clamp(Transmission, 0.0, 1.0));
   }
 
