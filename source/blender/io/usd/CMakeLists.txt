@@ -93,6 +93,7 @@ set(SRC
   intern/usd_hierarchy_iterator.cc
   intern/usd_light_convert.cc
   intern/usd_lux_api_wrapper.cc
+  intern/usd_modifier_disabler.cc
   intern/usd_skel_convert.cc
   intern/usd_skel_root_utils.cc
 
@@ -138,6 +139,7 @@ set(SRC
   intern/usd_hierarchy_iterator.h
   intern/usd_light_convert.h
   intern/usd_lux_api_wrapper.h
+  intern/usd_modifier_disabler.h
   intern/usd_skel_convert.h
   intern/usd_skel_root_utils.h
 

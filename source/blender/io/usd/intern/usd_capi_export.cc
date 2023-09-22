@@ -9,6 +9,7 @@
 #include "usd_hierarchy_iterator.h"
 #include "usd_hook.h"
 #include "usd_light_convert.h"
+#include "usd_modifier_disabler.h"
 #include "usd_umm.h"
 #include "usd_writer_material.h"
 
@@ -640,6 +641,8 @@ static void export_startjob(void *customdata,
     DEG_graph_build_for_all_objects(data->depsgraph);
   }
 
+  ModifierDisabler mod_disabler(data->depsgraph, data->params);
+  mod_disabler.disable_modifiers();
   BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
 
   data->main_thread_lock_release();

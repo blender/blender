@@ -62,8 +62,6 @@ class USDGenericMeshWriter : public USDAbstractWriter {
                         const bke::AttributeIDRef &attribute_id,
                         const bke::AttributeMetaData &meta_data);
 
-  ModifierData *m_subsurf_mod;
-
   template<typename BlenderT, typename USDT>
   void copy_blender_buffer_to_prim(const Span<BlenderT> buffer,
                                    const pxr::UsdTimeCode timecode,

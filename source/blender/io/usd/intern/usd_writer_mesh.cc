@@ -6,6 +6,7 @@
 #include "usd_armature_utils.h"
 #include "usd_blend_shape_utils.h"
 #include "usd_hierarchy_iterator.h"
+#include "usd_modifier_disabler.h"
 #include "usd_skel_convert.h"
 #include "usd_writer_armature.h"
 
@@ -70,32 +71,25 @@ static const pxr::TfToken blenderDataNS("data:", pxr::TfToken::Immortal);
 static const pxr::TfToken Anim("Anim", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-/* check if the mesh is a subsurf, ignoring disabled modifiers and
- * displace if it's after subsurf. */
-static ModifierData *get_subsurf_modifier(Object *ob, ModifierMode mode)
+/**
+ * This logic is taken from the Alembic IO code in
+ * ABCGenericMeshWriter::export_as_subdivision_surface. It returns true if the given object has a
+ * subdivision modifier that is temporarily disabled, from which we can infer that it was disabled
+ * by the USDModifierDisabler.
+ */
+static bool export_as_subdiv(Object *ob_eval)
 {
-  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
+  ModifierData *md = static_cast<ModifierData *>(ob_eval->modifiers.last);
 
   for (; md; md = md->prev) {
-    if (!BKE_modifier_is_enabled(nullptr, md, mode)) {
-      continue;
-    }
-
-    if (md->type == eModifierType_Subsurf) {
-      SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
-
-      if (smd->subdivType == ME_CC_SUBSURF) {
-        return md;
-      }
-    }
-
-    /* mesh is not a subsurf. break */
-    if ((md->type != eModifierType_Displace) && (md->type != eModifierType_ParticleSystem)) {
-      return NULL;
+    /* This modifier has been temporarily disabled by SubdivModifierDisabler,
+     * so this indicates this is to be exported as subdivision surface. */
+    if (md->type == eModifierType_Subsurf && (md->mode & eModifierMode_DisableTemporary)) {
+      return true;
     }
   }
 
-  return NULL;
+  return false;
 }
 
 const pxr::UsdTimeCode defaultTime = pxr::UsdTimeCode::Default();
@@ -142,19 +136,6 @@ bool USDGenericMeshWriter::is_supported(const HierarchyContext *context) const
 void USDGenericMeshWriter::do_write(HierarchyContext &context)
 {
   Object *object_eval = context.object;
-
-  const ModifierMode mode = usd_export_context_.export_params.evaluation_mode ==
-                                    DAG_EVAL_VIEWPORT ?
-                                eModifierMode_Realtime :
-                                eModifierMode_Render;
-
-  m_subsurf_mod = get_subsurf_modifier(context.object, mode);
-  const bool should_disable_temporary = m_subsurf_mod &&
-                                        !usd_export_context_.export_params.apply_subdiv;
-
-  if (should_disable_temporary) {
-    m_subsurf_mod->mode |= eModifierMode_DisableTemporary;
-  }
 
   bool needsfree = false;
   Mesh *mesh = get_export_mesh(object_eval, needsfree);
@@ -206,10 +187,6 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
 
   if (usd_export_context_.export_params.export_custom_properties && mesh)
     write_id_properties(prim, mesh->id, get_export_time_code());
-
-  if (should_disable_temporary) {
-    m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
-  }
 }
 
 void USDGenericMeshWriter::write_custom_data(const Object *obj,
@@ -599,7 +576,7 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
         attr_crease_indices.Set(usd_mesh_data.crease_vertex_indices, defaultTime);
         attr_crease_sharpness.Set(usd_mesh_data.crease_sharpnesses, defaultTime);
       }
- 
+
       usd_value_writer_.SetAttribute(
           attr_crease_lengths, pxr::VtValue(usd_mesh_data.crease_lengths), timecode);
       usd_value_writer_.SetAttribute(
@@ -640,8 +617,10 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   }
 
   if (usd_export_context_.export_params.export_vertices) {
-    usd_mesh.CreateSubdivisionSchemeAttr().Set(
-        (m_subsurf_mod == NULL) ? pxr::UsdGeomTokens->none : pxr::UsdGeomTokens->catmullClark);
+    const bool set_subdiv = !usd_export_context_.export_params.apply_subdiv &&
+                            export_as_subdiv(context.object);
+    usd_mesh.CreateSubdivisionSchemeAttr().Set(set_subdiv ? pxr::UsdGeomTokens->catmullClark :
+                                                            pxr::UsdGeomTokens->none);
   }
 
   if (usd_export_context_.export_params.export_materials) {
