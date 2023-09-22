@@ -1167,7 +1167,7 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
   PointerRNA dummy_kpt_ptr = RNA_pointer_create(nullptr, &RNA_KeyConfigPreferences, &dummy_kpt);
 
   /* validate the python class */
-  if (validate(&dummy_kpt_ptr, data, nullptr /* have_function */) != 0) {
+  if (validate(&dummy_kpt_ptr, data, nullptr /*have_function*/) != 0) {
     return nullptr;
   }
 

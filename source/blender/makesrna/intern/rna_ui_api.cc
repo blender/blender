@@ -2096,6 +2096,12 @@ void RNA_api_ui_layout(StructRNA *srna)
       srna, "template_light_linking_collection", "uiTemplateLightLinkingCollection");
   RNA_def_function_ui_description(func,
                                   "Visualization of a content of a light linking collection");
+  parm = RNA_def_pointer(func,
+                         "context_layout",
+                         "UILayout",
+                         "",
+                         "Layout to set active list element as context properties");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   api_ui_item_rna_common(func);
 
   func = RNA_def_function(

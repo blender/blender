@@ -52,9 +52,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_light_linking.hh"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 namespace deg = blender::deg;
 

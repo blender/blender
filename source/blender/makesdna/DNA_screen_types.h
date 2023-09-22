@@ -803,6 +803,9 @@ typedef struct AssetShelf {
   struct AssetShelfType *type;
 
   AssetShelfSettings settings;
+
+  short preferred_row_count;
+  char _pad[6];
 } AssetShelf;
 
 /**

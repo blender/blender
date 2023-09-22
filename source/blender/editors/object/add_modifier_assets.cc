@@ -291,7 +291,7 @@ static MenuType modifier_add_unassigned_assets_menu_type()
   type.flag = MenuTypeFlag::ContextDependent;
   type.description = N_(
       "Modifier node group assets not assigned to a catalog.\n"
-      "Catalogs can be assigned in the Asset Browser.");
+      "Catalogs can be assigned in the Asset Browser");
   return type;
 }
 

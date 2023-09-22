@@ -20,7 +20,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_vector.hh"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_layer_types.h"
 
 #include "bmesh.h"

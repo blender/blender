@@ -19,7 +19,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_mesh.hh"
 #include "ED_particle.hh"

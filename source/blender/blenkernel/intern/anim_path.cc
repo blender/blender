@@ -323,12 +323,10 @@ bool BKE_where_on_path(const Object *ob,
   }
 
   if (r_vec) {
-    r_vec[0] = /* X */
-        w[0] * p0->vec[0] + w[1] * p1->vec[0] + w[2] * p2->vec[0] + w[3] * p3->vec[0];
-    r_vec[1] = /* Y */
-        w[0] * p0->vec[1] + w[1] * p1->vec[1] + w[2] * p2->vec[1] + w[3] * p3->vec[1];
-    r_vec[2] = /* Z */
-        w[0] * p0->vec[2] + w[1] * p1->vec[2] + w[2] * p2->vec[2] + w[3] * p3->vec[2];
+    /* X, Y, Z axis. */
+    r_vec[0] = w[0] * p0->vec[0] + w[1] * p1->vec[0] + w[2] * p2->vec[0] + w[3] * p3->vec[0];
+    r_vec[1] = w[0] * p0->vec[1] + w[1] * p1->vec[1] + w[2] * p2->vec[1] + w[3] * p3->vec[1];
+    r_vec[2] = w[0] * p0->vec[2] + w[1] * p1->vec[2] + w[2] * p2->vec[2] + w[3] * p3->vec[2];
   }
 
   /* Clamp weights to 0-1 as we don't want to extrapolate other values than position. */

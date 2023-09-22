@@ -35,7 +35,7 @@ void TreeElementViewLayerBase::expand(SpaceOutliner & /*space_outliner*/) const
 }
 
 TreeElementViewLayer::TreeElementViewLayer(TreeElement &legacy_te,
-                                           Scene & /* scene */,
+                                           Scene & /*scene*/,
                                            ViewLayer &view_layer)
     : AbstractTreeElement(legacy_te), /* scene_(scene), */ view_layer_(view_layer)
 {

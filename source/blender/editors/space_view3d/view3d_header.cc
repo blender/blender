@@ -23,7 +23,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"

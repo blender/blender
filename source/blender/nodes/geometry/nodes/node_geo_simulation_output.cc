@@ -14,7 +14,7 @@
 #include "BKE_instances.hh"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "UI_interface.hh"
 

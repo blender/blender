@@ -149,7 +149,7 @@ bool IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONN
  */
 bool IDP_InsertToGroup(struct IDProperty *group,
                        struct IDProperty *previous,
-                       struct IDProperty *pnew) ATTR_NONNULL(1 /* group */, 3 /* pnew */);
+                       struct IDProperty *pnew) ATTR_NONNULL(1 /*group*/, 3 /*pnew*/);
 /**
  * \note this does not free the property!
  *

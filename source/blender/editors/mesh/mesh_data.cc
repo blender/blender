@@ -28,7 +28,7 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

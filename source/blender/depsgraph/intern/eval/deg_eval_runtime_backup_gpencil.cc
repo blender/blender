@@ -7,7 +7,7 @@
  */
 
 #include "intern/eval/deg_eval_runtime_backup_gpencil.h"
-#include "intern/depsgraph.h"
+#include "intern/depsgraph.hh"
 
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_update_cache_legacy.h"

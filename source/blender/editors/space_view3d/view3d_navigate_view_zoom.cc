@@ -12,7 +12,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 

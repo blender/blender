@@ -12,7 +12,7 @@
 
 #include "ED_view3d.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "draw_cache_impl.hh"
 

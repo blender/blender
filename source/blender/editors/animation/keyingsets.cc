@@ -26,7 +26,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_keyframing.hh"
 #include "ED_screen.hh"

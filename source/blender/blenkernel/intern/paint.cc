@@ -72,8 +72,8 @@
 #include "BKE_subsurf.hh"
 #include "BKE_undo_system.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_enum_types.hh"
 

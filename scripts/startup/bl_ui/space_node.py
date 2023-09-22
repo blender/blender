@@ -47,6 +47,7 @@ class NODE_HT_header(Header):
         # Now expanded via the `ui_type`.
         # layout.prop(snode, "tree_type", text="")
 
+        display_pin = True
         if snode.tree_type == 'ShaderNodeTree':
             layout.prop(snode, "shader_type", text="")
 
@@ -166,6 +167,7 @@ class NODE_HT_header(Header):
                 layout.template_ID(snode, "node_tree", new="node.new_geometry_node_group_tool")
                 if snode.node_tree and snode.node_tree.asset_data:
                     layout.popover(panel="NODE_PT_geometry_node_asset_traits")
+                display_pin = False
         else:
             # Custom node tree is edited as independent ID block
             NODE_MT_editor_menus.draw_collapsible(context, layout)
@@ -175,7 +177,7 @@ class NODE_HT_header(Header):
             layout.template_ID(snode, "node_tree", new="node.new_node_tree")
 
         # Put pin next to ID block
-        if not is_compositor:
+        if not is_compositor and display_pin:
             layout.prop(snode, "pin", text="", emboss=False)
 
         layout.separator_spacer()

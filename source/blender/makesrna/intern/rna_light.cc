@@ -30,7 +30,7 @@
 #  include "BKE_main.h"
 #  include "BKE_texture.h"
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 #  include "ED_node.hh"
 #  include "WM_api.hh"

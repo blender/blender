@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #include "COLLADASWLibraryAnimationClips.h"
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 #include "ExportSettings.h"
 
 class AnimationClipExporter : COLLADASW::LibraryAnimationClips {

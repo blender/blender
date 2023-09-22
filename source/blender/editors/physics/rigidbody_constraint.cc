@@ -23,8 +23,8 @@
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

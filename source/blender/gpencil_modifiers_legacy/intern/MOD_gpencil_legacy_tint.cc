@@ -49,8 +49,8 @@
 #include "MOD_gpencil_legacy_ui_common.h"
 #include "MOD_gpencil_legacy_util.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 static void init_data(GpencilModifierData *md)
 {

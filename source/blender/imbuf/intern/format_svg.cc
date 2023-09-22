@@ -18,7 +18,7 @@
 #include "nanosvgrast.h"
 
 ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
-                                       const int /* flags */,
+                                       const int /*flags*/,
                                        const size_t max_thumb_size,
                                        char colorspace[],
                                        size_t *r_width,

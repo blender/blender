@@ -9,9 +9,9 @@
 #pragma once
 
 #include "intern/eval/deg_eval_copy_on_write.h"
-#include "intern/node/deg_node.h"
-#include "intern/node/deg_node_id.h"
-#include "intern/node/deg_node_operation.h"
+#include "intern/node/deg_node.hh"
+#include "intern/node/deg_node_id.hh"
+#include "intern/node/deg_node_operation.hh"
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

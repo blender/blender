@@ -99,7 +99,7 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* For element checking. */

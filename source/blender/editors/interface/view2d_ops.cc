@@ -1868,17 +1868,17 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 
 static bool scroller_activate_poll(bContext *C)
 {
+  const wmWindow *win = CTX_wm_window(C);
+  if (!(win && win->eventstate)) {
+    return false;
+  }
   if (!view2d_poll(C)) {
     return false;
   }
-
-  wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
   View2D *v2d = &region->v2d;
-  wmEvent *event = win->eventstate;
-
   /* Check if mouse in scroll-bars, if they're enabled. */
-  return (UI_view2d_mouse_in_scrollers(region, v2d, event->xy) != 0);
+  return (UI_view2d_mouse_in_scrollers(region, v2d, win->eventstate->xy) != 0);
 }
 
 /* Initialize #wmOperator.customdata for scroller manipulation operator. */

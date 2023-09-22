@@ -22,7 +22,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "BKE_context.h"
 #include "BKE_mesh.hh"

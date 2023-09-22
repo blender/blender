@@ -31,7 +31,7 @@
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"

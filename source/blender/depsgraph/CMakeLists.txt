@@ -78,7 +78,7 @@ set(SRC
   intern/depsgraph_debug.cc
   intern/depsgraph_eval.cc
   intern/depsgraph_light_linking.cc
-  intern/depsgraph_light_linking.h
+  intern/depsgraph_light_linking.hh
   intern/depsgraph_physics.cc
   intern/depsgraph_query.cc
   intern/depsgraph_query_foreach.cc
@@ -89,13 +89,12 @@ set(SRC
   intern/depsgraph_type.cc
   intern/depsgraph_update.cc
 
-  DEG_depsgraph.h
-  DEG_depsgraph_build.h
-  DEG_depsgraph_debug.h
-  DEG_depsgraph_light_linking.h
+  DEG_depsgraph.hh
+  DEG_depsgraph_build.hh
+  DEG_depsgraph_debug.hh
   DEG_depsgraph_light_linking.hh
-  DEG_depsgraph_physics.h
-  DEG_depsgraph_query.h
+  DEG_depsgraph_physics.hh
+  DEG_depsgraph_query.hh
 
   intern/builder/deg_builder.h
   intern/builder/deg_builder_cache.h
@@ -134,20 +133,20 @@ set(SRC
   intern/eval/deg_eval_runtime_backup_sound.h
   intern/eval/deg_eval_runtime_backup_volume.h
   intern/eval/deg_eval_stats.h
-  intern/node/deg_node.h
-  intern/node/deg_node_component.h
-  intern/node/deg_node_factory.h
-  intern/node/deg_node_factory_impl.h
-  intern/node/deg_node_id.h
-  intern/node/deg_node_operation.h
-  intern/node/deg_node_time.h
-  intern/depsgraph.h
-  intern/depsgraph_physics.h
-  intern/depsgraph_registry.h
-  intern/depsgraph_relation.h
-  intern/depsgraph_tag.h
-  intern/depsgraph_type.h
-  intern/depsgraph_update.h
+  intern/node/deg_node.hh
+  intern/node/deg_node_component.hh
+  intern/node/deg_node_factory.hh
+  intern/node/deg_node_factory_impl.hh
+  intern/node/deg_node_id.hh
+  intern/node/deg_node_operation.hh
+  intern/node/deg_node_time.hh
+  intern/depsgraph.hh
+  intern/depsgraph_physics.hh
+  intern/depsgraph_registry.hh
+  intern/depsgraph_relation.hh
+  intern/depsgraph_tag.hh
+  intern/depsgraph_type.hh
+  intern/depsgraph_update.hh
 )
 
 set(LIB

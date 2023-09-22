@@ -150,8 +150,8 @@ static const EnumPropertyItem part_fluid_type_items[] = {
 #  include "BKE_pointcache.h"
 #  include "BKE_texture.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 /* use for object space hair get/set */
 static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr,

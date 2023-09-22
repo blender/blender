@@ -446,6 +446,16 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->eed_act = BM_mesh_active_edge_get(mr->bm);
     mr->eve_act = BM_mesh_active_vert_get(mr->bm);
 
+    BMeshCalcTessellation_Params bmpparams = {};
+    bmpparams.face_normals = false;
+
+    int tri_count = poly_to_tri_count(mr->bm->totface, mr->bm->totloop);
+
+    BMLoop *(*looptri)[3] = static_cast<BMLoop *(*)[3]>(
+        MEM_mallocN(sizeof(void *) * 3 * tri_count, "sculpt draw extract loop tris"));
+    mr->bm_looptris = {looptri, tri_count};
+    BM_mesh_calc_tessellation_ex(mr->bm, mr->bm_looptris.data(), &bmpparams);
+
     mr->vert_crease_ofs = CustomData_get_offset_named(
         &mr->bm->vdata, CD_PROP_FLOAT, "crease_vert");
     mr->edge_crease_ofs = CustomData_get_offset_named(
@@ -468,6 +478,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->edit_bmesh = me->edit_mesh;
     mr->me = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
     mr->edit_data = is_mode_active ? mr->me->runtime->edit_data : nullptr;
+    mr->bm_looptris = {mr->edit_bmesh->looptris, mr->edit_bmesh->tottri};
 
     /* If there is no distinct cage, hide unmapped edges that can't be selected. */
     mr->hide_unmapped_edges = !do_final || editmesh_eval_final == editmesh_eval_cage;
@@ -614,6 +625,11 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
 void mesh_render_data_free(MeshRenderData *mr)
 {
+  /* Sculpt mode owns bm_looptris. */
+  if (mr->extract_type == MR_EXTRACT_BMESH && mr->bm_looptris.data() && !mr->edit_bmesh) {
+    MEM_freeN(static_cast<void *>(mr->bm_looptris.data()));
+  }
+
   MEM_delete(mr);
 }
 

@@ -18,7 +18,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_view3d.hh"
 

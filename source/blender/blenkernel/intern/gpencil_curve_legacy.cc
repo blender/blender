@@ -42,7 +42,7 @@ extern "C" {
 #include "curve_fit_nd.h"
 }
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #define COORD_FITTING_INFLUENCE 20.0f
 

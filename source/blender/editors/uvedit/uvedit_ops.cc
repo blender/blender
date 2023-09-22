@@ -37,8 +37,8 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_node.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_image.hh"
 #include "ED_mesh.hh"

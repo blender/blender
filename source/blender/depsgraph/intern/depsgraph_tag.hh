@@ -6,7 +6,7 @@
  * \ingroup depsgraph
  */
 
-#include "intern/node/deg_node.h"
+#include "intern/node/deg_node.hh"
 
 struct ID;
 struct Main;

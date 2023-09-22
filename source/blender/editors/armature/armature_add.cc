@@ -47,7 +47,7 @@
 
 #include "ANIM_bone_collections.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "armature_intern.h"
 
@@ -103,6 +103,10 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm, float length, bool
   zero_v3(bone->tail);
 
   bone->tail[view_aligned ? 1 : 2] = length;
+
+  if (arm->runtime.active_collection) {
+    ANIM_armature_bonecoll_assign_editbone(arm->runtime.active_collection, bone);
+  }
 
   return bone;
 }

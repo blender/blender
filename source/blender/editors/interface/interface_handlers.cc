@@ -6908,7 +6908,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
   float *hsv = cpicker->hsv_perceptual;
   float rgb[3];
-  float phi, r /*, sqr */ /* UNUSED */, v[2];
+  float phi, r, v[2];
   const float sensitivity = (shift ? 0.06f : 0.3f) * ndof->dt;
 
   ui_but_v3_get(but, rgb);
@@ -6918,7 +6918,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
   /* Convert current color on hue/sat disc to circular coordinates phi, r */
   phi = fmodf(hsv[0] + 0.25f, 1.0f) * -2.0f * float(M_PI);
   r = hsv[1];
-  /* sqr = r > 0.0f ? sqrtf(r) : 1; */ /* UNUSED */
+  // const float sqr = r > 0.0f ? sqrtf(r) : 1; /* UNUSED */
 
   /* Convert to 2d vectors */
   v[0] = r * cosf(phi);

@@ -17,9 +17,12 @@
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "DEG_depsgraph_query.h"
+
+#include "DEG_depsgraph_query.hh"
+
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
@@ -28,6 +31,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_task.h"

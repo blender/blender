@@ -70,6 +70,7 @@ void GRAPH_OT_select_linked(struct wmOperatorType *ot);
 void GRAPH_OT_select_more(struct wmOperatorType *ot);
 void GRAPH_OT_select_less(struct wmOperatorType *ot);
 void GRAPH_OT_select_leftright(struct wmOperatorType *ot);
+void GRAPH_OT_select_key_handles(struct wmOperatorType *ot);
 void GRAPH_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
@@ -77,6 +78,14 @@ enum eGraphKeys_LeftRightSelect_Mode {
   GRAPHKEYS_LRSEL_TEST = 0,
   GRAPHKEYS_LRSEL_LEFT,
   GRAPHKEYS_LRSEL_RIGHT,
+};
+
+/* Defines for key/handles selection. */
+enum eGraphKey_SelectKeyHandles_Action {
+  GRAPHKEYS_KEYHANDLESSEL_SELECT = 0,
+  GRAPHKEYS_KEYHANDLESSEL_DESELECT,
+  /* Leave the selection status as-is. */
+  GRAPHKEYS_KEYHANDLESSEL_KEEP,
 };
 
 /* defines for column-select mode */
@@ -124,6 +133,8 @@ void GRAPH_OT_blend_to_ease(struct wmOperatorType *ot);
 void GRAPH_OT_match_slope(struct wmOperatorType *ot);
 void GRAPH_OT_shear(struct wmOperatorType *ot);
 void GRAPH_OT_scale_average(struct wmOperatorType *ot);
+void GRAPH_OT_push_pull(struct wmOperatorType *ot);
+void GRAPH_OT_time_offset(struct wmOperatorType *ot);
 void GRAPH_OT_decimate(struct wmOperatorType *ot);
 void GRAPH_OT_blend_to_default(struct wmOperatorType *ot);
 void GRAPH_OT_butterworth_smooth(struct wmOperatorType *ot);

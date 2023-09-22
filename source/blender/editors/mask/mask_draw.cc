@@ -37,7 +37,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 static void mask_spline_color_get(MaskLayer *mask_layer,
                                   MaskSpline *spline,

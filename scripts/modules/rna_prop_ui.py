@@ -75,11 +75,13 @@ def rna_idprop_ui_prop_default_set(item, prop, value):
 
 def rna_idprop_ui_create(
         item, prop, *, default,
-        min=0.0, max=1.0,
+        min=0, max=1,
         soft_min=None, soft_max=None,
         description=None,
         overridable=False,
         subtype=None,
+        step=None,
+        precision=None,
         id_type='OBJECT',
 ):
     """Create and initialize a custom property with limits, defaults and other settings."""
@@ -91,6 +93,11 @@ def rna_idprop_ui_create(
     ui_data = item.id_properties_ui(prop)
     proptype, _ = rna_idprop_value_item_type(default)
 
+    if soft_min is None:
+        soft_min = min
+    if soft_max is None:
+        soft_max = max
+
     if (proptype is bool) or (proptype is str):
         ui_data.update(
             description=description,
@@ -99,14 +106,13 @@ def rna_idprop_ui_create(
     elif proptype is type(None) or issubclass(proptype, bpy.types.ID):
         ui_data.update(
             description=description,
-            default=default,
             id_type=id_type,
         )
-    else:
-        if soft_min is None:
-            soft_min = min
-        if soft_max is None:
-            soft_max = max
+    elif proptype is float:
+        if step is None:
+            step = 0.1
+        if precision is None:
+            precision = 3
 
         ui_data.update(
             subtype=subtype,
@@ -114,9 +120,27 @@ def rna_idprop_ui_create(
             max=max,
             soft_min=soft_min,
             soft_max=soft_max,
+            step=step,
+            precision=precision,
             description=description,
             default=default,
         )
+    elif proptype is int:
+        if step is None:
+            step = 1
+
+        ui_data.update(
+            subtype=subtype,
+            min=min,
+            max=max,
+            soft_min=soft_min,
+            soft_max=soft_max,
+            step=step,
+            description=description,
+            default=default,
+        )
+    else:
+        raise TypeError("Unexpected value type")
 
     prop_path = rna_idprop_quote_path(prop)
 

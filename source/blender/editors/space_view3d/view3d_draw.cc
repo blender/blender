@@ -62,7 +62,7 @@
 
 #include "ANIM_bone_collections.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"

@@ -52,7 +52,7 @@
 #include "WM_toolsystem.h"
 #include "WM_types.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "view3d_intern.h" /* own include */
 

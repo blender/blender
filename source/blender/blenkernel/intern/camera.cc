@@ -43,7 +43,7 @@
 
 #include "BLT_translation.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
 

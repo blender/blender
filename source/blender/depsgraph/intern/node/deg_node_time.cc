@@ -6,12 +6,12 @@
  * \ingroup depsgraph
  */
 
-#include "intern/node/deg_node_time.h"
+#include "intern/node/deg_node_time.hh"
 
 #include "DNA_scene_types.h"
 
-#include "intern/depsgraph.h"
-#include "intern/depsgraph_relation.h"
+#include "intern/depsgraph.hh"
+#include "intern/depsgraph_relation.hh"
 
 namespace blender::deg {
 

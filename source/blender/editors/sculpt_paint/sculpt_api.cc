@@ -78,8 +78,8 @@
 #include "BKE_subsurf.hh"
 #include "NOD_texture.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "IMB_colormanagement.h"
 

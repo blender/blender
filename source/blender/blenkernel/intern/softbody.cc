@@ -62,15 +62,15 @@
 #include "BKE_scene.h"
 #include "BKE_softbody.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "PIL_time.h"
 
 static CLG_LogRef LOG = {"bke.softbody"};
 
 /* callbacks for errors and interrupts and some goo */
-static int (*SB_localInterruptCallBack)(void) = NULL;
+static int (*SB_localInterruptCallBack)(void) = nullptr;
 
 /* ********** soft body engine ******* */
 
@@ -143,7 +143,7 @@ typedef struct SB_thread_context {
 #define BFF_INTERSECT 1 /* collider edge   intrudes face. */
 #define BFF_CLOSEVERT 2 /* collider vertex repulses face. */
 
-/* humm .. this should be calculated from sb parameters and sizes. */
+/* Hum .. this should be calculated from sb parameters and sizes. */
 static float SoftHeunTol = 1.0f;
 
 /* local prototypes */
@@ -157,7 +157,7 @@ static void free_softbody_intern(SoftBody *sb);
  * Since unit of g is [m/sec^2] and F = mass * g we re-scale unit mass of node to 1 gram
  * put it to a function here, so we can add user options later without touching simulation code.
  */
-static float sb_grav_force_scale(Object *UNUSED(ob))
+static float sb_grav_force_scale(Object * /*ob*/)
 {
   return (0.001f);
 }
@@ -166,7 +166,7 @@ static float sb_grav_force_scale(Object *UNUSED(ob))
  * Re-scaling unit of drag [1 / sec] to somehow reasonable
  * put it to a function here, so we can add user options later without touching simulation code.
  */
-static float sb_fric_force_scale(Object *UNUSED(ob))
+static float sb_fric_force_scale(Object * /*ob*/)
 {
   return (0.01f);
 }
@@ -179,7 +179,7 @@ static float sb_time_scale(Object *ob)
   SoftBody *sb = ob->soft; /* is supposed to be there */
   if (sb) {
     return (sb->physics_speed);
-    /* hrms .. this could be IPO as well :)
+    /* Hum .. this could be IPO as well :)
      * estimated range [0.001 sluggish slug - 100.0 very fast (i hope ODE solver can handle that)]
      * 1 approx = a unit 1 pendulum at g = 9.8 [earth conditions]  has period 65 frames
      * theory would give a 50 frames period .. so there must be something inaccurate ..
@@ -236,7 +236,7 @@ static float _final_mass(Object *ob, BodyPoint *bp)
   CLOG_ERROR(&LOG, "sb or bp == NULL");
   return 1.0f;
 }
-/* Helper functions for everything is animateble jow_go_for2_5. */
+/* Helper functions for everything is animatable jow_go_for2_5. */
 
 /* +++ collider caching and dicing +++ */
 
@@ -247,8 +247,8 @@ static float _final_mass(Object *ob, BodyPoint *bp)
  * float operations still
  */
 
-/* just an ID here to reduce the prob for killing objects
- * ob->sumohandle points to we should not kill :)
+/* Just an ID here to reduce the prob for killing objects
+ * `ob->sumohandle` points to we should not kill :)
  */
 static const int CCD_SAFETY = 190561;
 
@@ -271,7 +271,7 @@ typedef struct ccd_Mesh {
 static ccd_Mesh *ccd_mesh_make(Object *ob)
 {
   CollisionModifierData *cmd;
-  ccd_Mesh *pccd_M = NULL;
+  ccd_Mesh *pccd_M = nullptr;
   ccdf_minmax *mima;
   const MVertTri *vt;
   float hull;
@@ -281,25 +281,25 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
 
   /* first some paranoia checks */
   if (!cmd) {
-    return NULL;
+    return nullptr;
   }
   if (!cmd->mvert_num || !cmd->tri_num) {
-    return NULL;
+    return nullptr;
   }
 
-  pccd_M = MEM_mallocN(sizeof(ccd_Mesh), "ccd_Mesh");
+  pccd_M = static_cast<ccd_Mesh *>(MEM_mallocN(sizeof(ccd_Mesh), "ccd_Mesh"));
   pccd_M->mvert_num = cmd->mvert_num;
   pccd_M->tri_num = cmd->tri_num;
   pccd_M->safety = CCD_SAFETY;
   pccd_M->bbmin[0] = pccd_M->bbmin[1] = pccd_M->bbmin[2] = 1e30f;
   pccd_M->bbmax[0] = pccd_M->bbmax[1] = pccd_M->bbmax[2] = -1e30f;
-  pccd_M->vert_positions_prev = NULL;
+  pccd_M->vert_positions_prev = nullptr;
 
   /* Blow it up with force-field ranges. */
   hull = max_ff(ob->pd->pdef_sbift, ob->pd->pdef_sboft);
 
   /* Allocate and copy verts. */
-  pccd_M->vert_positions = MEM_dupallocN(cmd->xnew);
+  pccd_M->vert_positions = static_cast<const float(*)[3]>(MEM_dupallocN(cmd->xnew));
   /* note that xnew coords are already in global space, */
   /* determine the ortho BB */
   for (i = 0; i < pccd_M->mvert_num; i++) {
@@ -316,10 +316,11 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
     pccd_M->bbmax[2] = max_ff(pccd_M->bbmax[2], v[2] + hull);
   }
   /* Allocate and copy faces. */
-  pccd_M->tri = MEM_dupallocN(cmd->tri);
+  pccd_M->tri = static_cast<const MVertTri *>(MEM_dupallocN(cmd->tri));
 
   /* OBBs for idea1 */
-  pccd_M->mima = MEM_mallocN(sizeof(ccdf_minmax) * pccd_M->tri_num, "ccd_Mesh_Faces_mima");
+  pccd_M->mima = static_cast<ccdf_minmax *>(
+      MEM_mallocN(sizeof(ccdf_minmax) * pccd_M->tri_num, "ccd_Mesh_Faces_mima"));
 
   /* Anyhow we need to walk the list of faces and find OBB they live in. */
   for (i = 0, mima = pccd_M->mima, vt = pccd_M->tri; i < pccd_M->tri_num; i++, mima++, vt++) {
@@ -389,7 +390,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
   }
   pccd_M->vert_positions_prev = pccd_M->vert_positions;
   /* Allocate and copy verts. */
-  pccd_M->vert_positions = MEM_dupallocN(cmd->xnew);
+  pccd_M->vert_positions = static_cast<const float(*)[3]>(MEM_dupallocN(cmd->xnew));
   /* note that xnew coords are already in global space, */
   /* determine the ortho BB */
   for (i = 0; i < pccd_M->mvert_num; i++) {
@@ -531,7 +532,7 @@ static void ccd_build_deflector_hash(Depsgraph *depsgraph,
 static void ccd_update_deflector_hash_single(GHash *hash, Object *ob)
 {
   if (ob->pd && ob->pd->deflect) {
-    ccd_Mesh *ccdmesh = BLI_ghash_lookup(hash, ob);
+    ccd_Mesh *ccdmesh = static_cast<ccd_Mesh *>(BLI_ghash_lookup(hash, ob));
     if (ccdmesh) {
       ccd_mesh_update(ob, ccdmesh);
     }
@@ -584,7 +585,7 @@ static int count_mesh_quads(Mesh *me)
 
 static void add_mesh_quad_diag_springs(Object *ob)
 {
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   // BodyPoint *bp; /* UNUSED */
   if (ob->soft) {
     int nofquads;
@@ -597,8 +598,8 @@ static void add_mesh_quad_diag_springs(Object *ob)
       BodySpring *bs;
 
       /* resize spring-array to hold additional quad springs */
-      ob->soft->bspring = MEM_recallocN(ob->soft->bspring,
-                                        sizeof(BodySpring) * (ob->soft->totspring + nofquads * 2));
+      ob->soft->bspring = static_cast<BodySpring *>(MEM_recallocN(
+          ob->soft->bspring, sizeof(BodySpring) * (ob->soft->totspring + nofquads * 2)));
 
       /* fill the tail */
       bs = &ob->soft->bspring[ob->soft->totspring];
@@ -623,12 +624,12 @@ static void add_mesh_quad_diag_springs(Object *ob)
   }
 }
 
-static void add_2nd_order_roller(Object *ob, float UNUSED(stiffness), int *counter, int addsprings)
+static void add_2nd_order_roller(Object *ob, float /*stiffness*/, int *counter, int addsprings)
 {
   /* Assume we have a softbody. */
   SoftBody *sb = ob->soft; /* is supposed to be there */
   BodyPoint *bp, *bpo;
-  BodySpring *bs, *bs2, *bs3 = NULL;
+  BodySpring *bs, *bs2, *bs3 = nullptr;
   int a, b, c, notthis = 0, v0;
   if (!sb->bspring) {
     return;
@@ -640,7 +641,7 @@ static void add_2nd_order_roller(Object *ob, float UNUSED(stiffness), int *count
   }
   for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
     /* Scan for neighborhood. */
-    bpo = NULL;
+    bpo = nullptr;
     v0 = (sb->totpoint - a);
     for (b = bp->nofsprings; b > 0; b--) {
       bs = sb->bspring + bp->springs[b - 1];
@@ -696,7 +697,8 @@ static void add_2nd_order_springs(Object *ob, float stiffness)
   add_2nd_order_roller(ob, stiffness, &counter, 0); /* counting */
   if (counter) {
     /* resize spring-array to hold additional springs */
-    bs_new = MEM_callocN((ob->soft->totspring + counter) * sizeof(BodySpring), "bodyspring");
+    bs_new = static_cast<BodySpring *>(
+        MEM_callocN((ob->soft->totspring + counter) * sizeof(BodySpring), "bodyspring"));
     memcpy(bs_new, ob->soft->bspring, (ob->soft->totspring) * sizeof(BodySpring));
 
     if (ob->soft->bspring) {
@@ -713,14 +715,14 @@ static void add_bp_springlist(BodyPoint *bp, int springID)
 {
   int *newlist;
 
-  if (bp->springs == NULL) {
-    bp->springs = MEM_callocN(sizeof(int), "bpsprings");
+  if (bp->springs == nullptr) {
+    bp->springs = static_cast<int *>(MEM_callocN(sizeof(int), "bpsprings"));
     bp->springs[0] = springID;
     bp->nofsprings = 1;
   }
   else {
     bp->nofsprings++;
-    newlist = MEM_callocN(bp->nofsprings * sizeof(int), "bpsprings");
+    newlist = static_cast<int *>(MEM_callocN(bp->nofsprings * sizeof(int), "bpsprings"));
     memcpy(newlist, bp->springs, (bp->nofsprings - 1) * sizeof(int));
     MEM_freeN(bp->springs);
     bp->springs = newlist;
@@ -739,7 +741,7 @@ static void build_bps_springlist(Object *ob)
   BodySpring *bs;
   int a, b;
 
-  if (sb == NULL) {
+  if (sb == nullptr) {
     return; /* paranoia check */
   }
 
@@ -747,7 +749,7 @@ static void build_bps_springlist(Object *ob)
     /* throw away old list */
     if (bp->springs) {
       MEM_freeN(bp->springs);
-      bp->springs = NULL;
+      bp->springs = nullptr;
     }
     /* scan for attached inner springs */
     for (b = sb->totspring, bs = sb->bspring; b > 0; b--, bs++) {
@@ -769,7 +771,7 @@ static void calculate_collision_balls(Object *ob)
   int a, b, akku_count;
   float min, max, akku;
 
-  if (sb == NULL) {
+  if (sb == nullptr) {
     return; /* paranoia check */
   }
 
@@ -795,7 +797,7 @@ static void calculate_collision_balls(Object *ob)
         bp->colball = sb->colball;
       }
       if (sb->sbc_mode == SBC_MODE_AVG) {
-        bp->colball = akku / (float)akku_count * sb->colball;
+        bp->colball = akku / float(akku_count) * sb->colball;
       }
       if (sb->sbc_mode == SBC_MODE_MIN) {
         bp->colball = min * sb->colball;
@@ -819,7 +821,7 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
   SoftBody *sb;
   int i;
   short softflag;
-  if (ob->soft == NULL) {
+  if (ob->soft == nullptr) {
     ob->soft = sbNew();
   }
   else {
@@ -832,9 +834,10 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
     sb->totpoint = totpoint;
     sb->totspring = totspring;
 
-    sb->bpoint = MEM_mallocN(totpoint * sizeof(BodyPoint), "bodypoint");
+    sb->bpoint = static_cast<BodyPoint *>(MEM_mallocN(totpoint * sizeof(BodyPoint), "bodypoint"));
     if (totspring) {
-      sb->bspring = MEM_mallocN(totspring * sizeof(BodySpring), "bodyspring");
+      sb->bspring = static_cast<BodySpring *>(
+          MEM_mallocN(totspring * sizeof(BodySpring), "bodyspring"));
     }
 
     /* initialize BodyPoint array */
@@ -853,7 +856,7 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
       }
 
       bp->nofsprings = 0;
-      bp->springs = NULL;
+      bp->springs = nullptr;
       bp->choke = 0.0f;
       bp->choke2 = 0.0f;
       bp->frozen = 1.0f;
@@ -885,9 +888,9 @@ static void free_scratch(SoftBody *sb)
     /* TODO: make sure everything is cleaned up nicely. */
     if (sb->scratch->colliderhash) {
       BLI_ghash_free(sb->scratch->colliderhash,
-                     NULL,
+                     nullptr,
                      (GHashValFreeFP)ccd_mesh_free); /* This hopefully will free all caches. */
-      sb->scratch->colliderhash = NULL;
+      sb->scratch->colliderhash = nullptr;
     }
     if (sb->scratch->bodyface) {
       MEM_freeN(sb->scratch->bodyface);
@@ -896,7 +899,7 @@ static void free_scratch(SoftBody *sb)
       MEM_freeN(sb->scratch->Ref.ivert);
     }
     MEM_freeN(sb->scratch);
-    sb->scratch = NULL;
+    sb->scratch = nullptr;
   }
 }
 
@@ -910,7 +913,7 @@ static void free_softbody_intern(SoftBody *sb)
     if (sb->bpoint) {
       for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
         /* free spring list */
-        if (bp->springs != NULL) {
+        if (bp->springs != nullptr) {
           MEM_freeN(bp->springs);
         }
       }
@@ -922,8 +925,8 @@ static void free_softbody_intern(SoftBody *sb)
     }
 
     sb->totpoint = sb->totspring = 0;
-    sb->bpoint = NULL;
-    sb->bspring = NULL;
+    sb->bpoint = nullptr;
+    sb->bspring = nullptr;
 
     free_scratch(sb);
     free_softbody_baked(sb);
@@ -953,7 +956,7 @@ static void free_softbody_intern(SoftBody *sb)
  * A: because our particles are not alone here
  *    and need to tell their neighbors exactly what happens via spring forces
  * unless sbObjectStep( .. ) is called on sub frame timing level
- * BTW that also questions the use of a 'implicit' solvers on softbodies
+ * BTW that also questions the use of a 'implicit' solvers on soft-bodies
  * since that would only valid for 'slow' moving collision targets and ditto particles.
  */
 
@@ -966,7 +969,7 @@ static int query_external_colliders(Depsgraph *depsgraph, Collection *collection
 {
   uint numobjects;
   Object **objects = BKE_collision_objects_create(
-      depsgraph, NULL, collection, &numobjects, eModifierType_Collision);
+      depsgraph, nullptr, collection, &numobjects, eModifierType_Collision);
   BKE_collision_objects_free(objects);
 
   return (numobjects != 0);
@@ -974,9 +977,7 @@ static int query_external_colliders(Depsgraph *depsgraph, Collection *collection
 /* --- dependency information functions. */
 
 /* +++ the aabb "force" section. */
-static int sb_detect_aabb_collisionCached(float UNUSED(force[3]),
-                                          Object *vertexowner,
-                                          float UNUSED(time))
+static int sb_detect_aabb_collisionCached(float /*force*/[3], Object *vertexowner, float /*time*/)
 {
   Object *ob;
   SoftBody *sb = vertexowner->soft;
@@ -988,7 +989,7 @@ static int sb_detect_aabb_collisionCached(float UNUSED(force[3]),
   int a;
 #endif
 
-  if ((sb == NULL) || (sb->scratch == NULL)) {
+  if ((sb == nullptr) || (sb->scratch == nullptr)) {
     return 0;
   }
   copy_v3_v3(aabbmin, sb->scratch->aabbmin);
@@ -998,8 +999,8 @@ static int sb_detect_aabb_collisionCached(float UNUSED(force[3]),
   ihash = BLI_ghashIterator_new(hash);
   while (!BLI_ghashIterator_done(ihash)) {
 
-    ccd_Mesh *ccdm = BLI_ghashIterator_getValue(ihash);
-    ob = BLI_ghashIterator_getKey(ihash);
+    ccd_Mesh *ccdm = static_cast<ccd_Mesh *>(BLI_ghashIterator_getValue(ihash));
+    ob = static_cast<Object *>(BLI_ghashIterator_getKey(ihash));
     {
       /* only with deflecting set */
       if (ob->pd && ob->pd->deflect) {
@@ -1065,13 +1066,13 @@ static int sb_detect_face_pointCached(const float face_v1[3],
   ihash = BLI_ghashIterator_new(hash);
   while (!BLI_ghashIterator_done(ihash)) {
 
-    ccd_Mesh *ccdm = BLI_ghashIterator_getValue(ihash);
-    ob = BLI_ghashIterator_getKey(ihash);
+    ccd_Mesh *ccdm = static_cast<ccd_Mesh *>(BLI_ghashIterator_getValue(ihash));
+    ob = static_cast<Object *>(BLI_ghashIterator_getKey(ihash));
     {
       /* only with deflecting set */
       if (ob->pd && ob->pd->deflect) {
-        const float(*vert_positions)[3] = NULL;
-        const float(*vert_positions_prev)[3] = NULL;
+        const float(*vert_positions)[3] = nullptr;
+        const float(*vert_positions_prev)[3] = nullptr;
         if (ccdm) {
           vert_positions = ccdm->vert_positions;
           a = ccdm->mvert_num;
@@ -1158,15 +1159,15 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
   ihash = BLI_ghashIterator_new(hash);
   while (!BLI_ghashIterator_done(ihash)) {
 
-    ccd_Mesh *ccdm = BLI_ghashIterator_getValue(ihash);
-    ob = BLI_ghashIterator_getKey(ihash);
+    ccd_Mesh *ccdm = static_cast<ccd_Mesh *>(BLI_ghashIterator_getValue(ihash));
+    ob = static_cast<Object *>(BLI_ghashIterator_getKey(ihash));
     {
       /* only with deflecting set */
       if (ob->pd && ob->pd->deflect) {
-        const float(*vert_positions)[3] = NULL;
-        const float(*vert_positions_prev)[3] = NULL;
-        const MVertTri *vt = NULL;
-        const ccdf_minmax *mima = NULL;
+        const float(*vert_positions)[3] = nullptr;
+        const float(*vert_positions_prev)[3] = nullptr;
+        const MVertTri *vt = nullptr;
+        const ccdf_minmax *mima = nullptr;
 
         if (ccdm) {
           vert_positions = ccdm->vert_positions;
@@ -1225,9 +1226,9 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
           sub_v3_v3v3(edge2, nv3, nv2);
           cross_v3_v3v3(d_nvect, edge2, edge1);
           normalize_v3(d_nvect);
-          if (isect_line_segment_tri_v3(nv1, nv2, face_v1, face_v2, face_v3, &t, NULL) ||
-              isect_line_segment_tri_v3(nv2, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
-              isect_line_segment_tri_v3(nv3, nv1, face_v1, face_v2, face_v3, &t, NULL))
+          if (isect_line_segment_tri_v3(nv1, nv2, face_v1, face_v2, face_v3, &t, nullptr) ||
+              isect_line_segment_tri_v3(nv2, nv3, face_v1, face_v2, face_v3, &t, nullptr) ||
+              isect_line_segment_tri_v3(nv3, nv1, face_v1, face_v2, face_v3, &t, nullptr))
           {
             madd_v3_v3fl(force, d_nvect, -0.5f);
             *damp = tune * ob->pd->pdef_sbdamp;
@@ -1339,15 +1340,15 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
   ihash = BLI_ghashIterator_new(hash);
   while (!BLI_ghashIterator_done(ihash)) {
 
-    ccd_Mesh *ccdm = BLI_ghashIterator_getValue(ihash);
-    ob = BLI_ghashIterator_getKey(ihash);
+    ccd_Mesh *ccdm = static_cast<ccd_Mesh *>(BLI_ghashIterator_getValue(ihash));
+    ob = static_cast<Object *>(BLI_ghashIterator_getKey(ihash));
     {
       /* only with deflecting set */
       if (ob->pd && ob->pd->deflect) {
-        const float(*vert_positions)[3] = NULL;
-        const float(*vert_positions_prev)[3] = NULL;
-        const MVertTri *vt = NULL;
-        const ccdf_minmax *mima = NULL;
+        const float(*vert_positions)[3] = nullptr;
+        const float(*vert_positions_prev)[3] = nullptr;
+        const MVertTri *vt = nullptr;
+        const ccdf_minmax *mima = nullptr;
 
         if (ccdm) {
           vert_positions = ccdm->vert_positions;
@@ -1407,7 +1408,7 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
 
           cross_v3_v3v3(d_nvect, edge2, edge1);
           normalize_v3(d_nvect);
-          if (isect_line_segment_tri_v3(edge_v1, edge_v2, nv1, nv2, nv3, &t, NULL)) {
+          if (isect_line_segment_tri_v3(edge_v1, edge_v2, nv1, nv2, nv3, &t, nullptr)) {
             float v1[3], v2[3];
             float intrusiondepth, i1, i2;
             sub_v3_v3v3(v1, edge_v1, nv2);
@@ -1474,7 +1475,7 @@ static void _scan_for_ext_spring_forces(
             mid_v3_v3v3(vel, sb->bpoint[bs->v1].vec, sb->bpoint[bs->v2].vec);
             pd_point_from_soft(scene, pos, vel, -1, &epoint);
             BKE_effectors_apply(
-                effectors, NULL, sb->effector_weights, &epoint, force, NULL, speed);
+                effectors, nullptr, sb->effector_weights, &epoint, force, nullptr, speed);
 
             mul_v3_fl(speed, windfactor);
             add_v3_v3(vel, speed);
@@ -1511,7 +1512,7 @@ static void *exec_scan_for_ext_spring_forces(void *data)
   SB_thread_context *pctx = (SB_thread_context *)data;
   _scan_for_ext_spring_forces(
       pctx->scene, pctx->ob, pctx->timenow, pctx->ifirst, pctx->ilast, pctx->effectors);
-  return NULL;
+  return nullptr;
 }
 
 static void sb_sfesf_threads_run(Depsgraph *depsgraph,
@@ -1519,8 +1520,9 @@ static void sb_sfesf_threads_run(Depsgraph *depsgraph,
                                  Object *ob,
                                  float timenow,
                                  int totsprings,
-                                 int *UNUSED(ptr_to_break_func(void)))
+                                 int *ptr_to_break_func(void))
 {
+  UNUSED_VARS(ptr_to_break_func);
   ListBase threads;
   SB_thread_context *sb_threads;
   int i, totthread, left, dec;
@@ -1530,7 +1532,7 @@ static void sb_sfesf_threads_run(Depsgraph *depsgraph,
   int lowsprings = 100;
 
   ListBase *effectors = BKE_effectors_create(
-      depsgraph, ob, NULL, ob->soft->effector_weights, false);
+      depsgraph, ob, nullptr, ob->soft->effector_weights, false);
 
   /* figure the number of threads while preventing pretty pointless threading overhead */
   totthread = BKE_scene_num_threads(scene);
@@ -1539,7 +1541,8 @@ static void sb_sfesf_threads_run(Depsgraph *depsgraph,
     totthread--;
   }
 
-  sb_threads = MEM_callocN(sizeof(SB_thread_context) * totthread, "SBSpringsThread");
+  sb_threads = static_cast<SB_thread_context *>(
+      MEM_callocN(sizeof(SB_thread_context) * totthread, "SBSpringsThread"));
   left = totsprings;
   dec = totsprings / totthread + 1;
   for (i = 0; i < totthread; i++) {
@@ -1622,7 +1625,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
                                             float vel[3],
                                             float *intrusion)
 {
-  Object *ob = NULL;
+  Object *ob = nullptr;
   GHash *hash;
   GHashIterator *ihash;
   float nv1[3], nv2[3], nv3[3], edge1[3], edge2[3], d_nvect[3], dv1[3], ve[3],
@@ -1640,15 +1643,15 @@ static int sb_detect_vertex_collisionCached(float opco[3],
   /* go */
   while (!BLI_ghashIterator_done(ihash)) {
 
-    ccd_Mesh *ccdm = BLI_ghashIterator_getValue(ihash);
-    ob = BLI_ghashIterator_getKey(ihash);
+    ccd_Mesh *ccdm = static_cast<ccd_Mesh *>(BLI_ghashIterator_getValue(ihash));
+    ob = static_cast<Object *>(BLI_ghashIterator_getKey(ihash));
     {
       /* only with deflecting set */
       if (ob->pd && ob->pd->deflect) {
-        const float(*vert_positions)[3] = NULL;
-        const float(*vert_positions_prev)[3] = NULL;
-        const MVertTri *vt = NULL;
-        const ccdf_minmax *mima = NULL;
+        const float(*vert_positions)[3] = nullptr;
+        const float(*vert_positions_prev)[3] = nullptr;
+        const MVertTri *vt = nullptr;
+        const ccdf_minmax *mima = nullptr;
 
         if (ccdm) {
           vert_positions = ccdm->vert_positions;
@@ -1706,7 +1709,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
 
             if (vert_positions_prev) {
               /* Grab the average speed of the collider vertices before we spoil nvX
-               * humm could be done once a SB steps but then we' need to store that too
+               * hum could be done once a SB steps but then we' need to store that too
                * since the AABB reduced probability to get here drastically
                * it might be a nice tradeoff CPU <--> memory.
                */
@@ -1738,9 +1741,9 @@ static int sb_detect_vertex_collisionCached(float opco[3],
 
           if ((facedist > innerfacethickness) && (facedist < outerfacethickness)) {
             if (isect_point_tri_prism_v3(opco, nv1, nv2, nv3)) {
-              force_mag_norm = (float)exp(-ee * facedist);
+              force_mag_norm = float(exp(double(-ee * facedist)));
               if (facedist > outerfacethickness * ff) {
-                force_mag_norm = (float)force_mag_norm * fa * (facedist - outerfacethickness) *
+                force_mag_norm = float(force_mag_norm) * fa * (facedist - outerfacethickness) *
                                  (facedist - outerfacethickness);
               }
               *damp = ob->pd->pdef_sbdamp;
@@ -1774,9 +1777,9 @@ static int sb_detect_vertex_collisionCached(float opco[3],
   } /* while () */
 
   if (deflected == 1) { /* no face but 'outer' edge cylinder sees vert */
-    force_mag_norm = (float)exp(-ee * mindistedge);
+    force_mag_norm = float(exp(double() - ee * mindistedge));
     if (mindistedge > outerfacethickness * ff) {
-      force_mag_norm = (float)force_mag_norm * fa * (mindistedge - outerfacethickness) *
+      force_mag_norm = float(force_mag_norm) * fa * (mindistedge - outerfacethickness) *
                        (mindistedge - outerfacethickness);
     }
     madd_v3_v3fl(force, coledge, force_mag_norm);
@@ -1794,7 +1797,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
 
   BLI_ghashIterator_free(ihash);
   if (cavel) {
-    mul_v3_fl(avel, 1.0f / (float)cavel);
+    mul_v3_fl(avel, 1.0f / float(cavel));
   }
   copy_v3_v3(vel, avel);
   if (ci) {
@@ -1870,8 +1873,7 @@ static void dfdv_goal(int ia, int ic, float factor)
 }
 #endif /* if 0 */
 
-static void sb_spring_force(
-    Object *ob, int bpi, BodySpring *bs, float iks, float UNUSED(forcetime))
+static void sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, float /*forcetime*/)
 {
   SoftBody *sb = ob->soft; /* is supposed to be there */
   BodyPoint *bp1, *bp2;
@@ -1958,12 +1960,13 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
                                                    float timenow,
                                                    int ifirst,
                                                    int ilast,
-                                                   int *UNUSED(ptr_to_break_func(void)),
+                                                   int *ptr_to_break_func(void),
                                                    ListBase *effectors,
                                                    int do_deflector,
                                                    float fieldfactor,
                                                    float windfactor)
 {
+  UNUSED_VARS(ptr_to_break_func);
   float iks;
   int bb, do_selfcollision, do_springcollision, do_aero;
   int number_of_points_here = ilast - ifirst;
@@ -2103,7 +2106,8 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
         float eval_sb_fric_force_scale = sb_fric_force_scale(ob);
 
         pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint - bp, &epoint);
-        BKE_effectors_apply(effectors, NULL, sb->effector_weights, &epoint, force, NULL, speed);
+        BKE_effectors_apply(
+            effectors, nullptr, sb->effector_weights, &epoint, force, nullptr, speed);
 
         /* Apply force-field. */
         mul_v3_fl(force, fieldfactor * eval_sb_fric_force_scale);
@@ -2183,12 +2187,12 @@ static void *exec_softbody_calc_forces(void *data)
                                           pctx->timenow,
                                           pctx->ifirst,
                                           pctx->ilast,
-                                          NULL,
+                                          nullptr,
                                           pctx->effectors,
                                           pctx->do_deflector,
                                           pctx->fieldfactor,
                                           pctx->windfactor);
-  return NULL;
+  return nullptr;
 }
 
 static void sb_cf_threads_run(Scene *scene,
@@ -2196,12 +2200,13 @@ static void sb_cf_threads_run(Scene *scene,
                               float forcetime,
                               float timenow,
                               int totpoint,
-                              int *UNUSED(ptr_to_break_func(void)),
+                              int *ptr_to_break_func(void),
                               ListBase *effectors,
                               int do_deflector,
                               float fieldfactor,
                               float windfactor)
 {
+  UNUSED_VARS(ptr_to_break_func);
   ListBase threads;
   SB_thread_context *sb_threads;
   int i, totthread, left, dec;
@@ -2219,7 +2224,8 @@ static void sb_cf_threads_run(Scene *scene,
 
   // printf("sb_cf_threads_run spawning %d threads\n", totthread);
 
-  sb_threads = MEM_callocN(sizeof(SB_thread_context) * totthread, "SBThread");
+  sb_threads = static_cast<SB_thread_context *>(
+      MEM_callocN(sizeof(SB_thread_context) * totthread, "SBThread"));
   left = totpoint;
   dec = totpoint / totthread + 1;
   for (i = 0; i < totthread; i++) {
@@ -2288,11 +2294,11 @@ static void softbody_calc_forces(
   // bproot = sb->bpoint; /* Need this for proper spring addressing. */                /* UNUSED */
 
   if (do_springcollision || do_aero) {
-    sb_sfesf_threads_run(depsgraph, scene, ob, timenow, sb->totspring, NULL);
+    sb_sfesf_threads_run(depsgraph, scene, ob, timenow, sb->totspring, nullptr);
   }
 
   /* After spring scan because it uses effectors too. */
-  ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, sb->effector_weights, false);
+  ListBase *effectors = BKE_effectors_create(depsgraph, ob, nullptr, sb->effector_weights, false);
 
   if (do_deflector) {
     float defforce[3];
@@ -2304,7 +2310,7 @@ static void softbody_calc_forces(
                     forcetime,
                     timenow,
                     sb->totpoint,
-                    NULL,
+                    nullptr,
                     effectors,
                     do_deflector,
                     fieldfactor,
@@ -2400,7 +2406,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
         add_v3_v3(bp->vec, bp->force);
       }
 
-      /* this makes t~ = t+dt */
+      /* This makes `t~ = t+dt`. */
       if (!(mid_flags & MID_PRESERVE)) {
         copy_v3_v3(dx, bp->vec);
       }
@@ -2616,7 +2622,7 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
   float f;
   int a;
 
-  f = (float)time / (float)timescale;
+  f = float(time) / float(timescale);
 
   for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
     bp->origT[0] = bp->origS[0] + f * (bp->origE[0] - bp->origS[0]);
@@ -2641,7 +2647,7 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
 static void springs_from_mesh(Object *ob)
 {
   SoftBody *sb;
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   BodyPoint *bp;
   int a;
   float scale = 1.0f;
@@ -2676,8 +2682,9 @@ static void springs_from_mesh(Object *ob)
 static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
-  Mesh *me = ob->data;
-  const vec2i *edge = CustomData_get_layer_named(&me->edge_data, CD_PROP_INT32_2D, ".edge_verts");
+  Mesh *me = static_cast<Mesh *>(ob->data);
+  const vec2i *edge = static_cast<const vec2i *>(
+      CustomData_get_layer_named(&me->edge_data, CD_PROP_INT32_2D, ".edge_verts"));
   BodyPoint *bp;
   BodySpring *bs;
   int a, totedge;
@@ -2764,7 +2771,7 @@ static void mesh_to_softbody(Object *ob)
 static void mesh_faces_to_scratch(Object *ob)
 {
   SoftBody *sb = ob->soft;
-  const Mesh *me = ob->data;
+  const Mesh *me = static_cast<const Mesh *>(ob->data);
   MLoopTri *looptri, *lt;
   BodyFace *bodyface;
   int a;
@@ -2775,7 +2782,8 @@ static void mesh_faces_to_scratch(Object *ob)
   /* Allocate and copy faces. */
 
   sb->scratch->totface = poly_to_tri_count(me->faces_num, me->totloop);
-  looptri = lt = MEM_mallocN(sizeof(*looptri) * sb->scratch->totface, __func__);
+  looptri = lt = static_cast<MLoopTri *>(
+      MEM_mallocN(sizeof(*looptri) * sb->scratch->totface, __func__));
   BKE_mesh_recalc_looptri(corner_verts,
                           face_offsets,
                           vert_positions,
@@ -2784,8 +2792,8 @@ static void mesh_faces_to_scratch(Object *ob)
                           me->faces_num,
                           looptri);
 
-  bodyface = sb->scratch->bodyface = MEM_mallocN(sizeof(BodyFace) * sb->scratch->totface,
-                                                 "SB_body_Faces");
+  bodyface = sb->scratch->bodyface = static_cast<BodyFace *>(
+      MEM_mallocN(sizeof(BodyFace) * sb->scratch->totface, "SB_body_Faces"));
 
   for (a = 0; a < sb->scratch->totface; a++, lt++, bodyface++) {
     bodyface->v1 = corner_verts[lt->tri[0]];
@@ -2807,7 +2815,8 @@ static void reference_to_scratch(Object *ob)
   float accu_mass = 0.0f;
   int a;
 
-  sb->scratch->Ref.ivert = MEM_mallocN(sizeof(ReferenceVert) * sb->totpoint, "SB_Reference");
+  sb->scratch->Ref.ivert = static_cast<ReferenceVert *>(
+      MEM_mallocN(sizeof(ReferenceVert) * sb->totpoint, "SB_Reference"));
   bp = ob->soft->bpoint;
   rp = sb->scratch->Ref.ivert;
   for (a = 0; a < sb->totpoint; a++, rp++, bp++) {
@@ -2846,7 +2855,7 @@ static void makelatticesprings(Lattice *lt, BodySpring *bs, int dostiff, Object 
 
     for (v = 0; v < lt->pntsv; v++) {
 
-      for (u = 0, bpuc = 0, bpu = NULL; u < lt->pntsu; u++, bp++, bpc++) {
+      for (u = 0, bpuc = 0, bpu = nullptr; u < lt->pntsu; u++, bp++, bpc++) {
 
         if (w) {
           bs->v1 = bpc;
@@ -2916,7 +2925,7 @@ static void makelatticesprings(Lattice *lt, BodySpring *bs, int dostiff, Object 
 /* makes totally fresh start situation */
 static void lattice_to_softbody(Object *ob)
 {
-  Lattice *lt = ob->data;
+  Lattice *lt = static_cast<Lattice *>(ob->data);
   SoftBody *sb;
   int totvert, totspring = 0, a;
   BodyPoint *bp;
@@ -2979,7 +2988,7 @@ static void lattice_to_softbody(Object *ob)
 /* makes totally fresh start situation */
 static void curve_surf_to_softbody(Object *ob)
 {
-  Curve *cu = ob->data;
+  Curve *cu = static_cast<Curve *>(ob->data);
   SoftBody *sb;
   BodyPoint *bp;
   BodySpring *bs;
@@ -3012,7 +3021,7 @@ static void curve_surf_to_softbody(Object *ob)
     setgoal = 1;
   }
 
-  for (nu = cu->nurb.first; nu; nu = nu->next) {
+  for (nu = static_cast<Nurb *>(cu->nurb.first); nu; nu = nu->next) {
     if (nu->bezt) {
       /* Bezier case; this is nicely said naive; who ever wrote this part,
        * it was not me (JOW) :).
@@ -3110,23 +3119,23 @@ static void sb_new_scratch(SoftBody *sb)
   if (!sb) {
     return;
   }
-  sb->scratch = MEM_callocN(sizeof(SBScratch), "SBScratch");
+  sb->scratch = static_cast<SBScratch *>(MEM_callocN(sizeof(SBScratch), "SBScratch"));
   sb->scratch->colliderhash = BLI_ghash_ptr_new("sb_new_scratch gh");
-  sb->scratch->bodyface = NULL;
+  sb->scratch->bodyface = nullptr;
   sb->scratch->totface = 0;
   sb->scratch->aabbmax[0] = sb->scratch->aabbmax[1] = sb->scratch->aabbmax[2] = 1.0e30f;
   sb->scratch->aabbmin[0] = sb->scratch->aabbmin[1] = sb->scratch->aabbmin[2] = -1.0e30f;
-  sb->scratch->Ref.ivert = NULL;
+  sb->scratch->Ref.ivert = nullptr;
 }
 /* --- ************ maintaining scratch *************** */
 
 /* ************ Object level, exported functions *************** */
 
-SoftBody *sbNew(void)
+SoftBody *sbNew()
 {
   SoftBody *sb;
 
-  sb = MEM_callocN(sizeof(SoftBody), "softbody");
+  sb = static_cast<SoftBody *>(MEM_callocN(sizeof(SoftBody), "softbody"));
 
   sb->mediafrict = 0.5f;
   sb->nodemass = 1.0f;
@@ -3161,11 +3170,11 @@ SoftBody *sbNew(void)
   sb->shearstiff = 1.0f;
   sb->solverflags |= SBSO_OLDERR;
 
-  sb->shared = MEM_callocN(sizeof(*sb->shared), "SoftBody_Shared");
+  sb->shared = static_cast<SoftBody_Shared *>(MEM_callocN(sizeof(*sb->shared), "SoftBody_Shared"));
   sb->shared->pointcache = BKE_ptcache_add(&sb->shared->ptcaches);
 
   if (!sb->effector_weights) {
-    sb->effector_weights = BKE_effector_add_weights(NULL);
+    sb->effector_weights = BKE_effector_add_weights(nullptr);
   }
 
   sb->last_frame = MINFRAME - 1;
@@ -3176,7 +3185,7 @@ SoftBody *sbNew(void)
 void sbFree(Object *ob)
 {
   SoftBody *sb = ob->soft;
-  if (sb == NULL) {
+  if (sb == nullptr) {
     return;
   }
 
@@ -3187,7 +3196,7 @@ void sbFree(Object *ob)
   if (is_orig) {
     /* Only free shared data on non-CoW copies */
     BKE_ptcache_free_list(&sb->shared->ptcaches);
-    sb->shared->pointcache = NULL;
+    sb->shared->pointcache = nullptr;
     MEM_freeN(sb->shared);
   }
   if (sb->effector_weights) {
@@ -3195,7 +3204,7 @@ void sbFree(Object *ob)
   }
   MEM_freeN(sb);
 
-  ob->soft = NULL;
+  ob->soft = nullptr;
 }
 
 void sbFreeSimulation(SoftBody *sb)
@@ -3256,7 +3265,7 @@ void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float ls
 {
   BodyPoint *bp;
   ReferenceVert *rp;
-  SoftBody *sb = NULL;
+  SoftBody *sb = nullptr;
   float(*opos)[3];
   float(*rpos)[3];
   float com[3], rcom[3];
@@ -3269,15 +3278,16 @@ void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float ls
   if (!sb || !sb->bpoint) {
     return;
   }
-  opos = MEM_callocN(sizeof(float[3]) * sb->totpoint, "SB_OPOS");
-  rpos = MEM_callocN(sizeof(float[3]) * sb->totpoint, "SB_RPOS");
+  opos = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * sb->totpoint, "SB_OPOS"));
+  rpos = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * sb->totpoint, "SB_RPOS"));
   /* might filter vertex selection with a vertex group */
   for (a = 0, bp = sb->bpoint, rp = sb->scratch->Ref.ivert; a < sb->totpoint; a++, bp++, rp++) {
     copy_v3_v3(rpos[a], rp->pos);
     copy_v3_v3(opos[a], bp->pos);
   }
 
-  vcloud_estimate_transform_v3(sb->totpoint, opos, NULL, rpos, NULL, com, rcom, lrot, lscale);
+  vcloud_estimate_transform_v3(
+      sb->totpoint, opos, nullptr, rpos, nullptr, com, rcom, lrot, lscale);
   // sub_v3_v3(com, rcom);
   if (lloc) {
     copy_v3_v3(lloc, com);
@@ -3337,8 +3347,8 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
   /* we only need that if we want to reconstruct IPO */
   if (1) {
     reference_to_scratch(ob);
-    SB_estimate_transform(ob, NULL, NULL, NULL);
-    SB_estimate_transform(ob, NULL, NULL, NULL);
+    SB_estimate_transform(ob, nullptr, nullptr, nullptr);
+    SB_estimate_transform(ob, nullptr, nullptr, nullptr);
   }
   switch (ob->type) {
     case OB_MESH:
@@ -3392,7 +3402,7 @@ static void softbody_step(
     /* Loops = counter for emergency brake we don't want to lock up the system if physics fail. */
     int loops = 0;
 
-    SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
+    SoftHeunTol = sb->rklimit; /* Hum .. this should be calculated from sb parameters and sizes */
     /* adjust loop limits */
     if (sb->minloops > 0) {
       forcetimemax = dtime / sb->minloops;
@@ -3408,13 +3418,13 @@ static void softbody_step(
     forcetime = forcetimemax; /* hope for integrating in one step */
     while ((fabsf(timedone) < fabsf(dtime)) && (loops < 2000)) {
       /* set goals in time */
-      interpolate_exciter(ob, 200, (int)(200.0f * (timedone / dtime)));
+      interpolate_exciter(ob, 200, int(200.0f * (timedone / dtime)));
 
       sb->scratch->flag &= ~SBF_DOFUZZY;
       /* do predictive euler step */
       softbody_calc_forces(depsgraph, scene, ob, forcetime, timedone / dtime);
 
-      softbody_apply_forces(ob, forcetime, 1, NULL, mid_flags);
+      softbody_apply_forces(ob, forcetime, 1, nullptr, mid_flags);
 
       /* crop new slope values to do averaged slope step */
       softbody_calc_forces(depsgraph, scene, ob, forcetime, timedone / dtime);
@@ -3532,7 +3542,7 @@ void sbObjectStep(Depsgraph *depsgraph,
   int cache_result;
   cache = sb->shared->pointcache;
 
-  framenr = (int)cfra;
+  framenr = int(cfra);
   framedelta = framenr - cache->simframe;
 
   BKE_ptcache_id_from_softbody(&pid, ob, sb);
@@ -3555,7 +3565,7 @@ void sbObjectStep(Depsgraph *depsgraph,
   }
 
   /* verify if we need to create the softbody data */
-  if (sb->bpoint == NULL ||
+  if (sb->bpoint == nullptr ||
       ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob)))
   {
 
@@ -3602,7 +3612,7 @@ void sbObjectStep(Depsgraph *depsgraph,
   bool can_simulate = (framenr == sb->last_frame + 1) && !(cache->flag & PTCACHE_BAKED) &&
                       can_write_cache;
 
-  cache_result = BKE_ptcache_read(&pid, (float)framenr + scene->r.subframe, can_simulate);
+  cache_result = BKE_ptcache_read(&pid, float(framenr) + scene->r.subframe, can_simulate);
 
   if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED ||
       (!can_simulate && cache_result == PTCACHE_READ_OLD))

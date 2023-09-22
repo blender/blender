@@ -62,7 +62,7 @@
 #include "ED_datafiles.h" /* for fonts */
 #include "GHOST_C-api.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "wm_window_private.h"
 

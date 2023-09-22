@@ -24,7 +24,6 @@
 #include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
 #include "BLI_span.hh"
-#include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -33,16 +32,14 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_fair.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_mesh_types.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_scene.h"
 #include "BKE_subsurf.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -97,83 +94,49 @@ static void mask_flood_fill_set_elem(float *elem, PaintMaskFloodMode mode, float
   }
 }
 
-struct MaskTaskData {
-  Object *ob;
-  PBVH *pbvh;
-  Span<PBVHNode *> nodes;
-  bool multires;
-
-  PaintMaskFloodMode mode;
-  float value;
-  float (*clip_planes_final)[4];
-
-  bool front_faces_only;
-  float view_normal[3];
-};
-
-static void mask_flood_fill_task(MaskTaskData &data, const int i)
-{
-  PBVHNode *node = data.nodes[i];
-
-  const PaintMaskFloodMode mode = data.mode;
-  const float value = data.value;
-  bool redraw = false;
-
-  PBVHVertexIter vi;
-
-  SCULPT_undo_push_node(data.ob, node, SCULPT_UNDO_MASK);
-
-  BKE_pbvh_vertex_iter_begin (data.pbvh, node, vi, PBVH_ITER_UNIQUE) {
-    float prevmask = *vi.mask;
-    mask_flood_fill_set_elem(vi.mask, mode, value);
-    if (prevmask != *vi.mask) {
-      redraw = true;
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  if (redraw) {
-    BKE_pbvh_node_mark_update_mask(node);
-    if (data.multires) {
-      BKE_pbvh_node_mark_normals_update(node);
-    }
-  }
-}
-
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  PBVH *pbvh;
-  bool multires;
 
   PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
-  float value = RNA_float_get(op->ptr, "value");
+  const float value = RNA_float_get(op->ptr, "value");
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
-  pbvh = ob->sculpt->pbvh;
-  multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
+  PBVH *pbvh = ob->sculpt->pbvh;
+  const bool multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
 
   SCULPT_undo_push_begin(ob, op);
 
-  MaskTaskData data{};
-  data.ob = ob;
-  data.pbvh = pbvh;
-  data.nodes = nodes;
-  data.multires = multires;
-  data.mode = mode;
-  data.value = value;
-
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      mask_flood_fill_task(data, i);
+      PBVHNode *node = nodes[i];
+      SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+
+      bool redraw = false;
+      PBVHVertexIter vi;
+      BKE_pbvh_vertex_iter_begin (pbvh, node, vi, PBVH_ITER_UNIQUE) {
+        float prevmask = *vi.mask;
+        mask_flood_fill_set_elem(vi.mask, mode, value);
+        if (prevmask != *vi.mask) {
+          redraw = true;
+        }
+      }
+      BKE_pbvh_vertex_iter_end;
+
+      if (redraw) {
+        BKE_pbvh_node_mark_update_mask(node);
+        if (multires) {
+          BKE_pbvh_node_mark_normals_update(node);
+        }
+      }
     }
   });
 
@@ -743,14 +706,10 @@ static void sculpt_gesture_face_set_begin(bContext *C, SculptGestureContext *sgc
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
 }
 
-static void face_set_gesture_apply_task_cb(void *__restrict userdata,
-                                           const int i,
-                                           const TaskParallelTLS *__restrict /*tls*/)
+static void face_set_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
 {
-  SculptGestureContext *sgcontext = static_cast<SculptGestureContext *>(userdata);
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
                                                           sgcontext->operation;
-  PBVHNode *node = sgcontext->nodes[i];
   bool any_updated = false;
 
   SCULPT_undo_push_node(sgcontext->vc.obact, node, SCULPT_UNDO_FACE_SETS);
@@ -778,10 +737,12 @@ static void face_set_gesture_apply_task_cb(void *__restrict userdata,
 static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
                                                             SculptGestureContext *sgcontext)
 {
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
-  BLI_task_parallel_range(
-      0, sgcontext->nodes.size(), sgcontext, face_set_gesture_apply_task_cb, &settings);
+  using namespace blender;
+  threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      face_set_gesture_apply_task(sgcontext, sgcontext->nodes[i]);
+    }
+  });
 }
 
 static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *sgcontext)
@@ -824,14 +785,10 @@ static void sculpt_gesture_mask_begin(bContext *C, SculptGestureContext *sgconte
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, true, false);
 }
 
-static void mask_gesture_apply_task_cb(void *__restrict userdata,
-                                       const int i,
-                                       const TaskParallelTLS *__restrict /*tls*/)
+static void mask_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
 {
-  SculptGestureContext *sgcontext = static_cast<SculptGestureContext *>(userdata);
   SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)sgcontext->operation;
   Object *ob = sgcontext->vc.obact;
-  PBVHNode *node = sgcontext->nodes[i];
 
   const bool is_multires = BKE_pbvh_type(sgcontext->ss->pbvh) == PBVH_GRIDS;
 
@@ -867,10 +824,12 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
 static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext * /*C*/,
                                                         SculptGestureContext *sgcontext)
 {
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
-  BLI_task_parallel_range(
-      0, sgcontext->nodes.size(), sgcontext, mask_gesture_apply_task_cb, &settings);
+  using namespace blender;
+  threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      mask_gesture_apply_task(sgcontext, sgcontext->nodes[i]);
+    }
+  });
 }
 
 static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext)
@@ -1661,52 +1620,19 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
 }
 
 /* Project Gesture Operation. */
-typedef enum eSculptProjectDeformationMode {
-  SCULPT_GESTURE_PROJECT_DEFORM_PROJECT,
-  SCULPT_GESTURE_PROJECT_DEFORM_FAIR,
-} eSculptProjectDeformationMode;
-
-static EnumPropertyItem prop_project_deformation_mode_types[] = {
-    {SCULPT_GESTURE_PROJECT_DEFORM_PROJECT,
-     "PROJECT",
-     0,
-     "Project to Plane",
-     "Project the affected geometry into the gesture plane"},
-    {SCULPT_GESTURE_PROJECT_DEFORM_FAIR,
-     "FAIR",
-     0,
-     "Fair Positions",
-     "Use position fairing in the affected area"},
-    {0, NULL, 0, NULL, NULL},
-};
 
 struct SculptGestureProjectOperation {
   SculptGestureOperation operation;
-  eSculptProjectDeformationMode deformation_mode;
-  bool *fairing_mask;
 };
 
 static void sculpt_gesture_project_begin(bContext *C, SculptGestureContext *sgcontext)
 {
-  SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
-                                                         sgcontext->operation;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
-
-  if (project_operation->deformation_mode == SCULPT_GESTURE_PROJECT_DEFORM_FAIR) {
-    const int totvert = SCULPT_vertex_count_get(sgcontext->ss);
-    project_operation->fairing_mask = (bool *)MEM_calloc_arrayN(
-        totvert, sizeof(bool), "fairing mask");
-  }
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, false, false);
 }
 
-static void project_line_gesture_apply_task_cb(void *__restrict userdata,
-                                               const int i,
-                                               const TaskParallelTLS *__restrict /*tls*/)
+static void project_line_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
 {
-  SculptGestureContext *sgcontext = static_cast<SculptGestureContext *>(userdata);
-
-  PBVHNode *node = sgcontext->nodes[i];
   PBVHVertexIter vd;
   bool any_updated = false;
 
@@ -1740,138 +1666,28 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
   }
 }
 
-static void project_gesture_tag_fairing_task_cb(void *__restrict userdata,
-                                                const int i,
-                                                const TaskParallelTLS *__restrict /* tls */)
-{
-  SculptGestureContext *sgcontext = (SculptGestureContext *)userdata;
-  SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
-                                                         sgcontext->operation;
-
-  PBVHNode *node = sgcontext->nodes[i];
-  PBVHVertexIter vd;
-  bool any_updated = false;
-
-  SCULPT_undo_push_node(sgcontext->vc.obact, node, SCULPT_UNDO_COORDS);
-
-  BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (!sculpt_gesture_is_vertex_effected(sgcontext, vd.vertex)) {
-      continue;
-    }
-    project_operation->fairing_mask[vd.index] = true;
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(sgcontext->ss->pbvh, vd.vertex);
-    }
-    any_updated = true;
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  if (any_updated) {
-    BKE_pbvh_node_mark_update(node);
-  }
-}
-
-static void project_gesture_project_fairing_boundary_task_cb(
-    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict /* tls */)
-{
-  SculptGestureContext *sgcontext = (SculptGestureContext *)userdata;
-  SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
-                                                         sgcontext->operation;
-  SculptSession *ss = sgcontext->ss;
-
-  PBVHNode *node = sgcontext->nodes[i];
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    bool project_vertex = false;
-    bool vertex_fairing_mask = project_operation->fairing_mask[vd.index];
-
-    if (!project_operation->fairing_mask[vd.index]) {
-      // continue;
-    }
-
-    SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
-      if (project_operation->fairing_mask[ni.index] != vertex_fairing_mask) {
-        project_vertex = true;
-        break;
-      }
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-    if (!project_vertex) {
-      continue;
-    }
-
-    closest_to_plane_v3(vd.co, sgcontext->line.plane, vd.co);
-
-    if (vd.is_mesh) {
-      BKE_pbvh_vert_tag_update_normal(sgcontext->ss->pbvh, vd.vertex);
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
 static void sculpt_gesture_project_apply_for_symmetry_pass(bContext * /*C*/,
                                                            SculptGestureContext *sgcontext)
 {
-  SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
-                                                         sgcontext->operation;
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
-
-  switch (project_operation->deformation_mode) {
-    case SCULPT_GESTURE_PROJECT_DEFORM_PROJECT:
-      BLI_assert(sgcontext->shape_type == SCULPT_GESTURE_SHAPE_LINE);
-      BLI_task_parallel_range(
-          0, sgcontext->nodes.size(), sgcontext, project_line_gesture_apply_task_cb, &settings);
+  switch (sgcontext->shape_type) {
+    case SCULPT_GESTURE_SHAPE_LINE:
+      using namespace blender;
+      threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          project_line_gesture_apply_task(sgcontext, sgcontext->nodes[i]);
+        }
+      });
       break;
-    case SCULPT_GESTURE_PROJECT_DEFORM_FAIR:
-      BLI_task_parallel_range(
-          0, sgcontext->nodes.size(), sgcontext, project_gesture_tag_fairing_task_cb, &settings);
-      if (sgcontext->shape_type == SCULPT_GESTURE_SHAPE_LINE) {
-        /* TODO: this needs to loop over all nodes to avoid artifacts. */
-        /*
-        BLI_task_parallel_range(0,
-                                sgcontext->nodes.size(),
-                                sgcontext,
-                                project_gesture_project_fairing_boundary_task_cb,
-                                &settings);
-                                */
-      }
-      break;
-  }
-}
-
-static void sculpt_gesture_fairing_apply(SculptGestureContext *sgcontext)
-{
-  SculptSession *ss = sgcontext->vc.obact->sculpt;
-  SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
-                                                         sgcontext->operation;
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES: {
-      Mesh *mesh = (Mesh *)sgcontext->vc.obact->data;
-      float(*vert_cos)[3] = SCULPT_mesh_deformed_positions_get(ss);
-      BKE_mesh_prefair_and_fair_verts(
-          mesh, vert_cos, project_operation->fairing_mask, MESH_FAIRING_DEPTH_POSITION);
-    } break;
-    case PBVH_BMESH: {
-      BKE_bmesh_prefair_and_fair_verts(
-          ss->bm, project_operation->fairing_mask, MESH_FAIRING_DEPTH_POSITION);
-    } break;
-    case PBVH_GRIDS:
+    case SCULPT_GESTURE_SHAPE_LASSO:
+    case SCULPT_GESTURE_SHAPE_BOX:
+      /* Gesture shape projection not implemented yet. */
       BLI_assert(false);
+      break;
   }
 }
 
 static void sculpt_gesture_project_end(bContext *C, SculptGestureContext *sgcontext)
 {
-  SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
-                                                         sgcontext->operation;
-  if (project_operation->deformation_mode == SCULPT_GESTURE_PROJECT_DEFORM_FAIR) {
-    sculpt_gesture_fairing_apply(sgcontext);
-    MEM_SAFE_FREE(project_operation->fairing_mask);
-  }
-
   SculptSession *ss = sgcontext->ss;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   if (ss->deform_modifiers_active || ss->shapekey_active) {
@@ -1882,7 +1698,8 @@ static void sculpt_gesture_project_end(bContext *C, SculptGestureContext *sgcont
   SCULPT_flush_update_done(C, sgcontext->vc.obact, SCULPT_UPDATE_COORDS);
 }
 
-static void sculpt_gesture_init_project_properties(SculptGestureContext *sgcontext, wmOperator *op)
+static void sculpt_gesture_init_project_properties(SculptGestureContext *sgcontext,
+                                                   wmOperator * /*op*/)
 {
   sgcontext->operation = reinterpret_cast<SculptGestureOperation *>(
       MEM_cnew<SculptGestureFaceSetOperation>(__func__));
@@ -1890,30 +1707,10 @@ static void sculpt_gesture_init_project_properties(SculptGestureContext *sgconte
   SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
                                                          sgcontext->operation;
 
-  if (sgcontext->shape_type == SCULPT_GESTURE_SHAPE_LINE) {
-    project_operation->deformation_mode = (eSculptProjectDeformationMode)RNA_enum_get(
-        op->ptr, "deformation_mode");
-  }
-  else {
-    /* All gesture shapes that are not a line need to be deformed by fairing as they can't be
-     * projected to a plane. */
-    project_operation->deformation_mode = SCULPT_GESTURE_PROJECT_DEFORM_FAIR;
-  }
-
   project_operation->operation.sculpt_gesture_begin = sculpt_gesture_project_begin;
   project_operation->operation.sculpt_gesture_apply_for_symmetry_pass =
       sculpt_gesture_project_apply_for_symmetry_pass;
   project_operation->operation.sculpt_gesture_end = sculpt_gesture_project_end;
-}
-
-static void sculpt_project_gesture_operator_properties(wmOperatorType *ot)
-{
-  RNA_def_enum(ot->srna,
-               "deformation_mode",
-               prop_project_deformation_mode_types,
-               SCULPT_GESTURE_PROJECT_DEFORM_PROJECT,
-               "Deformation mode",
-               NULL);
 }
 
 static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
@@ -2068,44 +1865,6 @@ static int sculpt_trim_gesture_lasso_invoke(bContext *C, wmOperator *op, const w
 static int project_gesture_line_exec(bContext *C, wmOperator *op)
 {
   SculptGestureContext *sgcontext = sculpt_gesture_init_from_line(C, op);
-  if (!sgcontext) {
-    return OPERATOR_CANCELLED;
-  }
-  sculpt_gesture_init_project_properties(sgcontext, op);
-  sculpt_gesture_apply(C, sgcontext, op);
-  sculpt_gesture_context_free(sgcontext);
-  return OPERATOR_FINISHED;
-}
-
-static int project_gesture_lasso_exec(bContext *C, wmOperator *op)
-{
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-    /* Fairing operations are not supported in Multires. */
-    return OPERATOR_CANCELLED;
-  }
-
-  SculptGestureContext *sgcontext = sculpt_gesture_init_from_lasso(C, op);
-  if (!sgcontext) {
-    return OPERATOR_CANCELLED;
-  }
-  sculpt_gesture_init_project_properties(sgcontext, op);
-  sculpt_gesture_apply(C, sgcontext, op);
-  sculpt_gesture_context_free(sgcontext);
-  return OPERATOR_FINISHED;
-}
-
-static int project_gesture_box_exec(bContext *C, wmOperator *op)
-{
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-    /* Fairing operations are not supported in Multires. */
-    return OPERATOR_CANCELLED;
-  }
-
-  SculptGestureContext *sgcontext = sculpt_gesture_init_from_box(C, op);
   if (!sgcontext) {
     return OPERATOR_CANCELLED;
   }
@@ -2275,48 +2034,4 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot)
   /* Properties. */
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
   sculpt_gesture_operator_properties(ot);
-
-  sculpt_project_gesture_operator_properties(ot);
-}
-
-void SCULPT_OT_project_lasso_gesture(wmOperatorType *ot)
-{
-  ot->name = "Project Lasso Gesture";
-  ot->idname = "SCULPT_OT_project_lasso_gesture";
-  ot->description = "Project by fairing the geometry to the curve defined by the lasso gesture";
-
-  ot->invoke = WM_gesture_lasso_invoke;
-  ot->modal = WM_gesture_lasso_modal;
-  ot->exec = project_gesture_lasso_exec;
-
-  ot->poll = SCULPT_mode_poll;
-
-  ot->flag = OPTYPE_REGISTER;
-
-  /* Properties. */
-  WM_operator_properties_gesture_lasso(ot);
-  sculpt_gesture_operator_properties(ot);
-
-  sculpt_project_gesture_operator_properties(ot);
-}
-
-void SCULPT_OT_project_box_gesture(wmOperatorType *ot)
-{
-  ot->name = "Project Box Gesture";
-  ot->idname = "SCULPT_OT_project_box_gesture";
-  ot->description = "Project by fairing the geometry to the box defined by the gesture";
-
-  ot->invoke = WM_gesture_box_invoke;
-  ot->modal = WM_gesture_box_modal;
-  ot->exec = project_gesture_box_exec;
-
-  ot->poll = SCULPT_mode_poll;
-
-  ot->flag = OPTYPE_REGISTER;
-
-  /* Properties. */
-  WM_operator_properties_border(ot);
-  sculpt_gesture_operator_properties(ot);
-
-  sculpt_project_gesture_operator_properties(ot);
 }

@@ -40,8 +40,8 @@
 
 #include "BLT_translation.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

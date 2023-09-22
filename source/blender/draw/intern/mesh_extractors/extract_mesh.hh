@@ -88,6 +88,7 @@ struct MeshRenderData {
   /* The triangulation of #Mesh faces, owned by the mesh. */
   blender::Span<MLoopTri> looptris;
   blender::Span<int> looptri_faces;
+  blender::MutableSpan<BMLoop *[3]> bm_looptris;
   const int *material_indices;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> face_normals;

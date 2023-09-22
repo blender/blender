@@ -69,9 +69,9 @@
 #include "BKE_screen.h"
 #include "BKE_shader_fx.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_fileselect.hh"
 #include "ED_info.hh"

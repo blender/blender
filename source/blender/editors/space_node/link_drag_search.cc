@@ -26,7 +26,7 @@
 
 #include "WM_api.hh"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_build.hh"
 
 #include "ED_asset.hh"
 #include "ED_node.hh"

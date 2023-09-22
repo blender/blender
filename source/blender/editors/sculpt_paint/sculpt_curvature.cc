@@ -24,92 +24,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
-#include "BLI_array.h"
-#include "BLI_blenlib.h"
-#include "BLI_dial_2d.h"
-#include "BLI_ghash.h"
-#include "BLI_gsqueue.h"
-#include "BLI_hash.h"
-#include "BLI_math_color_blend.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_solvers.h"
-#include "BLI_math_vector.h"
-#include "BLI_task.h"
-#include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
-
-#include "PIL_time.h"
-
-#include "DNA_brush_types.h"
-#include "DNA_customdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-
-#include "BKE_brush.hh"
-#include "BKE_ccg.h"
-#include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_image.h"
-#include "BKE_kelvinlet.h"
-#include "BKE_key.h"
-#include "BKE_lib_id.h"
-#include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_mapping.hh"
-#include "BKE_mesh_mirror.hh"
-#include "BKE_modifier.h"
-#include "BKE_multires.hh"
-#include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_paint.hh"
-#include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
-#include "BKE_pointcache.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_subdiv_ccg.hh"
-#include "BKE_subsurf.hh"
 
-#include "DEG_depsgraph.h"
-
-#include "IMB_colormanagement.h"
-
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
-
-#include "WM_api.hh"
-#include "WM_message.hh"
-#include "WM_toolsystem.h"
-#include "WM_types.hh"
-
-#include "ED_object.h"
-#include "ED_screen.hh"
-#include "ED_sculpt.hh"
-#include "ED_space_api.hh"
-#include "ED_view3d.hh"
-#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-#include "RNA_access.hh"
-#include "RNA_define.hh"
-
-#include "UI_interface.hh"
-#include "UI_resources.hh"
-
-#include "bmesh.h"
-#include "bmesh_tools.h"
-
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
 
 using namespace blender::bke::paint;
 
@@ -269,8 +192,6 @@ void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node, bool useAc
     BKE_pbvh_curvature_update_set(node, false);
 
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vi, PBVH_ITER_UNIQUE) {
-      BMVert *v = (BMVert *)vi.vertex.i;
-
       SculptCurvatureData curv;
       SCULPT_calc_principle_curvatures(ss, vi.vertex, &curv, useAccurateSolver);
 

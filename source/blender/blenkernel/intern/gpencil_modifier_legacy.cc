@@ -43,8 +43,8 @@
 #include "BKE_screen.h"
 #include "BKE_shrinkwrap.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "MOD_gpencil_legacy_lineart.h"
 #include "MOD_gpencil_legacy_modifiertypes.h"

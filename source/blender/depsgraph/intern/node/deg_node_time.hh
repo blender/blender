@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "intern/node/deg_node.h"
+#include "intern/node/deg_node.hh"
 
 namespace blender::deg {
 

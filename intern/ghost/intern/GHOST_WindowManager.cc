@@ -152,7 +152,7 @@ const std::vector<GHOST_IWindow *> &GHOST_WindowManager::getWindows() const
   return m_windows;
 }
 
-GHOST_IWindow *GHOST_WindowManager::getWindowAssociatedWithOSWindow(void *osWindow)
+GHOST_IWindow *GHOST_WindowManager::getWindowAssociatedWithOSWindow(const void *osWindow)
 {
   std::vector<GHOST_IWindow *>::iterator iter;
 

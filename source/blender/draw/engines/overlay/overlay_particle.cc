@@ -8,7 +8,7 @@
 
 #include "DRW_render.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_particle_types.h"
 

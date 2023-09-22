@@ -11,7 +11,7 @@
 #include "BLI_ghash.h"
 #include "BLI_sys_types.h"
 #include "DNA_ID.h"
-#include "intern/node/deg_node.h"
+#include "intern/node/deg_node.hh"
 
 namespace blender::deg {
 

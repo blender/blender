@@ -8,6 +8,8 @@
 
 #pragma once
 
+#define TVC_TAB_COLUMNS 4
+
 enum eTextViewContext_LineFlag {
   TVC_LINE_FG = (1 << 0),
   TVC_LINE_BG = (1 << 1),

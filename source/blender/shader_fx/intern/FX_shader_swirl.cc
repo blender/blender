@@ -32,8 +32,8 @@
 #include "FX_shader_types.h"
 #include "FX_ui_common.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 static void init_data(ShaderFxData *md)
 {

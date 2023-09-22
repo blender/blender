@@ -228,7 +228,7 @@ static const std::optional<eAttrDomain> convert_usd_varying_to_blender(
   return *value;
 }
 
-void USDMeshReader::create_object(Main *bmain, const double /* motionSampleTime */)
+void USDMeshReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
   Mesh *mesh = BKE_mesh_add(bmain, name_.c_str());
 
@@ -1062,7 +1062,7 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
 
 Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
                                const USDMeshReadParams params,
-                               const char ** /* err_str */)
+                               const char ** /*err_str*/)
 {
   if (!mesh_prim_) {
     return existing_mesh;

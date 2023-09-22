@@ -27,7 +27,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 namespace blender::io {
 

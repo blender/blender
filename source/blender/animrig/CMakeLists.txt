@@ -35,6 +35,8 @@ blender_add_lib(bf_animrig "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::animrig ALIAS bf_animrig)
 
 if(WITH_GTESTS)
+  set(TEST_INC
+  )
   set(TEST_SRC
     intern/bone_collections_test.cc
   )

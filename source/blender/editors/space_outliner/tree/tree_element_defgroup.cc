@@ -39,7 +39,7 @@ void TreeElementDeformGroupBase::expand(SpaceOutliner & /*space_outliner*/) cons
 }
 
 TreeElementDeformGroup::TreeElementDeformGroup(TreeElement &legacy_te,
-                                               Object & /* object */,
+                                               Object & /*object*/,
                                                bDeformGroup &defgroup)
     : AbstractTreeElement(legacy_te), /* object_(object), */ defgroup_(defgroup)
 {

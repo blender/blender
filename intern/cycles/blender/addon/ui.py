@@ -1367,10 +1367,14 @@ class CYCLES_OBJECT_PT_light_linking(CyclesButtonsPanel, Panel):
 
         row = layout.row()
         col = row.column()
-        col.template_light_linking_collection(light_linking, "receiver_collection")
+        col.template_light_linking_collection(row, light_linking, "receiver_collection")
 
         col = row.column()
         sub = col.column(align=True)
+        prop = sub.operator("object.light_linking_receivers_link", icon='ADD', text="")
+        prop.link_state = 'INCLUDE'
+        sub.operator("object.light_linking_unlink_from_collection", icon='REMOVE', text="")
+        sub = col.column()
         sub.menu("CYCLES_OBJECT_MT_light_linking_context_menu", icon='DOWNARROW_HLT', text="")
 
 
@@ -1399,10 +1403,14 @@ class CYCLES_OBJECT_PT_shadow_linking(CyclesButtonsPanel, Panel):
 
         row = layout.row()
         col = row.column()
-        col.template_light_linking_collection(light_linking, "blocker_collection")
+        col.template_light_linking_collection(row, light_linking, "blocker_collection")
 
         col = row.column()
         sub = col.column(align=True)
+        prop = sub.operator("object.light_linking_blockers_link", icon='ADD', text="")
+        prop.link_state = 'INCLUDE'
+        sub.operator("object.light_linking_unlink_from_collection", icon='REMOVE', text="")
+        sub = col.column()
         sub.menu("CYCLES_OBJECT_MT_shadow_linking_context_menu", icon='DOWNARROW_HLT', text="")
 
 

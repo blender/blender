@@ -23,7 +23,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_image.hh"
 

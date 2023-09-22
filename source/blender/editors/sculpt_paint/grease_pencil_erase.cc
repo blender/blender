@@ -20,7 +20,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_brush_enums.h"
 
 #include "ED_view3d.hh"

@@ -30,7 +30,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 #  include "ED_clip.hh"
 

@@ -112,4 +112,15 @@ TEST(std140, gpu_shader_2D_widget_base)
   EXPECT_EQ(offset, 272);
 }
 
+TEST(std430, overlay_grid)
+{
+  uint32_t offset = 0;
+
+  def_attr<Std430>(shader::Type::VEC3, 0, 0, 12, &offset);
+  def_attr<Std430>(shader::Type::INT, 0, 12, 16, &offset);
+
+  align_end_of_struct<Std430>(&offset);
+  EXPECT_EQ(offset, 16);
+}
+
 }  // namespace blender::gpu

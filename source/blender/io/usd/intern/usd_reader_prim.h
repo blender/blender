@@ -99,7 +99,7 @@ class USDPrimReader {
   virtual bool valid() const;
 
   virtual void create_object(Main *bmain, double motionSampleTime) = 0;
-  virtual void read_object_data(Main * /* bmain */, double /* motionSampleTime */){};
+  virtual void read_object_data(Main * /*bmain*/, double /*motionSampleTime*/){};
 
   Object *object() const;
   void object(Object *ob);

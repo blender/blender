@@ -68,9 +68,9 @@
 
 #include "BLI_math_vector.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

@@ -30,7 +30,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"

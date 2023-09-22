@@ -31,7 +31,7 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_object.hh"
 #include "ED_screen.hh"

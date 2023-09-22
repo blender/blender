@@ -10,7 +10,7 @@
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "IO_ply.hh"
 #include "intern/ply_data.hh"

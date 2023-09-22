@@ -138,8 +138,8 @@ static const EnumPropertyItem blend_type_items[] = {
 #  include "BKE_main.h"
 #  include "BKE_texture.h"
 
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 #  include "ED_node.hh"
 #  include "ED_render.hh"

@@ -11,7 +11,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

@@ -37,8 +37,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -720,7 +720,7 @@ MenuType node_group_operator_assets_menu_unassigned()
   type.flag = MenuTypeFlag::ContextDependent;
   type.description = N_(
       "Tool node group assets not assigned to a catalog.\n"
-      "Catalogs can be assigned in the Asset Browser.");
+      "Catalogs can be assigned in the Asset Browser");
   return type;
 }
 

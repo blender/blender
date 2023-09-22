@@ -1053,8 +1053,8 @@ static bNodeSocket *version_make_socket_stub(const char *idname,
 
   socket->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 
-  BLI_strncpy(socket->identifier, identifier, sizeof(socket->identifier));
-  BLI_strncpy(socket->name, name, sizeof(socket->name));
+  STRNCPY(socket->identifier, identifier);
+  STRNCPY(socket->name, name);
   socket->storage = nullptr;
   socket->flag |= SOCK_COLLAPSED;
 

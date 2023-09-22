@@ -234,6 +234,7 @@ class MaterialModule {
   ::Material *glossy_mat;
 
   int64_t queued_shaders_count = 0;
+  int64_t queued_optimize_shaders_count = 0;
 
  private:
   Instance &inst_;

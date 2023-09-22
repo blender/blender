@@ -25,7 +25,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_volume_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "GEO_mesh_to_volume.hh"
 

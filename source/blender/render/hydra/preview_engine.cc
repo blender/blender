@@ -6,9 +6,9 @@
 
 namespace blender::render::hydra {
 
-void PreviewEngine::notify_status(float /* progress */,
-                                  const std::string & /* title */,
-                                  const std::string & /* info */)
+void PreviewEngine::notify_status(float /*progress*/,
+                                  const std::string & /*title*/,
+                                  const std::string & /*info*/)
 {
   /* Empty function. */
 }

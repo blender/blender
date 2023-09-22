@@ -18,7 +18,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_screen.hh"
 

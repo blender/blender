@@ -38,7 +38,6 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -70,7 +69,7 @@
 /* TODO(sergey): Ideally should be no direct call to such low level things. */
 #include "BKE_subdiv_eval.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

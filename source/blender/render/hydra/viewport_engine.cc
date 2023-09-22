@@ -21,7 +21,7 @@
 #include "BKE_camera.h"
 #include "BKE_context.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "GPU_context.h"
 #include "GPU_matrix.h"

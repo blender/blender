@@ -25,7 +25,7 @@
 
 #include "GEO_reverse_uv_sampler.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "node_geometry_util.hh"
 

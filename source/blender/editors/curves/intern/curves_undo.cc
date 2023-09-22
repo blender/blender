@@ -16,7 +16,7 @@
 
 #include "CLG_log.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_curves.hh"
 #include "ED_undo.hh"

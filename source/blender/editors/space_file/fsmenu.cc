@@ -15,6 +15,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -293,14 +294,7 @@ void fsmenu_insert_entry(FSMenu *fsmenu,
   }
 
   fsm_iter = static_cast<FSMenuEntry *>(MEM_mallocN(sizeof(*fsm_iter), "fsme"));
-  if (has_trailing_slash) {
-    fsm_iter->path = BLI_strdup(path);
-  }
-  else {
-    fsm_iter->path = BLI_strdupn(path, path_len + 1);
-    fsm_iter->path[path_len] = SEP;
-    fsm_iter->path[path_len + 1] = '\0';
-  }
+  fsm_iter->path = has_trailing_slash ? BLI_strdup(path) : BLI_string_joinN(path, SEP_STR);
   fsm_iter->save = (flag & FS_INSERT_SAVE) != 0;
 
   /* If entry is also in another list, use that icon and maybe name. */

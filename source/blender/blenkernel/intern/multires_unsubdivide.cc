@@ -31,7 +31,7 @@
 
 #include "bmesh.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "multires_reshape.hh"
 #include "multires_unsubdivide.hh"

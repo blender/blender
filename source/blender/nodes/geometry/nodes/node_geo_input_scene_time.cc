@@ -4,7 +4,7 @@
 
 #include "BKE_scene.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "node_geometry_util.hh"
 

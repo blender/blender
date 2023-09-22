@@ -4,6 +4,8 @@ vendor,product,version,cve_number,remarks,comment
 @PYTHON_ID@,CVE-2020-29396,Ignored,issue in odoo not used by blender
 @PYTHON_ID@,CVE-2021-32052,Ignored,issue in django not used by blender
 @PYTHON_ID@,CVE-2009-3720,Ignored,already fixed in libexpat version used
+@PYTHON_ID@,CVE-2023-36632,Ignored,not used in blender and not considered a bug upstream
+@PYTHON_ID@,CVE-2023-27043,Ignored,not used in blender
 @SSL_ID@,CVE-2009-1390,Ignored,issue in mutt not used by blender
 @SSL_ID@,CVE-2009-3765,Ignored,issue in mutt not used by blender
 @SSL_ID@,CVE-2009-3766,Ignored,issue in mutt not used by blender
@@ -24,6 +26,8 @@ vendor,product,version,cve_number,remarks,comment
 @TIFF_ID@,CVE-2022-3626,Ignored,issue in tiff command line tool not used by blender
 @TIFF_ID@,CVE-2022-3627,Ignored,issue in tiff command line tool not used by blender
 @XML2_ID@,CVE-2016-3709,Ignored,not affecting blender and not considered a security issue upstream
+@XML2_ID@,CVE-2023-39615,Ignored,not affecting blender and not considered a security issue upstream
+@XML2_ID@,CVE-2020-7595,Ignored,already fixed in the libxml2 version used
 @GMP_ID@,CVE-2021-43618,Mitigated,patched using upstream commit 561a9c25298e
 @SQLITE_ID@,CVE-2022-35737,Ignored,only affects SQLITE_ENABLE_STAT4 compile option not used by blender or python
 @SBOMCONTENTS@

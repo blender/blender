@@ -34,7 +34,7 @@
 
 #include "RNA_enum_types.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Event Printing

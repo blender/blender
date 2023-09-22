@@ -46,7 +46,7 @@ using namespace Freestyle;
 
 #include "BPY_extern.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "IMB_imbuf.h"
 

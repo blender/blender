@@ -44,7 +44,7 @@
 #include "WM_message.hh"
 #include "WM_toolsystem.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "screen_intern.h" /* own module include */
 

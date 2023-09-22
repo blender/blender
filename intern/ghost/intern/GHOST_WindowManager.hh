@@ -108,7 +108,7 @@ class GHOST_WindowManager {
    * \param osWindow: The OS window object/handle.
    * \return The associated window, null if none corresponds.
    */
-  GHOST_IWindow *getWindowAssociatedWithOSWindow(void *osWindow);
+  GHOST_IWindow *getWindowAssociatedWithOSWindow(const void *osWindow);
 
  protected:
   /** The list of windows managed */
