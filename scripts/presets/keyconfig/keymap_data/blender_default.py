@@ -24,7 +24,6 @@ __all__ = (
 
 class Params:
     __slots__ = (
-        "apple",
         "legacy",
         "select_mouse",
         "select_mouse_value",
@@ -137,8 +136,6 @@ class Params:
             v3d_alt_mmb_drag_action='RELATIVE',
             use_experimental_grease_pencil_version3=False,
     ):
-        from sys import platform
-        self.apple = platform == 'darwin'
         self.legacy = legacy
 
         if use_mouse_emulate_3_button:
@@ -848,12 +845,8 @@ def km_screen(params):
             ("script.reload", {"type": 'F8', "value": 'PRESS'}, None),
         ])
 
-    # Preferences
-    if params.apple:
-        items.extend([
-            ("screen.userpref_show", {"type": 'COMMA', "value": 'PRESS', "oskey": True}, None),
-        ])
-    elif not params.legacy:
+    # Preferences.
+    if not params.legacy:
         items.extend([
             ("screen.userpref_show", {"type": 'COMMA', "value": 'PRESS', "ctrl": True}, None),
         ])
