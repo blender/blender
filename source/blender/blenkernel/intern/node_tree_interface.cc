@@ -991,8 +991,8 @@ static bNodeTreeInterfaceSocket *make_socket(const int uid,
                                              const StringRef socket_type,
                                              const NodeTreeInterfaceSocketFlag flag)
 {
-  BLI_assert(name.c_str() != nullptr);
-  BLI_assert(socket_type.c_str() != nullptr);
+  BLI_assert(!name.is_empty());
+  BLI_assert(!socket_type.is_empty());
 
   const char *idname = socket_types::try_get_supported_socket_type(socket_type);
   if (idname == nullptr) {
@@ -1045,7 +1045,7 @@ static bNodeTreeInterfacePanel *make_panel(const int uid,
                                            const blender::StringRef description,
                                            const NodeTreeInterfacePanelFlag flag)
 {
-  BLI_assert(name.c_str() != nullptr);
+  BLI_assert(!name.is_empty());
 
   bNodeTreeInterfacePanel *new_panel = MEM_cnew<bNodeTreeInterfacePanel>(__func__);
   new_panel->item.item_type = NODE_INTERFACE_PANEL;
