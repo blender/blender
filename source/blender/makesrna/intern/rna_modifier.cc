@@ -1676,7 +1676,20 @@ static bool rna_Modifier_show_expanded_get(PointerRNA *ptr)
 static bool rna_NodesModifier_node_group_poll(PointerRNA * /*ptr*/, PointerRNA value)
 {
   bNodeTree *ntree = static_cast<bNodeTree *>(value.data);
-  return ntree->type == NTREE_GEOMETRY;
+  if (ntree->type != NTREE_GEOMETRY) {
+    return false;
+  }
+  if (ntree->id.asset_data) {
+    if ((ntree->geometry_node_asset_traits->flag & GEO_NODE_ASSET_MODIFIER) == 0) {
+      /* Only node group assets specically marked as modifiers can be modifiers. */
+      return false;
+    }
+  }
+  if (ntree->geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL) {
+    /* Tool node groups cannot be modifiers. */
+    return false;
+  }
+  return true;
 }
 
 static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, PointerRNA *ptr)
