@@ -29,7 +29,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                             color CoatTint = color(1.0, 1.0, 1.0),
                             float IOR = 1.45,
                             float Transmission = 0.0,
-                            color Emission = 1.0,
+                            color EmissionColor = 1.0,
                             float EmissionStrength = 0.0,
                             float Alpha = 1.0,
                             normal Normal = N,
@@ -100,8 +100,8 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
     BSDF = mix(BSDF, MetallicBSDF, clamp(Metallic, 0.0, 1.0));
   }
 
-  if (EmissionStrength > 0.0 && Emission != color(0.0)) {
-    BSDF += EmissionStrength * Emission * emission();
+  if (EmissionStrength > 0.0 && EmissionColor != color(0.0)) {
+    BSDF += EmissionStrength * EmissionColor * emission();
   }
 
   if (Coat > 1e-5) {

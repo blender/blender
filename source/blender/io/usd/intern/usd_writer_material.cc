@@ -292,7 +292,7 @@ static InputSpecMap &preview_surface_input_map()
 {
   static InputSpecMap input_map = {
       {"Base Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
-      {"Emission", {usdtokens::emissive_color, pxr::SdfValueTypeNames->Float3, true}},
+      {"Emission Color", {usdtokens::emissive_color, pxr::SdfValueTypeNames->Float3, true}},
       {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
       {"Roughness", {usdtokens::roughness, pxr::SdfValueTypeNames->Float, true}},
       {"Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, true}},

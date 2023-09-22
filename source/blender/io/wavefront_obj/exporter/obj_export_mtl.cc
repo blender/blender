@@ -32,7 +32,7 @@ const char *tex_map_type_to_socket_id[] = {
     "Roughness",
     "Sheen",
     "Metallic", /* Map reflection to metallic. */
-    "Emission",
+    "Emission Color",
     "Alpha",
     "Normal",
 };
@@ -232,7 +232,7 @@ static void store_bsdf_properties(const bNode *bsdf_node,
   float emission_strength = 0.0f;
   if (bsdf_node) {
     copy_property_from_node(SOCK_FLOAT, bsdf_node, "Emission Strength", {&emission_strength, 1});
-    copy_property_from_node(SOCK_RGBA, bsdf_node, "Emission", {emission_col, 3});
+    copy_property_from_node(SOCK_RGBA, bsdf_node, "Emission Color", {emission_col, 3});
   }
   mul_v3_fl(emission_col, emission_strength);
 

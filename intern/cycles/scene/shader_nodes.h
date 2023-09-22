@@ -546,7 +546,7 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, surface_mix_weight)
   NODE_SOCKET_API(ClosureType, distribution)
   NODE_SOCKET_API(ClosureType, subsurface_method)
-  NODE_SOCKET_API(float3, emission)
+  NODE_SOCKET_API(float3, emission_color)
   NODE_SOCKET_API(float, emission_strength)
   NODE_SOCKET_API(float, alpha)
 

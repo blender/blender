@@ -184,7 +184,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   /* Panel for Emission settings. */
   PanelDeclarationBuilder &emis = b.add_panel("Emission").default_closed(true);
-  emis.add_input<decl::Color>("Emission").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  emis.add_input<decl::Color>("Emission Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
 #define SOCK_EMISSION_ID 27
   emis.add_input<decl::Float>("Emission Strength").default_value(0.0).min(0.0f).max(1000000.0f);
 #define SOCK_EMISSION_STRENGTH_ID 28
