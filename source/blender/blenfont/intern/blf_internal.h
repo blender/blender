@@ -103,7 +103,8 @@ void blf_font_draw__wrap(struct FontBLF *font,
 /**
  * Use fixed column width, but an utf8 character may occupy multiple columns.
  */
-int blf_font_draw_mono(struct FontBLF *font, const char *str, size_t str_len, int cwidth);
+int blf_font_draw_mono(
+    struct FontBLF *font, const char *str, size_t str_len, int cwidth, int tab_columns);
 void blf_font_draw_buffer(struct FontBLF *font,
                           const char *str,
                           size_t str_len,

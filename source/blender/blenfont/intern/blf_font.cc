@@ -464,7 +464,8 @@ void blf_font_draw(FontBLF *font, const char *str, const size_t str_len, ResultB
   blf_glyph_cache_release(font);
 }
 
-int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int cwidth)
+int blf_font_draw_mono(
+    FontBLF *font, const char *str, const size_t str_len, int cwidth, int tab_columns)
 {
   GlyphBLF *g;
   int columns = 0;
@@ -486,7 +487,8 @@ int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int
     /* do not return this loop if clipped, we want every character tested */
     blf_glyph_draw(font, gc, g, ft_pix_to_int_floor(pen_x), ft_pix_to_int_floor(pen_y));
 
-    const int col = BLI_wcwidth_safe(char32_t(g->c));
+    const int col = UNLIKELY(g->c == '\t') ? (tab_columns - (columns % tab_columns)) :
+                                             BLI_wcwidth_safe(char32_t(g->c));
     columns += col;
     pen_x += cwidth_fpx * col;
   }

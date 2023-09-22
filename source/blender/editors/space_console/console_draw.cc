@@ -112,9 +112,11 @@ static void console_cursor_wrap_offset(
     const char *str, int width, int *row, int *column, const char *end)
 {
   int col;
+  const int tab_width = 4;
 
   for (; *str; str += BLI_str_utf8_size_safe(str)) {
-    col = BLI_str_utf8_char_width_safe(str);
+    col = UNLIKELY(*str == '\t') ? (tab_width - (*column % tab_width)) :
+                                   BLI_str_utf8_char_width_safe(str);
 
     if (*column + col > width) {
       (*row)++;

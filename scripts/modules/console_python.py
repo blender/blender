@@ -34,8 +34,7 @@ class _TempModuleOverride:
 
 def add_scrollback(text, text_type):
     for l in text.split("\n"):
-        bpy.ops.console.scrollback_append(text=l.replace("\t", "    "),
-                                          type=text_type)
+        bpy.ops.console.scrollback_append(text=l, type=text_type)
 
 
 def replace_help(namespace):

@@ -36,6 +36,8 @@
 
 #include "console_intern.hh"
 
+#define TAB_LENGTH 4
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
@@ -488,25 +490,13 @@ void CONSOLE_OT_move(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-#define TAB_LENGTH 4
 static int console_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
   ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
   char *str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, nullptr);
-  int len;
-
-  if (str[0] == '\t' && str[1] == '\0') {
-    len = TAB_LENGTH;
-    MEM_freeN(str);
-    str = static_cast<char *>(MEM_mallocN(len + 1, "insert_exec"));
-    memset(str, ' ', len);
-    str[len] = '\0';
-  }
-  else {
-    len = strlen(str);
-  }
+  int len = strlen(str);
 
   /* Allow trailing newlines (but strip them). */
   while (len > 0 && str[len - 1] == '\n') {
