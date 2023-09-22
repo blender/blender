@@ -24,11 +24,6 @@ const EnumPropertyItem rna_enum_node_tree_interface_item_type_items[] = {
 static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
     {NODE_INTERFACE_SOCKET_INPUT, "INPUT", 0, "Input", "Generate a input node socket"},
     {NODE_INTERFACE_SOCKET_OUTPUT, "OUTPUT", 0, "Output", "Generate a output node socket"},
-    {NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
-     "BOTH",
-     0,
-     "Both",
-     "Generate both input and output node socket"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 #ifdef RNA_RUNTIME

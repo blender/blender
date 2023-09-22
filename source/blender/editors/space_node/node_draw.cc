@@ -588,44 +588,19 @@ static Vector<NodeInterfaceItemData> node_build_item_data(bNode &node)
     if (const nodes::SocketDeclaration *socket_decl =
             dynamic_cast<const nodes::SocketDeclaration *>(item_decl->get()))
     {
-      bNodeSocket *used_input = nullptr;
-      bNodeSocket *used_output = nullptr;
       switch (socket_decl->in_out) {
         case SOCK_IN:
           BLI_assert(input != input_end);
-          used_input = *input;
+          result.append({socket_decl, *input, nullptr});
           ++input;
           break;
         case SOCK_OUT:
           BLI_assert(output != output_end);
-          used_output = *output;
+          result.append({socket_decl, nullptr, *output});
           ++output;
           break;
       }
       ++item_decl;
-
-      if (socket_decl->inline_with_next && item_decl != item_decl_end) {
-        /* Consume the next item as well when inlining sockets. */
-        const nodes::SocketDeclaration *next_socket_decl =
-            dynamic_cast<const nodes::SocketDeclaration *>(item_decl->get());
-        if (next_socket_decl && next_socket_decl->in_out != socket_decl->in_out) {
-          switch (next_socket_decl->in_out) {
-            case SOCK_IN:
-              BLI_assert(input != input_end);
-              used_input = *input;
-              ++input;
-              break;
-            case SOCK_OUT:
-              BLI_assert(output != output_end);
-              used_output = *output;
-              ++output;
-              break;
-          }
-          ++item_decl;
-        }
-      }
-
-      result.append({socket_decl, used_input, used_output});
     }
     else if (const nodes::PanelDeclaration *panel_decl =
                  dynamic_cast<const nodes::PanelDeclaration *>(item_decl->get()))
@@ -723,8 +698,8 @@ static void node_update_basis_from_declaration(
     else if (item.is_valid_socket()) {
       if (item.input) {
         SET_FLAG_FROM_TEST(item.input->flag, is_parent_collapsed, SOCK_PANEL_COLLAPSED);
-        /* Draw buttons before the first input, unless it's inline with an output. */
-        if (!item.socket_decl->inline_with_next && !buttons_drawn) {
+        /* Draw buttons before the first input. */
+        if (!buttons_drawn) {
           buttons_drawn = true;
           need_spacer_after_item = node_update_basis_buttons(
               C, ntree, node, node.typeinfo->draw_buttons, block, locy);

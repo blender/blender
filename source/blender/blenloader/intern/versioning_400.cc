@@ -791,6 +791,115 @@ static void version_principled_bsdf_coat(bNodeTree *ntree)
       ntree, SH_NODE_BSDF_PRINCIPLED, "Clearcoat Normal", "Coat Normal");
 }
 
+static void version_copy_socket(bNodeTreeInterfaceSocket &dst,
+                                const bNodeTreeInterfaceSocket &src,
+                                char *identifier)
+{
+  /* Node socket copy function based on bNodeTreeInterface::item_copy to avoid using blenkernel. */
+  dst.name = BLI_strdup(src.name);
+  dst.description = BLI_strdup_null(src.description);
+  dst.socket_type = BLI_strdup(src.socket_type);
+  dst.default_attribute_name = BLI_strdup_null(src.default_attribute_name);
+  dst.identifier = identifier;
+  if (src.properties) {
+    dst.properties = IDP_CopyProperty_ex(src.properties, 0);
+  }
+  if (src.socket_data != nullptr) {
+    dst.socket_data = MEM_dupallocN(src.socket_data);
+    /* No user count increment needed, gets reset after versioning. */
+  }
+}
+
+static int version_nodes_find_valid_insert_position_for_item(const bNodeTreeInterfacePanel &panel,
+                                                             const bNodeTreeInterfaceItem &item,
+                                                             const int initial_pos)
+{
+  const bool sockets_above_panels = !(panel.flag &
+                                      NODE_INTERFACE_PANEL_ALLOW_SOCKETS_AFTER_PANELS);
+  const blender::Span<const bNodeTreeInterfaceItem *> items = {panel.items_array, panel.items_num};
+
+  int pos = initial_pos;
+
+  if (sockets_above_panels) {
+    if (item.item_type == NODE_INTERFACE_PANEL) {
+      /* Find the closest valid position from the end, only panels at or after #position. */
+      for (int test_pos = items.size() - 1; test_pos >= initial_pos; test_pos--) {
+        if (test_pos < 0) {
+          /* Initial position is out of range but valid. */
+          break;
+        }
+        if (items[test_pos]->item_type != NODE_INTERFACE_PANEL) {
+          /* Found valid position, insert after the last socket item. */
+          pos = test_pos + 1;
+          break;
+        }
+      }
+    }
+    else {
+      /* Find the closest valid position from the start, no panels at or after #position. */
+      for (int test_pos = 0; test_pos <= initial_pos; test_pos++) {
+        if (test_pos >= items.size()) {
+          /* Initial position is out of range but valid. */
+          break;
+        }
+        if (items[test_pos]->item_type == NODE_INTERFACE_PANEL) {
+          /* Found valid position, inserting moves the first panel. */
+          pos = test_pos;
+          break;
+        }
+      }
+    }
+  }
+
+  return pos;
+}
+
+static void version_nodes_insert_item(bNodeTreeInterfacePanel &parent,
+                                      bNodeTreeInterfaceSocket &socket,
+                                      int position)
+{
+  /* Apply any constraints on the item positions. */
+  position = version_nodes_find_valid_insert_position_for_item(parent, socket.item, position);
+  position = std::min(std::max(position, 0), parent.items_num);
+
+  blender::MutableSpan<bNodeTreeInterfaceItem *> old_items = {parent.items_array,
+                                                              parent.items_num};
+  parent.items_num++;
+  parent.items_array = MEM_cnew_array<bNodeTreeInterfaceItem *>(parent.items_num, __func__);
+  parent.items().take_front(position).copy_from(old_items.take_front(position));
+  parent.items().drop_front(position + 1).copy_from(old_items.drop_front(position));
+  parent.items()[position] = &socket.item;
+
+  if (old_items.data()) {
+    MEM_freeN(old_items.data());
+  }
+}
+
+/* Node group interface copy function based on bNodeTreeInterface::insert_item_copy. */
+static void version_node_group_split_socket(bNodeTreeInterface &tree_interface,
+                                            bNodeTreeInterfaceSocket &socket,
+                                            bNodeTreeInterfacePanel *parent,
+                                            int position)
+{
+  if (parent == nullptr) {
+    parent = &tree_interface.root_panel;
+  }
+
+  bNodeTreeInterfaceSocket *csocket = static_cast<bNodeTreeInterfaceSocket *>(
+      MEM_dupallocN(&socket));
+  /* Generate a new unique identifier.
+   * This might break existing links, but the identifiers were duplicate anyway. */
+  char *dst_identifier = BLI_sprintfN("Socket_%d", tree_interface.next_uid++);
+  version_copy_socket(*csocket, socket, dst_identifier);
+
+  version_nodes_insert_item(*parent, *csocket, position);
+
+  /* Original socket becomes output. */
+  socket.flag &= ~NODE_INTERFACE_SOCKET_INPUT;
+  /* Copied socket becomes input. */
+  csocket->flag &= ~NODE_INTERFACE_SOCKET_OUTPUT;
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -1220,6 +1329,28 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
+
+    /* Convert sockets with both input and output flag into two separate sockets. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      blender::Vector<bNodeTreeInterfaceSocket *> sockets_to_split;
+      ntree->tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
+        if (item.item_type == NODE_INTERFACE_SOCKET) {
+          bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
+          if ((socket.flag & NODE_INTERFACE_SOCKET_INPUT) &&
+              (socket.flag & NODE_INTERFACE_SOCKET_OUTPUT)) {
+            sockets_to_split.append(&socket);
+          }
+        }
+        return true;
+      });
+
+      for (bNodeTreeInterfaceSocket *socket : sockets_to_split) {
+        const int position = ntree->tree_interface.find_item_position(socket->item);
+        bNodeTreeInterfacePanel *parent = ntree->tree_interface.find_item_parent(socket->item);
+        version_node_group_split_socket(ntree->tree_interface, *socket, parent, position + 1);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**
