@@ -527,7 +527,7 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, subsurface)
   NODE_SOCKET_API(float, specular)
   NODE_SOCKET_API(float, roughness)
-  NODE_SOCKET_API(float, specular_tint)
+  NODE_SOCKET_API(float3, specular_tint)
   NODE_SOCKET_API(float3, metallic_tint)
   NODE_SOCKET_API(float, anisotropic)
   NODE_SOCKET_API(float, sheen)

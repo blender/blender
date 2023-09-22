@@ -294,14 +294,15 @@ class PrincipledBSDFWrapper(ShaderWrapper):
 
     def specular_tint_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
-            return 0.0
-        return self.node_principled_bsdf.inputs["Specular Tint"].default_value
+            return Color((0.0, 0.0, 0.0))
+        return rgba_to_rgb(self.node_principled_bsdf.inputs["Specular Tint"].default_value)
 
     @_set_check
-    def specular_tint_set(self, value):
-        value = values_clamp(value, 0.0, 1.0)
+    def specular_tint_set(self, color):
+        color = values_clamp(color, 0.0, 1.0)
+        color = rgb_to_rgba(color)
         if self.use_nodes and self.node_principled_bsdf is not None:
-            self.node_principled_bsdf.inputs["Specular Tint"].default_value = value
+            self.node_principled_bsdf.inputs["Specular Tint"].default_value = color
 
     specular_tint = property(specular_tint_get, specular_tint_set)
 

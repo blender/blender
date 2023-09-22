@@ -105,7 +105,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       float subsurface = param2;
       float specular = stack_load_float(stack, specular_offset);
       float roughness = stack_load_float(stack, roughness_offset);
-      float specular_tint = stack_load_float(stack, specular_tint_offset);
+      Spectrum specular_tint = rgb_to_spectrum(stack_load_float3(stack, specular_tint_offset));
       float anisotropic = stack_load_float(stack, anisotropic_offset);
       float sheen = stack_load_float(stack, sheen_offset);
       float3 sheen_tint = stack_load_float3(stack, sheen_tint_offset);
@@ -287,9 +287,9 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       if (glass_caustics && transmission > CLOSURE_WEIGHT_CUTOFF) {
         ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
             sd, sizeof(MicrofacetBsdf), transmission * weight);
-        ccl_private FresnelDielectricTint *fresnel =
-            (bsdf != NULL) ? (ccl_private FresnelDielectricTint *)closure_alloc_extra(
-                                 sd, sizeof(FresnelDielectricTint)) :
+        ccl_private FresnelGeneralizedSchlick *fresnel =
+            (bsdf != NULL) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
+                                 sd, sizeof(FresnelGeneralizedSchlick)) :
                              NULL;
 
         if (bsdf && fresnel) {
@@ -299,14 +299,16 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
           bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
           bsdf->ior = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
 
-          fresnel->reflection_tint = mix(
-              one_spectrum(), rgb_to_spectrum(base_color), specular_tint);
+          fresnel->f0 = F0_from_ior(eta) * specular_tint;
+          fresnel->f90 = one_spectrum();
+          fresnel->exponent = -eta;
+          fresnel->reflection_tint = one_spectrum();
           fresnel->transmission_tint = sqrt(rgb_to_spectrum(base_color));
 
           /* setup bsdf */
           sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
           const bool is_multiggx = (distribution == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
-          bsdf_microfacet_setup_fresnel_dielectric_tint(kg, bsdf, sd, fresnel, is_multiggx);
+          bsdf_microfacet_setup_fresnel_generalized_schlick(kg, bsdf, sd, fresnel, is_multiggx);
 
           /* Attenuate other components */
           weight *= (1.0f - transmission);
@@ -329,11 +331,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
           bsdf->alpha_x = alpha_x;
           bsdf->alpha_y = alpha_y;
 
-          float m_cdlum = linear_rgb_to_gray(kg, base_color);
-          float3 m_ctint = m_cdlum > 0.0f ? base_color / m_cdlum : one_float3();
-          float3 specTint = mix(one_spectrum(), rgb_to_spectrum(m_ctint), specular_tint);
-
-          fresnel->f0 = F0_from_ior(eta) * 2.0f * specular * specTint;
+          fresnel->f0 = F0_from_ior(eta) * 2.0f * specular * specular_tint;
           fresnel->f90 = one_spectrum();
           fresnel->exponent = -eta;
           fresnel->reflection_tint = one_spectrum();
