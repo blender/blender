@@ -78,7 +78,6 @@ set(SRC
   sculpt_filter_mask.cc
   sculpt_filter_mesh.cc
   sculpt_geodesic.cc
-  sculpt_mask_expand.cc
   sculpt_mask_init.cc
   sculpt_multiplane_scrape.cc
   sculpt_ops.cc
