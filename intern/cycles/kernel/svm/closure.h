@@ -99,16 +99,17 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
       // get Disney principled parameters
       float metallic = saturatef(param1);
-      float subsurface = param2;
-      float specular = stack_load_float(stack, specular_offset);
-      float roughness = stack_load_float(stack, roughness_offset);
-      Spectrum specular_tint = rgb_to_spectrum(stack_load_float3(stack, specular_tint_offset));
-      float anisotropic = stack_load_float(stack, anisotropic_offset);
-      float sheen = stack_load_float(stack, sheen_offset);
+      float subsurface = saturatef(param2);
+      float specular_ior_level = fmaxf(stack_load_float(stack, specular_ior_level_offset), 0.0f);
+      float roughness = saturatef(stack_load_float(stack, roughness_offset));
+      Spectrum specular_tint = rgb_to_spectrum(
+          max(stack_load_float3(stack, specular_tint_offset), zero_float3()));
+      float anisotropic = saturatef(stack_load_float(stack, anisotropic_offset));
+      float sheen = saturatef(stack_load_float(stack, sheen_offset));
       float3 sheen_tint = stack_load_float3(stack, sheen_tint_offset);
-      float sheen_roughness = stack_load_float(stack, sheen_roughness_offset);
-      float coat = stack_load_float(stack, coat_offset);
-      float coat_roughness = stack_load_float(stack, coat_roughness_offset);
+      float sheen_roughness = saturatef(stack_load_float(stack, sheen_roughness_offset));
+      float coat = saturatef(stack_load_float(stack, coat_offset));
+      float coat_roughness = saturatef(stack_load_float(stack, coat_roughness_offset));
       float coat_ior = fmaxf(stack_load_float(stack, coat_ior_offset), 1.0f);
       float3 coat_tint = stack_load_float3(stack, coat_tint_offset);
       float transmission = saturatef(stack_load_float(stack, transmission_offset));
@@ -139,17 +140,18 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
                              &dummy);
       float alpha = stack_valid(alpha_offset) ? stack_load_float(stack, alpha_offset) :
                                                 __uint_as_float(data_alpha_emission.y);
-      float3 emission = stack_load_float3(stack, emission_offset);
-      /* Emission strength */
-      emission *= stack_valid(emission_strength_offset) ?
-                      stack_load_float(stack, emission_strength_offset) :
-                      __uint_as_float(data_alpha_emission.z);
+      alpha = saturatef(alpha);
+
+      float emission_strength = stack_valid(emission_strength_offset) ?
+                                    stack_load_float(stack, emission_strength_offset) :
+                                    __uint_as_float(data_alpha_emission.z);
+      float3 emission = stack_load_float3(stack, emission_offset) * fmaxf(emission_strength, 0.0f);
 
       Spectrum weight = closure_weight * mix_weight;
 
       float alpha_x = sqr(roughness), alpha_y = sqr(roughness);
       if (anisotropic > 0.0f) {
-        float aspect = sqrtf(1.0f - saturatef(anisotropic) * 0.9f);
+        float aspect = sqrtf(1.0f - anisotropic * 0.9f);
         alpha_x /= aspect;
         alpha_y *= aspect;
         if (anisotropic_rotation != 0.0f)
