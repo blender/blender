@@ -61,9 +61,21 @@ void node_bsdf_principled(vec4 base_color,
 {
   /* Match cycles. */
   metallic = clamp(metallic, 0.0, 1.0);
+  roughness = clamp(roughness, 0.0, 1.0);
+  ior = max(ior, 1e-5);
   transmission = clamp(transmission, 0.0, 1.0);
-  coat = max(coat, 0.0);
+  subsurface = clamp(subsurface, 0.0, 1.0);
+  specular = max(specular, 0.0);
+  specular_tint = max(specular_tint, vec4(0.0));
+  /* Not used by EEVEE */
+  /* anisotropic = clamp(anisotropic, 0.0, 1.0) */
+  coat = clamp(coat, 0.0, 1.0);
+  coat_roughness = clamp(coat_roughness, 0.0, 1.0);
   coat_ior = max(coat_ior, 1.0);
+  sheen = clamp(sheen, 0.0, 1.0);
+  sheen_roughness = clamp(sheen_roughness, 0.0, 1.0);
+  emission_strength = max(emission_strength, 0.0);
+  alpha = clamp(alpha, 0.0, 1.0);
 
   N = safe_normalize(N);
   CN = safe_normalize(CN);
