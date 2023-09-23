@@ -55,19 +55,19 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("The distance between the top point and the X axis");
   b.add_input<decl::Vector>("Point 1")
       .default_value({-1.0f, -1.0f, 0.0f})
-      .subtype(PROP_DISTANCE)
+      .subtype(PROP_TRANSLATION)
       .description("The exact location of the point to use");
   b.add_input<decl::Vector>("Point 2")
       .default_value({1.0f, -1.0f, 0.0f})
-      .subtype(PROP_DISTANCE)
+      .subtype(PROP_TRANSLATION)
       .description("The exact location of the point to use");
   b.add_input<decl::Vector>("Point 3")
       .default_value({1.0f, 1.0f, 0.0f})
-      .subtype(PROP_DISTANCE)
+      .subtype(PROP_TRANSLATION)
       .description("The exact location of the point to use");
   b.add_input<decl::Vector>("Point 4")
       .default_value({-1.0f, 1.0f, 0.0f})
-      .subtype(PROP_DISTANCE)
+      .subtype(PROP_TRANSLATION)
       .description("The exact location of the point to use");
   b.add_output<decl::Geometry>("Curve");
 }
