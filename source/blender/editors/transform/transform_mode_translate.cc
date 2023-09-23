@@ -564,7 +564,7 @@ static bool clip_uv_transform_translation(TransInfo *t, float vec[2])
 
 static void applyTranslation(TransInfo *t)
 {
-  char str[UI_MAX_DRAW_STR];
+  char str[UI_MAX_DRAW_STR] = "";
   float global_dir[3] = {0.0f};
 
   if (t->flag & T_INPUT_IS_VALUES_FINAL) {
@@ -640,7 +640,7 @@ static void applyTranslation(TransInfo *t)
   headerTranslation(t, (t->con.mode & CON_APPLY) ? t->values_final : global_dir, str);
 
   recalc_data(t);
-  ED_area_status_text(t->area, str);
+  ED_area_status_text(t->area, (str[0] == '\0') ? nullptr : str);
 }
 
 static void applyTranslationMatrix(TransInfo *t, float mat_xform[4][4])
