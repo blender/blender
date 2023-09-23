@@ -69,7 +69,7 @@ if(WITH_TBB)
   list(APPEND LIB ${TBB_LIBRARIES})
 endif()
 
-blender_add_lib(bf_wavefront_obj "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+blender_add_lib(bf_io_wavefront_obj "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_GTESTS)
   set(TEST_SRC
@@ -92,10 +92,10 @@ if(WITH_GTESTS)
     ${LIB}
 
     bf_blenloader_tests
-    bf_wavefront_obj
+    bf_io_wavefront_obj
   )
 
   include(GTestTesting)
-  blender_add_test_lib(bf_wavefront_obj_tests "${TEST_SRC}" "${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
-  add_dependencies(bf_wavefront_obj_tests bf_wavefront_obj)
+  blender_add_test_lib(bf_io_wavefront_obj_tests "${TEST_SRC}" "${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
+  add_dependencies(bf_io_wavefront_obj_tests bf_io_wavefront_obj)
 endif()
