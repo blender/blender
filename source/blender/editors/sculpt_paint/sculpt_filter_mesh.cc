@@ -514,7 +514,8 @@ static void mesh_filter_task(Object *ob,
 
       case MESH_FILTER_ENHANCE_DETAILS: {
         mul_v3_v3fl(disp, ss->filter_cache->detail_directions[vd.index], -fabsf(fade));
-      } break;
+        break;
+      }
       case MESH_FILTER_ERASE_DISPLACEMENT: {
         fade = clamp_f(fade, -1.0f, 1.0f);
         sub_v3_v3v3(disp, ss->filter_cache->limit_surface_co[vd.index], orig_co);

@@ -210,15 +210,18 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
         case SOCK_FLOAT: {
           create_input<bNodeSocketValueFloat, float>(
               preview_surface, input_spec, sock->default_value);
-        } break;
+          break;
+        }
         case SOCK_VECTOR: {
           create_input<bNodeSocketValueVector, pxr::GfVec3f>(
               preview_surface, input_spec, sock->default_value);
-        } break;
+          break;
+        }
         case SOCK_RGBA: {
           create_input<bNodeSocketValueRGBA, pxr::GfVec3f>(
               preview_surface, input_spec, sock->default_value);
-        } break;
+          break;
+        }
         default:
           break;
       }

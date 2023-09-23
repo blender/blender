@@ -571,7 +571,8 @@ static void do_cloth_brush_apply_forces_task(Object *ob,
         mul_v3_v3fl(z_disp, z_object_space, dot_v3v3(disp_center, z_object_space));
         add_v3_v3v3(disp_center, x_disp, z_disp);
         mul_v3_v3fl(force, disp_center, fade);
-      } break;
+        break;
+      }
       case BRUSH_CLOTH_DEFORM_INFLATE:
         mul_v3_v3fl(force, vd.no ? vd.no : vd.fno, fade);
         break;
@@ -1412,7 +1413,8 @@ static void cloth_filter_apply_forces_task(Object *ob,
         float normal[3];
         SCULPT_vertex_normal_get(ss, vd.vertex, normal);
         mul_v3_v3fl(force, normal, fade * filter_strength);
-      } break;
+        break;
+      }
       case CLOTH_FILTER_EXPAND:
         cloth_sim->length_constraint_tweak[vd.index] += fade * filter_strength * 0.01f;
         zero_v3(force);

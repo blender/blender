@@ -179,7 +179,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
       if (optimization_status == GPU_MAT_OPTIMIZATION_QUEUED) {
         queued_optimize_shaders_count++;
       }
-    } break;
+      break;
+    }
     case GPU_MAT_QUEUED:
       queued_shaders_count++;
       blender_mat = (geometry_type == MAT_GEOM_VOLUME_OBJECT) ? BKE_material_default_volume() :

@@ -100,13 +100,15 @@ static int FEdgeSharp_mathutils_get(BaseMathObject *bmo, int subtype)
       bmo->data[0] = p[0];
       bmo->data[1] = p[1];
       bmo->data[2] = p[2];
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_NORMAL_B: {
       Vec3r p(self->fes->normalB());
       bmo->data[0] = p[0];
       bmo->data[1] = p[1];
       bmo->data[2] = p[2];
-    } break;
+      break;
+    }
     default:
       return -1;
   }
@@ -120,11 +122,13 @@ static int FEdgeSharp_mathutils_set(BaseMathObject *bmo, int subtype)
     case MATHUTILS_SUBTYPE_NORMAL_A: {
       Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
       self->fes->setNormalA(p);
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_NORMAL_B: {
       Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
       self->fes->setNormalB(p);
-    } break;
+      break;
+    }
     default:
       return -1;
   }
@@ -138,11 +142,13 @@ static int FEdgeSharp_mathutils_get_index(BaseMathObject *bmo, int subtype, int 
     case MATHUTILS_SUBTYPE_NORMAL_A: {
       Vec3r p(self->fes->normalA());
       bmo->data[index] = p[index];
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_NORMAL_B: {
       Vec3r p(self->fes->normalB());
       bmo->data[index] = p[index];
-    } break;
+      break;
+    }
     default:
       return -1;
   }
@@ -157,12 +163,14 @@ static int FEdgeSharp_mathutils_set_index(BaseMathObject *bmo, int subtype, int 
       Vec3r p(self->fes->normalA());
       p[index] = bmo->data[index];
       self->fes->setNormalA(p);
-    } break;
+      break;
+    }
     case MATHUTILS_SUBTYPE_NORMAL_B: {
       Vec3r p(self->fes->normalB());
       p[index] = bmo->data[index];
       self->fes->setNormalB(p);
-    } break;
+      break;
+    }
     default:
       return -1;
   }

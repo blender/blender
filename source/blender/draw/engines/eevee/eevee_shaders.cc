@@ -1427,7 +1427,8 @@ GPUMaterial *EEVEE_material_get(
       if (optimization_status == GPU_MAT_OPTIMIZATION_QUEUED) {
         vedata->stl->g_data->queued_optimise_shaders_count++;
       }
-    } break;
+      break;
+    }
     case GPU_MAT_QUEUED: {
       vedata->stl->g_data->queued_shaders_count++;
       GPUMaterial *default_mat = EEVEE_material_default_get(scene, ma, options);
@@ -1435,7 +1436,8 @@ GPUMaterial *EEVEE_material_get(
       GPU_material_set_default(mat, default_mat);
       /* Return default material. */
       mat = default_mat;
-    } break;
+      break;
+    }
     case GPU_MAT_FAILED:
     default:
       ma = EEVEE_material_default_error_get();

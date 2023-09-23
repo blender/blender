@@ -467,7 +467,8 @@ static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
         const int div = boundary_distance / radius;
         const float mod = fmodf(boundary_distance, radius);
         falloff_distance = div % 2 == 0 ? mod : radius - mod;
-      } break;
+        break;
+      }
       case BRUSH_BOUNDARY_FALLOFF_LOOP_INVERT: {
         const int div = boundary_distance / radius;
         const float mod = fmodf(boundary_distance, radius);
@@ -476,7 +477,8 @@ static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
         if (((div - 1) & 2) == 0) {
           direction = -1.0f;
         }
-      } break;
+        break;
+      }
       case BRUSH_BOUNDARY_FALLOFF_CONSTANT:
         /* For constant falloff distances are not allocated, so this should never happen. */
         BLI_assert(false);

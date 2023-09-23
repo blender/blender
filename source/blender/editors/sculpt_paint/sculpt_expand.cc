@@ -1803,7 +1803,8 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
           expand_cache->snap_enabled_face_sets = std::make_unique<blender::Set<int>>();
           sculpt_expand_snap_initialize_from_enabled(ss, expand_cache);
         }
-      } break;
+        break;
+      }
       case SCULPT_EXPAND_MODAL_MOVE_TOGGLE: {
         if (expand_cache->move) {
           expand_cache->move = false;
