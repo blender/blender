@@ -1121,7 +1121,7 @@ const char *WM_key_event_string(const short type, const bool compact)
               font_id, IFACE_("Win"), BLI_STR_UTF8_BLACK_DIAMOND_MINUS_WHITE_X);
         }
         return IFACE_("OS");
-      } break;
+      }
       case EVT_TABKEY:
         return key_event_glyph_or_text(
             font_id, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Tab"), BLI_STR_UTF8_HORIZONTAL_TAB_KEY);

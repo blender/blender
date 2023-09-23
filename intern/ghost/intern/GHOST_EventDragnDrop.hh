@@ -90,7 +90,8 @@ class GHOST_EventDragnDrop : public GHOST_Event {
 
         free(strArray->strings);
         free(strArray);
-      } break;
+        break;
+      }
       case GHOST_kDragnDropTypeString:
         free(m_dragnDropEventData.data);
         break;

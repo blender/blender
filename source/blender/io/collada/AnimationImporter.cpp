@@ -140,7 +140,8 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
         fcurves.push_back(fcu);
         unused_curves.push_back(fcu);
       }
-    } break;
+      break;
+    }
     default:
       fprintf(stderr,
               "Output dimension of %d is not yet supported (animation id = %s)\n",
@@ -601,7 +602,8 @@ void AnimationImporter::Assign_transform_animations(
           else {
             unused_fcurve(curves);
           }
-        } break;
+          break;
+        }
         case COLLADAFW::AnimationList::AXISANGLE:
         /* TODO: convert axis-angle to quat? or XYZ? */
         default:

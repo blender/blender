@@ -97,7 +97,8 @@ void WVDataWrapper::print()
           fprintf(stderr, "%.1f, %.1f\n", (*values)[i], (*values)[i + 1]);
         }
       }
-    } break;
+      break;
+    }
     case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE: {
       COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
       if (values->getCount()) {
@@ -105,7 +106,8 @@ void WVDataWrapper::print()
           fprintf(stderr, "%.1f, %.1f\n", float((*values)[i]), float((*values)[i + 1]));
         }
       }
-    } break;
+      break;
+    }
   }
   fprintf(stderr, "\n");
 }
@@ -126,8 +128,8 @@ void UVDataWrapper::getUV(int uv_index, float *uv)
       }
       uv[0] = (*values)[uv_index * stride];
       uv[1] = (*values)[uv_index * stride + 1];
-
-    } break;
+      break;
+    }
     case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE: {
       COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
       if (values->empty()) {
@@ -135,8 +137,8 @@ void UVDataWrapper::getUV(int uv_index, float *uv)
       }
       uv[0] = float((*values)[uv_index * stride]);
       uv[1] = float((*values)[uv_index * stride + 1]);
-
-    } break;
+      break;
+    }
     case COLLADAFW::MeshVertexData::DATA_TYPE_UNKNOWN:
     default:
       fprintf(stderr, "MeshImporter.getUV(): unknown data type\n");
@@ -177,13 +179,13 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
     case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT: {
       COLLADAFW::ArrayPrimitiveType<float> *values = mVData->getFloatValues();
       colladaAddColor<COLLADAFW::ArrayPrimitiveType<float> *>(values, mloopcol, v_index, stride);
-    } break;
-
+      break;
+    }
     case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE: {
       COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
       colladaAddColor<COLLADAFW::ArrayPrimitiveType<double> *>(values, mloopcol, v_index, stride);
-    } break;
-
+      break;
+    }
     default:
       fprintf(stderr, "VCOLDataWrapper.getvcol(): unknown data type\n");
   }
@@ -818,8 +820,8 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i,
       else {
         v[2] = 0.0f;
       }
-
-    } break;
+      break;
+    }
     case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE: {
       COLLADAFW::ArrayPrimitiveType<double> *values = arr.getDoubleValues();
       if (values->empty()) {
@@ -834,7 +836,8 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i,
       else {
         v[2] = 0.0f;
       }
-    } break;
+      break;
+    }
     default:
       break;
   }

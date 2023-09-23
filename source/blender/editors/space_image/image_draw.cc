@@ -590,7 +590,8 @@ void ED_space_image_grid_steps(SpaceImage *sima,
         BLI_assert(pixel_width > 0 && pixel_height > 0);
         grid_steps_x[step] = 1.0f / pixel_width;
         grid_steps_y[step] = 1.0f / pixel_height;
-      } break;
+        break;
+      }
       default:
         BLI_assert_unreachable();
     }
