@@ -216,7 +216,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
 
   if (!tree.unassigned_assets.is_empty()) {
     uiItemS(layout);
-    uiItemM(layout, "NODE_MT_node_add_unassigned_assets", IFACE_("Unassigned"), ICON_NONE);
+    uiItemM(layout, "NODE_MT_node_add_unassigned_assets", IFACE_("Unassigned"), ICON_FILE_HIDDEN);
   }
 }
 
