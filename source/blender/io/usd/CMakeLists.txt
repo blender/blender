@@ -209,13 +209,13 @@ if(WITH_OPENVDB)
   )
 endif()
 
-blender_add_lib(bf_usd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+blender_add_lib(bf_io_usd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # RNA_prototypes.h
-add_dependencies(bf_usd bf_rna)
+add_dependencies(bf_io_usd bf_rna)
 
 if(COMMAND target_precompile_headers)
-  target_precompile_headers(bf_usd PRIVATE intern/usd_precomp.h)
+  target_precompile_headers(bf_io_usd PRIVATE intern/usd_precomp.h)
 endif()
 
 if(WITH_GTESTS)
