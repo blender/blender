@@ -471,8 +471,8 @@ class NODE_PT_geometry_node_tool_mode(Panel):
         snode = context.space_data
         group = snode.node_tree
 
-        modes = [("is_mode_edit", "Edit Mode", 'SCULPTMODE_HLT'),
-                 ("is_mode_sculpt", "Sculpt Mode", 'EDITMODE_HLT')]
+        modes = [("is_mode_edit", "Edit Mode", 'EDITMODE_HLT'),
+                 ("is_mode_sculpt", "Sculpt Mode", 'SCULPTMODE_HLT')]
 
         col = layout.column()
         col.active = group.is_tool
