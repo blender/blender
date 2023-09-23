@@ -662,7 +662,10 @@ static void export_startjob(void *customdata,
   }
   G.is_break = false;
 
+  ModifierDisabler mod_disabler(data->depsgraph, data->params);
+
   {
+    /* Create scope for the main thread lock. */
     MainThreadLock main_thread_lock(data->wm_job);
 
     /* Construct the depsgraph for exporting. */
@@ -673,7 +676,6 @@ static void export_startjob(void *customdata,
       DEG_graph_build_for_all_objects(data->depsgraph);
     }
 
-    ModifierDisabler mod_disabler(data->depsgraph, data->params);
     mod_disabler.disable_modifiers();
     BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
   }
