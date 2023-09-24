@@ -36,7 +36,7 @@ def geometry_node_group_empty_new(name):
 
 
 def geometry_node_group_empty_modifier_new(name):
-    group = geometry_node_group_empty_new(data_("Geometry"))
+    group = geometry_node_group_empty_new(data_("Geometry Nodes"))
     group.is_modifier = True
     return group
 
