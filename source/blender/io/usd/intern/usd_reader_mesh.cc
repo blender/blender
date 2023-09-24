@@ -455,7 +455,8 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
   }
   /* Check for situations that allow for a straight-forward copy by index. */
   else if (interp == pxr::UsdGeomTokens->vertex ||
-           (interp == pxr::UsdGeomTokens->faceVarying && !is_left_handed_))
+           (ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->varying) &&
+            !is_left_handed_))
   {
     for (int i = 0; i < usd_colors.size(); i++) {
       ColorGeometry4f color = ColorGeometry4f(
@@ -464,6 +465,10 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
     }
   }
   else {
+    BLI_assert((ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->varying) &&
+                is_left_handed_) ||
+               interp == pxr::UsdGeomTokens->uniform);
+
     /* Catch all for the remaining cases. */
 
     /* Special case: we will expand uniform color into corner color.
@@ -622,7 +627,7 @@ void USDMeshReader::copy_prim_array_to_blender_attribute(const Mesh *mesh,
     /* For situations where there's only a single item, flood fill the object. */
     attribute.fill(convert_value<USDT, BlenderT>(primvar_array[0]));
   }
-  else if (interp == pxr::UsdGeomTokens->faceVarying) {
+  else if (ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->varying)) {
     if (is_left_handed_) {
       /* Reverse the index order. */
       const OffsetIndices faces = mesh->faces();
