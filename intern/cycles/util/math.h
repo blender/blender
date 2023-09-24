@@ -382,10 +382,12 @@ ccl_device_inline float mix(float a, float b, float t)
 ccl_device_inline float smoothstep(float edge0, float edge1, float x)
 {
   float result;
-  if (x < edge0)
+  if (x < edge0) {
     result = 0.0f;
-  else if (x >= edge1)
+  }
+  else if (x >= edge1) {
     result = 1.0f;
+  }
   else {
     float t = (x - edge0) / (edge1 - edge0);
     result = (3.0f - 2.0f * t) * (t * t);
@@ -464,10 +466,12 @@ ccl_device_inline float signf(float f)
 
 ccl_device_inline float nonzerof(float f, float eps)
 {
-  if (fabsf(f) < eps)
+  if (fabsf(f) < eps) {
     return signf(f) * eps;
-  else
+  }
+  else {
     return f;
+  }
 }
 
 /* `signum` function testing for zero. Matches GLSL and OSL functions. */
@@ -620,16 +624,18 @@ ccl_device_inline float3 safe_divide_even_color(float3 a, float3 b)
       x = y;
       z = y;
     }
-    else
+    else {
       x = 0.5f * (y + z);
+    }
   }
   else if (b.y == 0.0f) {
     if (b.z == 0.0f) {
       y = x;
       z = x;
     }
-    else
+    else {
       y = 0.5f * (x + z);
+    }
   }
   else if (b.z == 0.0f) {
     z = 0.5f * (x + y);
@@ -708,8 +714,9 @@ ccl_device float compatible_powf(float x, float y)
 
 ccl_device float safe_powf(float a, float b)
 {
-  if (UNLIKELY(a < 0.0f && b != float_to_int(b)))
+  if (UNLIKELY(a < 0.0f && b != float_to_int(b))) {
     return 0.0f;
+  }
 
   return compatible_powf(a, b);
 }
@@ -721,8 +728,9 @@ ccl_device float safe_divide(float a, float b)
 
 ccl_device float safe_logf(float a, float b)
 {
-  if (UNLIKELY(a <= 0.0f || b <= 0.0f))
+  if (UNLIKELY(a <= 0.0f || b <= 0.0f)) {
     return 0.0f;
+  }
 
   return safe_divide(logf(a), logf(b));
 }

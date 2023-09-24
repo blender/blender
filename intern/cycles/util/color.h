@@ -61,18 +61,22 @@ ccl_device_inline float4 color_uchar4_to_float4(uchar4 c)
 
 ccl_device float color_srgb_to_linear(float c)
 {
-  if (c < 0.04045f)
+  if (c < 0.04045f) {
     return (c < 0.0f) ? 0.0f : c * (1.0f / 12.92f);
-  else
+  }
+  else {
     return powf((c + 0.055f) * (1.0f / 1.055f), 2.4f);
+  }
 }
 
 ccl_device float color_linear_to_srgb(float c)
 {
-  if (c < 0.0031308f)
+  if (c < 0.0031308f) {
     return (c < 0.0f) ? 0.0f : c * 12.92f;
-  else
+  }
+  else {
     return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
+  }
 }
 
 ccl_device float3 rgb_to_hsv(float3 rgb)
@@ -98,17 +102,21 @@ ccl_device float3 rgb_to_hsv(float3 rgb)
     float3 cmax3 = make_float3(cmax, cmax, cmax);
     c = (cmax3 - rgb) / cdelta;
 
-    if (rgb.x == cmax)
+    if (rgb.x == cmax) {
       h = c.z - c.y;
-    else if (rgb.y == cmax)
+    }
+    else if (rgb.y == cmax) {
       h = 2.0f + c.x - c.z;
-    else
+    }
+    else {
       h = 4.0f + c.y - c.x;
+    }
 
     h /= 6.0f;
 
-    if (h < 0.0f)
+    if (h < 0.0f) {
       h += 1.0f;
+    }
   }
   else {
     h = 0.0f;
@@ -127,8 +135,9 @@ ccl_device float3 hsv_to_rgb(float3 hsv)
   v = hsv.z;
 
   if (s != 0.0f) {
-    if (h == 1.0f)
+    if (h == 1.0f) {
       h = 0.0f;
+    }
 
     h *= 6.0f;
     i = floorf(h);
@@ -138,18 +147,24 @@ ccl_device float3 hsv_to_rgb(float3 hsv)
     q = v * (1.0f - (s * f));
     t = v * (1.0f - (s * (1.0f - f)));
 
-    if (i == 0.0f)
+    if (i == 0.0f) {
       rgb = make_float3(v, t, p);
-    else if (i == 1.0f)
+    }
+    else if (i == 1.0f) {
       rgb = make_float3(q, v, p);
-    else if (i == 2.0f)
+    }
+    else if (i == 2.0f) {
       rgb = make_float3(p, v, t);
-    else if (i == 3.0f)
+    }
+    else if (i == 3.0f) {
       rgb = make_float3(p, q, v);
-    else if (i == 4.0f)
+    }
+    else if (i == 4.0f) {
       rgb = make_float3(t, p, v);
-    else
+    }
+    else {
       rgb = make_float3(v, p, q);
+    }
   }
   else {
     rgb = make_float3(v, v, v);
@@ -212,15 +227,19 @@ ccl_device float3 xyY_to_xyz(float x, float y, float Y)
 {
   float X, Z;
 
-  if (y != 0.0f)
+  if (y != 0.0f) {
     X = (x / y) * Y;
-  else
+  }
+  else {
     X = 0.0f;
+  }
 
-  if (y != 0.0f && Y != 0.0f)
+  if (y != 0.0f && Y != 0.0f) {
     Z = (1.0f - x - y) / y * Y;
-  else
+  }
+  else {
     Z = 0.0f;
+  }
 
   return make_float3(X, Y, Z);
 }

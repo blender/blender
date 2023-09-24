@@ -135,9 +135,11 @@ class SVMCompiler {
 
     bool empty()
     {
-      for (int i = 0; i < SVM_STACK_SIZE; i++)
-        if (users[i])
+      for (int i = 0; i < SVM_STACK_SIZE; i++) {
+        if (users[i]) {
           return false;
+        }
+      }
 
       return true;
     }
@@ -146,8 +148,9 @@ class SVMCompiler {
     {
       printf("stack <");
 
-      for (int i = 0; i < SVM_STACK_SIZE; i++)
+      for (int i = 0; i < SVM_STACK_SIZE; i++) {
         printf((users[i]) ? "*" : " ");
+      }
 
       printf(">\n");
     }

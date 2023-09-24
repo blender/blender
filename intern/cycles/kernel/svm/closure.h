@@ -456,8 +456,9 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
         /* rotate tangent */
         float rotation = stack_load_float(stack, data_node.z);
-        if (rotation != 0.0f)
+        if (rotation != 0.0f) {
           bsdf->T = rotate_around_axis(bsdf->T, bsdf->N, rotation * M_2PI_F);
+        }
 
         if (anisotropy < 0.0f) {
           bsdf->alpha_x = roughness / (1.0f + anisotropy);
@@ -603,10 +604,12 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
         bsdf->size = param1;
         bsdf->smooth = param2;
 
-        if (type == CLOSURE_BSDF_DIFFUSE_TOON_ID)
+        if (type == CLOSURE_BSDF_DIFFUSE_TOON_ID) {
           sd->flag |= bsdf_diffuse_toon_setup(bsdf);
-        else
+        }
+        else {
           sd->flag |= bsdf_glossy_toon_setup(bsdf);
+        }
       }
       break;
     }
@@ -1014,8 +1017,9 @@ ccl_device_noinline void svm_node_closure_emission(ccl_private ShaderData *sd,
   if (stack_valid(mix_weight_offset)) {
     float mix_weight = stack_load_float(stack, mix_weight_offset);
 
-    if (mix_weight == 0.0f)
+    if (mix_weight == 0.0f) {
       return;
+    }
 
     weight *= mix_weight;
   }
@@ -1034,8 +1038,9 @@ ccl_device_noinline void svm_node_closure_background(ccl_private ShaderData *sd,
   if (stack_valid(mix_weight_offset)) {
     float mix_weight = stack_load_float(stack, mix_weight_offset);
 
-    if (mix_weight == 0.0f)
+    if (mix_weight == 0.0f) {
       return;
+    }
 
     weight *= mix_weight;
   }
@@ -1053,13 +1058,15 @@ ccl_device_noinline void svm_node_closure_holdout(ccl_private ShaderData *sd,
   if (stack_valid(mix_weight_offset)) {
     float mix_weight = stack_load_float(stack, mix_weight_offset);
 
-    if (mix_weight == 0.0f)
+    if (mix_weight == 0.0f) {
       return;
+    }
 
     closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, closure_weight * mix_weight);
   }
-  else
+  else {
     closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, closure_weight);
+  }
 
   sd->flag |= SD_HOLDOUT;
 }

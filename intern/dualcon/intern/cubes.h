@@ -19,13 +19,13 @@ class Cubes {
   /// Get a triangle
   void getTriangle(int mask, int index, int indices[3])
   {
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++) {
       indices[i] = marching_cubes_tris[mask][index][i];
-  }
+    }
 
 #ifdef WITH_CXX_GUARDEDALLOC
-  MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:Cubes")
+    MEM_CXX_CLASS_ALLOC_FUNCS("DUALCON:Cubes")
 #endif
-};
+  };
 
 #endif /* __CUBES_H__ */

@@ -42,8 +42,9 @@ ccl_device_inline float triangle_light_pdf_area_sampling(const float3 Ng, const 
 {
   float cos_pi = fabsf(dot(Ng, I));
 
-  if (cos_pi == 0.0f)
+  if (cos_pi == 0.0f) {
     return 0.0f;
+  }
 
   return t * t / cos_pi;
 }

@@ -15,8 +15,9 @@ template<typename T> ccl_device_forceinline T tex_fetch(const TextureInfo &info,
 ccl_device_inline int svm_image_texture_wrap_periodic(int x, int width)
 {
   x %= width;
-  if (x < 0)
+  if (x < 0) {
     x += width;
+  }
   return x;
 }
 
@@ -28,8 +29,9 @@ ccl_device_inline int svm_image_texture_wrap_clamp(int x, int width)
 ccl_device_inline int svm_image_texture_wrap_mirror(int x, int width)
 {
   const int m = abs(x + (x < 0)) % (2 * width);
-  if (m >= width)
+  if (m >= width) {
     return 2 * width - m - 1;
+  }
   return m;
 }
 
