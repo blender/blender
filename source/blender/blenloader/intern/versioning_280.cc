@@ -3002,14 +3002,14 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 1)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "GPUDOFSettings", "float", "ratio")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "GPUDOFSettings", "float", "ratio")) {
       LISTBASE_FOREACH (Camera *, ca, &bmain->cameras) {
         ca->gpu_dof.ratio = 1.0f;
       }
     }
 
     /* MTexPoly now removed. */
-    if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
+    if (DNA_struct_exists(fd->filesdna, "MTexPoly")) {
       LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
         /* If we have UVs, so this file will have MTexPoly layers too! */
         if (CustomData_has_layer(&me->loop_data, CD_MLOOPUV) ||
@@ -3023,7 +3023,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 2)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "cascade_max_dist")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Lamp", "float", "cascade_max_dist")) {
       LISTBASE_FOREACH (Light *, la, &bmain->lights) {
         la->cascade_max_dist = 1000.0f;
         la->cascade_count = 4;
@@ -3032,7 +3032,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "contact_dist")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Lamp", "float", "contact_dist")) {
       LISTBASE_FOREACH (Light *, la, &bmain->lights) {
         la->contact_dist = 0.2f;
         la->contact_bias = 0.03f;
@@ -3040,7 +3040,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "vis_bias")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "LightProbe", "float", "vis_bias")) {
       LISTBASE_FOREACH (LightProbe *, probe, &bmain->lightprobes) {
         probe->vis_bias = 1.0f;
         probe->vis_blur = 0.2f;
@@ -3115,22 +3115,22 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
     {
       /* Init grease pencil edit line color */
-      if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "float", "line_color[4]")) {
+      if (!DNA_struct_member_exists(fd->filesdna, "bGPdata", "float", "line_color[4]")) {
         LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
           ARRAY_SET_ITEMS(gpd->line_color, 0.6f, 0.6f, 0.6f, 0.5f);
         }
       }
 
       /* Init grease pencil pixel size factor */
-      if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "float", "pixfactor")) {
+      if (!DNA_struct_member_exists(fd->filesdna, "bGPdata", "float", "pixfactor")) {
         LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
           gpd->pixfactor = GP_DEFAULT_PIX_FACTOR;
         }
       }
 
       /* Grease pencil multi-frame falloff curve. */
-      if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "CurveMapping", "cur_falloff"))
-      {
+      if (!DNA_struct_member_exists(
+              fd->filesdna, "GP_Sculpt_Settings", "CurveMapping", "cur_falloff")) {
         LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
           /* sculpt brushes */
           GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
@@ -3169,7 +3169,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 3)) {
     /* init grease pencil grids and paper */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_paper_color[3]")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "View3DOverlay", "float", "gpencil_paper_color[3]")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3185,7 +3186,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 6)) {
-    if (DNA_struct_elem_find(fd->filesdna, "SpaceOutliner", "int", "filter") == false) {
+    if (DNA_struct_member_exists(fd->filesdna, "SpaceOutliner", "int", "filter") == false) {
       /* Update files using invalid (outdated) outlinevis Outliner values. */
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -3208,7 +3209,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "intensity")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "LightProbe", "float", "intensity")) {
       LISTBASE_FOREACH (LightProbe *, probe, &bmain->lightprobes) {
         probe->intensity = 1.0f;
       }
@@ -3347,7 +3348,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 13)) {
     /* Initialize specular factor. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "spec_fac")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Lamp", "float", "spec_fac")) {
       LISTBASE_FOREACH (Light *, la, &bmain->lights) {
         la->spec_fac = 1.0f;
       }
@@ -3374,26 +3375,26 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 14)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "Scene", "SceneDisplay", "display")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Scene", "SceneDisplay", "display")) {
       /* Initialize new scene.SceneDisplay */
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         const float vector[3]{-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3};
         copy_v3_v3(scene->display.light_direction, vector);
       }
     }
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "float", "shadow_shift")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneDisplay", "float", "shadow_shift")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->display.shadow_shift = 0.1;
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "transform_pivot_point")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ToolSettings", "char", "transform_pivot_point")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEDIAN;
       }
     }
 
-    if (!DNA_struct_find(fd->filesdna, "SceneEEVEE")) {
+    if (!DNA_struct_exists(fd->filesdna, "SceneEEVEE")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         /* First set the default for all the properties. */
 
@@ -3663,7 +3664,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 18)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "Material", "float", "roughness")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Material", "float", "roughness")) {
       LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
         if (mat->use_nodes) {
           if (MAIN_VERSION_FILE_ATLEAST(bmain, 280, 0)) {
@@ -3691,7 +3692,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "xray_alpha")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "float", "xray_alpha")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3703,7 +3704,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "char", "matcap[256]")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "char", "matcap[256]")) {
       StudioLight *default_matcap = BKE_studiolight_find_default(STUDIOLIGHT_TYPE_MATCAP);
       /* when loading the internal file is loaded before the matcaps */
       if (default_matcap) {
@@ -3719,7 +3720,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "wireframe_threshold")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DOverlay", "float", "wireframe_threshold")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3731,7 +3732,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "cavity_valley_factor")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "float", "cavity_valley_factor"))
+    {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3744,7 +3746,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "xray_alpha_bone")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DOverlay", "float", "xray_alpha_bone")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3759,7 +3761,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 19)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "Image", "ListBase", "renderslot")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Image", "ListBase", "renderslot")) {
       LISTBASE_FOREACH (Image *, ima, &bmain->images) {
         if (ima->type == IMA_TYPE_R_RESULT) {
           for (int i = 0; i < 8; i++) {
@@ -3771,7 +3773,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-    if (!DNA_struct_elem_find(fd->filesdna, "SpaceAction", "char", "mode_prev")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SpaceAction", "char", "mode_prev")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3811,8 +3813,9 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(
-            fd->filesdna, "View3DOverlay", "float", "texture_paint_mode_opacity")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "View3DOverlay", "float", "texture_paint_mode_opacity"))
+    {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3831,7 +3834,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "char", "background_type")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "char", "background_type")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3844,15 +3847,15 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "gi_cubemap_draw_size")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "gi_cubemap_draw_size")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.gi_irradiance_draw_size = 0.1f;
         scene->eevee.gi_cubemap_draw_size = 0.3f;
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "RigidBodyWorld", "RigidBodyWorld_Shared", "*shared"))
-    {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "RigidBodyWorld", "RigidBodyWorld_Shared", "*shared")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         RigidBodyWorld *rbw = scene->rigidbody_world;
 
@@ -3878,7 +3881,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SoftBody", "SoftBody_Shared", "*shared")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SoftBody", "SoftBody_Shared", "*shared")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         SoftBody *sb = ob->soft;
         if (sb == nullptr) {
@@ -3898,7 +3901,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "short", "type")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "short", "type")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3915,13 +3918,13 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "View3DShading", "shading")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneDisplay", "View3DShading", "shading")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         BKE_screen_view3d_shading_init(&scene->display.shading);
       }
     }
     /* initialize grease pencil view data */
-    if (!DNA_struct_elem_find(fd->filesdna, "SpaceView3D", "float", "vertex_opacity")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SpaceView3D", "float", "vertex_opacity")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3937,13 +3940,13 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 22)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "annotate_v3d_align")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ToolSettings", "char", "annotate_v3d_align")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->toolsettings->annotate_v3d_align = GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR;
         scene->toolsettings->annotate_thickness = 3;
       }
     }
-    if (!DNA_struct_elem_find(fd->filesdna, "bGPDlayer", "short", "line_change")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bGPDlayer", "short", "line_change")) {
       LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           gpl->line_change = gpl->thickness;
@@ -3953,7 +3956,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_paper_opacity")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DOverlay", "float", "gpencil_paper_opacity"))
+    {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3965,7 +3969,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_grid_opacity")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DOverlay", "float", "gpencil_grid_opacity"))
+    {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3979,7 +3984,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* default loc axis */
-    if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "int", "lock_axis")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "GP_Sculpt_Settings", "int", "lock_axis")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         /* lock axis */
         GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
@@ -3990,7 +3995,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Versioning code for Subsurf modifier. */
-    if (!DNA_struct_elem_find(fd->filesdna, "SubsurfModifier", "short", "uv_smooth")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SubsurfModifier", "short", "uv_smooth")) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Subsurf) {
@@ -4006,7 +4011,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SubsurfModifier", "short", "quality")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SubsurfModifier", "short", "quality")) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Subsurf) {
@@ -4017,7 +4022,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
     /* Versioning code for Multires modifier. */
-    if (!DNA_struct_elem_find(fd->filesdna, "MultiresModifier", "short", "quality")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "MultiresModifier", "short", "quality")) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Multires) {
@@ -4034,7 +4039,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "ClothSimSettings", "short", "bending_model")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ClothSimSettings", "short", "bending_model")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           ClothModifierData *clmd = nullptr;
@@ -4063,7 +4068,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "BrushGpencilSettings", "float", "era_strength_f")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "BrushGpencilSettings", "float", "era_strength_f"))
+    {
       LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
         if (brush->gpencil_settings != nullptr) {
           BrushGpencilSettings *gp = brush->gpencil_settings;
@@ -4118,7 +4124,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "ShrinkwrapModifierData", "char", "shrinkMode")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ShrinkwrapModifierData", "char", "shrinkMode")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Shrinkwrap) {
@@ -4132,7 +4138,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "PartDeflect", "float", "pdef_cfrict")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "PartDeflect", "float", "pdef_cfrict")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         if (ob->pd) {
           ob->pd->pdef_cfrict = 5.0f;
@@ -4148,7 +4154,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "xray_alpha_wire")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "float", "xray_alpha_wire")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -4258,7 +4264,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* grease pencil fade layer opacity */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_fade_layer")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DOverlay", "float", "gpencil_fade_layer")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -4284,7 +4290,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 33)) {
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "overscan")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "overscan")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.overscan = 3.0f;
       }
@@ -4297,31 +4303,32 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "light_threshold")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "light_threshold")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.light_threshold = 0.01f;
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "gi_irradiance_smoothing")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "gi_irradiance_smoothing"))
+    {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.gi_irradiance_smoothing = 0.1f;
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "gi_filter_quality")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "gi_filter_quality")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.gi_filter_quality = 1.0f;
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "att_dist")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Lamp", "float", "att_dist")) {
       LISTBASE_FOREACH (Light *, la, &bmain->lights) {
         la->att_dist = la->clipend;
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "char", "weightpaint_tool")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Brush", "char", "weightpaint_tool")) {
       /* Magic defines from old files (2.7x) */
 
 #define PAINT_BLEND_MIX 0
@@ -4492,7 +4499,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 36)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "curvature_ridge_factor")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "View3DShading", "float", "curvature_ridge_factor")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -4514,7 +4522,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* init Annotations onion skin */
-    if (!DNA_struct_elem_find(fd->filesdna, "bGPDlayer", "int", "gstep")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bGPDlayer", "int", "gstep")) {
       LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           ARRAY_SET_ITEMS(gpl->gcolor_prev, 0.302f, 0.851f, 0.302f);
@@ -4524,7 +4532,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Move studio_light selection to lookdev_light. */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "char", "lookdev_light[256]")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "char", "lookdev_light[256]")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -4538,7 +4546,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Change Solid mode shadow orientation. */
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "float", "shadow_focus")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneDisplay", "float", "shadow_focus")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         float *dir = scene->display.light_direction;
         SWAP(float, dir[2], dir[1]);
@@ -4554,8 +4562,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Grease pencil primitive curve */
-    if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "CurveMapping", "cur_primitive"))
-    {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "GP_Sculpt_Settings", "CurveMapping", "cur_primitive")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
         if ((gset) && (gset->cur_primitive == nullptr)) {
@@ -4571,7 +4579,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 38)) {
-    if (DNA_struct_elem_find(fd->filesdna, "Object", "char", "empty_image_visibility_flag")) {
+    if (DNA_struct_member_exists(fd->filesdna, "Object", "char", "empty_image_visibility_flag")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         ob->empty_image_visibility_flag ^= (OB_EMPTY_IMAGE_HIDE_PERSPECTIVE |
                                             OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC |
@@ -4682,7 +4690,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 40)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "snap_transform_mode_flag")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "ToolSettings", "char", "snap_transform_mode_flag")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->toolsettings->snap_transform_mode_flag = SCE_SNAP_TRANSFORM_MODE_TRANSLATE;
       }
@@ -4706,7 +4715,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_find(fd->filesdna, "TransformOrientationSlot")) {
+    if (!DNA_struct_exists(fd->filesdna, "TransformOrientationSlot")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         for (int i = 0; i < ARRAY_SIZE(scene->orientation_slots); i++) {
           scene->orientation_slots[i].index_custom = -1;
@@ -4715,7 +4724,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Grease pencil cutter/select segment intersection threshold. */
-    if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "float", "isect_threshold")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "GP_Sculpt_Settings", "float", "isect_threshold"))
+    {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
         if (gset) {
@@ -4765,7 +4775,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 44)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "Material", "float", "a")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Material", "float", "a")) {
       LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
         mat->a = 1.0f;
       }
@@ -4790,7 +4800,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 46)) {
     /* Add wireframe color. */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "char", "wire_color_type")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "char", "wire_color_type")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -4803,7 +4813,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DCursor", "short", "rotation_mode")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DCursor", "short", "rotation_mode")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         if (is_zero_v3(scene->cursor.rotation_axis)) {
           scene->cursor.rotation_mode = ROT_MODE_XYZ;
@@ -4892,7 +4902,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "TriangulateModifierData", "int", "min_vertices")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "TriangulateModifierData", "int", "min_vertices"))
+    {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Triangulate) {
@@ -5025,7 +5036,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* init grease pencil brush gradients */
-    if (!DNA_struct_elem_find(fd->filesdna, "BrushGpencilSettings", "float", "hardeness")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "BrushGpencilSettings", "float", "hardeness")) {
       LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
         if (brush->gpencil_settings != nullptr) {
           BrushGpencilSettings *gp = brush->gpencil_settings;
@@ -5036,7 +5047,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* init grease pencil stroke gradients */
-    if (!DNA_struct_elem_find(fd->filesdna, "bGPDstroke", "float", "hardeness")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bGPDstroke", "float", "hardeness")) {
       LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
@@ -5094,7 +5105,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 60)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "bSplineIKConstraint", "short", "yScaleMode")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bSplineIKConstraint", "short", "yScaleMode")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         if (ob->pose) {
           LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
@@ -5111,8 +5122,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "sculpt_mode_mask_opacity"))
-    {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "View3DOverlay", "float", "sculpt_mode_mask_opacity")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -5124,7 +5135,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "char", "render_aa")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneDisplay", "char", "render_aa")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->display.render_aa = SCE_DISPLAY_AA_SAMPLES_8;
         scene->display.viewport_aa = SCE_DISPLAY_AA_FXAA;
@@ -5132,7 +5143,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Split bbone_scalein/bbone_scaleout into x and y fields. */
-    if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "scale_out_y")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bPoseChannel", "float", "scale_out_y")) {
       /* Update armature data and pose channels. */
       LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
         do_version_bones_split_bbone_scale(&arm->bonebase);
@@ -5166,7 +5177,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 61)) {
     /* Added a power option to Copy Scale. */
-    if (!DNA_struct_elem_find(fd->filesdna, "bSizeLikeConstraint", "float", "power")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bSizeLikeConstraint", "float", "power")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         do_version_constraints_copy_scale_power(&ob->constraints);
         if (ob->pose) {
@@ -5237,7 +5248,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Initializes sun lights with the new angular diameter property */
-    if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "sun_angle")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Lamp", "float", "sun_angle")) {
       LISTBASE_FOREACH (Light *, light, &bmain->lights) {
         light->sun_angle = 2.0f * atanf(light->area_size);
       }
@@ -5465,14 +5476,14 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Convert the BONE_NO_SCALE flag to inherit_scale_mode enum. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Bone", "char", "inherit_scale_mode")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Bone", "char", "inherit_scale_mode")) {
       LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
         do_version_bones_inherit_scale(&arm->bonebase);
       }
     }
 
     /* Convert the Offset flag to the mix mode enum. */
-    if (!DNA_struct_elem_find(fd->filesdna, "bRotateLikeConstraint", "char", "mix_mode")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bRotateLikeConstraint", "char", "mix_mode")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         do_version_constraints_copy_rotation_mix_mode(&ob->constraints);
         if (ob->pose) {
@@ -5484,7 +5495,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Added studio-light intensity. */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "studiolight_intensity")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "float", "studiolight_intensity"))
+    {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -5531,8 +5543,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "LayerCollection", "short", "local_collections_bits"))
-    {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "LayerCollection", "short", "local_collections_bits")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
           LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
@@ -5605,7 +5617,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Add custom curve profile to toolsettings for bevel tool */
-    if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "CurveProfile", "custom_profile")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ToolSettings", "CurveProfile", "custom_profile"))
+    {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         ToolSettings *ts = scene->toolsettings;
         if ((ts) && (ts->custom_bevel_profile_preset == nullptr)) {
@@ -5615,7 +5628,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Add custom curve profile to bevel modifier */
-    if (!DNA_struct_elem_find(fd->filesdna, "BevelModifier", "CurveProfile", "custom_profile")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "BevelModifier", "CurveProfile", "custom_profile"))
+    {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Bevel) {
@@ -5629,7 +5643,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Dash Ratio and Dash Samples */
-    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "dash_ratio")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Brush", "float", "dash_ratio")) {
       LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
         br->dash_ratio = 1.0f;
         br->dash_samples = 20;
@@ -5637,7 +5651,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Pose brush smooth iterations */
-    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "pose_smooth_iterations")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Brush", "float", "pose_smooth_iterations")) {
       LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
         br->pose_smooth_iterations = 4;
       }
@@ -5664,7 +5678,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Set the default render pass in the viewport to Combined. */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "int", "render_pass")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "int", "render_pass")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->display.shading.render_pass = SCE_PASS_COMBINED;
       }
@@ -5746,7 +5760,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Add primary tile to images. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Image", "ListBase", "tiles")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Image", "ListBase", "tiles")) {
       LISTBASE_FOREACH (Image *, ima, &bmain->images) {
         ImageTile *tile = static_cast<ImageTile *>(MEM_callocN(sizeof(ImageTile), "Image Tile"));
         tile->tile_number = 1001;
@@ -5755,7 +5769,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* UDIM Image Editor change. */
-    if (!DNA_struct_elem_find(fd->filesdna, "SpaceImage", "int", "tile_grid_shape[2]")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SpaceImage", "int", "tile_grid_shape[2]")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -5789,7 +5803,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Tip Roundness. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "tip_roundness")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Brush", "float", "tip_roundness")) {
       LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
         if (br->ob_mode & OB_MODE_SCULPT && br->sculpt_tool == SCULPT_TOOL_CLAY_STRIPS) {
           br->tip_roundness = 0.18f;
@@ -5818,7 +5832,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Add 2D transform to UV Warp modifier. */
-    if (!DNA_struct_elem_find(fd->filesdna, "UVWarpModifierData", "float", "scale[2]")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "UVWarpModifierData", "float", "scale[2]")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_UVWarp) {
@@ -5830,7 +5844,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Add Lookdev blur property. */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "studiolight_blur")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DShading", "float", "studiolight_blur")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -5846,8 +5860,9 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 283, 7)) {
     /* Init default Grease Pencil Vertex paint mix factor for Viewport. */
-    if (!DNA_struct_elem_find(
-            fd->filesdna, "View3DOverlay", "float", "gpencil_vertex_paint_opacity")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "View3DOverlay", "float", "gpencil_vertex_paint_opacity"))
+    {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -5863,7 +5878,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Update Grease Pencil after drawing engine and code refactor.
      * It uses the seed variable of Array modifier to avoid double patching for
      * files created with a development version. */
-    if (!DNA_struct_elem_find(fd->filesdna, "ArrayGpencilModifierData", "int", "seed")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ArrayGpencilModifierData", "int", "seed")) {
       /* Init new Grease Pencil Paint tools. */
       {
         LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
@@ -6035,7 +6050,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
               break;
             }
             case eGpencilModifierType_Thick: {
-              if (!DNA_struct_elem_find(
+              if (!DNA_struct_member_exists(
                       fd->filesdna, "ThickGpencilModifierData", "float", "thickness_fac")) {
                 ThickGpencilModifierData *mmd = (ThickGpencilModifierData *)md;
                 mmd->thickness_fac = mmd->thickness;
@@ -6101,8 +6116,9 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 283, 8)) {
-    if (!DNA_struct_elem_find(
-            fd->filesdna, "View3DOverlay", "float", "sculpt_mode_face_sets_opacity")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "View3DOverlay", "float", "sculpt_mode_face_sets_opacity"))
+    {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -6125,7 +6141,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Boundary Edges Auto-masking. */
-    if (!DNA_struct_elem_find(
+    if (!DNA_struct_member_exists(
             fd->filesdna, "Brush", "int", "automasking_boundary_edges_propagation_steps"))
     {
       LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
@@ -6134,7 +6150,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Corrective smooth modifier scale. */
-    if (!DNA_struct_elem_find(fd->filesdna, "CorrectiveSmoothModifierData", "float", "scale")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "CorrectiveSmoothModifierData", "float", "scale"))
+    {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_CorrectiveSmooth) {
@@ -6158,7 +6175,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 283, 11)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "OceanModifierData", "float", "fetch_jonswap")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "OceanModifierData", "float", "fetch_jonswap")) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Ocean) {
@@ -6169,7 +6186,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_find(fd->filesdna, "XrSessionSettings")) {
+    if (!DNA_struct_exists(fd->filesdna, "XrSessionSettings")) {
       LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
         const View3D *v3d_default = DNA_struct_default_get(View3D);
 
@@ -6184,7 +6201,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Surface deform modifier strength. */
-    if (!DNA_struct_elem_find(fd->filesdna, "SurfaceDeformModifierData", "float", "strength")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SurfaceDeformModifierData", "float", "strength"))
+    {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_SurfaceDeform) {
@@ -6210,7 +6228,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Remesh Modifier Voxel Mode. */
-    if (!DNA_struct_elem_find(fd->filesdna, "RemeshModifierData", "float", "voxel_size")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "RemeshModifierData", "float", "voxel_size")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Remesh) {
@@ -6225,7 +6243,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 283, 14)) {
     /* Solidify modifier merge tolerance. */
-    if (!DNA_struct_elem_find(fd->filesdna, "SolidifyModifierData", "float", "merge_tolerance")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "SolidifyModifierData", "float", "merge_tolerance")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Solidify) {
@@ -6306,7 +6325,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   /* Old forgotten versioning code. */
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 39)) {
     /* Set the cloth wind factor to 1 for old forces. */
-    if (!DNA_struct_elem_find(fd->filesdna, "PartDeflect", "float", "f_wind_factor")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "PartDeflect", "float", "f_wind_factor")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         if (ob->pd) {
           ob->pd->f_wind_factor = 1.0f;

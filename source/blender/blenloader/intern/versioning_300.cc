@@ -2398,7 +2398,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 1)) {
     /* Set default value for the new bisect_threshold parameter in the mirror modifier. */
-    if (!DNA_struct_elem_find(fd->filesdna, "MirrorModifierData", "float", "bisect_threshold")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "MirrorModifierData", "float", "bisect_threshold"))
+    {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Mirror) {
@@ -2410,7 +2411,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
     /* Grease Pencil: Set default value for dilate pixels. */
-    if (!DNA_struct_elem_find(fd->filesdna, "BrushGpencilSettings", "int", "dilate_pixels")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "BrushGpencilSettings", "int", "dilate_pixels")) {
       LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
         if (brush->gpencil_settings) {
           brush->gpencil_settings->dilate_pixels = 1;
@@ -2422,7 +2423,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 2)) {
     version_switch_node_input_prefix(bmain);
 
-    if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "custom_scale_xyz[3]")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bPoseChannel", "float", "custom_scale_xyz[3]")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         if (ob->pose == nullptr) {
           continue;
@@ -2472,7 +2473,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
     FOREACH_NODETREE_END;
 
-    if (!DNA_struct_elem_find(fd->filesdna, "FileAssetSelectParams", "short", "import_type")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "FileAssetSelectParams", "short", "import_type")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -2488,7 +2489,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Initialize length-wise scale B-Bone settings. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Bone", "int", "bbone_flag")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Bone", "int", "bbone_flag")) {
       /* Update armature data and pose channels. */
       LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
         do_version_bones_bbone_len_scale(&arm->bonebase);
@@ -2632,8 +2633,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 13)) {
     /* Convert Surface Deform to sparse-capable bind structure. */
-    if (!DNA_struct_elem_find(fd->filesdna, "SurfaceDeformModifierData", "int", "num_mesh_verts"))
-    {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "SurfaceDeformModifierData", "int", "num_mesh_verts")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_SurfaceDeform) {
@@ -2659,14 +2660,14 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library"))
-    {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library")) {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
         BKE_asset_library_reference_init_default(&workspace->asset_library_ref);
       }
     }
 
-    if (!DNA_struct_elem_find(
+    if (!DNA_struct_member_exists(
             fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library_ref"))
     {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -2718,8 +2719,9 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 17)) {
-    if (!DNA_struct_elem_find(
-            fd->filesdna, "View3DOverlay", "float", "normals_constant_screen_size")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "View3DOverlay", "float", "normals_constant_screen_size"))
+    {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -2784,14 +2786,15 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 18)) {
-    if (!DNA_struct_elem_find(
-            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library_ref")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library_ref"))
+    {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
         BKE_asset_library_reference_init_default(&workspace->asset_library_ref);
       }
     }
 
-    if (!DNA_struct_elem_find(
+    if (!DNA_struct_member_exists(
             fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library_ref"))
     {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -2879,7 +2882,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 22)) {
-    if (!DNA_struct_elem_find(
+    if (!DNA_struct_member_exists(
             fd->filesdna, "LineartGpencilModifierData", "bool", "use_crease_on_smooth"))
     {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
@@ -3172,7 +3175,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 37)) {
     /* Node Editor: toggle overlays on. */
-    if (!DNA_struct_find(fd->filesdna, "SpaceNodeOverlay")) {
+    if (!DNA_struct_exists(fd->filesdna, "SpaceNodeOverlay")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
@@ -3429,7 +3432,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Initialize the bone wireframe opacity setting. */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "bone_wire_alpha")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DOverlay", "float", "bone_wire_alpha")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -3849,7 +3852,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "Sculpt", "float", "automasking_cavity_factor")) {
+  if (!DNA_struct_member_exists(fd->filesdna, "Sculpt", "float", "automasking_cavity_factor")) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->toolsettings && scene->toolsettings->sculpt) {
         scene->toolsettings->sculpt->automasking_cavity_factor = 0.5f;
@@ -3881,7 +3884,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* UDIM Packing. */
-    if (!DNA_struct_elem_find(fd->filesdna, "ImagePackedFile", "int", "tile_number")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ImagePackedFile", "int", "tile_number")) {
       LISTBASE_FOREACH (Image *, ima, &bmain->images) {
         int view;
         LISTBASE_FOREACH_INDEX (ImagePackedFile *, imapf, &ima->packedfiles, view) {
@@ -4042,7 +4045,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 304, 1)) {
     /* Image generation information transferred to tiles. */
-    if (!DNA_struct_elem_find(fd->filesdna, "ImageTile", "int", "gen_x")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ImageTile", "int", "gen_x")) {
       LISTBASE_FOREACH (Image *, ima, &bmain->images) {
         LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
           tile->gen_x = ima->gen_x;
@@ -4197,7 +4200,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* UVSeam fixing distance. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Image", "short", "seam_margin")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Image", "short", "seam_margin")) {
       LISTBASE_FOREACH (Image *, image, &bmain->images) {
         image->seam_margin = 8;
       }
@@ -4230,8 +4233,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
     /* Grease Pencil Build modifier:
      * Set default value for new natural draw-speed factor and maximum gap. */
-    if (!DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_fac") ||
-        !DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_maxgap"))
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "BuildGpencilModifierData", "float", "speed_fac") ||
+        !DNA_struct_member_exists(
+            fd->filesdna, "BuildGpencilModifierData", "float", "speed_maxgap"))
     {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
@@ -4323,7 +4328,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "int", "shadow_pool_size")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "int", "shadow_pool_size")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.flag |= SCE_EEVEE_SHADOW_ENABLED;
         scene->eevee.shadow_pool_size = 512;
@@ -4513,7 +4518,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 306, 3)) {
     /* Z bias for retopology overlay. */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "retopology_offset")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DOverlay", "float", "retopology_offset")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {

@@ -995,9 +995,10 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
         fd->reconstruct_info = DNA_reconstruct_info_create(
             fd->filesdna, fd->memsdna, fd->compflags);
         /* used to retrieve ID names from (bhead+1) */
-        fd->id_name_offset = DNA_elem_offset(fd->filesdna, "ID", "char", "name[]");
+        fd->id_name_offset = DNA_struct_member_offset_by_name(
+            fd->filesdna, "ID", "char", "name[]");
         BLI_assert(fd->id_name_offset != -1);
-        fd->id_asset_data_offset = DNA_elem_offset(
+        fd->id_asset_data_offset = DNA_struct_member_offset_by_name(
             fd->filesdna, "ID", "AssetMetaData", "*asset_data");
 
         return true;
