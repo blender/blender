@@ -170,7 +170,8 @@ static std::optional<eCustomDataType> convert_usd_type_to_blender(
   static const blender::Map<pxr::SdfValueTypeName, eCustomDataType> type_map = []() {
     blender::Map<pxr::SdfValueTypeName, eCustomDataType> map;
     map.add_new(pxr::SdfValueTypeNames->FloatArray, CD_PROP_FLOAT);
-    map.add_new(pxr::SdfValueTypeNames->Double, CD_PROP_FLOAT);
+    map.add_new(pxr::SdfValueTypeNames->DoubleArray, CD_PROP_FLOAT);
+    map.add_new(pxr::SdfValueTypeNames->HalfArray, CD_PROP_FLOAT);
     map.add_new(pxr::SdfValueTypeNames->IntArray, CD_PROP_INT32);
     map.add_new(pxr::SdfValueTypeNames->Float2Array, CD_PROP_FLOAT2);
     map.add_new(pxr::SdfValueTypeNames->TexCoord2dArray, CD_PROP_FLOAT2);
