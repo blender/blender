@@ -105,7 +105,6 @@ struct ExportJobData {
 
   float *progress;
 
-  bool was_canceled;
   bool export_ok;
   timeit::TimePoint start_time;
 
@@ -718,7 +717,7 @@ static void export_startjob(void *customdata,
     }
   }
 
-  data->export_ok = !data->was_canceled;
+  data->export_ok = true;
   *progress = 1.0f;
   *do_update = true;
 }
