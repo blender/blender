@@ -19,8 +19,9 @@ float fresnel_dielectric_cos(float cosi, float eta)
     float B = (c * (g + c) - 1) / (c * (g - c) + 1);
     result = 0.5 * A * A * (1 + B * B);
   }
-  else
+  else {
     result = 1.0; /* TIR (no refracted component) */
+  }
 
   return result;
 }

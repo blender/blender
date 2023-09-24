@@ -183,10 +183,11 @@ double Depth(const Mat3& R, const Vec3& t, const Vec4& X);
 inline bool isInFrontOfCamera(const Mat34& P, const Vec4& X) {
   double condition_1 = P.row(2).dot(X) * X[3];
   double condition_2 = X[2] * X[3];
-  if (condition_1 > 0 && condition_2 > 0)
+  if (condition_1 > 0 && condition_2 > 0) {
     return true;
-  else
+  } else {
     return false;
+  }
 }
 
 inline bool isInFrontOfCamera(const Mat34& P, const Vec3& X) {

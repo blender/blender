@@ -24,8 +24,9 @@ ccl_device_noinline int svm_node_combine_hsv(KernelGlobals kg,
   /* Combine, and convert back to RGB */
   float3 color = hsv_to_rgb(make_float3(hue, saturation, value));
 
-  if (stack_valid(color_out))
+  if (stack_valid(color_out)) {
     stack_store_float3(stack, color_out, color);
+  }
   return offset;
 }
 

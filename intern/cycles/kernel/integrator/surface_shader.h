@@ -1024,8 +1024,9 @@ ccl_device float3 surface_shader_average_normal(KernelGlobals kg, ccl_private co
 
   for (int i = 0; i < sd->num_closure; i++) {
     ccl_private const ShaderClosure *sc = &sd->closure[i];
-    if (CLOSURE_IS_BSDF_OR_BSSRDF(sc->type))
+    if (CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
       N += sc->N * fabsf(average(sc->weight));
+    }
   }
 
   return (is_zero(N)) ? sd->N : normalize(N);

@@ -28,16 +28,19 @@ color rgb_ramp_lookup(color ramp[], float at, int interpolate, int extrapolate)
 
   /* clamp int as well in case of NaN */
   int i = (int)f;
-  if (i < 0)
+  if (i < 0) {
     i = 0;
-  if (i >= table_size)
+  }
+  if (i >= table_size) {
     i = table_size - 1;
+  }
   float t = f - (float)i;
 
   color result = ramp[i];
 
-  if (interpolate && t > 0.0)
+  if (interpolate && t > 0.0) {
     result = (1.0 - t) * result + t * ramp[i + 1];
+  }
 
   return result;
 }
@@ -66,16 +69,19 @@ float rgb_ramp_lookup(float ramp[], float at, int interpolate, int extrapolate)
 
   /* clamp int as well in case of NaN */
   int i = (int)f;
-  if (i < 0)
+  if (i < 0) {
     i = 0;
-  if (i >= table_size)
+  }
+  if (i >= table_size) {
     i = table_size - 1;
+  }
   float t = f - (float)i;
 
   float result = ramp[i];
 
-  if (interpolate && t > 0.0)
+  if (interpolate && t > 0.0) {
     result = (1.0 - t) * result + t * ramp[i + 1];
+  }
 
   return result;
 }

@@ -35,8 +35,9 @@ namespace libmv {
 /// is inside the image.
 template <class Image, class Color>
 inline void safePutPixel(int yc, int xc, const Color& col, Image* pim) {
-  if (!pim)
+  if (!pim) {
     return;
+  }
   if (pim->Contains(yc, xc)) {
     (*pim)(yc, xc) = col;
   }
@@ -46,11 +47,13 @@ inline void safePutPixel(int yc, int xc, const Color& col, Image* pim) {
 /// \note The color pointer col must have size as the image depth
 template <class Image, class Color>
 inline void safePutPixel(int yc, int xc, const Color* col, Image* pim) {
-  if (!pim)
+  if (!pim) {
     return;
+  }
   if (pim->Contains(yc, xc)) {
-    for (int i = 0; i < pim->Depth(); ++i)
+    for (int i = 0; i < pim->Depth(); ++i) {
       (*pim)(yc, xc, i) = *(col + i);
+    }
   }
 }
 
@@ -195,8 +198,9 @@ void DrawLine(int xa, int ya, int xb, int yb, const Color& col, Image* pim) {
           &yup = ydir ? ny0 : ny1, &xdown = ydir ? nx1 : nx0,
           &ydown = ydir ? ny1 : ny0;
 
-    if (xright < 0 || xleft >= width)
+    if (xright < 0 || xleft >= width) {
       return;
+    }
     if (xleft < 0) {
       yleft -= xleft * (yright - yleft) / (xright - xleft);
       xleft = 0;
@@ -205,8 +209,9 @@ void DrawLine(int xa, int ya, int xb, int yb, const Color& col, Image* pim) {
       yright -= (xright - width) * (yright - yleft) / (xright - xleft);
       xright = width - 1;
     }
-    if (ydown < 0 || yup >= height)
+    if (ydown < 0 || yup >= height) {
       return;
+    }
     if (yup < 0) {
       xup -= yup * (xdown - xup) / (ydown - yup);
       yup = 0;

@@ -44,10 +44,12 @@ ccl_device_noinline int svm_node_tex_voxel(
   }
 #endif
 
-  if (stack_valid(density_out_offset))
+  if (stack_valid(density_out_offset)) {
     stack_store_float(stack, density_out_offset, r.w);
-  if (stack_valid(color_out_offset))
+  }
+  if (stack_valid(color_out_offset)) {
     stack_store_float3(stack, color_out_offset, make_float3(r.x, r.y, r.z));
+  }
   return offset;
 }
 

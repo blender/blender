@@ -174,8 +174,9 @@ class ArrayND : public BaseArray {
   /// Return the number of elements of the array.
   int Size() const {
     int size = 1;
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < N; ++i) {
       size *= Shape(i);
+    }
     return size;
   }
 
@@ -191,8 +192,9 @@ class ArrayND : public BaseArray {
   /// Distance between the first element and the element at position index.
   int Offset(const Index& index) const {
     int offset = 0;
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < N; ++i) {
       offset += index(i) * Stride(i);
+    }
     return offset;
   }
 
@@ -260,9 +262,11 @@ class ArrayND : public BaseArray {
 
   /// True if index is inside array.
   bool Contains(const Index& index) const {
-    for (int i = 0; i < N; ++i)
-      if (index(i) < 0 || index(i) >= Shape(i))
+    for (int i = 0; i < N; ++i) {
+      if (index(i) < 0 || index(i) >= Shape(i)) {
         return false;
+      }
+    }
     return true;
   }
 
@@ -281,13 +285,16 @@ class ArrayND : public BaseArray {
   }
 
   bool operator==(const ArrayND<T, N>& other) const {
-    if (shape_ != other.shape_)
+    if (shape_ != other.shape_) {
       return false;
-    if (strides_ != other.strides_)
+    }
+    if (strides_ != other.strides_) {
       return false;
+    }
     for (int i = 0; i < Size(); ++i) {
-      if (this->Data()[i] != other.Data()[i])
+      if (this->Data()[i] != other.Data()[i]) {
         return false;
+      }
     }
     return true;
   }
@@ -401,8 +408,9 @@ void MultiplyElements(const AArrayType& a, const BArrayType& b, CArrayType* c) {
 
   // The index starts at the maximum value for each dimension
   const typename CArrayType::Index& cShape = c->Shape();
-  for (int i = 0; i < CArrayType::Index::SIZE; ++i)
+  for (int i = 0; i < CArrayType::Index::SIZE; ++i) {
     index(i) = cShape(i) - 1;
+  }
 
   // After each multiplication, the highest-dimensional index is reduced.
   // if this reduces it less than zero, it resets to its maximum value
