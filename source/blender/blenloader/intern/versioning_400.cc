@@ -288,11 +288,11 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 21)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "BoneColor", "color")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bPoseChannel", "BoneColor", "color")) {
       version_bonegroup_migrate_color(bmain);
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "bArmature", "ListBase", "collections")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bArmature", "ListBase", "collections")) {
       version_bonelayers_to_bonecollections(bmain);
       version_bonegroups_to_bonecollections(bmain);
     }
@@ -998,7 +998,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 12)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "int", "grid_bake_samples")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "LightProbe", "int", "grid_bake_samples")) {
       LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
         lightprobe->grid_bake_samples = 2048;
         lightprobe->surfel_density = 1.0f;
@@ -1011,19 +1011,19 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Set default bake resolution. */
-    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "int", "resolution")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "LightProbe", "int", "resolution")) {
       LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
         lightprobe->resolution = LIGHT_PROBE_RESOLUTION_1024;
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "World", "int", "probe_resolution")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "World", "int", "probe_resolution")) {
       LISTBASE_FOREACH (World *, world, &bmain->worlds) {
         world->probe_resolution = LIGHT_PROBE_RESOLUTION_1024;
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "grid_surface_bias")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "LightProbe", "float", "grid_surface_bias")) {
       LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
         lightprobe->grid_surface_bias = 0.05f;
         lightprobe->grid_escape_bias = 0.1f;
@@ -1091,7 +1091,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 14)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "RaytraceEEVEE", "reflection_options")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "SceneEEVEE", "RaytraceEEVEE", "reflection_options")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.reflection_options.flag = RAYTRACE_EEVEE_USE_DENOISE;
         scene->eevee.reflection_options.denoise_stages = RAYTRACE_EEVEE_DENOISE_SPATIAL |
@@ -1109,7 +1110,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_find(fd->filesdna, "RegionAssetShelf")) {
+    if (!DNA_struct_exists(fd->filesdna, "RegionAssetShelf")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -1157,7 +1158,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 17)) {
-    if (!DNA_struct_find(fd->filesdna, "NodeShaderHairPrincipled")) {
+    if (!DNA_struct_exists(fd->filesdna, "NodeShaderHairPrincipled")) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
           version_replace_principled_hair_model(ntree);
@@ -1167,7 +1168,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Panorama properties shared with Eevee. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Camera", "float", "fisheye_fov")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Camera", "float", "fisheye_fov")) {
       Camera default_cam = *DNA_struct_default_get(Camera);
       LISTBASE_FOREACH (Camera *, camera, &bmain->cameras) {
         IDProperty *ccam = version_cycles_properties_from_ID(&camera->id);
@@ -1216,7 +1217,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "grid_flag")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "LightProbe", "float", "grid_flag")) {
       LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
         /* Keep old behavior of baking the whole lighting. */
         lightprobe->grid_flag = LIGHTPROBE_GRID_CAPTURE_WORLD | LIGHTPROBE_GRID_CAPTURE_INDIRECT |
@@ -1224,7 +1225,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "int", "gi_irradiance_pool_size")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "int", "gi_irradiance_pool_size")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.gi_irradiance_pool_size = 16;
       }

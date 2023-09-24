@@ -364,7 +364,7 @@ static int add_name(const char *str)
     /* We handle function pointer and special array cases here, e.g.
      * `void (*function)(...)` and `float (*array)[..]`. the array case
      * name is still converted to (array *)() though because it is that
-     * way in old DNA too, and works correct with #DNA_elem_size_nr. */
+     * way in old DNA too, and works correct with #DNA_struct_member_size. */
     int isfuncptr = (strchr(str + 1, '(')) != nullptr;
 
     DEBUG_PRINTF(3, "\t\t\t\t*** Function pointer or multidim array pointer found\n");

@@ -861,7 +861,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SpaceImage", "float", "uv_opacity")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SpaceImage", "float", "uv_opacity")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -875,7 +875,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Init Grease Pencil new random curves. */
-    if (!DNA_struct_elem_find(fd->filesdna, "BrushGpencilSettings", "float", "random_hue")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "BrushGpencilSettings", "float", "random_hue")) {
       LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
         if ((brush->gpencil_settings) && (brush->gpencil_settings->curve_rand_pressure == nullptr))
         {
@@ -907,7 +907,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Initialize parameters of the new Nishita sky model. */
-    if (!DNA_struct_elem_find(fd->filesdna, "NodeTexSky", "float", "sun_size")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "NodeTexSky", "float", "sun_size")) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
           LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -981,7 +981,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 290, 6)) {
     /* Transition to saving expansion for all of a modifier's sub-panels. */
-    if (!DNA_struct_elem_find(fd->filesdna, "ModifierData", "short", "ui_expand_flag")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ModifierData", "short", "ui_expand_flag")) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->mode & eModifierMode_Expanded_DEPRECATED) {
@@ -995,21 +995,22 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* EEVEE Motion blur new parameters. */
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "motion_blur_depth_scale")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "motion_blur_depth_scale"))
+    {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.motion_blur_depth_scale = 100.0f;
         scene->eevee.motion_blur_max = 32;
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "int", "motion_blur_steps")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "int", "motion_blur_steps")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.motion_blur_steps = 1;
       }
     }
 
     /* Transition to saving expansion for all of a constraint's sub-panels. */
-    if (!DNA_struct_elem_find(fd->filesdna, "bConstraint", "short", "ui_expand_flag")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bConstraint", "short", "ui_expand_flag")) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (bConstraint *, con, &object->constraints) {
           if (con->flag & CONSTRAINT_EXPAND_DEPRECATED) {
@@ -1023,7 +1024,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Transition to saving expansion for all of grease pencil modifier's sub-panels. */
-    if (!DNA_struct_elem_find(fd->filesdna, "GpencilModifierData", "short", "ui_expand_flag")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "GpencilModifierData", "short", "ui_expand_flag"))
+    {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (GpencilModifierData *, md, &object->greasepencil_modifiers) {
           if (md->mode & eGpencilModifierMode_Expanded_DEPRECATED) {
@@ -1037,7 +1039,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Transition to saving expansion for all of an effect's sub-panels. */
-    if (!DNA_struct_elem_find(fd->filesdna, "ShaderFxData", "short", "ui_expand_flag")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ShaderFxData", "short", "ui_expand_flag")) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ShaderFxData *, fx, &object->shader_fx) {
           if (fx->mode & eShaderFxMode_Expanded_DEPRECATED) {
@@ -1051,7 +1053,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Refactor bevel profile type to use an enum. */
-    if (!DNA_struct_elem_find(fd->filesdna, "BevelModifierData", "short", "profile_type")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "BevelModifierData", "short", "profile_type")) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Bevel) {
@@ -1079,7 +1081,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 291, 1)) {
 
     /* Initialize additional parameter of the Nishita sky model and change altitude unit. */
-    if (!DNA_struct_elem_find(fd->filesdna, "NodeTexSky", "float", "sun_intensity")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "NodeTexSky", "float", "sun_intensity")) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
           LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -1095,7 +1097,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Refactor bevel affect type to use an enum. */
-    if (!DNA_struct_elem_find(fd->filesdna, "BevelModifierData", "char", "affect_type")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "BevelModifierData", "char", "affect_type")) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Bevel) {
@@ -1109,8 +1111,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Initialize additional velocity parameter for #CacheFile's. */
-    if (!DNA_struct_elem_find(fd->filesdna, "MeshSeqCacheModifierData", "float", "velocity_scale"))
-    {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "MeshSeqCacheModifierData", "float", "velocity_scale")) {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_MeshSequenceCache) {
@@ -1121,14 +1123,15 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "CacheFile", "char", "velocity_unit")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "CacheFile", "char", "velocity_unit")) {
       LISTBASE_FOREACH (CacheFile *, cache_file, &bmain->cachefiles) {
         STRNCPY(cache_file->velocity_name, ".velocities");
         cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "OceanModifierData", "int", "viewport_resolution")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "OceanModifierData", "int", "viewport_resolution"))
+    {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Ocean) {
@@ -1243,7 +1246,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Add custom profile and bevel mode to curve bevels. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Curve", "char", "bevel_mode")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Curve", "char", "bevel_mode")) {
       LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
         if (curve->bevobj != nullptr) {
           curve->bevel_mode = CU_BEV_MODE_OBJECT;
@@ -1276,7 +1279,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 291, 6)) {
     /* Darken Inactive Overlay. */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "fade_alpha")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DOverlay", "float", "fade_alpha")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -1291,7 +1294,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Unify symmetry as a mesh property. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Mesh", "char", "symmetry")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Mesh", "char", "symmetry")) {
       LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
         /* The previous flags used to store mesh symmetry in edit-mode match the new ones that are
          * used in #Mesh.symmetry. */
@@ -1319,7 +1322,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 291, 8)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "WorkSpaceDataRelation", "int", "parentid")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "WorkSpaceDataRelation", "int", "parentid")) {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
         LISTBASE_FOREACH_MUTABLE (
             WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
@@ -1347,7 +1350,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* UV/Image show overlay option. */
-    if (!DNA_struct_find(fd->filesdna, "SpaceImageOverlay")) {
+    if (!DNA_struct_exists(fd->filesdna, "SpaceImageOverlay")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
@@ -1385,7 +1388,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "FluidModifierData", "float", "fractions_distance")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "FluidModifierData", "float", "fractions_distance")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Fluid) {
@@ -1430,7 +1434,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 292, 5)) {
     /* Initialize the opacity of the overlay wireframe */
-    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "wireframe_opacity")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "View3DOverlay", "float", "wireframe_opacity")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -1476,7 +1480,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Cryptomatte render pass */
-    if (!DNA_struct_elem_find(fd->filesdna, "ViewLayer", "short", "cryptomatte_levels")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "ViewLayer", "short", "cryptomatte_levels")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
           view_layer->cryptomatte_levels = 6;
@@ -1525,7 +1529,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Convert `NodeCryptomatte->storage->matte_id` to `NodeCryptomatte->storage->entries` */
-    if (!DNA_struct_find(fd->filesdna, "CryptomatteEntry")) {
+    if (!DNA_struct_exists(fd->filesdna, "CryptomatteEntry")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         if (scene->nodetree) {
           LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
@@ -1586,7 +1590,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Ensure that new viscosity strength field is initialized correctly. */
-    if (!DNA_struct_elem_find(fd->filesdna, "FluidModifierData", "float", "viscosity_value")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "FluidModifierData", "float", "viscosity_value")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Fluid) {
@@ -1601,7 +1605,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 292, 10)) {
-    if (!DNA_struct_find(fd->filesdna, "NodeSetAlpha")) {
+    if (!DNA_struct_exists(fd->filesdna, "NodeSetAlpha")) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type != NTREE_COMPOSIT) {
           continue;
@@ -1657,14 +1661,14 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
 
     /* Init grease pencil default curve resolution. */
-    if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "int", "curve_edit_resolution")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bGPdata", "int", "curve_edit_resolution")) {
       LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
         gpd->curve_edit_resolution = GP_DEFAULT_CURVE_RESOLUTION;
         gpd->flag |= GP_DATA_CURVE_ADAPTIVE_RESOLUTION;
       }
     }
     /* Init grease pencil curve editing error threshold. */
-    if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "float", "curve_edit_threshold")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bGPdata", "float", "curve_edit_threshold")) {
       LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
         gpd->curve_edit_threshold = GP_DEFAULT_CURVE_ERROR;
         gpd->curve_edit_corner_angle = GP_DEFAULT_CURVE_EDIT_CORNER_ANGLE;
@@ -1693,7 +1697,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 293, 1)) {
     /* Grease pencil layer transform matrix. */
-    if (!DNA_struct_elem_find(fd->filesdna, "bGPDlayer", "float", "location[0]")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bGPDlayer", "float", "location[0]")) {
       LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           zero_v3(gpl->location);
@@ -1751,7 +1755,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 293, 9)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "bokeh_overblur")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "bokeh_overblur")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.bokeh_neighbor_max = 10.0f;
         scene->eevee.bokeh_denoise_fac = 0.75f;
@@ -1760,7 +1764,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Add sub-panels for FModifiers, which requires a field to store expansion. */
-    if (!DNA_struct_elem_find(fd->filesdna, "FModifier", "short", "ui_expand_flag")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "FModifier", "short", "ui_expand_flag")) {
       LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
         LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
           LISTBASE_FOREACH (FModifier *, fcm, &fcu->modifiers) {
@@ -1854,7 +1858,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 293, 14)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "diff_fac")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Lamp", "float", "diff_fac")) {
       LISTBASE_FOREACH (Light *, light, &bmain->lights) {
         light->diff_fac = 1.0f;
         light->volume_fac = 1.0f;
@@ -1904,7 +1908,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 293, 18)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "bArmature", "float", "axes_position")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bArmature", "float", "axes_position")) {
       /* Convert the axes draw position to its old default (tip of bone). */
       LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
         arm->axes_position = 1.0;
@@ -1912,7 +1916,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Initialize the spread parameter for area lights. */
-    if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "area_spread")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Lamp", "float", "area_spread")) {
       LISTBASE_FOREACH (Light *, la, &bmain->lights) {
         la->area_spread = DEG2RADF(180.0f);
       }
