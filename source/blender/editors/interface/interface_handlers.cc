@@ -10298,7 +10298,13 @@ static int ui_handle_menu_letter_press(
       after->opptr = MEM_cnew<PointerRNA>(__func__);
       WM_operator_properties_create_ptr(after->opptr, ot);
       RNA_string_set(after->opptr, "menu_idname", menu->menu_idname);
-      RNA_string_set(after->opptr, "initial_query", event->utf8_buf);
+      const int num_bytes = BLI_str_utf8_size_or_error(event->utf8_buf);
+      if (num_bytes != -1) {
+        char buf[sizeof(event->utf8_buf) + 1];
+        memcpy(buf, event->utf8_buf, num_bytes);
+        buf[num_bytes] = '\0';
+        RNA_string_set(after->opptr, "initial_query", buf);
+      }
       menu->menuretval = UI_RETURN_OK;
       return WM_UI_HANDLER_BREAK;
     }
