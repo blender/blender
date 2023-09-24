@@ -1,6 +1,13 @@
 Sculpt-Blender
 ==============
 
+Downloads
+---------
+* [Windows](https://github.com/joeedh/sculptblender-builds/raw/master/builds/sculptblender_latest_win64.zip?download=)
+
+Introduction
+------------
+
 Sculpt-Blender is an independent branch of Blender focused on sculpting.
 It's purpose is to develop and maintain key improvements needed to make 
 Blender usable for a wider variety of sculpt workflows.
