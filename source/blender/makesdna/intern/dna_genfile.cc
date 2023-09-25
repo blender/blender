@@ -1826,6 +1826,10 @@ static const char *dna_sdna_alias_from_static_elem_full(SDNA *sdna,
 
 void DNA_sdna_alias_data_ensure(SDNA *sdna)
 {
+  if (sdna->alias.names && sdna->alias.types) {
+    return;
+  }
+
   /* We may want this to be optional later. */
   const bool use_legacy_hack = true;
 
@@ -1885,6 +1889,10 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
 
 void DNA_sdna_alias_data_ensure_structs_map(SDNA *sdna)
 {
+  if (sdna->alias.structs_map) {
+    return;
+  }
+
   DNA_sdna_alias_data_ensure(sdna);
 #ifdef WITH_DNA_GHASH
   /* create a ghash lookup to speed up */
