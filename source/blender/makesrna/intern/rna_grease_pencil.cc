@@ -161,7 +161,7 @@ static void rna_iterator_grease_pencil_layer_groups_begin(CollectionPropertyIter
   using namespace blender::bke::greasepencil;
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
 
-  blender::Span<LayerGroup *> groups = grease_pencil->groups_for_write();
+  blender::Span<LayerGroup *> groups = grease_pencil->layer_groups_for_write();
 
   rna_iterator_array_begin(
       iter, (void *)groups.data(), sizeof(LayerGroup *), groups.size(), 0, nullptr);
@@ -170,7 +170,7 @@ static void rna_iterator_grease_pencil_layer_groups_begin(CollectionPropertyIter
 static int rna_iterator_grease_pencil_layer_groups_length(PointerRNA *ptr)
 {
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
-  return grease_pencil->groups().size();
+  return grease_pencil->layer_groups().size();
 }
 
 #else
