@@ -548,9 +548,12 @@ typedef enum eGPUTextureUsage {
   /* When used, the texture will not have any backing storage and can solely exist as a virtual
    * frame-buffer attachment. */
   GPU_TEXTURE_USAGE_MEMORYLESS = (1 << 5),
+  /* Whether a texture can support atomic operations. */
+  GPU_TEXTURE_USAGE_ATOMIC = (1 << 6),
   /* Create a texture whose usage cannot be defined prematurely.
    * This is unoptimized and should not be used. */
-  GPU_TEXTURE_USAGE_GENERAL = (0xFF & (~GPU_TEXTURE_USAGE_MEMORYLESS)),
+  GPU_TEXTURE_USAGE_GENERAL = (0xFF &
+                               (~(GPU_TEXTURE_USAGE_MEMORYLESS | GPU_TEXTURE_USAGE_ATOMIC))),
 } eGPUTextureUsage;
 
 ENUM_OPERATORS(eGPUTextureUsage, GPU_TEXTURE_USAGE_GENERAL);

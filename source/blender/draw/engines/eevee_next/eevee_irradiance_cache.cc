@@ -942,7 +942,8 @@ void IrradianceBake::clusters_build()
   if (max_virtual_offset_ == 0.0f) {
     return;
   }
-  eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
+  eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
+                                   GPU_TEXTURE_USAGE_ATOMIC;
 
   cluster_list_tx_.ensure_3d(GPU_R32I, capture_info_buf_.irradiance_grid_size, texture_usage);
   cluster_list_tx_.clear(int4(-1));

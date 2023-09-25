@@ -91,6 +91,7 @@ GPU_SHADER_CREATE_INFO(eevee_surfel_cluster_build)
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_list_build)
     .local_group_size(SURFEL_GROUP_SIZE)
+    .builtins(BuiltinBits::TEXTURE_ATOMIC)
     .additional_info("eevee_shared", "eevee_surfel_common", "draw_view")
     .storage_buf(0, Qualifier::READ_WRITE, "int", "list_start_buf[]")
     .storage_buf(6, Qualifier::READ_WRITE, "SurfelListInfoData", "list_info_buf")
