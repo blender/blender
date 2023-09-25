@@ -241,6 +241,13 @@ void VolumeModule::end_sync()
   prop_emission_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
   prop_phase_tx_.ensure_3d(GPU_RG16F, data_.tex_size, usage);
 
+  if (!inst_.pipelines.world_volume.is_valid()) {
+    prop_scattering_tx_.clear(float4(0.0f));
+    prop_extinction_tx_.clear(float4(0.0f));
+    prop_emission_tx_.clear(float4(0.0f));
+    prop_phase_tx_.clear(float4(0.0f));
+  }
+
   scatter_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
   extinction_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
 

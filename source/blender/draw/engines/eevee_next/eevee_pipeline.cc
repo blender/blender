@@ -114,16 +114,17 @@ void WorldPipeline::render(View &view)
 
 void WorldVolumePipeline::sync(GPUMaterial *gpumat)
 {
+  is_valid_ = GPU_material_status(gpumat) == GPU_MAT_SUCCESS;
+  if (!is_valid_) {
+    /* Skip if the material has not compiled yet. */
+    return;
+  }
+
   world_ps_.init();
   world_ps_.state_set(DRW_STATE_WRITE_COLOR);
   inst_.bind_uniform_data(&world_ps_);
   inst_.volume.bind_properties_buffers(world_ps_);
   inst_.sampling.bind_resources(&world_ps_);
-
-  if (GPU_material_status(gpumat) != GPU_MAT_SUCCESS) {
-    /* Skip if the material has not compiled yet. */
-    return;
-  }
 
   world_ps_.material_set(*inst_.manager, gpumat);
   volume_sub_pass(world_ps_, nullptr, nullptr, gpumat);
@@ -135,6 +136,11 @@ void WorldVolumePipeline::sync(GPUMaterial *gpumat)
 
 void WorldVolumePipeline::render(View &view)
 {
+  if (!is_valid_) {
+    /* Skip if the material has not compiled yet. */
+    return;
+  }
+
   inst_.manager->submit(world_ps_, view);
 }
 
