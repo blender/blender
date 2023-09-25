@@ -15,14 +15,22 @@
 
 namespace blender::realtime_compositor {
 
-/* Possible data types that operations can operate on. They either represent the base type of the
- * result texture or a single value result. The color type represents an RGBA color. And the vector
- * type represents a generic 4-component vector, which can encode two 2D vectors, one 3D vector
- * with the last component ignored, or other dimensional data. */
 enum class ResultType : uint8_t {
+  /* The following types are user facing and can be used as inputs and outputs of operations. They
+   * either represent the base type of the result texture or a single value result. The color type
+   * represents an RGBA color. And the vector type represents a generic 4-component vector, which
+   * can encode two 2D vectors, one 3D vector with the last component ignored, or other dimensional
+   * data. */
   Float,
   Vector,
   Color,
+
+  /* The following types are for internal use only, not user facing, and can't be used as inputs
+   * and outputs of operations. Furthermore, they can't be single values and thus always need to be
+   * allocated as textures. It follows that they needn't be handled in implicit operations like
+   * type conversion, shader, or single value reduction operations. To add a new type, just add a
+   * new case in the get_texture_format() function. */
+  Int2,
 };
 
 enum class ResultPrecision : uint8_t {

@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_assert.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -21,11 +22,19 @@ namespace blender::realtime_compositor {
 
 static const char *get_blur_shader(ResultType type)
 {
-  if (type == ResultType::Float) {
-    return "compositor_symmetric_separable_blur_float";
+  switch (type) {
+    case ResultType::Float:
+      return "compositor_symmetric_separable_blur_float";
+    case ResultType::Vector:
+    case ResultType::Color:
+      return "compositor_symmetric_separable_blur_color";
+    case ResultType::Int2:
+      /* Blur does not support integer types. */
+      break;
   }
 
-  return "compositor_symmetric_separable_blur_color";
+  BLI_assert_unreachable();
+  return nullptr;
 }
 
 static Result horizontal_pass(Context &context,
