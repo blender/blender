@@ -104,7 +104,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           .draw_buttons([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
             uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
           });
-  spec.add_input<decl::Float>("Specular")
+  spec.add_input<decl::Float>("Specular IOR Level")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)

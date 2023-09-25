@@ -74,7 +74,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
   switch (type) {
     case CLOSURE_BSDF_PRINCIPLED_ID: {
-      uint specular_offset, roughness_offset, specular_tint_offset, anisotropic_offset,
+      uint specular_ior_level_offset, roughness_offset, specular_tint_offset, anisotropic_offset,
           sheen_offset, sheen_tint_offset, sheen_roughness_offset, coat_offset,
           coat_roughness_offset, coat_ior_offset, eta_offset, transmission_offset,
           anisotropic_rotation_offset, coat_tint_offset, coat_normal_offset, dummy, alpha_offset,
@@ -83,7 +83,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
       float3 T = stack_load_float3(stack, data_node.y);
       svm_unpack_node_uchar4(data_node.z,
-                             &specular_offset,
+                             &specular_ior_level_offset,
                              &roughness_offset,
                              &specular_tint_offset,
                              &anisotropic_offset);
@@ -327,8 +327,8 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
           /* Apply IOR adjustment */
           float eta = ior;
           float f0 = F0_from_ior(eta);
-          if (specular != 0.5f) {
-            f0 *= 2.0f * specular;
+          if (specular_ior_level != 0.5f) {
+            f0 *= 2.0f * specular_ior_level;
             eta = ior_from_F0(f0);
             if (ior < 1.0f) {
               eta = 1.0f / eta;

@@ -14,7 +14,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                             float SubsurfaceIOR = 1.4,
                             float SubsurfaceAnisotropy = 0.0,
                             float Metallic = 0.0,
-                            float Specular = 0.5,
+                            float SpecularIORLevel = 0.5,
                             color SpecularTint = color(1.0),
                             float Roughness = 0.5,
                             float Anisotropic = 0.0,
@@ -56,8 +56,8 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
   if (Metallic < 1.0 && Transmission < 1.0) {
     float eta = IOR;
     float f0 = F0_from_ior(eta);
-    if (Specular != 0.5) {
-      f0 *= 2.0 * max(Specular, 0.0);
+    if (SpecularIORLevel != 0.5) {
+      f0 *= 2.0 * max(SpecularIORLevel, 0.0);
       eta = ior_from_F0(f0);
       if (IOR < 1.0) {
         eta = 1.0 / eta;

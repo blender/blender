@@ -27,7 +27,7 @@ namespace blender::io::obj {
 const char *tex_map_type_to_socket_id[] = {
     "Base Color",
     "Metallic",
-    "Specular",
+    "Specular IOR Level",
     "Roughness", /* Map specular exponent to roughness. */
     "Roughness",
     "Sheen",
@@ -204,7 +204,7 @@ static void store_bsdf_properties(const bNode *bsdf_node,
 
   float specular = material->spec;
   if (bsdf_node) {
-    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Specular", {&specular, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Specular IOR Level", {&specular, 1});
   }
 
   float metallic = material->metallic;
