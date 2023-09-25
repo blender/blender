@@ -372,12 +372,8 @@ void action_group_colors_sync(bActionGroup *grp, const bActionGroup *ref_grp)
 
 void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel *pchan)
 {
-  if (pchan->color.palette_index == 0) {
-    action_group_colors_set(grp, &pchan->bone->color);
-  }
-  else {
-    action_group_colors_set(grp, &pchan->color);
-  }
+  const BoneColor &color = blender::animrig::ANIM_bonecolor_posebone_get(pchan);
+  action_group_colors_set(grp, &color);
 }
 
 void action_group_colors_set(bActionGroup *grp, const BoneColor *color)
