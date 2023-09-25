@@ -219,8 +219,6 @@ void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
 #  define DNA_struct_exists(sdna, str) DNA_struct_exists_with_alias(sdna, str)
 #  define DNA_struct_member_exists(sdna, stype, vartype, name) \
     DNA_struct_member_exists_with_alias(sdna, stype, vartype, name)
-#  define DNA_struct_find(sdna, str) DNA_struct_find_with_alias(sdna, str)
-#  define DNA_struct_find_ex(sdna, str, n) DNA_struct_find_with_alias_ex(sdna, str)
 #endif
 
 #ifdef __cplusplus
