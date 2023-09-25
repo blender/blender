@@ -157,8 +157,18 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
     }
 
     const InputSpec &input_spec = it->second;
+    bNodeLink *input_link = traverse_channel(sock, SH_NODE_TEX_IMAGE);
 
-    if (bNodeLink *input_link = traverse_channel(sock, SH_NODE_TEX_IMAGE)) {
+    if (input_spec.input_name == usdtokens::emissive_color) {
+      /* Don't export emission color if strength is zero. */
+      bNodeSocket *emission_strength_sock = nodeFindSocket(node, SOCK_IN, "Emission Strength");
+      if (!input_link &&
+          ((bNodeSocketValueFloat *)emission_strength_sock->default_value)->value == 0.0f) {
+        continue;
+      }
+    }
+
+    if (input_link) {
       /* Convert the texture image node connected to this input. */
       bNode *input_node = input_link->fromnode;
       pxr::UsdShadeShader usd_shader = create_usd_preview_shader(
