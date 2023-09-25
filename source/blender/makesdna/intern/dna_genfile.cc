@@ -1578,7 +1578,7 @@ void DNA_reconstruct_info_free(DNA_ReconstructInfo *reconstruct_info)
   MEM_freeN(reconstruct_info);
 }
 
-int DNA_struct_member_offset_by_name(SDNA *sdna,
+int DNA_struct_member_offset_by_name(const SDNA *sdna,
                                      const char *stype,
                                      const char *vartype,
                                      const char *name)
