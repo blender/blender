@@ -112,14 +112,14 @@ void DRW_globals_update()
   UI_GetThemeColorBlendShade4fv(TH_WIRE, TH_BONE_POSE, 0.15f, 0, gb->color_bone_pose_active_unsel);
   UI_GetThemeColorBlendShade3fv(
       TH_WIRE_EDIT, TH_EDGE_SELECT, 0.15f, 0, gb->color_bone_active_unsel);
-  UI_COLOR_RGBA_FROM_U8(255, 150, 0, 80, gb->color_bone_pose_target);
+  UI_COLOR_RGBA_FROM_U8(255, 150, 0, 80, gb->color_bone_pose_no_target);
   UI_COLOR_RGBA_FROM_U8(255, 255, 0, 80, gb->color_bone_pose_ik);
   UI_COLOR_RGBA_FROM_U8(200, 255, 0, 80, gb->color_bone_pose_spline_ik);
   UI_COLOR_RGBA_FROM_U8(0, 255, 120, 80, gb->color_bone_pose_constraint);
   UI_GetThemeColor4fv(TH_BONE_SOLID, gb->color_bone_solid);
   UI_GetThemeColor4fv(TH_BONE_LOCKED_WEIGHT, gb->color_bone_locked);
-  copy_v4_fl4(gb->color_bone_ik_line, 0.8f, 0.5f, 0.0f, 1.0f);
-  copy_v4_fl4(gb->color_bone_ik_line_no_target, 0.8f, 0.8f, 0.2f, 1.0f);
+  copy_v4_fl4(gb->color_bone_ik_line, 0.8f, 0.8f, 0.0f, 1.0f);
+  copy_v4_fl4(gb->color_bone_ik_line_no_target, 0.8f, 0.5f, 0.2f, 1.0f);
   copy_v4_fl4(gb->color_bone_ik_line_spline, 0.8f, 0.8f, 0.2f, 1.0f);
 
   /* Curve */

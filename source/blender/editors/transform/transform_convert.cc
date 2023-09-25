@@ -324,7 +324,7 @@ static bool pchan_autoik_adjust(bPoseChannel *pchan, short chainlen)
   bool changed = false;
 
   /* don't bother to search if no valid constraints */
-  if ((pchan->constflag & (PCHAN_HAS_IK | PCHAN_HAS_TARGET)) == 0) {
+  if ((pchan->constflag & (PCHAN_HAS_IK | PCHAN_HAS_NO_TARGET)) == 0) {
     return changed;
   }
 

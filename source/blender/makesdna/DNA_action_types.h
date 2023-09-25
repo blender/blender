@@ -389,15 +389,12 @@ typedef enum ePchan_Flag {
 
 /* PoseChannel constflag (constraint detection) */
 typedef enum ePchan_ConstFlag {
-  PCHAN_HAS_IK = (1 << 0),
-  PCHAN_HAS_CONST = (1 << 1),
-  /* Only used for drawing pose-mode, not stored in channel. */
+  PCHAN_HAS_IK = (1 << 0),           /* Has IK constraint. */
+  PCHAN_HAS_CONST = (1 << 1),        /* Has any constraint. */
   /* PCHAN_HAS_ACTION = (1 << 2), */ /* UNUSED */
-  PCHAN_HAS_TARGET = (1 << 3),
-  /* Only for drawing pose-mode too. */
+  PCHAN_HAS_NO_TARGET = (1 << 3),    /* Has (spline) IK constraint but no target is set. */
   /* PCHAN_HAS_STRIDE = (1 << 4), */ /* UNUSED */
-  /* spline IK */
-  PCHAN_HAS_SPLINEIK = (1 << 5),
+  PCHAN_HAS_SPLINEIK = (1 << 5),     /* Has Spline IK constraint. */
 } ePchan_ConstFlag;
 
 /* PoseChannel->ikflag */

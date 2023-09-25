@@ -1184,7 +1184,7 @@ void BKE_pose_update_constraint_flags(bPose *pose)
 
           if (data->tar == nullptr || (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0))
           {
-            pchan->constflag |= PCHAN_HAS_TARGET;
+            pchan->constflag |= PCHAN_HAS_NO_TARGET;
           }
 
           /* negative rootbone = recalc rootbone index. used in do_versions */
