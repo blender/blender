@@ -156,18 +156,18 @@ int DNA_elem_type_size(eSDNA_Type elem_nr);
 /**
  * Rename a struct
  */
-bool DNA_sdna_patch_struct(struct SDNA *sdna,
-                           const char *struct_name_old,
-                           const char *struct_name_new);
+bool DNA_sdna_patch_struct_by_name(struct SDNA *sdna,
+                                   const char *struct_name_old,
+                                   const char *struct_name_new);
 /**
  * Replace \a elem_old with \a elem_new for struct \a struct_name
  * handles search & replace, maintaining surrounding non-identifier characters
  * such as pointer & array size.
  */
-bool DNA_sdna_patch_struct_member(struct SDNA *sdna,
-                                  const char *struct_name,
-                                  const char *elem_old,
-                                  const char *elem_new);
+bool DNA_sdna_patch_struct_member_by_name(struct SDNA *sdna,
+                                          const char *struct_name,
+                                          const char *elem_old,
+                                          const char *elem_new);
 
 void DNA_sdna_alias_data_ensure(struct SDNA *sdna);
 
