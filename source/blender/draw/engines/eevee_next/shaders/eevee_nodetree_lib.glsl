@@ -32,6 +32,9 @@ float g_volume_absorption_rand;
  */
 bool closure_select(float weight, inout float total_weight, inout float r)
 {
+  if (weight < 1e-5) {
+    return false;
+  }
   total_weight += weight;
   float x = weight / total_weight;
   bool chosen = (r < x);
