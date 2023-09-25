@@ -769,13 +769,15 @@ static void gpu_texture_update_from_ibuf(
   }
   else {
     /* Byte image is in original colorspace from the file, and may need conversion. */
-    if (IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace)) {
-      /* Non-color data, just store buffer as is. */
+    if (IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace) && !scaled) {
+      /* Not scaled Non-color data, just store buffer as is. */
     }
     else if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace) ||
-             IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
+             IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace) ||
+             IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace))
     {
-      /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
+      /* sRGB or scene linear or scaled down non-color data , store as byte texture that the GPU
+       * can decode directly. */
       rect = (uchar *)MEM_mallocN(sizeof(uchar[4]) * w * h, __func__);
       if (rect == nullptr) {
         return;
