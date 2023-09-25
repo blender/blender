@@ -80,6 +80,7 @@ class WorldPipeline {
 class WorldVolumePipeline {
  private:
   Instance &inst_;
+  bool is_valid_;
 
   PassSimple world_ps_ = {"World.Volume"};
 
@@ -88,6 +89,11 @@ class WorldVolumePipeline {
 
   void sync(GPUMaterial *gpumat);
   void render(View &view);
+
+  bool is_valid()
+  {
+    return is_valid_;
+  }
 };
 
 /** \} */
