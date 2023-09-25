@@ -434,7 +434,7 @@ void IrradianceCache::debug_pass_draw(View &view, GPUFrameBuffer *view_fb)
                             DRW_STATE_DEPTH_LESS_EQUAL);
         debug_ps_.framebuffer_set(&view_fb);
         debug_ps_.shader_set(inst_.shaders.static_shader_get(DEBUG_SURFELS));
-        debug_ps_.push_constant("surfel_radius", 0.5f / grid.surfel_density);
+        debug_ps_.push_constant("debug_surfel_radius", 0.5f / grid.surfel_density);
         debug_ps_.push_constant("debug_mode", int(inst_.debug_mode));
 
         debug_surfels_buf_.resize(cache->surfels_len);
