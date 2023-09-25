@@ -23,6 +23,92 @@ CCL_NAMESPACE_BEGIN
       metal_printf("%s\n", str.c_str()); \
     }
 
+//#  define BVH_THROTTLE_DIAGNOSTICS
+#  ifdef BVH_THROTTLE_DIAGNOSTICS
+#    define bvh_throttle_printf(...) printf("BVHMetalBuildThrottler::" __VA_ARGS__)
+#  else
+#    define bvh_throttle_printf(...)
+#  endif
+
+/* Limit the number of concurrent BVH builds so that we don't approach unsafe GPU working set
+ * sizes. */
+struct BVHMetalBuildThrottler {
+  thread_mutex mutex;
+  size_t wired_memory = 0;
+  size_t safe_wired_limit = 0;
+  int requests_in_flight = 0;
+
+  BVHMetalBuildThrottler()
+  {
+    /* The default device will always be the one that supports MetalRT if the machine supports it.
+     */
+    id<MTLDevice> mtlDevice = MTLCreateSystemDefaultDevice();
+
+    /* Set a conservative limit, but which will still only throttle in extreme cases. */
+    safe_wired_limit = [mtlDevice recommendedMaxWorkingSetSize] / 4;
+    bvh_throttle_printf("safe_wired_limit = %zu\n", safe_wired_limit);
+  }
+
+  /* Block until we're safely able to wire the requsted resources. */
+  void acquire(size_t bytes_to_be_wired)
+  {
+    bool throttled = false;
+    while (true) {
+      {
+        thread_scoped_lock lock(mutex);
+
+        /* Always allow a BVH build to proceed if no other is in flight, otherwise
+         * only proceed if we're within safe limits. */
+        if (wired_memory == 0 || wired_memory + bytes_to_be_wired <= safe_wired_limit) {
+          wired_memory += bytes_to_be_wired;
+          requests_in_flight += 1;
+          bvh_throttle_printf("acquire -- success (requests_in_flight = %d, wired_memory = %zu)\n",
+                              requests_in_flight,
+                              wired_memory);
+          return;
+        }
+
+        if (!throttled) {
+          bvh_throttle_printf(
+              "acquire -- throttling (requests_in_flight = %d, wired_memory = %zu, "
+              "bytes_to_be_wired = %zu)\n",
+              requests_in_flight,
+              wired_memory,
+              bytes_to_be_wired);
+        }
+        throttled = true;
+      }
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  }
+
+  /* Notify of resources that have stopped being wired. */
+  void release(size_t bytes_just_unwired)
+  {
+    thread_scoped_lock lock(mutex);
+    wired_memory -= bytes_just_unwired;
+    requests_in_flight -= 1;
+    bvh_throttle_printf("release (requests_in_flight = %d, wired_memory = %zu)\n",
+                        requests_in_flight,
+                        wired_memory);
+  }
+
+  /* Wait for all outstanding work to finish. */
+  void wait_for_all()
+  {
+    while (true) {
+      {
+        thread_scoped_lock lock(mutex);
+        if (wired_memory == 0) {
+          return;
+        }
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  }
+} g_bvh_build_throttler;
+
 BVHMetal::BVHMetal(const BVHParams &params_,
                    const vector<Geometry *> &geometry_,
                    const vector<Object *> &objects_,
@@ -204,6 +290,12 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
                                            sizeDataType:MTLDataTypeULong];
     }
     [accelEnc endEncoding];
+
+    /* Estimated size of resources that will be wired for the GPU accelerated build. Accel-struct
+     * size is doubled to account for possible compaction step. */
+    size_t wired_size = posBuf.allocatedSize + indexBuf.allocatedSize + scratchBuf.allocatedSize +
+                        accel_uncompressed.allocatedSize * 2;
+
     [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
       /* free temp resources */
       [scratchBuf release];
@@ -228,7 +320,9 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
             stats.mem_alloc(allocated_size);
             accel_struct = accel;
             [accel_uncompressed release];
-            accel_struct_building = false;
+
+            /* Signal that we've finished doing GPU acceleration struct build. */
+            g_bvh_build_throttler.release(wired_size);
           }];
           [accelCommands commit];
         });
@@ -239,12 +333,16 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
 
         uint64_t allocated_size = [accel_struct allocatedSize];
         stats.mem_alloc(allocated_size);
-        accel_struct_building = false;
+
+        /* Signal that we've finished doing GPU acceleration struct build. */
+        g_bvh_build_throttler.release(wired_size);
       }
+
       [sizeBuf release];
     }];
 
-    accel_struct_building = true;
+    /* Wait until it's safe to proceed with GPU acceleration struct build. */
+    g_bvh_build_throttler.acquire(wired_size);
     [accelCommands commit];
 
     return true;
@@ -528,6 +626,13 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
                                            sizeDataType:MTLDataTypeULong];
     }
     [accelEnc endEncoding];
+
+    /* Estimated size of resources that will be wired for the GPU accelerated build. Accel-struct
+     * size is doubled to account for possible compaction step. */
+    size_t wired_size = cpBuffer.allocatedSize + radiusBuffer.allocatedSize +
+                        idxBuffer.allocatedSize + scratchBuf.allocatedSize +
+                        accel_uncompressed.allocatedSize * 2;
+
     [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
       /* free temp resources */
       [scratchBuf release];
@@ -552,7 +657,9 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
             stats.mem_alloc(allocated_size);
             accel_struct = accel;
             [accel_uncompressed release];
-            accel_struct_building = false;
+
+            /* Signal that we've finished doing GPU acceleration struct build. */
+            g_bvh_build_throttler.release(wired_size);
           }];
           [accelCommands commit];
         });
@@ -563,12 +670,16 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
 
         uint64_t allocated_size = [accel_struct allocatedSize];
         stats.mem_alloc(allocated_size);
-        accel_struct_building = false;
+
+        /* Signal that we've finished doing GPU acceleration struct build. */
+        g_bvh_build_throttler.release(wired_size);
       }
+
       [sizeBuf release];
     }];
 
-    accel_struct_building = true;
+    /* Wait until it's safe to proceed with GPU acceleration struct build. */
+    g_bvh_build_throttler.acquire(wired_size);
     [accelCommands commit];
 
     return true;
@@ -763,6 +874,12 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
                                            sizeDataType:MTLDataTypeULong];
     }
     [accelEnc endEncoding];
+
+    /* Estimated size of resources that will be wired for the GPU accelerated build. Accel-struct
+     * size is doubled to account for possible compaction step. */
+    size_t wired_size = aabbBuf.allocatedSize + scratchBuf.allocatedSize +
+                        accel_uncompressed.allocatedSize * 2;
+
     [accelCommands addCompletedHandler:^(id<MTLCommandBuffer> /*command_buffer*/) {
       /* free temp resources */
       [scratchBuf release];
@@ -786,7 +903,9 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
             stats.mem_alloc(allocated_size);
             accel_struct = accel;
             [accel_uncompressed release];
-            accel_struct_building = false;
+
+            /* Signal that we've finished doing GPU acceleration struct build. */
+            g_bvh_build_throttler.release(wired_size);
           }];
           [accelCommands commit];
         });
@@ -797,12 +916,16 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
 
         uint64_t allocated_size = [accel_struct allocatedSize];
         stats.mem_alloc(allocated_size);
-        accel_struct_building = false;
+
+        /* Signal that we've finished doing GPU acceleration struct build. */
+        g_bvh_build_throttler.release(wired_size);
       }
+
       [sizeBuf release];
     }];
 
-    accel_struct_building = true;
+    /* Wait until it's safe to proceed with GPU acceleration struct build. */
+    g_bvh_build_throttler.acquire(wired_size);
     [accelCommands commit];
     return true;
   }
@@ -814,22 +937,20 @@ bool BVHMetal::build_BLAS(Progress &progress,
                           id<MTLCommandQueue> queue,
                           bool refit)
 {
-  if (@available(macos 12.0, *)) {
-    assert(objects.size() == 1 && geometry.size() == 1);
+  assert(objects.size() == 1 && geometry.size() == 1);
 
-    /* Build bottom level acceleration structures (BLAS) */
-    Geometry *const geom = geometry[0];
-    switch (geom->geometry_type) {
-      case Geometry::VOLUME:
-      case Geometry::MESH:
-        return build_BLAS_mesh(progress, device, queue, geom, refit);
-      case Geometry::HAIR:
-        return build_BLAS_hair(progress, device, queue, geom, refit);
-      case Geometry::POINTCLOUD:
-        return build_BLAS_pointcloud(progress, device, queue, geom, refit);
-      default:
-        return false;
-    }
+  /* Build bottom level acceleration structures (BLAS) */
+  Geometry *const geom = geometry[0];
+  switch (geom->geometry_type) {
+    case Geometry::VOLUME:
+    case Geometry::MESH:
+      return build_BLAS_mesh(progress, device, queue, geom, refit);
+    case Geometry::HAIR:
+      return build_BLAS_hair(progress, device, queue, geom, refit);
+    case Geometry::POINTCLOUD:
+      return build_BLAS_pointcloud(progress, device, queue, geom, refit);
+    default:
+      return false;
   }
   return false;
 }
@@ -839,37 +960,10 @@ bool BVHMetal::build_TLAS(Progress &progress,
                           id<MTLCommandQueue> queue,
                           bool refit)
 {
+  /* Wait for all BLAS builds to finish. */
+  g_bvh_build_throttler.wait_for_all();
+
   if (@available(macos 12.0, *)) {
-
-    /* we need to sync here and ensure that all BLAS have completed async generation by both GCD
-     * and Metal */
-    {
-      __block bool complete_bvh = false;
-      while (!complete_bvh) {
-        dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-          complete_bvh = true;
-          for (Object *ob : objects) {
-            /* Skip non-traceable objects */
-            if (!ob->is_traceable())
-              continue;
-
-            Geometry const *geom = ob->get_geometry();
-            BVHMetal const *blas = static_cast<BVHMetal const *>(geom->bvh);
-            if (blas->accel_struct_building) {
-              complete_bvh = false;
-
-              /* We're likely waiting on a command buffer that's in flight to complete.
-               * Queue up a command buffer and wait for it complete before checking the BLAS again
-               */
-              id<MTLCommandBuffer> command_buffer = [queue commandBuffer];
-              [command_buffer commit];
-              [command_buffer waitUntilCompleted];
-              break;
-            }
-          }
-        });
-      }
-    }
 
     uint32_t num_instances = 0;
     uint32_t num_motion_transforms = 0;
