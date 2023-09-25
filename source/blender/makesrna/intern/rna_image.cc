@@ -262,7 +262,7 @@ static void rna_ImageUser_relations_update(Main *bmain, Scene *scene, PointerRNA
 static char *rna_ImageUser_path(const PointerRNA *ptr)
 {
   if (ptr->owner_id) {
-    /* ImageUser *iuser = ptr->data; */
+    // ImageUser *iuser = ptr->data;
 
     switch (GS(ptr->owner_id->name)) {
       case ID_OB:

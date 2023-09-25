@@ -4667,7 +4667,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
           MEM_freeN(nu1->bp);
           nu1->bp = bp;
 
-          /* a = nu1->pntsu + nu1->orderu; */ /* UNUSED */
+          // a = nu1->pntsu + nu1->orderu; /* UNUSED */
 
           nu1->pntsu += nu2->pntsu;
           BLI_remlink(nubase, nu2);

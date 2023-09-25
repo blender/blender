@@ -670,7 +670,7 @@ static bool rna_Property_readonly_get(PointerRNA *ptr)
   /* don't use this because it will call functions that check the internal
    * data for introspection we only need to know if it can be edited so the
    * flag is better for this */
-  /*  return RNA_property_editable(ptr, prop); */
+  // return RNA_property_editable(ptr, prop);
   return (prop->flag & PROP_EDITABLE) == 0;
 }
 

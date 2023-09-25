@@ -327,9 +327,9 @@ bool _bli_array_iter_spiral_square(const void *arr_v,
 
     bool check_bounds = steps > steps_in;
 
-    /* sign: 0 neg; 1 pos; */
+    /* Sign: 0=negative 1=positive. */
     for (int sign = 2; sign--;) {
-      /* axis: 0 x; 1 y; */
+      /* Axis: 0=x; 1=y. */
       for (int axis = 2; axis--;) {
         int ofs_step = stride[axis];
         if (!sign) {

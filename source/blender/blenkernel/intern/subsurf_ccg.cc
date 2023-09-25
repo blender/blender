@@ -990,7 +990,7 @@ static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, int *r_face_offsets)
   int index;
   int totface;
   int gridSize = ccgSubSurf_getGridSize(ss);
-  /* int edgeSize = ccgSubSurf_getEdgeSize(ss); */ /* UNUSED */
+  // int edgeSize = ccgSubSurf_getEdgeSize(ss); /* UNUSED. */
   int i = 0, k = 0;
 
   totface = ccgSubSurf_getNumFaces(ss);

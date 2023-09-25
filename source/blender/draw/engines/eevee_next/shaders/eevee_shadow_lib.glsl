@@ -23,8 +23,8 @@ vec2 shadow_page_uv_transform(
 /* Rotate vector to light's local space . Used for directional shadows. */
 vec3 shadow_world_to_local(LightData ld, vec3 L)
 {
-  /* Avoid relying on compiler to optimize this.
-   * vec3 lL = transpose(mat3(ld.object_mat)) * L; */
+  /* Avoid relying on compiler to optimize this. */
+  // vec3 lL = transpose(mat3(ld.object_mat)) * L;
   vec3 lL;
   lL.x = dot(ld.object_mat[0].xyz, L);
   lL.y = dot(ld.object_mat[1].xyz, L);

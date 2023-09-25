@@ -373,7 +373,7 @@ float ED_object_new_primitive_matrix(bContext *C,
     return dia;
   }
 
-  /* return 1.0f; */
+  // return 1.0f;
 }
 
 /** \} */

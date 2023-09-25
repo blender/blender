@@ -685,7 +685,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
       }
     }
 
-    /* !BM_edge_is_boundary(e); */
+    /* Equivalent to `!BM_edge_is_boundary(e)`. */
     if (l_b != l_a) {
       BMEdge *e_next = get_other_edge(v, e);
       if (e_next) {

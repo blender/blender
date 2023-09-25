@@ -4466,7 +4466,7 @@ static void rna_def_view_layer_aov(BlenderRNA *brna)
 static void rna_def_view_layer_lightgroups(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
-  /*  PropertyRNA *prop; */
+  // PropertyRNA *prop;
 
   FunctionRNA *func;
   PropertyRNA *parm;

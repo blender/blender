@@ -301,7 +301,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(
   steps = 55;
   for (i = 0; i < steps; i++) {
     for (node = cloth->springs; node; node = node->next) {
-      /* ClothVertex *cv1, *cv2; */ /* UNUSED */
+      // ClothVertex *cv1, *cv2; /* UNUSED */
       int v1, v2;
       float len, c, l, vec[3];
 
@@ -312,8 +312,8 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(
 
       v1 = spring->ij;
       v2 = spring->kl;
-      /* cv1 = cloth->verts + v1; */ /* UNUSED */
-      /* cv2 = cloth->verts + v2; */ /* UNUSED */
+      // cv1 = cloth->verts + v1; /* UNUSED. */
+      // cv2 = cloth->verts + v2; /* UNUSED. */
       len = len_v3v3(cos[v1], cos[v2]);
 
       sub_v3_v3v3(vec, cos[v1], cos[v2]);

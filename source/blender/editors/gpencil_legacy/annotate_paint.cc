@@ -1294,8 +1294,8 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
   switch (curarea->spacetype) {
     /* supported views first */
     case SPACE_VIEW3D: {
-      /* View3D *v3d = curarea->spacedata.first; */
-      /* RegionView3D *rv3d = region->regiondata; */
+      // View3D *v3d = curarea->spacedata.first;
+      // RegionView3D *rv3d = region->regiondata;
 
       /* set current area
        * - must verify that region data is 3D-view (and not something else)
@@ -1312,7 +1312,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
       break;
     }
     case SPACE_NODE: {
-      /* SpaceNode *snode = curarea->spacedata.first; */
+      // SpaceNode *snode = curarea->spacedata.first;
 
       /* set current area */
       p->area = curarea;
@@ -1338,7 +1338,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
       break;
     }
     case SPACE_IMAGE: {
-      /* SpaceImage *sima = curarea->spacedata.first; */
+      // SpaceImage *sima = curarea->spacedata.first;
 
       /* set the current area */
       p->area = curarea;

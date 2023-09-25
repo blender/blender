@@ -356,7 +356,7 @@ LogImageFile *cineonCreate(
 {
   CineonMainHeader header;
   const char *shortFilename = nullptr;
-  /* uchar pad[6044]; */
+  // uchar pad[6044];
 
   LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
   if (cineon == nullptr) {

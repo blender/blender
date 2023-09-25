@@ -741,7 +741,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
     maxw = BLI_kdtree_3d_find_nearest_n(ctx->tree, orco1, ptn, 3);
 
     maxd = ptn[maxw - 1].dist;
-    /* mind=ptn[0].dist; */ /* UNUSED */
+    // mind=ptn[0].dist; /* UNUSED */
 
     /* the weights here could be done better */
     for (w = 0; w < maxw; w++) {

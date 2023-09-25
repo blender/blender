@@ -69,8 +69,8 @@ ccl_device void differential_dudv(ccl_private differential *du,
    * and the same for dudy and dvdy. the denominator is the same for both
    * solutions, so we compute it only once.
    *
-   * dP.dx = dPdu * dudx + dPdv * dvdx;
-   * dP.dy = dPdu * dudy + dPdv * dvdy; */
+   * `dP.dx = dPdu * dudx + dPdv * dvdx;`
+   * `dP.dy = dPdu * dudy + dPdv * dvdy;` */
 
   float det = (dPdu.x * dPdv.y - dPdv.x * dPdu.y);
 

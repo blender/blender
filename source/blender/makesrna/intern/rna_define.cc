@@ -2750,7 +2750,7 @@ void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, con
 
 void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
-  /* PropertyDefRNA *dp; */
+  // PropertyDefRNA *dp;
   StructRNA *srna = DefRNA.laststruct;
 
   if (!DefRNA.preprocess) {

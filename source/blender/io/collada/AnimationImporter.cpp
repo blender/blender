@@ -1701,7 +1701,7 @@ Object *AnimationImporter::translate_animation_OLD(
       calc_joint_parent_mat_rest(par, nullptr, root, node);
       mul_m4_m4m4(temp, par, matfra);
 
-      /* evaluate_joint_world_transform_at_frame(temp, nullptr, node, fra); */
+      // evaluate_joint_world_transform_at_frame(temp, nullptr, node, fra);
 
       /* calc special matrix */
       mul_m4_series(mat, irest, temp, irest_dae, rest);

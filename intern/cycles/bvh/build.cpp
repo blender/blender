@@ -814,14 +814,14 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
 
   BVHMixedSplit unaligned_split;
   float unalignedSplitSAH = FLT_MAX;
-  /* float unalignedLeafSAH = FLT_MAX; */
+  // float unalignedLeafSAH = FLT_MAX;
   Transform aligned_space;
   bool do_unalinged_split = false;
   if (params.use_unaligned_nodes && splitSAH > params.unaligned_split_threshold * leafSAH) {
     aligned_space = unaligned_heuristic.compute_aligned_space(range, &references.at(0));
     unaligned_split = BVHMixedSplit(
         this, storage, range, references, level, &unaligned_heuristic, &aligned_space);
-    /* unalignedLeafSAH = params.sah_primitive_cost * split.leafSAH; */
+    // unalignedLeafSAH = params.sah_primitive_cost * split.leafSAH;
     unalignedSplitSAH = params.sah_node_cost * unaligned_split.bounds.half_area() +
                         params.sah_primitive_cost * unaligned_split.nodeSAH;
     /* TODO(sergey): Check we can create leaf already. */

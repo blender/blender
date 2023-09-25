@@ -251,7 +251,7 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool,
   }
 
   /* Commented because used in a loop, and this flag has already been set. */
-  /* bm->elem_index_dirty |= BM_VERT; */
+  // bm->elem_index_dirty |= BM_VERT;
 
   /* lb is now full of free'd items, overwrite */
   *lb = lb_tmp;

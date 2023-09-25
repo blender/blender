@@ -4987,8 +4987,8 @@ static float ui_numedit_apply_snapf(
     if (fac != 1.0f) {
       /* snap in unit-space */
       tempf /= fac;
-      /* softmin /= fac; */ /* UNUSED */
-      /* softmax /= fac; */ /* UNUSED */
+      // softmin /= fac; /* UNUSED */
+      // softmax /= fac; /* UNUSED */
       softrange /= fac;
     }
 
