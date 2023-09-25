@@ -294,7 +294,7 @@ class NewGeometryNodeTreeAssign(Operator):
 
 
 class NewGeometryNodeGroupTool(Operator):
-    """Create a new geometry node group for an tool"""
+    """Create a new geometry node group for a tool"""
     bl_idname = "node.new_geometry_node_group_tool"
     bl_label = "New Geometry Node Tool Group"
     bl_options = {'REGISTER', 'UNDO'}
