@@ -745,7 +745,7 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
   const Link *link = lb->first;
   if (link) {
 
-    const int struct_nr = DNA_struct_find(wd->sdna, structname);
+    const int struct_nr = DNA_struct_find_with_alias(wd->sdna, structname);
     if (struct_nr == -1) {
       printf("error: can't find SDNA code <%s>\n", structname);
       return;
