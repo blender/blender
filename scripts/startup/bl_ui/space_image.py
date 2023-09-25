@@ -509,7 +509,7 @@ class IMAGE_MT_uvs_select_mode(Menu):
 
 
 class IMAGE_MT_uvs_context_menu(Menu):
-    bl_label = "UV Context Menu"
+    bl_label = "UV"
 
     def draw(self, context):
         layout = self.layout
@@ -905,7 +905,7 @@ class IMAGE_MT_editor_menus(Menu):
 
 
 class IMAGE_MT_mask_context_menu(Menu):
-    bl_label = "Mask Context Menu"
+    bl_label = "Mask"
 
     @classmethod
     def poll(cls, context):

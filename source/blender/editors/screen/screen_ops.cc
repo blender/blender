@@ -4511,7 +4511,7 @@ static int screen_context_menu_invoke(bContext *C, wmOperator * /*op*/, const wm
 static void SCREEN_OT_region_context_menu(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Region Context Menu";
+  ot->name = "Region";
   ot->description = "Display region context menu";
   ot->idname = "SCREEN_OT_region_context_menu";
 
