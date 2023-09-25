@@ -180,18 +180,20 @@ void DNA_sdna_alias_data_ensure(struct SDNA *sdna);
 /**
  * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
  */
-int DNA_struct_alias_find_ex(const struct SDNA *sdna, const char *str, unsigned int *index_last);
+int DNA_struct_find_with_alias_ex(const struct SDNA *sdna,
+                                  const char *str,
+                                  unsigned int *index_last);
 /**
  * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
  */
-int DNA_struct_alias_find(const struct SDNA *sdna, const char *str);
+int DNA_struct_find_with_alias(const struct SDNA *sdna, const char *str);
 /**
  * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
  */
-bool DNA_struct_alias_member_exists(const struct SDNA *sdna,
-                                    const char *stype,
-                                    const char *vartype,
-                                    const char *name);
+bool DNA_struct_member_exists_with_alias(const struct SDNA *sdna,
+                                         const char *stype,
+                                         const char *vartype,
+                                         const char *name);
 /**
  * Separated from #DNA_sdna_alias_data_ensure because it's not needed
  * unless we want to lookup aliased struct names (#DNA_struct_alias_find and friends).

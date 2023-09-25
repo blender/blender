@@ -257,7 +257,7 @@ int DNA_struct_find_ex(const SDNA *sdna, const char *str, uint *index_last)
       index_last);
 }
 
-int DNA_struct_alias_find_ex(const SDNA *sdna, const char *str, uint *index_last)
+int DNA_struct_find_with_alias_ex(const SDNA *sdna, const char *str, uint *index_last)
 {
 #ifdef WITH_DNA_GHASH
   BLI_assert(sdna->alias.structs_map != nullptr);
@@ -282,10 +282,10 @@ int DNA_struct_find(const SDNA *sdna, const char *str)
   return DNA_struct_find_ex(sdna, str, &index_last_dummy);
 }
 
-int DNA_struct_alias_find(const SDNA *sdna, const char *str)
+int DNA_struct_find_with_alias(const SDNA *sdna, const char *str)
 {
   uint index_last_dummy = UINT_MAX;
-  return DNA_struct_alias_find_ex(sdna, str, &index_last_dummy);
+  return DNA_struct_find_with_alias_ex(sdna, str, &index_last_dummy);
 }
 
 /* ************************* END DIV ********************** */
@@ -1616,7 +1616,7 @@ int DNA_struct_member_offset_by_name_with_alias(const SDNA *sdna,
                                                 const char *vartype,
                                                 const char *name)
 {
-  const int SDNAnr = DNA_struct_alias_find(sdna, stype);
+  const int SDNAnr = DNA_struct_find_with_alias(sdna, stype);
   BLI_assert(SDNAnr != -1);
   const SDNA_Struct *const spo = sdna->structs[SDNAnr];
   return elem_offset_with_alias(sdna, vartype, name, spo);
@@ -1645,12 +1645,12 @@ bool DNA_struct_member_exists(const SDNA *sdna,
   return false;
 }
 
-bool DNA_struct_alias_member_exists(const SDNA *sdna,
-                                    const char *stype,
-                                    const char *vartype,
-                                    const char *name)
+bool DNA_struct_member_exists_with_alias(const SDNA *sdna,
+                                         const char *stype,
+                                         const char *vartype,
+                                         const char *name)
 {
-  const int SDNAnr = DNA_struct_alias_find(sdna, stype);
+  const int SDNAnr = DNA_struct_find_with_alias(sdna, stype);
 
   if (SDNAnr != -1) {
     const SDNA_Struct *const spo = sdna->structs[SDNAnr];
