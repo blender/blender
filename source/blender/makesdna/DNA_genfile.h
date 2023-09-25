@@ -128,7 +128,7 @@ void *DNA_struct_reconstruct(const struct DNA_ReconstructInfo *reconstruct_info,
  * Returns the offset of the field with the specified name and type within the specified
  * struct type in #SDNA, -1 on failure.
  */
-int DNA_struct_member_offset_by_name(struct SDNA *sdna,
+int DNA_struct_member_offset_by_name(const struct SDNA *sdna,
                                      const char *stype,
                                      const char *vartype,
                                      const char *name);
