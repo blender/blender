@@ -14,10 +14,10 @@ bool is_jump_flooded(vec4 value)
 
 /* Given the position of the closest seed, the distance to it, and whether the pixel is flooded,
  * encode that information in a vec4 in a format expected by the algorithm and return it */
-vec4 encode_jump_flooding_value(vec2 position_of_closest_seed, float distance, bool is_flooded)
+vec4 encode_jump_flooding_value(vec2 position_of_closest_seed, float dist, bool is_flooded)
 {
   if (is_flooded) {
-    return vec4(position_of_closest_seed, distance, 0.0);
+    return vec4(position_of_closest_seed, dist, 0.0);
   }
   return JUMP_FLOODING_NON_FLOODED_VALUE;
 }

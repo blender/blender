@@ -51,7 +51,7 @@ void main()
       accumulated_weight += weight;
 
       /* Move the left texel one pixel in the clockwise tangent to the boundary. */
-      left_texel += normalize((left_texel - boundary_texel).yx * vec2(-1.0, 1.0));
+      left_texel += normalize((left_texel - vec2(boundary_texel)).yx * vec2(-1.0, 1.0));
     }
 
     /* When i is zero, we are accumulating the center pixel, which was already accumulated as the
@@ -63,7 +63,7 @@ void main()
       accumulated_weight += weight;
 
       /* Move the left texel one pixel in the anti-clockwise tangent to the boundary. */
-      right_texel += normalize((right_texel - boundary_texel).yx * vec2(1.0, -1.0));
+      right_texel += normalize((right_texel - vec2(boundary_texel)).yx * vec2(1.0, -1.0));
     }
   }
 
