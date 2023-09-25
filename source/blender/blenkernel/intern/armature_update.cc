@@ -942,6 +942,7 @@ static void pose_channel_flush_to_orig_if_needed(Depsgraph *depsgraph,
   copy_v3_v3(pchan_orig->pose_head, pchan->pose_mat[3]);
   copy_m4_m4(pchan_orig->constinv, pchan->constinv);
   copy_v3_v3(pchan_orig->pose_tail, pchan->pose_tail);
+  pchan_orig->constflag = pchan->constflag;
 }
 
 void BKE_pose_bone_done(Depsgraph *depsgraph, Object *object, int pchan_index)

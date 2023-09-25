@@ -1201,7 +1201,11 @@ static void get_pchan_color_constraint(const ThemeWireColor *bcolor,
                                        float r_color[4])
 {
   const ePchan_ConstFlag constflag = bone.constflag();
-  if (constflag == 0 || (bcolor && (bcolor->flag & TH_WIRECOLOR_CONSTCOLS) == 0)) {
+  /* Not all flags should result in a different bone color. */
+  const ePchan_ConstFlag flags_to_color = PCHAN_HAS_NO_TARGET | PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK |
+                                          PCHAN_HAS_CONST;
+  if ((constflag & flags_to_color) == 0 ||
+      (bcolor && (bcolor->flag & TH_WIRECOLOR_CONSTCOLS) == 0)) {
     get_pchan_color_solid(bcolor, r_color);
     return;
   }

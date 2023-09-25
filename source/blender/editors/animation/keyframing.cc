@@ -887,6 +887,13 @@ static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
     /* Pose Channel */
     bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
 
+    if (pchan->constflag & (PCHAN_HAS_IK | PCHAN_INFLUENCED_BY_IK)) {
+      /* Spline IK cannot generally be keyed visually, because (at least with the default
+       * constraint settings) it requires non-uniform scaling that causes shearing in child bones,
+       * which cannot be represented by the bone's loc/rot/scale properties. */
+      return true;
+    }
+
     con = static_cast<bConstraint *>(pchan->constraints.first);
     has_parent = (pchan->parent != nullptr);
   }

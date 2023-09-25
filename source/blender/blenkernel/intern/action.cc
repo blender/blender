@@ -1187,11 +1187,12 @@ void BKE_pose_update_constraint_flags(bPose *pose)
             pchan->constflag |= PCHAN_HAS_NO_TARGET;
           }
 
+          bPoseChannel *chain_tip = (data->flag & CONSTRAINT_IK_TIP) ? pchan : pchan->parent;
+
           /* negative rootbone = recalc rootbone index. used in do_versions */
           if (data->rootbone < 0) {
             data->rootbone = 0;
 
-            bPoseChannel *chain_tip = (data->flag & CONSTRAINT_IK_TIP) ? pchan : pchan->parent;
             bPoseChannel *parchan = chain_tip;
             while (parchan) {
               data->rootbone++;
@@ -1199,6 +1200,16 @@ void BKE_pose_update_constraint_flags(bPose *pose)
                 break;
               }
               parchan = parchan->parent;
+            }
+          }
+
+          /* Mark the pose bones in the IK chain as influenced by it. */
+          {
+            bPoseChannel *chain_bone = chain_tip;
+            for (short index = 0; chain_bone && (data->rootbone == 0 || index < data->rootbone);
+                 index++) {
+              chain_bone->constflag |= PCHAN_INFLUENCED_BY_IK;
+              chain_bone = chain_bone->parent;
             }
           }
           break;
