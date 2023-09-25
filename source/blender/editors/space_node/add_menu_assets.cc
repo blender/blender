@@ -15,7 +15,7 @@
 
 #include "BKE_asset.h"
 #include "BKE_idprop.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLT_translation.h"
 

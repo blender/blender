@@ -32,7 +32,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "ED_node.hh"
 #include "ED_node_preview.hh"

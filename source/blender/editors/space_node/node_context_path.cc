@@ -16,7 +16,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"

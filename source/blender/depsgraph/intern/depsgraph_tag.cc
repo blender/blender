@@ -33,7 +33,7 @@
 #include "BKE_idtype.h"
 #include "BKE_node.hh"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
 #include "DEG_depsgraph.hh"

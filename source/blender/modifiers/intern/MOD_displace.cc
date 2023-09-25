@@ -31,7 +31,7 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_texture.h"
 
 #include "UI_interface.hh"

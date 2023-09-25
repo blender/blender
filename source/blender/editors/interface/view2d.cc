@@ -29,7 +29,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"

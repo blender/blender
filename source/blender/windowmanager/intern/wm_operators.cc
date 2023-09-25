@@ -60,7 +60,7 @@
 #include "BKE_preview_image.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h" /* BKE_ST_MAXNAME */
+#include "BKE_screen.hh" /* BKE_ST_MAXNAME */
 #include "BKE_unit.h"
 
 #include "BKE_idtype.h"

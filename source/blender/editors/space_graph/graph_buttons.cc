@@ -32,7 +32,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_unit.h"
 
 #include "DEG_depsgraph.hh"

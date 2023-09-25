@@ -25,7 +25,7 @@
 
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph.hh"

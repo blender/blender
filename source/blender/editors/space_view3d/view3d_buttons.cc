@@ -43,7 +43,7 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
 

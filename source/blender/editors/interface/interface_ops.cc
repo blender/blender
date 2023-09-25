@@ -35,7 +35,7 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_text.h"
 
 #include "IMB_colormanagement.h"

@@ -13,18 +13,10 @@
 
 #include "BKE_context.h"
 
-#ifdef __cplusplus
 namespace blender::asset_system {
 class AssetRepresentation;
 }
 using AssetRepresentationHandle = blender::asset_system::AssetRepresentation;
-#else
-typedef struct AssetRepresentationHandle AssetRepresentationHandle;
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct ARegion;
 struct BlendDataReader;
@@ -671,7 +663,3 @@ void BKE_screen_area_blend_read_after_liblink(struct BlendLibReader *reader,
  * Cannot use #IDTypeInfo callback yet, because of the return value.
  */
 bool BKE_screen_blend_read_data(struct BlendDataReader *reader, struct bScreen *screen);
-
-#ifdef __cplusplus
-}
-#endif

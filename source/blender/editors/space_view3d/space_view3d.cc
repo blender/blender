@@ -49,7 +49,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_viewer_path.h"
 #include "BKE_workspace.h"
 

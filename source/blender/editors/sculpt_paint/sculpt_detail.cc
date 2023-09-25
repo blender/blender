@@ -19,7 +19,7 @@
 #include "BKE_context.h"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
 

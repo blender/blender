@@ -20,7 +20,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_camera.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "GPU_matrix.h"
 

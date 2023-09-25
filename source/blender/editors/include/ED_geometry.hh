@@ -13,7 +13,7 @@
 #include "DNA_customdata_types.h"
 
 #include "BKE_attribute.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 struct Mesh;
 struct ReportList;

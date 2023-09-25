@@ -29,7 +29,7 @@
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
 #include "BKE_paint.hh"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.hh"
