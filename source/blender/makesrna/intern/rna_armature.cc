@@ -594,40 +594,6 @@ static IDProperty **rna_EditBone_idprops(PointerRNA *ptr)
   return &ebone->prop;
 }
 
-/* TODO: remove the deprecation stubs. */
-static bool rna_use_inherit_scale_get(char inherit_scale_mode)
-{
-  return inherit_scale_mode <= BONE_INHERIT_SCALE_FIX_SHEAR;
-}
-
-static void rna_use_inherit_scale_set(char *inherit_scale_mode, bool value)
-{
-  bool cur_value = (*inherit_scale_mode <= BONE_INHERIT_SCALE_FIX_SHEAR);
-  if (value != cur_value) {
-    *inherit_scale_mode = (value ? BONE_INHERIT_SCALE_FULL : BONE_INHERIT_SCALE_NONE);
-  }
-}
-
-static bool rna_EditBone_use_inherit_scale_get(PointerRNA *ptr)
-{
-  return rna_use_inherit_scale_get(((EditBone *)ptr->data)->inherit_scale_mode);
-}
-
-static void rna_EditBone_use_inherit_scale_set(PointerRNA *ptr, bool value)
-{
-  rna_use_inherit_scale_set(&((EditBone *)ptr->data)->inherit_scale_mode, value);
-}
-
-static bool rna_Bone_use_inherit_scale_get(PointerRNA *ptr)
-{
-  return rna_use_inherit_scale_get(((Bone *)ptr->data)->inherit_scale_mode);
-}
-
-static void rna_Bone_use_inherit_scale_set(PointerRNA *ptr, bool value)
-{
-  rna_use_inherit_scale_set(&((Bone *)ptr->data)->inherit_scale_mode, value);
-}
-
 static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 {
   bArmature *arm = (bArmature *)ptr->owner_id;
@@ -1227,20 +1193,6 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
       prop, "Inherit Scale", "Specifies how the bone inherits scaling from the parent bone");
   RNA_def_property_enum_sdna(prop, nullptr, "inherit_scale_mode");
   RNA_def_property_enum_items(prop, prop_inherit_scale_mode);
-  RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-
-  /* TODO: remove the compatibility stub. */
-  prop = RNA_def_property(srna, "use_inherit_scale", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_ui_text(
-      prop, "Inherit Scale", "DEPRECATED: Bone inherits scaling from parent bone");
-  if (editbone) {
-    RNA_def_property_boolean_funcs(
-        prop, "rna_EditBone_use_inherit_scale_get", "rna_EditBone_use_inherit_scale_set");
-  }
-  else {
-    RNA_def_property_boolean_funcs(
-        prop, "rna_Bone_use_inherit_scale_get", "rna_Bone_use_inherit_scale_set");
-  }
   RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
   prop = RNA_def_property(srna, "use_local_location", PROP_BOOLEAN, PROP_NONE);
