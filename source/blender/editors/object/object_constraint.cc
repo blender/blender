@@ -2751,7 +2751,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator * /*op*/)
         BKE_constraint_remove(&pchan->constraints, con);
       }
     }
-    pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_TARGET);
+    pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_NO_TARGET);
 
     if (prev_ob != ob) {
       prev_ob = ob;

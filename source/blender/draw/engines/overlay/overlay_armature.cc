@@ -1211,8 +1211,8 @@ static void get_pchan_color_constraint(const ThemeWireColor *bcolor,
   get_pchan_color_solid(bcolor, solid_color);
 
   float4 constraint_color;
-  if (constflag & PCHAN_HAS_TARGET) {
-    constraint_color = G_draw.block.color_bone_pose_target;
+  if (constflag & PCHAN_HAS_NO_TARGET) {
+    constraint_color = G_draw.block.color_bone_pose_no_target;
   }
   else if (constflag & PCHAN_HAS_IK) {
     constraint_color = G_draw.block.color_bone_pose_ik;
@@ -1823,11 +1823,11 @@ static void pchan_draw_ik_lines(const ArmatureDrawContext *ctx,
         if (parchan) {
           line_end = parchan->pose_head;
 
-          if (constflag & PCHAN_HAS_TARGET) {
-            drw_shgroup_bone_ik_lines(ctx, line_start, line_end);
+          if (constflag & PCHAN_HAS_NO_TARGET) {
+            drw_shgroup_bone_ik_no_target_lines(ctx, line_start, line_end);
           }
           else {
-            drw_shgroup_bone_ik_no_target_lines(ctx, line_start, line_end);
+            drw_shgroup_bone_ik_lines(ctx, line_start, line_end);
           }
         }
         break;
