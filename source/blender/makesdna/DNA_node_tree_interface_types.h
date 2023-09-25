@@ -63,8 +63,9 @@ typedef enum NodeTreeInterfaceSocketFlag {
   NODE_INTERFACE_SOCKET_HIDE_VALUE = 1 << 2,
   NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER = 1 << 3,
   NODE_INTERFACE_SOCKET_COMPACT = 1 << 4,
+  NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY = 1 << 5,
 } NodeTreeInterfaceSocketFlag;
-ENUM_OPERATORS(NodeTreeInterfaceSocketFlag, NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER);
+ENUM_OPERATORS(NodeTreeInterfaceSocketFlag, NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY);
 
 typedef struct bNodeTreeInterfaceSocket {
   bNodeTreeInterfaceItem item;
