@@ -482,7 +482,7 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   }
 
   if (pxr::UsdShadeInput coat_input = usd_shader.GetInput(usdtokens::clearcoat)) {
-    set_node_input(coat_input, principled, "Coat", ntree, column, &context);
+    set_node_input(coat_input, principled, "Coat Weight", ntree, column, &context);
   }
 
   if (pxr::UsdShadeInput coat_roughness_input = usd_shader.GetInput(usdtokens::clearcoatRoughness))

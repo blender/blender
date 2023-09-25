@@ -30,7 +30,7 @@ const char *tex_map_type_to_socket_id[] = {
     "Specular IOR Level",
     "Roughness", /* Map specular exponent to roughness. */
     "Roughness",
-    "Sheen",
+    "Sheen Weight",
     "Metallic", /* Map reflection to metallic. */
     "Emission Color",
     "Alpha",
@@ -243,12 +243,12 @@ static void store_bsdf_properties(const bNode *bsdf_node,
   float aniso_rot = -1.0f;
   float transmission = -1.0f;
   if (bsdf_node) {
-    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Sheen", {&sheen, 1});
-    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Coat", {&coat, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Sheen Weight", {&sheen, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Coat Weight", {&coat, 1});
     copy_property_from_node(SOCK_FLOAT, bsdf_node, "Coat Roughness", {&coat_roughness, 1});
     copy_property_from_node(SOCK_FLOAT, bsdf_node, "Anisotropic", {&aniso, 1});
     copy_property_from_node(SOCK_FLOAT, bsdf_node, "Anisotropic Rotation", {&aniso_rot, 1});
-    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Transmission", {&transmission, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Transmission Weight", {&transmission, 1});
 
     /* Clearcoat used to include an implicit 0.25 factor, so stay compatible to old versions. */
     coat *= 4.0f;
