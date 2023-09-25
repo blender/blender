@@ -1146,12 +1146,12 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 277, 2)) {
-    if (!DNA_struct_member_exists(fd->filesdna, "Bone", "float", "scaleIn")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Bone", "float", "scale_in_x")) {
       LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
         do_version_bones_super_bbone(&arm->bonebase);
       }
     }
-    if (!DNA_struct_member_exists(fd->filesdna, "bPoseChannel", "float", "scaleIn")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bPoseChannel", "float", "scale_in_x")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         if (ob->pose) {
           LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {

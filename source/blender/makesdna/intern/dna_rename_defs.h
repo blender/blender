@@ -22,6 +22,10 @@
  * - Old names aren't sanity checked (since this file is the only place that knows about them)
  *   typos in the old names will break both backwards & forwards compatibility **TAKE CARE**.
  *
+ * - Old names may be referenced as strings in versioning code which uses:
+ *   #DNA_struct_exists & #DNA_struct_member_exists.
+ *   The names used for versioning checks must be updated too.
+ *
  * - Before editing rename defines run:
  *
  *   `sha1sum $BUILD_DIR/source/blender/makesdna/intern/dna.c`

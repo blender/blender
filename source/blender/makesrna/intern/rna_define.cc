@@ -688,14 +688,14 @@ BlenderRNA *RNA_create()
   DefRNA.error = false;
   DefRNA.preprocess = true;
 
-  DefRNA.sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, &error_message);
+  /* We need both alias and static (on-disk) DNA names. */
+  const bool do_alias = true;
+
+  DefRNA.sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, do_alias, &error_message);
   if (DefRNA.sdna == nullptr) {
     CLOG_ERROR(&LOG, "Failed to decode SDNA: %s.", error_message);
     DefRNA.error = true;
   }
-
-  /* We need both alias and static (on-disk) DNA names. */
-  DNA_sdna_alias_data_ensure(DefRNA.sdna);
 
 #ifndef RNA_RUNTIME
   DNA_alias_maps(

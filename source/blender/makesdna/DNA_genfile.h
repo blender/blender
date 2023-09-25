@@ -75,6 +75,7 @@ struct SDNA *DNA_sdna_from_data(const void *data,
                                 int data_len,
                                 bool do_endian_swap,
                                 bool data_alloc,
+                                bool do_alias,
                                 const char **r_error_message);
 void DNA_sdna_free(struct SDNA *sdna);
 
@@ -208,11 +209,11 @@ void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
 
 /* For versioning, avoid verbosity selecting between with/without alias versions of functions. */
 #ifdef DNA_GENFILE_VERSIONING_MACROS
-#  define DNA_struct_exists(sdna, str) DNA_struct_exists_without_alias(sdna, str)
+#  define DNA_struct_exists(sdna, str) DNA_struct_exists_with_alias(sdna, str)
 #  define DNA_struct_member_exists(sdna, stype, vartype, name) \
-    DNA_struct_member_exists_without_alias(sdna, stype, vartype, name)
-#  define DNA_struct_find(sdna, str) DNA_struct_find_without_alias(sdna, str)
-#  define DNA_struct_find_ex(sdna, str, n) DNA_struct_find_without_alias_ex(sdna, str)
+    DNA_struct_member_exists_with_alias(sdna, stype, vartype, name)
+#  define DNA_struct_find(sdna, str) DNA_struct_find_with_alias(sdna, str)
+#  define DNA_struct_find_ex(sdna, str, n) DNA_struct_find_with_alias_ex(sdna, str)
 #endif
 
 #ifdef __cplusplus

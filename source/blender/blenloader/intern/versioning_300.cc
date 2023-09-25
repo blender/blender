@@ -2637,7 +2637,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 13)) {
     /* Convert Surface Deform to sparse-capable bind structure. */
     if (!DNA_struct_member_exists(
-            fd->filesdna, "SurfaceDeformModifierData", "int", "num_mesh_verts")) {
+            fd->filesdna, "SurfaceDeformModifierData", "int", "mesh_verts_num")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_SurfaceDeform) {
