@@ -2172,7 +2172,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   bGPDstroke *gps = static_cast<bGPDstroke *>(MEM_callocN(sizeof(bGPDstroke), "bGPDstroke"));
   gps->thickness = brush->size;
   gps->fill_opacity_fac = 1.0f;
-  gps->hardeness = brush->gpencil_settings->hardeness;
+  gps->hardness = brush->gpencil_settings->hardness;
   copy_v2_v2(gps->aspect_ratio, brush->gpencil_settings->aspect_ratio);
   gps->inittime = 0.0f;
 

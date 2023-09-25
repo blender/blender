@@ -5036,23 +5036,23 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* init grease pencil brush gradients */
-    if (!DNA_struct_member_exists(fd->filesdna, "BrushGpencilSettings", "float", "hardeness")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "BrushGpencilSettings", "float", "hardness")) {
       LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
         if (brush->gpencil_settings != nullptr) {
           BrushGpencilSettings *gp = brush->gpencil_settings;
-          gp->hardeness = 1.0f;
+          gp->hardness = 1.0f;
           copy_v2_fl(gp->aspect_ratio, 1.0f);
         }
       }
     }
 
     /* init grease pencil stroke gradients */
-    if (!DNA_struct_member_exists(fd->filesdna, "bGPDstroke", "float", "hardeness")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "bGPDstroke", "float", "hardness")) {
       LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
             LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-              gps->hardeness = 1.0f;
+              gps->hardness = 1.0f;
               copy_v2_fl(gps->aspect_ratio, 1.0f);
             }
           }
