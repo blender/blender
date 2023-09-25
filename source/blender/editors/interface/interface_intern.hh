@@ -329,6 +329,7 @@ struct uiButSearch : public uiBut {
   uiButSearchListenFn listen_fn = nullptr;
 
   void *item_active = nullptr;
+  char *item_active_str;
 
   void *arg = nullptr;
   uiFreeArgFunc arg_free_fn = nullptr;

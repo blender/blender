@@ -398,8 +398,14 @@ void StringSearchBase::add_impl(const StringRef str, void *user_data, const int 
 {
   Vector<StringRef, 64> words;
   string_search::extract_normalized_words(str, allocator_, words);
-  items_.append(
-      {allocator_.construct_array_copy(words.as_span()), int(str.size()), user_data, weight});
+  const int recent_time = recent_cache_ ?
+                              recent_cache_->logical_time_by_str.lookup_default(str, -1) :
+                              -1;
+  items_.append({user_data,
+                 allocator_.construct_array_copy(words.as_span()),
+                 int(str.size()),
+                 weight,
+                 recent_time});
 }
 
 Vector<void *> StringSearchBase::query_impl(const StringRef query) const
@@ -429,17 +435,23 @@ Vector<void *> StringSearchBase::query_impl(const StringRef query) const
   Vector<int> sorted_result_indices;
   for (const int score : found_scores) {
     MutableSpan<int> indices = result_indices_by_score.lookup(score);
-    if (score == found_scores[0] && !query.is_empty()) {
-      /* Sort items with best score by length. Shorter items are more likely the ones you are
-       * looking for. This also ensures that exact matches will be at the top, even if the query is
-       * a sub-string of another item. */
-      std::sort(indices.begin(), indices.end(), [&](int a, int b) {
-        return items_[a].length < items_[b].length;
-      });
-      /* Prefer items with larger weights. Use `stable_sort` so that if the weights are the same,
-       * the order won't be changed. */
+    if (score == found_scores[0]) {
+      if (!query.is_empty()) {
+        /* Sort items with best score by length. Shorter items are more likely the ones you are
+         * looking for. This also ensures that exact matches will be at the top, even if the query
+         * is a sub-string of another item. */
+        std::sort(indices.begin(), indices.end(), [&](int a, int b) {
+          return items_[a].length < items_[b].length;
+        });
+        /* Prefer items with larger weights. Use `stable_sort` so that if the weights are the same,
+         * the order won't be changed. */
+        std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) {
+          return items_[a].weight > items_[b].weight;
+        });
+      }
+      /* Prefer items that have been selected recently. */
       std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) {
-        return items_[a].weight > items_[b].weight;
+        return items_[a].recent_time > items_[b].recent_time;
       });
     }
     sorted_result_indices.extend(indices);

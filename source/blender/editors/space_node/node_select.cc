@@ -16,7 +16,6 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
-#include "BLI_string_search.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -41,6 +40,7 @@
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+#include "UI_string_search.hh"
 #include "UI_view2d.hh"
 
 #include "DEG_depsgraph.hh"
@@ -1346,7 +1346,7 @@ static void node_find_update_fn(const bContext *C,
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  string_search::StringSearch<bNode> search;
+  ui::string_search::StringSearch<bNode> search;
 
   for (bNode *node : snode->edittree->all_nodes()) {
     char name[256];

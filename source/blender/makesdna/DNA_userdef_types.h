@@ -1084,9 +1084,9 @@ typedef enum eUserPref_SpaceData_Flag {
 typedef enum eUserPref_Flag {
   USER_AUTOSAVE = (1 << 0),
   USER_FLAG_NUMINPUT_ADVANCED = (1 << 1),
-  USER_FLAG_UNUSED_2 = (1 << 2), /* cleared */
-  USER_FLAG_UNUSED_3 = (1 << 3), /* cleared */
-  USER_FLAG_UNUSED_4 = (1 << 4), /* cleared */
+  USER_FLAG_RECENT_SEARCHES_DISABLE = (1 << 2), /* cleared */
+  USER_FLAG_UNUSED_3 = (1 << 3),                /* cleared */
+  USER_FLAG_UNUSED_4 = (1 << 4),                /* cleared */
   USER_TRACKBALL = (1 << 5),
   USER_FLAG_UNUSED_6 = (1 << 6), /* cleared */
   USER_FLAG_UNUSED_7 = (1 << 7), /* cleared */
