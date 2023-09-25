@@ -296,7 +296,7 @@ static InputSpecMap &preview_surface_input_map()
       {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
       {"Roughness", {usdtokens::roughness, pxr::SdfValueTypeNames->Float, true}},
       {"Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, true}},
-      {"Specular", {usdtokens::specular, pxr::SdfValueTypeNames->Float, true}},
+      {"Specular IOR Level", {usdtokens::specular, pxr::SdfValueTypeNames->Float, true}},
       {"Alpha", {usdtokens::opacity, pxr::SdfValueTypeNames->Float, true}},
       {"IOR", {usdtokens::ior, pxr::SdfValueTypeNames->Float, true}},
       /* Note that for the Normal input set_default_value is false. */

@@ -281,14 +281,14 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def specular_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
             return self.material.specular_intensity
-        return self.node_principled_bsdf.inputs["Specular"].default_value
+        return self.node_principled_bsdf.inputs["Specular IOR Level"].default_value
 
     @_set_check
     def specular_set(self, value):
         value = values_clamp(value, 0.0, 1.0)
         self.material.specular_intensity = value
         if self.use_nodes and self.node_principled_bsdf is not None:
-            self.node_principled_bsdf.inputs["Specular"].default_value = value
+            self.node_principled_bsdf.inputs["Specular IOR Level"].default_value = value
 
     specular = property(specular_get, specular_set)
 
@@ -313,7 +313,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
-            self.node_principled_bsdf.inputs["Specular"],
+            self.node_principled_bsdf.inputs["Specular IOR Level"],
             grid_row_diff=0,
             colorspace_name='Non-Color',
         )

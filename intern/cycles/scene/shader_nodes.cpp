@@ -2704,7 +2704,7 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_VECTOR(subsurface_radius, "Subsurface Radius", make_float3(0.1f, 0.1f, 0.1f));
   SOCKET_IN_FLOAT(subsurface_ior, "Subsurface IOR", 1.4f);
   SOCKET_IN_FLOAT(subsurface_anisotropy, "Subsurface Anisotropy", 0.0f);
-  SOCKET_IN_FLOAT(specular, "Specular", 0.0f);
+  SOCKET_IN_FLOAT(specular_ior_level, "Specular IOR Level", 0.0f);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
   SOCKET_IN_COLOR(specular_tint, "Specular Tint", one_float3());
   SOCKET_IN_FLOAT(anisotropic, "Anisotropic", 0.0f);
@@ -2802,7 +2802,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
   int normal_offset = compiler.stack_assign_if_linked(input("Normal"));
   int coat_normal_offset = compiler.stack_assign_if_linked(input("Coat Normal"));
   int tangent_offset = compiler.stack_assign_if_linked(input("Tangent"));
-  int specular_offset = compiler.stack_assign(input("Specular"));
+  int specular_ior_level_offset = compiler.stack_assign(input("Specular IOR Level"));
   int roughness_offset = compiler.stack_assign(input("Roughness"));
   int specular_tint_offset = compiler.stack_assign(input("Specular Tint"));
   int anisotropic_offset = compiler.stack_assign(input("Anisotropic"));
@@ -2836,7 +2836,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
       normal_offset,
       tangent_offset,
       compiler.encode_uchar4(
-          specular_offset, roughness_offset, specular_tint_offset, anisotropic_offset),
+          specular_ior_level_offset, roughness_offset, specular_tint_offset, anisotropic_offset),
       compiler.encode_uchar4(sheen_offset, sheen_tint_offset, sheen_roughness_offset));
 
   compiler.add_node(

@@ -1138,7 +1138,7 @@ bNodeTree *EEVEE_shader_default_surface_nodetree(Material *ma)
     e_data.surface.roughness_socket = static_cast<bNodeSocketValueFloat *>(
         nodeFindSocket(bsdf, SOCK_IN, "Roughness")->default_value);
     e_data.surface.specular_socket = static_cast<bNodeSocketValueFloat *>(
-        nodeFindSocket(bsdf, SOCK_IN, "Specular")->default_value);
+        nodeFindSocket(bsdf, SOCK_IN, "Specular IOR Level")->default_value);
     e_data.surface.ntree = ntree;
   }
   /* Update */

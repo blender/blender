@@ -692,10 +692,11 @@ static void version_principled_bsdf_emission(bNodeTree *ntree)
   }
 }
 
-/* Rename Principled BSDF emission to emission color. */
-static void version_principled_bsdf_emission_color(bNodeTree *ntree)
+/* Rename various Principled BSDF sockets. */
+static void version_principled_bsdf_rename_sockets(bNodeTree *ntree)
 {
   version_node_input_socket_name(ntree, SH_NODE_BSDF_PRINCIPLED, "Emission", "Emission Color");
+  version_node_input_socket_name(ntree, SH_NODE_BSDF_PRINCIPLED, "Specular", "Specular IOR Level");
 }
 
 /* Replace old Principled Hair BSDF as a variant in the new Principled Hair BSDF. */
@@ -1429,8 +1430,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_SHADER) {
         /* Convert specular tint on the Principled BSDF. */
         version_principled_bsdf_specular_tint(ntree);
-        /* Rename emission to emission color. */
-        version_principled_bsdf_emission_color(ntree);
+        /* Rename some sockets. */
+        version_principled_bsdf_rename_sockets(ntree);
       }
     }
     FOREACH_NODETREE_END;

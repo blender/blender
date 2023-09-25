@@ -307,7 +307,7 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
   if (mtl_mat.tex_map_of_type(MTLTexMapType::Emission).is_valid()) {
     set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf);
   }
-  set_property_of_socket(SOCK_FLOAT, "Specular", {specular}, bsdf);
+  set_property_of_socket(SOCK_FLOAT, "Specular IOR Level", {specular}, bsdf);
   set_property_of_socket(SOCK_FLOAT, "Roughness", {roughness}, bsdf);
   mat->roughness = roughness;
   set_property_of_socket(SOCK_FLOAT, "Metallic", {metallic}, bsdf);
