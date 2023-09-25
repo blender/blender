@@ -39,6 +39,8 @@ eGPUTextureFormat Result::get_texture_format() const
         case ResultType::Vector:
         case ResultType::Color:
           return GPU_RGBA16F;
+        case ResultType::Int2:
+          return GPU_RG16I;
       }
       break;
     case ResultPrecision::Full:
@@ -48,6 +50,8 @@ eGPUTextureFormat Result::get_texture_format() const
         case ResultType::Vector:
         case ResultType::Color:
           return GPU_RGBA32F;
+        case ResultType::Int2:
+          return GPU_RG32I;
       }
       break;
   }
@@ -92,6 +96,10 @@ void Result::allocate_invalid()
       break;
     case ResultType::Color:
       set_color_value(float4(0.0f));
+      break;
+    default:
+      /* Other types are internal and do not support single values. */
+      BLI_assert_unreachable();
       break;
   }
 }
@@ -161,6 +169,10 @@ void Result::steal_data(Result &source)
       break;
     case ResultType::Color:
       color_value_ = source.color_value_;
+      break;
+    default:
+      /* Other types are internal and do not support single values. */
+      BLI_assert_unreachable();
       break;
   }
 
