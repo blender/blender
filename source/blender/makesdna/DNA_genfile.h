@@ -190,6 +190,10 @@ int DNA_struct_find_with_alias(const struct SDNA *sdna, const char *str);
 /**
  * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
  */
+bool DNA_struct_exists_with_alias(const struct SDNA *sdna, const char *str);
+/**
+ * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
+ */
 bool DNA_struct_member_exists_with_alias(const struct SDNA *sdna,
                                          const char *stype,
                                          const char *vartype,

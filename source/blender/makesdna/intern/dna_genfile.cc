@@ -288,6 +288,11 @@ int DNA_struct_find_with_alias(const SDNA *sdna, const char *str)
   return DNA_struct_find_with_alias_ex(sdna, str, &index_last_dummy);
 }
 
+bool DNA_struct_exists_with_alias(const SDNA *sdna, const char *str)
+{
+  return DNA_struct_find_with_alias(sdna, str) != -1;
+}
+
 /* ************************* END DIV ********************** */
 
 /* ************************* READ DNA ********************** */
