@@ -92,7 +92,7 @@ class INFO_MT_area(Menu):
 
 
 class INFO_MT_context_menu(Menu):
-    bl_label = "Info Context Menu"
+    bl_label = "Info"
 
     def draw(self, _context):
         layout = self.layout

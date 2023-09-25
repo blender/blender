@@ -561,7 +561,7 @@ class NODE_MT_context_menu_select_menu(Menu):
 
 
 class NODE_MT_context_menu(Menu):
-    bl_label = "Node Context Menu"
+    bl_label = "Node"
 
     def draw(self, context):
         snode = context.space_data

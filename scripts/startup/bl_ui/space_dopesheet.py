@@ -690,7 +690,7 @@ class DOPESHEET_MT_delete(Menu):
 
 
 class DOPESHEET_MT_context_menu(Menu):
-    bl_label = "Dope Sheet Context Menu"
+    bl_label = "Dope Sheet"
 
     def draw(self, context):
         layout = self.layout
@@ -733,7 +733,7 @@ class DOPESHEET_MT_context_menu(Menu):
 
 
 class DOPESHEET_MT_channel_context_menu(Menu):
-    bl_label = "Dope Sheet Channel Context Menu"
+    bl_label = "Dope Sheet Channel"
 
     def draw(self, context):
         layout = self.layout

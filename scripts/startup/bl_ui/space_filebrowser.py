@@ -538,7 +538,7 @@ class FILEBROWSER_MT_select(FileBrowserMenu, Menu):
 
 
 class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
-    bl_label = "Files Context Menu"
+    bl_label = "Files"
 
     def draw(self, context):
         layout = self.layout
@@ -827,7 +827,7 @@ class ASSETBROWSER_UL_metadata_tags(UIList):
 
 
 class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
-    bl_label = "Assets Context Menu"
+    bl_label = "Assets"
 
     def draw(self, context):
         layout = self.layout
