@@ -4,6 +4,7 @@ Sculpt-Blender
 Downloads
 ---------
 * [Windows](https://github.com/joeedh/sculptblender-builds/raw/master/builds/sculptblender_latest_win64.zip?download=)
+* [Linux](https://github.com/joeedh/sculptblender-builds/raw/master/builds/sculptblender_latest_linux.zip?download=)
 
 Introduction
 ------------
