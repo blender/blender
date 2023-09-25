@@ -1658,9 +1658,9 @@ int DNA_elem_type_size(const eSDNA_Type elem_nr)
 /** \name Version Patch DNA
  * \{ */
 
-static bool DNA_sdna_patch_struct_nr(SDNA *sdna,
-                                     const int struct_name_old_nr,
-                                     const char *struct_name_new)
+static bool DNA_sdna_patch_struct(SDNA *sdna,
+                                  const int struct_name_old_nr,
+                                  const char *struct_name_new)
 {
   BLI_assert(DNA_struct_find(DNA_sdna_current_get(), struct_name_new) != -1);
   const SDNA_Struct *struct_info = sdna->structs[struct_name_old_nr];
@@ -1672,20 +1672,22 @@ static bool DNA_sdna_patch_struct_nr(SDNA *sdna,
   sdna->types[struct_info->type] = struct_name_new;
   return true;
 }
-bool DNA_sdna_patch_struct(SDNA *sdna, const char *struct_name_old, const char *struct_name_new)
+bool DNA_sdna_patch_struct_by_name(SDNA *sdna,
+                                   const char *struct_name_old,
+                                   const char *struct_name_new)
 {
   const int struct_name_old_nr = DNA_struct_find(sdna, struct_name_old);
   if (struct_name_old_nr != -1) {
-    return DNA_sdna_patch_struct_nr(sdna, struct_name_old_nr, struct_name_new);
+    return DNA_sdna_patch_struct(sdna, struct_name_old_nr, struct_name_new);
   }
   return false;
 }
 
 /* Make public if called often with same struct (avoid duplicate lookups). */
-static bool DNA_sdna_patch_struct_member_nr(SDNA *sdna,
-                                            const int struct_name_nr,
-                                            const char *elem_old,
-                                            const char *elem_new)
+static bool DNA_sdna_patch_struct_member(SDNA *sdna,
+                                         const int struct_name_nr,
+                                         const char *elem_old,
+                                         const char *elem_new)
 {
   /* These names aren't handled here (it's not used).
    * Ensure they are never used or we get out of sync arrays. */
@@ -1730,14 +1732,14 @@ static bool DNA_sdna_patch_struct_member_nr(SDNA *sdna,
   }
   return false;
 }
-bool DNA_sdna_patch_struct_member(SDNA *sdna,
-                                  const char *struct_name,
-                                  const char *elem_old,
-                                  const char *elem_new)
+bool DNA_sdna_patch_struct_member_by_name(SDNA *sdna,
+                                          const char *struct_name,
+                                          const char *elem_old,
+                                          const char *elem_new)
 {
   const int struct_name_nr = DNA_struct_find(sdna, struct_name);
   if (struct_name_nr != -1) {
-    return DNA_sdna_patch_struct_member_nr(sdna, struct_name_nr, elem_old, elem_new);
+    return DNA_sdna_patch_struct_member(sdna, struct_name_nr, elem_old, elem_new);
   }
   return false;
 }
