@@ -3282,13 +3282,14 @@ class WM_MT_splash(Menu):
         if found_recent:
             col2_title.label(text="Recent Files")
         else:
-
-            # Links if no recent files
+            # Links if no recent files.
             col2_title.label(text="Getting Started")
 
             col2.operator("wm.url_open_preset", text="Manual", icon='URL').type = 'MANUAL'
+            col2.operator("wm.url_open", text="Tutorials", icon='URL').url = "https://www.blender.org/tutorials/"
+            col2.operator("wm.url_open", text="Support", icon='URL').url = "https://www.blender.org/support/"
+            col2.operator("wm.url_open", text="User Communities", icon='URL').url = "https://www.blender.org/community/"
             col2.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
-            col2.operator("wm.url_open_preset", text="Credits", icon='URL').type = 'CREDITS'
 
         layout.separator()
 
@@ -3302,8 +3303,8 @@ class WM_MT_splash(Menu):
 
         col2 = split.column()
 
-        col2.operator("wm.url_open_preset", text="Release Notes", icon='URL').type = 'RELEASE_NOTES'
-        col2.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
+        col2.operator("wm.url_open_preset", text="Donate", icon='FUND').type = 'FUND'
+        col2.operator("wm.url_open_preset", text="What's New", icon='URL').type = 'RELEASE_NOTES'
 
         layout.separator()
         layout.separator()
