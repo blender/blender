@@ -528,6 +528,7 @@ SDNA *DNA_sdna_from_data(const void *data,
                          const int data_len,
                          bool do_endian_swap,
                          bool data_alloc,
+                         const bool do_alias,
                          const char **r_error_message)
 {
   SDNA *sdna = static_cast<SDNA *>(MEM_mallocN(sizeof(*sdna), "sdna"));
@@ -545,6 +546,9 @@ SDNA *DNA_sdna_from_data(const void *data,
   sdna->data_alloc = data_alloc;
 
   if (init_structDNA(sdna, do_endian_swap, &error_message)) {
+    if (do_alias) {
+      DNA_sdna_alias_data_ensure_structs_map(sdna);
+    }
     return sdna;
   }
 
@@ -568,7 +572,7 @@ static SDNA *g_sdna = nullptr;
 
 void DNA_sdna_current_init()
 {
-  g_sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, nullptr);
+  g_sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, true, nullptr);
 }
 
 const SDNA *DNA_sdna_current_get()
