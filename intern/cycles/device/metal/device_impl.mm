@@ -347,7 +347,9 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
     case METAL_GPU_APPLE:
       global_defines += "#define __KERNEL_METAL_APPLE__\n";
 #  ifdef WITH_NANOVDB
-      if (DebugFlags().metal.use_nanovdb) {
+      /* Compiling in NanoVDB results in a marginal drop in render perf, so disable it for
+       * specialized PSOs when no textures are using it. */
+      if ((pso_type == PSO_GENERIC || using_nanovdb) && DebugFlags().metal.use_nanovdb) {
         global_defines += "#define WITH_NANOVDB\n";
       }
 #  endif
@@ -1088,6 +1090,14 @@ void MetalDevice::tex_alloc_as_buffer(device_texture &mem)
   texture_info[slot].data = *(uint64_t *)((uint64_t)buffer_bindings_1d.contents + offset);
   texture_slot_map[slot] = nil;
   need_texture_info = true;
+
+  if (mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT ||
+      mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3 ||
+      mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FPN ||
+      mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FP16)
+  {
+    using_nanovdb = true;
+  }
 }
 
 void MetalDevice::tex_alloc(device_texture &mem)
