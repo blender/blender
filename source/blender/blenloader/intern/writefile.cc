@@ -1745,8 +1745,7 @@ void blo_write_id_struct(BlendWriter *writer, int struct_id, const void *id_addr
 
 int BLO_get_struct_id_by_name(BlendWriter *writer, const char *struct_name)
 {
-  /* TODO(@ideasman42): use the "alias" version. */
-  int struct_id = DNA_struct_find_without_alias(writer->wd->sdna, struct_name);
+  int struct_id = DNA_struct_find_with_alias(writer->wd->sdna, struct_name);
   return struct_id;
 }
 
