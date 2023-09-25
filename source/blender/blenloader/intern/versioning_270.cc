@@ -1608,7 +1608,6 @@ void do_versions_after_linking_270(Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 279, 2)) {
     /* B-Bones (bbone_in/out -> bbone_easein/out) + Stepped FMod Frame Start/End fix */
-    /* if (!DNA_struct_member_exists(fd->filesdna, "Bone", "float", "bbone_easein")) */
     BKE_fcurves_main_cb(bmain, do_version_bbone_easing_fcurve_fix, nullptr);
   }
 }
