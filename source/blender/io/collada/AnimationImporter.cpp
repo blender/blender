@@ -140,7 +140,8 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
         fcurves.push_back(fcu);
         unused_curves.push_back(fcu);
       }
-    } break;
+      break;
+    }
     default:
       fprintf(stderr,
               "Output dimension of %d is not yet supported (animation id = %s)\n",
@@ -601,7 +602,8 @@ void AnimationImporter::Assign_transform_animations(
           else {
             unused_fcurve(curves);
           }
-        } break;
+          break;
+        }
         case COLLADAFW::AnimationList::AXISANGLE:
         /* TODO: convert axis-angle to quat? or XYZ? */
         default:
@@ -1699,7 +1701,7 @@ Object *AnimationImporter::translate_animation_OLD(
       calc_joint_parent_mat_rest(par, nullptr, root, node);
       mul_m4_m4m4(temp, par, matfra);
 
-      /* evaluate_joint_world_transform_at_frame(temp, nullptr, node, fra); */
+      // evaluate_joint_world_transform_at_frame(temp, nullptr, node, fra);
 
       /* calc special matrix */
       mul_m4_series(mat, irest, temp, irest_dae, rest);

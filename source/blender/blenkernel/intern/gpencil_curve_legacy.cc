@@ -304,7 +304,7 @@ static void gpencil_convert_spline(Main *bmain,
   bGPDstroke *gps = static_cast<bGPDstroke *>(MEM_callocN(sizeof(bGPDstroke), "bGPDstroke"));
   gps->thickness = 1.0f;
   gps->fill_opacity_fac = 1.0f;
-  gps->hardeness = 1.0f;
+  gps->hardness = 1.0f;
   gps->uv_scale = 1.0f;
 
   ARRAY_SET_ITEMS(gps->aspect_ratio, 1.0f, 1.0f);

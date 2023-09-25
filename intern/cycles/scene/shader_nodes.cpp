@@ -2690,9 +2690,8 @@ NODE_DEFINE(PrincipledBsdfNode)
 
   static NodeEnum subsurface_method_enum;
   subsurface_method_enum.insert("burley", CLOSURE_BSSRDF_BURLEY_ID);
-  subsurface_method_enum.insert("random_walk_fixed_radius",
-                                CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
   subsurface_method_enum.insert("random_walk", CLOSURE_BSSRDF_RANDOM_WALK_ID);
+  subsurface_method_enum.insert("random_walk_skin", CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID);
   SOCKET_ENUM(subsurface_method,
               "Subsurface Method",
               subsurface_method_enum,
@@ -2700,31 +2699,38 @@ NODE_DEFINE(PrincipledBsdfNode)
 
   SOCKET_IN_COLOR(base_color, "Base Color", make_float3(0.8f, 0.8f, 0.8f))
   SOCKET_IN_FLOAT(metallic, "Metallic", 0.0f);
-  SOCKET_IN_FLOAT(subsurface, "Subsurface", 0.0f);
+  SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
+  SOCKET_IN_FLOAT(ior, "IOR", 0.0f);
+  SOCKET_IN_FLOAT(alpha, "Alpha", 1.0f);
+  SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
+
+  SOCKET_IN_FLOAT(subsurface_weight, "Subsurface Weight", 0.0f);
   SOCKET_IN_FLOAT(subsurface_scale, "Subsurface Scale", 0.1f);
   SOCKET_IN_VECTOR(subsurface_radius, "Subsurface Radius", make_float3(0.1f, 0.1f, 0.1f));
   SOCKET_IN_FLOAT(subsurface_ior, "Subsurface IOR", 1.4f);
   SOCKET_IN_FLOAT(subsurface_anisotropy, "Subsurface Anisotropy", 0.0f);
-  SOCKET_IN_FLOAT(specular, "Specular", 0.0f);
-  SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
-  SOCKET_IN_FLOAT(specular_tint, "Specular Tint", 0.0f);
+
+  SOCKET_IN_FLOAT(specular_ior_level, "Specular IOR Level", 0.0f);
+  SOCKET_IN_COLOR(specular_tint, "Specular Tint", one_float3());
   SOCKET_IN_FLOAT(anisotropic, "Anisotropic", 0.0f);
-  SOCKET_IN_FLOAT(sheen, "Sheen", 0.0f);
+  SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
+  SOCKET_IN_NORMAL(tangent, "Tangent", zero_float3(), SocketType::LINK_TANGENT);
+
+  SOCKET_IN_FLOAT(transmission_weight, "Transmission Weight", 0.0f);
+
+  SOCKET_IN_FLOAT(sheen_weight, "Sheen Weight", 0.0f);
   SOCKET_IN_FLOAT(sheen_roughness, "Sheen Roughness", 0.5f);
   SOCKET_IN_COLOR(sheen_tint, "Sheen Tint", one_float3());
-  SOCKET_IN_FLOAT(coat, "Coat", 0.0f);
+
+  SOCKET_IN_FLOAT(coat_weight, "Coat Weight", 0.0f);
   SOCKET_IN_FLOAT(coat_roughness, "Coat Roughness", 0.03f);
   SOCKET_IN_FLOAT(coat_ior, "Coat IOR", 1.5f);
   SOCKET_IN_COLOR(coat_tint, "Coat Tint", one_float3());
-  SOCKET_IN_FLOAT(ior, "IOR", 0.0f);
-  SOCKET_IN_FLOAT(transmission, "Transmission", 0.0f);
-  SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
-  SOCKET_IN_COLOR(emission, "Emission", one_float3());
-  SOCKET_IN_FLOAT(emission_strength, "Emission Strength", 0.0f);
-  SOCKET_IN_FLOAT(alpha, "Alpha", 1.0f);
-  SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
   SOCKET_IN_NORMAL(coat_normal, "Coat Normal", zero_float3(), SocketType::LINK_NORMAL);
-  SOCKET_IN_NORMAL(tangent, "Tangent", zero_float3(), SocketType::LINK_TANGENT);
+
+  SOCKET_IN_COLOR(emission_color, "Emission Color", one_float3());
+  SOCKET_IN_FLOAT(emission_strength, "Emission Strength", 0.0f);
+
   SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
   SOCKET_OUT_CLOSURE(BSDF, "BSDF");
@@ -2742,7 +2748,7 @@ void PrincipledBsdfNode::simplify_settings(Scene * /* scene */)
 {
   if (!has_surface_emission()) {
     /* Emission will be zero, so optimize away any connected emission input. */
-    ShaderInput *emission_in = input("Emission");
+    ShaderInput *emission_in = input("Emission Color");
     ShaderInput *strength_in = input("Emission Strength");
     if (emission_in->link) {
       emission_in->disconnect();
@@ -2761,16 +2767,18 @@ bool PrincipledBsdfNode::has_surface_transparent()
 
 bool PrincipledBsdfNode::has_surface_emission()
 {
-  ShaderInput *emission_in = input("Emission");
+  ShaderInput *emission_color_in = input("Emission Color");
   ShaderInput *emission_strength_in = input("Emission Strength");
-  return (emission_in->link != NULL || reduce_max(emission) > CLOSURE_WEIGHT_CUTOFF) &&
+  return (emission_color_in->link != NULL || reduce_max(emission_color) > CLOSURE_WEIGHT_CUTOFF) &&
          (emission_strength_in->link != NULL || emission_strength > CLOSURE_WEIGHT_CUTOFF);
 }
 
 bool PrincipledBsdfNode::has_surface_bssrdf()
 {
-  ShaderInput *subsurface_in = input("Subsurface");
-  return (subsurface_in->link != NULL || subsurface > CLOSURE_WEIGHT_CUTOFF);
+  ShaderInput *subsurface_weight_in = input("Subsurface Weight");
+  ShaderInput *subsurface_scale_in = input("Subsurface Scale");
+  return (subsurface_weight_in->link != NULL || subsurface_weight > CLOSURE_WEIGHT_CUTOFF) &&
+         (subsurface_scale_in->link != NULL || subsurface_scale != 0.0f);
 }
 
 void PrincipledBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
@@ -2791,7 +2799,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
   ShaderInput *base_color_in = input("Base Color");
 
   ShaderInput *p_metallic = input("Metallic");
-  ShaderInput *p_subsurface = input("Subsurface");
+  ShaderInput *p_subsurface_weight = input("Subsurface Weight");
 
   ShaderInput *emission_strength_in = input("Emission Strength");
   ShaderInput *alpha_in = input("Alpha");
@@ -2803,19 +2811,19 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
   int normal_offset = compiler.stack_assign_if_linked(input("Normal"));
   int coat_normal_offset = compiler.stack_assign_if_linked(input("Coat Normal"));
   int tangent_offset = compiler.stack_assign_if_linked(input("Tangent"));
-  int specular_offset = compiler.stack_assign(input("Specular"));
+  int specular_ior_level_offset = compiler.stack_assign(input("Specular IOR Level"));
   int roughness_offset = compiler.stack_assign(input("Roughness"));
   int specular_tint_offset = compiler.stack_assign(input("Specular Tint"));
   int anisotropic_offset = compiler.stack_assign(input("Anisotropic"));
-  int sheen_offset = compiler.stack_assign(input("Sheen"));
+  int sheen_weight_offset = compiler.stack_assign(input("Sheen Weight"));
   int sheen_roughness_offset = compiler.stack_assign(input("Sheen Roughness"));
   int sheen_tint_offset = compiler.stack_assign(input("Sheen Tint"));
-  int coat_offset = compiler.stack_assign(input("Coat"));
+  int coat_weight_offset = compiler.stack_assign(input("Coat Weight"));
   int coat_roughness_offset = compiler.stack_assign(input("Coat Roughness"));
   int coat_ior_offset = compiler.stack_assign(input("Coat IOR"));
   int coat_tint_offset = compiler.stack_assign(input("Coat Tint"));
   int ior_offset = compiler.stack_assign(input("IOR"));
-  int transmission_offset = compiler.stack_assign(input("Transmission"));
+  int transmission_weight_offset = compiler.stack_assign(input("Transmission Weight"));
   int anisotropic_rotation_offset = compiler.stack_assign(input("Anisotropic Rotation"));
   int subsurface_radius_offset = compiler.stack_assign(input("Subsurface Radius"));
   int subsurface_scale_offset = compiler.stack_assign(input("Subsurface Scale"));
@@ -2823,31 +2831,31 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
   int subsurface_anisotropy_offset = compiler.stack_assign(input("Subsurface Anisotropy"));
   int alpha_offset = compiler.stack_assign_if_linked(alpha_in);
   int emission_strength_offset = compiler.stack_assign_if_linked(emission_strength_in);
-  int emission_offset = compiler.stack_assign(input("Emission"));
+  int emission_color_offset = compiler.stack_assign(input("Emission Color"));
 
-  compiler.add_node(NODE_CLOSURE_BSDF,
-                    compiler.encode_uchar4(closure,
-                                           compiler.stack_assign(p_metallic),
-                                           compiler.stack_assign(p_subsurface),
-                                           compiler.closure_mix_weight_offset()),
-                    __float_as_int((p_metallic) ? get_float(p_metallic->socket_type) : 0.0f),
-                    __float_as_int((p_subsurface) ? get_float(p_subsurface->socket_type) : 0.0f));
+  compiler.add_node(
+      NODE_CLOSURE_BSDF,
+      compiler.encode_uchar4(closure,
+                             compiler.stack_assign(p_metallic),
+                             compiler.stack_assign(p_subsurface_weight),
+                             compiler.closure_mix_weight_offset()),
+      __float_as_int((p_metallic) ? get_float(p_metallic->socket_type) : 0.0f),
+      __float_as_int((p_subsurface_weight) ? get_float(p_subsurface_weight->socket_type) : 0.0f));
 
   compiler.add_node(
       normal_offset,
       tangent_offset,
       compiler.encode_uchar4(
-          specular_offset, roughness_offset, specular_tint_offset, anisotropic_offset),
-      compiler.encode_uchar4(
-          sheen_offset, sheen_tint_offset, sheen_roughness_offset, SVM_STACK_INVALID));
+          specular_ior_level_offset, roughness_offset, specular_tint_offset, anisotropic_offset),
+      compiler.encode_uchar4(sheen_weight_offset, sheen_tint_offset, sheen_roughness_offset));
 
   compiler.add_node(
       compiler.encode_uchar4(
-          ior_offset, transmission_offset, anisotropic_rotation_offset, coat_normal_offset),
+          ior_offset, transmission_weight_offset, anisotropic_rotation_offset, coat_normal_offset),
       distribution,
       subsurface_method,
       compiler.encode_uchar4(
-          coat_offset, coat_roughness_offset, coat_ior_offset, coat_tint_offset));
+          coat_weight_offset, coat_roughness_offset, coat_ior_offset, coat_tint_offset));
 
   float3 bc_default = get_float3(base_color_in->socket_type);
 
@@ -2864,7 +2872,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
 
   compiler.add_node(
       compiler.encode_uchar4(
-          alpha_offset, emission_strength_offset, emission_offset, SVM_STACK_INVALID),
+          alpha_offset, emission_strength_offset, emission_color_offset, SVM_STACK_INVALID),
       __float_as_int(get_float(alpha_in->socket_type)),
       __float_as_int(get_float(emission_strength_in->socket_type)),
       SVM_STACK_INVALID);
@@ -2953,8 +2961,8 @@ NODE_DEFINE(SubsurfaceScatteringNode)
 
   static NodeEnum method_enum;
   method_enum.insert("burley", CLOSURE_BSSRDF_BURLEY_ID);
-  method_enum.insert("random_walk_fixed_radius", CLOSURE_BSSRDF_RANDOM_WALK_FIXED_RADIUS_ID);
   method_enum.insert("random_walk", CLOSURE_BSSRDF_RANDOM_WALK_ID);
+  method_enum.insert("random_walk_skin", CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID);
   SOCKET_ENUM(method, "Method", method_enum, CLOSURE_BSSRDF_RANDOM_WALK_ID);
 
   SOCKET_IN_FLOAT(scale, "Scale", 0.01f);

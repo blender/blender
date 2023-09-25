@@ -839,7 +839,8 @@ static void ui_template_list_layout_draw(const bContext *C,
                   0,
                   "");
       }
-    } break;
+      break;
+    }
     case UILST_LAYOUT_COMPACT:
       row = uiLayoutRow(layout, true);
 

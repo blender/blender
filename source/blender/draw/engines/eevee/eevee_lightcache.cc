@@ -787,7 +787,7 @@ wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
         MEM_callocN(sizeof(EEVEE_LightBake), "EEVEE_LightBake"));
     /* Cannot reuse depsgraph for now because we cannot get the update from the
      * main database directly. TODO: reuse depsgraph and only update positions. */
-    /* lbake->depsgraph = old_lbake->depsgraph; */
+    // lbake->depsgraph = old_lbake->depsgraph;
     lbake->depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
 
     lbake->mutex = BLI_mutex_alloc();

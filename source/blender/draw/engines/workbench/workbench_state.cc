@@ -205,7 +205,7 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
   sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d) &&
                 !DRW_state_is_image_render();
   draw_shadow = scene_state.draw_shadows && (ob->dtx & OB_DRAW_NO_SHADOW_CAST) == 0 &&
-                !is_active && !sculpt_pbvh && !DRW_object_use_hide_faces(ob);
+                !sculpt_pbvh && !(is_active && DRW_object_use_hide_faces(ob));
 
   color_type = (eV3DShadingColorType)scene_state.shading.color_type;
 

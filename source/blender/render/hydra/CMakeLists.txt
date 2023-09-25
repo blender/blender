@@ -70,7 +70,7 @@ set(LIB
   ${BOOST_LIBRARIES}
   ${USD_LIBRARIES}
   ${TBB_LIBRARIES}
-  bf_usd
+  bf_io_usd
 )
 
 set(SRC

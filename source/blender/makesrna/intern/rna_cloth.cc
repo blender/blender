@@ -48,7 +48,7 @@ static void rna_cloth_dependency_update(Main *bmain, Scene *scene, PointerRNA *p
 static void rna_cloth_pinning_changed(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  /*  ClothSimSettings *settings = (ClothSimSettings *)ptr->data; */
+  // ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
   ClothModifierData *clmd = (ClothModifierData *)BKE_modifiers_findby_type(ob,
                                                                            eModifierType_Cloth);
 

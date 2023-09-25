@@ -51,22 +51,27 @@ void BCAnimationCurve::init_pointer_rna(Object *ob)
     case BC_ANIMATION_TYPE_BONE: {
       bArmature *arm = (bArmature *)ob->data;
       id_ptr = RNA_id_pointer_create(&arm->id);
-    } break;
+      break;
+    }
     case BC_ANIMATION_TYPE_OBJECT: {
       id_ptr = RNA_id_pointer_create(&ob->id);
-    } break;
+      break;
+    }
     case BC_ANIMATION_TYPE_MATERIAL: {
       Material *ma = BKE_object_material_get(ob, curve_key.get_subindex() + 1);
       id_ptr = RNA_id_pointer_create(&ma->id);
-    } break;
+      break;
+    }
     case BC_ANIMATION_TYPE_CAMERA: {
       Camera *camera = (Camera *)ob->data;
       id_ptr = RNA_id_pointer_create(&camera->id);
-    } break;
+      break;
+    }
     case BC_ANIMATION_TYPE_LIGHT: {
       Light *lamp = (Light *)ob->data;
       id_ptr = RNA_id_pointer_create(&lamp->id);
-    } break;
+      break;
+    }
     default:
       fprintf(
           stderr, "BC_animation_curve_type %d not supported", this->curve_key.get_array_index());
@@ -153,8 +158,8 @@ std::string BCAnimationCurve::get_animation_name(Object *ob) const
   switch (curve_key.get_animation_type()) {
     case BC_ANIMATION_TYPE_OBJECT: {
       name = id_name(ob);
-    } break;
-
+      break;
+    }
     case BC_ANIMATION_TYPE_BONE: {
       if (fcurve == nullptr || fcurve->rna_path == nullptr) {
         name = "";
@@ -168,23 +173,23 @@ std::string BCAnimationCurve::get_animation_name(Object *ob) const
           name = "";
         }
       }
-    } break;
-
+      break;
+    }
     case BC_ANIMATION_TYPE_CAMERA: {
       Camera *camera = (Camera *)ob->data;
       name = id_name(ob) + "-" + id_name(camera) + "-camera";
-    } break;
-
+      break;
+    }
     case BC_ANIMATION_TYPE_LIGHT: {
       Light *lamp = (Light *)ob->data;
       name = id_name(ob) + "-" + id_name(lamp) + "-light";
-    } break;
-
+      break;
+    }
     case BC_ANIMATION_TYPE_MATERIAL: {
       Material *ma = BKE_object_material_get(ob, this->curve_key.get_subindex() + 1);
       name = id_name(ob) + "-" + id_name(ma) + "-material";
-    } break;
-
+      break;
+    }
     default: {
       name = "";
     }

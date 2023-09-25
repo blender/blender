@@ -121,7 +121,7 @@ struct ClothVertex {
 struct ClothSpring {
   int ij;              /* `Pij` from the paper, one end of the spring. */
   int kl;              /* `Pkl` from the paper, one end of the spring. */
-  int mn;              /* For hair springs: third vertex index; For bending springs: edge index; */
+  int mn;              /* For hair springs: third vertex index; For bending springs: edge index. */
   int *pa;             /* Array of vert indices for poly a (for bending springs). */
   int *pb;             /* Array of vert indices for poly b (for bending springs). */
   int la;              /* Length of `*pa`. */

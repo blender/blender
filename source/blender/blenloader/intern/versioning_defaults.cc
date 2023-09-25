@@ -609,7 +609,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         if (node->type == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
           *version_cycles_node_socket_float_value(roughness_socket) = 0.5f;
-          bNodeSocket *emission = nodeFindSocket(node, SOCK_IN, "Emission");
+          bNodeSocket *emission = nodeFindSocket(node, SOCK_IN, "Emission Color");
           copy_v4_fl(version_cycles_node_socket_rgba_value(emission), 1.0f);
           bNodeSocket *emission_strength = nodeFindSocket(node, SOCK_IN, "Emission Strength");
           *version_cycles_node_socket_float_value(emission_strength) = 0.0f;

@@ -92,7 +92,7 @@ struct GlobalsUboStorage {
   float4 color_bone_pose_constraint;
   float4 color_bone_pose_ik;
   float4 color_bone_pose_spline_ik;
-  float4 color_bone_pose_target;
+  float4 color_bone_pose_no_target;
   float4 color_bone_solid;
   float4 color_bone_locked;
   float4 color_bone_active;
@@ -207,7 +207,7 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define colorBonePoseConstraint globalsBlock.color_bone_pose_constraint
 #  define colorBonePoseIK globalsBlock.color_bone_pose_ik
 #  define colorBonePoseSplineIK globalsBlock.color_bone_pose_spline_ik
-#  define colorBonePoseTarget globalsBlock.color_bone_pose_target
+#  define colorBonePoseTarget globalsBlock.color_bone_pose_no_target
 #  define colorBoneSolid globalsBlock.color_bone_solid
 #  define colorBoneLocked globalsBlock.color_bone_locked
 #  define colorBoneActive globalsBlock.color_bone_active

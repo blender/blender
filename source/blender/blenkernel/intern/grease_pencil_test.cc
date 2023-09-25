@@ -64,8 +64,8 @@ TEST(greasepencil, remove_drawings)
   GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(1));
   drawing->wrap().strokes_for_write().resize(0, 10);
 
-  Layer &layer1 = grease_pencil.root_group().add_layer("Layer1");
-  Layer &layer2 = grease_pencil.root_group().add_layer("Layer2");
+  Layer &layer1 = grease_pencil.add_layer(grease_pencil.root_group(), "Layer1");
+  Layer &layer2 = grease_pencil.add_layer(grease_pencil.root_group(), "Layer2");
 
   layer1.add_frame(0, 0);
   layer1.add_frame(10, 1);
@@ -95,34 +95,47 @@ TEST(greasepencil, remove_drawings)
 
 TEST(greasepencil, layer_tree_empty)
 {
-  LayerGroup root;
+  GreasePencil grease_pencil;
+  grease_pencil.root_group_ptr = MEM_new<greasepencil::LayerGroup>(__func__);
+  EXPECT_EQ(grease_pencil.root_group().num_nodes_total(), 0);
+  MEM_delete(&grease_pencil.root_group());
 }
 
 TEST(greasepencil, layer_tree_build_simple)
 {
-  LayerGroup root;
+  GreasePencil grease_pencil;
+  grease_pencil.root_group_ptr = MEM_new<greasepencil::LayerGroup>(__func__);
 
-  LayerGroup &group = root.add_group("Group1");
-  group.add_layer("Layer1");
-  group.add_layer("Layer2");
+  LayerGroup &group = grease_pencil.add_layer_group(grease_pencil.root_group(), "Group1");
+  grease_pencil.add_layer(group, "Layer1");
+  grease_pencil.add_layer(group, "Layer2");
+  EXPECT_EQ(grease_pencil.root_group().num_nodes_total(), 3);
+  MEM_delete(&grease_pencil.root_group());
 }
 
 struct GreasePencilLayerTreeExample {
   StringRefNull names[7] = {"Group1", "Layer1", "Layer2", "Group2", "Layer3", "Layer4", "Layer5"};
   const bool is_layer[7] = {false, true, true, false, true, true, true};
-  LayerGroup root;
+  GreasePencil grease_pencil;
 
   GreasePencilLayerTreeExample()
   {
-    LayerGroup &group = root.add_group(names[0]);
-    group.add_layer(names[1]);
-    group.add_layer(names[2]);
+    grease_pencil.root_group_ptr = MEM_new<greasepencil::LayerGroup>(__func__);
 
-    LayerGroup &group2 = group.add_group(names[3]);
-    group2.add_layer(names[4]);
-    group2.add_layer(names[5]);
+    LayerGroup &group = grease_pencil.add_layer_group(grease_pencil.root_group(), names[0]);
+    grease_pencil.add_layer(group, names[1]);
+    grease_pencil.add_layer(group, names[2]);
 
-    root.add_layer(names[6]);
+    LayerGroup &group2 = grease_pencil.add_layer_group(group, names[3]);
+    grease_pencil.add_layer(group2, names[4]);
+    grease_pencil.add_layer(group2, names[5]);
+
+    grease_pencil.add_layer(grease_pencil.root_group(), names[6]);
+  }
+
+  ~GreasePencilLayerTreeExample()
+  {
+    MEM_delete(&grease_pencil.root_group());
   }
 };
 
@@ -130,7 +143,7 @@ TEST(greasepencil, layer_tree_pre_order_iteration)
 {
   GreasePencilLayerTreeExample ex;
 
-  Span<const TreeNode *> children = ex.root.nodes();
+  Span<const TreeNode *> children = ex.grease_pencil.nodes();
   for (const int i : children.index_range()) {
     const TreeNode &child = *children[i];
     EXPECT_STREQ(child.name().data(), ex.names[i].data());
@@ -141,7 +154,7 @@ TEST(greasepencil, layer_tree_pre_order_iteration2)
 {
   GreasePencilLayerTreeExample ex;
 
-  Span<const Layer *> layers = ex.root.layers();
+  Span<const Layer *> layers = ex.grease_pencil.layers();
   char name[64];
   for (const int i : layers.index_range()) {
     const Layer &layer = *layers[i];
@@ -153,13 +166,13 @@ TEST(greasepencil, layer_tree_pre_order_iteration2)
 TEST(greasepencil, layer_tree_total_size)
 {
   GreasePencilLayerTreeExample ex;
-  EXPECT_EQ(ex.root.num_nodes_total(), 7);
+  EXPECT_EQ(ex.grease_pencil.root_group().num_nodes_total(), 7);
 }
 
 TEST(greasepencil, layer_tree_node_types)
 {
   GreasePencilLayerTreeExample ex;
-  Span<const TreeNode *> children = ex.root.nodes();
+  Span<const TreeNode *> children = ex.grease_pencil.nodes();
   for (const int i : children.index_range()) {
     const TreeNode &child = *children[i];
     EXPECT_EQ(child.is_layer(), ex.is_layer[i]);

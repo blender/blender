@@ -1831,7 +1831,7 @@ static int sb_deflect_face(Object *ob,
   return deflected;
 }
 
-/* hiding this for now .. but the jacobian may pop up on other tasks .. so i'd like to keep it */
+/* Hiding this for now, but the jacobian may pop up on other tasks - so I'd like to keep it. */
 #if 0
 static void dfdx_spring(int ia, int ic, int op, float dir[3], float L, float len, float factor)
 {
@@ -2752,7 +2752,7 @@ static void mesh_to_softbody(Object *ob)
         add_mesh_quad_diag_springs(ob);
       }
 
-      build_bps_springlist(ob); /* scan for springs attached to bodypoints ONCE */
+      build_bps_springlist(ob); /* Scan for springs attached to body-points *once*. */
       /* insert *other second order* springs if desired */
       if (sb->secondspring > 0.0000001f) {
         /* Exploits the first run of `build_bps_springlist(ob)`. */

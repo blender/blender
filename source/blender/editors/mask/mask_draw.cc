@@ -665,10 +665,10 @@ void ED_mask_draw_region(
   const float width = width_i, height = float(height_i) * (aspy / aspx);
 
   int x, y;
-  /* int w, h; */
+  // int w, h;
   float zoomx, zoomy;
 
-  /* frame image */
+  /* Frame image. */
   float maxdim;
   float xofs, yofs;
 

@@ -304,8 +304,9 @@ ccl_device void math_matrix_jacobi_eigendecomposition(ccl_private float *A,
         if (abs_element > singular_epsilon * fabsf(singular_diff)) {
           float cot_2phi = 0.5f * singular_diff / element;
           ratio = 1.0f / (fabsf(cot_2phi) + sqrtf(1.0f + cot_2phi * cot_2phi));
-          if (cot_2phi < 0.0f)
+          if (cot_2phi < 0.0f) {
             ratio = -ratio; /* Copy sign. */
+          }
         }
         else {
           ratio = element / singular_diff;

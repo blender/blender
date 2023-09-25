@@ -1188,7 +1188,7 @@ COLLADASW::ColorOrTexture bc_get_emission(Material *ma)
     return bc_get_cot(default_color);
   }
 
-  COLLADASW::ColorOrTexture cot = bc_get_cot_from_shader(shader, "Emission", default_color);
+  COLLADASW::ColorOrTexture cot = bc_get_cot_from_shader(shader, "Emission Color", default_color);
 
   /* If using texture, emission strength is not supported. */
   COLLADASW::Color col = cot.getColor();

@@ -2817,7 +2817,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   prop = RNA_def_property(srna, "shift_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "shift", 0);
   RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_shift_get", nullptr);
-  /*  RNA_def_property_enum_items(prop, keymap_modifiers_items); */
+  // RNA_def_property_enum_items(prop, keymap_modifiers_items);
   RNA_def_property_ui_text(prop, "Shift", "Shift key pressed");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_WINDOWMANAGER);
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
@@ -2825,21 +2825,21 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   prop = RNA_def_property(srna, "ctrl_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "ctrl", 0);
   RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_ctrl_get", nullptr);
-  /*  RNA_def_property_enum_items(prop, keymap_modifiers_items); */
+  // RNA_def_property_enum_items(prop, keymap_modifiers_items);
   RNA_def_property_ui_text(prop, "Ctrl", "Control key pressed");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
   prop = RNA_def_property(srna, "alt_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "alt", 0);
   RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_alt_get", nullptr);
-  /*  RNA_def_property_enum_items(prop, keymap_modifiers_items); */
+  // RNA_def_property_enum_items(prop, keymap_modifiers_items);
   RNA_def_property_ui_text(prop, "Alt", "Alt key pressed");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
   prop = RNA_def_property(srna, "oskey_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "oskey", 0);
   RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_oskey_get", nullptr);
-  /*  RNA_def_property_enum_items(prop, keymap_modifiers_items); */
+  // RNA_def_property_enum_items(prop, keymap_modifiers_items);
   RNA_def_property_ui_text(prop, "OS Key", "Operating system key pressed");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
   /* End `_ui` modifiers. */

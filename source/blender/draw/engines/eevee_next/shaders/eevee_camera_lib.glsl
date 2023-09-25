@@ -116,7 +116,7 @@ vec3 camera_view_from_uv(CameraData cam, vec2 uv)
       vV = camera_equirectangular_to_direction(cam, uv);
       break;
     case CAMERA_PANO_EQUIDISTANT:
-      /* ATTR_FALLTHROUGH; */
+      // ATTR_FALLTHROUGH;
     case CAMERA_PANO_EQUISOLID:
       vV = camera_fisheye_to_direction(cam, uv);
       break;
@@ -138,7 +138,7 @@ vec2 camera_uv_from_view(CameraData cam, vec3 vV)
     case CAMERA_PANO_EQUIRECT:
       return camera_equirectangular_from_direction(cam, vV);
     case CAMERA_PANO_EQUISOLID:
-      /* ATTR_FALLTHROUGH; */
+      // ATTR_FALLTHROUGH;
     case CAMERA_PANO_EQUIDISTANT:
       return camera_fisheye_from_direction(cam, vV);
     case CAMERA_PANO_MIRROR:

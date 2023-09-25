@@ -47,6 +47,7 @@ class MetalDevice : public Device {
   MetalGPUVendor device_vendor;
 
   uint kernel_features;
+  bool using_nanovdb = false;
   MTLResourceOptions default_storage_mode;
   int max_threads_per_threadgroup;
 

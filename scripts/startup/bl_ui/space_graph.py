@@ -441,7 +441,7 @@ class GRAPH_MT_delete(Menu):
 
 
 class GRAPH_MT_context_menu(Menu):
-    bl_label = "F-Curve Context Menu"
+    bl_label = "F-Curve"
 
     def draw(self, _context):
         layout = self.layout
@@ -501,7 +501,7 @@ class GRAPH_MT_snap_pie(Menu):
 
 
 class GRAPH_MT_channel_context_menu(Menu):
-    bl_label = "F-Curve Channel Context Menu"
+    bl_label = "F-Curve Channel"
 
     def draw(self, context):
         layout = self.layout

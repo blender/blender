@@ -302,12 +302,12 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
 
   float3 emission_color = mtl_mat.emission_color;
   if (emission_color.x >= 0 && emission_color.y >= 0 && emission_color.z >= 0) {
-    set_property_of_socket(SOCK_RGBA, "Emission", {emission_color, 3}, bsdf);
+    set_property_of_socket(SOCK_RGBA, "Emission Color", {emission_color, 3}, bsdf);
   }
   if (mtl_mat.tex_map_of_type(MTLTexMapType::Emission).is_valid()) {
     set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf);
   }
-  set_property_of_socket(SOCK_FLOAT, "Specular", {specular}, bsdf);
+  set_property_of_socket(SOCK_FLOAT, "Specular IOR Level", {specular}, bsdf);
   set_property_of_socket(SOCK_FLOAT, "Roughness", {roughness}, bsdf);
   mat->roughness = roughness;
   set_property_of_socket(SOCK_FLOAT, "Metallic", {metallic}, bsdf);
@@ -324,11 +324,11 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
   }
 
   if (mtl_mat.sheen >= 0) {
-    set_property_of_socket(SOCK_FLOAT, "Sheen", {mtl_mat.sheen}, bsdf);
+    set_property_of_socket(SOCK_FLOAT, "Sheen Weight", {mtl_mat.sheen}, bsdf);
   }
   if (mtl_mat.cc_thickness >= 0) {
     /* Clearcoat used to include an implicit 0.25 factor, so stay compatible to old versions. */
-    set_property_of_socket(SOCK_FLOAT, "Coat", {0.25f * mtl_mat.cc_thickness}, bsdf);
+    set_property_of_socket(SOCK_FLOAT, "Coat Weight", {0.25f * mtl_mat.cc_thickness}, bsdf);
   }
   if (mtl_mat.cc_roughness >= 0) {
     set_property_of_socket(SOCK_FLOAT, "Coat Roughness", {mtl_mat.cc_roughness}, bsdf);
@@ -345,7 +345,7 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
                         mtl_mat.transmit_color[2]) /
                        3;
   if (transmission >= 0) {
-    set_property_of_socket(SOCK_FLOAT, "Transmission", {transmission}, bsdf);
+    set_property_of_socket(SOCK_FLOAT, "Transmission Weight", {transmission}, bsdf);
   }
 }
 

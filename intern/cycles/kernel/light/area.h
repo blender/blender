@@ -81,10 +81,12 @@ ccl_device_inline float area_light_rect_sample(float3 P,
   }
 
   /* return pdf */
-  if (S != 0.0f)
+  if (S != 0.0f) {
     return 1.0f / S;
-  else
+  }
+  else {
     return 0.0f;
+  }
 }
 
 /* Light spread. */

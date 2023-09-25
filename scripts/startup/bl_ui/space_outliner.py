@@ -100,7 +100,7 @@ class OUTLINER_MT_editor_menus(Menu):
 
 
 class OUTLINER_MT_context_menu(Menu):
-    bl_label = "Outliner Context Menu"
+    bl_label = "Outliner"
 
     @staticmethod
     def draw_common_operators(layout):

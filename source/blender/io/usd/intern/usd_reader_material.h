@@ -95,7 +95,7 @@ class USDMaterialReader {
                                   const pxr::UsdShadeShader &usd_shader) const;
 
   /** Convert the given USD shader input to an input on the given Blender node. */
-  void set_node_input(const pxr::UsdShadeInput &usd_input,
+  bool set_node_input(const pxr::UsdShadeInput &usd_input,
                       bNode *dest_node,
                       const char *dest_socket_name,
                       bNodeTree *ntree,
@@ -106,7 +106,7 @@ class USDMaterialReader {
    * Follow the connected source of the USD input to create corresponding inputs
    * for the given Blender node.
    */
-  void follow_connection(const pxr::UsdShadeInput &usd_input,
+  bool follow_connection(const pxr::UsdShadeInput &usd_input,
                          bNode *dest_node,
                          const char *dest_socket_name,
                          bNodeTree *ntree,

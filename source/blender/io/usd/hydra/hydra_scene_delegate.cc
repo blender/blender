@@ -385,21 +385,21 @@ void HydraSceneDelegate::check_updates()
     switch (GS(id->name)) {
       case ID_OB: {
         do_update_collection = true;
-      } break;
-
+        break;
+      }
       case ID_MA: {
         MaterialData *mat_data = material_data(material_prim_id((Material *)id));
         if (mat_data) {
           mat_data->update();
         }
-      } break;
-
+        break;
+      }
       case ID_WO: {
         if (shading_settings.use_scene_world && id->recalc & ID_RECALC_SHADING) {
           do_update_world = true;
         }
-      } break;
-
+        break;
+      }
       case ID_SCE: {
         if ((id->recalc & ID_RECALC_COPY_ON_WRITE && !(id->recalc & ID_RECALC_SELECT)) ||
             id->recalc & (ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_BASE_FLAGS))
@@ -411,7 +411,8 @@ void HydraSceneDelegate::check_updates()
         {
           do_update_world = true;
         }
-      } break;
+        break;
+      }
 
       default:
         break;

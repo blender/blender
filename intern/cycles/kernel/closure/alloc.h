@@ -13,8 +13,9 @@ ccl_device ccl_private ShaderClosure *closure_alloc(ccl_private ShaderData *sd,
 {
   kernel_assert(size <= sizeof(ShaderClosure));
 
-  if (sd->num_closure_left == 0)
+  if (sd->num_closure_left == 0) {
     return NULL;
+  }
 
   ccl_private ShaderClosure *sc = &sd->closure[sd->num_closure];
 

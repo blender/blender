@@ -381,7 +381,7 @@ static void draw_property_for_socket(const bNodeTree &node_tree,
   SNPRINTF(rna_path, "[\"%s\"]", socket_id_esc);
 
   uiLayout *row = uiLayoutRow(layout, true);
-  uiLayoutSetPropDecorate(row, true);
+  uiLayoutSetPropDecorate(row, false);
 
   /* Use #uiItemPointerR to draw pointer properties because #uiItemR would not have enough
    * information about what type of ID to select for editing the values. This is because
@@ -786,7 +786,7 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, bContext &C)
   if (!tree->unassigned_assets.is_empty()) {
     uiItemM(&layout,
             "GEO_MT_node_operator_catalog_assets_unassigned",
-            IFACE_("No Catalog"),
+            IFACE_("Unassigned"),
             ICON_NONE);
   }
 }

@@ -445,6 +445,8 @@ class LayerGroupRuntime {
  * A LayerGroup is a grouping of zero or more Layers.
  */
 class LayerGroup : public ::GreasePencilLayerTreeGroup {
+  friend struct ::GreasePencil;
+
  public:
   LayerGroup();
   explicit LayerGroup(StringRefNull name);
@@ -461,47 +463,6 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   TreeNode &as_node();
 
   /**
-   * Adds a group at the end of this group.
-   */
-  LayerGroup &add_group(LayerGroup *group);
-  LayerGroup &add_group(StringRefNull name);
-
-  /**
-   * Adds a layer group after \a link and returns it.
-   */
-  LayerGroup &add_group_after(LayerGroup *group, TreeNode *link);
-  LayerGroup &add_group_after(StringRefNull name, TreeNode *link);
-
-  /**
-   * Adds a layer at the end of this group and returns it.
-   */
-  Layer &add_layer(Layer *layer);
-  Layer &add_layer(StringRefNull name);
-
-  /**
-   * Adds a layer before \a link and returns it.
-   */
-  Layer &add_layer_before(Layer *layer, TreeNode *link);
-  Layer &add_layer_before(StringRefNull name, TreeNode *link);
-
-  /**
-   * Adds a layer after \a link and returns it.
-   */
-  Layer &add_layer_after(Layer *layer, TreeNode *link);
-  Layer &add_layer_after(StringRefNull name, TreeNode *link);
-
-  /**
-   * Move child \a node up/down by \a step.
-   */
-  void move_node_up(TreeNode *node, int step = 1);
-  void move_node_down(TreeNode *node, int step = 1);
-  /**
-   * Move child \a node to the top/bottom.
-   */
-  void move_node_top(TreeNode *node);
-  void move_node_bottom(TreeNode *node);
-
-  /**
    * Returns the number of direct nodes in this group.
    */
   int64_t num_direct_nodes() const;
@@ -510,12 +471,6 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
    * Returns the total number of nodes in this group.
    */
   int64_t num_nodes_total() const;
-
-  /**
-   * Tries to unlink the layer from the list of nodes in this group.
-   * \returns true, if the layer was successfully unlinked.
-   */
-  bool unlink_node(TreeNode *link);
 
   /**
    * Returns a `Span` of pointers to all the `TreeNode`s in this group.
@@ -551,6 +506,46 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
    * Print the nodes. For debugging purposes.
    */
   void print_nodes(StringRefNull header) const;
+
+ protected:
+  /**
+   * Adds a new layer named \a name at the end of this group and returns it.
+   */
+  Layer &add_layer(StringRefNull name);
+  /**
+   * Adds a new group named \a name at the end of this group and returns it.
+   */
+  LayerGroup &add_group(StringRefNull name);
+  /**
+   * Adds an existing \a node at the end of this group.
+   */
+  TreeNode &add_node(TreeNode &node);
+
+  /**
+   * Adds an existing \a node before \a link of this group.
+   */
+  void add_node_before(TreeNode &node, TreeNode &link);
+  /**
+   * Adds an existing \a node after \a link of this group.
+   */
+  void add_node_after(TreeNode &node, TreeNode &link);
+
+  /**
+   * Move child \a node up/down by \a step.
+   */
+  void move_node_up(TreeNode &node, int step = 1);
+  void move_node_down(TreeNode &node, int step = 1);
+  /**
+   * Move child \a node to the top/bottom.
+   */
+  void move_node_top(TreeNode &node);
+  void move_node_bottom(TreeNode &node);
+
+  /**
+   * Unlink the node from the list of nodes in this group.
+   * \returns true, if the node was successfully unlinked.
+   */
+  bool unlink_node(TreeNode &link);
 
  private:
   void ensure_nodes_cache() const;

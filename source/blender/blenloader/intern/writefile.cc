@@ -745,7 +745,7 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
   const Link *link = lb->first;
   if (link) {
 
-    const int struct_nr = DNA_struct_find_nr(wd->sdna, structname);
+    const int struct_nr = DNA_struct_find_with_alias(wd->sdna, structname);
     if (struct_nr == -1) {
       printf("error: can't find SDNA code <%s>\n", structname);
       return;
@@ -1745,7 +1745,7 @@ void blo_write_id_struct(BlendWriter *writer, int struct_id, const void *id_addr
 
 int BLO_get_struct_id_by_name(BlendWriter *writer, const char *struct_name)
 {
-  int struct_id = DNA_struct_find_nr(writer->wd->sdna, struct_name);
+  int struct_id = DNA_struct_find_with_alias(writer->wd->sdna, struct_name);
   return struct_id;
 }
 

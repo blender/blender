@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
@@ -227,6 +228,9 @@ static const char *get_set_function_name(ResultType type)
       return "set_rgb";
     case ResultType::Color:
       return "set_rgba";
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -312,6 +316,9 @@ static const char *get_store_function_name(ResultType type)
       return "node_compositor_store_output_vector";
     case ResultType::Color:
       return "node_compositor_store_output_color";
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -402,6 +409,9 @@ static eGPUTextureFormat texture_format_from_result_type(ResultType type)
       return GPU_RGBA16F;
     case ResultType::Color:
       return GPU_RGBA16F;
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -419,6 +429,9 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
       return "vec4(vector, 0.0)";
     case ResultType::Color:
       return "color";
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -482,6 +495,10 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
       case ResultType::Color:
         store_color_function << case_code.str();
         break;
+      default:
+        /* Other types are internal and needn't be handled by operations. */
+        BLI_assert_unreachable();
+        break;
     }
   }
 
@@ -505,6 +522,9 @@ static const char *glsl_type_from_result_type(ResultType type)
       return "vec3";
     case ResultType::Color:
       return "vec4";
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();
@@ -522,6 +542,9 @@ static const char *glsl_swizzle_from_result_type(ResultType type)
       return "xyz";
     case ResultType::Color:
       return "rgba";
+    default:
+      /* Other types are internal and needn't be handled by operations. */
+      break;
   }
 
   BLI_assert_unreachable();

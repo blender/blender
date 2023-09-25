@@ -12,6 +12,9 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+/* Define macros in `DNA_genfile.h`. */
+#define DNA_GENFILE_VERSIONING_MACROS
+
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
@@ -35,6 +38,8 @@
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
+
+#undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "MEM_guardedalloc.h"
 
@@ -2410,7 +2415,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (bmain->versionfile < 267) {
-    // if (!DNA_struct_elem_find(fd->filesdna, "Brush", "int", "stencil_pos")) {
+    // if (!DNA_struct_member_exists(fd->filesdna, "Brush", "int", "stencil_pos")) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->stencil_dimension[0] == 0) {
         brush->stencil_dimension[0] = 256;
@@ -2428,10 +2433,10 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /**
      * TIP: to initialize new variables added, use the new function:
-     * `DNA_struct_elem_find(fd->filesdna, "structname", "typename", "varname")`, example:
+     * `DNA_struct_member_exists(fd->filesdna, "structname", "typename", "varname")`, example:
      *
      * \code{.cc}
-     * if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit")) {
+     * if (!DNA_struct_member_exists(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit")) {
      *     user->image_gpubuffer_limit = 10;
      * }
      * \endcode
@@ -2717,7 +2722,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "MovieTrackingTrack", "float", "weight")) {
       LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
         const MovieTracking *tracking = &clip->tracking;
         LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
@@ -2731,7 +2736,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "TriangulateModifierData", "int", "quad_method")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "TriangulateModifierData", "int", "quad_method")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Triangulate) {
@@ -2817,7 +2822,8 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
       FOREACH_NODETREE_END;
     }
 
-    if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingPlaneTrack", "float", "image_opacity")) {
+    if (!DNA_struct_member_exists(
+            fd->filesdna, "MovieTrackingPlaneTrack", "float", "image_opacity")) {
       LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
         LISTBASE_FOREACH (
             MovieTrackingPlaneTrack *, plane_track, &clip->tracking.plane_tracks_legacy) {

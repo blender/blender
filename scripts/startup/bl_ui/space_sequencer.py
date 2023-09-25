@@ -1060,7 +1060,7 @@ class SEQUENCER_MT_image_apply(Menu):
 
 
 class SEQUENCER_MT_context_menu(Menu):
-    bl_label = "Sequencer Context Menu"
+    bl_label = "Sequencer"
 
     def draw(self, context):
         layout = self.layout
@@ -1162,7 +1162,7 @@ class SEQUENCER_MT_context_menu(Menu):
 
 
 class SEQUENCER_MT_preview_context_menu(Menu):
-    bl_label = "Sequencer Preview Context Menu"
+    bl_label = "Sequencer Preview"
 
     def draw(self, context):
         layout = self.layout

@@ -1781,12 +1781,12 @@ static void rna_def_child_particle(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Child Particle", "Child particle interpolated from simulated or edited particles");
 
-  /*  int num, parent; */ /* num is face index on the final derived mesh */
-
-  /*  int pa[4]; */             /* nearest particles to the child, used for the interpolation */
-  /*  float w[4]; */            /* interpolation weights for the above particles */
-  /*  float fuv[4], foffset; */ /* face vertex weights and offset */
-  /*  float rand[3]; */
+  // int num, parent;    /* num is face index on the final derived mesh */
+  //
+  // int pa[4];                /* nearest particles to the child, used for the interpolation */
+  // float w[4];               /* interpolation weights for the above particles */
+  // float fuv[4], foffset;    /* face vertex weights and offset */
+  // float rand[3];
 }
 
 static void rna_def_particle(BlenderRNA *brna)
@@ -1854,9 +1854,9 @@ static void rna_def_particle(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "keys", "totkey");
   RNA_def_property_struct_type(prop, "ParticleKey");
   RNA_def_property_ui_text(prop, "Keyed States", "");
-  /* */
-  /* float fuv[4], foffset; */ /* Coordinates on face/edge number "num" and depth along. */
-                               /* Face normal for volume emission. */
+
+  // float fuv[4], foffset; /* Coordinates on face/edge number "num" and depth along. */
+  //                        /* Face normal for volume emission. */
 
   prop = RNA_def_property(srna, "birth_time", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, nullptr, "time");
@@ -1876,12 +1876,10 @@ static void rna_def_particle(BlenderRNA *brna)
   // RNA_def_property_range(prop, lowerLimitf, upperLimitf);
   RNA_def_property_ui_text(prop, "Size", "");
 
-  /* */
-  /*  int num;                 */ /* index to vert/edge/face */
-  /*  int num_dmcache;         */ /* index to derived mesh data (face) to avoid slow lookups */
-                                  /*  int pad; */
-                                  /* */
-                                  /*  int totkey; */
+  // int num; /* index to vert/edge/face */
+  // int num_dmcache; /* index to derived mesh data (face) to avoid slow lookups */
+  // int pad;
+  // int totkey;
 
   /* flag */
   prop = RNA_def_property(srna, "is_exist", PROP_BOOLEAN, PROP_NONE);
@@ -1899,7 +1897,7 @@ static void rna_def_particle(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, alive_items);
   RNA_def_property_ui_text(prop, "Alive State", "");
 
-  /*  short rt2; */
+  // short rt2;
 
   /* UVs */
   func = RNA_def_function(srna, "uv_on_emitter", "rna_Particle_uv_on_emitter");

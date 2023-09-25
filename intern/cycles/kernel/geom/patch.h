@@ -282,19 +282,23 @@ ccl_device float patch_eval_float(KernelGlobals kg,
       kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
 
   float val = 0.0f;
-  if (du)
+  if (du) {
     *du = 0.0f;
-  if (dv)
+  }
+  if (dv) {
     *dv = 0.0f;
+  }
 
   for (int i = 0; i < num_control; i++) {
     float v = kernel_data_fetch(attributes_float, offset + indices[i]);
 
     val += v * weights[i];
-    if (du)
+    if (du) {
       *du += v * weights_du[i];
-    if (dv)
+    }
+    if (dv) {
       *dv += v * weights_dv[i];
+    }
   }
 
   return val;
@@ -328,10 +332,12 @@ ccl_device float2 patch_eval_float2(KernelGlobals kg,
     float2 v = kernel_data_fetch(attributes_float2, offset + indices[i]);
 
     val += v * weights[i];
-    if (du)
+    if (du) {
       *du += v * weights_du[i];
-    if (dv)
+    }
+    if (dv) {
       *dv += v * weights_dv[i];
+    }
   }
 
   return val;
@@ -356,19 +362,23 @@ ccl_device float3 patch_eval_float3(KernelGlobals kg,
       kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
 
   float3 val = make_float3(0.0f, 0.0f, 0.0f);
-  if (du)
+  if (du) {
     *du = make_float3(0.0f, 0.0f, 0.0f);
-  if (dv)
+  }
+  if (dv) {
     *dv = make_float3(0.0f, 0.0f, 0.0f);
+  }
 
   for (int i = 0; i < num_control; i++) {
     float3 v = kernel_data_fetch(attributes_float3, offset + indices[i]);
 
     val += v * weights[i];
-    if (du)
+    if (du) {
       *du += v * weights_du[i];
-    if (dv)
+    }
+    if (dv) {
       *dv += v * weights_dv[i];
+    }
   }
 
   return val;
@@ -402,10 +412,12 @@ ccl_device float4 patch_eval_float4(KernelGlobals kg,
     float4 v = kernel_data_fetch(attributes_float4, offset + indices[i]);
 
     val += v * weights[i];
-    if (du)
+    if (du) {
       *du += v * weights_du[i];
-    if (dv)
+    }
+    if (dv) {
       *dv += v * weights_dv[i];
+    }
   }
 
   return val;
@@ -440,10 +452,12 @@ ccl_device float4 patch_eval_uchar4(KernelGlobals kg,
         color_uchar4_to_float4(kernel_data_fetch(attributes_uchar4, offset + indices[i])));
 
     val += v * weights[i];
-    if (du)
+    if (du) {
       *du += v * weights_du[i];
-    if (dv)
+    }
+    if (dv) {
       *dv += v * weights_dv[i];
+    }
   }
 
   return val;

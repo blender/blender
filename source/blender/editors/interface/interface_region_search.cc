@@ -301,6 +301,8 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
     }
 
     search_but->item_active = data->items.pointers[data->active];
+    MEM_SAFE_FREE(search_but->item_active_str);
+    search_but->item_active_str = BLI_strdup(data->items.names[data->active]);
 
     return true;
   }

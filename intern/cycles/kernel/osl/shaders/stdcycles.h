@@ -26,6 +26,9 @@ closure color ashikhmin_velvet(normal N, float sigma) BUILTIN;
 closure color sheen(normal N, float roughness) BUILTIN;
 closure color ambient_occlusion() BUILTIN;
 
+closure color microfacet_f82_tint(
+    string distribution, vector N, vector T, float ax, float ay, color f0, color f82) BUILTIN;
+
 /* Needed to pass along the color for multi-scattering saturation adjustment,
  * otherwise could be replaced by microfacet() */
 closure color microfacet_multi_ggx_glass(normal N, float ag, float eta, color C) BUILTIN;

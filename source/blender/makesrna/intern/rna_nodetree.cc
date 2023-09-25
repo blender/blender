@@ -4085,18 +4085,18 @@ static const EnumPropertyItem node_subsurface_method_items[] = {
      0,
      "Christensen-Burley",
      "Approximation to physically based volume scattering"},
-    {SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS,
-     "RANDOM_WALK_FIXED_RADIUS",
-     0,
-     "Random Walk (Fixed Radius)",
-     "Volumetric approximation to physically based volume scattering, using the scattering radius "
-     "as specified"},
     {SHD_SUBSURFACE_RANDOM_WALK,
      "RANDOM_WALK",
      0,
      "Random Walk",
+     "Volumetric approximation to physically based volume scattering, using the scattering radius "
+     "as specified"},
+    {SHD_SUBSURFACE_RANDOM_WALK_SKIN,
+     "RANDOM_WALK_SKIN",
+     0,
+     "Random Walk (Skin)",
      "Volumetric approximation to physically based volume scattering, with scattering radius "
-     "automatically adjusted to match color textures"},
+     "automatically adjusted to match color textures. Designed for skin shading"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 static const EnumPropertyItem prop_image_extension[] = {

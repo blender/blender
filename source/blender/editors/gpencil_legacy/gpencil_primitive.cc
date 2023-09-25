@@ -322,7 +322,7 @@ static void gpencil_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
   bGPDstroke *gps = static_cast<bGPDstroke *>(MEM_callocN(sizeof(bGPDstroke), "Temp bGPDstroke"));
   gps->thickness = 2.0f;
   gps->fill_opacity_fac = 1.0f;
-  gps->hardeness = 1.0f;
+  gps->hardness = 1.0f;
   copy_v2_fl(gps->aspect_ratio, 1.0f);
   gps->uv_scale = 1.0f;
   gps->inittime = 0.0f;
@@ -1349,7 +1349,7 @@ static void gpencil_primitive_interaction_end(bContext *C,
   gps = static_cast<bGPDstroke *>(tgpi->gpf->strokes.first);
   if (gps) {
     gps->thickness = brush->size;
-    gps->hardeness = brush_settings->hardeness;
+    gps->hardness = brush_settings->hardness;
     copy_v2_v2(gps->aspect_ratio, brush_settings->aspect_ratio);
 
     /* Calc geometry data. */

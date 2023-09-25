@@ -2913,8 +2913,8 @@ void DRW_draw_depth_object(
 
       GPU_batch_draw(batch);
       GPU_uniformbuf_free(ubo);
-
-    } break;
+      break;
+    }
     case OB_CURVES_LEGACY:
     case OB_SURF:
       break;

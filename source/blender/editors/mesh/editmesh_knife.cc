@@ -3849,7 +3849,7 @@ static void knife_constrain_axis(KnifeTool_OpData *kcd)
   mul_m3_m3_pre(co, mat);
   for (int i = 0; i <= 2; i++) {
     if ((kcd->constrain_axis - 1) != i) {
-      /* kcd->curr_cage_adjusted[i] = prev_cage_adjusted[i]; */
+      // kcd->curr_cage_adjusted[i] = prev_cage_adjusted[i];
       co[2][i] = co[0][i];
     }
   }

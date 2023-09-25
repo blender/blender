@@ -53,15 +53,16 @@ void emit_cap(const bool front, bool reversed, int triangle_vertex_id)
   switch (triangle_vertex_id) {
     case 0: {
       gl_Position = (front) ? vData[0].frontPosition : vData[0].backPosition;
-    } break;
-
+      break;
+    }
     case 1: {
       gl_Position = (front) ? vData[idx.x].frontPosition : vData[idx.y].backPosition;
-    } break;
-
+      break;
+    }
     case 2: {
       gl_Position = (front) ? vData[idx.y].frontPosition : vData[idx.x].backPosition;
-    } break;
+      break;
+    }
   }
 
   /* Apply depth bias. Prevents Z-fighting artifacts when fast-math is enabled. */

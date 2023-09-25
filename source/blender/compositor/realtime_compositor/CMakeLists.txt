@@ -63,6 +63,7 @@ set(SRC
   COM_texture_pool.hh
   COM_utilities.hh
 
+  algorithms/intern/jump_flooding.cc
   algorithms/intern/morphological_distance.cc
   algorithms/intern/morphological_distance_feather.cc
   algorithms/intern/parallel_reduction.cc
@@ -70,6 +71,7 @@ set(SRC
   algorithms/intern/summed_area_table.cc
   algorithms/intern/symmetric_separable_blur.cc
 
+  algorithms/COM_algorithm_jump_flooding.hh
   algorithms/COM_algorithm_morphological_distance.hh
   algorithms/COM_algorithm_morphological_distance_feather.hh
   algorithms/COM_algorithm_parallel_reduction.hh
@@ -120,6 +122,8 @@ set(GLSL_SRC
   shaders/compositor_despeckle.glsl
   shaders/compositor_directional_blur.glsl
   shaders/compositor_displace.glsl
+  shaders/compositor_double_edge_mask_compute_boundary.glsl
+  shaders/compositor_double_edge_mask_compute_gradient.glsl
   shaders/compositor_edge_filter.glsl
   shaders/compositor_ellipse_mask.glsl
   shaders/compositor_filter.glsl
@@ -138,6 +142,9 @@ set(GLSL_SRC
   shaders/compositor_glare_streaks_filter.glsl
   shaders/compositor_id_mask.glsl
   shaders/compositor_image_crop.glsl
+  shaders/compositor_inpaint_compute_boundary.glsl
+  shaders/compositor_inpaint_compute_region.glsl
+  shaders/compositor_jump_flooding.glsl
   shaders/compositor_keying_compute_image.glsl
   shaders/compositor_keying_compute_matte.glsl
   shaders/compositor_keying_extract_chroma.glsl
@@ -197,6 +204,7 @@ set(GLSL_SRC
   shaders/library/gpu_shader_compositor_hue_saturation_value.glsl
   shaders/library/gpu_shader_compositor_image_diagonals.glsl
   shaders/library/gpu_shader_compositor_invert.glsl
+  shaders/library/gpu_shader_compositor_jump_flooding_lib.glsl
   shaders/library/gpu_shader_compositor_luminance_matte.glsl
   shaders/library/gpu_shader_compositor_main.glsl
   shaders/library/gpu_shader_compositor_map_value.glsl
@@ -248,6 +256,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_despeckle_info.hh
   shaders/infos/compositor_directional_blur_info.hh
   shaders/infos/compositor_displace_info.hh
+  shaders/infos/compositor_double_edge_mask_info.hh
   shaders/infos/compositor_edge_filter_info.hh
   shaders/infos/compositor_ellipse_mask_info.hh
   shaders/infos/compositor_filter_info.hh
@@ -255,6 +264,8 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_glare_info.hh
   shaders/infos/compositor_id_mask_info.hh
   shaders/infos/compositor_image_crop_info.hh
+  shaders/infos/compositor_inpaint_info.hh
+  shaders/infos/compositor_jump_flooding_info.hh
   shaders/infos/compositor_keying_info.hh
   shaders/infos/compositor_kuwahara_info.hh
   shaders/infos/compositor_map_uv_info.hh

@@ -50,16 +50,18 @@ struct AsymmetricError {
   static void Residuals(const Mat& H, const Mat& x1, const Mat& x2, Mat2X* dx) {
     dx->resize(2, x1.cols());
     Mat3X x2h_est;
-    if (x1.rows() == 2)
+    if (x1.rows() == 2) {
       x2h_est = H * EuclideanToHomogeneous(static_cast<Mat2X>(x1));
-    else
+    } else {
       x2h_est = H * x1;
+    }
     dx->row(0) = x2h_est.row(0).array() / x2h_est.row(2).array();
     dx->row(1) = x2h_est.row(1).array() / x2h_est.row(2).array();
-    if (x2.rows() == 2)
+    if (x2.rows() == 2) {
       *dx = x2 - *dx;
-    else
+    } else {
       *dx = HomogeneousToEuclidean(static_cast<Mat3X>(x2)) - *dx;
+    }
   }
   /**
    * Computes the asymmetric residuals between a 2D point x2 and the transformed
@@ -75,15 +77,17 @@ struct AsymmetricError {
    */
   static void Residuals(const Mat& H, const Vec& x1, const Vec& x2, Vec2* dx) {
     Vec3 x2h_est;
-    if (x1.rows() == 2)
+    if (x1.rows() == 2) {
       x2h_est = H * EuclideanToHomogeneous(static_cast<Vec2>(x1));
-    else
+    } else {
       x2h_est = H * x1;
-    if (x2.rows() == 2)
+    }
+    if (x2.rows() == 2) {
       *dx = x2 - x2h_est.head<2>() / x2h_est[2];
-    else
+    } else {
       *dx = HomogeneousToEuclidean(static_cast<Vec3>(x2)) -
             x2h_est.head<2>() / x2h_est[2];
+    }
   }
   /**
    * Computes the squared norm of the residuals between a set of 2D points x2
@@ -190,14 +194,16 @@ struct AlgebraicError {
    */
   static void Residuals(const Mat& H, const Vec& x1, const Vec& x2, Vec3* dx) {
     Vec3 x2h_est;
-    if (x1.rows() == 2)
+    if (x1.rows() == 2) {
       x2h_est = H * EuclideanToHomogeneous(static_cast<Vec2>(x1));
-    else
+    } else {
       x2h_est = H * x1;
-    if (x2.rows() == 2)
+    }
+    if (x2.rows() == 2) {
       *dx = SkewMat(EuclideanToHomogeneous(static_cast<Vec2>(x2))) * x2h_est;
-    else
+    } else {
       *dx = SkewMat(x2) * x2h_est;
+    }
     // TODO(julien) This is inefficient since it creates an
     // identical 3x3 skew matrix for each evaluation.
   }

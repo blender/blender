@@ -94,6 +94,15 @@ vec3 safe_normalize(vec3 N);
 float fast_sqrt(float a);
 vec3 cameraVec(vec3 P);
 vec2 bsdf_lut(float a, float b, float c, float d);
+void bsdf_lut(vec3 F0,
+              vec3 F90,
+              vec3 transmission_tint,
+              float cos_theta,
+              float roughness,
+              float ior,
+              float do_multiscatter,
+              out vec3 reflectance,
+              out vec3 transmittance);
 vec2 brdf_lut(float a, float b);
 vec3 F_brdf_multi_scatter(vec3 a, vec3 b, vec2 c);
 vec3 F_brdf_single_scatter(vec3 a, vec3 b, vec2 c);

@@ -229,12 +229,15 @@ class Dogleg {
       }
       Scalar rho = actual / predicted;
 
-      if (step == GAUSS_NEWTON)
+      if (step == GAUSS_NEWTON) {
         printf("  GAUSS");
-      if (step == STEEPEST_DESCENT)
+      }
+      if (step == STEEPEST_DESCENT) {
         printf("   STEE");
-      if (step == DOGLEG)
+      }
+      if (step == DOGLEG) {
         printf("   DOGL");
+      }
 
       printf(" %12g %12g %12g\n", rho, actual, predicted);
 

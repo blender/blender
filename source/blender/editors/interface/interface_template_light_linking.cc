@@ -11,6 +11,8 @@
 #include <cstdio>
 #include <memory>
 
+#include <fmt/format.h>
+
 #include "BLT_translation.h"
 
 #include "DNA_collection_types.h"
@@ -34,12 +36,10 @@ namespace blender::ui::light_linking {
 
 namespace {
 
-class CollectionDropTarget : public DropTargetInterface {
+class BaseCollectionDropTarget : public TreeViewItemDropTarget {
   Collection &collection_;
 
  public:
-  CollectionDropTarget(Collection &collection) : collection_(collection) {}
-
   bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override
   {
     if (drag.type != WM_DRAG_ID) {
@@ -62,9 +62,28 @@ class CollectionDropTarget : public DropTargetInterface {
     return true;
   }
 
+ protected:
+  BaseCollectionDropTarget(AbstractTreeView &view, DropBehavior behavior, Collection &collection)
+      : TreeViewItemDropTarget(view, behavior), collection_(collection)
+  {
+  }
+
+  Collection &get_collection() const
+  {
+    return collection_;
+  }
+};
+
+class InsertCollectionDropTarget : public BaseCollectionDropTarget {
+ public:
+  InsertCollectionDropTarget(AbstractTreeView &view, Collection &collection)
+      : BaseCollectionDropTarget(view, DropBehavior::Insert, collection)
+  {
+  }
+
   std::string drop_tooltip(const DragInfo & /*drag*/) const override
   {
-    return TIP_("Add to light linking collection");
+    return TIP_("Add to linking collection");
   }
 
   bool on_drop(bContext *C, const DragInfo &drag) const override
@@ -74,7 +93,7 @@ class CollectionDropTarget : public DropTargetInterface {
 
     LISTBASE_FOREACH (wmDragID *, drag_id, &drag.drag_data.ids) {
       BKE_light_linking_add_receiver_to_collection(
-          bmain, &collection_, drag_id->id, COLLECTION_LIGHT_LINKING_STATE_INCLUDE);
+          bmain, &get_collection(), drag_id->id, COLLECTION_LIGHT_LINKING_STATE_INCLUDE);
     }
 
     /* It is possible that the light linking collection is also used by the view layer.
@@ -82,9 +101,96 @@ class CollectionDropTarget : public DropTargetInterface {
      * content. */
     WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-    ED_undo_push(C, "Add to light linking collection");
+    ED_undo_push(C, "Add to linking collection");
 
     return true;
+  }
+};
+
+class ReorderCollectionDropTarget : public BaseCollectionDropTarget {
+  const ID &drop_id_;
+
+ public:
+  ReorderCollectionDropTarget(AbstractTreeView &view, Collection &collection, const ID &drop_id)
+      : BaseCollectionDropTarget(view, DropBehavior::Reorder, collection), drop_id_(drop_id)
+  {
+  }
+
+  std::string drop_tooltip(const DragInfo &drag) const override
+  {
+    const std::string_view drop_name = std::string_view(drop_id_.name + 2);
+
+    switch (drag.drop_location) {
+      case DropLocation::Into:
+        return "Add to linking collection";
+      case DropLocation::Before:
+        return fmt::format(TIP_("Add to linking collection before {}"), drop_name);
+      case DropLocation::After:
+        return fmt::format(TIP_("Add to linking collection after {}"), drop_name);
+    }
+
+    return "";
+  }
+
+  bool on_drop(bContext *C, const DragInfo &drag) const override
+  {
+    Main *bmain = CTX_data_main(C);
+    Scene *scene = CTX_data_scene(C);
+
+    Collection &collection = get_collection();
+    const eCollectionLightLinkingState link_state = COLLECTION_LIGHT_LINKING_STATE_INCLUDE;
+
+    LISTBASE_FOREACH (wmDragID *, drag_id, &drag.drag_data.ids) {
+      if (drag_id->id == &drop_id_) {
+        continue;
+      }
+
+      BKE_light_linking_unlink_id_from_collection(bmain, &collection, drag_id->id, nullptr);
+
+      switch (drag.drop_location) {
+        case DropLocation::Into:
+          BKE_light_linking_add_receiver_to_collection(
+              bmain, &collection, drag_id->id, link_state);
+          break;
+        case DropLocation::Before:
+          BKE_light_linking_add_receiver_to_collection_before(
+              bmain, &collection, drag_id->id, &drop_id_, link_state);
+          break;
+        case DropLocation::After:
+          BKE_light_linking_add_receiver_to_collection_after(
+              bmain, &collection, drag_id->id, &drop_id_, link_state);
+          break;
+      }
+    }
+
+    /* It is possible that the light linking collection is also used by the view layer.
+     * For this case send a notifier so that the UI is updated for the changes in the collection
+     * content. */
+    WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+
+    ED_undo_push(C, "Add to linking collection");
+
+    return true;
+  }
+};
+
+class ItemDragController : public AbstractViewItemDragController {
+  ID &id_;
+
+ public:
+  explicit ItemDragController(AbstractView &view, ID &id)
+      : AbstractViewItemDragController(view), id_(id)
+  {
+  }
+
+  eWM_DragDataType get_drag_type() const override
+  {
+    return WM_DRAG_ID;
+  }
+
+  void *create_drag_data() const override
+  {
+    return static_cast<void *>(&id_);
   }
 };
 
@@ -92,7 +198,7 @@ class CollectionViewItem : public BasicTreeViewItem {
   uiLayout &context_layout_;
   Collection &collection_;
 
-  ID *id_ = nullptr;
+  ID &id_;
   CollectionLightLinking &collection_light_linking_;
 
  public:
@@ -104,7 +210,7 @@ class CollectionViewItem : public BasicTreeViewItem {
       : BasicTreeViewItem(id.name + 2, icon),
         context_layout_(context_layout),
         collection_(collection),
-        id_(&id),
+        id_(id),
         collection_light_linking_(collection_light_linking)
   {
   }
@@ -112,7 +218,7 @@ class CollectionViewItem : public BasicTreeViewItem {
   void build_row(uiLayout &row) override
   {
     if (is_active()) {
-      PointerRNA id_ptr = RNA_id_pointer_create(id_);
+      PointerRNA id_ptr = RNA_id_pointer_create(&id_);
       PointerRNA collection_ptr = RNA_id_pointer_create(&collection_.id);
 
       uiLayoutSetContextPointer(&context_layout_, "id", &id_ptr);
@@ -127,15 +233,24 @@ class CollectionViewItem : public BasicTreeViewItem {
     build_state_button(*sub);
   }
 
+  std::unique_ptr<AbstractViewItemDragController> create_drag_controller() const override
+  {
+    return std::make_unique<ItemDragController>(get_tree_view(), id_);
+  }
+
+  std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override
+  {
+    return std::make_unique<ReorderCollectionDropTarget>(get_tree_view(), collection_, id_);
+  }
+
  private:
   int get_state_icon() const
   {
-    /* TODO(sergey): Use proper icons. */
     switch (collection_light_linking_.link_state) {
       case COLLECTION_LIGHT_LINKING_STATE_INCLUDE:
-        return ICON_OUTLINER_OB_LIGHT;
+        return ICON_CHECKBOX_HLT;
       case COLLECTION_LIGHT_LINKING_STATE_EXCLUDE:
-        return ICON_LIGHT;
+        return ICON_CHECKBOX_DEHLT;
     }
     BLI_assert_unreachable();
     return ICON_NONE;
@@ -219,7 +334,7 @@ class CollectionView : public AbstractTreeView {
 
   std::unique_ptr<DropTargetInterface> create_drop_target() override
   {
-    return std::make_unique<CollectionDropTarget>(collection_);
+    return std::make_unique<InsertCollectionDropTarget>(*this, collection_);
   }
 };
 

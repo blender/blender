@@ -5089,7 +5089,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 /* callback for NLA Control Curve widget sliders - insert keyframes */
 static void achannel_setting_slider_nla_curve_cb(bContext *C, void * /*id_poin*/, void *fcu_poin)
 {
-  /* ID *id = (ID *)id_poin; */
+  // ID *id = (ID *)id_poin;
   FCurve *fcu = (FCurve *)fcu_poin;
 
   PointerRNA ptr;

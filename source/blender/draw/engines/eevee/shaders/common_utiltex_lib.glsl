@@ -101,24 +101,35 @@ vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
   return coords;
 }
 
-/* Computes the reflectance and transmittance based on the BSDF LUT. */
-vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
+/* Computes the reflectance and transmittance based on the tint (`f0`, `f90`, `transmission_tint`)
+ * and the BSDF LUT. */
+void bsdf_lut(vec3 F0,
+              vec3 F90,
+              vec3 transmission_tint,
+              float cos_theta,
+              float roughness,
+              float ior,
+              float do_multiscatter,
+              out vec3 reflectance,
+              out vec3 transmittance)
 {
   if (ior == 1.0) {
-    return vec2(0.0, 1.0);
+    reflectance = vec3(0.0);
+    transmittance = transmission_tint;
+    return;
   }
 
   vec2 split_sum;
   float transmission_factor;
-  float F0 = F0_from_ior(ior);
-  float F90 = 1.0;
 
-  if (ior >= 1.0) {
+  if (ior > 1.0) {
     split_sum = brdf_lut(cos_theta, roughness);
     transmission_factor = sample_3D_texture(utilTex, lut_coords_btdf(cos_theta, roughness, ior)).a;
     /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0, 1.33], to avoid harsh
      * transition at `IOR == 1`. */
-    F90 = saturate(2.33 / 0.33 * (ior - 1.0) / (ior + 1.0));
+    if (all(equal(F90, vec3(1.0)))) {
+      F90 = vec3(saturate(2.33 / 0.33 * (ior - 1.0) / (ior + 1.0)));
+    }
   }
   else {
     vec3 bsdf = sample_3D_texture(utilTex, lut_coords_bsdf(cos_theta, roughness, ior)).rgb;
@@ -126,20 +137,41 @@ vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter
     transmission_factor = bsdf.b;
   }
 
-  float reflectance = F_brdf_single_scatter(vec3(F0), vec3(F90), split_sum).r;
-  float transmittance = (1.0 - F0) * transmission_factor;
+  reflectance = F_brdf_single_scatter(F0, F90, split_sum);
+  transmittance = (vec3(1.0) - F0) * transmission_factor * transmission_tint;
 
   if (do_multiscatter != 0.0) {
-    float Ess = F0 * split_sum.x + split_sum.y + (1.0 - F0) * transmission_factor;
-    /* TODO: maybe add saturation for higher roughness similar as in `F_brdf_multi_scatter()`.
-     * However, it is not necessarily desirable that the users see a different color than they
-     * picked. */
-    float scale = 1.0 / Ess;
+    float real_F0 = F0_from_ior(ior);
+    float Ess = real_F0 * split_sum.x + split_sum.y + (1.0 - real_F0) * transmission_factor;
+    float Ems = 1.0 - Ess;
+    /* Assume that the transmissive tint makes up most of the overall color if it's not zero. */
+    vec3 Favg = all(equal(transmission_tint, vec3(0.0))) ? F0 + (F90 - F0) / 21.0 :
+                                                           transmission_tint;
+
+    vec3 scale = 1.0 / (1.0 - Ems * Favg);
     reflectance *= scale;
     transmittance *= scale;
   }
 
-  return vec2(reflectance, transmittance);
+  return;
+}
+
+/* Computes the reflectance and transmittance based on the BSDF LUT. */
+vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
+{
+  float F0 = F0_from_ior(ior);
+  vec3 color = vec3(1.0);
+  vec3 reflectance, transmittance;
+  bsdf_lut(vec3(F0),
+           color,
+           color,
+           cos_theta,
+           roughness,
+           ior,
+           do_multiscatter,
+           reflectance,
+           transmittance);
+  return vec2(reflectance.r, transmittance.r);
 }
 
 /** \} */

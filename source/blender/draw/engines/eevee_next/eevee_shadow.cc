@@ -1160,7 +1160,7 @@ float ShadowModule::tilemap_pixel_radius()
 /* Update all shadow regions visible inside the view.
  * If called multiple time for the same view, it will only do the depth buffer scanning
  * to check any new opaque surfaces.
- * Needs to be called after LightModule::set_view(); */
+ * Needs to be called after `LightModule::set_view();`. */
 void ShadowModule::set_view(View &view)
 {
   GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();

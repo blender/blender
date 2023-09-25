@@ -538,7 +538,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
       }
     }
     do_cur = do_x;
-    /* do_win = do_y; */ /* UNUSED */
+    // do_win = do_y; /* UNUSED. */
 
     if (do_cur) {
       if ((v2d->keeptot == V2D_KEEPTOT_STRICT) && (winx != v2d->oldwinx)) {

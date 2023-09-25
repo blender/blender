@@ -75,8 +75,8 @@ typedef struct StripColorBalance {
   float power[3];
   int flag;
   char _pad[4];
-  /* float exposure; */
-  /* float saturation; */
+  // float exposure;
+  // float saturation;
 } StripColorBalance;
 
 typedef struct StripProxy {

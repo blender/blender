@@ -41,7 +41,7 @@ DefaultSurfaceNodeTree::DefaultSurfaceNodeTree()
   roughness_socket_ =
       (bNodeSocketValueFloat *)nodeFindSocket(bsdf, SOCK_IN, "Roughness")->default_value;
   specular_socket_ =
-      (bNodeSocketValueFloat *)nodeFindSocket(bsdf, SOCK_IN, "Specular")->default_value;
+      (bNodeSocketValueFloat *)nodeFindSocket(bsdf, SOCK_IN, "Specular IOR Level")->default_value;
   ntree_ = ntree;
 }
 
@@ -179,7 +179,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
       if (optimization_status == GPU_MAT_OPTIMIZATION_QUEUED) {
         queued_optimize_shaders_count++;
       }
-    } break;
+      break;
+    }
     case GPU_MAT_QUEUED:
       queued_shaders_count++;
       blender_mat = (geometry_type == MAT_GEOM_VOLUME_OBJECT) ? BKE_material_default_volume() :

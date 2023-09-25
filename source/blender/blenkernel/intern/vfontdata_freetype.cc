@@ -354,11 +354,11 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
     return nullptr;
   }
 
-  /* Init Freetype */
+  /* Initialize Freetype. */
   FT_Library library = nullptr;
   FT_Error err = FT_Init_FreeType(&library);
   if (err) {
-    /* XXX error("Failed to load the Freetype font library"); */
+    // error("Failed to load the Freetype font library");
     return nullptr;
   }
 

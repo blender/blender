@@ -614,7 +614,7 @@ static void ui_item_array(uiLayout *layout,
     }
 
     w /= dim_size[0];
-    /* h /= dim_size[1]; */ /* UNUSED */
+    // h /= dim_size[1]; /* UNUSED */
 
     for (int a = 0; a < len; a++) {
       col = a % dim_size[0];
@@ -3750,7 +3750,7 @@ static void ui_litem_layout_row(uiLayout *litem)
   int freew, fixedx, freex, flag = 0, lastw = 0;
   float extra_pixel;
 
-  /* x = litem->x; */ /* UNUSED */
+  // x = litem->x; /* UNUSED */
   const int y = litem->y;
   int w = litem->w;
   int totw = 0;

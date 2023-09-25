@@ -372,12 +372,8 @@ void action_group_colors_sync(bActionGroup *grp, const bActionGroup *ref_grp)
 
 void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel *pchan)
 {
-  if (pchan->color.palette_index == 0) {
-    action_group_colors_set(grp, &pchan->bone->color);
-  }
-  else {
-    action_group_colors_set(grp, &pchan->color);
-  }
+  const BoneColor &color = blender::animrig::ANIM_bonecolor_posebone_get(pchan);
+  action_group_colors_set(grp, &color);
 }
 
 void action_group_colors_set(bActionGroup *grp, const BoneColor *color)
@@ -1168,67 +1164,75 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 
 void BKE_pose_update_constraint_flags(bPose *pose)
 {
-  bPoseChannel *parchan;
-
-  /* clear */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    pchan->constflag = 0;
-  }
   pose->flag &= ~POSE_CONSTRAINTS_TIMEDEPEND;
 
-  /* detect */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
+    pchan->constflag = 0;
+
     LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-      if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-        bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+      pchan->constflag |= PCHAN_HAS_CONST;
 
-        pchan->constflag |= PCHAN_HAS_IK;
+      switch (con->type) {
+        case CONSTRAINT_TYPE_KINEMATIC: {
+          bKinematicConstraint *data = (bKinematicConstraint *)con->data;
 
-        if (data->tar == nullptr || (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0)) {
-          pchan->constflag |= PCHAN_HAS_TARGET;
-        }
+          pchan->constflag |= PCHAN_HAS_IK;
 
-        /* negative rootbone = recalc rootbone index. used in do_versions */
-        if (data->rootbone < 0) {
-          data->rootbone = 0;
-
-          if (data->flag & CONSTRAINT_IK_TIP) {
-            parchan = pchan;
-          }
-          else {
-            parchan = pchan->parent;
+          if (data->tar == nullptr || (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0))
+          {
+            pchan->constflag |= PCHAN_HAS_NO_TARGET;
           }
 
-          while (parchan) {
-            data->rootbone++;
-            if ((parchan->bone->flag & BONE_CONNECTED) == 0) {
-              break;
+          bPoseChannel *chain_tip = (data->flag & CONSTRAINT_IK_TIP) ? pchan : pchan->parent;
+
+          /* negative rootbone = recalc rootbone index. used in do_versions */
+          if (data->rootbone < 0) {
+            data->rootbone = 0;
+
+            bPoseChannel *parchan = chain_tip;
+            while (parchan) {
+              data->rootbone++;
+              if ((parchan->bone->flag & BONE_CONNECTED) == 0) {
+                break;
+              }
+              parchan = parchan->parent;
             }
-            parchan = parchan->parent;
           }
-        }
-      }
-      else if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) {
-        bFollowPathConstraint *data = (bFollowPathConstraint *)con->data;
 
-        /* for drawing constraint colors when color set allows this */
-        pchan->constflag |= PCHAN_HAS_CONST;
-
-        /* if we have a valid target, make sure that this will get updated on frame-change
-         * (needed for when there is no anim-data for this pose)
-         */
-        if ((data->tar) && (data->tar->type == OB_CURVES_LEGACY)) {
-          pose->flag |= POSE_CONSTRAINTS_TIMEDEPEND;
+          /* Mark the pose bones in the IK chain as influenced by it. */
+          {
+            bPoseChannel *chain_bone = chain_tip;
+            for (short index = 0; chain_bone && (data->rootbone == 0 || index < data->rootbone);
+                 index++) {
+              chain_bone->constflag |= PCHAN_INFLUENCED_BY_IK;
+              chain_bone = chain_bone->parent;
+            }
+          }
+          break;
         }
-      }
-      else if (con->type == CONSTRAINT_TYPE_SPLINEIK) {
-        pchan->constflag |= PCHAN_HAS_SPLINEIK;
-      }
-      else {
-        pchan->constflag |= PCHAN_HAS_CONST;
+
+        case CONSTRAINT_TYPE_FOLLOWPATH: {
+          bFollowPathConstraint *data = (bFollowPathConstraint *)con->data;
+
+          /* if we have a valid target, make sure that this will get updated on frame-change
+           * (needed for when there is no anim-data for this pose)
+           */
+          if ((data->tar) && (data->tar->type == OB_CURVES_LEGACY)) {
+            pose->flag |= POSE_CONSTRAINTS_TIMEDEPEND;
+          }
+          break;
+        }
+
+        case CONSTRAINT_TYPE_SPLINEIK:
+          pchan->constflag |= PCHAN_HAS_SPLINEIK;
+          break;
+
+        default:
+          break;
       }
     }
   }
+
   pose->flag &= ~POSE_CONSTRAINTS_NEED_UPDATE_FLAGS;
 }
 

@@ -43,9 +43,11 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_vector.h"
+#  include "BLI_offset_indices.hh"
 
-#  include "BKE_attribute.h"
+#  include "BKE_attribute.hh"
 #  include "BKE_curves.hh"
+#  include "BKE_report.h"
 
 #  include "DEG_depsgraph.hh"
 
@@ -265,6 +267,61 @@ static void rna_Curves_normals_begin(CollectionPropertyIterator *iter, PointerRN
   rna_iterator_array_begin(iter, positions, sizeof(float[3]), size, true, nullptr);
 }
 
+static void rna_Curves_add_curves(Curves *curves_id,
+                                  ReportList *reports,
+                                  const int *sizes,
+                                  const int sizes_num)
+{
+  using namespace blender;
+  if (std::any_of(sizes, sizes + sizes_num, [](const int size) { return size < 1; })) {
+    BKE_report(reports, RPT_ERROR, "Curve sizes must be greater than zero");
+    return;
+  }
+
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+
+  const int orig_points_num = curves.points_num();
+  const int orig_curves_num = curves.curves_num();
+  curves.resize(orig_points_num, orig_curves_num + sizes_num);
+
+  /* Find the final number of points by accumulating the new */
+  MutableSpan<int> new_offsets = curves.offsets_for_write().drop_front(orig_curves_num);
+  new_offsets.drop_back(1).copy_from({sizes, sizes_num});
+  offset_indices::accumulate_counts_to_offsets(new_offsets, orig_points_num);
+
+  curves.resize(curves.offsets().last(), curves.curves_num());
+
+  /* Initialize new attribute values, since #CurvesGeometry::resize() doesn't do that. */
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
+        bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+        GMutableSpan new_data;
+        switch (attribute.domain) {
+          case ATTR_DOMAIN_POINT:
+            new_data = attribute.span.drop_front(orig_points_num);
+            break;
+          case ATTR_DOMAIN_CURVE:
+            new_data = attribute.span.drop_front(orig_curves_num);
+            break;
+          default:
+            BLI_assert_unreachable();
+        }
+        const CPPType &type = attribute.span.type();
+        type.fill_construct_n(type.default_value(), new_data.data(), new_data.size());
+        attribute.finish();
+        return true;
+      });
+
+  curves.update_curve_types();
+
+  /* Avoid updates for importers creating curves. */
+  if (curves_id->id.us > 0) {
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, curves_id);
+  }
+}
+
 static void rna_Curves_update_data(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
@@ -366,6 +423,33 @@ static void rna_def_curves_curve(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_int_funcs(prop, "rna_CurveSlice_index_get", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Index", "Index of this curve");
+}
+
+static void rna_def_curves_api(StructRNA *srna)
+{
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  func = RNA_def_function(srna, "add_curves", "rna_Curves_add_curves");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_int_array(func,
+                           "sizes",
+                           1,
+                           nullptr,
+                           0,
+                           INT_MAX,
+                           "Sizes",
+                           "The number of points in each curve",
+                           1,
+                           10000);
+  RNA_def_property_array(parm, RNA_MAX_ARRAY_LENGTH);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
+
+  // parm = RNA_def_int(
+  //     func, "sizes", 1, 1, INT_MAX, "Sizes", "The number of points in each curve", 1, 10000);
+  // RNA_def_property_array(parm, 0); /* Dynamic length, see next line. */
+  // RNA_def_property_flag(parm, PROP_DYNAMIC);
+  // RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 }
 
 static void rna_def_curves(BlenderRNA *brna)
@@ -521,6 +605,8 @@ static void rna_def_curves(BlenderRNA *brna)
 
   /* common */
   rna_def_animdata_common(srna);
+
+  rna_def_curves_api(srna);
 }
 
 void RNA_def_curves(BlenderRNA *brna)

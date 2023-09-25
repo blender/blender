@@ -3282,13 +3282,14 @@ class WM_MT_splash(Menu):
         if found_recent:
             col2_title.label(text="Recent Files")
         else:
-
-            # Links if no recent files
+            # Links if no recent files.
             col2_title.label(text="Getting Started")
 
             col2.operator("wm.url_open_preset", text="Manual", icon='URL').type = 'MANUAL'
+            col2.operator("wm.url_open", text="Tutorials", icon='URL').url = "https://www.blender.org/tutorials/"
+            col2.operator("wm.url_open", text="Support", icon='URL').url = "https://www.blender.org/support/"
+            col2.operator("wm.url_open", text="User Communities", icon='URL').url = "https://www.blender.org/community/"
             col2.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
-            col2.operator("wm.url_open_preset", text="Credits", icon='URL').type = 'CREDITS'
 
         layout.separator()
 
@@ -3302,8 +3303,8 @@ class WM_MT_splash(Menu):
 
         col2 = split.column()
 
-        col2.operator("wm.url_open_preset", text="Release Notes", icon='URL').type = 'RELEASE_NOTES'
-        col2.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
+        col2.operator("wm.url_open_preset", text="Donate", icon='FUND').type = 'FUND'
+        col2.operator("wm.url_open_preset", text="What's New", icon='URL').type = 'RELEASE_NOTES'
 
         layout.separator()
         layout.separator()
@@ -3321,7 +3322,7 @@ class WM_MT_splash_about(Menu):
 
         col = split.column(align=True)
         col.scale_y = 0.8
-        col.label(text=bpy.app.version_string, translate=False)
+        col.label(text=iface_("Version: %s") % bpy.app.version_string, translate=False)
         col.separator(factor=2.5)
         col.label(text=iface_("Date: %s %s") % (bpy.app.build_commit_date.decode('utf-8', 'replace'),
                                                 bpy.app.build_commit_time.decode('utf-8', 'replace')), translate=False)
@@ -3342,12 +3343,13 @@ class WM_MT_splash_about(Menu):
 
         col = split.column(align=True)
         col.emboss = 'PULLDOWN_MENU'
-        col.operator("wm.url_open_preset", text="Release Notes", icon='URL').type = 'RELEASE_NOTES'
+        col.operator("wm.url_open_preset", text="Donate", icon='FUND').type = 'FUND'
+        col.operator("wm.url_open_preset", text="What's New", icon='URL').type = 'RELEASE_NOTES'
+        col.separator(factor=2.0)
         col.operator("wm.url_open_preset", text="Credits", icon='URL').type = 'CREDITS'
         col.operator("wm.url_open", text="License", icon='URL').url = "https://www.blender.org/about/license/"
-        col.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
         col.operator("wm.url_open", text="Blender Store", icon='URL').url = "https://store.blender.org"
-        col.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
+        col.operator("wm.url_open_preset", text="Blender Website", icon='URL').type = 'BLENDER'
 
 
 class WM_MT_region_toggle_pie(Menu):

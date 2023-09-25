@@ -138,7 +138,7 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
   {
     const bool is_principled = (node->type == PrincipledBsdfNode::get_node_type());
     /* Emission and Background node. */
-    ShaderInput *color_in = node->input(is_principled ? "Emission" : "Color");
+    ShaderInput *color_in = node->input(is_principled ? "Emission Color" : "Color");
     ShaderInput *strength_in = node->input(is_principled ? "Emission Strength" : "Strength");
 
     if (is_principled) {

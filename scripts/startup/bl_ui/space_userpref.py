@@ -216,6 +216,11 @@ class USERPREF_PT_interface_display(InterfacePanel, CenterAlignMixIn, Panel):
         sub.active = view.show_tooltips
         sub.prop(view, "show_tooltips_python")
 
+        col.separator()
+
+        col = layout.column(heading="Search", align=True)
+        col.prop(prefs, "use_recent_searches", text="Sort by Most Recent")
+
 
 class USERPREF_PT_interface_text(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Text Rendering"
