@@ -96,12 +96,44 @@ struct DNA_ReconstructInfo *DNA_reconstruct_info_create(const struct SDNA *oldsd
 void DNA_reconstruct_info_free(struct DNA_ReconstructInfo *reconstruct_info);
 
 /**
- * Returns the index of the struct info for the struct with the specified name.
+ * \param index_last: Support faster lookups when there is the possibility
+ * of the same name being looked up multiple times. Initialize to `UINT_MAX`.
+ *
+ * \return the index of the struct or -1 on failure.
  */
+int DNA_struct_find_with_alias_ex(const struct SDNA *sdna,
+                                  const char *str,
+                                  unsigned int *index_last);
+/** \note prefer #DNA_struct_find_with_alias_ex unless there is a good reason not to. */
 int DNA_struct_find_without_alias_ex(const struct SDNA *sdna,
                                      const char *str,
                                      unsigned int *index_last);
+/**
+ * \return the index of the struct or -1 on failure.
+ */
+int DNA_struct_find_with_alias(const struct SDNA *sdna, const char *str);
+/** \note prefer #DNA_struct_find_with_alias unless there is a good reason not to. */
 int DNA_struct_find_without_alias(const struct SDNA *sdna, const char *str);
+
+/**
+ * A convenience function, the equivalent of: `DNA_struct_find_with_alias(..) != -1`
+ */
+bool DNA_struct_exists_with_alias(const struct SDNA *sdna, const char *str);
+/** \note prefer #DNA_struct_exists_with_alias unless there is a good reason not to. */
+bool DNA_struct_exists_without_alias(const struct SDNA *sdna, const char *stype);
+/**
+ * A convenience function, the equivalent of: `DNA_struct_member_find_with_alias(..) != -1`
+ */
+bool DNA_struct_member_exists_with_alias(const struct SDNA *sdna,
+                                         const char *stype,
+                                         const char *vartype,
+                                         const char *name);
+/** \note prefer #DNA_struct_exists_with_alias unless there is a good reason not to. */
+bool DNA_struct_member_exists_without_alias(const struct SDNA *sdna,
+                                            const char *stype,
+                                            const char *vartype,
+                                            const char *name);
+
 /**
  * Does endian swapping on the fields of a struct value.
  *
@@ -128,13 +160,17 @@ void *DNA_struct_reconstruct(const struct DNA_ReconstructInfo *reconstruct_info,
                              const void *old_blocks);
 
 /**
- * Returns the offset of the field with the specified name and type within the specified
- * struct type in #SDNA, -1 on failure.
+ * A version of #DNA_struct_member_offset_by_name_with_alias that uses the non-aliased name.
+ * Always prefer aliased names where possible.
  */
 int DNA_struct_member_offset_by_name_without_alias(const struct SDNA *sdna,
                                                    const char *stype,
                                                    const char *vartype,
                                                    const char *name);
+/**
+ * Returns the offset of the field with the specified name and type within the specified
+ * struct type in #SDNA, -1 on failure.
+ */
 int DNA_struct_member_offset_by_name_with_alias(const struct SDNA *sdna,
                                                 const char *stype,
                                                 const char *vartype,
@@ -148,12 +184,6 @@ int DNA_struct_member_offset_by_name_with_alias(const struct SDNA *sdna,
  * needed to extract possible pointer/array information.
  */
 int DNA_struct_member_size(const struct SDNA *sdna, short type, short name);
-
-bool DNA_struct_exists_without_alias(const struct SDNA *sdna, const char *stype);
-bool DNA_struct_member_exists_without_alias(const struct SDNA *sdna,
-                                            const char *stype,
-                                            const char *vartype,
-                                            const char *name);
 
 /**
  * Returns the size in bytes of a primitive type.
@@ -178,29 +208,6 @@ bool DNA_sdna_patch_struct_member_by_name(struct SDNA *sdna,
 
 void DNA_sdna_alias_data_ensure(struct SDNA *sdna);
 
-/* Alias lookups (using runtime struct member names). */
-
-/**
- * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
- */
-int DNA_struct_find_with_alias_ex(const struct SDNA *sdna,
-                                  const char *str,
-                                  unsigned int *index_last);
-/**
- * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
- */
-int DNA_struct_find_with_alias(const struct SDNA *sdna, const char *str);
-/**
- * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
- */
-bool DNA_struct_exists_with_alias(const struct SDNA *sdna, const char *str);
-/**
- * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
- */
-bool DNA_struct_member_exists_with_alias(const struct SDNA *sdna,
-                                         const char *stype,
-                                         const char *vartype,
-                                         const char *name);
 /**
  * Separated from #DNA_sdna_alias_data_ensure because it's not needed
  * unless we want to lookup aliased struct names (#DNA_struct_find_with_alias and friends).
