@@ -382,6 +382,7 @@ dict_custom = {
     "unapplied",
     "unapply",
     "unassign",
+    "unassociated",
     "unbake",
     "unbuffered",
     "uncached",
