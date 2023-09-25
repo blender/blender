@@ -1174,6 +1174,8 @@ void BKE_pose_update_constraint_flags(bPose *pose)
     pchan->constflag = 0;
 
     LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
+      pchan->constflag |= PCHAN_HAS_CONST;
+
       switch (con->type) {
         case CONSTRAINT_TYPE_KINEMATIC: {
           bKinematicConstraint *data = (bKinematicConstraint *)con->data;
@@ -1205,9 +1207,6 @@ void BKE_pose_update_constraint_flags(bPose *pose)
         case CONSTRAINT_TYPE_FOLLOWPATH: {
           bFollowPathConstraint *data = (bFollowPathConstraint *)con->data;
 
-          /* for drawing constraint colors when color set allows this */
-          pchan->constflag |= PCHAN_HAS_CONST;
-
           /* if we have a valid target, make sure that this will get updated on frame-change
            * (needed for when there is no anim-data for this pose)
            */
@@ -1222,7 +1221,6 @@ void BKE_pose_update_constraint_flags(bPose *pose)
           break;
 
         default:
-          pchan->constflag |= PCHAN_HAS_CONST;
           break;
       }
     }
