@@ -86,7 +86,7 @@ uint64_t BoneColor::hash() const
   return get_default_hash_4(hash_solid, hash_select, hash_active, custom.flag);
 }
 
-BoneColor &ANIM_bonecolor_posebone_get(bPoseChannel *pose_bone)
+const BoneColor &ANIM_bonecolor_posebone_get(const bPoseChannel *pose_bone)
 {
   if (pose_bone->color.palette_index == 0) {
     return pose_bone->bone->color.wrap();
