@@ -29,13 +29,19 @@ ccl_device_inline int svm_node_closure_bsdf_skip(KernelGlobals kg, int offset, u
 }
 
 template<uint node_feature_mask, ShaderType shader_type>
-ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
-                                              ccl_private ShaderData *sd,
-                                              ccl_private float *stack,
-                                              Spectrum closure_weight,
-                                              uint4 node,
-                                              uint32_t path_flag,
-                                              int offset)
+#ifndef __KERNEL_ONEAPI__
+ccl_device_noinline
+#else
+ccl_device
+#endif
+    int
+    svm_node_closure_bsdf(KernelGlobals kg,
+                          ccl_private ShaderData *sd,
+                          ccl_private float *stack,
+                          Spectrum closure_weight,
+                          uint4 node,
+                          uint32_t path_flag,
+                          int offset)
 {
   uint type, param1_offset, param2_offset;
 
