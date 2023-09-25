@@ -1178,11 +1178,13 @@ bool BVHMetal::build(Progress &progress,
     }
   }
 
-  if (!params.top_level) {
-    return build_BLAS(progress, device, queue, refit);
-  }
-  else {
-    return build_TLAS(progress, device, queue, refit);
+  @autoreleasepool {
+    if (!params.top_level) {
+      return build_BLAS(progress, device, queue, refit);
+    }
+    else {
+      return build_TLAS(progress, device, queue, refit);
+    }
   }
 }
 
