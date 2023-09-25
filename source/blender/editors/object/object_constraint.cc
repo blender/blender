@@ -2019,7 +2019,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator * /*op*/)
   /* free constraints for all selected bones */
   CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     BKE_constraints_free(&pchan->constraints);
-    pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK | PCHAN_HAS_CONST);
+    pchan->constflag = 0;
 
     if (prev_ob != ob) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
