@@ -132,6 +132,10 @@ int DNA_struct_member_offset_by_name(const struct SDNA *sdna,
                                      const char *stype,
                                      const char *vartype,
                                      const char *name);
+int DNA_struct_member_offset_by_name_with_alias(const struct SDNA *sdna,
+                                                const char *stype,
+                                                const char *vartype,
+                                                const char *name);
 
 /**
  * Returns the size of struct fields of the specified type and name.

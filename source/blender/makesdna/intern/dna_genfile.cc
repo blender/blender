@@ -909,10 +909,10 @@ static bool elem_exists_impl(
 /**
  * \param sdna: Old SDNA.
  */
-static bool elem_exists(const SDNA *sdna,
-                        const char *type,
-                        const char *name,
-                        const SDNA_Struct *old)
+static bool elem_exists_without_alias(const SDNA *sdna,
+                                      const char *type,
+                                      const char *name,
+                                      const SDNA_Struct *old)
 {
   return elem_exists_impl(
       /* Expand SDNA. */
@@ -924,10 +924,10 @@ static bool elem_exists(const SDNA *sdna,
       old);
 }
 
-static bool elem_exists_alias(const SDNA *sdna,
-                              const char *type,
-                              const char *name,
-                              const SDNA_Struct *old)
+static bool elem_exists_with_alias(const SDNA *sdna,
+                                   const char *type,
+                                   const char *name,
+                                   const SDNA_Struct *old)
 {
   return elem_exists_impl(
       /* Expand SDNA. */
@@ -939,24 +939,12 @@ static bool elem_exists_alias(const SDNA *sdna,
       old);
 }
 
-/**
- * Return the offset in bytes or -1 on failure to find the struct member with its expected type.
- *
- * \param sdna: Old #SDNA.
- * \param type: Current field type name.
- * \param name: Current field name.
- * \param old: Pointer to struct information in #SDNA.
- * \return The offset or -1 on failure.
- *
- * \note Use #elem_exists if additional information provided by this function is not needed.
- *
- * \note We could have a version of this function that
- * returns the #SDNA_StructMember currently it's not needed.
- */
-static int elem_offset(const SDNA *sdna,
-                       const char *type,
-                       const char *name,
-                       const SDNA_Struct *old)
+static int elem_offset_impl(const SDNA *sdna,
+                            const char **types,
+                            const char **names,
+                            const char *type,
+                            const char *name,
+                            const SDNA_Struct *old)
 {
   /* Without array-part, so names can differ: return old `namenr` and type. */
 
@@ -964,8 +952,8 @@ static int elem_offset(const SDNA *sdna,
   int offset = 0;
   for (int a = 0; a < old->members_len; a++) {
     const SDNA_StructMember *member = &old->members[a];
-    const char *otype = sdna->types[member->type];
-    const char *oname = sdna->names[member->name];
+    const char *otype = types[member->type];
+    const char *oname = names[member->name];
     if (elem_streq(name, oname)) { /* name equal */
       if (STREQ(type, otype)) {    /* type equal */
         return offset;
@@ -975,6 +963,40 @@ static int elem_offset(const SDNA *sdna,
     offset += DNA_struct_member_size(sdna, member->type, member->name);
   }
   return -1;
+}
+
+/**
+ * Return the offset in bytes or -1 on failure to find the struct member with its expected type.
+ *
+ * \param sdna: Old #SDNA.
+ * \param type: Current field type name.
+ * \param name: Current field name.
+ * \param old: Pointer to struct information in #SDNA.
+ * \return The offset or -1 on failure.
+ *
+ * \note Use #elem_exists_without_alias if additional information provided by this function
+ * is not needed.
+ *
+ * \note We could have a version of this function that
+ * returns the #SDNA_StructMember currently it's not needed.
+ */
+static int elem_offset_without_alias(const SDNA *sdna,
+                                     const char *type,
+                                     const char *name,
+                                     const SDNA_Struct *old)
+{
+  return elem_offset_impl(sdna, sdna->types, sdna->names, type, name, old);
+}
+
+/**
+ * A version of #elem_exists_without_alias that uses aliases.
+ */
+static int elem_offset_with_alias(const SDNA *sdna,
+                                  const char *type,
+                                  const char *name,
+                                  const SDNA_Struct *old)
+{
+  return elem_offset_impl(sdna, sdna->alias.types, sdna->alias.names, type, name, old);
 }
 
 /* Each struct member belongs to one of the categories below. */
@@ -1586,7 +1608,18 @@ int DNA_struct_member_offset_by_name(const SDNA *sdna,
   const int SDNAnr = DNA_struct_find(sdna, stype);
   BLI_assert(SDNAnr != -1);
   const SDNA_Struct *const spo = sdna->structs[SDNAnr];
-  return elem_offset(sdna, vartype, name, spo);
+  return elem_offset_without_alias(sdna, vartype, name, spo);
+}
+
+int DNA_struct_member_offset_by_name_with_alias(const SDNA *sdna,
+                                                const char *stype,
+                                                const char *vartype,
+                                                const char *name)
+{
+  const int SDNAnr = DNA_struct_alias_find(sdna, stype);
+  BLI_assert(SDNAnr != -1);
+  const SDNA_Struct *const spo = sdna->structs[SDNAnr];
+  return elem_offset_with_alias(sdna, vartype, name, spo);
 }
 
 bool DNA_struct_exists(const SDNA *sdna, const char *stype)
@@ -1603,7 +1636,7 @@ bool DNA_struct_member_exists(const SDNA *sdna,
 
   if (SDNAnr != -1) {
     const SDNA_Struct *const spo = sdna->structs[SDNAnr];
-    const bool found = elem_exists(sdna, vartype, name, spo);
+    const bool found = elem_exists_without_alias(sdna, vartype, name, spo);
 
     if (found) {
       return true;
@@ -1621,7 +1654,7 @@ bool DNA_struct_alias_member_exists(const SDNA *sdna,
 
   if (SDNAnr != -1) {
     const SDNA_Struct *const spo = sdna->structs[SDNAnr];
-    const bool found = elem_exists_alias(sdna, vartype, name, spo);
+    const bool found = elem_exists_with_alias(sdna, vartype, name, spo);
 
     if (found) {
       return true;
