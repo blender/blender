@@ -25,7 +25,7 @@ struct Depsgraph;
 struct OperationNode;
 struct Relation;
 
-/* Metatype of Nodes - The general "level" in the graph structure
+/* Meta-type of Nodes - The general "level" in the graph structure
  * the node serves. */
 enum class NodeClass {
   /* Types generally unassociated with user-visible entities,
