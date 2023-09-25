@@ -48,8 +48,8 @@ float dof_scatter_screen_border_rejection(float coc, vec2 uv, vec2 screen_size)
   /* Full-resolution to half-resolution CoC. */
   coc *= 0.5;
   /* Allow 10px transition. */
-  const float rejection_hardeness = 1.0 / 10.0;
-  return saturate((min_screen_border_distance - abs(coc)) * rejection_hardeness + 1.0);
+  const float rejection_hardness = 1.0 / 10.0;
+  return saturate((min_screen_border_distance - abs(coc)) * rejection_hardness + 1.0);
 }
 
 float dof_scatter_luminosity_rejection(vec3 color)

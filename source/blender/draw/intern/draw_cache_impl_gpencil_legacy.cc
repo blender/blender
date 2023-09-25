@@ -329,7 +329,7 @@ static void gpencil_buffer_add_point(GPUIndexBufBuilder *ibo,
   float aspect_ratio = gps->aspect_ratio[0] / max_ff(gps->aspect_ratio[1], 1e-8);
 
   vert->packed_asp_hard_rot = pack_rotation_aspect_hardness(
-      pt->uv_rot, aspect_ratio, gps->hardeness);
+      pt->uv_rot, aspect_ratio, gps->hardness);
 
   if (!is_endpoint) {
     /* Issue a Quad per point. */
@@ -567,7 +567,7 @@ bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob)
     gps->mat_nr = max_ii(0, gpd->runtime.matid - 1);
     gps->flag = gpd->runtime.sbuffer_sflag;
     gps->thickness = brush->size;
-    gps->hardeness = brush->gpencil_settings->hardeness;
+    gps->hardness = brush->gpencil_settings->hardness;
     copy_v2_v2(gps->aspect_ratio, brush->gpencil_settings->aspect_ratio);
 
     /* Reduce slightly the opacity of fill to make easy fill areas while drawing. */

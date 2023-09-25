@@ -320,7 +320,7 @@ typedef struct OpacityGpencilModifierData {
   /** Custom index for passes. */
   int layer_pass;
 
-  float hardeness;
+  float hardness;
   struct CurveMapping *curve_intensity;
 } OpacityGpencilModifierData;
 

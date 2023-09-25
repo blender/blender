@@ -727,7 +727,7 @@ bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thickness)
 
   gps->thickness = thickness;
   gps->fill_opacity_fac = 1.0f;
-  gps->hardeness = 1.0f;
+  gps->hardness = 1.0f;
   copy_v2_fl(gps->aspect_ratio, 1.0f);
 
   gps->uv_scale = 1.0f;
@@ -1013,7 +1013,7 @@ void BKE_gpencil_stroke_copy_settings(const bGPDstroke *gps_src, bGPDstroke *gps
   gps_dst->inittime = gps_src->inittime;
   gps_dst->mat_nr = gps_src->mat_nr;
   copy_v2_v2_short(gps_dst->caps, gps_src->caps);
-  gps_dst->hardeness = gps_src->hardeness;
+  gps_dst->hardness = gps_src->hardness;
   copy_v2_v2(gps_dst->aspect_ratio, gps_src->aspect_ratio);
   gps_dst->fill_opacity_fac = gps_dst->fill_opacity_fac;
   copy_v3_v3(gps_dst->boundbox_min, gps_src->boundbox_min);
