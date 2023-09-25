@@ -15,6 +15,9 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+/* Define macros in `DNA_genfile.h`. */
+#define DNA_GENFILE_VERSIONING_MACROS
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
@@ -40,6 +43,8 @@
 #include "DNA_view3d_types.h"
 
 #include "DNA_genfile.h"
+
+#undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"

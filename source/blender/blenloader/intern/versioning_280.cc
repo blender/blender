@@ -18,6 +18,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+/* Define macros in `DNA_genfile.h`. */
+#define DNA_GENFILE_VERSIONING_MACROS
+
 #include "DNA_defaults.h"
 
 #include "DNA_anim_types.h"
@@ -53,6 +56,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
+
+#undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_animsys.h"
 #include "BKE_blender.h"

@@ -12,6 +12,9 @@
 
 #include "CLG_log.h"
 
+/* Define macros in `DNA_genfile.h`. */
+#define DNA_GENFILE_VERSIONING_MACROS
+
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_light_types.h"
@@ -24,6 +27,8 @@
 #include "DNA_defaults.h"
 #include "DNA_genfile.h"
 #include "DNA_particle_types.h"
+
+#undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"

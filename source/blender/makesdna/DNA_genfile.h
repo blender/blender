@@ -97,8 +97,10 @@ void DNA_reconstruct_info_free(struct DNA_ReconstructInfo *reconstruct_info);
 /**
  * Returns the index of the struct info for the struct with the specified name.
  */
-int DNA_struct_find_ex(const struct SDNA *sdna, const char *str, unsigned int *index_last);
-int DNA_struct_find(const struct SDNA *sdna, const char *str);
+int DNA_struct_find_without_alias_ex(const struct SDNA *sdna,
+                                     const char *str,
+                                     unsigned int *index_last);
+int DNA_struct_find_without_alias(const struct SDNA *sdna, const char *str);
 /**
  * Does endian swapping on the fields of a struct value.
  *
@@ -128,10 +130,10 @@ void *DNA_struct_reconstruct(const struct DNA_ReconstructInfo *reconstruct_info,
  * Returns the offset of the field with the specified name and type within the specified
  * struct type in #SDNA, -1 on failure.
  */
-int DNA_struct_member_offset_by_name(const struct SDNA *sdna,
-                                     const char *stype,
-                                     const char *vartype,
-                                     const char *name);
+int DNA_struct_member_offset_by_name_without_alias(const struct SDNA *sdna,
+                                                   const char *stype,
+                                                   const char *vartype,
+                                                   const char *name);
 int DNA_struct_member_offset_by_name_with_alias(const struct SDNA *sdna,
                                                 const char *stype,
                                                 const char *vartype,
@@ -146,11 +148,11 @@ int DNA_struct_member_offset_by_name_with_alias(const struct SDNA *sdna,
  */
 int DNA_struct_member_size(const struct SDNA *sdna, short type, short name);
 
-bool DNA_struct_exists(const struct SDNA *sdna, const char *stype);
-bool DNA_struct_member_exists(const struct SDNA *sdna,
-                              const char *stype,
-                              const char *vartype,
-                              const char *name);
+bool DNA_struct_exists_without_alias(const struct SDNA *sdna, const char *stype);
+bool DNA_struct_member_exists_without_alias(const struct SDNA *sdna,
+                                            const char *stype,
+                                            const char *vartype,
+                                            const char *name);
 
 /**
  * Returns the size in bytes of a primitive type.
@@ -200,9 +202,18 @@ bool DNA_struct_member_exists_with_alias(const struct SDNA *sdna,
                                          const char *name);
 /**
  * Separated from #DNA_sdna_alias_data_ensure because it's not needed
- * unless we want to lookup aliased struct names (#DNA_struct_alias_find and friends).
+ * unless we want to lookup aliased struct names (#DNA_struct_find_with_alias and friends).
  */
 void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
+
+/* For versioning, avoid verbosity selecting between with/without alias versions of functions. */
+#ifdef DNA_GENFILE_VERSIONING_MACROS
+#  define DNA_struct_exists(sdna, str) DNA_struct_exists_without_alias(sdna, str)
+#  define DNA_struct_member_exists(sdna, stype, vartype, name) \
+    DNA_struct_member_exists_without_alias(sdna, stype, vartype, name)
+#  define DNA_struct_find(sdna, str) DNA_struct_find_without_alias(sdna, str)
+#  define DNA_struct_find_ex(sdna, str, n) DNA_struct_find_without_alias_ex(sdna, str)
+#endif
 
 #ifdef __cplusplus
 }

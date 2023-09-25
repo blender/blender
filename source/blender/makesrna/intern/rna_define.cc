@@ -212,7 +212,7 @@ static int DNA_struct_find_nr_wrapper(const SDNA *sdna, const char *struct_name)
   struct_name = static_cast<const char *>(BLI_ghash_lookup_default(
       g_version_data.struct_map_static_from_alias, struct_name, (void *)struct_name));
 #endif
-  return DNA_struct_find(sdna, struct_name);
+  return DNA_struct_find_without_alias(sdna, struct_name);
 }
 
 StructDefRNA *rna_find_struct_def(StructRNA *srna)
