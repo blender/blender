@@ -1903,7 +1903,7 @@ static void draw_bone_relations(const ArmatureDrawContext *ctx,
       if (ctx->draw_mode == ARM_DRAW_MODE_POSE) {
         if (pchan->constflag & (PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK)) {
           if (boneflag & BONE_SELECTED) {
-            pchan_draw_ik_lines(ctx, bone.as_posebone(), !ctx->do_relations);
+            pchan_draw_ik_lines(ctx, pchan, !ctx->do_relations);
           }
         }
       }
