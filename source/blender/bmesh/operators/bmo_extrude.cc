@@ -384,7 +384,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
       }
 
       /* avoid an extra loop */
-      if (found == true) {
+      if (found == false) {
         BM_ITER_ELEM (f, &viter, v, BM_FACES_OF_VERT) {
           if (!BMO_face_flag_test(bm, f, EXT_INPUT)) {
             found = true;
