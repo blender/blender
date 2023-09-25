@@ -64,6 +64,7 @@ set(SRC
   interface_region_search.cc
   interface_region_tooltip.cc
   interface_regions.cc
+  interface_string_search.cc
   interface_style.cc
   interface_template_asset_view.cc
   interface_template_attribute_search.cc
