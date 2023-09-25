@@ -442,6 +442,52 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
   }
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* TODO: Implement steps */
+
+  const NodeMapRange *map_range = static_cast<NodeMapRange *>(node_->storage);
+  NodeItem::Type type;
+  NodeItem value = empty();
+  NodeItem from_min = empty();
+  NodeItem from_max = empty();
+  NodeItem to_min = empty();
+  NodeItem to_max = empty();
+  switch (map_range->data_type) {
+    case CD_PROP_FLOAT:
+      type = NodeItem::Type::Float;
+      value = get_input_value("Value", type);
+      from_min = get_input_value(1, type);
+      from_max = get_input_value(2, type);
+      to_min = get_input_value(3, type);
+      to_max = get_input_value(4, type);
+      break;
+    case CD_PROP_FLOAT3:
+      type = NodeItem::Type::Vector3;
+      value = get_input_value("Vector", type);
+      from_min = get_input_value(7, type);
+      from_max = get_input_value(8, type);
+      to_min = get_input_value(9, type);
+      to_max = get_input_value(10, type);
+      break;
+    default:
+      BLI_assert_unreachable();
+      return empty();
+  }
+
+  return create_node("range",
+                     type,
+                     {{"in", value},
+                      {"inlow", from_min},
+                      {"inhigh", from_max},
+                      {"outlow", to_min},
+                      {"outhigh", to_max},
+                      {"doclamp", val(bool(map_range->clamp))}});
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_map_range_cc
 
 void register_node_type_sh_map_range()
@@ -461,5 +507,6 @@ void register_node_type_sh_map_range()
   ntype.gpu_fn = file_ns::gpu_shader_map_range;
   ntype.build_multi_function = file_ns::sh_node_map_range_build_multi_function;
   ntype.gather_link_search_ops = file_ns::node_map_range_gather_link_searches;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
   nodeRegisterType(&ntype);
 }

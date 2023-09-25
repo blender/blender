@@ -12,6 +12,11 @@
 #include <pxr/imaging/hd/tokens.h>
 #include <pxr/usdImaging/usdImaging/materialParamUtils.h>
 
+#ifdef WITH_MATERIALX
+#  include <pxr/usd/usdMtlx/reader.h>
+#  include <pxr/usd/usdMtlx/utils.h>
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_lib_id.h"
@@ -30,7 +35,10 @@
 
 #include "intern/usd_exporter_context.h"
 #include "intern/usd_writer_material.h"
-
+#ifdef WITH_MATERIALX
+#  include "shader/materialx/node_parser.h"
+#  include "shader/materialx/material.h"
+#endif
 namespace blender::io::hydra {
 
 MaterialData::MaterialData(HydraSceneDelegate *scene_delegate,
@@ -67,10 +75,35 @@ void MaterialData::init()
                                          get_time_code,
                                          export_params,
                                          image_cache_file_path()};
-
   /* Create USD material. */
-  pxr::UsdShadeMaterial usd_material = usd::create_usd_material(
-      export_context, material_path, (Material *)id, "st");
+  pxr::UsdShadeMaterial usd_material;
+#ifdef WITH_MATERIALX
+  if (scene_delegate_->use_materialx) {
+    MaterialX::DocumentPtr doc = blender::nodes::materialx::export_to_materialx(
+        scene_delegate_->depsgraph, (Material *)id, cache_or_get_image_file);
+    pxr::UsdMtlxRead(doc, stage);
+
+    /* Logging stage: creating lambda stage_str() to not call stage->ExportToString()
+     * if log won't be printed. */
+    auto stage_str = [&stage]() {
+      std::string str;
+      stage->ExportToString(&str);
+      return str;
+    };
+    ID_LOGN(2, "Stage:\n%s", stage_str().c_str());
+
+    if (pxr::UsdPrim materials = stage->GetPrimAtPath(pxr::SdfPath("/MaterialX/Materials"))) {
+      pxr::UsdPrimSiblingRange children = materials.GetChildren();
+      if (!children.empty()) {
+        usd_material = pxr::UsdShadeMaterial(*children.begin());
+      }
+    }
+  }
+  else
+#endif
+  {
+    usd_material = usd::create_usd_material(export_context, material_path, (Material *)id, "st");
+  }
 
   /* Convert USD material to Hydra material network map, adapted for render delegate. */
   const pxr::HdRenderDelegate *render_delegate =

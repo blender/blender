@@ -52,7 +52,9 @@ class HydraSceneDelegate : public pxr::HdSceneDelegate {
   const View3D *view3d = nullptr;
   Main *bmain = nullptr;
   Scene *scene = nullptr;
+
   ShadingSettings shading_settings;
+  bool use_materialx = true;
 
  private:
   ObjectDataMap objects_;

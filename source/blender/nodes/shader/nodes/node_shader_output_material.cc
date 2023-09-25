@@ -43,6 +43,25 @@ static int node_shader_gpu_output_material(GPUMaterial *mat,
   return true;
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  NodeItem surface = get_input_link("Surface", NodeItem::Type::SurfaceShader);
+  if (!surface) {
+    NodeItem bsdf = get_input_link("Surface", NodeItem::Type::BSDF);
+    NodeItem edf = get_input_link("Surface", NodeItem::Type::EDF);
+    if (bsdf || edf) {
+      NodeItem opacity = get_input_link("Surface", NodeItem::Type::SurfaceOpacity);
+      surface = create_node("surface",
+                            NodeItem::Type::SurfaceShader,
+                            {{"bsdf", bsdf}, {"edf", edf}, {"opacity", opacity}});
+    }
+  }
+  return create_node("surfacematerial", NodeItem::Type::Material, {{"surfaceshader", surface}});
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_output_material_cc
 
 /* node type definition */
@@ -56,6 +75,7 @@ void register_node_type_sh_output_material()
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.gpu_fn = file_ns::node_shader_gpu_output_material;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   ntype.no_muting = true;
 
