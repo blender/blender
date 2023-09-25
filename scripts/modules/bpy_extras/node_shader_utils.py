@@ -412,13 +412,13 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def transmission_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
             return 0.0
-        return self.node_principled_bsdf.inputs["Transmission"].default_value
+        return self.node_principled_bsdf.inputs["Transmission Weight"].default_value
 
     @_set_check
     def transmission_set(self, value):
         value = values_clamp(value, 0.0, 1.0)
         if self.use_nodes and self.node_principled_bsdf is not None:
-            self.node_principled_bsdf.inputs["Transmission"].default_value = value
+            self.node_principled_bsdf.inputs["Transmission Weight"].default_value = value
 
     transmission = property(transmission_get, transmission_set)
 
@@ -428,7 +428,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
-            self.node_principled_bsdf.inputs["Transmission"],
+            self.node_principled_bsdf.inputs["Transmission Weight"],
             grid_row_diff=-1,
             colorspace_name='Non-Color',
         )

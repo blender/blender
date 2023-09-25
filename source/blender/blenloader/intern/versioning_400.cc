@@ -697,6 +697,12 @@ static void version_principled_bsdf_rename_sockets(bNodeTree *ntree)
 {
   version_node_input_socket_name(ntree, SH_NODE_BSDF_PRINCIPLED, "Emission", "Emission Color");
   version_node_input_socket_name(ntree, SH_NODE_BSDF_PRINCIPLED, "Specular", "Specular IOR Level");
+  version_node_input_socket_name(
+      ntree, SH_NODE_BSDF_PRINCIPLED, "Subsurface", "Subsurface Weight");
+  version_node_input_socket_name(
+      ntree, SH_NODE_BSDF_PRINCIPLED, "Transmission", "Transmission Weight");
+  version_node_input_socket_name(ntree, SH_NODE_BSDF_PRINCIPLED, "Coat", "Coat Weight");
+  version_node_input_socket_name(ntree, SH_NODE_BSDF_PRINCIPLED, "Sheen", "Sheen Weight");
 }
 
 /* Replace old Principled Hair BSDF as a variant in the new Principled Hair BSDF. */

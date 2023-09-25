@@ -301,7 +301,7 @@ static InputSpecMap &preview_surface_input_map()
       {"IOR", {usdtokens::ior, pxr::SdfValueTypeNames->Float, true}},
       /* Note that for the Normal input set_default_value is false. */
       {"Normal", {usdtokens::normal, pxr::SdfValueTypeNames->Float3, false}},
-      {"Coat", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, true}},
+      {"Coat Weight", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, true}},
       {"Coat Roughness", {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, true}},
   };
 
