@@ -1035,8 +1035,9 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(
-          fd->filesdna, "UnifiedPaintSettings", "char", "distort_correction_mode")) {
+  if (!DNA_struct_member_exists(
+          fd->filesdna, "UnifiedPaintSettings", "char", "distort_correction_mode"))
+  {
     UnifiedPaintSettings defaults = *DNA_struct_default_get(UnifiedPaintSettings);
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {

@@ -4372,7 +4372,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "hard_corner_pin")) {
+  if (!DNA_struct_member_exists(fd->filesdna, "Brush", "float", "hard_corner_pin")) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       brush->hard_corner_pin = 1.0f;
     }
@@ -4385,7 +4385,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "UnifiedPaintSettings", "float", "sharp_angle_limit")) {
+  if (!DNA_struct_member_exists(
+          fd->filesdna, "UnifiedPaintSettings", "float", "sharp_angle_limit")) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (!scene->toolsettings) {
         continue;
@@ -4403,7 +4404,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "UnifiedPaintSettings", "int", "smooth_boundary_flag")) {
+  if (!DNA_struct_member_exists(
+          fd->filesdna, "UnifiedPaintSettings", "int", "smooth_boundary_flag")) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (!scene->toolsettings) {
         continue;
@@ -4414,7 +4416,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "DynTopoSettings", "float", "quality")) {
+  if (!DNA_struct_member_exists(fd->filesdna, "DynTopoSettings", "float", "quality")) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (!scene->toolsettings || !scene->toolsettings->sculpt) {
         continue;
@@ -4428,7 +4430,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "Sculpt", "DynTopoSettings", "dyntopo")) {
+  if (!DNA_struct_member_exists(fd->filesdna, "Sculpt", "DynTopoSettings", "dyntopo")) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (!scene->toolsettings || !scene->toolsettings->sculpt) {
         continue;
@@ -4470,7 +4472,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "Brush", "DynTopoSettings", "dyntopo") ||
+  if (!DNA_struct_member_exists(fd->filesdna, "Brush", "DynTopoSettings", "dyntopo") ||
       !MAIN_VERSION_FILE_ATLEAST(bmain, 306, 4))
   {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
@@ -4508,7 +4510,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "UnifiedPaintSettings", "int", "smooth_boundary_flag")) {
+  if (!DNA_struct_member_exists(
+          fd->filesdna, "UnifiedPaintSettings", "int", "smooth_boundary_flag")) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (ELEM(brush->sculpt_tool,
                SCULPT_TOOL_MASK,
