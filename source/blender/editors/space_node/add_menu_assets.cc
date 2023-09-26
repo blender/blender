@@ -23,6 +23,7 @@
 
 #include "ED_asset.hh"
 #include "ED_asset_menu_utils.hh"
+#include "ED_node.hh"
 #include "ED_screen.hh"
 
 #include "node_intern.hh"

@@ -1243,7 +1243,7 @@ static void console_cursor_set_to_pos(SpaceConsole *sc,
   /* Move text cursor to the last selection point. */
   ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
 
-  if (cl != NULL) {
+  if (cl != nullptr) {
     if (dragging && sc->sel_end > cl->len && pos <= cl->len) {
       /* Do not move cursor while dragging into the editable area. */
     }
@@ -1288,7 +1288,7 @@ static int console_modal_select_invoke(bContext *C, wmOperator *op, const wmEven
   SetConsoleCursor *scu;
 
   ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
-  if (cl != NULL) {
+  if (cl != nullptr) {
     const int pos = console_char_pick(sc, CTX_wm_region(C), event->mval);
     if (pos >= 0 && pos <= cl->len) {
       /* Set text cursor immediately. */
