@@ -250,7 +250,7 @@ static IDProperty *action_asset_type_property(const bAction *action)
   return property;
 }
 
-static void action_asset_pre_save(void *asset_ptr, AssetMetaData *asset_data)
+static void action_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_data)
 {
   bAction *action = (bAction *)asset_ptr;
   BLI_assert(GS(action->id.name) == ID_AC);
@@ -260,7 +260,8 @@ static void action_asset_pre_save(void *asset_ptr, AssetMetaData *asset_data)
 }
 
 static AssetTypeInfo AssetType_AC = {
-    /*pre_save_fn*/ action_asset_pre_save,
+    /*pre_save_fn*/ action_asset_metadata_ensure,
+    /*on_mark_asset_fn*/ action_asset_metadata_ensure,
 };
 
 IDTypeInfo IDType_ID_AC = {
