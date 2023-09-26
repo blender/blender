@@ -7368,10 +7368,11 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   if (mode != GHOST_kGrabDisable) {
     if (grab_state_next.use_lock) {
       if (!grab_state_prev.use_lock) {
-        /* TODO(@ideasman42): As WAYLAND does not support warping the pointer it may not be
-         * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
-         * An alternative could be to draw the cursor in software (and hide the real cursor),
-         * or just accept a locked cursor on WAYLAND. */
+        /* As WAYLAND does not support setting the cursor coordinates programmatically,
+         * #GHOST_kGrabWrap cannot be supported by positioning the cursor directly.
+         * Instead the cursor is locked in place, using a software cursor that is warped.
+         * Then WAYLAND's #zwp_locked_pointer_v1_set_cursor_position_hint is used to restore
+         * the cursor to the warped location. */
         seat->wp.relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
             display_->wp.relative_pointer_manager, seat->wl.pointer);
         zwp_relative_pointer_v1_add_listener(
