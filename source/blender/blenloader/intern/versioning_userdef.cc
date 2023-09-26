@@ -865,6 +865,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->uiflag &= ~USER_UIFLAG_UNUSED_4;
   }
 
+  if (!USER_VERSION_ATLEAST(400, 26)) {
+    userdef->animation_flag |= USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

@@ -5370,6 +5370,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_anim_channel_group_colors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, nullptr, "animation_flag", USER_ANIM_SHOW_CHANNEL_GROUP_COLORS);
+  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(
       prop,
       "Channel Group Colors",
