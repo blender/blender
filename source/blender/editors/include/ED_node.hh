@@ -7,6 +7,7 @@
 #include <optional>
 
 #include "BLI_compute_context.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_vector_set.hh"
 
 #include "ED_node_c.hh"
@@ -14,10 +15,13 @@
 struct SpaceNode;
 struct ARegion;
 struct Main;
+struct bContext;
 struct bNodeSocket;
 struct bNodeTree;
+struct Object;
 struct rcti;
 struct NodesModifierData;
+struct uiLayout;
 
 namespace blender::ed::space_node {
 
