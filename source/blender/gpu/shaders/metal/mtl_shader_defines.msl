@@ -975,7 +975,7 @@ inline void _texture_write_internal_fast(thread _mtl_combined_image_sampler_3d<S
   tex.texture->write(value, uint3(_coord.xyz));
 }
 
-/* Texture atomic operations are only supported in Metal 3.1 and onwards (macOS 14.0 Sonoma). */
+/* Texture atomic operations are only supported in Metal 3.1 and onward (macOS 14.0 Sonoma). */
 #if __METAL_VERSION__ >= 310
 
 /* Image atomic operations. */

@@ -334,9 +334,9 @@ enum {
   PANEL_TYPE_NO_SEARCH = (1 << 7),
 };
 
-/* uilist types */
+/* #uiList types. */
 
-/* Draw an item in the uiList */
+/** Draw an item in the `ui_list`. */
 using uiListDrawItemFunc = void (*)(uiList *ui_list,
                                     const bContext *C,
                                     uiLayout *layout,

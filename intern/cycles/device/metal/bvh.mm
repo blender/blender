@@ -49,7 +49,7 @@ struct BVHMetalBuildThrottler {
     bvh_throttle_printf("safe_wired_limit = %zu\n", safe_wired_limit);
   }
 
-  /* Block until we're safely able to wire the requsted resources. */
+  /* Block until we're safely able to wire the requested resources. */
   void acquire(size_t bytes_to_be_wired)
   {
     bool throttled = false;
@@ -291,8 +291,8 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
     }
     [accelEnc endEncoding];
 
-    /* Estimated size of resources that will be wired for the GPU accelerated build. Accel-struct
-     * size is doubled to account for possible compaction step. */
+    /* Estimated size of resources that will be wired for the GPU accelerated build.
+     * Acceleration-struct size is doubled to account for possible compaction step. */
     size_t wired_size = posBuf.allocatedSize + indexBuf.allocatedSize + scratchBuf.allocatedSize +
                         accel_uncompressed.allocatedSize * 2;
 
@@ -627,8 +627,8 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
     }
     [accelEnc endEncoding];
 
-    /* Estimated size of resources that will be wired for the GPU accelerated build. Accel-struct
-     * size is doubled to account for possible compaction step. */
+    /* Estimated size of resources that will be wired for the GPU accelerated build.
+     * Acceleration-struct size is doubled to account for possible compaction step. */
     size_t wired_size = cpBuffer.allocatedSize + radiusBuffer.allocatedSize +
                         idxBuffer.allocatedSize + scratchBuf.allocatedSize +
                         accel_uncompressed.allocatedSize * 2;
@@ -875,8 +875,8 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
     }
     [accelEnc endEncoding];
 
-    /* Estimated size of resources that will be wired for the GPU accelerated build. Accel-struct
-     * size is doubled to account for possible compaction step. */
+    /* Estimated size of resources that will be wired for the GPU accelerated build.
+     * Acceleration-struct size is doubled to account for possible compaction step. */
     size_t wired_size = aabbBuf.allocatedSize + scratchBuf.allocatedSize +
                         accel_uncompressed.allocatedSize * 2;
 

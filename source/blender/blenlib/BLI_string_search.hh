@@ -27,7 +27,7 @@ struct SearchItem {
 
 struct RecentCache {
   /**
-   * Stores a logical time stamp for each previously choosen search item. The higher the time
+   * Stores a logical time stamp for each previously chosen search item. The higher the time
    * stamp, the more recently the item has been selected.
    */
   Map<std::string, int> logical_time_by_str;
