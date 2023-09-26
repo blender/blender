@@ -1890,6 +1890,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   }
   else {
     tnmd->runtime->cache = std::make_shared<bake::ModifierCache>();
+    update_existing_bake_caches(*tnmd);
     /* Clear the bake path when duplicating. */
     tnmd->simulation_bake_directory = nullptr;
   }
