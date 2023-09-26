@@ -619,9 +619,18 @@ static Set<std::string> get_builtin_menus(const ObjectType object_type, const eO
           menus.add_new("Select");
           menus.add_new("Add");
           menus.add_new("Mesh");
+          menus.add_new("Mesh/Extrude");
+          menus.add_new("Mesh/Clean Up");
+          menus.add_new("Mesh/Delete");
+          menus.add_new("Mesh/Merge");
+          menus.add_new("Mesh/Normals");
+          menus.add_new("Mesh/Shading");
+          menus.add_new("Mesh/Split");
+          menus.add_new("Mesh/Weights");
           menus.add_new("Vertex");
           menus.add_new("Edge");
           menus.add_new("Face");
+          menus.add_new("Face/Face Data");
           menus.add_new("UV");
           break;
         case OB_MODE_SCULPT:
@@ -650,6 +659,10 @@ static Set<std::string> get_builtin_menus(const ObjectType object_type, const eO
 static void catalog_assets_draw(const bContext *C, Menu *menu)
 {
   bScreen &screen = *CTX_wm_screen(C);
+  const Object *active_object = CTX_data_active_object(C);
+  if (!active_object) {
+    return;
+  }
   asset::AssetItemTree *tree = get_static_item_tree(*C);
   if (!tree) {
     return;
@@ -663,15 +676,15 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   asset_system::AssetCatalogTreeItem *catalog_item = tree->catalogs.find_item(menu_path);
   BLI_assert(catalog_item != nullptr);
 
-  if (assets.is_empty() && !catalog_item->has_children()) {
-    return;
-  }
-
   uiLayout *layout = menu->layout;
-  uiItemS(layout);
+  bool add_separator = true;
 
   wmOperatorType *ot = WM_operatortype_find("GEOMETRY_OT_execute_node_group", true);
   for (const asset_system::AssetRepresentation *asset : assets) {
+    if (add_separator) {
+      uiItemS(layout);
+      add_separator = false;
+    }
     PointerRNA props_ptr;
     uiItemFullO_ptr(layout,
                     ot,
@@ -684,6 +697,9 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
     asset::operator_asset_reference_props_set(*asset, props_ptr);
   }
 
+  const Set<std::string> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
+                                                           eObjectMode(active_object->mode));
+
   asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
       asset_system::all_library_reference());
   if (!all_library) {
@@ -691,8 +707,15 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   }
 
   catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &item) {
-      asset::draw_menu_for_catalog(
-          screen, *all_library, item, "GEO_MT_node_operator_catalog_assets", *layout);
+    if (builtin_menus.contains_as(item.catalog_path().str())) {
+      return;
+    }
+    if (add_separator) {
+      uiItemS(layout);
+      add_separator = false;
+    }
+    asset::draw_menu_for_catalog(
+        screen, *all_library, item, "GEO_MT_node_operator_catalog_assets", *layout);
   });
 }
 
@@ -805,7 +828,7 @@ void ui_template_node_operator_asset_menu_items(uiLayout &layout,
   if (!tree) {
     return;
   }
-  const asset_system::AssetCatalogTreeItem *item = tree->catalogs.find_root_item(catalog_path);
+  const asset_system::AssetCatalogTreeItem *item = tree->catalogs.find_item(catalog_path);
   if (!item) {
     return;
   }
@@ -849,7 +872,7 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, const bContext
                                                            eObjectMode(active_object->mode));
 
   tree->catalogs.foreach_root_item([&](asset_system::AssetCatalogTreeItem &item) {
-    if (!builtin_menus.contains(item.get_name())) {
+    if (!builtin_menus.contains_as(item.catalog_path().str())) {
       asset::draw_menu_for_catalog(
           screen, *all_library, item, "GEO_MT_node_operator_catalog_assets", layout);
     }

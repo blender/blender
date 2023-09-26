@@ -56,6 +56,61 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C, const bNodeTre
   return asset::build_filtered_all_catalog_tree(library, C, type_filter, meta_data_filter);
 }
 
+/**
+ * Used to avoid adding a separate root catalog when the assets have already been added to one of
+ * the builtin menus.
+ * TODO: The need to define the builtin menu labels here is completely non-ideal. We don't have
+ * any UI introspection that can do this though. This can be solved in the near future by
+ * removing the need to define the add menu completely, instead using a per-node-type path which
+ * can be merged with catalog tree.
+ */
+static const Set<StringRef> get_builtin_menus()
+{
+  Set<StringRef> menus;
+  menus.add_multiple_new({"Attribute",
+                          "Input",
+                          "Input/Constant",
+                          "Input/Group",
+                          "Input/Scene",
+                          "Output",
+                          "Geometry",
+                          "Geometry/Read",
+                          "Geometry/Sample",
+                          "Geometry/Write",
+                          "Geometry/Operations",
+                          "Curve",
+                          "Curve/Read",
+                          "Curve/Sample",
+                          "Curve/Write",
+                          "Curve/Operations",
+                          "Curve/Primitives",
+                          "Curve/Topology",
+                          "Mesh",
+                          "Mesh/Read",
+                          "Mesh/Sample",
+                          "Mesh/Write",
+                          "Mesh/Operations",
+                          "Mesh/Primitives",
+                          "Mesh/Topology",
+                          "Mesh/UV",
+                          "Point",
+                          "Volume",
+                          "Simulation",
+                          "Material",
+                          "Texture",
+                          "Utilities",
+                          "Utilities/Color",
+                          "Utilities/Text",
+                          "Utilities/Vector",
+                          "Utilities/Field",
+                          "Utilities/Math",
+                          "Utilities/Rotation",
+                          "Group",
+                          "Layout",
+                          "Unassigned"});
+  return menus;
+}
+
 static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
 {
   bScreen &screen = *CTX_wm_screen(C);
@@ -87,9 +142,13 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
   }
 
   uiLayout *layout = menu->layout;
-  uiItemS(layout);
+  bool add_separator = true;
 
   for (const asset_system::AssetRepresentation *asset : assets) {
+    if (add_separator) {
+      uiItemS(layout);
+      add_separator = false;
+    }
     PointerRNA op_ptr;
     uiItemFullO(layout,
                 "NODE_OT_add_group_asset",
@@ -108,7 +167,16 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
     return;
   }
 
+  const Set<StringRef> all_builtin_menus = get_builtin_menus();
+
   catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &item) {
+    if (all_builtin_menus.contains_as(item.catalog_path().str())) {
+      return;
+    }
+    if (add_separator) {
+      uiItemS(layout);
+      add_separator = false;
+    }
     asset::draw_menu_for_catalog(
         screen, *all_library, item, "NODE_MT_node_add_catalog_assets", *layout);
   });
@@ -167,40 +235,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
     uiItemL(layout, IFACE_("Loading Asset Libraries"), ICON_INFO);
   }
 
-  /* Avoid adding a separate root catalog when the assets have already been added to one of the
-   * builtin menus.
-   * TODO: The need to define the builtin menu labels here is completely non-ideal. We don't have
-   * any UI introspection that can do this though. This can be solved in the near future by
-   * removing the need to define the add menu completely, instead using a per-node-type path which
-   * can be merged with catalog tree.
-   */
-  static Set<std::string> all_builtin_menus = []() {
-    Set<std::string> menus;
-    menus.add_new("Attribute");
-    menus.add_new("Color");
-    menus.add_new("Curve");
-    menus.add_new("Curve Primitives");
-    menus.add_new("Curve Topology");
-    menus.add_new("Geometry");
-    menus.add_new("Input");
-    menus.add_new("Instances");
-    menus.add_new("Material");
-    menus.add_new("Mesh");
-    menus.add_new("Mesh Primitives");
-    menus.add_new("Mesh Topology");
-    menus.add_new("Output");
-    menus.add_new("Point");
-    menus.add_new("Text");
-    menus.add_new("Texture");
-    menus.add_new("Tool");
-    menus.add_new("Utilities");
-    menus.add_new("UV");
-    menus.add_new("Vector");
-    menus.add_new("Volume");
-    menus.add_new("Group");
-    menus.add_new("Layout");
-    return menus;
-  }();
+  const Set<StringRef> all_builtin_menus = get_builtin_menus();
 
   asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
       asset_system::all_library_reference());
@@ -209,7 +244,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
   }
 
   tree.catalogs.foreach_root_item([&](asset_system::AssetCatalogTreeItem &item) {
-    if (!all_builtin_menus.contains(item.get_name())) {
+    if (!all_builtin_menus.contains_as(item.catalog_path().str())) {
       asset::draw_menu_for_catalog(
           screen, *all_library, item, "NODE_MT_node_add_catalog_assets", *layout);
     }
@@ -266,7 +301,7 @@ void ui_template_node_asset_menu_items(uiLayout &layout,
     return;
   }
   asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
-  const asset_system::AssetCatalogTreeItem *item = tree.catalogs.find_root_item(catalog_path);
+  const asset_system::AssetCatalogTreeItem *item = tree.catalogs.find_item(catalog_path);
   if (!item) {
     return;
   }
