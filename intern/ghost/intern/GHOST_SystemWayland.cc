@@ -2537,7 +2537,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
       flist->count = int(uris.size());
       flist->strings = static_cast<uint8_t **>(malloc(uris.size() * sizeof(uint8_t *)));
       for (size_t i = 0; i < uris.size(); i++) {
-        flist->strings[i] = (uint8_t *)GHOST_URL_decode_alloc(uris[i].c_str());
+        flist->strings[i] = reinterpret_cast<uint8_t *>(GHOST_URL_decode_alloc(uris[i].c_str()));
       }
 
       CLOG_INFO(LOG, 2, "drop_read_uris_fn file_count=%d", flist->count);
@@ -3688,7 +3688,8 @@ static void tablet_seat_handle_tool_added(void *data,
   tablet_tool->wl.surface_cursor = wl_compositor_create_surface(seat->system->wl_compositor_get());
   ghost_wl_surface_tag_cursor_tablet(tablet_tool->wl.surface_cursor);
 
-  wl_surface_add_listener(tablet_tool->wl.surface_cursor, &cursor_surface_listener, (void *)seat);
+  wl_surface_add_listener(
+      tablet_tool->wl.surface_cursor, &cursor_surface_listener, static_cast<void *>(seat));
 
   zwp_tablet_tool_v2_add_listener(id, &tablet_tool_listner, tablet_tool);
 
@@ -6416,12 +6417,13 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
-  wl_surface *wl_surface = (struct wl_surface *)((GHOST_Context *)context)->getUserData();
+  wl_surface *wl_surface = static_cast<struct wl_surface *>(
+      (static_cast<GHOST_Context *>(context))->getUserData());
   /* Delete the context before the window so the context is able to release
    * native resources (such as the #EGLSurface) before WAYLAND frees them. */
   delete context;
 
-  wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
+  wl_egl_window *egl_window = static_cast<wl_egl_window *>(wl_surface_get_user_data(wl_surface));
   if (egl_window != nullptr) {
     wl_egl_window_destroy(egl_window);
   }
@@ -6811,7 +6813,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_bitmap_get(GHOST_CursorBitmapRef *bit
   bitmap->hot_spot[0] = cursor->wl.image.hotspot_x;
   bitmap->hot_spot[1] = cursor->wl.image.hotspot_y;
 
-  bitmap->data = (uint8_t *)static_cast<void *>(cursor->custom_data);
+  bitmap->data = static_cast<uint8_t *>(cursor->custom_data);
 
   return GHOST_kSuccess;
 }
@@ -6923,12 +6925,14 @@ static const char *ghost_wl_surface_cursor_tablet_tag_id = "GHOST-cursor-tablet"
 
 bool ghost_wl_output_own(const wl_output *wl_output)
 {
-  return wl_proxy_get_tag((wl_proxy *)wl_output) == &ghost_wl_output_tag_id;
+  const wl_proxy *proxy = reinterpret_cast<const wl_proxy *>(wl_output);
+  return wl_proxy_get_tag(const_cast<wl_proxy *>(proxy)) == &ghost_wl_output_tag_id;
 }
 
 bool ghost_wl_surface_own(const wl_surface *wl_surface)
 {
-  return wl_proxy_get_tag((wl_proxy *)wl_surface) == &ghost_wl_surface_tag_id;
+  const wl_proxy *proxy = reinterpret_cast<const wl_proxy *>(wl_surface);
+  return wl_proxy_get_tag(const_cast<wl_proxy *>(proxy)) == &ghost_wl_surface_tag_id;
 }
 
 bool ghost_wl_surface_own_with_null_check(const wl_surface *wl_surface)
@@ -6938,32 +6942,39 @@ bool ghost_wl_surface_own_with_null_check(const wl_surface *wl_surface)
 
 bool ghost_wl_surface_own_cursor_pointer(const wl_surface *wl_surface)
 {
-  return wl_proxy_get_tag((wl_proxy *)wl_surface) == &ghost_wl_surface_cursor_pointer_tag_id;
+  const wl_proxy *proxy = reinterpret_cast<const wl_proxy *>(wl_surface);
+  return wl_proxy_get_tag(const_cast<wl_proxy *>(proxy)) ==
+         &ghost_wl_surface_cursor_pointer_tag_id;
 }
 
 bool ghost_wl_surface_own_cursor_tablet(const wl_surface *wl_surface)
 {
-  return wl_proxy_get_tag((wl_proxy *)wl_surface) == &ghost_wl_surface_cursor_tablet_tag_id;
+  const wl_proxy *proxy = reinterpret_cast<const wl_proxy *>(wl_surface);
+  return wl_proxy_get_tag(const_cast<wl_proxy *>(proxy)) == &ghost_wl_surface_cursor_tablet_tag_id;
 }
 
 void ghost_wl_output_tag(wl_output *wl_output)
 {
-  wl_proxy_set_tag((wl_proxy *)wl_output, &ghost_wl_output_tag_id);
+  wl_proxy *proxy = reinterpret_cast<wl_proxy *>(wl_output);
+  wl_proxy_set_tag(proxy, &ghost_wl_output_tag_id);
 }
 
 void ghost_wl_surface_tag(wl_surface *wl_surface)
 {
-  wl_proxy_set_tag((wl_proxy *)wl_surface, &ghost_wl_surface_tag_id);
+  wl_proxy *proxy = reinterpret_cast<wl_proxy *>(wl_surface);
+  wl_proxy_set_tag(proxy, &ghost_wl_surface_tag_id);
 }
 
 void ghost_wl_surface_tag_cursor_pointer(wl_surface *wl_surface)
 {
-  wl_proxy_set_tag((wl_proxy *)wl_surface, &ghost_wl_surface_cursor_pointer_tag_id);
+  wl_proxy *proxy = reinterpret_cast<wl_proxy *>(wl_surface);
+  wl_proxy_set_tag(proxy, &ghost_wl_surface_cursor_pointer_tag_id);
 }
 
 void ghost_wl_surface_tag_cursor_tablet(wl_surface *wl_surface)
 {
-  wl_proxy_set_tag((wl_proxy *)wl_surface, &ghost_wl_surface_cursor_tablet_tag_id);
+  wl_proxy *proxy = reinterpret_cast<wl_proxy *>(wl_surface);
+  wl_proxy_set_tag(proxy, &ghost_wl_surface_cursor_tablet_tag_id);
 }
 
 /** \} */
