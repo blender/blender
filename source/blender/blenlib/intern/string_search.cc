@@ -11,6 +11,7 @@
 #include "BLI_string_search.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utf8_symbols.h"
+#include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
 /* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.hh`. */
@@ -448,13 +449,20 @@ Vector<void *> StringSearchBase::query_impl(const StringRef query) const
   string_search::extract_normalized_words(query, allocator, query_words, word_weights);
 
   /* Compute score of every result. */
+  Array<std::optional<float>> all_scores(items_.size());
+  threading::parallel_for(items_.index_range(), 256, [&](const IndexRange range) {
+    for (const int i : range) {
+      const SearchItem &item = items_[i];
+      const std::optional<float> score = string_search::score_query_against_words(
+          query_words, item.normalized_words, item.word_weight_factors);
+      all_scores[i] = score;
+    }
+  });
   MultiValueMap<float, int> result_indices_by_score;
-  for (const int result_index : items_.index_range()) {
-    const SearchItem &item = items_[result_index];
-    const std::optional<float> score = string_search::score_query_against_words(
-        query_words, item.normalized_words, item.word_weight_factors);
+  for (const int i : items_.index_range()) {
+    const std::optional<float> score = all_scores[i];
     if (score.has_value()) {
-      result_indices_by_score.add(*score, result_index);
+      result_indices_by_score.add(*score, i);
     }
   }
 
