@@ -161,8 +161,6 @@ class NODE_HT_header(Header):
                             row.template_ID(active_modifier, "node_group", new="node.new_geometry_node_group_assign")
                     else:
                         row.template_ID(snode, "node_tree", new="node.new_geometry_nodes_modifier")
-                if snode.node_tree and snode.node_tree.asset_data:
-                    layout.popover(panel="NODE_PT_geometry_node_modifier")
             else:
                 layout.template_ID(snode, "node_tree", new="node.new_geometry_node_group_tool")
                 if snode.node_tree and snode.node_tree.asset_data:
@@ -482,22 +480,6 @@ class NODE_PT_geometry_node_tool_mode(Panel):
             row_checkbox.prop(group, prop, text="")
             row_label = row.row()
             row_label.label(text=name, icon=icon)
-
-
-class NODE_PT_geometry_node_modifier(Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'HEADER'
-    bl_label = "Modifier"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        snode = context.space_data
-        group = snode.node_tree
-
-        layout.prop(group, "is_modifier")
 
 
 class NODE_PT_node_color_presets(PresetPanel, Panel):
@@ -976,6 +958,38 @@ class NODE_PT_node_tree_interface(Panel):
             layout.use_property_split = False
 
 
+class NODE_PT_node_tree_properties(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Group"
+    bl_label = "Properties"
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        if snode is None:
+            return False
+        group = snode.edit_tree
+        if group is None:
+            return False
+        if group.is_embedded_data:
+            return False
+        if group.bl_idname != "GeometryNodeTree":
+            return False
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        snode = context.space_data
+        group = snode.edit_tree
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+        col.prop(group, "is_modifier")
+        col.prop(group, "is_tool")
+
+
 class NODE_UL_simulation_zone_items(bpy.types.UIList):
     def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, _index):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -1180,12 +1194,12 @@ classes = (
     NODE_MT_context_menu,
     NODE_MT_view_pie,
     NODE_PT_material_slots,
-    NODE_PT_geometry_node_modifier,
     NODE_PT_geometry_node_tool_object_types,
     NODE_PT_geometry_node_tool_mode,
     NODE_PT_node_color_presets,
     NODE_MT_node_tree_interface_context_menu,
     NODE_PT_node_tree_interface,
+    NODE_PT_node_tree_properties,
     NODE_PT_active_node_generic,
     NODE_PT_active_node_color,
     NODE_PT_texture_mapping,

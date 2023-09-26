@@ -2507,30 +2507,27 @@ static void rna_SpaceNodeEditor_node_tree_set(PointerRNA *ptr,
   ED_node_tree_start(snode, (bNodeTree *)value.data, nullptr, nullptr);
 }
 
-static bool space_node_node_geometry_nodes_tool_poll(const SpaceNode &snode,
-                                                     const bNodeTree &ntree)
+static bool space_node_node_geometry_nodes_poll(const SpaceNode &snode, const bNodeTree &ntree)
 {
-  if (snode.geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
-    if (!ntree.id.asset_data) {
-      /* Only assets can be tools. */
-      return false;
-    }
-    if (!ntree.geometry_node_asset_traits ||
-        (ntree.geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL) == 0)
-    {
-      /* Only node groups specifically marked as tools can be tools. */
-      return false;
-    }
+  switch (SpaceNodeGeometryNodesType(snode.geometry_nodes_type)) {
+    case SNODE_GEOMETRY_MODIFIER:
+      if (!ntree.geometry_node_asset_traits) {
+        return false;
+      }
+      if ((ntree.geometry_node_asset_traits->flag & GEO_NODE_ASSET_MODIFIER) == 0) {
+        return false;
+      }
+      return true;
+    case SNODE_GEOMETRY_TOOL:
+      if (!ntree.geometry_node_asset_traits) {
+        return false;
+      }
+      if ((ntree.geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL) == 0) {
+        return false;
+      }
+      return true;
   }
-  else {
-    if (ntree.geometry_node_asset_traits &&
-        ntree.geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL)
-    {
-      /* Tool node groups cannot be modifiers. */
-      return false;
-    }
-  }
-  return true;
+  return false;
 }
 
 static bool rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, const PointerRNA value)
@@ -2543,10 +2540,8 @@ static bool rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, const PointerRNA
     return false;
   }
   if (ntree->type == NTREE_GEOMETRY) {
-    if (snode->geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
-      if (!space_node_node_geometry_nodes_tool_poll(*snode, *ntree)) {
-        return false;
-      }
+    if (!space_node_node_geometry_nodes_poll(*snode, *ntree)) {
+      return false;
     }
   }
   return true;
@@ -2559,7 +2554,7 @@ static void rna_SpaceNodeEditor_geometry_nodes_type_update(Main * /*bmain*/,
   SpaceNode &snode = *static_cast<SpaceNode *>(ptr->data);
   if (snode.nodetree) {
     if (snode.nodetree->type == NTREE_GEOMETRY) {
-      if (!space_node_node_geometry_nodes_tool_poll(snode, *snode.nodetree)) {
+      if (!space_node_node_geometry_nodes_poll(snode, *snode.nodetree)) {
         snode.nodetree = nullptr;
       }
     }

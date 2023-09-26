@@ -977,6 +977,34 @@ static void version_node_group_split_socket(bNodeTreeInterface &tree_interface,
   csocket->flag &= ~NODE_INTERFACE_SOCKET_OUTPUT;
 }
 
+static void enable_geometry_nodes_is_modifier(Main &bmain)
+{
+  /* Any node group with a first socket geometry output can potentially be a modifier. Previously
+   * this wasn't an explicit option, so better to enable too many groups rather than too few. */
+  LISTBASE_FOREACH (bNodeTree *, group, &bmain.nodetrees) {
+    if (group->type != NTREE_GEOMETRY) {
+      continue;
+    }
+    group->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
+      if (item.item_type != NODE_INTERFACE_SOCKET) {
+        return true;
+      }
+      const auto &socket = reinterpret_cast<const bNodeTreeInterfaceSocket &>(item);
+      if ((socket.flag & NODE_INTERFACE_SOCKET_OUTPUT) == 0) {
+        return true;
+      }
+      if (!STREQ(socket.socket_type, "NodeSocketGeometry")) {
+        return true;
+      }
+      if (!group->geometry_node_asset_traits) {
+        group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
+      }
+      group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
+      return false;
+    });
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -1443,6 +1471,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 26)) {
+    enable_geometry_nodes_is_modifier(*bmain);
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->simulation_frame_start = scene->r.sfra;
+      scene->simulation_frame_end = scene->r.efra;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1455,10 +1492,5 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      scene->simulation_frame_start = scene->r.sfra;
-      scene->simulation_frame_end = scene->r.efra;
-    }
   }
 }
