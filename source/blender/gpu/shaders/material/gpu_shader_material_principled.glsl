@@ -137,13 +137,12 @@ void node_bsdf_principled(vec4 base_color,
   ClosureReflection reflection_data;
   reflection_data.N = N;
   reflection_data.roughness = roughness;
-
+  vec3 reflection_tint = specular_tint.rgb;
   if (metallic > 0.0) {
     vec3 F0 = base_color.rgb;
-    vec3 F90 = vec3(1.0);
-    vec2 split_sum = brdf_lut(NV, roughness);
-    vec3 metallic_brdf = (do_multiscatter != 0.0) ? F_brdf_multi_scatter(F0, F90, split_sum) :
-                                                    F_brdf_single_scatter(F0, F90, split_sum);
+    vec3 F82 = reflection_tint;
+    vec3 metallic_brdf;
+    brdf_f82_tint_lut(F0, F82, NV, roughness, do_multiscatter != 0.0, metallic_brdf);
     reflection_data.color = weight * metallic * metallic_brdf;
     /* Attenuate lower layers */
     weight *= (1.0 - metallic);
@@ -157,7 +156,6 @@ void node_bsdf_principled(vec4 base_color,
   refraction_data.N = N;
   refraction_data.roughness = roughness;
   refraction_data.ior = ior;
-  vec3 reflection_tint = specular_tint.rgb;
   if (transmission_weight > 0.0) {
     vec3 F0 = vec3(F0_from_ior(ior)) * reflection_tint;
     vec3 F90 = vec3(1.0);

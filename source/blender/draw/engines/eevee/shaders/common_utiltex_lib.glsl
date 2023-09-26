@@ -20,7 +20,7 @@ uniform sampler2DArray utilTex;
 #define LUT_SIZE 64
 
 #define LTC_MAT_LAYER 0
-#define LTC_BRDF_LAYER 1
+#define LTC_BRDF_LAYER 3
 #define BRDF_LUT_LAYER 1
 #define NOISE_LAYER 2
 #define LTC_DISK_LAYER 3 /* UNUSED */
@@ -49,6 +49,34 @@ vec2 lut_coords(float cos_theta, float roughness)
 vec2 brdf_lut(float cos_theta, float roughness)
 {
   return textureLod(utilTex, vec3(lut_coords(cos_theta, roughness), BRDF_LUT_LAYER), 0.0).rg;
+}
+
+void brdf_f82_tint_lut(vec3 F0,
+                       vec3 F82,
+                       float cos_theta,
+                       float roughness,
+                       bool do_multiscatter,
+                       out vec3 reflectance)
+{
+  vec2 uv = lut_coords(cos_theta, roughness);
+  vec3 split_sum = textureLod(utilTex, vec3(uv, BRDF_LUT_LAYER), 0.0).rgb;
+
+  reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, vec3(1.0), split_sum.xy) :
+                                  F_brdf_single_scatter(F0, vec3(1.0), split_sum.xy);
+
+  /* Precompute the F82 term factor for the Fresnel model.
+   * In the classic F82 model, the F82 input directly determines the value of the Fresnel
+   * model at ~82°, similar to F0 and F90.
+   * With F82-Tint, on the other hand, the value at 82° is the value of the classic Schlick
+   * model multiplied by the tint input.
+   * Therefore, the factor follows by setting F82Tint(cosI) = FSchlick(cosI) - b*cosI*(1-cosI)^6
+   * and F82Tint(acos(1/7)) = FSchlick(acos(1/7)) * f82_tint and solving for b. */
+  const float f = 6.0 / 7.0;
+  const float f5 = (f * f) * (f * f) * f;
+  const float f6 = (f * f) * (f * f) * (f * f);
+  vec3 F_schlick = mix(F0, vec3(1.0), f5);
+  vec3 b = F_schlick * (7.0 / f6) * (1.0 - F82);
+  reflectance -= b * split_sum.z;
 }
 
 vec4 sample_3D_texture(sampler2DArray tex, vec3 coords)

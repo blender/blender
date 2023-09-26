@@ -300,6 +300,37 @@ vec2 brdf_lut(float cos_theta, float roughness)
 #endif
 }
 
+void brdf_f82_tint_lut(vec3 F0,
+                       vec3 F82,
+                       float cos_theta,
+                       float roughness,
+                       bool do_multiscatter,
+                       out vec3 reflectance)
+{
+#ifdef EEVEE_UTILITY_TX
+  vec3 split_sum = utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rgb;
+#else
+  vec3 split_sum = vec2(1.0, 0.0, 0.0);
+#endif
+
+  reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, vec3(1.0), split_sum.xy) :
+                                  F_brdf_single_scatter(F0, vec3(1.0), split_sum.xy);
+
+  /* Precompute the F82 term factor for the Fresnel model.
+   * In the classic F82 model, the F82 input directly determines the value of the Fresnel
+   * model at ~82°, similar to F0 and F90.
+   * With F82-Tint, on the other hand, the value at 82° is the value of the classic Schlick
+   * model multiplied by the tint input.
+   * Therefore, the factor follows by setting F82Tint(cosI) = FSchlick(cosI) - b*cosI*(1-cosI)^6
+   * and F82Tint(acos(1/7)) = FSchlick(acos(1/7)) * f82_tint and solving for b. */
+  const float f = 6.0 / 7.0;
+  const float f5 = (f * f) * (f * f) * f;
+  const float f6 = (f * f) * (f * f) * (f * f);
+  vec3 F_schlick = mix(F0, vec3(1.0), f5);
+  vec3 b = F_schlick * (7.0 / f6) * (1.0 - F82);
+  reflectance -= b * split_sum.z;
+}
+
 /* Return texture coordinates to sample BSDF LUT. */
 vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
 {

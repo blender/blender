@@ -104,6 +104,12 @@ void bsdf_lut(vec3 F0,
               out vec3 reflectance,
               out vec3 transmittance);
 vec2 brdf_lut(float a, float b);
+void brdf_f82_tint_lut(vec3 F0,
+                       vec3 F82,
+                       float cos_theta,
+                       float roughness,
+                       bool do_multiscatter,
+                       out vec3 reflectance);
 vec3 F_brdf_multi_scatter(vec3 a, vec3 b, vec2 c);
 vec3 F_brdf_single_scatter(vec3 a, vec3 b, vec2 c);
 float F_eta(float a, float b);
