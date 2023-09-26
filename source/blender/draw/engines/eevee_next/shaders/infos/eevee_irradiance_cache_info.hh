@@ -72,6 +72,7 @@ GPU_SHADER_CREATE_INFO(eevee_surfel_common)
     .storage_buf(CAPTURE_BUF_SLOT, Qualifier::READ, "CaptureInfoData", "capture_info_buf");
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_light)
+    .define("SURFEL_LIGHT")
     .local_group_size(SURFEL_GROUP_SIZE)
     .additional_info("eevee_shared",
                      "draw_view",

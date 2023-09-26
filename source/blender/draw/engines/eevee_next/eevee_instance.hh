@@ -116,7 +116,7 @@ class Instance {
         materials(*this),
         subsurface(*this, global_ubo_.subsurface),
         pipelines(*this),
-        shadows(*this),
+        shadows(*this, global_ubo_.shadow),
         lights(*this),
         ambient_occlusion(*this, global_ubo_.ao),
         raytracing(*this, global_ubo_.raytrace),

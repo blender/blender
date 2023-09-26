@@ -119,23 +119,6 @@ vec3 volume_shadow(LightData ld, vec3 ray_wpos, vec3 L, float l_dist, sampler3D 
 
   vec4 l_vector = vec4(L * l_dist, l_dist);
 
-/* TODO(Miguel Pozo): Soft shadows support. */
-#  if 0
-  /* If light is shadowed, use the shadow vector, if not, reuse the light vector. */
-  if (uniform_buf.volumes.use_soft_shadows && ld.shadowid >= 0.0) {
-    ShadowData sd = shadows_data[int(ld.shadowid)];
-
-    if (ld.type == LIGHT_SUN) {
-      l_vector.xyz = shadows_cascade_data[int(sd.sh_data_index)].sh_shadow_vec;
-      /* No need for length, it is recomputed later. */
-    }
-    else {
-      l_vector.xyz = shadows_cube_data[int(sd.sh_data_index)].position.xyz - ray_wpos;
-      l_vector.w = length(l_vector.xyz);
-    }
-  }
-#  endif
-
   /* Heterogeneous volume shadows. */
   float dd = l_vector.w / uniform_buf.volumes.shadow_steps;
   L = l_vector.xyz / uniform_buf.volumes.shadow_steps;

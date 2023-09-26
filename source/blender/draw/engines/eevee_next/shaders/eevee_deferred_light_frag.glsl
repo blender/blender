@@ -10,8 +10,8 @@
 
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -20,8 +20,6 @@ void main()
   float depth = texelFetch(hiz_tx, texel, 0).r;
   vec3 P = get_world_space_from_depth(uvcoordsvar.xy, depth);
 
-  /* TODO(fclem): High precision derivative. */
-  vec3 Ng = safe_normalize(cross(dFdx(P), dFdy(P)));
   vec3 V = cameraVec(P);
   float vP_z = dot(cameraForward, P) - dot(cameraForward, cameraPos);
 
@@ -31,6 +29,10 @@ void main()
   vec3 reflection_light = vec3(0.0);
   vec3 refraction_light = vec3(0.0);
   float shadow = 1.0;
+
+  /* Assume reflection closure normal is always somewhat representative of the geometric normal.
+   * Ng is only used for shadow biases and subsurface check in this case. */
+  vec3 Ng = gbuf.has_reflection ? gbuf.reflection.N : gbuf.diffuse.N;
 
   light_eval(gbuf.diffuse,
              gbuf.reflection,

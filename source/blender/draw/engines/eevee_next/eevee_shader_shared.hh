@@ -767,7 +767,7 @@ struct LightData {
   float transmit_power;
 
   /** --- Shadow Data --- */
-  /** Directional : Near clip distance. Float stored as int for atomic operations. */
+  /** Near clip distances. Float stored as int for atomic operations. */
   int clip_near;
   int clip_far;
   /** Directional : Clip-map LOD range to avoid sampling outside of valid range. */
@@ -777,8 +777,17 @@ struct LightData {
   int tilemap_index;
   /** Directional : Offset of the LOD min in LOD min tile units. */
   int2 clipmap_base_offset;
-  /** Punctual & Directional : Normal matrix packed for automatic bias. */
-  float2 normal_mat_packed;
+  /** Number of step for shadow map tracing. */
+  int shadow_ray_step_count;
+  /** Punctual: Other parts of the perspective matrix. */
+  float clip_side;
+  /** Punctual: Shift to apply to the light origin to get the shadow projection origin. */
+  float shadow_projection_shift;
+  /** Scaling factor to the light shape for shadow ray casting. */
+  float shadow_shape_scale_or_angle;
+  /** Trace distance for directional lights. */
+  float shadow_trace_distance;
+  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 
@@ -842,7 +851,7 @@ struct ShadowTileMapData {
   /** Near and far clip distances for punctual. */
   float clip_near;
   float clip_far;
-  /** Half of the tilemap size in world units. Used to compute directional window matrix. */
+  /** Half of the tilemap size in world units. Used to compute window matrix. */
   float half_size;
   /** Offset in local space to the tilemap center in world units. Used for directional winmat. */
   float2 center_offset;
@@ -975,6 +984,17 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
   data |= (tile.do_update ? uint(SHADOW_DO_UPDATE) : 0);
   return data;
 }
+
+struct ShadowSceneData {
+  /* Number of shadow rays to shoot for each light. */
+  int ray_count;
+  /* Number of shadow samples to take for each shadow ray. */
+  int step_count;
+  /* Bias the shading point by using the normal to avoid self intersection. */
+  float normal_bias;
+  int _pad2;
+};
+BLI_STATIC_ASSERT_ALIGN(ShadowSceneData, 16)
 
 /** \} */
 
@@ -1303,6 +1323,7 @@ struct UniformData {
   HiZData hiz;
   RayTraceData raytrace;
   RenderBuffersInfoData render_pass;
+  ShadowSceneData shadow;
   SubsurfaceData subsurface;
   VolumesInfoData volumes;
 };

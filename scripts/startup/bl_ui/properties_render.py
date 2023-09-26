@@ -753,6 +753,9 @@ class RENDER_PT_eevee_next_shadows(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(props, "shadow_pool_size", text="Pool Size")
+        col.prop(props, "shadow_ray_count")
+        col.prop(props, "shadow_step_count")
+        col.prop(props, "shadow_normal_bias")
         col.prop(props, "light_threshold")
 
 
