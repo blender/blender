@@ -325,22 +325,27 @@ class NODE_MT_node(Menu):
         layout.operator("transform.resize")
 
         layout.separator()
-        layout.operator("node.clipboard_copy", text="Copy")
+        layout.operator("node.clipboard_copy", text="Copy", icon="COPYDOWN")
         layout.operator_context = 'EXEC_DEFAULT'
-        layout.operator("node.clipboard_paste", text="Paste")
+        layout.operator("node.clipboard_paste", text="Paste", icon="PASTEDOWN")
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("node.duplicate_move")
+        layout.operator("node.duplicate_move", icon="DUPLICATE")
         layout.operator("node.duplicate_move_linked")
-        layout.operator("node.delete")
+
+        layout.separator()
+        layout.operator("node.delete", icon="X")
         layout.operator("node.delete_reconnect")
 
         layout.separator()
-
         layout.operator("node.join", text="Join in New Frame")
         layout.operator("node.detach", text="Remove from Frame")
 
         layout.separator()
+        props = layout.operator("wm.call_panel", text="Rename...")
+        props.name = "TOPBAR_PT_name"
+        props.keep_open = False
 
+        layout.separator()
         layout.operator("node.link_make").replace = False
         layout.operator("node.link_make", text="Make and Replace Links").replace = True
         layout.operator("node.links_cut")
@@ -348,26 +353,17 @@ class NODE_MT_node(Menu):
         layout.operator("node.links_mute")
 
         layout.separator()
-
-        layout.operator("node.group_make")
+        layout.operator("node.group_make", icon="NODETREE")
         layout.operator("node.group_insert", text="Insert Into Group")
         layout.operator("node.group_edit").exit = False
         layout.operator("node.group_ungroup")
 
         layout.separator()
-
-        layout.operator("node.hide_toggle")
-        layout.operator("node.mute_toggle")
-        if is_compositor:
-            layout.operator("node.preview_toggle")
-        layout.operator("node.hide_socket_toggle")
-        layout.operator("node.options_toggle")
-        layout.operator("node.collapse_hide_unused_toggle")
+        layout.menu("NODE_MT_context_menu_show_hide_menu")
 
         if is_compositor:
             layout.separator()
-
-            layout.operator("node.read_viewlayers")
+            layout.operator("node.read_viewlayers", icon="RENDERLAYERS")
 
 
 class NODE_MT_view_pie(Menu):
