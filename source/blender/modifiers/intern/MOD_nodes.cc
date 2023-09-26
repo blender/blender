@@ -444,17 +444,19 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
   }
 
   Vector<int> new_bake_ids;
-  for (const bNestedNodeRef &ref : nmd.node_group->nested_node_refs_span()) {
-    const bNode *node = nmd.node_group->find_nested_node(ref.id);
-    if (node) {
-      if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
+  if (nmd.node_group) {
+    for (const bNestedNodeRef &ref : nmd.node_group->nested_node_refs_span()) {
+      const bNode *node = nmd.node_group->find_nested_node(ref.id);
+      if (node) {
+        if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
+          new_bake_ids.append(ref.id);
+        }
+      }
+      else if (old_bake_by_id.contains(ref.id)) {
+        /* Keep baked data in case linked data is missing so that it still exists when the linked
+         * data has been found. */
         new_bake_ids.append(ref.id);
       }
-    }
-    else if (old_bake_by_id.contains(ref.id)) {
-      /* Keep baked data in case linked data is missing so that it still exists when the linked
-       * data has been found. */
-      new_bake_ids.append(ref.id);
     }
   }
 
