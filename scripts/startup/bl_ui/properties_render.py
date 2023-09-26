@@ -652,7 +652,7 @@ class RENDER_PT_eevee_next_raytracing_reflection(EeveeRaytracingOptionsPanel):
     def draw_header(self, context):
         layout = self.layout
         if context.scene.eevee.ray_split_settings == 'UNIFIED':
-            layout.label(text="Reflection & Refraction")
+            layout.label(text="Reflection & Refraction & Diffuse")
         else:
             layout.label(text="Reflection")
 
@@ -704,6 +704,35 @@ class RENDER_PT_eevee_next_denoise_refraction(EeveeRaytracingDenoisePanel):
 
     def draw(self, context):
         self.draw_internal(context.scene.eevee.refraction_options)
+
+
+class RENDER_PT_eevee_next_raytracing_diffuse(EeveeRaytracingOptionsPanel):
+    bl_label = "Diffuse"
+    bl_parent_id = "RENDER_PT_eevee_next_raytracing"
+
+    @classmethod
+    def poll(cls, context):
+        return (context.scene.eevee.ray_split_settings == 'SPLIT')
+
+    def draw(self, context):
+        self.draw_internal(context, context.scene.eevee.diffuse_options)
+
+
+class RENDER_PT_eevee_next_screen_trace_diffuse(EeveeRaytracingScreenOption):
+    bl_parent_id = "RENDER_PT_eevee_next_raytracing_diffuse"
+
+    def draw(self, context):
+        self.draw_internal(context.scene.eevee.diffuse_options)
+
+
+class RENDER_PT_eevee_next_denoise_diffuse(EeveeRaytracingDenoisePanel):
+    bl_parent_id = "RENDER_PT_eevee_next_raytracing_diffuse"
+
+    def draw_header(self, context):
+        self.draw_header_internal(context.scene.eevee.diffuse_options)
+
+    def draw(self, context):
+        self.draw_internal(context.scene.eevee.diffuse_options)
 
 
 class RENDER_PT_eevee_shadows(RenderButtonsPanel, Panel):
@@ -1240,10 +1269,13 @@ classes = (
     RENDER_PT_eevee_next_raytracing,
     RENDER_PT_eevee_next_raytracing_reflection,
     RENDER_PT_eevee_next_raytracing_refraction,
+    RENDER_PT_eevee_next_raytracing_diffuse,
     RENDER_PT_eevee_next_screen_trace_reflection,
     RENDER_PT_eevee_next_screen_trace_refraction,
+    RENDER_PT_eevee_next_screen_trace_diffuse,
     RENDER_PT_eevee_next_denoise_reflection,
     RENDER_PT_eevee_next_denoise_refraction,
+    RENDER_PT_eevee_next_denoise_diffuse,
     RENDER_PT_eevee_motion_blur,
     RENDER_PT_eevee_next_motion_blur,
     RENDER_PT_motion_blur_curve,

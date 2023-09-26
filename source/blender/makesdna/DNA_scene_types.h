@@ -1895,6 +1895,7 @@ typedef struct SceneEEVEE {
 
   struct RaytraceEEVEE reflection_options;
   struct RaytraceEEVEE refraction_options;
+  struct RaytraceEEVEE diffuse_options;
 
   struct LightCache *light_cache DNA_DEPRECATED;
   struct LightCache *light_cache_data;

@@ -1510,5 +1510,12 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         light->shadow_trace_distance = default_light.shadow_trace_distance;
       }
     }
+
+    if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "RaytraceEEVEE", "diffuse_options"))
+    {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        scene->eevee.diffuse_options = scene->eevee.reflection_options;
+      }
+    }
   }
 }

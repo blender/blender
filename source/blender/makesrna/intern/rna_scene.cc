@@ -8120,6 +8120,11 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "RaytraceEEVEE");
   RNA_def_property_ui_text(
       prop, "Refraction Trace Options", "EEVEE settings for tracing refractions");
+
+  prop = RNA_def_property(srna, "diffuse_options", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "RaytraceEEVEE");
+  RNA_def_property_ui_text(
+      prop, "Diffuse Trace Options", "EEVEE settings for tracing diffuse reflections");
 }
 
 static void rna_def_scene_gpencil(BlenderRNA *brna)

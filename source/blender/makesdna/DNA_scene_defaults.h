@@ -238,6 +238,7 @@
  \
     .reflection_options = _DNA_DEFAULT_RaytraceEEVEE, \
     .refraction_options = _DNA_DEFAULT_RaytraceEEVEE, \
+    .diffuse_options = _DNA_DEFAULT_RaytraceEEVEE, \
  \
     .light_cache_data = NULL, \
     .light_threshold = 0.01f, \
