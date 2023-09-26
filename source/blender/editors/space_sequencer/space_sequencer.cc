@@ -95,7 +95,8 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   sseq->preview_overlay.flag = SEQ_PREVIEW_SHOW_GPENCIL | SEQ_PREVIEW_SHOW_OUTLINE_SELECTED;
   sseq->timeline_overlay.flag = SEQ_TIMELINE_SHOW_STRIP_NAME | SEQ_TIMELINE_SHOW_STRIP_SOURCE |
                                 SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID |
-                                SEQ_TIMELINE_SHOW_FCURVES | SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG;
+                                SEQ_TIMELINE_SHOW_FCURVES | SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG |
+                                SEQ_TIMELINE_SHOW_STRIP_RETIMING;
 
   BLI_rctf_init(&sseq->runtime.last_thumbnail_area, 0.0f, 0.0f, 0.0f, 0.0f);
   sseq->runtime.last_displayed_thumbnails = nullptr;
@@ -428,21 +429,14 @@ static void SEQUENCER_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
 
 static void sequencer_gizmos()
 {
-  const wmGizmoMapType_Params params = {SPACE_SEQ, RGN_TYPE_PREVIEW};
-  wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&params);
-
-  WM_gizmotype_append(GIZMO_GT_retime_handle_add);
-  WM_gizmotype_append(GIZMO_GT_retime_handle);
-  WM_gizmotype_append(GIZMO_GT_retime_remove);
-  WM_gizmotype_append(GIZMO_GT_speed_set_remove);
-
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d);
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_translate);
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_resize);
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_rotate);
-  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo_retime);
 
-  WM_gizmogrouptype_append_and_link(gzmap_type, SEQUENCER_GGT_navigate);
+  const wmGizmoMapType_Params params_preview = {SPACE_SEQ, RGN_TYPE_PREVIEW};
+  wmGizmoMapType *gzmap_type_preview = WM_gizmomaptype_ensure(&params_preview);
+  WM_gizmogrouptype_append_and_link(gzmap_type_preview, SEQUENCER_GGT_navigate);
 }
 
 /* *********************** sequencer (main) region ************************ */

@@ -43,6 +43,7 @@
 /* NOTE: Keep sorted! */
 
 DNA_STRUCT_RENAME(Lamp, Light)
+DNA_STRUCT_RENAME(SeqRetimingHandle, SeqRetimingKey)
 DNA_STRUCT_RENAME(SpaceButs, SpaceProperties)
 DNA_STRUCT_RENAME(SpaceIpo, SpaceGraph)
 DNA_STRUCT_RENAME(SpaceOops, SpaceOutliner)
@@ -158,6 +159,8 @@ DNA_STRUCT_RENAME_ELEM(RenderData, bake_filter, bake_margin)
 DNA_STRUCT_RENAME_ELEM(RigidBodyWorld, steps_per_second, substeps_per_frame)
 DNA_STRUCT_RENAME_ELEM(SDefBind, numverts, verts_num)
 DNA_STRUCT_RENAME_ELEM(SDefVert, numbinds, binds_num)
+DNA_STRUCT_RENAME_ELEM(Sequence, retiming_handle_num, retiming_keys_num)
+DNA_STRUCT_RENAME_ELEM(Sequence, retiming_handles, retiming_keys)
 DNA_STRUCT_RENAME_ELEM(SpaceImage, pixel_snap_mode, pixel_round_mode)
 DNA_STRUCT_RENAME_ELEM(SpaceSeq, overlay_type, overlay_frame_type)
 DNA_STRUCT_RENAME_ELEM(Strip, dir, dirpath)
