@@ -36,8 +36,8 @@
 #include "intern/usd_exporter_context.h"
 #include "intern/usd_writer_material.h"
 #ifdef WITH_MATERIALX
-#  include "shader/materialx/node_parser.h"
 #  include "shader/materialx/material.h"
+#  include "shader/materialx/node_parser.h"
 #endif
 namespace blender::io::hydra {
 

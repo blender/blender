@@ -388,9 +388,9 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
         col = layout.column(heading="Show In")
         col.prop(ob, "hide_viewport", text="Viewports", toggle=False, invert_checkbox=True)
         col.prop(ob, "hide_render", text="Renders", toggle=False, invert_checkbox=True)
-        
+
         if context.engine == 'BLENDER_EEVEE_NEXT':
-            if ob.type in ('MESH','CURVE','SURFACE','META','FONT','CURVES','POINTCLOUD','VOLUME','LIGHT'):
+            if ob.type in ('MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'CURVES', 'POINTCLOUD', 'VOLUME', 'LIGHT'):
                 layout.separator()
                 col = layout.column(heading="Light Probes")
                 col.prop(ob, "hide_probe_volume", text="Volume", toggle=False, invert_checkbox=True)
@@ -403,7 +403,6 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
         layout.separator()
         col = layout.column(heading="Mask")
         col.prop(ob, "is_holdout")
-
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):

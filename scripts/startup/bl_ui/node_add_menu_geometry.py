@@ -152,7 +152,7 @@ class NODE_MT_geometry_node_curve_topology(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeCurveOfPoint")
         node_add_menu.add_node_type(layout, "GeometryNodeOffsetPointInCurve")
         node_add_menu.add_node_type(layout, "GeometryNodePointsOfCurve")
-        node_add_menu.draw_assets_for_catalog(layout,  "Curve/Topology")
+        node_add_menu.draw_assets_for_catalog(layout, "Curve/Topology")
 
 
 class NODE_MT_geometry_node_GEO_GEOMETRY(Menu):

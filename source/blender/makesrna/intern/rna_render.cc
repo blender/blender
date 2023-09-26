@@ -1001,7 +1001,8 @@ static void rna_def_render_engine(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bl_use_materialx", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "type->flag", RE_USE_MATERIALX);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-  RNA_def_property_ui_text(prop, "Use MaterialX", "Use MaterialX for exporting materials to Hydra");
+  RNA_def_property_ui_text(
+      prop, "Use MaterialX", "Use MaterialX for exporting materials to Hydra");
 
   RNA_define_verify_sdna(true);
 }

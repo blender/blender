@@ -225,9 +225,7 @@ typedef int (*NodeGPUExecFunction)(struct GPUMaterial *mat,
                                    struct bNodeExecData *execdata,
                                    struct GPUNodeStack *in,
                                    struct GPUNodeStack *out);
-typedef void (*NodeMaterialXFunction)(void *data,
-                                          struct bNode *node,
-                                          struct bNodeSocket *out);
+typedef void (*NodeMaterialXFunction)(void *data, struct bNode *node, struct bNodeSocket *out);
 
 /**
  * \brief Defines a node type.

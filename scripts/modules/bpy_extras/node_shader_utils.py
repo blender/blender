@@ -305,7 +305,6 @@ class PrincipledBSDFWrapper(ShaderWrapper):
 
     specular_texture = property(specular_texture_get)
 
-
     # --------------------------------------------------------------------
     # Specular Tint.
 
@@ -333,7 +332,6 @@ class PrincipledBSDFWrapper(ShaderWrapper):
         )
 
     specular_tint_texture = property(specular_tint_texture_get)
-
 
     # --------------------------------------------------------------------
     # Roughness (also sort of inverse of specular hardness...).
