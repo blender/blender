@@ -6783,6 +6783,8 @@ class VIEW3D_PT_overlay_object(Panel):
     bl_label = "Objects"
 
     def draw(self, context):
+        shading = VIEW3D_PT_shading.get_shading(context)
+
         layout = self.layout
         view = context.space_data
         overlay = view.overlay
@@ -6808,6 +6810,10 @@ class VIEW3D_PT_overlay_object(Panel):
         subsub = sub.column()
         subsub.active = overlay.show_object_origins
         subsub.prop(overlay, "show_object_origins_all", text="Origins (All)")
+
+        if shading.type == 'WIREFRAME' or shading.show_xray:
+            layout.separator()
+            layout.prop(overlay, "bone_wire_alpha")
 
 
 class VIEW3D_PT_overlay_geometry(Panel):
@@ -7215,11 +7221,6 @@ class VIEW3D_PT_overlay_bones(Panel):
 
     @staticmethod
     def is_using_wireframe(context):
-        shading = VIEW3D_PT_shading.get_shading(context)
-
-        if shading.type == 'WIREFRAME' or shading.show_xray:
-            return True
-
         mode = context.mode
 
         if mode in {'POSE', 'PAINT_WEIGHT'}:
@@ -7237,7 +7238,7 @@ class VIEW3D_PT_overlay_bones(Panel):
         return (
             (mode == 'POSE') or
             (mode == 'PAINT_WEIGHT' and context.pose_object) or
-            (mode in {'EDIT_ARMATURE', 'OBJECT'} and
+            (mode == 'EDIT_ARMATURE' and
              VIEW3D_PT_overlay_bones.is_using_wireframe(context))
         )
 
@@ -7262,9 +7263,6 @@ class VIEW3D_PT_overlay_bones(Panel):
         elif mode == 'PAINT_WEIGHT':
             row = col.row()
             row.prop(overlay, "show_xray_bone")
-
-        if VIEW3D_PT_overlay_bones.is_using_wireframe(context):
-            col.prop(overlay, "bone_wire_alpha")
 
 
 class VIEW3D_PT_overlay_texture_paint(Panel):
