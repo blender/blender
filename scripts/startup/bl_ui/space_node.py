@@ -451,6 +451,7 @@ class NODE_PT_geometry_node_tool_object_types(Panel):
             row_checkbox.prop(group, prop, text="")
             row_label = row.row()
             row_label.label(text=name, icon=icon)
+            row_label.active = getattr(group, prop)
 
 
 class NODE_PT_geometry_node_tool_mode(Panel):
@@ -476,6 +477,7 @@ class NODE_PT_geometry_node_tool_mode(Panel):
             row_checkbox.prop(group, prop, text="")
             row_label = row.row()
             row_label.label(text=name, icon=icon)
+            row_label.active = getattr(group, prop)
 
 
 class NODE_PT_node_color_presets(PresetPanel, Panel):
