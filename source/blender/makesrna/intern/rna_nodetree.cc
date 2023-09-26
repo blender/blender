@@ -8970,6 +8970,7 @@ static void def_geo_simulation_output(StructRNA *srna)
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "active_index");
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
@@ -8980,7 +8981,7 @@ static void def_geo_simulation_output(StructRNA *srna)
                                  "rna_NodeGeometrySimulationOutput_active_item_set",
                                  nullptr,
                                  nullptr);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NO_DEG_UPDATE);
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
   RNA_def_property_update(prop, NC_NODE, nullptr);
 }
@@ -9077,6 +9078,7 @@ static void def_geo_repeat_output(StructRNA *srna)
   RNA_def_property_int_sdna(prop, nullptr, "active_index");
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
@@ -9086,7 +9088,7 @@ static void def_geo_repeat_output(StructRNA *srna)
                                  "rna_NodeGeometryRepeatOutput_active_item_set",
                                  nullptr,
                                  nullptr);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NO_DEG_UPDATE);
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
   RNA_def_property_update(prop, NC_NODE, nullptr);
 }
