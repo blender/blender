@@ -1536,8 +1536,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     int yoffset = rect->ymax - (0.1f * U.widget_unit);
     BLF_default_size(UI_style_get()->widgetlabel.points);
 
-    if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0)
-    {
+    if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
       if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
         ED_scene_draw_fps(scene, xoffset, &yoffset);
       }
