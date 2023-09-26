@@ -5583,15 +5583,15 @@ static void gwl_display_event_thread_destroy(GWL_Display *display)
  * \{ */
 
 GHOST_SystemWayland::GHOST_SystemWayland(bool background)
-    : GHOST_System(), display_(new GWL_Display)
+    : GHOST_System(),
+#ifdef USE_EVENT_BACKGROUND_THREAD
+      server_mutex(new std::mutex),
+      timer_mutex(new std::mutex),
+      main_thread_id(std::this_thread::get_id()),
+#endif
+      display_(new GWL_Display)
 {
   wl_log_set_handler_client(ghost_wayland_log_handler);
-
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  server_mutex = new std::mutex;
-  timer_mutex = new std::mutex;
-  main_thread_id = std::this_thread::get_id();
-#endif
 
   display_->system = this;
   /* Connect to the Wayland server. */
