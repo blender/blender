@@ -6945,7 +6945,7 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem asset_import_type_items[] = {
+  static const EnumPropertyItem asset_import_method_items[] = {
       {FILE_ASSET_IMPORT_FOLLOW_PREFS,
        "FOLLOW_PREFS",
        0,
@@ -6996,11 +6996,11 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
                            "Filter Asset Types",
                            "Which asset types to show/hide, when browsing an asset library");
 
-  prop = RNA_def_property(srna, "import_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, asset_import_type_items);
+  prop = RNA_def_property(srna, "import_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, asset_import_method_items);
   RNA_def_property_ui_text(prop, "Import Method", "Determine how the asset will be imported");
   /* Asset drag info saved by buttons stores the import method, so the space must redraw when
-   * import type changes. */
+   * import method changes. */
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 }
 

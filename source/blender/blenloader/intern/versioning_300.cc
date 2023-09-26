@@ -2476,14 +2476,14 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
     FOREACH_NODETREE_END;
 
-    if (!DNA_struct_member_exists(fd->filesdna, "FileAssetSelectParams", "short", "import_type")) {
+    if (!DNA_struct_member_exists(fd->filesdna, "FileAssetSelectParams", "short", "import_method")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_FILE) {
               SpaceFile *sfile = (SpaceFile *)sl;
               if (sfile->asset_params) {
-                sfile->asset_params->import_type = FILE_ASSET_IMPORT_APPEND;
+                sfile->asset_params->import_method = FILE_ASSET_IMPORT_APPEND;
               }
             }
           }
@@ -3035,9 +3035,9 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
                                          FILE_PARAMS_FLAG_UNUSED_3 | FILE_PATH_TOKENS_ALLOW);
               }
 
-              /* New default import type: Append with reuse. */
+              /* New default import method: Append with reuse. */
               if (sfile->asset_params) {
-                sfile->asset_params->import_type = FILE_ASSET_IMPORT_APPEND_REUSE;
+                sfile->asset_params->import_method = FILE_ASSET_IMPORT_APPEND_REUSE;
               }
               break;
             }
@@ -4324,8 +4324,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
           /* When an asset browser uses the default import method, make it follow the new
            * preference setting. This means no effective default behavior change. */
-          if (sfile->asset_params->import_type == FILE_ASSET_IMPORT_APPEND_REUSE) {
-            sfile->asset_params->import_type = FILE_ASSET_IMPORT_FOLLOW_PREFS;
+          if (sfile->asset_params->import_method == FILE_ASSET_IMPORT_APPEND_REUSE) {
+            sfile->asset_params->import_method = FILE_ASSET_IMPORT_FOLLOW_PREFS;
           }
         }
       }
