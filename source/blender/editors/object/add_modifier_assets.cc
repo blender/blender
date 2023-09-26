@@ -95,11 +95,10 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   uiLayout *layout = menu->layout;
   uiItemS(layout);
 
+  wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_add_node_group", true);
   for (const asset_system::AssetRepresentation *asset : assets) {
-    uiLayout *col = uiLayoutColumn(layout, false);
-    wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_add_asset", true);
     PointerRNA props_ptr;
-    uiItemFullO_ptr(col,
+    uiItemFullO_ptr(layout,
                     ot,
                     IFACE_(asset->get_name().c_str()),
                     ICON_NONE,
@@ -125,10 +124,11 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
 static void unassigned_assets_draw(const bContext * /*C*/, Menu *menu)
 {
   asset::AssetItemTree &tree = *get_static_item_tree();
+  uiLayout *layout = menu->layout;
+  wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_add_asset", true);
   for (const asset_system::AssetRepresentation *asset : tree.unassigned_assets) {
-    wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_add_asset", true);
     PointerRNA props_ptr;
-    uiItemFullO_ptr(menu->layout,
+    uiItemFullO_ptr(layout,
                     ot,
                     IFACE_(asset->get_name().c_str()),
                     ICON_NONE,
