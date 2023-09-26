@@ -1455,5 +1455,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->simulation_frame_start = scene->r.sfra;
+      scene->simulation_frame_end = scene->r.efra;
+    }
   }
 }

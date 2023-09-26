@@ -8373,6 +8373,25 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE, nullptr);
 #  endif
 
+  prop = RNA_def_property(srna, "use_custom_simulation_range", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SCE_CUSTOM_SIMULATION_RANGE);
+  RNA_def_property_ui_text(prop,
+                           "Custom Simulation Range",
+                           "Use a simulation range that is different from the scene range for "
+                           "simulation nodes that don't override the frame range themselves");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE, "rna_Scene_set_update");
+
+  prop = RNA_def_property(srna, "simulation_frame_start", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Simulation Frame Start", "Frame at which simulations start");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE, "rna_Scene_set_update");
+
+  prop = RNA_def_property(srna, "simulation_frame_end", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Simulation Frame End", "Frame at which simulations end");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE, "rna_Scene_set_update");
+
   prop = RNA_def_property(srna, "sync_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_funcs(prop, "rna_Scene_sync_mode_get", "rna_Scene_sync_mode_set", nullptr);
   RNA_def_property_enum_items(prop, sync_mode_items);

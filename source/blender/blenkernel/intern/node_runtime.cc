@@ -607,3 +607,24 @@ bool bNodeTree::node_id_path_from_nested_node_ref(const int32_t nested_node_id,
   }
   return group->node_id_path_from_nested_node_ref(ref->path.id_in_node, r_node_ids);
 }
+
+const bNode *bNodeTree::find_nested_node(const int32_t nested_node_id) const
+{
+  const bNestedNodeRef *ref = this->find_nested_node_ref(nested_node_id);
+  if (ref == nullptr) {
+    return nullptr;
+  }
+  const int32_t node_id = ref->path.node_id;
+  const bNode *node = this->node_by_id(node_id);
+  if (node == nullptr) {
+    return nullptr;
+  }
+  if (!node->is_group()) {
+    return node;
+  }
+  const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id);
+  if (group == nullptr) {
+    return nullptr;
+  }
+  return group->find_nested_node(ref->path.id_in_node);
+}

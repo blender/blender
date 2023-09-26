@@ -266,6 +266,8 @@
     .eevee = _DNA_DEFAULT_SceneEEVEE, \
  \
     .hydra = _DNA_DEFAULT_SceneHydra, \
+    .simulation_frame_start = 1, \
+    .simulation_frame_end = 250, \
   }
 
 /** \} */

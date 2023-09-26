@@ -2052,6 +2052,13 @@ typedef struct Scene {
   /** Settings to be override by work-spaces. */
   IDProperty *layer_properties;
 
+  /**
+   * Frame range used for simulations in geometry nodes by default, if SCE_CUSTOM_SIMULATION_RANGE
+   * is set. Individual simulations can overwrite this though.
+   */
+  int simulation_frame_start;
+  int simulation_frame_end;
+
   struct SceneDisplay display;
   struct SceneEEVEE eevee;
   struct SceneGpencil grease_pencil_settings;
@@ -2491,6 +2498,7 @@ enum {
   SCE_FRAME_DROP = 1 << 3,
   SCE_KEYS_NO_SELONLY = 1 << 4,
   SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK = 1 << 5,
+  SCE_CUSTOM_SIMULATION_RANGE = 1 << 6,
 };
 
 /* Return flag BKE_scene_base_iter_next functions. */

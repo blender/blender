@@ -8,10 +8,14 @@
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_bake_items_socket.hh"
 #include "BKE_compute_contexts.hh"
+#include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -26,9 +30,20 @@
 
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_pointcloud_types.h"
+#include "DNA_space_types.h"
+
+#include "ED_node.hh"
+
+#include "RNA_access.hh"
+#include "RNA_prototypes.h"
+
+#include "MOD_nodes.hh"
 
 #include "BLT_translation.h"
+
+#include "WM_api.hh"
 
 #include "node_geometry_util.hh"
 
@@ -835,6 +850,142 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
   dst_node->storage = dst_storage;
 }
 
+static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  const bNode *node = static_cast<bNode *>(ptr->data);
+  Scene *scene = CTX_data_scene(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+  if (snode == nullptr) {
+    return;
+  }
+  std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
+      ed::space_node::get_modifier_for_node_editor(*snode);
+  if (!object_and_modifier.has_value()) {
+    return;
+  }
+  const Object &object = *object_and_modifier->object;
+  const NodesModifierData &nmd = *object_and_modifier->nmd;
+  const std::optional<int32_t> bake_id = ed::space_node::find_nested_node_id_in_root(*snode,
+                                                                                     *node);
+  if (!bake_id.has_value()) {
+    return;
+  }
+  const NodesModifierBake *bake = nullptr;
+  for (const NodesModifierBake &iter_bake : Span{nmd.bakes, nmd.bakes_num}) {
+    if (iter_bake.id == *bake_id) {
+      bake = &iter_bake;
+      break;
+    }
+  }
+  if (bake == nullptr) {
+    return;
+  }
+
+  PointerRNA bake_rna = RNA_pointer_create(
+      const_cast<ID *>(&object.id), &RNA_NodesModifierBake, (void *)bake);
+
+  const std::optional<IndexRange> simulation_range = bke::bake::get_node_bake_frame_range(
+      *scene, object, nmd, *bake_id);
+
+  std::optional<IndexRange> baked_range;
+  if (nmd.runtime->cache) {
+    const bke::bake::ModifierCache &cache = *nmd.runtime->cache;
+    std::lock_guard lock{cache.mutex};
+    if (const std::unique_ptr<bke::bake::NodeCache> *node_cache_ptr = cache.cache_by_id.lookup_ptr(
+            *bake_id))
+    {
+      const bke::bake::NodeCache &node_cache = **node_cache_ptr;
+      if (node_cache.cache_status == bke::bake::CacheStatus::Baked &&
+          !node_cache.frame_caches.is_empty())
+      {
+        const int first_frame = node_cache.frame_caches.first()->frame.frame();
+        const int last_frame = node_cache.frame_caches.last()->frame.frame();
+        baked_range = IndexRange(first_frame, last_frame - first_frame + 1);
+      }
+    }
+  }
+  bool is_baked = baked_range.has_value();
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  {
+    uiLayout *col = uiLayoutColumn(layout, false);
+    uiLayout *row = uiLayoutRow(col, true);
+    {
+      char bake_label[1024] = N_("Bake");
+
+      PointerRNA ptr;
+      uiItemFullO(row,
+                  "OBJECT_OT_simulation_nodes_cache_bake_single",
+                  bake_label,
+                  ICON_NONE,
+                  nullptr,
+                  WM_OP_INVOKE_DEFAULT,
+                  UI_ITEM_NONE,
+                  &ptr);
+      WM_operator_properties_id_lookup_set_from_id(&ptr, &object.id);
+      RNA_string_set(&ptr, "modifier_name", nmd.modifier.name);
+      RNA_int_set(&ptr, "bake_id", bake->id);
+    }
+    {
+      PointerRNA ptr;
+      uiItemFullO(row,
+                  "OBJECT_OT_simulation_nodes_cache_delete_single",
+                  "",
+                  ICON_TRASH,
+                  nullptr,
+                  WM_OP_INVOKE_DEFAULT,
+                  UI_ITEM_NONE,
+                  &ptr);
+      WM_operator_properties_id_lookup_set_from_id(&ptr, &object.id);
+      RNA_string_set(&ptr, "modifier_name", nmd.modifier.name);
+      RNA_int_set(&ptr, "bake_id", bake->id);
+    }
+    if (is_baked) {
+      char baked_range_label[64];
+      SNPRINTF(baked_range_label,
+               N_("Baked %d - %d"),
+               int(baked_range->first()),
+               int(baked_range->last()));
+      uiItemL(layout, baked_range_label, ICON_NONE);
+    }
+    else if (simulation_range.has_value()) {
+      char simulation_range_label[64];
+      SNPRINTF(simulation_range_label,
+               N_("Frames %d - %d"),
+               int(simulation_range->first()),
+               int(simulation_range->last()));
+      uiItemL(layout, simulation_range_label, ICON_NONE);
+    }
+  }
+  {
+    uiLayout *settings_col = uiLayoutColumn(layout, false);
+    uiLayoutSetActive(settings_col, !is_baked);
+    {
+      uiLayout *col = uiLayoutColumn(settings_col, true);
+      uiLayoutSetActive(col, !is_baked);
+      uiItemR(col, &bake_rna, "use_custom_path", UI_ITEM_NONE, "Custom Path", ICON_NONE);
+      uiLayout *subcol = uiLayoutColumn(col, true);
+      uiLayoutSetActive(subcol, bake->flag & NODES_MODIFIER_BAKE_CUSTOM_PATH);
+      uiItemR(subcol, &bake_rna, "directory", UI_ITEM_NONE, "Path", ICON_NONE);
+    }
+    {
+      uiLayout *col = uiLayoutColumn(settings_col, true);
+      uiItemR(col,
+              &bake_rna,
+              "use_custom_simulation_frame_range",
+              UI_ITEM_NONE,
+              "Custom Range",
+              ICON_NONE);
+      uiLayout *subcol = uiLayoutColumn(col, true);
+      uiLayoutSetActive(subcol, bake->flag & NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE);
+      uiItemR(subcol, &bake_rna, "frame_start", UI_ITEM_NONE, "Start", ICON_NONE);
+      uiItemR(subcol, &bake_rna, "frame_end", UI_ITEM_NONE, "End", ICON_NONE);
+    }
+  }
+}
+
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
   NodeGeometrySimulationOutput &storage = node_storage(*node);
@@ -880,6 +1031,7 @@ static void node_register()
   ntype.declare_dynamic = node_declare_dynamic;
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
+  ntype.draw_buttons_ex = node_layout_ex;
   node_type_storage(&ntype, "NodeGeometrySimulationOutput", node_free_storage, node_copy_storage);
   nodeRegisterType(&ntype);
 }

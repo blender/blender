@@ -245,6 +245,52 @@ float2 space_node_group_offset(const SpaceNode &snode)
   return float2(0);
 }
 
+static const bNode *group_node_by_name(const bNodeTree &ntree, StringRef name)
+{
+  for (const bNode *node : ntree.group_nodes()) {
+    if (node->name == name) {
+      return node;
+    }
+  }
+  return nullptr;
+}
+
+std::optional<int32_t> find_nested_node_id_in_root(const SpaceNode &snode, const bNode &query_node)
+{
+  BLI_assert(snode.edittree->runtime->nodes_by_id.contains(const_cast<bNode *>(&query_node)));
+
+  std::optional<int32_t> id_in_node;
+  const char *group_node_name = nullptr;
+  const bNode *node = &query_node;
+  LISTBASE_FOREACH_BACKWARD (const bNodeTreePath *, path, &snode.treepath) {
+    const bNodeTree *ntree = path->nodetree;
+    if (group_node_name) {
+      node = group_node_by_name(*ntree, group_node_name);
+    }
+    bool found = false;
+    for (const bNestedNodeRef &ref : ntree->nested_node_refs_span()) {
+      if (node->is_group()) {
+        if (ref.path.node_id == node->identifier && ref.path.id_in_node == id_in_node) {
+          group_node_name = path->node_name;
+          id_in_node = ref.id;
+          found = true;
+          break;
+        }
+      }
+      else if (ref.path.node_id == node->identifier) {
+        group_node_name = path->node_name;
+        id_in_node = ref.id;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return std::nullopt;
+    }
+  }
+  return id_in_node;
+}
+
 std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &snode)
 {
   if (snode.id == nullptr) {
