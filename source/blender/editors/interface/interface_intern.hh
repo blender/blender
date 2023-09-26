@@ -11,6 +11,7 @@
 #include <functional>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
 
@@ -1014,6 +1015,16 @@ void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha
  * Draws in resolution of 48x4 colors.
  */
 void ui_draw_gradient(const rcti *rect, const float hsv[3], eButGradientType type, float alpha);
+
+/**
+ * Draws rounded corner segments but inverted. Imagine each corner like a filled right triangle,
+ * just that the hypotenuse is nicely curved inwards (towards the right angle of the triangle).
+ *
+ * Useful for connecting orthogonal shapes with a rounded corner, which can look quite nice.
+ */
+void ui_draw_rounded_corners_inverted(const rcti &rect,
+                                      const float rad,
+                                      const blender::float4 color);
 
 /* based on UI_draw_roundbox_gl_mode,
  * check on making a version which allows us to skip some sides */

@@ -492,6 +492,7 @@ void ED_asset_shelf_header_region_init(wmWindowManager * /*wm*/, ARegion *region
 {
   ED_region_header_init(region);
   region->alignment |= RGN_SPLIT_SCALE_PREV;
+  region->flag |= RGN_FLAG_RESIZE_RESPECT_BUTTON_SECTIONS;
 }
 
 void ED_asset_shelf_header_region(const bContext *C, ARegion *region)
@@ -505,14 +506,17 @@ void ED_asset_shelf_header_region(const bContext *C, ARegion *region)
       *main_shelf_region);
   update_active_shelf(*C, *space_type, *shelf_regiondata);
 
-  ED_region_header(C, region);
+  ED_region_header_with_button_sections(C, region, uiButtonSectionsAlign::Bottom);
 }
 
 int ED_asset_shelf_header_region_size()
 {
-  /* The asset shelf tends to look like a separate area. Making the shelf header smaller than a
-   * normal header helps a bit. */
-  return ED_area_headersize() * 0.85f;
+  /* Use a height that lets widgets sit just on top of the separator line drawn at the lower edge
+   * of the region (widgets will be centered).
+   *
+   * Note that this is usually a bit less than the header size. The asset shelf tends to look like
+   * a separate area, so making the shelf header smaller than a header helps. */
+  return UI_UNIT_Y + (UI_BUTTON_SECTION_SEPERATOR_LINE_WITH * 2);
 }
 
 void ED_asset_shelf_region_blend_read_data(BlendDataReader *reader, ARegion *region)

@@ -740,6 +740,7 @@ enum {
   /** #ARegionType.poll() failed for the current context, and the region should be treated as if it
    * wouldn't exist. Runtime only flag. */
   RGN_FLAG_POLL_FAILED = (1 << 10),
+  RGN_FLAG_RESIZE_RESPECT_BUTTON_SECTIONS = (1 << 11),
 };
 
 /** #ARegion.do_draw */

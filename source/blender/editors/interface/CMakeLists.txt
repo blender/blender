@@ -42,6 +42,7 @@ set(SRC
   interface_align.cc
   interface_anim.cc
   interface_button_group.cc
+  interface_button_sections.cc
   interface_context_menu.cc
   interface_context_path.cc
   interface_drag.cc

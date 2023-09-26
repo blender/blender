@@ -839,6 +839,25 @@ void UI_block_region_set(uiBlock *block, ARegion *region);
 void UI_block_lock_set(uiBlock *block, bool val, const char *lockstr);
 void UI_block_lock_clear(uiBlock *block);
 
+#define UI_BUTTON_SECTION_MERGE_DISTANCE (UI_UNIT_X * 3)
+/* Separator line between regions if the #uiButtonSectionsAlign is not #None. */
+#define UI_BUTTON_SECTION_SEPERATOR_LINE_WITH (U.pixelsize * 2)
+
+enum class uiButtonSectionsAlign : int8_t { None = 1, Top, Bottom };
+/**
+ * Draw a background with rounded corners behind each visual group of buttons. The visual groups
+ * are separated by spacer buttons (#uiItemSpacer()). Button groups that are closer than
+ * #UI_BUTTON_SECTION_MERGE_DISTANCE will be merged into one visual section. If the group is closer
+ * than that to a region edge, it will also be extended to that, and the rounded corners will be
+ * removed on that edge.
+ *
+ * \note This currently only works well for horizontal, header like regions.
+ */
+void UI_region_button_sections_draw(const ARegion *region,
+                                    int /*THemeColorID*/ colorid,
+                                    uiButtonSectionsAlign align);
+bool UI_region_button_sections_is_inside_x(const ARegion *region, const int mval_x);
+
 /**
  * Automatic aligning, horizontal or vertical.
  */
