@@ -93,14 +93,14 @@ float ambient_occlusion_eval(vec3 normal,
 vec3 safe_normalize(vec3 N);
 float fast_sqrt(float a);
 vec3 cameraVec(vec3 P);
-vec2 bsdf_lut(float a, float b, float c, float d);
+vec2 bsdf_lut(float a, float b, float c, bool d);
 void bsdf_lut(vec3 F0,
               vec3 F90,
               vec3 transmission_tint,
               float cos_theta,
               float roughness,
               float ior,
-              float do_multiscatter,
+              bool do_multiscatter,
               out vec3 reflectance,
               out vec3 transmittance);
 vec2 brdf_lut(float a, float b);

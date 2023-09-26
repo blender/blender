@@ -137,7 +137,7 @@ void bsdf_lut(vec3 F0,
               float cos_theta,
               float roughness,
               float ior,
-              float do_multiscatter,
+              bool do_multiscatter,
               out vec3 reflectance,
               out vec3 transmittance)
 {
@@ -168,7 +168,7 @@ void bsdf_lut(vec3 F0,
   reflectance = F_brdf_single_scatter(F0, F90, split_sum);
   transmittance = (vec3(1.0) - F0) * transmission_factor * transmission_tint;
 
-  if (do_multiscatter != 0.0) {
+  if (do_multiscatter) {
     float real_F0 = F0_from_ior(ior);
     float Ess = real_F0 * split_sum.x + split_sum.y + (1.0 - real_F0) * transmission_factor;
     float Ems = 1.0 - Ess;
@@ -185,7 +185,7 @@ void bsdf_lut(vec3 F0,
 }
 
 /* Computes the reflectance and transmittance based on the BSDF LUT. */
-vec2 bsdf_lut(float cos_theta, float roughness, float ior, float do_multiscatter)
+vec2 bsdf_lut(float cos_theta, float roughness, float ior, bool do_multiscatter)
 {
   float F0 = F0_from_ior(ior);
   vec3 color = vec3(1.0);

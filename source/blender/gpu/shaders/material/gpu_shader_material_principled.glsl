@@ -111,7 +111,7 @@ void node_bsdf_principled(vec4 base_color,
 
   if (coat_weight > 0.0) {
     float coat_NV = dot(coat_data.N, V);
-    float reflectance = bsdf_lut(coat_NV, coat_data.roughness, coat_ior, 0.0).x;
+    float reflectance = bsdf_lut(coat_NV, coat_data.roughness, coat_ior, false).x;
     coat_data.weight = weight * coat_weight * reflectance;
     /* Attenuate lower layers */
     weight *= (1.0 - reflectance * coat_weight);
@@ -160,8 +160,15 @@ void node_bsdf_principled(vec4 base_color,
     vec3 F0 = vec3(F0_from_ior(ior)) * reflection_tint;
     vec3 F90 = vec3(1.0);
     vec3 reflectance, transmittance;
-    bsdf_lut(
-        F0, F90, base_color.rgb, NV, roughness, ior, do_multiscatter, reflectance, transmittance);
+    bsdf_lut(F0,
+             F90,
+             base_color.rgb,
+             NV,
+             roughness,
+             ior,
+             do_multiscatter != 0.0,
+             reflectance,
+             transmittance);
 
     reflection_data.color += weight * transmission_weight * reflectance;
 
@@ -191,7 +198,7 @@ void node_bsdf_principled(vec4 base_color,
     F0 = clamp(F0, vec3(0.0), vec3(1.0));
     vec3 F90 = vec3(1.0);
     vec3 reflectance, unused;
-    bsdf_lut(F0, F90, vec3(0.0), NV, roughness, eta, do_multiscatter, reflectance, unused);
+    bsdf_lut(F0, F90, vec3(0.0), NV, roughness, eta, do_multiscatter != 0.0, reflectance, unused);
 
     reflection_data.color += weight * reflectance;
     /* Attenuate lower layers */

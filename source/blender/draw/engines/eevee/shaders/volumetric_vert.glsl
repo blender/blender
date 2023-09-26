@@ -38,7 +38,7 @@ void main()
 }
 
 /* Stubs */
-vec2 bsdf_lut(float a, float b, float c, float d)
+vec2 bsdf_lut(float a, float b, float c, bool d)
 {
   return vec2(0.0);
 }
@@ -49,7 +49,7 @@ void bsdf_lut(vec3 F0,
               float cos_theta,
               float roughness,
               float ior,
-              float do_multiscatter,
+              bool do_multiscatter,
               out vec3 reflectance,
               out vec3 transmittance)
 {
