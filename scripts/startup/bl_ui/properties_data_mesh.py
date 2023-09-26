@@ -292,6 +292,8 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
 
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight")
 
+        draw_attribute_warnings(context, layout)
+
 
 class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
     bl_label = "Shape Keys"
@@ -415,6 +417,8 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
         col = row.column(align=True)
         col.operator("mesh.uv_texture_add", icon='ADD', text="")
         col.operator("mesh.uv_texture_remove", icon='REMOVE', text="")
+
+        draw_attribute_warnings(context, layout)
 
 
 class DATA_PT_remesh(MeshButtonsPanel, Panel):
@@ -562,34 +566,35 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
 
         col.menu("MESH_MT_attribute_context_menu", icon='DOWNARROW_HLT', text="")
 
-        self.draw_attribute_warnings(context, layout)
+        draw_attribute_warnings(context, layout)
 
-    def draw_attribute_warnings(self, context, layout):
-        ob = context.object
-        mesh = context.mesh
 
-        unique_names = set()
-        colliding_names = []
-        for collection in (
-                # Built-in names.
-                {"crease": None},
-                mesh.attributes,
-                None if ob is None else ob.vertex_groups,
-        ):
-            if collection is None:
-                colliding_names.append("Cannot check for object vertex groups when pinning mesh")
-                continue
-            for name in collection.keys():
-                unique_names_len = len(unique_names)
-                unique_names.add(name)
-                if len(unique_names) == unique_names_len:
-                    colliding_names.append(name)
+def draw_attribute_warnings(context, layout):
+    ob = context.object
+    mesh = context.mesh
 
-        if not colliding_names:
-            return
+    unique_names = set()
+    colliding_names = []
+    for collection in (
+            # Built-in names.
+            {"crease": None},
+            mesh.attributes,
+            None if ob is None else ob.vertex_groups,
+    ):
+        if collection is None:
+            colliding_names.append("Cannot check for object vertex groups when pinning mesh")
+            continue
+        for name in collection.keys():
+            unique_names_len = len(unique_names)
+            unique_names.add(name)
+            if len(unique_names) == unique_names_len:
+                colliding_names.append(name)
 
-        layout.label(text=tip_("Name collisions: ") + ", ".join(set(colliding_names)),
-                     icon='ERROR', translate=False)
+    if not colliding_names:
+        return
+
+    layout.label(text=tip_("Name collisions: ") + ", ".join(set(colliding_names)),
+                    icon='ERROR', translate=False)
 
 
 class ColorAttributesListBase():
@@ -691,7 +696,7 @@ class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
 
         col.menu("MESH_MT_color_attribute_context_menu", icon='DOWNARROW_HLT', text="")
 
-        self.draw_attribute_warnings(context, layout)
+        draw_attribute_warnings(context, layout)
 
 
 classes = (
