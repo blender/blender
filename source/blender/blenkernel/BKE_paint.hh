@@ -583,7 +583,7 @@ struct SculptSession {
   eAttrDomain vcol_domain;
   eCustomDataType vcol_type;
 
-  float *vmask;
+  const float *vmask;
 
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */

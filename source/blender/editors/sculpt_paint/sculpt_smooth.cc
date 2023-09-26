@@ -260,6 +260,7 @@ static void do_smooth_brush_task(Object *ob,
                                  Sculpt *sd,
                                  const Brush *brush,
                                  const bool smooth_mask,
+                                 const SculptMaskWriteInfo mask_write,
                                  float bstrength,
                                  PBVHNode *node)
 {
@@ -298,8 +299,10 @@ static void do_smooth_brush_task(Object *ob,
     if (smooth_mask) {
       float val = SCULPT_neighbor_mask_average(ss, vd.vertex) - *vd.mask;
       val *= fade * bstrength;
-      *vd.mask += val;
-      CLAMP(*vd.mask, 0.0f, 1.0f);
+      float new_mask = *vd.mask + val;
+      CLAMP(new_mask, 0.0f, 1.0f);
+
+      SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, new_mask, vd);
     }
     else {
       float avg[3], val[3];
@@ -337,9 +340,14 @@ void SCULPT_smooth(
 
   for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
+    SculptMaskWriteInfo mask_write;
+    if (smooth_mask) {
+      mask_write = SCULPT_mask_get_for_write(ss);
+    }
+
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        do_smooth_brush_task(ob, sd, brush, smooth_mask, strength, nodes[i]);
+        do_smooth_brush_task(ob, sd, brush, smooth_mask, mask_write, strength, nodes[i]);
       }
     });
   }

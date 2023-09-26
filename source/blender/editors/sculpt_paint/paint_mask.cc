@@ -73,19 +73,20 @@ static const EnumPropertyItem mode_items[] = {
     {PAINT_MASK_INVERT, "INVERT", 0, "Invert", "Invert the mask"},
     {0}};
 
-static void mask_flood_fill_set_elem(float *elem, PaintMaskFloodMode mode, float value)
+static float mask_flood_fill_get_new_value_for_elem(const float elem,
+                                                    PaintMaskFloodMode mode,
+                                                    float value)
 {
   switch (mode) {
     case PAINT_MASK_FLOOD_VALUE:
-      (*elem) = value;
-      break;
+      return value;
     case PAINT_MASK_FLOOD_VALUE_INVERSE:
-      (*elem) = 1.0f - value;
-      break;
+      return 1.0f - value;
     case PAINT_MASK_INVERT:
-      (*elem) = 1.0f - (*elem);
-      break;
+      return 1.0f - elem;
   }
+  BLI_assert_unreachable();
+  return 0.0f;
 }
 
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
@@ -106,6 +107,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   const bool multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
 
   SCULPT_undo_push_begin(ob, op);
 
@@ -118,8 +120,9 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
       PBVHVertexIter vi;
       BKE_pbvh_vertex_iter_begin (pbvh, node, vi, PBVH_ITER_UNIQUE) {
         float prevmask = *vi.mask;
-        mask_flood_fill_set_elem(vi.mask, mode, value);
-        if (prevmask != *vi.mask) {
+        const float new_mask = mask_flood_fill_get_new_value_for_elem(prevmask, mode, value);
+        if (prevmask != new_mask) {
+          SCULPT_mask_vert_set(BKE_pbvh_type(ob->sculpt->pbvh), mask_write, new_mask, vi);
           redraw = true;
         }
       }
@@ -776,7 +779,9 @@ static void sculpt_gesture_mask_begin(bContext *C, SculptGestureContext *sgconte
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, true, false);
 }
 
-static void mask_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
+static void mask_gesture_apply_task(SculptGestureContext *sgcontext,
+                                    const SculptMaskWriteInfo mask_write,
+                                    PBVHNode *node)
 {
   SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)sgcontext->operation;
   Object *ob = sgcontext->vc.obact;
@@ -799,8 +804,10 @@ static void mask_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *n
           BKE_pbvh_node_mark_normals_update(node);
         }
       }
-      mask_flood_fill_set_elem(vd.mask, mask_operation->mode, mask_operation->value);
-      if (prevmask != *vd.mask) {
+      const float new_mask = mask_flood_fill_get_new_value_for_elem(
+          prevmask, mask_operation->mode, mask_operation->value);
+      if (prevmask != new_mask) {
+        SCULPT_mask_vert_set(BKE_pbvh_type(ob->sculpt->pbvh), mask_write, new_mask, vd);
         redraw = true;
       }
     }
@@ -816,9 +823,10 @@ static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext * /*C*/,
                                                         SculptGestureContext *sgcontext)
 {
   using namespace blender;
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(sgcontext->ss);
   threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      mask_gesture_apply_task(sgcontext, sgcontext->nodes[i]);
+      mask_gesture_apply_task(sgcontext, mask_write, sgcontext->nodes[i]);
     }
   });
 }

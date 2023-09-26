@@ -105,6 +105,8 @@ BLI_INLINE BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh)
   return ((struct PBVHPublic *)pbvh)->bm;
 }
 
+Mesh *BKE_pbvh_get_mesh(PBVH *pbvh);
+
 BLI_INLINE PBVHVertRef BKE_pbvh_make_vref(intptr_t i)
 {
   PBVHVertRef ret = {i};
@@ -501,7 +503,7 @@ struct PBVHVertexIter {
   const bool *hide_vert;
   int totvert;
   const int *vert_indices;
-  float *vmask;
+  const float *vmask;
   bool is_mesh;
 
   /* bmesh */
@@ -516,7 +518,7 @@ struct PBVHVertexIter {
   float *co;
   const float *no;
   const float *fno;
-  float *mask;
+  const float *mask;
   bool visible;
 };
 

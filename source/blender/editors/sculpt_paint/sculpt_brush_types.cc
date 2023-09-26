@@ -21,7 +21,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -2685,7 +2685,10 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
 /** \name Sculpt Mask Brush
  * \{ */
 
-static void do_mask_brush_draw_task(Object *ob, const Brush *brush, PBVHNode *node)
+static void do_mask_brush_draw_task(Object *ob,
+                                    const Brush *brush,
+                                    const SculptMaskWriteInfo mask_write,
+                                    PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
   const float bstrength = ss->cache->bstrength;
@@ -2717,13 +2720,15 @@ static void do_mask_brush_draw_task(Object *ob, const Brush *brush, PBVHNode *no
                                                     thread_id,
                                                     &automask_data);
 
+    float mask = *vd.mask;
     if (bstrength > 0.0f) {
-      (*vd.mask) += fade * bstrength * (1.0f - *vd.mask);
+      mask += fade * bstrength * (1.0f - *vd.mask);
     }
     else {
-      (*vd.mask) += fade * bstrength * (*vd.mask);
+      mask += fade * bstrength * mask;
     }
-    *vd.mask = clamp_f(*vd.mask, 0.0f, 1.0f);
+    mask = clamp_f(mask, 0.0f, 1.0f);
+    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2732,9 +2737,10 @@ void SCULPT_do_mask_brush_draw(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   using namespace blender;
   const Brush *brush = BKE_paint_brush(&sd->paint);
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_mask_brush_draw_task(ob, brush, nodes[i]);
+      do_mask_brush_draw_task(ob, brush, mask_write, nodes[i]);
     }
   });
 }

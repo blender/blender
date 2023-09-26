@@ -3118,8 +3118,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->vert_normals = pbvh->vert_normals;
     vi->hide_vert = pbvh->hide_vert;
 
-    vi->vmask = static_cast<float *>(
-        CustomData_get_layer_for_write(pbvh->vert_data, CD_PAINT_MASK, pbvh->mesh->totvert));
+    vi->vmask = static_cast<const float *>(CustomData_get_layer(pbvh->vert_data, CD_PAINT_MASK));
   }
 }
 
@@ -3174,6 +3173,11 @@ void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
 {
   memset(settings, 0, sizeof(*settings));
   settings->use_threading = use_threading && totnode > 1;
+}
+
+Mesh *BKE_pbvh_get_mesh(PBVH *pbvh)
+{
+  return pbvh->mesh;
 }
 
 float (*BKE_pbvh_get_vert_positions(const PBVH *pbvh))[3]
