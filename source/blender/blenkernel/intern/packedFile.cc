@@ -308,7 +308,7 @@ int BKE_packedfile_write_to_file(ReportList *reports,
   bool remove_tmp = false;
   char filepath[FILE_MAX];
   char filepath_temp[FILE_MAX];
-  /*      void *data; */
+  // void *data;
 
   STRNCPY(filepath, filepath_rel);
   BLI_path_abs(filepath, ref_file_name);

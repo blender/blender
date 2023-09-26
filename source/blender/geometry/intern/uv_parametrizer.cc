@@ -2708,12 +2708,12 @@ static bool p_chart_abf_solve(PChart *chart)
     p_abf_compute_sines(&sys);
 
     /* iteration */
-    /* lastnorm = 1e10; */ /* UNUSED */
+    // lastnorm = 1e10; /* UNUSED. */
 
     for (i = 0; i < ABF_MAX_ITER; i++) {
       float norm = p_abf_compute_gradient(&sys, chart);
 
-      /* lastnorm = norm; */ /* UNUSED */
+      // lastnorm = norm; /* UNUSED. */
 
       if (norm < limit) {
         break;

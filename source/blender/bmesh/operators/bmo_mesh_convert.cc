@@ -38,7 +38,7 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 {
   Object *ob = static_cast<Object *>(BMO_slot_ptr_get(op->slots_in, "object"));
-  /* Scene *scene = BMO_slot_ptr_get(op, "scene"); */
+  // Scene *scene = BMO_slot_ptr_get(op, "scene");
   Mesh *me = static_cast<Mesh *>(ob->data);
 
   BMO_op_callf(bm, op->flag, "bmesh_to_mesh mesh=%p object=%p", me, ob);
@@ -47,7 +47,7 @@ void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 {
   Mesh *me = static_cast<Mesh *>(BMO_slot_ptr_get(op->slots_in, "mesh"));
-  /* Object *ob = BMO_slot_ptr_get(op, "object"); */
+  // Object *ob = BMO_slot_ptr_get(op, "object");
 
   BMeshToMeshParams params{};
   params.calc_object_remap = true;

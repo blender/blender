@@ -43,7 +43,7 @@ class SkinInfo {
   COLLADAFW::UIntValuesArray joints_per_vertex;
   COLLADAFW::UIntValuesArray weight_indices;
   COLLADAFW::IntValuesArray joint_indices;
-  /* COLLADAFW::FloatOrDoubleArray weights; */
+  // COLLADAFW::FloatOrDoubleArray weights;
   std::vector<float> weights;
 
   std::vector<JointData> joint_data; /* index to this vector is joint index */

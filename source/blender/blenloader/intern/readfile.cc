@@ -2270,7 +2270,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
                          lib->filepath_abs);
 
         change_link_placeholder_to_real_ID_pointer(fd->mainlist, fd, lib, newmain->curlib);
-        /*              change_link_placeholder_to_real_ID_pointer_fd(fd, lib, newmain->curlib); */
+        // change_link_placeholder_to_real_ID_pointer_fd(fd, lib, newmain->curlib);
 
         BLI_remlink(&main->libraries, lib);
         MEM_freeN(lib);

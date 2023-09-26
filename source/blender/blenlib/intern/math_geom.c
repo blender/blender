@@ -5251,9 +5251,9 @@ void vcloud_estimate_transform_v3(const int list_size,
       /* build 'projection' matrix */
       for (a = 0; a < list_size; a++) {
         sub_v3_v3v3(va, rpos[a], accu_rcom);
-        /* mul_v3_fl(va, bp->mass);  mass needs re-normalization here ?? */
+        // mul_v3_fl(va, bp->mass); /* Mass needs re-normalization here? */
         sub_v3_v3v3(vb, pos[a], accu_com);
-        /* mul_v3_fl(va, rp->mass); */
+        // mul_v3_fl(va, rp->mass);
         m[0][0] += va[0] * vb[0];
         m[0][1] += va[0] * vb[1];
         m[0][2] += va[0] * vb[2];

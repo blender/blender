@@ -651,7 +651,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
       }
     }
 
-    /* create_constraints(et,ob); */
+    // create_constraints(et, ob);
   }
 
   for (Object *ob : *objects_done) {
@@ -1091,7 +1091,7 @@ bool DocumentImporter::writeAnimationList(const COLLADAFW::AnimationList *animat
     return true;
   }
 
-  /* return true; */
+  // return true;
   return anim_importer.write_animation_list(animationList);
 }
 

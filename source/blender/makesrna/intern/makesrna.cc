@@ -2374,7 +2374,7 @@ static void rna_def_property_funcs_header(FILE *f, StructRNA *srna, PropertyDefR
     }
     case PROP_POINTER: {
       fprintf(f, "PointerRNA %sget(PointerRNA *ptr);\n", func);
-      /*fprintf(f, "void %sset(PointerRNA *ptr, PointerRNA value);\n", func); */
+      // fprintf(f, "void %sset(PointerRNA *ptr, PointerRNA value);\n", func);
       break;
     }
     case PROP_COLLECTION: {

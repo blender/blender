@@ -1630,9 +1630,9 @@ static short apply_targetless_ik(Object *ob)
             mat3_to_size(parchan->size, smat);
           }
 
-          /* causes problems with some constraints (e.g. childof), so disable this */
-          /* as it is IK shouldn't affect location directly */
-          /* copy_v3_v3(parchan->loc, mat[3]); */
+          /* Causes problems with some constraints (e.g. child-of), so disable this
+           * as it is IK shouldn't affect location directly. */
+          // copy_v3_v3(parchan->loc, mat[3]);
         }
       }
 

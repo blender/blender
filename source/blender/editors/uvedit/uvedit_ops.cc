@@ -1520,7 +1520,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
               BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, select);
               BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, select);
             }
-            /* BM_face_select_set(em->bm, efa, true); */
+            // BM_face_select_set(em->bm, efa, true);
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
           }
         }
@@ -1546,7 +1546,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
                 BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, select);
               }
             }
-            /* BM_face_select_set(em->bm, efa, true); */
+            // BM_face_select_set(em->bm, efa, true);
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
           }
         }
@@ -1560,7 +1560,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
             BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, select);
             BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, select);
           }
-          /* BM_face_select_set(em->bm, efa, true); */
+          // BM_face_select_set(em->bm, efa, true);
           BM_elem_flag_enable(efa, BM_ELEM_TAG);
         }
       }
@@ -1573,7 +1573,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
             BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, select);
             BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, select);
           }
-          /* BM_face_select_set(em->bm, efa, true); */
+          // BM_face_select_set(em->bm, efa, true);
           BM_elem_flag_enable(efa, BM_ELEM_TAG);
         }
       }

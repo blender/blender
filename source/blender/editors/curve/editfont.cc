@@ -478,7 +478,6 @@ static void font_select_update_primary_clipboard(Object *obedit)
 /** \name Generic Paste Functions
  * \{ */
 
-/* text_update_edited(C, scene, obedit, 1, FO_EDIT); */
 static bool font_paste_wchar(Object *obedit,
                              const char32_t *str,
                              const size_t str_len,

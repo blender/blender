@@ -791,7 +791,7 @@ bool RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test)
   iterprop = RNA_struct_iterator_property(ptr->type);
 
   RNA_PROP_BEGIN (ptr, itemptr, iterprop) {
-    /* PropertyRNA *prop = itemptr.data; */
+    // PropertyRNA *prop = itemptr.data;
     if (prop_test == (PropertyRNA *)itemptr.data) {
       found = true;
       break;
@@ -2799,7 +2799,7 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
     IDPropertyTemplate val = {0};
     IDProperty *group;
 
-    /* TODO: RNA_property_int_clamp_array(ptr, prop, &value); */
+    // RNA_property_int_clamp_array(ptr, prop, &value); /* TODO. */
 
     val.array.len = prop->totarraylength;
     val.array.type = IDP_INT;
@@ -3183,7 +3183,7 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
     IDPropertyTemplate val = {0};
     IDProperty *group;
 
-    /* TODO: RNA_property_float_clamp_array(ptr, prop, &value); */
+    // RNA_property_float_clamp_array(ptr, prop, &value); /* TODO. */
 
     val.array.len = prop->totarraylength;
     val.array.type = IDP_FLOAT;
@@ -4006,7 +4006,7 @@ static bool property_collection_liboverride_editable(PointerRNA *ptr,
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
   IDProperty *idprop;
-  /* CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop; */
+  // CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
@@ -4046,8 +4046,8 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
         item->flag |= IDP_FLAG_OVERRIDELIBRARY_LOCAL;
       }
       IDP_AppendArray(idprop, item);
-      /* IDP_AppendArray does a shallow copy (memcpy), only free memory */
-      /* IDP_FreePropertyContent(item); */
+      /* #IDP_AppendArray does a shallow copy (memcpy), only free memory. */
+      // IDP_FreePropertyContent(item);
       MEM_freeN(item);
     }
   }
@@ -4089,7 +4089,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 bool RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 {
   IDProperty *idprop;
-  /*  CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop; */
+  // CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 

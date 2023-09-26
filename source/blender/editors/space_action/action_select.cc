@@ -2049,7 +2049,7 @@ static int actkeys_clickselect_exec(bContext *C, wmOperator *op)
   }
 
   /* get useful pointers from animation context data */
-  /* region = ac.region; */ /* UNUSED */
+  // region = ac.region; /* UNUSED. */
 
   /* select mode is either replace (deselect all, then add) or add/extend */
   const short selectmode = RNA_boolean_get(op->ptr, "extend") ? SELECT_INVERT : SELECT_REPLACE;

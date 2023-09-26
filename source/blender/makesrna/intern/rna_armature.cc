@@ -1307,7 +1307,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
     RNA_def_property_update(prop, 0, "rna_Armature_update_data");
   }
   RNA_def_property_float_sdna(prop, nullptr, "rad_head");
-  /* XXX range is 0 to limit, where limit = 10000.0f * MAX2(1.0, view3d->grid); */
+  /* XXX: range is 0 to limit, where `limit = 10000.0f * MAX2(1.0, view3d->grid)`. */
   // RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
   RNA_def_property_ui_text(
@@ -1321,7 +1321,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
     RNA_def_property_update(prop, 0, "rna_Armature_update_data");
   }
   RNA_def_property_float_sdna(prop, nullptr, "rad_tail");
-  /* XXX range is 0 to limit, where limit = 10000.0f * MAX2(1.0, view3d->grid); */
+  /* XXX range is 0 to limit, where limit = `10000.0f * MAX2(1.0, view3d->grid)`. */
   // RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
   RNA_def_property_ui_text(
@@ -1736,8 +1736,8 @@ static void rna_def_armature_bones(BlenderRNA *brna, PropertyRNA *cprop)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  /*  FunctionRNA *func; */
-  /*  PropertyRNA *parm; */
+  // FunctionRNA *func;
+  // PropertyRNA *parm;
 
   RNA_def_property_srna(cprop, "ArmatureBones");
   srna = RNA_def_struct(brna, "ArmatureBones", nullptr);
@@ -1753,7 +1753,7 @@ static void rna_def_armature_bones(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_update(prop, 0, "rna_Armature_update");
 
   /* TODO: redraw. */
-  /*      RNA_def_property_collection_active(prop, prop_act); */
+  // RNA_def_property_collection_active(prop, prop_act);
 }
 
 /* armature.bones.* */
@@ -1780,7 +1780,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
       prop, nullptr, "rna_Armature_act_edit_bone_set", nullptr, nullptr);
 
   /* TODO: redraw. */
-  /*      RNA_def_property_collection_active(prop, prop_act); */
+  // RNA_def_property_collection_active(prop, prop_act);
 
   /* add target */
   func = RNA_def_function(srna, "new", "rna_Armature_edit_bone_new");

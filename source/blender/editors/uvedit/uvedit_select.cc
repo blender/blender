@@ -3273,7 +3273,7 @@ static void uv_select_flush_from_tag_sticky_loc_internal(const Scene *scene,
     if (efa_index != vlist_iter->face_index) {
       BMLoop *l_other;
       efa_vlist = BM_face_at_index(em->bm, vlist_iter->face_index);
-      /* tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); */ /* UNUSED */
+      // tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); /* UNUSED */
 
       l_other = static_cast<BMLoop *>(
           BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->loop_of_face_index));

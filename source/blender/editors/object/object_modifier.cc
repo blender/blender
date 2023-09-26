@@ -2468,7 +2468,7 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
   ot->description = "Save displacements to an external file";
   ot->idname = "OBJECT_OT_multires_external_save";
 
-  /* XXX modifier no longer in context after file browser .. ot->poll = multires_poll; */
+  /* XXX modifier no longer in context after file browser: `ot->poll = multires_poll;`. */
   ot->exec = multires_external_save_exec;
   ot->invoke = multires_external_save_invoke;
   ot->poll = multires_poll;

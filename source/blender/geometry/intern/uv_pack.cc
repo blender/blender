@@ -40,7 +40,7 @@ class uv_phi {
 
   float2 translation;
   float rotation;
-  /* bool reflect; */
+  // bool reflect;
 };
 
 uv_phi::uv_phi() : translation(-1.0f, -1.0f), rotation(0.0f)
@@ -1358,7 +1358,7 @@ static uv_phi find_best_fit_for_island(const PackIsland *island,
 
   uv_phi phi;
   phi.rotation = DEG2RADF(angle_90_multiple * 90);
-  /* phi.reflect = reflect; */
+  // phi.reflect = reflect;
   float matrix[2][2];
   island->build_transformation(scale, phi.rotation, matrix);
 

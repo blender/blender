@@ -54,7 +54,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
 
   first = texttool_suggest_first();
   last = texttool_suggest_last();
-  /* sel = texttool_suggest_selected(); */ /* UNUSED */
+  // sel = texttool_suggest_selected(); /* UNUSED. */
   top = texttool_suggest_top();
 
   if (!last || !first) {
