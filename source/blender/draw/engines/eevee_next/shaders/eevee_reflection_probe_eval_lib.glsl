@@ -10,7 +10,7 @@
 
 int reflection_probes_find_closest(vec3 P)
 {
-  int closest_index = -1;
+  int closest_index = 0;
   float closest_distance = FLT_MAX;
 
   /* ReflectionProbeData doesn't contain any gab, exit at first item that is invalid. */
@@ -79,24 +79,5 @@ vec4 reflection_probe_eval(ClosureReflection reflection,
     return l_col;
   }
   return vec4(0.0);
-}
-
-void reflection_probes_eval(ClosureReflection reflection, vec3 P, vec3 V, inout vec3 out_specular)
-{
-  int closest_reflection_probe = reflection_probes_find_closest(P);
-  vec4 light_color = vec4(0.0);
-  if (closest_reflection_probe != -1) {
-    ReflectionProbeData probe_data = reflection_probe_buf[closest_reflection_probe];
-    light_color = reflection_probe_eval(reflection, P, V, probe_data);
-  }
-
-  /* Mix world lighting. */
-  if (light_color.a != 1.0) {
-    ReflectionProbeData probe_data = reflection_probe_buf[0];
-    light_color.rgb = mix(
-        reflection_probe_eval(reflection, P, V, probe_data).rgb, light_color.rgb, light_color.a);
-  }
-
-  out_specular += light_color.rgb;
 }
 #endif
