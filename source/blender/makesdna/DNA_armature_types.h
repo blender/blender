@@ -400,8 +400,8 @@ typedef enum eBone_BBoneHandleType {
 
 /* bone->bbone_mapping_mode */
 typedef enum eBone_BBoneMappingMode {
-  BBONE_MAPPING_STRAIGHT = 0,  /* Default mode that ignores the rest pose curvature. */
-  BBONE_MAPPING_CURVED = 1,    /* Mode that takes the rest pose curvature into account. */
+  BBONE_MAPPING_STRAIGHT = 0, /* Default mode that ignores the rest pose curvature. */
+  BBONE_MAPPING_CURVED = 1,   /* Mode that takes the rest pose curvature into account. */
 } eBone_BBoneMappingMode;
 
 /* bone->bbone_flag */

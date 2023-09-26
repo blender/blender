@@ -594,7 +594,7 @@ def draw_attribute_warnings(context, layout):
         return
 
     layout.label(text=tip_("Name collisions: ") + ", ".join(set(colliding_names)),
-                    icon='ERROR', translate=False)
+                 icon='ERROR', translate=False)
 
 
 class ColorAttributesListBase():
