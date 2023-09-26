@@ -595,10 +595,6 @@ void DeferredLayer::render(View &main_view,
 
   inst_.manager->submit(eval_light_ps_, render_view);
 
-  if (closure_bits_ & CLOSURE_SSS) {
-    inst_.subsurface.render(render_view, combined_fb, direct_diffuse_tx_);
-  }
-
   RayTraceResult diffuse_result = inst_.raytracing.trace(rt_buffer,
                                                          radiance_feedback_tx_,
                                                          radiance_feedback_persmat_,
@@ -618,6 +614,8 @@ void DeferredLayer::render(View &main_view,
   indirect_diffuse_tx_ = diffuse_result.get();
   indirect_reflect_tx_ = reflect_result.get();
   indirect_refract_tx_ = refract_result.get();
+
+  inst_.subsurface.render(direct_diffuse_tx_, indirect_diffuse_tx_, closure_bits_, render_view);
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(combine_ps_);
