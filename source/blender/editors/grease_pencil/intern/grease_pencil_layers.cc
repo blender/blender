@@ -83,7 +83,7 @@ static void GREASE_PENCIL_OT_layer_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   PropertyRNA *prop = RNA_def_string(
-      ot->srna, "new_layer_name", "GP_Layer", INT16_MAX, "Name", "Name of the new layer");
+      ot->srna, "new_layer_name", nullptr, INT16_MAX, "Name", "Name of the new layer");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   ot->prop = prop;
 }
@@ -239,12 +239,8 @@ static void GREASE_PENCIL_OT_layer_group_add(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  PropertyRNA *prop = RNA_def_string(ot->srna,
-                                     "new_layer_group_name",
-                                     "GP_Group",
-                                     INT16_MAX,
-                                     "Name",
-                                     "Name of the new layer group");
+  PropertyRNA *prop = RNA_def_string(
+      ot->srna, "new_layer_group_name", nullptr, INT16_MAX, "Name", "Name of the new layer group");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   ot->prop = prop;
 }

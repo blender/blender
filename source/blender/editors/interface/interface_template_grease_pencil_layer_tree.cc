@@ -235,7 +235,7 @@ class LayerViewItem : public AbstractTreeViewItem {
   void build_layer_name(uiLayout &row)
   {
     uiBut *but = uiItemL_ex(
-        &row, IFACE_(layer_.name().c_str()), ICON_OUTLINER_DATA_GP_LAYER, false, false);
+        &row, layer_.name().c_str(), ICON_OUTLINER_DATA_GP_LAYER, false, false);
     if (layer_.is_locked() || !layer_.parent_group().is_visible()) {
       UI_but_disable(but, "Layer is locked or not visible");
     }
@@ -337,7 +337,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   void build_layer_group_name(uiLayout &row)
   {
     uiItemS_ex(&row, 0.8f);
-    uiBut *but = uiItemL_ex(&row, IFACE_(group_.name().c_str()), ICON_FILE_FOLDER, false, false);
+    uiBut *but = uiItemL_ex(&row, group_.name().c_str(), ICON_FILE_FOLDER, false, false);
     if (group_.is_locked()) {
       UI_but_disable(but, "Layer Group is locked");
     }
