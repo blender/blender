@@ -197,6 +197,7 @@ static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scop
       display_ibuf, &scene->view_settings, &scene->display_settings);
 
   scope = make_scope_fn(display_ibuf);
+  IMB_rectfill_alpha(scope, 1.0f);
 
   IMB_freeImBuf(display_ibuf);
 
