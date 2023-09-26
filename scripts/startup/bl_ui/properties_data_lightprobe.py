@@ -114,6 +114,7 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
 
             col.prop(probe, "grid_bake_samples")
             col.prop(probe, "surfel_density")
+            col.prop(probe, "clip_end", text="Capture Distance")
 
             col.separator()
 
