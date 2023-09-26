@@ -163,7 +163,7 @@ class NODE_HT_header(Header):
                         row.template_ID(snode, "node_tree", new="node.new_geometry_nodes_modifier")
             else:
                 layout.template_ID(snode, "node_tree", new="node.new_geometry_node_group_tool")
-                if snode.node_tree and snode.node_tree.asset_data:
+                if snode.node_tree:
                     layout.popover(panel="NODE_PT_geometry_node_tool_object_types", text="Types")
                     layout.popover(panel="NODE_PT_geometry_node_tool_mode", text="Modes")
                 display_pin = False

@@ -25,6 +25,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
@@ -72,26 +73,38 @@ namespace blender::ed::geometry {
 /** \name Operator
  * \{ */
 
-static const bNodeTree *get_node_group(const bContext &C, PointerRNA &ptr, ReportList *reports)
+static const bNodeTree *get_asset_or_local_node_group(const bContext &C,
+                                                      PointerRNA &ptr,
+                                                      ReportList *reports)
 {
+  Main &bmain = *CTX_data_main(&C);
+  if (bNodeTree *group = reinterpret_cast<bNodeTree *>(
+          WM_operator_properties_id_lookup_from_name_or_session_uuid(&bmain, &ptr, ID_NT)))
+  {
+    return group;
+  }
+
   const asset_system::AssetRepresentation *asset =
       asset::operator_asset_reference_props_get_asset_from_all_library(C, ptr, reports);
   if (!asset) {
     return nullptr;
   }
-  Main &bmain = *CTX_data_main(&C);
-  bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
-      asset::asset_local_id_ensure_imported(bmain, *asset));
-  if (!node_group) {
+  return reinterpret_cast<bNodeTree *>(asset::asset_local_id_ensure_imported(bmain, *asset));
+}
+
+static const bNodeTree *get_node_group(const bContext &C, PointerRNA &ptr, ReportList *reports)
+{
+  const bNodeTree *group = get_asset_or_local_node_group(C, ptr, reports);
+  if (!group) {
     return nullptr;
   }
-  if (node_group->type != NTREE_GEOMETRY) {
+  if (group->type != NTREE_GEOMETRY) {
     if (reports) {
       BKE_report(reports, RPT_ERROR, "Asset is not a geometry node group");
     }
     return nullptr;
   }
-  return node_group;
+  return group;
 }
 
 class OperatorComputeContext : public ComputeContext {
@@ -455,11 +468,16 @@ static bool run_node_ui_poll(wmOperatorType * /*ot*/, PointerRNA *ptr)
 static std::string run_node_group_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
 {
   int len;
-  char *name_c = RNA_string_get_alloc(ptr, "relative_asset_identifier", nullptr, 0, &len);
-  StringRef ref(name_c, len);
-  std::string name = ref.drop_prefix(ref.find_last_of('/') + 1);
-  MEM_freeN(name_c);
-  return name;
+  char *local_name = RNA_string_get_alloc(ptr, "name", nullptr, 0, &len);
+  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(local_name); })
+  if (len > 0) {
+    return std::string(local_name, len);
+  }
+  char *library_asset_identifier = RNA_string_get_alloc(
+      ptr, "relative_asset_identifier", nullptr, 0, &len);
+  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(library_asset_identifier); })
+  StringRef ref(library_asset_identifier, len);
+  return ref.drop_prefix(ref.find_last_of('/') + 1);
 }
 
 void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
@@ -479,6 +497,7 @@ void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   asset::operator_asset_reference_props_register(*ot->srna);
+  WM_operator_properties_id_lookup(ot, true);
 }
 
 /** \} */
@@ -672,8 +691,8 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   }
 
   catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &item) {
-    asset::draw_menu_for_catalog(
-        screen, *all_library, item, "GEO_MT_node_operator_catalog_assets", *layout);
+      asset::draw_menu_for_catalog(
+          screen, *all_library, item, "GEO_MT_node_operator_catalog_assets", *layout);
   });
 }
 
@@ -686,6 +705,26 @@ MenuType node_group_operator_assets_menu()
   type.listener = asset::asset_reading_region_listen_fn;
   type.flag = MenuTypeFlag::ContextDependent;
   return type;
+}
+
+static bool unassigned_local_poll(const bContext &C)
+{
+  Main &bmain = *CTX_data_main(&C);
+  const GeometryNodeAssetTraitFlag flag = asset_flag_for_context(
+      eContextObjectMode(CTX_data_mode_enum(&C)));
+
+  LISTBASE_FOREACH (const bNodeTree *, group, &bmain.nodetrees) {
+    /* Assets are displayed in other menus, and non-local data-blocks aren't added to this menu. */
+    if (group->id.library_weak_reference || group->id.asset_data) {
+      continue;
+    }
+    if (!group->geometry_node_asset_traits ||
+        (group->geometry_node_asset_traits->flag & flag) != flag) {
+      continue;
+    }
+    return true;
+  }
+  return false;
 }
 
 static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
@@ -708,12 +747,45 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
                     &props_ptr);
     asset::operator_asset_reference_props_set(*asset, props_ptr);
   }
+
+  const GeometryNodeAssetTraitFlag flag = asset_flag_for_context(
+      eContextObjectMode(CTX_data_mode_enum(C)));
+
+  bool add_separator = !tree->unassigned_assets.is_empty();
+  Main &bmain = *CTX_data_main(C);
+  LISTBASE_FOREACH (const bNodeTree *, group, &bmain.nodetrees) {
+    /* Assets are displayed in other menus, and non-local data-blocks aren't added to this menu. */
+    if (group->id.library_weak_reference || group->id.asset_data) {
+      continue;
+    }
+    if (!group->geometry_node_asset_traits ||
+        (group->geometry_node_asset_traits->flag & flag) != flag) {
+      continue;
+    }
+
+    if (add_separator) {
+      uiItemS(layout);
+      uiItemL(layout, IFACE_("Non-Assets"), ICON_NONE);
+      add_separator = false;
+    }
+
+    PointerRNA props_ptr;
+    uiItemFullO_ptr(layout,
+                    ot,
+                    group->id.name + 2,
+                    ICON_NONE,
+                    nullptr,
+                    WM_OP_INVOKE_REGION_WIN,
+                    UI_ITEM_NONE,
+                    &props_ptr);
+    WM_operator_properties_id_lookup_set_from_id(&props_ptr, &group->id);
+  }
 }
 
 MenuType node_group_operator_assets_menu_unassigned()
 {
   MenuType type{};
-  STRNCPY(type.idname, "GEO_MT_node_operator_catalog_assets_unassigned");
+  STRNCPY(type.idname, "GEO_MT_node_operator_unassigned");
   type.poll = asset_menu_poll;
   type.draw = catalog_assets_draw_unassigned;
   type.listener = asset::asset_reading_region_listen_fn;
@@ -783,11 +855,8 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, const bContext
     }
   });
 
-  if (!tree->unassigned_assets.is_empty()) {
-    uiItemM(&layout,
-            "GEO_MT_node_operator_catalog_assets_unassigned",
-            IFACE_("Unassigned"),
-            ICON_NONE);
+  if (!tree->unassigned_assets.is_empty() || unassigned_local_poll(C)) {
+    uiItemM(&layout, "GEO_MT_node_operator_unassigned", "", ICON_FILE_HIDDEN);
   }
 }
 

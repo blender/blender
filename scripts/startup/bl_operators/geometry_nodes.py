@@ -43,7 +43,8 @@ def geometry_node_group_empty_modifier_new(name):
 
 def geometry_node_group_empty_tool_new(context):
     group = geometry_node_group_empty_new(data_("Tool"))
-    group.asset_mark()
+    # Node tools have fake users by default, otherwise Blender will delete them since they have no users.
+    group.use_fake_user = True
     group.is_tool = True
 
     ob_type = context.object.type if context.object else 'MESH'
