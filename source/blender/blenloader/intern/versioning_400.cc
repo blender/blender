@@ -1533,5 +1533,31 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    if (!DNA_struct_member_exists(fd->filesdna,
+                                  "AssetShelfSettings",
+                                  "AssetLibraryReference",
+                                  "asset_library_reference"))
+    {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                         &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype != RGN_TYPE_ASSET_SHELF) {
+                continue;
+              }
+
+              RegionAssetShelf *shelf_data = static_cast<RegionAssetShelf *>(region->regiondata);
+              if (shelf_data && shelf_data->active_shelf) {
+                AssetShelfSettings &settings = shelf_data->active_shelf->settings;
+                settings.asset_library_reference.custom_library_index = -1;
+                settings.asset_library_reference.type = ASSET_LIBRARY_ALL;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -10,6 +10,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "DNA_asset_types.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
@@ -770,6 +771,8 @@ enum {
 
 typedef struct AssetShelfSettings {
   struct AssetShelfSettings *next, *prev;
+
+  AssetLibraryReference asset_library_reference;
 
   ListBase enabled_catalog_paths; /* #LinkData */
   /** If not set (null or empty string), all assets will be displayed ("All" catalog behavior). */

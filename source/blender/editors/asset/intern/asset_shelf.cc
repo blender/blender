@@ -11,6 +11,7 @@
 #include <algorithm>
 
 #include "AS_asset_catalog_path.hh"
+#include "AS_asset_library.hh"
 
 #include "BLI_string.h"
 
@@ -91,6 +92,7 @@ static AssetShelf *create_shelf_from_type(AssetShelfType &type)
   AssetShelf *shelf = MEM_new<AssetShelf>(__func__);
   *shelf = dna::shallow_zero_initialize();
   shelf->settings.preview_size = shelf::DEFAULT_TILE_SIZE;
+  shelf->settings.asset_library_reference = asset_system::all_library_reference();
   shelf->type = &type;
   shelf->preferred_row_count = 1;
   STRNCPY(shelf->idname, type.idname);
@@ -407,17 +409,6 @@ int ED_asset_shelf_region_prefsizey()
   return asset_shelf_default_tile_height() + 2 * main_region_padding_y();
 }
 
-/**
- * The asset shelf always uses the "All" library for now.
- */
-static const AssetLibraryReference &asset_shelf_library_ref()
-{
-  static AssetLibraryReference all_library_ref = {};
-  all_library_ref.type = ASSET_LIBRARY_ALL;
-  all_library_ref.custom_library_index = -1;
-  return all_library_ref;
-}
-
 void ED_asset_shelf_region_layout(const bContext *C, ARegion *region)
 {
   const SpaceLink *space = CTX_wm_space_data(C);
@@ -435,8 +426,6 @@ void ED_asset_shelf_region_layout(const bContext *C, ARegion *region)
     return;
   }
 
-  const AssetLibraryReference &library_ref = asset_shelf_library_ref();
-
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
 
   const uiStyle *style = UI_style_get_dpi();
@@ -452,7 +441,8 @@ void ED_asset_shelf_region_layout(const bContext *C, ARegion *region)
                                      0,
                                      style);
 
-  shelf::build_asset_view(*layout, library_ref, *active_shelf, *C, *region);
+  shelf::build_asset_view(
+      *layout, active_shelf->settings.asset_library_reference, *active_shelf, *C, *region);
 
   int layout_height;
   UI_block_layout_resolve(block, nullptr, &layout_height);
@@ -544,6 +534,29 @@ void ED_asset_shelf_region_blend_write(BlendWriter *writer, ARegion *region)
 /** \name Asset Shelf Context
  * \{ */
 
+static AssetShelf *active_shelf_from_area(const ScrArea *area)
+{
+  const ARegion *shelf_region = BKE_area_find_region_type(area, RGN_TYPE_ASSET_SHELF);
+  if (!shelf_region) {
+    /* Called in wrong context, area doesn't have a shelf. */
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+
+  if (shelf_region->flag & RGN_FLAG_POLL_FAILED) {
+    /* Don't return data when the region "doesn't exist" (poll failed). */
+    return nullptr;
+  }
+
+  const RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(
+      *shelf_region);
+  if (!shelf_regiondata) {
+    return nullptr;
+  }
+
+  return shelf_regiondata->active_shelf;
+}
+
 int ED_asset_shelf_context(const bContext *C, const char *member, bContextDataResult *result)
 {
   static const char *context_dir[] = {
@@ -561,34 +574,25 @@ int ED_asset_shelf_context(const bContext *C, const char *member, bContextDataRe
   bScreen *screen = CTX_wm_screen(C);
 
   if (CTX_data_equals(member, "asset_shelf")) {
-    const ARegion *shelf_region = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_ASSET_SHELF);
-    if (!shelf_region) {
-      /* Called in wrong context, area doesn't have a shelf. */
-      BLI_assert_unreachable();
+    AssetShelf *active_shelf = active_shelf_from_area(CTX_wm_area(C));
+    if (!active_shelf) {
       return CTX_RESULT_NO_DATA;
     }
 
-    if (shelf_region->flag & RGN_FLAG_POLL_FAILED) {
-      /* Don't return data when the region "doesn't exist" (poll failed). */
-      return CTX_RESULT_NO_DATA;
-    }
-
-    const RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(
-        *shelf_region);
-    if (!shelf_regiondata) {
-      return CTX_RESULT_NO_DATA;
-    }
-
-    CTX_data_pointer_set(result, &screen->id, &RNA_AssetShelf, shelf_regiondata->active_shelf);
-
+    CTX_data_pointer_set(result, &screen->id, &RNA_AssetShelf, active_shelf);
     return CTX_RESULT_OK;
   }
 
   if (CTX_data_equals(member, "asset_library_reference")) {
+    AssetShelf *active_shelf = active_shelf_from_area(CTX_wm_area(C));
+    if (!active_shelf) {
+      return CTX_RESULT_NO_DATA;
+    }
+
     CTX_data_pointer_set(result,
                          &screen->id,
                          &RNA_AssetLibraryReference,
-                         const_cast<AssetLibraryReference *>(&asset_shelf_library_ref()));
+                         &active_shelf->settings.asset_library_reference);
     return CTX_RESULT_OK;
   }
 
