@@ -660,7 +660,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
                     IFACE_(asset->get_name().c_str()),
                     ICON_NONE,
                     nullptr,
-                    WM_OP_INVOKE_DEFAULT,
+                    WM_OP_INVOKE_REGION_WIN,
                     UI_ITEM_NONE,
                     &props_ptr);
     asset::operator_asset_reference_props_set(*asset, props_ptr);
@@ -703,7 +703,7 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
                     IFACE_(asset->get_name().c_str()),
                     ICON_NONE,
                     nullptr,
-                    WM_OP_INVOKE_DEFAULT,
+                    WM_OP_INVOKE_REGION_WIN,
                     UI_ITEM_NONE,
                     &props_ptr);
     asset::operator_asset_reference_props_set(*asset, props_ptr);
