@@ -725,7 +725,7 @@ MenuType node_group_operator_assets_menu_unassigned()
 }
 
 void ui_template_node_operator_asset_menu_items(uiLayout &layout,
-                                                bContext &C,
+                                                const bContext &C,
                                                 const StringRef catalog_path)
 {
   bScreen &screen = *CTX_wm_screen(&C);
@@ -752,7 +752,7 @@ void ui_template_node_operator_asset_menu_items(uiLayout &layout,
   uiItemMContents(col, "GEO_MT_node_operator_catalog_assets");
 }
 
-void ui_template_node_operator_asset_root_items(uiLayout &layout, bContext &C)
+void ui_template_node_operator_asset_root_items(uiLayout &layout, const bContext &C)
 {
   bScreen &screen = *CTX_wm_screen(&C);
   const Object *active_object = CTX_data_active_object(&C);

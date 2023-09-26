@@ -327,7 +327,7 @@ void object_modifier_add_asset_register()
 }
 
 void ui_template_modifier_asset_menu_items(uiLayout &layout,
-                                           bContext &C,
+                                           const bContext &C,
                                            const StringRef catalog_path)
 {
   using namespace blender;

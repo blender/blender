@@ -53,4 +53,8 @@ std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &s
 [[nodiscard]] bool push_compute_context_for_tree_path(
     const SpaceNode &snode, ComputeContextBuilder &compute_context_builder);
 
+void ui_template_node_asset_menu_items(uiLayout &layout,
+                                       const bContext &C,
+                                       StringRef catalog_path);
+
 }  // namespace blender::ed::space_node

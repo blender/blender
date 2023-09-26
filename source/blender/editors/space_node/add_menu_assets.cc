@@ -255,15 +255,12 @@ MenuType add_root_catalogs_menu_type()
   return type;
 }
 
-}  // namespace blender::ed::space_node
-
-void uiTemplateNodeAssetMenuItems(uiLayout *layout, bContext *C, const char *catalog_path)
+void ui_template_node_asset_menu_items(uiLayout &layout,
+                                       const bContext &C,
+                                       const StringRef catalog_path)
 {
-  using namespace blender;
-  using namespace blender::ed;
-  using namespace blender::ed::space_node;
-  bScreen &screen = *CTX_wm_screen(C);
-  SpaceNode &snode = *CTX_wm_space_node(C);
+  bScreen &screen = *CTX_wm_screen(&C);
+  SpaceNode &snode = *CTX_wm_space_node(&C);
   if (snode.runtime->assets_for_menu == nullptr) {
     return;
   }
@@ -281,8 +278,10 @@ void uiTemplateNodeAssetMenuItems(uiLayout *layout, bContext *C, const char *cat
   if (path_ptr.data == nullptr) {
     return;
   }
-  uiItemS(layout);
-  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemS(&layout);
+  uiLayout *col = uiLayoutColumn(&layout, false);
   uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
   uiItemMContents(col, "NODE_MT_node_add_catalog_assets");
 }
+
+}  // namespace blender::ed::space_node

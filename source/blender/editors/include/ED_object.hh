@@ -641,6 +641,8 @@ void ED_object_data_xform_tag_update(XFormObjectData *xod);
 
 namespace blender::ed::object {
 
-void ui_template_modifier_asset_menu_items(uiLayout &layout, bContext &C, StringRef catalog_path);
+void ui_template_modifier_asset_menu_items(uiLayout &layout,
+                                           const bContext &C,
+                                           StringRef catalog_path);
 
 }
