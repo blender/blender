@@ -3682,6 +3682,15 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, eU
   return block;
 }
 
+void ui_block_add_dynamic_listener(uiBlock *block,
+                                   void (*listener_func)(const wmRegionListenerParams *params))
+{
+  uiBlockDynamicListener *listener = static_cast<uiBlockDynamicListener *>(
+      MEM_mallocN(sizeof(*listener), __func__));
+  listener->listener_func = listener_func;
+  BLI_addtail(&block->dynamic_listeners, listener);
+}
+
 eUIEmbossType UI_block_emboss_get(uiBlock *block)
 {
   return block->emboss;

@@ -664,6 +664,10 @@ void ui_region_to_window(const ARegion *region, int *x, int *y);
  */
 void ui_region_winrct_get_no_margin(const ARegion *region, rcti *r_rect);
 
+/** Register a listener callback to this block to tag the area/region for redraw. */
+void ui_block_add_dynamic_listener(uiBlock *block,
+                                   void (*listener_func)(const wmRegionListenerParams *params));
+
 /**
  * Reallocate the button (new address is returned) for a new button type.
  * This should generally be avoided and instead the correct type be created right away.
