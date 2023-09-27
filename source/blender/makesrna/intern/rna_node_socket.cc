@@ -42,6 +42,7 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 #  include "DNA_material_types.h"
 
 #  include "BKE_node.h"
+#  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_update.h"
 
 #  include "DEG_depsgraph_build.hh"
