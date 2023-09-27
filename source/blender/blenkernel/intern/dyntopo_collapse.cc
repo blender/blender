@@ -528,6 +528,8 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
   pbvh_check_vert_boundary_bmesh(pbvh, v1);
   pbvh_check_vert_boundary_bmesh(pbvh, v2);
 
+  pbvh_check_edge_boundary_bmesh(pbvh, e);
+
   int boundflag1 = BM_ELEM_CD_GET_INT(v1, pbvh->cd_boundary_flag);
   int boundflag2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_boundary_flag);
   int e_boundflag = BM_ELEM_CD_GET_INT(e, pbvh->cd_edge_boundary);
@@ -537,7 +539,11 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
     return nullptr;
   }
 
-  if ((boundflag1 & SCULPTVERT_ALL_BOUNDARY) != (e_boundflag & SCULPTVERT_ALL_BOUNDARY)) {
+  /* TODO: Sharp angle flags aren't always matching between
+   * verts and edges, investigate.
+   */
+  int edge_comp_flag = SCULPTVERT_ALL_BOUNDARY & ~SCULPT_BOUNDARY_SHARP_ANGLE;
+  if ((boundflag1 & edge_comp_flag) != (e_boundflag & edge_comp_flag)) {
     return nullptr;
   }
 
