@@ -768,6 +768,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     BLI_edgehashIterator_getKey(ehi, &ed_v1, &ed_v2);
     esplit = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
 
+    CustomData_free_elem(&split_m->vdata, esplit, 1);
     CustomData_copy_data(&split_m->vdata, &split_m->vdata, ed_v2, esplit, 1);
 
     dupve = split_m_positions[esplit];
