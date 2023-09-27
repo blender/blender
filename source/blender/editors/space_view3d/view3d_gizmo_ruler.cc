@@ -154,6 +154,7 @@ struct RulerInfo {
   struct {
     wmGizmo *gizmo;
     PropertyRNA *prop_prevpoint;
+    PropertyRNA *prop_snap_source_type;
   } snap_data;
 };
 
@@ -165,6 +166,7 @@ struct RulerItem {
 
   /** World-space coords, middle being optional. */
   float3x3 co;
+  eSnapMode snap_type[3];
 
   int flag;
   int raycast_dir; /* RULER_DIRECTION_* */
@@ -357,6 +359,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
   if (ruler_item) {
     RulerInteraction *inter = static_cast<RulerInteraction *>(ruler_item->gz.interaction_data);
     float3 &co = ruler_item->co[inter->co_index];
+    eSnapMode *snap_source_type = &ruler_item->snap_type[inter->co_index];
     /* restore the initial depth */
     co = inter->drag_start_co;
     view3d_ruler_item_project(ruler_info, co, mval);
@@ -403,25 +406,31 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
       View3D *v3d = static_cast<View3D *>(ruler_info->area->spacedata.first);
       if (do_snap) {
         float3 *prev_point = nullptr;
+        eSnapMode snap_type;
         BLI_assert(ED_gizmotypes_snap_3d_is_enabled(snap_gizmo));
 
         if (inter->co_index != 1) {
           if (ruler_item->flag & RULERITEM_USE_ANGLE) {
             prev_point = &ruler_item->co[1];
+            snap_type = ruler_item->snap_type[1];
           }
           else if (inter->co_index == 0) {
             prev_point = &ruler_item->co[2];
+            snap_type = ruler_item->snap_type[2];
           }
           else {
             prev_point = &ruler_item->co[0];
+            snap_type = ruler_item->snap_type[0];
           }
         }
         if (prev_point != nullptr) {
           RNA_property_float_set_array(
               snap_gizmo->ptr, ruler_info->snap_data.prop_prevpoint, *prev_point);
+          RNA_property_enum_set(
+              snap_gizmo->ptr, ruler_info->snap_data.prop_snap_source_type, snap_type);
         }
 
-        ED_gizmotypes_snap_3d_data_get(C, snap_gizmo, co, nullptr, nullptr, nullptr);
+        ED_gizmotypes_snap_3d_data_get(C, snap_gizmo, co, nullptr, nullptr, snap_source_type);
       }
 
 #ifdef USE_AXIS_CONSTRAINTS
@@ -1154,19 +1163,26 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
   {
     /* Set Snap prev point. */
     float3 *prev_point;
+    eSnapMode snap_type;
     if (ruler_item_pick->flag & RULERITEM_USE_ANGLE) {
       prev_point = (inter->co_index != 1) ? &ruler_item_pick->co[1] : nullptr;
+      snap_type = (inter->co_index != 1) ? ruler_item_pick->snap_type[1] : SCE_SNAP_TO_VERTEX;
     }
     else if (inter->co_index == 0) {
       prev_point = &ruler_item_pick->co[2];
+      snap_type = ruler_item_pick->snap_type[2];
     }
     else {
       prev_point = &ruler_item_pick->co[0];
+      snap_type = ruler_item_pick->snap_type[2];
     }
 
     if (prev_point) {
       RNA_property_float_set_array(
           ruler_info->snap_data.gizmo->ptr, ruler_info->snap_data.prop_prevpoint, *prev_point);
+      RNA_property_enum_set(ruler_info->snap_data.gizmo->ptr,
+                            ruler_info->snap_data.prop_snap_source_type,
+                            snap_type);
     }
     else {
       RNA_property_unset(ruler_info->snap_data.gizmo->ptr, ruler_info->snap_data.prop_prevpoint);
@@ -1260,6 +1276,8 @@ static void WIDGETGROUP_ruler_setup(const bContext *C, wmGizmoGroup *gzgroup)
   ruler_info->region = region;
   ruler_info->snap_data.gizmo = gizmo;
   ruler_info->snap_data.prop_prevpoint = RNA_struct_find_property(gizmo->ptr, "prev_point");
+  ruler_info->snap_data.prop_snap_source_type = RNA_struct_find_property(gizmo->ptr,
+                                                                         "snap_source_type");
 
   gzgroup->customdata = ruler_info;
 }
@@ -1342,6 +1360,9 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
     RNA_property_float_set_array(ruler_info->snap_data.gizmo->ptr,
                                  ruler_info->snap_data.prop_prevpoint,
                                  inter->drag_start_co);
+    RNA_property_enum_set(ruler_info->snap_data.gizmo->ptr,
+                          ruler_info->snap_data.prop_snap_source_type,
+                          ruler_item->snap_type[inter->co_index]);
 
     copy_v3_v3(ruler_item->co[2], ruler_item->co[0]);
     ruler_item->gz.highlight_part = inter->co_index = 2;
