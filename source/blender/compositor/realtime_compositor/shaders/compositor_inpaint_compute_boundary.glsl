@@ -39,7 +39,7 @@ void main()
   bool is_boundary_pixel = is_opaque && has_transparent_neighbours;
 
   /* Encode the boundary information in the format expected by the jump flooding algorithm. */
-  vec4 jump_flooding_value = initialize_jump_flooding_value(texel, is_boundary_pixel);
+  ivec2 jump_flooding_value = initialize_jump_flooding_value(texel, is_boundary_pixel);
 
-  imageStore(boundary_img, texel, jump_flooding_value);
+  imageStore(boundary_img, texel, ivec4(jump_flooding_value, ivec2(0)));
 }
