@@ -966,7 +966,6 @@ class SEQUENCER_MT_strip_retiming(Menu):
         layout.operator("sequencer.retiming_segment_speed_set")
         layout.operator("sequencer.retiming_show", icon="CHECKBOX_HLT")
 
-
     def draw(self, context):
         ed = context.scene.sequence_editor
         if ed.selected_retiming_keys:

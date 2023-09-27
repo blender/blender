@@ -1450,7 +1450,8 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
       int prev_corner = -1;
       const float *org_nor = nullptr;
 
-      for (const int lidx : fan_corners) {
+      for (int i = fan_corners.index_range().last(); i >= 0; i--) {
+        const int lidx = fan_corners[i];
         float *nor = r_custom_loop_normals[lidx];
 
         if (!org_nor) {

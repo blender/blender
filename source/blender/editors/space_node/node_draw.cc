@@ -374,7 +374,7 @@ static bool node_update_basis_buttons(const bContext &C,
   loc.x = round(loc.x);
   loc.y = round(loc.y);
 
-  dy -= NODE_DYS / 2;
+  dy -= NODE_DYS / 4;
 
   uiLayout *layout = UI_block_layout(&block,
                                      UI_LAYOUT_VERTICAL,
@@ -398,7 +398,7 @@ static bool node_update_basis_buttons(const bContext &C,
   int buty;
   UI_block_layout_resolve(&block, nullptr, &buty);
 
-  dy = buty - NODE_DYS / 2;
+  dy = buty - NODE_DYS / 4;
   return true;
 }
 
@@ -798,8 +798,8 @@ static void add_panel_items_recursive(const bContext &C,
 
   /* Finalize the vertical extent of the content. */
   if (!is_parent_collapsed) {
-    locy -= 2 * NODE_ITEM_SPACING_Y; /* Space at bottom of panel contents. */
     if (parent_runtime) {
+      locy -= 2 * NODE_ITEM_SPACING_Y; /* Space at bottom of panel contents. */
       parent_runtime->min_content_y = round(locy);
     }
     locy -= NODE_ITEM_SPACING_Y / 2; /* Space at top of next panel header. */
