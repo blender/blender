@@ -43,8 +43,10 @@ bool ED_asset_mark_id(ID *id)
 
   const IDTypeInfo *id_type_info = BKE_idtype_get_info_from_id(id);
   id->asset_data = BKE_asset_metadata_create();
-  id->asset_data->local_type_info = id_type_info->asset_type_info;
-  id->asset_data->local_type_info->on_mark_asset_fn(id, id->asset_data);
+  if (AssetTypeInfo *type_info = id_type_info->asset_type_info) {
+    id->asset_data->local_type_info = type_info;
+    type_info->on_mark_asset_fn(id, id->asset_data);
+  }
 
   /* Important for asset storage to update properly! */
   ED_assetlist_storage_tag_main_data_dirty();
