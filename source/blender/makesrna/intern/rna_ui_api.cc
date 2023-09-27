@@ -791,7 +791,7 @@ static void rna_uiLayout_template_node_operator_asset_menu_items(uiLayout *layou
                                                                  const char *catalog_path)
 {
   using namespace blender;
-    ed::geometry::ui_template_node_operator_asset_menu_items(*layout, *C, StringRef(catalog_path));
+  ed::geometry::ui_template_node_operator_asset_menu_items(*layout, *C, StringRef(catalog_path));
 }
 
 static void rna_uiLayout_template_modifier_asset_menu_items(uiLayout *layout,
@@ -799,12 +799,12 @@ static void rna_uiLayout_template_modifier_asset_menu_items(uiLayout *layout,
                                                             const char *catalog_path)
 {
   using namespace blender;
-    ed::object::ui_template_modifier_asset_menu_items(*layout, *C, StringRef(catalog_path));
+  ed::object::ui_template_modifier_asset_menu_items(*layout, *C, StringRef(catalog_path));
 }
 
 static void rna_uiLayout_template_node_operator_root_items(uiLayout *layout, bContext *C)
 {
-    blender::ed::geometry::ui_template_node_operator_asset_root_items(*layout, *C);
+  blender::ed::geometry::ui_template_node_operator_asset_root_items(*layout, *C);
 }
 
 static int rna_ui_get_rnaptr_icon(bContext *C, PointerRNA *ptr_icon)
