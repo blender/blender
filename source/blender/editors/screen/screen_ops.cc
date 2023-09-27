@@ -782,7 +782,7 @@ static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)
   if (az->type == AZONE_REGION) {
     if (region->overlap && (region->v2d.keeptot != V2D_KEEPTOT_STRICT) &&
         /* Only when this isn't hidden (where it's displayed as an button that expands). */
-        ((az->region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) == 0))
+        region->visible)
     {
       /* A floating region to be resized, clip by the visible region. */
       switch (az->edge) {
