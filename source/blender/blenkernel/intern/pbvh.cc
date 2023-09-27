@@ -1552,12 +1552,12 @@ void BKE_pbvh_update_mask(PBVH *pbvh)
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
       pbvh, [&](PBVHNode &node) { return update_search(&node, PBVH_UpdateMask); });
 
-    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      for (PBVHNode *node : nodes.as_span().slice(range)) {
-        node_update_mask_redraw(*pbvh, *node);
-      }
-    });
-  }
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.as_span().slice(range)) {
+      node_update_mask_redraw(*pbvh, *node);
+    }
+  });
+}
 
 void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
 {

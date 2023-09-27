@@ -1247,7 +1247,6 @@ static void sculpt_expand_restore_original_state(bContext *C,
                                                  Object *ob,
                                                  ExpandCache *expand_cache)
 {
-
   SculptSession *ss = ob->sculpt;
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
@@ -1258,8 +1257,8 @@ static void sculpt_expand_restore_original_state(bContext *C,
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
       sculpt_expand_restore_face_set_data(ss, expand_cache);
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_FACE_SET);
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_FACE_SET);
       SCULPT_tag_update_overlays(C);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
@@ -1422,7 +1421,7 @@ static void sculpt_expand_flush_updates(bContext *C)
       SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_FACE_SET);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
@@ -1639,7 +1638,7 @@ static void sculpt_expand_finish(bContext *C)
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_FACE_SET);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
