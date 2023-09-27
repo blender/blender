@@ -61,6 +61,10 @@ static Vector<rcti> button_section_bounds_calc(const ARegion *region, const bool
     BLI_rcti_init_minmax(&cur_section_bounds);
 
     LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+      if (!block->active) {
+        continue;
+      }
+
       LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
         if (but->type == UI_BTYPE_SEPR_SPACER) {
           /* Start a new section. */
