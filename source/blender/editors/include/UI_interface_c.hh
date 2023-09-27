@@ -453,6 +453,7 @@ enum eButType {
 
 /** Gradient types, for color picker #UI_BTYPE_HSVCUBE etc. */
 enum eButGradientType {
+  UI_GRAD_NONE = -1,
   UI_GRAD_SV = 0,
   UI_GRAD_HV = 1,
   UI_GRAD_HS = 2,
