@@ -21,9 +21,9 @@ uniform sampler2DArray utilTex;
 
 #define LTC_MAT_LAYER 0
 #define LTC_BRDF_LAYER 3
+#define LTC_DISK_LAYER 3
 #define BRDF_LUT_LAYER 1
 #define NOISE_LAYER 2
-#define LTC_DISK_LAYER 3 /* UNUSED */
 
 /* Layers 4 to 20 are for BTDF LUT. */
 #define lut_btdf_layer_first 4.0
