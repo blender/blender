@@ -774,6 +774,7 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
   const GeometryNodeAssetTraitFlag flag = asset_flag_for_context(
       eContextObjectMode(CTX_data_mode_enum(C)));
 
+  bool first = true;
   bool add_separator = !tree->unassigned_assets.is_empty();
   Main &bmain = *CTX_data_main(C);
   LISTBASE_FOREACH (const bNodeTree *, group, &bmain.nodetrees) {
@@ -788,8 +789,11 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
 
     if (add_separator) {
       uiItemS(layout);
-      uiItemL(layout, IFACE_("Non-Assets"), ICON_NONE);
       add_separator = false;
+    }
+    if (first) {
+      uiItemL(layout, IFACE_("Non-Assets"), ICON_NONE);
+      first = false;
     }
 
     PointerRNA props_ptr;
