@@ -7,6 +7,7 @@
 #ifdef __cplusplus
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_offset_indices.hh"
+#  include "BLI_virtual_array.hh"
 #endif
 
 #ifdef __cplusplus
@@ -49,6 +50,10 @@ void BKE_object_defgroup_active_index_set(struct Object *ob, int new_index);
 const struct ListBase *BKE_id_defgroup_list_get(const struct ID *id);
 struct ListBase *BKE_id_defgroup_list_get_mutable(struct ID *id);
 int BKE_id_defgroup_name_index(const struct ID *id, const char *name);
+bool BKE_defgroup_listbase_name_find(const ListBase *defbase,
+                                     const char *name,
+                                     int *r_index,
+                                     struct bDeformGroup **r_group);
 bool BKE_id_defgroup_name_find(const struct ID *id,
                                const char *name,
                                int *r_index,
@@ -291,6 +296,12 @@ void BKE_defvert_extract_vgroup_to_faceweights(const struct MDeformVert *dvert,
                                                bool invert_vgroup,
                                                float *r_weights);
 
+namespace blender::bke {
+VArray<float> varray_for_deform_verts(Span<MDeformVert> dverts, int defgroup_index);
+VMutableArray<float> varray_for_mutable_deform_verts(MutableSpan<MDeformVert> dverts,
+                                                     int defgroup_index);
+void remove_defgroup_index(MutableSpan<MDeformVert> dverts, int defgroup_index);
+}  // namespace blender::bke
 #endif
 
 void BKE_defvert_weight_to_rgb(float r_rgb[3], float weight);

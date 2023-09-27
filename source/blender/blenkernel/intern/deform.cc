@@ -516,15 +516,14 @@ int BKE_id_defgroup_name_index(const ID *id, const char *name)
   return index;
 }
 
-bool BKE_id_defgroup_name_find(const ID *id,
-                               const char *name,
-                               int *r_index,
-                               bDeformGroup **r_group)
+bool BKE_defgroup_listbase_name_find(const ListBase *defbase,
+                                     const char *name,
+                                     int *r_index,
+                                     bDeformGroup **r_group)
 {
   if (name == nullptr || name[0] == '\0') {
     return false;
   }
-  const ListBase *defbase = BKE_id_defgroup_list_get(id);
   int index;
   LISTBASE_FOREACH_INDEX (bDeformGroup *, group, defbase, index) {
     if (STREQ(name, group->name)) {
@@ -538,6 +537,14 @@ bool BKE_id_defgroup_name_find(const ID *id,
     }
   }
   return false;
+}
+
+bool BKE_id_defgroup_name_find(const ID *id,
+                               const char *name,
+                               int *r_index,
+                               bDeformGroup **r_group)
+{
+  return BKE_defgroup_listbase_name_find(BKE_id_defgroup_list_get(id), name, r_index, r_group);
 }
 
 const ListBase *BKE_object_defgroup_list(const Object *ob)
@@ -1632,5 +1639,135 @@ void BKE_defvert_blend_read(BlendDataReader *reader, int count, MDeformVert *mdv
     }
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Virtual array implementation for vertex groups.
+ * \{ */
+
+namespace blender::bke {
+
+class VArrayImpl_For_VertexWeights final : public VMutableArrayImpl<float> {
+ private:
+  MDeformVert *dverts_;
+  const int dvert_index_;
+
+ public:
+  VArrayImpl_For_VertexWeights(MutableSpan<MDeformVert> dverts, const int dvert_index)
+      : VMutableArrayImpl<float>(dverts.size()), dverts_(dverts.data()), dvert_index_(dvert_index)
+  {
+  }
+
+  VArrayImpl_For_VertexWeights(Span<MDeformVert> dverts, const int dvert_index)
+      : VMutableArrayImpl<float>(dverts.size()),
+        dverts_(const_cast<MDeformVert *>(dverts.data())),
+        dvert_index_(dvert_index)
+  {
+  }
+
+  float get(const int64_t index) const override
+  {
+    if (dverts_ == nullptr) {
+      return 0.0f;
+    }
+    if (const MDeformWeight *weight = this->find_weight_at_index(index)) {
+      return weight->weight;
+    }
+    return 0.0f;
+  }
+
+  void set(const int64_t index, const float value) override
+  {
+    MDeformVert &dvert = dverts_[index];
+    if (value == 0.0f) {
+      if (MDeformWeight *weight = this->find_weight_at_index(index)) {
+        weight->weight = 0.0f;
+      }
+    }
+    else {
+      MDeformWeight *weight = BKE_defvert_ensure_index(&dvert, dvert_index_);
+      weight->weight = value;
+    }
+  }
+
+  void set_all(Span<float> src) override
+  {
+    threading::parallel_for(src.index_range(), 4096, [&](const IndexRange range) {
+      for (const int64_t i : range) {
+        this->set(i, src[i]);
+      }
+    });
+  }
+
+  void materialize(const IndexMask &mask, float *dst) const override
+  {
+    if (dverts_ == nullptr) {
+      mask.foreach_index([&](const int i) { dst[i] = 0.0f; });
+    }
+    threading::parallel_for(mask.index_range(), 4096, [&](const IndexRange range) {
+      mask.slice(range).foreach_index_optimized<int64_t>([&](const int64_t index) {
+        if (const MDeformWeight *weight = this->find_weight_at_index(index)) {
+          dst[index] = weight->weight;
+        }
+        else {
+          dst[index] = 0.0f;
+        }
+      });
+    });
+  }
+
+  void materialize_to_uninitialized(const IndexMask &mask, float *dst) const override
+  {
+    this->materialize(mask, dst);
+  }
+
+ private:
+  MDeformWeight *find_weight_at_index(const int64_t index)
+  {
+    for (MDeformWeight &weight : MutableSpan(dverts_[index].dw, dverts_[index].totweight)) {
+      if (weight.def_nr == dvert_index_) {
+        return &weight;
+      }
+    }
+    return nullptr;
+  }
+  const MDeformWeight *find_weight_at_index(const int64_t index) const
+  {
+    for (const MDeformWeight &weight : Span(dverts_[index].dw, dverts_[index].totweight)) {
+      if (weight.def_nr == dvert_index_) {
+        return &weight;
+      }
+    }
+    return nullptr;
+  }
+};
+
+VArray<float> varray_for_deform_verts(Span<MDeformVert> dverts, const int defgroup_index)
+{
+  return VArray<float>::For<VArrayImpl_For_VertexWeights>(dverts, defgroup_index);
+}
+VMutableArray<float> varray_for_mutable_deform_verts(MutableSpan<MDeformVert> dverts,
+                                                     const int defgroup_index)
+{
+  return VMutableArray<float>::For<VArrayImpl_For_VertexWeights>(dverts, defgroup_index);
+}
+
+void remove_defgroup_index(MutableSpan<MDeformVert> dverts, const int defgroup_index)
+{
+  threading::parallel_for(dverts.index_range(), 1024, [&](IndexRange range) {
+    for (MDeformVert &dvert : dverts.slice(range)) {
+      MDeformWeight *weight = BKE_defvert_find_index(&dvert, defgroup_index);
+      BKE_defvert_remove_group(&dvert, weight);
+      for (MDeformWeight &weight : MutableSpan(dvert.dw, dvert.totweight)) {
+        if (weight.def_nr > defgroup_index) {
+          weight.def_nr--;
+        }
+      }
+    }
+  });
+}
+
+}  // namespace blender::bke
 
 /** \} */
