@@ -57,26 +57,18 @@ static void init_data(ModifierData *md)
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-#ifndef WITH_FLUID
-  UNUSED_VARS(md, target, flag);
-#else
   const FluidModifierData *fmd = (const FluidModifierData *)md;
   FluidModifierData *tfmd = (FluidModifierData *)target;
 
   BKE_fluid_modifier_free(tfmd);
   BKE_fluid_modifier_copy(fmd, tfmd, flag);
-#endif /* WITH_FLUID */
 }
 
 static void free_data(ModifierData *md)
 {
-#ifndef WITH_FLUID
-  UNUSED_VARS(md);
-#else
   FluidModifierData *fmd = (FluidModifierData *)md;
 
   BKE_fluid_modifier_free(fmd);
-#endif /* WITH_FLUID */
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
