@@ -307,7 +307,7 @@ ccl_device
           bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
           bsdf->ior = (sd->flag & SD_BACKFACING) ? 1.0f / ior : ior;
 
-          fresnel->f0 = make_float3(F0_from_ior(ior));
+          fresnel->f0 = make_float3(F0_from_ior(ior)) * specular_tint;
           fresnel->f90 = one_spectrum();
           fresnel->exponent = -ior;
           fresnel->reflection_tint = one_spectrum();
