@@ -761,6 +761,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     const int ed_v1 = edgehash[esplit].v_low;
     const int ed_v2 = edgehash[esplit].v_high;
 
+    CustomData_free_elem(&split_m->vert_data, esplit, 1);
     CustomData_copy_data(&split_m->vert_data, &split_m->vert_data, ed_v2, esplit, 1);
 
     dupve = split_m_positions[esplit];
