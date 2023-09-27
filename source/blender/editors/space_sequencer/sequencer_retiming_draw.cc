@@ -395,8 +395,12 @@ static void fake_keys_draw(const bContext *C, Sequence *seq)
 
 static void retime_keys_draw(const bContext *C)
 {
-  const SpaceSeq *sseq = CTX_wm_space_seq(C);
+  const Scene *scene = CTX_data_scene(C);
+  if (scene->ed == nullptr) {
+    return;
+  }
 
+  const SpaceSeq *sseq = CTX_wm_space_seq(C);
   if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) == 0 &&
       !sequencer_retiming_mode_is_active(C))
   {
@@ -509,6 +513,11 @@ static void retime_speed_text_draw(const bContext *C,
 
 static void retime_speed_draw(const bContext *C)
 {
+  const Scene *scene = CTX_data_scene(C);
+  if (scene->ed == nullptr) {
+    return;
+  }
+
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
   if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) == 0 &&
       !sequencer_retiming_mode_is_active(C))
