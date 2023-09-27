@@ -307,7 +307,7 @@ class NewGeometryNodeGroupTool(Operator):
 
     def execute(self, context):
         group = geometry_node_group_empty_tool_new(context)
-        context.space_data.node_tree = group
+        context.space_data.geometry_nodes_tool_tree = group
         return {'FINISHED'}
 
 
