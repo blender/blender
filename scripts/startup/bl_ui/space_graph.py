@@ -499,47 +499,6 @@ class GRAPH_MT_snap_pie(Menu):
         pie.operator("graph.snap_cursor_value", text="Cursor Value to Selection")
 
 
-class GRAPH_MT_channel_context_menu(Menu):
-    bl_label = "F-Curve Channel"
-
-    def draw(self, context):
-        layout = self.layout
-        st = context.space_data
-
-        layout.separator()
-        layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
-        layout.operator("anim.channels_setting_disable", text="Unmute Channels").type = 'MUTE'
-        layout.separator()
-        layout.operator("anim.channels_setting_enable", text="Protect Channels").type = 'PROTECT'
-        layout.operator("anim.channels_setting_disable", text="Unprotect Channels").type = 'PROTECT'
-
-        layout.separator()
-        layout.operator("anim.channels_group")
-        layout.operator("anim.channels_ungroup")
-
-        layout.separator()
-        layout.operator("anim.channels_editable_toggle")
-        layout.operator_menu_enum("graph.extrapolation_type", "type", text="Extrapolation Mode")
-
-        layout.separator()
-        layout.operator("graph.hide", text="Hide Selected Curves").unselected = False
-        layout.operator("graph.hide", text="Hide Unselected Curves").unselected = True
-        layout.operator("graph.reveal")
-
-        layout.separator()
-        layout.operator("anim.channels_expand")
-        layout.operator("anim.channels_collapse")
-
-        layout.separator()
-        layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
-
-        layout.separator()
-
-        layout.operator("anim.channels_delete")
-        if st.mode == 'DRIVERS':
-            layout.operator("graph.driver_delete_invalid")
-
-
 classes = (
     GRAPH_HT_header,
     GRAPH_PT_proportional_edit,
@@ -556,7 +515,6 @@ classes = (
     GRAPH_MT_key_blending,
     GRAPH_MT_delete,
     GRAPH_MT_context_menu,
-    GRAPH_MT_channel_context_menu,
     GRAPH_MT_pivot_pie,
     GRAPH_MT_snap_pie,
     GRAPH_MT_view_pie,
