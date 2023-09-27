@@ -70,6 +70,7 @@ enum SculptUpdateType {
   SCULPT_UPDATE_VISIBILITY = 1 << 2,
   SCULPT_UPDATE_COLOR = 1 << 3,
   SCULPT_UPDATE_IMAGE = 1 << 4,
+  SCULPT_UPDATE_FACE_SET = 1 << 5,
 };
 
 struct SculptCursorGeometryInfo {
