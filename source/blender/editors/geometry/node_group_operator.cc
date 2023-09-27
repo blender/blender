@@ -806,6 +806,8 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
                     UI_ITEM_NONE,
                     &props_ptr);
     WM_operator_properties_id_lookup_set_from_id(&props_ptr, &group->id);
+    /* Also set the name so it can be used for #run_node_group_get_name. */
+    RNA_string_set(&props_ptr, "name", group->id.name + 2);
   }
 }
 
