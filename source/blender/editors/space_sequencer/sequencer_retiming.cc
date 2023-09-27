@@ -48,8 +48,12 @@ using blender::MutableSpan;
 
 bool sequencer_retiming_mode_is_active(const bContext *C)
 {
-  Scene *scene = CTX_data_scene(C);
-  return SEQ_retiming_selection_get(SEQ_editing_get(scene)).size() > 0;
+  const Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+  if (ed == nullptr) {
+    return false;
+  }
+  return SEQ_retiming_selection_get(ed).size() > 0;
 }
 
 /*-------------------------------------------------------------------- */

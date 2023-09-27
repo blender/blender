@@ -397,8 +397,8 @@ static void retime_keys_draw(const bContext *C)
 {
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-  if (!sequencer_retiming_mode_is_active(C) &&
-      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) == 0)
+  if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) == 0 &&
+      !sequencer_retiming_mode_is_active(C))
   {
     return;
   }
@@ -510,8 +510,8 @@ static void retime_speed_text_draw(const bContext *C,
 static void retime_speed_draw(const bContext *C)
 {
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if (!sequencer_retiming_mode_is_active(C) &&
-      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) == 0)
+  if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) == 0 &&
+      !sequencer_retiming_mode_is_active(C))
   {
     return;
   }
