@@ -950,7 +950,12 @@ static void image_tools_header_region_draw(const bContext *C, ARegion *region)
 
   image_user_refresh_scene(C, sima);
 
-  ED_region_header_with_button_sections(C, region, uiButtonSectionsAlign::Top);
+  ED_region_header_with_button_sections(
+      C,
+      region,
+      (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) ?
+          uiButtonSectionsAlign::Top :
+          uiButtonSectionsAlign::Bottom);
 }
 
 /************************* header region **************************/
