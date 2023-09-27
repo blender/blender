@@ -295,13 +295,6 @@ void BKE_defvert_extract_vgroup_to_faceweights(const struct MDeformVert *dvert,
                                                blender::OffsetIndices<int> faces,
                                                bool invert_vgroup,
                                                float *r_weights);
-
-namespace blender::bke {
-VArray<float> varray_for_deform_verts(Span<MDeformVert> dverts, int defgroup_index);
-VMutableArray<float> varray_for_mutable_deform_verts(MutableSpan<MDeformVert> dverts,
-                                                     int defgroup_index);
-void remove_defgroup_index(MutableSpan<MDeformVert> dverts, int defgroup_index);
-}  // namespace blender::bke
 #endif
 
 void BKE_defvert_weight_to_rgb(float r_rgb[3], float weight);
@@ -316,4 +309,13 @@ void BKE_defbase_blend_write(struct BlendWriter *writer, const ListBase *defbase
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+namespace blender::bke {
+VArray<float> varray_for_deform_verts(Span<MDeformVert> dverts, int defgroup_index);
+VMutableArray<float> varray_for_mutable_deform_verts(MutableSpan<MDeformVert> dverts,
+                                                     int defgroup_index);
+void remove_defgroup_index(MutableSpan<MDeformVert> dverts, int defgroup_index);
+}  // namespace blender::bke
 #endif
