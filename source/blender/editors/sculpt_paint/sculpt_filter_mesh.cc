@@ -372,7 +372,7 @@ static void mesh_filter_task(Object *ob,
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     float orig_co[3], val[3], avg[3], disp[3], disp2[3], transform[3][3], final_pos[3];
-    float fade = vd.mask ? *vd.mask : 0.0f;
+    float fade = vd.mask;
     fade = 1.0f - fade;
     fade *= filter_strength;
     fade *= SCULPT_automasking_factor_get(
@@ -670,7 +670,7 @@ static void mesh_filter_surface_smooth_displace_task(Object *ob,
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
-    float fade = vd.mask ? *vd.mask : 0.0f;
+    float fade = vd.mask;
     fade = 1.0f - fade;
     fade *= filter_strength;
     fade *= SCULPT_automasking_factor_get(

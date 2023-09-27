@@ -519,7 +519,7 @@ struct PBVHVertexIter {
   float *co;
   const float *no;
   const float *fno;
-  const float *mask;
+  float mask;
   bool visible;
 };
 
@@ -548,7 +548,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
         if (vi.grid) { \
           vi.co = CCG_elem_co(&vi.key, vi.grid); \
           vi.fno = CCG_elem_no(&vi.key, vi.grid); \
-          vi.mask = vi.key.has_mask ? CCG_elem_mask(&vi.key, vi.grid) : NULL; \
+          vi.mask = vi.key.has_mask ? *CCG_elem_mask(&vi.key, vi.grid) : 0.0f; \
           vi.grid = CCG_elem_next(&vi.key, vi.grid); \
           vi.index++; \
           vi.vertex.i++; \
@@ -567,9 +567,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           vi.co = vi.vert_positions[vi.vert_indices[vi.gx]]; \
           vi.no = vi.vert_normals[vi.vert_indices[vi.gx]]; \
           vi.index = vi.vertex.i = vi.vert_indices[vi.i]; \
-          if (vi.vmask) { \
-            vi.mask = &vi.vmask[vi.index]; \
-          } \
+          vi.mask = vi.vmask ? vi.vmask[vi.index] : 0.0f; \
         } \
         else { \
           if (!BLI_gsetIterator_done(&vi.bm_unique_verts)) { \
@@ -588,7 +586,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           vi.fno = vi.bm_vert->no; \
           vi.vertex = BKE_pbvh_make_vref((intptr_t)vi.bm_vert); \
           vi.index = BM_elem_index_get(vi.bm_vert); \
-          vi.mask = (float *)BM_ELEM_CD_GET_VOID_P(vi.bm_vert, vi.cd_vert_mask_offset); \
+          vi.mask = BM_ELEM_CD_GET_FLOAT(vi.bm_vert, vi.cd_vert_mask_offset); \
         }
 
 #define BKE_pbvh_vertex_iter_end \

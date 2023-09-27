@@ -1465,7 +1465,7 @@ static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
   PBVHVertexIter vd;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, static_cast<PBVHNode *>(unode->node), vd, PBVH_ITER_ALL) {
-    unode->mask[vd.i] = *vd.mask;
+    unode->mask[vd.i] = vd.mask;
   }
   BKE_pbvh_vertex_iter_end;
 }
