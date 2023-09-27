@@ -1610,7 +1610,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       ts->snap_mode = versioning_snap_to(ts->snap_mode);
       ts->snap_uv_mode = versioning_snap_to(ts->snap_uv_mode);
       ts->snap_node_mode = versioning_snap_to(ts->snap_node_mode, true);
-      ts->snap_anim_mode = versioning_snap_to(ts->snap_node_mode);
+      ts->snap_anim_mode = versioning_snap_to(ts->snap_anim_mode);
     }
   }
 
