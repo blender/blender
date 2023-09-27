@@ -143,7 +143,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_end(ob);
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+  BKE_pbvh_update_mask(ss->pbvh);
   SCULPT_tag_update_overlays(C);
   return OPERATOR_FINISHED;
 }

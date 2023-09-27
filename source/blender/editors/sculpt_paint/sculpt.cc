@@ -5546,7 +5546,7 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
   }
 
   if (update_flags & SCULPT_UPDATE_MASK) {
-    BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+    BKE_pbvh_update_mask(ss->pbvh);
   }
 
   if (update_flags & SCULPT_UPDATE_COLOR) {
