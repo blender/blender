@@ -62,10 +62,18 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
  */
 bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed_viewer_path);
 
+enum class UpdateActiveGeometryNodesViewerResult {
+  StillActive,
+  Updated,
+  NotActive,
+};
+
 /**
  * Checks if the node referenced by the viewer and its entire context is still active, i.e. some
- * editor is showing it.
+ * editor is showing it. If not, the viewer path might be updated in minor ways (like changing the
+ * repeat zone iteration).
  */
-bool is_active_geometry_nodes_viewer(const bContext &C, const ViewerPath &viewer_path);
+UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const bContext &C,
+                                                                          ViewerPath &viewer_path);
 
 }  // namespace blender::ed::viewer_path

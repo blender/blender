@@ -363,10 +363,10 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
           break;
         }
         case GEO_NODE_REPEAT_OUTPUT: {
-          /* Only show data from the first iteration for now. */
-          const int repeat_iteration = 0;
+          const auto &storage = *static_cast<const NodeGeometryRepeatOutput *>(
+              zone->output_node->storage);
           compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone->output_node,
-                                                                      repeat_iteration);
+                                                                      storage.inspection_index);
           break;
         }
       }

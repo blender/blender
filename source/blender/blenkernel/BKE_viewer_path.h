@@ -35,10 +35,16 @@ struct IDRemapper;
 extern "C" {
 #endif
 
+enum ViewerPathEqualFlag {
+  VIEWER_PATH_EQUAL_FLAG_IGNORE_REPEAT_ITERATION = (1 << 0),
+};
+
 void BKE_viewer_path_init(ViewerPath *viewer_path);
 void BKE_viewer_path_clear(ViewerPath *viewer_path);
 void BKE_viewer_path_copy(ViewerPath *dst, const ViewerPath *src);
-bool BKE_viewer_path_equal(const ViewerPath *a, const ViewerPath *b);
+bool BKE_viewer_path_equal(const ViewerPath *a,
+                           const ViewerPath *b,
+                           ViewerPathEqualFlag flag = ViewerPathEqualFlag(0));
 void BKE_viewer_path_blend_write(struct BlendWriter *writer, const ViewerPath *viewer_path);
 void BKE_viewer_path_blend_read_data(struct BlendDataReader *reader, ViewerPath *viewer_path);
 void BKE_viewer_path_foreach_id(struct LibraryForeachIDData *data, ViewerPath *viewer_path);
@@ -52,7 +58,9 @@ SimulationZoneViewerPathElem *BKE_viewer_path_elem_new_simulation_zone(void);
 ViewerNodeViewerPathElem *BKE_viewer_path_elem_new_viewer_node(void);
 RepeatZoneViewerPathElem *BKE_viewer_path_elem_new_repeat_zone(void);
 ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src);
-bool BKE_viewer_path_elem_equal(const ViewerPathElem *a, const ViewerPathElem *b);
+bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
+                                const ViewerPathElem *b,
+                                ViewerPathEqualFlag flag = ViewerPathEqualFlag(0));
 void BKE_viewer_path_elem_free(ViewerPathElem *elem);
 
 #ifdef __cplusplus

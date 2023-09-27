@@ -20,12 +20,20 @@ static void validate_viewer_paths(bContext &C, WorkSpace &workspace)
     return;
   }
 
-  if (blender::ed::viewer_path::is_active_geometry_nodes_viewer(C, workspace.viewer_path)) {
-    /* The current viewer path is still valid and active. */
-    return;
+  using namespace blender::ed::viewer_path;
+
+  const UpdateActiveGeometryNodesViewerResult result = update_active_geometry_nodes_viewer(
+      C, workspace.viewer_path);
+  switch (result) {
+    case UpdateActiveGeometryNodesViewerResult::StillActive:
+      return;
+    case UpdateActiveGeometryNodesViewerResult::Updated:
+      break;
+    case UpdateActiveGeometryNodesViewerResult::NotActive:
+      BKE_viewer_path_clear(&workspace.viewer_path);
+      break;
   }
-  /* Reset inactive viewer path. */
-  BKE_viewer_path_clear(&workspace.viewer_path);
+
   WM_event_add_notifier(&C, NC_VIEWER_PATH, nullptr);
 }
 

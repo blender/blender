@@ -492,9 +492,10 @@ static void find_tree_zone_hash_recursive(
       break;
     }
     case GEO_NODE_REPEAT_OUTPUT: {
-      /* Only show data from the first iteration for now. */
-      const int iteration = 0;
-      compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone.output_node, iteration);
+      const auto &storage = *static_cast<const NodeGeometryRepeatOutput *>(
+          zone.output_node->storage);
+      compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone.output_node,
+                                                                  storage.inspection_index);
       break;
     }
   }

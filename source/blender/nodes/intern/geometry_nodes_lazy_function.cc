@@ -1629,6 +1629,9 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
+    auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
+
     const NodeGeometryRepeatOutput &node_storage = *static_cast<const NodeGeometryRepeatOutput *>(
         repeat_output_bnode_.storage);
     RepeatEvalStorage &eval_storage = *static_cast<RepeatEvalStorage *>(context.storage);
@@ -1641,7 +1644,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
 
     if (!eval_storage.graph_executor) {
       /* Create the execution graph in the first evaluation. */
-      this->initialize_execution_graph(params, eval_storage, node_storage);
+      this->initialize_execution_graph(
+          params, eval_storage, node_storage, user_data, local_user_data);
     }
 
     /* Execute the graph for the repeat zone. */
@@ -1661,7 +1665,9 @@ class LazyFunctionForRepeatZone : public LazyFunction {
    */
   void initialize_execution_graph(lf::Params &params,
                                   RepeatEvalStorage &eval_storage,
-                                  const NodeGeometryRepeatOutput &node_storage) const
+                                  const NodeGeometryRepeatOutput &node_storage,
+                                  GeoNodesLFUserData &user_data,
+                                  GeoNodesLFLocalUserData &local_user_data) const
   {
     const int num_repeat_items = node_storage.items_num;
     const int num_border_links = body_fn_.indices.inputs.border_links.size();
@@ -1669,6 +1675,17 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     /* Number of iterations to evaluate. */
     const int iterations = std::max<int>(
         0, params.get_input<ValueOrField<int>>(zone_info_.indices.inputs.main[0]).as_value());
+
+    /* Show a warning when the inspection index is out of range. */
+    if (node_storage.inspection_index < 0 || node_storage.inspection_index >= iterations) {
+      if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
+              user_data)) {
+        tree_logger->node_warnings.append(
+            {repeat_output_bnode_.identifier,
+             {NodeWarningType::Info, N_("Inspection index is out of range")}});
+      }
+    }
+
     /* Take iterations input into account. */
     const int main_inputs_offset = 1;
 
