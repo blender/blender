@@ -293,6 +293,15 @@ static void rna_NodeSocket_hide_set(PointerRNA *ptr, bool value)
     return;
   }
 
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  bNode *node;
+  nodeFindNode(ntree, sock, &node, nullptr);
+
+  /* The Reroute node is the socket itself, do not hide this. */
+  if (node->is_reroute()) {
+    return;
+  }
+
   if (value) {
     sock->flag |= SOCK_HIDDEN;
   }

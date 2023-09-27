@@ -1546,6 +1546,19 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 29)) {
+    /* Unhide all Reroute nodes. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->is_reroute()) {
+          static_cast<bNodeSocket *>(node->inputs.first)->flag &= ~SOCK_HIDDEN;
+          static_cast<bNodeSocket *>(node->outputs.first)->flag &= ~SOCK_HIDDEN;
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
