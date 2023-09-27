@@ -29,8 +29,8 @@ static int node_shader_gpu_fresnel(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* TODO: some outputs expected be implemented within the next iteration (see nodedef
-   * <artistic_ior>) */
+  /* TODO: some outputs expected be implemented within the next iteration
+   * (see node-definition `<artistic_ior>`). */
   return get_input_value("IOR", NodeItem::Type::Float);
 }
 #endif

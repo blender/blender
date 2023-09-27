@@ -12,7 +12,7 @@ namespace blender::nodes::materialx {
 
 /**
  * This class serves as abstraction from MateralX API. It implements arithmetic operations,
- * convertions between different types, adding new nodes, setting inputs, etc.
+ * conversions between different types, adding new nodes, setting inputs, etc.
  * All work should be done via this class instead of using MaterialX API directly.
  */
 class NodeItem {

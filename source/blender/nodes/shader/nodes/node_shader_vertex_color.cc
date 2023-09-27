@@ -70,8 +70,8 @@ static int node_shader_gpu_vertex_color(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* TODO: some output expected be implemented within the next iteration (see nodedef
-   * <geomcolor>)*/
+  /* TODO: some output expected be implemented within the next iteration
+   * (see node-definition `<geomcolor>`). */
   return get_output_default(socket_out_->name, NodeItem::Type::Any);
 }
 #endif

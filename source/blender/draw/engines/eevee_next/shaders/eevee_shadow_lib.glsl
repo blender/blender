@@ -83,7 +83,7 @@ ShadowEvalResult shadow_punctual_sample_get(usampler2DArray atlas_tx,
   float clip_far = intBitsToFloat(light.clip_far);
   float clip_near = intBitsToFloat(light.clip_near);
   float clip_side = light.clip_side;
-  /* TODO: Could be simplified since frustum is completely symetrical. */
+  /* TODO: Could be simplified since frustum is completely symmetrical. */
   mat4 winmat = shadow_projection_perspective(
       -clip_side, clip_side, -clip_side, clip_side, clip_near, clip_far);
   vec3 clip_P = project_point(winmat, lP);

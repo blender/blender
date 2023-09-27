@@ -152,7 +152,7 @@ NODE_SHADER_MATERIALX_BEGIN
   if (!vector) {
     vector = texcoord_node();
   }
-  /* TODO: texcoords should be translated to spherical coordinates */
+  /* TODO: texture-coordinates should be translated to spherical coordinates. */
 
   std::string filtertype;
   switch (tex_env->interpolation) {

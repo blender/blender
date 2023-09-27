@@ -30,8 +30,8 @@ static int node_shader_gpu_layer_weight(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* TODO: some outputs expected be implemented partially within the next iteration (see nodedef
-   * <artistic_ior>) */
+  /* TODO: some outputs expected be implemented partially within the next iteration
+   * (see node-definition `<artistic_ior>`). */
   return get_input_link("Blend", NodeItem::Type::Float);
 }
 #endif

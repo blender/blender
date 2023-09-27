@@ -22,7 +22,7 @@ using ExportImageFunction = std::function<std::string(Main *, Scene *, Image *, 
 
 /**
  * This is base abstraction class for parsing Blender nodes into MaterialX nodes.
- * NodeParser::compute() should be overrided in child classes.
+ * #NodeParser::compute() should be overridden in child classes.
  */
 class NodeParser {
  protected:

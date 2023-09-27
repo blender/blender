@@ -59,11 +59,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
   /* TODO: observed crash while rendering MaterialX_v1_38_6::ExceptionShaderGenError */
-  /*
+  /**
+   * \code{.cc}
    * NodeItem maxdistance = get_input_value("Distance", NodeItem::Type::Float);
    * NodeItem res = create_node("ambientocclusion", NodeItem::Type::Float);
    * res.set_input("coneangle", val(90.0f));
    * res.set_input("maxdistance", maxdistance);
+   * \endcode
    */
   return get_output_default(socket_out_->name, NodeItem::Type::Any);
 }

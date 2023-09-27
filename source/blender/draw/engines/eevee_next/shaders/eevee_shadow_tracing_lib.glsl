@@ -80,7 +80,7 @@ struct ShadowTracingSample {
 };
 
 /**
- * This need to be instanciated for each `ShadowRay*` type.
+ * This need to be instantiated for each `ShadowRay*` type.
  * This way we can implement `shadow_map_trace_sample` for each type without too much code
  * duplication.
  * Most of the code is wrapped into functions to avoid to debug issues inside macro code.
@@ -262,10 +262,10 @@ SHADOW_MAP_TRACE_FN(ShadowRayDirectional)
  * \{ */
 
 struct ShadowRayPunctual {
-  /* Ray in tilemap normalized coordinates [0..1]. */
+  /* Ray in tile-map normalized coordinates [0..1]. */
   vec3 origin;
   vec3 direction;
-  /* Tilemap to sample. */
+  /* Tile-map to sample. */
   int tilemap_index;
 };
 
@@ -333,7 +333,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(
   vec3 view_ray_end = shadow_punctual_local_position_to_face_local(face_id, local_ray_end);
 
   /* Face Local (View) Space > Clip Space. */
-  /* TODO: Could be simplified since frustum is completely symetrical. */
+  /* TODO: Could be simplified since frustum is completely symmetrical. */
   mat4 winmat = projection_perspective(
       -clip_side, clip_side, -clip_side, clip_side, clip_near, clip_far);
   vec3 clip_ray_start = project_point(winmat, view_ray_start);
@@ -367,7 +367,7 @@ SHADOW_MAP_TRACE_FN(ShadowRayPunctual)
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Shadow Evalutation
+/** \name Shadow Evaluation
  * \{ */
 
 /**

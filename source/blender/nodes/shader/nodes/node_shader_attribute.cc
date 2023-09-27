@@ -80,8 +80,8 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  /* TODO: some outputs expected be implemented within the next iteration (see nodedef
-   * <geompropvalue>) */
+  /* TODO: some outputs expected be implemented within the next iteration
+   * (see node-definition `<geompropvalue>`). */
   return get_output_default(socket_out_->name, NodeItem::Type::Any);
 }
 #endif

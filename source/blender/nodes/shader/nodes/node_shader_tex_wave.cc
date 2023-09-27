@@ -235,7 +235,7 @@ NODE_SHADER_MATERIALX_BEGIN
     vector = texcoord_node(NodeItem::Type::Vector3);
   }
 
-  /* adjusment to get result as Cycles */
+  /* Adjustment to get result as Cycles. */
   distortion = distortion * val(10.0f);
   detail_scale = detail_scale * val(10.0f);
 

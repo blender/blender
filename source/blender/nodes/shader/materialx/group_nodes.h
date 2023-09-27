@@ -6,7 +6,7 @@
 
 #include "node_parser.h"
 
-/* TODO: pxr::UsdMtlxRead() doesn't perform nodegraphs.
+/* TODO: #pxr::UsdMtlxRead() doesn't perform node-graphs.
  * Uncomment USE_MATERIALX_NODEGRAPH after fixing it. */
 //#define USE_MATERIALX_NODEGRAPH
 

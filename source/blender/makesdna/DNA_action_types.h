@@ -188,9 +188,11 @@ typedef struct bPoseChannel_BBoneSegmentBoundary {
   /* Dot product of point and plane_normal to speed up distance computation. */
   float plane_offset;
 
-  /* Inverse width of the smoothing at this level in head-tail space.
-   * Optimization: this value is actually indexed by bsp depth (0 to bsp_depth-1), not joint
-   * index. It's put here to avoid allocating a separate array by utilizing the padding space. */
+  /**
+   * Inverse width of the smoothing at this level in head-tail space.
+   * Optimization: this value is actually indexed by BSP depth (0 to `bsp_depth - 1`), not joint
+   * index. It's put here to avoid allocating a separate array by utilizing the padding space.
+   */
   float depth_scale;
 } bPoseChannel_BBoneSegmentBoundary;
 
