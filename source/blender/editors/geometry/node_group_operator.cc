@@ -847,7 +847,6 @@ void ui_template_node_operator_asset_menu_items(uiLayout &layout,
   if (path_ptr.data == nullptr) {
     return;
   }
-  uiItemS(&layout);
   uiLayout *col = uiLayoutColumn(&layout, false);
   uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
   uiItemMContents(col, "GEO_MT_node_operator_catalog_assets");
