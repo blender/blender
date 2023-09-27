@@ -939,10 +939,6 @@ static void do_smooth_brush_task(Object *ob,
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, brush->falloff_shape);
 
-  if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
-    BKE_pbvh_check_tri_areas(ss->pbvh, node);
-  }
-
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
@@ -1079,6 +1075,12 @@ void SCULPT_smooth(
     const float strength = (iteration != count) ? 1.0f : last;
 
     if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          BKE_pbvh_check_tri_areas(ss->pbvh, nodes[i]);
+        }
+      });
+
       BKE_pbvh_face_areas_begin(ss->pbvh);
     }
 

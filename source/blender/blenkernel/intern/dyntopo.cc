@@ -310,16 +310,6 @@ BLI_INLINE float calc_weighted_length(EdgeQueueContext *eq_ctx,
       return len > eq_ctx->limit_len_max_sqr ? len * w * w : len;
     }
     case COLLAPSE: {
-#if 0
-      if (eq_ctx->brush_tester->is_sphere_or_tube) {
-        BrushSphere *sphere = static_cast<BrushSphere *>(eq_ctx->brush_tester);
-
-        float l1 = len_v3v3(v1->co, sphere->center());
-        float l2 = len_v3v3(v2->co, sphere->center());
-        float l = min_ff(min_ff(l1, l2) / sphere->radius(), 1.0f);
-      }
-#endif
-
       return len < eq_ctx->limit_len_min_sqr ?
                  len + eq_ctx->limit_len_min_sqr * 1.0f * powf(w, 5.0) :
                  len;

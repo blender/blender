@@ -140,7 +140,7 @@ class UnifiedPaintPanel:
             final_dyntopo = brush.dyntopo
 
         layout = layout.row(align=True)
-        layout.enabled = inherit
+        #layout.enabled = inherit
         layout.prop(final_dyntopo, prop_name, text=text, expand=expand)
 
         if not inherit:
