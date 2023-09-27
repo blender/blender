@@ -949,7 +949,6 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
                                         StructCallbackFunc call,
                                         StructFreeFunc free)
 {
-  const char *error_prefix = "Registering node tree class:";
   bNodeTreeType *nt, dummy_nt;
   bNodeTree dummy_ntree;
   bool have_function[4];
@@ -968,8 +967,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummy_nt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s '%s' is too long, maximum length is %d",
-                error_prefix,
+                "Registering node tree class: '%s' is too long, maximum length is %d",
                 identifier,
                 int(sizeof(dummy_nt.idname)));
     return nullptr;
@@ -982,8 +980,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
     if (!rna_NodeTree_unregister(bmain, nt->rna_ext.srna)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s '%s', bl_idname '%s' could not be unregistered",
-                  error_prefix,
+                  "Registering node tree class: '%s', bl_idname '%s' could not be unregistered",
                   identifier,
                   dummy_nt.idname);
       return nullptr;
@@ -1609,7 +1606,6 @@ static bNodeType *rna_Node_register_base(Main *bmain,
                                          StructCallbackFunc call,
                                          StructFreeFunc free)
 {
-  const char *error_prefix = "Registering node class:";
   bNodeType *nt, dummy_nt;
   bNode dummy_node;
   FunctionRNA *func;
@@ -1633,8 +1629,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   if (strlen(identifier) >= sizeof(dummy_nt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s '%s' is too long, maximum length is %d",
-                error_prefix,
+                "Registering node class: '%s' is too long, maximum length is %d",
                 identifier,
                 int(sizeof(dummy_nt.idname)));
     return nullptr;
@@ -1647,8 +1642,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
     if (rna_Node_is_builtin(nt)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s '%s', bl_idname '%s' is a builtin node",
-                  error_prefix,
+                  "Registering node class: '%s', bl_idname '%s' is a builtin node",
                   identifier,
                   dummy_nt.idname);
       return nullptr;
@@ -1658,8 +1652,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
     if (!rna_Node_unregister(bmain, nt->rna_ext.srna)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s '%s', bl_idname '%s' could not be unregistered",
-                  error_prefix,
+                  "Registering node class: '%s', bl_idname '%s' could not be unregistered",
                   identifier,
                   dummy_nt.idname);
       return nullptr;

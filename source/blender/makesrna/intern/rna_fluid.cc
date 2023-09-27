@@ -2727,7 +2727,8 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "temperature");
   RNA_def_property_range(prop, -10, 10);
   RNA_def_property_ui_range(prop, -10, 10, 1, 1);
-  RNA_def_property_ui_text(prop, "Temp. Diff.", "Temperature difference to ambient temperature");
+  RNA_def_property_ui_text(
+      prop, "Temperature Difference", "Temperature difference to ambient temperature");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_flow_reset");
 
   prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
