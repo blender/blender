@@ -439,6 +439,7 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);
 /* Update Bounding Box/Redraw and clear flags. */
 
 void BKE_pbvh_update_bounds(PBVH *pbvh, int flags);
+void BKE_pbvh_update_mask(PBVH *pbvh);
 void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flags);
 void BKE_pbvh_update_visibility(PBVH *pbvh);
 void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg);

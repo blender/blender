@@ -141,7 +141,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
   }
 
-  BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
+  BKE_pbvh_update_mask(pbvh);
 
   SCULPT_undo_push_end(ob);
 
@@ -837,7 +837,7 @@ static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext
   if (BKE_pbvh_type(sgcontext->ss->pbvh) == PBVH_GRIDS) {
     multires_mark_as_modified(depsgraph, sgcontext->vc.obact, MULTIRES_COORDS_MODIFIED);
   }
-  BKE_pbvh_update_vertex_data(sgcontext->ss->pbvh, PBVH_UpdateMask);
+  BKE_pbvh_update_mask(sgcontext->ss->pbvh);
 }
 
 static void sculpt_gesture_init_mask_properties(bContext *C,
