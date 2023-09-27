@@ -2114,10 +2114,12 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   api_ui_item_rna_common(func);
 
+#  ifdef WITH_GREASE_PENCIL_V3
   func = RNA_def_function(
       srna, "template_grease_pencil_layer_tree", "uiTemplateGreasePencilLayerTree");
   RNA_def_function_ui_description(func, "View of the active grease pencil layer tree");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+#  endif
 
   func = RNA_def_function(srna, "template_node_tree_interface", "uiTemplateNodeTreeInterface");
   RNA_def_function_ui_description(func, "Show a node tree interface");

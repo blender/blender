@@ -2662,7 +2662,9 @@ void uiTemplateLightLinkingCollection(uiLayout *layout,
                                       PointerRNA *ptr,
                                       const char *propname);
 
+#ifdef WITH_GREASE_PENCIL_V3
 void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C);
+#endif
 
 void uiTemplateNodeTreeInterface(struct uiLayout *layout, struct PointerRNA *ptr);
 

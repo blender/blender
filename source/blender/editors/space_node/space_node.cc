@@ -1253,6 +1253,8 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
     }
   }
 
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->geometry_nodes_tool_tree, IDWALK_CB_USER_ONE);
+
   /* Both `snode->id` and `snode->nodetree` have been remapped now, so their data can be
    * accessed. */
   BLI_assert(snode->id == nullptr || snode->nodetree == nullptr ||
