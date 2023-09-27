@@ -1389,8 +1389,16 @@ void GRAPH_OT_time_offset(wmOperatorType *ot)
  * \{ */
 
 static const EnumPropertyItem shear_direction_items[] = {
-    {SHEAR_FROM_LEFT, "FROM_LEFT", 0, "From Left", "foo"},
-    {SHEAR_FROM_RIGHT, "FROM_RIGHT", 0, "From Right", "foo"},
+    {SHEAR_FROM_LEFT,
+     "FROM_LEFT",
+     0,
+     "From Left",
+     "Shear the keys using the left key as reference"},
+    {SHEAR_FROM_RIGHT,
+     "FROM_RIGHT",
+     0,
+     "From Right",
+     "Shear the keys using the right key as reference"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1522,8 +1530,8 @@ void GRAPH_OT_shear(wmOperatorType *ot)
   ot->name = "Shear Keyframes";
   ot->idname = "GRAPH_OT_shear";
   ot->description =
-      "Affects the value of the keys linearly keeping the same \n\
-  relationship between them using either the left or the right key as reference";
+      "Affect the value of the keys linearly, keeping the same relationship between them using "
+      "either the left or the right key as reference";
 
   /* API callbacks. */
   ot->invoke = shear_invoke;
@@ -1616,9 +1624,7 @@ void GRAPH_OT_scale_average(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Scale Average Keyframes";
   ot->idname = "GRAPH_OT_scale_average";
-  ot->description =
-      "Increase or decrease the value of selected keys \n\
-  in relationship to their average";
+  ot->description = "Scale selected key values by their combined average";
 
   /* API callbacks. */
   ot->invoke = scale_average_invoke;
