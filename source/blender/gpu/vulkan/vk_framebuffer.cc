@@ -167,7 +167,6 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
               << "PERFORMANCE: impact clearing depth texture in render pass that doesn't allow "
                  "depth writes.\n";
         }
-        depth_texture->ensure_allocated();
         depth_attachment_layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
         depth_texture->clear_depth_stencil(buffers, clear_depth, clear_stencil);
       }
@@ -375,7 +374,6 @@ void VKFrameBuffer::render_pass_create()
     if (attachment.tex) {
       /* Ensure texture is allocated to ensure the image view. */
       VKTexture &texture = *static_cast<VKTexture *>(unwrap(attachment.tex));
-      texture.ensure_allocated();
       image_views_.append(VKImageView(texture,
                                       eImageViewUsage::Attachment,
                                       IndexRange(max_ii(attachment.layer, 0), 1),
@@ -493,7 +491,6 @@ void VKFrameBuffer::color_attachment_layout_ensure(VKContext &context,
     return;
   }
 
-  color_texture->ensure_allocated();
   color_texture->layout_ensure(context, requested_layout);
   dirty_attachments_ = true;
 }

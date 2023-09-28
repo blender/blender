@@ -25,7 +25,7 @@ namespace blender::gpu {
 
 VKTexture::~VKTexture()
 {
-  if (is_allocated() && !is_texture_view()) {
+  if (vk_image_ != VK_NULL_HANDLE && allocation_ != VK_NULL_HANDLE) {
     VKDevice &device = VKBackend::get().device_get();
     device.discard_image(vk_image_, allocation_);
 
@@ -47,8 +47,6 @@ void VKTexture::generate_mipmap()
   if (mipmaps_ <= 1) {
     return;
   }
-
-  ensure_allocated();
 
   VKContext &context = *VKContext::get();
   VKCommandBuffer &command_buffer = context.command_buffer_get();
@@ -123,9 +121,7 @@ void VKTexture::copy_to(Texture *tex)
   UNUSED_VARS_NDEBUG(src);
 
   VKContext &context = *VKContext::get();
-  ensure_allocated();
   layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  dst->ensure_allocated();
   dst->layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   VkImageCopy region = {};
@@ -145,9 +141,6 @@ void VKTexture::copy_to(Texture *tex)
 void VKTexture::clear(eGPUDataFormat format, const void *data)
 {
   BLI_assert(!is_texture_view());
-  if (!is_allocated()) {
-    allocate();
-  }
 
   VKContext &context = *VKContext::get();
   VKCommandBuffer &command_buffer = context.command_buffer_get();
@@ -168,9 +161,6 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
 {
   BLI_assert(buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT));
 
-  if (!is_allocated()) {
-    allocate();
-  }
   VKContext &context = *VKContext::get();
   VKCommandBuffer &command_buffer = context.command_buffer_get();
   VkClearDepthStencilValue clear_depth_stencil;
@@ -255,9 +245,6 @@ void VKTexture::update_sub(
     int mip, int offset[3], int extent_[3], eGPUDataFormat format, const void *data)
 {
   BLI_assert(!is_texture_view());
-  if (!is_allocated()) {
-    allocate();
-  }
 
   /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKContext &context = *VKContext::get();
@@ -338,7 +325,10 @@ bool VKTexture::init_internal()
     format_ = GPU_DEPTH32F_STENCIL8;
   }
 
-  /* TODO: return false when texture format isn't supported. */
+  if (!allocate()) {
+    return false;
+  }
+
   return true;
 }
 
@@ -386,23 +376,6 @@ bool VKTexture::init_internal(GPUTexture *src, int mip_offset, int layer_offset,
 bool VKTexture::is_texture_view() const
 {
   return source_texture_ != nullptr;
-}
-
-void VKTexture::ensure_allocated()
-{
-  if (is_texture_view()) {
-    source_texture_->ensure_allocated();
-    return;
-  }
-
-  if (!is_allocated()) {
-    allocate();
-  }
-}
-
-bool VKTexture::is_allocated() const
-{
-  return (vk_image_ != VK_NULL_HANDLE && allocation_ != VK_NULL_HANDLE) || is_texture_view();
 }
 
 static VkImageUsageFlagBits to_vk_image_usage(const eGPUTextureUsage usage,
@@ -463,7 +436,6 @@ static VkImageCreateFlagBits to_vk_image_create(const eGPUTextureType texture_ty
 bool VKTexture::allocate()
 {
   BLI_assert(vk_image_ == VK_NULL_HANDLE);
-  BLI_assert(!is_allocated());
   BLI_assert(!is_texture_view());
 
   VKContext &context = *VKContext::get();
@@ -524,9 +496,6 @@ bool VKTexture::allocate()
 
 void VKTexture::bind(int binding, shader::ShaderCreateInfo::Resource::BindType bind_type)
 {
-  if (!is_allocated()) {
-    allocate();
-  }
   VKContext &context = *VKContext::get();
   VKShader *shader = static_cast<VKShader *>(context.shader);
   const VKShaderInterface &shader_interface = shader->interface_get();

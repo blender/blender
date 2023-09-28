@@ -85,8 +85,6 @@ class VKTexture : public Texture, public VKBindableResource {
     return vk_image_;
   }
 
-  void ensure_allocated();
-
  protected:
   bool init_internal() override;
   bool init_internal(GPUVertBuf *vbo) override;
@@ -95,9 +93,6 @@ class VKTexture : public Texture, public VKBindableResource {
  private:
   /** Is this texture a view of another texture. */
   bool is_texture_view() const;
-
-  /** Is this texture already allocated on device. */
-  bool is_allocated() const;
 
   /**
    * Allocate the texture of the device. Result is `true` when texture is successfully allocated
