@@ -587,8 +587,6 @@ def _template_items_tool_select(
                  {"properties": [("deselect_all", True)]}),
                 (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
                  {"properties": [("deselect_all", False), ("toggle", True)]}),
-                ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
-                 {"properties": [("release_confirm", True)]}),
             ]
 
     if params.select_mouse == 'LEFTMOUSE':
