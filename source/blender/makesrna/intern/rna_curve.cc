@@ -318,13 +318,13 @@ static void rna_Curve_material_index_range(
 static int rna_ChariInfo_material_index_get(PointerRNA *ptr)
 {
   CharInfo *info = static_cast<CharInfo *>(ptr->data);
-  return info->mat_nr ? info->mat_nr - 1 : 0;
+  return info->mat_nr ? info->mat_nr : 0;
 }
 
 static void rna_ChariInfo_material_index_set(PointerRNA *ptr, int value)
 {
   CharInfo *info = static_cast<CharInfo *>(ptr->data);
-  info->mat_nr = value + 1;
+  info->mat_nr = value;
 }
 
 static void rna_Curve_active_textbox_index_range(

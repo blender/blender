@@ -157,7 +157,6 @@ typedef struct Nurb {
 
 typedef struct CharInfo {
   float kern;
-  /** Index start at 1, unlike mesh & nurbs. */
   short mat_nr;
   char flag;
   char _pad[1];
