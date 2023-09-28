@@ -281,9 +281,16 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         # Allow the layout to use the space normally occupied by the 'set a key' diamond.
         layout.use_property_decorate = False
 
-        layout.prop(bone.color, 'palette', text='Edit Bone Color')
+        row = layout.row(align=True)
+        row.prop(bone.color, 'palette', text='Edit Bone Color')
+        props = row.operator("armature.sync_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
+        props.bone_type = 'EDIT'
         self.draw_bone_color_ui(layout, bone.color)
-        layout.prop(pose_bone.color, 'palette', text='Pose Bone Color')
+
+        row = layout.row(align=True)
+        row.prop(pose_bone.color, 'palette', text='Pose Bone Color')
+        props = row.operator("armature.sync_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
+        props.bone_type = 'POSE'
         self.draw_bone_color_ui(layout, pose_bone.color)
 
     def draw_edit_bone(self, context, layout):
