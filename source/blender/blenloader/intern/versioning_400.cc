@@ -18,6 +18,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_defaults.h"
+#include "DNA_curve_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
@@ -42,6 +43,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_attribute.h"
+#include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
@@ -1614,6 +1616,20 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 31)) {
+    LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
+      const int curvetype = BKE_curve_type_get(curve);
+      if (curvetype == OB_FONT) {
+        CharInfo *info = curve->strinfo;
+        for (int i = curve->len_char32 - 1; i >= 0; i--, info++) {
+          if (info->mat_nr > 0) {
+            /** CharInfo mat_nr used to start at 1, unlike mesh & nurbs, now zero-based. */
+            info->mat_nr--;
+          }
+        }
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *
