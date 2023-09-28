@@ -205,13 +205,17 @@ void GPU_render_end()
 {
   GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
-  backend->render_end();
+  if (backend) {
+    backend->render_end();
+  }
 }
 void GPU_render_step()
 {
   GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
-  backend->render_step();
+  if (backend) {
+    backend->render_step();
+  }
 }
 
 /** \} */
