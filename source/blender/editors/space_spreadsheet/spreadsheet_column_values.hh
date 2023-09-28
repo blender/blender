@@ -4,17 +4,10 @@
 
 #pragma once
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_space_types.h"
 
 #include "BLI_generic_virtual_array.hh"
-#include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
-
-#include "BLI_mempool.h"
-
-#include "bmesh.h"
 
 namespace blender::ed::spreadsheet {
 
@@ -29,7 +22,6 @@ class ColumnValues final {
   std::string name_;
 
   GVArray data_;
-  void *bmesh_data_ = nullptr;
 
  public:
   ColumnValues(std::string name, GVArray data) : name_(std::move(name)), data_(std::move(data))
@@ -38,13 +30,7 @@ class ColumnValues final {
     BLI_assert(data_);
   }
 
-  ColumnValues(const ColumnValues &b) = delete;
-
-  ~ColumnValues() {
-    if (bmesh_data_) {
-      MEM_freeN(bmesh_data_);
-    }
-  }
+  virtual ~ColumnValues() = default;
 
   eSpreadsheetColumnValueType type() const
   {
