@@ -47,7 +47,9 @@
  * twice, once here, and once by LSAN.
  */
 #if defined(_MSC_VER)
-#  define DEBUG_BACKTRACE
+#  ifdef WITH_ASAN
+#    define DEBUG_BACKTRACE
+#  endif
 #else
 /* Un-comment to report back-traces with leaks, uses ASAN when enabled.
  * NOTE: The default linking options cause the stack traces only to include addresses.
