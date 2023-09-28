@@ -618,7 +618,6 @@ void ED_spacetype_outliner()
   st->id_remap = outliner_id_remap;
   st->foreach_id = outliner_foreach_id;
   st->deactivate = outliner_deactivate;
-  st->context = outliner_context;
   st->blend_read_data = outliner_space_blend_read_data;
   st->blend_read_after_liblink = outliner_space_blend_read_after_liblink;
   st->blend_write = outliner_space_blend_write;
@@ -633,6 +632,7 @@ void ED_spacetype_outliner()
   art->free = outliner_main_region_free;
   art->listener = outliner_main_region_listener;
   art->message_subscribe = outliner_main_region_message_subscribe;
+  art->context = outliner_main_region_context;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
