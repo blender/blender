@@ -31,6 +31,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "DRW_engine.h"
+
 #include "ED_mesh.hh"
 #include "ED_particle.hh"
 #include "ED_screen.hh"
@@ -218,11 +220,25 @@ static eViewOpsFlag navigate_pivot_get(bContext *C,
     ED_view3d_autodist_last_get(win, r_pivot);
   }
   else {
+    /* TODO: Implement 'Alpha Override'. We don't want to zoom into billboards. */
+
     float fallback_depth_pt[3];
     negate_v3_v3(fallback_depth_pt, static_cast<RegionView3D *>(region->regiondata)->ofs);
 
-    const bool is_set = ED_view3d_autodist(
-        depsgraph, region, v3d, event->mval, r_pivot, true, fallback_depth_pt);
+    bool has_depth_buffer = !(v3d->flag2 & V3D_HIDE_OVERLAYS) ||
+                            ELEM(v3d->shading.type, OB_SOLID, OB_MATERIAL) ||
+                            XRAY_FLAG_ENABLED(v3d) ||
+                            v3d->shading.type == OB_RENDER &&
+                                (strcmp(DEG_get_evaluated_scene(depsgraph)->r.engine,
+                                        RE_engine_id_BLENDER_EEVEE) == 0 ||
+                                 strcmp(DEG_get_evaluated_scene(depsgraph)->r.engine,
+                                        RE_engine_id_BLENDER_WORKBENCH) == 0);
+
+    if (!has_depth_buffer) {
+      ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, nullptr);
+    }
+
+    const bool is_set = ED_view3d_autodist(region, v3d, event->mval, r_pivot, fallback_depth_pt);
 
     ED_view3d_autodist_last_set(win, event, r_pivot, is_set);
   }
