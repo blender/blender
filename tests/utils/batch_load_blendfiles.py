@@ -96,7 +96,7 @@ def argparse_create() -> argparse.ArgumentParser:
     sort_by_choices = tuple(sorted(SORT_BY_FN.keys()))
 
     # When `--help` or no arguments are given, print this help.
-    epilog = "This is typically used from the output of a stack-trace on Linux/Unix."
+    epilog = "Use to automate loading many blend files in a single Blender instance."
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter,
