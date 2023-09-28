@@ -135,6 +135,8 @@ class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
             col.separator()
             col.operator("armature.collection_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("armature.collection_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+            props = col.operator("armature.bone_collection_solo_visibility", text="", icon='SOLO_ON')
+            props.name = active_bcoll.name
 
         row = layout.row()
 
