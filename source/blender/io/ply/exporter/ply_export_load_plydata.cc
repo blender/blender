@@ -168,7 +168,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
 
     bool force_triangulation = false;
-    const OffsetIndices polys = mesh->polys();
+    OffsetIndices polys = mesh->polys();
     for (const int i : polys.index_range()) {
       if (polys[i].size() > 255) {
         force_triangulation = true;
@@ -180,6 +180,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     bool manually_free_mesh = false;
     if (export_params.export_triangulated_mesh || force_triangulation) {
       mesh = do_triangulation(mesh, export_params.export_triangulated_mesh);
+      polys = mesh->polys();
       manually_free_mesh = true;
     }
 
