@@ -3900,12 +3900,6 @@ class VIEW3D_MT_pose(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'INVOKE_AREA'
-        layout.operator("armature.armature_layers", text="Change Armature Layers...")
-        layout.operator("pose.bone_layers", text="Change Bone Layers...")
-
-        layout.separator()
-
         layout.menu("VIEW3D_MT_pose_showhide")
         layout.menu("VIEW3D_MT_bone_options_toggle", text="Bone Settings")
 
@@ -3995,8 +3989,12 @@ class VIEW3D_MT_bone_collections(Menu):
             layout.label(text="- select bones to operate on first -")
             return
 
+        layout.operator("armature.collection_show_all")
+        layout.separator()
+
         arm = context.object.data
         bone = context.active_bone
+
         found_editable_bcoll = False
         for bcoll in arm.collections:
             if not bcoll.is_editable:

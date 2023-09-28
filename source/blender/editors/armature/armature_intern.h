@@ -134,8 +134,6 @@ void POSE_OT_rotation_mode_set(struct wmOperatorType *ot);
 
 void POSE_OT_quaternions_flip(struct wmOperatorType *ot);
 
-void POSE_OT_bone_layers(struct wmOperatorType *ot);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

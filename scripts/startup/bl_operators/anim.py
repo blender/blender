@@ -506,10 +506,48 @@ class ARMATURE_OT_sync_bone_color_to_selected(Operator):
         return {'FINISHED'}
 
 
+class ARMATURE_OT_collection_solo_visibility(Operator):
+    """Hide all other bone collections and show the active one"""
+    bl_idname = "armature.collection_solo_visibility"
+    bl_label = "Solo Visibility"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    name: StringProperty(name='Bone Collection')
+
+    @classmethod
+    def poll(cls, context):
+        return context.object and context.object.type == 'ARMATURE' and context.object.data
+
+    def execute(self, context):
+        arm = context.object.data
+        for bcoll in arm.collections:
+            bcoll.is_visible = bcoll.name == self.name
+        return {'FINISHED'}
+
+
+class ARMATURE_OT_collection_show_all(Operator):
+    """Show all bone collections"""
+    bl_idname = "armature.collection_show_all"
+    bl_label = "Show All"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.object and context.object.type == 'ARMATURE' and context.object.data
+
+    def execute(self, context):
+        arm = context.object.data
+        for bcoll in arm.collections:
+            bcoll.is_visible = True
+        return {'FINISHED'}
+
+
 classes = (
     ANIM_OT_keying_set_export,
     NLA_OT_bake,
     ClearUselessActions,
     UpdateAnimatedTransformConstraint,
     ARMATURE_OT_sync_bone_color_to_selected,
+    ARMATURE_OT_collection_solo_visibility,
+    ARMATURE_OT_collection_show_all,
 )

@@ -573,6 +573,9 @@ def draw_attribute_warnings(context, layout):
     ob = context.object
     mesh = context.mesh
 
+    if not mesh:
+        return
+
     unique_names = set()
     colliding_names = []
     for collection in (

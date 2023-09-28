@@ -533,7 +533,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
       vi.width = vi.gridsize; \
       vi.height = vi.gridsize; \
       vi.index = vi.vertex.i = vi.grid_indices[vi.g] * vi.key.grid_area - 1; \
-      vi.grid = vi.grids[vi.grid_indices[vi.g]]; \
+      vi.grid = CCG_elem_offset(&vi.key, vi.grids[vi.grid_indices[vi.g]], -1); \
       if (mode == PBVH_ITER_UNIQUE) { \
         vi.gh = vi.grid_hidden[vi.grid_indices[vi.g]]; \
       } \
@@ -546,10 +546,10 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     for (vi.gy = 0; vi.gy < vi.height; vi.gy++) { \
       for (vi.gx = 0; vi.gx < vi.width; vi.gx++, vi.i++) { \
         if (vi.grid) { \
+          vi.grid = CCG_elem_next(&vi.key, vi.grid); \
           vi.co = CCG_elem_co(&vi.key, vi.grid); \
           vi.fno = CCG_elem_no(&vi.key, vi.grid); \
           vi.mask = vi.key.has_mask ? *CCG_elem_mask(&vi.key, vi.grid) : 0.0f; \
-          vi.grid = CCG_elem_next(&vi.key, vi.grid); \
           vi.index++; \
           vi.vertex.i++; \
           vi.visible = true; \
