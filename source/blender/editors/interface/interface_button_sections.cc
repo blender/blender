@@ -93,8 +93,13 @@ static Vector<rcti> button_section_bounds_calc(const ARegion *region, const bool
 
   if (add_padding) {
     const uiStyle *style = UI_style_get_dpi();
+    const int pad_x = style->buttonspacex;
+    /* Making this based on the header size since this feature is typically used in headers, and
+     * this way we are more likely to pad the bounds all the way to the region edge. */
+    const int pad_y = ceil((HEADER_PADDING_Y * UI_SCALE_FAC) / 2.0f);
+
     for (rcti &bounds : section_bounds) {
-      BLI_rcti_pad(&bounds, style->buttonspacex, style->buttonspacey);
+      BLI_rcti_pad(&bounds, pad_x, pad_y);
       /* Clamp, important for the rounded-corners to draw correct. */
       CLAMP_MIN(bounds.xmin, 0);
       CLAMP_MAX(bounds.xmax, region->winx);
@@ -138,6 +143,14 @@ static void ui_draw_button_sections_background(const ARegion *region,
 
     rctf bounds_float;
     BLI_rctf_rcti_copy(&bounds_float, &bounds);
+    /* Make space for the separator line. */
+    if (align == uiButtonSectionsAlign::Top) {
+      bounds_float.ymax -= UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
+    }
+    else if (align == uiButtonSectionsAlign::Bottom) {
+      bounds_float.ymin += UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
+    }
+
     UI_draw_roundbox_corner_set(roundbox_corners);
     UI_draw_roundbox_4fv(&bounds_float, true, corner_radius, bg_color);
   }
