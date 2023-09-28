@@ -49,7 +49,27 @@
 #if defined(_MSC_VER)
 #  define DEBUG_BACKTRACE
 #else
-//#define DEBUG_BACKTRACE
+/* Un-comment to report back-traces with leaks, uses ASAN when enabled.
+ * NOTE: The default linking options cause the stack traces only to include addresses.
+ * Use `addr2line` to expand into file, line & function identifiers,
+ * see: `tools/utils/addr2line_backtrace.py` convenience utility. */
+// #  define DEBUG_BACKTRACE
+#endif
+
+#ifdef DEBUG_BACKTRACE
+#  ifdef WITH_ASAN
+/* Rely on address sanitizer. */
+#  else
+#    if defined(__linux__) || defined(__APPLE__)
+#      define DEBUG_BACKTRACE_EXECINFO
+#    else
+#      error "DEBUG_BACKTRACE: not supported for this platform!"
+#    endif
+#  endif
+#endif
+
+#ifdef DEBUG_BACKTRACE_EXECINFO
+#  define BACKTRACE_SIZE 100
 #endif
 
 #ifdef DEBUG_MEMCOUNTER
@@ -94,6 +114,12 @@ typedef struct MemHead {
 #ifdef DEBUG_MEMDUPLINAME
   int need_free_name, pad;
 #endif
+
+#ifdef DEBUG_BACKTRACE_EXECINFO
+  void *backtrace[BACKTRACE_SIZE];
+  int backtrace_size;
+#endif
+
 } MemHead;
 
 typedef MemHead MemHeadAligned;
@@ -101,6 +127,10 @@ typedef MemHead MemHeadAligned;
 typedef struct MemTail {
   int tag3, pad;
 } MemTail;
+
+#ifdef DEBUG_BACKTRACE_EXECINFO
+#  include <execinfo.h>
+#endif
 
 /* --------------------------------------------------------------------- */
 /* local functions                                                       */
@@ -354,6 +384,26 @@ void *MEM_guarded_recallocN_id(void *vmemh, size_t len, const char *str)
   return newp;
 }
 
+#ifdef DEBUG_BACKTRACE_EXECINFO
+static void make_memhead_backtrace(MemHead *memh)
+{
+  memh->backtrace_size = backtrace(memh->backtrace, BACKTRACE_SIZE);
+}
+
+static void print_memhead_backtrace(MemHead *memh)
+{
+  char **strings;
+  int i;
+
+  strings = backtrace_symbols(memh->backtrace, memh->backtrace_size);
+  for (i = 0; i < memh->backtrace_size; i++) {
+    print_error("  %s\n", strings[i]);
+  }
+
+  free(strings);
+}
+#endif /* DEBUG_BACKTRACE_EXECINFO */
+
 static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 {
   MemTail *memt;
@@ -368,6 +418,10 @@ static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 
 #ifdef DEBUG_MEMDUPLINAME
   memh->need_free_name = 0;
+#endif
+
+#ifdef DEBUG_BACKTRACE_EXECINFO
+  make_memhead_backtrace(memh);
 #endif
 
   memt = (MemTail *)(((char *)memh) + sizeof(MemHead) + len);
@@ -720,10 +774,11 @@ static void MEM_guarded_printmemlist_internal(int pydict)
                   SIZET_ARG(membl->len),
                   (void *)(membl + 1));
 #endif
-#ifdef DEBUG_BACKTRACE
-#  ifdef WITH_ASAN
+
+#ifdef DEBUG_BACKTRACE_EXECINFO
+      print_memhead_backtrace(membl);
+#elif defined(DEBUG_BACKTRACE) && defined(WITH_ASAN)
       __asan_describe_address(membl);
-#  endif
 #endif
     }
     if (membl->next) {
