@@ -3188,10 +3188,10 @@ class WM_MT_splash_quick_setup(Menu):
 
         if can_import:
             layout.label(text="Import Existing Settings")
-            split = layout.split(factor=0.20) # Left margin.
+            split = layout.split(factor=0.20)  # Left margin.
             split.label()
 
-            split = split.split(factor=0.73) # Content width.
+            split = split.split(factor=0.73)  # Content width.
             col = split.column()
             col.operator(
                 "preferences.copy_prev",
