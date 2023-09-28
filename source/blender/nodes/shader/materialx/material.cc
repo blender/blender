@@ -2,10 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <MaterialXFormat/XmlIo.h>
+
 #include "material.h"
 #include "node_parser.h"
-
-#include <MaterialXFormat/XmlIo.h>
 
 #include "DEG_depsgraph.hh"
 
