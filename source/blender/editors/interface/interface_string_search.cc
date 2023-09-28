@@ -29,6 +29,7 @@ struct RecentCacheStorage {
 
 static RecentCacheStorage &get_recent_cache_storage()
 {
+  BLI_assert((U.flag & USER_FLAG_RECENT_SEARCHES_DISABLE) == 0);
   static RecentCacheStorage storage;
   return storage;
 }
@@ -62,6 +63,10 @@ static std::optional<std::string> get_recent_searches_file_path()
 
 void write_recent_searches_file()
 {
+  if (U.flag & USER_FLAG_RECENT_SEARCHES_DISABLE) {
+    return;
+  }
+
   const std::optional<std::string> path = get_recent_searches_file_path();
   if (!path) {
     return;
@@ -83,6 +88,10 @@ void write_recent_searches_file()
 
 void read_recent_searches_file()
 {
+  if (U.flag & USER_FLAG_RECENT_SEARCHES_DISABLE) {
+    return;
+  }
+
   const std::optional<std::string> path = get_recent_searches_file_path();
   if (!path) {
     return;

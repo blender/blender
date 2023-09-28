@@ -359,7 +359,10 @@ void WM_init(bContext *C, int argc, const char **argv)
   ED_render_clear_mtex_copybuf();
 
   wm_history_file_read();
-  blender::ui::string_search::read_recent_searches_file();
+
+  if (!G.background) {
+    blender::ui::string_search::read_recent_searches_file();
+  }
 
   STRNCPY(G.lib, BKE_main_blendfile_path_from_global());
 
