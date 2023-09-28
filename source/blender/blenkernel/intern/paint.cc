@@ -2546,8 +2546,6 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 
 void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
 {
-  bool exists = scene->toolsettings->sculpt;
-
   BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->sculpt);
 
   Sculpt *sd = scene->toolsettings->sculpt;
@@ -2566,14 +2564,14 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
     sd->automasking_view_normal_falloff = defaults->automasking_view_normal_limit;
   }
 
-  if (sd->detail_percent == 0.0f) {
-    sd->detail_percent = defaults->detail_percent;
+  if (sd->dyntopo.detail_percent == 0.0f) {
+    sd->dyntopo.detail_percent = defaults->detail_percent;
   }
-  if (sd->constant_detail == 0.0f) {
-    sd->constant_detail = defaults->constant_detail;
+  if (sd->dyntopo.constant_detail == 0.0f) {
+    sd->dyntopo.constant_detail = defaults->constant_detail;
   }
-  if (sd->detail_size == 0.0f) {
-    sd->detail_size = defaults->detail_size;
+  if (sd->dyntopo.detail_size == 0.0f) {
+    sd->dyntopo.detail_size = defaults->detail_size;
   }
 
   /* Set sane default tiling offsets. */
@@ -4751,7 +4749,7 @@ bool loop_is_corner(BMLoop *l, int cd_uv, float limit, const CustomData *ldata)
 }
 
 namespace detail {
-static void corner_interp(CustomDataLayer *layer,
+static void corner_interp(CustomDataLayer * /*layer*/,
                           BMVert *v,
                           BMLoop *l,
                           Span<BMLoop *> loops,
@@ -4807,7 +4805,7 @@ static void corner_interp(CustomDataLayer *layer,
 /* Interpolates loops surrounding a vertex, splitting any UV map by
  * island as appropriate and enforcing proper boundary conditions.
  */
-static void interp_face_corners_intern(PBVH *pbvh,
+static void interp_face_corners_intern(PBVH * /*pbvh*/,
                                        BMVert *v,
                                        Span<BMLoop *> loops,
                                        Span<float> ws,
@@ -4841,8 +4839,6 @@ static void interp_face_corners_intern(PBVH *pbvh,
   }
 
   for (int i : ls.index_range()) {
-    BMLoop *l = ls[i];
-
     if (!corners[i]) {
       *BM_ELEM_CD_PTR<float2 *>(ls[i], layer->offset) = new_values[i];
     }

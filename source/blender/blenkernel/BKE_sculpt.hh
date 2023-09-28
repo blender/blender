@@ -124,7 +124,7 @@ bool loop_is_corner(BMLoop *l, int cd_uv, float limit = 0.01, const CustomData *
 struct VertLoopSnapper {
   Vector<Vector<short>, 16> snap_sets;
   Span<CustomDataLayer *> layers;
-  Span<BMLoop *> &ls;
+  Span<BMLoop *> ls;
   Vector<int, 16> max_indices;
   float limit = 0.001;
 

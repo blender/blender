@@ -538,26 +538,6 @@ float dist_to_tri_sphere_simple(float p[3], float v1[3], float v2[3], float v3[3
 #endif
 }
 
-static bool skinny_bad_edge(BMEdge *e, const float limit = 4.0f)
-{
-  float len1 = len_v3v3(e->v1->co, e->v2->co);
-
-  BMLoop *l = e->l;
-  do {
-    float len2 = len_v3v3(l->next->v->co, l->next->next->v->co);
-    if (len1 > 0.0f && len2 / len1 > limit) {
-      return true;
-    }
-
-    len2 = len_v3v3(l->v->co, l->prev->v->co);
-    if (len1 > 0.0f && len2 / len1 > limit) {
-      return true;
-    }
-  } while ((l = l->radial_next) != e->l);
-
-  return false;
-}
-
 static void add_split_edge_recursive(
     EdgeQueueContext *eq_ctx, BMLoop *l_edge, const float len_sq, float limit_len, int depth)
 {
@@ -2401,7 +2381,6 @@ bool remesh_topology(BrushTester *brush_tester,
   /* Apply a time limit to avoid excessive hangs on pathological topology. */
 
   using Clock = std::chrono::high_resolution_clock;
-  using TimePoint = std::chrono::time_point<Clock, std::chrono::milliseconds>;
 
   quality *= quality;
   int time_limit = int(8.0f * (1.0f - quality) + 550.0f * quality);
@@ -2479,7 +2458,7 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
     int ni2 = BM_ELEM_CD_GET_INT(l->radial_next->f, pbvh->cd_face_node_offset);
 
     if (ni2 >= 0 && (ni2 >= pbvh->nodes.size() || !(pbvh->nodes[ni2].flag & PBVH_Leaf))) {
-      printf("%s: error: ni: %d totnode: %d\n", __func__, ni2, pbvh->nodes.size());
+      printf("%s: error: ni: %d totnode: %d\n", __func__, ni2, int(pbvh->nodes.size()));
       l = l->next;
       continue;
     }
@@ -3611,7 +3590,7 @@ static void interp_prop_data(
 void reproject_interp_data(CustomData *data,
                            const void **src_blocks,
                            const float *weights,
-                           const float *sub_weights,
+                           const float * /*sub_weights*/,
                            int count,
                            void *dst_block,
                            eCustomDataMask typemask)

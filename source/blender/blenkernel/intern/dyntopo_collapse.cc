@@ -102,7 +102,7 @@ static bool vert_is_nonmanifold(BMVert *v)
 
 template<typename T, typename SumT = T>
 static void snap_corner_data(
-    BMesh *bm, BMEdge *e, BMVert *v_del, Span<BMLoop *> ls, int cd_offset, bool snap_midpoint)
+    BMesh * /*bm*/, BMEdge *e, BMVert *v_del, Span<BMLoop *> ls, int cd_offset, bool snap_midpoint)
 {
   using namespace blender;
 
@@ -234,8 +234,22 @@ static void snap_corner_data(
     SumT min = {}, max = {};
 
     for (int i = 0; i < SumT::type_length; i++) {
-      min[i] = FLT_MAX;
-      max[i] = FLT_MIN;
+      if constexpr (std::is_same_v<typename SumT::base_type, char>) {
+        min[i] = 255;
+        max[i] = 0;
+      }
+      else if constexpr (std::is_same_v<typename SumT::base_type, short>) {
+        min[i] = INT16_MAX;
+        max[i] = INT16_MIN;
+      }
+      else if constexpr (std::is_same_v<typename SumT::base_type, int>) {
+        min[i] = INT32_MAX;
+        max[i] = INT32_MIN;
+      }
+      else if constexpr (std::is_same_v<typename SumT::base_type, float>) {
+        min[i] = FLT_MAX;
+        max[i] = FLT_MIN;
+      }
     }
 
     for (int i : blocks[set].index_range()) {

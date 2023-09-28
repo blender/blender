@@ -1527,8 +1527,6 @@ static bool layerValidate_propfloat2(void *data, const uint totitems, const bool
   return has_errors;
 }
 
-static void layerInterp_noop(const void **, const float *, const float *, int, void *) {}
-
 static bool layerEqual_propfloat2(const void *data1, const void *data2)
 {
   const float2 &a = *static_cast<const float2 *>(data1);
@@ -2802,9 +2800,9 @@ static void customData_update_offsets(CustomData *data)
   CustomData_update_typemap(data);
 }
 
+#ifdef WITH_ASAN
 void CustomData_bmesh_poison(const CustomData *data, void *block)
 {
-#ifdef WITH_ASAN
   BLI_asan_poison(block, data->totsize);
   for (int i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = data->layers + i;
@@ -2812,15 +2810,19 @@ void CustomData_bmesh_poison(const CustomData *data, void *block)
 
     BLI_asan_unpoison(POINTER_OFFSET(block, layer->offset), size);
   }
-#endif
 }
+#else
+void CustomData_bmesh_poison(const CustomData * /*data*/, void * /*block*/) {}
+#endif
 
+#ifdef WITH_ASAN
 void CustomData_bmesh_unpoison(const CustomData *data, void *block)
 {
-#ifdef WITH_ASAN
   BLI_asan_unpoison(block, data->totsize);
-#endif
 }
+#else
+void CustomData_bmesh_unpoison(const CustomData *, void *) {}
+#endif
 
 /* to use when we're in the middle of modifying layers */
 static int CustomData_get_layer_index__notypemap(const CustomData *data,
@@ -4312,8 +4314,6 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
 
 static void CustomData_bmesh_copy_data_simple(CustomData *data, void *src_block, void **dest_block)
 {
-  bool was_new = false;
-
   if (*dest_block == nullptr) {
     CustomData_bmesh_alloc_block(data, dest_block);
 
@@ -4321,8 +4321,6 @@ static void CustomData_bmesh_copy_data_simple(CustomData *data, void *src_block,
       CustomData_bmesh_unpoison(data, *dest_block);
       memset(*dest_block, 0, data->totsize);
       CustomData_bmesh_poison(data, *dest_block);
-
-      was_new = true;
     }
   }
 
@@ -5681,7 +5679,6 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
   int i = 0;
   while (i < data->totlayer) {
     CustomDataLayer *layer = &data->layers[i];
-    const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(layer->type));
 
     if (layer->flag & CD_FLAG_EXTERNAL) {
       layer->flag &= ~CD_FLAG_IN_MEMORY;
