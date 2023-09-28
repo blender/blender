@@ -849,18 +849,15 @@ void ED_view3d_autodist_last_clear(wmWindow *win);
 
 /**
  * Get the world-space 3d location from a screen-space 2d point.
- * TODO: Implement #alphaoverride. We don't want to zoom into billboards.
  *
  * \param mval: Input screen-space pixel location.
  * \param mouse_worldloc: Output world-space location.
  * \param fallback_depth_pt: Use this points depth when no depth can be found.
  */
-bool ED_view3d_autodist(Depsgraph *depsgraph,
-                        ARegion *region,
+bool ED_view3d_autodist(ARegion *region,
                         View3D *v3d,
                         const int mval[2],
                         float mouse_worldloc[3],
-                        bool alphaoverride,
                         const float fallback_depth_pt[3]);
 
 /**
