@@ -119,8 +119,6 @@ void ED_operatortypes_armature()
 
   WM_operatortype_append(POSE_OT_quaternions_flip);
 
-  WM_operatortype_append(POSE_OT_bone_layers);
-
   WM_operatortype_append(POSE_OT_propagate);
 
   /* POSELIB */
