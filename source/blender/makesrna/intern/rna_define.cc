@@ -1913,6 +1913,36 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 
   switch (prop->type) {
     case PROP_ENUM: {
+
+      /* Access DNA size & range (for additional sanity checks). */
+      int enum_dna_size = -1;
+      int enum_dna_range[2];
+      if (DefRNA.preprocess) {
+        /* If this is larger, this is likely a string which can sometimes store enums. */
+        if (PropertyDefRNA *dp = rna_find_struct_property_def(srna, prop)) {
+          if (dp->dnatype == nullptr || dp->dnatype[0] == '\0') {
+            /* Unfortunately this happens when #PropertyDefRNA::dnastructname is for e.g.
+             * `type->region_type` there isn't a convenient way to access the int size. */
+          }
+          else if (dp->dnaarraylength > 1) {
+            /* When an array this is likely a string using get/set functions for enum access. */
+          }
+          else if (dp->dnasize == 0) {
+            /* Some cases function callbacks are used, the DNA size isn't known. */
+          }
+          else {
+            enum_dna_size = dp->dnasize;
+            if (!rna_range_from_int_type(dp->dnatype, enum_dna_range)) {
+              CLOG_ERROR(&LOG,
+                         "\"%s.%s\", enum type \"%s\" size is not known.",
+                         srna->identifier,
+                         prop->identifier,
+                         dp->dnatype);
+            }
+          }
+        }
+      }
+
       EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
       eprop->item = (EnumPropertyItem *)item;
       eprop->totitem = 0;
@@ -1929,6 +1959,47 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
             DefRNA.error = true;
             break;
           }
+
+          /* When the integer size is known, check the flag wont fit. */
+          if (enum_dna_size != -1) {
+            if (prop->flag & PROP_ENUM_FLAG) {
+              uint32_t enum_type_mask = 0;
+              if (enum_dna_size == 1) {
+                enum_type_mask = 0xff;
+              }
+              else if (enum_dna_size == 2) {
+                enum_type_mask = 0xffff;
+              }
+              if (enum_type_mask != 0) {
+                if (uint32_t(item[i].value) != (uint32_t(item[i].value) & enum_type_mask)) {
+                  CLOG_ERROR(&LOG,
+                             "\"%s.%s\", enum value for '%s' does not fit into %d byte(s).",
+                             srna->identifier,
+                             prop->identifier,
+                             item[i].identifier,
+                             enum_dna_size);
+                  DefRNA.error = true;
+                  break;
+                }
+              }
+            }
+            else {
+              if (ELEM(enum_dna_size, 1, 2)) {
+                if ((item[i].value < enum_dna_range[0]) || (item[i].value > enum_dna_range[1])) {
+                  CLOG_ERROR(&LOG,
+                             "\"%s.%s\", enum value for '%s' is outside of range [%d - %d].",
+                             srna->identifier,
+                             prop->identifier,
+                             item[i].identifier,
+                             enum_dna_range[0],
+                             enum_dna_range[1]);
+                  DefRNA.error = true;
+                  break;
+                }
+              }
+            }
+          }
+
           if (item[i].value == eprop->defaultvalue) {
             defaultfound = 1;
           }
