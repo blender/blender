@@ -429,9 +429,87 @@ class UpdateAnimatedTransformConstraint(Operator):
         return {'FINISHED'}
 
 
+class ARMATURE_OT_sync_bone_color_to_selected(Operator):
+    """Copy the bone color of the active bone to all selected bones"""
+    bl_idname = "armature.sync_bone_color_to_selected"
+    bl_label = "Sync to Selected"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    _bone_type_enum = [
+        ('EDIT', 'Edit Bone', 'Copy Edit Bone colors from the active bone to all selected bones'),
+        ('POSE', 'Pose Bone', 'Copy Pose Bone colors from the active bone to all selected bones'),
+    ]
+
+    bone_type: EnumProperty(
+        name="Type",
+        items=_bone_type_enum)
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode in {'EDIT_ARMATURE', 'POSE'}
+
+    def execute(self, context):
+        match (self.bone_type, context.mode):
+            # Armature in edit mode:
+            case ('POSE', 'EDIT_ARMATURE'):
+                self.report({'ERROR'}, "Go to pose mode to copy pose bone colors")
+                return {'OPERATOR_CANCELLED'}
+            case ('EDIT', 'EDIT_ARMATURE'):
+                bone_source = context.active_bone
+                bones_dest = context.selected_bones
+                pose_bones_to_check = []
+
+            # Armature in pose mode:
+            case ('POSE', 'POSE'):
+                bone_source = context.active_pose_bone
+                bones_dest = context.selected_pose_bones
+                pose_bones_to_check = []
+            case ('EDIT', 'POSE'):
+                bone_source = context.active_bone
+                pose_bones_to_check = context.selected_pose_bones
+                bones_dest = [posebone.bone for posebone in pose_bones_to_check]
+
+            # Anything else:
+            case _:
+                self.report({'ERROR'}, "Cannot do anything in mode %r" % context.mode)
+                return {'CANCELLED'}
+
+        if not bone_source:
+            self.report({'ERROR'}, "No active bone to copy from.")
+            return {'CANCELLED'}
+
+        if not bones_dest:
+            self.report({'ERROR'}, "No selected bones to copy to.")
+            return {'CANCELLED'}
+
+        num_pose_color_overrides = 0
+        for index, bone_dest in enumerate(bones_dest):
+            bone_dest.color.palette = bone_source.color.palette
+            for custom_field in ('normal', 'select', 'active'):
+                color = getattr(bone_source.color.custom, custom_field)
+                setattr(bone_dest.color.custom, custom_field, color)
+
+            if self.bone_type == 'EDIT' and pose_bones_to_check:
+                pose_bone = pose_bones_to_check[index]
+                if pose_bone.color.palette != 'DEFAULT':
+                    # A pose color has been set, and we're now syncing edit bone
+                    # colors. This means that the synced color will not be
+                    # visible. Better to let the user know about this.
+                    num_pose_color_overrides += 1
+
+        if num_pose_color_overrides:
+            self.report(
+                {'INFO'},
+                "Bone colors were synced; for %d bones this will not be visible due to pose bone color overrides" %
+                num_pose_color_overrides)
+
+        return {'FINISHED'}
+
+
 classes = (
     ANIM_OT_keying_set_export,
     NLA_OT_bake,
     ClearUselessActions,
     UpdateAnimatedTransformConstraint,
+    ARMATURE_OT_sync_bone_color_to_selected,
 )

@@ -315,6 +315,8 @@ typedef enum eNodePanelFlag {
   NODE_PANEL_COLLAPSED = (1 << 0),
   /* The parent panel is collapsed. */
   NODE_PANEL_PARENT_COLLAPSED = (1 << 1),
+  /* The panel has visible content. */
+  NODE_PANEL_CONTENT_VISIBLE = (1 << 2),
 } eNodePanelFlag;
 
 typedef struct bNodePanelState {
@@ -327,6 +329,7 @@ typedef struct bNodePanelState {
 #ifdef __cplusplus
   bool is_collapsed() const;
   bool is_parent_collapsed() const;
+  bool has_visible_content() const;
 #endif
 } bNodePanelState;
 

@@ -278,9 +278,19 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
             return
         pose_bone = ob.pose.bones[bone.name]
 
-        layout.prop(bone.color, 'palette', text='Edit Bone Color')
+        # Allow the layout to use the space normally occupied by the 'set a key' diamond.
+        layout.use_property_decorate = False
+
+        row = layout.row(align=True)
+        row.prop(bone.color, 'palette', text='Edit Bone Color')
+        props = row.operator("armature.sync_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
+        props.bone_type = 'EDIT'
         self.draw_bone_color_ui(layout, bone.color)
-        layout.prop(pose_bone.color, 'palette', text='Pose Bone Color')
+
+        row = layout.row(align=True)
+        row.prop(pose_bone.color, 'palette', text='Pose Bone Color')
+        props = row.operator("armature.sync_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
+        props.bone_type = 'POSE'
         self.draw_bone_color_ui(layout, pose_bone.color)
 
     def draw_edit_bone(self, context, layout):
@@ -297,8 +307,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         if not bone_color.is_custom:
             return
 
-        layout.use_property_split = False
-        split = layout.split(factor=0.4)
+        split = layout.split(factor=0.401)
 
         col = split.column()
         row = col.row()
@@ -307,6 +316,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
 
         col = split.column(align=True)
         row = col.row(align=True)
+        row.use_property_split = False
         row.prop(bone_color.custom, "normal", text="")
         row.prop(bone_color.custom, "select", text="")
         row.prop(bone_color.custom, "active", text="")
