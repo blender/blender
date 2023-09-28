@@ -991,6 +991,8 @@ endif()
 
 if(WITH_MATERIALX)
   include("${LIBDIR}/MaterialX/lib/cmake/MaterialX/MaterialXTargets.cmake")
+  set_target_properties(MaterialXCore PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
+  set_target_properties(MaterialXFormat PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 endif()
 
 if(WINDOWS_PYTHON_DEBUG)
