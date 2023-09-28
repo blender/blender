@@ -131,12 +131,8 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
     case OB_FONT:
     case OB_MBALL:
     case OB_POINTCLOUD:
-      if (mode & OB_MODE_EDIT) {
-        return true;
-      }
-      break;
     case OB_LATTICE:
-      if (mode & (OB_MODE_EDIT | OB_MODE_WEIGHT_PAINT)) {
+      if (mode & OB_MODE_EDIT) {
         return true;
       }
       break;
