@@ -3803,6 +3803,7 @@ static void ui_do_but_textedit(
         but->pos = short(selend);
         but->selsta = short(selsta);
         but->selend = short(selend);
+        data->sel_pos_init = selsta;
         retval = WM_UI_HANDLER_BREAK;
         changed = true;
       }
