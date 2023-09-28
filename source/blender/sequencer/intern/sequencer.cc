@@ -38,7 +38,7 @@
 #include "SEQ_modifier.h"
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
-#include "SEQ_retiming.h"
+#include "SEQ_retiming.hh"
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_sound.h"
@@ -226,10 +226,10 @@ static void seq_sequence_free_ex(Scene *scene,
     SEQ_channels_free(&seq->channels);
   }
 
-  if (seq->retiming_handles != nullptr) {
-    MEM_freeN(seq->retiming_handles);
-    seq->retiming_handles = nullptr;
-    seq->retiming_handle_num = 0;
+  if (seq->retiming_keys != nullptr) {
+    MEM_freeN(seq->retiming_keys);
+    seq->retiming_keys = nullptr;
+    seq->retiming_keys_num = 0;
   }
 
   MEM_freeN(seq);
@@ -293,6 +293,7 @@ void SEQ_editing_free(Scene *scene, const bool do_id_user)
   BLI_freelistN(&ed->metastack);
   SEQ_sequence_lookup_free(scene);
   SEQ_channels_free(&ed->channels);
+
   MEM_freeN(ed);
 
   scene->ed = nullptr;
@@ -587,10 +588,9 @@ static Sequence *seq_dupli(const Scene *scene_src,
     }
   }
 
-  if (seq->retiming_handles != nullptr) {
-    seqn->retiming_handles = static_cast<SeqRetimingHandle *>(
-        MEM_dupallocN(seq->retiming_handles));
-    seqn->retiming_handle_num = seq->retiming_handle_num;
+  if (seq->retiming_keys != nullptr) {
+    seqn->retiming_keys = static_cast<SeqRetimingKey *>(MEM_dupallocN(seq->retiming_keys));
+    seqn->retiming_keys_num = seq->retiming_keys_num;
   }
 
   return seqn;
@@ -764,9 +764,9 @@ static bool seq_write_data_cb(Sequence *seq, void *userdata)
     BLO_write_struct(writer, SeqTimelineChannel, channel);
   }
 
-  if (seq->retiming_handles != nullptr) {
-    int size = SEQ_retiming_handles_count(seq);
-    BLO_write_struct_array(writer, SeqRetimingHandle, size, seq->retiming_handles);
+  if (seq->retiming_keys != nullptr) {
+    int size = SEQ_retiming_keys_count(seq);
+    BLO_write_struct_array(writer, SeqRetimingKey, size, seq->retiming_keys);
   }
 
   return true;
@@ -845,8 +845,8 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
 
   BLO_read_list(reader, &seq->channels);
 
-  if (seq->retiming_handles != nullptr) {
-    BLO_read_data_address(reader, &seq->retiming_handles);
+  if (seq->retiming_keys != nullptr) {
+    BLO_read_data_address(reader, &seq->retiming_keys);
   }
 
   return true;

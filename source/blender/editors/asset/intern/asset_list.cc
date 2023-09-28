@@ -18,7 +18,7 @@
 #include "AS_asset_library.hh"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLI_map.hh"
 #include "BLI_string.h"

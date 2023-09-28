@@ -66,6 +66,7 @@ void ED_operatortypes_armature()
   WM_operatortype_append(ARMATURE_OT_collection_move);
   WM_operatortype_append(ARMATURE_OT_collection_assign);
   WM_operatortype_append(ARMATURE_OT_collection_unassign);
+  WM_operatortype_append(ARMATURE_OT_collection_unassign_named);
   WM_operatortype_append(ARMATURE_OT_collection_select);
   WM_operatortype_append(ARMATURE_OT_collection_deselect);
 
@@ -118,8 +119,6 @@ void ED_operatortypes_armature()
   WM_operatortype_append(POSE_OT_rotation_mode_set);
 
   WM_operatortype_append(POSE_OT_quaternions_flip);
-
-  WM_operatortype_append(POSE_OT_bone_layers);
 
   WM_operatortype_append(POSE_OT_propagate);
 

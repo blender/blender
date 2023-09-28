@@ -17,7 +17,7 @@
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_text.h"
 #include "BKE_text_suggestions.h"
 

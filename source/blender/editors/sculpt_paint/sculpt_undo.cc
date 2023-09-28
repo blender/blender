@@ -617,16 +617,18 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
-  float *vmask;
   int *index;
 
   if (unode->maxvert) {
     /* Regular mesh restore. */
+    float *vmask = static_cast<float *>(
+        CustomData_get_layer_for_write(&mesh->vert_data, CD_PAINT_MASK, mesh->totvert));
+    ss->vmask = vmask;
 
     index = unode->index;
-    vmask = ss->vmask;
 
     for (int i = 0; i < unode->totvert; i++) {
       if (vmask[index[i]] != unode->mask[i]) {
@@ -1474,7 +1476,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
 
     switch (unode->type) {
-      case SCULPT_UNDO_NO_TYPE:
+      case SCULPT_UNDO_NONE:
         BLI_assert_unreachable();
         break;
       case SCULPT_UNDO_COORDS:
@@ -1578,7 +1580,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
 
     if (update_mask) {
-      BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+      BKE_pbvh_update_mask(ss->pbvh);
     }
     if (update_face_sets) {
       DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
@@ -1730,7 +1732,7 @@ SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type)
     return nullptr;
   }
 
-  if (type == SCULPT_UNDO_NO_TYPE) {
+  if (type == SCULPT_UNDO_NONE) {
     return (SculptUndoNode *)BLI_findptr(&usculpt->nodes, node, offsetof(SculptUndoNode, node));
   }
 
@@ -1874,7 +1876,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
   }
 
   switch (type) {
-    case SCULPT_UNDO_NO_TYPE:
+    case SCULPT_UNDO_NONE:
       BLI_assert_unreachable();
       break;
     case SCULPT_UNDO_COORDS: {
@@ -2033,7 +2035,7 @@ static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
   PBVHVertexIter vd;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, static_cast<PBVHNode *>(unode->node), vd, PBVH_ITER_ALL) {
-    unode->mask[vd.i] = *vd.mask;
+    unode->mask[vd.i] = vd.mask;
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2279,7 +2281,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
       case SCULPT_UNDO_GEOMETRY:
-      case SCULPT_UNDO_NO_TYPE:
+      case SCULPT_UNDO_NONE:
         break;
     }
   }
@@ -2301,8 +2303,11 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   return unode;
 }
 
-bool SCULPT_ensure_dyntopo_node_undo(
-    Object *ob, PBVHNode *node, SculptUndoType type, int extraType, SculptUndoType force_push_mask)
+bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
+                                     PBVHNode *node,
+                                     SculptUndoType type,
+                                     SculptUndoType extraType,
+                                     SculptUndoType force_push_mask)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -2320,7 +2325,7 @@ bool SCULPT_ensure_dyntopo_node_undo(
     unode->bm_log = ss->bm_log;
     unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
 
-    return SCULPT_ensure_dyntopo_node_undo(ob, node, type, extraType);
+    return SCULPT_ensure_dyntopo_node_undo(ob, node, type, extraType, force_push_mask);
   }
   else if (!(unode->typemask & (1 << type))) {
     unode->typemask |= 1 << type;
@@ -2357,7 +2362,7 @@ bool SCULPT_ensure_dyntopo_node_undo(
     sculpt_undo_bmesh_push(ob, node, type);
   }
 
-  if (extraType >= 0 && check(extraType)) {
+  if (extraType != SCULPT_UNDO_NONE && check(extraType)) {
     sculpt_undo_bmesh_push(ob, node, (SculptUndoType)extraType);
     unode->nodemap[n] |= 1 << extraType;
   }
@@ -2478,7 +2483,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
   }
 
   switch (type) {
-    case SCULPT_UNDO_NO_TYPE:
+    case SCULPT_UNDO_NONE:
       BLI_assert_unreachable();
       break;
     case SCULPT_UNDO_COORDS:

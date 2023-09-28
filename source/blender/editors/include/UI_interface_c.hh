@@ -453,6 +453,7 @@ enum eButType {
 
 /** Gradient types, for color picker #UI_BTYPE_HSVCUBE etc. */
 enum eButGradientType {
+  UI_GRAD_NONE = -1,
   UI_GRAD_SV = 0,
   UI_GRAD_HV = 1,
   UI_GRAD_HS = 2,
@@ -838,6 +839,25 @@ void UI_block_region_set(uiBlock *block, ARegion *region);
 
 void UI_block_lock_set(uiBlock *block, bool val, const char *lockstr);
 void UI_block_lock_clear(uiBlock *block);
+
+#define UI_BUTTON_SECTION_MERGE_DISTANCE (UI_UNIT_X * 3)
+/* Separator line between regions if the #uiButtonSectionsAlign is not #None. */
+#define UI_BUTTON_SECTION_SEPERATOR_LINE_WITH (U.pixelsize * 2)
+
+enum class uiButtonSectionsAlign : int8_t { None = 1, Top, Bottom };
+/**
+ * Draw a background with rounded corners behind each visual group of buttons. The visual groups
+ * are separated by spacer buttons (#uiItemSpacer()). Button groups that are closer than
+ * #UI_BUTTON_SECTION_MERGE_DISTANCE will be merged into one visual section. If the group is closer
+ * than that to a region edge, it will also be extended to that, and the rounded corners will be
+ * removed on that edge.
+ *
+ * \note This currently only works well for horizontal, header like regions.
+ */
+void UI_region_button_sections_draw(const ARegion *region,
+                                    int /*THemeColorID*/ colorid,
+                                    uiButtonSectionsAlign align);
+bool UI_region_button_sections_is_inside_x(const ARegion *region, const int mval_x);
 
 /**
  * Automatic aligning, horizontal or vertical.
@@ -1872,7 +1892,7 @@ void UI_but_drag_attach_image(uiBut *but, const ImBuf *imb, float scale);
  */
 void UI_but_drag_set_asset(uiBut *but,
                            const blender::asset_system::AssetRepresentation *asset,
-                           int import_type, /* eAssetImportType */
+                           int import_method, /* eAssetImportMethod */
                            int icon,
                            const ImBuf *imb,
                            float scale);
@@ -2584,7 +2604,6 @@ void uiTemplateNodeLink(
     uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input);
 void uiTemplateNodeView(
     uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input);
-void uiTemplateNodeAssetMenuItems(uiLayout *layout, bContext *C, const char *catalog_path);
 void uiTemplateTextureUser(uiLayout *layout, bContext *C);
 /**
  * Button to quickly show texture in Properties Editor texture tab.
@@ -2643,7 +2662,9 @@ void uiTemplateLightLinkingCollection(uiLayout *layout,
                                       PointerRNA *ptr,
                                       const char *propname);
 
+#ifdef WITH_GREASE_PENCIL_V3
 void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C);
+#endif
 
 void uiTemplateNodeTreeInterface(struct uiLayout *layout, struct PointerRNA *ptr);
 

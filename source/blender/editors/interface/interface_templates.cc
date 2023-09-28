@@ -65,7 +65,7 @@
 #include "BKE_particle.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
 
 #include "DEG_depsgraph.hh"
@@ -4584,7 +4584,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   CurveMap *cm = &cumap->cm[cumap->cur];
   uiBut *bt;
   const float dx = UI_UNIT_X;
-  int bg = -1;
+  eButGradientType bg = UI_GRAD_NONE;
 
   uiBlock *block = uiLayoutGetBlock(layout);
 
@@ -4771,7 +4771,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   row = uiLayoutRow(layout, false);
   uiButCurveMapping *curve_but = (uiButCurveMapping *)uiDefBut(
       block, UI_BTYPE_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, -1, 0, "");
-  curve_but->gradient_type = eButGradientType(bg);
+  curve_but->gradient_type = bg;
 
   /* Sliders for selected curve point. */
   int i;

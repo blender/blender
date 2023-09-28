@@ -1016,6 +1016,7 @@ void uiTemplateNodeView(
   if (!ntree) {
     return;
   }
+  ntree->ensure_topology_cache();
 
   /* clear for cycle check */
   LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {

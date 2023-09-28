@@ -88,6 +88,25 @@ static GPUShader *curves_eval_shader_get(CurvesEvalShader type)
   return DRW_shader_curves_refine_get(type, drw_curves_shader_type_get());
 }
 
+static void drw_curves_ensure_dummy_vbo()
+{
+  if (g_dummy_vbo != nullptr) {
+    return;
+  }
+  /* initialize vertex format */
+  GPUVertFormat format = {0};
+  uint dummy_id = GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+
+  g_dummy_vbo = GPU_vertbuf_create_with_format_ex(
+      &format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+
+  const float vert[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  GPU_vertbuf_data_alloc(g_dummy_vbo, 1);
+  GPU_vertbuf_attr_fill(g_dummy_vbo, dummy_id, vert);
+  /* Create vbo immediately to bind to texture buffer. */
+  GPU_vertbuf_use(g_dummy_vbo);
+}
+
 void DRW_curves_init(DRWData *drw_data)
 {
   /* Initialize legacy hair too, to avoid verbosity in callers. */
@@ -106,20 +125,7 @@ void DRW_curves_init(DRWData *drw_data)
     g_tf_pass = DRW_pass_create("Update Curves Pass", DRW_STATE_WRITE_COLOR);
   }
 
-  if (g_dummy_vbo == nullptr) {
-    /* initialize vertex format */
-    GPUVertFormat format = {0};
-    uint dummy_id = GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-
-    g_dummy_vbo = GPU_vertbuf_create_with_format_ex(
-        &format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-
-    const float vert[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    GPU_vertbuf_data_alloc(g_dummy_vbo, 1);
-    GPU_vertbuf_attr_fill(g_dummy_vbo, dummy_id, vert);
-    /* Create vbo immediately to bind to texture buffer. */
-    GPU_vertbuf_use(g_dummy_vbo);
-  }
+  drw_curves_ensure_dummy_vbo();
 }
 
 void DRW_curves_ubos_pool_free(CurvesUniformBufPool *pool)
@@ -553,12 +559,102 @@ void DRW_curves_free()
 
 namespace blender::draw {
 
+static PassSimple *g_pass = nullptr;
+
+void curves_init()
+{
+  if (!g_pass) {
+    g_pass = MEM_new<PassSimple>("drw_curves g_pass", "Update Curves Pass");
+  }
+  g_pass->init();
+  g_pass->state_set(DRW_STATE_NO_DRAW);
+}
+
+static CurvesEvalCache *curves_cache_get(Curves &curves,
+                                         GPUMaterial *gpu_material,
+                                         int subdiv,
+                                         int thickness_res)
+{
+  CurvesEvalCache *cache;
+  const bool update = curves_ensure_procedural_data(
+      &curves, &cache, gpu_material, subdiv, thickness_res);
+
+  if (!update) {
+    return cache;
+  }
+
+  const int strands_len = cache->strands_len;
+  const int final_points_len = cache->final[subdiv].strands_res * strands_len;
+
+  auto cache_update = [&](GPUVertBuf *output_buf, GPUVertBuf *input_buf) {
+    PassSimple::Sub &ob_ps = g_pass->sub("Object Pass");
+
+    ob_ps.shader_set(
+        DRW_shader_curves_refine_get(CURVES_EVAL_CATMULL_ROM, PART_REFINE_SHADER_COMPUTE));
+
+    ob_ps.bind_texture("hairPointBuffer", input_buf);
+    ob_ps.bind_texture("hairStrandBuffer", cache->proc_strand_buf);
+    ob_ps.bind_texture("hairStrandSegBuffer", cache->proc_strand_seg_buf);
+    ob_ps.push_constant("hairStrandsRes", &cache->final[subdiv].strands_res);
+    ob_ps.bind_ssbo("posTime", output_buf);
+
+    const int max_strands_per_call = GPU_max_work_group_count(0);
+    int strands_start = 0;
+    while (strands_start < strands_len) {
+      int batch_strands_len = std::min(strands_len - strands_start, max_strands_per_call);
+      PassSimple::Sub &sub_ps = ob_ps.sub("Sub Pass");
+      sub_ps.push_constant("hairStrandOffset", strands_start);
+      sub_ps.dispatch(int3(batch_strands_len, cache->final[subdiv].strands_res, 1));
+      strands_start += batch_strands_len;
+    }
+  };
+
+  if (final_points_len > 0) {
+    cache_update(cache->final[subdiv].proc_buf, cache->proc_point_buf);
+
+    const DRW_Attributes &attrs = cache->final[subdiv].attr_used;
+    for (int i : IndexRange(attrs.num_requests)) {
+      /* Only refine point attributes. */
+      if (attrs.requests[i].domain != ATTR_DOMAIN_CURVE) {
+        cache_update(cache->final[subdiv].attributes_buf[i], cache->proc_attributes_buf[i]);
+      }
+    }
+  }
+
+  return cache;
+}
+
+GPUVertBuf *curves_pos_buffer_get(Scene *scene, Object *object)
+{
+  const int subdiv = scene->r.hair_subdiv;
+  const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
+
+  Curves &curves = *static_cast<Curves *>(object->data);
+  CurvesEvalCache *cache = curves_cache_get(curves, nullptr, subdiv, thickness_res);
+
+  return cache->final[subdiv].proc_buf;
+}
+
+void curves_update(Manager &manager)
+{
+  manager.submit(*g_pass);
+  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+}
+
+void curves_free()
+{
+  MEM_delete(g_pass);
+  g_pass = nullptr;
+}
+
 template<typename PassT>
 GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
                                                const Scene *scene,
                                                Object *ob,
                                                GPUMaterial *gpu_material)
 {
+  /** NOTE: This still relies on the old DRW_curves implementation. */
+
   CurvesUniformBufPool *pool = DST.vmempool->curves_ubos;
   CurvesInfosBuf &curves_infos = pool->alloc();
   BLI_assert(ob->type == OB_CURVES);

@@ -25,7 +25,7 @@
 #include "BKE_nla.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"

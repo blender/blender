@@ -23,7 +23,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_customdata.h"
 #include "BKE_object.h"
 #include "BKE_paint.hh"
 

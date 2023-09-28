@@ -21,7 +21,7 @@
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "WM_api.hh"
 

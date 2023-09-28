@@ -10,6 +10,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "DNA_asset_types.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
@@ -740,6 +741,7 @@ enum {
   /** #ARegionType.poll() failed for the current context, and the region should be treated as if it
    * wouldn't exist. Runtime only flag. */
   RGN_FLAG_POLL_FAILED = (1 << 10),
+  RGN_FLAG_RESIZE_RESPECT_BUTTON_SECTIONS = (1 << 11),
 };
 
 /** #ARegion.do_draw */
@@ -769,6 +771,8 @@ enum {
 
 typedef struct AssetShelfSettings {
   struct AssetShelfSettings *next, *prev;
+
+  AssetLibraryReference asset_library_reference;
 
   ListBase enabled_catalog_paths; /* #LinkData */
   /** If not set (null or empty string), all assets will be displayed ("All" catalog behavior). */

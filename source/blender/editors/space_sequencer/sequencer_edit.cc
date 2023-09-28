@@ -1708,6 +1708,10 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (sequencer_retiming_mode_is_active(C)) {
+    sequencer_retiming_key_remove_exec(C, op);
+  }
+
   SEQ_prefetch_stop(scene);
 
   SeqCollection *selected_strips = selected_strips_from_context(C);

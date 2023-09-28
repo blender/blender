@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
 #include "DNA_sequence_types.h"
 #include "RNA_access.hh"
 
@@ -21,6 +22,7 @@ struct wmGizmoType;
 struct Main;
 struct Scene;
 struct SeqCollection;
+struct SeqRetimingKey;
 struct Sequence;
 struct SpaceSeq;
 struct StripElem;
@@ -123,7 +125,6 @@ void channel_draw_context_init(const bContext *C,
 /* `sequencer_edit.cc` */
 
 void seq_rectf(const Scene *scene, Sequence *seq, rctf *rectf);
-Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[2]);
 Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int sel);
 void recurs_sel_seq(Sequence *seq_meta);
 int seq_effect_find_selected(Scene *scene,
@@ -233,6 +234,7 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot);
 void SEQUENCER_OT_select_box(wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(wmOperatorType *ot);
+Sequence *find_nearest_seq(const Scene *scene, const View2D *v2d, int *hand, const int mval[2]);
 
 /* `sequencer_add.cc` */
 
@@ -303,16 +305,25 @@ void sequencer_image_seq_reserve_frames(
 
 /* `sequencer_retiming.cc` */
 void SEQUENCER_OT_retiming_reset(wmOperatorType *ot);
-void SEQUENCER_OT_retiming_handle_move(wmOperatorType *ot);
-void SEQUENCER_OT_retiming_handle_add(wmOperatorType *ot);
-void SEQUENCER_OT_retiming_handle_remove(wmOperatorType *ot);
+void SEQUENCER_OT_retiming_show(wmOperatorType *ot);
+void SEQUENCER_OT_retiming_key_add(wmOperatorType *ot);
+void SEQUENCER_OT_retiming_freeze_frame_add(wmOperatorType *ot);
+void SEQUENCER_OT_retiming_transition_add(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot);
+int sequencer_retiming_key_select_exec(struct bContext *C, struct wmOperator *op);
+int sequencer_select_exec(struct bContext *C, struct wmOperator *op);
+int sequencer_retiming_key_remove_exec(struct bContext *C, struct wmOperator *op);
+int sequencer_retiming_select_all_exec(struct bContext *C, struct wmOperator *op);
+int sequencer_retiming_box_select_exec(struct bContext *C, struct wmOperator *op);
 
-/* `sequencer_gizmo_retime.cc` */
-void SEQUENCER_GGT_gizmo_retime(wmGizmoGroupType *gzgt);
-
-/* `sequencer_gizmo_retime_type.cc` */
-void GIZMO_GT_retime_handle_add(wmGizmoType *gzt);
-void GIZMO_GT_retime_handle(wmGizmoType *gzt);
-void GIZMO_GT_retime_remove(wmGizmoType *gzt);
-void GIZMO_GT_speed_set_remove(wmGizmoType *gzt);
+/* `sequencer_retiming_draw.cc` */
+void sequencer_draw_retiming(const struct bContext *C);
+blender::Vector<Sequence *> sequencer_visible_strips_get(const struct bContext *C);
+struct SeqRetimingKey *try_to_realize_virtual_key(const struct bContext *C,
+                                                  struct Sequence *seq,
+                                                  const int mval[2]);
+struct SeqRetimingKey *retiming_mousover_key_get(const struct bContext *C,
+                                                 const int mval[2],
+                                                 Sequence **r_seq);
+int left_fake_key_frame_get(const bContext *C, const Sequence *seq);
+int right_fake_key_frame_get(const bContext *C, const Sequence *seq);

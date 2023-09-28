@@ -50,7 +50,7 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
 #  include "RNA_access.hh"
 
 #  include "BKE_global.h"
-#  include "BKE_screen.h"
+#  include "BKE_screen.hh"
 #  include "BKE_workspace.h"
 
 #  include "DEG_depsgraph.hh"

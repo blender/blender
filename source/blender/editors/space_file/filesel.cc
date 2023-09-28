@@ -110,7 +110,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
     asset_params->asset_library_ref.type = ASSET_LIBRARY_ALL;
     asset_params->asset_library_ref.custom_library_index = -1;
-    asset_params->import_type = FILE_ASSET_IMPORT_FOLLOW_PREFS;
+    asset_params->import_method = FILE_ASSET_IMPORT_FOLLOW_PREFS;
   }
 
   FileSelectParams *base_params = &asset_params->base_params;
@@ -519,12 +519,12 @@ int ED_fileselect_asset_import_method_get(const SpaceFile *sfile, const FileDirE
 
   const FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
 
-  if (params->import_type == FILE_ASSET_IMPORT_FOLLOW_PREFS) {
+  if (params->import_method == FILE_ASSET_IMPORT_FOLLOW_PREFS) {
     std::optional import_method = file->asset->get_import_method();
     return import_method ? *import_method : -1;
   }
 
-  switch (eFileAssetImportType(params->import_type)) {
+  switch (eFileAssetImportMethod(params->import_method)) {
     case FILE_ASSET_IMPORT_LINK:
       return ASSET_IMPORT_LINK;
     case FILE_ASSET_IMPORT_APPEND:

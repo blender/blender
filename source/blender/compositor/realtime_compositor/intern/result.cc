@@ -172,7 +172,6 @@ void Result::steal_data(Result &source)
       break;
     default:
       /* Other types are internal and do not support single values. */
-      BLI_assert_unreachable();
       break;
   }
 

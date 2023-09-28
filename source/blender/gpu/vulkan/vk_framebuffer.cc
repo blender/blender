@@ -167,7 +167,6 @@ void VKFrameBuffer::clear(const eGPUFrameBufferBits buffers,
               << "PERFORMANCE: impact clearing depth texture in render pass that doesn't allow "
                  "depth writes.\n";
         }
-        depth_texture->ensure_allocated();
         depth_attachment_layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
         depth_texture->clear_depth_stencil(buffers, clear_depth, clear_stencil);
       }
@@ -225,14 +224,17 @@ void VKFrameBuffer::read(eGPUFrameBufferBits plane,
                          int slot,
                          void *r_data)
 {
+  VKContext &context = *VKContext::get();
   VKTexture *texture = nullptr;
   switch (plane) {
     case GPU_COLOR_BIT:
-      texture = unwrap(unwrap(attachments_[GPU_FB_COLOR_ATTACHMENT0 + slot].tex));
+      color_attachment_layout_ensure(context, slot, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+      texture = unwrap(unwrap(color_tex(slot)));
       break;
 
     case GPU_DEPTH_BIT:
-      texture = unwrap(unwrap(attachments_[GPU_FB_DEPTH_ATTACHMENT].tex));
+      depth_attachment_layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+      texture = unwrap(unwrap(depth_tex()));
       break;
 
     default:
@@ -252,44 +254,26 @@ void VKFrameBuffer::read(eGPUFrameBufferBits plane,
 /** \name Blit operations
  * \{ */
 
-void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
-                            int src_slot,
-                            FrameBuffer *dst,
-                            int dst_slot,
-                            int dst_offset_x,
-                            int dst_offset_y)
+static void blit_aspect(VKCommandBuffer &command_buffer,
+                        VKTexture &dst_texture,
+                        VKTexture &src_texture,
+                        int dst_offset_x,
+                        int dst_offset_y,
+                        VkImageAspectFlagBits image_aspect)
 {
-  BLI_assert(dst);
-  BLI_assert(planes == GPU_COLOR_BIT);
-  UNUSED_VARS_NDEBUG(planes);
-
-  VKContext &context = *VKContext::get();
-  if (!context.has_active_framebuffer()) {
-    BLI_assert_unreachable();
+  /* Prefer texture copy, as some platforms don't support using D32_SFLOAT_S8_UINT to be used as
+   * a blit destination. */
+  if (dst_offset_x == 0 && dst_offset_y == 0 &&
+      dst_texture.format_get() == src_texture.format_get() &&
+      src_texture.width_get() == dst_texture.width_get() &&
+      src_texture.height_get() == dst_texture.height_get())
+  {
+    src_texture.copy_to(dst_texture, image_aspect);
     return;
   }
-
-  /* Retrieve source texture. */
-  const GPUAttachment &src_attachment = attachments_[GPU_FB_COLOR_ATTACHMENT0 + src_slot];
-  if (src_attachment.tex == nullptr) {
-    return;
-  }
-  color_attachment_layout_ensure(context, src_slot, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  VKTexture &src_texture = *unwrap(unwrap(src_attachment.tex));
-
-  /* Retrieve destination texture. */
-  VKFrameBuffer &dst_framebuffer = *unwrap(dst);
-  dst_framebuffer.color_attachment_layout_ensure(
-      context, dst_slot, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  const GPUAttachment &dst_attachment =
-      dst_framebuffer.attachments_[GPU_FB_COLOR_ATTACHMENT0 + dst_slot];
-  if (dst_attachment.tex == nullptr) {
-    return;
-  }
-  VKTexture &dst_texture = *unwrap(unwrap(dst_attachment.tex));
 
   VkImageBlit image_blit = {};
-  image_blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  image_blit.srcSubresource.aspectMask = image_aspect;
   image_blit.srcSubresource.mipLevel = 0;
   image_blit.srcSubresource.baseArrayLayer = 0;
   image_blit.srcSubresource.layerCount = 1;
@@ -300,7 +284,7 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
   image_blit.srcOffsets[1].y = src_texture.height_get();
   image_blit.srcOffsets[1].z = 1;
 
-  image_blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  image_blit.dstSubresource.aspectMask = image_aspect;
   image_blit.dstSubresource.mipLevel = 0;
   image_blit.dstSubresource.baseArrayLayer = 0;
   image_blit.dstSubresource.layerCount = 1;
@@ -311,7 +295,74 @@ void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
   image_blit.dstOffsets[1].y = dst_offset_y + src_texture.height_get();
   image_blit.dstOffsets[1].z = 1;
 
-  context.command_buffer_get().blit(dst_texture, src_texture, Span<VkImageBlit>(&image_blit, 1));
+  command_buffer.blit(dst_texture, src_texture, Span<VkImageBlit>(&image_blit, 1));
+}
+
+void VKFrameBuffer::blit_to(eGPUFrameBufferBits planes,
+                            int src_slot,
+                            FrameBuffer *dst,
+                            int dst_slot,
+                            int dst_offset_x,
+                            int dst_offset_y)
+{
+  BLI_assert(dst);
+  BLI_assert_msg(ELEM(planes, GPU_COLOR_BIT, GPU_DEPTH_BIT),
+                 "VKFrameBuffer::blit_to only supports a single color or depth aspect.");
+  UNUSED_VARS_NDEBUG(planes);
+
+  VKContext &context = *VKContext::get();
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  if (!context.has_active_framebuffer()) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  VKFrameBuffer &dst_framebuffer = *unwrap(dst);
+  if (planes & GPU_COLOR_BIT) {
+    const GPUAttachment &src_attachment = attachments_[GPU_FB_COLOR_ATTACHMENT0 + src_slot];
+    const GPUAttachment &dst_attachment =
+        dst_framebuffer.attachments_[GPU_FB_COLOR_ATTACHMENT0 + dst_slot];
+    if (src_attachment.tex && dst_attachment.tex) {
+      VKTexture &src_texture = *unwrap(unwrap(src_attachment.tex));
+      VKTexture &dst_texture = *unwrap(unwrap(dst_attachment.tex));
+      color_attachment_layout_ensure(context, src_slot, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+      dst_framebuffer.color_attachment_layout_ensure(
+          context, dst_slot, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+      blit_aspect(command_buffer,
+                  dst_texture,
+                  src_texture,
+                  dst_offset_x,
+                  dst_offset_y,
+                  VK_IMAGE_ASPECT_COLOR_BIT);
+    }
+  }
+
+  if (planes & GPU_DEPTH_BIT) {
+    /* Retrieve source texture. */
+    const GPUAttachment &src_attachment = attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT].tex ?
+                                              attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT] :
+                                              attachments_[GPU_FB_DEPTH_ATTACHMENT];
+    const GPUAttachment &dst_attachment =
+        dst_framebuffer.attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT].tex ?
+            dst_framebuffer.attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT] :
+            dst_framebuffer.attachments_[GPU_FB_DEPTH_ATTACHMENT];
+    if (src_attachment.tex && dst_attachment.tex) {
+      VKTexture &src_texture = *unwrap(unwrap(src_attachment.tex));
+      VKTexture &dst_texture = *unwrap(unwrap(dst_attachment.tex));
+      depth_attachment_layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+      dst_framebuffer.depth_attachment_layout_ensure(context,
+                                                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+      blit_aspect(command_buffer,
+                  dst_texture,
+                  src_texture,
+                  dst_offset_x,
+                  dst_offset_y,
+                  VK_IMAGE_ASPECT_DEPTH_BIT);
+    }
+  }
+  command_buffer.submit();
 }
 
 /** \} */
@@ -375,7 +426,6 @@ void VKFrameBuffer::render_pass_create()
     if (attachment.tex) {
       /* Ensure texture is allocated to ensure the image view. */
       VKTexture &texture = *static_cast<VKTexture *>(unwrap(attachment.tex));
-      texture.ensure_allocated();
       image_views_.append(VKImageView(texture,
                                       eImageViewUsage::Attachment,
                                       IndexRange(max_ii(attachment.layer, 0), 1),
@@ -493,7 +543,6 @@ void VKFrameBuffer::color_attachment_layout_ensure(VKContext &context,
     return;
   }
 
-  color_texture->ensure_allocated();
   color_texture->layout_ensure(context, requested_layout);
   dirty_attachments_ = true;
 }

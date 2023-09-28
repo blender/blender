@@ -86,6 +86,15 @@ static int node_shader_gpu_tangent(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_tangent", in, out, orco);
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* TODO: implement other features */
+  return create_node("tangent", NodeItem::Type::Vector3, {{"space", val(std::string("world"))}});
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_tangent_cc
 
 /* node type definition */
@@ -103,6 +112,7 @@ void register_node_type_sh_tangent()
   ntype.gpu_fn = file_ns::node_shader_gpu_tangent;
   node_type_storage(
       &ntype, "NodeShaderTangent", node_free_standard_storage, node_copy_standard_storage);
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

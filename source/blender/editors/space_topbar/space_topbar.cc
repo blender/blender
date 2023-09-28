@@ -19,7 +19,7 @@
 #include "BKE_blendfile.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_undo_system.h"
 
 #include "ED_screen.hh"

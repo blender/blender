@@ -385,7 +385,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
     ef->textbuf[ef->pos] = c;
     ef->textbufinfo[ef->pos] = cu->curinfo;
     ef->textbufinfo[ef->pos].kern = 0.0f;
-    ef->textbufinfo[ef->pos].mat_nr = obedit->actcol;
+    ef->textbufinfo[ef->pos].mat_nr = obedit->actcol - 1;
 
     ef->pos++;
     ef->len++;
@@ -418,10 +418,7 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
   cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
 
   if (obedit->totcol > 0) {
-    obedit->actcol = cu->curinfo.mat_nr;
-
-    /* since this array is calloc'd, it can be 0 even though we try ensure
-     * (mat_nr > 0) almost everywhere */
+    obedit->actcol = cu->curinfo.mat_nr + 1;
     if (obedit->actcol < 1) {
       obedit->actcol = 1;
     }
@@ -1851,7 +1848,7 @@ static void font_cursor_set_apply(bContext *C, const wmEvent *event)
   cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
 
   if (ob->totcol > 0) {
-    ob->actcol = cu->curinfo.mat_nr;
+    ob->actcol = cu->curinfo.mat_nr + 1;
     if (ob->actcol < 1) {
       ob->actcol = 1;
     }

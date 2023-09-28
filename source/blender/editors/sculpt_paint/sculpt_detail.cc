@@ -20,7 +20,7 @@
 #include "BKE_dyntopo.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
 

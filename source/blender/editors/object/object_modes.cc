@@ -30,7 +30,7 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLI_math_vector.h"
 
@@ -131,12 +131,8 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
     case OB_FONT:
     case OB_MBALL:
     case OB_POINTCLOUD:
-      if (mode & OB_MODE_EDIT) {
-        return true;
-      }
-      break;
     case OB_LATTICE:
-      if (mode & (OB_MODE_EDIT | OB_MODE_WEIGHT_PAINT)) {
+      if (mode & OB_MODE_EDIT) {
         return true;
       }
       break;

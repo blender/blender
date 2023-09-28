@@ -39,7 +39,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLT_translation.h"
 

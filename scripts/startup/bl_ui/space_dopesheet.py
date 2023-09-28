@@ -282,8 +282,7 @@ class DOPESHEET_HT_editor_buttons:
             sub = row.row(align=True)
             sub.popover(
                 panel="DOPESHEET_PT_snapping",
-                icon='NONE',
-                text="Modes",
+                text="",
             )
 
         row = layout.row(align=True)
@@ -767,6 +766,10 @@ class DOPESHEET_MT_channel_context_menu(Menu):
 
         if is_graph_editor:
             layout.operator_menu_enum("graph.fmodifier_add", "type", text="Add F-Curve Modifier").only_active = False
+            layout.separator()
+            layout.operator("graph.hide", text="Hide Selected Curves").unselected = False
+            layout.operator("graph.hide", text="Hide Unselected Curves").unselected = True
+            layout.operator("graph.reveal")
 
         layout.separator()
         layout.operator("anim.channels_expand")
@@ -778,6 +781,9 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         layout.separator()
 
         layout.operator("anim.channels_delete")
+
+        if is_graph_editor and context.space_data.mode == 'DRIVERS':
+            layout.operator("graph.driver_delete_invalid")
 
 
 class DOPESHEET_MT_snap_pie(Menu):

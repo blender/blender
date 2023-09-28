@@ -70,7 +70,8 @@ void GPUPlatformGlobal::init(eGPUDeviceType gpu_device,
                              eGPUBackendType backend,
                              const char *vendor_str,
                              const char *renderer_str,
-                             const char *version_str)
+                             const char *version_str,
+                             GPUArchitectureType arch_type)
 {
   this->clear();
 
@@ -91,6 +92,7 @@ void GPUPlatformGlobal::init(eGPUDeviceType gpu_device,
   this->support_key = create_key(gpu_support_level, vendor, renderer, version);
   this->gpu_name = create_gpu_name(vendor, renderer, version);
   this->backend = backend;
+  this->architecture_type = arch_type;
 }
 
 void GPUPlatformGlobal::clear()
@@ -147,6 +149,12 @@ const char *GPU_platform_gpu_name()
 {
   BLI_assert(GPG.initialized);
   return GPG.gpu_name;
+}
+
+GPUArchitectureType GPU_platform_architecture()
+{
+  BLI_assert(GPG.initialized);
+  return GPG.architecture_type;
 }
 
 bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver)

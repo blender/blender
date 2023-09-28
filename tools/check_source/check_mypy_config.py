@@ -13,6 +13,7 @@ PATHS: Tuple[Tuple[str, Tuple[Any, ...], Dict[str, str]], ...] = (
     ("build_files/cmake/", (), {'MYPYPATH': "modules"}),
     ("build_files/utils/", (), {'MYPYPATH': "modules"}),
     ("doc/manpage/blender.1.py", (), {}),
+    ("tests/utils/", (), {}),
     ("tools/check_blender_release/", (), {}),
     ("tools/check_source/", (), {'MYPYPATH': "modules"}),
     ("tools/check_wiki/", (), {}),
@@ -37,6 +38,8 @@ PATHS_EXCLUDE = set(
         "build_files/cmake/cmake_static_check_smatch.py",
         "build_files/cmake/cmake_static_check_sparse.py",
         "build_files/cmake/cmake_static_check_splint.py",
+        "tests/utils/bl_run_operators.py",  # Uses `bpy` too much.
+        "tests/utils/bl_run_operators_event_simulate.py",  # Uses `bpy` too much.
         "tools/check_blender_release/check_module_enabled.py",
         "tools/check_blender_release/check_module_numpy.py",
         "tools/check_blender_release/check_module_requests.py",

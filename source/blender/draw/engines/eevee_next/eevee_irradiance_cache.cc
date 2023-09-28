@@ -203,9 +203,21 @@ void IrradianceCache::set_view(View & /*view*/)
                 /* Volumes are identical. Any arbitrary criteria can be used to sort them.
                  * Use position to avoid unstable result caused by depsgraph non deterministic eval
                  * order. This could also become a priority parameter. */
-                return a->object_to_world.location()[0] < b->object_to_world.location()[0] ||
-                       a->object_to_world.location()[1] < b->object_to_world.location()[1] ||
-                       a->object_to_world.location()[2] < b->object_to_world.location()[2];
+                float3 _a = a->object_to_world.location();
+                float3 _b = b->object_to_world.location();
+                if (_a.x != _b.x) {
+                  return _a.x < _b.x;
+                }
+                else if (_a.y != _b.y) {
+                  return _a.y < _b.y;
+                }
+                else if (_a.z != _b.z) {
+                  return _a.z < _b.z;
+                }
+                else {
+                  /* Fallback to memory address, since there's no good alternative.*/
+                  return a < b;
+                }
               });
 
     /* Insert grids in UBO in sorted order. */
@@ -421,6 +433,10 @@ void IrradianceCache::debug_pass_draw(View &view, GPUFrameBuffer *view_fb)
 
     LightProbeGridCacheFrame *cache = grid.cache->grid_static_cache;
 
+    if (cache == nullptr) {
+      continue;
+    }
+
     switch (inst_.debug_mode) {
       case eDebugMode::DEBUG_IRRADIANCE_CACHE_SURFELS_NORMAL:
       case eDebugMode::DEBUG_IRRADIANCE_CACHE_SURFELS_CLUSTER:
@@ -618,9 +634,13 @@ void IrradianceBake::init(const Object &probe_object)
   surfel_density_ = lightprobe->surfel_density;
   min_distance_to_surface_ = lightprobe->grid_surface_bias;
   max_virtual_offset_ = lightprobe->grid_escape_bias;
+  clip_distance_ = lightprobe->clipend;
   capture_world_ = (lightprobe->grid_flag & LIGHTPROBE_GRID_CAPTURE_WORLD);
   capture_indirect_ = (lightprobe->grid_flag & LIGHTPROBE_GRID_CAPTURE_INDIRECT);
   capture_emission_ = (lightprobe->grid_flag & LIGHTPROBE_GRID_CAPTURE_EMISSION);
+
+  /* Initialize views data, since they're used by other modules.*/
+  surfel_raster_views_sync(float3(0.0f), float3(1.0f), float4x4::identity());
 }
 
 void IrradianceBake::sync()
@@ -724,24 +744,61 @@ void IrradianceBake::sync()
   }
 }
 
-void IrradianceBake::surfel_raster_views_sync(const float3 &scene_min, const float3 &scene_max)
+void IrradianceBake::surfel_raster_views_sync(float3 scene_min,
+                                              float3 scene_max,
+                                              float4x4 probe_to_world)
 {
   using namespace blender::math;
 
-  grid_pixel_extent_ = max(int3(1), int3(surfel_density_ * (scene_max - scene_min)));
+  float3 location, scale;
+  Quaternion rotation;
+  to_loc_rot_scale(probe_to_world, location, rotation, scale);
+  /* Remove scale from view matrix. */
+  float4x4 viewinv = from_loc_rot_scale<float4x4>(location, rotation, float3(1.0f));
+  float4x4 viewmat = invert(viewinv);
 
+  /* Compute the intersection between the grid and the scene extents. */
+  float3 extent_min = float3(FLT_MAX);
+  float3 extent_max = float3(-FLT_MAX);
+  for (int x : {0, 1}) {
+    for (int y : {0, 1}) {
+      for (int z : {0, 1}) {
+        float3 ws_corner = scene_min + ((scene_max - scene_min) * float3(x, y, z));
+        float3 ls_corner = transform_point(viewmat, ws_corner);
+        extent_min = min(extent_min, ls_corner);
+        extent_max = max(extent_max, ls_corner);
+      }
+    }
+  }
+  /* Clip distance is added to every axis in both directions, not just Z. */
+  float3 target_extent = scale + clip_distance_;
+  extent_min = max(extent_min, -target_extent);
+  extent_max = min(extent_max, target_extent);
+
+  grid_pixel_extent_ = max(int3(1), int3(surfel_density_ * (extent_max - extent_min)));
   grid_pixel_extent_ = min(grid_pixel_extent_, int3(16384));
+
+  float3 ls_midpoint = midpoint(extent_min, extent_max);
+  scene_bound_sphere_ = float4(transform_point(viewinv, ls_midpoint),
+                               distance(extent_min, extent_max) / 2.0f);
 
   /* We could use multi-view rendering here to avoid multiple submissions but it is unlikely to
    * make any difference. The bottleneck is still the light propagation loop. */
   auto sync_view = [&](View &view, CartesianBasis basis) {
-    float3 extent_min = transform_point(invert(basis), scene_min);
-    float3 extent_max = transform_point(invert(basis), scene_max);
-    float4x4 winmat = projection::orthographic(
-        extent_min.x, extent_max.x, extent_min.y, extent_max.y, -extent_min.z, -extent_max.z);
-    float4x4 viewinv = from_rotation<float4x4>(to_quaternion<float>(basis));
+    float4x4 capture_viewinv = viewinv * from_rotation<float4x4>(basis);
+
+    float3 capture_extent_min = transform_point(invert(basis), extent_min);
+    float3 capture_extent_max = transform_point(invert(basis), extent_max);
+
+    float4x4 capture_winmat = projection::orthographic(capture_extent_min.x,
+                                                       capture_extent_max.x,
+                                                       capture_extent_min.y,
+                                                       capture_extent_max.y,
+                                                       -capture_extent_min.z,
+                                                       -capture_extent_max.z);
+
     view.visibility_test(false);
-    view.sync(invert(viewinv), winmat);
+    view.sync(invert(capture_viewinv), capture_winmat);
   };
 
   sync_view(view_x_, basis_x_);
@@ -861,10 +918,7 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   float epsilon = 1.0f / surfel_density_;
   scene_min -= epsilon;
   scene_max += epsilon;
-  surfel_raster_views_sync(scene_min, scene_max);
-
-  scene_bound_sphere_ = float4(midpoint(scene_max, scene_min),
-                               distance(scene_max, scene_min) / 2.0f);
+  surfel_raster_views_sync(scene_min, scene_max, float4x4(probe_object.object_to_world));
 
   DRW_stats_group_end();
 
@@ -942,7 +996,8 @@ void IrradianceBake::clusters_build()
   if (max_virtual_offset_ == 0.0f) {
     return;
   }
-  eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
+  eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
+                                   GPU_TEXTURE_USAGE_ATOMIC;
 
   cluster_list_tx_.ensure_3d(GPU_R32I, capture_info_buf_.irradiance_grid_size, texture_usage);
   cluster_list_tx_.clear(int4(-1));

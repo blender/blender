@@ -315,6 +315,8 @@ typedef enum eNodePanelFlag {
   NODE_PANEL_COLLAPSED = (1 << 0),
   /* The parent panel is collapsed. */
   NODE_PANEL_PARENT_COLLAPSED = (1 << 1),
+  /* The panel has visible content. */
+  NODE_PANEL_CONTENT_VISIBLE = (1 << 2),
 } eNodePanelFlag;
 
 typedef struct bNodePanelState {
@@ -327,6 +329,7 @@ typedef struct bNodePanelState {
 #ifdef __cplusplus
   bool is_collapsed() const;
   bool is_parent_collapsed() const;
+  bool has_visible_content() const;
 #endif
 } bNodePanelState;
 
@@ -716,6 +719,7 @@ typedef struct bNodeTree {
   const bNestedNodeRef *nested_node_ref_from_node_id_path(blender::Span<int> node_ids) const;
   [[nodiscard]] bool node_id_path_from_nested_node_ref(const int32_t nested_node_id,
                                                        blender::Vector<int32_t> &r_node_ids) const;
+  const bNode *find_nested_node(int32_t nested_node_id) const;
 
   /**
    * Update a run-time cache for the node tree based on it's current state. This makes many methods
@@ -1829,7 +1833,7 @@ typedef struct NodeGeometryRepeatOutput {
   int active_index;
   /** Identifier to give to the next repeat item. */
   int next_identifier;
-  char _pad[4];
+  int inspection_index;
 
 #ifdef __cplusplus
   blender::Span<NodeRepeatItem> items_span() const;

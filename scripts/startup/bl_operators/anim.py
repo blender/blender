@@ -255,16 +255,24 @@ class NLA_OT_bake(Operator):
 
     def execute(self, context):
         from bpy_extras import anim_utils
-        do_pose = 'POSE' in self.bake_types
-        do_object = 'OBJECT' in self.bake_types
 
-        if do_pose and self.only_selected:
+        bake_options = anim_utils.BakeOptions(
+            only_selected=self.only_selected,
+            do_pose='POSE' in self.bake_types,
+            do_object='OBJECT' in self.bake_types,
+            do_visual_keying=self.visual_keying,
+            do_constraint_clear=self.clear_constraints,
+            do_parents_clear=self.clear_parents,
+            do_clean=self.clean_curves
+        )
+
+        if bake_options.do_pose and self.only_selected:
             pose_bones = context.selected_pose_bones or []
             armatures = {pose_bone.id_data for pose_bone in pose_bones}
             objects = list(armatures)
         else:
             objects = context.selected_editable_objects
-            if do_pose and not do_object:
+            if bake_options.do_pose and not bake_options.do_object:
                 objects = [obj for obj in objects if obj.pose is not None]
 
         object_action_pairs = (
@@ -276,13 +284,7 @@ class NLA_OT_bake(Operator):
         actions = anim_utils.bake_action_objects(
             object_action_pairs,
             frames=range(self.frame_start, self.frame_end + 1, self.step),
-            only_selected=self.only_selected,
-            do_pose=do_pose,
-            do_object=do_object,
-            do_visual_keying=self.visual_keying,
-            do_constraint_clear=self.clear_constraints,
-            do_parents_clear=self.clear_parents,
-            do_clean=self.clean_curves,
+            bake_options=bake_options
         )
 
         if not any(actions):
@@ -429,9 +431,125 @@ class UpdateAnimatedTransformConstraint(Operator):
         return {'FINISHED'}
 
 
+class ARMATURE_OT_sync_bone_color_to_selected(Operator):
+    """Copy the bone color of the active bone to all selected bones"""
+    bl_idname = "armature.sync_bone_color_to_selected"
+    bl_label = "Sync to Selected"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    _bone_type_enum = [
+        ('EDIT', 'Edit Bone', 'Copy Edit Bone colors from the active bone to all selected bones'),
+        ('POSE', 'Pose Bone', 'Copy Pose Bone colors from the active bone to all selected bones'),
+    ]
+
+    bone_type: EnumProperty(
+        name="Type",
+        items=_bone_type_enum)
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode in {'EDIT_ARMATURE', 'POSE'}
+
+    def execute(self, context):
+        match (self.bone_type, context.mode):
+            # Armature in edit mode:
+            case ('POSE', 'EDIT_ARMATURE'):
+                self.report({'ERROR'}, "Go to pose mode to copy pose bone colors")
+                return {'OPERATOR_CANCELLED'}
+            case ('EDIT', 'EDIT_ARMATURE'):
+                bone_source = context.active_bone
+                bones_dest = context.selected_bones
+                pose_bones_to_check = []
+
+            # Armature in pose mode:
+            case ('POSE', 'POSE'):
+                bone_source = context.active_pose_bone
+                bones_dest = context.selected_pose_bones
+                pose_bones_to_check = []
+            case ('EDIT', 'POSE'):
+                bone_source = context.active_bone
+                pose_bones_to_check = context.selected_pose_bones
+                bones_dest = [posebone.bone for posebone in pose_bones_to_check]
+
+            # Anything else:
+            case _:
+                self.report({'ERROR'}, "Cannot do anything in mode %r" % context.mode)
+                return {'CANCELLED'}
+
+        if not bone_source:
+            self.report({'ERROR'}, "No active bone to copy from.")
+            return {'CANCELLED'}
+
+        if not bones_dest:
+            self.report({'ERROR'}, "No selected bones to copy to.")
+            return {'CANCELLED'}
+
+        num_pose_color_overrides = 0
+        for index, bone_dest in enumerate(bones_dest):
+            bone_dest.color.palette = bone_source.color.palette
+            for custom_field in ('normal', 'select', 'active'):
+                color = getattr(bone_source.color.custom, custom_field)
+                setattr(bone_dest.color.custom, custom_field, color)
+
+            if self.bone_type == 'EDIT' and pose_bones_to_check:
+                pose_bone = pose_bones_to_check[index]
+                if pose_bone.color.palette != 'DEFAULT':
+                    # A pose color has been set, and we're now syncing edit bone
+                    # colors. This means that the synced color will not be
+                    # visible. Better to let the user know about this.
+                    num_pose_color_overrides += 1
+
+        if num_pose_color_overrides:
+            self.report(
+                {'INFO'},
+                "Bone colors were synced; for %d bones this will not be visible due to pose bone color overrides" %
+                num_pose_color_overrides)
+
+        return {'FINISHED'}
+
+
+class ARMATURE_OT_collection_solo_visibility(Operator):
+    """Hide all other bone collections and show the active one"""
+    bl_idname = "armature.collection_solo_visibility"
+    bl_label = "Solo Visibility"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    name: StringProperty(name='Bone Collection')
+
+    @classmethod
+    def poll(cls, context):
+        return context.object and context.object.type == 'ARMATURE' and context.object.data
+
+    def execute(self, context):
+        arm = context.object.data
+        for bcoll in arm.collections:
+            bcoll.is_visible = bcoll.name == self.name
+        return {'FINISHED'}
+
+
+class ARMATURE_OT_collection_show_all(Operator):
+    """Show all bone collections"""
+    bl_idname = "armature.collection_show_all"
+    bl_label = "Show All"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.object and context.object.type == 'ARMATURE' and context.object.data
+
+    def execute(self, context):
+        arm = context.object.data
+        for bcoll in arm.collections:
+            bcoll.is_visible = True
+        return {'FINISHED'}
+
+
 classes = (
     ANIM_OT_keying_set_export,
     NLA_OT_bake,
     ClearUselessActions,
     UpdateAnimatedTransformConstraint,
+    ARMATURE_OT_sync_bone_color_to_selected,
+    ARMATURE_OT_collection_solo_visibility,
+    ARMATURE_OT_collection_show_all,
 )

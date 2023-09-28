@@ -16,8 +16,6 @@
 
 #define ELE_OUT 1
 
-#include "BLI_compiler_attrs.h"
-
 void bmo_symmetrize_exec(BMesh *bm, BMOperator *op)
 {
   const float dist = BMO_slot_float_get(op->slots_in, "dist");

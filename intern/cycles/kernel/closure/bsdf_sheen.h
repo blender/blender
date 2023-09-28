@@ -37,6 +37,13 @@ ccl_device int bsdf_sheen_setup(KernelGlobals kg,
   bsdf->transformB = lookup_table_read_2D(kg, cosNI, bsdf->roughness, offset + 32 * 32, 32, 32);
   float albedo = lookup_table_read_2D(kg, cosNI, bsdf->roughness, offset + 2 * 32 * 32, 32, 32);
 
+  /* If the given roughness and angle result in an invalid LTC, skip the closure. */
+  if (fabsf(bsdf->transformA) < 1e-5f || albedo < 1e-5f) {
+    bsdf->type = CLOSURE_NONE_ID;
+    bsdf->sample_weight = 0.0f;
+    return 0;
+  }
+
   bsdf->weight *= albedo;
   bsdf->sample_weight *= albedo;
 

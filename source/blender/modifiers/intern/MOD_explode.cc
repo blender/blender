@@ -35,7 +35,7 @@
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -761,6 +761,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     const int ed_v1 = edgehash[esplit].v_low;
     const int ed_v2 = edgehash[esplit].v_high;
 
+    CustomData_free_elem(&split_m->vert_data, esplit, 1);
     CustomData_copy_data(&split_m->vert_data, &split_m->vert_data, ed_v2, esplit, 1);
 
     dupve = split_m_positions[esplit];

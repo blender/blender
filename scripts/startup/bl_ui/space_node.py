@@ -140,8 +140,7 @@ class NODE_HT_header(Header):
                 layout.prop(snode_id, "use_nodes")
 
         elif snode.tree_type == 'GeometryNodeTree':
-            if context.preferences.experimental.use_node_group_operators:
-                layout.prop(snode, "geometry_nodes_type", text="")
+            layout.prop(snode, "geometry_nodes_type", text="")
             NODE_MT_editor_menus.draw_collapsible(context, layout)
             layout.separator_spacer()
 
@@ -161,11 +160,9 @@ class NODE_HT_header(Header):
                             row.template_ID(active_modifier, "node_group", new="node.new_geometry_node_group_assign")
                     else:
                         row.template_ID(snode, "node_tree", new="node.new_geometry_nodes_modifier")
-                if snode.node_tree and snode.node_tree.asset_data:
-                    layout.popover(panel="NODE_PT_geometry_node_modifier")
             else:
-                layout.template_ID(snode, "node_tree", new="node.new_geometry_node_group_tool")
-                if snode.node_tree and snode.node_tree.asset_data:
+                layout.template_ID(snode, "geometry_nodes_tool_tree", new="node.new_geometry_node_group_tool")
+                if snode.node_tree:
                     layout.popover(panel="NODE_PT_geometry_node_tool_object_types", text="Types")
                     layout.popover(panel="NODE_PT_geometry_node_tool_mode", text="Modes")
                 display_pin = False
@@ -327,22 +324,27 @@ class NODE_MT_node(Menu):
         layout.operator("transform.resize")
 
         layout.separator()
-        layout.operator("node.clipboard_copy", text="Copy")
+        layout.operator("node.clipboard_copy", text="Copy", icon="COPYDOWN")
         layout.operator_context = 'EXEC_DEFAULT'
-        layout.operator("node.clipboard_paste", text="Paste")
+        layout.operator("node.clipboard_paste", text="Paste", icon="PASTEDOWN")
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("node.duplicate_move")
+        layout.operator("node.duplicate_move", icon="DUPLICATE")
         layout.operator("node.duplicate_move_linked")
-        layout.operator("node.delete")
+
+        layout.separator()
+        layout.operator("node.delete", icon="X")
         layout.operator("node.delete_reconnect")
 
         layout.separator()
-
         layout.operator("node.join", text="Join in New Frame")
         layout.operator("node.detach", text="Remove from Frame")
 
         layout.separator()
+        props = layout.operator("wm.call_panel", text="Rename...")
+        props.name = "TOPBAR_PT_name"
+        props.keep_open = False
 
+        layout.separator()
         layout.operator("node.link_make").replace = False
         layout.operator("node.link_make", text="Make and Replace Links").replace = True
         layout.operator("node.links_cut")
@@ -350,26 +352,17 @@ class NODE_MT_node(Menu):
         layout.operator("node.links_mute")
 
         layout.separator()
-
-        layout.operator("node.group_make")
+        layout.operator("node.group_make", icon="NODETREE")
         layout.operator("node.group_insert", text="Insert Into Group")
         layout.operator("node.group_edit").exit = False
         layout.operator("node.group_ungroup")
 
         layout.separator()
-
-        layout.operator("node.hide_toggle")
-        layout.operator("node.mute_toggle")
-        if is_compositor:
-            layout.operator("node.preview_toggle")
-        layout.operator("node.hide_socket_toggle")
-        layout.operator("node.options_toggle")
-        layout.operator("node.collapse_hide_unused_toggle")
+        layout.menu("NODE_MT_context_menu_show_hide_menu")
 
         if is_compositor:
             layout.separator()
-
-            layout.operator("node.read_viewlayers")
+            layout.operator("node.read_viewlayers", icon="RENDERLAYERS")
 
 
 class NODE_MT_view_pie(Menu):
@@ -457,6 +450,7 @@ class NODE_PT_geometry_node_tool_object_types(Panel):
             row_checkbox.prop(group, prop, text="")
             row_label = row.row()
             row_label.label(text=name, icon=icon)
+            row_label.active = getattr(group, prop)
 
 
 class NODE_PT_geometry_node_tool_mode(Panel):
@@ -482,22 +476,7 @@ class NODE_PT_geometry_node_tool_mode(Panel):
             row_checkbox.prop(group, prop, text="")
             row_label = row.row()
             row_label.label(text=name, icon=icon)
-
-
-class NODE_PT_geometry_node_modifier(Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'HEADER'
-    bl_label = "Modifier"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        snode = context.space_data
-        group = snode.node_tree
-
-        layout.prop(group, "is_modifier")
+            row_label.active = getattr(group, prop)
 
 
 class NODE_PT_node_color_presets(PresetPanel, Panel):
@@ -976,6 +955,38 @@ class NODE_PT_node_tree_interface(Panel):
             layout.use_property_split = False
 
 
+class NODE_PT_node_tree_properties(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Group"
+    bl_label = "Properties"
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        if snode is None:
+            return False
+        group = snode.edit_tree
+        if group is None:
+            return False
+        if group.is_embedded_data:
+            return False
+        if group.bl_idname != "GeometryNodeTree":
+            return False
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        snode = context.space_data
+        group = snode.edit_tree
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+        col.prop(group, "is_modifier")
+        col.prop(group, "is_tool")
+
+
 class NODE_UL_simulation_zone_items(bpy.types.UIList):
     def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, _index):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -1128,6 +1139,8 @@ class NODE_PT_repeat_zone_items(Panel):
             layout.use_property_decorate = False
             layout.prop(active_item, "socket_type")
 
+        layout.prop(output_node, "inspection_index")
+
 
 # Grease Pencil properties
 class NODE_PT_annotation(AnnotationDataPanel, Panel):
@@ -1180,12 +1193,12 @@ classes = (
     NODE_MT_context_menu,
     NODE_MT_view_pie,
     NODE_PT_material_slots,
-    NODE_PT_geometry_node_modifier,
     NODE_PT_geometry_node_tool_object_types,
     NODE_PT_geometry_node_tool_mode,
     NODE_PT_node_color_presets,
     NODE_MT_node_tree_interface_context_menu,
     NODE_PT_node_tree_interface,
+    NODE_PT_node_tree_properties,
     NODE_PT_active_node_generic,
     NODE_PT_active_node_color,
     NODE_PT_texture_mapping,

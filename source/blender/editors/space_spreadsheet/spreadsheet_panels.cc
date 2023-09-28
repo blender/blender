@@ -5,7 +5,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLT_translation.h"
 

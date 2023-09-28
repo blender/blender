@@ -71,6 +71,31 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
   return 1;
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* NOTE: Some outputs aren't supported by MaterialX.*/
+  NodeItem res = empty();
+  std::string name = socket_out_->name;
+
+  if (ELEM(name, "Generated", "UV")) {
+    res = texcoord_node();
+  }
+  else if (name == "Normal") {
+    res = create_node("normal", NodeItem::Type::Vector3, {{"space", val(std::string("world"))}});
+  }
+  else if (name == "Object") {
+    res = create_node("position", NodeItem::Type::Vector3, {{"space", val(std::string("world"))}});
+  }
+  else {
+    res = get_output_default(name, NodeItem::Type::Any);
+  }
+
+  return res;
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_tex_coord_cc
 
 /* node type definition */
@@ -84,6 +109,7 @@ void register_node_type_sh_tex_coord()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_coord;
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_coord;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

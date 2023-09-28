@@ -67,6 +67,18 @@ static int node_shader_gpu_uvmap(GPUMaterial *mat,
   return 1;
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  /* NODE: "From Instances" not implemented
+   * UV selection not implemented
+   */
+  NodeItem res = texcoord_node();
+  return res;
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_uvmap_cc
 
 /* node type definition */
@@ -84,6 +96,7 @@ void register_node_type_sh_uvmap()
   node_type_storage(
       &ntype, "NodeShaderUVMap", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_uvmap;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

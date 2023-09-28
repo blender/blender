@@ -13,6 +13,7 @@
 #include "vk_immediate.hh"
 #include "vk_memory.hh"
 #include "vk_shader.hh"
+#include "vk_shader_interface.hh"
 #include "vk_state_manager.hh"
 #include "vk_texture.hh"
 
@@ -201,6 +202,12 @@ void VKContext::bind_graphics_pipeline(const GPUPrimType prim_type,
 {
   VKShader *shader = unwrap(this->shader);
   BLI_assert(shader);
+  BLI_assert_msg(
+      prim_type != GPU_PRIM_POINTS || shader->interface_get().is_point_shader(),
+      "GPU_PRIM_POINTS is used with a shader that doesn't set point size before "
+      "drawing fragments. Calling code should be adapted to use a shader that sets the "
+      "gl_PointSize before entering the fragment stage. For example `GPU_SHADER_3D_POINT_*`.");
+
   shader->update_graphics_pipeline(*this, prim_type, vertex_attribute_object);
 
   VKPipeline &pipeline = shader->pipeline_get();

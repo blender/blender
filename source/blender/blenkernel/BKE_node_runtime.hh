@@ -915,4 +915,9 @@ inline bool bNodePanelState::is_parent_collapsed() const
   return flag & NODE_PANEL_PARENT_COLLAPSED;
 }
 
+inline bool bNodePanelState::has_visible_content() const
+{
+  return flag & NODE_PANEL_CONTENT_VISIBLE;
+}
+
 /** \} */

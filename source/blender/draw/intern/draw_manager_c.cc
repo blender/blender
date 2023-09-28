@@ -37,7 +37,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_subdiv_modifier.hh"
 #include "BKE_viewer_path.h"
 #include "BKE_volume.h"

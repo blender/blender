@@ -249,7 +249,7 @@ static int seq_snap_threshold_get_frame_distance(const TransInfo *t)
 
 TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
 {
-  if (t->data_type == &TransConvertType_SequencerImage) {
+  if (ELEM(t->data_type, &TransConvertType_SequencerImage, &TransConvertType_SequencerRetiming)) {
     return nullptr;
   }
 

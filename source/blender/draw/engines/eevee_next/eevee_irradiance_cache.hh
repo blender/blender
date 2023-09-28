@@ -118,6 +118,10 @@ class IrradianceBake {
    * Avoids samples to be too far from their actual origin.
    */
   float max_virtual_offset_ = 0.1f;
+  /**
+   * Surfaces outside the Grid won't generate surfels above this distance.
+   */
+  float clip_distance_;
 
   /** True if world lighting is recorded during irradiance capture. */
   bool capture_world_ = false;
@@ -133,7 +137,7 @@ class IrradianceBake {
   void sync();
 
   /** Create the views used to rasterize the scene into surfel representation. */
-  void surfel_raster_views_sync(const float3 &scene_min, const float3 &scene_max);
+  void surfel_raster_views_sync(float3 scene_min, float3 scene_max, float4x4 probe_to_world);
   /** Create a surfel representation of the scene from the probe using the capture pipeline. */
   void surfels_create(const Object &probe_object);
   /** Evaluate direct lighting (and also clear the surfels radiance). */

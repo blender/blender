@@ -17,12 +17,16 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLT_translation.h"
 
 #include "ED_asset_filter.hh"
+#include "ED_asset_list.h"
 #include "ED_asset_list.hh"
+
+#include "RNA_access.hh"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"
@@ -46,7 +50,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
   {
     catalog_tree_ = build_filtered_catalog_tree(
         library,
-        asset_system::all_library_reference(),
+        shelf_settings_.asset_library_reference,
         [this](const asset_system::AssetRepresentation &asset) {
           return (!shelf_.type->asset_poll || shelf_.type->asset_poll(shelf_.type, &asset));
         });
@@ -180,15 +184,26 @@ void AssetCatalogSelectorTree::update_shelf_settings_from_enabled_catalogs()
 static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
 {
   const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C);
-  asset_system::AssetLibrary *library = ED_assetlist_library_get_once_available(*library_ref);
   AssetShelf *shelf = active_shelf_from_context(C);
+  if (!shelf) {
+    return;
+  }
 
   uiLayout *layout = panel->layout;
   uiBlock *block = uiLayoutGetBlock(layout);
 
-  uiItemL(layout, IFACE_("Catalogs"), ICON_NONE);
+  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
-  if (!library || !shelf) {
+  PointerRNA shelf_ptr = RNA_pointer_create(&CTX_wm_screen(C)->id, &RNA_AssetShelf, shelf);
+
+  uiLayout *row = uiLayoutRow(layout, true);
+  uiItemR(row, &shelf_ptr, "asset_library_reference", UI_ITEM_NONE, "", ICON_NONE);
+  if (library_ref->type != ASSET_LIBRARY_LOCAL) {
+    uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_library_refresh");
+  }
+
+  asset_system::AssetLibrary *library = ED_assetlist_library_get_once_available(*library_ref);
+  if (!library) {
     return;
   }
 
@@ -212,8 +227,10 @@ void catalog_selector_panel_register(ARegionType *region_type)
   STRNCPY(pt->idname, "ASSETSHELF_PT_catalog_selector");
   STRNCPY(pt->label, N_("Catalog Selector"));
   STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-  pt->description = N_("Select catalogs to display in the asset shelf");
+  pt->description = N_(
+      "Select the asset library and the contained catalogs to display in the asset shelf");
   pt->draw = catalog_selector_panel_draw;
+  pt->listener = asset::asset_reading_region_listen_fn;
   BLI_addtail(&region_type->paneltypes, pt);
   WM_paneltype_add(pt);
 }

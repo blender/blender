@@ -40,41 +40,6 @@
 
 #include "gpencil_intern.h"
 
-/* Free all of a gp-colors */
-static void free_gpencil_colors(bGPDpalette *palette)
-{
-  /* error checking */
-  if (palette == nullptr) {
-    return;
-  }
-
-  /* free colors */
-  BLI_freelistN(&palette->colors);
-}
-
-/* Free all of the gp-palettes and colors */
-static void free_palettes(ListBase *list)
-{
-  bGPDpalette *palette_next;
-
-  /* error checking */
-  if (list == nullptr) {
-    return;
-  }
-
-  /* delete palettes */
-  for (bGPDpalette *palette = static_cast<bGPDpalette *>(list->first); palette;
-       palette = palette_next)
-  {
-    palette_next = palette->next;
-    /* free palette colors */
-    free_gpencil_colors(palette);
-
-    MEM_freeN(palette);
-  }
-  BLI_listbase_clear(list);
-}
-
 /* ***************** Convert old 2.7 files to 2.8 ************************ */
 static bool gpencil_convert_old_files_poll(bContext *C)
 {
@@ -138,7 +103,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
     }
 
     /* free palettes */
-    free_palettes(&gpd->palettes);
+    BKE_gpencil_free_legacy_palette_data(&gpd->palettes);
 
     /* disable all GP modes */
     ED_gpencil_setup_modes(C, gpd, 0);

@@ -570,6 +570,12 @@ struct bAnimChannelType {
   /* -- Drawing -- */
   /** Get RGB color that is used to draw the majority of the backdrop. */
   void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float r_color[3]);
+
+  /** Get RGB color that represents this channel.
+   * \return true when r_color was updated, false when there is no color for this channel.
+   */
+  bool (*get_channel_color)(const bAnimListElem *ale, uint8_t r_color[3]);
+
   /** Draw backdrop strip for channel. */
   void (*draw_backdrop)(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
   /** Get depth of indentation (relative to the depth channel is nested at). */

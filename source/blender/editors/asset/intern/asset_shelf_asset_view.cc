@@ -11,7 +11,7 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLI_fnmatch.h"
 #include "BLI_string.h"

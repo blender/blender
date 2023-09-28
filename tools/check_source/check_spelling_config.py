@@ -144,6 +144,7 @@ dict_custom = {
     "enablement",
     "enqueueing",
     "equiangular",
+    "evolute",
     "extrema",
     "fallbacks",
     "finalizer",

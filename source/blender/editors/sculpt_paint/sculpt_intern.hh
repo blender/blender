@@ -93,6 +93,7 @@ enum SculptUpdateType {
   SCULPT_UPDATE_VISIBILITY = 1 << 2,
   SCULPT_UPDATE_COLOR = 1 << 3,
   SCULPT_UPDATE_IMAGE = 1 << 4,
+  SCULPT_UPDATE_FACE_SET = 1 << 5,
 };
 
 struct SculptCursorGeometryInfo {
@@ -182,7 +183,7 @@ enum eBoundaryAutomaskMode {
 };
 
 enum SculptUndoType {
-  SCULPT_UNDO_NO_TYPE = 0,
+  SCULPT_UNDO_NONE = 0,
   SCULPT_UNDO_COORDS = 1 << 0,
   SCULPT_UNDO_HIDDEN = 1 << 1,
   SCULPT_UNDO_MASK = 1 << 2,
@@ -1064,6 +1065,30 @@ bool SCULPT_stroke_is_first_brush_step_of_symmetry_pass(StrokeCache *cache);
 /* -------------------------------------------------------------------- */
 /** \name Sculpt mesh accessor API
  * \{ */
+
+struct SculptMaskWriteInfo {
+  float *layer = nullptr;
+  int bm_offset = -1;
+};
+SculptMaskWriteInfo SCULPT_mask_get_for_write(SculptSession *ss);
+inline void SCULPT_mask_vert_set(const PBVHType type,
+                                 const SculptMaskWriteInfo mask_write,
+                                 const float value,
+                                 PBVHVertexIter &vd)
+{
+  switch (type) {
+    case PBVH_FACES:
+      mask_write.layer[vd.index] = value;
+      break;
+    case PBVH_BMESH:
+      BM_ELEM_CD_SET_FLOAT(vd.bm_vert, mask_write.bm_offset, value);
+      break;
+    case PBVH_GRIDS:
+      *CCG_elem_mask(&vd.key, vd.grid) = value;
+      break;
+  }
+}
+void SCULPT_mask_write_array(SculptSession *ss, Span<PBVHNode *> nodes, Span<float> mask);
 
 /** Ensure random access; required for PBVH_BMESH */
 void SCULPT_vertex_random_access_ensure(SculptSession *ss);
@@ -2144,10 +2169,14 @@ void SCULPT_replay_test(void);
 #endif
 
 void SCULPT_undo_ensure_bmlog(struct Object *ob);
+/** Updates BMLog for undo types `type` and `extraType`,
+ * this is done only once per stroke unless `type`/`extraType` match
+ * `force_undo_mask.`
+ */
 bool SCULPT_ensure_dyntopo_node_undo(struct Object *ob,
                                      struct PBVHNode *node,
                                      SculptUndoType type,
-                                     int extraType,
+                                     SculptUndoType extraType = SCULPT_UNDO_NONE,
                                      SculptUndoType force_push_mask = SCULPT_UNDO_COORDS |
                                                                       SCULPT_UNDO_COLOR |
                                                                       SCULPT_UNDO_MASK);

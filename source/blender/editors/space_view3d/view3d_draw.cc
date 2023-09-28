@@ -96,7 +96,7 @@ using blender::float4;
 
 #define M_GOLDEN_RATIO_CONJUGATE 0.618033988749895f
 
-#define VIEW3D_OVERLAY_LINEHEIGHT (0.9f * U.widget_unit)
+#define VIEW3D_OVERLAY_LINEHEIGHT (UI_style_get()->widgetlabel.points * UI_SCALE_FAC * 1.6f)
 
 /* -------------------------------------------------------------------- */
 /** \name General Functions
@@ -1531,35 +1531,43 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     }
   }
 
-  int xoffset = rect->xmin + (0.5f * U.widget_unit);
-  int yoffset = rect->ymax - (0.1f * U.widget_unit);
+  if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
+    int xoffset = rect->xmin + (0.5f * U.widget_unit);
+    int yoffset = rect->ymax - (0.1f * U.widget_unit);
+    BLF_default_size(UI_style_get()->widgetlabel.points);
 
-  if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 && (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
-    if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
-      ED_scene_draw_fps(scene, xoffset, &yoffset);
+    if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
+      if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
+        ED_scene_draw_fps(scene, xoffset, &yoffset);
+      }
+      else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
+        draw_viewport_name(region, v3d, xoffset, &yoffset);
+      }
+
+      if (U.uiflag & USER_DRAWVIEWINFO) {
+        BKE_view_layer_synced_ensure(scene, view_layer);
+        Object *ob = BKE_view_layer_active_object_get(view_layer);
+        draw_selected_name(v3d, scene, view_layer, ob, xoffset, &yoffset);
+      }
+
+      if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
+        /* draw below the viewport name */
+        draw_grid_unit_name(scene, region, v3d, xoffset, &yoffset);
+      }
+
+      DRW_draw_region_engine_info(xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
     }
-    else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
-      draw_viewport_name(region, v3d, xoffset, &yoffset);
+
+    if (v3d->overlay.flag & V3D_OVERLAY_STATS) {
+      View3D *v3d_local = v3d->localvd ? v3d : nullptr;
+      ED_info_draw_stats(
+          bmain, scene, view_layer, v3d_local, xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
     }
 
-    if (U.uiflag & USER_DRAWVIEWINFO) {
-      BKE_view_layer_synced_ensure(scene, view_layer);
-      Object *ob = BKE_view_layer_active_object_get(view_layer);
-      draw_selected_name(v3d, scene, view_layer, ob, xoffset, &yoffset);
-    }
-
-    if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
-      /* draw below the viewport name */
-      draw_grid_unit_name(scene, region, v3d, xoffset, &yoffset);
-    }
-
-    DRW_draw_region_engine_info(xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
-  }
-
-  if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 && (v3d->overlay.flag & V3D_OVERLAY_STATS)) {
-    View3D *v3d_local = v3d->localvd ? v3d : nullptr;
-    ED_info_draw_stats(
-        bmain, scene, view_layer, v3d_local, xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
+    /* Set the size back to the default hard-coded size. Otherwise anyone drawing after this,
+     * without setting explicit size, will draw with widgetlabel size. That is probably ideal,
+     * but size should be set at the calling site not just carried over from here. */
+    BLF_default_size(UI_DEFAULT_TEXT_POINTS);
   }
 
   BLF_batch_draw_end();

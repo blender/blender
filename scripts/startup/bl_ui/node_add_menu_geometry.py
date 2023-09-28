@@ -42,7 +42,7 @@ class NODE_MT_geometry_node_GEO_COLOR(Menu):
         ops.name = "data_type"
         ops.value = "'RGBA'"
         node_add_menu.add_node_type(layout, "FunctionNodeSeparateColor")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Utilties/Color")
 
 
 class NODE_MT_geometry_node_GEO_CURVE(Menu):
@@ -77,7 +77,7 @@ class NODE_MT_geometry_node_GEO_CURVE_READ(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSplineLength")
         node_add_menu.add_node_type(layout, "GeometryNodeSplineParameter")
         node_add_menu.add_node_type(layout, "GeometryNodeInputSplineResolution")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Curve/Read")
 
 
 class NODE_MT_geometry_node_GEO_CURVE_SAMPLE(Menu):
@@ -87,7 +87,7 @@ class NODE_MT_geometry_node_GEO_CURVE_SAMPLE(Menu):
     def draw(self, _context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeSampleCurve")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Curve/Sample")
 
 
 class NODE_MT_geometry_node_GEO_CURVE_WRITE(Menu):
@@ -104,7 +104,7 @@ class NODE_MT_geometry_node_GEO_CURVE_WRITE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSetSplineCyclic")
         node_add_menu.add_node_type(layout, "GeometryNodeSetSplineResolution")
         node_add_menu.add_node_type(layout, "GeometryNodeCurveSplineType")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Curve/Write")
 
 
 class NODE_MT_geometry_node_GEO_CURVE_OPERATIONS(Menu):
@@ -123,7 +123,7 @@ class NODE_MT_geometry_node_GEO_CURVE_OPERATIONS(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeReverseCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeSubdivideCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeTrimCurve")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Curve/Operations")
 
 
 class NODE_MT_geometry_node_GEO_PRIMITIVES_CURVE(Menu):
@@ -140,7 +140,7 @@ class NODE_MT_geometry_node_GEO_PRIMITIVES_CURVE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeCurveQuadraticBezier")
         node_add_menu.add_node_type(layout, "GeometryNodeCurvePrimitiveQuadrilateral")
         node_add_menu.add_node_type(layout, "GeometryNodeCurveStar")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Curve/Primitives")
 
 
 class NODE_MT_geometry_node_curve_topology(Menu):
@@ -152,7 +152,7 @@ class NODE_MT_geometry_node_curve_topology(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeCurveOfPoint")
         node_add_menu.add_node_type(layout, "GeometryNodeOffsetPointInCurve")
         node_add_menu.add_node_type(layout, "GeometryNodePointsOfCurve")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Curve/Topology")
 
 
 class NODE_MT_geometry_node_GEO_GEOMETRY(Menu):
@@ -186,7 +186,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_READ(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeInputRadius")
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolSelection")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Geometry/Read")
 
 
 class NODE_MT_geometry_node_GEO_GEOMETRY_WRITE(Menu):
@@ -199,7 +199,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_WRITE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSetPosition")
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolSetSelection")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Geometry/Write")
 
 
 class NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS(Menu):
@@ -217,7 +217,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS(Menu):
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodeSeparateComponents")
         node_add_menu.add_node_type(layout, "GeometryNodeSeparateGeometry")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Geometry/Operations")
 
 
 class NODE_MT_geometry_node_GEO_GEOMETRY_SAMPLE(Menu):
@@ -231,7 +231,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_SAMPLE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeRaycast")
         node_add_menu.add_node_type(layout, "GeometryNodeSampleIndex")
         node_add_menu.add_node_type(layout, "GeometryNodeSampleNearest")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Geometry/Sample")
 
 
 class NODE_MT_geometry_node_GEO_INPUT(Menu):
@@ -261,7 +261,7 @@ class NODE_MT_geometry_node_GEO_INPUT_CONSTANT(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeInputString")
         node_add_menu.add_node_type(layout, "ShaderNodeValue")
         node_add_menu.add_node_type(layout, "FunctionNodeInputVector")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Input/Constant")
 
 
 class NODE_MT_geometry_node_GEO_INPUT_GROUP(Menu):
@@ -271,7 +271,7 @@ class NODE_MT_geometry_node_GEO_INPUT_GROUP(Menu):
     def draw(self, _context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "NodeGroupInput")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Input/Group")
 
 
 class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
@@ -288,7 +288,7 @@ class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeObjectInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeInputSceneTime")
         node_add_menu.add_node_type(layout, "GeometryNodeSelfObject")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Input/Scene")
 
 
 class NODE_MT_geometry_node_GEO_INSTANCE(Menu):
@@ -364,7 +364,7 @@ class NODE_MT_geometry_node_GEO_MESH_READ(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshIsland")
         node_add_menu.add_node_type(layout, "GeometryNodeInputShortestEdgePaths")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshVertexNeighbors")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Mesh/Read")
 
 
 class NODE_MT_geometry_node_GEO_MESH_SAMPLE(Menu):
@@ -375,7 +375,7 @@ class NODE_MT_geometry_node_GEO_MESH_SAMPLE(Menu):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeSampleNearestSurface")
         node_add_menu.add_node_type(layout, "GeometryNodeSampleUVSurface")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Mesh/Sample")
 
 
 class NODE_MT_geometry_node_GEO_MESH_WRITE(Menu):
@@ -387,7 +387,7 @@ class NODE_MT_geometry_node_GEO_MESH_WRITE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSetShadeSmooth")
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolSetFaceSet")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Mesh/Write")
 
 
 class NODE_MT_geometry_node_GEO_MESH_OPERATIONS(Menu):
@@ -412,7 +412,7 @@ class NODE_MT_geometry_node_GEO_MESH_OPERATIONS(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSubdivideMesh")
         node_add_menu.add_node_type(layout, "GeometryNodeSubdivisionSurface")
         node_add_menu.add_node_type(layout, "GeometryNodeTriangulate")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Mesh/Operations")
 
 
 class NODE_MT_category_PRIMITIVES_MESH(Menu):
@@ -429,7 +429,7 @@ class NODE_MT_category_PRIMITIVES_MESH(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeMeshCircle")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshLine")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshUVSphere")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Mesh/Primitives")
 
 
 class NODE_MT_geometry_node_mesh_topology(Menu):
@@ -446,7 +446,7 @@ class NODE_MT_geometry_node_mesh_topology(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeFaceOfCorner")
         node_add_menu.add_node_type(layout, "GeometryNodeOffsetCornerInFace")
         node_add_menu.add_node_type(layout, "GeometryNodeVertexOfCorner")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Mesh/Topology")
 
 
 class NODE_MT_category_GEO_OUTPUT(Menu):
@@ -505,7 +505,7 @@ class NODE_MT_category_GEO_TEXT(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeValueToString")
         layout.separator()
         node_add_menu.add_node_type(layout, "FunctionNodeInputSpecialCharacters")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/Text")
 
 
 class NODE_MT_category_GEO_TEXTURE(Menu):
@@ -556,7 +556,7 @@ class NODE_MT_category_GEO_UTILITIES_FIELD(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeAccumulateField")
         node_add_menu.add_node_type(layout, "GeometryNodeFieldAtIndex")
         node_add_menu.add_node_type(layout, "GeometryNodeFieldOnDomain")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Utilties/Field")
 
 
 class NODE_MT_category_GEO_UTILITIES_ROTATION(Menu):
@@ -575,7 +575,7 @@ class NODE_MT_category_GEO_UTILITIES_ROTATION(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeRotationToEuler")
         node_add_menu.add_node_type(layout, "FunctionNodeRotationToQuaternion")
         node_add_menu.add_node_type(layout, "FunctionNodeQuaternionToRotation")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/Rotation")
 
 
 class NODE_MT_category_GEO_UTILITIES_MATH(Menu):
@@ -592,7 +592,7 @@ class NODE_MT_category_GEO_UTILITIES_MATH(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeMapRange")
         node_add_menu.add_node_type(layout, "ShaderNodeMath")
         node_add_menu.add_node_type(layout, "ShaderNodeMix")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/Math")
 
 
 class NODE_MT_category_GEO_UV(Menu):
@@ -603,7 +603,7 @@ class NODE_MT_category_GEO_UV(Menu):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeUVPackIslands")
         node_add_menu.add_node_type(layout, "GeometryNodeUVUnwrap")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Mesh/UV")
 
 
 class NODE_MT_category_GEO_VECTOR(Menu):
@@ -622,7 +622,7 @@ class NODE_MT_category_GEO_VECTOR(Menu):
         ops.name = "data_type"
         ops.value = "'VECTOR'"
         node_add_menu.add_node_type(layout, "ShaderNodeSeparateXYZ")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/Vector")
 
 
 class NODE_MT_category_GEO_VOLUME(Menu):

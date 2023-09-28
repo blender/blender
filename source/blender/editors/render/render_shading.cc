@@ -347,7 +347,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator * /*op*/)
       if (ef && BKE_vfont_select_get(ob, &selstart, &selend)) {
         for (i = selstart; i <= selend; i++) {
           changed = true;
-          ef->textbufinfo[i].mat_nr = mat_nr_active + 1;
+          ef->textbufinfo[i].mat_nr = mat_nr_active;
         }
       }
     }

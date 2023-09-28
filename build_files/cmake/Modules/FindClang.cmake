@@ -85,7 +85,6 @@ set(_CLANG_FIND_COMPONENTS
   clangAST
   clangLex
   clangBasic
-  clangSupport
 )
 
 set(_CLANG_LIBRARIES)

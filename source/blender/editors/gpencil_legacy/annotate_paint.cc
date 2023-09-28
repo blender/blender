@@ -30,7 +30,7 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_tracking.h"
 
 #include "DNA_gpencil_legacy_types.h"

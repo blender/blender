@@ -66,6 +66,52 @@ TEST(nla_strip, BKE_nlastrips_add_strip)
   EXPECT_TRUE(BKE_nlastrips_add_strip(&strips, &strip2));
 }
 
+TEST(nla_strip, BKE_nla_clip_length_get_nonzero)
+{
+  NlaStrip strip{};
+
+  strip.actstart = 2.0f;
+  strip.actend = 4.0f;
+  EXPECT_FLOAT_EQ(BKE_nla_clip_length_get_nonzero(&strip), 2.0f);
+
+  strip.actstart = 2.0f;
+  strip.actend = 3.0f;
+  EXPECT_FLOAT_EQ(BKE_nla_clip_length_get_nonzero(&strip), 1.0f);
+
+  strip.actstart = 2.0f;
+  strip.actend = 2.0625f;
+  EXPECT_FLOAT_EQ(BKE_nla_clip_length_get_nonzero(&strip), 0.0625f);
+
+  strip.actstart = 2.0f;
+  strip.actend = 2.0f;
+  EXPECT_FLOAT_EQ(BKE_nla_clip_length_get_nonzero(&strip), 1.0f);
+}
+
+TEST(nla_strip, BKE_nla_clip_length_ensure_nonzero)
+{
+  float start, end;
+
+  start = 2.0f;
+  end = 4.0f;
+  BKE_nla_clip_length_ensure_nonzero(&start, &end);
+  EXPECT_FLOAT_EQ(end, 4.0f);
+
+  start = 2.0f;
+  end = 3.0f;
+  BKE_nla_clip_length_ensure_nonzero(&start, &end);
+  EXPECT_FLOAT_EQ(end, 3.0f);
+
+  start = 2.0f;
+  end = 2.0625f;
+  BKE_nla_clip_length_ensure_nonzero(&start, &end);
+  EXPECT_FLOAT_EQ(end, 2.0625f);
+
+  start = 2.0f;
+  end = 2.0f;
+  BKE_nla_clip_length_ensure_nonzero(&start, &end);
+  EXPECT_FLOAT_EQ(end, 3.0f);
+}
+
 TEST(nla_track, BKE_nlatrack_remove_strip)
 {
   NlaTrack track{};

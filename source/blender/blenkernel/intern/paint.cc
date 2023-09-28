@@ -4374,7 +4374,8 @@ bool get_original_vertex(SculptSession *ss,
     }
 
     if (ss->attrs.orig_mask) {
-      float *mask = nullptr;
+      const float *mask = nullptr;
+
       switch (BKE_pbvh_type(ss->pbvh)) {
         case PBVH_FACES:
           mask = ss->vmask ? &ss->vmask[vertex.i] : nullptr;

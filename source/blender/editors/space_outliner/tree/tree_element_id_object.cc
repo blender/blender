@@ -40,9 +40,8 @@ void TreeElementIDObject::expand(SpaceOutliner & /*space_outliner*/) const
   object_.id.newid = (ID *)(&legacy_te_);
 
   expand_animation_data(object_.adt);
-
-  expand_data();
   expand_pose();
+  expand_data();
   expand_materials();
   expand_constraints();
   expand_modifiers();

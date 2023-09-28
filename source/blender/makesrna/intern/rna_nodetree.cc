@@ -949,7 +949,6 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
                                         StructCallbackFunc call,
                                         StructFreeFunc free)
 {
-  const char *error_prefix = "Registering node tree class:";
   bNodeTreeType *nt, dummy_nt;
   bNodeTree dummy_ntree;
   bool have_function[4];
@@ -968,8 +967,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummy_nt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s '%s' is too long, maximum length is %d",
-                error_prefix,
+                "Registering node tree class: '%s' is too long, maximum length is %d",
                 identifier,
                 int(sizeof(dummy_nt.idname)));
     return nullptr;
@@ -982,8 +980,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
     if (!rna_NodeTree_unregister(bmain, nt->rna_ext.srna)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s '%s', bl_idname '%s' could not be unregistered",
-                  error_prefix,
+                  "Registering node tree class: '%s', bl_idname '%s' could not be unregistered",
                   identifier,
                   dummy_nt.idname);
       return nullptr;
@@ -1609,7 +1606,6 @@ static bNodeType *rna_Node_register_base(Main *bmain,
                                          StructCallbackFunc call,
                                          StructFreeFunc free)
 {
-  const char *error_prefix = "Registering node class:";
   bNodeType *nt, dummy_nt;
   bNode dummy_node;
   FunctionRNA *func;
@@ -1633,8 +1629,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   if (strlen(identifier) >= sizeof(dummy_nt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s '%s' is too long, maximum length is %d",
-                error_prefix,
+                "Registering node class: '%s' is too long, maximum length is %d",
                 identifier,
                 int(sizeof(dummy_nt.idname)));
     return nullptr;
@@ -1647,8 +1642,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
     if (rna_Node_is_builtin(nt)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s '%s', bl_idname '%s' is a builtin node",
-                  error_prefix,
+                  "Registering node class: '%s', bl_idname '%s' is a builtin node",
                   identifier,
                   dummy_nt.idname);
       return nullptr;
@@ -1658,8 +1652,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
     if (!rna_Node_unregister(bmain, nt->rna_ext.srna)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s '%s', bl_idname '%s' could not be unregistered",
-                  error_prefix,
+                  "Registering node class: '%s', bl_idname '%s' could not be unregistered",
                   identifier,
                   dummy_nt.idname);
       return nullptr;
@@ -8970,6 +8963,7 @@ static void def_geo_simulation_output(StructRNA *srna)
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "active_index");
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
@@ -8980,7 +8974,7 @@ static void def_geo_simulation_output(StructRNA *srna)
                                  "rna_NodeGeometrySimulationOutput_active_item_set",
                                  nullptr,
                                  nullptr);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NO_DEG_UPDATE);
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
   RNA_def_property_update(prop, NC_NODE, nullptr);
 }
@@ -9077,6 +9071,7 @@ static void def_geo_repeat_output(StructRNA *srna)
   RNA_def_property_int_sdna(prop, nullptr, "active_index");
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
@@ -9086,9 +9081,17 @@ static void def_geo_repeat_output(StructRNA *srna)
                                  "rna_NodeGeometryRepeatOutput_active_item_set",
                                  nullptr,
                                  nullptr);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NO_DEG_UPDATE);
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
   RNA_def_property_update(prop, NC_NODE, nullptr);
+
+  prop = RNA_def_property(srna, "inspection_index", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_range(prop, 0, INT32_MAX, 1, -1);
+  RNA_def_property_ui_text(prop,
+                           "Inspection Index",
+                           "Iteration index that is used by inspection features like the viewer "
+                           "node or socket inspection");
+  RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 }
 
 static void def_geo_curve_handle_type_selection(StructRNA *srna)

@@ -19,7 +19,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_keyconfig.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
 #include "RNA_access.hh"

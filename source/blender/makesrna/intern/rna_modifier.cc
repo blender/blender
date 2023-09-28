@@ -1679,18 +1679,10 @@ static bool rna_NodesModifier_node_group_poll(PointerRNA * /*ptr*/, PointerRNA v
   if (ntree->type != NTREE_GEOMETRY) {
     return false;
   }
-  if (ntree->id.asset_data) {
-    if (!ntree->geometry_node_asset_traits ||
-        (ntree->geometry_node_asset_traits->flag & GEO_NODE_ASSET_MODIFIER) == 0)
-    {
-      /* Only node group assets specially marked as modifiers can be modifiers. */
-      return false;
-    }
+  if (!ntree->geometry_node_asset_traits) {
+    return false;
   }
-  if (ntree->geometry_node_asset_traits &&
-      ntree->geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL)
-  {
-    /* Tool node groups cannot be modifiers. */
+  if ((ntree->geometry_node_asset_traits->flag & GEO_NODE_ASSET_MODIFIER) == 0) {
     return false;
   }
   return true;
@@ -7067,10 +7059,56 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "NodesModifierBake", nullptr);
+  RNA_def_struct_ui_text(srna, "Nodes Modifier Bake", "");
+
+  prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_ui_text(prop, "Directory", "Location on disk where the bake data is stored");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
+  RNA_def_property_ui_text(prop, "Start Frame", "Frame where the baking starts");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
+  RNA_def_property_ui_text(prop, "End Frame", "Frame where the baking ends");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_custom_simulation_frame_range", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "flag", NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE);
+  RNA_def_property_ui_text(
+      prop, "Custom Simulation Frame Range", "Override the simulation frame range from the scene");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_custom_path", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODES_MODIFIER_BAKE_CUSTOM_PATH);
+  RNA_def_property_ui_text(
+      prop, "Custom Path", "Specify a path where the baked data should be stored manually");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
+static void rna_def_modifier_nodes_bakes(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "NodesModifierBakes", nullptr);
+  RNA_def_struct_sdna(srna, "NodesModifierData");
+  RNA_def_struct_ui_text(srna, "Bakes", "Bake data for every bake node");
+}
+
 static void rna_def_modifier_nodes(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
+
+  rna_def_modifier_nodes_bake(brna);
+  rna_def_modifier_nodes_bakes(brna);
 
   srna = RNA_def_struct(brna, "NodesModifier", "Modifier");
   RNA_def_struct_ui_text(srna, "Nodes Modifier", "");
@@ -7091,6 +7129,11 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Simulation Bake Directory", "Location on disk where the bake data is stored");
   RNA_def_property_update(prop, 0, nullptr);
+
+  prop = RNA_def_property(srna, "bakes", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "NodesModifierBake");
+  RNA_def_property_collection_sdna(prop, nullptr, "bakes", "bakes_num");
+  RNA_def_property_srna(prop, "NodesModifierBakes");
 
   prop = RNA_def_property(srna, "show_group_selector", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(

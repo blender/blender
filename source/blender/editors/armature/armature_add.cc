@@ -1313,6 +1313,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
         ebone->bbone_prev_type = ebone_iter->bbone_prev_type;
         ebone->bbone_next_type = ebone_iter->bbone_next_type;
 
+        ebone->bbone_mapping_mode = ebone_iter->bbone_mapping_mode;
         ebone->bbone_flag = ebone_iter->bbone_flag;
         ebone->bbone_prev_flag = ebone_iter->bbone_prev_flag;
         ebone->bbone_next_flag = ebone_iter->bbone_next_flag;

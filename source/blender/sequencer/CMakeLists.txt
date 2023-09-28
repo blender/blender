@@ -37,7 +37,6 @@ set(SRC
   SEQ_proxy.h
   SEQ_relations.h
   SEQ_render.h
-  SEQ_retiming.h
   SEQ_retiming.hh
   SEQ_select.h
   SEQ_sequencer.h

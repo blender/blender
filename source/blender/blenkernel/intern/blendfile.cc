@@ -53,7 +53,7 @@
 #include "BKE_preferences.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_studiolight.h"
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"

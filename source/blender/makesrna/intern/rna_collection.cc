@@ -724,7 +724,6 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE, nullptr);
 
   prop = RNA_def_property(srna, "lineart_intersection_priority", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 0, 255);
   RNA_def_property_ui_text(prop,
                            "Intersection Priority",
                            "The intersection line will be included into the object with the "

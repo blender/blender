@@ -18,6 +18,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   static size_t PUSH_CONSTANTS_FALLBACK_NAME_LEN = strlen(PUSH_CONSTANTS_FALLBACK_NAME);
 
   using namespace blender::gpu::shader;
+  shader_builtins_ = info.builtins_;
 
   attr_len_ = info.vertex_inputs_.size();
   uniform_len_ = info.push_constants_.size();

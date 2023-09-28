@@ -18,7 +18,7 @@
 /* Could maybe become parameters. */
 #define RAY_BIAS_REFLECTION 0.02
 #define RAY_BIAS_REFRACTION 0.02
-#define RAY_BIAS_DIFFUSE 0.02
+#define RAY_BIAS_DIFFUSE 0.05
 
 /* Returns view-space ray. */
 vec3 ray_generate_direction(vec2 noise, ClosureReflection reflection, vec3 V, out float pdf)
@@ -68,6 +68,5 @@ vec3 ray_generate_direction(vec2 noise, ClosureDiffuse diffuse, vec3 V, out floa
 
   vec3 T, B, N = diffuse.N;
   make_orthonormal_basis(N, T, B);
-
   return sample_cosine_hemisphere(Xi, N, T, B, pdf);
 }

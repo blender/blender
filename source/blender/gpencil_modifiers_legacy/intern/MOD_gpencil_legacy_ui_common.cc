@@ -14,7 +14,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_material.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"

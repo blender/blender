@@ -27,6 +27,8 @@
 #include "eevee_shader_shared.hh"
 #include "eevee_velocity.hh"
 
+#include "draw_common.hh"
+
 namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
@@ -100,7 +102,17 @@ void VelocityModule::step_sync(eVelocityStep step, float time)
   step_ = step;
   object_steps_usage[step_] = 0;
   step_camera_sync();
+
+  draw::hair_init();
+  draw::curves_init();
+
   DRW_render_object_iter(&inst_, inst_.render, inst_.depsgraph, step_object_sync_render);
+
+  draw::hair_update(*inst_.manager);
+  draw::curves_update(*inst_.manager);
+  draw::hair_free();
+  draw::curves_free();
+
   geometry_steps_fill();
 }
 
@@ -142,7 +154,7 @@ bool VelocityModule::step_object_sync(Object *ob,
   VelocityObjectData &vel = velocity_map.lookup_or_add_default(object_key);
   vel.obj.ofs[step_] = object_steps_usage[step_]++;
   vel.obj.resource_id = resource_handle.resource_index();
-  vel.id = particle_sys ? &particle_sys->part->id : &ob->id;
+  vel.id = object_key.hash_value;
   object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = float4x4_view(ob->object_to_world);
   if (step_ == STEP_CURRENT) {
     /* Replace invalid steps. Can happen if object was hidden in one of those steps. */
@@ -163,12 +175,22 @@ bool VelocityModule::step_object_sync(Object *ob,
     auto add_cb = [&]() {
       VelocityGeometryData data;
       if (particle_sys) {
-        data.pos_buf = DRW_hair_pos_buffer_get(ob, particle_sys, modifier_data);
+        if (inst_.is_viewport()) {
+          data.pos_buf = DRW_hair_pos_buffer_get(ob, particle_sys, modifier_data);
+        }
+        else {
+          data.pos_buf = draw::hair_pos_buffer_get(inst_.scene, ob, particle_sys, modifier_data);
+        }
         return data;
       }
       switch (ob->type) {
         case OB_CURVES:
-          data.pos_buf = DRW_curves_pos_buffer_get(ob);
+          if (inst_.is_viewport()) {
+            data.pos_buf = DRW_curves_pos_buffer_get(ob);
+          }
+          else {
+            data.pos_buf = draw::curves_pos_buffer_get(inst_.scene, ob);
+          }
           break;
         case OB_POINTCLOUD:
           data.pos_buf = DRW_pointcloud_position_and_radius_buffer_get(ob);
@@ -251,7 +273,7 @@ void VelocityModule::geometry_steps_fill()
     vel.geo.len[step_] = geom.len;
     vel.geo.ofs[step_] = geom.ofs;
     /* Avoid reuse. */
-    vel.id = nullptr;
+    vel.id = 0;
   }
 
   geometry_map.clear();
@@ -263,7 +285,6 @@ void VelocityModule::geometry_steps_fill()
  */
 void VelocityModule::step_swap()
 {
-
   auto swap_steps = [&](eVelocityStep step_a, eVelocityStep step_b) {
     std::swap(object_steps[step_a], object_steps[step_b]);
     std::swap(geometry_steps[step_a], geometry_steps[step_b]);
