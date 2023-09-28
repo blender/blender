@@ -135,8 +135,9 @@ class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
             col.separator()
             col.operator("armature.collection_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("armature.collection_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
-            props = col.operator("armature.bone_collection_solo_visibility", text="", icon='SOLO_ON')
-            props.name = active_bcoll.name
+            col.separator()
+
+        col.menu("ARMATURE_MT_collection_context_menu", icon='DOWNARROW_HLT', text="")
 
         row = layout.row()
 
@@ -147,6 +148,20 @@ class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
         sub = row.row(align=True)
         sub.operator("armature.collection_select", text="Select")
         sub.operator("armature.collection_deselect", text="Deselect")
+
+
+class ARMATURE_MT_collection_context_menu(Menu):
+    bl_label = "Bone Collection Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        arm = context.armature
+        active_bcoll = arm.collections.active
+
+        props = layout.operator("armature.collection_solo_visibility")
+        props.name = active_bcoll.name if active_bcoll else ""
+        layout.operator("armature.collection_show_all")
 
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
@@ -275,6 +290,7 @@ classes = (
     DATA_PT_skeleton,
     DATA_PT_bone_collections,
     DATA_UL_bone_collections,
+    ARMATURE_MT_collection_context_menu,
     DATA_PT_motion_paths,
     DATA_PT_motion_paths_display,
     DATA_PT_display,

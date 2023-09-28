@@ -3989,8 +3989,12 @@ class VIEW3D_MT_bone_collections(Menu):
             layout.label(text="- select bones to operate on first -")
             return
 
+        layout.operator("armature.collection_show_all")
+        layout.separator()
+
         arm = context.object.data
         bone = context.active_bone
+
         found_editable_bcoll = False
         for bcoll in arm.collections:
             if not bcoll.is_editable:
