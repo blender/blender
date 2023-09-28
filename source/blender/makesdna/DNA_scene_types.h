@@ -1635,10 +1635,9 @@ typedef struct ToolSettings {
   char transform_pivot_point;
   char transform_flag;
   /** Snap elements (per space-type), #eSnapMode. */
-  char _pad1[1];
-  short snap_mode;
   char snap_node_mode;
-  char snap_uv_mode;
+  short snap_mode;
+  short snap_uv_mode;
   short snap_anim_mode;
   /** Generic flags (per space-type), #eSnapFlag. */
   short snap_flag;
