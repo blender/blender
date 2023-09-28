@@ -34,6 +34,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 #include "BKE_screen.hh"
@@ -428,6 +429,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
     start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob);
     if (start_cap_mesh) {
+      BKE_mesh_wrapper_ensure_mdata(start_cap_mesh);
       start_cap_nverts = start_cap_mesh->totvert;
       start_cap_nedges = start_cap_mesh->totedge;
       start_cap_nloops = start_cap_mesh->totloop;
@@ -443,6 +445,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
     end_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(end_cap_ob);
     if (end_cap_mesh) {
+      BKE_mesh_wrapper_ensure_mdata(end_cap_mesh);
       end_cap_nverts = end_cap_mesh->totvert;
       end_cap_nedges = end_cap_mesh->totedge;
       end_cap_nloops = end_cap_mesh->totloop;
