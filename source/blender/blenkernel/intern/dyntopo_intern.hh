@@ -105,15 +105,6 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
 
 #define DYNTOPO_MAX_ITER 512
 
-/* Very long skinny edges are pathological for remeshing,
- * they lead to degenerate geometry with 1/1 ratio between
- * subdivison and collapse.  Ideally we should detect this
- * case and adjust the ratio dynamically, but for now just
- * use a very high ratio all the time.
- */
-#define DYNTOPO_MAX_ITER_COLLAPSE 64
-#define DYNTOPO_MAX_ITER_SUBD 1
-
 #define DYNTOPO_USE_HEAP
 #define DYNTOPO_USE_MINMAX_HEAP
 
@@ -240,10 +231,11 @@ struct EdgeQueueContext {
   int cd_vert_mask_offset;
   int cd_vert_node_offset;
   int cd_face_node_offset;
-  float avg_elen;
-  float max_elen;
-  float min_elen;
-  float totedge;
+  float avg_elen = 0.0f;
+  float max_elen = 0.f;
+  float min_elen = 0.0f;
+  float cross_elen = 0.0f; /* used to detect skinny edges. */
+  float totedge = 0.0f;
   bool local_mode;
   float surface_smooth_fac;
 

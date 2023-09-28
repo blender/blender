@@ -352,6 +352,21 @@ void EdgeQueueContext::surface_smooth(BMVert *v, float fac)
 void EdgeQueueContext::insert_edge(BMEdge *e, float w)
 {
   if (!(e->head.hflag & EDGE_QUEUE_FLAG)) {
+    if (e->l) {
+      float len_sq = len_squared_v3v3(e->v1->co, e->v2->co);
+      float other_len = FLT_MAX;
+
+      BMLoop *l = e->l;
+      do {
+        other_len = min_ff(other_len, len_squared_v3v3(l->next->e->v1->co, l->next->e->v2->co));
+        other_len = min_ff(other_len, len_squared_v3v3(l->prev->e->v1->co, l->prev->e->v2->co));
+      } while ((l = l->radial_next) != e->l);
+
+      avg_elen += len_sq;
+      cross_elen += other_len;
+      totedge += 1.0f;
+    }
+
     edge_heap.insert(w, e);
     e->head.hflag |= EDGE_QUEUE_FLAG;
 
@@ -2092,20 +2107,31 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
     ops[1] = PBVH_Collapse;
     totop = 2;
 
-    steps[1] = DYNTOPO_MAX_ITER_COLLAPSE;
-    steps[0] = DYNTOPO_MAX_ITER_SUBD;
+    float len1 = avg_elen / totedge;
+    float len2 = cross_elen / totedge;
+
+    steps[0] = 1;
+    steps[1] = 1;
+
+    /* Prevent thrashing on long skinny faces. */
+    if (len2) {
+      float ratio = len1 / len2;
+
+      /* Increase subdivision steps. */
+      steps[0] = max_ii(min_ii(int(powf(ratio, 2.0f) * 10.0f), 500), 1);
+    }
   }
   else if (mode & PBVH_Subdivide) {
     ops[0] = PBVH_Subdivide;
     totop = 1;
 
-    steps[0] = DYNTOPO_MAX_ITER_SUBD;
+    steps[0] = 1;
   }
   else if (mode & PBVH_Collapse) {
     ops[0] = PBVH_Collapse;
     totop = 1;
 
-    steps[0] = DYNTOPO_MAX_ITER_COLLAPSE;
+    steps[0] = 1;
   }
 }
 
