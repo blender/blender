@@ -247,6 +247,44 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
         sub.prop(bone, "inherit_scale")
 
 
+class BONE_PT_collections(BoneButtonsPanel, Panel):
+    bl_label = "Bone Collections"
+    bl_parent_id = "BONE_PT_relations"
+
+    @classmethod
+    def poll(cls, context):
+        return context.bone or context.edit_bone
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+
+        bone = context.bone or context.edit_bone
+
+        if not bone.collections:
+            layout.active = False
+            layout.label(text="Not assigned to any bone collection.")
+            return
+
+        box = layout.box()
+        sub = box.column(align=True)
+        for bcoll in bone.collections:
+            bcoll_row = sub.row()
+            bcoll_row.emboss = 'NONE'
+
+            # Name & visibility of bcoll. Safe things, so aligned together.
+            row = bcoll_row.row(align=True)
+            row.label(text=bcoll.name)
+            row.prop(bcoll, "is_visible", text="",
+                     icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
+
+            # Unassignment operator, less safe so with a bit of spacing.
+            props = bcoll_row.operator("armature.collection_unassign_named",
+                                       text="", icon='X')
+            props.name = bcoll.name
+            props.bone_name = bone.name
+
+
 class BONE_PT_display(BoneButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
@@ -514,6 +552,7 @@ classes = (
     BONE_PT_transform,
     BONE_PT_curved,
     BONE_PT_relations,
+    BONE_PT_collections,
     BONE_PT_inverse_kinematics,
     BONE_PT_deform,
     BONE_PT_display,
