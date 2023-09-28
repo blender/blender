@@ -39,8 +39,8 @@ class DATA_PT_context_arm(ArmatureButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
-    bl_label = "Skeleton"
+class DATA_PT_pose(ArmatureButtonsPanel, Panel):
+    bl_label = "Pose"
 
     def draw(self, context):
         layout = self.layout
@@ -287,7 +287,7 @@ class DATA_PT_custom_props_bcoll(ArmatureButtonsPanel, PropertyPanel, Panel):
 
 classes = (
     DATA_PT_context_arm,
-    DATA_PT_skeleton,
+    DATA_PT_pose,
     DATA_PT_bone_collections,
     DATA_UL_bone_collections,
     ARMATURE_MT_collection_context_menu,
