@@ -673,6 +673,32 @@ void RNA_identifier_sanitize(char *identifier, int property)
   }
 }
 
+static bool rna_range_from_int_type(const char *dnatype, int r_range[2])
+{
+  /* Type `char` is unsigned too. */
+  if (STREQ(dnatype, "char") || STREQ(dnatype, "uchar")) {
+    r_range[0] = CHAR_MIN;
+    r_range[1] = CHAR_MAX;
+    return true;
+  }
+  if (STREQ(dnatype, "short")) {
+    r_range[0] = SHRT_MIN;
+    r_range[1] = SHRT_MAX;
+    return true;
+  }
+  if (STREQ(dnatype, "int")) {
+    r_range[0] = INT_MIN;
+    r_range[1] = INT_MAX;
+    return true;
+  }
+  if (STREQ(dnatype, "int8_t")) {
+    r_range[0] = INT8_MIN;
+    r_range[1] = INT8_MAX;
+    return true;
+  }
+  return false;
+}
+
 /* Blender Data Definition */
 
 BlenderRNA *RNA_create()
@@ -2385,24 +2411,26 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
     }
 
     /* SDNA doesn't pass us unsigned unfortunately. */
-    if (dp->dnatype && STREQ(dp->dnatype, "char")) {
-      iprop->hardmin = iprop->softmin = CHAR_MIN;
-      iprop->hardmax = iprop->softmax = CHAR_MAX;
-    }
-    else if (dp->dnatype && STREQ(dp->dnatype, "short")) {
-      iprop->hardmin = iprop->softmin = SHRT_MIN;
-      iprop->hardmax = iprop->softmax = SHRT_MAX;
-    }
-    else if (dp->dnatype && STREQ(dp->dnatype, "int")) {
-      iprop->hardmin = INT_MIN;
-      iprop->hardmax = INT_MAX;
+    if (dp->dnatype != nullptr && (dp->dnatype[0] != '\0')) {
+      int range[2];
+      if (rna_range_from_int_type(dp->dnatype, range)) {
+        iprop->hardmin = iprop->softmin = range[0];
+        iprop->hardmax = iprop->softmax = range[1];
+      }
+      else {
+        CLOG_ERROR(&LOG,
+                   "\"%s.%s\", type \"%s\" range not known.",
+                   srna->identifier,
+                   prop->identifier,
+                   dp->dnatype);
+        DefRNA.error = true;
+      }
 
-      iprop->softmin = -10000; /* rather arbitrary. */
-      iprop->softmax = 10000;
-    }
-    else if (dp->dnatype && STREQ(dp->dnatype, "int8_t")) {
-      iprop->hardmin = iprop->softmin = INT8_MIN;
-      iprop->hardmax = iprop->softmax = INT8_MAX;
+      /* Rather arbitrary that this is only done for one type. */
+      if (STREQ(dp->dnatype, "int")) {
+        iprop->softmin = -10000;
+        iprop->softmax = 10000;
+      }
     }
 
     if (ELEM(prop->subtype, PROP_UNSIGNED, PROP_PERCENTAGE, PROP_FACTOR)) {
