@@ -225,14 +225,20 @@ static eViewOpsFlag navigate_pivot_get(bContext *C,
     float fallback_depth_pt[3];
     negate_v3_v3(fallback_depth_pt, static_cast<RegionView3D *>(region->regiondata)->ofs);
 
-    bool has_depth_buffer = !(v3d->flag2 & V3D_HIDE_OVERLAYS) ||
-                            ELEM(v3d->shading.type, OB_SOLID, OB_MATERIAL) ||
-                            XRAY_FLAG_ENABLED(v3d) ||
-                            v3d->shading.type == OB_RENDER &&
-                                (strcmp(DEG_get_evaluated_scene(depsgraph)->r.engine,
-                                        RE_engine_id_BLENDER_EEVEE) == 0 ||
-                                 strcmp(DEG_get_evaluated_scene(depsgraph)->r.engine,
-                                        RE_engine_id_BLENDER_WORKBENCH) == 0);
+    const char *engine_name = DEG_get_evaluated_scene(depsgraph)->r.engine;
+
+    bool has_overlays = !(v3d->flag2 & V3D_HIDE_OVERLAYS);
+    bool is_viewport_wire_no_xray = v3d->shading.type < OB_SOLID && !XRAY_ENABLED(v3d);
+    bool is_viewport_preview_solid = v3d->shading.type == OB_SOLID;
+    bool is_viewport_preview_material = v3d->shading.type == OB_MATERIAL;
+    bool is_viewport_render_eevee = v3d->shading.type == OB_RENDER &&
+                                    strcmp(engine_name, RE_engine_id_BLENDER_EEVEE) == 0;
+    bool is_viewport_render_workbench = v3d->shading.type == OB_RENDER &&
+                                        strcmp(engine_name, RE_engine_id_BLENDER_WORKBENCH) == 0;
+
+    bool has_depth_buffer = has_overlays || is_viewport_preview_solid ||
+                            is_viewport_preview_material || is_viewport_wire_no_xray ||
+                            is_viewport_render_eevee || is_viewport_render_workbench;
 
     if (!has_depth_buffer) {
       ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, nullptr);
