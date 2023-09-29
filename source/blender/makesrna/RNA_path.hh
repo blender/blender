@@ -196,6 +196,11 @@ char *RNA_path_from_real_ID_to_struct(struct Main *bmain,
                                       struct ID **r_real);
 
 char *RNA_path_from_ID_to_property(const PointerRNA *ptr, PropertyRNA *prop);
+
+char *RNA_path_from_ptr_to_property_index(const PointerRNA *ptr,
+                                          PropertyRNA *prop,
+                                          int index_dim,
+                                          int index);
 /**
  * \param index_dim: The dimension to show, 0 disables. 1 for 1d array, 2 for 2d. etc.
  * \param index: The *flattened* index to use when \a `index_dim > 0`,
