@@ -1113,7 +1113,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
     if (NOT_RNA_NULL(owner_ptr = CTX_data_pointer_get_type(C, "active_pose_bone", &RNA_PoseBone)))
     {
       if (NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(
-                       &owner_ptr, static_cast<IDProperty *>(ptr->data))))
+                       &owner_ptr, static_cast<const IDProperty *>(ptr->data))))
       {
         *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
       }
@@ -1122,7 +1122,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
         owner_ptr = RNA_pointer_create(owner_ptr.owner_id, &RNA_Bone, pchan->bone);
 
         if (NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(
-                         &owner_ptr, static_cast<IDProperty *>(ptr->data))))
+                         &owner_ptr, static_cast<const IDProperty *>(ptr->data))))
         {
           ui_context_selected_bones_via_pose(C, r_lb);
         }
@@ -1134,7 +1134,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
       if (NOT_RNA_NULL(
               owner_ptr = CTX_data_pointer_get_type_silent(C, "active_bone", &RNA_EditBone)) &&
           NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(
-                       &owner_ptr, static_cast<IDProperty *>(ptr->data))))
+                       &owner_ptr, static_cast<const IDProperty *>(ptr->data))))
       {
         *r_lb = CTX_data_collection_get(C, "selected_editable_bones");
       }

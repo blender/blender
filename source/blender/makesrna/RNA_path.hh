@@ -178,7 +178,7 @@ bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, struct ListBas
  * \param needle: Custom property object to find.
  * \return Relative path or NULL.
  */
-char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, struct IDProperty *needle);
+char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, const struct IDProperty *needle);
 
 /**
  * Find the actual ID pointer and path from it to the given ID.
