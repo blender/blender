@@ -38,6 +38,8 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
+#include "GEO_randomize.hh"
+
 /* For edge split modifier node. */
 Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd);
 
@@ -102,6 +104,8 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
   BM_mesh_free(bm);
+
+  blender::geometry::debug_randomize_mesh_order(result);
 
   return result;
 }
