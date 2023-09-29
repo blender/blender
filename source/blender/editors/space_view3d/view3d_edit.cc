@@ -854,10 +854,7 @@ void ED_view3d_cursor3d_position(bContext *C,
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
     view3d_operator_needs_opengl(C);
-
-    ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, nullptr);
-
-    if (ED_view3d_autodist(region, v3d, mval, cursor_co, nullptr)) {
+    if (ED_view3d_autodist(depsgraph, region, v3d, mval, cursor_co, true, nullptr)) {
       depth_used = true;
     }
   }
