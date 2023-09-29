@@ -3887,6 +3887,7 @@ class VIEW3D_MT_pose(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_pose_motion")
+        layout.operator("armature.move_to_collection", text="Move to Bone Collection")
         layout.menu("VIEW3D_MT_bone_collections")
 
         layout.separator()
