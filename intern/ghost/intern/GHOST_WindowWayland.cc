@@ -1533,6 +1533,11 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor s
 #endif
   const GHOST_TSuccess ok = system_->cursor_shape_set(shape);
   m_cursorShape = (ok == GHOST_kSuccess) ? shape : GHOST_kStandardCursorDefault;
+
+  if (ok == GHOST_kSuccess) {
+    /* For the cursor to display when the event queue isn't being handled. */
+    wl_display_flush(system_->wl_display_get());
+  }
   return ok;
 }
 
@@ -1550,7 +1555,14 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*system_->server_mutex};
 #endif
-  return system_->cursor_shape_custom_set(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
+  const GHOST_TSuccess ok = system_->cursor_shape_custom_set(
+      bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
+
+  if (ok == GHOST_kSuccess) {
+    /* For the cursor to display when the event queue isn't being handled. */
+    wl_display_flush(system_->wl_display_get());
+  }
+  return ok;
 }
 
 GHOST_TSuccess GHOST_WindowWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitmap)
@@ -1695,7 +1707,12 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*system_->server_mutex};
 #endif
-  return system_->cursor_visibility_set(visible);
+  const GHOST_TSuccess ok = system_->cursor_visibility_set(visible);
+  if (ok == GHOST_kSuccess) {
+    /* For the cursor to display when the event queue isn't being handled. */
+    wl_display_flush(system_->wl_display_get());
+  }
+  return ok;
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setState(GHOST_TWindowState state)
