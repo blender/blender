@@ -2888,14 +2888,40 @@ void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
 /** \name Vertex Group Normalize All Operator
  * \{ */
 
+/*
+ * For a given object, determine which target vertex group to normalize.
+ */
+static eVGroupSelect normalize_vertex_group_target(Object *ob)
+{
+  /* Default to All Groups. */
+  eVGroupSelect target_group = WT_VGROUP_ALL;
+
+  /* If armature is present, and armature is actively deforming the object
+  (i.e armature modifier isn't disabled) use BONE DEFORM. */
+  if (BKE_modifiers_is_deformed_by_armature(ob)) {
+
+    int defgroup_tot = BKE_object_defgroup_count(ob);
+    bool *defgroup_validmap = BKE_object_defgroup_validmap_get(ob, defgroup_tot);
+
+    for (int i = 0; i < defgroup_tot; i++) {
+      if (defgroup_validmap[i] == true) {
+        target_group = WT_VGROUP_BONE_DEFORM;
+        break;
+      }
+    }
+    MEM_freeN(defgroup_validmap);
+  }
+
+  return target_group;
+}
+
 static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
 
-  /* If armature is present, default to `Deform Bones` otherwise `All Groups`. */
-  RNA_enum_set(op->ptr,
-               "group_select_mode",
-               BKE_modifiers_is_deformed_by_armature(ob) ? WT_VGROUP_BONE_DEFORM : WT_VGROUP_ALL);
+  eVGroupSelect target_group = normalize_vertex_group_target(ob);
+
+  RNA_enum_set(op->ptr, "group_select_mode", target_group);
 
   bool lock_active = RNA_boolean_get(op->ptr, "lock_active");
   eVGroupSelect subset_type = static_cast<eVGroupSelect>(
