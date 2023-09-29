@@ -45,7 +45,7 @@ class CLIP_PT_marker_display(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'HEADER'
     bl_label = "Marker Display"
-    bl_parent_id = 'CLIP_PT_display'
+    bl_parent_id = "CLIP_PT_display"
     bl_ui_units_x = 13
 
     def draw(self, context):
@@ -77,7 +77,7 @@ class CLIP_PT_clip_display(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'HEADER'
     bl_label = "Clip Display"
-    bl_parent_id = 'CLIP_PT_display'
+    bl_parent_id = "CLIP_PT_display"
     bl_ui_units_x = 13
 
     def draw(self, context):
@@ -849,7 +849,7 @@ class CLIP_PT_track_settings_extras(CLIP_PT_tracking_panel, Panel):
     bl_region_type = 'UI'
     bl_category = "Track"
     bl_label = "Tracking Settings Extras"
-    bl_parent_id = 'CLIP_PT_track_settings'
+    bl_parent_id = "CLIP_PT_track_settings"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -915,7 +915,7 @@ class CLIP_PT_tracking_lens(Panel):
     bl_category = "Track"
     bl_label = "Lens"
     bl_translation_context = i18n_contexts.id_camera
-    bl_parent_id = 'CLIP_PT_tracking_camera'
+    bl_parent_id = "CLIP_PT_tracking_camera"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
