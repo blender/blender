@@ -21,6 +21,7 @@
 #include "BKE_mesh.hh"
 
 #include "GEO_mesh_merge_by_distance.hh"
+#include "GEO_randomize.hh"
 
 #ifdef USE_WELD_DEBUG_TIME
 #  include "BLI_timeit.hh"
@@ -1679,6 +1680,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   BLI_assert(int(r_i) == result_nfaces);
   BLI_assert(loop_cur == result_nloops);
+
+  debug_randomize_mesh_order(result);
 
   return result;
 }
