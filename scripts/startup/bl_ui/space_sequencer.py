@@ -933,6 +933,7 @@ class SEQUENCER_MT_strip_retiming(Menu):
 
     def draw_strip_context(self, context):
         layout = self.layout
+        strip = context.active_sequence_strip
 
         layout.operator("sequencer.retiming_key_add")
         layout.operator("sequencer.retiming_freeze_frame_add")
@@ -941,12 +942,11 @@ class SEQUENCER_MT_strip_retiming(Menu):
         layout.operator("sequencer.retiming_reset")
         layout.separator()
 
-        icon = 'CHECKBOX_DEHLT'
-        if context.active_sequence_strip.show_retiming_keys:
-            icon = 'CHECKBOX_HLT'
-
         layout.operator("sequencer.retiming_segment_speed_set")
-        layout.operator("sequencer.retiming_show", icon=icon)
+        layout.operator(
+            "sequencer.retiming_show",
+            icon='CHECKBOX_HLT' if (strip and strip.show_retiming_keys) else 'CHECKBOX_DEHLT',
+        )
 
     def draw_retiming_context(self, context):
         layout = self.layout
@@ -1161,8 +1161,6 @@ class SEQUENCER_MT_context_menu(Menu):
 
         layout.separator()
 
-        strip = context.active_sequence_strip
-
         if strip:
             strip_type = strip.type
             selected_sequences_count = selected_sequences_len(context)
@@ -1258,11 +1256,6 @@ class SEQUENCER_MT_preview_context_menu(Menu):
 
         # TODO: support in preview.
         # layout.operator("sequencer.delete", text="Delete")
-
-        strip = context.active_sequence_strip
-
-        if strip:
-            pass
 
 
 class SEQUENCER_MT_pivot_pie(Menu):
