@@ -64,8 +64,9 @@ class NODE_HT_header(Header):
 
                 layout.separator_spacer()
 
-                types_that_support_material = {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META',
-                                               'GPENCIL', 'VOLUME', 'CURVES', 'POINTCLOUD'}
+                types_that_support_material = {
+                    'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'GPENCIL', 'VOLUME', 'CURVES', 'POINTCLOUD',
+                }
                 # disable material slot buttons when pinned, cannot find correct slot within id_from (#36589)
                 # disable also when the selected object does not support materials
                 has_material_slots = not snode.pin and ob_type in types_that_support_material
@@ -324,15 +325,15 @@ class NODE_MT_node(Menu):
         layout.operator("transform.resize")
 
         layout.separator()
-        layout.operator("node.clipboard_copy", text="Copy", icon="COPYDOWN")
+        layout.operator("node.clipboard_copy", text="Copy", icon='COPYDOWN')
         layout.operator_context = 'EXEC_DEFAULT'
-        layout.operator("node.clipboard_paste", text="Paste", icon="PASTEDOWN")
+        layout.operator("node.clipboard_paste", text="Paste", icon='PASTEDOWN')
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("node.duplicate_move", icon="DUPLICATE")
+        layout.operator("node.duplicate_move", icon='DUPLICATE')
         layout.operator("node.duplicate_move_linked")
 
         layout.separator()
-        layout.operator("node.delete", icon="X")
+        layout.operator("node.delete", icon='X')
         layout.operator("node.delete_reconnect")
 
         layout.separator()
@@ -352,7 +353,7 @@ class NODE_MT_node(Menu):
         layout.operator("node.links_mute")
 
         layout.separator()
-        layout.operator("node.group_make", icon="NODETREE")
+        layout.operator("node.group_make", icon='NODETREE')
         layout.operator("node.group_insert", text="Insert Into Group")
         layout.operator("node.group_edit").exit = False
         layout.operator("node.group_ungroup")
@@ -362,7 +363,7 @@ class NODE_MT_node(Menu):
 
         if is_compositor:
             layout.separator()
-            layout.operator("node.read_viewlayers", icon="RENDERLAYERS")
+            layout.operator("node.read_viewlayers", icon='RENDERLAYERS')
 
 
 class NODE_MT_view_pie(Menu):
@@ -437,8 +438,10 @@ class NODE_PT_geometry_node_tool_object_types(Panel):
         snode = context.space_data
         group = snode.node_tree
 
-        types = [("is_type_mesh", "Mesh", 'MESH_DATA'),
-                 ("is_type_curve", "Curves", 'CURVES_DATA')]
+        types = [
+            ("is_type_mesh", "Mesh", 'MESH_DATA'),
+            ("is_type_curve", "Curves", 'CURVES_DATA'),
+        ]
         if context.preferences.experimental.use_new_point_cloud_type:
             types.append(("is_type_point_cloud", "Point Cloud", 'POINTCLOUD_DATA'))
 
@@ -465,8 +468,10 @@ class NODE_PT_geometry_node_tool_mode(Panel):
         snode = context.space_data
         group = snode.node_tree
 
-        modes = [("is_mode_edit", "Edit Mode", 'EDITMODE_HLT'),
-                 ("is_mode_sculpt", "Sculpt Mode", 'SCULPTMODE_HLT')]
+        modes = (
+            ("is_mode_edit", "Edit Mode", 'EDITMODE_HLT'),
+            ("is_mode_sculpt", "Sculpt Mode", 'SCULPTMODE_HLT'),
+        )
 
         col = layout.column()
         col.active = group.is_tool
@@ -661,7 +666,7 @@ class NODE_PT_active_node_color(Panel):
     bl_category = "Node"
     bl_label = "Color"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = 'NODE_PT_active_node_generic'
+    bl_parent_id = "NODE_PT_active_node_generic"
 
     @classmethod
     def poll(cls, context):
@@ -932,7 +937,6 @@ class NODE_PT_node_tree_interface(Panel):
             if active_item.item_type == 'SOCKET':
                 layout.prop(active_item, "socket_type", text="Type")
                 layout.prop(active_item, "description")
-                layout.prop(active_item, "in_out", text="Input/Output")
                 # Display descriptions only for Geometry Nodes, since it's only used in the modifier panel.
                 if tree.type == 'GEOMETRY':
                     field_socket_types = {
@@ -1175,7 +1179,7 @@ def node_panel(cls):
     node_cls.bl_region_type = 'UI'
     node_cls.bl_category = "Options"
     if hasattr(node_cls, "bl_parent_id"):
-        node_cls.bl_parent_id = 'NODE_' + node_cls.bl_parent_id
+        node_cls.bl_parent_id = "NODE_" + node_cls.bl_parent_id
 
     return node_cls
 
