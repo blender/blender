@@ -846,31 +846,31 @@ class DOPESHEET_PT_gpencil_mode(LayersDopeSheetPanel, Panel):
 
 class DOPESHEET_PT_gpencil_layer_masks(LayersDopeSheetPanel, GreasePencilLayerMasksPanel, Panel):
     bl_label = "Masks"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_transform(LayersDopeSheetPanel, GreasePencilLayerTransformPanel, Panel):
     bl_label = "Transform"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_adjustments(LayersDopeSheetPanel, GreasePencilLayerAdjustmentsPanel, Panel):
     bl_label = "Adjustments"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_relations(LayersDopeSheetPanel, GreasePencilLayerRelationsPanel, Panel):
     bl_label = "Relations"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_display(LayersDopeSheetPanel, GreasePencilLayerDisplayPanel, Panel):
     bl_label = "Display"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
