@@ -55,6 +55,18 @@ class BakeOptions:
     do_clean: bool
     """Remove redundant keyframes after baking."""
 
+    do_location: bool
+    """Bake location channels"""
+
+    do_rotation: bool
+    """Bake rotation channels"""
+
+    do_scale: bool
+    """Bake scale channels"""
+
+    do_bbone: bool
+    """Bake b-bone channels"""
+
 
 def bake_action(
         obj,
@@ -307,13 +319,17 @@ def bake_action_iter(
             paths_bbprops = [(base_fcurve_path + bbprop) for bbprop in BBONE_PROPS]
 
             keyframes = KeyframesCo()
-            keyframes.add_paths(path_location, 3)
-            keyframes.add_paths(path_quaternion, 4)
-            keyframes.add_paths(path_axis_angle, 4)
-            keyframes.add_paths(path_euler, 3)
-            keyframes.add_paths(path_scale, 3)
 
-            if pbone.bone.bbone_segments > 1:
+            if bake_options.do_location:
+                keyframes.add_paths(path_location, 3)
+            if bake_options.do_rotation:
+                keyframes.add_paths(path_quaternion, 4)
+                keyframes.add_paths(path_axis_angle, 4)
+                keyframes.add_paths(path_euler, 3)
+            if bake_options.do_scale:
+                keyframes.add_paths(path_scale, 3)
+
+            if bake_options.do_bbone and pbone.bone.bbone_segments > 1:
                 for prop_name, path in zip(BBONE_PROPS, paths_bbprops):
                     keyframes.add_paths(path, BBONE_PROPS_LENGTHS[prop_name])
 
@@ -322,32 +338,35 @@ def bake_action_iter(
             for (f, matrix, bbones) in pose_info:
                 pbone.matrix_basis = matrix[name].copy()
 
-                keyframes.extend_co_values(path_location, 3, f, pbone.location)
+                if bake_options.do_location:
+                    keyframes.extend_co_values(path_location, 3, f, pbone.location)
 
-                if rotation_mode == 'QUATERNION':
-                    if quat_prev is not None:
-                        quat = pbone.rotation_quaternion.copy()
-                        quat.make_compatible(quat_prev)
-                        pbone.rotation_quaternion = quat
-                        quat_prev = quat
-                        del quat
-                    else:
-                        quat_prev = pbone.rotation_quaternion.copy()
-                    keyframes.extend_co_values(path_quaternion, 4, f, pbone.rotation_quaternion)
-                elif rotation_mode == 'AXIS_ANGLE':
-                    keyframes.extend_co_values(path_axis_angle, 4, f, pbone.rotation_axis_angle)
-                else:  # euler, XYZ, ZXY etc
-                    if euler_prev is not None:
-                        euler = pbone.matrix_basis.to_euler(pbone.rotation_mode, euler_prev)
-                        pbone.rotation_euler = euler
-                        del euler
-                    euler_prev = pbone.rotation_euler.copy()
-                    keyframes.extend_co_values(path_euler, 3, f, pbone.rotation_euler)
+                if bake_options.do_rotation:
+                    if rotation_mode == 'QUATERNION':
+                        if quat_prev is not None:
+                            quat = pbone.rotation_quaternion.copy()
+                            quat.make_compatible(quat_prev)
+                            pbone.rotation_quaternion = quat
+                            quat_prev = quat
+                            del quat
+                        else:
+                            quat_prev = pbone.rotation_quaternion.copy()
+                        keyframes.extend_co_values(path_quaternion, 4, f, pbone.rotation_quaternion)
+                    elif rotation_mode == 'AXIS_ANGLE':
+                        keyframes.extend_co_values(path_axis_angle, 4, f, pbone.rotation_axis_angle)
+                    else:  # euler, XYZ, ZXY etc
+                        if euler_prev is not None:
+                            euler = pbone.matrix_basis.to_euler(pbone.rotation_mode, euler_prev)
+                            pbone.rotation_euler = euler
+                            del euler
+                        euler_prev = pbone.rotation_euler.copy()
+                        keyframes.extend_co_values(path_euler, 3, f, pbone.rotation_euler)
 
-                keyframes.extend_co_values(path_scale, 3, f, pbone.scale)
+                if bake_options.do_scale:
+                    keyframes.extend_co_values(path_scale, 3, f, pbone.scale)
 
                 # Bendy Bones
-                if pbone.bone.bbone_segments > 1:
+                if bake_options.do_bbone and pbone.bone.bbone_segments > 1:
                     bbone_shape = bbones[name]
                     for prop_index, prop_name in enumerate(BBONE_PROPS):
                         prop_len = BBONE_PROPS_LENGTHS[prop_name]
@@ -382,11 +401,14 @@ def bake_action_iter(
         path_scale = "scale"
 
         keyframes = KeyframesCo()
-        keyframes.add_paths(path_location, 3)
-        keyframes.add_paths(path_quaternion, 4)
-        keyframes.add_paths(path_axis_angle, 4)
-        keyframes.add_paths(path_euler, 3)
-        keyframes.add_paths(path_scale, 3)
+        if bake_options.do_location:
+            keyframes.add_paths(path_location, 3)
+        if bake_options.do_rotation:
+            keyframes.add_paths(path_quaternion, 4)
+            keyframes.add_paths(path_axis_angle, 4)
+            keyframes.add_paths(path_euler, 3)
+        if bake_options.do_scale:
+            keyframes.add_paths(path_scale, 3)
 
         rotation_mode = obj.rotation_mode
         total_new_keys = len(obj_info)
@@ -394,28 +416,31 @@ def bake_action_iter(
             name = "Action Bake"  # XXX: placeholder
             obj.matrix_basis = matrix
 
-            keyframes.extend_co_values(path_location, 3, f, obj.location)
+            if bake_options.do_location:
+                keyframes.extend_co_values(path_location, 3, f, obj.location)
 
-            if rotation_mode == 'QUATERNION':
-                if quat_prev is not None:
-                    quat = obj.rotation_quaternion.copy()
-                    quat.make_compatible(quat_prev)
-                    obj.rotation_quaternion = quat
-                    quat_prev = quat
-                    del quat
-                else:
-                    quat_prev = obj.rotation_quaternion.copy()
-                keyframes.extend_co_values(path_quaternion, 4, f, obj.rotation_quaternion)
+            if bake_options.do_rotation:
+                if rotation_mode == 'QUATERNION':
+                    if quat_prev is not None:
+                        quat = obj.rotation_quaternion.copy()
+                        quat.make_compatible(quat_prev)
+                        obj.rotation_quaternion = quat
+                        quat_prev = quat
+                        del quat
+                    else:
+                        quat_prev = obj.rotation_quaternion.copy()
+                    keyframes.extend_co_values(path_quaternion, 4, f, obj.rotation_quaternion)
 
-            elif rotation_mode == 'AXIS_ANGLE':
-                keyframes.extend_co_values(path_axis_angle, 4, f, obj.rotation_axis_angle)
-            else:  # euler, XYZ, ZXY etc
-                if euler_prev is not None:
-                    obj.rotation_euler = matrix.to_euler(obj.rotation_mode, euler_prev)
-                euler_prev = obj.rotation_euler.copy()
-                keyframes.extend_co_values(path_euler, 3, f, obj.rotation_euler)
+                elif rotation_mode == 'AXIS_ANGLE':
+                    keyframes.extend_co_values(path_axis_angle, 4, f, obj.rotation_axis_angle)
+                else:  # euler, XYZ, ZXY etc
+                    if euler_prev is not None:
+                        obj.rotation_euler = matrix.to_euler(obj.rotation_mode, euler_prev)
+                    euler_prev = obj.rotation_euler.copy()
+                    keyframes.extend_co_values(path_euler, 3, f, obj.rotation_euler)
 
-            keyframes.extend_co_values(path_scale, 3, f, obj.scale)
+            if bake_options.do_scale:
+                keyframes.extend_co_values(path_scale, 3, f, obj.scale)
 
         if is_new_action:
             keyframes.insert_keyframes_into_new_action(total_new_keys, action, name)
