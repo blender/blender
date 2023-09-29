@@ -280,10 +280,11 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
     item_type: EnumProperty(
         name="Item Type",
         description="Type of the item to create",
-        items=[
+        items=(
             ('INPUT', "Input", ""),
             ('OUTPUT', "Output", ""),
-            ('PANEL', "Panel", "")],
+            ('PANEL', "Panel", ""),
+        ),
         default='INPUT',
     )
 

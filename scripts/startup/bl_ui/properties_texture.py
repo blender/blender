@@ -74,7 +74,8 @@ class TEXTURE_PT_preview(TextureButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -107,7 +108,8 @@ class TEXTURE_PT_context(TextureButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -150,7 +152,8 @@ class TEXTURE_PT_node(TextureButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -183,7 +186,8 @@ class TEXTURE_PT_clouds(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -219,7 +223,8 @@ class TEXTURE_PT_wood(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -260,7 +265,8 @@ class TEXTURE_PT_marble(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -298,7 +304,8 @@ class TEXTURE_PT_magic(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -321,7 +328,8 @@ class TEXTURE_PT_blend(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -347,7 +355,8 @@ class TEXTURE_PT_stucci(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -382,7 +391,8 @@ class TEXTURE_PT_image(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, _context):
         # TODO: maybe expose the template_ID from the template image here.
@@ -392,13 +402,14 @@ class TEXTURE_PT_image(TextureTypePanel, Panel):
 
 class TEXTURE_PT_image_settings(TextureTypePanel, Panel):
     bl_label = "Settings"
-    bl_parent_id = 'TEXTURE_PT_image'
+    bl_parent_id = "TEXTURE_PT_image"
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -424,7 +435,7 @@ def texture_filter_common(tex, layout):
 class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
     bl_label = "Sampling"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = 'TEXTURE_PT_image'
+    bl_parent_id = "TEXTURE_PT_image"
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -454,7 +465,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
 class TEXTURE_PT_image_alpha(TextureTypePanel, Panel):
     bl_label = "Alpha"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = 'TEXTURE_PT_image'
+    bl_parent_id = "TEXTURE_PT_image"
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -477,7 +488,7 @@ class TEXTURE_PT_image_alpha(TextureTypePanel, Panel):
 class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
     bl_label = "Mapping"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = 'TEXTURE_PT_image'
+    bl_parent_id = "TEXTURE_PT_image"
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -529,7 +540,7 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
 class TEXTURE_PT_image_mapping_crop(TextureTypePanel, Panel):
     bl_label = "Crop"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = 'TEXTURE_PT_image_mapping'
+    bl_parent_id = "TEXTURE_PT_image_mapping"
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
@@ -557,7 +568,8 @@ class TEXTURE_PT_musgrave(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -606,7 +618,8 @@ class TEXTURE_PT_voronoi(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -643,7 +656,8 @@ class TEXTURE_PT_voronoi_feature_weights(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -668,7 +682,8 @@ class TEXTURE_PT_distortednoise(TextureTypePanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -697,7 +712,8 @@ class TextureSlotPanel(TextureButtonsPanel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -713,7 +729,8 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -785,7 +802,8 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -871,7 +889,8 @@ class TEXTURE_PT_colors(TextureButtonsPanel, TextureColorsPoll, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -899,12 +918,13 @@ class TEXTURE_PT_colors(TextureButtonsPanel, TextureColorsPoll, Panel):
 class TEXTURE_PT_colors_ramp(TextureButtonsPanel, TextureColorsPoll, Panel):
     bl_label = "Color Ramp"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = 'TEXTURE_PT_colors'
+    bl_parent_id = "TEXTURE_PT_colors"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw_header(self, context):
         tex = context.texture
@@ -929,7 +949,8 @@ class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
     _context_path = "texture"
     _property_type = Texture
 
