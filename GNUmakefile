@@ -489,8 +489,7 @@ check_wiki_file_structure: .FORCE
 	    "$(BLENDER_DIR)/tools/check_wiki/check_wiki_file_structure.py"
 
 check_spelling_py: .FORCE
-	@cd "$(BUILD_DIR)" ; \
-	PYTHONIOENCODING=utf_8 $(PYTHON) \
+	@PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    --match=".*\.(py)$$" \
@@ -499,8 +498,7 @@ check_spelling_py: .FORCE
 	    "$(BLENDER_DIR)/tools"
 
 check_spelling_c: .FORCE
-	@cd "$(BUILD_DIR)" ; \
-	PYTHONIOENCODING=utf_8 $(PYTHON) \
+	@PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    --match=".*\.(c|cc|cpp|cxx|h|hh|hpp|hxx|inl|m|mm)$$" \
@@ -510,8 +508,7 @@ check_spelling_c: .FORCE
 	    "$(BLENDER_DIR)/intern/ghost"
 
 check_spelling_shaders: .FORCE
-	@cd "$(BUILD_DIR)" ; \
-	PYTHONIOENCODING=utf_8 $(PYTHON) \
+	@PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    --match=".*\.(osl|metal|msl|glsl)$$" \
