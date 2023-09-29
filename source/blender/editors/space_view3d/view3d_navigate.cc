@@ -31,8 +31,6 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_engine.h"
-
 #include "ED_mesh.hh"
 #include "ED_particle.hh"
 #include "ED_screen.hh"
@@ -220,31 +218,11 @@ static eViewOpsFlag navigate_pivot_get(bContext *C,
     ED_view3d_autodist_last_get(win, r_pivot);
   }
   else {
-    /* TODO: Implement 'Alpha Override'. We don't want to zoom into billboards. */
-
     float fallback_depth_pt[3];
     negate_v3_v3(fallback_depth_pt, static_cast<RegionView3D *>(region->regiondata)->ofs);
 
-    const char *engine_name = DEG_get_evaluated_scene(depsgraph)->r.engine;
-
-    bool has_overlays = !(v3d->flag2 & V3D_HIDE_OVERLAYS);
-    bool is_viewport_wire_no_xray = v3d->shading.type < OB_SOLID && !XRAY_ENABLED(v3d);
-    bool is_viewport_preview_solid = v3d->shading.type == OB_SOLID;
-    bool is_viewport_preview_material = v3d->shading.type == OB_MATERIAL;
-    bool is_viewport_render_eevee = v3d->shading.type == OB_RENDER &&
-                                    strcmp(engine_name, RE_engine_id_BLENDER_EEVEE) == 0;
-    bool is_viewport_render_workbench = v3d->shading.type == OB_RENDER &&
-                                        strcmp(engine_name, RE_engine_id_BLENDER_WORKBENCH) == 0;
-
-    bool has_depth_buffer = has_overlays || is_viewport_preview_solid ||
-                            is_viewport_preview_material || is_viewport_wire_no_xray ||
-                            is_viewport_render_eevee || is_viewport_render_workbench;
-
-    if (!has_depth_buffer) {
-      ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, nullptr);
-    }
-
-    const bool is_set = ED_view3d_autodist(region, v3d, event->mval, r_pivot, fallback_depth_pt);
+    const bool is_set = ED_view3d_autodist(
+        depsgraph, region, v3d, event->mval, r_pivot, true, fallback_depth_pt);
 
     ED_view3d_autodist_last_set(win, event, r_pivot, is_set);
   }
