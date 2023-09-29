@@ -145,10 +145,11 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *op)
       }
     }
     else {
-      path = RNA_path_from_real_ID_to_property_index(bmain, &ptr, prop, 0, -1, &id);
+      const int index_dim = (index != -1 && RNA_property_array_check(prop)) ? 1 : 0;
+      path = RNA_path_from_real_ID_to_property_index(bmain, &ptr, prop, index_dim, index, &id);
 
       if (!path) {
-        path = RNA_path_from_ID_to_property(&ptr, prop);
+        path = RNA_path_from_ID_to_property_index(&ptr, prop, index_dim, index);
       }
     }
 
