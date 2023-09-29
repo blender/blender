@@ -797,14 +797,14 @@ static char *rna_idp_path_create(IDP_Chain *child_link)
 }
 
 static char *rna_idp_path(PointerRNA *ptr,
-                          IDProperty *haystack,
-                          IDProperty *needle,
+                          const IDProperty *haystack,
+                          const IDProperty *needle,
                           IDP_Chain *parent_link)
 {
   char *path = nullptr;
   IDP_Chain link;
 
-  IDProperty *iter;
+  const IDProperty *iter;
   int i;
 
   BLI_assert(haystack->type == IDP_GROUP);
@@ -861,7 +861,7 @@ static char *rna_idp_path(PointerRNA *ptr,
     }
     else if (iter->type == IDP_IDPARRAY) {
       if (prop->type == PROP_COLLECTION) {
-        IDProperty *array = IDP_IDPArray(iter);
+        const IDProperty *array = IDP_IDPArray(iter);
         if (needle >= array && needle < (iter->len + array)) { /* found! */
           link.name = iter->name;
           link.index = int(needle - array);
@@ -894,9 +894,9 @@ static char *rna_idp_path(PointerRNA *ptr,
   return path;
 }
 
-char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, IDProperty *needle)
+char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, const IDProperty *needle)
 {
-  IDProperty *haystack = RNA_struct_idprops(ptr, false);
+  const IDProperty *haystack = RNA_struct_idprops(ptr, false);
 
   if (haystack) { /* can fail when called on bones */
     return rna_idp_path(ptr, haystack, needle, nullptr);
@@ -916,7 +916,7 @@ static char *rna_path_from_ID_to_idpgroup(const PointerRNA *ptr)
    */
   PointerRNA id_ptr = RNA_id_pointer_create(ptr->owner_id);
 
-  return RNA_path_from_struct_to_idproperty(&id_ptr, static_cast<IDProperty *>(ptr->data));
+  return RNA_path_from_struct_to_idproperty(&id_ptr, static_cast<const IDProperty *>(ptr->data));
 }
 
 ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
