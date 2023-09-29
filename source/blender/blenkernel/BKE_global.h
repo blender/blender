@@ -130,6 +130,15 @@ typedef struct Global {
   int debug;
 
   /**
+   * When true, various geometry processing algorithms randomize the order of elements (e.g.
+   * vertices or edges) in the output. In many cases, we don't make guarantees about the exact
+   * order of elements. So if users depend on the indices with e.g. geometry nodes, their file can
+   * break in a different Blender version. Explicitly turning on randomization can help protect
+   * oneself against such breakages.
+   */
+  bool randomize_geometry_element_order;
+
+  /**
    * Control behavior of file reading/writing.
    *
    * This variable is written to / read from #FileGlobal.fileflags.

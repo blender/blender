@@ -12,6 +12,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
+#include "GEO_randomize.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_dual_mesh_cc {
@@ -921,6 +923,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (const Mesh *mesh = geometry_set.get_mesh()) {
       Mesh *new_mesh = calc_dual_mesh(
           *mesh, keep_boundaries, params.get_output_propagation_info("Dual Mesh"));
+      geometry::debug_randomize_mesh_order(new_mesh);
       geometry_set.replace_mesh(new_mesh);
     }
   });
