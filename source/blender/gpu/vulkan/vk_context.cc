@@ -249,8 +249,8 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   color_attachment->layout_ensure(*this, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   VkImageBlit image_blit = {};
-  image_blit.srcOffsets[0] = {0, int32_t(swap_chain_data.extent.height) - 1, 0};
-  image_blit.srcOffsets[1] = {int32_t(swap_chain_data.extent.width), 0, 1};
+  image_blit.srcOffsets[0] = {0, color_attachment->height_get() - 1, 0};
+  image_blit.srcOffsets[1] = {color_attachment->width_get(), 0, 1};
   image_blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   image_blit.srcSubresource.mipLevel = 0;
   image_blit.srcSubresource.baseArrayLayer = 0;
