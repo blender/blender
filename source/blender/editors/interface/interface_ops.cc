@@ -1354,15 +1354,58 @@ bool UI_context_copy_to_selected_list(bContext *C,
     return false;
   }
 
+  if (RNA_property_is_idprop(prop)) {
+    if (*r_path == nullptr) {
+      *r_path = RNA_path_from_ptr_to_property_index(ptr, prop, 0, -1);
+      BLI_assert(*r_path);
+    }
+    /* Always resolve custom-properties because they can always exist per-item. */
+    ensure_list_items_contain_prop = true;
+  }
+
   if (ensure_list_items_contain_prop) {
-    BLI_assert(is_rna);
-    const char *prop_id = RNA_property_identifier(prop);
-    LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
-      if ((ptr->type != link->ptr.type) &&
-          (RNA_struct_type_find_property(link->ptr.type, prop_id) != prop))
-      {
-        BLI_remlink(r_lb, link);
-        MEM_freeN(link);
+    if (is_rna) {
+      const char *prop_id = RNA_property_identifier(prop);
+      LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
+        if ((ptr->type != link->ptr.type) &&
+            (RNA_struct_type_find_property(link->ptr.type, prop_id) != prop))
+        {
+          BLI_remlink(r_lb, link);
+          MEM_freeN(link);
+        }
+      }
+    }
+    else {
+      const bool prop_is_array = RNA_property_array_check(prop);
+      const int prop_array_len = prop_is_array ? RNA_property_array_length(ptr, prop) : -1;
+      const PropertyType prop_type = RNA_property_type(prop);
+      LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
+        PointerRNA lptr;
+        PropertyRNA *lprop = nullptr;
+        RNA_path_resolve_property(&link->ptr, *r_path, &lptr, &lprop);
+
+        bool remove = false;
+        if (lprop == nullptr) {
+          remove = true;
+        }
+        else if (!RNA_property_is_idprop(lprop)) {
+          remove = true;
+        }
+        else if (prop_type != RNA_property_type(lprop)) {
+          remove = true;
+        }
+        else if (prop_is_array != RNA_property_array_check(lprop)) {
+          remove = true;
+        }
+        else if (prop_is_array && (prop_array_len != RNA_property_array_length(&link->ptr, lprop)))
+        {
+          remove = true;
+        }
+
+        if (remove) {
+          BLI_remlink(r_lb, link);
+          MEM_freeN(link);
+        }
       }
     }
   }
@@ -1397,6 +1440,7 @@ bool UI_context_copy_to_selected_check(PointerRNA *ptr,
     RNA_path_resolve_property(ptr_link, path, &lptr, &lprop);
   }
   else {
+    BLI_assert(!RNA_property_is_idprop(prop));
     lptr = *ptr_link;
     lprop = prop;
   }
