@@ -881,6 +881,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->animation_flag |= USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
   }
 
+  if (!USER_VERSION_ATLEAST(400, 32)) {
+    userdef->text_render |= USER_TEXT_RENDER_SUBPIXELAA;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
