@@ -1094,6 +1094,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
   *r_path = nullptr;
   /* special case for bone constraints */
   char *path_from_bone = nullptr;
+  const bool is_rna = !RNA_property_is_idprop(prop);
   /* Remove links from the collection list which don't contain 'prop'. */
   bool ensure_list_items_contain_prop = false;
 
@@ -1105,7 +1106,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
    *
    * Properties owned by the ID are handled by the 'if (ptr->owner_id)' case below.
    */
-  if (!RNA_property_is_idprop(prop) && RNA_struct_is_a(ptr->type, &RNA_PropertyGroup)) {
+  if (is_rna && RNA_struct_is_a(ptr->type, &RNA_PropertyGroup)) {
     PointerRNA owner_ptr;
     char *idpath = nullptr;
 
@@ -1206,8 +1207,11 @@ bool UI_context_copy_to_selected_list(bContext *C,
     else {
       *r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
     }
-    /* Account for properties only being available for some sequence types. */
-    ensure_list_items_contain_prop = true;
+
+    if (is_rna) {
+      /* Account for properties only being available for some sequence types. */
+      ensure_list_items_contain_prop = true;
+    }
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_FCurve)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_fcurves");
@@ -1331,14 +1335,17 @@ bool UI_context_copy_to_selected_list(bContext *C,
         /* Special case when we do this for 'Sequence.lock'.
          * (if the sequence is locked, it won't be in "selected_editable_sequences"). */
         const char *prop_id = RNA_property_identifier(prop);
-        if (STREQ(prop_id, "lock")) {
+        if (is_rna && STREQ(prop_id, "lock")) {
           *r_lb = CTX_data_collection_get(C, "selected_sequences");
         }
         else {
           *r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
         }
-        /* Account for properties only being available for some sequence types. */
-        ensure_list_items_contain_prop = true;
+
+        if (is_rna) {
+          /* Account for properties only being available for some sequence types. */
+          ensure_list_items_contain_prop = true;
+        }
       }
     }
     return (*r_path != nullptr);
@@ -1348,6 +1355,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
   }
 
   if (ensure_list_items_contain_prop) {
+    BLI_assert(is_rna);
     const char *prop_id = RNA_property_identifier(prop);
     LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
       if ((ptr->type != link->ptr.type) &&
