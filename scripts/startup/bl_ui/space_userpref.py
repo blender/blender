@@ -235,6 +235,7 @@ class USERPREF_PT_interface_text(InterfacePanel, CenterAlignMixIn, Panel):
         flow.prop(view, "use_text_antialiasing", text="Anti-Aliasing")
         sub = flow.column()
         sub.active = view.use_text_antialiasing
+        sub.prop(view, "use_text_render_subpixelaa", text="Subpixel Anti-Aliasing")
         sub.prop(view, "text_hinting", text="Hinting")
 
         flow.prop(view, "font_path_ui")
