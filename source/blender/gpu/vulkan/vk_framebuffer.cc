@@ -71,10 +71,10 @@ Array<VkRect2D, 16> VKFrameBuffer::vk_render_areas_get() const
     if (scissor_test_get()) {
       int scissor_rect[4];
       scissor_get(scissor_rect);
-      render_area.offset.x = scissor_rect[0];
-      render_area.offset.y = scissor_rect[1];
-      render_area.extent.width = scissor_rect[2];
-      render_area.extent.height = scissor_rect[3];
+      render_area.offset.x = clamp_i(scissor_rect[0], 0, width_);
+      render_area.offset.y = clamp_i(scissor_rect[1], 0, height_);
+      render_area.extent.width = clamp_i(scissor_rect[2], 1, width_ - scissor_rect[0]);
+      render_area.extent.height = clamp_i(scissor_rect[3], 1, height_ - scissor_rect[1]);
     }
     else {
       render_area.offset.x = 0;
@@ -288,11 +288,13 @@ static void blit_aspect(VKCommandBuffer &command_buffer,
   image_blit.dstSubresource.mipLevel = 0;
   image_blit.dstSubresource.baseArrayLayer = 0;
   image_blit.dstSubresource.layerCount = 1;
-  image_blit.dstOffsets[0].x = dst_offset_x;
-  image_blit.dstOffsets[0].y = dst_offset_y;
+  image_blit.dstOffsets[0].x = min_ii(dst_offset_x, dst_texture.width_get());
+  image_blit.dstOffsets[0].y = min_ii(dst_offset_y, dst_texture.height_get());
   image_blit.dstOffsets[0].z = 0;
-  image_blit.dstOffsets[1].x = dst_offset_x + src_texture.width_get();
-  image_blit.dstOffsets[1].y = dst_offset_y + src_texture.height_get();
+  image_blit.dstOffsets[1].x = min_ii(dst_offset_x + src_texture.width_get(),
+                                      dst_texture.width_get());
+  image_blit.dstOffsets[1].y = min_ii(dst_offset_y + src_texture.height_get(),
+                                      dst_texture.height_get());
   image_blit.dstOffsets[1].z = 1;
 
   command_buffer.blit(dst_texture, src_texture, Span<VkImageBlit>(&image_blit, 1));
