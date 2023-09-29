@@ -147,7 +147,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
                     # to use the user setting, see: #61637
                     # "orient_type": 'NORMAL',
                     # Not a popular choice, too restrictive for retopo.
-                    # "constraint_axis": (True, True, False)})
+                    # "constraint_axis": (True, True, False),
                     "constraint_axis": (False, False, False),
                     "release_confirm": False,
                     "alt_navigation": alt_navigation,

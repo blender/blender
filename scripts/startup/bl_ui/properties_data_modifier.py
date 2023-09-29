@@ -14,10 +14,14 @@ class ModifierButtonsPanel:
 
 
 class ModifierAddMenu:
-    MODIFIER_TYPES_TO_LABELS = {enum_it.identifier: enum_it.name
-                                for enum_it in bpy.types.Modifier.bl_rna.properties['type'].enum_items_static}
-    MODIFIER_TYPES_TO_ICONS = {enum_it.identifier: enum_it.icon
-                               for enum_it in bpy.types.Modifier.bl_rna.properties['type'].enum_items_static}
+    MODIFIER_TYPES_TO_LABELS = {
+        enum_it.identifier: enum_it.name
+        for enum_it in bpy.types.Modifier.bl_rna.properties['type'].enum_items_static
+    }
+    MODIFIER_TYPES_TO_ICONS = {
+        enum_it.identifier: enum_it.icon
+        for enum_it in bpy.types.Modifier.bl_rna.properties['type'].enum_items_static
+    }
     MODIFIER_TYPES_I18N_CONTEXT = bpy.types.Modifier.bl_rna.properties['type'].translation_context
 
     @classmethod

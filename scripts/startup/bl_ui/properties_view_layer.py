@@ -34,7 +34,8 @@ class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout

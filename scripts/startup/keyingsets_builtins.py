@@ -501,9 +501,11 @@ class WholeCharacterMixin:
     # custom properties
     def doCustomProps(self, ks, bone):
 
-        prop_type_compat = {bpy.types.BoolProperty,
-                            bpy.types.IntProperty,
-                            bpy.types.FloatProperty}
+        prop_type_compat = {
+            bpy.types.BoolProperty,
+            bpy.types.IntProperty,
+            bpy.types.FloatProperty,
+        }
 
         # go over all custom properties for bone
         for prop in bone.keys():

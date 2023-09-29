@@ -141,8 +141,10 @@ class MeshMirrorUV(Operator):
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        meshes = [ob.data for ob in context.view_layer.objects.selected
-                  if ob.type == 'MESH' and ob.data.library is None]
+        meshes = [
+            ob.data for ob in context.view_layer.objects.selected
+            if ob.type == 'MESH' and ob.data.library is None
+        ]
 
         for mesh in meshes:
             mesh.tag = False

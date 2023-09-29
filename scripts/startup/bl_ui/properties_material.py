@@ -68,7 +68,8 @@ class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
     _context_path = "material"
     _property_type = bpy.types.Material
 
