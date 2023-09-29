@@ -118,6 +118,35 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
+static void clean_unused_attributes(const AnonymousAttributePropagationInfo &propagation_info,
+                                    const Set<AttributeIDRef> &skip,
+                                    GeometryComponent &component)
+{
+  std::optional<MutableAttributeAccessor> attributes = component.attributes_for_write();
+  if (!attributes.has_value()) {
+    return;
+  }
+
+  Vector<std::string> unused_ids;
+  attributes->for_all([&](const AttributeIDRef &id, const AttributeMetaData /*meta_data*/) {
+    if (!id.is_anonymous()) {
+      return true;
+    }
+    if (skip.contains(id)) {
+      return true;
+    }
+    if (propagation_info.propagate(id.anonymous_id())) {
+      return true;
+    }
+    unused_ids.append(id.name());
+    return true;
+  });
+
+  for (const std::string &unused_id : unused_ids) {
+    attributes->remove(unused_id);
+  }
+}
+
 static StringRefNull identifier_suffix(eCustomDataType data_type)
 {
   switch (data_type) {
@@ -191,12 +220,18 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
   }
 
+  const auto capture_on = [&](GeometryComponent &component) {
+    bke::try_capture_field_on_geometry(component, *attribute_id, domain, field);
+    /* Changing of the anonymous attributes may require removing attributes that are no longer
+     * needed. */
+    clean_unused_attributes(
+        params.get_output_propagation_info("Geometry"), {*attribute_id}, component);
+  };
+
   /* Run on the instances component separately to only affect the top level of instances. */
   if (domain == ATTR_DOMAIN_INSTANCE) {
     if (geometry_set.has_instances()) {
-      GeometryComponent &component = geometry_set.get_component_for_write(
-          GeometryComponent::Type::Instance);
-      bke::try_capture_field_on_geometry(component, *attribute_id, domain, field);
+      capture_on(geometry_set.get_component_for_write(GeometryComponent::Type::Instance));
     }
   }
   else {
@@ -207,8 +242,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
       for (const GeometryComponent::Type type : types) {
         if (geometry_set.has(type)) {
-          GeometryComponent &component = geometry_set.get_component_for_write(type);
-          bke::try_capture_field_on_geometry(component, *attribute_id, domain, field);
+          capture_on(geometry_set.get_component_for_write(type));
         }
       }
     });
