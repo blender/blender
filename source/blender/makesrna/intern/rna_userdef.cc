@@ -3798,6 +3798,12 @@ static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Channel", "Nonlinear Animation Channel");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "dopesheet_subchannel", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "ds_subchannel");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Sub-channel", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   prop = RNA_def_property(srna, "nla_track", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, nullptr, "nla_track");
   RNA_def_property_array(prop, 3);
