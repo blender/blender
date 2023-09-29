@@ -37,6 +37,18 @@ typedef struct XrSessionSettings {
 
   int flag;
 
+  float mirrored_ui_offset[2];
+  // float mirrored_ui_scale;
+  float mirrored_ui_scale_y;
+  float mirrored_ui_distance_factor;
+  float cursor_raycast_distance0;
+  float cursor_raycast_distance1;
+  float cursor_raycast_distance2;
+  float viewer_offset[3];
+  float viewer_angle_offset;
+  float mirrored_ui_rads_span;
+  // float _pad3;
+
   /** Object type settings to apply to VR view (unlike shading, not shared with window 3D-View). */
   int object_type_exclude_viewport;
   int object_type_exclude_select;
@@ -45,6 +57,10 @@ typedef struct XrSessionSettings {
 typedef enum eXrSessionFlag {
   XR_SESSION_USE_POSITION_TRACKING = (1 << 0),
   XR_SESSION_USE_ABSOLUTE_TRACKING = (1 << 1),
+  XR_SESSION_USE_UI_MIRROR_XRAY = (1 << 2),
+  XR_SESSION_HIDE_UI_MIRROR_ON_MOUSE_OVER_V3D = (1 << 3),
+  XR_SESSION_SHOW_CONTROLLERS = (1 << 4),
+  XR_SESSION_SHOW_BLENDER_UI_MIRROR = (1 << 5),
 } eXrSessionFlag;
 
 typedef enum eXRSessionBasePoseType {

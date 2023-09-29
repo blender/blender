@@ -111,15 +111,20 @@ typedef struct ReportTimerInfo {
   float widthfac;
 } ReportTimerInfo;
 
-//#ifdef WITH_XR_OPENXR
+// #ifdef WITH_XR_OPENXR
 typedef struct wmXrData {
   /** Runtime information for managing Blender specific behaviors. */
   struct wmXrRuntimeData *runtime;
   /** Permanent session settings (draw mode, feature toggles, etc). Stored in files and accessible
    * even before the session runs. */
   XrSessionSettings session_settings;
+  ListBase full_blender_ui_screens; /* #LinkData of GPUOffScreen, not saved to file. */
+  short window_positions_xy[64];
+  int mouse_positions_per_window_xy[64];
+  int mouse_position_global_xy[2];
+  struct bContext *evil_C;
 } wmXrData;
-//#endif
+// #endif
 
 /* reports need to be before wmWindowManager */
 
@@ -199,9 +204,9 @@ typedef struct wmWindowManager {
 
   struct wmMsgBus *message_bus;
 
-  //#ifdef WITH_XR_OPENXR
+  // #ifdef WITH_XR_OPENXR
   wmXrData xr;
-  //#endif
+  // #endif
 } wmWindowManager;
 
 /** #wmWindowManager.initialized */

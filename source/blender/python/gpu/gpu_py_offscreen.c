@@ -411,7 +411,8 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
                            do_color_management,
                            true,
                            self->ofs,
-                           self->viewport);
+                           self->viewport,
+                           NULL);
 
   GPU_offscreen_unbind(self->ofs, true);
 

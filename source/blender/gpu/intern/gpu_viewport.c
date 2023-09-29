@@ -522,6 +522,9 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
 
 void GPU_viewport_draw_to_screen(GPUViewport *viewport, int view, const rcti *rect)
 {
+  // GG: TODO: LOOK: the windows are drawn w/ colorspace stuff going on!, I should be able to just
+  // disable it? Unless the pre-draw itself is also done w/ colorspacing stuff then its a bit more
+  // invovled..
   GPU_viewport_draw_to_screen_ex(viewport, view, rect, true, true);
 }
 

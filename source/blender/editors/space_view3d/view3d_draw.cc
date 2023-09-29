@@ -29,6 +29,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_studiolight.h"
 #include "BKE_unit.h"
 
@@ -78,6 +79,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "wm_draw.h"
 
 #include "RNA_access.h"
 
@@ -1656,7 +1658,8 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                               const bool do_color_management,
                               const bool restore_rv3d_mats,
                               GPUOffScreen *ofs,
-                              GPUViewport *viewport)
+                              GPUViewport *viewport,
+                              const bContext *evil_C)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, drawtype);
@@ -1732,7 +1735,8 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                                  draw_background,
                                  do_color_management,
                                  ofs,
-                                 viewport);
+                                 viewport,
+                                 evil_C);
   DRW_cache_free_old_subdiv();
   GPU_matrix_pop_projection();
   GPU_matrix_pop();
@@ -1775,7 +1779,8 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      const char *viewname,
                                      const bool do_color_management,
                                      GPUOffScreen *ofs,
-                                     GPUViewport *viewport)
+                                     GPUViewport *viewport,
+                                     bContext *evil_C)
 {
   View3D v3d = blender::dna::shallow_zero_initialize();
   ARegion ar = {nullptr};
@@ -1784,7 +1789,74 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
   v3d.regionbase.first = v3d.regionbase.last = &ar;
   ar.regiondata = &rv3d;
   ar.regiontype = RGN_TYPE_WINDOW;
+  // GG: callbacks are attached to ARegion.type so this needs to be assigned properly.
+  // GG: TODO: a nonNull evil_C works and the deired callbacks will occur (pre/post view  for ex:
+  // mesh loopcut) however, I've disbled it for now since it creates distortion in the xr session
+  // drawing and I dont know why, nor do I have the energy to look into why. A: it seems the
+  // postview callbacks themselves cause the distortion, so
+  // .. the only way for this to work and be practical (no distrtions) then it wo9uld have to be a
+  // GPU state that's being changed by a callback, but i doubt it since we reset() things I think?
+  // Thus the solution is for callbacks themselves to not casuse the distortion which isn't
+  // practical w/o them explicitly knowing whether they're drawing to an XR surface. And thats too
+  // much work atm so i'm leaving the callback drawing disabled.
+  evil_C = nullptr;
+  if (evil_C) {
+    ar.type = BKE_regiontype_from_id(BKE_spacetype_from_id(SPACE_VIEW3D), RGN_TYPE_WINDOW);
 
+    wmWindowManager *wm = CTX_wm_manager(evil_C);
+    wmWindow *win = static_cast<wmWindow *>(wm->windows.first);
+
+    ARegion *v3d_region_under_mouse = nullptr;
+    bScreen *screen = WM_window_get_active_screen(win);
+    ScrArea *v3d_area = nullptr;
+    ED_screen_areas_iter (win, screen, area) {
+      if (area->spacetype != SPACE_VIEW3D) {
+        continue;
+      }
+      // v3d = area->spacedata.first;
+      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+        if (!region->visible) {
+          continue;
+        }
+
+        if (region->overlap) {
+          continue;
+        }
+        if (region->draw_buffer->viewport == NULL) {
+          continue;
+        }
+        if (region->regiontype != RGN_TYPE_WINDOW) {
+          continue;
+        }
+
+        v3d_region_under_mouse = region;
+        v3d_area = area;
+      }
+    }
+
+    // after this, its just tedious stuff that also needs to be set otherwise an error is thrown
+    // but otherwise isn't specifically needed for callbacks to be called.
+    // needed for view3d_draw_border().. GG: TODO: still erroring though..
+    // v3d.spacetype = SPACE_VIEW3D;
+    // send in any old existing v3d area so callbacks occur. Our offscreen buffer is active so it
+    // will draw to our buffer anyways. Who cares what dta its reading from.
+    // IT works!
+    CTX_wm_area_set(evil_C, v3d_area);  // static_cast<ScrArea *>(&v3d));
+    // View3D *v3d_ret = CTX_wm_view3d(evil_C);  // 48dcbfcc70
+    // BLI_assert(v3d_ret != nullptr);
+  }
+  /*
+  * note: seach for CTX_wm_area_set() for proper useage: One file sets it like this:
+  *
+    CTX_wm_manager_set(C, static_cast<wmWindowManager *>(bmain->wm.first));
+    CTX_wm_screen_set(C, bfd->curscreen);
+    CTX_data_scene_set(C, bfd->curscene);
+    CTX_wm_area_set(C, nullptr);
+    CTX_wm_region_set(C, nullptr);
+    CTX_wm_menu_set(C, nullptr);
+
+    SO maybe I do too?
+  */
   View3DShading *source_shading_settings = &scene->display.shading;
   if (draw_flags & V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS && shading_override != nullptr) {
     source_shading_settings = shading_override;
@@ -1822,15 +1894,15 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
       v3d.flag2 |= V3D_XR_SHOW_CUSTOM_OVERLAYS;
     }
     /* Disable other overlays (set all available _HIDE_ flags). */
-    v3d.overlay.flag |= V3D_OVERLAY_HIDE_CURSOR | V3D_OVERLAY_HIDE_TEXT |
-                        V3D_OVERLAY_HIDE_MOTION_PATHS | V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
+    // v3d.overlay.flag |= V3D_OVERLAY_HIDE_CURSOR | V3D_OVERLAY_HIDE_TEXT |
+    //                    V3D_OVERLAY_HIDE_MOTION_PATHS | V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
     if ((draw_flags & V3D_OFSDRAW_SHOW_OBJECT_EXTRAS) == 0) {
       v3d.overlay.flag |= V3D_OVERLAY_HIDE_OBJECT_XTRAS;
     }
     if ((object_type_exclude_viewport_override & (1 << OB_ARMATURE)) != 0) {
       v3d.overlay.flag |= V3D_OVERLAY_HIDE_BONES;
     }
-    v3d.flag |= V3D_HIDE_HELPLINES;
+    // v3d.flag |= V3D_HIDE_HELPLINES;
   }
 
   if (is_xr_surface) {
@@ -1861,7 +1933,8 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                            do_color_management,
                            true,
                            ofs,
-                           viewport);
+                           viewport,
+                           evil_C);
 }
 
 ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
@@ -1989,6 +2062,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                            do_color_management,
                            restore_rv3d_mats,
                            ofs,
+                           nullptr,
                            nullptr);
 
   if (ibuf->rect_float) {

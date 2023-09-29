@@ -3812,6 +3812,23 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+  if (!DNA_struct_elem_find(fd->filesdna, "XrSessionSettings", "float", "mirrored_ui_scale_y")) {
+    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+      wm->xr.session_settings.flag |= XR_SESSION_USE_UI_MIRROR_XRAY | XR_SESSION_SHOW_CONTROLLERS |
+                                      XR_SESSION_SHOW_BLENDER_UI_MIRROR;
+      // Commented code left as reminder that the default hiding is off.
+      // wm->xr.session_settings.flag &= ~XR_SESSION_HIDE_UI_MIRROR_ON_MOUSE_OVER_V3D;
+      zero_v3(wm->xr.session_settings.viewer_offset);
+      wm->xr.session_settings.viewer_angle_offset = 0;
+      wm->xr.session_settings.mirrored_ui_rads_span = 1.57f;
+      zero_v2(wm->xr.session_settings.mirrored_ui_offset);
+      wm->xr.session_settings.mirrored_ui_scale_y = 1;
+      wm->xr.session_settings.mirrored_ui_distance_factor = 10.0f;
+      wm->xr.session_settings.cursor_raycast_distance0 = -1;
+      wm->xr.session_settings.cursor_raycast_distance1 = 1;
+      wm->xr.session_settings.cursor_raycast_distance2 = 6;
+    }
+  }
   if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "short", "ikflag_location")) {
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       if (ob->type != OB_ARMATURE || ob->pose == nullptr) {

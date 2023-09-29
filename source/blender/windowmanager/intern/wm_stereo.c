@@ -73,10 +73,10 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
   immBegin(GPU_PRIM_TRI_FAN, 4);
 
   immAttr2f(texcoord, halfx, halfy);
-  immVertex2f(pos, soffx, 0.0f);
+  immVertex2f(pos, soffx, 0);
 
   immAttr2f(texcoord, 1.0f + halfx, halfy);
-  immVertex2f(pos, soffx + (sizex * 0.5f), 0.0f);
+  immVertex2f(pos, soffx + (sizex * 0.5f), 0);
 
   immAttr2f(texcoord, 1.0f + halfx, 1.0f + halfy);
   immVertex2f(pos, soffx + (sizex * 0.5f), sizey);

@@ -277,6 +277,13 @@ void CTX_data_type_set(struct bContextDataResult *result, short type);
 short CTX_data_type_get(struct bContextDataResult *result);
 
 bool CTX_data_equals(const char *member, const char *str);
+// GG: If is_empty_string(member), then callers should  CTX_data_dir_set(result, dir) where dir
+//  is an array of strings w/ a null sentinel as the last element. These strings are the names of
+//  members/vars that the caller knows about and can set. Why this was never commented/documented
+//  within the code I dont know. (see: https://wiki.blender.org/wiki/Source/Architecture/Context
+//  under callbacks).. And why we've chosen to design a singular function (image_context(..))
+//  that returns two different results for different uses (do you have this member? / fill this
+//  member) is beyond me.
 bool CTX_data_dir(const char *member);
 
 #define CTX_DATA_BEGIN(C, Type, instance, member) \
@@ -285,7 +292,8 @@ bool CTX_data_dir(const char *member);
     CollectionPointerLink *ctx_link; \
     CTX_data_##member(C, &ctx_data_list); \
     for (ctx_link = (CollectionPointerLink *)ctx_data_list.first; ctx_link; \
-         ctx_link = ctx_link->next) { \
+         ctx_link = ctx_link->next) \
+    { \
       Type instance = (Type)ctx_link->ptr.data;
 
 #define CTX_DATA_END \

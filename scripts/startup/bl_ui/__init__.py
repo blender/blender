@@ -84,6 +84,8 @@ _modules = [
 
     # XXX, keep last so panels show after all other tool options.
     "properties_workspace",
+    # XXX This depends on spaces
+    "properties_viewport_vr_mirror",
 ]
 
 import bpy

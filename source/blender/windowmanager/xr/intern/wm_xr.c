@@ -22,7 +22,9 @@
 
 #include "GHOST_C-api.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_platform.h"
+#include "GPU_texture.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -101,6 +103,29 @@ bool wm_xr_init(wmWindowManager *wm)
     if (!wm->xr.runtime) {
       wm->xr.runtime = wm_xr_runtime_data_create();
       wm->xr.runtime->context = context;
+
+      // GG: TODO: .. what happens if user deletes a window while in XR session?
+      // so maybe just have a max buffer of offscreens? Otherwise have to sync w/ window
+      // creation/deletion.
+      LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+        const int width = WM_window_pixels_x(win);
+        const int height = WM_window_pixels_y(win);
+
+        // GG: TODO: I need to use the XR per-eye resolution, not window resolution. Maybe thats
+        // why the UI is blurry? But then, would blender UI drawing implementation.. just work?
+        // There's probably hardcoded areas that query/use the window pixel size...
+        // Though.. maybe im wrong.. because an image quad scnee object w/ blender UI on it appears
+        // fine and not low res/blurry at all..-it is just as blurry when viewed at ~30degrees away
+        // from forward?- so curving the UI is a big help.
+        GPUOffScreen *offscreen = GPU_offscreen_create(
+            width, height, false, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
+
+        // Dont skip so that indices align with wm->windows, so wm_draw_window() can draw to proper
+        // window offscreen buffer if (offscreen == NULL)
+        //   continue;
+
+        BLI_addtail(&wm->xr.full_blender_ui_screens, BLI_genericNodeN(offscreen));
+      }
     }
   }
   BLI_assert(wm->xr.runtime && wm->xr.runtime->context);

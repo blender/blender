@@ -211,6 +211,11 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
   wm->message_bus = NULL;
 
   wm->xr.runtime = NULL;
+  // GG: what if it has data in it? Or is this more of a nulling out refs that dont exist anymore?
+  //  or maybe Blender checks which data has been orphaned and will not save orphaned data? it
+  //  exists on first load of saved data, but not on reload after savingagain?
+  wm->xr.full_blender_ui_screens.first = NULL;
+  wm->xr.full_blender_ui_screens.last = NULL;
 
   BLI_listbase_clear(&wm->jobs);
   BLI_listbase_clear(&wm->drags);

@@ -1383,6 +1383,14 @@ static void imb_stereo3d_read_doit(Stereo3DData *s3d_data, const Stereo3dFormat 
                                   (s3d->flag & S3D_INTERLACE_SWAP) != 0);
       break;
     case S3D_DISPLAY_SIDEBYSIDE:
+      // GG: This func shows that both L/R img buffers already have the scene drawn.
+      //  Since these funcs are just properly interlacing/placing the pixel data within the
+      //  buffers.
+      //... which means that the Blender UI probnably isn't part of these buffers and they're
+      //  just the view3D w/o the overlays. meaning that We must copy the UI elsewhere. This
+      // also means that the BlenderUI part will not have the view3D drawn so hopefully, itll
+      // be trivial to set the view3D non-overlay elements as alpha cutout. Probbaly as simple
+      // as a GL_CLEARBuffEr_COlor(trnasparent) bfore rendering overlays.
       imb_stereo3d_read_sidebyside(s3d_data, (s3d->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0);
       break;
     case S3D_DISPLAY_TOPBOTTOM:

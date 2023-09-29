@@ -78,7 +78,28 @@ typedef struct wmXrRuntimeData {
   ListBase actionmaps; /* #XrActionMap */
   short actactionmap;
   short selactionmap;
+
+  int flags;
+  int _pad;
+
+  int mouse_xy[2];
+  float v3d_origin[3];
+  float v3d_ray_dir[3];
+  float worldspace_from_windowspace[4][4];
+  float viewspace_from_worldspace[4][4];
+  float worldspace_from_viewspace[4][4];
+  float cursor_location_worldspace[3];
+  float _pad1;
+  // float ui_res_scaling_factor;
+  // ideal palce for this, but this etnire struct is intern..
+  // // GG: Might need to store some kind of handle/ref to window so that
+  // // wm_draw_window() can draw to the proper offscreen buffer?
+  // ListBase full_blender_ui_screens; /* #LinkData of GPUOffScreen */
 } wmXrRuntimeData;
+
+enum wmXrRuntimeDataFlags {
+  XR_RUNTIME_IS_MOUSE_OVER_V3D = (1 << 0),
+};
 
 typedef struct wmXrViewportPair {
   struct wmXrViewportPair *next, *prev;
@@ -94,6 +115,7 @@ typedef struct {
   struct ARegionType *controller_art;
   /** Controller draw callback handle. */
   void *controller_draw_handle;
+  void *draw_mirror_blender_ui_to_xr;
 } wmXrSurfaceData;
 
 typedef struct wmXrDrawData {
@@ -234,3 +256,10 @@ void wm_xr_pose_scale_to_imat(const GHOST_XrPose *pose, float scale, float r_ima
  */
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
 void wm_xr_draw_controllers(const struct bContext *C, struct ARegion *region, void *customdata);
+void draw_mirror_blender_ui_to_xr(const struct bContext *C,
+                                  struct ARegion *region,
+                                  void *customdata);
+
+#ifdef __cplusplus
+}
+#endif

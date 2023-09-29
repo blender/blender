@@ -19,12 +19,14 @@
 #include "DEG_depsgraph_query.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
 #include "DRW_engine.h"
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_view3d.h"
 
 #include "GHOST_C-api.h"
 
@@ -38,6 +40,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "wm_draw.h"
 #include "wm_event_system.h"
 #include "wm_surface.h"
 #include "wm_window.h"
@@ -102,6 +105,13 @@ static void wm_xr_session_exit_cb(void *customdata)
 
   /* Free the entire runtime data (including session state and context), to play safe. */
   wm_xr_runtime_data_free(&xr_data->runtime);
+
+  LISTBASE_FOREACH (LinkData *, ld, &xr_data->full_blender_ui_screens) {
+    if (ld->data != NULL)
+      GPU_offscreen_free(ld->data);
+    ld->data = NULL;
+  }
+  BLI_freelistN(&xr_data->full_blender_ui_screens);
 }
 
 static void wm_xr_session_begin_info_create(wmXrData *xr_data,
@@ -157,14 +167,15 @@ bool WM_xr_session_is_ready(const wmXrData *xr)
 }
 
 static void wm_xr_session_base_pose_calc(const Scene *scene,
-                                         const XrSessionSettings *settings,
+                                         const wmXrData *xr,
                                          GHOST_XrPose *r_base_pose,
                                          float *r_base_scale)
 {
+  XrSessionSettings *settings = &xr->session_settings;
   const Object *base_pose_object = ((settings->base_pose_type == XR_BASE_POSE_OBJECT) &&
                                     settings->base_pose_object) ?
                                        settings->base_pose_object :
-                                       scene->camera;
+                                       NULL;
 
   if (settings->base_pose_type == XR_BASE_POSE_CUSTOM) {
     float tmp_quatx[4], tmp_quatz[4];
@@ -178,17 +189,22 @@ static void wm_xr_session_base_pose_calc(const Scene *scene,
     float tmp_quat[4];
     float tmp_eul[3];
 
-    mat4_to_loc_quat(r_base_pose->position, tmp_quat, base_pose_object->object_to_world);
+    mat4_to_loc_quat(
+        r_base_pose->position, r_base_pose->orientation_quat, base_pose_object->object_to_world);
+    // mat4_to_loc_quat(r_base_pose->position, tmp_quat, base_pose_object->object_to_world);
 
     /* Only use rotation around Z-axis to align view with floor. */
-    quat_to_eul(tmp_eul, tmp_quat);
-    tmp_eul[0] = M_PI_2;
-    tmp_eul[1] = 0;
-    eul_to_quat(r_base_pose->orientation_quat, tmp_eul);
+    // quat_to_eul(tmp_eul, tmp_quat);
+    // tmp_eul[0] = M_PI_2;
+    // tmp_eul[1] = 0;
+    // eul_to_quat(r_base_pose->orientation_quat, tmp_eul);
   }
   else {
-    copy_v3_fl(r_base_pose->position, 0.0f);
-    axis_angle_to_quat_single(r_base_pose->orientation_quat, 'X', M_PI_2);
+    mat4_to_loc_quat(r_base_pose->position,
+                     r_base_pose->orientation_quat,
+                     xr->runtime->worldspace_from_viewspace);
+    // copy_v3_fl(r_base_pose->position, 0.0f);
+    // axis_angle_to_quat_single(r_base_pose->orientation_quat, 'X', M_PI_2);
   }
 
   *r_base_scale = settings->base_scale;
@@ -208,7 +224,7 @@ static void wm_xr_session_draw_data_populate(wmXrData *xr_data,
   r_draw_data->surface_data = g_xr_surface->customdata;
 
   wm_xr_session_base_pose_calc(
-      r_draw_data->scene, settings, &r_draw_data->base_pose, &r_draw_data->base_scale);
+      r_draw_data->scene, xr_data, &r_draw_data->base_pose, &r_draw_data->base_scale);
 }
 
 wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
@@ -1179,6 +1195,7 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
   MEM_freeN(actions);
 }
 
+// GG: XR update loop func
 void wm_xr_session_actions_update(wmWindowManager *wm)
 {
   wmXrData *xr = &wm->xr;
@@ -1235,7 +1252,6 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
       if (!xr->runtime->area) {
         xr->runtime->area = ED_area_offscreen_create(win, SPACE_VIEW3D);
       }
-
       /* Set XR area object type flags for operators. */
       View3D *v3d = xr->runtime->area->spacedata.first;
       v3d->object_type_exclude_viewport = settings->object_type_exclude_viewport;
@@ -1278,6 +1294,18 @@ void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
             surface_data->controller_art, wm_xr_draw_controllers, xr, REGION_DRAW_POST_VIEW);
       }
     }
+
+    // GG: TODO: Since the runtime may end before user explicitly deactivates it, then we need to
+    // actually
+    //  clean this up elsewhere (look for general XR runtime free func ).
+    // GG: TODO: this is tmp placement of code. I just need to get the core implemnetation working
+    //   before worry about proper implementation/blender-code-consistency
+    if (surface_data) {
+      if (surface_data->controller_art) {
+        surface_data->draw_mirror_blender_ui_to_xr = ED_region_draw_cb_activate(
+            surface_data->controller_art, draw_mirror_blender_ui_to_xr, xr, REGION_DRAW_POST_VIEW);
+      }
+    }
   }
 }
 
@@ -1293,6 +1321,18 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state)
         ED_region_draw_cb_exit(surface_data->controller_art, surface_data->controller_draw_handle);
       }
       surface_data->controller_draw_handle = NULL;
+    }
+  }
+
+  // GG: Move to proper location. I Think this is for literal hand control data clearing.
+  if (g_xr_surface) {
+    wmXrSurfaceData *surface_data = g_xr_surface->customdata;
+    if (surface_data && surface_data->controller_draw_handle) {
+      if (surface_data->controller_art) {
+        ED_region_draw_cb_exit(surface_data->controller_art,
+                               surface_data->draw_mirror_blender_ui_to_xr);
+      }
+      surface_data->draw_mirror_blender_ui_to_xr = NULL;
     }
   }
 }
@@ -1326,6 +1366,255 @@ static void wm_xr_session_surface_draw(bContext *C)
   Scene *scene;
   Depsgraph *depsgraph;
   wm_xr_session_scene_and_depsgraph_get(wm, &scene, &depsgraph);
+
+  {
+    // placed in draw() instead of update to reduce jitter problems
+    wmWindow *win;
+    int wn_index;
+    LISTBASE_FOREACH_INDEX (wmWindow *, win, &wm->windows, wn_index) {
+      // BLI_assert(wn_index < BLI_)
+      LinkData *ld = BLI_findlink(&wm->xr.full_blender_ui_screens, wn_index);
+      if (ld != NULL && wn_index < 32) {
+        wm->xr.window_positions_xy[wn_index * 2 + 0] = win->posx;
+        wm->xr.window_positions_xy[wn_index * 2 + 1] = win->posy;
+        wm->xr.mouse_positions_per_window_xy[wn_index * 2 + 0] = win->eventstate->xy[0];
+        wm->xr.mouse_positions_per_window_xy[wn_index * 2 + 1] = win->eventstate->xy[1];
+        // this check doesnt work in general since mouse coords .. arent releative to the window??
+        // I thin kthey're relative to the active window?
+        /*if (win->eventstate->xy[0] >= 0 &&
+            win->eventstate->xy[0] <= win->sizex &&
+            win->eventstate->xy[1] >= 0 &&
+            win->eventstate->xy[1] <=  win->sizey)*/
+        if (win->active != 0) {
+          wm->xr.mouse_position_global_xy[0] = win->posx + win->eventstate->xy[0];
+          wm->xr.mouse_position_global_xy[1] = win->posy + win->eventstate->xy[1];
+        }
+      }
+    }
+    wmXrData *xr = &wm->xr;
+    win = wm_xr_session_root_window_or_fallback_get(wm, wm->xr.runtime);
+    copy_v2_v2_int(wm->xr.runtime->mouse_xy, win->eventstate->xy);
+    xr->evil_C = C;
+    copy_v3_v3(xr->runtime->cursor_location_worldspace, scene->cursor.location);
+
+    ARegion *v3d_region_under_mouse = NULL;
+    bScreen *screen = WM_window_get_active_screen(win);
+    // View3D *v3d = NULL;
+    xr->runtime->flags &= ~XR_RUNTIME_IS_MOUSE_OVER_V3D;
+    ED_screen_areas_iter (win, screen, area) {
+      if (area->spacetype != SPACE_VIEW3D) {
+        continue;
+      }
+      // v3d = area->spacedata.first;
+      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+        if (!region->visible) {
+          continue;
+        }
+
+        if (region->overlap) {
+          continue;
+        }
+        if (region->draw_buffer->viewport == NULL) {
+          continue;
+        }
+        if (region->regiontype != RGN_TYPE_WINDOW) {
+          continue;
+        }
+
+        int mouse_over_result = 0;
+        SET_FLAG_FROM_TEST(mouse_over_result,
+                           ED_region_contains_xy(region, win->eventstate->xy),
+                           XR_RUNTIME_IS_MOUSE_OVER_V3D);
+        xr->runtime->flags |= mouse_over_result;
+
+        v3d_region_under_mouse = region;
+      }
+    }
+    zero_v3(wm->xr.runtime->v3d_origin);
+    zero_v3(wm->xr.runtime->v3d_ray_dir);
+    if (v3d_region_under_mouse != NULL) {
+      float v3d_origin[3];
+      float v3d_ray_dir[3];
+
+      float mval[2] = {
+          win->eventstate->xy[0],
+          win->eventstate->xy[1],
+      };
+
+      mval[0] = mval[0] - v3d_region_under_mouse->winrct.xmin;
+      mval[1] = mval[1] - v3d_region_under_mouse->winrct.ymin;
+      ED_view3d_win_to_origin(v3d_region_under_mouse, mval, v3d_origin);
+      ED_view3d_win_to_vector(v3d_region_under_mouse, mval, v3d_ray_dir);
+      copy_v3_v3(wm->xr.runtime->v3d_origin, v3d_origin);
+      copy_v3_v3(wm->xr.runtime->v3d_ray_dir, v3d_ray_dir);
+      // wm->xr.runtime->v3d_clip_start = v3d->clip_start;  // distance to draw UI from cam origin
+
+      // mval[0] = 0;
+      // mval[1] = 0;
+      // ED_view3d_win_to_origin(&wm->xr.runtime->world_viewplane_bottom_left_origin, mval,
+      // v3d_origin); ED_view3d_win_to_vector(&wm->xr.runtime->world_viewplane_bottom_left_raydir,
+      // mval, v3d_ray_dir);
+
+      // mval[0] = v3d_region_under_mouse->winx;
+      // mval[1] = 0;
+      // ED_view3d_win_to_origin(&wm->xr.runtime->world_viewplane_bottom_right_origin, mval,
+      // v3d_origin); ED_view3d_win_to_vector(&wm->xr.runtime->world_viewplane_bottom_right_raydir,
+      // mval, v3d_ray_dir);
+
+      // mval[0] = v3d_region_under_mouse->winx;
+      // mval[1] = v3d_region_under_mouse->winy;
+      // ED_view3d_win_to_origin(&wm->xr.runtime->world_viewplane_top_right_origin, mval,
+      // v3d_origin); ED_view3d_win_to_vector(&wm->xr.runtime->world_viewplane_top_right_raydir,
+      // mval, v3d_ray_dir);
+
+      // mval[0] = 0;
+      // mval[1] = v3d_region_under_mouse->winy;
+      // ED_view3d_win_to_origin(&wm->xr.runtime->world_viewplane_top_left_origin, mval,
+      // v3d_origin); ED_view3d_win_to_vector(&wm->xr.runtime->world_viewplane_top_left_raydir,
+      // mval, v3d_ray_dir); float v3d_projection_matrix[4][4];
+      // {
+      //   RegionView3D *r3d = v3d_region_under_mouse->regiondata;
+      //   Scene *scene;
+      //   Depsgraph *depsgraph;
+      //   wm_xr_session_scene_and_depsgraph_get(wm, &scene, &depsgraph);
+      //   rctf viewplane = {0};
+      //   float clip_start = 0;
+      //   float clip_end = 0;
+      //   bool is_ortho = ED_view3d_viewplane_get(depsgraph,
+      //                                           v3d,
+      //                                           r3d,
+      //                                           v3d_region_under_mouse->winx,
+      //                                           v3d_region_under_mouse->winy,
+      //                                           &viewplane,
+      //                                           &clip_start,
+      //                                           &clip_end,
+      //                                           NULL);
+
+      //   if (is_ortho) {
+      //     orthographic_m4(v3d_projection_matrix,
+      //                     viewplane.xmin,
+      //                     viewplane.xmax,
+      //                     viewplane.ymin,
+      //                     viewplane.ymax,
+      //                     clip_start,
+      //                     clip_end);
+      //   }
+      //   else {
+      //     perspective_m4(v3d_projection_matrix,
+      //                    viewplane.xmin,
+      //                    viewplane.xmax,
+      //                    viewplane.ymin,
+      //                    viewplane.ymax,
+      //                    clip_start,
+      //                    clip_end);
+      //   }
+      // }
+      // takes region [0,1] to worldspace [world left/bottom, world right/top]
+      RegionView3D *r3d = v3d_region_under_mouse->regiondata;
+      copy_m4_m4(xr->runtime->worldspace_from_viewspace, r3d->viewinv);
+      copy_m4_m4(xr->runtime->viewspace_from_worldspace, r3d->viewmat);
+
+      float worldspace_from_normalized_region[4][4];
+      unit_m4(worldspace_from_normalized_region);
+      {
+
+        // Scene *scene;
+        // Depsgraph *depsgraph;
+        // wm_xr_session_scene_and_depsgraph_get(wm, &scene, &depsgraph);
+        // Camera *cam_obj = scene->camera->data;
+
+        float worldspace_bottom_left[3];
+        float worldspace_bottom_right[3];
+        float worldspace_top_left[3];
+
+        float viewspace_from_ndc[4][4];  // same as projection input space
+        copy_m4_m4(viewspace_from_ndc, r3d->persinv);
+        float worldspace_from_viewspace[4][4];
+        copy_m4_m4(worldspace_from_viewspace, r3d->viewinv);
+        // invert_m4(worldspace_from_viewspace);
+
+        float worldspace_from_ndc[4][4];
+        copy_m4_m4(worldspace_from_ndc, worldspace_from_viewspace);
+        mul_m4_m4_post(worldspace_from_ndc, viewspace_from_ndc);
+
+        // GG: USE: besides changing this between [-1,1],
+        //     you can also move and scale the UI by unlocking the camera, zooming/inout and
+        //     panning then relocking the camera.
+        // GG: TIP: GOTCHA: Wireframe bones dont show in XR... Solid do.
+        float ndc_depth = .75f;
+
+        float ndc[3];
+        ndc[0] = -1;
+        ndc[1] = -1;
+        ndc[2] = ndc_depth;
+        // persinv is worldspace_from_ndc?, not viewspace_from_ndc?
+        mul_v3_project_m4_v3(worldspace_bottom_left, viewspace_from_ndc, ndc);
+        // mul_m4_v3(worldspace_from_viewspace, worldspace_bottom_left);
+        //  mul_m4_v3(worldspace_from_viewspace, worldspace_bottom_left);
+
+        // ndc[0] = 0;
+        // ndc[1] = 0;
+        // ndc[2] = -5;
+        // mul_v3_project_m4_v3(worldspace_bottom_left, viewspace_from_ndc, ndc);
+        // mul_m4_v3(worldspace_from_viewspace, worldspace_bottom_left);
+
+        ndc[0] = 1;
+        ndc[1] = -1;
+        ndc[2] = ndc_depth;
+        mul_v3_project_m4_v3(worldspace_bottom_right, viewspace_from_ndc, ndc);
+        // mul_m4_v3(worldspace_from_viewspace, worldspace_bottom_right);
+        //  mul_v3_project_m4_v3(worldspace_bottom_right, worldspace_from_ndc, ndc);
+
+        // ndc[0] = 1;
+        // ndc[1] = 1;
+        // ndc[2] = 0;
+        // mul_v3_project_m4_v3(worldspace_top_right, worldspace_from_ndc, ndc);
+
+        ndc[0] = -1;
+        ndc[1] = 1;
+        ndc[2] = ndc_depth;
+        mul_v3_project_m4_v3(worldspace_top_left, viewspace_from_ndc, ndc);
+        // mul_m4_v3(worldspace_from_viewspace, worldspace_top_left);
+        //  mul_v3_project_m4_v3(worldspace_top_left, worldspace_from_ndc, ndc);
+
+        sub_v3_v3v3(
+            worldspace_from_normalized_region[0], worldspace_bottom_right, worldspace_bottom_left);
+        sub_v3_v3v3(
+            worldspace_from_normalized_region[1], worldspace_top_left, worldspace_bottom_left);
+        cross_v3_v3v3(worldspace_from_normalized_region[2],
+                      worldspace_from_normalized_region[0],
+                      worldspace_from_normalized_region[1]);
+        copy_v3_v3(worldspace_from_normalized_region[3], worldspace_bottom_left);
+      }
+
+      float windowspace_from_normalized_region[4][4];
+      unit_m4(windowspace_from_normalized_region);
+      {
+        float windowspace_bottom_left[3] = {
+            v3d_region_under_mouse->winrct.xmin, v3d_region_under_mouse->winrct.ymin, 0};
+        float windowspace_bottom_right[3] = {
+            v3d_region_under_mouse->winrct.xmax, v3d_region_under_mouse->winrct.ymin, 0};
+        float windowspace_top_left[3] = {
+            v3d_region_under_mouse->winrct.xmin, v3d_region_under_mouse->winrct.ymax, 0};
+        sub_v3_v3v3(windowspace_from_normalized_region[0],
+                    windowspace_bottom_right,
+                    windowspace_bottom_left);
+        sub_v3_v3v3(
+            windowspace_from_normalized_region[1], windowspace_top_left, windowspace_bottom_left);
+        cross_v3_v3v3(windowspace_from_normalized_region[2],
+                      windowspace_from_normalized_region[0],
+                      windowspace_from_normalized_region[1]);
+        copy_v3_v3(windowspace_from_normalized_region[3], windowspace_bottom_left);
+      }
+
+      float normalized_region_from_windowspace[4][4];
+      invert_m4_m4(normalized_region_from_windowspace, windowspace_from_normalized_region);
+
+      mul_m4_m4m4(wm->xr.runtime->worldspace_from_windowspace,
+                  worldspace_from_normalized_region,
+                  normalized_region_from_windowspace);
+    }
+  }
   /* Might fail when force-redrawing windows with #WM_redraw_windows(), which is done on file
    * writing for example. */
   // BLI_assert(DEG_is_fully_evaluated(depsgraph));

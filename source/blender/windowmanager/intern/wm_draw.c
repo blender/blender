@@ -750,6 +750,7 @@ static void wm_draw_region_unbind(ARegion *region)
 
 static void wm_draw_region_blit(ARegion *region, int view)
 {
+  // int original_view = view;
   if (!region->draw_buffer) {
     return;
   }
@@ -765,10 +766,27 @@ static void wm_draw_region_blit(ARegion *region, int view)
     }
   }
 
+  // GG: so they blit w/ awareness of whether its stereo or not.
+  // GG: This is sthe call that draws the viewports scenes (not the overlays).
+  //    So.. i just need to make this completely transparent instead.
+  //    Since this is a blit, that means all the UI was already rendered earlier. This is just
+  //    properly blitting to the L/R buffers, I think. And, that means all other code draws the
+  //    rest of the UI, which is done in GPU_offscreen_draw_to_screen() and caller for overlays.
   if (region->draw_buffer->viewport) {
+
+    // if (original_view == 1) {
+    //   original_view += 1;
+    // }
     GPU_viewport_draw_to_screen(region->draw_buffer->viewport, view, &region->winrct);
   }
   else {
+    // GG: not sure why this draws for view==0, but not for view==1? Maybe the 1st time its drawn
+    // repeated? and the 2nd is just redundant?
+    //  but.. then when the 2nd view only draws, then everything is bal
+    /*if (original_view == 1)
+      return;*/
+    // GG:*USEFUL* That means that the thing of interest is region->draw_buffer->offscreen which
+    // has the UI of interest.
     GPU_offscreen_draw_to_screen(
         region->draw_buffer->offscreen, region->winrct.xmin, region->winrct.ymin);
   }
@@ -1013,7 +1031,10 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
   }
 }
 
-static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
+static void wm_draw_window_onscreen(bContext *C,
+                                    wmWindow *win,
+                                    int view,
+                                    const bool do_view3D_cutout)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   bScreen *screen = WM_window_get_active_screen(win);
@@ -1021,7 +1042,8 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   GPU_debug_group_begin("Window Redraw");
 
   /* Draw into the window frame-buffer, in full window coordinates. */
-  wmWindowViewport(win);
+  wmWindowViewport(
+      win);  // GG: for upscaling, this prob should use upscale res instead of window res.
 
   /* We draw on all pixels of the windows so we don't need to clear them before.
    * Actually this is only a problem when resizing the window.
@@ -1030,17 +1052,28 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   GPU_clear_color(0, 0, 0, 0);
 #endif
 
+  if (do_view3D_cutout)
+    GPU_clear_color(0, 0, 0, 0);
+
   /* Blit non-overlapping area regions. */
+  // GG: This is nonoverlays, so its the File menu, view3D, timeline ,etc.
+  //  Overlays are the T/N panels, timeline playback cursor, etc. view3D nav is drawn here too.
   ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (!region->visible) {
         continue;
       }
 
-      if (region->overlap == false) {
-        /* Blit from off-screen buffer. */
-        wm_draw_region_blit(region, view);
+      if (region->overlap) {
+        continue;
       }
+
+      if (do_view3D_cutout && region->draw_buffer->viewport) {
+        continue;
+      }
+
+      /* Blit from off-screen buffer. */
+      wm_draw_region_blit(region, view);
     }
   }
 
@@ -1123,7 +1156,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   GPU_debug_group_end();
 }
 
-static void wm_draw_window(bContext *C, wmWindow *win)
+static void wm_draw_window(bContext *C, wmWindow *win, GPUOffScreen *mirrored_screen)
 {
   GPU_context_begin_frame(win->gpuctx);
 
@@ -1135,25 +1168,48 @@ static void wm_draw_window(bContext *C, wmWindow *win)
 
   /* Draw area regions into their own frame-buffer. This way we can redraw
    * the areas that need it, and blit the rest from existing frame-buffers. */
+  // GG: I think this is where we drawn Blender UI? then the L/R stero imagaes are just blitted
+  // ontop of the view3D?
+  // GG: I think that this draws all elements, probably except view3D. These elements are then
+  // blitted
+  //  to each L/R side. So the UI is drawn once, cached, blitted per L/R.
+  // So I think this is the
   wm_draw_window_offscreen(C, win, stereo);
+
+  // GG: TODO: if mirrored_screen is not NULL, then draw to that along with drawing to the normal
+  // backbuffer.
+  //  So basically, draw to the mirroeed scren then copy mirror to buffer.
 
   /* Now we draw into the window frame-buffer, in full window coordinates. */
   if (!stereo) {
     /* Regular mono drawing. */
-    wm_draw_window_onscreen(C, win, -1);
+    // GG: *USEFUL* This is the call of interest. It blits all the buffers for the entire UI. To
+    // prevent the view3D from drawing, we just
+    //  avoid calling wm_draw_region_blit():GPU_viewport_draw_to_screen within this function.
+    //  FOr VR sessions, we just set the backbuffer to a render texture (or blit to one) then draw
+    //  the texture in scene space for the session.
+
+    wm_draw_window_onscreen(C, win, -1, false);
+
+    // TODO: Clear view3D to trnasparent and dont draw the sceen at all.
+    if (mirrored_screen != NULL) {
+      GPU_offscreen_bind(mirrored_screen, false);
+      wm_draw_window_onscreen(C, win, -1, true);
+      GPU_offscreen_unbind(mirrored_screen, false);
+    }
   }
   else if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
     /* For page-flip we simply draw to both back buffers. */
     GPU_backbuffer_bind(GPU_BACKBUFFER_RIGHT);
-    wm_draw_window_onscreen(C, win, 1);
+    wm_draw_window_onscreen(C, win, 1, false);
 
     GPU_backbuffer_bind(GPU_BACKBUFFER_LEFT);
-    wm_draw_window_onscreen(C, win, 0);
+    wm_draw_window_onscreen(C, win, 0, false);
   }
   else if (ELEM(win->stereo3d_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
     /* For anaglyph and interlace, we draw individual regions with
      * stereo frame-buffers using different shaders. */
-    wm_draw_window_onscreen(C, win, -1);
+    wm_draw_window_onscreen(C, win, -1, false);
   }
   else {
     /* For side-by-side and top-bottom, we need to render each view to an
@@ -1171,7 +1227,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
       for (int view = 0; view < 2; view++) {
         /* Draw view into offscreen buffer. */
         GPU_offscreen_bind(offscreen, false);
-        wm_draw_window_onscreen(C, win, view);
+        wm_draw_window_onscreen(C, win, view, false);
         GPU_offscreen_unbind(offscreen, false);
 
         /* Draw offscreen buffer to screen. */
@@ -1179,6 +1235,9 @@ static void wm_draw_window(bContext *C, wmWindow *win)
 
         wmWindowViewport(win);
         if (win->stereo3d_format->display_mode == S3D_DISPLAY_SIDEBYSIDE) {
+          // GG: Per iter, this draws half of the entire blender UI, which I think is
+          // a single buffer i think by this point?- as in all the UI is already in the
+          // texture, we're just properly placing it on screen...
           wm_stereo3d_draw_sidebyside(win, view);
         }
         else {
@@ -1192,7 +1251,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
     }
     else {
       /* Still draw something in case of allocation failure. */
-      wm_draw_window_onscreen(C, win, 0);
+      wm_draw_window_onscreen(C, win, 0, false);
     }
   }
 
@@ -1320,7 +1379,7 @@ uint *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_siz
   const uint rect_len = r_size[0] * r_size[1];
   uint *rect = MEM_mallocN(sizeof(*rect) * rect_len, __func__);
   GPU_offscreen_bind(offscreen, false);
-  wm_draw_window_onscreen(C, win, -1);
+  wm_draw_window_onscreen(C, win, -1, false);
   GPU_offscreen_unbind(offscreen, false);
   GPU_offscreen_read_color(offscreen, GPU_DATA_UBYTE, rect);
   GPU_offscreen_free(offscreen);
@@ -1350,7 +1409,7 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
 
   float rect_pixel[4];
   GPU_offscreen_bind(offscreen, false);
-  wm_draw_window_onscreen(C, win, -1);
+  wm_draw_window_onscreen(C, win, -1, false);
   GPU_offscreen_unbind(offscreen, false);
   GPU_offscreen_read_color_region(offscreen, GPU_DATA_FLOAT, pos[0], pos[1], 1, 1, rect_pixel);
   GPU_offscreen_free(offscreen);
@@ -1495,7 +1554,12 @@ void wm_draw_update(bContext *C)
 
   BKE_image_free_unused_gpu_textures();
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+  const bool xr_session_exists = WM_xr_session_exists(&wm->xr);
+  // if(xr_session_exists){
+  //   BLI_assert(BLI_listbase_count(wm->xr->runtime->))
+  // }
+  int wn_index;
+  LISTBASE_FOREACH_INDEX (wmWindow *, win, &wm->windows, wn_index) {
 #ifdef WIN32
     GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
 
@@ -1519,7 +1583,16 @@ void wm_draw_update(bContext *C)
       /* notifiers for screen redraw */
       ED_screen_ensure_updated(C, wm, win, screen);
 
-      wm_draw_window(C, win);
+      GPUOffScreen *xr_mirror_BUI_to_hmd_screen = NULL;
+      const bool draw_to_blender_ui_mirror = (wm->xr.session_settings.flag &
+                                              XR_SESSION_SHOW_BLENDER_UI_MIRROR) != 0;
+      if (xr_session_exists && draw_to_blender_ui_mirror) {
+        // BLI_assert(wn_index < BLI_)
+        LinkData *ld = BLI_findlink(&wm->xr.full_blender_ui_screens, wn_index);
+        if (ld != NULL)
+          xr_mirror_BUI_to_hmd_screen = ld->data;
+      }
+      wm_draw_window(C, win, xr_mirror_BUI_to_hmd_screen);
       wm_draw_update_clear_window(C, win);
 
       wm_window_swap_buffers(win);

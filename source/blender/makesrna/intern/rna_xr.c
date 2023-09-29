@@ -699,7 +699,7 @@ static int rna_XrSessionSettings_icon_from_show_object_viewport_get(PointerRNA *
   const wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   return rna_object_type_visibility_icon_get_common(
       xr->session_settings.object_type_exclude_viewport,
-#    if 0
+#    if 1
     /* For the future when selection in VR is reliably supported. */
     &xr->session_settings.object_type_exclude_select
 #    else
@@ -2035,6 +2035,106 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Clip End", "VR viewport far clipping distance");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 
+  {
+    prop = RNA_def_property(srna, "viewer_offset", PROP_FLOAT, PROP_TRANSLATION);
+    RNA_def_property_float_default(prop, 0);
+    RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+    RNA_def_property_ui_range(prop, -10, 10, 0.01f, 2);
+    RNA_def_property_ui_text(prop, "Viewer Offset", "VR viewport far clipping distance");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "viewer_angle_offset", PROP_FLOAT, PROP_ANGLE);
+    RNA_def_property_float_default(prop, 0);
+    RNA_def_property_range(prop, -6.28f, 6.28f);
+    RNA_def_property_ui_range(prop, -6.28f, 6.28f, 1, 0);
+    RNA_def_property_ui_text(prop, "Angle Offset", "VR viewport far clipping distance");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "mirrored_ui_rads_span", PROP_FLOAT, PROP_ANGLE);
+    RNA_def_property_float_default(prop, 1.57f);
+    RNA_def_property_range(prop, 0, 6.28f);
+    RNA_def_property_ui_range(prop, 0, 6.28f, 1, 0);
+    RNA_def_property_ui_text(prop, "Angle Span", "VR viewport far clipping distance");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "mirrored_ui_offset", PROP_FLOAT, PROP_TRANSLATION);
+    RNA_def_property_float_default(prop, 0);
+    RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+    RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 10, 0);
+    RNA_def_property_ui_text(prop, "UI Offset", "VR viewport far clipping distance");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    // prop = RNA_def_property(srna, "mirrored_ui_scale", PROP_FLOAT, PROP_DISTANCE);
+    // RNA_def_property_float_default(prop, 1);
+    // RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+    // RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 0.1f, 3);
+    // RNA_def_property_ui_text(prop, "UI Scale", "VR viewport far clipping distance");
+    // RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "mirrored_ui_scale_y", PROP_FLOAT, PROP_DISTANCE);
+    RNA_def_property_float_default(prop, 1);
+    RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+    RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 0.1f, 3);
+    RNA_def_property_ui_text(prop, "UI YScale", "VR viewport far clipping distance");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "mirrored_ui_distance_factor", PROP_FLOAT, PROP_DISTANCE);
+    RNA_def_property_float_default(prop, 1);
+    RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+    RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 0.1f, 3);
+    RNA_def_property_ui_text(prop, "UI Distance Factor", "VR viewport far clipping distance");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "cursor_raycast_distance0", PROP_FLOAT, PROP_DISTANCE);
+    RNA_def_property_float_default(prop, -1.0f);
+    RNA_def_property_range(prop, -1.0f, FLT_MAX);
+    RNA_def_property_ui_range(prop, -1.0f, 20.0f, 0.001f, 3);
+    RNA_def_property_ui_text(
+        prop, "Cursor RayCast p0 Distance", "VR viewport far clipping distance");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "cursor_raycast_distance1", PROP_FLOAT, PROP_DISTANCE);
+    RNA_def_property_float_default(prop, 1);
+    RNA_def_property_range(prop, -1.0f, FLT_MAX);
+    RNA_def_property_ui_range(prop, -1.0f, 20.0f, 0.001f, 3);
+    RNA_def_property_ui_text(
+        prop, "Cursor RayCast p1 Distance", "VR viewport far clipping distance");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "cursor_raycast_distance2", PROP_FLOAT, PROP_DISTANCE);
+    RNA_def_property_float_default(prop, 6);
+    RNA_def_property_range(prop, -1.0f, FLT_MAX);
+    RNA_def_property_ui_range(prop, -1.0f, 20.0f, 0.001f, 3);
+    RNA_def_property_ui_text(
+        prop, "Cursor RayCast p2 Distance", "VR viewport far clipping distance");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "use_mirror_ui_xray", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "flag", XR_SESSION_USE_UI_MIRROR_XRAY);
+    RNA_def_property_ui_text(prop, "Mirrored UI: Do XRay", "");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "hide_mirror_ui_on_mouse_over_v3d", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "flag", XR_SESSION_HIDE_UI_MIRROR_ON_MOUSE_OVER_V3D);
+    RNA_def_property_boolean_default(prop, false);
+    RNA_def_property_ui_text(prop,
+                             "Mouse Over V3D: Hide Mirror UI",
+                             "Best used w/ prefs set to disabled region overlapping");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "show_xr_controllers", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "flag", XR_SESSION_SHOW_CONTROLLERS);
+    RNA_def_property_boolean_default(prop, true);
+    RNA_def_property_ui_text(prop, "Show Controllers", "");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+    prop = RNA_def_property(srna, "show_blender_ui_mirror", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "flag", XR_SESSION_SHOW_BLENDER_UI_MIRROR);
+    RNA_def_property_boolean_default(prop, true);
+    RNA_def_property_ui_text(prop, "Show Blender UI Mirror", "");
+    RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+  }
+
   prop = RNA_def_property(srna, "use_positional_tracking", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop,
                                  "rna_XrSessionSettings_use_positional_tracking_get",
@@ -2180,15 +2280,15 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   parm = RNA_def_string(
       func, "user_path", NULL, XR_MAX_USER_PATH_LENGTH, "User Path", "OpenXR user path");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_float_array(
-      func,
+  parm = RNA_def_float_array(func,
       "state",
       2,
       NULL,
       -FLT_MAX,
       FLT_MAX,
       "Action State",
-      "Current state of the VR action. Second float value is only set for 2D vector type actions",
+                             "Current state of the VR action. Second float value is only set "
+                             "for 2D vector type actions",
       -FLT_MAX,
       FLT_MAX);
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_OUTPUT);

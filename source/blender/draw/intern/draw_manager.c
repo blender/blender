@@ -1465,7 +1465,7 @@ void DRW_draw_callbacks_post_scene(void)
 
   const bool do_annotations = drw_draw_show_annotation();
 
-  if (DST.draw_ctx.evil_C) {
+  if (DST.draw_ctx.evil_C && (v3d->flag & V3D_XR_SESSION_SURFACE) == 0) {
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
     DRW_state_reset();
@@ -1490,33 +1490,37 @@ void DRW_draw_callbacks_post_scene(void)
     /* Apply state for callbacks. */
     GPU_apply_state();
 
+    // GG: TODO: ... sadly this very call (operator helper guides) is what causes the visual
+    // distortion while in XR. I suppose the proper way
+    // is for the operators to add their callbacks to the v3D region surface? Then the problematic
+    // operators just plain won't draw? Or just choose to be more aware of when they're causing an
+    // issue and make better choices?
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_POST_VIEW);
 
 #ifdef WITH_XR_OPENXR
     /* XR callbacks (controllers, custom draw functions) for session mirror. */
-    if ((v3d->flag & V3D_XR_SESSION_MIRROR) != 0) {
-      if ((v3d->flag2 & V3D_XR_SHOW_CONTROLLERS) != 0) {
-        ARegionType *art = WM_xr_surface_controller_region_type_get();
+    // if ((v3d->flag & V3D_XR_SESSION_MIRROR) != 0) {
+    if ((v3d->flag2 & V3D_XR_SHOW_CONTROLLERS) != 0) {
+      ARegionType *art = WM_xr_surface_controller_region_type_get();
+      if (art) {
+        ED_region_surface_draw_cb_draw(art, REGION_DRAW_POST_VIEW);
+      }
+    }
+    if ((v3d->flag2 & V3D_XR_SHOW_CUSTOM_OVERLAYS) != 0) {
+      SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
+      if (st) {
+        ARegionType *art = BKE_regiontype_from_id(st, RGN_TYPE_XR);
         if (art) {
           ED_region_surface_draw_cb_draw(art, REGION_DRAW_POST_VIEW);
         }
       }
-      if ((v3d->flag2 & V3D_XR_SHOW_CUSTOM_OVERLAYS) != 0) {
-        SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
-        if (st) {
-          ARegionType *art = BKE_regiontype_from_id(st, RGN_TYPE_XR);
-          if (art) {
-            ED_region_surface_draw_cb_draw(art, REGION_DRAW_POST_VIEW);
-          }
-        }
-      }
+      // }
     }
 #endif
 
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
     DRW_state_reset();
-
     /* Needed so gizmo isn't occluded. */
     if ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
       GPU_depth_test(GPU_DEPTH_NONE);
@@ -1561,6 +1565,9 @@ void DRW_draw_callbacks_post_scene(void)
     }
 
 #ifdef WITH_XR_OPENXR
+    // GG: This is where Blender explicitly draws XR controllers, or more relveant atm,
+    // where blender allows custom drawing during an XR session. this is where I can (properly)
+    // insert the BLender UI quad draw.
     if ((v3d->flag & V3D_XR_SESSION_SURFACE) != 0) {
       DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
@@ -1596,6 +1603,13 @@ void DRW_draw_callbacks_post_scene(void)
 
         DRW_state_reset();
       }
+
+      // disabled since its causing visual distortions?
+      // GPU_depth_test(GPU_DEPTH_NONE);
+      // // 3D cursor drawing,
+      // // ideally, we do this before the controllers are drawn but for some reason doing so leads
+      // // to the controllers not being draw at all
+      // DRW_draw_region_info();
 
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     }
@@ -1773,7 +1787,8 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
 
   DRW_stats_reset();
 
-  DRW_draw_callbacks_post_scene();
+  DRW_draw_callbacks_post_scene();  // maybe gizmos and all dont render in XR because the
+                                    // callbacks aren't attacheds to it?
 
   if (WM_draw_region_get_bound_viewport(region)) {
     /* Don't unbind the frame-buffer yet in this case and let
@@ -1812,7 +1827,8 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     const bool draw_background,
                                     const bool do_color_management,
                                     GPUOffScreen *ofs,
-                                    GPUViewport *viewport)
+                                    GPUViewport *viewport,
+                                    const bContext *evil_C)
 {
   const bool is_xr_surface = ((v3d->flag & V3D_XR_SESSION_SURFACE) != 0);
 
@@ -1834,7 +1850,12 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
   drw_state_prepare_clean_for_draw(&DST);
   DST.options.is_image_render = is_image_render;
   DST.options.draw_background = draw_background;
-  DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, render_viewport, NULL);
+  // GG: I thikn the callbacks dont get called because NULL is sent for the context?
+  // ..well the above one alsos sends NULL, so thats probably not it. Though the CB
+  // beign called do dep on evil_c being non null. Actually i think that's exactly it.
+  // This call stack just doesn't do callbacks for w/e reason? yet its the only way to
+  // draw to an offscreen buffer....
+  DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, render_viewport, evil_C);
 
   if (draw_background) {
     /* HACK(@fclem): In this case we need to make sure the final alpha is 1.

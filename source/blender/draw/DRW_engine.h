@@ -100,7 +100,8 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     bool draw_background,
                                     bool do_color_management,
                                     struct GPUOffScreen *ofs,
-                                    struct GPUViewport *viewport);
+                                    struct GPUViewport *viewport,
+                                    const struct bContext *evil_C);
 void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
                                 struct ARegion *region,
                                 struct GPUViewport *viewport,

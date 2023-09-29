@@ -40,7 +40,8 @@ void ED_view3d_draw_offscreen(struct Depsgraph *depsgraph,
                               bool do_color_management,
                               bool restore_rv3d_mats,
                               struct GPUOffScreen *ofs,
-                              struct GPUViewport *viewport);
+                              struct GPUViewport *viewport,
+                              const struct bContext *evil_C);
 /**
  * Creates own fake 3d views (wrapping #ED_view3d_draw_offscreen). Similar too
  * #ED_view_draw_offscreen_imbuf_simple, but takes view/projection matrices as arguments.
@@ -64,7 +65,8 @@ void ED_view3d_draw_offscreen_simple(struct Depsgraph *depsgraph,
                                      const char *viewname,
                                      bool do_color_management,
                                      struct GPUOffScreen *ofs,
-                                     struct GPUViewport *viewport);
+                                     struct GPUViewport *viewport,
+                                     struct bContext *evil_C);
 
 /**
  * Utility func for ED_view3d_draw_offscreen
