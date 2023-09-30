@@ -5288,7 +5288,7 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
                               bool *r_attr_signed)
 {
   int array_tot;
-  int target_tot;
+//  int target_tot;
 
   *r_size = *r_attr_tot = 0;
   *r_attr_signed = false;
@@ -5333,6 +5333,11 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
     }
     *r_size = RNA_raw_type_sizeof(*r_raw_type);
 
+#if 0  
+    /* This size check does not work as the size check is based on the size of the first element
+     * and elements in the collection/arrray can have different sizes (i.e. for mixed
+     * quad/triangle meshes). See for example issue #111117 */
+
     if ((*r_attr_tot) < 1) {
       *r_attr_tot = 1;
     }
@@ -5347,6 +5352,7 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
                    target_tot);
       return -1;
     }
+#endif
   }
 
   /* Check 'r_attr_tot' otherwise we don't know if any values were set.
