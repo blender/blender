@@ -17,7 +17,9 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_global.h"
+#include "BKE_instances.hh"
 #include "BKE_mesh.hh"
 
 #include "BLI_array.hh"
@@ -64,6 +66,11 @@ static int seed_from_pointcloud(const PointCloud &pointcloud)
 static int seed_from_curves(const bke::CurvesGeometry &curves)
 {
   return curves.point_num;
+}
+
+static int seed_from_instances(const bke::Instances &instances)
+{
+  return instances.instances_num();
 }
 
 static void reorder_customdata(CustomData &data, const Span<int> new_by_old_map)
@@ -221,6 +228,34 @@ void debug_randomize_mesh_order(Mesh *mesh)
   debug_randomize_vertex_order(mesh);
   debug_randomize_edge_order(mesh);
   debug_randomize_face_order(mesh);
+}
+
+void debug_randomize_instance_order(bke::Instances *instances)
+{
+  if (instances == nullptr || !use_debug_randomization()) {
+    return;
+  }
+
+  const int instances_num = instances->instances_num();
+  const int seed = seed_from_instances(*instances);
+  const Array<int> new_by_old_map = get_permutation(instances_num, seed);
+
+  reorder_customdata(instances->custom_data_attributes().data, new_by_old_map);
+
+  const Span<int> old_reference_handles = instances->reference_handles();
+  const Span<float4x4> old_transforms = instances->transforms();
+
+  Vector<int> new_reference_handles(instances_num);
+  Vector<float4x4> new_transforms(instances_num);
+
+  for (const int old_i : new_by_old_map.index_range()) {
+    const int new_i = new_by_old_map[old_i];
+    new_reference_handles[new_i] = old_reference_handles[old_i];
+    new_transforms[new_i] = old_transforms[old_i];
+  }
+
+  instances->reference_handles().copy_from(new_reference_handles);
+  instances->transforms().copy_from(new_transforms);
 }
 
 bool use_debug_randomization()
