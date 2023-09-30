@@ -15,6 +15,8 @@
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
 
+#include "GEO_randomize.hh"
+
 #include "BKE_geometry_set.hh"
 
 namespace blender::nodes::node_geo_points_to_curves_cc {
@@ -151,6 +153,8 @@ static Curves *curves_from_points(const PointCloud &points,
                          {},
                          indices,
                          curves.attributes_for_write());
+
+  geometry::debug_randomize_curve_order(&curves);
   return curves_id;
 }
 

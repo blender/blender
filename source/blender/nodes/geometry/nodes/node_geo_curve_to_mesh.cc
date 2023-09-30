@@ -9,6 +9,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "GEO_randomize.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_curve_to_mesh_cc {
@@ -37,11 +39,13 @@ static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
 
   if (profile_curves == nullptr) {
     Mesh *mesh = bke::curve_to_wire_mesh(curves.geometry.wrap(), propagation_info);
+    geometry::debug_randomize_mesh_order(mesh);
     geometry_set.replace_mesh(mesh);
   }
   else {
     Mesh *mesh = bke::curve_to_mesh_sweep(
         curves.geometry.wrap(), profile_curves->geometry.wrap(), fill_caps, propagation_info);
+    geometry::debug_randomize_mesh_order(mesh);
     geometry_set.replace_mesh(mesh);
   }
 }
