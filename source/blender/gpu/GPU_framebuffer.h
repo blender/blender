@@ -193,6 +193,8 @@ void GPU_framebuffer_bind_loadstore(GPUFrameBuffer *framebuffer,
  *         GPU_ATTACHEMENT_WRITE}  // Color attachment 2
  * })
  * \endcode
+ *
+ * \note Excess attachments will have no effect as long as they are GPU_ATTACHEMENT_IGNORE.
  */
 void GPU_framebuffer_subpass_transition_array(GPUFrameBuffer *framebuffer,
                                               const GPUAttachmentState *attachment_states,
