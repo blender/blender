@@ -692,8 +692,6 @@ static void wm_file_read_post(bContext *C,
     CTX_wm_window_set(C, static_cast<wmWindow *>(wm->windows.first));
   }
 
-  WM_cursor_wait(true);
-
 #ifdef WITH_PYTHON
   if (is_startup_file) {
     /* On startup (by default), Python won't have been initialized.
@@ -820,8 +818,6 @@ static void wm_file_read_post(bContext *C,
       WM_toolsystem_init(C);
     }
   }
-
-  WM_cursor_wait(false);
 }
 
 static void wm_read_callback_pre_wrapper(bContext *C, const char *filepath)
@@ -1071,7 +1067,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       bf_reports.duration.whole = PIL_check_seconds_timer() - bf_reports.duration.whole;
       file_read_reports_finalize(&bf_reports);
 
-      WM_cursor_wait(true);
       success = true;
     }
   }
@@ -1175,8 +1170,6 @@ void wm_homefile_read_ex(bContext *C,
   bool filepath_startup_is_factory = true;
   char filepath_startup[FILE_MAX];
   char filepath_userdef[FILE_MAX];
-
-  WM_cursor_wait(true);
 
   /* When 'app_template' is set:
    * '{BLENDER_USER_CONFIG}/{app_template}' */
@@ -1495,8 +1488,6 @@ void wm_homefile_read_ex(bContext *C,
       CTX_wm_window_set(C, nullptr);
     }
   }
-
-  WM_cursor_wait(false);
 }
 
 void wm_homefile_read(bContext *C,
