@@ -1865,10 +1865,12 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_SNAKE_HOOK:
       br->alpha = 1.0f;
       br->rake_factor = 1.0f;
-      br->dyntopo.flag |= DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP;
-      br->dyntopo.spacing = 0;
-      br->dyntopo.radius_scale = 1.25;
-      br->dyntopo.repeat = 1;
+      br->dyntopo.flag |= DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE;
+      br->dyntopo.flag &= ~DYNTOPO_CLEANUP;
+      br->dyntopo.spacing = 10;
+      br->dyntopo.quality = 0.3f;
+      br->dyntopo.radius_scale = 1.0;
+      br->dyntopo.repeat = 0;
       break;
     case SCULPT_TOOL_THUMB:
       br->size = 75;
