@@ -271,6 +271,8 @@ static void detect_workarounds()
 
     /* Turn off vendor specific extensions. */
     GLContext::native_barycentric_support = false;
+    GLContext::framebuffer_fetch_support = false;
+    GLContext::texture_barrier_support = false;
 
     /* Do not alter OpenGL 4.3 features.
      * These code paths should be removed. */
@@ -510,6 +512,7 @@ bool GLContext::copy_image_support = false;
 bool GLContext::debug_layer_support = false;
 bool GLContext::direct_state_access_support = false;
 bool GLContext::explicit_location_support = false;
+bool GLContext::framebuffer_fetch_support = false;
 bool GLContext::geometry_shader_invocations = false;
 bool GLContext::fixed_restart_index_support = false;
 bool GLContext::layered_rendering_support = false;
@@ -519,6 +522,7 @@ bool GLContext::multi_bind_image_support = false;
 bool GLContext::multi_draw_indirect_support = false;
 bool GLContext::shader_draw_parameters_support = false;
 bool GLContext::stencil_texturing_support = false;
+bool GLContext::texture_barrier_support = false;
 bool GLContext::texture_cube_map_array_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
 bool GLContext::texture_gather_support = false;
@@ -609,6 +613,8 @@ void GLBackend::capabilities_init()
   GLContext::explicit_location_support = epoxy_gl_version() >= 43;
   GLContext::geometry_shader_invocations = epoxy_has_gl_extension("GL_ARB_gpu_shader5");
   GLContext::fixed_restart_index_support = epoxy_has_gl_extension("GL_ARB_ES3_compatibility");
+  GLContext::framebuffer_fetch_support = epoxy_has_gl_extension("GL_EXT_shader_framebuffer_fetch");
+  GLContext::texture_barrier_support = epoxy_has_gl_extension("GL_ARB_texture_barrier");
   GLContext::layered_rendering_support = epoxy_has_gl_extension(
       "GL_ARB_shader_viewport_layer_array");
   GLContext::native_barycentric_support = epoxy_has_gl_extension(
@@ -627,6 +633,9 @@ void GLBackend::capabilities_init()
   GLContext::texture_storage_support = epoxy_gl_version() >= 43;
   GLContext::vertex_attrib_binding_support = epoxy_has_gl_extension(
       "GL_ARB_vertex_attrib_binding");
+
+  /* Disabled until it is proven to work. */
+  GLContext::framebuffer_fetch_support = false;
 
   detect_workarounds();
 
