@@ -302,6 +302,16 @@ void GLFrameBuffer::subpass_transition(const GPUAttachmentState depth_attachment
   }
 }
 
+void GLFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType type, GPULoadStore ls)
+{
+  BLI_assert(context_->active_fb == this);
+
+  /* TODO(fclem): Add support for other ops. */
+  if (ls.load_action == eGPULoadOp::GPU_LOADACTION_CLEAR) {
+    clear_attachment(type, GPU_DATA_FLOAT, ls.clear_value);
+  }
+}
+
 void GLFrameBuffer::apply_state()
 {
   if (dirty_state_ == false) {
