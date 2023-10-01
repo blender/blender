@@ -214,6 +214,18 @@ void VKFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType /*type*/, GPUL
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Sub-pass transition
+ * \{ */
+
+void VKFrameBuffer::subpass_transition(const GPUAttachmentState /*depth_attachment_state*/,
+                                       Span<GPUAttachmentState> /*color_attachment_states*/)
+{
+  NOT_YET_IMPLEMENTED;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Read back
  * \{ */
 
