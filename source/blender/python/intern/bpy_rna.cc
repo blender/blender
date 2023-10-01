@@ -5248,13 +5248,15 @@ static bool foreach_attr_type(BPy_PropertyRNA *self,
                               /* Values to assign. */
                               RawPropertyType *r_raw_type,
                               int *r_attr_tot,
-                              bool *r_attr_signed)
+                              bool *r_attr_signed,
+                              bool *r_is_empty)
 {
   PropertyRNA *prop;
   bool attr_ok = true;
   *r_raw_type = PROP_RAW_UNSET;
   *r_attr_tot = 0;
   *r_attr_signed = false;
+  *r_is_empty = true;
 
   /* NOTE: this is fail with zero length lists, so don't let this get called in that case. */
   RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop) {
@@ -5267,6 +5269,7 @@ static bool foreach_attr_type(BPy_PropertyRNA *self,
     else {
       attr_ok = false;
     }
+    *r_is_empty = false;
     break;
   }
   RNA_PROP_END;
@@ -5287,9 +5290,6 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
                               int *r_attr_tot,
                               bool *r_attr_signed)
 {
-  int array_tot;
-//  int target_tot;
-
   *r_size = *r_attr_tot = 0;
   *r_attr_signed = false;
   *r_raw_type = PROP_RAW_UNSET;
@@ -5310,6 +5310,10 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
   *r_tot = PySequence_Size(*r_seq);
 
   if (*r_tot > 0) {
+#if 0
+    /* Avoid a full collection count when all that's needed is to check it's empty. */
+    int array_tot;
+
     if (RNA_property_type(self->prop) == PROP_COLLECTION) {
       array_tot = RNA_property_collection_length(&self->ptr, self->prop);
     }
@@ -5322,8 +5326,10 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
                    *r_tot);
       return -1;
     }
+#endif
 
-    if (!foreach_attr_type(self, *r_attr, r_raw_type, r_attr_tot, r_attr_signed)) {
+    bool is_empty = false; /* `array_tot == 0`. */
+    if (!foreach_attr_type(self, *r_attr, r_raw_type, r_attr_tot, r_attr_signed, &is_empty)) {
       PyErr_Format(PyExc_AttributeError,
                    "foreach_get/set '%.200s.%200s[...]' elements have no attribute '%.200s'",
                    RNA_struct_identifier(self->ptr.type),
@@ -5331,18 +5337,26 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
                    *r_attr);
       return -1;
     }
+
+    if (is_empty) {
+      PyErr_Format(PyExc_TypeError,
+                   "foreach_get(attr, sequence) sequence length mismatch given %d, needed 0",
+                   *r_tot);
+      return -1;
+    }
+
     *r_size = RNA_raw_type_sizeof(*r_raw_type);
 
-#if 0  
-    /* This size check does not work as the size check is based on the size of the first element
-     * and elements in the collection/arrray can have different sizes (i.e. for mixed
-     * quad/triangle meshes). See for example issue #111117 */
+#if 0
+    /* This size check does not work as the size check is based on the size of the
+     * first element and elements in the collection/array can have different sizes
+     * (i.e. for mixed quad/triangle meshes). See for example issue #111117. */
 
     if ((*r_attr_tot) < 1) {
       *r_attr_tot = 1;
     }
 
-    target_tot = array_tot * (*r_attr_tot);
+    const int target_tot = array_tot * (*r_attr_tot);
 
     /* rna_access.cc - rna_raw_access(...) uses this same method. */
     if (target_tot != (*r_tot)) {
