@@ -5280,6 +5280,7 @@ static bool foreach_attr_type(BPy_PropertyRNA *self,
 /* pyrna_prop_collection_foreach_get/set both use this. */
 static int foreach_parse_args(BPy_PropertyRNA *self,
                               PyObject *args,
+                              const char *function_name,
 
                               /* Values to assign. */
                               const char **r_attr,
@@ -5299,10 +5300,10 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
   }
 
   if (!PySequence_Check(*r_seq) && PyObject_CheckBuffer(*r_seq)) {
-    PyErr_Format(
-        PyExc_TypeError,
-        "foreach_get/set expected second argument to be a sequence or buffer, not a %.200s",
-        Py_TYPE(*r_seq)->tp_name);
+    PyErr_Format(PyExc_TypeError,
+                 "%s(..) expected second argument to be a sequence or buffer, not a %.200s",
+                 function_name,
+                 Py_TYPE(*r_seq)->tp_name);
     return -1;
   }
 
@@ -5322,7 +5323,8 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
     }
     if (array_tot == 0) {
       PyErr_Format(PyExc_TypeError,
-                   "foreach_get(attr, sequence) sequence length mismatch given %d, needed 0",
+                   "%s(..) sequence length mismatch given %d, needed 0",
+                   function_name,
                    *r_tot);
       return -1;
     }
@@ -5331,7 +5333,8 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
     bool is_empty = false; /* `array_tot == 0`. */
     if (!foreach_attr_type(self, *r_attr, r_raw_type, r_attr_tot, r_attr_signed, &is_empty)) {
       PyErr_Format(PyExc_AttributeError,
-                   "foreach_get/set '%.200s.%200s[...]' elements have no attribute '%.200s'",
+                   "%s(..) '%.200s.%200s[...]' elements have no attribute '%.200s'",
+                   function_name,
                    RNA_struct_identifier(self->ptr.type),
                    RNA_property_identifier(self->prop),
                    *r_attr);
@@ -5340,7 +5343,8 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
 
     if (is_empty) {
       PyErr_Format(PyExc_TypeError,
-                   "foreach_get(attr, sequence) sequence length mismatch given %d, needed 0",
+                   "%s(..) sequence length mismatch given %d, needed 0",
+                   function_name,
                    *r_tot);
       return -1;
     }
@@ -5361,7 +5365,8 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
     /* rna_access.cc - rna_raw_access(...) uses this same method. */
     if (target_tot != (*r_tot)) {
       PyErr_Format(PyExc_TypeError,
-                   "foreach_get(attr, sequence) sequence length mismatch given %d, needed %d",
+                   "%s(..) sequence length mismatch given %d, needed %d",
+                   function_name,
                    *r_tot,
                    target_tot);
       return -1;
@@ -5373,7 +5378,8 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
    * This isn't ideal because it means running on an empty list may
    * fail silently when it's not compatible. */
   if (*r_size == 0 && *r_attr_tot != 0) {
-    PyErr_SetString(PyExc_AttributeError, "attribute does not support foreach method");
+    PyErr_Format(
+        PyExc_AttributeError, "%s(..): attribute does not support foreach method", function_name);
     return -1;
   }
   return 0;
@@ -5432,8 +5438,16 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
   bool attr_signed;
   RawPropertyType raw_type;
 
-  if (foreach_parse_args(
-          self, args, &attr, &seq, &tot, &size, &raw_type, &attr_tot, &attr_signed) == -1)
+  if (foreach_parse_args(self,
+                         args,
+                         set ? "foreach_set" : "foreach_get",
+                         &attr,
+                         &seq,
+                         &tot,
+                         &size,
+                         &raw_type,
+                         &attr_tot,
+                         &attr_signed) == -1)
   {
     return nullptr;
   }
