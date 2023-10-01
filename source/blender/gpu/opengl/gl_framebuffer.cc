@@ -287,12 +287,9 @@ void GLFrameBuffer::subpass_transition(const GPUAttachmentState depth_attachment
           tmp_detached_[type] = GPU_ATTACHMENT_NONE;
         }
       }
-      else {
+      else if (color_attachment_states[i] == GPU_ATTACHEMENT_READ) {
         tmp_detached_[type] = this->attachments_[type];
         unwrap(tmp_detached_[type].tex)->detach_from(this);
-      }
-
-      if (color_attachment_states[i] == GPU_ATTACHEMENT_READ) {
         GPU_texture_bind_ex(tmp_detached_[type].tex, GPUSamplerState::default_sampler(), i);
       }
     }
