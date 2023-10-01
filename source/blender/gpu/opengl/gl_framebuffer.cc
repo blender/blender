@@ -440,6 +440,8 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type,
   /* Save and restore the state. */
   eGPUWriteMask write_mask = GPU_write_mask_get();
   GPU_color_mask(true, true, true, true);
+  bool depth_mask = GPU_depth_mask_get();
+  GPU_depth_mask(true);
 
   context_->state_manager->apply_state();
 
@@ -480,6 +482,7 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type,
   }
 
   GPU_write_mask(write_mask);
+  GPU_depth_mask(depth_mask);
 }
 
 void GLFrameBuffer::clear_multi(const float (*clear_cols)[4])
