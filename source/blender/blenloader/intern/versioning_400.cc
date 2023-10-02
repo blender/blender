@@ -1565,7 +1565,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 30)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
-      enum { IS_DEFAULT = 0, IS_UV, IS_NODE, IS_ANIM } is_node;
+      enum { IS_DEFAULT = 0, IS_UV, IS_NODE, IS_ANIM };
       auto versioning_snap_to = [](short snap_to_old, int type) {
         eSnapMode snap_to_new = SCE_SNAP_TO_NONE;
         if (snap_to_old & (1 << 0)) {
