@@ -97,15 +97,6 @@ void ED_operatortypes_armature()
   WM_operatortype_append(POSE_OT_select_grouped);
   WM_operatortype_append(POSE_OT_select_mirror);
 
-  WM_operatortype_append(POSE_OT_group_add);
-  WM_operatortype_append(POSE_OT_group_remove);
-  WM_operatortype_append(POSE_OT_group_move);
-  WM_operatortype_append(POSE_OT_group_sort);
-  WM_operatortype_append(POSE_OT_group_assign);
-  WM_operatortype_append(POSE_OT_group_unassign);
-  WM_operatortype_append(POSE_OT_group_select);
-  WM_operatortype_append(POSE_OT_group_deselect);
-
   WM_operatortype_append(POSE_OT_paths_calculate);
   WM_operatortype_append(POSE_OT_paths_update);
   WM_operatortype_append(POSE_OT_paths_clear);

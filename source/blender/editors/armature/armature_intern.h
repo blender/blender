@@ -112,15 +112,6 @@ void POSE_OT_select_constraint_target(struct wmOperatorType *ot);
 void POSE_OT_select_grouped(struct wmOperatorType *ot);
 void POSE_OT_select_mirror(struct wmOperatorType *ot);
 
-void POSE_OT_group_add(struct wmOperatorType *ot);
-void POSE_OT_group_remove(struct wmOperatorType *ot);
-void POSE_OT_group_move(struct wmOperatorType *ot);
-void POSE_OT_group_sort(struct wmOperatorType *ot);
-void POSE_OT_group_assign(struct wmOperatorType *ot);
-void POSE_OT_group_unassign(struct wmOperatorType *ot);
-void POSE_OT_group_select(struct wmOperatorType *ot);
-void POSE_OT_group_deselect(struct wmOperatorType *ot);
-
 void POSE_OT_paths_calculate(struct wmOperatorType *ot);
 void POSE_OT_paths_update(struct wmOperatorType *ot);
 void POSE_OT_paths_clear(struct wmOperatorType *ot);
