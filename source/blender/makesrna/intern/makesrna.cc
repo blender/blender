@@ -3010,25 +3010,6 @@ static void rna_def_property_wrapper_funcs(FILE *f, StructDefRNA *dsrna, Propert
   }
 }
 
-/**
- * Counts the number of template arguments by looking at `<` and `,` characters in the name. More
- * complex template arguments that contains `,` themselves are not handled yet.
- */
-static int count_template_args(const char *function_name)
-{
-  BLI_assert(function_name != nullptr);
-  if (!strstr(function_name, "<")) {
-    return 0;
-  }
-  int count = 1;
-  for (const char *c = function_name; *c; c++) {
-    if (*c == ',') {
-      count++;
-    }
-  }
-  return count;
-}
-
 static void rna_def_function_wrapper_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA *dfunc)
 {
   StructRNA *srna = dsrna->srna;
@@ -3045,10 +3026,7 @@ static void rna_def_function_wrapper_funcs(FILE *f, StructDefRNA *dsrna, Functio
   rna_construct_wrapper_function_name(
       funcname, sizeof(funcname), srna->identifier, func->identifier, "func");
 
-  /* A function with templates cannot have C linkage. */
-  if (!(dfunc->call && count_template_args(dfunc->call) > 0)) {
-    fprintf(f, "RNA_EXTERN_C ");
-  }
+  fprintf(f, "RNA_EXTERN_C ");
   rna_generate_static_parameter_prototypes(f, srna, dfunc, funcname, 0);
 
   fprintf(f, "\n{\n");
@@ -3807,19 +3785,6 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
   dsrna = rna_find_struct_def(srna);
   func = dfunc->func;
 
-  const int template_args_num = dfunc->call ? count_template_args(dfunc->call) : 0;
-  if (!name_override && template_args_num > 0) {
-    /* The template names are called A, B, C, etc. */
-    BLI_assert(template_args_num <= 26);
-    fprintf(f, "template<typename A");
-    char template_name = 'B';
-    for (int i = 0; i < template_args_num - 1; i++) {
-      fprintf(f, ", typename %c", template_name);
-      template_name++;
-    }
-    fprintf(f, "> ");
-  }
-
   /* return type */
   LISTBASE_FOREACH (PropertyDefRNA *, dparm, &dfunc->cont.properties) {
     if (dparm->prop == func->c_ret) {
@@ -3845,15 +3810,7 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
 
   /* function name */
   if (name_override == nullptr || name_override[0] == '\0') {
-    /* Here we only need the function name without the template parameters. */
-    const char *template_begin = strstr(dfunc->call, "<");
-    if (template_begin) {
-      const int num_chars = template_begin - dfunc->call;
-      fprintf(f, "%.*s(", num_chars, dfunc->call);
-    }
-    else {
-      fprintf(f, "%s(", dfunc->call);
-    }
+    fprintf(f, "%s(", dfunc->call);
   }
   else {
     fprintf(f, "%s(", name_override);
@@ -3997,6 +3954,12 @@ static void rna_generate_static_function_prototypes(BlenderRNA * /*brna*/,
     dfunc = rna_find_function_def(func);
 
     if (dfunc->call) {
+      if (strstr(dfunc->call, "<")) {
+        /* Can't generate the declaration for templates. We'll still get compile errors when trying
+         * to call it with a wrong signature. */
+        continue;
+      }
+
       if (first) {
         fprintf(f, "/* Repeated prototypes to detect errors */\n\n");
         first = 0;
