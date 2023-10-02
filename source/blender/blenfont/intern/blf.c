@@ -79,6 +79,21 @@ void BLF_exit(void)
   blf_font_exit();
 }
 
+void BLF_reset_fonts(void)
+{
+  const int def_font = BLF_default();
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *font = global_font[i];
+    if (font && !ELEM(i, def_font, blf_mono_font, blf_mono_font_render) &&
+        !(font->flags & BLF_DEFAULT))
+    {
+      /* Remove fonts that are not used in the UI or part of the stack. */
+      blf_font_free(font);
+      global_font[i] = NULL;
+    }
+  }
+}
+
 void BLF_cache_clear(void)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {

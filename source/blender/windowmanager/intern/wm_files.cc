@@ -1035,6 +1035,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       ListBase wmbase;
       wm_window_match_init(C, &wmbase);
 
+      /* Close any user-loaded fonts. */
+      BLF_reset_fonts();
+
       /* This flag is initialized by the operator but overwritten on read.
        * need to re-enable it here else drivers and registered scripts won't work. */
       const int G_f_orig = G.f;
@@ -2544,6 +2547,9 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
       use_userdef = true;
     }
   }
+
+  /* Close any user-loaded fonts. */
+  BLF_reset_fonts();
 
   char app_template_buf[sizeof(U.app_template)];
   const char *app_template;
