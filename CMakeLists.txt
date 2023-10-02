@@ -1891,6 +1891,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     C_WARN_NO_STRICT_PROTOTYPES -Wno-strict-prototypes
     C_WARN_NO_BITWISE_INSTEAD_OF_LOGICAL -Wno-bitwise-instead-of-logical
     C_WARN_NO_IMPLICIT_CONST_INT_FLOAT_CONVERSION -Wno-implicit-const-int-float-conversion
+    C_WARN_NO_SINGLE_BIT_BITFIELD_CONSTANT_CONVERSION -Wno-single-bit-bitfield-constant-conversion
   )
 
   add_check_cxx_compiler_flags(
