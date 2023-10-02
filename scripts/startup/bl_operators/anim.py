@@ -276,10 +276,10 @@ class NLA_OT_bake(Operator):
             do_constraint_clear=self.clear_constraints,
             do_parents_clear=self.clear_parents,
             do_clean=self.clean_curves,
-            do_location = 'LOCATION' in self.channel_types,
-            do_rotation = 'ROTATION' in self.channel_types,
-            do_scale = 'SCALE' in self.channel_types,
-            do_bbone = 'BBONE' in self.channel_types,
+            do_location='LOCATION' in self.channel_types,
+            do_rotation='ROTATION' in self.channel_types,
+            do_scale='SCALE' in self.channel_types,
+            do_bbone='BBONE' in self.channel_types,
         )
 
         if bake_options.do_pose and self.only_selected:
