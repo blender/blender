@@ -70,6 +70,8 @@ static eStrCursorDelimType cursor_delim_type_unicode(const uint uch)
 
     case '\'':
     case '\"':
+    case '\`':
+    case 0xB4:        /* Acute accent. */
       return STRCUR_DELIM_QUOTE;
 
     case ' ':
