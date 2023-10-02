@@ -4,6 +4,8 @@
 
 #include "BLI_string.h"
 
+#include "BLT_translation.h"
+
 #include "ANIM_bone_collections.h"
 
 #include "testing/testing.h"
@@ -24,13 +26,13 @@ TEST(ANIM_bone_collections, bonecoll_default_name)
 {
   {
     BoneCollection *bcoll = ANIM_bonecoll_new("");
-    EXPECT_EQ("Bones", std::string(bcoll->name));
+    EXPECT_EQ(DATA_("Bones"), std::string(bcoll->name));
     ANIM_bonecoll_free(bcoll);
   }
 
   {
     BoneCollection *bcoll = ANIM_bonecoll_new(nullptr);
-    EXPECT_EQ("Bones", std::string(bcoll->name));
+    EXPECT_EQ(DATA_("Bones"), std::string(bcoll->name));
     ANIM_bonecoll_free(bcoll);
   }
 }
