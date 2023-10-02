@@ -1565,36 +1565,41 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 30)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
-      auto versioning_snap_to = [](short snap_to_old, bool is_node = false) {
-        short snap_to_new = SCE_SNAP_TO_NONE;
+      enum { IS_DEFAULT = 0, IS_UV, IS_NODE, IS_ANIM } is_node;
+      auto versioning_snap_to = [](short snap_to_old, int type) {
+        eSnapMode snap_to_new = SCE_SNAP_TO_NONE;
         if (snap_to_old & (1 << 0)) {
-          snap_to_new |= is_node ? SCE_SNAP_TO_NODE_X : SCE_SNAP_TO_VERTEX;
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_TO_NODE_X :
+                         type == IS_ANIM ? SCE_SNAP_TO_FRAME :
+                                           SCE_SNAP_TO_VERTEX;
         }
         if (snap_to_old & (1 << 1)) {
-          snap_to_new |= is_node ? SCE_SNAP_TO_NODE_Y : SCE_SNAP_TO_EDGE;
+          snap_to_new |= type == IS_NODE ? SCE_SNAP_TO_NODE_Y :
+                         type == IS_ANIM ? SCE_SNAP_TO_SECOND :
+                                           SCE_SNAP_TO_EDGE;
         }
-        if (snap_to_old & (1 << 2)) {
-          snap_to_new |= SCE_SNAP_TO_FACE;
+        if (ELEM(type, IS_DEFAULT, IS_ANIM) && snap_to_old & (1 << 2)) {
+          snap_to_new |= type == IS_DEFAULT ? SCE_SNAP_TO_FACE : SCE_SNAP_TO_MARKERS;
         }
-        if (snap_to_old & (1 << 3)) {
+        if (type == IS_DEFAULT && snap_to_old & (1 << 3)) {
           snap_to_new |= SCE_SNAP_TO_VOLUME;
         }
-        if (snap_to_old & (1 << 4)) {
+        if (type == IS_DEFAULT && snap_to_old & (1 << 4)) {
           snap_to_new |= SCE_SNAP_TO_EDGE_MIDPOINT;
         }
-        if (snap_to_old & (1 << 5)) {
+        if (type == IS_DEFAULT && snap_to_old & (1 << 5)) {
           snap_to_new |= SCE_SNAP_TO_EDGE_PERPENDICULAR;
         }
-        if (snap_to_old & (1 << 6)) {
+        if (ELEM(type, IS_DEFAULT, IS_UV, IS_NODE) && snap_to_old & (1 << 6)) {
           snap_to_new |= SCE_SNAP_TO_INCREMENT;
         }
-        if (snap_to_old & (1 << 7)) {
+        if (ELEM(type, IS_DEFAULT, IS_UV, IS_NODE) && snap_to_old & (1 << 7)) {
           snap_to_new |= SCE_SNAP_TO_GRID;
         }
-        if (snap_to_old & (1 << 8)) {
+        if (type == IS_DEFAULT && snap_to_old & (1 << 8)) {
           snap_to_new |= SCE_SNAP_INDIVIDUAL_PROJECT;
         }
-        if (snap_to_old & (1 << 9)) {
+        if (type == IS_DEFAULT && snap_to_old & (1 << 9)) {
           snap_to_new |= SCE_SNAP_INDIVIDUAL_NEAREST;
         }
         if (snap_to_old & (1 << 10)) {
@@ -1606,13 +1611,18 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         if (snap_to_old & (1 << 12)) {
           snap_to_new |= SCE_SNAP_TO_MARKERS;
         }
+
+        if (!snap_to_new) {
+          snap_to_new = eSnapMode(1 << 0);
+        }
+
         return snap_to_new;
       };
 
-      ts->snap_mode = versioning_snap_to(ts->snap_mode);
-      ts->snap_uv_mode = versioning_snap_to(ts->snap_uv_mode);
-      ts->snap_node_mode = versioning_snap_to(ts->snap_node_mode, true);
-      ts->snap_anim_mode = versioning_snap_to(ts->snap_anim_mode);
+      ts->snap_mode = versioning_snap_to(ts->snap_mode, IS_DEFAULT);
+      ts->snap_uv_mode = versioning_snap_to(ts->snap_uv_mode, IS_UV);
+      ts->snap_node_mode = versioning_snap_to(ts->snap_node_mode, IS_NODE);
+      ts->snap_anim_mode = versioning_snap_to(ts->snap_anim_mode, IS_ANIM);
     }
   }
 

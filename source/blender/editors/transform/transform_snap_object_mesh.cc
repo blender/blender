@@ -394,7 +394,7 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
     }
   }
   else {
-    elem = SCE_SNAP_TO_VERTEX;
+    elem = SCE_SNAP_TO_EDGE_ENDPOINT;
     const int *face_verts = &nearest2d.corner_verts[face.start()];
     for (int i = face.size(); i--;) {
       cb_snap_vert(&nearest2d,
@@ -483,7 +483,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   nearest.dist_sq = sctx->ret.dist_px_sq;
 
   int last_index = nearest.index;
-  eSnapMode elem = SCE_SNAP_TO_POINT;
+  eSnapMode elem = SCE_SNAP_TO_NONE;
 
   if (bvhtree[1]) {
     BLI_assert(snap_to & SCE_SNAP_TO_POINT);
@@ -498,7 +498,10 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
                                        cb_snap_vert,
                                        &nearest2d);
 
-    last_index = nearest.index;
+    if (nearest.index != -1) {
+      last_index = nearest.index;
+      elem = SCE_SNAP_TO_POINT;
+    }
   }
 
   if (snap_to & (SNAP_TO_EDGE_ELEMENTS & ~SCE_SNAP_TO_EDGE_ENDPOINT)) {
@@ -562,6 +565,10 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
           &nearest,
           cb_snap_tri_verts,
           &nearest2d);
+    }
+
+    if (last_index != nearest.index) {
+      elem = SCE_SNAP_TO_EDGE_ENDPOINT;
     }
   }
 
