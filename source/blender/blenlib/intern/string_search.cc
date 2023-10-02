@@ -466,8 +466,8 @@ Vector<void *> StringSearchBase::query_impl(const StringRef query) const
     }
   }
 
-  Vector<int> found_scores;
-  for (const int score : result_indices_by_score.keys()) {
+  Vector<float> found_scores;
+  for (const float score : result_indices_by_score.keys()) {
     found_scores.append(score);
   }
   std::sort(found_scores.begin(), found_scores.end(), std::greater<>());
@@ -475,7 +475,7 @@ Vector<void *> StringSearchBase::query_impl(const StringRef query) const
   /* Add results to output vector in correct order. First come the results with the best match
    * score. Results with the same score are in the order they have been added to the search. */
   Vector<int> sorted_result_indices;
-  for (const int score : found_scores) {
+  for (const float score : found_scores) {
     MutableSpan<int> indices = result_indices_by_score.lookup(score);
     if (score == found_scores[0]) {
       if (!query.is_empty()) {
