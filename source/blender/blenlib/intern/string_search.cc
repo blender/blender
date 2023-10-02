@@ -235,8 +235,29 @@ static bool match_word_initials(StringRef query,
 static int get_best_word_index_that_startswith(StringRef query,
                                                Span<StringRef> words,
                                                Span<float> word_weights,
-                                               Span<int> word_match_map)
+                                               Span<int> word_match_map,
+                                               Span<StringRef> remaining_query_words)
 {
+  /* If there is another word in the remaining full query that contains the current word, we have
+   * to pick the shortest word. If we pick a longer one, it can happen that the other query word
+   * does not have a match anymore. This can lead to a situation where a query does not match
+   * itself anymore.
+   *
+   * E.g. the full query `T > Test` wouldn't match itself anymore if `Test` has a higher weight.
+   * That's because the `T` would be matched with the `Test`, but then `Test` can't match `Test
+   * anymore because that's taken up already.
+   *
+   * If we don't have to pick the shortest match for correctness, pick the one with the largest
+   * weight instead.
+   */
+  bool use_shortest_match = false;
+  for (const StringRef other_word : remaining_query_words) {
+    if (other_word.startswith(query)) {
+      use_shortest_match = true;
+      break;
+    }
+  }
+
   int best_word_size = INT32_MAX;
   int best_word_index = -1;
   int best_word_weight = 0.0f;
@@ -247,7 +268,7 @@ static int get_best_word_index_that_startswith(StringRef query,
     StringRef word = words[i];
     const float word_weight = word_weights[i];
     if (word.startswith(query)) {
-      if (word.size() < best_word_size ||
+      if ((use_shortest_match && word.size() < best_word_size) ||
           (word.size() == best_word_size && word_weight > best_word_weight))
       {
         best_word_index = i;
@@ -298,7 +319,11 @@ static std::optional<float> score_query_against_words(Span<StringRef> query_word
     {
       /* Check if any result word begins with the query word. */
       const int word_index = get_best_word_index_that_startswith(
-          query_word, result_words, result_word_weights, word_match_map);
+          query_word,
+          result_words,
+          result_word_weights,
+          word_match_map,
+          query_words.drop_front(query_word_index + 1));
       if (word_index >= 0) {
         total_match_score += 10 * result_word_weights[word_index];
         word_match_map[word_index] = query_word_index;
