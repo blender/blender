@@ -181,8 +181,6 @@ void DRW_texture_pool_take_texture_ownership(DRWTexturePool *pool, GPUTexture *t
 
 void DRW_texture_pool_give_texture_ownership(DRWTexturePool *pool, GPUTexture *tex)
 {
-  BLI_assert(pool->tmp_tex_acquired.first_index_of_try(tex) == -1 &&
-             pool->tmp_tex_released.first_index_of_try(tex) == -1);
   pool->tmp_tex_acquired.append(tex);
 }
 
