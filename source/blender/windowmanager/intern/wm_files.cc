@@ -1025,6 +1025,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     if (bfd != nullptr) {
       wm_file_read_pre(use_data, use_userdef);
 
+      /* Close any user-loaded fonts. */
+      BLF_reset_fonts();
+
       /* Put WM into a stable state for post-readfile processes (kill jobs, removes event handlers,
        * message bus, and so on). */
       BlendFileReadWMSetupData *wm_setup_data = wm_file_read_setup_wm_init(C, bmain, false);
@@ -2557,6 +2560,9 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
       use_userdef = true;
     }
   }
+
+  /* Close any user-loaded fonts. */
+  BLF_reset_fonts();
 
   char app_template_buf[sizeof(U.app_template)];
   const char *app_template;
