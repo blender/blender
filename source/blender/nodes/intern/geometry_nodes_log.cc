@@ -578,28 +578,9 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerP
   ComputeContextBuilder compute_context_builder;
   compute_context_builder.push<bke::ModifierComputeContext>(parsed_path->modifier_name);
   for (const ViewerPathElem *elem : parsed_path->node_path) {
-    switch (elem->type) {
-      case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
-        const auto &typed_elem = *reinterpret_cast<const GroupNodeViewerPathElem *>(elem);
-        compute_context_builder.push<bke::NodeGroupComputeContext>(typed_elem.node_id);
-        break;
-      }
-      case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
-        const auto &typed_elem = *reinterpret_cast<const SimulationZoneViewerPathElem *>(elem);
-        compute_context_builder.push<bke::SimulationZoneComputeContext>(
-            typed_elem.sim_output_node_id);
-        break;
-      }
-      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
-        const auto &typed_elem = *reinterpret_cast<const RepeatZoneViewerPathElem *>(elem);
-        compute_context_builder.push<bke::RepeatZoneComputeContext>(
-            typed_elem.repeat_output_node_id, typed_elem.iteration);
-        break;
-      }
-      default: {
-        BLI_assert_unreachable();
-        break;
-      }
+    if (!ed::viewer_path::add_compute_context_for_viewer_path_elem(*elem, compute_context_builder))
+    {
+      return nullptr;
     }
   }
   const ComputeContextHash context_hash = compute_context_builder.hash();
