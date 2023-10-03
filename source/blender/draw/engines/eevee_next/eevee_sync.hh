@@ -80,12 +80,12 @@ class ObjectKey {
 
   bool operator<(const ObjectKey &k) const
   {
-    return memcmp(this, &k, sizeof(this)) < 0;
+    return memcmp(this, &k, sizeof(*this)) < 0;
   }
 
   bool operator==(const ObjectKey &k) const
   {
-    return memcmp(this, &k, sizeof(this)) == 0;
+    return memcmp(this, &k, sizeof(*this)) == 0;
   }
 };
 
