@@ -6428,10 +6428,15 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
    * native resources (such as the #EGLSurface) before WAYLAND frees them. */
   delete context;
 
-  wl_egl_window *egl_window = static_cast<wl_egl_window *>(wl_surface_get_user_data(wl_surface));
-  if (egl_window != nullptr) {
-    wl_egl_window_destroy(egl_window);
+#ifdef WITH_OPENGL_BACKEND
+  if (dynamic_cast<GHOST_ContextEGL *>(context)) {
+    wl_egl_window *egl_window = static_cast<wl_egl_window *>(wl_surface_get_user_data(wl_surface));
+    if (egl_window != nullptr) {
+      wl_egl_window_destroy(egl_window);
+    }
   }
+#endif /* WITH_OPENGL_BACKEND */
+
   wl_surface_destroy(wl_surface);
 
   return GHOST_kSuccess;
