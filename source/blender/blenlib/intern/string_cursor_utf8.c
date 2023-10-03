@@ -345,6 +345,7 @@ void BLI_str_cursor_step_bounds_utf8(
     const char *str, const int str_maxlen, const int pos, int *r_start, int *r_end)
 {
   BLI_assert(str_maxlen >= 0);
+  BLI_assert(pos >= 0 && pos <= str_maxlen);
   /* Identify the type of characters are on either side of the current cursor position. */
   const eStrCursorDelimType prev = (pos > 0) ? cursor_delim_type_utf8(str, str_maxlen, pos - 1) :
                                                STRCUR_DELIM_NONE;
@@ -373,6 +374,7 @@ void BLI_str_cursor_step_bounds_utf32(
     const char32_t *str, const int str_maxlen, const int pos, int *r_start, int *r_end)
 {
   BLI_assert(str_maxlen >= 0);
+  BLI_assert(pos >= 0 && pos <= str_maxlen);
   /* Identify the type of characters are on either side of the current cursor position. */
   const eStrCursorDelimType prev = (pos > 0) ? cursor_delim_type_unicode(str[pos - 1]) :
                                                STRCUR_DELIM_NONE;
