@@ -601,6 +601,7 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
     case TFM_MODAL_PLANE_X:
     case TFM_MODAL_PLANE_Y:
     case TFM_MODAL_PLANE_Z:
+    case TFM_MODAL_AUTOCONSTRAINT:
     case TFM_MODAL_AUTOCONSTRAINTPLANE: {
       if (t->flag & T_NO_CONSTRAINT) {
         return false;
