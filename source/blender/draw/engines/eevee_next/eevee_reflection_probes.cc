@@ -155,7 +155,7 @@ ReflectionProbe &ReflectionProbeModule::find_or_insert(ObjectHandle &ob_handle,
                                                        int subdivision_level)
 {
   ReflectionProbe &reflection_probe = probes_.lookup_or_add_cb(
-      ob_handle.object_key.hash(), [this, subdivision_level]() {
+      ob_handle.object_key.hash_value, [this, subdivision_level]() {
         ReflectionProbe probe;
         ReflectionProbeData probe_data = find_empty_reflection_probe_data(subdivision_level);
 
