@@ -194,11 +194,15 @@ ccl_device
           bsdf->roughness = sheen_roughness;
 
           /* setup bsdf */
-          sd->flag |= bsdf_sheen_setup(kg, sd, bsdf);
+          const int sheen_flag = bsdf_sheen_setup(kg, sd, bsdf);
 
-          /* Attenuate lower layers */
-          Spectrum albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
-          weight *= 1.0f - reduce_max(safe_divide_color(albedo, weight));
+          if (sheen_flag) {
+            sd->flag |= sheen_flag;
+
+            /* Attenuate lower layers */
+            Spectrum albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
+            weight *= 1.0f - reduce_max(safe_divide_color(albedo, weight));
+          }
         }
       }
 
