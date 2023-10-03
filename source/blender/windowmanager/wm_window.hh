@@ -31,12 +31,14 @@ void wm_ghost_exit();
 /**
  * This one should correctly check for apple top header...
  * done for Cocoa: returns window contents (and not frame) max size.
+ * \return true on success.
  */
-void wm_get_screensize(int *r_width, int *r_height);
+bool wm_get_screensize(int *r_width, int *r_height) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 /**
  * Size of all screens (desktop), useful since the mouse is bound by this.
+ * \return true on success.
  */
-void wm_get_desktopsize(int *r_width, int *r_height);
+bool wm_get_desktopsize(int *r_width, int *r_height) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Don't change context itself.

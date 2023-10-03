@@ -1461,11 +1461,13 @@ static GHOST_WindowHandle playanim_window_open(
   GHOST_GPUSettings gpusettings = {0};
   const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpusettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
-  uint32_t scr_w, scr_h;
 
-  GHOST_GetMainDisplayDimensions(ghost_system, &scr_w, &scr_h);
-
-  posy = (scr_h - posy - sizey);
+  if (GHOST_GetCapabilities() & GHOST_kCapabilityWindowPosition) {
+    uint32_t scr_w, scr_h;
+    if (GHOST_GetMainDisplayDimensions(ghost_system, &scr_w, &scr_h) == GHOST_kSuccess) {
+      posy = (scr_h - posy - sizey);
+    }
+  }
 
   return GHOST_CreateWindow(ghost_system,
                             nullptr,

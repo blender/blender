@@ -971,6 +971,11 @@ struct GWL_Display {
 #endif
   GWL_XDG_Decor_System *xdg_decor = nullptr;
 
+  /**
+   * NOTE(@ideasman42): Handling of outputs must account for this vector to be empty.
+   * While this seems like something which might not ever happen, it can occur when
+   * unplugging monitors (presumably from dodgy cables/connections too).
+   */
   std::vector<GWL_Output *> outputs;
   std::vector<GWL_Seat *> seats;
   /**
@@ -6295,12 +6300,11 @@ void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &he
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
 
-  if (display_->outputs.empty()) {
-    return;
+  if (!display_->outputs.empty()) {
+    /* We assume first output as main. */
+    width = uint32_t(display_->outputs[0]->size_native[0]);
+    height = uint32_t(display_->outputs[0]->size_native[1]);
   }
-  /* We assume first output as main. */
-  width = uint32_t(display_->outputs[0]->size_native[0]);
-  height = uint32_t(display_->outputs[0]->size_native[1]);
 }
 
 void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
@@ -6308,24 +6312,25 @@ void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &hei
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
+  if (!display_->outputs.empty()) {
+    int32_t xy_min[2] = {INT32_MAX, INT32_MAX};
+    int32_t xy_max[2] = {INT32_MIN, INT32_MIN};
 
-  int32_t xy_min[2] = {INT32_MAX, INT32_MAX};
-  int32_t xy_max[2] = {INT32_MIN, INT32_MIN};
-
-  for (const GWL_Output *output : display_->outputs) {
-    int32_t xy[2] = {0, 0};
-    if (output->has_position_logical) {
-      xy[0] = output->position_logical[0];
-      xy[1] = output->position_logical[1];
+    for (const GWL_Output *output : display_->outputs) {
+      int32_t xy[2] = {0, 0};
+      if (output->has_position_logical) {
+        xy[0] = output->position_logical[0];
+        xy[1] = output->position_logical[1];
+      }
+      xy_min[0] = std::min(xy_min[0], xy[0]);
+      xy_min[1] = std::min(xy_min[1], xy[1]);
+      xy_max[0] = std::max(xy_max[0], xy[0] + output->size_native[0]);
+      xy_max[1] = std::max(xy_max[1], xy[1] + output->size_native[1]);
     }
-    xy_min[0] = std::min(xy_min[0], xy[0]);
-    xy_min[1] = std::min(xy_min[1], xy[1]);
-    xy_max[0] = std::max(xy_max[0], xy[0] + output->size_native[0]);
-    xy_max[1] = std::max(xy_max[1], xy[1] + output->size_native[1]);
-  }
 
-  width = xy_max[0] - xy_min[0];
-  height = xy_max[1] - xy_min[1];
+    width = xy_max[0] - xy_min[0];
+    height = xy_max[1] - xy_min[1];
+  }
 }
 
 GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gpuSettings)
