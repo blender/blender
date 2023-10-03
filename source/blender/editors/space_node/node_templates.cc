@@ -800,7 +800,7 @@ static void ui_node_draw_panel(uiLayout &layout,
                                 0,
                                 panel_state.is_collapsed() ? ICON_DISCLOSURE_TRI_RIGHT :
                                                              ICON_DISCLOSURE_TRI_DOWN,
-                                panel_decl.name.c_str(),
+                                IFACE_(panel_decl.name.c_str()),
                                 0,
                                 0,
                                 UI_UNIT_X * 4,
