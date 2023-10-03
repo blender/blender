@@ -10318,12 +10318,14 @@ static int ui_handle_menu_letter_press(
       after->opptr = MEM_cnew<PointerRNA>(__func__);
       WM_operator_properties_create_ptr(after->opptr, ot);
       RNA_string_set(after->opptr, "menu_idname", menu->menu_idname);
-      const int num_bytes = BLI_str_utf8_size_or_error(event->utf8_buf);
-      if (num_bytes != -1) {
-        char buf[sizeof(event->utf8_buf) + 1];
-        memcpy(buf, event->utf8_buf, num_bytes);
-        buf[num_bytes] = '\0';
-        RNA_string_set(after->opptr, "initial_query", buf);
+      if (event->type != EVT_SPACEKEY) {
+        const int num_bytes = BLI_str_utf8_size_or_error(event->utf8_buf);
+        if (num_bytes != -1) {
+          char buf[sizeof(event->utf8_buf) + 1];
+          memcpy(buf, event->utf8_buf, num_bytes);
+          buf[num_bytes] = '\0';
+          RNA_string_set(after->opptr, "initial_query", buf);
+        }
       }
       menu->menuretval = UI_RETURN_OK;
       return WM_UI_HANDLER_BREAK;
@@ -10774,7 +10776,8 @@ static int ui_handle_menu_event(bContext *C,
         case EVT_WKEY:
         case EVT_XKEY:
         case EVT_YKEY:
-        case EVT_ZKEY: {
+        case EVT_ZKEY:
+        case EVT_SPACEKEY: {
           if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK) &&
               ((event->modifier & (KM_SHIFT | KM_CTRL | KM_OSKEY)) == 0) &&
               /* Only respond to explicit press to avoid the event that opened the menu
