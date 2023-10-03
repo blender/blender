@@ -309,6 +309,7 @@ dict_custom = {
     "remesher",
     "rendeder",
     "renderable",
+    "renderers",
     "renormalize",
     "renormalized",
     "reparameterization",
