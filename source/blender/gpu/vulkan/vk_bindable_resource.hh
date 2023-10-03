@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "BLI_array.hh"
-
 #include "gpu_shader_create_info.hh"
 
 namespace blender::gpu {
@@ -38,22 +36,29 @@ class VKBindableResource {
  * Blender binds resources at context level (VKStateManager). The bindings are organized in
  * namespaces.
  */
-template<shader::ShaderCreateInfo::Resource::BindType BindType, int MaxBindings = 16>
-class VKBindSpace {
-  Array<VKBindableResource *> bindings_ = Array<VKBindableResource *>(MaxBindings);
+template<shader::ShaderCreateInfo::Resource::BindType BindType> class VKBindSpace {
+  class ResourceBinding {
+   public:
+    int binding;
+    VKBindableResource *resource;
+  };
+
+  Vector<ResourceBinding> bindings_;
 
  public:
-  VKBindSpace()
-  {
-    bindings_.fill(nullptr);
-  }
-
   /**
    * Register a binding to this namespace.
    */
   void bind(int binding, VKBindableResource &resource)
   {
-    bindings_[binding] = &resource;
+    for (ResourceBinding &bind : bindings_) {
+      if (bind.binding == binding) {
+        bind.resource = &resource;
+        return;
+      }
+    }
+    ResourceBinding bind = {binding, &resource};
+    bindings_.append(bind);
   }
 
   /**
@@ -61,10 +66,8 @@ class VKBindSpace {
    */
   void apply_bindings()
   {
-    for (int binding : IndexRange(MaxBindings)) {
-      if (bindings_[binding] != nullptr) {
-        bindings_[binding]->bind(binding, BindType);
-      }
+    for (ResourceBinding &binding : bindings_) {
+      binding.resource->bind(binding.binding, BindType);
     }
   }
 
@@ -73,11 +76,8 @@ class VKBindSpace {
    */
   void unbind(VKBindableResource &resource)
   {
-    for (int binding : IndexRange(MaxBindings)) {
-      if (bindings_[binding] == &resource) {
-        bindings_[binding] = nullptr;
-      }
-    }
+    bindings_.remove_if(
+        [&resource](const ResourceBinding &binding) { return binding.resource == &resource; });
   }
 
   /**
@@ -85,7 +85,7 @@ class VKBindSpace {
    */
   void unbind_all()
   {
-    bindings_.fill(nullptr);
+    bindings_.clear();
   }
 };
 

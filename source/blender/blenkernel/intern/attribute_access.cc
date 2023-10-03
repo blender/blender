@@ -804,11 +804,10 @@ GAttributeReader AttributeAccessor::lookup_or_default(const AttributeIDRef &attr
 Set<AttributeIDRef> AttributeAccessor::all_ids() const
 {
   Set<AttributeIDRef> ids;
-  this->for_all(
-      [&](const AttributeIDRef &attribute_id, const AttributeMetaData & /* meta_data */) {
-        ids.add(attribute_id);
-        return true;
-      });
+  this->for_all([&](const AttributeIDRef &attribute_id, const AttributeMetaData & /*meta_data*/) {
+    ids.add(attribute_id);
+    return true;
+  });
   return ids;
 }
 

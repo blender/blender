@@ -282,8 +282,7 @@ class DOPESHEET_HT_editor_buttons:
             sub = row.row(align=True)
             sub.popover(
                 panel="DOPESHEET_PT_snapping",
-                icon='NONE',
-                text="Modes",
+                text="",
             )
 
         row = layout.row(align=True)
@@ -690,7 +689,7 @@ class DOPESHEET_MT_delete(Menu):
 
 
 class DOPESHEET_MT_context_menu(Menu):
-    bl_label = "Dope Sheet Context Menu"
+    bl_label = "Dope Sheet"
 
     def draw(self, context):
         layout = self.layout
@@ -733,7 +732,7 @@ class DOPESHEET_MT_context_menu(Menu):
 
 
 class DOPESHEET_MT_channel_context_menu(Menu):
-    bl_label = "Dope Sheet Channel Context Menu"
+    bl_label = "Dope Sheet Channel"
 
     def draw(self, context):
         layout = self.layout
@@ -767,6 +766,10 @@ class DOPESHEET_MT_channel_context_menu(Menu):
 
         if is_graph_editor:
             layout.operator_menu_enum("graph.fmodifier_add", "type", text="Add F-Curve Modifier").only_active = False
+            layout.separator()
+            layout.operator("graph.hide", text="Hide Selected Curves").unselected = False
+            layout.operator("graph.hide", text="Hide Unselected Curves").unselected = True
+            layout.operator("graph.reveal")
 
         layout.separator()
         layout.operator("anim.channels_expand")
@@ -778,6 +781,9 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         layout.separator()
 
         layout.operator("anim.channels_delete")
+
+        if is_graph_editor and context.space_data.mode == 'DRIVERS':
+            layout.operator("graph.driver_delete_invalid")
 
 
 class DOPESHEET_MT_snap_pie(Menu):
@@ -840,31 +846,31 @@ class DOPESHEET_PT_gpencil_mode(LayersDopeSheetPanel, Panel):
 
 class DOPESHEET_PT_gpencil_layer_masks(LayersDopeSheetPanel, GreasePencilLayerMasksPanel, Panel):
     bl_label = "Masks"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_transform(LayersDopeSheetPanel, GreasePencilLayerTransformPanel, Panel):
     bl_label = "Transform"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_adjustments(LayersDopeSheetPanel, GreasePencilLayerAdjustmentsPanel, Panel):
     bl_label = "Adjustments"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_relations(LayersDopeSheetPanel, GreasePencilLayerRelationsPanel, Panel):
     bl_label = "Relations"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_display(LayersDopeSheetPanel, GreasePencilLayerDisplayPanel, Panel):
     bl_label = "Display"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 

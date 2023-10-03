@@ -42,4 +42,4 @@ set(LIB
   bf_io_common
 )
 
-blender_add_lib(bf_stl "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+blender_add_lib(bf_io_stl "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

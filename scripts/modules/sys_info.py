@@ -212,8 +212,6 @@ def write_sysinfo(filepath):
                 output.write("\nFeatures:\n")
                 output.write("Compute Shader Support:               \t%d\n" %
                              gpu.capabilities.compute_shader_support_get())
-                output.write("Shader Storage Buffer Objects Support:\t%d\n" %
-                             gpu.capabilities.shader_storage_buffer_objects_support_get())
                 output.write("Image Load/Store Support:             \t%d\n" %
                              gpu.capabilities.shader_image_load_store_support_get())
 

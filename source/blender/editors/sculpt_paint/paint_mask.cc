@@ -23,7 +23,6 @@
 #include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
 #include "BLI_span.hh"
-#include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -38,7 +37,7 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -74,62 +73,20 @@ static const EnumPropertyItem mode_items[] = {
     {PAINT_MASK_INVERT, "INVERT", 0, "Invert", "Invert the mask"},
     {0}};
 
-static void mask_flood_fill_set_elem(float *elem, PaintMaskFloodMode mode, float value)
+static float mask_flood_fill_get_new_value_for_elem(const float elem,
+                                                    PaintMaskFloodMode mode,
+                                                    float value)
 {
   switch (mode) {
     case PAINT_MASK_FLOOD_VALUE:
-      (*elem) = value;
-      break;
+      return value;
     case PAINT_MASK_FLOOD_VALUE_INVERSE:
-      (*elem) = 1.0f - value;
-      break;
+      return 1.0f - value;
     case PAINT_MASK_INVERT:
-      (*elem) = 1.0f - (*elem);
-      break;
+      return 1.0f - elem;
   }
-}
-
-struct MaskTaskData {
-  Object *ob;
-  PBVH *pbvh;
-  Span<PBVHNode *> nodes;
-  bool multires;
-
-  PaintMaskFloodMode mode;
-  float value;
-  float (*clip_planes_final)[4];
-
-  bool front_faces_only;
-  float view_normal[3];
-};
-
-static void mask_flood_fill_task(MaskTaskData &data, const int i)
-{
-  PBVHNode *node = data.nodes[i];
-
-  const PaintMaskFloodMode mode = data.mode;
-  const float value = data.value;
-  bool redraw = false;
-
-  PBVHVertexIter vi;
-
-  SCULPT_undo_push_node(data.ob, node, SCULPT_UNDO_MASK);
-
-  BKE_pbvh_vertex_iter_begin (data.pbvh, node, vi, PBVH_ITER_UNIQUE) {
-    float prevmask = *vi.mask;
-    mask_flood_fill_set_elem(vi.mask, mode, value);
-    if (prevmask != *vi.mask) {
-      redraw = true;
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  if (redraw) {
-    BKE_pbvh_node_mark_update_mask(node);
-    if (data.multires) {
-      BKE_pbvh_node_mark_normals_update(node);
-    }
-  }
+  BLI_assert_unreachable();
+  return 0.0f;
 }
 
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
@@ -138,34 +95,45 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  PBVH *pbvh;
-  bool multires;
 
   PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
-  float value = RNA_float_get(op->ptr, "value");
+  const float value = RNA_float_get(op->ptr, "value");
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
-  pbvh = ob->sculpt->pbvh;
-  multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
+  PBVH *pbvh = ob->sculpt->pbvh;
+  const bool multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
 
   SCULPT_undo_push_begin(ob, op);
 
-  MaskTaskData data{};
-  data.ob = ob;
-  data.pbvh = pbvh;
-  data.nodes = nodes;
-  data.multires = multires;
-  data.mode = mode;
-  data.value = value;
-
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      mask_flood_fill_task(data, i);
+      PBVHNode *node = nodes[i];
+      SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+
+      bool redraw = false;
+      PBVHVertexIter vi;
+      BKE_pbvh_vertex_iter_begin (pbvh, node, vi, PBVH_ITER_UNIQUE) {
+        float prevmask = vi.mask;
+        const float new_mask = mask_flood_fill_get_new_value_for_elem(prevmask, mode, value);
+        if (prevmask != new_mask) {
+          SCULPT_mask_vert_set(BKE_pbvh_type(ob->sculpt->pbvh), mask_write, new_mask, vi);
+          redraw = true;
+        }
+      }
+      BKE_pbvh_vertex_iter_end;
+
+      if (redraw) {
+        BKE_pbvh_node_mark_update_mask(node);
+        if (multires) {
+          BKE_pbvh_node_mark_normals_update(node);
+        }
+      }
     }
   });
 
@@ -173,7 +141,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
   }
 
-  BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
+  BKE_pbvh_update_mask(pbvh);
 
   SCULPT_undo_push_end(ob);
 
@@ -735,14 +703,10 @@ static void sculpt_gesture_face_set_begin(bContext *C, SculptGestureContext *sgc
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
 }
 
-static void face_set_gesture_apply_task_cb(void *__restrict userdata,
-                                           const int i,
-                                           const TaskParallelTLS *__restrict /*tls*/)
+static void face_set_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
 {
-  SculptGestureContext *sgcontext = static_cast<SculptGestureContext *>(userdata);
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
                                                           sgcontext->operation;
-  PBVHNode *node = sgcontext->nodes[i];
   bool any_updated = false;
 
   SCULPT_undo_push_node(sgcontext->vc.obact, node, SCULPT_UNDO_FACE_SETS);
@@ -767,10 +731,12 @@ static void face_set_gesture_apply_task_cb(void *__restrict userdata,
 static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
                                                             SculptGestureContext *sgcontext)
 {
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
-  BLI_task_parallel_range(
-      0, sgcontext->nodes.size(), sgcontext, face_set_gesture_apply_task_cb, &settings);
+  using namespace blender;
+  threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      face_set_gesture_apply_task(sgcontext, sgcontext->nodes[i]);
+    }
+  });
 }
 
 static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *sgcontext)
@@ -813,14 +779,12 @@ static void sculpt_gesture_mask_begin(bContext *C, SculptGestureContext *sgconte
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, true, false);
 }
 
-static void mask_gesture_apply_task_cb(void *__restrict userdata,
-                                       const int i,
-                                       const TaskParallelTLS *__restrict /*tls*/)
+static void mask_gesture_apply_task(SculptGestureContext *sgcontext,
+                                    const SculptMaskWriteInfo mask_write,
+                                    PBVHNode *node)
 {
-  SculptGestureContext *sgcontext = static_cast<SculptGestureContext *>(userdata);
   SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)sgcontext->operation;
   Object *ob = sgcontext->vc.obact;
-  PBVHNode *node = sgcontext->nodes[i];
 
   const bool is_multires = BKE_pbvh_type(sgcontext->ss->pbvh) == PBVH_GRIDS;
 
@@ -830,7 +794,7 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (sculpt_gesture_is_vertex_effected(sgcontext, vd.vertex)) {
-      float prevmask = vd.mask ? *vd.mask : 0.0f;
+      float prevmask = vd.mask;
       if (!any_masked) {
         any_masked = true;
 
@@ -840,8 +804,10 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
           BKE_pbvh_node_mark_normals_update(node);
         }
       }
-      mask_flood_fill_set_elem(vd.mask, mask_operation->mode, mask_operation->value);
-      if (prevmask != *vd.mask) {
+      const float new_mask = mask_flood_fill_get_new_value_for_elem(
+          prevmask, mask_operation->mode, mask_operation->value);
+      if (prevmask != new_mask) {
+        SCULPT_mask_vert_set(BKE_pbvh_type(ob->sculpt->pbvh), mask_write, new_mask, vd);
         redraw = true;
       }
     }
@@ -856,10 +822,13 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
 static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext * /*C*/,
                                                         SculptGestureContext *sgcontext)
 {
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
-  BLI_task_parallel_range(
-      0, sgcontext->nodes.size(), sgcontext, mask_gesture_apply_task_cb, &settings);
+  using namespace blender;
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(sgcontext->ss);
+  threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      mask_gesture_apply_task(sgcontext, mask_write, sgcontext->nodes[i]);
+    }
+  });
 }
 
 static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext)
@@ -868,7 +837,7 @@ static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext
   if (BKE_pbvh_type(sgcontext->ss->pbvh) == PBVH_GRIDS) {
     multires_mark_as_modified(depsgraph, sgcontext->vc.obact, MULTIRES_COORDS_MODIFIED);
   }
-  BKE_pbvh_update_vertex_data(sgcontext->ss->pbvh, PBVH_UpdateMask);
+  BKE_pbvh_update_mask(sgcontext->ss->pbvh);
 }
 
 static void sculpt_gesture_init_mask_properties(bContext *C,
@@ -1517,13 +1486,8 @@ static void sculpt_gesture_project_begin(bContext *C, SculptGestureContext *sgco
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, false, false);
 }
 
-static void project_line_gesture_apply_task_cb(void *__restrict userdata,
-                                               const int i,
-                                               const TaskParallelTLS *__restrict /*tls*/)
+static void project_line_gesture_apply_task(SculptGestureContext *sgcontext, PBVHNode *node)
 {
-  SculptGestureContext *sgcontext = static_cast<SculptGestureContext *>(userdata);
-
-  PBVHNode *node = sgcontext->nodes[i];
   PBVHVertexIter vd;
   bool any_updated = false;
 
@@ -1539,7 +1503,7 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
 
     float disp[3];
     sub_v3_v3v3(disp, projected_pos, vd.co);
-    const float mask = vd.mask ? *vd.mask : 0.0f;
+    const float mask = vd.mask;
     mul_v3_fl(disp, 1.0f - mask);
     if (is_zero_v3(disp)) {
       continue;
@@ -1560,13 +1524,14 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
 static void sculpt_gesture_project_apply_for_symmetry_pass(bContext * /*C*/,
                                                            SculptGestureContext *sgcontext)
 {
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
-
   switch (sgcontext->shape_type) {
     case SCULPT_GESTURE_SHAPE_LINE:
-      BLI_task_parallel_range(
-          0, sgcontext->nodes.size(), sgcontext, project_line_gesture_apply_task_cb, &settings);
+      using namespace blender;
+      threading::parallel_for(sgcontext->nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          project_line_gesture_apply_task(sgcontext, sgcontext->nodes[i]);
+        }
+      });
       break;
     case SCULPT_GESTURE_SHAPE_LASSO:
     case SCULPT_GESTURE_SHAPE_BOX:

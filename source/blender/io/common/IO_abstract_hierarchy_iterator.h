@@ -22,7 +22,7 @@
 
 #include "IO_dupli_persistent_id.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include <map>
 #include <set>

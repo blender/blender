@@ -16,7 +16,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
@@ -239,6 +239,7 @@ static void console_operatortypes()
   WM_operatortype_append(CONSOLE_OT_copy);
   WM_operatortype_append(CONSOLE_OT_paste);
   WM_operatortype_append(CONSOLE_OT_select_set);
+  WM_operatortype_append(CONSOLE_OT_select_all);
   WM_operatortype_append(CONSOLE_OT_select_word);
 }
 

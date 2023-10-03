@@ -290,7 +290,7 @@ typedef struct bGPDstroke {
   short caps[2];
 
   /** gradient control along y for color */
-  float hardeness;
+  float hardness;
   /** factor xy of shape for dots gradients */
   float aspect_ratio[2];
 

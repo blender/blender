@@ -894,7 +894,7 @@ void *GHOST_XrSession::getActionCustomdata(const char *action_set_name, const ch
 
 uint32_t GHOST_XrSession::getActionCount(const char *action_set_name)
 {
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  const GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
   if (action_set == nullptr) {
     return 0;
   }

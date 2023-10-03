@@ -73,7 +73,7 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
   int layer_stack_level = -1;
   float3 layer_albedo = zero_float3();
 
-  while (closure) {
+  while (true) {
     switch (closure->id) {
       case OSL_CLOSURE_MUL_ID: {
         ccl_private const OSLClosureMul *mul = static_cast<ccl_private const OSLClosureMul *>(
@@ -134,7 +134,12 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
         break;
     }
 
-    if (stack_size > 0) {
+    /* Pop the next closure from the stack (or return if we're done). */
+    do {
+      if (stack_size == 0) {
+        return;
+      }
+
       weight = weight_stack[--stack_size];
       closure = closure_stack[stack_size];
       if (stack_size == layer_stack_level) {
@@ -142,22 +147,13 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
          * account for the layering. */
         weight *= saturatef(1.0f - reduce_max(safe_divide_color(layer_albedo, weight)));
         layer_stack_level = -1;
+        /* If it's fully occluded, skip the base layer we just popped from the stack and grab
+         * the next entry instead. */
         if (is_zero(weight)) {
-          /* If it's fully occluded, skip the base layer we just popped from the stack and grab
-           * the next entry instead. */
-          if (stack_size > 0) {
-            weight = weight_stack[--stack_size];
-            closure = closure_stack[stack_size];
-          }
-          else {
-            closure = nullptr;
-          }
+          continue;
         }
       }
-    }
-    else {
-      closure = nullptr;
-    }
+    } while (closure == nullptr);
   }
 }
 

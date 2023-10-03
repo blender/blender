@@ -49,7 +49,7 @@
 #  include <AUD_Special.h>
 #endif
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_sound.hh"
 #include "ED_util.hh"

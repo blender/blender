@@ -23,8 +23,9 @@ ccl_device float svm_bevel_cubic_eval(const float radius, float r)
 {
   const float Rm = radius;
 
-  if (r >= Rm)
+  if (r >= Rm) {
     return 0.0f;
+  }
 
   /* integrate (2*pi*r * 10*(R - r)^3)/(pi * R^5) from 0 to R = 1 */
   const float Rm5 = (Rm * Rm) * (Rm * Rm) * Rm;
@@ -58,8 +59,9 @@ ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(float xi)
     float f = 10.0f * x2 - 20.0f * x3 + 15.0f * x2 * x2 - 4.0f * x2 * x3 - xi;
     float f_ = 20.0f * (x * nx) * (nx * nx);
 
-    if (fabsf(f) < tolerance || f_ == 0.0f)
+    if (fabsf(f) < tolerance || f_ == 0.0f) {
       break;
+    }
 
     x = saturatef(x - f / f_);
   }

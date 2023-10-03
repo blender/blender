@@ -58,7 +58,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_paint.hh"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
 #include "BLO_readfile.h"
@@ -168,7 +168,8 @@ static void blo_update_defaults_screen(bScreen *screen,
       seq->render_size = SEQ_RENDER_SIZE_PROXY_100;
       seq->timeline_overlay.flag |= SEQ_TIMELINE_SHOW_STRIP_SOURCE | SEQ_TIMELINE_SHOW_STRIP_NAME |
                                     SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID |
-                                    SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG;
+                                    SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG |
+                                    SEQ_TIMELINE_SHOW_STRIP_RETIMING;
       seq->preview_overlay.flag |= SEQ_PREVIEW_SHOW_OUTLINE_SELECTED;
     }
     else if (area->spacetype == SPACE_TEXT) {
@@ -609,7 +610,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         if (node->type == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
           *version_cycles_node_socket_float_value(roughness_socket) = 0.5f;
-          bNodeSocket *emission = nodeFindSocket(node, SOCK_IN, "Emission");
+          bNodeSocket *emission = nodeFindSocket(node, SOCK_IN, "Emission Color");
           copy_v4_fl(version_cycles_node_socket_rgba_value(emission), 1.0f);
           bNodeSocket *emission_strength = nodeFindSocket(node, SOCK_IN, "Emission Strength");
           *version_cycles_node_socket_float_value(emission_strength) = 0.0f;
@@ -789,7 +790,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       id_us_min(&brush->id);
       brush->sculpt_tool = SCULPT_TOOL_DISPLACEMENT_SMEAR;
     }
+  }
 
+  {
     /* Use the same tool icon color in the brush cursor */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->ob_mode & OB_MODE_SCULPT) {

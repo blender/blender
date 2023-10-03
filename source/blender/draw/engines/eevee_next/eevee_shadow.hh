@@ -87,8 +87,13 @@ struct ShadowTileMap : public ShadowTileMapData {
                          float lod_bias_,
                          eShadowProjectionType projection_type_);
 
-  void sync_cubeface(
-      const float4x4 &object_mat, float near, float far, eCubeFace face, float lod_bias_);
+  void sync_cubeface(const float4x4 &object_mat,
+                     float near,
+                     float far,
+                     float side,
+                     float shift,
+                     eCubeFace face,
+                     float lod_bias_);
 
   void debug_draw() const;
 
@@ -183,6 +188,8 @@ class ShadowModule {
 
  private:
   Instance &inst_;
+
+  ShadowSceneData &data_;
 
   /** Map of shadow casters to track deletion & update of intersected shadows. */
   Map<ObjectKey, ShadowObject> objects_;
@@ -284,7 +291,7 @@ class ShadowModule {
   bool enabled_ = true;
 
  public:
-  ShadowModule(Instance &inst);
+  ShadowModule(Instance &inst, ShadowSceneData &data);
   ~ShadowModule(){};
 
   void init();
@@ -339,10 +346,12 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   eLightType light_type_;
   /** Light position. */
   float3 position_;
-  /** Near and far clip distances. */
-  float far_, near_;
+  /** Used to compute near and far clip distances. */
+  float max_distance_, light_radius_;
   /** Number of tile-maps needed to cover the light angular extents. */
   int tilemaps_needed_;
+  /** Scaling factor to the light shape for shadow ray casting. */
+  float softness_factor_;
 
  public:
   ShadowPunctual(ShadowModule &module) : shadows_(module){};
@@ -360,8 +369,9 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   void sync(eLightType light_type,
             const float4x4 &object_mat,
             float cone_aperture,
-            float near_clip,
-            float far_clip);
+            float light_shape_radius,
+            float max_distance,
+            float softness_factor);
 
   /**
    * Release the tile-maps that will not be used in the current frame.
@@ -372,6 +382,19 @@ class ShadowPunctual : public NonCopyable, NonMovable {
    * Allocate shadow tile-maps and setup views for rendering.
    */
   void end_sync(Light &light, float lod_bias);
+
+ private:
+  /**
+   * Compute the projection matrix inputs.
+   * Make sure that the projection encompass all possible rays that can start in the projection
+   * quadrant.
+   */
+  void compute_projection_boundaries(float light_radius,
+                                     float shadow_radius,
+                                     float max_lit_distance,
+                                     float &near,
+                                     float &far,
+                                     float &side);
 };
 
 class ShadowDirectional : public NonCopyable, NonMovable {
@@ -385,6 +408,10 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   float4x4 object_mat_;
   /** Current range of clip-map / cascades levels covered by this shadow. */
   IndexRange levels_range;
+  /** Radius of the shadowed light shape. Might be scaled compared to the shading disk. */
+  float disk_shape_angle_;
+  /** Maximum distance a shadow map ray can be travel. */
+  float trace_distance_;
 
  public:
   ShadowDirectional(ShadowModule &module) : shadows_(module){};
@@ -399,7 +426,10 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   /**
    * Sync shadow parameters but do not allocate any shadow tile-maps.
    */
-  void sync(const float4x4 &object_mat, float min_resolution);
+  void sync(const float4x4 &object_mat,
+            float min_resolution,
+            float shadow_disk_angle,
+            float trace_distance);
 
   /**
    * Release the tile-maps that will not be used in the current frame.

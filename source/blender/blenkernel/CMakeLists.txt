@@ -272,7 +272,7 @@ set(SRC
   intern/screen.cc
   intern/shader_fx.cc
   intern/shrinkwrap.cc
-  intern/softbody.c
+  intern/softbody.cc
   intern/sound.cc
   intern/speaker.cc
   intern/studiolight.cc
@@ -479,7 +479,7 @@ set(SRC
   BKE_report.h
   BKE_rigidbody.h
   BKE_scene.h
-  BKE_screen.h
+  BKE_screen.hh
   BKE_sequencer_offscreen.h
   BKE_shader_fx.h
   BKE_shrinkwrap.h

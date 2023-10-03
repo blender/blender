@@ -21,7 +21,7 @@
 #include "BKE_layer.h"
 #include "BKE_pointcache.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_particle.hh"
 

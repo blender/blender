@@ -61,7 +61,7 @@
 #  include "BLI_args.h"
 #endif
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "IMB_imbuf.h" /* For #IMB_init. */
 

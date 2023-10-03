@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -333,18 +333,6 @@ msgstr "MetalRT 用於光跡追蹤運算時, 在大量使用曲線的場景可�
 
 msgid "Fribidi Library"
 msgstr "Fribidi 函式庫"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "FriBidi C 編譯的函式庫 (Linux 下為 .so，Windows 下為 .dll)，若您是在 Windows 下您可能需要編輯它，例如您使用 svn 函式庫倉儲中的所含的版本"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Gettext「msgfmt」可執行檔"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "Gettext msgfmt「編譯器」。如果您在 Windows 之下，您可能會需要編輯它"
 
 
 msgid "Translation Root"
@@ -977,6 +965,176 @@ msgstr "骨架作用中編輯骨骼"
 
 msgid "Description"
 msgstr "描述"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "動作"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "骨架"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "筆刷"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "快取檔案"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "攝影機"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "選集"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "曲線"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "字型"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "蠟筆"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "影像"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "鍵"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "晶格"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "藏庫"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "光照"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "光照探測"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "線條樣式"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "遮罩"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "材質"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "網格"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "影片剪輯"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "節點樹"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "物體"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "繪製曲線"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "色版"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "粒子"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "場景"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "聲音"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "喇叭"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "文字"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "紋理"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "視窗管理器"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "工作空間"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "世界"
 
 
 msgid "ID Name"
@@ -7013,176 +7171,6 @@ msgid "Type of ID-block that can be used"
 msgstr "可使用的 ID 塊類型"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "動作"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "骨架"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "筆刷"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "快取檔案"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "攝影機"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "選集"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "曲線"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "字型"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "蠟筆"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "影像"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "鍵"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "晶格"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "藏庫"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "光照"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "光照探測"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "線條樣式"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "遮罩"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "材質"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "網格"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "影片剪輯"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "節點樹"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "物體"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "繪製曲線"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "色版"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "粒子"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "場景"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "聲音"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "喇叭"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "文字"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "紋理"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "視窗管理器"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "工作空間"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "世界"
-
-
 msgid "Rotation Mode"
 msgstr "旋轉模式"
 
@@ -9259,22 +9247,6 @@ msgstr "目錄"
 
 msgid "Directory displayed in the file browser"
 msgstr "檔案瀏覽器中顯示的目錄"
-
-
-msgid "Tiny"
-msgstr "微小"
-
-
-msgid "Small"
-msgstr "小"
-
-
-msgid "Medium"
-msgstr "中"
-
-
-msgid "Large"
-msgstr "大"
 
 
 msgid "Display Mode"
@@ -14272,6 +14244,10 @@ msgstr "高"
 
 msgid "High quality"
 msgstr "高品質"
+
+
+msgid "Medium"
+msgstr "中"
 
 
 msgid "Medium quality"
@@ -25792,6 +25768,10 @@ msgid "Operator Properties"
 msgstr "操作器屬性"
 
 
+msgid "Add keyframes on every frame between the selected keyframes"
+msgstr "在所選鍵幀的每個框幀之間都插入鍵幀"
+
+
 msgctxt "Operator"
 msgid "Clean Keyframes"
 msgstr "清理鍵幀"
@@ -26091,15 +26071,6 @@ msgstr "從原時間點貼上鍵"
 
 msgid "Set Preview Range based on extents of selected Keyframes"
 msgstr "根據選取鍵幀的範圍設定預覽範圍"
-
-
-msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "取樣鍵幀"
-
-
-msgid "Add keyframes on every frame between the selected keyframes"
-msgstr "在所選鍵幀的每個框幀之間都插入鍵幀"
 
 
 msgctxt "Operator"
@@ -33892,11 +33863,6 @@ msgstr "添加重新路由節點"
 
 
 msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "搜尋與添加節點"
-
-
-msgctxt "Operator"
 msgid "Attach Nodes"
 msgstr "連接節點"
 
@@ -40436,38 +40402,13 @@ msgstr "將翻譯的設定儲存於永恆的 JSon 檔中"
 
 
 msgctxt "Operator"
-msgid "Update I18n Branches"
-msgstr "更新 I18n 分支"
-
-
-msgid "Update i18n svn's branches (po files)"
-msgstr "更新 i18n svn 的分支 (po 檔)"
-
-
-msgid "Skip POT"
-msgstr "略過 POT"
-
-
-msgid "Skip POT file generation"
-msgstr "略過 POT 檔案生成"
-
-
-msgctxt "Operator"
 msgid "Init I18n Update Settings"
 msgstr "始動 I18n 更新設定"
-
-
-msgid "Init settings for i18n svn's update operators"
-msgstr "i18n svn 的更新操作器之使用設定"
 
 
 msgctxt "Operator"
 msgid "Init I18n Update Select Languages"
 msgstr "始動 I18n 更新選取語言"
-
-
-msgid "(De)select (or invert selection of) all languages for i18n svn's update operators"
-msgstr "為 i18n svn 的更新操作器 (取消)選取 (或反轉選取) 所有語言"
 
 
 msgid "Invert Selection"
@@ -40491,25 +40432,12 @@ msgid "Update I18n Statistics"
 msgstr "更新 I18n 統計數據"
 
 
-msgid "Check Branches"
-msgstr "檢驗分支"
+msgid "Skip POT"
+msgstr "略過 POT"
 
 
-msgid "Check po files in branches"
-msgstr "檢驗分支內的 po 檔"
-
-
-msgid "Check Trunk"
-msgstr "檢驗主幹"
-
-
-msgid "Check po files in trunk"
-msgstr "檢驗主幹中的 po 檔"
-
-
-msgctxt "Operator"
-msgid "Update I18n Trunk"
-msgstr "更新 I18n 主幹"
+msgid "Skip POT file generation"
+msgstr "略過 POT 檔案生成"
 
 
 msgid "Reset to default values all elements of the array"
@@ -46028,36 +45956,12 @@ msgid "Settings/info about a language"
 msgstr "語言相關的設定/資訊"
 
 
-msgid "MO File Path"
-msgstr "MO 檔案路徑"
-
-
-msgid "Path to the relevant mo file"
-msgstr "相關 mo 檔的路徑"
-
-
 msgid "Language Name"
 msgstr "語言名稱"
 
 
 msgid "Numeric ID"
 msgstr "數字 ID"
-
-
-msgid "PO File Path"
-msgstr "PO 檔案路徑"
-
-
-msgid "Path to the relevant po file in branches"
-msgstr "分支中相關 po 檔的路徑"
-
-
-msgid "PO Trunk File Path"
-msgstr "PO 主幹檔案路徑"
-
-
-msgid "Path to the relevant po file in trunk"
-msgstr "主幹中相關 po 檔的路徑"
 
 
 msgid "Language ID"
@@ -46078,10 +45982,6 @@ msgstr "這些設定是否已經自動設定"
 
 msgid "Languages"
 msgstr "語言"
-
-
-msgid "Languages to update in branches"
-msgstr "分支中要更新的語言"
 
 
 msgid "POT File Path"
@@ -52906,12 +52806,12 @@ msgid "Load"
 msgstr "載入"
 
 
-msgid "Info written to {} text datablock!"
-msgstr "資訊已寫入至 {} 文字資料塊！"
-
-
 msgid "Message extraction process failed!"
 msgstr "訊息抽出程序失敗！"
+
+
+msgid "Info written to {} text datablock!"
+msgstr "資訊已寫入至 {} 文字資料塊！"
 
 
 msgid "Could not init languages data!"
@@ -52926,16 +52826,6 @@ msgstr "重設設定"
 msgctxt "Operator"
 msgid "Deselect All"
 msgstr "取消全選"
-
-
-msgctxt "Operator"
-msgid "Update Branches"
-msgstr "更新分支"
-
-
-msgctxt "Operator"
-msgid "Update Trunk"
-msgstr "更新主幹"
 
 
 msgctxt "Operator"
@@ -53206,11 +53096,6 @@ msgstr "刪除所有群組"
 msgctxt "Operator"
 msgid "Mirror Shape Key (Topology)"
 msgstr "鏡射外形鍵 (拓樸)"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "晶格"
 
 
 msgid "Detail"
@@ -55065,6 +54950,11 @@ msgstr "破口"
 msgctxt "Operator"
 msgid "Edge Rings"
 msgstr "環形線"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "晶格"
 
 
 msgctxt "Operator"
@@ -59291,10 +59181,6 @@ msgid "Gizmo group type '%s' not found!"
 msgstr "找不到「%s」Gizmo 群組類型！"
 
 
-msgid "KeyMapItem '%s' cannot be removed from '%s'"
-msgstr "無法從「%s」移除KeyMapItem「%s」"
-
-
 msgid "KeyConfig '%s' cannot be removed"
 msgstr "無法移除 KeyConfig「%s」"
 
@@ -60334,10 +60220,6 @@ msgstr "希伯來文 (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "世界文 (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "西班牙地區西班牙文 (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

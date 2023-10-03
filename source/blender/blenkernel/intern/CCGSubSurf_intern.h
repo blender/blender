@@ -110,8 +110,8 @@ struct CCGVert {
 
   CCGEdge **edges;
   CCGFace **faces;
-  /* byte *levelData; */
-  /* byte *user_data; */
+  // byte *levelData;
+  // byte *user_data;
 };
 
 struct CCGEdge {
@@ -124,8 +124,8 @@ struct CCGEdge {
   CCGVert *v0, *v1;
   CCGFace **faces;
 
-  /* byte *levelData; */
-  /* byte *user_data; */
+  // byte *levelData;
+  // byte *user_data;
 };
 
 struct CCGFace {
@@ -135,11 +135,11 @@ struct CCGFace {
   short numVerts, flags;
   int osd_index;
 
-  /* CCGVert **verts; */
-  /* CCGEdge **edges; */
-  /* byte *centerData; */
-  /* byte **gridData; */
-  /* byte *user_data; */
+  // CCGVert **verts;
+  // CCGEdge **edges;
+  // byte *centerData;
+  // byte **gridData;
+  // byte *user_data;
 };
 
 typedef enum {

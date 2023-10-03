@@ -20,7 +20,7 @@
 
 namespace blender::io::usd {
 
-void USDCameraReader::create_object(Main *bmain, const double /* motionSampleTime */)
+void USDCameraReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
   Camera *bcam = static_cast<Camera *>(BKE_camera_add(bmain, name_.c_str()));
 

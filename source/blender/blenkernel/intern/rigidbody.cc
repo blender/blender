@@ -53,8 +53,8 @@
 #  include "BKE_lib_query.h"
 #endif
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #ifdef WITH_BULLET
 static CLG_LogRef LOG = {"bke.rigidbody"};

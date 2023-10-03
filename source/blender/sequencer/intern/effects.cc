@@ -2109,7 +2109,8 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 
   /* Swap buffers */
   swap = temp;
-  temp = map; /* map = swap; */ /* UNUSED */
+  temp = map;
+  // map = swap; /* UNUSED. */
 
   /* Tidy up. */
   MEM_freeN(filter);

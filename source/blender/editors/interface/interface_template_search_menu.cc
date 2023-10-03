@@ -31,7 +31,6 @@
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
-#include "BLI_string_search.hh"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -39,7 +38,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "ED_screen.hh"
 
@@ -50,6 +49,7 @@
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
+#include "UI_string_search.hh"
 #include "interface_intern.hh"
 
 /* For key-map item access. */
@@ -1002,7 +1002,7 @@ static void menu_search_update_fn(const bContext * /*C*/,
 {
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
 
-  blender::string_search::StringSearch<MenuSearch_Item> search;
+  blender::ui::string_search::StringSearch<MenuSearch_Item> search;
 
   LISTBASE_FOREACH (MenuSearch_Item *, item, &data->items) {
     search.add(item->drawwstr_full, item);

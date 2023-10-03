@@ -377,7 +377,7 @@ struct MSLFragmentOutputAttribute {
 using MSLFragmentTileInputAttribute = MSLFragmentOutputAttribute;
 
 struct MSLSharedMemoryBlock {
-  /* e.g. shared vec4 color_cache[cache_size][cache_size]; */
+  /* e.g. `shared vec4 color_cache[cache_size][cache_size];`. */
   std::string type_name;
   std::string varname;
   bool is_array;

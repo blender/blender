@@ -21,10 +21,26 @@
 
 static PyObject *bpy_atexit(PyObject * /*self*/, PyObject * /*args*/, PyObject * /*kw*/)
 {
-  /* close down enough of blender at least not to crash */
-  bContext *C = BPY_context_get();
+  /* NOTE(@ideasman42): This doesn't have to match Blender shutting down exactly,
+   * leaks reported by memory checking tools may be reported but are harmless
+   * and don't have to be *fixed* unless doing so is trivial.
+   *
+   * Just handle the basics:
+   * - Free resources avoiding crashes and errors on exit.
+   * - Remove Blender's temporary directory.
+   *
+   * Anything else that prevents `sys.exit(..)` from exiting gracefully should be handled here too.
+   */
 
-  WM_exit_ex(C, false, false);
+  bContext *C = BPY_context_get();
+  /* As Python requested the exit, it handles shutting it's self down. */
+  const bool do_python_exit = false;
+  /* User actions such as saving the session, preferences, recent-files for e.g.
+   * should be skipped because an explicit call to exit is more likely to be used as part of
+   * automated processes shouldn't impact the users session in the future. */
+  const bool do_user_exit_actions = false;
+
+  WM_exit_ex(C, do_python_exit, do_user_exit_actions);
 
   Py_RETURN_NONE;
 }

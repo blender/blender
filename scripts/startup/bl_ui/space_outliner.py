@@ -100,7 +100,7 @@ class OUTLINER_MT_editor_menus(Menu):
 
 
 class OUTLINER_MT_context_menu(Menu):
-    bl_label = "Outliner Context Menu"
+    bl_label = "Outliner"
 
     @staticmethod
     def draw_common_operators(layout):
@@ -108,7 +108,7 @@ class OUTLINER_MT_context_menu(Menu):
 
         layout.separator()
 
-        layout.menu("OUTLINER_MT_liboverride")
+        layout.menu("OUTLINER_MT_liboverride", icon='LIBRARY_DATA_OVERRIDE')
 
         layout.separator()
 

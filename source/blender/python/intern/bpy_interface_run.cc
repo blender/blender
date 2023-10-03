@@ -319,6 +319,8 @@ bool BPY_run_string_exec(bContext *C, const char *imports[], const char *expr)
 
 static void run_string_handle_error(BPy_RunErrInfo *err_info)
 {
+  BLI_assert(PyErr_Occurred());
+
   if (err_info == nullptr) {
     PyErr_Print();
     PyErr_Clear();
@@ -333,7 +335,7 @@ static void run_string_handle_error(BPy_RunErrInfo *err_info)
 
   PyObject *py_err_str = err_info->use_single_line_error ? PyC_ExceptionBuffer_Simple() :
                                                            PyC_ExceptionBuffer();
-  const char *err_str = py_err_str ? PyUnicode_AsUTF8(py_err_str) : "Unable to extract exception";
+  const char *err_str = PyUnicode_AsUTF8(py_err_str);
   PyErr_Clear();
 
   if (err_info->reports != nullptr) {

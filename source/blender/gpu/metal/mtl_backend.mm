@@ -194,6 +194,8 @@ void MTLBackend::platform_init(MTLContext *ctx)
   if (G.debug & G_DEBUG_GPU) {
     printf("METAL API - DETECTED GPU: %s\n", vendor);
   }
+  GPUArchitectureType architecture_type = (mtl_device.hasUnifiedMemory) ? GPU_ARCHITECTURE_TBDR :
+                                                                          GPU_ARCHITECTURE_IMR;
 
   /* macOS is the only supported platform, but check to ensure we are not building with Metal
    * enablement on another platform. */
@@ -240,7 +242,15 @@ void MTLBackend::platform_init(MTLContext *ctx)
     printf("Renderer: %s\n", renderer);
   }
 
-  GPG.init(device, os, driver, support_level, GPU_BACKEND_METAL, vendor, renderer, version);
+  GPG.init(device,
+           os,
+           driver,
+           support_level,
+           GPU_BACKEND_METAL,
+           vendor,
+           renderer,
+           version,
+           architecture_type);
 }
 
 void MTLBackend::platform_exit()
@@ -418,7 +428,6 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
                                            MTLBackend::capabilities.supports_family_mac1 ||
                                            MTLBackend::capabilities.supports_family_mac2);
   GCaps.compute_shader_support = true;
-  GCaps.shader_storage_buffer_objects_support = true;
   GCaps.shader_draw_parameters_support = true;
   GCaps.hdr_viewport_support = true;
 

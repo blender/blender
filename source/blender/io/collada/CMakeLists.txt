@@ -124,4 +124,4 @@ if(WITH_BUILDINFO)
   add_definitions(-DWITH_BUILDINFO)
 endif()
 
-blender_add_lib(bf_collada "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+blender_add_lib(bf_io_collada "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

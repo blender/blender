@@ -35,7 +35,7 @@
 
 #include "lib_intern.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

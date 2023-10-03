@@ -13,7 +13,7 @@
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BLI_rect.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_ID.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
@@ -24,6 +24,8 @@
 #include "eevee_instance.hh"
 
 #include "DNA_particle_types.h"
+
+#include "draw_common.hh"
 
 namespace blender::eevee {
 
@@ -258,12 +260,10 @@ void Instance::object_sync_render(void *instance_,
   UNUSED_VARS(engine, depsgraph);
   Instance &inst = *reinterpret_cast<Instance *>(instance_);
 
-  if (inst.visibility_collection != nullptr) {
-    bool object_part_of_group = BKE_collection_has_object(inst.visibility_collection, ob);
-    if (object_part_of_group == inst.visibility_collection_invert) {
-      return;
-    }
+  if (inst.is_baking() && ob->visibility_flag & OB_HIDE_PROBE_VOLUME) {
+    return;
   }
+
   inst.object_sync(ob);
 }
 
@@ -291,9 +291,20 @@ void Instance::render_sync()
 
   manager->begin_sync();
 
+  draw::hair_init();
+  draw::curves_init();
+
   begin_sync();
+
   DRW_render_object_iter(this, render, depsgraph, object_sync_render);
+
+  draw::hair_update(*manager);
+  draw::curves_update(*manager);
+  draw::hair_free();
+  draw::curves_free();
+
   velocity.geometry_steps_fill();
+
   end_sync();
 
   manager->end_sync();
@@ -472,6 +483,11 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
     ss << "Compiling Shaders (" << materials.queued_shaders_count << " remaining)";
     info = ss.str();
   }
+  else if (materials.queued_optimize_shaders_count > 0) {
+    std::stringstream ss;
+    ss << "Optimizing Shaders (" << materials.queued_optimize_shaders_count << " remaining)";
+    info = ss.str();
+  }
 }
 
 void Instance::store_metadata(RenderResult *render_result)
@@ -571,11 +587,6 @@ void Instance::light_bake_irradiance(
   irradiance_cache.bake.init(probe);
 
   custom_pipeline_wrapper([&]() {
-    const ::LightProbe *light_probe = static_cast<const ::LightProbe *>(probe.data);
-
-    visibility_collection = light_probe->visibility_grp;
-    visibility_collection_invert = (light_probe->flag & LIGHTPROBE_FLAG_INVERT_GROUP) != 0;
-
     manager->begin_sync();
     render_sync();
     manager->end_sync();

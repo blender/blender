@@ -46,7 +46,7 @@
 #  include "SEQ_effects.h"
 #  include "SEQ_relations.h"
 #  include "SEQ_render.h"
-#  include "SEQ_retiming.h"
+#  include "SEQ_retiming.hh"
 #  include "SEQ_sequencer.h"
 #  include "SEQ_time.h"
 
@@ -647,20 +647,18 @@ static void rna_Sequence_invalidate_cache_rnafunc(ID *id, Sequence *self, int ty
   }
 }
 
-static SeqRetimingHandle *rna_Sequence_retiming_handles_add(ID *id,
-                                                            Sequence *seq,
-                                                            int timeline_frame)
+static SeqRetimingKey *rna_Sequence_retiming_keys_add(ID *id, Sequence *seq, int timeline_frame)
 {
   Scene *scene = (Scene *)id;
 
-  SeqRetimingHandle *handle = SEQ_retiming_add_handle(scene, seq, timeline_frame);
+  SeqRetimingKey *key = SEQ_retiming_add_key(scene, seq, timeline_frame);
 
   SEQ_relations_invalidate_cache_raw(scene, seq);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
-  return handle;
+  return key;
 }
 
-static void rna_Sequence_retiming_handles_reset(ID *id, Sequence *seq)
+static void rna_Sequence_retiming_keys_reset(ID *id, Sequence *seq)
 {
   Scene *scene = (Scene *)id;
 
@@ -777,28 +775,27 @@ void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
-void RNA_api_sequence_retiming_handles(BlenderRNA *brna, PropertyRNA *cprop)
+void RNA_api_sequence_retiming_keys(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
 
-  RNA_def_property_srna(cprop, "RetimingHandles");
-  srna = RNA_def_struct(brna, "RetimingHandles", nullptr);
+  RNA_def_property_srna(cprop, "RetimingKeys");
+  srna = RNA_def_struct(brna, "RetimingKeys", nullptr);
   RNA_def_struct_sdna(srna, "Sequence");
-  RNA_def_struct_ui_text(srna, "RetimingHandles", "Collection of RetimingHandle");
+  RNA_def_struct_ui_text(srna, "RetimingKeys", "Collection of RetimingKey");
 
-  FunctionRNA *func = RNA_def_function(srna, "add", "rna_Sequence_retiming_handles_add");
+  FunctionRNA *func = RNA_def_function(srna, "add", "rna_Sequence_retiming_keys_add");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   RNA_def_int(
       func, "timeline_frame", 0, -MAXFRAME, MAXFRAME, "Timeline Frame", "", -MAXFRAME, MAXFRAME);
-  RNA_def_function_ui_description(func, "Add retiming handle");
+  RNA_def_function_ui_description(func, "Add retiming key");
   /* return type */
-  PropertyRNA *parm = RNA_def_pointer(
-      func, "retiming_handle", "RetimingHandle", "", "New RetimingHandle");
+  PropertyRNA *parm = RNA_def_pointer(func, "retiming_key", "RetimingKey", "", "New RetimingKey");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "reset", "rna_Sequence_retiming_handles_reset");
+  func = RNA_def_function(srna, "reset", "rna_Sequence_retiming_keys_reset");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-  RNA_def_function_ui_description(func, "Remove all retiming handles");
+  RNA_def_function_ui_description(func, "Remove all retiming keys");
 }
 
 void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, const bool metastrip)

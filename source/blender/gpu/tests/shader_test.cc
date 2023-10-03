@@ -221,7 +221,7 @@ GPU_TEST(shader_compute_ibo)
 static void test_shader_compute_ssbo()
 {
 
-  if (!GPU_compute_shader_support() && !GPU_shader_storage_buffer_objects_support()) {
+  if (!GPU_compute_shader_support()) {
     /* We can't test as a the platform does not support compute shaders. */
     std::cout << "Skipping compute shader test: platform not supported";
     return;

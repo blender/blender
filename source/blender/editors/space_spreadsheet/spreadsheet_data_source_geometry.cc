@@ -27,7 +27,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_curves.hh"
 #include "ED_spreadsheet.hh"

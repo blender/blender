@@ -30,20 +30,26 @@ color node_mix_overlay(float t, color col1, color col2)
 
   color outcol = col1;
 
-  if (outcol[0] < 0.5)
+  if (outcol[0] < 0.5) {
     outcol[0] *= tm + 2.0 * t * col2[0];
-  else
+  }
+  else {
     outcol[0] = 1.0 - (tm + 2.0 * t * (1.0 - col2[0])) * (1.0 - outcol[0]);
+  }
 
-  if (outcol[1] < 0.5)
+  if (outcol[1] < 0.5) {
     outcol[1] *= tm + 2.0 * t * col2[1];
-  else
+  }
+  else {
     outcol[1] = 1.0 - (tm + 2.0 * t * (1.0 - col2[1])) * (1.0 - outcol[1]);
+  }
 
-  if (outcol[2] < 0.5)
+  if (outcol[2] < 0.5) {
     outcol[2] *= tm + 2.0 * t * col2[2];
-  else
+  }
+  else {
     outcol[2] = 1.0 - (tm + 2.0 * t * (1.0 - col2[2])) * (1.0 - outcol[2]);
+  }
 
   return outcol;
 }
@@ -59,12 +65,15 @@ color node_mix_div(float t, color col1, color col2)
 
   color outcol = col1;
 
-  if (col2[0] != 0.0)
+  if (col2[0] != 0.0) {
     outcol[0] = tm * outcol[0] + t * outcol[0] / col2[0];
-  if (col2[1] != 0.0)
+  }
+  if (col2[1] != 0.0) {
     outcol[1] = tm * outcol[1] + t * outcol[1] / col2[1];
-  if (col2[2] != 0.0)
+  }
+  if (col2[2] != 0.0) {
     outcol[2] = tm * outcol[2] + t * outcol[2] / col2[2];
+  }
 
   return outcol;
 }
@@ -95,30 +104,39 @@ color node_mix_dodge(float t, color col1, color col2)
 
   if (outcol[0] != 0.0) {
     float tmp = 1.0 - t * col2[0];
-    if (tmp <= 0.0)
+    if (tmp <= 0.0) {
       outcol[0] = 1.0;
-    else if ((tmp = outcol[0] / tmp) > 1.0)
+    }
+    else if ((tmp = outcol[0] / tmp) > 1.0) {
       outcol[0] = 1.0;
-    else
+    }
+    else {
       outcol[0] = tmp;
+    }
   }
   if (outcol[1] != 0.0) {
     float tmp = 1.0 - t * col2[1];
-    if (tmp <= 0.0)
+    if (tmp <= 0.0) {
       outcol[1] = 1.0;
-    else if ((tmp = outcol[1] / tmp) > 1.0)
+    }
+    else if ((tmp = outcol[1] / tmp) > 1.0) {
       outcol[1] = 1.0;
-    else
+    }
+    else {
       outcol[1] = tmp;
+    }
   }
   if (outcol[2] != 0.0) {
     float tmp = 1.0 - t * col2[2];
-    if (tmp <= 0.0)
+    if (tmp <= 0.0) {
       outcol[2] = 1.0;
-    else if ((tmp = outcol[2] / tmp) > 1.0)
+    }
+    else if ((tmp = outcol[2] / tmp) > 1.0) {
       outcol[2] = 1.0;
-    else
+    }
+    else {
       outcol[2] = tmp;
+    }
   }
 
   return outcol;
@@ -131,34 +149,46 @@ color node_mix_burn(float t, color col1, color col2)
   color outcol = col1;
 
   tmp = tm + t * col2[0];
-  if (tmp <= 0.0)
+  if (tmp <= 0.0) {
     outcol[0] = 0.0;
-  else if ((tmp = (1.0 - (1.0 - outcol[0]) / tmp)) < 0.0)
+  }
+  else if ((tmp = (1.0 - (1.0 - outcol[0]) / tmp)) < 0.0) {
     outcol[0] = 0.0;
-  else if (tmp > 1.0)
+  }
+  else if (tmp > 1.0) {
     outcol[0] = 1.0;
-  else
+  }
+  else {
     outcol[0] = tmp;
+  }
 
   tmp = tm + t * col2[1];
-  if (tmp <= 0.0)
+  if (tmp <= 0.0) {
     outcol[1] = 0.0;
-  else if ((tmp = (1.0 - (1.0 - outcol[1]) / tmp)) < 0.0)
+  }
+  else if ((tmp = (1.0 - (1.0 - outcol[1]) / tmp)) < 0.0) {
     outcol[1] = 0.0;
-  else if (tmp > 1.0)
+  }
+  else if (tmp > 1.0) {
     outcol[1] = 1.0;
-  else
+  }
+  else {
     outcol[1] = tmp;
+  }
 
   tmp = tm + t * col2[2];
-  if (tmp <= 0.0)
+  if (tmp <= 0.0) {
     outcol[2] = 0.0;
-  else if ((tmp = (1.0 - (1.0 - outcol[2]) / tmp)) < 0.0)
+  }
+  else if ((tmp = (1.0 - (1.0 - outcol[2]) / tmp)) < 0.0) {
     outcol[2] = 0.0;
-  else if (tmp > 1.0)
+  }
+  else if (tmp > 1.0) {
     outcol[2] = 1.0;
-  else
+  }
+  else {
     outcol[2] = tmp;
+  }
 
   return outcol;
 }
@@ -240,20 +270,26 @@ color node_mix_linear(float t, color col1, color col2)
 {
   color outcol = col1;
 
-  if (col2[0] > 0.5)
+  if (col2[0] > 0.5) {
     outcol[0] = col1[0] + t * (2.0 * (col2[0] - 0.5));
-  else
+  }
+  else {
     outcol[0] = col1[0] + t * (2.0 * (col2[0]) - 1.0);
+  }
 
-  if (col2[1] > 0.5)
+  if (col2[1] > 0.5) {
     outcol[1] = col1[1] + t * (2.0 * (col2[1] - 0.5));
-  else
+  }
+  else {
     outcol[1] = col1[1] + t * (2.0 * (col2[1]) - 1.0);
+  }
 
-  if (col2[2] > 0.5)
+  if (col2[2] > 0.5) {
     outcol[2] = col1[2] + t * (2.0 * (col2[2] - 0.5));
-  else
+  }
+  else {
     outcol[2] = col1[2] + t * (2.0 * (col2[2]) - 1.0);
+  }
 
   return outcol;
 }

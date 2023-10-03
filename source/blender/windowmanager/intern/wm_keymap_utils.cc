@@ -466,6 +466,32 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   else if (STRPREFIX(opname, "UI_OT")) {
     km = WM_keymap_find_all(wm, "User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
   }
+  /* Geometry */
+  else if (STRPREFIX(opname, "GEOMETRY_OT")) {
+    switch (sl->spacetype) {
+      case SPACE_VIEW3D:
+        switch (CTX_data_mode_enum(C)) {
+          case CTX_MODE_EDIT_MESH:
+            km = WM_keymap_find_all(wm, "Mesh", SPACE_EMPTY, RGN_TYPE_WINDOW);
+            break;
+          case CTX_MODE_EDIT_CURVES:
+            km = WM_keymap_find_all(wm, "Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
+            break;
+          case CTX_MODE_EDIT_POINT_CLOUD:
+            km = WM_keymap_find_all(wm, "Point Cloud Edit Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
+            break;
+          case CTX_MODE_SCULPT:
+            km = WM_keymap_find_all(wm, "Sculpt", SPACE_EMPTY, RGN_TYPE_WINDOW);
+            break;
+          case CTX_MODE_SCULPT_CURVES:
+            km = WM_keymap_find_all(wm, "Sculpt Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
+            break;
+          default:
+            break;
+        }
+        break;
+    }
+  }
 
   return km;
 }

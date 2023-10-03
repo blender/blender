@@ -216,6 +216,13 @@ void VKCommandBuffer::copy(VKTexture &dst_texture,
                  regions.data());
 }
 
+void VKCommandBuffer::copy(VKBuffer &dst_buffer, VkBuffer src_buffer, Span<VkBufferCopy> regions)
+{
+  ensure_no_active_framebuffer();
+  vkCmdCopyBuffer(
+      vk_command_buffer_, src_buffer, dst_buffer.vk_handle(), regions.size(), regions.data());
+}
+
 void VKCommandBuffer::blit(VKTexture &dst_texture,
                            VKTexture &src_texture,
                            Span<VkImageBlit> regions)

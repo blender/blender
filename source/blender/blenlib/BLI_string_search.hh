@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BLI_linear_allocator.hh"
+#include "BLI_map.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -12,10 +13,24 @@
 namespace blender::string_search {
 
 struct SearchItem {
-  Span<blender::StringRef> normalized_words;
-  int length;
   void *user_data;
+  Span<StringRef> normalized_words;
+  Span<float> word_weight_factors;
+  int length;
   int weight;
+  /**
+   * This is a logical time stamp, i.e. the greater it is, the more recent the item was used. The
+   * number is not based on an actual clock.
+   */
+  int recent_time;
+};
+
+struct RecentCache {
+  /**
+   * Stores a logical time stamp for each previously chosen search item. The higher the time
+   * stamp, the more recently the item has been selected.
+   */
+  Map<std::string, int> logical_time_by_str;
 };
 
 /**
@@ -25,6 +40,7 @@ class StringSearchBase {
  protected:
   LinearAllocator<> allocator_;
   Vector<SearchItem> items_;
+  const RecentCache *recent_cache_ = nullptr;
 
  protected:
   void add_impl(StringRef str, void *user_data, int weight);
@@ -43,6 +59,11 @@ class StringSearchBase {
  */
 template<typename T> class StringSearch : private StringSearchBase {
  public:
+  StringSearch(const RecentCache *recent_cache = nullptr)
+  {
+    this->recent_cache_ = recent_cache;
+  }
+
   /**
    * Add a new possible result to the search.
    *
@@ -86,6 +107,7 @@ int get_fuzzy_match_errors(StringRef query, StringRef full);
  */
 void extract_normalized_words(StringRef str,
                               LinearAllocator<> &allocator,
-                              Vector<StringRef, 64> &r_words);
+                              Vector<StringRef, 64> &r_words,
+                              Vector<float, 64> &r_word_weights);
 
 }  // namespace blender::string_search

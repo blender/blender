@@ -38,10 +38,10 @@
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
@@ -1661,30 +1661,31 @@ static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimCha
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(ale->id);
     Layer *layer = static_cast<Layer *>(ale->data);
 
     switch (mode) {
       case REARRANGE_ANIMCHAN_TOP: {
         if (layer->is_selected()) {
-          layer->parent_group().move_node_top(&layer->as_node());
+          grease_pencil.move_node_top(layer->as_node());
         }
         break;
       }
       case REARRANGE_ANIMCHAN_UP: {
         if (layer->is_selected()) {
-          layer->parent_group().move_node_up(&layer->as_node());
+          grease_pencil.move_node_up(layer->as_node());
         }
         break;
       }
       case REARRANGE_ANIMCHAN_DOWN: {
         if (layer->is_selected()) {
-          layer->parent_group().move_node_down(&layer->as_node());
+          grease_pencil.move_node_down(layer->as_node());
         }
         break;
       }
       case REARRANGE_ANIMCHAN_BOTTOM: {
         if (layer->is_selected()) {
-          layer->parent_group().move_node_bottom(&layer->as_node());
+          grease_pencil.move_node_bottom(layer->as_node());
         }
         break;
       }

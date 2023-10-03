@@ -7,15 +7,28 @@
  */
 
 #include "vk_query.hh"
+#include "vk_common.hh"
 
 namespace blender::gpu {
 
-void VKQueryPool::init(GPUQueryType /*type*/) {}
+void VKQueryPool::init(GPUQueryType /*type*/)
+{
+  NOT_YET_IMPLEMENTED
+}
 
-void VKQueryPool::begin_query() {}
+void VKQueryPool::begin_query()
+{
+  NOT_YET_IMPLEMENTED
+}
 
-void VKQueryPool::end_query() {}
+void VKQueryPool::end_query()
+{
+  NOT_YET_IMPLEMENTED
+}
 
-void VKQueryPool::get_occlusion_result(MutableSpan<uint32_t> /*r_values*/) {}
+void VKQueryPool::get_occlusion_result(MutableSpan<uint32_t> /*r_values*/)
+{
+  NOT_YET_IMPLEMENTED
+}
 
 }  // namespace blender::gpu

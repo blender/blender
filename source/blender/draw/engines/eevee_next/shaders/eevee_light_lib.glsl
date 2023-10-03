@@ -66,6 +66,12 @@ vec3 light_world_to_local(LightData ld, vec3 L)
   return lL;
 }
 
+/* Transform position from light's local space to world space. Does translation. */
+vec3 light_local_position_to_world(LightData light, vec3 lP)
+{
+  return mat3(light.object_mat) * lP + light._position;
+}
+
 /* From Frostbite PBR Course
  * Distance based attenuation
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
@@ -95,14 +101,11 @@ float light_attenuation(LightData ld, vec3 L, float dist)
     vis *= step(0.0, -dot(L, -ld._back));
   }
 
-  /* TODO(fclem): Static branching. */
-  if (!is_sun_light(ld.type)) {
 #ifdef VOLUME_LIGHTING
-    vis *= light_influence_attenuation(dist, ld.influence_radius_invsqr_volume);
+  vis *= light_influence_attenuation(dist, ld.influence_radius_invsqr_volume);
 #else
-    vis *= light_influence_attenuation(dist, ld.influence_radius_invsqr_surface);
+  vis *= light_influence_attenuation(dist, ld.influence_radius_invsqr_surface);
 #endif
-  }
   return vis;
 }
 
@@ -127,6 +130,18 @@ float light_point_light(LightData ld, const bool is_directional, vec3 L, float d
     power *= saturate(dot(ld._back, L));
   }
   return power;
+}
+
+/**
+ * Return the radius of the disk at the sphere origin spanning the same solid angle as the sphere
+ * from a given distance.
+ * Assumes `distance_to_sphere > sphere_radius`.
+ */
+float light_sphere_disk_radius(float sphere_radius, float distance_to_sphere)
+{
+  /* The sine of the half-angle spanned by a sphere light is equal to the tangent of the
+   * half-angle spanned by a disk light with the same radius. */
+  return sphere_radius * inversesqrt(1.0 - sqr(sphere_radius / distance_to_sphere));
 }
 
 float light_diffuse(sampler2DArray utility_tx,
@@ -207,7 +222,7 @@ float light_ltc(sampler2DArray utility_tx,
     if (ld.type == LIGHT_POINT) {
       /* The sine of the half-angle spanned by a sphere light is equal to the tangent of the
        * half-angle spanned by a disk light with the same radius. */
-      float radius = ld._radius * inversesqrt(1.0 - sqr(ld._radius / dist));
+      float radius = light_sphere_disk_radius(ld._radius, dist);
 
       points[0] = Px * -radius + Py * -radius;
       points[1] = Px * radius + Py * -radius;

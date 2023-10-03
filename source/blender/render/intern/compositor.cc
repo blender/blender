@@ -20,7 +20,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "COM_context.hh"
 #include "COM_evaluator.hh"
@@ -260,7 +260,7 @@ class Context : public realtime_compositor::Context {
     return input_data_.view_name;
   }
 
-  void set_info_message(StringRef /* message */) const override
+  void set_info_message(StringRef /*message*/) const override
   {
     /* TODO: ignored for now. Currently only used to communicate incomplete node support
      * which is already shown on the node itself.
@@ -269,7 +269,7 @@ class Context : public realtime_compositor::Context {
      * incomplete support, and leave more specific message to individual nodes? */
   }
 
-  IDRecalcFlag query_id_recalc_flag(ID * /* id */) const override
+  IDRecalcFlag query_id_recalc_flag(ID * /*id*/) const override
   {
     /* TODO: implement? */
     return IDRecalcFlag(0);

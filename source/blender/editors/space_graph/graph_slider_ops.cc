@@ -1289,6 +1289,99 @@ void GRAPH_OT_match_slope(wmOperatorType *ot)
                        1.0f);
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Time Offset
+ * \{ */
+
+static void time_offset_graph_keys(bAnimContext *ac, const float factor)
+{
+  apply_fcu_segment_function(ac, factor, time_offset_fcurve_segment);
+}
+
+static void time_offset_draw_status_header(bContext *C, tGraphSliderOp *gso)
+{
+  common_draw_status_header(C, gso, "Time Offset Keys");
+}
+
+static void time_offset_modal_update(bContext *C, wmOperator *op)
+{
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+
+  time_offset_draw_status_header(C, gso);
+
+  /* Reset keyframes to the state at invoke. */
+  reset_bezts(gso);
+  const float factor = slider_factor_get_and_remember(op);
+  time_offset_graph_keys(&gso->ac, factor);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+}
+
+static int time_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int invoke_result = graph_slider_invoke(C, op, event);
+
+  if (invoke_result == OPERATOR_CANCELLED) {
+    return invoke_result;
+  }
+
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+  gso->modal_update = time_offset_modal_update;
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "frame_offset");
+  time_offset_draw_status_header(C, gso);
+  ED_slider_factor_bounds_set(gso->slider, -10, 10);
+  ED_slider_factor_set(gso->slider, 0.0f);
+  ED_slider_mode_set(gso->slider, SLIDER_MODE_FLOAT);
+  ED_slider_unit_set(gso->slider, "Frames");
+
+  return invoke_result;
+}
+
+static int time_offset_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const float factor = RNA_float_get(op->ptr, "frame_offset");
+
+  time_offset_graph_keys(&ac, factor);
+
+  /* Set notifier that keyframes have changed. */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_time_offset(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Time Offset Keyframes";
+  ot->idname = "GRAPH_OT_time_offset";
+  ot->description = "Shifts the value of selected keys in time";
+
+  /* API callbacks. */
+  ot->invoke = time_offset_invoke;
+  ot->modal = graph_slider_modal;
+  ot->exec = time_offset_exec;
+  ot->poll = graphop_editable_keyframes_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
+
+  RNA_def_float_factor(ot->srna,
+                       "frame_offset",
+                       0.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Frame Offset",
+                       "How far in frames to offset the animation",
+                       -10.0f,
+                       10.0f);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1296,8 +1389,16 @@ void GRAPH_OT_match_slope(wmOperatorType *ot)
  * \{ */
 
 static const EnumPropertyItem shear_direction_items[] = {
-    {SHEAR_FROM_LEFT, "FROM_LEFT", 0, "From Left", "foo"},
-    {SHEAR_FROM_RIGHT, "FROM_RIGHT", 0, "From Right", "foo"},
+    {SHEAR_FROM_LEFT,
+     "FROM_LEFT",
+     0,
+     "From Left",
+     "Shear the keys using the left key as reference"},
+    {SHEAR_FROM_RIGHT,
+     "FROM_RIGHT",
+     0,
+     "From Right",
+     "Shear the keys using the right key as reference"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1429,8 +1530,8 @@ void GRAPH_OT_shear(wmOperatorType *ot)
   ot->name = "Shear Keyframes";
   ot->idname = "GRAPH_OT_shear";
   ot->description =
-      "Affects the value of the keys linearly keeping the same \n\
-  relationship between them using either the left or the right key as reference";
+      "Affect the value of the keys linearly, keeping the same relationship between them using "
+      "either the left or the right key as reference";
 
   /* API callbacks. */
   ot->invoke = shear_invoke;
@@ -1523,9 +1624,7 @@ void GRAPH_OT_scale_average(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Scale Average Keyframes";
   ot->idname = "GRAPH_OT_scale_average";
-  ot->description =
-      "Increase or decrease the value of selected keys \n\
-  in relationship to their average";
+  ot->description = "Scale selected key values by their combined average";
 
   /* API callbacks. */
   ot->invoke = scale_average_invoke;
@@ -2073,5 +2172,92 @@ void GRAPH_OT_butterworth_smooth(wmOperatorType *ot)
               "Linearly blend the smooth data to the border frames of the selection",
               0,
               128);
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Push-Pull Operator
+ * \{ */
+
+static void push_pull_graph_keys(bAnimContext *ac, const float factor)
+{
+  apply_fcu_segment_function(ac, factor, push_pull_fcurve_segment);
+}
+
+static void push_pull_modal_update(bContext *C, wmOperator *op)
+{
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+
+  common_draw_status_header(C, gso, "Push Pull Keys");
+
+  /* Reset keyframes to the state at invoke. */
+  reset_bezts(gso);
+  const float factor = slider_factor_get_and_remember(op);
+  push_pull_graph_keys(&gso->ac, factor);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+}
+
+static int push_pull_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int invoke_result = graph_slider_invoke(C, op, event);
+
+  if (invoke_result == OPERATOR_CANCELLED) {
+    return invoke_result;
+  }
+
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+  gso->modal_update = push_pull_modal_update;
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
+  ED_slider_factor_bounds_set(gso->slider, 0, 2);
+  ED_slider_factor_set(gso->slider, 1);
+  common_draw_status_header(C, gso, "Push Pull Keys");
+
+  return invoke_result;
+}
+
+static int push_pull_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const float factor = RNA_float_get(op->ptr, "factor");
+
+  push_pull_graph_keys(&ac, factor);
+
+  /* Set notifier that keyframes have changed. */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_push_pull(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Push Pull Keyframes";
+  ot->idname = "GRAPH_OT_push_pull";
+  ot->description = "Exaggerate or minimize the value of the selected keys";
+
+  /* API callbacks. */
+  ot->invoke = push_pull_invoke;
+  ot->modal = graph_slider_modal;
+  ot->exec = push_pull_exec;
+  ot->poll = graphop_editable_keyframes_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
+
+  RNA_def_float_factor(ot->srna,
+                       "factor",
+                       1.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Factor",
+                       "Control how far to push or pull the keys",
+                       0.0f,
+                       2.0f);
 }
 /** \} */

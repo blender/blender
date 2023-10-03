@@ -40,9 +40,8 @@ void TreeElementIDObject::expand(SpaceOutliner & /*space_outliner*/) const
   object_.id.newid = (ID *)(&legacy_te_);
 
   expand_animation_data(object_.adt);
-
-  expand_data();
   expand_pose();
+  expand_data();
   expand_materials();
   expand_constraints();
   expand_modifiers();
@@ -64,11 +63,6 @@ void TreeElementIDObject::expand_pose() const
     return;
   }
   add_element(&legacy_te_.subtree, &object_.id, nullptr, &legacy_te_, TSE_POSE_BASE, 0);
-
-  /* Pose Groups */
-  if (!BLI_listbase_is_empty(&object_.pose->agroups)) {
-    add_element(&legacy_te_.subtree, &object_.id, nullptr, &legacy_te_, TSE_POSEGRP_BASE, 0);
-  }
 }
 
 void TreeElementIDObject::expand_materials() const

@@ -180,6 +180,22 @@ typedef struct bPoseChannelDrawData {
 struct DualQuat;
 struct Mat4;
 
+/* Describes a plane in pose space that delimits B-Bone segments. */
+typedef struct bPoseChannel_BBoneSegmentBoundary {
+  /* Boundary data in pose space. */
+  float point[3];
+  float plane_normal[3];
+  /* Dot product of point and plane_normal to speed up distance computation. */
+  float plane_offset;
+
+  /**
+   * Inverse width of the smoothing at this level in head-tail space.
+   * Optimization: this value is actually indexed by BSP depth (0 to `bsp_depth - 1`), not joint
+   * index. It's put here to avoid allocating a separate array by utilizing the padding space.
+   */
+  float depth_scale;
+} bPoseChannel_BBoneSegmentBoundary;
+
 typedef struct bPoseChannel_Runtime {
   SessionUUID session_uuid;
 
@@ -189,6 +205,10 @@ typedef struct bPoseChannel_Runtime {
   /* B-Bone shape data: copy of the segment count for validation. */
   int bbone_segments;
 
+  /* Inverse of the total length of the segment polyline. */
+  float bbone_arc_length_reciprocal;
+  char _pad1[4];
+
   /* Rest and posed matrices for segments. */
   struct Mat4 *bbone_rest_mats;
   struct Mat4 *bbone_pose_mats;
@@ -196,6 +216,10 @@ typedef struct bPoseChannel_Runtime {
   /* Delta from rest to pose in matrix and DualQuat form. */
   struct Mat4 *bbone_deform_mats;
   struct DualQuat *bbone_dual_quats;
+
+  /* Segment boundaries for curved mode. */
+  struct bPoseChannel_BBoneSegmentBoundary *bbone_segment_boundaries;
+  void *_pad;
 } bPoseChannel_Runtime;
 
 /* ************************************************ */
@@ -389,16 +413,15 @@ typedef enum ePchan_Flag {
 
 /* PoseChannel constflag (constraint detection) */
 typedef enum ePchan_ConstFlag {
-  PCHAN_HAS_IK = (1 << 0),
-  PCHAN_HAS_CONST = (1 << 1),
-  /* Only used for drawing pose-mode, not stored in channel. */
+  PCHAN_HAS_IK = (1 << 0),           /* Has IK constraint. */
+  PCHAN_HAS_CONST = (1 << 1),        /* Has any constraint. */
   /* PCHAN_HAS_ACTION = (1 << 2), */ /* UNUSED */
-  PCHAN_HAS_TARGET = (1 << 3),
-  /* Only for drawing pose-mode too. */
+  PCHAN_HAS_NO_TARGET = (1 << 3),    /* Has (spline) IK constraint but no target is set. */
   /* PCHAN_HAS_STRIDE = (1 << 4), */ /* UNUSED */
-  /* spline IK */
-  PCHAN_HAS_SPLINEIK = (1 << 5),
+  PCHAN_HAS_SPLINEIK = (1 << 5),     /* Has Spline IK constraint. */
+  PCHAN_INFLUENCED_BY_IK = (1 << 6), /* Is part of a (non-spline) IK chain. */
 } ePchan_ConstFlag;
+ENUM_OPERATORS(ePchan_ConstFlag, PCHAN_INFLUENCED_BY_IK);
 
 /* PoseChannel->ikflag */
 typedef enum ePchan_IkFlag {

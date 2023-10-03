@@ -51,7 +51,7 @@ void KuwaharaAnisotropicOperation::deinit_execution()
 void KuwaharaAnisotropicOperation::execute_pixel_sampled(float output[4],
                                                          float x_float,
                                                          float y_float,
-                                                         PixelSampler /* sampler */)
+                                                         PixelSampler /*sampler*/)
 {
   using namespace math;
   const int x = x_float;

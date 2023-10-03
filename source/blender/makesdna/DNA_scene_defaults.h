@@ -229,12 +229,16 @@
  \
     .shadow_cube_size = 512, \
     .shadow_cascade_size = 1024, \
+    .shadow_ray_count = 1, \
+    .shadow_step_count = 6, \
+    .shadow_normal_bias = 0.02f, \
  \
     .ray_split_settings = 0, \
     .ray_tracing_method = RAYTRACE_EEVEE_METHOD_SCREEN, \
  \
     .reflection_options = _DNA_DEFAULT_RaytraceEEVEE, \
     .refraction_options = _DNA_DEFAULT_RaytraceEEVEE, \
+    .diffuse_options = _DNA_DEFAULT_RaytraceEEVEE, \
  \
     .light_cache_data = NULL, \
     .light_threshold = 0.01f, \
@@ -266,6 +270,8 @@
     .eevee = _DNA_DEFAULT_SceneEEVEE, \
  \
     .hydra = _DNA_DEFAULT_SceneHydra, \
+    .simulation_frame_start = 1, \
+    .simulation_frame_end = 250, \
   }
 
 /** \} */

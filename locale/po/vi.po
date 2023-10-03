@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -348,18 +348,6 @@ msgstr "Hiển thị giao điểm Ngõ Ra Vật Liệu glTF trong Bộ Biện T�
 
 msgid "Fribidi Library"
 msgstr "Thư Viện Fribidi"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "Thư viện biên dịch C FriBidi (.so cho Linux, .dll cho Windows...), có lẽ bạn sẽ cần biên tập nó nếu bạn sử dụng Windows, ví dụ thư viện ở trong kho thư viện svn"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Chương trình 'msgfmt' của Gettext"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "'Biên dịch' gettext msgfmt. Có lẽ bạn cần biên tập nó nếu bạn sử dụng Windows"
 
 
 msgid "Translation Root"
@@ -1088,6 +1076,191 @@ msgstr "Các Thẻ"
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Thẻ tùy chọn (mã danh) cho tích sản, được dùng cho bộ lọc và quản lý tích sản tổng quát"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Hành Động"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Cốt"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Bút"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Tập Tin Đệm Chứa"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Máy Quay Phim"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Sưu Tập"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Đường Cong"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Đường Cong"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Phông"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Bút Sáp"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Ảnh"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Phím"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Lưới Rào"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Thư Viện"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Đèn"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Quang Kế"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Phong Cách Nét"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Mặt Nạ"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Vật Liệu"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Mạng Lưới"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Siêu Cầu"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Khúc Phim"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Cây Giao Điểm"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Vật Thể"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Đường Cong Sơn"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Bảng"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Hạt"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Điểm Mây"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Cảnh"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Âm Thanh"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Loa"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Văn Bản"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Chất Liệu"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Thể Tích"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Bộ Quản Lý Cửa Sổ"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Công Trường"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Thế Giới"
 
 
 msgid "ID Name"
@@ -9324,191 +9497,6 @@ msgid "Type of ID-block that can be used"
 msgstr "Loại cục ID có thể dùng"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Hành Động"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Cốt"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Bút"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Tập Tin Đệm Chứa"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Máy Quay Phim"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Sưu Tập"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Đường Cong"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Đường Cong"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Phông"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Bút Sáp"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Ảnh"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Phím"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Lưới Rào"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Thư Viện"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Đèn"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Quang Kế"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Phong Cách Nét"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Mặt Nạ"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Vật Liệu"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Mạng Lưới"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Siêu Cầu"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Khúc Phim"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Cây Giao Điểm"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Vật Thể"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Đường Cong Sơn"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Bảng"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Hạt"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Điểm Mây"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Cảnh"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Âm Thanh"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Loa"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Văn Bản"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Chất Liệu"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Thể Tích"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Bộ Quản Lý Cửa Sổ"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Công Trường"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Thế Giới"
-
-
 msgid "Rotation Mode"
 msgstr "Chế Độ Xoay"
 
@@ -12225,22 +12213,6 @@ msgstr "Khổ Màn"
 
 msgid "Change the size of the display (width of columns or thumbnails size)"
 msgstr "Đổi khổ màn (bề rộng của cột hay khổ ảnh tem)"
-
-
-msgid "Tiny"
-msgstr "Tí Nị"
-
-
-msgid "Small"
-msgstr "Nhỏ"
-
-
-msgid "Medium"
-msgstr "Trung bình"
-
-
-msgid "Large"
-msgstr "Lớn"
 
 
 msgid "Display Mode"
@@ -23981,6 +23953,10 @@ msgstr "Cao"
 
 msgid "High quality"
 msgstr "Chất lượng cao"
+
+
+msgid "Medium"
+msgstr "Trung bình"
 
 
 msgid "Medium quality"
@@ -45999,6 +45975,10 @@ msgid "Input properties of an operator"
 msgstr "Đặc tính ngõ vào của một thao tác"
 
 
+msgid "Add keyframes on every frame between the selected keyframes"
+msgstr "Thêm bức ảnh mẫu cho mỗi bức ảnh giữa các bức ảnh mẫu được chọn"
+
+
 msgctxt "Operator"
 msgid "Clean Keyframes"
 msgstr "Làm Sạch Bức Ảnh Mẫu"
@@ -46373,15 +46353,6 @@ msgstr "Đẩy Hành Động Xuống"
 
 msgid "Push action down on to the NLA stack as a new strip"
 msgstr "Đẩy hành động xuống trong xếp đống NLA cho được làm một đoạn mới"
-
-
-msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Lấy Mẫu Vật Bức Ảnh"
-
-
-msgid "Add keyframes on every frame between the selected keyframes"
-msgstr "Thêm bức ảnh mẫu cho mỗi bức ảnh giữa các bức ảnh mẫu được chọn"
 
 
 msgctxt "Operator"
@@ -60674,11 +60645,6 @@ msgstr "Thêm một giao điểm tuyến lại"
 
 
 msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Tìm Kiếm Và Thêm Giao Điểm"
-
-
-msgctxt "Operator"
 msgid "Attach Nodes"
 msgstr "Gắn Giao Điểm"
 
@@ -72323,15 +72289,6 @@ msgstr "Nâng cấp dữ liệu phiên dịch của đồ kèm chỉ định (l�
 
 
 msgctxt "Operator"
-msgid "Clean up I18n Branches"
-msgstr "Làm sạch Nhấn I18n"
-
-
-msgid "Clean up i18n svn's branches (po files)"
-msgstr "Làm sạch các nhánh svn của I18n (tập tin .po)"
-
-
-msgctxt "Operator"
 msgid "Edit Translation Update Mo"
 msgstr "Biên Tập Nâng Cấp Phiên Dịch Mo"
 
@@ -72363,38 +72320,13 @@ msgstr "Lưu Cài đặt phiên dịch vào tập tin JSon cố chấp"
 
 
 msgctxt "Operator"
-msgid "Update I18n Branches"
-msgstr "Nâng Cấp Nhánh I18n"
-
-
-msgid "Update i18n svn's branches (po files)"
-msgstr "Nâng cấp nhánh svn của I18n (tập tin .po)"
-
-
-msgid "Skip POT"
-msgstr "Bỏ Qua POT"
-
-
-msgid "Skip POT file generation"
-msgstr "Bỏ qua chế tạo tập tin POT"
-
-
-msgctxt "Operator"
 msgid "Init I18n Update Settings"
 msgstr "Khởi Động Nâng Cấp Cài Đặt I18n"
-
-
-msgid "Init settings for i18n svn's update operators"
-msgstr "Khởi động cài đặt cho thao tác nâng cấp của svn I18n "
 
 
 msgctxt "Operator"
 msgid "Init I18n Update Select Languages"
 msgstr "Khởi Động Nâng Cấp I18n Ngôn Ngữ Được Chọn"
-
-
-msgid "(De)select (or invert selection of) all languages for i18n svn's update operators"
-msgstr "Chọn/thả (hay đảo nghịch sự lựa chọn) của tất cả ngôn ngữ cho thao tác nâng cấp của I18n svn"
 
 
 msgid "Invert Selection"
@@ -72422,25 +72354,12 @@ msgid "Create or extend a 'i18n_info.txt' Text datablock"
 msgstr "Chế tạo hay kèm một cục dữ liệu Văn bản 'i18n_info.txt'"
 
 
-msgid "Check Branches"
-msgstr "Kiểm Tra Nhánh"
+msgid "Skip POT"
+msgstr "Bỏ Qua POT"
 
 
-msgid "Check po files in branches"
-msgstr "Kiểm tra tập tin .po trong nhánh"
-
-
-msgid "Check Trunk"
-msgstr "Kiểm Tra Thân Cây"
-
-
-msgid "Check po files in trunk"
-msgstr "Kiểm Tra tập tin .po trong thân cây"
-
-
-msgctxt "Operator"
-msgid "Update I18n Trunk"
-msgstr "Nâng Cấp Thân Cây I18n"
+msgid "Skip POT file generation"
+msgstr "Bỏ qua chế tạo tập tin POT"
 
 
 msgctxt "Operator"
@@ -84379,14 +84298,6 @@ msgid "Settings/info about a language"
 msgstr "Cài đặt/thông tin về một ngôn ngữ"
 
 
-msgid "MO File Path"
-msgstr "Dường Dẫn Tập Tin MO"
-
-
-msgid "Path to the relevant mo file"
-msgstr "Đường dẫn đến tập tin .mo phù hợp"
-
-
 msgid "Language Name"
 msgstr "Tên Nhôn Ngữ"
 
@@ -84401,30 +84312,6 @@ msgstr "ID Mã Số"
 
 msgid "Numeric ID (read only!)"
 msgstr "ID mã số (chỉ được đọc)"
-
-
-msgid "PO File Path"
-msgstr "Đường Dẫn Tập Tin PO"
-
-
-msgid "Path to the relevant po file in branches"
-msgstr "Đường dẫn đến tập tin .po phù hợp trong nhánh"
-
-
-msgid "PO Git Master File Path"
-msgstr "Đường Dẫn Tập Tin Chủ Git PO"
-
-
-msgid "Path to the relevant po file in Blender's translations git repository"
-msgstr "Đường dẫn đến tập tin .po liên quan trong kho git dịch của Blender"
-
-
-msgid "PO Trunk File Path"
-msgstr "Đường Dẫn Tập Tin Thân Cây PO"
-
-
-msgid "Path to the relevant po file in trunk"
-msgstr "Đường dẫn đến tập tin .po phù hợp trong thân cây"
 
 
 msgid "Language ID"
@@ -84453,10 +84340,6 @@ msgstr "Cài đặt này được tự động đặt hay không"
 
 msgid "Languages"
 msgstr "Ngông Ngữ"
-
-
-msgid "Languages to update in branches"
-msgstr "Ngông ngữ để nâng cấp trong nhánh"
 
 
 msgid "POT File Path"
@@ -99590,12 +99473,12 @@ msgid "Add-on '{}' not found!"
 msgstr "Không kiếm được đồ kèm '{}'!"
 
 
-msgid "Info written to {} text datablock!"
-msgstr "Thông tin được lưu vào cục dữ liệu văn bản {}"
-
-
 msgid "Message extraction process failed!"
 msgstr "Qúa trịnh rút tin nhắn bị thất bại!"
+
+
+msgid "Info written to {} text datablock!"
+msgstr "Thông tin được lưu vào cục dữ liệu văn bản {}"
 
 
 msgid "Could not init languages data!"
@@ -99619,21 +99502,6 @@ msgstr "Hoàn Lại Cài đặt"
 msgctxt "Operator"
 msgid "Deselect All"
 msgstr "Thả Hết"
-
-
-msgctxt "Operator"
-msgid "Update Branches"
-msgstr "Nâng Cấp Nhánh"
-
-
-msgctxt "Operator"
-msgid "Update Trunk"
-msgstr "Nâng Cấp Thân Cây"
-
-
-msgctxt "Operator"
-msgid "Clean up Branches"
-msgstr "Làm Sạch Nhánh"
 
 
 msgctxt "Operator"
@@ -100969,31 +100837,6 @@ msgstr "Ngưỡng Sự Ảnh Hưởng"
 
 msgid "Update on Edit"
 msgstr "Nâng cấp khi Biên Tập"
-
-
-msgctxt "Operator"
-msgid "Remesh"
-msgstr "Mạng Lưới Lại"
-
-
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Cốt"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Lưới Rào"
-
-
-msgctxt "Operator"
-msgid "Smooth Laplacian"
-msgstr "Mịn Hóa LaPlace"
-
-
-msgctxt "Operator"
-msgid "Particle System"
-msgstr "Hệ Thống Hạt"
 
 
 msgid "Distance Reference"
@@ -106007,6 +105850,16 @@ msgstr "Bút Sáp"
 
 
 msgctxt "Operator"
+msgid "Armature"
+msgstr "Cốt"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Lưới Rào"
+
+
+msgctxt "Operator"
 msgid "Collection Instance..."
 msgstr "Thực Thể Sưu Tập..."
 
@@ -106064,6 +105917,11 @@ msgstr "Hình Dạng Hiện Đến Mạng Lưới"
 msgctxt "Operator"
 msgid "Limit Total Vertex Groups"
 msgstr "Hạn Chế Tổng Nhóm Đỉnh"
+
+
+msgctxt "Operator"
+msgid "Particle System"
+msgstr "Hệ Thống Hạt"
 
 
 msgctxt "Operator"
@@ -106143,6 +106001,11 @@ msgstr "Dán Dạng Đứng Lật Hướng X"
 
 msgid "Vertex Context Menu"
 msgstr "Danh Bạ Bối Cảnh Đỉnh"
+
+
+msgctxt "Operator"
+msgid "Smooth Laplacian"
+msgstr "Mịn Hóa LaPlace"
 
 
 msgid "Mirror Vertices"
@@ -106740,6 +106603,11 @@ msgstr "Phương Pháp Chỉnh Chi Tiết"
 
 msgid "Detailing"
 msgstr "Chi Tiết Hóa"
+
+
+msgctxt "Operator"
+msgid "Remesh"
+msgstr "Mạng Lưới Lại"
 
 
 msgid "Tile Offset"
@@ -115731,10 +115599,6 @@ msgid "Gizmo group '%s' has 'PERSISTENT' option set!"
 msgstr "Nhóm đồ đạc '%s' được đặt tùy chọn 'CÔ_CHẤP'"
 
 
-msgid "KeyMapItem '%s' cannot be removed from '%s'"
-msgstr "Không thể xóa MặtHàngÁnhXạPhím '%s' từ '%s'"
-
-
 msgid "Modal key-maps not supported for add-on key-config"
 msgstr "Không hỗ trợ ánh xạ phím cách thức cho cấu hình phím của đồ kèm"
 
@@ -117654,20 +117518,8 @@ msgid "Sheen Tint"
 msgstr "Nhiễm Xán Lạn"
 
 
-msgid "Clearcoat"
-msgstr "Lớp Trong Suốt"
-
-
-msgid "Clearcoat Roughness"
-msgstr "Độ Nhám Lớp Trong Suốt"
-
-
 msgid "Emission Strength"
 msgstr "Sức Phát Xạ"
-
-
-msgid "Clearcoat Normal"
-msgstr "Pháp Tuyến Lớp Trong Suốt"
 
 
 msgid "View Vector"
@@ -118909,10 +118761,6 @@ msgstr "Tiếng Do Thái (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "Tiếng Quốc Tế Ngữ (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Tiếng Tây Ban Nhà (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

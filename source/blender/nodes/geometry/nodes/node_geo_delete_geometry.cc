@@ -11,6 +11,7 @@
 
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
+#include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 
 #include "GEO_mesh_copy_selection.hh"
@@ -108,11 +109,18 @@ static void delete_selected_instances(GeometrySet &geometry_set,
 
 static std::optional<Mesh *> separate_mesh_selection(
     const Mesh &mesh,
-    const Field<bool> &selection,
+    const Field<bool> &selection_field,
     const eAttrDomain selection_domain,
     const GeometryNodeDeleteGeometryMode mode,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const bke::MeshFieldContext context(mesh, selection_domain);
+  fn::FieldEvaluator evaluator(context, attributes.domain_size(selection_domain));
+  evaluator.add(selection_field);
+  evaluator.evaluate();
+  const VArray<bool> selection = evaluator.get_evaluated<bool>(0);
+
   switch (mode) {
     case GEO_NODE_DELETE_GEOMETRY_MODE_ALL:
       return geometry::mesh_copy_selection(mesh, selection, selection_domain, propagation_info);

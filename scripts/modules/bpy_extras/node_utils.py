@@ -35,11 +35,15 @@ def connect_sockets(input, output):
         return
 
     if output_node.type == 'GROUP_OUTPUT' and type(input) == bpy.types.NodeSocketVirtual:
-        output_node.id_data.outputs.new(type(output).__name__, output.name)
+        output_node.id_data.interface.new_socket(
+            name=output.name, socket_type=type(output).__name__, in_out='OUTPUT'
+        )
         input = output_node.inputs[-2]
 
     if input_node.type == 'GROUP_INPUT' and type(output) == bpy.types.NodeSocketVirtual:
-        output_node.id_data.inputs.new(type(input).__name__, input.name)
+        input_node.id_data.interface.new_socket(
+            name=input.name, socket_type=type(input).__name__, in_out='INPUT'
+        )
         output = input_node.outputs[-2]
 
     return input_node.id_data.links.new(input, output)

@@ -39,7 +39,7 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/tools/GridTransformer.h>

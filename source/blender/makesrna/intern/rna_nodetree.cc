@@ -60,8 +60,8 @@
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLI_string_utils.h"
 
@@ -552,7 +552,7 @@ static const EnumPropertyItem prop_shader_output_target_items[] = {
      0,
      "All",
      "Use shaders for all renderers and viewports, unless there exists a more specific output"},
-    {SHD_OUTPUT_EEVEE, "EEVEE", 0, "Eevee", "Use shaders for Eevee renderer"},
+    {SHD_OUTPUT_EEVEE, "EEVEE", 0, "EEVEE", "Use shaders for EEVEE renderer"},
     {SHD_OUTPUT_CYCLES, "CYCLES", 0, "Cycles", "Use shaders for Cycles renderer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -949,7 +949,6 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
                                         StructCallbackFunc call,
                                         StructFreeFunc free)
 {
-  const char *error_prefix = "Registering node tree class:";
   bNodeTreeType *nt, dummy_nt;
   bNodeTree dummy_ntree;
   bool have_function[4];
@@ -968,8 +967,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummy_nt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s '%s' is too long, maximum length is %d",
-                error_prefix,
+                "Registering node tree class: '%s' is too long, maximum length is %d",
                 identifier,
                 int(sizeof(dummy_nt.idname)));
     return nullptr;
@@ -982,8 +980,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
     if (!rna_NodeTree_unregister(bmain, nt->rna_ext.srna)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s '%s', bl_idname '%s' could not be unregistered",
-                  error_prefix,
+                  "Registering node tree class: '%s', bl_idname '%s' could not be unregistered",
                   identifier,
                   dummy_nt.idname);
       return nullptr;
@@ -1609,7 +1606,6 @@ static bNodeType *rna_Node_register_base(Main *bmain,
                                          StructCallbackFunc call,
                                          StructFreeFunc free)
 {
-  const char *error_prefix = "Registering node class:";
   bNodeType *nt, dummy_nt;
   bNode dummy_node;
   FunctionRNA *func;
@@ -1633,8 +1629,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   if (strlen(identifier) >= sizeof(dummy_nt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s '%s' is too long, maximum length is %d",
-                error_prefix,
+                "Registering node class: '%s' is too long, maximum length is %d",
                 identifier,
                 int(sizeof(dummy_nt.idname)));
     return nullptr;
@@ -1647,8 +1642,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
     if (rna_Node_is_builtin(nt)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s '%s', bl_idname '%s' is a builtin node",
-                  error_prefix,
+                  "Registering node class: '%s', bl_idname '%s' is a builtin node",
                   identifier,
                   dummy_nt.idname);
       return nullptr;
@@ -1658,8 +1652,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
     if (!rna_Node_unregister(bmain, nt->rna_ext.srna)) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "%s '%s', bl_idname '%s' could not be unregistered",
-                  error_prefix,
+                  "Registering node class: '%s', bl_idname '%s' could not be unregistered",
                   identifier,
                   dummy_nt.idname);
       return nullptr;
@@ -3228,64 +3221,48 @@ static void rna_RepeatItem_color_get(PointerRNA *ptr, float *values)
   ED_node_type_draw_color(socket_type_idname, values);
 }
 
-static PointerRNA rna_NodeGeometrySimulationInput_paired_output_get(PointerRNA *ptr)
+static PointerRNA rna_Node_paired_output_get(PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode *node = static_cast<bNode *>(ptr->data);
-  bNode *output_node = NOD_geometry_simulation_input_get_paired_output(ntree, node);
+  const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(node->type);
+  bNode *output_node = zone_type.get_corresponding_output(*ntree, *node);
   PointerRNA r_ptr = RNA_pointer_create(&ntree->id, &RNA_Node, output_node);
   return r_ptr;
 }
 
-static PointerRNA rna_NodeGeometryRepeatInput_paired_output_get(PointerRNA *ptr)
-{
-  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  bNode *node = static_cast<bNode *>(ptr->data);
-  NodeGeometryRepeatInput *storage = static_cast<NodeGeometryRepeatInput *>(node->storage);
-  bNode *output_node = ntree->node_by_id(storage->output_node_id);
-  PointerRNA r_ptr = RNA_pointer_create(&ntree->id, &RNA_Node, output_node);
-  return r_ptr;
-}
-
-static bool rna_GeometryNodeSimulationInput_pair_with_output(
+static bool rna_Node_pair_with_output(
     ID *id, bNode *node, bContext *C, ReportList *reports, bNode *output_node)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-
-  if (!NOD_geometry_simulation_input_pair_with_output(ntree, node, output_node)) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Failed to pair simulation input node %s with output node %s",
-                node->name,
-                output_node->name);
+  const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(node->type);
+  if (output_node->type != zone_type.output_type) {
+    BKE_reportf(
+        reports,
+        RPT_ERROR,
+        "Can't pair zone input node %s with %s because it does not have the same zone type",
+        node->name,
+        output_node->name);
     return false;
   }
+  for (const bNode *other_input_node : ntree->nodes_by_type(zone_type.input_idname)) {
+    if (other_input_node != node) {
+      if (zone_type.get_corresponding_output(*ntree, *other_input_node) == output_node) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "The output node %s is already paired with %s",
+                    output_node->name,
+                    other_input_node->name);
+        return false;
+      }
+    }
+  }
+  int &output_node_id = zone_type.get_corresponding_output_id(*node);
+  output_node_id = output_node->identifier;
 
   BKE_ntree_update_tag_node_property(ntree, node);
   ED_node_tree_propagate_change(C, CTX_data_main(C), ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
-
-  return true;
-}
-
-static bool rna_GeometryNodeRepeatInput_pair_with_output(
-    ID *id, bNode *node, bContext *C, ReportList *reports, bNode *output_node)
-{
-  bNodeTree *ntree = (bNodeTree *)id;
-
-  if (!NOD_geometry_repeat_input_pair_with_output(ntree, node, output_node)) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Failed to pair repeat input node %s with output node %s",
-                node->name,
-                output_node->name);
-    return false;
-  }
-
-  BKE_ntree_update_tag_node_property(ntree, node);
-  ED_node_tree_propagate_change(C, CTX_data_main(C), ntree);
-  WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
-
   return true;
 }
 
@@ -4101,18 +4078,18 @@ static const EnumPropertyItem node_subsurface_method_items[] = {
      0,
      "Christensen-Burley",
      "Approximation to physically based volume scattering"},
-    {SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS,
-     "RANDOM_WALK_FIXED_RADIUS",
-     0,
-     "Random Walk (Fixed Radius)",
-     "Volumetric approximation to physically based volume scattering, using the scattering radius "
-     "as specified"},
     {SHD_SUBSURFACE_RANDOM_WALK,
      "RANDOM_WALK",
      0,
      "Random Walk",
+     "Volumetric approximation to physically based volume scattering, using the scattering radius "
+     "as specified"},
+    {SHD_SUBSURFACE_RANDOM_WALK_SKIN,
+     "RANDOM_WALK_SKIN",
+     0,
+     "Random Walk (Skin)",
      "Volumetric approximation to physically based volume scattering, with scattering radius "
-     "automatically adjusted to match color textures"},
+     "automatically adjusted to match color textures. Designed for skin shading"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 static const EnumPropertyItem prop_image_extension[] = {
@@ -8847,28 +8824,24 @@ static void def_geo_curve_set_handle_type(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
-static void def_geo_simulation_input(StructRNA *srna)
+static void def_common_zone_input(StructRNA *srna)
 {
   PropertyRNA *prop;
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  RNA_def_struct_sdna_from(srna, "NodeGeometrySimulationInput", "storage");
-
   prop = RNA_def_property(srna, "paired_output", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Node");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_pointer_funcs(
-      prop, "rna_NodeGeometrySimulationInput_paired_output_get", nullptr, nullptr, nullptr);
+  RNA_def_property_pointer_funcs(prop, "rna_Node_paired_output_get", nullptr, nullptr, nullptr);
   RNA_def_property_ui_text(
-      prop, "Paired Output", "Simulation output node that this input node is paired with");
+      prop, "Paired Output", "Zone output node that this input node is paired with");
 
-  func = RNA_def_function(
-      srna, "pair_with_output", "rna_GeometryNodeSimulationInput_pair_with_output");
-  RNA_def_function_ui_description(func, "Pair a simulation input node with an output node.");
+  func = RNA_def_function(srna, "pair_with_output", "rna_Node_pair_with_output");
+  RNA_def_function_ui_description(func, "Pair a zone input node with an output node.");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
   parm = RNA_def_pointer(
-      func, "output_node", "GeometryNode", "Output Node", "Simulation output node to pair with");
+      func, "output_node", "GeometryNode", "Output Node", "Zone output node to pair with");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return value */
   parm = RNA_def_boolean(
@@ -8876,33 +8849,18 @@ static void def_geo_simulation_input(StructRNA *srna)
   RNA_def_function_return(func, parm);
 }
 
+static void def_geo_simulation_input(StructRNA *srna)
+{
+  RNA_def_struct_sdna_from(srna, "NodeGeometrySimulationInput", "storage");
+
+  def_common_zone_input(srna);
+}
+
 static void def_geo_repeat_input(StructRNA *srna)
 {
-  PropertyRNA *prop;
-  FunctionRNA *func;
-  PropertyRNA *parm;
-
   RNA_def_struct_sdna_from(srna, "NodeGeometryRepeatInput", "storage");
 
-  prop = RNA_def_property(srna, "paired_output", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "Node");
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_pointer_funcs(
-      prop, "rna_NodeGeometryRepeatInput_paired_output_get", nullptr, nullptr, nullptr);
-  RNA_def_property_ui_text(
-      prop, "Paired Output", "Repeat output node that this input node is paired with");
-
-  func = RNA_def_function(
-      srna, "pair_with_output", "rna_GeometryNodeRepeatInput_pair_with_output");
-  RNA_def_function_ui_description(func, "Pair a repeat input node with an output node.");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
-  parm = RNA_def_pointer(
-      func, "output_node", "GeometryNode", "Output Node", "Repeat output node to pair with");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  /* return value */
-  parm = RNA_def_boolean(
-      func, "result", false, "Result", "True if pairing the node was successful");
-  RNA_def_function_return(func, parm);
+  def_common_zone_input(srna);
 }
 
 static void rna_def_simulation_state_item(BlenderRNA *brna)
@@ -9005,6 +8963,7 @@ static void def_geo_simulation_output(StructRNA *srna)
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "active_index");
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
@@ -9015,7 +8974,7 @@ static void def_geo_simulation_output(StructRNA *srna)
                                  "rna_NodeGeometrySimulationOutput_active_item_set",
                                  nullptr,
                                  nullptr);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NO_DEG_UPDATE);
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
   RNA_def_property_update(prop, NC_NODE, nullptr);
 }
@@ -9112,6 +9071,7 @@ static void def_geo_repeat_output(StructRNA *srna)
   RNA_def_property_int_sdna(prop, nullptr, "active_index");
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
@@ -9121,9 +9081,17 @@ static void def_geo_repeat_output(StructRNA *srna)
                                  "rna_NodeGeometryRepeatOutput_active_item_set",
                                  nullptr,
                                  nullptr);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NO_DEG_UPDATE);
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
   RNA_def_property_update(prop, NC_NODE, nullptr);
+
+  prop = RNA_def_property(srna, "inspection_index", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_range(prop, 0, INT32_MAX, 1, -1);
+  RNA_def_property_ui_text(prop,
+                           "Inspection Index",
+                           "Iteration index that is used by inspection features like the viewer "
+                           "node or socket inspection");
+  RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 }
 
 static void def_geo_curve_handle_type_selection(StructRNA *srna)

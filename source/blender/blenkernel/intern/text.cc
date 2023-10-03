@@ -127,9 +127,9 @@ static void text_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const
   LISTBASE_FOREACH (TextLine *, line_src, &text_src->lines) {
     TextLine *line_dst = static_cast<TextLine *>(MEM_mallocN(sizeof(*line_dst), __func__));
 
-    line_dst->line = BLI_strdup(line_src->line);
-    line_dst->format = nullptr;
+    line_dst->line = BLI_strdupn(line_src->line, line_src->len);
     line_dst->len = line_src->len;
+    line_dst->format = nullptr;
 
     BLI_addtail(&text_dst->lines, line_dst);
   }
@@ -408,7 +408,7 @@ static void text_from_buf(Text *text, const uchar *buffer, const int len)
     cleanup_textline(tmp);
 
     BLI_addtail(&text->lines, tmp);
-    /* lines_count += 1; */ /* UNUSED */
+    // lines_count += 1; /* UNUSED. */
   }
 
   text->curl = text->sell = static_cast<TextLine *>(text->lines.first);
@@ -525,7 +525,7 @@ void BKE_text_write(Text *text, const char *str, int str_len) /* called directly
   txt_make_dirty(text);
 }
 
-int BKE_text_file_modified_check(Text *text)
+int BKE_text_file_modified_check(const Text *text)
 {
   BLI_stat_t st;
   int result;
@@ -1556,7 +1556,7 @@ void txt_insert_buf(Text *text, const char *in_buffer, int in_buffer_len)
 
   /* Read the first line (or as close as possible */
   while (buffer[i] && buffer[i] != '\n') {
-    txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, in_buffer_len, &i));
+    txt_add_raw_char(text, BLI_str_utf8_as_unicode_step_safe(buffer, in_buffer_len, &i));
   }
 
   if (buffer[i] == '\n') {
@@ -1578,7 +1578,7 @@ void txt_insert_buf(Text *text, const char *in_buffer, int in_buffer_len)
       }
       else {
         for (j = i - l; j < i && j < in_buffer_len;) {
-          txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, in_buffer_len, &j));
+          txt_add_raw_char(text, BLI_str_utf8_as_unicode_step_safe(buffer, in_buffer_len, &j));
         }
         break;
       }
@@ -1948,7 +1948,7 @@ bool txt_replace_char(Text *text, uint add)
   }
 
   del_size = text->curc;
-  del = BLI_str_utf8_as_unicode_step(text->curl->line, text->curl->len, &del_size);
+  del = BLI_str_utf8_as_unicode_step_safe(text->curl->line, text->curl->len, &del_size);
   del_size -= text->curc;
   UNUSED_VARS(del);
   add_size = BLI_str_utf8_from_unicode(add, ch, sizeof(ch));
@@ -2221,7 +2221,7 @@ int txt_setcurr_tab_spaces(Text *text, int space)
   }
 
   while (text->curl->line[i] == indent) {
-    /* We only count those tabs/spaces that are before any text or before the curs; */
+    /* We only count those tabs/spaces that are before any text or before the `curs`. */
     if (i == text->curc) {
       return i;
     }

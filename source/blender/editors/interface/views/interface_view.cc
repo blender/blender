@@ -23,7 +23,7 @@
 
 #include "DNA_screen_types.h"
 
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"

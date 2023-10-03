@@ -16,6 +16,7 @@ set(INC
   ../../makesrna
   ../../render
   ../../windowmanager
+  ../../../../intern/clog
   ../../../../intern/sky/include
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -135,6 +136,25 @@ set(LIB
   bf_intern_sky
   bf_nodes
 )
+
+if(WITH_MATERIALX)
+  add_definitions(-DWITH_MATERIALX)
+  list(APPEND SRC
+    materialx/material.cc
+    materialx/node_item.cc
+    materialx/node_parser.cc
+    materialx/group_nodes.cc
+
+    materialx/material.h
+    materialx/node_item.h
+    materialx/node_parser.h
+    materialx/group_nodes.h
+  )
+  list(APPEND LIB
+    MaterialXCore
+    MaterialXFormat
+  )
+endif()
 
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)

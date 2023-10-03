@@ -47,9 +47,11 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
+
+#include "GEO_randomize.hh"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -501,6 +503,8 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
     MutableSpan(result->mat, result->totcol).copy_from(materials);
   }
 
+  blender::geometry::debug_randomize_mesh_order(result);
+
   return result;
 }
 #endif
@@ -597,6 +601,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
+
+  blender::geometry::debug_randomize_mesh_order(result);
 
   return result;
 }

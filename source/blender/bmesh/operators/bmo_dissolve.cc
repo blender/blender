@@ -264,7 +264,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
 void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 {
-  /* BMOperator fop; */
+  // BMOperator fop;
   BMFace *act_face = bm->act_face;
   BMOIter eiter;
   BMIter iter;

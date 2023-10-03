@@ -14,7 +14,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_curves_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_modifier_types.h"
@@ -136,7 +136,7 @@ void SyncModule::sync_mesh(Object *ob,
 
   bool is_shadow_caster = false;
   bool is_alpha_blend = false;
-  bool do_probe_sync = inst_.do_probe_sync();
+  bool do_probe_sync = inst_.do_probe_sync() && !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP);
   for (auto i : material_array.gpu_materials.index_range()) {
     GPUBatch *geom = mat_geom[i];
     if (geom == nullptr) {
@@ -209,7 +209,7 @@ bool SyncModule::sync_sculpt(Object *ob,
 
   bool is_shadow_caster = false;
   bool is_alpha_blend = false;
-  bool do_probe_sync = inst_.do_probe_sync();
+  bool do_probe_sync = inst_.do_probe_sync() && !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP);
   for (SculptBatch &batch :
        sculpt_batches_per_material_get(ob_ref.object, material_array.gpu_materials))
   {

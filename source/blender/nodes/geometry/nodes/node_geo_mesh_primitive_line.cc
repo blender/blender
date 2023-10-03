@@ -164,7 +164,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     mesh = geometry::create_line_mesh(start, delta, count);
   }
 
-  BKE_id_material_eval_ensure_default_slot(reinterpret_cast<ID *>(mesh));
+  if (mesh) {
+    BKE_id_material_eval_ensure_default_slot(reinterpret_cast<ID *>(mesh));
+  }
 
   params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }

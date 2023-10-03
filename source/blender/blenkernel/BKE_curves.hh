@@ -25,6 +25,8 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.h"
 
+struct MDeformVert;
+
 namespace blender::bke {
 
 namespace curves::nurbs {
@@ -256,6 +258,13 @@ class CurvesGeometry : public ::CurvesGeometry {
    */
   Span<float2> surface_uv_coords() const;
   MutableSpan<float2> surface_uv_coords_for_write();
+
+  /**
+   * Vertex group data, encoded as an array of indices and weights for every vertex.
+   * \warning: May be empty.
+   */
+  Span<MDeformVert> deform_verts() const;
+  MutableSpan<MDeformVert> deform_verts_for_write();
 
   /**
    * The largest and smallest position values of evaluated points.

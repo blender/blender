@@ -21,33 +21,31 @@
 
 #ifdef VOLUME_LIGHTING
 
-vec3 volume_scatter_light_eval(vec3 P, vec3 V, uint l_idx, float s_anisotropy)
+vec3 volume_scatter_light_eval(
+    const bool is_directional, vec3 P, vec3 V, uint l_idx, float s_anisotropy)
 {
-  LightData ld = light_buf[l_idx];
+  LightData light = light_buf[l_idx];
 
-  if (ld.volume_power == 0.0) {
+  if (light.volume_power == 0.0) {
     return vec3(0);
   }
 
   vec3 L;
   float l_dist;
-  light_shape_vector_get(ld, P, L, l_dist);
+  light_shape_vector_get(light, P, L, l_dist);
 
-  float visibility = light_attenuation(ld, L, l_dist);
-  LightData light = light_buf[l_idx];
+  float visibility = light_attenuation(light, L, l_dist);
   if (light.tilemap_index != LIGHT_NO_SHADOW && (visibility > 0.0)) {
-    vec3 lL = light_world_to_local(light, -L) * l_dist;
-    vec3 lNg = vec3(0);
-    ShadowSample samp = shadow_sample(
-        is_sun_light(light.type), shadow_atlas_tx, shadow_tilemaps_tx, light, lL, lNg, P);
-    visibility *= float(samp.occluder_delta + samp.bias >= 0.0);
+    ShadowEvalResult samp = shadow_sample(
+        is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P);
+    visibility *= samp.surface_light_visibilty;
   }
 
   if (visibility < 1e-4) {
     return vec3(0);
   }
 
-  vec3 Li = volume_light(ld, L, l_dist) * volume_shadow(ld, P, L, l_dist, extinction_tx);
+  vec3 Li = volume_light(light, L, l_dist) * volume_shadow(light, P, L, l_dist, extinction_tx);
   return Li * visibility * volume_phase_function(-V, L, s_anisotropy);
 }
 
@@ -81,7 +79,7 @@ void main()
 #ifdef VOLUME_LIGHTING
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    scattering += volume_scatter_light_eval(P, V, l_idx, s_anisotropy) * s_scattering;
+    scattering += volume_scatter_light_eval(true, P, V, l_idx, s_anisotropy) * s_scattering;
   }
   LIGHT_FOREACH_END
 
@@ -89,7 +87,7 @@ void main()
                uniform_buf.volumes.viewport_size_inv;
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vP.z, l_idx) {
-    scattering += volume_scatter_light_eval(P, V, l_idx, s_anisotropy) * s_scattering;
+    scattering += volume_scatter_light_eval(false, P, V, l_idx, s_anisotropy) * s_scattering;
   }
   LIGHT_FOREACH_END
 

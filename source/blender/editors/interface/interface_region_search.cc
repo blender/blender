@@ -24,7 +24,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -301,6 +301,8 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
     }
 
     search_but->item_active = data->items.pointers[data->active];
+    MEM_SAFE_FREE(search_but->item_active_str);
+    search_but->item_active_str = BLI_strdup(data->items.names[data->active]);
 
     return true;
   }

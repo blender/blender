@@ -70,6 +70,7 @@ enum SculptUpdateType {
   SCULPT_UPDATE_VISIBILITY = 1 << 2,
   SCULPT_UPDATE_COLOR = 1 << 3,
   SCULPT_UPDATE_IMAGE = 1 << 4,
+  SCULPT_UPDATE_FACE_SET = 1 << 5,
 };
 
 struct SculptCursorGeometryInfo {
@@ -851,6 +852,30 @@ bool SCULPT_stroke_is_first_brush_step_of_symmetry_pass(StrokeCache *cache);
 /** \name Sculpt mesh accessor API
  * \{ */
 
+struct SculptMaskWriteInfo {
+  float *layer = nullptr;
+  int bm_offset = -1;
+};
+SculptMaskWriteInfo SCULPT_mask_get_for_write(SculptSession *ss);
+inline void SCULPT_mask_vert_set(const PBVHType type,
+                                 const SculptMaskWriteInfo mask_write,
+                                 const float value,
+                                 PBVHVertexIter &vd)
+{
+  switch (type) {
+    case PBVH_FACES:
+      mask_write.layer[vd.index] = value;
+      break;
+    case PBVH_BMESH:
+      BM_ELEM_CD_SET_FLOAT(vd.bm_vert, mask_write.bm_offset, value);
+      break;
+    case PBVH_GRIDS:
+      *CCG_elem_mask(&vd.key, vd.grid) = value;
+      break;
+  }
+}
+void SCULPT_mask_write_array(SculptSession *ss, Span<PBVHNode *> nodes, Span<float> mask);
+
 /** Ensure random access; required for PBVH_BMESH */
 void SCULPT_vertex_random_access_ensure(SculptSession *ss);
 
@@ -1595,10 +1620,6 @@ void SCULPT_OT_color_filter(wmOperatorType *ot);
 /* Mask filter and Dirty Mask. */
 
 void SCULPT_OT_mask_filter(wmOperatorType *ot);
-
-/* Mask and Face Sets Expand. */
-
-void SCULPT_OT_mask_expand(wmOperatorType *ot);
 
 /* Mask Init. */
 

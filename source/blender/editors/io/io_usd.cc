@@ -16,7 +16,7 @@
 #  include "BKE_context.h"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
-#  include "BKE_screen.h"
+#  include "BKE_screen.hh"
 
 #  include "BLI_blenlib.h"
 #  include "BLI_path_util.h"
@@ -41,7 +41,7 @@
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 #  include "IO_orientation.hh"
 #  include "io_ops.hh"

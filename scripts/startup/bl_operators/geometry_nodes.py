@@ -12,33 +12,39 @@ from bpy.props import (
 )
 
 
-def build_default_empty_geometry_node_group(name):
+def add_empty_geometry_node_group(name):
     group = bpy.data.node_groups.new(name, 'GeometryNodeTree')
-    group.interface.new_socket(data_("Geometry"), in_out={'OUTPUT'}, socket_type='NodeSocketGeometry')
-    group.interface.new_socket(data_("Geometry"), in_out={'INPUT'}, socket_type='NodeSocketGeometry')
+
+    group.interface.new_socket(data_("Geometry"), in_out='INPUT', socket_type='NodeSocketGeometry')
     input_node = group.nodes.new('NodeGroupInput')
+    input_node.select = False
+    input_node.location.x = -200 - input_node.width
+
+    group.interface.new_socket(data_("Geometry"), in_out='OUTPUT', socket_type='NodeSocketGeometry')
     output_node = group.nodes.new('NodeGroupOutput')
     output_node.is_active_output = True
-
-    input_node.select = False
     output_node.select = False
-
-    input_node.location.x = -200 - input_node.width
     output_node.location.x = 200
 
     return group
 
 
-def geometry_node_group_empty_new():
-    group = build_default_empty_geometry_node_group(data_("Geometry Nodes"))
+def geometry_node_group_empty_new(name):
+    group = add_empty_geometry_node_group(name)
     group.links.new(group.nodes[data_("Group Input")].outputs[0], group.nodes[data_("Group Output")].inputs[0])
     return group
 
 
+def geometry_node_group_empty_modifier_new(name):
+    group = geometry_node_group_empty_new(data_("Geometry Nodes"))
+    group.is_modifier = True
+    return group
+
+
 def geometry_node_group_empty_tool_new(context):
-    group = build_default_empty_geometry_node_group(data_("Tool"))
-    group.links.new(group.nodes[data_("Group Input")].outputs[0], group.nodes[data_("Group Output")].inputs[0])
-    group.asset_mark()
+    group = geometry_node_group_empty_new(data_("Tool"))
+    # Node tools have fake users by default, otherwise Blender will delete them since they have no users.
+    group.use_fake_user = True
     group.is_tool = True
 
     ob_type = context.object.type if context.object else 'MESH'
@@ -147,18 +153,31 @@ class MoveModifierToNodes(Operator):
             return {'CANCELLED'}
 
         wrapper_name = old_group.name + ".wrapper"
-        group = build_default_empty_geometry_node_group(wrapper_name)
+        group = bpy.data.node_groups.new(wrapper_name, 'GeometryNodeTree')
+        group.interface.new_socket(data_("Geometry"), in_out='OUTPUT', socket_type='NodeSocketGeometry')
+        group.is_modifier = True
+
+        first_geometry_input = next((item for item in old_group.interface.items_tree if item.item_type == 'SOCKET' and
+                                    item.in_out == 'INPUT' and
+                                    item.bl_socket_idname == 'NodeSocketGeometry'), None)
+        if first_geometry_input:
+            group.interface.new_socket(data_("Geometry"), in_out='INPUT', socket_type='NodeSocketGeometry')
+            group_input_node = group.nodes.new('NodeGroupInput')
+            group_input_node.location.x = -200 - group_input_node.width
+            group_input_node.select = False
+
+        group_output_node = group.nodes.new('NodeGroupOutput')
+        group_output_node.is_active_output = True
+        group_output_node.location.x = 200
+        group_output_node.select = False
+
         group_node = group.nodes.new("GeometryNodeGroup")
         group_node.node_tree = old_group
         group_node.update()
 
-        group_input_node = group.nodes[data_("Group Input")]
-        group_output_node = group.nodes[data_("Group Output")]
-
         # Copy default values for inputs and create named attribute input nodes.
         input_nodes = []
-        first_geometry_input = None
-        for input_socket in old_group.interface.ui_items:
+        for input_socket in old_group.interface.items_tree:
             if input_socket.item_type != 'SOCKET' or (input_socket.in_out not in {'INPUT', 'BOTH'}):
                 continue
             identifier = input_socket.identifier
@@ -173,26 +192,22 @@ class MoveModifierToNodes(Operator):
                 group.links.new(output_socket, group_node_input)
             elif hasattr(input_socket, "default_value"):
                 group_node_input.default_value = modifier[identifier]
-            elif input_socket.bl_socket_idname == 'NodeSocketGeometry':
-                if not first_geometry_input:
-                    first_geometry_input = group_node_input
 
-        if not first_geometry_input:
-            self.report({'WARNING'}, "Node group must have a geometry input")
-            return {'CANCELLED'}
-        group.links.new(group_input_node.outputs[0], first_geometry_input)
+        if first_geometry_input:
+            group.links.new(group_input_node.outputs[0],
+                            get_socket_with_identifier(group_node.inputs, first_geometry_input.identifier))
 
-        # Adjust locations of named attribute input nodes and group input node to make some space.
-        if input_nodes:
-            for i, node in enumerate(input_nodes):
-                node.location.x = -175
-                node.location.y = i * -50
-            group_input_node.location.x = -350
+            # Adjust locations of named attribute input nodes and group input node to make some space.
+            if input_nodes:
+                for i, node in enumerate(input_nodes):
+                    node.location.x = -175
+                    node.location.y = i * -50
+                group_input_node.location.x = -350
 
         # Connect outputs to store named attribute nodes to replace modifier attribute outputs.
         store_nodes = []
         first_geometry_output = None
-        for output_socket in old_group.interface.ui_items:
+        for output_socket in old_group.interface.items_tree:
             if output_socket.item_type != 'SOCKET' or (output_socket.in_out not in {'OUTPUT', 'BOTH'}):
                 continue
             identifier = output_socket.identifier
@@ -251,8 +266,7 @@ class NewGeometryNodesModifier(Operator):
         if not modifier:
             return {'CANCELLED'}
 
-        group = geometry_node_group_empty_new()
-        group.is_modifier = True
+        group = geometry_node_group_empty_modifier_new(data_("Geometry Nodes"))
         modifier.node_group = group
 
         return {'FINISHED'}
@@ -274,15 +288,14 @@ class NewGeometryNodeTreeAssign(Operator):
         modifier = get_context_modifier(context)
         if not modifier:
             return {'CANCELLED'}
-        group = geometry_node_group_empty_new()
-        group.is_modifier = True
+        group = geometry_node_group_empty_modifier_new(data_("Geometry Nodes"))
         modifier.node_group = group
 
         return {'FINISHED'}
 
 
 class NewGeometryNodeGroupTool(Operator):
-    """Create a new geometry node group for an tool"""
+    """Create a new geometry node group for a tool"""
     bl_idname = "node.new_geometry_node_group_tool"
     bl_label = "New Geometry Node Tool Group"
     bl_options = {'REGISTER', 'UNDO'}
@@ -294,7 +307,7 @@ class NewGeometryNodeGroupTool(Operator):
 
     def execute(self, context):
         group = geometry_node_group_empty_tool_new(context)
-        context.space_data.node_tree = group
+        context.space_data.geometry_nodes_tool_tree = group
         return {'FINISHED'}
 
 

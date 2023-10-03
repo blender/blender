@@ -1370,10 +1370,10 @@ static void node_update_mask_redraw(PBVH &pbvh, PBVHNode &node)
     PBVHVertexIter vd;
 
     BKE_pbvh_vertex_iter_begin (&pbvh, &node, vd, PBVH_ITER_ALL) {
-      if (vd.mask && *vd.mask < 1.0f) {
+      if (vd.mask < 1.0f) {
         has_unmasked = true;
       }
-      if (vd.mask && *vd.mask > 0.0f) {
+      if (vd.mask > 0.0f) {
         has_masked = false;
       }
     }
@@ -1546,23 +1546,24 @@ void BKE_pbvh_update_bounds(PBVH *pbvh, int flag)
   }
 }
 
+void BKE_pbvh_update_mask(PBVH *pbvh)
+{
+  using namespace blender;
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
+      pbvh, [&](PBVHNode &node) { return update_search(&node, PBVH_UpdateMask); });
+
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.as_span().slice(range)) {
+      node_update_mask_redraw(*pbvh, *node);
+    }
+  });
+}
+
 void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
 {
   using namespace blender;
-  if (pbvh->nodes.is_empty()) {
-    return;
-  }
-
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
       pbvh, [&](PBVHNode &node) { return update_search(&node, flag); });
-
-  if (flag & (PBVH_UpdateMask)) {
-    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      for (PBVHNode *node : nodes.as_span().slice(range)) {
-        node_update_mask_redraw(*pbvh, *node);
-      }
-    });
-  }
 
   if (flag & (PBVH_UpdateColor)) {
     for (PBVHNode *node : nodes) {
@@ -3113,13 +3114,12 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->grid_hidden = pbvh->grid_hidden;
   }
 
-  vi->mask = nullptr;
+  vi->mask = 0.0f;
   if (pbvh->header.type == PBVH_FACES) {
     vi->vert_normals = pbvh->vert_normals;
     vi->hide_vert = pbvh->hide_vert;
 
-    vi->vmask = static_cast<float *>(
-        CustomData_get_layer_for_write(pbvh->vert_data, CD_PAINT_MASK, pbvh->mesh->totvert));
+    vi->vmask = static_cast<const float *>(CustomData_get_layer(pbvh->vert_data, CD_PAINT_MASK));
   }
 }
 
@@ -3174,6 +3174,11 @@ void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
 {
   memset(settings, 0, sizeof(*settings));
   settings->use_threading = use_threading && totnode > 1;
+}
+
+Mesh *BKE_pbvh_get_mesh(PBVH *pbvh)
+{
+  return pbvh->mesh;
 }
 
 float (*BKE_pbvh_get_vert_positions(const PBVH *pbvh))[3]

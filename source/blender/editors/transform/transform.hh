@@ -18,7 +18,7 @@
 #include "DNA_object_enums.h"
 #include "DNA_scene_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "transform_data.hh"
 
@@ -308,6 +308,7 @@ struct TransSnap {
   short face_nearest_steps;
   eTSnap status;
   /* Snapped Element Type (currently for objects only). */
+  eSnapMode source_type;
   eSnapMode target_type;
   /** snapping from this point (in global-space). */
   float snap_source[3];

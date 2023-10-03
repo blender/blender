@@ -40,7 +40,7 @@ class ArmatureImporter;
 
 class AnimationImporterBase {
  public:
-  /* virtual void change_eul_to_quat(Object *ob, bAction *act) = 0; */
+  // virtual void change_eul_to_quat(Object *ob, bAction *act) = 0;
 };
 
 class AnimationImporter : private TransformReader, public AnimationImporterBase {

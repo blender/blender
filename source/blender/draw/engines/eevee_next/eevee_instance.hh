@@ -11,7 +11,7 @@
 #pragma once
 
 #include "BKE_object.h"
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 #include "DNA_lightprobe_types.h"
 #include "DRW_render.h"
 
@@ -98,9 +98,6 @@ class Instance {
   const DRWView *drw_view;
   const View3D *v3d;
   const RegionView3D *rv3d;
-  /** Only available when baking irradiance volume. */
-  Collection *visibility_collection = nullptr;
-  bool visibility_collection_invert = false;
 
   /** True if the grease pencil engine might be running. */
   bool gpencil_engine_enabled;
@@ -119,7 +116,7 @@ class Instance {
         materials(*this),
         subsurface(*this, global_ubo_.subsurface),
         pipelines(*this),
-        shadows(*this),
+        shadows(*this, global_ubo_.shadow),
         lights(*this),
         ambient_occlusion(*this, global_ubo_.ao),
         raytracing(*this, global_ubo_.raytrace),

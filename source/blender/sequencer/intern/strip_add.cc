@@ -32,7 +32,7 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"

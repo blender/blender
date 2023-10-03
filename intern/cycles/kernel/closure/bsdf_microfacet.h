@@ -26,6 +26,7 @@ enum MicrofacetFresnel {
   DIELECTRIC_TINT, /* used by the OSL MaterialX closures */
   CONDUCTOR,
   GENERALIZED_SCHLICK,
+  F82_TINT,
 };
 
 typedef struct FresnelDielectricTint {
@@ -45,6 +46,13 @@ typedef struct FresnelGeneralizedSchlick {
   /* Negative exponent signals a special case where the real Fresnel is remapped to F0...F90. */
   float exponent;
 } FresnelGeneralizedSchlick;
+
+typedef struct FresnelF82Tint {
+  /* Perpendicular reflectivity. */
+  Spectrum f0;
+  /* Precomputed (1-cos)^6 factor for edge tint. */
+  Spectrum b;
+} FresnelF82Tint;
 
 typedef struct MicrofacetBsdf {
   SHADER_CLOSURE_BASE;
@@ -205,32 +213,47 @@ ccl_device_forceinline float3 microfacet_ggx_sample_vndf(const float3 wi,
   return normalize(make_float3(alpha_x * H_.x, alpha_y * H_.y, max(0.0f, H_.z)));
 }
 
-/* Calculate the reflection color
- *
- * If fresnel is used, the color is an interpolation of the F0 color and white
- * with respect to the fresnel
- *
- * Else it is simply white
- */
-ccl_device_forceinline Spectrum microfacet_fresnel(ccl_private const MicrofacetBsdf *bsdf,
-                                                   const float3 wi,
-                                                   const float3 H,
-                                                   const bool refraction)
+/* Computes the Fresnel reflectance and transmittance given the Microfacet BSDF and the cosine of
+ * the incoming angle `cos_theta_i`.
+ * Also returns the cosine of the angle between the normal and the refracted ray as `r_cos_theta_t`
+ * if provided. */
+ccl_device_forceinline void microfacet_fresnel(ccl_private const MicrofacetBsdf *bsdf,
+                                               const float cos_theta_i,
+                                               ccl_private float *r_cos_theta_t,
+                                               ccl_private Spectrum *r_reflectance,
+                                               ccl_private Spectrum *r_transmittance)
 {
+  /* Whether the closure has reflective or transmissive lobes. */
+  const bool has_reflection = !CLOSURE_IS_REFRACTION(bsdf->type);
+  const bool has_transmission = CLOSURE_IS_GLASS(bsdf->type) || !has_reflection;
+
   if (bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC) {
-    const float F = fresnel_dielectric_cos(dot(wi, H), bsdf->ior);
-    return make_spectrum(refraction ? 1.0f - F : F);
+    const Spectrum F = make_spectrum(fresnel_dielectric(cos_theta_i, bsdf->ior, r_cos_theta_t));
+    *r_reflectance = F;
+    *r_transmittance = one_spectrum() - F;
   }
   else if (bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC_TINT) {
     ccl_private FresnelDielectricTint *fresnel = (ccl_private FresnelDielectricTint *)
                                                      bsdf->fresnel;
-    const float F = fresnel_dielectric_cos(dot(wi, H), bsdf->ior);
-    return refraction ? (1.0f - F) * fresnel->transmission_tint : F * fresnel->reflection_tint;
+    const float F = fresnel_dielectric(cos_theta_i, bsdf->ior, r_cos_theta_t);
+    *r_reflectance = F * fresnel->reflection_tint;
+    *r_transmittance = (1.0f - F) * fresnel->transmission_tint;
   }
   else if (bsdf->fresnel_type == MicrofacetFresnel::CONDUCTOR) {
-    kernel_assert(!refraction);
     ccl_private FresnelConductor *fresnel = (ccl_private FresnelConductor *)bsdf->fresnel;
-    return fresnel_conductor(dot(wi, H), fresnel->n, fresnel->k);
+    *r_reflectance = fresnel_conductor(cos_theta_i, fresnel->n, fresnel->k);
+    *r_transmittance = zero_spectrum();
+  }
+  else if (bsdf->fresnel_type == MicrofacetFresnel::F82_TINT) {
+    /* F82-Tint model, described in "Novel aspects of the Adobe Standard Material" by Kutz et al.
+     * Essentially, this is the usual Schlick Fresnel with an additional cosI*(1-cosI)^6
+     * term which modulates the reflectivity around acos(1/7) degrees (ca. 82°). */
+    ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)bsdf->fresnel;
+    const float mu = saturatef(1.0f - cos_theta_i);
+    const float mu5 = sqr(sqr(mu)) * mu;
+    const Spectrum F_schlick = mix(fresnel->f0, one_spectrum(), mu5);
+    *r_reflectance = saturate(F_schlick - fresnel->b * cos_theta_i * mu5 * mu);
+    *r_transmittance = zero_spectrum();
   }
   else if (bsdf->fresnel_type == MicrofacetFresnel::GENERALIZED_SCHLICK) {
     ccl_private FresnelGeneralizedSchlick *fresnel = (ccl_private FresnelGeneralizedSchlick *)
@@ -239,36 +262,45 @@ ccl_device_forceinline Spectrum microfacet_fresnel(ccl_private const MicrofacetB
     if (fresnel->exponent < 0.0f) {
       /* Special case: Use real Fresnel curve to determine the interpolation between F0 and F90.
        * Used by Principled v1. */
-      const float F_real = fresnel_dielectric_cos(dot(wi, H), bsdf->ior);
+      const float F_real = fresnel_dielectric(cos_theta_i, bsdf->ior, r_cos_theta_t);
       const float F0_real = F0_from_ior(bsdf->ior);
       s = saturatef(inverse_lerp(F0_real, 1.0f, F_real));
     }
     else {
       /* Regular case: Generalized Schlick term. */
-      float cosI = dot(wi, H);
-      if (bsdf->ior < 1.0f) {
-        /* When going from a higher to a lower IOR, we must use the transmitted angle. */
-        const float sinT2 = (1.0f - sqr(cosI)) / sqr(bsdf->ior);
-        if (sinT2 >= 1.0f) {
-          /* Total internal reflection */
-          return refraction ? zero_spectrum() : fresnel->reflection_tint;
-        }
-        cosI = safe_sqrtf(1.0f - sinT2);
+      const float cos_theta_t_sq = 1.0f - (1.0f - sqr(cos_theta_i)) / sqr(bsdf->ior);
+      if (cos_theta_t_sq <= 0.0f) {
+        /* Total internal reflection */
+        *r_reflectance = fresnel->reflection_tint * (float)has_reflection;
+        *r_transmittance = zero_spectrum();
+        return;
       }
+      const float cos_theta_t = sqrtf(cos_theta_t_sq);
+      if (r_cos_theta_t) {
+        *r_cos_theta_t = cos_theta_t;
+      }
+
       /* TODO(lukas): Is a special case for exponent==5 worth it? */
-      s = powf(1.0f - cosI, fresnel->exponent);
+      /* When going from a higher to a lower IOR, we must use the transmitted angle. */
+      s = powf(1.0f - ((bsdf->ior < 1.0f) ? cos_theta_t : cos_theta_i), fresnel->exponent);
     }
     const Spectrum F = mix(fresnel->f0, fresnel->f90, s);
-    if (refraction) {
-      return (one_spectrum() - F) * fresnel->transmission_tint;
-    }
-    else {
-      return F * fresnel->reflection_tint;
-    }
+    *r_reflectance = F * fresnel->reflection_tint;
+    *r_transmittance = (one_spectrum() - F) * fresnel->transmission_tint;
   }
   else {
-    return one_spectrum();
+    kernel_assert(bsdf->fresnel_type == MicrofacetFresnel::NONE);
+    /* No Fresnel used, this is either purely reflective or purely refractive closure. */
+    *r_reflectance = *r_transmittance = one_spectrum();
+
+    /* Exclude total internal reflection. */
+    if (has_transmission && fresnel_dielectric(cos_theta_i, bsdf->ior, r_cos_theta_t) == 1.0f) {
+      *r_transmittance = zero_spectrum();
+    }
   }
+
+  *r_reflectance *= (float)has_reflection;
+  *r_transmittance *= (float)has_transmission;
 }
 
 ccl_device_inline void microfacet_ggx_preserve_energy(KernelGlobals kg,
@@ -330,51 +362,52 @@ ccl_device_inline void microfacet_ggx_preserve_energy(KernelGlobals kg,
  * a very low overall albedo.
  * This is used to adjust the sample weight, as well as for the Diff/Gloss/Trans Color pass
  * and the Denoising Albedo pass.
- * Use lookup tables for generalized Schlick. Otherwise assuming that the surface is smooth. */
-/* TODO: The Schlick LUT seems to assume energy preservation, which is not true for GGX. if
+ *
+ * TODO: The Schlick LUT seems to assume energy preservation, which is not true for GGX. if
  * energy-preserving then transmission should just be `1 - reflection`. For dielectric we could
  * probably split the LUT for multiGGX if smooth assumption is not good enough. */
 ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
                                                     ccl_private const ShaderData *sd,
                                                     ccl_private const MicrofacetBsdf *bsdf,
-                                                    const bool reflection,
-                                                    const bool transmission)
+                                                    const bool eval_reflection,
+                                                    const bool eval_transmission)
 {
-  const bool m_refraction = CLOSURE_IS_REFRACTION(bsdf->type);
-  const bool m_glass = CLOSURE_IS_GLASS(bsdf->type);
-  const bool m_reflection = !(m_refraction || m_glass);
+  const float cos_NI = dot(sd->wi, bsdf->N);
+  Spectrum reflectance, transmittance;
+  microfacet_fresnel(bsdf, cos_NI, nullptr, &reflectance, &transmittance);
 
-  Spectrum albedo = zero_spectrum();
-  if (reflection && (m_reflection || m_glass)) {
-    /* BSDF has a reflective lobe. */
-    if (bsdf->fresnel_type == MicrofacetFresnel::GENERALIZED_SCHLICK) {
-      ccl_private FresnelGeneralizedSchlick *fresnel = (ccl_private FresnelGeneralizedSchlick *)
-                                                           bsdf->fresnel;
-      float mu = dot(sd->wi, bsdf->N);
-      float rough = sqrtf(sqrtf(bsdf->alpha_x * bsdf->alpha_y));
-      float s;
-      if (fresnel->exponent < 0.0f) {
-        float z = sqrtf(fabsf((bsdf->ior - 1.0f) / (bsdf->ior + 1.0f)));
-        s = lookup_table_read_3D(
-            kg, rough, mu, z, kernel_data.tables.ggx_gen_schlick_ior_s, 16, 16, 16);
-      }
-      else {
-        float z = 1.0f / (0.2f * fresnel->exponent + 1.0f);
-        s = lookup_table_read_3D(
-            kg, rough, mu, z, kernel_data.tables.ggx_gen_schlick_s, 16, 16, 16);
-      }
-      albedo += mix(fresnel->f0, fresnel->f90, s) * fresnel->reflection_tint;
+  reflectance *= (float)eval_reflection;
+  transmittance *= (float)eval_transmission;
+
+  /* Use lookup tables for generalized Schlick reflection, otherwise assume smooth surface. */
+  if (!is_zero(reflectance) && bsdf->fresnel_type == MicrofacetFresnel::GENERALIZED_SCHLICK) {
+    ccl_private FresnelGeneralizedSchlick *fresnel = (ccl_private FresnelGeneralizedSchlick *)
+                                                         bsdf->fresnel;
+
+    float rough = sqrtf(sqrtf(bsdf->alpha_x * bsdf->alpha_y));
+    float s;
+    if (fresnel->exponent < 0.0f) {
+      float z = sqrtf(fabsf((bsdf->ior - 1.0f) / (bsdf->ior + 1.0f)));
+      s = lookup_table_read_3D(
+          kg, rough, cos_NI, z, kernel_data.tables.ggx_gen_schlick_ior_s, 16, 16, 16);
     }
     else {
-      albedo += microfacet_fresnel(bsdf, sd->wi, bsdf->N, false);
+      float z = 1.0f / (0.2f * fresnel->exponent + 1.0f);
+      s = lookup_table_read_3D(
+          kg, rough, cos_NI, z, kernel_data.tables.ggx_gen_schlick_s, 16, 16, 16);
     }
+    reflectance = mix(fresnel->f0, fresnel->f90, s) * fresnel->reflection_tint;
   }
-  if (transmission && (m_refraction || m_glass)) {
-    /* BSDF has a refractive lobe (unless there's TIR). */
-    albedo += microfacet_fresnel(bsdf, sd->wi, bsdf->N, true);
+  else if (bsdf->fresnel_type == MicrofacetFresnel::F82_TINT) {
+    ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)bsdf->fresnel;
+    float rough = sqrtf(sqrtf(bsdf->alpha_x * bsdf->alpha_y));
+    const float s = lookup_table_read_3D(
+        kg, rough, cos_NI, 0.5f, kernel_data.tables.ggx_gen_schlick_s, 16, 16, 16);
+    /* TODO: Precompute B factor term and account for it here. */
+    reflectance = mix(fresnel->f0, one_spectrum(), s);
   }
 
-  return albedo;
+  return reflectance + transmittance;
 }
 
 /* Smith shadowing-masking term, here in the non-separable form.
@@ -472,12 +505,10 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
                                          ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
-  /* Refraction: Only consider BTDF
-   * Glass: Consider both BRDF and BTDF, mix based on Fresnel
-   * Reflection: Only consider BRDF */
-  const bool m_refraction = CLOSURE_IS_REFRACTION(bsdf->type);
-  const bool m_glass = CLOSURE_IS_GLASS(bsdf->type);
-  const bool m_reflection = !(m_refraction || m_glass);
+
+  /* Whether the closure has reflective or transmissive lobes. */
+  const bool has_reflection = !CLOSURE_IS_REFRACTION(bsdf->type);
+  const bool has_transmission = CLOSURE_IS_GLASS(bsdf->type) || !has_reflection;
 
   const float3 N = bsdf->N;
   const float cos_NI = dot(N, wi);
@@ -497,9 +528,8 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
    * - Purely refractive closures can't have reflection.
    */
   if ((cos_NI <= 0) || !bsdf_microfacet_eval_flag(bsdf) || ((cos_NgO < 0.0f) != is_transmission) ||
-      (is_transmission && m_reflection) || (!is_transmission && m_refraction))
+      (is_transmission && !has_transmission) || (!is_transmission && !has_reflection))
   {
-    *pdf = 0.0f;
     return zero_spectrum();
   }
 
@@ -510,6 +540,15 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
   float3 H = is_transmission ? -(bsdf->ior * wo + wi) : (wi + wo);
   const float inv_len_H = 1.0f / len(H);
   H *= inv_len_H;
+
+  /* Compute Fresnel coefficients. */
+  const float cos_HI = dot(H, wi);
+  Spectrum reflectance, transmittance;
+  microfacet_fresnel(bsdf, cos_HI, nullptr, &reflectance, &transmittance);
+
+  if (is_zero(reflectance) && is_zero(transmittance)) {
+    return zero_spectrum();
+  }
 
   const float cos_NH = dot(N, H);
   float D, lambdaI, lambdaO;
@@ -537,19 +576,14 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
   }
 
   float common = D / cos_NI *
-                 (is_transmission ? sqr(bsdf->ior * inv_len_H) * fabsf(dot(H, wi) * dot(H, wo)) :
+                 (is_transmission ? sqr(bsdf->ior * inv_len_H) * fabsf(cos_HI * dot(H, wo)) :
                                     0.25f);
 
-  float lobe_pdf = 1.0f;
-  if (m_glass) {
-    float fresnel = fresnel_dielectric_cos(dot(H, wi), bsdf->ior);
-    lobe_pdf = is_transmission ? (1.0f - fresnel) : fresnel;
-  }
+  const float pdf_reflect = average(reflectance) / average(reflectance + transmittance);
+  const float lobe_pdf = is_transmission ? 1.0f - pdf_reflect : pdf_reflect;
 
   *pdf = common * lobe_pdf / (1.0f + lambdaI);
-
-  const Spectrum F = microfacet_fresnel(bsdf, wi, H, is_transmission);
-  return F * common / (1.0f + lambdaO + lambdaI);
+  return (is_transmission ? transmittance : reflectance) * common / (1.0f + lambdaO + lambdaI);
 }
 
 template<MicrofacetType m_type>
@@ -574,12 +608,11 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
 
   const float m_eta = bsdf->ior;
   const float m_inv_eta = 1.0f / bsdf->ior;
-  const bool m_refraction = CLOSURE_IS_REFRACTION(bsdf->type);
-  const bool m_glass = CLOSURE_IS_GLASS(bsdf->type);
   const float alpha_x = bsdf->alpha_x;
   const float alpha_y = bsdf->alpha_y;
   bool m_singular = !bsdf_microfacet_eval_flag(bsdf);
 
+  /* Half vector. */
   float3 H;
   /* Needed for anisotropic microfacets later. */
   float3 local_H, local_I;
@@ -612,49 +645,39 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
 
   /* The angle between the half vector and the refracted ray. Not used when sampling reflection. */
   float cos_HO;
-  bool do_refract;
-  float lobe_pdf;
-  if (m_refraction || m_glass) {
-    float fresnel = fresnel_dielectric(cos_HI, m_eta, &cos_HO);
+  /* Compute Fresnel coefficients. */
+  Spectrum reflectance, transmittance;
+  microfacet_fresnel(bsdf, cos_HI, &cos_HO, &reflectance, &transmittance);
 
-    /* For glass closures, we decide between reflection and refraction here. */
-    if (m_glass) {
-      do_refract = (rand.z >= fresnel);
-      lobe_pdf = do_refract ? (1.0f - fresnel) : fresnel;
-    }
-    else {
-      /* For pure refractive closures, refraction is the only option. */
-      if (fresnel == 1.0f) {
-        return LABEL_NONE;
-      }
-      do_refract = true;
-      lobe_pdf = 1.0f;
-    }
-  }
-  else {
-    /* Pure reflective closure, reflection is the only option. */
-    lobe_pdf = 1.0f;
-    do_refract = false;
+  if (is_zero(reflectance) && is_zero(transmittance)) {
+    return LABEL_NONE;
   }
 
-  if (do_refract) {
-    *wo = refract_angle(wi, H, cos_HO, m_inv_eta);
-    /* If the IOR is close enough to 1.0, just treat the interaction as specular. */
-    m_singular = m_singular || (fabsf(m_eta - 1.0f) < 1e-4f);
-  }
-  else {
-    /* Eq. 39 - compute actual reflected direction */
-    *wo = 2 * cos_HI * H - wi;
-  }
+  /* Decide between refraction and reflection based on the energy. */
+  const float pdf_reflect = average(reflectance) / average(reflectance + transmittance);
+  const bool do_refract = (rand.z >= pdf_reflect);
 
+  /* Compute actual reflected or refracted direction. */
+  *wo = do_refract ? refract_angle(wi, H, cos_HO, m_inv_eta) : 2.0f * cos_HI * H - wi;
   if ((dot(Ng, *wo) < 0) != do_refract) {
     return LABEL_NONE;
   }
 
+  if (do_refract) {
+    *eval = transmittance;
+    *pdf = 1.0f - pdf_reflect;
+    /* If the IOR is close enough to 1.0, just treat the interaction as specular. */
+    m_singular = m_singular || (fabsf(m_eta - 1.0f) < 1e-4f);
+  }
+  else {
+    *eval = reflectance;
+    *pdf = pdf_reflect;
+  }
+
   if (m_singular) {
     /* Some high number for MIS. */
-    *pdf = lobe_pdf * 1e6f;
-    *eval = make_spectrum(1e6f) * microfacet_fresnel(bsdf, wi, H, do_refract);
+    *pdf *= 1e6f;
+    *eval *= 1e6f;
   }
   else {
     float D, lambdaI, lambdaO;
@@ -682,14 +705,12 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
                          (do_refract ? fabsf(cos_HI * cos_HO) / sqr(cos_HO + cos_HI * m_inv_eta) :
                                        0.25f);
 
-    *pdf = common * lobe_pdf / (1.0f + lambdaI);
-
-    const Spectrum F = microfacet_fresnel(bsdf, wi, H, do_refract);
-    *eval = F * common / (1.0f + lambdaI + lambdaO);
+    *pdf *= common / (1.0f + lambdaI);
+    *eval *= common / (1.0f + lambdaI + lambdaO);
   }
 
   *sampled_roughness = make_float2(alpha_x, alpha_y);
-  *eta = do_refract ? m_inv_eta : m_eta;
+  *eta = do_refract ? m_eta : 1.0f;
 
   return (do_refract ? LABEL_TRANSMIT : LABEL_REFLECT) |
          (m_singular ? LABEL_SINGULAR : LABEL_GLOSSY);
@@ -744,6 +765,7 @@ ccl_device void bsdf_microfacet_setup_fresnel_generalized_schlick(
     ccl_private FresnelGeneralizedSchlick *fresnel,
     const bool preserve_energy)
 {
+  fresnel->f0 = saturate(fresnel->f0);
   bsdf->fresnel_type = MicrofacetFresnel::GENERALIZED_SCHLICK;
   bsdf->fresnel = fresnel;
   bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd, bsdf, true, true));
@@ -782,6 +804,40 @@ ccl_device void bsdf_microfacet_setup_fresnel_generalized_schlick(
       Fss = fresnel->transmission_tint;
     }
 
+    microfacet_ggx_preserve_energy(kg, bsdf, sd, Fss);
+  }
+}
+
+ccl_device void bsdf_microfacet_setup_fresnel_f82_tint(KernelGlobals kg,
+                                                       ccl_private MicrofacetBsdf *bsdf,
+                                                       ccl_private const ShaderData *sd,
+                                                       ccl_private FresnelF82Tint *fresnel,
+                                                       const Spectrum f82_tint,
+                                                       const bool preserve_energy)
+{
+  if (isequal(f82_tint, one_spectrum())) {
+    fresnel->b = zero_spectrum();
+  }
+  else {
+    /* Precompute the F82 term factor for the Fresnel model.
+     * In the classic F82 model, the F82 input directly determines the value of the Fresnel
+     * model at ~82°, similar to F0 and F90.
+     * With F82-Tint, on the other hand, the value at 82° is the value of the classic Schlick
+     * model multiplied by the tint input.
+     * Therefore, the factor follows by setting F82Tint(cosI) = FSchlick(cosI) - b*cosI*(1-cosI)^6
+     * and F82Tint(acos(1/7)) = FSchlick(acos(1/7)) * f82_tint and solving for b. */
+    const float f = 6.0f / 7.0f;
+    const float f5 = sqr(sqr(f)) * f;
+    const Spectrum F_schlick = mix(fresnel->f0, one_spectrum(), f5);
+    fresnel->b = F_schlick * (7.0f / (f5 * f)) * (one_spectrum() - f82_tint);
+  }
+
+  bsdf->fresnel_type = MicrofacetFresnel::F82_TINT;
+  bsdf->fresnel = fresnel;
+  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd, bsdf, true, true));
+
+  if (preserve_energy) {
+    Spectrum Fss = mix(fresnel->f0, one_spectrum(), 1.0f / 21.0f) - fresnel->b * (1.0f / 126.0f);
     microfacet_ggx_preserve_energy(kg, bsdf, sd, Fss);
   }
 }

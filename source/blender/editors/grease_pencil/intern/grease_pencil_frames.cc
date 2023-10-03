@@ -13,7 +13,7 @@
 #include "BKE_context.h"
 #include "BKE_grease_pencil.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "DNA_scene_types.h"
 

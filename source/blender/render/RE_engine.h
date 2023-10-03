@@ -55,6 +55,7 @@ enum RenderEngineTypeFlag {
   RE_USE_CUSTOM_FREESTYLE = (1 << 8),
   RE_USE_NO_IMAGE_SAVE = (1 << 9),
   RE_USE_ALEMBIC_PROCEDURAL = (1 << 10),
+  RE_USE_MATERIALX = (1 << 11),
 };
 
 /** #RenderEngine.flag */

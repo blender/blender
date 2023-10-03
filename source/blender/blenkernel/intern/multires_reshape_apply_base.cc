@@ -27,7 +27,7 @@
 #include "BKE_multires.hh"
 #include "BKE_subdiv_eval.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *reshape_context)
 {

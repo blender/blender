@@ -32,7 +32,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
 #include "BLT_translation.h"
@@ -324,11 +324,12 @@ void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 
 void WM_keyconfig_clear(wmKeyConfig *keyconf)
 {
-  LISTBASE_FOREACH (wmKeyMap *, km, &keyconf->keymaps) {
+  LISTBASE_FOREACH_MUTABLE (wmKeyMap *, km, &keyconf->keymaps) {
     WM_keymap_clear(km);
+    MEM_freeN(km);
   }
 
-  BLI_freelistN(&keyconf->keymaps);
+  BLI_listbase_clear(&keyconf->keymaps);
 }
 
 void WM_keyconfig_free(wmKeyConfig *keyconf)
@@ -418,16 +419,18 @@ static wmKeyMap *wm_keymap_copy(wmKeyMap *keymap)
 
 void WM_keymap_clear(wmKeyMap *keymap)
 {
-  LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &keymap->diff_items) {
+  LISTBASE_FOREACH_MUTABLE (wmKeyMapDiffItem *, kmdi, &keymap->diff_items) {
     wm_keymap_diff_item_free(kmdi);
+    MEM_freeN(kmdi);
   }
 
-  LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
+  LISTBASE_FOREACH_MUTABLE (wmKeyMapItem *, kmi, &keymap->items) {
     wm_keymap_item_free(kmi);
+    MEM_freeN(kmi);
   }
 
-  BLI_freelistN(&keymap->diff_items);
-  BLI_freelistN(&keymap->items);
+  BLI_listbase_clear(&keymap->diff_items);
+  BLI_listbase_clear(&keymap->items);
 }
 
 void WM_keymap_remove(wmKeyConfig *keyconf, wmKeyMap *keymap)
@@ -1059,7 +1062,7 @@ static const char *key_event_glyph_or_text(const int font_id,
                                            const char *single_glyph)
 {
   BLI_assert(single_glyph == nullptr || (BLI_strlen_utf8(single_glyph) == 1));
-  return (single_glyph && BLF_has_glyph(font_id, BLI_str_utf8_as_unicode(single_glyph))) ?
+  return (single_glyph && BLF_has_glyph(font_id, BLI_str_utf8_as_unicode_or_error(single_glyph))) ?
              single_glyph :
              text;
 }
@@ -1118,7 +1121,7 @@ const char *WM_key_event_string(const short type, const bool compact)
               font_id, IFACE_("Win"), BLI_STR_UTF8_BLACK_DIAMOND_MINUS_WHITE_X);
         }
         return IFACE_("OS");
-      } break;
+      }
       case EVT_TABKEY:
         return key_event_glyph_or_text(
             font_id, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Tab"), BLI_STR_UTF8_HORIZONTAL_TAB_KEY);
@@ -2064,7 +2067,7 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
     kmi->keymodifier = orig->keymodifier;
     kmi->maptype = orig->maptype;
     kmi->flag = (kmi->flag & ~(KMI_REPEAT_IGNORE | KMI_INACTIVE)) |
-                (orig->flag & KMI_REPEAT_IGNORE);
+                (orig->flag & (KMI_REPEAT_IGNORE | KMI_INACTIVE));
 
     WM_keyconfig_update_tag(keymap, kmi);
   }

@@ -71,7 +71,7 @@ TEST(string, StrCopyUTF8_TruncateEncoding)
 #define STRNCPY_UTF8_TRUNCATE(byte_size, ...) \
   { \
     const char src[] = {__VA_ARGS__, 0}; \
-    EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
+    EXPECT_EQ(BLI_str_utf8_size_or_error(src), byte_size); \
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
     STRNCPY_UTF8(dst, src); \
@@ -98,7 +98,7 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 #define STRNCPY_UTF8_TERMINATE_EARLY(byte_size, ...) \
   { \
     char src[] = {__VA_ARGS__, 0}; \
-    EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
+    EXPECT_EQ(BLI_str_utf8_size_or_error(src), byte_size); \
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
     STRNCPY_UTF8(dst, src); \

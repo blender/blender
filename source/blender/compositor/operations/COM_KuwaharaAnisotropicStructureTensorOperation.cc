@@ -39,7 +39,7 @@ void KuwaharaAnisotropicStructureTensorOperation::deinit_execution()
 void KuwaharaAnisotropicStructureTensorOperation::execute_pixel_sampled(float output[4],
                                                                         float x_float,
                                                                         float y_float,
-                                                                        PixelSampler /* sampler */)
+                                                                        PixelSampler /*sampler*/)
 {
   using math::max, math::min, math::dot;
   const int x = x_float;

@@ -102,9 +102,10 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
                (ELEM(v3, v1, v2, v4) == false) && (ELEM(v4, v1, v2, v3) == false));
 
     if (r_area) {
-      *r_area = fabsf(area_2x_234) + fabsf(area_2x_241) +
-                /* Include both pairs for predictable results. */
-                fabsf(area_2x_123) + fabsf(area_2x_134) / 8.0f;
+      *r_area = (fabsf(area_2x_234) + fabsf(area_2x_241) +
+                 /* Include both pairs for predictable results. */
+                 fabsf(area_2x_123) + fabsf(area_2x_134)) /
+                8.0f;
     }
 
     /*
@@ -245,7 +246,7 @@ static void polyedge_beauty_cost_update(const float (*coords)[2],
   }
 }
 
-static void polyedge_rotate(struct HalfEdge *edges, struct HalfEdge *e)
+static void polyedge_rotate(struct HalfEdge *edges, const struct HalfEdge *e)
 {
   /** CCW winding, rotate internal edge to new vertical state.
    *

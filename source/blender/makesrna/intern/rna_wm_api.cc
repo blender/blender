@@ -495,9 +495,7 @@ static void rna_KeyMaps_remove(wmKeyConfig *keyconfig, ReportList *reports, Poin
 
 static void rna_KeyMaps_clear(wmKeyConfig *keyconfig)
 {
-  while (wmKeyMap *keymap = static_cast<wmKeyMap *>(keyconfig->keymaps.first)) {
-    WM_keymap_remove(keyconfig, keymap);
-  }
+  WM_keyconfig_clear(keyconfig);
 }
 
 wmKeyConfig *rna_KeyConfig_new(wmWindowManager *wm, const char *idname)
@@ -659,7 +657,7 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   /* TODO: validate NDOF. */
 
   if (unicode != nullptr) {
-    int len = BLI_str_utf8_size(unicode);
+    int len = BLI_str_utf8_size_or_error(unicode);
     if (len == -1 || unicode[len] != '\0') {
       BKE_report(reports, RPT_ERROR, "Only a single character supported");
       return nullptr;

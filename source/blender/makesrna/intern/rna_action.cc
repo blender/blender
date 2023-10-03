@@ -34,7 +34,7 @@
 
 #  include "BKE_fcurve.h"
 
-#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph.hh"
 
 #  include "ED_keyframing.hh"
 

@@ -66,10 +66,6 @@ bool BPy_errors_to_report_ex(ReportList *reports,
   }
 
   PyObject *err_str_py = use_full ? PyC_ExceptionBuffer() : PyC_ExceptionBuffer_Simple();
-  if (err_str_py == nullptr) {
-    BKE_report(reports, RPT_ERROR, "Unknown py-exception, could not convert");
-    return false;
-  }
 
   /* Strip trailing newlines so the report doesn't show a blank-line in the info space. */
   Py_ssize_t err_str_len;

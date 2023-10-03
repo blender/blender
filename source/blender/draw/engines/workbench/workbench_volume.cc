@@ -12,6 +12,18 @@
 
 namespace blender::workbench {
 
+VolumePass::~VolumePass()
+{
+  GPUShader **sh_p = &shaders_[0][0][0][0];
+  const int n = sizeof(shaders_) / sizeof(*shaders_);
+  for (int i = 0; i < n; i++, sh_p++) {
+    GPUShader *sh = *sh_p;
+    if (sh) {
+      GPU_shader_free(sh);
+    }
+  }
+}
+
 void VolumePass::sync(SceneResources &resources)
 {
   active_ = false;

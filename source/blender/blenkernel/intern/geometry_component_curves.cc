@@ -10,6 +10,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curve.h"
 #include "BKE_curves.hh"
+#include "BKE_deform.h"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
@@ -332,6 +333,102 @@ static void tag_component_normals_changed(void *owner)
  * \{ */
 
 /**
+ * This provider makes vertex groups available as float attributes.
+ */
+class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvider {
+ public:
+  GAttributeReader try_get_for_read(const void *owner,
+                                    const AttributeIDRef &attribute_id) const final
+  {
+    if (attribute_id.is_anonymous()) {
+      return {};
+    }
+    const CurvesGeometry *curves = static_cast<const CurvesGeometry *>(owner);
+    if (curves == nullptr) {
+      return {};
+    }
+    const std::string name = attribute_id.name();
+    const int vertex_group_index = BLI_findstringindex(
+        &curves->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
+    if (vertex_group_index < 0) {
+      return {};
+    }
+    const Span<MDeformVert> dverts = curves->deform_verts();
+    if (dverts.is_empty()) {
+      static const float default_value = 0.0f;
+      return {VArray<float>::ForSingle(default_value, curves->points_num()), ATTR_DOMAIN_POINT};
+    }
+    return {bke::varray_for_deform_verts(dverts, vertex_group_index), ATTR_DOMAIN_POINT};
+  }
+
+  GAttributeWriter try_get_for_write(void *owner, const AttributeIDRef &attribute_id) const final
+  {
+    if (attribute_id.is_anonymous()) {
+      return {};
+    }
+    CurvesGeometry *curves = static_cast<CurvesGeometry *>(owner);
+    if (curves == nullptr) {
+      return {};
+    }
+    const std::string name = attribute_id.name();
+    const int vertex_group_index = BLI_findstringindex(
+        &curves->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
+    if (vertex_group_index < 0) {
+      return {};
+    }
+    MutableSpan<MDeformVert> dverts = curves->deform_verts_for_write();
+    return {bke::varray_for_mutable_deform_verts(dverts, vertex_group_index), ATTR_DOMAIN_POINT};
+  }
+
+  bool try_delete(void *owner, const AttributeIDRef &attribute_id) const final
+  {
+    if (attribute_id.is_anonymous()) {
+      return false;
+    }
+    CurvesGeometry *curves = static_cast<CurvesGeometry *>(owner);
+    if (curves == nullptr) {
+      return true;
+    }
+    const std::string name = attribute_id.name();
+
+    int index;
+    bDeformGroup *group;
+    if (!BKE_defgroup_listbase_name_find(
+            &curves->vertex_group_names, name.c_str(), &index, &group)) {
+      return false;
+    }
+    BLI_remlink(&curves->vertex_group_names, group);
+    MEM_freeN(group);
+    if (curves->deform_verts().is_empty()) {
+      return true;
+    }
+
+    MutableSpan<MDeformVert> dverts = curves->deform_verts_for_write();
+    bke::remove_defgroup_index(dverts, index);
+    return true;
+  }
+
+  bool foreach_attribute(const void *owner, const AttributeForeachCallback callback) const final
+  {
+    const CurvesGeometry *curves = static_cast<const CurvesGeometry *>(owner);
+    if (curves == nullptr) {
+      return true;
+    }
+    LISTBASE_FOREACH (const bDeformGroup *, group, &curves->vertex_group_names) {
+      if (!callback(group->name, {ATTR_DOMAIN_POINT, CD_PROP_FLOAT})) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void foreach_domain(const FunctionRef<void(eAttrDomain)> callback) const final
+  {
+    callback(ATTR_DOMAIN_POINT);
+  }
+};
+
+/**
  * In this function all the attribute providers for a curves component are created.
  * Most data in this function is statically allocated, because it does not change over time.
  */
@@ -538,6 +635,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                curve_access,
                                                tag_component_topology_changed);
 
+  static CurvesVertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider curve_custom_data(ATTR_DOMAIN_CURVE, curve_access);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
 
@@ -556,7 +654,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                       &curve_type,
                                       &resolution,
                                       &cyclic},
-                                     {&curve_custom_data, &point_custom_data});
+                                     {&vertex_groups, &curve_custom_data, &point_custom_data});
 }
 
 /** \} */

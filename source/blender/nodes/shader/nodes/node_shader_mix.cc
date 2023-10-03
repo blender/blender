@@ -543,6 +543,58 @@ static void sh_node_mix_build_multi_function(NodeMultiFunctionBuilder &builder)
   }
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  const NodeShaderMix *data = (NodeShaderMix *)node_->storage;
+
+  NodeItem factor = empty();
+  NodeItem value1 = empty();
+  NodeItem value2 = empty();
+  switch (data->data_type) {
+    case SOCK_FLOAT:
+      factor = get_input_value(0, NodeItem::Type::Float);
+      value1 = get_input_value(2, NodeItem::Type::Float);
+      value2 = get_input_value(3, NodeItem::Type::Float);
+      break;
+
+    case SOCK_VECTOR:
+      if (data->factor_mode == NODE_MIX_MODE_UNIFORM) {
+        factor = get_input_value(0, NodeItem::Type::Float);
+      }
+      else {
+        factor = get_input_value(1, NodeItem::Type::Vector3);
+      }
+      value1 = get_input_value(4, NodeItem::Type::Vector3);
+      value2 = get_input_value(5, NodeItem::Type::Vector3);
+      break;
+
+    case SOCK_RGBA:
+      factor = get_input_value(0, NodeItem::Type::Float);
+      value1 = get_input_value(6, NodeItem::Type::Color4);
+      value2 = get_input_value(7, NodeItem::Type::Color4);
+      break;
+
+    default:
+      BLI_assert_unreachable();
+  }
+
+  if (data->clamp_factor) {
+    factor = factor.clamp();
+  }
+  NodeItem res = factor.mix(value1, value2);
+  if (data->data_type == SOCK_RGBA) {
+    /* TODO: Apply data->blend_type */
+
+    if (data->clamp_result) {
+      res = res.clamp();
+    }
+  }
+  return res;
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_sh_mix_cc
 
 void register_node_type_sh_mix()
@@ -562,5 +614,7 @@ void register_node_type_sh_mix()
   ntype.draw_buttons = file_ns::sh_node_mix_layout;
   ntype.labelfunc = file_ns::sh_node_mix_label;
   ntype.gather_link_search_ops = file_ns::node_mix_gather_link_searches;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
+
   nodeRegisterType(&ntype);
 }

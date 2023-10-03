@@ -33,7 +33,8 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -54,12 +55,13 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
     bl_label = "Settings"
-    bl_parent_id = 'PHYSICS_PT_field'
+    bl_parent_id = "PHYSICS_PT_field"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -145,12 +147,13 @@ class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_field_settings_kink(PhysicButtonsPanel, Panel):
     bl_label = "Kink"
-    bl_parent_id = 'PHYSICS_PT_field_settings'
+    bl_parent_id = "PHYSICS_PT_field_settings"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -183,12 +186,13 @@ class PHYSICS_PT_field_settings_kink(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_field_settings_texture_select(PhysicButtonsPanel, Panel):
     bl_label = "Texture"
-    bl_parent_id = 'PHYSICS_PT_field_settings'
+    bl_parent_id = "PHYSICS_PT_field_settings"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -214,7 +218,8 @@ class PHYSICS_PT_field_falloff(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -243,7 +248,8 @@ class PHYSICS_PT_field_falloff_angular(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -286,7 +292,8 @@ class PHYSICS_PT_field_falloff_radial(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -334,7 +341,8 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -369,7 +377,8 @@ class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -419,7 +428,8 @@ class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):

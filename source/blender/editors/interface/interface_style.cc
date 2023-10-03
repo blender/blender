@@ -440,7 +440,7 @@ void uiStyleInit()
   /* Set default flags based on UI preferences (not render fonts) */
   {
     const int flag_disable = (BLF_MONOCHROME | BLF_HINTING_NONE | BLF_HINTING_SLIGHT |
-                              BLF_HINTING_FULL);
+                              BLF_HINTING_FULL | BLF_RENDER_SUBPIXELAA);
     int flag_enable = 0;
 
     if (U.text_render & USER_TEXT_HINTING_NONE) {
@@ -455,6 +455,9 @@ void uiStyleInit()
 
     if (U.text_render & USER_TEXT_DISABLE_AA) {
       flag_enable |= BLF_MONOCHROME;
+    }
+    if (U.text_render & USER_TEXT_RENDER_SUBPIXELAA) {
+      flag_enable |= BLF_RENDER_SUBPIXELAA;
     }
 
     LISTBASE_FOREACH (uiFont *, font, &U.uifonts) {

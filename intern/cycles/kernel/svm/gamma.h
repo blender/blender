@@ -17,8 +17,9 @@ ccl_device_noinline void svm_node_gamma(ccl_private ShaderData *sd,
 
   color = svm_math_gamma_color(color, gamma);
 
-  if (stack_valid(out_color))
+  if (stack_valid(out_color)) {
     stack_store_float3(stack, out_color, color);
+  }
 }
 
 CCL_NAMESPACE_END

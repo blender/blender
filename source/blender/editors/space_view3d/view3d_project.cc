@@ -20,7 +20,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_camera.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "GPU_matrix.h"
 
@@ -40,7 +40,7 @@ void ED_view3d_project_float_v2_m4(const ARegion *region,
 
   copy_v3_v3(vec4, co);
   vec4[3] = 1.0;
-  /* r_co[0] = IS_CLIPPED; */ /* always overwritten */
+  // r_co[0] = IS_CLIPPED; /* Always overwritten. */
 
   mul_m4_v4(mat, vec4);
 
@@ -62,7 +62,7 @@ void ED_view3d_project_float_v3_m4(const ARegion *region,
 
   copy_v3_v3(vec4, co);
   vec4[3] = 1.0;
-  /* r_co[0] = IS_CLIPPED; */ /* always overwritten */
+  // r_co[0] = IS_CLIPPED; /* Always overwritten. */
 
   mul_m4_v4(mat, vec4);
 

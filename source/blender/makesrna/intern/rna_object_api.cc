@@ -25,7 +25,7 @@
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_layer.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_outliner.hh"
 
@@ -76,7 +76,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "DNA_scene_types.h"
 #  include "DNA_view3d_types.h"
 
-#  include "DEG_depsgraph_query.h"
+#  include "DEG_depsgraph_query.hh"
 
 #  include "MEM_guardedalloc.h"
 

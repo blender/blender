@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -320,18 +320,6 @@ msgstr "Udělejte více místa pro velké scény tím, že distribuujete paměť
 
 msgid "Fribidi Library"
 msgstr "Fribidská knihovna"
-
-
-msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in svn's libraries repository"
-msgstr "Zkompilovaná knihovna FriBidi C (.so pod Linuxem, .dll pod Windows...), budete ji pravděpodobně muset upravit, pokud jste pod Windows, např. pomocí knihovny obsažené v úložišti knihoven SVN"
-
-
-msgid "Gettext 'msgfmt' executable"
-msgstr "Spustitelný soubor Gettext 'msgfmt'"
-
-
-msgid "The gettext msgfmt 'compiler'. You’ll likely have to edit it if you’re under Windows"
-msgstr "Gettext msgfmt 'kompilátor'. Pokud jste v systému Windows, budete ji pravděpodobně muset upravit"
 
 
 msgid "Translation Root"
@@ -984,6 +972,186 @@ msgstr "Popis"
 
 msgid "Tags"
 msgstr "Tagy"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Akce"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Kostra"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Štětec"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Soubor mezipaměti"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Kolekce"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Křivka"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Písmo"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Skicovací tužka"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Obrázek"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Klíč"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Mříž"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Knihovna"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Světlo"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Světelná sonda"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Styl čáry"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maska"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Materiál"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Geometrická síť"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Filmový klip"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Uzel"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objekt"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Kreslit křivku"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palety"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Částice"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Bodový Mrak"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scéna"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Zvuk"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Reproduktor"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Text"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Textura"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Objem"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Správce oken"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Pracovní prostor"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Okolí"
 
 
 msgid "ID Name"
@@ -5512,186 +5680,6 @@ msgid "ID Type"
 msgstr "ID typ"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Akce"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Kostra"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Štětec"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Soubor mezipaměti"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Kolekce"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Křivka"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Písmo"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Skicovací tužka"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Obrázek"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Klíč"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Mříž"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Knihovna"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Světlo"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Světelná sonda"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Styl čáry"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Maska"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Materiál"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Geometrická síť"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Filmový klip"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Uzel"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objekt"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Kreslit křivku"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Palety"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Částice"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Bodový Mrak"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Scéna"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Zvuk"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Reproduktor"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Text"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Textura"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Objem"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Správce oken"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Pracovní prostor"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Okolí"
-
-
 msgid "Transform Space"
 msgstr "Transformace"
 
@@ -7036,22 +7024,6 @@ msgstr "Velikost Zobrazení"
 
 msgid "Change the size of the display (width of columns or thumbnails size)"
 msgstr "Změnit velikost zobrazení (šířku sloupce nebo velikost náhledu)"
-
-
-msgid "Tiny"
-msgstr "Nejmenší"
-
-
-msgid "Small"
-msgstr "Malý"
-
-
-msgid "Medium"
-msgstr "Střední"
-
-
-msgid "Large"
-msgstr "Velký"
 
 
 msgid "Display Mode"
@@ -10578,6 +10550,10 @@ msgstr "Výška"
 
 msgid "High quality"
 msgstr "Vysoká kvalita"
+
+
+msgid "Medium"
+msgstr "Střední"
 
 
 msgid "Medium quality"
@@ -18971,11 +18947,6 @@ msgstr "Vyrovná úhly označených plošek"
 
 
 msgctxt "Operator"
-msgid "Sample Keyframes"
-msgstr "Vybrat následující klíč"
-
-
-msgctxt "Operator"
 msgid "Select All"
 msgstr "Vybrat vše"
 
@@ -25369,11 +25340,6 @@ msgstr "Uzel"
 msgctxt "Operator"
 msgid "Add Reroute"
 msgstr "Přidat UVkouly"
-
-
-msgctxt "Operator"
-msgid "Search and Add Node"
-msgstr "Skrýt skryté soubory"
 
 
 msgctxt "Operator"
@@ -35422,16 +35388,8 @@ msgid "Sampling Method"
 msgstr "Metoda Vzorkování"
 
 
-msgid "MO File Path"
-msgstr "Důležité cesty"
-
-
 msgid "Language Name"
 msgstr "Jazyk & Fonty"
-
-
-msgid "PO File Path"
-msgstr "Důležité cesty"
 
 
 msgid "Language ID"
@@ -40720,16 +40678,6 @@ msgid "Preserve"
 msgstr "Zachovat"
 
 
-msgctxt "Operator"
-msgid "Armature"
-msgstr "Kostra"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Mříž"
-
-
 msgid "Detail"
 msgstr "Detail"
 
@@ -43516,6 +43464,16 @@ msgstr "Bodový Mrak"
 msgctxt "Operator"
 msgid "Grease Pencil"
 msgstr "Skicovací tužka"
+
+
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Kostra"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Mříž"
 
 
 msgctxt "Operator"
@@ -46950,10 +46908,6 @@ msgstr "Brazilská portugalština (Português do Brasil)"
 
 msgid "Hebrew (תירִבְעִ)"
 msgstr "Hebrejština (תירִבְעִ)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "Španělština (Español)"
 
 
 msgid "Amharic (አማርኛ)"

@@ -16,8 +16,8 @@
 #include "BKE_main.h"
 #include "BKE_mask.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h" /* SELECT */

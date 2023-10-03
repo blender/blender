@@ -11,6 +11,7 @@
 #include "BLI_string_search.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utf8_symbols.h"
+#include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
 /* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.hh`. */
@@ -56,12 +57,12 @@ int damerau_levenshtein_distance(StringRef a, StringRef b)
   for (const int i : IndexRange(size_a)) {
     v2[0] = (i + 1) * deletion_cost;
 
-    const uint32_t unicode_a = BLI_str_utf8_as_unicode_step(a.data(), a.size(), &offset_a);
+    const uint32_t unicode_a = BLI_str_utf8_as_unicode_step_safe(a.data(), a.size(), &offset_a);
 
     uint32_t prev_unicode_b;
     size_t offset_b = 0;
     for (const int j : IndexRange(size_b)) {
-      const uint32_t unicode_b = BLI_str_utf8_as_unicode_step(b.data(), b.size(), &offset_b);
+      const uint32_t unicode_b = BLI_str_utf8_as_unicode_step_safe(b.data(), b.size(), &offset_b);
 
       /* Check how costly the different operations would be and pick the cheapest - the one with
        * minimal cost. */
@@ -111,9 +112,9 @@ int get_fuzzy_match_errors(StringRef query, StringRef full)
     return -1;
   }
 
-  const uint32_t query_first_unicode = BLI_str_utf8_as_unicode(query.data());
-  const uint32_t query_second_unicode = BLI_str_utf8_as_unicode(query.data() +
-                                                                BLI_str_utf8_size(query.data()));
+  const uint32_t query_first_unicode = BLI_str_utf8_as_unicode_safe(query.data());
+  const uint32_t query_second_unicode = BLI_str_utf8_as_unicode_safe(
+      query.data() + BLI_str_utf8_size_safe(query.data()));
 
   const char *full_begin = full.begin();
   const char *full_end = full.end();
@@ -125,12 +126,12 @@ int get_fuzzy_match_errors(StringRef query, StringRef full)
   const int max_acceptable_distance = max_errors + extra_chars;
 
   for (int i = 0; i < window_size; i++) {
-    window_end += BLI_str_utf8_size(window_end);
+    window_end += BLI_str_utf8_size_safe(window_end);
   }
 
   while (true) {
     StringRef window{window_begin, window_end};
-    const uint32_t window_begin_unicode = BLI_str_utf8_as_unicode(window_begin);
+    const uint32_t window_begin_unicode = BLI_str_utf8_as_unicode_safe(window_begin);
     int distance = 0;
     /* Expect that the first or second character of the query is correct. This helps to avoid
      * computing the more expensive distance function. */
@@ -148,8 +149,8 @@ int get_fuzzy_match_errors(StringRef query, StringRef full)
      * distance can't possibly become as short as required. */
     const int window_offset = std::max(1, distance / 2);
     for (int i = 0; i < window_offset && window_end < full_end; i++) {
-      window_begin += BLI_str_utf8_size(window_begin);
-      window_end += BLI_str_utf8_size(window_end);
+      window_begin += BLI_str_utf8_size_safe(window_begin);
+      window_end += BLI_str_utf8_size_safe(window_end);
     }
   }
 }
@@ -185,7 +186,7 @@ static bool match_word_initials(StringRef query,
   int first_found_word_index = -1;
 
   while (query_index < query.size()) {
-    const uint query_unicode = BLI_str_utf8_as_unicode_step(
+    const uint query_unicode = BLI_str_utf8_as_unicode_step_safe(
         query.data(), query.size(), &query_index);
     while (true) {
       /* We are at the end of words, no complete match has been found yet. */
@@ -209,7 +210,7 @@ static bool match_word_initials(StringRef query,
       StringRef word = words[word_index];
       /* Try to match the current character with the current word. */
       if (int(char_index) < word.size()) {
-        const uint32_t char_unicode = BLI_str_utf8_as_unicode_step(
+        const uint32_t char_unicode = BLI_str_utf8_as_unicode_step_safe(
             word.data(), word.size(), &char_index);
         if (query_unicode == char_unicode) {
           r_word_is_matched[word_index] = true;
@@ -228,21 +229,30 @@ static bool match_word_initials(StringRef query,
   return true;
 }
 
-static int get_shortest_word_index_that_startswith(StringRef query,
-                                                   Span<StringRef> words,
-                                                   Span<int> word_match_map)
+/**
+ * The "best" is chosen with combination of word weights and word length.
+ */
+static int get_best_word_index_that_startswith(StringRef query,
+                                               Span<StringRef> words,
+                                               Span<float> word_weights,
+                                               Span<int> word_match_map)
 {
   int best_word_size = INT32_MAX;
   int best_word_index = -1;
+  int best_word_weight = 0.0f;
   for (const int i : words.index_range()) {
     if (word_match_map[i] != unused_word) {
       continue;
     }
     StringRef word = words[i];
+    const float word_weight = word_weights[i];
     if (word.startswith(query)) {
-      if (word.size() < best_word_size) {
+      if (word.size() < best_word_size ||
+          (word.size() == best_word_size && word_weight > best_word_weight))
+      {
         best_word_index = i;
         best_word_size = word.size();
+        best_word_weight = word_weight;
       }
     }
   }
@@ -272,23 +282,25 @@ static int get_word_index_that_fuzzy_matches(StringRef query,
  * Checks how well the query matches a result. If it does not match, -1 is returned. A positive
  * return value indicates how good the match is. The higher the value, the better the match.
  */
-static int score_query_against_words(Span<StringRef> query_words, Span<StringRef> result_words)
+static std::optional<float> score_query_against_words(Span<StringRef> query_words,
+                                                      Span<StringRef> result_words,
+                                                      Span<float> result_word_weights)
 {
   /* A mapping from #result_words to #query_words. It's mainly used to determine if a word has been
    * matched already to avoid matching it again. */
   Array<int, 64> word_match_map(result_words.size(), unused_word);
 
   /* Start with some high score, because otherwise the final score might become negative. */
-  int total_match_score = 1000;
+  float total_match_score = 1000;
 
   for (const int query_word_index : query_words.index_range()) {
     const StringRef query_word = query_words[query_word_index];
     {
       /* Check if any result word begins with the query word. */
-      const int word_index = get_shortest_word_index_that_startswith(
-          query_word, result_words, word_match_map);
+      const int word_index = get_best_word_index_that_startswith(
+          query_word, result_words, result_word_weights, word_match_map);
       if (word_index >= 0) {
-        total_match_score += 10;
+        total_match_score += 10 * result_word_weights[word_index];
         word_match_map[word_index] = query_word_index;
         continue;
       }
@@ -321,7 +333,7 @@ static int score_query_against_words(Span<StringRef> query_words, Span<StringRef
     }
 
     /* Couldn't match query word with anything. */
-    return -1;
+    return std::nullopt;
   }
 
   {
@@ -346,19 +358,22 @@ static int score_query_against_words(Span<StringRef> query_words, Span<StringRef
 
 void extract_normalized_words(StringRef str,
                               LinearAllocator<> &allocator,
-                              Vector<StringRef, 64> &r_words)
+                              Vector<StringRef, 64> &r_words,
+                              Vector<float, 64> &r_word_weights)
 {
   const uint32_t unicode_space = uint32_t(' ');
   const uint32_t unicode_slash = uint32_t('/');
   const uint32_t unicode_right_triangle = UI_MENU_ARROW_SEP_UNICODE;
 
-  BLI_assert(unicode_space == BLI_str_utf8_as_unicode(" "));
-  BLI_assert(unicode_slash == BLI_str_utf8_as_unicode("/"));
-  BLI_assert(unicode_right_triangle == BLI_str_utf8_as_unicode(UI_MENU_ARROW_SEP));
+  BLI_assert(unicode_space == BLI_str_utf8_as_unicode_safe(" "));
+  BLI_assert(unicode_slash == BLI_str_utf8_as_unicode_safe("/"));
+  BLI_assert(unicode_right_triangle == BLI_str_utf8_as_unicode_safe(UI_MENU_ARROW_SEP));
 
   auto is_separator = [&](uint32_t unicode) {
     return ELEM(unicode, unicode_space, unicode_slash, unicode_right_triangle);
   };
+
+  Vector<int, 64> section_indices;
 
   /* Make a copy of the string so that we can edit it. */
   StringRef str_copy = allocator.copy_string(str);
@@ -367,16 +382,22 @@ void extract_normalized_words(StringRef str,
   BLI_str_tolower_ascii(mutable_copy, str_size_in_bytes);
 
   /* Iterate over all unicode code points to split individual words. */
+  int current_section = 0;
   bool is_in_word = false;
   size_t word_start = 0;
   size_t offset = 0;
   while (offset < str_size_in_bytes) {
     size_t size = offset;
-    uint32_t unicode = BLI_str_utf8_as_unicode_step(str.data(), str.size(), &size);
+    uint32_t unicode = BLI_str_utf8_as_unicode_step_safe(str.data(), str.size(), &size);
     size -= offset;
+    if (unicode == unicode_right_triangle) {
+      current_section++;
+    }
     if (is_separator(unicode)) {
       if (is_in_word) {
-        r_words.append(str_copy.substr(int(word_start), int(offset - word_start)));
+        const StringRef word = str_copy.substr(int(word_start), int(offset - word_start));
+        r_words.append(word);
+        section_indices.append(current_section);
         is_in_word = false;
       }
     }
@@ -390,31 +411,58 @@ void extract_normalized_words(StringRef str,
   }
   /* If the last word is not followed by a separator, it has to be handled separately. */
   if (is_in_word) {
-    r_words.append(str_copy.drop_prefix(int(word_start)));
+    const StringRef word = str_copy.drop_prefix(int(word_start));
+    r_words.append(word);
+    section_indices.append(current_section);
+  }
+
+  for (const int i : section_indices.index_range()) {
+    const int section = section_indices[i];
+    /* Give the last section a higher weight, because that's what is highlighted in the UI. */
+    const float word_weight = section == current_section ? 1.0f : 0.9f;
+    r_word_weights.append(word_weight);
   }
 }
 
 void StringSearchBase::add_impl(const StringRef str, void *user_data, const int weight)
 {
   Vector<StringRef, 64> words;
-  string_search::extract_normalized_words(str, allocator_, words);
-  items_.append(
-      {allocator_.construct_array_copy(words.as_span()), int(str.size()), user_data, weight});
+  Vector<float, 64> word_weights;
+  string_search::extract_normalized_words(str, allocator_, words, word_weights);
+  const int recent_time = recent_cache_ ?
+                              recent_cache_->logical_time_by_str.lookup_default(str, -1) :
+                              -1;
+  items_.append({user_data,
+                 allocator_.construct_array_copy(words.as_span()),
+                 allocator_.construct_array_copy(word_weights.as_span()),
+                 int(str.size()),
+                 weight,
+                 recent_time});
 }
 
 Vector<void *> StringSearchBase::query_impl(const StringRef query) const
 {
   LinearAllocator<> allocator;
   Vector<StringRef, 64> query_words;
-  string_search::extract_normalized_words(query, allocator, query_words);
+  /* The word weights are not actually used for the query. */
+  Vector<float, 64> word_weights;
+  string_search::extract_normalized_words(query, allocator, query_words, word_weights);
 
   /* Compute score of every result. */
-  MultiValueMap<int, int> result_indices_by_score;
-  for (const int result_index : items_.index_range()) {
-    const int score = string_search::score_query_against_words(
-        query_words, items_[result_index].normalized_words);
-    if (score >= 0) {
-      result_indices_by_score.add(score, result_index);
+  Array<std::optional<float>> all_scores(items_.size());
+  threading::parallel_for(items_.index_range(), 256, [&](const IndexRange range) {
+    for (const int i : range) {
+      const SearchItem &item = items_[i];
+      const std::optional<float> score = string_search::score_query_against_words(
+          query_words, item.normalized_words, item.word_weight_factors);
+      all_scores[i] = score;
+    }
+  });
+  MultiValueMap<float, int> result_indices_by_score;
+  for (const int i : items_.index_range()) {
+    const std::optional<float> score = all_scores[i];
+    if (score.has_value()) {
+      result_indices_by_score.add(*score, i);
     }
   }
 
@@ -429,17 +477,23 @@ Vector<void *> StringSearchBase::query_impl(const StringRef query) const
   Vector<int> sorted_result_indices;
   for (const int score : found_scores) {
     MutableSpan<int> indices = result_indices_by_score.lookup(score);
-    if (score == found_scores[0] && !query.is_empty()) {
-      /* Sort items with best score by length. Shorter items are more likely the ones you are
-       * looking for. This also ensures that exact matches will be at the top, even if the query is
-       * a sub-string of another item. */
-      std::sort(indices.begin(), indices.end(), [&](int a, int b) {
-        return items_[a].length < items_[b].length;
-      });
-      /* Prefer items with larger weights. Use `stable_sort` so that if the weights are the same,
-       * the order won't be changed. */
+    if (score == found_scores[0]) {
+      if (!query.is_empty()) {
+        /* Sort items with best score by length. Shorter items are more likely the ones you are
+         * looking for. This also ensures that exact matches will be at the top, even if the query
+         * is a sub-string of another item. */
+        std::sort(indices.begin(), indices.end(), [&](int a, int b) {
+          return items_[a].length < items_[b].length;
+        });
+        /* Prefer items with larger weights. Use `stable_sort` so that if the weights are the same,
+         * the order won't be changed. */
+        std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) {
+          return items_[a].weight > items_[b].weight;
+        });
+      }
+      /* Prefer items that have been selected recently. */
       std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) {
-        return items_[a].weight > items_[b].weight;
+        return items_[a].recent_time > items_[b].recent_time;
       });
     }
     sorted_result_indices.extend(indices);

@@ -11,7 +11,7 @@
 /* so modifier types match their defines */
 #include "MOD_modifiertypes.hh"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_build.hh"
 
 struct ARegionType;
 struct Panel;

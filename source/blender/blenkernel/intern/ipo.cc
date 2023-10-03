@@ -1609,7 +1609,7 @@ static void icu_to_fcurves(ID *id,
         if (((icu->blocktype == ID_OB) && ELEM(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
             ((icu->blocktype == ID_PO) && ELEM(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z)))
         {
-          const float fac = float(M_PI) / 18.0f; /* 10.0f * M_PI/180.0f; */
+          const float fac = float(M_PI) / 18.0f; /* `10.0f * M_PI/180.0f`. */
 
           dst->vec[0][1] *= fac;
           dst->vec[1][1] *= fac;

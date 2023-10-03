@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -316,6 +316,161 @@ msgstr "การตั้งค่า"
 
 msgid "Edit persistent configuration settings"
 msgstr "การตั้งค่าของผู้ใช้"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Action"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "โครงร่าง"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "แปรง"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "ไฟล์แคช"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "กล้อง"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "ชุด"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "เส้นโค้ง"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "ฟอนต์"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "ภาพ"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "คีย์"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "ช่องตาข่าย"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "คลัง"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "แสง"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "สไตล์เส้น"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "หน้ากากหน้ากาก"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "วัสดุ"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "เมช"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "เมต้าบอล"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "คลิปภาพยนตร์"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "แผนผังโนด"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "วัตถุ"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "จานสี"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "อนุภาค"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "ฉาก"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "เสียง"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "ลำโพง"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "ข้อความ"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "พื้นผิว"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "ตัวจัดการหน้าต่าง"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "พื้นที่ใช้งาน"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "โลก"
 
 
 msgid "ID Name"
@@ -782,161 +937,6 @@ msgid "Invert"
 msgstr "กลับค่า"
 
 
-msgctxt "ID"
-msgid "Action"
-msgstr "Action"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "โครงร่าง"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "แปรง"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "ไฟล์แคช"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "กล้อง"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "ชุด"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "เส้นโค้ง"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "ฟอนต์"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "ภาพ"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "คีย์"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "ช่องตาข่าย"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "คลัง"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "แสง"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "สไตล์เส้น"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "หน้ากากหน้ากาก"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "วัสดุ"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "เมช"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "เมต้าบอล"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "คลิปภาพยนตร์"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "แผนผังโนด"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "วัตถุ"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "จานสี"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "อนุภาค"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "ฉาก"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "เสียง"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "ลำโพง"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "ข้อความ"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "พื้นผิว"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "ตัวจัดการหน้าต่าง"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "พื้นที่ใช้งาน"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "โลก"
-
-
 msgid "Rotation Mode"
 msgstr "โหมดหมุน"
 
@@ -1102,14 +1102,6 @@ msgstr "บันทึก"
 
 msgid "Miscellaneous"
 msgstr "เบ็ดเตล็ด"
-
-
-msgid "Medium"
-msgstr "ปานกลาง"
-
-
-msgid "Large"
-msgstr "ใหญ่"
 
 
 msgid "Show .blend files"
@@ -1627,6 +1619,10 @@ msgstr "สูง"
 
 msgid "High quality"
 msgstr "คุณภาพสูง"
+
+
+msgid "Medium"
+msgstr "ปานกลาง"
 
 
 msgid "Medium quality"
@@ -4099,11 +4095,6 @@ msgid "Offset X"
 msgstr "ออฟเซต X"
 
 
-msgctxt "Operator"
-msgid "Armature"
-msgstr "โครงร่าง"
-
-
 msgid "Detail"
 msgstr "รายละเอียด"
 
@@ -4980,6 +4971,11 @@ msgid "Sharp"
 msgstr "แหลม"
 
 
+msgctxt "Operator"
+msgid "Armature"
+msgstr "โครงร่าง"
+
+
 msgid "Mirror Vertices"
 msgstr "สะท้อนจุดยอด"
 
@@ -5707,10 +5703,6 @@ msgstr "ภาษาฮิบรู (תירִבְעִ)"
 
 msgid "Esperanto (Esperanto)"
 msgstr "ภาษาเอสเปรันโต (Esperanto)"
-
-
-msgid "Spanish from Spain (Español de España)"
-msgstr "ภาษาสเปนจากประเทศสเปน (Español de España)"
 
 
 msgid "Amharic (አማርኛ)"

@@ -674,7 +674,9 @@ void outliner_sync_selection(const bContext *C, SpaceOutliner *space_outliner);
 
 /* `outliner_context.cc` */
 
-int outliner_context(const bContext *C, const char *member, bContextDataResult *result);
+int outliner_main_region_context(const bContext *C,
+                                 const char *member,
+                                 bContextDataResult *result);
 
 /**
  * Helper to safely "cast" a #TreeElement to its new C++ #AbstractTreeElement, if possible.

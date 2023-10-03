@@ -614,14 +614,12 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *wo,
                                       ccl_private float *pdf,
-                                      ccl_private float2 *sampled_roughness,
-                                      ccl_private float *eta)
+                                      ccl_private float2 *sampled_roughness)
 {
   ccl_private HuangHairBSDF *bsdf = (ccl_private HuangHairBSDF *)sc;
 
   const float roughness = bsdf->roughness;
   *sampled_roughness = make_float2(roughness, roughness);
-  *eta = bsdf->eta;
 
   kernel_assert(fabsf(bsdf->h) < bsdf->extra->radius);
 
@@ -680,7 +678,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
   }
 
   float cos_theta_t1;
-  const float R1 = fresnel_dielectric(dot(wi, wh1), *eta, &cos_theta_t1);
+  const float R1 = fresnel_dielectric(dot(wi, wh1), bsdf->eta, &cos_theta_t1);
   const float scale1 = bsdf_hair_huang_energy_scale(kg, cos_mi1, sqrt_roughness, bsdf->eta);
   const float R = bsdf->extra->R * R1 * scale1 * microfacet_visible(wr, wmi_, wh1) *
                   bsdf_Go(roughness2, cos_mi1, dot(wmi, wr));
@@ -717,7 +715,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
     const float T2 = 1.0f - R2;
     const float scale2 = bsdf_hair_huang_energy_scale(kg, cos_mi2, sqrt_roughness, inv_eta);
 
-    wtt = refract_angle(-wt, wh2, cos_theta_t2, *eta);
+    wtt = refract_angle(-wt, wh2, cos_theta_t2, bsdf->eta);
 
     if (dot(wmt, -wtt) > 0.0f && cos_theta_t2 != 0.0f && microfacet_visible(-wtt, wmt_, wh2)) {
       TT = bsdf->extra->TT * T1 * A_t * T2 * scale2 * bsdf_Go(roughness2, cos_mi2, dot(wmt, -wtt));
@@ -733,7 +731,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
     float cos_theta_t3;
     const float R3 = fresnel_dielectric(dot(wtr, wh3), inv_eta, &cos_theta_t3);
 
-    wtrt = refract_angle(wtr, wh3, cos_theta_t3, *eta);
+    wtrt = refract_angle(wtr, wh3, cos_theta_t3, bsdf->eta);
 
     const float cos_mi3 = dot(wmtr, wtr);
     if (cos_mi3 > 0.0f) {

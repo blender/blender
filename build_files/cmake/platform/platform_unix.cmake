@@ -379,6 +379,7 @@ endif()
 if(WITH_USD)
   find_package_wrapper(USD)
   set_and_warn_library_found("USD" USD_FOUND WITH_USD)
+  set_and_warn_library_found("Hydra" USD_FOUND WITH_HYDRA)
 endif()
 add_bundled_libraries(usd/lib)
 

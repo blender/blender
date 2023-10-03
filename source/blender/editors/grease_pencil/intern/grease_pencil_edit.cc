@@ -20,7 +20,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"

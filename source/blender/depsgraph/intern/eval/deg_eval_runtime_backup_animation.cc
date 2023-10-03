@@ -15,7 +15,7 @@
 #include "RNA_access.hh"
 #include "RNA_types.hh"
 
-#include "intern/depsgraph.h"
+#include "intern/depsgraph.hh"
 
 namespace blender::deg {
 

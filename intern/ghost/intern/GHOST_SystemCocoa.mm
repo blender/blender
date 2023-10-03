@@ -818,7 +818,7 @@ GHOST_IWindow *GHOST_SystemCocoa::getWindowUnderCursor(int32_t x, int32_t y)
     return nil;
   }
 
-  return m_windowManager->getWindowAssociatedWithOSWindow((void *)nswindow);
+  return m_windowManager->getWindowAssociatedWithOSWindow((const void *)nswindow);
 }
 
 /**
@@ -1468,7 +1468,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
   NSEvent *event = (NSEvent *)eventPtr;
   GHOST_IWindow *window;
 
-  window = m_windowManager->getWindowAssociatedWithOSWindow((void *)[event window]);
+  window = m_windowManager->getWindowAssociatedWithOSWindow((const void *)[event window]);
   if (!window) {
     // printf("\nW failure for event 0x%x",[event type]);
     return GHOST_kFailure;
@@ -1545,7 +1545,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
    * however, if mouse exits window(s), the windows become inactive, until you click.
    * We then fall back to the active window from ghost. */
   window = (GHOST_WindowCocoa *)m_windowManager->getWindowAssociatedWithOSWindow(
-      (void *)[event window]);
+      (const void *)[event window]);
   if (!window) {
     window = (GHOST_WindowCocoa *)m_windowManager->getActiveWindow();
     if (!window) {
@@ -1853,7 +1853,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
   GHOST_TKey keyCode;
   NSString *charsIgnoringModifiers;
 
-  window = m_windowManager->getWindowAssociatedWithOSWindow((void *)[event window]);
+  window = m_windowManager->getWindowAssociatedWithOSWindow((const void *)[event window]);
   if (!window) {
     // printf("\nW failure for event 0x%x",[event type]);
     return GHOST_kFailure;

@@ -59,8 +59,8 @@
 #include "BKE_type_conversions.hh"
 #include "BKE_vfont.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLI_hash.h"
 #include "DNA_world_types.h"

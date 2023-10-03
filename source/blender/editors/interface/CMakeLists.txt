@@ -42,6 +42,7 @@ set(SRC
   interface_align.cc
   interface_anim.cc
   interface_button_group.cc
+  interface_button_sections.cc
   interface_context_menu.cc
   interface_context_path.cc
   interface_drag.cc
@@ -64,10 +65,10 @@ set(SRC
   interface_region_search.cc
   interface_region_tooltip.cc
   interface_regions.cc
+  interface_string_search.cc
   interface_style.cc
   interface_template_asset_view.cc
   interface_template_attribute_search.cc
-  interface_template_grease_pencil_layer_tree.cc
   interface_template_light_linking.cc
   interface_template_list.cc
   interface_template_node_tree_interface.cc
@@ -119,6 +120,13 @@ if(WIN32 OR APPLE)
   if(WITH_INPUT_IME)
     add_definitions(-DWITH_INPUT_IME)
   endif()
+endif()
+
+if(WITH_EXPERIMENTAL_FEATURES)
+  add_definitions(-DWITH_GREASE_PENCIL_V3)
+  list(APPEND SRC
+    interface_template_grease_pencil_layer_tree.cc
+  )
 endif()
 
 

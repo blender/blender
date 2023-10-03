@@ -59,6 +59,13 @@ vec2 interlieved_gradient_noise(vec2 pixel, vec2 seed, vec2 offset)
               interlieved_gradient_noise(pixel, seed.y, offset.y));
 }
 
+vec3 interlieved_gradient_noise(vec2 pixel, vec3 seed, vec3 offset)
+{
+  return vec3(interlieved_gradient_noise(pixel, seed.x, offset.x),
+              interlieved_gradient_noise(pixel, seed.y, offset.y),
+              interlieved_gradient_noise(pixel, seed.z, offset.z));
+}
+
 /* From: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html */
 float van_der_corput_radical_inverse(uint bits)
 {
@@ -89,6 +96,11 @@ vec2 hammersley_2d(uint i, uint sample_count)
   rand.x = float(i) / float(sample_count);
   rand.y = van_der_corput_radical_inverse(i);
   return rand;
+}
+
+vec2 hammersley_2d(int i, int sample_count)
+{
+  return hammersley_2d(uint(i), uint(sample_count));
 }
 
 /** \} */
@@ -124,10 +136,21 @@ vec3 sample_cylinder(vec2 rand)
 
 vec3 sample_sphere(vec2 rand)
 {
-  float omega = rand.y * 2.0 * M_PI;
   float cos_theta = rand.x * 2.0 - 1.0;
   float sin_theta = safe_sqrt(1.0 - cos_theta * cos_theta);
-  return vec3(sin_theta * vec2(cos(omega), sin(omega)), cos_theta);
+  return vec3(sin_theta * sample_circle(rand.y), cos_theta);
+}
+
+/**
+ * Uniform hemisphere distribution.
+ * \a rand is 2 random float in the [0..1] range.
+ * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
+ */
+vec3 sample_hemisphere(vec2 rand)
+{
+  float cos_theta = rand.x;
+  float sin_theta = safe_sqrt(1.0 - sqr(cos_theta));
+  return vec3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
 /** \} */

@@ -40,8 +40,8 @@
 #include "BKE_report.h"
 #include "BKE_workspace.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "ED_keyframing.hh"
 #include "ED_outliner.hh"
@@ -318,11 +318,11 @@ static void do_item_rename(ARegion *region,
            TSE_MODIFIER_BASE,
            TSE_DRIVER_BASE,
            TSE_POSE_BASE,
-           TSE_POSEGRP_BASE,
            TSE_R_LAYER_BASE,
            TSE_SCENE_COLLECTION_BASE,
            TSE_VIEW_COLLECTION_BASE,
            TSE_LIBRARY_OVERRIDE_BASE,
+           TSE_BONE_COLLECTION_BASE,
            TSE_RNA_STRUCT,
            TSE_RNA_PROPERTY,
            TSE_RNA_ARRAY_ELEM,

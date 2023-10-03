@@ -45,7 +45,7 @@ int logimage_fseek(LogImageFile *logFile, intptr_t offset, int origin)
   return 0;
 }
 
-int logimage_fwrite(void *buffer, size_t size, uint count, LogImageFile *logFile)
+int logimage_fwrite(const void *buffer, size_t size, uint count, LogImageFile *logFile)
 {
   if (logFile->file) {
     return fwrite(buffer, size, count, logFile->file);

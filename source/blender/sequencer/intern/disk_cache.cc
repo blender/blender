@@ -252,7 +252,7 @@ bool seq_disk_cache_enforce_limits(SeqDiskCache *disk_cache)
 }
 
 static DiskCacheFile *seq_disk_cache_get_file_entry_by_path(SeqDiskCache *disk_cache,
-                                                            char *filepath)
+                                                            const char *filepath)
 {
   DiskCacheFile *cache_file = static_cast<DiskCacheFile *>(disk_cache->files.first);
 
@@ -266,7 +266,7 @@ static DiskCacheFile *seq_disk_cache_get_file_entry_by_path(SeqDiskCache *disk_c
 }
 
 /* Update file size and timestamp. */
-static void seq_disk_cache_update_file(SeqDiskCache *disk_cache, char *filepath)
+static void seq_disk_cache_update_file(SeqDiskCache *disk_cache, const char *filepath)
 {
   DiskCacheFile *cache_file;
   int64_t size_before;

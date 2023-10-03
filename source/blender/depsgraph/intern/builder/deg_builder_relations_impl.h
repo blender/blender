@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_id.hh"
 
 #include <iostream>
 

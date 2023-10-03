@@ -1853,7 +1853,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
   BM_CHECK_ELEMENT(v_target);
 
   if (v_target->e && v_kill->e) {
-    /* inline BM_vert_splice(bm, v_target, v_kill); */
+    /* Inline `BM_vert_splice(bm, v_target, v_kill)`. */
     BMEdge *e;
     while ((e = v_kill->e)) {
       BMEdge *e_target;

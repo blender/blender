@@ -280,10 +280,11 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
     item_type: EnumProperty(
         name="Item Type",
         description="Type of the item to create",
-        items=[
+        items=(
             ('INPUT', "Input", ""),
             ('OUTPUT', "Output", ""),
-            ('PANEL', "Panel", "")],
+            ('PANEL', "Panel", ""),
+        ),
         default='INPUT',
     )
 
@@ -299,9 +300,9 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
         active_pos = active_item.position if active_item else -1
 
         if self.item_type == 'INPUT':
-            item = interface.new_socket("Socket", socket_type=self.socket_type, in_out={'INPUT'})
+            item = interface.new_socket("Socket", socket_type=self.socket_type, in_out='INPUT')
         elif self.item_type == 'OUTPUT':
-            item = interface.new_socket("Socket", socket_type=self.socket_type, in_out={'OUTPUT'})
+            item = interface.new_socket("Socket", socket_type=self.socket_type, in_out='OUTPUT')
         elif self.item_type == 'PANEL':
             item = interface.new_panel("Panel")
         else:
@@ -361,7 +362,7 @@ class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
 
         if item:
             interface.remove(item)
-            interface.active_index = min(interface.active_index, len(interface.ui_items) - 1)
+            interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
 
         return {'FINISHED'}
 

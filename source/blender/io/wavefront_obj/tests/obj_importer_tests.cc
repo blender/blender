@@ -22,8 +22,8 @@
 
 #include "BLO_readfile.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_material_types.h"

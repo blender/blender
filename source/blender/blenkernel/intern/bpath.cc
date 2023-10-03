@@ -54,7 +54,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "BKE_idtype.h"
 #include "BKE_image.h"

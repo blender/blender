@@ -120,20 +120,15 @@ void main()
           float clip_far = tilemaps_clip_buf[clip_index].clip_far_stored;
           float clip_near = tilemaps_clip_buf[clip_index].clip_near_stored;
 
+          view_start = view_start * tilemap_data.half_size + tilemap_data.center_offset;
+          view_end = view_end * tilemap_data.half_size + tilemap_data.center_offset;
+
           mat4x4 winmat;
           if (tilemap_data.projection_type != SHADOW_PROJECTION_CUBEFACE) {
-            view_start *= tilemap_data.half_size;
-            view_end *= tilemap_data.half_size;
-            view_start += tilemap_data.center_offset;
-            view_end += tilemap_data.center_offset;
-
             winmat = projection_orthographic(
                 view_start.x, view_end.x, view_start.y, view_end.y, clip_near, clip_far);
           }
           else {
-            view_start *= clip_near;
-            view_end *= clip_near;
-
             winmat = projection_perspective(
                 view_start.x, view_end.x, view_start.y, view_end.y, clip_near, clip_far);
           }

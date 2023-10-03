@@ -16,7 +16,7 @@
 #include "BLI_hash.h"
 #include "BLI_string_utils.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "eevee_private.h"
 

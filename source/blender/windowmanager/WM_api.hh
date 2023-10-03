@@ -109,15 +109,14 @@ void WM_init(bContext *C, int argc, const char **argv);
  *
  * \param C: The context or null, a null context implies `do_user_exit_actions == false` &
  * prevents some editor-exit operations from running.
- * \param do_python: Free all data associated with Blender's Python integration.
- * Also exit the Python interpreter (unless `WITH_PYTHON_MODULE` is enabled).
+ * \param do_python_exit: Exit the Python interpreter (unless `WITH_PYTHON_MODULE` is enabled).
  * \param do_user_exit_actions: When enabled perform actions associated with a user
  * having been using Blender then exiting. Actions such as writing the auto-save
  * and writing any changes to preferences.
  * Set to false in background mode or when exiting because of failed command line argument parsing.
  * In general automated actions where the user isn't making changes should pass in false too.
  */
-void WM_exit_ex(bContext *C, bool do_python, bool do_user_exit_actions);
+void WM_exit_ex(bContext *C, bool do_python_exit, bool do_user_exit_actions);
 
 /**
  * Main exit function to close Blender ordinarily.
@@ -1370,7 +1369,7 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode);
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
-                                       int /* #eAssetImportMethod */ import_type);
+                                       int /* #eAssetImportMethod */ import_method);
 
 wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode);
 AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode);
@@ -1607,6 +1606,16 @@ void WM_progress_clear(wmWindow *win);
 
 void *WM_draw_cb_activate(wmWindow *win, void (*draw)(const wmWindow *, void *), void *customdata);
 void WM_draw_cb_exit(wmWindow *win, void *handle);
+/**
+ * High level function to redraw windows.
+ *
+ * \warning this should be avoided by operators and low-level IO functionality
+ * because drawing relies on the event system & depsgraph preparing data for display.
+ * An explicit call to draw is error prone since it may attempt to show stale data.
+ *
+ * With some rare exceptions which require a redraw (screen-shot & sample screen color for e.g.)
+ * explicitly redrawing should be avoided, see: #92704, #93950, #97627 & #98462.
+ */
 void WM_redraw_windows(bContext *C);
 
 void WM_draw_region_viewport_ensure(Scene *scene, ARegion *region, short space_type);

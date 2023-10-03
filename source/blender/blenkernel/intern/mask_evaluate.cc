@@ -25,8 +25,8 @@
 #include "BKE_curve.h"
 #include "BKE_mask.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 uint BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
 {
@@ -517,16 +517,16 @@ static float (
   point_curr = point_prev + 1;
 
   while (a--) {
-    /* BezTriple *bezt_prev; */ /* UNUSED */
-    /* BezTriple *bezt_curr; */ /* UNUSED */
+    // BezTriple *bezt_prev; /* UNUSED */
+    // BezTriple *bezt_curr; /* UNUSED */
     int j;
 
     if (a == 0 && (spline->flag & MASK_SPLINE_CYCLIC)) {
       point_curr = points_array;
     }
 
-    /* bezt_prev = &point_prev->bezt; */
-    /* bezt_curr = &point_curr->bezt; */
+    // bezt_prev = &point_prev->bezt;
+    // bezt_curr = &point_curr->bezt;
 
     for (j = 0; j < resol; j++, fp++) {
       float u = float(j) / resol, weight;

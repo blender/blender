@@ -45,7 +45,7 @@ void main()
   float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
   float rand_trace = interlieved_gradient_noise(vec2(texel), 5.0, noise_offset);
 
-#if defined(RAYTRACE_REFLECT)
+#if defined(RAYTRACE_REFLECT) || defined(RAYTRACE_DIFFUSE)
   const bool discard_backface = true;
   const bool allow_self_intersection = false;
 #elif defined(RAYTRACE_REFRACT)

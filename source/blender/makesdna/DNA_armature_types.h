@@ -122,6 +122,9 @@ typedef struct Bone {
   int layer;
   /** For B-bones. */
   short segments;
+  /** Vertex to segment mapping mode. */
+  char bbone_mapping_mode;
+  char _pad2[7];
 
   /** Type of next/prev bone handles. */
   char bbone_prev_type;
@@ -394,6 +397,12 @@ typedef enum eBone_BBoneHandleType {
   BBONE_HANDLE_RELATIVE = 2, /* Custom handle in relative position mode. */
   BBONE_HANDLE_TANGENT = 3,  /* Custom handle in tangent mode (use direction, not location). */
 } eBone_BBoneHandleType;
+
+/* bone->bbone_mapping_mode */
+typedef enum eBone_BBoneMappingMode {
+  BBONE_MAPPING_STRAIGHT = 0, /* Default mode that ignores the rest pose curvature. */
+  BBONE_MAPPING_CURVED = 1,   /* Mode that takes the rest pose curvature into account. */
+} eBone_BBoneMappingMode;
 
 /* bone->bbone_flag */
 typedef enum eBone_BBoneFlag {

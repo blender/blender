@@ -39,8 +39,7 @@ class NLA_HT_header(Header):
         sub = row.row(align=True)
         sub.popover(
             panel="NLA_PT_snapping",
-            icon='NONE',
-            text="Modes",
+            text="",
         )
 
 
@@ -304,7 +303,7 @@ class NLA_MT_view_pie(Menu):
 
 
 class NLA_MT_context_menu(Menu):
-    bl_label = "NLA Context Menu"
+    bl_label = "NLA"
 
     def draw(self, context):
         layout = self.layout
@@ -348,7 +347,7 @@ class NLA_MT_context_menu(Menu):
 
 
 class NLA_MT_channel_context_menu(Menu):
-    bl_label = "NLA Channel Context Menu"
+    bl_label = "NLA Channel"
 
     def draw(self, _context):
         layout = self.layout

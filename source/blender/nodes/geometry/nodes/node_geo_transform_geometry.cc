@@ -22,7 +22,7 @@
 #include "BKE_volume.h"
 #include "BKE_volume_openvdb.hh"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "node_geometry_util.hh"
 

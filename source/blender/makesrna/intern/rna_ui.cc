@@ -14,7 +14,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_idprop.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLI_listbase.h"
 
@@ -63,8 +63,9 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 #  include "BKE_context.h"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
-#  include "BKE_screen.h"
+#  include "BKE_screen.hh"
 
+#  include "ED_asset_library.h"
 #  include "ED_asset_shelf.h"
 
 #  include "WM_api.hh"
@@ -1246,6 +1247,18 @@ static StructRNA *rna_AssetShelf_refine(PointerRNA *shelf_ptr)
   return (shelf->type && shelf->type->rna_ext.srna) ? shelf->type->rna_ext.srna : &RNA_AssetShelf;
 }
 
+static int rna_AssetShelf_asset_library_get(PointerRNA *ptr)
+{
+  AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
+  return ED_asset_library_reference_to_enum_value(&shelf->settings.asset_library_reference);
+}
+
+static void rna_AssetShelf_asset_library_set(PointerRNA *ptr, int value)
+{
+  AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
+  shelf->settings.asset_library_reference = ED_asset_library_reference_from_enum_value(value);
+}
+
 static void rna_Panel_bl_description_set(PointerRNA *ptr, const char *value)
 {
   Panel *data = (Panel *)(ptr->data);
@@ -2157,6 +2170,12 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  prop = rna_def_asset_library_reference_common(
+      srna, "rna_AssetShelf_asset_library_get", "rna_AssetShelf_asset_library_set");
+  RNA_def_property_ui_text(
+      prop, "Asset Library", "Choose the asset library to display assets from");
+  RNA_def_property_update(prop, NC_SPACE | ND_REGIONS_ASSET_SHELF, nullptr);
 
   prop = RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "settings.display_flag", ASSETSHELF_SHOW_NAMES);

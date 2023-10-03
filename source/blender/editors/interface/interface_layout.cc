@@ -31,7 +31,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
@@ -614,7 +614,7 @@ static void ui_item_array(uiLayout *layout,
     }
 
     w /= dim_size[0];
-    /* h /= dim_size[1]; */ /* UNUSED */
+    // h /= dim_size[1]; /* UNUSED */
 
     for (int a = 0; a < len; a++) {
       col = a % dim_size[0];
@@ -3750,7 +3750,7 @@ static void ui_litem_layout_row(uiLayout *litem)
   int freew, fixedx, freex, flag = 0, lastw = 0;
   float extra_pixel;
 
-  /* x = litem->x; */ /* UNUSED */
+  // x = litem->x; /* UNUSED */
   const int y = litem->y;
   int w = litem->w;
   int totw = 0;
@@ -4001,50 +4001,57 @@ static void ui_litem_layout_radial(uiLayout *litem)
   litem->root->block->pie_data.pie_dir_mask = 0;
 
   LISTBASE_FOREACH (uiItem *, item, &litem->items) {
-    /* not all button types are drawn in a radial menu, do filtering here */
-    if (ui_item_is_radial_displayable(item)) {
-      RadialDirection dir;
-      float vec[2];
-      float factor[2];
+    /* Not all button types are drawn in a radial menu, do filtering here. */
+    if (!ui_item_is_radial_displayable(item)) {
+      continue;
+    }
 
-      dir = ui_get_radialbut_vec(vec, itemnum);
-      factor[0] = (vec[0] > 0.01f) ? 0.0f : ((vec[0] < -0.01f) ? -1.0f : -0.5f);
-      factor[1] = (vec[1] > 0.99f) ? 0.0f : ((vec[1] < -0.99f) ? -1.0f : -0.5f);
+    float vec[2];
+    const RadialDirection dir = ui_get_radialbut_vec(vec, itemnum);
+    const float factor[2] = {
+        (vec[0] > 0.01f) ? 0.0f : ((vec[0] < -0.01f) ? -1.0f : -0.5f),
+        (vec[1] > 0.99f) ? 0.0f : ((vec[1] < -0.99f) ? -1.0f : -0.5f),
+    };
+    itemnum++;
 
-      itemnum++;
+    /* Enable for non-buttons because a direction may reference a layout, see: #112610. */
+    bool use_dir = true;
 
-      if (item->type == ITEM_BUTTON) {
-        uiButtonItem *bitem = (uiButtonItem *)item;
+    if (item->type == ITEM_BUTTON) {
+      uiButtonItem *bitem = (uiButtonItem *)item;
 
-        bitem->but->pie_dir = dir;
-        /* scale the buttons */
-        bitem->but->rect.ymax *= 1.5f;
-        /* add a little bit more here to include number */
-        bitem->but->rect.xmax += 1.5f * UI_UNIT_X;
-        /* enable drawing as pie item if supported by widget */
-        if (ui_item_is_radial_drawable(bitem)) {
-          bitem->but->emboss = UI_EMBOSS_RADIAL;
-          bitem->but->drawflag |= UI_BUT_ICON_LEFT;
-        }
-
-        if (!ELEM(bitem->but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
-          litem->root->block->pie_data.pie_dir_mask |= 1 << int(dir);
-        }
+      bitem->but->pie_dir = dir;
+      /* Scale the buttons. */
+      bitem->but->rect.ymax *= 1.5f;
+      /* Add a little bit more here to include number. */
+      bitem->but->rect.xmax += 1.5f * UI_UNIT_X;
+      /* Enable drawing as pie item if supported by widget. */
+      if (ui_item_is_radial_drawable(bitem)) {
+        bitem->but->emboss = UI_EMBOSS_RADIAL;
+        bitem->but->drawflag |= UI_BUT_ICON_LEFT;
       }
 
-      ui_item_size(item, &itemw, &itemh);
-
-      ui_item_position(item,
-                       x + vec[0] * pie_radius + factor[0] * itemw,
-                       y + vec[1] * pie_radius + factor[1] * itemh,
-                       itemw,
-                       itemh);
-
-      minx = min_ii(minx, x + vec[0] * pie_radius - itemw / 2);
-      maxx = max_ii(maxx, x + vec[0] * pie_radius + itemw / 2);
-      miny = min_ii(miny, y + vec[1] * pie_radius - itemh / 2);
-      maxy = max_ii(maxy, y + vec[1] * pie_radius + itemh / 2);
+      if (ELEM(bitem->but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
+        use_dir = false;
+      }
     }
+
+    if (use_dir) {
+      litem->root->block->pie_data.pie_dir_mask |= 1 << int(dir);
+    }
+
+    ui_item_size(item, &itemw, &itemh);
+
+    ui_item_position(item,
+                     x + (vec[0] * pie_radius) + (factor[0] * itemw),
+                     y + (vec[1] * pie_radius) + (factor[1] * itemh),
+                     itemw,
+                     itemh);
+
+    minx = min_ii(minx, x + (vec[0] * pie_radius) - (itemw / 2));
+    maxx = max_ii(maxx, x + (vec[0] * pie_radius) + (itemw / 2));
+    miny = min_ii(miny, y + (vec[1] * pie_radius) - (itemh / 2));
+    maxy = max_ii(maxy, y + (vec[1] * pie_radius) + (itemh / 2));
   }
 
   litem->x = minx;
@@ -5921,10 +5928,7 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout)
   }
   if (mt->listener) {
     /* Forward the menu type listener to the block we're drawing in. */
-    uiBlockDynamicListener *listener = static_cast<uiBlockDynamicListener *>(
-        MEM_mallocN(sizeof(*listener), __func__));
-    listener->listener_func = mt->listener;
-    BLI_addtail(&block->dynamic_listeners, listener);
+    ui_block_add_dynamic_listener(block, mt->listener);
   }
 
   if (layout->context) {
@@ -5965,6 +5969,10 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
   Panel *panel = MEM_cnew<Panel>(__func__);
   panel->type = pt;
   panel->flag = PNL_POPOVER;
+
+  if (pt->listener) {
+    ui_block_add_dynamic_listener(uiLayoutGetBlock(layout), pt->listener);
+  }
 
   uiLayout *last_item = static_cast<uiLayout *>(layout->items.last);
 

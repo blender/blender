@@ -17,7 +17,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "WM_api.hh"
 
 #ifdef WITH_COLLADA

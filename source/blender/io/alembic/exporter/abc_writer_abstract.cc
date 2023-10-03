@@ -10,7 +10,7 @@
 
 #include "DNA_modifier_types.h"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include <Alembic/AbcGeom/Visibility.h>
 

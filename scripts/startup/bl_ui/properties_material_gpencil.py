@@ -115,7 +115,7 @@ class MATERIAL_PT_gpencil_surface(GPMaterialButtonsPanel, Panel):
 
 class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
     bl_label = "Stroke"
-    bl_parent_id = 'MATERIAL_PT_gpencil_surface'
+    bl_parent_id = "MATERIAL_PT_gpencil_surface"
 
     def draw_header(self, context):
         ma = context.material
@@ -164,7 +164,7 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
 
 class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
     bl_label = "Fill"
-    bl_parent_id = 'MATERIAL_PT_gpencil_surface'
+    bl_parent_id = "MATERIAL_PT_gpencil_surface"
 
     def draw_header(self, context):
         ma = context.material

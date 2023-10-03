@@ -797,12 +797,12 @@ template<typename T> class VArray : public VArrayCommon<T> {
 
   VArray(std::shared_ptr<const VArrayImpl<T>> impl) : VArrayCommon<T>(std::move(impl)) {}
 
-  VArray(varray_tag::span /* tag */, Span<T> span)
+  VArray(varray_tag::span /*tag*/, Span<T> span)
   {
     this->template emplace<VArrayImpl_For_Span_final<T>>(span);
   }
 
-  VArray(varray_tag::single /* tag */, T value, const int64_t size)
+  VArray(varray_tag::single /*tag*/, T value, const int64_t size)
   {
     this->template emplace<VArrayImpl_For_Single<T>>(std::move(value), size);
   }

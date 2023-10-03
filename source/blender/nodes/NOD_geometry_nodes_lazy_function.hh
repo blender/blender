@@ -130,6 +130,11 @@ class GeoNodesSimulationParams {
 
 struct GeoNodesSideEffectNodes {
   MultiValueMap<ComputeContextHash, const lf::FunctionNode *> nodes_by_context;
+  /**
+   * The repeat zone is identified by the compute context of the parent and the identifier of the
+   * repeat output node.
+   */
+  MultiValueMap<std::pair<ComputeContextHash, int32_t>, int> iterations_by_repeat_zone;
 };
 
 /**
@@ -199,7 +204,6 @@ struct GeoNodesLFUserData : public lf::UserData {
 
 struct GeoNodesLFLocalUserData : public lf::LocalUserData {
  private:
-  GeoNodesLFUserData &user_data_;
   /**
    * Thread-local logger for the current node tree in the current compute context. It is only
    * instantiated when it is actually used and then cached for the current thread.
@@ -207,22 +211,22 @@ struct GeoNodesLFLocalUserData : public lf::LocalUserData {
   mutable std::optional<geo_eval_log::GeoTreeLogger *> tree_logger_;
 
  public:
-  GeoNodesLFLocalUserData(GeoNodesLFUserData &user_data) : user_data_(user_data) {}
+  GeoNodesLFLocalUserData(GeoNodesLFUserData & /*user_data*/) {}
 
   /**
    * Get the current tree logger. This method is not thread-safe, each thread is supposed to have
    * a separate logger.
    */
-  geo_eval_log::GeoTreeLogger *try_get_tree_logger() const
+  geo_eval_log::GeoTreeLogger *try_get_tree_logger(const GeoNodesLFUserData &user_data) const
   {
     if (!tree_logger_.has_value()) {
-      this->ensure_tree_logger();
+      this->ensure_tree_logger(user_data);
     }
     return *tree_logger_;
   }
 
  private:
-  void ensure_tree_logger() const;
+  void ensure_tree_logger(const GeoNodesLFUserData &user_data) const;
 };
 
 /**

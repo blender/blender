@@ -500,8 +500,9 @@ static inline uint hash_string(const char *str)
 {
   uint i = 0, c;
 
-  while ((c = *str++))
+  while ((c = *str++)) {
     i = i * 37 + c;
+  }
 
   return i;
 }

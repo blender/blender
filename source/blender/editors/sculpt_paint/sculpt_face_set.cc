@@ -44,7 +44,7 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -156,7 +156,7 @@ static void do_draw_face_sets_brush_task(Object *ob, const Brush *brush, PBVHNod
                                                                     sqrtf(test.dist),
                                                                     vd.no,
                                                                     vd.fno,
-                                                                    vd.mask ? *vd.mask : 0.0f,
+                                                                    vd.mask,
                                                                     vd.vertex,
                                                                     thread_id,
                                                                     &automask_data);
@@ -177,7 +177,7 @@ static void do_draw_face_sets_brush_task(Object *ob, const Brush *brush, PBVHNod
                                                                   sqrtf(test.dist),
                                                                   vd.no,
                                                                   vd.fno,
-                                                                  vd.mask ? *vd.mask : 0.0f,
+                                                                  vd.mask,
                                                                   vd.vertex,
                                                                   thread_id,
                                                                   &automask_data);
@@ -235,7 +235,7 @@ static void do_relax_face_sets_brush_task(Object *ob,
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);

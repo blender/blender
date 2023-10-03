@@ -12,7 +12,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "overlay_private.hh"
 

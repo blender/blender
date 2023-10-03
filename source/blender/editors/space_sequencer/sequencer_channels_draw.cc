@@ -12,7 +12,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"

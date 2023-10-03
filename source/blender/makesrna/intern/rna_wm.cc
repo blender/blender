@@ -19,7 +19,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_keyconfig.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
 #include "RNA_access.hh"
@@ -655,7 +655,6 @@ static int rna_Event_ascii_length(PointerRNA *ptr)
 
 static void rna_Event_unicode_get(PointerRNA *ptr, char *value)
 {
-  /* utf8 buf isn't \0 terminated */
   const wmEvent *event = static_cast<wmEvent *>(ptr->data);
   size_t len = 0;
 
@@ -670,15 +669,18 @@ static void rna_Event_unicode_get(PointerRNA *ptr, char *value)
 
 static int rna_Event_unicode_length(PointerRNA *ptr)
 {
-
   const wmEvent *event = static_cast<wmEvent *>(ptr->data);
+  int len = 0;
   if (event->utf8_buf[0]) {
-    /* invalid value is checked on assignment so we don't need to account for this */
-    return BLI_str_utf8_size(event->utf8_buf);
+    len = BLI_str_utf8_size_or_error(event->utf8_buf);
+    if (len == -1) {
+      /* Even though this is documented as always being a valid UTF8 sequence,
+       * assert instead of returning a negative length if it is. */
+      BLI_assert_unreachable();
+      len = 0;
+    }
   }
-  else {
-    return 0;
-  }
+  return len;
 }
 
 static bool rna_Event_is_repeat_get(PointerRNA *ptr)
@@ -1165,7 +1167,7 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
   PointerRNA dummy_kpt_ptr = RNA_pointer_create(nullptr, &RNA_KeyConfigPreferences, &dummy_kpt);
 
   /* validate the python class */
-  if (validate(&dummy_kpt_ptr, data, nullptr /* have_function */) != 0) {
+  if (validate(&dummy_kpt_ptr, data, nullptr /*have_function*/) != 0) {
     return nullptr;
   }
 
@@ -2815,7 +2817,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   prop = RNA_def_property(srna, "shift_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "shift", 0);
   RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_shift_get", nullptr);
-  /*  RNA_def_property_enum_items(prop, keymap_modifiers_items); */
+  // RNA_def_property_enum_items(prop, keymap_modifiers_items);
   RNA_def_property_ui_text(prop, "Shift", "Shift key pressed");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_WINDOWMANAGER);
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
@@ -2823,21 +2825,21 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   prop = RNA_def_property(srna, "ctrl_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "ctrl", 0);
   RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_ctrl_get", nullptr);
-  /*  RNA_def_property_enum_items(prop, keymap_modifiers_items); */
+  // RNA_def_property_enum_items(prop, keymap_modifiers_items);
   RNA_def_property_ui_text(prop, "Ctrl", "Control key pressed");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
   prop = RNA_def_property(srna, "alt_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "alt", 0);
   RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_alt_get", nullptr);
-  /*  RNA_def_property_enum_items(prop, keymap_modifiers_items); */
+  // RNA_def_property_enum_items(prop, keymap_modifiers_items);
   RNA_def_property_ui_text(prop, "Alt", "Alt key pressed");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
   prop = RNA_def_property(srna, "oskey_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "oskey", 0);
   RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_oskey_get", nullptr);
-  /*  RNA_def_property_enum_items(prop, keymap_modifiers_items); */
+  // RNA_def_property_enum_items(prop, keymap_modifiers_items);
   RNA_def_property_ui_text(prop, "OS Key", "Operating system key pressed");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
   /* End `_ui` modifiers. */

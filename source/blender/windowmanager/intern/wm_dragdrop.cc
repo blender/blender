@@ -33,7 +33,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "GHOST_C-api.h"
 
@@ -211,13 +211,13 @@ wmDrag *WM_drag_data_create(
       /* The asset-list case is special: We get multiple assets from context and attach them to the
        * drag item. */
     case WM_DRAG_ASSET_LIST: {
-      ListBase asset_file_links = CTX_data_collection_get(C, "selected_asset_files");
-      LISTBASE_FOREACH (const CollectionPointerLink *, link, &asset_file_links) {
-        const FileDirEntry *asset_file = static_cast<const FileDirEntry *>(link->ptr.data);
-        const AssetHandle asset_handle = {asset_file};
-        WM_drag_add_asset_list_item(drag, ED_asset_handle_get_representation(&asset_handle));
+      ListBase asset_links = CTX_data_collection_get(C, "selected_assets");
+      LISTBASE_FOREACH (const CollectionPointerLink *, link, &asset_links) {
+        const AssetRepresentationHandle *asset = static_cast<const AssetRepresentationHandle *>(
+            link->ptr.data);
+        WM_drag_add_asset_list_item(drag, asset);
       }
-      BLI_freelistN(&asset_file_links);
+      BLI_freelistN(&asset_links);
       break;
     }
     default:
@@ -568,12 +568,12 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
 }
 
 wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
-                                       int import_type)
+                                       int import_method)
 {
   wmDragAsset *asset_drag = MEM_new<wmDragAsset>(__func__);
 
   asset_drag->asset = asset;
-  asset_drag->import_method = import_type;
+  asset_drag->import_method = import_method;
 
   return asset_drag;
 }

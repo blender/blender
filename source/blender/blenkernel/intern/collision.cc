@@ -34,9 +34,9 @@
 #include "BKE_collision.h"
 #include "BLI_kdopbvh.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_physics.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_physics.hh"
+#include "DEG_depsgraph_query.hh"
 
 #ifdef WITH_ELTOPO
 #  include "eltopo-capi.h"

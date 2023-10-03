@@ -28,6 +28,7 @@
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_customdata.h"
+#include "BKE_deform.h"
 
 namespace blender::bke {
 
@@ -59,6 +60,7 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   this->curve_num = curve_num;
   CustomData_reset(&this->point_data);
   CustomData_reset(&this->curve_data);
+  BLI_listbase_clear(&this->vertex_group_names);
 
   this->attributes_for_write().add<float3>(
       "position", ATTR_DOMAIN_POINT, AttributeInitConstruct());
@@ -96,6 +98,9 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
   dst.curve_num = src.curve_num;
   CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, dst.point_num);
   CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, dst.curve_num);
+
+  dst.vertex_group_active_index = src.vertex_group_active_index;
+  BKE_defgroup_copy_list(&dst.vertex_group_names, &src.vertex_group_names);
 
   implicit_sharing::copy_shared_pointer(src.curve_offsets,
                                         src.runtime->curve_offsets_sharing_info,
@@ -143,6 +148,10 @@ static void move_curves_geometry(CurvesGeometry &dst, CurvesGeometry &src)
 
   std::swap(dst.curve_offsets, src.curve_offsets);
 
+  std::swap(dst.vertex_group_names.first, src.vertex_group_names.first);
+  std::swap(dst.vertex_group_names.last, src.vertex_group_names.last);
+  std::swap(dst.vertex_group_active_index, src.vertex_group_active_index);
+
   std::swap(dst.runtime, src.runtime);
 }
 
@@ -165,6 +174,7 @@ CurvesGeometry::~CurvesGeometry()
   CustomData_free(&this->curve_data, this->curve_num);
   implicit_sharing::free_shared_data(&this->curve_offsets,
                                      &this->runtime->curve_offsets_sharing_info);
+  BLI_freelistN(&this->vertex_group_names);
   MEM_delete(this->runtime);
   this->runtime = nullptr;
 }
@@ -456,6 +466,28 @@ Span<float2> CurvesGeometry::surface_uv_coords() const
 MutableSpan<float2> CurvesGeometry::surface_uv_coords_for_write()
 {
   return get_mutable_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_UV_COORDINATE);
+}
+
+Span<MDeformVert> CurvesGeometry::deform_verts() const
+{
+  const MDeformVert *dverts = static_cast<const MDeformVert *>(
+      CustomData_get_layer(&this->point_data, CD_MDEFORMVERT));
+  if (dverts == nullptr) {
+    return {};
+  }
+  return {dverts, this->point_num};
+}
+
+MutableSpan<MDeformVert> CurvesGeometry::deform_verts_for_write()
+{
+  MDeformVert *dvert = static_cast<MDeformVert *>(
+      CustomData_get_layer_for_write(&this->point_data, CD_MDEFORMVERT, this->point_num));
+  if (dvert != nullptr) {
+    return {dvert, this->point_num};
+  }
+  return {static_cast<MDeformVert *>(CustomData_add_layer(
+              &this->point_data, CD_MDEFORMVERT, CD_SET_DEFAULT, this->point_num)),
+          this->point_num};
 }
 
 /** \} */
@@ -1473,6 +1505,8 @@ void CurvesGeometry::blend_read(BlendDataReader &reader)
         this->curve_offsets);
   }
 
+  BLO_read_list(&reader, &this->vertex_group_names);
+
   /* Recalculate curve type count cache that isn't saved in files. */
   this->update_curve_types();
 }
@@ -1495,6 +1529,8 @@ void CurvesGeometry::blend_write(BlendWriter &writer,
       &writer, &this->curve_data, write_data.curve_layers, this->curve_num, CD_MASK_ALL, &id);
 
   BLO_write_int32_array(&writer, this->curve_num + 1, this->curve_offsets);
+
+  BKE_defbase_blend_write(&writer, &this->vertex_group_names);
 }
 
 /** \} */

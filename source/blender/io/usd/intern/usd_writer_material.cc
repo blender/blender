@@ -191,9 +191,29 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
       continue;
     }
 
-    const InputSpec &input_spec = it->second;
+    /* Allow scaling inputs. */
+    float scale = 1.0;
 
-    if (bNodeLink *input_link = traverse_channel(sock, SH_NODE_TEX_IMAGE)) {
+    const InputSpec &input_spec = it->second;
+    bNodeLink *input_link = traverse_channel(sock, SH_NODE_TEX_IMAGE);
+
+    if (input_spec.input_name == usdtokens::emissive_color) {
+      /* Don't export emission color if strength is zero. */
+      bNodeSocket *emission_strength_sock = nodeFindSocket(node, SOCK_IN, "Emission Strength");
+
+      if (!emission_strength_sock)
+      {
+        continue;
+      }
+
+      scale = ((bNodeSocketValueFloat *)emission_strength_sock->default_value)->value;
+
+      if (scale == 0.0f) {
+        continue;
+      }
+    }
+
+    if (input_link) {
       /* Convert the texture image node connected to this input. */
       bNode *input_node = input_link->fromnode;
       pxr::UsdShadeShader usd_shader = create_usd_preview_shader(
@@ -246,16 +266,6 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
     }
     else if (input_spec.set_default_value) {
       /* Set hardcoded value. */
-
-      float scale = 1.0;
-
-      /* We must scale emissive color by emission strength. */
-      if (input_spec.input_name == usdtokens::emissiveColor) {
-        if (bNodeSocket *emission_sock = nodeFindSocket(node, SOCK_IN, "Emission Strength")) {
-          bNodeSocketValueFloat *sock_val = (bNodeSocketValueFloat *)emission_sock->default_value;
-          scale = sock_val->value;
-        }
-      }
 
       switch (sock->type) {
         case SOCK_FLOAT: {
@@ -340,16 +350,16 @@ static InputSpecMap &preview_surface_input_map()
 {
   static InputSpecMap input_map = {
       {"Base Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
-      {"Emission", {usdtokens::emissive_color, pxr::SdfValueTypeNames->Float3, true}},
+      {"Emission Color", {usdtokens::emissive_color, pxr::SdfValueTypeNames->Float3, true}},
       {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
       {"Roughness", {usdtokens::roughness, pxr::SdfValueTypeNames->Float, true}},
       {"Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, true}},
-      {"Specular", {usdtokens::specular, pxr::SdfValueTypeNames->Float, true}},
+      {"Specular IOR Level", {usdtokens::specular, pxr::SdfValueTypeNames->Float, true}},
       {"Alpha", {usdtokens::opacity, pxr::SdfValueTypeNames->Float, true}},
       {"IOR", {usdtokens::ior, pxr::SdfValueTypeNames->Float, true}},
       /* Note that for the Normal input set_default_value is false. */
       {"Normal", {usdtokens::normal, pxr::SdfValueTypeNames->Float3, false}},
-      {"Coat", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, true}},
+      {"Coat Weight", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, true}},
       {"Coat Roughness", {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, true}},
       {"Emission", {usdtokens::emissiveColor, pxr::SdfValueTypeNames->Color3f, true}},
   };
@@ -1085,8 +1095,8 @@ static const std::map<int, std::string> node_sss_falloff_conversion = {
     {SHD_SUBSURFACE_GAUSSIAN, "gaussian"},
 #endif
     {SHD_SUBSURFACE_BURLEY, "burley"},
-    {SHD_SUBSURFACE_RANDOM_WALK_FIXED_RADIUS, "random_walk"},
     {SHD_SUBSURFACE_RANDOM_WALK, "random_walk"},
+    {SHD_SUBSURFACE_RANDOM_WALK_SKIN, "random_walk"},
 };
 static const std::map<int, std::string> node_principled_hair_parametrization_conversion = {
     {SHD_PRINCIPLED_HAIR_REFLECTANCE, "Direct coloring"},
@@ -2467,7 +2477,7 @@ static void copy_tiled_textures(Image *ima,
     /* Copy the file. */
     if (!copy_asset(src_tile_path, dest_tile_path, tex_name_collision_mode)) {
       WM_reportf(RPT_WARNING,
-                 "USD export:  couldn't copy texture tile from %s to %s",
+                 "USD export: could not copy texture tile from %s to %s",
                  src_tile_path,
                  dest_tile_path);
     }
@@ -2504,7 +2514,7 @@ static void copy_single_file(Image *ima, const std::string &dest_dir, const bool
                                     USD_TEX_NAME_COLLISION_USE_EXISTING))
   {
     WM_reportf(
-        RPT_WARNING, "USD export:  couldn't copy texture from %s to %s", source_path, dest_path);
+        RPT_WARNING, "USD export: could not copy texture from %s to %s", source_path, dest_path);
   }
 }
 

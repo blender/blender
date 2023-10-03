@@ -2780,7 +2780,7 @@ bool BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
 void BKE_ptcache_id_time(
     PTCacheID *pid, Scene *scene, float cfra, int *startframe, int *endframe, float *timescale)
 {
-  /* Object *ob; */ /* UNUSED */
+  // Object *ob; /* UNUSED */
   PointCache *cache;
   /* float offset; unused for now */
   float time, nexttime;

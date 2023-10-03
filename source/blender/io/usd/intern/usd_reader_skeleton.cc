@@ -25,7 +25,7 @@ bool USDSkeletonReader::valid() const
   return skel_ && USDXformReader::valid();
 }
 
-void USDSkeletonReader::create_object(Main *bmain, const double /* motionSampleTime */)
+void USDSkeletonReader::create_object(Main *bmain, const double /*motionSampleTime*/)
 {
   object_ = BKE_object_add_only_object(bmain, OB_ARMATURE, name_.c_str());
 

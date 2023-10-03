@@ -578,19 +578,19 @@ inline MTLPixelFormat mtl_format_get_writeable_view_format(MTLPixelFormat format
     case MTLPixelFormatDepth32Float:
       return MTLPixelFormatR32Float;
     case MTLPixelFormatDepth32Float_Stencil8:
-      /* return MTLPixelFormatRG32Float; */
+      // return MTLPixelFormatRG32Float;
       /* No alternative mirror format. This should not be used for
        * manual data upload */
       return MTLPixelFormatInvalid;
     case MTLPixelFormatBGR10A2Unorm:
-      /* return MTLPixelFormatBGRA8Unorm; */
+      // return MTLPixelFormatBGRA8Unorm;
       /* No alternative mirror format. This should not be used for
        * manual data upload */
       return MTLPixelFormatInvalid;
     case MTLPixelFormatDepth24Unorm_Stencil8:
       /* No direct format, but we'll just mirror the bytes -- `Uint`
        * should ensure bytes are not re-normalized or manipulated */
-      /* return MTLPixelFormatR32Uint; */
+      // return MTLPixelFormatR32Uint;
       return MTLPixelFormatInvalid;
     default:
       return format;
@@ -618,6 +618,14 @@ inline MTLTextureUsage mtl_usage_from_gpu(eGPUTextureUsage usage)
   if (usage & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW) {
     mtl_usage = mtl_usage | MTLTextureUsagePixelFormatView;
   }
+#if defined(MAC_OS_VERSION_14_0)
+  if (@available(macOS 14.0, *)) {
+    if (usage & GPU_TEXTURE_USAGE_ATOMIC) {
+
+      mtl_usage = mtl_usage | MTLTextureUsageShaderAtomic;
+    }
+  }
+#endif
   return mtl_usage;
 }
 

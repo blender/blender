@@ -81,6 +81,8 @@ typedef struct EditBone {
   /** for envelope scaling */
   float oldlength;
 
+  /** Mapping of vertices to segments. */
+  eBone_BBoneMappingMode bbone_mapping_mode;
   /** Type of next/prev bone handles */
   char bbone_prev_type;
   char bbone_next_type;

@@ -40,7 +40,7 @@ class uv_phi {
 
   float2 translation;
   float rotation;
-  /* bool reflect; */
+  // bool reflect;
 };
 
 uv_phi::uv_phi() : translation(-1.0f, -1.0f), rotation(0.0f)
@@ -697,7 +697,7 @@ static void pack_gobel(const Span<std::unique_ptr<UVAABBIsland>> aabbs,
 static bool pack_islands_optimal_pack_table(const int table_count,
                                             const float max_extent,
                                             const float *optimal,
-                                            const char * /* unused_comment */,
+                                            const char * /*unused_comment*/,
                                             int64_t island_count,
                                             const float large_uv,
                                             const Span<std::unique_ptr<UVAABBIsland>> aabbs,
@@ -1358,7 +1358,7 @@ static uv_phi find_best_fit_for_island(const PackIsland *island,
 
   uv_phi phi;
   phi.rotation = DEG2RADF(angle_90_multiple * 90);
-  /* phi.reflect = reflect; */
+  // phi.reflect = reflect;
   float matrix[2][2];
   island->build_transformation(scale, phi.rotation, matrix);
 

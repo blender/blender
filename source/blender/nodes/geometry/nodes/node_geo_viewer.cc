@@ -124,7 +124,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
       /* If the source node has a geometry socket, connect it to the new viewer node as well. */
       LISTBASE_FOREACH (bNodeSocket *, socket, &params.node.outputs) {
-        if (socket->type == SOCK_GEOMETRY && socket->is_visible_or_panel_collapsed()) {
+        if (socket->type == SOCK_GEOMETRY && socket->is_visible()) {
           nodeAddLink(&params.node_tree,
                       &params.node,
                       socket,

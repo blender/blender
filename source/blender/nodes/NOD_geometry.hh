@@ -12,26 +12,6 @@ void register_node_tree_type_geo();
 void register_node_type_geo_custom_group(bNodeType *ntype);
 
 /* -------------------------------------------------------------------- */
-/** \name Simulation Input Node
- * \{ */
-
-bNode *NOD_geometry_simulation_input_get_paired_output(bNodeTree *node_tree,
-                                                       const bNode *simulation_input_node);
-
-/**
- * Pair a simulation input node with an output node.
- * \return True if pairing the node was successful.
- */
-bool NOD_geometry_simulation_input_pair_with_output(const bNodeTree *node_tree,
-                                                    bNode *simulation_input_node,
-                                                    const bNode *simulation_output_node);
-bool NOD_geometry_repeat_input_pair_with_output(const bNodeTree *node_tree,
-                                                bNode *repeat_input_node,
-                                                const bNode *repeat_output_node);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Simulation Output Node
  * \{ */
 

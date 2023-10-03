@@ -9,7 +9,7 @@
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 #include "DNA_fluid_types.h"
 #include "ED_paint.hh"
 #include "ED_view3d.hh"
@@ -541,11 +541,6 @@ struct WORKBENCH_Data {
 
 static void workbench_engine_init(void *vedata)
 {
-  /* TODO(fclem): Remove once it is minimum required. */
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
-
   WORKBENCH_Data *ved = reinterpret_cast<WORKBENCH_Data *>(vedata);
   if (ved->instance == nullptr) {
     ved->instance = new workbench::Instance();
@@ -556,17 +551,11 @@ static void workbench_engine_init(void *vedata)
 
 static void workbench_cache_init(void *vedata)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->begin_sync();
 }
 
 static void workbench_cache_populate(void *vedata, Object *object)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   draw::Manager *manager = DRW_manager_get();
 
   draw::ObjectRef ref;
@@ -579,19 +568,12 @@ static void workbench_cache_populate(void *vedata, Object *object)
 
 static void workbench_cache_finish(void *vedata)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->end_sync();
 }
 
 static void workbench_draw_scene(void *vedata)
 {
   WORKBENCH_Data *ved = reinterpret_cast<WORKBENCH_Data *>(vedata);
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    STRNCPY(ved->info, "Error: No shader storage buffer support");
-    return;
-  }
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   draw::Manager *manager = DRW_manager_get();
   if (DRW_state_is_viewport_image_render()) {
@@ -605,9 +587,6 @@ static void workbench_draw_scene(void *vedata)
 
 static void workbench_instance_free(void *instance)
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
   delete reinterpret_cast<workbench::Instance *>(instance);
 }
 
@@ -747,11 +726,6 @@ static void workbench_render_to_image(void *vedata,
                                       RenderLayer *layer,
                                       const rcti *rect)
 {
-  /* TODO(fclem): Remove once it is minimum required. */
-  if (!GPU_shader_storage_buffer_objects_support()) {
-    return;
-  }
-
   if (!workbench_render_framebuffers_init()) {
     RE_engine_report(engine, RPT_ERROR, "Failed to allocate GPU buffers");
     return;
@@ -779,15 +753,17 @@ static void workbench_render_to_image(void *vedata,
   RE_GetCameraModelMatrix(engine->re, camera_ob, viewinv.ptr());
   viewmat = math::invert(viewinv);
 
-  DRWView *view = DRW_view_create(viewmat.ptr(), winmat.ptr(), nullptr, nullptr, nullptr);
-  DRW_view_default_set(view);
-  DRW_view_set_active(view);
-
   /* Render */
   do {
     if (RE_engine_test_break(engine)) {
       break;
     }
+
+    /* TODO: Remove old draw manager calls. */
+    DRW_cache_restart();
+    DRWView *view = DRW_view_create(viewmat.ptr(), winmat.ptr(), nullptr, nullptr, nullptr);
+    DRW_view_default_set(view);
+    DRW_view_set_active(view);
 
     ved->instance->init(camera_ob);
 
@@ -803,9 +779,9 @@ static void workbench_render_to_image(void *vedata,
 
     DRW_manager_get()->end_sync();
 
-    /* Also we weed to have a correct FBO bound for #DRW_curves_update */
-    // GPU_framebuffer_bind(dfbl->default_fb);
-    // DRW_curves_update(); /* TODO(@pragma37): Check this once curves are implemented */
+    /* TODO: Remove old draw manager calls. */
+    DRW_render_instance_buffer_finish();
+    DRW_curves_update();
 
     workbench_draw_scene(vedata);
 

@@ -53,7 +53,7 @@
 #include "BKE_preview_image.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_vfont.h"
 
@@ -111,8 +111,10 @@
 
 #include "BLF_api.h"
 #include "BLT_lang.h"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+#include "UI_string_search.hh"
 
 #include "GPU_context.h"
 #include "GPU_init_exit.h"
@@ -120,8 +122,8 @@
 
 #include "COM_compositor.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "DRW_engine.h"
 
@@ -358,6 +360,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   wm_history_file_read();
 
+  if (!G.background) {
+    blender::ui::string_search::read_recent_searches_file();
+  }
+
   STRNCPY(G.lib, BKE_main_blendfile_path_from_global());
 
   CTX_py_init_set(C, true);
@@ -490,7 +496,7 @@ void wm_exit_schedule_delayed(const bContext *C)
 
 void UV_clipboard_free();
 
-void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actions)
+void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_actions)
 {
   wmWindowManager *wm = C ? CTX_wm_manager(C) : nullptr;
 
@@ -537,6 +543,10 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
       WM_event_remove_handlers(C, &win->handlers);
       WM_event_remove_handlers(C, &win->modalhandlers);
       ED_screen_exit(C, win, WM_window_get_active_screen(win));
+    }
+
+    if (!G.background) {
+      blender::ui::string_search::write_recent_searches_file();
     }
 
     if (do_user_exit_actions) {
@@ -663,8 +673,8 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
   //  free_txt_data();
 
 #ifdef WITH_PYTHON
-  /* option not to close python so we can use 'atexit' */
-  if (do_python && ((C == nullptr) || CTX_py_init_get(C))) {
+  /* Option not to exit Python so this function can be called from 'atexit'. */
+  if ((C == nullptr) || CTX_py_init_get(C)) {
     /* NOTE: (old note)
      * before BKE_blender_free so Python's garbage-collection happens while library still exists.
      * Needed at least for a rare crash that can happen in python-drivers.
@@ -672,10 +682,10 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
      * Update for Blender 2.5, move after #BKE_blender_free because Blender now holds references
      * to #PyObject's so #Py_DECREF'ing them after Python ends causes bad problems every time
      * the python-driver bug can be fixed if it happens again we can deal with it then. */
-    BPY_python_end();
+    BPY_python_end(do_python_exit);
   }
 #else
-  (void)do_python;
+  (void)do_python_exit;
 #endif
 
   ED_file_exit(); /* For file-selector menu data. */

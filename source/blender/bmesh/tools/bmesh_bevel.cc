@@ -5731,7 +5731,7 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
     }
 
     /* Create the profile cutoff face for this boundvert. */
-    /* repface = boundvert_rep_face(bndv, nullptr); */
+    // repface = boundvert_rep_face(bndv, nullptr);
     bev_create_ngon(bm,
                     face_bmverts,
                     bp->seg + 2 + build_center_face,

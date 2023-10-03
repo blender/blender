@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'6221ff436fc2')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 10:35:14\n"
+"POT-Creation-Date: 2023-09-18 08:31:54\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -3210,11 +3210,6 @@ msgid "Add Image"
 msgstr "Сүрөттү кошуу"
 
 
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Решётка"
-
-
 msgid "Draw:"
 msgstr "Тартуу:"
 
@@ -3522,6 +3517,11 @@ msgstr "Жалпак"
 msgctxt "Operator"
 msgid "Calculate"
 msgstr "Эсептөө"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Решётка"
 
 
 msgctxt "Operator"

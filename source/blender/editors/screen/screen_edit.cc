@@ -27,7 +27,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_workspace.h"
 
@@ -44,7 +44,7 @@
 #include "WM_message.hh"
 #include "WM_toolsystem.h"
 
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "screen_intern.h" /* own module include */
 

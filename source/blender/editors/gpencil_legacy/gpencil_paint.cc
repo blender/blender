@@ -48,7 +48,7 @@
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_tracking.h"
 
 #include "UI_view2d.hh"
@@ -71,8 +71,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "gpencil_intern.h"
 
@@ -1052,7 +1052,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   gps->totpoints = totelem;
   gps->thickness = brush->size;
   gps->fill_opacity_fac = 1.0f;
-  gps->hardeness = brush->gpencil_settings->hardeness;
+  gps->hardness = brush->gpencil_settings->hardness;
   copy_v2_v2(gps->aspect_ratio, brush->gpencil_settings->aspect_ratio);
   gps->flag = gpd->runtime.sbuffer_sflag;
   gps->inittime = p->inittime;

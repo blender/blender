@@ -24,8 +24,9 @@ ccl_device_noinline void svm_node_combine_color(KernelGlobals kg,
   /* Combine, and convert back to RGB */
   float3 color = svm_combine_color((NodeCombSepColorType)color_type, make_float3(r, g, b));
 
-  if (stack_valid(result_stack_offset))
+  if (stack_valid(result_stack_offset)) {
     stack_store_float3(stack, result_stack_offset, color);
+  }
 }
 
 ccl_device_noinline void svm_node_separate_color(KernelGlobals kg,

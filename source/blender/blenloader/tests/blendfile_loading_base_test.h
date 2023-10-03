@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "DEG_depsgraph.h"
+#include "DEG_depsgraph.hh"
 #include "testing/testing.h"
 
 struct BlendFileData;

@@ -1530,8 +1530,8 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
         }
 
         /* Put new_line in the `tmp->line` spot. */
-        tmp->line = BLI_strdup(tmp_line);
         tmp->len = strlen(tmp_line);
+        tmp->line = BLI_strdupn(tmp_line, tmp->len);
         tmp->format = nullptr;
       }
     }
@@ -3567,13 +3567,13 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 
   if (st && st->overwrite) {
     while (str[i]) {
-      code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
+      code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &i);
       done |= txt_replace_char(text, code);
     }
   }
   else {
     while (str[i]) {
-      code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
+      code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &i);
       done |= txt_add_char(text, code);
     }
   }
@@ -3629,7 +3629,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     RNA_string_set(op->ptr, "text", str);
 
     if (U.text_flag & USER_TEXT_EDIT_AUTO_CLOSE) {
-      auto_close_char_input = BLI_str_utf8_as_unicode(str);
+      auto_close_char_input = BLI_str_utf8_as_unicode_or_error(str);
       if (isascii(auto_close_char_input)) {
         auto_close_char_match = text_closing_character_pair_get(auto_close_char_input);
         if (auto_close_char_match != 0) {
