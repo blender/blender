@@ -230,8 +230,7 @@ void ED_view3d_stop_render_preview(wmWindowManager *wm, ARegion *region)
     BPy_END_ALLOW_THREADS;
 #endif
 
-    RE_FreeViewRender(rv3d->view_render);
-    rv3d->view_render = nullptr;
+    DRW_engine_external_free(rv3d);
   }
 
   /* A bit overkill but this make sure the viewport is reset completely. (fclem) */
@@ -1105,7 +1104,7 @@ static void view3d_main_region_free(ARegion *region)
     }
 
     if (rv3d->view_render) {
-      RE_FreeViewRender(rv3d->view_render);
+      DRW_engine_external_free(rv3d);
     }
 
     if (rv3d->sms) {
