@@ -32,8 +32,8 @@ void main()
     for (int i = -1; i <= 1; i++) {
       ivec2 offset = ivec2(i, j) * step_size;
 
-      /* Use #JUMP_FLOODING_NON_FLOODED_VALUE as a fallback value to exempt out of bound pixels from
-       * the loop as can be seen in the following continue condition. */
+      /* Use #JUMP_FLOODING_NON_FLOODED_VALUE as a fallback value to exempt out of bound pixels
+       * from the loop as can be seen in the following continue condition. */
       ivec4 fallback = ivec4(JUMP_FLOODING_NON_FLOODED_VALUE, ivec2(0));
       ivec2 jump_flooding_value = texture_load(input_tx, texel + offset, fallback).xy;
 
