@@ -589,6 +589,13 @@ extern void GHOST_SetTitle(GHOST_WindowHandle windowhandle, const char *title);
 extern char *GHOST_GetTitle(GHOST_WindowHandle windowhandle);
 
 /**
+ * Sets the file name represented by this window.
+ * \param filepath: The file directory.
+ * \return Indication if the backend implements file associated with window.
+ */
+extern GHOST_TSuccess GHOST_SetPath(GHOST_WindowHandle windowhandle, const char *filepath);
+
+/**
  * Returns the window rectangle dimensions.
  * These are screen coordinates.
  * \param windowhandle: The handle to the window.

@@ -494,39 +494,7 @@ void GHOST_WindowCocoa::setTitle(const char *title)
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
   NSString *windowTitle = [[NSString alloc] initWithCString:title encoding:NSUTF8StringEncoding];
-
-  // Set associated file if applicable
-  if (windowTitle && [windowTitle hasPrefix:@"Blender"]) {
-    NSRange fileStrRange;
-    NSString *associatedFileName;
-    int len;
-
-    fileStrRange.location = [windowTitle rangeOfString:@"["].location + 1;
-    len = [windowTitle rangeOfString:@"]"].location - fileStrRange.location;
-
-    if (len > 0) {
-      fileStrRange.length = len;
-      associatedFileName = [windowTitle substringWithRange:fileStrRange];
-      [m_window setTitle:[associatedFileName lastPathComponent]];
-
-      @try
-      {
-        [m_window setRepresentedFilename:associatedFileName];
-      }
-      @catch (NSException *e)
-      {
-        printf("\nInvalid file path given in window title");
-      }
-    }
-    else {
-      [m_window setTitle:windowTitle];
-      [m_window setRepresentedFilename:@""];
-    }
-  }
-  else {
-    [m_window setTitle:windowTitle];
-    [m_window setRepresentedFilename:@""];
-  }
+  [m_window setTitle:windowTitle];
 
   [windowTitle release];
   [pool drain];
@@ -548,6 +516,30 @@ std::string GHOST_WindowCocoa::getTitle() const
   [pool drain];
 
   return title;
+}
+
+GHOST_TSuccess GHOST_WindowCocoa::setPath(const char *filepath)
+{
+  GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setAssociatedFile(): window invalid");
+  GHOST_TSuccess success = GHOST_kSuccess;
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+  NSString *associatedFileName = [[NSString alloc] initWithCString:filepath encoding:NSUTF8StringEncoding];
+
+  @try
+  {
+    [m_window setRepresentedFilename:associatedFileName];
+  }
+  @catch (NSException *e)
+  {
+    printf("\nInvalid file path given for window");
+    success = GHOST_kFailure;
+  }
+
+  [associatedFileName release];
+  [pool drain];
+
+  return success;
 }
 
 void GHOST_WindowCocoa::getWindowBounds(GHOST_Rect &bounds) const
