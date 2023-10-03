@@ -13,11 +13,11 @@ extern "C" {
 #endif
 
 /**
- * Describes the load operation of a framebuffer attachment at the start of a render pass.
+ * Describes the load operation of a frame-buffer attachment at the start of a render pass.
  */
 typedef enum eGPULoadOp {
   /**
-   * Clear the framebuffer attachment using the clear value.
+   * Clear the frame-buffer attachment using the clear value.
    */
   GPU_LOADACTION_CLEAR = 0,
   /**
@@ -35,7 +35,7 @@ typedef enum eGPULoadOp {
 } eGPULoadOp;
 
 /**
- * Describes the store operation of a framebuffer attachment at the end of a render pass.
+ * Describes the store operation of a frame-buffer attachment at the end of a render pass.
  */
 typedef enum eGPUStoreOp {
   /**
@@ -50,13 +50,13 @@ typedef enum eGPUStoreOp {
    * `GPU_STOREACTION_STORE`.
    * IMPORTANT: The actual values of the attachment is to be considered undefined.
    * Only to be used on transient attachment that are only used within the boundaries of
-   * a render pass (ex.: Uneeded depth buffer result).
+   * a render pass (ex.: Unneeded depth buffer result).
    */
   GPU_STOREACTION_DONT_CARE,
 } eGPUStoreOp;
 
 /**
- * Describes the state of a framebuffer attachment during a sub-pass.
+ * Describes the state of a frame-buffer attachment during a sub-pass.
  *
  * NOTE: Until this is correctly implemented in all backend, reading and writing from the
  * same attachment will not work. Although there is no case where it would currently be useful.

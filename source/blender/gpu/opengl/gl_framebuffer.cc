@@ -275,8 +275,8 @@ void GLFrameBuffer::subpass_transition(const GPUAttachmentState depth_attachment
     /* The only way to have correct visibility without extensions and ensure defined behavior, is
      * to unbind the textures and update the frame-buffer. This is a slow operation but that's all
      * we can do to emulate the sub-pass input. */
-    /* TODO(fclem): Could avoid the framebuffer reconfiguration by creating multiple framebuffers
-     * internally.  */
+    /* TODO(@fclem): Could avoid the frame-buffer reconfiguration by creating multiple
+     * frame-buffers internally.  */
     for (int i : color_attachment_states.index_range()) {
       GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0 + i;
 
