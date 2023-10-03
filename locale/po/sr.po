@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -1137,6 +1137,14 @@ msgstr "Апсолутно"
 
 msgid "Relative"
 msgstr "Релативно"
+
+
+msgid "Straight"
+msgstr "Управи"
+
+
+msgid "Curved"
+msgstr "Закриврено"
 
 
 msgid "Children"
@@ -4241,6 +4249,10 @@ msgid "Directory"
 msgstr "Директоријум"
 
 
+msgid "Medium"
+msgstr "Средњи"
+
+
 msgid "Thumbnails"
 msgstr "Умањени прикази"
 
@@ -4255,10 +4267,6 @@ msgstr "Назив датотеке"
 
 msgid "Extension Filter"
 msgstr "Филтер наставака"
-
-
-msgid "Filter by name, supports '*' wildcard"
-msgstr "Филтрирај по имену, подржан је џокер знак '*'"
 
 
 msgid "Show hidden dot files"
@@ -6126,10 +6134,6 @@ msgid "Alpha Mode"
 msgstr "Провидност материјала"
 
 
-msgid "Straight"
-msgstr "Управи"
-
-
 msgid "Bindcode"
 msgstr "Привежи"
 
@@ -6724,10 +6728,6 @@ msgstr "Висок"
 
 msgid "High quality"
 msgstr "Висок квалитет"
-
-
-msgid "Medium"
-msgstr "Средњи"
 
 
 msgid "Medium quality"
@@ -9094,6 +9094,10 @@ msgid "Snap"
 msgstr "Лепљење"
 
 
+msgid "Files"
+msgstr "Датотеке"
+
+
 msgid "Material Specials"
 msgstr "Специјални материјали"
 
@@ -9139,12 +9143,12 @@ msgid "Converter"
 msgstr "Претварач"
 
 
-msgid "Attribute"
-msgstr "Атрибут"
-
-
 msgid "Node"
 msgstr "Чвор"
+
+
+msgid "Attribute"
+msgstr "Атрибут"
 
 
 msgid "Node Color Specials"
@@ -9169,6 +9173,10 @@ msgstr "Предефинисане учесталости кадрова"
 
 msgid "Effect Strip"
 msgstr "Трака ефекта"
+
+
+msgid "Sequencer"
+msgstr "Секвенцер"
 
 
 msgid "Apply"
@@ -11531,10 +11539,6 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "Минимална брзина пиксела да би био замућен (користи се за раздвајање предњеги и задњег плана)"
 
 
-msgid "Curved"
-msgstr "Закриврено"
-
-
 msgid "Tile Order"
 msgstr "Редослед плочица"
 
@@ -11997,10 +12001,6 @@ msgstr "Почетна вредност"
 
 msgid "Shader Node Socket"
 msgstr "Утичница чвора сенчења"
-
-
-msgid "Both"
-msgstr "Обе"
 
 
 msgid "Maximum value"
@@ -12490,11 +12490,6 @@ msgid "Align Bones"
 msgstr "Поравнај кости"
 
 
-msgctxt "Operator"
-msgid "Change Armature Layers"
-msgstr "Промени слојеве костура"
-
-
 msgid "X-Axis"
 msgstr "X оса"
 
@@ -12535,6 +12530,11 @@ msgstr "Најкраћа ротација"
 
 msgid "View Axis"
 msgstr "Осе погледа"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "Прикажи све"
 
 
 msgctxt "Operator"
@@ -12585,19 +12585,6 @@ msgstr "Избриши тачке"
 msgctxt "Operator"
 msgid "Hide Selected"
 msgstr "Сакриј изабрано"
-
-
-msgctxt "Operator"
-msgid "Show All Layers"
-msgstr "Прикажи све слојеве"
-
-
-msgid "Make all armature layers visible"
-msgstr "Прикажи све слојеве костура"
-
-
-msgid "Enable all layers or just the first 16 (top row)"
-msgstr "Омогући све слојеве или само првих 16 (горњи ред)"
 
 
 msgctxt "Operator"
@@ -12731,6 +12718,10 @@ msgstr "-X до +X"
 
 msgid "+X to -X"
 msgstr "+X до -X"
+
+
+msgid "Pose Bone"
+msgstr "Кост позе"
 
 
 msgid "Automatically determine display type for files"
@@ -13111,10 +13102,6 @@ msgstr "Откључај изабране стазе"
 
 msgid "Set the clip interaction mode"
 msgstr "Поставља мапирање текстуре у моду сликања"
-
-
-msgid "Files"
-msgstr "Датотеке"
 
 
 msgctxt "Operator"
@@ -14016,12 +14003,8 @@ msgstr "Ојлер (ZYX)"
 
 
 msgctxt "Operator"
-msgid "Export STL"
-msgstr "Извоз у STL"
-
-
-msgid "Ascii"
-msgstr "Ascii"
+msgid "Export PLY"
+msgstr "Извоз PLY"
 
 
 msgid "Y Up"
@@ -14042,6 +14025,15 @@ msgstr "Горе по -Z"
 
 msgid "Selection Only"
 msgstr "Само изабрано"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Извоз у STL"
+
+
+msgid "Ascii"
+msgstr "Ascii"
 
 
 msgctxt "Operator"
@@ -14139,6 +14131,14 @@ msgstr "Троугласте странице"
 
 msgid "Convert all faces to triangles"
 msgstr "Претврои све странице у троуглове"
+
+
+msgid "Material Groups"
+msgstr "Група материјала"
+
+
+msgid "Smooth Groups"
+msgstr "Групе умекшања"
 
 
 msgid "Compress"
@@ -14693,6 +14693,11 @@ msgid "Paste Strokes"
 msgstr "Убаци потезе"
 
 
+msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "Прикажи све слојеве"
+
+
 msgid "Show all Grease Pencil layers"
 msgstr "Пиркажи све слојеве скице"
 
@@ -14767,6 +14772,10 @@ msgstr "Изабор за курсор"
 msgctxt "Operator"
 msgid "Snap Selection to Grid"
 msgstr "Изабрано за мрежу"
+
+
+msgid "Both"
+msgstr "Обе"
 
 
 msgctxt "Operator"
@@ -15075,6 +15084,11 @@ msgstr "Релативне путање"
 
 msgid "Shadeless"
 msgstr "Сенчења"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Увоз PLY"
 
 
 msgctxt "Operator"
@@ -17877,69 +17891,6 @@ msgid "Copy Pose"
 msgstr "Копирај позу"
 
 
-msgctxt "Operator"
-msgid "Add Bone Group"
-msgstr "Додај групу костију"
-
-
-msgid "Add a new bone group"
-msgstr "Додаје нову групу костију"
-
-
-msgctxt "Operator"
-msgid "Add Selected to Bone Group"
-msgstr "Додај избор групи костију"
-
-
-msgid "Add selected bones to the chosen bone group"
-msgstr "Придружује изабране кости текућој групи костију"
-
-
-msgctxt "Operator"
-msgid "Move Bone Group"
-msgstr "Премести групу костију"
-
-
-msgid "Change position of active Bone Group in list of Bone Groups"
-msgstr "Мења позицију активне групе у листи група костију"
-
-
-msgctxt "Operator"
-msgid "Remove Bone Group"
-msgstr "Уклони групу костију"
-
-
-msgid "Remove the active bone group"
-msgstr "Уклања активне групе костију"
-
-
-msgctxt "Operator"
-msgid "Select Bones of Bone Group"
-msgstr "Изабери кости у групи"
-
-
-msgid "Select bones in active Bone Group"
-msgstr "Означава кости у активној групи костију"
-
-
-msgctxt "Operator"
-msgid "Sort Bone Groups"
-msgstr "Поређај групе костију"
-
-
-msgid "Sort Bone Groups by their names in ascending order"
-msgstr "Ређа групе костију по њиховим називима по азбучном реду"
-
-
-msgctxt "Operator"
-msgid "Remove Selected from Bone Groups"
-msgstr "Уклања изабране кости из групе костију"
-
-
-msgid "Remove selected bones from all bone groups"
-msgstr "Уклања изабране кости из свих група костију"
-
-
 msgid "Tag selected bones to not be visible in Pose Mode"
 msgstr "Означи изабране кости као невидљиве у резиму позирања"
 
@@ -18050,10 +18001,6 @@ msgstr "Постави мод окретања"
 msgctxt "Operator"
 msgid "Clear Pose Scale"
 msgstr "Очисти увећање позе"
-
-
-msgid "Shared group"
-msgstr "Дељена група"
 
 
 msgctxt "Operator"
@@ -18172,10 +18119,6 @@ msgstr "После текућег кадра"
 msgctxt "Operator"
 msgid "Add Integrator Preset"
 msgstr "Предефинисани оператори"
-
-
-msgid "Sequencer"
-msgstr "Секвенцер"
 
 
 msgid "View Context"
@@ -19545,10 +19488,6 @@ msgid "Align"
 msgstr "Поравнај"
 
 
-msgid "Align selected UV vertices to an axis"
-msgstr "Поравнава изабрана UV темена са осама"
-
-
 msgid "Straighten"
 msgstr "Исправи"
 
@@ -20297,16 +20236,6 @@ msgstr "Отвори путању у прегледачу датотека"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Извоз PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Увоз PLY"
-
-
-msgctxt "Operator"
 msgid "Add Property"
 msgstr "Додај особину"
 
@@ -20723,10 +20652,6 @@ msgstr "Параграф"
 
 msgid "Path Animation"
 msgstr "Путања анимације"
-
-
-msgid "Skeleton"
-msgstr "Скелет"
 
 
 msgid "Text Boxes"
@@ -21250,10 +21175,6 @@ msgstr "IK парам."
 
 msgid "Auto IK"
 msgstr "Ауто"
-
-
-msgid "Pose Bone"
-msgstr "Кост позе"
 
 
 msgid "Custom Object"
@@ -24769,11 +24690,6 @@ msgstr "Крајња тачка"
 
 
 msgctxt "Operator"
-msgid "Show All"
-msgstr "Прикажи све"
-
-
-msgctxt "Operator"
 msgid "Lock All"
 msgstr "Закључај све"
 
@@ -26285,10 +26201,6 @@ msgid "Online Python Reference"
 msgstr "Python упутство на интернету"
 
 
-msgid "(Gamma Corrected)"
-msgstr "Исправка"
-
-
 msgid "Lightness"
 msgstr "Светлина"
 
@@ -26566,14 +26478,6 @@ msgstr "Ново"
 
 msgid "%d items"
 msgstr "%d ставки"
-
-
-msgid "Material Groups"
-msgstr "Група материјала"
-
-
-msgid "Smooth Groups"
-msgstr "Групе умекшања"
 
 
 msgctxt "Mesh"
@@ -27067,15 +26971,6 @@ msgid "No valid action to add"
 msgstr "Замена улазног ефекта"
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "Група"
-
-
-msgid "Bone Groups"
-msgstr "Групе костију"
-
-
 msgid "(empty)"
 msgstr "(празно)"
 
@@ -27301,6 +27196,11 @@ msgid "Cannot open file: %s"
 msgstr "Не могу да отворим датотеку: %s"
 
 
+msgctxt "Action"
+msgid "Group"
+msgstr "Група"
+
+
 msgid "Index out of range"
 msgstr "Индекс је ван опсега"
 
@@ -27442,8 +27342,8 @@ msgid "RoughnessV"
 msgstr "Храпавост V"
 
 
-msgid "Subsurface"
-msgstr "Издељена површ"
+msgid "Emission Color"
+msgstr "Боја исијавања"
 
 
 msgid "View Vector"
@@ -27544,10 +27444,6 @@ msgstr "Ширина цигле"
 
 msgid "Row Height"
 msgstr "Висина реда"
-
-
-msgid "Emission Color"
-msgstr "Боја исијавања"
 
 
 msgid "Patterns"

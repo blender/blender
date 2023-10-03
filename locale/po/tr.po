@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: 2023-07-02 21:35+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
@@ -2077,14 +2077,6 @@ msgid "Vector font data-blocks"
 msgstr "Vektör Yazıtipi veri blokları"
 
 
-msgid "Grease Pencil (legacy)"
-msgstr "Gres Kalemi (eski)"
-
-
-msgid "Grease Pencil (legacy) data-blocks"
-msgstr "Gres Kalemi (eski) veri blokları"
-
-
 msgid "Grease Pencil"
 msgstr "Gres Kalemi"
 
@@ -3553,10 +3545,6 @@ msgstr "Döndürmeyi Devral"
 
 msgid "Bone inherits rotation or scale from parent bone"
 msgstr "Kemik, üst kemikten döndürmeyi veya ölçeği devralır"
-
-
-msgid "DEPRECATED: Bone inherits scaling from parent bone"
-msgstr "KULLANILMIYOR: Kemik, üst kemikten ölçeklemeyi devralır"
 
 
 msgid "Local Location"
@@ -5475,22 +5463,6 @@ msgid "Space"
 msgstr "Boşluk"
 
 
-msgid "Collection of related drawings"
-msgstr "İlgili çizimler koleksiyonu"
-
-
-msgid "Grease Pencil Layer Group"
-msgstr "Gres Kalemi Katmanı Grubu"
-
-
-msgid "Group of Grease Pencil layers"
-msgstr "Gres kalemi katmanları grubu"
-
-
-msgid "Collection of Grease Pencil layers"
-msgstr "Gres kalemi katmanları koleksiyonu"
-
-
 msgid "R"
 msgstr "R"
 
@@ -5923,14 +5895,6 @@ msgid "Edit Grease Pencil strokes instead of viewport data"
 msgstr "Görüş alanı verisi yerine Gres Kalemi vuruşlarını düzenle"
 
 
-msgid "Grease Pencil layer groups"
-msgstr "Gres Kalemi katmanı grupları"
-
-
-msgid "Grease Pencil layers"
-msgstr "Gres Kalemi katmanları"
-
-
 msgid "Blank"
 msgstr "Boş"
 
@@ -6358,10 +6322,6 @@ msgid "Maintained by community developers"
 msgstr "Topluluk geliştiricileri tarafından bakımı yapılır"
 
 
-msgid "Testing"
-msgstr "Sınama"
-
-
 msgid "XR Session Settings"
 msgstr "XR Oturumu Ayarları"
 
@@ -6566,12 +6526,8 @@ msgid "Channel"
 msgstr "Kanal"
 
 
-msgid "Dope Sheet Channel Context Menu"
-msgstr "Döküm Kağıdı Kanal Bağlam Menüsü"
-
-
-msgid "Dope Sheet Context Menu"
-msgstr "Döküm Kağıdı Bağlam Menüsü"
+msgid "Dope Sheet Channel"
+msgstr "Döküm Kağıdı Kanalı"
 
 
 msgid "Key"
@@ -6609,10 +6565,6 @@ msgstr "Yerleşim"
 
 msgid "Distort"
 msgstr "Çarpıt"
-
-
-msgid "Node Context Menu"
-msgstr "Düğüm Bağlam Menüsü"
 
 
 msgid "Instances"
@@ -7115,10 +7067,6 @@ msgid "Default Closed"
 msgstr "Saptanmış Kapalı"
 
 
-msgid "Both"
-msgstr "İkisi de"
-
-
 msgid "Object Constraints"
 msgstr "Nesne Kısıtlamaları"
 
@@ -7531,6 +7479,14 @@ msgid "Asset Library Identifier"
 msgstr "Varlık Kitaplığı Tanımlayıcısı"
 
 
+msgid "Session UUID"
+msgstr "Oturum UUID'si"
+
+
+msgid "Session UUID of the data-block to use by the operator"
+msgstr "İşleç tarafından kullanılacak veri blokunun oturum UUID'si"
+
+
 msgid "Open Arrow"
 msgstr "Ok Aç"
 
@@ -7556,6 +7512,10 @@ msgstr "Katmanı Yeni Nesne Olarak Çoğalt"
 msgctxt "Operator"
 msgid "Add New Mask Layer"
 msgstr "Yeni Maske Katmanı Ekle"
+
+
+msgid "Both"
+msgstr "İkisi de"
 
 
 msgid "Open All"
@@ -7754,14 +7714,6 @@ msgstr "Doldur"
 
 msgid "Gimbal"
 msgstr "Yalpa"
-
-
-msgid "Session UUID"
-msgstr "Oturum UUID'si"
-
-
-msgid "Session UUID of the data-block to use by the operator"
-msgstr "İşleç tarafından kullanılacak veri blokunun oturum UUID'si"
 
 
 msgctxt "Operator"
@@ -8643,6 +8595,10 @@ msgid "Refresh Data-Block Previews"
 msgstr "Veri Bloku Önizlemelerini Yenile"
 
 
+msgid "Grease Pencil (legacy)"
+msgstr "Gres Kalemi (eski)"
+
+
 msgid "Data-Block"
 msgstr "Veri Bloku"
 
@@ -9088,10 +9044,6 @@ msgid "Save Preferences"
 msgstr "Tercihleri Kaydet"
 
 
-msgid "Auto Save"
-msgstr "Otomatik Kaydet"
-
-
 msgid "Editor"
 msgstr "Düzenleyici"
 
@@ -9475,10 +9427,6 @@ msgid "Lock interface during rendering in favor of giving more memory to the ren
 msgstr "Sundurucuya daha çok bellek vermek için sunum sırasında arabirimi kilitle"
 
 
-msgid "Collection of RetimingHandle"
-msgstr "Yeniden zamanlama tutacı koleksiyonu"
-
-
 msgid "Shading Settings"
 msgstr "Gölgelendirme Ayarları"
 
@@ -9784,10 +9732,6 @@ msgstr "Döküm Kağıdı için tema ayarları"
 
 msgid "Active Channel Group"
 msgstr "Etkin Kanal Grubu"
-
-
-msgid "Dope Sheet Channel"
-msgstr "Döküm Kağıdı Kanalı"
 
 
 msgid "Dope Sheet Sub-channel"
@@ -10207,6 +10151,21 @@ msgid "Manual"
 msgstr "Kılavuz"
 
 
+msgctxt "Operator"
+msgid "Tutorials"
+msgstr "Öğreticiler"
+
+
+msgctxt "Operator"
+msgid "Support"
+msgstr "Destek"
+
+
+msgctxt "Operator"
+msgid "User Communities"
+msgstr "Kullanıcı Toplulukları"
+
+
 msgid "Rename %d %s"
 msgstr "Yeniden Adlandır: %d %s"
 
@@ -10543,21 +10502,6 @@ msgstr "Blender Fabrika Ayarlarını Yükle"
 
 
 msgctxt "Operator"
-msgid "Tutorials"
-msgstr "Öğreticiler"
-
-
-msgctxt "Operator"
-msgid "Support"
-msgstr "Destek"
-
-
-msgctxt "Operator"
-msgid "User Communities"
-msgstr "Kullanıcı Toplulukları"
-
-
-msgctxt "Operator"
 msgid "Report a Bug"
 msgstr "Bir Hata Bildir"
 
@@ -10656,12 +10600,12 @@ msgid "Install..."
 msgstr "Kur..."
 
 
-msgid "Default To"
-msgstr "Saptanmışlara Dön"
-
-
 msgid "Timer (Minutes)"
 msgstr "Sayaç (Dakika)"
+
+
+msgid "Default To"
+msgstr "Saptanmışlara Dön"
 
 
 msgctxt "Operator"
@@ -10985,10 +10929,6 @@ msgstr "Alfa:"
 
 msgid "Hex:"
 msgstr "Onaltılık:"
-
-
-msgid "(Gamma Corrected)"
-msgstr "(Gamma Düzeltildi)"
 
 
 msgid "Lightness"
@@ -11455,10 +11395,6 @@ msgstr " Adlı Öznitelik"
 
 msgid "Cannot delete currently visible workspace id '%s'"
 msgstr "Şu anda görünür çalışma alanı kimliği '%s' silinemiyor"
-
-
-msgid "Bone Groups"
-msgstr "Kemik Grupları"
 
 
 msgid "Unsupported column type"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -2705,6 +2705,14 @@ msgstr "Tipe Pegangan Awal B-Tulang"
 
 msgid "Selects how the start handle of the B-Bone is computed"
 msgstr "Pilih bagaimana awal pegangan B-Tulang dihitung"
+
+
+msgid "Straight"
+msgstr "Kanan"
+
+
+msgid "Curved"
+msgstr "Lengkung"
 
 
 msgid "Roll In"
@@ -7429,10 +7437,6 @@ msgid "Display Size"
 msgstr "Ukuran Layar"
 
 
-msgid "Change the size of the display (width of columns or thumbnails size)"
-msgstr "Ubah ukuran tampilan (lebar kolom atau ukuran thumbnail)"
-
-
 msgid "Display Mode"
 msgstr "Mode Layar"
 
@@ -7471,10 +7475,6 @@ msgstr "Filter Ekstensi"
 
 msgid "Filter ID Types"
 msgstr "Tipe ID Filter"
-
-
-msgid "Filter by name, supports '*' wildcard"
-msgstr "Filter oleh nama, mendukung '*' wildcard"
 
 
 msgid "Recursion"
@@ -7971,10 +7971,6 @@ msgstr "Warna asap"
 
 msgid "Surface Emission"
 msgstr "Emisi Permukaan"
-
-
-msgid "Temp. Diff."
-msgstr "Temp. Diff."
 
 
 msgid "Mapping"
@@ -9612,10 +9608,6 @@ msgstr "Hantu ditampilkan di render dan playback animasi. Berguna untuk efek spe
 
 msgid "Stroke Edit Mode"
 msgstr "Mode Edit Garis Luar"
-
-
-msgid "Straight"
-msgstr "Kanan"
 
 
 msgid "Color Space Settings"
@@ -11501,10 +11493,6 @@ msgid "Console"
 msgstr "Konsol"
 
 
-msgid "Console Context Menu"
-msgstr "Menu Konteks Konsol"
-
-
 msgid "Languages..."
 msgstr "Bahasa..."
 
@@ -11523,10 +11511,6 @@ msgstr "Kunci"
 
 msgid "Snap"
 msgstr "Jepret"
-
-
-msgid "Files Context Menu"
-msgstr "Menu Konteks Dokumen"
 
 
 msgid "Grease Pencil Vertex Groups"
@@ -11570,14 +11554,6 @@ msgid "Vertex Group Specials"
 msgstr "Spesial Kelompok Vertex"
 
 
-msgid "NLA Channel Context Menu"
-msgstr "Menu Konteks Saluran NLA"
-
-
-msgid "NLA Context Menu"
-msgstr "Menu Konteks NLA"
-
-
 msgid "Text"
 msgstr "Teks"
 
@@ -11602,20 +11578,12 @@ msgid "Converter"
 msgstr "Pengubah"
 
 
-msgid "Node Context Menu"
-msgstr "Menu Konteks Node"
-
-
 msgid "Node"
 msgstr "Node"
 
 
 msgid "Node Color Specials"
 msgstr "Spesial Warna Node"
-
-
-msgid "Outliner Context Menu"
-msgstr "Menu Konteks Outliner"
 
 
 msgid "Particle Specials"
@@ -11707,10 +11675,6 @@ msgid "File"
 msgstr "Dokumen"
 
 
-msgid "File Context Menu"
-msgstr "Menu Konteks Dokumen"
-
-
 msgid "Export"
 msgstr "Ekspor"
 
@@ -11761,10 +11725,6 @@ msgstr "Modus Sunting"
 
 msgid "Names"
 msgstr "Nama"
-
-
-msgid "Text Context Menu"
-msgstr "Menu Konteks Teks"
 
 
 msgid "Hooks"
@@ -14050,10 +14010,6 @@ msgid "Min Speed"
 msgstr "Kecepatan Min"
 
 
-msgid "Curved"
-msgstr "Lengkung"
-
-
 msgid "Tile Order"
 msgstr "Urutan Ubin"
 
@@ -14633,6 +14589,11 @@ msgstr "Tambah Tulang"
 
 
 msgctxt "Operator"
+msgid "Show All"
+msgstr "Tampilkan Semua"
+
+
+msgctxt "Operator"
 msgid "Delete Selected Bone(s)"
 msgstr "Hapus Titik"
 
@@ -14650,11 +14611,6 @@ msgstr "Nama"
 msgctxt "Operator"
 msgid "Hide Selected"
 msgstr "Modus Sunting"
-
-
-msgctxt "Operator"
-msgid "Show All Layers"
-msgstr "Nama"
 
 
 msgctxt "Operator"
@@ -15584,6 +15540,11 @@ msgstr "Lapisan"
 msgctxt "Operator"
 msgid "Remove Mask Layer"
 msgstr "Warna Standar"
+
+
+msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "Nama"
 
 
 msgid "Name of the modifier to edit"
@@ -17848,30 +17809,6 @@ msgstr "Salin"
 
 
 msgctxt "Operator"
-msgid "Add Bone Group"
-msgstr "Grup"
-
-
-msgctxt "Operator"
-msgid "Move Bone Group"
-msgstr "Grup"
-
-
-msgctxt "Operator"
-msgid "Remove Bone Group"
-msgstr "Induk"
-
-
-msgid "Remove the active bone group"
-msgstr "Warna Standar"
-
-
-msgctxt "Operator"
-msgid "Sort Bone Groups"
-msgstr "Warna Standar"
-
-
-msgctxt "Operator"
 msgid "Remove IK"
 msgstr "Induk"
 
@@ -18189,22 +18126,6 @@ msgstr "Ganti saluran biru"
 
 msgid "Data Target"
 msgstr "Target Data"
-
-
-msgid "Keep Previous Mask"
-msgstr "Tetapkan Masker Sebelumnya"
-
-
-msgid "Mask Speed"
-msgstr "Kecepatan Masker"
-
-
-msgid "Use Cursor"
-msgstr "Gunakan Kursor"
-
-
-msgid "Use Normals"
-msgstr "Gunakan Normal"
 
 
 msgctxt "Operator"
@@ -20015,10 +19936,6 @@ msgid "Timeline"
 msgstr "Timeline"
 
 
-msgid "Duplicate Data"
-msgstr "Duplikasi Data"
-
-
 msgid "New Objects"
 msgstr "Objek Baru"
 
@@ -20086,10 +20003,6 @@ msgstr "Jalankan Script Python secara Otomatis"
 
 msgid "Blend Files"
 msgstr "Dokumen Blend"
-
-
-msgid "Auto Save"
-msgstr "Simpan Otomatis"
 
 
 msgid "Editor"
@@ -22291,23 +22204,8 @@ msgid "Save New Settings"
 msgstr "Simpan Pengaturan Baru"
 
 
-msgctxt "Operator"
-msgid "Next"
-msgstr "Selanjutnya"
-
-
 msgid "Getting Started"
 msgstr "Baru Memulai"
-
-
-msgctxt "Operator"
-msgid "Release Notes"
-msgstr "Catatan Rilis"
-
-
-msgctxt "Operator"
-msgid "Development Fund"
-msgstr "Dana Pengembangan"
 
 
 msgctxt "Operator"
@@ -22321,13 +22219,18 @@ msgstr "Lisensi"
 
 
 msgctxt "Operator"
+msgid "Blender Store"
+msgstr "Toko Blender"
+
+
+msgctxt "Operator"
 msgid "Blender Website"
 msgstr "Website Blender"
 
 
 msgctxt "Operator"
-msgid "Blender Store"
-msgstr "Toko Blender"
+msgid "User Communities"
+msgstr "Komunitas Pengguna"
 
 
 msgid "Characters"
@@ -22340,11 +22243,6 @@ msgstr "Ganti nama %d %s"
 
 msgid "Date: %s %s"
 msgstr "Tanggal: %s %s"
-
-
-msgctxt "Operator"
-msgid "Load %d.%d Settings"
-msgstr "Muat Pengaturan %d.%d"
 
 
 msgid "After"
@@ -22450,11 +22348,6 @@ msgstr "Kustom..."
 
 msgid "Only Axis Aligned"
 msgstr "Hanya Sumbu yang Disejajarkan"
-
-
-msgctxt "Operator"
-msgid "Show All"
-msgstr "Tampilkan Semua"
 
 
 msgctxt "Operator"
@@ -24158,8 +24051,8 @@ msgstr "Render Gambar"
 
 
 msgctxt "Operator"
-msgid "User Communities"
-msgstr "Komunitas Pengguna"
+msgid "Release Notes"
+msgstr "Catatan Rilis"
 
 
 msgid "No active item"
@@ -24898,10 +24791,6 @@ msgstr "Tekstur"
 msgctxt "Operator"
 msgid "Remove Shortcut"
 msgstr "Induk"
-
-
-msgid "(Gamma Corrected)"
-msgstr "lokasi"
 
 
 msgid "Python: %s"
@@ -25649,10 +25538,6 @@ msgid "Operation requires an active keying set"
 msgstr "Tekstur"
 
 
-msgid "Bone Groups"
-msgstr "Kelompok Tulang"
-
-
 msgid "Movie clip not found"
 msgstr "Penyunting Logika"
 
@@ -26052,6 +25937,10 @@ msgid "Random Roughness"
 msgstr "Kekasaran Acak"
 
 
+msgid "Emission Color"
+msgstr "Warna Emisi"
+
+
 msgid "View Vector"
 msgstr "Tampilkan Vektor"
 
@@ -26118,10 +26007,6 @@ msgstr "Atribut Densitas"
 
 msgid "Absorption Color"
 msgstr "Warna Penyerapan"
-
-
-msgid "Emission Color"
-msgstr "Warna Emisi"
 
 
 msgid "Temperature Attribute"

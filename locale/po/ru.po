@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -1301,6 +1301,10 @@ msgstr "Рабочее пространство"
 msgctxt "ID"
 msgid "World"
 msgstr "Мир"
+
+
+msgid "Asset Library"
+msgstr "Библиотека ассетов"
 
 
 msgid "ID Name"
@@ -3193,6 +3197,14 @@ msgid "Multiply B-Bone Scale In channels by the local scale values of the start 
 msgstr "Умножить каналы масштаба начала (Scale In) B-кости на локальные значения масштаба начальной рукоятки. Это выполняется после масштабирования ослабления и не зависит от него"
 
 
+msgid "Straight"
+msgstr "Прямой"
+
+
+msgid "Curved"
+msgstr "По кривой"
+
+
 msgid "Roll In"
 msgstr "Крен начало"
 
@@ -3459,10 +3471,6 @@ msgstr "Наследовать вращение"
 
 msgid "Bone inherits rotation or scale from parent bone"
 msgstr "Кость наследует вращение и масштаб родительской кости"
-
-
-msgid "DEPRECATED: Bone inherits scaling from parent bone"
-msgstr "Устарело: кость наследует масштаб от родительской кости"
 
 
 msgid "Local Location"
@@ -11787,14 +11795,6 @@ msgid "Asset data, valid if the file represents an asset"
 msgstr "Данные ассета, значение действительно, если файл является ассетом"
 
 
-msgid "The type of the data-block, if the file represents one ('NONE' otherwise)"
-msgstr "Тип датаблока, если файл является датаблоком (иначе 'NONE')"
-
-
-msgid "The local data-block this file represents; only valid if that is a data-block in this file"
-msgstr "Локальный датаблок, который представляет этот файл; поле действительно, только запись является датаблоком внутри файла"
-
-
 msgid "Icon ID"
 msgstr "Идентификатор значка"
 
@@ -11879,8 +11879,8 @@ msgid "Display Size"
 msgstr "Размер отображения"
 
 
-msgid "Change the size of the display (width of columns or thumbnails size)"
-msgstr "Размер отображения (ширина колонок или миниатюр)"
+msgid "Medium"
+msgstr "Средне"
 
 
 msgid "Display Mode"
@@ -11933,10 +11933,6 @@ msgstr "UNIX-подобный шаблон имени файла, поддерж
 
 msgid "Filter ID Types"
 msgstr "Фильтровать по типу ID"
-
-
-msgid "Filter by name, supports '*' wildcard"
-msgstr "Фильтровать по имени, поддерживается подстановочный символ «*»"
 
 
 msgid "Recursion"
@@ -12161,10 +12157,6 @@ msgstr "Параметры выбора ассета"
 
 msgid "Settings for the file selection in Asset Browser mode"
 msgstr "Настройки выбора файлов в режиме просмотра ассетов"
-
-
-msgid "Asset Library"
-msgstr "Библиотека ассетов"
 
 
 msgid "The UUID of the catalog shown in the browser"
@@ -13666,10 +13658,6 @@ msgstr "Поверхностное испускание"
 
 msgid "Controls fluid emission from the mesh surface (higher value results in emission further away from the mesh surface"
 msgstr "Управление выбросом жидкости с поверхности сетки (более высокое значение приводит к выбросу жидкости дальше от поверхности меша)"
-
-
-msgid "Temp. Diff."
-msgstr "Разн. темп."
 
 
 msgid "Temperature difference to ambient temperature"
@@ -20120,10 +20108,6 @@ msgid "Offset amount when drawing in surface mode"
 msgstr "Величина смещения при рисовании в режиме поверхности"
 
 
-msgid "Grease Pencil data-block"
-msgstr "Датаблок Grease Pencil"
-
-
 msgid "Image data-block referencing an external or packed image"
 msgstr "Датаблок изображения, ссылающийся на внешнее или упакованное изображение"
 
@@ -20134,10 +20118,6 @@ msgstr "Режим прозрачности"
 
 msgid "Representation of alpha in the image file, to convert to and from when saving and loading the image"
 msgstr "Модель альфа канала, используемая в файле изображения при сохранении и загрузке"
-
-
-msgid "Straight"
-msgstr "Прямой"
 
 
 msgid "Store RGB and alpha channels separately with alpha acting as a mask, also known as unassociated alpha. Commonly used by image editing applications and file formats like PNG"
@@ -21707,6 +21687,10 @@ msgid "Grease Pencil Data"
 msgstr "Данные Grease Pencil"
 
 
+msgid "Grease Pencil data-block"
+msgstr "Датаблок Grease Pencil"
+
+
 msgid "Interface"
 msgstr "Интерфейс"
 
@@ -21769,10 +21753,6 @@ msgstr "Высоко"
 
 msgid "High quality"
 msgstr "Высокое качество"
-
-
-msgid "Medium"
-msgstr "Средне"
 
 
 msgid "Medium quality"
@@ -23706,10 +23686,6 @@ msgstr "Параметры отображения"
 
 msgid "Settings of device saved image would be displayed on"
 msgstr "Настройки устройства вывода для показа сохраняемых изображений"
-
-
-msgid "Eevee"
-msgstr "Eevee"
 
 
 msgid "Current Frame"
@@ -29162,10 +29138,6 @@ msgid "Console"
 msgstr "Консоль"
 
 
-msgid "Console Context Menu"
-msgstr "Контекстное меню консоли"
-
-
 msgid "Languages..."
 msgstr "Языки…"
 
@@ -29178,12 +29150,8 @@ msgid "Channel"
 msgstr "Канал"
 
 
-msgid "Dope Sheet Channel Context Menu"
-msgstr "Контекстное меню канала экспозиционного листа"
-
-
-msgid "Dope Sheet Context Menu"
-msgstr "Контекстное меню экспозиционного листа"
+msgid "Dope Sheet Channel"
+msgstr "Канал экспозиционного листа"
 
 
 msgid "Key"
@@ -29198,8 +29166,8 @@ msgid "Bookmarks Specials"
 msgstr "Функции закладок"
 
 
-msgid "Files Context Menu"
-msgstr "Контекстное меню файлов"
+msgid "Files"
+msgstr "Файлы"
 
 
 msgid "Material Specials"
@@ -29210,28 +29178,12 @@ msgid "Move to Layer"
 msgstr "Переместить на слой"
 
 
-msgid "F-Curve Channel Context Menu"
-msgstr "Контекстное меню канала f-кривой"
-
-
-msgid "F-Curve Context Menu"
-msgstr "Контекстное меню f-кривых"
-
-
-msgid "Mask Context Menu"
-msgstr "Контекстное меню маски"
-
-
 msgid "Select Linked"
 msgstr "Выделить связанные"
 
 
 msgid "Align"
 msgstr "Выравнивание"
-
-
-msgid "UV Context Menu"
-msgstr "Контекстное меню UV"
 
 
 msgid "UV Select Mode"
@@ -29251,10 +29203,6 @@ msgid "Area"
 msgstr "Область"
 
 
-msgid "Info Context Menu"
-msgstr "Контекстное меню информации"
-
-
 msgctxt "Operator"
 msgid "Add"
 msgstr "Добавить"
@@ -29266,14 +29214,6 @@ msgstr "Настройка ключа формы"
 
 msgid "Vertex Group Specials"
 msgstr "Настройка группы вершин"
-
-
-msgid "NLA Channel Context Menu"
-msgstr "Контекстное меню канала НЛА"
-
-
-msgid "NLA Context Menu"
-msgstr "Контекстное меню НЛА"
 
 
 msgid "Text"
@@ -29308,8 +29248,8 @@ msgid "Distort"
 msgstr "Искажение"
 
 
-msgid "Node Context Menu"
-msgstr "Контекстное меню нодов"
+msgid "Node"
+msgstr "Ноды"
 
 
 msgid "Attribute"
@@ -29319,10 +29259,6 @@ msgstr "Атрибут"
 msgctxt "NodeTree"
 msgid "Constant"
 msgstr "Константа"
-
-
-msgid "Node"
-msgstr "Ноды"
 
 
 msgid "Node Color Specials"
@@ -29366,8 +29302,8 @@ msgid "Change"
 msgstr "Изменить"
 
 
-msgid "Sequencer Context Menu"
-msgstr "Контекстное меню видеоредактора"
+msgid "Sequencer"
+msgstr "Видеоредактор"
 
 
 msgid "Apply"
@@ -29376,10 +29312,6 @@ msgstr "Применить"
 
 msgid "Navigation"
 msgstr "Навигация"
-
-
-msgid "Sequencer Preview Context Menu"
-msgstr "Контекстное меню предпросмотре в видеоредакторе"
 
 
 msgid "Select Channel"
@@ -29438,10 +29370,6 @@ msgid "File"
 msgstr "Файл"
 
 
-msgid "File Context Menu"
-msgstr "Контекстное меню файлов"
-
-
 msgid "Defaults"
 msgstr "По умолчанию"
 
@@ -29490,10 +29418,6 @@ msgid "Save & Load"
 msgstr "Сохранение и загрузка"
 
 
-msgid "Armature Context Menu"
-msgstr "Контекстное меню арматур"
-
-
 msgid "Assign Material"
 msgstr "Назначить материал"
 
@@ -29522,10 +29446,6 @@ msgid "Bone Roll"
 msgstr "Крен кости"
 
 
-msgid "Curve Context Menu"
-msgstr "Контекстное меню кривых"
-
-
 msgid "Select More/Less"
 msgstr "Выделить больше/меньше"
 
@@ -29534,16 +29454,8 @@ msgid "Special Characters"
 msgstr "Спецсимволы"
 
 
-msgid "Text Context Menu"
-msgstr "Контекстное меню текстовых объектов"
-
-
 msgid "Kerning"
 msgstr "Кернинг"
-
-
-msgid "Lattice Context Menu"
-msgstr "Контекстное меню решёток"
 
 
 msgid "Face Data"
@@ -29578,10 +29490,6 @@ msgid "Metaball"
 msgstr "Метасфера"
 
 
-msgid "Metaball Context Menu"
-msgstr "Контекстное меню метасфер"
-
-
 msgid "Generate Weights"
 msgstr "Генерировать веса"
 
@@ -29610,10 +29518,6 @@ msgid "Make Single User"
 msgstr "Эксклюзивное использование"
 
 
-msgid "Object Context Menu"
-msgstr "Контекстное меню объектов"
-
-
 msgid "Convert"
 msgstr "Преобразовать"
 
@@ -29628,14 +29532,6 @@ msgstr "Отношения"
 
 msgid "Rigid Body"
 msgstr "Твёрдое тело"
-
-
-msgid "Particle Context Menu"
-msgstr "Контекстное меню частиц"
-
-
-msgid "Pose Context Menu"
-msgstr "Контекстное меню поз"
 
 
 msgid "Propagate"
@@ -36806,10 +36702,6 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "Минимальная скорость для размываемого пикселя (используется для отделения фона от переднего плана)"
 
 
-msgid "Curved"
-msgstr "По кривой"
-
-
 msgid "Interpolate between frames in a Bezier curve, rather than linearly"
 msgstr "Интерполировать между кадрами по кривой Безье, а не линейно"
 
@@ -37310,10 +37202,6 @@ msgstr "Типы затенения в рендере и вьюпорте, дл�
 
 msgid "Use shaders for all renderers and viewports, unless there exists a more specific output"
 msgstr "Использовать шейдеры для всех рендереров и вьюпортов, если не существует более конкретного вывода"
-
-
-msgid "Use shaders for Eevee renderer"
-msgstr "Использовать шейдеры для рендерера Eevee"
 
 
 msgid "Cycles"
@@ -38215,10 +38103,6 @@ msgstr "Виртуальный сокет ноды"
 
 msgid "Virtual socket of a node"
 msgstr "Виртуальный сокет ноды"
-
-
-msgid "Both"
-msgstr "Оба(е)"
 
 
 msgid "Socket Type"
@@ -39491,19 +39375,6 @@ msgid "Align selected bones to the active bone (or to their parent)"
 msgstr "Выровнять выделенные кости относительно активной кости (или их родителя)"
 
 
-msgctxt "Operator"
-msgid "Change Armature Layers"
-msgstr "Изменить арматурные слои"
-
-
-msgid "Change the visible armature layers"
-msgstr "Изменить видимые арматурные слои"
-
-
-msgid "Armature layers to make visible"
-msgstr "Отображаемые арматурные слои"
-
-
 msgid "Automatically renames the selected bones according to which side of the target axis they fall on"
 msgstr "Автоматически переименовать выделенные кости в зависимости от того, на какой стороне оси они находятся"
 
@@ -39526,19 +39397,6 @@ msgstr "Спереди/сзади"
 
 msgid "Top/Bottom"
 msgstr "Сверху/снизу"
-
-
-msgctxt "Operator"
-msgid "Change Bone Layers"
-msgstr "Изменить слои кости"
-
-
-msgid "Change the layers that the selected bones belong to"
-msgstr "Изменить слои, к которым принадлежат выделенные кости"
-
-
-msgid "Armature layers that bone belongs to"
-msgstr "Арматурные слои, к которым принадлежит кость"
 
 
 msgctxt "Operator"
@@ -39622,6 +39480,11 @@ msgstr "Экструдировать к курсору"
 
 msgid "Create a new bone going from the last selected joint to the mouse position"
 msgstr "Создать новую кость, идущую из последнего выделенного сустава к курсору мыши"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "Показать все"
 
 
 msgctxt "Operator"
@@ -39730,19 +39593,6 @@ msgstr "Невыделенное"
 
 msgid "Hide unselected rather than selected"
 msgstr "Скрыть невыделенные элементы вместо выделенных"
-
-
-msgctxt "Operator"
-msgid "Show All Layers"
-msgstr "Показать все слои"
-
-
-msgid "Make all armature layers visible"
-msgstr "Показать все арматурные слои"
-
-
-msgid "Enable all layers or just the first 16 (top row)"
-msgstr "Включить все слои или только первые 16 (верхний ряд)"
 
 
 msgctxt "Operator"
@@ -39955,6 +39805,10 @@ msgstr "−X на +X"
 
 msgid "+X to -X"
 msgstr "+X на −X"
+
+
+msgid "Pose Bone"
+msgstr "Кость позы"
 
 
 msgid "Check Existing"
@@ -40861,10 +40715,6 @@ msgstr "Открыть видеофрагмент"
 
 msgid "Load a sequence of frames or a movie file"
 msgstr "Загрузить секвенцию кадров или видеофайл"
-
-
-msgid "Files"
-msgstr "Файлы"
 
 
 msgid "Enable Multi-View"
@@ -42645,16 +42495,8 @@ msgstr "Преобразовать вращения по Эйлеру ZYX"
 
 
 msgctxt "Operator"
-msgid "Export STL"
-msgstr "Экспортировать STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Сохранить файл в формате ASCII"
+msgid "Export PLY"
+msgstr "Экспортировать PLY"
 
 
 msgid "X Forward"
@@ -42701,6 +42543,31 @@ msgid "-Z Up"
 msgstr "Вверх по −Z"
 
 
+msgid "Apply Modifiers"
+msgstr "Применить модификаторы"
+
+
+msgid "Selection Only"
+msgstr "Только выделенное"
+
+
+msgid "Export selected objects only"
+msgstr "Экспортировать только выделенные объекты"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Экспортировать STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Сохранить файл в формате ASCII"
+
+
 msgid "Batch Mode"
 msgstr "Пакетный режим"
 
@@ -42713,10 +42580,6 @@ msgid "Each object as a file"
 msgstr "Каждый объект в отдельном файле"
 
 
-msgid "Apply Modifiers"
-msgstr "Применить модификаторы"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "Применить модификаторы перед сохранением"
 
@@ -42727,14 +42590,6 @@ msgstr "Единицы сцены"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Применить текущие единицы сцены (заданные масштабом единиц) к экспортируемым данным"
-
-
-msgid "Selection Only"
-msgstr "Только выделенное"
-
-
-msgid "Export selected objects only"
-msgstr "Экспортировать только выделенные объекты"
 
 
 msgctxt "Operator"
@@ -43099,10 +42954,6 @@ msgid "Include All Bone Influences"
 msgstr "Включить влияния всех костей"
 
 
-msgid "Allow >4 joint vertex influences. Models may appear incorrectly in many viewers"
-msgstr "Разрешить влияние суставов для >4 вершин. Модели могут отображаться некорректно во многих просмотрщиках"
-
-
 msgid "Exports active actions and NLA tracks as glTF animations"
 msgstr "Экспортировать активные действия и НЛА-трека как анимации glTF"
 
@@ -43309,6 +43160,14 @@ msgstr "Запомнить настройки экспорта"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Сохранить настройки экспорта glTF в файле Blender"
+
+
+msgid "Material Groups"
+msgstr "Группы материалов"
+
+
+msgid "Smooth Groups"
+msgstr "Группы сглаживания"
 
 
 msgctxt "Operator"
@@ -44900,6 +44759,11 @@ msgid "Reset any UV transformation and back to default values"
 msgstr "Сбросить все UV-преобразования на значения по умолчанию"
 
 
+msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "Показать все слои"
+
+
 msgid "Show all Grease Pencil layers"
 msgstr "Показать все слои Grease Pencil"
 
@@ -45149,6 +45013,10 @@ msgstr "На задний план"
 msgctxt "Operator"
 msgid "Set Caps Mode"
 msgstr "Установить режим концов штрихов"
+
+
+msgid "Both"
+msgstr "Оба(е)"
 
 
 msgid "Set as default rounded"
@@ -46534,6 +46402,11 @@ msgstr "Использовать альфа-канал для прозрачно
 
 
 msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Импортировать PLY"
+
+
+msgctxt "Operator"
 msgid "Import STL"
 msgstr "Импортировать STL"
 
@@ -46714,6 +46587,10 @@ msgstr "Уровень логирования"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Формат glTF требует, чтобы прерывистые нормали, UV и другие атрибуты вершин хранились как отдельные вершины, как это требуется для рендеринга на типичном графическом оборудовании. Эта опция пытается объединить совмещенные вершины, где это возможно. В настоящее время нельзя комбинировать вершины с разными нормалями"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Импортировать группы OBJ как группы вершин"
 
 
 msgctxt "Operator"
@@ -54785,86 +54662,6 @@ msgid "Copy Pose"
 msgstr "Копировать позу"
 
 
-msgctxt "Operator"
-msgid "Add Bone Group"
-msgstr "Добавить группу костей"
-
-
-msgid "Add a new bone group"
-msgstr "Добавить новую группу костей"
-
-
-msgctxt "Operator"
-msgid "Add Selected to Bone Group"
-msgstr "Добавить выделенное в группу костей"
-
-
-msgid "Add selected bones to the chosen bone group"
-msgstr "Добавить выделенные кости к выбранной группе костей"
-
-
-msgid "Bone Group Index"
-msgstr "Индекс группы костей"
-
-
-msgctxt "Operator"
-msgid "Deselect Bone Group"
-msgstr "Снять выделение группы костей"
-
-
-msgid "Deselect bones of active Bone Group"
-msgstr "Снять выделение с активной группы костей"
-
-
-msgctxt "Operator"
-msgid "Move Bone Group"
-msgstr "Переместить группу костей"
-
-
-msgid "Change position of active Bone Group in list of Bone Groups"
-msgstr "Изменить положение активной группы костей в списке групп костей"
-
-
-msgid "Direction to move the active Bone Group towards"
-msgstr "Направление перемещения активной группы костей"
-
-
-msgctxt "Operator"
-msgid "Remove Bone Group"
-msgstr "Удалить группу костей"
-
-
-msgid "Remove the active bone group"
-msgstr "Удалить активную группу костей"
-
-
-msgctxt "Operator"
-msgid "Select Bones of Bone Group"
-msgstr "Выделить кости из группы костей"
-
-
-msgid "Select bones in active Bone Group"
-msgstr "Выделить кости из активной группы костей"
-
-
-msgctxt "Operator"
-msgid "Sort Bone Groups"
-msgstr "Сортировать группы костей"
-
-
-msgid "Sort Bone Groups by their names in ascending order"
-msgstr "Сортировать группы костей по именам в порядке возрастания"
-
-
-msgctxt "Operator"
-msgid "Remove Selected from Bone Groups"
-msgstr "Удалить выделенное из групп костей"
-
-
-msgid "Remove selected bones from all bone groups"
-msgstr "Удалить выделенные кости из всех групп костей"
-
-
 msgid "Tag selected bones to not be visible in Pose Mode"
 msgstr "Скрыть выделенные кости в режиме позирования"
 
@@ -55100,10 +54897,6 @@ msgstr "Выделить кости, использованные в качес�
 
 msgid "Select all visible bones grouped by similar properties"
 msgstr "Выделить все видимые кости по схожим свойствам"
-
-
-msgid "Shared group"
-msgstr "Общая группа"
 
 
 msgid "All bones affected by active Keying Set"
@@ -55490,10 +55283,6 @@ msgstr "Рендерить в файлы на всём диапазоне ани
 
 msgid "Render only those frames where selected objects have a key in their animation data. Only used when rendering animation"
 msgstr "Выполнять рендеринг только тех кадров, в которых выбранные объекты имеют ключи в своих данных анимации. Используется только при рендеринге анимации"
-
-
-msgid "Sequencer"
-msgstr "Видеоредактор"
 
 
 msgid "Render using the sequencer's OpenGL display"
@@ -56410,11 +56199,6 @@ msgid "Blend in and out overlapping region"
 msgstr "Проявление/исчезновение перекрывающих регионов"
 
 
-msgctxt "Operator"
-msgid "Region Context Menu"
-msgstr "Контекстное меню области"
-
-
 msgid "Display region context menu"
 msgstr "Показать контекстное меню области"
 
@@ -56643,59 +56427,6 @@ msgstr "Уменьшить набор граней"
 
 msgid "Preserve Previous Mask"
 msgstr "Сохранять предыдущую маску"
-
-
-msgctxt "Operator"
-msgid "Mask Expand"
-msgstr "Расширить маску"
-
-
-msgid "Expands a mask from the initial active vertex under the cursor"
-msgstr "Расширяет маску из начальной активной вершины под курсором"
-
-
-msgid "Edge Detection Sensitivity"
-msgstr "Чувствительность определения рёбер"
-
-
-msgid "Sensitivity for expanding the mask across sculpted sharp edges when using normals to generate the mask"
-msgstr "Чувствительность расширения маски по острым краям при использовании нормалей для создания маски"
-
-
-msgid "Invert the new mask"
-msgstr "Инвертировать новую маску"
-
-
-msgid "Keep Previous Mask"
-msgstr "Оставить предыдущую маску"
-
-
-msgid "Generate the new mask on top of the current one"
-msgstr "Создавать новую маску поверх текущей"
-
-
-msgid "Update Pivot Position"
-msgstr "Обновить положение центра трансформации"
-
-
-msgid "Set the pivot position to the mask border after creating the mask"
-msgstr "Установить положение центра трансформации на границу маски после создания маски"
-
-
-msgid "Use Cursor"
-msgstr "Использовать курсор"
-
-
-msgid "Expand the mask to the cursor position"
-msgstr "Расширить маску к положению курсора"
-
-
-msgid "Use Normals"
-msgstr "Использовать нормали"
-
-
-msgid "Generate the mask using the normals and curvature of the model"
-msgstr "Генерировать маску с учетом нормалей и кривизны модели"
 
 
 msgctxt "Operator"
@@ -59231,10 +58962,6 @@ msgid "Align"
 msgstr "Выровнять"
 
 
-msgid "Align selected UV vertices to an axis"
-msgstr "Выровнять выделенные UV-вершины по оси"
-
-
 msgid "Axis to align UV locations on"
 msgstr "Ось, по которой выполняется выравнивание"
 
@@ -59243,48 +58970,16 @@ msgid "Straighten"
 msgstr "Выпрямить"
 
 
-msgid "Align UVs along the line defined by the endpoints"
-msgstr "Выровнять вершины UV-карты по прямой, заданной конечными вершинами"
-
-
 msgid "Straighten X"
 msgstr "Выпрямить по X"
-
-
-msgid "Align UVs along the line defined by the endpoints along the X axis"
-msgstr "Выровнять вершины UV-карты на основе конечных точек вдоль оси X"
 
 
 msgid "Straighten Y"
 msgstr "Выпрямить по Y"
 
 
-msgid "Align UVs along the line defined by the endpoints along the Y axis"
-msgstr "Выровнять вершины UV-карты на основе конечных точек вдоль оси Y"
-
-
 msgid "Align Auto"
 msgstr "Автовыравнивание"
-
-
-msgid "Automatically choose the axis on which there is most alignment already"
-msgstr "Автоматически выбрать ось, по которой уже выровнены большинство вершин"
-
-
-msgid "Align X"
-msgstr "Выровнять по X"
-
-
-msgid "Align UVs on X axis"
-msgstr "Выровнять UV по оси X"
-
-
-msgid "Align Y"
-msgstr "Выровнять по Y"
-
-
-msgid "Align UVs on Y axis"
-msgstr "Выровнять UV по оси Y"
 
 
 msgid "Correct Aspect"
@@ -59425,10 +59120,6 @@ msgstr "Scalable Vector Graphic (.svg)"
 
 msgid "Export the UV layout to a vector SVG file"
 msgstr "Экспортировать UV-развёртку в векторный SVG-файл"
-
-
-msgid "Encapsulate PostScript (.eps)"
-msgstr "Encapsulate PostScript (.eps)"
 
 
 msgid "Export the UV layout to a vector EPS file"
@@ -61619,10 +61310,6 @@ msgid "Object Properties"
 msgstr "Настройки объекта"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "Импортировать группы OBJ как группы вершин"
-
-
 msgctxt "Operator"
 msgid "Open"
 msgstr "Открыть"
@@ -61689,16 +61376,6 @@ msgstr "Тег интерфейса"
 
 msgid "Open a path in a file browser"
 msgstr "Открыть путь в файловом менеджере"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Экспортировать PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Импортировать PLY"
 
 
 msgctxt "Operator"
@@ -63097,10 +62774,6 @@ msgid "Effects"
 msgstr "Эффекты"
 
 
-msgid "Skeleton"
-msgstr "Скелет"
-
-
 msgid "Spot Shape"
 msgstr "Форма светового пятна"
 
@@ -63543,10 +63216,6 @@ msgid "Viscosity"
 msgstr "Вязкость"
 
 
-msgid "Creates a Panel in the Render Layers context of the properties editor"
-msgstr "Создать панель в контексте рендер-слоёв редактора свойств"
-
-
 msgid "Freestyle Line Style SVG Export"
 msgstr "SVG-экспорт стиля линий Freestyle"
 
@@ -63667,10 +63336,6 @@ msgid "Timeline"
 msgstr "Временная шкала"
 
 
-msgid "Duplicate Data"
-msgstr "Дублирование данных"
-
-
 msgid "New Objects"
 msgstr "Новые объекты"
 
@@ -63750,10 +63415,6 @@ msgstr "Автозапускать Python-скрипты"
 
 msgid "Blend Files"
 msgstr "Blend-файлы"
-
-
-msgid "Auto Save"
-msgstr "Автосохранение"
 
 
 msgid "Editor"
@@ -63872,10 +63533,6 @@ msgid "Brush Presets"
 msgstr "Установки кисти"
 
 
-msgid "Draw Context Menu"
-msgstr "Контекстное меню рисования"
-
-
 msgid "Drawing Plane"
 msgstr "Плоскость рисования"
 
@@ -63886,14 +63543,6 @@ msgstr "Мультикадр"
 
 msgid "Stroke Placement"
 msgstr "Расположение штрихов"
-
-
-msgid "Sculpt Context Menu"
-msgstr "Контекстное меню скульптинга"
-
-
-msgid "Vertex Paint Context Menu"
-msgstr "Контекстное меню рисования на вершинах"
 
 
 msgid "Curve Edit Mode"
@@ -63910,14 +63559,6 @@ msgstr "Измерение"
 
 msgid "Motion Tracking"
 msgstr "Отслеживание движения"
-
-
-msgid "Texture Paint Context Menu"
-msgstr "Контекстное меню рисования текстур"
-
-
-msgid "Weights Context Menu"
-msgstr "Контекстное меню рисования весов"
 
 
 msgid "Pose Library"
@@ -65156,10 +64797,6 @@ msgstr "Добавлять временные ограничители инве�
 
 msgid "Relative Mirror"
 msgstr "Относительное зеркало"
-
-
-msgid "Pose Bone"
-msgstr "Кость позы"
 
 
 msgid "Channel defining pose data for a bone in a Pose"
@@ -68742,10 +68379,6 @@ msgid "The file extension used for saving renders"
 msgstr "Расширение файла, используемого для сохранения рендеров"
 
 
-msgid "Directory/name to save animations, # characters defines the position and length of frame numbers"
-msgstr "Папка/имя для сохранения анимаций. Символы # определяют положение и длину номеров кадров"
-
-
 msgid "World background is transparent, for compositing the render over another background"
 msgstr "Использовать прозрачный фон окружающей среды для наложения на другой фон"
 
@@ -70975,8 +70608,16 @@ msgid "Sequence strip creating text"
 msgstr "Клип видеоредактора для создания текста"
 
 
+msgid "Align X"
+msgstr "Выровнять по X"
+
+
 msgid "Align the text along the X axis, relative to the text bounds"
 msgstr "Выровнять текст вдоль оси X относительно краёв текста"
+
+
+msgid "Align Y"
+msgstr "Выровнять по Y"
 
 
 msgid "Align the text along the Y axis, relative to the text bounds"
@@ -75136,10 +74777,6 @@ msgid "Channels Selected"
 msgstr "Выделенные каналы"
 
 
-msgid "Dope Sheet Channel"
-msgstr "Канал экспозиционного листа"
-
-
 msgid "Interpolation Line"
 msgstr "Линия интерполяции"
 
@@ -79285,16 +78922,6 @@ msgstr "Приступая к работе"
 
 
 msgctxt "Operator"
-msgid "Release Notes"
-msgstr "Заметки о релизе"
-
-
-msgctxt "Operator"
-msgid "Development Fund"
-msgstr "Фонд поддержки разработки"
-
-
-msgctxt "Operator"
 msgid "Credits"
 msgstr "Авторы"
 
@@ -79305,13 +78932,13 @@ msgstr "Лицензия"
 
 
 msgctxt "Operator"
-msgid "Blender Website"
-msgstr "Официальный сайт Blender"
+msgid "Blender Store"
+msgstr "Магазин Blender"
 
 
 msgctxt "Operator"
-msgid "Blender Store"
-msgstr "Магазин Blender"
+msgid "Blender Website"
+msgstr "Официальный сайт Blender"
 
 
 msgctxt "Operator"
@@ -79333,6 +78960,21 @@ msgid "Manual"
 msgstr "Руководство"
 
 
+msgctxt "Operator"
+msgid "Tutorials"
+msgstr "Обучающие материалы"
+
+
+msgctxt "Operator"
+msgid "Support"
+msgstr "Поддержка"
+
+
+msgctxt "Operator"
+msgid "User Communities"
+msgstr "Сообщества пользователей"
+
+
 msgid "Date: %s %s"
 msgstr "Дата: %s %s"
 
@@ -79343,11 +78985,6 @@ msgstr "Хэш: %s"
 
 msgid "Branch: %s"
 msgstr "Ветка: %s"
-
-
-msgctxt "Operator"
-msgid "Load %d.%d Settings"
-msgstr "Загрузить настройки %d.%d"
 
 
 msgid "Unknown"
@@ -79572,11 +79209,6 @@ msgstr "Конечная точка"
 
 msgid "Interpolation Tilt"
 msgstr "Интерполяция наклона"
-
-
-msgctxt "Operator"
-msgid "Show All"
-msgstr "Показать все"
 
 
 msgctxt "Operator"
@@ -81093,6 +80725,16 @@ msgid "Selection to Nearest Marker"
 msgstr "Выделение к ближайшему маркеру"
 
 
+msgctxt "Operator"
+msgid "Hide Selected Curves"
+msgstr "Скрыть выделенные кривые"
+
+
+msgctxt "Operator"
+msgid "Hide Unselected Curves"
+msgstr "Скрыть невыделенные кривые"
+
+
 msgid "Recursions"
 msgstr "Рекурсия"
 
@@ -81199,16 +80841,6 @@ msgstr "Курсор к выделению"
 msgctxt "Operator"
 msgid "Cursor Value to Selection"
 msgstr "Значение курсора к выделению"
-
-
-msgctxt "Operator"
-msgid "Hide Selected Curves"
-msgstr "Скрыть выделенные кривые"
-
-
-msgctxt "Operator"
-msgid "Hide Unselected Curves"
-msgstr "Скрыть невыделенные кривые"
 
 
 msgctxt "Operator"
@@ -82333,18 +81965,8 @@ msgstr "Поиск операции…"
 
 
 msgctxt "Operator"
-msgid "Tutorials"
-msgstr "Обучающие материалы"
-
-
-msgctxt "Operator"
-msgid "Support"
-msgstr "Поддержка"
-
-
-msgctxt "Operator"
-msgid "User Communities"
-msgstr "Сообщества пользователей"
+msgid "Release Notes"
+msgstr "Заметки о релизе"
 
 
 msgctxt "Operator"
@@ -82438,10 +82060,6 @@ msgstr "Цвет по умолчанию"
 
 msgid "Eraser Radius"
 msgstr "Радиус ластика"
-
-
-msgid "Use Custom Colors"
-msgstr "Использовать особые цвета"
 
 
 msgid "Sculpt Overlay Color"
@@ -82949,11 +82567,6 @@ msgstr "Фон"
 
 
 msgctxt "Operator"
-msgid "Make Library Override..."
-msgstr "Создать переопределение библиотеки"
-
-
-msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Создать локально…"
 
@@ -83179,16 +82792,6 @@ msgstr "Центр трансформации к активной вершине
 msgctxt "Operator"
 msgid "Pivot to Surface Under Cursor"
 msgstr "Центр трансформации на поверхность под курсором"
-
-
-msgctxt "Operator"
-msgid "Change Armature Layers..."
-msgstr "Изменить слои арматуры…"
-
-
-msgctxt "Operator"
-msgid "Change Bone Layers..."
-msgstr "Изменить слои костей…"
 
 
 msgid "Bone Settings"
@@ -83643,10 +83246,6 @@ msgid "Paste X-Flipped Pose"
 msgstr "Вставить позу с отражением по X"
 
 
-msgid "Vertex Context Menu"
-msgstr "Контекстное меню вершин"
-
-
 msgctxt "Operator"
 msgid "Smooth Laplacian"
 msgstr "Лапласово сглаживание"
@@ -83658,14 +83257,6 @@ msgstr "Отразить вершины"
 
 msgid "Snap Vertices"
 msgstr "Привязка вершин"
-
-
-msgid "Edge Context Menu"
-msgstr "Контекстное меню рёбер"
-
-
-msgid "Face Context Menu"
-msgstr "Контекстное меню граней"
 
 
 msgid "UV Unwrap Faces"
@@ -83963,14 +83554,6 @@ msgstr "Затемнить геометрию"
 
 msgid "Reference Point"
 msgstr "Ориентир"
-
-
-msgid "Point Context Menu"
-msgstr "Контекстное меню точек"
-
-
-msgid "Stroke Context Menu"
-msgstr "Контекстное меню шрихов"
 
 
 msgctxt "Operator"
@@ -85841,10 +85424,6 @@ msgid "Hex"
 msgstr "Hex"
 
 
-msgid "(Gamma Corrected)"
-msgstr "(с гамма-коррекцией)"
-
-
 msgid "Lightness"
 msgstr "Яркость"
 
@@ -86358,14 +85937,6 @@ msgstr "Ошибка во время экспорта (смотрите конс
 
 msgid "Parsing errors in Document (see Blender Console)"
 msgstr "Ошибки парсинга документа (см. консоль Blender)"
-
-
-msgid "Material Groups"
-msgstr "Группы материалов"
-
-
-msgid "Smooth Groups"
-msgstr "Группы сглаживания"
 
 
 msgid "Mesh Data"
@@ -87859,10 +87430,6 @@ msgid "Keeping the modifiers will increase polycount when returning to object mo
 msgstr "Сохранение модификаторов приведёт к увеличению числа полигонов при возврате в режим объекта"
 
 
-msgid "Move the mouse to expand the mask from the active vertex. LMB: confirm mask, ESC/RMB: cancel"
-msgstr "Переместите курсор, чтобы увеличить маску от активной вершины. ЛКМ: подтвердить маску, Esc/ПКМ: отменить"
-
-
 msgid "non-triangle face"
 msgstr "нетреугольная грань"
 
@@ -88808,11 +88375,6 @@ msgstr ""
 "* Ctrl для добавления в текущий режим"
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "Группа"
-
-
 msgid "Library path '%s' does not exist, correct this before saving"
 msgstr "Путь к библиотеке «%s» не существует, исправьте это перед сохранением"
 
@@ -88879,10 +88441,6 @@ msgstr "Удалено датоблоков: %d"
 
 msgid "Not yet implemented"
 msgstr "Пока не реализовано"
-
-
-msgid "Bone Groups"
-msgstr "Группы костей"
 
 
 msgid "(empty)"
@@ -89788,6 +89346,11 @@ msgstr "Не удалось открыть файл: %s"
 
 msgid "Bone Envelopes"
 msgstr "Обёртки кости"
+
+
+msgctxt "Action"
+msgid "Group"
+msgstr "Группа"
 
 
 msgid "Index out of range"
@@ -90748,10 +90311,6 @@ msgid "Random Roughness"
 msgstr "Нерегулярность шероховатости"
 
 
-msgid "Subsurface"
-msgstr "Подпов. рассеивание"
-
-
 msgid "Subsurface Radius"
 msgstr "Радиус подповерхностного рассеивания"
 
@@ -90764,12 +90323,12 @@ msgid "Anisotropic Rotation"
 msgstr "Поворот анизотропии"
 
 
-msgid "Sheen"
-msgstr "Блеск ткани"
-
-
 msgid "Sheen Tint"
 msgstr "Оттенок блеска ткани"
+
+
+msgid "Emission Color"
+msgstr "Цвет свечения"
 
 
 msgid "Emission Strength"
@@ -90940,10 +90499,6 @@ msgid "Absorption Color"
 msgstr "Цвет поглощения"
 
 
-msgid "Emission Color"
-msgstr "Цвет свечения"
-
-
 msgid "Blackbody Intensity"
 msgstr "Интенсивность теплового излучения"
 
@@ -90998,10 +90553,6 @@ msgstr "W4"
 
 msgid "iScale"
 msgstr "Сила"
-
-
-msgid "Unknown py-exception, could not convert"
-msgstr "Неизвестное py-исключение, не может быть преобразовано"
 
 
 msgid "Could not resolve path (%s)"
