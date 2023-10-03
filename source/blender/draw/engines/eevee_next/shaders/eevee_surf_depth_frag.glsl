@@ -44,6 +44,16 @@ void main()
   }
 #endif
 
+#ifdef MAT_CLIP_PLANE
+  /* Do not use hardware clip planes as they modify the rasterization (some GPUs add vertices).
+   * This would in turn create a discrepency between the prepass depth and the gbuffer depth which
+   * exhibits missing pixels data. */
+  if (clip_interp.clip_distance > 0.0) {
+    discard;
+    return;
+  }
+#endif
+
 #ifdef MAT_VELOCITY
   out_velocity = velocity_surface(interp.P + motion.prev, interp.P, interp.P + motion.next);
   out_velocity = velocity_pack(out_velocity);

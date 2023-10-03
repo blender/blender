@@ -26,6 +26,14 @@ GPU_SHADER_CREATE_INFO(eevee_utility_texture)
     .define("EEVEE_UTILITY_TX")
     .sampler(RBUFS_UTILITY_TEX_SLOT, ImageType::FLOAT_2D_ARRAY, "utility_tx");
 
+GPU_SHADER_INTERFACE_INFO(eevee_clip_plane_iface, "clip_interp")
+    .smooth(Type::FLOAT, "clip_distance");
+
+GPU_SHADER_CREATE_INFO(eevee_clip_plane)
+    .vertex_out(eevee_clip_plane_iface)
+    .uniform_buf(CLIP_PLANE_BUF, "ClipPlaneData", "clip_plane")
+    .define("MAT_CLIP_PLANE");
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
