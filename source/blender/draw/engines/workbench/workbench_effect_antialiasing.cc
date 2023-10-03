@@ -295,7 +295,9 @@ void AntiAliasingPass::draw(Manager &manager,
   if (!DRW_state_is_scene_render()) {
     /* Copy back the saved depth buffer for correct overlays. */
     GPU_texture_copy(depth_tx, sample0_depth_tx_);
-    GPU_texture_copy(depth_in_front_tx, sample0_depth_in_front_tx_);
+    if (depth_in_front_tx) {
+      GPU_texture_copy(depth_in_front_tx, sample0_depth_in_front_tx_);
+    }
   }
   else if (last_sample) {
     GPU_texture_copy(depth_tx, sample0_depth_tx_);
