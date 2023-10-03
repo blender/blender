@@ -20,7 +20,7 @@
 #include "BKE_modifier.h"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_shrinkwrap.h"
 
 #include "BLI_math_vector.h"

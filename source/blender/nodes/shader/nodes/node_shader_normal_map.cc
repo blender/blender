@@ -122,6 +122,38 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   return true;
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  NodeShaderNormalMap *normal_map_node = static_cast<NodeShaderNormalMap *>(node_->storage);
+  NodeItem color = get_input_value("Color", NodeItem::Type::Vector3);
+  NodeItem strength = get_input_value("Strength", NodeItem::Type::Float);
+
+  std::string space;
+  switch (normal_map_node->space) {
+    case SHD_SPACE_TANGENT:
+      space = "tangent";
+      break;
+    case SHD_SPACE_OBJECT:
+    case SHD_SPACE_BLENDER_OBJECT:
+      space = "object";
+      break;
+    case SHD_SPACE_WORLD:
+    case SHD_SPACE_BLENDER_WORLD:
+      /* World isn't supported, tangent space will be used */
+      space = "tangent";
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+
+  return create_node("normalmap",
+                     NodeItem::Type::Vector3,
+                     {{"in", color}, {"scale", strength}, {"space", val(space)}});
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_normal_map_cc
 
 /* node type definition */
@@ -139,6 +171,7 @@ void register_node_type_sh_normal_map()
   node_type_storage(
       &ntype, "NodeShaderNormalMap", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::gpu_shader_normal_map;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

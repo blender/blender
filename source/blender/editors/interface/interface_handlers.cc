@@ -44,7 +44,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_paint.hh"
 #include "BKE_report.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_tracking.h"
 #include "BKE_unit.h"
 
@@ -1253,8 +1253,9 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
   if ((but->func_arg2 == nullptr) && (but->type == UI_BTYPE_SEARCH_MENU)) {
     uiButSearch *search_but = (uiButSearch *)but;
     but->func_arg2 = search_but->item_active;
-
-    blender::ui::string_search::add_recent_search(search_but->item_active_str);
+    if ((U.flag & USER_FLAG_RECENT_SEARCHES_DISABLE) == 0) {
+      blender::ui::string_search::add_recent_search(search_but->item_active_str);
+    }
   }
 
   ui_apply_but_func(C, but);
@@ -3802,6 +3803,8 @@ static void ui_do_but_textedit(
         but->pos = short(selend);
         but->selsta = short(selsta);
         but->selend = short(selend);
+        /* Anchor selection to the left side unless the last word. */
+        data->sel_pos_init = ((selend == strlen(data->str)) && (selsta != 0)) ? selend : selsta;
         retval = WM_UI_HANDLER_BREAK;
         changed = true;
       }

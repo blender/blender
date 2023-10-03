@@ -133,6 +133,25 @@ float SCULPT_calc_radius(ViewContext *vc,
  * different index for each grid.
  * \{ */
 
+SculptMaskWriteInfo SCULPT_mask_get_for_write(SculptSession *ss)
+{
+  SculptMaskWriteInfo info;
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      Mesh *mesh = BKE_pbvh_get_mesh(ss->pbvh);
+      info.layer = static_cast<float *>(
+          CustomData_get_layer_for_write(&mesh->vert_data, CD_PAINT_MASK, mesh->totvert));
+      break;
+    }
+    case PBVH_BMESH:
+      info.bm_offset = CustomData_get_offset(&BKE_pbvh_get_bmesh(ss->pbvh)->vdata, CD_PAINT_MASK);
+      break;
+    case PBVH_GRIDS:
+      break;
+  }
+  return info;
+}
+
 void SCULPT_vertex_random_access_ensure(SculptSession *ss)
 {
   if (ss->bm) {
@@ -1779,7 +1798,10 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss,
 /** \name Sculpt Paint Mesh
  * \{ */
 
-static void paint_mesh_restore_node(Object *ob, SculptUndoType type, PBVHNode *node)
+static void paint_mesh_restore_node(Object *ob,
+                                    const SculptUndoType type,
+                                    const SculptMaskWriteInfo mask_write,
+                                    PBVHNode *node)
 {
 
   SculptSession *ss = ob->sculpt;
@@ -1845,11 +1867,11 @@ static void paint_mesh_restore_node(Object *ob, SculptUndoType type, PBVHNode *n
     if ((type & SCULPT_UNDO_MASK) && ss->attrs.orig_mask) {
       float origmask = vertex_attr_get<float>(vd.vertex, ss->attrs.orig_mask);
 
-      if ((*vd.mask - origmask) * (*vd.mask - origmask) > FLT_EPSILON) {
+      if ((vd.mask - origmask) * (vd.mask - origmask) > FLT_EPSILON) {
         modified = true;
       }
 
-      *vd.mask = origmask;
+      SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, origmask, vd);
     }
 
     if ((type & SCULPT_UNDO_COLOR) && ss->attrs.orig_color) {
@@ -1907,9 +1929,14 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
       break;
   }
 
+  SculptMaskWriteInfo mask_write;
+  if (type == SCULPT_UNDO_MASK) {
+    mask_write = SCULPT_mask_get_for_write(ss);
+  }
+
   blender::threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      paint_mesh_restore_node(ob, type, nodes[i]);
+      paint_mesh_restore_node(ob, type, mask_write, nodes[i]);
     }
   });
 }
@@ -3642,16 +3669,8 @@ static void do_gravity_task(SculptSession *ss,
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
-    const float fade = SCULPT_brush_strength_factor(ss,
-                                                    brush,
-                                                    vd.co,
-                                                    sqrtf(test.dist),
-                                                    vd.no,
-                                                    vd.fno,
-                                                    vd.mask ? *vd.mask : 0.0f,
-                                                    vd.vertex,
-                                                    thread_id,
-                                                    nullptr);
+    const float fade = SCULPT_brush_strength_factor(
+        ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, vd.mask, vd.vertex, thread_id, nullptr);
 
     mul_v3_v3fl(proxy[vd.i], offset, fade);
 
@@ -3730,13 +3749,7 @@ static void topology_undopush_cb(PBVHNode *node, void *data)
 {
   SculptSearchSphereData *sdata = (SculptSearchSphereData *)data;
 
-  SCULPT_ensure_dyntopo_node_undo(
-      sdata->ob,
-      node,
-      SCULPT_get_tool(sdata->ob->sculpt, sdata->brush) == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
-                                                                             SCULPT_UNDO_COORDS,
-      0,
-      SCULPT_UNDO_NO_TYPE);
+  SCULPT_ensure_dyntopo_node_undo(sdata->ob, node, SCULPT_UNDO_COORDS);
 }
 
 int SCULPT_get_symmetry_pass(const SculptSession *ss)
@@ -4149,7 +4162,7 @@ static void do_brush_action(Sculpt *sd,
   }
   else if (ss->bm) {
     SculptUndoType undo_type;
-    int extra_type = 0;
+    SculptUndoType extra_type = SCULPT_UNDO_NONE;
 
     if (SCULPT_tool_is_paint(brush->sculpt_tool)) {
       undo_type = SCULPT_UNDO_COLOR;
@@ -4171,7 +4184,7 @@ static void do_brush_action(Sculpt *sd,
 
     if (ss->cache->supports_gravity && sd->gravity_factor > 0.0f &&
         undo_type != SCULPT_UNDO_COORDS) {
-      extra_type = int(SCULPT_UNDO_COORDS);
+      extra_type = SCULPT_UNDO_COORDS;
     }
 
     for (PBVHNode *node : nodes) {
@@ -4195,7 +4208,7 @@ static void do_brush_action(Sculpt *sd,
         case SCULPT_UNDO_DYNTOPO_END:
         case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
         case SCULPT_UNDO_GEOMETRY:
-        case SCULPT_UNDO_NO_TYPE:
+        case SCULPT_UNDO_NONE:
           break;
       }
 
@@ -6159,7 +6172,7 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
   }
 
   if (update_flags & SCULPT_UPDATE_MASK) {
-    BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+    BKE_pbvh_update_mask(ss->pbvh);
   }
 
   if (update_flags & SCULPT_UPDATE_COLOR) {

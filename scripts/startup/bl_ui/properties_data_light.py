@@ -26,7 +26,8 @@ class DATA_PT_context_light(DataButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_EEVEE',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     def draw(self, context):
         layout = self.layout
@@ -111,6 +112,15 @@ class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
                 sub.prop(light, "size", text="Size X")
                 sub.prop(light, "size_y", text="Y")
 
+        if context.engine == 'BLENDER_EEVEE_NEXT':
+            col.separator()
+
+            col.prop(light, "use_shadow", text="Cast Shadow")
+            col.prop(light, "shadow_softness_factor", text="Shadow Softness")
+
+            if light.type == 'SUN':
+                col.prop(light, "shadow_trace_distance", text="Trace Distance")
+
 
 class DATA_PT_EEVEE_light_distance(DataButtonsPanel, Panel):
     bl_label = "Custom Distance"
@@ -143,7 +153,7 @@ class DATA_PT_EEVEE_light_distance(DataButtonsPanel, Panel):
 class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
     bl_label = "Shadow"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -171,8 +181,7 @@ class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
         if light.type != 'SUN':
             sub.prop(light, "shadow_buffer_clip_start", text="Clip Start")
 
-        if context.engine != 'BLENDER_EEVEE_NEXT':
-            col.prop(light, "shadow_buffer_bias", text="Bias")
+        col.prop(light, "shadow_buffer_bias", text="Bias")
 
 
 class DATA_PT_EEVEE_shadow_cascaded_shadow_map(DataButtonsPanel, Panel):
@@ -243,7 +252,8 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_EEVEE',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
 
     @classmethod
     def poll(cls, context):
@@ -270,7 +280,8 @@ class DATA_PT_custom_props_light(DataButtonsPanel, PropertyPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE_NEXT',
         'BLENDER_EEVEE',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
     _context_path = "object.data"
     _property_type = bpy.types.Light
 

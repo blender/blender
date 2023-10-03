@@ -1104,6 +1104,22 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem prop_bbone_mapping_mode[] = {
+      {BBONE_MAPPING_STRAIGHT,
+       "STRAIGHT",
+       0,
+       "Straight",
+       "Fast mapping that is good for most situations, but ignores the rest pose "
+       "curvature of the B-Bone"},
+      {BBONE_MAPPING_CURVED,
+       "CURVED",
+       0,
+       "Curved",
+       "Slower mapping that gives better deformation for B-Bones that are sharply "
+       "curved in rest pose"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   static const EnumPropertyItem prop_inherit_scale_mode[] = {
       {BONE_INHERIT_SCALE_FULL, "FULL", 0, "Full", "Inherit all effects of parent scaling"},
       {BONE_INHERIT_SCALE_FIX_SHEAR,
@@ -1291,6 +1307,16 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_range(prop, 1, 32);
   RNA_def_property_ui_text(
       prop, "B-Bone Segments", "Number of subdivisions of bone (for B-Bones only)");
+
+  prop = RNA_def_property(srna, "bbone_mapping_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "bbone_mapping_mode");
+  RNA_def_property_enum_items(prop, prop_bbone_mapping_mode);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "B-Bone Vertex Mapping Mode",
+      "Selects how the vertices are mapped to B-Bone segments based on their position");
+  RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
   prop = RNA_def_property(srna, "bbone_x", PROP_FLOAT, PROP_NONE);
   if (editbone) {

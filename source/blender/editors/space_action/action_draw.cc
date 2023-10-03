@@ -188,8 +188,6 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
   uchar col1b[4], col2b[4];
   uchar col_summary[4];
 
-  const bool show_group_colors = U.animation_flag & USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
-
   /* get theme colors */
   UI_GetThemeColor4ubv(TH_SHADE2, col2);
   UI_GetThemeColor4ubv(TH_HILITE, col1);
@@ -245,45 +243,9 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
           immUniformColor3ubvAlpha(col2b, sel ? col1[3] : col2b[3]);
           break;
         }
-        case ANIMTYPE_GROUP: {
-          bActionGroup *agrp = static_cast<bActionGroup *>(ale->data);
-          if (show_group_colors && agrp->customCol) {
-            if (sel) {
-              immUniformColor3ubvAlpha((uchar *)agrp->cs.select, col1a[3]);
-            }
-            else {
-              immUniformColor3ubvAlpha((uchar *)agrp->cs.solid, col2a[3]);
-            }
-          }
-          else {
-            immUniformColor4ubv(sel ? col1a : col2a);
-          }
+        case ANIMTYPE_GROUP:
+          immUniformColor4ubv(sel ? col1a : col2a);
           break;
-        }
-        case ANIMTYPE_FCURVE: {
-          FCurve *fcu = static_cast<FCurve *>(ale->data);
-          if (show_group_colors && fcu->grp && fcu->grp->customCol) {
-            immUniformColor3ubvAlpha((uchar *)fcu->grp->cs.active, sel ? col1[3] : col2[3]);
-          }
-          else {
-            immUniformColor4ubv(sel ? col1 : col2);
-          }
-          break;
-        }
-        case ANIMTYPE_GPLAYER: {
-          if (show_group_colors) {
-            uchar gpl_col[4];
-            bGPDlayer *gpl = (bGPDlayer *)ale->data;
-            rgb_float_to_uchar(gpl_col, gpl->color);
-            gpl_col[3] = col1[3];
-
-            immUniformColor4ubv(sel ? col1 : gpl_col);
-          }
-          else {
-            immUniformColor4ubv(sel ? col1 : col2);
-          }
-          break;
-        }
         default: {
           immUniformColor4ubv(sel ? col1 : col2);
         }
@@ -294,25 +256,10 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
     }
     else if (ac->datatype == ANIMCONT_GPENCIL) {
       uchar *color;
-      uchar gpl_col[4];
       switch (ale->type) {
         case ANIMTYPE_SUMMARY:
           color = col_summary;
           break;
-
-        case ANIMTYPE_GPLAYER: {
-          if (show_group_colors) {
-            bGPDlayer *gpl = (bGPDlayer *)ale->data;
-            rgb_float_to_uchar(gpl_col, gpl->color);
-            gpl_col[3] = col1[3];
-
-            color = sel ? col1 : gpl_col;
-          }
-          else {
-            color = sel ? col1 : col2;
-          }
-          break;
-        }
 
         case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
           color = sel ? col1a : col2a;
@@ -355,6 +302,16 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
       immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
       immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
       immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+    }
+
+    /* Alpha-over the channel color, if it's there. */
+    {
+      const bool show_group_colors = U.animation_flag & USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
+      uint8_t color[3];
+      if (show_group_colors && acf->get_channel_color && acf->get_channel_color(ale, color)) {
+        immUniformColor3ubvAlpha(color, 32);
+        immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+      }
     }
   }
 }
@@ -748,56 +705,112 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
   GPU_matrix_pop();
 }
 
-static void timeline_cache_draw_simulation_nodes(const blender::bke::bake::ModifierCache &cache,
-                                                 const float y_offset,
-                                                 const float height,
-                                                 const uint pos_id)
+struct SimulationRange {
+  blender::IndexRange frames;
+  blender::bke::bake::CacheStatus status;
+};
+
+static void timeline_cache_draw_simulation_nodes(
+    const blender::Span<SimulationRange> simulation_ranges,
+    const bool all_simulations_baked,
+    float *y_offset,
+    const float line_height,
+    const uint pos_id)
 {
-  std::lock_guard lock{cache.mutex};
-  if (cache.cache_by_id.is_empty()) {
+  if (simulation_ranges.is_empty()) {
     return;
   }
-  /* Draw the state if one of the simulation zones. This is fine for now, because there is no ui
-   * that allows caching zones independently. */
-  const blender::bke::bake::NodeCache &node_cache = **cache.cache_by_id.values().begin();
-  if (node_cache.frame_caches.is_empty()) {
-    return;
+
+  bool has_bake = false;
+
+  for (const SimulationRange &sim_range : simulation_ranges) {
+    switch (sim_range.status) {
+      case blender::bke::bake::CacheStatus::Invalid:
+      case blender::bke::bake::CacheStatus::Valid:
+        break;
+      case blender::bke::bake::CacheStatus::Baked:
+        has_bake = true;
+        break;
+    }
   }
+
+  blender::Set<int> status_change_frames_set;
+  for (const SimulationRange &sim_range : simulation_ranges) {
+    status_change_frames_set.add(sim_range.frames.first());
+    status_change_frames_set.add(sim_range.frames.one_after_last());
+  }
+  blender::Vector<int> status_change_frames;
+  status_change_frames.extend(status_change_frames_set.begin(), status_change_frames_set.end());
+  std::sort(status_change_frames.begin(), status_change_frames.end());
+  const blender::OffsetIndices<int> frame_ranges = status_change_frames.as_span();
 
   GPU_matrix_push();
-  GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + y_offset);
-  GPU_matrix_scale_2f(1.0, height);
+  GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + *y_offset);
+  GPU_matrix_scale_2f(1.0, line_height);
 
-  float color[4];
-  UI_GetThemeColor4fv(TH_SIMULATED_FRAMES, color);
-  switch (node_cache.cache_status) {
-    case blender::bke::bake::CacheStatus::Invalid: {
-      color[3] = 0.4f;
-      break;
+  blender::float4 base_color;
+  UI_GetThemeColor4fv(TH_SIMULATED_FRAMES, base_color);
+  blender::float4 invalid_color = base_color;
+  invalid_color.w *= 0.4f;
+  blender::float4 valid_color = base_color;
+  valid_color.w *= 0.7f;
+  blender::float4 baked_color = base_color;
+
+  float max_used_height = 1.0f;
+  for (const int range_i : frame_ranges.index_range()) {
+    const blender::IndexRange frame_range = frame_ranges[range_i];
+    const int start_frame = frame_range.first();
+    const int end_frame = frame_range.last();
+
+    bool has_bake_at_frame = false;
+    bool has_valid_at_frame = false;
+    bool has_invalid_at_frame = false;
+    for (const SimulationRange &sim_range : simulation_ranges) {
+      if (sim_range.frames.contains(start_frame)) {
+        switch (sim_range.status) {
+          case blender::bke::bake::CacheStatus::Invalid:
+            has_invalid_at_frame = true;
+            break;
+          case blender::bke::bake::CacheStatus::Valid:
+            has_valid_at_frame = true;
+            break;
+          case blender::bke::bake::CacheStatus::Baked:
+            has_bake_at_frame = true;
+            break;
+        }
+      }
     }
-    case blender::bke::bake::CacheStatus::Valid: {
-      color[3] = 0.7f;
-      break;
+    if (!(has_bake_at_frame || has_valid_at_frame || has_invalid_at_frame)) {
+      continue;
     }
-    case blender::bke::bake::CacheStatus::Baked: {
-      color[3] = 1.0f;
-      break;
+
+    if (all_simulations_baked) {
+      immUniformColor4fv(baked_color);
+      immBeginAtMost(GPU_PRIM_TRIS, 6);
+      immRectf_fast(pos_id, start_frame, 0, end_frame + 1.0f, 1.0f);
+      immEnd();
+    }
+    else {
+      if (has_valid_at_frame || has_invalid_at_frame) {
+        immUniformColor4fv(has_invalid_at_frame ? invalid_color : valid_color);
+        immBeginAtMost(GPU_PRIM_TRIS, 6);
+        const float top = has_bake ? 2.0f : 1.0f;
+        immRectf_fast(pos_id, start_frame, 0.0f, end_frame + 1.0f, top);
+        immEnd();
+        max_used_height = top;
+      }
+      if (has_bake_at_frame) {
+        immUniformColor4fv(baked_color);
+        immBeginAtMost(GPU_PRIM_TRIS, 6);
+        immRectf_fast(pos_id, start_frame, 0, end_frame + 1.0f, 1.0f);
+        immEnd();
+      }
     }
   }
-
-  immUniformColor4fv(color);
-
-  immBeginAtMost(GPU_PRIM_TRIS, node_cache.frame_caches.size() * 6);
-
-  for (const std::unique_ptr<blender::bke::bake::FrameCache> &frame_cache :
-       node_cache.frame_caches.as_span())
-  {
-    const int frame = frame_cache->frame.frame();
-    immRectf_fast(pos_id, frame - 0.5f, 0, frame + 0.5f, 1.0f);
-  }
-  immEnd();
 
   GPU_matrix_pop();
+
+  *y_offset += max_used_height * 2;
 }
 
 void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Scene *scene)
@@ -832,6 +845,8 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
     y_offset += cache_draw_height;
   }
   if (saction->cache_display & TIME_CACHE_SIMULATION_NODES) {
+    blender::Vector<SimulationRange> simulation_ranges;
+    bool all_simulations_baked = true;
     LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
       if (md->type != eModifierType_Nodes) {
         continue;
@@ -846,10 +861,29 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
       if ((nmd->node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_SIMULATION_ZONE) == 0) {
         continue;
       }
-      timeline_cache_draw_simulation_nodes(
-          *nmd->runtime->cache, y_offset, cache_draw_height, pos_id);
-      y_offset += cache_draw_height;
+      const blender::bke::bake::ModifierCache &modifier_cache = *nmd->runtime->cache;
+      {
+        std::lock_guard lock{modifier_cache.mutex};
+        for (const std::unique_ptr<blender::bke::bake::NodeCache> &node_cache_ptr :
+             modifier_cache.cache_by_id.values())
+        {
+          const blender::bke::bake::NodeCache &node_cache = *node_cache_ptr;
+          if (node_cache.frame_caches.is_empty()) {
+            all_simulations_baked = false;
+            continue;
+          }
+          if (node_cache.cache_status != blender::bke::bake::CacheStatus::Baked) {
+            all_simulations_baked = false;
+          }
+          const int start_frame = node_cache.frame_caches.first()->frame.frame();
+          const int end_frame = node_cache.frame_caches.last()->frame.frame();
+          const blender::IndexRange frame_range{start_frame, end_frame - start_frame + 1};
+          simulation_ranges.append({frame_range, node_cache.cache_status});
+        }
+      }
     }
+    timeline_cache_draw_simulation_nodes(
+        simulation_ranges, all_simulations_baked, &y_offset, cache_draw_height, pos_id);
   }
 
   GPU_blend(GPU_BLEND_NONE);

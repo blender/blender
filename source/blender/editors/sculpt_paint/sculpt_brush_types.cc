@@ -21,7 +21,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -279,7 +279,7 @@ static void do_draw_brush_task(Object *ob, const Brush *brush, const float *offs
                                   sqrtf(test.dist),
                                   vd.no,
                                   vd.fno,
-                                  vd.mask ? *vd.mask : 0.0f,
+                                  vd.mask,
                                   vd.vertex,
                                   thread_id,
                                   &automask_data,
@@ -293,7 +293,7 @@ static void do_draw_brush_task(Object *ob, const Brush *brush, const float *offs
                                                 sqrtf(test.dist),
                                                 vd.no,
                                                 vd.fno,
-                                                vd.mask ? *vd.mask : 0.0f,
+                                                vd.mask,
                                                 vd.vertex,
                                                 thread_id,
                                                 &automask_data);
@@ -386,7 +386,7 @@ static void do_fill_brush_task(
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -479,7 +479,7 @@ static void do_scrape_brush_task(
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -595,7 +595,7 @@ static void do_clay_thumb_brush_task(Object *ob,
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -743,7 +743,7 @@ static void do_flatten_brush_task(
                                                                   sqrtf(test.dist),
                                                                   vd.no,
                                                                   vd.fno,
-                                                                  vd.mask ? *vd.mask : 0.0f,
+                                                                  vd.mask,
                                                                   vd.vertex,
                                                                   thread_id,
                                                                   &automask_data);
@@ -883,7 +883,7 @@ static void do_clay_brush_task(
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -1003,7 +1003,7 @@ static void do_clay_strips_brush_task(Object *ob,
                                                                 ss->cache->radius * test.dist,
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -1149,7 +1149,7 @@ static void do_snake_hook_brush_task(Object *ob,
                                                       sqrtf(test.dist),
                                                       vd.no,
                                                       vd.fno,
-                                                      vd.mask ? *vd.mask : 0.0f,
+                                                      vd.mask,
                                                       vd.vertex,
                                                       thread_id,
                                                       &automask_data);
@@ -1196,9 +1196,7 @@ static void do_snake_hook_brush_task(Object *ob,
       float disp[3];
       BKE_kelvinlet_grab_triscale(disp, &params, vd.co, ss->cache->location, proxy[vd.i]);
       mul_v3_fl(disp, bstrength * 20.0f);
-      if (vd.mask) {
-        mul_v3_fl(disp, 1.0f - *vd.mask);
-      }
+      mul_v3_fl(disp, 1.0f - vd.mask);
       mul_v3_fl(
           disp,
           SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex, &automask_data));
@@ -1280,7 +1278,7 @@ static void do_thumb_brush_task(Object *ob, const Brush *brush, const float *con
                                                                 sqrtf(test.dist),
                                                                 orig_data.no,
                                                                 nullptr,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -1351,7 +1349,7 @@ static void do_rotate_brush_task(Object *ob, const Brush *brush, const float ang
                                                                 sqrtf(test.dist),
                                                                 orig_data.no,
                                                                 nullptr,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -1418,7 +1416,7 @@ static void do_layer_brush_task(Object *ob, Sculpt *sd, const Brush *brush, PBVH
                                                     sqrtf(test.dist),
                                                     vd.no,
                                                     vd.fno,
-                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.mask,
                                                     vd.vertex,
                                                     thread_id,
                                                     &automask_data);
@@ -1454,13 +1452,8 @@ static void do_layer_brush_task(Object *ob, Sculpt *sd, const Brush *brush, PBVH
     else {
       (*disp_factor) += fade * bstrength * (1.05f - fabsf(*disp_factor));
     }
-    if (vd.mask) {
-      const float clamp_mask = 1.0f - *vd.mask;
-      *disp_factor = clamp_f(*disp_factor, -clamp_mask, clamp_mask);
-    }
-    else {
-      *disp_factor = clamp_f(*disp_factor, -1.0f, 1.0f);
-    }
+    const float clamp_mask = 1.0f - vd.mask;
+    *disp_factor = clamp_f(*disp_factor, -clamp_mask, clamp_mask);
 
     PBVH_CHECK_NAN1(*disp_factor);
 
@@ -1548,7 +1541,7 @@ static void do_inflate_brush_task(Object *ob, const Brush *brush, PBVHNode *node
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -1613,7 +1606,7 @@ static void do_nudge_brush_task(Object *ob, const Brush *brush, const float *con
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -1691,7 +1684,7 @@ static void do_crease_brush_task(Object *ob,
                                                     sqrtf(test.dist),
                                                     vd.no,
                                                     vd.fno,
-                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.mask,
                                                     vd.vertex,
                                                     thread_id,
                                                     &automask_data);
@@ -1803,7 +1796,7 @@ static void do_pinch_brush_task(Object *ob,
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -1918,7 +1911,7 @@ static void do_grab_brush_task(Object *ob,
                                                           sqrtf(test.dist),
                                                           orig_data.no,
                                                           nullptr,
-                                                          vd.mask ? *vd.mask : 0.0f,
+                                                          vd.mask,
                                                           vd.vertex,
                                                           thread_id,
                                                           &automask_data);
@@ -2034,9 +2027,7 @@ static void do_elastic_deform_brush_task(Object *ob,
         break;
     }
 
-    if (vd.mask) {
-      mul_v3_fl(final_disp, 1.0f - *vd.mask);
-    }
+    mul_v3_fl(final_disp, 1.0f - vd.mask);
 
     mul_v3_fl(
         final_disp,
@@ -2114,7 +2105,7 @@ static void do_draw_sharp_brush_task(Object *ob,
                                                     sqrtf(test.dist),
                                                     orig_data.no,
                                                     nullptr,
-                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.mask,
                                                     vd.vertex,
                                                     thread_id,
                                                     &automask_data);
@@ -2193,7 +2184,7 @@ static void do_topology_slide_task(Object *ob, const Brush *brush, PBVHNode *nod
                                                     sqrtf(test.dist),
                                                     orig_data.no,
                                                     nullptr,
-                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.mask,
                                                     vd.vertex,
                                                     thread_id,
                                                     &automask_data);
@@ -2370,7 +2361,7 @@ static void do_topology_relax_task(Object *ob, const Brush *brush, PBVHNode *nod
                                                                 sqrtf(test.dist),
                                                                 orig_data.no,
                                                                 nullptr,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -2473,7 +2464,7 @@ static void do_displacement_eraser_brush_task(Object *ob, const Brush *brush, PB
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -2539,7 +2530,7 @@ static void do_displacement_smear_brush_task(Object *ob, const Brush *brush, PBV
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -2739,7 +2730,7 @@ static void do_topology_rake_bmesh_task(Object *ob,
                                               sqrtf(test.dist),
                                               vd.no,
                                               vd.fno,
-                                              vd.mask ? *vd.mask : 0.0f,
+                                              vd.mask,
                                               vd.vertex,
                                               thread_id,
                                               &automask_data);
@@ -2855,7 +2846,10 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
 /** \name Sculpt Mask Brush
  * \{ */
 
-static void do_mask_brush_draw_task(Object *ob, const Brush *brush, PBVHNode *node)
+static void do_mask_brush_draw_task(Object *ob,
+                                    const Brush *brush,
+                                    const SculptMaskWriteInfo mask_write,
+                                    PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
   const float bstrength = ss->cache->bstrength;
@@ -2887,13 +2881,15 @@ static void do_mask_brush_draw_task(Object *ob, const Brush *brush, PBVHNode *no
                                                     thread_id,
                                                     &automask_data);
 
+    float mask = vd.mask;
     if (bstrength > 0.0f) {
-      (*vd.mask) += fade * bstrength * (1.0f - *vd.mask);
+      mask += fade * bstrength * (1.0f - vd.mask);
     }
     else {
-      (*vd.mask) += fade * bstrength * (*vd.mask);
+      mask += fade * bstrength * mask;
     }
-    *vd.mask = clamp_f(*vd.mask, 0.0f, 1.0f);
+    mask = clamp_f(mask, 0.0f, 1.0f);
+    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2902,9 +2898,10 @@ void SCULPT_do_mask_brush_draw(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   using namespace blender;
   const Brush *brush = BKE_paint_brush(&sd->paint);
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ob->sculpt);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_mask_brush_draw_task(ob, brush, nodes[i]);
+      do_mask_brush_draw_task(ob, brush, mask_write, nodes[i]);
     }
   });
 }

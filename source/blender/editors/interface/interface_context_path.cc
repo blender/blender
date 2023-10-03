@@ -8,7 +8,7 @@
 
 #include "BLI_vector.hh"
 
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "RNA_access.hh"
 

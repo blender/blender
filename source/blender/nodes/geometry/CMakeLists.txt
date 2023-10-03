@@ -16,6 +16,7 @@ set(INC
   ../../gpu
   ../../imbuf
   ../../makesrna
+  ../../modifiers
   ../../render
   ../../windowmanager
   ../../../../extern/fmtlib/include

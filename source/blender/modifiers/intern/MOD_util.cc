@@ -174,7 +174,7 @@ void MOD_get_vgroup(const Object *ob,
       *dvert = nullptr;
     }
   }
-  else {
+  else if (OB_TYPE_SUPPORT_VGROUP(ob->type)) {
     *defgrp_index = BKE_object_defgroup_name_index(ob, name);
     if (*defgrp_index != -1 && ob->type == OB_LATTICE) {
       *dvert = BKE_lattice_deform_verts_get(ob);
@@ -182,6 +182,10 @@ void MOD_get_vgroup(const Object *ob,
     else {
       *dvert = nullptr;
     }
+  }
+  else {
+    *defgrp_index = -1;
+    *dvert = nullptr;
   }
 }
 

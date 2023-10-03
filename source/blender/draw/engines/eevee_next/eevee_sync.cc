@@ -40,25 +40,24 @@ static void draw_data_init_cb(DrawData *dd)
 
 ObjectHandle &SyncModule::sync_object(Object *ob)
 {
-  DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
-  DrawData *dd = DRW_drawdata_ensure(
-      (ID *)ob, owner, sizeof(eevee::ObjectHandle), draw_data_init_cb, nullptr);
-  ObjectHandle &eevee_dd = *reinterpret_cast<ObjectHandle *>(dd);
+  ObjectKey key(ob);
 
-  if (eevee_dd.object_key.ob == nullptr) {
-    ob = DEG_get_original_object(ob);
-    eevee_dd.object_key = ObjectKey(ob);
-  }
+  ObjectHandle &handle = ob_handles.lookup_or_add_cb(key, [&]() {
+    ObjectHandle new_handle;
+    new_handle.object_key = key;
+    new_handle.recalc = ID_RECALC_ALL;
+    return new_handle;
+  });
+
+  handle.recalc |= ob->id.recalc;
 
   const int recalc_flags = ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_SHADING |
                            ID_RECALC_GEOMETRY;
-  if ((eevee_dd.recalc & recalc_flags) != 0) {
-    /** WARNING: Some objects are always created "on the fly" (ie. Geometry Nodes volumes),
-     * so this causes to redraw the sample 1 forever. */
+  if ((handle.recalc & recalc_flags) != 0) {
     inst_.sampling.reset();
   }
 
-  return eevee_dd;
+  return handle;
 }
 
 WorldHandle &SyncModule::sync_world(::World *world)
@@ -136,7 +135,7 @@ void SyncModule::sync_mesh(Object *ob,
 
   bool is_shadow_caster = false;
   bool is_alpha_blend = false;
-  bool do_probe_sync = inst_.do_probe_sync();
+  bool do_probe_sync = inst_.do_probe_sync() && !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP);
   for (auto i : material_array.gpu_materials.index_range()) {
     GPUBatch *geom = mat_geom[i];
     if (geom == nullptr) {
@@ -209,7 +208,7 @@ bool SyncModule::sync_sculpt(Object *ob,
 
   bool is_shadow_caster = false;
   bool is_alpha_blend = false;
-  bool do_probe_sync = inst_.do_probe_sync();
+  bool do_probe_sync = inst_.do_probe_sync() && !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP);
   for (SculptBatch &batch :
        sculpt_batches_per_material_get(ob_ref.object, material_array.gpu_materials))
   {
@@ -512,8 +511,8 @@ void foreach_hair_particle_handle(Object *ob, ObjectHandle ob_handle, HairHandle
         continue;
       }
 
-      ObjectHandle particle_sys_handle = {{nullptr}};
-      particle_sys_handle.object_key = ObjectKey(ob_handle.object_key.ob, sub_key++);
+      ObjectHandle particle_sys_handle = ob_handle;
+      particle_sys_handle.object_key = ObjectKey(ob, sub_key++);
       particle_sys_handle.recalc = particle_sys->recalc;
 
       callback(particle_sys_handle, *md, *particle_sys);

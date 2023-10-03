@@ -2746,7 +2746,7 @@ static uintptr_t tri_loopkey(
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
+bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMesh *bm = pbvh->header.bm;
 

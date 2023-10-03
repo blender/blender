@@ -50,7 +50,8 @@ void VKBackend::platform_init()
            GPU_BACKEND_VULKAN,
            "",
            "",
-           "");
+           "",
+           GPU_ARCHITECTURE_IMR);
 }
 
 void VKBackend::platform_init(const VKDevice &device)
@@ -72,7 +73,8 @@ void VKBackend::platform_init(const VKDevice &device)
            GPU_BACKEND_VULKAN,
            vendor_name.c_str(),
            properties.deviceName,
-           driver_version.c_str());
+           driver_version.c_str(),
+           GPU_ARCHITECTURE_IMR);
 }
 
 void VKBackend::detect_workarounds(VKDevice &device)

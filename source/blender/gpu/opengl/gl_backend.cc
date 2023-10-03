@@ -46,8 +46,6 @@ void GLBackend::platform_init()
 
 #ifdef _WIN32
   os = GPU_OS_WIN;
-#elif defined(__APPLE__)
-  os = GPU_OS_MAC;
 #else
   os = GPU_OS_UNIX;
 #endif
@@ -163,7 +161,15 @@ void GLBackend::platform_init()
     }
   }
 
-  GPG.init(device, os, driver, support_level, GPU_BACKEND_OPENGL, vendor, renderer, version);
+  GPG.init(device,
+           os,
+           driver,
+           support_level,
+           GPU_BACKEND_OPENGL,
+           vendor,
+           renderer,
+           version,
+           GPU_ARCHITECTURE_IMR);
 }
 
 void GLBackend::platform_exit()
@@ -263,6 +269,8 @@ static void detect_workarounds()
 
     /* Turn off vendor specific extensions. */
     GLContext::native_barycentric_support = false;
+    GLContext::framebuffer_fetch_support = false;
+    GLContext::texture_barrier_support = false;
 
     /* Do not alter OpenGL 4.3 features.
      * These code paths should be removed. */
@@ -353,17 +361,6 @@ static void detect_workarounds()
       GCaps.use_hq_normals_workaround = true;
     }
   }
-  /* There is an issue with the #glBlitFramebuffer on MacOS with radeon pro graphics.
-   * Blitting depth with#GL_DEPTH24_STENCIL8 is buggy so the workaround is to use
-   * #GPU_DEPTH32F_STENCIL8. Then Blitting depth will work but blitting stencil will
-   * still be broken. */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {
-    if (strstr(renderer, "AMD Radeon Pro") || strstr(renderer, "AMD Radeon R9") ||
-        strstr(renderer, "AMD Radeon RX"))
-    {
-      GCaps.depth_blitting_workaround = true;
-    }
-  }
   /* Limit this fix to older hardware with GL < 4.5. This means Broadwell GPUs are
    * covered since they only support GL 4.4 on windows.
    * This fixes some issues with workbench anti-aliasing on Win + Intel GPU. (see #76273) */
@@ -438,11 +435,6 @@ static void detect_workarounds()
     }
   }
 
-  /* Disable TF on macOS. */
-  if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY)) {
-    GCaps.transform_feedback_support = false;
-  }
-
   /* Some Intel drivers have issues with using mips as frame-buffer targets if
    * GL_TEXTURE_MAX_LEVEL is higher than the target MIP.
    * Only check at the end after all other workarounds because this uses the drawing code.
@@ -457,21 +449,6 @@ static void detect_workarounds()
   /* Enable our own incomplete debug layer if no other is available. */
   if (GLContext::debug_layer_support == false) {
     GLContext::debug_layer_workaround = true;
-  }
-
-  /* Broken glGenerateMipmap on macOS 10.15.7 security update. */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY) &&
-      strstr(renderer, "HD Graphics 4000"))
-  {
-    GLContext::generate_mipmap_workaround = true;
-  }
-
-  /* Certain Intel/AMD based platforms don't clear the viewport textures. Always clearing leads to
-   * noticeable performance regressions on other platforms as well. */
-  if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY) ||
-      GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
-  {
-    GCaps.clear_viewport_workaround = true;
   }
 
   /* There is an issue in AMD official driver where we cannot use multi bind when using images. AMD
@@ -502,6 +479,7 @@ bool GLContext::copy_image_support = false;
 bool GLContext::debug_layer_support = false;
 bool GLContext::direct_state_access_support = false;
 bool GLContext::explicit_location_support = false;
+bool GLContext::framebuffer_fetch_support = false;
 bool GLContext::geometry_shader_invocations = false;
 bool GLContext::fixed_restart_index_support = false;
 bool GLContext::layered_rendering_support = false;
@@ -511,6 +489,7 @@ bool GLContext::multi_bind_image_support = false;
 bool GLContext::multi_draw_indirect_support = false;
 bool GLContext::shader_draw_parameters_support = false;
 bool GLContext::stencil_texturing_support = false;
+bool GLContext::texture_barrier_support = false;
 bool GLContext::texture_cube_map_array_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
 bool GLContext::texture_gather_support = false;
@@ -539,14 +518,7 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_ELEMENTS_INDICES, &GCaps.max_batch_indices);
   glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, &GCaps.max_batch_vertices);
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &GCaps.max_vertex_attribs);
-  if (GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {
-    /* Due to a bug, querying GL_MAX_VARYING_FLOATS is emitting GL_INVALID_ENUM.
-     * Force use minimum required value. */
-    GCaps.max_varying_floats = 32;
-  }
-  else {
-    glGetIntegerv(GL_MAX_VARYING_FLOATS, &GCaps.max_varying_floats);
-  }
+  glGetIntegerv(GL_MAX_VARYING_FLOATS, &GCaps.max_varying_floats);
 
   glGetIntegerv(GL_NUM_EXTENSIONS, &GCaps.extensions_len);
   GCaps.extension_get = gl_extension_get;
@@ -601,6 +573,8 @@ void GLBackend::capabilities_init()
   GLContext::explicit_location_support = epoxy_gl_version() >= 43;
   GLContext::geometry_shader_invocations = epoxy_has_gl_extension("GL_ARB_gpu_shader5");
   GLContext::fixed_restart_index_support = epoxy_has_gl_extension("GL_ARB_ES3_compatibility");
+  GLContext::framebuffer_fetch_support = epoxy_has_gl_extension("GL_EXT_shader_framebuffer_fetch");
+  GLContext::texture_barrier_support = epoxy_has_gl_extension("GL_ARB_texture_barrier");
   GLContext::layered_rendering_support = epoxy_has_gl_extension(
       "GL_ARB_shader_viewport_layer_array");
   GLContext::native_barycentric_support = epoxy_has_gl_extension(
@@ -619,6 +593,9 @@ void GLBackend::capabilities_init()
   GLContext::texture_storage_support = epoxy_gl_version() >= 43;
   GLContext::vertex_attrib_binding_support = epoxy_has_gl_extension(
       "GL_ARB_vertex_attrib_binding");
+
+  /* Disabled until it is proven to work. */
+  GLContext::framebuffer_fetch_support = false;
 
   detect_workarounds();
 

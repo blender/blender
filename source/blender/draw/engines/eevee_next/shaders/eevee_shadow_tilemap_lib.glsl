@@ -206,16 +206,35 @@ vec3 shadow_punctual_local_position_to_face_local(int face_id, vec3 lL)
   }
 }
 
+/* Turns local light coordinate into shadow region index. Matches eCubeFace order.
+ * \note lL does not need to be normalized. */
+int shadow_punctual_face_index_get(vec3 lL)
+{
+  vec3 aP = abs(lL);
+  if (all(greaterThan(aP.xx, aP.yz))) {
+    return (lL.x > 0.0) ? 1 : 2;
+  }
+  else if (all(greaterThan(aP.yy, aP.xz))) {
+    return (lL.y > 0.0) ? 3 : 4;
+  }
+  else {
+    return (lL.z > 0.0) ? 5 : 0;
+  }
+}
+
 /**
  * \a lP shading point position in face local space (world unit).
  * \a face_id is the one used to rotate lP using shadow_punctual_local_position_to_face_local().
  */
 ShadowCoordinates shadow_punctual_coordinates(LightData light, vec3 lP, int face_id)
 {
+  float clip_near = intBitsToFloat(light.clip_near);
+  float clip_side = light.clip_side;
+
   ShadowCoordinates ret;
   ret.tilemap_index = light.tilemap_index + face_id;
   /* UVs in [-1..+1] range. */
-  ret.uv = lP.xy / abs(lP.z);
+  ret.uv = (lP.xy * clip_near) / abs(lP.z * clip_side);
   /* UVs in [0..SHADOW_TILEMAP_RES] range. */
   ret.uv = ret.uv * float(SHADOW_TILEMAP_RES / 2) + float(SHADOW_TILEMAP_RES / 2);
   /* Clamp to avoid out of tile-map access. */

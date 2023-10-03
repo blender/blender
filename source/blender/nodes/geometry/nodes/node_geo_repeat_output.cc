@@ -161,6 +161,7 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
   dst_storage->items_num = src_storage.items_num;
   dst_storage->active_index = src_storage.active_index;
   dst_storage->next_identifier = src_storage.next_identifier;
+  dst_storage->inspection_index = src_storage.inspection_index;
   for (const int i : IndexRange(src_storage.items_num)) {
     if (char *name = src_storage.items[i].name) {
       dst_storage->items[i].identifier = src_storage.items[i].identifier;

@@ -23,6 +23,11 @@ class VKPixelBuffer : public PixelBuffer {
   void unmap() override;
   int64_t get_native_handle() override;
   size_t get_size() override;
+
+  VKBuffer &buffer_get()
+  {
+    return buffer_;
+  }
 };
 
 }  // namespace blender::gpu

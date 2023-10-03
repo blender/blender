@@ -372,7 +372,7 @@ void SEQUENCER_OT_strip_modifier_equalizer_redefine(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Redefine equalizer graphs";
+  ot->name = "Redefine Equalizer Graphs";
   ot->idname = "SEQUENCER_OT_strip_modifier_equalizer_redefine";
   ot->description = "Redefine equalizer graphs";
 

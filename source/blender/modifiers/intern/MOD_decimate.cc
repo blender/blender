@@ -22,7 +22,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -31,6 +31,8 @@
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph_query.hh"
+
+#include "GEO_randomize.hh"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -206,6 +208,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
 
   BM_mesh_free(bm);
+
+  blender::geometry::debug_randomize_mesh_order(result);
 
 #ifdef USE_TIMEIT
   TIMEIT_END(decim);

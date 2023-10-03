@@ -355,8 +355,14 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
     scene->light_manager->tag_update(scene, LightManager::UPDATE_ALL);
   }
 
-  SamplingPattern sampling_pattern = (SamplingPattern)get_enum(
-      cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_TABULATED_SOBOL);
+  SamplingPattern sampling_pattern;
+  if (use_developer_ui) {
+    sampling_pattern = (SamplingPattern)get_enum(
+        cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_TABULATED_SOBOL);
+  }
+  else {
+    sampling_pattern = SAMPLING_PATTERN_TABULATED_SOBOL;
+  }
   integrator->set_sampling_pattern(sampling_pattern);
 
   int samples = 1;

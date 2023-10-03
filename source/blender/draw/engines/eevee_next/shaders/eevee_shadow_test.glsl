@@ -177,6 +177,7 @@ void main()
     coords = shadow_directional_coordinates(light, lP);
     EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2 - 1) + ivec2(-1, 0));
   }
+
   TEST(eevee_shadow, DirectionalCascadeCoordinates)
   {
     ShadowCoordinates coords;
@@ -300,113 +301,5 @@ void main()
 
     // coords = shadow_directional_coordinates(light, lP);
     // EXPECT_EQ(coords.tile_coord, ivec2(SHADOW_TILEMAP_RES / 2 - 1) + ivec2(-1, 0));
-  }
-
-  TEST(eevee_shadow, DirectionalSlopeBias)
-  {
-    float near = 0.0, far = 1.0;
-    LightData light;
-    light.type = LIGHT_SUN;
-    light.clip_near = floatBitsToInt(near);
-    light.clip_far = floatBitsToInt(far);
-    light.clipmap_lod_min = 0;
-    light._clipmap_origin_x = 0.0;
-    light._clipmap_origin_y = 0.0;
-
-    /* Position has no effect for directional. */
-    vec3 lP = vec3(0.0);
-    vec2 atlas_size = vec2(SHADOW_TILEMAP_RES);
-    {
-      vec3 lNg = vec3(0.0, 0.0, 1.0);
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 0), 0.0, 3e-7);
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 1), 0.0, 3e-7);
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 2), 0.0, 3e-7);
-    }
-    {
-      vec3 lNg = normalize(vec3(0.0, 1.0, 1.0));
-      float expect = 1.0 / (SHADOW_TILEMAP_RES * SHADOW_PAGE_RES);
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 0), expect, 3e-7);
-      EXPECT_NEAR(
-          shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 1), expect * 2.0, 3e-7);
-      EXPECT_NEAR(
-          shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 2), expect * 4.0, 3e-7);
-    }
-    {
-      vec3 lNg = normalize(vec3(1.0, 1.0, 1.0));
-      float expect = 2.0 / (SHADOW_TILEMAP_RES * SHADOW_PAGE_RES);
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 0), expect, 3e-7);
-      EXPECT_NEAR(
-          shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 1), expect * 2.0, 3e-7);
-      EXPECT_NEAR(
-          shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 2), expect * 4.0, 3e-7);
-    }
-    light.clipmap_lod_min = -1;
-    {
-      vec3 lNg = normalize(vec3(1.0, 1.0, 1.0));
-      float expect = 0.5 * (2.0 / (SHADOW_TILEMAP_RES * SHADOW_PAGE_RES));
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 0), expect, 3e-7);
-      EXPECT_NEAR(
-          shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 1), expect * 2.0, 3e-7);
-      EXPECT_NEAR(
-          shadow_slope_bias_get(atlas_size, light, lNg, lP, vec2(0.0), 2), expect * 4.0, 3e-7);
-    }
-  }
-
-  TEST(eevee_shadow, PunctualSlopeBias)
-  {
-    float near = 0.5, far = 1.0;
-    mat4 pers_mat = projection_perspective(-near, near, -near, near, near, far);
-    mat4 normal_mat = invert(transpose(pers_mat));
-
-    LightData light;
-    light.clip_near = floatBitsToInt(near);
-    light.clip_far = floatBitsToInt(far);
-    light.influence_radius_max = far;
-    light.type = LIGHT_SPOT;
-    light.normal_mat_packed.x = normal_mat[3][2];
-    light.normal_mat_packed.y = normal_mat[3][3];
-    light._clipmap_origin_x = 0.0;
-    light._clipmap_origin_y = 0.0;
-
-    vec2 atlas_size = vec2(SHADOW_TILEMAP_RES);
-    {
-      /* Simulate a "2D" plane crossing the frustum diagonally. */
-      vec3 lP0 = vec3(-1.0, 0.0, -1.0);
-      vec3 lP1 = vec3(0.5, 0.0, -0.5);
-      vec3 lTg = normalize(lP1 - lP0);
-      vec3 lNg = vec3(-lTg.z, 0.0, lTg.x);
-
-      float expect = 1.0 / (SHADOW_TILEMAP_RES * SHADOW_PAGE_RES);
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP0, vec2(0.0), 0), expect, 1e-4);
-      EXPECT_NEAR(
-          shadow_slope_bias_get(atlas_size, light, lNg, lP0, vec2(0.0), 1), expect * 2.0, 1e-4);
-      EXPECT_NEAR(
-          shadow_slope_bias_get(atlas_size, light, lNg, lP0, vec2(0.0), 2), expect * 4.0, 1e-4);
-    }
-    {
-      /* Simulate a "2D" plane crossing the near plane at the center diagonally. */
-      vec3 lP0 = vec3(-1.0, 0.0, -1.0);
-      vec3 lP1 = vec3(0.0, 0.0, -0.5);
-      vec3 lTg = normalize(lP1 - lP0);
-      vec3 lNg = vec3(-lTg.z, 0.0, lTg.x);
-
-      float expect = 2.0 / (SHADOW_TILEMAP_RES * SHADOW_PAGE_RES);
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP0, vec2(0.0), 0), expect, 1e-4);
-      EXPECT_NEAR(
-          shadow_slope_bias_get(atlas_size, light, lNg, lP0, vec2(0.0), 1), expect * 2.0, 1e-4);
-      EXPECT_NEAR(
-          shadow_slope_bias_get(atlas_size, light, lNg, lP0, vec2(0.0), 2), expect * 4.0, 1e-4);
-    }
-    {
-      /* Simulate a "2D" plane parallel to near clip plane. */
-      vec3 lP0 = vec3(-1.0, 0.0, -0.75);
-      vec3 lP1 = vec3(0.0, 0.0, -0.75);
-      vec3 lTg = normalize(lP1 - lP0);
-      vec3 lNg = vec3(-lTg.z, 0.0, lTg.x);
-
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP0, vec2(0.0), 0), 0.0, 1e-4);
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP0, vec2(0.0), 1), 0.0, 1e-4);
-      EXPECT_NEAR(shadow_slope_bias_get(atlas_size, light, lNg, lP0, vec2(0.0), 2), 0.0, 1e-4);
-    }
   }
 }

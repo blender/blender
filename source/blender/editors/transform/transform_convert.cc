@@ -36,6 +36,7 @@
 #include "ED_particle.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
+#include "ED_sequencer.hh"
 
 #include "UI_view2d.hh"
 
@@ -941,6 +942,9 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   if (t->spacetype == SPACE_SEQ) {
     if (t->options & CTX_SEQUENCER_IMAGE) {
       return &TransConvertType_SequencerImage;
+    }
+    if (sequencer_retiming_mode_is_active(t->context)) {
+      return &TransConvertType_SequencerRetiming;
     }
     return &TransConvertType_Sequencer;
   }

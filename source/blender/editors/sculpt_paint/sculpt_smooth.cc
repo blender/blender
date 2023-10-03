@@ -855,7 +855,7 @@ static void do_enhance_details_brush_task(Object *ob,
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -925,6 +925,7 @@ static void do_smooth_brush_task(Object *ob,
                                  const Brush *brush,
                                  const bool smooth_mask,
                                  const bool smooth_origco,
+                                 const SculptMaskWriteInfo mask_write,
                                  float bstrength,
                                  PBVHNode *node)
 {
@@ -938,10 +939,6 @@ static void do_smooth_brush_task(Object *ob,
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, brush->falloff_shape);
-
-  if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
-    BKE_pbvh_check_tri_areas(ss->pbvh, node);
-  }
 
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
   AutomaskingNodeData automask_data;
@@ -969,15 +966,18 @@ static void do_smooth_brush_task(Object *ob,
                                               sqrtf(test.dist),
                                               vd.no,
                                               vd.fno,
-                                              smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
+                                              smooth_mask ? 0.0f : vd.mask,
                                               vd.vertex,
                                               thread_id,
                                               &automask_data);
+
     if (smooth_mask) {
-      float val = SCULPT_neighbor_mask_average(ss, vd.vertex) - *vd.mask;
+      float val = SCULPT_neighbor_mask_average(ss, vd.vertex) - vd.mask;
       val *= fade * bstrength;
-      *vd.mask += val;
-      CLAMP(*vd.mask, 0.0f, 1.0f);
+      float new_mask = vd.mask + val;
+      CLAMP(new_mask, 0.0f, 1.0f);
+
+      SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, new_mask, vd);
     }
     else {
       float oldco[3];
@@ -1075,17 +1075,29 @@ void SCULPT_smooth(
     return;
   }
 
+  SculptMaskWriteInfo mask_write;
+  if (smooth_mask) {
+    mask_write = SCULPT_mask_get_for_write(ss);
+  }
+
   for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
 
     if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          BKE_pbvh_check_tri_areas(ss->pbvh, nodes[i]);
+        }
+      });
+
       BKE_pbvh_face_areas_begin(ss->pbvh);
     }
 
     bool smooth_origco = SCULPT_tool_needs_smooth_origco(brush->sculpt_tool);
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
-        do_smooth_brush_task(ob, sd, brush, smooth_mask, smooth_origco, strength, nodes[i]);
+        do_smooth_brush_task(
+            ob, sd, brush, smooth_mask, smooth_origco, mask_write, strength, nodes[i]);
       }
     });
   }
@@ -1206,7 +1218,7 @@ static void do_surface_smooth_brush_laplacian_task(Object *ob, const Brush *brus
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);
@@ -1250,7 +1262,7 @@ static void do_surface_smooth_brush_displace_task(Object *ob, const Brush *brush
                                                                 sqrtf(test.dist),
                                                                 vd.no,
                                                                 vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.mask,
                                                                 vd.vertex,
                                                                 thread_id,
                                                                 &automask_data);

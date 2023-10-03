@@ -14,7 +14,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "UI_string_search.hh"
 
@@ -95,6 +95,7 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
       NODE_INTERFACE_SOCKET_INPUT,
       nullptr);
   socket_iface->init_from_socket_instance(&params.socket);
+  params.node_tree.tree_interface.active_item_set(&socket_iface->item);
 
   bNode &group_input = params.add_node("NodeGroupInput");
 

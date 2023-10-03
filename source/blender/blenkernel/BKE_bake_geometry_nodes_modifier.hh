@@ -84,6 +84,10 @@ std::optional<BakePath> get_node_bake_path(const Main &bmain,
                                            const Object &object,
                                            const NodesModifierData &nmd,
                                            int node_id);
+std::optional<IndexRange> get_node_bake_frame_range(const Scene &scene,
+                                                    const Object &object,
+                                                    const NodesModifierData &nmd,
+                                                    int node_id);
 std::optional<std::string> get_modifier_bake_path(const Main &bmain,
                                                   const Object &object,
                                                   const NodesModifierData &nmd);

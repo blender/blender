@@ -42,7 +42,6 @@
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_bpath.h"
 #include "BKE_deform.h"
@@ -1134,11 +1133,7 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm,
 {
   Mesh *mesh = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
   BM_mesh_bm_to_me_for_eval(bm, mesh, cd_mask_extra);
-
-  if (me_settings) {
-    BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
-  }
-
+  BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
   return mesh;
 }
 

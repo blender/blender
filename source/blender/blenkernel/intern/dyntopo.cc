@@ -310,16 +310,6 @@ BLI_INLINE float calc_weighted_length(EdgeQueueContext *eq_ctx,
       return len > eq_ctx->limit_len_max_sqr ? len * w * w : len;
     }
     case COLLAPSE: {
-#if 0
-      if (eq_ctx->brush_tester->is_sphere_or_tube) {
-        BrushSphere *sphere = static_cast<BrushSphere *>(eq_ctx->brush_tester);
-
-        float l1 = len_v3v3(v1->co, sphere->center());
-        float l2 = len_v3v3(v2->co, sphere->center());
-        float l = min_ff(min_ff(l1, l2) / sphere->radius(), 1.0f);
-      }
-#endif
-
       return len < eq_ctx->limit_len_min_sqr ?
                  len + eq_ctx->limit_len_min_sqr * 1.0f * powf(w, 5.0) :
                  len;
@@ -362,6 +352,21 @@ void EdgeQueueContext::surface_smooth(BMVert *v, float fac)
 void EdgeQueueContext::insert_edge(BMEdge *e, float w)
 {
   if (!(e->head.hflag & EDGE_QUEUE_FLAG)) {
+    if (e->l) {
+      float len_sq = len_squared_v3v3(e->v1->co, e->v2->co);
+      float other_len = FLT_MAX;
+
+      BMLoop *l = e->l;
+      do {
+        other_len = min_ff(other_len, len_squared_v3v3(l->next->e->v1->co, l->next->e->v2->co));
+        other_len = min_ff(other_len, len_squared_v3v3(l->prev->e->v1->co, l->prev->e->v2->co));
+      } while ((l = l->radial_next) != e->l);
+
+      avg_elen += len_sq;
+      cross_elen += other_len;
+      totedge += 1.0f;
+    }
+
     edge_heap.insert(w, e);
     e->head.hflag |= EDGE_QUEUE_FLAG;
 
@@ -531,26 +536,6 @@ float dist_to_tri_sphere_simple(float p[3], float v1[3], float v2[3], float v3[3
 
   return dis;
 #endif
-}
-
-static bool skinny_bad_edge(BMEdge *e, const float limit = 4.0f)
-{
-  float len1 = len_v3v3(e->v1->co, e->v2->co);
-
-  BMLoop *l = e->l;
-  do {
-    float len2 = len_v3v3(l->next->v->co, l->next->next->v->co);
-    if (len1 > 0.0f && len2 / len1 > limit) {
-      return true;
-    }
-
-    len2 = len_v3v3(l->v->co, l->prev->v->co);
-    if (len1 > 0.0f && len2 / len1 > limit) {
-      return true;
-    }
-  } while ((l = l->radial_next) != e->l);
-
-  return false;
 }
 
 static void add_split_edge_recursive(
@@ -2102,20 +2087,31 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
     ops[1] = PBVH_Collapse;
     totop = 2;
 
-    steps[1] = DYNTOPO_MAX_ITER_COLLAPSE;
-    steps[0] = DYNTOPO_MAX_ITER_SUBD;
+    float len1 = avg_elen / totedge;
+    float len2 = cross_elen / totedge;
+
+    steps[0] = 1;
+    steps[1] = 1;
+
+    /* Prevent thrashing on long skinny faces. */
+    if (len2) {
+      float ratio = len1 / len2;
+
+      /* Increase subdivision steps. */
+      steps[0] = max_ii(min_ii(int(powf(ratio, 2.0f) * 10.0f), 500), 1);
+    }
   }
   else if (mode & PBVH_Subdivide) {
     ops[0] = PBVH_Subdivide;
     totop = 1;
 
-    steps[0] = DYNTOPO_MAX_ITER_SUBD;
+    steps[0] = 1;
   }
   else if (mode & PBVH_Collapse) {
     ops[0] = PBVH_Collapse;
     totop = 1;
 
-    steps[0] = DYNTOPO_MAX_ITER_COLLAPSE;
+    steps[0] = 1;
   }
 }
 
@@ -2385,7 +2381,6 @@ bool remesh_topology(BrushTester *brush_tester,
   /* Apply a time limit to avoid excessive hangs on pathological topology. */
 
   using Clock = std::chrono::high_resolution_clock;
-  using TimePoint = std::chrono::time_point<Clock, std::chrono::milliseconds>;
 
   quality *= quality;
   int time_limit = int(8.0f * (1.0f - quality) + 550.0f * quality);
@@ -2463,7 +2458,7 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
     int ni2 = BM_ELEM_CD_GET_INT(l->radial_next->f, pbvh->cd_face_node_offset);
 
     if (ni2 >= 0 && (ni2 >= pbvh->nodes.size() || !(pbvh->nodes[ni2].flag & PBVH_Leaf))) {
-      printf("%s: error: ni: %d totnode: %d\n", __func__, ni2, pbvh->nodes.size());
+      printf("%s: error: ni: %d totnode: %d\n", __func__, ni2, int(pbvh->nodes.size()));
       l = l->next;
       continue;
     }
@@ -3595,7 +3590,7 @@ static void interp_prop_data(
 void reproject_interp_data(CustomData *data,
                            const void **src_blocks,
                            const float *weights,
-                           const float *sub_weights,
+                           const float * /*sub_weights*/,
                            int count,
                            void *dst_block,
                            eCustomDataMask typemask)

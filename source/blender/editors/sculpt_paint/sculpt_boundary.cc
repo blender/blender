@@ -1015,7 +1015,7 @@ static void do_boundary_brush_circle_task(Object *ob, const Brush * /*brush*/, P
     float disp[3];
     sub_v3_v3v3(disp, target_circle_co, vd.co);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
-    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+    const float mask = 1.0f - vd.mask;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     madd_v3_v3v3fl(target_co,
@@ -1145,7 +1145,7 @@ static void do_boundary_brush_bend_task(Object *ob, const Brush * /*brush*/, PBV
       continue;
     }
 
-    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+    const float mask = 1.0f - vd.mask;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     float t_orig_co[3];
@@ -1194,7 +1194,7 @@ static void do_boundary_brush_slide_task(Object *ob, const Brush * /*brush*/, PB
       continue;
     }
 
-    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+    const float mask = 1.0f - vd.mask;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
@@ -1240,7 +1240,7 @@ static void do_boundary_brush_inflate_task(Object *ob, const Brush * /*brush*/, 
       continue;
     }
 
-    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+    const float mask = 1.0f - vd.mask;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     float normal[3];
@@ -1287,7 +1287,7 @@ static void do_boundary_brush_grab_task(Object *ob, const Brush * /*brush*/, PBV
       continue;
     }
 
-    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+    const float mask = 1.0f - vd.mask;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
@@ -1338,7 +1338,7 @@ static void do_boundary_brush_twist_task(Object *ob, const Brush * /*brush*/, PB
       continue;
     }
 
-    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+    const float mask = 1.0f - vd.mask;
     const float automask = SCULPT_automasking_factor_get(
         ss->cache->automasking, ss, vd.vertex, &automask_data);
     float t_orig_co[3];
@@ -1398,7 +1398,7 @@ static void do_boundary_brush_smooth_task(Object *ob, const Brush * /*brush*/, P
     }
     float disp[3];
     float avg[3];
-    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+    const float mask = 1.0f - vd.mask;
     mul_v3_v3fl(avg, coord_accum, 1.0f / total_neighbors);
     sub_v3_v3v3(disp, avg, vd.co);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
@@ -1581,7 +1581,7 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
         BKE_pbvh_vertex_iter_end;
 
         if (ok) {
-          SCULPT_ensure_dyntopo_node_undo(ob, node, SCULPT_UNDO_COORDS, -1);
+          SCULPT_ensure_dyntopo_node_undo(ob, node, SCULPT_UNDO_COORDS);
         }
       }
     }

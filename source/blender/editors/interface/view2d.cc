@@ -29,7 +29,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -1304,8 +1304,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  const uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
   /* Scaling the dots fully with the zoom looks too busy, but a bit of size variation is nice. */
   const float min_point_size = 2.0f * U.pixelsize;
@@ -1368,7 +1367,8 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
       continue;
     }
 
-    GPU_point_size(point_size_draw);
+    immUniform1f("size", point_size_draw);
+    immUniform4fv("color", color);
     immBegin(GPU_PRIM_POINTS, count_x * count_y);
 
     /* Theoretically drawing on top of lower grid levels could be avoided, but it would also
@@ -1377,7 +1377,6 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
       const float y = start_y + step * i_y;
       for (int i_x = 0; i_x < count_x; i_x++) {
         const float x = start_x + step * i_x;
-        immAttr4fv(color_id, color);
         immVertex2f(pos, x + point_size_offset, y + point_size_offset);
       }
     }

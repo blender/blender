@@ -6726,16 +6726,17 @@ void BumpNode::compile(SVMCompiler &compiler)
   ShaderOutput *normal_out = output("Normal");
 
   /* pack all parameters in the node */
-  compiler.add_node(NODE_SET_BUMP,
-                    compiler.encode_uchar4(compiler.stack_assign_if_linked(normal_in),
-                                           compiler.stack_assign(distance_in),
-                                           invert,
-                                           use_object_space),
-                    compiler.encode_uchar4(compiler.stack_assign(center_in),
-                                           compiler.stack_assign(dx_in),
-                                           compiler.stack_assign(dy_in),
-                                           compiler.stack_assign(strength_in)),
-                    compiler.stack_assign(normal_out));
+  compiler.add_node(
+      NODE_SET_BUMP,
+      compiler.encode_uchar4(compiler.stack_assign_if_linked(normal_in),
+                             compiler.stack_assign(distance_in),
+                             invert,
+                             use_object_space),
+      compiler.encode_uchar4(compiler.stack_assign(center_in),
+                             compiler.stack_assign(dx_in),
+                             compiler.stack_assign(dy_in),
+                             compiler.stack_assign(strength_in)),
+      compiler.encode_uchar4(compiler.stack_assign(normal_out), compiler.get_bump_state_offset()));
 }
 
 void BumpNode::compile(OSLCompiler &compiler)

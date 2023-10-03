@@ -222,7 +222,7 @@ vec3 sample_uniform_cone(vec3 rand, float angle, vec3 N, vec3 T, vec3 B)
 {
   vec3 tH = sample_uniform_cone(rand, angle);
   /* TODO: pdf? */
-  return tH * mat3(N, T, B);
+  return mat3(T, B, N) * tH;
 }
 
 /** \} */

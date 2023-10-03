@@ -118,20 +118,23 @@ typedef struct Strip {
   ColorManagedColorspaceSettings colorspace_settings;
 } Strip;
 
-typedef enum eSeqRetimingHandleFlag {
-  SPEED_TRANSITION = (1 << 0),
-  FREEZE_FRAME = (1 << 1),
-} eSeqRetimingHandleFlag;
+typedef enum eSeqRetimingKeyFlag {
+  SEQ_SPEED_TRANSITION_IN = (1 << 0),
+  SEQ_SPEED_TRANSITION_OUT = (1 << 1),
+  SEQ_FREEZE_FRAME_IN = (1 << 2),
+  SEQ_FREEZE_FRAME_OUT = (1 << 3),
+  SEQ_KEY_SELECTED = (1 << 4),
+} eSeqRetimingKeyFlag;
 
-typedef struct SeqRetimingHandle {
+typedef struct SeqRetimingKey {
   int strip_frame_index;
-  int flag; /* eSeqRetimingHandleFlag */
+  int flag; /* eSeqRetimingKeyFlag */
   int _pad0;
   float retiming_factor; /* Value between 0-1 mapped to original content range. */
 
-  int original_strip_frame_index; /* Used for transition handles only. */
-  float original_retiming_factor; /* Used for transition handles only. */
-} SeqRetimingHandle;
+  int original_strip_frame_index; /* Used for transition keys only. */
+  float original_retiming_factor; /* Used for transition keys only. */
+} SeqRetimingKey;
 
 typedef struct SequenceRuntime {
   SessionUUID session_uuid;
@@ -266,9 +269,9 @@ typedef struct Sequence {
   float media_playback_rate;
   float speed_factor;
 
-  struct SeqRetimingHandle *retiming_handles;
+  struct SeqRetimingKey *retiming_keys;
   void *_pad5;
-  int retiming_handle_num;
+  int retiming_keys_num;
   char _pad6[4];
 
   SequenceRuntime runtime;
@@ -609,7 +612,7 @@ enum {
   SEQ_IGNORE_CHANNEL_LOCK = (1 << 16),
   SEQ_AUTO_PLAYBACK_RATE = (1 << 17),
   SEQ_SINGLE_FRAME_CONTENT = (1 << 18),
-  SEQ_FLAG_UNUSED_19 = (1 << 19), /* cleared */
+  SEQ_SHOW_RETIMING = (1 << 19),
   SEQ_FLAG_UNUSED_21 = (1 << 21), /* cleared */
 
   SEQ_USE_EFFECT_DEFAULT_FADE = (1 << 22),

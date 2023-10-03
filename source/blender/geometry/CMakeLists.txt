@@ -30,6 +30,7 @@ set(SRC
   intern/mesh_to_volume.cc
   intern/point_merge_by_distance.cc
   intern/points_to_volume.cc
+  intern/randomize.cc
   intern/realize_instances.cc
   intern/resample_curves.cc
   intern/reverse_uv_sampler.cc
@@ -54,6 +55,7 @@ set(SRC
   GEO_mesh_to_volume.hh
   GEO_point_merge_by_distance.hh
   GEO_points_to_volume.hh
+  GEO_randomize.hh
   GEO_realize_instances.hh
   GEO_resample_curves.hh
   GEO_reverse_uv_sampler.hh

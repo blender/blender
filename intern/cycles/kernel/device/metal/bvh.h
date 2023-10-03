@@ -452,8 +452,8 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
     return false;
   }
 
-  if (is_null_intersection_function_table(metal_ancillaries->ift_default)) {
-    kernel_assert(!"Invalid ift_default");
+  if (is_null_intersection_function_table(metal_ancillaries->ift_volume)) {
+    kernel_assert(!"Invalid ift_volume");
     return false;
   }
 #  endif
@@ -479,11 +479,11 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
                                              metal_ancillaries->accel_struct,
                                              visibility,
                                              ray->time,
-                                             metal_ancillaries->ift_default,
+                                             metal_ancillaries->ift_volume,
                                              payload);
 #  else
   intersection = metalrt_intersect.intersect(
-      r, metal_ancillaries->accel_struct, visibility, metal_ancillaries->ift_default, payload);
+      r, metal_ancillaries->accel_struct, visibility, metal_ancillaries->ift_volume, payload);
 #  endif
 
   if (intersection.type == intersection_type::none) {

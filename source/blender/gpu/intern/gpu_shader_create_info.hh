@@ -208,6 +208,9 @@ enum class BuiltinBits {
    */
   VIEWPORT_INDEX = (1 << 17),
 
+  /* Texture atomics requires usage options to alter compilation flag. */
+  TEXTURE_ATOMIC = (1 << 18),
+
   /* Not a builtin but a flag we use to tag shaders that use the debug features. */
   USE_DEBUG_DRAW = (1 << 29),
   USE_DEBUG_PRINT = (1 << 30),

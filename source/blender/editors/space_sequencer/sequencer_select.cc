@@ -23,6 +23,7 @@
 #include "BKE_report.h"
 
 #include "WM_api.hh"
+#include "WM_toolsystem.h"
 #include "WM_types.hh"
 
 #include "RNA_define.hh"
@@ -30,6 +31,7 @@
 #include "SEQ_channels.h"
 #include "SEQ_iterator.h"
 #include "SEQ_relations.h"
+#include "SEQ_retiming.hh"
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
@@ -287,7 +289,7 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
   return nullptr;
 }
 
-Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[2])
+Sequence *find_nearest_seq(const Scene *scene, const View2D *v2d, int *hand, const int mval[2])
 {
   Sequence *seq;
   Editing *ed = SEQ_editing_get(scene);
@@ -440,6 +442,10 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
 
   if (sequencer_view_has_preview_poll(C) && !sequencer_view_preview_only_poll(C)) {
     return OPERATOR_CANCELLED;
+  }
+
+  if (sequencer_retiming_mode_is_active(C)) {
+    return sequencer_retiming_select_all_exec(C, op);
   }
 
   SeqCollection *strips = all_strips_from_context(C);
@@ -885,7 +891,7 @@ static void sequencer_select_strip_impl(const Editing *ed,
   }
 }
 
-static int sequencer_select_exec(bContext *C, wmOperator *op)
+int sequencer_select_exec(bContext *C, wmOperator *op)
 {
   View2D *v2d = UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_scene(C);
@@ -904,6 +910,10 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
     if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
       return OPERATOR_CANCELLED;
     }
+  }
+
+  if (sequencer_retiming_mode_is_active(C)) {
+    return sequencer_retiming_key_select_exec(C, op);
   }
 
   bool extend = RNA_boolean_get(op->ptr, "extend");
@@ -965,6 +975,29 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
    * All strips are deselected on mouse button release unless extend mode is used. */
   if (seq && element_already_selected(seq, handle_clicked) && wait_to_deselect_others && !toggle) {
     return OPERATOR_RUNNING_MODAL;
+  }
+
+  Sequence *seq_key_test = nullptr;
+  SeqRetimingKey *key = retiming_mousover_key_get(C, mval, &seq_key_test);
+
+  if (seq_key_test && SEQ_retiming_data_is_editable(seq_key_test) &&
+      !sequencer_retiming_mode_is_active(C))
+  {
+
+    /* Realize "fake" key, if it is clicked on. */
+    if (key == nullptr && seq_key_test != nullptr) {
+      key = try_to_realize_virtual_key(C, seq_key_test, mval);
+    }
+
+    bool retiming_key_clicked = (key != nullptr);
+
+    if (seq_key_test && retiming_key_clicked) {
+      WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+      ED_sequencer_deselect_all(scene);
+      SEQ_retiming_selection_clear(ed);
+      SEQ_retiming_selection_append(key);
+      return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+    }
   }
 
   bool changed = false;
@@ -1630,6 +1663,10 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 
   if (ed == nullptr) {
     return OPERATOR_CANCELLED;
+  }
+
+  if (sequencer_retiming_mode_is_active(C)) {
+    return sequencer_retiming_box_select_exec(C, op);
   }
 
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));

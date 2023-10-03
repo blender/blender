@@ -216,6 +216,8 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
         arg_desc_ift.index = index++;
         [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_shadow */
         arg_desc_ift.index = index++;
+        [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_volume */
+        arg_desc_ift.index = index++;
         [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_local */
         arg_desc_ift.index = index++;
         [ancillary_desc addObject:[arg_desc_ift copy]]; /* ift_local_prim */
@@ -347,8 +349,8 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
     case METAL_GPU_APPLE:
       global_defines += "#define __KERNEL_METAL_APPLE__\n";
 #  ifdef WITH_NANOVDB
-      /* Compiling in NanoVDB results in a marginal drop in render perf, so disable it for
-       * specialized PSOs when no textures are using it. */
+      /* Compiling in NanoVDB results in a marginal drop in render performance,
+       * so disable it for specialized PSOs when no textures are using it. */
       if ((pso_type == PSO_GENERIC || using_nanovdb) && DebugFlags().metal.use_nanovdb) {
         global_defines += "#define WITH_NANOVDB\n";
       }

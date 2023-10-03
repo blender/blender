@@ -746,12 +746,13 @@ void import_skeleton(Main *bmain,
   bool valid_skeleton = true;
   if (negative_determinant) {
     valid_skeleton = false;
-    WM_reportf(RPT_WARNING,
-               "USD Skeleton Import: bone matrices with negative determinants detected in prim %s."
-               "Such matrices may indicate negative scales, possibly due to mirroring operations, "
-               "and can't currently be converted to Blender's bone representation.  "
-               "The skeletal animation won't be imported",
-               skel.GetPath().GetAsString().c_str());
+    WM_reportf(
+        RPT_WARNING,
+        "USD Skeleton Import: bone matrices with negative determinants detected in prim %s. "
+        "Such matrices may indicate negative scales, possibly due to mirroring operations, "
+        "and can't currently be converted to Blender's bone representation. "
+        "The skeletal animation won't be imported",
+        skel.GetPath().GetAsString().c_str());
   }
 
   /* Set bone parenting.  In addition, scale bones to account
@@ -931,7 +932,7 @@ void import_mesh_skel_bindings(Main *bmain, Object *mesh_obj, const pxr::UsdPrim
 
   if (joint_indices.size() != joint_weights.size()) {
     WM_reportf(RPT_WARNING,
-               "%s: Joint weights and joint indices size mismatch size mismatch for prim %s",
+               "%s: Joint weights and joint indices size mismatch for prim %s",
                __func__,
                prim.GetPath().GetAsString().c_str());
     return;

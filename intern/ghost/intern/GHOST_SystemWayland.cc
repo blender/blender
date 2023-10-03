@@ -2537,7 +2537,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
       flist->count = int(uris.size());
       flist->strings = static_cast<uint8_t **>(malloc(uris.size() * sizeof(uint8_t *)));
       for (size_t i = 0; i < uris.size(); i++) {
-        flist->strings[i] = (uint8_t *)GHOST_URL_decode_alloc(uris[i].c_str());
+        flist->strings[i] = reinterpret_cast<uint8_t *>(GHOST_URL_decode_alloc(uris[i].c_str()));
       }
 
       CLOG_INFO(LOG, 2, "drop_read_uris_fn file_count=%d", flist->count);
@@ -3688,7 +3688,8 @@ static void tablet_seat_handle_tool_added(void *data,
   tablet_tool->wl.surface_cursor = wl_compositor_create_surface(seat->system->wl_compositor_get());
   ghost_wl_surface_tag_cursor_tablet(tablet_tool->wl.surface_cursor);
 
-  wl_surface_add_listener(tablet_tool->wl.surface_cursor, &cursor_surface_listener, (void *)seat);
+  wl_surface_add_listener(
+      tablet_tool->wl.surface_cursor, &cursor_surface_listener, static_cast<void *>(seat));
 
   zwp_tablet_tool_v2_add_listener(id, &tablet_tool_listner, tablet_tool);
 
@@ -5582,15 +5583,15 @@ static void gwl_display_event_thread_destroy(GWL_Display *display)
  * \{ */
 
 GHOST_SystemWayland::GHOST_SystemWayland(bool background)
-    : GHOST_System(), display_(new GWL_Display)
+    : GHOST_System(),
+#ifdef USE_EVENT_BACKGROUND_THREAD
+      server_mutex(new std::mutex),
+      timer_mutex(new std::mutex),
+      main_thread_id(std::this_thread::get_id()),
+#endif
+      display_(new GWL_Display)
 {
   wl_log_set_handler_client(ghost_wayland_log_handler);
-
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  server_mutex = new std::mutex;
-  timer_mutex = new std::mutex;
-  main_thread_id = std::this_thread::get_id();
-#endif
 
   display_->system = this;
   /* Connect to the Wayland server. */
@@ -6416,12 +6417,13 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
-  wl_surface *wl_surface = (struct wl_surface *)((GHOST_Context *)context)->getUserData();
+  wl_surface *wl_surface = static_cast<struct wl_surface *>(
+      (static_cast<GHOST_Context *>(context))->getUserData());
   /* Delete the context before the window so the context is able to release
    * native resources (such as the #EGLSurface) before WAYLAND frees them. */
   delete context;
 
-  wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
+  wl_egl_window *egl_window = static_cast<wl_egl_window *>(wl_surface_get_user_data(wl_surface));
   if (egl_window != nullptr) {
     wl_egl_window_destroy(egl_window);
   }
@@ -6811,7 +6813,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_bitmap_get(GHOST_CursorBitmapRef *bit
   bitmap->hot_spot[0] = cursor->wl.image.hotspot_x;
   bitmap->hot_spot[1] = cursor->wl.image.hotspot_y;
 
-  bitmap->data = (uint8_t *)static_cast<void *>(cursor->custom_data);
+  bitmap->data = static_cast<uint8_t *>(cursor->custom_data);
 
   return GHOST_kSuccess;
 }
@@ -6923,12 +6925,14 @@ static const char *ghost_wl_surface_cursor_tablet_tag_id = "GHOST-cursor-tablet"
 
 bool ghost_wl_output_own(const wl_output *wl_output)
 {
-  return wl_proxy_get_tag((wl_proxy *)wl_output) == &ghost_wl_output_tag_id;
+  const wl_proxy *proxy = reinterpret_cast<const wl_proxy *>(wl_output);
+  return wl_proxy_get_tag(const_cast<wl_proxy *>(proxy)) == &ghost_wl_output_tag_id;
 }
 
 bool ghost_wl_surface_own(const wl_surface *wl_surface)
 {
-  return wl_proxy_get_tag((wl_proxy *)wl_surface) == &ghost_wl_surface_tag_id;
+  const wl_proxy *proxy = reinterpret_cast<const wl_proxy *>(wl_surface);
+  return wl_proxy_get_tag(const_cast<wl_proxy *>(proxy)) == &ghost_wl_surface_tag_id;
 }
 
 bool ghost_wl_surface_own_with_null_check(const wl_surface *wl_surface)
@@ -6938,32 +6942,39 @@ bool ghost_wl_surface_own_with_null_check(const wl_surface *wl_surface)
 
 bool ghost_wl_surface_own_cursor_pointer(const wl_surface *wl_surface)
 {
-  return wl_proxy_get_tag((wl_proxy *)wl_surface) == &ghost_wl_surface_cursor_pointer_tag_id;
+  const wl_proxy *proxy = reinterpret_cast<const wl_proxy *>(wl_surface);
+  return wl_proxy_get_tag(const_cast<wl_proxy *>(proxy)) ==
+         &ghost_wl_surface_cursor_pointer_tag_id;
 }
 
 bool ghost_wl_surface_own_cursor_tablet(const wl_surface *wl_surface)
 {
-  return wl_proxy_get_tag((wl_proxy *)wl_surface) == &ghost_wl_surface_cursor_tablet_tag_id;
+  const wl_proxy *proxy = reinterpret_cast<const wl_proxy *>(wl_surface);
+  return wl_proxy_get_tag(const_cast<wl_proxy *>(proxy)) == &ghost_wl_surface_cursor_tablet_tag_id;
 }
 
 void ghost_wl_output_tag(wl_output *wl_output)
 {
-  wl_proxy_set_tag((wl_proxy *)wl_output, &ghost_wl_output_tag_id);
+  wl_proxy *proxy = reinterpret_cast<wl_proxy *>(wl_output);
+  wl_proxy_set_tag(proxy, &ghost_wl_output_tag_id);
 }
 
 void ghost_wl_surface_tag(wl_surface *wl_surface)
 {
-  wl_proxy_set_tag((wl_proxy *)wl_surface, &ghost_wl_surface_tag_id);
+  wl_proxy *proxy = reinterpret_cast<wl_proxy *>(wl_surface);
+  wl_proxy_set_tag(proxy, &ghost_wl_surface_tag_id);
 }
 
 void ghost_wl_surface_tag_cursor_pointer(wl_surface *wl_surface)
 {
-  wl_proxy_set_tag((wl_proxy *)wl_surface, &ghost_wl_surface_cursor_pointer_tag_id);
+  wl_proxy *proxy = reinterpret_cast<wl_proxy *>(wl_surface);
+  wl_proxy_set_tag(proxy, &ghost_wl_surface_cursor_pointer_tag_id);
 }
 
 void ghost_wl_surface_tag_cursor_tablet(wl_surface *wl_surface)
 {
-  wl_proxy_set_tag((wl_proxy *)wl_surface, &ghost_wl_surface_cursor_tablet_tag_id);
+  wl_proxy *proxy = reinterpret_cast<wl_proxy *>(wl_surface);
+  wl_proxy_set_tag(proxy, &ghost_wl_surface_cursor_tablet_tag_id);
 }
 
 /** \} */
@@ -7357,10 +7368,11 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   if (mode != GHOST_kGrabDisable) {
     if (grab_state_next.use_lock) {
       if (!grab_state_prev.use_lock) {
-        /* TODO(@ideasman42): As WAYLAND does not support warping the pointer it may not be
-         * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
-         * An alternative could be to draw the cursor in software (and hide the real cursor),
-         * or just accept a locked cursor on WAYLAND. */
+        /* As WAYLAND does not support setting the cursor coordinates programmatically,
+         * #GHOST_kGrabWrap cannot be supported by positioning the cursor directly.
+         * Instead the cursor is locked in place, using a software cursor that is warped.
+         * Then WAYLAND's #zwp_locked_pointer_v1_set_cursor_position_hint is used to restore
+         * the cursor to the warped location. */
         seat->wp.relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
             display_->wp.relative_pointer_manager, seat->wl.pointer);
         zwp_relative_pointer_v1_add_listener(

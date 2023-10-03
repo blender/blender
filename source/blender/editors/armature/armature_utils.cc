@@ -519,6 +519,7 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
     eBone->bbone_prev_type = curBone->bbone_prev_type;
     eBone->bbone_next_type = curBone->bbone_next_type;
 
+    eBone->bbone_mapping_mode = eBone_BBoneMappingMode(curBone->bbone_mapping_mode);
     eBone->bbone_flag = curBone->bbone_flag;
     eBone->bbone_prev_flag = curBone->bbone_prev_flag;
     eBone->bbone_next_flag = curBone->bbone_next_flag;
@@ -733,6 +734,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone->bbone_prev_type = eBone->bbone_prev_type;
     newBone->bbone_next_type = eBone->bbone_next_type;
 
+    newBone->bbone_mapping_mode = eBone->bbone_mapping_mode;
     newBone->bbone_flag = eBone->bbone_flag;
     newBone->bbone_prev_flag = eBone->bbone_prev_flag;
     newBone->bbone_next_flag = eBone->bbone_next_flag;

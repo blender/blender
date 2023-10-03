@@ -102,7 +102,7 @@ static bool vert_is_nonmanifold(BMVert *v)
 
 template<typename T, typename SumT = T>
 static void snap_corner_data(
-    BMesh *bm, BMEdge *e, BMVert *v_del, Span<BMLoop *> ls, int cd_offset, bool snap_midpoint)
+    BMesh * /*bm*/, BMEdge *e, BMVert *v_del, Span<BMLoop *> ls, int cd_offset, bool snap_midpoint)
 {
   using namespace blender;
 
@@ -234,8 +234,22 @@ static void snap_corner_data(
     SumT min = {}, max = {};
 
     for (int i = 0; i < SumT::type_length; i++) {
-      min[i] = FLT_MAX;
-      max[i] = FLT_MIN;
+      if constexpr (std::is_same_v<typename SumT::base_type, char>) {
+        min[i] = 255;
+        max[i] = 0;
+      }
+      else if constexpr (std::is_same_v<typename SumT::base_type, short>) {
+        min[i] = INT16_MAX;
+        max[i] = INT16_MIN;
+      }
+      else if constexpr (std::is_same_v<typename SumT::base_type, int>) {
+        min[i] = INT32_MAX;
+        max[i] = INT32_MIN;
+      }
+      else if constexpr (std::is_same_v<typename SumT::base_type, float>) {
+        min[i] = FLT_MAX;
+        max[i] = FLT_MIN;
+      }
     }
 
     for (int i : blocks[set].index_range()) {
@@ -528,6 +542,8 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
   pbvh_check_vert_boundary_bmesh(pbvh, v1);
   pbvh_check_vert_boundary_bmesh(pbvh, v2);
 
+  pbvh_check_edge_boundary_bmesh(pbvh, e);
+
   int boundflag1 = BM_ELEM_CD_GET_INT(v1, pbvh->cd_boundary_flag);
   int boundflag2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_boundary_flag);
   int e_boundflag = BM_ELEM_CD_GET_INT(e, pbvh->cd_edge_boundary);
@@ -537,7 +553,11 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
     return nullptr;
   }
 
-  if ((boundflag1 & SCULPTVERT_ALL_BOUNDARY) != (e_boundflag & SCULPTVERT_ALL_BOUNDARY)) {
+  /* TODO: Sharp angle flags aren't always matching between
+   * verts and edges, investigate.
+   */
+  int edge_comp_flag = SCULPTVERT_ALL_BOUNDARY & ~SCULPT_BOUNDARY_SHARP_ANGLE;
+  if ((boundflag1 & edge_comp_flag) != (e_boundflag & edge_comp_flag)) {
     return nullptr;
   }
 

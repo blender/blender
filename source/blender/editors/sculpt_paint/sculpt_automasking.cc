@@ -82,7 +82,7 @@ bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd,
   return (eAutomasking_flag)automasking & mode;
 }
 
-bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br)
+bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession * /*ss*/, const Brush *br)
 {
   if (SCULPT_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_TOPOLOGY)) {
     return true;
@@ -258,7 +258,7 @@ static float automasking_view_normal_factor(AutomaskingCache *automasking,
                                         automask_data);
 }
 
-static float automasking_view_occlusion_factor(AutomaskingCache *automasking,
+static float automasking_view_occlusion_factor(AutomaskingCache * /*automasking*/,
                                                SculptSession *ss,
                                                PBVHVertRef vertex,
                                                AutomaskingNodeData * /*automask_data*/,
@@ -277,7 +277,7 @@ static float automasking_view_occlusion_factor(AutomaskingCache *automasking,
 
 /* Updates vertex stroke id. */
 static float automasking_factor_end(SculptSession *ss,
-                                    AutomaskingCache *automasking,
+                                    AutomaskingCache * /*automasking*/,
                                     PBVHVertRef vertex,
                                     float value)
 {
@@ -595,7 +595,9 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
   return automasking_factor_end(ss, automasking, vert, mask);
 }
 
-void SCULPT_automasking_cache_free(SculptSession *ss, Object *ob, AutomaskingCache *automasking)
+void SCULPT_automasking_cache_free(SculptSession * /*ss*/,
+                                   Object * /*ob*/,
+                                   AutomaskingCache *automasking)
 {
   if (!automasking) {
     return;
@@ -642,7 +644,7 @@ static void SCULPT_topology_automasking_init(Sculpt *sd, Object *ob)
   SCULPT_floodfill_init(ss, &flood);
   const float radius = ss->cache ? ss->cache->radius : FLT_MAX;
   SCULPT_floodfill_add_active(sd, ob, ss, &flood, radius);
-
+  
   AutomaskFloodFillData fdata = {0};
 
   fdata.radius = radius;

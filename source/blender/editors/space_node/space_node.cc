@@ -32,7 +32,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "ED_node.hh"
 #include "ED_node_preview.hh"
@@ -245,6 +245,52 @@ float2 space_node_group_offset(const SpaceNode &snode)
   return float2(0);
 }
 
+static const bNode *group_node_by_name(const bNodeTree &ntree, StringRef name)
+{
+  for (const bNode *node : ntree.group_nodes()) {
+    if (node->name == name) {
+      return node;
+    }
+  }
+  return nullptr;
+}
+
+std::optional<int32_t> find_nested_node_id_in_root(const SpaceNode &snode, const bNode &query_node)
+{
+  BLI_assert(snode.edittree->runtime->nodes_by_id.contains(const_cast<bNode *>(&query_node)));
+
+  std::optional<int32_t> id_in_node;
+  const char *group_node_name = nullptr;
+  const bNode *node = &query_node;
+  LISTBASE_FOREACH_BACKWARD (const bNodeTreePath *, path, &snode.treepath) {
+    const bNodeTree *ntree = path->nodetree;
+    if (group_node_name) {
+      node = group_node_by_name(*ntree, group_node_name);
+    }
+    bool found = false;
+    for (const bNestedNodeRef &ref : ntree->nested_node_refs_span()) {
+      if (node->is_group()) {
+        if (ref.path.node_id == node->identifier && ref.path.id_in_node == id_in_node) {
+          group_node_name = path->node_name;
+          id_in_node = ref.id;
+          found = true;
+          break;
+        }
+      }
+      else if (ref.path.node_id == node->identifier) {
+        group_node_name = path->node_name;
+        id_in_node = ref.id;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return std::nullopt;
+    }
+  }
+  return id_in_node;
+}
+
 std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &snode)
 {
   if (snode.id == nullptr) {
@@ -317,10 +363,10 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
           break;
         }
         case GEO_NODE_REPEAT_OUTPUT: {
-          /* Only show data from the first iteration for now. */
-          const int repeat_iteration = 0;
+          const auto &storage = *static_cast<const NodeGeometryRepeatOutput *>(
+              zone->output_node->storage);
           compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone->output_node,
-                                                                      repeat_iteration);
+                                                                      storage.inspection_index);
           break;
         }
       }
@@ -1206,6 +1252,8 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
     }
   }
+
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->geometry_nodes_tool_tree, IDWALK_CB_USER_ONE);
 
   /* Both `snode->id` and `snode->nodetree` have been remapped now, so their data can be
    * accessed. */

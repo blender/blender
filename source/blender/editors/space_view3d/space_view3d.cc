@@ -49,7 +49,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_viewer_path.h"
 #include "BKE_workspace.h"
 
@@ -1626,6 +1626,11 @@ static void view3d_header_region_listener(const wmRegionListenerParams *params)
           blender::ed::geometry::clear_operator_asset_trees();
           ED_region_tag_redraw(region);
           break;
+        default:
+          if (ELEM(wmn->action, NA_ADDED, NA_REMOVED)) {
+            blender::ed::geometry::clear_operator_asset_trees();
+            ED_region_tag_redraw(region);
+          }
       }
       break;
     case NC_NODE:
@@ -1960,6 +1965,16 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels_ex(C, region, contexts);
 }
 
+static void view3d_tools_header_region_draw(const bContext *C, ARegion *region)
+{
+  ED_region_header_with_button_sections(
+      C,
+      region,
+      (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) ?
+          uiButtonSectionsAlign::Top :
+          uiButtonSectionsAlign::Bottom);
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
 {
@@ -2263,7 +2278,7 @@ void ED_spacetype_view3d()
   art->listener = view3d_header_region_listener;
   art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_header;
   art->init = view3d_header_region_init;
-  art->draw = view3d_header_region_draw;
+  art->draw = view3d_tools_header_region_draw;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */

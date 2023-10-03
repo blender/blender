@@ -31,7 +31,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
@@ -5928,10 +5928,7 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout)
   }
   if (mt->listener) {
     /* Forward the menu type listener to the block we're drawing in. */
-    uiBlockDynamicListener *listener = static_cast<uiBlockDynamicListener *>(
-        MEM_mallocN(sizeof(*listener), __func__));
-    listener->listener_func = mt->listener;
-    BLI_addtail(&block->dynamic_listeners, listener);
+    ui_block_add_dynamic_listener(block, mt->listener);
   }
 
   if (layout->context) {
@@ -5972,6 +5969,10 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
   Panel *panel = MEM_cnew<Panel>(__func__);
   panel->type = pt;
   panel->flag = PNL_POPOVER;
+
+  if (pt->listener) {
+    ui_block_add_dynamic_listener(uiLayoutGetBlock(layout), pt->listener);
+  }
 
   uiLayout *last_item = static_cast<uiLayout *>(layout->items.last);
 

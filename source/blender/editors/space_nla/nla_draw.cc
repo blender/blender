@@ -27,7 +27,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_draw.hh"
@@ -889,6 +889,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
               float r_start;
               float r_end;
               BKE_action_frame_range_get(static_cast<bAction *>(ale->data), &r_start, &r_end);
+              BKE_nla_clip_length_ensure_nonzero(&r_start, &r_end);
 
               immRectf(pos, r_end, ymin + NLACHANNEL_SKIP, v2d->cur.xmax, ymax - NLACHANNEL_SKIP);
               break;

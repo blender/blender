@@ -22,6 +22,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "GEO_randomize.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_distribute_points_in_volume_cc {
@@ -252,6 +254,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     point_radii.span.fill(0.05f);
     point_radii.finish();
+
+    geometry::debug_randomize_point_order(pointcloud);
 
     geometry_set.replace_pointcloud(pointcloud);
     geometry_set.keep_only_during_modify({GeometryComponent::Type::PointCloud});

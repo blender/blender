@@ -32,6 +32,8 @@ class VKShaderInterface : public ShaderInterface {
 
   VKPushConstants::Layout push_constants_layout_;
 
+  shader::BuiltinBits shader_builtins_;
+
  public:
   VKShaderInterface() = default;
 
@@ -51,6 +53,11 @@ class VKShaderInterface : public ShaderInterface {
   shader::Type get_attribute_type(int location) const
   {
     return static_cast<shader::Type>(attr_types_[location]);
+  }
+
+  bool is_point_shader() const
+  {
+    return (shader_builtins_ & shader::BuiltinBits::POINT_SIZE) == shader::BuiltinBits::POINT_SIZE;
   }
 
  private:

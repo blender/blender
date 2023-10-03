@@ -29,13 +29,19 @@ ccl_device_inline int svm_node_closure_bsdf_skip(KernelGlobals kg, int offset, u
 }
 
 template<uint node_feature_mask, ShaderType shader_type>
-ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
-                                              ccl_private ShaderData *sd,
-                                              ccl_private float *stack,
-                                              Spectrum closure_weight,
-                                              uint4 node,
-                                              uint32_t path_flag,
-                                              int offset)
+#ifndef __KERNEL_ONEAPI__
+ccl_device_noinline
+#else
+ccl_device
+#endif
+    int
+    svm_node_closure_bsdf(KernelGlobals kg,
+                          ccl_private ShaderData *sd,
+                          ccl_private float *stack,
+                          Spectrum closure_weight,
+                          uint4 node,
+                          uint32_t path_flag,
+                          int offset)
 {
   uint type, param1_offset, param2_offset;
 
@@ -301,7 +307,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
           bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
           bsdf->ior = (sd->flag & SD_BACKFACING) ? 1.0f / ior : ior;
 
-          fresnel->f0 = make_float3(F0_from_ior(ior));
+          fresnel->f0 = make_float3(F0_from_ior(ior)) * specular_tint;
           fresnel->f90 = one_spectrum();
           fresnel->exponent = -ior;
           fresnel->reflection_tint = one_spectrum();

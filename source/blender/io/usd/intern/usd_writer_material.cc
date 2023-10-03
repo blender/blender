@@ -744,7 +744,7 @@ static void copy_tiled_textures(Image *ima,
     /* Copy the file. */
     if (BLI_copy(src_tile_path, dest_tile_path) != 0) {
       WM_reportf(RPT_WARNING,
-                 "USD export:  couldn't copy texture tile from %s to %s",
+                 "USD export: could not copy texture tile from %s to %s",
                  src_tile_path,
                  dest_tile_path);
     }
@@ -778,7 +778,7 @@ static void copy_single_file(Image *ima, const std::string &dest_dir, const bool
   /* Copy the file. */
   if (BLI_copy(source_path, dest_path) != 0) {
     WM_reportf(
-        RPT_WARNING, "USD export:  couldn't copy texture from %s to %s", source_path, dest_path);
+        RPT_WARNING, "USD export: could not copy texture from %s to %s", source_path, dest_path);
   }
 }
 

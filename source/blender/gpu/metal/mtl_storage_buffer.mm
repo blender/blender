@@ -107,7 +107,8 @@ void MTLStorageBuf::init()
   BLI_assert(ctx->device);
   UNUSED_VARS_NDEBUG(ctx);
 
-  metal_buffer_ = MTLContext::get_global_memory_manager()->allocate(size_in_bytes_, true);
+  metal_buffer_ = MTLContext::get_global_memory_manager()->allocate(
+      size_in_bytes_, (usage_ == GPU_USAGE_DEVICE_ONLY) ? false : true);
 
 #ifndef NDEBUG
   metal_buffer_->set_label([NSString stringWithFormat:@"Storage Buffer %s", name_]);
@@ -125,20 +126,62 @@ void MTLStorageBuf::update(const void *data)
     return;
   }
 
+  /* For device-only Storage buffers, update private resource via staging buffer in command
+   * stream. */
+  bool device_only = (usage_ == GPU_USAGE_DEVICE_ONLY);
+  bool do_upload_data = (data != nullptr);
+
+  /* If host-visible, upload data to new buffer, as previous data may still be in-use by executing
+   * GPU commands. */
+  if (!device_only && do_upload_data) {
+    if (metal_buffer_ != nullptr) {
+      metal_buffer_->free();
+      metal_buffer_ = nullptr;
+    }
+  }
+
   /* Ensure buffer has been allocated. */
   if (metal_buffer_ == nullptr) {
     init();
   }
 
-  BLI_assert(data != nullptr);
-  if (data != nullptr) {
-    /* Upload data. */
-    BLI_assert(data != nullptr);
-    BLI_assert(!(metal_buffer_->get_resource_options() & MTLResourceStorageModePrivate));
-    BLI_assert(size_in_bytes_ <= metal_buffer_->get_size());
-    BLI_assert(size_in_bytes_ <= [metal_buffer_->get_metal_buffer() length]);
-    memcpy(metal_buffer_->get_host_ptr(), data, size_in_bytes_);
-    metal_buffer_->flush_range(0, size_in_bytes_);
+  BLI_assert(do_upload_data);
+  if (do_upload_data) {
+    if (device_only) {
+
+      /* Fetch active context. */
+      MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+      BLI_assert(ctx);
+
+      /* Prepare staging buffer. */
+      gpu::MTLBuffer *staging_buf = MTLContext::get_global_memory_manager()->allocate(
+          size_in_bytes_, true);
+      memcpy(staging_buf->get_host_ptr(), data, size_in_bytes_);
+      staging_buf->flush_range(0, size_in_bytes_);
+      id<MTLBuffer> staging_buf_mtl = staging_buf->get_metal_buffer();
+      BLI_assert(staging_buf_mtl != nil);
+
+      /* Ensure destination buffer. */
+      id<MTLBuffer> dst_buf = this->metal_buffer_->get_metal_buffer();
+      BLI_assert(dst_buf != nil);
+
+      id<MTLBlitCommandEncoder> blit_encoder =
+          ctx->main_command_buffer.ensure_begin_blit_encoder();
+      [blit_encoder copyFromBuffer:staging_buf_mtl
+                      sourceOffset:0
+                          toBuffer:dst_buf
+                 destinationOffset:0
+                              size:size_in_bytes_];
+    }
+    else {
+      /* Upload data. */
+      BLI_assert(data != nullptr);
+      BLI_assert(!(metal_buffer_->get_resource_options() & MTLResourceStorageModePrivate));
+      BLI_assert(size_in_bytes_ <= metal_buffer_->get_size());
+      BLI_assert(size_in_bytes_ <= [metal_buffer_->get_metal_buffer() length]);
+      memcpy(metal_buffer_->get_host_ptr(), data, size_in_bytes_);
+      metal_buffer_->flush_range(0, size_in_bytes_);
+    }
     has_data_ = true;
   }
 }
@@ -298,9 +341,6 @@ void MTLStorageBuf::read(void *data)
     [blit_encoder synchronizeResource:metal_buffer_->get_metal_buffer()];
   }
 
-  /* Ensure sync has occurred. */
-  GPU_finish();
-
   /* Read data. NOTE: Unless explicitly synchronized with GPU work, results may not be ready. */
   memcpy(data, metal_buffer_->get_host_ptr(), size_in_bytes_);
 }
@@ -312,14 +352,17 @@ id<MTLBuffer> MTLStorageBuf::get_metal_buffer()
   switch (storage_source_) {
     /* Default SSBO buffer comes from own allocation. */
     case MTL_STORAGE_BUF_TYPE_DEFAULT: {
-      if (metal_buffer_ == nullptr) {
-        this->init();
-      }
-
-      if (data_ != nullptr) {
-        this->update(data_);
-        MEM_SAFE_FREE(data_);
-      }
+      /* NOTE: We should always ensure that the data is primed prior to requiring fetching of the
+       * buffer. If get_metal_buffer is called during a resource bind phase, invoking a blit
+       * command encoder to upload data would override the active encoder state being prepared.
+       * Resource generation and data upload should happen earlier as a resource is bound. */
+      BLI_assert_msg(metal_buffer_ != nullptr,
+                     "Storage Buffer backing resource does not yet exist. Ensure the resource is "
+                     "bound with data before the calling code requires its underlying MTLBuffer.");
+      BLI_assert_msg(
+          data_ == nullptr,
+          "Storage Buffer backing resource data has not yet been uploaded. Ensure the resource is "
+          "bound with data before the calling code requires its underlying MTLBuffer.");
       source_buffer = metal_buffer_;
     } break;
     /* SSBO buffer comes from Uniform Buffer. */

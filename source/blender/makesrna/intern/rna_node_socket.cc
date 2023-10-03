@@ -42,6 +42,7 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 #  include "DNA_material_types.h"
 
 #  include "BKE_node.h"
+#  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_update.h"
 
 #  include "DEG_depsgraph_build.hh"
@@ -290,6 +291,15 @@ static void rna_NodeSocket_hide_set(PointerRNA *ptr, bool value)
 
   /* don't hide linked sockets */
   if (sock->flag & SOCK_IS_LINKED) {
+    return;
+  }
+
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  bNode *node;
+  nodeFindNode(ntree, sock, &node, nullptr);
+
+  /* The Reroute node is the socket itself, do not hide this. */
+  if (node->is_reroute()) {
     return;
   }
 

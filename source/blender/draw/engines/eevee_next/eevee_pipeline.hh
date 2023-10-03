@@ -404,16 +404,15 @@ class UtilityTexture : public Texture {
       memcpy(layer.data, lut::ltc_mat_ggx, sizeof(layer));
     }
     {
-      Layer &layer = data[UTIL_LTC_MAG_LAYER];
+      Layer &layer = data[UTIL_BSDF_LAYER];
       for (auto x : IndexRange(lut_size)) {
         for (auto y : IndexRange(lut_size)) {
           layer.data[y][x][0] = lut::brdf_ggx[y][x][0];
           layer.data[y][x][1] = lut::brdf_ggx[y][x][1];
-          layer.data[y][x][2] = lut::ltc_mag_ggx[y][x][0];
-          layer.data[y][x][3] = lut::ltc_mag_ggx[y][x][1];
+          layer.data[y][x][2] = lut::brdf_ggx[y][x][2];
+          layer.data[y][x][3] = 0.0f;
         }
       }
-      BLI_assert(UTIL_LTC_MAG_LAYER == UTIL_BSDF_LAYER);
     }
     {
       for (auto layer_id : IndexRange(16)) {

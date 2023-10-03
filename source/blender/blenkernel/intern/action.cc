@@ -250,7 +250,7 @@ static IDProperty *action_asset_type_property(const bAction *action)
   return property;
 }
 
-static void action_asset_pre_save(void *asset_ptr, AssetMetaData *asset_data)
+static void action_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_data)
 {
   bAction *action = (bAction *)asset_ptr;
   BLI_assert(GS(action->id.name) == ID_AC);
@@ -260,7 +260,8 @@ static void action_asset_pre_save(void *asset_ptr, AssetMetaData *asset_data)
 }
 
 static AssetTypeInfo AssetType_AC = {
-    /*pre_save_fn*/ action_asset_pre_save,
+    /*pre_save_fn*/ action_asset_metadata_ensure,
+    /*on_mark_asset_fn*/ action_asset_metadata_ensure,
 };
 
 IDTypeInfo IDType_ID_AC = {
@@ -1048,6 +1049,7 @@ void BKE_pose_channel_free_bbone_cache(bPoseChannel_Runtime *runtime)
   MEM_SAFE_FREE(runtime->bbone_pose_mats);
   MEM_SAFE_FREE(runtime->bbone_deform_mats);
   MEM_SAFE_FREE(runtime->bbone_dual_quats);
+  MEM_SAFE_FREE(runtime->bbone_segment_boundaries);
 }
 
 void BKE_pose_channel_free(bPoseChannel *pchan)
@@ -1443,17 +1445,12 @@ void BKE_action_frame_range_calc(const bAction *act,
   }
 
   if (foundvert || foundmod) {
-    /* ensure that action is at least 1 frame long (for NLA strips to have a valid length) */
-    if (min == max) {
-      max += 1.0f;
-    }
-
     *r_start = max_ff(min, MINAFRAMEF);
     *r_end = min_ff(max, MAXFRAMEF);
   }
   else {
     *r_start = 0.0f;
-    *r_end = 1.0f;
+    *r_end = 0.0f;
   }
 }
 
@@ -1467,10 +1464,7 @@ void BKE_action_frame_range_get(const bAction *act, float *r_start, float *r_end
     BKE_action_frame_range_calc(act, false, r_start, r_end);
   }
 
-  /* Ensure that action is at least 1 frame long (for NLA strips to have a valid length). */
-  if (*r_start >= *r_end) {
-    *r_end = *r_start + 1.0f;
-  }
+  BLI_assert(*r_start <= *r_end);
 }
 
 bool BKE_action_is_cyclic(const bAction *act)

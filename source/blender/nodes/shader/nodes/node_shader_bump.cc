@@ -71,6 +71,34 @@ static int gpu_shader_bump(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_bump", in, out, dheight, GPU_constant(&invert));
 }
 
+NODE_SHADER_MATERIALX_BEGIN
+#ifdef WITH_MATERIALX
+{
+  NodeItem height = get_input_link("Height", NodeItem::Type::Float);
+  NodeItem normal = get_input_link("Normal", NodeItem::Type::Vector3);
+
+  if (!height) {
+    if (!normal) {
+      return create_node(
+          "normal", NodeItem::Type::Vector3, {{"space", val(std::string("world"))}});
+    }
+    return normal;
+  }
+
+  NodeItem strength = get_input_value("Strength", NodeItem::Type::Float);
+  NodeItem distance = get_input_value("Distance", NodeItem::Type::Float);
+  NodeItem height_normal = create_node(
+      "heighttonormal", NodeItem::Type::Vector3, {{"in", height}, {"scale", strength}});
+
+  return create_node("normalmap",
+                     NodeItem::Type::Vector3,
+                     {{"in", height_normal},
+                      {"scale", node_->custom1 ? distance * val(-1.0f) : distance},
+                      {"normal", normal}});
+}
+#endif
+NODE_SHADER_MATERIALX_END
+
 }  // namespace blender::nodes::node_shader_bump_cc
 
 /* node type definition */
@@ -84,6 +112,7 @@ void register_node_type_sh_bump()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_bump;
   ntype.gpu_fn = file_ns::gpu_shader_bump;
+  ntype.materialx_fn = file_ns::node_shader_materialx;
 
   nodeRegisterType(&ntype);
 }

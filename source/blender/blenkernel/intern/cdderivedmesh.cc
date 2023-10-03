@@ -24,7 +24,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.h"
 #include "BKE_paint.hh"
-#include "BKE_pbvh_api.hh"
+#include "BKE_pbvh.h"
 
 #include "DNA_curve_types.h" /* for Curve */
 #include "DNA_mesh_types.h"

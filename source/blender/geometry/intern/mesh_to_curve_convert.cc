@@ -17,6 +17,7 @@
 #include "BKE_mesh.hh"
 
 #include "GEO_mesh_to_curve.hh"
+#include "GEO_randomize.hh"
 
 namespace blender::geometry {
 
@@ -73,6 +74,8 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
         dst.finish();
         return true;
       });
+
+  debug_randomize_curve_order(&curves);
 
   return curves;
 }

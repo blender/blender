@@ -193,6 +193,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_shadow)
     .define("USE_ATOMIC")
     .builtins(BuiltinBits::VIEWPORT_INDEX)
     .builtins(BuiltinBits::LAYER)
+    .builtins(BuiltinBits::TEXTURE_ATOMIC)
     .vertex_out(eevee_surf_iface)
     .vertex_out(eevee_surf_flat_iface)
     .storage_buf(SHADOW_RENDER_MAP_BUF_SLOT,

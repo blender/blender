@@ -14,7 +14,7 @@
 #include "PIL_time.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
@@ -73,25 +73,31 @@ static EnumPropertyItem prop_sculpt_mask_init_mode_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void mask_init_task(Object *ob, const int mode, const int seed, PBVHNode *node)
+static void mask_init_task(Object *ob,
+                           const int mode,
+                           const int seed,
+                           const SculptMaskWriteInfo mask_write,
+                           PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+    float mask;
     switch (mode) {
       case SCULPT_MASK_INIT_RANDOM_PER_VERTEX:
-        *vd.mask = BLI_hash_int_01(vd.index + seed);
+        mask = BLI_hash_int_01(vd.index + seed);
         break;
       case SCULPT_MASK_INIT_RANDOM_PER_FACE_SET: {
         const int face_set = SCULPT_vertex_face_set_get(ss, vd.vertex);
-        *vd.mask = BLI_hash_int_01(face_set + seed);
+        mask = BLI_hash_int_01(face_set + seed);
         break;
       }
       case SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART:
-        *vd.mask = BLI_hash_int_01(SCULPT_vertex_island_get(ss, vd.vertex) + seed);
+        mask = BLI_hash_int_01(SCULPT_vertex_island_get(ss, vd.vertex) + seed);
         break;
     }
+    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
   }
   BKE_pbvh_vertex_iter_end;
   BKE_pbvh_node_mark_update_mask(node);
@@ -126,9 +132,10 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
   const int mask_init_seed = PIL_check_seconds_timer();
 
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      mask_init_task(ob, mode, mask_init_seed, nodes[i]);
+      mask_init_task(ob, mode, mask_init_seed, mask_write, nodes[i]);
     }
   });
 
@@ -136,7 +143,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_end(ob);
 
-  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
+  BKE_pbvh_update_mask(ss->pbvh);
   SCULPT_tag_update_overlays(C);
   return OPERATOR_FINISHED;
 }

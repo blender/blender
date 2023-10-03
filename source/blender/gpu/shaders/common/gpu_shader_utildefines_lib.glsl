@@ -118,4 +118,30 @@ float orderedIntBitsToFloat(int int_value)
   return intBitsToFloat((int_value < 0) ? (int_value ^ 0x7FFFFFFF) : int_value);
 }
 
+/**
+ * Ray offset to avoid self intersection.
+ *
+ * This can be used to compute a modified ray start position for rays leaving from a surface.
+ * From:
+ * "A Fast and Robust Method for Avoiding Self-Intersection"
+ * Ray Tracing Gems, chapter 6.
+ */
+vec3 offset_ray(vec3 P, vec3 Ng)
+{
+  const float origin = 1.0 / 32.0;
+  const float float_scale = 1.0 / 65536.0;
+  const float int_scale = 256.0;
+
+  ivec3 of_i = ivec3(int_scale * Ng);
+  of_i = ivec3((P.x < 0.0) ? -of_i.x : of_i.x,
+               (P.y < 0.0) ? -of_i.y : of_i.y,
+               (P.z < 0.0) ? -of_i.z : of_i.z);
+  vec3 P_i = intBitsToFloat(floatBitsToInt(P) + of_i);
+
+  vec3 uf = P + float_scale * Ng;
+  return vec3((abs(P.x) < origin) ? uf.x : P_i.x,
+              (abs(P.y) < origin) ? uf.y : P_i.y,
+              (abs(P.z) < origin) ? uf.z : P_i.z);
+}
+
 #endif /* GPU_SHADER_UTILDEFINES_GLSL */

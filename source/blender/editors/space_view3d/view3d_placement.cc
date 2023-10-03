@@ -694,7 +694,7 @@ static bool view3d_interactive_add_calc_snap(bContext * /*C*/,
   if (r_is_snap_invert) {
     *r_is_snap_invert = snap_data->is_snap_invert;
   }
-  return snap_data->snap_elem != SCE_SNAP_TO_NONE;
+  return snap_data->type_target != SCE_SNAP_TO_NONE;
 }
 
 /** \} */

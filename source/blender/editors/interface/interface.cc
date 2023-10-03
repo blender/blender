@@ -38,7 +38,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
+#include "BKE_screen.hh"
 #include "BKE_unit.h"
 
 #include "ED_asset.hh"
@@ -748,13 +748,7 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
   }
   /* Compares the contained function pointers. Buttons with different apply functions can be
    * considered to do different things, and as such do not equal each other. */
-
-  /* NotForPR: XXX clang-cl bug? Have to de-const to access target methods.*/
-  uiBut *nonconst_but = const_cast<uiBut *>(but);
-  uiBut *onconst_oldbut = const_cast<uiBut *>(oldbut);
-
-  if (nonconst_but->apply_func.target<void(bContext &)>() !=
-      onconst_oldbut->apply_func.target<void(bContext &)>())
+  if (but->apply_func.target<void(bContext &)>() != oldbut->apply_func.target<void(bContext &)>())
   {
     return false;
   }
@@ -3686,6 +3680,15 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, eU
   }
 
   return block;
+}
+
+void ui_block_add_dynamic_listener(uiBlock *block,
+                                   void (*listener_func)(const wmRegionListenerParams *params))
+{
+  uiBlockDynamicListener *listener = static_cast<uiBlockDynamicListener *>(
+      MEM_mallocN(sizeof(*listener), __func__));
+  listener->listener_func = listener_func;
+  BLI_addtail(&block->dynamic_listeners, listener);
 }
 
 eUIEmbossType UI_block_emboss_get(uiBlock *block)
