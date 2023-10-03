@@ -8,6 +8,7 @@
 
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
 #include <cmath>
 
 #include "CLG_log.h"
@@ -984,6 +985,42 @@ static void version_node_group_split_socket(bNodeTreeInterface &tree_interface,
   csocket->flag &= ~NODE_INTERFACE_SOCKET_OUTPUT;
 }
 
+static void versioning_node_group_sort_sockets_recursive(bNodeTreeInterfacePanel &panel)
+{
+  /* True if item a should be above item b. */
+  auto item_compare = [](const bNodeTreeInterfaceItem *a,
+                         const bNodeTreeInterfaceItem *b) -> bool {
+    if (a->item_type != b->item_type) {
+      /* Keep sockets above panels. */
+      return a->item_type == NODE_INTERFACE_SOCKET;
+    }
+    else {
+      /* Keep outputs above inputs. */
+      if (a->item_type == NODE_INTERFACE_SOCKET) {
+        const bNodeTreeInterfaceSocket *sa = reinterpret_cast<const bNodeTreeInterfaceSocket *>(a);
+        const bNodeTreeInterfaceSocket *sb = reinterpret_cast<const bNodeTreeInterfaceSocket *>(b);
+        const bool is_output_a = sa->flag & NODE_INTERFACE_SOCKET_OUTPUT;
+        const bool is_output_b = sb->flag & NODE_INTERFACE_SOCKET_OUTPUT;
+        if (is_output_a != is_output_b) {
+          return is_output_a;
+        }
+      }
+    }
+    return false;
+  };
+
+  /* Sort panel content. */
+  std::stable_sort(panel.items().begin(), panel.items().end(), item_compare);
+
+  /* Sort any child panels too. */
+  for (bNodeTreeInterfaceItem *item : panel.items()) {
+    if (item->item_type == NODE_INTERFACE_PANEL) {
+      versioning_node_group_sort_sockets_recursive(
+          *reinterpret_cast<bNodeTreeInterfacePanel *>(item));
+    }
+  }
+}
+
 static void enable_geometry_nodes_is_modifier(Main &bmain)
 {
   /* Any node group with a first socket geometry output can potentially be a modifier. Previously
@@ -1640,6 +1677,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 33)) {
+    /* Fix node group socket order by sorting outputs and inputs. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      versioning_node_group_sort_sockets_recursive(ntree->tree_interface.root_panel);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
