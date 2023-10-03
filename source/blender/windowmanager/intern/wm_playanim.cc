@@ -1521,7 +1521,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 {
   ImBuf *ibuf = nullptr;
   static char filepath[FILE_MAX]; /* abused to return dropped file path */
-  uint32_t maxwinx, maxwiny;
   int i;
   /* This was done to disambiguate the name for use under c++. */
   int start_x = 0, start_y = 0;
@@ -1686,8 +1685,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
         ps.ghost_data.system, "Blender Animation Player", start_x, start_y, ibuf->x, ibuf->y);
   }
 
-  GHOST_GetMainDisplayDimensions(ps.ghost_data.system, &maxwinx, &maxwiny);
-
   // GHOST_ActivateWindowDrawingContext(ps.ghost_data.window);
 
   /* Initialize OpenGL immediate mode. */
@@ -1706,13 +1703,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   ps.display_ctx.size[0] = ps.ibufx;
   ps.display_ctx.size[1] = ps.ibufy;
-
-  if (maxwinx % ibuf->x) {
-    maxwinx = ibuf->x * (1 + (maxwinx / ibuf->x));
-  }
-  if (maxwiny % ibuf->y) {
-    maxwiny = ibuf->y * (1 + (maxwiny / ibuf->y));
-  }
 
   GPU_clear_color(0.1f, 0.1f, 0.1f, 0.0f);
 
