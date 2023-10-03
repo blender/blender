@@ -503,7 +503,7 @@ class ARMATURE_OT_sync_bone_color_to_selected(Operator):
         num_pose_color_overrides = 0
         for index, bone_dest in enumerate(bones_dest):
             bone_dest.color.palette = bone_source.color.palette
-            for custom_field in ('normal', 'select', 'active'):
+            for custom_field in ("normal", "select", "active"):
                 color = getattr(bone_source.color.custom, custom_field)
                 setattr(bone_dest.color.custom, custom_field, color)
 
