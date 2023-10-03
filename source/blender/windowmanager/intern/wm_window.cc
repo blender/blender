@@ -166,36 +166,39 @@ static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool acti
 static bool wm_window_timers_process(const bContext *C, int *sleep_us);
 static uint8_t wm_ghost_modifier_query(const enum ModSide side);
 
-void wm_get_screensize(int *r_width, int *r_height)
+bool wm_get_screensize(int *r_width, int *r_height)
 {
-  uint uiwidth;
-  uint uiheight;
-
-  GHOST_GetMainDisplayDimensions(g_system, &uiwidth, &uiheight);
+  uint32_t uiwidth, uiheight;
+  if (GHOST_GetMainDisplayDimensions(g_system, &uiwidth, &uiheight) == GHOST_kFailure) {
+    return false;
+  }
   *r_width = uiwidth;
   *r_height = uiheight;
+  return true;
 }
 
-void wm_get_desktopsize(int *r_width, int *r_height)
+bool wm_get_desktopsize(int *r_width, int *r_height)
 {
-  uint uiwidth;
-  uint uiheight;
-
-  GHOST_GetAllDisplayDimensions(g_system, &uiwidth, &uiheight);
+  uint32_t uiwidth, uiheight;
+  if (GHOST_GetAllDisplayDimensions(g_system, &uiwidth, &uiheight) == GHOST_kFailure) {
+    return false;
+  }
   *r_width = uiwidth;
   *r_height = uiheight;
+  return true;
 }
 
 /* keeps size within monitor bounds */
 static void wm_window_check_size(rcti *rect)
 {
   int width, height;
-  wm_get_screensize(&width, &height);
-  if (BLI_rcti_size_x(rect) > width) {
-    BLI_rcti_resize_x(rect, width);
-  }
-  if (BLI_rcti_size_y(rect) > height) {
-    BLI_rcti_resize_y(rect, height);
+  if (wm_get_screensize(&width, &height)) {
+    if (BLI_rcti_size_x(rect) > width) {
+      BLI_rcti_resize_x(rect, width);
+    }
+    if (BLI_rcti_size_y(rect) > height) {
+      BLI_rcti_resize_y(rect, height);
+    }
   }
 }
 
@@ -686,9 +689,16 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
   eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpuSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
 
-  int scr_w, scr_h;
-  wm_get_desktopsize(&scr_w, &scr_h);
-  int posy = (scr_h - win->posy - win->sizey);
+  int posx = 0;
+  int posy = 0;
+
+  if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_POSITION) {
+    int scr_w, scr_h;
+    if (wm_get_desktopsize(&scr_w, &scr_h)) {
+      posx = win->posx;
+      posy = (scr_h - win->posy - win->sizey);
+    }
+  }
 
   /* Clear drawable so we can set the new window. */
   wmWindow *prev_windrawable = wm->windrawable;
@@ -698,7 +708,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
       g_system,
       static_cast<GHOST_WindowHandle>((win->parent) ? win->parent->ghostwin : nullptr),
       title,
-      win->posx,
+      posx,
       posy,
       win->sizex,
       win->sizey,
@@ -830,7 +840,11 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
    * when there is no startup.blend yet.
    */
   if (wm_init_state.size_x == 0) {
-    wm_get_screensize(&wm_init_state.size_x, &wm_init_state.size_y);
+    if (UNLIKELY(!wm_get_screensize(&wm_init_state.size_x, &wm_init_state.size_y))) {
+      /* Use fallback values. */
+      wm_init_state.size_x = 0;
+      wm_init_state.size_y = 0;
+    }
 
     /* NOTE: this isn't quite correct, active screen maybe offset 1000s if PX,
      * we'd need a #wm_get_screensize like function that gives offset,
@@ -865,12 +879,19 @@ static bool wm_window_update_size_position(wmWindow *win)
 
   GHOST_DisposeRectangle(client_rect);
 
-  int scr_w, scr_h;
-  wm_get_desktopsize(&scr_w, &scr_h);
   int sizex = r - l;
   int sizey = b - t;
-  int posx = l;
-  int posy = scr_h - t - win->sizey;
+
+  int posx = 0;
+  int posy = 0;
+
+  if (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_POSITION) {
+    int scr_w, scr_h;
+    if (wm_get_desktopsize(&scr_w, &scr_h)) {
+      posx = l;
+      posy = scr_h - t - win->sizey;
+    }
+  }
 
   if (win->sizex != sizex || win->sizey != sizey || win->posx != posx || win->posy != posy) {
     win->sizex = sizex;
