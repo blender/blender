@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -1402,6 +1402,10 @@ msgid "Key"
 msgstr "Ачкыч"
 
 
+msgid "Files"
+msgstr "Файлдар"
+
+
 msgid "Align"
 msgstr "Түздөө"
 
@@ -1429,6 +1433,10 @@ msgstr "Модификаторду кошуу"
 
 msgid "Physics"
 msgstr "Физика"
+
+
+msgid "Sequencer"
+msgstr "Секвенсор"
 
 
 msgid "Apply"
@@ -1702,10 +1710,6 @@ msgstr "Тандоо"
 msgctxt "Operator"
 msgid "Open Clip"
 msgstr "Видеофрагментти ачуу"
-
-
-msgid "Files"
-msgstr "Файлдар"
 
 
 msgid "Wall"
@@ -2281,10 +2285,6 @@ msgid "Bake"
 msgstr "Бышыруу"
 
 
-msgid "Sequencer"
-msgstr "Секвенсор"
-
-
 msgctxt "Operator"
 msgid "Render"
 msgstr "Визуалдаштыруу"
@@ -2714,10 +2714,6 @@ msgstr "Өндүргүчтүк"
 
 msgid "Paragraph"
 msgstr "Абзац"
-
-
-msgid "Skeleton"
-msgstr "Скелет"
 
 
 msgid "Filters"
@@ -3799,11 +3795,6 @@ msgid "(Key) "
 msgstr "(Ачкыч) "
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "Топ"
-
-
 msgid "(empty)"
 msgstr "(бош)"
 
@@ -3846,6 +3837,11 @@ msgstr "FPS: %i"
 
 msgid "(Smooth)"
 msgstr "(тегиз)"
+
+
+msgctxt "Action"
+msgid "Group"
+msgstr "Топ"
 
 
 msgid "Modify"

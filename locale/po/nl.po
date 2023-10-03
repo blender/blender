@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -3370,13 +3370,13 @@ msgstr "Zet Startframe"
 
 
 msgctxt "Operator"
-msgid "Change Armature Layers"
-msgstr "Verander Skellet Lagen"
+msgid "Add Bone"
+msgstr "Voeg Bot Toe"
 
 
 msgctxt "Operator"
-msgid "Add Bone"
-msgstr "Voeg Bot Toe"
+msgid "Show All"
+msgstr "Toon Alles"
 
 
 msgctxt "Operator"
@@ -3392,11 +3392,6 @@ msgstr "Opvullen Tussen KnoopPunten"
 msgctxt "Operator"
 msgid "Flip Names"
 msgstr "Namen Omdraaien"
-
-
-msgctxt "Operator"
-msgid "Show All Layers"
-msgstr "Toon Alle Lagen"
 
 
 msgctxt "Operator"
@@ -3792,12 +3787,17 @@ msgstr "Exporteer BVH"
 
 
 msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exporteer STL"
+msgid "Export PLY"
+msgstr "Exporteer PLY"
 
 
 msgid "Apply Modifiers"
 msgstr "Pas Aanpassers Toe"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Exporteer STL"
 
 
 msgctxt "Operator"
@@ -4182,6 +4182,11 @@ msgstr "Plak Strepen"
 
 
 msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "Toon Alle Lagen"
+
+
+msgctxt "Operator"
 msgid "Select First"
 msgstr "Selecteer Eerste"
 
@@ -4323,6 +4328,11 @@ msgstr "Importeer SVG"
 msgctxt "Operator"
 msgid "Import Images as Planes"
 msgstr "Importeer Afbeeldingen als Vlakken"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importeer PLY"
 
 
 msgctxt "Operator"
@@ -5298,26 +5308,6 @@ msgstr "Kopieer Pose"
 
 
 msgctxt "Operator"
-msgid "Add Bone Group"
-msgstr "Voeg Groep van Botten Toe"
-
-
-msgctxt "Operator"
-msgid "Deselect Bone Group"
-msgstr "Deselecteer Groep van Botten"
-
-
-msgctxt "Operator"
-msgid "Move Bone Group"
-msgstr "Verplaats Groep van Botten"
-
-
-msgctxt "Operator"
-msgid "Remove Bone Group"
-msgstr "Verwijder Groep van Botten"
-
-
-msgctxt "Operator"
 msgid "Paste Pose"
 msgstr "Plak Pose"
 
@@ -6183,16 +6173,6 @@ msgid "Open a Blender file"
 msgstr "Open een Blender Bestand"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exporteer PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importeer PLY"
-
-
 msgid "All Types"
 msgstr "Alle Types"
 
@@ -6499,10 +6479,6 @@ msgid "Timeline"
 msgstr "Tijdslijn"
 
 
-msgid "Duplicate Data"
-msgstr "Dupliceer Data"
-
-
 msgid "New Objects"
 msgstr "Nieuwe Objecten"
 
@@ -6542,10 +6518,6 @@ msgstr "Sla instellingen Op"
 
 msgid "Blend Files"
 msgstr "Blenderbestanden"
-
-
-msgid "Auto Save"
-msgstr "Auto Opslaan"
 
 
 msgid "Pose Library"
@@ -7398,11 +7370,6 @@ msgstr "Aangepast..."
 
 
 msgctxt "Operator"
-msgid "Show All"
-msgstr "Toon Alles"
-
-
-msgctxt "Operator"
 msgid "Lock All"
 msgstr "Vergrendel Alles"
 
@@ -7729,6 +7696,16 @@ msgstr "Demp Kanalen"
 
 
 msgctxt "Operator"
+msgid "Hide Selected Curves"
+msgstr "Verberg Geselecteerde Curven"
+
+
+msgctxt "Operator"
+msgid "Hide Unselected Curves"
+msgstr "Verberg Niet Geselecteerde Curven"
+
+
+msgctxt "Operator"
 msgid "Cleanup"
 msgstr "Maak Schoon"
 
@@ -7766,16 +7743,6 @@ msgstr "Geluidsbestanden"
 
 msgid "Text Files"
 msgstr "Tekstbestanden"
-
-
-msgctxt "Operator"
-msgid "Hide Selected Curves"
-msgstr "Verberg Geselecteerde Curven"
-
-
-msgctxt "Operator"
-msgid "Hide Unselected Curves"
-msgstr "Verberg Niet Geselecteerde Curven"
 
 
 msgctxt "Operator"
@@ -8135,10 +8102,6 @@ msgstr "Scene Statistieken"
 
 msgid "Blender Version"
 msgstr "Blender Versie"
-
-
-msgid "Use Custom Colors"
-msgstr "Gebruik Aangepaste Kleur"
 
 
 msgid "Show Warning"
@@ -9269,11 +9232,6 @@ msgid "Now"
 msgstr "Nu"
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "Groep"
-
-
 msgid "Not yet implemented"
 msgstr "Nog niet geimplementeerd"
 
@@ -9317,6 +9275,11 @@ msgstr "Pak Bestand Uit"
 
 msgid "Custom Camera"
 msgstr "Aangepaste Camera"
+
+
+msgctxt "Action"
+msgid "Group"
+msgstr "Groep"
 
 
 msgid "Flame"
@@ -9390,10 +9353,6 @@ msgstr "W4"
 
 msgid "iScale"
 msgstr "iScaal"
-
-
-msgid "Unknown py-exception, could not convert"
-msgstr "Onbekeende py-exceptie, kan niet converteren"
 
 
 msgid "| Time:%s | "

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4661,10 +4661,6 @@ msgid "Auto-Masking Strokes"
 msgstr "Automaattinen maskauspiirto"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Aktiivinen öljykynän taso"
-
-
 msgid "Push"
 msgstr "Työnnä"
 
@@ -4751,6 +4747,10 @@ msgid "Math"
 msgstr "Matematiikka"
 
 
+msgid "Node"
+msgstr "Noodi"
+
+
 msgid "Attribute"
 msgstr "Ominaisuus"
 
@@ -4765,10 +4765,6 @@ msgstr "Kirjoita"
 
 msgid "Instances"
 msgstr "Instanssit"
-
-
-msgid "Node"
-msgstr "Noodi"
 
 
 msgid "Add Modifier"
@@ -6767,6 +6763,10 @@ msgid "Animation settings"
 msgstr "Animaatioasetukset"
 
 
+msgid "Material Groups"
+msgstr "Materiaaliryhmät"
+
+
 msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Poista valitut tiedostot"
@@ -7054,6 +7054,10 @@ msgstr "Mukautettu"
 msgctxt "Operator"
 msgid "Active Layer"
 msgstr "Aktiivinen taso"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Aktiivinen öljykynän taso"
 
 
 msgctxt "Operator"
@@ -8799,10 +8803,6 @@ msgid "Basic"
 msgstr "Tavallinen"
 
 
-msgid "Eevee Next"
-msgstr "Eevee seuraavaksi"
-
-
 msgid "UV/Image"
 msgstr "UV/kuva"
 
@@ -9281,10 +9281,6 @@ msgstr "Vienti asetukset"
 
 msgid "Grouping"
 msgstr "Ryhmittäminen"
-
-
-msgid "Material Groups"
-msgstr "Materiaaliryhmät"
 
 
 msgid "Data Types"
@@ -9955,11 +9951,6 @@ msgid "Copy to object"
 msgstr "Kopio objektiin"
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "Ryhmä"
-
-
 msgid "No active item to rename"
 msgstr "Ei aktiivista esinettä uudelleen nimettäväksi"
 
@@ -9974,10 +9965,6 @@ msgstr "Nykyinen tiedosto"
 
 msgid "Missing library"
 msgstr "Kirjasto puuttuu"
-
-
-msgid "Bone Groups"
-msgstr "Luuryhmät"
 
 
 msgid "(empty)"
@@ -10179,6 +10166,11 @@ msgstr "Tekstuurikartoittaminen"
 
 msgid "TimeOffset"
 msgstr "Aikasiirros"
+
+
+msgctxt "Action"
+msgid "Group"
+msgstr "Ryhmä"
 
 
 msgid "Relationship"
@@ -10862,6 +10854,10 @@ msgid "Random Color"
 msgstr "Satunnainen väri"
 
 
+msgid "Emission Color"
+msgstr "Säteilyväri"
+
+
 msgid "View Vector"
 msgstr "Katso vektori"
 
@@ -10976,10 +10972,6 @@ msgstr "Tiheysominaisuus"
 
 msgid "Absorption Color"
 msgstr "Sulautumisen väri"
-
-
-msgid "Emission Color"
-msgstr "Säteilyväri"
 
 
 msgid "Temperature Attribute"
