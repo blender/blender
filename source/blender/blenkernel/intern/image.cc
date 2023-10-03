@@ -4388,23 +4388,23 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   /* Put an empty image buffer to the cache so that the Image.has_data detects that some data
    * has been loaded for this Image data-block.
    *
-   * Surely there are all the design questions about scene-dependent Render Result image datablock,
-   * and the behavior of the flag dependent on wheter the Render Result image was ever shown on
-   * screen. The purpose of this code is to preserve the Python API behavior to the level prior to
-   * the RenderResult refactor to use ImBuf which happened for Blender 4.0. */
+   * Surely there are all the design questions about scene-dependent Render Result image
+   * data-block, and the behavior of the flag dependent on whether the Render Result image was ever
+   * shown on screen. The purpose of this code is to preserve the Python API behavior to the level
+   * prior to the #RenderResult refactor to use #ImBuf which happened for Blender 4.0. */
   if (ima->cache == nullptr) {
     ImBuf *empty_ibuf = IMB_allocImBuf(0, 0, 0, 0);
     image_assign_ibuf(ima, empty_ibuf, IMA_NO_INDEX, 0);
 
     /* The cache references the image buffer, and the freeing only happens if the buffer has 0
-     * references at the time when the IMB_freeImBuf() is called. This particular image buffer is
+     * references at the time when the #IMB_freeImBuf() is called. This particular image buffer is
      * to be freed together with the cache, without any extra reference counting done by any image
      * pixel accessor. */
     IMB_freeImBuf(empty_ibuf);
   }
 
   if (pass_ibuf) {
-    /* TODO(sergey): Perhaps its better to assign dither when ImBuf is allocated for the render
+    /* TODO(@sergey): Perhaps its better to assign dither when #ImBuf is allocated for the render
      * result. It will avoid modification here, and allow comparing render results with different
      * dither applied to them. */
     pass_ibuf->dither = dither;
