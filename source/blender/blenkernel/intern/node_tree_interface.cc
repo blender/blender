@@ -780,40 +780,47 @@ int bNodeTreeInterfacePanel::find_valid_insert_position_for_item(
                                       NODE_INTERFACE_PANEL_ALLOW_SOCKETS_AFTER_PANELS);
   const blender::Span<const bNodeTreeInterfaceItem *> items = this->items();
 
-  int pos = initial_pos;
-
-  if (sockets_above_panels) {
-    if (item.item_type == NODE_INTERFACE_PANEL) {
-      /* Find the closest valid position from the end, only panels at or after #position. */
-      for (int test_pos = items.size() - 1; test_pos >= initial_pos; test_pos--) {
-        if (test_pos < 0) {
-          /* Initial position is out of range but valid. */
-          break;
-        }
-        if (items[test_pos]->item_type != NODE_INTERFACE_PANEL) {
-          /* Found valid position, insert after the last socket item. */
-          pos = test_pos + 1;
-          break;
-        }
+  /* True if item a should be above item b. */
+  auto item_compare = [sockets_above_panels](const bNodeTreeInterfaceItem &a,
+                                             const bNodeTreeInterfaceItem &b) -> bool {
+    if (a.item_type != b.item_type) {
+      /* Keep sockets above panels. */
+      if (sockets_above_panels) {
+        return a.item_type == NODE_INTERFACE_SOCKET;
       }
     }
     else {
-      /* Find the closest valid position from the start, no panels at or after #position. */
-      for (int test_pos = 0; test_pos <= initial_pos; test_pos++) {
-        if (test_pos >= items.size()) {
-          /* Initial position is out of range but valid. */
-          break;
-        }
-        if (items[test_pos]->item_type == NODE_INTERFACE_PANEL) {
-          /* Found valid position, inserting moves the first panel. */
-          pos = test_pos;
-          break;
+      /* Keep outputs above inputs. */
+      if (a.item_type == NODE_INTERFACE_SOCKET) {
+        const bNodeTreeInterfaceSocket &sa = reinterpret_cast<const bNodeTreeInterfaceSocket &>(a);
+        const bNodeTreeInterfaceSocket &sb = reinterpret_cast<const bNodeTreeInterfaceSocket &>(b);
+        const bool is_output_a = sa.flag & NODE_INTERFACE_SOCKET_OUTPUT;
+        const bool is_output_b = sb.flag & NODE_INTERFACE_SOCKET_OUTPUT;
+        if (is_output_a != is_output_b) {
+          return is_output_a;
         }
       }
     }
+    return false;
+  };
+
+  if (items.is_empty()) {
+    return initial_pos;
   }
 
-  return pos;
+  /* Insertion sort for a single item.
+   * items.size() is a valid position for appending. */
+  int test_pos = clamp_i(initial_pos, 0, items.size());
+  /* Move upward until valid position found. */
+  while (test_pos > 0 && item_compare(item, *items[test_pos - 1])) {
+    --test_pos;
+  }
+  /* Move downward until valid position found.
+   * Result can be out of range, this is valid, items get appended. */
+  while (test_pos < items.size() && item_compare(*items[test_pos], item)) {
+    ++test_pos;
+  }
+  return test_pos;
 }
 
 void bNodeTreeInterfacePanel::add_item(bNodeTreeInterfaceItem &item)
