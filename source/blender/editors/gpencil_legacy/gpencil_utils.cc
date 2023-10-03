@@ -2691,7 +2691,12 @@ void ED_gpencil_select_curve_toggle_all(bContext *C, int action)
             break;
           case SEL_INVERT:
             gpc_pt->flag ^= GP_CURVE_POINT_SELECT;
-            BEZT_SEL_INVERT(bezt);
+            if (gpc_pt->flag & GP_CURVE_POINT_SELECT) {
+              BEZT_SEL_ALL(bezt);
+            }
+            else {
+              BEZT_DESEL_ALL(bezt);
+            }
             break;
           default:
             break;

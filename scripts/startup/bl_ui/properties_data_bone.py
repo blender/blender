@@ -320,7 +320,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         layout.use_property_decorate = False
 
         row = layout.row(align=True)
-        row.prop(bone.color, 'palette', text='Edit Bone Color')
+        row.prop(bone.color, 'palette', text='Bone Color')
         props = row.operator("armature.sync_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
         props.bone_type = 'EDIT'
         self.draw_bone_color_ui(layout, bone.color)
@@ -535,7 +535,8 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
         'BLENDER_EEVEE_NEXT',
-        'BLENDER_WORKBENCH'}
+        'BLENDER_WORKBENCH',
+    }
     _property_type = bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone
 
     @property

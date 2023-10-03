@@ -36,6 +36,8 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
+#include "GEO_randomize.hh"
+
 #include <cstdlib>
 #include <cstring>
 
@@ -198,6 +200,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 
   BKE_mesh_copy_parameters_for_eval(result, mesh);
   BKE_mesh_calc_edges(result, true, false);
+
+  blender::geometry::debug_randomize_mesh_order(result);
+
   return result;
 }
 

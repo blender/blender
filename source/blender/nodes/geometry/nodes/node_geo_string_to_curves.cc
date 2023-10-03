@@ -20,6 +20,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "GEO_randomize.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_string_to_curves_cc {
@@ -295,6 +297,8 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
 
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     BKE_nurbList_free(&cu.nurb);
+
+    geometry::debug_randomize_curve_order(&curves);
 
     float4x4 size_matrix = math::from_scale<float4x4>(float3(layout.final_font_size));
     curves.transform(size_matrix);

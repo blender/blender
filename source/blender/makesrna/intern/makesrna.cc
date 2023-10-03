@@ -3954,6 +3954,12 @@ static void rna_generate_static_function_prototypes(BlenderRNA * /*brna*/,
     dfunc = rna_find_function_def(func);
 
     if (dfunc->call) {
+      if (strstr(dfunc->call, "<")) {
+        /* Can't generate the declaration for templates. We'll still get compile errors when trying
+         * to call it with a wrong signature. */
+        continue;
+      }
+
       if (first) {
         fprintf(f, "/* Repeated prototypes to detect errors */\n\n");
         first = 0;

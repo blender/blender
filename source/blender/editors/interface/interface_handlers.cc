@@ -3803,6 +3803,8 @@ static void ui_do_but_textedit(
         but->pos = short(selend);
         but->selsta = short(selsta);
         but->selend = short(selend);
+        /* Anchor selection to the left side unless the last word. */
+        data->sel_pos_init = ((selend == strlen(data->str)) && (selsta != 0)) ? selend : selsta;
         retval = WM_UI_HANDLER_BREAK;
         changed = true;
       }

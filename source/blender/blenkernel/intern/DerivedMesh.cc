@@ -568,6 +568,9 @@ static Mesh *modifier_modify_mesh_and_geometry_set(ModifierData *md,
       }
       mesh_output = mesh_component.release();
     }
+    /* Need to ensure that non-mesh data is also owned by the geometry set. Otherwise it might be
+     * freed while there is still a reference to it in the geometry. */
+    geometry_set.ensure_owns_direct_data();
 
     /* Return an empty mesh instead of null. */
     if (mesh_output == nullptr) {

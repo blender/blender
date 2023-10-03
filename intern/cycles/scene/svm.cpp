@@ -163,6 +163,7 @@ SVMCompiler::SVMCompiler(Scene *scene) : scene(scene)
   current_graph = NULL;
   background = false;
   mix_weight_offset = SVM_STACK_INVALID;
+  bump_state_offset = SVM_STACK_INVALID;
   compile_failed = false;
 
   /* This struct has one entry for every node, in order of ShaderNodeType definition. */
@@ -784,9 +785,8 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
   }
 
   /* for the bump shader we need add a node to store the shader state */
-  bool need_bump_state = (type == SHADER_TYPE_BUMP) &&
-                         (shader->get_displacement_method() == DISPLACE_BOTH);
-  int bump_state_offset = SVM_STACK_INVALID;
+  const bool need_bump_state = (type == SHADER_TYPE_BUMP) &&
+                               (shader->get_displacement_method() == DISPLACE_BOTH);
   if (need_bump_state) {
     bump_state_offset = stack_find_offset(SVM_BUMP_EVAL_STATE_SIZE);
     add_node(NODE_ENTER_BUMP_EVAL, bump_state_offset);
@@ -846,6 +846,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
   /* add node to restore state after bump shader has finished */
   if (need_bump_state) {
     add_node(NODE_LEAVE_BUMP_EVAL, bump_state_offset);
+    bump_state_offset = SVM_STACK_INVALID;
   }
 
   /* if compile failed, generate empty shader */

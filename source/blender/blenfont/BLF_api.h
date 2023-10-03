@@ -34,6 +34,12 @@ struct rcti;
 int BLF_init(void);
 void BLF_exit(void);
 
+/**
+ * Close any user-loaded fonts that are not used by the Interface. Call when
+ * loading new blend files so that the old fonts are not still taking resources.
+ */
+void BLF_reset_fonts(void);
+
 void BLF_cache_clear(void);
 
 /**
@@ -349,6 +355,8 @@ enum {
   BLF_BAD_FONT = 1 << 16,
   /** This font is managed by the FreeType cache subsystem. */
   BLF_CACHED = 1 << 17,
+  /** At small sizes glyphs are rendered at multiple sub-pixel positions. */
+  BLF_RENDER_SUBPIXELAA = 1 << 18,
 };
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024

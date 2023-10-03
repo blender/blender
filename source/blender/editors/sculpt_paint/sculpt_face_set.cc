@@ -1449,6 +1449,7 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
 
     if (fair_verts[i]) {
       interp_v3_v3v3(co, orig_positions[i], co, strength);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_index_to_vertex(ss->pbvh, i));
     }
   }
 }

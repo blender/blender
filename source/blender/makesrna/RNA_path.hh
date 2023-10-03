@@ -178,7 +178,7 @@ bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, struct ListBas
  * \param needle: Custom property object to find.
  * \return Relative path or NULL.
  */
-char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, struct IDProperty *needle);
+char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, const struct IDProperty *needle);
 
 /**
  * Find the actual ID pointer and path from it to the given ID.
@@ -196,6 +196,11 @@ char *RNA_path_from_real_ID_to_struct(struct Main *bmain,
                                       struct ID **r_real);
 
 char *RNA_path_from_ID_to_property(const PointerRNA *ptr, PropertyRNA *prop);
+
+char *RNA_path_from_ptr_to_property_index(const PointerRNA *ptr,
+                                          PropertyRNA *prop,
+                                          int index_dim,
+                                          int index);
 /**
  * \param index_dim: The dimension to show, 0 disables. 1 for 1d array, 2 for 2d. etc.
  * \param index: The *flattened* index to use when \a `index_dim > 0`,
