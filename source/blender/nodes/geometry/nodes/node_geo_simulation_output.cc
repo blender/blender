@@ -63,52 +63,17 @@ static std::unique_ptr<SocketDeclaration> socket_declaration_for_simulation_item
   const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
   BLI_assert(SimulationItemsAccessor::supports_socket_type(socket_type));
 
-  std::unique_ptr<SocketDeclaration> decl;
-  switch (socket_type) {
-    case SOCK_FLOAT:
-      decl = std::make_unique<decl::Float>();
+  std::unique_ptr<SocketDeclaration> decl = make_declaration_for_socket_type(socket_type);
+  BLI_assert(decl);
+
+  if (socket_type_supports_fields(socket_type)) {
+    if (in_out == SOCK_IN) {
       decl->input_field_type = InputSocketFieldType::IsSupported;
+    }
+    else {
       decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
           {corresponding_input});
-      break;
-    case SOCK_VECTOR:
-      decl = std::make_unique<decl::Vector>();
-      decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
-          {corresponding_input});
-      break;
-    case SOCK_RGBA:
-      decl = std::make_unique<decl::Color>();
-      decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
-          {corresponding_input});
-      break;
-    case SOCK_BOOLEAN:
-      decl = std::make_unique<decl::Bool>();
-      decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
-          {corresponding_input});
-      break;
-    case SOCK_ROTATION:
-      decl = std::make_unique<decl::Rotation>();
-      decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
-          {corresponding_input});
-      break;
-    case SOCK_INT:
-      decl = std::make_unique<decl::Int>();
-      decl->input_field_type = InputSocketFieldType::IsSupported;
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
-          {corresponding_input});
-      break;
-    case SOCK_STRING:
-      decl = std::make_unique<decl::String>();
-      break;
-    case SOCK_GEOMETRY:
-      decl = std::make_unique<decl::Geometry>();
-      break;
-    default:
-      BLI_assert_unreachable();
+    }
   }
 
   decl->name = item.name ? item.name : "";

@@ -739,6 +739,9 @@ void build_node_declaration_dynamic(const bNodeTree &node_tree,
                                     const bNode &node,
                                     NodeDeclaration &r_declaration);
 
+std::unique_ptr<SocketDeclaration> make_declaration_for_socket_type(
+    eNodeSocketDatatype socket_type);
+
 template<typename SocketDecl>
 typename SocketDeclarationBuilder<SocketDecl>::Self &SocketDeclarationBuilder<
     SocketDecl>::reference_pass(const Span<int> input_indices)

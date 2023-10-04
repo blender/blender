@@ -392,6 +392,39 @@ void PanelDeclaration::update_or_build(const bNodePanelState &old_panel,
   SET_FLAG_FROM_TEST(new_panel.flag, old_panel.is_collapsed(), NODE_PANEL_COLLAPSED);
 }
 
+std::unique_ptr<SocketDeclaration> make_declaration_for_socket_type(
+    const eNodeSocketDatatype socket_type)
+{
+  switch (socket_type) {
+    case SOCK_FLOAT:
+      return std::make_unique<decl::Float>();
+    case SOCK_VECTOR:
+      return std::make_unique<decl::Vector>();
+    case SOCK_RGBA:
+      return std::make_unique<decl::Color>();
+    case SOCK_BOOLEAN:
+      return std::make_unique<decl::Bool>();
+    case SOCK_ROTATION:
+      return std::make_unique<decl::Rotation>();
+    case SOCK_INT:
+      return std::make_unique<decl::Int>();
+    case SOCK_STRING:
+      return std::make_unique<decl::String>();
+    case SOCK_GEOMETRY:
+      return std::make_unique<decl::Geometry>();
+    case SOCK_OBJECT:
+      return std::make_unique<decl::Object>();
+    case SOCK_IMAGE:
+      return std::make_unique<decl::Image>();
+    case SOCK_COLLECTION:
+      return std::make_unique<decl::Collection>();
+    case SOCK_MATERIAL:
+      return std::make_unique<decl::Material>();
+    default:
+      return {};
+  }
+}
+
 namespace implicit_field_inputs {
 
 void position(const bNode & /*node*/, void *r_value)
