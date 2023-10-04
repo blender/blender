@@ -12,6 +12,7 @@
 
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
+#include "NOD_zone_socket_items.hh"
 
 #include "node_geometry_util.hh"
 
@@ -45,40 +46,12 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
-  const bNode *output_node = ntree->node_by_id(node_storage(*node).output_node_id);
+  bNode *output_node = ntree->node_by_id(node_storage(*node).output_node_id);
   if (!output_node) {
     return true;
   }
-  auto &storage = *static_cast<NodeGeometryRepeatOutput *>(output_node->storage);
-  if (link->tonode == node) {
-    if (link->tosock->identifier == StringRef("__extend__")) {
-      if (const NodeRepeatItem *item = storage.add_item(link->fromsock->name,
-                                                        eNodeSocketDatatype(link->fromsock->type)))
-      {
-        update_node_declaration_and_sockets(*ntree, *node);
-        link->tosock = nodeFindSocket(node, SOCK_IN, item->identifier_str().c_str());
-        return true;
-      }
-    }
-    else {
-      return true;
-    }
-  }
-  if (link->fromnode == node) {
-    if (link->fromsock->identifier == StringRef("__extend__")) {
-      if (const NodeRepeatItem *item = storage.add_item(link->tosock->name,
-                                                        eNodeSocketDatatype(link->tosock->type)))
-      {
-        update_node_declaration_and_sockets(*ntree, *node);
-        link->fromsock = nodeFindSocket(node, SOCK_OUT, item->identifier_str().c_str());
-        return true;
-      }
-    }
-    else {
-      return true;
-    }
-  }
-  return false;
+  return socket_items::try_add_item_via_any_extend_socket<RepeatItemsAccessor>(
+      *ntree, *node, *output_node, *link);
 }
 
 static void node_register()

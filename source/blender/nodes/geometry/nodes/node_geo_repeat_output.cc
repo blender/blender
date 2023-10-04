@@ -14,6 +14,7 @@
 
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
+#include "NOD_zone_socket_items.hh"
 
 #include "BLI_string_utils.h"
 
@@ -87,7 +88,7 @@ static std::unique_ptr<SocketDeclaration> socket_declaration_for_repeat_item(
   }
 
   decl->name = item.name ? item.name : "";
-  decl->identifier = item.identifier_str();
+  decl->identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
   decl->in_out = in_out;
   return decl;
 }
@@ -175,36 +176,8 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
-  NodeGeometryRepeatOutput &storage = node_storage(*node);
-  if (link->tonode == node) {
-    if (link->tosock->identifier == StringRef("__extend__")) {
-      if (const NodeRepeatItem *item = storage.add_item(link->fromsock->name,
-                                                        eNodeSocketDatatype(link->fromsock->type)))
-      {
-        update_node_declaration_and_sockets(*ntree, *node);
-        link->tosock = nodeFindSocket(node, SOCK_IN, item->identifier_str().c_str());
-        return true;
-      }
-    }
-    else {
-      return true;
-    }
-  }
-  if (link->fromnode == node) {
-    if (link->fromsock->identifier == StringRef("__extend__")) {
-      if (const NodeRepeatItem *item = storage.add_item(link->tosock->name,
-                                                        eNodeSocketDatatype(link->tosock->type)))
-      {
-        update_node_declaration_and_sockets(*ntree, *node);
-        link->fromsock = nodeFindSocket(node, SOCK_OUT, item->identifier_str().c_str());
-        return true;
-      }
-    }
-    else {
-      return true;
-    }
-  }
-  return false;
+  return socket_items::try_add_item_via_any_extend_socket<RepeatItemsAccessor>(
+      *ntree, *node, *node, *link);
 }
 
 static void node_register()
@@ -229,84 +202,4 @@ blender::Span<NodeRepeatItem> NodeGeometryRepeatOutput::items_span() const
 blender::MutableSpan<NodeRepeatItem> NodeGeometryRepeatOutput::items_span()
 {
   return blender::MutableSpan<NodeRepeatItem>(items, items_num);
-}
-
-bool NodeRepeatItem::supports_type(const eNodeSocketDatatype type)
-{
-  return ELEM(type,
-              SOCK_FLOAT,
-              SOCK_VECTOR,
-              SOCK_RGBA,
-              SOCK_BOOLEAN,
-              SOCK_ROTATION,
-              SOCK_INT,
-              SOCK_STRING,
-              SOCK_GEOMETRY,
-              SOCK_OBJECT,
-              SOCK_MATERIAL,
-              SOCK_IMAGE,
-              SOCK_COLLECTION);
-}
-
-std::string NodeRepeatItem::identifier_str() const
-{
-  return "Item_" + std::to_string(this->identifier);
-}
-
-NodeRepeatItem *NodeGeometryRepeatOutput::add_item(const char *name,
-                                                   const eNodeSocketDatatype type)
-{
-  if (!NodeRepeatItem::supports_type(type)) {
-    return nullptr;
-  }
-  const int insert_index = this->items_num;
-  NodeRepeatItem *old_items = this->items;
-
-  this->items = MEM_cnew_array<NodeRepeatItem>(this->items_num + 1, __func__);
-  std::copy_n(old_items, insert_index, this->items);
-  NodeRepeatItem &new_item = this->items[insert_index];
-  std::copy_n(old_items + insert_index + 1,
-              this->items_num - insert_index,
-              this->items + insert_index + 1);
-
-  new_item.identifier = this->next_identifier++;
-  this->set_item_name(new_item, name);
-  new_item.socket_type = type;
-
-  this->items_num++;
-  MEM_SAFE_FREE(old_items);
-  return &new_item;
-}
-
-void NodeGeometryRepeatOutput::set_item_name(NodeRepeatItem &item, const char *name)
-{
-  char unique_name[MAX_NAME + 4];
-  STRNCPY(unique_name, name);
-
-  struct Args {
-    NodeGeometryRepeatOutput *storage;
-    const NodeRepeatItem *item;
-  } args = {this, &item};
-
-  const char *default_name = nodeStaticSocketLabel(item.socket_type, 0);
-  BLI_uniquename_cb(
-      [](void *arg, const char *name) {
-        const Args &args = *static_cast<Args *>(arg);
-        for (const NodeRepeatItem &item : args.storage->items_span()) {
-          if (&item != args.item) {
-            if (STREQ(item.name, name)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      },
-      &args,
-      default_name,
-      '.',
-      unique_name,
-      ARRAY_SIZE(unique_name));
-
-  MEM_SAFE_FREE(item.name);
-  item.name = BLI_strdup(unique_name);
 }

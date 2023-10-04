@@ -12,6 +12,8 @@
 
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
+#include "NOD_socket_items.hh"
+#include "NOD_zone_socket_items.hh"
 
 #include "node_geometry_util.hh"
 
@@ -211,44 +213,12 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
-  const bNode *output_node = ntree->node_by_id(node_storage(*node).output_node_id);
+  bNode *output_node = ntree->node_by_id(node_storage(*node).output_node_id);
   if (!output_node) {
     return true;
   }
-
-  NodeGeometrySimulationOutput &storage = *static_cast<NodeGeometrySimulationOutput *>(
-      output_node->storage);
-
-  if (link->tonode == node) {
-    if (link->tosock->identifier == StringRef("__extend__")) {
-      if (const NodeSimulationItem *item = NOD_geometry_simulation_output_add_item_from_socket(
-              &storage, link->fromnode, link->fromsock))
-      {
-        update_node_declaration_and_sockets(*ntree, *node);
-        link->tosock = nodeFindSocket(
-            node, SOCK_IN, socket_identifier_for_simulation_item(*item).c_str());
-      }
-      else {
-        return false;
-      }
-    }
-  }
-  else {
-    BLI_assert(link->fromnode == node);
-    if (link->fromsock->identifier == StringRef("__extend__")) {
-      if (const NodeSimulationItem *item = NOD_geometry_simulation_output_add_item_from_socket(
-              &storage, link->tonode, link->tosock))
-      {
-        update_node_declaration_and_sockets(*ntree, *node);
-        link->fromsock = nodeFindSocket(
-            node, SOCK_OUT, socket_identifier_for_simulation_item(*item).c_str());
-      }
-      else {
-        return false;
-      }
-    }
-  }
-  return true;
+  return socket_items::try_add_item_via_any_extend_socket<SimulationItemsAccessor>(
+      *ntree, *node, *output_node, *link);
 }
 
 static void node_register()
