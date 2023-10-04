@@ -8725,10 +8725,9 @@ static void def_geo_repeat_input(StructRNA *srna)
   def_common_zone_input(srna);
 }
 
-static void rna_def_node_item_array_socket_item_common(StructRNA *srna,
-                                                       const char *accessor,
-                                                       blender::LinearAllocator<> &allocator)
+static void rna_def_node_item_array_socket_item_common(StructRNA *srna, const char *accessor)
 {
+  static blender::LinearAllocator<> allocator;
   PropertyRNA *prop;
 
   char name_set_func[64];
@@ -8770,9 +8769,9 @@ static void rna_def_node_item_array_socket_item_common(StructRNA *srna,
 
 static void rna_def_node_item_array_common_functions(StructRNA *srna,
                                                      const char *item_name,
-                                                     const char *accessor_name,
-                                                     blender::LinearAllocator<> &allocator)
+                                                     const char *accessor_name)
 {
+  static blender::LinearAllocator<> allocator;
   PropertyRNA *parm;
   FunctionRNA *func;
 
@@ -8806,9 +8805,9 @@ static void rna_def_node_item_array_common_functions(StructRNA *srna,
 
 static void rna_def_node_item_array_new_with_socket_and_name(StructRNA *srna,
                                                              const char *item_name,
-                                                             const char *accessor_name,
-                                                             blender::LinearAllocator<> &allocator)
+                                                             const char *accessor_name)
 {
+  static blender::LinearAllocator<> allocator;
   PropertyRNA *parm;
   FunctionRNA *func;
 
@@ -8835,13 +8834,12 @@ static void rna_def_node_item_array_new_with_socket_and_name(StructRNA *srna,
 static void rna_def_simulation_state_item(BlenderRNA *brna)
 {
   PropertyRNA *prop;
-  static blender::LinearAllocator<> allocator;
 
   StructRNA *srna = RNA_def_struct(brna, "SimulationStateItem", nullptr);
   RNA_def_struct_ui_text(srna, "Simulation Item", "");
   RNA_def_struct_sdna(srna, "NodeSimulationItem");
 
-  rna_def_node_item_array_socket_item_common(srna, "SimulationItemsAccessor", allocator);
+  rna_def_node_item_array_socket_item_common(srna, "SimulationItemsAccessor");
 
   prop = RNA_def_property(srna, "attribute_domain", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
@@ -8857,16 +8855,14 @@ static void rna_def_simulation_state_item(BlenderRNA *brna)
 static void rna_def_geo_simulation_output_items(BlenderRNA *brna)
 {
   StructRNA *srna;
-  static blender::LinearAllocator<> allocator;
 
   srna = RNA_def_struct(brna, "NodeGeometrySimulationOutputItems", nullptr);
   RNA_def_struct_sdna(srna, "bNode");
   RNA_def_struct_ui_text(srna, "Items", "Collection of simulation items");
 
   rna_def_node_item_array_new_with_socket_and_name(
-      srna, "SimulationStateItem", "SimulationItemsAccessor", allocator);
-  rna_def_node_item_array_common_functions(
-      srna, "SimulationStateItem", "SimulationItemsAccessor", allocator);
+      srna, "SimulationStateItem", "SimulationItemsAccessor");
+  rna_def_node_item_array_common_functions(srna, "SimulationStateItem", "SimulationItemsAccessor");
 }
 
 static void def_geo_simulation_output(StructRNA *srna)
@@ -8902,27 +8898,23 @@ static void def_geo_simulation_output(StructRNA *srna)
 
 static void rna_def_repeat_item(BlenderRNA *brna)
 {
-  static blender::LinearAllocator<> allocator;
-
   StructRNA *srna = RNA_def_struct(brna, "RepeatItem", nullptr);
   RNA_def_struct_ui_text(srna, "Repeat Item", "");
   RNA_def_struct_sdna(srna, "NodeRepeatItem");
 
-  rna_def_node_item_array_socket_item_common(srna, "RepeatItemsAccessor", allocator);
+  rna_def_node_item_array_socket_item_common(srna, "RepeatItemsAccessor");
 }
 
 static void rna_def_geo_repeat_output_items(BlenderRNA *brna)
 {
   StructRNA *srna;
-  static blender::LinearAllocator<> allocator;
 
   srna = RNA_def_struct(brna, "NodeGeometryRepeatOutputItems", nullptr);
   RNA_def_struct_sdna(srna, "bNode");
   RNA_def_struct_ui_text(srna, "Items", "Collection of repeat items");
 
-  rna_def_node_item_array_new_with_socket_and_name(
-      srna, "RepeatItem", "RepeatItemsAccessor", allocator);
-  rna_def_node_item_array_common_functions(srna, "RepeatItem", "RepeatItemsAccessor", allocator);
+  rna_def_node_item_array_new_with_socket_and_name(srna, "RepeatItem", "RepeatItemsAccessor");
+  rna_def_node_item_array_common_functions(srna, "RepeatItem", "RepeatItemsAccessor");
 }
 
 static void def_geo_repeat_output(StructRNA *srna)
