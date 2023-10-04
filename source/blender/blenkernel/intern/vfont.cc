@@ -160,7 +160,7 @@ IDTypeInfo IDType_ID_VF = {
     /*main_listbase_index*/ INDEX_ID_VF,
     /*struct_size*/ sizeof(VFont),
     /*name*/ "Font",
-    /*name_plural*/ "fonts",
+    /*name_plural*/ N_("fonts"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_VFONT,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

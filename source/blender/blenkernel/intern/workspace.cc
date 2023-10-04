@@ -177,7 +177,7 @@ IDTypeInfo IDType_ID_WS = {
     /*main_listbase_index*/ INDEX_ID_WS,
     /*struct_size*/ sizeof(WorkSpace),
     /*name*/ "WorkSpace",
-    /*name_plural*/ "workspaces",
+    /*name_plural*/ N_("workspaces"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_WORKSPACE,
     /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_ONLY_APPEND | IDTYPE_FLAGS_NO_ANIMDATA |
         IDTYPE_FLAGS_NO_MEMFILE_UNDO,

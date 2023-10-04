@@ -84,7 +84,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     /*main_listbase_index*/ INDEX_ID_NULL,
     /*struct_size*/ sizeof(ID),
     /*name*/ "LinkPlaceholder",
-    /*name_plural*/ "link_placeholders",
+    /*name_plural*/ N_("link placeholders"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_ID,
     /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING,
     /*asset_type_info*/ nullptr,

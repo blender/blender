@@ -234,7 +234,7 @@ IDTypeInfo IDType_ID_MA = {
     /*main_listbase_index*/ INDEX_ID_MA,
     /*struct_size*/ sizeof(Material),
     /*name*/ "Material",
-    /*name_plural*/ "materials",
+    /*name_plural*/ N_("materials"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_MATERIAL,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

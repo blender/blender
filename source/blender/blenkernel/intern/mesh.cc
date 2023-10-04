@@ -372,7 +372,7 @@ IDTypeInfo IDType_ID_ME = {
     /*main_listbase_index*/ INDEX_ID_ME,
     /*struct_size*/ sizeof(Mesh),
     /*name*/ "Mesh",
-    /*name_plural*/ "meshes",
+    /*name_plural*/ N_("meshes"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_MESH,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

@@ -140,7 +140,7 @@ IDTypeInfo IDType_ID_CV = {
     /*main_listbase_index*/ INDEX_ID_CV,
     /*struct_size*/ sizeof(Curves),
     /*name*/ "Curves",
-    /*name_plural*/ "hair_curves",
+    /*name_plural*/ N_("hair curves"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_CURVES,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,

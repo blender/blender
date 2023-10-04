@@ -415,7 +415,7 @@ IDTypeInfo IDType_ID_BR = {
     /*main_listbase_index*/ INDEX_ID_BR,
     /*struct_size*/ sizeof(Brush),
     /*name*/ "Brush",
-    /*name_plural*/ "brushes",
+    /*name_plural*/ N_("brushes"),
     /*translation_context*/ BLT_I18NCONTEXT_ID_BRUSH,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
     /*asset_type_info*/ nullptr,
