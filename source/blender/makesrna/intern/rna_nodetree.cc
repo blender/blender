@@ -8146,6 +8146,12 @@ static void def_cmp_keyingscreen(StructRNA *srna)
   RNA_def_property_string_sdna(prop, nullptr, "tracking_object");
   RNA_def_property_ui_text(prop, "Tracking Object", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "smoothness", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "smoothness");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(prop, "Smoothness", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_keying(StructRNA *srna)
