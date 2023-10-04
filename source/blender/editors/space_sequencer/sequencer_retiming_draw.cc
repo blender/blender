@@ -406,7 +406,6 @@ static void retime_keys_draw(const bContext *C)
     return;
   }
 
-  const SpaceSeq *sseq = CTX_wm_space_seq(C);
   if (!retiming_keys_are_visible(C)) {
     return;
   }
@@ -522,7 +521,6 @@ static void retime_speed_draw(const bContext *C)
     return;
   }
 
-  const SpaceSeq *sseq = CTX_wm_space_seq(C);
   if (!retiming_keys_are_visible(C)) {
     return;
   }
