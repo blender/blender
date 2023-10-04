@@ -192,9 +192,8 @@ static void select_cache_init(void *vedata)
 
   if (!e_data.context.is_dirty) {
     /* Check if any of the drawn objects have been transformed. */
-    Object **ob = &e_data.context.objects_drawn[0];
-    for (uint i = e_data.context.objects_drawn_len; i--; ob++) {
-      DrawData *data = DRW_drawdata_get(&(*ob)->id, &draw_engine_select_type);
+    for (Object *ob : e_data.context.objects_drawn) {
+      DrawData *data = DRW_drawdata_get(&ob->id, &draw_engine_select_type);
       if (data && (data->recalc & ID_RECALC_TRANSFORM) != 0) {
         data->recalc &= ~ID_RECALC_TRANSFORM;
         e_data.context.is_dirty = true;
@@ -205,7 +204,8 @@ static void select_cache_init(void *vedata)
   if (e_data.context.is_dirty) {
     /* Remove all tags from drawn or culled objects. */
     copy_m4_m4(e_data.context.persmat, persmat);
-    e_data.context.objects_drawn_len = 0;
+    e_data.context.objects_drawn.clear();
+    e_data.context.index_offsets.clear();
     e_data.context.index_drawn_len = 1;
     select_engine_framebuffer_setup();
     GPU_framebuffer_bind(e_data.framebuffer_select_id);
@@ -270,10 +270,11 @@ static void select_cache_populate(void *vedata, Object *ob)
           &ob->id, &draw_engine_select_type, sizeof(SELECTID_ObjectData), nullptr, nullptr);
     }
     sel_data->dd.recalc = 0;
-    sel_data->drawn_index = e_data.context.objects_drawn_len;
+    sel_data->drawn_index = e_data.context.objects_drawn.size();
     sel_data->is_drawn = true;
 
-    ObjectOffsets *ob_offsets = &e_data.context.index_offsets[e_data.context.objects_drawn_len];
+    e_data.context.index_offsets.increase_size_by_unchecked(1);
+    ObjectOffsets *ob_offsets = &e_data.context.index_offsets.last();
 
     uint offset = e_data.context.index_drawn_len;
     select_id_draw_object(vedata,
@@ -287,8 +288,7 @@ static void select_cache_populate(void *vedata, Object *ob)
 
     ob_offsets->offset = offset;
     e_data.context.index_drawn_len = ob_offsets->vert;
-    e_data.context.objects_drawn[e_data.context.objects_drawn_len] = ob;
-    e_data.context.objects_drawn_len++;
+    e_data.context.objects_drawn.append(ob);
     e_data.runtime_new_objects++;
   }
   else if (sel_data) {
@@ -341,9 +341,9 @@ static void select_engine_free()
 
   DRW_TEXTURE_FREE_SAFE(e_data.texture_u32);
   GPU_FRAMEBUFFER_FREE_SAFE(e_data.framebuffer_select_id);
-  MEM_SAFE_FREE(e_data.context.objects);
-  MEM_SAFE_FREE(e_data.context.index_offsets);
-  MEM_SAFE_FREE(e_data.context.objects_drawn);
+  e_data.context.objects.clear_and_shrink();
+  e_data.context.objects_drawn.clear_and_shrink();
+  e_data.context.index_offsets.clear_and_shrink();
 }
 
 /** \} */

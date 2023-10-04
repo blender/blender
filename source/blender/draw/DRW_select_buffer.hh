@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_sys_types.h" /* for bool and uint */
+#include "BLI_vector.hh"
 
 struct ARegion;
 struct Base;
@@ -43,15 +44,13 @@ struct ObjectOffsets {
 
 struct SELECTID_Context {
   /* All context objects */
-  Object **objects;
+  blender::Vector<Object *> objects;
 
   /* Array with only drawn objects. When a new object is found within the rect,
    * it is added to the end of the list.
    * The list is reset to any viewport or context update. */
-  Object **objects_drawn;
-  ObjectOffsets *index_offsets;
-  uint objects_len;
-  uint objects_drawn_len;
+  blender::Vector<Object *> objects_drawn;
+  blender::Vector<ObjectOffsets> index_offsets;
 
   /** Total number of element indices `index_offsets[object_drawn_len - 1].vert`. */
   uint index_drawn_len;
