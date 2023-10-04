@@ -376,6 +376,8 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification;
 - (void)toggleFullScreen:(NSNotification *)notification;
 - (void)windowWillClose:(NSNotification *)notification;
+
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app;
 @end
 
 @implementation CocoaAppDelegate : NSObject
@@ -491,6 +493,19 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
       return;
     }
   }
+}
+
+/* Explicitly opt-in to the secure codeing for the restorable state.
+ *
+ * This is something that only has affect on macOS 12+, and is implicitly
+ * enabled on macOS 14.
+ *
+ * For the details see
+ *   https://sector7.computest.nl/post/2022-08-process-injection-breaking-all-macos-security-layers-with-a-single-vulnerability/
+ */
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app
+{
+  return YES;
 }
 
 @end
