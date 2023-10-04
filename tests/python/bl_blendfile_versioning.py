@@ -24,7 +24,10 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             "explode_modifier.blend",
 
             # tests/depsgraph/deg_anim_camera_dof_driving_material.blend
-            # ERROR (bke.fcurve): source/blender/blenkernel/intern/fcurve_driver.cc:188 dtar_get_prop_val: Driver Evaluation Error: cannot resolve target for OBCamera -> data.dof_distance
+            # ERROR (bke.fcurve):
+            # source/blender/blenkernel/intern/fcurve_driver.cc:188 dtar_get_prop_val:
+            # Driver Evaluation Error: cannot resolve target for OBCamera ->
+            # data.dof_distance
             "deg_anim_camera_dof_driving_material.blend",
 
             # tests/depsgraph/deg_driver_shapekey_same_datablock.blend

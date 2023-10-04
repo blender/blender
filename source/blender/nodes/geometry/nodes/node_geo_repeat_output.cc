@@ -27,7 +27,7 @@ static std::unique_ptr<SocketDeclaration> socket_declaration_for_repeat_item(
 {
   const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
   BLI_assert(RepeatItemsAccessor::supports_socket_type(socket_type));
-  
+
   std::unique_ptr<SocketDeclaration> decl = make_declaration_for_socket_type(socket_type);
   BLI_assert(decl);
 

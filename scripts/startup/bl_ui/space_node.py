@@ -1000,6 +1000,7 @@ def draw_socket_item_in_list(uilist, layout, item, icon):
         layout.alignment = 'CENTER'
         layout.template_node_socket(color=item.color)
 
+
 class NODE_UL_simulation_zone_items(bpy.types.UIList):
     def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, _index):
         draw_socket_item_in_list(self, layout, item, icon)

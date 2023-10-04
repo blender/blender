@@ -2135,7 +2135,7 @@ def main() -> int:
     verbose_edit_actions = False
     verbose_all_from_args = args.verbose.split(",") if args.verbose else []
     while verbose_all_from_args:
-        match (verbose_id := verbose_all_from_args.pop()):
+        match(verbose_id := verbose_all_from_args.pop()):
             case "compile":
                 verbose_compile = True
             case "edit_actions":

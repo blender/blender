@@ -964,7 +964,6 @@ class SEQUENCER_MT_strip_retiming(Menu):
         )
 
 
-
 class SEQUENCER_MT_strip(Menu):
     bl_label = "Strip"
 
