@@ -733,8 +733,8 @@ endmacro()
 # when we have warnings as errors applied globally this
 # needs to be removed for some external libs which we don't maintain.
 
-# utility macro
-macro(remove_cc_flag
+
+macro(remove_c_flag
   _flag)
 
   foreach(f ${ARGV})
@@ -743,7 +743,14 @@ macro(remove_cc_flag
     string(REGEX REPLACE ${f} "" CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
     string(REGEX REPLACE ${f} "" CMAKE_C_FLAGS_MINSIZEREL ${CMAKE_C_FLAGS_MINSIZEREL})
     string(REGEX REPLACE ${f} "" CMAKE_C_FLAGS_RELWITHDEBINFO ${CMAKE_C_FLAGS_RELWITHDEBINFO})
+  endforeach()
+  unset(f)
+endmacro()
 
+macro(remove_cxx_flag
+  _flag)
+
+  foreach(f ${ARGV})
     string(REGEX REPLACE ${f} "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
     string(REGEX REPLACE ${f} "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
     string(REGEX REPLACE ${f} "" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
@@ -751,7 +758,14 @@ macro(remove_cc_flag
     string(REGEX REPLACE ${f} "" CMAKE_CXX_FLAGS_RELWITHDEBINFO ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
   endforeach()
   unset(f)
+endmacro()
 
+# utility macro
+macro(remove_cc_flag
+  _flag)
+
+  remove_c_flag(${ARGV})
+  remove_cxx_flag(${ARGV})
 endmacro()
 
 macro(add_c_flag
