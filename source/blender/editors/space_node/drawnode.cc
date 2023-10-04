@@ -24,6 +24,7 @@
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_anonymous_attributes.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
@@ -1512,7 +1513,9 @@ static void std_node_socket_interface_draw(ID *id,
   const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(id);
   if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT && node_tree->type == NTREE_GEOMETRY) {
     uiItemR(col, &ptr, "hide_in_modifier", DEFAULT_FLAGS, nullptr, ICON_NONE);
-    uiItemR(col, &ptr, "force_non_field", DEFAULT_FLAGS, nullptr, ICON_NONE);
+    if(bke::anonymous_attribute_inferencing::is_possible_field_socket(type)) {
+      uiItemR(col, &ptr, "force_non_field", DEFAULT_FLAGS, nullptr, ICON_NONE);
+    }
   }
 }
 
