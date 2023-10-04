@@ -19,6 +19,8 @@
 #include "BKE_layer.h"
 #include "BKE_report.h"
 
+#include "BLT_translation.h"
+
 #include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
@@ -949,7 +951,7 @@ static const EnumPropertyItem *bone_collection_enum_itemf(bContext *C,
   /* New Collection. */
   EnumPropertyItem item_tmp = {0};
   item_tmp.identifier = "__NEW__";
-  item_tmp.name = "New Collection";
+  item_tmp.name = CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection");
   item_tmp.value = -1;
   RNA_enum_item_add(&item, &totitem, &item_tmp);
 
@@ -972,7 +974,8 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
     return op->type->exec(C, op);
   }
 
-  uiPopupMenu *pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
+  const char *title = CTX_IFACE_(op->type->translation_context, op->type->name);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, title, ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
   uiItemsEnumO(layout, op->idname, "collection");
@@ -1007,7 +1010,10 @@ void ARMATURE_OT_move_to_collection(wmOperatorType *ot)
                       "Collection",
                       "The bone collection to move the selected bones to");
   RNA_def_enum_funcs(prop, bone_collection_enum_itemf);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  /* Translation of items is handled by bone_collection_enum_itemf if needed, most are actually
+   * data (bone collections) names and therefore should not be translated at all. So disable
+   * automatic translation. */
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE);
 
   prop = RNA_def_string(ot->srna,
                         "new_collection_name",
