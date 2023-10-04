@@ -280,7 +280,7 @@ static size_t id_delete(Main *bmain,
               BLI_remlink(&bmain->shapekeys, &shape_key->id);
               BKE_main_namemap_remove_name(bmain, &shape_key->id, shape_key->id.name + 2);
               BLI_addtail(&tagged_deleted_ids, &shape_key->id);
-              BKE_id_remapper_add(id_remapper, &shape_key->id, nullptr);
+              BKE_id_remapper_add(id_remapper, &shape_key->id, NULL);
               shape_key->id.tag |= tag;
             }
 
