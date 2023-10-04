@@ -47,7 +47,7 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"

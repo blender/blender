@@ -62,7 +62,7 @@
 #include "BLI_sys_types.h"
 #include "ED_mesh.hh" /* for face mask functions */
 
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

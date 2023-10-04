@@ -15,13 +15,13 @@
 #include "UI_resources.hh"
 
 #include "DRW_engine.h"
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "draw_cache_impl.hh"
 #include "draw_manager.h"
 
-#include "select_engine.h"
-#include "select_private.h"
+#include "select_engine.hh"
+#include "select_private.hh"
 
 #define SELECT_ENGINE "SELECT_ENGINE"
 
@@ -141,8 +141,9 @@ static void select_cache_init(void *vedata)
   }
 
   DRWState state = DRW_STATE_DEFAULT;
-  state |= RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d) ? DRW_STATE_CLIP_PLANES :
-                                                                  DRWState(0);
+  if (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) {
+    state |= DRW_STATE_CLIP_PLANES;
+  }
 
   bool retopology_occlusion = RETOPOLOGY_ENABLED(draw_ctx->v3d) && !XRAY_ENABLED(draw_ctx->v3d);
   float retopology_offset = RETOPOLOGY_OFFSET(draw_ctx->v3d);

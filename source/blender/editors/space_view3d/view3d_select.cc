@@ -96,7 +96,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "DRW_engine.h"
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "ANIM_bone_collections.h"
 

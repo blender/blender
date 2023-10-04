@@ -23,11 +23,11 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "DRW_engine.h"
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "draw_manager.h"
 
-#include "../engines/select/select_engine.h"
+#include "../engines/select/select_engine.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Buffer of select ID's

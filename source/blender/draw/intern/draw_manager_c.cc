@@ -95,7 +95,7 @@
 #include "engines/gpencil/gpencil_engine.h"
 #include "engines/image/image_engine.h"
 #include "engines/overlay/overlay_engine.h"
-#include "engines/select/select_engine.h"
+#include "engines/select/select_engine.hh"
 #include "engines/workbench/workbench_engine.h"
 
 #include "GPU_context.h"
@@ -103,7 +103,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 /** Render State: No persistent data between draw calls. */
 DRWManager DST = {nullptr};

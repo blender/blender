@@ -227,7 +227,7 @@ set(SRC
 
   DRW_engine.h
   DRW_pbvh.hh
-  DRW_select_buffer.h
+  DRW_select_buffer.hh
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h
   intern/draw_attributes.hh
@@ -334,10 +334,10 @@ set(SRC
   engines/overlay/overlay_next_prepass.hh
   engines/overlay/overlay_next_private.hh
   engines/overlay/overlay_private.hh
-  engines/select/select_defines.h
-  engines/select/select_engine.h
+  engines/select/select_defines.hh
+  engines/select/select_engine.hh
   engines/select/select_instance.hh
-  engines/select/select_private.h
+  engines/select/select_private.hh
   engines/workbench/workbench_defines.hh
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_enums.hh
