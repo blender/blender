@@ -449,22 +449,22 @@ class ARMATURE_OT_sync_bone_color_to_selected(Operator):
         return context.mode in {'EDIT_ARMATURE', 'POSE'}
 
     def execute(self, context):
-        match (self.bone_type, context.mode):
+        match(self.bone_type, context.mode):
             # Armature in edit mode:
-            case ('POSE', 'EDIT_ARMATURE'):
+            case('POSE', 'EDIT_ARMATURE'):
                 self.report({'ERROR'}, "Go to pose mode to copy pose bone colors")
                 return {'OPERATOR_CANCELLED'}
-            case ('EDIT', 'EDIT_ARMATURE'):
+            case('EDIT', 'EDIT_ARMATURE'):
                 bone_source = context.active_bone
                 bones_dest = context.selected_bones
                 pose_bones_to_check = []
 
             # Armature in pose mode:
-            case ('POSE', 'POSE'):
+            case('POSE', 'POSE'):
                 bone_source = context.active_pose_bone
                 bones_dest = context.selected_pose_bones
                 pose_bones_to_check = []
-            case ('EDIT', 'POSE'):
+            case('EDIT', 'POSE'):
                 bone_source = context.active_bone
                 pose_bones_to_check = context.selected_pose_bones
                 bones_dest = [posebone.bone for posebone in pose_bones_to_check]
