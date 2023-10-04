@@ -326,8 +326,7 @@ void WM_init(bContext *C, int argc, const char **argv)
     WM_init_gpu();
 
     if (!WM_platform_support_perform_checks()) {
-      /* No attempt to avoid memory leaks here. */
-      exit(-1);
+      WM_exit(C, -1);
     }
 
     GPU_context_begin_frame(GPU_context_active_get());
@@ -575,8 +574,11 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
    * passes in `CTX_data_main(C)` to un-registration functions.
    * Further: `addon_utils.disable_all()` may call into functions that expect a valid context,
    * supporting all these code-paths with a null context is quite involved for such a corner-case.
+   *
+   * Check `CTX_py_init_get(C)` in case this function runs before Python has been initialized.
+   * Which can happen when the GPU backend fails to initialize.
    */
-  if (C) {
+  if (C && CTX_py_init_get(C)) {
     const char *imports[2] = {"addon_utils", nullptr};
     BPY_run_string_eval(C, imports, "addon_utils.disable_all()");
   }
