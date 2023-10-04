@@ -55,6 +55,7 @@ set(INC
   texture
   ../editors/include
   ../blenkernel
+  ../blenloader
   ../blentranslation
   ../bmesh
   ../depsgraph

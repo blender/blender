@@ -8,6 +8,9 @@
 
 #include "NOD_socket_items.hh"
 
+struct BlendWriter;
+struct BlendDataReader;
+
 namespace blender::nodes {
 
 /**
@@ -25,10 +28,17 @@ struct SimulationItemsAccessor {
     auto *storage = static_cast<NodeGeometrySimulationOutput *>(node.storage);
     return {&storage->items, &storage->items_num, &storage->active_index};
   }
+  static void copy_item(const NodeSimulationItem &src, NodeSimulationItem &dst)
+  {
+    dst = src;
+    dst.name = BLI_strdup_null(dst.name);
+  }
   static void destruct_item(NodeSimulationItem *item)
   {
     MEM_SAFE_FREE(item->name);
   }
+  static void blend_write(BlendWriter *writer, const bNode &node);
+  static void blend_read_data(BlendDataReader *reader, bNode &node);
   static short *get_socket_type(NodeSimulationItem &item)
   {
     return &item.socket_type;
@@ -80,10 +90,17 @@ struct RepeatItemsAccessor {
     auto *storage = static_cast<NodeGeometryRepeatOutput *>(node.storage);
     return {&storage->items, &storage->items_num, &storage->active_index};
   }
+  static void copy_item(const NodeRepeatItem &src, NodeRepeatItem &dst)
+  {
+    dst = src;
+    dst.name = BLI_strdup_null(dst.name);
+  }
   static void destruct_item(NodeRepeatItem *item)
   {
     MEM_SAFE_FREE(item->name);
   }
+  static void blend_write(BlendWriter *writer, const bNode &node);
+  static void blend_read_data(BlendDataReader *reader, bNode &node);
   static short *get_socket_type(NodeRepeatItem &item)
   {
     return &item.socket_type;

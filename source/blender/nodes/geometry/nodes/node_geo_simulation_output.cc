@@ -797,36 +797,17 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_free_storage(bNode *node)
 {
-  if (!node->storage) {
-    return;
-  }
-  NodeGeometrySimulationOutput &storage = node_storage(*node);
-  for (NodeSimulationItem &item : MutableSpan(storage.items, storage.items_num)) {
-    MEM_SAFE_FREE(item.name);
-  }
-  MEM_SAFE_FREE(storage.items);
+  socket_items::destruct_array<SimulationItemsAccessor>(*node);
   MEM_freeN(node->storage);
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometrySimulationOutput &src_storage = node_storage(*src_node);
-  NodeGeometrySimulationOutput *dst_storage = MEM_cnew<NodeGeometrySimulationOutput>(__func__);
-
-  dst_storage->items = MEM_cnew_array<NodeSimulationItem>(src_storage.items_num, __func__);
-  dst_storage->items_num = src_storage.items_num;
-  dst_storage->active_index = src_storage.active_index;
-  dst_storage->next_identifier = src_storage.next_identifier;
-  for (const int i : IndexRange(src_storage.items_num)) {
-    if (char *name = src_storage.items[i].name) {
-      dst_storage->items[i].identifier = src_storage.items[i].identifier;
-      dst_storage->items[i].name = BLI_strdup(name);
-      dst_storage->items[i].socket_type = src_storage.items[i].socket_type;
-      dst_storage->items[i].attribute_domain = src_storage.items[i].attribute_domain;
-    }
-  }
-
+  auto *dst_storage = MEM_new<NodeGeometrySimulationOutput>(__func__, src_storage);
   dst_node->storage = dst_storage;
+
+  socket_items::copy_array<SimulationItemsAccessor>(*src_node, *dst_node);
 }
 
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)

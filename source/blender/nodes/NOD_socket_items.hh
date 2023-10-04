@@ -138,6 +138,35 @@ inline void move_item(T *items, const int items_num, const int from_index, const
 }
 
 /**
+ * Destruct all the items and the free the array itself.
+ */
+template<typename Accessor> inline void destruct_array(bNode &node)
+{
+  using ItemT = typename Accessor::ItemT;
+  SocketItemsRef ref = Accessor::get_items_from_node(node);
+  for (const int i : IndexRange(*ref.items_num)) {
+    ItemT &item = (*ref.items)[i];
+    Accessor::destruct_item(&item);
+  }
+  MEM_SAFE_FREE(*ref.items);
+}
+
+/**
+ * Copy the items from the storage of the source node to the storage of the destination node.
+ */
+template<typename Accessor> inline void copy_array(const bNode &src_node, bNode &dst_node)
+{
+  using ItemT = typename Accessor::ItemT;
+  SocketItemsRef src_ref = Accessor::get_items_from_node(const_cast<bNode &>(src_node));
+  SocketItemsRef dst_ref = Accessor::get_items_from_node(dst_node);
+  const int items_num = *src_ref.items_num;
+  *dst_ref.items = MEM_cnew_array<ItemT>(items_num, __func__);
+  for (const int i : IndexRange(items_num)) {
+    Accessor::copy_item((*src_ref.items)[i], (*dst_ref.items)[i]);
+  }
+}
+
+/**
  * Changes the name of an existing item and makes sure that the name is unique among other the
  * other items in the same array.
  */

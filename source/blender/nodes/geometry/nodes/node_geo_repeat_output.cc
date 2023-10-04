@@ -145,33 +145,17 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_free_storage(bNode *node)
 {
-  NodeGeometryRepeatOutput &storage = node_storage(*node);
-  for (NodeRepeatItem &item : storage.items_span()) {
-    MEM_SAFE_FREE(item.name);
-  }
-  MEM_SAFE_FREE(storage.items);
+  socket_items::destruct_array<RepeatItemsAccessor>(*node);
   MEM_freeN(node->storage);
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryRepeatOutput &src_storage = node_storage(*src_node);
-  NodeGeometryRepeatOutput *dst_storage = MEM_cnew<NodeGeometryRepeatOutput>(__func__);
-
-  dst_storage->items = MEM_cnew_array<NodeRepeatItem>(src_storage.items_num, __func__);
-  dst_storage->items_num = src_storage.items_num;
-  dst_storage->active_index = src_storage.active_index;
-  dst_storage->next_identifier = src_storage.next_identifier;
-  dst_storage->inspection_index = src_storage.inspection_index;
-  for (const int i : IndexRange(src_storage.items_num)) {
-    if (char *name = src_storage.items[i].name) {
-      dst_storage->items[i].identifier = src_storage.items[i].identifier;
-      dst_storage->items[i].name = BLI_strdup(name);
-      dst_storage->items[i].socket_type = src_storage.items[i].socket_type;
-    }
-  }
-
+  auto *dst_storage = MEM_new<NodeGeometryRepeatOutput>(__func__, src_storage);
   dst_node->storage = dst_storage;
+
+  socket_items::copy_array<RepeatItemsAccessor>(*src_node, *dst_node);
 }
 
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
