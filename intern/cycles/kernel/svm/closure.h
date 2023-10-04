@@ -381,7 +381,7 @@ ccl_device
 
         bssrdf->radius = rgb_to_spectrum(subsurface_radius * subsurface_scale);
         bssrdf->albedo = rgb_to_spectrum(base_color);
-        bssrdf->N = N;
+        bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
         bssrdf->alpha = sqr(roughness);
         bssrdf->ior = ior;
         bssrdf->anisotropy = stack_load_float(stack, data_subsurf.w);
@@ -834,7 +834,7 @@ ccl_device
       if (bssrdf) {
         bssrdf->radius = rgb_to_spectrum(stack_load_float3(stack, data_node.z) * param1);
         bssrdf->albedo = closure_weight;
-        bssrdf->N = N;
+        bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
         bssrdf->ior = param2;
         bssrdf->alpha = 1.0f;
         bssrdf->anisotropy = stack_load_float(stack, data_node.w);

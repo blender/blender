@@ -830,7 +830,7 @@ ccl_device void osl_closure_bssrdf_setup(KernelGlobals kg,
 
   /* create one closure per color channel */
   bssrdf->albedo = closure->albedo;
-  bssrdf->N = closure->N;
+  bssrdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
   bssrdf->alpha = sqr(closure->roughness);
   bssrdf->ior = closure->ior;
   bssrdf->anisotropy = closure->anisotropy;
