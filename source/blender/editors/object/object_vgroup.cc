@@ -2992,7 +2992,7 @@ static int vertex_group_lock_exec(bContext *C, wmOperator *op)
 }
 
 static std::string vertex_group_lock_description(bContext * /*C*/,
-                                                 wmOperatorType * /*op*/,
+                                                 wmOperatorType * /*ot*/,
                                                  PointerRNA *params)
 {
   int action = RNA_enum_get(params, "action");

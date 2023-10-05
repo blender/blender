@@ -2889,7 +2889,7 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 }
 
 static std::string wm_open_mainfile_description(bContext * /*C*/,
-                                                wmOperatorType * /*op*/,
+                                                wmOperatorType * /*ot*/,
                                                 PointerRNA *params)
 {
   if (!RNA_struct_property_is_set(params, "filepath")) {

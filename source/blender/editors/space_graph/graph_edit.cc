@@ -604,7 +604,7 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 }
 
 static std::string graphkeys_paste_description(bContext * /*C*/,
-                                               wmOperatorType * /*op*/,
+                                               wmOperatorType * /*ot*/,
                                                PointerRNA *ptr)
 {
   /* Custom description if the 'flipped' option is used. */

@@ -1867,7 +1867,7 @@ static int modifier_apply_as_shapekey_invoke(bContext *C, wmOperator *op, const 
 }
 
 static std::string modifier_apply_as_shapekey_get_description(bContext * /*C*/,
-                                                              wmOperatorType * /*op*/,
+                                                              wmOperatorType * /*ot*/,
                                                               PointerRNA *values)
 {
   bool keep = RNA_boolean_get(values, "keep_modifier");
