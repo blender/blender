@@ -788,12 +788,6 @@ void DeferredProbeLayer::begin_sync()
     gbuffer_single_sided_ps_ = &gbuffer_ps_.sub("SingleSided");
     gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
   }
-
-  /* Light evaluate resources. */
-  {
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
-    dummy_light_tx_.ensure_2d(GPU_RGBA16F, int2(1), usage);
-  }
 }
 
 void DeferredProbeLayer::end_sync()
@@ -814,7 +808,6 @@ void DeferredProbeLayer::end_sync()
     inst_.shadows.bind_resources(&pass);
     inst_.sampling.bind_resources(&pass);
     inst_.hiz_buffer.bind_resources(&pass);
-    inst_.reflection_probes.bind_resources(&pass);
     inst_.irradiance_cache.bind_resources(&pass);
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);

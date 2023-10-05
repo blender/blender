@@ -303,8 +303,6 @@ class DeferredProbeLayer {
   /* Closures bits from the materials in this pass. */
   eClosureBits closure_bits_;
 
-  Texture dummy_light_tx_ = {"dummy_light_accum_tx"};
-
  public:
   DeferredProbeLayer(Instance &inst) : inst_(inst){};
 
