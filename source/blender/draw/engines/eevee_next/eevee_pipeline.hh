@@ -107,7 +107,10 @@ class ShadowPipeline {
  private:
   Instance &inst_;
 
-  PassMain surface_ps_ = {"Shadow.Surface"};
+  /* Shadow update pass. */
+  PassMain render_ps_ = {"Shadow.Surface"};
+  /* Shadow surface render subpass. */
+  PassMain::Sub *surface_ps_ = nullptr;
 
  public:
   ShadowPipeline(Instance &inst) : inst_(inst){};
@@ -115,6 +118,7 @@ class ShadowPipeline {
   PassMain::Sub *surface_material_add(GPUMaterial *gpumat);
 
   void sync();
+
   void render(View &view);
 };
 

@@ -15,6 +15,10 @@
 
 #include "eevee_shader.hh"
 
+#include "eevee_shadow.hh"
+
+#include "BLI_assert.h"
+
 namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
@@ -228,6 +232,10 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_shadow_tag_usage_surfels";
     case SHADOW_TILEMAP_TAG_USAGE_TRANSPARENT:
       return "eevee_shadow_tag_usage_transparent";
+    case SHADOW_PAGE_TILE_CLEAR:
+      return "eevee_shadow_page_tile_clear";
+    case SHADOW_PAGE_TILE_STORE:
+      return "eevee_shadow_page_tile_store";
     case SHADOW_TILEMAP_TAG_USAGE_VOLUME:
       return "eevee_shadow_tag_usage_volume";
     case SUBSURFACE_CONVOLVE:
@@ -552,7 +560,18 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
           info.additional_info("eevee_surf_depth");
           break;
         case MAT_PIPE_SHADOW:
-          info.additional_info("eevee_surf_shadow");
+          /* Determine surface shadow shader depending on used update technique. */
+          switch (ShadowModule::shadow_technique) {
+            case ShadowTechnique::ATOMIC_RASTER: {
+              info.additional_info("eevee_surf_shadow_atomic");
+            } break;
+            case ShadowTechnique::TILE_COPY: {
+              info.additional_info("eevee_surf_shadow_tbdr");
+            } break;
+            default: {
+              BLI_assert_unreachable();
+            } break;
+          }
           break;
         case MAT_PIPE_CAPTURE:
           info.additional_info("eevee_surf_capture");

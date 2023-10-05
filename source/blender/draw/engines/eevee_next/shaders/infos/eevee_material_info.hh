@@ -198,28 +198,38 @@ GPU_SHADER_CREATE_INFO(eevee_surf_world)
                      "eevee_utility_texture");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_shadow)
-    .define("DRW_VIEW_LEN", "64")
+    .define("DRW_VIEW_LEN", STRINGIFY(SHADOW_VIEW_MAX))
     .define("MAT_SHADOW")
-    .define("USE_ATOMIC")
-    .builtins(BuiltinBits::VIEWPORT_INDEX)
-    .builtins(BuiltinBits::LAYER)
-    .builtins(BuiltinBits::TEXTURE_ATOMIC)
-    .storage_buf(SHADOW_RENDER_MAP_BUF_SLOT,
-                 Qualifier::READ,
-                 "uint",
-                 "render_map_buf[SHADOW_RENDER_MAP_SIZE]")
+    .builtins(BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER)
     .storage_buf(SHADOW_VIEWPORT_INDEX_BUF_SLOT,
                  Qualifier::READ,
                  "uint",
                  "viewport_index_buf[SHADOW_VIEW_MAX]")
-    .storage_buf(SHADOW_PAGE_INFO_SLOT, Qualifier::READ, "ShadowPagesInfoData", "pages_infos_buf")
+    .fragment_source("eevee_surf_shadow_frag.glsl")
+    .additional_info("eevee_global_ubo", "eevee_utility_texture", "eevee_sampling_data");
+
+GPU_SHADER_CREATE_INFO(eevee_surf_shadow_atomic)
+    .additional_info("eevee_surf_shadow")
+    .define("SHADOW_UPDATE_ATOMIC_RASTER")
+    .builtins(BuiltinBits::TEXTURE_ATOMIC)
+    /* Early fragment test for speeding up platforms that requires a depth buffer. */
+    /* NOTE: This removes the possibility of using gl_FragDepth. */
+    .early_fragment_test(true)
+    .storage_buf(SHADOW_RENDER_MAP_BUF_SLOT,
+                 Qualifier::READ,
+                 "uint",
+                 "render_map_buf[SHADOW_RENDER_MAP_SIZE]")
     .image(SHADOW_ATLAS_IMG_SLOT,
            GPU_R32UI,
            Qualifier::READ_WRITE,
            ImageType::UINT_2D_ARRAY,
-           "shadow_atlas_img")
-    .fragment_source("eevee_surf_shadow_frag.glsl")
-    .additional_info("eevee_global_ubo", "eevee_utility_texture", "eevee_sampling_data");
+           "shadow_atlas_img");
+
+GPU_SHADER_CREATE_INFO(eevee_surf_shadow_tbdr)
+    .additional_info("eevee_surf_shadow")
+    .define("SHADOW_UPDATE_TBDR")
+    /* F32 color attachment for on-tile depth accumulation without atomics. */
+    .fragment_out(0, Type::FLOAT, "out_depth", DualBlend::NONE, SHADOW_ROG_ID);
 
 #undef image_out
 #undef image_array_out
@@ -340,7 +350,8 @@ GPU_SHADER_CREATE_INFO(eevee_material_stub)
     EEVEE_MAT_GEOM_VARIATIONS(name##_deferred, "eevee_surf_deferred", __VA_ARGS__) \
     EEVEE_MAT_GEOM_VARIATIONS(name##_forward, "eevee_surf_forward", __VA_ARGS__) \
     EEVEE_MAT_GEOM_VARIATIONS(name##_capture, "eevee_surf_capture", __VA_ARGS__) \
-    EEVEE_MAT_GEOM_VARIATIONS(name##_shadow, "eevee_surf_shadow", __VA_ARGS__)
+    EEVEE_MAT_GEOM_VARIATIONS(name##_shadow_atomic, "eevee_surf_shadow_atomic", __VA_ARGS__) \
+    EEVEE_MAT_GEOM_VARIATIONS(name##_shadow_tbdr, "eevee_surf_shadow_tbdr", __VA_ARGS__)
 
 EEVEE_MAT_PIPE_VARIATIONS(eevee_surface, "eevee_material_stub")
 
