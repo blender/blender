@@ -44,7 +44,7 @@ static eStrCursorDelimType cursor_delim_type_unicode(const uint uch)
   switch (uch) {
     case ',':
     case '.':
-    case 0x2026: /* Horizontal elipsis. */
+    case 0x2026: /* Horizontal ellipsis. */
     case 0x3002: /* CJK full width full stop. */
     case 0xFF0C: /* CJK full width comma. */
     case 0xFF61: /* CJK half width full stop. */
