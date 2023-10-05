@@ -164,6 +164,9 @@ void node_gpu_stack_from_data(GPUNodeStack *gs, int type, bNodeStack *ns)
     else if (type == SOCK_INT) {
       gs->type = GPU_FLOAT; /* HACK: Support as float. */
     }
+    else if (type == SOCK_BOOLEAN) {
+      gs->type = GPU_FLOAT; /* HACK: Support as float. */
+    }
     else if (type == SOCK_VECTOR) {
       gs->type = GPU_VEC3;
     }
@@ -208,7 +211,9 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
 {
   int i = 0;
   LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
-    if (ELEM(socket->type, SOCK_FLOAT, SOCK_INT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER)) {
+    if (ELEM(
+            socket->type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER))
+    {
       node_data_from_gpu_stack(ns[i], &gs[i]);
       i++;
     }
