@@ -54,7 +54,7 @@ class NLA_PT_snapping(Panel):
         col.label(text="Snap To")
         tool_settings = context.tool_settings
         col.prop(tool_settings, "snap_anim_element", expand=True)
-        if tool_settings.snap_anim_element not in ('MARKER', ):
+        if tool_settings.snap_anim_element != 'MARKER':
             col.prop(tool_settings, "use_snap_time_absolute")
 
 
