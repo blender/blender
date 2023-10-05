@@ -17,6 +17,9 @@ set(SRC
   vk_mem_alloc.h
 )
 
+set(LIB
+)
+
 blender_add_lib(extern_vulkan_memory_allocator "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
