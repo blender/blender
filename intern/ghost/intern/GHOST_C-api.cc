@@ -600,6 +600,13 @@ char *GHOST_GetTitle(GHOST_WindowHandle windowhandle)
   return ctitle;
 }
 
+GHOST_TSuccess GHOST_SetPath(GHOST_WindowHandle windowhandle, const char *filepath)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+
+  return window->setPath(filepath);
+}
+
 GHOST_RectangleHandle GHOST_GetWindowBounds(GHOST_WindowHandle windowhandle)
 {
   const GHOST_IWindow *window = (const GHOST_IWindow *)windowhandle;
