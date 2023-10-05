@@ -433,8 +433,12 @@ void WM_init_splash(bContext *C)
 /** Load add-ons & app-templates once on startup. */
 static void wm_init_scripts_extensions_once(bContext *C)
 {
+#ifdef WITH_PYTHON
   const char *imports[] = {"bpy", nullptr};
   BPY_run_string_eval(C, imports, "bpy.utils.load_scripts_extensions()");
+#else
+  UNUSED_VARS(C);
+#endif
 }
 
 /* free strings of open recent files */

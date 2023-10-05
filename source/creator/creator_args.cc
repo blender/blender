@@ -2537,6 +2537,9 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
 #  ifdef WITH_PYTHON
   /* Use for Python to extract help text (Python can't call directly - bad-level call). */
   BPY_python_app_help_text_fn = main_args_help_as_string;
+#  else
+  /* Quiet unused function warning. */
+  (void)main_args_help_as_string;
 #  endif
 }
 
