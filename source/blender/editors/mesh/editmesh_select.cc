@@ -1396,7 +1396,7 @@ static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *e
 }
 
 static std::string edbm_select_mode_get_description(bContext * /*C*/,
-                                                    wmOperatorType * /*op*/,
+                                                    wmOperatorType * /*ot*/,
                                                     PointerRNA *values)
 {
   const int type = RNA_enum_get(values, "type");

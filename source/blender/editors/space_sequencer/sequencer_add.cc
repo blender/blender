@@ -1482,7 +1482,7 @@ static int sequencer_add_effect_strip_invoke(bContext *C,
 }
 
 static std::string sequencer_add_effect_strip_desc(bContext * /*C*/,
-                                                   wmOperatorType * /*op*/,
+                                                   wmOperatorType * /*ot*/,
                                                    PointerRNA *ptr)
 {
   const int type = RNA_enum_get(ptr, "type");
