@@ -95,6 +95,7 @@ class ReflectionProbeModule {
 
   static constexpr uint64_t world_object_key_ = 0;
 
+  bool is_initialized = false;
   Instance &instance_;
   ReflectionProbeDataBuf data_buf_;
   Map<uint64_t, ReflectionProbe> probes_;

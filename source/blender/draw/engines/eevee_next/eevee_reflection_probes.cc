@@ -13,7 +13,9 @@ namespace blender::eevee {
 
 void ReflectionProbeModule::init()
 {
-  if (probes_.is_empty()) {
+  if (!is_initialized) {
+    is_initialized = true;
+
     ReflectionProbeData init_probe_data = {};
     init_probe_data.layer = -1;
     for (int i : IndexRange(REFLECTION_PROBES_MAX)) {
@@ -131,9 +133,13 @@ void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
   probe.do_render |= is_dirty;
   probe.is_probe_used = true;
 
-  /* Only update data when rerendering the probes to reduce flickering. */
-  if (!instance_.do_probe_sync()) {
+  const bool probe_sync_active = instance_.do_probe_sync();
+  if (!probe_sync_active && is_dirty) {
     update_probes_next_sample_ = true;
+  }
+
+  /* Only update data when rerendering the probes to reduce flickering. */
+  if (!probe_sync_active) {
     return;
   }
 
@@ -514,9 +520,7 @@ std::optional<ReflectionProbeUpdateInfo> ReflectionProbeModule::update_info_pop(
   }
 
   /* Check reset probe updating as we completed rendering all Probes. */
-  if (probe_type == ReflectionProbe::Type::Probe && update_probes_this_sample_ &&
-      update_probes_next_sample_)
-  {
+  if (probe_type == ReflectionProbe::Type::Probe && update_probes_this_sample_) {
     update_probes_next_sample_ = false;
   }
 
