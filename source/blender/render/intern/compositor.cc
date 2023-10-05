@@ -231,8 +231,7 @@ class Context : public realtime_compositor::Context {
       if (view_layer) {
         RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
         if (rl) {
-          RenderPass *rpass = (RenderPass *)BLI_findstring(
-              &rl->passes, pass_name, offsetof(RenderPass, name));
+          RenderPass *rpass = RE_pass_find_by_name(rl, pass_name, get_view_name().data());
 
           if (rpass && rpass->ibuf && rpass->ibuf->float_buffer.data) {
             input_texture = RE_pass_ensure_gpu_texture_cache(re, rpass);
