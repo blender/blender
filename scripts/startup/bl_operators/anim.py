@@ -447,15 +447,15 @@ class UpdateAnimatedTransformConstraint(Operator):
         return {'FINISHED'}
 
 
-class ARMATURE_OT_sync_bone_color_to_selected(Operator):
+class ARMATURE_OT_copy_bone_color_to_selected(Operator):
     """Copy the bone color of the active bone to all selected bones"""
-    bl_idname = "armature.sync_bone_color_to_selected"
-    bl_label = "Sync to Selected"
+    bl_idname = "armature.copy_bone_color_to_selected"
+    bl_label = "Copy Colors to Selected"
     bl_options = {'REGISTER', 'UNDO'}
 
     _bone_type_enum = [
-        ('EDIT', 'Edit Bone', 'Copy Edit Bone colors from the active bone to all selected bones'),
-        ('POSE', 'Pose Bone', 'Copy Pose Bone colors from the active bone to all selected bones'),
+        ('EDIT', 'Bone', 'Copy Bone colors from the active bone to all selected bones'),
+        ('POSE', 'Pose Bone', 'Copy Pose Bone colors from the active pose bone to all selected pose bones'),
     ]
 
     bone_type: EnumProperty(
@@ -565,7 +565,7 @@ classes = (
     NLA_OT_bake,
     ClearUselessActions,
     UpdateAnimatedTransformConstraint,
-    ARMATURE_OT_sync_bone_color_to_selected,
+    ARMATURE_OT_copy_bone_color_to_selected,
     ARMATURE_OT_collection_solo_visibility,
     ARMATURE_OT_collection_show_all,
 )

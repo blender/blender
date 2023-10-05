@@ -1839,13 +1839,13 @@ static std::string unique_node_name(const GreasePencil &grease_pencil,
 static std::string unique_layer_name(const GreasePencil &grease_pencil,
                                      blender::StringRefNull name)
 {
-  return unique_node_name(grease_pencil, "GP_Layer", name);
+  return unique_node_name(grease_pencil, DATA_("GP_Layer"), name);
 }
 
 static std::string unique_layer_group_name(const GreasePencil &grease_pencil,
                                            blender::StringRefNull name)
 {
-  return unique_node_name(grease_pencil, "GP_Group", name);
+  return unique_node_name(grease_pencil, DATA_("GP_Group"), name);
 }
 
 blender::bke::greasepencil::Layer &GreasePencil::add_layer(
