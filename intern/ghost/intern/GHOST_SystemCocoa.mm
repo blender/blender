@@ -495,7 +495,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
   }
 }
 
-/* Explicitly opt-in to the secure codeing for the restorable state.
+/* Explicitly opt-in to the secure coding for the restorable state.
  *
  * This is something that only has affect on macOS 12+, and is implicitly
  * enabled on macOS 14.

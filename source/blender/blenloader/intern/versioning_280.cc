@@ -2411,9 +2411,9 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 14)) {
-    /* This code fixes crashes when loading early 2.80 dev files, due to the lack of a master
-     * collection after removal of the versioning code handling the 'SceneCollection' data that was
-     * part of the very early 2.80 development (commit 23835a393c).
+    /* This code fixes crashes when loading early 2.80 development files, due to the lack of a
+     * master collection after removal of the versioning code handling the 'SceneCollection' data
+     * that was part of the very early 2.80 development (commit 23835a393c).
      *
      * NOTE: This code only ensures that there is no crash, since the whole collection hierarchy
      * from these files remain lost, these files will still need a lot of manual work if one want
@@ -2422,8 +2422,8 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->master_collection == nullptr) {
         scene->master_collection = BKE_collection_master_add(scene);
-        /* #BKE_layer_collection_sync accepts missing viewlayer in a scene, but not invalid ones
-         * where the first viewlayer's layercollection would not be for the Scene's master
+        /* #BKE_layer_collection_sync accepts missing view-layer in a scene, but not invalid ones
+         * where the first view-layer's layer-collection would not be for the Scene's master
          * collection. */
         LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
           if (LayerCollection *first_layer_collection = static_cast<LayerCollection *>(

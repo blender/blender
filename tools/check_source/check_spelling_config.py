@@ -323,6 +323,7 @@ dict_custom = {
     "rescale",
     "rescaled",
     "respecialized",
+    "restorable",
     "resynced",
     "resyncing",
     "retiming",
