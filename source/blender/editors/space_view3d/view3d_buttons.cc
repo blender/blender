@@ -1850,7 +1850,7 @@ void view3d_buttons_register(ARegionType *art)
   WM_menutype_add(mt);
 }
 
-static int view3d_object_mode_menu(bContext *C, wmOperator *op)
+static int view3d_object_mode_menu_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob == nullptr) {
@@ -1871,7 +1871,7 @@ void VIEW3D_OT_object_mode_pie_or_toggle(wmOperatorType *ot)
   ot->name = "Object Mode Menu";
   ot->idname = "VIEW3D_OT_object_mode_pie_or_toggle";
 
-  ot->exec = view3d_object_mode_menu;
+  ot->exec = view3d_object_mode_menu_exec;
   ot->poll = ED_operator_view3d_active;
 
   /* flags */
