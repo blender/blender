@@ -4385,13 +4385,18 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
     }
   }
 
-  /* Put an empty image buffer to the cache so that the Image.has_data detects that some data
-   * has been loaded for this Image data-block.
+  /* Put an empty image buffer to the cache. This allows to achieve the following:
+   *
+   * 1. It makes it so the generic logic in the #BKE_image_has_loaded_ibuf proeprly detects that
+   * an Image used to dusplay render result has loaded image buffer.
    *
    * Surely there are all the design questions about scene-dependent Render Result image
    * data-block, and the behavior of the flag dependent on whether the Render Result image was ever
    * shown on screen. The purpose of this code is to preserve the Python API behavior to the level
-   * prior to the #RenderResult refactor to use #ImBuf which happened for Blender 4.0. */
+   * prior to the #RenderResult refactor to use #ImBuf which happened for Blender 4.0.
+   *
+   * 2. Provides an image buffer which can be used to communicate the render resolution (with
+   * possible border render applied to it) prior to the actual pixels storage is allocated. */
   if (ima->cache == nullptr) {
     ImBuf *empty_ibuf = IMB_allocImBuf(0, 0, 0, 0);
     image_assign_ibuf(ima, empty_ibuf, IMA_NO_INDEX, 0);
@@ -4410,6 +4415,15 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
     pass_ibuf->dither = dither;
 
     IMB_refImBuf(pass_ibuf);
+  }
+  else {
+    pass_ibuf = image_get_cached_ibuf_for_index_entry(ima, IMA_NO_INDEX, 0, nullptr);
+
+    /* Assign the current render resolution to the image buffer.
+     * The actual storage is still empty. The intended use is to merely communicate the actual
+     * render resolution prior to render border is "un-cropped". */
+    pass_ibuf->x = rres.rectx;
+    pass_ibuf->y = rres.recty;
   }
 
   return pass_ibuf;
