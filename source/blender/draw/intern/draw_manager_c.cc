@@ -3042,14 +3042,38 @@ void DRW_engine_register(DrawEngineType *draw_engine_type)
 
 void DRW_engines_register_experimental()
 {
-  if (U.experimental.enable_eevee_next) {
-    RE_engines_register(&DRW_engine_viewport_eevee_next_type);
+  if (!U.experimental.enable_eevee_next) {
+    /** Since EEVEE Next is always registered in `DRW_engines_register`,
+     * Here we just have to unregister if it's not actually enabled. */
+    for (auto *type = static_cast<RenderEngineType *>(R_engines.first); type; type = type->next) {
+      if (type == &DRW_engine_viewport_eevee_next_type) {
+        BLI_remlink(&R_engines, type);
+        break;
+      }
+    }
+
+    for (auto *type = static_cast<DRWRegisteredDrawEngine *>(g_registered_engines.engines.first);
+         type != nullptr;
+         type = static_cast<DRWRegisteredDrawEngine *>(type->next))
+    {
+      if (type->draw_engine == DRW_engine_viewport_eevee_next_type.draw_engine) {
+        BLI_remlink(&g_registered_engines.engines, type);
+        type->draw_engine->engine_free();
+        g_registered_engines.len--;
+        MEM_freeN(type);
+        break;
+      }
+    }
   }
 }
 
 void DRW_engines_register()
 {
   RE_engines_register(&DRW_engine_viewport_eevee_type);
+  /* Always register EEVEE Next so it can be used in background mode with `--factory-startup`.
+   * (Needed for tests). */
+  RE_engines_register(&DRW_engine_viewport_eevee_next_type);
+
   RE_engines_register(&DRW_engine_viewport_workbench_type);
 
   DRW_engine_register(&draw_engine_gpencil_type);

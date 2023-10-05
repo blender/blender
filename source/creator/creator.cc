@@ -536,9 +536,6 @@ int main(int argc,
 
   WM_init(C, argc, (const char **)argv);
 
-  /* Need to be after WM init so that userpref are loaded. */
-  RE_engines_init_experimental();
-
 #ifndef WITH_PYTHON
   printf(
       "\n* WARNING * - Blender compiled without Python!\n"
@@ -556,6 +553,10 @@ int main(int argc,
   /* Handles #ARG_PASS_FINAL. */
   BLI_args_parse(ba, ARG_PASS_FINAL, main_args_handle_load_file, C);
 #endif
+
+  /* Need to be after WM init so that userpref are loaded,
+   * and after ars_parse, in case and experimental engine is enabled there. */
+  RE_engines_init_experimental();
 
   /* Explicitly free data allocated for argument parsing:
    * - 'ba'
