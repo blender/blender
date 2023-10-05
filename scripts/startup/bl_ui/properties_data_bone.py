@@ -321,13 +321,13 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.prop(bone.color, "palette", text="Bone Color")
-        props = row.operator("armature.sync_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
+        props = row.operator("armature.copy_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
         props.bone_type = 'EDIT'
         self.draw_bone_color_ui(layout, bone.color)
 
         row = layout.row(align=True)
         row.prop(pose_bone.color, "palette", text="Pose Bone Color")
-        props = row.operator("armature.sync_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
+        props = row.operator("armature.copy_bone_color_to_selected", text="", icon='UV_SYNC_SELECT')
         props.bone_type = 'POSE'
         self.draw_bone_color_ui(layout, pose_bone.color)
 
