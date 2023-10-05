@@ -513,7 +513,7 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
         sc->vert = eve;
         sc->edge_first = sc->edge_last = NULL;
         /* NOTE: debug print only will work for curve poly-fill, union is in use for mesh. */
-#if 0 
+#if 0
         if (even->tmp.v == NULL) {
           eve->tmp.u = verts;
         }
