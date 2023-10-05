@@ -1149,6 +1149,17 @@ void wm_homefile_read_ex(bContext *C,
                          ReportList *reports,
                          wmFileReadPost_Params **r_params_file_read_post)
 {
+  /* NOTE: unlike #WM_file_read, don't set the wait cursor when reading the home-file.
+   * While technically both are reading a file and could use the wait cursor,
+   * avoid doing so for the following reasons.
+   *
+   * - When loading blend with a file (command line or external file browser)
+   *   the home-file is read before the file being loaded.
+   *   Toggling the wait cursor twice causes the cursor to flicker which looks like a glitch.
+   * - In practice it's not that useful as users tend not to set scenes with slow loading times
+   *   as their startup.
+   */
+
 /* UNUSED, keep as this may be needed later & the comment below isn't self evident. */
 #if 0
   /* Context does not always have valid main pointer here. */
