@@ -338,7 +338,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(bone, "hide", text="Hide", toggle=False)
-        layout.prop(bone.color, "palette", text="Edit Bone Color")
+        layout.prop(bone.color, "palette", text="Bone Color")
         self.draw_bone_color_ui(layout, bone.color)
 
     def draw_bone_color_ui(self, layout, bone_color):
