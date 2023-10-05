@@ -161,6 +161,9 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
     else if (type == SOCK_INT) {
       gs->type = GPU_FLOAT; /* HACK: Support as float. */
     }
+    else if (type == SOCK_BOOLEAN) {
+      gs->type = GPU_FLOAT; /* HACK: Support as float. */
+    }
     else if (type == SOCK_VECTOR) {
       gs->type = GPU_VEC3;
     }
