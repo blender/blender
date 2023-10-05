@@ -6386,7 +6386,7 @@ class VIEW3D_PT_shading_lighting(Panel):
     def poll(cls, context):
         shading = VIEW3D_PT_shading.get_shading(context)
         engine = context.scene.render.engine
-        return shading.type in {'SOLID', 'MATERIAL'} or engine == 'BLENDER_EEVEE' and shading.type == 'RENDERED'
+        return shading.type in {'SOLID', 'MATERIAL'} or engine in {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'} and shading.type == 'RENDERED'
 
     def draw(self, context):
         layout = self.layout
