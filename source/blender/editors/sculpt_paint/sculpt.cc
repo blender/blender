@@ -6263,6 +6263,40 @@ bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)
   return false;
 }
 
+void SCULPT_create_repeat_frame(Object *ob, float mat[3][3], float viewinv[4][4], float normal[3])
+{
+  float viewTan[3] = {1.0f, 0.0f, 0.0f};
+
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
+  copy_m3_m4(mat, viewinv);
+
+  /* Get view tangent (x axis). */
+  mul_m3_v3(mat, viewTan);
+  copy_m3_m4(mat, ob->world_to_object);
+  mul_m3_v3(mat, viewTan);
+  normalize_v3(viewTan);
+
+  copy_v3_v3(mat[2], normal);
+  negate_v3(mat[2]);
+
+  if (fabs(dot_v3v3(mat[2], viewTan) - 1.0f) < 0.1) {
+    /* Get view binormal (y axis). */
+    float viewBin[3] = {0.0f, 1.0f, 0.0f};
+    mul_m3_v3(mat, viewBin);
+    copy_m3_m4(mat, ob->world_to_object);
+    mul_m3_v3(mat, viewBin);
+    normalize_v3(viewBin);
+
+    copy_v3_v3(mat[0], viewBin);
+  }
+  else {
+    copy_v3_v3(mat[0], viewTan);
+  }
+
+  cross_v3_v3v3(mat[1], mat[0], mat[2]);
+  cross_v3_v3v3(mat[0], mat[2], mat[1]);
+}
+
 static bool sculpt_stroke_test_start(bContext *C, wmOperator *op, const float mval[2])
 {
   /* Don't start the stroke until `mval` goes over the mesh.
@@ -6302,6 +6336,10 @@ static bool sculpt_stroke_test_start(bContext *C, wmOperator *op, const float mv
     SCULPT_cursor_geometry_info_update(C, &sgi, mval, false, false);
 
     sculpt_stroke_undo_begin(C, op);
+
+    float mat[3][3];
+    SCULPT_create_repeat_frame(ob, mat, ss->cache->vc->rv3d->viewinv, ss->cache->initial_normal);
+    RNA_float_set_array(op->ptr, "repeat_tangent_frame", &mat[0][0]);
 
     return true;
   }
@@ -6659,11 +6697,13 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
   ot->ui = sculpt_redo_empty_ui;
 
   /* Flags (sculpt does own undo? (ton)). */
-  ot->flag = OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_REGISTER;
 
   /* Properties. */
 
   paint_stroke_operator_properties(ot, true);
+
+  RNA_def_float_array(ot->srna, "repeat_tangent_frame", 9, 0, -1, 1, "", "", 0, 0);
 
   RNA_def_boolean(ot->srna,
                   "ignore_background_click",

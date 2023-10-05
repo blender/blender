@@ -1662,6 +1662,113 @@ static void SCULPT_OT_reveal_all(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Repeat Last Operator
+ * \{ */
+
+static wmOperator *repeat_last_get_op(wmWindowManager *wm)
+{
+  wmOperator *lastop = static_cast<wmOperator *>(wm->operators.last);
+
+  /* Seek last registered operator */
+  while (lastop) {
+    if (STREQ(lastop->idname, "SCULPT_OT_brush_stroke") && lastop->type->flag & OPTYPE_REGISTER) {
+      break;
+    }
+    lastop = lastop->prev;
+  }
+
+  return lastop;
+}
+
+static bool repeat_history_rel_poll(bContext *C)
+{
+  if (!SCULPT_poll(C) || !repeat_last_get_op(CTX_wm_manager(C))) {
+    return false;
+  }
+  if (!ED_operator_screenactive(C)) {
+    return false;
+  }
+  wmWindowManager *wm = CTX_wm_manager(C);
+  return !BLI_listbase_is_empty(&wm->operators);
+}
+
+static int repeat_last_rel_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmOperator *lastop = repeat_last_get_op(wm);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
+  SCULPT_vertex_random_access_ensure(ss);
+
+  /* Get brush cursor and normal. */
+  SculptCursorGeometryInfo sgi;
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
+  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false);
+
+  if (!lastop) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Get center. */
+  float cent[3], cent_new[3];
+  copy_v3_v3(cent_new, sgi.location);
+
+  /* Get tangent matrices. */
+  float tangent[3][3];
+
+  RNA_float_get_array(lastop->ptr, "repeat_tangent_frame", &tangent[0][0]);
+  invert_m3(tangent);
+
+  float tangent_new[3][3];
+  SCULPT_create_repeat_frame(ob, tangent_new, rv3d->viewinv, ss->cursor_normal);
+
+  /* Final tangent matrix. */
+  mul_m3_m3m3(tangent_new, tangent_new, tangent);
+
+  /* Offset. */
+  int i = 0;
+  RNA_BEGIN (lastop->ptr, itemptr, "stroke") {
+    float co[3];
+    RNA_float_get_array(&itemptr, "location", co);
+
+    if (i == 0) {
+      copy_v3_v3(cent, co);
+    }
+
+    sub_v3_v3(co, cent);
+    mul_m3_v3(tangent_new, co);
+    add_v3_v3(co, cent_new);
+
+    RNA_float_set_array(&itemptr, "location", co);
+
+    i++;
+  }
+  RNA_END;
+
+  WM_operator_free_all_after(wm, lastop);
+  WM_operator_repeat_clone(C, lastop);
+
+  return OPERATOR_CANCELLED;
+}
+
+static void SCULPT_OT_repeat_last_relative(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Repeat Last (Relative)";
+  ot->description = "Repeat last action at current cursor location.";
+  ot->idname = "SCULPT_OT_repeat_last_relative";
+
+  /* api callbacks */
+  ot->invoke = repeat_last_rel_invoke;
+  ot->poll = repeat_history_rel_poll;
+}
+/* \} */
+
 void ED_operatortypes_sculpt()
 {
   WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -1701,6 +1808,8 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(SCULPT_OT_expand);
   WM_operatortype_append(SCULPT_OT_mask_from_cavity);
   WM_operatortype_append(SCULPT_OT_reveal_all);
+
+  WM_operatortype_append(SCULPT_OT_repeat_last_relative);
 }
 
 void ED_keymap_sculpt(wmKeyConfig *keyconf)

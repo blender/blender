@@ -746,7 +746,9 @@ int WM_operator_call_notest(bContext *C, wmOperator *op);
  */
 int WM_operator_repeat(bContext *C, wmOperator *op);
 int WM_operator_repeat_last(bContext *C, wmOperator *op);
-/**
+int WM_operator_repeat_clone(bContext *C, wmOperator *op);
+
+    /**
  * \return true if #WM_operator_repeat can run.
  * Simple check for now but may become more involved.
  * To be sure the operator can run call `WM_operator_poll(C, op->type)` also, since this call

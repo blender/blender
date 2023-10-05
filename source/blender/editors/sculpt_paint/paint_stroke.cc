@@ -635,9 +635,12 @@ static void paint_brush_stroke_add_step(
 
     stroke->update_step(C, op, stroke, &itemptr);
 
-    /* don't record this for now, it takes up a lot of memory when doing long
-     * strokes with small brush size, and operators have register disabled */
-    RNA_collection_clear(op->ptr, "stroke");
+    /* Only keep stroke data in RNA if operator has OPTYPE_REGISTER
+     * (and is thus repeatable) set, to save memory for e.g.
+     * long strokes with small brush sizes. */
+    if (!(op->type->flag & OPTYPE_REGISTER)) {
+      RNA_collection_clear(op->ptr, "stroke");
+    }
   }
 
   stroke->tot_samples++;

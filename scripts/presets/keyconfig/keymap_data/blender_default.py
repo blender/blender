@@ -5450,6 +5450,7 @@ def km_sculpt(params):
          {"properties": [("sculpt_tool", 'SNAKE_HOOK')]}),
         ("paint.brush_select", {"type": 'M', "value": 'PRESS'},
          {"properties": [("sculpt_tool", 'MASK'), ("toggle", True), ("create_missing", True)]}),
+        ("sculpt.repeat_last_relative", {"type": 'R', "value": 'PRESS', "shift": True, "alt" : True, "repeat": True}, None),
     ])
 
     # Lasso Masking.

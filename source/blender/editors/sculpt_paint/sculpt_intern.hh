@@ -2329,6 +2329,9 @@ void SCULPT_topology_islands_invalidate(SculptSession *ss);
 /** Get vertex island key. */
 int SCULPT_vertex_island_get(const SculptSession *ss, PBVHVertRef vertex);
 
+/* Creates a tangent frame for relative repeat last stroke. */
+void SCULPT_create_repeat_frame(Object *ob, float mat[3][3], float viewinv[4][4], float normal[3]);
+
 /** \} */
 
 int SCULPT_get_symmetry_pass(const struct SculptSession *ss);
