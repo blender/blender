@@ -1540,11 +1540,11 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *);
 /**
  * Signal job(s) from this owner or callback to stop, timer is required to get handled.
  */
-void WM_jobs_stop(wmWindowManager *wm, const void *owner, void *startjob);
+void WM_jobs_stop(wmWindowManager *wm, const void *owner, wm_jobs_start_callback startjob);
 /**
  * Actually terminate thread and job timer.
  */
-void WM_jobs_kill(wmWindowManager *wm, void *owner, void (*)(void *, bool *, bool *, float *));
+void WM_jobs_kill(wmWindowManager *wm, void *owner, wm_jobs_start_callback startjob);
 /**
  * Wait until every job ended.
  */

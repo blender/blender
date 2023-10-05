@@ -589,7 +589,7 @@ void WM_jobs_kill_type(wmWindowManager *wm, const void *owner, int job_type)
   }
 }
 
-void WM_jobs_stop(wmWindowManager *wm, const void *owner, void *startjob)
+void WM_jobs_stop(wmWindowManager *wm, const void *owner, wm_jobs_start_callback startjob)
 {
   LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->owner == owner || wm_job->startjob == startjob) {
@@ -600,9 +600,7 @@ void WM_jobs_stop(wmWindowManager *wm, const void *owner, void *startjob)
   }
 }
 
-void WM_jobs_kill(wmWindowManager *wm,
-                  void *owner,
-                  void (*startjob)(void *, bool *, bool *, float *))
+void WM_jobs_kill(wmWindowManager *wm, void *owner, wm_jobs_start_callback startjob)
 {
   LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->owner == owner || wm_job->startjob == startjob) {
