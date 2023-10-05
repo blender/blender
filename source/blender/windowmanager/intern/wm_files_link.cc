@@ -99,8 +99,8 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, const wmEvent * /*
 {
   if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
     const char *blendfile_path = BKE_main_blendfile_path_from_global();
-    if (G.lib[0] != '\0') {
-      RNA_string_set(op->ptr, "filepath", G.lib);
+    if (G.filepath_last_library[0] != '\0') {
+      RNA_string_set(op->ptr, "filepath", G.filepath_last_library);
     }
     else if (blendfile_path[0] != '\0') {
       char dirpath[FILE_MAX];
@@ -388,8 +388,9 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   /* recreate dependency graph to include new objects */
   DEG_relations_tag_update(bmain);
 
-  /* XXX TODO: align G.lib with other directory storage (like last opened image etc...) */
-  STRNCPY(G.lib, root);
+  /* TODO: align `G.filepath_last_library` with other directory storage
+   * (like last opened image, etc). */
+  STRNCPY(G.filepath_last_library, root);
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
@@ -786,8 +787,9 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
 
   BKE_blendfile_link_append_context_free(lapp_context);
 
-  /* XXX TODO: align G.lib with other directory storage (like last opened image etc...) */
-  STRNCPY(G.lib, root);
+  /* TODO: align `G.filepath_last_library` with other directory storage
+   * (like last opened image, etc). */
+  STRNCPY(G.filepath_last_library, root);
 
   BKE_main_lib_objects_recalc_all(bmain);
   IMB_colormanagement_check_file_config(bmain);

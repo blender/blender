@@ -363,7 +363,7 @@ void WM_init(bContext *C, int argc, const char **argv)
     blender::ui::string_search::read_recent_searches_file();
   }
 
-  STRNCPY(G.lib, BKE_main_blendfile_path_from_global());
+  STRNCPY(G.filepath_last_library, BKE_main_blendfile_path_from_global());
 
   CTX_py_init_set(C, true);
   WM_keyconfig_init(C);
