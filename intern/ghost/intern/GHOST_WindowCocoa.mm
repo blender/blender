@@ -524,7 +524,8 @@ GHOST_TSuccess GHOST_WindowCocoa::setPath(const char *filepath)
   GHOST_TSuccess success = GHOST_kSuccess;
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-  NSString *associatedFileName = [[NSString alloc] initWithCString:filepath encoding:NSUTF8StringEncoding];
+  NSString *associatedFileName = [[NSString alloc] initWithCString:filepath
+                                                          encoding:NSUTF8StringEncoding];
 
   @try
   {
