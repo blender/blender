@@ -470,23 +470,37 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
 
     /* Reset all grease pencil brushes. */
-    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
-    BKE_brush_gpencil_paint_presets(bmain, scene->toolsettings, true);
-    BKE_brush_gpencil_sculpt_presets(bmain, scene->toolsettings, true);
-    BKE_brush_gpencil_vertex_presets(bmain, scene->toolsettings, true);
-    BKE_brush_gpencil_weight_presets(bmain, scene->toolsettings, true);
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
 
-    /* Ensure new Paint modes. */
-    BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
-    BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
-    BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
+      if (ts->gp_paint) {
+        BKE_brush_gpencil_paint_presets(bmain, ts, true);
+      }
+      if (ts->gp_sculptpaint) {
+        BKE_brush_gpencil_sculpt_presets(bmain, ts, true);
+      }
+      if (ts->gp_vertexpaint) {
+        BKE_brush_gpencil_vertex_presets(bmain, ts, true);
+      }
+      if (ts->gp_weightpaint) {
+        BKE_brush_gpencil_weight_presets(bmain, ts, true);
+      }
 
-    /* Enable cursor. */
-    GpPaint *gp_paint = scene->toolsettings->gp_paint;
-    gp_paint->paint.flags |= PAINT_SHOW_BRUSH;
+      /* Ensure new Paint modes. */
+      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
+      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
+      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
 
-    /* Ensure Palette by default. */
-    BKE_gpencil_palette_ensure(bmain, scene);
+      /* Enable cursor. */
+      if (ts->gp_paint) {
+        ts->gp_paint->paint.flags |= PAINT_SHOW_BRUSH;
+      }
+
+      /* Ensure Palette by default. */
+      if (ts->gp_paint) {
+        BKE_gpencil_palette_ensure(bmain, scene);
+      }
+    }
   }
 
   /* For builtin templates only. */
