@@ -198,6 +198,56 @@ void extract_data_corner_faces(const PBVH_GPU_Args &args,
   }
 }
 
+template<typename T> const T &bmesh_cd_vert_get(const BMVert &vert, const int offset)
+{
+  return *static_cast<const T *>(POINTER_OFFSET(vert.head.data, offset));
+}
+
+template<typename T> const T &bmesh_cd_loop_get(const BMLoop &loop, const int offset)
+{
+  return *static_cast<const T *>(POINTER_OFFSET(loop.head.data, offset));
+}
+
+template<typename AttributeT, typename VBOT>
+void extract_data_vert_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
+{
+  VBOT *data = static_cast<VBOT *>(GPU_vertbuf_get_data(&vbo));
+
+  GSET_FOREACH_BEGIN (const BMFace *, f, args.bm_faces) {
+    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    const BMLoop *l = f->l_first;
+    *data = convert_value<AttributeT, VBOT>(bmesh_cd_vert_get<AttributeT>(*l->prev->v, cd_offset));
+    data++;
+    *data = convert_value<AttributeT, VBOT>(bmesh_cd_vert_get<AttributeT>(*l->v, cd_offset));
+    data++;
+    *data = convert_value<AttributeT, VBOT>(bmesh_cd_vert_get<AttributeT>(*l->next->v, cd_offset));
+    data++;
+  }
+  GSET_FOREACH_END();
+}
+
+template<typename AttributeT, typename VBOT>
+void extract_data_corner_bmesh(const PBVH_GPU_Args &args, const int cd_offset, GPUVertBuf &vbo)
+{
+  VBOT *data = static_cast<VBOT *>(GPU_vertbuf_get_data(&vbo));
+
+  GSET_FOREACH_BEGIN (const BMFace *, f, args.bm_faces) {
+    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    const BMLoop *l = f->l_first;
+    *data = convert_value<AttributeT, VBOT>(bmesh_cd_loop_get<AttributeT>(*l->prev, cd_offset));
+    data++;
+    *data = convert_value<AttributeT, VBOT>(bmesh_cd_loop_get<AttributeT>(*l, cd_offset));
+    data++;
+    *data = convert_value<AttributeT, VBOT>(bmesh_cd_loop_get<AttributeT>(*l->next, cd_offset));
+    data++;
+  }
+  GSET_FOREACH_END();
+}
+
 struct PBVHBatch {
   Vector<int> vbos;
   GPUBatch *tris = nullptr, *lines = nullptr;
@@ -779,16 +829,35 @@ struct PBVHBatches {
     }
 #endif
 
-    switch (vbo.type) {
-      case CD_PROP_COLOR:
-      case CD_PROP_BYTE_COLOR: {
-        ushort4 white = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
-
-        foreach_bmesh([&](BMLoop * /*l*/) {
-          *static_cast<ushort4 *>(GPU_vertbuf_raw_step(&access)) = white;
-        });
-        break;
+    const eCustomDataType type = eCustomDataType(vbo.type);
+    if (vbo.domain == ATTR_DOMAIN_POINT) {
+      const int cd_offset = CustomData_get_offset_named(&args.bm->vdata, type, vbo.name.c_str());
+      switch (type) {
+        case CD_PROP_COLOR:
+          extract_data_vert_bmesh<MPropCol, ushort4>(args, cd_offset, *vbo.vert_buf);
+          return;
+        case CD_PROP_BYTE_COLOR:
+          extract_data_vert_bmesh<MLoopCol, ushort4>(args, cd_offset, *vbo.vert_buf);
+          return;
+        default:
+          break;
       }
+    }
+    else if (vbo.domain == ATTR_DOMAIN_CORNER) {
+      const int cd_offset = CustomData_get_offset_named(&args.bm->ldata, type, vbo.name.c_str());
+      switch (type) {
+        case CD_PROP_COLOR:
+          extract_data_corner_bmesh<MPropCol, ushort4>(args, cd_offset, *vbo.vert_buf);
+          return;
+        case CD_PROP_BYTE_COLOR:
+          extract_data_corner_bmesh<MLoopCol, ushort4>(args, cd_offset, *vbo.vert_buf);
+          return;
+        default:
+          break;
+      }
+    }
+
+    switch (vbo.type) {
       case CD_PBVH_CO_TYPE:
         foreach_bmesh(
             [&](BMLoop *l) { *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = l->v->co; });
