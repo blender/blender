@@ -492,7 +492,7 @@ def run_checks_on_project(
     import multiprocessing
 
     if jobs <= 0:
-        jobs = multiprocessing.cpu_count() * 2
+        jobs = multiprocessing.cpu_count()
 
     if jobs > 1:
         with multiprocessing.Pool(processes=jobs) as pool:

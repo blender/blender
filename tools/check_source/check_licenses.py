@@ -557,7 +557,7 @@ def main() -> None:
             import multiprocessing
 
             job_total = multiprocessing.cpu_count()
-            pool = multiprocessing.Pool(processes=job_total * 2)
+            pool = multiprocessing.Pool(processes=job_total)
             pool.map(operation_wrap, filepath_args)
         else:
             for filepath in [
