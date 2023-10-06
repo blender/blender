@@ -480,7 +480,9 @@ BLI_INLINE PBVHNode *pbvh_bmesh_node_from_face(PBVH *pbvh, const BMFace *key)
 }
 
 static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
-                                      int node_index,
+                                      const BMVert *v1,
+                                      const BMVert *v2,
+                                      const int node_index,
                                       const float co[3],
                                       const float no[3],
                                       const int cd_vert_mask_offset)
@@ -490,8 +492,9 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
   BLI_assert((pbvh->nodes.size() == 1 || node_index) && node_index <= pbvh->nodes.size());
 
   /* avoid initializing customdata because its quite involved */
-  BMVert *v = BM_vert_create(pbvh->header.bm, co, nullptr, BM_CREATE_SKIP_CD);
-  CustomData_bmesh_set_default(&pbvh->header.bm->vdata, &v->head.data);
+  BMVert *v = BM_vert_create(pbvh->header.bm, co, nullptr, BM_CREATE_NOP);
+
+  BM_data_interp_from_verts(pbvh->header.bm, v1, v2, v, 0.5f);
 
   /* This value is logged below */
   copy_v3_v3(v->no, no);
@@ -1117,7 +1120,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
 
   int node_index = BM_ELEM_CD_GET_INT(e->v1, eq_ctx->cd_vert_node_offset);
   BMVert *v_new = pbvh_bmesh_vert_create(
-      pbvh, node_index, co_mid, no_mid, eq_ctx->cd_vert_mask_offset);
+      pbvh, e->v1, e->v2, node_index, co_mid, no_mid, eq_ctx->cd_vert_mask_offset);
 
   /* update paint mask */
   if (eq_ctx->cd_vert_mask_offset != -1) {
