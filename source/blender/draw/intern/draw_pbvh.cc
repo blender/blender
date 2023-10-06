@@ -580,6 +580,8 @@ struct PBVHBatches {
         break;
 
       case CD_PBVH_FSET_TYPE: {
+        BLI_assert(vbo.domain == ATTR_DOMAIN_FACE);
+
         const int *face_sets = args.face_sets;
 
         if (!face_sets) {
@@ -712,6 +714,8 @@ struct PBVHBatches {
         break;
       }
       case CD_PBVH_FSET_TYPE: {
+        BLI_assert(vbo.domain == ATTR_DOMAIN_FACE);
+
         const int *face_sets = static_cast<const int *>(
             CustomData_get_layer_named(args.face_data, CD_PROP_INT32, ".sculpt_face_set"));
         uchar4 *data = static_cast<uchar4 *>(GPU_vertbuf_get_data(vbo.vert_buf));

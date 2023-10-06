@@ -1402,15 +1402,15 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   int attrs_num = 0;
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
-  attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_CO_TYPE;
-  attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_NO_TYPE;
+  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_CO_TYPE));
+  attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_NO_TYPE));
 
   if (use_mask) {
-    attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_MASK_TYPE;
+    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_POINT, eCustomDataType(CD_PBVH_MASK_TYPE));
   }
 
   if (use_fset) {
-    attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_FSET_TYPE;
+    attrs[attrs_num++] = PBVHAttrReq(ATTR_DOMAIN_FACE, eCustomDataType(CD_PBVH_FSET_TYPE));
   }
 
   Mesh *me = BKE_object_get_original_mesh(ob);

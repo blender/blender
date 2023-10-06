@@ -89,7 +89,11 @@ struct PBVHPixelsNode {
   void *node_data = nullptr;
 };
 
-struct PBVHAttrReq {
+class PBVHAttrReq {
+ public:
+  PBVHAttrReq() = default;
+  PBVHAttrReq(const eAttrDomain domain, const eCustomDataType type) : domain(domain), type(type) {}
+
   std::string name;
   eAttrDomain domain;
   eCustomDataType type;
