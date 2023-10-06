@@ -82,14 +82,16 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
       BSDF = mix(BSDF, BaseColor * SubsurfBSDF, subsurface_weight);
     }
 
-    /* Apply specular tint */
-    color F0 = f0 * specular_tint;
-    color F90 = color(1.0);
+    if (eta != 1.0) {
+      /* Apply specular tint */
+      color F0 = f0 * specular_tint;
+      color F90 = color(1.0);
 
-    BSDF = layer(
-        generalized_schlick_bsdf(
-            Normal, T, color(1.0), color(0.0), alpha_x, alpha_y, F0, F90, -eta, distribution),
-        BSDF);
+      BSDF = layer(
+          generalized_schlick_bsdf(
+              Normal, T, color(1.0), color(0.0), alpha_x, alpha_y, F0, F90, -eta, distribution),
+          BSDF);
+    }
   }
 
   closure color TransmissionBSDF = 0;
