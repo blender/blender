@@ -430,7 +430,7 @@ static bool gwl_window_state_set(GWL_Window *win, const GHOST_TWindowState state
  */
 static int gwl_window_fractional_to_viewport(const GWL_WindowFrame &frame, int value)
 {
-  GHOST_ASSERT(frame.fractional_scale != 0, "Not fractional or called before initiazlized!");
+  GHOST_ASSERT(frame.fractional_scale != 0, "Not fractional or called before initialized!");
   return (value * frame.fractional_scale) / FRACTIONAL_DENOMINATOR;
 }
 
@@ -440,7 +440,7 @@ static int gwl_window_fractional_to_viewport(const GWL_WindowFrame &frame, int v
  */
 static int gwl_window_fractional_from_viewport(const GWL_WindowFrame &frame, int value)
 {
-  GHOST_ASSERT(frame.fractional_scale != 0, "Not fractional or called before initiazlized!");
+  GHOST_ASSERT(frame.fractional_scale != 0, "Not fractional or called before initialized!");
   return (value * FRACTIONAL_DENOMINATOR) / frame.fractional_scale;
 }
 
@@ -450,13 +450,13 @@ static int gwl_window_fractional_from_viewport(const GWL_WindowFrame &frame, int
 
 static int gwl_window_fractional_to_viewport_round(const GWL_WindowFrame &frame, int value)
 {
-  GHOST_ASSERT(frame.fractional_scale != 0, "Not fractional or called before initiazlized!");
+  GHOST_ASSERT(frame.fractional_scale != 0, "Not fractional or called before initialized!");
   return lroundf(double(value * frame.fractional_scale) / double(FRACTIONAL_DENOMINATOR));
 }
 
 static int gwl_window_fractional_from_viewport_round(const GWL_WindowFrame &frame, int value)
 {
-  GHOST_ASSERT(frame.fractional_scale != 0, "Not fractional or called before initiazlized!");
+  GHOST_ASSERT(frame.fractional_scale != 0, "Not fractional or called before initialized!");
   return lroundf(double(value * FRACTIONAL_DENOMINATOR) / double(frame.fractional_scale));
 }
 
