@@ -1419,10 +1419,10 @@ static int light_cache_bake_exec(bContext *C, wmOperator *op)
 
   light_cache_bake_tag_cache(scene, op);
 
-  bool stop = false, do_update;
-  float progress; /* Not actually used. */
+  /* Not actually used. */
+  wmJobWorkerStatus worker_status = {};
   /* Do the job. */
-  EEVEE_lightbake_job(rj, &stop, &do_update, &progress);
+  EEVEE_lightbake_job(rj, &worker_status);
   /* Free baking data. Result is already stored in the scene data. */
   EEVEE_lightbake_job_data_free(rj);
 
@@ -1657,7 +1657,8 @@ static int lightprobe_cache_bake_exec(bContext *C, wmOperator *op)
   /* TODO: abort if selected engine is not eevee. */
   void *rj = EEVEE_NEXT_lightbake_job_data_alloc(bmain, view_layer, scene, probes, scene->r.cfra);
   /* Do the job. */
-  EEVEE_NEXT_lightbake_job(rj, nullptr, nullptr, nullptr);
+  wmJobWorkerStatus worker_status = {};
+  EEVEE_NEXT_lightbake_job(rj, &worker_status);
   /* Free baking data. Result is already stored in the scene data. */
   EEVEE_NEXT_lightbake_job_data_free(rj);
 

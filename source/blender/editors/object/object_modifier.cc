@@ -185,7 +185,8 @@ ModifierData *ED_object_modifier_add(
       md = static_cast<ModifierData *>(ob->modifiers.first);
 
       while (md &&
-             BKE_modifier_get_info((ModifierType)md->type)->type == eModifierTypeType_OnlyDeform) {
+             BKE_modifier_get_info((ModifierType)md->type)->type == eModifierTypeType_OnlyDeform)
+      {
         md = md->next;
       }
 
@@ -772,7 +773,8 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
 
   if (build_shapekey_layers && me->key) {
     if (KeyBlock *kb = static_cast<KeyBlock *>(
-            BLI_findlink(&me->key->block, ob_eval->shapenr - 1))) {
+            BLI_findlink(&me->key->block, ob_eval->shapenr - 1)))
+    {
       BKE_keyblock_convert_to_mesh(
           kb, reinterpret_cast<float(*)[3]>(me->vert_positions_for_write().data()), me->totvert);
     }
@@ -3309,20 +3311,20 @@ static void oceanbake_update(void *customdata, float progress, int *cancel)
   *(oj->progress) = progress;
 }
 
-static void oceanbake_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
+static void oceanbake_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 {
   OceanBakeJob *oj = static_cast<OceanBakeJob *>(customdata);
 
-  oj->stop = stop;
-  oj->do_update = do_update;
-  oj->progress = progress;
+  oj->stop = &worker_status->stop;
+  oj->do_update = &worker_status->do_update;
+  oj->progress = &worker_status->progress;
 
   G.is_break = false; /* XXX shared with render - replace with job 'stop' switch */
 
   BKE_ocean_bake(oj->ocean, oj->och, oceanbake_update, (void *)oj);
 
-  *do_update = true;
-  *stop = false;
+  worker_status->do_update = true;
+  worker_status->stop = false;
 }
 
 static void oceanbake_endjob(void *customdata)

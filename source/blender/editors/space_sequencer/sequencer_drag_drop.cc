@@ -518,10 +518,7 @@ struct DropJobData {
   float scene_fps;
 };
 
-static void prefetch_data_fn(void *custom_data,
-                             bool * /*stop*/,
-                             bool * /*do_update*/,
-                             float * /*progress*/)
+static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_status*/)
 {
   DropJobData *job_data = (DropJobData *)custom_data;
 

@@ -1402,7 +1402,7 @@ static bool lightbake_do_sample(EEVEE_LightBake *lbake,
   return true;
 }
 
-void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *progress)
+void EEVEE_lightbake_job(void *custom_data, wmJobWorkerStatus *worker_status)
 {
   EEVEE_LightBake *lbake = (EEVEE_LightBake *)custom_data;
   Depsgraph *depsgraph = lbake->depsgraph;
@@ -1411,9 +1411,9 @@ void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *
   DEG_evaluate_on_framechange(depsgraph, lbake->frame);
 
   lbake->view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  lbake->stop = stop;
-  lbake->do_update = do_update;
-  lbake->progress = progress;
+  lbake->stop = &worker_status->stop;
+  lbake->do_update = &worker_status->do_update;
+  lbake->progress = &worker_status->progress;
 
   if (G.background) {
     /* Make sure to init GL capabilities before counting probes. */
@@ -1474,7 +1474,8 @@ void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *
         lbake->grid_sample_len = prb->grid_resolution_x * prb->grid_resolution_y *
                                  prb->grid_resolution_z;
         for (lbake->grid_sample = 0; lbake->grid_sample < lbake->grid_sample_len;
-             ++lbake->grid_sample) {
+             ++lbake->grid_sample)
+        {
           lightbake_do_sample(lbake, eevee_lightbake_render_grid_sample);
         }
       }

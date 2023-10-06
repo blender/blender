@@ -917,6 +917,34 @@ struct wmTimer {
   bool sleep;
 };
 
+/** Communication/status data owned by the wmJob, and passed to the worker code when calling
+ * `startjob` callback.
+ *
+ * 'OUTPUT' members mean that they are defined by the worker thread, and read/used by the wmJob
+ * management code from the main thread. And vice-versa for `INPUT' members.
+ *
+ * \warning There is currently no thread-safety or synchronization when accessing these values.
+ * This is fine as long as:
+ *   - All members are independant of each other, value-wise.
+ *   - Each member is 'simple enough' that accessing it or setting it can be considered as atomic.
+ *   - There is no requirement of immediate synchronization of these values between the main
+ *     controlling thread (i.e. wmJob management code) and the worker thread.
+ */
+struct wmJobWorkerStatus {
+  /** OUTPUT - Set to true by the worker to request update processing from the main thread (as part
+   * of the wmJob 'event loop', see #wm_jobs_timer). */
+  bool do_update;
+
+  /** INPUT - Set by the wmJob management code to request a worker to stop/abort its processing.
+   *
+   * \note Some job types (rendering or baking ones e.g.) also use the #Global.is_break flag to
+   * cancel their processing. */
+  bool stop;
+
+  /** OUTPUT - Progress as reported by the worker, from `0.0f` to `1.0f`. */
+  float progress;
+};
+
 struct wmOperatorType {
   /** Text for UI, undo (should not exceed #OP_MAX_TYPENAME). */
   const char *name;

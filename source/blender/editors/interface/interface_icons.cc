@@ -1316,10 +1316,7 @@ static void icon_create_rect(PreviewImage *prv_img, enum eIconSizes size)
 static void ui_id_preview_image_render_size(
     const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job);
 
-static void ui_studiolight_icon_job_exec(void *customdata,
-                                         bool * /*stop*/,
-                                         bool * /*do_update*/,
-                                         float * /*progress*/)
+static void ui_studiolight_icon_job_exec(void *customdata, wmJobWorkerStatus * /*worker_status*/)
 {
   Icon **tmp = (Icon **)customdata;
   Icon *icon = *tmp;
@@ -2147,7 +2144,8 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 
     /* reset the icon */
     if ((ob != nullptr) && (ob->mode & OB_MODE_ALL_PAINT_GPENCIL) &&
-        (br->gpencil_settings != nullptr)) {
+        (br->gpencil_settings != nullptr))
+    {
       switch (br->gpencil_settings->icon_id) {
         case GP_BRUSH_ICON_PENCIL:
           br->id.icon_id = ICON_GPBRUSH_PENCIL;

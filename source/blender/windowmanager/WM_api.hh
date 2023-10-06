@@ -52,6 +52,7 @@ struct wmGizmo;
 struct wmGizmoMap;
 struct wmGizmoMapType;
 struct wmJob;
+struct wmJobWorkerStatus;
 struct wmOperator;
 struct wmOperatorType;
 struct wmPaintCursor;
@@ -1514,10 +1515,7 @@ void WM_jobs_customdata_set(wmJob *, void *customdata, void (*free)(void *));
 void WM_jobs_timer(wmJob *, double timestep, unsigned int note, unsigned int endnote);
 void WM_jobs_delay_start(wmJob *, double delay_time);
 
-using wm_jobs_start_callback = void (*)(void *custom_data,
-                                        bool *stop,
-                                        bool *do_update,
-                                        float *progress);
+using wm_jobs_start_callback = void (*)(void *custom_data, wmJobWorkerStatus *worker_status);
 void WM_jobs_callbacks(wmJob *,
                        wm_jobs_start_callback startjob,
                        void (*initjob)(void *),

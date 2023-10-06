@@ -203,9 +203,7 @@ static bool perform_usdz_conversion(const ExportJobData *data)
 static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
                                            Depsgraph *depsgraph,
                                            const char *filepath,
-                                           bool *stop,
-                                           bool *do_update,
-                                           float *progress)
+                                           wmJobWorkerStatus *worker_status)
 {
   pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(filepath);
   if (!usd_stage) {
@@ -242,7 +240,7 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
     float progress_per_frame = 1.0f / std::max(1, (scene->r.efra - scene->r.sfra + 1));
 
     for (float frame = scene->r.sfra; frame <= scene->r.efra; frame++) {
-      if (G.is_break || (stop != nullptr && *stop)) {
+      if (G.is_break || worker_status->stop) {
         break;
       }
 
@@ -254,12 +252,8 @@ static pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
       iter.set_export_frame(frame);
       iter.iterate_and_write();
 
-      if (progress) {
-        *progress += progress_per_frame;
-      }
-      if (do_update) {
-        *do_update = true;
-      }
+      worker_status->progress += progress_per_frame;
+      worker_status->do_update = true;
     }
   }
   else {
@@ -294,15 +288,11 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
                                     Depsgraph *depsgraph,
                                     const char *filepath)
 {
-  return export_to_stage(params, depsgraph, filepath, nullptr, nullptr, nullptr);
+  wmJobWorkerStatus worker_status = {};
+  return export_to_stage(params, depsgraph, filepath, &worker_status);
 }
 
-static void export_startjob(void *customdata,
-                            /* Cannot be const, this function implements wm_jobs_start_callback.
-                             * NOLINTNEXTLINE: readability-non-const-parameter. */
-                            bool *stop,
-                            bool *do_update,
-                            float *progress)
+static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 {
   ExportJobData *data = static_cast<ExportJobData *>(customdata);
   data->export_ok = false;
@@ -323,11 +313,11 @@ static void export_startjob(void *customdata,
   }
   BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
 
-  *progress = 0.0f;
-  *do_update = true;
+  worker_status->progress = 0.0f;
+  worker_status->do_update = true;
 
   pxr::UsdStageRefPtr usd_stage = export_to_stage(
-      data->params, data->depsgraph, data->unarchived_filepath, stop, do_update, progress);
+      data->params, data->depsgraph, data->unarchived_filepath, worker_status);
   if (!usd_stage) {
     /* This happens when the USD JSON files cannot be found. When that happens,
      * the USD library doesn't know it has the functionality to write USDA and
@@ -344,15 +334,15 @@ static void export_startjob(void *customdata,
     bool usd_conversion_success = perform_usdz_conversion(data);
     if (!usd_conversion_success) {
       data->export_ok = false;
-      *progress = 1.0f;
-      *do_update = true;
+      worker_status->progress = 1.0f;
+      worker_status->do_update = true;
       return;
     }
   }
 
   data->export_ok = true;
-  *progress = 1.0f;
-  *do_update = true;
+  worker_status->progress = 1.0f;
+  worker_status->do_update = true;
 }
 
 static void export_endjob_usdz_cleanup(const ExportJobData *data)
@@ -467,11 +457,8 @@ bool USD_export(bContext *C,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    /* Fake a job context, so that we don't need null pointer checks while exporting. */
-    bool stop = false, do_update = false;
-    float progress = 0.0f;
-
-    blender::io::usd::export_startjob(job, &stop, &do_update, &progress);
+    wmJobWorkerStatus worker_status = {};
+    blender::io::usd::export_startjob(job, &worker_status);
     blender::io::usd::export_endjob(job);
     export_ok = job->export_ok;
 

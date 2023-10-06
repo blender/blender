@@ -998,7 +998,7 @@ static void do_prefetch_movie(MovieClip *clip,
   }
 }
 
-static void prefetch_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
+static void prefetch_startjob(void *pjv, wmJobWorkerStatus *worker_status)
 {
   PrefetchJob *pj = static_cast<PrefetchJob *>(pjv);
 
@@ -1010,9 +1010,9 @@ static void prefetch_startjob(void *pjv, bool *stop, bool *do_update, float *pro
                            pj->end_frame,
                            pj->render_size,
                            pj->render_flag,
-                           stop,
-                           do_update,
-                           progress);
+                           &worker_status->stop,
+                           &worker_status->do_update,
+                           &worker_status->progress);
   }
   else if (pj->clip->source == MCLIP_SRC_MOVIE) {
     /* read movie in a single thread */
@@ -1023,9 +1023,9 @@ static void prefetch_startjob(void *pjv, bool *stop, bool *do_update, float *pro
                       pj->end_frame,
                       pj->render_size,
                       pj->render_flag,
-                      stop,
-                      do_update,
-                      progress);
+                      &worker_status->stop,
+                      &worker_status->do_update,
+                      &worker_status->progress);
   }
   else {
     BLI_assert_msg(0, "Unknown movie clip source when prefetching frames");

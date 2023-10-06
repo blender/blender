@@ -344,9 +344,10 @@ void EEVEE_NEXT_lightbake_update(void *job_data)
   static_cast<LightBake *>(job_data)->update();
 }
 
-void EEVEE_NEXT_lightbake_job(void *job_data, bool *stop, bool *do_update, float *progress)
+void EEVEE_NEXT_lightbake_job(void *job_data, wmJobWorkerStatus *worker_status)
 {
-  static_cast<LightBake *>(job_data)->run(stop, do_update, progress);
+  static_cast<LightBake *>(job_data)->run(
+      &worker_status->stop, &worker_status->do_update, &worker_status->progress);
 }
 
 /** \} */

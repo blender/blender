@@ -146,13 +146,13 @@ static void report_job_duration(const ImportJobData *data)
   std::cout << '\n';
 }
 
-static void import_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
+static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 {
   ImportJobData *data = static_cast<ImportJobData *>(customdata);
 
-  data->stop = stop;
-  data->do_update = do_update;
-  data->progress = progress;
+  data->stop = &worker_status->stop;
+  data->do_update = &worker_status->do_update;
+  data->progress = &worker_status->progress;
   data->was_canceled = false;
   data->archive = nullptr;
   data->start_time = timeit::Clock::now();
@@ -309,8 +309,8 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
 
   data->import_ok = !data->was_canceled;
 
-  *progress = 1.0f;
-  *do_update = true;
+  worker_status->progress = 1.0f;
+  worker_status->do_update = true;
 }
 
 static void import_endjob(void *customdata)
@@ -459,11 +459,8 @@ bool USD_import(bContext *C,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    /* Fake a job context, so that we don't need null pointer checks while importing. */
-    bool stop = false, do_update = false;
-    float progress = 0.0f;
-
-    import_startjob(job, &stop, &do_update, &progress);
+    wmJobWorkerStatus worker_status = {};
+    import_startjob(job, &worker_status);
     import_endjob(job);
     import_ok = job->import_ok;
 
