@@ -663,6 +663,9 @@ void bNodeTreeInterfaceSocket::init_from_socket_instance(const bNodeSocket *sock
     MEM_SAFE_FREE(this->socket_data);
   }
   MEM_SAFE_FREE(this->socket_type);
+  if (socket->flag & SOCK_HIDE_VALUE) {
+    this->flag |= NODE_INTERFACE_SOCKET_HIDE_VALUE;
+  }
 
   this->socket_type = BLI_strdup(idname);
   this->socket_data = socket_types::make_socket_data(idname);

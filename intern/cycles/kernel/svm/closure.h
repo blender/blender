@@ -129,6 +129,9 @@ ccl_device
       ClosureType subsurface_method = (ClosureType)data_node2.z;
 
       float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
+      float3 coat_normal = stack_valid(coat_normal_offset) ?
+                               stack_load_float3(stack, coat_normal_offset) :
+                               sd->N;
 
       // get the base color
       uint4 data_base_color = read_node(kg, &offset);
@@ -190,7 +193,7 @@ ccl_device
             sd, sizeof(SheenBsdf), sheen_weight * rgb_to_spectrum(sheen_tint) * weight);
 
         if (bsdf) {
-          bsdf->N = N;
+          bsdf->N = safe_normalize(mix(N, coat_normal, saturatef(coat_weight)));
           bsdf->roughness = sheen_roughness;
 
           /* setup bsdf */
@@ -208,9 +211,6 @@ ccl_device
 
       /* Second layer: Coat */
       if (coat_weight > CLOSURE_WEIGHT_CUTOFF) {
-        float3 coat_normal = stack_valid(coat_normal_offset) ?
-                                 stack_load_float3(stack, coat_normal_offset) :
-                                 sd->N;
         coat_normal = maybe_ensure_valid_specular_reflection(sd, coat_normal);
         if (reflective_caustics) {
           ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(

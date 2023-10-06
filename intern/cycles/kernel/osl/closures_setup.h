@@ -635,7 +635,7 @@ ccl_device void osl_closure_sheen_setup(KernelGlobals kg,
     return;
   }
 
-  bsdf->N = maybe_ensure_valid_specular_reflection(sd, closure->N);
+  bsdf->N = closure->N;
   bsdf->roughness = closure->roughness;
 
   const int sheen_flag = bsdf_sheen_setup(kg, sd, bsdf);
