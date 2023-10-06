@@ -1508,8 +1508,6 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
   bool hit = false;
   float nearest_vertex_co[3] = {0.0f};
 
-  BLI_assert(!use_original || (BLI_gset_len(node->bm_faces) > 0 && node->bm_tot_ortri));
-
   use_original = use_original && node->bm_tot_ortri;
 
   GSetIterator gs_iter;
