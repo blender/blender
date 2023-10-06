@@ -152,9 +152,22 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   /* WAYLAND window-level functions. */
 
-  GHOST_TSuccess close();
+  /**
+   * Set the window as active and send an #GHOST_kEventWindowActivate event.
+   *
+   * \note The current active state is *not* checked, the caller is responsible for
+   * not activating windows which are already active.
+   */
   GHOST_TSuccess activate();
+  /**
+   * De-activate the window and send a #GHOST_kEventWindowDeactivate event.
+   *
+   * \note The current active state is *not* checked, the caller is responsible for
+   * not de-activating windows that aren't active.
+   */
   GHOST_TSuccess deactivate();
+
+  GHOST_TSuccess close();
   GHOST_TSuccess notify_size();
   GHOST_TSuccess notify_decor_redraw();
 
