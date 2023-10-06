@@ -1122,15 +1122,6 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   BMVert *v_new = pbvh_bmesh_vert_create(
       pbvh, e->v1, e->v2, node_index, co_mid, no_mid, eq_ctx->cd_vert_mask_offset);
 
-  /* update paint mask */
-  if (eq_ctx->cd_vert_mask_offset != -1) {
-    float mask_v1 = BM_ELEM_CD_GET_FLOAT(e->v1, eq_ctx->cd_vert_mask_offset);
-    float mask_v2 = BM_ELEM_CD_GET_FLOAT(e->v2, eq_ctx->cd_vert_mask_offset);
-    float mask_v_new = 0.5f * (mask_v1 + mask_v2);
-
-    BM_ELEM_CD_SET_FLOAT(v_new, eq_ctx->cd_vert_mask_offset, mask_v_new);
-  }
-
   /* For each face, add two new triangles and delete the original */
   for (int i = 0; i < edge_loops->count; i++) {
     BMLoop *l_adj = BLI_buffer_at(edge_loops, BMLoop *, i);
