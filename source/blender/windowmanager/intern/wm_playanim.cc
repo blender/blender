@@ -1326,12 +1326,12 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     case GHOST_kEventButtonUp: {
       GHOST_TEventButtonData *bd = reinterpret_cast<GHOST_TEventButtonData *>(
           GHOST_GetEventData(evt));
-      int cx, cy, sizex, sizey, inside_window;
-
-      GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy);
+      int cx, cy, sizex, sizey;
       playanim_window_get_size(ghost_window, &sizex, &sizey);
 
-      inside_window = (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
+      const bool inside_window = (GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy) ==
+                                  GHOST_kSuccess) &&
+                                 (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
 
       if (bd->button == GHOST_kButtonMaskLeft) {
         if (type == GHOST_kEventButtonDown) {
@@ -1378,12 +1378,12 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
          * however the API currently doesn't support this. */
         {
           int x_test, y_test;
-          GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy);
-          GHOST_ScreenToClient(ghost_window, cd->x, cd->y, &x_test, &y_test);
-
-          if (cx != x_test || cy != y_test) {
-            /* we're not the last event... skipping */
-            break;
+          if (GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy) == GHOST_kSuccess) {
+            GHOST_ScreenToClient(ghost_window, cd->x, cd->y, &x_test, &y_test);
+            if (cx != x_test || cy != y_test) {
+              /* we're not the last event... skipping */
+              break;
+            }
           }
         }
 

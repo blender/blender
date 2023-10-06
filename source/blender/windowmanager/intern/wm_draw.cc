@@ -140,16 +140,16 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
        * cursor coordinates so limit reading the cursor location to when the cursor is grabbed and
        * wrapping in a region since this is the case when it would otherwise attempt to draw the
        * cursor outside the view/window. See: #102792. */
+      const int *xy = win->eventstate->xy;
+      int xy_buf[2];
       if ((WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP) &&
-          wm_window_grab_warp_region_is_set(win)) {
-        int x = 0, y = 0;
-        wm_cursor_position_get(win, &x, &y);
-        pc->draw(C, x, y, pc->customdata);
-      }
-      else {
-        pc->draw(C, win->eventstate->xy[0], win->eventstate->xy[1], pc->customdata);
+          wm_window_grab_warp_region_is_set(win) &&
+          wm_cursor_position_get(win, &xy_buf[0], &xy_buf[1]))
+      {
+        xy = xy_buf;
       }
 
+      pc->draw(C, xy[0], xy[1], pc->customdata);
       GPU_scissor_test(false);
     }
   }

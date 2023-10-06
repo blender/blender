@@ -663,7 +663,10 @@ static void wm_window_update_eventstate_modifiers_clear(wmWindowManager *wm, wmW
 static void wm_window_update_eventstate(wmWindow *win)
 {
   /* Update mouse position when a window is activated. */
-  wm_cursor_position_get(win, &win->eventstate->xy[0], &win->eventstate->xy[1]);
+  int xy[2];
+  if (wm_cursor_position_get(win, &xy[0], &xy[1])) {
+    copy_v2_v2_int(win->eventstate->xy, xy);
+  }
 }
 
 static void wm_window_ensure_eventstate(wmWindow *win)
@@ -1181,15 +1184,22 @@ void wm_cursor_position_to_ghost_screen_coords(wmWindow *win, int *x, int *y)
   GHOST_ClientToScreen(static_cast<GHOST_WindowHandle>(win->ghostwin), *x, *y, x, y);
 }
 
-void wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y)
+bool wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
     *r_x = win->eventstate->xy[0];
     *r_y = win->eventstate->xy[1];
-    return;
+    return true;
   }
-  GHOST_GetCursorPosition(g_system, static_cast<GHOST_WindowHandle>(win->ghostwin), r_x, r_y);
-  wm_cursor_position_from_ghost_client_coords(win, r_x, r_y);
+
+  if (GHOST_GetCursorPosition(
+          g_system, static_cast<GHOST_WindowHandle>(win->ghostwin), r_x, r_y) == GHOST_kSuccess)
+  {
+    wm_cursor_position_from_ghost_client_coords(win, r_x, r_y);
+    return true;
+  }
+
+  return false;
 }
 
 /** Check if specified modifier key type is pressed. */
