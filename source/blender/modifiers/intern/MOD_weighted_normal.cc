@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bitmap.h"
 #include "BLI_linklist.h"
 #include "BLI_math_vector.h"
@@ -246,8 +247,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
     start_item.curr_strength = FACE_STRENGTH_WEAK;
     items_data = Array<WeightedNormalDataAggregateItem>(verts_num, start_item);
     lnors_spacearr.corner_space_indices.reinitialize(corner_verts.size());
-    std::iota(
-        lnors_spacearr.corner_space_indices.begin(), lnors_spacearr.corner_space_indices.end(), 0);
+    array_utils::fill_index_range<int>(lnors_spacearr.corner_space_indices);
   }
   wn_data->items_data = items_data;
 

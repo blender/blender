@@ -536,8 +536,8 @@ static void duplicate_faces(GeometrySet &geometry_set,
       face_index++;
     }
   });
-  std::iota(new_corner_verts.begin(), new_corner_verts.end(), 0);
-  std::iota(new_corner_edges.begin(), new_corner_edges.end(), 0);
+  array_utils::fill_index_range<int>(new_corner_verts);
+  array_utils::fill_index_range<int>(new_corner_edges);
 
   new_mesh->tag_loose_verts_none();
   new_mesh->tag_loose_edges_none();
@@ -762,7 +762,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   bke::curves_copy_parameters(src_curves_id, *new_curves_id);
   bke::CurvesGeometry &new_curves = new_curves_id->geometry.wrap();
   MutableSpan<int> new_curve_offsets = new_curves.offsets_for_write();
-  std::iota(new_curve_offsets.begin(), new_curve_offsets.end(), 0);
+  array_utils::fill_index_range(new_curve_offsets);
 
   for (auto &attribute : bke::retrieve_attributes_for_transfer(src_curves.attributes(),
                                                                new_curves.attributes_for_write(),

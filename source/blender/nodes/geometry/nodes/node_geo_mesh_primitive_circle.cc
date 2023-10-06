@@ -13,6 +13,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "BLI_array_utils.hh"
+
 #include "GEO_mesh_primitive_uv_sphere.hh"
 
 #include "node_geometry_util.hh"
@@ -159,8 +161,8 @@ static Mesh *create_circle_mesh(const float radius,
     face_offsets.first() = 0;
     face_offsets.last() = corner_verts.size();
 
-    std::iota(corner_verts.begin(), corner_verts.end(), 0);
-    std::iota(corner_edges.begin(), corner_edges.end(), 0);
+    array_utils::fill_index_range<int>(corner_verts);
+    array_utils::fill_index_range<int>(corner_edges);
 
     mesh->tag_loose_edges_none();
   }

@@ -25,6 +25,7 @@
 #include "NOD_multi_function.hh"
 #include "NOD_node_declaration.hh"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_cpp_types.hh"
@@ -1752,17 +1753,17 @@ class LazyFunctionForRepeatZone : public LazyFunction {
      * outside of this graph. */
     eval_storage.output_index_map.reinitialize(outputs_.size() - 1);
     eval_storage.input_index_map.resize(inputs_.size() - 1);
-    std::iota(eval_storage.input_index_map.begin(), eval_storage.input_index_map.end(), 1);
+    array_utils::fill_index_range<int>(eval_storage.input_index_map, 1);
 
     Vector<const lf::GraphInputSocket *> lf_graph_inputs = lf_inputs.as_span().drop_front(1);
 
     const int iteration_usage_index = zone_info_.indices.outputs.input_usages[0];
-    std::iota(eval_storage.output_index_map.begin(),
-              eval_storage.output_index_map.begin() + iteration_usage_index,
-              0);
-    std::iota(eval_storage.output_index_map.begin() + iteration_usage_index,
-              eval_storage.output_index_map.end(),
-              iteration_usage_index + 1);
+    array_utils::fill_index_range<int>(
+        eval_storage.output_index_map.as_mutable_span().take_front(iteration_usage_index));
+    array_utils::fill_index_range<int>(
+        eval_storage.output_index_map.as_mutable_span().drop_front(iteration_usage_index),
+        iteration_usage_index + 1);
+
     Vector<const lf::GraphOutputSocket *> lf_graph_outputs = lf_outputs.as_span().take_front(
         iteration_usage_index);
     lf_graph_outputs.extend(lf_outputs.as_span().drop_front(iteration_usage_index + 1));
@@ -2074,7 +2075,7 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     /* Build nested zones first. */
     Array<int> zone_build_order(tree_zones_->zones.size());
-    std::iota(zone_build_order.begin(), zone_build_order.end(), 0);
+    array_utils::fill_index_range<int>(zone_build_order);
     std::sort(
         zone_build_order.begin(), zone_build_order.end(), [&](const int zone_a, const int zone_b) {
           return tree_zones_->zones[zone_a]->depth > tree_zones_->zones[zone_b]->depth;
