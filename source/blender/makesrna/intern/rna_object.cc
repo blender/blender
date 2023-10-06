@@ -1383,7 +1383,7 @@ static bool rna_MaterialSlot_material_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   Material *ma = static_cast<Material *>(value.data);
 
-  if (ob->type == OB_GPENCIL_LEGACY) {
+  if (ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
     /* GP Materials only */
     return (ma->gp_style != nullptr);
   }

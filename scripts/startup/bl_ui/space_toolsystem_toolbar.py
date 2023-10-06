@@ -1744,21 +1744,11 @@ class _defs_paint_grease_pencil:
 
     @ToolDef.from_fn
     def erase():
-        def draw_settings(context, layout, _tool):
-            paint = context.tool_settings.gpencil_paint
-            brush = paint.brush
-            if not brush:
-                return
-            layout.prop(brush.gpencil_settings, "eraser_mode", expand=True)
-            if brush.gpencil_settings.eraser_mode == 'HARD':
-                layout.prop(brush.gpencil_settings, "use_keep_caps_eraser")
-            layout.prop(brush.gpencil_settings, "use_active_layer_only")
         return dict(
             idname="builtin_brush.Erase",
             label="Erase",
             icon="brush.gpencil_draw.erase",
             data_block='ERASE',
-            draw_settings=draw_settings,
         )
 
 

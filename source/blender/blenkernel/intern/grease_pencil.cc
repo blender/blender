@@ -41,6 +41,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_ID_enums.h"
+#include "DNA_brush_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -223,8 +224,9 @@ IDTypeInfo IDType_ID_GP = {
 
 namespace blender::bke::greasepencil {
 
-static const std::string ATTR_OPACITY = "opacity";
 static const std::string ATTR_RADIUS = "radius";
+static const std::string ATTR_OPACITY = "opacity";
+static const std::string ATTR_VERTEX_COLOR = "vertex_color";
 
 /* Curves attributes getters */
 static int domain_num(const CurvesGeometry &curves, const eAttrDomain domain)
@@ -373,6 +375,20 @@ MutableSpan<float> Drawing::opacities_for_write()
 {
   return get_mutable_attribute<float>(
       this->strokes_for_write(), ATTR_DOMAIN_POINT, ATTR_OPACITY, 1.0f);
+}
+
+VArray<ColorGeometry4f> Drawing::vertex_colors() const
+{
+  return *this->strokes().attributes().lookup_or_default<ColorGeometry4f>(
+      ATTR_VERTEX_COLOR, ATTR_DOMAIN_POINT, ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+}
+
+MutableSpan<ColorGeometry4f> Drawing::vertex_colors_for_write()
+{
+  return get_mutable_attribute<ColorGeometry4f>(this->strokes_for_write(),
+                                                ATTR_DOMAIN_POINT,
+                                                ATTR_VERTEX_COLOR,
+                                                ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
 }
 
 void Drawing::tag_positions_changed()
@@ -1135,6 +1151,19 @@ void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 /** \name Grease Pencil material functions
  * \{ */
 
+int BKE_grease_pencil_object_material_index_get(Object *ob, Material *ma)
+{
+  short *totcol = BKE_object_material_len_p(ob);
+  Material *read_ma = NULL;
+  for (short i = 0; i < *totcol; i++) {
+    read_ma = BKE_object_material_get(ob, i + 1);
+    if (ma == read_ma) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 int BKE_grease_pencil_object_material_index_get_by_name(Object *ob, const char *name)
 {
   short *totcol = BKE_object_material_len_p(ob);
@@ -1166,6 +1195,18 @@ Material *BKE_grease_pencil_object_material_new(Main *bmain,
   return ma;
 }
 
+Material *BKE_grease_pencil_object_material_from_brush_get(Object *ob, Brush *brush)
+{
+  if ((brush) && (brush->gpencil_settings) &&
+      (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED))
+  {
+    Material *ma = BKE_grease_pencil_brush_material_get(brush);
+    return ma;
+  }
+
+  return BKE_object_material_get(ob, ob->actcol);
+}
+
 Material *BKE_grease_pencil_object_material_ensure_by_name(Main *bmain,
                                                            Object *ob,
                                                            const char *name,
@@ -1177,6 +1218,71 @@ Material *BKE_grease_pencil_object_material_ensure_by_name(Main *bmain,
     return BKE_object_material_get(ob, index + 1);
   }
   return BKE_grease_pencil_object_material_new(bmain, ob, name, r_index);
+}
+
+Material *BKE_grease_pencil_brush_material_get(Brush *brush)
+{
+  if (brush == nullptr) {
+    return nullptr;
+  }
+  if (brush->gpencil_settings == nullptr) {
+    return nullptr;
+  }
+  return brush->gpencil_settings->material;
+}
+
+Material *BKE_grease_pencil_object_material_ensure_from_brush(Main *bmain,
+                                                              Object *ob,
+                                                              Brush *brush)
+{
+  if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
+    Material *ma = BKE_grease_pencil_brush_material_get(brush);
+
+    /* check if the material is already on object material slots and add it if missing */
+    if (ma && BKE_grease_pencil_object_material_index_get(ob, ma) < 0) {
+      BKE_object_material_slot_add(bmain, ob);
+      BKE_object_material_assign(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
+    }
+
+    return ma;
+  }
+
+  /* Use the active material instead. */
+  return BKE_object_material_get(ob, ob->actcol);
+}
+
+Material *BKE_grease_pencil_object_material_ensure_from_active_input_brush(Main *bmain,
+                                                                           Object *ob,
+                                                                           Brush *brush)
+{
+  if (brush == nullptr) {
+    return BKE_grease_pencil_object_material_ensure_from_active_input_material(ob);
+  }
+  if (Material *ma = BKE_grease_pencil_object_material_ensure_from_brush(bmain, ob, brush)) {
+    return ma;
+  }
+  if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
+    /* It is easier to just unpin a null material, instead of setting a new one. */
+    brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
+  }
+  return BKE_grease_pencil_object_material_ensure_from_active_input_material(ob);
+}
+
+Material *BKE_grease_pencil_object_material_ensure_from_active_input_material(Object *ob)
+{
+  if (Material *ma = BKE_object_material_get(ob, ob->actcol)) {
+    return ma;
+  }
+  return BKE_material_default_gpencil();
+}
+
+Material *BKE_grease_pencil_object_material_ensure_active(Object *ob)
+{
+  Material *ma = BKE_grease_pencil_object_material_ensure_from_active_input_material(ob);
+  if (ma->gp_style == nullptr) {
+    BKE_gpencil_material_attr_init(ma);
+  }
+  return ma;
 }
 
 /** \} */
@@ -1231,23 +1337,6 @@ void BKE_grease_pencil_batch_cache_free(GreasePencil *grease_pencil)
   if (grease_pencil->runtime && grease_pencil->runtime->batch_cache) {
     BKE_grease_pencil_batch_cache_free_cb(grease_pencil);
   }
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------- */
-/** \name Grease Pencil runtime API
- * \{ */
-
-bool blender::bke::GreasePencilRuntime::has_stroke_buffer() const
-{
-  return this->stroke_cache.points.size() > 0;
-}
-
-blender::Span<blender::bke::greasepencil::StrokePoint> blender::bke::GreasePencilRuntime::
-    stroke_buffer() const
-{
-  return this->stroke_cache.points.as_span();
 }
 
 /** \} */
