@@ -306,13 +306,12 @@ void GLFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType type, GPULoadS
   /* TODO(fclem): Add support for other ops. */
   if (ls.load_action == eGPULoadOp::GPU_LOADACTION_CLEAR) {
     if (tmp_detached_[type].tex != nullptr) {
-      /* GPULoadStore is used to define the framebuffer before it is used for rendering.
+      /* #GPULoadStore is used to define the frame-buffer before it is used for rendering.
        * Binding back unattached attachment makes its state undefined. This is described by the
-       * documentation and the userland code should specify a sub-pass at the start of the drawing
-       * to explicitly set attachment state.
-       */
+       * documentation and the user-land code should specify a sub-pass at the start of the drawing
+       * to explicitly set attachment state. */
       if (GLContext::framebuffer_fetch_support) {
-        /* Noop. */
+        /* NOOP. */
       }
       else if (GLContext::texture_barrier_support) {
         /* Reset default attachment state. */

@@ -164,7 +164,7 @@ void main()
           uint page_index = atomicAdd(clear_dispatch_buf.num_groups_z, 1u);
           /* Add page to tile processing. */
           atomicAdd(tile_draw_buf.vertex_len, 6u);
-          /* Add page mapping for indexing the page position in atlas and in the framebuffer. */
+          /* Add page mapping for indexing the page position in atlas and in the frame-buffer. */
           dst_coord_buf[page_index] = page_packed;
           src_coord_buf[page_index] = packUvec4x8(
               uvec4(relative_tile_co.x, relative_tile_co.y, view_index, 0));

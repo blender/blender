@@ -46,8 +46,8 @@ void main()
 
 #ifdef MAT_CLIP_PLANE
   /* Do not use hardware clip planes as they modify the rasterization (some GPUs add vertices).
-   * This would in turn create a discrepency between the prepass depth and the gbuffer depth which
-   * exhibits missing pixels data. */
+   * This would in turn create a discrepancy between the pre-pass depth and the G-buffer depth
+   * which exhibits missing pixels data. */
   if (clip_interp.clip_distance > 0.0) {
     discard;
     return;

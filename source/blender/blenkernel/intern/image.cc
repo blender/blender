@@ -4387,8 +4387,8 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 
   /* Put an empty image buffer to the cache. This allows to achieve the following:
    *
-   * 1. It makes it so the generic logic in the #BKE_image_has_loaded_ibuf proeprly detects that
-   * an Image used to dusplay render result has loaded image buffer.
+   * 1. It makes it so the generic logic in the #BKE_image_has_loaded_ibuf properly detects that
+   * an Image used to display render result has loaded image buffer.
    *
    * Surely there are all the design questions about scene-dependent Render Result image
    * data-block, and the behavior of the flag dependent on whether the Render Result image was ever

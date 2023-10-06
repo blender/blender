@@ -109,7 +109,7 @@ class ShadowPipeline {
 
   /* Shadow update pass. */
   PassMain render_ps_ = {"Shadow.Surface"};
-  /* Shadow surface render subpass. */
+  /* Shadow surface render sub-pass. */
   PassMain::Sub *surface_ps_ = nullptr;
 
  public:

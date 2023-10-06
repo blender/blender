@@ -5,7 +5,7 @@
  * On TBDR, we can use a three-pass method to perform virtual shadow map updates, leveraging
  * efficient use of tile-based GPUs. Shadow updates rasterize geometry for each view in much the
  * same way as a conventional shadow map render, but for the standard path, there is an additional
- * cost of an atomic-min abd store to allow for indirection into the atlas. This setup can lead to
+ * cost of an atomic-min and store to allow for indirection into the atlas. This setup can lead to
  * excessive overdraw, rasterization and increased complexity in the material depth fragment
  * shader, reducing rendering performance.
  *
@@ -49,10 +49,10 @@ void main()
 {
   /* For storing pass, we store the result from depth in tile memory. */
   uint u_depth = floatBitsToUint(in_tile_depth);
-  /* Quantization bias. Equivalent to nextafter in C without all the safety. 1 is not enough. */
+  /* Quantization bias. Equivalent to `nextafter` in C without all the safety. 1 is not enough. */
   u_depth += 2;
 
-  /* Write result to altas. */
+  /* Write result to atlas. */
 #  ifdef GPU_METAL
   /* NOTE: Use the fastest possible write function without any parameter wrapping or conversion.*/
   shadow_atlas_img.texture->write(u_depth, ushort2(out_texel_xy), out_page_z);

@@ -33,6 +33,6 @@ void main()
    * Non-updated tile depth will remain at 0.0 to ensure fragments are discarded. */
   gl_Position = vec4(ndc_pos.x, ndc_pos.y, 1.0, 1.0);
   gpu_Layer = int(src_page_co.z);
-  /* Assumes last viewport will always cover the whole framebuffer. */
+  /* Assumes last viewport will always cover the whole frame-buffer. */
   gpu_ViewportIndex = 15;
 }

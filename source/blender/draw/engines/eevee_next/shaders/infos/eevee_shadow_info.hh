@@ -220,7 +220,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_page_tile_clear)
     .fragment_out(0, Type::FLOAT, "out_tile_depth", DualBlend::NONE, SHADOW_ROG_ID);
 
 #ifdef APPLE
-/* Metal supports USHORT which saves a bit of perf here. */
+/* Metal supports USHORT which saves a bit of performance here. */
 #  define PAGE_Z_TYPE Type::USHORT
 #else
 #  define PAGE_Z_TYPE Type::UINT
