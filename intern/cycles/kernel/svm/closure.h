@@ -327,6 +327,17 @@ ccl_device
         }
       }
 
+      /* Apply IOR adjustment */
+      float eta = ior;
+      float f0 = F0_from_ior(eta);
+      if (specular_ior_level != 0.5f) {
+        f0 *= 2.0f * specular_ior_level;
+        eta = ior_from_F0(f0);
+        if (ior < 1.0f) {
+          eta = 1.0f / eta;
+        }
+      }
+
       /* Specular component */
       if (reflective_caustics) {
         ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
@@ -337,17 +348,6 @@ ccl_device
                              NULL;
 
         if (bsdf && fresnel) {
-          /* Apply IOR adjustment */
-          float eta = ior;
-          float f0 = F0_from_ior(eta);
-          if (specular_ior_level != 0.5f) {
-            f0 *= 2.0f * specular_ior_level;
-            eta = ior_from_F0(f0);
-            if (ior < 1.0f) {
-              eta = 1.0f / eta;
-            }
-          }
-
           bsdf->N = valid_reflection_N;
           bsdf->ior = eta;
           bsdf->T = T;
@@ -383,7 +383,7 @@ ccl_device
         bssrdf->albedo = rgb_to_spectrum(base_color);
         bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
         bssrdf->alpha = sqr(roughness);
-        bssrdf->ior = ior;
+        bssrdf->ior = eta;
         bssrdf->anisotropy = stack_load_float(stack, data_subsurf.w);
         if (subsurface_method == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
           bssrdf->ior = stack_load_float(stack, data_subsurf.x);
