@@ -1478,73 +1478,8 @@ struct RepeatEvalStorage {
   std::optional<lf::GraphExecutor> graph_executor;
   void *graph_executor_storage = nullptr;
   bool multi_threading_enabled = false;
-  IndexRange input_index_map;
+  Vector<int> input_index_map;
   Vector<int> output_index_map;
-};
-
-class ParamsForRepeatZoneGraph : public lf::Params {
- private:
-  lf::Params &zone_params_;
-  RepeatEvalStorage &eval_storage_;
-
- public:
-  ParamsForRepeatZoneGraph(RepeatEvalStorage &eval_storage, lf::Params &zone_params)
-      : lf::Params(*eval_storage.graph_executor, eval_storage.multi_threading_enabled),
-        zone_params_{zone_params},
-        eval_storage_(eval_storage)
-  {
-  }
-
-  int map_input_index(const int index) const
-  {
-    return eval_storage_.input_index_map[index];
-  }
-
-  int map_output_index(const int index) const
-  {
-    return eval_storage_.output_index_map[index];
-  }
-
-  void *try_get_input_data_ptr_impl(const int index) const
-  {
-    return zone_params_.try_get_input_data_ptr(this->map_input_index(index));
-  }
-
-  void *try_get_input_data_ptr_or_request_impl(const int index)
-  {
-    return zone_params_.try_get_input_data_ptr_or_request(this->map_input_index(index));
-  }
-  void *get_output_data_ptr_impl(const int index)
-  {
-    return zone_params_.get_output_data_ptr(this->map_output_index(index));
-  }
-  void output_set_impl(const int index)
-  {
-    return zone_params_.output_set(this->map_output_index(index));
-  }
-  bool output_was_set_impl(const int index) const
-  {
-    return zone_params_.output_was_set(this->map_output_index(index));
-  }
-  lf::ValueUsage get_output_usage_impl(const int index) const
-  {
-    return zone_params_.get_output_usage(this->map_output_index(index));
-  }
-  void set_input_unused_impl(const int index)
-  {
-    return zone_params_.set_input_unused(this->map_input_index(index));
-  }
-  bool try_enable_multi_threading_impl()
-  {
-    if (eval_storage_.multi_threading_enabled) {
-      return true;
-    }
-    if (zone_params_.try_enable_multi_threading()) {
-      eval_storage_.multi_threading_enabled = true;
-      return true;
-    }
-    return false;
-  }
 };
 
 class LazyFunctionForRepeatZone : public LazyFunction {
@@ -1649,7 +1584,11 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     }
 
     /* Execute the graph for the repeat zone. */
-    ParamsForRepeatZoneGraph eval_graph_params{eval_storage, params};
+    lf::RemappedParams eval_graph_params{*eval_storage.graph_executor,
+                                         params,
+                                         eval_storage.input_index_map,
+                                         eval_storage.output_index_map,
+                                         eval_storage.multi_threading_enabled};
     lf::Context eval_graph_context{
         eval_storage.graph_executor_storage, context.user_data, context.local_user_data};
     eval_storage.graph_executor->execute(eval_graph_params, eval_graph_context);
@@ -1812,8 +1751,9 @@ class LazyFunctionForRepeatZone : public LazyFunction {
      * zone. The main complexity below stems from the fact that the iterations input is handled
      * outside of this graph. */
     eval_storage.output_index_map.reinitialize(outputs_.size() - 1);
+    eval_storage.input_index_map.resize(inputs_.size() - 1);
+    std::iota(eval_storage.input_index_map.begin(), eval_storage.input_index_map.end(), 1);
 
-    eval_storage.input_index_map = inputs_.index_range().drop_front(1);
     Vector<const lf::GraphInputSocket *> lf_graph_inputs = lf_inputs.as_span().drop_front(1);
 
     const int iteration_usage_index = zone_info_.indices.outputs.input_usages[0];
