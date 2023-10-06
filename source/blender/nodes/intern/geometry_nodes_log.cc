@@ -294,17 +294,13 @@ void GeoTreeLog::ensure_existing_attributes()
   }
   this->ensure_socket_values();
 
-  Set<StringRef> names;
-
   auto handle_value_log = [&](const ValueLog &value_log) {
     const GeometryInfoLog *geo_log = dynamic_cast<const GeometryInfoLog *>(&value_log);
     if (geo_log == nullptr) {
       return;
     }
     for (const GeometryAttributeInfo &attribute : geo_log->attributes) {
-      if (names.add(attribute.name)) {
-        this->existing_attributes.append(&attribute);
-      }
+      this->existing_attributes.append(&attribute);
     }
   };
 
