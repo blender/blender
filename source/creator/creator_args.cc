@@ -1224,26 +1224,23 @@ static int arg_handle_debug_gpu_renderdoc_set(int /*argc*/,
 static const char arg_handle_gpu_backend_set_doc_all[] =
     "\n"
     "\tForce to use a specific GPU backend. Valid options: "
-    "'vulkan',  "
+    "'vulkan' (experimental),  "
     "'metal',  "
     "'opengl'.";
 static const char arg_handle_gpu_backend_set_doc[] =
     "\n"
     "\tForce to use a specific GPU backend. Valid options: "
-#  ifdef WITH_VULKAN_BACKEND
-    "'vulkan'"
-#    if defined(WITH_METAL_BACKEND) || defined(WITH_OPENGL_BACKEND)
-    ",  "
+#  ifdef WITH_OPENGL_BACKEND
+    "'opengl'"
+#    if defined(WITH_VULKAN_BACKEND)
+    " or "
 #    endif
+#  endif
+#  ifdef WITH_VULKAN_BACKEND
+    "'vulkan' (experimental)"
 #  endif
 #  ifdef WITH_METAL_BACKEND
     "'metal'"
-#    if defined(WITH_OPENGL_BACKEND)
-    ",  "
-#    endif
-#  endif
-#  ifdef WITH_OPENGL_BACKEND
-    "'opengl'"
 #  endif
     ".";
 static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data*/)

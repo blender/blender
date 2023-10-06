@@ -46,7 +46,6 @@ else()
   endif()
 endif()
 
-
 # Support restoring this value once pre-compiled libraries have been handled.
 set(WITH_STATIC_LIBS_INIT ${WITH_STATIC_LIBS})
 
@@ -118,6 +117,7 @@ if(WITH_VULKAN_BACKEND)
   find_package_wrapper(Vulkan REQUIRED)
   find_package_wrapper(ShaderC REQUIRED)
 endif()
+add_bundled_libraries(vulkan/lib)
 
 function(check_freetype_for_brotli)
   if((DEFINED HAVE_BROTLI AND HAVE_BROTLI) AND
