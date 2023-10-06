@@ -314,8 +314,9 @@ static void wm_cursor_warp_relative(wmWindow *win, int x, int y)
 {
   /* NOTE: don't use wmEvent coords because of continuous grab #36409. */
   int cx, cy;
-  wm_cursor_position_get(win, &cx, &cy);
-  WM_cursor_warp(win, cx + x, cy + y);
+  if (wm_cursor_position_get(win, &cx, &cy)) {
+    WM_cursor_warp(win, cx + x, cy + y);
+  }
 }
 
 bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)

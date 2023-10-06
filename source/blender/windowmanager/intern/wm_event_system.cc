@@ -2738,7 +2738,10 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
             wm_window_make_drawable(wm, root_win);
             /* Ensure correct cursor position, otherwise, popups may close immediately after
              * opening (#UI_BLOCK_MOVEMOUSE_QUIT). */
-            wm_cursor_position_get(root_win, &eventstate->xy[0], &eventstate->xy[1]);
+            int xy[2];
+            if (wm_cursor_position_get(root_win, &xy[0], &xy[1])) {
+              copy_v2_v2_int(eventstate->xy, xy);
+            }
             wm->winactive = root_win; /* Reports use this... */
           }
           else if (file_area->full) {

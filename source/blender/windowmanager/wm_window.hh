@@ -104,7 +104,7 @@ void wm_window_swap_buffers(wmWindow *win);
 void wm_window_set_swap_interval(wmWindow *win, int interval);
 bool wm_window_get_swap_interval(wmWindow *win, int *intervalOut);
 
-void wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y);
+bool wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y) ATTR_WARN_UNUSED_RESULT;
 void wm_cursor_position_from_ghost_screen_coords(wmWindow *win, int *r_x, int *r_y);
 void wm_cursor_position_to_ghost_screen_coords(wmWindow *win, int *x, int *y);
 
