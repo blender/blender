@@ -28,19 +28,18 @@ void ReflectionProbeModule::init()
     world_probe_data.layer_subdivision = 0;
     world_probe_data.area_index = 0;
     world_probe_data.pos = float4(0.0f);
-    data_buf_[0] = world_probe_data;
+    data_buf_[world_probe_data_index] = world_probe_data;
 
     ReflectionProbe world_probe;
     world_probe.type = ReflectionProbe::Type::World;
-    world_probe.do_update_data = true;
     world_probe.do_render = true;
-    world_probe.index = 0;
+    world_probe.index = world_probe_data_index;
     world_probe.clipping_distances = float2(1.0f, 10.0f);
     probes_.add(world_object_key_, world_probe);
 
     probes_tx_.ensure_2d_array(GPU_RGBA16F,
                                int2(max_resolution_),
-                               init_num_probes_,
+                               1,
                                GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ,
                                nullptr,
                                9999);
@@ -108,15 +107,25 @@ void ReflectionProbeModule::sync_world(::World *world, WorldHandle & /*ob_handle
 {
   const ReflectionProbe &probe = probes_.lookup(world_object_key_);
   ReflectionProbeData &probe_data = data_buf_[probe.index];
+
   int requested_layer_subdivision = layer_subdivision_for(
       max_resolution_, static_cast<eLightProbeResolution>(world->probe_resolution));
   if (requested_layer_subdivision != probe_data.layer_subdivision) {
     ReflectionProbeData new_probe_data = find_empty_reflection_probe_data(
-        requested_layer_subdivision);
+        requested_layer_subdivision, true);
     probe_data.layer = new_probe_data.layer;
     probe_data.layer_subdivision = new_probe_data.layer_subdivision;
     probe_data.area_index = new_probe_data.area_index;
     do_world_update_set(true);
+  }
+}
+
+void ReflectionProbeModule::sync_world_lookdev()
+{
+  do_world_update_set(true);
+
+  if (!update_probes_this_sample_) {
+    update_probes_next_sample_ = true;
   }
 }
 
@@ -134,7 +143,7 @@ void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
   probe.is_probe_used = true;
 
   const bool probe_sync_active = instance_.do_probe_sync();
-  if (!probe_sync_active && is_dirty) {
+  if (!probe_sync_active && probe.do_render) {
     update_probes_next_sample_ = true;
   }
 
@@ -143,12 +152,11 @@ void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
     return;
   }
 
-  probe.do_update_data |= is_dirty;
   probe.clipping_distances = float2(light_probe->clipsta, light_probe->clipend);
 
   ReflectionProbeData &probe_data = data_buf_[probe.index];
   if (probe_data.layer_subdivision != subdivision) {
-    ReflectionProbeData new_probe_data = find_empty_reflection_probe_data(subdivision);
+    ReflectionProbeData new_probe_data = find_empty_reflection_probe_data(subdivision, false);
     probe_data.layer = new_probe_data.layer;
     probe_data.layer_subdivision = new_probe_data.layer_subdivision;
     probe_data.area_index = new_probe_data.area_index;
@@ -163,9 +171,9 @@ ReflectionProbe &ReflectionProbeModule::find_or_insert(ObjectHandle &ob_handle,
   ReflectionProbe &reflection_probe = probes_.lookup_or_add_cb(
       ob_handle.object_key.hash_value, [this, subdivision_level]() {
         ReflectionProbe probe;
-        ReflectionProbeData probe_data = find_empty_reflection_probe_data(subdivision_level);
+        ReflectionProbeData probe_data = find_empty_reflection_probe_data(subdivision_level,
+                                                                          false);
 
-        probe.do_update_data = true;
         probe.do_render = true;
         probe.type = ReflectionProbe::Type::Probe;
         probe.index = reflection_probe_data_index_max() + 1;
@@ -292,12 +300,13 @@ class ProbeLocationFinder {
   }
 };
 
-ReflectionProbeData ReflectionProbeModule::find_empty_reflection_probe_data(
-    int subdivision_level) const
+ReflectionProbeData ReflectionProbeModule::find_empty_reflection_probe_data(int subdivision_level,
+                                                                            bool skip_world) const
 {
   ProbeLocationFinder location_finder(needed_layers_get() + 1, subdivision_level);
   for (const ReflectionProbeData &data :
-       Span<ReflectionProbeData>(data_buf_.data(), reflection_probe_data_index_max() + 1))
+       Span<ReflectionProbeData>(data_buf_.data() + (skip_world ? 1 : 0),
+                                 reflection_probe_data_index_max() + (skip_world ? 0 : 1)))
   {
     location_finder.mark_space_used(data);
   }
@@ -306,17 +315,32 @@ ReflectionProbeData ReflectionProbeModule::find_empty_reflection_probe_data(
 
 void ReflectionProbeModule::end_sync()
 {
-  remove_unused_probes();
+  const bool probes_removed = remove_unused_probes();
 
-  const bool do_update = instance_.do_probe_sync() ||
-                         (has_only_world_probe() && do_world_update_get());
-  if (!do_update) {
-    return;
+  const bool world_updated = do_world_update_get();
+  const bool only_world = has_only_world_probe();
+  const int number_layers_needed = needed_layers_get();
+  const int current_layers = probes_tx_.depth();
+  const bool resize_layers = current_layers < number_layers_needed;
+
+  const bool rerender_all_probes = resize_layers || world_updated;
+  if (rerender_all_probes) {
+    for (ReflectionProbe &probe : probes_.values()) {
+      probe.do_render = true;
+    }
   }
 
-  int number_layers_needed = needed_layers_get();
-  int current_layers = probes_tx_.depth();
-  bool resize_layers = current_layers < number_layers_needed;
+  const bool do_update = instance_.do_probe_sync() || (only_world && world_updated);
+  if (!do_update) {
+    if (update_probes_next_sample_ && !update_probes_this_sample_) {
+      DRW_viewport_request_redraw();
+    }
+
+    if (!update_probes_next_sample_ && probes_removed) {
+      data_buf_.push_update();
+    }
+    return;
+  }
 
   if (resize_layers) {
     probes_tx_.ensure_2d_array(GPU_RGBA16F,
@@ -327,19 +351,19 @@ void ReflectionProbeModule::end_sync()
                                9999);
     GPU_texture_mipmap_mode(probes_tx_, true, true);
     probes_tx_.clear(float4(0.0f));
-
-    for (ReflectionProbe &probe : probes_.values()) {
-      probe.do_update_data = true;
-      probe.do_render = true;
-    }
   }
 
   recalc_lod_factors();
   data_buf_.push_update();
 }
 
-void ReflectionProbeModule::remove_unused_probes()
+bool ReflectionProbeModule::remove_unused_probes()
 {
+  ReflectionProbeData init_probe_data = {};
+  init_probe_data.layer = -1;
+
+  Vector<int> removed_indexes;
+
   bool found = false;
   do {
     found = false;
@@ -348,7 +372,9 @@ void ReflectionProbeModule::remove_unused_probes()
       const ReflectionProbe &probe = item.value;
       if (probe.type == ReflectionProbe::Type::Probe && !probe.is_probe_used) {
         key_to_remove = item.key;
+        data_buf_[probe.index] = init_probe_data;
         found = true;
+        removed_indexes.append(probe.index);
         break;
       }
     }
@@ -356,6 +382,39 @@ void ReflectionProbeModule::remove_unused_probes()
       probes_.remove(key_to_remove);
     }
   } while (found);
+
+  const bool probes_removed = !removed_indexes.is_empty();
+
+  /* Reorganize data_buf_ to be sequentially filled from the start. */
+  while (!removed_indexes.is_empty()) {
+    int index = removed_indexes.pop_last();
+    int highest_index = 0;
+    ReflectionProbe *highest_probe = nullptr;
+    for (ReflectionProbe &probe : probes_.values()) {
+      if (probe.type != ReflectionProbe::Type::Probe) {
+        continue;
+      }
+      if (assign_if_different(highest_index, max_ii(highest_index, probe.index))) {
+        highest_probe = &probe;
+      }
+    }
+
+    if (highest_probe == nullptr) {
+      break;
+    }
+    if (index > highest_index) {
+      continue;
+    }
+
+    data_buf_[index] = data_buf_[highest_index];
+    data_buf_[highest_index] = init_probe_data;
+  }
+
+  if (probes_removed) {
+    instance_.sampling.reset();
+  }
+
+  return probes_removed;
 }
 
 void ReflectionProbeModule::remove_reflection_probe_data(int reflection_probe_data_index)
@@ -404,8 +463,7 @@ void ReflectionProbeModule::do_world_update_set(bool value)
 {
   ReflectionProbe &world_probe = probes_.lookup(world_object_key_);
   world_probe.do_render = value;
-  world_probe.do_world_irradiance_update = value;
-  instance_.irradiance_cache.do_update_world_ = true;
+  do_world_update_irradiance_set(value);
 }
 
 void ReflectionProbeModule::do_world_update_irradiance_set(bool value)
@@ -456,14 +514,14 @@ std::ostream &operator<<(std::ostream &os, const ReflectionProbe &probe)
     }
     case ReflectionProbe::Type::World: {
       os << "WORLD";
-      os << " is_dirty: " << probe.do_update_data;
+      os << " do_render: " << probe.do_render;
       os << " index: " << probe.index;
       os << "\n";
       break;
     }
     case ReflectionProbe::Type::Probe: {
       os << "PROBE";
-      os << " is_dirty: " << probe.do_update_data;
+      os << " do_render: " << probe.do_render;
       os << " is_used: " << probe.is_probe_used;
       os << " index: " << probe.index;
       os << "\n";
@@ -479,18 +537,19 @@ std::optional<ReflectionProbeUpdateInfo> ReflectionProbeModule::update_info_pop(
     const ReflectionProbe::Type probe_type)
 {
   const bool do_probe_sync = instance_.do_probe_sync();
+  const bool only_world = has_only_world_probe();
   const int max_shift = int(log2(max_resolution_));
   for (const Map<uint64_t, ReflectionProbe>::Item &item : probes_.items()) {
     if (!item.value.do_render && !item.value.do_world_irradiance_update) {
       continue;
     }
-    if (probe_type == ReflectionProbe::Type::World && item.value.type != probe_type) {
-      return std::nullopt;
-    }
-    if (probe_type == ReflectionProbe::Type::Probe && item.value.type != probe_type) {
+    if (item.value.type != probe_type) {
       continue;
     }
     /* Do not update this probe during this sample. */
+    if (item.value.type == ReflectionProbe::Type::World && !only_world && !do_probe_sync) {
+      continue;
+    }
     if (item.value.type == ReflectionProbe::Type::Probe && !do_probe_sync) {
       continue;
     }

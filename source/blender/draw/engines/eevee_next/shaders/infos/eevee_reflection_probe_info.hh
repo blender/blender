@@ -23,7 +23,7 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_remap)
                  "ReflectionProbeData",
                  "reflection_probe_buf[REFLECTION_PROBES_MAX]")
     .sampler(0, ImageType::FLOAT_CUBE, "cubemap_tx")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D_ARRAY, "octahedral_img")
+    .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D_ARRAY, "octahedral_img")
     .compute_source("eevee_reflection_probe_remap_comp.glsl")
     .additional_info("eevee_shared")
     .do_static_compilation(true);

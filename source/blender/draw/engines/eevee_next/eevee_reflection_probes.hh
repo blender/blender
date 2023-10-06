@@ -33,9 +33,6 @@ struct ReflectionProbe {
 
   Type type = Type::Unused;
 
-  /* Probe data needs to be updated.
-   * TODO: Remove this flag? */
-  bool do_update_data = false;
   /* Should the area in the probes_tx_ be updated? */
   bool do_render = false;
   bool do_world_irradiance_update = false;
@@ -57,22 +54,6 @@ struct ReflectionProbe {
    * Far and near clipping distances for rendering
    */
   float2 clipping_distances;
-
-  /**
-   * Check if the probe needs to be updated during this sample.
-   */
-  bool needs_update() const
-  {
-    switch (type) {
-      case Type::Unused:
-        return false;
-      case Type::World:
-        return do_update_data || do_render;
-      case Type::Probe:
-        return (do_update_data || do_render) && is_probe_used;
-    }
-    return false;
-  }
 };
 
 /** \} */
@@ -83,9 +64,7 @@ struct ReflectionProbe {
 
 class ReflectionProbeModule {
  private:
-  /** The max number of probes to initially allocate. */
-  static constexpr int init_num_probes_ = 1;
-
+  static constexpr int world_probe_data_index = 0;
   /**
    * The maximum resolution of a cube-map side.
    *
@@ -126,6 +105,7 @@ class ReflectionProbeModule {
   void init();
   void begin_sync();
   void sync_world(::World *world, WorldHandle &ob_handle);
+  void sync_world_lookdev();
   void sync_object(Object *ob, ObjectHandle &ob_handle);
   void end_sync();
 
@@ -147,7 +127,7 @@ class ReflectionProbeModule {
   /** Get the number of layers that is needed to store probes. */
   int needed_layers_get() const;
 
-  void remove_unused_probes();
+  bool remove_unused_probes();
   void recalc_lod_factors();
 
   /* TODO: also add _len() which is a max + 1. */
@@ -164,7 +144,8 @@ class ReflectionProbeModule {
    * Create a reflection probe data element that points to an empty spot in the cubemap that can
    * hold a texture with the given subdivision_level.
    */
-  ReflectionProbeData find_empty_reflection_probe_data(int subdivision_level) const;
+  ReflectionProbeData find_empty_reflection_probe_data(int subdivision_level,
+                                                       bool skip_world) const;
 
   /**
    * Pop the next reflection probe that requires to be updated.

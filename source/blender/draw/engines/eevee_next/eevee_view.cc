@@ -294,7 +294,6 @@ void CaptureView::render_probes()
 
   if (do_update_mipmap_chain) {
     /* TODO: only update the regions that have been updated. */
-    /* TODO: Composite world into the probes. */
     inst_.reflection_probes.update_probes_texture_mipmaps();
   }
 }
