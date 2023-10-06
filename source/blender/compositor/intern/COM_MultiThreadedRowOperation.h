@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "BLI_array.h"
-
 #include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {

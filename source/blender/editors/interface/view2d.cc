@@ -16,7 +16,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_array.h"
 #include "BLI_easing.h"
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
