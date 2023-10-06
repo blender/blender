@@ -1106,13 +1106,11 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
   /* Set the state. */
   {
     enum libdecor_window_state window_state;
-    if (!libdecor_configuration_get_window_state(configuration, &window_state)) {
-      window_state = LIBDECOR_WINDOW_STATE_NONE;
+    if (libdecor_configuration_get_window_state(configuration, &window_state)) {
+      frame_pending->is_maximised = window_state & LIBDECOR_WINDOW_STATE_MAXIMIZED;
+      frame_pending->is_fullscreen = window_state & LIBDECOR_WINDOW_STATE_FULLSCREEN;
+      frame_pending->is_active = window_state & LIBDECOR_WINDOW_STATE_ACTIVE;
     }
-
-    frame_pending->is_maximised = window_state & LIBDECOR_WINDOW_STATE_MAXIMIZED;
-    frame_pending->is_fullscreen = window_state & LIBDECOR_WINDOW_STATE_FULLSCREEN;
-    frame_pending->is_active = window_state & LIBDECOR_WINDOW_STATE_ACTIVE;
   }
 
   /* Commit the changes. */
