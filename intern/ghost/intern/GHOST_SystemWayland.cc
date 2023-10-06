@@ -6337,9 +6337,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
 
-#ifdef WITH_VULKAN_BACKEND
   const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
-#endif
 
   switch (gpuSettings.context_type) {
 
@@ -6354,6 +6352,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
                                                    nullptr,
                                                    wl_surface,
                                                    display_->wl.display,
+                                                   nullptr,
                                                    1,
                                                    2,
                                                    debug_context);
@@ -6379,16 +6378,18 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
 
       for (int minor = 6; minor >= 3; --minor) {
         /* Caller must lock `system->server_mutex`. */
-        GHOST_Context *context = new GHOST_ContextEGL(this,
-                                                      false,
-                                                      EGLNativeWindowType(egl_window),
-                                                      EGLNativeDisplayType(display_->wl.display),
-                                                      EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                                      4,
-                                                      minor,
-                                                      GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                                      GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                                      EGL_OPENGL_API);
+        GHOST_Context *context = new GHOST_ContextEGL(
+            this,
+            false,
+            EGLNativeWindowType(egl_window),
+            EGLNativeDisplayType(display_->wl.display),
+            EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+            4,
+            minor,
+            GHOST_OPENGL_EGL_CONTEXT_FLAGS |
+                (debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
+            GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+            EGL_OPENGL_API);
 
         if (context->initializeDrawingContext()) {
           wl_surface_set_user_data(wl_surface, egl_window);
@@ -6480,7 +6481,8 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
       gpuSettings.context_type,
       is_dialog,
       ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
-      exclusive);
+      exclusive,
+      (gpuSettings.flags & GHOST_gpuDebugContext) != 0);
 
   if (window) {
     if (window->getValid()) {

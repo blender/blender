@@ -24,10 +24,12 @@
 
 #include <wayland-client-protocol.h>
 
-#ifdef WITH_GHOST_WAYLAND_DYNLOAD
-#  include <wayland_dynload_egl.h>
+#ifdef WITH_OPENGL_BACKEND
+#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
+#    include <wayland_dynload_egl.h>
+#  endif
+#  include <wayland-egl.h>
 #endif
-#include <wayland-egl.h>
 
 #include <algorithm> /* For `std::find`. */
 
@@ -221,8 +223,6 @@ struct GWL_Window {
   /** Wayland core types. */
   struct {
     wl_surface *surface = nullptr;
-
-    wl_egl_window *egl_window = nullptr;
   } wl;
 
   /** Wayland native types. */
@@ -242,8 +242,19 @@ struct GWL_Window {
     xdg_activation_token_v1 *activation_token = nullptr;
   } xdg;
 
+  struct {
+#ifdef WITH_OPENGL_BACKEND
+    wl_egl_window *egl_window = nullptr;
+#endif
+#ifdef WITH_VULKAN_BACKEND
+    GHOST_ContextVK_WindowInfo *vulkan_window_info = nullptr;
+#endif
+  } backend;
+
   GHOST_WindowWayland *ghost_window = nullptr;
   GHOST_SystemWayland *ghost_system = nullptr;
+  GHOST_TDrawingContextType ghost_context_type = GHOST_kDrawingContextTypeNone;
+
   /**
    * Outputs on which the window is currently shown on.
    *
@@ -287,6 +298,21 @@ struct GWL_Window {
   std::atomic<bool> pending_actions[PENDING_NUM];
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 };
+
+static void gwl_window_resize_for_backend(GWL_Window *win, const int32_t size[2])
+{
+#ifdef WITH_OPENGL_BACKEND
+  if (win->ghost_context_type == GHOST_kDrawingContextTypeOpenGL) {
+    wl_egl_window_resize(win->backend.egl_window, UNPACK2(size), 0, 0);
+  }
+#endif
+#ifdef WITH_VULKAN_BACKEND
+  if (win->ghost_context_type == GHOST_kDrawingContextTypeVulkan) {
+    win->backend.vulkan_window_info->size[0] = size[0];
+    win->backend.vulkan_window_info->size[1] = size[1];
+  }
+#endif
+}
 
 static void gwl_window_title_set(GWL_Window *win, const char *title)
 {
@@ -648,7 +674,7 @@ static void gwl_window_frame_pending_fractional_scale_set(GWL_Window *win,
 
 static void gwl_window_frame_pending_size_set(GWL_Window *win,
                                               bool *r_surface_needs_commit,
-                                              bool *r_surface_needs_egl_resize,
+                                              bool *r_surface_needs_resize_for_backend,
                                               bool *r_surface_needs_buffer_scale)
 {
   if (win->frame_pending.size[0] == 0 || win->frame_pending.size[1] == 0) {
@@ -668,11 +694,11 @@ static void gwl_window_frame_pending_size_set(GWL_Window *win,
     gwl_window_viewport_size_update(win);
   }
 
-  if (r_surface_needs_egl_resize) {
-    *r_surface_needs_egl_resize = true;
+  if (r_surface_needs_resize_for_backend) {
+    *r_surface_needs_resize_for_backend = true;
   }
   else {
-    wl_egl_window_resize(win->wl.egl_window, UNPACK2(win->frame.size), 0, 0);
+    gwl_window_resize_for_backend(win, win->frame.size);
   }
 
   win->ghost_window->notify_size();
@@ -741,15 +767,17 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
 
   const bool dpi_changed = win->frame_pending.fractional_scale != win->frame.fractional_scale;
   bool surface_needs_commit = false;
-  bool surface_needs_egl_resize = false;
+  bool surface_needs_resize_for_backend = false;
   bool surface_needs_buffer_scale = false;
 
   if (win->frame_pending.size[0] != 0 && win->frame_pending.size[1] != 0) {
     if ((win->frame.size[0] != win->frame_pending.size[0]) ||
         (win->frame.size[1] != win->frame_pending.size[1]))
     {
-      gwl_window_frame_pending_size_set(
-          win, &surface_needs_commit, &surface_needs_egl_resize, &surface_needs_buffer_scale);
+      gwl_window_frame_pending_size_set(win,
+                                        &surface_needs_commit,
+                                        &surface_needs_resize_for_backend,
+                                        &surface_needs_buffer_scale);
     }
   }
 
@@ -764,8 +792,8 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
     }
   }
 
-  if (surface_needs_egl_resize) {
-    wl_egl_window_resize(win->wl.egl_window, UNPACK2(win->frame.size), 0, 0);
+  if (surface_needs_resize_for_backend) {
+    gwl_window_resize_for_backend(win, win->frame.size);
   }
 
   if (surface_needs_buffer_scale) {
@@ -1337,10 +1365,12 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
                                          const GHOST_TDrawingContextType type,
                                          const bool is_dialog,
                                          const bool stereoVisual,
-                                         const bool exclusive)
+                                         const bool exclusive,
+                                         const bool is_debug)
     : GHOST_Window(width, height, state, stereoVisual, exclusive),
       system_(system),
-      window_(new GWL_Window)
+      window_(new GWL_Window),
+      is_debug_context_(is_debug)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*system->server_mutex};
@@ -1348,6 +1378,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   window_->ghost_window = this;
   window_->ghost_system = system;
+  window_->ghost_context_type = type;
 
   /* NOTE(@ideasman42): The scale set here to avoid flickering on startup.
    * When all monitors use the same scale (which is quite common) there aren't any problems.
@@ -1387,8 +1418,19 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   wl_surface_add_listener(window_->wl.surface, &wl_surface_listener, window_);
 
-  window_->wl.egl_window = wl_egl_window_create(
-      window_->wl.surface, int(window_->frame.size[0]), int(window_->frame.size[1]));
+#ifdef WITH_OPENGL_BACKEND
+  if (type == GHOST_kDrawingContextTypeOpenGL) {
+    window_->backend.egl_window = wl_egl_window_create(
+        window_->wl.surface, int(window_->frame.size[0]), int(window_->frame.size[1]));
+  }
+#endif
+#ifdef WITH_VULKAN_BACKEND
+  if (type == GHOST_kDrawingContextTypeVulkan) {
+    window_->backend.vulkan_window_info = new GHOST_ContextVK_WindowInfo;
+    window_->backend.vulkan_window_info->size[0] = window_->frame.size[0];
+    window_->backend.vulkan_window_info->size[1] = window_->frame.size[1];
+  }
+#endif
 
   wp_fractional_scale_manager_v1 *fractional_scale_manager =
       system->wp_fractional_scale_manager_get();
@@ -1501,9 +1543,9 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     gwl_window_state_set(window_, state);
   }
 
-  /* EGL context. */
+  /* Drawing context. */
   if (setDrawingContextType(type) == GHOST_kFailure) {
-    GHOST_PRINT("Failed to create EGL context" << std::endl);
+    GHOST_PRINT("Failed to create drawing context" << std::endl);
   }
 
   /* Set swap interval to 0 to prevent blocking. */
@@ -1669,7 +1711,16 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 
   releaseNativeHandles();
 
-  wl_egl_window_destroy(window_->wl.egl_window);
+#ifdef WITH_OPENGL_BACKEND
+  if (window_->ghost_context_type == GHOST_kDrawingContextTypeOpenGL) {
+    wl_egl_window_destroy(window_->backend.egl_window);
+  }
+#endif
+#ifdef WITH_VULKAN_BACKEND
+  if (window_->ghost_context_type == GHOST_kDrawingContextTypeVulkan) {
+    delete window_->backend.vulkan_window_info;
+  }
+#endif
 
   if (window_->xdg.activation_token) {
     xdg_activation_token_v1_destroy(window_->xdg.activation_token);
@@ -1834,15 +1885,16 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
 
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
-      GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual,
-                                                   GHOST_kVulkanPlatformWayland,
-                                                   0,
-                                                   nullptr,
-                                                   window_->wl.surface,
-                                                   system_->wl_display_get(),
-                                                   1,
-                                                   2,
-                                                   true);
+      GHOST_ContextVK *context = new GHOST_ContextVK(m_wantStereoVisual,
+                                                     GHOST_kVulkanPlatformWayland,
+                                                     0,
+                                                     nullptr,
+                                                     window_->wl.surface,
+                                                     system_->wl_display_get(),
+                                                     window_->backend.vulkan_window_info,
+                                                     1,
+                                                     2,
+                                                     is_debug_context_);
       if (context->initializeDrawingContext()) {
         return context;
       }
@@ -1857,12 +1909,13 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
         GHOST_Context *context = new GHOST_ContextEGL(
             system_,
             m_wantStereoVisual,
-            EGLNativeWindowType(window_->wl.egl_window),
+            EGLNativeWindowType(window_->backend.egl_window),
             EGLNativeDisplayType(system_->wl_display_get()),
             EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
             4,
             minor,
-            GHOST_OPENGL_EGL_CONTEXT_FLAGS,
+            GHOST_OPENGL_EGL_CONTEXT_FLAGS |
+                (is_debug_context_ ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
             GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
             EGL_OPENGL_API);
 

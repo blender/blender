@@ -358,8 +358,16 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpuSet
   switch (gpuSettings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
-      GHOST_Context *context = new GHOST_ContextVK(
-          false, GHOST_kVulkanPlatformX11, 0, m_display, nullptr, nullptr, 1, 2, debug_context);
+      GHOST_Context *context = new GHOST_ContextVK(false,
+                                                   GHOST_kVulkanPlatformX11,
+                                                   0,
+                                                   m_display,
+                                                   nullptr,
+                                                   nullptr,
+                                                   nullptr,
+                                                   1,
+                                                   2,
+                                                   debug_context);
       if (context->initializeDrawingContext()) {
         return context;
       }

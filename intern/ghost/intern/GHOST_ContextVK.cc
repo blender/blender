@@ -400,6 +400,7 @@ GHOST_ContextVK::GHOST_ContextVK(bool stereoVisual,
                                  /* Wayland */
                                  wl_surface *wayland_surface,
                                  wl_display *wayland_display,
+                                 const GHOST_ContextVK_WindowInfo *wayland_window_info,
 #endif
                                  int contextMajorVersion,
                                  int contextMinorVersion,
@@ -417,6 +418,7 @@ GHOST_ContextVK::GHOST_ContextVK(bool stereoVisual,
       /* Wayland */
       m_wayland_surface(wayland_surface),
       m_wayland_display(wayland_display),
+      m_wayland_window_info(wayland_window_info),
 #endif
       m_context_major_version(contextMajorVersion),
       m_context_minor_version(contextMinorVersion),
@@ -475,6 +477,25 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   if (m_swapchain == VK_NULL_HANDLE) {
     return GHOST_kFailure;
   }
+
+#ifdef WITH_GHOST_WAYLAND
+  /* Wayland doesn't provide a WSI with windowing capabilities, therefore cannot detect whether the
+   * swap-chain needs to be recreated. But as a side effect we can recreate the swap chain before
+   * presenting. */
+  if (m_wayland_window_info) {
+    const bool recreate_swapchain =
+        ((m_wayland_window_info->size[0] !=
+          std::max(m_render_extent.width, m_render_extent_min.width)) ||
+         (m_wayland_window_info->size[1] !=
+          std::max(m_render_extent.height, m_render_extent_min.height)));
+
+    if (recreate_swapchain) {
+      /* Swap-chain is out of date. Recreate swap-chain. */
+      destroySwapchain();
+      createSwapchain();
+    }
+  }
+#endif
 
   assert(vulkan_device.has_value() && vulkan_device->device != VK_NULL_HANDLE);
   VkDevice device = vulkan_device->device;
@@ -795,11 +816,29 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, m_surface, &capabilities);
 
   m_render_extent = capabilities.currentExtent;
+  m_render_extent_min = capabilities.minImageExtent;
   if (m_render_extent.width == UINT32_MAX) {
     /* Window Manager is going to set the surface size based on the given size.
      * Choose something between minImageExtent and maxImageExtent. */
-    m_render_extent.width = 1280;
-    m_render_extent.height = 720;
+    int width = 0;
+    int height = 0;
+
+#ifdef WITH_GHOST_WAYLAND
+    /* Wayland doesn't provide a windowing API via WSI. */
+    if (m_wayland_window_info) {
+      width = m_wayland_window_info->size[0];
+      height = m_wayland_window_info->size[1];
+    }
+#endif
+
+    if (width == 0 || height == 0) {
+      width = 1280;
+      height = 720;
+    }
+
+    m_render_extent.width = width;
+    m_render_extent.height = height;
+
     if (capabilities.minImageExtent.width > m_render_extent.width) {
       m_render_extent.width = capabilities.minImageExtent.width;
     }
