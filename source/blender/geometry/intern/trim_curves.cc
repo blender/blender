@@ -137,10 +137,8 @@ static bke::curves::CurvePoint lookup_point_bezier(
     return lookup_point_bezier(
         bezier_offsets, accumulated_lengths, sample_length, cyclic, num_curve_points);
   }
-  else {
-    return lookup_point_uniform_spacing(
-        accumulated_lengths, sample_length, cyclic, resolution, num_curve_points);
-  }
+  return lookup_point_uniform_spacing(
+      accumulated_lengths, sample_length, cyclic, resolution, num_curve_points);
 }
 
 static bke::curves::CurvePoint lookup_curve_point(
@@ -175,12 +173,10 @@ static bke::curves::CurvePoint lookup_curve_point(
   else if (curve_type == CURVE_TYPE_POLY) {
     return lookup_point_polygonal(accumulated_lengths, sample_length, cyclic, num_curve_points);
   }
-  else {
-    /* Handle evaluated curve. */
-    BLI_assert(resolution > 0);
-    return lookup_point_polygonal(
-        accumulated_lengths, sample_length, cyclic, evaluated_points_by_curve[curve_index].size());
-  }
+  /* Handle evaluated curve. */
+  BLI_assert(resolution > 0);
+  return lookup_point_polygonal(
+      accumulated_lengths, sample_length, cyclic, evaluated_points_by_curve[curve_index].size());
 }
 
 /** \} */
