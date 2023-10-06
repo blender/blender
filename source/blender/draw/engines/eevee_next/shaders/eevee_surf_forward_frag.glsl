@@ -9,6 +9,7 @@
  */
 
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ambient_occlusion_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
@@ -26,18 +27,25 @@ vec4 closure_to_rgba(Closure cl)
   vec3 refraction_light = vec3(0.0);
   float shadow = 1.0;
 
+  vec3 V = cameraVec(g_data.P);
   float vP_z = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
 
   light_eval(g_diffuse_data,
              g_reflection_data,
              g_data.P,
              g_data.Ng,
-             cameraVec(g_data.P),
+             V,
              vP_z,
              0.01 /* TODO(fclem) thickness. */,
              diffuse_light,
              reflection_light,
              shadow);
+
+  vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
+  LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
+
+  diffuse_light += lightprobe_eval(samp, g_diffuse_data, V, noise_probe);
+  reflection_light += lightprobe_eval(samp, g_reflection_data, V, noise_probe);
 
   vec4 out_color;
   out_color.rgb = g_emission;
@@ -76,18 +84,25 @@ void main()
   vec3 refraction_light = vec3(0.0);
   float shadow = 1.0;
 
+  vec3 V = cameraVec(g_data.P);
   float vP_z = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
 
   light_eval(g_diffuse_data,
              g_reflection_data,
              g_data.P,
              g_data.Ng,
-             cameraVec(g_data.P),
+             V,
              vP_z,
              thickness,
              diffuse_light,
              reflection_light,
              shadow);
+
+  vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
+  LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
+
+  diffuse_light += lightprobe_eval(samp, g_diffuse_data, V, noise_probe);
+  reflection_light += lightprobe_eval(samp, g_reflection_data, V, noise_probe);
 
   g_diffuse_data.color *= g_diffuse_data.weight;
   g_reflection_data.color *= g_reflection_data.weight;

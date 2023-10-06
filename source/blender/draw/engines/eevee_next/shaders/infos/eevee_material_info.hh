@@ -166,6 +166,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .fragment_source("eevee_surf_forward_frag.glsl")
     .additional_info("eevee_global_ubo",
                      "eevee_light_data",
+                     "eevee_lightprobe_data",
                      "eevee_utility_texture",
                      "eevee_sampling_data",
                      "eevee_shadow_data",

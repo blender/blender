@@ -84,8 +84,10 @@ class ReflectionProbeModule {
 
   PassSimple remap_ps_ = {"Probe.CubemapToOctahedral"};
   PassSimple update_irradiance_ps_ = {"Probe.UpdateIrradiance"};
+  PassSimple select_ps_ = {"Probe.Select"};
 
   int3 dispatch_probe_pack_ = int3(0);
+  int3 dispatch_probe_select_ = int3(0);
 
   /**
    * Texture containing a cube-map where the probe should be rendering to.
@@ -95,6 +97,8 @@ class ReflectionProbeModule {
   Texture cubemap_tx_ = {"Probe.Cubemap"};
   /** Index of the probe being updated. */
   int reflection_probe_index_ = 0;
+  /** Number of the probe to process in the select phase. */
+  int reflection_probe_count_ = 0;
 
   bool update_probes_next_sample_ = false;
   bool update_probes_this_sample_ = false;
@@ -118,6 +122,8 @@ class ReflectionProbeModule {
   bool do_world_update_get() const;
   void do_world_update_set(bool value);
   void do_world_update_irradiance_set(bool value);
+
+  void set_view(View &view);
 
   void debug_print() const;
 

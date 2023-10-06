@@ -195,7 +195,7 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_load)
     .compute_source("eevee_lightprobe_irradiance_load_comp.glsl")
     .do_static_compilation(true);
 
-GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
+GPU_SHADER_CREATE_INFO(eevee_volume_probe_data)
     .uniform_buf(IRRADIANCE_GRID_BUF_SLOT,
                  "IrradianceGridData",
                  "grids_infos_buf[IRRADIANCE_GRID_MAX]")
@@ -203,5 +203,8 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
      */
     .storage_buf(IRRADIANCE_BRICK_BUF_SLOT, Qualifier::READ, "uint", "bricks_infos_buf[]")
     .sampler(IRRADIANCE_ATLAS_TEX_SLOT, ImageType::FLOAT_3D, "irradiance_atlas_tx");
+
+GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
+    .additional_info("eevee_reflection_probe_data", "eevee_volume_probe_data");
 
 /** \} */

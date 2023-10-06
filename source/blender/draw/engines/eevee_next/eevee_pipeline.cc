@@ -283,6 +283,8 @@ void ForwardPipeline::sync()
       inst_.shadows.bind_resources(&opaque_ps_);
       inst_.sampling.bind_resources(&opaque_ps_);
       inst_.hiz_buffer.bind_resources(&opaque_ps_);
+      inst_.irradiance_cache.bind_resources(&opaque_ps_);
+      inst_.reflection_probes.bind_resources(&opaque_ps_);
     }
 
     opaque_single_sided_ps_ = &opaque_ps_.sub("SingleSided");

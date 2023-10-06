@@ -71,6 +71,7 @@ void ReflectionProbeModule::init()
     pass.dispatch(int2(1, 1));
   }
 }
+
 void ReflectionProbeModule::begin_sync()
 {
   for (ReflectionProbe &reflection_probe : probes_.values()) {
@@ -83,6 +84,17 @@ void ReflectionProbeModule::begin_sync()
   if (update_probes_next_sample_) {
     update_probes_this_sample_ = true;
     instance_.sampling.reset();
+  }
+
+  {
+    PassSimple &pass = select_ps_;
+    pass.init();
+    pass.shader_set(instance_.shaders.static_shader_get(REFLECTION_PROBE_SELECT));
+    pass.push_constant("reflection_probe_count", &reflection_probe_count_);
+    pass.bind_ssbo("reflection_probe_buf", &data_buf_);
+    instance_.irradiance_cache.bind_resources(&pass);
+    pass.dispatch(&dispatch_probe_select_);
+    pass.barrier(GPU_BARRIER_UNIFORM);
   }
 }
 
@@ -613,6 +625,23 @@ void ReflectionProbeModule::update_world_irradiance()
 void ReflectionProbeModule::update_probes_texture_mipmaps()
 {
   GPU_texture_update_mipmap_chain(probes_tx_);
+}
+
+void ReflectionProbeModule::set_view(View & /*view*/)
+{
+  reflection_probe_count_ = 0;
+  /* TODO(@fclem): Refactor to have a better way than this to get the correct count.
+   * Eventually we should have the unclamped number of reflection probe. */
+  for (int i = 0; i < REFLECTION_PROBES_MAX; i++) {
+    if (data_buf_[i].layer == -1) {
+      break;
+    }
+    reflection_probe_count_++;
+  }
+
+  dispatch_probe_select_ = int3(
+      divide_ceil_u(reflection_probe_count_, REFLECTION_PROBE_SELECT_GROUP_SIZE), 1, 1);
+  instance_.manager->submit(select_ps_);
 }
 
 }  // namespace blender::eevee

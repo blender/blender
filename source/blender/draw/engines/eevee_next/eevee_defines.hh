@@ -32,6 +32,7 @@
 /* Reflection Probes. */
 #define REFLECTION_PROBES_MAX 256
 #define REFLECTION_PROBE_GROUP_SIZE 16
+#define REFLECTION_PROBE_SELECT_GROUP_SIZE 64
 /* Number of additional pixels on the border of an octahedral map to reserve for fixing seams.
  * Border size requires depends on the max number of mipmap levels. */
 #define REFLECTION_PROBE_MIPMAP_LEVELS 5

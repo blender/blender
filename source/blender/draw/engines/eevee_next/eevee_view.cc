@@ -124,6 +124,7 @@ void ShadingView::render()
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_new_, extent_);
+  inst_.reflection_probes.set_view(render_view_new_);
 
   inst_.volume.draw_prepass(render_view_new_);
 
