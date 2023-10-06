@@ -443,9 +443,6 @@ void extract_normalized_words(StringRef str,
     size_t size = offset;
     uint32_t unicode = BLI_str_utf8_as_unicode_step_safe(str.data(), str.size(), &size);
     size -= offset;
-    if (unicode == unicode_right_triangle) {
-      group_id++;
-    }
     if (is_separator(unicode)) {
       if (is_in_word) {
         const StringRef word = str_copy.substr(int(word_start), int(offset - word_start));
@@ -459,6 +456,9 @@ void extract_normalized_words(StringRef str,
         word_start = offset;
         is_in_word = true;
       }
+    }
+    if (unicode == unicode_right_triangle) {
+      group_id++;
     }
     offset += size;
   }
