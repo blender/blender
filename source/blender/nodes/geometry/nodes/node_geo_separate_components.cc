@@ -11,6 +11,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Geometry");
   b.add_output<decl::Geometry>("Mesh").propagate_all();
   b.add_output<decl::Geometry>("Curve").propagate_all();
+  b.add_output<decl::Geometry>("Grease Pencil").propagate_all();
   b.add_output<decl::Geometry>("Point Cloud").propagate_all();
   b.add_output<decl::Geometry>("Volume")
       .translation_context(BLT_I18NCONTEXT_ID_ID)
@@ -24,6 +25,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometrySet meshes;
   GeometrySet curves;
+  GeometrySet grease_pencil;
   GeometrySet point_clouds;
   GeometrySet volumes;
   GeometrySet instances;
@@ -33,6 +35,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   if (geometry_set.has<CurveComponent>()) {
     curves.add(*geometry_set.get_component<CurveComponent>());
+  }
+  if (geometry_set.has<GreasePencilComponent>()) {
+    grease_pencil.add(*geometry_set.get_component<GreasePencilComponent>());
   }
   if (geometry_set.has<PointCloudComponent>()) {
     point_clouds.add(*geometry_set.get_component<PointCloudComponent>());
@@ -46,6 +51,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   params.set_output("Mesh", meshes);
   params.set_output("Curve", curves);
+  params.set_output("Grease Pencil", grease_pencil);
   params.set_output("Point Cloud", point_clouds);
   params.set_output("Volume", volumes);
   params.set_output("Instances", instances);
