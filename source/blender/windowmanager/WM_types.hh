@@ -1008,7 +1008,7 @@ struct wmOperatorType {
    * Return a different description to use in the user interface, based on property values.
    * The returned string is expected to be translated if needed.
    */
-  std::string (*get_description)(bContext *C, wmOperatorType *op, PointerRNA *ptr);
+  std::string (*get_description)(bContext *C, wmOperatorType *ot, PointerRNA *ptr);
 
   /** RNA for properties */
   StructRNA *srna;
