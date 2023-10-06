@@ -49,7 +49,7 @@ void main()
     ReflectionProbeData world_probe_data = reflection_probe_buf[0];
     vec2 world_octahedral_size = vec2(texture_size.x >> world_probe_data.layer_subdivision,
                                       texture_size.y >> world_probe_data.layer_subdivision);
-    ivec3 world_octahedral_coord = ivec3(uv * world_octahedral_size, 0.0);
+    ivec3 world_octahedral_coord = ivec3(ivec2(uv * world_octahedral_size), 0.0);
     ivec2 world_area_offset = probe_area_offset(world_probe_data, texture_size);
     vec4 world_col = imageLoad(
         octahedral_img, world_octahedral_coord + ivec3(world_area_offset, world_probe_data.layer));
