@@ -516,10 +516,14 @@ Vector<void *> StringSearchBase::query_impl(const StringRef query) const
           return items_[a].weight > items_[b].weight;
         });
       }
-      /* Prefer items that have been selected recently. */
-      std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) {
-        return items_[a].recent_time > items_[b].recent_time;
-      });
+      /* If the query gets longer, it's less likely that accessing recent items is desired. Better
+       * always show the best match in this case. */
+      if (query.size() <= 1) {
+        /* Prefer items that have been selected recently. */
+        std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) {
+          return items_[a].recent_time > items_[b].recent_time;
+        });
+      }
     }
     sorted_result_indices.extend(indices);
   }
