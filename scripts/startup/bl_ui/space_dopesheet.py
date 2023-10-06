@@ -495,6 +495,7 @@ class DOPESHEET_MT_channel(Menu):
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
         layout.operator("anim.channels_delete")
+        layout.operator("action.clean", text="Clean Channels").channels = True
 
         layout.separator()
         layout.operator("anim.channels_group")
@@ -555,7 +556,6 @@ class DOPESHEET_MT_key(Menu):
 
         layout.separator()
         layout.operator("action.clean").channels = False
-        layout.operator("action.clean", text="Clean Channels").channels = True
         layout.operator("action.bake_keys")
 
         layout.separator()

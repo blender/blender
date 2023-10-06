@@ -1182,12 +1182,18 @@ static void clean_action_keys(bAnimContext *ac, float thresh, bool clean_chan)
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT |
-            ANIMFILTER_SEL | ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
+            ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
+
+  if (clean_chan) {
+    filter |= ANIMFILTER_SEL;
+  }
+
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
+  const bool only_selected_keys = !clean_chan;
   /* loop through filtered data and clean curves */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    clean_fcurve(ac, ale, thresh, clean_chan);
+    clean_fcurve(ac, ale, thresh, clean_chan, only_selected_keys);
 
     ale->update |= ANIM_UPDATE_DEFAULT;
   }

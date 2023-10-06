@@ -91,7 +91,11 @@ bool duplicate_fcurve_keys(FCurve *fcu)
 /** \name Various Tools
  * \{ */
 
-void clean_fcurve(bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
+void clean_fcurve(bAnimContext *ac,
+                  bAnimListElem *ale,
+                  float thresh,
+                  bool cleardefault,
+                  const bool only_selected_keys)
 {
   FCurve *fcu = (FCurve *)ale->key_data;
   BezTriple *old_bezts, *bezt, *beztn;
@@ -144,7 +148,7 @@ void clean_fcurve(bAnimContext *ac, bAnimListElem *ale, float thresh, bool clear
     cur[0] = bezt->vec[1][0];
     cur[1] = bezt->vec[1][1];
 
-    if (!(bezt->f2 & SELECT)) {
+    if (only_selected_keys && !(bezt->f2 & SELECT)) {
       insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
       lastb = (fcu->bezt + (fcu->totvert - 1));
       lastb->f1 = lastb->f2 = lastb->f3 = 0;
