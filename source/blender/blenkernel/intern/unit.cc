@@ -137,7 +137,7 @@ struct bUnitCollection {
 
 /* Dummy */
 static   bUnitDef buDummyDef[] = { {"", nullptr, "", nullptr, nullptr, nullptr, 1.0, 0.0}, NULL_UNIT};
-static   bUnitCollection buDummyCollection = {buDummyDef, 0, 0, sizeof(buDummyDef)};
+static   bUnitCollection buDummyCollection = {buDummyDef, 0, 0, UNIT_COLLECTION_LENGTH(buDummyDef)};
 
 
 /* Lengths. */
