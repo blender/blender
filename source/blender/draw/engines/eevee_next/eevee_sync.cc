@@ -40,25 +40,28 @@ static void draw_data_init_cb(DrawData *dd)
 
 ObjectHandle &SyncModule::sync_object(Object *ob)
 {
-  DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
-  DrawData *dd = DRW_drawdata_ensure(
-      (ID *)ob, owner, sizeof(eevee::ObjectHandle), draw_data_init_cb, nullptr);
-  ObjectHandle &eevee_dd = *reinterpret_cast<ObjectHandle *>(dd);
+  ObjectKey key(ob);
 
-  if (eevee_dd.object_key.ob == nullptr) {
-    ob = DEG_get_original_object(ob);
-    eevee_dd.object_key = ObjectKey(ob);
-  }
+  ObjectHandle &handle = ob_handles.lookup_or_add_cb(key, [&]() {
+    ObjectHandle new_handle;
+    new_handle.object_key = key;
+    new_handle.recalc = ID_RECALC_ALL;
+    return new_handle;
+  });
+
+  /** TODO(Miguel Pozo): DrawData is the only way of retrieving the correct recalc flags.
+   * We should find a more optimal way to handle this. */
+  DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
+  DrawData *dd = DRW_drawdata_ensure((ID *)ob, owner, sizeof(DrawData), nullptr, nullptr);
+  handle.recalc |= dd->recalc;
 
   const int recalc_flags = ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_SHADING |
                            ID_RECALC_GEOMETRY;
-  if ((eevee_dd.recalc & recalc_flags) != 0) {
-    /** WARNING: Some objects are always created "on the fly" (ie. Geometry Nodes volumes),
-     * so this causes to redraw the sample 1 forever. */
+  if ((handle.recalc & recalc_flags) != 0) {
     inst_.sampling.reset();
   }
 
-  return eevee_dd;
+  return handle;
 }
 
 WorldHandle &SyncModule::sync_world(::World *world)
@@ -512,8 +515,8 @@ void foreach_hair_particle_handle(Object *ob, ObjectHandle ob_handle, HairHandle
         continue;
       }
 
-      ObjectHandle particle_sys_handle = {{nullptr}};
-      particle_sys_handle.object_key = ObjectKey(ob_handle.object_key.ob, sub_key++);
+      ObjectHandle particle_sys_handle = ob_handle;
+      particle_sys_handle.object_key = ObjectKey(ob, sub_key++);
       particle_sys_handle.recalc = particle_sys->recalc;
 
       callback(particle_sys_handle, *md, *particle_sys);
