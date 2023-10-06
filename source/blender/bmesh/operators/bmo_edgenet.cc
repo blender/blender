@@ -167,19 +167,15 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
     count++;
   }
 
-  if (edges1.size() > 2 && BM_edge_share_vert_check(edges1.first(), edges1.last()))
-  {
-    if (edges2.size() > 2 &&
-        BM_edge_share_vert_check(edges2.first(), edges2.last()))
-    {
+  if (edges1.size() > 2 && BM_edge_share_vert_check(edges1.first(), edges1.last())) {
+    if (edges2.size() > 2 && BM_edge_share_vert_check(edges2.first(), edges2.last())) {
       return;
     }
     edges1 = edges2;
     edges2.clear();
   }
 
-  if (edges2.size() > 2 && BM_edge_share_vert_check(edges2.first(), edges2.last()))
-  {
+  if (edges2.size() > 2 && BM_edge_share_vert_check(edges2.first(), edges2.last())) {
     edges2.clear();
   }
 
