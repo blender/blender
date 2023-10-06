@@ -12,8 +12,6 @@ GPU_SHADER_CREATE_INFO(workbench_merge_depth)
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(workbench_overlay_depth)
-    .sampler(0, ImageType::DEPTH_2D, "depth_tx")
-    .sampler(1, ImageType::UINT_2D, "stencil_tx")
     .fragment_source("workbench_overlay_depth_frag.glsl")
     .additional_info("draw_fullscreen")
     .depth_write(DepthWrite::ANY)
