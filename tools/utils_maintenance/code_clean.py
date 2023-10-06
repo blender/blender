@@ -1882,7 +1882,7 @@ def run_edits_on_directory(
         return 1
 
     if jobs <= 0:
-        jobs = multiprocessing.cpu_count() * 2
+        jobs = multiprocessing.cpu_count()
 
     if args is None:
         # Error will have been reported.
