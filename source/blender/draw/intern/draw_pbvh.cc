@@ -895,7 +895,7 @@ struct PBVHBatches {
         break;
       }
       case CD_PBVH_FSET_TYPE: {
-        BLI_assert(args.domain == ATTR_DOMAIN_FACE);
+        BLI_assert(vbo.domain == ATTR_DOMAIN_FACE);
 
         const int cd_offset = CustomData_get_offset_named(
             &args.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
