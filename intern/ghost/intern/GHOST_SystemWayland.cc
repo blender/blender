@@ -3431,8 +3431,6 @@ static void tablet_tool_handle_proximity_in(void *data,
 
   GHOST_WindowWayland *win = ghost_wl_surface_user_data(seat->tablet.wl.surface_window);
 
-  win->activate();
-
   seat->system->cursor_shape_set(win->getCursorShape());
 }
 static void tablet_tool_handle_proximity_out(void *data,
