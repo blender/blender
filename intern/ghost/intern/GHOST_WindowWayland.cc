@@ -1084,6 +1084,11 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
 
 #  ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_frame_guard{static_cast<GWL_Window *>(data)->frame_pending_mutex};
+  const bool is_main_thread = [data] {
+    GWL_Window *win = static_cast<GWL_Window *>(data);
+    const GHOST_SystemWayland *system = win->ghost_system;
+    return system->main_thread_id == std::this_thread::get_id();
+  }();
 #  endif
 
   GWL_WindowFrame *frame_pending = &static_cast<GWL_Window *>(data)->frame_pending;
@@ -1109,6 +1114,17 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
       frame_pending->size[0] = size_next[0] * scale;
       frame_pending->size[1] = size_next[1] * scale;
     }
+
+#  ifdef USE_EVENT_BACKGROUND_THREAD
+    /* NOTE(@ideasman42): when running from the event handling thread,
+     * don't apply the new window size back to LIBDECOR, otherwise the window content
+     * (which uses a deferred update) and the window get noticeably out of sync.
+     * Rely on the new `frame_pending->size` to resize the window later. */
+    if (is_main_thread == false) {
+      size_next[0] = win->frame.size[0] / scale;
+      size_next[1] = win->frame.size[1] / scale;
+    }
+#  endif
   }
 
   /* Set the state. */
@@ -1121,22 +1137,10 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
     }
   }
 
-  /* Commit the changes. */
-  {
-    GWL_Window *win = static_cast<GWL_Window *>(data);
-    WGL_LibDecor_Window &decor = *win->libdecor;
-    libdecor_state *state = libdecor_state_new(UNPACK2(size_next));
-    libdecor_frame_commit(frame, state, configuration);
-    libdecor_state_free(state);
-    decor.initial_configure_seen = true;
-  }
-
   /* Apply the changes. */
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
 #  ifdef USE_EVENT_BACKGROUND_THREAD
-    const GHOST_SystemWayland *system = win->ghost_system;
-    const bool is_main_thread = system->main_thread_id == std::this_thread::get_id();
     if (!is_main_thread) {
       gwl_window_pending_actions_tag(win, PENDING_WINDOW_FRAME_CONFIGURE);
     }
@@ -1145,6 +1149,16 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
     {
       gwl_window_frame_update_from_pending_no_lock(win);
     }
+  }
+
+  /* Commit the changes. */
+  {
+    GWL_Window *win = static_cast<GWL_Window *>(data);
+    WGL_LibDecor_Window &decor = *win->libdecor;
+    libdecor_state *state = libdecor_state_new(UNPACK2(size_next));
+    libdecor_frame_commit(frame, state, configuration);
+    libdecor_state_free(state);
+    decor.initial_configure_seen = true;
   }
 }
 
