@@ -106,7 +106,7 @@ static void lazy_function_interface_from_node(const bNode &node,
       type = get_vector_type(*type);
     }
     r_lf_index_by_bsocket[socket->index_in_tree()] = r_inputs.append_and_get_index_as(
-        socket->identifier, *type, input_usage);
+        socket->name, *type, input_usage);
   }
   for (const bNodeSocket *socket : node.output_sockets()) {
     if (!socket->is_available()) {
@@ -117,7 +117,7 @@ static void lazy_function_interface_from_node(const bNode &node,
       continue;
     }
     r_lf_index_by_bsocket[socket->index_in_tree()] = r_outputs.append_and_get_index_as(
-        socket->identifier, *type);
+        socket->name, *type);
   }
 }
 
@@ -360,7 +360,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
             own_lf_graph_info_.mapping
                 .lf_input_index_for_output_bsocket_usage[bsocket->index_in_all_outputs()];
         if (index == lf_index) {
-          return StringRef("Use Output '") + bsocket->identifier + "'";
+          return StringRef("Use Output '") + bsocket->name + "'";
         }
       }
       {
@@ -368,7 +368,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
             own_lf_graph_info_.mapping.lf_input_index_for_attribute_propagation_to_output
                 [bsocket->index_in_all_outputs()];
         if (index == lf_index) {
-          return StringRef("Propagate to '") + bsocket->identifier + "'";
+          return StringRef("Propagate to '") + bsocket->name + "'";
         }
       }
     }
@@ -2334,9 +2334,9 @@ struct GeometryNodesLazyFunctionBuilder {
 
     for (const bNodeSocket *bsocket : zone.input_node->output_sockets().drop_back(1)) {
       lf::GraphInputSocket &lf_input = lf_body_graph.add_input(
-          *bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->identifier);
+          *bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->name);
       lf::GraphOutputSocket &lf_input_usage = lf_body_graph.add_output(
-          CPPType::get<bool>(), "Usage: " + StringRef(bsocket->identifier));
+          CPPType::get<bool>(), "Usage: " + StringRef(bsocket->name));
       lf_main_inputs.append(&lf_input);
       lf_main_input_usages.append(&lf_input_usage);
       graph_params.lf_output_by_bsocket.add_new(bsocket, &lf_input);
@@ -2354,9 +2354,9 @@ struct GeometryNodesLazyFunctionBuilder {
 
     for (const bNodeSocket *bsocket : zone.output_node->input_sockets().drop_back(1)) {
       lf::GraphOutputSocket &lf_output = lf_body_graph.add_output(
-          *bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->identifier);
+          *bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->name);
       lf::GraphInputSocket &lf_output_usage = lf_body_graph.add_input(
-          CPPType::get<bool>(), "Usage: " + StringRef(bsocket->identifier));
+          CPPType::get<bool>(), "Usage: " + StringRef(bsocket->name));
       graph_params.lf_inputs_by_bsocket.add(bsocket, &lf_output);
       graph_params.usage_by_bsocket.add(bsocket, &lf_output_usage);
       lf_main_outputs.append(&lf_output);
@@ -2454,7 +2454,7 @@ struct GeometryNodesLazyFunctionBuilder {
     for (const bNodeLink *border_link : zone.border_links) {
       lf_graph_inputs.append(
           &lf_graph.add_input(*border_link->tosock->typeinfo->geometry_nodes_cpp_type,
-                              StringRef("Link from ") + border_link->fromsock->identifier));
+                              StringRef("Link from ") + border_link->fromsock->name));
     }
     return lf_graph_inputs;
   }
@@ -2464,9 +2464,8 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     Vector<lf::GraphOutputSocket *> lf_graph_outputs;
     for (const bNodeLink *border_link : zone.border_links) {
-      lf_graph_outputs.append(&lf_graph.add_output(CPPType::get<bool>(),
-                                                   StringRef("Usage: Link from ") +
-                                                       border_link->fromsock->identifier));
+      lf_graph_outputs.append(&lf_graph.add_output(
+          CPPType::get<bool>(), StringRef("Usage: Link from ") + border_link->fromsock->name));
     }
     return lf_graph_outputs;
   }
