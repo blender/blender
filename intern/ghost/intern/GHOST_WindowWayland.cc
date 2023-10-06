@@ -801,11 +801,19 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
         system->getMilliSeconds(), GHOST_kEventWindowDPIHintChanged, win->ghost_window));
   }
 
-  if (win->frame_pending.is_active) {
-    win->ghost_window->activate();
+  if (win->frame.is_active != win->frame_pending.is_active) {
+    if (win->frame_pending.is_active) {
+      win->ghost_window->activate();
+    }
+    else {
+      win->ghost_window->deactivate();
+    }
   }
   else {
-    win->ghost_window->deactivate();
+    GHOST_ASSERT(
+        win->frame.is_active ==
+            (win->ghost_system->getWindowManager()->getActiveWindow() == win->ghost_window),
+        "GHOST internal active state does not match WAYLAND!");
   }
 
   win->frame_pending.size[0] = win->frame.size[0];
