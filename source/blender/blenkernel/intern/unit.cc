@@ -388,7 +388,7 @@ static bUnitDef buMetricAreaDef[] = {
     {
         /*name*/ "square kilometer",
         /*name_plural*/ "square kilometers",
-        /*name_short*/ "km²",
+        /*name_short*/ "km" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "km2",
         /*name_display*/ "Square Kilometers",
         /*identifier*/ nullptr,
@@ -399,7 +399,7 @@ static bUnitDef buMetricAreaDef[] = {
     {
         /*name*/ "square hectometer",
         /*name_plural*/ "square hectometers",
-        /*name_short*/ "hm²",
+        /*name_short*/ "hm" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "hm2",
         /*name_display*/ "Square Hectometers",
         /*identifier*/ nullptr,
@@ -410,7 +410,7 @@ static bUnitDef buMetricAreaDef[] = {
     {
         /*name*/ "square dekameter",
         /*name_plural*/ "square dekameters",
-        /*name_short*/ "dam²",
+        /*name_short*/ "dam" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "dam2",
         /*name_display*/ "Square Dekameters",
         /*identifier*/ nullptr,
@@ -422,7 +422,7 @@ static bUnitDef buMetricAreaDef[] = {
     {
         /*name*/ "square meter",
         /*name_plural*/ "square meters",
-        /*name_short*/ "m²",
+        /*name_short*/ "m" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "m2",
         /*name_display*/ "Square Meters",
         /*identifier*/ nullptr,
@@ -433,7 +433,7 @@ static bUnitDef buMetricAreaDef[] = {
     {
         /*name*/ "square decimeter",
         /*name_plural*/ "square decimetees",
-        /*name_short*/ "dm²",
+        /*name_short*/ "dm" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "dm2",
         /*name_display*/ "Square Decimeters",
         /*identifier*/ nullptr,
@@ -444,7 +444,7 @@ static bUnitDef buMetricAreaDef[] = {
     {
         /*name*/ "square centimeter",
         /*name_plural*/ "square centimeters",
-        /*name_short*/ "cm²",
+        /*name_short*/ "cm" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "cm2",
         /*name_display*/ "Square Centimeters",
         /*identifier*/ nullptr,
@@ -455,7 +455,7 @@ static bUnitDef buMetricAreaDef[] = {
     {
         /*name*/ "square millimeter",
         /*name_plural*/ "square millimeters",
-        /*name_short*/ "mm²",
+        /*name_short*/ "mm" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "mm2",
         /*name_display*/ "Square Millimeters",
         /*identifier*/ nullptr,
@@ -466,7 +466,7 @@ static bUnitDef buMetricAreaDef[] = {
     {
         /*name*/ "square micrometer",
         /*name_plural*/ "square micrometers",
-        /*name_short*/ "µm²",
+        /*name_short*/ "µm" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "um2",
         /*name_display*/ "Square Micrometers",
         /*identifier*/ nullptr,
@@ -576,7 +576,7 @@ static bUnitDef buMetricVolDef[] = {
     {
         /*name*/ "cubic kilometer",
         /*name_plural*/ "cubic kilometers",
-        /*name_short*/ "km³",
+        /*name_short*/ "km" BLI_STR_UTF8_SUPERSCRIPT_3,
         /*name_alt*/ "km3",
         /*name_display*/ "Cubic Kilometers",
         /*identifier*/ nullptr,
@@ -587,7 +587,7 @@ static bUnitDef buMetricVolDef[] = {
     {
         /*name*/ "cubic hectometer",
         /*name_plural*/ "cubic hectometers",
-        /*name_short*/ "hm³",
+        /*name_short*/ "hm" BLI_STR_UTF8_SUPERSCRIPT_3,
         /*name_alt*/ "hm3",
         /*name_display*/ "Cubic Hectometers",
         /*identifier*/ nullptr,
@@ -598,7 +598,7 @@ static bUnitDef buMetricVolDef[] = {
     {
         /*name*/ "cubic dekameter",
         /*name_plural*/ "cubic dekameters",
-        /*name_short*/ "dam³",
+        /*name_short*/ "dam" BLI_STR_UTF8_SUPERSCRIPT_3,
         /*name_alt*/ "dam3",
         /*name_display*/ "Cubic Dekameters",
         /*identifier*/ nullptr,
@@ -610,7 +610,7 @@ static bUnitDef buMetricVolDef[] = {
     {
         /*name*/ "cubic meter",
         /*name_plural*/ "cubic meters",
-        /*name_short*/ "m³",
+        /*name_short*/ "m" BLI_STR_UTF8_SUPERSCRIPT_3,
         /*name_alt*/ "m3",
         /*name_display*/ "Cubic Meters",
         /*identifier*/ nullptr,
@@ -621,7 +621,7 @@ static bUnitDef buMetricVolDef[] = {
     {
         /*name*/ "cubic decimeter",
         /*name_plural*/ "cubic decimeters",
-        /*name_short*/ "dm³",
+        /*name_short*/ "dm" BLI_STR_UTF8_SUPERSCRIPT_3,
         /*name_alt*/ "dm3",
         /*name_display*/ "Cubic Decimeters",
         /*identifier*/ nullptr,
@@ -632,7 +632,7 @@ static bUnitDef buMetricVolDef[] = {
     {
         /*name*/ "cubic centimeter",
         /*name_plural*/ "cubic centimeters",
-        /*name_short*/ "cm³",
+        /*name_short*/ "cm" BLI_STR_UTF8_SUPERSCRIPT_3,
         /*name_alt*/ "cm3",
         /*name_display*/ "Cubic Centimeters",
         /*identifier*/ nullptr,
@@ -643,7 +643,7 @@ static bUnitDef buMetricVolDef[] = {
     {
         /*name*/ "cubic millimeter",
         /*name_plural*/ "cubic millimeters",
-        /*name_short*/ "mm³",
+        /*name_short*/ "mm" BLI_STR_UTF8_SUPERSCRIPT_3,
         /*name_alt*/ "mm3",
         /*name_display*/ "Cubic Millimeters",
         /*identifier*/ nullptr,
@@ -654,7 +654,7 @@ static bUnitDef buMetricVolDef[] = {
     {
         /*name*/ "cubic micrometer",
         /*name_plural*/ "cubic micrometers",
-        /*name_short*/ "µm³",
+        /*name_short*/ "µm" BLI_STR_UTF8_SUPERSCRIPT_3,
         /*name_alt*/ "um3",
         /*name_display*/ "Cubic Micrometers",
         /*identifier*/ nullptr,
@@ -990,7 +990,7 @@ static bUnitDef buMetricAclDef[] = {
     {
         /*name*/ "meter per second squared",
         /*name_plural*/ "meters per second squared",
-        /*name_short*/ "m/s²",
+        /*name_short*/ "m/s" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "m/s2",
         /*name_display*/ "Meters per second squared",
         /*identifier*/ nullptr,
@@ -1012,7 +1012,7 @@ static bUnitDef buImperialAclDef[] = {
     {
         /*name*/ "foot per second squared",
         /*name_plural*/ "feet per second squared",
-        /*name_short*/ "ft/s²",
+        /*name_short*/ "ft/s" BLI_STR_UTF8_SUPERSCRIPT_2,
         /*name_alt*/ "ft/s2",
         /*name_display*/ "Feet per second squared",
         /*identifier*/ nullptr,
