@@ -86,7 +86,7 @@ static void reorder_customdata(CustomData &data, const Span<int> new_by_old_map)
   data = new_data;
 }
 
-void debug_randomize_vertex_order(Mesh *mesh)
+void debug_randomize_vert_order(Mesh *mesh)
 {
   if (mesh == nullptr || !use_debug_randomization()) {
     return;
@@ -225,7 +225,7 @@ void debug_randomize_mesh_order(Mesh *mesh)
     return;
   }
 
-  debug_randomize_vertex_order(mesh);
+  debug_randomize_vert_order(mesh);
   debug_randomize_edge_order(mesh);
   debug_randomize_face_order(mesh);
 }

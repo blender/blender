@@ -597,7 +597,7 @@ void split_edges(Mesh &mesh,
 
   BKE_mesh_tag_edges_split(&mesh);
 
-  debug_randomize_vertex_order(&mesh);
+  debug_randomize_vert_order(&mesh);
   debug_randomize_edge_order(&mesh);
 }
 
