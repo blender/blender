@@ -67,7 +67,7 @@ if inside_blender:
 
 
 def get_gpu_device_type(blender):
-    #TODO: This always fails.
+    # TODO: This always fails.
     command = [
         blender,
         "-noaudio",
