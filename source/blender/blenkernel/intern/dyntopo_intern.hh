@@ -15,6 +15,8 @@
 #include "bmesh.h"
 #include "pbvh_intern.hh"
 
+#include <queue>
+
 using blender::float3;
 
 struct GHash;
@@ -49,6 +51,81 @@ static inline void dyntopo_add_flag(PBVH *pbvh, BMVert *v, uint8_t flag)
 }
 
 namespace blender::bke::dyntopo {
+
+enum WeightMode {
+  SPLIT = -1,
+  NONE = 0,
+  COLLAPSE = 1,
+};
+
+/* Slow. */
+//#define DYNTOPO_USE_SEP_HEAPS
+
+#ifdef DYNTOPO_USE_SEP_HEAPS
+namespace detail {
+struct EdgeWeight {
+  BMEdge *e;
+  float w;
+};
+
+struct max_comparator {
+  bool operator()(const EdgeWeight &a, const EdgeWeight &b)
+  {
+    return a.w < b.w;
+  }
+};
+
+struct min_comparator {
+  bool operator()(const EdgeWeight &a, const EdgeWeight &b)
+  {
+    return a.w > b.w;
+  }
+};
+template<typename comparator> struct EdgeHeap {
+
+  void insert(BMEdge *e, float w)
+  {
+    queue.push({e, w});
+  }
+
+  BMEdge *top(float *r_w = nullptr)
+  {
+    const EdgeWeight &top = queue.top();
+
+    if (r_w) {
+      *r_w = top.w;
+    }
+
+    return top.e;
+  }
+
+  float top_weight()
+  {
+    return queue.top().w;
+  }
+
+  BMEdge *pop(float *r_w = nullptr)
+  {
+    EdgeWeight top = queue.top();
+    queue.pop();
+
+    if (r_w) {
+      *r_w = top.w;
+    }
+
+    return top.e;
+  }
+
+  bool empty()
+  {
+    return queue.empty();
+  }
+
+ private:
+  std::priority_queue<EdgeWeight, std::vector<EdgeWeight>, comparator> queue;
+};
+}  // namespace detail
+#endif
 
 static int elem_sizes[] = {-1,
                            (int)sizeof(BMVert),
@@ -234,7 +311,12 @@ struct EdgeQueueContext {
   bool local_mode;
   float surface_smooth_fac;
 
+#ifdef DYNTOPO_USE_SEP_HEAPS
+  detail::EdgeHeap<detail::min_comparator> min_heap;
+  detail::EdgeHeap<detail::max_comparator> max_heap;
+#else
   blender::MinMaxHeap<BMEdge *> edge_heap;
+#endif
 
   blender::Vector<BMVert *> used_verts;
 
@@ -274,7 +356,7 @@ struct EdgeQueueContext {
                    void *mask_cb_data);
 
   void insert_val34_vert(BMVert *v);
-  void insert_edge(BMEdge *e, float w);
+  void insert_edge(BMEdge *e, float w, WeightMode mode);
 
   void start();
   bool done();
@@ -306,9 +388,9 @@ struct EdgeQueueContext {
   void stochastic_smooth(BMVert *v);
 
  private:
-  BMEdge *pop_invalid_edges(BMEdge *in_e, float &w, bool is_max);
-  void step_single();
-  void step_multi();
+  template<typename EdgeHeapT>
+  BMEdge *pop_invalid_edges(EdgeHeapT &heap, BMEdge *in_e, float &w, bool is_max);
+  void step_intern();
 
   bool flushed_ = false;
 };
