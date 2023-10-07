@@ -46,6 +46,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_dyntopo.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
@@ -3939,9 +3940,10 @@ static void sculpt_topology_update(
     actf = BM_idmap_get_id(ss->bm_idmap, (BMElem *)ss->active_face.i);
   }
 
-  blender::bke::dyntopo::BrushSphere sphere_tester(ss->cache->location, ss->cache->radius);
+  blender::bke::dyntopo::BrushSphere sphere_tester(ss->cache->location,
+                                                   ss->cache->radius * radius_scale);
   blender::bke::dyntopo::BrushTube tube_tester(
-      ss->cache->location, ss->cache->view_normal, ss->cache->radius);
+      ss->cache->location, ss->cache->view_normal, ss->cache->radius * radius_scale);
 
   /* do nodes under the brush cursor */
   blender::bke::dyntopo::remesh_topology_nodes(
@@ -6308,6 +6310,10 @@ static bool sculpt_stroke_test_start(bContext *C, wmOperator *op, const float mv
   return false;
 }
 
+namespace blender::bke::pbvh {
+void split_bmesh_nodes(PBVH *pbvh);
+}
+
 static void sculpt_stroke_update_step(bContext *C,
                                       wmOperator * /*op*/,
                                       PaintStroke *stroke,
@@ -6412,6 +6418,13 @@ static void sculpt_stroke_update_step(bContext *C,
     }
 
     copy_v3_v3(ss->cache->true_location, location);
+  }
+
+  if (ss->bm && do_dyntopo) {
+    if (ss->cache->stroke_distance_t - ss->cache->last_dyntopo_nodesplit_t > 0.3f) {
+      ss->cache->last_dyntopo_nodesplit_t = ss->cache->stroke_distance_t;
+      blender::bke::pbvh::split_bmesh_nodes(ss->pbvh);
+    }
   }
 
   /* Hack to fix noise texture tearing mesh. */

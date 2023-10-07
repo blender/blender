@@ -714,6 +714,7 @@ struct StrokeCache {
   float last_stroke_distance_t;
 
   float last_dyntopo_t;
+  float last_dyntopo_nodesplit_t;
   float last_smooth_t[SCULPT_MAX_SYMMETRY_PASSES];
   float last_rake_t[SCULPT_MAX_SYMMETRY_PASSES];
 
