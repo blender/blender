@@ -595,24 +595,22 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
-    case TFM_MODAL_AXIS_X:
-    case TFM_MODAL_AXIS_Y:
     case TFM_MODAL_AXIS_Z:
     case TFM_MODAL_PLANE_X:
     case TFM_MODAL_PLANE_Y:
     case TFM_MODAL_PLANE_Z:
+    case TFM_MODAL_AUTOCONSTRAINTPLANE:
+      if (t->flag & T_2D_EDIT) {
+        return false;
+      }
+      [[fallthrough]];
+    case TFM_MODAL_AXIS_X:
+    case TFM_MODAL_AXIS_Y:
     case TFM_MODAL_AUTOCONSTRAINT:
-    case TFM_MODAL_AUTOCONSTRAINTPLANE: {
       if (t->flag & T_NO_CONSTRAINT) {
         return false;
       }
-      if (!ELEM(value, TFM_MODAL_AXIS_X, TFM_MODAL_AXIS_Y)) {
-        if (t->flag & T_2D_EDIT) {
-          return false;
-        }
-      }
       break;
-    }
     case TFM_MODAL_CONS_OFF: {
       if ((t->con.mode & CON_APPLY) == 0) {
         return false;
