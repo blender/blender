@@ -43,7 +43,6 @@ if(WITH_RENDERDOC)
 endif()
 
 set(INC_SYS
-  ${Epoxy_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -325,14 +324,20 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
-  ${Epoxy_LIBRARIES}
   PRIVATE bf::intern::guardedalloc
 )
 
 # Select Backend source based on availability
 if(WITH_OPENGL_BACKEND)
-  list(APPEND SRC ${OPENGL_SRC})
-
+  list(APPEND INC_SYS
+    ${Epoxy_INCLUDE_DIRS}
+  )
+  list(APPEND SRC
+    ${OPENGL_SRC}
+  )
+  list(APPEND LIB
+    ${Epoxy_LIBRARIES}
+  )
   add_definitions(-DWITH_OPENGL_BACKEND)
 endif()
 

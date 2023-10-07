@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifndef WITH_VULKAN_BACKEND
+#  error "ContextVK requires WITH_VULKAN_BACKEND"
+#endif
+
 #include "GHOST_Context.hh"
 
 #ifdef _WIN32
