@@ -18,38 +18,40 @@ void main()
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
   float depth = texelFetch(hiz_tx, texel, 0).r;
-  vec3 P = get_world_space_from_depth(uvcoordsvar.xy, depth);
-
-  vec3 V = cameraVec(P);
-  float vP_z = dot(cameraForward, P) - dot(cameraForward, cameraPos);
-
   GBufferData gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_color_tx, texel);
 
-  vec3 diffuse_light = vec3(0.0);
-  vec3 reflection_light = vec3(0.0);
-  vec3 refraction_light = vec3(0.0);
-  float shadow = 1.0;
+  vec3 P = get_world_space_from_depth(uvcoordsvar.xy, depth);
+  vec3 V = cameraVec(P);
+
+  ClosureLightStack stack;
+
+  ClosureLight cl_diff;
+  cl_diff.N = gbuf.diffuse.N;
+  cl_diff.ltc_mat = LTC_LAMBERT_MAT;
+  cl_diff.type = LIGHT_DIFFUSE;
+  stack.cl[0] = cl_diff;
+
+  ClosureLight cl_refl;
+  cl_refl.N = gbuf.reflection.N;
+  cl_refl.ltc_mat = LTC_GGX_MAT(dot(gbuf.reflection.N, V), gbuf.reflection.roughness);
+  cl_refl.type = LIGHT_SPECULAR;
+  stack.cl[1] = cl_refl;
 
   /* Assume reflection closure normal is always somewhat representative of the geometric normal.
    * Ng is only used for shadow biases and subsurface check in this case. */
   vec3 Ng = gbuf.has_reflection ? gbuf.reflection.N : gbuf.diffuse.N;
+  float vPz = dot(cameraForward, P) - dot(cameraForward, cameraPos);
 
-  light_eval(gbuf.diffuse,
-             gbuf.reflection,
-             P,
-             Ng,
-             V,
-             vP_z,
-             gbuf.thickness,
-             diffuse_light,
-             reflection_light,
-             /* TODO(fclem): Implement refraction light. */
-             //  refraction_light,
-             shadow);
+  light_eval(stack, P, Ng, V, vPz, gbuf.thickness);
 
-  output_renderpass_value(uniform_buf.render_pass.shadow_id, shadow);
+  vec3 shadows = (stack.cl[0].light_shadowed + stack.cl[1].light_shadowed) /
+                 (stack.cl[0].light_unshadowed + stack.cl[1].light_unshadowed);
 
-  imageStore(direct_diffuse_img, texel, vec4(diffuse_light, 1.0));
-  imageStore(direct_reflect_img, texel, vec4(reflection_light, 1.0));
-  imageStore(direct_refract_img, texel, vec4(refraction_light, 1.0));
+  /* TODO(fclem): Change shadow pass to be colored. */
+  output_renderpass_value(uniform_buf.render_pass.shadow_id, avg(shadows));
+
+  imageStore(direct_diffuse_img, texel, vec4(stack.cl[0].light_shadowed, 1.0));
+  imageStore(direct_reflect_img, texel, vec4(stack.cl[1].light_shadowed, 1.0));
+  /* TODO(fclem): Support LTC for refraction. */
+  // imageStore(direct_refract_img, texel, vec4(cl_refr.light_shadowed, 1.0));
 }

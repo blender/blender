@@ -73,9 +73,11 @@ GPU_SHADER_CREATE_INFO(eevee_surfel_common)
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_light)
     .define("SURFEL_LIGHT")
+    .define("LIGHT_ITER_FORCE_NO_CULLING")
     .local_group_size(SURFEL_GROUP_SIZE)
     .additional_info("eevee_shared",
                      "draw_view",
+                     "eevee_global_ubo",
                      "eevee_utility_texture",
                      "eevee_surfel_common",
                      "eevee_light_data",

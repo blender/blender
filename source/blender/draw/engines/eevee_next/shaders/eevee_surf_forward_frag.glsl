@@ -27,19 +27,25 @@ vec4 closure_to_rgba(Closure cl)
   vec3 refraction_light = vec3(0.0);
   float shadow = 1.0;
 
+  float vPz = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
   vec3 V = cameraVec(g_data.P);
-  float vP_z = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
 
-  light_eval(g_diffuse_data,
-             g_reflection_data,
-             g_data.P,
-             g_data.Ng,
-             V,
-             vP_z,
-             0.01 /* TODO(fclem) thickness. */,
-             diffuse_light,
-             reflection_light,
-             shadow);
+  ClosureLightStack stack;
+
+  ClosureLight cl_diff;
+  cl_diff.N = g_diffuse_data.N;
+  cl_diff.ltc_mat = LTC_LAMBERT_MAT;
+  cl_diff.type = LIGHT_DIFFUSE;
+  stack.cl[0] = cl_diff;
+
+  ClosureLight cl_refl;
+  cl_refl.N = g_reflection_data.N;
+  cl_refl.ltc_mat = LTC_GGX_MAT(dot(g_reflection_data.N, V), g_reflection_data.roughness);
+  cl_refl.type = LIGHT_SPECULAR;
+  stack.cl[1] = cl_refl;
+
+  float thickness = 0.01; /* TODO(fclem) thickness. */
+  light_eval(stack, g_data.P, g_data.Ng, V, vPz, thickness);
 
   vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
   LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
@@ -49,9 +55,8 @@ vec4 closure_to_rgba(Closure cl)
 
   vec4 out_color;
   out_color.rgb = g_emission;
-  out_color.rgb += g_diffuse_data.color * g_diffuse_data.weight * diffuse_light;
-  out_color.rgb += g_reflection_data.color * g_reflection_data.weight * reflection_light;
-  out_color.rgb += g_refraction_data.color * g_refraction_data.weight * refraction_light;
+  out_color.rgb += g_diffuse_data.color * g_diffuse_data.weight * stack.cl[0].light_shadowed;
+  out_color.rgb += g_reflection_data.color * g_reflection_data.weight * stack.cl[1].light_shadowed;
 
   out_color.a = saturate(1.0 - avg(g_transmittance));
 
@@ -79,24 +84,28 @@ void main()
 
   float thickness = nodetree_thickness();
 
-  vec3 diffuse_light = vec3(0.0);
-  vec3 reflection_light = vec3(0.0);
-  vec3 refraction_light = vec3(0.0);
-  float shadow = 1.0;
-
+  float vPz = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
   vec3 V = cameraVec(g_data.P);
-  float vP_z = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
 
-  light_eval(g_diffuse_data,
-             g_reflection_data,
-             g_data.P,
-             g_data.Ng,
-             V,
-             vP_z,
-             thickness,
-             diffuse_light,
-             reflection_light,
-             shadow);
+  ClosureLightStack stack;
+
+  ClosureLight cl_diff;
+  cl_diff.N = g_diffuse_data.N;
+  cl_diff.ltc_mat = LTC_LAMBERT_MAT;
+  cl_diff.type = LIGHT_DIFFUSE;
+  stack.cl[0] = cl_diff;
+
+  ClosureLight cl_refl;
+  cl_refl.N = g_reflection_data.N;
+  cl_refl.ltc_mat = LTC_GGX_MAT(dot(g_reflection_data.N, V), g_reflection_data.roughness);
+  cl_refl.type = LIGHT_SPECULAR;
+  stack.cl[1] = cl_diff;
+
+  light_eval(stack, g_data.P, g_data.Ng, V, vPz, thickness);
+
+  vec3 diffuse_light = stack.cl[0].light_shadowed;
+  vec3 reflection_light = stack.cl[1].light_shadowed;
+  vec3 refraction_light = vec3(0.0);
 
   vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
   LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
@@ -136,6 +145,10 @@ void main()
         cryptomatte_object_buf[resource_id], node_tree.crypto_hash, 0.0);
     imageStore(rp_cryptomatte_img, out_texel, cryptomatte_output);
   }
+
+  vec3 shadows = (stack.cl[0].light_shadowed + stack.cl[1].light_shadowed) /
+                 (stack.cl[0].light_unshadowed + stack.cl[1].light_unshadowed);
+
   output_renderpass_color(uniform_buf.render_pass.normal_id, vec4(out_normal, 1.0));
   output_renderpass_color(uniform_buf.render_pass.position_id, vec4(g_data.P, 1.0));
   output_renderpass_color(uniform_buf.render_pass.diffuse_color_id,
@@ -144,7 +157,7 @@ void main()
   output_renderpass_color(uniform_buf.render_pass.specular_color_id, vec4(specular_color, 1.0));
   output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(specular_light, 1.0));
   output_renderpass_color(uniform_buf.render_pass.emission_id, vec4(g_emission, 1.0));
-  output_renderpass_value(uniform_buf.render_pass.shadow_id, shadow);
+  output_renderpass_value(uniform_buf.render_pass.shadow_id, avg(shadows));
   /** NOTE: AO is done on its own pass. */
 #endif
 

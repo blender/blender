@@ -25,6 +25,7 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_light)
     .image_out(3, GPU_RGBA16F, "direct_reflect_img")
     .image_out(4, GPU_RGBA16F, "direct_refract_img")
     .define("SSS_TRANSMITTANCE")
+    .define("LIGHT_CLOSURE_EVAL_COUNT", "2")
     .additional_info("eevee_shared",
                      "eevee_gbuffer_data",
                      "eevee_utility_texture",

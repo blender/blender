@@ -59,30 +59,29 @@ float volume_phase_function_isotropic()
   return 1.0 / (4.0 * M_PI);
 }
 
-float volume_phase_function(vec3 v, vec3 l, float g)
+float volume_phase_function(vec3 V, vec3 L, float g)
 {
   /* Henyey-Greenstein. */
-  float cos_theta = dot(v, l);
+  float cos_theta = dot(V, L);
   g = clamp(g, -1.0 + 1e-3, 1.0 - 1e-3);
   float sqr_g = g * g;
   return (1 - sqr_g) / max(1e-8, 4.0 * M_PI * pow(1 + sqr_g - 2 * g * cos_theta, 3.0 / 2.0));
 }
 
-vec3 volume_light(LightData ld, vec3 L, float l_dist)
+vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
 {
   float power = 1.0;
-  if (ld.type != LIGHT_SUN) {
-
-    float volume_radius_squared = ld.radius_squared;
+  if (!is_directional) {
+    float volume_radius_squared = light.radius_squared;
     float light_clamp = uniform_buf.volumes.light_clamp;
     if (light_clamp != 0.0) {
       /* 0.0 light clamp means it's disabled. */
-      float max_power = max_v3(ld.color) * ld.volume_power;
+      float max_power = max_v3(light.color) * light.power[LIGHT_VOLUME];
       if (max_power > 0.0) {
         /* The limit of the power attenuation function when the distance to the light goes to 0 is
          * `2 / r^2` where r is the light radius. We need to find the right radius that emits at
          * most the volume light upper bound. Inverting the function we get: */
-        float min_radius_squared = 1.0f / (0.5f * light_clamp / max_power);
+        float min_radius_squared = 1.0 / (0.5 * light_clamp / max_power);
         /* Square it here to avoid a multiplication inside the shader. */
         volume_radius_squared = max(volume_radius_squared, min_radius_squared);
       }
@@ -93,57 +92,55 @@ vec3 volume_light(LightData ld, vec3 L, float l_dist)
      * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
      * http://www.cemyuksel.com/research/pointlightattenuation/
      */
-    float d = l_dist;
+    float d = lv.dist;
     float d_sqr = sqr(d);
     float r_sqr = volume_radius_squared;
 
     /* Using reformulation that has better numerical precision. */
     power = 2.0 / (d_sqr + r_sqr + d * sqrt(d_sqr + r_sqr));
 
-    if (ld.type == LIGHT_RECT || ld.type == LIGHT_ELLIPSE) {
+    if (light.type == LIGHT_RECT || light.type == LIGHT_ELLIPSE) {
       /* Modulate by light plane orientation / solid angle. */
-      power *= saturate(dot(ld._back, L));
+      power *= saturate(dot(light._back, lv.L));
     }
   }
-  return ld.color * ld.volume_power * power;
+  return light.color * light.power[LIGHT_VOLUME] * power;
 }
 
 #define VOLUMETRIC_SHADOW_MAX_STEP 128.0
 
-vec3 volume_shadow(LightData ld, vec3 ray_wpos, vec3 L, float l_dist, sampler3D extinction_tx)
+vec3 volume_shadow(
+    LightData ld, const bool is_directional, vec3 P, LightVector lv, sampler3D extinction_tx)
 {
 #if defined(VOLUME_SHADOW)
   if (uniform_buf.volumes.shadow_steps == 0) {
     return vec3(1.0);
   }
 
-  vec4 l_vector = vec4(L * l_dist, l_dist);
-
   /* Heterogeneous volume shadows. */
-  float dd = l_vector.w / uniform_buf.volumes.shadow_steps;
-  L = l_vector.xyz / uniform_buf.volumes.shadow_steps;
+  float dd = lv.dist / uniform_buf.volumes.shadow_steps;
+  vec3 L = lv.L * lv.dist / uniform_buf.volumes.shadow_steps;
 
-  if (is_sun_light(ld.type)) {
+  if (is_directional) {
     /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
-    vec3 ndcP = project_point(ProjectionMatrix, transform_point(ViewMatrix, ray_wpos));
-    vec3 ndcL = project_point(ProjectionMatrix,
-                              transform_point(ViewMatrix, ray_wpos + l_vector.xyz)) -
+    vec3 ndcP = project_point(ProjectionMatrix, transform_point(ViewMatrix, P));
+    vec3 ndcL = project_point(ProjectionMatrix, transform_point(ViewMatrix, P + lv.L * lv.dist)) -
                 ndcP;
 
     vec3 frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
 
     vec4 L_hom = ViewMatrixInverse * (ProjectionMatrixInverse * vec4(frustum_isect, 1.0));
-    L = (L_hom.xyz / L_hom.w) - ray_wpos;
+    L = (L_hom.xyz / L_hom.w) - P;
     L /= uniform_buf.volumes.shadow_steps;
     dd = length(L);
   }
 
   /* TODO use shadow maps instead. */
   vec3 shadow = vec3(1.0);
-  for (float s = 1.0; s < VOLUMETRIC_SHADOW_MAX_STEP && s <= uniform_buf.volumes.shadow_steps;
-       s += 1.0)
+  for (float t = 1.0; t < VOLUMETRIC_SHADOW_MAX_STEP && t <= uniform_buf.volumes.shadow_steps;
+       t += 1.0)
   {
-    vec3 pos = ray_wpos + L * s;
+    vec3 pos = P + L * t;
 
     vec3 ndc = project_point(ProjectionMatrix, transform_point(ViewMatrix, pos));
     vec3 volume_co = ndc_to_volume(ndc * 0.5 + 0.5);
