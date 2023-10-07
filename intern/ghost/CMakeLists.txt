@@ -322,15 +322,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       )
     endif()
 
-    if(WITH_GHOST_WAYLAND_DBUS)
-      list(APPEND INC_SYS
-        ${dbus_INCLUDE_DIRS}
-      )
-      list(APPEND LIB
-        ${dbus_LINK_LIBRARIES}
-      )
-    endif()
-
     if(WITH_GHOST_WAYLAND_LIBDECOR)
       list(APPEND INC_SYS
         ${libdecor_INCLUDE_DIRS}
@@ -360,7 +351,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       intern/GHOST_WindowWayland.cc
 
       intern/GHOST_SystemWayland.hh
-      intern/GHOST_WaylandCursorSettings.hh
       intern/GHOST_WaylandUtils.hh
       intern/GHOST_WindowWayland.hh
     )

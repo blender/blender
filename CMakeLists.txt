@@ -335,13 +335,6 @@ if(UNIX AND NOT (APPLE OR HAIKU))
     option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_LIBDECOR)
 
-    option(WITH_GHOST_WAYLAND_DBUS "\
-Optionally build with DBUS support (used for Cursor themes). \
-May hang on startup systems where DBUS is not used."
-      OFF
-    )
-    mark_as_advanced(WITH_GHOST_WAYLAND_DBUS)
-
     option(WITH_GHOST_WAYLAND_DYNLOAD "Enable runtime dynamic WAYLAND libraries loading" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_DYNLOAD)
 
@@ -2283,7 +2276,6 @@ if(FIRST_RUN)
     if(WITH_GHOST_WAYLAND)
       info_cfg_option(WITH_GHOST_WAYLAND_DYNLOAD)
       info_cfg_option(WITH_GHOST_WAYLAND_LIBDECOR)
-      info_cfg_option(WITH_GHOST_WAYLAND_DBUS)
     endif()
   endif()
 
