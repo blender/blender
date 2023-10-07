@@ -1867,8 +1867,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->rake_factor = 1.0f;
       br->dyntopo.flag |= DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE;
       br->dyntopo.flag &= ~DYNTOPO_CLEANUP;
-      br->dyntopo.spacing = 10;
-      br->dyntopo.quality = 0.3f;
+      br->dyntopo.spacing = 20;
+      br->dyntopo.quality = 0.35f;
       br->dyntopo.radius_scale = 1.0;
       br->dyntopo.repeat = 0;
       break;
