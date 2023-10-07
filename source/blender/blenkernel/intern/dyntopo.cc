@@ -2720,6 +2720,10 @@ void EdgeQueueContext::split_edge(BMEdge *e)
     BMLoop *newl;
     newf = BM_face_split(bm, f, l, l->next->next, &newl, nullptr, true);
 
+    if (newf) {
+      BM_ELEM_CD_SET_INT(newf, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
+    }
+
     dyntopo_add_flag(
         pbvh, l->next->next->v, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
     pbvh_boundary_update_bmesh(pbvh, l->next->next->v);
