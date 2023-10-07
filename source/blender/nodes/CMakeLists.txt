@@ -103,7 +103,6 @@ set(SRC
   NOD_geometry_nodes_execute.hh
   NOD_geometry_nodes_lazy_function.hh
   NOD_geometry_nodes_log.hh
-  NOD_socket_items.hh
   NOD_math_functions.hh
   NOD_multi_function.hh
   NOD_node_declaration.hh
@@ -113,6 +112,7 @@ set(SRC
   NOD_socket.hh
   NOD_socket_declarations.hh
   NOD_socket_declarations_geometry.hh
+  NOD_socket_items.hh
   NOD_socket_search_link.hh
   NOD_static_types.h
   NOD_texture.h
