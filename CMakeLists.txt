@@ -1142,10 +1142,13 @@ if(UNIX AND NOT (APPLE OR HAIKU))
   set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_X11 OFF)
 endif()
 set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_SDL OFF)
-set_and_warn_incompatible(WITH_HEADLESS WITH_INPUT_IME OFF)
-set_and_warn_incompatible(WITH_HEADLESS WITH_XR_OPENXR OFF)
 
-set_and_warn_incompatible(WITH_GHOST_SDL WITH_INPUT_IME OFF)
+if(WIN32 OR APPLE)
+  set_and_warn_incompatible(WITH_HEADLESS WITH_INPUT_IME OFF)
+  set_and_warn_incompatible(WITH_GHOST_SDL WITH_INPUT_IME OFF)
+endif()
+
+set_and_warn_incompatible(WITH_HEADLESS WITH_XR_OPENXR OFF)
 set_and_warn_incompatible(WITH_GHOST_SDL WITH_XR_OPENXR OFF)
 
 if(WITH_BUILDINFO)

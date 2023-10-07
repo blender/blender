@@ -1458,7 +1458,12 @@ endmacro()
 macro(set_and_warn_incompatible
   _dependency _setting _val)
   # when $_dependency is enabled, forces $_setting = $_val
-  if(${${_dependency}} AND ${${_setting}})
+  # Both should be defined, warn if they're not.
+  if(NOT DEFINED ${_dependency})
+    message(STATUS "${_dependency} not defined!")
+  elseif(NOT DEFINED ${_setting})
+    message(STATUS "${_setting} not defined!")
+  elseif(${${_dependency}} AND ${${_setting}})
     if(WITH_STRICT_BUILD_OPTIONS)
       message(SEND_ERROR "${_dependency} enabled but incompatible with ${_setting}")
     else()
