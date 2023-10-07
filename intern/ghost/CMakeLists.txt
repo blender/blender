@@ -82,6 +82,17 @@ if(WITH_OPENGL_BACKEND)
 endif()
 
 if(WITH_VULKAN_BACKEND)
+
+  if(APPLE)
+    list(APPEND INC_SYS
+      PUBLIC ${MOLTENVK_INCLUDE_DIRS}
+    )
+
+    list(APPEND LIB
+      ${MOLTENVK_LIBRARIES}
+    )
+  endif()
+
   list(APPEND SRC
     intern/GHOST_ContextVK.cc
 
@@ -90,12 +101,10 @@ if(WITH_VULKAN_BACKEND)
 
   list(APPEND INC_SYS
     PUBLIC ${VULKAN_INCLUDE_DIRS}
-    PUBLIC ${MOLTENVK_INCLUDE_DIRS}
   )
 
   list(APPEND LIB
     ${VULKAN_LIBRARIES}
-    ${MOLTENVK_LIBRARIES}
   )
 
   add_definitions(-DWITH_VULKAN_BACKEND)

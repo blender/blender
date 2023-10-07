@@ -342,12 +342,25 @@ endif()
 
 
 if(WITH_VULKAN_BACKEND)
+
+  if(APPLE)
+    list(APPEND INC_SYS
+      ${MOLTENVK_INCLUDE_DIRS}
+    )
+
+    list(APPEND LIB
+      ${MOLTENVK_LIBRARIES}
+    )
+  endif()
+
   list(APPEND INC
     ../../../extern/vulkan_memory_allocator
   )
   list(APPEND INC_SYS
     ${VULKAN_INCLUDE_DIRS}
-    ${MOLTENVK_INCLUDE_DIRS}
+  )
+
+  list(APPEND INC_SYS
     ${SHADERC_INCLUDE_DIRS}
   )
   list(APPEND SRC
@@ -357,7 +370,6 @@ if(WITH_VULKAN_BACKEND)
   list(APPEND LIB
     ${VULKAN_LIBRARIES}
     ${SHADERC_LIBRARIES}
-    ${MOLTENVK_LIBRARIES}
     extern_vulkan_memory_allocator
   )
 

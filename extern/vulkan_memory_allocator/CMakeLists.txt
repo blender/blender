@@ -8,8 +8,13 @@ set(INC
 
 set(INC_SYS
   ${VULKAN_INCLUDE_DIRS}
-  ${MOLTENVK_INCLUDE_DIRS}
 )
+
+if(APPLE)
+  list(APPEND INC_SYS
+    ${MOLTENVK_INCLUDE_DIRS}
+  )
+endif()
 
 set(SRC
   vk_mem_alloc_impl.cc
