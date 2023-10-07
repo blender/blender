@@ -689,7 +689,9 @@ class VectorSet {
     VECTOR_SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
         int64_t index = this->size();
-        new (keys_ + index) Key(std::forward<ForwardKey>(key));
+        Key *dst = keys_ + index;
+        new (dst) Key(std::forward<ForwardKey>(key));
+        BLI_assert(hash_(*dst) == hash);
         slot.occupy(index, hash);
         occupied_and_removed_slots_++;
         return;
@@ -705,7 +707,9 @@ class VectorSet {
     VECTOR_SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
         int64_t index = this->size();
-        new (keys_ + index) Key(std::forward<ForwardKey>(key));
+        Key *dst = keys_ + index;
+        new (dst) Key(std::forward<ForwardKey>(key));
+        BLI_assert(hash_(*dst) == hash);
         slot.occupy(index, hash);
         occupied_and_removed_slots_++;
         return true;
@@ -755,7 +759,9 @@ class VectorSet {
       }
       if (slot.is_empty()) {
         const int64_t index = this->size();
-        new (keys_ + index) Key(std::forward<ForwardKey>(key));
+        Key *dst = keys_ + index;
+        new (dst) Key(std::forward<ForwardKey>(key));
+        BLI_assert(hash_(*dst) == hash);
         slot.occupy(index, hash);
         occupied_and_removed_slots_++;
         return index;
