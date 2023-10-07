@@ -586,14 +586,14 @@ class _draw_tool_settings_context_mode:
     def PAINT_GREASE_PENCIL(context, layout, tool):
         if (tool is None) or (not tool.has_datablock):
             return False
-        
+
         tool_settings = context.tool_settings
         paint = tool_settings.gpencil_paint
 
         brush = paint.brush
         if brush is None:
             return False
-        
+
         row = layout.row(align=True)
         row.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
 
@@ -604,7 +604,7 @@ class _draw_tool_settings_context_mode:
                 brush_basic__draw_color_selector,
             )
             brush_basic__draw_color_selector(context, layout, brush, brush.gpencil_settings, None)
-        
+
         UnifiedPaintPanel.prop_unified(
             layout,
             context,
@@ -6385,8 +6385,13 @@ class VIEW3D_PT_shading_lighting(Panel):
     @classmethod
     def poll(cls, context):
         shading = VIEW3D_PT_shading.get_shading(context)
-        engine = context.scene.render.engine
-        return shading.type in {'SOLID', 'MATERIAL'} or engine in {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'} and shading.type == 'RENDERED'
+        if shading.type in {'SOLID', 'MATERIAL'}:
+            return True
+        if shading.type == 'RENDERED':
+            engine = context.scene.render.engine
+            if engine in {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'}:
+                return True
+        return False
 
     def draw(self, context):
         layout = self.layout
