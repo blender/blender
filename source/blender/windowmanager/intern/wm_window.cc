@@ -512,7 +512,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
     /* Informs GHOST of unsaved changes to set the window modified visual indicator (macOS)
      * and to give a hint of unsaved changes for a user warning mechanism in case of OS application
      * terminate request (e.g., OS Shortcut Alt+F4, Command+Q, (...) or session end). */
-    GHOST_SetWindowModifiedState(handle, static_cast<bool>(!wm->file_saved));
+    GHOST_SetWindowModifiedState(handle, bool(!wm->file_saved));
   }
 }
 

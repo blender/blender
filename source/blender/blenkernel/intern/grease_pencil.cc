@@ -1154,7 +1154,7 @@ void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 int BKE_grease_pencil_object_material_index_get(Object *ob, Material *ma)
 {
   short *totcol = BKE_object_material_len_p(ob);
-  Material *read_ma = NULL;
+  Material *read_ma = nullptr;
   for (short i = 0; i < *totcol; i++) {
     read_ma = BKE_object_material_get(ob, i + 1);
     if (ma == read_ma) {
