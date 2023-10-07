@@ -1124,7 +1124,7 @@ function(data_to_c
 
   set(optional_args "")
   foreach(f ${ARGN})
-    if (f STREQUAL "STRIP_LEADING_C_COMMENTS")
+    if(f STREQUAL "STRIP_LEADING_C_COMMENTS")
       set(optional_args "--options=strip_leading_c_comments")
     else()
       message(FATAL_ERROR "Unknown optional argument ${f} to \"data_to_c\"")
@@ -1161,7 +1161,7 @@ function(data_to_c_simple
 
   set(optional_args "")
   foreach(f ${ARGN})
-    if (f STREQUAL "STRIP_LEADING_C_COMMENTS")
+    if(f STREQUAL "STRIP_LEADING_C_COMMENTS")
       set(optional_args "--options=strip_leading_c_comments")
     else()
       message(FATAL_ERROR "Unknown optional argument ${f} to \"data_to_c_simple\"")
