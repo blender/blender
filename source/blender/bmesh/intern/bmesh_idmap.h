@@ -49,7 +49,7 @@ extern "C" {
 #endif
 
 BMIdMap *BM_idmap_new(BMesh *bm, int elem_mask);
-void BM_idmap_check_attributes(BMIdMap *idmap);
+bool BM_idmap_check_attributes(BMIdMap *idmap);
 void BM_idmap_check_ids(BMIdMap *idmap);
 void BM_idmap_destroy(BMIdMap *idmap);
 
@@ -57,6 +57,9 @@ int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem);
 void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id);
 void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id);
 int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem);
+void BM_idmap_clear_attributes(BMesh *bm);
+const char *BM_idmap_attr_name_get(int htype);
+void BM_idmap_clear_attributes_mesh(Mesh *me);
 
 BLI_INLINE int BM_idmap_get_id(BMIdMap *map, BMElem *elem)
 {

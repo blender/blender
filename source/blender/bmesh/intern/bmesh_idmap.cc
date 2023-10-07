@@ -11,6 +11,7 @@
 #include "BKE_customdata.h"
 
 #include "DNA_customdata_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "bmesh_idmap.h"
@@ -34,6 +35,23 @@ static void bm_idmap_debug_check_init(BMesh *bm)
   BLI_mempool_ignore_free(bm->fpool);
 }
 #endif
+
+const char *BM_idmap_attr_name_get(int htype)
+{
+  switch (htype) {
+    case BM_VERT:
+      return "vertex_id";
+    case BM_EDGE:
+      return "edge_id";
+    case BM_LOOP:
+      return "corner_id";
+    case BM_FACE:
+      return "face_id";
+    default:
+      BLI_assert_unreachable();
+      return "error";
+  }
+}
 
 static void idmap_log_message(const char *fmt, ...)
 {
@@ -79,29 +97,6 @@ BMIdMap *BM_idmap_new(BMesh *bm, int elem_mask)
 
   return idmap;
 }
-
-static const char elem_names[9][16] = {
-    "corrupted",  // 0
-    "vertex",     // 1
-    "edge",       // 2
-    "corrupted",  // 3
-    "loop",       // 4
-    "corrupted",  // 5
-    "corrupted",  // 6
-    "corrupted",  // 7
-    "face",       // 8
-};
-
-#ifdef DEBUG_BM_IDMAP
-static const char *get_type_name(char htype)
-{
-  if (htype <= 0 || htype >= 9) {
-    return "corrupted";
-  }
-
-  return elem_names[int(htype)];
-}
-#endif
 
 template<typename T> static constexpr char get_elem_type()
 {
@@ -185,6 +180,22 @@ static void idmap_grow_map(BMIdMap *idmap, int newid)
   }
 
   idmap->map_size = newsize;
+}
+
+void BM_idmap_clear_attributes_mesh(Mesh *me)
+{
+  CustomData_free_layer_named(&me->vert_data, BM_idmap_attr_name_get(BM_VERT), me->totvert);
+  CustomData_free_layer_named(&me->edge_data, BM_idmap_attr_name_get(BM_EDGE), me->totedge);
+  CustomData_free_layer_named(&me->loop_data, BM_idmap_attr_name_get(BM_LOOP), me->totloop);
+  CustomData_free_layer_named(&me->face_data, BM_idmap_attr_name_get(BM_FACE), me->faces_num);
+}
+
+void BM_idmap_clear_attributes(BMesh *bm)
+{
+  BM_data_layer_free_named(bm, &bm->vdata, BM_idmap_attr_name_get(BM_VERT));
+  BM_data_layer_free_named(bm, &bm->edata, BM_idmap_attr_name_get(BM_EDGE));
+  BM_data_layer_free_named(bm, &bm->ldata, BM_idmap_attr_name_get(BM_LOOP));
+  BM_data_layer_free_named(bm, &bm->pdata, BM_idmap_attr_name_get(BM_FACE));
 }
 
 void BM_idmap_check_ids(BMIdMap *idmap)
@@ -298,54 +309,57 @@ void BM_idmap_check_ids(BMIdMap *idmap)
   idmap->maxid = max_id + 1;
 }
 
-void BM_idmap_check_attributes(BMIdMap *idmap)
+static bool bm_idmap_check_attr(BMIdMap *idmap, int type)
 {
-  auto check_attr = [&](int type) {
-    if (!(idmap->flag & type)) {
-      return;
-    }
+  if (!(idmap->flag & type)) {
+    return false;
+  }
 
-    CustomData *cdata;
-    const char *name;
+  CustomData *cdata;
+  const char *name = BM_idmap_attr_name_get(type);
 
-    switch (type) {
-      case BM_VERT:
-        name = "vertex_id";
-        cdata = &idmap->bm->vdata;
-        break;
-      case BM_EDGE:
-        name = "edge_id";
-        cdata = &idmap->bm->edata;
-        break;
-      case BM_LOOP:
-        name = "corner_id";
-        cdata = &idmap->bm->ldata;
-        break;
-      case BM_FACE:
-        name = "face_id";
-        cdata = &idmap->bm->pdata;
-        break;
-      default:
-        BLI_assert_unreachable();
-        return;
-    }
+  switch (type) {
+    case BM_VERT:
+      cdata = &idmap->bm->vdata;
+      break;
+    case BM_EDGE:
+      cdata = &idmap->bm->edata;
+      break;
+    case BM_LOOP:
+      cdata = &idmap->bm->ldata;
+      break;
+    case BM_FACE:
+      cdata = &idmap->bm->pdata;
+      break;
+    default:
+      BLI_assert_unreachable();
+      return false;
+  }
 
-    int idx = CustomData_get_named_layer_index(cdata, CD_PROP_INT32, name);
+  int idx = CustomData_get_named_layer_index(cdata, CD_PROP_INT32, name);
+  bool exists = idx != -1;
 
-    if (idx == -1) {
-      BM_data_layer_add_named(idmap->bm, cdata, CD_PROP_INT32, name);
-      idx = CustomData_get_named_layer_index(cdata, CD_PROP_INT32, name);
-    }
+  if (!exists) {
+    BM_data_layer_add_named(idmap->bm, cdata, CD_PROP_INT32, name);
+    idx = CustomData_get_named_layer_index(cdata, CD_PROP_INT32, name);
+  }
 
-    cdata->layers[idx].flag |= CD_FLAG_ELEM_NOINTERP | CD_FLAG_ELEM_NOCOPY;
+  cdata->layers[idx].flag |= CD_FLAG_ELEM_NOINTERP | CD_FLAG_ELEM_NOCOPY;
+  idmap->cd_id_off[type] = cdata->layers[idx].offset;
 
-    idmap->cd_id_off[type] = cdata->layers[idx].offset;
-  };
+  return !exists;
+}
 
-  check_attr(BM_VERT);
-  check_attr(BM_EDGE);
-  check_attr(BM_LOOP);
-  check_attr(BM_FACE);
+bool BM_idmap_check_attributes(BMIdMap *idmap)
+{
+  bool ret = false;
+
+  ret |= bm_idmap_check_attr(idmap, BM_VERT);
+  ret |= bm_idmap_check_attr(idmap, BM_EDGE);
+  ret |= bm_idmap_check_attr(idmap, BM_LOOP);
+  ret |= bm_idmap_check_attr(idmap, BM_FACE);
+
+  return ret;
 }
 
 void BM_idmap_destroy(BMIdMap *idmap)

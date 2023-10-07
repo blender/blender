@@ -2491,7 +2491,6 @@ void EdgeQueueContext::report()
   printf("v: %.2f e: %.2f l: %.2f f: %.2f\n", fvmem, femem, flmem, ffmem);
 }
 
-// EdgeQueueContext
 bool remesh_topology(BrushTester *brush_tester,
                      Object *ob,
                      PBVH *pbvh,

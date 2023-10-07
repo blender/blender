@@ -1803,8 +1803,23 @@ void BKE_sculpt_ensure_idmap(Object *ob)
     ob->sculpt->bm_idmap = BM_idmap_new(ob->sculpt->bm, BM_VERT | BM_EDGE | BM_FACE);
     BM_idmap_check_ids(ob->sculpt->bm_idmap);
 
+    if (ob->sculpt->bm_log) {
+      BM_log_set_idmap(ob->sculpt->bm_log, ob->sculpt->bm_idmap);
+    }
+
+    if (ob->sculpt->pbvh) {
+      BKE_pbvh_set_idmap(ob->sculpt->pbvh, ob->sculpt->bm_idmap);
+    }
+
     /* Push id attributes into base mesh customdata layout. */
+    BKE_sculptsession_update_attr_refs(ob);
     BKE_sculptsession_sync_attributes(ob, static_cast<Mesh *>(ob->data), true);
+  }
+  else {
+    if (BM_idmap_check_attributes(ob->sculpt->bm_idmap)) {
+      BKE_sculptsession_update_attr_refs(ob);
+      BKE_sculptsession_sync_attributes(ob, static_cast<Mesh *>(ob->data), true);
+    }
   }
 }
 

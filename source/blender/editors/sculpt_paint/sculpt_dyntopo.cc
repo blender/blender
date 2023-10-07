@@ -275,7 +275,7 @@ static void SCULPT_dynamic_topology_disable_ex(
     Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, SculptUndoNode * /*unode*/)
 {
   SculptSession *ss = ob->sculpt;
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *me = BKE_object_get_original_mesh(ob);
 
   /* Destroy temporary layers. */
   BKE_sculpt_attribute_destroy_temporary_all(ob);
