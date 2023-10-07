@@ -4,6 +4,8 @@
 
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
+#define EEVEE_SHADOW_LIB
+
 float shadow_read_depth_at_tilemap_uv(usampler2DArray atlas_tx,
                                       usampler2D tilemaps_tx,
                                       int tilemap_index,
@@ -37,10 +39,10 @@ float shadow_orderedIntBitsToFloat(int int_value)
 }
 
 struct ShadowEvalResult {
-  /* Visibility of the light above the horizon. */
-  float surface_light_visibilty;
-  /* Average occluder distance for rays below the horizon. In world space linear distance. */
-  float subsurface_occluder_distance;
+  /* Visibility of the light. */
+  float light_visibilty;
+  /* Average occluder distance. In world space linear distance. */
+  float occluder_distance;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -69,6 +71,25 @@ mat4x4 shadow_projection_perspective(
   return mat;
 }
 
+/**
+ * Convert occluder distance in shadow space to world space distance.
+ * Assuming the occluder is above the shading point in direction to the shadow projection center.
+ */
+float shadow_linear_occluder_distance(LightData light,
+                                      const bool is_directional,
+                                      vec3 lP,
+                                      float occluder)
+{
+  float near = shadow_orderedIntBitsToFloat(light.clip_near);
+  float far = shadow_orderedIntBitsToFloat(light.clip_far);
+
+  float occluder_z = (is_directional) ? (occluder * (far - near) + near) :
+                                        ((near * far) / (occluder * (near - far) + far));
+  float receiver_z = (is_directional) ? -lP.z : max(abs(lP.x), max(abs(lP.y), abs(lP.z)));
+
+  return receiver_z - occluder_z;
+}
+
 ShadowEvalResult shadow_punctual_sample_get(usampler2DArray atlas_tx,
                                             usampler2D tilemaps_tx,
                                             LightData light,
@@ -94,8 +115,8 @@ ShadowEvalResult shadow_punctual_sample_get(usampler2DArray atlas_tx,
       atlas_tx, tilemaps_tx, light.tilemap_index + face_id, uv_P.xy);
 
   ShadowEvalResult result;
-  result.surface_light_visibilty = float(uv_P.z < depth);
-  result.subsurface_occluder_distance = 0.0; /* Not available. */
+  result.light_visibilty = float(uv_P.z < depth);
+  result.occluder_distance = shadow_linear_occluder_distance(light, false, lP, depth);
   return result;
 }
 
@@ -136,8 +157,8 @@ ShadowEvalResult shadow_directional_sample_get(usampler2DArray atlas_tx,
       atlas_tx, tilemaps_tx, light.tilemap_index + level_relative, tilemap_uv);
 
   ShadowEvalResult result;
-  result.surface_light_visibilty = float(dist_to_near_plane < depth * z_range);
-  result.subsurface_occluder_distance = 0.0; /* Not available. */
+  result.light_visibilty = float(dist_to_near_plane < depth * z_range);
+  result.occluder_distance = shadow_linear_occluder_distance(light, true, lP, depth);
   return result;
 }
 

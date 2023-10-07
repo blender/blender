@@ -47,9 +47,6 @@ void main()
 
   g_holdout = saturate(g_holdout);
 
-  out_transmittance = vec4(1.0 - g_holdout);
-  float transmittance_mono = saturate(avg(g_transmittance));
-
   float thickness = nodetree_thickness();
 
   g_diffuse_data.color *= g_diffuse_data.weight;

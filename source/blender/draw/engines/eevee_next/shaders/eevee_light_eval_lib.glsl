@@ -49,17 +49,19 @@ void light_shadow_single(LightData light,
     return;
   }
 
+  bool use_subsurface = thickness > 0.0;
   LightVector lv = light_vector_get(light, is_directional, P);
-  float attenuation = light_attenuation_surface(light, is_directional, Ng, lv);
+  float attenuation = light_attenuation_surface(light, is_directional, Ng, use_subsurface, lv);
   if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
     return;
   }
   int ray_count = uniform_buf.shadow.ray_count;
   int ray_step_count = uniform_buf.shadow.step_count;
 
-  ShadowEvalResult result = shadow_eval(light, is_directional, P, Ng, ray_count, ray_step_count);
+  ShadowEvalResult result = shadow_eval(
+      light, is_directional, P, Ng, thickness, ray_count, ray_step_count);
 
-  shadow_bits |= shadow_pack(result.surface_light_visibilty, ray_count, shift);
+  shadow_bits |= shadow_pack(result.light_visibilty, ray_count, shift);
   shift += ray_count;
 }
 
@@ -125,12 +127,12 @@ void light_eval_single(LightData light,
                        uint packed_shadows,
                        inout uint shift)
 {
-
   int ray_count = uniform_buf.shadow.ray_count;
   int ray_step_count = uniform_buf.shadow.step_count;
 
+  bool use_subsurface = thickness > 0.0;
   LightVector lv = light_vector_get(light, is_directional, P);
-  float attenuation = light_attenuation_surface(light, is_directional, Ng, lv);
+  float attenuation = light_attenuation_surface(light, is_directional, Ng, use_subsurface, lv);
   if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
     return;
   }
@@ -140,8 +142,9 @@ void light_eval_single(LightData light,
     shadow = shadow_unpack(packed_shadows, ray_count, shift);
     shift += ray_count;
 #else
-    shadow = shadow_eval(light, is_directional, P, Ng, ray_count, ray_step_count)
-                 .surface_light_visibilty;
+    ShadowEvalResult result = shadow_eval(
+        light, is_directional, P, Ng, thickness, ray_count, ray_step_count);
+    shadow = result.light_visibilty;
 #endif
   }
   float visibility = attenuation * shadow;

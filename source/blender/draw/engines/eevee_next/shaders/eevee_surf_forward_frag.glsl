@@ -14,6 +14,7 @@
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
@@ -101,11 +102,22 @@ void main()
   cl_refl.type = LIGHT_SPECULAR;
   stack.cl[1] = cl_diff;
 
+#ifdef SSS_TRANSMITTANCE
+  ClosureLight cl_sss;
+  cl_sss.N = -g_diffuse_data.N;
+  cl_sss.ltc_mat = LTC_LAMBERT_MAT;
+  cl_sss.type = LIGHT_DIFFUSE;
+  stack.cl[2] = cl_sss;
+#endif
+
   light_eval(stack, g_data.P, g_data.Ng, V, vPz, thickness);
 
   vec3 diffuse_light = stack.cl[0].light_shadowed;
   vec3 reflection_light = stack.cl[1].light_shadowed;
   vec3 refraction_light = vec3(0.0);
+#ifdef SSS_TRANSMITTANCE
+  diffuse_light += stack.cl[2].light_shadowed;
+#endif
 
   vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
   LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
@@ -146,8 +158,16 @@ void main()
     imageStore(rp_cryptomatte_img, out_texel, cryptomatte_output);
   }
 
-  vec3 shadows = (stack.cl[0].light_shadowed + stack.cl[1].light_shadowed) /
-                 (stack.cl[0].light_unshadowed + stack.cl[1].light_unshadowed);
+  vec3 radiance_shadowed = stack.cl[0].light_shadowed;
+  vec3 radiance_unshadowed = stack.cl[0].light_unshadowed;
+  radiance_shadowed += stack.cl[1].light_shadowed;
+  radiance_unshadowed += stack.cl[1].light_unshadowed;
+#  ifdef SSS_TRANSMITTANCE
+  radiance_shadowed += stack.cl[2].light_shadowed;
+  radiance_unshadowed += stack.cl[2].light_unshadowed;
+#  endif
+
+  vec3 shadows = radiance_shadowed / safe_rcp(radiance_unshadowed);
 
   output_renderpass_color(uniform_buf.render_pass.normal_id, vec4(out_normal, 1.0));
   output_renderpass_color(uniform_buf.render_pass.position_id, vec4(g_data.P, 1.0));

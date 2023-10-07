@@ -116,13 +116,26 @@ float light_attenuation_common(LightData light, const bool is_directional, vec3 
   return 1.0;
 }
 
-float light_attenuation_surface(LightData light,
-                                const bool is_directional,
-                                vec3 Ng,
-                                LightVector lv)
+/**
+ * Fade light influence when surface is not facing the light.
+ * L is normalized vector to light shape center.
+ * Ng is ideally the geometric normal.
+ */
+float light_attenuation_facing(LightData light, vec3 L, vec3 Ng, bool use_subsurface)
+{
+  if (use_subsurface) {
+    return 1.0;
+  }
+  /* TODO(fclem): Take into consideration the light radius. */
+  return float(dot(L, Ng) > 0.0);
+}
+
+float light_attenuation_surface(
+    LightData light, const bool is_directional, vec3 Ng, bool use_subsurface, LightVector lv)
 {
   /* TODO(fclem): add cutoff attenuation when backfacing. For now do nothing with Ng. */
   return light_attenuation_common(light, is_directional, lv.L) *
+         light_attenuation_facing(light, lv.L, Ng, use_subsurface) *
          light_influence_attenuation(lv.dist, light.influence_radius_invsqr_surface);
 }
 

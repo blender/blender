@@ -40,7 +40,7 @@ vec3 volume_scatter_light_eval(
   float visibility = attenuation;
   if (light.tilemap_index != LIGHT_NO_SHADOW) {
     visibility *= shadow_sample(is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P)
-                      .surface_light_visibilty;
+                      .light_visibilty;
   }
 
   if (visibility < LIGHT_ATTENUATION_THRESHOLD) {
