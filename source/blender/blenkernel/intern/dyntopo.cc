@@ -72,7 +72,7 @@ using namespace blender::bke::sculpt;
  * if an element ID attribute exists (cd_id_offset is not -1)
  * it will unswap IDs.
  */
-static void bmesh_swap_data_simple(CustomData *data, void **block1, void **block2, int cd_id)
+static void bmesh_swap_data_simple(CustomData * /*data*/, void **block1, void **block2, int cd_id)
 {
   std::swap(*block1, *block2);
 
@@ -294,11 +294,6 @@ static float maskcb_get(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
   return 1.0f;
 }
 
-enum WeightMode {
-  SPLIT = -1,
-  COLLAPSE = 1,
-};
-
 #if 0
 static float get_cross_edge_len(BMEdge *e)
 {
@@ -340,23 +335,22 @@ BLI_INLINE float calc_weighted_length(EdgeQueueContext *eq_ctx,
                  len + eq_ctx->limit_len_min_sqr * 1.0f * powf(w, 5.0) :
                  len;
     }
+    case NONE: /* Avoid compiler warnings. */
+      break;
   }
 
   BLI_assert_unreachable();
   return 0.0f;
 }
 
-static PBVHTopologyUpdateMode edge_queue_test(EdgeQueueContext *eq_ctx,
-                                              PBVH * /*pbvh*/,
-                                              BMEdge *e,
-                                              float *r_w)
+static WeightMode edge_queue_test(EdgeQueueContext *eq_ctx, PBVH * /*pbvh*/, BMEdge *e, float *r_w)
 {
   float len1 = calc_weighted_length(eq_ctx, e->v1, e->v2, SPLIT);
   if ((eq_ctx->mode & PBVH_Subdivide) && len1 > eq_ctx->limit_len_max_sqr) {
     if (r_w) {
       *r_w = len1;
     }
-    return PBVH_Subdivide;
+    return SPLIT;
   }
 
   float len2 = calc_weighted_length(eq_ctx, e->v1, e->v2, COLLAPSE);
@@ -364,10 +358,10 @@ static PBVHTopologyUpdateMode edge_queue_test(EdgeQueueContext *eq_ctx,
     if (r_w) {
       *r_w = len2;
     }
-    return PBVH_Collapse;
+    return COLLAPSE;
   }
 
-  return PBVH_None;
+  return NONE;
 }
 
 void EdgeQueueContext::surface_smooth(BMVert *v, float fac)
@@ -375,10 +369,19 @@ void EdgeQueueContext::surface_smooth(BMVert *v, float fac)
   surface_smooth_v_safe(ss, pbvh, v, fac, distort_correction_mode);
 }
 
-void EdgeQueueContext::insert_edge(BMEdge *e, float w)
+void EdgeQueueContext::insert_edge(BMEdge *e, float w, WeightMode mode)
 {
   if (!(e->head.hflag & EDGE_QUEUE_FLAG)) {
+#ifdef DYNTOPO_USE_SEP_HEAPS
+    if (mode == COLLAPSE) {
+      min_heap.insert(e, w);
+    }
+    else {
+      max_heap.insert(e, w);
+    }
+#else
     edge_heap.insert(w, e);
+#endif
     e->head.hflag |= EDGE_QUEUE_FLAG;
 
     if (ignore_loop_data) {
@@ -559,7 +562,7 @@ static void add_split_edge_recursive(
   }
 
   // if (!skinny_bad_edge(l_edge->e)) {
-  eq_ctx->insert_edge(l_edge->e, len_sq);
+  eq_ctx->insert_edge(l_edge->e, len_sq, SPLIT);
   //}
 
   if ((l_edge->radial_next != l_edge)) {
@@ -699,8 +702,6 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
   PBVHNode *node = tdata->node;
   EdgeQueueContext *eq_ctx = tdata->eq_ctx;
 
-  bool do_smooth = eq_ctx->surface_relax && eq_ctx->surface_smooth_fac > 0.0f;
-
   BKE_pbvh_bmesh_check_tris(pbvh, node);
   int ni = int(node - &pbvh->nodes[0]);
 
@@ -790,14 +791,14 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
         }
 
         float w = 0.0f;
-        PBVHTopologyUpdateMode mode = edge_queue_test(eq_ctx, pbvh, l_iter->e, &w);
+        WeightMode mode = edge_queue_test(eq_ctx, pbvh, l_iter->e, &w);
 
         /* Subdivide walks the mesh a bit for better transitions in the topology. */
-        if (mode == PBVH_Subdivide) {
+        if (mode == SPLIT) {
           add_split_edge_recursive_threaded(
               tdata, l_iter->radial_next, l_iter, w, eq_ctx->limit_len_max, 0, true);
         }
-        else if (mode == PBVH_Collapse) {
+        else if (mode == COLLAPSE) {
           edge_thread_data_insert(tdata, l_iter->e);
         }
       } while ((l_iter = l_iter->next) != l_first);
@@ -1380,8 +1381,13 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       e->v2->head.hflag |= EDGE_QUEUE_FLAG;
 
       float w;
-      if (edge_queue_test(eq_ctx, pbvh, e, &w)) {
-        eq_ctx->insert_edge(e, w);
+      if (WeightMode wmode = edge_queue_test(eq_ctx, pbvh, e, &w)) {
+        bool insert = wmode == SPLIT && (eq_ctx->mode & PBVH_Subdivide);
+        insert |= wmode == COLLAPSE && (eq_ctx->mode & PBVH_Collapse);
+
+        if (insert) {
+          eq_ctx->insert_edge(e, w, wmode);
+        }
       }
     }
   }
@@ -1617,25 +1623,32 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
     float len2 = calc_weighted_length(eq_ctx, e->v1, e->v2, SPLIT);
     float w = 0.0f;
 
+    WeightMode mode;
+
     if (a && b) {
+      mode = edge_queue_test(eq_ctx, eq_ctx->pbvh, e, &w);
+#if 0
       ok = len1 < eq_ctx->limit_len_min_sqr || len1 > eq_ctx->limit_len_max_sqr;
       ok = ok || (len2 < pbvh->bm_min_edge_len || len2 > pbvh->bm_max_edge_len);
       w = (len1 + len2) * 0.5;
+#endif
     }
     else if (a) {
       ok = len1 > eq_ctx->limit_len_max || len1 > pbvh->bm_max_edge_len;
       w = len1;
+      mode = SPLIT;
     }
     else if (b) {
       ok = len2 < eq_ctx->limit_len_min || len2 < pbvh->bm_min_edge_len;
       w = len2;
+      mode = COLLAPSE;
     }
 
     if (!ok) {
       continue;
     }
 
-    eq_ctx->insert_edge(e, w);
+    eq_ctx->insert_edge(e, w, mode);
   }
 }
 
@@ -2097,13 +2110,25 @@ void EdgeQueueContext::start()
   }
 }
 
-bool EdgeQueueContext::done()
+ATTR_NO_OPT bool EdgeQueueContext::done()
 {
+#ifndef DYNTOPO_USE_SEP_HEAPS
   if (edge_heap.empty() ||
       (edge_heap.min_weight() > limit_len_min_sqr && edge_heap.max_weight() < limit_len_max_sqr))
   {
     return true;
   }
+#else
+  if (min_heap.empty() && max_heap.empty()) {
+    return true;
+  }
+
+  if (!min_heap.empty() && !max_heap.empty() && min_heap.top_weight() > limit_len_min_sqr &&
+      max_heap.top_weight() < limit_len_max_sqr)
+  {
+    return true;
+  }
+#endif
 
   return (mode & (PBVH_Collapse | PBVH_Subdivide | PBVH_LocalCollapse)) == 0;
 }
@@ -2115,11 +2140,20 @@ bool EdgeQueueContext::cleanup_valence_34()
 
 void EdgeQueueContext::finish()
 {
+#ifdef DYNTOPO_USE_SEP_HEAPS
+  while (!min_heap.empty()) {
+    min_heap.pop()->head.hflag &= ~EDGE_QUEUE_FLAG;
+  }
+  while (!max_heap.empty()) {
+    max_heap.pop()->head.hflag &= ~EDGE_QUEUE_FLAG;
+  }
+#else
   for (BMEdge *e : edge_heap.values()) {
     if (!BM_elem_is_free(reinterpret_cast<BMElem *>(e), BM_EDGE)) {
       e->head.hflag &= ~EDGE_QUEUE_FLAG;
     }
   }
+#endif
 
   if (mode & PBVH_Cleanup) {
     modified |= do_cleanup_3_4(this, pbvh);
@@ -2182,14 +2216,47 @@ void EdgeQueueContext::finish()
   BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
 }
 
-BMEdge *EdgeQueueContext::pop_invalid_edges(BMEdge *in_e, float &w, bool is_max)
+template<typename EdgeHeapT>
+BMEdge *EdgeQueueContext::pop_invalid_edges(EdgeHeapT &heap, BMEdge *in_e, float &w, bool is_max)
 {
+  if (!in_e) {
+    return nullptr;
+  }
+
+#ifdef DYNTOPO_USE_SEP_HEAPS
+  BMEdge *e = in_e;
+  WeightMode weightmode = is_max ? SPLIT : COLLAPSE;
+
+  while (!heap.empty() && e &&
+         (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
+          fabs(calc_weighted_length(this, e->v1, e->v2, weightmode) - w) > w * 0.1f))
+  {
+    heap.pop();
+
+    if (heap.empty()) {
+      return nullptr;
+    }
+
+    /* The edge was freed. */
+    if (bm_elem_is_free((BMElem *)e, BM_EDGE)) {
+      e = heap.pop(&w);
+      continue;
+    }
+
+    /* The weight was wrong. */
+    e->head.hflag |= EDGE_QUEUE_FLAG;
+    heap.insert(e, calc_weighted_length(this, e->v1, e->v2, weightmode));
+
+    e = heap.top(&w);
+  }
+
+#else
   BMEdge *e = in_e;
   WeightMode weightmode = is_max ? SPLIT : COLLAPSE;
 
   while (!edge_heap.empty() && e &&
          (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
-          fabs(calc_weighted_length(this, e->v1, e->v2, weightmode) - w) > w * 0.1))
+          fabs(calc_weighted_length(this, e->v1, e->v2, weightmode) - w) > w * 0.1f))
   {
     if (is_max) {
       edge_heap.pop_max();
@@ -2199,7 +2266,7 @@ BMEdge *EdgeQueueContext::pop_invalid_edges(BMEdge *in_e, float &w, bool is_max)
     }
 
     if (edge_heap.empty()) {
-      return static_cast<BMEdge *>(nullptr);
+      return nullptr;
     }
 
     /* The edge was freed. */
@@ -2209,7 +2276,7 @@ BMEdge *EdgeQueueContext::pop_invalid_edges(BMEdge *in_e, float &w, bool is_max)
     }
 
     /* The weight was wrong. */
-    e->head.hflag &= ~EDGE_QUEUE_FLAG;
+    e->head.hflag |= EDGE_QUEUE_FLAG;
     edge_heap.insert(calc_weighted_length(this, e->v1, e->v2, weightmode), e);
 
     if (is_max) {
@@ -2219,6 +2286,8 @@ BMEdge *EdgeQueueContext::pop_invalid_edges(BMEdge *in_e, float &w, bool is_max)
       e = edge_heap.peek_min(&w);
     }
   }
+
+#endif
 
   return BM_elem_is_free(reinterpret_cast<BMElem *>(e), BM_EDGE) ? nullptr : e;
 }
@@ -2239,22 +2308,37 @@ void EdgeQueueContext::stochastic_smooth(BMVert *v)
   }
 }
 
-/* Collapse and subdivide. */
-void EdgeQueueContext::step_multi()
+/* Collapse and subdivide.
+ *
+ * Note: we enforce subdivide-only or collapse-only
+ * in unified_edge_queue_create, for the solver to
+ * converge properly edge splitting needs to be
+ * able to collapse degenerate edges.
+ */
+void EdgeQueueContext::step_intern()
 {
 
   float min_w, max_w;
+
+#ifdef DYNTOPO_USE_SEP_HEAPS
+  BMEdge *min_e = !min_heap.empty() ? min_heap.top(&min_w) : nullptr;
+  BMEdge *max_e = !max_heap.empty() ? max_heap.top(&max_w) : nullptr;
+
+  min_e = pop_invalid_edges(min_heap, min_e, min_w, false);
+  max_e = pop_invalid_edges(max_heap, max_e, max_w, false);
+#else
   BMEdge *min_e = edge_heap.peek_min(&min_w);
-  min_e = pop_invalid_edges(min_e, min_w, false);
+  min_e = pop_invalid_edges(edge_heap, min_e, min_w, false);
   if (edge_heap.empty()) {
     return;
   }
 
   BMEdge *max_e = edge_heap.peek_max(&max_w);
-  max_e = pop_invalid_edges(max_e, max_w, true);
+  max_e = pop_invalid_edges(edge_heap, max_e, max_w, true);
   if (edge_heap.empty()) {
     return;
   }
+#endif
 
   if (min_w > limit_len_min_sqr) {
     min_e = nullptr;
@@ -2311,51 +2395,21 @@ void EdgeQueueContext::step_multi()
   stochastic_smooth(e->v1);
   stochastic_smooth(e->v2);
 
-  switch (op) {
-    case PBVH_Collapse:
-      edge_heap.pop_min();
-      collapse_edge(pbvh, e, e->v1, e->v2);
-      break;
-    case PBVH_Subdivide:
-      edge_heap.pop_max();
-      split_edge(e);
-      break;
+  if (op == PBVH_Collapse) {
+#ifdef DYNTOPO_USE_SEP_HEAPS
+    min_heap.pop();
+#else
+    edge_heap.pop_min();
+#endif
+    collapse_edge(pbvh, e, e->v1, e->v2);
   }
-
-  count++;
-}
-
-/* Collapse or subdivide. */
-void EdgeQueueContext::step_single()
-{
-  BMEdge *e = nullptr;
-  float w;
-
-  switch (mode & (PBVH_Subdivide | PBVH_Collapse)) {
-    case PBVH_Collapse:
-      e = edge_heap.pop_min(&w);
-      e = pop_invalid_edges(e, w, false);
-
-      if (e) {
-        e->head.hflag &= ~EDGE_QUEUE_FLAG;
-        modified = true;
-        stochastic_smooth(e->v1);
-        stochastic_smooth(e->v2);
-        collapse_edge(pbvh, e, e->v1, e->v2);
-      }
-      break;
-    case PBVH_Subdivide:
-      e = edge_heap.pop_max(&w);
-      e = pop_invalid_edges(e, w, true);
-
-      if (e) {
-        e->head.hflag &= ~EDGE_QUEUE_FLAG;
-        modified = true;
-        stochastic_smooth(e->v1);
-        stochastic_smooth(e->v2);
-        split_edge(e);
-      }
-      break;
+  else if (op == PBVH_Subdivide) {
+#ifdef DYNTOPO_USE_SEP_HEAPS
+    max_heap.pop();
+#else
+    edge_heap.pop_max();
+#endif
+    split_edge(e);
   }
 
   count++;
@@ -2372,92 +2426,7 @@ void EdgeQueueContext::step()
     flushed_ = true;
   }
 
-  if ((mode & (PBVH_Subdivide | PBVH_Collapse)) == (PBVH_Subdivide | PBVH_Collapse)) {
-    step_multi();
-  }
-  else if (mode & (PBVH_Subdivide | PBVH_Collapse)) {
-    step_single();
-  }
-
-#if 0
-  switch (ops[curop]) {
-    case PBVH_None:
-      break;
-    case PBVH_Subdivide: {
-      if (edge_heap.max_weight() < limit_len_max_sqr) {
-        break;
-      }
-
-      float w = 0.0f;
-      e = edge_heap.pop_max(&w);
-
-      while (!edge_heap.empty() && e &&
-             (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
-              fabs(calc_weighted_length(this, e->v1, e->v2, SPLIT) - w) > w * 0.1))
-      {
-        if (e && !bm_elem_is_free((BMElem *)e, BM_EDGE)) {
-          e->head.hflag &= ~EDGE_QUEUE_FLAG;
-          edge_heap.insert(calc_weighted_length(this, e->v1, e->v2, SPLIT), e);
-        }
-
-        e = edge_heap.pop_max(&w);
-      }
-
-      if (!e || bm_elem_is_free((BMElem *)e, BM_EDGE) || w < limit_len_max_sqr) {
-        break;
-      }
-
-      stochastic_smooth(e->v1);
-      stochastic_smooth(e->v2);
-
-      e->head.hflag &= ~EDGE_QUEUE_FLAG;
-      split_edge(e);
-
-      break;
-    }
-    case PBVH_Collapse: {
-      if (edge_heap.min_weight() > limit_len_min_sqr) {
-        break;
-      }
-
-      e = edge_heap.pop_min();
-      while (!edge_heap.empty() && e &&
-             (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
-              calc_weighted_length(this, e->v1, e->v2, COLLAPSE) > limit_len_min_sqr))
-      {
-        e = edge_heap.pop_min();
-      }
-
-      if (!e || bm_elem_is_free((BMElem *)e, BM_EDGE)) {
-        break;
-      }
-
-      if (bm_elem_is_free((BMElem *)e->v1, BM_VERT) || bm_elem_is_free((BMElem *)e->v2, BM_VERT)) {
-        printf("%s: error! operated on freed bmesh elements! e: %p, e->v1: %p, e->v2: %p\n",
-               __func__,
-               e,
-               e->v1,
-               e->v2);
-        break;
-      }
-
-      stochastic_smooth(e->v1);
-      stochastic_smooth(e->v2);
-
-      modified = true;
-      collapse_edge(pbvh, e, e->v1, e->v2);
-      VALIDATE_LOG(pbvh->bm_log);
-      break;
-    }
-    case PBVH_LocalSubdivide:
-    case PBVH_LocalCollapse:
-    case PBVH_Cleanup:
-      BLI_assert_unreachable();
-      break;
-  }
-
-  count++;
-#endif
+  step_intern();
 }
 
 void EdgeQueueContext::report()
@@ -2513,7 +2482,7 @@ bool remesh_topology(BrushTester *brush_tester,
   using Clock = std::chrono::high_resolution_clock;
 
   quality *= quality;
-  int time_limit = int(1.0f * (1.0f - quality) + 550.0f * quality);
+  int time_limit = int(8.0f * (1.0f - quality) + 550.0f * quality);
 
   auto time = Clock::now();
   Clock::duration limit = std::chrono::duration_cast<Clock::duration>(
@@ -2783,21 +2752,21 @@ void EdgeQueueContext::split_edge(BMEdge *e)
     BMVert *vs[3] = {newl->v, newl->next->v, newl->next->next->v};
     if (brush_tester->tri_in_range(vs, newl->f->no)) {
       float w = 0.0f;
-      PBVHTopologyUpdateMode mode = edge_queue_test(this, pbvh, newl->e, &w);
+      WeightMode mode = edge_queue_test(this, pbvh, newl->e, &w);
 
-      if (mode == PBVH_Subdivide) {
+      if (mode == SPLIT) {
         add_split_edge_recursive(this, newl, w, limit_len_max, 0);
       }
-      else if (mode == PBVH_Collapse) {
-        insert_edge(newl->e, w);
+      else if (mode == COLLAPSE) {
+        insert_edge(newl->e, w, mode);
       }
     }
     else {
       float w = 0.0f;
-      PBVHTopologyUpdateMode mode = edge_queue_test(this, pbvh, newl->e, &w);
+      WeightMode mode = edge_queue_test(this, pbvh, newl->e, &w);
 
-      if (mode == PBVH_Collapse) {
-        insert_edge(newl->e, w);
+      if (mode == COLLAPSE) {
+        insert_edge(newl->e, w, mode);
       }
     }
   }
