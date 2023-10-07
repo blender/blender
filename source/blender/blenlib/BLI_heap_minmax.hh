@@ -208,9 +208,21 @@ class MinMaxHeap {
     return max().weight;
   }
 
-  Value pop_min()
+  Value peek_min(float *r_w = nullptr)
+  {
+    if (r_w) {
+      *r_w = nodes[0].weight;
+    }
+
+    return nodes[0].value;
+  }
+
+  Value pop_min(float *r_w = nullptr)
   {
     if (nodes.size() == 1) {
+      if (r_w) {
+        *r_w = nodes[0].weight;
+      }
       return nodes.pop_last().value;
     }
 
@@ -221,6 +233,10 @@ class MinMaxHeap {
 #endif
 
     Value ret = nodes[0].value;
+    if (r_w) {
+      *r_w = nodes[0].weight;
+    }
+
     MinMaxHeapNode last = heap_pop_last();
 
     nodes[0].weight = last.weight;
@@ -235,6 +251,23 @@ class MinMaxHeap {
 #endif
 
     return ret;
+  }
+
+  Value peek_max(float *r_w = nullptr)
+  {
+    if (nodes.size() == 1) {
+      if (r_w) {
+        *r_w = nodes[0].weight;
+      }
+      return nodes[0].value;
+    }
+
+    MinMaxHeapNode &node = max();
+    if (r_w) {
+      *r_w = node.weight;
+    }
+
+    return node.value;
   }
 
   Value pop_max(float *r_w = nullptr)

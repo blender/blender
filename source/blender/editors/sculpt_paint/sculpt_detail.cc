@@ -129,6 +129,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
   void *mask_cb_data;
 
   SCULPT_dyntopo_automasking_init(ss, sd, nullptr, ob, &mask_cb, &mask_cb_data);
+  BM_log_entry_check_customdata(ss->bm, ss->bm_log);
 
   PBVHTopologyUpdateMode mode = PBVHTopologyUpdateMode(0);
   if (ss->cached_dyntopo.flag & DYNTOPO_SUBDIVIDE) {
@@ -203,7 +204,13 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     remesher.surface_smooth_fac = 0.25;
     remesher.start();
 
-    while (!remesher.done()) {
+    float quality = ss->cached_dyntopo.quality;
+    float time_limit = (min_ff(1.0f * (100.0f - quality + 2500.0f * quality), 2500.0f))*0.001f;
+    float quality_time = PIL_check_seconds_timer();
+
+    printf("Remesh\n");
+
+    while (!remesher.done() && PIL_check_seconds_timer() - quality_time < time_limit) {
       remesher.step();
 
       if (developer_mode &&
@@ -223,9 +230,9 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     }
 
     remesher.finish();
+
     /* Push a new subentry. */
     BM_log_entry_add_ex(ss->bm, ss->bm_log, true);
-
     blender::bke::dyntopo::after_stroke(ss->pbvh, true);
 
     unlock_main_thread();

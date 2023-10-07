@@ -13,7 +13,7 @@
  * noting that the nil special value in the paper is equivalent to JUMP_FLOODING_NON_FLOODED_VALUE.
  *
  * The `gpu_shader_compositor_jump_flooding_lib.glsl` library contains the necessary utility
- * functions to initialize and encode the jump flooding values. */
+ * functions to initialize, encode, and extract the information in the jump flooding values. */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
@@ -32,22 +32,19 @@ void main()
     for (int i = -1; i <= 1; i++) {
       ivec2 offset = ivec2(i, j) * step_size;
 
-      /* Use #JUMP_FLOODING_NON_FLOODED_VALUE as a fallback value to exempt out of bound pixels from
-       * the loop as can be seen in the following continue condition. */
-      ivec4 fallback = ivec4(JUMP_FLOODING_NON_FLOODED_VALUE, ivec2(0));
-      ivec2 jump_flooding_value = texture_load(input_tx, texel + offset, fallback).xy;
+      /* Use #JUMP_FLOODING_NON_FLOODED_VALUE as a fallback value to exempt out of bound pixels
+       * from the loop as can be seen in the following continue condition. */
+      vec4 value = texture_load(input_tx, texel + offset, JUMP_FLOODING_NON_FLOODED_VALUE);
 
       /* The pixel is either not flooded yet or is out of bound, so skip it. */
       if (all(equal(jump_flooding_value, JUMP_FLOODING_NON_FLOODED_VALUE))) {
         continue;
       }
 
-      /* The neighboring pixel is flooded, so its flooding value is the texel of the closest seed
-       * pixel to this neighboring pixel. */
-      ivec2 closest_seed_texel_to_neighbor = jump_flooding_value;
-
-      /* Compute the squared distance to the neighbor's closest seed pixel. */
-      float squared_distance = distance_squared(vec2(closest_seed_texel_to_neighbor), vec2(texel));
+      /* Extract the position of the closest seed pixel to this neighboring pixel and compute the
+       * squared distance from that position to the center pixel. */
+      ivec2 position = extract_jump_flooding_closest_seed_texel(value);
+      float squared_distance = distance_squared(vec2(position), vec2(texel));
 
       if (squared_distance < minimum_squared_distance) {
         minimum_squared_distance = squared_distance;
@@ -57,8 +54,8 @@ void main()
   }
 
   /* If the minimum squared distance is still #FLT_MAX, that means the loop never got past the
-   * continue condition and thus no flooding happened. If flooding happened, we encode the closest
-   * seed texel in the format expected by the algorithm. */
+   * continue condition and thus no flooding happened. If flooding happened, we write the closest
+   * seed position as well as the distance to it. */
   bool flooding_happened = minimum_squared_distance != FLT_MAX;
   ivec2 jump_flooding_value = encode_jump_flooding_value(closest_seed_texel, flooding_happened);
 

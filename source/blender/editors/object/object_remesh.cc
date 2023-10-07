@@ -75,6 +75,8 @@
 
 #include "object_intern.h" /* own include */
 
+#include "bmesh_idmap.h"
+
 using blender::float3;
 using blender::IndexRange;
 using blender::Span;
@@ -101,11 +103,6 @@ static bool object_remesh_poll(bContext *C)
 
   if (BKE_object_is_in_editmode(ob)) {
     CTX_wm_operator_poll_msg_set(C, "The remesher cannot run from edit mode");
-    return false;
-  }
-
-  if (ob->mode == OB_MODE_SCULPT && ob->sculpt->bm) {
-    CTX_wm_operator_poll_msg_set(C, "The remesher cannot run with dyntopo activated");
     return false;
   }
 
@@ -145,16 +142,27 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     isovalue = mesh->remesh_voxel_size * 0.3f;
   }
 
+  bool is_dyntopo = false;
+
+  if (ob->mode == OB_MODE_SCULPT) {
+    BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), ob, false, false, false);
+    ED_sculpt_undo_geometry_begin(ob, op);
+
+    if (ob->sculpt->bm) {
+      is_dyntopo = true;
+      BKE_sculptsession_bm_to_me(ob, false);
+
+      /* Destroy dyntopo IDs so we don't waste time reprojecting them. */
+      BM_idmap_clear_attributes_mesh(mesh);
+    }
+  }
+
   Mesh *new_mesh = BKE_mesh_remesh_voxel(
       mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity, isovalue);
 
   if (!new_mesh) {
     BKE_report(op->reports, RPT_ERROR, "Voxel remesher failed to create mesh");
     return OPERATOR_CANCELLED;
-  }
-
-  if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_begin(ob, op);
   }
 
   if (mesh->flag & ME_REMESH_FIX_POLES && mesh->remesh_voxel_adaptivity <= 0.0f) {
@@ -182,8 +190,24 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
   BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), smooth_normals);
-
+  ;
   if (ob->mode == OB_MODE_SCULPT) {
+    /* Convert mesh back to bmesh. */
+    if (is_dyntopo) {
+      BMesh *bm = BKE_sculptsession_empty_bmesh_create();
+      BMeshFromMeshParams params = {0};
+      params.calc_face_normal = true;
+      params.use_shapekey = true;
+      params.active_shapekey = ob->shapenr;
+      params.copy_temp_cdlayers = false;
+
+      BM_mesh_bm_from_me(bm, mesh, &params);
+      BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+
+      BKE_sculpt_set_bmesh(ob, bm, true);
+      BKE_sculpt_ensure_idmap(ob);
+    }
+
     ED_sculpt_undo_geometry_end(ob);
   }
 

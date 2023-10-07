@@ -423,8 +423,12 @@ static int partition_indices_material(
 
 void pbvh_grow_nodes(PBVH *pbvh, int totnode)
 {
+  int old = pbvh->nodes.size();
   pbvh->nodes.resize(totnode);
-  pbvh->nodes[pbvh->nodes.size() - 1].id = pbvh->nodes.size();
+
+  for (int i = old; i < totnode; i++) {
+    pbvh->nodes[i].id = pbvh->idgen++;
+  }
 }
 
 /* Add a vertex to the map, with a positive value for unique vertices and

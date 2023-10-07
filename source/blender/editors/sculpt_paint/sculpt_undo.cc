@@ -1037,6 +1037,21 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
   }
 }
 
+static void sculpt_unode_bmlog_ensure(SculptSession *ss, SculptUndoNode *unode)
+{
+  if (!ss->bm_log && ss->bm && unode->bm_entry) {
+    ss->bm_log = BM_log_from_existing_entries_create(ss->bm, ss->bm_idmap, unode->bm_entry);
+
+    if (!unode->applied) {
+      BM_log_undo_skip(ss->bm, ss->bm_log);
+    }
+
+    if (ss->pbvh) {
+      BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
+    }
+  }
+}
+
 /* Create empty sculpt BMesh and enable logging. */
 static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_redo)
 {
@@ -1044,6 +1059,11 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   Mesh *me = static_cast<Mesh *>(ob->data);
 
   SCULPT_pbvh_clear(ob);
+
+  if (ss->bm_idmap) {
+    BM_idmap_destroy(ss->bm_idmap);
+    ss->bm_idmap = nullptr;
+  }
 
   ss->active_face.i = ss->active_vertex.i = PBVH_REF_NONE;
 
@@ -1068,33 +1088,24 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   /* Calculate normals. */
   BM_mesh_normals_update(ss->bm);
 
+  /* Ensure mask. */
+  if (!CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
+    BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+  }
+
   BKE_sculptsession_update_attr_refs(ob);
 
   if (ss->pbvh) {
     blender::bke::paint::load_all_original(ob);
   }
 
-  if (ss->bm_idmap) {
-    BM_idmap_destroy(ss->bm_idmap);
-    ss->bm_idmap = nullptr;
-  }
-
   BKE_sculpt_ensure_idmap(ob);
 
   if (!ss->bm_log) {
-    /* Restore the BMLog using saved entries. */
-    ss->bm_log = BM_log_from_existing_entries_create(ss->bm, ss->bm_idmap, unode->bm_entry);
-    BMLogEntry *entry = is_redo ? BM_log_entry_prev(unode->bm_entry) : unode->bm_entry;
-
-    BM_log_set_current_entry(ss->bm_log, entry);
+    sculpt_unode_bmlog_ensure(ss, unode);
   }
   else {
     BM_log_set_idmap(ss->bm_log, ss->bm_idmap);
-  }
-
-  if (!CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
-    BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
-    BKE_sculptsession_update_attr_refs(ob);
   }
 
   SCULPT_update_all_valence_boundary(ob);
@@ -1107,23 +1118,19 @@ static void sculpt_undo_bmesh_restore_begin(
 {
   if (unode->applied) {
     if (ss->bm && ss->bm_log) {
-      /*note that we can't log ids here.
-        not entirely sure why, and in thoery it shouldn't be necassary.
-        ids end up corrupted.
-        */
-
-#if 1
-      // BM_log_all_ids(ss->bm, ss->bm_log, unode->bm_entry);
-
-      // need to run bmlog undo on empty log,
-      // getting a refcount error in the log
-      // ref counting system otherwise
-
-      if (dir == -1) {
-        BM_log_undo_skip(ss->bm, ss->bm_log);
+#if 0
+    if (dir == 1) {
+      BM_log_redo_skip(ss->bm, ss->bm_log);
+    }
+    else {
+      BM_log_undo_skip(ss->bm, ss->bm_log);
+    }
+#else
+      if (dir == 1) {
+        BM_log_redo(ss->bm, ss->bm_log, nullptr);
       }
       else {
-        BM_log_redo_skip(ss->bm, ss->bm_log);
+        BM_log_undo(ss->bm, ss->bm_log, nullptr);
       }
 #endif
     }
@@ -1133,13 +1140,8 @@ static void sculpt_undo_bmesh_restore_begin(
     unode->applied = false;
   }
   else {
-    /*load bmesh from mesh data*/
+    /* Load bmesh from mesh data. */
     sculpt_undo_bmesh_enable(ob, unode, true);
-
-#if 1
-    // need to run bmlog undo on empty log,
-    // getting a refcount error in the log
-    // ref counting system otherwise
 
     if (dir == 1) {
       BM_log_redo(ss->bm, ss->bm_log, nullptr);
@@ -1147,7 +1149,6 @@ static void sculpt_undo_bmesh_restore_begin(
     else {
       BM_log_undo(ss->bm, ss->bm_log, nullptr);
     }
-#endif
 
     unode->applied = true;
   }
@@ -1164,11 +1165,6 @@ static void sculpt_undo_bmesh_restore_end(
   if (unode->applied) {
     /*load bmesh from mesh data*/
     sculpt_undo_bmesh_enable(ob, unode, false);
-
-#if 1
-    // need to run bmlog undo on empty log,
-    // getting a refcount error in the log
-    // ref counting system otherwise
 
     if (dir == -1) {
       BM_log_undo(ss->bm, ss->bm_log, nullptr);
@@ -1190,16 +1186,11 @@ static void sculpt_undo_bmesh_restore_end(
     BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
       BM_ELEM_CD_SET_INT(f, ss->cd_face_node_offset, DYNTOPO_NODE_NONE);
     }
-#endif
 
     unode->applied = false;
   }
   else {
-#if 1
     if (ss->bm && ss->bm_log) {
-      // need to run bmlog undo on empty log,
-      // getting a refcount error in the log
-      // ref counting system otherwise
 
       if (dir == -1) {
         BM_log_undo_skip(ss->bm, ss->bm_log);
@@ -1208,7 +1199,6 @@ static void sculpt_undo_bmesh_restore_end(
         BM_log_redo_skip(ss->bm, ss->bm_log);
       }
     }
-#endif
 
     /* Disable dynamic topology sculpting. */
     SCULPT_dynamic_topology_disable(C, nullptr);
@@ -1309,9 +1299,7 @@ static int sculpt_undo_bmesh_restore(
 {
   // handle transition from another undo type
 
-  if (!ss->bm_log && ss->bm && unode->bm_entry) {  // && BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    ss->bm_log = BM_log_from_existing_entries_create(ss->bm, ss->bm_idmap, unode->bm_entry);
-  }
+  sculpt_unode_bmlog_ensure(ss, unode);
 
   bool ret = false;
 
@@ -1432,8 +1420,11 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
      * Undo steps like geometry does not need object to be updated before they run and will
      * ensure object is updated after the node is handled. */
     const SculptUndoNode *first_unode = (const SculptUndoNode *)lb->first;
-    if (first_unode->type != SCULPT_UNDO_GEOMETRY &&
-        first_unode->type != SCULPT_UNDO_DYNTOPO_BEGIN) {
+    if (!ELEM(first_unode->type,
+              SCULPT_UNDO_GEOMETRY,
+              SCULPT_UNDO_DYNTOPO_BEGIN,
+              SCULPT_UNDO_DYNTOPO_SYMMETRIZE))
+    {
       BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask, false);
     }
 
@@ -1687,9 +1678,6 @@ static void sculpt_undo_free_list(ListBase *lb)
       unode->bm_entry = nullptr;
       unode->bm_log = nullptr;
     }
-
-    sculpt_undo_geometry_free_data(&unode->geometry_original);
-    sculpt_undo_geometry_free_data(&unode->geometry_modified);
 
     if (unode->face_sets) {
       MEM_freeN(unode->face_sets);
@@ -2147,18 +2135,7 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
 
   /*when transition between undo step types the log might simply
   have been freed, look for entries to rebuild it with*/
-  if (!ss->bm_log) {
-    if (unode && unode->bm_entry) {
-      ss->bm_log = BM_log_from_existing_entries_create(ss->bm, ss->bm_idmap, unode->bm_entry);
-    }
-    else {
-      ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap);
-    }
-
-    if (ss->pbvh) {
-      BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
-    }
-  }
+  sculpt_unode_bmlog_ensure(ss, unode);
 }
 
 static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, SculptUndoType type)

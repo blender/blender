@@ -3342,6 +3342,21 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
   MEM_freeN(map);
 }
 
+namespace blender::bke::pbvh {
+void split_bmesh_nodes(PBVH *pbvh)
+{
+  for (int i : pbvh->nodes.index_range()) {
+    PBVHNode *n = &pbvh->nodes[i];
+
+    if (n->flag & PBVH_Leaf) {
+      /* Recursively split nodes that have gotten too many
+       * elements */
+      pbvh_bmesh_node_limit_ensure(pbvh, i);
+    }
+  }
+}
+}  // namespace blender::bke::pbvh
+
 /* Prunes leaf nodes that are too small or degenerate. */
 static void pbvh_bmesh_balance_tree(PBVH *pbvh)
 {
@@ -3726,8 +3741,6 @@ static void pbvh_bmesh_join_nodes(PBVH *pbvh)
 namespace blender::bke::dyntopo {
 void after_stroke(PBVH *pbvh, bool force_balance)
 {
-  int totnode = pbvh->nodes.size();
-
   BKE_pbvh_update_bounds(pbvh, (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw));
 
   pbvh_bmesh_check_nodes(pbvh);
@@ -3741,7 +3754,7 @@ void after_stroke(PBVH *pbvh, bool force_balance)
     pbvh_bmesh_check_nodes(pbvh);
     pbvh->balance_counter = 0;
 
-    totnode = pbvh->nodes.size();
+    int totnode = pbvh->nodes.size();
 
     for (int i = 0; i < totnode; i++) {
       PBVHNode *n = &pbvh->nodes[i];

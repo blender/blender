@@ -595,6 +595,10 @@ struct BMLogEntry {
 
   template<typename T> T *get_elem_from_id(BMesh * /*bm*/, BMID<T> id)
   {
+    if (id.id < 0 || id.id >= idmap->map_size) {
+      return nullptr;
+    }
+
     T *elem = reinterpret_cast<T *>(BM_idmap_lookup(idmap, id.id));
     char htype = 0;
 
@@ -628,9 +632,8 @@ struct BMLogEntry {
   {
     int id = _id.id;
 
-    if (check_unique) {
-      BMElem *old;
-      old = BM_idmap_lookup(idmap, id);
+    if (check_unique && id >= 0 && id < idmap->map_size) {
+      BMElem *old = BM_idmap_lookup(idmap, id);
 
       if (old && old != (BMElem *)elem) {
         printf(
@@ -1151,12 +1154,23 @@ struct BMLog {
 
   void undo(BMesh *bm, BMLogCallbacks *callbacks)
   {
+    if (!current_entry) {
+      current_entry = first_entry;
+      while (current_entry->next) {
+        current_entry = current_entry->next;
+      }
+    }
+
     current_entry->undo(bm, callbacks);
     current_entry = current_entry->prev;
   }
 
   void redo(BMesh *bm, BMLogCallbacks *callbacks)
   {
+    if (!current_entry) {
+      current_entry = first_entry;
+    }
+
     current_entry = current_entry->next;
     if (current_entry) {
       current_entry->redo(bm, callbacks);

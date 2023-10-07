@@ -52,7 +52,7 @@
 #include <chrono>
 #include <cstdio>
 
-// #define CLEAR_TAGS_IN_THREAD
+#define CLEAR_TAGS_IN_THREAD
 
 #define EDGE_QUEUE_FLAG BM_ELEM_TAG
 
@@ -147,6 +147,9 @@ static void surface_smooth_v_safe(
   int boundflag = BM_ELEM_CD_GET_INT(v, pbvh->cd_boundary_flag);
   int bound1 = boundflag & boundmask;
 
+  if (boundflag & SCULPT_BOUNDARY_MESH) {
+    return;
+  }
   if (boundflag & (cornermask | SCULPT_BOUNDARY_SHARP_ANGLE)) {
     return;
   }
@@ -296,6 +299,29 @@ enum WeightMode {
   COLLAPSE = 1,
 };
 
+#if 0
+static float get_cross_edge_len(BMEdge *e)
+{
+  BMLoop *l = e->l;
+
+  float cross = 0.0f;
+  float tot = 0.0f;
+  do {
+    float l1 = len_squared_v3v3(l->next->e->v1->co, l->next->e->v2->co);
+    float l2 = len_squared_v3v3(l->prev->e->v1->co, l->prev->e->v2->co);
+
+    cross += l1 + l2;
+    tot += 2.0f;
+  } while ((l = l->radial_next) != e->l);
+
+  if (tot > 0.0f) {
+    cross /= tot;
+  }
+
+  return cross;
+}
+#endif
+
 BLI_INLINE float calc_weighted_length(EdgeQueueContext *eq_ctx,
                                       BMVert *v1,
                                       BMVert *v2,
@@ -352,21 +378,6 @@ void EdgeQueueContext::surface_smooth(BMVert *v, float fac)
 void EdgeQueueContext::insert_edge(BMEdge *e, float w)
 {
   if (!(e->head.hflag & EDGE_QUEUE_FLAG)) {
-    if (e->l) {
-      float len_sq = len_squared_v3v3(e->v1->co, e->v2->co);
-      float other_len = FLT_MAX;
-
-      BMLoop *l = e->l;
-      do {
-        other_len = min_ff(other_len, len_squared_v3v3(l->next->e->v1->co, l->next->e->v2->co));
-        other_len = min_ff(other_len, len_squared_v3v3(l->prev->e->v1->co, l->prev->e->v2->co));
-      } while ((l = l->radial_next) != e->l);
-
-      avg_elen += len_sq;
-      cross_elen += other_len;
-      totedge += 1.0f;
-    }
-
     edge_heap.insert(w, e);
     e->head.hflag |= EDGE_QUEUE_FLAG;
 
@@ -705,6 +716,9 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
  * then accuracy in any individual runs.  Profiling
  * has shown this loop overwhelms the L3 cache,
  * so randomly skip bits of it.
+ *
+ * Unfortunately profiling has shown it is necassary to clear
+ * the flags here and not in the main thread.
  */
 #ifdef CLEAR_TAGS_IN_THREAD
   for (BMFace *f : *node->bm_faces) {
@@ -714,7 +728,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
     f->head.hflag &= ~facetag;
 
     /* Stochastically skip faces. */
-    if (rand.get_uint32() > (1 << 16)) {
+    if (rand.get_float() > 0.8f) {
       continue;
     }
 
@@ -771,16 +785,8 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
          * but tangentially to surface.  We can stochastically skip this and still get the
          * benefit to convergence.
          */
-        if (do_smooth && rand.get_float() > 0.75f &&
-            BM_ELEM_CD_GET_INT(l_iter->v, pbvh->cd_vert_node_offset) == ni)
-        {
-          PBVHVertRef sv = {(intptr_t)l_iter->v};
-          surface_smooth_v_safe(eq_ctx->ss,
-                                tdata->pbvh,
-                                l_iter->v,
-                                eq_ctx->surface_smooth_fac *
-                                    eq_ctx->mask_cb(sv, eq_ctx->mask_cb_data),
-                                distort_correction_mode);
+        if (BM_ELEM_CD_GET_INT(l_iter->v, pbvh->cd_vert_node_offset) == ni) {
+          eq_ctx->stochastic_smooth(l_iter->v);
         }
 
         float w = 0.0f;
@@ -2040,6 +2046,7 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
   view_normal = view_normal_;
 
   ignore_loop_data = !bm->ldata.totlayer;
+
   updatePBVH = updatePBVH_;
   cd_vert_mask_offset = pbvh->cd_vert_mask_offset;
   cd_vert_node_offset = pbvh->cd_vert_node_offset;
@@ -2058,13 +2065,6 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
 
   surface_smooth_fac = DYNTOPO_SAFE_SMOOTH_FAC;
 
-  if (mode & PBVH_LocalSubdivide) {
-    mode |= PBVH_Subdivide;
-  }
-  if (mode & PBVH_LocalSubdivide) {
-    mode |= PBVH_Collapse;
-  }
-
 #ifdef DYNTOPO_REPORT
   report();
 #endif
@@ -2078,40 +2078,6 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
 
   if (mode & (PBVH_Subdivide | PBVH_Collapse)) {
     unified_edge_queue_create(this, pbvh, mode & (PBVH_LocalSubdivide | PBVH_LocalCollapse));
-  }
-
-  totop = 0;
-
-  if ((mode & PBVH_Subdivide) && (mode & PBVH_Collapse)) {
-    ops[0] = PBVH_Subdivide;
-    ops[1] = PBVH_Collapse;
-    totop = 2;
-
-    float len1 = avg_elen / totedge;
-    float len2 = cross_elen / totedge;
-
-    steps[0] = 1;
-    steps[1] = 1;
-
-    /* Prevent thrashing on long skinny faces. */
-    if (len2) {
-      float ratio = len1 / len2;
-
-      /* Increase subdivision steps. */
-      steps[0] = max_ii(min_ii(int(powf(ratio, 2.0f) * 10.0f), 500), 1);
-    }
-  }
-  else if (mode & PBVH_Subdivide) {
-    ops[0] = PBVH_Subdivide;
-    totop = 1;
-
-    steps[0] = 1;
-  }
-  else if (mode & PBVH_Collapse) {
-    ops[0] = PBVH_Collapse;
-    totop = 1;
-
-    steps[0] = 1;
   }
 }
 
@@ -2139,7 +2105,7 @@ bool EdgeQueueContext::done()
     return true;
   }
 
-  return totop == 0 || edge_heap.empty();
+  return (mode & (PBVH_Collapse | PBVH_Subdivide | PBVH_LocalCollapse)) == 0;
 }
 
 bool EdgeQueueContext::cleanup_valence_34()
@@ -2149,9 +2115,7 @@ bool EdgeQueueContext::cleanup_valence_34()
 
 void EdgeQueueContext::finish()
 {
-  while (!edge_heap.empty()) {
-    BMEdge *e = edge_heap.pop_max();
-
+  for (BMEdge *e : edge_heap.values()) {
     if (!BM_elem_is_free(reinterpret_cast<BMElem *>(e), BM_EDGE)) {
       e->head.hflag &= ~EDGE_QUEUE_FLAG;
     }
@@ -2178,8 +2142,8 @@ void EdgeQueueContext::finish()
 
         /* Recursively split nodes that have gotten too many
          * elements */
-        if (updatePBVH) {
-          pbvh_bmesh_node_limit_ensure(pbvh, i);
+        if (updatePBVH) {  // && !(G.debug_value & 1024)) {
+          // pbvh_bmesh_node_limit_ensure(pbvh, i);
         }
       }
     }
@@ -2218,38 +2182,204 @@ void EdgeQueueContext::finish()
   BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
 }
 
+BMEdge *EdgeQueueContext::pop_invalid_edges(BMEdge *in_e, float &w, bool is_max)
+{
+  BMEdge *e = in_e;
+  WeightMode weightmode = is_max ? SPLIT : COLLAPSE;
+
+  while (!edge_heap.empty() && e &&
+         (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
+          fabs(calc_weighted_length(this, e->v1, e->v2, weightmode) - w) > w * 0.1))
+  {
+    if (is_max) {
+      edge_heap.pop_max();
+    }
+    else {
+      edge_heap.pop_min();
+    }
+
+    if (edge_heap.empty()) {
+      return static_cast<BMEdge *>(nullptr);
+    }
+
+    /* The edge was freed. */
+    if (bm_elem_is_free((BMElem *)e, BM_EDGE)) {
+      e = is_max ? edge_heap.pop_max(&w) : edge_heap.pop_min(&w);
+      continue;
+    }
+
+    /* The weight was wrong. */
+    e->head.hflag &= ~EDGE_QUEUE_FLAG;
+    edge_heap.insert(calc_weighted_length(this, e->v1, e->v2, weightmode), e);
+
+    if (is_max) {
+      e = edge_heap.peek_max(&w);
+    }
+    else {
+      e = edge_heap.peek_min(&w);
+    }
+  }
+
+  return BM_elem_is_free(reinterpret_cast<BMElem *>(e), BM_EDGE) ? nullptr : e;
+}
+
+void EdgeQueueContext::stochastic_smooth(BMVert *v)
+{
+  if (!surface_relax) {
+    return;
+  }
+
+  if (rand.get_float() > 0.9) {
+    surface_smooth_v_safe(ss,
+                          pbvh,
+                          v,
+                          surface_smooth_fac *
+                              mask_cb({reinterpret_cast<intptr_t>(v)}, mask_cb_data),
+                          distort_correction_mode);
+  }
+}
+
+/* Collapse and subdivide. */
+void EdgeQueueContext::step_multi()
+{
+
+  float min_w, max_w;
+  BMEdge *min_e = edge_heap.peek_min(&min_w);
+  min_e = pop_invalid_edges(min_e, min_w, false);
+  if (edge_heap.empty()) {
+    return;
+  }
+
+  BMEdge *max_e = edge_heap.peek_max(&max_w);
+  max_e = pop_invalid_edges(max_e, max_w, true);
+  if (edge_heap.empty()) {
+    return;
+  }
+
+  if (min_w > limit_len_min_sqr) {
+    min_e = nullptr;
+  }
+  if (max_w < limit_len_max_sqr) {
+    max_e = nullptr;
+  }
+
+  if (!min_e && !max_e) {
+    return;
+  }
+
+  BMEdge *e = nullptr;
+
+  PBVHTopologyUpdateMode op;
+  if (min_e && max_e && (min_e == max_e || fabs(min_w - max_w) < 0.0001f)) {
+    op = (count % 2) ? PBVH_Subdivide : PBVH_Collapse;
+    if (op == PBVH_Subdivide) {
+      e = max_e;
+    }
+    else {
+      e = min_e;
+    }
+  }
+  else if (!min_e) {
+    e = max_e;
+    op = PBVH_Subdivide;
+  }
+  else if (!max_e) {
+    e = min_e;
+    op = PBVH_Collapse;
+  }
+  else {
+    float l1 = sqrtf(calc_weighted_length(this, min_e->v1, min_e->v2, COLLAPSE));
+    float l2 = sqrtf(calc_weighted_length(this, max_e->v1, max_e->v2, SPLIT));
+
+    if ((limit_len_min - l1) * 2.0 > (l2 - limit_len_max)) {
+      op = PBVH_Collapse;
+      e = min_e;
+    }
+    else {
+      op = PBVH_Subdivide;
+      e = max_e;
+    }
+  }
+
+  if (!e) {
+    return;
+  }
+
+  modified = true;
+  e->head.hflag &= ~EDGE_QUEUE_FLAG;
+
+  stochastic_smooth(e->v1);
+  stochastic_smooth(e->v2);
+
+  switch (op) {
+    case PBVH_Collapse:
+      edge_heap.pop_min();
+      collapse_edge(pbvh, e, e->v1, e->v2);
+      break;
+    case PBVH_Subdivide:
+      edge_heap.pop_max();
+      split_edge(e);
+      break;
+  }
+
+  count++;
+}
+
+/* Collapse or subdivide. */
+void EdgeQueueContext::step_single()
+{
+  BMEdge *e = nullptr;
+  float w;
+
+  switch (mode & (PBVH_Subdivide | PBVH_Collapse)) {
+    case PBVH_Collapse:
+      e = edge_heap.pop_min(&w);
+      e = pop_invalid_edges(e, w, false);
+
+      if (e) {
+        e->head.hflag &= ~EDGE_QUEUE_FLAG;
+        modified = true;
+        stochastic_smooth(e->v1);
+        stochastic_smooth(e->v2);
+        collapse_edge(pbvh, e, e->v1, e->v2);
+      }
+      break;
+    case PBVH_Subdivide:
+      e = edge_heap.pop_max(&w);
+      e = pop_invalid_edges(e, w, true);
+
+      if (e) {
+        e->head.hflag &= ~EDGE_QUEUE_FLAG;
+        modified = true;
+        stochastic_smooth(e->v1);
+        stochastic_smooth(e->v2);
+        split_edge(e);
+      }
+      break;
+  }
+
+  count++;
+}
+
 void EdgeQueueContext::step()
 {
   if (done()) {
     return;
   }
 
-  BMEdge *e = nullptr;
-
-  if (count >= steps[curop]) {
-    curop = (curop + 1) % totop;
-    count = 0;
-
+  /* TODO: this has something to do with detail floodfill op, review it. */
+  if (count % 100 == 0) {
     flushed_ = true;
   }
 
-  RandomNumberGenerator srand(PIL_check_seconds_timer() * 10000);
+  if ((mode & (PBVH_Subdivide | PBVH_Collapse)) == (PBVH_Subdivide | PBVH_Collapse)) {
+    step_multi();
+  }
+  else if (mode & (PBVH_Subdivide | PBVH_Collapse)) {
+    step_single();
+  }
 
-  auto do_smooth = [&](BMVert *v) {
-    if (!surface_relax) {
-      return;
-    }
-
-    if (srand.get_float() > 0.7) {
-      surface_smooth_v_safe(ss,
-                            pbvh,
-                            v,
-                            surface_smooth_fac *
-                                mask_cb({reinterpret_cast<intptr_t>(v)}, mask_cb_data),
-                            distort_correction_mode);
-    }
-  };
-
+#if 0
   switch (ops[curop]) {
     case PBVH_None:
       break;
@@ -2277,8 +2407,8 @@ void EdgeQueueContext::step()
         break;
       }
 
-      do_smooth(e->v1);
-      do_smooth(e->v2);
+      stochastic_smooth(e->v1);
+      stochastic_smooth(e->v2);
 
       e->head.hflag &= ~EDGE_QUEUE_FLAG;
       split_edge(e);
@@ -2311,8 +2441,8 @@ void EdgeQueueContext::step()
         break;
       }
 
-      do_smooth(e->v1);
-      do_smooth(e->v2);
+      stochastic_smooth(e->v1);
+      stochastic_smooth(e->v2);
 
       modified = true;
       collapse_edge(pbvh, e, e->v1, e->v2);
@@ -2327,6 +2457,7 @@ void EdgeQueueContext::step()
   }
 
   count++;
+#endif
 }
 
 void EdgeQueueContext::report()
@@ -2360,7 +2491,6 @@ void EdgeQueueContext::report()
   printf("v: %.2f e: %.2f l: %.2f f: %.2f\n", fvmem, femem, flmem, ffmem);
 }
 
-// EdgeQueueContext
 bool remesh_topology(BrushTester *brush_tester,
                      Object *ob,
                      PBVH *pbvh,
@@ -2383,7 +2513,7 @@ bool remesh_topology(BrushTester *brush_tester,
   using Clock = std::chrono::high_resolution_clock;
 
   quality *= quality;
-  int time_limit = int(8.0f * (1.0f - quality) + 550.0f * quality);
+  int time_limit = int(1.0f * (1.0f - quality) + 550.0f * quality);
 
   auto time = Clock::now();
   Clock::duration limit = std::chrono::duration_cast<Clock::duration>(
@@ -2399,9 +2529,11 @@ bool remesh_topology(BrushTester *brush_tester,
 
   eq_ctx.finish();
 
-  // printf("time: %dms\n",
-  //       int(std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() -
-  //       time).count()));
+#if 0
+   printf("time: %dms\n",
+         int(std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() -
+         time).count()));
+#endif
   return eq_ctx.modified;
 }
 

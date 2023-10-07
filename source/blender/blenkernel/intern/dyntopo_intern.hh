@@ -231,11 +231,6 @@ struct EdgeQueueContext {
   int cd_vert_mask_offset;
   int cd_vert_node_offset;
   int cd_face_node_offset;
-  float avg_elen = 0.0f;
-  float max_elen = 0.f;
-  float min_elen = 0.0f;
-  float cross_elen = 0.0f; /* used to detect skinny edges. */
-  float totedge = 0.0f;
   bool local_mode;
   float surface_smooth_fac;
 
@@ -259,14 +254,13 @@ struct EdgeQueueContext {
 
   bool updatePBVH = false;
   int steps[2];
-  PBVHTopologyUpdateMode ops[2];
-  int totop = 0;
   PBVH *pbvh;
 
   bool ignore_loop_data = false;
 
   bool modified = false;
   int count = 0;
+  int _i = 0;
   int curop = 0;
 
   EdgeQueueContext(BrushTester *brush_tester,
@@ -308,7 +302,14 @@ struct EdgeQueueContext {
 
   blender::RandomNumberGenerator rand;
 
+  /* Stochastically applies to vertices (uses a simple skip test). */
+  void stochastic_smooth(BMVert *v);
+
  private:
+  BMEdge *pop_invalid_edges(BMEdge *in_e, float &w, bool is_max);
+  void step_single();
+  void step_multi();
+
   bool flushed_ = false;
 };
 
