@@ -1573,7 +1573,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     RepeatEvalStorage &eval_storage = *static_cast<RepeatEvalStorage *>(context.storage);
 
     const int iterations_usage_index = zone_info_.indices.outputs.input_usages[0];
-    if (params.output_was_set(iterations_usage_index)) {
+    if (!params.output_was_set(iterations_usage_index)) {
       /* The iterations input is always used. */
       params.set_output(iterations_usage_index, true);
     }

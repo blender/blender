@@ -35,6 +35,14 @@ bool InstanceReference::owns_direct_data() const
   return geometry_set_->owns_direct_data();
 }
 
+bool operator==(const InstanceReference &a, const InstanceReference &b)
+{
+  if (a.geometry_set_ && b.geometry_set_) {
+    return *a.geometry_set_ == *b.geometry_set_;
+  }
+  return a.type_ == b.type_ && a.data_ == b.data_;
+}
+
 Instances::Instances(const Instances &other)
     : references_(other.references_),
       reference_handles_(other.reference_handles_),
@@ -92,14 +100,26 @@ GeometrySet &Instances::geometry_set_from_reference(const int reference_index)
    * reference can't be converted to a geometry set. */
   BLI_assert(references_[reference_index].type() == InstanceReference::Type::GeometrySet);
 
-  /* The const cast is okay because the instance's hash in the set
-   * is not changed by adjusting the data inside the geometry set. */
-  return const_cast<GeometrySet &>(references_[reference_index].geometry_set());
+  return references_[reference_index].geometry_set();
+}
+
+std::optional<int> Instances::find_reference_handle(const InstanceReference &query)
+{
+  for (const int i : references_.index_range()) {
+    const InstanceReference &reference = references_[i];
+    if (reference == query) {
+      return i;
+    }
+  }
+  return std::nullopt;
 }
 
 int Instances::add_reference(const InstanceReference &reference)
 {
-  return references_.index_of_or_add_as(reference);
+  if (std::optional<int> handle = this->find_reference_handle(reference)) {
+    return *handle;
+  }
+  return references_.append_and_get_index(reference);
 }
 
 Span<InstanceReference> Instances::references() const
@@ -195,7 +215,7 @@ void Instances::remove_unused_references()
 
   /* Create new references and a mapping for the handles. */
   Vector<int> handle_mapping;
-  VectorSet<InstanceReference> new_references;
+  Vector<InstanceReference> new_references;
   int next_new_handle = 0;
   bool handles_have_to_be_updated = false;
   for (const int old_handle : IndexRange(tot_references_before)) {
@@ -206,7 +226,7 @@ void Instances::remove_unused_references()
     else {
       const InstanceReference &reference = references_[old_handle];
       handle_mapping.append(next_new_handle);
-      new_references.add_new(reference);
+      new_references.append(reference);
       if (old_handle != next_new_handle) {
         handles_have_to_be_updated = true;
       }
