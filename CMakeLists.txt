@@ -1140,8 +1140,6 @@ set_and_warn_incompatible(WITH_HEADLESS WITH_GHOST_X11 OFF)
 set_and_warn_incompatible(WITH_HEADLESS WITH_INPUT_IME OFF)
 set_and_warn_incompatible(WITH_HEADLESS WITH_XR_OPENXR OFF)
 
-set_and_warn_incompatible(WITH_GHOST_SDL WITH_GHOST_WAYLAND OFF)
-set_and_warn_incompatible(WITH_GHOST_SDL WITH_GHOST_X11 OFF)
 set_and_warn_incompatible(WITH_GHOST_SDL WITH_INPUT_IME OFF)
 set_and_warn_incompatible(WITH_GHOST_SDL WITH_XR_OPENXR OFF)
 
