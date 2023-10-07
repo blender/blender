@@ -229,11 +229,13 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       intern/GHOST_WindowX11.hh
     )
 
-    list(APPEND SRC
-      intern/GHOST_ContextGLX.cc
+    if(WITH_OPENGL_BACKEND)
+      list(APPEND SRC
+        intern/GHOST_ContextGLX.cc
 
-      intern/GHOST_ContextGLX.hh
-    )
+        intern/GHOST_ContextGLX.hh
+      )
+    endif()
 
     if(WITH_GHOST_XDND)
       add_definitions(-DWITH_XDND)
