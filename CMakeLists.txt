@@ -1522,13 +1522,8 @@ endif()
 # -----------------------------------------------------------------------------
 # Configure Python
 
-if(WITH_PYTHON_MODULE)
-  # Not currently supported due to different required Python link flags.
-  if(WITH_GTESTS)
-    message(STATUS "GTests not compatible with Python module, disabling WITH_GTESTS")
-    set(WITH_GTESTS OFF)
-  endif()
-endif()
+# Not currently supported due to different required Python link flags.
+set_and_warn_incompatible(WITH_PYTHON_MODULE WITH_GTESTS OFF)
 
 
 # -----------------------------------------------------------------------------
