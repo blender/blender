@@ -7264,16 +7264,16 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 
   /* Ignore, if the required protocols are not supported. */
   if (UNLIKELY(!display_->wp.relative_pointer_manager || !display_->wp.pointer_constraints)) {
-    return GHOST_kFailure;
+    return false;
   }
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
-    return GHOST_kFailure;
+    return false;
   }
   /* No change, success. */
   if (mode == mode_current) {
-    return GHOST_kSuccess;
+    return true;
   }
 
 #ifdef USE_GNOME_CONFINE_HACK
@@ -7440,7 +7440,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   seat->use_pointer_software_confine = use_software_confine;
 #endif
 
-  return GHOST_kSuccess;
+  return true;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
