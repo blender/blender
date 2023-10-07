@@ -81,7 +81,7 @@ class Package:
 
     def __init__(self, name, is_group=False, is_mandatory=False,
                  version=None, version_short=None, version_min=None, version_mex=None,
-                 sub_packages=(), distro_package_names={}):
+                 sub_packages=(), distro_package_names=None):
         self.name = name
         self.is_group = is_group
         self.is_mandatory = is_mandatory
@@ -91,6 +91,8 @@ class Package:
         self.version_mex = version_mex
         self.version_installed = ...
         self.sub_packages = sub_packages
+        if distro_package_names is None:
+            distro_package_names = {}
         self.distro_package_names = distro_package_names
 
 
