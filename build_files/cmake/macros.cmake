@@ -1455,6 +1455,19 @@ macro(set_and_warn_dependency
   endif()
 endmacro()
 
+macro(set_and_warn_incompatible
+  _dependency _setting _val)
+  # when $_dependency is enabled, forces $_setting = $_val
+  if(${${_dependency}} AND ${${_setting}})
+    if(WITH_STRICT_BUILD_OPTIONS)
+      message(SEND_ERROR "${_dependency} enabled but incompatible with ${_setting}")
+    else()
+      message(STATUS "${_dependency} is enabled but incompatible, setting ${_setting}=${_val}")
+    endif()
+    set(${_setting} ${_val})
+  endif()
+endmacro()
+
 macro(set_and_warn_library_found
   _library_name _library_found _setting)
   if(((NOT ${_library_found}) OR (NOT ${${_library_found}})) AND ${${_setting}})
