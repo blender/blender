@@ -171,6 +171,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->cursor_keymap_status = nullptr;
 #if defined(WIN32) || defined(__APPLE__)
     win->ime_data = nullptr;
+    win->ime_data_is_composing = false;
 #endif
 
     BLI_listbase_clear(&win->event_queue);

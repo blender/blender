@@ -1135,7 +1135,7 @@ uiBut *ui_but_find_new(uiBlock *block_new, const uiBut *but_old);
 
 #ifdef WITH_INPUT_IME
 void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete);
-wmIMEData *ui_but_ime_data_get(uiBut *but);
+const wmIMEData *ui_but_ime_data_get(uiBut *but);
 #endif
 
 /* interface_widgets.cc */

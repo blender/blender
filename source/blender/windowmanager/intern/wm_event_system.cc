@@ -97,6 +97,11 @@
  */
 #define USE_GIZMO_MOUSE_PRIORITY_HACK
 
+#ifdef WITH_INPUT_IME
+BLI_STATIC_ASSERT(sizeof(GHOST_TEventImeData) == sizeof(wmIMEData),
+                  "These structs must match exactly!");
+#endif
+
 /**
  * Return value of handler-operator call.
  */
@@ -5885,8 +5890,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
 #ifdef WITH_INPUT_IME
     case GHOST_kEventImeCompositionStart: {
       event.val = KM_PRESS;
-      win->ime_data = static_cast<wmIMEData *>(customdata);
-      win->ime_data->is_ime_composing = true;
+      win->ime_data = static_cast<const wmIMEData *>(customdata);
+      BLI_assert(win->ime_data != nullptr);
+      win->ime_data_is_composing = true;
       event.type = WM_IME_COMPOSITE_START;
       wm_event_add(win, &event);
       break;
@@ -5899,9 +5905,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
     }
     case GHOST_kEventImeCompositionEnd: {
       event.val = KM_PRESS;
-      if (win->ime_data) {
-        win->ime_data->is_ime_composing = false;
-      }
+      win->ime_data_is_composing = false;
       event.type = WM_IME_COMPOSITE_END;
       wm_event_add(win, &event);
       break;

@@ -3415,7 +3415,7 @@ void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete)
   wm_window_IME_begin(but->active->window, x, y - 4, 0, 0, complete);
 }
 
-wmIMEData *ui_but_ime_data_get(uiBut *but)
+const wmIMEData *ui_but_ime_data_get(uiBut *but)
 {
   if (but->active && but->active->window) {
     return but->active->window->ime_data;
@@ -3706,8 +3706,8 @@ static void ui_do_but_textedit(
 
 #ifdef WITH_INPUT_IME
   wmWindow *win = CTX_wm_window(C);
-  wmIMEData *ime_data = win->ime_data;
-  const bool is_ime_composing = ime_data && ime_data->is_ime_composing;
+  const wmIMEData *ime_data = win->ime_data;
+  const bool is_ime_composing = ime_data && win->ime_data_is_composing;
 #else
   const bool is_ime_composing = false;
 #endif

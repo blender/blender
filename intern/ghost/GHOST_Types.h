@@ -602,7 +602,10 @@ typedef struct {
   GHOST_TEventDataPtr data;
 } GHOST_TEventDragnDropData;
 
-/** similar to wmImeData */
+/**
+ * \warning this is a duplicate of #wmImeData.
+ * All members must remain aligned and the struct size match!
+ */
 typedef struct {
   /** size_t */
   GHOST_TUserDataPtr result_len, composite_len;

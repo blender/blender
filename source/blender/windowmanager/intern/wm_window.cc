@@ -2754,6 +2754,7 @@ void wm_window_IME_end(wmWindow *win)
 
   GHOST_EndIME(static_cast<GHOST_WindowHandle>(win->ghostwin));
   win->ime_data = nullptr;
+  win->ime_data_is_composing = false;
 }
 #endif /* WITH_INPUT_IME */
 
