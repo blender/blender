@@ -674,9 +674,8 @@ namespace blender::nodes::node_geo_simulation_output_cc {
 
 static void node_declare_dynamic(const bNodeTree & /*node_tree*/,
                                  const bNode &node,
-                                 NodeDeclaration &r_declaration)
+                                 NodeDeclarationBuilder &b)
 {
-  NodeDeclarationBuilder b{r_declaration};
   const NodeGeometrySimulationOutput &storage = node_storage(node);
 
   b.add_input<decl::Bool>("Skip").description(

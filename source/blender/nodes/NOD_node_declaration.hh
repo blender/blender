@@ -544,6 +544,11 @@ class NodeDeclarationBuilder {
     return *declaration_.anonymous_attribute_relations_;
   }
 
+  NodeDeclaration &declaration()
+  {
+    return declaration_;
+  }
+
  private:
   /* Note: in_out can be a combination of SOCK_IN and SOCK_OUT.
    * The generated socket declarations only have a single flag set. */

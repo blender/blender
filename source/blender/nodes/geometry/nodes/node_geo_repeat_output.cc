@@ -26,10 +26,9 @@ NODE_STORAGE_FUNCS(NodeGeometryRepeatOutput);
 
 static void node_declare_dynamic(const bNodeTree & /*node_tree*/,
                                  const bNode &node,
-                                 NodeDeclaration &r_declaration)
+                                 NodeDeclarationBuilder &b)
 {
   const NodeGeometryRepeatOutput &storage = node_storage(node);
-  NodeDeclarationBuilder b{r_declaration};
   for (const int i : IndexRange(storage.items_num)) {
     const NodeRepeatItem &item = storage.items[i];
     const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);

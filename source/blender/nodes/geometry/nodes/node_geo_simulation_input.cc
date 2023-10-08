@@ -184,7 +184,7 @@ namespace blender::nodes::node_geo_simulation_input_cc {
 
 static void node_declare_dynamic(const bNodeTree &node_tree,
                                  const bNode &node,
-                                 NodeDeclaration &r_declaration)
+                                 NodeDeclarationBuilder &b)
 {
   const bNode *output_node = node_tree.node_by_id(node_storage(node).output_node_id);
   if (!output_node) {
@@ -193,7 +193,6 @@ static void node_declare_dynamic(const bNodeTree &node_tree,
   const auto &output_storage = *static_cast<const NodeGeometrySimulationOutput *>(
       output_node->storage);
 
-  NodeDeclarationBuilder b{r_declaration};
   b.add_output<decl::Float>("Delta Time");
 
   for (const int i : IndexRange(output_storage.items_num)) {

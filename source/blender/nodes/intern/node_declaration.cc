@@ -15,8 +15,15 @@
 
 namespace blender::nodes {
 
+static void reset_declaration(NodeDeclaration &declaration)
+{
+  std::destroy_at(&declaration);
+  new (&declaration) NodeDeclaration();
+}
+
 void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declaration)
 {
+  reset_declaration(r_declaration);
   NodeDeclarationBuilder node_decl_builder{r_declaration};
   typeinfo.declare(node_decl_builder);
   node_decl_builder.finalize();
@@ -26,11 +33,10 @@ void build_node_declaration_dynamic(const bNodeTree &node_tree,
                                     const bNode &node,
                                     NodeDeclaration &r_declaration)
 {
-  r_declaration.items.clear();
-  r_declaration.inputs.clear();
-  r_declaration.outputs.clear();
-  r_declaration.skip_updating_sockets = false;
-  node.typeinfo->declare_dynamic(node_tree, node, r_declaration);
+  reset_declaration(r_declaration);
+  NodeDeclarationBuilder node_decl_builder{r_declaration};
+  node.typeinfo->declare_dynamic(node_tree, node, node_decl_builder);
+  node_decl_builder.finalize();
 }
 
 void NodeDeclarationBuilder::finalize()
