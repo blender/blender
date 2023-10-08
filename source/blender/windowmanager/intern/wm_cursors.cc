@@ -271,6 +271,9 @@ void WM_cursor_grab_enable(wmWindow *win,
 
   if ((G.debug & G_DEBUG) == 0) {
     if (win->ghostwin) {
+      if (hide) {
+        WM_cursor_modal_set(win, WM_CURSOR_NONE);
+      }
       if (win->eventstate->tablet.is_motion_absolute == false) {
         GHOST_SetCursorGrab(static_cast<GHOST_WindowHandle>(win->ghostwin),
                             mode,
@@ -288,6 +291,7 @@ void WM_cursor_grab_disable(wmWindow *win, const int mouse_ungrab_xy[2])
 {
   if ((G.debug & G_DEBUG) == 0) {
     if (win && win->ghostwin) {
+      WM_cursor_modal_restore(win);
       if (mouse_ungrab_xy) {
         int mouse_xy[2] = {mouse_ungrab_xy[0], mouse_ungrab_xy[1]};
         wm_cursor_position_to_ghost_screen_coords(win, &mouse_xy[0], &mouse_xy[1]);
