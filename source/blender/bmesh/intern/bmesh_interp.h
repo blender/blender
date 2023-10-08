@@ -68,6 +68,11 @@ typedef struct BMCustomLayerReq {
   const char *name; /* Can be NULL. */
   int flag;
 } BMCustomLayerReq;
+
+/* Add several layers at once to the bmesh. The advantage of
+ * this over BM_data_layer_add is that the customdata pools
+ * will only be reallocated once. 
+ */
 void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers, int totlayer);
 
 void BM_data_layer_add(BMesh *bm, CustomData *data, int type);

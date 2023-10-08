@@ -18,7 +18,6 @@
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
-#include "intern/bmesh_structure.h"
 
 /* local flag define */
 #define DUPE_INPUT 1 /* input from operator */
@@ -581,7 +580,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
             BMEdge *e_src = (BMEdge *)elem_array[i];
             BMEdge *e_dst = BM_edge_find_double(e_src);
             if (e_dst != nullptr) {
-              BM_edge_splice(bm, e_dst, e_src, false);
+              BM_edge_splice(bm, e_dst, e_src);
               elem_array_len--;
               elem_array[i] = elem_array[elem_array_len];
               continue;

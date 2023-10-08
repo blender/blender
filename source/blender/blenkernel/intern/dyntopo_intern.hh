@@ -32,14 +32,6 @@ struct SculptSession;
 //  (DYNTOPO_DISABLE_FIN_REMOVAL | DYNTOPO_DISABLE_COLLAPSE | DYNTOPO_DISABLE_TRIANGULATOR)
 #define DYNTOPO_DISABLE_FLAG 0
 
-extern "C" {
-void bmesh_disk_edge_append(BMEdge *e, BMVert *v);
-void bmesh_radial_loop_append(BMEdge *e, BMLoop *l);
-void bm_kill_only_edge(BMesh *bm, BMEdge *e);
-void bm_kill_only_loop(BMesh *bm, BMLoop *l);
-void bm_kill_only_face(BMesh *bm, BMFace *f);
-}
-
 static inline bool dyntopo_test_flag(PBVH *pbvh, BMVert *v, uint8_t flag)
 {
   return *BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) & flag;

@@ -25,10 +25,12 @@ int bmesh_elem_check_all(void *elem, char htype)
 #endif
 }  // namespace blender::bmesh
 
-extern "C" BMVert *bmesh_kernel_join_vert_kill_edge(
-    BMesh *bm, BMEdge *e, BMVert *v_kill, const bool do_del, const bool combine_flags)
+extern "C" BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
+                                                    BMEdge *e,
+                                                    BMVert *v_kill,
+                                                    const bool do_del)
 {
   NullCollapseCallbacks callbacks;
   return blender::bmesh::join_vert_kill_edge<NullCollapseCallbacks>(
-      bm, e, v_kill, do_del, combine_flags, callbacks);
+      bm, e, v_kill, do_del, callbacks);
 }

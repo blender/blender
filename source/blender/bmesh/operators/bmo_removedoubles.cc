@@ -16,7 +16,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_stack.h"
 #include "BLI_utildefines_stack.h"
-#include "DNA_meshdata_types.h"
 
 #include "BKE_customdata.h"
 
@@ -439,8 +438,6 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
   BMO_op_finish(bm, &weldop);
 }
 
-#define USE_BM_EDGE_COLLAPSE
-
 void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 {
   BMOperator weldop;
@@ -509,12 +506,6 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
         uint j;
         BLI_stack_pop(edge_stack, &e);
 
-#ifdef USE_BM_EDGE_COLLAPSE
-        if (BM_elem_is_free((BMElem *)e, BM_EDGE)) {
-          continue;
-        }
-#endif
-
         for (j = 0; j < 2; j++) {
           BMVert *v_src = *((&e->v1) + j);
 
@@ -522,11 +513,6 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
           if ((v_src != v_tar) && !BM_elem_flag_test(v_src, BM_ELEM_TAG)) {
             BM_elem_flag_enable(v_src, BM_ELEM_TAG);
             BMO_slot_map_elem_insert(&weldop, slot_targetmap, v_src, v_tar);
-
-#ifdef USE_BM_EDGE_COLLAPSE
-            BM_edge_collapse(bm, e, v_src, true, true, true, true);
-            break;
-#endif
           }
         }
       }
@@ -535,10 +521,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 
   BLI_stack_free(edge_stack);
 
-#ifndef USE_BM_EDGE_COLLAPSE
   BMO_op_exec(bm, &weldop);
-#endif
-
   BMO_op_finish(bm, &weldop);
 
   BMW_end(&walker);

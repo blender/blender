@@ -617,8 +617,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   params.use_toolflags = bm_old->use_toolflags;
   bm_new = BM_mesh_create(&allocsize, &params);
 
-  BM_mesh_copy_init_customdata_all_layers(
-      bm_new, bm_old, BM_VERT | BM_EDGE | BM_LOOP | BM_FACE, &allocsize);
+  BM_mesh_copy_init_customdata(bm_new, bm_old, &allocsize);
 
   vtable = static_cast<BMVert **>(
       MEM_mallocN(sizeof(BMVert *) * bm_old->totvert, "BM_mesh_copy vtable"));

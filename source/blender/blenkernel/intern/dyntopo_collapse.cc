@@ -613,7 +613,7 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
   }
 
   /* Full non-manifold collapse. */
-  blender::bmesh::join_vert_kill_edge(pbvh->header.bm, e, v_del, true, true, callbacks);
+  blender::bmesh::join_vert_kill_edge(pbvh->header.bm, e, v_del, true, callbacks);
 
   if (BM_elem_is_free((BMElem *)v_conn, BM_VERT)) {
     printf("v_conn was freed\n");

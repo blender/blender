@@ -196,35 +196,10 @@ void BM_log_edge_removed(BMesh *bm, BMLog *log, BMEdge *e);
 void BM_log_face_removed(BMesh *bm, BMLog *log, struct BMFace *f);
 void BM_log_face_removed_no_check(BMesh *bm, BMLog *log, struct BMFace *f);
 
-/* Log all vertices/faces in the BMesh as added */
-/* Log all vertices/faces in the BMesh as added */
-void BM_log_all_added(BMesh *bm, BMLog *log);
-
+/* Log the complete mesh, will be stored as
+ * a Mesh copy.
+ */
 void BM_log_full_mesh(BMesh *bm, BMLog *log);
-
-/* Log all vertices/faces in the BMesh as removed */
-/* Log all vertices/faces in the BMesh as removed */
-void BM_log_before_all_removed(BMesh *bm, BMLog *log);
-
-/* Get the logged coordinates of a vertex */
-/* Get the logged coordinates of a vertex
- *
- * Does not modify the log or the vertex */
-const float *BM_log_original_vert_co(BMLog *log, BMVert *v);
-
-/* Get the logged normal of a vertex
- *
- * Does not modify the log or the vertex */
-const float *BM_log_original_vert_no(BMLog *log, BMVert *v);
-
-/* Get the logged mask of a vertex */
-/* Get the logged mask of a vertex
- *
- * Does not modify the log or the vertex */
-float BM_log_original_mask(BMLog *log, BMVert *v);
-
-/* Get the logged data of a vertex (avoid multiple lookups) */
-void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const float **r_no);
 
 /* For internal use only (unit testing) */
 /* For internal use only (unit testing) */

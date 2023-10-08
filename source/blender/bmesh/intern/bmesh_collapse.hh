@@ -1,3 +1,44 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup bmesh
+ *
+ * Edge collapse.
+ *
+ * This is an implementation of non-manifold edge
+ * collapse. It exists because profiling consistently showed
+ * CPU cache misses were a major problem for DynTopo.
+ * DynTopo's edge split and collapse functions used to work
+ * by deleting and re-creating geometry which made things
+ * much worse.
+ *
+ * Things were made more complicated by DynTopo's undo (BMLog), 
+ * which works by saving and restoring geometry that has to be logged
+ * prior to operations. There are two ways to do this for collapse:
+ * either log the faces, edges and verts surrounding an edge prior
+ * to collapse or insert callbacks into the collapse function to
+ * do it as needed.
+ *
+ * I went back and forth between the two approaches several times.
+ * The problem with simply logging the surrounding faces is that
+ * in practice it has to be two rings of adjacent faces around the
+ * edge to catch various non-manifold edge cases.  This ended up
+ * taking far too much RAM for undo.
+ *
+ * The alternative is to add callbacks into the collapse function.
+ * This saves a lot of memory but makes collapse more complicated.
+ *
+ * The approach this file takes to use templates to avoid the
+ * overhead of checking for callback pointers in other code.
+ *
+ * In hindsight this is kind of a silly concern and will be
+ * rewritten to use runtime callbacks.
+ * 
+ * 
+ */
+
 #pragma once
 
 #include <cstdarg>
@@ -36,6 +77,12 @@ using blender::Vector;
 #include "bmesh_private.h"
 extern "C" {
 #include "bmesh_structure.h"
+
+void bmesh_disk_edge_append(BMEdge *e, BMVert *v);
+void bmesh_radial_loop_append(BMEdge *e, BMLoop *l);
+void bm_kill_only_edge(BMesh *bm, BMEdge *e);
+void bm_kill_only_loop(BMesh *bm, BMLoop *l);
+void bm_kill_only_face(BMesh *bm, BMFace *f);
 }
 
 //#define JVKE_DEBUG
@@ -511,12 +558,8 @@ static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, Callbacks &callba
  */
 
 template<typename Callbacks = NullCollapseCallbacks>
-BMVert *join_vert_kill_edge(BMesh *bm,
-                            BMEdge *e,
-                            BMVert *v_del,
-                            const bool do_del,
-                            const bool combine_flags,
-                            Callbacks &callbacks)
+BMVert *join_vert_kill_edge(
+    BMesh *bm, BMEdge *e, BMVert *v_del, const bool do_del, Callbacks &callbacks)
 {
   BMVert *v_conn = BM_edge_other_vert(e, v_del);
 
@@ -613,15 +656,15 @@ BMVert *join_vert_kill_edge(BMesh *bm,
 
       callbacks.on_edge_combine(exist, e);
 
-      if (combine_flags) {
-        /* The sharp flag is inverted so we can't just OR it. */
-        bool sharp = !(exist->head.hflag & BM_ELEM_SMOOTH) || !(e->head.hflag & BM_ELEM_SMOOTH);
+      /* Combine edge flags. The sharp flag is inverted
+       * so we can't just OR it.
+       */
+      bool sharp = !(exist->head.hflag & BM_ELEM_SMOOTH) || !(e->head.hflag & BM_ELEM_SMOOTH);
 
-        exist->head.hflag |= e->head.hflag;
+      exist->head.hflag |= e->head.hflag;
 
-        if (sharp) {
-          exist->head.hflag &= ~BM_ELEM_SMOOTH;
-        }
+      if (sharp) {
+        exist->head.hflag &= ~BM_ELEM_SMOOTH;
       }
 
       callbacks.on_edge_kill(e);

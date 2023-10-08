@@ -31,7 +31,6 @@ struct Mesh;
 struct BMeshFromMeshParams {
   bool calc_face_normal;
   bool calc_vert_normal;
-
   /* add a vertex CD_SHAPE_KEYINDEX layer */
   bool add_key_index;
   /* set vertex coordinates from the shapekey */
@@ -42,7 +41,6 @@ struct BMeshFromMeshParams {
   uint copy_temp_cdlayers;
 };
 
-struct Object;
 /**
  * \brief Mesh -> BMesh
  * \param bm: The mesh to write into, while this is typically a newly created BMesh,

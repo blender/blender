@@ -441,24 +441,10 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm,
 
 #undef DO_V_INTERP
 
-/**
- * Collapse and edge into a single vertex.
- */
-BMVert *BM_edge_collapse(BMesh *bm,
-                         BMEdge *e_kill,
-                         BMVert *v_kill,
-                         const bool do_del,
-                         const bool kill_degenerate_faces,
-                         const bool combine_flags,
-                         const bool full_non_manifold_collapse)
+BMVert *BM_edge_collapse(
+    BMesh *bm, BMEdge *e_kill, BMVert *v_kill, bool do_del, bool /*kill_degenerate_faces*/)
 {
-  if (full_non_manifold_collapse || true) {
-    return bmesh_kernel_join_vert_kill_edge(bm, e_kill, v_kill, do_del, combine_flags);
-  }
-  else {
-    return bmesh_kernel_join_vert_kill_edge_fast(
-        bm, e_kill, v_kill, do_del, true, kill_degenerate_faces, combine_flags);
-  }
+  return bmesh_kernel_join_vert_kill_edge(bm, e_kill, v_kill, do_del);
 }
 
 BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
