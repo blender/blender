@@ -20,56 +20,6 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
-
-static std::unique_ptr<SocketDeclaration> socket_declaration_for_repeat_item(
-    const NodeRepeatItem &item, const eNodeSocketInOut in_out, const int corresponding_input = -1)
-{
-  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
-  BLI_assert(RepeatItemsAccessor::supports_socket_type(socket_type));
-
-  std::unique_ptr<SocketDeclaration> decl = make_declaration_for_socket_type(socket_type);
-  BLI_assert(decl);
-
-  if (socket_type_supports_fields(socket_type)) {
-    if (in_out == SOCK_IN) {
-      decl->input_field_type = InputSocketFieldType::IsSupported;
-    }
-    else {
-      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
-          {corresponding_input});
-    }
-  }
-
-  decl->name = item.name ? item.name : "";
-  decl->identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
-  decl->in_out = in_out;
-  return decl;
-}
-
-void socket_declarations_for_repeat_items(const Span<NodeRepeatItem> items,
-                                          NodeDeclaration &r_declaration)
-{
-  for (const int i : items.index_range()) {
-    const NodeRepeatItem &item = items[i];
-    SocketDeclarationPtr input_decl = socket_declaration_for_repeat_item(item, SOCK_IN);
-    r_declaration.inputs.append(input_decl.get());
-    r_declaration.items.append(std::move(input_decl));
-
-    SocketDeclarationPtr output_decl = socket_declaration_for_repeat_item(
-        item, SOCK_OUT, r_declaration.inputs.size() - 1);
-    r_declaration.outputs.append(output_decl.get());
-    r_declaration.items.append(std::move(output_decl));
-  }
-  SocketDeclarationPtr input_extend_decl = decl::create_extend_declaration(SOCK_IN);
-  r_declaration.inputs.append(input_extend_decl.get());
-  r_declaration.items.append(std::move(input_extend_decl));
-
-  SocketDeclarationPtr output_extend_decl = decl::create_extend_declaration(SOCK_OUT);
-  r_declaration.outputs.append(output_extend_decl.get());
-  r_declaration.items.append(std::move(output_extend_decl));
-}
-}  // namespace blender::nodes
 namespace blender::nodes::node_geo_repeat_output_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryRepeatOutput);
@@ -79,7 +29,21 @@ static void node_declare_dynamic(const bNodeTree & /*node_tree*/,
                                  NodeDeclaration &r_declaration)
 {
   const NodeGeometryRepeatOutput &storage = node_storage(node);
-  socket_declarations_for_repeat_items(storage.items_span(), r_declaration);
+  NodeDeclarationBuilder b{r_declaration};
+  for (const int i : IndexRange(storage.items_num)) {
+    const NodeRepeatItem &item = storage.items[i];
+    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const StringRef name = item.name ? item.name : "";
+    const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
+    auto &input_decl = b.add_input(socket_type, name, identifier);
+    auto &output_decl = b.add_output(socket_type, name, identifier);
+    if (socket_type_supports_fields(socket_type)) {
+      input_decl.supports_field();
+      output_decl.dependent_field({input_decl.input_index()});
+    }
+  }
+  b.add_input<decl::Extend>("", "__extend__");
+  b.add_output<decl::Extend>("", "__extend__");
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

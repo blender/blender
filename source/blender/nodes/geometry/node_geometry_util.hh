@@ -126,9 +126,6 @@ void copy_with_checked_indices(const GVArray &src,
                                const IndexMask &mask,
                                GMutableSpan dst);
 
-void socket_declarations_for_repeat_items(const Span<NodeRepeatItem> items,
-                                          NodeDeclaration &r_declaration);
-
 namespace enums {
 
 const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,

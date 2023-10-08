@@ -363,6 +363,18 @@ class BaseSocketDeclarationBuilder {
    * The node type's update function is called afterwards.
    */
   BaseSocketDeclarationBuilder &make_available(std::function<void(bNode &)> fn);
+
+  int input_index() const
+  {
+    BLI_assert(decl_in_base_ != nullptr);
+    return index_in_;
+  }
+
+  int output_index() const
+  {
+    BLI_assert(decl_out_base_ != nullptr);
+    return index_out_;
+  }
 };
 
 /**
@@ -516,6 +528,13 @@ class NodeDeclarationBuilder {
   template<typename DeclType>
   typename DeclType::Builder &add_output(StringRef name, StringRef identifier = "");
   PanelDeclarationBuilder &add_panel(StringRef name, int identifier = -1);
+
+  BaseSocketDeclarationBuilder &add_input(eNodeSocketDatatype socket_type,
+                                          StringRef name,
+                                          StringRef identifier = "");
+  BaseSocketDeclarationBuilder &add_output(eNodeSocketDatatype socket_type,
+                                           StringRef name,
+                                           StringRef identifier = "");
 
   aal::RelationsInNode &get_anonymous_attribute_relations()
   {

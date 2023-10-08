@@ -29,11 +29,25 @@ static void node_declare_dynamic(const bNodeTree &tree,
 
   const NodeGeometryRepeatInput &storage = node_storage(node);
   const bNode *output_node = tree.node_by_id(storage.output_node_id);
-  if (output_node != nullptr) {
-    const NodeGeometryRepeatOutput &output_storage =
-        *static_cast<const NodeGeometryRepeatOutput *>(output_node->storage);
-    socket_declarations_for_repeat_items(output_storage.items_span(), r_declaration);
+  if (output_node == nullptr) {
+    return;
   }
+  const auto &output_storage = *static_cast<const NodeGeometryRepeatOutput *>(
+      output_node->storage);
+  for (const int i : IndexRange(output_storage.items_num)) {
+    const NodeRepeatItem &item = output_storage.items[i];
+    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const StringRef name = item.name ? item.name : "";
+    const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
+    auto &input_decl = b.add_input(socket_type, name, identifier);
+    auto &output_decl = b.add_output(socket_type, name, identifier);
+    if (socket_type_supports_fields(socket_type)) {
+      input_decl.supports_field();
+      output_decl.dependent_field({input_decl.input_index()});
+    }
+  }
+  b.add_input<decl::Extend>("", "__extend__");
+  b.add_output<decl::Extend>("", "__extend__");
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
