@@ -1338,6 +1338,8 @@ typedef enum eText_Draw_Options {
   USER_TEXT_HINTING_NONE = (1 << 1),
   USER_TEXT_HINTING_SLIGHT = (1 << 2),
   USER_TEXT_HINTING_FULL = (1 << 3),
+
+  USER_TEXT_RENDER_SUBPIXELAA = (1 << 4),
 } eText_Draw_Options;
 
 /**

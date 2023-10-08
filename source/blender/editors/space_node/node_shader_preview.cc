@@ -786,9 +786,7 @@ static void ensure_nodetree_previews(const bContext &C,
     return;
   }
   if (tree_previews.rendering) {
-    WM_jobs_stop(CTX_wm_manager(&C),
-                 CTX_wm_space_node(&C),
-                 reinterpret_cast<void *>(shader_preview_startjob));
+    WM_jobs_stop(CTX_wm_manager(&C), CTX_wm_space_node(&C), shader_preview_startjob);
     return;
   }
   tree_previews.rendering = true;
@@ -840,7 +838,7 @@ static void ensure_nodetree_previews(const bContext &C,
 
 void stop_preview_job(wmWindowManager &wm)
 {
-  WM_jobs_stop(&wm, nullptr, reinterpret_cast<void *>(shader_preview_startjob));
+  WM_jobs_stop(&wm, nullptr, shader_preview_startjob);
 }
 
 void free_previews(wmWindowManager &wm, SpaceNode &snode)

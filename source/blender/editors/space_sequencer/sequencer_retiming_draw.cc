@@ -57,6 +57,12 @@
 #define KEY_SIZE (10 * U.pixelsize)
 #define KEY_CENTER (UI_view2d_view_to_region_y(v2d, strip_y_rescale(seq, 0.0f)) + 4 + KEY_SIZE / 2)
 
+bool retiming_keys_are_visible(const bContext *C)
+{
+  const SpaceSeq *sseq = CTX_wm_space_seq(C);
+  return (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) != 0;
+}
+
 static float strip_y_rescale(const Sequence *seq, const float y_value)
 {
   const float y_range = SEQ_STRIP_OFSTOP - SEQ_STRIP_OFSBOTTOM;
@@ -400,10 +406,7 @@ static void retime_keys_draw(const bContext *C)
     return;
   }
 
-  const SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) == 0 &&
-      !sequencer_retiming_mode_is_active(C))
-  {
+  if (!retiming_keys_are_visible(C)) {
     return;
   }
 
@@ -518,10 +521,7 @@ static void retime_speed_draw(const bContext *C)
     return;
   }
 
-  const SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_RETIMING) == 0 &&
-      !sequencer_retiming_mode_is_active(C))
-  {
+  if (!retiming_keys_are_visible(C)) {
     return;
   }
 

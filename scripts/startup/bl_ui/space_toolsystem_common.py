@@ -801,11 +801,9 @@ class ToolSelectPanelHelper:
             layout.label(text="    " + iface_(item.label, "Operator"), icon_value=icon_value)
             layout.separator()
         else:
-            if context.space_data.show_region_toolbar:
-                layout.template_icon(icon_value=0, scale=0.5)
-            else:
+            if not context.space_data.show_region_toolbar:
                 layout.template_icon(icon_value=icon_value, scale=0.5)
-            layout.separator()
+                layout.separator()
 
         draw_settings = item.draw_settings
         if draw_settings is not None:

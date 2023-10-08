@@ -142,95 +142,13 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
   }
 }
 
-template<typename T>
-static void pbvh_vertex_color_get_bmesh(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4])
-{
-  BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
-
-  if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
-    float4 color = {};
-    int count = 0;
-
-    int cd_color = pbvh.cd_vcol_offset;
-
-    BMEdge *e = v->e;
-    do {
-      BMLoop *l = e->l;
-
-      if (!l) {
-        continue;
-      }
-
-      if (l->v != v) {
-        l = l->next;
-      }
-
-      float4 color2;
-      T vcol = *reinterpret_cast<T *> BM_ELEM_CD_GET_VOID_P(l, cd_color);
-
-      to_float(vcol, color2);
-
-      color += color2;
-      count++;
-    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-    if (count > 0) {
-      color *= 1.0f / (float)count;
-    }
-
-    copy_v4_v4(r_color, color);
-  }
-  else {
-    to_float(*static_cast<T *>(BM_ELEM_CD_GET_VOID_P(v, pbvh.cd_vcol_offset)), r_color);
-  }
-}
-
-template<typename T>
-static void pbvh_vertex_color_set_bmesh(PBVH &pbvh, PBVHVertRef vertex, const float color[4])
-{
-  int index = vertex.i;
-
-  BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
-
-  if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
-    BMEdge *e = v->e;
-    int cd_color = pbvh.cd_vcol_offset;
-
-    do {
-      BMLoop *l = e->l;
-      do {
-        T *l_color;
-
-        if (l->v != v) {
-          l_color = reinterpret_cast<T *>(BM_ELEM_CD_GET_VOID_P(l->next, cd_color));
-        }
-        else {
-          l_color = reinterpret_cast<T *>(BM_ELEM_CD_GET_VOID_P(l, cd_color));
-        }
-
-        from_float(color, *l_color);
-      } while ((l = l->radial_next) != e->l);
-
-    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-  }
-  else {
-    from_float(color, *reinterpret_cast<T *>(BM_ELEM_CD_GET_VOID_P(v, pbvh.cd_vcol_offset)));
-  }
-}
-
 }  // namespace blender::bke
 
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4])
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
-
-    if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
-      blender::bke::pbvh_vertex_color_get_bmesh<T>(*pbvh, vertex, r_color);
-    }
-    else {
-      blender::bke::pbvh_vertex_color_get<T>(*pbvh, vertex, r_color);
-    }
+    blender::bke::pbvh_vertex_color_get<T>(*pbvh, vertex, r_color);
   });
 }
 
@@ -238,13 +156,7 @@ void BKE_pbvh_vertex_color_set(PBVH *pbvh, PBVHVertRef vertex, const float color
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
-
-    if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
-      blender::bke::pbvh_vertex_color_set_bmesh<T>(*pbvh, vertex, color);
-    }
-    else {
-      blender::bke::pbvh_vertex_color_set<T>(*pbvh, vertex, color);
-    }
+    blender::bke::pbvh_vertex_color_set<T>(*pbvh, vertex, color);
   });
 }
 

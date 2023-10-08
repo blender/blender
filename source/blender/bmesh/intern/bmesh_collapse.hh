@@ -14,7 +14,7 @@
  * by deleting and re-creating geometry which made things
  * much worse.
  *
- * Things were made more complicated by DynTopo's undo (BMLog), 
+ * Things were made more complicated by DynTopo's undo (BMLog),
  * which works by saving and restoring geometry that has to be logged
  * prior to operations. There are two ways to do this for collapse:
  * either log the faces, edges and verts surrounding an edge prior
@@ -35,8 +35,8 @@
  *
  * In hindsight this is kind of a silly concern and will be
  * rewritten to use runtime callbacks.
- * 
- * 
+ *
+ *
  */
 
 #pragma once
@@ -75,7 +75,6 @@ using blender::Vector;
 
 #include "bmesh.h"
 #include "bmesh_private.h"
-extern "C" {
 #include "bmesh_structure.h"
 
 void bmesh_disk_edge_append(BMEdge *e, BMVert *v);
@@ -83,7 +82,6 @@ void bmesh_radial_loop_append(BMEdge *e, BMLoop *l);
 void bm_kill_only_edge(BMesh *bm, BMEdge *e);
 void bm_kill_only_loop(BMesh *bm, BMLoop *l);
 void bm_kill_only_face(BMesh *bm, BMFace *f);
-}
 
 //#define JVKE_DEBUG
 

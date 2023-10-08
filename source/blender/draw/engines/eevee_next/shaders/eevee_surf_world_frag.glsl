@@ -37,6 +37,7 @@ void main()
   /* World opacity. */
   out_background = mix(vec4(0.0, 0.0, 0.0, 1.0), out_background, world_opacity_fade);
 
+#ifdef MAT_RENDER_PASS_SUPPORT
   /* Clear Render Buffers. */
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
@@ -56,4 +57,5 @@ void main()
   output_renderpass_value(uniform_buf.render_pass.shadow_id, 1.0);
   /** NOTE: AO is done on its own pass. */
   imageStore(rp_cryptomatte_img, texel, vec4(0.0));
+#endif
 }

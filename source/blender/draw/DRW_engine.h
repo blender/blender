@@ -34,6 +34,7 @@ struct CustomDataLayer;
 struct ID;
 struct Main;
 struct Object;
+struct RegionView3D;
 struct Render;
 struct RenderEngine;
 struct RenderEngineType;
@@ -49,6 +50,8 @@ void DRW_engines_free(void);
 
 bool DRW_engine_render_support(struct DrawEngineType *draw_engine_type);
 void DRW_engine_register(struct DrawEngineType *draw_engine_type);
+
+void DRW_engine_external_free(struct RegionView3D *rv3d);
 
 typedef struct DRWUpdateContext {
   struct Main *bmain;

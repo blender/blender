@@ -520,7 +520,7 @@ def disable_all():
     # Use direct `__dict__` access to bypass `__getattr__`, see: #111649.
     addon_modules = [
         item for item in sys.modules.items()
-        if type(mod_dict := getattr(item[0], "__dict__", None)) is dict
+        if type(mod_dict := getattr(item[1], "__dict__", None)) is dict
         if mod_dict.get("__addon_enabled__")
     ]
     # Check the enabled state again since it's possible the disable call

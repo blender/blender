@@ -18,6 +18,7 @@
 #include "DNA_node_tree_interface_types.h"
 
 #include "ED_node.hh"
+#include "ED_undo.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
@@ -390,6 +391,7 @@ bool NodeSocketDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
 
   /* General update */
   ED_node_tree_propagate_change(C, CTX_data_main(C), &nodetree);
+  ED_undo_push(C, "Insert node group item");
   return true;
 }
 
@@ -480,6 +482,7 @@ bool NodePanelDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
 
   /* General update */
   ED_node_tree_propagate_change(C, CTX_data_main(C), &nodetree);
+  ED_undo_push(C, "Insert node group item");
   return true;
 }
 

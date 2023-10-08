@@ -152,7 +152,7 @@ void TEXT_OT_find(wmOperatorType *ot);
 void TEXT_OT_find_set_selected(wmOperatorType *ot);
 void TEXT_OT_replace(wmOperatorType *ot);
 void TEXT_OT_replace_set_selected(wmOperatorType *ot);
-void TEXT_OT_jump_to_file_at_point_internal(wmOperatorType *ot);
+void TEXT_OT_jump_to_file_at_point(wmOperatorType *ot);
 
 /* text_find = open properties, activate search button */
 void TEXT_OT_start_find(wmOperatorType *ot);

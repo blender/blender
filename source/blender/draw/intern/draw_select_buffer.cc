@@ -23,11 +23,11 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "DRW_engine.h"
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "draw_manager.h"
 
-#include "../engines/select/select_engine.h"
+#include "../engines/select/select_engine.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Buffer of select ID's
@@ -375,7 +375,7 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
   uint elem_id = 0;
   uint base_index = 0;
 
-  for (; base_index < select_ctx->objects_drawn_len; base_index++) {
+  for (; base_index < select_ctx->objects_drawn.size(); base_index++) {
     ObjectOffsets *base_ofs = &select_ctx->index_offsets[base_index];
 
     if (base_ofs->face > sel_id) {
@@ -395,7 +395,7 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
     }
   }
 
-  if (base_index == select_ctx->objects_drawn_len) {
+  if (base_index == select_ctx->objects_drawn.size()) {
     return false;
   }
 
@@ -453,24 +453,22 @@ void DRW_select_buffer_context_create(Base **bases, const uint bases_len, short 
 {
   SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
-  select_ctx->objects = static_cast<Object **>(
-      MEM_reallocN(select_ctx->objects, sizeof(*select_ctx->objects) * bases_len));
+  select_ctx->objects.clear();
+  select_ctx->objects_drawn.clear();
+  select_ctx->index_offsets.clear();
 
-  select_ctx->index_offsets = static_cast<ObjectOffsets *>(
-      MEM_reallocN(select_ctx->index_offsets, sizeof(*select_ctx->index_offsets) * bases_len));
-
-  select_ctx->objects_drawn = static_cast<Object **>(
-      MEM_reallocN(select_ctx->objects_drawn, sizeof(*select_ctx->objects_drawn) * bases_len));
+  select_ctx->objects.reserve(bases_len);
+  select_ctx->objects_drawn.reserve(bases_len);
+  select_ctx->index_offsets.reserve(bases_len);
 
   for (uint base_index = 0; base_index < bases_len; base_index++) {
     Object *obj = bases[base_index]->object;
-    select_ctx->objects[base_index] = obj;
+    select_ctx->objects.append(obj);
 
     /* Weak but necessary for `DRW_select_buffer_elem_get`. */
     obj->runtime.select_id = base_index;
   }
 
-  select_ctx->objects_len = bases_len;
   select_ctx->select_mode = select_mode;
   memset(select_ctx->persmat, 0, sizeof(select_ctx->persmat));
 }

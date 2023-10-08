@@ -205,7 +205,7 @@ def main() -> None:
 
     jobs = args.jobs
     if jobs <= 0:
-        jobs = multiprocessing.cpu_count() * 2
+        jobs = multiprocessing.cpu_count()
 
     base_path = args.base
     if not base_path:

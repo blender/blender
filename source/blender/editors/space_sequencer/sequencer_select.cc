@@ -444,7 +444,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (sequencer_retiming_mode_is_active(C)) {
+  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(C)) {
     return sequencer_retiming_select_all_exec(C, op);
   }
 
@@ -912,7 +912,7 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (sequencer_retiming_mode_is_active(C)) {
+  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(C)) {
     return sequencer_retiming_key_select_exec(C, op);
   }
 
@@ -981,7 +981,7 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
   SeqRetimingKey *key = retiming_mousover_key_get(C, mval, &seq_key_test);
 
   if (seq_key_test && SEQ_retiming_data_is_editable(seq_key_test) &&
-      !sequencer_retiming_mode_is_active(C))
+      !sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(C))
   {
 
     /* Realize "fake" key, if it is clicked on. */
@@ -1665,7 +1665,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (sequencer_retiming_mode_is_active(C)) {
+  if (sequencer_retiming_mode_is_active(C) && retiming_keys_are_visible(C)) {
     return sequencer_retiming_box_select_exec(C, op);
   }
 

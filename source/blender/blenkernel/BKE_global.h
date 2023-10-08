@@ -37,9 +37,9 @@ typedef struct Global {
   struct Main *pr_main;
 
   /** Last saved location for images. */
-  char ima[1024]; /* 1024 = FILE_MAX */
+  char filepath_last_image[/*FILE_MAX*/ 1024];
   /** Last used location for library link/append. */
-  char lib[1024];
+  char filepath_last_library[/*FILE_MAX*/ 1024];
 
   /**
    * Strings of recently opened files to show in the file menu.
@@ -128,6 +128,15 @@ typedef struct Global {
    * - Python API: `bpy.app.debug`, `bpy.app.debug_memory` ... etc.
    */
   int debug;
+
+  /**
+   * When true, various geometry processing algorithms randomize the order of elements (e.g.
+   * vertices or edges) in the output. In many cases, we don't make guarantees about the exact
+   * order of elements. So if users depend on the indices with e.g. geometry nodes, their file can
+   * break in a different Blender version. Explicitly turning on randomization can help protect
+   * oneself against such breakages.
+   */
+  bool randomize_geometry_element_order;
 
   /**
    * Control behavior of file reading/writing.

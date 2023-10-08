@@ -8,12 +8,13 @@
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
 
+#ifdef REFLECTION_PROBE
 int reflection_probes_find_closest(vec3 P)
 {
   int closest_index = 0;
   float closest_distance = FLT_MAX;
 
-  /* ReflectionProbeData doesn't contain any gab, exit at first item that is invalid. */
+  /* ReflectionProbeData doesn't contain any gap, exit at first item that is invalid. */
   for (int index = 1; reflection_probe_buf[index].layer != -1 && index < REFLECTION_PROBES_MAX;
        index++)
   {
@@ -25,6 +26,7 @@ int reflection_probes_find_closest(vec3 P)
   }
   return closest_index;
 }
+#endif /* REFLECTION_PROBE */
 
 #ifdef EEVEE_UTILITY_TX
 vec4 reflection_probe_eval(ClosureReflection reflection,
@@ -32,7 +34,7 @@ vec4 reflection_probe_eval(ClosureReflection reflection,
                            vec3 V,
                            ReflectionProbeData probe_data)
 {
-  ivec3 texture_size = textureSize(reflectionProbes, 0);
+  ivec3 texture_size = textureSize(reflection_probes_tx, 0);
   float lod_cube_max = min(log2(float(texture_size.x)) - float(probe_data.layer_subdivision) + 1.0,
                            float(REFLECTION_PROBE_MIPMAP_LEVELS));
 

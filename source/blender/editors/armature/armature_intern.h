@@ -70,8 +70,6 @@ void ARMATURE_OT_split(struct wmOperatorType *ot);
 void ARMATURE_OT_autoside_names(struct wmOperatorType *ot);
 void ARMATURE_OT_flip_names(struct wmOperatorType *ot);
 
-void ARMATURE_OT_layers_show_all(struct wmOperatorType *ot);
-
 void ARMATURE_OT_collection_add(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_remove(struct wmOperatorType *ot);
 void ARMATURE_OT_collection_move(struct wmOperatorType *ot);
@@ -113,15 +111,6 @@ void POSE_OT_select_linked_pick(struct wmOperatorType *ot);
 void POSE_OT_select_constraint_target(struct wmOperatorType *ot);
 void POSE_OT_select_grouped(struct wmOperatorType *ot);
 void POSE_OT_select_mirror(struct wmOperatorType *ot);
-
-void POSE_OT_group_add(struct wmOperatorType *ot);
-void POSE_OT_group_remove(struct wmOperatorType *ot);
-void POSE_OT_group_move(struct wmOperatorType *ot);
-void POSE_OT_group_sort(struct wmOperatorType *ot);
-void POSE_OT_group_assign(struct wmOperatorType *ot);
-void POSE_OT_group_unassign(struct wmOperatorType *ot);
-void POSE_OT_group_select(struct wmOperatorType *ot);
-void POSE_OT_group_deselect(struct wmOperatorType *ot);
 
 void POSE_OT_paths_calculate(struct wmOperatorType *ot);
 void POSE_OT_paths_update(struct wmOperatorType *ot);

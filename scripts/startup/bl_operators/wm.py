@@ -1409,12 +1409,18 @@ rna_custom_property_subtype_vector_items = (
     rna_custom_property_subtype_none_item,
     ('COLOR', "Linear Color", "Color in the linear space"),
     ('COLOR_GAMMA', "Gamma-Corrected Color", "Color in the gamma corrected space"),
+    ('TRANSLATION', "Translation", ""),
+    ('DIRECTION', "Direction", ""),
+    ('VELOCITY', "Velocity", ""),
+    ('ACCELERATION', "Acceleration", ""),
     ('EULER', "Euler Angles", "Euler rotation angles in radians"),
     ('QUATERNION', "Quaternion Rotation", "Quaternion rotation (affects NLA blending)"),
+    ('AXISANGLE', "Axis-Angle", "Angle and axis to rotate around"),
+    ('XYZ', "XYZ", ""),
 )
 
 rna_id_type_items = tuple((item.identifier, item.name, item.description, item.icon, item.value)
-                          for item in bpy.types.Action.bl_rna.properties['id_root'].enum_items)
+                          for item in bpy.types.Action.bl_rna.properties["id_root"].enum_items)
 
 
 class WM_OT_properties_edit(Operator):
@@ -3195,13 +3201,12 @@ class WM_MT_splash_quick_setup(Menu):
             col = split.column()
             col.operator(
                 "preferences.copy_prev",
-                text=iface_(
-                    "Load Blender %d.%d Settings",
-                    "Operator") %
-                old_version, icon='DUPLICATE',
-                translate=False)
+                text=iface_("Load Blender %d.%d Settings", "Operator") % old_version,
+                icon='DUPLICATE',
+                translate=False,
+            )
             col.operator(
-                "wm.url_open", text="See What's New...", icon='URL'
+                "wm.url_open", text="See What's New...", icon='URL',
             ).url = "https://wiki.blender.org/wiki/Reference/Release_Notes/4.0"
             col.separator(factor=2.0)
 

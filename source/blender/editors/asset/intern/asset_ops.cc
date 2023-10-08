@@ -352,7 +352,7 @@ static bool asset_clear_poll(bContext *C)
 }
 
 static std::string asset_clear_get_description(bContext * /*C*/,
-                                               wmOperatorType * /*op*/,
+                                               wmOperatorType * /*ot*/,
                                                PointerRNA *values)
 {
   const bool set_fake_user = RNA_boolean_get(values, "set_fake_user");

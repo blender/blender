@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -7604,10 +7604,6 @@ msgid "Hex"
 msgstr "Hex"
 
 
-msgid "(Gamma Corrected)"
-msgstr "(Po korekcji gammy)"
-
-
 msgid "Lightness"
 msgstr "Jasność"
 
@@ -9562,11 +9558,6 @@ msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "Modyfikator nie mógł być dodany to (%s : %s) (szczegóły w konsoli)"
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "Grupa"
-
-
 msgid "Library path '%s' does not exist, correct this before saving"
 msgstr "Ścieżka biblioteki '%s' nie istnieje, popraw to zanim zapiszesz"
 
@@ -10260,6 +10251,11 @@ msgid "Cannot open file: %s"
 msgstr "Nie można otworzyć pliku: %s"
 
 
+msgctxt "Action"
+msgid "Group"
+msgstr "Grupa"
+
+
 msgid "Index out of range"
 msgstr "Indeks poza zakresem"
 
@@ -10943,10 +10939,6 @@ msgstr "W4"
 
 msgid "iScale"
 msgstr "iSkala"
-
-
-msgid "Unknown py-exception, could not convert"
-msgstr "Nieznana py-exception, przetworzenie nie powiodło się"
 
 
 msgid "Image too small"

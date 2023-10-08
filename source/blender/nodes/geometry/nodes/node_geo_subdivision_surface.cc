@@ -20,6 +20,8 @@
 
 #include "NOD_rna_define.hh"
 
+#include "GEO_randomize.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_subdivision_surface_cc {
@@ -34,14 +36,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
-      .field_on_all()
-      .subtype(PROP_FACTOR);
+      .subtype(PROP_FACTOR)
+      .field_on_all();
   b.add_input<decl::Float>("Vertex Crease")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
-      .field_on_all()
-      .subtype(PROP_FACTOR);
+      .subtype(PROP_FACTOR)
+      .field_on_all();
   b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
@@ -158,6 +160,8 @@ static Mesh *mesh_subsurf_calc(const Mesh *mesh,
   if (mesh_copy) {
     BKE_id_free(nullptr, mesh_copy);
   }
+
+  geometry::debug_randomize_mesh_order(result);
 
   return result;
 }

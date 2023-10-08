@@ -265,8 +265,10 @@ class QuickExplode(ObjectModeOperator, Operator):
             self.report({'ERROR'}, "Active object is not a mesh")
             return {'CANCELLED'}
 
-        mesh_objects = [obj for obj in context.selected_objects
-                        if obj.type == 'MESH' and obj != obj_act]
+        mesh_objects = [
+            obj for obj in context.selected_objects
+            if obj.type == 'MESH' and obj != obj_act
+        ]
         mesh_objects.insert(0, obj_act)
 
         if self.style == 'BLEND' and len(mesh_objects) != 2:
@@ -441,8 +443,10 @@ class QuickSmoke(ObjectModeOperator, Operator):
             return {'CANCELLED'}
 
         context_override = context.copy()
-        mesh_objects = [obj for obj in context.selected_objects
-                        if obj.type == 'MESH']
+        mesh_objects = [
+            obj for obj in context.selected_objects
+            if obj.type == 'MESH'
+        ]
         min_co = Vector((100000.0, 100000.0, 100000.0))
         max_co = -min_co
 
@@ -547,8 +551,10 @@ class QuickLiquid(Operator):
             return {'CANCELLED'}
 
         context_override = context.copy()
-        mesh_objects = [obj for obj in context.selected_objects
-                        if obj.type == 'MESH']
+        mesh_objects = [
+            obj for obj in context.selected_objects
+            if obj.type == 'MESH'
+        ]
         min_co = Vector((100000.0, 100000.0, 100000.0))
         max_co = -min_co
 

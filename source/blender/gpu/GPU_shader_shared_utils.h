@@ -29,6 +29,7 @@
  */
 
 #ifdef GPU_SHADER
+#  define BLI_STATIC_ASSERT(cond, msg)
 #  define BLI_STATIC_ASSERT_ALIGN(type_, align_)
 #  define BLI_STATIC_ASSERT_SIZE(type_, size_)
 #  define static

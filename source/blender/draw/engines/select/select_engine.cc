@@ -15,13 +15,13 @@
 #include "UI_resources.hh"
 
 #include "DRW_engine.h"
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "draw_cache_impl.hh"
 #include "draw_manager.h"
 
-#include "select_engine.h"
-#include "select_private.h"
+#include "select_engine.hh"
+#include "select_private.hh"
 
 #define SELECT_ENGINE "SELECT_ENGINE"
 
@@ -141,8 +141,9 @@ static void select_cache_init(void *vedata)
   }
 
   DRWState state = DRW_STATE_DEFAULT;
-  state |= RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d) ? DRW_STATE_CLIP_PLANES :
-                                                                  DRWState(0);
+  if (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) {
+    state |= DRW_STATE_CLIP_PLANES;
+  }
 
   bool retopology_occlusion = RETOPOLOGY_ENABLED(draw_ctx->v3d) && !XRAY_ENABLED(draw_ctx->v3d);
   float retopology_offset = RETOPOLOGY_OFFSET(draw_ctx->v3d);
@@ -191,9 +192,8 @@ static void select_cache_init(void *vedata)
 
   if (!e_data.context.is_dirty) {
     /* Check if any of the drawn objects have been transformed. */
-    Object **ob = &e_data.context.objects_drawn[0];
-    for (uint i = e_data.context.objects_drawn_len; i--; ob++) {
-      DrawData *data = DRW_drawdata_get(&(*ob)->id, &draw_engine_select_type);
+    for (Object *ob : e_data.context.objects_drawn) {
+      DrawData *data = DRW_drawdata_get(&ob->id, &draw_engine_select_type);
       if (data && (data->recalc & ID_RECALC_TRANSFORM) != 0) {
         data->recalc &= ~ID_RECALC_TRANSFORM;
         e_data.context.is_dirty = true;
@@ -204,7 +204,8 @@ static void select_cache_init(void *vedata)
   if (e_data.context.is_dirty) {
     /* Remove all tags from drawn or culled objects. */
     copy_m4_m4(e_data.context.persmat, persmat);
-    e_data.context.objects_drawn_len = 0;
+    e_data.context.objects_drawn.clear();
+    e_data.context.index_offsets.clear();
     e_data.context.index_drawn_len = 1;
     select_engine_framebuffer_setup();
     GPU_framebuffer_bind(e_data.framebuffer_select_id);
@@ -269,10 +270,11 @@ static void select_cache_populate(void *vedata, Object *ob)
           &ob->id, &draw_engine_select_type, sizeof(SELECTID_ObjectData), nullptr, nullptr);
     }
     sel_data->dd.recalc = 0;
-    sel_data->drawn_index = e_data.context.objects_drawn_len;
+    sel_data->drawn_index = e_data.context.objects_drawn.size();
     sel_data->is_drawn = true;
 
-    ObjectOffsets *ob_offsets = &e_data.context.index_offsets[e_data.context.objects_drawn_len];
+    e_data.context.index_offsets.increase_size_by_unchecked(1);
+    ObjectOffsets *ob_offsets = &e_data.context.index_offsets.last();
 
     uint offset = e_data.context.index_drawn_len;
     select_id_draw_object(vedata,
@@ -286,8 +288,7 @@ static void select_cache_populate(void *vedata, Object *ob)
 
     ob_offsets->offset = offset;
     e_data.context.index_drawn_len = ob_offsets->vert;
-    e_data.context.objects_drawn[e_data.context.objects_drawn_len] = ob;
-    e_data.context.objects_drawn_len++;
+    e_data.context.objects_drawn.append(ob);
     e_data.runtime_new_objects++;
   }
   else if (sel_data) {
@@ -340,9 +341,9 @@ static void select_engine_free()
 
   DRW_TEXTURE_FREE_SAFE(e_data.texture_u32);
   GPU_FRAMEBUFFER_FREE_SAFE(e_data.framebuffer_select_id);
-  MEM_SAFE_FREE(e_data.context.objects);
-  MEM_SAFE_FREE(e_data.context.index_offsets);
-  MEM_SAFE_FREE(e_data.context.objects_drawn);
+  e_data.context.objects.clear_and_shrink();
+  e_data.context.objects_drawn.clear_and_shrink();
+  e_data.context.index_offsets.clear_and_shrink();
 }
 
 /** \} */

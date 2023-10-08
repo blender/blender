@@ -1882,7 +1882,7 @@ def run_edits_on_directory(
         return 1
 
     if jobs <= 0:
-        jobs = multiprocessing.cpu_count() * 2
+        jobs = multiprocessing.cpu_count()
 
     if args is None:
         # Error will have been reported.
@@ -2135,7 +2135,7 @@ def main() -> int:
     verbose_edit_actions = False
     verbose_all_from_args = args.verbose.split(",") if args.verbose else []
     while verbose_all_from_args:
-        match (verbose_id := verbose_all_from_args.pop()):
+        match(verbose_id := verbose_all_from_args.pop()):
             case "compile":
                 verbose_compile = True
             case "edit_actions":

@@ -2429,7 +2429,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   static const EnumPropertyItem react_event_items[] = {
       {PART_EVENT_DEATH, "DEATH", 0, "Death", ""},
       {PART_EVENT_COLLIDE, "COLLIDE", 0, "Collision", ""},
-      {PART_EVENT_NEAR, "NEAR", 0, "Near", ""},
+      {PART_EVENT_NEAR, "NEAR", 0, "Proximity", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

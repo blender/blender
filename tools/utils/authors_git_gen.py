@@ -367,7 +367,7 @@ def main() -> None:
     if jobs <= 0:
         # Clamp the value, higher values give errors with too many open files.
         # Allow users to manually pass very high values in as they might want to tweak system limits themselves.
-        jobs = min(multiprocessing.cpu_count() * 2, 400)
+        jobs = min(multiprocessing.cpu_count(), 400)
 
     credits.process(GitCommitIter(args.source_dir, commit_range), jobs=jobs)
 

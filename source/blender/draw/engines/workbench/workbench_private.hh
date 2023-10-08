@@ -32,14 +32,15 @@ class ShaderCache {
   GPUShader *resolve_shader_get(ePipelineType pipeline_type,
                                 eLightingType lighting_type,
                                 bool cavity = false,
-                                bool curvature = false);
+                                bool curvature = false,
+                                bool shadow = false);
 
  private:
   /* TODO(fclem): We might want to change to a Map since most shader will never be compiled. */
   GPUShader *prepass_shader_cache_[pipeline_type_len][geometry_type_len][shader_type_len]
                                   [lighting_type_len][2 /*clip*/] = {{{{{nullptr}}}}};
   GPUShader *resolve_shader_cache_[pipeline_type_len][lighting_type_len][2 /*cavity*/]
-                                  [2 /*curvature*/] = {{{{nullptr}}}};
+                                  [2 /*curvature*/][2 /*shadow*/] = {{{{nullptr}}}};
 };
 
 struct Material {
@@ -95,6 +96,8 @@ struct SceneState {
   int samples_len = 0;
   bool reset_taa_next_sample = false;
   bool render_finished = false;
+
+  bool overlays_enabled = false;
 
   /* Used when material_type == eMaterialType::SINGLE */
   Material material_override = Material(float3(1.0f));
@@ -196,10 +199,14 @@ struct SceneResources {
   StringRefNull current_matcap = {};
   Texture matcap_tx = "matcap_tx";
 
-  TextureFromPool color_tx = "wb_color_tx";
   TextureFromPool object_id_tx = "wb_object_id_tx";
-  Texture depth_tx = "wb_depth_tx";
-  TextureFromPool depth_in_front_tx = "wb_depth_in_front_tx";
+
+  TextureRef color_tx;
+  TextureRef depth_tx;
+  TextureRef depth_in_front_tx;
+
+  Framebuffer clear_fb = {"Clear Main"};
+  Framebuffer clear_in_front_fb = {"Clear In Front"};
 
   StorageVectorBuffer<Material> material_buf = {"material_buf"};
   UniformBuffer<WorldData> world_buf = {};
@@ -243,11 +250,16 @@ class MeshPass : public PassMain {
                              ImageUser *iuser = nullptr);
 };
 
+enum class StencilBits : uint8_t {
+  BACKGROUND = 0,
+  OBJECT = 1u << 0,
+  OBJECT_IN_FRONT = 1u << 1,
+};
+
 class OpaquePass {
  public:
   TextureFromPool gbuffer_normal_tx = {"gbuffer_normal_tx"};
   TextureFromPool gbuffer_material_tx = {"gbuffer_material_tx"};
-  Framebuffer opaque_fb = {};
 
   Texture shadow_depth_stencil_tx = {"shadow_depth_stencil_tx"};
   GPUTexture *deferred_ps_stencil_tx = nullptr;
@@ -255,6 +267,11 @@ class OpaquePass {
   MeshPass gbuffer_ps_ = {"Opaque.Gbuffer"};
   MeshPass gbuffer_in_front_ps_ = {"Opaque.GbufferInFront"};
   PassSimple deferred_ps_ = {"Opaque.Deferred"};
+
+  Framebuffer gbuffer_fb = {"Opaque.Gbuffer"};
+  Framebuffer gbuffer_in_front_fb = {"Opaque.GbufferInFront"};
+  Framebuffer deferred_fb = {"Opaque.Deferred"};
+  Framebuffer clear_fb = {"Opaque.Clear"};
 
   void sync(const SceneState &scene_state, SceneResources &resources);
   void draw(Manager &manager,
@@ -511,7 +528,6 @@ class AntiAliasingPass {
 
   Texture sample0_depth_tx_ = {"sample0_depth_tx"};
   Texture sample0_depth_in_front_tx_ = {"sample0_depth_in_front_tx"};
-  GPUTexture *stencil_tx_ = nullptr;
 
   Texture taa_accumulation_tx_ = {"taa_accumulation_tx"};
   Texture smaa_search_tx_ = {"smaa_search_tx"};
@@ -545,15 +561,12 @@ class AntiAliasingPass {
   ~AntiAliasingPass();
 
   void init(const SceneState &scene_state);
-  void sync(SceneResources &resources, int2 resolution);
-  void setup_view(View &view, int2 resolution);
+  void sync(const SceneState &scene_state, SceneResources &resources);
+  void setup_view(View &view, const SceneState &scene_state);
   void draw(Manager &manager,
             View &view,
-            SceneResources &resources,
-            int2 resolution,
-            GPUTexture *depth_tx,
-            GPUTexture *depth_in_front_tx,
-            GPUTexture *color_tx);
+            const SceneState &scene_state,
+            SceneResources &resources);
 };
 
 }  // namespace blender::workbench

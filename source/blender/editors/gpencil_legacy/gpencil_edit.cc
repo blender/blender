@@ -2846,7 +2846,7 @@ static bool gpencil_snap_poll(bContext *C)
          ((area != nullptr) && (area->spacetype == SPACE_VIEW3D));
 }
 
-static int gpencil_snap_to_grid(bContext *C, wmOperator * /*op*/)
+static int gpencil_snap_to_grid_exec(bContext *C, wmOperator * /*op*/)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   ARegion *region = CTX_wm_region(C);
@@ -2964,7 +2964,7 @@ void GPENCIL_OT_snap_to_grid(wmOperatorType *ot)
   ot->description = "Snap selected points to the nearest grid points";
 
   /* callbacks */
-  ot->exec = gpencil_snap_to_grid;
+  ot->exec = gpencil_snap_to_grid_exec;
   ot->poll = gpencil_snap_poll;
 
   /* flags */
@@ -2977,7 +2977,7 @@ void GPENCIL_OT_snap_to_grid(wmOperatorType *ot)
 /** \name Snapping Selection to Cursor Operator
  * \{ */
 
-static int gpencil_snap_to_cursor(bContext *C, wmOperator *op)
+static int gpencil_snap_to_cursor_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
@@ -3066,7 +3066,7 @@ void GPENCIL_OT_snap_to_cursor(wmOperatorType *ot)
   ot->description = "Snap selected points/strokes to the cursor";
 
   /* callbacks */
-  ot->exec = gpencil_snap_to_cursor;
+  ot->exec = gpencil_snap_to_cursor_exec;
   ot->poll = gpencil_snap_poll;
 
   /* flags */
@@ -3144,7 +3144,7 @@ static bool gpencil_stroke_points_centroid(Depsgraph *depsgraph,
   return changed;
 }
 
-static int gpencil_snap_cursor_to_sel(bContext *C, wmOperator *op)
+static int gpencil_snap_cursor_to_sel_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obact = CTX_data_active_object(C);
@@ -3195,7 +3195,7 @@ void GPENCIL_OT_snap_cursor_to_selected(wmOperatorType *ot)
   ot->description = "Snap cursor to center of selected points";
 
   /* callbacks */
-  ot->exec = gpencil_snap_cursor_to_sel;
+  ot->exec = gpencil_snap_cursor_to_sel_exec;
   ot->poll = gpencil_snap_poll;
 
   /* flags */

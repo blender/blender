@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* `select_engine.cc` */
 
 extern DrawEngineType draw_engine_select_type;
@@ -24,14 +20,9 @@ extern DrawEngineType draw_engine_debug_select_type;
 #endif
 
 struct SELECTID_Context *DRW_select_engine_context_get(void);
-
 struct GPUFrameBuffer *DRW_engine_select_framebuffer_get(void);
 struct GPUTexture *DRW_engine_select_texture_get(void);
 
 /* select_instance.cc */
 
 extern DrawEngineType draw_engine_select_next_type;
-
-#ifdef __cplusplus
-}
-#endif

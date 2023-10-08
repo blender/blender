@@ -26,27 +26,30 @@ vec3 volume_scatter_light_eval(
 {
   LightData light = light_buf[l_idx];
 
-  if (light.volume_power == 0.0) {
+  if (light.power[LIGHT_VOLUME] == 0.0) {
     return vec3(0);
   }
 
-  vec3 L;
-  float l_dist;
-  light_shape_vector_get(light, P, L, l_dist);
+  LightVector lv = light_shape_vector_get(light, is_directional, P);
 
-  float visibility = light_attenuation(light, L, l_dist);
-  if (light.tilemap_index != LIGHT_NO_SHADOW && (visibility > 0.0)) {
-    ShadowEvalResult samp = shadow_sample(
-        is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P);
-    visibility *= samp.surface_light_visibilty;
-  }
-
-  if (visibility < 1e-4) {
+  float attenuation = light_attenuation_volume(light, is_directional, lv);
+  if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
     return vec3(0);
   }
 
-  vec3 Li = volume_light(light, L, l_dist) * volume_shadow(light, P, L, l_dist, extinction_tx);
-  return Li * visibility * volume_phase_function(-V, L, s_anisotropy);
+  float visibility = attenuation;
+  if (light.tilemap_index != LIGHT_NO_SHADOW) {
+    visibility *= shadow_sample(is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P)
+                      .light_visibilty;
+  }
+
+  if (visibility < LIGHT_ATTENUATION_THRESHOLD) {
+    return vec3(0);
+  }
+
+  vec3 Li = volume_light(light, is_directional, lv) *
+            volume_shadow(light, is_directional, P, lv, extinction_tx);
+  return Li * visibility * volume_phase_function(-V, lv.L, s_anisotropy);
 }
 
 #endif

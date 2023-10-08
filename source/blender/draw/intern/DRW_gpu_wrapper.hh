@@ -562,6 +562,7 @@ class Texture : NonCopyable {
     tx_ = create(UNPACK3(extent), mip_len, format, usage, data, false, false);
   }
 
+  Texture(Texture &&other) = default;
   ~Texture()
   {
     free();

@@ -261,6 +261,7 @@ void VolumeModule::end_sync()
   scatter_ps_.shader_set(inst_.shaders.static_shader_get(
       data_.use_lights ? VOLUME_SCATTER_WITH_LIGHTS : VOLUME_SCATTER));
   inst_.lights.bind_resources(&scatter_ps_);
+  inst_.reflection_probes.bind_resources(&scatter_ps_);
   inst_.irradiance_cache.bind_resources(&scatter_ps_);
   inst_.shadows.bind_resources(&scatter_ps_);
   inst_.sampling.bind_resources(&scatter_ps_);

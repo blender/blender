@@ -735,7 +735,6 @@ bool GLTexture::proxy_check(int mip)
   }
 
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_ANY) ||
-      GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_OFFICIAL) ||
       GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL))
   {
     /* Some AMD drivers have a faulty `GL_PROXY_TEXTURE_..` check.
@@ -744,13 +743,6 @@ bool GLTexture::proxy_check(int mip)
      * it just states that the OGL implementation can support the texture.
      * So we already manually check the maximum size and maximum number of layers.
      * Same thing happens on Nvidia/macOS 10.15 (#78175). */
-    return true;
-  }
-
-  if ((type_ == GPU_TEXTURE_CUBE_ARRAY) &&
-      GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY))
-  {
-    /* Special fix for #79703. */
     return true;
   }
 
@@ -817,7 +809,10 @@ void GLTexture::check_feedback_loop()
     if (fb_[i] == fb) {
       GPUAttachmentType type = fb_attachment_[i];
       GPUAttachment attachment = fb->attachments_[type];
-      if (attachment.mip <= mip_max_ && attachment.mip >= mip_min_) {
+      /* Check for when texture is used with texture barrier. */
+      GPUAttachment attachment_read = fb->tmp_detached_[type];
+      if (attachment.mip <= mip_max_ && attachment.mip >= mip_min_ &&
+          attachment_read.tex == nullptr) {
         char msg[256];
         SNPRINTF(msg,
                  "Feedback loop: Trying to bind a texture (%s) with mip range %d-%d but mip %d is "

@@ -302,6 +302,7 @@ static SocketDeclarationPtr declaration_for_interface_socket(
     case SOCK_CUSTOM:
       auto value = std::make_unique<decl::Custom>();
       value->init_socket_fn = get_init_socket_fn(ntree.tree_interface, io_socket);
+      value->idname_ = io_socket.socket_type;
       dst = std::move(value);
       break;
   }
@@ -358,8 +359,9 @@ static PanelDeclarationPtr declaration_for_interface_panel(const bNodeTree & /*n
 
 void node_group_declare_dynamic(const bNodeTree & /*node_tree*/,
                                 const bNode &node,
-                                NodeDeclaration &r_declaration)
+                                NodeDeclarationBuilder &b)
 {
+  NodeDeclaration &r_declaration = b.declaration();
   const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node.id);
   if (!group) {
     return;
@@ -606,8 +608,9 @@ namespace blender::nodes {
 
 static void group_input_declare_dynamic(const bNodeTree &node_tree,
                                         const bNode & /*node*/,
-                                        NodeDeclaration &r_declaration)
+                                        NodeDeclarationBuilder &b)
 {
+  NodeDeclaration &r_declaration = b.declaration();
   node_tree.tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
     switch (item.item_type) {
       case NODE_INTERFACE_SOCKET: {
@@ -631,8 +634,9 @@ static void group_input_declare_dynamic(const bNodeTree &node_tree,
 
 static void group_output_declare_dynamic(const bNodeTree &node_tree,
                                          const bNode & /*node*/,
-                                         NodeDeclaration &r_declaration)
+                                         NodeDeclarationBuilder &b)
 {
+  NodeDeclaration &r_declaration = b.declaration();
   node_tree.tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
     switch (item.item_type) {
       case NODE_INTERFACE_SOCKET: {

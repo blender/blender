@@ -107,6 +107,8 @@ void ShadingView::render()
   DRW_stats_group_start(name_);
   DRW_view_set_active(render_view_);
 
+  inst_.planar_probes.set_view(render_view_new_, extent_);
+
   /* If camera has any motion, compute motion vector in the film pass. Otherwise, we avoid float
    * precision issue by setting the motion of all static geometry to 0. */
   float4 clear_velocity = float4(inst_.velocity.camera_has_motion() ? VELOCITY_INVALID : 0.0f);
@@ -124,6 +126,7 @@ void ShadingView::render()
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_new_, extent_);
+  inst_.reflection_probes.set_view(render_view_new_);
 
   inst_.volume.draw_prepass(render_view_new_);
 
@@ -294,7 +297,6 @@ void CaptureView::render_probes()
 
   if (do_update_mipmap_chain) {
     /* TODO: only update the regions that have been updated. */
-    /* TODO: Composite world into the probes. */
     inst_.reflection_probes.update_probes_texture_mipmaps();
   }
 }

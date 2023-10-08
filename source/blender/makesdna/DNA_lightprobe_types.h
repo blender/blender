@@ -76,7 +76,8 @@ typedef struct LightProbe {
   float surfel_density;
 
   /**
-   * Resolution of the light probe when baked to a texture. Contains `eLightProbeResolution`.
+   * Resolution of the cube light probe when baked to a texture.
+   * Contains `eLightProbeResolution`.
    */
   int resolution;
 

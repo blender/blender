@@ -20,11 +20,11 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "draw_cache_impl.hh"
 
-#include "select_private.h"
+#include "select_private.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Draw Utilities

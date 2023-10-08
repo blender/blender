@@ -37,10 +37,12 @@
 #  include <wayland_dynload_API.h> /* For `ghost_wl_dynload_libraries`. */
 #endif
 
-#ifdef WITH_GHOST_WAYLAND_DYNLOAD
-#  include <wayland_dynload_egl.h>
-#endif
-#include <wayland-egl.h>
+#ifdef WITH_OPENGL_BACKEND
+#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
+#    include <wayland_dynload_egl.h>
+#  endif
+#  include <wayland-egl.h>
+#endif /* WITH_OPENGL_BACKEND */
 
 #include <algorithm>
 #include <atomic>
@@ -53,8 +55,6 @@
 #  include <wayland_dynload_cursor.h>
 #endif
 #include <wayland-cursor.h>
-
-#include "GHOST_WaylandCursorSettings.hh"
 
 #include <xkbcommon/xkbcommon.h>
 
@@ -392,7 +392,7 @@ struct GWL_Cursor {
   /** The size of `custom_data` in bytes. */
   size_t custom_data_size = 0;
   /**
-   * The name of the theme (loaded by DBUS, depends on #WITH_GHOST_WAYLAND_DBUS).
+   * The name of the theme (set by an environment variable).
    * When disabled, leave as an empty string and the default theme will be used.
    */
   std::string theme_name;
@@ -971,6 +971,11 @@ struct GWL_Display {
 #endif
   GWL_XDG_Decor_System *xdg_decor = nullptr;
 
+  /**
+   * NOTE(@ideasman42): Handling of outputs must account for this vector to be empty.
+   * While this seems like something which might not ever happen, it can occur when
+   * unplugging monitors (presumably from dodgy cables/connections too).
+   */
   std::vector<GWL_Output *> outputs;
   std::vector<GWL_Seat *> seats;
   /**
@@ -1000,7 +1005,7 @@ struct GWL_Display {
    * Events added from the event reading thread.
    * Added into the main event queue when on #GHOST_SystemWayland::processEvents.
    */
-  std::vector<GHOST_IEvent *> events_pending;
+  std::vector<const GHOST_IEvent *> events_pending;
   /** Guard against multiple threads accessing `events_pending` at once. */
   std::mutex events_pending_mutex;
 
@@ -1076,7 +1081,7 @@ static void gwl_display_destroy(GWL_Display *display)
     display->ghost_timer_manager = nullptr;
   }
   /* Pending events may be left unhandled. */
-  for (GHOST_IEvent *event : display->events_pending) {
+  for (const GHOST_IEvent *event : display->events_pending) {
     delete event;
   }
 
@@ -3426,8 +3431,6 @@ static void tablet_tool_handle_proximity_in(void *data,
 
   GHOST_WindowWayland *win = ghost_wl_surface_user_data(seat->tablet.wl.surface_window);
 
-  win->activate();
-
   seat->system->cursor_shape_set(win->getCursorShape());
 }
 static void tablet_tool_handle_proximity_out(void *data,
@@ -4323,7 +4326,7 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
   seat->cursor.wl.surface_cursor = wl_compositor_create_surface(seat->system->wl_compositor_get());
   seat->cursor.visible = true;
   seat->cursor.wl.buffer = nullptr;
-  if (!get_cursor_settings(seat->cursor.theme_name, seat->cursor.theme_size)) {
+  {
     /* Use environment variables, falling back to defaults.
      * These environment variables are used by enough WAYLAND applications
      * that it makes sense to check them (see `Xcursor` man page). */
@@ -5734,7 +5737,7 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
 
   {
     std::lock_guard lock{display_->events_pending_mutex};
-    for (GHOST_IEvent *event : display_->events_pending) {
+    for (const GHOST_IEvent *event : display_->events_pending) {
 
       /* Perform actions that aren't handled in a thread. */
       switch (event->getType()) {
@@ -6295,12 +6298,11 @@ void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &he
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
 
-  if (display_->outputs.empty()) {
-    return;
+  if (!display_->outputs.empty()) {
+    /* We assume first output as main. */
+    width = uint32_t(display_->outputs[0]->size_native[0]);
+    height = uint32_t(display_->outputs[0]->size_native[1]);
   }
-  /* We assume first output as main. */
-  width = uint32_t(display_->outputs[0]->size_native[0]);
-  height = uint32_t(display_->outputs[0]->size_native[1]);
 }
 
 void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
@@ -6308,24 +6310,25 @@ void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &hei
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
+  if (!display_->outputs.empty()) {
+    int32_t xy_min[2] = {INT32_MAX, INT32_MAX};
+    int32_t xy_max[2] = {INT32_MIN, INT32_MIN};
 
-  int32_t xy_min[2] = {INT32_MAX, INT32_MAX};
-  int32_t xy_max[2] = {INT32_MIN, INT32_MIN};
-
-  for (const GWL_Output *output : display_->outputs) {
-    int32_t xy[2] = {0, 0};
-    if (output->has_position_logical) {
-      xy[0] = output->position_logical[0];
-      xy[1] = output->position_logical[1];
+    for (const GWL_Output *output : display_->outputs) {
+      int32_t xy[2] = {0, 0};
+      if (output->has_position_logical) {
+        xy[0] = output->position_logical[0];
+        xy[1] = output->position_logical[1];
+      }
+      xy_min[0] = std::min(xy_min[0], xy[0]);
+      xy_min[1] = std::min(xy_min[1], xy[1]);
+      xy_max[0] = std::max(xy_max[0], xy[0] + output->size_native[0]);
+      xy_max[1] = std::max(xy_max[1], xy[1] + output->size_native[1]);
     }
-    xy_min[0] = std::min(xy_min[0], xy[0]);
-    xy_min[1] = std::min(xy_min[1], xy[1]);
-    xy_max[0] = std::max(xy_max[0], xy[0] + output->size_native[0]);
-    xy_max[1] = std::max(xy_max[1], xy[1] + output->size_native[1]);
-  }
 
-  width = xy_max[0] - xy_min[0];
-  height = xy_max[1] - xy_min[1];
+    width = xy_max[0] - xy_min[0];
+    height = xy_max[1] - xy_min[1];
+  }
 }
 
 GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gpuSettings)
@@ -6334,9 +6337,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
 
-#ifdef WITH_VULKAN_BACKEND
   const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
-#endif
 
   switch (gpuSettings.context_type) {
 
@@ -6351,6 +6352,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
                                                    nullptr,
                                                    wl_surface,
                                                    display_->wl.display,
+                                                   nullptr,
                                                    1,
                                                    2,
                                                    debug_context);
@@ -6376,16 +6378,18 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
 
       for (int minor = 6; minor >= 3; --minor) {
         /* Caller must lock `system->server_mutex`. */
-        GHOST_Context *context = new GHOST_ContextEGL(this,
-                                                      false,
-                                                      EGLNativeWindowType(egl_window),
-                                                      EGLNativeDisplayType(display_->wl.display),
-                                                      EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                                      4,
-                                                      minor,
-                                                      GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                                      GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                                      EGL_OPENGL_API);
+        GHOST_Context *context = new GHOST_ContextEGL(
+            this,
+            false,
+            EGLNativeWindowType(egl_window),
+            EGLNativeDisplayType(display_->wl.display),
+            EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+            4,
+            minor,
+            GHOST_OPENGL_EGL_CONTEXT_FLAGS |
+                (debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
+            GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+            EGL_OPENGL_API);
 
         if (context->initializeDrawingContext()) {
           wl_surface_set_user_data(wl_surface, egl_window);
@@ -6417,17 +6421,38 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
+
+  GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone;
+#ifdef WITH_OPENGL_BACKEND
+  if (dynamic_cast<GHOST_ContextEGL *>(context)) {
+    type = GHOST_kDrawingContextTypeOpenGL;
+  }
+#endif /* WITH_OPENGL_BACKEND */
+#ifdef WITH_VULKAN_BACKEND
+  if (dynamic_cast<GHOST_ContextVK *>(context)) {
+    type = GHOST_kDrawingContextTypeVulkan;
+  }
+#endif /* WITH_VULKAN_BACKEND */
+
   wl_surface *wl_surface = static_cast<struct wl_surface *>(
       (static_cast<GHOST_Context *>(context))->getUserData());
+
   /* Delete the context before the window so the context is able to release
    * native resources (such as the #EGLSurface) before WAYLAND frees them. */
   delete context;
 
-  wl_egl_window *egl_window = static_cast<wl_egl_window *>(wl_surface_get_user_data(wl_surface));
-  if (egl_window != nullptr) {
-    wl_egl_window_destroy(egl_window);
+#ifdef WITH_OPENGL_BACKEND
+  if (type == GHOST_kDrawingContextTypeOpenGL) {
+    wl_egl_window *egl_window = static_cast<wl_egl_window *>(wl_surface_get_user_data(wl_surface));
+    if (egl_window != nullptr) {
+      wl_egl_window_destroy(egl_window);
+    }
   }
+#endif /* WITH_OPENGL_BACKEND */
+
   wl_surface_destroy(wl_surface);
+
+  (void)type; /* Maybe unused. */
 
   return GHOST_kSuccess;
 }
@@ -6456,7 +6481,8 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
       gpuSettings.context_type,
       is_dialog,
       ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
-      exclusive);
+      exclusive,
+      (gpuSettings.flags & GHOST_gpuDebugContext) != 0);
 
   if (window) {
     if (window->getValid()) {
@@ -7238,16 +7264,16 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 
   /* Ignore, if the required protocols are not supported. */
   if (UNLIKELY(!display_->wp.relative_pointer_manager || !display_->wp.pointer_constraints)) {
-    return GHOST_kFailure;
+    return false;
   }
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {
-    return GHOST_kFailure;
+    return false;
   }
   /* No change, success. */
   if (mode == mode_current) {
-    return GHOST_kSuccess;
+    return true;
   }
 
 #ifdef USE_GNOME_CONFINE_HACK
@@ -7414,7 +7440,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   seat->use_pointer_software_confine = use_software_confine;
 #endif
 
-  return GHOST_kSuccess;
+  return true;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -7438,7 +7464,11 @@ bool ghost_wl_dynload_libraries_init()
 
   if (wayland_dynload_client_init(verbose) && /* `libwayland-client`. */
       wayland_dynload_cursor_init(verbose) && /* `libwayland-cursor`. */
-      wayland_dynload_egl_init(verbose)       /* `libwayland-egl`. */
+#  ifdef WITH_OPENGL_BACKEND
+      wayland_dynload_egl_init(verbose) /* `libwayland-egl`. */
+#  else
+      true
+#  endif
   )
   {
 #  ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -7449,7 +7479,9 @@ bool ghost_wl_dynload_libraries_init()
 
   wayland_dynload_client_exit();
   wayland_dynload_cursor_exit();
+#  ifdef WITH_OPENGL_BACKEND
   wayland_dynload_egl_exit();
+#  endif
 
   return false;
 }
@@ -7458,7 +7490,9 @@ void ghost_wl_dynload_libraries_exit()
 {
   wayland_dynload_client_exit();
   wayland_dynload_cursor_exit();
+#  ifdef WITH_OPENGL_BACKEND
   wayland_dynload_egl_exit();
+#  endif
 #  ifdef WITH_GHOST_WAYLAND_LIBDECOR
   wayland_dynload_libdecor_exit();
 #  endif

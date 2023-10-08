@@ -76,6 +76,8 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
   const Map<const bke::bNodeTreeZone *, GeoTreeLog *> log_by_zone =
       GeoModifierLog::get_tree_log_by_zone_for_node_editor(*snode);
 
+  Set<StringRef> names;
+
   /* For the attribute input node, collect attribute information from all nodes in the group. */
   if (node->type == GEO_NODE_INPUT_NAMED_ATTRIBUTE) {
     Vector<const GeometryAttributeInfo *> attributes;
@@ -83,9 +85,13 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
       tree_log->ensure_socket_values();
       tree_log->ensure_existing_attributes();
       for (const GeometryAttributeInfo *attribute : tree_log->existing_attributes) {
-        if (bke::allow_procedural_attribute_access(attribute->name)) {
-          attributes.append(attribute);
+        if (!names.add(attribute->name)) {
+          continue;
         }
+        if (!bke::allow_procedural_attribute_access(attribute->name)) {
+          continue;
+        }
+        attributes.append(attribute);
       }
     }
     return attributes;
@@ -100,7 +106,7 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
   if (node_log == nullptr) {
     return {};
   }
-  Set<StringRef> names;
+
   Vector<const GeometryAttributeInfo *> attributes;
   for (const bNodeSocket *input_socket : node->input_sockets()) {
     if (input_socket->type != SOCK_GEOMETRY) {

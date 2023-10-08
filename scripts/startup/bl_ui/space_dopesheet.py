@@ -309,7 +309,7 @@ class DOPESHEET_PT_snapping(Panel):
         col.label(text="Snap To")
         tool_settings = context.tool_settings
         col.prop(tool_settings, "snap_anim_element", expand=True)
-        if tool_settings.snap_anim_element not in ('MARKER', ):
+        if tool_settings.snap_anim_element != 'MARKER':
             col.prop(tool_settings, "use_snap_time_absolute")
 
 
@@ -495,6 +495,7 @@ class DOPESHEET_MT_channel(Menu):
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
         layout.operator("anim.channels_delete")
+        layout.operator("action.clean", text="Clean Channels").channels = True
 
         layout.separator()
         layout.operator("anim.channels_group")
@@ -555,7 +556,6 @@ class DOPESHEET_MT_key(Menu):
 
         layout.separator()
         layout.operator("action.clean").channels = False
-        layout.operator("action.clean", text="Clean Channels").channels = True
         layout.operator("action.bake_keys")
 
         layout.separator()
@@ -846,31 +846,31 @@ class DOPESHEET_PT_gpencil_mode(LayersDopeSheetPanel, Panel):
 
 class DOPESHEET_PT_gpencil_layer_masks(LayersDopeSheetPanel, GreasePencilLayerMasksPanel, Panel):
     bl_label = "Masks"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_transform(LayersDopeSheetPanel, GreasePencilLayerTransformPanel, Panel):
     bl_label = "Transform"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_adjustments(LayersDopeSheetPanel, GreasePencilLayerAdjustmentsPanel, Panel):
     bl_label = "Adjustments"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_relations(LayersDopeSheetPanel, GreasePencilLayerRelationsPanel, Panel):
     bl_label = "Relations"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 
 class DOPESHEET_PT_gpencil_layer_display(LayersDopeSheetPanel, GreasePencilLayerDisplayPanel, Panel):
     bl_label = "Display"
-    bl_parent_id = 'DOPESHEET_PT_gpencil_mode'
+    bl_parent_id = "DOPESHEET_PT_gpencil_mode"
     bl_options = {'DEFAULT_CLOSED'}
 
 

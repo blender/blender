@@ -106,6 +106,10 @@ class SVMCompiler {
   {
     return mix_weight_offset;
   }
+  uint get_bump_state_offset()
+  {
+    return bump_state_offset;
+  }
 
   ShaderType output_type()
   {
@@ -222,6 +226,7 @@ class SVMCompiler {
   Stack active_stack;
   int max_stack_use;
   uint mix_weight_offset;
+  uint bump_state_offset;
   bool compile_failed;
 };
 

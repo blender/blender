@@ -273,16 +273,36 @@ bool ED_curve_select_swap(EditNurb *editnurb, bool hide_handles)
   int a;
   bool changed = false;
 
+  /* This could be an argument to swap individual handle selection.
+   * At the moment this is always used though. */
+  bool swap_handles = false;
+
+  /* When hiding handles, ignore handle selection. */
+  if (hide_handles) {
+    swap_handles = true;
+  }
+
   LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
     if (nu->type == CU_BEZIER) {
       bezt = nu->bezt;
       a = nu->pntsu;
       while (a--) {
         if (bezt->hide == 0) {
-          bezt->f2 ^= SELECT; /* always do the center point */
-          if (!hide_handles) {
-            bezt->f1 ^= SELECT;
-            bezt->f3 ^= SELECT;
+          if (swap_handles) {
+            bezt->f2 ^= SELECT; /* always do the center point */
+            if (!hide_handles) {
+              bezt->f1 ^= SELECT;
+              bezt->f3 ^= SELECT;
+            }
+          }
+          else {
+            BLI_assert(!hide_handles);
+            if (BEZT_ISSEL_ANY(bezt)) {
+              BEZT_DESEL_ALL(bezt);
+            }
+            else {
+              BEZT_SEL_ALL(bezt);
+            }
           }
           changed = true;
         }

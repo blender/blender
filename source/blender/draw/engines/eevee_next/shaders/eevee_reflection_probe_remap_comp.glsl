@@ -6,6 +6,17 @@
 
 #pragma BLENDER_REQUIRE(eevee_octahedron_lib.glsl)
 
+ivec2 probe_area_offset(ReflectionProbeData probe_data, ivec3 texture_size)
+{
+  ivec2 octahedral_size = ivec2(texture_size.x >> probe_data.layer_subdivision,
+                                texture_size.y >> probe_data.layer_subdivision);
+  int probes_per_dimension = 1 << probe_data.layer_subdivision;
+  ivec2 area_coord = ivec2(probe_data.area_index % probes_per_dimension,
+                           probe_data.area_index / probes_per_dimension);
+  ivec2 area_offset = area_coord * octahedral_size;
+  return area_offset;
+}
+
 void main()
 {
   ReflectionProbeData probe_data = reflection_probe_buf[reflection_probe_index];
@@ -29,13 +40,22 @@ void main()
 
   vec4 col = textureLod(cubemap_tx, R, float(probe_data.layer_subdivision));
 
-  int probes_per_dimension = 1 << probe_data.layer_subdivision;
-  ivec2 area_coord = ivec2(probe_data.area_index % probes_per_dimension,
-                           probe_data.area_index / probes_per_dimension);
-  ivec2 area_offset = area_coord * octahedral_size;
-
   /* Convert transmittance to transparency. */
   col.a = 1.0 - col.a;
 
+  /* Composite world into reflection probes. */
+  bool is_reflection_probe = reflection_probe_index != 0;
+  if (is_reflection_probe && col.a != 1.0) {
+    ReflectionProbeData world_probe_data = reflection_probe_buf[0];
+    vec2 world_octahedral_size = vec2(texture_size.x >> world_probe_data.layer_subdivision,
+                                      texture_size.y >> world_probe_data.layer_subdivision);
+    ivec3 world_octahedral_coord = ivec3(ivec2(uv * world_octahedral_size), 0.0);
+    ivec2 world_area_offset = probe_area_offset(world_probe_data, texture_size);
+    vec4 world_col = imageLoad(
+        octahedral_img, world_octahedral_coord + ivec3(world_area_offset, world_probe_data.layer));
+    col.rgb = mix(world_col.rgb, col.rgb, col.a);
+  }
+
+  ivec2 area_offset = probe_area_offset(probe_data, texture_size);
   imageStore(octahedral_img, octahedral_coord + ivec3(area_offset, probe_data.layer), col);
 }

@@ -11,6 +11,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array_utils.hh"
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
@@ -788,7 +789,7 @@ static void pbvh_build(PBVH *pbvh,
     pbvh->nodes.clear_and_shrink();
 
     pbvh->prim_indices.reinitialize(totprim);
-    std::iota(pbvh->prim_indices.begin(), pbvh->prim_indices.end(), 0);
+    blender::array_utils::fill_index_range<int>(pbvh->prim_indices);
   }
 
   pbvh->nodes.resize(1);

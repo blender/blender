@@ -15,7 +15,6 @@
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 
-#include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -44,6 +43,8 @@
 #include "node_intern.hh"
 
 #include "ED_undo.hh"
+
+#include "WM_api.hh"
 
 using blender::nodes::NodeDeclaration;
 
@@ -775,6 +776,9 @@ static void node_panel_toggle_button_cb(bContext *C, void *panel_state_argv, voi
   panel_state->flag ^= NODE_PANEL_COLLAPSED;
 
   ED_node_tree_propagate_change(C, bmain, ntree);
+
+  /* Make sure panel state updates from the Properties Editor, too. */
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
 }
 
 static void ui_node_draw_panel(uiLayout &layout,
@@ -795,7 +799,7 @@ static void ui_node_draw_panel(uiLayout &layout,
                                 0,
                                 panel_state.is_collapsed() ? ICON_DISCLOSURE_TRI_RIGHT :
                                                              ICON_DISCLOSURE_TRI_DOWN,
-                                panel_decl.name.c_str(),
+                                IFACE_(panel_decl.name.c_str()),
                                 0,
                                 0,
                                 UI_UNIT_X * 4,

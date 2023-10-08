@@ -149,7 +149,7 @@ static void ElementMirror(TransInfo *t, TransDataContainer *tc, TransData *td, i
       add_v3_v3v3(td->loc, td->iloc, vec);
     }
 
-    constraintTransLim(t, td);
+    constraintTransLim(t, tc, td);
   }
 }
 

@@ -14,6 +14,7 @@
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
+#include "NOD_socket.hh"
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_geometry_fields.hh"
@@ -42,7 +43,7 @@ StringRef input_attribute_name_suffix()
 
 bool socket_type_has_attribute_toggle(const eNodeSocketDatatype type)
 {
-  return ELEM(type, SOCK_FLOAT, SOCK_VECTOR, SOCK_BOOLEAN, SOCK_RGBA, SOCK_INT, SOCK_ROTATION);
+  return socket_type_supports_fields(type);
 }
 
 bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_index)

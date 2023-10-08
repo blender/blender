@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifndef WITH_VULKAN_BACKEND
+#  error "ContextVK requires WITH_VULKAN_BACKEND"
+#endif
+
 #include "GHOST_Context.hh"
 
 #ifdef _WIN32
@@ -42,6 +46,10 @@ typedef enum {
 #endif
 } GHOST_TVulkanPlatformType;
 
+struct GHOST_ContextVK_WindowInfo {
+  int size[2];
+};
+
 class GHOST_ContextVK : public GHOST_Context {
  public:
   /**
@@ -61,6 +69,7 @@ class GHOST_ContextVK : public GHOST_Context {
                   /* Wayland */
                   wl_surface *wayland_surface,
                   wl_display *wayland_display,
+                  const GHOST_ContextVK_WindowInfo *wayland_window_info,
 #endif
                   int contextMajorVersion,
                   int contextMinorVersion,
@@ -151,6 +160,7 @@ class GHOST_ContextVK : public GHOST_Context {
   /* Wayland */
   wl_surface *m_wayland_surface;
   wl_display *m_wayland_display;
+  const GHOST_ContextVK_WindowInfo *m_wayland_window_info;
 #endif
 
   const int m_context_major_version;
@@ -169,6 +179,7 @@ class GHOST_ContextVK : public GHOST_Context {
   std::vector<VkImage> m_swapchain_images;
 
   VkExtent2D m_render_extent;
+  VkExtent2D m_render_extent_min;
   VkSurfaceFormatKHR m_surface_format;
   VkFence m_fence;
 

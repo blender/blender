@@ -10,10 +10,11 @@
  * \{ */
 
 GPU_SHADER_CREATE_INFO(eevee_reflection_probe_data)
+    .define("REFLECTION_PROBE")
     .uniform_buf(REFLECTION_PROBE_BUF_SLOT,
                  "ReflectionProbeData",
                  "reflection_probe_buf[REFLECTION_PROBES_MAX]")
-    .sampler(REFLECTION_PROBE_TEX_SLOT, ImageType::FLOAT_2D_ARRAY, "reflectionProbes");
+    .sampler(REFLECTION_PROBE_TEX_SLOT, ImageType::FLOAT_2D_ARRAY, "reflection_probes_tx");
 
 /* Sample cubemap and remap into an octahedral texture. */
 GPU_SHADER_CREATE_INFO(eevee_reflection_probe_remap)
@@ -23,7 +24,7 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_remap)
                  "ReflectionProbeData",
                  "reflection_probe_buf[REFLECTION_PROBES_MAX]")
     .sampler(0, ImageType::FLOAT_CUBE, "cubemap_tx")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D_ARRAY, "octahedral_img")
+    .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D_ARRAY, "octahedral_img")
     .compute_source("eevee_reflection_probe_remap_comp.glsl")
     .additional_info("eevee_shared")
     .do_static_compilation(true);
@@ -36,6 +37,17 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_update_irradiance)
     .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "irradiance_atlas_img")
     .additional_info("eevee_shared", "eevee_reflection_probe_data")
     .compute_source("eevee_reflection_probe_update_irradiance_comp.glsl")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(eevee_reflection_probe_select)
+    .local_group_size(REFLECTION_PROBE_SELECT_GROUP_SIZE)
+    .storage_buf(0,
+                 Qualifier::READ_WRITE,
+                 "ReflectionProbeData",
+                 "reflection_probe_buf[REFLECTION_PROBES_MAX]")
+    .push_constant(Type::INT, "reflection_probe_count")
+    .additional_info("eevee_shared", "eevee_volume_probe_data")
+    .compute_source("eevee_reflection_probe_select_comp.glsl")
     .do_static_compilation(true);
 
 /** \} */
