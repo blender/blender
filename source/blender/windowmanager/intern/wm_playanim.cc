@@ -1486,7 +1486,7 @@ static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
   }
 
   // playanim_window_get_position(&ofsx, &ofsy);
-  playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
+  // playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
   // ofsx += sizex / 2; /* UNUSED */
   // ofsy += sizey / 2; /* UNUSED */
   sizex = ps->zoom * ps->ibufx;
