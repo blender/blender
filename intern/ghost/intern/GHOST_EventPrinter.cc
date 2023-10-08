@@ -31,7 +31,7 @@ static const char *getButtonActionString(const GHOST_TButtonAction action)
 }
 #endif /* WITH_INPUT_NDOF */
 
-bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
+bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
 {
   bool handled = false;
 
