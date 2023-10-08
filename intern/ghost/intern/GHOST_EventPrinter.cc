@@ -17,6 +17,8 @@
 
 #include <cstdio>
 
+/* For now only used with NDOF. */
+#ifdef WITH_INPUT_NDOF
 static const char *getButtonActionString(const GHOST_TButtonAction action)
 {
   switch (action) {
@@ -27,6 +29,7 @@ static const char *getButtonActionString(const GHOST_TButtonAction action)
   }
   return "Unknown";
 }
+#endif /* WITH_INPUT_NDOF */
 
 bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
 {
