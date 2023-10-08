@@ -16,14 +16,14 @@ namespace blender::nodes::node_geo_input_mesh_face_is_planar_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>("Threshold")
-      .field_source()
       .default_value(0.01f)
+      .min(0.0f)
       .subtype(PROP_DISTANCE)
+      .field_source()
       .supports_field()
       .description(
           "The distance a point can be from the surface before the face is no longer "
-          "considered planar")
-      .min(0.0f);
+          "considered planar");
   b.add_output<decl::Bool>("Planar").field_source();
 }
 
