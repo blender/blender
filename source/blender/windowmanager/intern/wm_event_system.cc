@@ -5449,7 +5449,10 @@ static bool wm_event_is_ignorable_key_press(const wmWindow *win, const wmEvent &
   return wm_event_is_same_key_press(last_event, event);
 }
 
-void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type, void *customdata)
+void wm_event_add_ghostevent(wmWindowManager *wm,
+                             wmWindow *win,
+                             const int type,
+                             const void *customdata)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
     return;
@@ -5515,9 +5518,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
   switch (type) {
     /* Mouse move, also to inactive window (X11 does this). */
     case GHOST_kEventCursorMove: {
-      GHOST_TEventCursorData *cd = static_cast<GHOST_TEventCursorData *>(customdata);
+      const GHOST_TEventCursorData *cd = static_cast<const GHOST_TEventCursorData *>(customdata);
 
       copy_v2_v2_int(event.xy, &cd->x);
+      wm_cursor_position_from_ghost_screen_coords(win, &event.xy[0], &event.xy[1]);
+
       wm_stereo3d_mouse_offset_apply(win, event.xy);
       wm_tablet_data_from_ghost(&cd->tablet, &event.tablet);
 
@@ -5556,12 +5561,15 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
       break;
     }
     case GHOST_kEventTrackpad: {
-      GHOST_TEventTrackpadData *pd = static_cast<GHOST_TEventTrackpadData *>(customdata);
+      const GHOST_TEventTrackpadData *pd = static_cast<const GHOST_TEventTrackpadData *>(
+          customdata);
+
+      int delta[2] = {pd->deltaX, -pd->deltaY};
       switch (pd->subtype) {
         case GHOST_kTrackpadEventMagnify:
           event.type = MOUSEZOOM;
-          pd->deltaX = -pd->deltaX;
-          pd->deltaY = -pd->deltaY;
+          delta[0] = -delta[0];
+          delta[1] = -delta[1];
           break;
         case GHOST_kTrackpadEventSmartMagnify:
           event.type = MOUSESMARTZOOM;
@@ -5575,8 +5583,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
           break;
       }
 
-      event.xy[0] = event_state->xy[0] = pd->x;
-      event.xy[1] = event_state->xy[1] = pd->y;
+      copy_v2_v2_int(event.xy, &pd->x);
+      wm_cursor_position_from_ghost_screen_coords(win, &event.xy[0], &event.xy[1]);
+      copy_v2_v2_int(event_state->xy, event.xy);
       event.val = KM_NOTHING;
 
       /* The direction is inverted from the device due to system preferences. */
@@ -5584,13 +5593,13 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
         event.flag |= WM_EVENT_SCROLL_INVERT;
       }
 
-      wm_event_add_trackpad(win, &event, pd->deltaX, -pd->deltaY);
+      wm_event_add_trackpad(win, &event, delta[0], delta[1]);
       break;
     }
     /* Mouse button. */
     case GHOST_kEventButtonDown:
     case GHOST_kEventButtonUp: {
-      GHOST_TEventButtonData *bd = static_cast<GHOST_TEventButtonData *>(customdata);
+      const GHOST_TEventButtonData *bd = static_cast<const GHOST_TEventButtonData *>(customdata);
 
       /* Get value and type from Ghost. */
       event.val = (type == GHOST_kEventButtonDown) ? KM_PRESS : KM_RELEASE;
@@ -5653,7 +5662,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
     /* Keyboard. */
     case GHOST_kEventKeyDown:
     case GHOST_kEventKeyUp: {
-      GHOST_TEventKeyData *kd = static_cast<GHOST_TEventKeyData *>(customdata);
+      const GHOST_TEventKeyData *kd = static_cast<const GHOST_TEventKeyData *>(customdata);
       event.type = convert_key(kd->key);
       if (UNLIKELY(event.type == EVENT_NONE)) {
         break;
@@ -5813,7 +5822,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
     }
 
     case GHOST_kEventWheel: {
-      GHOST_TEventWheelData *wheelData = static_cast<GHOST_TEventWheelData *>(customdata);
+      const GHOST_TEventWheelData *wheelData = static_cast<const GHOST_TEventWheelData *>(
+          customdata);
 
       if (wheelData->z > 0) {
         event.type = WHEELUPMOUSE;
@@ -5840,7 +5850,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
     }
 
     case GHOST_kEventNDOFButton: {
-      GHOST_TEventNDOFButtonData *e = static_cast<GHOST_TEventNDOFButtonData *>(customdata);
+      const GHOST_TEventNDOFButtonData *e = static_cast<const GHOST_TEventNDOFButtonData *>(
+          customdata);
 
       event.type = NDOF_BUTTON_INDEX_AS_EVENT(e->button);
 

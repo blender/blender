@@ -983,6 +983,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 {
   PlayState *ps = (PlayState *)ps_void;
   const GHOST_TEventType type = GHOST_GetEventType(evt);
+  GHOST_TEventDataPtr data = GHOST_GetEventData(evt);
   /* Convert ghost event into value keyboard or mouse. */
   const int val = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventButtonDown);
   GHOST_SystemHandle ghost_system = ps->ghost_data.system;
@@ -997,9 +998,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     switch (type) {
       case GHOST_kEventKeyDown:
       case GHOST_kEventKeyUp: {
-        GHOST_TEventKeyData *key_data;
-
-        key_data = (GHOST_TEventKeyData *)GHOST_GetEventData(evt);
+        const GHOST_TEventKeyData *key_data = static_cast<const GHOST_TEventKeyData *>(data);
         switch (key_data->key) {
           case GHOST_kKeyEsc:
             ps->loading = false;
@@ -1027,9 +1026,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
   switch (type) {
     case GHOST_kEventKeyDown:
     case GHOST_kEventKeyUp: {
-      GHOST_TEventKeyData *key_data;
-
-      key_data = (GHOST_TEventKeyData *)GHOST_GetEventData(evt);
+      const GHOST_TEventKeyData *key_data = static_cast<const GHOST_TEventKeyData *>(data);
       switch (key_data->key) {
         case GHOST_kKeyA:
           if (val) {
@@ -1324,8 +1321,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     }
     case GHOST_kEventButtonDown:
     case GHOST_kEventButtonUp: {
-      GHOST_TEventButtonData *bd = reinterpret_cast<GHOST_TEventButtonData *>(
-          GHOST_GetEventData(evt));
+      const GHOST_TEventButtonData *bd = static_cast<const GHOST_TEventButtonData *>(data);
       int cx, cy, sizex, sizey;
       playanim_window_get_size(ghost_window, &sizex, &sizey);
 
@@ -1368,8 +1364,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     }
     case GHOST_kEventCursorMove: {
       if (ps->ghost_data.qual & WS_QUAL_LMOUSE) {
-        GHOST_TEventCursorData *cd = reinterpret_cast<GHOST_TEventCursorData *>(
-            GHOST_GetEventData(evt));
+        const GHOST_TEventCursorData *cd = static_cast<const GHOST_TEventCursorData *>(data);
         int cx, cy;
 
         /* Ignore 'in-between' events, since they can make scrubbing lag.
@@ -1431,11 +1426,10 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       break;
     }
     case GHOST_kEventDraggingDropDone: {
-      GHOST_TEventDragnDropData *ddd = reinterpret_cast<GHOST_TEventDragnDropData *>(
-          GHOST_GetEventData(evt));
+      const GHOST_TEventDragnDropData *ddd = static_cast<const GHOST_TEventDragnDropData *>(data);
 
       if (ddd->dataType == GHOST_kDragnDropTypeFilenames) {
-        GHOST_TStringArray *stra = reinterpret_cast<GHOST_TStringArray *>(ddd->data);
+        const GHOST_TStringArray *stra = static_cast<const GHOST_TStringArray *>(ddd->data);
         int a;
 
         for (a = 0; a < stra->count; a++) {

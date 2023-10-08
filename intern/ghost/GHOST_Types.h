@@ -535,7 +535,7 @@ typedef enum {
   GHOST_kAxisY = (1 << 1),
 } GHOST_TAxisFlag;
 
-typedef void *GHOST_TEventDataPtr;
+typedef const void *GHOST_TEventDataPtr;
 
 typedef struct {
   /** The x-coordinate of the cursor position. */
@@ -589,6 +589,8 @@ typedef enum {
   GHOST_kDragnDropTypeBitmap     /* Bitmap image data. */
 } GHOST_TDragnDropTypes;
 
+typedef void *GHOST_TDragnDropDataPtr;
+
 typedef struct {
   /** The x-coordinate of the cursor position. */
   int32_t x;
@@ -597,7 +599,7 @@ typedef struct {
   /** The dropped item type */
   GHOST_TDragnDropTypes dataType;
   /** The "dropped content" */
-  GHOST_TEventDataPtr data;
+  GHOST_TDragnDropDataPtr data;
 } GHOST_TEventDragnDropData;
 
 /**

@@ -1204,7 +1204,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
       NSArray *droppedArray;
       size_t pastedTextSize;
       NSString *droppedStr;
-      GHOST_TEventDataPtr eventData;
+      GHOST_TDragnDropDataPtr eventData;
       int i;
 
       if (!data) {
@@ -1246,7 +1246,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             strArray->strings[i] = temp_buff;
           }
 
-          eventData = (GHOST_TEventDataPtr)strArray;
+          eventData = (GHOST_TDragnDropDataPtr)strArray;
           break;
 
         case GHOST_kDragnDropTypeString:
@@ -1263,7 +1263,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
               temp_buff, [droppedStr cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
           temp_buff[pastedTextSize] = '\0';
 
-          eventData = (GHOST_TEventDataPtr)temp_buff;
+          eventData = (GHOST_TDragnDropDataPtr)temp_buff;
           break;
 
         case GHOST_kDragnDropTypeBitmap: {
@@ -1395,7 +1395,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             [droppedImg release];
           }
 
-          eventData = (GHOST_TEventDataPtr)ibuf;
+          eventData = (GHOST_TDragnDropDataPtr)ibuf;
 
           break;
         }
