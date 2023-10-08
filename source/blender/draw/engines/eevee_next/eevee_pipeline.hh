@@ -176,10 +176,7 @@ class ForwardPipeline {
 /** \name Deferred lighting.
  * \{ */
 
-class DeferredLayer {
- private:
-  Instance &inst_;
-
+struct DeferredLayerBase {
   PassMain prepass_ps_ = {"Prepass"};
   PassMain::Sub *prepass_single_sided_static_ps_ = nullptr;
   PassMain::Sub *prepass_single_sided_moving_ps_ = nullptr;
@@ -190,13 +187,18 @@ class DeferredLayer {
   PassMain::Sub *gbuffer_single_sided_ps_ = nullptr;
   PassMain::Sub *gbuffer_double_sided_ps_ = nullptr;
 
+  /* Closures bits from the materials in this pass. */
+  eClosureBits closure_bits_ = CLOSURE_NONE;
+};
+
+class DeferredLayer : private DeferredLayerBase {
+ private:
+  Instance &inst_;
+
   /* Evaluate all light objects contribution. */
   PassSimple eval_light_ps_ = {"EvalLights"};
   /* Combine direct and indirect light contributions and apply BSDF color. */
   PassSimple combine_ps_ = {"Combine"};
-
-  /* Closures bits from the materials in this pass. */
-  eClosureBits closure_bits_ = CLOSURE_NONE;
 
   /**
    * Accumulation textures for all stages of lighting evaluation (Light, SSR, SSSS, SSGI ...).
@@ -214,7 +216,9 @@ class DeferredLayer {
   GPUTexture *indirect_reflect_tx_ = nullptr;
   GPUTexture *indirect_refract_tx_ = nullptr;
 
+  /* TODO(fclem): This should be a TextureFromPool. */
   Texture radiance_behind_tx_ = {"radiance_behind_tx"};
+  /* TODO(fclem): This shouldn't be part of the pipeline but of the view. */
   Texture radiance_feedback_tx_ = {"radiance_feedback_tx"};
   float4x4 radiance_feedback_persmat_;
 
@@ -290,22 +294,11 @@ class VolumePipeline {
 /* -------------------------------------------------------------------- */
 /** \name Deferred Probe Capture.
  * \{ */
-class DeferredProbeLayer {
+class DeferredProbeLayer : DeferredLayerBase {
  private:
   Instance &inst_;
 
-  PassMain prepass_ps_ = {"Prepass"};
-  PassMain::Sub *prepass_single_sided_ps_ = nullptr;
-  PassMain::Sub *prepass_double_sided_ps_ = nullptr;
-
-  PassMain gbuffer_ps_ = {"Shading"};
-  PassMain::Sub *gbuffer_single_sided_ps_ = nullptr;
-  PassMain::Sub *gbuffer_double_sided_ps_ = nullptr;
-
   PassSimple eval_light_ps_ = {"EvalLights"};
-
-  /* Closures bits from the materials in this pass. */
-  eClosureBits closure_bits_;
 
  public:
   DeferredProbeLayer(Instance &inst) : inst_(inst){};
@@ -333,6 +326,33 @@ class DeferredProbePipeline {
   PassMain::Sub *material_add(::Material *material, GPUMaterial *gpumat);
 
   void render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb, int2 extent);
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Deferred Planar Probe Capture.
+ * \{ */
+
+class PlanarProbePipeline : DeferredLayerBase {
+ private:
+  Instance &inst_;
+
+  PassSimple eval_light_ps_ = {"EvalLights"};
+
+  /* Closures bits from the materials in this pass. */
+  eClosureBits closure_bits_ = CLOSURE_NONE;
+
+ public:
+  PlanarProbePipeline(Instance &inst) : inst_(inst){};
+
+  void begin_sync();
+  void end_sync();
+
+  PassMain::Sub *prepass_add(::Material *material, GPUMaterial *gpumat);
+  PassMain::Sub *material_add(::Material *material, GPUMaterial *gpumat);
+
+  void render(View &view, Framebuffer &combined_fb, int2 extent);
 };
 
 /** \} */
@@ -449,6 +469,7 @@ class PipelineModule {
   WorldPipeline world;
   WorldVolumePipeline world_volume;
   DeferredProbePipeline probe;
+  PlanarProbePipeline planar;
   DeferredPipeline deferred;
   ForwardPipeline forward;
   ShadowPipeline shadow;
@@ -463,6 +484,7 @@ class PipelineModule {
         world(inst),
         world_volume(inst),
         probe(inst),
+        planar(inst),
         deferred(inst),
         forward(inst),
         shadow(inst),
@@ -472,6 +494,7 @@ class PipelineModule {
   void begin_sync()
   {
     probe.begin_sync();
+    planar.begin_sync();
     deferred.begin_sync();
     forward.sync();
     shadow.sync();
@@ -482,6 +505,7 @@ class PipelineModule {
   void end_sync()
   {
     probe.end_sync();
+    planar.end_sync();
     deferred.end_sync();
   }
 
@@ -489,15 +513,27 @@ class PipelineModule {
                               ::Material *blender_mat,
                               GPUMaterial *gpumat,
                               eMaterialPipeline pipeline_type,
-                              bool probe_capture)
+                              eMaterialProbe probe_capture)
   {
-    if (probe_capture) {
+    if (probe_capture == MAT_PROBE_REFLECTION) {
       switch (pipeline_type) {
         case MAT_PIPE_DEFERRED_PREPASS:
           return probe.prepass_add(blender_mat, gpumat);
         case MAT_PIPE_DEFERRED:
           return probe.material_add(blender_mat, gpumat);
         default:
+          BLI_assert_unreachable();
+          break;
+      }
+    }
+    if (probe_capture == MAT_PROBE_PLANAR) {
+      switch (pipeline_type) {
+        case MAT_PIPE_PLANAR_PREPASS:
+          return planar.prepass_add(blender_mat, gpumat);
+        case MAT_PIPE_DEFERRED:
+          return planar.material_add(blender_mat, gpumat);
+        default:
+          BLI_assert_unreachable();
           break;
       }
     }
@@ -532,6 +568,9 @@ class PipelineModule {
         return shadow.surface_material_add(gpumat);
       case MAT_PIPE_CAPTURE:
         return capture.surface_material_add(gpumat);
+      case MAT_PIPE_PLANAR_PREPASS:
+        BLI_assert_unreachable();
+        return nullptr;
     }
     return nullptr;
   }

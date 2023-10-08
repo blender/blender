@@ -395,6 +395,7 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
                 col = layout.column(heading="Light Probes")
                 col.prop(ob, "hide_probe_volume", text="Volume", toggle=False, invert_checkbox=True)
                 col.prop(ob, "hide_probe_cubemap", text="Cubemap", toggle=False, invert_checkbox=True)
+                col.prop(ob, "hide_probe_planar", text="Planar", toggle=False, invert_checkbox=True)
 
         if ob.type == 'GPENCIL':
             col = layout.column(heading="Grease Pencil")

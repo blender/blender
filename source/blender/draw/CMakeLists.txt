@@ -153,6 +153,7 @@ set(SRC
   engines/eevee_next/eevee_material.cc
   engines/eevee_next/eevee_motion_blur.cc
   engines/eevee_next/eevee_pipeline.cc
+  engines/eevee_next/eevee_planar_probes.cc
   engines/eevee_next/eevee_precompute.cc
   engines/eevee_next/eevee_raytrace.cc
   engines/eevee_next/eevee_reflection_probes.cc
@@ -289,6 +290,7 @@ set(SRC
   engines/eevee_next/eevee_material.hh
   engines/eevee_next/eevee_motion_blur.hh
   engines/eevee_next/eevee_pipeline.hh
+  engines/eevee_next/eevee_planar_probes.hh
   engines/eevee_next/eevee_precompute.hh
   engines/eevee_next/eevee_raytrace.hh
   engines/eevee_next/eevee_reflection_probes.hh

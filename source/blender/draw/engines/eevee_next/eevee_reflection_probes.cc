@@ -154,7 +154,7 @@ void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
   probe.do_render |= is_dirty;
   probe.is_probe_used = true;
 
-  const bool probe_sync_active = instance_.do_probe_sync();
+  const bool probe_sync_active = instance_.do_reflection_probe_sync();
   if (!probe_sync_active && probe.do_render) {
     update_probes_next_sample_ = true;
   }
@@ -342,7 +342,7 @@ void ReflectionProbeModule::end_sync()
     }
   }
 
-  const bool do_update = instance_.do_probe_sync() || (only_world && world_updated);
+  const bool do_update = instance_.do_reflection_probe_sync() || (only_world && world_updated);
   if (!do_update) {
     if (update_probes_next_sample_ && !update_probes_this_sample_) {
       DRW_viewport_request_redraw();
@@ -548,7 +548,7 @@ std::ostream &operator<<(std::ostream &os, const ReflectionProbe &probe)
 std::optional<ReflectionProbeUpdateInfo> ReflectionProbeModule::update_info_pop(
     const ReflectionProbe::Type probe_type)
 {
-  const bool do_probe_sync = instance_.do_probe_sync();
+  const bool do_probe_sync = instance_.do_reflection_probe_sync();
   const bool only_world = has_only_world_probe();
   const int max_shift = int(log2(max_resolution_));
   for (const Map<uint64_t, ReflectionProbe>::Item &item : probes_.items()) {

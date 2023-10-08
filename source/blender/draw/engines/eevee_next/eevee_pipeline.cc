@@ -797,12 +797,11 @@ void DeferredProbeLayer::begin_sync()
     }
 
     DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
-
-    prepass_double_sided_ps_ = &prepass_ps_.sub("DoubleSided");
-    prepass_double_sided_ps_->state_set(state_depth_only);
-
-    prepass_single_sided_ps_ = &prepass_ps_.sub("SingleSided");
-    prepass_single_sided_ps_->state_set(state_depth_only | DRW_STATE_CULL_BACK);
+    /* Only setting up static pass because we don't use motion vectors for light-probes. */
+    prepass_double_sided_static_ps_ = &prepass_ps_.sub("DoubleSided");
+    prepass_double_sided_static_ps_->state_set(state_depth_only);
+    prepass_single_sided_static_ps_ = &prepass_ps_.sub("SingleSided");
+    prepass_single_sided_static_ps_->state_set(state_depth_only | DRW_STATE_CULL_BACK);
   }
   {
     gbuffer_ps_.init();
@@ -869,8 +868,8 @@ void DeferredProbeLayer::end_sync()
 PassMain::Sub *DeferredProbeLayer::prepass_add(::Material *blender_mat, GPUMaterial *gpumat)
 {
   PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
-                            prepass_single_sided_ps_ :
-                            prepass_double_sided_ps_;
+                            prepass_single_sided_static_ps_ :
+                            prepass_double_sided_static_ps_;
 
   return &pass->sub(GPU_material_get_name(gpumat));
 }
@@ -946,6 +945,115 @@ void DeferredProbePipeline::render(View &view,
 {
   GPU_debug_group_begin("Probe.Render");
   opaque_layer_.render(view, prepass_fb, combined_fb, extent);
+  GPU_debug_group_end();
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Deferred Planar Probe Pipeline
+ *
+ * \{ */
+
+void PlanarProbePipeline::begin_sync()
+{
+  {
+    prepass_ps_.init();
+    prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    prepass_ps_.bind_ubo(CLIP_PLANE_BUF, inst_.planar_probes.world_clip_buf_);
+    inst_.bind_uniform_data(&prepass_ps_);
+    inst_.sampling.bind_resources(&prepass_ps_);
+
+    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+
+    prepass_double_sided_static_ps_ = &prepass_ps_.sub("DoubleSided.Static");
+    prepass_double_sided_static_ps_->state_set(state_depth_only);
+
+    prepass_single_sided_static_ps_ = &prepass_ps_.sub("SingleSided.Static");
+    prepass_single_sided_static_ps_->state_set(state_depth_only | DRW_STATE_CULL_BACK);
+  }
+  {
+    gbuffer_ps_.init();
+    gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_tx);
+    gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_tx);
+    gbuffer_ps_.bind_image(GBUF_HEADER_SLOT, &inst_.gbuffer.header_tx);
+    gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    inst_.bind_uniform_data(&gbuffer_ps_);
+    inst_.sampling.bind_resources(&gbuffer_ps_);
+    inst_.hiz_buffer.bind_resources(&gbuffer_ps_);
+    inst_.cryptomatte.bind_resources(&gbuffer_ps_);
+
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_EQUAL;
+
+    gbuffer_double_sided_ps_ = &gbuffer_ps_.sub("DoubleSided");
+    gbuffer_double_sided_ps_->state_set(state);
+
+    gbuffer_single_sided_ps_ = &gbuffer_ps_.sub("SingleSided");
+    gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
+  }
+  {
+    PassSimple &pass = eval_light_ps_;
+    pass.init();
+    pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_CAPTURE_EVAL));
+    inst_.bind_uniform_data(&pass);
+    inst_.gbuffer.bind_resources(&pass);
+    inst_.lights.bind_resources(&pass);
+    inst_.shadows.bind_resources(&pass);
+    inst_.sampling.bind_resources(&pass);
+    inst_.hiz_buffer.bind_resources(&pass);
+    inst_.irradiance_cache.bind_resources(&pass);
+    pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+  }
+
+  closure_bits_ = CLOSURE_NONE;
+}
+
+void PlanarProbePipeline::end_sync()
+{
+  /* No-op for now. */
+}
+
+PassMain::Sub *PlanarProbePipeline::prepass_add(::Material *blender_mat, GPUMaterial *gpumat)
+{
+  PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
+                            prepass_single_sided_static_ps_ :
+                            prepass_double_sided_static_ps_;
+  return &pass->sub(GPU_material_get_name(gpumat));
+}
+
+PassMain::Sub *PlanarProbePipeline::material_add(::Material *blender_mat, GPUMaterial *gpumat)
+{
+  eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
+  closure_bits_ |= closure_bits;
+
+  PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
+                            gbuffer_single_sided_ps_ :
+                            gbuffer_double_sided_ps_;
+  return &pass->sub(GPU_material_get_name(gpumat));
+}
+
+void PlanarProbePipeline::render(View &view, Framebuffer &combined_fb, int2 extent)
+{
+  GPU_debug_group_begin("Planar.Capture");
+
+  GPU_framebuffer_bind(combined_fb);
+  GPU_framebuffer_clear_depth(combined_fb, 1.0f);
+  inst_.manager->submit(prepass_ps_, view);
+
+  inst_.lights.set_view(view, extent);
+  inst_.shadows.set_view(view);
+  inst_.irradiance_cache.set_view(view);
+
+  inst_.gbuffer.acquire(extent, closure_bits_);
+
+  GPU_framebuffer_bind(combined_fb);
+  GPU_framebuffer_clear_color(combined_fb, float4(0.0f, 0.0f, 0.0f, 1.0f));
+  inst_.manager->submit(gbuffer_ps_, view);
+  inst_.manager->submit(eval_light_ps_, view);
+
+  inst_.gbuffer.release();
+
   GPU_debug_group_end();
 }
 

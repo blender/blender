@@ -336,11 +336,6 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     }
   }
 
-  /* WORKAROUND: Needed because node_tree isn't present in test shaders. */
-  if (pipeline_type == MAT_PIPE_DEFERRED) {
-    info.additional_info("eevee_render_pass_out");
-  }
-
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_AO) &&
       ELEM(pipeline_type, MAT_PIPE_FORWARD, MAT_PIPE_DEFERRED) &&
       ELEM(geometry_type, MAT_GEOM_MESH, MAT_GEOM_CURVES))
@@ -356,10 +351,14 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     }
   }
 
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) == false &&
-      pipeline_type == MAT_PIPE_FORWARD)
-  {
-    /* Opaque forward do support AOVs and render pass if not using transparency. */
+  bool supports_render_passes = (pipeline_type == MAT_PIPE_DEFERRED);
+  /* Opaque forward do support AOVs and render pass if not using transparency. */
+  if (!GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) &&
+      (pipeline_type == MAT_PIPE_FORWARD)) {
+    supports_render_passes = true;
+  }
+
+  if (supports_render_passes) {
     info.additional_info("eevee_render_pass_out");
     info.additional_info("eevee_cryptomatte_out");
   }
@@ -560,6 +559,9 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
         case MAT_PIPE_FORWARD_PREPASS:
         case MAT_PIPE_DEFERRED_PREPASS:
           info.additional_info("eevee_surf_depth");
+          break;
+        case MAT_PIPE_PLANAR_PREPASS:
+          info.additional_info("eevee_surf_depth", "eevee_clip_plane");
           break;
         case MAT_PIPE_SHADOW:
           /* Determine surface shadow shader depending on used update technique. */

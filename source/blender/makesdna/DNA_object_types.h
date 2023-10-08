@@ -803,6 +803,7 @@ enum {
   OB_SHADOW_CATCHER = 1 << 10,
   OB_HIDE_PROBE_VOLUME = 1 << 11,
   OB_HIDE_PROBE_CUBEMAP = 1 << 12,
+  OB_HIDE_PROBE_PLANAR = 1 << 13,
 };
 
 /** #Object.shapeflag */

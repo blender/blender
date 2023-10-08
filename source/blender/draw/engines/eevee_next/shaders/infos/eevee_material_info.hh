@@ -151,11 +151,11 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .fragment_source("eevee_surf_deferred_frag.glsl")
     .additional_info("eevee_global_ubo",
                      "eevee_utility_texture",
-                     "eevee_sampling_data",
-                     "eevee_hiz_data",
                      /* Added at runtime because of test shaders not having `node_tree`. */
-                     //  "eevee_render_pass_out",
-                     "eevee_cryptomatte_out");
+                     // "eevee_render_pass_out",
+                     // "eevee_cryptomatte_out",
+                     "eevee_sampling_data",
+                     "eevee_hiz_data");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     /* Early fragment test is needed for render passes support for forward surfaces. */
@@ -195,8 +195,9 @@ GPU_SHADER_CREATE_INFO(eevee_surf_world)
     .fragment_out(0, Type::VEC4, "out_background")
     .fragment_source("eevee_surf_world_frag.glsl")
     .additional_info("eevee_global_ubo",
-                     "eevee_render_pass_out",
-                     "eevee_cryptomatte_out",
+                     /* Optionally added depending on the material. */
+                     //  "eevee_render_pass_out",
+                     //  "eevee_cryptomatte_out",
                      "eevee_utility_texture");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_shadow)

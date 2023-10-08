@@ -2921,6 +2921,11 @@ static void rna_def_object_visibility(StructRNA *srna)
       prop, "Disable in Cubemap Probes", "Globally disable in cubemap probes");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 
+  prop = RNA_def_property(srna, "hide_probe_planar", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "visibility_flag", OB_HIDE_PROBE_PLANAR);
+  RNA_def_property_ui_text(prop, "Disable in Planar Probes", "Globally disable in planar probes");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
   /* Instancer options. */
   prop = RNA_def_property(srna, "show_instancer_for_render", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "duplicator_visibility_flag", OB_DUPLI_FLAG_RENDER);

@@ -139,7 +139,10 @@ void SyncModule::sync_mesh(Object *ob,
 
   bool is_shadow_caster = false;
   bool is_alpha_blend = false;
-  bool do_probe_sync = inst_.do_probe_sync() && !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP);
+  bool do_reflection_probe_sync = inst_.do_reflection_probe_sync() &&
+                                  !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP);
+  bool do_planar_probe_sync = inst_.do_planar_probe_sync() &&
+                              !(ob->visibility_flag & OB_HIDE_PROBE_PLANAR);
   for (auto i : material_array.gpu_materials.index_range()) {
     GPUBatch *geom = mat_geom[i];
     if (geom == nullptr) {
@@ -163,9 +166,15 @@ void SyncModule::sync_mesh(Object *ob,
     geometry_call(material.prepass.sub_pass, geom, res_handle);
     geometry_call(material.shadow.sub_pass, geom, res_handle);
     geometry_call(material.capture.sub_pass, geom, res_handle);
-    if (do_probe_sync) {
-      geometry_call(material.probe_prepass.sub_pass, geom, res_handle);
-      geometry_call(material.probe_shading.sub_pass, geom, res_handle);
+    /* TODO: We should not compile the shader and create a subpass if the object has no visibiility
+     * for these passes. */
+    if (do_reflection_probe_sync) {
+      geometry_call(material.reflection_probe_prepass.sub_pass, geom, res_handle);
+      geometry_call(material.reflection_probe_shading.sub_pass, geom, res_handle);
+    }
+    if (do_planar_probe_sync) {
+      geometry_call(material.planar_probe_prepass.sub_pass, geom, res_handle);
+      geometry_call(material.planar_probe_shading.sub_pass, geom, res_handle);
     }
 
     is_shadow_caster = is_shadow_caster || material.shadow.sub_pass != nullptr;
@@ -212,7 +221,10 @@ bool SyncModule::sync_sculpt(Object *ob,
 
   bool is_shadow_caster = false;
   bool is_alpha_blend = false;
-  bool do_probe_sync = inst_.do_probe_sync() && !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP);
+  bool do_reflection_probe_sync = inst_.do_reflection_probe_sync() &&
+                                  !(ob->visibility_flag & OB_HIDE_PROBE_CUBEMAP);
+  bool do_planar_probe_sync = inst_.do_reflection_probe_sync() &&
+                              !(ob->visibility_flag & OB_HIDE_PROBE_PLANAR);
   for (SculptBatch &batch :
        sculpt_batches_per_material_get(ob_ref.object, material_array.gpu_materials))
   {
@@ -229,9 +241,12 @@ bool SyncModule::sync_sculpt(Object *ob,
 
     /* TODO(Miguel Pozo): Is this needed ? */
     geometry_call(material.capture.sub_pass, geom, res_handle);
-    if (do_probe_sync) {
-      geometry_call(material.probe_prepass.sub_pass, geom, res_handle);
-      geometry_call(material.probe_shading.sub_pass, geom, res_handle);
+    if (do_reflection_probe_sync) {
+      geometry_call(material.reflection_probe_prepass.sub_pass, geom, res_handle);
+      geometry_call(material.reflection_probe_shading.sub_pass, geom, res_handle);
+    }
+    if (do_planar_probe_sync) {
+      geometry_call(material.planar_probe_prepass.sub_pass, geom, res_handle);
     }
 
     is_shadow_caster = is_shadow_caster || material.shadow.sub_pass != nullptr;
@@ -496,6 +511,7 @@ void SyncModule::sync_light_probe(Object *ob, ObjectHandle &ob_handle)
 {
   inst_.light_probes.sync_probe(ob, ob_handle);
   inst_.reflection_probes.sync_object(ob, ob_handle);
+  inst_.planar_probes.sync_object(ob, ob_handle);
 }
 
 /** \} */
