@@ -5827,16 +5827,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
 
       break;
     }
-    case GHOST_kEventTimer: {
-      event.type = TIMER;
-      event.custom = EVT_DATA_TIMER;
-      event.customdata = customdata;
-      event.val = KM_NOTHING;
-      event.keymodifier = 0;
-      wm_event_add(win, &event);
-
-      break;
-    }
 
 #ifdef WITH_INPUT_NDOF
     case GHOST_kEventNDOFMotion: {

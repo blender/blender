@@ -206,8 +206,6 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
 
       CASE_TYPE(GHOST_kEventNativeResolutionChange);
 
-      CASE_TYPE(GHOST_kEventTimer);
-
       CASE_TYPE(GHOST_kEventImeCompositionStart);
       CASE_TYPE(GHOST_kEventImeComposition);
       CASE_TYPE(GHOST_kEventImeCompositionEnd);
