@@ -14,14 +14,8 @@ using bke::AttributeMetaData;
 using bke::GeometryComponent;
 using bke::GeometrySet;
 
-template<typename Component>
-static Array<const GeometryComponent *> to_base_components(Span<const Component *> components)
-{
-  return components;
-}
-
 static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
-    Span<const GeometryComponent *> components, Span<StringRef> ignored_attributes)
+    const Span<const GeometryComponent *> components, const Span<StringRef> ignored_attributes)
 {
   Map<AttributeIDRef, AttributeMetaData> info;
 
@@ -50,7 +44,7 @@ static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
   return info;
 }
 
-static void fill_new_attribute(Span<const GeometryComponent *> src_components,
+static void fill_new_attribute(const Span<const GeometryComponent *> src_components,
                                const AttributeIDRef &attribute_id,
                                const eCustomDataType data_type,
                                const eAttrDomain domain,
@@ -77,9 +71,9 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
   }
 }
 
-static void join_attributes(Span<const GeometryComponent *> src_components,
+static void join_attributes(const Span<const GeometryComponent *> src_components,
                             GeometryComponent &result,
-                            Span<StringRef> ignored_attributes = {})
+                            const Span<StringRef> ignored_attributes = {})
 {
   const Map<AttributeIDRef, AttributeMetaData> info = get_final_attribute_info(src_components,
                                                                                ignored_attributes);
@@ -100,28 +94,32 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
   }
 }
 
-static void join_components(Span<const bke::InstancesComponent *> src_components,
-                            GeometrySet &result)
+static void join_instances(const Span<const GeometryComponent *> src_components,
+                           GeometrySet &result)
 {
   std::unique_ptr<bke::Instances> dst_instances = std::make_unique<bke::Instances>();
 
   int tot_instances = 0;
-  for (const bke::InstancesComponent *src_component : src_components) {
-    tot_instances += src_component->get()->instances_num();
+  for (const GeometryComponent *src_component : src_components) {
+    const bke::InstancesComponent &src_instance_component =
+        static_cast<const bke::InstancesComponent &>(*src_component);
+    tot_instances += src_instance_component.get()->instances_num();
   }
   dst_instances->reserve(tot_instances);
 
-  for (const bke::InstancesComponent *src_component : src_components) {
-    const bke::Instances &src_instances = *src_component->get();
+  for (const GeometryComponent *src_component : src_components) {
+    const bke::InstancesComponent &src_instance_component =
+        static_cast<const bke::InstancesComponent &>(*src_component);
+    const bke::Instances &src_instances = *src_instance_component.get();
 
-    Span<bke::InstanceReference> src_references = src_instances.references();
+    const Span<bke::InstanceReference> src_references = src_instances.references();
     Array<int> handle_map(src_references.size());
     for (const int src_handle : src_references.index_range()) {
       handle_map[src_handle] = dst_instances->add_reference(src_references[src_handle]);
     }
 
-    Span<float4x4> src_transforms = src_instances.transforms();
-    Span<int> src_reference_handles = src_instances.reference_handles();
+    const Span<float4x4> src_transforms = src_instances.transforms();
+    const Span<int> src_reference_handles = src_instances.reference_handles();
 
     for (const int i : src_transforms.index_range()) {
       const int src_handle = src_reference_handles[i];
@@ -134,69 +132,79 @@ static void join_components(Span<const bke::InstancesComponent *> src_components
   result.replace_instances(dst_instances.release());
   bke::InstancesComponent &dst_component =
       result.get_component_for_write<bke::InstancesComponent>();
-  join_attributes(to_base_components(src_components), dst_component, {"position"});
+  join_attributes(src_components, dst_component, {"position"});
 }
 
-static void join_components(Span<const bke::VolumeComponent *> /*src_components*/,
-                            GeometrySet & /*result*/)
+static void join_volumes(const Span<const GeometryComponent *> /*src_components*/,
+                         GeometrySet & /*result*/)
 {
   /* Not yet supported. Joining volume grids with the same name requires resampling of at least one
    * of the grids. The cell size of the resulting volume has to be determined somehow. */
 }
 
-template<typename Component>
-static void join_component_type(Span<GeometrySet> src_geometry_sets,
-                                GeometrySet &result,
-                                const bke::AnonymousAttributePropagationInfo &propagation_info)
+static void join_component_type(const bke::GeometryComponent::Type component_type,
+                                const Span<GeometrySet> src_geometry_sets,
+                                const bke::AnonymousAttributePropagationInfo &propagation_info,
+                                GeometrySet &result)
 {
-  Vector<const Component *> components;
+  Vector<const GeometryComponent *> components;
   for (const GeometrySet &geometry_set : src_geometry_sets) {
-    const Component *component = geometry_set.get_component<Component>();
+    const GeometryComponent *component = geometry_set.get_component(component_type);
     if (component != nullptr && !component->is_empty()) {
       components.append(component);
     }
   }
 
-  if (components.size() == 0) {
+  if (components.is_empty()) {
     return;
   }
   if (components.size() == 1) {
-    result.add(*components[0]);
+    result.add(*components.first());
     return;
   }
 
-  if constexpr (is_same_any_v<Component, bke::InstancesComponent, bke::VolumeComponent>) {
-    join_components(components, result);
+  switch (component_type) {
+    case bke::GeometryComponent::Type::Instance:
+      join_instances(components, result);
+      return;
+    case bke::GeometryComponent::Type::Volume:
+      join_volumes(components, result);
+      return;
+    default:
+      break;
   }
-  else {
-    std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
-    for (const Component *component : components) {
-      GeometrySet tmp_geo;
-      tmp_geo.add(*component);
-      const int handle = instances->add_reference(bke::InstanceReference{tmp_geo});
-      instances->add_instance(handle, float4x4::identity());
-    }
 
-    RealizeInstancesOptions options;
-    options.keep_original_ids = true;
-    options.realize_instance_attributes = false;
-    options.propagation_info = propagation_info;
-    GeometrySet joined_components = geometry::realize_instances(
-        GeometrySet::from_instances(instances.release()), options);
-    result.add(joined_components.get_component_for_write<Component>());
+  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+  for (const GeometryComponent *component : components) {
+    GeometrySet tmp_geo;
+    tmp_geo.add(*component);
+    const int handle = instances->add_reference(bke::InstanceReference{tmp_geo});
+    instances->add_instance(handle, float4x4::identity());
   }
+
+  RealizeInstancesOptions options;
+  options.keep_original_ids = true;
+  options.realize_instance_attributes = false;
+  options.propagation_info = propagation_info;
+  GeometrySet joined_components = realize_instances(
+      GeometrySet::from_instances(instances.release()), options);
+  result.add(joined_components.get_component_for_write(component_type));
 }
 
-GeometrySet join_geometries(Span<GeometrySet> geometries,
+GeometrySet join_geometries(const Span<GeometrySet> geometries,
                             const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   GeometrySet result;
-  join_component_type<bke::MeshComponent>(geometries, result, propagation_info);
-  join_component_type<bke::PointCloudComponent>(geometries, result, propagation_info);
-  join_component_type<bke::InstancesComponent>(geometries, result, propagation_info);
-  join_component_type<bke::VolumeComponent>(geometries, result, propagation_info);
-  join_component_type<bke::CurveComponent>(geometries, result, propagation_info);
-  join_component_type<bke::GeometryComponentEditData>(geometries, result, propagation_info);
+  static const Array<GeometryComponent::Type> supported_types({GeometryComponent::Type::Mesh,
+                                                               GeometryComponent::Type::PointCloud,
+                                                               GeometryComponent::Type::Instance,
+                                                               GeometryComponent::Type::Volume,
+                                                               GeometryComponent::Type::Curve,
+                                                               GeometryComponent::Type::Edit});
+  for (const GeometryComponent::Type type : supported_types) {
+    join_component_type(type, geometries, propagation_info, result);
+  }
+
   return result;
 }
 
