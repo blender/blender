@@ -99,10 +99,6 @@ class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
   }
 };
 
-std::string socket_identifier_for_simulation_item(const NodeSimulationItem &item);
-
-void socket_declarations_for_simulation_items(Span<NodeSimulationItem> items,
-                                              NodeDeclaration &r_declaration);
 const CPPType &get_simulation_item_cpp_type(eNodeSocketDatatype socket_type);
 const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item);
 
