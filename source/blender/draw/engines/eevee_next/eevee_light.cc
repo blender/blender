@@ -71,10 +71,10 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
 
   float shape_power = shape_radiance_get(la);
   float point_power = point_radiance_get(la);
-  this->diffuse_power = la->diff_fac * shape_power;
-  this->transmit_power = la->diff_fac * point_power;
-  this->specular_power = la->spec_fac * shape_power;
-  this->volume_power = la->volume_fac * point_power;
+  this->power[LIGHT_DIFFUSE] = la->diff_fac * shape_power;
+  this->power[LIGHT_TRANSMIT] = la->diff_fac * point_power;
+  this->power[LIGHT_SPECULAR] = la->spec_fac * shape_power;
+  this->power[LIGHT_VOLUME] = la->volume_fac * point_power;
 
   eLightType new_type = to_light_type(la->type, la->area_shape);
   if (assign_if_different(this->type, new_type)) {

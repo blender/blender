@@ -35,10 +35,9 @@ void main()
   LIGHT_FOREACH_BEGIN_LOCAL_NO_CULL(light_cull_buf, l_idx)
   {
     LightData light = light_buf[l_idx];
-    vec3 L;
-    float dist;
-    light_vector_get(light, P, L, dist);
-    if (light_attenuation(light, L, dist) > 0.0) {
+    LightVector lv = light_vector_get(light, false, P);
+    /* Use light vector as Ng to never cull based on angle to light. */
+    if (light_attenuation_surface(light, false, lv.L, false, lv) > LIGHT_ATTENUATION_THRESHOLD) {
       light_nocull |= 1u << l_idx;
     }
   }

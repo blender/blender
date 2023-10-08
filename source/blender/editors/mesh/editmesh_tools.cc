@@ -4742,6 +4742,7 @@ static bool mesh_separate_loose(
     BM_mesh_bm_to_me(nullptr, bm_old, me_old, &to_mesh_params);
   }
 
+  MEM_freeN(groups);
   return result;
 }
 
