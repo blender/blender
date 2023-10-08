@@ -778,11 +778,6 @@ struct wmEvent {
   uint8_t prev_press_modifier;
   /** The `keymodifier` at the point of the press action. */
   short prev_press_keymodifier;
-  /**
-   * The time when the key is pressed, see #PIL_check_seconds_timer.
-   * Used to detect double-click events.
-   */
-  double prev_press_time;
 };
 
 /**

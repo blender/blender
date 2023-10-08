@@ -380,6 +380,13 @@ typedef struct wmWindow {
 
   /** Private runtime info to show text in the status bar. */
   void *cursor_keymap_status;
+
+  /**
+   * The time when the key is pressed, see #PIL_check_seconds_timer.
+   * Used to detect double-click events.
+   */
+  double eventstate_prev_press_time;
+
 } wmWindow;
 
 #ifdef ime_data

@@ -167,6 +167,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->ghostwin = nullptr;
     win->gpuctx = nullptr;
     win->eventstate = nullptr;
+    win->eventstate_prev_press_time = 0.0;
     win->event_last_handled = nullptr;
     win->cursor_keymap_status = nullptr;
 #if defined(WIN32) || defined(__APPLE__)

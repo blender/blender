@@ -132,6 +132,7 @@ static void wm_operator_free_for_fileselect(wmOperator *file_operator);
 
 static void wm_event_state_update_and_click_set_ex(wmEvent *event,
                                                    wmEvent *event_state,
+                                                   double *event_state_prev_press_time_p,
                                                    const bool is_keyboard,
                                                    const bool check_double_click);
 
@@ -180,7 +181,8 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
     copy_v2_v2_int(event->prev_xy, win->eventstate->xy);
   }
   else if (ISKEYBOARD_OR_BUTTON(event->type)) {
-    wm_event_state_update_and_click_set_ex(event, win->eventstate, ISKEYBOARD(event->type), false);
+    wm_event_state_update_and_click_set_ex(
+        event, win->eventstate, &win->eventstate_prev_press_time, ISKEYBOARD(event->type), false);
   }
   return event;
 }
@@ -5239,7 +5241,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
   return nullptr;
 }
 
-static bool wm_event_is_double_click(const wmEvent *event)
+static bool wm_event_is_double_click(const wmEvent *event, const double event_prev_press_time)
 {
   if ((event->type == event->prev_type) && (event->prev_val == KM_RELEASE) &&
       (event->val == KM_PRESS))
@@ -5248,7 +5250,7 @@ static bool wm_event_is_double_click(const wmEvent *event)
       /* Pass. */
     }
     else {
-      if ((PIL_check_seconds_timer() - event->prev_press_time) * 1000 < U.dbl_click_time) {
+      if ((PIL_check_seconds_timer() - event_prev_press_time) * 1000 < U.dbl_click_time) {
         return true;
       }
     }
@@ -5266,14 +5268,14 @@ static void wm_event_prev_values_set(wmEvent *event, wmEvent *event_state)
   event->prev_type = event_state->prev_type = event_state->type;
 }
 
-static void wm_event_prev_click_set(wmEvent *event_state)
+static void wm_event_prev_click_set(wmEvent *event_state, double *r_prev_press_time)
 {
-  event_state->prev_press_time = PIL_check_seconds_timer();
   event_state->prev_press_type = event_state->type;
   event_state->prev_press_modifier = event_state->modifier;
   event_state->prev_press_keymodifier = event_state->keymodifier;
   event_state->prev_press_xy[0] = event_state->xy[0];
   event_state->prev_press_xy[1] = event_state->xy[1];
+  *r_prev_press_time = PIL_check_seconds_timer();
 }
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
@@ -5357,6 +5359,7 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
  */
 static void wm_event_state_update_and_click_set_ex(wmEvent *event,
                                                    wmEvent *event_state,
+                                                   double *event_state_prev_press_time_p,
                                                    const bool is_keyboard,
                                                    const bool check_double_click)
 {
@@ -5382,24 +5385,26 @@ static void wm_event_state_update_and_click_set_ex(wmEvent *event,
    * since the `event_state` and the `event` are not kept in sync. */
 
   /* Double click test. */
-  if (check_double_click && wm_event_is_double_click(event)) {
+  if (check_double_click && wm_event_is_double_click(event, *event_state_prev_press_time_p)) {
     CLOG_INFO(WM_LOG_HANDLERS, 1, "DBL_CLICK: detected");
     event->val = KM_DBL_CLICK;
   }
   else if (event->val == KM_PRESS) {
     if ((event->flag & WM_EVENT_IS_REPEAT) == 0) {
-      wm_event_prev_click_set(event_state);
+      wm_event_prev_click_set(event_state, event_state_prev_press_time_p);
     }
   }
 }
 
 static void wm_event_state_update_and_click_set(wmEvent *event,
                                                 wmEvent *event_state,
+                                                double *event_state_prev_press_time_p,
                                                 const GHOST_TEventType type)
 {
   const bool is_keyboard = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventKeyUp);
   const bool check_double_click = true;
-  wm_event_state_update_and_click_set_ex(event, event_state, is_keyboard, check_double_click);
+  wm_event_state_update_and_click_set_ex(
+      event, event_state, event_state_prev_press_time_p, is_keyboard, check_double_click);
 }
 
 /* Returns true when the two events corresponds to a press of the same key with the same modifiers.
@@ -5469,6 +5474,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
    * - Data added to event and \a event_state stays and is handled immediately.
    */
   wmEvent event, *event_state = win->eventstate;
+  double *event_state_prev_press_time_p = &win->eventstate_prev_press_time;
 
   /* Initialize and copy state (only mouse x y and modifiers). */
   event = *event_state;
@@ -5630,7 +5636,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       wm_tablet_data_from_ghost(&bd->tablet, &event.tablet);
 
       wm_eventemulation(&event, false);
-      wm_event_state_update_and_click_set(&event, event_state, (GHOST_TEventType)type);
+      wm_event_state_update_and_click_set(
+          &event, event_state, event_state_prev_press_time_p, (GHOST_TEventType)type);
 
       /* Add to other window if event is there (not to both!). */
       wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
@@ -5801,7 +5808,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       }
 
       /* It's important `event.modifier` has been initialized first. */
-      wm_event_state_update_and_click_set(&event, event_state, (GHOST_TEventType)type);
+      wm_event_state_update_and_click_set(
+          &event, event_state, event_state_prev_press_time_p, (GHOST_TEventType)type);
 
       /* If test_break set, it catches this. Do not set with modifier presses.
        * Exclude modifiers because MS-Windows uses these to bring up the task manager.
@@ -5869,7 +5877,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       event.custom = 0;
       event.customdata = nullptr;
 
-      wm_event_state_update_and_click_set(&event, event_state, (GHOST_TEventType)type);
+      wm_event_state_update_and_click_set(
+          &event, event_state, event_state_prev_press_time_p, (GHOST_TEventType)type);
 
       wm_event_add(win, &event);
 
