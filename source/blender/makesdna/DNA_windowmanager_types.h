@@ -382,10 +382,10 @@ typedef struct wmWindow {
   void *cursor_keymap_status;
 
   /**
-   * The time when the key is pressed, see #PIL_check_seconds_timer.
+   * The time when the key is pressed in milliseconds (see #GHOST_GetEventTime).
    * Used to detect double-click events.
    */
-  double eventstate_prev_press_time;
+  uint64_t eventstate_prev_press_time_ms;
 
 } wmWindow;
 

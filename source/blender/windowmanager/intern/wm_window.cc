@@ -572,7 +572,9 @@ void WM_window_set_dpi(const wmWindow *win)
  * inactive window must run #wm_window_update_eventstate_modifiers first to ensure no modifier
  * keys are held. See: #105277.
  */
-static void wm_window_update_eventstate_modifiers(wmWindowManager *wm, wmWindow *win)
+static void wm_window_update_eventstate_modifiers(wmWindowManager *wm,
+                                                  wmWindow *win,
+                                                  const uint64_t event_time_ms)
 {
   const uint8_t keymodifier_sided[2] = {
       wm_ghost_modifier_query(MOD_SIDE_LEFT),
@@ -591,7 +593,7 @@ static void wm_window_update_eventstate_modifiers(wmWindowManager *wm, wmWindow 
           for (int side = 0; side < 2; side++) {
             if ((keymodifier_sided[side] & g_modifier_table[i].flag) == 0) {
               kdata.key = g_modifier_table[i].ghost_key_pair[side];
-              wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
+              wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata, event_time_ms);
               /* Only ever send one release event
                * (currently releasing multiple isn't needed and only confuses logic). */
               break;
@@ -604,7 +606,7 @@ static void wm_window_update_eventstate_modifiers(wmWindowManager *wm, wmWindow 
           for (int side = 0; side < 2; side++) {
             if (keymodifier_sided[side] & g_modifier_table[i].flag) {
               kdata.key = g_modifier_table[i].ghost_key_pair[side];
-              wm_event_add_ghostevent(wm, win, GHOST_kEventKeyDown, &kdata);
+              wm_event_add_ghostevent(wm, win, GHOST_kEventKeyDown, &kdata, event_time_ms);
             }
           }
         }
@@ -625,7 +627,9 @@ static void wm_window_update_eventstate_modifiers(wmWindowManager *wm, wmWindow 
  * NOTE(@ideasman42): Events generated for non-active windows are rare,
  * this happens when using the mouse-wheel over an unfocused window, see: #103722.
  */
-static void wm_window_update_eventstate_modifiers_clear(wmWindowManager *wm, wmWindow *win)
+static void wm_window_update_eventstate_modifiers_clear(wmWindowManager *wm,
+                                                        wmWindow *win,
+                                                        const uint64_t event_time_ms)
 {
   /* Release all held modifiers before de-activating the window. */
   if (win->eventstate->modifier != 0) {
@@ -652,7 +656,7 @@ static void wm_window_update_eventstate_modifiers_clear(wmWindowManager *wm, wmW
         for (int side = 0; side < 2; side++) {
           if ((keymodifier_sided[side] & g_modifier_table[i].flag) == 0) {
             kdata.key = g_modifier_table[i].ghost_key_pair[side];
-            wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
+            wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata, event_time_ms);
           }
         }
       }
@@ -1282,10 +1286,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
   bContext *C = static_cast<bContext *>(C_void_ptr);
   wmWindowManager *wm = CTX_wm_manager(C);
   GHOST_TEventType type = GHOST_GetEventType(evt);
-#if 0
-  /* We may want to use time from ghost, currently `PIL_check_seconds_timer` is used instead. */
-  uint64_t time = GHOST_GetEventTime(evt);
-#endif
+  const uint64_t event_time_ms = GHOST_GetEventTime(evt);
 
   if (type == GHOST_kEventQuitRequest) {
     /* Find an active window to display quit dialog in. */
@@ -1331,15 +1332,15 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 
     switch (type) {
       case GHOST_kEventWindowDeactivate: {
-        wm_window_update_eventstate_modifiers_clear(wm, win);
+        wm_window_update_eventstate_modifiers_clear(wm, win, event_time_ms);
 
-        wm_event_add_ghostevent(wm, win, type, data);
+        wm_event_add_ghostevent(wm, win, type, data, event_time_ms);
         win->active = 0;
         break;
       }
       case GHOST_kEventWindowActivate: {
         /* Ensure the event state matches modifiers (window was inactive). */
-        wm_window_update_eventstate_modifiers(wm, win);
+        wm_window_update_eventstate_modifiers(wm, win, event_time_ms);
 
         /* Entering window, update mouse position (without sending an event). */
         wm_window_update_eventstate(win);
@@ -1510,7 +1511,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
             data);
 
         /* Ensure the event state matches modifiers (window was inactive). */
-        wm_window_update_eventstate_modifiers(wm, win);
+        wm_window_update_eventstate_modifiers(wm, win, event_time_ms);
         /* Entering window, update mouse position (without sending an event). */
         wm_window_update_eventstate(win);
 
@@ -1593,15 +1594,15 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
         if (win->active == 0) {
           /* Entering window, update cursor/tablet state & modifiers.
            * (ghost sends win-activate *after* the mouse-click in window!) */
-          wm_window_update_eventstate_modifiers(wm, win);
+          wm_window_update_eventstate_modifiers(wm, win, event_time_ms);
           wm_window_update_eventstate(win);
         }
 
-        wm_event_add_ghostevent(wm, win, type, data);
+        wm_event_add_ghostevent(wm, win, type, data, event_time_ms);
         break;
       }
       default: {
-        wm_event_add_ghostevent(wm, win, type, data);
+        wm_event_add_ghostevent(wm, win, type, data, event_time_ms);
         break;
       }
     }
