@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
 #include "BLI_math_color.hh"
 #include "BLI_math_quaternion.hh"
 
@@ -197,25 +198,25 @@ static void copy_or_defaults_for_unselected_curves(const CurvesGeometry &src_cur
 {
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
-  bke::curves::copy_point_data(src_points_by_curve,
-                               dst_points_by_curve,
-                               unselected_curves,
-                               src_curves.positions(),
-                               dst_curves.positions_for_write());
+  array_utils::copy_group_to_group(src_points_by_curve,
+                                   dst_points_by_curve,
+                                   unselected_curves,
+                                   src_curves.positions(),
+                                   dst_curves.positions_for_write());
 
   for (const int i : attributes.src.index_range()) {
-    bke::curves::copy_point_data(src_points_by_curve,
-                                 dst_points_by_curve,
-                                 unselected_curves,
-                                 attributes.src[i],
-                                 attributes.dst[i]);
+    array_utils::copy_group_to_group(src_points_by_curve,
+                                     dst_points_by_curve,
+                                     unselected_curves,
+                                     attributes.src[i],
+                                     attributes.dst[i]);
   }
   for (const int i : attributes.src_no_interpolation.index_range()) {
-    bke::curves::copy_point_data(src_points_by_curve,
-                                 dst_points_by_curve,
-                                 unselected_curves,
-                                 attributes.src_no_interpolation[i],
-                                 attributes.dst_no_interpolation[i]);
+    array_utils::copy_group_to_group(src_points_by_curve,
+                                     dst_points_by_curve,
+                                     unselected_curves,
+                                     attributes.src_no_interpolation[i],
+                                     attributes.dst_no_interpolation[i]);
   }
 
   if (!attributes.dst_tangents.is_empty()) {

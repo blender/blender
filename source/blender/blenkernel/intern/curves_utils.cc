@@ -10,20 +10,6 @@
 
 namespace blender::bke::curves {
 
-void copy_point_data(const OffsetIndices<int> src_points_by_curve,
-                     const OffsetIndices<int> dst_points_by_curve,
-                     const IndexMask &src_curve_selection,
-                     const GSpan src,
-                     GMutableSpan dst)
-{
-  src_curve_selection.foreach_index(GrainSize(512), [&](const int i) {
-    const IndexRange src_points = src_points_by_curve[i];
-    const IndexRange dst_points = dst_points_by_curve[i];
-    /* The arrays might be large, so a threaded copy might make sense here too. */
-    dst.slice(dst_points).copy_from(src.slice(src_points));
-  });
-}
-
 void fill_points(const OffsetIndices<int> points_by_curve,
                  const IndexMask &curve_selection,
                  const GPointer value,

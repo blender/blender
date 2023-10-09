@@ -9,6 +9,7 @@
 #include "BLI_generic_span.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
@@ -145,6 +146,26 @@ inline void gather(const VArray<T> &src,
       }
     });
   });
+}
+
+/**
+ * Copy the \a src data from the groups defined by \a src_offsets to the groups in \a dst defined
+ * by \a dst_offsets. Groups to use are masked by \a selection, and it is assumed that the
+ * corresponding groups have the same size.
+ */
+void copy_group_to_group(OffsetIndices<int> src_offsets,
+                         OffsetIndices<int> dst_offsets,
+                         const IndexMask &selection,
+                         GSpan src,
+                         GMutableSpan dst);
+template<typename T>
+void copy_group_to_group(OffsetIndices<int> src_offsets,
+                         OffsetIndices<int> dst_offsets,
+                         const IndexMask &selection,
+                         Span<T> src,
+                         MutableSpan<T> dst)
+{
+  copy_group_to_group(src_offsets, dst_offsets, selection, GSpan(src), GMutableSpan(dst));
 }
 
 /**

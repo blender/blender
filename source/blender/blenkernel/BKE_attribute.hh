@@ -957,4 +957,13 @@ void copy_attributes(const AttributeAccessor src_attributes,
                      const Set<std::string> &skip,
                      MutableAttributeAccessor dst_attributes);
 
+void copy_attributes_group_to_group(AttributeAccessor src_attributes,
+                                    eAttrDomain domain,
+                                    const AnonymousAttributePropagationInfo &propagation_info,
+                                    const Set<std::string> &skip,
+                                    OffsetIndices<int> src_offsets,
+                                    OffsetIndices<int> dst_offsets,
+                                    const IndexMask &selection,
+                                    MutableAttributeAccessor dst_attributes);
+
 }  // namespace blender::bke
