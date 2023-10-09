@@ -53,9 +53,10 @@ void main()
         surfel_buf[surfel_id].radiance_direct.front.rgb = g_emission;
         surfel_buf[surfel_id].radiance_direct.front.a = 0.0;
         /* TODO(fclem): 2nd surface evaluation. */
-        surfel_buf[surfel_id].albedo_back = albedo;
-        surfel_buf[surfel_id].radiance_direct.back.rgb = g_emission;
+        surfel_buf[surfel_id].albedo_back = double_sided ? albedo : vec3(0);
+        surfel_buf[surfel_id].radiance_direct.back.rgb = double_sided ? g_emission : vec3(0);
         surfel_buf[surfel_id].radiance_direct.back.a = 0.0;
+        surfel_buf[surfel_id].double_sided = double_sided;
 
         if (!capture_info_buf.capture_emission) {
           surfel_buf[surfel_id].radiance_direct.front.rgb = vec3(0.0);

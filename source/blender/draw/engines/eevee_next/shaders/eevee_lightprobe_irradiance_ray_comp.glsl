@@ -53,7 +53,7 @@ void irradiance_capture_surfel(Surfel surfel, vec3 P, inout SphericalHarmonicL1 
 void validity_capture_surfel(Surfel surfel, vec3 P, inout float validity)
 {
   vec3 L = safe_normalize(surfel.position - P);
-  bool facing = dot(-L, surfel.normal) > 0.0;
+  bool facing = surfel.double_sided || dot(-L, surfel.normal) > 0.0;
   validity += float(facing);
 }
 

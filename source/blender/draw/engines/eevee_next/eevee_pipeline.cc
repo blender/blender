@@ -1081,9 +1081,13 @@ void CapturePipeline::sync()
   inst_.bind_uniform_data(&surface_ps_);
 }
 
-PassMain::Sub *CapturePipeline::surface_material_add(GPUMaterial *gpumat)
+PassMain::Sub *CapturePipeline::surface_material_add(::Material *blender_mat, GPUMaterial *gpumat)
 {
-  return &surface_ps_.sub(GPU_material_get_name(gpumat));
+  PassMain::Sub &sub_pass = surface_ps_.sub(GPU_material_get_name(gpumat));
+  GPUPass *gpupass = GPU_material_get_pass(gpumat);
+  sub_pass.shader_set(GPU_pass_shader_get(gpupass));
+  sub_pass.push_constant("double_sided", !(blender_mat->blend_flag & MA_BL_CULL_BACKFACE_PROBE));
+  return &sub_pass;
 }
 
 void CapturePipeline::render(View &view)

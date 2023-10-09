@@ -1036,6 +1036,11 @@ struct Surfel {
   packed_float3 albedo_back;
   /** Cluster this surfel is assigned to. */
   int cluster_id;
+  /** True if the light can bounce or be emitted by the surfel back face. */
+  bool1 double_sided;
+  int _pad0;
+  int _pad1;
+  int _pad2;
   /** Surface radiance: Emission + Direct Lighting. */
   SurfelRadiance radiance_direct;
   /** Surface radiance: Indirect Lighting. Double buffered to avoid race conditions. */

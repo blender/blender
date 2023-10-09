@@ -182,6 +182,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_capture)
     .define("MAT_CAPTURE")
     .storage_buf(SURFEL_BUF_SLOT, Qualifier::WRITE, "Surfel", "surfel_buf[]")
     .storage_buf(CAPTURE_BUF_SLOT, Qualifier::READ_WRITE, "CaptureInfoData", "capture_info_buf")
+    .push_constant(Type::BOOL, "double_sided")
     .fragment_source("eevee_surf_capture_frag.glsl")
     .additional_info("eevee_global_ubo", "eevee_utility_texture");
 
