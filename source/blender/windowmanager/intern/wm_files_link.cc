@@ -230,7 +230,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     BKE_reportf(op->reports, RPT_ERROR, "'%s': cannot use current file as library", filepath);
     return OPERATOR_CANCELLED;
   }
-  if (!group || !name) {
+  if (!group) {
     BKE_reportf(op->reports, RPT_ERROR, "'%s': nothing indicated", filepath);
     return OPERATOR_CANCELLED;
   }
