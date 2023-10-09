@@ -247,6 +247,7 @@ bool SyncModule::sync_sculpt(Object *ob,
     }
     if (do_planar_probe_sync) {
       geometry_call(material.planar_probe_prepass.sub_pass, geom, res_handle);
+      geometry_call(material.planar_probe_shading.sub_pass, geom, res_handle);
     }
 
     is_shadow_caster = is_shadow_caster || material.shadow.sub_pass != nullptr;
