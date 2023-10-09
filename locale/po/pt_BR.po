@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-10-03 09:29:22\n"
+"POT-Creation-Date: 2023-10-09 09:45:23\n"
 "PO-Revision-Date: 2023-09-28 03:54+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -31295,6 +31295,10 @@ msgid "Show All"
 msgstr "Mostrar tudo"
 
 
+msgid "Pose Bone"
+msgstr "Osso de pose"
+
+
 msgctxt "Operator"
 msgid "Delete Selected Bone(s)"
 msgstr "Apagar ossos selecionados"
@@ -31592,10 +31596,6 @@ msgstr "-X para +X"
 
 msgid "+X to -X"
 msgstr "+X para -X"
-
-
-msgid "Pose Bone"
-msgstr "Osso de pose"
 
 
 msgctxt "Operator"
@@ -34227,8 +34227,16 @@ msgstr "Converte rotações para o Euler ZYX."
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exportar PLY"
+msgid "Export STL"
+msgstr "Exportar STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Salva o arquivo em formato de arquivo ASCII."
 
 
 msgid "X Forward"
@@ -34275,31 +34283,6 @@ msgid "-Z Up"
 msgstr "-Z Para cima"
 
 
-msgid "Apply Modifiers"
-msgstr "Aplicar modificadores"
-
-
-msgid "Selection Only"
-msgstr "Somente a seleção"
-
-
-msgid "Export selected objects only"
-msgstr "Exporta somente os objetos selecionados."
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportar STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Salva o arquivo em formato de arquivo ASCII."
-
-
 msgid "Batch Mode"
 msgstr "Modo de tarefas em lote"
 
@@ -34312,6 +34295,10 @@ msgid "Each object as a file"
 msgstr "Cada objeto como um arquivo"
 
 
+msgid "Apply Modifiers"
+msgstr "Aplicar modificadores"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Aplica os modificadores antes de salvar."
 
@@ -34322,6 +34309,14 @@ msgstr "Unidades da cena"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Aplica as unidades atuais da cena (como definidas pelas unidades de escala) para os dados exportados."
+
+
+msgid "Selection Only"
+msgstr "Somente a seleção"
+
+
+msgid "Export selected objects only"
+msgstr "Exporta somente os objetos selecionados."
 
 
 msgctxt "Operator"
@@ -34660,14 +34655,6 @@ msgstr "Geral"
 
 msgid "General settings"
 msgstr "Configurações gerais"
-
-
-msgid "Material Groups"
-msgstr "Grupos de materiais"
-
-
-msgid "Smooth Groups"
-msgstr "Grupos suavizados"
 
 
 msgctxt "Operator"
@@ -37506,11 +37493,6 @@ msgstr "Insensível a luzes ou sombras"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importar PLY"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Importar STL"
 
@@ -37663,10 +37645,6 @@ msgstr "Importar glTF 2.0"
 
 msgid "Pack all images into .blend file"
 msgstr "Empacotar todas as imagens no arquivo .blend"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importa os grupos OBJ como grupos de vértices."
 
 
 msgctxt "Operator"
@@ -50773,6 +50751,10 @@ msgid "Export Wavefront OBJ"
 msgstr "Exportar Wavefront OBJ"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importa os grupos OBJ como grupos de vértices."
+
+
 msgctxt "Operator"
 msgid "Open"
 msgstr "Abrir"
@@ -50832,6 +50814,16 @@ msgstr "Permite adicionar ou remover uma predefinição de operador."
 
 msgid "Open a path in a file browser"
 msgstr "Abre um caminho em um navegador de arquivos."
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exportar PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importar PLY"
 
 
 msgctxt "Operator"
@@ -62574,10 +62566,6 @@ msgid "Text Cursor"
 msgstr "Cursor do Texto"
 
 
-msgid "Bone Pose"
-msgstr "Ossos em modo de pose"
-
-
 msgid "Bone Pose Active"
 msgstr "Ossos ativos em modo de pose"
 
@@ -64471,10 +64459,6 @@ msgstr "Complemento '{}' não encontrado!"
 
 msgid "Message extraction process failed!"
 msgstr "Processo de extração de mensagem falhou !"
-
-
-msgid "Info written to {} text datablock!"
-msgstr "Informação escrita para o bloco de textos {} !"
 
 
 msgid "Could not init languages data!"
@@ -69864,6 +69848,14 @@ msgstr "Erro durante a exportação (veja o console)."
 
 msgid "Triangulated Mesh"
 msgstr "Malha Triangulada"
+
+
+msgid "Material Groups"
+msgstr "Grupos de materiais"
+
+
+msgid "Smooth Groups"
+msgstr "Grupos suavizados"
 
 
 msgctxt "Mesh"

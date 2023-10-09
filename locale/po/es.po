@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-03 09:29:22\n"
+"POT-Creation-Date: 2023-10-09 09:45:23\n"
 "PO-Revision-Date: 2023-09-28 03:54+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
@@ -50205,6 +50205,10 @@ msgid "Show All"
 msgstr "Mostrar todo"
 
 
+msgid "Pose Bone"
+msgstr "Hueso pose"
+
+
 msgctxt "Operator"
 msgid "Delete Selected Bone(s)"
 msgstr "Borrar huesos seleccionados"
@@ -50563,10 +50567,6 @@ msgstr "de -X a +X"
 
 msgid "+X to -X"
 msgstr "de +X a -X"
-
-
-msgid "Pose Bone"
-msgstr "Hueso pose"
 
 
 msgctxt "Operator"
@@ -54007,8 +54007,20 @@ msgstr "Convetir rotaciones a Euler ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exportar PLY"
+msgid "Export STL"
+msgstr "Exportar STL"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "Guardar datos de malla triangulada STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Guarda el archivo en formato ASCII"
 
 
 msgid "X Forward"
@@ -54055,39 +54067,6 @@ msgid "-Z Up"
 msgstr "-Z hacia arriba"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Apply Modifiers"
-msgstr "Aplicar modificadores"
-
-
-msgid "Selection Only"
-msgstr "Sólo lo seleccionado"
-
-
-msgid "Export selected objects only"
-msgstr "Exportar sólo objetos seleccionados"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportar STL"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Guardar datos de malla triangulada STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Guarda el archivo en formato ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Proceso por lotes"
 
@@ -54108,6 +54087,10 @@ msgid "Export in this reference space"
 msgstr "Exporta en este espacio de referencia"
 
 
+msgid "Apply Modifiers"
+msgstr "Aplicar modificadores"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Aplicar los modificadores antes de guardar"
 
@@ -54118,6 +54101,14 @@ msgstr "Unidades de la escena"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Aplicar las unidades de la escena actual a los datos exportados"
+
+
+msgid "Selection Only"
+msgstr "Sólo lo seleccionado"
+
+
+msgid "Export selected objects only"
+msgstr "Exportar sólo objetos seleccionados"
 
 
 msgctxt "Operator"
@@ -55076,18 +55067,6 @@ msgstr "Recordar opciones de exportación"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Almacenar opciones de exportación de glTF en el proyecto de Blender"
-
-
-msgid "Material Groups"
-msgstr "Grupos de material"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Genera un grupo dentro del OBJ para cada parte de una geometría que use un material distinto"
-
-
-msgid "Smooth Groups"
-msgstr "Grupos de suavizado"
 
 
 msgctxt "Operator"
@@ -60054,10 +60033,6 @@ msgid "Always face the camera"
 msgstr "Siempre apuntar a la cámara"
 
 
-msgid "Hashed"
-msgstr "Difuminar"
-
-
 msgid "Setup Corner Pin"
 msgstr "Usar Fijar esquinas"
 
@@ -60228,11 +60203,6 @@ msgstr "Definir la imagen en base a sus puntos por unidades de Blender"
 
 msgid "Use alpha channel for transparency"
 msgstr "Usar el canal alfa para definir la transparencia"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importar PLY"
 
 
 msgctxt "Operator"
@@ -60468,10 +60438,6 @@ msgstr "Nivel de registro"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "El formato glTF requiere que las normales discontinuas, UV y otros atributos de vértices sean almacenados como vértices separados, tal como se requiere para ser procesado por el hardware gráfico usual. Esta opción intentará combinar, cuando sea posible, vértices que compartan la misma ubicación. Actualmente no es posible combinar vértices con distintas normales"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importa grupos OBJ como grupos de vértices"
 
 
 msgctxt "Operator"
@@ -75753,24 +75719,6 @@ msgid "Line number to jump to"
 msgstr "Número de línea a donde saltar"
 
 
-msgctxt "Operator"
-msgid "Open Text File at point"
-msgstr "Abrir archivo de texto en un punto"
-
-
-msgid "Edit text file in external text editor"
-msgstr "Edita un archivo de texto en un editor de texto externo"
-
-
-msgctxt "Operator"
-msgid "Jump to File at Point (Internal)"
-msgstr "Saltar a archivo en un punto (interno)"
-
-
-msgid "Jump to a file for the internal text editor"
-msgstr "Saltar a un archivo en el editor de texto interno"
-
-
 msgid "Column"
 msgstr "Columna"
 
@@ -80384,6 +80332,10 @@ msgid "Export Material Groups"
 msgstr "Exportar grupos de materiales"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Genera un grupo dentro del OBJ para cada parte de una geometría que use un material distinto"
+
+
 msgid "Export Materials"
 msgstr "Exportar materiales"
 
@@ -80505,6 +80457,10 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "Redimensiona los objetos para mantener el volumen delimitador por debajo de este valor. Un valor de 0 deshabilita la limitación"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importa grupos OBJ como grupos de vértices"
+
+
 msgid "Split By Group"
 msgstr "Dividir por grupo"
 
@@ -80610,6 +80566,11 @@ msgid "Open a path in a file browser"
 msgstr "Abre una ruta en el explorador de archivos"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exportar PLY"
+
+
 msgid "Save the scene to a PLY file"
 msgstr "Guarda la escena a un archivo PLY"
 
@@ -80644,6 +80605,11 @@ msgstr "Exportar normales de vértices"
 
 msgid "Export specific vertex normals if available, export calculated normals otherwise"
 msgstr "Exporta normales de vértices específicas, si estuvieran disponibles, de otro modo se exportarán normales calculadas"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importar PLY"
 
 
 msgid "Import an PLY file as an object"
@@ -100051,10 +100017,6 @@ msgid "Shade for bones corresponding to a locked weight group during painting"
 msgstr "Sombreado de los huesos correspondientes a un grupo de influencias bloqueadas, durante el proceso de pintado de influencias"
 
 
-msgid "Bone Pose"
-msgstr "Hueso - Pose"
-
-
 msgid "Bone Pose Active"
 msgstr "Hueso - Pose activo"
 
@@ -106395,10 +106357,6 @@ msgid "Add a new Variant Slot"
 msgstr "Agrega un nuevo contenedor de variante"
 
 
-msgid "Curves as NURBS"
-msgstr "Curvas como NURBS"
-
-
 msgctxt "Operator"
 msgid "Lightwave Point Cache (.mdd)"
 msgstr "Caché de puntos de LightWave 3D (.mdd)"
@@ -106804,10 +106762,6 @@ msgstr "¡Complemento '{}' no encontrado!"
 
 msgid "Message extraction process failed!"
 msgstr "Falló el proceso de extracción de mensajes!"
-
-
-msgid "Info written to {} text datablock!"
-msgstr "Info escrita al bloque de datos de texto {}!"
 
 
 msgid "Could not init languages data!"
@@ -110175,13 +110129,13 @@ msgstr "Entre marcadores seleccionados"
 
 
 msgctxt "Operator"
-msgid "Paste Flipped"
-msgstr "Pegar invertido"
+msgid "Clean Channels"
+msgstr "Limpiar canales"
 
 
 msgctxt "Operator"
-msgid "Clean Channels"
-msgstr "Limpiar canales"
+msgid "Paste Flipped"
+msgstr "Pegar invertido"
 
 
 msgctxt "Operator"
@@ -118000,6 +117954,10 @@ msgid "Triangulated Mesh"
 msgstr "Malla triangulada"
 
 
+msgid "Curves as NURBS"
+msgstr "Curvas como NURBS"
+
+
 msgid "PBR Extensions"
 msgstr "Extensiones PBR"
 
@@ -118012,8 +117970,20 @@ msgid "Object Groups"
 msgstr "Grupos de objetos"
 
 
+msgid "Material Groups"
+msgstr "Grupos de material"
+
+
+msgid "Smooth Groups"
+msgstr "Grupos de suavizado"
+
+
 msgid "Smooth Group Bitflags"
 msgstr "Indicadores grupos suavizado"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "File References"

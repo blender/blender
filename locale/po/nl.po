@@ -1,29 +1,46 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-03 09:29:22\n"
-"PO-Revision-Date: 2021-12-05 20:05+0100\n"
+"POT-Creation-Date: 2023-10-09 09:45:23\n"
+"PO-Revision-Date: 2023-10-08 06:34+0000\n"
+"Last-Translator: Wannes Malfait <wannes.malfait@gmail.com>\n"
+"Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"X-Generator: Poedit 3.0"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.0.1"
+
+
+msgid "Shader AOV"
+msgstr "Schaduw AOV"
 
 
 msgid "Valid"
 msgstr "Geldig"
 
 
+msgid "Is the name of the AOV conflicting"
+msgstr "Is de naam van de AOV-conflicterende"
+
+
 msgid "Name"
 msgstr "Naam"
 
 
+msgid "Name of the AOV"
+msgstr "Naam van de AOV"
+
+
 msgid "Type"
 msgstr "Type"
+
+
+msgid "Data type of the AOV"
+msgstr "Data type van de AOV"
 
 
 msgid "Color"
@@ -34,12 +51,36 @@ msgid "Value"
 msgstr "Waarde"
 
 
+msgid "List of AOVs"
+msgstr "Lijst van AOV's"
+
+
+msgid "Collection of AOVs"
+msgstr "Collectie van AOV's"
+
+
+msgid "Action F-Curves"
+msgstr "Actie F-Curves"
+
+
+msgid "Collection of action F-Curves"
+msgstr "Collectie van actie F-Curves"
+
+
 msgid "Action Group"
 msgstr "Actie Groep"
 
 
+msgid "Groups of F-Curves"
+msgstr "Groepen van actie F-Curves"
+
+
 msgid "Channels"
 msgstr "Kanalen"
+
+
+msgid "F-Curves in this group"
+msgstr "F-Curves in deze groep"
 
 
 msgid "Color Set"
@@ -54,12 +95,100 @@ msgid "Default Colors"
 msgstr "Standaard Kleuren"
 
 
+msgid "01 - Theme Color Set"
+msgstr "01 - Thema kleurenverzameling"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - Thema kleurenverzameling"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Thema kleurenverzameling"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Thema kleurenverzameling"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - Thema kleurenverzameling"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - Thema kleurenverzameling"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - Thema kleurenverzameling"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - Thema kleurenverzameling"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - Thema kleurenverzameling"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - Thema kleurenverzameling"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - Thema kleurenverzameling"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - Thema kleurenverzameling"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - Thema kleurenverzameling"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - Thema kleurenverzameling"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - Thema kleurenverzameling"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - Thema kleurenverzameling"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - Thema kleurenverzameling"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - Thema kleurenverzameling"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - Thema kleurenverzameling"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - Thema kleurenverzameling"
+
+
 msgid "Custom Color Set"
 msgstr "Aangepast Kleurenpalet"
 
 
 msgid "Colors"
 msgstr "Kleuren"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "Kopie van de kleuren geassocieerd aan de kleurenverzameling van de groep"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "De kleurenverzameling is door de gebruiker gedefinieerd in plaats van een vaste verzameling gedefinieerd door het thema"
 
 
 msgid "Lock"
@@ -74,6 +203,10 @@ msgid "Mute"
 msgstr "Zet Uit"
 
 
+msgid "Action group is muted"
+msgstr "Actie groep is gedempt"
+
+
 msgid "Select"
 msgstr "Selecteer"
 
@@ -84,6 +217,14 @@ msgstr "Actie groep is geselecteerd"
 
 msgid "Expanded"
 msgstr "Uitgebreid"
+
+
+msgid "Action group is expanded except in graph editor"
+msgstr "Actie groep is uitgebreid behalve in grafiek bewerker"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "Uitgebreid in grafiek bewerker"
 
 
 msgid "Collection of action groups"
@@ -621,6 +762,10 @@ msgid "Speed"
 msgstr "Snelheid"
 
 
+msgid "Deflectors"
+msgstr "Deflectoren"
+
+
 msgid "Distance"
 msgstr "Afstand"
 
@@ -811,6 +956,10 @@ msgstr "Midden"
 
 msgid "Friction"
 msgstr "Wrijving"
+
+
+msgid "Angular"
+msgstr "Hoekig"
 
 
 msgid "Linear"
@@ -2169,6 +2318,11 @@ msgstr "Zon"
 msgctxt "Light"
 msgid "Area"
 msgstr "Gebied"
+
+
+msgctxt "Light"
+msgid "Power"
+msgstr "Kracht"
 
 
 msgid "Shadow Color"
@@ -3787,17 +3941,12 @@ msgstr "Exporteer BVH"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exporteer PLY"
+msgid "Export STL"
+msgstr "Exporteer STL"
 
 
 msgid "Apply Modifiers"
 msgstr "Pas Aanpassers Toe"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exporteer STL"
 
 
 msgctxt "Operator"
@@ -4328,11 +4477,6 @@ msgstr "Importeer SVG"
 msgctxt "Operator"
 msgid "Import Images as Planes"
 msgstr "Importeer Afbeeldingen als Vlakken"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importeer PLY"
 
 
 msgctxt "Operator"
@@ -6173,6 +6317,16 @@ msgid "Open a Blender file"
 msgstr "Open een Blender Bestand"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exporteer PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importeer PLY"
+
+
 msgid "All Types"
 msgstr "Alle Types"
 
@@ -7681,13 +7835,13 @@ msgstr "Verplaats..."
 
 
 msgctxt "Operator"
-msgid "Paste Flipped"
-msgstr "Plak Omgekeerd"
+msgid "Clean Channels"
+msgstr "Maak Kanalen Schoon"
 
 
 msgctxt "Operator"
-msgid "Clean Channels"
-msgstr "Maak Kanalen Schoon"
+msgid "Paste Flipped"
+msgstr "Plak Omgekeerd"
 
 
 msgctxt "Operator"
@@ -9249,7 +9403,7 @@ msgstr "TODO: wanneer gebeurt dit?"
 
 
 msgid "No valid inputs to swap"
-msgstr "Geen geldige invoers om om te wisselen"
+msgstr "Geen geldige invoers om te wisselen"
 
 
 msgid "Mean Crease:"
@@ -9293,6 +9447,10 @@ msgstr "Sleutel"
 
 msgid "Point is not found in given spline"
 msgstr "Punt is niet gevonden voor de opgegeven Spline"
+
+
+msgid "No active window in context!"
+msgstr "Geen actieve venster in context!"
 
 
 msgid "Create Armature"

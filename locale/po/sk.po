@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-03 09:29:22\n"
+"POT-Creation-Date: 2023-10-09 09:45:23\n"
 "PO-Revision-Date: 2023-09-26 10:38+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -51173,6 +51173,10 @@ msgid "Name of the bone collection to unassign this bone from; empty to unassign
 msgstr "Názov kolekcie kostí, z ktorej sa má táto kosť odhlásiť; prázdne - odhlásenie z aktívnej kolekcie kostí"
 
 
+msgid "Pose Bone"
+msgstr "Póza kosti"
+
+
 msgctxt "Operator"
 msgid "Delete Selected Bone(s)"
 msgstr "Odstrániť vybranú kosť(i)"
@@ -51535,10 +51539,6 @@ msgstr "-X na +X"
 
 msgid "+X to -X"
 msgstr "+X na -X"
-
-
-msgid "Pose Bone"
-msgstr "Póza kosti"
 
 
 msgctxt "Operator"
@@ -54992,8 +54992,20 @@ msgstr "Konvertuje rotáciu podľa Eulera ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Export PLY"
+msgid "Export STL"
+msgstr "Exportovať STL"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "Uloží údaje trojuholníkovej povrchovej siete STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Uloží súbor vo formáte súboru ASCII"
 
 
 msgid "X Forward"
@@ -55040,39 +55052,6 @@ msgid "-Z Up"
 msgstr "-Z hore"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Apply Modifiers"
-msgstr "Použiť modifikátory"
-
-
-msgid "Selection Only"
-msgstr "Len vybrané"
-
-
-msgid "Export selected objects only"
-msgstr "Exportuje len vybrané objekty"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportovať STL"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Uloží údaje trojuholníkovej povrchovej siete STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Uloží súbor vo formáte súboru ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Režim dávky"
 
@@ -55093,6 +55072,10 @@ msgid "Export in this reference space"
 msgstr "Export v tomto referenčnom priestore"
 
 
+msgid "Apply Modifiers"
+msgstr "Použiť modifikátory"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Pred uložením použije modifikátory"
 
@@ -55103,6 +55086,14 @@ msgstr "Jednotky scény"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Použije jednotky aktuálnej scény (definovanej jednotkovou stupnicou) na exportované údaje"
+
+
+msgid "Selection Only"
+msgstr "Len vybrané"
+
+
+msgid "Export selected objects only"
+msgstr "Exportuje len vybrané objekty"
 
 
 msgctxt "Operator"
@@ -56061,18 +56052,6 @@ msgstr "Zapamätať si nastavenia exportu"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Uložiť exportné nastavenia glTF v projekte Blender"
-
-
-msgid "Material Groups"
-msgstr "Skupiny materiálu"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Vygeneruje skupinu OBJ pre každú časť geometrie použitím iného materiálu"
-
-
-msgid "Smooth Groups"
-msgstr "Skupiny vyhladenia"
 
 
 msgctxt "Operator"
@@ -61273,10 +61252,6 @@ msgid "Always face the camera"
 msgstr "Vždy čelne ku kamere"
 
 
-msgid "Hashed"
-msgstr "Hašované"
-
-
 msgid "Setup Corner Pin"
 msgstr "Nastavenie pripnutia rohu"
 
@@ -61447,11 +61422,6 @@ msgstr "Použije definíciu obrázka ako body na jednotku Blendera"
 
 msgid "Use alpha channel for transparency"
 msgstr "Použije alfa kanál pre priehľadnosť"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importovať PLY"
 
 
 msgctxt "Operator"
@@ -61687,10 +61657,6 @@ msgstr "Úroveň záznamu"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Formát glTF vyžaduje, aby sa diskontinuálne normály, UV súradnice a ďalšie atribúty vrcholov uložili ako oddelené vrcholy, ako je vyžadované pri vykresľovaní na typickom grafickom hardvéri. Táto možnosť sa pokúša kombinovať vrcholy umiestnené spolu, kde je to možné. V súčasnosti nie je možné kombinovať vrcholy s rôznymi normálmi"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importuje skupiny OBJ ako skupiny vrcholov"
 
 
 msgctxt "Operator"
@@ -77167,24 +77133,6 @@ msgid "Line number to jump to"
 msgstr "Číslo riadka na skočenie"
 
 
-msgctxt "Operator"
-msgid "Open Text File at point"
-msgstr "Otvoriť textový súbor na bode"
-
-
-msgid "Edit text file in external text editor"
-msgstr "Upraví textový súbor v externom textovom editore"
-
-
-msgctxt "Operator"
-msgid "Jump to File at Point (Internal)"
-msgstr "Skočiť na súbor v bode (interné)"
-
-
-msgid "Jump to a file for the internal text editor"
-msgstr "Skočí na súbor pre interný textový editor"
-
-
 msgid "Column"
 msgstr "Stĺpec"
 
@@ -81810,6 +81758,10 @@ msgid "Export Material Groups"
 msgstr "Exportuje skupiny materiálov"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Vygeneruje skupinu OBJ pre každú časť geometrie použitím iného materiálu"
+
+
 msgid "Export Materials"
 msgstr "Exportovať materiály"
 
@@ -81931,6 +81883,10 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "Zmení veľkosť objektov tak, aby pole ohraničenia bolo pod touto hodnotou. Hodnota 0 vypína prichytenie"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importuje skupiny OBJ ako skupiny vrcholov"
+
+
 msgid "Split By Group"
 msgstr "Rozdeliť podľa skupín"
 
@@ -82036,6 +81992,11 @@ msgid "Open a path in a file browser"
 msgstr "Otvoriť cestu v prehľadávači súborov"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Export PLY"
+
+
 msgid "Save the scene to a PLY file"
 msgstr "Uloží scénu do PLY súboru"
 
@@ -82070,6 +82031,11 @@ msgstr "Exportovať normály vrcholov"
 
 msgid "Export specific vertex normals if available, export calculated normals otherwise"
 msgstr "Exportuje špecifické normály vrcholov, ak sú k dispozícii, inak exportujte vypočítané normály"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importovať PLY"
 
 
 msgid "Import an PLY file as an object"
@@ -102064,10 +102030,6 @@ msgid "Shade for bones corresponding to a locked weight group during painting"
 msgstr "Zaclonenie kosti zodpovedajúcej zamknutej skupine váh počas maľovania"
 
 
-msgid "Bone Pose"
-msgstr "Póza kosti"
-
-
 msgid "Bone Pose Active"
 msgstr "Aktívna póza kosti"
 
@@ -108552,10 +108514,6 @@ msgid "Add a new Variant Slot"
 msgstr "Pridať novú zásuvku Variant"
 
 
-msgid "Curves as NURBS"
-msgstr "Krivky ako NURBS"
-
-
 msgctxt "Operator"
 msgid "Lightwave Point Cache (.mdd)"
 msgstr "Zásobník bodov svetelných vĺn (.mdd)"
@@ -108978,10 +108936,6 @@ msgstr "Doplnok '{}' sa nenašiel!"
 
 msgid "Message extraction process failed!"
 msgstr "Proces rozbalenia správ zlyhal!"
-
-
-msgid "Info written to {} text datablock!"
-msgstr "Informácie napísané do bloku údajov {} textu!"
 
 
 msgid "Could not init languages data!"
@@ -110143,10 +110097,6 @@ msgstr "Koniec manipulátora"
 
 msgid "Pose Bone Color"
 msgstr "Farba pózy kosti"
-
-
-msgid "Edit Bone Color"
-msgstr "Upraviť farbu kostí"
 
 
 msgid "Lock IK X"
@@ -112369,13 +112319,13 @@ msgstr "Medzi vybranými značkami"
 
 
 msgctxt "Operator"
-msgid "Paste Flipped"
-msgstr "Prilepiť prevrátené"
+msgid "Clean Channels"
+msgstr "Zmazať kanály"
 
 
 msgctxt "Operator"
-msgid "Clean Channels"
-msgstr "Zmazať kanály"
+msgid "Paste Flipped"
+msgstr "Prilepiť prevrátené"
 
 
 msgctxt "Operator"
@@ -120723,6 +120673,10 @@ msgid "Triangulated Mesh"
 msgstr "Trojuholníková povrchová sieť"
 
 
+msgid "Curves as NURBS"
+msgstr "Krivky ako NURBS"
+
+
 msgid "PBR Extensions"
 msgstr "Rozšírenia PBR"
 
@@ -120735,8 +120689,20 @@ msgid "Object Groups"
 msgstr "Skupiny objektov"
 
 
+msgid "Material Groups"
+msgstr "Skupiny materiálu"
+
+
+msgid "Smooth Groups"
+msgstr "Skupiny vyhladenia"
+
+
 msgid "Smooth Group Bitflags"
 msgstr "Príznaky bitov vyhladenej skupiny"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "File References"
