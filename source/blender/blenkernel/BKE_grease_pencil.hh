@@ -15,6 +15,7 @@
 #include "BLI_color.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_utility_mixins.hh"
@@ -33,6 +34,14 @@ struct Material;
 namespace blender::bke {
 
 namespace greasepencil {
+
+struct DrawingTransforms {
+  float4x4 world_space_to_layer_space;
+  float4x4 layer_space_to_world_space;
+
+  DrawingTransforms() = default;
+  DrawingTransforms(const Object &grease_pencil_ob);
+};
 
 class DrawingRuntime {
  public:

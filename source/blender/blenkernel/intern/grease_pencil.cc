@@ -45,6 +45,7 @@
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -223,6 +224,12 @@ IDTypeInfo IDType_ID_GP = {
 };
 
 namespace blender::bke::greasepencil {
+
+DrawingTransforms::DrawingTransforms(const Object &grease_pencil_ob)
+{
+  this->layer_space_to_world_space = float4x4_view(grease_pencil_ob.object_to_world);
+  this->world_space_to_layer_space = math::invert(this->layer_space_to_world_space);
+}
 
 static const std::string ATTR_RADIUS = "radius";
 static const std::string ATTR_OPACITY = "opacity";
