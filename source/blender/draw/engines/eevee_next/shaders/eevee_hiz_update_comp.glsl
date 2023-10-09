@@ -112,8 +112,8 @@ void main()
 
       mask_shift = 1;
 
-      /* Level 7. */
-      downsample_level(out_mip_7, 7);
+      /* Level 7 requires barriers inside a non-uniform control flow. */
+      // downsample_level(out_mip_7, 7);
 
       /* Limited by OpenGL maximum of 8 image slot. */
       // downsample_level(out_mip_8, 8);

@@ -17,7 +17,7 @@
 #define LUT_WORKGROUP_SIZE 16
 
 /* Hierarchical Z down-sampling. */
-#define HIZ_MIP_COUNT 8
+#define HIZ_MIP_COUNT 7
 /* NOTE: The shader is written to update 5 mipmaps using LDS. */
 #define HIZ_GROUP_SIZE 32
 
