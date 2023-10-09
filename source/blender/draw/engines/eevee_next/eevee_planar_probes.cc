@@ -73,10 +73,15 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
     resources_.reinitialize(num_probes);
   }
 
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+  if (num_probes == 0) {
+    color_tx_.ensure_2d_array(GPU_R11F_G11F_B10F, int2(1), 1, usage);
+    depth_tx_.ensure_2d_array(GPU_DEPTH_COMPONENT32F, int2(1), 1, usage);
+    return;
+  }
+
   /* TODO resolution percentage. */
   int2 extent = main_view_extent;
-
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
   color_tx_.ensure_2d_array(GPU_R11F_G11F_B10F, extent, num_probes, usage);
   depth_tx_.ensure_2d_array(GPU_DEPTH_COMPONENT32F, extent, num_probes, usage);
 
