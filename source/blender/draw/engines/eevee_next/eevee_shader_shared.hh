@@ -1325,14 +1325,14 @@ struct ReflectionProbeData {
 
   /**
    * Irradiance at the probe location encoded as spherical harmonics.
-   * Only contain the average luminance. Used for cubemap normalization.
+   * Only contain the average luminance. Used for cube-map normalization.
    */
   ReflectionProbeLowFreqLight low_freq_light;
 };
 BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
 
 struct ClipPlaneData {
-  /** World space clip plane equation. Used to render planar lightprobes. */
+  /** World space clip plane equation. Used to render planar light-probes. */
   float4 plane;
 };
 BLI_STATIC_ASSERT_ALIGN(ClipPlaneData, 16)

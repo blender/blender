@@ -166,7 +166,7 @@ void SyncModule::sync_mesh(Object *ob,
     geometry_call(material.prepass.sub_pass, geom, res_handle);
     geometry_call(material.shadow.sub_pass, geom, res_handle);
     geometry_call(material.capture.sub_pass, geom, res_handle);
-    /* TODO: We should not compile the shader and create a subpass if the object has no visibiility
+    /* TODO: We should not compile the shader and create a sub-pass if the object has no visibility
      * for these passes. */
     if (do_reflection_probe_sync) {
       geometry_call(material.reflection_probe_prepass.sub_pass, geom, res_handle);

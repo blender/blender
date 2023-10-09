@@ -814,7 +814,7 @@ class Executor {
       }
       this->run_node_task(*node, current_task, local_data);
 
-      /* If there are many nodes scheduled at the same time, it's benefitial to let multiple
+      /* If there are many nodes scheduled at the same time, it's beneficial to let multiple
        * threads work on those. */
       if (current_task.scheduled_nodes.nodes_num() > 128) {
         if (this->try_enable_multi_threading()) {

@@ -925,7 +925,7 @@ struct wmTimer {
  *
  * \warning There is currently no thread-safety or synchronization when accessing these values.
  * This is fine as long as:
- *   - All members are independant of each other, value-wise.
+ *   - All members are independent of each other, value-wise.
  *   - Each member is 'simple enough' that accessing it or setting it can be considered as atomic.
  *   - There is no requirement of immediate synchronization of these values between the main
  *     controlling thread (i.e. wmJob management code) and the worker thread.

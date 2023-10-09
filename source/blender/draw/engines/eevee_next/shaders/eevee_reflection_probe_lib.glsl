@@ -25,7 +25,7 @@ vec3 reflection_probes_world_sample(vec3 L, float lod)
 
 ReflectionProbeLowFreqLight reflection_probes_extract_low_freq(SphericalHarmonicL1 sh)
 {
-  /* To avoid color shift and negative values, we reduce saturation and directionnality. */
+  /* To avoid color shift and negative values, we reduce saturation and directionality. */
   ReflectionProbeLowFreqLight result;
   result.ambient = sh.L0.M0.r + sh.L0.M0.g + sh.L0.M0.b;
 
@@ -44,7 +44,7 @@ vec3 reflection_probes_normalization_eval(vec3 L,
                                           ReflectionProbeLowFreqLight numerator,
                                           ReflectionProbeLowFreqLight denominator)
 {
-  /* TODO(fclem): Adjusting directionnality is tricky.
+  /* TODO(fclem): Adjusting directionality is tricky.
    * Needs to be revisited later on. For now only use the ambient term. */
   return vec3(numerator.ambient * safe_rcp(denominator.ambient));
 }

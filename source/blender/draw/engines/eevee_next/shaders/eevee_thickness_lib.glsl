@@ -38,7 +38,7 @@ void thickness_from_shadow_single(
 #define THICKNESS_NO_VALUE 1.0e6
 /**
  * Return the apparent thickness of an object behind surface considering all shadow maps
- * availables. If no shadow-map has a record of the other side of the surface, this function
+ * available. If no shadow-map has a record of the other side of the surface, this function
  * returns THICKNESS_NO_VALUE.
  */
 float thickness_from_shadow(vec3 P, vec3 Ng, float vPz)

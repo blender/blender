@@ -28,7 +28,7 @@ namespace blender::ed::greasepencil {
  * in-between needs to be kept.
  * \param dist_function: A function that computes the distance to a point at an index in the range.
  * The IndexRange is a subrange of \a range and the index is an index relative to the subrange.
- * \param points_to_delete: Writes true to the indecies for which the points should be removed.
+ * \param points_to_delete: Writes true to the indices for which the points should be removed.
  * \returns the total number of points to remove.
  */
 int64_t ramer_douglas_peucker_simplify(
@@ -100,7 +100,7 @@ Array<float2> polyline_fit_curve(Span<float2> points,
                                            nullptr);
 
   if (error != 0) {
-    /* Some error occured. Return. */
+    /* Some error occurred. Return. */
     return {};
   }
 
@@ -130,7 +130,7 @@ IndexMask polyline_detect_corners(Span<float2> points,
                                                 &r_corners,
                                                 &r_corner_len);
   if (error != 0) {
-    /* Error occured, return. */
+    /* Error occurred, return. */
     return IndexMask();
   }
   BLI_assert(samples_max < std::numeric_limits<int>::max());

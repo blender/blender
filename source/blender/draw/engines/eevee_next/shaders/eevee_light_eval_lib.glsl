@@ -152,7 +152,7 @@ void light_eval_single(uint l_idx,
   }
   float visibility = attenuation * shadow;
 
-  /* WATCH(@fclem): Might have to manually unroll for best perf. */
+  /* WATCH(@fclem): Might have to manually unroll for best performance. */
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
     light_eval_single_closure(light, lv, stack.cl[i], P, V, thickness, attenuation, visibility);
   }

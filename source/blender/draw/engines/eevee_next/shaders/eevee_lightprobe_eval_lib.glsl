@@ -211,7 +211,7 @@ struct LightProbeSample {
 };
 
 /**
- * Return cached lightprobe data at P.
+ * Return cached light-probe data at P.
  * Ng and V are use for biases.
  */
 LightProbeSample lightprobe_load(vec3 P, vec3 Ng, vec3 V)
@@ -223,7 +223,7 @@ LightProbeSample lightprobe_load(vec3 P, vec3 Ng, vec3 V)
 }
 
 /**
- * Return spherical sample normalized by irradianced at sample position.
+ * Return spherical sample normalized by irradiance at sample position.
  * This avoid most of light leaking and reduce the need for many local probes.
  */
 vec3 lightprobe_spherical_sample_normalized(int probe_index,

@@ -129,7 +129,7 @@ struct bUnitCollection {
 
 #define UNIT_COLLECTION_LENGTH(def) (ARRAY_SIZE(def) - 1)
 
-/* Clang-format wraps this define baddly. */
+/* Clang-format wraps this define badly. */
 /* clang-format off */
 #define NULL_UNIT { \
     /*name*/ nullptr, \

@@ -10315,7 +10315,7 @@ float ui_block_calc_pie_segment(uiBlock *block, const float event_xy[2])
 
 static int ui_handle_menu_letter_press(uiPopupBlockHandle *menu)
 {
-  /* Start menu search on spacebar press if the menu has a name. */
+  /* Start menu search on space-bar press if the menu has a name. */
   if (menu->menu_idname[0]) {
     uiAfterFunc *after = ui_afterfunc_new();
     wmOperatorType *ot = WM_operatortype_find("WM_OT_search_single_menu", false);
@@ -10788,7 +10788,7 @@ static int ui_handle_menu_event(bContext *C,
           break;
         }
         case EVT_SPACEKEY: {
-          /* Press spacebar to start menu search. */
+          /* Press space-bar to start menu search. */
           if ((level != 0) && (but == nullptr || !menu->menu_idname[0])) {
             /* Search parent if the child is open but not activated or not searchable. */
             menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;

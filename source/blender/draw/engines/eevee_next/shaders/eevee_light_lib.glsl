@@ -133,7 +133,7 @@ float light_attenuation_facing(LightData light, vec3 L, vec3 Ng, bool use_subsur
 float light_attenuation_surface(
     LightData light, const bool is_directional, vec3 Ng, bool use_subsurface, LightVector lv)
 {
-  /* TODO(fclem): add cutoff attenuation when backfacing. For now do nothing with Ng. */
+  /* TODO(fclem): add cutoff attenuation when back-facing. For now do nothing with Ng. */
   return light_attenuation_common(light, is_directional, lv.L) *
          light_attenuation_facing(light, lv.L, Ng, use_subsurface) *
          light_influence_attenuation(lv.dist, light.influence_radius_invsqr_surface);
