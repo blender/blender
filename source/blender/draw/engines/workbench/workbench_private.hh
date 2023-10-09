@@ -40,7 +40,7 @@ class ShaderCache {
   GPUShader *prepass_shader_cache_[pipeline_type_len][geometry_type_len][shader_type_len]
                                   [lighting_type_len][2 /*clip*/] = {{{{{nullptr}}}}};
   GPUShader *resolve_shader_cache_[pipeline_type_len][lighting_type_len][2 /*cavity*/]
-                                  [2 /*curvature*/][2 /*shadow*/] = {{{{nullptr}}}};
+                                  [2 /*curvature*/][2 /*shadow*/] = {{{{{nullptr}}}}};
 };
 
 struct Material {
