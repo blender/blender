@@ -687,8 +687,7 @@ static bool bake_objects_check(Main *bmain,
 
     LISTBASE_FOREACH (CollectionPointerLink *, link, selected_objects) {
       if (!bake_object_check(
-              scene, view_layer, static_cast<Object *>(link->ptr.data), target, reports))
-      {
+              scene, view_layer, static_cast<Object *>(link->ptr.data), target, reports)) {
         return false;
       }
     }
@@ -1739,8 +1738,7 @@ static int bake(const BakeAPIRender *bkr,
   else {
     /* save the results */
     if (bake_targets_output(
-            bkr, &targets, ob_low, ob_low_eval, me_low_eval, pixel_array_low, reports))
-    {
+            bkr, &targets, ob_low, ob_low_eval, me_low_eval, pixel_array_low, reports)) {
       op_result = OPERATOR_FINISHED;
     }
     else {

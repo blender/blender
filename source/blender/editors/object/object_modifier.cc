@@ -185,8 +185,7 @@ ModifierData *ED_object_modifier_add(
       md = static_cast<ModifierData *>(ob->modifiers.first);
 
       while (md &&
-             BKE_modifier_get_info((ModifierType)md->type)->type == eModifierTypeType_OnlyDeform)
-      {
+             BKE_modifier_get_info((ModifierType)md->type)->type == eModifierTypeType_OnlyDeform) {
         md = md->next;
       }
 
@@ -773,8 +772,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
 
   if (build_shapekey_layers && me->key) {
     if (KeyBlock *kb = static_cast<KeyBlock *>(
-            BLI_findlink(&me->key->block, ob_eval->shapenr - 1)))
-    {
+            BLI_findlink(&me->key->block, ob_eval->shapenr - 1))) {
       BKE_keyblock_convert_to_mesh(
           kb, reinterpret_cast<float(*)[3]>(me->vert_positions_for_write().data()), me->totvert);
     }
