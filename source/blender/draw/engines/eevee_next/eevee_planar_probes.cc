@@ -13,7 +13,9 @@ namespace blender::eevee {
 
 void PlanarProbeModule::init()
 {
-  update_probes_ = !probes_.is_empty();
+  if (assign_if_different(update_probes_, !probes_.is_empty())) {
+    instance_.sampling.reset();
+  }
 }
 
 void PlanarProbeModule::begin_sync()
@@ -43,10 +45,10 @@ void PlanarProbeModule::end_sync()
 {
   remove_unused_probes();
 
-  // if (probes_.is_empty()) {
-  //   update_probes_ = true;
-  //   instance_.sampling.reset();
-  // }
+  /* When first planar probes are enabled it can happen that the first sample is off. */
+  if (!update_probes_ && !probes_.is_empty()) {
+    DRW_viewport_request_redraw();
+  }
 }
 
 float4x4 PlanarProbeModule::reflection_matrix_get(const float4x4 &plane_to_world,
