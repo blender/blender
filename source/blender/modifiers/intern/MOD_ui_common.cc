@@ -13,7 +13,7 @@
 
 #include "BKE_context.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_screen.hh"
 
 #include "DNA_object_force_types.h"

@@ -13,7 +13,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BLI_hash.hh"
 #include "BLI_math_color.hh"
 #include "BLI_math_matrix.h"

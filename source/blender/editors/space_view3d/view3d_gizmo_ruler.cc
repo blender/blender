@@ -24,7 +24,7 @@
 
 #include "BKE_layer.h"
 #include "BKE_material.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_scene.h"
 #include "BKE_unit.h"
 

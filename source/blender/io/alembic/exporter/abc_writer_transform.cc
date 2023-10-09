@@ -11,7 +11,7 @@
 #include "intern/abc_axis_conversion.h"
 #include "intern/abc_util.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

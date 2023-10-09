@@ -18,7 +18,7 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_node.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"

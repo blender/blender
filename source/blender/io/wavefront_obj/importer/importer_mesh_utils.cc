@@ -7,7 +7,7 @@
  */
 
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "BLI_delaunay_2d.h"
 #include "BLI_math_geom.h"

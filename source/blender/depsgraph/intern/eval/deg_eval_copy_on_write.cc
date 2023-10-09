@@ -74,7 +74,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_lib_query.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_pointcache.h"
 #include "BKE_sound.h"
 

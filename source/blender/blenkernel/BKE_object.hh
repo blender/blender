@@ -15,10 +15,6 @@
 #include "DNA_object_enums.h"
 #include "DNA_userdef_enums.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Base;
 struct BoundBox;
 struct Curve;
@@ -724,7 +720,3 @@ struct PartEff;
 struct PartEff *BKE_object_do_version_give_parteff_245(struct Object *ob);
 
 bool BKE_object_supports_material_slots(struct Object *ob);
-
-#ifdef __cplusplus
-}
-#endif

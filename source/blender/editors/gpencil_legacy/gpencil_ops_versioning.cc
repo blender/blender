@@ -25,7 +25,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

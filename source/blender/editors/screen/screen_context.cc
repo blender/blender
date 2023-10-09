@@ -33,7 +33,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_layer.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_tracking.h"
 
 #include "RNA_access.hh"

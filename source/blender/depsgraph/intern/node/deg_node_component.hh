@@ -16,7 +16,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include "DNA_object_types.h"
 

@@ -26,7 +26,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_multires.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_packedFile.h"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"

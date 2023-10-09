@@ -16,7 +16,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 
 #include <sstream>
 

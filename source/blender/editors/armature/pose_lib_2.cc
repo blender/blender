@@ -25,7 +25,7 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_pose_backup.h"
 #include "BKE_report.h"
 

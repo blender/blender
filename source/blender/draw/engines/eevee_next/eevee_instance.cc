@@ -11,7 +11,7 @@
 #include <sstream>
 
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BLI_rect.h"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_ID.h"

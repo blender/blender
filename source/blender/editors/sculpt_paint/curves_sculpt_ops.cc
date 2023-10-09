@@ -13,7 +13,7 @@
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
 
 #include "WM_api.hh"

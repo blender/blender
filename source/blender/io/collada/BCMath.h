@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_object.h"
+#include "BKE_object.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BlenderTypes.h"
