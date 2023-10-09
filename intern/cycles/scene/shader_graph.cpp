@@ -1172,7 +1172,7 @@ int ShaderGraph::get_num_closures()
       num_closures += 2;
     }
     else if (CLOSURE_IS_PRINCIPLED(closure_type)) {
-      num_closures += 8;
+      num_closures += 12;
     }
     else if (CLOSURE_IS_VOLUME(closure_type)) {
       /* TODO(sergey): Verify this is still needed, since we have special minimized volume storage
