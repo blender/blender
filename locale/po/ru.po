@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-03 09:29:22\n"
+"POT-Creation-Date: 2023-10-09 09:45:23\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -39487,6 +39487,10 @@ msgid "Show All"
 msgstr "Показать все"
 
 
+msgid "Pose Bone"
+msgstr "Кость позы"
+
+
 msgctxt "Operator"
 msgid "Delete Selected Bone(s)"
 msgstr "Удалить выделенные кости"
@@ -39805,10 +39809,6 @@ msgstr "−X на +X"
 
 msgid "+X to -X"
 msgstr "+X на −X"
-
-
-msgid "Pose Bone"
-msgstr "Кость позы"
 
 
 msgid "Check Existing"
@@ -42495,8 +42495,16 @@ msgstr "Преобразовать вращения по Эйлеру ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Экспортировать PLY"
+msgid "Export STL"
+msgstr "Экспортировать STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Сохранить файл в формате ASCII"
 
 
 msgid "X Forward"
@@ -42543,31 +42551,6 @@ msgid "-Z Up"
 msgstr "Вверх по −Z"
 
 
-msgid "Apply Modifiers"
-msgstr "Применить модификаторы"
-
-
-msgid "Selection Only"
-msgstr "Только выделенное"
-
-
-msgid "Export selected objects only"
-msgstr "Экспортировать только выделенные объекты"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Экспортировать STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Сохранить файл в формате ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Пакетный режим"
 
@@ -42580,6 +42563,10 @@ msgid "Each object as a file"
 msgstr "Каждый объект в отдельном файле"
 
 
+msgid "Apply Modifiers"
+msgstr "Применить модификаторы"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Применить модификаторы перед сохранением"
 
@@ -42590,6 +42577,14 @@ msgstr "Единицы сцены"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Применить текущие единицы сцены (заданные масштабом единиц) к экспортируемым данным"
+
+
+msgid "Selection Only"
+msgstr "Только выделенное"
+
+
+msgid "Export selected objects only"
+msgstr "Экспортировать только выделенные объекты"
 
 
 msgctxt "Operator"
@@ -43160,14 +43155,6 @@ msgstr "Запомнить настройки экспорта"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Сохранить настройки экспорта glTF в файле Blender"
-
-
-msgid "Material Groups"
-msgstr "Группы материалов"
-
-
-msgid "Smooth Groups"
-msgstr "Группы сглаживания"
 
 
 msgctxt "Operator"
@@ -46402,11 +46389,6 @@ msgstr "Использовать альфа-канал для прозрачно
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Импортировать PLY"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Импортировать STL"
 
@@ -46587,10 +46569,6 @@ msgstr "Уровень логирования"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Формат glTF требует, чтобы прерывистые нормали, UV и другие атрибуты вершин хранились как отдельные вершины, как это требуется для рендеринга на типичном графическом оборудовании. Эта опция пытается объединить совмещенные вершины, где это возможно. В настоящее время нельзя комбинировать вершины с разными нормалями"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Импортировать группы OBJ как группы вершин"
 
 
 msgctxt "Operator"
@@ -61310,6 +61288,10 @@ msgid "Object Properties"
 msgstr "Настройки объекта"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Импортировать группы OBJ как группы вершин"
+
+
 msgctxt "Operator"
 msgid "Open"
 msgstr "Открыть"
@@ -61376,6 +61358,16 @@ msgstr "Тег интерфейса"
 
 msgid "Open a path in a file browser"
 msgstr "Открыть путь в файловом менеджере"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Экспортировать PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Импортировать PLY"
 
 
 msgctxt "Operator"
@@ -75633,10 +75625,6 @@ msgid "Color of the 1px shadow line underlying widgets"
 msgstr "Цвет однопиксельной линии тени под виджетами"
 
 
-msgid "Bone Pose"
-msgstr "Позовая кость"
-
-
 msgid "Bone Pose Active"
 msgstr "Активная позовая кость"
 
@@ -78803,10 +78791,6 @@ msgid "Message extraction process failed!"
 msgstr "Ошибка в процессе извлечения сообщений!"
 
 
-msgid "Info written to {} text datablock!"
-msgstr "Информация записана в текстовой датаблок {}!"
-
-
 msgid "Could not init languages data!"
 msgstr "Ошибка инициализации данных языков!"
 
@@ -80671,13 +80655,13 @@ msgstr "Между выделенными маркерами"
 
 
 msgctxt "Operator"
-msgid "Paste Flipped"
-msgstr "Вставить отражённым"
+msgid "Clean Channels"
+msgstr "Очистить каналы"
 
 
 msgctxt "Operator"
-msgid "Clean Channels"
-msgstr "Очистить каналы"
+msgid "Paste Flipped"
+msgstr "Вставить отражённым"
 
 
 msgctxt "Operator"
@@ -85937,6 +85921,14 @@ msgstr "Ошибка во время экспорта (смотрите конс
 
 msgid "Parsing errors in Document (see Blender Console)"
 msgstr "Ошибки парсинга документа (см. консоль Blender)"
+
+
+msgid "Material Groups"
+msgstr "Группы материалов"
+
+
+msgid "Smooth Groups"
+msgstr "Группы сглаживания"
 
 
 msgid "Mesh Data"

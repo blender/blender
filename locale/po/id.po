@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-03 09:29:22\n"
+"POT-Creation-Date: 2023-10-09 09:45:23\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -22030,10 +22030,6 @@ msgid "Message extraction process failed!"
 msgstr "Proses ekstraksi pesan gagal!"
 
 
-msgid "Info written to {} text datablock!"
-msgstr "Info tertulis ke {} teks datablok!"
-
-
 msgctxt "Operator"
 msgid "Reset Settings"
 msgstr "Pengaturan Reset"
@@ -23350,13 +23346,13 @@ msgstr "Seleksi Box (Jarak Sumbu)"
 
 
 msgctxt "Operator"
-msgid "Paste Flipped"
-msgstr "Tempel yang Terbalik"
+msgid "Clean Channels"
+msgstr "Bersihkan Saluran"
 
 
 msgctxt "Operator"
-msgid "Clean Channels"
-msgstr "Bersihkan Saluran"
+msgid "Paste Flipped"
+msgstr "Tempel yang Terbalik"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-03 09:29:22\n"
+"POT-Creation-Date: 2023-10-09 09:45:23\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -41224,6 +41224,10 @@ msgid "Show All"
 msgstr "Показати Все"
 
 
+msgid "Pose Bone"
+msgstr "Позова кістка"
+
+
 msgctxt "Operator"
 msgid "Delete Selected Bone(s)"
 msgstr "Видалити вибрані кістки"
@@ -41574,10 +41578,6 @@ msgstr "-X до +X"
 
 msgid "+X to -X"
 msgstr "+X до -X"
-
-
-msgid "Pose Bone"
-msgstr "Позова кістка"
 
 
 msgid "Check Existing"
@@ -44505,8 +44505,20 @@ msgstr "Конвертувати оберти в Ейлерові - ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Експорт PLY"
+msgid "Export STL"
+msgstr "Експорт STL"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "Зберегти трикутникові дані сіті STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Записати файл формату ASCII"
 
 
 msgid "X Forward"
@@ -44553,39 +44565,6 @@ msgid "-Z Up"
 msgstr "-Z Уверх"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Apply Modifiers"
-msgstr "Застосувати модифікатори"
-
-
-msgid "Selection Only"
-msgstr "Лише вибране"
-
-
-msgid "Export selected objects only"
-msgstr "Експортувати лише вибрані об'єкти"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Експорт STL"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Зберегти трикутникові дані сіті STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Записати файл формату ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Пакетний Режим"
 
@@ -44598,6 +44577,10 @@ msgid "Each object as a file"
 msgstr "Кожен об'єкт як файл"
 
 
+msgid "Apply Modifiers"
+msgstr "Застосувати модифікатори"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Перед збереженням застосувати модифікатори"
 
@@ -44608,6 +44591,14 @@ msgstr "Одиниці сцени"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Застосувати до експортованих даних поточні одиниці сцени (як вказує масштаб одиниць)"
+
+
+msgid "Selection Only"
+msgstr "Лише вибране"
+
+
+msgid "Export selected objects only"
+msgstr "Експортувати лише вибрані об'єкти"
 
 
 msgctxt "Operator"
@@ -45250,18 +45241,6 @@ msgstr "Пам'ятати Устави Експорту"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Зберігати устави експорту glTF у прокті Blender'а"
-
-
-msgid "Material Groups"
-msgstr "Групи матеріалів"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Генерувати групу OBJ для кожної частини геометрії, використовуючи інший матеріал"
-
-
-msgid "Smooth Groups"
-msgstr "Групи згладжування"
 
 
 msgctxt "Operator"
@@ -49282,11 +49261,6 @@ msgstr "Вжити канал альфа для прозорості"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Імпорт PLY"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Імпорт STL"
 
@@ -49503,10 +49477,6 @@ msgstr "Рівень Протоколу"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Формат glTF вимагає дискретних атрибутів нормалей, UVт, та інших елементів вершин, щоб зберігатися як окремі вершини, як вимагається для рендерингу на типовому графічному апаратному забезпеченні. Ця опція пробує комбінувати спів-розміщені вершини, де це можливо. Поточно не може комбінувати вершини з різними нормалями"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Імпортувати OBJ-групи як групи вершин"
 
 
 msgctxt "Operator"
@@ -66529,6 +66499,14 @@ msgid "Object Properties"
 msgstr "Властивості Об'єкта"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Генерувати групу OBJ для кожної частини геометрії, використовуючи інший матеріал"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Імпортувати OBJ-групи як групи вершин"
+
+
 msgctxt "Operator"
 msgid "Open"
 msgstr "Відкриття"
@@ -66604,6 +66582,16 @@ msgstr "Значник Інтерфейсу Користувача"
 
 msgid "Open a path in a file browser"
 msgstr "Відкрити шлях в оглядачі файлів"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Експорт PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Імпорт PLY"
 
 
 msgctxt "Operator"
@@ -82439,10 +82427,6 @@ msgid "Shade for bones corresponding to a locked weight group during painting"
 msgstr "Відтінення для кісток, що відповідає блокованій групі вагомостей під час малювання"
 
 
-msgid "Bone Pose"
-msgstr "Поза кістки"
-
-
 msgid "Bone Pose Active"
 msgstr "Активна поза кістки"
 
@@ -86065,10 +86049,6 @@ msgid "Message extraction process failed!"
 msgstr "Збій процесу витягнення повідомлення!"
 
 
-msgid "Info written to {} text datablock!"
-msgstr "Інформацію записано в текстовий блок даних {}!"
-
-
 msgid "Could not init languages data!"
 msgstr "Неможливо ініціювати дані про мови!"
 
@@ -88807,13 +88787,13 @@ msgstr "Між Вибраними Маркерами"
 
 
 msgctxt "Operator"
-msgid "Paste Flipped"
-msgstr "Вставити Перевернуто"
+msgid "Clean Channels"
+msgstr "Очистити Канали"
 
 
 msgctxt "Operator"
-msgid "Clean Channels"
-msgstr "Очистити Канали"
+msgid "Paste Flipped"
+msgstr "Вставити Перевернуто"
 
 
 msgctxt "Operator"
@@ -94876,6 +94856,18 @@ msgstr "Помилка експорту (див. консоль)"
 
 msgid "Parsing errors in Document (see Blender Console)"
 msgstr "Виявлення помилок у Документів (дивіться Blender Console)"
+
+
+msgid "Material Groups"
+msgstr "Групи матеріалів"
+
+
+msgid "Smooth Groups"
+msgstr "Групи згладжування"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgctxt "Mesh"

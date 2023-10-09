@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'26346464e0c0')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-10-03 09:29:22\n"
-"PO-Revision-Date: 2023-10-03 02:54+0000\n"
+"POT-Creation-Date: 2023-10-09 09:45:23\n"
+"PO-Revision-Date: 2023-10-03 21:49+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -1698,6 +1698,18 @@ msgstr "Índice do Atributo Activo"
 
 msgid "Active attribute index"
 msgstr "Índice do atributo activo"
+
+
+msgid "Default Color Attribute"
+msgstr "Atributo de Cor Pré Definido"
+
+
+msgid "The name of the default color attribute used as a fallback for rendering"
+msgstr "O nome do atributo de cor utilizado como reserva para renderização"
+
+
+msgid "Active Render Color Index"
+msgstr "Índice da Cor de Renderização Activa"
 
 
 msgid "Bake Data"
@@ -29904,6 +29916,10 @@ msgid "Show All"
 msgstr "Mostrar tudo"
 
 
+msgid "Pose Bone"
+msgstr "Osso de pose"
+
+
 msgctxt "Operator"
 msgid "Delete Selected Bone(s)"
 msgstr "Apagar ossos selecionados"
@@ -30197,10 +30213,6 @@ msgstr "-X para +X"
 
 msgid "+X to -X"
 msgstr "+X para -X"
-
-
-msgid "Pose Bone"
-msgstr "Osso de pose"
 
 
 msgid "Check Existing"
@@ -32568,8 +32580,16 @@ msgstr "Converte rotações para o Euler ZYX."
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exportar PLY"
+msgid "Export STL"
+msgstr "Exportar STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Guarda o ficheiro em formato de ficheiro ASCII"
 
 
 msgid "X Forward"
@@ -32616,31 +32636,6 @@ msgid "-Z Up"
 msgstr "-Z Para cima"
 
 
-msgid "Apply Modifiers"
-msgstr "Aplicar modificadores"
-
-
-msgid "Selection Only"
-msgstr "Somente a seleção"
-
-
-msgid "Export selected objects only"
-msgstr "Exporta somente os objetos selecionados."
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportar STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Guarda o ficheiro em formato de ficheiro ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Modo de tarefas em lote"
 
@@ -32653,6 +32648,10 @@ msgid "Each object as a file"
 msgstr "Cada objeto como um ficheiro"
 
 
+msgid "Apply Modifiers"
+msgstr "Aplicar modificadores"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Aplica os modificadores antes de guardar."
 
@@ -32663,6 +32662,14 @@ msgstr "Unidades da cena"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Aplica as unidades atuais da cena (como definidas pelas unidades de escala) para os dados exportados."
+
+
+msgid "Selection Only"
+msgstr "Somente a seleção"
+
+
+msgid "Export selected objects only"
+msgstr "Exporta somente os objetos selecionados."
 
 
 msgctxt "Operator"
@@ -32976,14 +32983,6 @@ msgstr "Converte todas as faces para triângulos"
 
 msgid "Add binormal and tangent vectors, together with normal they form the tangent space (will only work correctly with tris/quads only meshes!)"
 msgstr "Adiciona vetores binormais e tangentes, juntamente com as normais que eles formam dentro do espaço tangente (só funciona corretamente com malhas formadas por triângulos ou quadriláteros !)."
-
-
-msgid "Material Groups"
-msgstr "Grupos de materiais"
-
-
-msgid "Smooth Groups"
-msgstr "Grupos suavizados"
 
 
 msgid "Compress"
@@ -35060,11 +35059,6 @@ msgstr "Insensível a luzes ou sombras"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importar PLY"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Importar STL"
 
@@ -35204,10 +35198,6 @@ msgstr "Usar rotação prévia ou posterior"
 
 msgid "Use pre/post rotation from FBX transform (you may have to disable that in some cases)"
 msgstr "Usa uma rotação prévia ou posterior a partir das transformações FBX (será necessário desativar esta funcionalidade em alguns casos)."
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importa os grupos OBJ como grupos de vértices."
 
 
 msgctxt "Operator"
@@ -46850,6 +46840,10 @@ msgid "Print memory statistics to the console"
 msgstr "Imprime estatísticas de memória na linha de comando."
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importa os grupos OBJ como grupos de vértices."
+
+
 msgid "Open a Blender file"
 msgstr "Abre um ficheiro Blender."
 
@@ -46899,6 +46893,16 @@ msgstr "Permite adicionar ou remover uma predefinição de operador."
 
 msgid "Open a path in a file browser"
 msgstr "Abre um caminho em um navegador de ficheiros."
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exportar PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importar PLY"
 
 
 msgctxt "Operator"
@@ -57095,10 +57099,6 @@ msgid "Color of the 1px shadow line underlying widgets"
 msgstr "A cor da linha de sublinhamento que sombreia a base dos assistentes, com tamanho de um pixel."
 
 
-msgid "Bone Pose"
-msgstr "Ossos em modo de pose"
-
-
 msgid "Bone Pose Active"
 msgstr "Ossos ativos em modo de pose"
 
@@ -58796,10 +58796,6 @@ msgstr "Complemento '{}' não encontrado!"
 
 msgid "Message extraction process failed!"
 msgstr "Processo de extração de mensagem falhou !"
-
-
-msgid "Info written to {} text datablock!"
-msgstr "Informação escrita para o bloco de textos {} !"
 
 
 msgid "Could not init languages data!"
@@ -62637,6 +62633,14 @@ msgstr "Sem objetos selecionados. Um ficheiro de exportação vazio foi criado."
 
 msgid "Error during export (see Console)"
 msgstr "Erro durante a exportação (veja a linha de comando)."
+
+
+msgid "Material Groups"
+msgstr "Grupos de materiais"
+
+
+msgid "Smooth Groups"
+msgstr "Grupos suavizados"
 
 
 msgctxt "Mesh"
