@@ -36,14 +36,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
-      .field_on_all()
-      .subtype(PROP_FACTOR);
+      .subtype(PROP_FACTOR)
+      .field_on_all();
   b.add_input<decl::Float>("Vertex Crease")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
-      .field_on_all()
-      .subtype(PROP_FACTOR);
+      .subtype(PROP_FACTOR)
+      .field_on_all();
   b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 

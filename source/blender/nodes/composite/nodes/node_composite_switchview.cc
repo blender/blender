@@ -22,11 +22,10 @@ namespace blender::nodes::node_composite_switchview_cc {
 
 static void node_declare_dynamic(const bNodeTree & /*ntree*/,
                                  const bNode &node,
-                                 NodeDeclaration &r_declaration)
+                                 NodeDeclarationBuilder &b)
 {
   Scene *scene = reinterpret_cast<Scene *>(node.id);
-  NodeDeclarationBuilder builder(r_declaration);
-  builder.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>(N_("Image"));
 
   if (scene != nullptr) {
     /* add the new views */
@@ -34,7 +33,7 @@ static void node_declare_dynamic(const bNodeTree & /*ntree*/,
       if (srv->viewflag & SCE_VIEW_DISABLE) {
         continue;
       }
-      builder.add_input<decl::Color>(N_(srv->name)).default_value({0.0f, 0.0f, 0.0f, 1.0f});
+      b.add_input<decl::Color>(N_(srv->name)).default_value({0.0f, 0.0f, 0.0f, 1.0f});
     }
   }
 }

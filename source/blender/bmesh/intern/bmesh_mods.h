@@ -157,13 +157,8 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm,
 /**
  * Collapse and edge into a single vertex.
  */
-BMVert *BM_edge_collapse(BMesh *bm,
-                         BMEdge *e_kill,
-                         BMVert *v_kill,
-                         const bool do_del,
-                         const bool kill_degenerate_faces,
-                         const bool combine_flags,
-                         const bool full_non_manifold_collapse);
+BMVert *BM_edge_collapse(
+    BMesh *bm, BMEdge *e_kill, BMVert *v_kill, bool do_del, bool kill_degenerate_faces);
 
 /**
  * \brief Edge Split
@@ -199,8 +194,6 @@ BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr);
  * \note Typically we shouldn't care about this, however it's used when extruding wire edges.
  */
 void BM_edge_verts_swap(BMEdge *e);
-
-bool BM_face_validate(BMFace *face, FILE *err);
 
 /**
  * Calculate the 2 loops which _would_ make up the newly rotated Edge

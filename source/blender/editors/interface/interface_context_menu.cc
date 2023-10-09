@@ -15,6 +15,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -429,7 +430,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   }
 }
 
-static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop)
+static bool ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop)
 {
   const PropertySubType subtype = RNA_property_subtype(prop);
   wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
@@ -442,9 +443,12 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
   UNUSED_VARS_NDEBUG(subtype);
 
   RNA_property_string_get(ptr, prop, filepath);
-  BLI_path_split_dir_file(filepath, dir, sizeof(dir), file, sizeof(file));
 
-  if (file[0]) {
+  if (!BLI_exists(filepath)) {
+    return false;
+  }
+
+  if (BLI_is_file(filepath)) {
     BLI_assert(subtype == PROP_FILEPATH);
     uiItemFullO_ptr(layout,
                     ot,
@@ -456,6 +460,12 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
                     &props_ptr);
     RNA_string_set(&props_ptr, "filepath", filepath);
   }
+  else {
+    /* This is a directory, so ensure it ends in a slash. */
+    BLI_path_slash_ensure(filepath, ARRAY_SIZE(filepath));
+  }
+
+  BLI_path_split_dir_file(filepath, dir, sizeof(dir), file, sizeof(file));
 
   uiItemFullO_ptr(layout,
                   ot,
@@ -466,6 +476,8 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
                   UI_ITEM_NONE,
                   &props_ptr);
   RNA_string_set(&props_ptr, "filepath", dir);
+
+  return true;
 }
 
 static void set_layout_context_from_button(bContext *C, uiLayout *layout, uiBut *but)
@@ -932,8 +944,9 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     uiItemS(layout);
 
     if (type == PROP_STRING && ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
-      ui_but_menu_add_path_operators(layout, ptr, prop);
-      uiItemS(layout);
+      if (ui_but_menu_add_path_operators(layout, ptr, prop)) {
+        uiItemS(layout);
+      }
     }
   }
 

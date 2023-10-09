@@ -715,7 +715,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
     GSetIterator gs_iter;
     GSET_ITER (gs_iter, split_edges) {
       BMEdge *e = static_cast<BMEdge *>(BLI_gsetIterator_getKey(&gs_iter));
-      BM_edge_collapse(bm, e, e->v2, true, true, false, false);
+      BM_edge_collapse(bm, e, e->v2, true, true);
     }
     BLI_gset_free(split_edges, nullptr);
   }

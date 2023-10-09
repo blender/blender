@@ -16,6 +16,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -2044,7 +2045,7 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh)
   else {
     /* Reorder mesh polygons to match the order of their loops. */
     Array<int> orig_indices(polys.size());
-    std::iota(orig_indices.begin(), orig_indices.end(), 0);
+    array_utils::fill_index_range<int>(orig_indices);
     std::stable_sort(orig_indices.begin(), orig_indices.end(), [polys](const int a, const int b) {
       return polys[a].loopstart < polys[b].loopstart;
     });

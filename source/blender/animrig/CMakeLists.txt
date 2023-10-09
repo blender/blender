@@ -7,6 +7,7 @@ set(INC
   intern
 
   ../blenkernel
+  ../blentranslation
   ../editors/include
 )
 

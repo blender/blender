@@ -654,11 +654,9 @@ void set_handle_position(const float3 &position,
  * points are referred to as the control points, and the middle points are the corresponding
  * handles.
  */
-void evaluate_segment(const float3 &point_0,
-                      const float3 &point_1,
-                      const float3 &point_2,
-                      const float3 &point_3,
-                      MutableSpan<float3> result);
+template<typename T>
+void evaluate_segment(
+    const T &point_0, const T &point_1, const T &point_2, const T &point_3, MutableSpan<T> result);
 
 /**
  * Calculate all evaluated points for the Bezier curve.

@@ -1432,7 +1432,10 @@ static void write_file_main_validate_pre(Main *bmain, ReportList *reports)
     return;
   }
 
-  BKE_report(reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* save to disk");
+  if (G.debug & G_DEBUG_IO) {
+    BKE_report(
+        reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* save to disk");
+  }
 
   BLO_main_validate_shapekeys(bmain, reports);
   if (!BKE_main_namemap_validate_and_fix(bmain)) {

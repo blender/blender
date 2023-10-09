@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <numeric>
+
 #include "BLI_generic_span.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
@@ -192,6 +194,15 @@ template<typename T> inline Vector<IndexRange> find_all_ranges(const Span<T> spa
     ranges.append(IndexRange(span.size() - length, length));
   }
   return ranges;
+}
+
+/**
+ * Fill the span with increasing indices: 0, 1, 2, ...
+ * Optionally, the start value can be provided.
+ */
+template<typename T> inline void fill_index_range(MutableSpan<T> span, const T start = 0)
+{
+  std::iota(span.begin(), span.end(), start);
 }
 
 }  // namespace blender::array_utils

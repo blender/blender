@@ -1476,7 +1476,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
     for (int i = 0; i < side_faces_len; i++) {
       f = side_faces[i];
       BMLoop *l = BM_FACE_FIRST_LOOP(f);
-      BM_edge_collapse(bm, l->prev->e, l->prev->v, true, true, false, false);
+      BM_edge_collapse(bm, l->prev->e, l->prev->v, true, true);
     }
   }
 
@@ -1488,7 +1488,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
     for (int i = 0; i < side_faces_len; i++) {
       f = side_faces[i];
       BMLoop *l = BM_FACE_FIRST_LOOP(f);
-      BM_edge_collapse(bm, l->next->e, l->next->v, true, true, false, false);
+      BM_edge_collapse(bm, l->next->e, l->next->v, true, true);
     }
   }
 

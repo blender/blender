@@ -848,14 +848,14 @@ inline void PassBase<T>::subpass_transition(GPUAttachmentState depth_attachment,
     color_states[i] = uint8_t(color_attachments[i]);
   }
   create_command(Type::SubPassTransition).subpass_transition = {uint8_t(depth_attachment),
-                                                                color_states[0],
-                                                                color_states[1],
-                                                                color_states[2],
-                                                                color_states[3],
-                                                                color_states[4],
-                                                                color_states[5],
-                                                                color_states[6],
-                                                                color_states[7]};
+                                                                {color_states[0],
+                                                                 color_states[1],
+                                                                 color_states[2],
+                                                                 color_states[3],
+                                                                 color_states[4],
+                                                                 color_states[5],
+                                                                 color_states[6],
+                                                                 color_states[7]}};
 }
 
 template<class T> inline void PassBase<T>::material_set(Manager &manager, GPUMaterial *material)

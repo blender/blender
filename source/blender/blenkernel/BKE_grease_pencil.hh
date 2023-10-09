@@ -11,6 +11,8 @@
 
 #include <atomic>
 
+#include "BLI_array_utils.hh"
+#include "BLI_color.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
@@ -31,32 +33,6 @@ struct Material;
 namespace blender::bke {
 
 namespace greasepencil {
-
-/**
- * A single point for a stroke that is currently being drawn.
- */
-struct StrokePoint {
-  float3 position;
-  float radius;
-  float opacity;
-  float4 color;
-};
-
-/**
- * Stroke cache for a stroke that is currently being drawn.
- */
-struct StrokeCache {
-  Vector<StrokePoint> points;
-  Vector<uint3> triangles;
-  int mat = 0;
-
-  void clear()
-  {
-    this->points.clear_and_shrink();
-    this->triangles.clear_and_shrink();
-    this->mat = 0;
-  }
-};
 
 class DrawingRuntime {
  public:
@@ -101,6 +77,12 @@ class Drawing : public ::GreasePencilDrawing {
    */
   VArray<float> opacities() const;
   MutableSpan<float> opacities_for_write();
+
+  /**
+   * Vertex colors of the points. Default is black.
+   */
+  VArray<ColorGeometry4f> vertex_colors() const;
+  MutableSpan<ColorGeometry4f> vertex_colors_for_write();
 
   /**
    * Add a user for this drawing. When a drawing has multiple users, both users are allowed to
@@ -663,19 +645,12 @@ class GreasePencilRuntime {
    * Allocated and freed by the drawing code. See `DRW_grease_pencil_batch_cache_*` functions.
    */
   void *batch_cache = nullptr;
-  bke::greasepencil::StrokeCache stroke_cache;
   /* The frame on which the object was evaluated (only valid for evaluated object). */
   int eval_frame;
 
  public:
   GreasePencilRuntime() {}
   ~GreasePencilRuntime() {}
-
-  /**
-   * A buffer for a single stroke while drawing.
-   */
-  Span<bke::greasepencil::StrokePoint> stroke_buffer() const;
-  bool has_stroke_buffer() const;
 };
 
 }  // namespace blender::bke
@@ -765,15 +740,26 @@ GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_
 BoundBox *BKE_grease_pencil_boundbox_get(Object *ob);
 void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object);
 
+int BKE_grease_pencil_object_material_index_get(Object *ob, Material *ma);
 int BKE_grease_pencil_object_material_index_get_by_name(Object *ob, const char *name);
 Material *BKE_grease_pencil_object_material_new(Main *bmain,
                                                 Object *ob,
                                                 const char *name,
                                                 int *r_index);
+Material *BKE_grease_pencil_object_material_from_brush_get(Object *ob, Brush *brush);
 Material *BKE_grease_pencil_object_material_ensure_by_name(Main *bmain,
                                                            Object *ob,
                                                            const char *name,
                                                            int *r_index);
+Material *BKE_grease_pencil_brush_material_get(Brush *brush);
+Material *BKE_grease_pencil_object_material_ensure_from_brush(Main *bmain,
+                                                              Object *ob,
+                                                              Brush *brush);
+Material *BKE_grease_pencil_object_material_ensure_from_active_input_brush(Main *bmain,
+                                                                           Object *ob,
+                                                                           Brush *brush);
+Material *BKE_grease_pencil_object_material_ensure_from_active_input_material(Object *ob);
+Material *BKE_grease_pencil_object_material_ensure_active(Object *ob);
 
 bool BKE_grease_pencil_references_cyclic_check(const GreasePencil *id_reference,
                                                const GreasePencil *grease_pencil);

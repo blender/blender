@@ -1104,6 +1104,8 @@ eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
       return OB_MODE_EDIT;
     case PAINT_MODE_SCULPT_CURVES:
       return OB_MODE_SCULPT_CURVES;
+    case PAINT_MODE_GPENCIL:
+      return OB_MODE_PAINT_GREASE_PENCIL;
     case PAINT_MODE_INVALID:
     default:
       return OB_MODE_OBJECT;
@@ -1491,6 +1493,8 @@ static bool sculpt_boundary_flags_ensure(
 
     force_update = true;
     ret = true;
+
+    BKE_pbvh_set_boundary_flags(pbvh, static_cast<int *>(ss->attrs.boundary_flags->data));
   }
 
   if (force_update) {
@@ -2724,6 +2728,11 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
 
   PBVH *pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_FACES);
 
+  BKE_pbvh_build_mesh(pbvh, me);
+
+  BKE_sculptsession_update_attr_refs(ob);
+
+  blender::bke::pbvh::set_pmap(ss->pbvh, ss->pmap);
   BKE_sculpt_ensure_sculpt_layers(ob);
   BKE_sculpt_init_flags_valence(ob, pbvh, me->totvert, true);
   BKE_sculpt_ensure_origco(ob);
@@ -2740,10 +2749,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   sculpt_check_face_areas(ob, pbvh);
   BKE_sculptsession_update_attr_refs(ob);
 
-  blender::bke::pbvh::set_pmap(ss->pbvh, ss->pmap);
   blender::bke::sculpt::sculpt_vert_boundary_ensure(ob);
-
-  BKE_pbvh_build_mesh(pbvh, me);
 
   blender::bke::pbvh::sharp_limit_set(pbvh, ss->sharp_angle_limit);
 

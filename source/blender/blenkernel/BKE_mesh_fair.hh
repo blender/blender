@@ -22,7 +22,6 @@ struct Mesh;
 enum eMeshFairingDepth {
   MESH_FAIRING_DEPTH_POSITION = 1,
   MESH_FAIRING_DEPTH_TANGENCY = 2,
-  MESH_FAIRING_DEPTH_CURVATURE = 3,
 };
 
 /**

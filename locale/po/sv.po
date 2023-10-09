@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -749,10 +749,6 @@ msgid "Vertex Group"
 msgstr "Vertexgrupp"
 
 
-msgid "Temp. Diff."
-msgstr "Temperaturskillnad"
-
-
 msgid "Mapping"
 msgstr "Mappning"
 
@@ -1225,6 +1221,10 @@ msgid "Snap"
 msgstr "Snäpp"
 
 
+msgid "Files"
+msgstr "Filer"
+
+
 msgid "Show/Hide Faces"
 msgstr "Visa/göm ytor"
 
@@ -1237,12 +1237,12 @@ msgid "Text"
 msgstr "Text"
 
 
-msgid "Instances"
-msgstr "Instanser"
-
-
 msgid "Node"
 msgstr "Nod"
+
+
+msgid "Instances"
+msgstr "Instanser"
 
 
 msgid "Physics"
@@ -1538,10 +1538,6 @@ msgstr "Radera markör"
 msgctxt "Operator"
 msgid "Select"
 msgstr "Markera"
-
-
-msgid "Files"
-msgstr "Filer"
 
 
 msgid "Backwards"
@@ -2615,10 +2611,6 @@ msgstr "Fält"
 
 msgid "File Path:"
 msgstr "Sökväg:"
-
-
-msgid "Bone Groups"
-msgstr "Bengrupper"
 
 
 msgid "Crease:"

@@ -114,7 +114,7 @@ using NodeGeometryExecFunction = void (*)(blender::nodes::GeoNodeExecParams para
 using NodeDeclareFunction = void (*)(blender::nodes::NodeDeclarationBuilder &builder);
 using NodeDeclareDynamicFunction = void (*)(const bNodeTree &tree,
                                             const bNode &node,
-                                            blender::nodes::NodeDeclaration &r_declaration);
+                                            blender::nodes::NodeDeclarationBuilder &builder);
 using SocketGetCPPValueFunction = void (*)(const void *socket_value, void *r_value);
 using SocketGetGeometryNodesCPPValueFunction = void (*)(const void *socket_value, void *r_value);
 

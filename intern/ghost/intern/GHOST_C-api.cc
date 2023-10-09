@@ -118,22 +118,26 @@ uint8_t GHOST_GetNumDisplays(GHOST_SystemHandle systemhandle)
   return system->getNumDisplays();
 }
 
-void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
-                                    uint32_t *width,
-                                    uint32_t *height)
+GHOST_TSuccess GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
+                                              uint32_t *r_width,
+                                              uint32_t *r_height)
 {
   const GHOST_ISystem *system = (const GHOST_ISystem *)systemhandle;
-
-  system->getMainDisplayDimensions(*width, *height);
+  *r_width = 0;
+  *r_height = 0;
+  system->getMainDisplayDimensions(*r_width, *r_height);
+  return (*r_width == 0 && *r_height == 0) ? GHOST_kFailure : GHOST_kSuccess;
 }
 
-void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
-                                   uint32_t *width,
-                                   uint32_t *height)
+GHOST_TSuccess GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
+                                             uint32_t *r_width,
+                                             uint32_t *r_height)
 {
   const GHOST_ISystem *system = (const GHOST_ISystem *)systemhandle;
-
-  system->getAllDisplayDimensions(*width, *height);
+  *r_width = 0;
+  *r_height = 0;
+  system->getAllDisplayDimensions(*r_width, *r_height);
+  return (*r_width == 0 && *r_height == 0) ? GHOST_kFailure : GHOST_kSuccess;
 }
 
 GHOST_ContextHandle GHOST_CreateGPUContext(GHOST_SystemHandle systemhandle,
@@ -594,6 +598,13 @@ char *GHOST_GetTitle(GHOST_WindowHandle windowhandle)
   memcpy(ctitle, title.c_str(), ctitle_size);
 
   return ctitle;
+}
+
+GHOST_TSuccess GHOST_SetPath(GHOST_WindowHandle windowhandle, const char *filepath)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+
+  return window->setPath(filepath);
 }
 
 GHOST_RectangleHandle GHOST_GetWindowBounds(GHOST_WindowHandle windowhandle)

@@ -2410,6 +2410,32 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 14)) {
+    /* This code fixes crashes when loading early 2.80 development files, due to the lack of a
+     * master collection after removal of the versioning code handling the 'SceneCollection' data
+     * that was part of the very early 2.80 development (commit 23835a393c).
+     *
+     * NOTE: This code only ensures that there is no crash, since the whole collection hierarchy
+     * from these files remain lost, these files will still need a lot of manual work if one want
+     * to get them working properly again. Or just open and save them with an older release of
+     * Blender (up to 3.6 included). */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->master_collection == nullptr) {
+        scene->master_collection = BKE_collection_master_add(scene);
+        /* #BKE_layer_collection_sync accepts missing view-layer in a scene, but not invalid ones
+         * where the first view-layer's layer-collection would not be for the Scene's master
+         * collection. */
+        LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+          if (LayerCollection *first_layer_collection = static_cast<LayerCollection *>(
+                  view_layer->layer_collections.first))
+          {
+            first_layer_collection->collection = scene->master_collection;
+          }
+        }
+      }
+    }
+  }
+
   /* Update Curve object Shape Key data layout to include the Radius property */
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 23)) {
     LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {

@@ -48,7 +48,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "DRW_engine.h"
-#include "DRW_select_buffer.h"
+#include "DRW_select_buffer.hh"
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_info.hh"

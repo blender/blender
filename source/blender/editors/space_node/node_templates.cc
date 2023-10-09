@@ -15,7 +15,6 @@
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 
-#include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -800,7 +799,7 @@ static void ui_node_draw_panel(uiLayout &layout,
                                 0,
                                 panel_state.is_collapsed() ? ICON_DISCLOSURE_TRI_RIGHT :
                                                              ICON_DISCLOSURE_TRI_DOWN,
-                                panel_decl.name.c_str(),
+                                IFACE_(panel_decl.name.c_str()),
                                 0,
                                 0,
                                 UI_UNIT_X * 4,

@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
 "\"POT-Creation-Date: 2019-02-25 20:41:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -629,11 +629,6 @@ msgid "New"
 msgstr "Аҿыц"
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "Агәыԥ"
-
-
 msgid "Front Orthographic"
 msgstr "Аԥхьа Аҩышьаԥҟара"
 
@@ -712,4 +707,9 @@ msgstr "Аԥшра"
 
 msgid "cursor"
 msgstr "Ахырхага"
+
+
+msgctxt "Action"
+msgid "Group"
+msgstr "Агәыԥ"
 

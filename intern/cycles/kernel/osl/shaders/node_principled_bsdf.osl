@@ -74,7 +74,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                                          SubsurfaceScale * SubsurfaceRadius,
                                          BaseColor,
                                          "roughness",
-                                         Roughness,
+                                         r2,
                                          "ior",
                                          subsurface_ior,
                                          "anisotropy",
@@ -82,14 +82,16 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
       BSDF = mix(BSDF, BaseColor * SubsurfBSDF, subsurface_weight);
     }
 
-    /* Apply specular tint */
-    color F0 = f0 * specular_tint;
-    color F90 = color(1.0);
+    if (eta != 1.0) {
+      /* Apply specular tint */
+      color F0 = f0 * specular_tint;
+      color F90 = color(1.0);
 
-    BSDF = layer(
-        generalized_schlick_bsdf(
-            Normal, T, color(1.0), color(0.0), alpha_x, alpha_y, F0, F90, -eta, distribution),
-        BSDF);
+      BSDF = layer(
+          generalized_schlick_bsdf(
+              Normal, T, color(1.0), color(0.0), alpha_x, alpha_y, F0, F90, -eta, distribution),
+          BSDF);
+    }
   }
 
   closure color TransmissionBSDF = 0;
@@ -134,7 +136,8 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
   }
 
   if (SheenWeight > 1e-5) {
-    closure color SheenBSDF = sheen(Normal, clamp(SheenRoughness, 0.0, 1.0));
+    normal sheen_normal = normalize(mix(Normal, CoatNormal, clamp(CoatWeight, 0.0, 1.0)));
+    closure color SheenBSDF = sheen(sheen_normal, clamp(SheenRoughness, 0.0, 1.0));
     BSDF = layer(clamp(SheenWeight, 0.0, 1.0) * SheenTint * SheenBSDF, BSDF);
   }
 

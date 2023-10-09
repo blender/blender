@@ -231,11 +231,23 @@ template<typename MatT, typename VectorT>
                                          const VectorT up);
 
 /**
+ * Create a rotation matrix from only one \a up axis.
+ * The other axes are chosen to always be orthogonal. The resulting matrix is a basis matrix.
+ * \note `up` must be normalized.
+ * \note This can be used to create a tangent basis from a normal vector.
+ * \note The output of this function is not given to be same across blender version. Prefer using
+ * `from_orthonormal_axes` for more stable output.
+ */
+template<typename MatT, typename VectorT> [[nodiscard]] MatT from_up_axis(const VectorT up);
+
+/**
  * This returns a version of \a mat with orthonormal basis axes.
  * This leaves the given \a axis untouched.
  *
  * In other words this removes the shear of the matrix. However this doesn't properly account for
  * volume preservation, and so, the axes keep their respective length.
+ *
+ * \note Prefer using `from_up_axis` to create a orthogonal basis around a vector.
  */
 template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const Axis axis);
 
@@ -1362,6 +1374,23 @@ template<typename MatT, typename VectorT>
   MatT matrix = MatT(from_orthonormal_axes<Mat3x3>(forward, up));
   matrix.location() = location;
   return matrix;
+}
+
+template<typename MatT, typename VectorT> [[nodiscard]] MatT from_up_axis(const VectorT up)
+{
+  BLI_assert(is_unit_scale(up));
+  using T = typename MatT::base_type;
+  using Vec3T = VecBase<T, 3>;
+  /* Duff, Tom, et al. "Building an orthonormal basis, revisited." JCGT 6.1 (2017). */
+  T sign = math::sign(up.z);
+  T a = T(-1) / (sign + up.z);
+  T b = up.x * up.y * a;
+
+  MatBase<T, 3, 3> basis;
+  basis.x_axis() = Vec3T(1.0f + sign * square(up.x) * a, sign * b, -sign * up.x);
+  basis.y_axis() = Vec3T(b, sign + square(up.y) * a, -up.y);
+  basis.z_axis() = up;
+  return MatT(basis);
 }
 
 template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const Axis axis)

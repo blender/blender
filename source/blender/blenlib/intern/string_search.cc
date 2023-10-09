@@ -157,27 +157,44 @@ int get_fuzzy_match_errors(StringRef query, StringRef full)
 
 static constexpr int unused_word = -1;
 
+struct InitialsMatch {
+  Vector<int> matched_word_indices;
+
+  int count_main_group_matches(const SearchItem &item) const
+  {
+    int count = 0;
+    for (const int i : this->matched_word_indices) {
+      if (item.word_group_ids[i] == item.main_group_id) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  bool better_than(const InitialsMatch &other, const SearchItem &item) const
+  {
+    return this->count_main_group_matches(item) > other.count_main_group_matches(item);
+  }
+};
+
 /**
  * Takes a query and tries to match it with the first characters of some words. For example, "msfv"
  * matches "Mark Sharp from Vertices". Multiple letters of the beginning of a word can be matched
  * as well. For example, "seboulo" matches "select boundary loop". The order of words is important.
  * So "bose" does not match "select boundary". However, individual words can be skipped. For
  * example, "rocc" matches "rotate edge ccw".
- *
- * \return true when the match was successful.
- * If it was successful, the used words are tagged in \a r_word_is_matched.
  */
-static bool match_word_initials(StringRef query,
-                                Span<StringRef> words,
-                                Span<int> word_match_map,
-                                MutableSpan<bool> r_word_is_matched,
-                                int start = 0)
+static std::optional<InitialsMatch> match_word_initials(StringRef query,
+                                                        const SearchItem &item,
+                                                        const Span<int> word_match_map,
+                                                        int start = 0)
 {
+  const Span<StringRef> words = item.normalized_words;
   if (start >= words.size()) {
-    return false;
+    return std::nullopt;
   }
 
-  r_word_is_matched.fill(false);
+  InitialsMatch match;
 
   size_t query_index = 0;
   int word_index = start;
@@ -194,10 +211,9 @@ static bool match_word_initials(StringRef query,
         if (first_found_word_index >= 0) {
           /* Try starting to match at another word. In some cases one can still find matches this
            * way. */
-          return match_word_initials(
-              query, words, word_match_map, r_word_is_matched, first_found_word_index + 1);
+          return match_word_initials(query, item, word_match_map, first_found_word_index + 1);
         }
-        return false;
+        return std::nullopt;
       }
 
       /* Skip words that the caller does not want us to use. */
@@ -213,7 +229,7 @@ static bool match_word_initials(StringRef query,
         const uint32_t char_unicode = BLI_str_utf8_as_unicode_step_safe(
             word.data(), word.size(), &char_index);
         if (query_unicode == char_unicode) {
-          r_word_is_matched[word_index] = true;
+          match.matched_word_indices.append(word_index);
           if (first_found_word_index == -1) {
             first_found_word_index = word_index;
           }
@@ -226,15 +242,22 @@ static bool match_word_initials(StringRef query,
       char_index = 0;
     }
   }
-  return true;
+  /* Check if we can find a better match that starts at a later word. */
+  if (std::optional<InitialsMatch> sub_match = match_word_initials(
+          query, item, word_match_map, first_found_word_index + 1))
+  {
+    if (sub_match->better_than(match, item)) {
+      return sub_match;
+    }
+  }
+  return match;
 }
 
 /**
  * The "best" is chosen with combination of word weights and word length.
  */
 static int get_best_word_index_that_startswith(StringRef query,
-                                               Span<StringRef> words,
-                                               Span<float> word_weights,
+                                               const SearchItem &item,
                                                Span<int> word_match_map,
                                                Span<StringRef> remaining_query_words)
 {
@@ -260,20 +283,29 @@ static int get_best_word_index_that_startswith(StringRef query,
 
   int best_word_size = INT32_MAX;
   int best_word_index = -1;
-  int best_word_weight = 0.0f;
-  for (const int i : words.index_range()) {
+  bool best_word_in_main_group = false;
+  for (const int i : item.normalized_words.index_range()) {
     if (word_match_map[i] != unused_word) {
       continue;
     }
-    StringRef word = words[i];
-    const float word_weight = word_weights[i];
+    StringRef word = item.normalized_words[i];
+    const bool word_in_main_group = item.word_group_ids[i] == item.main_group_id;
     if (word.startswith(query)) {
-      if ((use_shortest_match && word.size() < best_word_size) ||
-          (word.size() == best_word_size && word_weight > best_word_weight))
-      {
+      bool found_new_best = false;
+      if (use_shortest_match) {
+        if (word.size() < best_word_size) {
+          found_new_best = true;
+        }
+      }
+      else {
+        if (!best_word_in_main_group) {
+          found_new_best = true;
+        }
+      }
+      if (found_new_best) {
         best_word_index = i;
         best_word_size = word.size();
-        best_word_weight = word_weight;
+        best_word_in_main_group = word_in_main_group;
       }
     }
   }
@@ -304,12 +336,11 @@ static int get_word_index_that_fuzzy_matches(StringRef query,
  * return value indicates how good the match is. The higher the value, the better the match.
  */
 static std::optional<float> score_query_against_words(Span<StringRef> query_words,
-                                                      Span<StringRef> result_words,
-                                                      Span<float> result_word_weights)
+                                                      const SearchItem &item)
 {
   /* A mapping from #result_words to #query_words. It's mainly used to determine if a word has been
    * matched already to avoid matching it again. */
-  Array<int, 64> word_match_map(result_words.size(), unused_word);
+  Array<int, 64> word_match_map(item.normalized_words.size(), unused_word);
 
   /* Start with some high score, because otherwise the final score might become negative. */
   float total_match_score = 1000;
@@ -319,28 +350,25 @@ static std::optional<float> score_query_against_words(Span<StringRef> query_word
     {
       /* Check if any result word begins with the query word. */
       const int word_index = get_best_word_index_that_startswith(
-          query_word,
-          result_words,
-          result_word_weights,
-          word_match_map,
-          query_words.drop_front(query_word_index + 1));
+          query_word, item, word_match_map, query_words.drop_front(query_word_index + 1));
       if (word_index >= 0) {
-        total_match_score += 10 * result_word_weights[word_index];
+        /* Give a match in a main group higher priority. */
+        const bool is_main_group = item.word_group_ids[word_index] == item.main_group_id;
+        total_match_score += is_main_group ? 10 : 9;
         word_match_map[word_index] = query_word_index;
         continue;
       }
     }
     {
       /* Try to match against word initials. */
-      Array<bool, 64> matched_words(result_words.size());
-      const bool success = match_word_initials(
-          query_word, result_words, word_match_map, matched_words);
-      if (success) {
-        total_match_score += 3;
-        for (const int i : result_words.index_range()) {
-          if (matched_words[i]) {
-            word_match_map[i] = query_word_index;
-          }
+      if (std::optional<InitialsMatch> match = match_word_initials(
+              query_word, item, word_match_map)) {
+        /* If the all matched words are in the main group, give the match a higher priority. */
+        bool all_main_group_matches = match->count_main_group_matches(item) ==
+                                      match->matched_word_indices.size();
+        total_match_score += all_main_group_matches ? 4 : 3;
+        for (const int i : match->matched_word_indices) {
+          word_match_map[i] = query_word_index;
         }
         continue;
       }
@@ -349,7 +377,7 @@ static std::optional<float> score_query_against_words(Span<StringRef> query_word
       /* Fuzzy match against words. */
       int error_count = 0;
       const int word_index = get_word_index_that_fuzzy_matches(
-          query_word, result_words, word_match_map, &error_count);
+          query_word, item.normalized_words, word_match_map, &error_count);
       if (word_index >= 0) {
         total_match_score += 3 - error_count;
         word_match_map[word_index] = query_word_index;
@@ -384,7 +412,7 @@ static std::optional<float> score_query_against_words(Span<StringRef> query_word
 void extract_normalized_words(StringRef str,
                               LinearAllocator<> &allocator,
                               Vector<StringRef, 64> &r_words,
-                              Vector<float, 64> &r_word_weights)
+                              Vector<int, 64> &r_word_group_ids)
 {
   const uint32_t unicode_space = uint32_t(' ');
   const uint32_t unicode_slash = uint32_t('/');
@@ -407,7 +435,7 @@ void extract_normalized_words(StringRef str,
   BLI_str_tolower_ascii(mutable_copy, str_size_in_bytes);
 
   /* Iterate over all unicode code points to split individual words. */
-  int current_section = 0;
+  int group_id = 0;
   bool is_in_word = false;
   size_t word_start = 0;
   size_t offset = 0;
@@ -415,14 +443,11 @@ void extract_normalized_words(StringRef str,
     size_t size = offset;
     uint32_t unicode = BLI_str_utf8_as_unicode_step_safe(str.data(), str.size(), &size);
     size -= offset;
-    if (unicode == unicode_right_triangle) {
-      current_section++;
-    }
     if (is_separator(unicode)) {
       if (is_in_word) {
         const StringRef word = str_copy.substr(int(word_start), int(offset - word_start));
         r_words.append(word);
-        section_indices.append(current_section);
+        r_word_group_ids.append(group_id);
         is_in_word = false;
       }
     }
@@ -432,34 +457,32 @@ void extract_normalized_words(StringRef str,
         is_in_word = true;
       }
     }
+    if (unicode == unicode_right_triangle) {
+      group_id++;
+    }
     offset += size;
   }
   /* If the last word is not followed by a separator, it has to be handled separately. */
   if (is_in_word) {
     const StringRef word = str_copy.drop_prefix(int(word_start));
     r_words.append(word);
-    section_indices.append(current_section);
-  }
-
-  for (const int i : section_indices.index_range()) {
-    const int section = section_indices[i];
-    /* Give the last section a higher weight, because that's what is highlighted in the UI. */
-    const float word_weight = section == current_section ? 1.0f : 0.9f;
-    r_word_weights.append(word_weight);
+    r_word_group_ids.append(group_id);
   }
 }
 
 void StringSearchBase::add_impl(const StringRef str, void *user_data, const int weight)
 {
   Vector<StringRef, 64> words;
-  Vector<float, 64> word_weights;
-  string_search::extract_normalized_words(str, allocator_, words, word_weights);
+  Vector<int, 64> word_group_ids;
+  string_search::extract_normalized_words(str, allocator_, words, word_group_ids);
   const int recent_time = recent_cache_ ?
                               recent_cache_->logical_time_by_str.lookup_default(str, -1) :
                               -1;
+  const int main_group_id = word_group_ids.is_empty() ? 0 : word_group_ids.last();
   items_.append({user_data,
                  allocator_.construct_array_copy(words.as_span()),
-                 allocator_.construct_array_copy(word_weights.as_span()),
+                 allocator_.construct_array_copy(word_group_ids.as_span()),
+                 main_group_id,
                  int(str.size()),
                  weight,
                  recent_time});
@@ -469,17 +492,17 @@ Vector<void *> StringSearchBase::query_impl(const StringRef query) const
 {
   LinearAllocator<> allocator;
   Vector<StringRef, 64> query_words;
-  /* The word weights are not actually used for the query. */
-  Vector<float, 64> word_weights;
-  string_search::extract_normalized_words(query, allocator, query_words, word_weights);
+  /* This is just a dummy value that is not used for the query. */
+  Vector<int, 64> word_group_ids;
+  string_search::extract_normalized_words(query, allocator, query_words, word_group_ids);
 
   /* Compute score of every result. */
   Array<std::optional<float>> all_scores(items_.size());
   threading::parallel_for(items_.index_range(), 256, [&](const IndexRange range) {
     for (const int i : range) {
       const SearchItem &item = items_[i];
-      const std::optional<float> score = string_search::score_query_against_words(
-          query_words, item.normalized_words, item.word_weight_factors);
+      const std::optional<float> score = string_search::score_query_against_words(query_words,
+                                                                                  item);
       all_scores[i] = score;
     }
   });
@@ -516,10 +539,14 @@ Vector<void *> StringSearchBase::query_impl(const StringRef query) const
           return items_[a].weight > items_[b].weight;
         });
       }
-      /* Prefer items that have been selected recently. */
-      std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) {
-        return items_[a].recent_time > items_[b].recent_time;
-      });
+      /* If the query gets longer, it's less likely that accessing recent items is desired. Better
+       * always show the best match in this case. */
+      if (query.size() <= 1) {
+        /* Prefer items that have been selected recently. */
+        std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) {
+          return items_[a].recent_time > items_[b].recent_time;
+        });
+      }
     }
     sorted_result_indices.extend(indices);
   }

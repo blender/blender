@@ -34,7 +34,8 @@ void main()
 
       /* Use #JUMP_FLOODING_NON_FLOODED_VALUE as a fallback value to exempt out of bound pixels
        * from the loop as can be seen in the following continue condition. */
-      vec4 value = texture_load(input_tx, texel + offset, JUMP_FLOODING_NON_FLOODED_VALUE);
+      ivec4 fallback = ivec4(JUMP_FLOODING_NON_FLOODED_VALUE, ivec2(0));
+      ivec2 jump_flooding_value = texture_load(input_tx, texel + offset, fallback).xy;
 
       /* The pixel is either not flooded yet or is out of bound, so skip it. */
       if (all(equal(jump_flooding_value, JUMP_FLOODING_NON_FLOODED_VALUE))) {

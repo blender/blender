@@ -13,7 +13,7 @@
  * - Adding and removing vertices
  * - Adding and removing edges
  * - Adding and removing faces
- * - Attributes.
+ * - Custom Attributes.
  * - Moving vertices
  * - Element header flags.
  */

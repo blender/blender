@@ -84,6 +84,11 @@ class GHOST_Window : public GHOST_IWindow {
    */
   virtual void *getOSWindow() const override;
 
+  virtual GHOST_TSuccess setPath(const char * /*filepath*/) override
+  {
+    return GHOST_kFailure;
+  }
+
   /**
    * Returns the current cursor shape.
    * \return The current cursor shape.

@@ -82,6 +82,12 @@ class GHOST_IWindow {
   virtual std::string getTitle() const = 0;
 
   /**
+   * Sets the file name represented by this window.
+   * \param filepath: The file directory.
+   */
+  virtual GHOST_TSuccess setPath(const char *filepath) = 0;
+
+  /**
    * Returns the window rectangle dimensions.
    * These are screen coordinates.
    * \param bounds: The bounding rectangle of the window.

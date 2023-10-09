@@ -569,7 +569,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       /* XXX, take care! if mesh data itself changes we need to forcefully recalculate deltas */
       !cache_settings_equal(csmd) ||
       ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_ORCO) &&
-       (((ID *)ob->data)->recalc & (unsigned int)ID_RECALC_ALL));
+       (((ID *)ob->data)->recalc & ID_RECALC_ALL));
 
   blender::Span<int> corner_verts = mesh->corner_verts();
 

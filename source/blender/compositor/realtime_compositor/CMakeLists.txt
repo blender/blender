@@ -82,6 +82,7 @@ set(SRC
   cached_resources/intern/cached_mask.cc
   cached_resources/intern/cached_texture.cc
   cached_resources/intern/distortion_grid.cc
+  cached_resources/intern/keying_screen.cc
   cached_resources/intern/morphological_distance_feather_weights.cc
   cached_resources/intern/ocio_color_space_conversion_shader.cc
   cached_resources/intern/smaa_precomputed_textures.cc
@@ -92,6 +93,7 @@ set(SRC
   cached_resources/COM_cached_resource.hh
   cached_resources/COM_cached_texture.hh
   cached_resources/COM_distortion_grid.hh
+  cached_resources/COM_keying_screen.hh
   cached_resources/COM_morphological_distance_feather_weights.hh
   cached_resources/COM_ocio_color_space_conversion_shader.hh
   cached_resources/COM_smaa_precomputed_textures.hh
@@ -149,6 +151,7 @@ set(GLSL_SRC
   shaders/compositor_keying_compute_matte.glsl
   shaders/compositor_keying_extract_chroma.glsl
   shaders/compositor_keying_replace_chroma.glsl
+  shaders/compositor_keying_screen.glsl
   shaders/compositor_keying_tweak_matte.glsl
   shaders/compositor_kuwahara_anisotropic.glsl
   shaders/compositor_kuwahara_anisotropic_compute_structure_tensor.glsl
@@ -267,6 +270,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_inpaint_info.hh
   shaders/infos/compositor_jump_flooding_info.hh
   shaders/infos/compositor_keying_info.hh
+  shaders/infos/compositor_keying_screen_info.hh
   shaders/infos/compositor_kuwahara_info.hh
   shaders/infos/compositor_map_uv_info.hh
   shaders/infos/compositor_morphological_distance_feather_info.hh

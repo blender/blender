@@ -304,8 +304,6 @@ typedef enum {
   GHOST_kEventOpenMainFile, /* Needed for Cocoa to open double-clicked .blend file at startup. */
   GHOST_kEventNativeResolutionChange, /* Needed for Cocoa when window moves to other display. */
 
-  GHOST_kEventTimer,
-
   GHOST_kEventImeCompositionStart,
   GHOST_kEventImeComposition,
   GHOST_kEventImeCompositionEnd,
@@ -537,7 +535,7 @@ typedef enum {
   GHOST_kAxisY = (1 << 1),
 } GHOST_TAxisFlag;
 
-typedef void *GHOST_TEventDataPtr;
+typedef const void *GHOST_TEventDataPtr;
 
 typedef struct {
   /** The x-coordinate of the cursor position. */
@@ -591,6 +589,8 @@ typedef enum {
   GHOST_kDragnDropTypeBitmap     /* Bitmap image data. */
 } GHOST_TDragnDropTypes;
 
+typedef void *GHOST_TDragnDropDataPtr;
+
 typedef struct {
   /** The x-coordinate of the cursor position. */
   int32_t x;
@@ -599,10 +599,13 @@ typedef struct {
   /** The dropped item type */
   GHOST_TDragnDropTypes dataType;
   /** The "dropped content" */
-  GHOST_TEventDataPtr data;
+  GHOST_TDragnDropDataPtr data;
 } GHOST_TEventDragnDropData;
 
-/** similar to wmImeData */
+/**
+ * \warning this is a duplicate of #wmImeData.
+ * All members must remain aligned and the struct size match!
+ */
 typedef struct {
   /** size_t */
   GHOST_TUserDataPtr result_len, composite_len;

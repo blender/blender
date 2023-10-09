@@ -1224,26 +1224,23 @@ static int arg_handle_debug_gpu_renderdoc_set(int /*argc*/,
 static const char arg_handle_gpu_backend_set_doc_all[] =
     "\n"
     "\tForce to use a specific GPU backend. Valid options: "
-    "'vulkan',  "
+    "'vulkan' (experimental),  "
     "'metal',  "
     "'opengl'.";
 static const char arg_handle_gpu_backend_set_doc[] =
     "\n"
     "\tForce to use a specific GPU backend. Valid options: "
-#  ifdef WITH_VULKAN_BACKEND
-    "'vulkan'"
-#    if defined(WITH_METAL_BACKEND) || defined(WITH_OPENGL_BACKEND)
-    ",  "
+#  ifdef WITH_OPENGL_BACKEND
+    "'opengl'"
+#    if defined(WITH_VULKAN_BACKEND)
+    " or "
 #    endif
+#  endif
+#  ifdef WITH_VULKAN_BACKEND
+    "'vulkan' (experimental)"
 #  endif
 #  ifdef WITH_METAL_BACKEND
     "'metal'"
-#    if defined(WITH_OPENGL_BACKEND)
-    ",  "
-#    endif
-#  endif
-#  ifdef WITH_OPENGL_BACKEND
-    "'opengl'"
 #  endif
     ".";
 static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data*/)
@@ -1614,6 +1611,12 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
       exit(0);
     }
     else {
+      if (strcmp(argv[1], RE_engine_id_BLENDER_EEVEE_NEXT) == 0) {
+        /** NOTE: Temp workaround to support EEVEE Next tests.
+         * This ensures the engine is not unregistered in `DRW_engines_register_experimental`
+         * when using --factory-startup. */
+        U.experimental.enable_eevee_next = true;
+      }
       Scene *scene = CTX_data_scene(C);
       if (scene) {
         if (BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
@@ -2537,6 +2540,9 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
 #  ifdef WITH_PYTHON
   /* Use for Python to extract help text (Python can't call directly - bad-level call). */
   BPY_python_app_help_text_fn = main_args_help_as_string;
+#  else
+  /* Quiet unused function warning. */
+  (void)main_args_help_as_string;
 #  endif
 }
 

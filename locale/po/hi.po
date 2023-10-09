@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -565,6 +565,14 @@ msgstr "स्वत:"
 
 msgid "Relative"
 msgstr "सापेक्ष"
+
+
+msgid "Straight"
+msgstr "सीधे"
+
+
+msgid "Curved"
+msgstr "घुमावदार"
 
 
 msgid "Head"
@@ -2002,10 +2010,6 @@ msgid "Alpha Mode"
 msgstr "पारदर्शिता रूप"
 
 
-msgid "Straight"
-msgstr "सीधे"
-
-
 msgid "Iris"
 msgstr "आईरिस"
 
@@ -2788,6 +2792,10 @@ msgid "Snap"
 msgstr "स्नैप"
 
 
+msgid "Files"
+msgstr "संचिकाएँ"
+
+
 msgid "Align"
 msgstr "संरेखित करें"
 
@@ -3242,10 +3250,6 @@ msgid "Translate"
 msgstr "स्थानांतर"
 
 
-msgid "Curved"
-msgstr "घुमावदार"
-
-
 msgid "Equal"
 msgstr "बराबर"
 
@@ -3308,10 +3312,6 @@ msgstr "ईंटें"
 
 msgid "Curve Time"
 msgstr "वक्र समय"
-
-
-msgid "Both"
-msgstr "दोनों"
 
 
 msgid "Column Select"
@@ -3438,6 +3438,11 @@ msgid "Paste Driver"
 msgstr "चिपकाएँ यंत्र-संवादी"
 
 
+msgctxt "Operator"
+msgid "Show All"
+msgstr "सभी दिखाएँ"
+
+
 msgid "Move"
 msgstr "विचलन"
 
@@ -3445,11 +3450,6 @@ msgstr "विचलन"
 msgctxt "Operator"
 msgid "Extrude"
 msgstr "बिहर्वेधन"
-
-
-msgctxt "Operator"
-msgid "Show All Layers"
-msgstr "सभी परतों को दिखाएँ"
 
 
 msgid "Type of parenting"
@@ -3547,10 +3547,6 @@ msgstr "संप गठन"
 msgctxt "Operator"
 msgid "Select"
 msgstr "चयन"
-
-
-msgid "Files"
-msgstr "संचिकाएँ"
 
 
 msgctxt "Operator"
@@ -3669,10 +3665,6 @@ msgid "Only Selected"
 msgstr "केवल चयनित"
 
 
-msgid "Ascii"
-msgstr "ऐस्की"
-
-
 msgid "X Up"
 msgstr "X ऊर्ध्व"
 
@@ -3691,6 +3683,10 @@ msgstr "-Y ऊर्ध्व"
 
 msgid "-Z Up"
 msgstr "-Z ऊर्ध्व"
+
+
+msgid "Ascii"
+msgstr "ऐस्की"
 
 
 msgid "Null"
@@ -3757,6 +3753,15 @@ msgstr "तैलीय पेंसिल में परिवर्तित
 
 msgid "Limit"
 msgstr "सीमा"
+
+
+msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "सभी परतों को दिखाएँ"
+
+
+msgid "Both"
+msgstr "दोनों"
 
 
 msgid "Flatten"
@@ -5471,11 +5476,6 @@ msgstr "समापन बिंदु"
 
 
 msgctxt "Operator"
-msgid "Show All"
-msgstr "सभी दिखाएँ"
-
-
-msgctxt "Operator"
 msgid "Assign to Active Group"
 msgstr "सक्रिय समूह को निर्दिष्ट"
 
@@ -6713,15 +6713,6 @@ msgid "(Key) "
 msgstr "(कुंजी) "
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "समूह"
-
-
-msgid "Bone Groups"
-msgstr "अस्थि समूह"
-
-
 msgid "(empty)"
 msgstr "(खाली)"
 
@@ -6857,6 +6848,11 @@ msgstr "रिक्त स्थान"
 
 msgid "Overwrite %s"
 msgstr "अधिलेखित करें %s"
+
+
+msgctxt "Action"
+msgid "Group"
+msgstr "समूह"
 
 
 msgid "Flame"

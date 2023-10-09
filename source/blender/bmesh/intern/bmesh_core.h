@@ -106,7 +106,7 @@ void BM_vert_kill(BMesh *bm, BMVert *v);
  *
  * \note Edges must already have the same vertices.
  */
-bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src, bool combine_flags);
+bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src);
 
 /**
  * \brief Splice Vert
@@ -336,16 +336,10 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
  * +-+-+-+    +-+-+-+
  * </pre>
  */
-BMVert *bmesh_kernel_join_vert_kill_edge(
-    BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool do_del, const bool combine_flags);
-
-BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
-                                              BMEdge *e_kill,
-                                              BMVert *v_kill,
-                                              const bool do_del,
-                                              const bool check_edge_exists,
-                                              const bool kill_degenerate_faces,
-                                              const bool combine_flags);
+BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
+                                         BMEdge *e_kill,
+                                         BMVert *v_kill,
+                                         const bool do_del);
 
 /**
  * \brief Join Face Kill Edge (JFKE)

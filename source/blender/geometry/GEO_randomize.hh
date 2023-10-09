@@ -15,7 +15,7 @@ namespace blender::geometry {
 
 bool use_debug_randomization();
 
-void debug_randomize_vertex_order(Mesh *mesh);
+void debug_randomize_vert_order(Mesh *mesh);
 void debug_randomize_edge_order(Mesh *mesh);
 void debug_randomize_face_order(Mesh *mesh);
 void debug_randomize_mesh_order(Mesh *mesh);

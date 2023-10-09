@@ -6,7 +6,7 @@
  * Does not use any tracing method. Only rely on local light probes to get the incoming radiance.
  */
 
-#pragma BLENDER_REQUIRE(eevee_reflection_probe_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
@@ -41,12 +41,16 @@ void main()
   ray.origin = P;
   ray.direction = ray_data.xyz;
 
-  int closest_probe_id = reflection_probes_find_closest(P);
-  ReflectionProbeData probe = reflection_probe_buf[closest_probe_id];
-  vec3 radiance = reflection_probes_sample(ray.direction, 0.0, probe).rgb;
+  vec3 V = cameraVec(P);
+
+  /* Using ray direction as geometric normal to bias the sampling position.
+   * This is faster than loading the gbuffer again and averages between reflected and normal
+   * direction over many rays. */
+  vec3 Ng = ray.direction;
+  LightProbeSample samp = lightprobe_load(P, Ng, V);
+  vec3 radiance = lightprobe_eval_direction(samp, ray.direction, safe_rcp(ray_pdf_inv));
   /* Set point really far for correct reprojection of background. */
-  /* TODO(fclem): Could use probe depth / parallax. */
-  float hit_time = 10000.0;
+  float hit_time = 1000.0;
 
   float luma = max(1e-8, max_v3(radiance));
   radiance *= 1.0 - max(0.0, luma - uniform_buf.raytrace.brightness_clamp) / luma;

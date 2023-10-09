@@ -152,7 +152,9 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
             sub.prop(probe, "clip_end", text="End")
 
         elif probe.type == 'PLANAR':
-            # Currently unsupported
+            col = layout.column()
+            row = col.row()
+            col.prop(probe, "clip_start", text="Clipping Offset")
             pass
         else:
             # Currently unsupported

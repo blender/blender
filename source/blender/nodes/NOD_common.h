@@ -32,7 +32,7 @@ namespace blender::nodes {
 
 void node_group_declare_dynamic(const bNodeTree &node_tree,
                                 const bNode &node,
-                                NodeDeclaration &r_declaration);
+                                NodeDeclarationBuilder &b);
 
 }  // namespace blender::nodes
 

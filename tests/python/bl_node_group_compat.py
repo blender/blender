@@ -199,7 +199,7 @@ class NodeGroupVersioning36Test(AbstractNodeGroupInterfaceTest):
         self.assertEqual(node.node_tree, group, "Node group must use compositor node tree")
 
         # autopep8: off
-        self.compare_group_to_specs(group, node, [ 
+        self.compare_group_to_specs(group, node, [
             SocketSpec("Output Float", "Output_9", "VALUE", hide_value=True, default_value=3.0, min_value=1.0, max_value=1.0),
             SocketSpec("Output Vector", "Output_10", "VECTOR", subtype="EULER", default_value=( 10, 20, 30), min_value=-10.0, max_value=10.0),
             SocketSpec("Output Color", "Output_11", "RGBA", default_value=(0, 1, 1, 1)),

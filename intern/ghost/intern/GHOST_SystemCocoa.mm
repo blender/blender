@@ -338,14 +338,14 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar)
 
 #define FIRSTFILEBUFLG 512
 static bool g_hasFirstFile = false;
-static char g_firstFileBuf[512];
+static char g_firstFileBuf[FIRSTFILEBUFLG];
 
-// TODO: Need to investigate this.
-// Function called too early in creator.c to have g_hasFirstFile == true
+/* TODO: Need to investigate this.
+ * Function called too early in creator.c to have g_hasFirstFile == true */
 extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 {
   if (g_hasFirstFile) {
-    strncpy(buf, g_firstFileBuf, FIRSTFILEBUFLG - 1);
+    memcpy(buf, g_firstFileBuf, FIRSTFILEBUFLG);
     buf[FIRSTFILEBUFLG - 1] = '\0';
     return 1;
   }
@@ -376,6 +376,8 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification;
 - (void)toggleFullScreen:(NSNotification *)notification;
 - (void)windowWillClose:(NSNotification *)notification;
+
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app;
 @end
 
 @implementation CocoaAppDelegate : NSObject
@@ -491,6 +493,19 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
       return;
     }
   }
+}
+
+/* Explicitly opt-in to the secure coding for the restorable state.
+ *
+ * This is something that only has affect on macOS 12+, and is implicitly
+ * enabled on macOS 14.
+ *
+ * For the details see
+ *   https://sector7.computest.nl/post/2022-08-process-injection-breaking-all-macos-security-layers-with-a-single-vulnerability/
+ */
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app
+{
+  return YES;
 }
 
 @end
@@ -1189,7 +1204,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
       NSArray *droppedArray;
       size_t pastedTextSize;
       NSString *droppedStr;
-      GHOST_TEventDataPtr eventData;
+      GHOST_TDragnDropDataPtr eventData;
       int i;
 
       if (!data) {
@@ -1224,15 +1239,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
               break;
             }
 
-            strncpy((char *)temp_buff,
-                    [droppedStr cStringUsingEncoding:NSUTF8StringEncoding],
-                    pastedTextSize);
+            memcpy(
+                temp_buff, [droppedStr cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
             temp_buff[pastedTextSize] = '\0';
 
             strArray->strings[i] = temp_buff;
           }
 
-          eventData = (GHOST_TEventDataPtr)strArray;
+          eventData = (GHOST_TDragnDropDataPtr)strArray;
           break;
 
         case GHOST_kDragnDropTypeString:
@@ -1245,13 +1259,11 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             return GHOST_kFailure;
           }
 
-          strncpy((char *)temp_buff,
-                  [droppedStr cStringUsingEncoding:NSUTF8StringEncoding],
-                  pastedTextSize);
-
+          memcpy(
+              temp_buff, [droppedStr cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
           temp_buff[pastedTextSize] = '\0';
 
-          eventData = (GHOST_TEventDataPtr)temp_buff;
+          eventData = (GHOST_TDragnDropDataPtr)temp_buff;
           break;
 
         case GHOST_kDragnDropTypeBitmap: {
@@ -1383,7 +1395,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             [droppedImg release];
           }
 
-          eventData = (GHOST_TEventDataPtr)ibuf;
+          eventData = (GHOST_TDragnDropDataPtr)ibuf;
 
           break;
         }
@@ -1454,7 +1466,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
     return GHOST_kFailure;
   }
 
-  strncpy(temp_buff, [filepath cStringUsingEncoding:NSUTF8StringEncoding], filenameTextSize);
+  memcpy(temp_buff, [filepath cStringUsingEncoding:NSUTF8StringEncoding], filenameTextSize);
   temp_buff[filenameTextSize] = '\0';
 
   pushEvent(new GHOST_EventString(
@@ -2009,8 +2021,7 @@ char *GHOST_SystemCocoa::getClipboard(bool /*selection*/) const
       return nullptr;
     }
 
-    strncpy(temp_buff, [textPasted cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
-
+    memcpy(temp_buff, [textPasted cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
     temp_buff[pastedTextSize] = '\0';
 
     if (temp_buff) {

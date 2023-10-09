@@ -17,13 +17,14 @@ namespace blender::nodes {
 
 static void node_group_declare(const bNodeTree &node_tree,
                                const bNode &node,
-                               NodeDeclaration &r_declaration)
+                               NodeDeclarationBuilder &b)
 {
+  NodeDeclaration &r_declaration = b.declaration();
   const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node.id);
   if (!group) {
     return;
   }
-  node_group_declare_dynamic(node_tree, node, r_declaration);
+  node_group_declare_dynamic(node_tree, node, b);
   if (!node.id) {
     return;
   }

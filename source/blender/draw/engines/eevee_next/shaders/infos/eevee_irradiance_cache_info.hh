@@ -73,9 +73,11 @@ GPU_SHADER_CREATE_INFO(eevee_surfel_common)
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_light)
     .define("SURFEL_LIGHT")
+    .define("LIGHT_ITER_FORCE_NO_CULLING")
     .local_group_size(SURFEL_GROUP_SIZE)
     .additional_info("eevee_shared",
                      "draw_view",
+                     "eevee_global_ubo",
                      "eevee_utility_texture",
                      "eevee_surfel_common",
                      "eevee_light_data",
@@ -195,7 +197,7 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_load)
     .compute_source("eevee_lightprobe_irradiance_load_comp.glsl")
     .do_static_compilation(true);
 
-GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
+GPU_SHADER_CREATE_INFO(eevee_volume_probe_data)
     .uniform_buf(IRRADIANCE_GRID_BUF_SLOT,
                  "IrradianceGridData",
                  "grids_infos_buf[IRRADIANCE_GRID_MAX]")
@@ -203,5 +205,8 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
      */
     .storage_buf(IRRADIANCE_BRICK_BUF_SLOT, Qualifier::READ, "uint", "bricks_infos_buf[]")
     .sampler(IRRADIANCE_ATLAS_TEX_SLOT, ImageType::FLOAT_3D, "irradiance_atlas_tx");
+
+GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
+    .additional_info("eevee_reflection_probe_data", "eevee_volume_probe_data");
 
 /** \} */

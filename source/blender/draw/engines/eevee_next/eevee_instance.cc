@@ -76,6 +76,7 @@ void Instance::init(const int2 &output_res,
   shadows.init();
   motion_blur.init();
   main_view.init();
+  planar_probes.init();
   /* Irradiance Cache needs reflection probes to be initialized. */
   reflection_probes.init();
   irradiance_cache.init();
@@ -108,6 +109,7 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   depth_of_field.init();
   shadows.init();
   main_view.init();
+  planar_probes.init();
   /* Irradiance Cache needs reflection probes to be initialized. */
   reflection_probes.init();
   irradiance_cache.init();
@@ -150,6 +152,7 @@ void Instance::begin_sync()
   pipelines.begin_sync();
   cryptomatte.begin_sync();
   reflection_probes.begin_sync();
+  planar_probes.begin_sync();
   light_probes.begin_sync();
 
   gpencil_engine_enabled = false;
@@ -279,6 +282,7 @@ void Instance::end_sync()
   pipelines.end_sync();
   light_probes.end_sync();
   reflection_probes.end_sync();
+  planar_probes.end_sync();
   volume.end_sync();
 
   global_ubo_.push_update();
@@ -315,12 +319,23 @@ void Instance::render_sync()
   DRW_curves_update();
 }
 
-bool Instance::do_probe_sync() const
+bool Instance::do_reflection_probe_sync() const
 {
+  if (!reflection_probes.update_probes_this_sample_) {
+    return false;
+  }
   if (materials.queued_shaders_count > 0) {
     return false;
   }
-  if (!reflection_probes.update_probes_this_sample_) {
+  return true;
+}
+
+bool Instance::do_planar_probe_sync() const
+{
+  if (!planar_probes.update_probes_) {
+    return false;
+  }
+  if (materials.queued_shaders_count > 0) {
     return false;
   }
   return true;
@@ -439,6 +454,7 @@ void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
    * are other light probes in the scene. */
   if (DEG_id_type_any_exists(this->depsgraph, ID_LP)) {
     reflection_probes.update_probes_next_sample_ = true;
+    planar_probes.update_probes_ = true;
   }
 
   while (!sampling.finished()) {

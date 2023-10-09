@@ -1345,6 +1345,7 @@ typedef struct TexNodeOutput {
 
 typedef struct NodeKeyingScreenData {
   char tracking_object[64];
+  float smoothness;
 } NodeKeyingScreenData;
 
 typedef struct NodeKeyingData {
@@ -1801,7 +1802,6 @@ typedef struct NodeGeometrySimulationOutput {
 #ifdef __cplusplus
   blender::Span<NodeSimulationItem> items_span() const;
   blender::MutableSpan<NodeSimulationItem> items_span();
-  blender::IndexRange items_range() const;
 #endif
 } NodeGeometrySimulationOutput;
 
@@ -1815,11 +1815,6 @@ typedef struct NodeRepeatItem {
    * names change.
    */
   int identifier;
-
-#ifdef __cplusplus
-  static bool supports_type(eNodeSocketDatatype type);
-  std::string identifier_str() const;
-#endif
 } NodeRepeatItem;
 
 typedef struct NodeGeometryRepeatInput {
@@ -1838,8 +1833,6 @@ typedef struct NodeGeometryRepeatOutput {
 #ifdef __cplusplus
   blender::Span<NodeRepeatItem> items_span() const;
   blender::MutableSpan<NodeRepeatItem> items_span();
-  NodeRepeatItem *add_item(const char *name, eNodeSocketDatatype type);
-  void set_item_name(NodeRepeatItem &item, const char *name);
 #endif
 } NodeGeometryRepeatOutput;
 

@@ -983,6 +983,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 {
   PlayState *ps = (PlayState *)ps_void;
   const GHOST_TEventType type = GHOST_GetEventType(evt);
+  GHOST_TEventDataPtr data = GHOST_GetEventData(evt);
   /* Convert ghost event into value keyboard or mouse. */
   const int val = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventButtonDown);
   GHOST_SystemHandle ghost_system = ps->ghost_data.system;
@@ -997,9 +998,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     switch (type) {
       case GHOST_kEventKeyDown:
       case GHOST_kEventKeyUp: {
-        GHOST_TEventKeyData *key_data;
-
-        key_data = (GHOST_TEventKeyData *)GHOST_GetEventData(evt);
+        const GHOST_TEventKeyData *key_data = static_cast<const GHOST_TEventKeyData *>(data);
         switch (key_data->key) {
           case GHOST_kKeyEsc:
             ps->loading = false;
@@ -1027,9 +1026,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
   switch (type) {
     case GHOST_kEventKeyDown:
     case GHOST_kEventKeyUp: {
-      GHOST_TEventKeyData *key_data;
-
-      key_data = (GHOST_TEventKeyData *)GHOST_GetEventData(evt);
+      const GHOST_TEventKeyData *key_data = static_cast<const GHOST_TEventKeyData *>(data);
       switch (key_data->key) {
         case GHOST_kKeyA:
           if (val) {
@@ -1324,14 +1321,13 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     }
     case GHOST_kEventButtonDown:
     case GHOST_kEventButtonUp: {
-      GHOST_TEventButtonData *bd = reinterpret_cast<GHOST_TEventButtonData *>(
-          GHOST_GetEventData(evt));
-      int cx, cy, sizex, sizey, inside_window;
-
-      GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy);
+      const GHOST_TEventButtonData *bd = static_cast<const GHOST_TEventButtonData *>(data);
+      int cx, cy, sizex, sizey;
       playanim_window_get_size(ghost_window, &sizex, &sizey);
 
-      inside_window = (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
+      const bool inside_window = (GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy) ==
+                                  GHOST_kSuccess) &&
+                                 (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
 
       if (bd->button == GHOST_kButtonMaskLeft) {
         if (type == GHOST_kEventButtonDown) {
@@ -1368,8 +1364,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     }
     case GHOST_kEventCursorMove: {
       if (ps->ghost_data.qual & WS_QUAL_LMOUSE) {
-        GHOST_TEventCursorData *cd = reinterpret_cast<GHOST_TEventCursorData *>(
-            GHOST_GetEventData(evt));
+        const GHOST_TEventCursorData *cd = static_cast<const GHOST_TEventCursorData *>(data);
         int cx, cy;
 
         /* Ignore 'in-between' events, since they can make scrubbing lag.
@@ -1378,12 +1373,12 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
          * however the API currently doesn't support this. */
         {
           int x_test, y_test;
-          GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy);
-          GHOST_ScreenToClient(ghost_window, cd->x, cd->y, &x_test, &y_test);
-
-          if (cx != x_test || cy != y_test) {
-            /* we're not the last event... skipping */
-            break;
+          if (GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy) == GHOST_kSuccess) {
+            GHOST_ScreenToClient(ghost_window, cd->x, cd->y, &x_test, &y_test);
+            if (cx != x_test || cy != y_test) {
+              /* we're not the last event... skipping */
+              break;
+            }
           }
         }
 
@@ -1431,11 +1426,10 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       break;
     }
     case GHOST_kEventDraggingDropDone: {
-      GHOST_TEventDragnDropData *ddd = reinterpret_cast<GHOST_TEventDragnDropData *>(
-          GHOST_GetEventData(evt));
+      const GHOST_TEventDragnDropData *ddd = static_cast<const GHOST_TEventDragnDropData *>(data);
 
       if (ddd->dataType == GHOST_kDragnDropTypeFilenames) {
-        GHOST_TStringArray *stra = reinterpret_cast<GHOST_TStringArray *>(ddd->data);
+        const GHOST_TStringArray *stra = static_cast<const GHOST_TStringArray *>(ddd->data);
         int a;
 
         for (a = 0; a < stra->count; a++) {
@@ -1461,11 +1455,13 @@ static GHOST_WindowHandle playanim_window_open(
   GHOST_GPUSettings gpusettings = {0};
   const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpusettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
-  uint32_t scr_w, scr_h;
 
-  GHOST_GetMainDisplayDimensions(ghost_system, &scr_w, &scr_h);
-
-  posy = (scr_h - posy - sizey);
+  if (GHOST_GetCapabilities() & GHOST_kCapabilityWindowPosition) {
+    uint32_t scr_w, scr_h;
+    if (GHOST_GetMainDisplayDimensions(ghost_system, &scr_w, &scr_h) == GHOST_kSuccess) {
+      posy = (scr_h - posy - sizey);
+    }
+  }
 
   return GHOST_CreateWindow(ghost_system,
                             nullptr,
@@ -1490,7 +1486,7 @@ static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
   }
 
   // playanim_window_get_position(&ofsx, &ofsy);
-  playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
+  // playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
   // ofsx += sizex / 2; /* UNUSED */
   // ofsy += sizey / 2; /* UNUSED */
   sizex = ps->zoom * ps->ibufx;
@@ -1521,7 +1517,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 {
   ImBuf *ibuf = nullptr;
   static char filepath[FILE_MAX]; /* abused to return dropped file path */
-  uint32_t maxwinx, maxwiny;
   int i;
   /* This was done to disambiguate the name for use under c++. */
   int start_x = 0, start_y = 0;
@@ -1686,8 +1681,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
         ps.ghost_data.system, "Blender Animation Player", start_x, start_y, ibuf->x, ibuf->y);
   }
 
-  GHOST_GetMainDisplayDimensions(ps.ghost_data.system, &maxwinx, &maxwiny);
-
   // GHOST_ActivateWindowDrawingContext(ps.ghost_data.window);
 
   /* Initialize OpenGL immediate mode. */
@@ -1706,13 +1699,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   ps.display_ctx.size[0] = ps.ibufx;
   ps.display_ctx.size[1] = ps.ibufy;
-
-  if (maxwinx % ibuf->x) {
-    maxwinx = ibuf->x * (1 + (maxwinx / ibuf->x));
-  }
-  if (maxwiny % ibuf->y) {
-    maxwiny = ibuf->y * (1 + (maxwiny / ibuf->y));
-  }
 
   GPU_clear_color(0.1f, 0.1f, 0.1f, 0.0f);
 

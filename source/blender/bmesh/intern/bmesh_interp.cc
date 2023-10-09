@@ -17,7 +17,6 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
@@ -30,10 +29,6 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-using blender::float2;
-using blender::float3;
-using blender::float4;
-using blender::IndexRange;
 using blender::Vector;
 
 /* edge and vertex share, currently there's no need to have different logic */
@@ -784,9 +779,11 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   BLI_mempool *oldpool = olddata->pool;
   void *block;
 
-  Vector<CustomDataLayer *, 32> nocopy_layers;
+  /* Temporarily clear CD_FLAG_ELEM_NOCOPY flags
+   * so we don't end up skipping them.
+   */
 
-  /* Temporarily clear CD_FLAG_ELEM_NOCOPY flags. */
+  Vector<CustomDataLayer *, 32> nocopy_layers;
   for (int i = 0; i < olddata->totlayer; i++) {
     if (olddata->layers[i].flag & CD_FLAG_ELEM_NOCOPY) {
       olddata->layers[i].flag &= ~CD_FLAG_ELEM_NOCOPY;
@@ -826,7 +823,6 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
     BMLoop *l;
 
     CustomData_bmesh_init_pool(data, bm->totloop, BM_LOOP);
-
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         block = nullptr;

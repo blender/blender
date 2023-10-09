@@ -1254,6 +1254,8 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
                                                  geometry->face_offsets_sharing_info,
                                                  &mesh->face_offset_indices,
                                                  &mesh->runtime->face_offsets_sharing_info);
+
+  BKE_sculptsession_update_attr_refs(object);
 }
 
 static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
@@ -2909,6 +2911,9 @@ void ED_sculpt_undo_geometry_begin_ex(Object *ob, const char *name)
 
 void ED_sculpt_undo_geometry_end(Object *ob)
 {
+  /* Ensure sculpt attribute references are up to date. */
+  BKE_sculptsession_update_attr_refs(ob);
+
   SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_GEOMETRY);
   SCULPT_undo_push_end(ob);
 }

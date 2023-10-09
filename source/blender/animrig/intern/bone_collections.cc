@@ -15,6 +15,8 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_armature_types.h"
 
 #include "BLI_math_bits.h"
@@ -47,7 +49,7 @@ BoneCollection *ANIM_bonecoll_new(const char *name)
 {
   if (name == nullptr || name[0] == '\0') {
     /* Use a default name if no name was given. */
-    name = bonecoll_default_name;
+    name = DATA_(bonecoll_default_name);
   }
 
   /* Note: the collection name may change after the collection is added to an
@@ -112,7 +114,7 @@ static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bco
 {
   BLI_uniquename(&armature->collections,
                  bcoll,
-                 bonecoll_default_name,
+                 DATA_(bonecoll_default_name),
                  '.',
                  offsetof(BoneCollection, name),
                  sizeof(bcoll->name));
@@ -247,7 +249,7 @@ void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll,
   if (name[0] == '\0') {
     /* Refuse to have nameless collections. The name of the active collection is stored in DNA, and
      * an empty string means 'no active collection'. */
-    STRNCPY(bcoll->name, bonecoll_default_name);
+    STRNCPY(bcoll->name, DATA_(bonecoll_default_name));
   }
   else {
     STRNCPY_UTF8(bcoll->name, name);

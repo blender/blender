@@ -991,16 +991,19 @@ class NODE_PT_node_tree_properties(Panel):
         col.prop(group, "is_tool")
 
 
+def draw_socket_item_in_list(uilist, layout, item, icon):
+    if uilist.layout_type in {'DEFAULT', 'COMPACT'}:
+        row = layout.row(align=True)
+        row.template_node_socket(color=item.color)
+        row.prop(item, "name", text="", emboss=False, icon_value=icon)
+    elif uilist.layout_type == 'GRID':
+        layout.alignment = 'CENTER'
+        layout.template_node_socket(color=item.color)
+
+
 class NODE_UL_simulation_zone_items(bpy.types.UIList):
     def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, _index):
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row(align=True)
-
-            row.template_node_socket(color=item.color)
-            row.prop(item, "name", text="", emboss=False, icon_value=icon)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.template_node_socket(color=item.color)
+        draw_socket_item_in_list(self, layout, item, icon)
 
 
 class NODE_PT_simulation_zone_items(Panel):
@@ -1072,13 +1075,7 @@ class NODE_PT_simulation_zone_items(Panel):
 
 class NODE_UL_repeat_zone_items(bpy.types.UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row(align=True)
-            row.template_node_socket(color=item.color)
-            row.prop(item, "name", text="", emboss=False, icon_value=icon)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.template_node_socket(color=item.color)
+        draw_socket_item_in_list(self, layout, item, icon)
 
 
 class NODE_PT_repeat_zone_items(Panel):

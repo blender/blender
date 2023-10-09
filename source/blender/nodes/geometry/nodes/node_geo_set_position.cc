@@ -21,7 +21,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Vector>("Position").implicit_field_on_all(implicit_field_inputs::position);
-  b.add_input<decl::Vector>("Offset").field_on_all().subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>("Offset").subtype(PROP_TRANSLATION).field_on_all();
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 

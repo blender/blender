@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2d057c023879')\n"
+"Project-Id-Version: Blender 4.0.0 Beta (b'3d6713e0867a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 08:31:54\n"
+"POT-Creation-Date: 2023-10-03 09:29:22\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -2753,6 +2753,14 @@ msgid "Multiply B-Bone Scale In channels by the local scale values of the start 
 msgstr "將始端控制桿的局部縮放值與 B 骨骼的縮放輸入頻道相乘。這是在縮放緩和選項之後計算所以不受其影響"
 
 
+msgid "Straight"
+msgstr "直出"
+
+
+msgid "Curved"
+msgstr "曲線式"
+
+
 msgid "Roll In"
 msgstr "捲入"
 
@@ -2975,10 +2983,6 @@ msgstr "繼承旋轉"
 
 msgid "Bone inherits rotation or scale from parent bone"
 msgstr "骨骼繼承親代骨骼的旋轉或縮放"
-
-
-msgid "DEPRECATED: Bone inherits scaling from parent bone"
-msgstr "過期棄用選項: 繼承親代骨骼的縮放"
 
 
 msgid "Local Location"
@@ -9249,6 +9253,10 @@ msgid "Directory displayed in the file browser"
 msgstr "檔案瀏覽器中顯示的目錄"
 
 
+msgid "Medium"
+msgstr "中"
+
+
 msgid "Display Mode"
 msgstr "顯示模式"
 
@@ -9275,10 +9283,6 @@ msgstr "檔案瀏覽器中的作用中檔案"
 
 msgid "Extension Filter"
 msgstr "副檔名過濾器"
-
-
-msgid "Filter by name, supports '*' wildcard"
-msgstr "依名稱過濾，支援「*」萬用字符"
 
 
 msgid "Show hidden dot files"
@@ -9747,10 +9751,6 @@ msgstr "發射表面"
 
 msgid "Controls fluid emission from the mesh surface (higher value results in emission further away from the mesh surface"
 msgstr "控制來自網格表面的流體發射（較高的值會導致發射離網格表面更遠）"
-
-
-msgid "Temp. Diff."
-msgstr "溫差"
 
 
 msgid "Temperature difference to ambient temperature"
@@ -13204,10 +13204,6 @@ msgid "Alpha Mode"
 msgstr "Alpha 模式"
 
 
-msgid "Straight"
-msgstr "直出"
-
-
 msgid "Premultiplied"
 msgstr "預乘"
 
@@ -14244,10 +14240,6 @@ msgstr "高"
 
 msgid "High quality"
 msgstr "高品質"
-
-
-msgid "Medium"
-msgstr "中"
 
 
 msgid "Medium quality"
@@ -18865,12 +18857,20 @@ msgid "Channel"
 msgstr "通道"
 
 
+msgid "Dope Sheet Channel"
+msgstr "律表通道"
+
+
 msgid "Key"
 msgstr "鍵"
 
 
 msgid "Snap"
 msgstr "吸附"
+
+
+msgid "Files"
+msgstr "檔案"
 
 
 msgid "Change Active Material"
@@ -18946,16 +18946,16 @@ msgid "Distort"
 msgstr "扭曲"
 
 
+msgid "Node"
+msgstr "節點"
+
+
 msgid "Attribute"
 msgstr "特性"
 
 
 msgid "Instances"
 msgstr "實例化"
-
-
-msgid "Node"
-msgstr "節點"
 
 
 msgid "Node Color Specials"
@@ -18984,6 +18984,10 @@ msgstr "線條集特殊項"
 
 msgid "Effect Strip"
 msgstr "效果片段"
+
+
+msgid "Sequencer"
+msgstr "序段編輯器"
 
 
 msgid "Apply"
@@ -24683,10 +24687,6 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "像素轉為模糊的最小速度 (用來將背景從前景分離出來)"
 
 
-msgid "Curved"
-msgstr "曲線式"
-
-
 msgid "Interpolate between frames in a Bezier curve, rather than linearly"
 msgstr "以貝茲曲線在框幀與框幀之間插補，而不是線性插補"
 
@@ -25684,10 +25684,6 @@ msgid "Virtual socket of a node"
 msgstr "節點的虛擬接口"
 
 
-msgid "Both"
-msgstr "兩者"
-
-
 msgid "Socket Type"
 msgstr "接口類型"
 
@@ -26679,19 +26675,6 @@ msgid "Align selected bones to the active bone (or to their parent)"
 msgstr "對齊所選骨骼至作用中骨骼 (或至其親代)"
 
 
-msgctxt "Operator"
-msgid "Change Armature Layers"
-msgstr "更改骨架分層"
-
-
-msgid "Change the visible armature layers"
-msgstr "更改可見的骨架分層"
-
-
-msgid "Armature layers to make visible"
-msgstr "要設為可見的骨架分層"
-
-
 msgid "Automatically renames the selected bones according to which side of the target axis they fall on"
 msgstr "根據其傾向的目標軸向自動重新命名所選骨骼"
 
@@ -26714,19 +26697,6 @@ msgstr "前/後"
 
 msgid "Top/Bottom"
 msgstr "頂/底"
-
-
-msgctxt "Operator"
-msgid "Change Bone Layers"
-msgstr "更改骨骼分層"
-
-
-msgid "Change the layers that the selected bones belong to"
-msgstr "更改所選骨骼所在的層"
-
-
-msgid "Armature layers that bone belongs to"
-msgstr "骨骼所屬的骨架分層"
 
 
 msgctxt "Operator"
@@ -26765,6 +26735,11 @@ msgstr "檢視軸"
 
 msgid "Create a new bone going from the last selected joint to the mouse position"
 msgstr "在上一個所選關節與滑鼠位置之間建立一段新骨骼"
+
+
+msgctxt "Operator"
+msgid "Show All"
+msgstr "顯示全部"
 
 
 msgctxt "Operator"
@@ -26853,19 +26828,6 @@ msgstr "未選取"
 
 msgid "Hide unselected rather than selected"
 msgstr "隱藏未選取項而不是選取項"
-
-
-msgctxt "Operator"
-msgid "Show All Layers"
-msgstr "顯示所有層"
-
-
-msgid "Make all armature layers visible"
-msgstr "讓所有骨架分層可以看見"
-
-
-msgid "Enable all layers or just the first 16 (top row)"
-msgstr "啟用所有層或僅前 16 層 (頭列)"
 
 
 msgctxt "Operator"
@@ -27036,6 +26998,10 @@ msgstr "-X 至 +X"
 
 msgid "+X to -X"
 msgstr "+X 至 -X"
+
+
+msgid "Pose Bone"
+msgstr "姿勢骨骼"
 
 
 msgid "Check Existing"
@@ -27819,10 +27785,6 @@ msgstr "開啟剪輯"
 
 msgid "Load a sequence of frames or a movie file"
 msgstr "載入框幀序段或影片檔"
-
-
-msgid "Files"
-msgstr "檔案"
 
 
 msgid "Enable Multi-View"
@@ -29344,16 +29306,8 @@ msgstr "轉換旋轉至尤拉 ZYX"
 
 
 msgctxt "Operator"
-msgid "Export STL"
-msgstr "匯出 STL"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "儲存檔案為 ASCII 檔案格式"
+msgid "Export PLY"
+msgstr "匯出 PLY"
 
 
 msgid "X Forward"
@@ -29400,12 +29354,33 @@ msgid "-Z Up"
 msgstr "-Z 向上"
 
 
-msgid "Batch Mode"
-msgstr "批次模式"
-
-
 msgid "Apply Modifiers"
 msgstr "套用修改器"
+
+
+msgid "Selection Only"
+msgstr "僅所選項"
+
+
+msgid "Export selected objects only"
+msgstr "僅匯出選取的物體"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "匯出 STL"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "儲存檔案為 ASCII 檔案格式"
+
+
+msgid "Batch Mode"
+msgstr "批次模式"
 
 
 msgid "Apply the modifiers before saving"
@@ -29418,14 +29393,6 @@ msgstr "場景單位"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "將目前場景的單位 (如單位規模所定義) 套用至匯出資料中"
-
-
-msgid "Selection Only"
-msgstr "僅所選項"
-
-
-msgid "Export selected objects only"
-msgstr "僅匯出選取的物體"
 
 
 msgctxt "Operator"
@@ -29588,6 +29555,14 @@ msgstr "通用"
 
 msgid "Include active collection and nested collections"
 msgstr "包括活動集盒和嵌入集盒"
+
+
+msgid "Material Groups"
+msgstr "材質群組"
+
+
+msgid "Smooth Groups"
+msgstr "平滑群組"
 
 
 msgctxt "Operator"
@@ -30517,6 +30492,11 @@ msgid "Recalculate internal geometry"
 msgstr "重新計算內部幾何結構"
 
 
+msgctxt "Operator"
+msgid "Show All Layers"
+msgstr "顯示所有層"
+
+
 msgid "Name of the modifier to edit"
 msgstr "要編輯的修改器名稱"
 
@@ -30584,6 +30564,10 @@ msgstr "向下降一層"
 
 msgid "Send to Back"
 msgstr "降至最後層"
+
+
+msgid "Both"
+msgstr "兩者"
 
 
 msgid "Dissolve Points"
@@ -31232,6 +31216,11 @@ msgstr "散發光著色器"
 
 
 msgctxt "Operator"
+msgid "Import PLY"
+msgstr "匯入 PLY"
+
+
+msgctxt "Operator"
 msgid "Import STL"
 msgstr "匯入 STL"
 
@@ -31255,6 +31244,10 @@ msgstr "影像搜尋"
 
 msgid "Manual Orientation"
 msgstr "手動方向"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "將 OBJ 群組匯入為頂點群組"
 
 
 msgctxt "Operator"
@@ -36888,82 +36881,6 @@ msgid "Copy Pose"
 msgstr "複製姿勢"
 
 
-msgctxt "Operator"
-msgid "Add Bone Group"
-msgstr "添加骨骼群組"
-
-
-msgid "Add a new bone group"
-msgstr "添加一個新的骨骼群組"
-
-
-msgctxt "Operator"
-msgid "Add Selected to Bone Group"
-msgstr "添加所選項至骨骼群組中"
-
-
-msgid "Add selected bones to the chosen bone group"
-msgstr "將所選骨骼添加至選擇的骨骼群組中"
-
-
-msgid "Bone Group Index"
-msgstr "骨骼群組索引"
-
-
-msgctxt "Operator"
-msgid "Deselect Bone Group"
-msgstr "取消選取骨骼群組"
-
-
-msgid "Deselect bones of active Bone Group"
-msgstr "取消選取作用中骨骼群組的骨骼"
-
-
-msgctxt "Operator"
-msgid "Move Bone Group"
-msgstr "移除骨骼群組"
-
-
-msgid "Change position of active Bone Group in list of Bone Groups"
-msgstr "於骨骼群組清單中更改作用中骨骼群組的位置"
-
-
-msgctxt "Operator"
-msgid "Remove Bone Group"
-msgstr "移除骨骼群組"
-
-
-msgid "Remove the active bone group"
-msgstr "移除作用中骨骼群組"
-
-
-msgctxt "Operator"
-msgid "Select Bones of Bone Group"
-msgstr "選取骨骼群組中的骨骼"
-
-
-msgid "Select bones in active Bone Group"
-msgstr "選取作用中骨骼群組的骨骼"
-
-
-msgctxt "Operator"
-msgid "Sort Bone Groups"
-msgstr "排序骨骼群組"
-
-
-msgid "Sort Bone Groups by their names in ascending order"
-msgstr "依其名稱以遞增順序排序骨骼群組"
-
-
-msgctxt "Operator"
-msgid "Remove Selected from Bone Groups"
-msgstr "從骨骼群組刪除所選項"
-
-
-msgid "Remove selected bones from all bone groups"
-msgstr "從所有骨骼群組中移除所選骨骼"
-
-
 msgid "Tag selected bones to not be visible in Pose Mode"
 msgstr "標記所選的骨骼讓它在姿勢模式下看不見"
 
@@ -37168,10 +37085,6 @@ msgstr "選取要作為目前所選骨骼目標的骨骼"
 
 msgid "Select all visible bones grouped by similar properties"
 msgstr "選取所有以類似屬性為群組的可見骨骼"
-
-
-msgid "Shared group"
-msgstr "共享群組"
 
 
 msgid "All bones affected by active Keying Set"
@@ -37546,10 +37459,6 @@ msgstr "算繪來自此場景動畫範圍的檔案"
 
 msgid "Render Keyframes Only"
 msgstr "僅算繪鍵幀"
-
-
-msgid "Sequencer"
-msgstr "序段編輯器"
 
 
 msgid "Render using the sequencer's OpenGL display"
@@ -38589,10 +38498,6 @@ msgstr "亂數重置面集色彩"
 
 msgid "Generates a new set of random colors to render the Face Sets in the viewport"
 msgstr "在視接口中使用一組新的隨機色彩重設所有面集"
-
-
-msgid "Set the pivot position to the mask border after creating the mask"
-msgstr "在雕刻模式下設定樞紐點至建立的雕刻遮罩邊緣的中心"
 
 
 msgid "Smooth Mask"
@@ -40479,10 +40384,6 @@ msgid "Align"
 msgstr "對齊"
 
 
-msgid "Align selected UV vertices to an axis"
-msgstr "將已選取的 UV 頂點對齊某一軸"
-
-
 msgid "Axis to align UV locations on"
 msgstr "對齊 UV 位置的軸"
 
@@ -40491,48 +40392,16 @@ msgid "Straighten"
 msgstr "拉直"
 
 
-msgid "Align UVs along the line defined by the endpoints"
-msgstr "將 UV 沿端點定義的線對齊"
-
-
 msgid "Straighten X"
 msgstr "X 向拉直"
-
-
-msgid "Align UVs along the line defined by the endpoints along the X axis"
-msgstr "將 UV 於 X 軸沿端點定義的線對齊"
 
 
 msgid "Straighten Y"
 msgstr "Y 向拉直"
 
 
-msgid "Align UVs along the line defined by the endpoints along the Y axis"
-msgstr "將 UV 於 Y 軸沿端點定義的線對齊"
-
-
 msgid "Align Auto"
 msgstr "對齊自動"
-
-
-msgid "Automatically choose the axis on which there is most alignment already"
-msgstr "自動選擇目前最對齊的軸"
-
-
-msgid "Align X"
-msgstr "對齊 X"
-
-
-msgid "Align UVs on X axis"
-msgstr "對齊 UV 至 X 軸"
-
-
-msgid "Align Y"
-msgstr "對齊 Y"
-
-
-msgid "Align UVs on Y axis"
-msgstr "對齊 UV 至 Y 軸"
 
 
 msgid "Correct Aspect"
@@ -40673,10 +40542,6 @@ msgstr "可縮放向量圖形 (.svg)"
 
 msgid "Export the UV layout to a vector SVG file"
 msgstr "將 UV 配置匯出至向量 SVG 檔案"
-
-
-msgid "Encapsulate PostScript (.eps)"
-msgstr "封裝 PostScript (.eps)"
 
 
 msgid "Export the UV layout to a vector EPS file"
@@ -42076,10 +41941,6 @@ msgid "Print memory statistics to the console"
 msgstr "將記憶體統計資料列印至主控臺"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "將 OBJ 群組匯入為頂點群組"
-
-
 msgid "Open a Blender file"
 msgstr "開啟一個 Blender 檔案"
 
@@ -42133,16 +41994,6 @@ msgstr "添加或移除操作器預置"
 
 msgid "Open a path in a file browser"
 msgstr "在檔案瀏覽器中開啟路徑"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "匯出 PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "匯入 PLY"
 
 
 msgctxt "Operator"
@@ -43001,10 +42852,6 @@ msgid "Effects"
 msgstr "效果"
 
 
-msgid "Skeleton"
-msgstr "骨骼"
-
-
 msgid "Spot Shape"
 msgstr "聚光外形"
 
@@ -43315,10 +43162,6 @@ msgid "Timeline"
 msgstr "時間軸"
 
 
-msgid "Duplicate Data"
-msgstr "製作資料複本"
-
-
 msgid "New Objects"
 msgstr "新增物體"
 
@@ -43349,10 +43192,6 @@ msgstr "儲存偏好設定"
 
 msgid "Auto Run Python Scripts"
 msgstr "自動執行 Python 指令稿"
-
-
-msgid "Auto Save"
-msgstr "自動儲存"
 
 
 msgid "Bone Color Sets"
@@ -44290,10 +44129,6 @@ msgstr "自動 IK"
 
 msgid "Add temporary IK constraints while grabbing bones in Pose Mode"
 msgstr "當在姿勢模式中抓取骨骼時添加暫時 IK 約束"
-
-
-msgid "Pose Bone"
-msgstr "姿勢骨骼"
 
 
 msgid "Channel defining pose data for a bone in a Pose"
@@ -46356,10 +46191,6 @@ msgid "The file extension used for saving renders"
 msgstr "用來儲存算繪器的檔案副檔名"
 
 
-msgid "Directory/name to save animations, # characters defines the position and length of frame numbers"
-msgstr "儲存動畫用的目錄/名稱，使用 # 字元來定義幀號的位置與長度"
-
-
 msgid "FPS"
 msgstr "FPS"
 
@@ -47639,6 +47470,14 @@ msgstr "序段的目前速度與此數字相乘或將目前框幀重新映射至
 
 msgid "Subtract Sequence"
 msgstr "減去序段"
+
+
+msgid "Align X"
+msgstr "對齊 X"
+
+
+msgid "Align Y"
+msgstr "對齊 Y"
 
 
 msgid "Transform Sequence"
@@ -50469,10 +50308,6 @@ msgid "Channels Selected"
 msgstr "選取的通道"
 
 
-msgid "Dope Sheet Channel"
-msgstr "律表通道"
-
-
 msgid "Color of Keyframe"
 msgstr "鍵幀的色彩"
 
@@ -52896,13 +52731,13 @@ msgstr "%s：%s"
 
 
 msgctxt "Operator"
-msgid "Blender Website"
-msgstr "Blender 網站"
+msgid "Blender Store"
+msgstr "Blender 商店"
 
 
 msgctxt "Operator"
-msgid "Blender Store"
-msgstr "Blender 商店"
+msgid "Blender Website"
+msgstr "Blender 網站"
 
 
 msgid "Operator not found: bpy.ops.%s"
@@ -53018,11 +52853,6 @@ msgstr "偏移 X"
 
 msgid "Endpoint"
 msgstr "端點"
-
-
-msgctxt "Operator"
-msgid "Show All"
-msgstr "顯示全部"
 
 
 msgctxt "Operator"
@@ -53652,11 +53482,6 @@ msgstr "擴展"
 
 
 msgctxt "Operator"
-msgid "Back"
-msgstr "後"
-
-
-msgctxt "Operator"
 msgid "Hide Selected Curves"
 msgstr "隱藏所選曲線"
 
@@ -53664,6 +53489,11 @@ msgstr "隱藏所選曲線"
 msgctxt "Operator"
 msgid "Hide Unselected Curves"
 msgstr "隱藏未選取曲線"
+
+
+msgctxt "Operator"
+msgid "Back"
+msgstr "後"
 
 
 msgctxt "Operator"
@@ -54502,11 +54332,6 @@ msgstr "喇叭"
 
 
 msgctxt "Operator"
-msgid "Make Library Override..."
-msgstr "製作庫覆寫…"
-
-
-msgctxt "Operator"
 msgid "Make Local..."
 msgstr "設為區域..."
 
@@ -54831,16 +54656,6 @@ msgstr "依每個面集"
 msgctxt "Operator"
 msgid "Per Loose Part"
 msgstr "依每個分散的部分"
-
-
-msgctxt "Operator"
-msgid "Change Armature Layers..."
-msgstr "更改骨架分層..."
-
-
-msgctxt "Operator"
-msgid "Change Bone Layers..."
-msgstr "更改骨骼分層..."
 
 
 msgid "Bone Settings"
@@ -56249,10 +56064,6 @@ msgid "Hex"
 msgstr "十六進位"
 
 
-msgid "(Gamma Corrected)"
-msgstr "(伽瑪已校正)"
-
-
 msgid "Lightness"
 msgstr "亮度"
 
@@ -56633,14 +56444,6 @@ msgstr "無法覆寫匯出檔"
 
 msgid "Export Options"
 msgstr "匯出資料選項"
-
-
-msgid "Material Groups"
-msgstr "材質群組"
-
-
-msgid "Smooth Groups"
-msgstr "平滑群組"
 
 
 msgctxt "Mesh"
@@ -57970,11 +57773,6 @@ msgstr ""
 "* 按 Shift 來指定子代"
 
 
-msgctxt "Action"
-msgid "Group"
-msgstr "群組"
-
-
 msgid "Library path '%s' does not exist, correct this before saving"
 msgstr "函式庫路徑「%s」不存在，請在儲存之前修正此問題"
 
@@ -57997,10 +57795,6 @@ msgstr "無法重新定位間接連結的「%s」藏庫位置"
 
 msgid "Not yet implemented"
 msgstr "尚未實作"
-
-
-msgid "Bone Groups"
-msgstr "骨骼群組"
 
 
 msgid "(empty)"
@@ -58742,6 +58536,11 @@ msgstr "無法開啟檔案：%s"
 
 msgid "Bone Envelopes"
 msgstr "骨骼封套"
+
+
+msgctxt "Action"
+msgid "Group"
+msgstr "群組"
 
 
 msgid "Index out of range"
@@ -59486,12 +59285,12 @@ msgid "RoughnessV"
 msgstr "粗糙度V"
 
 
-msgid "Subsurface"
-msgstr "次表面"
-
-
 msgid "Subsurface Radius"
 msgstr "次表面半徑"
+
+
+msgid "Emission Color"
+msgstr "發光色"
 
 
 msgid "Emission Strength"
@@ -59654,10 +59453,6 @@ msgid "Absorption Color"
 msgstr "吸收色彩"
 
 
-msgid "Emission Color"
-msgstr "發光色"
-
-
 msgid "Blackbody Intensity"
 msgstr "黑體強度"
 
@@ -59708,10 +59503,6 @@ msgstr "W4"
 
 msgid "iScale"
 msgstr "iScale"
-
-
-msgid "Unknown py-exception, could not convert"
-msgstr "未知的 py-exception，無法轉換"
 
 
 msgid "Could not resolve path (%s)"

@@ -32,6 +32,7 @@
 /* Reflection Probes. */
 #define REFLECTION_PROBES_MAX 256
 #define REFLECTION_PROBE_GROUP_SIZE 16
+#define REFLECTION_PROBE_SELECT_GROUP_SIZE 64
 /* Number of additional pixels on the border of an octahedral map to reserve for fixing seams.
  * Border size requires depends on the max number of mipmap levels. */
 #define REFLECTION_PROBE_MIPMAP_LEVELS 5
@@ -45,8 +46,15 @@
  * SHADOW_TILEMAP_RES max is 32 because of the shared bitmaps used for LOD tagging.
  * It is also limited by the maximum thread group size (1024).
  */
-#define SHADOW_TILEMAP_RES 32
-#define SHADOW_TILEMAP_LOD 5 /* LOG2(SHADOW_TILEMAP_RES) */
+#if 0
+/* Useful for debugging the tile-copy version of the shadow rendering without making debugging
+ * tools unresponsive. */
+#  define SHADOW_TILEMAP_RES 4
+#  define SHADOW_TILEMAP_LOD 2 /* LOG2(SHADOW_TILEMAP_RES) */
+#else
+#  define SHADOW_TILEMAP_RES 32
+#  define SHADOW_TILEMAP_LOD 5 /* LOG2(SHADOW_TILEMAP_RES) */
+#endif
 #define SHADOW_TILEMAP_LOD0_LEN ((SHADOW_TILEMAP_RES / 1) * (SHADOW_TILEMAP_RES / 1))
 #define SHADOW_TILEMAP_LOD1_LEN ((SHADOW_TILEMAP_RES / 2) * (SHADOW_TILEMAP_RES / 2))
 #define SHADOW_TILEMAP_LOD2_LEN ((SHADOW_TILEMAP_RES / 4) * (SHADOW_TILEMAP_RES / 4))
@@ -57,9 +65,19 @@
 #define SHADOW_TILEDATA_PER_TILEMAP \
   (SHADOW_TILEMAP_LOD0_LEN + SHADOW_TILEMAP_LOD1_LEN + SHADOW_TILEMAP_LOD2_LEN + \
    SHADOW_TILEMAP_LOD3_LEN + SHADOW_TILEMAP_LOD4_LEN + SHADOW_TILEMAP_LOD5_LEN)
-#define SHADOW_PAGE_CLEAR_GROUP_SIZE 32
-#define SHADOW_PAGE_RES 256
-#define SHADOW_PAGE_LOD 8 /* LOG2(SHADOW_PAGE_RES) */
+#if 0
+/* Useful for debugging the tile-copy version of the shadow rendering without making debugging
+ * tools unresponsive. */
+#  define SHADOW_PAGE_CLEAR_GROUP_SIZE 8
+#  define SHADOW_PAGE_RES 8
+#  define SHADOW_PAGE_LOD 3 /* LOG2(SHADOW_PAGE_RES) */
+#else
+#  define SHADOW_PAGE_CLEAR_GROUP_SIZE 32
+#  define SHADOW_PAGE_RES 256
+#  define SHADOW_PAGE_LOD 8 /* LOG2(SHADOW_PAGE_RES) */
+#endif
+/* For testing only. */
+// #define SHADOW_FORCE_LOD0
 #define SHADOW_MAP_MAX_RES (SHADOW_PAGE_RES * SHADOW_TILEMAP_RES)
 #define SHADOW_DEPTH_SCAN_GROUP_SIZE 8
 #define SHADOW_AABB_TAG_GROUP_SIZE 64
@@ -76,6 +94,7 @@
 #define SHADOW_PAGE_PER_LAYER (SHADOW_PAGE_PER_ROW * SHADOW_PAGE_PER_COL)
 #define SHADOW_MAX_STEP 16
 #define SHADOW_MAX_RAY 4
+#define SHADOW_ROG_ID 0
 
 /* Ray-tracing. */
 #define RAYTRACE_GROUP_SIZE 8
@@ -173,6 +192,7 @@
 #define VELOCITY_CAMERA_PREV_BUF 2
 #define VELOCITY_CAMERA_CURR_BUF 3
 #define VELOCITY_CAMERA_NEXT_BUF 4
+#define CLIP_PLANE_BUF 5
 
 /* Storage Buffers. */
 #define LIGHT_CULL_BUF_SLOT 0

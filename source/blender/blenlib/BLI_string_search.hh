@@ -15,7 +15,17 @@ namespace blender::string_search {
 struct SearchItem {
   void *user_data;
   Span<StringRef> normalized_words;
-  Span<float> word_weight_factors;
+  /**
+   * When using menu-search, the search item is often split into multiple groups of words, each of
+   * which corresponds to a menu entry. This id is the same for words in the same group and
+   * different otherwise.
+   */
+  Span<int> word_group_ids;
+  /**
+   * The id of the group that is highlighted in the UI. In some places, the words in this group are
+   * given higher weight.
+   */
+  int main_group_id;
   int length;
   int weight;
   /**
@@ -108,6 +118,6 @@ int get_fuzzy_match_errors(StringRef query, StringRef full);
 void extract_normalized_words(StringRef str,
                               LinearAllocator<> &allocator,
                               Vector<StringRef, 64> &r_words,
-                              Vector<float, 64> &r_word_weights);
+                              Vector<int, 64> &r_word_group_ids);
 
 }  // namespace blender::string_search

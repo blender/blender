@@ -14,11 +14,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../windowmanager
-<<<<<<< HEAD
-  ../../../../intern/atomic
-  ../../../../intern/guardedalloc
-=======
->>>>>>> main
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna

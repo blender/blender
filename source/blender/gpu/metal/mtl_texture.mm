@@ -198,7 +198,22 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
         mip_texture_base_level_,
         min_ii(mip_texture_max_level_, (int)texture_.mipmapLevelCount),
         range_len);
+#ifndef NDEBUG
+    mip_swizzle_view_.label = [NSString
+        stringWithFormat:
+            @"MipSwizzleView_%s__format=%u_type=%u_baselevel=%u_numlevels=%u_swizzle='%c%c%c%c'",
+            [[texture_ label] UTF8String],
+            (uint)texture_view_pixel_format,
+            (uint)texture_view_texture_type,
+            (uint)mip_texture_base_level_,
+            (uint)range_len,
+            tex_swizzle_mask_[0],
+            tex_swizzle_mask_[1],
+            tex_swizzle_mask_[2],
+            tex_swizzle_mask_[3]];
+#else
     mip_swizzle_view_.label = [texture_ label];
+#endif
     texture_view_dirty_flags_ = TEXTURE_VIEW_NOT_DIRTY;
   }
 }
@@ -1189,7 +1204,7 @@ void gpu::MTLTexture::generate_mipmap()
   }
 
   /* Ensure mipmaps. */
-  this->ensure_mipmaps(9999);
+  this->ensure_mipmaps(mtl_max_mips_);
 
   /* Ensure texture is baked. */
   this->ensure_baked();

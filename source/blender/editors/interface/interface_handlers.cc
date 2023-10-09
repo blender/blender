@@ -3415,7 +3415,7 @@ void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete)
   wm_window_IME_begin(but->active->window, x, y - 4, 0, 0, complete);
 }
 
-wmIMEData *ui_but_ime_data_get(uiBut *but)
+const wmIMEData *ui_but_ime_data_get(uiBut *but)
 {
   if (but->active && but->active->window) {
     return but->active->window->ime_data;
@@ -3706,8 +3706,8 @@ static void ui_do_but_textedit(
 
 #ifdef WITH_INPUT_IME
   wmWindow *win = CTX_wm_window(C);
-  wmIMEData *ime_data = win->ime_data;
-  const bool is_ime_composing = ime_data && ime_data->is_ime_composing;
+  const wmIMEData *ime_data = win->ime_data;
+  const bool is_ime_composing = ime_data && win->ime_data_is_composing;
 #else
   const bool is_ime_composing = false;
 #endif
@@ -3771,14 +3771,21 @@ static void ui_do_but_textedit(
         inbox = ui_searchbox_inside(data->searchbox, event->xy);
       }
 
-      /* for double click: we do a press again for when you first click on button
-       * (selects all text, no cursor pos) */
+      bool is_press_in_button = false;
       if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK)) {
         float mx = event->xy[0];
         float my = event->xy[1];
         ui_window_to_block_fl(data->region, block, &mx, &my);
 
         if (ui_but_contains_pt(but, mx, my)) {
+          is_press_in_button = true;
+        }
+      }
+
+      /* for double click: we do a press again for when you first click on button
+       * (selects all text, no cursor pos) */
+      if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK)) {
+        if (is_press_in_button) {
           ui_textedit_set_cursor_pos(but, data, event->xy[0]);
           but->selsta = but->selend = but->pos;
           data->sel_pos_init = but->pos;
@@ -3798,15 +3805,22 @@ static void ui_do_but_textedit(
 
       /* only select a word in button if there was no selection before */
       if (event->val == KM_DBL_CLICK && had_selection == false) {
-        int selsta, selend;
-        BLI_str_cursor_step_bounds_utf8(data->str, strlen(data->str), but->pos, &selsta, &selend);
-        but->pos = short(selend);
-        but->selsta = short(selsta);
-        but->selend = short(selend);
-        /* Anchor selection to the left side unless the last word. */
-        data->sel_pos_init = ((selend == strlen(data->str)) && (selsta != 0)) ? selend : selsta;
-        retval = WM_UI_HANDLER_BREAK;
-        changed = true;
+        if (is_press_in_button) {
+          const int str_len = strlen(data->str);
+          /* This may not be necessary, additional check to ensure `pos` is never out of range,
+           * since negative values aren't acceptable, see: #113154. */
+          CLAMP(but->pos, 0, str_len);
+
+          int selsta, selend;
+          BLI_str_cursor_step_bounds_utf8(data->str, str_len, but->pos, &selsta, &selend);
+          but->pos = short(selend);
+          but->selsta = short(selsta);
+          but->selend = short(selend);
+          /* Anchor selection to the left side unless the last word. */
+          data->sel_pos_init = ((selend == str_len) && (selsta != 0)) ? selend : selsta;
+          retval = WM_UI_HANDLER_BREAK;
+          changed = true;
+        }
       }
       else if (inbox) {
         /* if we allow activation on key press,
@@ -10304,12 +10318,14 @@ static int ui_handle_menu_letter_press(
       after->opptr = MEM_cnew<PointerRNA>(__func__);
       WM_operator_properties_create_ptr(after->opptr, ot);
       RNA_string_set(after->opptr, "menu_idname", menu->menu_idname);
-      const int num_bytes = BLI_str_utf8_size_or_error(event->utf8_buf);
-      if (num_bytes != -1) {
-        char buf[sizeof(event->utf8_buf) + 1];
-        memcpy(buf, event->utf8_buf, num_bytes);
-        buf[num_bytes] = '\0';
-        RNA_string_set(after->opptr, "initial_query", buf);
+      if (event->type != EVT_SPACEKEY) {
+        const int num_bytes = BLI_str_utf8_size_or_error(event->utf8_buf);
+        if (num_bytes != -1) {
+          char buf[sizeof(event->utf8_buf) + 1];
+          memcpy(buf, event->utf8_buf, num_bytes);
+          buf[num_bytes] = '\0';
+          RNA_string_set(after->opptr, "initial_query", buf);
+        }
       }
       menu->menuretval = UI_RETURN_OK;
       return WM_UI_HANDLER_BREAK;
@@ -10760,7 +10776,8 @@ static int ui_handle_menu_event(bContext *C,
         case EVT_WKEY:
         case EVT_XKEY:
         case EVT_YKEY:
-        case EVT_ZKEY: {
+        case EVT_ZKEY:
+        case EVT_SPACEKEY: {
           if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK) &&
               ((event->modifier & (KM_SHIFT | KM_CTRL | KM_OSKEY)) == 0) &&
               /* Only respond to explicit press to avoid the event that opened the menu

@@ -358,7 +358,9 @@ typedef struct wmWindow {
    * Input Method Editor data - complex character input (especially for Asian character input)
    * Currently WIN32 and APPLE, runtime-only data.
    */
-  struct wmIMEData *ime_data;
+  const struct wmIMEData *ime_data;
+  char ime_data_is_composing;
+  char _pad1[7];
 
   /** All events #wmEvent (ghost level events were handled). */
   ListBase event_queue;
@@ -378,6 +380,13 @@ typedef struct wmWindow {
 
   /** Private runtime info to show text in the status bar. */
   void *cursor_keymap_status;
+
+  /**
+   * The time when the key is pressed in milliseconds (see #GHOST_GetEventTime).
+   * Used to detect double-click events.
+   */
+  uint64_t eventstate_prev_press_time_ms;
+
 } wmWindow;
 
 #ifdef ime_data

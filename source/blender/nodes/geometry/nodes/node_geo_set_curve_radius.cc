@@ -12,8 +12,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Curve").supported_type(GeometryComponent::Type::Curve);
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Float>("Radius").min(0.0f).default_value(0.005f).field_on_all().subtype(
-      PROP_DISTANCE);
+  b.add_input<decl::Float>("Radius")
+      .min(0.0f)
+      .default_value(0.005f)
+      .subtype(PROP_DISTANCE)
+      .field_on_all();
   b.add_output<decl::Geometry>("Curve").propagate_all();
 }
 

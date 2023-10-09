@@ -1005,13 +1005,13 @@ void WM_drag_draw_default_fn(bContext *C, wmWindow *win, wmDrag *drag, const int
 
 void wm_drags_draw(bContext *C, wmWindow *win)
 {
-  int xy[2];
-  if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
-    wm_cursor_position_get(win, &xy[0], &xy[1]);
-  }
-  else {
-    xy[0] = win->eventstate->xy[0];
-    xy[1] = win->eventstate->xy[1];
+  const int *xy = win->eventstate->xy;
+
+  int xy_buf[2];
+  if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide) &&
+      wm_cursor_position_get(win, &xy_buf[0], &xy_buf[1]))
+  {
+    xy = xy_buf;
   }
 
   bScreen *screen = CTX_wm_screen(C);

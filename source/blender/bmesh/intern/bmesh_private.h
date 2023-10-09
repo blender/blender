@@ -89,11 +89,6 @@ enum {
  */
 void poly_rotate_plane(const float normal[3], float (*verts)[3], uint nverts);
 
-void bm_kill_only_face(BMesh *bm, BMFace *f);
-void bm_kill_only_loop(BMesh *bm, BMLoop *l);
-const char *bm_get_error_str(int err);
-int bmesh_elem_check(void *element, const char htype);
-
 /* include the rest of our private declarations */
 #include "bmesh_structure.h"
 

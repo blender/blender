@@ -327,7 +327,7 @@ void VelocityModule::end_sync()
 {
   Vector<ObjectKey, 0> deleted_obj;
 
-  uint32_t max_resource_id_ = 1u;
+  uint32_t max_resource_id_ = 0u;
 
   for (MapItem<ObjectKey, VelocityObjectData> item : velocity_map.items()) {
     if (item.value.obj.resource_id == uint32_t(-1)) {
@@ -350,7 +350,7 @@ void VelocityModule::end_sync()
     velocity_map.remove(key);
   }
 
-  indirection_buf.resize(ceil_to_multiple_u(max_resource_id_, 128));
+  indirection_buf.resize(ceil_to_multiple_u(max_resource_id_ + 1, 128));
 
   /* Avoid uploading more data to the GPU as well as an extra level of
    * indirection on the GPU by copying back offsets the to VelocityIndex. */

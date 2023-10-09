@@ -601,17 +601,19 @@ static void timeline_cache_color_get(PTCacheID *pid, float color[4])
   }
 }
 
-static void timeline_cache_modify_color_based_on_state(PointCache *cache, float color[4])
+static void timeline_cache_modify_color_based_on_state(PointCache *cache,
+                                                       float color[4],
+                                                       float color_state[4])
 {
   if (cache->flag & PTCACHE_BAKED) {
-    color[0] -= 0.4f;
-    color[1] -= 0.4f;
-    color[2] -= 0.4f;
+    color[3] = color_state[3] = 1.0f;
   }
   else if (cache->flag & PTCACHE_OUTDATED) {
-    color[0] += 0.4f;
-    color[1] += 0.4f;
-    color[2] += 0.4f;
+    color[3] = color_state[3] = 0.7f;
+    mul_v3_fl(color_state, 0.5f);
+  }
+  else {
+    color[3] = color_state[3] = 0.7f;
   }
 }
 
@@ -677,7 +679,7 @@ static void timeline_cache_draw_cached_segments(PointCache *cache, uint pos_id)
   int segment_start;
   int segment_end;
   while (timeline_cache_find_next_cached_segment(cache, current, &segment_start, &segment_end)) {
-    immRectf_fast(pos_id, segment_start - 0.5f, 0, segment_end + 0.5f, 1.0f);
+    immRectf_fast(pos_id, segment_start, 0, segment_end + 1.0f, 1.0f);
     current = segment_end + 1;
   }
 
@@ -690,15 +692,28 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
   GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + y_offset);
   GPU_matrix_scale_2f(1.0, height);
 
-  float color[4];
+  blender::ColorTheme4f color;
   timeline_cache_color_get(pid, color);
 
-  immUniformColor4fv(color);
+  /* Mix in the background color to tone it down a bit. */
+  blender::ColorTheme4f background;
+  UI_GetThemeColor4fv(TH_BACK, background);
+
+  interp_v3_v3v3(color, color, background, 0.6f);
+
+  /* Highlight the frame range of the simulation. */
+  immUniform4fv("color1", color);
+  immUniform4fv("color2", color);
   immRectf(pos_id, float(pid->cache->startframe), 0.0, float(pid->cache->endframe), 1.0);
 
-  color[3] = 0.4f;
-  timeline_cache_modify_color_based_on_state(pid->cache, color);
-  immUniformColor4fv(color);
+  /* Now show the cached frames on top. */
+  blender::ColorTheme4f color_state;
+  copy_v4_v4(color_state, color);
+
+  timeline_cache_modify_color_based_on_state(pid->cache, color, color_state);
+
+  immUniform4fv("color1", color);
+  immUniform4fv("color2", color_state);
 
   timeline_cache_draw_cached_segments(pid->cache, pos_id);
 
@@ -748,13 +763,14 @@ static void timeline_cache_draw_simulation_nodes(
   GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + *y_offset);
   GPU_matrix_scale_2f(1.0, line_height);
 
-  blender::float4 base_color;
+  blender::ColorTheme4f base_color;
   UI_GetThemeColor4fv(TH_SIMULATED_FRAMES, base_color);
-  blender::float4 invalid_color = base_color;
-  invalid_color.w *= 0.4f;
-  blender::float4 valid_color = base_color;
-  valid_color.w *= 0.7f;
-  blender::float4 baked_color = base_color;
+  blender::ColorTheme4f invalid_color = base_color;
+  mul_v3_fl(invalid_color, 0.5f);
+  invalid_color.a *= 0.7f;
+  blender::ColorTheme4f valid_color = base_color;
+  valid_color.a *= 0.7f;
+  blender::ColorTheme4f baked_color = base_color;
 
   float max_used_height = 1.0f;
   for (const int range_i : frame_ranges.index_range()) {
@@ -785,14 +801,16 @@ static void timeline_cache_draw_simulation_nodes(
     }
 
     if (all_simulations_baked) {
-      immUniformColor4fv(baked_color);
+      immUniform4fv("color1", baked_color);
+      immUniform4fv("color2", baked_color);
       immBeginAtMost(GPU_PRIM_TRIS, 6);
       immRectf_fast(pos_id, start_frame, 0, end_frame + 1.0f, 1.0f);
       immEnd();
     }
     else {
       if (has_valid_at_frame || has_invalid_at_frame) {
-        immUniformColor4fv(has_invalid_at_frame ? invalid_color : valid_color);
+        immUniform4fv("color1", valid_color);
+        immUniform4fv("color2", has_invalid_at_frame ? invalid_color : valid_color);
         immBeginAtMost(GPU_PRIM_TRIS, 6);
         const float top = has_bake ? 2.0f : 1.0f;
         immRectf_fast(pos_id, start_frame, 0.0f, end_frame + 1.0f, top);
@@ -800,14 +818,14 @@ static void timeline_cache_draw_simulation_nodes(
         max_used_height = top;
       }
       if (has_bake_at_frame) {
-        immUniformColor4fv(baked_color);
+        immUniform4fv("color1", baked_color);
+        immUniform4fv("color2", baked_color);
         immBeginAtMost(GPU_PRIM_TRIS, 6);
         immRectf_fast(pos_id, start_frame, 0, end_frame + 1.0f, 1.0f);
         immEnd();
       }
     }
   }
-
   GPU_matrix_pop();
 
   *y_offset += max_used_height * 2;
@@ -824,13 +842,17 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
 
   uint pos_id = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* Iterate over point-caches on the active object, and draw each one's range. */
   float y_offset = 0.0f;
   const float cache_draw_height = 4.0f * UI_SCALE_FAC * U.pixelsize;
+
+  immUniform1i("size1", cache_draw_height * 2.0f);
+  immUniform1i("size2", cache_draw_height);
+
   LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
     if (timeline_cache_is_hidden_by_setting(saction, pid)) {
       continue;

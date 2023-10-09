@@ -11,10 +11,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
-#include "BLI_array.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines_stack.h"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.h"
 
@@ -25,6 +25,8 @@
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
+
+using blender::Vector;
 
 /* use so valgrinds memcheck alerts us when undefined index is used.
  * TESTING ONLY! */
@@ -1139,12 +1141,6 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 #endif
   BMLoop *l_iter;
   BMLoop *l_first;
-  BMEdge **edges = nullptr;
-  BMEdge **deledges = nullptr;
-  BMVert **delverts = nullptr;
-  BLI_array_staticdeclare(edges, BM_DEFAULT_NGON_STACK_SIZE);
-  BLI_array_staticdeclare(deledges, BM_DEFAULT_NGON_STACK_SIZE);
-  BLI_array_staticdeclare(delverts, BM_DEFAULT_NGON_STACK_SIZE);
   BMVert *v1 = nullptr, *v2 = nullptr;
   int i;
   const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -1160,6 +1156,10 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 
   bm_elements_systag_enable(faces, totface, _FLAG_JF);
 
+  Vector<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges;
+  Vector<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> deledges;
+  Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> delverts;
+
   for (i = 0; i < totface; i++) {
     f = faces[i];
     l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -1171,7 +1171,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
         goto error;
       }
       else if (rlen == 1) {
-        BLI_array_append(edges, l_iter->e);
+        edges.append(l_iter->e);
 
         if (!v1) {
           v1 = l_iter->v;
@@ -1187,7 +1187,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
            * else this will remove the face as well - campbell */
           if (!BM_edge_face_count_is_over(l_iter->e, 2)) {
             if (do_del) {
-              BLI_array_append(deledges, l_iter->e);
+              deledges.append(l_iter->e);
             }
             BM_ELEM_API_FLAG_ENABLE(l_iter->e, _FLAG_JF);
           }
@@ -1195,14 +1195,14 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
         else {
           if (d1 && !BM_ELEM_API_FLAG_TEST(l_iter->e->v1, _FLAG_JF)) {
             if (do_del) {
-              BLI_array_append(delverts, l_iter->e->v1);
+              delverts.append(l_iter->e->v1);
             }
             BM_ELEM_API_FLAG_ENABLE(l_iter->e->v1, _FLAG_JF);
           }
 
           if (d2 && !BM_ELEM_API_FLAG_TEST(l_iter->e->v2, _FLAG_JF)) {
             if (do_del) {
-              BLI_array_append(delverts, l_iter->e->v2);
+              delverts.append(l_iter->e->v2);
             }
             BM_ELEM_API_FLAG_ENABLE(l_iter->e->v2, _FLAG_JF);
           }
@@ -1223,9 +1223,9 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
   }
 
   /* create region face */
-  f_new = BLI_array_len(edges) ?
+  f_new = !edges.is_empty() ?
               BM_face_create_ngon(
-                  bm, v1, v2, edges, BLI_array_len(edges), faces[0], BM_CREATE_NOP) :
+                  bm, v1, v2, edges.data(), edges.size(), faces[0], BM_CREATE_NOP) :
               nullptr;
   if (UNLIKELY(f_new == nullptr)) {
     /* Invalid boundary region to join faces */
@@ -1292,12 +1292,12 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 
   /* delete old geometry */
   if (do_del) {
-    for (i = 0; i < BLI_array_len(deledges); i++) {
-      BM_edge_kill(bm, deledges[i]);
+    for (BMEdge *edge : deledges) {
+      BM_edge_kill(bm, edge);
     }
 
-    for (i = 0; i < BLI_array_len(delverts); i++) {
-      BM_vert_kill(bm, delverts[i]);
+    for (BMVert *vert : delverts) {
+      BM_vert_kill(bm, vert);
     }
   }
   else {
@@ -1307,18 +1307,11 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
     }
   }
 
-  BLI_array_free(edges);
-  BLI_array_free(deledges);
-  BLI_array_free(delverts);
-
   BM_CHECK_ELEMENT(f_new);
   return f_new;
 
 error:
   bm_elements_systag_disable(faces, totface, _FLAG_JF);
-  BLI_array_free(edges);
-  BLI_array_free(deledges);
-  BLI_array_free(delverts);
 
   return nullptr;
 }
@@ -1776,7 +1769,7 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
     if (check_edge_exists) {
       if (e_splice) {
         /* removes e_splice */
-        BM_edge_splice(bm, e_old, e_splice, false);
+        BM_edge_splice(bm, e_old, e_splice);
       }
     }
 
@@ -1803,90 +1796,6 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
     return e_old;
   }
   return nullptr;
-}
-
-BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
-                                              BMEdge *e_kill,
-                                              BMVert *v_kill,
-                                              const bool do_del,
-                                              const bool check_edge_exists,
-                                              const bool kill_degenerate_faces,
-                                              const bool combine_flags)
-{
-  BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
-  BMVert *v_target = BM_edge_other_vert(e_kill, v_kill);
-
-  BLI_assert(BM_vert_in_edge(e_kill, v_kill));
-
-  if (e_kill->l) {
-    BMLoop *l_kill, *l_first, *l_kill_next;
-    l_kill = l_first = e_kill->l;
-    do {
-      /* relink loops and fix vertex pointer */
-      if (l_kill->next->v == v_kill) {
-        l_kill->next->v = v_target;
-      }
-
-      l_kill->next->prev = l_kill->prev;
-      l_kill->prev->next = l_kill->next;
-      if (BM_FACE_FIRST_LOOP(l_kill->f) == l_kill) {
-        BM_FACE_FIRST_LOOP(l_kill->f) = l_kill->next;
-      }
-
-      /* fix len attribute of face */
-      l_kill->f->len--;
-      if (kill_degenerate_faces) {
-        if (l_kill->f->len < 3) {
-          BLI_SMALLSTACK_PUSH(faces_degenerate, l_kill->f);
-        }
-      }
-      l_kill_next = l_kill->radial_next;
-
-      bm_kill_only_loop(bm, l_kill);
-
-    } while ((l_kill = l_kill_next) != l_first);
-
-    e_kill->l = nullptr;
-  }
-
-  BM_edge_kill(bm, e_kill);
-  BM_CHECK_ELEMENT(v_kill);
-  BM_CHECK_ELEMENT(v_target);
-
-  if (v_target->e && v_kill->e) {
-    /* Inline `BM_vert_splice(bm, v_target, v_kill)`. */
-    BMEdge *e;
-    while ((e = v_kill->e)) {
-      BMEdge *e_target;
-
-      if (check_edge_exists) {
-        e_target = BM_edge_exists(v_target, BM_edge_other_vert(e, v_kill));
-      }
-
-      bmesh_edge_vert_swap(e, v_target, v_kill);
-      BLI_assert(e->v1 != e->v2);
-
-      if (check_edge_exists) {
-        if (e_target) {
-          BM_edge_splice(bm, e_target, e, combine_flags);
-        }
-      }
-    }
-  }
-
-  if (kill_degenerate_faces) {
-    BMFace *f_kill;
-    while ((f_kill = static_cast<BMFace *>(BLI_SMALLSTACK_POP(faces_degenerate)))) {
-      BM_face_kill(bm, f_kill);
-    }
-  }
-
-  if (do_del) {
-    BLI_assert(v_kill->e == nullptr);
-    bm_kill_only_vert(bm, v_kill);
-  }
-
-  return v_target;
 }
 
 BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
@@ -2230,8 +2139,7 @@ static void bmesh_kernel_vert_separate__cleanup(BMesh *bm, LinkNode *edges_separ
       do {
         BMEdge *e = static_cast<BMEdge *>(n_step->link);
         BLI_assert(e != e_orig);
-        if ((e->v1 == e_orig->v1) && (e->v2 == e_orig->v2) && BM_edge_splice(bm, e_orig, e, false))
-        {
+        if ((e->v1 == e_orig->v1) && (e->v2 == e_orig->v2) && BM_edge_splice(bm, e_orig, e)) {
           /* don't visit again */
           n_prev->next = n_step->next;
         }
@@ -2339,7 +2247,7 @@ void BM_vert_separate_tested_edges(
 
 /** \} */
 
-bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src, bool combine_flags)
+bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src)
 {
   BMLoop *l;
 
@@ -2365,19 +2273,6 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src, bool combine_flags)
 
   BM_CHECK_ELEMENT(e_src);
   BM_CHECK_ELEMENT(e_dst);
-
-  if (combine_flags) {
-    /* Sharp flag is inverted to BM_ELEM_SMOOTH which we
-     *  must take into account.
-     */
-
-    if (!(e_dst->head.hflag & BM_ELEM_SMOOTH) || !(e_src->head.hflag & BM_ELEM_SMOOTH)) {
-      e_dst->head.hflag = (e_dst->head.hflag | e_src->head.hflag) & ~BM_ELEM_SMOOTH;
-    }
-    else {
-      e_dst->head.hflag |= e_src->head.hflag;
-    }
-  }
 
   /* removes from disks too */
   BM_edge_kill(bm, e_src);

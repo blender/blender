@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-struct PBVHAttrReq;
+class PBVHAttrReq;
 struct GPUBatch;
 struct PBVHNode;
 struct PBVHBatches;
