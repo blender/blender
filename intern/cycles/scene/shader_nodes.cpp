@@ -2511,13 +2511,7 @@ GlassBsdfNode::GlassBsdfNode() : BsdfNode(get_node_type())
 void GlassBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = distribution;
-
-  if (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID) {
-    BsdfNode::compile(compiler, input("Roughness"), input("IOR"), input("Color"));
-  }
-  else {
-    BsdfNode::compile(compiler, input("Roughness"), input("IOR"));
-  }
+  BsdfNode::compile(compiler, input("Roughness"), input("IOR"), input("Color"));
 }
 
 void GlassBsdfNode::compile(OSLCompiler &compiler)

@@ -29,7 +29,7 @@ class SequencerCrossfadeSounds(Operator):
         scene = context.scene
         seq1 = None
         seq2 = None
-        for strip in scene.sequence_editor.sequences:
+        for strip in scene.sequence_editor.sequences_all:
             if strip.select and strip.type == 'SOUND':
                 if seq1 is None:
                     seq1 = strip
