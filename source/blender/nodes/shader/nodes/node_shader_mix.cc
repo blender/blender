@@ -260,9 +260,7 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
   for (const EnumPropertyItem *item = rna_enum_ramp_blend_items; item->identifier != nullptr;
        item++) {
     if (item->name != nullptr && item->identifier[0] != '\0') {
-      params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
-                      SocketSearchOp{socket_name, item->value},
-                      weight);
+      params.add_item(IFACE_(item->name), SocketSearchOp{socket_name, item->value}, weight);
     }
   }
 }

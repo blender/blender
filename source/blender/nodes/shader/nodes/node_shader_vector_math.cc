@@ -67,12 +67,12 @@ static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &p
                                                 NODE_VECTOR_MATH_DISTANCE,
                                                 NODE_VECTOR_MATH_DOT_PRODUCT))
       {
-        params.add_item(IFACE_(item->name),
+        params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
                         SocketSearchOp{"Value", (NodeVectorMathOperation)item->value},
                         weight);
       }
       else {
-        params.add_item(IFACE_(item->name),
+        params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
                         SocketSearchOp{"Vector", (NodeVectorMathOperation)item->value},
                         weight);
       }
