@@ -820,8 +820,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
 
 void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
-  /* This disables the status bar text that is set when opening a menu that supports search (see
-   * #MenuTypeFlag::SearchOnKeyPress). */
+  /* This disables the status bar text that is set when opening a menu. */
   ED_workspace_status_text(C, nullptr);
 
   /* If this popup is created from a popover which does NOT have keep-open flag set,
