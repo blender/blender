@@ -205,7 +205,7 @@ static void editselect_buf_cache_init(ViewContext *vc, short select_mode)
     Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
         vc->scene, vc->view_layer, vc->v3d, &bases_len);
 
-    DRW_select_buffer_context_create(bases, bases_len, select_mode);
+    DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, select_mode);
     MEM_freeN(bases);
   }
   else {
@@ -213,7 +213,7 @@ static void editselect_buf_cache_init(ViewContext *vc, short select_mode)
     if (vc->obact) {
       BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
       Base *base = BKE_view_layer_base_find(vc->view_layer, vc->obact);
-      DRW_select_buffer_context_create(&base, 1, select_mode);
+      DRW_select_buffer_context_create(vc->depsgraph, &base, 1, select_mode);
     }
   }
 }

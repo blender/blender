@@ -142,10 +142,7 @@ void DRW_draw_depth_object(struct Scene *scene,
                            struct View3D *v3d,
                            struct GPUViewport *viewport,
                            struct Object *object);
-void DRW_draw_select_id(struct Depsgraph *depsgraph,
-                        struct ARegion *region,
-                        struct View3D *v3d,
-                        const struct rcti *rect);
+void DRW_draw_select_id(struct Depsgraph *depsgraph, struct ARegion *region, struct View3D *v3d);
 
 /* Grease pencil render. */
 

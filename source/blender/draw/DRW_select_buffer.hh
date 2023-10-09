@@ -8,8 +8,8 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_sys_types.h" /* for bool and uint */
-#include "BLI_vector.hh"
 
 struct ARegion;
 struct Base;
@@ -22,6 +22,11 @@ struct SELECTID_ObjectData {
   DrawData dd;
 
   uint drawn_index;
+
+  /* Used to avoid adding to the pass more than once. */
+  bool in_pass;
+
+  /* Used to detect and remove objects that are not included in the array. */
   bool is_drawn;
 };
 
@@ -44,25 +49,17 @@ struct ObjectOffsets {
 
 struct SELECTID_Context {
   /* All context objects */
-  blender::Vector<Object *> objects;
-
-  /* Array with only drawn objects. When a new object is found within the rect,
-   * it is added to the end of the list.
-   * The list is reset to any viewport or context update. */
-  blender::Vector<Object *> objects_drawn;
-  blender::Vector<ObjectOffsets> index_offsets;
+  blender::Array<Object *> objects;
+  blender::Array<ObjectOffsets> index_offsets;
 
   /** Total number of element indices `index_offsets[object_drawn_len - 1].vert`. */
   uint index_drawn_len;
 
   short select_mode;
 
-  /* rect is used to check which objects whose indexes need to be drawn. */
-  rcti last_rect;
-
   /* To check for updates. */
   float persmat[4][4];
-  bool is_dirty;
+  bool is_dirty(RegionView3D *rv3d);
 };
 
 /* `draw_select_buffer.cc` */
@@ -126,4 +123,7 @@ uint DRW_select_buffer_find_nearest_to_point(Depsgraph *depsgraph,
                                              uint id_min,
                                              uint id_max,
                                              uint *dist);
-void DRW_select_buffer_context_create(Base **bases, uint bases_len, short select_mode);
+void DRW_select_buffer_context_create(Depsgraph *depsgraph,
+                                      Base **bases,
+                                      uint bases_len,
+                                      short select_mode);

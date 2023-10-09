@@ -47,7 +47,6 @@ struct SELECTID_PrivateData {
   DRWShadingGroup *shgrp_edge;
   DRWShadingGroup *shgrp_vert;
 
-  DRWView *view_subregion;
   DRWView *view_faces;
   DRWView *view_edges;
   DRWView *view_verts;
@@ -55,7 +54,6 @@ struct SELECTID_PrivateData {
 
 /* `select_draw_utils.cc` */
 
-void select_id_object_min_max(Object *obj, float r_min[3], float r_max[3]);
 short select_id_get_object_select_mode(Scene *scene, Object *ob);
 void select_id_draw_object(void *vedata,
                            View3D *v3d,
