@@ -620,7 +620,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   copy_v2_v2_int(walk->init_mval, mval);
   copy_v2_v2_int(walk->prev_mval, mval);
 
-  WM_cursor_grab_enable(win, WM_CURSOR_WRAP_NONE, nullptr, true);
+  WM_cursor_grab_enable(win, WM_CURSOR_WRAP_NONE, &walk->region->winrct, true);
 
   return true;
 }
