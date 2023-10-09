@@ -37,6 +37,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
+#include "BLI_math_matrix_types.hh"
 
 #include "ED_view3d.hh"
 
@@ -2331,7 +2332,7 @@ void SCULPT_topology_islands_invalidate(SculptSession *ss);
 int SCULPT_vertex_island_get(const SculptSession *ss, PBVHVertRef vertex);
 
 /* Creates a tangent frame for relative repeat last stroke. */
-void SCULPT_create_repeat_frame(Object *ob, float mat[3][3], float viewinv[4][4], float normal[3]);
+blender::float3x3 SCULPT_create_repeat_frame(Object *ob, blender::float4x4 viewinv, blender::float3 normal);
 
 /** \} */
 

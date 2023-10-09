@@ -13,7 +13,7 @@
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_vector_types.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -1683,18 +1683,14 @@ static wmOperator *repeat_last_get_op(wmWindowManager *wm)
 
 static bool repeat_history_rel_poll(bContext *C)
 {
-  if (!SCULPT_poll(C) || !repeat_last_get_op(CTX_wm_manager(C))) {
-    return false;
-  }
-  if (!ED_operator_screenactive(C)) {
-    return false;
-  }
-  wmWindowManager *wm = CTX_wm_manager(C);
-  return !BLI_listbase_is_empty(&wm->operators);
+  return SCULPT_poll(C) && repeat_last_get_op(CTX_wm_manager(C));
 }
 
 static int repeat_last_rel_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
+  using namespace blender::math;
+  using namespace blender;
+
   wmWindowManager *wm = CTX_wm_manager(C);
   wmOperator *lastop = repeat_last_get_op(wm);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -1714,38 +1710,33 @@ static int repeat_last_rel_invoke(bContext *C, wmOperator * /*op*/, const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  /* Get center. */
-  float cent[3], cent_new[3];
-  copy_v3_v3(cent_new, sgi.location);
-
   /* Get tangent matrices. */
-  float tangent[3][3];
-
+  float3x3 tangent;
   RNA_float_get_array(lastop->ptr, "repeat_tangent_frame", &tangent[0][0]);
-  invert_m3(tangent);
-
-  float tangent_new[3][3];
-  SCULPT_create_repeat_frame(ob, tangent_new, rv3d->viewinv, ss->cursor_normal);
+  tangent = invert(tangent);
 
   /* Final tangent matrix. */
-  mul_m3_m3m3(tangent_new, tangent_new, tangent);
+  float3x3 tangent_new = SCULPT_create_repeat_frame(
+      ob, float4x4(rv3d->viewinv), ss->cursor_normal);
+  tangent_new = tangent_new * tangent;
+
+  /* Get center. */
+  float3 cent_old;
+  float3 cent_new = sgi.location;
 
   /* Offset. */
   int i = 0;
   RNA_BEGIN (lastop->ptr, itemptr, "stroke") {
-    float co[3];
+    float3 co;
     RNA_float_get_array(&itemptr, "location", co);
 
     if (i == 0) {
-      copy_v3_v3(cent, co);
+      cent_old = co;
     }
 
-    sub_v3_v3(co, cent);
-    mul_m3_v3(tangent_new, co);
-    add_v3_v3(co, cent_new);
+    co = tangent_new * (co - cent_old) + cent_new;
 
     RNA_float_set_array(&itemptr, "location", co);
-
     i++;
   }
   RNA_END;

@@ -632,6 +632,7 @@ static void paint_brush_stroke_add_step(
     RNA_float_set(&itemptr, "pressure", pressure);
     RNA_float_set(&itemptr, "x_tilt", stroke->x_tilt);
     RNA_float_set(&itemptr, "y_tilt", stroke->y_tilt);
+    RNA_float_set(&itemptr, "overlap_factor", stroke->ups->overlap_factor);
 
     stroke->update_step(C, op, stroke, &itemptr);
 
@@ -1653,6 +1654,7 @@ int paint_stroke_exec(bContext *C, wmOperator *op, PaintStroke *stroke)
 
   if (stroke->stroke_started) {
     RNA_BEGIN (op->ptr, itemptr, "stroke") {
+      stroke->ups->overlap_factor = RNA_float_get(&itemptr, "overlap_factor");
       stroke->update_step(C, op, stroke, &itemptr);
     }
     RNA_END;

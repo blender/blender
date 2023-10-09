@@ -24,6 +24,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_set.hh"
 #include "BLI_task.h"
@@ -89,8 +90,12 @@
 #include "bmesh_idmap.h"
 
 using blender::float3;
-using blender::IndexRange;
 using blender::int2;
+using blender::float3x3;
+using blender::float4x4;
+using blender::int2;
+
+using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Set;
 using blender::Span;
@@ -6265,38 +6270,37 @@ bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)
   return false;
 }
 
-void SCULPT_create_repeat_frame(Object *ob, float mat[3][3], float viewinv[4][4], float normal[3])
+float3x3 SCULPT_create_repeat_frame(Object *ob, float4x4 viewinv, float3 normal)
 {
-  float viewTan[3] = {1.0f, 0.0f, 0.0f};
+  using namespace blender::math;
 
-  invert_m4_m4(ob->world_to_object, ob->object_to_world);
-  copy_m3_m4(mat, viewinv);
+  float3 view_tan = {1.0f, 0.0f, 0.0f};
+  bool success;
+
+  float4x4 world_to_object = invert(float4x4(ob->object_to_world), success);
 
   /* Get view tangent (x axis). */
-  mul_m3_v3(mat, viewTan);
-  copy_m3_m4(mat, ob->world_to_object);
-  mul_m3_v3(mat, viewTan);
-  normalize_v3(viewTan);
+  view_tan = float3x3(viewinv * world_to_object) * view_tan;
+  view_tan = normalize(view_tan);
 
-  copy_v3_v3(mat[2], normal);
-  negate_v3(mat[2]);
+  float3x3 repeat_frame;
+  repeat_frame[2] = normal;
 
-  if (fabs(dot_v3v3(mat[2], viewTan) - 1.0f) < 0.1) {
+  /* Avoid numerical instability when view tangent lines up with the normal. */
+  if (fabs(dot(repeat_frame[2], view_tan) - 1.0f) < 0.1f) {
     /* Get view binormal (y axis). */
-    float viewBin[3] = {0.0f, 1.0f, 0.0f};
-    mul_m3_v3(mat, viewBin);
-    copy_m3_m4(mat, ob->world_to_object);
-    mul_m3_v3(mat, viewBin);
-    normalize_v3(viewBin);
-
-    copy_v3_v3(mat[0], viewBin);
+    float3 view_bin = {0.0f, 1.0f, 0.0f};
+    view_bin = float3x3(viewinv * world_to_object) * view_bin;
+    repeat_frame[0] = normalize(view_bin);
   }
   else {
-    copy_v3_v3(mat[0], viewTan);
+    repeat_frame[0] = view_tan;
   }
 
-  cross_v3_v3v3(mat[1], mat[0], mat[2]);
-  cross_v3_v3v3(mat[0], mat[2], mat[1]);
+  repeat_frame[1] = cross(repeat_frame[0], repeat_frame[2]);
+  repeat_frame[0] = cross(repeat_frame[2], repeat_frame[1]);
+
+  return repeat_frame;
 }
 
 static bool sculpt_stroke_test_start(bContext *C, wmOperator *op, const float mval[2])
@@ -6339,9 +6343,8 @@ static bool sculpt_stroke_test_start(bContext *C, wmOperator *op, const float mv
 
     sculpt_stroke_undo_begin(C, op);
 
-    float mat[3][3];
-    SCULPT_create_repeat_frame(ob, mat, ss->cache->vc->rv3d->viewinv, ss->cache->initial_normal);
-    RNA_float_set_array(op->ptr, "repeat_tangent_frame", &mat[0][0]);
+    float3x3 frame = SCULPT_create_repeat_frame(ob, float4x4(ss->cache->vc->rv3d->viewinv), ss->cache->initial_normal);
+    RNA_float_set_array(op->ptr, "repeat_tangent_frame", &frame[0][0]);
 
     return true;
   }
@@ -6716,7 +6719,8 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
   paint_stroke_operator_properties(ot, true);
 
-  RNA_def_float_array(ot->srna, "repeat_tangent_frame", 9, 0, -1, 1, "", "", 0, 0);
+  PropertyRNA *prop = RNA_def_float_array(ot->srna, "repeat_tangent_frame", 9, 0, -1, 1, "", "", 0, 0);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE|PROP_HIDDEN);
 
   RNA_def_boolean(ot->srna,
                   "ignore_background_click",
