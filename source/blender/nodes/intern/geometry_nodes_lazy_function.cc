@@ -1617,12 +1617,14 @@ class LazyFunctionForRepeatZone : public LazyFunction {
         0, params.get_input<ValueOrField<int>>(zone_info_.indices.inputs.main[0]).as_value());
 
     /* Show a warning when the inspection index is out of range. */
-    if (node_storage.inspection_index < 0 || node_storage.inspection_index >= iterations) {
-      if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
-              user_data)) {
-        tree_logger->node_warnings.append(
-            {repeat_output_bnode_.identifier,
-             {NodeWarningType::Info, N_("Inspection index is out of range")}});
+    if (node_storage.inspection_index > 0) {
+      if (node_storage.inspection_index >= iterations) {
+        if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
+                user_data)) {
+          tree_logger->node_warnings.append(
+              {repeat_output_bnode_.identifier,
+               {NodeWarningType::Info, N_("Inspection index is out of range")}});
+        }
       }
     }
 

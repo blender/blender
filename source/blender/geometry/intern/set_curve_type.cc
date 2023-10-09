@@ -449,13 +449,28 @@ static bke::CurvesGeometry convert_curves_to_bezier(
                                      nurbs_to_bezier);
 
   for (bke::AttributeTransferData &attribute : generic_attributes) {
-    bke::curves::copy_point_data(
-        src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
-  }
-
-  for (bke::AttributeTransferData &attribute : generic_attributes) {
     attribute.dst.finish();
   }
+
+  src_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
+        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+          return true;
+        }
+        if (meta_data.domain != ATTR_DOMAIN_POINT) {
+          return true;
+        }
+
+        const GVArraySpan src = *src_attributes.lookup(id, meta_data.domain);
+        bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+            id, meta_data.domain, meta_data.data_type);
+
+        bke::curves::copy_point_data(
+            src_points_by_curve, dst_points_by_curve, unselected, src, dst.span);
+        dst.finish();
+
+        return true;
+      });
 
   return dst_curves;
 }
@@ -614,13 +629,28 @@ static bke::CurvesGeometry convert_curves_to_nurbs(
                                      nurbs_to_nurbs);
 
   for (bke::AttributeTransferData &attribute : generic_attributes) {
-    bke::curves::copy_point_data(
-        src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
-  }
-
-  for (bke::AttributeTransferData &attribute : generic_attributes) {
     attribute.dst.finish();
   }
+
+  src_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
+        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+          return true;
+        }
+        if (meta_data.domain != ATTR_DOMAIN_POINT) {
+          return true;
+        }
+
+        const GVArraySpan src = *src_attributes.lookup(id, meta_data.domain);
+        bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+            id, meta_data.domain, meta_data.data_type);
+
+        bke::curves::copy_point_data(
+            src_points_by_curve, dst_points_by_curve, unselected, src, dst.span);
+        dst.finish();
+
+        return true;
+      });
 
   return dst_curves;
 }
