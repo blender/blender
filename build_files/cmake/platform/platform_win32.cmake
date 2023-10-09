@@ -346,18 +346,23 @@ if(WITH_FFTW3)
 endif()
 
 if(WITH_IMAGE_WEBP)
-  windows_find_package(WebP)
-  if(NOT WEBP_FOUND)
-    if(EXISTS ${LIBDIR}/webp)
-      set(WEBP_INCLUDE_DIRS ${LIBDIR}/webp/include)
-      set(WEBP_ROOT_DIR ${LIBDIR}/webp)
-      set(WEBP_LIBRARIES ${LIBDIR}/webp/lib/webp.lib ${LIBDIR}/webp/lib/webpdemux.lib ${LIBDIR}/webp/lib/webpmux.lib)
-      set(WEBP_FOUND ON)
-    else()
-      message(STATUS "WITH_IMAGE_WEBP is ON but WEBP libraries are not found, setting WITH_IMAGE_WEBP=OFF")
-      set(WITH_IMAGE_WEBP OFF)
-    endif()
+  set(WEBP_INCLUDE_DIRS ${LIBDIR}/webp/include)
+  set(WEBP_ROOT_DIR ${LIBDIR}/webp)
+  if(EXISTS ${LIBDIR}/webp/lib/libsharpyuv.lib) # webp 1.3.x+
+    set(WEBP_LIBRARIES
+      ${LIBDIR}/webp/lib/libwebp.lib
+      ${LIBDIR}/webp/lib/libwebpdemux.lib
+      ${LIBDIR}/webp/lib/libwebpmux.lib
+      ${LIBDIR}/webp/lib/libsharpyuv.lib
+    )
+  else()
+    set(WEBP_LIBRARIES
+      ${LIBDIR}/webp/lib/webp.lib
+      ${LIBDIR}/webp/lib/webpdemux.lib
+      ${LIBDIR}/webp/lib/webpmux.lib
+    )
   endif()
+  set(WEBP_FOUND ON)
 endif()
 
 if(WITH_OPENCOLLADA)
