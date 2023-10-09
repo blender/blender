@@ -10304,45 +10304,19 @@ float ui_block_calc_pie_segment(uiBlock *block, const float event_xy[2])
   return len;
 }
 
-static int ui_handle_menu_letter_press(
-    bContext *C, ARegion *region, uiPopupBlockHandle *menu, const wmEvent *event, uiBlock *block)
+static int ui_handle_menu_letter_press(uiPopupBlockHandle *menu)
 {
-  /* Start menu search on key press if enabled. */
+  /* Start menu search on spacebar press if the menu has a name. */
   if (menu->menu_idname[0]) {
-    MenuType *mt = WM_menutype_find(menu->menu_idname, false);
-    if (bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) {
-      uiAfterFunc *after = ui_afterfunc_new();
-      wmOperatorType *ot = WM_operatortype_find("WM_OT_search_single_menu", false);
-      after->optype = ot;
-      after->opcontext = WM_OP_INVOKE_DEFAULT;
-      after->opptr = MEM_cnew<PointerRNA>(__func__);
-      WM_operator_properties_create_ptr(after->opptr, ot);
-      RNA_string_set(after->opptr, "menu_idname", menu->menu_idname);
-      if (event->type != EVT_SPACEKEY) {
-        const int num_bytes = BLI_str_utf8_size_or_error(event->utf8_buf);
-        if (num_bytes != -1) {
-          char buf[sizeof(event->utf8_buf) + 1];
-          memcpy(buf, event->utf8_buf, num_bytes);
-          buf[num_bytes] = '\0';
-          RNA_string_set(after->opptr, "initial_query", buf);
-        }
-      }
-      menu->menuretval = UI_RETURN_OK;
-      return WM_UI_HANDLER_BREAK;
-    }
-  }
-
-  /* Handle accelerator keys that allow "pressing" a menu entry by pressing a single key. */
-  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    if (!(but->flag & UI_BUT_DISABLED) && but->menu_key == event->type) {
-      if (but->type == UI_BTYPE_BUT) {
-        UI_but_execute(C, region, but);
-      }
-      else {
-        ui_handle_button_activate_by_type(C, region, but);
-      }
-      return WM_UI_HANDLER_BREAK;
-    }
+    uiAfterFunc *after = ui_afterfunc_new();
+    wmOperatorType *ot = WM_operatortype_find("WM_OT_search_single_menu", false);
+    after->optype = ot;
+    after->opcontext = WM_OP_INVOKE_DEFAULT;
+    after->opptr = MEM_cnew<PointerRNA>(__func__);
+    WM_operator_properties_create_ptr(after->opptr, ot);
+    RNA_string_set(after->opptr, "menu_idname", menu->menu_idname);
+    menu->menuretval = UI_RETURN_OK;
+    return WM_UI_HANDLER_BREAK;
   }
   return WM_UI_HANDLER_CONTINUE;
 }
@@ -10776,8 +10750,7 @@ static int ui_handle_menu_event(bContext *C,
         case EVT_WKEY:
         case EVT_XKEY:
         case EVT_YKEY:
-        case EVT_ZKEY:
-        case EVT_SPACEKEY: {
+        case EVT_ZKEY: {
           if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK) &&
               ((event->modifier & (KM_SHIFT | KM_CTRL | KM_OSKEY)) == 0) &&
               /* Only respond to explicit press to avoid the event that opened the menu
@@ -10788,9 +10761,32 @@ static int ui_handle_menu_event(bContext *C,
                     menu, but, level, is_parent_menu, retval)) {
               break;
             }
-            retval = ui_handle_menu_letter_press(C, region, menu, event, block);
+
+            /* Handle accelerator keys. */
+            LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+              if (!(but->flag & UI_BUT_DISABLED) && but->menu_key == event->type) {
+                if (but->type == UI_BTYPE_BUT) {
+                  UI_but_execute(C, region, but);
+                }
+                else {
+                  ui_handle_button_activate_by_type(C, region, but);
+                }
+                break;
+              }
+            }
+            retval = WM_UI_HANDLER_BREAK;
           }
           break;
+        }
+        case EVT_SPACEKEY: {
+          /* Press spacebar to start menu search. */
+          if ((level != 0) && (but == nullptr || !menu->menu_idname[0])) {
+            /* Search parent if the child is open but not activated or not searchable. */
+            menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;
+          }
+          else {
+            retval = ui_handle_menu_letter_press(menu);
+          }
         }
       }
     }
